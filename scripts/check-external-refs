@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Contrôle de désignation neutre des projets externes.
+
+Le dépôt ne nomme aucun IDE, éditeur ou projet tiers : ils sont désignés par
+« l'IDE de référence » ou par un identifiant neutre ([EXT-n]). Seules les
+dépendances réellement déclarées (fichiers de build, NOTICE) et les normes
+ou plateformes (Android, Java, Gradle, LSP, Unicode, MCP) échappent à la
+règle.
+
+Les motifs nominatifs sont lus dans la variable d'environnement
+CELERIS_FORBIDDEN_REFS (expressions rationnelles séparées par « ; ») et
+FORBIDDEN_REFS_EXTRA (idem, cumulatif) : **aucun motif nominatif n'est
+committé dans ce script**. En leur absence, le contrôle se limite aux
+heuristiques génériques et à l'avertissement correspondant — la CI, elle,
+définit toujours les motifs comme secret.
+
+Usage :  python3 scripts/check-external-refs [chemins...]
+"""
+
+import os
+import re
+import subprocess
+import sys
+
+# Heuristiques génériques : formulations de comparaison ou d'inspiration,
+# indépendantes de tout nom.
+GENERIC_PATTERNS = [
+    (r"\binspir[ée]e? de\b", "formulation « inspiré de »"),
+    (r"\bport de\b", "formulation « port de »"),
+    (r"\bmieux que\b", "formulation comparative"),
+    (r"\béquivalent de\b", "formulation « équivalent de »"),
+    (r"\bcomportement de\b", "formulation « comportement de »"),
+]
+
+EXEMPT_SUFFIXES = ("build.gradle.kts", "libs.versions.toml", "NOTICE", "LICENSE")
+
+# Fichiers d'outillage exemptés, avec justification :
+# - le présent script définit les motifs qu'il cherche (auto-référence) ;
+# - l'audit du dépôt de départ traite les dépendances qui y sont réellement
+#   déclarées (métadonnées de build : nom, version) — exception de même
+#   nature que NOTICE, restreinte à cet unique outil.
+EXEMPT_FILES = {"scripts/check-external-refs", "scripts/audit_etat_des_lieux.py"}
+
+
+def git_files() -> list:
+    out = subprocess.run(["git", "ls-files"], capture_output=True, text=True)
+    return [f for f in out.stdout.splitlines() if f.strip()]
+
+
+def forbidden_patterns() -> list:
+    env = os.environ.get("CELERIS_FORBIDDEN_REFS", "")
+    extra = os.environ.get("FORBIDDEN_REFS_EXTRA", "")
+    combined = f"{env};{extra}" if env and extra else (env or extra)
+    return [p for p in combined.split(";") if p.strip()]
+
+
+def main() -> int:
+    patterns = forbidden_patterns()
+    if not patterns:
+        print(
+            "avertissement : CELERIS_FORBIDDEN_REFS absente — "
+            "seules les heuristiques génériques s'appliquent (la CI doit "
+            "définir la variable comme secret)"
+        )
+    files = git_files() if os.path.isdir(".git") else []
+    if not files:
+        for root, _dirs, names in os.walk("."):
+            if "/.git" in root or "/.gradle" in root:
+                continue
+            files.extend(os.path.join(root, n) for n in names)
+    files = [f for f in files if not f.endswith(EXEMPT_SUFFIXES)]
+    files = [f.removeprefix("./") for f in files]
+    files = [f for f in files if f not in EXEMPT_FILES]
+
+    problems = []
+    compiled = []
+    for p in patterns:
+        try:
+            compiled.append(re.compile(p, re.IGNORECASE))
+        except re.error as err:
+            print(f"motif invalide dans CELERIS_FORBIDDEN_REFS : {err}", file=sys.stderr)
+            return 2
+    for f in files:
+        try:
+            with open(f, encoding="utf-8") as fh:
+                text = fh.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for rx in compiled:
+            for m in rx.finditer(text):
+                line = text.count("\n", 0, m.start()) + 1
+                problems.append(f"{f}:{line}: motif interdit « {m.group(0)} »")
+        for p, label in GENERIC_PATTERNS:
+            for m in re.finditer(p, text):
+                line = text.count("\n", 0, m.start()) + 1
+                problems.append(f"{f}:{line}: {label} (« {m.group(0)} »)")
+
+    for p in problems:
+        print(p)
+    print(f"références externes : {len(problems)} problème(s)")
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

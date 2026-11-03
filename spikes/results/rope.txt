@@ -1,0 +1,7 @@
+document : 50000 lignes x 40 caracteres = 2000000 caracteres
+tour 1 : moyenne 0.0066 ms/edition
+tour 2 : moyenne 0.0289 ms/edition
+tour 3 : moyenne 0.0019 ms/edition
+retenu (min des tours) : 0.0019 ms/edition
+p50 0.0020 ms ; p95 0.0046 ms ; max 25.3399 ms
+memoire approximative du modele : 2375 Ko pour 1953 Ko de texte (ratio 1.22)
