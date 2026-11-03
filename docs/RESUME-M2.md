@@ -53,6 +53,9 @@
   leur publication est différée à M2/M3 (écart n° 5 du résumé M1).
   Le travail « modules purs » est désormais rejoué intégralement en
   local avant chaque poussée (check, mutation, publication, fumée cli).
+- **CI verte au cinquième passage** (2b7baa2, 2026-11-04) : les deux
+  travaux passent toutes leurs étapes — critère de sortie M1 « CI verte
+  sur le squelette » désormais satisfait pour de bon.
 
 ### Vérifié localement (sans SDK Android)
 
