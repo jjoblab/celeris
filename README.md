@@ -13,12 +13,12 @@ Android, l'application de démonstration et un exécutable en ligne de commande.
 
 ## État du projet
 
-**M1 — fondations (en cours).** M0 — cadrage est **validé** par le
-propriétaire le 2026-11-04 : l'audit mesuré du dépôt de départ, la matrice de
-parité, les douze ADR acceptées et la feuille de route constituent le cadre
-de la réécriture ; le squelette des modules, l'outillage de build et la CI
-se mettent en place. Le point d'entrée est
-[`docs/RESUME-M0.md`](docs/RESUME-M0.md).
+**M1 — fondations (livrées, en attente de validation du propriétaire).**
+M0 est validé (2026-11-04) : le squelette des dix modules et de la
+démonstration est en place, l'outillage de build et les portes qualité sont
+bloquants, la CI est épinglée par somme SHA. Le point d'entrée est
+[`docs/RESUME-M1.md`](docs/RESUME-M1.md) ; le cadrage reste consultable
+dans [`docs/RESUME-M0.md`](docs/RESUME-M0.md).
 
 ## Modules prévus
 

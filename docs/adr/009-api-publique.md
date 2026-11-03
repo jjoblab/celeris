@@ -64,7 +64,8 @@ impose une API publique minimale et stable, vérifiée en CI dès la 0.1.
 
 ## Actions
 
-- [ ] M1 : choisir et intégrer le validateur de compatibilité binaire ;
-      manifeste d'API généré dès le premier module.
-- [ ] M1 : JSpecify + NullAway + Error Prone actifs, `-Werror`.
+- [x] M1 : choisir et intégrer le validateur de compatibilité binaire (tâches
+      apiManifest/apiCheck sur sortie javap normalisée) ; manifeste d'API
+      généré pour chaque module pur.
+- [x] M1 : JSpecify + NullAway + Error Prone actifs, `-Werror`.
 - [ ] M2 : geler l'API de `core-text` en 0.1.0 pour amorcer le cliquet.

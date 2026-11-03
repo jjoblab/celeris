@@ -83,7 +83,8 @@ voir ADR-001 — AGP 9.5.0, Gradle 9.8.2, `compileSdk`/`targetSdk` 36).
 
 ## Actions
 
-- [ ] M1 : `build-logic` + catalogue + publication vers le registre privé.
-- [ ] M1 : workflows CI épinglés par SHA, wrapper validé, scripts de
+- [x] M1 : `build-logic` + catalogue + publication (vérifiée localement ; cible le
+      registre de l'hébergeur, identifiants par environnement).
+- [x] M1 : workflows CI épinglés par SHA, wrapper validé, scripts de
       politique branchés et bloquants.
-- [ ] M1 : génération SBOM et sommes de contrôle à la publication.
+- [x] M1 : génération SBOM et sommes de contrôle à la publication.

@@ -71,8 +71,8 @@ la plateforme et du système de build, agrégateurs de distribution) :
 
 ## Actions
 
-- [ ] M1 : créer `build-logic` avec les plugins de convention (ADR-011).
-- [ ] M1 : épingler le wrapper Gradle avec sa somme de contrôle.
+- [x] M1 : créer `build-logic` avec les plugins de convention (ADR-011).
+- [x] M1 : épingler le wrapper Gradle avec sa somme de contrôle (9.8.2, vérifiée).
 - [x] M1 : décider avec le propriétaire DSL Kotlin contre Groovy —
       décision du 2026-11-04 : DSL Kotlin confiné au build (question 1 du
       résumé M0).

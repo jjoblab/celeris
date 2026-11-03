@@ -75,7 +75,7 @@ test nommé avant le code (`docs/audit/PIEGES-HERITES.md`).
 
 ## Actions
 
-- [ ] M1 : harnais jqwik + PIT + couverture, seuils actifs dès le squelette.
+- [x] M1 : harnais jqwik + PIT + couverture, seuils actifs dès le squelette.
 - [x] M1 : décision appareils gérés contre appareil de référence local —
       décision du 2026-11-04 : appareil de référence local (question 4 du
       résumé M0).
