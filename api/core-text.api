@@ -1,3 +1,28 @@
+### jo.celeris.core.text.Document
+Compiled from "Document.java"
+public final class jo.celeris.core.text.Document {
+  public static jo.celeris.core.text.Document of(java.lang.String);
+  public int length();
+  public java.lang.String text();
+  public int revision();
+  public java.lang.String subText(int, int);
+  public jo.celeris.core.text.Document replace(int, int, java.lang.String);
+}
+
+### jo.celeris.core.text.EditSpan
+Compiled from "EditSpan.java"
+public final class jo.celeris.core.text.EditSpan extends java.lang.Record {
+  public jo.celeris.core.text.EditSpan(int, int, int);
+  public int end();
+  public int delta();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int start();
+  public int removed();
+  public int added();
+}
+
 ### jo.celeris.core.text.Rope$Branch
 Compiled from "Rope.java"
 final class jo.celeris.core.text.Rope$Branch extends jo.celeris.core.text.Rope {
@@ -38,6 +63,31 @@ public abstract class jo.celeris.core.text.Rope implements java.lang.CharSequenc
   public jo.celeris.core.text.Rope rebalance();
   public static jo.celeris.core.text.Rope fromString(java.lang.String);
   public java.lang.CharSequence subSequence(int, int);
+}
+
+### jo.celeris.core.text.TextEdit
+Compiled from "TextEdit.java"
+public final class jo.celeris.core.text.TextEdit extends java.lang.Record {
+  public jo.celeris.core.text.TextEdit(int, java.lang.String, java.lang.String);
+  public int end();
+  public jo.celeris.core.text.TextEdit inverse();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int start();
+  public java.lang.String removed();
+  public java.lang.String inserted();
+}
+
+### jo.celeris.core.text.Transaction
+Compiled from "Transaction.java"
+public final class jo.celeris.core.text.Transaction {
+  public static jo.celeris.core.text.Transaction of(jo.celeris.core.text.TextEdit...);
+  public static jo.celeris.core.text.Transaction of(java.util.List<jo.celeris.core.text.TextEdit>);
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+  public boolean isEmpty();
+  public jo.celeris.core.text.Transaction inverse();
+  public static jo.celeris.core.text.Transaction compose(jo.celeris.core.text.Transaction, jo.celeris.core.text.Transaction);
 }
 
 ### jo.celeris.core.text.package-info
