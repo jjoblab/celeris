@@ -9,6 +9,26 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Validation M1 par le propriétaire (2026-11-04) : « M1 validé », sans
+  désignation d'appareil de référence (question 5 ouverte) — M2, moteur de
+  texte, est déclenché.
+- Portage de la rope équilibrée dans `core-text` (feuilles, branches, fusion
+  d'épines, rééquilibrage Fibonacci — registre de portage) avec ses tests
+  portés et étendus : frontières exactes de découpage, identité des
+  coupes pleines, contrats de message hors bornes, fenêtres de visite
+  alignées sur les frontières de feuilles.
+- Propriétés jqwik à oracle `StringBuilder` (environ 10 300 séquences
+  aléatoires par exécution — objectif ADR-003 atteint pour la rope) ;
+  le fuzz Jupiter passe à graines fixes reproductibles (exigence de la
+  mutation) ; le harnais de démonstration M1 est retiré, remplacé
+  par les propriétés réelles.
+
+### Corrigé
+
+- `apiCheck` relisait le nom du projet à l'exécution : la divergence
+  de manifeste échouait en erreur de cache de configuration au lieu de la
+  consigne de régénération — le nom est capturé à la configuration.
+
 - Validation M0 par le propriétaire (2026-11-04) : les douze ADR passent à
   l'état « Acceptée » ; les réponses aux questions groupées sont consignées
   dans le résumé M0 (question 5 — appareil de référence des budgets —

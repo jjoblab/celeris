@@ -1,3 +1,45 @@
+### jo.celeris.core.text.Rope$Branch
+Compiled from "Rope.java"
+final class jo.celeris.core.text.Rope$Branch extends jo.celeris.core.text.Rope {
+  public jo.celeris.core.text.Rope sub(int, int);
+  public void writeTo(char[], int);
+  public java.lang.CharSequence subSequence(int, int);
+}
+
+### jo.celeris.core.text.Rope$Leaf
+Compiled from "Rope.java"
+final class jo.celeris.core.text.Rope$Leaf extends jo.celeris.core.text.Rope {
+  public jo.celeris.core.text.Rope sub(int, int);
+  public void writeTo(char[], int);
+  public java.lang.CharSequence subSequence(int, int);
+}
+
+### jo.celeris.core.text.Rope$LeafVisitor
+Compiled from "Rope.java"
+public interface jo.celeris.core.text.Rope$LeafVisitor {
+  public abstract boolean visit(java.lang.String, int);
+}
+
+### jo.celeris.core.text.Rope
+Compiled from "Rope.java"
+public abstract class jo.celeris.core.text.Rope implements java.lang.CharSequence {
+  public static final int MAX_LEAF;
+  public static final jo.celeris.core.text.Rope EMPTY;
+  public void visitLeaves(int, int, jo.celeris.core.text.Rope$LeafVisitor);
+  public void visitLeavesBackward(int, int, jo.celeris.core.text.Rope$LeafVisitor);
+  public int length();
+  public char charAt(int);
+  public jo.celeris.core.text.Rope subSequence(int, int);
+  public abstract jo.celeris.core.text.Rope sub(int, int);
+  public java.lang.String toString();
+  public abstract void writeTo(char[], int);
+  public jo.celeris.core.text.Rope replace(int, int, java.lang.String);
+  public static jo.celeris.core.text.Rope concat(jo.celeris.core.text.Rope, jo.celeris.core.text.Rope);
+  public jo.celeris.core.text.Rope rebalance();
+  public static jo.celeris.core.text.Rope fromString(java.lang.String);
+  public java.lang.CharSequence subSequence(int, int);
+}
+
 ### jo.celeris.core.text.package-info
 Compiled from "package-info.java"
 interface jo.celeris.core.text.package-info {

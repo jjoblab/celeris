@@ -12,6 +12,11 @@
 
 - **Porter** : réutiliser l'algorithme et ses tests après revue ligne à
   ligne ; l'API d'accueil est celle de celeris (types forts, transactions).
+  Portage rope (2026-11-04), adaptations consignées  : paquet
+  `jo.celeris.core.text`, contract `@NullMarked` (plus de tolérance
+  à `null` en entrée), feuille et branche invisibles hors du paquet,
+  `instanceof` à motifs (niveau 17), graines du fuzz fixées pour la
+  mutation.
 - **Spécifier** : réécrire ; l'ancien code sert de spécification et
   d'oracle de test (les sorties observées deviennent les assertions).
 - **Abandonner** : ne pas reprendre.
@@ -20,7 +25,7 @@
 
 | Élément source | Décision | Justification (audit/spike) | Tests associés |
 | --- | --- | --- | --- |
-| `rope/Rope.java` (395 l., imports `java.util` seuls) | Porter | re-mesuré : 0,002 ms/édition p50 sur 2 M car., mémoire 1,22× | `RopeTest`, `RopeFuzzTest` (oracle `StringBuilder`) : à porter et étendre en propriétés jqwik |
+| `rope/Rope.java` (395 l., imports `java.util` seuls) | Porter | re-mesuré : 0,002 ms/édition p50 sur 2 M car., mémoire 1,22× | portés et étendus (M2, 2026-11-04) : `RopeTest`, `RopeFuzzTest` (graines fixes reproductibles), `RopeVisitLeavesTest`, `RopeProprietesTest` (jqwik, ~10 300 séquences/oracle `StringBuilder`) |
 | index de lignes de `document/` | Porter | voie de mutation unique déjà validée | tests de l'index + invariants croisés fuzz |
 | `session/EditorSession.java` (1 694 l.) | Spécifier | conforme au plafond 600 l. ; le concept (voie unique, undo par la même voie) est l'acquis, pas la classe | ses tests servent d'oracle ; PIEGE-07 écrit avant |
 | `session/UndoManager`/`UndoRecorder` (coalescence) | Porter | coalescence mesurée et éprouvée | tests de coalescence à porter |
@@ -75,4 +80,4 @@
 
 | Catégorie | Fichiers portés | Restants |
 | --- | --- | --- |
-| (rempli à partir de M2, généré par script) | 0 | — |
+| Cœur texte | `rope/Rope.java` + 3 fichiers de tests portés (2026-11-04) | index de lignes, session/undo, sélection, recherche, diagnostics, plis+wrap, ImeBridge |
