@@ -90,6 +90,35 @@ public final class jo.celeris.core.text.Transaction {
   public static jo.celeris.core.text.Transaction compose(jo.celeris.core.text.Transaction, jo.celeris.core.text.Transaction);
 }
 
+### jo.celeris.core.text.UndoStack
+Compiled from "UndoStack.java"
+public final class jo.celeris.core.text.UndoStack {
+  public static final long COALESCE_TIMEOUT_MS;
+  public jo.celeris.core.text.UndoStack(int, java.util.function.LongSupplier);
+  public void pushStep(jo.celeris.core.text.UndoStep);
+  public void armNextCoalesce(jo.celeris.core.text.TextEdit);
+  public boolean tryCoalesce(jo.celeris.core.text.TextEdit);
+  public jo.celeris.core.text.UndoStep undo();
+  public jo.celeris.core.text.UndoStep redo();
+  public boolean canUndo();
+  public boolean canRedo();
+  public void clear();
+  public int undoDepth();
+  public int redoDepth();
+}
+
+### jo.celeris.core.text.UndoStep
+Compiled from "UndoStep.java"
+public final class jo.celeris.core.text.UndoStep extends java.lang.Record {
+  public jo.celeris.core.text.UndoStep(java.util.List<jo.celeris.core.text.TextEdit>);
+  public static jo.celeris.core.text.UndoStep of(jo.celeris.core.text.TextEdit);
+  public jo.celeris.core.text.UndoStep inverse();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+}
+
 ### jo.celeris.core.text.package-info
 Compiled from "package-info.java"
 interface jo.celeris.core.text.package-info {
