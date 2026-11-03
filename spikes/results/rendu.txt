@@ -1,0 +1,5 @@
+environnement graphique : headless (attendu)
+creation de mise en page par ligne (80 car.) : 47.5 us en moyenne (p50 30.8 us ; p95 39.8 us)
+consultation de cache pour 50 rangees : 0.70 us par image (sink 2997600)
+extrapolation : 50 rangees sans cache = 2.38 ms/image ; avec cache = 0.0007 ms/image (budgets image : 16 ms a 60 Hz, 8 ms a 120 Hz)
+metrique : 80 caracteres occupent 639.0 px de large (19 px de hauteur de ligne estimee a 1,35 x corps)
