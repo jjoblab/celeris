@@ -1,8 +1,28 @@
 # Résumé M0 — cadrage de celeris
 
-> À valider par le propriétaire : **aucun code de production ne sera écrit
-> avant la validation explicite de ce document** (règle du mandat). Les
-> questions groupées en fin de page accompagnent la décision.
+> **Validé par le propriétaire le 2026-11-04** (« c'est oui pour tes
+> recommandations ») : M1 — Fondations est déclenché. Les réponses aux
+> questions groupées sont consignées ci-dessous ; les douze ADR passent à
+> l'état « Acceptée ».
+
+## Validation du propriétaire — 2026-11-04
+
+M0 est validé et M1 — Fondations démarre. Les questions groupées reçoivent
+les réponses recommandées (mandat : sans réponse explicite, la
+recommandation s'applique et est signalée en tête du compte rendu M1) :
+
+1. **DSL de build** — DSL Kotlin confiné à `build-logic` et aux fichiers de
+   build ; aucun Kotlin dans les artefacts publiés.
+2. **Cible de publication** — registre de l'hébergeur du dépôt, privé en
+   pré-1.0 ; le registre central public reste réexaminé après validation du
+   domaine de l'espace de noms.
+3. **Analyse syntaxique** — option A (analyseurs écrits ici) ; l'option B
+   reste chiffrée en réserve.
+4. **Appareils de test** — appareil de référence local à M1 ; décision
+   d'infrastructure à revoir à M3.
+5. **Appareil de référence des budgets** — **non désigné** : point ouvert,
+   signalé en tête du compte rendu M1 (ADR-006).
+6. **`minSdk` 26** — confirmé.
 
 ## Livré
 
@@ -78,7 +98,6 @@ de compatibilité ; publication vers le registre de l'hébergeur en pré-1.0.
 
 ## Passage de porte
 
-Répondez « M0 validé » (éventuellement avec vos réponses aux questions
-ci-dessus) pour déclencher M1 — Fondations. Sans réponse, la recommandation
-de chaque question sera appliquée et signalée en tête du compte rendu M1,
-conformément au mandat.
+Acquis : la validation est intervenue le 2026-11-04 (section ci-dessus) ;
+M1 — Fondations est engagé et son compte rendu signale les recommandations
+appliquées.

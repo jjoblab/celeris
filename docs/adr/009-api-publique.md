@@ -1,6 +1,6 @@
 # ADR-009 — API publique et compatibilité binaire
 
-- **Statut** : Proposition (M0)
+- **Statut** : Acceptée (validée par le propriétaire le 2026-11-04)
 - **Date** : 2026-11-04
 
 ## Contexte

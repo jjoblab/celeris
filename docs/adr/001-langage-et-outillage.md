@@ -1,6 +1,6 @@
 # ADR-001 — Langage et chaîne d'outils
 
-- **Statut** : Proposition (M0)
+- **Statut** : Acceptée (validée par le propriétaire le 2026-11-04)
 - **Date** : 2026-11-04
 
 ## Contexte
@@ -73,4 +73,6 @@ la plateforme et du système de build, agrégateurs de distribution) :
 
 - [ ] M1 : créer `build-logic` avec les plugins de convention (ADR-011).
 - [ ] M1 : épingler le wrapper Gradle avec sa somme de contrôle.
-- [ ] M1 : décider avec le propriétaire DSL Kotlin contre Groovy.
+- [x] M1 : décider avec le propriétaire DSL Kotlin contre Groovy —
+      décision du 2026-11-04 : DSL Kotlin confiné au build (question 1 du
+      résumé M0).

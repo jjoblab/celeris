@@ -11,22 +11,26 @@ mandat : **Contexte, Décision, Options, Compromis, Conséquences, Actions**.
 | Acceptée | validée par le propriétaire ; ne change plus que par un ADR de remplacement |
 | Remplacée | annulée par un ADR ultérieur ; conservée pour l'historique |
 
+Les douze ADR, rédigées en proposition à M0, sont **acceptées** par le
+propriétaire le 2026-11-04 (validation M0) ; les réponses aux questions
+groupées sont consignées dans le résumé M0.
+
 ## Index
 
 | ADR | Sujet | Statut |
 | --- | --- | --- |
-| [ADR-001](001-langage-et-outillage.md) | Langage et chaîne d'outils | Proposition |
-| [ADR-002](002-topologie-des-modules.md) | Topologie des modules et règles de dépendance | Proposition |
-| [ADR-003](003-modele-de-texte.md) | Modèle de texte et transactions | Proposition |
-| [ADR-004](004-analyse-syntaxique.md) | Analyse syntaxique incrémentale | Proposition |
-| [ADR-005](005-semantique-index-lsp.md) | Sémantique, index et client LSP | Proposition |
-| [ADR-006](006-rendu-et-budgets.md) | Rendu et budgets de performance | Proposition |
-| [ADR-007](007-modele-de-threading.md) | Modèle d'exécution et concurrence | Proposition |
-| [ADR-008](008-accessibilite-i18n-bidi.md) | Accessibilité, internationalisation et BiDi | Proposition |
-| [ADR-009](009-api-publique.md) | API publique et compatibilité binaire | Proposition |
-| [ADR-010](010-strategie-de-test.md) | Stratégie de test | Proposition |
-| [ADR-011](011-build-et-publication.md) | Build, publication et sécurité des dépendances | Proposition |
-| [ADR-012](012-contrats-ia-agents.md) | Contrats IA et outils d'agent | Proposition |
+| [ADR-001](001-langage-et-outillage.md) | Langage et chaîne d'outils | Acceptée |
+| [ADR-002](002-topologie-des-modules.md) | Topologie des modules et règles de dépendance | Acceptée |
+| [ADR-003](003-modele-de-texte.md) | Modèle de texte et transactions | Acceptée |
+| [ADR-004](004-analyse-syntaxique.md) | Analyse syntaxique incrémentale | Acceptée |
+| [ADR-005](005-semantique-index-lsp.md) | Sémantique, index et client LSP | Acceptée |
+| [ADR-006](006-rendu-et-budgets.md) | Rendu et budgets de performance | Acceptée |
+| [ADR-007](007-modele-de-threading.md) | Modèle d'exécution et concurrence | Acceptée |
+| [ADR-008](008-accessibilite-i18n-bidi.md) | Accessibilité, internationalisation et BiDi | Acceptée |
+| [ADR-009](009-api-publique.md) | API publique et compatibilité binaire | Acceptée |
+| [ADR-010](010-strategie-de-test.md) | Stratégie de test | Acceptée |
+| [ADR-011](011-build-et-publication.md) | Build, publication et sécurité des dépendances | Acceptée |
+| [ADR-012](012-contrats-ia-agents.md) | Contrats IA et outils d'agent | Acceptée |
 
 ## Règles
 

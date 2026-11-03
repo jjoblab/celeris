@@ -1,6 +1,6 @@
 # ADR-010 — Stratégie de test
 
-- **Statut** : Proposition (M0)
+- **Statut** : Acceptée (validée par le propriétaire le 2026-11-04)
 - **Date** : 2026-11-04
 
 ## Contexte
@@ -76,5 +76,7 @@ test nommé avant le code (`docs/audit/PIEGES-HERITES.md`).
 ## Actions
 
 - [ ] M1 : harnais jqwik + PIT + couverture, seuils actifs dès le squelette.
-- [ ] M1 : décision appareils gérés contre appareil de référence local.
+- [x] M1 : décision appareils gérés contre appareil de référence local —
+      décision du 2026-11-04 : appareil de référence local (question 4 du
+      résumé M0).
 - [ ] M2 : fuzz de l'éditeur complet (transactions, undo, index, plis).

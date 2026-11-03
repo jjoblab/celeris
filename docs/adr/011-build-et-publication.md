@@ -1,6 +1,6 @@
 # ADR-011 — Build, publication et sécurité des dépendances
 
-- **Statut** : Proposition (M0)
+- **Statut** : Acceptée (validée par le propriétaire le 2026-11-04)
 - **Date** : 2026-11-04
 
 ## Contexte
@@ -34,8 +34,8 @@ voir ADR-001 — AGP 9.5.0, Gradle 9.8.2, `compileSdk`/`targetSdk` 36).
 4. **Publication** : artefacts Maven avec sources, Javadoc et POM complets,
    sommes de contrôle et SBOM générés à chaque publication ; cible
    proposée : le registre de paquets de l'hébergeur du dépôt (authentifié,
-   privé en pré-1.0) — décision de cible finale soumise au propriétaire
-   (voir questions groupées) ; le registre public central reste possible
+   privé en pré-1.0) — décision de cible confirmée par le propriétaire
+   le 2026-11-04 (registre de l'hébergeur en pré-1.0) ; le registre public central reste possible
    après validation de la propriété du domaine de l'espace de noms.
 5. **Zéro archive binaire versionnée** (fin de `libs/*.jar`) : les
    dépendances vivent par coordonnées avec somme de contrôle vérifiée ;
