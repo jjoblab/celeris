@@ -62,16 +62,21 @@ fun Project.configureAndroidJavac() {
  * classe réelle n'existe, bloquant dès la première (M2).
  */
 fun Project.configureJavadoc() {
-    val sources = extensions.findByType(
-        org.gradle.api.tasks.SourceSetContainer::class.java,
-    )
-    val aDesClasses = sources?.named("main")?.get()?.allJava
-        ?.filter { it.name != "package-info.java" }
-        ?.files?.isNotEmpty()
-        ?: true
     tasks.withType<org.gradle.api.tasks.javadoc.Javadoc>().configureEach {
         options.encoding = "UTF-8"
-        isFailOnError = aDesClasses
+        // Résolu à la réalisation de la tâche : sous AGP 9, les source
+        // sets n'existent pas encore à l'application du plugin — la
+        // consultation hâtive de « main » cassait la configuration des
+        // modules Android (jamais observée localement, sans SDK ; premier
+        // passage CI). findByName, pas named().get() : l'absence n'est pas
+        // une erreur de configuration.
+        val sources = extensions.findByType(
+            org.gradle.api.tasks.SourceSetContainer::class.java,
+        )
+        isFailOnError = sources?.findByName("main")?.allJava
+            ?.filter { it.name != "package-info.java" }
+            ?.files?.isNotEmpty()
+            ?: true
     }
 }
 

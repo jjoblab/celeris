@@ -31,7 +31,10 @@ include(":cli")
 
 // Modules Android : inclus uniquement si un SDK est détecté — l'absence de
 // SDK ne doit jamais casser le build des modules purs ; la CI, elle,
-// installe le SDK et construit l'ensemble.
+// installe le SDK et construit l'ensemble. Le refus explicite
+// CELERIS_SKIP_ANDROID=1 prime sur toute détection : les runners d'hébergement
+// préinstallent un SDK que le travail « modules purs » ne doit pas voir.
+val refusAndroid = providers.environmentVariable("CELERIS_SKIP_ANDROID").orNull == "1"
 val sdkAndroid = providers.environmentVariable("ANDROID_HOME").orNull
     ?: providers.environmentVariable("ANDROID_SDK_ROOT").orNull
     ?: run {
@@ -45,7 +48,7 @@ val sdkAndroid = providers.environmentVariable("ANDROID_HOME").orNull
         }
     }
 
-if (sdkAndroid != null) {
+if (!refusAndroid && sdkAndroid != null) {
     include(":android-view")
     include(":android-widgets")
     include(":android-host")

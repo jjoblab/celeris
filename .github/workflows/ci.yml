@@ -20,6 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CELERIS_FORBIDDEN_REFS: ${{ secrets.CELERIS_FORBIDDEN_REFS }}
+      # Le runner préinstalle un SDK : le refus explicite prime sur la
+      # détection (sinon les modules Android entraient en configuration
+      # sans leurs composants — premier passage CI).
+      CELERIS_SKIP_ANDROID: "1"
     steps:
       - name: Récupérer le dépôt
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -64,8 +68,10 @@ jobs:
             echo "SDK Android absent du runner : les modules Android ne seraient pas testés" >&2
             exit 1
           fi
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null
+          # sdkmanager n'est pas sur le PATH du runner : chemin complet.
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null
       - name: Contrôles complets (tous modules, SDK présent)
         run: ./gradlew check
       - name: Démonstration (APK debug)

@@ -28,6 +28,13 @@ vivent dans les ADR et le registre de portage, pas ici.
 - `apiCheck` relisait le nom du projet à l'exécution : la divergence
   de manifeste échouait en erreur de cache de configuration au lieu de la
   consigne de régénération — le nom est capturé à la configuration.
+- Premier passage CI (ajustement prédit par le résumé M1) : le travail
+  « modules purs » voit le SDK préinstallé du runner — le refus explicite
+  `CELERIS_SKIP_ANDROID=1` prime sur la détection ; `sdkmanager`
+  s'appelle par chemin complet (absent du PATH) ; la tolérance
+  Javadoc consulte les source sets à la réalisation de la tâche (AGP 9 ne
+  les pose pas à l'application du plugin — la consultation hâtive cassait
+  la configuration des modules Android).
 
 - Validation M0 par le propriétaire (2026-11-04) : les douze ADR passent à
   l'état « Acceptée » ; les réponses aux questions groupées sont consignées

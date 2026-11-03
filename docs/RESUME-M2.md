@@ -34,6 +34,14 @@
   l'exécution — toute divergence de manifeste échouait en erreur de cache
   de configuration au lieu de la consigne de régénération. Le nom est
   désormais une entrée de tâche posée à la configuration.
+- **Ajustement du premier passage CI** (écart n° 1 du résumé M1, exaucé) :
+  le travail « modules purs » voyait le SDK préinstallé du runner et
+  entrait en configuration Android sans composants — le refus explicite
+  `CELERIS_SKIP_ANDROID=1` prime désormais sur la détection de SDK ;
+  `sdkmanager` s'appelle par chemin complet ; la tolérance Javadoc
+  résout les source sets à la réalisation de la tâche (AGP 9 ne les pose
+  pas à l'application du plugin — consultation hâtive fatale aux modules
+  Android, jamais observée localement puisque sans SDK).
 
 ### Vérifié localement (sans SDK Android)
 
