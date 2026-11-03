@@ -10,6 +10,7 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -137,6 +138,11 @@ abstract class ApiCheckTask : org.gradle.api.DefaultTask() {
     @get:InputFile
     abstract val committed: RegularFileProperty
 
+    /** Nom du module — capturé à la configuration, jamais relu à l'exécution
+     * (cache de configuration : Task.project y est interdit). */
+    @get:Input
+    abstract val moduleName: Property<String>
+
     @TaskAction
     fun check() {
         val produced = generated.get().asFile.readText().trim()
@@ -144,7 +150,7 @@ abstract class ApiCheckTask : org.gradle.api.DefaultTask() {
         if (produced != reference) {
             throw GradleException(
                 "manifeste d'API divergent — régénérer (./gradlew apiManifest), " +
-                    "relire la rupture (SemVer, ADR-009) puis committer api/${project.name}.api",
+                    "relire la rupture (SemVer, ADR-009) puis committer api/${moduleName.get()}.api",
             )
         }
     }

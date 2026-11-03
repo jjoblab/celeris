@@ -29,6 +29,9 @@ val apiCheck = tasks.register<ApiCheckTask>("apiCheck") {
     description = "Vérifie le manifeste d'API committé contre l'API compilée."
     generated.set(layout.buildDirectory.file("api/manifest.txt"))
     committed.set(rootProject.file("api/${project.name}.api"))
+    // Capturé à la configuration : le nom ne doit jamais être relu à
+    // l'exécution (cache de configuration).
+    moduleName.set(project.name)
     dependsOn(apiManifest)
 }
 
