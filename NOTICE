@@ -1,0 +1,21 @@
+# NOTICE — celeris
+
+Ce produit inclut des logiciels développés par le projet celeris
+(https://github.com/jjoblab/celeris), concédés sous licence Apache 2.0
+(voir `LICENSE`).
+
+## Dépendances tierces
+
+À la date de ce document, le dépôt ne déclare **aucune dépendance tierce** :
+les modules du cœur sont des bibliothèques JVM pures sans dépendance, les
+spikes de mesure n'utilisent que la bibliothèque standard. Chaque dépendance
+ajoutée à l'avenir (grammaire, police, bibliothèque de protocole…) sera
+consignée ici avec son nom, sa version, sa licence et la vérification fichier
+par fichier exigée par le mandat, et restera compatible Apache-2.0 sauf
+validation explicite du propriétaire.
+
+## Code hérité
+
+Les algorithmes portés depuis le dépôt de départ du propriétaire (Apache-2.0)
+sont consignés dans `docs/audit/REGISTRE-PORTAGE.md`. Le nouveau dépôt n'est
+pas un fork et ne reprend aucun historique de contributions.

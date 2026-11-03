@@ -1,0 +1,18 @@
+# Sorties de build (jamais versionnées)
+build/
+out/
+classes/
+*.class
+*.jar
+*.aar
+*.hprof
+
+# Environnements et IDE
+.gradle/
+.idea/
+*.iml
+local.properties
+.DS_Store
+
+# Spikes : seul le code source est versionné, jamais les classes produites
+spikes/**/out/
