@@ -1,6 +1,10 @@
 // Convention de mutation (ADR-010) : exécution de PIT en ligne de commande
 // sur les tests du module, puis vérification du score au seuil. Appliquée
 // à core-text ; extensible à tout module pur en conservant le seuil.
+//
+// Compatibilité cache de configuration : les lambdas doFirst/doLast ne
+// capturent que des locaux purs (chemins java.io.File) déclarés dans le
+// bloc d'enregistrement — jamais une val de niveau script.
 
 import jo.celeris.buildlogic.MutationThresholdCheck
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -31,12 +35,13 @@ val sourceSets = extensions.getByType<SourceSetContainer>()
 tasks.register<JavaExec>("mutationCheck") {
     group = "verification"
     description = "Exécute la mutation (PIT) sur les tests du module."
+    val dirRapport = reportDir.get().asFile
     // Un rapport périmé ne doit jamais passer pour un résultat frais.
-    doFirst { reportDir.get().asFile.deleteRecursively() }
+    doFirst { dirRapport.deleteRecursively() }
     // Sans mutation, PIT n'écrit pas de rapport : en produire un vide
     // explicite pour que le seuil distingue « rien à muter » d'un échec.
     doLast {
-        val rapport = reportDir.get().asFile.resolve("mutations.xml")
+        val rapport = dirRapport.resolve("mutations.xml")
         if (!rapport.exists()) {
             rapport.parentFile.mkdirs()
             rapport.writeText(
@@ -52,7 +57,7 @@ tasks.register<JavaExec>("mutationCheck") {
         "--targetTests", cible,
         "--excludedClasses", ciblesExclues,
         "--sourceDirs", "src/main/java",
-        "--reportDir", reportDir.get().asFile.absolutePath,
+        "--reportDir", dirRapport.absolutePath,
         "--outputFormats", "XML",
         "--mutators", "DEFAULTS",
         // Le squelette n'a aucune ligne de production à muter : l'absence

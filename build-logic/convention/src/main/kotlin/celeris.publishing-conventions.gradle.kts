@@ -61,17 +61,18 @@ tasks.named("publish") {
 }
 
 // Sommes de contrôle SHA-256 des artefacts produits (POM, module, jar,
-// sources, Javadoc — ADR-011), écrites à côté d'eux.
+// sources, Javadoc — ADR-011), écrites à côté d'eux. Les chemins sont
+// capturés comme locaux purs (cache de configuration).
 tasks.register("publicationChecksums") {
     group = "publication"
     description = "Écrit les sommes de contrôle SHA-256 des artefacts publiés."
     dependsOn("publishCelerisPublicationToMavenLocal")
-    val publicationsDir = layout.buildDirectory.dir("publications/celeris")
-    val libsDir = layout.buildDirectory.dir("libs")
+    val dirPublications = layout.buildDirectory.dir("publications/celeris").get().asFile
+    val dirLibs = layout.buildDirectory.dir("libs").get().asFile
     doLast {
         val fichiers = mutableListOf<java.io.File>()
-        publicationsDir.get().asFile.listFiles()?.forEach { fichiers.add(it) }
-        libsDir.get().asFile.listFiles()?.forEach { fichiers.add(it) }
+        dirPublications.listFiles()?.forEach { fichiers.add(it) }
+        dirLibs.listFiles()?.forEach { fichiers.add(it) }
         val artefacts = fichiers
             .filter { f -> f.isFile && !f.name.endsWith(".sha256") }
             .sortedBy { f -> f.name }
