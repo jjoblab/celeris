@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Contrôle de la politique de langue du dépôt.
+
+Vérifie, sur tous les fichiers versionnés :
+  1. identifiants non ASCII dans le code Java (hors commentaires et chaînes) ;
+  2. typographie française des fichiers Markdown (espace insécable avant
+     « ; », « : », « ! », « ? ») ;
+  3. présence d'une Javadoc pour les classes publiques des sources et spikes ;
+  4. parité des ressources de langues si des ressources existent.
+
+Usage :  python3 scripts/check-language-policy [--fix]
+Le mode --figer... --fix corrige la typographie (2) ; tout le reste échoue.
+"""
+
+import argparse
+import os
+import re
+import subprocess
+import sys
+
+NON_BREAKING = {
+    ";": "\u202f",
+    ":": "\u00a0",
+    "!": "\u202f",
+    "?": "\u202f",
+}
+
+
+def git_files() -> list:
+    out = subprocess.run(["git", "ls-files"], capture_output=True, text=True)
+    return [f for f in out.stdout.splitlines() if f.strip()]
+
+
+def strip_java_comments_and_strings(text: str) -> str:
+    """Retire commentaires et chaînes pour ne garder que le code."""
+    out = []
+    i, n = 0, len(text)
+    state = "code"
+    while i < n:
+        c = text[i]
+        nxt = text[i + 1] if i + 1 < n else ""
+        if state == "code":
+            if c == "/" and nxt == "/":
+                state = "line"
+                i += 2
+                continue
+            if c == "/" and nxt == "*":
+                state = "block"
+                i += 2
+                continue
+            if c == '"':
+                state = "string"
+                i += 1
+                continue
+            out.append(c)
+        elif state == "line":
+            if c == "\n":
+                state = "code"
+                out.append(c)
+        elif state == "block":
+            if c == "*" and nxt == "/":
+                state = "code"
+                i += 2
+                continue
+        elif state == "string":
+            if c == "\\":
+                i += 2
+                continue
+            if c == '"':
+                state = "code"
+        i += 1
+    return "".join(out)
+
+
+def check_java_identifiers(path: str) -> list:
+    """Signale tout caractère non ASCII hors commentaires et chaînes."""
+    problems = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+    except (OSError, UnicodeDecodeError):
+        return problems
+    code = strip_java_comments_and_strings(text)
+    for m in re.finditer(r"[^\x00-\x7f]", code):
+        line = code.count("\n", 0, m.start()) + 1
+        problems.append(f"{path}:{line}: caractère non ASCII dans le code")
+    return problems
+
+
+def check_typography(path: str, fix: bool) -> list:
+    """Vérifie (ou corrige) l'espace insécable avant ; : ! ? en Markdown."""
+    problems = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+    except (OSError, UnicodeDecodeError):
+        return problems
+    pattern = re.compile(r"(?<=[^\s`]) ([;:!?])(?=[\s\u00a0\u202f]|$)")
+    hits = list(pattern.finditer(text))
+    if not hits:
+        return problems
+    if fix:
+        fixed = pattern.sub(lambda m: NON_BREAKING[m.group(1)] + m.group(1), text)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(fixed)
+        return problems
+    for m in hits:
+        line = text.count("\n", 0, m.start()) + 1
+        problems.append(
+            f"{path}:{line}: espace sécable avant « {m.group(1)} » "
+            "(utiliser une espace insécable)"
+        )
+    return problems
+
+
+def check_javadoc(path: str) -> list:
+    """Exige une Javadoc au-dessus de chaque classe publique."""
+    problems = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            lines = fh.readlines()
+    except OSError:
+        return problems
+    for i, line in enumerate(lines):
+        if re.search(r"^\s*public\s+(final\s+)?(abstract\s+)?(class|interface|enum|record)\s", line):
+            j = i - 1
+            has_doc = False
+            while j >= 0 and lines[j].strip().startswith(("*", "/*", "/**", "*/")):
+                if "/**" in lines[j]:
+                    has_doc = True
+                j -= 1
+            if not has_doc:
+                problems.append(f"{path}:{i + 1}: classe publique sans Javadoc")
+    return problems
+
+
+def check_string_parity() -> list:
+    """Vérifie values/ contre values-fr/ quand des ressources existent."""
+    problems = []
+    if not os.path.isdir("demo/src/main/res/values"):
+        return problems  # aucune ressource à M0 : contrôle inactif
+    for module in ["demo", "android-view", "android-widgets", "android-host"]:
+        base = os.path.join(module, "src/main/res")
+        if not os.path.isdir(os.path.join(base, "values")):
+            continue
+        for name in os.listdir(os.path.join(base, "values")):
+            fr = os.path.join(base, "values-fr", name)
+            if not os.path.exists(fr):
+                problems.append(f"{module}: values-fr/{name} manquant")
+    return problems
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Politique de langue")
+    parser.add_argument("--fix", action="store_true", help="corrige la typographie")
+    args = parser.parse_args()
+
+    files = git_files() if os.path.isdir(".git") else []
+    if not files:
+        for root, _dirs, names in os.walk("."):
+            if "/.git" in root or "/.gradle" in root:
+                continue
+            files.extend(os.path.join(root, n) for n in names)
+
+    problems = []
+    for f in files:
+        if f.endswith(".java"):
+            problems += check_java_identifiers(f)
+            problems += check_javadoc(f)
+        elif f.endswith(".md"):
+            problems += check_typography(f, args.fix)
+    problems += check_string_parity()
+
+    if args.fix and not problems:
+        print("politique de langue : typographie corrigée, aucun autre problème")
+        return 0
+    for p in problems:
+        print(p)
+    print(f"politique de langue : {len(problems)} problème(s)")
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
