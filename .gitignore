@@ -5,6 +5,8 @@ classes/
 *.class
 *.jar
 *.aar
+# Le jar du wrapper Gradle est versionné (wrapper autosuffisant, ADR-001)
+!gradle/wrapper/gradle-wrapper.jar
 *.hprof
 
 # Environnements et IDE
