@@ -1,0 +1,72 @@
+# CI de celeris — actions épinglées par somme SHA (ADR-011), wrapper
+# validé, scripts de politique exécutés avec les motifs nominatifs lus
+# dans le secret CELERIS_FORBIDDEN_REFS (jamais committés).
+#
+# Deux travaux : les modules purs (sans SDK Android — critère de sortie
+# M1) et l'ensemble avec SDK (modules Android + démonstration).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  modules-purs:
+    name: Modules purs (JVM, sans SDK Android)
+    runs-on: ubuntu-latest
+    env:
+      CELERIS_FORBIDDEN_REFS: ${{ secrets.CELERIS_FORBIDDEN_REFS }}
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: JDK 21 (Temurin)
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Gradle (validation du wrapper incluse)
+        uses: gradle/actions/setup-gradle@7296c772c13d12d9871528814b51fb2143c138ef # v6.4.1
+        with:
+          validate-wrappers: true
+      - name: Contrôles complets (politique + qualité des modules purs)
+        run: ./gradlew check
+      - name: Mutation (seuil 80 % dès la première ligne de production)
+        run: ./gradlew :core-text:mutationThreshold
+      - name: Publication locale (artefacts complets, SBOM, sommes de contrôle)
+        run: ./gradlew publishToMavenLocal publicationChecksums
+      - name: Fumée de la cli
+        run: ./gradlew :cli:run
+
+  android:
+    name: Modules Android et démonstration
+    runs-on: ubuntu-latest
+    env:
+      CELERIS_FORBIDDEN_REFS: ${{ secrets.CELERIS_FORBIDDEN_REFS }}
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: JDK 21 (Temurin)
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Gradle (validation du wrapper incluse)
+        uses: gradle/actions/setup-gradle@7296c772c13d12d9871528814b51fb2143c138ef # v6.4.1
+        with:
+          validate-wrappers: true
+      - name: Composants du SDK Android
+        run: |
+          if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ]; then
+            echo "SDK Android absent du runner : les modules Android ne seraient pas testés" >&2
+            exit 1
+          fi
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null
+      - name: Contrôles complets (tous modules, SDK présent)
+        run: ./gradlew check
+      - name: Démonstration (APK debug)
+        run: ./gradlew :demo:assembleDebug

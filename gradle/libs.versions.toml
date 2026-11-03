@@ -1,0 +1,53 @@
+# Catalogue unique des versions — ADR-011. Toute version écrite en dur
+# dans un module casse la CI ; toute montée passe par ici, puis par les
+# tests de contrat. Versions vérifiées en ligne le 2026-11-04.
+
+[versions]
+# Chaîne de build (ADR-001) — Gradle est épinglé par le wrapper (somme de
+# contrôle dans gradle/wrapper/gradle-wrapper.properties).
+agp = "9.5.0"
+# Qualité (ADR-002 : plafonds ; ADR-009 : nullité ; ADR-010 : mutation)
+checkstyle = "14.4.0"
+pmd = "7.29.0"
+errorprone = "2.52.0"
+errorpronePlugin = "5.2.0"
+nullaway = "0.14.3"
+jspecify = "1.0.1"
+jacoco = "0.8.16"
+archunit = "1.5.1"
+# Tests (ADR-010)
+junitJupiter = "6.1.3"
+jqwik = "1.10.2"
+pitest = "1.30.1"
+pitestJunit5 = "1.2.3"
+# Publication (ADR-011 : SBOM)
+cyclonedx = "3.5.1"
+
+[libraries]
+# Dépendances de test (modules purs et Android)
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
+# Sans version : aligné sur la plateforme entraînée par junit-jupiter.
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+# Nullité en surface d'API (ADR-009) — annotations JSpecify
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+# Analyse statique javac (ADR-009 : Error Prone + NullAway)
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+# Mutation (ADR-010) — exécutée par la tâche dédiée de build-logic
+# (l'artefact de ligne de commande entraîne le cœur de PIT).
+pitest-cli = { module = "org.pitest:pitest-command-line", version.ref = "pitest" }
+pitest-junit5 = { module = "org.pitest:pitest-junit5-plugin", version.ref = "pitestJunit5" }
+# Artefacts de plugin résolus par build-logic (aucun plugin appliqué par
+# identifiant hors des conventions) :
+android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+errorprone-gradlePlugin = { module = "net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin", version.ref = "errorpronePlugin" }
+cyclonedx-gradlePlugin = { module = "org.cyclonedx.bom:org.cyclonedx.bom.gradle.plugin", version.ref = "cyclonedx" }
+
+[plugins]
+# Appliqués par les modules via alias (génère les accesseurs typés du
+# bloc android {} dans le script du module) ; les conventions
+# celeris.android-* portent les réglages communs.
+android-library = { id = "com.android.library", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "agp" }

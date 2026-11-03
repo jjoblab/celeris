@@ -6,13 +6,33 @@ Ce produit inclut des logiciels développés par le projet celeris
 
 ## Dépendances tierces
 
-À la date de ce document, le dépôt ne déclare **aucune dépendance tierce** :
-les modules du cœur sont des bibliothèques JVM pures sans dépendance, les
-spikes de mesure n'utilisent que la bibliothèque standard. Chaque dépendance
-ajoutée à l'avenir (grammaire, police, bibliothèque de protocole…) sera
-consignée ici avec son nom, sa version, sa licence et la vérification fichier
-par fichier exigée par le mandat, et restera compatible Apache-2.0 sauf
-validation explicite du propriétaire.
+À la date de ce document, le dépôt ne déclare **aucune dépendance tierce
+au runtime des artefacts publiés** : les modules du cœur sont des
+bibliothèques JVM pures sans dépendance.
+
+L'outillage de build et de test déclare en revanche les dépendances
+suivantes (elles ne sont embarquées dans aucun artefact) :
+
+| Dépendance | Version | Licence | Usage |
+| --- | --- | --- | --- |
+| Gradle | 9.8.2 (wrapper, somme de contrôle épinglée) | Apache-2.0 | système de build |
+| Plugin Gradle Android | 9.5.0 | Apache-2.0 | modules Android et démonstration |
+| Error Prone | 2.52.0 | Apache-2.0 | analyse statique javac (ADR-009) |
+| NullAway | 0.14.3 | Apache-2.0 | vérification de nullité (ADR-009) |
+| JSpecify | 1.0.1 | Apache-2.0 | annotations de nullité (ADR-009) |
+| Checkstyle | 14.4.0 | LGPL-2.1-or-later | plafonds et hygiène (ADR-002) |
+| PMD | 7.29.0 | BSD-style | complexité et plafonds (ADR-002) |
+| JaCoCo | 0.8.16 | EPL-2.0 | couverture (ADR-010) |
+| ArchUnit | 1.5.1 | Apache-2.0 | règles de topologie (ADR-002) |
+| JUnit | 6.1.3 | EPL-2.0 | tests (ADR-010) |
+| jqwik | 1.10.2 | EPL-2.0 | propriétés et fuzz (ADR-010) |
+| PIT (pitest) | 1.30.1 | Apache-2.0 | mutation (ADR-010) |
+| CycloneDX (plugin Gradle) | 3.5.1 | Apache-2.0 | SBOM de publication (ADR-011) |
+
+Chaque dépendance future (grammaire, police, bibliothèque de protocole…)
+sera consignée ici avec son nom, sa version, sa licence et la
+vérification fichier par fichier exigée par le mandat, et restera
+compatible Apache-2.0 sauf validation explicite du propriétaire.
 
 ## Code hérité
 

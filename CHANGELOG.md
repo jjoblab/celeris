@@ -13,6 +13,16 @@ vivent dans les ADR et le registre de portage, pas ici.
   l'état « Acceptée » ; les réponses aux questions groupées sont consignées
   dans le résumé M0 (question 5 — appareil de référence des budgets —
   ouverte).
+- Fondations M1 : `build-logic` à plugins de convention, catalogue unique,
+  squelette exécuté des dix modules et de la démonstration, cli, workflows
+  CI épinglés par somme SHA avec validation du wrapper.
+- Portes qualité bloquantes dès le premier commit : Checkstyle, PMD, Error
+  Prone + NullAway (JSpecify), JaCoCo, ArchUnit, Jupiter/jqwik, mutation
+  PIT au seuil de 80 % , scripts de politique (langue, neutralité).
+- Manifeste d'API publique par module pur (`api/*.api`) vérifié dans
+  `check` ; publication Maven locale complète avec SBOM et sommes SHA-256.
+- `AGENT.md` (contrats d'agent) ; `NOTICE` consigne l'outillage et ses
+  licences.
 
 ## [0.0.1] — 2026-11-04
 

@@ -79,5 +79,5 @@ Règles :
 
 ## Actions
 
-- [ ] M1 : squelette des dix modules + `build-logic` + tests ArchUnit.
-- [ ] M1 : règles Checkstyle/PMD des plafonds, actives dès le premier commit.
+- [x] M1 : squelette des dix modules + `build-logic` + tests ArchUnit.
+- [x] M1 : règles Checkstyle/PMD des plafonds, actives dès le premier commit.
