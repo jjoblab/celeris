@@ -1,5 +1,12 @@
 # Résumé M1 — fondations de celeris
 
+> **Validation du propriétaire : « M1 validé » (2026-11-04).** Le jalon est
+> franchi **sans désignation d'appareil de référence** (question ouverte
+> n° 5) : la calibration des budgets de l'ADR-006 reste suspendue à cette
+> désignation et le restera jusqu'à décision explicite. M2 — moteur de
+> texte — est déclenché ; son compte rendu vit dans
+> [`RESUME-M2.md`](RESUME-M2.md).
+
 > **Décisions appliquées au nom du propriétaire et signalées en tête,
 > conformément au mandat** (validation M0 du 2026-11-04 : « c'est oui
 > pour tes recommandations ») :
