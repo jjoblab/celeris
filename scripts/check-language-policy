@@ -125,6 +125,23 @@ def check_javadoc(path: str) -> list:
     for i, line in enumerate(lines):
         if re.search(r"^\s*public\s+(final\s+)?(abstract\s+)?(class|interface|enum|record)\s", line):
             j = i - 1
+            # Les annotations se placent entre la Javadoc et la déclaration :
+            # les traverser — y compris leurs arguments multi-lignes — avant
+            # de chercher la Javadoc.
+            profondeur = 0
+            while j >= 0:
+                extrait = lines[j].strip()
+                if profondeur > 0:
+                    profondeur += extrait.count("(") - extrait.count(")")
+                    j -= 1
+                    continue
+                if extrait.startswith("@"):
+                    delta = extrait.count("(") - extrait.count(")")
+                    if delta > 0:
+                        profondeur = delta
+                    j -= 1
+                    continue
+                break
             has_doc = False
             while j >= 0 and lines[j].strip().startswith(("*", "/*", "/**", "*/")):
                 if "/**" in lines[j]:
