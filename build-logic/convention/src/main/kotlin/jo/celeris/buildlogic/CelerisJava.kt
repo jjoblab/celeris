@@ -62,21 +62,24 @@ fun Project.configureAndroidJavac() {
  * classe réelle n'existe, bloquant dès la première (M2).
  */
 fun Project.configureJavadoc() {
+    // Lecture à l'application du plugin : pour un module JVM, « main »
+    // existe déjà (le plugin java précède la convention). Sous AGP 9
+    // (modules Android), le conteneur peut être vide à cet instant :
+    // findByName rend null au lieu de JETER comme named().get() — la
+    // tolérance ne s'y active pas, mais la Javadoc de ces modules ne
+    // s'exécute ni dans check ni dans la CI pure (publication Android
+    // différée, M2/M3) ; le sujet revient avec leurs premières classes
+    // réelles.
+    val sources = extensions.findByType(
+        org.gradle.api.tasks.SourceSetContainer::class.java,
+    )
+    val aDesClasses = sources?.findByName("main")?.allJava
+        ?.filter { it.name != "package-info.java" }
+        ?.files?.isNotEmpty()
+        ?: true
     tasks.withType<org.gradle.api.tasks.javadoc.Javadoc>().configureEach {
         options.encoding = "UTF-8"
-        // Résolu à la réalisation de la tâche : sous AGP 9, les source
-        // sets n'existent pas encore à l'application du plugin — la
-        // consultation hâtive de « main » cassait la configuration des
-        // modules Android (jamais observée localement, sans SDK ; premier
-        // passage CI). findByName, pas named().get() : l'absence n'est pas
-        // une erreur de configuration.
-        val sources = extensions.findByType(
-            org.gradle.api.tasks.SourceSetContainer::class.java,
-        )
-        isFailOnError = sources?.findByName("main")?.allJava
-            ?.filter { it.name != "package-info.java" }
-            ?.files?.isNotEmpty()
-            ?: true
+        isFailOnError = aDesClasses
     }
 }
 

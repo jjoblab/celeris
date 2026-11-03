@@ -42,6 +42,17 @@
   résout les source sets à la réalisation de la tâche (AGP 9 ne les pose
   pas à l'application du plugin — consultation hâtive fatale aux modules
   Android, jamais observée localement puisque sans SDK).
+- **Deuxième ajustement CI** : le premier correctif de tolérance
+  Javadoc relisait le conteneur de source sets DANS la lambda de tâche —
+  `extensions` y désigne celles de la tâche, jamais trouvées : la
+  publication locale échouait en CI (« No public or protected classes
+  found to document » sur les squelettes). Retour au relevé à
+  l'application (modules JVM), avec findByName null-sûr ; et les
+  trois modules Android n'appliquent plus la convention de publication —
+  AGP 9 ne pose ni « release » ni « java » dans le conteneur de composants,
+  leur publication est différée à M2/M3 (écart n° 5 du résumé M1).
+  Le travail « modules purs » est désormais rejoué intégralement en
+  local avant chaque poussée (check, mutation, publication, fumée cli).
 
 ### Vérifié localement (sans SDK Android)
 

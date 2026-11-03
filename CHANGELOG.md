@@ -35,6 +35,13 @@ vivent dans les ADR et le registre de portage, pas ici.
   Javadoc consulte les source sets à la réalisation de la tâche (AGP 9 ne
   les pose pas à l'application du plugin — la consultation hâtive cassait
   la configuration des modules Android).
+- Deuxième passage CI : la tolérance Javadoc relisait le conteneur
+  dans la lambda de tâche (extensions DE LA TÂCHE, jamais trouvées — retour
+  au relevé hâtif, avec findByName null-sûr au lieu de named().get()
+  jetant) ; les trois modules Android n'appliquent plus la
+  convention de publication — différée à M2/M3 (écart n° 5 du résumé M1) —
+  AGP 9 ne posant ni « release » ni « java » dans le conteneur de
+  composants.
 
 - Validation M0 par le propriétaire (2026-11-04) : les douze ADR passent à
   l'état « Acceptée » ; les réponses aux questions groupées sont consignées
