@@ -36,6 +36,16 @@
 >   reste au propriétaire — D-02, D-07 et D-14 rejoignent leur
 >   jalon (M4/M5).
 
+> - **M4 — syntaxe (en cours)** : socle d'analyse incrémentale livré
+>   (tranche 1 : jetons à offsets relatifs, états par ligne, cascade de
+>   commentaires bornée — PIEGE-19 — arbre tolérant ancré par chunks,
+>   crochets, plis, plan, diagnostics, coordinateur session) ;
+>   analyseur Java et registre des langages livrés (tranche 2 :
+>   lexeur à états transportés, parseur tolérant — plan, plis,
+>   diagnostics, indentation du même arbre — extensions composées
+>   comprises) ; Kotlin, XML, JSON, Gradle KTS, voie de grammaires,
+>   coloration consommatrice, corpus et budgets restent à livrer.
+
 ## A. Édition et saisie
 
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |

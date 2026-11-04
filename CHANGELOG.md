@@ -9,6 +9,21 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 2 (M4) — analyseur Java et registre des langages : lexeur
+  à états transportés (textes en bloc ouvrant un crochet apparié,
+  reprise du lexique après fermeture en milieu de ligne, casse —
+  segment qualifié = identificateur, chaîne non fermée = ERROR) ;
+  jetons soudés — les blancs appartiennent au jeton suivant, le rendu
+  n'a pas de trou à peindre ; parseur tolérant (paquet et imports
+  groupés, documentation entraînée, constructeurs nommés, corps en
+  instructions et blocs, jamais d'exception), plan, plis, diagnostics
+  et indentation (`TreeIndent`) du même arbre ; registre par
+  extension la plus longue (`build.gradle.kts` contre
+  `build.gradle`) ; correctifs du socle — l'extension de trivia
+  atteint le début de plage (frontière parasite à l'ancre), le pli
+  d'une déclaration avale celui de sa documentation — extraits
+  `JavaNombres`, `JavaSignes`, `Jetons`, `JavaCorps` (complexité de
+  classe sous le plafond PMD) ; 646 tests verts.
 - Tranche 1 (M4) — socle d'analyse incrémentale : jetons à offsets
   relatifs par ligne, états transportés (cascade de commentaires bornée
   à la reconvergence, PIEGE-19), profondeurs de crochets suivies ;

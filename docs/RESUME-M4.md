@@ -83,3 +83,74 @@
    lignes par langage, minimum de trois tours — PIEGE-13) arrive avec
    les corpus embarqués de la tranche de clôture ; la cascade est déjà
    prouvée bornée en lignes, pas encore en temps.
+
+## Tranche 2 — analyseur Java et registre des langages (2026-11-05)
+
+### Livré
+
+- **Lexeur Java** (`JavaSyntax`, `JavaLexeur`, `JavaNombres`,
+  `JavaSignes`) : mots réservés, littéraux de toutes bases (soulignés,
+  virgule, exposant signé, suffixe), chaînes et caractères échappés,
+  textes en bloc multi-lignes par état transporté — l'ouverture triple
+  guillemet est un crochet ouvrant apparié à sa fermeture —
+  commentaires de ligne, de bloc et de documentation (le DOC se
+  distingue du bloc), annotations, opérateurs contre ponctuation,
+  convention de casse (majuscule initiale = type, tout en majuscules =
+  constante, un segment qualifié reste un identificateur) ; le lexique
+  REPREND après une fermeture en milieu de ligne (l'essai
+  «commentaireDeBlocMultiLignes» l'exigeait) ; une chaîne non fermée
+  est un jeton ERROR, jamais une exception.
+- **Jetons soudés** : dans une ligne, chaque jeton commence à la fin du
+  précédent — les blancs appartiennent au jeton qui les suit, le rendu
+  n'a jamais de trou à peindre ; `Jetons.mot` épure le texte pour les
+  comparaisons du parseur.
+- **Parseur Java tolérant** (`JavaParseur`, `JavaCorps`, `Jetons`,
+  `JavaKind`) : chunks de haut niveau — paquet et imports groupés, puis
+  chaque type avec sa documentation entraînée par l'extension
+  arrière — membres (méthodes, constructeurs — un type suivi de
+  parenthèse porte son nom — champs, types imbriqués, initialiseurs) et
+  corps en instructions et blocs ; jamais d'exception, la malformation
+  devient un nœud d'erreur ; plan, plis, diagnostics et niveaux
+  d'indentation (`TreeIndent` — les lignes qui ferment portent un cran
+  de plus) lus du même arbre.
+- **Registre des langages** (`core-language` : `Language`,
+  `LanguageRegistry`) : identification par nom de fichier, extensions
+  composées comprises — la plus longue gagne, `build.gradle.kts` est du
+  KTS contre `build.gradle` du Groovy ; donnée pure, c'est l'hôte qui
+  peuple le registre.
+- **Correctifs du socle révélés par les tests Java** :
+  `IncrementalParser.etendreTrivia` atteint désormais le début de
+  plage — l'ancre incrémentale d'un chunk documenté engendrait une
+  frontière parasite à la déclaration (3 chunks contre 2 au complet) ;
+  `TreeFolds` ne garde, à ligne d'en-tête identique, que la plus grande
+  région — la documentation d'une déclaration se replie avec elle, pas
+  deux fois.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt — 646 tests, zéro
+  échec (25 tests Java neufs, 5 de registre) ;
+- `:core-syntax:test` : 67 tests verts — lexeur (littéraux, états,
+  reprise après fermeture, casse), arbre (plan, chunks, plis,
+  tolérance, incrémental égal au complet sur le corpus, coordination
+  session), propriété jqwik à graine déterministe (douze éditions
+  chaînées du corpus, panier par panier et état par état) ;
+- Checkstyle (600/50) et PMD verts — la complexité de classe des
+  nouveaux fichiers repasse sous le plafond (80) par extraction de
+  `JavaNombres`, `JavaSignes`, `Jetons` et `JavaCorps` (lexeur 70,
+  parseur 73), sans affaiblir le seuil ;
+- couverture JaCoCo ≥ 90 % de lignes sur `core-syntax` et
+  `core-language` ;
+- manifestes d'API régénérés : `core-syntax` (+82 lignes),
+  `core-language` (+19).
+
+### Écarts et limites
+
+1. **Un seul analyseur P0 sur cinq** : Kotlin, XML, JSON et Gradle KTS
+   suivent aux tranches 3 et 4 — le socle et le langage le plus exigeant
+   sont prouvés, les autres grammaires réutilisent `Jetons` et le motif
+   état-par-ligne.
+2. **Les retouches d'essai** (comptage 1-based du pli corrigé en base 0,
+   `public` superflu retiré des blocs de texte, `exige()` NullAway)
+   sont documentées dans le commit — les tests de la tranche n'avaient
+   jamais tourné avant l'implémentation, par construction.
