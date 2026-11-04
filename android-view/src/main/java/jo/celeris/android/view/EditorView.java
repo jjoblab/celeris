@@ -48,8 +48,8 @@ public final class EditorView extends View {
             new VisualProjection(session.document(), plis, 0);
     private EditorMetrics metrics = EditorMetrics.of(POLICE_PAR_DEFAUT, regle);
     private HitTest viseur = new HitTest(metrics);
-    private DocumentRowSource source =
-            new DocumentRowSource(session.document(), projection, metrics, 0);
+    private final RebindingRowSource sourceLiee = new RebindingRowSource(
+            new DocumentRowSource(session.document(), projection, metrics, 0));
     private EditorTheme theme = EditorThemes.CLAIR;
     private long revisionSuivie;
     private boolean retourALaLigne;
@@ -70,7 +70,7 @@ public final class EditorView extends View {
         BrushFactory pinceaux = new PaintBrushes();
         trace.addLayer(new GutterPainter(pinceaux, MARGE_GOUTTIERE));
         trace.addLayer(new SelectionPainter(pinceaux));
-        trace.addLayer(new TextPainter(pinceaux, cache, source));
+        trace.addLayer(new TextPainter(pinceaux, cache, sourceLiee));
     }
 
     /**
@@ -186,8 +186,8 @@ public final class EditorView extends View {
             cache.invalidate(revisionSuivie);
             revisionSuivie = document.revision();
             projection = new VisualProjection(document, plis, colonnesVoulues);
-            source = new DocumentRowSource(document, projection, metrics,
-                    colonnesVoulues);
+            sourceLiee.set(new DocumentRowSource(document, projection, metrics,
+                    colonnesVoulues));
         }
     }
 
