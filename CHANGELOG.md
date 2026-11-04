@@ -16,6 +16,16 @@ vivent dans les ADR et le registre de portage, pas ici.
   horloge injectée (ADR-007), instantané `Document` immuable, projecteurs de
   positions (plages ancrées, gravités du pipeline commun), propriété jqwik à
   oracle `StringBuilder` (défaire/refaire tout restaure les textes).
+- Tranche 3 — index de lignes porté dans l'instantané `Document` (registre de
+  portage) : débuts de ligne en tableau parallèle, recherche dichotomique,
+  splice incrémental à chaque édition PAR la voie de mutation unique —
+  annulation et refaire compris ; requêtes de ligne (numéro, débuts, fins,
+  contenu), seuils « gros document », mémo du texte complet à référence
+  stable ; invariants croisés document/index vérifiés au fuzz (oracle
+  `StringBuilder` étendu, défaire/refaire compris).
+- Benchmark d'édition de référence : 50 000 lignes, mille éditions d'un
+  caractère par tour par la voie complète de la session, minimum de trois
+  tours (PIEGE-13) — mesure locale : 0,055 ms par édition (budget 1 ms).
 - Modèle de retour à la ligne souple pur à mesure injectée : coupe par
   caractères d'un mot plus large que la ligne par recherche dichotomique,
   accumulation gloutonne mot à mot (PIEGE-08).

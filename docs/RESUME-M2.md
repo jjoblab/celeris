@@ -47,7 +47,7 @@
   `extensions` y désigne celles de la tâche, jamais trouvées : la
   publication locale échouait en CI (« No public or protected classes
   found to document » sur les squelettes). Retour au relevé à
-  l'application (modules JVM), avec findByName null-sûr ; et les
+  l'application (modules JVM), avec findByName null-sûr ; et les
   trois modules Android n'appliquent plus la convention de publication —
   AGP 9 ne pose ni « release » ni « java » dans le conteneur de composants,
   leur publication est différée à M2/M3 (écart n° 5 du résumé M1).
@@ -191,3 +191,87 @@
    `StringBuilder` étendu).
 3. Benchmark de référence branché : ≤ 1 ms/édition sur 50 000 lignes,
    minimum de trois tours par phase (PIEGE-13 appliqué).
+
+## Tranche 3 — index de lignes (2026-11-04)
+
+> L'ordre imposé en fin de tranche 2 est exécuté : `DocumentIndexTest` a été
+> écrit et laissé en échec de compilation AVANT toute ligne d'implantation
+> (82 erreurs constatées), puis le portage l'a rendu vert.
+
+### Livré
+
+- **Index de lignes porté dans `Document`** (registre de portage, décision
+  « Porter ») : tableau parallèle des débuts de ligne (l'entrée 0 vaut 0,
+  chaque suivante suit un saut de ligne), recherche dichotomique offset →
+  ligne, requêtes de début, de fin de contenu et de contenu de ligne,
+  bornes clampées, seuils « gros document » (2,5 M caractères / 50 k lignes).
+  Le remplacement splices l'index incrémentalement : préfixe réutilisé,
+  sauts de ligne du remplacement scannés, suffixe décalé du delta.
+- **L'index est maintenu par la voie de mutation unique** (ADR-003) : la
+  transaction, l'annulation et le refaire s'appliquent tous par
+  `Document.replace` — aucun chemin de mutation ne contourne le splice
+  (famille PIEGE-07).
+- **Mémo du texte complet** porté avec sa documentation de sûreté : champs
+  finaux (publication JMM §17.5), référence volatile à course bénigne,
+  référence stable sur un même instantané (testée par identité).
+- **Invariants croisés au fuzz** (jqwik, 250 suites par exécution) : oracle
+  `StringBuilder` étendu — l'index de lignes de l'instantané doit coïncider,
+  entrée par entrée, avec l'index recalculé par balayage du miroir, après
+  chaque édition ET après l'annulation intégrale puis le refaire intégral.
+- **Benchmark d'édition de référence branché** (budget ADR-006) : document
+  de 50 000 lignes (≈ 2 M caractères), mille remplacements d'un caractère
+  par tour PAR la voie complète de la session (lecture du texte retiré,
+  splice de la rope, maintien de l'index, enregistrement d'étape), positions
+  déterministes à graine fixe, minimum de trois tours (PIEGE-13).
+  **Mesure locale : 0,055 ms par édition** — budget 1 ms, marge ≈ 18×.
+
+### Vérifié localement (sans SDK Android)
+
+- `./gradlew check` vert — politique de langue 0 problème, neutralité
+  0 problème, Checkstyle/PMD/Error Prone + NullAway, JaCoCo ≥ 90 % sur
+  `core-text`, manifeste d'API régénéré et conforme (7 méthodes publiques
+  ajoutées à `Document`) ;
+- `./gradlew :core-text:mutationThreshold` vert — **86,1 % détectées au sens
+  de PIT** (407 KILLED + 11 TIMED_OUT + 3 MEMORY_ERROR sur 489) ; 83,2 % en
+  KILLED seuls, au-dessus du seuil sous les deux sémantiques ;
+- `publishToMavenLocal publicationChecksums` et `:cli:run` verts.
+
+### Écarts et limites
+
+1. **Survivants analysés** (10 sur le code neuf, tous équivalents
+   structurels, même classe que les tranches 1 et 2) : la garde du document
+   vide de `computeLineStarts` et le retour hâtif de plage vide de `subText`
+   coïncident avec le chemin général ; les bornes clampées de
+   `lineForOffset` coïncident avec la recherche dichotomique aux frontières
+   exactes ; le retour hâtif de ligne vide de `lineText` coïncide avec
+   `subText(x, x)` ; le ternaire `(end > start)` du splice est équivalent
+   quand `end == start` (même offset) ; la garde sans effet de `replace`
+   est doublement couverte par la session.
+2. **Coût du splice** : la recopie du suffixe de l'index domine l'édition
+   (0,055 ms mesuré contre 0,002 ms pour la rope seule — cohérent avec la
+   mesure d'insertion de ligne du spike, 39 µs). C'est le compromis
+   consenti par l'ADR-003 (index à côté, plat) ; un index arborescent ne
+   se justifierait que si le budget était menacé — il ne l'est pas (marge
+   ≈ 18×).
+3. **Adaptations consignées au portage** : fabrique intolérante au nul
+   (contract `@NullMarked`), `subText` strict conservé (le dépôt de départ
+   clampe), tests de paresse par réflexion sur le mémo privé non repris
+   (style maison déterministe, aucune réflexion), vue `CharSequence` non
+   reprise à ce stade (aucun consommateur — retournera avec les helpers de
+   frappe).
+4. **Undo/redo × 100 (2 000 lignes)** : 0,79 ms / 0,78 ms mesurés (contre
+   0,22 ms / 0,25 ms en tranche 2) — le rejeu d'annulation maintient
+   désormais aussi l'index ; budget 2 s, marge massive.
+5. **Restauration de sélection (A-13)** : attend la multi-sélection.
+6. **Variante code du retour à la ligne** : vient avec la vue (M3).
+7. **Types forts (`DocOffset`)** : toujours pas introduits — à trancher
+   avant le gel 0.1.0 de `core-text`.
+8. **Recherche/remplacement, UAX #29/#9, encodages et BOM** : tranches
+   suivantes.
+
+### Prochaine tranche (ordre imposé)
+
+1. Portage de la recherche/remplacement dans `core-text` (registre : les
+   tests du dépôt de départ deviennent l'oracle).
+2. Multi-sélection de première classe (ADR-003) : transactions
+   multi-plages, restauration des sélections à l'annulation (A-13).
