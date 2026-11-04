@@ -9,6 +9,14 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 2 (M3) — vue Canvas réelle et chrome : thèmes clair, sombre,
+  contraste élevé à contraste WCAG vérifié automatiquement (D-13) ;
+  gouttière à numéros absolus alignés à droite, étiquettes mémoïsées
+  (D-01, facette numéros) ; géométrie de défilement borné ; `EditorView`
+  — une seule vue, trois couches, cache par révision, curseur posé au
+  DOWN et sélection à ancre figée, panoramique à deux doigts — et ses
+  adaptateurs Android (surface par image, pinceaux possédés, règle de
+  police réelle) ; lint Android sans aucun problème, 51 tests verts.
 - Tranche 1 (M3) — pièges de la vue écrits avant le code (PIEGE-01 à 06,
   14, 15, registre à jour) : socle de rendu JVM pur dans `android-view`,
   testable sans SDK — métriques à règle de police injectée, cache de

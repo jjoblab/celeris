@@ -78,13 +78,73 @@
    M3 qui exigent l'appareil réel (budgets de rendu, gestes, IME,
    accessibilité) restent à vérifier sur le matériel du propriétaire.
 
+## Tranche 2 — vue Canvas réelle et chrome (2026-11-04)
+
+### Livré
+
+- **Thèmes complets à contraste vérifié (D-13)** : le thème gagne la
+  couleur de fond ; les trois palettes du mandat entrent (`EditorThemes`
+  — clair, sombre, contraste élevé) avec le rapport de contraste WCAG
+  2.x en utilitaire pur (`WcagContrast`). Le test vérifie
+  automatiquement les seuils : encre ≥ 4,5:1 sur le fond ET sur le fond
+  de sélection, gouttière ≥ 4,5:1, curseur ≥ 3:1 — les trois palettes
+  passent.
+- **Gouttière à numéros absolus (D-01, facette numéros)** : couche du
+  pipeline (`GutterPainter`), alignement à droite dans le champ
+  (`GutterGeometry`), étiquettes mémoïsées — jamais une chaîne allouée
+  par rangée et par image (`GutterNumbers`, PIEGE-15) ; la rangée d'un
+  pli porte le numéro de son en-tête (PIEGE-04) ; insensible au
+  défilement horizontal. La bascule numéros relatifs et les marques de
+  diagnostics (D-02) suivent.
+- **Géométrie de défilement** (`ScrollGeometry`, pure) : bornage du
+  décalage au contenu — un contenu plus court que la fenêtre ne défile
+  pas —, première rangée visible, nombre de rangées à tracer (entamées
+  comprises, une de marge).
+- **Vue Canvas réelle** (`EditorView`, ADR-006) : une seule vue, mince
+  par construction — la logique vérifiable sans appareil vit dans les
+  classes pures couvertes, la vue assemble (pipeline à trois couches,
+  état d'image, cache), suit la révision du document (invalidation par
+  révision, projection reconstruite à l'édition, plis conservés),
+  défile verticalement au panoramique à deux doigts, pose le curseur au
+  DOWN puis étend la sélection par la gestuelle à ancre figée
+  (PIEGE-03), expose `performClick` pour l'accessibilité.
+- **Adaptateurs Android** : `CanvasSurface` (surface attachée par
+  image, jamais allouée — PIEGE-15), `PaintBrushes`/`PaintBrush`
+  (pinceaux possédés par couche — PIEGE-01), `AndroidFontRuler` (mesure
+  réelle, consultée aux dérivations de métriques seulement — PIEGE-05).
+- **Source de rangées sur document** (`DocumentRowSource`, pure,
+  testée) : la rangée porte la ligne que la projection lui donne, texte
+  sans le saut de ligne.
+
+### Vérifié localement (sans appareil)
+
+- `./gradlew check` vert — politique de langue et neutralité comprises ;
+- `:android-view:testDebugUnitTest` : **51 tests, zéro échec** (huit
+  nouveaux : géométrie de gouttière, étiquettes mémoïsées, couche de
+  gouttière, source de rangées) ;
+- `:android-view:lintDebug --rerun-tasks` : **aucun problème** (zéro
+  avertissement, zéro référence de baseline).
+
+### Écarts et limites
+
+1. **Checkstyle/PMD toujours inexistants sous AGP** (écart de la
+   tranche 1, inchangé — décision de câblage à trancher avant la
+   clôture M3).
+2. **Défilement horizontal différé** : le bornage horizontal exige le
+   suivi de la largeur maximale de ligne, qui vient avec la tranche
+   retour à la ligne (A-18) ; les lignes longues rognent au bord.
+3. **Édition hors périmètre de la vue** : la vue affiche et sélectionne ;
+   la frappe, l'IME et le clavier matériel (tranches suivantes) passeront
+   par la voie de transaction unique.
+4. **Instrumenté absent** : pas de test sur appareil dans cet
+   environnement (gestes réels, IME, budgets de rendu) — à exécuter sur
+   le matériel du propriétaire.
+
 ## Prochaines tranches (prévues)
 
-2. Vue Android réelle : `DrawSurface` sur Canvas, pinceaux réels,
-   défilement fluide, gouttière (numéros), thèmes clair/sombre/contraste
-   élevé (D-13), guides d'indentation (A-17).
 3. Retour à la ligne souple par offsets (A-18, variante code) et très
-   gros fichiers à l'ouverture (A-25, G-01 : 100 000 lignes ≤ 500 ms).
+   gros fichiers à l'ouverture (A-25, G-01 : 100 000 lignes ≤ 500 ms) ;
+   défilement horizontal borné.
 4. Tactile : poignées, pilule multi-curseur (A-01), pincement zoom
    (D-15), loupe ; clavier matériel (D-17).
 5. IME par niveau d'API (26→36), composition par clusters de graphèmes.
