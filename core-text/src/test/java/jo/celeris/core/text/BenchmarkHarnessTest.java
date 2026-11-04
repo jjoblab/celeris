@@ -134,4 +134,48 @@ class BenchmarkHarnessTest {
         assertTrue(retenus[0] < 1_000_000_000L,
                 "edition trop lente : " + parEdition + " ms par edition (min de 3 tours)");
     }
+
+    /**
+     * Mesure réelle du remplacement global : document de 50 000 lignes
+     * (≈ 2 M de caractères), un marqueur toutes les cinquante lignes (1 000
+     * occurrences), remplacement global PAR LA VOIE COMPLÈTE de la session
+     * (passe du moteur, éditions ajustées en deltas cumulés, application,
+     * une étape d'annulation) — minimum de trois tours conservé
+     * (PIEGE-13). Chaque tour enchaîne remplacement puis annulation :
+     * l'annulation réarme le document pour le tour suivant, chaque phase
+     * est chronométrée séparément. Protection structurelle (pas une
+     * chasse aux pourcents de bruit résiduel).
+     */
+    @Test
+    void replaceAllBenchmark_minOfThreeHoldsBudget() {
+        StringBuilder contenu = new StringBuilder();
+        for (int ligne = 0; ligne < 50_000; ligne++) {
+            contenu.append("ligne ").append(ligne);
+            if (ligne % 50 == 0) {
+                contenu.append(" MARQUEUR");
+            }
+            contenu.append('\n');
+        }
+        String initial = contenu.toString();
+        TextSession session = TextSession.of(initial, () -> 0L);
+
+        Runnable phaseRemplacement = () -> assertEquals(1_000,
+                session.replaceAll("MARQUEUR", "CIBLE", new FindOptions()));
+        Runnable phaseAnnulation = () -> assertTrue(session.undo());
+        long[] retenus = BenchmarkHarness.minOfTours(System::nanoTime,
+                phaseRemplacement, phaseAnnulation);
+        double parOccurrence = retenus[0] / 1e6 / 1_000;
+        System.out.printf("[benchmark] replace-all 1000 occurrences (50000 lignes,"
+                        + " min de 3 tours) : %.2f ms (%.4f ms/occurrence) ;"
+                        + " annulation : %.2f ms%n",
+                retenus[0] / 1e6, parOccurrence, retenus[1] / 1e6);
+        assertTrue(retenus[0] < 1_000_000_000L,
+                "replace-all trop lent : " + parOccurrence
+                        + " ms par occurrence (min de 3 tours)");
+        assertTrue(retenus[1] < 1_000_000_000L,
+                "annulation du replace-all trop lente : "
+                        + retenus[1] / 1e6 + " ms (min de 3 tours)");
+        assertEquals(initial, session.text(), "l'annulation finale restaure l'original");
+        assertEquals(0, session.undoDepth());
+    }
 }
