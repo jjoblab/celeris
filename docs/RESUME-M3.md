@@ -140,11 +140,85 @@
    environnement (gestes réels, IME, budgets de rendu) — à exécuter sur
    le matériel du propriétaire.
 
+## Tranche 3 — retour à la ligne par offsets et très gros fichiers (2026-11-04)
+
+### Livré
+
+- **Retour à la ligne souple par offsets (A-18, variante code)** : la
+  projection `VisualProjection` signe désormais plis ET coupures — une
+  ligne de longueur L occupe max(1, ceil(L / budget)) rangées, chaque
+  rangée porte sa tranche d'offsets (`spanStartAtRow`, `spanEndAtRow`,
+  `spanIndexAtRow`). Les sommes préfixées se bâtissent en un passage sur
+  les longueurs, hors du chemin de dessin ; les conversions
+  (rowCount, rowOfLine, firstLineOfRow, lastLineOfRow) restent sans
+  allocation (PIEGE-15) et passent par la projection sous plis ET sous
+  coupures (PIEGE-04).
+- **Budget d'au moins une colonne (PIEGE-08)** : un contenu plus large
+  que la fenêtre est coupé par caractère ; le budget nul coupe le
+  retour à la ligne — chaque ligne garde sa rangée entière, la forme
+  héritée du socle est intacte.
+- **La clé de cache signe le budget (PIEGE-02)** : `RowKey` gagne le
+  budget de colonnes — même révision, même rangée, autre budget : une
+  autre entrée, jamais une tranche périmée servie. La consultation
+  `find` gagne la forme à cinq valeurs, l'ancienne délègue à budget nul.
+- **La rangée porte sa tranche** : `DocumentRowSource` sert texte (par
+  `subText`), colonnes de début et de fin, largeur au caractère
+  près ; le numéro de gouttière ne se pose que sur la première tranche
+  d'une ligne coupée — les continuations restent muettes ; le fond de
+  sélection se borne à la tranche de chaque rangée, positionné en
+  colonnes DANS la tranche, aligné sur le texte tracé depuis le bord
+  gauche de la rangée.
+- **Vue** : `setSoftWrap(boolean)` dérive le budget de la fenêtre et
+  de la gouttière, la projection se reconstruit quand le budget
+  change ; le panoramique à deux doigts défile dans les DEUX axes, le
+  défilement horizontal est borné à la plus large rangée (écart n° 2 de
+  la tranche 2 résolu) ; `offsetAt` vise la colonne dans la tranche.
+- **Correctif : le peintre de texte suit la source courante.** La vue
+  reconstruisait sa source de rangées à chaque changement de session ou
+  de révision, mais la couche de texte, construite une fois au pipeline,
+  avait capturé la source du premier jour — le cache invalidé se
+  recomblait du contenu d'avant. La parade : `RebindingRowSource`, une
+  source déléguée réassignable (test écrit avant le correctif, échec en
+  compilation documenté).
+
+### Vérifié localement (sans appareil)
+
+- `./gradlew check` vert — politique de langue et neutralité comprises ;
+- `:android-view:testDebugUnitTest` : **65 tests, zéro échec**
+  (quatorze nouveaux : projection sous coupures, budget d'une colonne,
+  plis après lignes coupées, longueur maximale, clé signée, tranches de
+  la source, sélection bornée, gouttière muette, gros fichiers) ;
+- `:android-view:lintDebug --rerun-tasks` : **aucun problème** (zéro
+  avertissement, zéro référence de baseline) ;
+- `GrosFichiersTest` (G-01, PIEGE-13 — minimum de trois tours) :
+  100 000 lignes de 80 caractères, première image complète (document,
+  projection, soixante mises en page) mesurée à **154 ms** — budget
+  500 ms ; 480 000 lignes ouvrables, comptes exacts (480 000 lignes,
+  480 000 rangées, longueur maximale 40).
+
+### Écarts et limites
+
+1. **Checkstyle/PMD toujours inexistants sous AGP** (écart de la
+   tranche 1, inchangé — décision de câblage à trancher avant la
+   clôture M3).
+2. **Coupes au budget de colonnes, pas aux frontières de mots** : la
+   variante code coupe à la colonne exacte, blancs préservés — le choix
+   du mandat pour l'éditeur de code ; la variante prose à frontières
+   de mots (mesure injectée) vit dans `core-text` (`SoftWrap`) et
+   servira les popups. La mesure par rangette (hors monospace) suit son
+   jalon.
+3. **Le budget dérive de la gouttière de l'image précédente** : la
+   largeur de gouttière dépend du nombre de rangées, qui dépend du
+   budget — la reconstruction à l'image suivante fait converger le
+   couple en une à deux images ; sans effet sur la cohérence (le
+   budget signé par la projection, la source et la clé de cache est
+   toujours le même).
+4. **Instrumenté absent** : pas de test sur appareil dans cet
+   environnement (défilement fluide réel, budgets d'image sur matériel)
+   — à exécuter sur le matériel du propriétaire.
+
 ## Prochaines tranches (prévues)
 
-3. Retour à la ligne souple par offsets (A-18, variante code) et très
-   gros fichiers à l'ouverture (A-25, G-01 : 100 000 lignes ≤ 500 ms) ;
-   défilement horizontal borné.
 4. Tactile : poignées, pilule multi-curseur (A-01), pincement zoom
    (D-15), loupe ; clavier matériel (D-17).
 5. IME par niveau d'API (26→36), composition par clusters de graphèmes.

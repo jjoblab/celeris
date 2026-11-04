@@ -49,7 +49,7 @@
 | A-22 | Gabarits dynamiques (à trous, variables liées) | P1 | présent (gabarits riches) | `core-intelligence` | M5 | scénario : gabarit à 3 trous tabulables ; test : ordre de tabulation et édition simultanée des variables liées |
 | A-23 | Complétion postfixe | P2 | présent (bancs démo) | `core-intelligence` | M6 | test : `expr.if` → `if (expr) {}` sans matérialiser le préfixe (PIEGE hérité du lot L0) |
 | A-24 | Encodage, fins de ligne, BOM | P0 | partiel | `core-text` | M2 | test : UTF-8/UTF-16/Latin-1, CRLF/LF/CR, BOM préservé, détection sans heuristique réseau |
-| A-25 | Très gros fichiers : ouverture progressive | P0 | partiel (tests de charge 480 000 lignes) | `core-text` + `android-view` | M2/M3 | benchmark : 100 000 lignes → première image ≤ 500 ms ; défilement fluide immédiat |
+| A-25 | Très gros fichiers : ouverture progressive | P0 | partiel (première image JVM : 154 ms pour 100 000 lignes ; appareil réel à vérifier) | `core-text` + `android-view` | M2/M3 | benchmark : 100 000 lignes → première image ≤ 500 ms ; défilement fluide immédiat |
 | A-26 | Fichiers binaires : détection, aperçu sûr, refus d'édition destructrice | P1 | absent | `android-host` | M7 | test : binaire détecté, aperçu hexadécimal lecture seule |
 
 ## B. Intelligence du langage
@@ -160,7 +160,7 @@
 
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
 | --- | --- | --- | --- | --- | --- | --- |
-| G-01 | Ouverture instantanée et progressive de très gros fichiers | P0 | partiel | `core-text` + `android-view` | M2/M3 | benchmark CI : 100 000 lignes → première image ≤ 500 ms, 480 000 lignes ouvrables |
+| G-01 | Ouverture instantanée et progressive de très gros fichiers | P0 | partiel (benchmark JVM vert : 154 ms / 500 ms, 480 000 lignes ouvrables) | `core-text` + `android-view` | M2/M3 | benchmark CI : 100 000 lignes → première image ≤ 500 ms, 480 000 lignes ouvrables |
 | G-02 | Tactile d'abord, hors ligne d'abord, sobre en mémoire et batterie | P0 | partiel | tous | M3+ | scénarios démo hors ligne ; budgets mémoire et images tenus ; aucun réveil réseau parasite |
 | G-03 | Exécutable sans Android (`editor-cli` : analyser, diagnostiquer, formater, refactorer) | P1 | absent | `cli` | M7 | exécution en CI sur corpus, sortie déterministe |
 | G-04 | Plugins isolés (peintres, gouttière, commandes) : l'erreur d'un plugin ne tue pas l'éditeur | P1 | absent | `android-view` | M5 | test : plugin lançant une exception → ligne de journal, image suivante intacte |

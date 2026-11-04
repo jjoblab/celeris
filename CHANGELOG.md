@@ -9,6 +9,17 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 3 (M3) — retour à la ligne souple par offsets, très gros
+  fichiers : la projection signe plis ET coupures (sommes préfixées en
+  un passage, budget d'au moins une colonne — PIEGE-04/08), la clé de
+  cache signe le budget (PIEGE-02), la rangée porte sa tranche (texte,
+  offsets, largeur) ; gouttière muette sur les continuations,
+  sélection bornée à la tranche ; vue : `setSoftWrap`,
+  panoramique à deux axes, défilement horizontal borné ; correctif du
+  peintre de texte — il consulte la source courante par
+  `RebindingRowSource`, jamais une capture périmée ; première image de
+  100 000 lignes mesurée à 154 ms (budget 500 ms, G-01), 480 000 lignes
+  ouvrables ; 65 tests verts.
 - Tranche 2 (M3) — vue Canvas réelle et chrome : thèmes clair, sombre,
   contraste élevé à contraste WCAG vérifié automatiquement (D-13) ;
   gouttière à numéros absolus alignés à droite, étiquettes mémoïsées
