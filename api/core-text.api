@@ -18,6 +18,76 @@ public final class jo.celeris.core.text.AnchoredRanges implements jo.celeris.cor
   public void project(jo.celeris.core.text.EditSpan);
 }
 
+### jo.celeris.core.text.Bidi$BidiInfo
+Compiled from "Bidi.java"
+public final class jo.celeris.core.text.Bidi$BidiInfo {
+  public int paragraphLevel();
+  public int[] levels();
+  public int[] visualToLogical();
+  public int[] logicalToVisual();
+  public int levelAt(int);
+  public boolean isRtl(int);
+}
+
+### jo.celeris.core.text.Bidi
+Compiled from "Bidi.java"
+public final class jo.celeris.core.text.Bidi {
+  public static jo.celeris.core.text.Bidi$BidiInfo analyze(java.lang.String);
+}
+
+### jo.celeris.core.text.BidiCategory
+Compiled from "BidiCategory.java"
+final class jo.celeris.core.text.BidiCategory extends java.lang.Enum<jo.celeris.core.text.BidiCategory> {
+  public static final jo.celeris.core.text.BidiCategory L;
+  public static final jo.celeris.core.text.BidiCategory R;
+  public static final jo.celeris.core.text.BidiCategory AL;
+  public static final jo.celeris.core.text.BidiCategory EN;
+  public static final jo.celeris.core.text.BidiCategory AN;
+  public static final jo.celeris.core.text.BidiCategory ES;
+  public static final jo.celeris.core.text.BidiCategory ET;
+  public static final jo.celeris.core.text.BidiCategory CS;
+  public static final jo.celeris.core.text.BidiCategory WS;
+  public static final jo.celeris.core.text.BidiCategory ON;
+  public static final jo.celeris.core.text.BidiCategory BN;
+  public static final jo.celeris.core.text.BidiCategory NSM;
+  public static final jo.celeris.core.text.BidiCategory LRE;
+  public static final jo.celeris.core.text.BidiCategory RLE;
+  public static final jo.celeris.core.text.BidiCategory LRO;
+  public static final jo.celeris.core.text.BidiCategory RLO;
+  public static final jo.celeris.core.text.BidiCategory PDF;
+  public static final jo.celeris.core.text.BidiCategory LRI;
+  public static final jo.celeris.core.text.BidiCategory RLI;
+  public static final jo.celeris.core.text.BidiCategory FSI;
+  public static final jo.celeris.core.text.BidiCategory PDI;
+  public static jo.celeris.core.text.BidiCategory[] values();
+  public static jo.celeris.core.text.BidiCategory valueOf(java.lang.String);
+}
+
+### jo.celeris.core.text.BidiClassifier
+Compiled from "BidiClassifier.java"
+final class jo.celeris.core.text.BidiClassifier {
+}
+
+### jo.celeris.core.text.BidiEmbeddings$1
+Compiled from "BidiEmbeddings.java"
+class jo.celeris.core.text.BidiEmbeddings$1 {
+}
+
+### jo.celeris.core.text.BidiEmbeddings$Stack
+Compiled from "BidiEmbeddings.java"
+final class jo.celeris.core.text.BidiEmbeddings$Stack {
+}
+
+### jo.celeris.core.text.BidiEmbeddings
+Compiled from "BidiEmbeddings.java"
+final class jo.celeris.core.text.BidiEmbeddings {
+}
+
+### jo.celeris.core.text.BidiRuns
+Compiled from "BidiRuns.java"
+final class jo.celeris.core.text.BidiRuns {
+}
+
 ### jo.celeris.core.text.Document
 Compiled from "Document.java"
 public final class jo.celeris.core.text.Document {
