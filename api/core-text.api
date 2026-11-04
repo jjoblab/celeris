@@ -126,6 +126,83 @@ public final class jo.celeris.core.text.EditSpan extends java.lang.Record {
   public int added();
 }
 
+### jo.celeris.core.text.Encoding
+Compiled from "Encoding.java"
+public final class jo.celeris.core.text.Encoding extends java.lang.Enum<jo.celeris.core.text.Encoding> {
+  public static final jo.celeris.core.text.Encoding UTF_8;
+  public static final jo.celeris.core.text.Encoding UTF_16LE;
+  public static final jo.celeris.core.text.Encoding UTF_16BE;
+  public static final jo.celeris.core.text.Encoding UTF_32LE;
+  public static final jo.celeris.core.text.Encoding UTF_32BE;
+  public static final jo.celeris.core.text.Encoding LATIN_1;
+  public static jo.celeris.core.text.Encoding[] values();
+  public static jo.celeris.core.text.Encoding valueOf(java.lang.String);
+}
+
+### jo.celeris.core.text.EncodingCodec$1
+Compiled from "EncodingCodec.java"
+class jo.celeris.core.text.EncodingCodec$1 {
+}
+
+### jo.celeris.core.text.EncodingCodec$DecodeError
+Compiled from "EncodingCodec.java"
+public final class jo.celeris.core.text.EncodingCodec$DecodeError extends java.lang.Record {
+  public jo.celeris.core.text.EncodingCodec$DecodeError(int, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int offset();
+  public java.lang.String message();
+}
+
+### jo.celeris.core.text.EncodingCodec$DecodeResult
+Compiled from "EncodingCodec.java"
+public final class jo.celeris.core.text.EncodingCodec$DecodeResult extends java.lang.Record {
+  public jo.celeris.core.text.EncodingCodec$DecodeResult(java.lang.String, jo.celeris.core.text.Encoding, boolean, java.util.List<jo.celeris.core.text.EncodingCodec$DecodeError>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String text();
+  public jo.celeris.core.text.Encoding encoding();
+  public boolean hadBom();
+  public java.util.List<jo.celeris.core.text.EncodingCodec$DecodeError> errors();
+}
+
+### jo.celeris.core.text.EncodingCodec$Detection
+Compiled from "EncodingCodec.java"
+public final class jo.celeris.core.text.EncodingCodec$Detection extends java.lang.Record {
+  public jo.celeris.core.text.EncodingCodec$Detection(jo.celeris.core.text.Encoding, boolean, int, boolean);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.text.Encoding encoding();
+  public boolean hadBom();
+  public int bomLength();
+  public boolean certain();
+}
+
+### jo.celeris.core.text.EncodingCodec$LineEnding
+Compiled from "EncodingCodec.java"
+public final class jo.celeris.core.text.EncodingCodec$LineEnding extends java.lang.Enum<jo.celeris.core.text.EncodingCodec$LineEnding> {
+  public static final jo.celeris.core.text.EncodingCodec$LineEnding NONE;
+  public static final jo.celeris.core.text.EncodingCodec$LineEnding LF;
+  public static final jo.celeris.core.text.EncodingCodec$LineEnding CRLF;
+  public static final jo.celeris.core.text.EncodingCodec$LineEnding CR;
+  public static final jo.celeris.core.text.EncodingCodec$LineEnding MIXED;
+  public static jo.celeris.core.text.EncodingCodec$LineEnding[] values();
+  public static jo.celeris.core.text.EncodingCodec$LineEnding valueOf(java.lang.String);
+}
+
+### jo.celeris.core.text.EncodingCodec
+Compiled from "EncodingCodec.java"
+public final class jo.celeris.core.text.EncodingCodec {
+  public static jo.celeris.core.text.EncodingCodec$Detection detect(byte[]);
+  public static jo.celeris.core.text.EncodingCodec$DecodeResult decode(byte[]);
+  public static jo.celeris.core.text.EncodingCodec$DecodeResult decode(byte[], jo.celeris.core.text.Encoding);
+  public static byte[] encode(java.lang.String, jo.celeris.core.text.Encoding, boolean);
+  public static jo.celeris.core.text.EncodingCodec$LineEnding detectLineEndings(java.lang.String);
+}
+
 ### jo.celeris.core.text.FindOptions
 Compiled from "FindOptions.java"
 public final class jo.celeris.core.text.FindOptions extends java.lang.Record {
@@ -441,6 +518,32 @@ public final class jo.celeris.core.text.UndoStep extends java.lang.Record {
   public jo.celeris.core.text.MultiSelection selectionAfter();
 }
 
+### jo.celeris.core.text.Utf8Codec$LengthBounds
+Compiled from "Utf8Codec.java"
+final class jo.celeris.core.text.Utf8Codec$LengthBounds extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int length();
+  public int lower();
+  public int upper();
+}
+
+### jo.celeris.core.text.Utf8Codec$Sequence
+Compiled from "Utf8Codec.java"
+final class jo.celeris.core.text.Utf8Codec$Sequence extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int codePoint();
+  public int advance();
+}
+
+### jo.celeris.core.text.Utf8Codec
+Compiled from "Utf8Codec.java"
+final class jo.celeris.core.text.Utf8Codec {
+}
+
 ### jo.celeris.core.text.WbClass
 Compiled from "WbClass.java"
 final class jo.celeris.core.text.WbClass extends java.lang.Enum<jo.celeris.core.text.WbClass> {
@@ -467,6 +570,11 @@ final class jo.celeris.core.text.WbClass extends java.lang.Enum<jo.celeris.core.
 ### jo.celeris.core.text.WbClassifier
 Compiled from "WbClassifier.java"
 final class jo.celeris.core.text.WbClassifier {
+}
+
+### jo.celeris.core.text.WideCodecs
+Compiled from "WideCodecs.java"
+final class jo.celeris.core.text.WideCodecs {
 }
 
 ### jo.celeris.core.text.Word
