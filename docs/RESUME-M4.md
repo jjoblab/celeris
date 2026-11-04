@@ -79,10 +79,10 @@
 2. **La profondeur des plis par colonnes visuelles** (rangées mixtes
    bidirectionnelles) reste l'écart assumé de M3 — les plis du socle
    sont en lignes du document.
-3. **Budgets de ré-analyse** : le benchmark à seuil (10 ms sur 50 000
-   lignes par langage, minimum de trois tours — PIEGE-13) arrive avec
-   les corpus embarqués de la tranche de clôture ; la cascade est déjà
-   prouvée bornée en lignes, pas encore en temps.
+3. **Budgets de ré-analyse** : tenus — le benchmark à seuil (10 ms sur
+   50 000 lignes par langage, minimum de trois tours — PIEGE-13) est
+   livré avec les corpus répliqués : les cinq langages P0 passent
+   (ReanalyseBudgetTest, tranche 4bis).
 
 ## Tranche 2 — analyseur Java et registre des langages (2026-11-05)
 
@@ -258,3 +258,22 @@
    ouvert sur la ligne suivante de la signature) restent tolérées en
    plages, sans nœud dédié — le corpus et le style usuel ouvrent
    l'accolade sur la ligne de signature.
+
+## Tranche 4bis — budget de ré-analyse à seuil (2026-11-05)
+
+### Livré
+
+- **Budget de sortie mesuré** (`ReanalyseBudgetTest`) : les cinq
+  langages P0 ré-analysent 50 000 lignes après édition en moins de
+  10 ms, minimum de trois tours retenu (PIEGE-13). Le script Gradle
+  KTS vivait en un chunk unique (29,2 ms mesurés) : le prédicat de
+  découpe Kotlin accepte désormais l'identificateur en tête de ligne
+  à profondeur nulle — chaque appel de premier niveau ouvre son chunk,
+  la ré-analyse retombe locale.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble — 704 tests, zéro échec ;
+- le découpage par appel ne change rien aux fichiers Kotlin
+  ordinaires (aucune déclaration n'est un identificateur de premier
+  niveau) — les essais d'arbre Kotlin restent verts sans retouche.

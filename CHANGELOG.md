@@ -9,6 +9,12 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 4bis (M4) — budget de ré-analyse à seuil : les cinq
+  langages P0 ré-analysent 50 000 lignes après édition en moins de
+  10 ms, minimum de trois tours retenu (PIEGE-13) ; le script Gradle
+  KTS, mesuré à 29,2 ms en un chunk unique, gagne le découpage par
+  appel de premier niveau — identificateur en tête de ligne à
+  profondeur nulle — et retombe local ; 704 tests verts.
 - Tranche 4 (M4) — analyseurs Kotlin et Gradle KTS : gabarits de
   chaînes (guillemets internes aux accolades qui ne clôturent pas),
   chaînes brutes par état, commentaires de bloc nichés à profondeur
