@@ -38,6 +38,7 @@
 | PIEGE-16 | Le panneau de documentation de complétion fusionnait titre et élément en ignorant la signature (`fence`) du serveur : les blocs typés doivent rester distincts | `CHANGELOG.md` | `completionDocModelKeepsTypedSections` | `android-widgets` | M5 | à écrire |
 | PIEGE-17 | Une liste de complétion tronquée par le serveur doit être honorée telle quelle : jamais réordonnée ni complétée localement au-delà de la coupure | `CHANGELOG.md` | `truncatedCompletionList_isNeverReordered` | `core-lsp` | M6 | à écrire |
 | PIEGE-18 | Le tir sémantique ne doit pas dépendre de l'état des diagnostics : deux sources de données indépendantes, jamais chaînées | `CHANGELOG.md` | `semanticTokens_independentOfDiagnostics` | `core-lsp` | M6 | à écrire |
+| PIEGE-19 | L'édition de l'ouverture d'un commentaire de bloc invalide l'état de toutes les lignes suivantes jusqu'à la fermeture : la re-lexicographie en cascade doit s'arrêter exactement à la reconvergence des états — jamais relire la suite du document — et son coût rester mesuré (constat du spike : maximum isolé à 33 ms sur le premier tour) | ADR-004 | `commentCascade_boundedByStateConvergence` | `core-syntax` | M4 | à écrire |
 
 ## Règle de traçabilité
 

@@ -11,18 +11,17 @@ import com.tngtech.archunit.lang.ArchRule;
 /**
  * Règles d'architecture du module core-syntax (ADR-002) : aucune dépendance
  * Android, et seules les dépendances descendantes déclarées sont
- * importables. Les paquets autorisés encodent la topologie du module ;
- * les faire évoluer, c'est faire évoluer l'architecture.
+ * importables — le socle syntaxique lit le cœur texte, rien au-dessus.
  */
 @AnalyzeClasses(packages = "jo.celeris.core.syntax", importOptions = ImportOption.DoNotIncludeTests.class)
 public final class ArchitectureTest {
 
-    /** Le cœur ne connaît pas Android : aucun import android.* ici. */
+    /** Le socle ne connaît pas Android : aucun import android.* ici. */
     @ArchTest
     public static final ArchRule aucuneDependanceAndroid =
             noClasses().should().dependOnClassesThat()
                     .resideInAPackage("android..")
-                    .because("le coeur ne connaît pas Android (ADR-002)");
+                    .because("le socle syntaxique ne connaît pas Android (ADR-002)");
 
     /** Les dépendances ne vont que vers le bas : paquets autorisés uniquement. */
     @ArchTest
