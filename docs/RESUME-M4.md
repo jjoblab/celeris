@@ -205,3 +205,56 @@
    (paniers par ligne partagés), mais le parseur relit le chunk
    entier à chaque édition — le benchmark de clôture mesurera le
    coût sur 50 000 lignes.
+
+## Tranche 4 — analyseurs Kotlin et Gradle KTS (2026-11-05)
+
+### Livré
+
+- **Lexeur Kotlin** (`KotlinSyntax`, `KotlinLexeur`, `KotlinSignes`) :
+  gabarits de chaînes — les guillemets internes aux accolades
+  ${…} ne clôturent pas —, chaînes brutes multi-lignes par
+  état transporté (ouverture triple guillemet en crochet ouvrant
+  apparié), commentaires de bloc NICHÉS par état à profondeur —
+  DansBloc porte la profondeur ET le drapeau documentation, la
+  KDoc continuation reste de la documentation et s'attache au chunk —,
+  opérateurs propres (?: ?. :: -> .. ..<), convention de casse.
+- **Parseur Kotlin** (`KotlinParseur`, `KotlinKind`) : une
+  déclaration Kotlin vit sans point-virgule — le prédicat de
+  découpe accepte le changement de ligne, les membres s'arrêtent à la
+  fin de la leur ; fonctions et propriétés de premier niveau en
+  chunks racines, classes, objets (compagnons et anonymes compris) et
+  interfaces en membres nommés, corps délégués au Corps
+  paramétré ; l'accolade d'un objet anonyme se cherche dès le
+  mot-clé.
+- **Dialecte Gradle KTS** (`KtsSyntax`) : même lexeur, même parseur,
+  identifiant propre — le registre des langages distingue
+  build.gradle.kts de build.gradle par l'extension
+  composée la plus longue.
+- **Corps partagé** : `JavaCorps` devient `Corps`, paramétré par les
+  sortes de nœuds du langage appelant — Java et Kotlin partagent le
+  même découpage tolérant des corps.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt — 699 tests, zéro
+  échec (19 neufs) ;
+- Checkstyle (600/50) et PMD verts — `membre` découpé en scan
+  (`scannerMembre`), `KotlinSignes.lex` allégé de ses signes
+  composés ;
+- couverture JaCoCo ≥ 90 % de lignes ; manifeste `core-syntax`
+  régénéré (+110 lignes).
+
+### Écarts et limites
+
+1. **Les cinq analyseurs P0 sont livrés** (Java, Kotlin, XML, JSON,
+   Gradle KTS) : restent la voie de grammaires pour la longue traîne,
+   les consommateurs de la vue, l'ouverture progressive et les
+   budgets de ré-analyse (10 ms sur 50 000 lignes, PIEGE-13).
+2. **Le gabarit multi-lignes reste une approximation** : les
+   accolades ${…} à cheval sur les lignes ne sont pas
+   suivies — le contenu continue de couleur chaîne, sans clôture
+   prématurée.
+3. **Les déclarations à cheval sur les lignes** (corps d'accolades
+   ouvert sur la ligne suivante de la signature) restent tolérées en
+   plages, sans nœud dédié — le corpus et le style usuel ouvrent
+   l'accolade sur la ligne de signature.

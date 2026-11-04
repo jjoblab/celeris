@@ -9,6 +9,16 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 4 (M4) — analyseurs Kotlin et Gradle KTS : gabarits de
+  chaînes (guillemets internes aux accolades qui ne clôturent pas),
+  chaînes brutes par état, commentaires de bloc nichés à profondeur
+  (la KDoc continuation reste de la documentation et s'attache au
+  chunk), opérateurs propres ; le prédicat de découpe accepte le
+  changement de ligne — Kotlin vit sans point-virgule — et les
+  membres s'arrêtent à la fin de leur ligne ; le dialecte KTS
+  partage lexeur et parseur sous son identifiant ; JavaCorps devient
+  Corps paramétré par langage ; 699 tests verts — les cinq
+  analyseurs P0 de la feuille de route sont livrés.
 - Tranche 3 (M4) — analyseurs XML et JSON : lexeur XML à états
   transportés (fermeture nommée et auto-fermeture appariées à
   l'ouverte, CDATA en crochet apparié, balises à cheval sur les
