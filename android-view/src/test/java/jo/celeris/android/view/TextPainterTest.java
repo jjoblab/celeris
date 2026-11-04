@@ -223,4 +223,42 @@ class TextPainterTest {
         assertEquals("alpha", surface.dessins().get(0).texte());
         assertEquals("beta", surface.dessins().get(1).texte());
     }
+
+    /**
+     * La couche de texte consulte la source COURANTE, jamais une capture
+     * périmée : la vue réassigne la source à chaque reconstruction de
+     * projection (changement de session, de révision, de budget de
+     * coupure) — le peintre, construit une fois au pipeline, doit
+     * suivre, sinon il servirait le contenu d'avant sous la révision
+     * d'après.
+     */
+    @Test
+    void textPainter_followsReboundSource() {
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        RowLayoutCache cache = new RowLayoutCache();
+        RebindingRowSource sourceLiee = new RebindingRowSource(
+                new SourceParLigne(Document.of("alpha"), metrics));
+        ScrollFrame image = new ScrollFrame();
+        image.addLayer(new TextPainter(new FabriqueSaine(), cache, sourceLiee));
+        FrameState etat = new FrameState();
+        SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
+
+        // Première image : la source d'origine sert la révision 1.
+        etat.beginFrame(Document.of("alpha"), MultiSelection.empty(),
+                new VisualProjection(1, new FoldModel()), 1L, metrics, THEME,
+                0, 1, 40f, 0f, 0f);
+        image.drawFrame(surface, etat);
+        assertEquals("alpha", surface.dessins().get(0).texte());
+
+        // La session change : autre source, autre révision — le peintre
+        // construit une fois doit servir le NOUVEAU contenu.
+        sourceLiee.set(new SourceParLigne(Document.of("nouveau"), metrics));
+        cache.invalidate(1L);
+        etat.beginFrame(Document.of("nouveau"), MultiSelection.empty(),
+                new VisualProjection(1, new FoldModel()), 2L, metrics, THEME,
+                0, 1, 40f, 0f, 0f);
+        image.drawFrame(surface, etat);
+        assertEquals("nouveau", surface.dessins().get(1).texte(),
+                "le peintre doit consulter la source réassignée, pas sa capture d'origine");
+    }
 }
