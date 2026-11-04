@@ -2,40 +2,22 @@ package jo.celeris.core.text;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.List;
+import java.util.Random;
 
-import net.jqwik.api.Arbitrary;
-import net.jqwik.api.Combinators;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
-import net.jqwik.api.Provide;
-import net.jqwik.api.arbitraries.IntegerArbitrary;
-import net.jqwik.api.arbitraries.StringArbitrary;
 
 /**
  * Propriétés jqwik de la session de texte : l'oracle naïf est un
  * {@link StringBuilder} miroir (ADR-003, ADR-010) — défaire toutes les
  * étapes restaure le texte initial, les refaire toutes restaure le texte
- * final, quelle que soit la suite d'éditions (coalescence comprise).
+ * final, quelle que soit la suite d'éditions (coalescence comprise). La
+ * randomisation est déterministe, rejouable à l'identique à partir de la
+ * graine (exigence de la mutation).
  */
 class TextSessionProprietesTest {
 
-    /** Gène d'édition : position brute, portée, texte inséré. */
-    record Edition(int departBrut, int portee, String texte) {
-    }
-
-    @Provide
-    Arbitrary<List<Edition>> sequences() {
-        IntegerArbitrary departs = net.jqwik.api.Arbitraries.integers().between(0, 400);
-        IntegerArbitrary portees = net.jqwik.api.Arbitraries.integers().between(0, 6);
-        StringArbitrary textes = net.jqwik.api.Arbitraries.strings()
-                .withChars('a', 'b', 'c', '\n', ' ', 'é')
-                .ofMinLength(0)
-                .ofMaxLength(9);
-        Arbitrary<Edition> edition = Combinators.combine(departs, portees, textes)
-                .as(Edition::new);
-        return edition.list().ofMinSize(1).ofMaxSize(25);
-    }
+    private static final String TEXTE_INITIAL = "ligne initiale\nseconde ligne\n";
 
     /**
      * Défaire puis refaire toutes les étapes restaure les textes : suite
@@ -44,30 +26,59 @@ class TextSessionProprietesTest {
      * initial, le refaire intégral revient au texte final.
      */
     @Property(tries = 250)
-    void defairePuisRefaireToutesLesEtapes_restaureLesTextes(
-            @ForAll("sequences") List<Edition> editions) {
-        String texteInitial = "ligne initiale\nseconde ligne\n";
-        TextSession session = TextSession.of(texteInitial, () -> 0L);
-        StringBuilder miroir = new StringBuilder(texteInitial);
-        for (Edition edition : editions) {
-            int depart = Math.min(edition.departBrut(), session.length());
-            int fin = Math.min(depart + edition.portee(), session.length());
-            session.replaceRange(depart, fin, edition.texte());
-            miroir.replace(depart, fin, edition.texte());
+    void defairePuisRefaireToutesLesEtapes_restaureLesTextes(@ForAll long graine) {
+        Random rng = new Random(graine);
+        TextSession session = TextSession.of(TEXTE_INITIAL, () -> 0L);
+        StringBuilder miroir = new StringBuilder(TEXTE_INITIAL);
+        int nombreEditions = rng.nextInt(25) + 1;
+        for (int i = 0; i < nombreEditions; i++) {
+            int depart = rng.nextInt(session.length() + 1);
+            int fin = Math.min(depart + rng.nextInt(7), session.length());
+            String texte = texteAleatoire(rng, 9);
+            session.replaceRange(depart, fin, texte);
+            miroir.replace(depart, fin, texte);
         }
         String texteFinal = miroir.toString();
-        assertEquals(texteFinal, session.text(), "l'oracle naïf suit chaque édition");
+        assertEquals(texteFinal, session.text(),
+                "l'oracle naïf suit chaque édition (graine " + graine + ")");
 
         while (session.canUndo()) {
             session.undo();
         }
-        assertEquals(texteInitial, session.text(),
-                "défaire toutes les étapes restaure le texte initial");
+        assertEquals(TEXTE_INITIAL, session.text(),
+                "défaire toutes les étapes restaure le texte initial (graine " + graine + ")");
 
         while (session.canRedo()) {
             session.redo();
         }
         assertEquals(texteFinal, session.text(),
-                "refaire toutes les étapes restaure le texte final");
+                "refaire toutes les étapes restaure le texte final (graine " + graine + ")");
+    }
+
+    /**
+     * Mélange de lettres minuscules, chiffres, sauts de ligne, espaces et
+     * caractères accentués — les insertions vides sont permises (édition
+     * sans effet admise par replaceRange).
+     */
+    private static String texteAleatoire(Random rng, int longueurMax) {
+        int longueur = rng.nextInt(longueurMax + 1);
+        StringBuilder sb = new StringBuilder(longueur);
+        for (int i = 0; i < longueur; i++) {
+            int choix = rng.nextInt(16);
+            if (choix < 10) {
+                sb.append((char) ('a' + rng.nextInt(26)));
+            } else if (choix < 12) {
+                sb.append((char) ('0' + rng.nextInt(10)));
+            } else if (choix < 13) {
+                sb.append('\n');
+            } else if (choix < 14) {
+                sb.append(' ');
+            } else if (choix < 15) {
+                sb.append("é");
+            } else {
+                sb.append("🌍");
+            }
+        }
+        return sb.toString();
     }
 }
