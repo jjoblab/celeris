@@ -1,3 +1,23 @@
+### jo.celeris.core.text.AnchoredRange
+Compiled from "AnchoredRange.java"
+public final class jo.celeris.core.text.AnchoredRange extends java.lang.Record {
+  public jo.celeris.core.text.AnchoredRange(int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int start();
+  public int end();
+}
+
+### jo.celeris.core.text.AnchoredRanges
+Compiled from "AnchoredRanges.java"
+public final class jo.celeris.core.text.AnchoredRanges implements jo.celeris.core.text.PositionProjector {
+  public jo.celeris.core.text.AnchoredRanges();
+  public void set(java.util.List<jo.celeris.core.text.AnchoredRange>);
+  public java.util.List<jo.celeris.core.text.AnchoredRange> ranges();
+  public void project(jo.celeris.core.text.EditSpan);
+}
+
 ### jo.celeris.core.text.Document
 Compiled from "Document.java"
 public final class jo.celeris.core.text.Document {
@@ -7,6 +27,12 @@ public final class jo.celeris.core.text.Document {
   public int revision();
   public java.lang.String subText(int, int);
   public jo.celeris.core.text.Document replace(int, int, java.lang.String);
+}
+
+### jo.celeris.core.text.EditListener
+Compiled from "EditListener.java"
+public interface jo.celeris.core.text.EditListener {
+  public abstract void onTextEdit(int, int, java.lang.String, java.lang.String);
 }
 
 ### jo.celeris.core.text.EditSpan
@@ -21,6 +47,12 @@ public final class jo.celeris.core.text.EditSpan extends java.lang.Record {
   public int start();
   public int removed();
   public int added();
+}
+
+### jo.celeris.core.text.PositionProjector
+Compiled from "PositionProjector.java"
+public interface jo.celeris.core.text.PositionProjector {
+  public abstract void project(jo.celeris.core.text.EditSpan);
 }
 
 ### jo.celeris.core.text.Rope$Branch
@@ -77,6 +109,29 @@ public final class jo.celeris.core.text.TextEdit extends java.lang.Record {
   public int start();
   public java.lang.String removed();
   public java.lang.String inserted();
+}
+
+### jo.celeris.core.text.TextSession
+Compiled from "TextSession.java"
+public final class jo.celeris.core.text.TextSession {
+  public static final int DEFAULT_MAX_DEPTH;
+  public static jo.celeris.core.text.TextSession of(java.lang.String, java.util.function.LongSupplier);
+  public static jo.celeris.core.text.TextSession of(jo.celeris.core.text.Document, java.util.function.LongSupplier);
+  public jo.celeris.core.text.Document document();
+  public java.lang.String text();
+  public int length();
+  public boolean isReadOnly();
+  public void setReadOnly(boolean);
+  public void addEditListener(jo.celeris.core.text.EditListener);
+  public void addProjector(jo.celeris.core.text.PositionProjector);
+  public boolean apply(jo.celeris.core.text.Transaction);
+  public boolean replaceRange(int, int, java.lang.String);
+  public boolean undo();
+  public boolean redo();
+  public boolean canUndo();
+  public boolean canRedo();
+  public int undoDepth();
+  public int redoDepth();
 }
 
 ### jo.celeris.core.text.Transaction
