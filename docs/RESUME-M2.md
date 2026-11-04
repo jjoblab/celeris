@@ -1,4 +1,4 @@
-# Résumé M2 — moteur de texte (en cours)
+# Résumé M2 — moteur de texte (clos)
 
 > **Déclenchement** : validation M1 du propriétaire (2026-11-04, « M1 validé »,
 > sans désignation d'appareil de référence — question 5 de M1 toujours ouverte).
@@ -398,3 +398,178 @@
 1. Multi-sélection de première classe (ADR-003) : transactions
    multi-plages, restauration des sélections à l'annulation (A-13).
 2. UAX #29/#9 (segmentation de texte et espaces) puis encodages et BOM.
+
+## Tranche 5 — multi-sélection de première classe (2026-11-04)
+
+> L'ordre imposé en fin de tranche 4 est exécuté : les tests de la
+> multi-sélection et de la restauration A-13 ont été écrits et laissés en
+> échec de compilation avant toute ligne d'implantation, puis le code les a
+> rendus verts — quatre commits (test, plages, session, propriétés).
+
+### Livré
+
+- **`SelRange` et `MultiSelection`** : plages ancre-curseur (direction
+  comprise), liste normalisée — triée par début, fusionnée aux
+  recouvrements, dédupliquée —, projection à travers une édition à gravité
+  droite (ADR-003) : la plage au point d'insertion suit le texte inséré,
+  la plage couverte se rabat, les suivantes se décalent, puis
+  re-normalisation. Le modèle mono-intervalle du dépôt de départ est
+  remplacé (parité A-01), conformément au registre de portage qui le
+  classait « abandonner (remplacer) ».
+- **La session porte la sélection** : chaque étape d'historique porte les
+  sélections d'avant et d'après ; annuler restitue le texte ET la
+  sélection exacte d'avant (pluralité, direction et positions comprises),
+  refaire celle d'après (A-13). La frappe multi-curseurs est une
+  transaction ordinaire par la voie unique.
+- **Coalescence étendue à la frappe multi-curseurs** : les curseurs
+  frappés doivent être exactement ceux laissés par la frappe précédente —
+  le cas mono-curseur retrouve la règle d'adjacence du dépôt de départ.
+- **Propriétés jqwik à graine déterministe** (`SelectionProprietesTest`) :
+  suites de frappes à un à trois curseurs aléatoires, horloge au-delà de
+  la fenêtre de coalescence ; chaque annulation restitue le texte et la
+  sélection exacts d'avant le geste contre oracle naïf ; la projection à
+  travers une édition aléatoire est monotone, bornée par la longueur
+  d'après et préserve la disjointure après normalisation.
+
+### Vérifié localement (sans SDK Android)
+
+- `./gradlew check` vert — manifeste d'API régénéré et conforme (cinq
+  signatures nouvelles, additions seulement : `MultiSelection`, `SelRange`
+  et les méthodes de sélection de la session) ;
+- `./gradlew :core-text:mutationThreshold` vert.
+
+### Écarts et limites
+
+1. **UAX #29/#9, encodages et BOM** : tranche suivante du chemin critique.
+2. **Types forts (`DocOffset`)** : toujours pas introduits — à trancher
+   avant le gel 0.1.0 de `core-text`.
+
+### Prochaine tranche (ordre imposé)
+
+1. UAX #29 (clusters de graphèmes, segmentation de mots) — tests écrits
+   avant le code.
+2. UAX #9 (résolution bidirectionnelle) puis encodages et BOM.
+
+## Tranche 6 — UAX #29/#9, encodages et BOM, suppression par clusters (2026-11-04)
+
+> Dernière tranche du jalon : la charge Unicode du modèle de texte. Les
+> tests de chaque brique ont été écrits et laissés en échec de compilation
+> avant l'implantation (huit commits : deux par brique plus le geste de
+> suppression), puis le renforcement de la mutation a clos l'écart au
+> seuil avec un correctif de conformité UAX #29 consigné.
+
+### Livré
+
+- **Clusters de graphèmes (`Grapheme`, UAX #29 révision 15)** : règles
+  GB3 à GB999 ; classes de rupture dérivées des catégories générales
+  Unicode complétées par les plages propres à UAX #29 (préfixes,
+  indicateurs régionaux, jamo hangûl, pictogrammes étendus, modificateurs
+  d'emoji). Limite documentée : les pictogrammes attribués après U+1FFFD
+  tombent en classe ANY et se segmentent caractère par caractère.
+- **Segmentation de mots (`Word`, règles WB3-WB999)** : classes
+  `WbClass`, classificateur `WbClassifier` ; l'élision française, les
+  séparateurs décimaux, les tirets bas, les kana et les fins de ligne y
+  retrouvent la sémantique de la norme. **Correctif de conformité
+  consigné** : le regard des séparateurs médians (WB7, WB12) comparait le
+  caractère directement précédent au lieu du précédent effectif — une
+  marque combinante collée au séparateur coupait le mot que la norme
+  garde entier ; le précédent effectif porte désormais sa position
+  (enregistrement interne `Effective`) et les tests « a.◌̱b » /
+  « 1,◌̱2 » échouaient avant le correctif et passent après.
+- **Résolution bidirectionnelle (`Bidi`, UAX #9)** : niveau de paragraphe
+  par premier caractère fort hors isolats (P2-P3), enchâssements et
+  isolats explicites (X1-X8), types faibles (W1-W7), neutres (N1-N2),
+  niveaux implicites (I1-I2), blancs de fin de ligne (L1),
+  réordonnancement visuel (L2) ; `BidiInfo` est une classe à accesseurs
+  (niveaux, ordres visuel et logique, niveau à l'unité, direction).
+  Limites documentées : N0 (paires de crochets) non implémentée ;
+  contrôles explicites conservés comme bornes neutres invisibles (X9,
+  approche classique) ; l'entrée est une ligne, les séparateurs de
+  paragraphe relèvent de l'appelant. La classification vit dans
+  `BidiClassifier`, les enchâssements dans `BidiEmbeddings`, les courses
+  dans `BidiRuns`, visibles du paquet.
+- **Encodages et BOM (`Encoding`, `EncodingCodec`, `Utf8Codec`,
+  `WideCodecs`)** : détection par BOM toutes familles — l'UTF-32 l'emporte
+  sur le préfixe partagé avec l'UTF-16 —, heuristique bornée pour
+  l'UTF-16 et l'UTF-32 sans BOM (le Latin-1 n'est jamais auto-détecté),
+  décodage strict dont les erreurs portent offsets et remplacement U+FFFD,
+  ré-encodage refusant les substituants isolés, BOM retiré au décodé et
+  optionnel au ré-encodage, mode de fin de ligne dominant exposé (LF,
+  CRLF, CR, mixte). `Utf8Codec` est la machine à états UTF-8 (survols et
+  hors-plage rejetés aux bornes exactes de chaque longueur de séquence),
+  `WideCodecs` les codecs UTF-16 et UTF-32 des deux boutismes (A-24).
+- **Suppression arrière par clusters (`TextSession.deleteBackward`)** :
+  les plages non vides deviennent vides, chaque curseur retire le cluster
+  de graphèmes qui le précède — fenêtre croissante depuis l'offset
+  jusqu'à une frontière certaine, un cluster plus long que la fenêtre
+  l'élargit au lieu d'être coupé —, les plages de curseurs voisins
+  fusionnent au toucher, les positions séquentielles s'ajustent en deltas
+  cumulés et tout passe par la voie de transaction unique (famille
+  PIEGE-07). La coalescence s'étend aux gestes : frappe ou suppression
+  d'un caractère par curseur (A-13 : le geste s'annule en restituant la
+  sélection).
+- **Renforcement ciblé de la mutation** (après analyse des survivants,
+  discipline des tranches précédentes) : les règles faibles W2, W4, W5 et
+  W7 de UAX #9 et les neutres N1 n'étaient observées par aucun test ; les
+  bornes exactes des plages UAX #29 (indicateurs régionaux,
+  modificateurs d'emoji, syllabes et jamo hangûl), les octets canoniques
+  des frontières UTF-8, le refus des survols et hors-plage un cran avant
+  ou après la borne, les allers-retours au-delà du plan multilingue de
+  base et la fenêtre croissante de la suppression sont désormais testés.
+- **Scénarios de démo M2 au catalogue** (`demo`) : A-13, A-18 (facette
+  cœur), A-20, A-24 et A-25 (facette modèle) dans `ScenarioCatalog`, avec
+  test de fumée `ScenarioCatalogTest` (présence, ordre de la matrice,
+  format, unicité, complétude des critères) — compilé et exécuté par la
+  CI avec le SDK.
+
+### Vérifié localement (sans SDK Android)
+
+- `./gradlew check` vert — politique de langue 0 problème, neutralité
+  0 problème, Checkstyle/PMD/Error Prone + NullAway, JaCoCo ≥ 90 % sur
+  `core-text` (couverture ligne des classes mutées : 97 %), manifeste
+  d'API régénéré et conforme (25 sections nouvelles au fil de la tranche,
+  additions seulement) ;
+- `./gradlew :core-text:mutationThreshold` vert — **85,1 % détectées au
+  sens de PIT** (1513 tuées sur 1777, force de test 86 %) ; le premier
+  passage de la tranche mesurait 79,2 % (1408/1777) : le renforcement
+  ciblé a tué 105 mutants et réduit les mutants sans couverture de 53 à
+  26 ;
+- `publishToMavenLocal publicationChecksums` et `:cli:run` verts (rejou
+  complet avant poussée, discipline prise en tranche 1).
+
+### Écarts et limites
+
+1. **N0 (paires de crochets, UAX #9)** : non implémentée — limite
+   documentée dans la Javadoc de `Bidi` ; les textes qui en dépendent
+   relèvent du sous-ensemble classique.
+2. **Pictogrammes après U+1FFFD** : se segmentent caractère par
+   caractère — les pictogrammes attribués ultérieurement exigent une mise
+   à jour des plages (limite documentée).
+3. **Types forts (`DocOffset`)** : toujours pas introduits — à trancher
+   avant le gel 0.1.0 de `core-text` (reporté de tranche en tranche,
+   jamais bloquant).
+4. **Navigation par mots côté session** : `Word` expose les frontières ;
+   les méthodes de saut (mot suivant, mot précédent, casse chameau pour
+   A-04) viennent avec la vue (M3/M5).
+
+## Passage de porte — sortie M2
+
+Critères de sortie de la feuille de route, vérifiés :
+
+- **fuzz et oracle verts** : rope (≈ 10 300 séquences à oracle
+  `StringBuilder`), invariants croisés document/index, remplacement à
+  oracle `String.replace`, sélection contre oracle naïf, permutation
+  bidirectionnelle — tous à graines fixes (exigence de reproductibilité
+  de la mutation) ;
+- **JMH ≤ 1 ms/édition sur 50 000 lignes** : la mesure locale de la
+  tranche 4 (0,109 ms par édition, minimum de trois tours) reste la
+  référence ; la tranche 6 n'ajoute aucune voie d'édition nouvelle ;
+- **mutation ≥ 80 %** : 85,1 % (1513/1777) après renforcement ciblé ;
+- **pièges liés au texte couverts** : PIEGE-07, PIEGE-08 et PIEGE-13
+  écrits avant le code (tranche 2) et couverts depuis ;
+- **scénarios de démo A-13, A-18, A-20, A-24, A-25** : au catalogue avec
+  test de fumée.
+
+Le jalon M2 est clos ; la suite est M3 (vue minimale) — PIEGE-01 à
+PIEGE-06, PIEGE-14 et PIEGE-15 à écrire avant le code, rendu Canvas sans
+allocation par image, curseurs tactiles, IME par niveau d'API.

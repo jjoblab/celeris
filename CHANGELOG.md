@@ -9,6 +9,24 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 5 — multi-sélection de première classe (ADR-003) : plages
+  ancre-curseur `SelRange`, liste normalisée `MultiSelection` (fusion aux
+  recouvrements, projection à gravité droite), la session porte la
+  sélection et la restitue à l'annulation (A-13) ; frappe multi-curseurs
+  par la voie de transaction, coalescence étendue ; propriétés jqwik
+  contre oracle naïf.
+- Tranche 6 — UAX #29/#9, encodages et BOM : clusters de graphèmes
+  (`Grapheme`, GB3-GB999 révision 15) et segmentation de mots (`Word`,
+  WB3-WB999) ; résolution bidirectionnelle (`Bidi`, P2-P3, X1-X8, W1-W7,
+  N1-N2, I1-I2, L1, L2 — N0 non implémentée, limite documentée) ;
+  détection par BOM toutes familles, heuristique bornée, décodage strict
+  à erreurs par offsets, ré-encodage refusant les substituants isolés,
+  fins de ligne dominantes (`Encoding`, `EncodingCodec`, `Utf8Codec`,
+  `WideCodecs`) ; suppression arrière par clusters entiers, tous
+  curseurs, plages fusionnées au toucher, par la voie unique
+  (PIEGE-07) ; scénarios de démo M2 au catalogue (A-13, A-18, A-20,
+  A-24, A-25) avec test de fumée ; mutation 85,1 % (1513/1777, seuil
+  80 %).
 - Tranche 2 — pièges du texte, tests écrits avant le code (PIEGE-07/08/13,
   registre des pièges à jour) : moteur d'annulation transactionnel dans
   `core-text` — la `Transaction`, seule voie de mutation (ADR-003), le rejeu
@@ -46,6 +64,12 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Corrigé
 
+- Segmentation de mots : le regard des séparateurs médians (WB7, WB12)
+  comparait le caractère directement précédent au lieu du précédent
+  effectif — une marque combinante collée au séparateur coupait le mot
+  que la norme garde entier (« a.◌̱b ») ; le précédent effectif porte
+  désormais sa position de début et la classe avant le séparateur se
+  lit au bon endroit (WB4).
 - La porte PMD tournait à vide depuis M1 : le jeu de règles référençait des
   règles retirées de PMD 7.29.0 (aucun fichier analysé, tâche verte) —
   références valides, seuil de complexité réel (15 par méthode inchangé,

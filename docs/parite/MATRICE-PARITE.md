@@ -17,6 +17,10 @@
 > passera à « couvert » quand le scénario de démo et son test de fumée
 > existeront — ce fichier est mis à jour à chaque jalon.
 
+> Couverture actuelle (tenue à jour à chaque jalon) :
+>
+> - **M2 — moteur de texte (2026-11-04, clos)** : facettes cœur de A-13 (annulation groupée, sélection restituée), A-18 (coupe par caractère du modèle pur), A-20 (moteur et passe de remplacement par la voie de transaction), A-24 (encodages, fins de ligne, BOM) et A-25 (côté modèle : index de lignes, budgets de benchmark) ; scénarios au catalogue `ScenarioCatalog`, test de fumée `ScenarioCatalogTest`. Les facettes interface (A-01 tactile, A-18 rangées, A-20 barre de recherche, A-25 rendu progressif) suivent leur jalon respectif (M3, M5).
+
 ## A. Édition et saisie
 
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
