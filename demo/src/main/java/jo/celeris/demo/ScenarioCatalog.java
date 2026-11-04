@@ -1,5 +1,6 @@
 package jo.celeris.demo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,6 +29,14 @@ public final class ScenarioCatalog {
 
     /** Scénarios disponibles, dans l'ordre de la matrice de parité. */
     public static List<Scenario> scenarios() {
+        List<Scenario> tous = new ArrayList<>(scenariosEdition());
+        tous.addAll(scenariosAffichage());
+        tous.addAll(scenariosGlobal());
+        return List.copyOf(tous);
+    }
+
+    /** La catégorie A — édition et saisie. */
+    private static List<Scenario> scenariosEdition() {
         return List.of(
                 new Scenario(
                         "A-01",
@@ -64,7 +73,12 @@ public final class ScenarioCatalog {
                         "Très gros fichiers",
                         "Cent mille lignes s'ouvrent côté modèle dans les budgets "
                                 + "de l'ADR-006 : première image et défilement "
-                                + "restent fluides."),
+                                + "restent fluides."));
+    }
+
+    /** La catégorie D — affichage, gouttière, thèmes et clavier. */
+    private static List<Scenario> scenariosAffichage() {
+        return List.of(
                 new Scenario(
                         "D-01",
                         "Gouttière à numéros absolus",
@@ -97,7 +111,12 @@ public final class ScenarioCatalog {
                         "Table de raccourcis complète et reconfigurable ; "
                                 + "mouvements par clusters de graphèmes, mots "
                                 + "entiers et rangées ; suppressions avant et "
-                                + "arrière par clusters entiers."),
+                                + "arrière par clusters entiers."));
+    }
+
+    /** La catégorie G — exigences globales. */
+    private static List<Scenario> scenariosGlobal() {
+        return List.of(
                 new Scenario(
                         "G-01",
                         "Ouverture progressive",

@@ -377,7 +377,7 @@ public final class EditorView extends View {
         if (action == null) {
             return super.onKeyDown(keyCode, event);
         }
-        return appliquerAction(action);
+        return KeyActions.appliquer(this, action);
     }
 
     @Override
@@ -531,37 +531,6 @@ public final class EditorView extends View {
         scrollY = PinchZoom.scrollYKeepingRow(focalY, ancienScrollY,
                 ancienLineHeight, metrics.lineHeight());
         invalidate();
-    }
-
-    /** D-17 — applique l'action clavier sur la session et la sélection. */
-    private boolean appliquerAction(EditorAction action) {
-        Document document = session.document();
-        switch (action) {
-            case DELETE_BACKWARD:
-                session.deleteBackward();
-                break;
-            case DELETE_FORWARD:
-                session.deleteForward();
-                break;
-            case UNDO:
-                session.undo();
-                break;
-            case REDO:
-                session.redo();
-                break;
-            case SELECT_ALL:
-                session.setSelection(MultiSelection.of(
-                        new SelRange(0, document.length())));
-                break;
-            default:
-                int pageRows = ScrollGeometry.visibleRows(getHeight(),
-                        metrics.lineHeight());
-                session.setSelection(CaretsMotion.move(document, projection,
-                        session.selection(), action, pageRows));
-                break;
-        }
-        invalidate();
-        return true;
     }
 
     private boolean surDoigtLeve() {

@@ -11,7 +11,9 @@ import jo.celeris.buildlogic.configureJavadoc
 import jo.celeris.buildlogic.configureTestPlatform
 import net.ltgt.gradle.errorprone.errorprone
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CheckstyleExtension
+import org.gradle.api.plugins.quality.Pmd
 import org.gradle.api.plugins.quality.PmdExtension
 
 plugins {
@@ -68,3 +70,25 @@ extensions.configure(PmdExtension::class.java) {
     ruleSetFiles = rootProject.files("config/pmd/pmd-rules.xml")
     isConsoleOutput = true
 }
+
+// Sous AGP, les plugins de qualité ne matérialisent aucune tâche
+// (constat de la tranche 1 M3) : les portes se posent explicitement
+// sur le source set principal — les plafonds 600/50 (Checkstyle) et
+// la complexité 15 (PMD) deviennent bloquants, comme sur les modules
+// purs (ADR-002).
+val sourcePrincipal = fileTree("src/main/java")
+
+val checkstyleAndroid = tasks.register<Checkstyle>("checkstyleAndroid") {
+    group = "verification"
+    description = "Vérifie le style du source set principal (plafonds 600/50)."
+    setSource(sourcePrincipal)
+    classpath = files()
+}
+tasks.named("check") { dependsOn(checkstyleAndroid) }
+
+val pmdAndroid = tasks.register<Pmd>("pmdAndroid") {
+    group = "verification"
+    description = "Vérifie la complexité du source set principal (plafond 15)."
+    setSource(sourcePrincipal)
+}
+tasks.named("check") { dependsOn(pmdAndroid) }

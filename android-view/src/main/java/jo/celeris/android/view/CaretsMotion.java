@@ -84,15 +84,25 @@ public final class CaretsMotion {
             case MOVE_WORD_LEFT -> motPrecedent(document, curseur);
             case MOVE_WORD_RIGHT -> motSuivant(document, curseur);
             case MOVE_UP, PAGE_UP -> rangeeCible(document, projection, curseur,
-                    mouvement == EditorAction.MOVE_UP ? -1 : -Math.max(1, pageRows));
+                    -saut(mouvement, pageRows));
             case MOVE_DOWN, PAGE_DOWN -> rangeeCible(document, projection, curseur,
-                    mouvement == EditorAction.MOVE_DOWN ? 1 : Math.max(1, pageRows));
+                    saut(mouvement, pageRows));
             case LINE_START -> debutRangee(document, projection, curseur);
             case LINE_END -> finRangee(document, projection, curseur);
             case DOC_START -> 0;
             case DOC_END -> document.length();
             default -> curseur;
         };
+    }
+
+    /**
+     * Le saut de rangées du mouvement : une rangée au clavier, une
+     * page entière (hauteur visible) à la page.
+     */
+    private static int saut(EditorAction mouvement, int pageRows) {
+        boolean page = mouvement == EditorAction.PAGE_UP
+                || mouvement == EditorAction.PAGE_DOWN;
+        return page ? Math.max(1, pageRows) : 1;
     }
 
     /** Le cluster de graphèmes qui suit l'offset (fenêtre croissante). */
