@@ -32,12 +32,14 @@ public final class TextSession {
 
     private Document document;
     private final UndoStack undoStack;
+    private final LongSupplier clock;
     private final List<EditListener> listeners = new ArrayList<>();
     private final List<PositionProjector> projectors = new ArrayList<>();
     private boolean readOnly;
 
     private TextSession(Document document, LongSupplier clock) {
         this.document = document;
+        this.clock = clock;
         this.undoStack = new UndoStack(DEFAULT_MAX_DEPTH, clock);
     }
 
@@ -164,6 +166,49 @@ public final class TextSession {
         appliquer(editions);
         enregistrer(editions);
         return true;
+    }
+
+    /**
+     * Remplace TOUTES les occurrences de la requête par le remplacement
+     * donné — moteur {@link FindReplace} à l'horloge de la session
+     * (ADR-007), lecture du texte courant puis mutation PAR LA VOIE
+     * UNIQUE (famille PIEGE-07) : les éditions, une par occurrence en
+     * ordre du document, sont ajustées en deltas cumulés pour la
+     * sémantique séquentielle de la {@link Transaction}. Tout le
+     * remplacement forme UNE étape d'annulation — jamais coalescée avec
+     * les frappes (une commande n'est pas une frappe). Les modes regex
+     * (groupes {@code $n} développés), mot entier et casse suivent les
+     * options ; un motif trop coûteux ou invalide ne mute rien. La passe
+     * est plafonnée à {@link FindReplace#MAX_MATCHES} remplacements (état
+     * {@code truncated} du moteur pur — l'appelant qui veut les signaux
+     * l'utilise directement).
+     *
+     * @param query       la requête de recherche
+     * @param replacement le texte de remplacement
+     * @param opts        les options (casse, mot entier, regex)
+     * @return le nombre de remplacements effectués
+     */
+    public int replaceAll(String query, String replacement, FindOptions opts) {
+        if (readOnly) {
+            return 0;
+        }
+        FindReplace moteur = FindReplace.of(clock);
+        FindReplace.ReplaceResult passe = moteur.replaceAll(document.text(), query,
+                replacement, opts);
+        List<TextEdit> passees = passe.edits();
+        if (passees.isEmpty()) {
+            return 0;
+        }
+        List<TextEdit> ajustees = new ArrayList<>(passees.size());
+        int delta = 0;
+        for (TextEdit edition : passees) {
+            ajustees.add(new TextEdit(edition.start() + delta, edition.removed(),
+                    edition.inserted()));
+            delta += edition.inserted().length() - edition.removed().length();
+        }
+        appliquer(ajustees);
+        undoStack.pushStep(new UndoStep(ajustees));
+        return ajustees.size();
     }
 
     /**

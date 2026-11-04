@@ -56,6 +56,100 @@ public final class jo.celeris.core.text.EditSpan extends java.lang.Record {
   public int added();
 }
 
+### jo.celeris.core.text.FindOptions
+Compiled from "FindOptions.java"
+public final class jo.celeris.core.text.FindOptions extends java.lang.Record {
+  public jo.celeris.core.text.FindOptions();
+  public jo.celeris.core.text.FindOptions(boolean, boolean, boolean);
+  public jo.celeris.core.text.FindOptions withCaseSensitive(boolean);
+  public jo.celeris.core.text.FindOptions withWholeWord(boolean);
+  public jo.celeris.core.text.FindOptions withRegex(boolean);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public boolean caseSensitive();
+  public boolean wholeWord();
+  public boolean regex();
+}
+
+### jo.celeris.core.text.FindReplace$RegexBudgetExceededException
+Compiled from "FindReplace.java"
+public final class jo.celeris.core.text.FindReplace$RegexBudgetExceededException extends java.lang.RuntimeException {
+}
+
+### jo.celeris.core.text.FindReplace$ReplaceResult
+Compiled from "FindReplace.java"
+public final class jo.celeris.core.text.FindReplace$ReplaceResult extends java.lang.Record {
+  public jo.celeris.core.text.FindReplace$ReplaceResult(java.lang.String, java.util.List<jo.celeris.core.text.TextEdit>, boolean, boolean);
+  public int count();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String text();
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+  public boolean tooCostly();
+  public boolean truncated();
+}
+
+### jo.celeris.core.text.FindReplace$SearchResult
+Compiled from "FindReplace.java"
+public final class jo.celeris.core.text.FindReplace$SearchResult extends java.lang.Record {
+  public jo.celeris.core.text.FindReplace$SearchResult(java.util.List<jo.celeris.core.text.Match>, boolean, boolean);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.text.Match> matches();
+  public boolean truncated();
+  public boolean tooCostly();
+}
+
+### jo.celeris.core.text.FindReplace$VueRecherche
+Compiled from "FindReplace.java"
+final class jo.celeris.core.text.FindReplace$VueRecherche extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String original();
+  public java.lang.String espaceRecherche();
+  public java.lang.String aiguille();
+  public boolean rapide();
+}
+
+### jo.celeris.core.text.FindReplace
+Compiled from "FindReplace.java"
+public final class jo.celeris.core.text.FindReplace {
+  public static final int MAX_MATCHES;
+  public static final long REGEX_BUDGET_MS;
+  public static jo.celeris.core.text.FindReplace of(java.util.function.LongSupplier);
+  public jo.celeris.core.text.FindReplace$SearchResult find(java.lang.CharSequence, java.lang.String, jo.celeris.core.text.FindOptions);
+  public java.util.List<jo.celeris.core.text.Match> findMatches(java.lang.CharSequence, java.lang.String, jo.celeris.core.text.FindOptions);
+  public jo.celeris.core.text.FindReplace$ReplaceResult replaceAll(java.lang.CharSequence, java.lang.String, java.lang.String, jo.celeris.core.text.FindOptions);
+  public static java.util.regex.Pattern compilePattern(java.lang.String, jo.celeris.core.text.FindOptions);
+  public java.util.regex.Matcher guardedMatcher(java.util.regex.Pattern, java.lang.CharSequence);
+  public static int matchIndexFrom(java.util.List<jo.celeris.core.text.Match>, int);
+}
+
+### jo.celeris.core.text.GuardedCharSequence
+Compiled from "GuardedCharSequence.java"
+final class jo.celeris.core.text.GuardedCharSequence implements java.lang.CharSequence {
+  public int length();
+  public char charAt(int);
+  public java.lang.CharSequence subSequence(int, int);
+  public java.lang.String toString();
+}
+
+### jo.celeris.core.text.Match
+Compiled from "Match.java"
+public final class jo.celeris.core.text.Match extends java.lang.Record {
+  public jo.celeris.core.text.Match(int, int);
+  public int length();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int start();
+  public int end();
+}
+
 ### jo.celeris.core.text.PositionProjector
 Compiled from "PositionProjector.java"
 public interface jo.celeris.core.text.PositionProjector {
@@ -145,6 +239,7 @@ public final class jo.celeris.core.text.TextSession {
   public void addProjector(jo.celeris.core.text.PositionProjector);
   public boolean apply(jo.celeris.core.text.Transaction);
   public boolean replaceRange(int, int, java.lang.String);
+  public int replaceAll(java.lang.String, java.lang.String, jo.celeris.core.text.FindOptions);
   public boolean undo();
   public boolean redo();
   public boolean canUndo();
@@ -191,6 +286,16 @@ public final class jo.celeris.core.text.UndoStep extends java.lang.Record {
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.util.List<jo.celeris.core.text.TextEdit> edits();
+}
+
+### jo.celeris.core.text.WordOccurrences
+Compiled from "WordOccurrences.java"
+public final class jo.celeris.core.text.WordOccurrences {
+  public static final int MAX_OCCURRENCES;
+  public static boolean isEligibleWord(java.lang.String);
+  public static jo.celeris.core.text.Match wordAt(java.lang.CharSequence, int);
+  public static java.util.List<jo.celeris.core.text.Match> findAll(java.lang.CharSequence, java.lang.String);
+  public static int indexOfContaining(java.util.List<jo.celeris.core.text.Match>, int);
 }
 
 ### jo.celeris.core.text.package-info
