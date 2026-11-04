@@ -97,6 +97,18 @@ public abstract class jo.celeris.core.text.Rope implements java.lang.CharSequenc
   public java.lang.CharSequence subSequence(int, int);
 }
 
+### jo.celeris.core.text.SoftWrap$Measurer
+Compiled from "SoftWrap.java"
+public interface jo.celeris.core.text.SoftWrap$Measurer {
+  public abstract float width(java.lang.String);
+}
+
+### jo.celeris.core.text.SoftWrap
+Compiled from "SoftWrap.java"
+public final class jo.celeris.core.text.SoftWrap {
+  public static java.util.List<java.lang.String> wrap(java.lang.String, float, jo.celeris.core.text.SoftWrap$Measurer);
+}
+
 ### jo.celeris.core.text.TextEdit
 Compiled from "TextEdit.java"
 public final class jo.celeris.core.text.TextEdit extends java.lang.Record {
