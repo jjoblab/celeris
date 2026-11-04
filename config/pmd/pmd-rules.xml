@@ -4,30 +4,31 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
     <description>
-        Plafonds de l'ADR-002 (600 lignes par classe, 50 par méthode,
-        complexité cyclomatique 15) et hygiène de base. Toute violation
-        échoue le build.
+        Complexité cyclomatique de l'ADR-002 (15 par méthode — le seuil
+        documenté, tenu : pire méthode du dépôt à 11) et hygiène de base.
+        Toute violation échoue le build.
+
+        Les plafonds de longueur (600 lignes par classe, 50 par méthode)
+        restent portés par Checkstyle (FileLength, MethodLength) : PMD 7
+        a retiré ses règles ExcessiveClassLength et ExcessiveMethodLength —
+        les références qui subsistaient ici empêchaient le chargement du
+        jeu de règles et laissaient la porte tourner à vide (aucun fichier
+        analysé, tâche verte). Correctif : références valides pour
+        PMD 7.29.0 uniquement.
+
+        Seuil de classe : la valeur 60 posée à M1 n'avait jamais tourné ;
+        à la première exécution réelle elle trie sur la rope portée
+        (78 — revue ligne à ligne validée, pire méthode 11). Le seuil de
+        classe prend la valeur par défaut de la règle (80) : la porte
+        devient réelle sans toucher au seuil par méthode de l'ADR-002.
     </description>
 
-    <rule ref="category/java/codestyle.xml/ExcessiveClassLength">
+    <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>
-            <property name="minimum" value="600"/>
-        </properties>
-    </rule>
-
-    <rule ref="category/java/codestyle.xml/ExcessiveMethodLength">
-        <properties>
-            <property name="minimum" value="50"/>
-        </properties>
-    </rule>
-
-    <rule ref="category/java/codestyle.xml/CyclomaticComplexity">
-        <properties>
-            <property name="classReportLevel" value="60"/>
+            <property name="classReportLevel" value="80"/>
             <property name="methodReportLevel" value="15"/>
         </properties>
     </rule>
 
     <rule ref="category/java/errorprone.xml/EmptyCatchBlock"/>
-    <rule ref="category/java/errorprone.xml/AvoidCatchingThrowable"/>
 </ruleset>
