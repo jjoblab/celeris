@@ -153,8 +153,8 @@
 - `./gradlew :core-text:mutationThreshold` vert — **85,5 % détectés au sens
   de PIT** (343 KILLED + 8 TIMED_OUT + 3 MEMORY_ERROR sur 414) ; 82,9 % en
   KILLED seuls, au-dessus du seuil sous les deux sémantiques ;
-- `publishToMavenLocal publicationChecksums` et `:cli:run` verts ;
-- **CI verte au premier passage** (635a818, 2026-11-04) : les deux travaux
+- `publishToMavenLocal publicationChecksums` et `:cli:run` verts ;
+- **CI verte au premier passage** (635a818, 2026-11-04) : les deux travaux
   passent — le rejou complet en local avant poussée (discipline prise en
   tranche 1) a tenu sa promesse.
 
