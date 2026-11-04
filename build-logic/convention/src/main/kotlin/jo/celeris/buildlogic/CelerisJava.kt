@@ -189,13 +189,22 @@ abstract class MutationThresholdCheck : org.gradle.api.DefaultTask() {
             )
             return
         }
-        val killed = statuses.count { it == "KILLED" }
-        val score = killed.toDouble() / statuses.size
+        // Statuts « détectés » au sens canonique de PIT (DetectionStatus :
+        // KILLED, TIMED_OUT, MEMORY_ERROR, RUN_ERROR, NON_VIABLE portent
+        // detected=true) — un mutant qui boucle sans fin ou épuise la
+        // mémoire est détecté par sa mort, pas seulement par un test rouge.
+        val detected = statuses.count {
+            it == "KILLED" || it == "TIMED_OUT" || it == "MEMORY_ERROR"
+                || it == "RUN_ERROR" || it == "NON_VIABLE"
+        }
+        val score = detected.toDouble() / statuses.size
         if (score * 100 < threshold.get()) {
             throw GradleException(
                 "score de mutation %.1f%% inférieur au seuil de %d%%".format(score * 100, threshold.get()),
             )
         }
-        logger.lifecycle("mutation : %.1f%% (%d/%d)".format(score * 100, killed, statuses.size))
+        logger.lifecycle(
+            "mutation : %.1f%% détectées (%d/%d)".format(score * 100, detected, statuses.size),
+        )
     }
 }

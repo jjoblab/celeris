@@ -32,6 +32,13 @@ val cible = "jo.celeris.${project.name.replace('-', '.')}.*"
 val ciblesExclues = "jo.celeris.${project.name.replace('-', '.')}.*Test"
 val sourceSets = extensions.getByType<SourceSetContainer>()
 
+// La mutation ne cible que le code de production (ADR-010) : le filtre
+// d'exclusion par nom ne rattrapait ni les classes internes de test ni les
+// utilitaires de test (harnais de benchmark) — les cibles se limitent aux
+// classes compilées du source set principal.
+val cheminsCode = sourceSets.named("main").get().output.classesDirs.files
+    .joinToString(",") { it.absolutePath }
+
 tasks.register<JavaExec>("mutationCheck") {
     group = "verification"
     description = "Exécute la mutation (PIT) sur les tests du module."
@@ -55,11 +62,16 @@ tasks.register<JavaExec>("mutationCheck") {
     args(
         "--targetClasses", cible,
         "--targetTests", cible,
+        "--mutableCodePaths", cheminsCode,
         "--excludedClasses", ciblesExclues,
         "--sourceDirs", "src/main/java",
         "--reportDir", dirRapport.absolutePath,
         "--outputFormats", "XML",
         "--mutators", "DEFAULTS",
+        // Les minions mesurent des algorithmes à boucles : un tas explicite
+        // stabilise l'instrument (les mutants à allocation non bornée
+        // meurent par manque de mémoire, détectés au sens de PIT).
+        "--jvmArgs", "-Xmx1g",
         // Le squelette n'a aucune ligne de production à muter : l'absence
         // de mutation n'est pas un échec, le seuil (mutationThreshold)
         // reste bloquant dès la première ligne réelle.
