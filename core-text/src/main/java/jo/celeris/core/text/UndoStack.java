@@ -8,14 +8,18 @@ import java.util.function.LongSupplier;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Piles annuler/refaire avec coalescence des frappes simples — portage du
- * gestionnaire d'annulation du dépôt de départ (registre de portage).
+ * Piles annuler/refaire avec coalescence des frappes — portage du
+ * gestionnaire d'annulation du dépôt de départ (registre de portage),
+ * étendu à la frappe multi-curseurs.
  *
- * <p>Les frappes consécutives d'un seul caractère à des positions adjacentes
- * fusionnent en une seule étape d'annulation, dans la limite du délai
- * {@value #COALESCE_TIMEOUT_MS} ms. L'horloge est injectée (ADR-007) : les
- * tests obtiennent un temps déterministe, l'hôte fournit la sienne — le
- * moteur n'appelle jamais l'horloge système.</p>
+ * <p>Les frappes consécutives fusionnent en une seule étape d'annulation
+ * dans la limite du délai {@value #COALESCE_TIMEOUT_MS} ms : une frappe est
+ * une insertion d'un seul caractère à chaque curseur, et les curseurs de la
+ * frappe suivante doivent être exactement ceux laissés par la précédente —
+ * le cas mono-curseur retrouve la règle d'adjacence du dépôt de départ.
+ * L'horloge est injectée (ADR-007) : les tests obtiennent un temps
+ * déterministe, l'hôte fournit la sienne — le moteur n'appelle jamais
+ * l'horloge système.</p>
  *
  * <p>La chaîne de coalescence est pilotée par {@link #armNextCoalesce} et
  * {@link #tryCoalesce} : {@link #pushStep} coupe toujours la chaîne (un lot,
@@ -26,7 +30,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class UndoStack {
 
-    /** Délai de coalescence des frappes simples, en millisecondes. */
+    /** Délai de coalescence des frappes, en millisecondes. */
     public static final long COALESCE_TIMEOUT_MS = 500;
 
     private final List<UndoStep> undoSteps = new ArrayList<>();
@@ -34,8 +38,9 @@ public final class UndoStack {
     private final int maxDepth;
     private final LongSupplier clock;
 
-    /** Fin de la chaîne de coalescence en cours (-1 : chaîne coupée). */
-    private int chainEnd = -1;
+    /** Curseurs attendus de la prochaine frappe (vide : chaîne coupée). */
+    private List<Integer> chainEnds = List.of();
+
     /** Horodatage de l'amorçage de la chaîne en cours. */
     private long chainTime = 0L;
 
@@ -71,46 +76,76 @@ public final class UndoStack {
     }
 
     /**
-     * Amorce la chaîne de coalescence pour l'étape qui vient d'être
-     * empilée : si c'est l'insertion simple d'un caractère, la frappe
-     * suivante à cette position fusionnera avec elle ; tout autre type
-     * d'édition coupe la chaîne.
+     * Amorce la chaîne de coalescence pour la frappe qui vient d'être
+     * empilée en étape propre : si chaque édition insère un seul caractère
+     * sans rien retirer, la frappe suivante sur ces mêmes curseurs fusionnera
+     * avec elle ; tout autre type d'édition coupe la chaîne.
      *
      * @param edit l'édition qui vient d'être empilée en étape propre
      */
     public void armNextCoalesce(TextEdit edit) {
-        if (edit.inserted().length() == 1 && edit.removed().isEmpty()) {
-            chainEnd = edit.start() + 1;
-            chainTime = clock.getAsLong();
-        } else {
+        armNextCoalesce(List.of(edit));
+    }
+
+    /**
+     * Amorce la chaîne de coalescence pour le lot d'éditions qui vient
+     * d'être empilé en étape propre (frappe multi-curseurs).
+     *
+     * @param edits les éditions de la frappe, dans leur ordre d'application
+     */
+    public void armNextCoalesce(List<TextEdit> edits) {
+        List<Integer> carets = caretsAfterTyping(edits);
+        if (carets == null) {
             cutChain();
+        } else {
+            chainEnds = carets;
+            chainTime = clock.getAsLong();
         }
     }
 
     /**
      * Tente de coalescer une frappe d'un seul caractère avec la dernière
-     * étape d'annulation.
+     * étape d'annulation, sans suivi de sélection.
      *
      * @param edit la frappe à coalescer
      * @return vrai si elle a fusionné dans l'étape au sommet de la pile
      */
     public boolean tryCoalesce(TextEdit edit) {
-        if (undoSteps.isEmpty()) {
+        return tryCoalesce(List.of(edit), null);
+    }
+
+    /**
+     * Tente de coalescer une frappe (une insertion d'un seul caractère par
+     * curseur) avec la dernière étape d'annulation : les curseurs frappés
+     * doivent être exactement ceux laissés par la frappe précédente, dans
+     * la fenêtre de coalescence. La sélection d'après de l'étape fusionnée
+     * devient celle de la frappe courante ; la sélection d'avant reste celle
+     * du premier geste de la chaîne.
+     *
+     * @param edits          les éditions de la frappe, dans leur ordre
+     *                       d'application
+     * @param selectionAfter la sélection d'après la frappe courante, ou
+     *                       {@code null} pour conserver celle de l'étape
+     * @return vrai si la frappe a fusionné dans l'étape au sommet
+     */
+    public boolean tryCoalesce(List<TextEdit> edits, @Nullable MultiSelection selectionAfter) {
+        if (undoSteps.isEmpty() || chainEnds.isEmpty()) {
             return false;
         }
+        List<Integer> carets = caretsAfterTyping(edits);
         long now = clock.getAsLong();
-        boolean coalescible = edit.inserted().length() == 1
-                && edit.removed().isEmpty()
-                && edit.start() == chainEnd
-                && now - chainTime < COALESCE_TIMEOUT_MS;
-        if (!coalescible) {
+        if (carets == null || carets.size() != chainEnds.size()
+                || !landingPositions(edits).equals(chainEnds)
+                || now - chainTime >= COALESCE_TIMEOUT_MS) {
             return false;
         }
         UndoStep top = undoSteps.get(undoSteps.size() - 1);
         List<TextEdit> fusionnees = new ArrayList<>(top.edits());
-        fusionnees.add(edit);
-        undoSteps.set(undoSteps.size() - 1, new UndoStep(fusionnees));
-        chainEnd = edit.start() + edit.inserted().length();
+        fusionnees.addAll(edits);
+        MultiSelection apres = selectionAfter != null ? selectionAfter : top.selectionAfter();
+        undoSteps.set(undoSteps.size() - 1,
+                new UndoStep(fusionnees, top.selectionBefore(), apres));
+        chainEnds = carets;
         chainTime = now;
         return true;
     }
@@ -177,8 +212,38 @@ public final class UndoStack {
         return redoSteps.size();
     }
 
+    /**
+     * Les curseurs laissés par une frappe : {@code null} si une quelconque
+     * édition ne frappe pas un seul caractère à la fois. Chaque curseur
+     * suit son insertion ({@code start + 1}) : les éditions d'une frappe
+     * sont ordonnées, aucune ne décale les curseurs précédents.
+     */
+    private static @Nullable List<Integer> caretsAfterTyping(List<TextEdit> edits) {
+        List<Integer> carets = new ArrayList<>(edits.size());
+        for (TextEdit edit : edits) {
+            if (!edit.removed().isEmpty() || edit.inserted().length() != 1) {
+                return null;
+            }
+            carets.add(edit.start() + 1);
+        }
+        return carets;
+    }
+
+    /**
+     * Les positions d'atterrissage d'une frappe, dans les coordonnées
+     * d'avant la transaction : chaque édition séquentielle retire un
+     * caractère aux suivantes ({@code start - index}).
+     */
+    private static List<Integer> landingPositions(List<TextEdit> edits) {
+        List<Integer> positions = new ArrayList<>(edits.size());
+        for (int i = 0; i < edits.size(); i++) {
+            positions.add(edits.get(i).start() - i);
+        }
+        return positions;
+    }
+
     private void cutChain() {
-        chainEnd = -1;
+        chainEnds = List.of();
         chainTime = 0L;
     }
 }

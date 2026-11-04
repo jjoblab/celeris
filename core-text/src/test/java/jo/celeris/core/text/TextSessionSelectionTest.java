@@ -165,7 +165,7 @@ class TextSessionSelectionTest {
     void externalEditsProjectTheSelectionThroughApply() {
         TextSession session = session("0123456789abcdefghij0123456789");
         session.setSelection(MultiSelection.caretsAt(25));
-        assertTrue(session.apply(Transaction.of(new TextEdit(10, "0123456789", "abc"))));
+        assertTrue(session.apply(Transaction.of(new TextEdit(10, "abcdefghij", "abc"))));
         assertEquals("0123456789abc" + "0123456789", session.text());
         assertEquals(MultiSelection.caretsAt(18), session.selection());
     }

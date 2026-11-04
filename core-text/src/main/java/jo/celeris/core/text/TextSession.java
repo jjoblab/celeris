@@ -5,8 +5,9 @@ import java.util.List;
 import java.util.function.LongSupplier;
 
 /**
- * Session d'édition : détient l'instantané courant, les piles
- * d'annulation, les auditeurs d'édition et les projecteurs de positions.
+ * Session d'édition : détient l'instantané courant, la sélection multiple,
+ * les piles d'annulation, les auditeurs d'édition et les projecteurs de
+ * positions.
  *
  * <p><b>La {@link Transaction} est la seule voie de mutation</b> (ADR-003) :
  * {@link #apply} valide, applique, projette et notifie ; l'annulation et le
@@ -17,6 +18,14 @@ import java.util.function.LongSupplier;
  * notification). {@link #replaceRange} est l'entrée commode d'une
  * transaction à édition unique : le texte retiré y est lu sur l'instantané
  * courant, jamais affirmé par l'appelant.</p>
+ *
+ * <p>La sélection multiple est de première classe (ADR-003, parité A-01) :
+ * la session la détient, la projette à travers chaque édition de la voie
+ * unique — éditions distantes et rejeu de l'annulation compris — et chaque
+ * étape d'historique restitue la sélection exacte d'avant à l'annulation,
+ * d'après au rétablissement (A-13 : pluralité, direction et positions
+ * comprises). {@link #type} frappe le même texte sur toutes les plages de
+ * la sélection : la frappe multi-curseurs est une transaction ordinaire.</p>
  *
  * <p>Modèle d'exécution (ADR-007) : écrivain unique — la session vit sur
  * son fil d'écriture (fil d'interface, ou fil dédié de la cli), sans verrou
@@ -35,6 +44,7 @@ public final class TextSession {
     private final LongSupplier clock;
     private final List<EditListener> listeners = new ArrayList<>();
     private final List<PositionProjector> projectors = new ArrayList<>();
+    private MultiSelection selection = MultiSelection.caretsAt(0);
     private boolean readOnly;
 
     private TextSession(Document document, LongSupplier clock) {
@@ -86,9 +96,39 @@ public final class TextSession {
     }
 
     /**
+     * La sélection multiple courante (ADR-003) — un curseur à l'origine sur
+     * une session neuve.
+     *
+     * @return la sélection courante, projetée par chaque édition de la voie
+     *         unique
+     */
+    public MultiSelection selection() {
+        return selection;
+    }
+
+    /**
+     * Remplace la sélection courante. La sélection ne produit aucune entrée
+     * d'historique : seules les transactions s'annulent, et chaque étape
+     * restitue la sélection enregistrée avec elle (A-13).
+     *
+     * @param newSelection la sélection, dont chaque plage doit rester dans
+     *        les bornes du document
+     * @throws IllegalArgumentException si une plage sort du document
+     */
+    public void setSelection(MultiSelection newSelection) {
+        for (SelRange range : newSelection.ranges()) {
+            if (range.end() > document.length()) {
+                throw new IllegalArgumentException("selection " + range
+                        + " beyond document length " + document.length());
+            }
+        }
+        selection = newSelection;
+    }
+
+    /**
      * Pose la garde lecture seule : {@link #apply}, {@link #replaceRange},
-     * {@link #undo} et {@link #redo} sont alors refusés — sans consommer
-     * la moindre étape d'annulation.
+     * {@link #type}, {@link #undo} et {@link #redo} sont alors refusés —
+     * sans consommer la moindre étape d'annulation.
      *
      * @param readOnly vrai pour verrouiller la session
      */
@@ -119,8 +159,9 @@ public final class TextSession {
     /**
      * Applique une transaction : validation des bornes (strictement, avant
      * toute mutation), application par la voie unique — projection des
-     * positions puis notification des auditeurs, édition après édition —
-     * puis enregistrement d'une étape d'annulation (coalescence comprise).
+     * positions et de la sélection puis notification des auditeurs, édition
+     * après édition — puis enregistrement d'une étape d'annulation
+     * (coalescence comprise).
      *
      * @param transaction la transaction à appliquer
      * @return vrai si appliquée ; faux en lecture seule (rien ne bouge)
@@ -137,8 +178,9 @@ public final class TextSession {
         }
         List<TextEdit> editions = transaction.edits();
         validerBornes(editions);
+        MultiSelection avant = selection;
         appliquer(editions);
-        enregistrer(editions);
+        enregistrer(editions, avant, selection);
         return true;
     }
 
@@ -163,8 +205,36 @@ public final class TextSession {
         }
         TextEdit edition = new TextEdit(start, document.subText(start, end), insertion);
         List<TextEdit> editions = List.of(edition);
+        MultiSelection avant = selection;
         appliquer(editions);
-        enregistrer(editions);
+        enregistrer(editions, avant, selection);
+        return true;
+    }
+
+    /**
+     * Frappe le texte donné sur toutes les plages de la sélection : la
+     * frappe multi-curseurs (parité A-01), une transaction ordinaire par la
+     * voie unique. Chaque plage est remplacée par le texte, les curseurs se
+     * posent après l'insertion qui les concerne, et le geste coalescence
+     * avec les frappes précédentes dans la fenêtre de l'historique (A-13 :
+     * annuler restitue le texte et toutes les sélections d'avant).
+     *
+     * @param text le texte à frapper sur chaque plage
+     * @return vrai si la frappe a eu lieu ; faux en lecture seule, sur une
+     *         sélection vide ou si rien ne change
+     */
+    public boolean type(String text) {
+        if (readOnly || selection.isEmpty()) {
+            return false;
+        }
+        List<TextEdit> editions = frappeSur(selection, text);
+        if (editions.isEmpty()) {
+            return false;
+        }
+        MultiSelection avant = selection;
+        validerBornes(editions);
+        appliquer(editions);
+        enregistrer(editions, avant, selection);
         return true;
     }
 
@@ -206,15 +276,18 @@ public final class TextSession {
                     edition.inserted()));
             delta += edition.inserted().length() - edition.removed().length();
         }
+        MultiSelection avant = selection;
         appliquer(ajustees);
-        undoStack.pushStep(new UndoStep(ajustees));
+        undoStack.pushStep(new UndoStep(ajustees, avant, selection));
         return ajustees.size();
     }
 
     /**
      * Annule la dernière étape : rejeu des éditions inverses, en ordre
      * inverse, PAR LA VOIE UNIQUE — projections et notifications comprises,
-     * sans réenregistrer d'étape.
+     * sans réenregistrer d'étape — puis restitution de la sélection
+     * exacte d'avant le geste (A-13 : pluralité, direction et positions
+     * comprises).
      *
      * @return vrai si une étape a été annulée ; faux si la pile est vide ou
      *         la session en lecture seule (l'étape reste alors disponible)
@@ -228,13 +301,17 @@ public final class TextSession {
             return false;
         }
         appliquer(editionsInverses(step));
+        if (step.selectionBefore() != null) {
+            selection = step.selectionBefore();
+        }
         return true;
     }
 
     /**
      * Refait la dernière étape annulée : rejeu des éditions telles quelles,
      * PAR LA VOIE UNIQUE — sans empiler de nouvelle étape (un undo immédiat
-     * revient à l'état d'origine, il ne saute pas d'étape).
+     * revient à l'état d'origine, il ne saute pas d'étape) — puis
+     * restitution de la sélection d'après le geste (A-13).
      *
      * @return vrai si une étape a été refaite ; faux si la pile de refaire
      *         est vide ou la session en lecture seule
@@ -248,6 +325,9 @@ public final class TextSession {
             return false;
         }
         appliquer(step.edits());
+        if (step.selectionAfter() != null) {
+            selection = step.selectionAfter();
+        }
         return true;
     }
 
@@ -301,6 +381,7 @@ public final class TextSession {
             document = document.replace(edition.start(), edition.end(), edition.inserted());
             EditSpan span = new EditSpan(edition.start(), edition.removed().length(),
                     edition.inserted().length());
+            selection = selection.project(span);
             for (PositionProjector projector : projectors) {
                 projector.project(span);
             }
@@ -311,18 +392,36 @@ public final class TextSession {
         }
     }
 
-    private void enregistrer(List<TextEdit> editions) {
-        if (editions.size() == 1) {
-            TextEdit edition = editions.get(0);
-            if (undoStack.tryCoalesce(edition)) {
-                return;
+    /**
+     * Les éditions de la frappe du texte sur chaque plage de la sélection :
+     * plages dans l'ordre du document, positions séquentielles ajustées du
+     * décalage cumulé pour la sémantique de la {@link Transaction} — le
+     * texte retiré se lit aux positions d'origine, les caractères sont les
+     * mêmes. Une plage qui ne change rien (curseur sur un texte vide) ne
+     * produit pas d'édition.
+     */
+    private List<TextEdit> frappeSur(MultiSelection aFrapper, String texte) {
+        List<TextEdit> editions = new ArrayList<>(aFrapper.caretCount());
+        int decalage = 0;
+        for (SelRange plage : aFrapper.ranges()) {
+            String retire = document.subText(plage.start(), plage.end());
+            if (!retire.isEmpty() || !texte.isEmpty()) {
+                editions.add(new TextEdit(plage.start() + decalage, retire, texte));
+                decalage += texte.length() - retire.length();
             }
-            undoStack.pushStep(UndoStep.of(edition));
-            undoStack.armNextCoalesce(edition);
-        } else {
-            // Un lot multi-éditions est une étape entière : la transaction
-            // remplace les begin/endBatch du dépôt de départ.
-            undoStack.pushStep(new UndoStep(editions));
         }
+        return editions;
+    }
+
+    private void enregistrer(List<TextEdit> editions, MultiSelection avant,
+            MultiSelection apres) {
+        if (undoStack.tryCoalesce(editions, apres)) {
+            return;
+        }
+        // Une étape entière : le lot remplace les begin/endBatch du dépôt de
+        // départ ; la frappe (une insertion d'un caractère par curseur)
+        // amorce la chaîne de coalescence.
+        undoStack.pushStep(new UndoStep(editions, avant, apres));
+        undoStack.armNextCoalesce(editions);
     }
 }

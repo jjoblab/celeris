@@ -150,6 +150,34 @@ public final class jo.celeris.core.text.Match extends java.lang.Record {
   public int end();
 }
 
+### jo.celeris.core.text.MultiSelection$Span
+Compiled from "MultiSelection.java"
+final class jo.celeris.core.text.MultiSelection$Span extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int start();
+  public int end();
+  public boolean backward();
+}
+
+### jo.celeris.core.text.MultiSelection
+Compiled from "MultiSelection.java"
+public final class jo.celeris.core.text.MultiSelection {
+  public static jo.celeris.core.text.MultiSelection of(java.util.List<jo.celeris.core.text.SelRange>);
+  public static jo.celeris.core.text.MultiSelection of(jo.celeris.core.text.SelRange...);
+  public static jo.celeris.core.text.MultiSelection caretsAt(int...);
+  public static jo.celeris.core.text.MultiSelection empty();
+  public java.util.List<jo.celeris.core.text.SelRange> ranges();
+  public int caretCount();
+  public boolean isEmpty();
+  public java.util.List<java.lang.Integer> carets();
+  public jo.celeris.core.text.MultiSelection project(jo.celeris.core.text.EditSpan);
+  public boolean equals(java.lang.Object);
+  public int hashCode();
+  public java.lang.String toString();
+}
+
 ### jo.celeris.core.text.PositionProjector
 Compiled from "PositionProjector.java"
 public interface jo.celeris.core.text.PositionProjector {
@@ -198,6 +226,22 @@ public abstract class jo.celeris.core.text.Rope implements java.lang.CharSequenc
   public java.lang.CharSequence subSequence(int, int);
 }
 
+### jo.celeris.core.text.SelRange
+Compiled from "SelRange.java"
+public final class jo.celeris.core.text.SelRange extends java.lang.Record {
+  public jo.celeris.core.text.SelRange(int, int);
+  public static jo.celeris.core.text.SelRange caretAt(int);
+  public int start();
+  public int end();
+  public boolean isEmpty();
+  public boolean isBackward();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int anchor();
+  public int caret();
+}
+
 ### jo.celeris.core.text.SoftWrap$Measurer
 Compiled from "SoftWrap.java"
 public interface jo.celeris.core.text.SoftWrap$Measurer {
@@ -234,11 +278,14 @@ public final class jo.celeris.core.text.TextSession {
   public java.lang.String text();
   public int length();
   public boolean isReadOnly();
+  public jo.celeris.core.text.MultiSelection selection();
+  public void setSelection(jo.celeris.core.text.MultiSelection);
   public void setReadOnly(boolean);
   public void addEditListener(jo.celeris.core.text.EditListener);
   public void addProjector(jo.celeris.core.text.PositionProjector);
   public boolean apply(jo.celeris.core.text.Transaction);
   public boolean replaceRange(int, int, java.lang.String);
+  public boolean type(java.lang.String);
   public int replaceAll(java.lang.String, java.lang.String, jo.celeris.core.text.FindOptions);
   public boolean undo();
   public boolean redo();
@@ -266,7 +313,9 @@ public final class jo.celeris.core.text.UndoStack {
   public jo.celeris.core.text.UndoStack(int, java.util.function.LongSupplier);
   public void pushStep(jo.celeris.core.text.UndoStep);
   public void armNextCoalesce(jo.celeris.core.text.TextEdit);
+  public void armNextCoalesce(java.util.List<jo.celeris.core.text.TextEdit>);
   public boolean tryCoalesce(jo.celeris.core.text.TextEdit);
+  public boolean tryCoalesce(java.util.List<jo.celeris.core.text.TextEdit>, jo.celeris.core.text.MultiSelection);
   public jo.celeris.core.text.UndoStep undo();
   public jo.celeris.core.text.UndoStep redo();
   public boolean canUndo();
@@ -279,6 +328,7 @@ public final class jo.celeris.core.text.UndoStack {
 ### jo.celeris.core.text.UndoStep
 Compiled from "UndoStep.java"
 public final class jo.celeris.core.text.UndoStep extends java.lang.Record {
+  public jo.celeris.core.text.UndoStep(java.util.List<jo.celeris.core.text.TextEdit>, jo.celeris.core.text.MultiSelection, jo.celeris.core.text.MultiSelection);
   public jo.celeris.core.text.UndoStep(java.util.List<jo.celeris.core.text.TextEdit>);
   public static jo.celeris.core.text.UndoStep of(jo.celeris.core.text.TextEdit);
   public jo.celeris.core.text.UndoStep inverse();
@@ -286,6 +336,8 @@ public final class jo.celeris.core.text.UndoStep extends java.lang.Record {
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.util.List<jo.celeris.core.text.TextEdit> edits();
+  public jo.celeris.core.text.MultiSelection selectionBefore();
+  public jo.celeris.core.text.MultiSelection selectionAfter();
 }
 
 ### jo.celeris.core.text.WordOccurrences
