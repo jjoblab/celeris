@@ -123,4 +123,21 @@ class TextSessionEditingTest {
         assertEquals("abc", session.text());
         assertEquals(0, session.undoDepth());
     }
+
+    @Test
+    void deleteBackwardGrowsWindowOnClusterLongerThanIt() {
+        // Un cluster de quarante marques combinantes dépasse la
+        // fenêtre de recherche initiale : la frontière certaine
+        // exige d'élargir la fenêtre, jamais de couper le cluster.
+        StringBuilder builder = new StringBuilder("a");
+        for (int i = 0; i < 40; i++) {
+            builder.append('\u0301');
+        }
+        TextSession session = sessionSur(builder.toString());
+        session.setSelection(MultiSelection.caretsAt(builder.length()));
+        assertTrue(session.deleteBackward());
+        assertEquals("", session.text());
+        assertTrue(session.undo());
+        assertEquals(builder.toString(), session.text());
+    }
 }

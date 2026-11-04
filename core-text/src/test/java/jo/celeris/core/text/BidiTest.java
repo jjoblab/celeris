@@ -18,7 +18,7 @@ class BidiTest {
 
     private static final long SEED = 20261104L;
 
-    private static final String PALETTE = "ab אבג1+\u202B\u202C\u2067\u2069\t.👍\u0627\u0660";
+    private static final String PALETTE = "ab אבג1+%\u202B\u202C\u2067\u2069\t.👍\u0627\u0660";
 
     @Test
     void ltrLineStaysAtLevelZero() {
@@ -147,6 +147,90 @@ class BidiTest {
         assertEquals(0, info.paragraphLevel());
         assertArrayEquals(new int[0], info.levels());
         assertArrayEquals(new int[0], info.visualToLogical());
+    }
+
+    @Test
+    void euroSignAfterDigitsJoinsEuropeanNumber() {
+        // W5 : le symbole collé au chiffre européen devient chiffre —
+        // il monte au niveau 2 au lieu de rester neutre au niveau 1.
+        Bidi.BidiInfo info = Bidi.analyze("\u05D0" + "50%");
+        assertArrayEquals(new int[] {1, 2, 2, 2}, info.levels());
+        assertArrayEquals(new int[] {1, 2, 3, 0}, info.visualToLogical());
+    }
+
+    @Test
+    void percentBeforeDigitsJoinsEuropeanNumber() {
+        // W5 dans l'autre sens : le symbole précède le chiffre.
+        Bidi.BidiInfo info = Bidi.analyze("\u05D0 %50");
+        assertArrayEquals(new int[] {1, 1, 2, 2, 2}, info.levels());
+        assertArrayEquals(new int[] {2, 3, 4, 1, 0}, info.visualToLogical());
+    }
+
+    @Test
+    void decimalSeparatorBetweenEuropeanDigitsSticks() {
+        // W4 : le séparateur entre deux chiffres européens devient
+        // chiffre — il suit le bloc gauche à droite.
+        Bidi.BidiInfo info = Bidi.analyze("\u05D01.5");
+        assertArrayEquals(new int[] {1, 2, 2, 2}, info.levels());
+        assertArrayEquals(new int[] {1, 2, 3, 0}, info.visualToLogical());
+    }
+
+    @Test
+    void arabicDecimalSeparatorBetweenArabicDigitsSticks() {
+        // W4 côté arabe : le point entre deux chiffres arabes les suit.
+        Bidi.BidiInfo info = Bidi.analyze("\u05D0\u0660.\u0662");
+        assertArrayEquals(new int[] {1, 2, 2, 2}, info.levels());
+        assertArrayEquals(new int[] {1, 2, 3, 0}, info.visualToLogical());
+    }
+
+    @Test
+    void decimalSeparatorBetweenDifferentNumberKindsStaysNeutral() {
+        // W4 refuse : chiffre européen et chiffre arabe diffèrent, le
+        // séparateur redevient neutre (W6) puis prend la direction
+        // environnante (N1 : les deux nombres agissent comme du RTL).
+        Bidi.BidiInfo info = Bidi.analyze("\u05D01.\u0660");
+        assertArrayEquals(new int[] {1, 2, 1, 2}, info.levels());
+        assertArrayEquals(new int[] {3, 2, 1, 0}, info.visualToLogical());
+    }
+
+    @Test
+    void europeanNumberAfterArabicLetterReadsAsArabicNumber() {
+        // W2 : le chiffre européen après une lettre arabe devient
+        // chiffre arabe — le symbole pourcent (W5, réservé aux chiffres
+        // européens) ne peut plus s'y coller : il reste neutre au
+        // niveau 1.
+        Bidi.BidiInfo info = Bidi.analyze("\u0627" + "1%");
+        assertArrayEquals(new int[] {1, 2, 1}, info.levels());
+        assertArrayEquals(new int[] {2, 1, 0}, info.visualToLogical());
+    }
+
+    @Test
+    void europeanNumberAfterLatinTakesLatinLevel() {
+        // W7 : le chiffre européen dans un contexte fort gauche à
+        // droite devient L — il reste au niveau 0 au lieu de monter à 2.
+        Bidi.BidiInfo info = Bidi.analyze("a1");
+        assertArrayEquals(new int[] {0, 0}, info.levels());
+        assertArrayEquals(new int[] {0, 1}, info.visualToLogical());
+    }
+
+    @Test
+    void neutralBetweenTwoRtlRunsTakesRtlInsideLtr() {
+        // N1 : le point entre deux lettres droite à gauche agit comme
+        // du RTL — il monte au niveau 1 dans le paragraphe gauche à
+        // droite.
+        Bidi.BidiInfo info = Bidi.analyze("a\u05D0.\u05D1a");
+        assertArrayEquals(new int[] {0, 1, 1, 1, 0}, info.levels());
+        assertArrayEquals(new int[] {0, 3, 2, 1, 4}, info.visualToLogical());
+    }
+
+    @Test
+    void neutralBetweenTwoLatinTakesLatinInsideRtl() {
+        // N1 en miroir : le point entre deux lettres latines au sein
+        // d'un paragraphe droite à gauche prend la direction latine et
+        // monte au niveau pair 2 avec elles.
+        Bidi.BidiInfo info = Bidi.analyze("\u05D0a.a\u05D1");
+        assertArrayEquals(new int[] {1, 2, 2, 2, 1}, info.levels());
+        assertArrayEquals(new int[] {4, 1, 2, 3, 0}, info.visualToLogical());
     }
 
     /**

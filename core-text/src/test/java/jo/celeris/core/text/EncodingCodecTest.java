@@ -237,4 +237,82 @@ class EncodingCodecTest {
         assertFalse(decoded.hadBom());
         assertArrayEquals(new byte[0], EncodingCodec.encode("", Encoding.UTF_8, false));
     }
+
+    @Test
+    void utf8BoundaryCodePointsRoundTrip() {
+        // Les extrêmes de chaque longueur de séquence : un octet,
+        // deux, trois (avec la zone privée au-delà des substituts),
+        // quatre — jusqu'au dernier point de code du plan Unicode.
+        int[] boundaries = {0x00, 0x7F, 0x80, 0x7FF, 0x800, 0xD7FF,
+                0xE000, 0xFFFF, 0x10000, 0x10FFFF};
+        StringBuilder builder = new StringBuilder();
+        for (int codePoint : boundaries) {
+            builder.appendCodePoint(codePoint);
+        }
+        String text = builder.toString();
+        assertArrayEquals(text.getBytes(StandardCharsets.UTF_8),
+                EncodingCodec.encode(text, Encoding.UTF_8, false));
+        EncodingCodec.DecodeResult decoded =
+                EncodingCodec.decode(EncodingCodec.encode(text, Encoding.UTF_8, false));
+        assertEquals(text, decoded.text());
+        assertTrue(decoded.errors().isEmpty());
+    }
+
+    @Test
+    void utf8EncodedBytesOfBoundaryCodePointsAreExact() {
+        // Les octets canoniques des frontières : la première séquence
+        // de deux octets (U+0080), de trois (U+0800), de quatre
+        // (U+10000), et le dernier point de code.
+        assertArrayEquals(new byte[] {(byte) 0xC2, (byte) 0x80},
+                EncodingCodec.encode("\u0080", Encoding.UTF_8, false));
+        assertArrayEquals(new byte[] {(byte) 0xE0, (byte) 0xA0, (byte) 0x80},
+                EncodingCodec.encode("\u0800", Encoding.UTF_8, false));
+        assertArrayEquals(new byte[] {(byte) 0xF0, (byte) 0x90, (byte) 0x80, (byte) 0x80},
+                EncodingCodec.encode("\uD800\uDC00", Encoding.UTF_8, false));
+        assertArrayEquals(new byte[] {(byte) 0xF4, (byte) 0x8F, (byte) 0xBF, (byte) 0xBF},
+                EncodingCodec.encode("\uDBFF\uDFFF", Encoding.UTF_8, false));
+    }
+
+    @Test
+    void utf8ContinuationBoundariesRejectSurlongAndOutliers() {
+        // Un cran avant la borne basse : survol ; un cran après la
+        // borne haute : hors plage ou substitut. La séquence ED 9F BF
+        // (U+D7FF) et F4 8F BF BF (U+10FFFF) doivent passer, leurs
+        // voisines d'un cran doivent échouer.
+        assertFalse(EncodingCodec.decode(
+                new byte[] {(byte) 0xE0, (byte) 0x9F, (byte) 0x80}).errors().isEmpty());
+        assertFalse(EncodingCodec.decode(
+                new byte[] {(byte) 0xF0, (byte) 0x8F, (byte) 0x80, (byte) 0x80}).errors()
+                .isEmpty());
+        assertTrue(EncodingCodec.decode(
+                new byte[] {(byte) 0xED, (byte) 0x9F, (byte) 0xBF}).errors().isEmpty());
+        assertFalse(EncodingCodec.decode(
+                new byte[] {(byte) 0xED, (byte) 0xA0, (byte) 0x80}).errors().isEmpty());
+        assertTrue(EncodingCodec.decode(
+                new byte[] {(byte) 0xF4, (byte) 0x8F, (byte) 0xBF, (byte) 0xBF}).errors()
+                .isEmpty());
+        assertFalse(EncodingCodec.decode(
+                new byte[] {(byte) 0xF4, (byte) 0x90, (byte) 0x80, (byte) 0x80}).errors()
+                .isEmpty());
+        // Bornes de la tête à deux octets : C1 interdit, C2 valide.
+        assertFalse(EncodingCodec.decode(
+                new byte[] {(byte) 0xC1, (byte) 0x80}).errors().isEmpty());
+        assertTrue(EncodingCodec.decode(
+                new byte[] {(byte) 0xC2, (byte) 0x80}).errors().isEmpty());
+    }
+
+    @Test
+    void wideCodecsRoundTripBeyondBmp() {
+        // Astral, BMP accentué et latin mêlés : les paires de
+        // substituts et les incréments d'unité des quatre codecs
+        // élargis font des allers-retours exacts.
+        String text = "a😀é\uD83D\uDE00\uDBFF\uDFFFç";
+        for (Encoding encoding : new Encoding[] {Encoding.UTF_16LE, Encoding.UTF_16BE,
+                Encoding.UTF_32LE, Encoding.UTF_32BE}) {
+            byte[] bytes = EncodingCodec.encode(text, encoding, false);
+            EncodingCodec.DecodeResult decoded = EncodingCodec.decode(bytes, encoding);
+            assertEquals(text, decoded.text(), "aller-retour " + encoding);
+            assertTrue(decoded.errors().isEmpty(), "erreurs " + encoding);
+        }
+    }
 }
