@@ -88,6 +88,11 @@ Compiled from "BidiRuns.java"
 final class jo.celeris.core.text.BidiRuns {
 }
 
+### jo.celeris.core.text.ClusterDeletes
+Compiled from "ClusterDeletes.java"
+final class jo.celeris.core.text.ClusterDeletes {
+}
+
 ### jo.celeris.core.text.Document
 Compiled from "Document.java"
 public final class jo.celeris.core.text.Document {
@@ -465,6 +470,7 @@ public final class jo.celeris.core.text.TextSession {
   public boolean replaceRange(int, int, java.lang.String);
   public boolean type(java.lang.String);
   public boolean deleteBackward();
+  public boolean deleteForward();
   public int replaceAll(java.lang.String, java.lang.String, jo.celeris.core.text.FindOptions);
   public boolean undo();
   public boolean redo();

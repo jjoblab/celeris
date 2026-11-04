@@ -155,7 +155,7 @@ class TextSessionEditingTest {
     @Test
     void deleteForwardRemovesAccentedGraphemeAsOne() {
         TextSession session = sessionSur("café au lait");
-        session.setSelection(MultiSelection.caretsAt(2));
+        session.setSelection(MultiSelection.caretsAt(3));
         assertTrue(session.deleteForward());
         assertEquals("caf au lait", session.text());
     }
@@ -163,10 +163,12 @@ class TextSessionEditingTest {
     @Test
     void deleteForwardAcrossAllCarets() {
         TextSession session = sessionSur("ab\ncd\nef");
-        session.setSelection(MultiSelection.caretsAt(1, 4));
+        session.setSelection(MultiSelection.caretsAt(1, 6));
         assertTrue(session.deleteForward());
         assertEquals("a\ncd\nf", session.text());
-        assertEquals(MultiSelection.caretsAt(1, 4), session.selection());
+        // Gravité droite : le curseur au départ de sa plage supprimée y
+        // reste, le suivant suit le décalage.
+        assertEquals(MultiSelection.caretsAt(1, 5), session.selection());
     }
 
     @Test
