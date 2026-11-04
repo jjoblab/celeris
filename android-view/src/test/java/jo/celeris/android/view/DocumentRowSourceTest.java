@@ -88,4 +88,61 @@ class DocumentRowSourceTest {
         assertEquals(0f, vide.width(), 1e-6f);
         assertEquals(1, vide.line());
     }
+
+    /**
+     * A-18 — sous retour à la ligne par offsets, la rangée porte sa
+     * tranche de la ligne : texte, colonnes de début et de fin, largeur
+     * au caractère près.
+     */
+    @Test
+    void wrappedRowCarriesItsSpan() {
+        Document document = Document.of("aaaaaaaaaa\nbb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FontSpec police = new FontSpec("mono", 14f);
+        VisualProjection projection =
+                new VisualProjection(document, new FoldModel(), 4);
+        DocumentRowSource source = new DocumentRowSource(document, projection,
+                metrics, 4);
+
+        RowLayout premiere = source.layoutOf(new RowKey(1L, 0, 1, police, 4));
+        assertEquals(0, premiere.line());
+        assertEquals(0, premiere.start());
+        assertEquals(4, premiere.end());
+        assertEquals("aaaa", premiere.text());
+        assertEquals(40f, premiere.width(), 1e-6f);
+
+        RowLayout milieu = source.layoutOf(new RowKey(1L, 1, 1, police, 4));
+        assertEquals(0, milieu.line());
+        assertEquals(4, milieu.start());
+        assertEquals(8, milieu.end());
+        assertEquals("aaaa", milieu.text());
+
+        RowLayout queue = source.layoutOf(new RowKey(1L, 2, 1, police, 4));
+        assertEquals(0, queue.line());
+        assertEquals(8, queue.start());
+        assertEquals(10, queue.end());
+        assertEquals("aa", queue.text());
+        assertEquals(20f, queue.width(), 1e-6f);
+
+        RowLayout ligneSuivante = source.layoutOf(new RowKey(1L, 3, 1, police, 4));
+        assertEquals(1, ligneSuivante.line());
+        assertEquals("bb", ligneSuivante.text());
+    }
+
+    /** Budget nul : la source sert la ligne entière, comme avant le retour à la ligne. */
+    @Test
+    void zeroColumnsServesWholeLine() {
+        Document document = Document.of("aaaaaaaaaa\nbb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FontSpec police = new FontSpec("mono", 14f);
+        VisualProjection projection =
+                new VisualProjection(document, new FoldModel(), 0);
+        DocumentRowSource source = new DocumentRowSource(document, projection,
+                metrics, 0);
+
+        RowLayout premiere = source.layoutOf(new RowKey(1L, 0, 1, police, 0));
+        assertEquals(0, premiere.start());
+        assertEquals(10, premiere.end());
+        assertEquals("aaaaaaaaaa", premiere.text());
+    }
 }

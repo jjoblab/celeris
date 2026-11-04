@@ -125,4 +125,26 @@ class RowLayoutCacheTest {
         assertEquals(1, cache.size());
         assertEquals("bc", present(cache.find(3L, 0, THEME, MONO)).text());
     }
+
+    /**
+     * PIEGE-02 — la clé signe aussi la configuration de retour à la
+     * ligne : même révision, même rangée, même thème et même police, un
+     * autre budget de colonnes est un autre contenu — jamais une entrée
+     * partagée.
+     */
+    @Test
+    void layoutCache_keySignsWrapConfiguration() {
+        RowLayoutCache cache = new RowLayoutCache();
+
+        // Même rangée sous deux budgets : deux tranches distinctes.
+        cache.store(new RowKey(1L, 0, THEME, MONO, 4),
+                new RowLayout(0, 0, 4, "aaaa", 40f));
+        cache.store(new RowKey(1L, 0, THEME, MONO, 0),
+                new RowLayout(0, 0, 10, "aaaaaaaaaa", 100f));
+
+        assertEquals("aaaa", present(cache.find(1L, 0, THEME, MONO, 4)).text());
+        assertEquals("aaaaaaaaaa", present(cache.find(1L, 0, THEME, MONO, 0))
+                .text());
+        assertEquals(2, cache.size());
+    }
 }

@@ -183,4 +183,29 @@ class GutterPainterTest {
                 "la même instance d'étiquette sert les deux images");
         assertTrue(surface.textes().get(1).texte() == surface.textes().get(3).texte());
     }
+
+    /**
+     * A-18 — le numéro ne se pose que sur la première rangée d'une
+     * ligne coupée : les rangées de continuation restent muettes.
+     */
+    @Test
+    void numeroSeulementSurPremiereRangeeCoupee() {
+        SurfaceTextes surface = new SurfaceTextes();
+        ScrollFrame image = new ScrollFrame();
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
+        // Ligne unique de 8 caractères, budget 4 : deux rangées.
+        Document document = Document.of("abcdefgh");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        VisualProjection projection =
+                new VisualProjection(document, new FoldModel(), 4);
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(), projection, 1L,
+                metrics, THEME, 0, projection.rowCount(), 18f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        // Seule la première tranche porte le numéro ; la continuation
+        // n'écrit rien en gouttière.
+        assertEquals(1, surface.textes().size());
+        assertEquals("1", surface.textes().get(0).texte());
+    }
 }
