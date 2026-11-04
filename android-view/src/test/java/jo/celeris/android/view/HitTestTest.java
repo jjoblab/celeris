@@ -81,7 +81,7 @@ class HitTestTest {
 
     /** Hors rangée, la conversion borne : jamais de colonne négative ou illimitée. */
     @Test
-    void horsRangéeBorneAuxColonnes() {
+    void horsRangeeBorneAuxColonnes() {
         HitTest hit = viseurFixe();
         assertEquals(0, hit.columnAt(-5f));
         assertEquals(0, hit.columnAt(-0.1f, 10));

@@ -134,9 +134,11 @@ class ScrollFrameTest {
             vues.add(identitePinceau);
         }
 
-        /** Bascule en régime établi : l'identité de tout objet déjà vu devient la référence. */
+        /** Bascule en régime établi : l'identité de tout objet déjà vu devient
+         * la référence, et les premières vues légitimes d'avant sont pardonnées. */
         void basculerEnRegimeEtabli() {
             etabli.addAll(vues);
+            nouvelles.clear();
             enRegime = true;
         }
 
@@ -199,7 +201,7 @@ class ScrollFrameTest {
      * d'une rangée est légitime, sa re-vue ne l'est pas.
      */
     @Test
-    void retourSurRangéesDéjàVuesSansRienAllouer() {
+    void retourSurRangeesDejaVuesSansRienAllouer() {
         Document document = Document.of("un\ndeux\ntrois\nquatre\ncinq\nsix");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         MultiSelection selection = MultiSelection.of(new SelRange(0, 2));

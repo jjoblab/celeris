@@ -37,7 +37,7 @@ class FoldModelTest {
                 "un pli qui chevauche un pli existant est rejeté");
         assertThrows(IllegalStateException.class, () -> plis.fold(0, 2),
                 "un pli qui recouvre l'en-tête d'un pli existant est rejeté");
-        assertThrows(IllegalStateException.class, () -> plis.fold(5, 3),
+        assertThrows(IllegalArgumentException.class, () -> plis.fold(5, 3),
                 "un pli inversé (fin avant début) est rejeté");
         assertTrue(plis.isFolded(2), "le pli d'origine est intact après les rejets");
     }

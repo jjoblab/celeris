@@ -42,15 +42,15 @@ class VisualProjectionTest {
         assertEquals(2, projection.firstLineOfRow(2));
         assertEquals(4, projection.lastLineOfRow(2));
 
-        // Fenêtre visible de rangées 1 à 3 : elle couvre les lignes 1 à 6.
+        // Fenêtre visible de rangées 1 à 3 : elle couvre les lignes 1 à 5.
         // L'identité naïve « rangée = ligne » dirait 1 à 3 — faux sous pli.
         assertEquals(1, projection.firstLineOfRow(1));
-        assertEquals(6, projection.lastLineOfRow(3));
+        assertEquals(5, projection.lastLineOfRow(3));
     }
 
     /** Sans pli, rangée et ligne se correspondent un pour un. */
     @Test
-    void sansPlisRangéeEtLigneSeCorrespondent() {
+    void sansPlisRangeeEtLigneSeCorrespondent() {
         VisualProjection projection = new VisualProjection(5, new FoldModel());
         assertEquals(5, projection.rowCount());
         for (int ligne = 0; ligne < 5; ligne++) {
@@ -62,7 +62,7 @@ class VisualProjectionTest {
 
     /** Déplier redonne toutes les rangées : la projection lit le modèle en direct. */
     @Test
-    void deplierRedonneToutesLesRangées() {
+    void deplierRedonneToutesLesRangees() {
         FoldModel plis = new FoldModel();
         plis.fold(2, 4);
         VisualProjection projection = new VisualProjection(10, plis);
@@ -92,7 +92,7 @@ class VisualProjectionTest {
         assertEquals(5, projection.rowOfLine(7));
         assertEquals(5, projection.rowOfLine(8));
         assertEquals(6, projection.rowOfLine(9));
-        assertEquals(1, projection.lastLineOfRow(1));
+        assertEquals(2, projection.lastLineOfRow(1));
         assertEquals(8, projection.lastLineOfRow(5));
         assertEquals(9, projection.firstLineOfRow(6));
     }
