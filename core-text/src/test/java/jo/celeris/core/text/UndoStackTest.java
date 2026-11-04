@@ -106,13 +106,28 @@ class UndoStackTest {
     }
 
     @Test
+    void maxDepthOne_isValid() {
+        // Frontière exacte : profondeur 1 est légale.
+        UndoStack pile = new UndoStack(1, () -> 0L);
+        pile.pushStep(UndoStep.of(insertion(0, "a")));
+        pile.pushStep(UndoStep.of(insertion(1, "b")));
+        assertEquals(1, pile.undoDepth());
+    }
+
+    @Test
     void clearResetsAll() {
         UndoStack pile = new UndoStack(100, () -> 0L);
         pile.pushStep(UndoStep.of(insertion(0, "a")));
+        pile.pushStep(UndoStep.of(insertion(1, "b")));
         pile.undo();
+        // Une étape de chaque côté : clear doit vider les DEUX piles.
+        assertEquals(1, pile.undoDepth());
+        assertEquals(1, pile.redoDepth());
         pile.clear();
         assertFalse(pile.canUndo());
         assertFalse(pile.canRedo());
+        assertEquals(0, pile.undoDepth());
+        assertEquals(0, pile.redoDepth());
     }
 
     @Test
@@ -210,10 +225,24 @@ class UndoStackTest {
         UndoStack pile = new UndoStack(100, () -> 0L);
         pile.pushStep(UndoStep.of(insertion(0, "a")));
         pile.armNextCoalesce(insertion(0, "a"));
+        pile.pushStep(UndoStep.of(insertion(1, "b")));
+        pile.armNextCoalesce(insertion(1, "b"));
+        // L'étape « b » est dépilée par l'annulation : la chaîne armée sur
+        // elle est coupée — la frappe adjacente suivante ne doit PAS fusionner
+        // dans l'étape « a » restée au sommet.
         pile.undo();
-        pile.redo();
-        // L'annulation coupe la chaîne : la frappe adjacente suivante ne
-        // fusionne pas avec l'étape reposée au sommet.
+        assertEquals(1, pile.undoDepth());
+        assertFalse(pile.tryCoalesce(insertion(2, "c")));
+    }
+
+    @Test
+    void armNextCoalesce_cutsOnMultiCharEdit() {
+        UndoStack pile = new UndoStack(100, () -> 0L);
+        pile.pushStep(UndoStep.of(insertion(0, "a")));
+        pile.armNextCoalesce(insertion(0, "a"));
+        // Tout autre type d'édition que la frappe simple coupe la chaîne :
+        // un remplacement multi-caractères désarme.
+        pile.armNextCoalesce(new TextEdit(5, "x", "yz"));
         assertFalse(pile.tryCoalesce(insertion(1, "b")));
     }
 

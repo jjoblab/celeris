@@ -118,6 +118,14 @@ class AnchoredRangesTest {
     }
 
     @Test
+    void emptyRange_isLegal() {
+        // Frontière exacte : une plage vide (ancre ponctuelle) est légale.
+        AnchoredRange ancre = new AnchoredRange(3, 3);
+        assertEquals(3, ancre.start());
+        assertEquals(3, ancre.end());
+    }
+
+    @Test
     void startGravity_atExactBoundaries() {
         // Début exactement au début de l'édition : il reste (gravité
         // droite portée — l'offset à la frontière ne suit pas l'insertion).
@@ -130,5 +138,18 @@ class AnchoredRangesTest {
         assertEquals(5, AnchoredRanges.mapEnd(8, new EditSpan(3, 4, 1)));
         // Fin juste avant l'édition : intacte.
         assertEquals(2, AnchoredRanges.mapEnd(2, new EditSpan(3, 4, 1)));
+        // Fin exactement au début d'une insertion : décalée du delta — ni
+        // « reste en place », ni « retombe au début de la plage remplacée ».
+        assertEquals(5, AnchoredRanges.mapEnd(3, new EditSpan(3, 0, 2)));
+    }
+
+    @Test
+    void emptyAnchor_falls() {
+        // Une ancre ponctuelle ne survit pas à la projection : réduite à
+        // rien, elle tombe du suivi comme toute plage vide.
+        AnchoredRanges suivi = new AnchoredRanges();
+        suivi.set(List.of(new AnchoredRange(3, 3)));
+        suivi.project(new EditSpan(10, 0, 2));
+        assertEquals(List.of(), suivi.ranges());
     }
 }

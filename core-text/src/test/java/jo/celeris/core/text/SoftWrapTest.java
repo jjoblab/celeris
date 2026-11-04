@@ -150,4 +150,38 @@ class SoftWrapTest {
         List<String> rangees = SoftWrap.wrap("abc", 100f, new MesureParCaractere());
         assertEquals(List.of("abc"), rangees);
     }
+
+    @Test
+    void wordExactlyAtWidth_staysOnOneRow() {
+        // Frontière exacte : une rangée qui remplit EXACTEMENT la largeur
+        // (100 px pour 10 caractères) reste entière — la coupe part
+        // strictement au-delà.
+        List<String> rangees = SoftWrap.wrap("a".repeat(10), 100f,
+                new MesureParCaractere());
+        assertEquals(List.of("a".repeat(10)), rangees);
+    }
+
+    @Test
+    void lineExactlyAtWidth_isKeptByGreedyJoin() {
+        // « aaaa bbbb » = 9 caractères = 90 px, exactement la largeur : le
+        // regroupement glouton le garde sur une rangée.
+        List<String> rangees = SoftWrap.wrap("aaaa bbbb", 90f, new MesureParCaractere());
+        assertEquals(List.of("aaaa bbbb"), rangees);
+    }
+
+    @Test
+    void leadingNewline_yieldsEmptyFirstRow() {
+        // Un saut de ligne en tête : la première rangée est vide, le
+        // paragraphe qui suit est traité tel quel.
+        List<String> rangees = SoftWrap.wrap("\nbb", 1000f, new MesureParCaractere());
+        assertEquals(List.of("", "bb"), rangees);
+    }
+
+    @Test
+    void flushBeforeCuttingOversizedWord() {
+        // La rangée déjà constituée (« cc ») part AVANT la coupe du mot trop
+        // large — jamais mélangée aux fragments du mot coupé.
+        List<String> rangees = SoftWrap.wrap("cc aaaaaaaaaa", 70f, new MesureParCaractere());
+        assertEquals(List.of("cc", "aaaaaaa", "aaa"), rangees);
+    }
 }

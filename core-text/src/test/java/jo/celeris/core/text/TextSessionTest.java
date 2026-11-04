@@ -250,6 +250,87 @@ class TextSessionTest {
     }
 
     @Test
+    void emptySession_undoAndRedo_returnFalse() {
+        TextSession session = TextSession.of(DOC, () -> 0L);
+        assertFalse(session.undo(), "rien à annuler");
+        assertFalse(session.redo(), "rien à refaire");
+        assertFalse(session.canUndo());
+        assertFalse(session.canRedo());
+    }
+
+    @Test
+    void readOnlyFlag_isExposed() {
+        TextSession session = TextSession.of(DOC, () -> 0L);
+        assertFalse(session.isReadOnly());
+        session.setReadOnly(true);
+        assertTrue(session.isReadOnly());
+        session.setReadOnly(false);
+        assertFalse(session.isReadOnly());
+    }
+
+    @Test
+    void replaceRangeInReadOnly_returnsFalse() {
+        TextSession session = TextSession.of(DOC, () -> 0L);
+        session.setReadOnly(true);
+        assertFalse(session.replaceRange(0, 0, "x"));
+        assertEquals(DOC, session.text());
+    }
+
+    @Test
+    void document_exposesImmutableSnapshot() {
+        TextSession session = TextSession.of(DOC, () -> 0L);
+        assertEquals(0, session.document().revision());
+        assertTrue(session.replaceRange(0, 0, "x"));
+        assertEquals(1, session.document().revision());
+        assertEquals("x" + DOC, session.document().text());
+        Document apresEdition = session.document();
+        assertTrue(session.undo());
+        // L'instantané déjà remis reste lisible tel quel (lecteurs sur
+        // instantanés, ADR-007) : la session détient un instantané neuf,
+        // l'ancien ne change jamais sous ses lecteurs.
+        assertEquals(1, apresEdition.revision());
+        assertEquals("x" + DOC, apresEdition.text());
+        assertEquals(DOC, session.text());
+    }
+
+    @Test
+    void redoDepth_counts() {
+        TextSession session = TextSession.of(DOC, () -> 0L);
+        assertTrue(session.replaceRange(0, 0, "x"));
+        assertEquals(0, session.redoDepth());
+        assertTrue(session.undo());
+        assertEquals(1, session.redoDepth());
+        assertTrue(session.redo());
+        assertEquals(0, session.redoDepth());
+    }
+
+    @Test
+    void boundsAfterGrowth_allowSubsequentEdit() {
+        TextSession session = TextSession.of("abcdef", () -> 0L);
+        // La seconde édition vit aux coordonnées de l'état APRÈS la
+        // première : [8, 8) n'est légal que parce que la première a fait
+        // croître le document de 6 à 12 caractères (validation séquentielle
+        // des bornes, par arithmétique et non par relecture).
+        assertTrue(session.apply(Transaction.of(
+                new TextEdit(0, "ab", "abcdefgh"),
+                new TextEdit(8, "", "!"))));
+        assertEquals("abcdefgh!cdef", session.text());
+    }
+
+    @Test
+    void boundsAfterShrink_revalidatedAtomically() {
+        TextSession session = TextSession.of("abcdef", () -> 0L);
+        // La première édition réduit le document de 6 à 2 caractères : la
+        // seconde, hors bornes dans CET état, est refusée AVANT toute
+        // mutation (validation arithmétique séquentielle).
+        assertThrows(IndexOutOfBoundsException.class, () -> session.apply(
+                Transaction.of(new TextEdit(0, "abcd", ""),
+                        new TextEdit(5, "", "!"))));
+        assertEquals("abcdef", session.text());
+        assertEquals(0, session.undoDepth());
+    }
+
+    @Test
     void removedTextMismatch_failsFast() {
         TextSession session = TextSession.of("abcdef", () -> 0L);
         // L'édition prétend que « xy » occupe [2, 4) alors que le document
