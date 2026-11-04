@@ -2,12 +2,15 @@ package jo.celeris.android.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,16 +29,21 @@ import org.jspecify.annotations.Nullable;
  * <p>La vue est mince par construction : toute la logique vérifiable
  * sans appareil vit dans les classes pures du module (métriques,
  * géométries, projection, gestuelle, moteur de déplacement, table de
- * raccourcis) ; la vue les assemble, attache la surface au canvas de
- * l'image et route le tactile et le clavier. Le défilement vertical et
- * horizontal est borné au contenu ; le tactile à un doigt pose le
+ * raccourcis, machine de composition IME) ; la vue les assemble,
+ * attache la surface au canvas de l'image et route le tactile et le
+ * clavier. Le défilement vertical et horizontal est borné au
+ * contenu ; le tactile à un doigt pose le
  * curseur puis étend la sélection (ancre figée au DOWN, PIEGE-03) ou
  * tire une poignée de plage, l'appui long arme la pilule « ajouter un
  * curseur » (A-01), le pincement zoome par paliers le point sous le
  * doigt stable (D-15), le panoramique à deux doigts défile, et le
  * clavier matériel passe par la table de raccourcis (D-17). Le retour
  * à la ligne souple par offsets (A-18) se règle par
- * {@link #setSoftWrap(boolean)}.</p>
+ * {@link #setSoftWrap(boolean)}. L'IME s'attache par
+ * {@link #onCreateInputConnection(EditorInfo)} : la composition vit
+ * dans {@link CompositionState}, la colle dans
+ * {@link EditorInputConnection}, toute frappe matérielle clôt la
+ * composition d'abord.</p>
  */
 public final class EditorView extends View {
 
@@ -51,6 +59,7 @@ public final class EditorView extends View {
     private final FoldModel plis = new FoldModel();
     private final RowLayoutCache cache = new RowLayoutCache();
     private final CursorPill pilule = new CursorPill();
+    private final CompositionState composition = new CompositionState();
     private final TextBrush pinceauChrome;
     private final GestureDetector longPresses;
     private final ScaleGestureDetector pincements;
@@ -84,9 +93,12 @@ public final class EditorView extends View {
 
     public EditorView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        setFocusable(true);
+        setFocusableInTouchMode(true);
         BrushFactory pinceaux = new PaintBrushes();
         trace.addLayer(new GutterPainter(pinceaux, MARGE_GOUTTIERE));
         trace.addLayer(new SelectionPainter(pinceaux));
+        trace.addLayer(new ComposingPainter(pinceaux, composition));
         trace.addLayer(new TextPainter(pinceaux, cache, sourceLiee));
         pinceauChrome = pinceaux.newBrush();
         longPresses = new GestureDetector(context, new GestureDetector
@@ -187,6 +199,57 @@ public final class EditorView extends View {
         return raccourcis;
     }
 
+    /** La session affichée — accès de paquet pour la colle IME. */
+    TextSession session() {
+        return session;
+    }
+
+    /** Vrai si la vue accepte l'IME : session éditable. */
+    @Override
+    public boolean onCheckIsTextEditor() {
+        return !session.isReadOnly();
+    }
+
+    /**
+     * La connexion d'entrée IME : texte de code sans suggestions,
+     * jamais plein écran, sélection initiale annoncée. En lecture
+     * seule, la vue se déclare non éditable (TYPE_NULL, pas de
+     * connexion).
+     */
+    @Override
+    public @Nullable InputConnection onCreateInputConnection(
+            EditorInfo outAttrs) {
+        if (session.isReadOnly()) {
+            outAttrs.inputType = InputType.TYPE_NULL;
+            return null;
+        }
+        outAttrs.inputType = InputType.TYPE_CLASS_TEXT
+                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
+                | EditorInfo.IME_ACTION_NONE;
+        List<SelRange> plages = session.selection().ranges();
+        if (!plages.isEmpty()) {
+            outAttrs.initialSelStart = plages.get(0).start();
+            outAttrs.initialSelEnd = plages.get(0).end();
+        }
+        return new EditorInputConnection(this, composition);
+    }
+
+    /**
+     * Dévoile le curseur primaire : réajustement minimum du
+     * défilement (CaretReveal), puis invalidation.
+     */
+    void revealCaret() {
+        List<SelRange> plages = session.selection().ranges();
+        int curseur = plages.isEmpty() ? 0 : plages.get(0).caret();
+        CaretReveal.Revealed devoile = CaretReveal.reveal(curseur,
+                session.document(), projection, metrics, largeurGouttiere,
+                getWidth(), getHeight(), scrollX, scrollY, MARGE_RETOUR);
+        scrollX = devoile.scrollX();
+        scrollY = devoile.scrollY();
+        invalidate();
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -267,6 +330,12 @@ public final class EditorView extends View {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Toute frappe matérielle clôt la composition d'abord : la
+        // composition est une interaction de plage primaire.
+        if (composition.isComposing()) {
+            composition.finish();
+            invalidate();
+        }
         KeyBinding touche = new KeyBinding(keyCode, event.isShiftPressed(),
                 event.isCtrlPressed(), event.isAltPressed());
         EditorAction action = raccourcis.actionOf(touche);
@@ -316,6 +385,7 @@ public final class EditorView extends View {
     }
 
     private boolean surAppui(MotionEvent event) {
+        requestFocus();
         dernierX = event.getX();
         dernierY = event.getY();
         panoramique = false;

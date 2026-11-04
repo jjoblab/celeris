@@ -38,7 +38,7 @@ class SurroundingTextsTest {
 
         SurroundingTexts.Window debut =
                 SurroundingTexts.window(document, SelRange.caretAt(1), 10, 2);
-        assertEquals("abcde", debut.text());
+        assertEquals("abc", debut.text());
         assertEquals(0, debut.docOffset());
         assertEquals(1, debut.selectionStart());
 
