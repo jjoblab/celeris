@@ -278,3 +278,120 @@
    tests du dépôt de départ deviennent l'oracle).
 2. Multi-sélection de première classe (ADR-003) : transactions
    multi-plages, restauration des sélections à l'annulation (A-13).
+
+## Tranche 4 — recherche/remplacement (2026-11-04)
+
+> L'ordre imposé en fin de tranche 3 est exécuté : les tests du moteur de
+> recherche (oracle du dépôt de départ) et ceux de la passe de
+> remplacement ont été écrits et laissés en échec de compilation AVANT
+> toute ligne d'implantation (100 erreurs constatées), puis le portage les
+> a rendus verts.
+
+### Livré
+
+- **Moteur de recherche porté** (registre de portage, décision « Porter »)
+  : `FindReplace` à horloge injectée en millisecondes (ADR-007 — le
+  garde-fou du dépôt de départ appelait `System.nanoTime` en code de
+  production, consigné), `FindOptions` et `Match` en enregistrements
+  immuables, recherche littérale, mot entier et regex. Le garde-fou D-05
+  est porté : budget temps de 250 ms par recherche regex (échéance
+  échantillonnée tous les 1 024 accès du texte, interruption du fil
+  honorée), plafond de collecte à 10 000 correspondances, états
+  `truncated` / `tooCostly` exposés pour signal à l'interface. La vue
+  garde-fou (`GuardedCharSequence`) est visible du paquet pour ses tests.
+- **Occurrences du mot sous le caret portées** : `WordOccurrences` —
+  `wordAt` renvoie un `Match` typé nullable (le `int[]` du départ devient
+  une plage typée, contrat `@NullMarked`), éligibilité (identifiants,
+  jamais les littéraux numériques ni la ponctuation), collecte des
+  occurrences entières plafonnée (frontières identifiant : `_` et `$` ne
+  sont pas des frontières, contrairement au mode « mot entier »).
+- **Correctif porté, consigné** : la casse insensible du départ passait
+  par la minuscule complète du texte — pour les caractères dont la
+  minuscule change la longueur (U+0130), les indices hérités désignaient
+  un texte qui n'était pas celui d'origine. Quand une longueur change
+  (texte ou requête), le repli par comparaison régionale conserve les
+  indices du texte original — tests dédiés (requête exotique, texte
+  exotique, les deux).
+- **Passe de remplacement spécifiée** (le contrôleur du dépôt de départ
+  sert de spécification, registre) : segments d'origine + remplacements
+  développés (groupes `$n` en mode regex par `appendReplacement` dans un
+  tampon jetable), motif invalide ou remplacement mal formé ou budget
+  dépassé → AUCUN remplacement (le texte n'est jamais muté à moitié).
+  Adaptations consignées : les correspondances de remplacement ne se
+  recouvrent jamais (la collecte peut recouvrir pour la surbrillance, la
+  passe avance au-delà de chaque occurrence remplacée — le contrôleur du
+  départ plantait sur les candidats recouvrants) ; la passe est plafonnée
+  à 10 000 remplacements, miroir du plafond de collecte (la passe regex du
+  départ était non bornée — état `truncated` exposé) ; une correspondance
+  de largeur nulle au remplacement vide ne crée rien (une édition sans
+  effet n'a rien à faire sur la voie de mutation) — le correctif sépare le
+  curseur de copie de la position d'ajout du matcher, la queue n'est
+  copiée que depuis le curseur (jamais par `appendTail`).
+- **Remplacement global par la session** : `TextSession.replaceAll` —
+  lecture du texte courant, passe du moteur à l'horloge de la session,
+  puis mutation PAR LA VOIE UNIQUE (famille PIEGE-07) : les éditions, une
+  par occurrence en ordre du document, sont ajustées en deltas cumulés
+  pour la sémantique séquentielle de la `Transaction`. Tout le
+  remplacement forme UNE étape d'annulation — empilement direct, jamais
+  coalescée avec les frappes (une commande n'est pas une frappe, la
+  frappe suivante ne fusionne pas non plus). Annulation et refaire
+  rejouent par la même voie — index de lignes, projections et auditeurs
+  compris ; la lecture seule refuse sans créer d'étape.
+- **Propriétés jqwik à graine déterministe** : le remplacement littéral
+  coïncide avec l'oracle `String.replace` du JDK ; les éditions ajustées
+  en deltas cumulés reconstruisent le texte du résultat ; par la session,
+  tout remplacement s'annule intégralement en une étape.
+- **Benchmark de remplacement branché** (budget ADR-006, PIEGE-13) :
+  document de 50 000 lignes (≈ 2 M caractères), 1 000 occurrences,
+  remplacement global par la voie complète de la session puis annulation,
+  chaque phase chronométrée séparément, minimum de trois tours.
+  **Mesure locale : 0,076 ms par occurrence** (annulation : 32 ms) —
+  budget de protection 1 ms par occurrence, marge ≈ 13×.
+
+### Vérifié localement (sans SDK Android)
+
+- `./gradlew check` vert — politique de langue 0 problème, neutralité
+  0 problème, Checkstyle/PMD/Error Prone + NullAway, JaCoCo ≥ 90 % sur
+  `core-text`, manifeste d'API régénéré et conforme (cinq classes publiques
+  nouvelles : `Match`, `FindOptions`, `FindReplace` et ses enregistrements
+  imbriqués, `WordOccurrences`) ;
+- `./gradlew :core-text:mutationThreshold` vert — **87,5 % détectées au
+  sens de PIT** (589 KILLED + 12 TIMED_OUT + 3 MEMORY_ERROR sur 690) ;
+  renforcement ciblé après analyse des survivants (frontières des retours
+  de troncature, branches non couvertes du garde-fou — l'échantillonnage
+  tire aussi dans `length()` et `subSequence()` —, demi-conditions de la
+  vue de recherche) : le score passe de 85,0 % à 87,5 % au fil de la
+  tranche ;
+- `publishToMavenLocal publicationChecksums` et `:cli:run` verts.
+
+### Écarts et limites
+
+1. **Survivants analysés** (86 non détectés, même classe que les tranches
+   précédentes) : bornes d'échantillonnage du garde-fou (un contrôle
+   décalé d'un accès reste dans l'échelle de la milliseconde),
+   conditions de sortie de boucle redondantes avec l'épuisement des
+   candidates (la candidate suivante renvoyée hors bornes ne produit
+   aucune correspondance), frontières de boucles équivalentes par
+   construction — la précédente classe d'équivalence des tranches 1 à 3.
+2. **Troncature de la passe de remplacement** : les 10 000 premiers
+   remplacements sont appliqués, la queue d'origine est préservée et les
+   états sont exposés par le moteur pur (`truncated`) — la session ne
+   renvoie que le compte appliqué ; l'interface (M5) porte la charge du
+   signal et du découpage en passes si besoin.
+3. **Restauration de sélection (A-13)** : attend la multi-sélection —
+   l'étape d'annulation du remplacement ne porte encore que des éditions.
+4. **Types forts (`DocOffset`)** : toujours pas introduits — à trancher
+   avant le gel 0.1.0 de `core-text`.
+5. **UAX #29/#9, encodages et BOM** : tranches suivantes du chemin
+   critique.
+6. **Benchmark d'édition de référence** : la mesure du jour (0,109 ms par
+   édition) reste sous le budget de 1 ms ; l'écart avec la mesure de la
+   tranche 3 (0,055 ms) est le bruit du runner local — le minimum de
+   trois tours écarte le bruit en CI (PIEGE-13), la protection reste
+   structurelle.
+
+### Prochaine tranche (ordre imposé)
+
+1. Multi-sélection de première classe (ADR-003) : transactions
+   multi-plages, restauration des sélections à l'annulation (A-13).
+2. UAX #29/#9 (segmentation de texte et espaces) puis encodages et BOM.

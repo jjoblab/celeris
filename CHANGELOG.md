@@ -23,6 +23,17 @@ vivent dans les ADR et le registre de portage, pas ici.
   contenu), seuils « gros document », mémo du texte complet à référence
   stable ; invariants croisés document/index vérifiés au fuzz (oracle
   `StringBuilder` étendu, défaire/refaire compris).
+- Tranche 4 — recherche/remplacement porté dans `core-text` (registre de
+  portage, tests du dépôt de départ comme oracle)  moteur `FindReplace` à
+  horloge injectée (ADR-007)  casse, mot entier, regex sous garde-fou
+  (budget temps échantillonné, plafond de collecte, états exposés),
+  occurrences entières du mot sous le caret ; passe de remplacement par la
+  voie de transaction — éditions par occurrence ajustées en deltas cumulés,
+  UNE étape d'annulation jamais coalescée avec les frappes, plafond miroir
+  de la collecte ; remplacement global par la session ; propriété jqwik à
+  oracle `String.replace` ; correctifs consignés (casse insensible
+  exotique — repli régional, indices sur le texte original ;
+  correspondances de remplacement non recouvrantes).
 - Benchmark d'édition de référence : 50 000 lignes, mille éditions d'un
   caractère par tour par la voie complète de la session, minimum de trois
   tours (PIEGE-13) — mesure locale : 0,055 ms par édition (budget 1 ms).
