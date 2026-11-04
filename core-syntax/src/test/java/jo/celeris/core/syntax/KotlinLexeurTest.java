@@ -69,13 +69,13 @@ class KotlinLexeurTest {
         assertEquals(TokenKind.IDENTIFIER, memeLigne[2].kind());
 
         LexedLine ouverture = lexeur.lex("/* niveau un", KotlinLexeur.Etat.NORMAL);
-        assertEquals(new KotlinLexeur.DansBloc(1), ouverture.exitState());
+        assertEquals(new KotlinLexeur.DansBloc(1, false), ouverture.exitState());
         LexedLine niche = lexeur.lex("/* niche", ouverture.exitState());
-        assertEquals(new KotlinLexeur.DansBloc(2), niche.exitState());
+        assertEquals(new KotlinLexeur.DansBloc(2, false), niche.exitState());
         LexedLine fermeture = lexeur.lex("*/ puis */ suite", niche.exitState());
         assertEquals(TokenKind.COMMENT, fermeture.tokens()[0].kind());
         assertSame(KotlinLexeur.Etat.NORMAL, fermeture.exitState());
-        assertEquals(TokenKind.IDENTIFIER, fermeture.tokens()[2].kind());
+        assertEquals(TokenKind.IDENTIFIER, fermeture.tokens()[1].kind());
     }
 
     /** La documentation (double astérisque) se distingue du bloc simple. */
@@ -106,7 +106,8 @@ class KotlinLexeurTest {
         assertEquals(TokenKind.IDENTIFIER, lex("somme")[0].kind());
         Token[] qualifie = lex("java.util.Map");
         assertEquals(TokenKind.IDENTIFIER, qualifie[0].kind());
-        assertEquals(TokenKind.TYPE, qualifie[2].kind(),
+        assertEquals(TokenKind.IDENTIFIER, qualifie[2].kind());
+        assertEquals(TokenKind.TYPE, qualifie[4].kind(),
                 "le dernier segment porte le type");
     }
 

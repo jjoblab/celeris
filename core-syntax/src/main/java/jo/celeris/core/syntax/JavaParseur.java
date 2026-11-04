@@ -62,7 +62,8 @@ final class JavaParseur implements LanguageParser {
         if (apresTete < slice.size() && estDeclarationType(slice, apresTete)) {
             return parseType(slice, 0, apresTete);
         }
-        List<SynNode> enfants = JavaCorps.instructions(slice, 0, slice.size());
+        List<SynNode> enfants = Corps.instructions(slice, 0, slice.size(), JavaKind.STATEMENT,
+                JavaKind.BLOC, JavaKind.ERREUR);
         return SynNode.of(JavaKind.AUTRE, NodeCategory.OTHER, 0,
                 Jetons.finDe(slice, slice.size() - 1), enEnfants(enfants), null,
                 contientErreur(enfants));
@@ -186,7 +187,8 @@ final class JavaParseur implements LanguageParser {
         String nom = chercherNom(slice, debut, scan);
         if (scan.corps >= 0) {
             int vers = scan.fermanteCorps < 0 ? slice.size() : scan.fermanteCorps;
-            List<SynNode> corps = JavaCorps.instructions(slice, scan.corps + 1, vers);
+            List<SynNode> corps = Corps.instructions(slice, scan.corps + 1, vers,
+                JavaKind.STATEMENT, JavaKind.BLOC, JavaKind.ERREUR);
             boolean erreur = scan.fermanteCorps < 0;
             if (erreur) {
                 corps.add(SynNode.of(JavaKind.ERREUR, NodeCategory.ERROR,

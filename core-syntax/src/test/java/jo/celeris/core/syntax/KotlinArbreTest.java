@@ -53,7 +53,7 @@ class KotlinArbreTest {
         assertEquals(0, chunks.get(0).startLine());
         assertEquals(5, chunks.get(1).startLine(),
                 "la classe de données ouvre son chunk à sa documentation");
-        assertEquals(16, chunks.get(2).startLine());
+        assertEquals(17, chunks.get(2).startLine());
     }
 
     /** Les plis couvrent classes, fonctions et blocs. */
@@ -61,11 +61,11 @@ class KotlinArbreTest {
     void plisDesCorps() {
         Document doc = Document.of(CorpusChargeur.exempleKotlin());
         List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
-        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 10 && p.endLine() == 14),
-                "la classe de données se replie");
-        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 16 && p.endLine() == 49),
+        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 5 && p.endLine() == 15),
+                "la classe de données se replie, documentation comprise");
+        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 17 && p.endLine() == 50),
                 "la classe catalogue se replie de sa déclaration à sa fermeture");
-        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 34 && p.endLine() == 40),
+        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 35 && p.endLine() == 41),
                 "la fonction à chaîne brute se replie");
     }
 
@@ -93,9 +93,9 @@ class KotlinArbreTest {
     void niveauxIndentation() {
         Document doc = Document.of(CorpusChargeur.exempleKotlin());
         Analysis analyse = service.analyseFull(doc);
-        assertEquals(1, TreeIndent.levelAt(doc, analyse, 11), "norme dans Point");
-        assertEquals(2, TreeIndent.levelAt(doc, analyse, 12), "son corps");
-        assertEquals(3, TreeIndent.levelAt(doc, analyse, 44),
+        assertEquals(1, TreeIndent.levelAt(doc, analyse, 12), "norme dans Point");
+        assertEquals(2, TreeIndent.levelAt(doc, analyse, 13), "son corps");
+        assertEquals(3, TreeIndent.levelAt(doc, analyse, 45),
                 "les branches de when sont à trois niveaux");
     }
 

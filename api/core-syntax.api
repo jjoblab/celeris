@@ -31,6 +31,11 @@ public final class jo.celeris.core.syntax.Chunk extends java.lang.Record {
   public jo.celeris.core.syntax.SynNode root();
 }
 
+### jo.celeris.core.syntax.Corps
+Compiled from "Corps.java"
+final class jo.celeris.core.syntax.Corps {
+}
+
 ### jo.celeris.core.syntax.EditSite
 Compiled from "EditSite.java"
 public final class jo.celeris.core.syntax.EditSite extends java.lang.Record {
@@ -66,11 +71,6 @@ public final class jo.celeris.core.syntax.IncrementalLexer {
 ### jo.celeris.core.syntax.IncrementalParser
 Compiled from "IncrementalParser.java"
 final class jo.celeris.core.syntax.IncrementalParser {
-}
-
-### jo.celeris.core.syntax.JavaCorps
-Compiled from "JavaCorps.java"
-final class jo.celeris.core.syntax.JavaCorps {
 }
 
 ### jo.celeris.core.syntax.JavaKind
@@ -189,6 +189,89 @@ final class jo.celeris.core.syntax.JsonParseur implements jo.celeris.core.syntax
 Compiled from "JsonSyntax.java"
 public final class jo.celeris.core.syntax.JsonSyntax implements jo.celeris.core.syntax.LanguageSyntax {
   public static final jo.celeris.core.syntax.JsonSyntax INSTANCE;
+  public java.lang.String id();
+  public jo.celeris.core.syntax.LanguageLexer lexer();
+  public jo.celeris.core.syntax.LanguageParser parser();
+}
+
+### jo.celeris.core.syntax.KotlinKind
+Compiled from "KotlinKind.java"
+final class jo.celeris.core.syntax.KotlinKind extends java.lang.Enum<jo.celeris.core.syntax.KotlinKind> implements jo.celeris.core.syntax.NodeKind {
+  public static final jo.celeris.core.syntax.KotlinKind TYPE;
+  public static final jo.celeris.core.syntax.KotlinKind METHOD;
+  public static final jo.celeris.core.syntax.KotlinKind FIELD;
+  public static final jo.celeris.core.syntax.KotlinKind INITIALIZER;
+  public static final jo.celeris.core.syntax.KotlinKind STATEMENT;
+  public static final jo.celeris.core.syntax.KotlinKind BLOC;
+  public static final jo.celeris.core.syntax.KotlinKind ERREUR;
+  public static final jo.celeris.core.syntax.KotlinKind AUTRE;
+  public static jo.celeris.core.syntax.KotlinKind[] values();
+  public static jo.celeris.core.syntax.KotlinKind valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.KotlinLexeur$DansBloc
+Compiled from "KotlinLexeur.java"
+final class jo.celeris.core.syntax.KotlinLexeur$DansBloc extends java.lang.Record implements jo.celeris.core.syntax.LexState {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int profondeur();
+  public boolean documentation();
+}
+
+### jo.celeris.core.syntax.KotlinLexeur$Etat
+Compiled from "KotlinLexeur.java"
+final class jo.celeris.core.syntax.KotlinLexeur$Etat extends java.lang.Enum<jo.celeris.core.syntax.KotlinLexeur$Etat> implements jo.celeris.core.syntax.LexState {
+  public static final jo.celeris.core.syntax.KotlinLexeur$Etat NORMAL;
+  public static final jo.celeris.core.syntax.KotlinLexeur$Etat CHAINE_BRUTE;
+  public static jo.celeris.core.syntax.KotlinLexeur$Etat[] values();
+  public static jo.celeris.core.syntax.KotlinLexeur$Etat valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.KotlinLexeur
+Compiled from "KotlinLexeur.java"
+final class jo.celeris.core.syntax.KotlinLexeur implements jo.celeris.core.syntax.LanguageLexer {
+  public jo.celeris.core.syntax.LexState initialState();
+  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
+}
+
+### jo.celeris.core.syntax.KotlinParseur$Scan
+Compiled from "KotlinParseur.java"
+final class jo.celeris.core.syntax.KotlinParseur$Scan extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int ouvrante();
+  public int fermante();
+  public int fin();
+}
+
+### jo.celeris.core.syntax.KotlinParseur
+Compiled from "KotlinParseur.java"
+final class jo.celeris.core.syntax.KotlinParseur implements jo.celeris.core.syntax.LanguageParser {
+  public int chunkLevel();
+  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
+  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
+}
+
+### jo.celeris.core.syntax.KotlinSignes
+Compiled from "KotlinSignes.java"
+final class jo.celeris.core.syntax.KotlinSignes {
+}
+
+### jo.celeris.core.syntax.KotlinSyntax
+Compiled from "KotlinSyntax.java"
+public final class jo.celeris.core.syntax.KotlinSyntax implements jo.celeris.core.syntax.LanguageSyntax {
+  public static final jo.celeris.core.syntax.KotlinSyntax INSTANCE;
+  public java.lang.String id();
+  public jo.celeris.core.syntax.LanguageLexer lexer();
+  public jo.celeris.core.syntax.LanguageParser parser();
+}
+
+### jo.celeris.core.syntax.KtsSyntax
+Compiled from "KtsSyntax.java"
+public final class jo.celeris.core.syntax.KtsSyntax implements jo.celeris.core.syntax.LanguageSyntax {
+  public static final jo.celeris.core.syntax.KtsSyntax INSTANCE;
   public java.lang.String id();
   public jo.celeris.core.syntax.LanguageLexer lexer();
   public jo.celeris.core.syntax.LanguageParser parser();
