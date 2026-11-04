@@ -27,6 +27,13 @@ public final class jo.celeris.core.text.Document {
   public int revision();
   public java.lang.String subText(int, int);
   public jo.celeris.core.text.Document replace(int, int, java.lang.String);
+  public char charAt(int);
+  public int lineCount();
+  public int lineForOffset(int);
+  public int lineStart(int);
+  public int lineEnd(int);
+  public java.lang.String lineText(int);
+  public boolean isLarge();
 }
 
 ### jo.celeris.core.text.EditListener
