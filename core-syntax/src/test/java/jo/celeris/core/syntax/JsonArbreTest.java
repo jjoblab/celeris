@@ -30,7 +30,7 @@ class JsonArbreTest {
         assertTrue(plan.stream().anyMatch(e -> e.category() == NodeCategory.FIELD
                 && "modules".equals(e.name())));
         assertTrue(plan.stream().anyMatch(e -> e.category() == NodeCategory.FIELD
-                && "couverture".equals(e.name()), "les clés imbriquées sont au plan"));
+                && "couverture".equals(e.name())), "les clés imbriquées sont au plan");
         assertTrue(plan.stream().anyMatch(e -> e.category() == NodeCategory.FIELD
                 && "notes".equals(e.name())));
     }
@@ -96,8 +96,10 @@ class JsonArbreTest {
         Document doc = Document.of(CorpusChargeur.exempleJson());
         Analysis analyse = service.analyseFull(doc);
         assertEquals(1, TreeIndent.levelAt(doc, analyse, 1), "une paire dans la racine");
-        assertEquals(2, TreeIndent.levelAt(doc, analyse, 4), "un module dans son tableau");
-        assertEquals(2, TreeIndent.levelAt(doc, analyse, 9), "un seuil dans son objet");
+        assertEquals(3, TreeIndent.levelAt(doc, analyse, 4),
+                "un module dans la paire, dans son tableau");
+        assertEquals(3, TreeIndent.levelAt(doc, analyse, 9),
+                "un seuil dans la paire, dans son objet");
         assertEquals(2, TreeIndent.levelAt(doc, analyse, 16), "la fermeture porte un cran de plus");
     }
 }

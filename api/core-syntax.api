@@ -144,6 +144,56 @@ Compiled from "Jetons.java"
 final class jo.celeris.core.syntax.Jetons {
 }
 
+### jo.celeris.core.syntax.JsonKind
+Compiled from "JsonKind.java"
+final class jo.celeris.core.syntax.JsonKind extends java.lang.Enum<jo.celeris.core.syntax.JsonKind> implements jo.celeris.core.syntax.NodeKind {
+  public static final jo.celeris.core.syntax.JsonKind OBJET;
+  public static final jo.celeris.core.syntax.JsonKind TABLEAU;
+  public static final jo.celeris.core.syntax.JsonKind PAIRE;
+  public static final jo.celeris.core.syntax.JsonKind VALEUR;
+  public static final jo.celeris.core.syntax.JsonKind ERREUR;
+  public static final jo.celeris.core.syntax.JsonKind AUTRE;
+  public static jo.celeris.core.syntax.JsonKind[] values();
+  public static jo.celeris.core.syntax.JsonKind valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.JsonLexeur$Etat
+Compiled from "JsonLexeur.java"
+final class jo.celeris.core.syntax.JsonLexeur$Etat extends java.lang.Enum<jo.celeris.core.syntax.JsonLexeur$Etat> implements jo.celeris.core.syntax.LexState {
+  public static final jo.celeris.core.syntax.JsonLexeur$Etat NORMAL;
+  public static jo.celeris.core.syntax.JsonLexeur$Etat[] values();
+  public static jo.celeris.core.syntax.JsonLexeur$Etat valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.JsonLexeur
+Compiled from "JsonLexeur.java"
+final class jo.celeris.core.syntax.JsonLexeur implements jo.celeris.core.syntax.LanguageLexer {
+  public jo.celeris.core.syntax.LexState initialState();
+  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
+}
+
+### jo.celeris.core.syntax.JsonParseur$Analyse
+Compiled from "JsonParseur.java"
+final class jo.celeris.core.syntax.JsonParseur$Analyse {
+}
+
+### jo.celeris.core.syntax.JsonParseur
+Compiled from "JsonParseur.java"
+final class jo.celeris.core.syntax.JsonParseur implements jo.celeris.core.syntax.LanguageParser {
+  public int chunkLevel();
+  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
+  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
+}
+
+### jo.celeris.core.syntax.JsonSyntax
+Compiled from "JsonSyntax.java"
+public final class jo.celeris.core.syntax.JsonSyntax implements jo.celeris.core.syntax.LanguageSyntax {
+  public static final jo.celeris.core.syntax.JsonSyntax INSTANCE;
+  public java.lang.String id();
+  public jo.celeris.core.syntax.LanguageLexer lexer();
+  public jo.celeris.core.syntax.LanguageParser parser();
+}
+
 ### jo.celeris.core.syntax.LanguageLexer
 Compiled from "LanguageLexer.java"
 public interface jo.celeris.core.syntax.LanguageLexer {
@@ -368,6 +418,52 @@ public final class jo.celeris.core.syntax.TreeIndent {
 Compiled from "TreeOutline.java"
 public final class jo.celeris.core.syntax.TreeOutline {
   public static java.util.List<jo.celeris.core.syntax.OutlineEntry> entries(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
+}
+
+### jo.celeris.core.syntax.XmlKind
+Compiled from "XmlKind.java"
+final class jo.celeris.core.syntax.XmlKind extends java.lang.Enum<jo.celeris.core.syntax.XmlKind> implements jo.celeris.core.syntax.NodeKind {
+  public static final jo.celeris.core.syntax.XmlKind ELEMENT;
+  public static final jo.celeris.core.syntax.XmlKind TEXTE;
+  public static final jo.celeris.core.syntax.XmlKind AUTRE;
+  public static final jo.celeris.core.syntax.XmlKind ERREUR;
+  public static jo.celeris.core.syntax.XmlKind[] values();
+  public static jo.celeris.core.syntax.XmlKind valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.XmlLexeur$Etat
+Compiled from "XmlLexeur.java"
+final class jo.celeris.core.syntax.XmlLexeur$Etat extends java.lang.Enum<jo.celeris.core.syntax.XmlLexeur$Etat> implements jo.celeris.core.syntax.LexState {
+  public static final jo.celeris.core.syntax.XmlLexeur$Etat TEXTE;
+  public static final jo.celeris.core.syntax.XmlLexeur$Etat BALISE;
+  public static final jo.celeris.core.syntax.XmlLexeur$Etat COMMENTAIRE;
+  public static final jo.celeris.core.syntax.XmlLexeur$Etat CDATA;
+  public static jo.celeris.core.syntax.XmlLexeur$Etat[] values();
+  public static jo.celeris.core.syntax.XmlLexeur$Etat valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.XmlLexeur
+Compiled from "XmlLexeur.java"
+final class jo.celeris.core.syntax.XmlLexeur implements jo.celeris.core.syntax.LanguageLexer {
+  public jo.celeris.core.syntax.LexState initialState();
+  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
+}
+
+### jo.celeris.core.syntax.XmlParseur
+Compiled from "XmlParseur.java"
+final class jo.celeris.core.syntax.XmlParseur implements jo.celeris.core.syntax.LanguageParser {
+  public int chunkLevel();
+  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
+  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
+}
+
+### jo.celeris.core.syntax.XmlSyntax
+Compiled from "XmlSyntax.java"
+public final class jo.celeris.core.syntax.XmlSyntax implements jo.celeris.core.syntax.LanguageSyntax {
+  public static final jo.celeris.core.syntax.XmlSyntax INSTANCE;
+  public java.lang.String id();
+  public jo.celeris.core.syntax.LanguageLexer lexer();
+  public jo.celeris.core.syntax.LanguageParser parser();
 }
 
 ### jo.celeris.core.syntax.package-info

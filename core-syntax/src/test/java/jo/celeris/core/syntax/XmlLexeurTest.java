@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import org.junit.jupiter.api.Test;
 
+import jo.celeris.core.text.Document;
+
 /**
  * Le lexeur XML (ADR-004) : balises ouvrantes, fermantes et auto-fermées
  * appariées, attributs nommés-valeur, texte, sections CDATA et commentaires
@@ -70,7 +72,7 @@ class XmlLexeurTest {
         Token[] jetons = lex(ligne);
         assertEquals(1, jetons.length);
         assertEquals(TokenKind.STRING, jetons[0].kind());
-        assertEquals("Auteurs &amp; contributeurs — « Celeris »", texte("Auteurs &amp; contributeurs — « Celeris »", jetons[0]));
+        assertEquals(ligne, texte(ligne, jetons[0]));
     }
 
     /** Le texte s'arrête au «&#x2f;» qui ouvre la balise suivante. */
@@ -108,9 +110,10 @@ class XmlLexeurTest {
         assertEquals(1, milieu.tokens().length);
         assertEquals(TokenKind.STRING, milieu.tokens()[0].kind());
         LexedLine fermeture = lexeur.lex("fin]]> </d>", ouverture.exitState());
-        assertEquals(TokenKind.CLOSE_BRACKET, fermeture.tokens()[0].kind());
-        assertEquals("]]>", texte("fin]]> </d>", fermeture.tokens()[0]));
+        assertEquals(TokenKind.STRING, fermeture.tokens()[0].kind());
         assertEquals(TokenKind.CLOSE_BRACKET, fermeture.tokens()[1].kind());
+        assertEquals("]]>", texte("fin]]> </d>", fermeture.tokens()[1]));
+        assertEquals(TokenKind.CLOSE_BRACKET, fermeture.tokens()[2].kind());
         assertSame(XmlLexeur.Etat.TEXTE, fermeture.exitState());
     }
 
@@ -122,8 +125,9 @@ class XmlLexeurTest {
         assertSame(XmlLexeur.Etat.BALISE, premiere.exitState());
         LexedLine suite = lexeur.lex("prix=\"8,90\">", premiere.exitState());
         assertEquals(TokenKind.IDENTIFIER, suite.tokens()[0].kind());
-        assertEquals(TokenKind.STRING, suite.tokens()[1].kind());
-        assertEquals(TokenKind.PUNCTUATION, suite.tokens()[2].kind());
+        assertEquals(TokenKind.OPERATOR, suite.tokens()[1].kind());
+        assertEquals(TokenKind.STRING, suite.tokens()[2].kind());
+        assertEquals(TokenKind.PUNCTUATION, suite.tokens()[3].kind());
         assertSame(XmlLexeur.Etat.TEXTE, suite.exitState());
     }
 
@@ -140,9 +144,11 @@ class XmlLexeurTest {
         String ligne = "<méta>français</méta>";
         Token[] jetons = lex(ligne);
         assertEquals(TokenKind.OPEN_BRACKET, jetons[0].kind());
-        assertEquals("<méta", texte("<méta>français</méta>", jetons[0]));
-        assertEquals(TokenKind.CLOSE_BRACKET, jetons[2].kind());
-        assertEquals("</méta>", texte("<méta>français</méta>", jetons[2]));
+        assertEquals("<méta", texte(ligne, jetons[0]));
+        assertEquals(TokenKind.PUNCTUATION, jetons[1].kind());
+        assertEquals(TokenKind.STRING, jetons[2].kind());
+        assertEquals(TokenKind.CLOSE_BRACKET, jetons[3].kind());
+        assertEquals("</méta>", texte(ligne, jetons[3]));
     }
 
     /** Le lexique complet du corpus tient sans incident. */

@@ -55,9 +55,13 @@ class XmlArbreTest {
         Document doc = Document.of(CorpusChargeur.exempleXml());
         List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
         FoldSpan premier = plis.get(0);
-        assertEquals(2, premier.startLine(), "le pli de la racine s'ouvre à sa balise");
-        assertTrue(premier.endLine() >= 22, "et couvre tout le document");
-        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 4 && p.endLine() == 11),
+        assertEquals(0, premier.startLine(),
+                "le prologue et son commentaire se replient ensemble");
+        assertEquals(1, premier.endLine());
+        FoldSpan racine = plis.get(1);
+        assertEquals(2, racine.startLine(), "le pli de la racine s'ouvre à sa balise");
+        assertEquals(21, racine.endLine(), "et couvre tout le document");
+        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 4 && p.endLine() == 10),
                 "le premier produit se replie de sa balise à sa fermeture");
     }
 

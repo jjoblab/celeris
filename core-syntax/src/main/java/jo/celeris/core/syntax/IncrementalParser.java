@@ -171,12 +171,16 @@ final class IncrementalParser {
         return profondeur;
     }
 
+    /**
+     * Étend la frontière en arrière sur la documentation qui précède la
+     * déclaration — les commentaires ordinaires ne suivent pas : seule la
+     * documentation (DOC) s'attache à ce qui la suit.
+     */
     private static int etendreTrivia(TokenSlice tranche, int candidat) {
         int j = candidat;
         while (j > 0) {
             TokenKind precedente = tranche.kind(j - 1);
-            boolean trivia = precedente == TokenKind.COMMENT || precedente == TokenKind.DOC;
-            if (!trivia) {
+            if (precedente != TokenKind.DOC) {
                 break;
             }
             if (j - 2 >= 0 && tranche.line(j - 1) <= tranche.line(j - 2)) {
