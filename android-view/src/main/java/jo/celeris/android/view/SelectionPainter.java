@@ -54,9 +54,11 @@ public final class SelectionPainter extends PainterLayer {
             if (fin <= debut) {
                 continue;
             }
-            float gauche = (debut - debutRangee) * metrics.charWidth() - frame.scrollX();
+            float gauche = frame.gutterWidth()
+                    + (debut - debutRangee) * metrics.charWidth() - frame.scrollX();
             float haut = metrics.rowTop(rangee) - frame.scrollY();
-            float droite = (fin - debutRangee) * metrics.charWidth() - frame.scrollX();
+            float droite = frame.gutterWidth()
+                    + (fin - debutRangee) * metrics.charWidth() - frame.scrollX();
             float bas = haut + metrics.lineHeight();
             surface.drawRect(gauche, haut, droite, bas, brush());
         }

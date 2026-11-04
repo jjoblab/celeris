@@ -158,7 +158,7 @@ class TextPainterTest {
         image.addLayer(new TextPainter(saine, cache, new SourceParLigne(document, metrics)));
         FrameState etat = new FrameState();
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 2, 0f, 0f);
+        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 2, 40f, 0f, 0f);
         image.drawFrame(surface, etat);
 
         Dessin rect = surface.dessins().get(0);
@@ -180,7 +180,7 @@ class TextPainterTest {
                 new SourceParLigne(document, metrics)));
         FrameState etatHostile = new FrameState();
         SurfaceEnregistreuse surfaceHostile = new SurfaceEnregistreuse();
-        etatHostile.beginFrame(document, selection, projection, 2L, metrics, THEME, 0, 2, 0f, 0f);
+        etatHostile.beginFrame(document, selection, projection, 2L, metrics, THEME, 0, 2, 40f, 0f, 0f);
         imageHostile.drawFrame(surfaceHostile, etatHostile);
         imageHostile.drawFrame(surfaceHostile, etatHostile);
 
@@ -216,7 +216,7 @@ class TextPainterTest {
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
 
         etat.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics, THEME,
-                0, 2, 0f, 0f);
+                0, 2, 40f, 0f, 0f);
         image.drawFrame(surface, etat);
 
         assertEquals(2, surface.dessins().size());

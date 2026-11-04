@@ -21,27 +21,29 @@ public final class FrameState {
     private long revision;
     private int firstRow;
     private int visibleRows;
+    private float gutterWidth;
     private float scrollX;
     private float scrollY;
 
     /**
      * Configure l'état de l'image à venir.
      *
-     * @param document   l'instantané de document affiché
-     * @param selection  la sélection multiple courante
-     * @param projection la projection rangées ↔ lignes courante
-     * @param revision   la révision de l'instantané (clé de cache)
-     * @param metrics    les métriques d'éditeur courantes
-     * @param theme      le thème résolu courant
-     * @param firstRow   la première rangée visible
+     * @param document    l'instantané de document affiché
+     * @param selection   la sélection multiple courante
+     * @param projection  la projection rangées ↔ lignes courante
+     * @param revision    la révision de l'instantané (clé de cache)
+     * @param metrics     les métriques d'éditeur courantes
+     * @param theme       le thème résolu courant
+     * @param firstRow    la première rangée visible
      * @param visibleRows le nombre de rangées visibles
-     * @param scrollX    le défilement horizontal, en pixels
-     * @param scrollY    le défilement vertical, en pixels
+     * @param gutterWidth la largeur de gouttière courante, en pixels
+     * @param scrollX     le défilement horizontal, en pixels
+     * @param scrollY     le défilement vertical, en pixels
      */
     public void beginFrame(Document document, MultiSelection selection,
             VisualProjection projection, long revision, EditorMetrics metrics,
-            EditorTheme theme, int firstRow, int visibleRows, float scrollX,
-            float scrollY) {
+            EditorTheme theme, int firstRow, int visibleRows, float gutterWidth,
+            float scrollX, float scrollY) {
         this.document = document;
         this.selection = selection;
         this.projection = projection;
@@ -50,6 +52,7 @@ public final class FrameState {
         this.theme = theme;
         this.firstRow = firstRow;
         this.visibleRows = visibleRows;
+        this.gutterWidth = gutterWidth;
         this.scrollX = scrollX;
         this.scrollY = scrollY;
     }
@@ -115,6 +118,12 @@ public final class FrameState {
     public int visibleRows() {
         exigeImage();
         return visibleRows;
+    }
+
+    /** La largeur de gouttière courante, en pixels. */
+    public float gutterWidth() {
+        exigeImage();
+        return gutterWidth;
     }
 
     /** Le défilement horizontal, en pixels. */

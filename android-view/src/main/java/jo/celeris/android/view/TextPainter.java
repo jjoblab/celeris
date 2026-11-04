@@ -43,6 +43,7 @@ public final class TextPainter extends PainterLayer {
         int derniere = premiere + frame.visibleRows();
         float baseY = metrics.rowBaseline(premiere) - frame.scrollY();
         float hauteur = metrics.lineHeight();
+        float bordGauche = frame.gutterWidth() - frame.scrollX();
         for (int rangee = premiere; rangee < derniere; rangee++) {
             RowLayout layout = cache.find(revision, rangee, theme, police);
             if (layout == null) {
@@ -50,7 +51,7 @@ public final class TextPainter extends PainterLayer {
                 layout = source.layoutOf(cle);
                 cache.store(cle, layout);
             }
-            surface.drawText(layout.text(), -frame.scrollX(),
+            surface.drawText(layout.text(), bordGauche,
                     baseY + (rangee - premiere) * hauteur, brush());
         }
     }

@@ -177,7 +177,7 @@ class ScrollFrameTest {
 
         // Image 1 : échauffement — le cache se remplit, les instances
         // croisent l'interface pour la première fois (légitime).
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 0f, 0f);
+        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, 0f);
         image.drawFrame(surface, etat);
         assertEquals(6, surface.dessins(), "un rectangle de sélection et cinq textes");
         assertEquals(5, cache.size());
@@ -187,7 +187,7 @@ class ScrollFrameTest {
         // objet nouveau ne doit croiser l'interface (PIEGE-15).
         for (int numero = 2; numero <= 101; numero++) {
             float dy = (numero - 2) * 0.5f;
-            etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 0f, dy);
+            etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, dy);
             image.drawFrame(surface, etat);
         }
 
@@ -219,15 +219,15 @@ class ScrollFrameTest {
         // Fenêtre sur les rangées 0 à 4, puis 1 à 5 (la rangée 5 se voit
         // pour la première fois — légitime), puis retour sur 0 à 4 : tout
         // a déjà été vu, rien ne doit être alloué.
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 0f, 0f);
+        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, 0f);
         image.drawFrame(surface, etat);
         surface.basculerEnRegimeEtabli();
 
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 1, 5, 0f, 0f);
+        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 1, 5, 40f, 0f, 0f);
         image.drawFrame(surface, etat);
         surface.basculerEnRegimeEtabli();
 
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 0f, 0f);
+        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, 0f);
         image.drawFrame(surface, etat);
 
         assertTrue(surface.aucuneIdentiteNouvelle(),
