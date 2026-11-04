@@ -41,16 +41,16 @@ class MovementGranularityTest {
                 MovementGranularity.CHARACTER, 10));
     }
 
-    /** La granularité MOT saute des mots entiers. */
+    /** La granularité MOT saute des mots entiers, espaces comprises. */
     @Test
     void word_movesByWholeWords() {
         Document document = Document.of("un deux");
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
 
-        assertEquals(2, MovementGranularity.next(document, projection, 0,
+        assertEquals(3, MovementGranularity.next(document, projection, 0,
                 MovementGranularity.WORD, 10));
-        assertEquals(0, MovementGranularity.previous(document, projection, 2,
+        assertEquals(0, MovementGranularity.previous(document, projection, 3,
                 MovementGranularity.WORD, 10));
     }
 
@@ -71,16 +71,20 @@ class MovementGranularityTest {
                 MovementGranularity.LINE, 10));
     }
 
-    /** La dernière rangée tient le curseur : descendre n'a plus d'effet. */
+    /**
+     * Les bords se bornent comme au clavier (D-17) : monter depuis la
+     * première rangée va à l'origine, descendre depuis la dernière
+     * va à la fin de sa tranche.
+     */
     @Test
-    void line_clampsAtTheLastRow() {
+    void line_boundsAtTheEdges() {
         Document document = Document.of("abcdefgh");
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 4);
 
-        assertEquals(6, MovementGranularity.next(document, projection, 6,
+        assertEquals(8, MovementGranularity.next(document, projection, 6,
                 MovementGranularity.LINE, 10));
-        assertEquals(2, MovementGranularity.previous(document, projection, 2,
+        assertEquals(0, MovementGranularity.previous(document, projection, 2,
                 MovementGranularity.LINE, 10));
     }
 

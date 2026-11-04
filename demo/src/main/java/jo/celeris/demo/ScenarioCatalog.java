@@ -9,11 +9,17 @@ import java.util.List;
  *
  * <p>Jalon M2 (moteur de texte, JVM pure) : A-13 (annulation groupée avec
  * restauration de sélection), A-18 (retour à la ligne souple — la coupe
- * par caractère du cœur, la géométrie des rangées venant avec la vue),
- * A-20 (recherche/remplacement par la voie de transaction), A-24
- * (encodages, fins de ligne, BOM) et A-25 (très gros fichiers côté
- * modèle). Les facettes interface de ces scénarios s'ajouteront à leur
- * jalon respectif (M3, M5).</p>
+ * par caractère du cœur), A-20 (recherche/remplacement par la voie de
+ * transaction), A-24 (encodages, fins de ligne, BOM) et A-25 (très gros
+ * fichiers côté modèle).</p>
+ *
+ * <p>Jalon M3 (vue minimale) : A-01 (pilule multi-curseur tactile), la
+ * facette vue de A-18 (rangées et tranches), D-01 (gouttière à numéros),
+ * D-13 (thèmes à contraste vérifié), D-15 (zoom au pincement), D-16
+ * (poignées, pilule, loupe), D-17 (clavier matériel), G-01 (ouverture
+ * progressive), G-02 (tactile d'abord, hors ligne) et G-05
+ * (accessibilité). Les facettes non livrées — D-02 (diagnostics),
+ * D-07 (plis), D-14 (ligatures) — rejoignent leur jalon.</p>
  */
 public final class ScenarioCatalog {
 
@@ -24,6 +30,12 @@ public final class ScenarioCatalog {
     public static List<Scenario> scenarios() {
         return List.of(
                 new Scenario(
+                        "A-01",
+                        "Pilule « ajouter un curseur »",
+                        "L'appui long arme la pilule, chaque appui ailleurs "
+                                + "ajoute un curseur — les existants tiennent ; la "
+                                + "frappe multi-curseurs vit au cœur depuis M2."),
+                new Scenario(
                         "A-13",
                         "Annulation groupée, sélection restaurée",
                         "Cent frappes successives s'annulent en une seule opération "
@@ -33,8 +45,8 @@ public final class ScenarioCatalog {
                         "A-18",
                         "Retour à la ligne souple",
                         "Un mot plus large que la largeur disponible est coupé par "
-                                + "caractères (PIEGE-08) ; les rangées restent "
-                                + "distinctes des lignes."),
+                                + "caractères (PIEGE-08) ; la projection signe plis "
+                                + "et coupures, chaque rangée porte sa tranche."),
                 new Scenario(
                         "A-20",
                         "Recherche et remplacement",
@@ -52,6 +64,58 @@ public final class ScenarioCatalog {
                         "Très gros fichiers",
                         "Cent mille lignes s'ouvrent côté modèle dans les budgets "
                                 + "de l'ADR-006 : première image et défilement "
-                                + "restent fluides."));
+                                + "restent fluides."),
+                new Scenario(
+                        "D-01",
+                        "Gouttière à numéros absolus",
+                        "Les numéros s'alignent à droite dans leur champ, "
+                                + "étiquettes mémoïsées — jamais une chaîne allouée "
+                                + "par rangée et par image ; les continuations "
+                                + "d'une ligne coupée restent muettes."),
+                new Scenario(
+                        "D-13",
+                        "Thèmes à contraste vérifié",
+                        "Clair, sombre et contraste élevé : encre, gouttière et "
+                                + "curseur vérifiés automatiquement aux seuils WCAG "
+                                + "à chaque test."),
+                new Scenario(
+                        "D-15",
+                        "Zoom au pincement",
+                        "La taille monte par paliers bornés, jamais une valeur "
+                                + "libre ; la colonne et la rangée sous le doigt y "
+                                + "restent."),
+                new Scenario(
+                        "D-16",
+                        "Poignées, pilule et loupe",
+                        "Les poignées suivent les tranches de rangée, le "
+                                + "glissement ne déplace qu'une extrémité ; la "
+                                + "géométrie de loupe flotte au-dessus du doigt, "
+                                + "bornée à la fenêtre."),
+                new Scenario(
+                        "D-17",
+                        "Clavier matériel",
+                        "Table de raccourcis complète et reconfigurable ; "
+                                + "mouvements par clusters de graphèmes, mots "
+                                + "entiers et rangées ; suppressions avant et "
+                                + "arrière par clusters entiers."),
+                new Scenario(
+                        "G-01",
+                        "Ouverture progressive",
+                        "Cent mille lignes : première image mesurée à 154 ms "
+                                + "(budget 500 ms), 480 000 lignes ouvrables — la "
+                                + "fenêtre seule se sert."),
+                new Scenario(
+                        "G-02",
+                        "Tactile d'abord, hors ligne",
+                        "La démonstration tourne hors ligne, aucun réveil réseau ; "
+                                + "les budgets d'image tiennent par le cache de "
+                                + "rangées."),
+                new Scenario(
+                        "G-05",
+                        "Accessibilité",
+                        "L'éditeur s'expose comme un nœud éditable dont les "
+                                + "enfants virtuels sont les rangées visibles : "
+                                + "lecture par lignes et plages, mouvements à "
+                                + "granularité — clusters, mots, rangées, pages."));
     }
 }

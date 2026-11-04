@@ -2,6 +2,7 @@ package jo.celeris.android.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.os.Bundle;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
@@ -9,6 +10,9 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeProvider;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
@@ -27,23 +31,19 @@ import org.jspecify.annotations.Nullable;
  * pipeline à couches, du cache de rangées et de l'état d'image.
  *
  * <p>La vue est mince par construction : toute la logique vérifiable
- * sans appareil vit dans les classes pures du module (métriques,
- * géométries, projection, gestuelle, moteur de déplacement, table de
- * raccourcis, machine de composition IME) ; la vue les assemble,
- * attache la surface au canvas de l'image et route le tactile et le
- * clavier. Le défilement vertical et horizontal est borné au
- * contenu ; le tactile à un doigt pose le
- * curseur puis étend la sélection (ancre figée au DOWN, PIEGE-03) ou
- * tire une poignée de plage, l'appui long arme la pilule « ajouter un
- * curseur » (A-01), le pincement zoome par paliers le point sous le
- * doigt stable (D-15), le panoramique à deux doigts défile, et le
- * clavier matériel passe par la table de raccourcis (D-17). Le retour
- * à la ligne souple par offsets (A-18) se règle par
- * {@link #setSoftWrap(boolean)}. L'IME s'attache par
- * {@link #onCreateInputConnection(EditorInfo)} : la composition vit
- * dans {@link CompositionState}, la colle dans
- * {@link EditorInputConnection}, toute frappe matérielle clôt la
- * composition d'abord.</p>
+ * sans appareil vit dans les classes pures du module ; la vue les
+ * assemble, attache la surface au canvas de l'image et route le
+ * tactile et le clavier. Le défilement est borné au contenu ; le
+ * tactile pose le curseur puis étend la sélection (ancre figée au
+ * DOWN, PIEGE-03) ou tire une poignée, l'appui long arme la pilule
+ * « ajouter un curseur » (A-01), le pincement zoome par paliers
+ * (D-15), le panoramique à deux doigts défile, le clavier matériel
+ * passe par la table de raccourcis (D-17). Le retour à la ligne
+ * souple (A-18) se règle par {@link #setSoftWrap(boolean)}. L'IME
+ * s'attache par {@link #onCreateInputConnection(EditorInfo)} — la
+ * composition vit dans {@link CompositionState}, la colle dans
+ * {@link EditorInputConnection} ; l'accessibilité (G-05) vit dans
+ * {@link AccessibilityHost}.</p>
  */
 public final class EditorView extends View {
 
@@ -60,6 +60,8 @@ public final class EditorView extends View {
     private final RowLayoutCache cache = new RowLayoutCache();
     private final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
+    private final ChromePainter chrome = new ChromePainter();
+    private final AccessibilityHost accessibilite = new AccessibilityHost(this);
     private final TextBrush pinceauChrome;
     private final GestureDetector longPresses;
     private final ScaleGestureDetector pincements;
@@ -139,6 +141,11 @@ public final class EditorView extends View {
      * @param nouvelleSession la session d'édition à afficher
      */
     public void setSession(TextSession nouvelleSession) {
+        if (nouvelleSession != session) {
+            nouvelleSession.addEditListener((debut, fin, retire, insere) ->
+                    sendAccessibilityEvent(
+                            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED));
+        }
         session = nouvelleSession;
         revisionSuivie = 0L;
         scrollX = 0f;
@@ -250,6 +257,50 @@ public final class EditorView extends View {
         invalidate();
     }
 
+    /**
+     * L'état d'image courant — accès de paquet pour l'hôte
+     * d'accessibilité (G-05) : l'état se prépare, puis se lit.
+     */
+    FrameState etatImageCourante() {
+        preparerEtatImage();
+        return etatImage;
+    }
+
+    /** Défile d'une page, bornée au contenu. */
+    void defilerPage(boolean enAvant) {
+        float hauteurContenu = projection.rowCount() * metrics.lineHeight();
+        float pas = ScrollGeometry.visibleRows(getHeight(),
+                metrics.lineHeight()) * metrics.lineHeight();
+        scrollY = ScrollGeometry.clamp(
+                enAvant ? scrollY + pas : scrollY - pas,
+                hauteurContenu, getHeight());
+        invalidate();
+    }
+
+    /** Annonce le changement de sélection au lecteur d'écran (G-05). */
+    void annoncerSelection() {
+        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED);
+    }
+
+    @Override
+    public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+        super.onInitializeAccessibilityNodeInfo(info);
+        accessibilite.remplir(info);
+    }
+
+    @Override
+    public AccessibilityNodeProvider getAccessibilityNodeProvider() {
+        return accessibilite.fournisseur();
+    }
+
+    @Override
+    public boolean performAccessibilityAction(int action, Bundle args) {
+        if (accessibilite.execute(action, args)) {
+            return true;
+        }
+        return super.performAccessibilityAction(action, args);
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -262,6 +313,20 @@ public final class EditorView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(theme.backgroundColor());
+        preparerEtatImage();
+        surface.attach(canvas);
+        trace.drawFrame(surface, etatImage);
+        chrome.tracer(surface, pinceauChrome, theme, metrics, pilule,
+                etatImage.document(), projection, session.selection().ranges(),
+                largeurGouttiere, scrollX, scrollY);
+        surface.detach();
+    }
+
+    /**
+     * Prépare l'état d'image : suivi de révision, bornage du
+     * défilement, gouttière et fenêtre visible.
+     */
+    private void preparerEtatImage() {
         Document document = session.document();
         suivreRevision(document);
         float hauteurContenu = projection.rowCount() * metrics.lineHeight();
@@ -274,36 +339,6 @@ public final class EditorView extends View {
         etatImage.beginFrame(document, session.selection(), projection,
                 document.revision(), metrics, theme, premiere, visibles,
                 largeurGouttiere, scrollX, scrollY);
-        surface.attach(canvas);
-        trace.drawFrame(surface, etatImage);
-        dessinerChrome();
-        surface.detach();
-    }
-
-    /** Le chrome propre à la vue : pilule armée, poignées de plage. */
-    private void dessinerChrome() {
-        if (pilule.isArmed()) {
-            pinceauChrome.setColor(theme.cursorColor());
-            surface.drawRect(pilule.left(), pilule.top(), pilule.right(),
-                    pilule.bottom(), pinceauChrome);
-            surface.drawText("+", pilule.x() - metrics.charWidth() / 2f,
-                    pilule.bottom() - metrics.descent(), pinceauChrome);
-        }
-        List<SelRange> plages = session.selection().ranges();
-        if (plages.size() == 1 && !plages.get(0).isEmpty()) {
-            pinceauChrome.setColor(theme.cursorColor());
-            dessinerPoignee(plages.get(0).start());
-            dessinerPoignee(plages.get(0).end());
-        }
-    }
-
-    private void dessinerPoignee(int offset) {
-        Document document = session.document();
-        float x = SelectionHandles.xOfOffset(document, projection, metrics,
-                largeurGouttiere, scrollX, offset);
-        float y = SelectionHandles.yOfOffset(document, projection, metrics,
-                scrollY, offset);
-        surface.drawRect(x - 3f, y, x + 3f, y + metrics.lineHeight(), pinceauChrome);
     }
 
     @Override
@@ -408,6 +443,7 @@ public final class EditorView extends View {
         } else {
             session.setSelection(MultiSelection.of(SelRange.caretAt(offset)));
         }
+        annoncerSelection();
         invalidate();
         return true;
     }

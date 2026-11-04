@@ -22,6 +22,23 @@ public interface DrawSurface {
     void drawText(String text, float x, float y, TextBrush brush);
 
     /**
+     * Trace une tranche de texte à la position donnée, avec le
+     * pinceau donné — la variante des segments bidirectionnels
+     * (ADR-008) : la tranche se sert sans copie ni allocation.
+     *
+     * @param text  le texte porteur (instance réutilisée en régime établi)
+     * @param start le début de la tranche, en unités
+     * @param end   la fin exclusive de la tranche, en unités
+     * @param x     l'abscisse de départ, en pixels
+     * @param y     l'ordonnée de la ligne de base, en pixels
+     * @param brush le pinceau, couleur déjà posée
+     */
+    default void drawText(CharSequence text, int start, int end, float x,
+            float y, TextBrush brush) {
+        drawText(text.subSequence(start, end).toString(), x, y, brush);
+    }
+
+    /**
      * Trace un rectangle plein aux coordonnées données.
      *
      * @param left   le bord gauche, en pixels

@@ -52,8 +52,31 @@ public final class TextPainter extends PainterLayer {
                 layout = source.layoutOf(cle);
                 cache.store(cle, layout);
             }
-            surface.drawText(layout.text(), bordGauche,
-                    baseY + (rangee - premiere) * hauteur, brush());
+            float y = baseY + (rangee - premiere) * hauteur;
+            if (layout.runs().isEmpty()) {
+                // Chemin rapide : une rangée purement gauche-à-droite
+                // se trace d'un seul tenant, l'instance du cache.
+                surface.drawText(layout.text(), bordGauche, y, brush());
+            } else {
+                tracerSegments(surface, layout, bordGauche, y,
+                        metrics.charWidth());
+            }
+        }
+    }
+
+    /**
+     * Trace la rangée segment par segment, de gauche à droite dans
+     * l'ordre visuel (ADR-008) : le texte logique ne bouge jamais, la
+     * position de tracé avance — aucune allocation, la variante à
+     * bornes de la surface sert le segment tel quel.
+     */
+    private void tracerSegments(DrawSurface surface, RowLayout layout,
+            float bordGauche, float y, float largeurCar) {
+        String texte = layout.text();
+        float x = bordGauche;
+        for (VisualRuns.Run segment : layout.runs()) {
+            surface.drawText(texte, segment.start(), segment.end(), x, y, brush());
+            x += (segment.end() - segment.start()) * largeurCar;
         }
     }
 }

@@ -33,6 +33,12 @@ public final class CanvasSurface implements DrawSurface {
     }
 
     @Override
+    public void drawText(CharSequence text, int start, int end, float x,
+            float y, TextBrush brush) {
+        canvas().drawText(text, start, end, x, y, peintureDe(brush));
+    }
+
+    @Override
     public void drawRect(float left, float top, float right, float bottom,
             TextBrush brush) {
         canvas().drawRect(left, top, right, bottom, peintureDe(brush));

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">démo celeris</string>
+    <string name="titre_accueil">celeris — démonstration</string>
+    <string name="catalogue_vide">Catalogue de scénarios vide : rempli à chaque jalon.</string>
+    <string name="nombre_scenarios">%1$d scénario(s)</string>
+    <string name="action_reglages">Réglages en direct</string>
+    <string name="titre_reglages">Réglages</string>
+    <string name="reglage_numeros">Numéros de ligne</string>
+    <string name="reglage_retour">Retour à la ligne souple</string>
+    <string name="reglage_theme">Thème sombre</string>
+</resources>

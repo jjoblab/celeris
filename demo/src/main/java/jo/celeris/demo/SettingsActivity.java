@@ -12,7 +12,8 @@ import android.widget.TextView;
  * Écran de réglages en direct : chaque interrupteur persiste
  * immédiatement (SharedPreferences) et l'état se relit à l'ouverture ;
  * le câblage au moteur arrive avec les jalons qui portent les
- * fonctionnalités correspondantes. Sans ressources avant M3 (ADR-008).
+ * fonctionnalités correspondantes. Libellés en ressources `en`/`fr`
+ * complètes (ADR-008).
  */
 public final class SettingsActivity extends Activity {
 
@@ -27,18 +28,18 @@ public final class SettingsActivity extends Activity {
         racine.setPadding(marge, marge, marge, marge);
 
         TextView titre = new TextView(this);
-        titre.setText("Réglages");
+        titre.setText(R.string.titre_reglages);
         titre.setTextSize(20);
         racine.addView(titre);
 
-        racine.addView(interrupteur(prefs, "Numéros de ligne", "gouttiere.numeros"));
-        racine.addView(interrupteur(prefs, "Retour à la ligne souple", "retour.souple"));
-        racine.addView(interrupteur(prefs, "Thème sombre", "theme.sombre"));
+        racine.addView(interrupteur(prefs, R.string.reglage_numeros, "gouttiere.numeros"));
+        racine.addView(interrupteur(prefs, R.string.reglage_retour, "retour.souple"));
+        racine.addView(interrupteur(prefs, R.string.reglage_theme, "theme.sombre"));
 
         setContentView(racine);
     }
 
-    private Switch interrupteur(SharedPreferences prefs, String libelle, String cle) {
+    private Switch interrupteur(SharedPreferences prefs, int libelle, String cle) {
         Switch interrupteur = new Switch(this);
         interrupteur.setText(libelle);
         interrupteur.setChecked(prefs.getBoolean(cle, false));

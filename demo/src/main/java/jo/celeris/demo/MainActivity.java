@@ -8,10 +8,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 /**
- * Écran d'accueil de la démonstration : liste le catalogue de scénarios
- * (vide au squelette M1) et ouvre l'écran de réglages en direct.
- * Construit sans ressources : les libellés migrent vers les ressources
- * en/fr complètes à M3 (ADR-008).
+ * Écran d'accueil de la démonstration : liste le catalogue de
+ * scénarios (rempli à chaque jalon) et ouvre l'écran de réglages en
+ * direct. Libellés en ressources `en`/`fr` complètes (ADR-008).
  */
 public final class MainActivity extends Activity {
 
@@ -25,20 +24,19 @@ public final class MainActivity extends Activity {
         racine.setPadding(marge, marge, marge, marge);
 
         TextView titre = new TextView(this);
-        titre.setText("celeris - démonstration");
+        titre.setText(R.string.titre_accueil);
         titre.setTextSize(20);
         racine.addView(titre);
 
         TextView catalogue = new TextView(this);
         int nombre = ScenarioCatalog.scenarios().size();
-        catalogue.setText(
-                nombre == 0
-                        ? "Catalogue de scénarios vide : rempli à chaque jalon."
-                        : nombre + " scénario(s)");
+        catalogue.setText(nombre == 0
+                ? getString(R.string.catalogue_vide)
+                : getString(R.string.nombre_scenarios, nombre));
         racine.addView(catalogue);
 
         Button reglages = new Button(this);
-        reglages.setText("Réglages en direct");
+        reglages.setText(R.string.action_reglages);
         reglages.setOnClickListener(
                 vue -> startActivity(new Intent(this, SettingsActivity.class)));
         racine.addView(reglages);

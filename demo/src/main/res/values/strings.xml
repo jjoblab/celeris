@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">celeris demo</string>
+    <string name="titre_accueil">celeris — demonstration</string>
+    <string name="catalogue_vide">Empty scenario catalog: filled at each milestone.</string>
+    <string name="nombre_scenarios">%1$d scenario(s)</string>
+    <string name="action_reglages">Live settings</string>
+    <string name="titre_reglages">Settings</string>
+    <string name="reglage_numeros">Line numbers</string>
+    <string name="reglage_retour">Soft wrap</string>
+    <string name="reglage_theme">Dark theme</string>
+</resources>

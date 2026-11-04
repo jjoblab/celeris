@@ -2,6 +2,8 @@ package jo.celeris.android.view;
 
 import jo.celeris.core.text.Document;
 
+import java.util.List;
+
 /**
  * Source de rangées sur le document courant : sans pli ni retour à la
  * ligne, la rangée porte la ligne entière que la projection lui donne ;
@@ -63,7 +65,16 @@ public final class DocumentRowSource implements RowSource {
         }
         String texte = document.subText(document.lineStart(ligne) + debut,
                 document.lineStart(ligne) + fin);
+        List<VisualRuns.Run> segments = VisualRuns.runs(texte);
+        // Le chemin rapide du peintre : une rangée purement
+        // gauche-à-droite porte des segments vides, jamais une liste
+        // d'un seul segment pleine largeur (PIEGE-15).
+        boolean purGaucheADroite = segments.size() == 1
+                && !segments.get(0).rtl()
+                && segments.get(0).start() == 0
+                && segments.get(0).end() == texte.length();
         return new RowLayout(ligne, debut, fin, texte,
-                texte.length() * metrics.charWidth());
+                texte.length() * metrics.charWidth(),
+                purGaucheADroite ? List.of() : segments);
     }
 }
