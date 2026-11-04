@@ -9,6 +9,14 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 1 (M3) — pièges de la vue écrits avant le code (PIEGE-01 à 06,
+  14, 15, registre à jour) : socle de rendu JVM pur dans `android-view`,
+  testable sans SDK — métriques à règle de police injectée, cache de
+  rangées à clés immuables et consultation sans allocation, couches à
+  pinceau possédé et couleur de base reposée à chaque image, projection
+  rangées ↔ lignes par le modèle de plis, gestuelle à ancre figée au
+  DOWN, conversion position ← pixel au plancher, gras mémoïsé jusqu'au
+  changement de police, tracé d'image à l'indice (26 tests verts).
 - Tranche 5 — multi-sélection de première classe (ADR-003) : plages
   ancre-curseur `SelRange`, liste normalisée `MultiSelection` (fusion aux
   recouvrements, projection à gravité droite), la session porte la
