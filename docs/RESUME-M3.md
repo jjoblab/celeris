@@ -416,7 +416,12 @@
 - 562 tests verts au total — 141 `android-view`, 418 `core-text`,
   3 `demo` — zéro échec ;
 - `:android-view:lintDebug`, `:demo:lintDebug` : aucun problème ;
-- `:demo:assembleDebug` : l'APK se construit.
+- `:demo:assembleDebug` : l'APK se construit ;
+- mutation `core-text` rejouée à la clôture : **84,9 %** détectées
+  (1527/1799 — KILLED 1494, TIMED_OUT 33 ; seuil 80 % vert), six
+  mutants morts par erreur mémoire du bac à sable, sans effet sur le
+  verdict. `core-text` est inchangé depuis la tranche 4, qui l'avait
+  mesurée à 85,2 %.
 
 ## Clôture du jalon (côté développement)
 
