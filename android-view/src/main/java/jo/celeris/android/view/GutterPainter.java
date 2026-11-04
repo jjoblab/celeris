@@ -54,6 +54,12 @@ public final class GutterPainter extends PainterLayer {
         float baseY = metrics.rowBaseline(premiere) - frame.scrollY();
         float hauteur = metrics.lineHeight();
         for (int rangee = premiere; rangee < derniere; rangee++) {
+            // A-18 : le numéro ne se pose que sur la première tranche
+            // d'une ligne coupée — les rangées de continuation restent
+            // muettes.
+            if (frame.projection().spanIndexAtRow(rangee) != 0) {
+                continue;
+            }
             int numero = frame.projection().firstLineOfRow(rangee) + 1;
             String etiquette = numeros.label(numero);
             float x = GutterGeometry.numberX(etiquette.length(), largeurGouttiere,

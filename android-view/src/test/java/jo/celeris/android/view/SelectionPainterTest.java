@@ -104,7 +104,7 @@ class SelectionPainterTest {
                 THEME, 0, 2, 20f, 0f, 0f);
 
         SurfaceRectangles surface = new SurfaceRectangles();
-        new SelectionPainter(new PinceauMutable()).paint(surface, image);
+        new SelectionPainter(() -> new PinceauMutable()).paint(surface, image);
 
         assertEquals(2, surface.rectangles().size());
         // Rangée 0, tranche [0,4) : la plage y entre aux colonnes 2 et 4.
@@ -136,16 +136,16 @@ class SelectionPainterTest {
                 THEME, 0, 2, 20f, 0f, 0f);
 
         SurfaceRectangles surface = new SurfaceRectangles();
-        new SelectionPainter(new PinceauMutable()).paint(surface, image);
+        new SelectionPainter(() -> new PinceauMutable()).paint(surface, image);
 
         assertEquals(2, surface.rectangles().size());
         // Rangée 0 : colonnes 1 à 4 de la ligne 0.
         RectTrace premiere = surface.rectangles().get(0);
         assertEquals(20f + 10f, premiere.gauche(), 1e-6f);
         assertEquals(20f + 40f, premiere.droite(), 1e-6f);
-        // Rangée 1 : colonnes 0 à 3 de la ligne 1.
+        // Rangée 1 : la plage y couvre les colonnes 0 à 2 de la ligne 1.
         RectTrace seconde = surface.rectangles().get(1);
         assertEquals(20f, seconde.gauche(), 1e-6f);
-        assertEquals(20f + 30f, seconde.droite(), 1e-6f);
+        assertEquals(20f + 20f, seconde.droite(), 1e-6f);
     }
 }

@@ -39,15 +39,16 @@ public final class TextPainter extends PainterLayer {
         FontSpec police = metrics.font();
         int theme = frame.theme().id();
         long revision = frame.revision();
+        int colonnes = frame.projection().columns();
         int premiere = frame.firstRow();
         int derniere = premiere + frame.visibleRows();
         float baseY = metrics.rowBaseline(premiere) - frame.scrollY();
         float hauteur = metrics.lineHeight();
         float bordGauche = frame.gutterWidth() - frame.scrollX();
         for (int rangee = premiere; rangee < derniere; rangee++) {
-            RowLayout layout = cache.find(revision, rangee, theme, police);
+            RowLayout layout = cache.find(revision, rangee, theme, police, colonnes);
             if (layout == null) {
-                RowKey cle = new RowKey(revision, rangee, theme, police);
+                RowKey cle = new RowKey(revision, rangee, theme, police, colonnes);
                 layout = source.layoutOf(cle);
                 cache.store(cle, layout);
             }

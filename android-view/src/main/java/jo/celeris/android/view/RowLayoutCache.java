@@ -39,19 +39,35 @@ public final class RowLayoutCache {
      * @param row      le numéro de rangée visuelle
      * @param themeId  l'identifiant du thème
      * @param font     la spécification de police
+     * @param columns  le budget de colonnes du retour à la ligne (PIEGE-02)
      * @return la mise en page en cache, null si absente
      */
-    public @Nullable RowLayout find(long revision, int row, int themeId, FontSpec font) {
+    public @Nullable RowLayout find(long revision, int row, int themeId, FontSpec font,
+            int columns) {
         Entree[] cases = table;
-        int indice = empreinte(revision, row, themeId, font) & (cases.length - 1);
+        int indice = empreinte(revision, row, themeId, font, columns) & (cases.length - 1);
         while (cases[indice] != null) {
             Entree caseCourante = cases[indice];
-            if (correspond(caseCourante, revision, row, themeId, font)) {
+            if (correspond(caseCourante, revision, row, themeId, font, columns)) {
                 return caseCourante.valeur;
             }
             indice = (indice + 1) & (cases.length - 1);
         }
         return null;
+    }
+
+    /**
+     * Consulte la mise en page d'une rangée sans retour à la ligne
+     * (budget nul) — forme héritée du socle de rendu.
+     *
+     * @param revision la révision de l'instantané
+     * @param row      le numéro de rangée visuelle
+     * @param themeId  l'identifiant du thème
+     * @param font     la spécification de police
+     * @return la mise en page en cache, null si absente
+     */
+    public @Nullable RowLayout find(long revision, int row, int themeId, FontSpec font) {
+        return find(revision, row, themeId, font, 0);
     }
 
     /**
@@ -64,8 +80,8 @@ public final class RowLayoutCache {
         if (nombre + 1 > table.length * 3 / QUART) {
             agrandir();
         }
-        int indice = empreinte(key.revision(), key.row(), key.themeId(), key.font())
-                & (table.length - 1);
+        int indice = empreinte(key.revision(), key.row(), key.themeId(), key.font(),
+                key.columns()) & (table.length - 1);
         while (table[indice] != null) {
             if (table[indice].cle.equals(key)) {
                 table[indice].valeur = layout;
@@ -113,18 +129,21 @@ public final class RowLayoutCache {
         }
     }
 
-    private static int empreinte(long revision, int row, int themeId, FontSpec font) {
+    private static int empreinte(long revision, int row, int themeId, FontSpec font,
+            int columns) {
         int empreinte = Long.hashCode(revision);
         empreinte = empreinte * 31 + row;
         empreinte = empreinte * 31 + themeId;
         empreinte = empreinte * 31 + font.hashCode();
+        empreinte = empreinte * 31 + columns;
         return empreinte;
     }
 
     private static boolean correspond(Entree caseCourante, long revision, int row,
-            int themeId, FontSpec font) {
+            int themeId, FontSpec font, int columns) {
         RowKey cle = caseCourante.cle;
         return cle.revision() == revision && cle.row() == row
-                && cle.themeId() == themeId && cle.font().equals(font);
+                && cle.themeId() == themeId && cle.font().equals(font)
+                && cle.columns() == columns;
     }
 }

@@ -134,9 +134,9 @@ class VisualProjectionRetourTest {
         assertEquals(0, projection.firstLineOfRow(0));
         assertEquals(0, projection.firstLineOfRow(1));
         assertEquals(1, projection.firstLineOfRow(2));
-        assertEquals(1, projection.lastLineOfRow(2));
+        assertEquals(2, projection.lastLineOfRow(2), "l'en-tête couvre sa ligne cachée");
         assertEquals(3, projection.firstLineOfRow(3));
-        assertEquals(1, projection.rowOfLine(3));
+        assertEquals(3, projection.rowOfLine(3));
     }
 
     /** La longueur de la plus large ligne, pour le bornage horizontal. */

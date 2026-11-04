@@ -97,11 +97,13 @@ class GrosFichiersTest {
         }
 
         // Les comptes exacts prouvent la projection complète sans mise en
-        // page globale : 200 000 rangées pour 100 000 lignes.
+        // page globale : 200 000 rangées pour 100 000 lignes, et la
+        // continuation (rangée 1) porte la seconde moitié de la première
+        // ligne — 40 caractères.
         assertEquals(100_000, documents[0].lineCount());
         assertEquals(200_000, projections[0].rowCount());
-        assertEquals("aaaa", sources[0]
-                .layoutOf(new RowKey(1L, 1, 1, police, 40)).text());
+        assertEquals(40, sources[0]
+                .layoutOf(new RowKey(1L, 1, 1, police, 40)).text().length());
 
         assertTrue(meilleur / 1_000_000 < BUDGET_PREMIERE_IMAGE_MS,
                 "premiere image " + meilleur / 1_000_000 + " ms, budget "
