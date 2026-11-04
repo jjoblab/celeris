@@ -129,6 +129,37 @@ public final class jo.celeris.core.text.FindReplace {
   public static int matchIndexFrom(java.util.List<jo.celeris.core.text.Match>, int);
 }
 
+### jo.celeris.core.text.Grapheme$ClusterClass
+Compiled from "Grapheme.java"
+public final class jo.celeris.core.text.Grapheme$ClusterClass extends java.lang.Enum<jo.celeris.core.text.Grapheme$ClusterClass> {
+  public static final jo.celeris.core.text.Grapheme$ClusterClass CR;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass LF;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass CONTROL;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass EXTEND;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass ZWJ;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass RI;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass PREPEND;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass SPACING_MARK;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass HANGUL_L;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass HANGUL_V;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass HANGUL_T;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass HANGUL_LV;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass HANGUL_LVT;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass EXTPICT;
+  public static final jo.celeris.core.text.Grapheme$ClusterClass ANY;
+  public static jo.celeris.core.text.Grapheme$ClusterClass[] values();
+  public static jo.celeris.core.text.Grapheme$ClusterClass valueOf(java.lang.String);
+}
+
+### jo.celeris.core.text.Grapheme
+Compiled from "Grapheme.java"
+public final class jo.celeris.core.text.Grapheme {
+  public static jo.celeris.core.text.Grapheme$ClusterClass classOf(int);
+  public static int nextBoundary(java.lang.String, int);
+  public static int previousBoundary(java.lang.String, int);
+  public static java.util.List<java.lang.Integer> boundaries(java.lang.String);
+}
+
 ### jo.celeris.core.text.GuardedCharSequence
 Compiled from "GuardedCharSequence.java"
 final class jo.celeris.core.text.GuardedCharSequence implements java.lang.CharSequence {
@@ -338,6 +369,41 @@ public final class jo.celeris.core.text.UndoStep extends java.lang.Record {
   public java.util.List<jo.celeris.core.text.TextEdit> edits();
   public jo.celeris.core.text.MultiSelection selectionBefore();
   public jo.celeris.core.text.MultiSelection selectionAfter();
+}
+
+### jo.celeris.core.text.WbClass
+Compiled from "WbClass.java"
+final class jo.celeris.core.text.WbClass extends java.lang.Enum<jo.celeris.core.text.WbClass> {
+  public static final jo.celeris.core.text.WbClass NEWLINE;
+  public static final jo.celeris.core.text.WbClass CR;
+  public static final jo.celeris.core.text.WbClass LF;
+  public static final jo.celeris.core.text.WbClass WS;
+  public static final jo.celeris.core.text.WbClass EXTEND;
+  public static final jo.celeris.core.text.WbClass FORMAT;
+  public static final jo.celeris.core.text.WbClass ZWJ;
+  public static final jo.celeris.core.text.WbClass LETTER;
+  public static final jo.celeris.core.text.WbClass NUMERIC;
+  public static final jo.celeris.core.text.WbClass KATAKANA;
+  public static final jo.celeris.core.text.WbClass EXTENDNUMLET;
+  public static final jo.celeris.core.text.WbClass MIDLETTER;
+  public static final jo.celeris.core.text.WbClass MIDNUM;
+  public static final jo.celeris.core.text.WbClass MIDNUMLET;
+  public static final jo.celeris.core.text.WbClass EXTPICT;
+  public static final jo.celeris.core.text.WbClass ANY;
+  public static jo.celeris.core.text.WbClass[] values();
+  public static jo.celeris.core.text.WbClass valueOf(java.lang.String);
+}
+
+### jo.celeris.core.text.WbClassifier
+Compiled from "WbClassifier.java"
+final class jo.celeris.core.text.WbClassifier {
+}
+
+### jo.celeris.core.text.Word
+Compiled from "Word.java"
+public final class jo.celeris.core.text.Word {
+  public static int nextBoundary(java.lang.String, int);
+  public static java.util.List<java.lang.Integer> boundaries(java.lang.String);
 }
 
 ### jo.celeris.core.text.WordOccurrences
