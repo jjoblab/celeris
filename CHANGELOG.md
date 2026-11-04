@@ -9,6 +9,16 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 3 (M4) — analyseurs XML et JSON : lexeur XML à états
+  transportés (fermeture nommée et auto-fermeture appariées à
+  l'ouverte, CDATA en crochet apparié, balises à cheval sur les
+  lignes, reprise après fermeture, noms non ASCII), parseur
+  d'éléments tolérant (TAG repliables, fermeture désassortie en
+  nœud d'erreur) ; JSON sans état transporté (nombres à exposant,
+  paires nommées par leur clé au plan, contenants repliables, un
+  chunk par document) ; l'extension de trivia n'attache plus que la
+  documentation — le prologue XML cesse d'engloutir la racine ; 680
+  tests verts.
 - Tranche 2 (M4) — analyseur Java et registre des langages : lexeur
   à états transportés (textes en bloc ouvrant un crochet apparié,
   reprise du lexique après fermeture en milieu de ligne, casse —

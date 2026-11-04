@@ -154,3 +154,54 @@
    `public` superflu retiré des blocs de texte, `exige()` NullAway)
    sont documentées dans le commit — les tests de la tranche n'avaient
    jamais tourné avant l'implémentation, par construction.
+
+## Tranche 3 — analyseurs XML et JSON (2026-11-05)
+
+### Livré
+
+- **Lexeur XML** (`XmlSyntax`, `XmlLexeur`) : la balise ouvrante porte
+  son nom puis ses attributs jusqu'au chevron de ponctuation ; la
+  fermeture nommée et l'auto-fermeture sont des crochets fermants
+  appariés à l'ouverte — appariement et profondeur suivent ; prologue
+  en documentation, texte en un jeton (entités comprises), section
+  CDATA ouvrant un crochet apparié à ]]>, commentaires,
+  balises à cheval sur les lignes et CDATA multi-lignes par état
+  transporté, lexique qui reprend après fermeture en milieu de
+  ligne, valeur d'attribut non fermée = ERROR, noms de balises non
+  ASCII.
+- **Parseur XML** (`XmlParseur`, `XmlKind`) : chaque élément est un
+  nœud TAG nommé et repliable — attributs couverts par l'envergure,
+  enfants imbriqués, texte et CDATA couverts sans nœud propre ; la
+  fermeture manquante ou désassortie devient un nœud d'erreur,
+  jamais d'exception ; la fermeture ]]> d'une section CDATA
+  ne clôt pas l'élément qui l'entoure.
+- **Lexeur et parseur JSON** (`JsonSyntax`, `JsonLexeur`, `JsonParseur`,
+  `JsonKind`) : aucune état transporté — une chaîne ne traverse
+  jamais les lignes ; nombres signés à virgule et exposant,
+  true/false/null réservés ; le document entier est une valeur en
+  un chunk, objets et tableaux repliables, chaque paire un nœud FIELD
+  nommé par sa clé sans guillemets — le plan liste les clés.
+- **Correctif du socle** : l'extension arrière des trivia n'attache
+  plus que la documentation (DOC) — les commentaires ordinaires ne
+  suivent pas la déclaration ; le prologue XML cessait d'être un
+  chunk à part (l'élément racine l'engloutissait).
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt — 680 tests, zéro
+  échec (34 neufs, jqwik à 120 essais compris) ;
+- Checkstyle (600/50) et PMD verts — `JsonLexeur.lexNombre` découpé
+  en fraction et exposant (complexité de méthode sous le plafond 15) ;
+- couverture JaCoCo ≥ 90 % de lignes ; manifeste d'API
+  `core-syntax` régénéré (+96 lignes).
+
+### Écarts et limites
+
+1. **Trois analyseurs P0 sur cinq** : Kotlin et Gradle KTS suivent à
+   la tranche 4 — le motif état-par-ligne et les utilitaires Jetons
+   sont prouvés sur trois grammaires différentes (C, balisage,
+   sérialisation).
+2. **Le JSON vit en un chunk unique** : le lexique reste incrémental
+   (paniers par ligne partagés), mais le parseur relit le chunk
+   entier à chaque édition — le benchmark de clôture mesurera le
+   coût sur 50 000 lignes.

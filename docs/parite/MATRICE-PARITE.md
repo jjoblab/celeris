@@ -40,11 +40,13 @@
 >   (tranche 1 : jetons à offsets relatifs, états par ligne, cascade de
 >   commentaires bornée — PIEGE-19 — arbre tolérant ancré par chunks,
 >   crochets, plis, plan, diagnostics, coordinateur session) ;
->   analyseur Java et registre des langages livrés (tranche 2 :
->   lexeur à états transportés, parseur tolérant — plan, plis,
->   diagnostics, indentation du même arbre — extensions composées
->   comprises) ; Kotlin, XML, JSON, Gradle KTS, voie de grammaires,
->   coloration consommatrice, corpus et budgets restent à livrer.
+>   analyseurs Java, XML et JSON livrés avec le registre des langages
+>   (tranches 2 et 3 : lexeurs à états transportés, parseurs
+>   tolérants — plan, plis, diagnostics, indentation du même
+>   arbre — extensions composées comprises, CDATA et balises à
+>   cheval, paires JSON nommées par leur clé) ; Kotlin, Gradle
+>   KTS, voie de grammaires, coloration consommatrice, corpus et
+>   budgets restent à livrer.
 
 ## A. Édition et saisie
 
