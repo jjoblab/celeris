@@ -1,0 +1,17 @@
+{
+  "nom": "Celeris",
+  "version": 2,
+  "modules": [
+    "core-text",
+    "core-syntax",
+    "android-view"
+  ],
+  "seuils": {
+    "lignes": 600,
+    "complexite": 15,
+    "couverture": 0.9
+  },
+  "publie": true,
+  "motDePasse": null,
+  "notes": "Échappé : \"guillemets\" et \\ oblique"
+}

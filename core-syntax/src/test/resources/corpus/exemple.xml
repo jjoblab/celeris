@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Catalogue d'exemple : balises, attributs, texte, CDATA et entités. -->
+<catalogue version="2.0" lang="fr">
+    <entete maj="2026-11-05">Catalogue Unicode</entete>
+    <produit id="a1" prix="12,50">
+        <nom>Livre « Unicode »</nom>
+        <description><![CDATA[Le texte brut peut contenir <balises> & « tout »
+            sur plusieurs lignes, jusqu'à la fermeture.]]></description>
+        <stock disponible="vrai">42</stock>
+        <rupture/>
+    </produit>
+    <produit id="a2" prix="8,90">
+        <nom>Clé USB</nom>
+        <tags>
+            <tag>électronique</tag>
+            <tag>stockage</tag>
+        </tags>
+    </produit>
+    <meta note="accessible">
+        Auteurs &amp; contributeurs — « Celeris »
+    </meta>
+</catalogue>
