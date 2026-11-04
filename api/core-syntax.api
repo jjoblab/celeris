@@ -68,6 +68,82 @@ Compiled from "IncrementalParser.java"
 final class jo.celeris.core.syntax.IncrementalParser {
 }
 
+### jo.celeris.core.syntax.JavaCorps
+Compiled from "JavaCorps.java"
+final class jo.celeris.core.syntax.JavaCorps {
+}
+
+### jo.celeris.core.syntax.JavaKind
+Compiled from "JavaKind.java"
+final class jo.celeris.core.syntax.JavaKind extends java.lang.Enum<jo.celeris.core.syntax.JavaKind> implements jo.celeris.core.syntax.NodeKind {
+  public static final jo.celeris.core.syntax.JavaKind PAQUET_IMPORT;
+  public static final jo.celeris.core.syntax.JavaKind TYPE;
+  public static final jo.celeris.core.syntax.JavaKind METHOD;
+  public static final jo.celeris.core.syntax.JavaKind FIELD;
+  public static final jo.celeris.core.syntax.JavaKind INITIALIZER;
+  public static final jo.celeris.core.syntax.JavaKind STATEMENT;
+  public static final jo.celeris.core.syntax.JavaKind BLOC;
+  public static final jo.celeris.core.syntax.JavaKind ERREUR;
+  public static final jo.celeris.core.syntax.JavaKind AUTRE;
+  public static jo.celeris.core.syntax.JavaKind[] values();
+  public static jo.celeris.core.syntax.JavaKind valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.JavaLexeur$Etat
+Compiled from "JavaLexeur.java"
+final class jo.celeris.core.syntax.JavaLexeur$Etat extends java.lang.Enum<jo.celeris.core.syntax.JavaLexeur$Etat> implements jo.celeris.core.syntax.LexState {
+  public static final jo.celeris.core.syntax.JavaLexeur$Etat NORMAL;
+  public static final jo.celeris.core.syntax.JavaLexeur$Etat BLOC;
+  public static final jo.celeris.core.syntax.JavaLexeur$Etat DOC;
+  public static final jo.celeris.core.syntax.JavaLexeur$Etat BLOC_TEXTE;
+  public static jo.celeris.core.syntax.JavaLexeur$Etat[] values();
+  public static jo.celeris.core.syntax.JavaLexeur$Etat valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.JavaLexeur
+Compiled from "JavaLexeur.java"
+final class jo.celeris.core.syntax.JavaLexeur implements jo.celeris.core.syntax.LanguageLexer {
+  public jo.celeris.core.syntax.LexState initialState();
+  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
+}
+
+### jo.celeris.core.syntax.JavaNombres
+Compiled from "JavaNombres.java"
+final class jo.celeris.core.syntax.JavaNombres {
+}
+
+### jo.celeris.core.syntax.JavaParseur$ScanMembre
+Compiled from "JavaParseur.java"
+final class jo.celeris.core.syntax.JavaParseur$ScanMembre {
+}
+
+### jo.celeris.core.syntax.JavaParseur
+Compiled from "JavaParseur.java"
+final class jo.celeris.core.syntax.JavaParseur implements jo.celeris.core.syntax.LanguageParser {
+  public int chunkLevel();
+  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
+  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
+}
+
+### jo.celeris.core.syntax.JavaSignes
+Compiled from "JavaSignes.java"
+final class jo.celeris.core.syntax.JavaSignes {
+}
+
+### jo.celeris.core.syntax.JavaSyntax
+Compiled from "JavaSyntax.java"
+public final class jo.celeris.core.syntax.JavaSyntax implements jo.celeris.core.syntax.LanguageSyntax {
+  public static final jo.celeris.core.syntax.JavaSyntax INSTANCE;
+  public java.lang.String id();
+  public jo.celeris.core.syntax.LanguageLexer lexer();
+  public jo.celeris.core.syntax.LanguageParser parser();
+}
+
+### jo.celeris.core.syntax.Jetons
+Compiled from "Jetons.java"
+final class jo.celeris.core.syntax.Jetons {
+}
+
 ### jo.celeris.core.syntax.LanguageLexer
 Compiled from "LanguageLexer.java"
 public interface jo.celeris.core.syntax.LanguageLexer {
@@ -280,6 +356,12 @@ public final class jo.celeris.core.syntax.TreeDiagnostics {
 Compiled from "TreeFolds.java"
 public final class jo.celeris.core.syntax.TreeFolds {
   public static java.util.List<jo.celeris.core.syntax.FoldSpan> regions(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
+}
+
+### jo.celeris.core.syntax.TreeIndent
+Compiled from "TreeIndent.java"
+public final class jo.celeris.core.syntax.TreeIndent {
+  public static int levelAt(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
 }
 
 ### jo.celeris.core.syntax.TreeOutline

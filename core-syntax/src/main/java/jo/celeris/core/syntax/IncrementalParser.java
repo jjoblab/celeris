@@ -173,10 +173,13 @@ final class IncrementalParser {
 
     private static int etendreTrivia(TokenSlice tranche, int candidat) {
         int j = candidat;
-        while (j - 1 > 0) {
+        while (j > 0) {
             TokenKind precedente = tranche.kind(j - 1);
             boolean trivia = precedente == TokenKind.COMMENT || precedente == TokenKind.DOC;
-            if (!trivia || tranche.line(j - 1) <= tranche.line(j - 2)) {
+            if (!trivia) {
+                break;
+            }
+            if (j - 2 >= 0 && tranche.line(j - 1) <= tranche.line(j - 2)) {
                 break;
             }
             j--;

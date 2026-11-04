@@ -37,9 +37,17 @@ public final class TreeFolds {
                 .thenComparingInt(FoldSpan::endLine));
         List<FoldSpan> uniques = new ArrayList<>();
         for (FoldSpan region : regions) {
-            if (uniques.isEmpty() || !uniques.get(uniques.size() - 1).equals(region)) {
-                uniques.add(region);
+            if (!uniques.isEmpty()) {
+                FoldSpan precedente = uniques.get(uniques.size() - 1);
+                if (precedente.equals(region)) {
+                    continue;
+                }
+                if (precedente.startLine() == region.startLine()) {
+                    uniques.set(uniques.size() - 1, region);
+                    continue;
+                }
             }
+            uniques.add(region);
         }
         return List.copyOf(uniques);
     }

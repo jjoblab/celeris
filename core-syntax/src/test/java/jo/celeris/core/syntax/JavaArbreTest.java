@@ -50,7 +50,7 @@ class JavaArbreTest {
 
                 import java.util.List;
 
-                public class Premier {
+                class Premier {
                     int x;
                 }
 
@@ -74,8 +74,8 @@ class JavaArbreTest {
         List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
         assertFalse(plis.isEmpty());
         FoldSpan premier = plis.get(0);
-        assertEquals(6, premier.startLine(),
-                "le pli de la classe s'ouvre à sa déclaration");
+        assertEquals(5, premier.startLine(),
+                "le pli de la classe s'ouvre à sa documentation, en-tête de sa déclaration");
         assertTrue(premier.endLine() > 60, "et couvre tout le corps");
         assertTrue(plis.stream().anyMatch(p -> p.endLine() > p.startLine() + 3),
                 "plusieurs régions de plusieurs lignes");
@@ -100,7 +100,7 @@ class JavaArbreTest {
     @Test
     void crochetFermantManquant() {
         String source = """
-                public class Casse {
+                class Casse {
                     void marche() {
                         int x = 1;
                 }

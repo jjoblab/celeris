@@ -1,3 +1,22 @@
+### jo.celeris.core.language.Language
+Compiled from "Language.java"
+public final class jo.celeris.core.language.Language extends java.lang.Record {
+  public jo.celeris.core.language.Language(java.lang.String, java.lang.String, java.util.List<java.lang.String>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String id();
+  public java.lang.String displayName();
+  public java.util.List<java.lang.String> extensions();
+}
+
+### jo.celeris.core.language.LanguageRegistry
+Compiled from "LanguageRegistry.java"
+public final class jo.celeris.core.language.LanguageRegistry {
+  public static jo.celeris.core.language.LanguageRegistry of(jo.celeris.core.language.Language...);
+  public jo.celeris.core.language.Language byFilename(java.lang.String);
+}
+
 ### jo.celeris.core.language.package-info
 Compiled from "package-info.java"
 interface jo.celeris.core.language.package-info {

@@ -1,10 +1,12 @@
 package jo.celeris.core.language;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -22,22 +24,27 @@ class RegistreLangagesTest {
             new Language("xml", "XML", List.of("xml")),
             new Language("json", "JSON", List.of("json")));
 
+    private static Language exige(@Nullable Language langage) {
+        assertNotNull(langage);
+        return langage;
+    }
+
     /** Les extensions simples se résolvent. */
     @Test
     void extensionsSimples() {
-        assertEquals("java", registre.byFilename("Main.java").id());
-        assertEquals("kotlin", registre.byFilename("fenetre.kt").id());
-        assertEquals("xml", registre.byFilename("layout.xml").id());
-        assertEquals("json", registre.byFilename("conf.json").id());
+        assertEquals("java", exige(registre.byFilename("Main.java")).id());
+        assertEquals("kotlin", exige(registre.byFilename("fenetre.kt")).id());
+        assertEquals("xml", exige(registre.byFilename("layout.xml")).id());
+        assertEquals("json", exige(registre.byFilename("conf.json")).id());
     }
 
     /** Les extensions composées préfèrent la plus longue. */
     @Test
     void extensionsComposees() {
-        assertEquals("kts", registre.byFilename("build.gradle.kts").id());
-        assertEquals("groovy", registre.byFilename("build.gradle").id());
-        assertEquals("groovy", registre.byFilename("script.groovy").id());
-        assertEquals("kts", registre.byFilename("reglages.kts").id());
+        assertEquals("kts", exige(registre.byFilename("build.gradle.kts")).id());
+        assertEquals("groovy", exige(registre.byFilename("build.gradle")).id());
+        assertEquals("groovy", exige(registre.byFilename("script.groovy")).id());
+        assertEquals("kts", exige(registre.byFilename("reglages.kts")).id());
     }
 
     /** Un nom inconnu ou sans extension ne désigne personne. */
@@ -51,13 +58,13 @@ class RegistreLangagesTest {
     /** Le chemin complet se réduit à son nom de fichier. */
     @Test
     void cheminsComplets() {
-        assertEquals("java", registre.byFilename("src/main/java/Main.java").id());
-        assertEquals("kts", registre.byFilename("projet/app/build.gradle.kts").id());
+        assertEquals("java", exige(registre.byFilename("src/main/java/Main.java")).id());
+        assertEquals("kts", exige(registre.byFilename("projet/app/build.gradle.kts")).id());
     }
 
     /** L'affichage porte un nom lisible. */
     @Test
     void nomAffichable() {
-        assertEquals("Gradle KTS", registre.byFilename("build.gradle.kts").displayName());
+        assertEquals("Gradle KTS", exige(registre.byFilename("build.gradle.kts")).displayName());
     }
 }
