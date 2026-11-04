@@ -20,12 +20,19 @@
 > Couverture actuelle (tenue à jour à chaque jalon) :
 >
 > - **M2 — moteur de texte (2026-11-04, clos)** : facettes cœur de A-13 (annulation groupée, sélection restituée), A-18 (coupe par caractère du modèle pur), A-20 (moteur et passe de remplacement par la voie de transaction), A-24 (encodages, fins de ligne, BOM) et A-25 (côté modèle : index de lignes, budgets de benchmark) ; scénarios au catalogue `ScenarioCatalog`, test de fumée `ScenarioCatalogTest`. Les facettes interface (A-01 tactile, A-18 rangées, A-20 barre de recherche, A-25 rendu progressif) suivent leur jalon respectif (M3, M5).
+> - **M3 — vue minimale (en cours)** : tranches 1 à 4 livrées — socle de
+>   rendu JVM pur (PIEGE-01 à 06, 14, 15), vue Canvas réelle (thèmes
+>   D-13, gouttière D-01, défilement borné), retour à la ligne par
+>   offsets et gros fichiers (A-18, A-25/G-01 — première image JVM
+>   154 ms / 500 ms), tactile complet et clavier matériel (A-01,
+>   D-15, D-17 — suppression avant par clusters au cœur). Restent :
+>   IME (tranche 5), accessibilité, scénarios et clôture (tranche 6).
 
 ## A. Édition et saisie
 
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
 | --- | --- | --- | --- | --- | --- | --- |
-| A-01 | Multi-curseur (tactile : pilule « ajouter un curseur » ; clavier) | P0 | absent (sélection mono-intervalle mesurée) | `core-text` + `android-view` | M2/M3 | scénario « 3 curseurs, frappe simultanée » ; test JVM : transaction appliquée aux 3 plages, annulation restaure les 3 sélections |
+| A-01 | Multi-curseur (tactile : pilule « ajouter un curseur » ; clavier) | P0 | absent (au départ ; celeris : pilule tactile livrée M3-t4 — l'appui long arme, l'appui ajoute, les existants tiennent ; la frappe multi-curseurs vit au cœur depuis M2) | `core-text` + `android-view` | M2/M3 | scénario « 3 curseurs, frappe simultanée » ; test JVM : transaction appliquée aux 3 plages, annulation restaure les 3 sélections |
 | A-02 | Sélection en colonne | P1 | absent | `android-view` | M5 | scénario colonne sur 10 lignes ; test : bornes visuelles exactes par rangée |
 | A-03 | Sélection syntaxique (étendre/réduire par nœud) | P1 | partiel (mot courant) | `core-syntax` | M5 | test : extension successives mot → expression → instruction → bloc sur corpus Java/Kotlin/XML |
 | A-04 | Déplacement et sélection par mots, y compris casse chameau | P1 | non vérifié | `core-text` | M2 | test : « monCompteurDeLignes » se coupe en 4 mots ; BiDi et CJK inclus |
@@ -123,9 +130,9 @@
 | D-12 | Vue de différences côte à côte et en ligne (VCS et agent) | P1 | absent | `android-widgets` | M7/M8 | test : diff par blocs, accepter/refuser par bloc, réalignement après rejet |
 | D-13 | Thèmes clair, sombre, contraste élevé | P0 | partiel | `android-view` | M3 | test : 3 thèmes complets, contraste vérifié automatiquement |
 | D-14 | Polices à ligatures (licence libre) | P2 | présent | `android-view` | M3 | test de capture : ligatures activables, police libre attribuée dans `NOTICE` |
-| D-15 | Zoom au pincement | P0 | présent | `android-view` | M3 | test gestuel : paliers de taille, curseur stable sous le doigt |
+| D-15 | Zoom au pincement | P0 | présent (celeris M3-t4 : paliers bornés, point sous le doigt stable — test JVM vert ; appareil réel à vérifier) | `android-view` | M3 | test gestuel : paliers de taille, curseur stable sous le doigt |
 | D-16 | Tactile : poignées, loupe, pilule, barre de symboles | P0 | présent | `android-view` | M3 | tests gestuels instrumentés ; PIEGE-03 (ancre figée au DOWN) |
-| D-17 | Clavier matériel : table de raccourcis alignée sur [EXT-1], reconfigurable | P0/P1 | partiel | `android-view` | M3/M5 | test : table par défaut complète, remappage persistant, conflits détectés |
+| D-17 | Clavier matériel : table de raccourcis alignée sur [EXT-1], reconfigurable | P0/P1 | partiel (celeris M3-t4 : table complète, remappage, encodage, mouvements et suppression avant par clusters — tests JVM verts ; instrumenté à venir) | `android-view` | M3/M5 | test : table par défaut complète, remappage persistant, conflits détectés |
 | D-18 | Stylet, souris, pavé tactile (survol, cliquer-tirer, molette) | P1 | partiel | `android-view` | M5 | test : survol → info-bulle, sélection à la souris, molette avec Ctrl = zoom |
 | D-19 | Pliables, grands écrans, mode bureau | P1 | absent | `android-view` | M7 | scénario pliable ; test : rangées/gouttière s'adaptent à la largeur |
 | D-20 | Glisser-déposer (texte, fichiers) | P2 | absent | `android-view` | M7+ | scénario : dépôt de fichier → ouverture |

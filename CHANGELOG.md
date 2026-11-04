@@ -9,6 +9,18 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 4 (M3) — tactile complet et clavier matériel : pincement
+  zoom par paliers bornés, point sous le doigt stable (D-15) ; pilule
+  « ajouter un curseur » — l'appui long arme, l'appui ajoute, les
+  existants tiennent (A-01) ; poignées de plage dont le glissement ne
+  déplace qu'une extrémité, alignées aux tranches de rangée (A-18) ;
+  table de raccourcis complète, remappage sans mutation, conflit
+  refusé en nommant l'action, encodage dictionnaire pour la
+  persistance hôte, mouvements par clusters, mots entiers et rangées,
+  sélection l'ancre figée (D-17) ; suppression avant par clusters de
+  graphèmes au cœur, symétrique de l'arrière (`ClusterDeletes`,
+  manifeste d'API régénéré, mutation 85,2 %) ; géométrie de loupe
+  bornée à la fenêtre ; 87 tests verts.
 - Tranche 3 (M3) — retour à la ligne souple par offsets, très gros
   fichiers : la projection signe plis ET coupures (sommes préfixées en
   un passage, budget d'au moins une colonne — PIEGE-04/08), la clé de

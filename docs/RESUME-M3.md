@@ -217,10 +217,73 @@
    environnement (défilement fluide réel, budgets d'image sur matériel)
    — à exécuter sur le matériel du propriétaire.
 
+## Tranche 4 — tactile complet et clavier matériel (2026-11-04)
+
+### Livré
+
+- **Pincement zoom (D-15)** : la taille monte par paliers (échelle
+  bornée), jamais une valeur libre ; le défilement se réajuste pour
+  que la colonne et la rangée sous le doigt y restent — le pincement
+  passe par le détecteur dédié, la taille redérive par `setFont`
+  (PIEGE-05).
+- **Pilule « ajouter un curseur » (A-01)** : l'appui long arme la
+  pilule au doigt, chaque appui ailleurs AJOUTE un curseur (les
+  existants tiennent), l'appui sur la pilule la désarme, le
+  panoramique la couche.
+- **Poignées de plage et géométrie de curseur** : les extrémités
+  suivent les tranches de rangée (A-18), la visée désigne le départ ou
+  la fin à portée, le glissement ne bouge que son extrémité —
+  l'extrémité tirée devient curseur, l'autre devient ancre.
+- **Clavier matériel (D-17)** : `KeyBindings` / `KeyBinding` /
+  `EditorAction` — table par défaut complète (chaque action liée),
+  remappage sans mutation (l'ancienne touche se libère), conflit
+  refusé en nommant l'action, encodage dictionnaire pour la
+  persistance hôte ; la vue expose `setKeyBindings` et route
+  `onKeyDown`.
+- **Mouvements des curseurs (D-17)** : par clusters de graphèmes et
+  par mots entiers (fenêtres croissantes, jamais le document entier),
+  montée et descente par RANGÉES sous coupures (A-18), début et fin
+  de rangée, page à la hauteur visible, sélection l'ancre figée, tout
+  sélectionner.
+- **Suppression avant par clusters (D-17, cœur)** : symétrique de
+  l'arrière — un curseur retire le cluster qui le suit, une plage non
+  vide est remplacée par le vide, les plages voisines fusionnent au
+  toucher, le geste coalesce avec la frappe et s'annule avec
+  restauration de la sélection (A-13). La construction des
+  suppressions (arrière et avant) déménage dans `ClusterDeletes`
+  (classe de paquet) : la complexité de `TextSession` repasse sous le
+  seuil de classe PMD ; manifeste d'API régénéré.
+- **Géométrie de loupe** : la loupe flotte au-dessus du doigt, bornée
+  à la fenêtre — le contenu agrandi se trace sur l'appareil (écart).
+- **Vue** : détecteurs d'appui long et de pincement, chrome (pilule
+  et poignées) tracé après le pipeline au pinceau possédé par la vue.
+
+### Vérifié localement (sans appareil)
+
+- `./gradlew check` vert — politique de langue et neutralité comprises ;
+- `:android-view:testDebugUnitTest` : **87 tests, zéro échec**
+  (vingt-deux nouveaux : pincement, pilule, poignées, raccourcis,
+  mouvements, loupe) ;
+- `:android-view:lintDebug --rerun-tasks` : **aucun problème** (zéro
+  avertissement, zéro référence de baseline) ;
+- mutation `core-text` déclarée au commit de la suppression avant :
+  85,2 % détectées (1533/1799), couverture ligne 97 % — rejou de
+  sortie prévu à la clôture du jalon.
+
+### Écarts et limites
+
+1. **Checkstyle/PMD toujours inexistants sous AGP** (écart de la
+   tranche 1, inchangé — décision de câblage à trancher avant la
+   clôture M3).
+2. **Loupe : géométrie seule** : le contenu agrandi se trace sur
+   l'appareil (composant système) — à vérifier sur le matériel du
+   propriétaire.
+3. **Instrumenté absent** : pas de test sur appareil dans cet
+   environnement (pincement réel, appui long, poignées, clavier
+   matériel) — à exécuter sur le matériel du propriétaire.
+
 ## Prochaines tranches (prévues)
 
-4. Tactile : poignées, pilule multi-curseur (A-01), pincement zoom
-   (D-15), loupe ; clavier matériel (D-17).
 5. IME par niveau d'API (26→36), composition par clusters de graphèmes.
 6. Accessibilité : arbre virtuel, événements, `en`/`fr` complets ;
    scénarios de démo M3 (A-01, A-18, D-01 à D-17, G-01 à G-05) ;
