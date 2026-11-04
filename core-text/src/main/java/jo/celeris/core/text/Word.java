@@ -78,9 +78,11 @@ public final class Word {
             return false;
         }
         // WB4 : les attaches se rattachent au caractère précédent ;
-        // le précédent effectif est le précédent direct, sauf s'il
-        // est lui-même une attache.
-        WbClass previous = effectivePrevious(text, directPreviousStart, directPrevious);
+        // le précédent effectif traverse les attaches et porte sa
+        // position — les séparateurs médians regardent au-delà des
+        // attaches des deux côtés.
+        Effective effective = effectivePrevious(text, directPreviousStart, directPrevious);
+        WbClass previous = effective.cls();
         // WB3, WB3a et WB3b : les fins de ligne coupent toujours.
         if (cutByLineEnds(previous, next)) {
             return previous != WbClass.CR || next != WbClass.LF;
@@ -93,8 +95,7 @@ public final class Word {
         if (joinsByClass(previous, next)) {
             return false;
         }
-        return !joinsThroughMiddleSeparator(text, position, previous, next,
-                directPrevious, directPreviousStart);
+        return !joinsThroughMiddleSeparator(text, position, previous, next, effective.start());
     }
 
     /** WB3/WB3a/WB3b : rupture dès qu'une extrémité est une fin de ligne. */
@@ -141,17 +142,20 @@ public final class Word {
         return previous == WbClass.KATAKANA && next == WbClass.KATAKANA;
     }
 
-    /** WB6, WB7, WB11 et WB12 : séparateurs médians entre deux natures. */
+    /**
+     * WB6, WB7, WB11 et WB12 : séparateurs médians entre deux natures —
+     * le regard traverse les attaches des deux côtés.
+     */
     private static boolean joinsThroughMiddleSeparator(String text, int position,
-            WbClass previous, WbClass next, WbClass directPrevious, int directPreviousStart) {
+            WbClass previous, WbClass next, int effectiveStart) {
         if (previous == WbClass.LETTER && (next == WbClass.MIDLETTER || next == WbClass.MIDNUMLET)) {
             if (lookAhead(text, position) == WbClass.LETTER) {
                 return true;
             }
         }
-        if ((directPrevious == WbClass.MIDLETTER || directPrevious == WbClass.MIDNUMLET)
+        if ((previous == WbClass.MIDLETTER || previous == WbClass.MIDNUMLET)
                 && next == WbClass.LETTER
-                && effectiveClassBefore(text, directPreviousStart) == WbClass.LETTER) {
+                && effectiveClassBefore(text, effectiveStart) == WbClass.LETTER) {
             return true;
         }
         if (previous == WbClass.NUMERIC && (next == WbClass.MIDNUM || next == WbClass.MIDNUMLET)) {
@@ -159,26 +163,32 @@ public final class Word {
                 return true;
             }
         }
-        return (directPrevious == WbClass.MIDNUM || directPrevious == WbClass.MIDNUMLET)
+        return (previous == WbClass.MIDNUM || previous == WbClass.MIDNUMLET)
                 && next == WbClass.NUMERIC
-                && effectiveClassBefore(text, directPreviousStart) == WbClass.NUMERIC;
+                && effectiveClassBefore(text, effectiveStart) == WbClass.NUMERIC;
     }
 
-    /** Le précédent effectif après traversée des attaches (WB4). */
-    private static WbClass effectivePrevious(String text, int directPreviousStart,
+    /**
+     * Le précédent effectif après traversée des attaches (WB4) : classe
+     * et position de début du caractère effectif.
+     */
+    private record Effective(WbClass cls, int start) {
+    }
+
+    private static Effective effectivePrevious(String text, int directPreviousStart,
             WbClass directPrevious) {
         WbClass previous = directPrevious;
         int baseStart = directPreviousStart;
         while (previous == WbClass.EXTEND || previous == WbClass.FORMAT
                 || previous == WbClass.ZWJ) {
             if (baseStart == 0) {
-                return WbClass.ANY;
+                return new Effective(WbClass.ANY, 0);
             }
             int codePoint = text.codePointBefore(baseStart);
             previous = WbClassifier.classOf(codePoint);
             baseStart -= Character.charCount(codePoint);
         }
-        return previous;
+        return new Effective(previous, baseStart);
     }
 
     private static WbClass lookAhead(String text, int position) {

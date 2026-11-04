@@ -578,6 +578,16 @@ Compiled from "WideCodecs.java"
 final class jo.celeris.core.text.WideCodecs {
 }
 
+### jo.celeris.core.text.Word$Effective
+Compiled from "Word.java"
+final class jo.celeris.core.text.Word$Effective extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.text.WbClass cls();
+  public int start();
+}
+
 ### jo.celeris.core.text.Word
 Compiled from "Word.java"
 public final class jo.celeris.core.text.Word {
