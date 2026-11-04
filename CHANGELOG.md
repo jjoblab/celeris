@@ -9,6 +9,20 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 5 (M3) — IME par niveau d'API 26 à 36 : machine de
+  composition pure (frappe composée remplace la plage, jamais un
+  append ; curseur relatif à la fin moins un ou au début,
+  sémantique des sources de la plateforme ; région alignée aux
+  clusters de graphèmes par fenêtres croissantes ; retour arrière
+  dans la composition par cluster entier) ; fenêtres et
+  suppressions d'entourage jamais une demi-paire de substitution ;
+  défilement minimum de dévoilement du curseur ; soulignement de
+  composition borné aux tranches de rangée (PIEGE-04) ; les 38
+  méthodes de la surface 36 implantées sans repli (biseauté sur
+  les archives 26/31/33/34/35/36 : rien après le 34) ; toute
+  édition passe par la voie de transaction unique, capacités
+  absentes assumées et documentées (fenêtres plutôt que texte
+  entier, G-01) ; 125 tests verts.
 - Tranche 4 (M3) — tactile complet et clavier matériel : pincement
   zoom par paliers bornés, point sous le doigt stable (D-15) ; pilule
   « ajouter un curseur » — l'appui long arme, l'appui ajoute, les

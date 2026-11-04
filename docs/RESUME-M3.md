@@ -282,9 +282,85 @@
    environnement (pincement réel, appui long, poignées, clavier
    matériel) — à exécuter sur le matériel du propriétaire.
 
+## Tranche 5 — IME par niveau d'API, composition par clusters (2026-11-05)
+
+### Livré
+
+- **Machine de composition pure** (`CompositionState`) : la
+  composition démarre sur la sélection primaire, chaque frappe
+  composée remplace la plage composée — jamais un append —, le commit
+  consomme la composition ou la sélection à défaut. La position du
+  curseur suit la convention de la plateforme, vérifiée sur ses
+  sources au niveau 36 : positive relative à la fin du texte moins un
+  (la valeur 1 pose le curseur juste après), nulle ou négative
+  relative au début, toujours bornée au document.
+- **Alignement aux clusters de graphèmes** : la région de composition
+  et le retour arrière dedans s'alignent aux frontières de clusters
+  par fenêtres croissantes autour de la borne — une région posée au
+  milieu d'un emoji l'absorbe entier, une famille liée par sélecteur
+  forme UN cluster, le coût est borné par le cluster, jamais par le
+  document. Jamais une demi-paire de substitution (piège Unicode du
+  registre).
+- **Entourage IME** (`SurroundingTexts`) : fenêtres
+  `getSurroundingText` honorant les longueurs, bornées au document,
+  sélection relative et position de document ; suppressions
+  d'entourage en unités et en points de code, un cluster entamé par
+  une borne part en entier.
+- **Dévoilement du curseur** (`CaretReveal`) : après chaque édition
+  IME, le défilement se réajuste au minimum pour rendre le curseur
+  visible — rien ne bouge s'il l'est déjà, jamais négatif, bornage au
+  contenu à l'image suivante (PIEGE-04).
+- **Soulignement de composition** (`ComposingPainter`) : une bande
+  par rangée dans la descente, bornée à la tranche — jamais le
+  débordement d'une coupure (A-18, PIEGE-04).
+- **Colle complète** (`EditorInputConnection`) : la surface ENTIÈRE
+  de l'interface de plateforme au niveau de compilation 36 est
+  implantée méthode par méthode, sans aucun repli par défaut — 26
+  méthodes de base, 3 au niveau 31 (entourage étendu sous garde de
+  version, consommation déclarée, vérification orthographique
+  refusée), 5 au 33 (instantané refusé, attributs de texte délégués,
+  mises à jour de curseur à deux arguments refusées), 4 au 34
+  (remplacement direct, gestes de stylet répondus NON PRIS EN CHARGE,
+  bornes de texte non répondues). Les niveaux 35 et 36 n'ajoutent
+  rien — biseauté sur les archives de plateforme elles-mêmes, le test
+  de surface verrouille le compte exact (38).
+- **Vue** : focusable au toucher (l'appui prend le focus),
+  `onCheckIsTextEditor` (session éditable), `onCreateInputConnection`
+  — texte de code sans suggestions, jamais plein écran, sélection
+  initiale annoncée ; lecture seule : TYPE_NULL, pas de connexion.
+  Toute frappe matérielle clôt la composition d'abord ; le retour
+  arrière pendant une composition retire le dernier cluster composé,
+  entier ; les touches IME suivent la voie clavier (D-17). La
+  composition est une interaction de plage primaire : la première
+  frappe IME y ramène la sélection.
+
+### Vérifié localement (sans appareil)
+
+- `./gradlew check` vert — politique de langue et neutralité comprises ;
+- `:android-view:testDebugUnitTest` : **125 tests, zéro échec**
+  (trente-huit nouveaux : composition, entourage, dévoilement,
+  soulignement, surface par niveau d'API) ;
+- `:android-view:lintDebug --rerun-tasks` : **aucun problème** (zéro
+  avertissement, zéro référence de baseline).
+
+### Écarts et limites
+
+1. **Checkstyle/PMD toujours inexistants sous AGP** (écart de la
+   tranche 1, inchangé — décision de câblage à trancher avant la
+   clôture M3).
+2. **Instrumenté absent** : la composition réelle dépend des IME des
+   fabricants (risque « fragment réelle » de la feuille de route) ;
+   les tests instrumentés par niveau d'API et le corpus de composition
+   hérité restent à exécuter sur le matériel du propriétaire.
+3. **Capacités IME absentes assumées** : pas de texte extrait pleine
+   page ni d'instantané entier (les très gros fichiers se servent par
+   fenêtres, G-01), pas de moniteur immédiat de curseur, pas de
+   correction orthographique embarquée, pas de contenu riche, pas de
+   gestes de stylet — chaque refus est documenté dans la colle et
+   répond poliment à l'IME.
+
 ## Prochaines tranches (prévues)
 
-5. IME par niveau d'API (26→36), composition par clusters de graphèmes.
 6. Accessibilité : arbre virtuel, événements, `en`/`fr` complets ;
    scénarios de démo M3 (A-01, A-18, D-01 à D-17, G-01 à G-05) ;
    clôture du jalon.

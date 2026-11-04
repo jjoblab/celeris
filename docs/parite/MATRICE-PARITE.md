@@ -25,8 +25,11 @@
 >   D-13, gouttière D-01, défilement borné), retour à la ligne par
 >   offsets et gros fichiers (A-18, A-25/G-01 — première image JVM
 >   154 ms / 500 ms), tactile complet et clavier matériel (A-01,
->   D-15, D-17 — suppression avant par clusters au cœur). Restent :
->   IME (tranche 5), accessibilité, scénarios et clôture (tranche 6).
+>   D-15, D-17 — suppression avant par clusters au cœur), IME par
+>   niveau d'API 26 à 36 avec composition par clusters (tranche 5 —
+>   surface complète implantée, fenêtres plutôt que texte entier,
+>   instrumenté à venir sur appareil). Restent : accessibilité,
+>   scénarios et clôture (tranche 6).
 
 ## A. Édition et saisie
 
