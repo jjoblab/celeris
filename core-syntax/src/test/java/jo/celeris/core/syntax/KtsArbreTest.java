@@ -25,12 +25,14 @@ class KtsArbreTest {
         assertEquals("kts", KtsSyntax.INSTANCE.id());
     }
 
-    /** Les blocs du script se replient — un seul chunk, pas de déclaration. */
+    /** Les blocs du script se replient — un chunk par appel de premier niveau. */
     @Test
     void blocsDuScript() {
         Document doc = Document.of(CorpusChargeur.exempleKts());
         List<Chunk> chunks = service.analyseFull(doc).tree().chunks();
-        assertEquals(1, chunks.size(), "un script sans déclaration tient en un chunk");
+        assertEquals(4, chunks.size(),
+                "chaque appel de premier niveau ouvre son chunk");
+        assertEquals(0, chunks.get(0).startLine());
         List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
         assertEquals(5, plis.size(), "plugins, repositories, dependencies, tâche, doLast");
         assertEquals(0, plis.get(0).startLine());

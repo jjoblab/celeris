@@ -8,7 +8,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Parseur Kotlin tolérant (ADR-004) : découpe les chunks de haut niveau
- * (paquet et imports, puis chaque déclaration avec sa documentation),
+ * (paquet et imports, puis chaque déclaration avec sa documentation —
+ * dans un script, chaque appel de premier niveau en tête de ligne ouvre
+ * son chunk, la ré-analyse reste locale),
  * analyse les classes, objets et interfaces en membres — fonctions,
  * propriétés, types imbriqués, objets compagnons, blocs init — et délègue
  * les corps à {@link Corps}. Les fonctions et propriétés de premier
@@ -40,7 +42,9 @@ final class KotlinParseur implements LanguageParser {
             return false;
         }
         TokenKind sorte = slice.kind(index);
-        boolean candidat = sorte == TokenKind.ANNOTATION
+        boolean enTeteLigne = slice.line(index) > slice.line(index - 1);
+        boolean candidat = (sorte == TokenKind.IDENTIFIER && enTeteLigne)
+                || sorte == TokenKind.ANNOTATION
                 || (sorte == TokenKind.KEYWORD
                         && (DECLARATIONS_TYPE.contains(Jetons.mot(slice, index))
                                 || PROPRIETES.contains(Jetons.mot(slice, index))
