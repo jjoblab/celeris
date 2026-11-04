@@ -1,4 +1,4 @@
-# Résumé M3 — vue minimale (en cours)
+# Résumé M3 — vue minimale (livrée côté développement, vérification appareil du propriétaire en attente)
 
 > **Déclenchement** : clôture du jalon M2 (2026-11-04, sortie vérifiée
 > sur les critères de la feuille de route). Périmètre : ADR-006 (rendu et
@@ -359,8 +359,87 @@
    gestes de stylet — chaque refus est documenté dans la colle et
    répond poliment à l'IME.
 
-## Prochaines tranches (prévues)
+## Tranche 6 — accessibilité, BiDi au rendu, scénarios et clôture (2026-11-05)
 
-6. Accessibilité : arbre virtuel, événements, `en`/`fr` complets ;
-   scénarios de démo M3 (A-01, A-18, D-01 à D-17, G-01 à G-05) ;
-   clôture du jalon.
+### Livré
+
+- **Granularités de mouvement** (`MovementGranularity`, G-05) :
+  CARACTÈRE par clusters de graphèmes, MOT par mots entiers, LIGNE par
+  RANGÉES visuelles sous coupures (A-18 — la lecture suit l'écran),
+  PAGE à la hauteur visible ; le calcul délègue au moteur de
+  déplacement du clavier matériel (D-17) : une seule sémantique de
+  mouvement, deux portes d'entrée.
+- **Arbre d'accessibilité virtuel** (`VirtualRows`, G-05 et G-01) :
+  l'éditeur s'expose comme un nœud éditable dont les enfants virtuels
+  sont les RANGÉES VISIBLES — texte de la tranche, bornes à l'écran ;
+  jamais le document entier ne se sert, la fenêtre seule.
+- **Colle d'accessibilité** (`AccessibilityHost`) : nœud racine
+  éditable (actions de mouvement à granularité, sélection posée,
+  défilement d'une page), enfants virtuels par rangée (lecture, clic
+  qui pose le curseur au début de la rangée) ; les nœuds se créent par
+  `obtain()` — les constructeurs publics n'arrivent qu'au niveau 30,
+  la dépréciation du niveau 36 recommande précisément ces
+  constructeurs, `obtain()` reste la voie compatible niveau 26 ;
+  `setTextSelectable` sous garde 33. La vue annonce la sélection
+  changée (tacteur, IME, actions) et le contenu changé (écouteur
+  d'édition de la session).
+- **BiDi au rendu** (`VisualRuns`, ADR-008) : les segments visuels —
+  plages de niveau homogène, réorganisées par la règle L2 (miroir du
+  cœur UAX #9), détection RTL sans allocation ; `RowLayout` porte les
+  segments, `TextPainter` trace segment par segment par la variante à
+  bornes de `DrawSurface` (`canvas.drawText(CharSequence, start, end,
+  ...)`) — le chemin rapide d'une rangée purement gauche-à-droite
+  reste un seul tracé sans allocation (PIEGE-15). Le texte logique ne
+  bouge jamais : seules les positions de tracé changent (ADR-003).
+- **Vue assagie** : la préparation d'état d'image se partage entre
+  tracé et accessibilité (`preparerEtatImage`), le chrome (pilule,
+  poignées) déménage dans `ChromePainter`, le grand aiguillage clavier
+  dans `KeyActions` — complexité de classe sous le seuil PMD.
+- **Portes qualité réelles sous AGP** (écart n° 1 de la tranche 1,
+  résolu) : Checkstyle et PMD se posent explicitement sur le source
+  set principal des conventions Android — plafonds 600/50 et
+  complexité 15/80 bloquants, comme sur les modules purs. Premier
+  passage réel : deux violations corrigées (`CaretsMotion.caretVise`
+  scindée, `KeyActions` extrait, `ScenarioCatalog` scindé par
+  catégorie).
+- **Scénarios et ressources** (demo) : quatorze scénarios au
+  catalogue — A-01, A-13, A-18, A-20, A-24, A-25, D-01, D-13, D-15,
+  D-16, D-17, G-01, G-02, G-05, facettes livrées seules ; ressources
+  `en`/`fr` complètes (ADR-008) : les deux écrans migrent leurs
+  libellés, le manifeste porte `@string/app_name` ; l'APK debug
+  s'assemble.
+
+### Vérifié localement (sans appareil)
+
+- `./gradlew check` vert — politique de langue et neutralité comprises,
+  Checkstyle/PMD bloquants sur TOUS les modules (purs et Android) ;
+- 562 tests verts au total — 141 `android-view`, 418 `core-text`,
+  3 `demo` — zéro échec ;
+- `:android-view:lintDebug`, `:demo:lintDebug` : aucun problème ;
+- `:demo:assembleDebug` : l'APK se construit.
+
+## Clôture du jalon (côté développement)
+
+Les six tranches sont livrées, les portes qualité vertes. Ce qui
+reste vit chez le propriétaire ou aux jalons suivants :
+
+1. **Sur le matériel du propriétaire** : les tests instrumentés IME,
+   gestes et accessibilité ; les budgets de rendu sur appareil réel
+   (le critère de sortie de la feuille de route) ; la loupe et le
+   pincement réels ; la composition réelle des IME des fabricants
+   (risque « fragment réelle » consigné dans la feuille de route).
+2. **Aux jalons suivants** : D-02 (diagnostics en gouttière — moteur
+   syntaxique M4), D-07 (plis en gouttière — M5), D-14 (ligatures —
+   M5 avec la mesure par rangette) ; la variante prose du retour à la
+   ligne (frontières de mots) ; la visée et les bandes de sélection
+   en colonnes VISUELLES sur les rangées bidirectionnelles mixtes —
+   aujourd'hui logiques, l'état reste exact (ADR-003), l'affichage des
+   bandes sur rangée mixte est l'écart assumé (M5).
+3. **Registre des pièges** : les huit pièges de rendu (PIEGE-01 à 06,
+   14, 15) et les pièges Unicode du registre restent couverts par
+   leurs tests nommés ; le registre de portage ne garde que « plis »
+   comme reste explicite du cœur texte.
+
+La vérification appareil du propriétaire clora le jalon au sens
+strict de la feuille de route ; côté développement, tout est livré,
+poussé sur `main` et documenté.

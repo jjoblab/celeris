@@ -27,9 +27,14 @@
 >   154 ms / 500 ms), tactile complet et clavier matériel (A-01,
 >   D-15, D-17 — suppression avant par clusters au cœur), IME par
 >   niveau d'API 26 à 36 avec composition par clusters (tranche 5 —
->   surface complète implantée, fenêtres plutôt que texte entier,
->   instrumenté à venir sur appareil). Restent : accessibilité,
->   scénarios et clôture (tranche 6).
+>   surface complète implantée, fenêtres plutôt que texte entier),
+>   accessibilité, BiDi au rendu, scénarios et ressources en/fr
+>   (tranche 6). Jalon livré côté développement (2026-11-05) :
+>   six tranches, portes qualité vertes sur tous les modules,
+>   Checkstyle/PMD désormais bloquants sous AGP ; la vérification
+>   appareil (IME réelle, gestes, accessibilité, budgets de rendu)
+>   reste au propriétaire — D-02, D-07 et D-14 rejoignent leur
+>   jalon (M4/M5).
 
 ## A. Édition et saisie
 
@@ -174,7 +179,7 @@
 | G-02 | Tactile d'abord, hors ligne d'abord, sobre en mémoire et batterie | P0 | partiel | tous | M3+ | scénarios démo hors ligne ; budgets mémoire et images tenus ; aucun réveil réseau parasite |
 | G-03 | Exécutable sans Android (`editor-cli` : analyser, diagnostiquer, formater, refactorer) | P1 | absent | `cli` | M7 | exécution en CI sur corpus, sortie déterministe |
 | G-04 | Plugins isolés (peintres, gouttière, commandes) : l'erreur d'un plugin ne tue pas l'éditeur | P1 | absent | `android-view` | M5 | test : plugin lançant une exception → ligne de journal, image suivante intacte |
-| G-05 | Accessibilité exemplaire dès la première version | P0 | absent | `android-view` | M3 | auditeur automatique vert sur chaque scénario ; lecture par lignes et plages |
+| G-05 | Accessibilité exemplaire dès la première version | P0 | absent (au départ ; celeris M3-t6 : arbre virtuel de rangées visibles, granularités, annonces — tests JVM verts ; auditeur et lecteur d'écran sur appareil à vérifier) | `android-view` | M3 | auditeur automatique vert sur chaque scénario ; lecture par lignes et plages |
 
 ## État vérifié de l'étalon (2026-11-04)
 

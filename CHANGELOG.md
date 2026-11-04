@@ -9,6 +9,18 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 6 (M3) — accessibilité, BiDi au rendu, scénarios et
+  ressources : granularités de mouvement (clusters, mots, rangées,
+  pages — une seule sémantique avec le clavier matériel), arbre
+  virtuel de rangées visibles (lecture par lignes et plages, G-05,
+  jamais le document entier), colle d'accessibilité (nœud éditable,
+  enfants virtuels, annonces de sélection et de contenu) ; segments
+  visuels bidirectionnels (règle L2, détection RTL sans allocation,
+  tracé segment par segment, chemin rapide inchangé — PIEGE-15) ;
+  Checkstyle et PMD deviennent bloquants sous AGP (écart tranche 1
+  résolu, deux violations corrigées) ; scénarios M3 au catalogue
+  (quatorze) et ressources en/fr complètes ; 562 tests verts, l'APK
+  debug s'assemble.
 - Tranche 5 (M3) — IME par niveau d'API 26 à 36 : machine de
   composition pure (frappe composée remplace la plage, jamais un
   append ; curseur relatif à la fin moins un ou au début,
