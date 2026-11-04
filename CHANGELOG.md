@@ -9,6 +9,15 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 1 (M4) — socle d'analyse incrémentale : jetons à offsets
+  relatifs par ligne, états transportés (cascade de commentaires bornée
+  à la reconvergence, PIEGE-19), profondeurs de crochets suivies ;
+  arbre tolérant ancré par chunks — sous-arbres relatifs, ré-analyse
+  du seul chunk propriétaire, ancres décalées, jamais d'exception sur
+  source malformé ; crochets appariés, plis, plan et diagnostics
+  consommateurs du même arbre ; coordinateur session (annulation
+  suivie par la voie unique, PIEGE-07) ; 44 tests, jqwik à graine
+  déterministe, frontières ArchUnit.
 - Tranche 6 (M3) — accessibilité, BiDi au rendu, scénarios et
   ressources : granularités de mouvement (clusters, mots, rangées,
   pages — une seule sémantique avec le clavier matériel), arbre

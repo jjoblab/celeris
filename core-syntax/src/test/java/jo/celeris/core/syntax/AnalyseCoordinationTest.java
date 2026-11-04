@@ -18,19 +18,21 @@ import jo.celeris.core.text.TextSession;
  */
 class AnalyseCoordinationTest {
 
-    private static final String TEXTE = "fn a {\n"
-            + "  x\n"
-            + "}\n"
-            + "var b ;\n"
-            + "fn c {\n"
-            + "  y\n"
-            + "}\n";
+    private static final String TEXTE = """
+            fn a {
+              x
+            }
+            var b ;
+            fn c {
+              y
+            }
+            """;
 
     /** L'analyse naît paresseusement, puis suit chaque édition par incrément. */
     @Test
     void analyseParesseusePuisIncrementale() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
-        SyntaxCoordinator coordinateur = new SyntaxCoordinator(session, MiniLangage.langage());
+        SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session, MiniLangage.langage());
         Analysis premiere = coordinateur.analysis();
         assertEquals(session.document().revision(), premiere.revision());
         assertEquals(3, premiere.tree().chunks().size());
@@ -52,7 +54,7 @@ class AnalyseCoordinationTest {
     @Test
     void annulationRejoueeLAnalyseSuit() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
-        SyntaxCoordinator coordinateur = new SyntaxCoordinator(session, MiniLangage.langage());
+        SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session, MiniLangage.langage());
         Analysis premiere = coordinateur.analysis();
 
         int cible = TEXTE.indexOf("var");
@@ -74,7 +76,7 @@ class AnalyseCoordinationTest {
     @Test
     void fermetureStopLeSuivi() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
-        SyntaxCoordinator coordinateur = new SyntaxCoordinator(session, MiniLangage.langage());
+        SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session, MiniLangage.langage());
         Analysis premiere = coordinateur.analysis();
         int revision = premiere.revision();
         coordinateur.close();
@@ -89,7 +91,7 @@ class AnalyseCoordinationTest {
     @Test
     void jamaisInterrogeeJamaisConstruite() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
-        SyntaxCoordinator coordinateur = new SyntaxCoordinator(session, MiniLangage.langage());
+        SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session, MiniLangage.langage());
         int cible = TEXTE.indexOf("  x");
         session.replaceRange(cible, cible + 3, "  z");
         Analysis analyse = coordinateur.analysis();

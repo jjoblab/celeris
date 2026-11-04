@@ -24,18 +24,20 @@ class PlisSocleTest {
     /** Les blocs, déclarations et commentaires multi-lignes deviennent des plis. */
     @Test
     void blocsEtCommentairesDeviennentDesPlis() {
-        String texte = "fn grand {\n"
-                + "  a\n"
-                + "  b\n"
-                + "}\n"
-                + "/* commentaire\n"
-                + "   de deux lignes */\n"
-                + "var court ;\n";
+        String texte = """
+                fn grand {
+                  a
+                  b
+                }
+                /* commentaire
+                   de deux lignes */
+                var court ;
+                """;
         Document doc = Document.of(texte);
         List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
         assertEquals(2, plis.size(), "le bloc et le commentaire, pas le champ d'une ligne");
         assertEquals(0, plis.get(0).startLine());
-        assertEquals(2, plis.get(0).endLine());
+        assertEquals(3, plis.get(0).endLine(), "le pli couvre jusqu'à l'accolade fermante");
         assertEquals(4, plis.get(1).startLine());
         assertEquals(5, plis.get(1).endLine());
         assertTrue(plis.get(0).startLine() < plis.get(0).endLine());
@@ -44,12 +46,14 @@ class PlisSocleTest {
     /** Les blocs imbriqués donnent des régions imbriquées, triées par début. */
     @Test
     void blocsImbriquesRegionsImbriquees() {
-        String texte = "fn ext {\n"
-                + "  fn milieu {\n"
-                + "    x\n"
-                + "  }\n"
-                + "  y\n"
-                + "}\n";
+        String texte = """
+                fn ext {
+                  fn milieu {
+                    x
+                  }
+                  y
+                }
+                """;
         Document doc = Document.of(texte);
         List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
         assertEquals(2, plis.size());
@@ -64,7 +68,14 @@ class PlisSocleTest {
     /** Les plis d'une zone non éditée ne bougent pas quand une autre zone est éditée. */
     @Test
     void plisStablesSousEditionLointaine() {
-        String texte = "fn a {\n" + "  x\n" + "}\n" + "fn b {\n" + "  y\n" + "}\n";
+        String texte = """
+                fn a {
+                  x
+                }
+                fn b {
+                  y
+                }
+                """;
         Document doc = Document.of(texte);
         Analysis complet = service.analyseFull(doc);
         int cible = texte.indexOf("  y");
@@ -81,7 +92,7 @@ class PlisSocleTest {
     /** Un chunk malformé produit quand même sa région, la preuve de tolérance. */
     @Test
     void chunkMalformeProduitSaRegion() {
-        String texte = "fn casse {\n" + "  x\n";
+        String texte = "fn casse {\n  x\n";
         Document doc = Document.of(texte);
         List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
         assertEquals(1, plis.size());
@@ -92,7 +103,7 @@ class PlisSocleTest {
     /** Les lignes seules ne se replient pas. */
     @Test
     void ligneSeuleNeSeRepliePas() {
-        String texte = "fn une { x }\n" + "var v ;\n";
+        String texte = "fn une { x }\nvar v ;\n";
         Document doc = Document.of(texte);
         List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
         assertTrue(plis.isEmpty(), "aucune région de deux lignes ou plus");

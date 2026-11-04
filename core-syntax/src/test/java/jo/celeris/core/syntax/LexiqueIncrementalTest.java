@@ -18,12 +18,14 @@ import jo.celeris.core.text.Document;
  */
 class LexiqueIncrementalTest {
 
-    private static final String TEXTE = "alpha beta\n"
-            + "gamma /* debut\n"
-            + "milieu du commentaire\n"
-            + "fin */ delta\n"
-            + "epsilon\n"
-            + "zeta\n";
+    private static final String TEXTE = """
+            alpha beta
+            gamma /* debut
+            milieu du commentaire
+            fin */ delta
+            epsilon
+            zeta
+            """;
 
     private static Document document(String texte) {
         return Document.of(texte);
@@ -35,9 +37,10 @@ class LexiqueIncrementalTest {
         IncrementalLexer moteur = new IncrementalLexer();
         LexResult resultat = moteur.lexFull(document(TEXTE), lexeur());
         LexDocument lex = resultat.lex();
-        assertEquals(6, lex.lineCount());
+        assertEquals(7, lex.lineCount(),
+                "six lignes de contenu plus la ligne vide finale");
         assertEquals(0, resultat.firstLine());
-        assertEquals(5, resultat.lastLine());
+        assertEquals(6, resultat.lastLine());
         assertSame(MiniLangage.Etat.NORMAL, lex.stateBefore(0));
         assertSame(MiniLangage.Etat.NORMAL, lex.stateBefore(1));
         assertSame(MiniLangage.Etat.COMMENTAIRE, lex.stateBefore(2));
@@ -58,7 +61,8 @@ class LexiqueIncrementalTest {
         assertEquals(2, ligne3.length);
         assertEquals(TokenKind.COMMENT, ligne3[0].kind());
         assertEquals(0, ligne3[0].start());
-        assertEquals(5, ligne3[0].end());
+        assertEquals(6, ligne3[0].end(),
+                "le commentaire couvre « fin */ » en entier");
         assertEquals(TokenKind.IDENTIFIER, ligne3[1].kind());
     }
 
@@ -67,22 +71,27 @@ class LexiqueIncrementalTest {
     void editionUneLigneUneSeuleRelecture() {
         IncrementalLexer moteur = new IncrementalLexer();
         LexResult complet = moteur.lexFull(document(TEXTE), lexeur());
-        Document edite = document(TEXTE).replace(28, 33, "omega");
+        int cible = TEXTE.indexOf("delta");
+        Document edite = document(TEXTE).replace(cible, cible + 5, "omega");
         LexResult diff = moteur.lexIncremental(edite, lexeur(), complet.lex(),
-                EditSite.of(document(TEXTE), edite, 28, 33, "omega"));
-        assertEquals(4, diff.firstLine());
-        assertEquals(4, diff.lastLine());
-        for (int ligne = 0; ligne < 6; ligne++) {
+                EditSite.of(document(TEXTE), edite, cible, cible + 5, "omega"));
+        assertEquals(3, diff.firstLine());
+        assertEquals(3, diff.lastLine());
+        for (int ligne = 0; ligne < 7; ligne++) {
             if (ligne == 4) {
+                continue;
+            }
+            if (ligne == 3) {
                 continue;
             }
             assertSame(complet.lex().line(ligne), diff.lex().line(ligne),
                     "la ligne " + ligne + " doit être réutilisée à l'identité");
         }
-        assertSame(MiniLangage.Etat.NORMAL, diff.lex().line(4).exitState());
-        Token[] remplacee = diff.lex().line(4).tokens();
-        assertEquals(TokenKind.IDENTIFIER, remplacee[0].kind());
-        assertEquals("omega".length(), remplacee[0].end() - remplacee[0].start());
+        assertSame(MiniLangage.Etat.NORMAL, diff.lex().line(3).exitState());
+        Token[] remplacee = diff.lex().line(3).tokens();
+        assertEquals(2, remplacee.length);
+        assertEquals(TokenKind.IDENTIFIER, remplacee[1].kind());
+        assertEquals("omega".length(), remplacee[1].end() - remplacee[1].start());
     }
 
     /** Une insertion multi-lignes décale les paniers par le delta de lignes. */
@@ -95,7 +104,8 @@ class LexiqueIncrementalTest {
         LexResult diff = moteur.lexIncremental(edite, lexeur(), complet.lex(),
                 EditSite.of(document(TEXTE), edite, coupe, coupe, "nouveau\nencore\n"));
         assertEquals(2, EditSite.of(document(TEXTE), edite, coupe, coupe, "nouveau\nencore\n").lineDelta());
-        assertEquals(8, diff.lex().lineCount());
+        assertEquals(9, diff.lex().lineCount(),
+                "huit lignes de contenu plus la vide finale");
         assertSame(complet.lex().line(5), diff.lex().line(7),
                 "zeta garde son panier après les deux lignes insérées");
         assertSame(complet.lex().line(3), diff.lex().line(3));
@@ -112,9 +122,12 @@ class LexiqueIncrementalTest {
         Document edite = document(TEXTE).replace(debut, fin, "");
         LexResult diff = moteur.lexIncremental(edite, lexeur(), complet.lex(),
                 EditSite.of(document(TEXTE), edite, debut, fin, ""));
-        assertEquals(3, diff.lex().lineCount());
-        assertSame(complet.lex().line(4), diff.lex().line(1));
+        assertEquals(4, diff.lex().lineCount());
+        assertSame(complet.lex().line(0), diff.lex().line(0));
+        assertArrayEquals(complet.lex().line(4).tokens(), diff.lex().line(1).tokens(),
+                "la ligne de reprise se relit une fois, au contenu identique");
         assertSame(complet.lex().line(5), diff.lex().line(2));
+        assertSame(complet.lex().line(6), diff.lex().line(3));
         assertSame(MiniLangage.Etat.NORMAL, diff.lex().line(0).exitState());
     }
 
@@ -122,24 +135,29 @@ class LexiqueIncrementalTest {
     @Test
     void profondeurCrochetsSuivieEtDecalee() {
         IncrementalLexer moteur = new IncrementalLexer();
-        String source = "a { b\n" + "c } d\n" + "e\n";
+        String source = "a { b\nc } d\ne\nf\n";
         LexResult complet = moteur.lexFull(document(source), lexeur());
         assertEquals(0, complet.lex().bracketDepthAtLineStart(0));
         assertEquals(1, complet.lex().bracketDepthAtLineStart(1));
         assertEquals(0, complet.lex().bracketDepthAtLineStart(2));
+        assertEquals(0, complet.lex().bracketDepthAtLineStart(3));
 
         int coupe = source.indexOf('e');
         Document edite = document(source).replace(coupe, coupe, "{ ");
         LexResult diff = moteur.lexIncremental(edite, lexeur(), complet.lex(),
                 EditSite.of(document(source), edite, coupe, coupe, "{ "));
-        assertEquals(1, diff.lex().bracketDepthAtLineStart(0));
-        assertEquals(2, diff.lex().bracketDepthAtLineStart(1));
-        assertEquals(1, diff.lex().bracketDepthAtLineStart(2));
+        assertEquals(0, diff.lex().bracketDepthAtLineStart(0));
+        assertEquals(1, diff.lex().bracketDepthAtLineStart(1));
+        assertEquals(0, diff.lex().bracketDepthAtLineStart(2));
+        assertEquals(1, diff.lex().bracketDepthAtLineStart(3),
+                "l'ouvrant inséré décale la profondeur de la suite");
 
-        Document edite2 = document(source).replace(coupe, coupe, "z ");
-        LexResult diff2 = moteur.lexIncremental(document(source), lexeur(),
-                diff.lex(), EditSite.of(edite, document(source), coupe, coupe, "z "));
-        assertEquals(0, diff2.lex().bracketDepthAtLineStart(2));
+        Document edite2 = document(source).replace(coupe, coupe + 1, "f");
+        LexResult diff2 = moteur.lexIncremental(edite2, lexeur(), complet.lex(),
+                EditSite.of(document(source), edite2, coupe, coupe + 1, "f"));
+        assertEquals(0, diff2.lex().bracketDepthAtLineStart(3),
+                "une édition sans crochet ne décale rien");
+        assertSame(complet.lex().line(3), diff2.lex().line(3));
     }
 
     /** Le résultat incrémental est identique à une relecture complète. */

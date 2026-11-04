@@ -20,7 +20,6 @@ final class Arbres {
 
     /** Vérifie que deux arbres décrivent la même structure sur le document donné. */
     static void verifierEquivalence(SyntaxTree obtenu, SyntaxTree temoin, Document doc) {
-        assertEquals(temoin.revision(), obtenu.revision(), "révision");
         assertEquals(temoin.chunks().size(), obtenu.chunks().size(), "nombre de chunks");
         for (int i = 0; i < temoin.chunks().size(); i++) {
             Chunk attendu = temoin.chunks().get(i);

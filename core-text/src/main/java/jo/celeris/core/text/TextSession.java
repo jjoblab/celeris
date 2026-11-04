@@ -147,6 +147,16 @@ public final class TextSession {
     }
 
     /**
+     * Désabonne un auditeur d'édition — le détachement explicite évite de
+     * retenir un pont (analyse syntaxique, LSP) sur une session qui vit.
+     *
+     * @param listener l'auditeur à détacher
+     */
+    public void removeEditListener(EditListener listener) {
+        listeners.remove(listener);
+    }
+
+    /**
      * Abonne un projecteur de positions (appelé aussi par l'annulation et
      * le refaire).
      *

@@ -23,13 +23,15 @@ class PlanEtDiagnosticsTest {
     /** Le plan liste les déclarations avec nom, catégorie et lignes. */
     @Test
     void planListeLesDeclarations() {
-        String texte = "fn premier {\n"
-                + "  x\n"
-                + "}\n"
-                + "var seul ;\n"
-                + "fn deuxieme {\n"
-                + "  y\n"
-                + "}\n";
+        String texte = """
+                fn premier {
+                  x
+                }
+                var seul ;
+                fn deuxieme {
+                  y
+                }
+                """;
         Document doc = Document.of(texte);
         List<OutlineEntry> plan = TreeOutline.entries(doc, service.analyseFull(doc));
         assertEquals(3, plan.size());
@@ -49,7 +51,7 @@ class PlanEtDiagnosticsTest {
     /** Le plan suit les déplacements : insertion de lignes en amont. */
     @Test
     void planSuitLesDecalages() {
-        String texte = "fn a { x }\n" + "fn b { y }\n";
+        String texte = "fn a { x }\nfn b { y }\n";
         Document doc = Document.of(texte);
         Analysis complet = service.analyseFull(doc);
         int cible = texte.indexOf("fn a");
@@ -67,7 +69,7 @@ class PlanEtDiagnosticsTest {
     /** Une déclaration ajoutée entre deux autres apparaît au plan. */
     @Test
     void declarationAjouteeApparait() {
-        String texte = "fn a { x }\n" + "fn c { y }\n";
+        String texte = "fn a { x }\nfn c { y }\n";
         Document doc = Document.of(texte);
         Analysis complet = service.analyseFull(doc);
         int cible = texte.indexOf("fn c");
@@ -84,7 +86,7 @@ class PlanEtDiagnosticsTest {
     /** Les erreurs de l'arbre deviennent des plages localisées, triées. */
     @Test
     void erreursDeviennentPlagesLocalisees() {
-        String texte = "fn casse {\n" + "  x\n" + "fn suivant { y }\n";
+        String texte = "fn casse {\n  x\n";
         Document doc = Document.of(texte);
         List<SyntaxIssue> problemes = TreeDiagnostics.issues(doc, service.analyseFull(doc));
         assertEquals(1, problemes.size(), "un seul chunk malformé");
@@ -98,7 +100,7 @@ class PlanEtDiagnosticsTest {
     /** Un source sain ne produit aucun diagnostic. */
     @Test
     void sourceSainSansDiagnostics() {
-        String texte = "fn a {\n" + "  x\n" + "}\n" + "var v ;\n";
+        String texte = "fn a {\n  x\n}\nvar v ;\n";
         Document doc = Document.of(texte);
         List<SyntaxIssue> problemes = TreeDiagnostics.issues(doc, service.analyseFull(doc));
         assertTrue(problemes.isEmpty());

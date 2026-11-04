@@ -465,6 +465,7 @@ public final class jo.celeris.core.text.TextSession {
   public void setSelection(jo.celeris.core.text.MultiSelection);
   public void setReadOnly(boolean);
   public void addEditListener(jo.celeris.core.text.EditListener);
+  public void removeEditListener(jo.celeris.core.text.EditListener);
   public void addProjector(jo.celeris.core.text.PositionProjector);
   public boolean apply(jo.celeris.core.text.Transaction);
   public boolean replaceRange(int, int, java.lang.String);

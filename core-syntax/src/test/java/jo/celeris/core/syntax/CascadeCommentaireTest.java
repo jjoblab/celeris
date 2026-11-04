@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.text.Document;
 
+
+
 /**
  * PIEGE-19 — la cascade de commentaires de bloc est bornée par la
  * reconvergence des états.
@@ -32,7 +34,6 @@ class CascadeCommentaireTest {
     void commentCascade_boundedByStateConvergence() {
         Document doc = document();
         IncrementalLexer moteur = new IncrementalLexer();
-        LanguageLexer lexeur = MiniLangage.langage().lexer();
         LexResult complet = moteur.lexFull(doc, lexeur());
 
         int debutOuverture = doc.lineStart(OUVERTURE);
@@ -44,9 +45,8 @@ class CascadeCommentaireTest {
                 "la cascade démarre à la ligne éditée");
         assertEquals(FERMETURE, diff.lastLine(),
                 "la cascade s'arrête à la fermeture du commentaire, pas après");
-        assertEquals(FERMETURE - OUVERTURE + 1, diff.lastLine() - diff.firstLine() + 1);
 
-        for (int ligne = FERMETURE + 1; ligne < LIGNES; ligne++) {
+        for (int ligne = FERMETURE + 1; ligne < edite.lineCount(); ligne++) {
             assertSame(complet.lex().line(ligne), diff.lex().line(ligne),
                     "la ligne " + ligne + " au-delà de la fermeture doit être réutilisée");
         }
@@ -65,7 +65,6 @@ class CascadeCommentaireTest {
     void ouvertureAjouteeCascadeJusquaFermetureExistante() {
         Document doc = document();
         IncrementalLexer moteur = new IncrementalLexer();
-        LanguageLexer lexeur = MiniLangage.langage().lexer();
         LexResult complet = moteur.lexFull(doc, lexeur());
 
         int cible = doc.lineStart(50);
@@ -73,8 +72,9 @@ class CascadeCommentaireTest {
         LexResult diff = moteur.lexIncremental(edite, lexeur(), complet.lex(),
                 EditSite.of(doc, edite, cible, cible, "/* "));
         assertEquals(50, diff.firstLine());
-        assertEquals(FERMETURE, diff.lastLine());
-        for (int ligne = FERMETURE + 1; ligne < LIGNES; ligne++) {
+        assertEquals(OUVERTURE, diff.lastLine(),
+                "les états se rejoignent à l'ouverture préexistante du grand commentaire");
+        for (int ligne = OUVERTURE + 1; ligne < edite.lineCount(); ligne++) {
             assertSame(complet.lex().line(ligne), diff.lex().line(ligne));
         }
     }
@@ -84,7 +84,6 @@ class CascadeCommentaireTest {
     void ouvertureSansFermetureCascadeJusquaLaFin() {
         Document doc = document();
         IncrementalLexer moteur = new IncrementalLexer();
-        LanguageLexer lexeur = MiniLangage.langage().lexer();
         LexResult complet = moteur.lexFull(doc, lexeur());
 
         int cible = doc.lineStart(45_000);
@@ -92,9 +91,9 @@ class CascadeCommentaireTest {
         LexResult diff = moteur.lexIncremental(edite, lexeur(), complet.lex(),
                 EditSite.of(doc, edite, cible, cible, "/* isole"));
         assertEquals(45_000, diff.firstLine());
-        assertEquals(LIGNES - 1, diff.lastLine(),
+        assertEquals(edite.lineCount() - 1, diff.lastLine(),
                 "sans fermeture, la cascade va jusqu'à la dernière ligne — et termine");
-        for (int ligne = 45_000; ligne < LIGNES; ligne++) {
+        for (int ligne = 45_000; ligne < edite.lineCount(); ligne++) {
             assertEquals(MiniLangage.Etat.COMMENTAIRE,
                     diff.lex().line(ligne).exitState(),
                     "la ligne " + ligne + " reste dans le commentaire ouvert");
@@ -106,7 +105,6 @@ class CascadeCommentaireTest {
     void editionDansLeCommentaireResteLocale() {
         Document doc = document();
         IncrementalLexer moteur = new IncrementalLexer();
-        LanguageLexer lexeur = MiniLangage.langage().lexer();
         LexResult complet = moteur.lexFull(doc, lexeur());
 
         int cible = doc.lineStart(20_000);
@@ -130,5 +128,9 @@ class CascadeCommentaireTest {
             }
         }
         return Document.of(texte.toString());
+    }
+
+    private static LanguageLexer lexeur() {
+        return MiniLangage.langage().lexer();
     }
 }

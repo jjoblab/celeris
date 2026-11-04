@@ -1,3 +1,293 @@
+### jo.celeris.core.syntax.Analysis
+Compiled from "Analysis.java"
+public final class jo.celeris.core.syntax.Analysis extends java.lang.Record {
+  public jo.celeris.core.syntax.Analysis(int, jo.celeris.core.syntax.LexDocument, jo.celeris.core.syntax.SyntaxTree);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int revision();
+  public jo.celeris.core.syntax.LexDocument lex();
+  public jo.celeris.core.syntax.SyntaxTree tree();
+}
+
+### jo.celeris.core.syntax.BracketMatcher
+Compiled from "BracketMatcher.java"
+public final class jo.celeris.core.syntax.BracketMatcher {
+  public static jo.celeris.core.syntax.TokenMatch matchAt(jo.celeris.core.text.Document, jo.celeris.core.syntax.LexDocument, int);
+}
+
+### jo.celeris.core.syntax.Chunk
+Compiled from "Chunk.java"
+public final class jo.celeris.core.syntax.Chunk extends java.lang.Record {
+  public jo.celeris.core.syntax.Chunk(int, int, int, int, jo.celeris.core.syntax.SynNode);
+  public boolean isError();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int startLine();
+  public int startCol();
+  public int endLine();
+  public int endCol();
+  public jo.celeris.core.syntax.SynNode root();
+}
+
+### jo.celeris.core.syntax.EditSite
+Compiled from "EditSite.java"
+public final class jo.celeris.core.syntax.EditSite extends java.lang.Record {
+  public jo.celeris.core.syntax.EditSite(int, int, int);
+  public static jo.celeris.core.syntax.EditSite of(jo.celeris.core.text.Document, jo.celeris.core.text.Document, int, int, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int firstLine();
+  public int lastLine();
+  public int lineDelta();
+}
+
+### jo.celeris.core.syntax.FoldSpan
+Compiled from "FoldSpan.java"
+public final class jo.celeris.core.syntax.FoldSpan extends java.lang.Record {
+  public jo.celeris.core.syntax.FoldSpan(int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int startLine();
+  public int endLine();
+}
+
+### jo.celeris.core.syntax.IncrementalLexer
+Compiled from "IncrementalLexer.java"
+public final class jo.celeris.core.syntax.IncrementalLexer {
+  public jo.celeris.core.syntax.IncrementalLexer();
+  public jo.celeris.core.syntax.LexResult lexFull(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer);
+  public jo.celeris.core.syntax.LexResult lexIncremental(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, jo.celeris.core.syntax.LexDocument, jo.celeris.core.syntax.EditSite);
+}
+
+### jo.celeris.core.syntax.IncrementalParser
+Compiled from "IncrementalParser.java"
+final class jo.celeris.core.syntax.IncrementalParser {
+}
+
+### jo.celeris.core.syntax.LanguageLexer
+Compiled from "LanguageLexer.java"
+public interface jo.celeris.core.syntax.LanguageLexer {
+  public abstract jo.celeris.core.syntax.LexState initialState();
+  public abstract jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
+}
+
+### jo.celeris.core.syntax.LanguageParser
+Compiled from "LanguageParser.java"
+public interface jo.celeris.core.syntax.LanguageParser {
+  public abstract int chunkLevel();
+  public abstract boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
+  public abstract jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
+}
+
+### jo.celeris.core.syntax.LanguageSyntax
+Compiled from "LanguageSyntax.java"
+public interface jo.celeris.core.syntax.LanguageSyntax {
+  public abstract java.lang.String id();
+  public abstract jo.celeris.core.syntax.LanguageLexer lexer();
+  public abstract jo.celeris.core.syntax.LanguageParser parser();
+}
+
+### jo.celeris.core.syntax.LexDocument
+Compiled from "LexDocument.java"
+public final class jo.celeris.core.syntax.LexDocument {
+  public int lineCount();
+  public jo.celeris.core.syntax.LexedLine line(int);
+  public jo.celeris.core.syntax.LexState stateBefore(int);
+  public int bracketDepthAtLineStart(int);
+}
+
+### jo.celeris.core.syntax.LexResult
+Compiled from "LexResult.java"
+public final class jo.celeris.core.syntax.LexResult extends java.lang.Record {
+  public jo.celeris.core.syntax.LexResult(jo.celeris.core.syntax.LexDocument, int, int);
+  public int reLexedLines();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.syntax.LexDocument lex();
+  public int firstLine();
+  public int lastLine();
+}
+
+### jo.celeris.core.syntax.LexState
+Compiled from "LexState.java"
+public interface jo.celeris.core.syntax.LexState {
+}
+
+### jo.celeris.core.syntax.LexedLine
+Compiled from "LexedLine.java"
+public final class jo.celeris.core.syntax.LexedLine {
+  public jo.celeris.core.syntax.LexedLine(jo.celeris.core.syntax.Token[], jo.celeris.core.syntax.LexState);
+  public jo.celeris.core.syntax.Token[] tokens();
+  public jo.celeris.core.syntax.LexState exitState();
+}
+
+### jo.celeris.core.syntax.NodeCategory
+Compiled from "NodeCategory.java"
+public final class jo.celeris.core.syntax.NodeCategory extends java.lang.Enum<jo.celeris.core.syntax.NodeCategory> {
+  public static final jo.celeris.core.syntax.NodeCategory TYPE;
+  public static final jo.celeris.core.syntax.NodeCategory FUNCTION;
+  public static final jo.celeris.core.syntax.NodeCategory FIELD;
+  public static final jo.celeris.core.syntax.NodeCategory TAG;
+  public static final jo.celeris.core.syntax.NodeCategory BLOCK;
+  public static final jo.celeris.core.syntax.NodeCategory STATEMENT;
+  public static final jo.celeris.core.syntax.NodeCategory ERROR;
+  public static final jo.celeris.core.syntax.NodeCategory OTHER;
+  public static jo.celeris.core.syntax.NodeCategory[] values();
+  public static jo.celeris.core.syntax.NodeCategory valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.NodeKind
+Compiled from "NodeKind.java"
+public interface jo.celeris.core.syntax.NodeKind {
+}
+
+### jo.celeris.core.syntax.OutlineEntry
+Compiled from "OutlineEntry.java"
+public final class jo.celeris.core.syntax.OutlineEntry extends java.lang.Record {
+  public jo.celeris.core.syntax.OutlineEntry(jo.celeris.core.syntax.NodeCategory, java.lang.String, int, int, int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.syntax.NodeCategory category();
+  public java.lang.String name();
+  public int startOffset();
+  public int endOffset();
+  public int startLine();
+  public int endLine();
+}
+
+### jo.celeris.core.syntax.SynNode
+Compiled from "SynNode.java"
+public final class jo.celeris.core.syntax.SynNode {
+  public static jo.celeris.core.syntax.SynNode of(jo.celeris.core.syntax.NodeKind, jo.celeris.core.syntax.NodeCategory, int, int, jo.celeris.core.syntax.SynNode[], java.lang.String, boolean);
+  public jo.celeris.core.syntax.NodeKind kind();
+  public jo.celeris.core.syntax.NodeCategory category();
+  public int start();
+  public int end();
+  public java.util.List<jo.celeris.core.syntax.SynNode> children();
+  public java.lang.String outlineName();
+  public boolean isError();
+}
+
+### jo.celeris.core.syntax.SyntaxCoordinator
+Compiled from "SyntaxCoordinator.java"
+public final class jo.celeris.core.syntax.SyntaxCoordinator {
+  public static jo.celeris.core.syntax.SyntaxCoordinator on(jo.celeris.core.text.TextSession, jo.celeris.core.syntax.LanguageSyntax);
+  public jo.celeris.core.syntax.Analysis analysis();
+  public void close();
+}
+
+### jo.celeris.core.syntax.SyntaxIssue
+Compiled from "SyntaxIssue.java"
+public final class jo.celeris.core.syntax.SyntaxIssue extends java.lang.Record {
+  public jo.celeris.core.syntax.SyntaxIssue(int, int, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int startOffset();
+  public int length();
+  public java.lang.String message();
+}
+
+### jo.celeris.core.syntax.SyntaxService
+Compiled from "SyntaxService.java"
+public final class jo.celeris.core.syntax.SyntaxService {
+  public static jo.celeris.core.syntax.SyntaxService of(jo.celeris.core.syntax.LanguageSyntax);
+  public jo.celeris.core.syntax.Analysis analyseFull(jo.celeris.core.text.Document);
+  public jo.celeris.core.syntax.Analysis analyseIncremental(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.syntax.EditSite);
+}
+
+### jo.celeris.core.syntax.SyntaxTree
+Compiled from "SyntaxTree.java"
+public final class jo.celeris.core.syntax.SyntaxTree {
+  public int revision();
+  public java.util.List<jo.celeris.core.syntax.Chunk> chunks();
+  public int chunkStartOffset(jo.celeris.core.text.Document, jo.celeris.core.syntax.Chunk);
+  public int chunkEndOffset(jo.celeris.core.text.Document, jo.celeris.core.syntax.Chunk);
+}
+
+### jo.celeris.core.syntax.Token
+Compiled from "Token.java"
+public final class jo.celeris.core.syntax.Token extends java.lang.Record {
+  public jo.celeris.core.syntax.Token(jo.celeris.core.syntax.TokenKind, int, int);
+  public int length();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.syntax.TokenKind kind();
+  public int start();
+  public int end();
+}
+
+### jo.celeris.core.syntax.TokenKind
+Compiled from "TokenKind.java"
+public final class jo.celeris.core.syntax.TokenKind extends java.lang.Enum<jo.celeris.core.syntax.TokenKind> {
+  public static final jo.celeris.core.syntax.TokenKind KEYWORD;
+  public static final jo.celeris.core.syntax.TokenKind TYPE;
+  public static final jo.celeris.core.syntax.TokenKind STRING;
+  public static final jo.celeris.core.syntax.TokenKind NUMBER;
+  public static final jo.celeris.core.syntax.TokenKind COMMENT;
+  public static final jo.celeris.core.syntax.TokenKind DOC;
+  public static final jo.celeris.core.syntax.TokenKind ANNOTATION;
+  public static final jo.celeris.core.syntax.TokenKind OPERATOR;
+  public static final jo.celeris.core.syntax.TokenKind PUNCTUATION;
+  public static final jo.celeris.core.syntax.TokenKind IDENTIFIER;
+  public static final jo.celeris.core.syntax.TokenKind CONSTANT;
+  public static final jo.celeris.core.syntax.TokenKind OPEN_BRACKET;
+  public static final jo.celeris.core.syntax.TokenKind CLOSE_BRACKET;
+  public static final jo.celeris.core.syntax.TokenKind ERROR;
+  public static jo.celeris.core.syntax.TokenKind[] values();
+  public static jo.celeris.core.syntax.TokenKind valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.TokenMatch
+Compiled from "TokenMatch.java"
+public final class jo.celeris.core.syntax.TokenMatch extends java.lang.Record {
+  public jo.celeris.core.syntax.TokenMatch(int, int, int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int start();
+  public int end();
+  public int otherStart();
+  public int otherEnd();
+}
+
+### jo.celeris.core.syntax.TokenSlice
+Compiled from "TokenSlice.java"
+public final class jo.celeris.core.syntax.TokenSlice {
+  public int size();
+  public jo.celeris.core.syntax.TokenKind kind(int);
+  public int start(int);
+  public int end(int);
+  public int line(int);
+  public java.lang.String text(int);
+  public int matchOf(int);
+}
+
+### jo.celeris.core.syntax.TreeDiagnostics
+Compiled from "TreeDiagnostics.java"
+public final class jo.celeris.core.syntax.TreeDiagnostics {
+  public static java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
+}
+
+### jo.celeris.core.syntax.TreeFolds
+Compiled from "TreeFolds.java"
+public final class jo.celeris.core.syntax.TreeFolds {
+  public static java.util.List<jo.celeris.core.syntax.FoldSpan> regions(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
+}
+
+### jo.celeris.core.syntax.TreeOutline
+Compiled from "TreeOutline.java"
+public final class jo.celeris.core.syntax.TreeOutline {
+  public static java.util.List<jo.celeris.core.syntax.OutlineEntry> entries(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
+}
+
 ### jo.celeris.core.syntax.package-info
 Compiled from "package-info.java"
 interface jo.celeris.core.syntax.package-info {

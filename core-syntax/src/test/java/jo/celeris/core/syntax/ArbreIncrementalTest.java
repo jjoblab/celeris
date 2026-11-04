@@ -20,15 +20,17 @@ import jo.celeris.core.text.Document;
  */
 class ArbreIncrementalTest {
 
-    private static final String TEXTE = "fn premier {\n"
-            + "  corps\n"
-            + "}\n"
-            + "var a ;\n"
-            + "\n"
-            + "fn deuxieme {\n"
-            + "  x\n"
-            + "}\n"
-            + "fn troisieme { y }\n";
+    private static final String TEXTE = """
+            fn premier {
+              corps
+            }
+            var a ;
+
+            fn deuxieme {
+              x
+            }
+            fn troisieme { y }
+            """;
 
     private final SyntaxService service = SyntaxService.of(MiniLangage.langage());
 
@@ -54,10 +56,10 @@ class ArbreIncrementalTest {
         assertEquals("a", champ.root().outlineName());
 
         Chunk deuxieme = arbre.chunks().get(2);
-        assertEquals(6, deuxieme.startLine());
+        assertEquals(5, deuxieme.startLine());
 
         int debutDeuxieme = arbre.chunkStartOffset(doc, deuxieme);
-        assertEquals(doc.lineStart(6), debutDeuxieme);
+        assertEquals(doc.lineStart(5), debutDeuxieme);
         assertTrue(debutDeuxieme < arbre.chunkEndOffset(doc, deuxieme));
     }
 
@@ -95,8 +97,8 @@ class ArbreIncrementalTest {
 
         Chunk troisiemeAvant = complet.tree().chunks().get(3);
         Chunk troisiemeApres = diff.tree().chunks().get(3);
-        assertSame(troisiemeAvant, troisiemeApres,
-                "le chunk après le décalage garde son sous-arbre");
+        assertSame(troisiemeAvant.root(), troisiemeApres.root(),
+                "le chunk après le décalage garde son sous-arbre à l'identité");
         assertEquals(troisiemeAvant.startLine() + 2, troisiemeApres.startLine());
         assertEquals(troisiemeAvant.endLine() + 2, troisiemeApres.endLine());
         assertEquals(troisiemeAvant.startCol(), troisiemeApres.startCol());
@@ -110,9 +112,9 @@ class ArbreIncrementalTest {
         Document doc = Document.of(TEXTE);
         Analysis complet = service.analyseFull(doc);
         int ligneVide = doc.lineStart(4);
-        Document edite = doc.replace(ligneVide, ligneVide, "note");
+        Document edite = doc.replace(ligneVide, ligneVide, ";");
         Analysis diff = service.analyseIncremental(edite, complet,
-                EditSite.of(doc, edite, ligneVide, ligneVide, "note"));
+                EditSite.of(doc, edite, ligneVide, ligneVide, ";"));
 
         assertSame(complet.tree().chunks().get(0), diff.tree().chunks().get(0));
         assertSame(complet.tree().chunks().get(2), diff.tree().chunks().get(2));

@@ -86,44 +86,76 @@ final class MiniLangage {
                     if (fermeture >= 0) {
                         etat = Etat.NORMAL;
                     }
-                    continue;
-                }
-                if (c == ' ' || c == '\t') {
-                    i++;
                 } else if (c == '/' && i + 1 < n && texte.charAt(i + 1) == '*') {
                     etat = Etat.COMMENTAIRE;
-                    int fermeture = trouver(texte, "*/", i + 2);
-                    int fin = fermeture < 0 ? n : fermeture + 2;
-                    jetons.add(new Token(TokenKind.COMMENT, i, fin));
-                    i = fin;
-                    if (fermeture >= 0) {
+                    int resultat = lexCommentaire(texte, jetons, i);
+                    i = Math.abs(resultat);
+                    if (resultat > 0) {
                         etat = Etat.NORMAL;
                     }
-                } else if (c == '"') {
-                    int fin = i + 1;
-                    while (fin < n && texte.charAt(fin) != '"') {
-                        fin++;
-                    }
-                    jetons.add(new Token(TokenKind.STRING, i, Math.min(fin + 1, n)));
-                    i = Math.min(fin + 1, n);
-                } else if (c == '(' || c == '{' || c == '[') {
-                    jetons.add(new Token(TokenKind.OPEN_BRACKET, i, i + 1));
-                    i++;
-                } else if (c == ')' || c == '}' || c == ']') {
-                    jetons.add(new Token(TokenKind.CLOSE_BRACKET, i, i + 1));
-                    i++;
-                } else if (Character.isLetter(c)) {
-                    int debut = i;
-                    while (i < n && Character.isLetter(texte.charAt(i))) {
-                        i++;
-                    }
-                    jetons.add(new Token(TokenKind.IDENTIFIER, debut, i));
                 } else {
-                    jetons.add(new Token(TokenKind.OPERATOR, i, i + 1));
-                    i++;
+                    i = lexSimple(texte, jetons, i);
                 }
             }
             return new LexedLine(jetons.toArray(new Token[0]), etat);
+        }
+
+        private static int lexCommentaire(CharSequence texte, List<Token> jetons, int debut) {
+            int fermeture = trouver(texte, "*/", debut + 2);
+            int fin = fermeture < 0 ? texte.length() : fermeture + 2;
+            jetons.add(new Token(TokenKind.COMMENT, debut, fin));
+            return fermeture < 0 ? -fin : fin;
+        }
+
+        private static int lexSimple(CharSequence texte, List<Token> jetons, int i) {
+            char c = texte.charAt(i);
+            int n = texte.length();
+            if (c == ' ' || c == '\t') {
+                return i + 1;
+            }
+            if (c == '"') {
+                return lexChaine(texte, jetons, i, n);
+            }
+            if (estOuvrant(c)) {
+                jetons.add(new Token(TokenKind.OPEN_BRACKET, i, i + 1));
+                return i + 1;
+            }
+            if (estFermant(c)) {
+                jetons.add(new Token(TokenKind.CLOSE_BRACKET, i, i + 1));
+                return i + 1;
+            }
+            return lexMot(texte, jetons, i, n);
+        }
+
+        private static int lexChaine(CharSequence texte, List<Token> jetons, int i, int n) {
+            int fin = i + 1;
+            while (fin < n && texte.charAt(fin) != '"') {
+                fin++;
+            }
+            jetons.add(new Token(TokenKind.STRING, i, Math.min(fin + 1, n)));
+            return Math.min(fin + 1, n);
+        }
+
+        private static int lexMot(CharSequence texte, List<Token> jetons, int i, int n) {
+            char c = texte.charAt(i);
+            if (!Character.isLetter(c)) {
+                jetons.add(new Token(TokenKind.OPERATOR, i, i + 1));
+                return i + 1;
+            }
+            int debut = i;
+            while (i < n && Character.isLetter(texte.charAt(i))) {
+                i++;
+            }
+            jetons.add(new Token(TokenKind.IDENTIFIER, debut, i));
+            return i;
+        }
+
+        private static boolean estOuvrant(char c) {
+            return c == '(' || c == '{' || c == '[';
+        }
+
+        private static boolean estFermant(char c) {
+            return c == ')' || c == '}' || c == ']';
         }
 
         private static int trouver(CharSequence texte, String motif, int depuis) {
@@ -153,7 +185,7 @@ final class MiniLangage {
 
         @Override
         public boolean startsChunk(TokenSlice slice, int index, int depth) {
-            if (depth > 0) {
+            if (depth != 0) {
                 return false;
             }
             if (slice.kind(index) != TokenKind.IDENTIFIER) {
@@ -191,9 +223,12 @@ final class MiniLangage {
         private SynNode parseFonction(TokenSlice slice) {
             String nom = slice.size() > 1 ? slice.text(1) : null;
             SynNode corps = parseCorps(slice, 2, slice.end(slice.size() - 1));
-            boolean erreur = corps.isError();
+            List<SynNode> enfantsCorps = corps.children();
+            int fin = enfantsCorps.isEmpty()
+                    ? slice.end(Math.min(1, slice.size() - 1))
+                    : enfantsCorps.get(enfantsCorps.size() - 1).end();
             return SynNode.of(Sorte.FONCTION, NodeCategory.FUNCTION, 0,
-                    slice.end(slice.size() - 1), new SynNode[] {corps}, nom, erreur);
+                    fin, new SynNode[] {corps}, nom, corps.isError());
         }
 
         private SynNode parseCorps(TokenSlice slice, int depuis, int fin) {
@@ -211,7 +246,8 @@ final class MiniLangage {
                         break;
                     }
                     enfants.add(SynNode.of(Sorte.BLOC, NodeCategory.BLOCK,
-                            slice.start(i), slice.end(fermeture), new SynNode[0], null, false));
+                            slice.start(i), slice.end(fermeture),
+                            corpsEnfants(slice, i + 1, fermeture), null, false));
                     i = fermeture + 1;
                 } else {
                     i++;
@@ -221,6 +257,26 @@ final class MiniLangage {
                     erreur ? NodeCategory.ERROR : NodeCategory.OTHER,
                     depuis < slice.size() ? slice.start(depuis) : 0, fin,
                     enfants.toArray(new SynNode[0]), null, erreur);
+        }
+
+        private SynNode[] corpsEnfants(TokenSlice slice, int depuis, int fin) {
+            List<SynNode> imbriques = new java.util.ArrayList<>();
+            int i = depuis;
+            while (i < fin) {
+                if (slice.kind(i) == TokenKind.OPEN_BRACKET && "{".equals(slice.text(i))) {
+                    int fermeture = slice.matchOf(i);
+                    if (fermeture < 0 || fermeture >= fin) {
+                        break;
+                    }
+                    imbriques.add(SynNode.of(Sorte.BLOC, NodeCategory.BLOCK,
+                            slice.start(i), slice.end(fermeture),
+                            corpsEnfants(slice, i + 1, fermeture), null, false));
+                    i = fermeture + 1;
+                } else {
+                    i++;
+                }
+            }
+            return imbriques.toArray(new SynNode[0]);
         }
     }
 }
