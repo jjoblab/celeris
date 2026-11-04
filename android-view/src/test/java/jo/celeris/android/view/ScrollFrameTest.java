@@ -27,7 +27,8 @@ import org.junit.jupiter.api.Test;
 class ScrollFrameTest {
 
     private static final EditorTheme THEME =
-            new EditorTheme(1, 0xFF202124, 0xFF1A73E8, 0xFF000000, 0xFF5F6368);
+            new EditorTheme(1, 0xFFFFFFFF, 0xFF202124, 0xFF1A73E8,
+            0xFF000000, 0xFF5F6368);
 
     /** Pinceau mutable minimal : la couleur courante, rien d'autre. */
     private static final class PinceauMutable implements TextBrush {
