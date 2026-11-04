@@ -19,8 +19,8 @@ class PinchZoomTest {
         // 14 × 1,2 ≈ 16,8 → palier 16 ; 14 × 0,8 ≈ 11,2 → palier 12.
         assertEquals(16f, PinchZoom.steppedSize(14f, 1.2f), 1e-6f);
         assertEquals(12f, PinchZoom.steppedSize(14f, 0.8f), 1e-6f);
-        // Le plus proche palier l'emporte.
-        assertEquals(18f, PinchZoom.steppedSize(14f, 1.5f), 1e-6f);
+        // Le plus proche palier l'emporte (21 est plus près de 20 que de 24).
+        assertEquals(20f, PinchZoom.steppedSize(14f, 1.5f), 1e-6f);
         // Sans pincement net, le palier courant tient.
         assertEquals(14f, PinchZoom.steppedSize(14f, 1.03f), 1e-6f);
     }
@@ -35,16 +35,16 @@ class PinchZoomTest {
     /** D-15 — le point du document sous le doigt y reste, en X comme en Y. */
     @Test
     void pinchZoom_keepsColumnUnderFinger() {
-        // Gouttière 40 px, focal à 120 px, caractère de 10 → colonne 8
-        // (9,0 avec le défilement 30). Après zoom, caractère de 16 :
-        // la colonne 9 doit rester à 120 px de la fenêtre.
+        // Gouttière 40 px, focal à 120 px, caractère de 10, défilement 30 :
+        // colonne (120 − 40 + 30) / 10 = 11. Après zoom, caractère de 16 :
+        // la colonne 11 doit rester à 120 px de la fenêtre.
         float nouveauScroll = PinchZoom.scrollXKeepingColumn(120f, 40f, 30f,
                 10f, 16f);
         float colonne = (120f - 40f + nouveauScroll) / 16f;
-        assertEquals(9f, colonne, 1e-4f,
+        assertEquals(11f, colonne, 1e-4f,
                 "la colonne sous le doigt ne bouge pas d'un cran");
 
-        // Idem en Y : la rangée sous le doigt y reste.
+        // Idem en Y : la rangée sous le doigt y reste ((50 + 70) / 20 = 6).
         float nouveauScrollY = PinchZoom.scrollYKeepingRow(50f, 70f, 20f, 32f);
         float rangee = (50f + nouveauScrollY) / 32f;
         assertEquals(6f, rangee, 1e-4f,

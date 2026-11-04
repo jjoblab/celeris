@@ -53,7 +53,7 @@ class SelectionHandlesTest {
         // colonnes 2 dans la tranche [4,8)).
         float x = SelectionHandles.xOfOffset(document, projection, metrics,
                 20f, 0f, 6);
-        float y = SelectionHandles.yOfOffset(projection, metrics, 0f, 6);
+        float y = SelectionHandles.yOfOffset(document, projection, metrics, 0f, 6);
         assertEquals(20f + 2 * 10f, x, 1e-6f);
         assertEquals(20f, y, 1e-6f);
 
@@ -66,26 +66,27 @@ class SelectionHandlesTest {
     /** La visée désigne la poignée touchée : START, END, ou aucune. */
     @Test
     void hitTest_picksNearestHandle() {
-        Document document = Document.of("abcdef");
+        Document document = Document.of("abcdefghij");
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
         EditorMetrics metrics =
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        // Plage [1,5) : START à la colonne 1, END à la colonne 5.
+        // Plage [1,9) : START à la colonne 1 (x=30), END à la colonne 9
+        // (x=110) — le milieu (x=70) est hors de portée des deux.
         float start = SelectionHandles.xOfOffset(document, projection, metrics,
                 20f, 0f, 1);
         float end = SelectionHandles.xOfOffset(document, projection, metrics,
-                20f, 0f, 5);
+                20f, 0f, 9);
 
         assertEquals(SelectionHandles.HandleId.START,
                 SelectionHandles.hitTest(start + 2f, 10f, 20f, 0f, 0f,
-                        document, projection, metrics, 1, 5));
+                        document, projection, metrics, 1, 9));
         assertEquals(SelectionHandles.HandleId.END,
                 SelectionHandles.hitTest(end - 2f, 10f, 20f, 0f, 0f,
-                        document, projection, metrics, 1, 5));
+                        document, projection, metrics, 1, 9));
         assertEquals(SelectionHandles.HandleId.NONE,
-                SelectionHandles.hitTest(20f + 3 * 10f, 10f, 20f, 0f, 0f,
-                        document, projection, metrics, 1, 5),
+                SelectionHandles.hitTest(70f, 10f, 20f, 0f, 0f,
+                        document, projection, metrics, 1, 9),
                 "entre les poignées : aucune");
     }
 
