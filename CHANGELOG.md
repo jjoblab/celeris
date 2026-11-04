@@ -9,6 +9,32 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 2 — pièges du texte, tests écrits avant le code (PIEGE-07/08/13,
+  registre des pièges à jour) : moteur d'annulation transactionnel dans
+  `core-text` — la `Transaction`, seule voie de mutation (ADR-003), le rejeu
+  de l'annulation par cette même voie, coalescence des frappes portée à
+  horloge injectée (ADR-007), instantané `Document` immuable, projecteurs de
+  positions (plages ancrées, gravités du pipeline commun), propriété jqwik à
+  oracle `StringBuilder` (défaire/refaire tout restaure les textes).
+- Modèle de retour à la ligne souple pur à mesure injectée : coupe par
+  caractères d'un mot plus large que la ligne par recherche dichotomique,
+  accumulation gloutonne mot à mot (PIEGE-08).
+- Harnais de benchmark au minimum de trois tours par phase, horloge
+  injectée (PIEGE-13) — mesure locale undo/redo × 100 sur 2 000 lignes :
+  0,22 ms / 0,25 ms.
+
+### Corrigé
+
+- La porte PMD tournait à vide depuis M1 : le jeu de règles référençait des
+  règles retirées de PMD 7.29.0 (aucun fichier analysé, tâche verte) —
+  références valides, seuil de complexité réel (15 par méthode inchangé,
+  plafonds 600/50 portés par Checkstyle, seuil de classe à la valeur par
+  défaut de la règle).
+- La mutation ciblait aussi les classes internes et utilitaires de test :
+  cibles limitées au code de production ; le seuil suit le score au sens
+  canonique de PIT (un mutant mort par boucle ou par mémoire est détecté) —
+  seuil de 80 % inchangé, la tranche passe aussi en KILLED seuls.
+
 - Validation M1 par le propriétaire (2026-11-04) : « M1 validé », sans
   désignation d'appareil de référence (question 5 ouverte) — M2, moteur de
   texte, est déclenché.

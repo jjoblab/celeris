@@ -27,12 +27,12 @@
 | --- | --- | --- | --- |
 | `rope/Rope.java` (395 l., imports `java.util` seuls) | Porter | re-mesuré : 0,002 ms/édition p50 sur 2 M car., mémoire 1,22× | portés et étendus (M2, 2026-11-04) : `RopeTest`, `RopeFuzzTest` (graines fixes reproductibles), `RopeVisitLeavesTest`, `RopeProprietesTest` (jqwik, ~10 300 séquences/oracle `StringBuilder`) |
 | index de lignes de `document/` | Porter | voie de mutation unique déjà validée | tests de l'index + invariants croisés fuzz |
-| `session/EditorSession.java` (1 694 l.) | Spécifier | conforme au plafond 600 l. ; le concept (voie unique, undo par la même voie) est l'acquis, pas la classe | ses tests servent d'oracle ; PIEGE-07 écrit avant |
-| `session/UndoManager`/`UndoRecorder` (coalescence) | Porter | coalescence mesurée et éprouvée | tests de coalescence à porter |
+| `session/EditorSession.java` (1 694 l.) | Spécifier | conforme au plafond 600 l. ; le concept (voie unique, undo par la même voie) est l'acquis, pas la classe | spécification entamée (2026-11-04) : `TextSession` — la voie unique et l'annulation par la même voie (PIEGE-07) ; l'index de lignes, la multi-sélection et les ponts restent à spécifier. Oracle : `UndoPipelineTest` → `undoReplay_goesThroughTransactionPipeline` |
+| `session/UndoManager`/`UndoRecorder` (coalescence) | Porter | coalescence mesurée et éprouvée | portés (2026-11-04) : `UndoStack` (horloge injectée, ADR-007 — le moteur n'appelle jamais l'horloge système) et `UndoStep` (copie défensive) ; adaptation consignée : le lot multi-éditions d'une transaction remplace `begin/endBatch`, le dispatch vit dans la session ; tests de coalescence portés et étendus (frontière de délai sur horloge scriptée, coupes de chaîne par undo/lot/remplacement) |
 | modèle de sélection (`Selection`, 2 `int`) | Abandonner (remplacer) | mono-curseur par construction ; multi-sélection exigée (A-01) | nouveaux tests multi-sélection |
 | recherche/remplacement | Porter | acquis ; regex, casse, mot entier déjà couverts | tests existants → oracle |
-| décalage des diagnostics et annotations | Porter | « pipeline commun » du dépôt de départ, cité par PIEGE-07 | tests de décalage à écrire d'après les cas du CHANGELOG |
-| plis, retour à la ligne (modèles purs) | Porter | modèles purs documentés | PIEGE-08 d'abord |
+| décalage des diagnostics et annotations | Porter | « pipeline commun » du dépôt de départ, cité par PIEGE-07 | porté (2026-11-04) : contrat `PositionProjector` + `AnchoredRanges` (gravités du pipeline commun, chute des plages vides) ; les types porteurs arrivent avec leurs modules |
+| plis, retour à la ligne (modèles purs) | Porter | modèles purs documentés | retour à la ligne pur porté (2026-11-04) : `SoftWrap` à mesure injectée, coupe dichotomique par caractères (PIEGE-08 écrit avant) ; la variante code (blancs préservés, coupes par offsets) vient avec la vue (M3) ; plis à venir |
 | `ImeBridge` (cœur) | Porter | pont de composition éprouvé par niveau d'API | tests de composition IME |
 
 ## Syntaxe (`cel-core/highlight` → `core-syntax`)
@@ -80,4 +80,4 @@
 
 | Catégorie | Fichiers portés | Restants |
 | --- | --- | --- |
-| Cœur texte | `rope/Rope.java` + 3 fichiers de tests portés (2026-11-04) | index de lignes, session/undo, sélection, recherche, diagnostics, plis+wrap, ImeBridge |
+| Cœur texte | `rope/Rope.java` + 3 fichiers de tests (2026-11-04) ; `session/UndoManager`/`UndoRecorder` → `UndoStack`/`UndoStep`, session de texte spécifiée (`TextSession`, `Document`, `Transaction`, projecteurs de positions) et wrap pur (`SoftWrap`), avec leurs tests (2026-11-04, tranche des pièges) | index de lignes, sélection multi, recherche, plis, ImeBridge |

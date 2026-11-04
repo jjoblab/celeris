@@ -68,5 +68,6 @@ bruit du runner (PIEGE-13) et des tests de vue contraints par réflexion
 ## Actions
 
 - [ ] M1 : définir les annotations de fil et le test d'architecture associé.
-- [ ] M2 : horloge et exécuteurs injectés dans `core-text` (première
-      consommatrice : l'annulation avec coalescence).
+- [x] M2 : horloge et exécuteurs injectés dans `core-text` (première
+      consommatrice : l'annulation avec coalescence — `UndoStack`,
+      2026-11-04).

@@ -4,7 +4,7 @@ Document court et factuel : uniquement ce qui a été vérifié dans ce dépôt
 Les décisions structurantes vivent dans les ADR (`docs/adr/`), validées par
 le propriétaire le 2026-11-04 ; le point d'entrée du cadrage est
 [`docs/RESUME-M0.md`](docs/RESUME-M0.md), l'avancement courant dans
-[`docs/RESUME-M1.md`](docs/RESUME-M1.md).
+[`docs/RESUME-M2.md`](docs/RESUME-M2.md).
 
 ## Vue d'ensemble
 
@@ -76,6 +76,15 @@ modules purs), manifeste d'API (`api/<module>.api`, régénérer par
 - Le wrapper Gradle est épinglé par somme de contrôle
   (`gradle/wrapper/gradle-wrapper.properties`) : ne jamais changer la
   distribution sans mettre à jour la somme.
+- PMD 7 a retiré `ExcessiveClassLength` et `ExcessiveMethodLength` (les
+  plafonds 600/50 vivent dans Checkstyle) : une référence de règle
+  introuvable laisse la porte tourner À VIDE (« No files to analyze »,
+  tâche verte) — le jeu de règles ne doit référencer que des règles
+  existantes pour la version épinglée.
+- La mutation ne cible que le code de production
+  (`--mutableCodePaths` du source set principal) : le filtre d'exclusion
+  par nom ne rattrape ni les classes internes de test ni les utilitaires
+  de test.
 
 ## Neutralité (règle absolue)
 

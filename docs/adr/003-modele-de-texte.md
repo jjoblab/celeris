@@ -81,5 +81,7 @@ explicite.
 
 - [ ] M2 : porter rope + index de lignes + annulation avec coalescence
       (registre de portage, colonne « tests associés » obligatoire).
-- [ ] M2 : écrire les pièges PIEGE-07 et PIEGE-08 **avant** le code.
+- [x] M2 : écrire les pièges PIEGE-07 et PIEGE-08 **avant** le code
+      (2026-11-04, tranche 2 — PIEGE-13 aussi ; les trois tests nommés ont
+      échoué en compilation avant l'implantation).
 - [ ] M2 : propriétés jqwik : 10 000 séquences aléatoires par exécution CI.
