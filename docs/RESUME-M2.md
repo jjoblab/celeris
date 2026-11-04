@@ -362,7 +362,10 @@
   tire aussi dans `length()` et `subSequence()` —, demi-conditions de la
   vue de recherche) : le score passe de 85,0 % à 87,5 % au fil de la
   tranche ;
-- `publishToMavenLocal publicationChecksums` et `:cli:run` verts.
+- `publishToMavenLocal publicationChecksums` et `:cli:run` verts ;
+- **CI verte au premier passage** (20371b1, 2026-11-04) : les deux travaux
+  passent toutes leurs étapes — le rejou complet en local avant poussée
+  (discipline prise en tranche 1) a tenu sa promesse une fois de plus.
 
 ### Écarts et limites
 
