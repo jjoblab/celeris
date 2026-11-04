@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test;
  * Tests des gestes d'édition pilotés par la segmentation : la
  * suppression arrière retire le cluster de graphèmes entier, tous
  * curseurs confondus (ADR-003 — jamais une demi-paire de substitut, ni
- * un emoji amputé de son sélecteur).
+ * un emoji amputé de son sélecteur) ; la suppression avant suit la
+ * même discipline par clusters, la frontière se cherchant devant le
+ * curseur.
  *
  * <p>Le geste coalescence avec la frappe dans la fenêtre de
  * l'historique : frappe, retour arrière et frappe suivante forment un
@@ -136,6 +138,115 @@ class TextSessionEditingTest {
         TextSession session = sessionSur(builder.toString());
         session.setSelection(MultiSelection.caretsAt(builder.length()));
         assertTrue(session.deleteBackward());
+        assertEquals("", session.text());
+        assertTrue(session.undo());
+        assertEquals(builder.toString(), session.text());
+    }
+
+    @Test
+    void deleteForwardRemovesWholeGraphemes() {
+        TextSession session = sessionSur("a👨‍👩b");
+        session.setSelection(MultiSelection.caretsAt(1));
+        assertTrue(session.deleteForward());
+        assertEquals("ab", session.text());
+        assertEquals(MultiSelection.caretsAt(1), session.selection());
+    }
+
+    @Test
+    void deleteForwardRemovesAccentedGraphemeAsOne() {
+        TextSession session = sessionSur("café au lait");
+        session.setSelection(MultiSelection.caretsAt(2));
+        assertTrue(session.deleteForward());
+        assertEquals("caf au lait", session.text());
+    }
+
+    @Test
+    void deleteForwardAcrossAllCarets() {
+        TextSession session = sessionSur("ab\ncd\nef");
+        session.setSelection(MultiSelection.caretsAt(1, 4));
+        assertTrue(session.deleteForward());
+        assertEquals("a\ncd\nf", session.text());
+        assertEquals(MultiSelection.caretsAt(1, 4), session.selection());
+    }
+
+    @Test
+    void deleteForwardMergesAdjacentSpans() {
+        // Deux curseurs voisins : les plages de suppression avant se
+        // touchent et fusionnent — le document n'est jamais muté à
+        // moitié.
+        TextSession session = sessionSur("abcd");
+        session.setSelection(MultiSelection.caretsAt(1, 2));
+        assertTrue(session.deleteForward());
+        assertEquals("ad", session.text());
+    }
+
+    @Test
+    void deleteForwardReplacesNonEmptySelections() {
+        TextSession session = sessionSur("abcdef");
+        session.setSelection(MultiSelection.of(new SelRange(2, 5)));
+        assertTrue(session.deleteForward());
+        assertEquals("abf", session.text());
+        assertEquals(MultiSelection.caretsAt(2), session.selection());
+    }
+
+    @Test
+    void deleteForwardAtDocumentEndIsANoop() {
+        TextSession session = sessionSur("rien devant");
+        session.setSelection(MultiSelection.caretsAt(11));
+        assertFalse(session.deleteForward());
+        assertEquals("rien devant", session.text());
+        assertFalse(session.canUndo());
+    }
+
+    @Test
+    void deleteForwardUndoRestoresSelection() {
+        TextSession session = sessionSur("a👨‍👩b");
+        session.setSelection(MultiSelection.caretsAt(1));
+        assertTrue(session.deleteForward());
+        assertTrue(session.undo());
+        assertEquals("a👨‍👩b", session.text());
+        assertEquals(MultiSelection.caretsAt(1), session.selection());
+        assertTrue(session.canRedo());
+    }
+
+    @Test
+    void deleteForwardCoalescesWithTyping() {
+        TextSession session = sessionSur("");
+        assertTrue(session.type("a"));
+        maintenant += 10;
+        session.setSelection(MultiSelection.caretsAt(0));
+        assertTrue(session.deleteForward());
+        maintenant += 10;
+        assertTrue(session.type("b"));
+        assertEquals("b", session.text());
+        // Un seul geste : la frappe et les suppressions fusionnent.
+        assertEquals(1, session.undoDepth());
+        assertTrue(session.undo());
+        assertEquals("", session.text());
+    }
+
+    @Test
+    void deleteForwardRefusedInReadOnly() {
+        TextSession session = sessionSur("abc");
+        session.setSelection(MultiSelection.caretsAt(0));
+        session.setReadOnly(true);
+        assertFalse(session.deleteForward());
+        assertEquals("abc", session.text());
+        assertEquals(0, session.undoDepth());
+    }
+
+    @Test
+    void deleteForwardGrowsWindowOnClusterLongerThanIt() {
+        // Un cluster de quarante marques combinantes dépasse la
+        // fenêtre de recherche initiale : la frontière certaine
+        // exige d'élargir la fenêtre, jamais de couper le cluster.
+        StringBuilder builder = new StringBuilder("a");
+        for (int i = 0; i < 40; i++) {
+            builder.append('\u0301');
+        }
+        TextSession session = sessionSur(builder.toString());
+        session.setSelection(MultiSelection.caretsAt(0));
+        assertTrue(session.deleteForward());
         assertEquals("", session.text());
         assertTrue(session.undo());
         assertEquals(builder.toString(), session.text());
