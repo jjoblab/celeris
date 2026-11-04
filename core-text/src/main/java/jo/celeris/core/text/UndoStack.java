@@ -13,10 +13,11 @@ import org.jspecify.annotations.Nullable;
  * étendu à la frappe multi-curseurs.
  *
  * <p>Les frappes consécutives fusionnent en une seule étape d'annulation
- * dans la limite du délai {@value #COALESCE_TIMEOUT_MS} ms : une frappe est
- * une insertion d'un seul caractère à chaque curseur, et les curseurs de la
- * frappe suivante doivent être exactement ceux laissés par la précédente —
- * le cas mono-curseur retrouve la règle d'adjacence du dépôt de départ.
+ * dans la limite du délai {@value #COALESCE_TIMEOUT_MS} ms : un geste est
+ * une frappe (insertion d'un seul caractère) ou une suppression arrière
+ * (retrait d'un seul caractère) à chaque curseur, et les curseurs du geste
+ * suivant doivent être exactement ceux laissés par le précédente — le cas
+ * mono-curseur retrouve la règle d'adjacence du dépôt de départ.
  * L'horloge est injectée (ADR-007) : les tests obtiennent un temps
  * déterministe, l'hôte fournit la sienne — le moteur n'appelle jamais
  * l'horloge système.</p>
@@ -76,10 +77,12 @@ public final class UndoStack {
     }
 
     /**
-     * Amorce la chaîne de coalescence pour la frappe qui vient d'être
-     * empilée en étape propre : si chaque édition insère un seul caractère
-     * sans rien retirer, la frappe suivante sur ces mêmes curseurs fusionnera
-     * avec elle ; tout autre type d'édition coupe la chaîne.
+     * Amorce la chaîne de coalescence pour le geste qui vient d'être
+     * empilé en étape propre : si chaque édition est une frappe simple
+     * (insertion d'un seul caractère) ou une suppression arrière simple
+     * (retrait d'un seul caractère), le geste suivant sur ces mêmes
+     * curseurs fusionnera avec elle ; tout autre type d'édition coupe la
+     * chaîne.
      *
      * @param edit l'édition qui vient d'être empilée en étape propre
      */
@@ -89,12 +92,13 @@ public final class UndoStack {
 
     /**
      * Amorce la chaîne de coalescence pour le lot d'éditions qui vient
-     * d'être empilé en étape propre (frappe multi-curseurs).
+     * d'être empilé en étape propre (frappe ou suppression
+     * multi-curseurs).
      *
-     * @param edits les éditions de la frappe, dans leur ordre d'application
+     * @param edits les éditions du geste, dans leur ordre d'application
      */
     public void armNextCoalesce(List<TextEdit> edits) {
-        List<Integer> carets = caretsAfterTyping(edits);
+        List<Integer> carets = caretsAfterKeystroke(edits);
         if (carets == null) {
             cutChain();
         } else {
@@ -115,24 +119,24 @@ public final class UndoStack {
     }
 
     /**
-     * Tente de coalescer une frappe (une insertion d'un seul caractère par
-     * curseur) avec la dernière étape d'annulation : les curseurs frappés
-     * doivent être exactement ceux laissés par la frappe précédente, dans
-     * la fenêtre de coalescence. La sélection d'après de l'étape fusionnée
-     * devient celle de la frappe courante ; la sélection d'avant reste celle
-     * du premier geste de la chaîne.
+     * Tente de coalescer un geste (une frappe ou une suppression d'un
+     * seul caractère par curseur) avec la dernière étape d'annulation :
+     * les curseurs du geste doivent être exactement ceux laissés par le
+     * geste précédent, dans la fenêtre de coalescence. La sélection
+     * d'après de l'étape fusionnée devient celle du geste courant ; la
+     * sélection d'avant reste celle du premier geste de la chaîne.
      *
-     * @param edits          les éditions de la frappe, dans leur ordre
+     * @param edits          les éditions du geste, dans leur ordre
      *                       d'application
-     * @param selectionAfter la sélection d'après la frappe courante, ou
+     * @param selectionAfter la sélection d'après le geste courant, ou
      *                       {@code null} pour conserver celle de l'étape
-     * @return vrai si la frappe a fusionné dans l'étape au sommet
+     * @return vrai si le geste a fusionné dans l'étape au sommet
      */
     public boolean tryCoalesce(List<TextEdit> edits, @Nullable MultiSelection selectionAfter) {
         if (undoSteps.isEmpty() || chainEnds.isEmpty()) {
             return false;
         }
-        List<Integer> carets = caretsAfterTyping(edits);
+        List<Integer> carets = caretsAfterKeystroke(edits);
         long now = clock.getAsLong();
         if (carets == null || carets.size() != chainEnds.size()
                 || !landingPositions(edits).equals(chainEnds)
@@ -213,31 +217,39 @@ public final class UndoStack {
     }
 
     /**
-     * Les curseurs laissés par une frappe : {@code null} si une quelconque
-     * édition ne frappe pas un seul caractère à la fois. Chaque curseur
-     * suit son insertion ({@code start + 1}) : les éditions d'une frappe
+     * Les curseurs laissés par un geste : {@code null} si une quelconque
+     * édition n'est ni une frappe simple ni une suppression simple. Le
+     * curseur suit son insertion ({@code start + 1}) ou se pose sur le
+     * départ de sa suppression ({@code start}) : les éditions d'un geste
      * sont ordonnées, aucune ne décale les curseurs précédents.
      */
-    private static @Nullable List<Integer> caretsAfterTyping(List<TextEdit> edits) {
+    private static @Nullable List<Integer> caretsAfterKeystroke(List<TextEdit> edits) {
         List<Integer> carets = new ArrayList<>(edits.size());
         for (TextEdit edit : edits) {
-            if (!edit.removed().isEmpty() || edit.inserted().length() != 1) {
+            boolean insertion = edit.removed().isEmpty() && edit.inserted().length() == 1;
+            boolean deletion = edit.inserted().isEmpty() && edit.removed().length() == 1;
+            if (!insertion && !deletion) {
                 return null;
             }
-            carets.add(edit.start() + 1);
+            carets.add(insertion ? edit.start() + 1 : edit.start());
         }
         return carets;
     }
 
     /**
-     * Les positions d'atterrissage d'une frappe, dans les coordonnées
-     * d'avant la transaction : chaque édition séquentielle retire un
-     * caractère aux suivantes ({@code start - index}).
+     * Les positions des curseurs qui ont produit le geste, dans les
+     * coordonnées d'avant la transaction : la frappe atterrit sur son
+     * insertion, la suppression arrière sur la fin de la plage retirée —
+     * chaque édition séquentielle étant ramenée du décalage cumulé des
+     * précédentes.
      */
     private static List<Integer> landingPositions(List<TextEdit> edits) {
         List<Integer> positions = new ArrayList<>(edits.size());
-        for (int i = 0; i < edits.size(); i++) {
-            positions.add(edits.get(i).start() - i);
+        int shift = 0;
+        for (TextEdit edit : edits) {
+            boolean insertion = edit.removed().isEmpty() && edit.inserted().length() == 1;
+            positions.add(insertion ? edit.start() - shift : edit.start() + 1 - shift);
+            shift += edit.inserted().length() - edit.removed().length();
         }
         return positions;
     }

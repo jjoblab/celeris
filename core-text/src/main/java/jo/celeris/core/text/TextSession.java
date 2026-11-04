@@ -239,6 +239,35 @@ public final class TextSession {
     }
 
     /**
+     * Supprime en arrière, curseur par curseur, par clusters de
+     * graphèmes entiers (ADR-003 : jamais une demi-paire de substitut,
+     * jamais un emoji amputé de son sélecteur).
+     *
+     * <p>Une plage non vide est remplacée par le vide ; un curseur retire
+     * le cluster qui le précède ; les plages de suppression issues de
+     * curseurs voisins fusionnent si elles se touchent. Le geste
+     * coalescence avec la frappe dans la fenêtre de l'historique et
+     * s'annule avec restauration de la sélection (A-13).</p>
+     *
+     * @return vrai si une suppression a eu lieu ; faux en lecture seule,
+     *         sur une sélection vide ou curseur à l'origine du document
+     */
+    public boolean deleteBackward() {
+        if (readOnly || selection.isEmpty()) {
+            return false;
+        }
+        List<TextEdit> editions = suppressionArriere(selection);
+        if (editions.isEmpty()) {
+            return false;
+        }
+        MultiSelection avant = selection;
+        validerBornes(editions);
+        appliquer(editions);
+        enregistrer(editions, avant, selection);
+        return true;
+    }
+
+    /**
      * Remplace TOUTES les occurrences de la requête par le remplacement
      * donné — moteur {@link FindReplace} à l'horloge de la session
      * (ADR-007), lecture du texte courant puis mutation PAR LA VOIE
@@ -411,6 +440,69 @@ public final class TextSession {
             }
         }
         return editions;
+    }
+
+    /**
+     * Les éditions de la suppression arrière : plages non vides remplacées
+     * par le vide, clusters précédant les curseurs retirés, plages
+     * fusionnées au toucher — puis positions séquentielles ajustées du
+     * décalage cumulé, le texte retiré se lisant aux positions d'origine.
+     */
+    private List<TextEdit> suppressionArriere(MultiSelection aSupprimer) {
+        List<int[]> spans = new ArrayList<>(aSupprimer.caretCount());
+        for (SelRange plage : aSupprimer.ranges()) {
+            if (!plage.isEmpty()) {
+                spans.add(new int[] {plage.start(), plage.end()});
+            } else if (plage.caret() > 0) {
+                spans.add(new int[] {frontiereArriere(plage.caret()), plage.caret()});
+            }
+        }
+        spans.sort((a, b) -> Integer.compare(a[0], b[0]));
+        List<TextEdit> editions = new ArrayList<>(spans.size());
+        int decalage = 0;
+        int[] courante = null;
+        for (int[] span : spans) {
+            if (courante != null && span[0] <= courante[1]) {
+                courante[1] = Math.max(courante[1], span[1]);
+            } else {
+                if (courante != null) {
+                    decalage = ajouteSuppression(editions, courante, decalage);
+                }
+                courante = span;
+            }
+        }
+        if (courante != null) {
+            ajouteSuppression(editions, courante, decalage);
+        }
+        return editions;
+    }
+
+    /**
+     * Ajoute l'édition de suppression d'une plage fusionnée ; renvoie le
+     * décalage cumulé après celle-ci.
+     */
+    private int ajouteSuppression(List<TextEdit> editions, int[] span, int decalage) {
+        String retire = document.subText(span[0], span[1]);
+        editions.add(new TextEdit(span[0] + decalage, retire, ""));
+        return decalage - retire.length();
+    }
+
+    /**
+     * La frontière de graphème qui précède l'offset : fenêtre croissante
+     * depuis l'offset, la segmentation se replaçant dans la fenêtre
+     * jusqu'à trouver une frontière certaine.
+     */
+    private int frontiereArriere(int offset) {
+        int window = 32;
+        while (true) {
+            int start = Math.max(0, offset - window);
+            String chunk = document.subText(start, offset);
+            int local = Grapheme.previousBoundary(chunk, chunk.length());
+            if (local > 0 || start == 0) {
+                return start + local;
+            }
+            window *= 4;
+        }
     }
 
     private void enregistrer(List<TextEdit> editions, MultiSelection avant,
