@@ -3,6 +3,8 @@ package jo.celeris.core.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Random;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -88,5 +90,48 @@ class BenchmarkHarnessTest {
                 "redo trop lent : " + (retenus[1] / 1e6) + " ms (min de 3 tours)");
         assertEquals(apresEditions, session.text());
         assertEquals(100, session.undoDepth());
+    }
+
+    /**
+     * Mesure réelle de l'édition, benchmark de référence de M2 : document
+     * de 50 000 lignes (≈ 2 M de caractères), mille remplacements d'un
+     * caractère par tour — par la voie de mutation unique de la session
+     * (lecture du texte retiré, splice de la rope, maintien de l'index de
+     * lignes, enregistrement d'étape) — minimum de trois tours conservé
+     * (PIEGE-13). Budget du mandat (ADR-006) : 1 ms par édition ; le seuil
+     * asserté est exactement ce budget, c'est-à-dire une protection
+     * structurelle (un facteur ~50 au-dessus de la mesure courante), pas
+     * une chasse aux pourcents de bruit résiduel.
+     *
+     * <p>Positions déterministes à graine fixe, calculées une fois contre
+     * le document initial : chaque remplacement conserve la longueur, les
+     * positions restent valides pour les trois tours et chaque tour
+     * exécute le même travail — les tours restent comparables.</p>
+     */
+    @Test
+    void editBenchmark_minOfThreeHoldsBudget() {
+        StringBuilder contenu = new StringBuilder();
+        for (int ligne = 0; ligne < 50_000; ligne++) {
+            contenu.append("ligne ").append(ligne).append(" : contenu de la ligne\n");
+        }
+        TextSession session = TextSession.of(contenu.toString(), () -> 0L);
+        Random positions = new Random(20261_104L);
+        int[] cibles = new int[1_000];
+        for (int i = 0; i < cibles.length; i++) {
+            cibles[i] = positions.nextInt(session.length() - 1);
+        }
+
+        Runnable phaseEditions = () -> {
+            for (int cible : cibles) {
+                session.replaceRange(cible, cible + 1, "X");
+            }
+        };
+        long[] retenus = BenchmarkHarness.minOfTours(System::nanoTime, phaseEditions);
+        double parEdition = retenus[0] / 1e6 / cibles.length;
+        System.out.printf("[benchmark] edition x1000 (50000 lignes, min de 3 tours) :"
+                        + " %.2f ms ; par edition : %.4f ms%n",
+                retenus[0] / 1e6, parEdition);
+        assertTrue(retenus[0] < 1_000_000_000L,
+                "edition trop lente : " + parEdition + " ms par edition (min de 3 tours)");
     }
 }
