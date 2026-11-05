@@ -19,7 +19,9 @@ import android.view.inputmethod.InputConnection;
 import java.util.ArrayList;
 import java.util.List;
 
+import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.text.Document;
+import jo.celeris.core.text.EditListener;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
@@ -44,6 +46,11 @@ import org.jspecify.annotations.Nullable;
  * composition vit dans {@link CompositionState}, la colle dans
  * {@link EditorInputConnection} ; l'accessibilité (G-05) vit dans
  * {@link AccessibilityHost}.</p>
+ *
+ * <p>La syntaxe (M4) se branche par {@link #setLanguage(LanguageSyntax)} :
+ * le pont {@link EditorSyntax} habille la source de rangées des plages
+ * de jetons (B-01) et sert la coulisse de marqueurs — plis (D-07,
+ * A-15), lignes en erreur (D-02) — l'appui sur un chevron bascule.</p>
  */
 public final class EditorView extends View {
 
@@ -57,11 +64,14 @@ public final class EditorView extends View {
     private final ScrollFrame trace = new ScrollFrame();
     private final SelectionDrag glissement = new SelectionDrag();
     private final FoldModel plis = new FoldModel();
+    private final EditorSyntax syntaxe = new EditorSyntax(plis);
     private final RowLayoutCache cache = new RowLayoutCache();
     private final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
     private final ChromePainter chrome = new ChromePainter();
     private final AccessibilityHost accessibilite = new AccessibilityHost(this);
+    private final EditListener ecouteurAnnonce = (debut, fin, retire, insere)
+            -> sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
     private final TextBrush pinceauChrome;
     private final GestureDetector longPresses;
     private final ScaleGestureDetector pincements;
@@ -98,11 +108,15 @@ public final class EditorView extends View {
         setFocusable(true);
         setFocusableInTouchMode(true);
         BrushFactory pinceaux = new PaintBrushes();
-        trace.addLayer(new GutterPainter(pinceaux, MARGE_GOUTTIERE));
+        trace.addLayer(new GutterPainter(pinceaux, MARGE_GOUTTIERE,
+                syntaxe::marques,
+                () -> syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE)));
         trace.addLayer(new SelectionPainter(pinceaux));
         trace.addLayer(new ComposingPainter(pinceaux, composition));
         trace.addLayer(new TextPainter(pinceaux, cache, sourceLiee));
         pinceauChrome = pinceaux.newBrush();
+        syntaxe.attacher(session);
+        session.addEditListener(ecouteurAnnonce);
         longPresses = new GestureDetector(context, new GestureDetector
                 .SimpleOnGestureListener() {
             @Override
@@ -141,15 +155,26 @@ public final class EditorView extends View {
      * @param nouvelleSession la session d'édition à afficher
      */
     public void setSession(TextSession nouvelleSession) {
-        if (nouvelleSession != session) {
-            nouvelleSession.addEditListener((debut, fin, retire, insere) ->
-                    sendAccessibilityEvent(
-                            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED));
-        }
+        session.removeEditListener(ecouteurAnnonce);
         session = nouvelleSession;
-        revisionSuivie = 0L;
+        session.addEditListener(ecouteurAnnonce);
+        syntaxe.attacher(session);
+        revisionSuivie = Long.MIN_VALUE;
+        cache.clear();
         scrollX = 0f;
         scrollY = 0f;
+        invalidate();
+    }
+
+    /**
+     * Analyse le langage donne : coloration, plis et diagnostics du
+     * meme arbre (B-01, A-15, D-02, D-07) ; null coupe l'analyse.
+     * @param nouvelleLangue le langage, null pour aucun
+     */
+    public void setLanguage(@Nullable LanguageSyntax nouvelleLangue) {
+        syntaxe.setLanguage(nouvelleLangue);
+        revisionSuivie = Long.MIN_VALUE;
+        cache.clear();
         invalidate();
     }
 
@@ -332,7 +357,8 @@ public final class EditorView extends View {
         float hauteurContenu = projection.rowCount() * metrics.lineHeight();
         scrollY = ScrollGeometry.clamp(scrollY, hauteurContenu, getHeight());
         largeurGouttiere = GutterGeometry.width(Math.max(1, projection.rowCount()),
-                metrics.charWidth(), MARGE_GOUTTIERE);
+                metrics.charWidth(), MARGE_GOUTTIERE,
+                syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE));
         scrollX = ScrollGeometry.clamp(scrollX, largeurContenu(), largeurVisible());
         int premiere = ScrollGeometry.firstRow(scrollY, metrics.lineHeight());
         int visibles = ScrollGeometry.visibleRows(getHeight(), metrics.lineHeight());
@@ -392,8 +418,9 @@ public final class EditorView extends View {
             cache.invalidate(revisionSuivie);
             revisionSuivie = document.revision();
             projection = new VisualProjection(document, plis, colonnesVoulues);
-            sourceLiee.set(new DocumentRowSource(document, projection, metrics,
-                    colonnesVoulues));
+            sourceLiee.set(syntaxe.habiller(
+                    new DocumentRowSource(document, projection, metrics,
+                            colonnesVoulues), document));
         }
     }
 
@@ -434,6 +461,12 @@ public final class EditorView extends View {
         SelectionHandles.HandleId poignee = poigneeVisee(x, y);
         if (poignee != SelectionHandles.HandleId.NONE) {
             poigneeTiree = poignee;
+            return true;
+        }
+        if (syntaxe.basculerPliAuPoint(x, y, scrollY, metrics.lineHeight(),
+                syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE),
+                projection)) {
+            invalidate();
             return true;
         }
         int offset = offsetAt(x, y);

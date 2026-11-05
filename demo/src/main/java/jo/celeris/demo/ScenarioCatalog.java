@@ -19,8 +19,15 @@ import java.util.List;
  * D-13 (thèmes à contraste vérifié), D-15 (zoom au pincement), D-16
  * (poignées, pilule, loupe), D-17 (clavier matériel), G-01 (ouverture
  * progressive), G-02 (tactile d'abord, hors ligne) et G-05
- * (accessibilité). Les facettes non livrées — D-02 (diagnostics),
- * D-07 (plis), D-14 (ligatures) — rejoignent leur jalon.</p>
+ * (accessibilité). Les facettes non livrées — D-14 (ligatures) —
+ * rejoignent leur jalon.</p>
+ *
+ * <p>Jalon M4 (syntaxe) : A-15 (plis calculés depuis l'arbre, le pli
+ * manuel survit à l'édition voisine), B-01 (coloration lexicale et
+ * syntaxique du même arbre), C-01 (XML : coloration, plis, crochets)
+ * et C-14 (langages P0 : Java, Kotlin, XML). Les scénarios B-16 (plan),
+ * C-07 (Gradle KTS et Groovy) et C-15/C-16 (longue traîne) suivent
+ * leurs tranches.</p>
  */
 public final class ScenarioCatalog {
 
@@ -30,6 +37,7 @@ public final class ScenarioCatalog {
     /** Scénarios disponibles, dans l'ordre de la matrice de parité. */
     public static List<Scenario> scenarios() {
         List<Scenario> tous = new ArrayList<>(scenariosEdition());
+        tous.addAll(scenariosLangages());
         tous.addAll(scenariosAffichage());
         tous.addAll(scenariosGlobal());
         return List.copyOf(tous);
@@ -50,6 +58,13 @@ public final class ScenarioCatalog {
                         "Cent frappes successives s'annulent en une seule opération "
                                 + "et la sélection d'avant est restituée exactement "
                                 + "(PIEGE-07 couvert)."),
+                new Scenario(
+                        "A-15",
+                        "Plis par niveaux, depuis l'arbre",
+                        "Les régions pliables viennent de l'arbre syntaxique — "
+                                + "déclarations, commentaires multi-lignes ; le pli "
+                                + "manuel survit à l'édition voisine : il se décale "
+                                + "quand le document bouge ailleurs."),
                 new Scenario(
                         "A-18",
                         "Retour à la ligne souple",
@@ -74,6 +89,31 @@ public final class ScenarioCatalog {
                         "Cent mille lignes s'ouvrent côté modèle dans les budgets "
                                 + "de l'ADR-006 : première image et défilement "
                                 + "restent fluides."));
+    }
+
+    /** Les catégories B et C — coloration et langages du même arbre. */
+    private static List<Scenario> scenariosLangages() {
+        return List.of(
+                new Scenario(
+                        "B-01",
+                        "Coloration du même arbre",
+                        "Mots réservés, chaînes, nombres, commentaires : chaque "
+                                + "plage se peint à l'encre de sa sorte, servie par "
+                                + "les mêmes paniers que les plis — le rendu ne "
+                                + "relit jamais le texte."),
+                new Scenario(
+                        "C-01",
+                        "XML : coloration, plis, crochets",
+                        "Balise ouvrante appariée à sa fermeture, CDATA en crochet "
+                                + "apparié, éléments repliables ; la balise non "
+                                + "fermée devient un nœud d'erreur, jamais un "
+                                + "échec."),
+                new Scenario(
+                        "C-14",
+                        "Langages P0 : Java, Kotlin, XML",
+                        "Trois grammaires réelles sur le même socle : jetons soudés "
+                                + "sans trou à peindre, états transportés ligne à "
+                                + "ligne, ré-analyse bornée à la reconvergence."));
     }
 
     /** La catégorie D — affichage, gouttière, thèmes et clavier. */

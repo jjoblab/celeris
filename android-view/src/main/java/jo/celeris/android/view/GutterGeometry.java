@@ -42,6 +42,21 @@ public final class GutterGeometry {
     }
 
     /**
+     * La largeur de la gouttière avec coulisse de marqueurs (D-02/D-07) :
+     * la coulisse s'ajoute à gauche du champ de numéros.
+     *
+     * @param maxNumber le plus grand numéro de ligne affichable
+     * @param charWidth la largeur d'un caractère, en pixels
+     * @param padding   la respiration de chaque côté du champ, en pixels
+     * @param markerLane la largeur de la coulisse des marqueurs, en pixels
+     * @return la largeur totale de la gouttière, en pixels
+     */
+    public static float width(int maxNumber, float charWidth, float padding,
+            float markerLane) {
+        return width(maxNumber, charWidth, padding) + Math.max(0f, markerLane);
+    }
+
+    /**
      * L'abscisse du numéro pour l'aligner à droite dans la gouttière.
      *
      * @param labelLength le nombre de caractères du numéro affiché

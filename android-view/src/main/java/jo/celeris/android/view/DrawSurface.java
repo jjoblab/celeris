@@ -48,4 +48,20 @@ public interface DrawSurface {
      * @param brush  le pinceau, couleur déjà posée
      */
     void drawRect(float left, float top, float right, float bottom, TextBrush brush);
+
+    /**
+     * Trace un trait entre deux points — les chevrons de pli de la
+     * gouttière (D-07) s'y servent, en primitives, sans allocation
+     * (PIEGE-15).
+     *
+     * @param x1    l'abscisse de départ, en pixels
+     * @param y1    l'ordonnée de départ, en pixels
+     * @param x2    l'abscisse d'arrivée, en pixels
+     * @param y2    l'ordonnée d'arrivée, en pixels
+     * @param brush le pinceau, couleur déjà posée
+     */
+    default void drawLine(float x1, float y1, float x2, float y2, TextBrush brush) {
+        // les surfaces qui ne tracent pas de trait l'ignorent : la
+        // gouttière sans marqueurs n'en dépend jamais
+    }
 }

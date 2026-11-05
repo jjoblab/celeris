@@ -267,7 +267,7 @@ class GutterPainterTest {
         GutterMarks marques = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), replis, new int[0]);
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, 12f));
+                () -> marques, () -> 12f));
         Document document = Document.of("a\nb\nc\nd\ne");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection = new VisualProjection(5, replis);
@@ -279,8 +279,9 @@ class GutterPainterTest {
         assertEquals(2, surface.traits().size(), "le chevron replié vit en deux traits");
         TraitTrace premier = surface.traits().get(0);
         TraitTrace second = surface.traits().get(1);
-        // pointe à droite : les deux traits partagent la même abscisse de pointe
-        assertEquals(premier.x2(), second.x2(), 1e-6f);
+        // pointe à droite : le premier trait finit où le second commence
+        assertEquals(premier.x2(), second.x1(), 1e-6f,
+                "les deux traits se rejoignent à la pointe");
         assertTrue(premier.y1() < second.y1(),
                 "le premier trait part plus haut que le second");
         assertTrue(premier.x1() < premier.x2(),
@@ -303,7 +304,7 @@ class GutterPainterTest {
         GutterMarks marques = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), new FoldModel(), new int[0]);
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, 12f));
+                () -> marques, () -> 12f));
         Document document = Document.of("a\nb\nc\nd\ne");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         FrameState etat = new FrameState();
@@ -315,8 +316,9 @@ class GutterPainterTest {
         assertEquals(2, surface.traits().size());
         TraitTrace premier = surface.traits().get(0);
         TraitTrace second = surface.traits().get(1);
-        // pointe en bas : les deux traits partagent la même ordonnée de pointe
-        assertEquals(premier.y2(), second.y2(), 1e-6f);
+        // pointe en bas : le premier trait finit où le second commence
+        assertEquals(premier.y2(), second.y1(), 1e-6f,
+                "les deux traits se rejoignent à la pointe basse");
         assertTrue(premier.y2() > premier.y1(),
                 "la pointe du chevron déplié regarde vers le bas");
         assertTrue(premier.x1() < second.x2(), "le chevron s'ouvre vers le haut");
@@ -333,7 +335,7 @@ class GutterPainterTest {
         GutterMarks marques = GutterMarks.of(
                 List.of(), new FoldModel(), new int[] {0});
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, 12f));
+                () -> marques, () -> 12f));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         FrameState etat = new FrameState();

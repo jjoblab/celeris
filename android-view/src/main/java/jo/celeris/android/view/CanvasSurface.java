@@ -44,6 +44,11 @@ public final class CanvasSurface implements DrawSurface {
         canvas().drawRect(left, top, right, bottom, peintureDe(brush));
     }
 
+    @Override
+    public void drawLine(float x1, float y1, float x2, float y2, TextBrush brush) {
+        canvas().drawLine(x1, y1, x2, y2, peintureDe(brush));
+    }
+
     private Canvas canvas() {
         Canvas local = canvas;
         if (local == null) {

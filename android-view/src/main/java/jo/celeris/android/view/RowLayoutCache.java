@@ -113,6 +113,17 @@ public final class RowLayoutCache {
         }
     }
 
+    /**
+     * Retire TOUTES les mises en page, toutes révisions comprises — le
+     * changement de source qui ne signe aucune composante de clé
+     * (changement de langage, changement de session) ne peut pas servir
+     * une mise en page périmée (PIEGE-02 par construction).
+     */
+    public void clear() {
+        table = new Entree[CAPACITE_INITIALE];
+        nombre = 0;
+    }
+
     /** Le nombre de mises en page en cache. */
     public int size() {
         return nombre;

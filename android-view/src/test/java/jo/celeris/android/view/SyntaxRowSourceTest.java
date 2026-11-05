@@ -150,7 +150,7 @@ class SyntaxRowSourceTest {
         String ligne = "String message = \"bonjour\";";
         Document document = Document.of(ligne);
         SyntaxRowSource source = new SyntaxRowSource(
-                new SourceATranche(document, 16, 26), lexique(ligne));
+                new SourceATranche(document, 17, 26), lexique(ligne));
         RowLayout mise = source.layoutOf(new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
 
         assertEquals("\"bonjour\"", mise.text());
