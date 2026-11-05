@@ -9,6 +9,18 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 5 (M4) — les consommateurs du rendu : coloration par plages
+  du même arbre (B-01 — `SyntaxRowSource` habille chaque rangée des
+  jetons soudés, rognés à la tranche, sans trou à peindre), palettes
+  par sorte vérifiées WCAG sur les trois thèmes (D-13), plis calculés
+  depuis l'arbre avec survie du pli manuel à l'éditon voisine (A-15 —
+  `FoldTracker`, remappage monotone, rejeu d'annulation compris),
+  coulisse de marqueurs en gouttière (D-07 — chevrons et bascule au
+  clic ; D-02 — marque d'erreur par ligne) ; le pont pur
+  `EditorSyntax` relie session, analyse et vue sur la voie de
+  transaction unique ; le changement de source vide tout le cache
+  (PIEGE-02) et le changement de session à révision 0 reconstruit
+  désormais sa source (angle mort latent) ; 744 tests verts.
 - Tranche 4bis (M4) — budget de ré-analyse à seuil : les cinq
   langages P0 ré-analysent 50 000 lignes après édition en moins de
   10 ms, minimum de trois tours retenu (PIEGE-13) ; le script Gradle

@@ -277,3 +277,93 @@
 - le découpage par appel ne change rien aux fichiers Kotlin
   ordinaires (aucune déclaration n'est un identificateur de premier
   niveau) — les essais d'arbre Kotlin restent verts sans retouche.
+
+## Tranche 5 — les consommateurs du rendu : coloration, plis et diagnostics (2026-11-05)
+
+### Livré
+
+- **Palettes syntaxiques par thème** (`SyntaxPalette`, `EditorTheme`,
+  `EditorThemes`) : une encre par sorte de jeton du socle, résolue une
+  fois pour toutes (ADR-008) et indexée par ordinal — la consultation
+  ne lit qu'un tableau, sans allocation dans le chemin de dessin
+  (PIEGE-15). Les trois thèmes complets (clair, sombre, contraste
+  élevé) gagnent leur palette, chaque encre contrastant ≥ 4,5:1 sur le
+  fond — vérifié par test (D-13) ; le thème hérité à six champs
+  reçoit la palette monochrome à l'encre de base, un thème sans
+  coloration déclarée reste un thème valide.
+- **Plages colorées couvrantes** (`ColoredSpan`, `RowLayout.spans`,
+  `SyntaxRowSource`) : le décorateur greffe sur chaque mise en page
+  les plages des paniers de l'analyse — les jetons soudés du socle
+  couvrent la ligne, tout écart résiduel se comble à l'identificateur,
+  la rangée n'a jamais de trou à peindre ; sous retour à la ligne
+  (A-18) les plages sont rognées à la tranche, une coupe au milieu
+  d'un jeton le suit, l'état transporté colore la suite d'un
+  commentaire de bloc, la rangée vide reste sans plage.
+- **Le peintre de texte coloré** (`TextPainter`) : un pinceau par
+  sorte pris à sa fabrique, la couleur de chaque plage posée à
+  l'instant précis du tracé — même sous la pire fabrique (un pinceau
+  mutable unique), aucune couleur résiduelle ne se propage (PIEGE-01) ;
+  sous segments bidirectionnels, la couleur suit l'intersection
+  plage-segment dans l'ordre visuel (ADR-008) ; une rangée sans plage
+  reste sur le chemin rapide d'un seul tracé.
+- **Le suivi des plis à l'édition** (`FoldTracker`, A-15) : le pli
+  manuel survit à l'édition voisine — l'en-tête détruit tue le pli,
+  les lignes d'après se décalent du différentiel net de sauts de
+  ligne, le corps chevauchant la zone touchée s'étend ou se rétracte,
+  le corps vidé tue le pli ; l'insertion en fin de contenu de ligne
+  n'y déplace pas l'en-tête, la coupure au milieu de l'en-tête fait
+  suivre le contenu. Le remappage passe par la monotonie de
+  l'indexation des lignes, l'état replié ne bouge jamais, le rejeu de
+  l'annulation traverse la même voie (PIEGE-07) — annuler l'édition
+  qui avait décalé le pli le ramène à sa place.
+- **La coulisse de marqueurs** (`GutterMarks`, `GutterPainter`,
+  `GutterGeometry`, `DrawSurface.drawLine`) : les chevrons de pli
+  (D-07) — replié pointe à droite, pliable pointe vers le bas — en
+  deux traits de primitives, la marque d'erreur (D-02) à l'encre
+  d'erreur du thème ; l'état replié s'interroge au vivant sur le
+  modèle de plis, basculer un pli se voit à l'image suivante sans
+  reconstruire les marques ; la coulisse s'ajoute à gauche du champ de
+  numéros, la gouttière sans marques reste muette.
+- **Le pont session ↔ vue** (`EditorSyntax`) : pur, testable sans SDK
+  — le coordinateur d'analyse suit la session sur la voie de
+  transaction unique, la source de rangées s'habille des plages,
+  les régions pliables (`TreeFolds`) et les lignes en erreur
+  (`TreeDiagnostics`) se rafraîchissent par révision d'analyse,
+  l'appui dans la coulisse bascule le pli de la ligne visée avec
+  garde de chevauchement, l'éditon remappe les plis sur l'instantané
+  d'avant.
+- **Le câblage de la vue** (`EditorView.setLanguage`) : le changement
+  de source vide TOUT le cache — la langue ne signe aucune composante
+  de clé (PIEGE-02) — et la sentinel `Long.MIN_VALUE` force la
+  reconstruction ; au passage, le changement de session à révision 0
+  reconstruit désormais sa source : `Document.of` démarre à révision
+  0, l'angle mort était latent depuis M3.
+- **Scénarios M4 au catalogue** : A-15, B-01, C-01 et C-14, dans
+  l'ordre de la matrice de parité (18 scénarios au total).
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble — **744 tests, zéro échec**
+  (40 neufs : palettes et contrastes WCAG, plages couvrantes et
+  rognées, coloration sous BiDi et fabrique hostile, suivi de plis —
+  onze éditions types dont le rejeu d'annulation —, marques de
+  gouttière, chevrons et coulisse, vidage complet du cache) ;
+- Checkstyle (600/50) et PMD (classe 80, méthode 15) verts : la
+  complexité d'`EditorView` tient sous le plafond par délégation au
+  pont `EditorSyntax`, la palette indexe par ordinal (complexité 1) ;
+- couverture JaCoCo ≥ 90 % de lignes maintenue sur les modules purs.
+
+### Écarts et limites
+
+1. **L'analyse vit sur le fil d'appel** : la première analyse d'un
+   grand document se paie à la première image — l'incrémental la
+   suit (µs à l'édition). Le fil dédié et l'annulation (ADR-007) et
+   l'ouverture progressive (G-01) suivent leur tranche.
+2. **D-02 à un seul niveau** : le socle ne rapporte que des erreurs
+   (nœuds malformés) ; la priorité erreur > avertissement attend les
+   diagnostics de sémantique (M6). L'aperçu de pli au maintien (D-07)
+   attend les popups (M5).
+3. **Restent à livrer pour M4** : la voie de grammaires pour la
+   longue traîne (C-15/C-16), le plan consommateur (B-16), le
+   scénario C-07 (Groovy et KTS — l'analyseur Groovy n'existe pas),
+   l'ouverture progressive et les corpus embarqués.

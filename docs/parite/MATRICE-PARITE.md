@@ -44,9 +44,16 @@
 >   (tranches 2 à 4 : Java, XML, JSON, Kotlin et Gradle KTS —
 >   lexeurs à états transportés, parseurs tolérants, plan, plis,
 >   diagnostics et indentation du même arbre, extensions composées,
->   CDATA, gabarits et chaînes brutes, commentaires nichés) ; la
->   voie de grammaires, la coloration consommatrice, l'ouverture
->   progressive et les budgets restent à livrer.
+>   CDATA, gabarits et chaînes brutes, commentaires nichés) ; budget de
+>   ré-analyse à seuil tenu (tranche 4bis : les cinq langages sous
+>   10 ms sur 50 000 lignes, PIEGE-13) ; les consommateurs du rendu
+>   sont branchés (tranche 5 : coloration par plages du même arbre
+>   — B-01 — palettes vérifiées WCAG sur les trois thèmes, plis
+>   calculés depuis l'arbre et survie du pli manuel à l'éditon
+>   voisine — A-15 — chevrons de la gouttière et bascule au clic
+>   — D-07 — marques d'erreur par ligne — D-02) ; la voie de
+>   grammaires, le plan consommateur (B-16), l'ouverture progressive
+>   et les corpus restent à livrer.
 
 ## A. Édition et saisie
 
@@ -66,7 +73,7 @@
 | A-12 | Tri de lignes (naturel, sensible à la casse) | P2 | absent | `core-intelligence` | M5 | test : tri naturel « item2 » < « item10 » |
 | A-13 | Annulation/rétablissement groupés avec restauration de sélection | P0 | présent (coalescence) | `core-text` | M2 | test : 100 frappes coalescées en 1 opération, sélection restaurée, PIEGE-07 couvert |
 | A-14 | Historique local par fichier | P2 | absent | `android-host` | M7 | scénario : restaurer une version antérieure ; test d'isolement par fichier |
-| A-15 | Pli manuel, par niveau, régions | P0 | présent | `core-syntax` | M4 | test : plis calculés depuis l'arbre ; pli manuel survive à l'édition voisine |
+| A-15 | Pli manuel, par niveau, régions | P0 | présent (au départ ; celeris : régions calculées depuis l'arbre et pli manuel survivant à l'éditon voisine livrées M4-t5 — `FoldTracker`, remappage monotone, rejeu d'annulation compris) | `core-syntax` | M4 | test : plis calculés depuis l'arbre ; pli manuel survive à l'édition voisine |
 | A-16 | Lignes collantes | P1 | absent | `android-view` | M5 | test : en-tête visible au défilement, budget d'image tenu |
 | A-17 | Guides d'indentation | P1 | présent | `android-view` | M3 | test de capture : guides alignés aux niveaux, plis inclus |
 | A-18 | Retour à la ligne souple (mots, coupure forcée) | P0 | présent | `core-text` + `android-view` | M2/M3 | test : mot plus large que la largeur coupé par caractère (PIEGE-08) ; rangées ≠ lignes (PIEGE-04) |
@@ -83,7 +90,7 @@
 
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
 | --- | --- | --- | --- | --- | --- | --- |
-| B-01 | Coloration lexicale et syntaxique | P0 | présent (19 tokéniseurs) | `core-syntax` | M4 | test : même arbre pour Java, Kotlin, XML, JSON, KTS ; budgets de ré-analyse tenus |
+| B-01 | Coloration lexicale et syntaxique | P0 | présent (19 tokéniseurs) (au départ ; celeris : coloration par plages du même arbre livrée M4-t5 — `SyntaxRowSource` et `TextPainter`, palettes par sorte vérifiées WCAG sur les trois thèmes) | `core-syntax` | M4 | test : même arbre pour Java, Kotlin, XML, JSON, KTS ; budgets de ré-analyse tenus |
 | B-02 | Coloration sémantique (paramètres, champs, statiques, obsolète barré, inutilisé estompé) | P1 | présent (tir sémantique) | `core-lsp` | M6 | test avec serveur factice : jetons sémantiques indépendants des diagnostics (PIEGE-18) |
 | B-03 | Complétion de base (préfixe, mots du fichier) | P0 | présent | `core-intelligence` | M6 | test hors ligne : complétion au mot près sans serveur |
 | B-04 | Complétion typée, chaînée, d'instruction | P0 | présent | `core-lsp` | M6 | test avec serveur factice : tri et filtrage respectés, liste tronquée honorée (PIEGE-17) |
@@ -115,7 +122,7 @@
 
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
 | --- | --- | --- | --- | --- | --- | --- |
-| C-01 | XML : coloration, plis, crochets | P0 | présent | `core-syntax` | M4 | test : arbre XML tolérant (balise non fermée), plis par élément |
+| C-01 | XML : coloration, plis, crochets | P0 | présent (au départ ; celeris : arbre, plis et coloration XML livrés M4-t3 et M4-t5) | `core-syntax` | M4 | test : arbre XML tolérant (balise non fermée), plis par élément |
 | C-02 | XML : complétion guidée par le schéma des ressources | P1 | absent | `core-intelligence` | M7 | test : attributs et unités (dp, sp, `@string/`) suggérés depuis le schéma embarqué |
 | C-03 | XML : validation et diagnostics | P1 | partiel | `core-syntax` | M7 | test : diagnostic d'imbrication invalide avec plage exacte |
 | C-04 | XML : navigation des références (`@string/`, `@layout/`…) | P1 | absent | `core-intelligence` | M7 | test : aller à la ressource définie, aller à l'usage |
@@ -128,7 +135,7 @@
 | C-11 | Compose : repères `@Preview` en gouttière (rendu délégué à l'hôte) | P2 | présent (marqueurs ancrés) | `android-host` | M7 | test : repère ancré à la ligne, délégation du rendu à l'hôte |
 | C-12 | Lint Android : diagnostics affichés, correctifs applicables | P1 | absent | `android-host` | M7 | test : diagnostics de build importés, décalage exact (tests hérités de décalage) |
 | C-13 | Extraction d'une chaîne en ressource | P2 | absent | `core-intelligence` | M7+ | test : ressource créée + référence insérée + transaction annulable |
-| C-14 | Langages P0 : Java, Kotlin, XML | P0 | Java partiel (démo) | `core-syntax` | M4 | critère identique à B-01 par langage |
+| C-14 | Langages P0 : Java, Kotlin, XML | P0 | Java partiel (démo) (au départ ; celeris : les trois analyseurs livrés M4-t2 à t4, coloration consommatrice M4-t5) | `core-syntax` | M4 | critère identique à B-01 par langage |
 | C-15 | Langages P1 : Gradle, JSON, TOML, YAML, properties, Markdown, SQL, C, C++ | P1 | partiel (tokéniseurs) | `core-syntax` | M4/M7 | test : coloration + plis par langue (analyseurs dédiés ou grammaires) |
 | C-16 | Langages P2 : longue traîne | P2 | partiel (tokéniseurs) | `core-syntax-grammars` | M4/M7 | test : coloration par grammaire sans analyseur dédié |
 
@@ -137,12 +144,12 @@
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
 | --- | --- | --- | --- | --- | --- | --- |
 | D-01 | Gouttière : numéros absolus et relatifs | P0 | présent | `android-widgets` | M3 | test de capture : bascule relative, alignement par rangée |
-| D-02 | Gouttière : diagnostics | P0 | présent | `android-widgets` | M3 | test : icône au niveau de ligne, priorité erreur > avertissement |
+| D-02 | Gouttière : diagnostics | P0 | présent (au départ ; celeris : marque d'erreur par ligne dans la coulisse, à l'encre d'erreur du thème, livrée M4-t5 — le socle ne rapporte qu'un niveau d'erreur, la priorité multi-niveaux attend la sémantique M6) | `android-widgets` | M3 | test : icône au niveau de ligne, priorité erreur > avertissement |
 | D-03 | Gouttière : marques de modification VCS | P1 | absent | `android-host` | M7 | test SPI : marque par plage de lignes modifiée |
 | D-04 | Gouttière : points d'arrêt (SPI débogueur) | P1 | absent | `android-host` | M7 | test SPI : pose, suppression, état désactivé |
 | D-05 | Gouttière : repères d'exécution | P1 | absent | `android-host` | M7 | test SPI : ligne courante, plages dans la pile |
 | D-06 | Gouttière : signets | P1 | absent | `android-widgets` | M5 | couvert par B-15 |
-| D-07 | Gouttière : plis (flèches, survol) | P0 | présent | `android-widgets` | M3 | test : pli/dépli par clic, aperçu au maintien |
+| D-07 | Gouttière : plis (flèches, survol) | P0 | présent (au départ ; celeris : chevrons replié/déplié et bascule au clic dans la coulisse livrés M4-t5 — l'aperçu au maintien reste avec les popups M5) | `android-widgets` | M3 | test : pli/dépli par clic, aperçu au maintien |
 | D-08 | Bande d'erreurs annotée (parallèle au défilement) | P1 | absent | `android-widgets` | M5 | test : densité bornée, clic → saut au diagnostic |
 | D-09 | Fil d'Ariane | P1 | présent | `android-widgets` | M5 | test : chemin du symbole courant depuis l'arbre, tronqué par la largeur |
 | D-10 | Popups unifiées (complétion, documentation, signature, actions) | P0 | présent (kit unifié) | `android-widgets` | M5 | tests de placement coordonné (héritage direct des acquis) ; accessibilité annoncée |
