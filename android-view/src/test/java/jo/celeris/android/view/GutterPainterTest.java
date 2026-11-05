@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import jo.celeris.core.syntax.FoldSpan;
+import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -59,6 +61,49 @@ class GutterPainterTest {
 
         List<TexteTrace> textes() {
             return textes;
+        }
+    }
+
+    /** Un trait tracé : ses deux extrémités et sa couleur. */
+    private record TraitTrace(float x1, float y1, float x2, float y2, int couleur) {
+    }
+
+    /** Un rectangle tracé : ses bornes et sa couleur. */
+    private record RectTrace(float left, float top, float right, float bottom, int couleur) {
+    }
+
+    /** Surface enregistreuse complète : textes, traits et rectangles. */
+    private static final class SurfaceMarques implements DrawSurface {
+        private final List<TexteTrace> textes = new ArrayList<>();
+        private final List<TraitTrace> traits = new ArrayList<>();
+        private final List<RectTrace> rectangles = new ArrayList<>();
+
+        @Override
+        public void drawText(String text, float x, float y, TextBrush brush) {
+            textes.add(new TexteTrace(text, x, brush.color()));
+        }
+
+        @Override
+        public void drawRect(float left, float top, float right, float bottom,
+                TextBrush brush) {
+            rectangles.add(new RectTrace(left, top, right, bottom, brush.color()));
+        }
+
+        @Override
+        public void drawLine(float x1, float y1, float x2, float y2, TextBrush brush) {
+            traits.add(new TraitTrace(x1, y1, x2, y2, brush.color()));
+        }
+
+        List<TexteTrace> textes() {
+            return textes;
+        }
+
+        List<TraitTrace> traits() {
+            return traits;
+        }
+
+        List<RectTrace> rectangles() {
+            return rectangles;
         }
     }
 
@@ -207,5 +252,126 @@ class GutterPainterTest {
         // n'écrit rien en gouttière.
         assertEquals(1, surface.textes().size());
         assertEquals("1", surface.textes().get(0).texte());
+    }
+
+    /**
+     * D-07 — l'en-tête replié porte son chevron : deux traits, pointe
+     * à droite, dans la coulisse des marqueurs.
+     */
+    @Test
+    void enTeteRepliePorteSonChevron() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        FoldModel replis = new FoldModel();
+        replis.fold(1, 3);
+        GutterMarks marques = GutterMarks.of(
+                List.of(new FoldSpan(1, 3)), replis, new int[0]);
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
+                () -> marques, 12f));
+        Document document = Document.of("a\nb\nc\nd\ne");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        VisualProjection projection = new VisualProjection(5, replis);
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics,
+                THEME, 0, projection.rowCount(), 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(2, surface.traits().size(), "le chevron replié vit en deux traits");
+        TraitTrace premier = surface.traits().get(0);
+        TraitTrace second = surface.traits().get(1);
+        // pointe à droite : les deux traits partagent la même abscisse de pointe
+        assertEquals(premier.x2(), second.x2(), 1e-6f);
+        assertTrue(premier.y1() < second.y1(),
+                "le premier trait part plus haut que le second");
+        assertTrue(premier.x1() < premier.x2(),
+                "la pointe du chevron replié regarde vers la droite");
+        assertTrue(premier.x2() <= 12f,
+                "le chevron vit dans la coulisse des marqueurs");
+        assertEquals(THEME.gutterTextColor(), premier.couleur());
+        // les numéros restent : lignes 1, 2 et 5 visibles
+        assertEquals(3, surface.textes().size());
+    }
+
+    /**
+     * D-07 — l'en-tête pliable non replié porte un chevron pointant
+     * vers le bas : le contenu se déplie dessous.
+     */
+    @Test
+    void enTetePliablePointeVersLeBas() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        GutterMarks marques = GutterMarks.of(
+                List.of(new FoldSpan(1, 3)), new FoldModel(), new int[0]);
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
+                () -> marques, 12f));
+        Document document = Document.of("a\nb\nc\nd\ne");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(5, new FoldModel()), 1L, metrics, THEME,
+                0, 5, 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(2, surface.traits().size());
+        TraitTrace premier = surface.traits().get(0);
+        TraitTrace second = surface.traits().get(1);
+        // pointe en bas : les deux traits partagent la même ordonnée de pointe
+        assertEquals(premier.y2(), second.y2(), 1e-6f);
+        assertTrue(premier.y2() > premier.y1(),
+                "la pointe du chevron déplié regarde vers le bas");
+        assertTrue(premier.x1() < second.x2(), "le chevron s'ouvre vers le haut");
+    }
+
+    /**
+     * D-02 — la ligne en erreur porte sa marque dans la coulisse, à
+     * l'encre d'erreur du thème.
+     */
+    @Test
+    void ligneEnErreurPorteSaMarque() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        GutterMarks marques = GutterMarks.of(
+                List.of(), new FoldModel(), new int[] {0});
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
+                () -> marques, 12f));
+        Document document = Document.of("a\nb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
+                0, 2, 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(1, surface.rectangles().size(), "une marque d'erreur, un rectangle");
+        RectTrace marque = surface.rectangles().get(0);
+        assertTrue(marque.right() <= 12f,
+                "la marque vit dans la coulisse des marqueurs");
+        assertEquals(THEME.syntaxe().couleur(TokenKind.ERROR), marque.couleur());
+    }
+
+    /** Sans marques, la gouttière ne trace ni trait ni rectangle : le chemin reste muet. */
+    @Test
+    void sansMarquesLaGouttiereResteMuet() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
+        Document document = Document.of("a\nb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
+                0, 2, 28f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(0, surface.traits().size());
+        assertEquals(0, surface.rectangles().size());
+        assertEquals(2, surface.textes().size(), "les numéros restent seuls");
+    }
+
+    /** La coulisse de marqueurs élargit la gouttière d'autant (D-01/D-07). */
+    @Test
+    void laCoulisseDeMarqueursElargitLaGouttiere() {
+        assertEquals(30f, GutterGeometry.width(3, 10f, 4f, 12f), 1e-6f,
+                "18 px de numéros + 12 px de coulisse");
     }
 }

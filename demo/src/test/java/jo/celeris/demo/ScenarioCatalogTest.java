@@ -7,14 +7,13 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test de fumée du catalogue de scénarios : le jalon M3 exige les
- * scénarios des facettes livrées — A-01 (pilule multi-curseur), A-18
- * (retour à la ligne, modèle et rangées), D-01 (gouttière à numéros),
- * D-13 (thèmes à contraste vérifié), D-15 (zoom au pincement), D-16
- * (poignées, pilule, loupe), D-17 (clavier matériel) et G-01, G-02,
- * G-05 — en plus des cinq du jalon M2, dans l'ordre de la matrice de
- * parité, uniques et complets. Les facettes non livrées (D-02
- * diagnostics, D-07 flis, D-14 ligatures) rejoignent leur jalon.
+ * Test de fumée du catalogue de scénarios : le jalon M4 exige les
+ * scénarios des facettes livrées — A-15 (plis depuis l'arbre), B-01
+ * (coloration du même arbre), C-01 (XML) et C-14 (langages P0) — en
+ * plus des quatorze des jalons M2 et M3, dans l'ordre de la matrice de
+ * parité, uniques et complets. Les facettes non livrées (B-16 plan,
+ * C-07 Gradle KTS et Groovy, C-15/C-16 longue traîne, D-14 ligatures)
+ * rejoignent leur tranche.
  */
 final class ScenarioCatalogTest {
 
@@ -22,11 +21,12 @@ final class ScenarioCatalogTest {
     private static final Pattern IDENTIFIANT = Pattern.compile("[A-Z]+-\\d+");
 
     @Test
-    void m3ScenariosAreAllPresentInParityOrder() {
+    void m4ScenariosAreAllPresentInParityOrder() {
         List<String> identifiants = ScenarioCatalog.scenarios().stream()
                 .map(Scenario::identifiant).toList();
         assertEquals(List.of(
-                "A-01", "A-13", "A-18", "A-20", "A-24", "A-25",
+                "A-01", "A-13", "A-15", "A-18", "A-20", "A-24", "A-25",
+                "B-01", "C-01", "C-14",
                 "D-01", "D-13", "D-15", "D-16", "D-17",
                 "G-01", "G-02", "G-05"), identifiants);
     }

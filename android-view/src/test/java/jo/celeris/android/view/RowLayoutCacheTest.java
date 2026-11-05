@@ -147,4 +147,30 @@ class RowLayoutCacheTest {
                 .text());
         assertEquals(2, cache.size());
     }
+
+    /**
+     * Le vidage complet efface TOUTES les révisions — le changement de
+     * source qui ne signe aucune composante de clé (changement de
+     * langage, changement de session) ne peut pas servir une mise en
+     * page périmée : PIEGE-02 par construction, pas par convention.
+     */
+    @Test
+    void leVidageCompletEffaceToutesLesRevisions() {
+        RowLayoutCache cache = new RowLayoutCache();
+        cache.store(new RowKey(1L, 0, THEME, MONO), new RowLayout(0, 0, 1, "a", 8.4f));
+        cache.store(new RowKey(2L, 0, THEME, MONO), new RowLayout(0, 0, 1, "b", 8.4f));
+        cache.store(new RowKey(2L, 1, THEME, MONO), new RowLayout(1, 0, 1, "c", 8.4f));
+        assertEquals(3, cache.size());
+
+        cache.clear();
+
+        assertEquals(0, cache.size());
+        assertNull(cache.find(1L, 0, THEME, MONO));
+        assertNull(cache.find(2L, 0, THEME, MONO));
+        assertNull(cache.find(2L, 1, THEME, MONO));
+
+        // le cache redevient utilisable immédiatement
+        cache.store(new RowKey(2L, 0, THEME, MONO), new RowLayout(0, 0, 2, "de", 16.8f));
+        assertEquals("de", present(cache.find(2L, 0, THEME, MONO)).text());
+    }
 }
