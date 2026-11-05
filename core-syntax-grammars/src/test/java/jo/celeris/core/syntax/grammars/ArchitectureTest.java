@@ -14,8 +14,7 @@ import com.tngtech.archunit.lang.ArchRule;
  * déclarées sont importables — la voie de grammaires lit le socle
  * syntaxique et les contrats de langage, rien au-dessus.
  */
-@AnalyzeClasses(packages = "jo.celeris.core.syntax.grammars",
-        importOptions = ImportOption.DoNotIncludeTests.class)
+@AnalyzeClasses(packages = "jo.celeris.core.syntax.grammars", importOptions = ImportOption.DoNotIncludeTests.class)
 public final class ArchitectureTest {
 
     /** La voie de grammaires ne connaît pas Android. */

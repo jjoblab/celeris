@@ -26,9 +26,10 @@ import java.util.List;
  * manuel survit à l'édition voisine), B-01 (coloration lexicale et
  * syntaxique du même arbre), B-16 (plan du fichier consommateur du
  * même arbre, mise à jour incrémentale), C-01 (XML : coloration, plis,
- * crochets), C-07 (Gradle KTS et Groovy) et C-14 (langages P0 : Java,
- * Kotlin, XML). Les scénarios C-15/C-16 (longue traîne) suivent leur
- * tranche.</p>
+ * crochets), C-07 (Gradle KTS et Groovy), C-14 (langages P0 : Java,
+ * Kotlin, XML), C-15 (le reste des P1 par la voie de grammaires) et
+ * C-16 (la longue traîne par grammaire, sans analyseur dédié). SQL,
+ * C et C++ suivent leur jalon.</p>
  */
 public final class ScenarioCatalog {
 
@@ -94,6 +95,13 @@ public final class ScenarioCatalog {
 
     /** Les catégories B et C — coloration et langages du même arbre. */
     private static List<Scenario> scenariosLangages() {
+        List<Scenario> tous = new ArrayList<>(langagesAnalyseurs());
+        tous.addAll(langagesGrammaires());
+        return tous;
+    }
+
+    /** Les langages à analyseurs dédiés — le même arbre pour tous. */
+    private static List<Scenario> langagesAnalyseurs() {
         return List.of(
                 new Scenario(
                         "B-01",
@@ -131,6 +139,26 @@ public final class ScenarioCatalog {
                         "Trois grammaires réelles sur le même socle : jetons soudés "
                                 + "sans trou à peindre, états transportés ligne à "
                                 + "ligne, ré-analyse bornée à la reconvergence."));
+    }
+
+    /** Les langages à grammaires — la longue traîne sans analyseur dédié. */
+    private static List<Scenario> langagesGrammaires() {
+        return List.of(
+                new Scenario(
+                        "C-15",
+                        "Langages P1 par grammaires",
+                        "TOML, YAML, properties et Markdown se colorent et se "
+                                + "replient par grammaire déclarative — motifs, "
+                                + "blocs début/fin, crochets appariés — la même "
+                                + "palette et le même socle incrémental que les "
+                                + "analyseurs dédiés."),
+                new Scenario(
+                        "C-16",
+                        "Longue traîne : Python, Shell",
+                        "Les langages P2 sans analyseur dédié : la grammaire les "
+                                + "colore, les chaînes triples et les corps multi-lignes "
+                                + "se replient ; l'édition ne relit que la ligne "
+                                + "touchée (PIEGE-21)."));
     }
 
     /** La catégorie D — affichage, gouttière, thèmes et clavier. */

@@ -27,7 +27,7 @@ class Exemple {
 ```
 
 Un lien vers le [guide de migration](docs/MIGRATION.md) et une
-citation :
+citation :
 
 > Le rendu n'alloue rien par image.
 
