@@ -9,6 +9,14 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 4 (M5) — barre de recherche, historique et signets (A-20
+  facette interface, B-14, B-15/D-06) : SearchBarModel porte
+  l'état de la barre au-dessus du moteur M2 — options, occurrences,
+  navigation circulaire, ouverture depuis le curseur ;
+  NavigationHistory — pile bornée, retour et avance, la fermeture de
+  fichier vide ; BookmarkModel — sauts circulaires, persistance
+  par projection des offsets sur la voie unique ; 19 tests
+  neufs.
 - Tranche 3 (M5) — sélection syntaxique et colonne (A-02, A-03) :
   TreeSelection expose la chaîne des étendues englobantes — mot,
   instruction, bloc, type, document — étendre monte d'un cran, réduire

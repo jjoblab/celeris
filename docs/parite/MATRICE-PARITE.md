@@ -92,7 +92,7 @@
 | A-17 | Guides d'indentation | P1 | présent | `android-view` | M3 | test de capture : guides alignés aux niveaux, plis inclus |
 | A-18 | Retour à la ligne souple (mots, coupure forcée) | P0 | présent | `core-text` + `android-view` | M2/M3 | test : mot plus large que la largeur coupé par caractère (PIEGE-08) ; rangées ≠ lignes (PIEGE-04) |
 | A-19 | Caractères invisibles (espaces, tabulations, contrôles) | P1 | non vérifié | `android-view` | M5 | test de capture : espaces fines/finales, tabulations, fins de ligne |
-| A-20 | Recherche/remplacement (regex, casse, mot entier, sélection, multiligne, préservation de casse) | P0 | présent | `core-text` + `android-widgets` | M2/M5 | test : les 8 variantes + remplacement multi-curseur ; scénario de démo dédié |
+| A-20 | Recherche/remplacement (regex, casse, mot entier, sélection, multiligne, préservation de casse) | P0 | présent (celeris : moteur livré M2 ; barre — état, options, navigation circulaire — livrée M5-t4) | `core-text` + `android-widgets` | M2/M5 | test : les 8 variantes + remplacement multi-curseur ; scénario de démo dédié |
 | A-21 | Recherche dans le projet (adossée à l'index) | P1 | absent | `core-intelligence` | M6 | test : recherche hors ligne dans un projet embarqué, latence consignée |
 | A-22 | Gabarits dynamiques (à trous, variables liées) | P1 | présent, gabarits riches (celeris : livré M5-t2 — trous tabulables, variables liées, miroirs d'édition au décalage relatif) | `core-intelligence` | M5 | scénario : gabarit à 3 trous tabulables ; test : ordre de tabulation et édition simultanée des variables liées |
 | A-23 | Complétion postfixe | P2 | présent (bancs démo) | `core-intelligence` | M6 | test : `expr.if` → `if (expr) {}` sans matérialiser le préfixe (PIEGE hérité du lot L0) |
@@ -117,8 +117,8 @@
 | B-11 | Usages dans le projet | P1 | absent | `core-intelligence` | M6 | test : usages indexés hors ligne + raffinement serveur |
 | B-12 | Hiérarchies de types et d'appels | P2 | absent | `core-intelligence` | M7+ | scénario arbre de hiérarchie ; test de profondeur sur corpus |
 | B-13 | Aller à classe, fichier, symbole | P1 | partiel | `core-intelligence` | M6 | test : recherche floue de symboles sur l'index, hors ligne |
-| B-14 | Historique de navigation avant/arrière | P1 | absent | `android-view` | M5 | test : pile bornée, comportement après fermeture de fichier |
-| B-15 | Signets (avec gouttière) | P1 | absent | `android-view` | M5 | test : ajout/retrait, saut, persistance par session |
+| B-14 | Historique de navigation avant/arrière | P1 | absent (celeris : livré M5-t4 — pile bornée, la visite coupe l'avance, la fermeture de fichier vide) | `android-view` | M5 | test : pile bornée, comportement après fermeture de fichier |
+| B-15 | Signets (avec gouttière) | P1 | absent (celeris : livré M5-t4 — bascule, sauts circulaires, persistance par projection des offsets) | `android-view` | M5 | test : ajout/retrait, saut, persistance par session |
 | B-16 | Plan du fichier (structure) | P0 | absent (au départ ; celeris : livré M4-t8 — le pont session ↔ vue pousse le plan de l'analyse habillée, le modèle déduit la profondeur de l'imbrication et conserve le préfixe intact d'un plan à l'autre, le peintre trace glyphe de catégorie et retrait par niveau) | `core-syntax` + `android-widgets` + `android-view` | M4 | test : plan généré du même arbre que la coloration, mise à jour incrémentale |
 | B-17 | Inspections, intentions, correctifs rapides | P1 | partiel (quick fixes) | `core-lsp` | M6 | test : correctif applicable = transaction diffable, annulable |
 | B-18 | Aperçu d'un correctif (diff avant application) | P2 | absent | `android-widgets` | M7 | scénario : aperçu en ligne avant acceptation |
@@ -162,7 +162,7 @@
 | D-03 | Gouttière : marques de modification VCS | P1 | absent | `android-host` | M7 | test SPI : marque par plage de lignes modifiée |
 | D-04 | Gouttière : points d'arrêt (SPI débogueur) | P1 | absent | `android-host` | M7 | test SPI : pose, suppression, état désactivé |
 | D-05 | Gouttière : repères d'exécution | P1 | absent | `android-host` | M7 | test SPI : ligne courante, plages dans la pile |
-| D-06 | Gouttière : signets | P1 | absent | `android-widgets` | M5 | couvert par B-15 |
+| D-06 | Gouttière : signets | P1 | absent (couvert par B-15) | `android-widgets` | M5 | couvert par B-15 |
 | D-07 | Gouttière : plis (flèches, survol) | P0 | présent (au départ ; celeris : chevrons replié/déplié et bascule au clic dans la coulisse livrés M4-t5 — l'aperçu au maintien reste avec les popups M5) | `android-widgets` | M3 | test : pli/dépli par clic, aperçu au maintien |
 | D-08 | Bande d'erreurs annotée (parallèle au défilement) | P1 | absent | `android-widgets` | M5 | test : densité bornée, clic → saut au diagnostic |
 | D-09 | Fil d'Ariane | P1 | présent | `android-widgets` | M5 | test : chemin du symbole courant depuis l'arbre, tronqué par la largeur |

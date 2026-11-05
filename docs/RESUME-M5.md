@@ -191,3 +191,45 @@
 2. **Le raccord du glissement colonne au tactile** (le passage en mode
    colonne par la pilule ou la touche Alt) vit à la tranche
    d'intégration vue — le cœur géométrique est livré.
+
+## Tranche 4 — barre de recherche, historique et signets (2026-11-06)
+
+### Livré
+
+- **La barre de recherche** (`SearchBarModel` dans android-widgets,
+  A-20 facette interface) : l'état de la barre au-dessus du
+  moteur du cœur — la requête et ses options (casse, mot entier,
+  regex), la liste des occurrences recalculée à chaque changement,
+  l'occurrence courante et sa navigation circulaire, l'ouverture
+  depuis le curseur par l'occurrence la plus proche. Le remplacement
+  appartient à la session (replaceAll par la voie de transaction,
+  livré M2). Les huit combinaisons d'options sont vérifiées contre le
+  moteur : en mode regex, le mot entier appartient au motif —
+  comportement du cœur documenté au M2.
+- **L'historique de navigation** (`NavigationHistory` dans
+  android-view, B-14) : la pile bornée des positions visitées —
+  le retour et l'avance, la visite qui coupe l'avance, la répétition
+  qui ne s'empile pas, la fermeture de fichier qui vide l'historique
+  (les positions d'un fichier fermé ne se suivent plus).
+- **Les signets** (`BookmarkModel` dans android-view, B-15/D-06) :
+  des lignes marquées, du saut au suivant et au précédent en boucle.
+  La persistance par session passe par la projection des offsets —
+  le modèle implémente le projecteur de la voie unique (ADR-003) :
+  chaque édition décale les débuts de lignes marquées, le signet dont
+  la ligne disparaît tombe au point de fusion et se dédoublonne.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- SearchBarModelTest **7 tests**, NavigationHistoryTest **6 tests**,
+  BookmarkModelTest **6 tests** — zéro échec ;
+- les huit combinaisons d'options vérifiées par sonde contre le moteur
+  avant l'écriture des assertions.
+
+### Écarts et limites
+
+1. **Le dessin de la barre et de la gouttière des signets** vit à la
+   tranche d'intégration vue : les modèles sont livrés, le
+   raccord visuel (peintres, commande) suit.
+2. **L'historique ne porte qu'un fichier** : la fermeture vide —
+   un historique inter-fichiers n'était pas au périmètre.
