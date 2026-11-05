@@ -23,6 +23,7 @@ rootProject.name = "celeris"
 // (critère de sortie M1, ADR-002) :
 include(":core-text")
 include(":core-syntax")
+include(":core-syntax-grammars")
 include(":core-language")
 include(":core-intelligence")
 include(":core-lsp")

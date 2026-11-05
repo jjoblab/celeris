@@ -1,0 +1,39 @@
+# Corpus YAML — manifeste d'un éditeur embarquable
+
+name: celeris
+version: 2
+actif: true
+poids: 1.75
+annee: 2026
+
+rendu:
+  largeur: 1080
+  hauteur: 1920
+  theme: "sombre"
+  police: 'serif'
+  marges: { gauche: 8, droite: 8 }
+
+couleurs:
+  fond: "#101418"
+  texte: "#E8EAED"
+  palette: [
+    clair,
+    sombre,
+    contraste
+  ]
+
+profils:
+  - nom: telephone
+    densite: 2.75
+    voies: [tactile, clavier]
+  - nom: tablette
+    densite: 1.5
+
+edition:
+  gabarit: |
+    un gabarit multi-lignes
+    qui traverse les lignes
+  tabulation: 4
+  ancres: &defauts
+    marge: 16
+  heritee: *defauts

@@ -1,0 +1,123 @@
+package jo.celeris.core.syntax.grammars;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import org.junit.jupiter.api.Test;
+
+import jo.celeris.core.syntax.Analysis;
+import jo.celeris.core.syntax.EditSite;
+import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.syntax.SyntaxService;
+import jo.celeris.core.text.Document;
+
+/**
+ * Budget de ré-analyse de la voie de grammaires (PIEGE-13, critère de
+ * sortie M4) : la ré-analyse incrémentale après une édition tient
+ * 10 ms sur 50 000 lignes, par langage à grammaire — le protocole
+ * retient le minimum de trois tours, le bruit du runner ne fait
+ * qu'ajouter du temps.
+ */
+class GrammairesBudgetTest {
+
+    private static final int LIGNES = 50_000;
+    private static final long BUDGET_NS = 10_000_000L;
+    private static final int TOURS = 3;
+
+    /** TOML — clés et valeurs par ligne. */
+    @Test
+    void toml() {
+        budget(LangagesGrammaires.toml(), corpus("exemple.toml"));
+    }
+
+    /** YAML — clés et scalaires par ligne. */
+    @Test
+    void yaml() {
+        budget(LangagesGrammaires.yaml(), corpus("exemple.yaml"));
+    }
+
+    /** properties — clé et valeur par ligne. */
+    @Test
+    void properties() {
+        budget(LangagesGrammaires.proprietes(), corpus("exemple.properties"));
+    }
+
+    /** Markdown — blocs et en ligne. */
+    @Test
+    void markdown() {
+        budget(LangagesGrammaires.markdown(), corpus("exemple.md"));
+    }
+
+    /** Python — la longue traîne. */
+    @Test
+    void python() {
+        budget(LangagesGrammaires.python(), corpus("exemple.py"));
+    }
+
+    /** Shell — la longue traîne. */
+    @Test
+    void shell() {
+        budget(LangagesGrammaires.shell(), corpus("exemple.sh"));
+    }
+
+    private static void budget(LanguageSyntax langage, String corpus) {
+        String source = replique(corpus, LIGNES);
+        Document doc = Document.of(source);
+        SyntaxService service = SyntaxService.of(langage);
+        Analysis complet = service.analyseFull(doc);
+        int cible = source.length() / 2;
+        Document edite = doc.replace(cible, cible + 1, "z");
+        EditSite site = EditSite.of(doc, edite, cible, cible + 1, "z");
+        long meilleur = Long.MAX_VALUE;
+        for (int tour = 0; tour < TOURS; tour++) {
+            long debut = System.nanoTime();
+            Analysis diff = service.analyseIncremental(edite, complet, site);
+            long duree = System.nanoTime() - debut;
+            if (diff.tree().chunks().isEmpty()) {
+                throw new IllegalStateException("arbre vide pour " + langage.id());
+            }
+            meilleur = Math.min(meilleur, duree);
+        }
+        assertTrue(meilleur <= BUDGET_NS,
+                langage.id() + " : ré-analyse de " + LIGNES + " lignes en "
+                        + meilleur / 1_000_000.0 + " ms (budget 10 ms)");
+    }
+
+    /** Réplique un corpus jusqu'à la cible de lignes, déterministe. */
+    private static String replique(String base, int lignesCible) {
+        StringBuilder sb = new StringBuilder(base.length() * (lignesCible / 10 + 1));
+        while (compterLignes(sb) < lignesCible) {
+            sb.append(base);
+            if (sb.charAt(sb.length() - 1) != '\n') {
+                sb.append('\n');
+            }
+        }
+        return sb.toString();
+    }
+
+    private static int compterLignes(CharSequence texte) {
+        int lignes = 0;
+        for (int i = 0; i < texte.length(); i++) {
+            if (texte.charAt(i) == '\n') {
+                lignes++;
+            }
+        }
+        return lignes;
+    }
+
+    private static String corpus(String nom) {
+        String chemin = "corpus/" + nom;
+        try (InputStream flux = GrammairesBudgetTest.class.getClassLoader()
+                .getResourceAsStream(chemin)) {
+            if (flux == null) {
+                throw new IllegalStateException("corpus absent : " + chemin);
+            }
+            return new String(flux.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new IllegalStateException("corpus illisible : " + chemin, e);
+        }
+    }
+}

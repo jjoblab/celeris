@@ -1,0 +1,86 @@
+{
+  "name": "Python",
+  "scopeName": "source.python",
+  "patterns": [
+    { "include": "#commentaires" },
+    { "include": "#chaines" },
+    { "include": "#definitions" },
+    { "include": "#mots" },
+    { "include": "#nombres" },
+    { "include": "#operateurs" },
+    { "include": "#ponctuation" }
+  ],
+  "repository": {
+    "commentaires": {
+      "patterns": [
+        { "match": "#.*$", "name": "comment.line.number-sign.python" }
+      ]
+    },
+    "chaines": {
+      "patterns": [
+        { "begin": "[rRbB]{0,2}\"\"\"", "end": "\"\"\"",
+          "name": "string.quoted.triple.double.python",
+          "contentName": "string.quoted.triple.double.python",
+          "beginCaptures": { "0": "punctuation.section.string.begin.python" },
+          "endCaptures": { "0": "punctuation.section.string.end.python" },
+          "patterns": [ { "include": "#echappements" } ] },
+        { "begin": "[rRbB]{0,2}'''", "end": "'''",
+          "name": "string.quoted.triple.single.python",
+          "contentName": "string.quoted.triple.single.python",
+          "beginCaptures": { "0": "punctuation.section.string.begin.python" },
+          "endCaptures": { "0": "punctuation.section.string.end.python" } },
+        { "begin": "[rRbBfFuU]{0,2}\"", "end": "\"",
+          "name": "string.quoted.double.python",
+          "contentName": "string.quoted.double.python",
+          "beginCaptures": { "0": "punctuation.definition.string.begin.python" },
+          "endCaptures": { "0": "punctuation.definition.string.end.python" },
+          "patterns": [ { "include": "#echappements" } ] },
+        { "begin": "[rRbBfFuU]{0,2}'", "end": "'",
+          "name": "string.quoted.single.python",
+          "contentName": "string.quoted.single.python",
+          "beginCaptures": { "0": "punctuation.definition.string.begin.python" },
+          "endCaptures": { "0": "punctuation.definition.string.end.python" } }
+      ]
+    },
+    "echappements": {
+      "patterns": [
+        { "match": "\\\\[0tnr\"'\\\\]", "name": "constant.character.escape.python" }
+      ]
+    },
+    "definitions": {
+      "patterns": [
+        { "match": "@[\\w.]+", "name": "meta.annotation.decorator.python" },
+        { "match": "(?<=def )\\w+", "name": "entity.name.function.python" },
+        { "match": "(?<=class )\\w+", "name": "entity.name.type.python" }
+      ]
+    },
+    "mots": {
+      "patterns": [
+        { "match": "\\b(?:def|class|import|from|as|return|if|elif|else|for|while|break|continue|pass|try|except|finally|raise|with|lambda|global|nonlocal|del|assert|yield|async|await|in|is|not|and|or|match|case)\\b", "name": "keyword.control.python" },
+        { "match": "\\b(?:True|False|None|self|cls)\\b", "name": "constant.language.python" }
+      ]
+    },
+    "nombres": {
+      "patterns": [
+        { "match": "\\b0[xX][0-9a-fA-F_]+\\b", "name": "constant.numeric.hex.python" },
+        { "match": "\\b\\d[\\d_]*\\.?\\d*(?:[eE][-+]?\\d+)?j?\\b", "name": "constant.numeric.python" }
+      ]
+    },
+    "operateurs": {
+      "patterns": [
+        { "match": "\\*\\*=?|//=?|<<=?|>>=?|->|[-+*/%<>=!&|^~]=?", "name": "keyword.operator.python" }
+      ]
+    },
+    "ponctuation": {
+      "patterns": [
+        { "match": "\\(", "name": "punctuation.section.parens.begin.python" },
+        { "match": "\\)", "name": "punctuation.section.parens.end.python" },
+        { "match": "\\[", "name": "punctuation.section.brackets.begin.python" },
+        { "match": "\\]", "name": "punctuation.section.brackets.end.python" },
+        { "match": "\\{", "name": "punctuation.section.braces.begin.python" },
+        { "match": "\\}", "name": "punctuation.section.braces.end.python" },
+        { "match": "[,;:]", "name": "punctuation.separator.python" }
+      ]
+    }
+  }
+}

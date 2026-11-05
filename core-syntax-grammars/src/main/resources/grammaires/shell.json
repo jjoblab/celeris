@@ -1,0 +1,80 @@
+{
+  "name": "Shell",
+  "scopeName": "source.shell",
+  "patterns": [
+    { "include": "#commentaires" },
+    { "include": "#chaines" },
+    { "include": "#definitions" },
+    { "include": "#mots" },
+    { "include": "#variables" },
+    { "include": "#nombres" },
+    { "include": "#operateurs" },
+    { "include": "#ponctuation" }
+  ],
+  "repository": {
+    "commentaires": {
+      "patterns": [
+        { "match": "^#.*$", "name": "comment.line.number-sign.shell" },
+        { "match": "(?<=[ \\t;])#.*$", "name": "comment.line.number-sign.shell" }
+      ]
+    },
+    "chaines": {
+      "patterns": [
+        { "begin": "\"", "end": "\"",
+          "name": "string.quoted.double.shell",
+          "contentName": "string.quoted.double.shell",
+          "beginCaptures": { "0": "punctuation.definition.string.begin.shell" },
+          "endCaptures": { "0": "punctuation.definition.string.end.shell" },
+          "patterns": [ { "include": "#variables" }, { "include": "#echappements" } ] },
+        { "begin": "'", "end": "'",
+          "name": "string.quoted.single.shell",
+          "contentName": "string.quoted.single.shell",
+          "beginCaptures": { "0": "punctuation.definition.string.begin.shell" },
+          "endCaptures": { "0": "punctuation.definition.string.end.shell" } }
+      ]
+    },
+    "echappements": {
+      "patterns": [
+        { "match": "\\\\[0tnr\"\\\\$`]", "name": "constant.character.escape.shell" }
+      ]
+    },
+    "definitions": {
+      "patterns": [
+        { "match": "^[ \\t]*[A-Za-z_]\\w*(?=[ \\t]*\\([ \\t]*\\))", "name": "entity.name.function.shell" },
+        { "match": "\\bfunction\\b", "name": "keyword.other.function.shell" }
+      ]
+    },
+    "mots": {
+      "patterns": [
+        { "match": "\\b(?:if|then|elif|else|fi|for|while|until|do|done|case|esac|in|select|time|coproc|return|local|export|readonly|declare)\\b", "name": "keyword.control.shell" }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        { "match": "\\$\\{[^}\\n]+\\}", "name": "variable.other.bracket.shell" },
+        { "match": "\\$[\\w@#?*!-]+", "name": "variable.other.readwrite.shell" }
+      ]
+    },
+    "nombres": {
+      "patterns": [
+        { "match": "\\b\\d+\\b", "name": "constant.numeric.shell" }
+      ]
+    },
+    "operateurs": {
+      "patterns": [
+        { "match": "&&|\\|\\||;;|<<|>>|[-+*/%<>=!&|]=?", "name": "keyword.operator.shell" }
+      ]
+    },
+    "ponctuation": {
+      "patterns": [
+        { "match": "\\(", "name": "punctuation.section.parens.begin.shell" },
+        { "match": "\\)", "name": "punctuation.section.parens.end.shell" },
+        { "match": "\\{", "name": "punctuation.section.braces.begin.shell" },
+        { "match": "\\}", "name": "punctuation.section.braces.end.shell" },
+        { "match": "\\[", "name": "punctuation.section.brackets.begin.shell" },
+        { "match": "\\]", "name": "punctuation.section.brackets.end.shell" },
+        { "match": "[,;]", "name": "punctuation.separator.shell" }
+      ]
+    }
+  }
+}

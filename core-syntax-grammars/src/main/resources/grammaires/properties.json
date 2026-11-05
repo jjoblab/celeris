@@ -1,0 +1,21 @@
+{
+  "name": "Properties",
+  "scopeName": "source.properties",
+  "patterns": [
+    { "include": "#lignes" }
+  ],
+  "repository": {
+    "lignes": {
+      "patterns": [
+        { "match": "^[ \\t]*[#!].*$", "name": "comment.line.number-sign.properties" },
+        { "match": "^[ \\t]*(\\S[^=:\\n]*?)[ \\t]*([=:])[ \\t]*(.*)$",
+          "captures": {
+            "1": "variable.other.key.properties",
+            "2": "punctuation.separator.key-value.properties",
+            "3": "string.unquoted.value.properties"
+          } },
+        { "match": "^[ \\t]*\\S[^=:\\n]*$", "name": "variable.other.key.properties" }
+      ]
+    }
+  }
+}
