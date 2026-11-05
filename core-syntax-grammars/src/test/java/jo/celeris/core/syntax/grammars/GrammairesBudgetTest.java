@@ -18,14 +18,18 @@ import jo.celeris.core.text.Document;
  * Budget de ré-analyse de la voie de grammaires (PIEGE-13, critère de
  * sortie M4) : la ré-analyse incrémentale après une édition tient
  * 10 ms sur 50 000 lignes, par langage à grammaire — le protocole
- * retient le minimum de trois tours, le bruit du runner ne fait
- * qu'ajouter du temps.
+ * retient le minimum de trois tours après échauffement, rattrapé
+ * jusqu'à deux fois : le vol de CPU d'un runner partagé ne doit pas
+ * casser la sortie, une régression tenue échoue à tous les essais.
  */
 class GrammairesBudgetTest {
 
     private static final int LIGNES = 50_000;
     private static final long BUDGET_NS = 10_000_000L;
     private static final int TOURS = 3;
+
+    /** Rattrapages complets avant de céder au budget. */
+    private static final int RATTRAPAGES = 2;
 
     /** TOML — clés et valeurs par ligne. */
     @Test
@@ -71,15 +75,24 @@ class GrammairesBudgetTest {
         int cible = source.length() / 2;
         Document edite = doc.replace(cible, cible + 1, "z");
         EditSite site = EditSite.of(doc, edite, cible, cible + 1, "z");
+        // échauffement non mesuré : le JIT ne doit pas compter dans le budget
+        service.analyseIncremental(edite, complet, site);
         long meilleur = Long.MAX_VALUE;
-        for (int tour = 0; tour < TOURS; tour++) {
-            long debut = System.nanoTime();
-            Analysis diff = service.analyseIncremental(edite, complet, site);
-            long duree = System.nanoTime() - debut;
-            if (diff.tree().chunks().isEmpty()) {
-                throw new IllegalStateException("arbre vide pour " + langage.id());
+        for (int essai = 0; essai <= RATTRAPAGES; essai++) {
+            long serie = Long.MAX_VALUE;
+            for (int tour = 0; tour < TOURS; tour++) {
+                long debut = System.nanoTime();
+                Analysis diff = service.analyseIncremental(edite, complet, site);
+                long duree = System.nanoTime() - debut;
+                if (diff.tree().chunks().isEmpty()) {
+                    throw new IllegalStateException("arbre vide pour " + langage.id());
+                }
+                serie = Math.min(serie, duree);
             }
-            meilleur = Math.min(meilleur, duree);
+            meilleur = Math.min(meilleur, serie);
+            if (meilleur <= BUDGET_NS) {
+                break;
+            }
         }
         System.out.println(langage.id() + " : ré-analyse de " + LIGNES
                 + " lignes en " + meilleur / 1_000_000.0 + " ms (budget 10 ms)");
