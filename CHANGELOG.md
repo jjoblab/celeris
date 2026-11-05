@@ -9,6 +9,18 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 1 (M5) — la frappe intelligente par plans (A-05 à A-09) : le
+  nouveau moteur de décision de core-intelligence rend des plans
+  immuables (transaction + sélection d'après), la session les applique
+  par la voie unique ; TextSession gagne apply(Transaction,
+  MultiSelection) — le refaire restitue la sélection explicite (A-13),
+  la transaction vide déplace la sélection sans étape :
+  fermeture automatique des paires et citations (A-05), Entrée indentée
+  depuis l'arbre avec descente du fermant (A-06), retour arrière
+  intelligent avec repli documenté sur les clusters (A-07), entourage
+  en ligne ou par bloc (A-08), collage réindenté à la profondeur
+  d'accueil (A-09) ; 46 tests neufs (40 intelligence + 6
+  session), mutation 85,2 % (seuil 80).
 - Clôture M4 — les critères de sortie du jalon sont tous couverts :
   ré-analyse ≤ 10 ms sur 50 000 lignes par langage (six analyseurs
   dédiés de 0,19 à 1,18 ms, six langages à grammaires de 0,47 à
