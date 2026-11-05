@@ -180,7 +180,7 @@
 - `:android-view:test` : **194 tests, zéro échec** (5 neufs) ;
 - les bornes des nœuds vérifiées par sonde avant l'écriture des
   assertions (Java STATEMENT, Kotlin STATEMENT — la première sonde à
-  l'offset des espaces manquait l'instruction, corrigée —, XML STRING) ;
+  l'offset des espaces manquait l'instruction, corrigée —, XML STRING) ;
 - manifeste d'API régénéré (`core-syntax`).
 
 ### Écarts et limites
