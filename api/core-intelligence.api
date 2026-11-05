@@ -1,3 +1,74 @@
+### jo.celeris.core.intelligence.EditPlan
+Compiled from "EditPlan.java"
+public final class jo.celeris.core.intelligence.EditPlan extends java.lang.Record {
+  public jo.celeris.core.intelligence.EditPlan(jo.celeris.core.text.Transaction, jo.celeris.core.text.MultiSelection);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.text.Transaction transaction();
+  public jo.celeris.core.text.MultiSelection selection();
+}
+
+### jo.celeris.core.intelligence.IndentEngine
+Compiled from "IndentEngine.java"
+public final class jo.celeris.core.intelligence.IndentEngine {
+  public static int depthAtCaret(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
+  public static java.lang.String leadingWhitespace(java.lang.String);
+  public static int units(java.lang.String, jo.celeris.core.intelligence.IndentStyle);
+}
+
+### jo.celeris.core.intelligence.IndentStyle
+Compiled from "IndentStyle.java"
+public final class jo.celeris.core.intelligence.IndentStyle extends java.lang.Record {
+  public static final jo.celeris.core.intelligence.IndentStyle ESPACES_4;
+  public jo.celeris.core.intelligence.IndentStyle(int, boolean);
+  public static jo.celeris.core.intelligence.IndentStyle spaces(int);
+  public static jo.celeris.core.intelligence.IndentStyle tabs(int);
+  public java.lang.String indent(int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int width();
+  public boolean tabs();
+}
+
+### jo.celeris.core.intelligence.PasteReindenter
+Compiled from "PasteReindenter.java"
+public final class jo.celeris.core.intelligence.PasteReindenter {
+  public static java.lang.String reindent(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, java.lang.String, jo.celeris.core.intelligence.IndentStyle);
+}
+
+### jo.celeris.core.intelligence.SmartTyping$Geste
+Compiled from "SmartTyping.java"
+final class jo.celeris.core.intelligence.SmartTyping$Geste extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.text.TextEdit edition();
+  public jo.celeris.core.text.SelRange selection();
+  public int delta();
+}
+
+### jo.celeris.core.intelligence.SmartTyping
+Compiled from "SmartTyping.java"
+public final class jo.celeris.core.intelligence.SmartTyping {
+  public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> insert(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, java.lang.String, jo.celeris.core.intelligence.TypingRules);
+  public static jo.celeris.core.intelligence.EditPlan enter(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
+  public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> backspace(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.TypingRules, jo.celeris.core.intelligence.IndentStyle);
+  public static jo.celeris.core.intelligence.EditPlan surround(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, java.lang.String, java.lang.String, boolean, jo.celeris.core.intelligence.IndentStyle);
+}
+
+### jo.celeris.core.intelligence.TypingRules
+Compiled from "TypingRules.java"
+public final class jo.celeris.core.intelligence.TypingRules {
+  public static jo.celeris.core.intelligence.TypingRules langage(java.lang.String);
+  public static jo.celeris.core.intelligence.TypingRules parDefaut();
+  public boolean estOuvrant(char);
+  public boolean estFermant(char);
+  public char fermantDe(char);
+  public boolean estCitation(char);
+}
+
 ### jo.celeris.core.intelligence.package-info
 Compiled from "package-info.java"
 interface jo.celeris.core.intelligence.package-info {

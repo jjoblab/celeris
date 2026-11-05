@@ -34,7 +34,7 @@ class CollageReindentationTest {
 
     /** La structure relative du collage se conserve. */
     @Test
-    void structureRelativeConservée() {
+    void structureRelativeConservee() {
         String texte = "class A {\n    void m() {\n    }\n}";
         Document doc = Document.of(texte);
         Analysis analyse = service.analyseFull(doc);

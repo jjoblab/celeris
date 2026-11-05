@@ -12,7 +12,6 @@ import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
-import jo.celeris.core.text.Transaction;
 
 /**
  * La fermeture automatique des paires et des citations (A-05, M5) : le
@@ -102,9 +101,10 @@ class FrappePairesTest {
         // premier curseur : paire à l'offset 1 ; second : delta d'une paire
         assertEquals(1, geste.transaction().edits().get(0).start());
         assertEquals("{}", geste.transaction().edits().get(0).inserted());
-        assertEquals(4, geste.transaction().edits().get(1).start());
+        // 3 + 2 caractères insérés avant lui
+        assertEquals(5, geste.transaction().edits().get(1).start());
         assertEquals("{}", geste.transaction().edits().get(1).inserted());
-        assertEquals(List.of(2, 5), geste.selection().carets());
+        assertEquals(List.of(2, 6), geste.selection().carets());
     }
 
     /** Le plan s'applique par la voie unique et s'annule en une étape. */

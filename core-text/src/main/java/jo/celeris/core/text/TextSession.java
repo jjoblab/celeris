@@ -195,6 +195,41 @@ public final class TextSession {
     }
 
     /**
+     * Applique une transaction avec sa sélection d'après explicite : le
+     * geste intelligent (M5) place ses curseurs là où l'usage les attend —
+     * entre les deux caractères d'une paire insérée, après l'indentation
+     * d'une Entrée — là où la projection automatique ne peut pas les
+     * deviner. L'étape d'annulation enregistre la sélection explicite :
+     * annuler restitue celle d'avant (A-13), refaire restitue l'explicite.
+     * Une transaction vide déplace la sélection sans créer d'étape (le
+     * saut par-dessus un fermant n'est pas une édition).
+     *
+     * @param transaction     la transaction à appliquer
+     * @param selectionAfter  la sélection d'après le geste, dans les
+     *                        coordonnées du document résultant
+     * @return vrai si appliquée ; faux en lecture seule (rien ne bouge)
+     * @throws IndexOutOfBoundsException si une édition sort du document
+     * @throws IllegalStateException si le texte retiré d'une édition ne
+     *         correspond pas au contenu courant
+     */
+    public boolean apply(Transaction transaction, MultiSelection selectionAfter) {
+        if (readOnly) {
+            return false;
+        }
+        if (transaction.isEmpty()) {
+            selection = selectionAfter;
+            return true;
+        }
+        List<TextEdit> editions = transaction.edits();
+        validerBornes(editions);
+        MultiSelection avant = selection;
+        appliquer(editions);
+        selection = selectionAfter;
+        enregistrer(editions, avant, selectionAfter);
+        return true;
+    }
+
+    /**
      * Remplace la plage {@code [start, end)} par l'insertion donnée :
      * l'entrée commode d'une transaction à édition unique, le texte retiré
      * étant lu sur l'instantané courant. Une édition sans effet ne produit

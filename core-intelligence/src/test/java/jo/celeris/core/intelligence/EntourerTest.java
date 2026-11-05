@@ -73,7 +73,7 @@ class EntourerTest {
         // seconde plage : décalée de deux caractères (trois insérés, un retiré)
         assertEquals(4, plan.transaction().edits().get(1).start());
         List<Integer> carets = plan.selection().carets();
-        assertEquals(List.of(2, 6), carets);
+        assertEquals(List.of(3, 7), carets);
     }
 
     /** Le plan s'applique et s'annule par la voie unique. */
