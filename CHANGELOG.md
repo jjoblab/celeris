@@ -9,6 +9,17 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 2 (M5) — actions de lignes, commentaires, tri et gabarits
+  (A-10 à A-12, A-22) : LineActions opère le bloc de lignes
+  touchées (déplacer, dupliquer — les curseurs descendent dans la
+  copie —, joindre, supprimer, multi-sélection par blocs) ;
+  Commenter bascule selon le langage (famille C « // », dièse,
+  bloc XML, JSON masqué) tout ou rien, la ligne vide ne compte
+  pas ; LineSorter trie naturellement (« item2 » avant
+  « item10 »), casse au choix ; les gabarits dynamiques portent
+  leurs trous dans l'ordre de tabulation et leurs variables liées —
+  les miroirs propagent l'édition aux occurrences sœurs au même
+  décalage relatif ; 32 tests neufs.
 - Tranche 1 (M5) — la frappe intelligente par plans (A-05 à A-09) : le
   nouveau moteur de décision de core-intelligence rend des plans
   immuables (transaction + sélection d'après), la session les applique

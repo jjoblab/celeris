@@ -91,3 +91,59 @@
 4. **Les gabarits de A-06** (« Entrée, collage, gabarit ») : la
    facette gabarit d'indentation suit la tranche des gabarits
    dynamiques (A-22).
+
+## Tranche 2 — actions de lignes, commentaires, tri et gabarits (2026-11-06)
+
+### Livré
+
+- **Les actions de lignes** (`LineActions`, A-10) : le bloc de
+  lignes touchées par la sélection est l'unité du geste — chaque plage
+  contribue ses lignes, les contiguës fusionnent. Monter et descendre
+  échangent le bloc avec sa voisine ; les bords du document ne
+  bougent pas (plan vide, la sélection tient). Dupliquer place la copie
+  derrière le bloc ; les curseurs y descendent, colonnes
+  conservées. Joindre colle une ligne à la suivante en retirant
+  l'indentation de celle-ci ; un bloc fusionne sans toucher à la
+  ligne qui le suit. Supprimer emporte le bloc et son saut — le saut
+  d'avant pour le dernier bloc du document.
+- **Le commentaire** (`CommentRules`, `Commenter`, A-11) : le
+  préfixe suit le langage — la famille C au double barre, la famille au
+  dièse (Python, Shell, YAML, properties, TOML), le balisage par bloc.
+  JSON n'a pas de commentaire : l'action est masquée, les
+  langages inconnus aussi — jamais de préfixe deviné. La bascule ligne
+  à ligne est tout ou rien : une ligne non commentée commente
+  tout le bloc, toutes commentées les retirent, la ligne vide ne compte
+  pas. Le bloc XML entoure la sélection (le contenu reste
+  sélectionné) ou se retire s'il l'entoure déjà.
+- **Le tri** (`LineSorter`, A-12) : ordre naturel — les tranches
+  numériques se comparent en nombres, le reste en chaînes — la
+  sensibilité à la casse appartient à l'hôte. Le bloc trié remplace le
+  bloc d'origine et reste sélectionné.
+- **Les gabarits dynamiques** (`Gabarit`, `Trou`, `Gabarits`,
+  A-22) : le corps porte ses variables `${nom}` et
+  `${nom:defaut}` ; le rendu pose les défauts, les trous
+  sortent dans l'ordre du rendu — l'ordre de tabulation — et les
+  occurrences d'une même variable sont liées. L'insertion sélectionne
+  le premier trou ; les miroirs propagent l'édition d'une
+  occurrence à ses sœurs, au même décalage relatif, borné aux limites
+  de chacune ; les positions restent dans le repère d'avant
+  l'édition — l'appelant compose les deltas.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- `:core-intelligence:test` : **72 tests, zéro échec** (32 neufs
+  — actions de lignes 11, commentaires 9, tri 5, gabarits 7) ;
+- manifeste d'API régénéré (`core-intelligence`).
+
+### Écarts et limites
+
+1. **Les actions de lignes se raccordent au clavier et à la pilule à la
+   tranche vue** : le cœur est livré, les raccourcis D-17 et la
+   pilule tactile suivent la tranche d'intégration.
+2. **Le tri porte sur le bloc d'un bout à l'autre** : plusieurs
+   plages disjointes trient l'étendue de la première à la dernière —
+   le tri par blocs séparés n'était pas au périmètre.
+3. **Les gabarits n'ont pas de trous à choix** (énumérations) ni
+   d'imbrication : la facette à trous et variables liées du
+   cahier des charges est couverte, les choix suivront le besoin réel.
