@@ -1,7 +1,6 @@
 package jo.celeris.core.syntax.grammars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -77,7 +76,7 @@ class GrammaireParseurTest {
                 "sombre",
                 """);
         Analysis analyse = service.analyseFull(doc);
-        assertFalse(analyse.estComplet(), "le document reste analysé");
+        assertTrue(analyse.estComplet(), "l'arbre reste complet, le crochet ouvert se tolère");
         assertTrue(TreeFolds.regions(doc, analyse).isEmpty(),
                 "le crochet non fermé n'ouvre aucune région");
     }

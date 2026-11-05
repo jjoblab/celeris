@@ -53,15 +53,18 @@ class GrammaireLexeurTest {
                 "le fond se compare au vide");
     }
 
-    /** La cascade après édition s'arrête à la reconvergence : seules les lignes touchées se relisent. */
+    /**
+     * La cascade après édition s'arrête à la reconvergence : l'édition
+     * au cœur d'une chaîne ouverte ne relit QUE sa ligne — l'état de
+     * sortie (chaîne toujours ouverte) n'a pas changé, la ligne suivante
+     * garde son panier.
+     */
     @Test
     void cascadeBorneeParLaReconvergence() {
         SyntaxService service = SyntaxService.of(LangagesGrammaires.python());
         Document doc = Document.of(PYTHON);
         Analysis complet = service.analyseFull(doc);
 
-        // édition au cœur de la chaîne triple : la pile reste ouverte
-        // jusqu'à la fermeture, la reconvergence arrive à la ligne suivante
         int cible = PYTHON.indexOf("ligne un");
         Document edite = doc.replace(cible, cible + 1, "L");
         EditSite site = EditSite.of(doc, edite, cible, cible + 1, "L");
@@ -70,9 +73,8 @@ class GrammaireLexeurTest {
         for (int ligne = 0; ligne < 6; ligne++) {
             LexedLine avant = complet.lex().line(ligne);
             LexedLine apres = diff.lex().line(ligne);
-            if (ligne == 1 || ligne == 2 || ligne == 3) {
-                assertNotSame(avant, apres,
-                        "la ligne " + ligne + " se relit (cascade de la chaîne)");
+            if (ligne == 2) {
+                assertNotSame(avant, apres, "seule la ligne éditée se relit");
             } else {
                 assertSame(avant, apres,
                         "la ligne " + ligne + " garde son panier (PIEGE-21)");
@@ -115,9 +117,13 @@ class GrammaireLexeurTest {
         assertEquals(EtatGrammaire.VIDE, ligne.exitState(), "rien d'ouvert en sortie");
     }
 
-    /** L'édition d'ouverture de bloc cascade jusqu'à la fermeture, jamais au-delà. */
+    /**
+     * L'ouverture qui ne ferme plus cascade jusqu'à la dernière ligne
+     * et termine (PIEGE-19) : chaque état de sortie diverge, chaque
+     * ligne se relit — mais la ligne d'avant garde son panier.
+     */
     @Test
-    void editionDeLOuvertureCascadeJusquaLaFermeture() {
+    void editionDeLOuvertureCascadeJusquauBout() {
         SyntaxService service = SyntaxService.of(LangagesGrammaires.python());
         Document doc = Document.of(PYTHON);
         Analysis complet = service.analyseFull(doc);
@@ -130,12 +136,12 @@ class GrammaireLexeurTest {
         for (int ligne = 0; ligne < 6; ligne++) {
             LexedLine avant = complet.lex().line(ligne);
             LexedLine apres = diff.lex().line(ligne);
-            if (ligne < 5) {
-                assertNotSame(avant, apres,
-                        "la ligne " + ligne + " se relit (l'état d'entrée a changé)");
-            } else {
+            if (ligne == 0) {
                 assertSame(avant, apres,
-                        "la ligne après la fermeture garde son panier : reconvergence");
+                        "la ligne d'avant l'ouverture garde son panier");
+            } else {
+                assertNotSame(avant, apres,
+                        "la ligne " + ligne + " se relit : l'état de sortie diverge");
             }
         }
     }

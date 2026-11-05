@@ -87,8 +87,8 @@ class LecteurJsonGrammaireTest {
                           "patterns": [ { "include": "$self" } ]
                         }
                         """));
-        assertTrue(erreur.getMessage().contains("unsupported include"),
-                "message explicite : " + erreur.getMessage());
+        assertTrue(String.valueOf(erreur.getMessage()).contains("unsupported include"),
+                "message explicite");
     }
 
     /** Une inclusion inconnue est refusée au chargement. */
@@ -114,8 +114,8 @@ class LecteurJsonGrammaireTest {
                           "patterns": [ { "match": "(", "name": "keyword.essai" } ]
                         }
                         """));
-        assertTrue(erreur.getMessage().contains("bad pattern"),
-                "message explicite : " + erreur.getMessage());
+        assertTrue(String.valueOf(erreur.getMessage()).contains("bad pattern"),
+                "message explicite");
     }
 
     /** Un bloc sans fermeture est refusé. */

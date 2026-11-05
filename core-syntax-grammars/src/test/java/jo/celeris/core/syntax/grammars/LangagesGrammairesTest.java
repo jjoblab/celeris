@@ -127,12 +127,18 @@ class LangagesGrammairesTest {
         assertEquals(6, langages.size(), "six langages embarqués");
         LanguageRegistry registre = LanguageRegistry.of(
                 langages.toArray(new Language[0]));
-        assertEquals("toml", registre.byFilename("conf/apparail.toml").id());
-        assertEquals("yaml", registre.byFilename("manifeste.yml").id());
-        assertEquals("properties", registre.byFilename("ressources.properties").id());
-        assertEquals("markdown", registre.byFilename("LISEZMOI.md").id());
-        assertEquals("python", registre.byFilename("outillage/build.py").id());
-        assertEquals("shell", registre.byFilename("scripts/assembly.sh").id());
+        assertEquals("toml", identifie(registre, "conf/apparail.toml"));
+        assertEquals("yaml", identifie(registre, "manifeste.yml"));
+        assertEquals("properties", identifie(registre, "ressources.properties"));
+        assertEquals("markdown", identifie(registre, "LISEZMOI.md"));
+        assertEquals("python", identifie(registre, "outillage/build.py"));
+        assertEquals("shell", identifie(registre, "scripts/assembly.sh"));
+    }
+
+    private static String identifie(LanguageRegistry registre, String nom) {
+        Language langage = registre.byFilename(nom);
+        assertTrue(langage != null, "non identifié : " + nom);
+        return langage.id();
     }
 
     private static Analysis analyse(GrammaireSyntax langage, Document doc) {
