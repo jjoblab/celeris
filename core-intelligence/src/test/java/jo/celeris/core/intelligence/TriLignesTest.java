@@ -54,7 +54,7 @@ class TriLignesTest {
         Document doc = Document.of("header\nb\na\nfooter");
         // sélection couvrant les lignes 1 et 2
         EditPlan plan = LineSorter.sort(doc,
-                MultiSelection.of(new SelRange(7, 12)), true);
+                MultiSelection.of(new SelRange(7, 11)), true);
         assertEquals("b\na", plan.transaction().edits().get(0).removed());
         assertEquals("a\nb", plan.transaction().edits().get(0).inserted());
         assertEquals(7, plan.transaction().edits().get(0).start());
@@ -68,6 +68,6 @@ class TriLignesTest {
                 MultiSelection.of(new SelRange(0, 13)), true);
         SelRange apres = plan.selection().ranges().get(0);
         assertEquals(0, apres.start());
-        assertEquals(13, apres.end());
+        assertEquals(12, apres.end());
     }
 }

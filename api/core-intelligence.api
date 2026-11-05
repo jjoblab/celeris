@@ -1,3 +1,23 @@
+### jo.celeris.core.intelligence.CommentRules
+Compiled from "CommentRules.java"
+public final class jo.celeris.core.intelligence.CommentRules extends java.lang.Record {
+  public jo.celeris.core.intelligence.CommentRules(java.lang.String, java.lang.String, java.lang.String);
+  public static jo.celeris.core.intelligence.CommentRules parLangage(java.lang.String);
+  public boolean commentable();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String ligne();
+  public java.lang.String blocDebut();
+  public java.lang.String blocFin();
+}
+
+### jo.celeris.core.intelligence.Commenter
+Compiled from "Commenter.java"
+public final class jo.celeris.core.intelligence.Commenter {
+  public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> toggle(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.CommentRules);
+}
+
 ### jo.celeris.core.intelligence.EditPlan
 Compiled from "EditPlan.java"
 public final class jo.celeris.core.intelligence.EditPlan extends java.lang.Record {
@@ -7,6 +27,27 @@ public final class jo.celeris.core.intelligence.EditPlan extends java.lang.Recor
   public final boolean equals(java.lang.Object);
   public jo.celeris.core.text.Transaction transaction();
   public jo.celeris.core.text.MultiSelection selection();
+}
+
+### jo.celeris.core.intelligence.Gabarit
+Compiled from "Gabarit.java"
+public final class jo.celeris.core.intelligence.Gabarit extends java.lang.Record {
+  public jo.celeris.core.intelligence.Gabarit(java.lang.String, java.util.List<jo.celeris.core.intelligence.Trou>);
+  public static jo.celeris.core.intelligence.Gabarit of(java.lang.String);
+  public java.util.List<java.lang.String> variables();
+  public java.util.List<jo.celeris.core.intelligence.Trou> occurrencesDe(java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String rendu();
+  public java.util.List<jo.celeris.core.intelligence.Trou> trous();
+}
+
+### jo.celeris.core.intelligence.Gabarits
+Compiled from "Gabarits.java"
+public final class jo.celeris.core.intelligence.Gabarits {
+  public static jo.celeris.core.intelligence.EditPlan inserer(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.Gabarit);
+  public static java.util.List<jo.celeris.core.text.TextEdit> miroirs(java.lang.String, java.util.List<jo.celeris.core.intelligence.Trou>, jo.celeris.core.intelligence.Trou, jo.celeris.core.text.TextEdit);
 }
 
 ### jo.celeris.core.intelligence.IndentEngine
@@ -30,6 +71,26 @@ public final class jo.celeris.core.intelligence.IndentStyle extends java.lang.Re
   public final boolean equals(java.lang.Object);
   public int width();
   public boolean tabs();
+}
+
+### jo.celeris.core.intelligence.LineActions$Bloc
+Compiled from "LineActions.java"
+final class jo.celeris.core.intelligence.LineActions$Bloc {
+}
+
+### jo.celeris.core.intelligence.LineActions
+Compiled from "LineActions.java"
+public final class jo.celeris.core.intelligence.LineActions {
+  public static jo.celeris.core.intelligence.EditPlan moveLines(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, int);
+  public static jo.celeris.core.intelligence.EditPlan duplicateLines(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection);
+  public static jo.celeris.core.intelligence.EditPlan joinLines(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection);
+  public static jo.celeris.core.intelligence.EditPlan deleteLines(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection);
+}
+
+### jo.celeris.core.intelligence.LineSorter
+Compiled from "LineSorter.java"
+public final class jo.celeris.core.intelligence.LineSorter {
+  public static jo.celeris.core.intelligence.EditPlan sort(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, boolean);
 }
 
 ### jo.celeris.core.intelligence.PasteReindenter
@@ -56,6 +117,19 @@ public final class jo.celeris.core.intelligence.SmartTyping {
   public static jo.celeris.core.intelligence.EditPlan enter(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
   public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> backspace(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.TypingRules, jo.celeris.core.intelligence.IndentStyle);
   public static jo.celeris.core.intelligence.EditPlan surround(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, java.lang.String, java.lang.String, boolean, jo.celeris.core.intelligence.IndentStyle);
+}
+
+### jo.celeris.core.intelligence.Trou
+Compiled from "Trou.java"
+public final class jo.celeris.core.intelligence.Trou extends java.lang.Record {
+  public jo.celeris.core.intelligence.Trou(int, int, java.lang.String);
+  public int longueur();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int debut();
+  public int fin();
+  public java.lang.String variable();
 }
 
 ### jo.celeris.core.intelligence.TypingRules

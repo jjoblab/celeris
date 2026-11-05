@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
+import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextEdit;
 
 /**

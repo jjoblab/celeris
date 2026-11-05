@@ -84,7 +84,7 @@ class CommenterTest {
     void xmlRetireLeBlocAuSecondBasculement() {
         Document doc = Document.of("<!--  <b/>-->");
         Optional<EditPlan> plan = Commenter.toggle(doc,
-                MultiSelection.of(new SelRange(0, 14)), CommentRules.parLangage("xml"));
+                MultiSelection.of(new SelRange(0, 13)), CommentRules.parLangage("xml"));
         assertTrue(plan.isPresent());
         assertEquals("<!--  <b/>-->", plan.get().transaction().edits().get(0).removed());
         assertEquals("  <b/>", plan.get().transaction().edits().get(0).inserted());
