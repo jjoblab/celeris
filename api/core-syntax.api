@@ -76,6 +76,92 @@ public final class jo.celeris.core.syntax.FoldSpan extends java.lang.Record {
   public int endLine();
 }
 
+### jo.celeris.core.syntax.GroovyKind
+Compiled from "GroovyKind.java"
+final class jo.celeris.core.syntax.GroovyKind extends java.lang.Enum<jo.celeris.core.syntax.GroovyKind> implements jo.celeris.core.syntax.NodeKind {
+  public static final jo.celeris.core.syntax.GroovyKind TYPE;
+  public static final jo.celeris.core.syntax.GroovyKind METHOD;
+  public static final jo.celeris.core.syntax.GroovyKind FIELD;
+  public static final jo.celeris.core.syntax.GroovyKind STATEMENT;
+  public static final jo.celeris.core.syntax.GroovyKind BLOC;
+  public static final jo.celeris.core.syntax.GroovyKind ERREUR;
+  public static final jo.celeris.core.syntax.GroovyKind AUTRE;
+  public static jo.celeris.core.syntax.GroovyKind[] values();
+  public static jo.celeris.core.syntax.GroovyKind valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.GroovyLexeur$DansBloc
+Compiled from "GroovyLexeur.java"
+final class jo.celeris.core.syntax.GroovyLexeur$DansBloc extends java.lang.Record implements jo.celeris.core.syntax.LexState {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int profondeur();
+  public boolean documentation();
+}
+
+### jo.celeris.core.syntax.GroovyLexeur$DansTriple
+Compiled from "GroovyLexeur.java"
+final class jo.celeris.core.syntax.GroovyLexeur$DansTriple extends java.lang.Record implements jo.celeris.core.syntax.LexState {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public char delimiteur();
+}
+
+### jo.celeris.core.syntax.GroovyLexeur$Etat
+Compiled from "GroovyLexeur.java"
+final class jo.celeris.core.syntax.GroovyLexeur$Etat extends java.lang.Enum<jo.celeris.core.syntax.GroovyLexeur$Etat> implements jo.celeris.core.syntax.LexState {
+  public static final jo.celeris.core.syntax.GroovyLexeur$Etat NORMAL;
+  public static jo.celeris.core.syntax.GroovyLexeur$Etat[] values();
+  public static jo.celeris.core.syntax.GroovyLexeur$Etat valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.GroovyLexeur$Gabarit
+Compiled from "GroovyLexeur.java"
+final class jo.celeris.core.syntax.GroovyLexeur$Gabarit {
+}
+
+### jo.celeris.core.syntax.GroovyLexeur
+Compiled from "GroovyLexeur.java"
+final class jo.celeris.core.syntax.GroovyLexeur implements jo.celeris.core.syntax.LanguageLexer {
+  public jo.celeris.core.syntax.LexState initialState();
+  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
+}
+
+### jo.celeris.core.syntax.GroovyParseur$Scan
+Compiled from "GroovyParseur.java"
+final class jo.celeris.core.syntax.GroovyParseur$Scan extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int ouvrante();
+  public int fermante();
+  public int fin();
+}
+
+### jo.celeris.core.syntax.GroovyParseur
+Compiled from "GroovyParseur.java"
+final class jo.celeris.core.syntax.GroovyParseur implements jo.celeris.core.syntax.LanguageParser {
+  public int chunkLevel();
+  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
+  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
+}
+
+### jo.celeris.core.syntax.GroovySignes
+Compiled from "GroovySignes.java"
+final class jo.celeris.core.syntax.GroovySignes {
+}
+
+### jo.celeris.core.syntax.GroovySyntax
+Compiled from "GroovySyntax.java"
+public final class jo.celeris.core.syntax.GroovySyntax implements jo.celeris.core.syntax.LanguageSyntax {
+  public static final jo.celeris.core.syntax.GroovySyntax INSTANCE;
+  public java.lang.String id();
+  public jo.celeris.core.syntax.LanguageLexer lexer();
+  public jo.celeris.core.syntax.LanguageParser parser();
+}
+
 ### jo.celeris.core.syntax.IncrementalLexer
 Compiled from "IncrementalLexer.java"
 public final class jo.celeris.core.syntax.IncrementalLexer {

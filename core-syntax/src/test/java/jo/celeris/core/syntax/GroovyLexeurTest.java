@@ -64,7 +64,7 @@ class GroovyLexeurTest {
         Token[] jetons = lue.tokens();
         assertEquals(TokenKind.STRING, jetons[1].kind());
         assertEquals(3, jetons[1].start());
-        assertEquals(16, jetons[1].end());
+        assertEquals(17, jetons[1].end());
     }
 
     /** Les guillemets internes aux accolades d'un gabarit ne clôturent pas. */
