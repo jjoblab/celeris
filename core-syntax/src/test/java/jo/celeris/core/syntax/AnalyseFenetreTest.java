@@ -94,7 +94,8 @@ class AnalyseFenetreTest {
     /**
      * L'édition dans la fenêtre analysée suit la voie incrémentale depuis
      * un arbre partiel : le chunk propriétaire se ré-analyse, les chunks
-     * en attente se décalent et restent en attente.
+     * en attente se décalent et restent en attente — la complétion
+     * rejoint l'analyse complète du même instantané.
      */
     @Test
     void editionDansFenetre_analyseIncrementaleDepuisPartiel() {
@@ -104,10 +105,18 @@ class AnalyseFenetreTest {
         EditSite site = EditSite.of(doc, edite,
                 TEXTE.indexOf("x"), TEXTE.indexOf("x") + 1, "z");
         Analysis diff = service.analyseIncremental(edite, partielle, site);
-        Analysis complet = service.analyseFull(edite);
-        Arbres.verifierEquivalence(diff.tree(), complet.tree(), edite);
         assertTrue(diff.tree().chunks().size() >= 3);
-        assertFalse(diff.estComplet(), "les chunks hors fenêtre attendent toujours");
+        assertFalse(diff.tree().chunks().get(0).estEnAttente(),
+                "le chunk propriétaire édité se ré-analyse");
+        assertTrue(diff.tree().chunks().get(1).estEnAttente(),
+                "les chunks hors fenêtre restent en attente");
+        assertFalse(diff.estComplet());
+        Analysis courant = diff;
+        while (!courant.estComplet()) {
+            courant = service.completer(edite, courant, new JetonAnnulation(), 1);
+        }
+        Arbres.verifierEquivalence(courant.tree(),
+                service.analyseFull(edite).tree(), edite);
     }
 
     /** Un malformé hors fenêtre ne diagnostique qu'une fois analysé. */

@@ -1,7 +1,14 @@
+### jo.celeris.core.syntax.AnalyseAnnulee
+Compiled from "AnalyseAnnulee.java"
+public final class jo.celeris.core.syntax.AnalyseAnnulee extends java.lang.IllegalStateException {
+  public jo.celeris.core.syntax.AnalyseAnnulee();
+}
+
 ### jo.celeris.core.syntax.Analysis
 Compiled from "Analysis.java"
 public final class jo.celeris.core.syntax.Analysis extends java.lang.Record {
   public jo.celeris.core.syntax.Analysis(int, jo.celeris.core.syntax.LexDocument, jo.celeris.core.syntax.SyntaxTree);
+  public boolean estComplet();
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -16,11 +23,20 @@ public final class jo.celeris.core.syntax.BracketMatcher {
   public static jo.celeris.core.syntax.TokenMatch matchAt(jo.celeris.core.text.Document, jo.celeris.core.syntax.LexDocument, int);
 }
 
+### jo.celeris.core.syntax.Chunk$Attente
+Compiled from "Chunk.java"
+final class jo.celeris.core.syntax.Chunk$Attente extends java.lang.Enum<jo.celeris.core.syntax.Chunk$Attente> implements jo.celeris.core.syntax.NodeKind {
+  public static final jo.celeris.core.syntax.Chunk$Attente INSTANCE;
+  public static jo.celeris.core.syntax.Chunk$Attente[] values();
+  public static jo.celeris.core.syntax.Chunk$Attente valueOf(java.lang.String);
+}
+
 ### jo.celeris.core.syntax.Chunk
 Compiled from "Chunk.java"
 public final class jo.celeris.core.syntax.Chunk extends java.lang.Record {
   public jo.celeris.core.syntax.Chunk(int, int, int, int, jo.celeris.core.syntax.SynNode);
   public boolean isError();
+  public boolean estEnAttente();
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -65,7 +81,13 @@ Compiled from "IncrementalLexer.java"
 public final class jo.celeris.core.syntax.IncrementalLexer {
   public jo.celeris.core.syntax.IncrementalLexer();
   public jo.celeris.core.syntax.LexResult lexFull(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer);
+  public jo.celeris.core.syntax.LexResult lexFull(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, jo.celeris.core.syntax.JetonAnnulation);
   public jo.celeris.core.syntax.LexResult lexIncremental(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, jo.celeris.core.syntax.LexDocument, jo.celeris.core.syntax.EditSite);
+}
+
+### jo.celeris.core.syntax.IncrementalParser$PasseJetons
+Compiled from "IncrementalParser.java"
+final class jo.celeris.core.syntax.IncrementalParser$PasseJetons {
 }
 
 ### jo.celeris.core.syntax.IncrementalParser
@@ -137,6 +159,15 @@ public final class jo.celeris.core.syntax.JavaSyntax implements jo.celeris.core.
   public java.lang.String id();
   public jo.celeris.core.syntax.LanguageLexer lexer();
   public jo.celeris.core.syntax.LanguageParser parser();
+}
+
+### jo.celeris.core.syntax.JetonAnnulation
+Compiled from "JetonAnnulation.java"
+public final class jo.celeris.core.syntax.JetonAnnulation {
+  public jo.celeris.core.syntax.JetonAnnulation();
+  public synchronized void annuler();
+  public synchronized boolean estAnnule();
+  public void verifier();
 }
 
 ### jo.celeris.core.syntax.Jetons
@@ -335,6 +366,31 @@ public final class jo.celeris.core.syntax.LexedLine {
   public jo.celeris.core.syntax.LexState exitState();
 }
 
+### jo.celeris.core.syntax.MoteurAnalyse$Auditeur
+Compiled from "MoteurAnalyse.java"
+public interface jo.celeris.core.syntax.MoteurAnalyse$Auditeur {
+  public abstract void analysePubliee(jo.celeris.core.syntax.Analysis);
+}
+
+### jo.celeris.core.syntax.MoteurAnalyse$Tache
+Compiled from "MoteurAnalyse.java"
+final class jo.celeris.core.syntax.MoteurAnalyse$Tache implements java.lang.Runnable {
+  public void run();
+}
+
+### jo.celeris.core.syntax.MoteurAnalyse
+Compiled from "MoteurAnalyse.java"
+public final class jo.celeris.core.syntax.MoteurAnalyse {
+  public static jo.celeris.core.syntax.MoteurAnalyse sur(jo.celeris.core.text.TextSession, jo.celeris.core.syntax.LanguageSyntax, java.util.concurrent.Executor);
+  public static jo.celeris.core.syntax.MoteurAnalyse sur(jo.celeris.core.text.TextSession, jo.celeris.core.syntax.LanguageSyntax, java.util.concurrent.Executor, int, int);
+  public synchronized void fenetre(int, int);
+  public void reanalyser();
+  public synchronized jo.celeris.core.syntax.Analysis analysePubliee();
+  public synchronized void ajouterAuditeur(jo.celeris.core.syntax.MoteurAnalyse$Auditeur);
+  public synchronized void retirerAuditeur(jo.celeris.core.syntax.MoteurAnalyse$Auditeur);
+  public void close();
+}
+
 ### jo.celeris.core.syntax.NodeCategory
 Compiled from "NodeCategory.java"
 public final class jo.celeris.core.syntax.NodeCategory extends java.lang.Enum<jo.celeris.core.syntax.NodeCategory> {
@@ -408,6 +464,8 @@ Compiled from "SyntaxService.java"
 public final class jo.celeris.core.syntax.SyntaxService {
   public static jo.celeris.core.syntax.SyntaxService of(jo.celeris.core.syntax.LanguageSyntax);
   public jo.celeris.core.syntax.Analysis analyseFull(jo.celeris.core.text.Document);
+  public jo.celeris.core.syntax.Analysis analyseFenetre(jo.celeris.core.text.Document, int, int, jo.celeris.core.syntax.JetonAnnulation);
+  public jo.celeris.core.syntax.Analysis completer(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.syntax.JetonAnnulation, int);
   public jo.celeris.core.syntax.Analysis analyseIncremental(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.syntax.EditSite);
 }
 
@@ -416,6 +474,7 @@ Compiled from "SyntaxTree.java"
 public final class jo.celeris.core.syntax.SyntaxTree {
   public int revision();
   public java.util.List<jo.celeris.core.syntax.Chunk> chunks();
+  public boolean estComplet();
   public int chunkStartOffset(jo.celeris.core.text.Document, jo.celeris.core.syntax.Chunk);
   public int chunkEndOffset(jo.celeris.core.text.Document, jo.celeris.core.syntax.Chunk);
 }

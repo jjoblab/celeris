@@ -1,5 +1,6 @@
 package jo.celeris.core.syntax;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -66,12 +67,9 @@ class PremiereImageAnalyseBudgetTest {
             JetonAnnulation jeton = new JetonAnnulation();
             jeton.annuler();
             long debut = System.nanoTime();
-            try {
-                lexer.lexFull(doc, JavaSyntax.INSTANCE.lexer(), jeton);
-                throw new AssertionError("le jeton annulé doit lever AnalyseAnnulee");
-            } catch (AnalyseAnnulee attendue) {
-                // attendu : le premier point de contrôle arrête la passe
-            }
+            assertThrows(AnalyseAnnulee.class,
+                    () -> lexer.lexFull(doc, JavaSyntax.INSTANCE.lexer(), jeton),
+                    "le premier point de contrôle arrête la passe");
             annule = Math.min(annule, System.nanoTime() - debut);
         }
         assertTrue(annule < complet,

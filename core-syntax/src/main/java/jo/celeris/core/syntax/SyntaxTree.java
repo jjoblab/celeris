@@ -32,6 +32,16 @@ public final class SyntaxTree {
         return chunks;
     }
 
+    /** Vrai quand aucun chunk n'attend son analyse (arbre complet, G-01). */
+    public boolean estComplet() {
+        for (Chunk chunk : chunks) {
+            if (chunk.estEnAttente()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Offset absolu du début du chunk (son ancre).
      *

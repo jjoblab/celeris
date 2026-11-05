@@ -94,7 +94,8 @@ class MoteurAnalyseTest {
         assertFalse(premiere.estComplet());
         assertFalse(premiere.tree().chunks().get(0).estEnAttente());
         assertTrue(premiere.tree().chunks().get(2).estEnAttente());
-        assertTrue(moteur.analysePubliee().estComplet());
+        assertTrue(moteur.analysePubliee() != null && moteur.analysePubliee().estComplet(),
+                "la complétion a suivi la fenêtre");
         moteur.close();
     }
 
@@ -112,48 +113,47 @@ class MoteurAnalyseTest {
         session.replaceRange(cible, cible + 3, "  omega");
         assertEquals(2, executeur.file.size(), "l'édition supplante et reprogramme");
         executeur.jouer();
-        assertNotNull(moteur.analysePubliee());
-        assertEquals(session.document().revision(), moteur.analysePubliee().revision());
-        for (Analysis publiee : publications) {
-            assertEquals(session.document().revision(), publiee.revision(),
+        Analysis publiee = moteur.analysePubliee();
+        assertNotNull(publiee);
+        assertEquals(session.document().revision(), publiee.revision());
+        for (Analysis publication : publications) {
+            assertEquals(session.document().revision(), publication.revision(),
                     "aucune publication de révision périmée (PIEGE-20)");
         }
         moteur.close();
     }
 
     /**
-     * Une tâche supplantée en plein vol — le lexeur retenu derrière une
-     * porte — ne publie rien : l'annulation coûte moins cher que terminer
-     * et l'instantané périmé n'écrase jamais le plus récent (PIEGE-20).
+     * Un lexeur qui se retient derrière une porte à la ligne donnée :
+     * pour tenir un travail d'analyse en plein vol, déterministe.
      */
-    @Test
-    void travailSupplanteEnPleinVolNePubliePas() throws InterruptedException {
-        CountDownLatch porte = new CountDownLatch(1);
-        AtomicBoolean atteinte = new AtomicBoolean();
-        LanguageSyntax langageRetenu = new LanguageSyntax() {
-            private final LanguageSyntax coeur = MiniLangage.langage();
-            private final LanguageLexer lexeur = coeur.lexer();
+    private static LanguageSyntax retenuDerrierePorte(int lignePorte,
+            CountDownLatch porte, AtomicBoolean atteinte) {
+        LanguageSyntax coeur = MiniLangage.langage();
+        LanguageLexer lexeur = coeur.lexer();
+        class Retenu implements LanguageLexer {
             private int lignesLues;
-            private final LanguageLexer retenu = new LanguageLexer() {
-                @Override
-                public LexState initialState() {
-                    return lexeur.initialState();
-                }
 
-                @Override
-                public LexedLine lex(CharSequence texte, LexState etat) {
-                    if (lignesLues++ == 2) {
-                        atteinte.set(true);
-                        try {
-                            porte.await(10, TimeUnit.SECONDS);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        }
+            @Override
+            public LexState initialState() {
+                return lexeur.initialState();
+            }
+
+            @Override
+            public LexedLine lex(CharSequence texte, LexState etat) {
+                if (lignesLues++ == lignePorte) {
+                    atteinte.set(true);
+                    try {
+                        porte.await(10, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
                     }
-                    return lexeur.lex(texte, etat);
                 }
-            };
-
+                return lexeur.lex(texte, etat);
+            }
+        }
+        Retenu retenu = new Retenu();
+        return new LanguageSyntax() {
             @Override
             public String id() {
                 return coeur.id();
@@ -169,6 +169,18 @@ class MoteurAnalyseTest {
                 return coeur.parser();
             }
         };
+    }
+
+    /**
+     * Une tâche supplantée en plein vol — le lexeur retenu derrière une
+     * porte — ne publie rien : l'annulation coûte moins cher que terminer
+     * et l'instantané périmé n'écrase jamais le plus récent (PIEGE-20).
+     */
+    @Test
+    void travailSupplanteEnPleinVolNePubliePas() throws InterruptedException {
+        CountDownLatch porte = new CountDownLatch(1);
+        AtomicBoolean atteinte = new AtomicBoolean();
+        LanguageSyntax langageRetenu = retenuDerrierePorte(2, porte, atteinte);
         ExecutorService fil = Executors.newSingleThreadExecutor();
         try {
             TextSession session = TextSession.of(TEXTE, () -> 0L);

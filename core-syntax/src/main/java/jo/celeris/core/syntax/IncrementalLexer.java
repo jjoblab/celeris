@@ -22,12 +22,30 @@ public final class IncrementalLexer {
 
     /** Passe complète : toutes les lignes, à l'ouverture ou à la revalidation. */
     public LexResult lexFull(Document doc, LanguageLexer lexeur) {
+        return lexFull(doc, lexeur, new JetonAnnulation());
+    }
+
+    /**
+     * Passe complète avec point de contrôle d'annulation (ADR-007) : tous
+     * les 256 lignes, le jeton s'interroge — annuler coûte moins cher que
+     * terminer. Sans annulation, la passe est identique à la voie simple.
+     *
+     * @param doc    le document
+     * @param lexeur le lexeur du langage
+     * @param jeton  le jeton d'annulation interrogé entre les lots de lignes
+     * @return le lexique complet du document
+     * @throws AnalyseAnnulee si le travail est annulé en cours de passe
+     */
+    public LexResult lexFull(Document doc, LanguageLexer lexeur, JetonAnnulation jeton) {
         int nombre = doc.lineCount();
         LexedLine[] lignes = new LexedLine[nombre];
         int[] profondeurs = new int[nombre];
         LexState etat = lexeur.initialState();
         int profondeur = 0;
         for (int ligne = 0; ligne < nombre; ligne++) {
+            if ((ligne & 0xFF) == 0) {
+                jeton.verifier();
+            }
             LexedLine lue = lexeur.lex(doc.lineText(ligne), etat);
             lignes[ligne] = lue;
             profondeurs[ligne] = profondeur;

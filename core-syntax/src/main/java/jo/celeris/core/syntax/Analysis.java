@@ -11,4 +11,9 @@ package jo.celeris.core.syntax;
  * @param tree     l'arbre syntaxique tolérant
  */
 public record Analysis(int revision, LexDocument lex, SyntaxTree tree) {
+
+    /** Vrai quand l'arbre est complet — aucun chunk en attente (G-01). */
+    public boolean estComplet() {
+        return tree.estComplet();
+    }
 }
