@@ -24,10 +24,11 @@ import java.util.List;
  *
  * <p>Jalon M4 (syntaxe) : A-15 (plis calculés depuis l'arbre, le pli
  * manuel survit à l'édition voisine), B-01 (coloration lexicale et
- * syntaxique du même arbre), C-01 (XML : coloration, plis, crochets),
- * C-07 (Gradle KTS et Groovy) et C-14 (langages P0 : Java, Kotlin,
- * XML). Les scénarios B-16 (plan) et C-15/C-16 (longue traîne)
- * suivent leurs tranches.</p>
+ * syntaxique du même arbre), B-16 (plan du fichier consommateur du
+ * même arbre, mise à jour incrémentale), C-01 (XML : coloration, plis,
+ * crochets), C-07 (Gradle KTS et Groovy) et C-14 (langages P0 : Java,
+ * Kotlin, XML). Les scénarios C-15/C-16 (longue traîne) suivent leur
+ * tranche.</p>
  */
 public final class ScenarioCatalog {
 
@@ -101,6 +102,14 @@ public final class ScenarioCatalog {
                                 + "plage se peint à l'encre de sa sorte, servie par "
                                 + "les mêmes paniers que les plis — le rendu ne "
                                 + "relit jamais le texte."),
+                new Scenario(
+                        "B-16",
+                        "Plan du fichier (structure)",
+                        "Le plan sort du même arbre que la coloration : classes, "
+                                + "méthodes et champs avec leurs bornes ; l'édition le "
+                                + "met à jour par incrément — le préfixe intact se "
+                                + "conserve, le consommateur reçoit le compte de ce "
+                                + "qui change."),
                 new Scenario(
                         "C-01",
                         "XML : coloration, plis, crochets",

@@ -3,15 +3,18 @@ package jo.celeris.android.view;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.FoldSpan;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.MoteurAnalyse;
+import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.syntax.TreeDiagnostics;
 import jo.celeris.core.syntax.TreeFolds;
+import jo.celeris.core.syntax.TreeOutline;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
 import jo.celeris.core.text.TextSession;
@@ -40,6 +43,14 @@ import org.jspecify.annotations.Nullable;
  * image ne paie pas l'arbre (PIEGE-20, facette vue). Le rappel
  * {@code setSurAnalysePrete} part à chaque publication, sur le fil de
  * travail — l'hôte y invalide.</p>
+ *
+ * <p>Le plan consommateur (B-16, tranche 8) : les entrées du plan
+ * sortent du MÊME arbre que la coloration — le consommateur déclaré
+ * par {@code setSurPlan} reçoit les entrées de l'analyse habillée à
+ * chaque changement de révision, jamais celles d'une autre révision.
+ * Le rattachement d'une session et le retrait du langage poussent un
+ * plan vide : le consommateur n'affiche jamais les entrées d'un
+ * document parti.</p>
  */
 public final class EditorSyntax {
 
@@ -54,6 +65,7 @@ public final class EditorSyntax {
     private @Nullable SyntaxCoordinator coordinateur;
     private @Nullable MoteurAnalyse moteur;
     private @Nullable Runnable surAnalysePrete;
+    private @Nullable Consumer<List<OutlineEntry>> surPlan;
     private int fenetrePremiere;
     private int fenetreDerniere = Integer.MAX_VALUE / 2;
     private @Nullable Document documentSuivi;
@@ -103,6 +115,7 @@ public final class EditorSyntax {
         documentSuivi = session.document();
         rattacher();
         suiviPlis.clear();
+        pousserPlan(List.of());
     }
 
     /**
@@ -115,6 +128,9 @@ public final class EditorSyntax {
         langue = nouvelleLangue;
         rattacher();
         revisionAnalysee = -1L;
+        if (langue == null) {
+            pousserPlan(List.of());
+        }
     }
 
     /** Le langage analysé, null sans analyse. */
@@ -167,6 +183,19 @@ public final class EditorSyntax {
         surAnalysePrete = rappel;
     }
 
+    /**
+     * Le consommateur du plan (B-16) : il reçoit les entrées du plan de
+     * l'analyse habillée à chaque changement de révision — le même arbre
+     * que la coloration — et un plan vide au rattachement d'une session
+     * ou au retrait du langage. Le rappel part sur le fil qui habille :
+     * l'hôte y poste vers le sien.
+     *
+     * @param consommateur le consommateur des entrées, null pour le retirer
+     */
+    public void setSurPlan(@Nullable Consumer<List<OutlineEntry>> consommateur) {
+        surPlan = consommateur;
+    }
+
     /** Referme le pont : le moteur et le coordinateur se détachent, la gouttière se vide. */
     public void fermer() {
         fermerMoteur();
@@ -216,6 +245,7 @@ public final class EditorSyntax {
             regionsPliables.addAll(TreeFolds.regions(document, analyse));
             marques = GutterMarks.of(regionsPliables, plis,
                     lignesEnErreur(document, analyse));
+            pousserPlan(TreeOutline.entries(document, analyse));
         }
         return new SyntaxRowSource(source, analyse.lex());
     }
@@ -338,6 +368,14 @@ public final class EditorSyntax {
         Runnable rappel = surAnalysePrete;
         if (rappel != null) {
             rappel.run();
+        }
+    }
+
+    /** Pousse le plan au consommateur déclaré, s'il y en a un. */
+    private void pousserPlan(List<OutlineEntry> entrees) {
+        Consumer<List<OutlineEntry>> consommateur = surPlan;
+        if (consommateur != null) {
+            consommateur.accept(entrees);
         }
     }
 
