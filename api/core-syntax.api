@@ -648,6 +648,14 @@ public final class jo.celeris.core.syntax.TreeOutline {
   public static java.util.List<jo.celeris.core.syntax.OutlineEntry> entries(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
 }
 
+### jo.celeris.core.syntax.TreeSelection
+Compiled from "TreeSelection.java"
+public final class jo.celeris.core.syntax.TreeSelection {
+  public static java.util.List<jo.celeris.core.text.SelRange> chaine(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
+  public static jo.celeris.core.text.SelRange suivante(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.text.SelRange);
+  public static jo.celeris.core.text.SelRange precedente(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.text.SelRange);
+}
+
 ### jo.celeris.core.syntax.XmlKind
 Compiled from "XmlKind.java"
 final class jo.celeris.core.syntax.XmlKind extends java.lang.Enum<jo.celeris.core.syntax.XmlKind> implements jo.celeris.core.syntax.NodeKind {
