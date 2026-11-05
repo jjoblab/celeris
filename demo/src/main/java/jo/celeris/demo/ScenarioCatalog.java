@@ -22,6 +22,16 @@ import java.util.List;
  * (accessibilité). Les facettes non livrées — D-14 (ligatures) —
  * rejoignent leur jalon.</p>
  *
+ * <p>Jalon M5 (édition assistée) : A-02 (sélection en colonne),
+ * A-03 (sélection syntaxique), A-05 à A-09 (frappe intelligente :
+ * paires, indentation, retour arrière, entourer, collage), A-10 à
+ * A-12 (lignes : déplacer, commenter, trier), A-16 (lignes
+ * collantes), A-19 (caractères invisibles), A-22 (gabarits
+ * dynamiques), la facette barre de A-20, B-14 (historique de
+ * navigation), B-15/D-06 (signets et gouttière), D-08 (bande
+ * d'erreurs), D-09 (fil d'Ariane), D-10 (popups unifiées), D-18
+ * (stylet, souris, pavé) et G-04 (plugins isolés).</p>
+ *
  * <p>Jalon M4 (syntaxe) : A-15 (plis calculés depuis l'arbre, le pli
  * manuel survit à l'édition voisine), B-01 (coloration lexicale et
  * syntaxique du même arbre), B-16 (plan du fichier consommateur du
@@ -45,15 +55,92 @@ public final class ScenarioCatalog {
         return List.copyOf(tous);
     }
 
-    /** La catégorie A — édition et saisie. */
-    private static List<Scenario> scenariosEdition() {
+    /** A-01 à A-03 — curseurs, colonne, syntaxe. */
+    private static List<Scenario> editionCurseurs() {
         return List.of(
+
                 new Scenario(
                         "A-01",
                         "Pilule « ajouter un curseur »",
                         "L'appui long arme la pilule, chaque appui ailleurs "
                                 + "ajoute un curseur — les existants tiennent ; la "
                                 + "frappe multi-curseurs vit au cœur depuis M2."),
+                new Scenario(
+                        "A-02",
+                        "Sélection en colonne",
+                        "Le glissement rectangulaire devient une plage par rangée, bornes "
+                                + "visuelles exactes — la tranche du retour à la ligne souple "
+                                + "comprise, la ligne courte s'arrête à sa fin."),
+                new Scenario(
+                        "A-03",
+                        "Sélection syntaxique",
+                        "Étendre monte la chaîne des étendues englobantes — mot, "
+                                + "instruction, bloc, type, document — réduire la redescend : le "
+                                + "même arbre que la coloration sert la sélection."));
+    }
+
+    /** A-05 à A-08 — paires, indentation, retour arrière, entourer. */
+    private static List<Scenario> editionFrappe() {
+        return List.of(
+                new Scenario(
+                        "A-05",
+                        "Fermeture automatique des paires",
+                        "L'ouvrant insère sa paire, curseur au milieu ; la citation se "
+                                + "dédouble ; l'ouvrant sur une sélection l'entoure ; le fermant "
+                                + "déjà présent est sauté — pas de double fermeture."),
+                new Scenario(
+                        "A-06",
+                        "Indentation automatique",
+                        "L'Entrée porte le retrait lu dans l'arbre au point de coupe ; "
+                                + "le fermant restant descend seul sous le curseur ; le style — "
+                                + "espaces ou tabulations — appartient à l'hôte."),
+                new Scenario(
+                        "A-07",
+                        "Retour arrière intelligent",
+                        "La paire vide disparaît entière, la citation vide aussi, "
+                                + "l'indentation excédentaire se retire d'un cran ; le reste "
+                                + "retombe sur les clusters de graphèmes du cœur."),
+                new Scenario(
+                        "A-08",
+                        "Entourer la sélection",
+                        "Accolades, guillemets ou bloc multiligne : le contenu gagne un "
+                                + "cran entre les délimiteurs, le curseur se pose après le "
+                                + "fermant, chaque plage de la sélection est entourée."));
+    }
+
+    /** A-09 à A-12 — collage, lignes, commentaires, tri. */
+    private static List<Scenario> editionActionsDeLignes() {
+        return List.of(
+                new Scenario(
+                        "A-09",
+                        "Collage avec réindentation",
+                        "La première ligne du collage ne bouge pas ; les suivantes "
+                                + "s'alignent sur la profondeur d'accueil lue dans l'arbre, la "
+                                + "structure relative du collage conservée."),
+                new Scenario(
+                        "A-10",
+                        "Déplacer, dupliquer, joindre, supprimer des lignes",
+                        "Le bloc de lignes touchées est l'unité du geste — monter, "
+                                + "descendre, dupliquer (les curseurs descendent dans la copie), "
+                                + "joindre, supprimer ; la multi-sélection opère chaque bloc."),
+                new Scenario(
+                        "A-11",
+                        "Commenter et décommenter",
+                        "Le préfixe suit le langage — Java au double barre, XML au bloc, "
+                                + "Python au dièse ; JSON n'a pas de commentaire : l'action est "
+                                + "masquée. Le basculement est tout ou rien, la ligne vide ne "
+                                + "compte pas."),
+                new Scenario(
+                        "A-12",
+                        "Tri de lignes naturel",
+                        "Les tranches numériques se comparent en nombres — « item2 » "
+                                + "avant « item10 » — le reste en chaînes, la casse au choix de "
+                                + "l'hôte."));
+    }
+
+    /** A-13 à A-18 — annulation, plis, collantes, rangées. */
+    private static List<Scenario> editionHistoriqueEtRendu() {
+        return List.of(
                 new Scenario(
                         "A-13",
                         "Annulation groupée, sélection restaurée",
@@ -68,17 +155,42 @@ public final class ScenarioCatalog {
                                 + "manuel survit à l'édition voisine : il se décale "
                                 + "quand le document bouge ailleurs."),
                 new Scenario(
+                        "A-16",
+                        "Lignes collantes",
+                        "Les en-têtes des structures qui englobent la première ligne "
+                                + "visible restent collés en haut du rendu — le budget d'image "
+                                + "est tenu, les plus profondes l'emportent."),
+                new Scenario(
                         "A-18",
                         "Retour à la ligne souple",
                         "Un mot plus large que la largeur disponible est coupé par "
                                 + "caractères (PIEGE-08) ; la projection signe plis "
-                                + "et coupures, chaque rangée porte sa tranche."),
+                                + "et coupures, chaque rangée porte sa tranche."));
+    }
+
+    /** A-19 à A-25 — invisibles, recherche, gabarits, encodages. */
+    private static List<Scenario> editionRechercheEtGabarits() {
+        return List.of(
+                new Scenario(
+                        "A-19",
+                        "Caractères invisibles",
+                        "L'espace finale, la tabulation et l'espace fine se "
+                                + "matérialisent toujours ; l'espace interne en mode « tout », la "
+                                + "fin de ligne sur demande."),
                 new Scenario(
                         "A-20",
                         "Recherche et remplacement",
                         "Littéral, regex, casse, mot entier, sélection, multiligne, "
                                 + "préservation de casse et remplacement global : "
-                                + "tout passe par la voie de transaction."),
+                                + "tout passe par la voie de transaction ; la barre "
+                                + "porte les options, la navigation circulaire des "
+                                + "occurrences et l'ouverture depuis le curseur."),
+                new Scenario(
+                        "A-22",
+                        "Gabarits dynamiques",
+                        "Des trous tabulables dans l'ordre du rendu, des variables "
+                                + "liées — l'édition d'une occurrence se propage à ses sœurs au "
+                                + "même décalage relatif."),
                 new Scenario(
                         "A-24",
                         "Encodages, fins de ligne, BOM",
@@ -93,6 +205,16 @@ public final class ScenarioCatalog {
                                 + "restent fluides."));
     }
 
+    /** La catégorie A — édition et saisie. */
+    private static List<Scenario> scenariosEdition() {
+        List<Scenario> tous = new ArrayList<>(editionCurseurs());
+        tous.addAll(editionFrappe());
+        tous.addAll(editionActionsDeLignes());
+        tous.addAll(editionHistoriqueEtRendu());
+        tous.addAll(editionRechercheEtGabarits());
+        return tous;
+    }
+
     /** Les catégories B et C — coloration et langages du même arbre. */
     private static List<Scenario> scenariosLangages() {
         List<Scenario> tous = new ArrayList<>(langagesAnalyseurs());
@@ -100,9 +222,10 @@ public final class ScenarioCatalog {
         return tous;
     }
 
-    /** Les langages à analyseurs dédiés — le même arbre pour tous. */
-    private static List<Scenario> langagesAnalyseurs() {
+    /** B — coloration, navigation, signets et plan du même arbre. */
+    private static List<Scenario> structureDuFichier() {
         return List.of(
+
                 new Scenario(
                         "B-01",
                         "Coloration du même arbre",
@@ -111,13 +234,30 @@ public final class ScenarioCatalog {
                                 + "les mêmes paniers que les plis — le rendu ne "
                                 + "relit jamais le texte."),
                 new Scenario(
+                        "B-14",
+                        "Historique de navigation",
+                        "La pile bornée des positions visitées : retour et avance, la "
+                                + "visite qui coupe l'avance, la fermeture de fichier qui vide "
+                                + "tout."),
+                new Scenario(
+                        "B-15",
+                        "Signets avec gouttière",
+                        "Ajout et retrait par ligne, saut au suivant et au précédent en "
+                                + "boucle ; la persistance par session suit les lignes à travers "
+                                + "les éditions, par la projection des offsets."),
+                new Scenario(
                         "B-16",
                         "Plan du fichier (structure)",
                         "Le plan sort du même arbre que la coloration : classes, "
                                 + "méthodes et champs avec leurs bornes ; l'édition le "
                                 + "met à jour par incrément — le préfixe intact se "
                                 + "conserve, le consommateur reçoit le compte de ce "
-                                + "qui change."),
+                                + "qui change."));
+    }
+
+    /** C — les analyseurs dédiés des langages P0. */
+    private static List<Scenario> langagesP0() {
+        return List.of(
                 new Scenario(
                         "C-01",
                         "XML : coloration, plis, crochets",
@@ -141,6 +281,13 @@ public final class ScenarioCatalog {
                                 + "ligne, ré-analyse bornée à la reconvergence."));
     }
 
+    /** La structure et les langages à analyseurs dédiés. */
+    private static List<Scenario> langagesAnalyseurs() {
+        List<Scenario> tous = new ArrayList<>(structureDuFichier());
+        tous.addAll(langagesP0());
+        return tous;
+    }
+
     /** Les langages à grammaires — la longue traîne sans analyseur dédié. */
     private static List<Scenario> langagesGrammaires() {
         return List.of(
@@ -161,9 +308,10 @@ public final class ScenarioCatalog {
                                 + "touchée (PIEGE-21)."));
     }
 
-    /** La catégorie D — affichage, gouttière, thèmes et clavier. */
-    private static List<Scenario> scenariosAffichage() {
+    /** D-01, D-06, D-08 — gouttière et bande d'erreurs. */
+    private static List<Scenario> affichageGouttiere() {
         return List.of(
+
                 new Scenario(
                         "D-01",
                         "Gouttière à numéros absolus",
@@ -172,11 +320,44 @@ public final class ScenarioCatalog {
                                 + "par rangée et par image ; les continuations "
                                 + "d'une ligne coupée restent muettes."),
                 new Scenario(
+                        "D-06",
+                        "Gouttière des signets",
+                        "La gouttière porte la marque des lignes signet — le même modèle "
+                                + "que les sauts, peint à l'emplacement des numéros."),
+                new Scenario(
+                        "D-08",
+                        "Bande d'erreurs annotée",
+                        "Les diagnostics du même arbre alignent leurs marques le long du "
+                                + "défilement — densité bornée à un cran, le clic saute au "
+                                + "diagnostic."));
+    }
+
+    /** D-09, D-10, D-13 — fil d'Ariane, popups, thèmes. */
+    private static List<Scenario> affichageBandeEtThemes() {
+        return List.of(
+                new Scenario(
+                        "D-09",
+                        "Fil d'Ariane",
+                        "Le chemin du symbole courant sort du plan du même arbre, de la "
+                                + "plus externe à la plus interne ; la troncature par la largeur "
+                                + "élague la tête en ellipse."),
+                new Scenario(
+                        "D-10",
+                        "Popups unifiées",
+                        "Complétion, documentation et signature coordonnées autour du "
+                                + "curseur — jamais superposées, jamais hors écran ; le contenu "
+                                + "s'annonce à l'explorateur."),
+                new Scenario(
                         "D-13",
                         "Thèmes à contraste vérifié",
                         "Clair, sombre et contraste élevé : encre, gouttière et "
                                 + "curseur vérifiés automatiquement aux seuils WCAG "
-                                + "à chaque test."),
+                                + "à chaque test."));
+    }
+
+    /** D-15 à D-18 — zoom, poignées, clavier, stylet. */
+    private static List<Scenario> affichagePeripheriques() {
+        return List.of(
                 new Scenario(
                         "D-15",
                         "Zoom au pincement",
@@ -196,7 +377,21 @@ public final class ScenarioCatalog {
                         "Table de raccourcis complète et reconfigurable ; "
                                 + "mouvements par clusters de graphèmes, mots "
                                 + "entiers et rangées ; suppressions avant et "
-                                + "arrière par clusters entiers."));
+                                + "arrière par clusters entiers."),
+                new Scenario(
+                        "D-18",
+                        "Stylet, souris, pavé tactile",
+                        "La molette avec Ctrl zoome par crans bornés, sans Ctrl elle "
+                                + "défile ; l'info-bulle du survol paraît après le temps de "
+                                + "station, le déplacement la retire."));
+    }
+
+    /** La catégorie D — affichage, gouttière, thèmes et clavier. */
+    private static List<Scenario> scenariosAffichage() {
+        List<Scenario> tous = new ArrayList<>(affichageGouttiere());
+        tous.addAll(affichageBandeEtThemes());
+        tous.addAll(affichagePeripheriques());
+        return tous;
     }
 
     /** La catégorie G — exigences globales. */
@@ -216,6 +411,12 @@ public final class ScenarioCatalog {
                         "La démonstration tourne hors ligne, aucun réveil réseau ; "
                                 + "les budgets d'image tiennent par le cache de "
                                 + "rangées."),
+                new Scenario(
+                        "G-04",
+                        "Plugins isolés",
+                        "L'erreur d'un plugin ne tue jamais l'éditeur : l'extension qui "
+                                + "lève est journalisée, les suivantes courent, l'image suivante "
+                                + "est intacte."),
                 new Scenario(
                         "G-05",
                         "Accessibilité",

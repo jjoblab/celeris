@@ -1,8 +1,12 @@
-# Résumé M5 — édition assistée (en cours)
+# Résumé M5 — édition assistée (livré, clôture vérifiée le 2026-11-06)
 
-> **Sortie visée** : catégorie A P0 couverte (A-05, A-06, A-11,
-> A-20) + D-08/D-09/D-10 ; scénario par ligne de matrice
-> référencé. La vérification appareil du propriétaire reste sienne.
+> **Sortie** : les critères de la feuille de route sont couverts —
+> catégorie A P0 (A-05 fermeture des paires, A-06 indentation
+> automatique, A-11 commentaire, A-20 recherche et remplacement avec
+> sa barre) et D-08/D-09/D-10 (bande d'erreurs, fil d'Ariane, popups
+> unifiées) ; chaque ligne de matrice M5 porte son scénario au
+> catalogue — quarante-trois scénarios (la vérification appareil du
+> propriétaire reste sienne).
 
 > **Déclenchement** : clôture du jalon M4 (2026-11-05, critères de
 > sortie couverts — ré-analyse ≤ 10 ms, corpus, scénarios). Périmètre
@@ -317,3 +321,65 @@
   HitTest existant (M3) : la logique de geste livrée couvre le
    zoom et l'info-bulle, le glissement sélectionne déjà par la voie
    tactile.
+
+## Clôture — les critères de sortie vérifiés (2026-11-06)
+
+### Couverture
+
+- **Catégorie A P0 couverte** : A-05 (fermeture automatique des
+  paires et citations, M5-t1), A-06 (indentation automatique depuis
+  l'arbre, M5-t1), A-11 (commenter/décommenter par langage, JSON
+  masqué, M5-t2), A-20 (recherche/remplacement — moteur M2, barre
+  M5-t4) ;
+- **D-08/D-09/D-10 couverts** : bande d'erreurs annotée (M5-t5),
+  fil d'Ariane (M5-t5), popups unifiées au placement coordonné
+  (M5-t5) ;
+- **Scénario par ligne de matrice référencé** : les vingt-et-une
+  lignes M5 (A-02, A-03, A-05 à A-12, A-16, A-19, A-22, B-14, B-15,
+  D-06, D-08, D-09, D-10, D-18, G-04, facette barre de A-20) portent
+  leur scénario au catalogue — quarante-trois au total, dans l'ordre
+  de la matrice, uniques, avec critère d'acceptation.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt, modules purs ET
+  avec SDK Android (politique de langue, Checkstyle, PMD, manifestes
+  d'API compris) ;
+- **990 tests** exécutés à la passe de clôture, zéro échec — dont
+  146 neufs du jalon : 40 frappe intelligente + 6 session
+  (t1), 32 actions de lignes, commentaires, tri, gabarits (t2),
+  11 sélection syntaxique et colonne (t3), 19 barre, historique,
+  signets (t4), 15 bande, fil, popups (t5), 18 collantes, invisibles,
+  stylet, plugins (t6), 3 catalogue étendu (clôture — 43 scénarios) ;
+- mutation `:core-text:mutationThreshold` : **85,2 %**
+  (seuil 80) sur 1 807 mutations ;
+- publication locale (`publishToMavenLocal`, sommes de contrôle) et
+  APK de démonstration assemblés ; fumée de la cli exécutée ;
+- manifestes d'API régénérés (`core-text` apply surchargé,
+  `core-intelligence` posé, `core-syntax` TreeSelection).
+
+### Écarts reportés
+
+1. **Les peintres de bande d'erreurs, de fil d'Ariane, de popups, de
+   lignes collantes et de caractères invisibles** : les modèles
+   et leurs tests sont livrés, le raccord visuel au Canvas suit la
+   démonstration qui le demande — le M5 posait les consommateurs, le
+   dessin vit avec l'intégration.
+2. **Le raccord clavier et pilule des actions de lignes** (A-10) :
+   le cœur est livré et testé, les raccourcis rejoindront la table
+   D-17 au jalon qui consomme.
+3. **La sélection à la souris** (D-18) : le glissement sélectionne
+   déjà par la voie tactile (M3), la logique de geste livrée couvre
+   le zoom et l'info-bulle.
+
+## Récapitulatif des tranches
+
+| Tranche | Livré | Commits |
+| --- | --- | --- |
+| 1 — frappe intelligente | A-05 à A-09 + TextSession.apply surchargé | 8fb3ae1, 2fd552f, 269e21d |
+| 2 — actions de lignes, commentaires, tri, gabarits | A-10 à A-12, A-22 | ce47282, 60afc9d, 11ab95c |
+| — budgets durcis | vol de CPU des runners | 23925bb |
+| 3 — sélection syntaxique et colonne | A-03, A-02 | a964f27, 99632dc, 66f9797 |
+| 4 — barre, historique, signets | A-20 barre, B-14, B-15, D-06 | 32ab3ec, 1671207, c4a474d, ede5900 |
+| 5 — bande, fil, popups | D-08, D-09, D-10 | 5591671, 86fe3d5, d0ad9a5 |
+| 6 — collantes, invisibles, stylet, plugins | A-16, A-19, D-18, G-04 | b7c57a4, c96fe04, 1811063 |

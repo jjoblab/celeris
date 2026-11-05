@@ -9,6 +9,13 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Clôture M5 — les critères de sortie du jalon sont tous couverts :
+  catégorie A P0 (A-05, A-06, A-11, A-20 et sa barre) et
+  D-08/D-09/D-10, chaque ligne de matrice M5 porte son scénario au
+  catalogue — quarante-trois scénarios ; 146 tests neufs (990
+  à la passe de clôture), mutation 85,2 % (seuil 80),
+  publication locale et APK de démonstration assemblés ; le
+  catalogue restructuré en sous-listes sous le plafond Checkstyle.
 - Tranche 6 (M5) — lignes collantes, caractères invisibles, stylet
   et plugins isolés (A-16, A-19, D-18, G-04) : StickyLines colle
   les en-têtes englobants du même arbre, budget d'image borné ;
