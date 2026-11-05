@@ -164,9 +164,9 @@
 | D-05 | Gouttière : repères d'exécution | P1 | absent | `android-host` | M7 | test SPI : ligne courante, plages dans la pile |
 | D-06 | Gouttière : signets | P1 | absent (couvert par B-15) | `android-widgets` | M5 | couvert par B-15 |
 | D-07 | Gouttière : plis (flèches, survol) | P0 | présent (au départ ; celeris : chevrons replié/déplié et bascule au clic dans la coulisse livrés M4-t5 — l'aperçu au maintien reste avec les popups M5) | `android-widgets` | M3 | test : pli/dépli par clic, aperçu au maintien |
-| D-08 | Bande d'erreurs annotée (parallèle au défilement) | P1 | absent | `android-widgets` | M5 | test : densité bornée, clic → saut au diagnostic |
-| D-09 | Fil d'Ariane | P1 | présent | `android-widgets` | M5 | test : chemin du symbole courant depuis l'arbre, tronqué par la largeur |
-| D-10 | Popups unifiées (complétion, documentation, signature, actions) | P0 | présent (kit unifié) | `android-widgets` | M5 | tests de placement coordonné (héritage direct des acquis) ; accessibilité annoncée |
+| D-08 | Bande d'erreurs annotée (parallèle au défilement) | P1 | absent (celeris : livré M5-t5 — densité bornée à un cran de bande, clic → saut au diagnostic) | `android-widgets` | M5 | test : densité bornée, clic → saut au diagnostic |
+| D-09 | Fil d'Ariane | P1 | présent (celeris : livré M5-t5 — chemin du symbole depuis le plan du même arbre, troncature en ellipse) | `android-widgets` | M5 | test : chemin du symbole courant depuis l'arbre, tronqué par la largeur |
+| D-10 | Popups unifiées (complétion, documentation, signature, actions) | P0 | présent (kit unifié) (celeris : placement coordonné livré M5-t5 — complétion, documentation, signature sans superposition ni sortie d'écran) | `android-widgets` | M5 | tests de placement coordonné (héritage direct des acquis) ; accessibilité annoncée |
 | D-11 | Aperçu rapide d'une définition | P2 | absent | `android-widgets` | M7 | scénario : définition flottante sans quitter le fichier |
 | D-12 | Vue de différences côte à côte et en ligne (VCS et agent) | P1 | absent | `android-widgets` | M7/M8 | test : diff par blocs, accepter/refuser par bloc, réalignement après rejet |
 | D-13 | Thèmes clair, sombre, contraste élevé | P0 | partiel | `android-view` | M3 | test : 3 thèmes complets, contraste vérifié automatiquement |

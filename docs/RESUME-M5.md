@@ -233,3 +233,43 @@
    raccord visuel (peintres, commande) suit.
 2. **L'historique ne porte qu'un fichier** : la fermeture vide —
    un historique inter-fichiers n'était pas au périmètre.
+
+## Tranche 5 — bande d'erreurs, fil d'Ariane et popups unifiées (2026-11-06)
+
+### Livré
+
+- **La bande d'erreurs annotée** (`ErrorBandModel`, D-08) : les
+  diagnostics du même arbre que la coloration deviennent des marques
+  le long du défilement. La densité est bornée — au plus une marque
+  par cran de bande, la première l'emporte ; le clic saute au
+  diagnostic du cran le plus proche ; les diagnostics périmés
+  (au-delà du document) sont ignorés.
+- **Le fil d'Ariane** (`BreadcrumbModel`, D-09) : le chemin du
+  symbole courant sort du plan du même arbre — les entrées qui
+  englobent le curseur, de la plus externe à la plus interne. La
+  troncature par la largeur garde les niveaux profonds et élague la
+  tête : l'ellipse signale ce qui tombe et compte dans la
+  largeur. Le mesureur est injecté — le peintre fournit le sien.
+- **Le placement coordonné des popups unifiées** (`PopupPlacer`,
+  D-10) : complétion sous le curseur (au-dessus en bord bas),
+  documentation au flanc de la complétion (à droite, à gauche en bord
+  droit), signature du côté opposé du curseur — repliée sous la
+  complétion en bord haut. Jamais superposées, jamais hors écran.
+  L'accessibilité du contenu appartient au peintre, qui annonce chaque
+  popup à l'explorateur (tranche vue).
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- ErrorBandModelTest **5 tests**, BreadcrumbModelTest **5 tests**,
+  PopupPlacerTest **5 tests** — zéro échec ;
+- la géométrie du placement vérifiée à la main avant l'écriture des
+  assertions (bords bas, droit, haut).
+
+### Écarts et limites
+
+1. **Les peintres de bande, de fil et de popups** vivent à la tranche
+   d'intégration vue : les modèles sont livrés, le dessin suit.
+2. **La popup d'actions** (la quatrième du kit unifié) se place comme
+   la documentation — le placement spécifique au menu suivra le
+   raccord réel.

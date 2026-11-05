@@ -9,6 +9,13 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 5 (M5) — bande d'erreurs, fil d'Ariane et popups unifiées
+  (D-08, D-09, D-10) : ErrorBandModel borne la densité des
+  diagnostics à un cran de bande et le clic saute au diagnostic ;
+  BreadcrumbModel tire le chemin du symbole du même arbre et tronque
+  par la largeur, ellipse comprise ; PopupPlacer coordonne
+  complétion, documentation et signature autour du curseur — jamais
+  superposées, jamais hors écran ; 15 tests neufs.
 - Tranche 4 (M5) — barre de recherche, historique et signets (A-20
   facette interface, B-14, B-15/D-06) : SearchBarModel porte
   l'état de la barre au-dessus du moteur M2 — options, occurrences,
