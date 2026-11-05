@@ -15,9 +15,10 @@ import jo.celeris.core.text.Document;
  * la lexicographie coûte moins cher que la terminer (ADR-007). Le
  * protocole retient le minimum de trois tours (PIEGE-13).
  *
- * <p>Le budget calé ici est provisoire à l'écriture du test : la mesure
- * réelle sur ce poste l'ajuste ensuite, la valeur retenue documentée
- * au résumé de tranche.</p>
+ * <p>Calibrage (2026-11-05, poste de développement) : 224 ms mesurés
+ * pour l'instantané de fenêtre sur 100 041 lignes Java — le budget
+ * retient l'enveloppe de la première image de la matrice (500 ms),
+ * marge 2,2×</p>
  */
 class PremiereImageAnalyseBudgetTest {
 

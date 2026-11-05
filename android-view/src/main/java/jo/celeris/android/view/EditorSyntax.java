@@ -2,10 +2,12 @@ package jo.celeris.android.view;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.FoldSpan;
 import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.syntax.MoteurAnalyse;
 import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.syntax.TreeDiagnostics;
@@ -26,9 +28,18 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Pur et testable sans SDK : la vue le possède, l'auditeur de plis
  * et le coordinateur s'y attachent et s'y détachent — la fermeture
- * détache, la dernière analyse reste consultable. L'analyse vit sur le
- * fil d'écriture de la session (ADR-007) ; l'éditon remappe les plis
- * sur l'instantané d'avant, comme le coordinateur pour ses sites.</p>
+ * détache, la dernière analyse reste consultable. L'éditon remappe les
+ * plis sur l'instantané d'avant, comme le coordinateur pour ses sites.</p>
+ *
+ * <p>Deux voies d'analyse (tranche 6) : sans exécuteur, le coordinateur
+ * vit sur le fil d'écriture de la session — l'analyse se paie à la
+ * première demande ; avec exécuteur injecté (ADR-007), le moteur hors
+ * fil publie par lots — la fenêtre visible d'abord (G-01) — et la vue
+ * n'habille JAMAIS un document avec le lexique d'une autre révision :
+ * sans publication à jour, la source passe sans couleur, la première
+ * image ne paie pas l'arbre (PIEGE-20, facette vue). Le rappel
+ * {@code setSurAnalysePrete} part à chaque publication, sur le fil de
+ * travail — l'hôte y invalide.</p>
  */
 public final class EditorSyntax {
 
@@ -36,23 +47,44 @@ public final class EditorSyntax {
     private final FoldModel plis;
     private final List<FoldSpan> regionsPliables = new ArrayList<>();
     private final EditListener ecouteurPlis = this::surEdition;
+    private final @Nullable Executor executeur;
 
     private @Nullable TextSession session;
     private @Nullable LanguageSyntax langue;
     private @Nullable SyntaxCoordinator coordinateur;
+    private @Nullable MoteurAnalyse moteur;
+    private @Nullable Runnable surAnalysePrete;
+    private int fenetrePremiere;
+    private int fenetreDerniere = Integer.MAX_VALUE / 2;
     private @Nullable Document documentSuivi;
     private long revisionAnalysee = -1L;
     private GutterMarks marques = GutterMarks.VIDE;
 
     /**
-     * Construit le pont sur le modèle de plis de la projection.
+     * Construit le pont synchrone sur le modèle de plis de la projection
+     * — l'analyse se paie à la première demande, sur le fil d'appel.
      *
      * @param plis le modèle de plis, lu en direct par la projection et
      *             par les marques
      */
     public EditorSyntax(FoldModel plis) {
+        this(plis, null);
+    }
+
+    /**
+     * Construit le pont sur le modèle de plis, avec exécuteur injecté :
+     * l'analyse vit hors fil d'appel (ADR-007), la fenêtre visible se
+     * paie d'abord (G-01).
+     *
+     * @param plis      le modèle de plis, lu en direct par la projection
+     *                  et par les marques
+     * @param executeur l'exécuteur du travail d'analyse, null pour la
+     *                  voie synchrone
+     */
+    public EditorSyntax(FoldModel plis, @Nullable Executor executeur) {
         this.plis = plis;
         this.suiviPlis = new FoldTracker(plis);
+        this.executeur = executeur;
     }
 
     /**
@@ -92,7 +124,59 @@ public final class EditorSyntax {
 
     /** Vrai quand l'analyse est branchée. */
     public boolean active() {
-        return coordinateur != null;
+        return coordinateur != null || moteur != null;
+    }
+
+    /**
+     * Indique la fenêtre visible : la voie hors fil y paie l'arbre
+     * d'abord (G-01). Le travail en vol ne s'annule pas — le défilement
+     * ne coûte rien.
+     *
+     * @param premiereLigne la première ligne visible
+     * @param derniereLigne la dernière ligne visible
+     */
+    public void fenetre(int premiereLigne, int derniereLigne) {
+        fenetrePremiere = premiereLigne;
+        fenetreDerniere = derniereLigne;
+        if (moteur != null) {
+            moteur.fenetre(premiereLigne, derniereLigne);
+        }
+    }
+
+    /**
+     * Indique la fenêtre visible en rangées : la projection résout les
+     * lignes, la voie hors fil y paie l'arbre d'abord (G-01).
+     *
+     * @param projection   la projection rangées ↔ lignes courante
+     * @param premiereRangee la première rangée visible
+     * @param nombreRangees  le nombre de rangées visibles
+     */
+    public void fenetre(VisualProjection projection, int premiereRangee, int nombreRangees) {
+        int derniere = Math.min(premiereRangee + nombreRangees, projection.rowCount() - 1);
+        fenetre(projection.firstLineOfRow(premiereRangee), projection.firstLineOfRow(derniere));
+    }
+
+    /**
+     * Le rappel d'invalidation : il part à chaque publication d'analyse,
+     * sur le fil de travail — l'hôte y poste son invalidation (PIEGE-20 :
+     * la vue recolore à la bonne révision, jamais avant).
+     *
+     * @param rappel le rappel à prévenir, null pour le retirer
+     */
+    public void setSurAnalysePrete(@Nullable Runnable rappel) {
+        surAnalysePrete = rappel;
+    }
+
+    /** Referme le pont : le moteur et le coordinateur se détachent, la gouttière se vide. */
+    public void fermer() {
+        fermerMoteur();
+        if (coordinateur != null) {
+            coordinateur.close();
+            coordinateur = null;
+        }
+        if (session != null) {
+            session.removeEditListener(ecouteurPlis);
+        }
     }
 
     /**
@@ -122,10 +206,10 @@ public final class EditorSyntax {
      * @return la source habillée, ou la source telle quelle
      */
     public RowSource habiller(RowSource source, Document document) {
-        if (coordinateur == null) {
+        Analysis analyse = analyseCourante(document);
+        if (analyse == null) {
             return source;
         }
-        Analysis analyse = coordinateur.analysis();
         if (analyse.revision() != revisionAnalysee) {
             revisionAnalysee = analyse.revision();
             regionsPliables.clear();
@@ -134,6 +218,26 @@ public final class EditorSyntax {
                     lignesEnErreur(document, analyse));
         }
         return new SyntaxRowSource(source, analyse.lex());
+    }
+
+    /**
+     * L'analyse courante : la voie synchrone la calcule à la demande,
+     * la voie hors fil ne rend QUE la publication à jour de l'instantané
+     * affiché — jamais le lexique d'une autre révision ne colore un
+     * document (PIEGE-20).
+     */
+    private @Nullable Analysis analyseCourante(Document document) {
+        if (moteur != null) {
+            Analysis publiee = moteur.analysePubliee();
+            if (publiee == null || publiee.revision() != document.revision()) {
+                return null;
+            }
+            return publiee;
+        }
+        if (coordinateur == null) {
+            return null;
+        }
+        return coordinateur.analysis();
     }
 
     /** Les marques de gouttière courantes — {@link GutterMarks#VIDE} sans analyse. */
@@ -204,12 +308,37 @@ public final class EditorSyntax {
     }
 
     private void rattacher() {
+        fermerMoteur();
         if (coordinateur != null) {
             coordinateur.close();
+            coordinateur = null;
         }
-        coordinateur = langue == null || session == null
-                ? null
-                : SyntaxCoordinator.on(session, langue);
+        if (executeur == null) {
+            coordinateur = langue == null || session == null
+                    ? null
+                    : SyntaxCoordinator.on(session, langue);
+            return;
+        }
+        if (langue != null && session != null) {
+            moteur = MoteurAnalyse.sur(session, langue, executeur,
+                    fenetrePremiere, fenetreDerniere);
+            moteur.ajouterAuditeur(analyse -> notifierAnalysePrete());
+            moteur.reanalyser();
+        }
+    }
+
+    private void fermerMoteur() {
+        if (moteur != null) {
+            moteur.close();
+            moteur = null;
+        }
+    }
+
+    private void notifierAnalysePrete() {
+        Runnable rappel = surAnalysePrete;
+        if (rappel != null) {
+            rappel.run();
+        }
     }
 
     /**

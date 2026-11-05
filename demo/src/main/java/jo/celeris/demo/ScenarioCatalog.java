@@ -162,7 +162,9 @@ public final class ScenarioCatalog {
                         "Ouverture progressive",
                         "Cent mille lignes : première image mesurée à 154 ms "
                                 + "(budget 500 ms), 480 000 lignes ouvrables — la "
-                                + "fenêtre seule se sert."),
+                                + "fenêtre seule se sert, la coloration suit par l'analyse "
+                                + "hors fil : fenêtre visible d'abord (224 ms mesurés sur cent mille lignes), "
+                                + "complétion par lots ensuite."),
                 new Scenario(
                         "G-02",
                         "Tactile d'abord, hors ligne",

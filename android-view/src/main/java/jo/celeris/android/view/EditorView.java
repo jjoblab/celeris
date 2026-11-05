@@ -64,7 +64,7 @@ public final class EditorView extends View {
     private final ScrollFrame trace = new ScrollFrame();
     private final SelectionDrag glissement = new SelectionDrag();
     private final FoldModel plis = new FoldModel();
-    private final EditorSyntax syntaxe = new EditorSyntax(plis);
+    private final EditorSyntax syntaxe = new EditorSyntax(plis, ExecuteurAnalyse.parDefaut());
     private final RowLayoutCache cache = new RowLayoutCache();
     private final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
@@ -82,8 +82,7 @@ public final class EditorView extends View {
     private boolean pincementActif;
 
     private TextSession session = TextSession.of("", System::nanoTime);
-    private VisualProjection projection =
-            new VisualProjection(session.document(), plis, 0);
+    private VisualProjection projection = new VisualProjection(session.document(), plis, 0);
     private EditorMetrics metrics = EditorMetrics.of(POLICE_PAR_DEFAUT, regle);
     private HitTest viseur = new HitTest(metrics);
     private final RebindingRowSource sourceLiee = new RebindingRowSource(
@@ -107,9 +106,9 @@ public final class EditorView extends View {
         super(context, attrs);
         setFocusable(true);
         setFocusableInTouchMode(true);
+        syntaxe.setSurAnalysePrete(this::postInvalidateOnAnimation);
         BrushFactory pinceaux = new PaintBrushes();
-        trace.addLayer(new GutterPainter(pinceaux, MARGE_GOUTTIERE,
-                syntaxe::marques,
+        trace.addLayer(new GutterPainter(pinceaux, MARGE_GOUTTIERE, syntaxe::marques,
                 () -> syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE)));
         trace.addLayer(new SelectionPainter(pinceaux));
         trace.addLayer(new ComposingPainter(pinceaux, composition));
@@ -362,6 +361,7 @@ public final class EditorView extends View {
         scrollX = ScrollGeometry.clamp(scrollX, largeurContenu(), largeurVisible());
         int premiere = ScrollGeometry.firstRow(scrollY, metrics.lineHeight());
         int visibles = ScrollGeometry.visibleRows(getHeight(), metrics.lineHeight());
+        syntaxe.fenetre(projection, premiere, visibles);
         etatImage.beginFrame(document, session.selection(), projection,
                 document.revision(), metrics, theme, premiere, visibles,
                 largeurGouttiere, scrollX, scrollY);
