@@ -96,30 +96,84 @@ public final class IncrementalLexer {
                                 List<Integer> profondeursRelues, int derniereRelue,
                                 int profondeurApres) {
         int nombre = doc.lineCount();
+        LexedLine[] anciennes = previous.lignes();
+        int[] anciennesProfondeurs = previous.profondeurs();
         LexedLine[] lignes = new LexedLine[nombre];
         int[] profondeurs = new int[nombre];
         for (int i = 0; i < relues.size(); i++) {
             lignes[site.firstLine() + i] = relues.get(i);
             profondeurs[site.firstLine() + i] = profondeursRelues.get(i);
         }
-        for (int i = 0; i < site.firstLine(); i++) {
-            lignes[i] = previous.line(i);
-            profondeurs[i] = previous.bracketDepthAtLineStart(i);
-        }
+        assemblerPrefixe(previous, anciennes, anciennesProfondeurs, lignes, profondeurs,
+                site.firstLine());
         int decalage = site.lineDelta();
         int differentiel = 0;
         if (derniereRelue + 1 < nombre) {
-            int ancienneAlignee = derniereRelue + 1 - decalage;
-            differentiel = profondeurApres
-                    - previous.bracketDepthAtLineStart(ancienneAlignee);
+            int ancienneAlignee = Math.max(0,
+                    Math.min(derniereRelue + 1 - decalage, anciennesProfondeurs.length - 1));
+            differentiel = profondeurApres - anciennesProfondeurs[ancienneAlignee];
         }
-        for (int i = derniereRelue + 1; i < nombre; i++) {
-            lignes[i] = previous.line(i - decalage);
-            profondeurs[i] = previous.bracketDepthAtLineStart(i - decalage) + differentiel;
-        }
+        assemblerSuffixe(previous, anciennes, anciennesProfondeurs, lignes, profondeurs,
+                derniereRelue + 1, decalage, differentiel);
         return new LexResult(
                 new LexDocument(lignes, profondeurs, lexeur.initialState()),
                 site.firstLine(), Math.max(derniereRelue, site.firstLine()));
+    }
+
+    /**
+     * Le préfixe intact — les lignes avant l'édition sont identiques des
+     * deux côtés. La copie de masse ({@code System.arraycopy}) remplace
+     * la relecture élément par élément : sur 50 000 lignes, c'est elle
+     * qui tenait le plancher du budget de ré-analyse (PIEGE-13) sur
+     * machine lente. Le garde-fou retombe sur la relecture bornée si le
+     * site dépasse le lexique précédent — cas hors contrat, jamais vu.
+     */
+    private static void assemblerPrefixe(LexDocument previous, LexedLine[] anciennes,
+                                         int[] anciennesProfondeurs, LexedLine[] lignes,
+                                         int[] profondeurs, int prefixe) {
+        int copie = Math.min(prefixe, anciennes.length);
+        if (copie > 0) {
+            System.arraycopy(anciennes, 0, lignes, 0, copie);
+            System.arraycopy(anciennesProfondeurs, 0, profondeurs, 0, copie);
+        }
+        for (int i = copie; i < prefixe; i++) {
+            lignes[i] = previous.line(i);
+            profondeurs[i] = previous.bracketDepthAtLineStart(i);
+        }
+    }
+
+    /**
+     * Le suffixe au-delà de la dernière ligne relue : paniers partagés à
+     * l'identité, profondeurs décalées du seul différentiel — un
+     * différentiel nul les copie de masse, sinon l'ajustement reste
+     * élément par élément sur les seuls entiers.
+     */
+    private static void assemblerSuffixe(LexDocument previous, LexedLine[] anciennes,
+                                         int[] anciennesProfondeurs, LexedLine[] lignes,
+                                         int[] profondeurs, int debut, int decalage,
+                                         int differentiel) {
+        int nombre = lignes.length;
+        int ancienDebut = debut - decalage;
+        if (debut >= nombre) {
+            return;
+        }
+        if (ancienDebut >= 0 && ancienDebut <= anciennes.length
+                && nombre - debut <= anciennes.length - ancienDebut) {
+            System.arraycopy(anciennes, ancienDebut, lignes, debut, nombre - debut);
+            if (differentiel == 0) {
+                System.arraycopy(anciennesProfondeurs, ancienDebut, profondeurs, debut,
+                        nombre - debut);
+            } else {
+                for (int i = debut; i < nombre; i++) {
+                    profondeurs[i] = anciennesProfondeurs[i - decalage] + differentiel;
+                }
+            }
+            return;
+        }
+        for (int i = debut; i < nombre; i++) {
+            lignes[i] = previous.line(i - decalage);
+            profondeurs[i] = previous.bracketDepthAtLineStart(i - decalage) + differentiel;
+        }
     }
 
     private static LexState etatEntree(LexDocument previous, int firstLine) {

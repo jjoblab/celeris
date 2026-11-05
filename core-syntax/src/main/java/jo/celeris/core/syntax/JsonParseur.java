@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parseur JSON tolérant (ADR-004) : le document entier est une valeur —
- * un chunk unique. Les objets et tableaux deviennent des nœuds
+ * Parseur JSON tolérant (ADR-004) : chaque valeur de premier niveau
+ * ouvre son chunk — les valeurs frères ne se ré-analysent pas ensemble
+ * (PIEGE-13 : le document ne vit plus en un chunk unique, le budget de
+ * ré-analyse tient sur machine lente). Les objets et tableaux deviennent
+ * des nœuds
  * repliables, chaque paire un nœud FIELD nommé par sa clé (le plan
  * liste les clés), les scalaires des plages couvertes. La virgule
  * manquante ou la valeur étrange ne lève jamais : la malformation
@@ -20,7 +23,15 @@ final class JsonParseur implements LanguageParser {
 
     @Override
     public boolean startsChunk(TokenSlice slice, int index, int depth) {
-        return false;
+        if (depth != 0 || index == 0) {
+            return false;
+        }
+        TokenKind sorte = slice.kind(index);
+        return sorte == TokenKind.OPEN_BRACKET
+                || sorte == TokenKind.STRING
+                || sorte == TokenKind.NUMBER
+                || sorte == TokenKind.IDENTIFIER
+                || sorte == TokenKind.KEYWORD;
     }
 
     @Override

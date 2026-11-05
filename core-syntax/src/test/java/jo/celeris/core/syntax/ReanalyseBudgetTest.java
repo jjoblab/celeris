@@ -41,7 +41,7 @@ class ReanalyseBudgetTest {
         budget(XmlSyntax.INSTANCE, CorpusChargeur.exempleXml());
     }
 
-    /** JSON — le document vit en un chunk, la ré-analyse le relit. */
+    /** JSON — chaque valeur de premier niveau ouvre son chunk (PIEGE-13). */
     @Test
     void json() {
         budget(JsonSyntax.INSTANCE, CorpusChargeur.exempleJson());

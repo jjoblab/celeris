@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Test;
 import jo.celeris.core.text.Document;
 
 /**
- * L'analyseur JSON tolérant (ADR-004) : un seul chunk (le document entier
- * est une valeur), objets et tableaux en nœuds repliables, paires
+ * L'analyseur JSON tolérant (ADR-004) : chaque valeur de premier
+ * niveau ouvre son chunk (un document à valeur unique n'en a qu'un),
+ * objets et tableaux en nœuds repliables, paires
  * clé-valeur au plan, tolérance aux crochets non fermés, et maintenance
  * incrémentale égale à la relecture complète.
  */
@@ -35,13 +36,25 @@ class JsonArbreTest {
                 && "notes".equals(e.name())));
     }
 
-    /** Le document entier est un chunk unique. */
+    /** Un document à valeur unique vit en un chunk unique. */
     @Test
     void chunkUnique() {
         Document doc = Document.of(CorpusChargeur.exempleJson());
         List<Chunk> chunks = service.analyseFull(doc).tree().chunks();
         assertEquals(1, chunks.size());
         assertEquals(0, chunks.get(0).startLine());
+    }
+
+    /** Chaque valeur de premier niveau ouvre son chunk (PIEGE-13). */
+    @Test
+    void chunksParValeurDePremierNiveau() {
+        String source = "{\"a\": 1}\n\n{\"b\": [2, 3]}\n\n42\n";
+        Document doc = Document.of(source);
+        List<Chunk> chunks = service.analyseFull(doc).tree().chunks();
+        assertEquals(3, chunks.size(), "objet, objet, scalaire");
+        assertEquals(0, chunks.get(0).startLine());
+        assertEquals(2, chunks.get(1).startLine(), "la ligne vide appartient au précédent");
+        assertEquals(4, chunks.get(2).startLine());
     }
 
     /** Les objets et tableaux multi-lignes se replient. */
