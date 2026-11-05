@@ -53,6 +53,12 @@ class ReanalyseBudgetTest {
         budget(KtsSyntax.INSTANCE, CorpusChargeur.exempleKts());
     }
 
+    /** Gradle Groovy — les appels de premier niveau ouvrent leur chunk (C-07). */
+    @Test
+    void groovy() {
+        budget(GroovySyntax.INSTANCE, CorpusChargeur.exempleGroovy());
+    }
+
     private static void budget(LanguageSyntax langage, String corpus) {
         String source = CorpusChargeur.replique(corpus, LIGNES);
         Document doc = Document.of(source);
