@@ -88,10 +88,10 @@
 | A-13 | Annulation/rétablissement groupés avec restauration de sélection | P0 | présent (coalescence) | `core-text` | M2 | test : 100 frappes coalescées en 1 opération, sélection restaurée, PIEGE-07 couvert |
 | A-14 | Historique local par fichier | P2 | absent | `android-host` | M7 | scénario : restaurer une version antérieure ; test d'isolement par fichier |
 | A-15 | Pli manuel, par niveau, régions | P0 | présent (au départ ; celeris : régions calculées depuis l'arbre et pli manuel survivant à l'éditon voisine livrées M4-t5 — `FoldTracker`, remappage monotone, rejeu d'annulation compris) | `core-syntax` | M4 | test : plis calculés depuis l'arbre ; pli manuel survive à l'édition voisine |
-| A-16 | Lignes collantes | P1 | absent | `android-view` | M5 | test : en-tête visible au défilement, budget d'image tenu |
+| A-16 | Lignes collantes | P1 | absent (celeris : livré M5-t6 — en-têtes englobants du même arbre, budget d'image borné aux plus profondes) | `android-view` | M5 | test : en-tête visible au défilement, budget d'image tenu |
 | A-17 | Guides d'indentation | P1 | présent | `android-view` | M3 | test de capture : guides alignés aux niveaux, plis inclus |
 | A-18 | Retour à la ligne souple (mots, coupure forcée) | P0 | présent | `core-text` + `android-view` | M2/M3 | test : mot plus large que la largeur coupé par caractère (PIEGE-08) ; rangées ≠ lignes (PIEGE-04) |
-| A-19 | Caractères invisibles (espaces, tabulations, contrôles) | P1 | non vérifié | `android-view` | M5 | test de capture : espaces fines/finales, tabulations, fins de ligne |
+| A-19 | Caractères invisibles (espaces, tabulations, contrôles) | P1 | non vérifié (celeris : livré M5-t6 — finale, tabulation et fine toujours, interne en mode « tout », fin de ligne sur demande) | `android-view` | M5 | test de capture : espaces fines/finales, tabulations, fins de ligne |
 | A-20 | Recherche/remplacement (regex, casse, mot entier, sélection, multiligne, préservation de casse) | P0 | présent (celeris : moteur livré M2 ; barre — état, options, navigation circulaire — livrée M5-t4) | `core-text` + `android-widgets` | M2/M5 | test : les 8 variantes + remplacement multi-curseur ; scénario de démo dédié |
 | A-21 | Recherche dans le projet (adossée à l'index) | P1 | absent | `core-intelligence` | M6 | test : recherche hors ligne dans un projet embarqué, latence consignée |
 | A-22 | Gabarits dynamiques (à trous, variables liées) | P1 | présent, gabarits riches (celeris : livré M5-t2 — trous tabulables, variables liées, miroirs d'édition au décalage relatif) | `core-intelligence` | M5 | scénario : gabarit à 3 trous tabulables ; test : ordre de tabulation et édition simultanée des variables liées |
@@ -174,7 +174,7 @@
 | D-15 | Zoom au pincement | P0 | présent (celeris M3-t4 : paliers bornés, point sous le doigt stable — test JVM vert ; appareil réel à vérifier) | `android-view` | M3 | test gestuel : paliers de taille, curseur stable sous le doigt |
 | D-16 | Tactile : poignées, loupe, pilule, barre de symboles | P0 | présent | `android-view` | M3 | tests gestuels instrumentés ; PIEGE-03 (ancre figée au DOWN) |
 | D-17 | Clavier matériel : table de raccourcis alignée sur [EXT-1], reconfigurable | P0/P1 | partiel (celeris M3-t4 : table complète, remappage, encodage, mouvements et suppression avant par clusters — tests JVM verts ; instrumenté à venir) | `android-view` | M3/M5 | test : table par défaut complète, remappage persistant, conflits détectés |
-| D-18 | Stylet, souris, pavé tactile (survol, cliquer-tirer, molette) | P1 | partiel | `android-view` | M5 | test : survol → info-bulle, sélection à la souris, molette avec Ctrl = zoom |
+| D-18 | Stylet, souris, pavé tactile (survol, cliquer-tirer, molette) | P1 | partiel (celeris : livré M5-t6 — molette Ctrl = zoom borné, info-bulle après station, déplacement qui la retire) | `android-view` | M5 | test : survol → info-bulle, sélection à la souris, molette avec Ctrl = zoom |
 | D-19 | Pliables, grands écrans, mode bureau | P1 | absent | `android-view` | M7 | scénario pliable ; test : rangées/gouttière s'adaptent à la largeur |
 | D-20 | Glisser-déposer (texte, fichiers) | P2 | absent | `android-view` | M7+ | scénario : dépôt de fichier → ouverture |
 
@@ -211,7 +211,7 @@
 | G-01 | Ouverture instantanée et progressive de très gros fichiers | P0 | partiel (texte : 154 ms / 500 ms, 480 000 lignes ouvrables ; analyse : hors fil, fenêtre d'abord — instantané 224 ms sur 100 000 lignes, annulation moins chère que terminer, tranche 6) | `core-text` + `android-view` | M2/M3 | benchmark CI : 100 000 lignes → première image ≤ 500 ms, 480 000 lignes ouvrables |
 | G-02 | Tactile d'abord, hors ligne d'abord, sobre en mémoire et batterie | P0 | partiel | tous | M3+ | scénarios démo hors ligne ; budgets mémoire et images tenus ; aucun réveil réseau parasite |
 | G-03 | Exécutable sans Android (`editor-cli` : analyser, diagnostiquer, formater, refactorer) | P1 | absent | `cli` | M7 | exécution en CI sur corpus, sortie déterministe |
-| G-04 | Plugins isolés (peintres, gouttière, commandes) : l'erreur d'un plugin ne tue pas l'éditeur | P1 | absent | `android-view` | M5 | test : plugin lançant une exception → ligne de journal, image suivante intacte |
+| G-04 | Plugins isolés (peintres, gouttière, commandes) : l'erreur d'un plugin ne tue pas l'éditeur | P1 | absent (celeris : livré M5-t6 — l'extension qui lève est journalisée, les suivantes courent, image suivante intacte) | `android-view` | M5 | test : plugin lançant une exception → ligne de journal, image suivante intacte |
 | G-05 | Accessibilité exemplaire dès la première version | P0 | absent (au départ ; celeris M3-t6 : arbre virtuel de rangées visibles, granularités, annonces — tests JVM verts ; auditeur et lecteur d'écran sur appareil à vérifier) | `android-view` | M3 | auditeur automatique vert sur chaque scénario ; lecture par lignes et plages |
 
 ## État vérifié de l'étalon (2026-11-04)

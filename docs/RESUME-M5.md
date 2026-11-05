@@ -273,3 +273,47 @@
 2. **La popup d'actions** (la quatrième du kit unifié) se place comme
    la documentation — le placement spécifique au menu suivra le
    raccord réel.
+
+## Tranche 6 — lignes collantes, invisibles, stylet et plugins (2026-11-06)
+
+### Livré
+
+- **Les lignes collantes** (`StickyLines`, A-16) : les en-têtes
+  des structures qui englobent la première ligne visible restent
+  collés en haut du rendu — lus dans le même arbre que la coloration.
+  Le budget d'image est tenu : au plus « max » lignes collées,
+  les plus profondes l'emportent.
+- **Les caractères invisibles** (`InvisibleChars`, A-19) : la
+  matérialisation des blancs — l'espace finale toujours (elle trahit
+  les oublis), la tabulation toujours (elle décale la colonne),
+  l'espace fine — insécable, étroite — toujours (elle se cache dans le
+  texte), l'espace interne en mode « tout », la fin de ligne sur
+  demande.
+- **Le stylet, la souris et le pavé** (`PointerGestures`, D-18) :
+  la molette avec Ctrl zoome — facteur 1,1 par cran, borné 0,5 à 3,0
+  (D-15 hérité du pincement) — sans Ctrl elle défile ; l'info-
+  bulle du survol paraît après le délai de station sur place, le
+  déplacement la retire et réarme.
+- **Les plugins isolés** (`PluginHost`, G-04) : l'erreur d'un
+  plugin ne tue jamais l'éditeur — l'extension qui lève est
+  journalisée (une ligne par défaillance, le journal est borné), les
+  suivantes courent, l'image suivante est intacte.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- StickyLinesTest **4 tests**, InvisibleCharsTest **5 tests**,
+  PointerGesturesTest **5 tests**, PluginHostTest **4 tests** — zéro
+  échec ;
+- CI vert sur les tranches 4 (correctif typographique) et 5.
+
+### Écarts et limites
+
+1. **Les peintres des lignes collantes et des invisibles, le dessin
+   de la gouttière des signets et le raccord des gestes au tactile**
+   vivent à la clôture avec les scénarios : les modèles sont
+   livrés, le dessin suit le besoin réel de la démonstration.
+2. **La sélection à la souris** (cliquer-tirer) s'appuie sur le
+  HitTest existant (M3) : la logique de geste livrée couvre le
+   zoom et l'info-bulle, le glissement sélectionne déjà par la voie
+   tactile.

@@ -9,6 +9,15 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 6 (M5) — lignes collantes, caractères invisibles, stylet
+  et plugins isolés (A-16, A-19, D-18, G-04) : StickyLines colle
+  les en-têtes englobants du même arbre, budget d'image borné ;
+  InvisibleChars matérialise finale, tabulation et fine — toujours —,
+  interne en mode « tout », fin de ligne sur demande ;
+  PointerGestures zoome à la molette avec Ctrl (borné 0,5–3,0),
+  info-bulle après station ; PluginHost isole les extensions —
+  celle qui lève est journalisée, les suivantes courent ; 18
+  tests neufs.
 - Tranche 5 (M5) — bande d'erreurs, fil d'Ariane et popups unifiées
   (D-08, D-09, D-10) : ErrorBandModel borne la densité des
   diagnostics à un cran de bande et le clic saute au diagnostic ;
