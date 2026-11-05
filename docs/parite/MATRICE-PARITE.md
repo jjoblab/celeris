@@ -51,9 +51,11 @@
 >   — B-01 — palettes vérifiées WCAG sur les trois thèmes, plis
 >   calculés depuis l'arbre et survie du pli manuel à l'éditon
 >   voisine — A-15 — chevrons de la gouttière et bascule au clic
->   — D-07 — marques d'erreur par ligne — D-02) ; la voie de
->   grammaires, le plan consommateur (B-16), l'ouverture progressive
->   et les corpus restent à livrer.
+>   — D-07 — marques d'erreur par ligne — D-02) ; l'analyse vit
+>   désormais hors fil d'appel — fenêtre visible d'abord, complétion
+>   par lots, annulation moins chère que terminer (tranche 6, G-01
+>   facette analyse) ; la voie de grammaires et le plan consommateur
+>   (B-16) restent à livrer.
 
 ## A. Édition et saisie
 
@@ -194,7 +196,7 @@
 
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
 | --- | --- | --- | --- | --- | --- | --- |
-| G-01 | Ouverture instantanée et progressive de très gros fichiers | P0 | partiel (benchmark JVM vert : 154 ms / 500 ms, 480 000 lignes ouvrables) | `core-text` + `android-view` | M2/M3 | benchmark CI : 100 000 lignes → première image ≤ 500 ms, 480 000 lignes ouvrables |
+| G-01 | Ouverture instantanée et progressive de très gros fichiers | P0 | partiel (texte : 154 ms / 500 ms, 480 000 lignes ouvrables ; analyse : hors fil, fenêtre d'abord — instantané 224 ms sur 100 000 lignes, annulation moins chère que terminer, tranche 6) | `core-text` + `android-view` | M2/M3 | benchmark CI : 100 000 lignes → première image ≤ 500 ms, 480 000 lignes ouvrables |
 | G-02 | Tactile d'abord, hors ligne d'abord, sobre en mémoire et batterie | P0 | partiel | tous | M3+ | scénarios démo hors ligne ; budgets mémoire et images tenus ; aucun réveil réseau parasite |
 | G-03 | Exécutable sans Android (`editor-cli` : analyser, diagnostiquer, formater, refactorer) | P1 | absent | `cli` | M7 | exécution en CI sur corpus, sortie déterministe |
 | G-04 | Plugins isolés (peintres, gouttière, commandes) : l'erreur d'un plugin ne tue pas l'éditeur | P1 | absent | `android-view` | M5 | test : plugin lançant une exception → ligne de journal, image suivante intacte |

@@ -9,6 +9,19 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 6 (M4) — l'analyse quitte le fil d'appel : jeton d'annulation
+  sous moniteur (ADR-007 — ni volatile ni atomique au cœur, règles
+  greppables au test d'architecture), exécuteur injecté au moteur
+  `MoteurAnalyse` — fenêtre visible d'abord (G-01), complétion par lots
+  publiés, l'édition supplante le travail en vol et la tâche périmée ne
+  publie jamais (PIEGE-20) ; après publication, l'incrément suit (un
+  seul site, une publication) et le rejeu d'annulation passe par la
+  même voie (PIEGE-07) ; le pont `EditorSyntax` n'habille qu'à la bonne
+  révision — la première image ne paie jamais l'arbre (G-01, facette
+  analyse : instantané de fenêtre à 224 ms sur 100 000 lignes,
+  enveloppe 500 ms, annuler la lexicographie coûte moins cher que la
+  terminer) ; 770 tests verts.
+
 - Tranche 5 (M4) — les consommateurs du rendu : coloration par plages
   du même arbre (B-01 — `SyntaxRowSource` habille chaque rangée des
   jetons soudés, rognés à la tranche, sans trou à peindre), palettes

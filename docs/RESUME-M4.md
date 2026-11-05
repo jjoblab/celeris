@@ -367,3 +367,91 @@
    longue traîne (C-15/C-16), le plan consommateur (B-16), le
    scénario C-07 (Groovy et KTS — l'analyseur Groovy n'existe pas),
    l'ouverture progressive et les corpus embarqués.
+
+## Tranche 6 — l'analyse quitte le fil d'appel (2026-11-05)
+
+### Livré
+
+- **Le jeton d'annulation** (`JetonAnnulation`, `AnalyseAnnulee`) :
+  drapeau sous moniteur intrinsèque — annuler coûte moins cher que
+  terminer, la vérification est un point de contrôle explicite entre
+  deux phases longues, jamais dans la boucle chaude. Ni volatile ni
+  atomique au cœur : la règle ADR-007 devient greppable et vérifiée
+  par le test d'architecture du module (aucun champ volatile, aucune
+  classe atomique, la fabrique Executors interdite — l'exécuteur
+  s'injecte).
+- **La lexicographie à point de contrôle** (`IncrementalLexer.lexFull`
+  à jeton) : tous les 256 lignes le jeton s'interroge — la passe
+  annulée s'arrête au premier point de contrôle, mesuré moins cher
+  que la passe complète sur 100 000 lignes.
+- **L'arbre par fenêtre** (`IncrementalParser.parseFenetre`,
+  `completer`, `Chunk.estEnAttente`, `SyntaxTree.estComplet`) : la
+  marche des jetons calcule la géométrie de TOUS les chunks — c'est
+  bon marché — et `parseChunk` se paie séparément ; la fenêtre visible
+  construit ses chunks, les autres se posent en attente : marqueur
+  neutre, inerte pour plis, plan et diagnostics (deux chunks peuvent
+  partager une ligne, seuls leurs jetons entrent dans la tranche à la
+  complétion) ; la complétion construit par lots dans l'ordre du
+  document sans retoucher les sous-arbres déjà là — preuve par
+  l'identité des instances ; l'édition incrémentale part d'un arbre
+  partiel comme d'un complet : le chunk propriétaire se ré-analyse,
+  les chunks en attente se décalent et restent en attente.
+- **Le moteur hors fil** (`MoteurAnalyse`) : l'exécuteur s'injecte,
+  tout état mutable vit sous le moniteur, le travail se capture hors
+  verrou ; la fenêtre visible se paie d'abord, la complétion publie
+  par lots de 32 sur le fil de travail ; l'édition supprime le
+  travail en vol par son jeton et reprogramme sur l'instantané le
+  plus récent — une tâche supplantée ne publie jamais, la publication
+  vérifie son jeton sous moniteur (PIEGE-20) ; un seul site d'édition
+  en attente suit la voie incrémentale (une publication), une chaîne
+  de sites ne se plie pas et repart par la fenêtre ; le rejeu de
+  l'annulation suit la même voie que toute édition (PIEGE-07) ;
+  close() détache l'auditeur de session et annule tout.
+- **Le pont à deux voies** (`EditorSyntax` à exécuteur,
+  `ExecuteurAnalyse`) : sans exécuteur, la voie synchrone d'avant ;
+  avec, la vue n'habille JAMAIS un document avec le lexique d'une
+  autre révision — sans publication à jour, la source passe sans
+  couleur, la première image ne paie pas l'arbre (PIEGE-20, facette
+  vue) ; la fenêtre visible se pousse à chaque image préparée — en
+  rangées, la projection résout —, le défilement ne coûte rien ; le
+  rappel d'invalidation part à chaque publication sur le fil de
+  travail, l'hôte y poste `postInvalidateOnAnimation` (appelable de
+  tout fil) ; le fil d'analyse naît à la première tâche, une vue sans
+  langage n'ouvre aucun fil ; EditorView reste sous les plafonds par
+  délégation au pont.
+- **Scénario G-01 au catalogue** : le texte dit la coloration
+  progressive — fenêtre d'abord (224 ms mesurés sur cent mille
+  lignes), complétion par lots ensuite.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble — **770 tests, zéro échec**
+  (26 neufs : jeton, fenêtre et complétion, moteur hors fil — dont la
+  tâche supplantée en plein vol, lexeur retenu derrière une porte —,
+  budget d'instantané de fenêtre, pont à deux voies) ;
+- budget G-01 facette analyse : instantané de fenêtre mesuré à
+  **224 ms sur 100 041 lignes Java** (minimum de trois tours,
+  enveloppe 500 ms — celle de la première image de la matrice) ;
+  l'annulation de la lexicographie, mesurée, coûte moins cher que la
+  terminer ;
+- règles ADR-007 greppables vertes sur core-syntax ; manifeste d'API
+  régénéré : additions seulement, aucune rupture (ADR-009).
+
+### Écarts et limites
+
+1. **La lexicographie reste pleine à l'ouverture** : les états se
+   cascadent de la première ligne, la fenêtre seule ne peut pas s'y
+   servir — l'instantané de fenêtre paie donc le lexique complet
+   (mesuré : 224 ms à 100 000 lignes, dans l'enveloppe de la première
+   image). Le lexique paresseux par fenêtre suivra si les corpus le
+   demandent.
+2. **Un fil démon par vue** : le moteur vit le temps de la vue, le
+   partage de pool est l'affaire de l'hôte (injection au pont).
+3. **Rafale d'éditions pendant l'ouverture** : la chaîne de sites ne
+   se plie pas — la voie de fenêtre repart à chaque édition, bornée
+   par l'annulation (le travail supplanté rend son jeton au premier
+   point de contrôle).
+4. **Restent à livrer pour M4** : la voie de grammaires pour la
+   longue traîne (C-15/C-16), le plan consommateur (B-16), le
+   scénario C-07 (Groovy — l'analyseur n'existe pas, le corpus suivra
+   avec lui).

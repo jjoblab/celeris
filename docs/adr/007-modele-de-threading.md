@@ -71,3 +71,6 @@ bruit du runner (PIEGE-13) et des tests de vue contraints par réflexion
 - [x] M2 : horloge et exécuteurs injectés dans `core-text` (première
       consommatrice : l'annulation avec coalescence — `UndoStack`,
       2026-11-04).
+- [x] M4 : jetons d'annulation et exécuteur injecté au socle
+      syntaxique — `JetonAnnulation`, `MoteurAnalyse`, règles
+      greppables au test d'architecture (2026-11-05).
