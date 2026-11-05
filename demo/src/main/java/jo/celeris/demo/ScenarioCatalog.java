@@ -24,10 +24,10 @@ import java.util.List;
  *
  * <p>Jalon M4 (syntaxe) : A-15 (plis calculés depuis l'arbre, le pli
  * manuel survit à l'édition voisine), B-01 (coloration lexicale et
- * syntaxique du même arbre), C-01 (XML : coloration, plis, crochets)
- * et C-14 (langages P0 : Java, Kotlin, XML). Les scénarios B-16 (plan),
- * C-07 (Gradle KTS et Groovy) et C-15/C-16 (longue traîne) suivent
- * leurs tranches.</p>
+ * syntaxique du même arbre), C-01 (XML : coloration, plis, crochets),
+ * C-07 (Gradle KTS et Groovy) et C-14 (langages P0 : Java, Kotlin,
+ * XML). Les scénarios B-16 (plan) et C-15/C-16 (longue traîne)
+ * suivent leurs tranches.</p>
  */
 public final class ScenarioCatalog {
 
@@ -108,6 +108,14 @@ public final class ScenarioCatalog {
                                 + "apparié, éléments repliables ; la balise non "
                                 + "fermée devient un nœud d'erreur, jamais un "
                                 + "échec."),
+                new Scenario(
+                        "C-07",
+                        "Gradle KTS et Groovy",
+                        "Les deux dialectes de script de construction analysés : "
+                                + "chaque appel de premier niveau ouvre son chunk — "
+                                + "plugins, task, dependencies — plis par bloc, "
+                                + "chaînes triples en crochets appariés ; la "
+                                + "ré-analyse ne relit que le bloc touché."),
                 new Scenario(
                         "C-14",
                         "Langages P0 : Java, Kotlin, XML",

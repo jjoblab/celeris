@@ -9,6 +9,18 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 7 (M4) — analyseur Gradle Groovy (C-07) : dialecte de
+  script de construction — chaque appel de premier niveau en tête de
+  ligne ouvre son chunk, gabarits ${…} où les guillemets internes ne
+  clôturent pas, chaînes triples en crochets appariés, commentaires
+  nichés en profondeur, états transportés ligne à ligne (PIEGE-19) ;
+  budget de ré-analyse tenu sur machine lente (PIEGE-13) : JSON
+  vivait en un chunk unique — chaque valeur de premier niveau ouvre
+  désormais son chunk — et l'assemblage du lexique copie de masse le
+  préfixe et le suffixe intacts (plancher abaissé pour tous les
+  langages, 0,19 à 1,18 ms mesurés sur 50 000 lignes) ; scénario
+  C-07 au catalogue de la démonstration ; 791 tests verts.
+
 - Tranche 6 (M4) — l'analyse quitte le fil d'appel : jeton d'annulation
   sous moniteur (ADR-007 — ni volatile ni atomique au cœur, règles
   greppables au test d'architecture), exécuteur injecté au moteur

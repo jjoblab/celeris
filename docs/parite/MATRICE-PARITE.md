@@ -54,7 +54,13 @@
 >   — D-07 — marques d'erreur par ligne — D-02) ; l'analyse vit
 >   désormais hors fil d'appel — fenêtre visible d'abord, complétion
 >   par lots, annulation moins chère que terminer (tranche 6, G-01
->   facette analyse) ; la voie de grammaires et le plan consommateur
+>   facette analyse) ; le sixième analyseur couvre le dialecte Gradle
+>   Groovy — C-07 bouclé avec ses deux dialectes (tranche 7 : appels
+>   de premier niveau en chunks, chaînes triples appariées, gabarits
+>   ${…} où les guillemets internes ne clôturent pas) et le budget de
+>   ré-analyse retombe local sur machine lente (JSON en chunks par
+>   valeur de premier niveau, assemblage du lexique en copie de masse
+>   — PIEGE-13) ; la voie de grammaires et le plan consommateur
 >   (B-16) restent à livrer.
 
 ## A. Édition et saisie
@@ -130,7 +136,7 @@
 | C-04 | XML : navigation des références (`@string/`, `@layout/`…) | P1 | absent | `core-intelligence` | M7 | test : aller à la ressource définie, aller à l'usage |
 | C-05 | Pastilles de couleur et miniatures en gouttière | P2 | absent | `android-widgets` | M7 | test de capture : pastille rendue depuis la valeur résolue |
 | C-06 | Manifeste : complétion et diagnostics | P1 | absent | `core-intelligence` | M7 | test : attributs du manifeste connus, permissions suggérées |
-| C-07 | Gradle KTS et Groovy : coloration, plis, structure | P0 | partiel | `core-syntax` | M4 | test : les deux dialectes analysés, plis par bloc |
+| C-07 | Gradle KTS et Groovy : coloration, plis, structure | P0 | livré (KTS tranche 4, Groovy tranche 7 — chunks par appel de premier niveau, chaînes triples appariées) | `core-syntax` | M4 | test : les deux dialectes analysés, plis par bloc |
 | C-08 | Catalogues de versions : complétion liée | P2 | absent | `core-intelligence` | M7 | test : `libs.versions.toml` ↔ alias suggérés dans les builds |
 | C-09 | Règles R8/ProGuard : coloration et diagnostics de base | P2 | absent | `core-syntax` | M7+ | test : grammaire de règles, garde-fou d'erreur de syntaxe |
 | C-10 | Compose : documentation des modificateurs au survol | P2 | absent | `core-lsp` | M7+ | scénario : survol d'un modificateur → documentation |
@@ -138,7 +144,7 @@
 | C-12 | Lint Android : diagnostics affichés, correctifs applicables | P1 | absent | `android-host` | M7 | test : diagnostics de build importés, décalage exact (tests hérités de décalage) |
 | C-13 | Extraction d'une chaîne en ressource | P2 | absent | `core-intelligence` | M7+ | test : ressource créée + référence insérée + transaction annulable |
 | C-14 | Langages P0 : Java, Kotlin, XML | P0 | Java partiel (démo) (au départ ; celeris : les trois analyseurs livrés M4-t2 à t4, coloration consommatrice M4-t5) | `core-syntax` | M4 | critère identique à B-01 par langage |
-| C-15 | Langages P1 : Gradle, JSON, TOML, YAML, properties, Markdown, SQL, C, C++ | P1 | partiel (tokéniseurs) | `core-syntax` | M4/M7 | test : coloration + plis par langue (analyseurs dédiés ou grammaires) |
+| C-15 | Langages P1 : Gradle, JSON, TOML, YAML, properties, Markdown, SQL, C, C++ | P1 | Gradle KTS et Groovy livrés (tranches 4 et 7), JSON livré (tranche 3) ; le reste suit la voie de grammaires | `core-syntax` | M4/M7 | test : coloration + plis par langue (analyseurs dédiés ou grammaires) |
 | C-16 | Langages P2 : longue traîne | P2 | partiel (tokéniseurs) | `core-syntax-grammars` | M4/M7 | test : coloration par grammaire sans analyseur dédié |
 
 ## D. Surface d'interface

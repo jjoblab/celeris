@@ -451,7 +451,62 @@
    se plie pas — la voie de fenêtre repart à chaque édition, bornée
    par l'annulation (le travail supplanté rend son jeton au premier
    point de contrôle).
-4. **Restent à livrer pour M4** : la voie de grammaires pour la
-   longue traîne (C-15/C-16), le plan consommateur (B-16), le
-   scénario C-07 (Groovy — l'analyseur n'existe pas, le corpus suivra
-   avec lui).
+4. **Restaient alors à livrer pour M4** : la voie de grammaires pour
+   la longue traîne (C-15/C-16), le plan consommateur (B-16) et le
+   scénario C-07 (Groovy) — ce dernier est livré en tranche 7.
+
+## Tranche 7 — analyseur Gradle Groovy, budget tenu sur machine lente (2026-11-05)
+
+### Livré
+
+- **Lexeur Groovy** (`GroovySyntax`, `GroovyLexeur`, `GroovySignes`,
+  `GroovyKind`) sur le dialecte Gradle (C-07) : mots réservés et
+  modificateurs, nombres (relatifs, décimaux, suffixes), chaînes
+  délimitées avec échappements, gabarits `${…}` où les guillemets
+  internes ne clôturent jamais, chaînes triples en crochets appariés
+  ouvrant à fermeture, commentaires de ligne, blocs nichés en profondeur
+  (le DOC se distingue du bloc), annotations ; états transportés —
+  bloc ouvert et triple ouverte traversent les lignes, l'état de sortie
+  reprend à la profondeur exacte (PIEGE-19).
+- **Parseur Groovy tolérant** (`GroovyParseur`) : dans un script,
+  chaque appel de premier niveau en tête de ligne ouvre son chunk
+  (plugins, task, dependencies…) — la ré-analyse reste locale —, les
+  types (class, interface, enum, trait) s'analysent en membres,
+  méthodes `def` à parenthèses et champs `def` se distinguent, les
+  corps passent par `Corps` partagé ; la malformation devient un
+  nœud d'erreur, jamais une exception.
+- **Corpus embarqué** (`corpus/exemple.groovy`) et budget de ré-analyse
+  étendu au sixième langage (ReanalyseBudgetTest) : 0,48 ms mesurés
+  sur 50 000 lignes.
+- **Correctif CI — budget sur machine lente (PIEGE-13)** : le budget
+  de 10 ms tenait localement mais cassait sur les exécuteurs GitHub
+  (json à 8 ms local, deux à quatre fois plus lent là-bas). Deux
+  causes, deux remèdes : JSON vivait en un chunk unique — chaque
+  valeur de premier niveau ouvre désormais son chunk (précédent KTS de
+  la tranche 4bis, 8,02 → 0,43 ms mesurés) ; l'assemblage du lexique
+  relisait les 50 000 paniers ligne à ligne à chaque édition — le
+  préfixe et le suffixe intacts se copient de masse
+  (`System.arraycopy`), différentiel nul ou pas (plancher de tous les
+  langages abaissé, 0,19 à 1,18 ms mesurés).
+- **Scénario C-07 au catalogue** de la démonstration, avec son test de
+  fumée (dix-neuf scénarios au total).
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble — **791 tests, zéro échec** ;
+- budget de ré-analyse, minimum de trois tours sur 50 000 lignes :
+  Java 0,19 ms, Kotlin 0,72 ms, XML 1,04 ms, JSON 0,43 ms, Gradle KTS
+  1,18 ms, Gradle Groovy 0,48 ms (budget 10 ms) ;
+- mutation core-text 85,2 % détectées (seuil 80) ; publication locale,
+  sommes de contrôle et fumée de la cli verts ; APK démonstration
+  assemblé ; manifeste d'API régénéré : additions seulement, aucune
+  rupture (ADR-009).
+
+### Écarts et limites
+
+1. **Gradle Groovy sans résolution dynamique** : le dialecte couvre
+   les scripts de construction, pas le Groovy général — les fermetures
+   `it`, les builders et la métaprogrammation restent hors périmètre
+   (C-07 parle de scripts Gradle).
+2. **Restent à livrer pour M4** : la voie de grammaires pour la
+   longue traîne (C-15/C-16) et le plan consommateur (B-16).
