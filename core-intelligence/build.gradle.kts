@@ -5,5 +5,7 @@ plugins {
     id("celeris.publishing-conventions")
 }
 dependencies {
+    api(project(":core-text"))
+    api(project(":core-syntax"))
     api(project(":core-language"))
 }
