@@ -61,7 +61,13 @@
 >   ré-analyse retombe local sur machine lente (JSON en chunks par
 >   valeur de premier niveau, assemblage du lexique en copie de masse
 >   — PIEGE-13) ; la voie de grammaires et le plan consommateur
->   (B-16) restent à livrer.
+>   (B-16) est livré
+>   (tranche 8 : le pont pousse les entrées de l'analyse habillée, le
+>   modèle conserve le préfixe intact) et la voie de grammaires couvre la
+>   longue traîne (tranche 9 : module core-syntax-grammars, grammaires
+>   déclaratives — TOML, YAML, properties, Markdown en P1, Python et
+>   Shell en P2 — coloration et plis sans analyseur dédié, pile d'états
+>   à égalité de valeur, PIEGE-21).
 
 ## A. Édition et saisie
 
@@ -113,7 +119,7 @@
 | B-13 | Aller à classe, fichier, symbole | P1 | partiel | `core-intelligence` | M6 | test : recherche floue de symboles sur l'index, hors ligne |
 | B-14 | Historique de navigation avant/arrière | P1 | absent | `android-view` | M5 | test : pile bornée, comportement après fermeture de fichier |
 | B-15 | Signets (avec gouttière) | P1 | absent | `android-view` | M5 | test : ajout/retrait, saut, persistance par session |
-| B-16 | Plan du fichier (structure) | P0 | absent | `core-syntax` + `android-widgets` | M4 | test : plan généré du même arbre que la coloration, mise à jour incrémentale |
+| B-16 | Plan du fichier (structure) | P0 | absent (au départ ; celeris : livré M4-t8 — le pont session ↔ vue pousse le plan de l'analyse habillée, le modèle déduit la profondeur de l'imbrication et conserve le préfixe intact d'un plan à l'autre, le peintre trace glyphe de catégorie et retrait par niveau) | `core-syntax` + `android-widgets` + `android-view` | M4 | test : plan généré du même arbre que la coloration, mise à jour incrémentale |
 | B-17 | Inspections, intentions, correctifs rapides | P1 | partiel (quick fixes) | `core-lsp` | M6 | test : correctif applicable = transaction diffable, annulable |
 | B-18 | Aperçu d'un correctif (diff avant application) | P2 | absent | `android-widgets` | M7 | scénario : aperçu en ligne avant acceptation |
 | B-19 | Refactorisation : renommer (fichier et projet) | P0 | absent | `core-intelligence` | M6 | test : renommage multi-fichiers par éditions d'espace de travail, conflits signalés |
@@ -144,8 +150,8 @@
 | C-12 | Lint Android : diagnostics affichés, correctifs applicables | P1 | absent | `android-host` | M7 | test : diagnostics de build importés, décalage exact (tests hérités de décalage) |
 | C-13 | Extraction d'une chaîne en ressource | P2 | absent | `core-intelligence` | M7+ | test : ressource créée + référence insérée + transaction annulable |
 | C-14 | Langages P0 : Java, Kotlin, XML | P0 | Java partiel (démo) (au départ ; celeris : les trois analyseurs livrés M4-t2 à t4, coloration consommatrice M4-t5) | `core-syntax` | M4 | critère identique à B-01 par langage |
-| C-15 | Langages P1 : Gradle, JSON, TOML, YAML, properties, Markdown, SQL, C, C++ | P1 | Gradle KTS et Groovy livrés (tranches 4 et 7), JSON livré (tranche 3) ; le reste suit la voie de grammaires | `core-syntax` | M4/M7 | test : coloration + plis par langue (analyseurs dédiés ou grammaires) |
-| C-16 | Langages P2 : longue traîne | P2 | partiel (tokéniseurs) | `core-syntax-grammars` | M4/M7 | test : coloration par grammaire sans analyseur dédié |
+| C-15 | Langages P1 : Gradle, JSON, TOML, YAML, properties, Markdown, SQL, C, C++ | P1 | Gradle KTS et Groovy livrés (tranches 4 et 7), JSON livré (tranche 3) ; TOML, YAML, properties et Markdown livrés par la voie de grammaires (tranche 9) ; SQL, C et C++ suivent M7 | `core-syntax` + `core-syntax-grammars` | M4/M7 | test : coloration + plis par langue (analyseurs dédiés ou grammaires) |
+| C-16 | Langages P2 : longue traîne | P2 | partiel (tokéniseurs au départ ; celeris : la voie de grammaires livrée M4-t9 — Python et Shell colorés et repliés par grammaire déclarative sans analyseur dédié, pile d'états à égalité de valeur PIEGE-21, budget de ré-analyse tenu) | `core-syntax-grammars` | M4/M7 | test : coloration par grammaire sans analyseur dédié |
 
 ## D. Surface d'interface
 

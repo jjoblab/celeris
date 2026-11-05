@@ -20,6 +20,7 @@ public final class Celeris {
         return List.of(
                 "core-text",
                 "core-syntax",
+                "core-syntax-grammars",
                 "core-language",
                 "core-intelligence",
                 "core-lsp",

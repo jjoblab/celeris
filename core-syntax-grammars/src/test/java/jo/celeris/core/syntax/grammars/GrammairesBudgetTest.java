@@ -81,6 +81,8 @@ class GrammairesBudgetTest {
             }
             meilleur = Math.min(meilleur, duree);
         }
+        System.out.println(langage.id() + " : ré-analyse de " + LIGNES
+                + " lignes en " + meilleur / 1_000_000.0 + " ms (budget 10 ms)");
         assertTrue(meilleur <= BUDGET_NS,
                 langage.id() + " : ré-analyse de " + LIGNES + " lignes en "
                         + meilleur / 1_000_000.0 + " ms (budget 10 ms)");

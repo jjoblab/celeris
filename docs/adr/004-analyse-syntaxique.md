@@ -73,8 +73,8 @@ pour réviser la décision :
 
 ## Actions
 
-- [ ] M4 : socle commun (jetons, états par ligne, arbre, crochets) + Java.
-- [ ] M4 : Kotlin, XML, JSON, Gradle KTS ; corpus et budgets en CI.
-- [ ] M4 : écrire les tests de cascade de commentaire de bloc avant l'implémentation.
-- [ ] M4 : prototype de comparaison option B, chiffré, si l'effort P0 dépasse
+- [x] M4 : socle commun (jetons, états par ligne, arbre, crochets) + Java.
+- [x] M4 : Kotlin, XML, JSON, Gradle KTS ; corpus et budgets en CI.
+- [x] M4 : écrire les tests de cascade de commentaire de bloc avant l'implémentation.
+- [x] M4 : prototype de comparaison option B, chiffré, si l'effort P0 dépasse
       le plan de charge — décision de révision documentée ici même.

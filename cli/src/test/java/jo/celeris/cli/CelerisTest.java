@@ -12,17 +12,19 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Fumée de la cli : la liste des modules reflète la topologie de
- * l'ADR-002 (les six modules du cœur, aucun module Android) et le point
+ * l'ADR-002 (les sept modules du cœur, aucun module Android) et le point
  * d'entrée annonce la version et les modules sur la sortie standard.
  */
 public final class CelerisTest {
 
-    /** Les six modules du cœur sont annoncés, dans l'ordre des dépendances. */
+    /** Les sept modules du cœur sont annoncés, dans l'ordre des dépendances. */
     @Test
-    public void lesSixModulesDuCoeurSontAnnonces() {
+    public void lesSeptModulesDuCoeurSontAnnonces() {
         List<String> modules = Celeris.modules();
-        assertEquals(6, modules.size());
+        assertEquals(7, modules.size());
         assertFalse(modules.contains("demo"));
+        assertTrue(modules.contains("core-syntax-grammars"),
+                "la voie de grammaires fait partie du cœur");
     }
 
     /** Le point d'entrée écrit la version puis chaque module du cœur. */

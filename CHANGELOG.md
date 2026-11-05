@@ -9,6 +9,36 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Clôture M4 — les critères de sortie du jalon sont tous couverts :
+  ré-analyse ≤ 10 ms sur 50 000 lignes par langage (six analyseurs
+  dédiés de 0,19 à 1,18 ms, six langages à grammaires de 0,47 à
+  2,59 ms), corpus embarqués, scénarios B-01, B-16, A-15, C-01,
+  C-07, C-14 à C-16 et G-01 au catalogue (vingt-deux scénarios) ;
+  851 tests verts, manifestes d'API à jour (api/core-syntax-grammars
+  posé), publication locale et APK de démonstration assemblés.
+
+- Tranche 9 (M4) — la voie de grammaires pour la longue traîne
+  (C-15/C-16) : nouveau module pur core-syntax-grammars — grammaires
+  déclaratives au format TextMate (lecteur JSON strict, inclusions du
+  référentiel résolues en références, cycles à travers un bloc permis),
+  mapping portées → sortes de jetons (voie héritée du dépôt de départ),
+  lexeur à pile de blocs ouverts immuable et à égalité de valeur — la
+  cascade s'arrête exactement à la reconvergence (PIEGE-21) —, parseur
+  générique aux plis par paires de crochets multi-lignes ; six
+  grammaires embarquées : TOML, YAML, properties, Markdown (reste des
+  P1) et Python, Shell (P2), coloration et plis sans analyseur dédié ;
+  la cli annonce le septième module du cœur ; 54 tests neufs.
+
+- Tranche 8 (M4) — le plan consommateur (B-16) : le pont session ↔
+  vue pousse les entrées du plan de l'analyse habillée — le MÊME arbre
+  que la coloration, jamais une autre révision — le rattachement et le
+  retrait du langage vident le plan ; le modèle (android-widgets)
+  déduit la profondeur de l'imbrication des bornes, conserve le
+  préfixe intact d'un plan à l'autre (mise à jour incrémentale) et
+  résout la rangée visée ; le peintre trace glyphe de catégorie en
+  primitives et nom en retrait par niveau, sans allocation par image
+  (PIEGE-15) ; 11 tests neufs.
+
 - Tranche 7 (M4) — analyseur Gradle Groovy (C-07) : dialecte de
   script de construction — chaque appel de premier niveau en tête de
   ligne ouvre son chunk, gabarits ${…} où les guillemets internes ne

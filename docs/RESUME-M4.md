@@ -1,4 +1,9 @@
-# Résumé M4 — syntaxe (livraison en cours, tranche par tranche)
+# Résumé M4 — syntaxe (livré, clôture vérifiée le 2026-11-05)
+
+> **Sortie** : les critères de la feuille de route sont couverts —
+> ré-analyse ≤ 10 ms sur 50 000 lignes par langage, corpus embarqués,
+> scénarios B-01, B-16, A-15, C-01, C-07, C-14 à C-16 et G-01 (la
+> vérification appareil du propriétaire reste sienne).
 
 > **Déclenchement** : clôture du jalon M3 côté développement (2026-11-05,
 > sortie vérifiée sur les critères de la feuille de route — la vérification
@@ -508,5 +513,144 @@
    les scripts de construction, pas le Groovy général — les fermetures
    `it`, les builders et la métaprogrammation restent hors périmètre
    (C-07 parle de scripts Gradle).
-2. **Restent à livrer pour M4** : la voie de grammaires pour la
-   longue traîne (C-15/C-16) et le plan consommateur (B-16).
+
+## Tranche 8 — le plan consommateur (2026-11-05)
+
+### Livré
+
+- **Le pont pousse le plan** (`EditorSyntax.setSurPlan`) : les entrées
+  sortent de l'analyse habillée — le MÊME arbre que la coloration, à
+  la révision près — poussées à chaque changement de révision
+  analytique ; le rattachement d'une session et le retrait du langage
+  poussent un plan vide : le consommateur n'affiche jamais les entrées
+  d'un document parti. Le rappel part sur le fil qui habille.
+- **Le modèle du plan** (`OutlineModel`, android-widgets, pur) : la
+  profondeur d'affichage se déduit de l'imbrication des bornes — une
+  entrée vit dans la première entrée précédente qui la contient —, la
+  mise à jour conserve le préfixe intact d'un plan à l'autre (le
+  changement rapporte préfixe, remplacées, ajoutées) et le test au
+  point résout la rangée visée, null hors bornes.
+- **Le peintre du plan** (`OutlinePainter` + `OutlineSurface`) : un
+  glyphe de catégorie en primitives — le carré des types, le cercle
+  des fonctions, le tiret des champs — et le nom en retrait d'un pas
+  par niveau, sans allocation dans la boucle de dessin (PIEGE-15) ;
+  la vue (`OutlineView`) est fine : modèle, peintre et adaptateur
+  canvas, l'appui part au consommateur déclaré.
+- **Scénario B-16 au catalogue** de la démonstration (vingt
+  scénarios).
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble — **802 tests, zéro échec**
+  (11 neufs : plan du même arbre que la coloration — une analyse
+  indépendante produit les mêmes entrées —, mise à jour à l'édition
+  voie synchrone et hors fil, retrait du langage, profondeurs,
+  préfixe intact sur le vrai plan du socle après édition
+  incrémentale, test au point, glyphes et retraits, plan vide) ;
+- Checkstyle (600/50) et PMD (15) verts sur les modules touchés.
+
+### Écarts et limites
+
+1. **Le plan des langages à grammaires** : la voie de grammaires ne
+   produit pas d'arbre de déclarations (ADR-004) — le plan
+   consommateur ne s'applique qu'aux langages à analyseur dédié.
+2. **Le défilement du plan** : la hauteur suit le nombre d'entrées,
+   l'hôte enveloppe la vue d'une vue défilante quand le plan dépasse
+   l'écran.
+
+## Tranche 9 — la voie de grammaires pour la longue traîne (2026-11-05)
+
+### Livré
+
+- **Le module pur `core-syntax-grammars`** (ADR-002, la voie héritée
+  du dépôt de départ selon le registre de portage) : les langages
+  sans analyseur dédié se colorent et se replient par grammaire
+  déclarative au format TextMate, portés par le socle incrémental
+  commun — jetons, états transportés, crochets appariés, plis.
+- **Le lecteur et le chargeur** (`LecteurJson`, `Grammaires`) : JSON
+  strict — objets, tableaux, chaînes échappées unicode comprises,
+  nombres — tout refus est net, position en cause ; les inclusions du
+  référentiel (`#cle`) se résolvent en références — la liste de chaque
+  clé existe avant sa propre résolution, les inclusions cycliques à
+  travers un bloc (un tableau de valeurs qui contient des tableaux) se
+  référencent sans fin d'aplatissement ; `$self` est refusé.
+- **Le mapping portées → sortes de jetons** (`Portees`, voie héritée)
+  : les portées pointées se rabattent sur les quatorze sortes communes
+  — la coloration d'une grammaire vit dans les mêmes paniers que
+  celle des analyseurs dédiés ; `punctuation.section.*.begin/.end`
+  porte les crochets appariés, quelque soit le suffixe de langage.
+- **Le lexeur à pile de blocs ouverts** (`GrammaireLexeur`,
+  `EtatGrammaire`, PIEGE-21) : la pile transportée est immuable et à
+  égalité de valeur — la cascade de re-lexicographie s'arrête
+  exactement à la reconvergence, l'édition au cœur d'une chaîne
+  ouverte ne relit QUE sa ligne ; le candidat le plus à gauche gagne,
+  les ex æquo se départagent par l'ordre des règles, la fermeture du
+  bloc ouvert prime ; les écarts non couverts portent la portée de
+  contenu du bloc ouvert, rognés de leurs blancs d'escorte.
+- **Le parseur générique** (`GrammaireParseur`) : chunks au premier
+  jeton de chaque ligne de premier niveau (la ré-analyse reste locale
+  à la ligne éditée), une région de pli par paire de crochets
+  multi-lignes — chaînes triples, tableaux, clôtures de code,
+  séquences en flux. Jamais d'arbre de déclarations : le plan reste
+  l'affaire des analyseurs dédiés.
+- **Six grammaires embarquées** (`LangagesGrammaires`, corpus
+  compris) : TOML, YAML, properties et Markdown — le reste des P1
+  (C-15) ; Python et Shell — la longue traîne P2 (C-16). Le registre
+  des langages de l'hôte les identifie par nom de fichier.
+- **Scénarios C-15 et C-16 au catalogue** (vingt-deux scénarios) ; la
+  cli annonce le septième module du cœur.
+
+### Vérifié localement
+
+- `./gradlew :core-syntax-grammars:check` vert, puis l'ensemble —
+  **851 tests, zéro échec** (54 neufs : lecteur JSON et chargeur,
+  mapping, lexeur — pile à égalité de valeur, cascade bornée par la
+  reconvergence (PIEGE-21), l'ouverture qui ne ferme plus cascade
+  jusqu'au bout et termine (PIEGE-19), chaîne triple en crochets
+  appariés —, parseur — chunks par ligne, plis des paires
+  multi-lignes, crochet non fermé toléré —, six langages coloration +
+  plis (critère C-15/C-16), propriété jqwik à graine déterministe
+  (l'incrémental égale le complet, panier par panier et état par
+  état), budget de ré-analyse) ;
+- budget de ré-analyse, minimum de trois tours sur 50 000 lignes :
+  TOML 1,67 ms, YAML 1,15 ms, properties 2,30 ms, Markdown 0,59 ms,
+  Python 2,59 ms, Shell 0,47 ms (budget 10 ms, PIEGE-13) ;
+- couverture JaCoCo ≥ 90 % de lignes ; Checkstyle (600/50) et PMD
+  (classe 80, méthode 15) verts ; manifeste d'API posé
+  (`api/core-syntax-grammars.api`) ; règles ArchUnit vertes (aucune
+  dépendance Android, dépendances vers le bas uniquement).
+
+### Écarts et limites
+
+1. **Le format des expressions** : les grammaires embarquées usent du
+   sous-ensemble d'expressions compatible avec la plateforme — les
+   récursions arrière et possessives restent hors périmètre ; une
+   grammaire tierce exigeant le moteur d'expressions historique en
+   entier ne se chargera pas.
+2. **SQL, C et C++** (C-15) : suivent M7 par la même voie — les
+   grammaires livrées démontrent le chemin.
+3. **Le pli des langages à indentation** (Python, YAML) : la voie
+   replie les paires délimitées (chaînes triples, tableaux, flux),
+   pas les blocs d'indentation — un pli par niveau d'indentation
+   exigera un consommateur dédié de la gouttière.
+4. **Les contextes invisibles** : la pile ne transporte que les blocs
+   ouverts — les grammaires à héritage de contexte implicite ne sont
+   pas couvertes.
+
+## Clôture M4 — critères de sortie (2026-11-05)
+
+| Critère (feuille de route M4) | État |
+| --- | --- |
+| Ré-analyse ≤ 10 ms sur 50 000 lignes par langage | tenu — six analyseurs dédiés de 0,19 à 1,18 ms (tranche 7), six langages à grammaires de 0,47 à 2,59 ms (tranche 9), minimum de trois tours |
+| Corpus embarqués | par langage : Java, Kotlin, XML, JSON, Gradle KTS, Gradle Groovy (core-syntax) ; TOML, YAML, properties, Markdown, Python, Shell (core-syntax-grammars) |
+| Scénarios B-01, B-16, A-15, C-01, C-07, C-14 à C-16, G-01 | au catalogue de la démonstration, vingt-deux scénarios, ordre de la matrice |
+| Test de cascade de commentaires borné | couvert dès la tranche 1 (PIEGE-19), repris par la voie de grammaires (PIEGE-21) |
+| Ouverture progressive de très gros fichiers | livré en tranche 6 (G-01 — fenêtre d'abord, complétion par lots) |
+
+Vérifications de clôture : `./gradlew check` vert sur l'ensemble —
+**851 tests, zéro échec** ; couverture JaCoCo ≥ 90 % de lignes sur les
+modules purs ; Checkstyle et PMD verts partout ; manifestes d'API à
+jour (additions seulement, `api/core-syntax-grammars.api` posé) ;
+mutation core-text au seuil (85,2 % détectées, seuil 80) ; publication
+locale et sommes de contrôle vertes ; fumée de la cli verte (sept
+modules du cœur annoncés) ; APK de démonstration assemblé.

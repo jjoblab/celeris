@@ -9,13 +9,14 @@ le propriétaire le 2026-11-04 ; le point d'entrée du cadrage est
 ## Vue d'ensemble
 
 Réécriture complète de l'éditeur de code embarquable : **Java 17**
-(artefacts) construit sur **JDK 21**, rendu Canvas, dix modules plus la
-démonstration (ADR-002) :
+(artefacts) construit sur **JDK 21**, rendu Canvas, onze modules plus la
+démonstration (ADR-002, la voie de grammaires s'y ajoute à M4) :
 
 | Module | Nature | Rôle |
 | --- | --- | --- |
 | `core-text` | JVM pure | modèle de texte, instantanés, transactions (ADR-003) |
 | `core-syntax` | JVM pure | arbre syntaxique incrémental (ADR-004) |
+| `core-syntax-grammars` | JVM pure | voie de grammaires, longue traîne (ADR-004) |
 | `core-language` | JVM pure | contrats de langage |
 | `core-intelligence` | JVM pure | index, complétion, refactorisations |
 | `core-lsp` | JVM pure | client LSP (ADR-005) |

@@ -21,6 +21,8 @@ démonstration :
 core-text          java-library        modèle de texte, instantanés, transactions,
                                         multi-sélection, annulation
 core-syntax        java-library        arbre syntaxique incrémental, structure
+core-syntax-grammars java-library      voie de grammaires pour la longue traîne
+                                        (ajouté à M4, ADR-004)
 core-language      java-library        contrats de langage, modèles, registre
 core-intelligence  java-library        index de symboles, complétion, refactorings
 core-lsp           java-library        client LSP (protocole et transport)
