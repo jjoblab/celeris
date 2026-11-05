@@ -147,3 +147,47 @@
 3. **Les gabarits n'ont pas de trous à choix** (énumérations) ni
    d'imbrication : la facette à trous et variables liées du
    cahier des charges est couverte, les choix suivront le besoin réel.
+
+## Tranche 3 — sélection syntaxique et colonne (2026-11-06)
+
+### Livré
+
+- **La sélection syntaxique** (`TreeSelection` dans core-syntax,
+  A-03) : la chaîne des étendues englobantes d'une position — le
+  jeton qui la porte (le mot courant), les nœuds structurants qui la
+  contiennent du plus petit au plus grand, puis le document. La chaîne
+  est strictement croissante, dédoublonnée ; `suivante` rend la
+  plus petite étendue qui contient strictement la sélection,
+  `precedente` la plus grande contenue — les extensions successives
+  couvrent mot → instruction → bloc → type sur Java et Kotlin,
+  l'imbrication des éléments sur XML (le mot XML est le jeton de
+  texte). L'arbre tolérant n'expose pas de nœuds d'expression
+  (ADR-004) : l'étape « expression » se réduit au plus petit nœud
+  englobant — documenté.
+- **La sélection en colonne** (`ColumnSelection` dans android-view,
+  A-02) : le glissement rectangulaire devient une plage par
+  rangée — les bornes visuelles exactes, colonne de départ à colonne
+  d'arrivée, vivant dans la tranche de chaque rangée (le retour à la
+  ligne souple décale la colonne écran du début de tranche) et bornées
+  à ce que la rangée porte. La ligne courte s'arrête à sa fin, la
+  rangée au-delà donne une plage vide, l'ordre du glissement n'y
+  change rien.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- `:core-syntax:test` : **174 tests, zéro échec** (6 neufs) ;
+- `:android-view:test` : **194 tests, zéro échec** (5 neufs) ;
+- les bornes des nœuds vérifiées par sonde avant l'écriture des
+  assertions (Java STATEMENT, Kotlin STATEMENT — la première sonde à
+  l'offset des espaces manquait l'instruction, corrigée —, XML STRING) ;
+- manifeste d'API régénéré (`core-syntax`).
+
+### Écarts et limites
+
+1. **La chaîne parcourt l'arbre entier** : l'étendue suivante
+   rassemble les candidats de tous les chunks — suffisant au geste
+   (une frappe), l'index par ligne suivra si le profil l'exige.
+2. **Le raccord du glissement colonne au tactile** (le passage en mode
+   colonne par la pilule ou la touche Alt) vit à la tranche
+   d'intégration vue — le cœur géométrique est livré.

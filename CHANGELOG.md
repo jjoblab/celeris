@@ -9,6 +9,13 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 3 (M5) — sélection syntaxique et colonne (A-02, A-03) :
+  TreeSelection expose la chaîne des étendues englobantes — mot,
+  instruction, bloc, type, document — étendre monte d'un cran, réduire
+  descend ; ColumnSelection transforme le glissement rectangulaire
+  en une plage par rangée aux bornes visuelles exactes, tranche du
+  retour à la ligne souple comprise ; 11 tests neufs (6 syntaxe,
+  5 vue).
 - Tranche 2 (M5) — actions de lignes, commentaires, tri et gabarits
   (A-10 à A-12, A-22) : LineActions opère le bloc de lignes
   touchées (déplacer, dupliquer — les curseurs descendent dans la
