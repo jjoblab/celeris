@@ -148,3 +148,53 @@
    suivent à la tranche de l'ordonnancement** : le socle de requête à
    futur est en place, les méthodes de surface arrivent avec leur
    garde de version.
+
+## Tranche 3 — l'ordonnancement et le transport à flux (2026-11-06)
+
+### Livré
+
+- **L'ordonnanceur** (`OrdonnanceurLsp`) : la couche qu'il aurait
+  fallu écrire au-dessus de toute liaison tierce —
+  **fusion** (deux demandes identiques en vol ne font qu'une requête
+  sur le fil, les deux appelants partagent le futur gardé),
+  **annulation au remplacement** (la demande plus fraîche de la même
+  famille émet `$/cancelRequest`, le futur remplacé échoue REMPLACÉE,
+  la réponse tardive du serveur tombe sans casse),
+  **priorités** (l'interactif devance le fond du même document,
+  DEVANCÉE — jamais l'inverse), **resynchronisation** (la réponse
+  arrivée après un changement de version est périmée, PÉRIMÉE — la
+  garde compare la version au départ du vol et à l'arrivée).
+  L'élagage paresseux garde les cartes au vol, jamais à l'histoire.
+- **La complétion typée** (`OrdonnanceurLsp.completion`, B-04) : la
+  requête part par la clé du document, priorité interactive — la
+  réponse est rendue au modèle `ListeCompletion`, la coupure du
+  serveur honorée jusqu'au bout (PIEGE-17 réaffirmé au fil de la
+  requête : jamais triée ni complétée localement au-delà de la
+  coupure).
+- **Le transport à flux** (`TransportFlux`) : le cadrage
+  Content-Length sur des flux quelconques — les tubes d'un processus
+  serveur, une prise réseau — un fil de lecture dédié, l'écriture
+  protégée, les messages reçus avant branchement retenus puis servis.
+  Les trois transports de l'ADR-005 sont en place : en processus,
+  à flux, le cadrage commun.
+- **Le serveur factice** gagne les réponses différées : les requêtes
+  retenues, achevées à la demande du test — le vol devient observable,
+  les quatre règles se prouvent dessus.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- **69 tests core-lsp** (10 neufs : 6 ordonnanceur, 4 flux), zéro
+  échec ;
+- manifeste d'API `core-lsp` régénéré.
+
+### Écarts et limites
+
+1. **Les autres requêtes interactives (survol, définition, références,
+   renommage, correctifs, formatage)** rejoignent l'ordonnanceur aux
+   tranches qui les consomment — le socle `demander` les portera sans
+   changement.
+2. **Le lancement du processus serveur ( tubes stdio d'un vrai
+   serveur)** vit avec le corpus de traces de la clôture — le
+   transport à flux est prouvé sur tubes JVM, le branchement à un
+   processus suivra le besoin réel de l'hôte.

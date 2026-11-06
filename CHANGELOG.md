@@ -9,6 +9,16 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 3 (M6) — l'ordonnancement des requêtes LSP : fusion des
+  demandes identiques (une requête sur le fil, deux appelants
+  servis), annulation au remplacement ($/cancelRequest, la réponse
+  tardive tombe sans casse), priorités (l'interactif devance le
+  fond du même document, jamais l'inverse), resynchronisation (la
+  réponse périmée par un changement de version échoue, l'appelant
+  re-émet) ; complétion typée B-04 par la clé du document, la
+  coupure du serveur honorée (PIEGE-17) ; transport à flux —
+  cadrage Content-Length sur tubes et prises, fil de lecture dédié ;
+  10 tests neufs.
 - Tranche 2 (M6) — le client LSP : poignée de main initialize/
   initialized aux capacités analysées, documents versionnés à
   synchronisation complète, diagnostics poussés décodés et stockés,
