@@ -1,0 +1,18 @@
+[
+  {
+    "position": {"line": 3, "character": 18},
+    "label": [
+      {"value": "a"},
+      {"value": ":", "location": {"uri": "file:///src/main/java/com/exemple/app/Calcul.kt", "range": {"start": {"line": 0, "character": 0}, "end": {"line": 0, "character": 5}}}},
+      {"value": " Int"}
+    ],
+    "kind": 1,
+    "paddingLeft": true
+  },
+  {
+    "position": {"line": 7, "character": 0},
+    "label": "a =",
+    "kind": 2,
+    "paddingRight": true
+  }
+]

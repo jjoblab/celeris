@@ -1,0 +1,8 @@
+{
+  "isIncomplete": true,
+  "items": [
+    {"label": "ajouter", "kind": 3, "sortText": "03ajouter"},
+    {"label": "ajuster", "kind": 3, "sortText": "03ajuster"},
+    {"label": "aide", "kind": 3, "sortText": "03aide"}
+  ]
+}

@@ -1,4 +1,4 @@
-# Résumé M6 — sémantique (en cours)
+# Résumé M6 — sémantique (livré, clôture vérifiée le 2026-11-06)
 
 > **Déclenchement** : clôture du jalon M5 (2026-11-06, critères de
 > sortie couverts — catégorie A P0 et D-08/D-09/D-10, quarante-trois
@@ -464,3 +464,98 @@
    `activeParameter` par signature (protocole 3.16+) suit une trace
    de contrat qui l'exigera — le sommet suffit aux serveurs réels du
    corpus.
+
+## Clôture — les critères de sortie vérifiés (2026-11-06)
+
+### Couverture
+
+- **Catégorie B P0 couverte** : B-03 (complétion de base, M6-t5),
+  B-04 (complétion typée, la coupure honorée, M6-t1/t3), B-05 (import
+  automatique, M6-t5), B-07 (aide aux paramètres, le paramètre courant
+  borné et souligné, M6-t8), B-09 (documentation au survol, blocs
+  distincts et résolution à la demande, M6-t1/t8), B-10 (navigation à
+  la déclaration — l'index hors ligne M6-t4, le serveur M6-t8, le
+  retour par l'historique M5-t4), B-19 (renommage multi-fichiers aux
+  conflits signalés, M6-t6), B-25 (formatage idempotent, M6-t7) —
+  B-01 et B-16 l'étaient dès M4 ;
+- **PIEGE-16, PIEGE-17 et PIEGE-18 couverts** (registre à jour) :
+  les blocs typés distincts, la liste tronquée honorée, les jetons
+  indépendants des diagnostics ;
+- **Critères testés sur projet Android réel** : le corpus embarqué
+  (une activité Java, un utilitaire Kotlin, un manifeste,
+  l'éditeurconfig) porte les critères hors ligne — index, usages,
+  recherche floue, complétion, optimisation des imports, renommage,
+  génération, formatage idempotent, éditeurconfig ;
+- **Traces de contrat en corpus** : les réponses enregistrées
+  (initialisation, complétion tronquée, survol balisé, signature aux
+  bornes, définition multiple, indices à parties, édition d'espace
+  avec édit de gabarit) forment la parade au risque « serveurs réels
+  divergents » — chaque décodeur tient la forme enregistrée, la forme
+  celeris des édits de gabarit y vit (l'écart différé de la tranche 6
+  est tenu) ;
+- **Scénario par ligne de matrice référencé** : les dix-sept lignes
+  M6 (B-02 à B-11, B-13, B-17, B-19, B-24 à B-27) portent leur
+  scénario au catalogue — soixante au total, dans l'ordre de la
+  matrice, uniques, avec critère d'acceptation.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android
+  (politique de langue, Checkstyle, PMD, Error Prone + NullAway,
+  JaCoCo, manifestes d'API compris) ;
+- **1169 tests** exécutés à la passe de clôture, zéro échec — dont
+  179 neufs du jalon : 45 socle LSP et pièges (t1), 18 client (t2),
+  10 ordonnancement (t3), 16 index (t4), 19 complétion et imports
+  (t5), 16 éditions d'espace (t6), 19 formatage, éditeurconfig,
+  génération (t7), 21 requêtes interactives (t8), 15 clôture (8
+  corpus Android, 7 traces de contrat) ;
+- mutation `:core-text:mutationThreshold` : **85.2 %** (seuil 80)
+  sur 1807 mutations ;
+- publication locale (`publishToMavenLocal`, sommes de contrôle) et
+  APK de démonstration assemblés ; fumée de la cli exécutée ;
+- manifestes d'API régénérés (`core-lsp` neuf et étendu,
+  `core-intelligence` étendu).
+
+### Écarts reportés
+
+1. **B-12, B-18, B-20 à B-23** (hiérarchies, aperçu de correctif,
+   extraire, aligner, changer la signature, déplacement sûr) :
+   hors du périmètre P0 du jalon, ils rejoignent M7 et M7+ selon la
+   matrice.
+2. **Le lancement du processus serveur** (les tubes stdio d'un vrai
+   serveur) : le transport à flux est prouvé sur tubes JVM (M6-t3),
+   le branchement à un processus réel vit avec l'hôte M7 qui le
+   demande.
+3. **Les formes rares du protocole** (le tableau MarkedString du
+   survol, l'activeParameter par signature du protocole 3.16+) : la
+   surface bornée garde les formes que les serveurs réels envoient,
+   une trace de contrat les exigera le jour où un serveur du corpus
+   les envoie.
+4. **La navigation côté vue** (B-10) : l'index donne les coordonnées,
+   le serveur donne les lieux, le raccord aux commandes de la vue vit
+   au jalon qui le consomme (M7).
+
+## Récapitulatif des tranches
+
+1. **Tranche 1** — le socle JSON, les enveloppes JSON-RPC, le
+   transport à cadrage, la liste de complétion, les jetons
+   sémantiques, le modèle de documentation ; PIEGE-16 et PIEGE-17.
+2. **Tranche 2** — le client : poignée de main, documents versionnés,
+   diagnostics poussés, jetons tirés (PIEGE-18), transposition
+   UTF-16, fil de travail.
+3. **Tranche 3** — l'ordonnancement : fusion, annulation au
+   remplacement, priorités, resynchronisation ; le transport à flux.
+4. **Tranche 4** — l'index de symboles hors ligne, les usages, la
+   recherche floue, le budget mémoire, la persistance.
+5. **Tranche 5** — la complétion de mots, l'import automatique,
+   l'optimisation des imports.
+6. **Tranche 6** — les éditions d'espace et les édits de gabarit :
+   le bloqué historique 1.0.0 débloqué, le renommage, les correctifs,
+   les squelettes.
+7. **Tranche 7** — le formatage idempotent, l'éditeurconfig, la
+   génération de code.
+8. **Tranche 8** — les requêtes interactives restantes : survol à la
+   demande, définition, références, aide aux paramètres, indices en
+   ligne.
+9. **Clôture** — le corpus Android, les traces de contrat, les
+   dix-sept scénarios au catalogue, les critères de sortie vérifiés.

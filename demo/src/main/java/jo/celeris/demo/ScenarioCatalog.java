@@ -32,6 +32,19 @@ import java.util.List;
  * d'erreurs), D-09 (fil d'Ariane), D-10 (popups unifiées), D-18
  * (stylet, souris, pavé) et G-04 (plugins isolés).</p>
  *
+ * <p>Jalon M6 (sémantique) : B-02 (jetons sémantiques tirés à la
+ * demande), B-03 (complétion de base), B-04 (complétion typée, la
+ * coupure honorée), B-05 (import automatique), B-06 (squelettes de
+ * méthode — le bloqué historique débloqué), B-07 (aide aux paramètres,
+ * le paramètre courant souligné), B-08 (indices en ligne), B-09
+ * (documentation au survol, à la demande), B-10 (navigation à la
+ * déclaration), B-11 (usages raffinés au serveur), B-13 (aller à
+ * symbole), B-17 (correctifs par transaction), B-19 (renommage
+ * multi-fichiers), B-24 (génération de code), B-25 (formatage
+ * idempotent), B-26 (éditeurconfig) et B-27 (optimisation des
+ * imports) ; le corpus Android et les traces de contrat portent les
+ * critères du jalon.</p>
+ *
  * <p>Jalon M4 (syntaxe) : A-15 (plis calculés depuis l'arbre, le pli
  * manuel survit à l'édition voisine), B-01 (coloration lexicale et
  * syntaxique du même arbre), B-16 (plan du fichier consommateur du
@@ -222,7 +235,7 @@ public final class ScenarioCatalog {
         return tous;
     }
 
-    /** B — coloration, navigation, signets et plan du même arbre. */
+    /** B-01 — la coloration lexicale du même arbre. */
     private static List<Scenario> structureDuFichier() {
         return List.of(
 
@@ -232,7 +245,89 @@ public final class ScenarioCatalog {
                         "Mots réservés, chaînes, nombres, commentaires : chaque "
                                 + "plage se peint à l'encre de sa sorte, servie par "
                                 + "les mêmes paniers que les plis — le rendu ne "
-                                + "relit jamais le texte."),
+                                + "relit jamais le texte."));
+    }
+
+    /** B-02 à B-08 — la sémantique du jalon M6 : jetons, complétion, gabarits, indices. */
+    private static List<Scenario> semantiqueInteractive() {
+        return List.of(
+                new Scenario(
+                        "B-02",
+                        "Coloration sémantique",
+                        "Les jetons sémantiques tirés à la demande colorent "
+                                + "paramètres, champs et statiques — le flux vit "
+                                + "seul, sans aucun diagnostic (PIEGE-18)."),
+                new Scenario(
+                        "B-03",
+                        "Complétion de base",
+                        "Le préfixe tape, les mots du fichier répondent — hors "
+                                + "chaînes et commentaires, sans serveur ; le mot en "
+                                + "cours n'est jamais candidat de lui-même."),
+                new Scenario(
+                        "B-04",
+                        "Complétion typée du serveur",
+                        "La liste du serveur garde son ordre et sa coupure — "
+                                + "jamais réordonnée ni complétée localement "
+                                + "(PIEGE-17) ; l'interactif devance le fond."),
+                new Scenario(
+                        "B-05",
+                        "Import automatique",
+                        "Le candidat s'insère en tête du bloc des imports par une "
+                                + "édition de position unique ; l'import déjà présent "
+                                + "ne se re-insère jamais."),
+                new Scenario(
+                        "B-06",
+                        "Squelettes de méthode",
+                        "La signature du serveur devient un squelette aux trous "
+                                + "tabulables, le corps en dernier — l'annulation "
+                                + "intégrale, le bloqué historique débloqué."),
+                new Scenario(
+                        "B-07",
+                        "Aide aux paramètres",
+                        "La signature au-dessus du curseur, le paramètre courant "
+                                + "souligné — la plage cherchée entre parenthèses, "
+                                + "l'index borné à l'arité."),
+                new Scenario(
+                        "B-08",
+                        "Indices en ligne",
+                        "Types inférés et noms de paramètres posés dans la marge "
+                                + "— cellule d'encre pleine, même ligne de base "
+                                + "(PIEGE-11/12) ; les parties cliquables mènent "
+                                + "à leur cible."));
+    }
+
+    /** B-09 à B-13 — survol, navigation et usages du jalon M6. */
+    private static List<Scenario> semantiqueNavigation() {
+        return List.of(
+                new Scenario(
+                        "B-09",
+                        "Documentation au survol",
+                        "La documentation se résout à la demande — blocs typés "
+                                + "distincts, le titre jamais fondu dans le corps "
+                                + "(PIEGE-16)."),
+                new Scenario(
+                        "B-10",
+                        "Navigation à la déclaration",
+                        "L'index répond vite hors ligne, le serveur répond juste "
+                                + "en ligne — jamais de chaînage ; le retour au "
+                                + "point de départ vit à l'historique."),
+                new Scenario(
+                        "B-11",
+                        "Usages dans le projet",
+                        "Occurrences entières à casse exacte par l'index — jamais "
+                                + "dans les chaînes ni les commentaires — le "
+                                + "raffinement sémantique au serveur."),
+                new Scenario(
+                        "B-13",
+                        "Aller à symbole",
+                        "La recherche floue ordonne identique, préfixe, début de "
+                                + "mot, sous-chaîne, sous-suite — la requête "
+                                + "muette montre tout."));
+    }
+
+    /** B-14 à B-16 — historique, signets et plan (M4/M5). */
+    private static List<Scenario> navigationEtPlan() {
+        return List.of(
                 new Scenario(
                         "B-14",
                         "Historique de navigation",
@@ -253,6 +348,47 @@ public final class ScenarioCatalog {
                                 + "met à jour par incrément — le préfixe intact se "
                                 + "conserve, le consommateur reçoit le compte de ce "
                                 + "qui change."));
+    }
+
+    /** B-17 à B-27 — refactorisation, génération, formatage du jalon M6. */
+    private static List<Scenario> refactorisationEtGeneration() {
+        return List.of(
+                new Scenario(
+                        "B-17",
+                        "Correctifs rapides",
+                        "Les titres à montrer, les éditions à appliquer par "
+                                + "transaction diffable et annulable — le correctif "
+                                + "sans édition reste un correctif."),
+                new Scenario(
+                        "B-19",
+                        "Renommage multi-fichiers",
+                        "Le plan par occurrence, fichier par fichier, sur l'index "
+                                + "ou au serveur — les conflits signalés, jamais "
+                                + "tranchés (ambiguïté, collision)."),
+                new Scenario(
+                        "B-24",
+                        "Génération de code",
+                        "Constructeur, accesseurs aux conventions — le booléen "
+                                + "en is —, equals/hashCode/toString : posés avant "
+                                + "l'accolade fermante de la classe."),
+                new Scenario(
+                        "B-25",
+                        "Formatage du code",
+                        "L'indentation se règle sur les niveaux de l'arbre — "
+                                + "idempotent par construction, les lignes vides "
+                                + "restent vides."),
+                new Scenario(
+                        "B-26",
+                        "Éditeurconfig respecté",
+                        "Les sections par extension, la plus spécifique gagne "
+                                + "— retrait, fins de ligne et encodage pilotés "
+                                + "par le fichier."),
+                new Scenario(
+                        "B-27",
+                        "Optimisation des imports",
+                        "Chaque import rapporté utilisé ou non — signalé, jamais "
+                                + "supprimé en silence : l'analyseur éclaire, "
+                                + "l'hôte décide."));
     }
 
     /** C — les analyseurs dédiés des langages P0. */
@@ -281,9 +417,13 @@ public final class ScenarioCatalog {
                                 + "ligne, ré-analyse bornée à la reconvergence."));
     }
 
-    /** La structure et les langages à analyseurs dédiés. */
+    /** La structure, la sémantique et les langages à analyseurs dédiés. */
     private static List<Scenario> langagesAnalyseurs() {
         List<Scenario> tous = new ArrayList<>(structureDuFichier());
+        tous.addAll(semantiqueInteractive());
+        tous.addAll(semantiqueNavigation());
+        tous.addAll(navigationEtPlan());
+        tous.addAll(refactorisationEtGeneration());
         tous.addAll(langagesP0());
         return tous;
     }

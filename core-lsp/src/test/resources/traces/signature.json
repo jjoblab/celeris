@@ -1,0 +1,14 @@
+{
+  "signatures": [
+    {
+      "label": "ajouter(a: Int, b: Int, c: Int): Int",
+      "parameters": [
+        {"label": [8, 9], "documentation": "le premier terme"},
+        {"label": [16, 17], "documentation": "le deuxième terme"},
+        {"label": [24, 25], "documentation": "le troisième terme"}
+      ]
+    }
+  ],
+  "activeSignature": 0,
+  "activeParameter": 5
+}

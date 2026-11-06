@@ -1,0 +1,7 @@
+{
+  "contents": {
+    "kind": "markdown",
+    "value": "fun ajouter(a: Int, b: Int): Int\n\n---\n\n```kotlin\nAjoute deux entiers.\n```\n\nLe dépassement lève à l'exécution."
+  },
+  "range": {"start": {"line": 2, "character": 10}, "end": {"line": 2, "character": 17}}
+}

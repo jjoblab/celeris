@@ -9,6 +9,14 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Clôture M6 — catégorie B P0 couverte (B-03, B-04, B-05, B-07,
+  B-09, B-10, B-19, B-25), critères testés sur le corpus Android
+  embarqué (index, usages, complétion, renommage, génération,
+  formatage, éditeurconfig), traces de contrat en corpus (la forme
+  celeris des édits de gabarit y vit), dix-sept scénarios au
+  catalogue — soixante au total ; 1169 tests à la passe de clôture
+  (179 neufs du jalon), mutation 85.2 % sur 1807
+  mutations, publication locale et APK assemblés.
 - Tranche 8 (M6) — les requêtes interactives restantes : survol B-09
   (résolution à la demande, deux formes bornées), définition B-10
   (lieux du serveur, le retour par l'historique M5-t4), références

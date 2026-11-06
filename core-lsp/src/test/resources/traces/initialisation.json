@@ -1,0 +1,20 @@
+{
+  "capabilities": {
+    "textDocumentSync": 1,
+    "completionProvider": {"triggerCharacters": ["."]},
+    "hoverProvider": true,
+    "signatureHelpProvider": {"triggerCharacters": ["(", ","]},
+    "definitionProvider": true,
+    "referencesProvider": true,
+    "renameProvider": true,
+    "codeActionProvider": true,
+    "documentFormattingProvider": true,
+    "inlayHintProvider": true,
+    "semanticTokensProvider": {
+      "legend": {
+        "tokenTypes": ["keyword", "variable", "parameter", "function", "type"],
+        "tokenModifiers": ["declaration", "static", "deprecated"]
+      }
+    }
+  }
+}
