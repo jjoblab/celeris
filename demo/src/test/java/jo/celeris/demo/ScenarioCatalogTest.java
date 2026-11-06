@@ -7,15 +7,13 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test de fumée du catalogue de scénarios : le jalon M6 exige les
- * scénarios de la sémantique — B-02 à B-05 (jetons, complétions,
- * import), B-06 à B-11 (squelettes, paramètres, indices, survol,
- * navigation, usages), B-13 (aller à symbole), B-17 (correctifs),
- * B-19 (renommage), B-24 à B-27 (génération, formatage,
- * éditeurconfig, optimisation) — en plus des quarante-trois des
- * jalons M2 à M5, dans l'ordre de la matrice de parité, uniques et
- * complets. Les facettes non livrées (D-14 ligatures) rejoignent
- * leur jalon.
+ * Test de fumée du catalogue de scénarios : le jalon M7 y ajoute les
+ * contrats d'intégration de l'hôte — E-01 à E-06 (système de fichiers
+ * virtuel, VCS, débogueur, exécution, problèmes de build, traces
+ * d'appel) — en plus des cinquante-neuf des jalons M2 à M6 (dont la
+ * sémantique M6 : B-02 à B-05, B-06 à B-11, B-13, B-17, B-19, B-24 à
+ * B-27), dans l'ordre de la matrice de parité, uniques et complets.
+ * Les facettes non livrées (D-14 ligatures) rejoignent leur jalon.
  */
 final class ScenarioCatalogTest {
 
@@ -36,6 +34,7 @@ final class ScenarioCatalogTest {
                 "C-01", "C-07", "C-14", "C-15", "C-16",
                 "D-01", "D-06", "D-08", "D-09", "D-10", "D-13", "D-15",
                 "D-16", "D-17", "D-18",
+                "E-01", "E-02", "E-03", "E-04", "E-05", "E-06",
                 "G-01", "G-02", "G-04", "G-05"), identifiants);
     }
 

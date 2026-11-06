@@ -53,6 +53,14 @@ import java.util.List;
  * Kotlin, XML), C-15 (le reste des P1 par la voie de grammaires) et
  * C-16 (la longue traîne par grammaire, sans analyseur dédié). SQL,
  * C et C++ suivent leur jalon.</p>
+ *
+ * <p>Jalon M7 (Android et SPI) : E-01 à E-06 — les contrats
+ * d'intégration de l'hôte, chacun avec son implémentation de
+ * référence testée sans appareil (chemins validés contre la
+ * traversée, marques et blame VCS, arrêts désactivables et survol
+ * borné, lancements signalés, diagnostics de build aux plages
+ * exactes, cadres de pile au fichier:ligne exact). La peinture de
+ * gouttière D-03/D-04/D-05 et l'adaptateur de stockage suivent.</p>
  */
 public final class ScenarioCatalog {
 
@@ -64,8 +72,14 @@ public final class ScenarioCatalog {
         List<Scenario> tous = new ArrayList<>(scenariosEdition());
         tous.addAll(scenariosLangages());
         tous.addAll(scenariosAffichage());
+        tous.addAll(integrationHote());
         tous.addAll(scenariosGlobal());
         return List.copyOf(tous);
+    }
+
+    /** La catégorie E — les contrats d'intégration de l'hôte (M7). */
+    private static List<Scenario> integrationHote() {
+        return ScenariosIntegration.tous();
     }
 
     /** A-01 à A-03 — curseurs, colonne, syntaxe. */

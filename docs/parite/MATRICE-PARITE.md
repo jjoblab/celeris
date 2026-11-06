@@ -182,12 +182,12 @@
 
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
 | --- | --- | --- | --- | --- | --- | --- |
-| E-01 | Système de fichiers virtuel (accès stockage cloisonné, arbres de documents) | P0 | partiel | `android-host` | M7 | test : ouverture/écriture par le framework d'accès au stockage, chemins validés contre la traversée |
-| E-02 | VCS : diff de gouttière, blame, historique | P1 | absent | `android-host` | M7 | test SPI avec faux VCS : marques, annotations par ligne |
-| E-03 | Débogueur : points d'arrêt, ligne courante, valeurs en ligne, évaluation au survol | P1 | absent | `android-host` | M7 | test SPI avec faux débogueur : pose d'arrêt, ligne courante, survol borné |
-| E-04 | Exécution et tests : repères de gouttière | P1 | absent | `android-host` | M7 | test SPI : lancement signalé, état visible |
-| E-05 | Problèmes de build convertis en diagnostics | P1 | absent | `android-host` | M7 | test : sortie de build parsée → diagnostics avec plages exactes |
-| E-06 | Traces d'appel liées à `fichier:ligne` | P1 | absent | `android-host` | M7 | test : pile parsée, saut à la ligne exacte |
+| E-01 | Système de fichiers virtuel (accès stockage cloisonné, arbres de documents) | P0 | partiel (celeris : contrat SPI et implémentation de référence en mémoire livrés M7-t2 — chemins validés contre la traversée à la construction ; l'adaptateur du framework d'accès au stockage suit) | `android-host` | M7 | test : ouverture/écriture par le framework d'accès au stockage, chemins validés contre la traversée |
+| E-02 | VCS : diff de gouttière, blame, historique | P1 | absent (celeris : contrat SPI et faux VCS de référence livrés M7-t2 — marques par ligne, plages supprimées, blame, historique ; la peinture de gouttière D-03 suit) | `android-host` | M7 | test SPI avec faux VCS : marques, annotations par ligne |
+| E-03 | Débogueur : points d'arrêt, ligne courante, valeurs en ligne, évaluation au survol | P1 | absent (celeris : contrat SPI et faux débogueur livrés M7-t2 — arrêts désactivables, ligne courante, pile, survol borné ; la peinture D-04/D-05 suit) | `android-host` | M7 | test SPI avec faux débogueur : pose d'arrêt, ligne courante, survol borné |
+| E-04 | Exécution et tests : repères de gouttière | P1 | absent (celeris : contrat SPI et fausse exécution livrés M7-t2 — lancements signalés, états visibles ; la peinture D-05 suit) | `android-host` | M7 | test SPI : lancement signalé, état visible |
+| E-05 | Problèmes de build convertis en diagnostics | P1 | absent (celeris : analyseur de sortie livré M7-t2 — formes complète et courte des compilateurs, plages exactes ; le branchement à l'éditeur suit) | `android-host` | M7 | test : sortie de build parsée → diagnostics avec plages exactes |
+| E-06 | Traces d'appel liées à `fichier:ligne` | P1 | absent (celeris : analyseur de piles livré M7-t2 — cadres convertis, ligne inconnue à zéro ; le lien cliquable suit) | `android-host` | M7 | test : pile parsée, saut à la ligne exacte |
 
 ## F. IA native
 

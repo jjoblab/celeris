@@ -9,6 +9,30 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 3 (M7) — l'éditeur en ligne de commande : `celeris analyse
+  <fichier>` (langage détecté par extension — dédiés et voie de
+  grammaires —, lignes visibles, caractères, plan par TreeOutline) et
+  `celeris recherche <fichier> <motif>` (occurrences aux lignes et
+  colonnes exactes) ; codes de sortie distincts (0, 1 illisible, 2
+  usage) — le « editor-cli exécuté en CI » de la feuille de route ;
+  la bannière sans argument reste la fumée M1.
+- Tranche 2 (M7) — les contrats SPI de l'hôte (E-01 à E-06) avec
+  implémentations de référence déterministes testées sans appareil
+  (36 tests) : système de fichiers virtuel (chemins validés contre la
+  traversée à la construction), VCS (marques par ligne, blame,
+  historique), débogueur (arrêts avec état désactivé, ligne courante,
+  survol borné), exécution (lancements signalés, états visibles),
+  analyseur de problèmes de build (plages exactes), analyseur de
+  piles (fichier:ligne exact).
+- Tranche 1 (M7) — la démonstration devient terrain d'essai : écran
+  d'éditeur complet (vue Canvas, barre de recherche vivante, panneau
+  de plan cliquable, barre d'état, zoom de police, thèmes cyclés,
+  annuler/rétablir), huit fichiers d'exemple — un par langage P0
+  (Kotlin, Java, XML, KTS, TOML, JSON, Markdown, Python) —, les
+  réglages en direct câblés au moteur (numéros masquables, retour
+  souple, thème) ; NavigationCommands (pose de curseur et sélection
+  de plage, purs et testés), HitTest.offsetAt extrait de la vue,
+  GestesFabrique (EditorView reste sous le plafond 600 lignes).
 - Clôture M6 — catégorie B P0 couverte (B-03, B-04, B-05, B-07,
   B-09, B-10, B-19, B-25), critères testés sur le corpus Android
   embarqué (index, usages, complétion, renommage, génération,
