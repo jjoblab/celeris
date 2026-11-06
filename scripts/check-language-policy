@@ -115,14 +115,26 @@ def check_typography(path: str, fix: bool) -> list:
 
 
 def check_javadoc(path: str) -> list:
-    """Exige une Javadoc au-dessus de chaque classe publique."""
+    """Exige une Javadoc au-dessus de chaque classe publique.
+
+    Les blocs de texte Java (\"\"\") portent souvent du code factice dans
+    les tests — leurs lignes ne sont pas des déclarations, la recherche
+    les ignore. Un nombre impair de délimiteurs sur une ligne bascule
+    l'état d'ouverture, la ligne qui bascule n'est jamais une déclaration.
+    """
     problems = []
     try:
         with open(path, encoding="utf-8") as fh:
             lines = fh.readlines()
     except OSError:
         return problems
+    en_bloc = False
     for i, line in enumerate(lines):
+        if line.count('"""') % 2 == 1:
+            en_bloc = not en_bloc
+            continue
+        if en_bloc or '"""' in line:
+            continue
         if re.search(r"^\s*public\s+(final\s+)?(abstract\s+)?(class|interface|enum|record)\s", line):
             j = i - 1
             # Les annotations se placent entre la Javadoc et la déclaration :
