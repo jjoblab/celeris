@@ -9,6 +9,14 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 7 (M6) — formatage B-25 (le retrait se règle sur les
+  niveaux de l'arbre, idempotent par construction — Java, Kotlin,
+  XML, tabulations comprises), respect de .editorconfig B-26
+  (sections par extension, la plus spécifique gagne, racine à
+  défauts, fins de ligne converties, clés inconnues ignorées),
+  génération de code B-24 (constructeur, accesseurs aux
+  conventions — booléen en is —, equals/hashCode/toString, position
+  d'insertion avant l'accolade fermante) ; 19 tests neufs.
 - Tranche 6 (M6) — les éditions d'espace de travail et le bloqué
   historique débloqué : modèle à deux sortes (éditions de document
   et édits de gabarit celeris, la forme que la liaison tierce 1.0.0
@@ -361,6 +369,11 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Corrigé
 
+- le contrôle Javadoc de la politique de langue confondait le
+  contenu des blocs de texte Java avec des déclarations — le code
+  factice des tests bloquait la porte à tort ; l'état d'ouverture
+  des blocs se suit désormais, aucune ligne légitime n'échappe au
+  contrôle.
 - Segmentation de mots : le regard des séparateurs médians (WB7, WB12)
   comparait le caractère directement précédent au lieu du précédent
   effectif — une marque combinante collée au séparateur coupait le mot

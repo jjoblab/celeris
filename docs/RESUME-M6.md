@@ -345,3 +345,56 @@
 2. **Le renommage au serveur est la requête** : la résolution
    sémantique (quel symbole exactement) appartient au serveur ; le
    chemin hors ligne signale ses ambiguïtés, il ne les tranche pas.
+
+## Tranche 7 — formatage, editorconfig et génération (2026-11-06)
+
+### Livré
+
+- **Le formatage** (`Formateur`, B-25) : l'indentation se règle sur
+  les niveaux de l'arbre — le même arbre que la coloration
+  (ADR-004) —, chaque ligne porte le retrait de son niveau, la
+  ligne qui ferme un groupe porte le niveau de ce groupe, les
+  lignes vides ou blanches restent vides sans indentation inventée.
+  **IDEMPOTENT par construction** : les niveaux ne dépendent pas du
+  blanc, reformater le formaté redit le formaté — le critère du
+  jalon, prouvé sur Java, Kotlin et XML, le style à tabulations
+  compris.
+- **Le respect de `.editorconfig`** (`EditorConfig`, B-26) : les
+  sections se matchent par extension — la plus spécifique gagne —,
+  les propriétés hors section (la racine) portent les défauts, le
+  chemin profond décide par sa fin. Les clés inconnues et les
+  commentaires sont ignorés, `indent_size` à `tab` suit le style,
+  quatre par défaut ; les fins de ligne converties selon la règle
+  (`crlf`, `lf`), sans règle le texte reste tel quel. Les règles
+  résolues exposent style, fin de ligne et encodage — les défauts
+  canoniques sans section.
+- **La génération de code** (`Generateurs`, B-24) : les champs lus
+  dans l'arbre — types compris : les primitives sont des mots
+  réservés du lexique, jamais des noms de champ — dans l'ordre du
+  source. Le constructeur (un paramètre et une affectation par
+  champ), les accesseurs aux conventions de nommage (le booléen en
+  `is`, jamais `get`), `equals`/`hashCode`/`toString` tous champs —
+  primitifs comparés, objets à `Objects.equals` —, la position
+  d'insertion avant l'accolade fermante de la classe porteuse.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- **134 tests core-intelligence** (19 neufs : 6 formatage,
+  7 editorconfig, 6 génération), zéro échec ;
+- manifeste d'API `core-intelligence` régénéré ;
+- correctif du contrôle Javadoc de la politique de langue : les
+  blocs de texte Java portent du code factice — leurs lignes ne
+  sont plus prises pour des déclarations (le contrôle échouait à
+  tort sur le test de génération, vert après).
+
+### Écarts et limites
+
+1. **Le formatage règle le retrait, pas le reste de la ligne** :
+   l'espacement intra-ligne (opérateurs, virgules) reste tel que
+   tapé — les niveaux de l'arbre décident, la typographie fine
+   suivra le besoin réel de l'hôte.
+2. **Les motifs de section restent par extension** : les motifs
+   glob (`**`, chemins composés) du format `.editorconfig` ne sont
+   pas interprétés — la racine porte les défauts, l'extension
+   décide, le reste suivra le besoin réel.
