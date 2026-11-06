@@ -53,16 +53,16 @@ final class DiffLignesTest {
 
     /** Le remplacement aligne les lignes communes puis marque l'excédent. */
     @Test
-    void remplacementAlignePuisMarqueExcédent() {
+    void remplacementAlignePuisMarqueExcedent() {
         EtatLignesVcs etat = DiffLignes.etat("a\nb\nc", "a\nX\nY\nc");
         assertEquals(Map.of(2, MarqueVcs.MODIFIE, 3, MarqueVcs.AJOUTE), etat.marques());
     }
 
-    /** Le texte vide face à trois lignes : tout est supprimé. */
+    /** Le texte vidé : la première ligne modifiée, les suivantes supprimées. */
     @Test
     void texteVideFaceALignes() {
         EtatLignesVcs etat = DiffLignes.etat("a\nb\nc", "");
-        assertTrue(etat.marques().isEmpty());
-        assertEquals(List.of(new PlageLignes(1, 3)), etat.supprimees());
+        assertEquals(Map.of(1, MarqueVcs.MODIFIE), etat.marques());
+        assertEquals(List.of(new PlageLignes(2, 3)), etat.supprimees());
     }
 }

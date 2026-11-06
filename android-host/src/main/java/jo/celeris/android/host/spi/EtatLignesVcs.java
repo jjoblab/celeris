@@ -56,6 +56,18 @@ public final class EtatLignesVcs {
     }
 
     /**
+     * Les lignes marquées et leur marque — la matière première de la
+     * peinture de gouttière (D-03), qui parcourt sans sonner ligne à
+     * ligne.
+     *
+     * @return les marques par ligne (numérotées à partir de un), non
+     *         modifiables
+     */
+    public Map<Integer, MarqueVcs> marques() {
+        return marques;
+    }
+
+    /**
      * Les plages supprimées, dans l'ordre fourni.
      *
      * @return les plages, non modifiables

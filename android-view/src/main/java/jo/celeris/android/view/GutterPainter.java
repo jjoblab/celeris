@@ -2,6 +2,8 @@ package jo.celeris.android.view;
 
 import jo.celeris.core.syntax.TokenKind;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Couche de gouttière : les numéros de lignes, alignés à droite dans le
  * champ de la gouttière (D-01 — numéros absolus), et les marques de la
@@ -147,7 +149,8 @@ public final class GutterPainter extends PainterLayer {
     /**
      * Trace les marques d'une ligne dans la coulisse : la marque
      * d'erreur (D-02) puis le chevron de pli (D-07) — la ligne peut
-     * porter les deux.
+     * porter les deux — puis les marques d'intégration (D-03, D-04,
+     * D-05).
      */
     private void tracerMarques(DrawSurface surface, GutterMarks marques, int ligne,
             float y, float hauteur, float coulisse, FrameState frame) {
@@ -160,21 +163,106 @@ public final class GutterPainter extends PainterLayer {
                     centreX + demi, centreY + demi, brush());
         }
         if (marques.pliable(ligne)) {
+            tracerPli(surface, marques, ligne, centreX, centreY, coulisse, frame);
+        }
+        tracerIntegration(surface, marques, ligne, y, hauteur, coulisse, frame);
+    }
+
+    /** Le chevron de pli (D-07) : replié regarde à droite, pliable vers le bas. */
+    private void tracerPli(DrawSurface surface, GutterMarks marques, int ligne,
+            float centreX, float centreY, float coulisse, FrameState frame) {
+        float ouverture = coulisse / 4f;
+        brush().setColor(frame.theme().gutterTextColor());
+        if (marques.replie(ligne)) {
+            // chevron replié : la pointe regarde à droite
+            surface.drawLine(centreX - ouverture / 2f, centreY - ouverture,
+                    centreX + ouverture / 2f, centreY, brush());
+            surface.drawLine(centreX + ouverture / 2f, centreY,
+                    centreX - ouverture / 2f, centreY + ouverture, brush());
+        } else {
+            // chevron pliable : la pointe regarde vers le bas
+            surface.drawLine(centreX - ouverture, centreY - ouverture / 2f,
+                    centreX, centreY + ouverture / 2f, brush());
+            surface.drawLine(centreX, centreY + ouverture / 2f,
+                    centreX + ouverture, centreY - ouverture / 2f, brush());
+        }
+    }
+
+    /**
+     * Les marques d'intégration (D-03, D-04, D-05) : la barre de
+     * modification VCS au bord gauche — modifiée à l'encre de
+     * sélection, ajoutée à l'encre de chaîne —, le point d'arrêt au
+     * centre de la coulisse — plein et rouge posé, creux et neutre
+     * désactivé —, le repère d'exécution par-dessus : la flèche de la
+     * ligne courante à l'encre du curseur, le chevron discret des
+     * lignes de pile.
+     */
+    private void tracerIntegration(DrawSurface surface, GutterMarks marques, int ligne,
+            float y, float hauteur, float coulisse, FrameState frame) {
+        tracerBarreVcs(surface, marques, ligne, y, hauteur, coulisse, frame);
+        float centreX = coulisse / 2f;
+        float centreY = y - hauteur / 4f;
+        tracerArret(surface, marques, ligne, centreX, centreY, coulisse, hauteur, frame);
+        tracerExecution(surface, marques, ligne, centreX, centreY, coulisse, frame);
+    }
+
+    /** La barre de modification VCS (D-03), plein rang de hauteur. */
+    private void tracerBarreVcs(DrawSurface surface, GutterMarks marques, int ligne,
+            float y, float hauteur, float coulisse, FrameState frame) {
+        MarqueLigne marque = marques.marqueVcs(ligne);
+        if (marque == MarqueLigne.INCHANGE) {
+            return;
+        }
+        brush().setColor(marque == MarqueLigne.MODIFIE
+                ? frame.theme().selectionColor()
+                : frame.theme().syntaxe().couleur(TokenKind.STRING));
+        surface.drawRect(0f, y - hauteur, Math.max(2f, coulisse / 6f), y, brush());
+    }
+
+    /** Le point d'arrêt (D-04) : carré plein posé, carré creux désactivé. */
+    private void tracerArret(DrawSurface surface, GutterMarks marques, int ligne,
+            float centreX, float centreY, float coulisse, float hauteur,
+            FrameState frame) {
+        EtatArret arret = marques.arret(ligne);
+        if (arret == EtatArret.AUCUN) {
+            return;
+        }
+        float demi = Math.min(coulisse, hauteur) / 4f;
+        if (arret == EtatArret.POSE) {
+            brush().setColor(frame.theme().syntaxe().couleur(TokenKind.ERROR));
+            surface.drawRect(centreX - demi, centreY - demi,
+                    centreX + demi, centreY + demi, brush());
+            return;
+        }
+        brush().setColor(frame.theme().gutterTextColor());
+        surface.drawLine(centreX - demi, centreY - demi, centreX + demi, centreY - demi,
+                brush());
+        surface.drawLine(centreX + demi, centreY - demi, centreX + demi, centreY + demi,
+                brush());
+        surface.drawLine(centreX + demi, centreY + demi, centreX - demi, centreY + demi,
+                brush());
+        surface.drawLine(centreX - demi, centreY + demi, centreX - demi, centreY - demi,
+                brush());
+    }
+
+    /** Le repère d'exécution (D-05) : flèche à la ligne courante, chevron à la pile. */
+    private void tracerExecution(DrawSurface surface, GutterMarks marques, int ligne,
+            float centreX, float centreY, float coulisse, FrameState frame) {
+        @Nullable Integer courante = marques.ligneCourante();
+        if (courante != null && courante == ligne) {
+            brush().setColor(frame.theme().cursorColor());
             float ouverture = coulisse / 4f;
+            surface.drawLine(centreX - ouverture / 2f, centreY - ouverture,
+                    centreX + ouverture / 2f, centreY, brush());
+            surface.drawLine(centreX + ouverture / 2f, centreY,
+                    centreX - ouverture / 2f, centreY + ouverture, brush());
+        } else if (marques.dansPile(ligne)) {
             brush().setColor(frame.theme().gutterTextColor());
-            if (marques.replie(ligne)) {
-                // chevron replié : la pointe regarde à droite
-                surface.drawLine(centreX - ouverture / 2f, centreY - ouverture,
-                        centreX + ouverture / 2f, centreY, brush());
-                surface.drawLine(centreX + ouverture / 2f, centreY,
-                        centreX - ouverture / 2f, centreY + ouverture, brush());
-            } else {
-                // chevron pliable : la pointe regarde vers le bas
-                surface.drawLine(centreX - ouverture, centreY - ouverture / 2f,
-                        centreX, centreY + ouverture / 2f, brush());
-                surface.drawLine(centreX, centreY + ouverture / 2f,
-                        centreX + ouverture, centreY - ouverture / 2f, brush());
-            }
+            float ouverture = coulisse / 6f;
+            surface.drawLine(centreX - ouverture, centreY - ouverture,
+                    centreX, centreY, brush());
+            surface.drawLine(centreX, centreY,
+                    centreX - ouverture, centreY + ouverture, brush());
         }
     }
 }

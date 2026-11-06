@@ -72,6 +72,7 @@ public final class EditorView extends View {
     private final CompositionState composition = new CompositionState();
     private final ChromePainter chrome = new ChromePainter();
     private final GutterPainter gouttiere;
+    private final MarquesGouttiere marquesGouttiere = new MarquesGouttiere();
     private final AccessibilityHost accessibilite = new AccessibilityHost(this);
     private final EditListener ecouteurAnnonce = (debut, fin, retire, insere)
             -> sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
@@ -113,8 +114,10 @@ public final class EditorView extends View {
         setFocusableInTouchMode(true);
         syntaxe.setSurAnalysePrete(this::postInvalidateOnAnimation);
         BrushFactory pinceaux = new PaintBrushes();
-        gouttiere = new GutterPainter(pinceaux, MARGE_GOUTTIERE, syntaxe::marques,
-                () -> syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE));
+        gouttiere = new GutterPainter(pinceaux, MARGE_GOUTTIERE,
+                () -> marquesGouttiere.marques(syntaxe.marques()),
+                () -> marquesGouttiere.coulisse(syntaxe.coulisse(
+                        metrics.charWidth(), MARGE_GOUTTIERE), metrics.charWidth()));
         trace.addLayer(gouttiere);
         trace.addLayer(new SelectionPainter(pinceaux));
         trace.addLayer(new ComposingPainter(pinceaux, composition));
@@ -225,6 +228,11 @@ public final class EditorView extends View {
     /** Le rappel du plan du fichier (B-16), parti à chaque publication d'analyse. */
     public void setSurPlan(@Nullable Consumer<List<OutlineEntry>> consommateur) {
         syntaxe.setSurPlan(consommateur);
+    }
+
+    /** Les intégrations de la gouttière : marques, arrêts, clic (D-03 à D-05). */
+    public MarquesGouttiere marquesGouttiere() {
+        return marquesGouttiere;
     }
 
     /** La session affichée — accès de paquet pour la colle IME. */
@@ -352,7 +360,9 @@ public final class EditorView extends View {
         suivreRevision(document);
         float hauteurContenu = projection.rowCount() * metrics.lineHeight();
         scrollY = ScrollGeometry.clamp(scrollY, hauteurContenu, getHeight());
-        float coulisse = syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE);
+        // La coulisse effective compte les intégrations (D-03 à D-05).
+        float coulisse = marquesGouttiere.coulisse(syntaxe.coulisse(
+                metrics.charWidth(), MARGE_GOUTTIERE), metrics.charWidth());
         largeurGouttiere = numerosVisibles
                 ? GutterGeometry.width(Math.max(1, projection.rowCount()),
                         metrics.charWidth(), MARGE_GOUTTIERE, coulisse)
@@ -462,10 +472,15 @@ public final class EditorView extends View {
             poigneeTiree = poignee;
             return true;
         }
+        float coulisse = marquesGouttiere.coulisse(syntaxe.coulisse(
+                metrics.charWidth(), MARGE_GOUTTIERE), metrics.charWidth());
         if (syntaxe.basculerPliAuPoint(x, y, scrollY, metrics.lineHeight(),
-                syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE),
-                projection)) {
+                coulisse, projection)) {
             invalidate();
+            return true;
+        }
+        if (marquesGouttiere.surAppui(x, y, largeurGouttiere, coulisse, scrollY,
+                metrics.lineHeight(), projection)) {
             return true;
         }
         int offset = offsetAt(x, y);

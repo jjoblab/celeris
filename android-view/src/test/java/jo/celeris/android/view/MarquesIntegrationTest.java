@@ -101,7 +101,7 @@ final class MarquesIntegrationTest {
                 Map.of(1, MarqueLigne.MODIFIE), Map.of(), null, Set.of()));
         assertEquals(16f, gestion.coulisse(10f, 8f), 1e-6f,
                 "deux caractères s'ajoutent pour les intégrations");
-        assertEquals(20f, gestion.coulisse(18f, 8f), 1e-6f,
+        assertEquals(18f, gestion.coulisse(18f, 8f), 1e-6f,
                 "la plus large des deux gagne");
     }
 

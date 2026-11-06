@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
  */
 final class AdaptateurMarquesTest {
 
-    private static final CheminDoc OUVERT = CheminDoc.de("exemple.kt");
+    private static final CheminDoc OUVERT = CheminDoc.de("/exemple.kt");
 
     /** Les marques VCS de l'hôte passent aux lignes de la vue. */
     @Test
@@ -47,7 +47,7 @@ final class AdaptateurMarquesTest {
     void arretsFiltresAuFichierOuvert() {
         Arret iciActif = new Arret(OUVERT, 3, true);
         Arret iciDesactive = new Arret(OUVERT, 7, false);
-        Arret ailleurs = new Arret(CheminDoc.de("autre.kt"), 4, true);
+        Arret ailleurs = new Arret(CheminDoc.de("/autre.kt"), 4, true);
         MarquesIntegration marques = AdaptateurMarques.depuis(
                 EtatLignesVcs.vide(), List.of(iciActif, iciDesactive, ailleurs),
                 OUVERT, null, List.of());
@@ -79,7 +79,7 @@ final class AdaptateurMarquesTest {
     /** La pause d'un autre fichier reste invisible ici. */
     @Test
     void pauseDAutreFichierInvisible() {
-        LigneArret pause = new LigneArret(CheminDoc.de("autre.kt"), 5);
+        LigneArret pause = new LigneArret(CheminDoc.de("/autre.kt"), 5);
         MarquesIntegration marques = AdaptateurMarques.depuis(
                 EtatLignesVcs.vide(), List.of(), OUVERT, pause, List.of());
         assertNull(marques.ligneCourante());

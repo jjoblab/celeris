@@ -5,11 +5,14 @@ import java.util.List;
 
 import jo.celeris.core.syntax.FoldSpan;
 
+import org.jspecify.annotations.Nullable;
+
 /**
- * Marques de gouttière (D-02, D-07) : pliable, replié, erreur — les
- * trois états par ligne, servis par les mêmes consommateurs de l'arbre
- * (A-15 : régions de pli de l'arbre, D-02 : lignes en erreur du
- * diagnostic).
+ * Marques de gouttière (D-02, D-07, D-03, D-04, D-05) : pliable, replié,
+ * erreur — les trois états par ligne, servis par les mêmes consommateurs de
+ * l'arbre (A-15 : régions de pli de l'arbre, D-02 : lignes en erreur du
+ * diagnostic) — et les marques d'intégration (VCS, arrêts, repères
+ * d'exécution) fondues par {@link #avec(MarquesIntegration)}.
  *
  * <p>Immutable pour les régions pliables et les lignes en erreur
  * (tableaux triés, recherche dichotomique, sans allocation à la
@@ -27,11 +30,21 @@ public final class GutterMarks {
     private final int[] pliables;
     private final FoldModel replis;
     private final int[] erreurs;
+    private final MarquesIntegration integration;
 
     private GutterMarks(int[] pliables, FoldModel replis, int[] erreurs) {
         this.pliables = pliables;
         this.replis = replis;
         this.erreurs = erreurs;
+        this.integration = MarquesIntegration.VIDE;
+    }
+
+    private GutterMarks(int[] pliables, FoldModel replis, int[] erreurs,
+            MarquesIntegration integration) {
+        this.pliables = pliables;
+        this.replis = replis;
+        this.erreurs = erreurs;
+        this.integration = integration;
     }
 
     /**
@@ -64,6 +77,38 @@ public final class GutterMarks {
     /** Vrai si la ligne porte une marque d'erreur (D-02). */
     public boolean erreur(int ligne) {
         return contient(erreurs, ligne);
+    }
+
+    /**
+     * Les marques fondues avec les marques d'intégration données
+     * (D-03, D-04, D-05) : plis et erreurs survivent, les intégrations
+     * s'y ajoutent.
+     *
+     * @param marques les marques d'intégration à fondre
+     * @return les marques fondues
+     */
+    public GutterMarks avec(MarquesIntegration marques) {
+        return new GutterMarks(pliables, replis, erreurs, marques);
+    }
+
+    /** La marque de modification VCS de la ligne (D-03), inchangée par défaut. */
+    public MarqueLigne marqueVcs(int ligne) {
+        return integration.marqueVcs(ligne);
+    }
+
+    /** L'état d'arrêt de la ligne (D-04), aucun par défaut. */
+    public EtatArret arret(int ligne) {
+        return integration.arret(ligne);
+    }
+
+    /** La ligne courante de l'exécution en pause (D-05), ou null hors pause. */
+    public @Nullable Integer ligneCourante() {
+        return integration.ligneCourante();
+    }
+
+    /** Vrai si la ligne porte un cadre de la pile courante (D-05). */
+    public boolean dansPile(int ligne) {
+        return integration.dansPile(ligne);
     }
 
     private static int[] triee(int[] valeurs) {

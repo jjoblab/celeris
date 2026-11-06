@@ -20,10 +20,16 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import jo.celeris.android.host.spi.Arret;
+import jo.celeris.android.host.spi.CadrePile;
+import jo.celeris.android.host.spi.CheminDoc;
+import jo.celeris.android.host.spi.EtatLignesVcs;
+import jo.celeris.android.host.spi.FauxDebogueur;
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorThemes;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.FontSpec;
+import jo.celeris.android.view.MarquesIntegration;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.widgets.OutlineView;
 import jo.celeris.android.widgets.SearchBarModel;
@@ -68,6 +74,10 @@ public final class EditorActivity extends Activity {
     private TextView etiquetteLangue;
     private SharedPreferences prefs;
     private String nomFichier;
+    private String reference;
+    private CheminDoc chemin;
+    private final FauxDebogueur debogueur = new FauxDebogueur();
+    private Button boutonDebogage;
 
     @Override
     protected void onCreate(Bundle etat) {
@@ -80,9 +90,14 @@ public final class EditorActivity extends Activity {
             fichier = FichiersExemple.premier();
         }
         nomFichier = fichier.nom();
+        reference = fichier.contenu();
+        chemin = CheminDoc.de("/" + nomFichier);
         session = TextSession.of(fichier.contenu(), System::nanoTime);
         recherche = new SearchBarModel(session.document(), System::nanoTime);
-        session.addEditListener((debut, fin, retire, insere) -> majPosition());
+        session.addEditListener((debut, fin, retire, insere) -> {
+            majPosition();
+            majMarques();
+        });
         setContentView(construireInterface());
         appliquerPreferences();
     }
@@ -172,6 +187,9 @@ public final class EditorActivity extends Activity {
             return false;
         });
         editeur.setSurPlan(entrees -> editeur.post(() -> plan.setEntries(entrees)));
+        // Le terrain d'essai du débogueur : le clic dans le champ des
+        // numéros pose et retire les points d'arrêt (D-04).
+        editeur.marquesGouttiere().setSurClicLigne(this::basculerArret);
         plan = new OutlineView(this, null);
         plan.setBackgroundColor(Color.argb(235, 32, 33, 36));
         plan.setVisibility(View.GONE);
@@ -194,6 +212,8 @@ public final class EditorActivity extends Activity {
         etiquetteLangue = new TextView(this);
         etiquetteLangue.setGravity(Gravity.CENTER_VERTICAL);
         barre.addView(etiquetteLangue);
+        boutonDebogage = bouton(R.string.action_deboguer, vue -> basculerDebogage());
+        barre.addView(boutonDebogage);
         barre.addView(bouton(R.string.action_diminuer, vue -> zoomerPolice(-PAS_TAILLE)));
         barre.addView(bouton(R.string.action_agrandir, vue -> zoomerPolice(PAS_TAILLE)));
         barre.addView(bouton(R.string.action_annuler, vue -> rejouer(false)));
@@ -286,6 +306,60 @@ public final class EditorActivity extends Activity {
 
     private void sautVersEntree(OutlineEntry entree) {
         NavigationCommands.placeCaret(editeur, entree.startOffset());
+    }
+
+    /** Pose ou retire le point d'arrêt de la ligne cliquée (D-04). */
+    private void basculerArret(int ligne) {
+        boolean absent = debogueur.arrets().stream()
+                .noneMatch(arret -> arret.fichier().equals(chemin)
+                        && arret.ligne() == ligne + 1);
+        if (absent) {
+            debogueur.poserArret(chemin, ligne + 1);
+        } else {
+            debogueur.retirerArret(chemin, ligne + 1);
+        }
+        majMarques();
+    }
+
+    /**
+     * Bascule la pause simulée (D-05) : sans pause, l'exécution s'arrête
+     * au premier arrêt actif du fichier — à la cinquième ligne sinon —
+     * avec une pile de deux cadres ; en pause, l'exécution reprend.
+     */
+    private void basculerDebogage() {
+        if (debogueur.ligneCourante() != null) {
+            debogueur.simulerReprise();
+        } else {
+            Arret premier = debogueur.arrets().stream()
+                    .filter(arret -> arret.fichier().equals(chemin) && arret.actif())
+                    .findFirst().orElse(null);
+            int ligne = premier != null ? premier.ligne()
+                    : Math.min(5, session.document().lineCount());
+            debogueur.simulerPause(chemin, ligne, List.of(
+                    new CadrePile("Exemple", "corps", chemin.nom(), ligne),
+                    new CadrePile("Exemple", "appelant", chemin.nom(),
+                            Math.max(1, ligne - 2))));
+        }
+        boutonDebogage.setText(debogueur.ligneCourante() != null
+                ? R.string.action_reprendre : R.string.action_deboguer);
+        majMarques();
+    }
+
+    /**
+     * Rafraîchit les marques d'intégration de la gouttière : le diff
+     * ligne à ligne face au contenu d'origine (D-03), les arrêts (D-04)
+     * et les repères d'exécution (D-05).
+     */
+    private void majMarques() {
+        if (editeur == null) {
+            return;
+        }
+        EtatLignesVcs etat = DiffLignes.etat(reference, session.document().text());
+        MarquesIntegration marques = AdaptateurMarques.depuis(etat,
+                debogueur.arrets(), chemin, debogueur.ligneCourante(),
+                debogueur.pileCourante());
+        editeur.marquesGouttiere().setIntegration(marques);
+        editeur.invalidate();
     }
 
     private void majPosition() {
