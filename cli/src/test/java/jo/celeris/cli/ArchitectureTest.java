@@ -34,6 +34,7 @@ public final class ArchitectureTest {
                             "org.jspecify.annotations..",
                             "jo.celeris.core.text..",
                             "jo.celeris.core.syntax..",
+                            "jo.celeris.core.syntax.grammars..",
                             "jo.celeris.core.language..",
                             "jo.celeris.core.intelligence..",
                             "jo.celeris.core.lsp..",

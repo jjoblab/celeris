@@ -7,6 +7,7 @@ plugins {
 dependencies {
     implementation(project(":core-text"))
     implementation(project(":core-syntax"))
+    implementation(project(":core-syntax-grammars"))
     implementation(project(":core-language"))
     implementation(project(":core-intelligence"))
     implementation(project(":core-lsp"))

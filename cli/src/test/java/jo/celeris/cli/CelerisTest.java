@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -30,14 +31,10 @@ public final class CelerisTest {
     /** Le point d'entrée écrit la version puis chaque module du cœur. */
     @Test
     public void lePointDEntreeAnnonceLaVersionEtLesModules() {
-        PrintStream sortieOriginale = System.out;
         ByteArrayOutputStream tampon = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(tampon, true, StandardCharsets.UTF_8));
-        try {
-            Celeris.main(new String[0]);
-        } finally {
-            System.setOut(sortieOriginale);
-        }
+        int code = Celeris.executer(new String[0],
+                new PrintStream(tampon, true, StandardCharsets.UTF_8));
+        assertEquals(0, code, "sans argument : succès");
         String sortie = tampon.toString(StandardCharsets.UTF_8);
         assertTrue(sortie.contains("celeris"), "la bannière doit citer celeris");
         assertTrue(sortie.contains("core-text"), "le premier module doit apparaître");

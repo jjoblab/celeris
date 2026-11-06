@@ -1,16 +1,56 @@
 package jo.celeris.cli;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import jo.celeris.core.syntax.Analysis;
+import jo.celeris.core.syntax.GroovySyntax;
+import jo.celeris.core.syntax.JavaSyntax;
+import jo.celeris.core.syntax.JsonSyntax;
+import jo.celeris.core.syntax.KotlinSyntax;
+import jo.celeris.core.syntax.KtsSyntax;
+import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.SyntaxService;
+import jo.celeris.core.syntax.TreeOutline;
+import jo.celeris.core.syntax.XmlSyntax;
+import jo.celeris.core.syntax.grammars.LangagesGrammaires;
+import jo.celeris.core.text.Document;
+
+import org.jspecify.annotations.Nullable;
 
 /**
- * Exécutable de celeris sans Android : annonce la version et les modules
- * du cœur. L'édition en mode terminal arrive avec les jalons suivants ;
- * ce squelette prouve que la chaîne complète se construit sans SDK.
+ * Exécutable de celeris sans Android : l'éditeur en ligne de commande
+ * (M7) — analyser un fichier (langage détecté, lignes, plan) et
+ * chercher un motif (occurrences aux lignes et colonnes exactes). La
+ * bannière sans argument reste la fumée de la CI (critère de sortie
+ * M1) ; l'édition interactive viendra des jalons suivants.
  */
 public final class Celeris {
 
     private static final String VERSION = "0.1.0-SNAPSHOT";
+
+    /** Les langages par extension : dédiés et voie de grammaires (C-14 à C-16). */
+    private static final Map<String, LanguageSyntax> LANGAGES = Map.ofEntries(
+            Map.entry("kt", KotlinSyntax.INSTANCE),
+            Map.entry("java", JavaSyntax.INSTANCE),
+            Map.entry("xml", XmlSyntax.INSTANCE),
+            Map.entry("kts", KtsSyntax.INSTANCE),
+            Map.entry("gradle", GroovySyntax.INSTANCE),
+            Map.entry("json", JsonSyntax.INSTANCE),
+            Map.entry("toml", LangagesGrammaires.toml()),
+            Map.entry("yaml", LangagesGrammaires.yaml()),
+            Map.entry("yml", LangagesGrammaires.yaml()),
+            Map.entry("properties", LangagesGrammaires.proprietes()),
+            Map.entry("md", LangagesGrammaires.markdown()),
+            Map.entry("py", LangagesGrammaires.python()),
+            Map.entry("sh", LangagesGrammaires.shell()));
 
     private Celeris() {
     }
@@ -28,15 +68,122 @@ public final class Celeris {
     }
 
     /**
-     * Point d'entrée : bannière, version, modules.
+     * Point d'entrée : sans argument, la bannière ; sinon la commande.
      *
-     * @param args arguments de ligne de commande, ignores à ce jalon
+     * @param args arguments de ligne de commande
      */
     public static void main(String[] args) {
-        PrintStream sortie = System.out;
+        System.exit(executer(args, System.out));
+    }
+
+    /**
+     * Exécute la commande et rend le code de sortie : 0 succès, 1
+     * fichier illisible, 2 usage inconnu.
+     *
+     * @param args   les arguments, premier terme = la commande
+     * @param sortie le flux de sortie des résultats
+     * @return le code de sortie
+     */
+    public static int executer(String[] args, PrintStream sortie) {
+        if (args.length == 0 || "version".equals(args[0])) {
+            banniere(sortie);
+            return 0;
+        }
+        return switch (args[0]) {
+            case "analyse" -> analyser(args, sortie);
+            case "recherche" -> chercher(args, sortie);
+            default -> usage(sortie);
+        };
+    }
+
+    private static void banniere(PrintStream sortie) {
         sortie.println("celeris " + VERSION);
         for (String module : modules()) {
             sortie.println("  " + module);
         }
+    }
+
+    private static int usage(PrintStream sortie) {
+        sortie.println("usage : celeris [version | analyse <fichier> | "
+                + "recherche <fichier> <motif>]");
+        return 2;
+    }
+
+    private static int analyser(String[] args, PrintStream sortie) {
+        if (args.length != 2) {
+            return usage(sortie);
+        }
+        String contenu = lire(args[1], sortie);
+        if (contenu == null) {
+            return 1;
+        }
+        Document document = Document.of(contenu);
+        LanguageSyntax langue = langueDuNom(args[1]);
+        sortie.println("fichier : " + Path.of(args[1]).getFileName());
+        sortie.println("langage : "
+                + (langue == null ? "aucun" : langue.id()));
+        sortie.println("lignes : " + lignesVisibles(document, contenu));
+        sortie.println("caracteres : " + document.length());
+        if (langue == null) {
+            return 0;
+        }
+        Analysis analyse = SyntaxService.of(langue).analyseFull(document);
+        for (OutlineEntry entree : TreeOutline.entries(document, analyse)) {
+            sortie.println("  plan : " + entree.name() + " (" + entree.category()
+                    + ", ligne " + (entree.startLine() + 1) + ")");
+        }
+        return 0;
+    }
+
+    private static int chercher(String[] args, PrintStream sortie) {
+        if (args.length != 3) {
+            return usage(sortie);
+        }
+        String contenu = lire(args[1], sortie);
+        if (contenu == null) {
+            return 1;
+        }
+        Document document = Document.of(contenu);
+        String motif = args[2];
+        int total = 0;
+        int position = contenu.indexOf(motif);
+        while (position >= 0) {
+            int ligne = document.lineForOffset(position);
+            int colonne = position - document.lineStart(ligne) + 1;
+            sortie.println((ligne + 1) + ":" + colonne + " " + motif);
+            total++;
+            position = contenu.indexOf(motif, position + motif.length());
+        }
+        sortie.println(total + " occurrence(s)");
+        return 0;
+    }
+
+    private static @Nullable String lire(String chemin, PrintStream sortie) {
+        try {
+            return Files.readString(Path.of(chemin), StandardCharsets.UTF_8);
+        } catch (IOException echec) {
+            sortie.println("fichier illisible : " + chemin);
+            return null;
+        }
+    }
+
+    /**
+     * Les lignes visibles : le saut de ligne final termine sa ligne,
+     * il n'en ouvre pas une fantôme — la convention de l'éditeur.
+     */
+    private static int lignesVisibles(Document document, String contenu) {
+        if (contenu.isEmpty() || !contenu.endsWith("\n")) {
+            return document.lineCount();
+        }
+        return Math.max(1, document.lineCount() - 1);
+    }
+
+    private static @Nullable LanguageSyntax langueDuNom(String chemin) {
+        String nom = Path.of(chemin).getFileName().toString();
+        int point = nom.lastIndexOf('.');
+        if (point < 0) {
+            return null;
+        }
+        return LANGAGES.get(nom.substring(point + 1).toLowerCase(Locale.ROOT));
     }
 }
