@@ -59,8 +59,11 @@ import java.util.List;
  * référence testée sans appareil (chemins validés contre la
  * traversée, marques et blame VCS, arrêts désactivables et survol
  * borné, lancements signalés, diagnostics de build aux plages
- * exactes, cadres de pile au fichier:ligne exact). La peinture de
- * gouttière D-03/D-04/D-05 et l'adaptateur de stockage suivent.</p>
+ * exactes, cadres de pile au fichier:ligne exact) — puis la peinture
+ * de gouttière D-03/D-04/D-05 (marques VCS vivantes face au contenu
+ * d'origine, points d'arrêt au clic des numéros, repères d'exécution
+ * à la pause simulée) et le bloc XML C-02/C-03/C-04, le manifeste
+ * C-06 et les catalogues C-08. L'adaptateur de stockage suit.</p>
  */
 public final class ScenarioCatalog {
 
@@ -406,29 +409,33 @@ public final class ScenarioCatalog {
     }
 
     /** C — les analyseurs dédiés des langages P0. */
+    /** C — les analyseurs dédiés des langages P0 et le bloc Android (M7-t4). */
     private static List<Scenario> langagesP0() {
-        return List.of(
-                new Scenario(
-                        "C-01",
-                        "XML : coloration, plis, crochets",
-                        "Balise ouvrante appariée à sa fermeture, CDATA en crochet "
-                                + "apparié, éléments repliables ; la balise non "
-                                + "fermée devient un nœud d'erreur, jamais un "
-                                + "échec."),
-                new Scenario(
-                        "C-07",
-                        "Gradle KTS et Groovy",
-                        "Les deux dialectes de script de construction analysés : "
-                                + "chaque appel de premier niveau ouvre son chunk — "
-                                + "plugins, task, dependencies — plis par bloc, "
-                                + "chaînes triples en crochets appariés ; la "
-                                + "ré-analyse ne relit que le bloc touché."),
-                new Scenario(
-                        "C-14",
-                        "Langages P0 : Java, Kotlin, XML",
-                        "Trois grammaires réelles sur le même socle : jetons soudés "
-                                + "sans trou à peindre, états transportés ligne à "
-                                + "ligne, ré-analyse bornée à la reconvergence."));
+        List<Scenario> tous = new ArrayList<>();
+        tous.add(new Scenario(
+                "C-01",
+                "XML : coloration, plis, crochets",
+                "Balise ouvrante appariée à sa fermeture, CDATA en crochet "
+                        + "apparié, éléments repliables ; la balise non "
+                        + "fermée devient un nœud d'erreur, jamais un "
+                        + "échec."));
+        tous.addAll(ScenariosAndroid.langagePreGradle());
+        tous.add(new Scenario(
+                "C-07",
+                "Gradle KTS et Groovy",
+                "Les deux dialectes de script de construction analysés : "
+                        + "chaque appel de premier niveau ouvre son chunk — "
+                        + "plugins, task, dependencies — plis par bloc, "
+                        + "cha\u00eenes triples en crochets appariés ; la "
+                        + "ré-analyse ne relit que le bloc touché."));
+        tous.addAll(ScenariosAndroid.cataloguesVersions());
+        tous.add(new Scenario(
+                "C-14",
+                "Langages P0 : Java, Kotlin, XML",
+                "Trois grammaires réelles sur le même socle : jetons soudés "
+                        + "sans trou à peindre, états transportés ligne à "
+                        + "ligne, ré-analyse bornée à la reconvergence."));
+        return List.copyOf(tous);
     }
 
     /** La structure, la sémantique et les langages à analyseurs dédiés. */
@@ -462,28 +469,30 @@ public final class ScenarioCatalog {
                                 + "touchée (PIEGE-21)."));
     }
 
-    /** D-01, D-06, D-08 — gouttière et bande d'erreurs. */
+    /** D-01, D-03 à D-06, D-08 — gouttière, intégrations et bande d'erreurs. */
+    /** D-01, D-03 à D-06, D-08 — gouttière, intégrations et bande d'erreurs. */
     private static List<Scenario> affichageGouttiere() {
-        return List.of(
-
-                new Scenario(
-                        "D-01",
-                        "Gouttière à numéros absolus",
-                        "Les numéros s'alignent à droite dans leur champ, "
-                                + "étiquettes mémoïsées — jamais une chaîne allouée "
-                                + "par rangée et par image ; les continuations "
-                                + "d'une ligne coupée restent muettes."),
-                new Scenario(
-                        "D-06",
-                        "Gouttière des signets",
-                        "La gouttière porte la marque des lignes signet — le même modèle "
-                                + "que les sauts, peint à l'emplacement des numéros."),
-                new Scenario(
-                        "D-08",
-                        "Bande d'erreurs annotée",
-                        "Les diagnostics du même arbre alignent leurs marques le long du "
-                                + "défilement — densité bornée à un cran, le clic saute au "
-                                + "diagnostic."));
+        List<Scenario> tous = new ArrayList<>();
+        tous.add(new Scenario(
+                "D-01",
+                "Gouttière à numéros absolus",
+                "Les numéros s'alignent à droite dans leur champ, "
+                        + "étiquettes mémo\u00efsées — jamais une cha\u00eene allouée "
+                        + "par rangée et par image ; les continuations "
+                        + "d'une ligne coupée restent muettes."));
+        tous.addAll(ScenariosAndroid.gouttiere());
+        tous.add(new Scenario(
+                "D-06",
+                "Gouttière des signets",
+                "La gouttière porte la marque des lignes signet — le même modèle "
+                        + "que les sauts, peint à l'emplacement des numéros."));
+        tous.add(new Scenario(
+                "D-08",
+                "Bande d'erreurs annotée",
+                "Les diagnostics du même arbre alignent leurs marques le long du "
+                        + "défilement — densité bornée à un cran, le clic saute au "
+                        + "diagnostic."));
+        return List.copyOf(tous);
     }
 
     /** D-09, D-10, D-13 — fil d'Ariane, popups, thèmes. */

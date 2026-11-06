@@ -9,6 +9,30 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 5 (M7) — la peinture de gouttière des intégrations : barre
+  de modification VCS au bord gauche de la coulisse (D-03, modifiée
+  et ajoutée distinguées), point d'arrêt au centre (D-04, carré plein
+  posé, creux désactivé), repère d'exécution par-dessus (D-05, flèche
+  de ligne courante, chevrons de pile) ; la coulisse s'élargit de
+  deux caractères, la fusion vit dans GutterMarks.avec, MarqueLigne /
+  EtatArret / MarquesIntegration purs et testés ; la démonstration
+  devient terrain de débogage — clic des numéros pour poser et
+  retirer les arrêts, bouton de débogage (pause simulée au premier
+  arrêt actif avec pile de deux cadres, reprise), diff ligne à ligne
+  vivant face au contenu d'origine ; EtatLignesVcs.marques() énumère
+  les lignes marquées.
+- Tranche 4 (M7) — le bloc XML, manifeste et catalogues : XmlValidation
+  (C-03 — fermeture étrangère à sa plage exacte, traversés d'ancêtre
+  signalés à leur ouverture, ouverts restants à la fin) ; SchemaAndroid
+  et CompletionsXml (C-02 — schéma embarqué, le contexte du curseur
+  décide : balise, attribut, valeur ; unités dp/sp, préfixes
+  @string/) ; ReferencesRessources (C-04 — définition par balise de
+  valeurs ou fichier propre, usages à l'offset exact) ;
+  CompletionsManifeste (C-06 — attributs des balises et permissions
+  par préfixe) ; CatalogueVersions (C-08 — sections lues, accès
+  suggérés, tirets en points, bundles dans leur espace de noms) ;
+  manifestes d'API régénérés (soixante-dix-huit ajouts, aucun
+  retrait).
 - Tranche 3 (M7) — l'éditeur en ligne de commande : `celeris analyse
   <fichier>` (langage détecté par extension — dédiés et voie de
   grammaires —, lignes visibles, caractères, plan par TreeOutline) et

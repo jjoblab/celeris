@@ -137,13 +137,13 @@
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
 | --- | --- | --- | --- | --- | --- | --- |
 | C-01 | XML : coloration, plis, crochets | P0 | présent (au départ ; celeris : arbre, plis et coloration XML livrés M4-t3 et M4-t5) | `core-syntax` | M4 | test : arbre XML tolérant (balise non fermée), plis par élément |
-| C-02 | XML : complétion guidée par le schéma des ressources | P1 | absent | `core-intelligence` | M7 | test : attributs et unités (dp, sp, `@string/`) suggérés depuis le schéma embarqué |
-| C-03 | XML : validation et diagnostics | P1 | partiel | `core-syntax` | M7 | test : diagnostic d'imbrication invalide avec plage exacte |
-| C-04 | XML : navigation des références (`@string/`, `@layout/`…) | P1 | absent | `core-intelligence` | M7 | test : aller à la ressource définie, aller à l'usage |
+| C-02 | XML : complétion guidée par le schéma des ressources | P1 | livré (celeris : M7-t4 — schéma embarqué, le contexte du curseur décide : balise, attribut, valeur ; unités dp/sp, préfixes `@string/`) | `core-intelligence` | M7 | test : attributs et unités (dp, sp, `@string/`) suggérés depuis le schéma embarqué |
+| C-03 | XML : validation et diagnostics | P1 | livré (celeris : M7-t4 — la fermeture étrangère porte sa plage, les traversés d'une fermeture d'ancêtre se signalent à leur ouverture, les ouverts restants à la fin) | `core-syntax` | M7 | test : diagnostic d'imbrication invalide avec plage exacte |
+| C-04 | XML : navigation des références (`@string/`, `@layout/`…) | P1 | livré (celeris : M7-t4 — définition par balise de valeurs ou fichier propre, usages du projet à l'offset exact, référence prolongée exclue) | `core-intelligence` | M7 | test : aller à la ressource définie, aller à l'usage |
 | C-05 | Pastilles de couleur et miniatures en gouttière | P2 | absent | `android-widgets` | M7 | test de capture : pastille rendue depuis la valeur résolue |
-| C-06 | Manifeste : complétion et diagnostics | P1 | absent | `core-intelligence` | M7 | test : attributs du manifeste connus, permissions suggérées |
+| C-06 | Manifeste : complétion et diagnostics | P1 | livré (celeris : M7-t4 — attributs des balises du manifeste et permissions usuelles, par préfixe) | `core-intelligence` | M7 | test : attributs du manifeste connus, permissions suggérées |
 | C-07 | Gradle KTS et Groovy : coloration, plis, structure | P0 | livré (KTS tranche 4, Groovy tranche 7 — chunks par appel de premier niveau, chaînes triples appariées) | `core-syntax` | M4 | test : les deux dialectes analysés, plis par bloc |
-| C-08 | Catalogues de versions : complétion liée | P2 | absent | `core-intelligence` | M7 | test : `libs.versions.toml` ↔ alias suggérés dans les builds |
+| C-08 | Catalogues de versions : complétion liée | P2 | livré (celeris : M7-t4 — sections lues, accès suggérés : tirets en points, bundles dans leur espace de noms) | `core-intelligence` | M7 | test : `libs.versions.toml` ↔ alias suggérés dans les builds |
 | C-09 | Règles R8/ProGuard : coloration et diagnostics de base | P2 | absent | `core-syntax` | M7+ | test : grammaire de règles, garde-fou d'erreur de syntaxe |
 | C-10 | Compose : documentation des modificateurs au survol | P2 | absent | `core-lsp` | M7+ | scénario : survol d'un modificateur → documentation |
 | C-11 | Compose : repères `@Preview` en gouttière (rendu délégué à l'hôte) | P2 | présent (marqueurs ancrés) | `android-host` | M7 | test : repère ancré à la ligne, délégation du rendu à l'hôte |
@@ -159,9 +159,9 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | D-01 | Gouttière : numéros absolus et relatifs | P0 | présent | `android-widgets` | M3 | test de capture : bascule relative, alignement par rangée |
 | D-02 | Gouttière : diagnostics | P0 | présent (au départ ; celeris : marque d'erreur par ligne dans la coulisse, à l'encre d'erreur du thème, livrée M4-t5 — le socle ne rapporte qu'un niveau d'erreur, la priorité multi-niveaux attend la sémantique M6) | `android-widgets` | M3 | test : icône au niveau de ligne, priorité erreur > avertissement |
-| D-03 | Gouttière : marques de modification VCS | P1 | absent | `android-host` | M7 | test SPI : marque par plage de lignes modifiée |
-| D-04 | Gouttière : points d'arrêt (SPI débogueur) | P1 | absent | `android-host` | M7 | test SPI : pose, suppression, état désactivé |
-| D-05 | Gouttière : repères d'exécution | P1 | absent | `android-host` | M7 | test SPI : ligne courante, plages dans la pile |
+| D-03 | Gouttière : marques de modification VCS | P1 | livré (celeris : peinture M7-t5 — barre au bord gauche de la coulisse, modifiée et ajoutée distinguées ; diff vivant à la frappe dans la démonstration) | `android-host` | M7 | test SPI : marque par plage de lignes modifiée |
+| D-04 | Gouttière : points d'arrêt (SPI débogueur) | P1 | livré (celeris : peinture M7-t5 — carré plein posé, carré creux désactivé ; le clic du champ des numéros pose et retire dans la démonstration) | `android-host` | M7 | test SPI : pose, suppression, état désactivé |
+| D-05 | Gouttière : repères d'exécution | P1 | livré (celeris : peinture M7-t5 — flèche de ligne courante à l'encre du curseur, chevrons de pile ; pause simulée au premier arrêt actif) | `android-host` | M7 | test SPI : ligne courante, plages dans la pile |
 | D-06 | Gouttière : signets | P1 | absent (couvert par B-15) | `android-widgets` | M5 | couvert par B-15 |
 | D-07 | Gouttière : plis (flèches, survol) | P0 | présent (au départ ; celeris : chevrons replié/déplié et bascule au clic dans la coulisse livrés M4-t5 — l'aperçu au maintien reste avec les popups M5) | `android-widgets` | M3 | test : pli/dépli par clic, aperçu au maintien |
 | D-08 | Bande d'erreurs annotée (parallèle au défilement) | P1 | absent (celeris : livré M5-t5 — densité bornée à un cran de bande, clic → saut au diagnostic) | `android-widgets` | M5 | test : densité bornée, clic → saut au diagnostic |
@@ -183,9 +183,9 @@
 | Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation |
 | --- | --- | --- | --- | --- | --- | --- |
 | E-01 | Système de fichiers virtuel (accès stockage cloisonné, arbres de documents) | P0 | partiel (celeris : contrat SPI et implémentation de référence en mémoire livrés M7-t2 — chemins validés contre la traversée à la construction ; l'adaptateur du framework d'accès au stockage suit) | `android-host` | M7 | test : ouverture/écriture par le framework d'accès au stockage, chemins validés contre la traversée |
-| E-02 | VCS : diff de gouttière, blame, historique | P1 | absent (celeris : contrat SPI et faux VCS de référence livrés M7-t2 — marques par ligne, plages supprimées, blame, historique ; la peinture de gouttière D-03 suit) | `android-host` | M7 | test SPI avec faux VCS : marques, annotations par ligne |
-| E-03 | Débogueur : points d'arrêt, ligne courante, valeurs en ligne, évaluation au survol | P1 | absent (celeris : contrat SPI et faux débogueur livrés M7-t2 — arrêts désactivables, ligne courante, pile, survol borné ; la peinture D-04/D-05 suit) | `android-host` | M7 | test SPI avec faux débogueur : pose d'arrêt, ligne courante, survol borné |
-| E-04 | Exécution et tests : repères de gouttière | P1 | absent (celeris : contrat SPI et fausse exécution livrés M7-t2 — lancements signalés, états visibles ; la peinture D-05 suit) | `android-host` | M7 | test SPI : lancement signalé, état visible |
+| E-02 | VCS : diff de gouttière, blame, historique | P1 | couvert (celeris : contrat SPI et faux VCS de référence livrés M7-t2 — marques par ligne, plages supprimées, blame, historique ; la peinture de gouttière D-03 livrée M7-t5) | `android-host` | M7 | test SPI avec faux VCS : marques, annotations par ligne |
+| E-03 | Débogueur : points d'arrêt, ligne courante, valeurs en ligne, évaluation au survol | P1 | couvert (celeris : contrat SPI et faux débogueur livrés M7-t2 — arrêts désactivables, ligne courante, pile, survol borné ; la peinture D-04/D-05 livrée M7-t5) | `android-host` | M7 | test SPI avec faux débogueur : pose d'arrêt, ligne courante, survol borné |
+| E-04 | Exécution et tests : repères de gouttière | P1 | couvert (celeris : contrat SPI et fausse exécution livrés M7-t2 — lancements signalés, états visibles ; la peinture D-05 livrée M7-t5) | `android-host` | M7 | test SPI : lancement signalé, état visible |
 | E-05 | Problèmes de build convertis en diagnostics | P1 | absent (celeris : analyseur de sortie livré M7-t2 — formes complète et courte des compilateurs, plages exactes ; le branchement à l'éditeur suit) | `android-host` | M7 | test : sortie de build parsée → diagnostics avec plages exactes |
 | E-06 | Traces d'appel liées à `fichier:ligne` | P1 | absent (celeris : analyseur de piles livré M7-t2 — cadres convertis, ligne inconnue à zéro ; le lien cliquable suit) | `android-host` | M7 | test : pile parsée, saut à la ligne exacte |
 

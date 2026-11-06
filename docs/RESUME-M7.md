@@ -1,4 +1,4 @@
-# Résumé M7 — Android et SPI (en cours, tranches 1 à 3 livrées le 2026-11-06)
+# Résumé M7 — Android et SPI (en cours, tranches 1 à 5 livrées le 2026-11-06)
 
 > **Déclenchement** : clôture du jalon M6 (2026-11-06, critères de
 > sortie couverts — catégorie B P0, soixante scénarios). Périmètre
@@ -9,10 +9,12 @@
 > E-01 reste à fermer par l'adaptateur du framework d'accès au
 > stockage).
 >
-> **État** : jalon NON clos — les tranches 4 et suivantes restent à
-> écrire (voir « Reste ouvert »). Le propriétaire a demandé la
-> reprise après une interruption et l'amélioration de la
-> démonstration ; les trois premières tranches y répondent.
+> **État** : jalon NON clos — les tranches 6 et suivantes restent à
+> écrire (voir « Reste ouvert »). Les tranches 1 à 3 ont répondu à la
+> reprise après interruption et à l'amélioration de la
+démonstration ; les tranches 4 et 5 livrent le bloc
+> XML/manifeste/catalogues et la peinture de gouttière des
+> intégrations — la démonstration devient terrain de débogage.
 
 ## Tranche 1 — la démonstration devient terrain d'essai (2026-11-06)
 
@@ -113,27 +115,94 @@ paquets autorisés évolue avec la dépendance `core-syntax-grammars`,
 documentée au commit), `:cli:run` vert, sortie vérifiée à la main
 sur Java (plan complet) et TOML (grammaires).
 
+## Tranche 4 — le bloc XML, manifeste et catalogues (2026-11-06)
+
+### Livré
+
+- **C-03 — `XmlValidation`** : la validation relit le document par le
+  même lexeur XML (commentaires, CDATA et prologues traversent par
+  l'état transporté, aucune logique dupliquée). La fermeture
+  étrangère porte sa plage exacte et nomme l'attendu comme le
+  trouvé ; la fermeture qui referme un ancêtre signale chaque niveau
+  traversé à la plage de son ouverture ; l'élément resté ouvert à la
+  fin porte la plage de sa balise d'ouverture.
+- **C-02 — `SchemaAndroid` et `CompletionsXml`** : le schéma embarqué
+  (quinze balises, leurs attributs, les communs, les constantes de
+  taille, les unités dp/sp, les préfixes de référence) répond au
+  contexte du curseur — nom de balise après le chevron, attribut
+  dans l'en-tête, valeur entre guillemets ; hors balise, rien ne se
+  suggère.
+- **C-04 — `ReferencesRessources`** : `@string/x` mène au
+  `<string name="x">` du fichier de valeurs, `@layout/x` au fichier
+  de mise en page propre ; les usages du projet se recensent à
+  l'offset exact, la référence prolongée (`@string/app_name2`) ne
+  compte pas.
+- **C-06 — `CompletionsManifeste`** : les attributs de chaque balise
+  du manifeste (manifeste, application, activité, service,
+  récepteur, permission) et les permissions usuelles, par préfixe.
+- **C-08 — `CatalogueVersions`** : `libs.versions.toml` se lit section
+  par section, les alias se suggèrent dans les builds selon l'accès
+  Gradle — tirets en points, `bundles` dans son espace de noms.
+
+### Preuve
+
+`:core-syntax:check` et `:core-intelligence:check` verts (couverture
+≥ 90 %, Checkstyle, PMD, Error Prone, NullAway compris) ; manifestes
+d'API régénérés — soixante-dix-huit ajouts, aucun retrait (SemVer
+mineure, ADR-009). Cinq scénarios C au catalogue de la démonstration
+(soixante-treize au total).
+
+## Tranche 5 — la peinture de gouttière des intégrations (2026-11-06)
+
+### Livré
+
+- **Le modèle pur de la vue** (`MarquesIntegration`, `MarqueLigne`,
+  `EtatArret`) : marques VCS par ligne, arrêts posés et désactivés,
+  ligne courante et lignes de pile — lignes numérotées à partir de
+  zéro, convention de la vue ; la fusion se fait par
+  `GutterMarks.avec`, les marques vides ne coûtent rien.
+- **La peinture** (`GutterPainter`) : la barre de modification au
+  bord gauche de la coulisse — modifiée à l'encre de sélection,
+  ajoutée à l'encre de chaîne (D-03) ; le point d'arrêt au centre —
+  carré plein posé, carré creux désactivé (D-04) ; le repère
+  d'exécution par-dessus — flèche de ligne courante à l'encre du
+  curseur, chevron discret des lignes de pile (D-05). La coulisse
+  s'élargit de deux caractères quand les intégrations parlent
+  (`MarquesGouttiere`).
+- **Le terrain de débogage** (`demo/EditorActivity`) : le clic dans
+  le champ des numéros pose et retire les points d'arrêt (D-04) ; le
+  bouton de débogage simule la pause au premier arrêt actif — à la
+  cinquième ligne sinon — avec une pile de deux cadres, puis la
+  reprise (D-05) ; le diff ligne à ligne face au contenu d'origine
+  (`DiffLignes`) rafraîchit les marques VCS à la frappe (D-03).
+- **L'adaptateur** (`demo/AdaptateurMarques`) : l'état des contrats
+  de l'hôte — lignes à partir de un — devient les marques de la vue
+  — lignes à partir de zéro —, arrêts et pile filtrés au fichier
+  ouvert. `EtatLignesVcs.marques()` énumère désormais les lignes
+  marquées : la matière première de la peinture.
+- **Le câblage de la vue** : `EditorView` expose `marquesGouttiere()`
+  et route la coulisse, la peinture et le clic du champ des numéros
+  par le collaborateur — la vue reste sous le plafond de 600 lignes.
+
+### Preuve
+
+`./gradlew check` vert sur l'ensemble (SDK présent), `:demo:assembleDebug`
+assemblé (1,27 Mo). Trois scénarios D au catalogue de la
+démonstration, les lignes E-02/E-03/E-04 de la matrice passent à
+couvert.
+
 ## Reste ouvert (tranches suivantes de M7)
 
-1. **Le bloc XML/manifeste/catalogues** : C-02 (complétion guidée
-   par le schéma des ressources), C-03 (diagnostics de validation
-   XML), C-04 (navigation des références `@string/`), C-06
-   (complétion et diagnostics du manifeste), C-08 (catalogues de
-   versions liés) — `core-syntax`/`core-intelligence`.
-2. **La peinture de gouttière des intégrations** : D-03 (marques
-   VCS), D-04 (points d'arrêt), D-05 (ligne courante et repères
-   d'exécution) — consommer les SPI E-02/E-03/E-04 dans
-   `GutterMarks`/`GutterPainter`, la coulisse s'élargit.
-3. **E-01 — l'adaptateur de production** : le framework d'accès au
+1. **E-01 — l'adaptateur de production** : le framework d'accès au
    stockage (arbres de documents, `ContentResolver`), mince et
    documenté — le contrat et l'implémentation de référence sont
    livrés, l'adaptateur reste à écrire.
-4. **C-11** (repères `@Preview` Compose, rendu délegué à l'hôte) et
+2. **C-11** (repères `@Preview` Compose, rendu délégué à l'hôte) et
    **C-12** (diagnostics de linte importés — l'analyseur E-05 existe,
    le branchement reste).
-5. **C-15** (SQL, C, C++ par la voie de grammaires), **C-05**
+3. **C-15** (SQL, C, C++ par la voie de grammaires), **C-05**
    (pastilles de couleur), **D-11** (aperçu rapide de définition),
    **D-12** (vue de différences), **D-19** (pliables, grands
    écrans), **C-09** (règles R8, « M7+ »).
-6. Clôture : critères de sortie (catégories C et E P0 couvertes),
+4. Clôture : critères de sortie (catégories C et E P0 couvertes),
    CHANGELOG, ce résumé mis à jour, `git status` propre, poussée.
