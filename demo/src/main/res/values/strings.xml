@@ -9,4 +9,20 @@
     <string name="reglage_numeros">Line numbers</string>
     <string name="reglage_retour">Soft wrap</string>
     <string name="reglage_theme">Dark theme</string>
+    <string name="section_exemples">Sample files</string>
+    <string name="note_exemples">Open a file to try the full editor: syntax, folds, search, outline, themes.</string>
+    <string name="action_plan">Outline</string>
+    <string name="action_recherche">Search</string>
+    <string name="action_fermer">Close</string>
+    <string name="action_precedent">‹ Prev</string>
+    <string name="action_suivant">Next ›</string>
+    <string name="action_annuler">Undo</string>
+    <string name="action_retablir">Redo</string>
+    <string name="action_theme">Theme</string>
+    <string name="action_diminuer">A−</string>
+    <string name="action_agrandir">A+</string>
+    <string name="indication_recherche">Find in file</string>
+    <string name="compteur_recherche">%1$d / %2$d</string>
+    <string name="aucun_resultat">0 / 0</string>
+    <string name="position_curseur">L%1$d : C%2$d</string>
 </resources>

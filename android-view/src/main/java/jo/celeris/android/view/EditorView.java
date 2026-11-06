@@ -18,8 +18,10 @@ import android.view.inputmethod.InputConnection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
 import jo.celeris.core.text.MultiSelection;
@@ -66,9 +68,10 @@ public final class EditorView extends View {
     private final FoldModel plis = new FoldModel();
     private final EditorSyntax syntaxe = new EditorSyntax(plis, ExecuteurAnalyse.parDefaut());
     private final RowLayoutCache cache = new RowLayoutCache();
-    private final CursorPill pilule = new CursorPill();
+    final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
     private final ChromePainter chrome = new ChromePainter();
+    private final GutterPainter gouttiere;
     private final AccessibilityHost accessibilite = new AccessibilityHost(this);
     private final EditListener ecouteurAnnonce = (debut, fin, retire, insere)
             -> sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
@@ -78,13 +81,14 @@ public final class EditorView extends View {
 
     private KeyBindings raccourcis = KeyBindings.defaults();
     private SelectionHandles.HandleId poigneeTiree = SelectionHandles.HandleId.NONE;
-    private float tailleAuDepartDuPincement;
-    private boolean pincementActif;
+    // — état de gestes, visible du paquet pour GestesFabrique (D-15/A-01)
+    float tailleAuDepartDuPincement;
+    boolean pincementActif;
 
     private TextSession session = TextSession.of("", System::nanoTime);
     private VisualProjection projection = new VisualProjection(session.document(), plis, 0);
-    private EditorMetrics metrics = EditorMetrics.of(POLICE_PAR_DEFAUT, regle);
-    private HitTest viseur = new HitTest(metrics);
+    EditorMetrics metrics = EditorMetrics.of(POLICE_PAR_DEFAUT, regle);
+    HitTest viseur = new HitTest(metrics);
     private final RebindingRowSource sourceLiee = new RebindingRowSource(
             new DocumentRowSource(session.document(), projection, metrics, 0));
     private EditorTheme theme = EditorThemes.CLAIR;
@@ -96,6 +100,7 @@ public final class EditorView extends View {
     private float dernierX;
     private float dernierY;
     private float largeurGouttiere;
+    private boolean numerosVisibles = true;
     private boolean panoramique;
 
     public EditorView(Context context) {
@@ -108,43 +113,17 @@ public final class EditorView extends View {
         setFocusableInTouchMode(true);
         syntaxe.setSurAnalysePrete(this::postInvalidateOnAnimation);
         BrushFactory pinceaux = new PaintBrushes();
-        trace.addLayer(new GutterPainter(pinceaux, MARGE_GOUTTIERE, syntaxe::marques,
-                () -> syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE)));
+        gouttiere = new GutterPainter(pinceaux, MARGE_GOUTTIERE, syntaxe::marques,
+                () -> syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE));
+        trace.addLayer(gouttiere);
         trace.addLayer(new SelectionPainter(pinceaux));
         trace.addLayer(new ComposingPainter(pinceaux, composition));
         trace.addLayer(new TextPainter(pinceaux, cache, sourceLiee));
         pinceauChrome = pinceaux.newBrush();
         syntaxe.attacher(session);
         session.addEditListener(ecouteurAnnonce);
-        longPresses = new GestureDetector(context, new GestureDetector
-                .SimpleOnGestureListener() {
-            @Override
-            public void onLongPress(MotionEvent event) {
-                pilule.show(event.getX(), event.getY());
-                invalidate();
-            }
-        });
-        pincements = new ScaleGestureDetector(context,
-                new ScaleGestureDetector.SimpleOnScaleGestureListener() {
-            @Override
-            public boolean onScaleBegin(ScaleGestureDetector detector) {
-                pincementActif = true;
-                tailleAuDepartDuPincement = metrics.font().size();
-                return true;
-            }
-
-            @Override
-            public boolean onScale(ScaleGestureDetector detector) {
-                zoomer(detector.getFocusX(), detector.getFocusY(),
-                        detector.getScaleFactor());
-                return true;
-            }
-
-            @Override
-            public void onScaleEnd(ScaleGestureDetector detector) {
-                pincementActif = false;
-            }
-        });
+        longPresses = GestesFabrique.appuisLongs(context, this);
+        pincements = GestesFabrique.pincements(context, this);
     }
 
     /**
@@ -228,6 +207,24 @@ public final class EditorView extends View {
     /** La table de raccourcis courante (D-17). */
     public KeyBindings keyBindings() {
         return raccourcis;
+    }
+
+    /**
+     * Affiche ou masque les numéros de lignes (D-01) : masqués, la
+     * gouttière se réduit à la coulisse des marqueurs (plis D-07,
+     * erreurs D-02).
+     *
+     * @param visibles vrai pour tracer les numéros (défaut)
+     */
+    public void setNumerosVisibles(boolean visibles) {
+        numerosVisibles = visibles;
+        gouttiere.setNumerosVisibles(visibles);
+        invalidate();
+    }
+
+    /** Le rappel du plan du fichier (B-16), parti à chaque publication d'analyse. */
+    public void setSurPlan(@Nullable Consumer<List<OutlineEntry>> consommateur) {
+        syntaxe.setSurPlan(consommateur);
     }
 
     /** La session affichée — accès de paquet pour la colle IME. */
@@ -355,9 +352,11 @@ public final class EditorView extends View {
         suivreRevision(document);
         float hauteurContenu = projection.rowCount() * metrics.lineHeight();
         scrollY = ScrollGeometry.clamp(scrollY, hauteurContenu, getHeight());
-        largeurGouttiere = GutterGeometry.width(Math.max(1, projection.rowCount()),
-                metrics.charWidth(), MARGE_GOUTTIERE,
-                syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE));
+        float coulisse = syntaxe.coulisse(metrics.charWidth(), MARGE_GOUTTIERE);
+        largeurGouttiere = numerosVisibles
+                ? GutterGeometry.width(Math.max(1, projection.rowCount()),
+                        metrics.charWidth(), MARGE_GOUTTIERE, coulisse)
+                : GutterGeometry.laneOnly(MARGE_GOUTTIERE, coulisse);
         scrollX = ScrollGeometry.clamp(scrollX, largeurContenu(), largeurVisible());
         int premiere = ScrollGeometry.firstRow(scrollY, metrics.lineHeight());
         int visibles = ScrollGeometry.visibleRows(getHeight(), metrics.lineHeight());
@@ -548,7 +547,7 @@ public final class EditorView extends View {
     }
 
     /** D-15 — zoome par paliers, le point sous le doigt stable. */
-    private void zoomer(float focalX, float focalY, float facteur) {
+    void zoomer(float focalX, float focalY, float facteur) {
         float nouvelleTaille = PinchZoom.steppedSize(tailleAuDepartDuPincement,
                 facteur);
         if (nouvelleTaille == metrics.font().size()) {
@@ -580,21 +579,7 @@ public final class EditorView extends View {
     }
 
     private int offsetAt(float x, float y) {
-        int rangee = ScrollGeometry.firstRow(scrollY + y, metrics.lineHeight());
-        int lignes = projection.rowCount();
-        if (rangee >= lignes) {
-            rangee = lignes - 1;
-        }
-        if (rangee < 0) {
-            rangee = 0;
-        }
-        int ligne = projection.firstLineOfRow(rangee);
-        int debutTranche = projection.spanStartAtRow(rangee);
-        Document document = session.document();
-        int longueurLigne = document.lineEnd(ligne) - document.lineStart(ligne);
-        int finTranche = Math.min(projection.spanEndAtRow(rangee), longueurLigne);
-        int colonne = viseur.columnAt(x - largeurGouttiere + scrollX,
-                finTranche - debutTranche);
-        return document.lineStart(ligne) + debutTranche + colonne;
+        return viseur.offsetAt(session.document(), projection, metrics,
+                largeurGouttiere, scrollX, scrollY, x, y);
     }
 }

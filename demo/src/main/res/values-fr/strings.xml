@@ -9,4 +9,20 @@
     <string name="reglage_numeros">Numéros de ligne</string>
     <string name="reglage_retour">Retour à la ligne souple</string>
     <string name="reglage_theme">Thème sombre</string>
+    <string name="section_exemples">Fichiers d\'exemple</string>
+    <string name="note_exemples">Ouvrez un fichier pour essayer l\'éditeur complet : syntaxe, plis, recherche, plan, thèmes.</string>
+    <string name="action_plan">Plan</string>
+    <string name="action_recherche">Recherche</string>
+    <string name="action_fermer">Fermer</string>
+    <string name="action_precedent">‹ Préc.</string>
+    <string name="action_suivant">Suiv. ›</string>
+    <string name="action_annuler">Annuler</string>
+    <string name="action_retablir">Rétablir</string>
+    <string name="action_theme">Thème</string>
+    <string name="action_diminuer">A−</string>
+    <string name="action_agrandir">A+</string>
+    <string name="indication_recherche">Chercher dans le fichier</string>
+    <string name="compteur_recherche">%1$d / %2$d</string>
+    <string name="aucun_resultat">0 / 0</string>
+    <string name="position_curseur">L%1$d : C%2$d</string>
 </resources>

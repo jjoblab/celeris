@@ -1,5 +1,7 @@
 package jo.celeris.android.view;
 
+import jo.celeris.core.text.Document;
+
 /**
  * Conversion position ← pixel : l'abscisse rend la colonne de caractère.
  *
@@ -48,5 +50,36 @@ public final class HitTest {
             maxColumn = 0;
         }
         return Math.min(colonne, maxColumn);
+    }
+
+    /**
+     * L'offset absolu visé par un point de l'écran : la rangée par
+     * l'ordonnée (défilement compris, projection — plis et tranches
+     * A-18 — traversées), puis la colonne par l'abscisse, bornée à la
+     * fin de la tranche visible de la ligne (PIEGE-06 : coupe au
+     * plancher).
+     *
+     * @param document         le document affiché
+     * @param projection       la projection visuelle courante
+     * @param metrics          les métriques d'éditeur courantes
+     * @param largeurGouttiere la largeur de gouttière, en pixels
+     * @param scrollX          le défilement horizontal, en pixels
+     * @param scrollY          le défilement vertical, en pixels
+     * @param x                l'abscisse du point dans la vue
+     * @param y                l'ordonnée du point dans la vue
+     * @return l'offset absolu visé, borné au document
+     */
+    public int offsetAt(Document document, VisualProjection projection,
+            EditorMetrics metrics, float largeurGouttiere, float scrollX,
+            float scrollY, float x, float y) {
+        int rangee = ScrollGeometry.firstRow(scrollY + y, metrics.lineHeight());
+        rangee = Math.max(0, Math.min(rangee, projection.rowCount() - 1));
+        int ligne = projection.firstLineOfRow(rangee);
+        int debutTranche = projection.spanStartAtRow(rangee);
+        int longueurLigne = document.lineEnd(ligne) - document.lineStart(ligne);
+        int finTranche = Math.min(projection.spanEndAtRow(rangee), longueurLigne);
+        int colonne = columnAt(x - largeurGouttiere + scrollX,
+                finTranche - debutTranche);
+        return document.lineStart(ligne) + debutTranche + colonne;
     }
 }

@@ -13,4 +13,9 @@ dependencies {
     implementation(project(":core-lsp"))
     implementation(project(":android-widgets"))
     implementation(project(":android-host"))
+    // Le terrain d'essai ouvre de vrais fichiers : sessions, analyseurs
+    // dédiés et voie de grammaires (C-14 à C-16, tranche 1 M7).
+    implementation(project(":core-text"))
+    implementation(project(":core-syntax"))
+    implementation(project(":core-syntax-grammars"))
 }

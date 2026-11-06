@@ -52,6 +52,7 @@ public final class GutterPainter extends PainterLayer {
     private final MarksSource marques;
     private final float marge;
     private final LaneSource coulisse;
+    private boolean numerosVisibles = true;
 
     /**
      * Construit la couche de gouttière à respiration par défaut, sans
@@ -97,6 +98,17 @@ public final class GutterPainter extends PainterLayer {
         return frame.theme().gutterTextColor();
     }
 
+    /**
+     * Affiche ou masque les numéros de lignes (D-01) : masqués, la
+     * gouttière ne trace plus d'étiquette — la coulisse des marqueurs
+     * (plis, erreurs) reste entière.
+     *
+     * @param visibles vrai pour tracer les numéros (défaut)
+     */
+    public void setNumerosVisibles(boolean visibles) {
+        numerosVisibles = visibles;
+    }
+
     @Override
     protected void onPaint(DrawSurface surface, FrameState frame) {
         EditorMetrics metrics = frame.metrics();
@@ -120,6 +132,9 @@ public final class GutterPainter extends PainterLayer {
             if (largeurCoulisse > 0f) {
                 tracerMarques(surface, marquesImage, ligne, y, hauteur,
                         largeurCoulisse, frame);
+            }
+            if (!numerosVisibles) {
+                continue;
             }
             int numero = ligne + 1;
             String etiquette = numeros.label(numero);

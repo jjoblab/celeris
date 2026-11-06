@@ -57,6 +57,20 @@ public final class GutterGeometry {
     }
 
     /**
+     * La largeur de la gouttière sans numéros : la coulisse des
+     * marqueurs et sa respiration, rien d'autre (D-01 — la bascule des
+     * numéros ne réserve pas de champ vide).
+     *
+     * @param padding   la respiration de chaque côté, en pixels
+     * @param markerLane la largeur de la coulisse des marqueurs, en
+     *                   pixels
+     * @return la largeur totale de la gouttière, en pixels
+     */
+    public static float laneOnly(float padding, float markerLane) {
+        return 2f * padding + Math.max(0f, markerLane);
+    }
+
+    /**
      * L'abscisse du numéro pour l'aligner à droite dans la gouttière.
      *
      * @param labelLength le nombre de caractères du numéro affiché
