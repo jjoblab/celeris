@@ -38,14 +38,15 @@ class CompletionMotsTest {
                     void lire() { }
                 }
                 """;
-        // le curseur après « l » de lire : le préfixe est l
+        // le curseur après « l » de lire : le préfixe est l — le mot tapé
+        // ne compte pas, les deux autres répondent
         int caret = texte.indexOf("lire") + 1;
-        assertEquals(List.of("largeur", "lire", "longueur"),
+        assertEquals(List.of("largeur", "longueur"),
                 completer(texte, caret, List.of()));
         // le même fichier en majuscules : la casse n'y change rien
-        String majuscules = texte.toUpperCase();
+        String majuscules = texte.toUpperCase(java.util.Locale.ROOT);
         int caretMaj = majuscules.indexOf("LIRE") + 1;
-        assertEquals(List.of("LARGEUR", "LIRE", "LONGUEUR"),
+        assertEquals(List.of("LARGEUR", "LONGUEUR"),
                 completer(majuscules, caretMaj, List.of()));
     }
 
@@ -77,10 +78,13 @@ class CompletionMotsTest {
                     // horloge en commentaire
                     String s = "horloge dans une chaine";
                     int hors;
+                    int hote;
                 }
                 """;
+        // « ho » : le mot tapé hors ne compte pas, hote répond — horloge
+        // ni en commentaire ni en chaîne ne se propose
         int caret = texte.indexOf("hors") + 2;
-        assertEquals(List.of("hors"), completer(texte, caret, List.of()));
+        assertEquals(List.of("hote"), completer(texte, caret, List.of()));
     }
 
     /** Les mots réservés du langage se joignent aux mots du fichier. */
@@ -93,13 +97,15 @@ class CompletionMotsTest {
                 completer(texte, caret, List.of("return", "reader")));
     }
 
-    /** Le curseur dans le blanc : tous les mots, triés sans égard à la casse. */
+    /** Le curseur dans le blanc : les mots du fichier, triés sans égard à la casse. */
     @Test
     void leCurseurDansLeBlanc() {
         String texte = "int Zebre;\nint abeille;\n";
-        // curseur sur le point-virgule de la première ligne : aucun mot touché
-        int caret = texte.indexOf(';');
-        assertEquals(List.of("abeille", "int", "Zebre"),
+        // curseur sur le saut de ligne : aucun mot touché, le préfixe est
+        // vide — les mots réservés (int) ne sont pas des mots du fichier,
+        // ils se joignent par le paramètre dédié
+        int caret = texte.indexOf('\n');
+        assertEquals(List.of("abeille", "Zebre"),
                 completer(texte, caret, List.of()));
     }
 
@@ -113,12 +119,13 @@ class CompletionMotsTest {
     /** Le curseur au milieu d'un mot : le préfixe est la partie déjà tapée. */
     @Test
     void leCurseurAuMilieu() {
-        String texte = "int alphabet;\n";
-        // curseur après « alp » : le préfixe est alp, alphabet répond
+        String texte = "int alphabet;\nint alpha;\n";
+        // curseur après « alp » d'alphabet : le préfixe est alp — le mot tapé
+        // ne compte pas, l'autre mot répond
         int caret = texte.indexOf("alphabet") + 3;
-        assertEquals(List.of("alphabet"), completer(texte, caret, List.of()));
+        assertEquals(List.of("alpha"), completer(texte, caret, List.of()));
         // curseur après « alph » : le préfixe grandit, la réponse tient
         int apres = texte.indexOf("alphabet") + 4;
-        assertEquals(List.of("alphabet"), completer(texte, apres, List.of()));
+        assertEquals(List.of("alpha"), completer(texte, apres, List.of()));
     }
 }

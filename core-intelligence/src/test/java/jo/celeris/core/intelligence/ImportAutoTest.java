@@ -1,6 +1,7 @@
 package jo.celeris.core.intelligence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ class ImportAutoTest {
         String texte = "package demo;\n\nclass A {}\n";
         Document doc = Document.of(texte);
         EditPlan plan = ImportAuto.importer(doc, "import java.util.List;\n");
+        assertNotNull(plan);
         assertEquals(1, plan.transaction().edits().size());
         var edition = plan.transaction().edits().get(0);
         // la tête : le début de la ligne qui suit le paquet
@@ -39,6 +41,7 @@ class ImportAutoTest {
         String texte = "class A {}\n";
         Document doc = Document.of(texte);
         EditPlan plan = ImportAuto.importer(doc, "import java.util.Map;\n");
+        assertNotNull(plan);
         assertEquals(0, plan.transaction().edits().get(0).start());
         assertEquals("import java.util.Map;\n",
                 plan.transaction().edits().get(0).inserted());
@@ -50,6 +53,7 @@ class ImportAutoTest {
         String texte = "package demo;\n\nimport java.util.Map;\n\nimport java.util.Set;\n\nclass A {}\n";
         Document doc = Document.of(texte);
         EditPlan plan = ImportAuto.importer(doc, "import java.util.List;\n");
+        assertNotNull(plan);
         // la tête du bloc : le début de la ligne du premier import (ligne 2)
         assertEquals(texte.indexOf("import java.util.Map;"),
                 plan.transaction().edits().get(0).start());
@@ -68,12 +72,19 @@ class ImportAutoTest {
     /** L'import déjà présent ailleurs dans le texte : la ligne entière compte. */
     @Test
     void laPresenceSeVerifieALaLigneEntiere() {
-        String texte = "package demo;\n\nimport java.util.List;\n\nclass A { Object o = \"import java.util.List;\"; }\n";
+        String texte = """
+                package demo;
+
+                import java.util.List;
+
+                class A { Object o = "import java.util.List;"; }
+                """;
         Document doc = Document.of(texte);
         // présent à la ligne des imports : rien à faire
         assertNull(ImportAuto.importer(doc, "import java.util.List;\n"));
         // un autre import : il s'insère, la chaîne ne compte pas comme présence
         EditPlan plan = ImportAuto.importer(doc, "import java.util.Map;\n");
+        assertNotNull(plan);
         assertEquals(texte.indexOf("import java.util.List;"),
                 plan.transaction().edits().get(0).start());
     }

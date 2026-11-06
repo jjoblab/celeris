@@ -18,6 +18,13 @@ public final class jo.celeris.core.intelligence.Commenter {
   public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> toggle(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.CommentRules);
 }
 
+### jo.celeris.core.intelligence.CompletionMots
+Compiled from "CompletionMots.java"
+public final class jo.celeris.core.intelligence.CompletionMots {
+  public static final int MAX_CANDIDATS;
+  public static java.util.List<java.lang.String> completer(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, java.util.List<java.lang.String>);
+}
+
 ### jo.celeris.core.intelligence.EditPlan
 Compiled from "EditPlan.java"
 public final class jo.celeris.core.intelligence.EditPlan extends java.lang.Record {
@@ -48,6 +55,12 @@ Compiled from "Gabarits.java"
 public final class jo.celeris.core.intelligence.Gabarits {
   public static jo.celeris.core.intelligence.EditPlan inserer(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.Gabarit);
   public static java.util.List<jo.celeris.core.text.TextEdit> miroirs(java.lang.String, java.util.List<jo.celeris.core.intelligence.Trou>, jo.celeris.core.intelligence.Trou, jo.celeris.core.text.TextEdit);
+}
+
+### jo.celeris.core.intelligence.ImportAuto
+Compiled from "ImportAuto.java"
+public final class jo.celeris.core.intelligence.ImportAuto {
+  public static jo.celeris.core.intelligence.EditPlan importer(jo.celeris.core.text.Document, java.lang.String);
 }
 
 ### jo.celeris.core.intelligence.IndentEngine
@@ -124,6 +137,24 @@ public final class jo.celeris.core.intelligence.LineActions {
 Compiled from "LineSorter.java"
 public final class jo.celeris.core.intelligence.LineSorter {
   public static jo.celeris.core.intelligence.EditPlan sort(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, boolean);
+}
+
+### jo.celeris.core.intelligence.OptimiseurImports$RapportImport
+Compiled from "OptimiseurImports.java"
+public final class jo.celeris.core.intelligence.OptimiseurImports$RapportImport extends java.lang.Record {
+  public jo.celeris.core.intelligence.OptimiseurImports$RapportImport(int, java.lang.String, boolean);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int ligne();
+  public java.lang.String importComplet();
+  public boolean utilise();
+}
+
+### jo.celeris.core.intelligence.OptimiseurImports
+Compiled from "OptimiseurImports.java"
+public final class jo.celeris.core.intelligence.OptimiseurImports {
+  public static java.util.List<jo.celeris.core.intelligence.OptimiseurImports$RapportImport> analyser(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
 }
 
 ### jo.celeris.core.intelligence.PasteReindenter
