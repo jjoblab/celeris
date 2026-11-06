@@ -180,6 +180,9 @@ public final class EditorActivity extends Activity {
     private FrameLayout sceneEdition() {
         FrameLayout scene = new FrameLayout(this);
         editeur = new EditorView(this);
+        // Le contenu du fichier ouvert doit vivre dans l'éditeur : sans
+        // ce branchement, la vue garde sa session vide d'origine.
+        editeur.setSession(session);
         scene.addView(editeur, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         editeur.setOnTouchListener((vue, evenement) -> {
