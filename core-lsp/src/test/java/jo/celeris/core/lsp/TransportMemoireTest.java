@@ -2,7 +2,6 @@ package jo.celeris.core.lsp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,9 +10,10 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Le transport en processus (ADR-005) : deux bouts reliés en mémoire,
- * livraison synchrone au récepteur branché — le support des tests du
- * client et des serveurs embarqués. Envoyer exige un récepteur branché,
- * fermer prévient le pair, tout après fermeture est refusé.
+ * livraison synchrone au récepteur de l'autre bout — ce qu'un bout
+ * envoie, le pair le reçoit dans l'appel même. Envoyer exige un
+ * récepteur pair branché ; fermer un bout coupe la liaison dans les
+ * deux sens et prévient le pair une seule fois.
  */
 class TransportMemoireTest {
 
@@ -33,48 +33,51 @@ class TransportMemoireTest {
         }
     }
 
-    /** La paire : ce qu'un bout envoie, l'autre le reçoit — et réciproquement. */
+    /** La paire : ce qu'un bout envoie, le récepteur du pair le reçoit — et réciproquement. */
     @Test
     void laPaireRelieLesDeuxBouts() {
         TransportMemoire.Paire paire = TransportMemoire.creerPaire();
         RecepteurJournal coteServeur = new RecepteurJournal();
         RecepteurJournal coteClient = new RecepteurJournal();
-        paire.boutA().brancher(coteServeur);
-        paire.boutB().brancher(coteClient);
+        paire.boutB().brancher(coteServeur);
+        paire.boutA().brancher(coteClient);
         paire.boutA().envoyer("{\"vers\":\"serveur\"}");
         paire.boutB().envoyer("{\"vers\":\"client\"}");
         assertEquals(List.of("{\"vers\":\"serveur\"}"), coteServeur.recus);
         assertEquals(List.of("{\"vers\":\"client\"}"), coteClient.recus);
     }
 
-    /** Sans récepteur branché, l'envoi est refusé — jamais silencieusement perdu. */
+    /** Sans récepteur pair branché, l'envoi est refusé — jamais silencieusement perdu. */
     @Test
-    void lenvoiSansRecepteurEstRefuse() {
+    void lenvoiSansRecepteurPairEstRefuse() {
         TransportMemoire.Paire paire = TransportMemoire.creerPaire();
         assertThrows(IllegalStateException.class,
                 () -> paire.boutA().envoyer("{}"));
         RecepteurJournal recepteur = new RecepteurJournal();
-        paire.boutA().brancher(recepteur);
+        paire.boutB().brancher(recepteur);
         paire.boutA().envoyer("{}");
         assertEquals(1, recepteur.recus.size());
     }
 
-    /** La fermeture d'un bout prévient le pair — et l'autre sens continue de vivre. */
+    /** La fermeture d'un bout prévient le pair — et la liaison est coupée dans les deux sens. */
     @Test
-    void laFermeturePrevientLePair() {
+    void laFermetureCoupeLesDeuxSens() {
         TransportMemoire.Paire paire = TransportMemoire.creerPaire();
         RecepteurJournal coteServeur = new RecepteurJournal();
         RecepteurJournal coteClient = new RecepteurJournal();
-        paire.boutA().brancher(coteServeur);
-        paire.boutB().brancher(coteClient);
+        paire.boutB().brancher(coteServeur);
+        paire.boutA().brancher(coteClient);
         paire.boutB().close();
-        assertEquals(1, coteServeur.fermetures);
-        assertEquals(0, coteClient.fermetures);
-        // le bout fermé refuse tout, le bout vivant émet encore
+        // le pair est prévenu : le client apprend la fermeture de son serveur
+        assertEquals(1, coteClient.fermetures);
+        assertEquals(0, coteServeur.fermetures);
+        // le bout fermé refuse d'émettre, le bout vivant ne peut plus joindre son pair
         assertThrows(IllegalStateException.class,
                 () -> paire.boutB().envoyer("{}"));
-        paire.boutA().envoyer("{\"apres\":true}");
-        assertEquals(List.of("{\"apres\":true}"), coteServeur.recus);
+        assertThrows(IllegalStateException.class,
+                () -> paire.boutA().envoyer("{}"));
+        // rien n'a fuité avant la coupure
+        assertEquals(List.of(), coteServeur.recus);
     }
 
     /** La fermeture est idempotente : fermer deux fois ne prévient qu'une fois. */
@@ -82,9 +85,9 @@ class TransportMemoireTest {
     void laFermetureEstIdempotente() {
         TransportMemoire.Paire paire = TransportMemoire.creerPaire();
         RecepteurJournal coteServeur = new RecepteurJournal();
-        paire.boutA().brancher(coteServeur);
-        paire.boutB().close();
-        paire.boutB().close();
+        paire.boutB().brancher(coteServeur);
+        paire.boutA().close();
+        paire.boutA().close();
         assertEquals(1, coteServeur.fermetures);
     }
 

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -48,21 +49,26 @@ class TramesTest {
         byte[] deux = concatener(CadreurTrames.tramer("[1]"),
                 CadreurTrames.tramer("[2]"));
         DecodeurTrames decodeur = new DecodeurTrames();
-        for (int i = 0; i < deux.length - 1; i++) {
+        List<String> recuees = new ArrayList<>();
+        for (int i = 0; i < deux.length; i++) {
             decodeur.ajouter(new byte[] {deux[i]});
-            assertTrue(decodeur.messages().isEmpty(),
-                    "rien avant la fin de la première trame (octet " + i + ")");
+            recuees.addAll(decodeur.messages());
+            if (i < deux.length - 1) {
+                assertTrue(recuees.size() <= 1,
+                        "rien de plus que la première trame avant la fin (octet " + i + ")");
+            }
         }
-        decodeur.ajouter(new byte[] {deux[deux.length - 1]});
-        assertEquals(List.of("[1]", "[2]"), decodeur.messages());
+        assertEquals(List.of("[1]", "[2]"), recuees);
     }
 
     /** Les morceaux de tailles inégales et les en-têtes additionnels tolérés. */
     @Test
     void lesMorceauxInegaux() {
-        byte[] trame = ("Content-Length: 6\r\n"
-                + "Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n"
-                + "\r\n\"a\":12").getBytes(StandardCharsets.UTF_8);
+        byte[] trame = """
+                Content-Length: 6\r
+                Content-Type: application/vscode-jsonrpc; charset=utf-8\r
+                \r
+                \"a\":12""".getBytes(StandardCharsets.UTF_8);
         DecodeurTrames decodeur = new DecodeurTrames();
         decodeur.ajouter(trame, 0, 25);
         assertTrue(decodeur.messages().isEmpty());

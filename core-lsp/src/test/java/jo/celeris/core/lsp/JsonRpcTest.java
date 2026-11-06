@@ -1,6 +1,7 @@
 package jo.celeris.core.lsp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,8 +32,10 @@ class JsonRpcTest {
                 JsonEcrivain.ecrire(requete.versJson())));
         assertEquals(7, relue.id());
         assertEquals("textDocument/completion", relue.methode());
-        assertEquals("file:///Main.java", ((JsonChaine) ((JsonObjet) relue.params())
-                .membre("textDocument")).membreTexte("uri"));
+        JsonObjet parametres = assertInstanceOf(JsonObjet.class, relue.params());
+        JsonObjet documentTexte = assertInstanceOf(JsonObjet.class,
+                parametres.membre("textDocument"));
+        assertEquals("file:///Main.java", documentTexte.membreTexte("uri"));
     }
 
     /** La requête sans paramètres : la clé params est omise, jamais null explicite. */
@@ -54,7 +57,8 @@ class JsonRpcTest {
                 + "\"params\":{\"version\":3}}", json);
         NotificationRpc relue = (NotificationRpc) MessageRpc.de(JsonLecteur.lire(json));
         assertEquals("textDocument/didChange", relue.methode());
-        assertEquals(3, ((JsonNombre) relue.params()).entier());
+        assertEquals(3, assertInstanceOf(JsonNombre.class, assertInstanceOf(JsonObjet.class,
+                relue.params()).membre("version")).entier());
     }
 
     /** La réponse : résultat seul, erreur seule — jamais les deux, jamais aucun. */
@@ -67,7 +71,7 @@ class JsonRpcTest {
                 "{\"jsonrpc\":\"2.0\",\"id\":7,\"result\":[1,2]}"));
         assertEquals(7, relueOk.id());
         assertNull(relueOk.erreur());
-        assertEquals(2, ((JsonTableau) relueOk.resultat()).taille());
+        assertEquals(2, assertInstanceOf(JsonTableau.class, relueOk.resultat()).taille());
 
         ErreurRpc erreur = new ErreurRpc(ErreurRpc.REQUEST_CANCELLED,
                 "request cancelled", null);
@@ -77,9 +81,10 @@ class JsonRpcTest {
                 JsonEcrivain.ecrire(ko.versJson()));
         ReponseRpc relueKo = (ReponseRpc) MessageRpc.de(JsonLecteur.lire(
                 JsonEcrivain.ecrire(ko.versJson())));
-        assertEquals(ErreurRpc.REQUEST_CANCELLED, relueKo.erreur().code());
-        assertEquals("request cancelled", relueKo.erreur().message());
-        assertNull(relueKo.erreur().donnees());
+        ErreurRpc erreurRelue = assertInstanceOf(ErreurRpc.class, relueKo.erreur());
+        assertEquals(ErreurRpc.REQUEST_CANCELLED, erreurRelue.code());
+        assertEquals("request cancelled", erreurRelue.message());
+        assertNull(erreurRelue.donnees());
     }
 
     /** L'erreur avec données : la charge utile survit à l'aller-retour. */
@@ -90,7 +95,8 @@ class JsonRpcTest {
         ReponseRpc reponse = new ReponseRpc(9, null, erreur);
         ReponseRpc relue = (ReponseRpc) MessageRpc.de(JsonLecteur.lire(
                 JsonEcrivain.ecrire(reponse.versJson())));
-        assertEquals("détail", ((JsonChaine) relue.erreur().donnees()).texte());
+        assertEquals("détail", assertInstanceOf(JsonChaine.class,
+                assertInstanceOf(ErreurRpc.class, relue.erreur()).donnees()).texte());
     }
 
     /** Le tri des messages : requête, notification, réponse — et rien d'autre. */

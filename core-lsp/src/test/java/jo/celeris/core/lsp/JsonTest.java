@@ -72,17 +72,17 @@ class JsonTest {
                 "{\"b\": 1, \"a\": [true, null], \"c\": {\"d\": \"e\"}}");
         assertEquals(3, objet.taille());
         assertEquals(List.of("b", "a", "c"), List.copyOf(objet.cles()));
-        assertEquals(1, ((JsonNombre) objet.membre("b")).entier());
+        assertEquals(1, assertInstanceOf(JsonNombre.class, objet.membre("b")).entier());
         assertNull(objet.membre("absente"));
-        JsonTableau tableau = (JsonTableau) objet.membre("a");
+        JsonTableau tableau = assertInstanceOf(JsonTableau.class, objet.membre("a"));
         assertEquals(2, tableau.taille());
         assertInstanceOf(JsonBooleen.class, tableau.element(0));
         assertInstanceOf(JsonNul.class, tableau.element(1));
-        JsonObjet imbrique = (JsonObjet) objet.membre("c");
-        assertEquals("e", ((JsonChaine) imbrique.membre("d")).texte());
+        JsonObjet imbrique = assertInstanceOf(JsonObjet.class, objet.membre("c"));
+        assertEquals("e", assertInstanceOf(JsonChaine.class, imbrique.membre("d")).texte());
         JsonObjet doublon = (JsonObjet) JsonLecteur.lire("{\"k\": 1, \"k\": 2}");
         assertEquals(1, doublon.taille());
-        assertEquals(2, ((JsonNombre) doublon.membre("k")).entier());
+        assertEquals(2, assertInstanceOf(JsonNombre.class, doublon.membre("k")).entier());
     }
 
     /** Les tableaux vides et imbriqués, les chaînes vides, l'objet vide. */
@@ -147,7 +147,7 @@ class JsonTest {
         JsonObjet etendu = base.ajouter("b", JsonNombre.of(2));
         assertEquals(1, base.taille());
         assertEquals(2, etendu.taille());
-        assertEquals(1, ((JsonNombre) etendu.membre("a")).entier());
+        assertEquals(1, assertInstanceOf(JsonNombre.class, etendu.membre("a")).entier());
         JsonTableau tableauBase = JsonTableau.vide().ajouter(JsonNombre.of(1));
         JsonTableau tableauEtendu = tableauBase.ajouter(JsonNul.nul());
         assertEquals(1, tableauBase.taille());
@@ -158,9 +158,11 @@ class JsonTest {
     @Test
     void laccesAvecDefaut() {
         JsonObjet objet = (JsonObjet) JsonLecteur.lire("{\"a\": 1}");
-        assertEquals(1, ((JsonNombre) objet.membreOu("a", JsonNombre.of(9))).entier());
-        assertEquals(9, ((JsonNombre) objet.membreOu("z", JsonNombre.of(9))).entier());
+        assertEquals(1, assertInstanceOf(JsonNombre.class,
+                objet.membreOu("a", JsonNombre.of(9))).entier());
+        assertEquals(9, assertInstanceOf(JsonNombre.class,
+                objet.membreOu("z", JsonNombre.of(9))).entier());
         JsonTableau tableau = (JsonTableau) JsonLecteur.lire("[\"seul\"]");
-        assertEquals("seul", ((JsonChaine) tableau.element(0)).texte());
+        assertEquals("seul", assertInstanceOf(JsonChaine.class, tableau.element(0)).texte());
     }
 }
