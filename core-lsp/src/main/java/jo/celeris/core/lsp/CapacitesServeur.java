@@ -8,8 +8,9 @@ import java.util.List;
  * Les capacités du serveur, lues de la réponse d'initialisation — la
  * surface bornée du protocole que le client consomme : fournisseurs de
  * complétion, de survol, de signature, de définition, de références, de
- * renommage, de correctifs et de formatage, genre de synchronisation,
- * légende des jetons sémantiques. La valeur brute reste accessible.
+ * renommage, de correctifs, de formatage et d'indices en ligne, genre
+ * de synchronisation, légende des jetons sémantiques. La valeur brute
+ * reste accessible.
  */
 public final class CapacitesServeur {
 
@@ -87,6 +88,11 @@ public final class CapacitesServeur {
     /** Vrai quand le serveur propose le formatage du document. */
     public boolean sertFormatage() {
         return Boolean.TRUE.equals(capacites.membreBooleen("documentFormattingProvider"));
+    }
+
+    /** Vrai quand le serveur propose les indices en ligne. */
+    public boolean sertIndices() {
+        return capacites.membre("inlayHintProvider") != null;
     }
 
     /** La légende des types de jetons sémantiques, vide si le serveur n'en propose pas. */

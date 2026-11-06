@@ -1,6 +1,7 @@
 package jo.celeris.core.lsp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -50,8 +51,10 @@ class SurvolLspTest {
                         new PositionLsp(1, 8)).versJson()));
         assertEquals("markdown", survol.genre());
         assertEquals("Ajoute deux entiers.", survol.texte());
-        assertEquals(new PositionLsp(1, 4), survol.plage().debut());
-        assertEquals(new PositionLsp(1, 8), survol.plage().fin());
+        PlageLsp plage = survol.plage();
+        assertNotNull(plage);
+        assertEquals(new PositionLsp(1, 4), plage.debut());
+        assertEquals(new PositionLsp(1, 8), plage.fin());
     }
 
     /** La chaîne nue : le texte sans genre, aucune plage. */

@@ -3,6 +3,7 @@ package jo.celeris.core.lsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Les indices en ligne (B-08) : le serveur les rend pour une plage —
@@ -75,8 +77,12 @@ class IndicesLspTest {
                 null, true, true));
         assertEquals(2, indice.parties().size());
         assertEquals("noms", indice.parties().get(0).valeur());
-        assertEquals("file:///A.java", indice.parties().get(0).cible().uri());
-        assertEquals(new PositionLsp(1, 6), indice.parties().get(0).cible().plage().debut());
+        LieuLsp cible = indice.parties().get(0).cible();
+        assertNotNull(cible);
+        assertEquals("file:///A.java", cible.uri());
+        PlageLsp plageCible = cible.plage();
+        assertNotNull(plageCible);
+        assertEquals(new PositionLsp(1, 6), plageCible.debut());
         assertNull(indice.parties().get(1).cible(), "sans location, aucune cible");
         assertEquals(0, indice.genre(), "le genre absent vaut zero");
         assertTrue(indice.remplissageGauche());
@@ -118,7 +124,7 @@ class IndicesLspTest {
     }
 
     private static JsonObjet indiceJson(PositionLsp position, ValeurJson libelle,
-            Integer genre, boolean gauche, boolean droite) {
+            @Nullable Integer genre, boolean gauche, boolean droite) {
         JsonObjet objet = JsonObjet.vide()
                 .ajouter("position", position.versJson())
                 .ajouter("label", libelle);
@@ -134,7 +140,7 @@ class IndicesLspTest {
         return objet;
     }
 
-    private static Throwable echecDe(CompletableFuture<?> futur) throws Exception {
+    private static @Nullable Throwable echecDe(CompletableFuture<?> futur) throws Exception {
         try {
             futur.get(5, TimeUnit.SECONDS);
             throw new IllegalStateException("le futur devait echouer");

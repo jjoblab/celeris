@@ -1,6 +1,7 @@
 package jo.celeris.core.lsp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -50,8 +51,10 @@ class NavigationLspTest {
                 .ajouter("range", new PlageLsp(new PositionLsp(4, 2),
                         new PositionLsp(4, 11)).versJson()));
         assertEquals("file:///B.java", lieu.uri());
-        assertEquals(new PositionLsp(4, 2), lieu.plage().debut());
-        assertEquals(new PositionLsp(4, 11), lieu.plage().fin());
+        PlageLsp plage = lieu.plage();
+        assertNotNull(plage);
+        assertEquals(new PositionLsp(4, 2), plage.debut());
+        assertEquals(new PositionLsp(4, 11), plage.fin());
         LieuLsp sansPlage = LieuLsp.de(JsonObjet.vide()
                 .ajouter("uri", JsonChaine.of("file:///C.java")));
         assertEquals("file:///C.java", sansPlage.uri());
@@ -84,7 +87,9 @@ class NavigationLspTest {
         List<LieuLsp> lieux = futur.get(5, TimeUnit.SECONDS);
         assertEquals(1, lieux.size());
         assertEquals("file:///B.java", lieux.get(0).uri());
-        assertEquals(new PositionLsp(4, 2), lieux.get(0).plage().debut());
+        PlageLsp plageZero = lieux.get(0).plage();
+        assertNotNull(plageZero);
+        assertEquals(new PositionLsp(4, 2), plageZero.debut());
         String trame = serveur.tramesRecues().stream()
                 .filter(t -> t.contains("textDocument/definition")).findFirst().orElse("");
         assertTrue(trame.contains("file:///A.java"));
@@ -102,7 +107,9 @@ class NavigationLspTest {
                 "file:///A.java", new PositionLsp(3, 10));
         List<LieuLsp> lieux = futur.get(5, TimeUnit.SECONDS);
         assertEquals(2, lieux.size());
-        assertEquals(new PositionLsp(17, 8), lieux.get(1).plage().fin());
+        PlageLsp plageUn = lieux.get(1).plage();
+        assertNotNull(plageUn);
+        assertEquals(new PositionLsp(17, 8), plageUn.fin());
         String trame = serveur.tramesRecues().stream()
                 .filter(t -> t.contains("textDocument/references")).findFirst().orElse("");
         assertTrue(trame.contains("includeDeclaration"));

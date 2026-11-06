@@ -19,6 +19,7 @@ public final class jo.celeris.core.lsp.CapacitesServeur {
   public boolean sertRennomage();
   public boolean sertCorrectifs();
   public boolean sertFormatage();
+  public boolean sertIndices();
   public java.util.List<java.lang.String> typesJetons();
   public java.util.List<java.lang.String> modificateursJetons();
 }
@@ -220,6 +221,33 @@ public final class jo.celeris.core.lsp.ErreurRpc extends java.lang.Record {
   public jo.celeris.core.lsp.ValeurJson donnees();
 }
 
+### jo.celeris.core.lsp.IndiceLsp$Partie
+Compiled from "IndiceLsp.java"
+public final class jo.celeris.core.lsp.IndiceLsp$Partie extends java.lang.Record {
+  public jo.celeris.core.lsp.IndiceLsp$Partie(java.lang.String, jo.celeris.core.lsp.LieuLsp);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String valeur();
+  public jo.celeris.core.lsp.LieuLsp cible();
+}
+
+### jo.celeris.core.lsp.IndiceLsp
+Compiled from "IndiceLsp.java"
+public final class jo.celeris.core.lsp.IndiceLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.IndiceLsp(jo.celeris.core.lsp.PositionLsp, java.util.List<jo.celeris.core.lsp.IndiceLsp$Partie>, int, boolean, boolean);
+  public static jo.celeris.core.lsp.IndiceLsp de(jo.celeris.core.lsp.ValeurJson);
+  public static java.util.List<jo.celeris.core.lsp.IndiceLsp> liste(jo.celeris.core.lsp.ValeurJson);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.lsp.PositionLsp position();
+  public java.util.List<jo.celeris.core.lsp.IndiceLsp$Partie> parties();
+  public int genre();
+  public boolean remplissageGauche();
+  public boolean remplissageDroite();
+}
+
 ### jo.celeris.core.lsp.JetonSemantique
 Compiled from "JetonSemantique.java"
 public final class jo.celeris.core.lsp.JetonSemantique extends java.lang.Record {
@@ -342,6 +370,19 @@ Compiled from "LecteurNombre.java"
 final class jo.celeris.core.lsp.LecteurNombre {
 }
 
+### jo.celeris.core.lsp.LieuLsp
+Compiled from "LieuLsp.java"
+public final class jo.celeris.core.lsp.LieuLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.LieuLsp(java.lang.String, jo.celeris.core.lsp.PlageLsp);
+  public static jo.celeris.core.lsp.LieuLsp de(jo.celeris.core.lsp.ValeurJson);
+  public static java.util.List<jo.celeris.core.lsp.LieuLsp> liste(jo.celeris.core.lsp.ValeurJson);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String uri();
+  public jo.celeris.core.lsp.PlageLsp plage();
+}
+
 ### jo.celeris.core.lsp.ListeCompletion
 Compiled from "ListeCompletion.java"
 public final class jo.celeris.core.lsp.ListeCompletion {
@@ -413,6 +454,11 @@ Compiled from "OrdonnanceurLsp.java"
 public final class jo.celeris.core.lsp.OrdonnanceurLsp {
   public static jo.celeris.core.lsp.OrdonnanceurLsp sur(jo.celeris.core.lsp.ClientLsp);
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.ListeCompletion> completion(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SurvolLsp> survol(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.LieuLsp>> definition(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.LieuLsp>> references(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SignatureLsp> signature(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.IndiceLsp>> indices(java.lang.String, jo.celeris.core.lsp.PlageLsp);
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.EditionEspaceLsp> renommage(java.lang.String, jo.celeris.core.lsp.PositionLsp, java.lang.String);
   public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.CorrectifLsp>> correctifs(java.lang.String, jo.celeris.core.lsp.PlageLsp);
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.ValeurJson> demander(java.lang.String, jo.celeris.core.lsp.JsonObjet, jo.celeris.core.lsp.OrdonnanceurLsp$Priorite, jo.celeris.core.lsp.OrdonnanceurLsp$Cle);
@@ -505,6 +551,53 @@ public final class jo.celeris.core.lsp.RequeteRpc extends java.lang.Record imple
   public java.lang.String methode();
   public jo.celeris.core.lsp.ValeurJson params();
   public jo.celeris.core.lsp.ValeurJson versJson();
+}
+
+### jo.celeris.core.lsp.SignatureLsp$Entree
+Compiled from "SignatureLsp.java"
+public final class jo.celeris.core.lsp.SignatureLsp$Entree extends java.lang.Record {
+  public jo.celeris.core.lsp.SignatureLsp$Entree(java.lang.String, java.util.List<jo.celeris.core.lsp.SignatureLsp$Parametre>, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String libelle();
+  public java.util.List<jo.celeris.core.lsp.SignatureLsp$Parametre> parametres();
+  public java.lang.String documentation();
+}
+
+### jo.celeris.core.lsp.SignatureLsp$Parametre
+Compiled from "SignatureLsp.java"
+public final class jo.celeris.core.lsp.SignatureLsp$Parametre extends java.lang.Record {
+  public jo.celeris.core.lsp.SignatureLsp$Parametre(java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String libelle();
+  public java.lang.String documentation();
+}
+
+### jo.celeris.core.lsp.SignatureLsp
+Compiled from "SignatureLsp.java"
+public final class jo.celeris.core.lsp.SignatureLsp {
+  public static jo.celeris.core.lsp.SignatureLsp de(jo.celeris.core.lsp.ValeurJson);
+  public java.util.List<jo.celeris.core.lsp.SignatureLsp$Entree> entrees();
+  public int signatureActiveIndex();
+  public jo.celeris.core.lsp.SignatureLsp$Entree signatureActive();
+  public int parametreCourant();
+}
+
+### jo.celeris.core.lsp.SurvolLsp
+Compiled from "SurvolLsp.java"
+public final class jo.celeris.core.lsp.SurvolLsp extends java.lang.Record {
+  public static final jo.celeris.core.lsp.SurvolLsp VIDE;
+  public jo.celeris.core.lsp.SurvolLsp(java.lang.String, java.lang.String, jo.celeris.core.lsp.PlageLsp);
+  public static jo.celeris.core.lsp.SurvolLsp de(jo.celeris.core.lsp.ValeurJson);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String texte();
+  public java.lang.String genre();
+  public jo.celeris.core.lsp.PlageLsp plage();
 }
 
 ### jo.celeris.core.lsp.Transport

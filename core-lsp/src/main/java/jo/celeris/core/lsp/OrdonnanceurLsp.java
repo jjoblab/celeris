@@ -96,13 +96,89 @@ public final class OrdonnanceurLsp {
      * @return le futur de la liste de complétion
      */
     public CompletableFuture<ListeCompletion> completion(String uri, PositionLsp position) {
-        return demander("textDocument/completion",
+        return demander("textDocument/completion", parametresPosition(uri, position),
+                Priorite.INTERACTIF, new Cle(uri, "completion"))
+                .thenApply(ListeCompletion::de);
+    }
+
+    /**
+     * Le survol (B-09) : la documentation se RÉSOUT À LA DEMANDE — la
+     * requête part à l'appel, jamais avant — priorité interactive.
+     *
+     * @param uri      l'uri du document
+     * @param position la position survolée
+     * @return le futur du survol
+     */
+    public CompletableFuture<SurvolLsp> survol(String uri, PositionLsp position) {
+        return demander("textDocument/hover", parametresPosition(uri, position),
+                Priorite.INTERACTIF, new Cle(uri, "survol"))
+                .thenApply(SurvolLsp::de);
+    }
+
+    /**
+     * La définition (B-10) : les lieux donnés par le serveur — le
+     * chemin en ligne de la navigation, le retour au point de départ
+     * par l'historique M5-t4.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du symbole
+     * @return le futur des lieux de définition
+     */
+    public CompletableFuture<List<LieuLsp>> definition(String uri, PositionLsp position) {
+        return demander("textDocument/definition", parametresPosition(uri, position),
+                Priorite.INTERACTIF, new Cle(uri, "definition"))
+                .thenApply(LieuLsp::liste);
+    }
+
+    /**
+     * Les références (B-11) : le raffinement serveur des usages — le
+     * contexte exige les déclarations.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du symbole
+     * @return le futur des lieux de référence
+     */
+    public CompletableFuture<List<LieuLsp>> references(String uri, PositionLsp position) {
+        return demander("textDocument/references",
+                parametresPosition(uri, position)
+                        .ajouter("context", JsonObjet.vide()
+                                .ajouter("includeDeclaration", JsonBooleen.VRAI)),
+                Priorite.INTERACTIF, new Cle(uri, "references"))
+                .thenApply(LieuLsp::liste);
+    }
+
+    /**
+     * L'aide aux paramètres (B-07) : les signatures du serveur, la
+     * signature active et le paramètre courant borné — priorité
+     * interactive, l'utilisateur tape.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du curseur dans l'appel
+     * @return le futur de l'aide aux paramètres
+     */
+    public CompletableFuture<SignatureLsp> signature(String uri, PositionLsp position) {
+        return demander("textDocument/signatureHelp", parametresPosition(uri, position),
+                Priorite.INTERACTIF, new Cle(uri, "signature"))
+                .thenApply(SignatureLsp::de);
+    }
+
+    /**
+     * Les indices en ligne (B-08) : le serveur les rend pour la plage
+     * visible — priorité DE FOND, l'interactif du même document les
+     * devance (ADR-007).
+     *
+     * @param uri   l'uri du document
+     * @param plage la plage visible demandée
+     * @return le futur des indices de la plage
+     */
+    public CompletableFuture<List<IndiceLsp>> indices(String uri, PlageLsp plage) {
+        return demander("textDocument/inlayHint",
                 JsonObjet.vide()
                         .ajouter("textDocument", JsonObjet.vide()
                                 .ajouter("uri", JsonChaine.of(uri)))
-                        .ajouter("position", position.versJson()),
-                Priorite.INTERACTIF, new Cle(uri, "completion"))
-                .thenApply(ListeCompletion::de);
+                        .ajouter("range", plage.versJson()),
+                Priorite.FOND, new Cle(uri, "indices"))
+                .thenApply(IndiceLsp::liste);
     }
 
     /**
@@ -117,13 +193,18 @@ public final class OrdonnanceurLsp {
     public CompletableFuture<EditionEspaceLsp> renommage(String uri, PositionLsp position,
                                                          String nouveauNom) {
         return demander("textDocument/rename",
-                JsonObjet.vide()
-                        .ajouter("textDocument", JsonObjet.vide()
-                                .ajouter("uri", JsonChaine.of(uri)))
-                        .ajouter("position", position.versJson())
+                parametresPosition(uri, position)
                         .ajouter("newName", JsonChaine.of(nouveauNom)),
                 Priorite.INTERACTIF, new Cle(uri, "renommage"))
                 .thenApply(EditionEspaceLsp::de);
+    }
+
+    /** Les paramètres communs : le document porteur et la position visée. */
+    private static JsonObjet parametresPosition(String uri, PositionLsp position) {
+        return JsonObjet.vide()
+                .ajouter("textDocument", JsonObjet.vide()
+                        .ajouter("uri", JsonChaine.of(uri)))
+                .ajouter("position", position.versJson());
     }
 
     /**

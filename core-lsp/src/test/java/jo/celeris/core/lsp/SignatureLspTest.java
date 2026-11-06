@@ -1,6 +1,7 @@
 package jo.celeris.core.lsp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -54,6 +55,7 @@ class SignatureLspTest {
         // la signature active : la seconde, le paramètre courant : le premier
         assertEquals(1, aide.signatureActiveIndex());
         SignatureLsp.Entree active = aide.signatureActive();
+        assertNotNull(active);
         assertEquals("ajouter(int a, int b, int c)", active.libelle());
         assertEquals(0, aide.parametreCourant());
     }
