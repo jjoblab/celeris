@@ -1,30 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">démo celeris</string>
-    <string name="titre_accueil">celeris — démonstration</string>
-    <string name="catalogue_vide">Catalogue de scénarios vide : rempli à chaque jalon.</string>
-    <string name="nombre_scenarios">%1$d scénario(s)</string>
-    <string name="action_reglages">Réglages en direct</string>
-    <string name="titre_reglages">Réglages</string>
-    <string name="reglage_numeros">Numéros de ligne</string>
-    <string name="reglage_retour">Retour à la ligne souple</string>
-    <string name="reglage_theme">Thème sombre</string>
+    <string name="app_name">Démo Celeris</string>
+    <string name="accroche_marque">Éditeur de code embarquable · démonstration</string>
+    <string name="stat_fichiers">Fichiers</string>
+    <string name="stat_scenarios">Scénarios</string>
     <string name="section_exemples">Fichiers d\'exemple</string>
-    <string name="note_exemples">Ouvrez un fichier pour essayer l\'éditeur complet : syntaxe, plis, recherche, plan, thèmes.</string>
+    <string name="note_exemples">Ouvrez un fichier pour essayer l\'éditeur complet : syntaxe, plis, recherche, plan, thèmes, points d\'arrêt.</string>
+    <plurals name="sous_titre_fichier">
+        <item quantity="one">%1$s · %2$d ligne</item>
+        <item quantity="other">%1$s · %2$d lignes</item>
+    </plurals>
+    <string name="action_reglages">Réglages</string>
+    <string name="action_retour">Retour</string>
+    <string name="action_recherche">Rechercher</string>
     <string name="action_plan">Plan</string>
-    <string name="action_recherche">Recherche</string>
-    <string name="action_fermer">Fermer</string>
-    <string name="action_precedent">‹ Préc.</string>
-    <string name="action_suivant">Suiv. ›</string>
+    <string name="action_deboguer">Déboguer</string>
+    <string name="action_reprendre">Reprendre</string>
     <string name="action_annuler">Annuler</string>
     <string name="action_retablir">Rétablir</string>
     <string name="action_theme">Thème</string>
-    <string name="action_diminuer">A−</string>
-    <string name="action_agrandir">A+</string>
+    <string name="choix_theme">Thème : %1$s</string>
+    <string name="theme_clair">Clair</string>
+    <string name="theme_sombre">Sombre</string>
+    <string name="theme_contraste">Contraste élevé</string>
+    <string name="action_diminuer">Réduire le texte</string>
+    <string name="action_agrandir">Agrandir le texte</string>
+    <string name="action_fermer">Fermer</string>
+    <string name="action_precedent">Occurrence précédente</string>
+    <string name="action_suivant">Occurrence suivante</string>
     <string name="indication_recherche">Chercher dans le fichier</string>
     <string name="compteur_recherche">%1$d / %2$d</string>
-    <string name="aucun_resultat">0 / 0</string>
-    <string name="position_curseur">L%1$d : C%2$d</string>
-    <string name="action_deboguer">Déboguer</string>
-    <string name="action_reprendre">Reprendre</string>
+    <string name="aucun_resultat">Aucun résultat</string>
+    <string name="position_curseur">Lig %1$d, col %2$d</string>
+    <plurals name="compte_lignes">
+        <item quantity="one">%1$d ligne</item>
+        <item quantity="other">%1$d lignes</item>
+    </plurals>
+    <string name="etat_pause">Pause · ligne %1$d</string>
+    <plurals name="etat_arrets">
+        <item quantity="one">%1$d point d\'arrêt</item>
+        <item quantity="other">%1$d points d\'arrêt</item>
+    </plurals>
+    <string name="titre_reglages">Réglages</string>
+    <string name="reglage_numeros">Numéros de ligne</string>
+    <string name="desc_numeros">Afficher les numéros dans la gouttière</string>
+    <string name="reglage_retour">Retour à la ligne souple</string>
+    <string name="desc_retour">Replier les lignes longues au bord de la vue</string>
+    <string name="reglage_theme">Thème d\'éditeur sombre</string>
+    <string name="desc_theme">Basculer la palette de l\'éditeur entre clair et sombre</string>
 </resources>

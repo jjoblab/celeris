@@ -1,69 +1,79 @@
 package jo.celeris.demo;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
+import android.view.View;
 import android.widget.TextView;
 
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.appbar.MaterialToolbar;
+
 /**
- * Écran d'accueil de la démonstration : le catalogue des fichiers
- * d'exemple — un par langage P0 de la matrice — ouvre l'écran
- * d'éditeur complet ; le compte de scénarios et l'écran de réglages en
- * direct restent accessibles. Libellés en ressources `en`/`fr`
+ * Écran d'accueil de la démonstration : la carte de marque porte les
+ * deux compteurs réels du dépôt (fichiers d'exemple, scénarios du
+ * catalogue), puis chaque fichier devient une carte qui ouvre l'écran
+ * d'éditeur complet. Libellés en ressources {@code en}/{@code fr}
  * complètes (ADR-008).
  */
-public final class MainActivity extends Activity {
+public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle etat) {
         super.onCreate(etat);
-        ScrollView ascenseur = new ScrollView(this);
-        LinearLayout racine = new LinearLayout(this);
-        racine.setOrientation(LinearLayout.VERTICAL);
-        float densite = getResources().getDisplayMetrics().density;
-        int marge = Math.round(16 * densite);
-        racine.setPadding(marge, marge, marge, marge);
-        ascenseur.addView(racine);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
 
-        TextView titre = new TextView(this);
-        titre.setText(R.string.titre_accueil);
-        titre.setTextSize(20);
-        racine.addView(titre);
+        barre().inflateMenu(R.menu.menu_accueil);
+        barre().setOnMenuItemClickListener(element ->
+                element.getItemId() == R.id.action_reglages && ouvrirReglages());
 
-        TextView section = new TextView(this);
-        section.setText(R.string.section_exemples);
-        section.setTextSize(16);
-        racine.addView(section);
-        TextView note = new TextView(this);
-        note.setText(R.string.note_exemples);
-        racine.addView(note);
+        liste().setLayoutManager(new LinearLayoutManager(this));
+        liste().setAdapter(new AdaptateurFichiers(this::ouvrirFichier));
 
-        for (FichierExemple fichier : FichiersExemple.catalogue()) {
-            Button ouvrir = new Button(this);
-            ouvrir.setText(fichier.nom());
-            ouvrir.setOnClickListener(vue -> startActivity(new Intent(this, EditorActivity.class)
-                    .putExtra(EditorActivity.EXTRA_FICHIER, fichier.nom())));
-            racine.addView(ouvrir, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        }
+        poserStatistiques();
+        appliquerBordABord();
+    }
 
-        TextView catalogue = new TextView(this);
-        int nombre = ScenarioCatalog.scenarios().size();
-        catalogue.setText(nombre == 0
-                ? getString(R.string.catalogue_vide)
-                : getString(R.string.nombre_scenarios, nombre));
-        racine.addView(catalogue);
+    private MaterialToolbar barre() {
+        return findViewById(R.id.barre_accueil);
+    }
 
-        Button reglages = new Button(this);
-        reglages.setText(R.string.action_reglages);
-        reglages.setOnClickListener(
-                vue -> startActivity(new Intent(this, SettingsActivity.class)));
-        racine.addView(reglages);
+    private RecyclerView liste() {
+        return findViewById(R.id.liste_fichiers);
+    }
 
-        setContentView(ascenseur);
+    /** Les compteurs réels : fichiers du catalogue, scénarios connus. */
+    private void poserStatistiques() {
+        TextView fichiers = findViewById(R.id.stat_fichiers_valeur);
+        fichiers.setText(String.valueOf(FichiersExemple.catalogue().size()));
+        TextView scenarios = findViewById(R.id.stat_scenarios_valeur);
+        scenarios.setText(String.valueOf(ScenarioCatalog.scenarios().size()));
+    }
+
+    private boolean ouvrirReglages() {
+        startActivity(new Intent(this, SettingsActivity.class));
+        return true;
+    }
+
+    private void ouvrirFichier(CarteFichier carte) {
+        startActivity(new Intent(this, EditorActivity.class)
+                .putExtra(EditorActivity.EXTRA_FICHIER, carte.nom()));
+    }
+
+    /** Le chrome s'étend bord à bord : les encarts deviennent marges. */
+    private void appliquerBordABord() {
+        View racine = findViewById(R.id.racine_accueil);
+        ViewCompat.setOnApplyWindowInsetsListener(racine, (vue, encarts) -> {
+            Insets barres = encarts.getInsets(WindowInsetsCompat.Type.systemBars());
+            vue.setPadding(0, barres.top, 0, barres.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 }
