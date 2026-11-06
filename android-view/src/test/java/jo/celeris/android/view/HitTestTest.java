@@ -89,4 +89,41 @@ class HitTestTest {
         assertEquals(7, hit.columnAt(75f, 10));
         assertEquals(10, hit.columnAt(999f, 10), "au-delà de la fin, la colonne de fin");
     }
+
+    /**
+     * L'offset visé par un point : la rangée suit l'ordonnée
+     * (défilement compris), la colonne suit l'abscisse, bornée à la fin
+     * de la tranche visible.
+     */
+    @Test
+    void offsetViseParPointDeVue() {
+        HitTest hit = viseurFixe();
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        // deux lignes de 3 caractères, gouttière de 20 px, sans pli
+        jo.celeris.core.text.Document document =
+                jo.celeris.core.text.Document.of("abc\ndef");
+        VisualProjection projection = new VisualProjection(2, new FoldModel());
+
+        // premier caractère de la première ligne : y = 1 (quart bas du
+        // rang 0), x = gouttière + 2 (quart gauche du glyphe 0)
+        assertEquals(0, hit.offsetAt(document, projection, metrics,
+                20f, 0f, 0f, 22f, 1f));
+        // troisième caractère de la deuxième ligne
+        assertEquals(6, hit.offsetAt(document, projection, metrics,
+                20f, 0f, 0f, 42f, 21f), "y = 21 px : deuxième rangée");
+        // sans défilement, le même quart de glyphe sur la première
+        // rangée vise la colonne 2 de la première ligne
+        assertEquals(2, hit.offsetAt(document, projection, metrics,
+                20f, 0f, 0f, 42f, 1f), "y = 1 px : première rangée, colonne 2");
+        // défilement vertical d'une rangée : le point du haut vise
+        // désormais la deuxième rangée
+        assertEquals(6, hit.offsetAt(document, projection, metrics,
+                20f, 0f, 20f, 42f, 1f), "scrollY = 20 : deuxième rangée");
+        // au-delà de la fin de ligne, la colonne borne à la fin
+        assertEquals(3, hit.offsetAt(document, projection, metrics,
+                20f, 0f, 0f, 999f, 1f), "x démesuré : fin de la première ligne");
+        // au-delà du contenu, la rangée borne à la dernière
+        assertEquals(4, hit.offsetAt(document, projection, metrics,
+                20f, 0f, 0f, 22f, 999f), "y démesuré : dernière rangée");
+    }
 }

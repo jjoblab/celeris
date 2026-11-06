@@ -376,4 +376,47 @@ class GutterPainterTest {
         assertEquals(30f, GutterGeometry.width(3, 10f, 4f, 12f), 1e-6f,
                 "18 px de numéros + 12 px de coulisse");
     }
+
+    /**
+     * Numéros masqués : aucune étiquette tracée, la coulisse des
+     * marqueurs reste entière — la bascule des numéros (D-01) ne
+     * sacrifie ni les chevrons de pli (D-07) ni les marques d'erreur
+     * (D-02).
+     */
+    @Test
+    void numerosMasquesLaCoulisseResteEntiere() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        FoldModel replis = new FoldModel();
+        replis.fold(1, 3);
+        GutterMarks marques = GutterMarks.of(
+                List.of(new FoldSpan(1, 3)), replis, new int[] {0});
+        GutterPainter gouttiere = new GutterPainter(() -> new PinceauMutable(), 4f,
+                () -> marques, () -> 12f);
+        gouttiere.setNumerosVisibles(false);
+        image.addLayer(gouttiere);
+        Document document = Document.of("a\nb\nc\nd\ne");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        VisualProjection projection = new VisualProjection(5, replis);
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics,
+                THEME, 0, projection.rowCount(), 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(0, surface.textes().size(), "aucun numéro tracé");
+        assertEquals(2, surface.traits().size(), "le chevron de pli reste");
+        assertEquals(1, surface.rectangles().size(), "la marque d'erreur reste");
+    }
+
+    /**
+     * La largeur sans numéros se réduit à la coulisse et à sa
+     * respiration : le champ de numéros ne réserve rien (D-01).
+     */
+    @Test
+    void largeurSansNumerosReduiteALaCoulisse() {
+        assertEquals(20f, GutterGeometry.laneOnly(4f, 12f), 1e-6f,
+                "12 px de coulisse + 2 × 4 px de respiration");
+        assertEquals(8f, GutterGeometry.laneOnly(4f, 0f), 1e-6f,
+                "sans coulisse, la respiration seule reste");
+    }
 }
