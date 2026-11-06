@@ -9,6 +9,14 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 2 (M6) — le client LSP : poignée de main initialize/
+  initialized aux capacités analysées, documents versionnés à
+  synchronisation complète, diagnostics poussés décodés et stockés,
+  jetons sémantiques TIRÉS par requête — un flux indépendant des
+  diagnostics (PIEGE-18 couvert : le tir marche sans aucun diagnostic,
+  la tempête n'y change rien) —, transposition des positions UTF-16
+  aux bornes clampées, fil de travail propre et fermeture shutdown
+  puis exit ; 18 tests neufs.
 - Tranche 1 (M6) — le socle du client LSP (ADR-005, zéro dépendance
   tierce) : analyseur et sérialiseur JSON stricts (RFC 8259),
   enveloppes JSON-RPC 2.0 aux codes du protocole compris (annulations
