@@ -191,6 +191,26 @@ assemblé (1,27 Mo). Trois scénarios D au catalogue de la
 démonstration, les lignes E-02/E-03/E-04 de la matrice passent à
 couvert.
 
+## Hors tranche — la démonstration devient application (2026-11-06)
+
+Sur demande du propriétaire, l'interface de la démonstration passe du
+code programmatique nu à de vrais layouts Material 3 : identité visuelle
+sombre coordonnée à la palette de l'éditeur (marque «&#160;</>&#160;» en
+icône adaptative, dix-neuf icônes vectorielles, écran de démarrage),
+accueil en cartes (compteurs réels, monogrammes de langage teintés des
+encres syntaxiques, `CarteFichier` pur et testé), atelier d'édition
+remis en scène (barre d'application au menu d'actions, recherche en
+champ garni, barre d'état à chasse fixe — position, langage, état du
+débogueur), réglages en interrupteurs Material décrits, bord à bord
+unifié (`EdgeToEdge`, clavier compris). Correctif au passage :
+l'éditeur n'affichait jamais le contenu du fichier ouvert — la session
+n'était pas branchée sur la vue.
+
+### Preuve
+
+`:demo:check` vert (lint zéro erreur, Checkstyle, PMD, tests Jupiter —
+`CarteFichierTest` compris), `:demo:assembleDebug` assemblé.
+
 ## Reste ouvert (tranches suivantes de M7)
 
 1. **E-01 — l'adaptateur de production** : le framework d'accès au

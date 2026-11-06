@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Palette de l'habillage : coordonnée au thème sombre de l'éditeur
+     (EditorThemes.SOMBRE — anthracite 1E1F22, accent 8AB4F8) pour que
+     le chrome et la toile de l'éditeur forment un tout. -->
+<resources>
+    <!-- Fonds : le chrome plus sombre que la surface de l'éditeur. -->
+    <color name="fond">#14151A</color>
+    <color name="surface">#1E1F22</color>
+    <color name="surface_variante">#26282E</color>
+    <color name="surface_contenant_bas">#222429</color>
+
+    <!-- Encres. -->
+    <color name="encre">#E3E3E3</color>
+    <color name="encre_douce">#9AA0A6</color>
+    <color name="contour">#3A3D45</color>
+    <color name="contour_doux">#2C2F36</color>
+
+    <!-- Accent : le bleu clair de la sélection de l'éditeur. -->
+    <color name="primaire">#8AB4F8</color>
+    <color name="sur_primaire">#14243E</color>
+    <color name="primaire_contenant">#2D4A7A</color>
+    <color name="sur_primaire_contenant">#DCE7FB</color>
+    <color name="secondaire">#7FDBCA</color>
+    <color name="sur_secondaire">#0E2A26</color>
+
+    <!-- Marque : fond de l'icône adaptative. -->
+    <color name="marque_fond">#14151A</color>
+</resources>

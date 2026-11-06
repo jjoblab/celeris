@@ -9,6 +9,12 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- L'interface de la démonstration devient application : vrais layouts
+  Material 3 (accueil en cartes à monogrammes de langage, atelier
+  d'édition à barre d'application et menu, réglages décrits), identité
+  sombre coordonnée à la palette de l'éditeur, marque en icône
+  adaptative, bord à bord unifié clavier compris ; CarteFichier pur
+  et testé porte les cartes.
 - Tranche 5 (M7) — la peinture de gouttière des intégrations : barre
   de modification VCS au bord gauche de la coulisse (D-03, modifiée
   et ajoutée distinguées), point d'arrêt au centre (D-04, carré plein
@@ -435,6 +441,10 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Corrigé
 
+- la démonstration n'affichait jamais le contenu du fichier ouvert :
+  la session préparée n'était pas branchée sur EditorView, qui gardait
+  sa session vide d'origine — le branchement se fait à la création de
+  la scène.
 - le contrôle Javadoc de la politique de langue confondait le
   contenu des blocs de texte Java avec des déclarations — le code
   factice des tests bloquait la porte à tort ; l'état d'ouverture
