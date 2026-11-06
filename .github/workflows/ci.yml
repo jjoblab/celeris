@@ -76,3 +76,19 @@ jobs:
         run: ./gradlew check
       - name: Démonstration (APK debug)
         run: ./gradlew :demo:assembleDebug
+      - name: APK de démonstration signé (porte)
+        run: |
+          APK=$(ls demo/build/outputs/apk/debug/*.apk)
+          echo "APK examiné : $APK"
+          test -s "$APK"
+          # Le type debug signe par le magasin de clés de débogage du
+          # runner : apksigner doit vérifier la signature, sinon la porte
+          # échoue — un APK non signé ne traverse pas la CI.
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          "$APKSIGNER" verify --print-certs "$APK"
+      - name: APK de démonstration (artefact)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: demo-debug-apk
+          path: demo/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
