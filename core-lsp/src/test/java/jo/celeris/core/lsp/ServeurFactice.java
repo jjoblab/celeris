@@ -2,8 +2,10 @@ package jo.celeris.core.lsp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
@@ -21,7 +23,7 @@ public final class ServeurFactice implements AutoCloseable {
     private final Map<String, ValeurJson> reponsesScriptees = new HashMap<>();
     private ValeurJson capacites = JsonObjet.vide();
     private final List<RequeteRpc> requetesEnAttente = new ArrayList<>();
-    private @Nullable String methodeDifferee;
+    private final Set<String> methodesDifferees = new HashSet<>();
     private long compteurIds;
 
     private ServeurFactice(Transport transport) {
@@ -48,7 +50,7 @@ public final class ServeurFactice implements AutoCloseable {
     }
 
     private void repondreA(RequeteRpc requete) {
-        if (methodeDifferee != null && methodeDifferee.equals(requete.methode())) {
+        if (methodesDifferees.contains(requete.methode())) {
             requetesEnAttente.add(requete);
             return;
         }
@@ -101,7 +103,7 @@ public final class ServeurFactice implements AutoCloseable {
 
     /** Retient les requêtes de la méthode au lieu d'y répondre — le test les achèvera. */
     public synchronized void reponseDifferee(String methode) {
-        this.methodeDifferee = methode;
+        this.methodesDifferees.add(methode);
     }
 
     /** Acheve la plus ancienne requête retenue de la méthode — répond au client. */
