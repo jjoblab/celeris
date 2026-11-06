@@ -50,7 +50,8 @@ final class MemoireSystemeFichiersTest {
         assertTrue(enfants.contains(CheminDoc.de("/projet/a.txt")));
         assertTrue(enfants.contains(CheminDoc.de("/projet/b.txt")));
         assertEquals(1, systeme.lister(CheminDoc.de("/projet/src")).size());
-        assertEquals(1, systeme.lister(CheminDoc.racine()).size());
+        assertEquals(0, systeme.lister(CheminDoc.racine()).size(),
+                "la racine ne contient aucun fichier direct : « projet » est un dossier");
     }
 
     /** Réécrire remplace : une seule version, la dernière. */

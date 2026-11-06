@@ -26,8 +26,8 @@ final class FauxVcsTest {
                 new AnnotationBlame(3, "r2", "sofia", "correction"),
                 new AnnotationBlame(7, "r2", "sofia", "ajout"));
         List<RevisionVcs> revisions = List.of(
-                new RevisionVcs("r1", "amine", "2026-11-01", "creation"),
-                new RevisionVcs("r2", "sofia", "2026-11-05", "correction"));
+                new RevisionVcs("r2", "sofia", "2026-11-05", "correction"),
+                new RevisionVcs("r1", "amine", "2026-11-01", "creation"));
         return new FauxVcs(marques, supprimees, blame, revisions);
     }
 

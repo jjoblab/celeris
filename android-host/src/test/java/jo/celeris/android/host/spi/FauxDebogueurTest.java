@@ -2,6 +2,7 @@ package jo.celeris.android.host.spi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,7 +65,8 @@ final class FauxDebogueurTest {
     void horsPauseAucuneLigneCourante() {
         FauxDebogueur debogueur = new FauxDebogueur();
         assertNull(debogueur.ligneCourante());
-        assertNull(debogueur.pileCourante());
+        assertTrue(debogueur.pileCourante().isEmpty(),
+                "hors pause, la pile est vide — jamais null");
     }
 
     /** La pause signale la ligne et la pile ; l'exécution reprise libère. */
@@ -76,8 +78,10 @@ final class FauxDebogueurTest {
                 List.of(new CadrePile("App", "main", "App.java", 30),
                         new CadrePile("Service", "inscrire", "Service.java", 18)));
 
-        assertEquals(fichier, debogueur.ligneCourante().chemin());
-        assertEquals(18, debogueur.ligneCourante().ligne());
+        LigneArret courante = debogueur.ligneCourante();
+        assertNotNull(courante, "en pause, la ligne courante existe");
+        assertEquals(fichier, courante.fichier());
+        assertEquals(18, courante.ligne());
         assertEquals(2, debogueur.pileCourante().size());
         assertEquals("Service.java", debogueur.pileCourante().get(1).fichier());
 
@@ -90,7 +94,7 @@ final class FauxDebogueurTest {
     void survolBorneSansPause() {
         FauxDebogueur debogueur = new FauxDebogueur();
         assertThrows(IllegalStateException.class,
-                () -> debogueur.evaluerAuSurvol(CheminDoc.de("/a"), 3, 7));
+                () -> debogueur.evaluerAuSurvol(CheminDoc.de("/a"), 3, 7, "nom"));
     }
 
     /** En pause, le survol sert la valeur enregistrée pour la ligne. */
@@ -101,9 +105,9 @@ final class FauxDebogueurTest {
         debogueur.simulerPause(fichier, 18, List.of());
         debogueur.enregistrerSurvol(18, "nom", "\"amelie\"");
 
-        assertEquals("\"amelie\"", debogueur.evaluerAuSurvol(fichier, 18, 7));
+        assertEquals("\"amelie\"", debogueur.evaluerAuSurvol(fichier, 18, 7, "nom"));
         assertThrows(IllegalStateException.class,
-                () -> debogueur.evaluerAuSurvol(fichier, 4, 7),
+                () -> debogueur.evaluerAuSurvol(fichier, 4, 7, "nom"),
                 "ligne hors pile courante : survol refuse");
     }
 
