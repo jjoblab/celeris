@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Avant-plan de l'icône adaptative : la marque celeris, deux
+     chevrons et l'oblique — « </> » — dans l'accent bleu de
+     l'éditeur. Les traits restent dans la zone sûre centrale
+     (66 dp sur 108). Sert aussi d'icône animée de démarrage. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M42,40 L30,54 L42,68"
+        android:strokeColor="@color/primaire"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M60,38 L50,70"
+        android:strokeColor="@color/primaire"
+        android:strokeWidth="7"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M68,40 L80,54 L68,68"
+        android:strokeColor="@color/primaire"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

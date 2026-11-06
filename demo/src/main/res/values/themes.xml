@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thème de la démonstration : Material 3 sombre, l'identité d'un
+     éditeur de code moderne. Les couleurs viennent de colors.xml,
+     coordonnées à la palette sombre de l'éditeur. Le décor (bord-à-bord,
+     barres transparentes) est posé par enableEdgeToEdge dans chaque
+     activité ; les répliques par défaut couvrent l'aperçu. -->
+<resources>
+
+    <style name="Theme.Celeris.Base" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/primaire</item>
+        <item name="colorOnPrimary">@color/sur_primaire</item>
+        <item name="colorPrimaryContainer">@color/primaire_contenant</item>
+        <item name="colorOnPrimaryContainer">@color/sur_primaire_contenant</item>
+        <item name="colorSecondary">@color/secondaire</item>
+        <item name="colorOnSecondary">@color/sur_secondaire</item>
+        <item name="android:colorBackground">@color/fond</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/encre</item>
+        <item name="colorSurfaceVariant">@color/surface_variante</item>
+        <item name="colorOnSurfaceVariant">@color/encre_douce</item>
+        <item name="colorSurfaceContainerLow">@color/surface_contenant_bas</item>
+        <item name="colorOutline">@color/contour</item>
+        <item name="colorOutlineVariant">@color/contour_doux</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <style name="Theme.Celeris" parent="Theme.Celeris.Base" />
+</resources>

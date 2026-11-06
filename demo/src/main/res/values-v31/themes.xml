@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Réplique API 31+ : l'écran de démarrage aux couleurs de la marque
+     (le nom Theme.Celeris se substitue au sens près ; les attributs
+     communs vivent dans Theme.Celeris.Base). -->
+<resources>
+
+    <style name="Theme.Celeris" parent="Theme.Celeris.Base">
+        <item name="android:windowSplashScreenBackground">@color/marque_fond</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/marque_avant</item>
+    </style>
+</resources>
