@@ -20,6 +20,8 @@ public final class ServeurFactice implements AutoCloseable {
     private final List<String> trames = new ArrayList<>();
     private final Map<String, ValeurJson> reponsesScriptees = new HashMap<>();
     private ValeurJson capacites = JsonObjet.vide();
+    private final List<RequeteRpc> requetesEnAttente = new ArrayList<>();
+    private @Nullable String methodeDifferee;
     private long compteurIds;
 
     private ServeurFactice(Transport transport) {
@@ -46,6 +48,10 @@ public final class ServeurFactice implements AutoCloseable {
     }
 
     private void repondreA(RequeteRpc requete) {
+        if (methodeDifferee != null && methodeDifferee.equals(requete.methode())) {
+            requetesEnAttente.add(requete);
+            return;
+        }
         if ("initialize".equals(requete.methode())) {
             JsonObjet resultat = JsonObjet.vide().ajouter("capabilities", capacites);
             envoyerReponse(requete.id(), resultat, null);
@@ -91,6 +97,35 @@ public final class ServeurFactice implements AutoCloseable {
         transport.envoyer(JsonEcrivain.ecrire(
                 new RequeteRpc(compteurIds, methode, params).versJson()));
         return compteurIds;
+    }
+
+    /** Retient les requêtes de la méthode au lieu d'y répondre — le test les achèvera. */
+    public synchronized void reponseDifferee(String methode) {
+        this.methodeDifferee = methode;
+    }
+
+    /** Acheve la plus ancienne requête retenue de la méthode — répond au client. */
+    public synchronized void acheverRequete(String methode, ValeurJson resultat) {
+        for (int i = 0; i < requetesEnAttente.size(); i++) {
+            RequeteRpc requete = requetesEnAttente.get(i);
+            if (requete.methode().equals(methode)) {
+                requetesEnAttente.remove(i);
+                envoyerReponse(requete.id(), resultat, null);
+                return;
+            }
+        }
+        throw new IllegalStateException("no held request for " + methode);
+    }
+
+    /** Le nombre de requêtes retenues pour la méthode. */
+    public synchronized int requetesEnAttente(String methode) {
+        int compteur = 0;
+        for (RequeteRpc requete : requetesEnAttente) {
+            if (requete.methode().equals(methode)) {
+                compteur++;
+            }
+        }
+        return compteur;
     }
 
     @Override
