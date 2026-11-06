@@ -1,22 +1,27 @@
 package jo.celeris.demo;
 
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
-import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.List;
 
@@ -25,6 +30,7 @@ import jo.celeris.android.host.spi.CadrePile;
 import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.EtatLignesVcs;
 import jo.celeris.android.host.spi.FauxDebogueur;
+import jo.celeris.android.host.spi.LigneArret;
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorThemes;
 import jo.celeris.android.view.EditorView;
@@ -40,13 +46,14 @@ import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
 /**
- * L'écran d'éditeur de la démonstration : un fichier d'exemple ouvert
+ * L'atelier d'édition de la démonstration : un fichier d'exemple ouvert
  * dans la vue Canvas complète — coloration, plis, recherche, plan,
- * thèmes, zoom et annulation. Les réglages persistés (numéros, retour
- * souple, thème, taille de police) se réappliquent au retour de
- * l'écran de réglages en direct.
+ * thèmes, zoom et annulation — porté par un vrai layout (barre
+ * d'application au menu d'actions, barre de recherche dépliable, barre
+ * d'état en police à chasse fixe). Les réglages persistés se
+ * réappliquent au retour de l'écran de réglages en direct.
  */
-public final class EditorActivity extends Activity {
+public final class EditorActivity extends AppCompatActivity {
 
     /** La clé de l'intention : le nom du fichier d'exemple à ouvrir. */
     public static final String EXTRA_FICHIER = "fichier";
@@ -72,23 +79,19 @@ public final class EditorActivity extends Activity {
     private TextView compteurRecherche;
     private TextView etiquettePosition;
     private TextView etiquetteLangue;
+    private TextView etiquetteArrets;
     private SharedPreferences prefs;
     private String nomFichier;
     private String reference;
     private CheminDoc chemin;
     private final FauxDebogueur debogueur = new FauxDebogueur();
-    private Button boutonDebogage;
 
     @Override
     protected void onCreate(Bundle etat) {
         super.onCreate(etat);
+        EdgeToEdge.enable(this);
         prefs = getSharedPreferences("celeris", Context.MODE_PRIVATE);
-        nomFichier = getIntent().getStringExtra(EXTRA_FICHIER);
-        FichierExemple fichier = FichiersExemple.parNom(
-                nomFichier == null ? FichiersExemple.premier().nom() : nomFichier);
-        if (fichier == null) {
-            fichier = FichiersExemple.premier();
-        }
+        FichierExemple fichier = resoudreFichier();
         nomFichier = fichier.nom();
         reference = fichier.contenu();
         chemin = CheminDoc.de("/" + nomFichier);
@@ -98,8 +101,11 @@ public final class EditorActivity extends Activity {
             majPosition();
             majMarques();
         });
-        setContentView(construireInterface());
+        setContentView(R.layout.activity_editor);
+        brancherBarre();
+        brancherScene();
         appliquerPreferences();
+        appliquerBordABord();
     }
 
     @Override
@@ -109,44 +115,21 @@ public final class EditorActivity extends Activity {
         appliquerPreferences();
     }
 
-    private ViewGroup construireInterface() {
-        LinearLayout racine = new LinearLayout(this);
-        racine.setOrientation(LinearLayout.VERTICAL);
-        float densite = getResources().getDisplayMetrics().density;
-        int marge = Math.round(4 * densite);
-        racine.setPadding(marge, marge, marge, marge);
-        racine.addView(barreOutils());
-        barreRechercheVue = barreRecherche();
-        barreRechercheVue.setVisibility(View.GONE);
-        racine.addView(barreRechercheVue);
-        racine.addView(sceneEdition(),
-                new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-        racine.addView(barreEtat());
-        return racine;
+    private FichierExemple resoudreFichier() {
+        String demande = getIntent().getStringExtra(EXTRA_FICHIER);
+        FichierExemple fichier = FichiersExemple.parNom(
+                demande == null ? FichiersExemple.premier().nom() : demande);
+        return fichier == null ? FichiersExemple.premier() : fichier;
     }
 
-    private LinearLayout barreOutils() {
-        LinearLayout barre = new LinearLayout(this);
-        barre.setOrientation(LinearLayout.HORIZONTAL);
-        TextView titre = new TextView(this);
-        titre.setText(nomFichier);
-        titre.setTextSize(16);
-        titre.setGravity(Gravity.CENTER_VERTICAL);
-        barre.addView(titre, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
-        barre.addView(bouton(R.string.action_plan, vue -> basculerPlan()));
-        barre.addView(bouton(R.string.action_recherche, vue -> ouvrirRecherche()));
-        barre.addView(bouton(R.string.action_reglages,
-                vue -> startActivity(new Intent(this, SettingsActivity.class))));
-        return barre;
-    }
+    private void brancherBarre() {
+        MaterialToolbar barre = findViewById(R.id.barre_editeur);
+        barre.setTitle(nomFichier);
+        barre.setNavigationOnClickListener(vue -> finish());
+        barre.setOnMenuItemClickListener(this::surMenu);
 
-    private LinearLayout barreRecherche() {
-        LinearLayout barre = new LinearLayout(this);
-        barre.setOrientation(LinearLayout.HORIZONTAL);
-        champRecherche = new EditText(this);
-        champRecherche.setInputType(InputType.TYPE_CLASS_TEXT);
-        champRecherche.setHint(R.string.indication_recherche);
+        barreRechercheVue = findViewById(R.id.barre_recherche);
+        champRecherche = findViewById(R.id.champ_recherche);
         champRecherche.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int d, int n, int a) {
@@ -164,78 +147,88 @@ public final class EditorActivity extends Activity {
                 majCompteurRecherche();
             }
         });
-        barre.addView(champRecherche, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        compteurRecherche = new TextView(this);
-        compteurRecherche.setGravity(Gravity.CENTER_VERTICAL);
-        barre.addView(compteurRecherche, new LinearLayout.LayoutParams(
-                Math.round(64 * getResources().getDisplayMetrics().density),
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        barre.addView(bouton(R.string.action_precedent, vue -> sauterRecherche(false)));
-        barre.addView(bouton(R.string.action_suivant, vue -> sauterRecherche(true)));
-        barre.addView(bouton(R.string.action_fermer, vue -> fermerRecherche()));
-        return barre;
+        compteurRecherche = findViewById(R.id.compteur_recherche);
+        bouton(R.id.bouton_precedent, vue -> sauterRecherche(false));
+        bouton(R.id.bouton_suivant, vue -> sauterRecherche(true));
+        bouton(R.id.bouton_fermer_recherche, vue -> fermerRecherche());
     }
 
-    private FrameLayout sceneEdition() {
-        FrameLayout scene = new FrameLayout(this);
-        editeur = new EditorView(this);
-        // Le contenu du fichier ouvert doit vivre dans l'éditeur : sans
-        // ce branchement, la vue garde sa session vide d'origine.
-        editeur.setSession(session);
-        scene.addView(editeur, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        editeur.setOnTouchListener((vue, evenement) -> {
-            vue.post(this::majPosition);
+    private void bouton(int identifiant, View.OnClickListener ecouteur) {
+        ImageButton bouton = findViewById(identifiant);
+        bouton.setOnClickListener(ecouteur);
+    }
+
+    private boolean surMenu(MenuItem element) {
+        int action = element.getItemId();
+        if (action == R.id.action_recherche) {
+            ouvrirRecherche();
+        } else if (action == R.id.action_plan) {
+            basculerPlan();
+        } else if (action == R.id.action_debogage) {
+            basculerDebogage();
+        } else if (action == R.id.action_annuler) {
+            rejouer(false);
+        } else if (action == R.id.action_retablir) {
+            rejouer(true);
+        } else if (action == R.id.action_theme) {
+            tournerTheme();
+        } else if (action == R.id.action_diminuer) {
+            zoomerPolice(-PAS_TAILLE);
+        } else if (action == R.id.action_agrandir) {
+            zoomerPolice(PAS_TAILLE);
+        } else if (action == R.id.action_reglages) {
+            startActivity(new Intent(this, SettingsActivity.class));
+        } else {
             return false;
-        });
+        }
+        return true;
+    }
+
+    private void brancherScene() {
+        editeur = findViewById(R.id.editeur);
+        // Le contenu du fichier ouvert doit vivre dans l'éditeur.
+        editeur.setSession(session);
+        // Toute animation de vue (défilement, clic) rafraîchit la
+        // position ; les clics restent portés par EditorView, qui
+        // redéfinit performClick.
+        editeur.setOnTouchListener(suivreCurseur());
         editeur.setSurPlan(entrees -> editeur.post(() -> plan.setEntries(entrees)));
         // Le terrain d'essai du débogueur : le clic dans le champ des
         // numéros pose et retire les points d'arrêt (D-04).
         editeur.marquesGouttiere().setSurClicLigne(this::basculerArret);
-        plan = new OutlineView(this, null);
+
+        plan = findViewById(R.id.plan);
         plan.setBackgroundColor(Color.argb(235, 32, 33, 36));
-        plan.setVisibility(View.GONE);
-        int largeurPlan = Math.round(getWidthEcran() * PART_PLAN);
-        FrameLayout.LayoutParams parametresPlan = new FrameLayout.LayoutParams(
-                largeurPlan, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.END);
-        parametresPlan.setMargins(0, 0, 0, 0);
-        scene.addView(plan, parametresPlan);
+        plan.getLayoutParams().width = Math.round(largeurEcran() * PART_PLAN);
         plan.setSurClic(this::sautVersEntree);
-        return scene;
+
+        etiquettePosition = findViewById(R.id.etat_position);
+        etiquetteLangue = findViewById(R.id.etat_langue);
+        etiquetteArrets = findViewById(R.id.etat_arrets);
     }
 
-    private LinearLayout barreEtat() {
-        LinearLayout barre = new LinearLayout(this);
-        barre.setOrientation(LinearLayout.HORIZONTAL);
-        etiquettePosition = new TextView(this);
-        etiquettePosition.setGravity(Gravity.CENTER_VERTICAL);
-        barre.addView(etiquettePosition, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
-        etiquetteLangue = new TextView(this);
-        etiquetteLangue.setGravity(Gravity.CENTER_VERTICAL);
-        barre.addView(etiquetteLangue);
-        boutonDebogage = bouton(R.string.action_deboguer, vue -> basculerDebogage());
-        barre.addView(boutonDebogage);
-        barre.addView(bouton(R.string.action_diminuer, vue -> zoomerPolice(-PAS_TAILLE)));
-        barre.addView(bouton(R.string.action_agrandir, vue -> zoomerPolice(PAS_TAILLE)));
-        barre.addView(bouton(R.string.action_annuler, vue -> rejouer(false)));
-        barre.addView(bouton(R.string.action_retablir, vue -> rejouer(true)));
-        barre.addView(bouton(R.string.action_theme, vue -> tournerTheme()));
-        return barre;
+    @SuppressLint("ClickableViewAccessibility")
+    private View.OnTouchListener suivreCurseur() {
+        return (vue, evenement) -> {
+            vue.post(this::majPosition);
+            return false;
+        };
     }
 
-    private Button bouton(int libelle, View.OnClickListener ecouteur) {
-        Button bouton = new Button(this);
-        bouton.setText(libelle);
-        bouton.setOnClickListener(ecouteur);
-        bouton.setPadding(0, 0, 0, 0);
-        bouton.setMinWidth(Math.round(44 * getResources().getDisplayMetrics().density));
-        return bouton;
+    /** Le chrome s'étend bord à bord : encarts système et clavier
+     *  deviennent des marges, la barre d'état reste au-dessus du clavier. */
+    private void appliquerBordABord() {
+        View racine = findViewById(R.id.racine_editeur);
+        ViewCompat.setOnApplyWindowInsetsListener(racine, (vue, encarts) -> {
+            Insets barres = encarts.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets clavier = encarts.getInsets(WindowInsetsCompat.Type.ime());
+            vue.setPadding(0, barres.top, 0, Math.max(barres.bottom, clavier.bottom));
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     private void appliquerPreferences() {
-        int indexTheme = Math.min(Math.max(prefs.getInt(CLE_THEME, 0), 0), THEMES.length - 1);
+        int indexTheme = indexThemeCourant();
         editeur.setTheme(THEMES[indexTheme]);
         editeur.setNumerosVisibles(prefs.getBoolean(CLE_NUMEROS, true));
         editeur.setSoftWrap(prefs.getBoolean(CLE_RETOUR, false));
@@ -244,14 +237,33 @@ public final class EditorActivity extends Activity {
         LanguageSyntax langue = FichiersExemple.languePour(nomFichier);
         editeur.setLanguage(langue);
         etiquetteLangue.setText(langue == null ? nomFichier : langue.id());
+        majTitreTheme();
         majPosition();
     }
 
+    private int indexThemeCourant() {
+        return Math.min(Math.max(prefs.getInt(CLE_THEME, 0), 0), THEMES.length - 1);
+    }
+
     private void tournerTheme() {
-        int courant = Math.min(Math.max(prefs.getInt(CLE_THEME, 0), 0), THEMES.length - 1);
-        int suivant = (courant + 1) % THEMES.length;
+        int suivant = (indexThemeCourant() + 1) % THEMES.length;
         prefs.edit().putInt(CLE_THEME, suivant).apply();
         editeur.setTheme(THEMES[suivant]);
+        majTitreTheme();
+    }
+
+    private void majTitreTheme() {
+        MaterialToolbar barre = findViewById(R.id.barre_editeur);
+        barre.getMenu().findItem(R.id.action_theme)
+                .setTitle(getString(R.string.choix_theme, nomTheme()));
+    }
+
+    private String nomTheme() {
+        return getString(switch (indexThemeCourant()) {
+            case 1 -> R.string.theme_sombre;
+            case 2 -> R.string.theme_contraste;
+            default -> R.string.theme_clair;
+        });
     }
 
     private void zoomerPolice(float pas) {
@@ -321,6 +333,7 @@ public final class EditorActivity extends Activity {
         } else {
             debogueur.retirerArret(chemin, ligne + 1);
         }
+        majEtatDebogage();
         majMarques();
     }
 
@@ -343,9 +356,26 @@ public final class EditorActivity extends Activity {
                     new CadrePile("Exemple", "appelant", chemin.nom(),
                             Math.max(1, ligne - 2))));
         }
-        boutonDebogage.setText(debogueur.ligneCourante() != null
-                ? R.string.action_reprendre : R.string.action_deboguer);
+        majEtatDebogage();
         majMarques();
+    }
+
+    private void majEtatDebogage() {
+        LigneArret pause = debogueur.ligneCourante();
+        if (pause != null) {
+            etiquetteArrets.setText(getString(R.string.etat_pause, pause.ligne()));
+            etiquetteArrets.setVisibility(View.VISIBLE);
+        } else {
+            long nombre = debogueur.arrets().stream()
+                    .filter(arret -> arret.fichier().equals(chemin)).count();
+            etiquetteArrets.setText(getResources().getQuantityString(
+                    R.plurals.etat_arrets, (int) nombre, (int) nombre));
+            etiquetteArrets.setVisibility(nombre == 0 ? View.GONE : View.VISIBLE);
+        }
+        MaterialToolbar barre = findViewById(R.id.barre_editeur);
+        barre.getMenu().findItem(R.id.action_debogage)
+                .setIcon(pause == null ? R.drawable.ic_debogage : R.drawable.ic_reprendre)
+                .setTitle(pause == null ? R.string.action_deboguer : R.string.action_reprendre);
     }
 
     /**
@@ -375,7 +405,7 @@ public final class EditorActivity extends Activity {
                 ligne + 1, colonne));
     }
 
-    private int getWidthEcran() {
+    private int largeurEcran() {
         return getResources().getDisplayMetrics().widthPixels;
     }
 }

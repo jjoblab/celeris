@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le menu de l'atelier : recherche, plan et débogage en icônes
+     directes ; annulations, thème, zoom et réglages en réserve. Le
+     libellé du thème et l'icône de débogage sont ajustés à l'exécution
+     (EditorActivity). -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_recherche"
+        android:icon="@drawable/ic_recherche"
+        android:title="@string/action_recherche"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_plan"
+        android:icon="@drawable/ic_plan"
+        android:title="@string/action_plan"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_debogage"
+        android:icon="@drawable/ic_debogage"
+        android:title="@string/action_deboguer"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_annuler"
+        android:icon="@drawable/ic_annuler"
+        android:title="@string/action_annuler"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_retablir"
+        android:icon="@drawable/ic_retablir"
+        android:title="@string/action_retablir"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_theme"
+        android:icon="@drawable/ic_theme"
+        android:title="@string/action_theme"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_diminuer"
+        android:icon="@drawable/ic_diminuer"
+        android:title="@string/action_diminuer"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_agrandir"
+        android:icon="@drawable/ic_agrandir"
+        android:title="@string/action_agrandir"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_reglages"
+        android:icon="@drawable/ic_reglages"
+        android:title="@string/action_reglages"
+        app:showAsAction="never" />
+</menu>

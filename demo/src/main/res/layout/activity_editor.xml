@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- L'atelier d'édition : barre d'application au nom du fichier et au
+     menu d'actions (recherche, plan, débogage, annulations, thème,
+     zoom, réglages), barre de recherche dépliable en champ garni,
+     scène pleine (EditorView, le plan en tiroir à droite) et barre
+     d'état en police à chasse fixe. Les encarts système et clavier
+     deviennent des marges du chrome (bord à bord, EditorActivity). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/racine_editeur"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/barre_editeur"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            app:menu="@menu/menu_editeur"
+            app:navigationContentDescription="@string/action_retour"
+            app:navigationIcon="@drawable/ic_retour"
+            app:subtitleTextAppearance="@style/TextAppearance.Material3.TitleSmall"
+            app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:id="@+id/barre_recherche"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:boxBackgroundColor="@color/surface_variante"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxStrokeWidth="0dp"
+            app:boxStrokeWidthFocused="0dp"
+            app:hintEnabled="false"
+            app:startIconDrawable="@drawable/ic_recherche">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/champ_recherche"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/indication_recherche"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/compteur_recherche"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:fontFamily="monospace"
+            android:minWidth="52dp"
+            android:textAlignment="center"
+            android:textColor="@color/encre_douce"
+            android:textSize="13sp" />
+
+        <ImageButton
+            android:id="@+id/bouton_precedent"
+            style="?attr/materialIconButtonStyle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@string/action_precedent"
+            android:src="@drawable/ic_monter"
+            app:iconSize="20dp" />
+
+        <ImageButton
+            android:id="@+id/bouton_suivant"
+            style="?attr/materialIconButtonStyle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@string/action_suivant"
+            android:src="@drawable/ic_descendre"
+            app:iconSize="20dp" />
+
+        <ImageButton
+            android:id="@+id/bouton_fermer_recherche"
+            style="?attr/materialIconButtonStyle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@string/action_fermer"
+            android:src="@drawable/ic_fermer"
+            app:iconSize="20dp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/scene_edition"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <jo.celeris.android.view.EditorView
+            android:id="@+id/editeur"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <jo.celeris.android.widgets.OutlineView
+            android:id="@+id/plan"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/barre_etat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp">
+
+        <TextView
+            android:id="@+id/etat_position"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:singleLine="true"
+            android:textColor="@color/encre_douce"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/etat_langue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:fontFamily="monospace"
+            android:textColor="@color/encre_douce"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/etat_arrets"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:fontFamily="monospace"
+            android:textColor="@color/primaire"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>
