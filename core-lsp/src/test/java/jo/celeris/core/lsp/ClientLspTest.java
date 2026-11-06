@@ -91,14 +91,16 @@ class ClientLspTest {
         List<MessageRpc> messages = messagesRecus();
         NotificationRpc ouverture = (NotificationRpc) messages.get(2);
         assertEquals("textDocument/didOpen", ouverture.methode());
-        JsonObjet docOuverture = assertInstanceOf(JsonObjet.class, ouverture.params())
-                .membreOu("textDocument", JsonObjet.vide());
+        JsonObjet docOuverture = assertInstanceOf(JsonObjet.class,
+                assertInstanceOf(JsonObjet.class, ouverture.params())
+                        .membreOu("textDocument", JsonObjet.vide()));
         assertEquals("file:///A.java", docOuverture.membreTexte("uri"));
         assertEquals("java", docOuverture.membreTexte("languageId"));
         assertEquals("class A {}\n", docOuverture.membreTexte("text"));
         NotificationRpc changement = (NotificationRpc) messages.get(3);
-        JsonObjet docChangement = assertInstanceOf(JsonObjet.class, changement.params())
-                .membreOu("textDocument", JsonObjet.vide());
+        JsonObjet docChangement = assertInstanceOf(JsonObjet.class,
+                assertInstanceOf(JsonObjet.class, changement.params())
+                        .membreOu("textDocument", JsonObjet.vide()));
         assertEquals(2, assertInstanceOf(JsonNombre.class,
                 docChangement.membre("version")).entier());
         JsonTableau evenements = assertInstanceOf(JsonTableau.class,
@@ -106,7 +108,7 @@ class ClientLspTest {
                         .membre("contentChanges"));
         assertEquals("class A { void f() {} }\n",
                 assertInstanceOf(JsonObjet.class, evenements.element(0)).membreTexte("text"));
-        assertEquals("textDocument/didClose", messagesRecus().get(5).methode());
+        assertEquals("textDocument/didClose", methode(messagesRecus().get(5)));
         // le client suit les versions : dernière version envoyée, puis état oublié à la fermeture
         client.ouvrir("file:///A.java", "java", "x");
         assertEquals(1, client.versionDe("file:///A.java"));
@@ -138,6 +140,7 @@ class ClientLspTest {
         serveur.notifier("textDocument/publishDiagnostics", JsonObjet.vide()
                 .ajouter("uri", JsonChaine.of("file:///B.kt"))
                 .ajouter("diagnostics", JsonTableau.vide()));
+        attendreCondition(() -> uris.size() == 3);
         assertEquals(List.of("file:///A.java:2", "file:///A.java:1", "file:///B.kt:0"), uris);
         assertEquals(1, client.diagnosticsDe("file:///A.java").size());
         assertEquals("autre", client.diagnosticsDe("file:///A.java").get(0).message());
@@ -153,6 +156,7 @@ class ClientLspTest {
                 .ajouter("uri", JsonChaine.of("file:///A.java"))
                 .ajouter("diagnostics", JsonTableau.vide()
                         .ajouter(diagnostic("(2,4)-(2,9)", 1, "missing return"))));
+        attendreCondition(() -> !client.diagnosticsDe("file:///A.java").isEmpty());
         DiagnosticLsp diagnostic = client.diagnosticsDe("file:///A.java").get(0);
         assertEquals(new PositionLsp(2, 4), diagnostic.plage().debut());
         assertEquals(new PositionLsp(2, 9), diagnostic.plage().fin());
@@ -190,7 +194,8 @@ class ClientLspTest {
     void laRequeteServeurInconnue() {
         client.initialiser(JsonObjet.vide());
         serveur.envoyerRequete("workspace/configuration", JsonObjet.vide());
-        attendreCondition(() -> !serveur.tramesRecues().isEmpty());
+        attendreCondition(() -> messagesRecus().stream()
+                .anyMatch(message -> message instanceof ReponseRpc));
         ReponseRpc reponse = derniereReponse();
         assertTrue(reponse.erreur() != null);
         assertEquals(ErreurRpc.METHOD_NOT_FOUND, reponse.erreur().code());
@@ -205,6 +210,14 @@ class ClientLspTest {
                 .toList();
     }
 
+    /** La méthode d'un message, requête ou notification. */
+    private static String methode(MessageRpc message) {
+        if (message instanceof RequeteRpc requete) {
+            return requete.methode();
+        }
+        return ((NotificationRpc) message).methode();
+    }
+
     /** La dernière réponse reçue par le serveur factice. */
     private ReponseRpc derniereReponse() {
         List<MessageRpc> messages = messagesRecus();
@@ -213,9 +226,9 @@ class ClientLspTest {
 
     /** Un diagnostic JSON : plage en texte « (l,c)-(l,c) », gravité, message, code, source. */
     private static ValeurJson diagnostic(String plage, int gravite, String message) {
-        String[] bornes = plage.split("-");
-        String[] debut = bornes[0].replaceAll("[() ]", "").split(",");
-        String[] fin = bornes[1].replaceAll("[() ]", "").split(",");
+        String[] bornes = plage.split("-", -1);
+        String[] debut = bornes[0].replaceAll("[() ]", "").split(",", -1);
+        String[] fin = bornes[1].replaceAll("[() ]", "").split(",", -1);
         return JsonObjet.vide()
                 .ajouter("range", JsonObjet.vide()
                         .ajouter("start", JsonObjet.vide()

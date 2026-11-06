@@ -18,9 +18,9 @@ import org.junit.jupiter.api.Test;
  * pas dépendre de l'état des diagnostics. Dans le dépôt de départ, les
  * jetons n'étaient rafraîchis qu'à l'arrivée des diagnostics — un
  * serveur silencieux sur les erreurs laissait la coloration sémantique
- * périmée. Ici, chaque flux vit sa vie : les jetons arrivent, se
- * stockent et se publient seuls ; les diagnostics n'y peuvent rien,
- * ni leur absence, ni leur tempête.</p>
+ * périmée. Ici, les jetons se TIRENT par requête, les diagnostics se
+ * POUSSENT par notification : deux flux distincts, l'un ne conditionne
+ * jamais l'autre.</p>
  */
 class JetonsSemantiquesFluxTest {
 
@@ -43,35 +43,80 @@ class JetonsSemantiquesFluxTest {
     }
 
     /**
-     * PIEGE-18 — les jetons ne dépendent pas de l'état des diagnostics :
-     * sans aucun diagnostic émis, les jetons arrivent, se stockent et se
-     * publient ; une tempête de diagnostics ensuite ne les change pas —
-     * et les deux flux vivent sans auditeur l'un de l'autre.
+     * PIEGE-18 — le tir sémantique ne dépend pas de l'état des
+     * diagnostics : sans qu'AUCUN diagnostic ne soit jamais émis, les
+     * jetons se tirent, se stockent et se publient ; une tempête de
+     * diagnostics ensuite ne les change pas — et le tir continue après.
      */
     @Test
     void semanticTokens_independentOfDiagnostics() {
         List<String> urisJetons = new ArrayList<>();
         client.ajouterAuditeurJetons((uri, jetons) -> urisJetons.add(uri));
-        // AUCUN diagnostic n'est jamais émis pour ce document : les jetons
-        // arrivent quand même — publiés et stockés
-        serveur.notifier("textDocument/semanticTokens/full", JsonObjet.vide()
-                .ajouter("textDocument", JsonObjet.vide()
-                        .ajouter("uri", JsonChaine.of("file:///A.java")))
-                .ajouter("resultId", JsonChaine.of("jetons-1"))
-                .ajouter("data", JsonTableau.vide()
-                        .ajouter(JsonNombre.of(0)).ajouter(JsonNombre.of(4))
-                        .ajouter(JsonNombre.of(5)).ajouter(JsonNombre.of(0))
-                        .ajouter(JsonNombre.of(0))));
-        attendreCondition(() -> !urisJetons.isEmpty());
+        // AUCUN diagnostic n'est jamais émis pour ce document : le tir
+        // marche quand même — stocké et publié
+        scripterJetons("jetons-1", 0, 4, 5, 0, 0);
+        JetonsSemantiques jetons = client.tirerJetons("file:///A.java");
         assertEquals(List.of("file:///A.java"), urisJetons);
-        assertEquals(1, client.jetonsDe("file:///A.java").jetons().size());
-        assertEquals(new JetonSemantique(0, 4, 5, 0, 0),
-                client.jetonsDe("file:///A.java").jetons().get(0));
+        assertEquals(List.of(new JetonSemantique(0, 4, 5, 0, 0)), jetons.jetons());
+        assertEquals(List.of(new JetonSemantique(0, 4, 5, 0, 0)),
+                client.jetonsDe("file:///A.java").jetons());
 
         // une tempête de diagnostics pour le même document : les jetons ne
         // changent pas d'un iota — même liste, même résultat
+        servirDiagnostics("file:///A.java");
+        attendreCondition(() -> client.diagnosticsDe("file:///A.java").size() == 1);
+        assertEquals(List.of(new JetonSemantique(0, 4, 5, 0, 0)),
+                client.jetonsDe("file:///A.java").jetons());
+        // et le tir continue d'arriver après les diagnostics, sans y passer
+        scripterJetons("jetons-2", 1, 0, 3, 1, 0);
+        JetonsSemantiques seconds = client.tirerJetons("file:///A.java");
+        assertEquals("jetons-2", seconds.identifiantResultat());
+        assertEquals(List.of(new JetonSemantique(1, 0, 3, 1, 0)),
+                client.jetonsDe("file:///A.java").jetons());
+        // le flux jetons vit sans auditeur diagnostics — et réciproquement
+        assertTrue(client.diagnosticsDe("file:///A.java").size() == 1);
+    }
+
+    /** Chaque uri vit sa vie : les jetons d'un document ne débordent pas sur l'autre. */
+    @Test
+    void lesJetonsParDocument() {
+        scripterJetons("jetons-A", 0, 0, 1, 0, 0);
+        client.tirerJetons("file:///A.java");
+        scripterJetons("jetons-B", 2, 1, 2, 1, 0);
+        client.tirerJetons("file:///B.kt");
+        assertEquals(List.of(new JetonSemantique(0, 0, 1, 0, 0)),
+                client.jetonsDe("file:///A.java").jetons());
+        assertEquals(List.of(new JetonSemantique(2, 1, 2, 1, 0)),
+                client.jetonsDe("file:///B.kt").jetons());
+        assertTrue(client.jetonsDe("file:///inconnu.kt").jetons().isEmpty());
+    }
+
+    /** Le serveur sans jetons : réponse vide, tir vide — jamais d'exception. */
+    @Test
+    void leTirVide() {
+        serveur.reponseScriptee("textDocument/semanticTokens/full", JsonNul.nul());
+        JetonsSemantiques jetons = client.tirerJetons("file:///A.java");
+        assertTrue(jetons.jetons().isEmpty());
+        assertTrue(client.jetonsDe("file:///A.java").jetons().isEmpty());
+    }
+
+    // ── Aides ─────────────────────────────────────────────────────────
+
+    /** Scripte la réponse de tir de jetons — delta d'un seul jeton. */
+    private void scripterJetons(String identifiant, int... delta) {
+        JsonTableau data = JsonTableau.vide();
+        for (int valeur : delta) {
+            data = data.ajouter(JsonNombre.of(valeur));
+        }
+        serveur.reponseScriptee("textDocument/semanticTokens/full", JsonObjet.vide()
+                .ajouter("resultId", JsonChaine.of(identifiant))
+                .ajouter("data", data));
+    }
+
+    /** Sert une tempête de diagnostics — une erreur en ligne 0. */
+    private void servirDiagnostics(String uri) {
         serveur.notifier("textDocument/publishDiagnostics", JsonObjet.vide()
-                .ajouter("uri", JsonChaine.of("file:///A.java"))
+                .ajouter("uri", JsonChaine.of(uri))
                 .ajouter("diagnostics", JsonTableau.vide()
                         .ajouter(JsonObjet.vide()
                                 .ajouter("range", JsonObjet.vide()
@@ -83,48 +128,6 @@ class JetonsSemantiquesFluxTest {
                                                 .ajouter("character", JsonNombre.of(2))))
                                 .ajouter("severity", JsonNombre.of(1))
                                 .ajouter("message", JsonChaine.of("erreur")))));
-        attendreCondition(() -> client.diagnosticsDe("file:///A.java").size() == 1);
-        assertEquals(1, client.jetonsDe("file:///A.java").jetons().size());
-        assertEquals(new JetonSemantique(0, 4, 5, 0, 0),
-                client.jetonsDe("file:///A.java").jetons().get(0));
-        // et les jetons continuent d'arriver après les diagnostics
-        serveur.notifier("textDocument/semanticTokens/full", JsonObjet.vide()
-                .ajouter("textDocument", JsonObjet.vide()
-                        .ajouter("uri", JsonChaine.of("file:///A.java")))
-                .ajouter("resultId", JsonChaine.of("jetons-2"))
-                .ajouter("data", JsonTableau.vide()
-                        .ajouter(JsonNombre.of(1)).ajouter(JsonNombre.of(0))
-                        .ajouter(JsonNombre.of(3)).ajouter(JsonNombre.of(1))
-                        .ajouter(JsonNombre.of(0))));
-        attendreCondition(() -> "jetons-2".equals(
-                client.jetonsDe("file:///A.java").identifiantResultat()));
-        assertEquals(new JetonSemantique(1, 0, 3, 1, 0),
-                client.jetonsDe("file:///A.java").jetons().get(0));
-    }
-
-    /** Chaque uri vit sa vie : les jetons d'un document ne débordent pas sur l'autre. */
-    @Test
-    void lesJetonsParDocument() {
-        serveur.notifier("textDocument/semanticTokens/full", JsonObjet.vide()
-                .ajouter("textDocument", JsonObjet.vide()
-                        .ajouter("uri", JsonChaine.of("file:///A.java")))
-                .ajouter("data", JsonTableau.vide()
-                        .ajouter(JsonNombre.of(0)).ajouter(JsonNombre.of(0))
-                        .ajouter(JsonNombre.of(1)).ajouter(JsonNombre.of(0))
-                        .ajouter(JsonNombre.of(0))));
-        serveur.notifier("textDocument/semanticTokens/full", JsonObjet.vide()
-                .ajouter("textDocument", JsonObjet.vide()
-                        .ajouter("uri", JsonChaine.of("file:///B.kt")))
-                .ajouter("data", JsonTableau.vide()
-                        .ajouter(JsonNombre.of(2)).ajouter(JsonNombre.of(1))
-                        .ajouter(JsonNombre.of(2)).ajouter(JsonNombre.of(1))
-                        .ajouter(JsonNombre.of(0))));
-        attendreCondition(() -> client.jetonsDe("file:///B.kt").jetons().size() == 1);
-        assertEquals(new JetonSemantique(0, 0, 1, 0, 0),
-                client.jetonsDe("file:///A.java").jetons().get(0));
-        assertEquals(new JetonSemantique(2, 1, 2, 1, 0),
-                client.jetonsDe("file:///B.kt").jetons().get(0));
-        assertTrue(client.jetonsDe("file:///inconnu.kt").jetons().isEmpty());
     }
 
     /** Attend que la condition soit vraie — sonde courte, bornée. */
