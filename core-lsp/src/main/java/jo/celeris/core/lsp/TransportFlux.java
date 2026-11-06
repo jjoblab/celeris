@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jspecify.annotations.Nullable;
 
@@ -21,6 +22,7 @@ public final class TransportFlux implements Transport {
     private final Object verrouEcriture = new Object();
     private final DecodeurTrames decodeur = new DecodeurTrames();
     private final List<String> retenus = new ArrayList<>();
+    private final AtomicBoolean fermetureAnnoncee = new AtomicBoolean();
     private volatile boolean ferme;
     private @Nullable Recepteur recepteur;
 
@@ -74,7 +76,7 @@ public final class TransportFlux implements Transport {
 
     private void annoncerFermeture() {
         Recepteur chezNous = recepteur;
-        if (chezNous != null) {
+        if (chezNous != null && fermetureAnnoncee.compareAndSet(false, true)) {
             chezNous.ferme();
         }
     }
