@@ -9,6 +9,16 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 8 (M6) — les requêtes interactives restantes : survol B-09
+  (résolution à la demande, deux formes bornées), définition B-10
+  (lieux du serveur, le retour par l'historique M5-t4), références
+  B-11 (le raffinement serveur, contexte à déclarations comprises),
+  aide aux paramètres B-07 (signatures décodées, paramètre courant
+  BORNÉ à l'arité, la plage soulignée cherchée entre parenthèses —
+  le nom de méthode jamais confondu —, placement chez PopupPlacer),
+  indices en ligne B-08 (partie visible, priorité de fond devancée
+  par l'interactif, parties cliquables vers leur cible) ; 21 tests
+  neufs.
 - Tranche 7 (M6) — formatage B-25 (le retrait se règle sur les
   niveaux de l'arbre, idempotent par construction — Java, Kotlin,
   XML, tabulations comprises), respect de .editorconfig B-26

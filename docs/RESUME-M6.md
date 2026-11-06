@@ -398,3 +398,69 @@
    glob (`**`, chemins composés) du format `.editorconfig` ne sont
    pas interprétés — la racine porte les défauts, l'extension
    décide, le reste suivra le besoin réel.
+
+## Tranche 8 — les requêtes interactives restantes (2026-11-06)
+
+### Livré
+
+- **Le survol** (`SurvolLsp`, B-09) : la documentation se RÉSOUT À LA
+  DEMANDE — la requête part à l'appel, jamais avant — priorité
+  interactive, la clé du document la porte. Le contenu arrive en deux
+  formes bornées : la chaîne nue ou le contenu balisé (genre + texte)
+  — la documentation balisée en clôtures Markdown alimente le modèle
+  de sections distinctes (PIEGE-16, tranche 1). La plage présente est
+  lue, les absents nuls, jamais devinés.
+- **La navigation en ligne** (`LieuLsp` + `OrdonnanceurLsp.definition`,
+  B-10) : les lieux du serveur — uri et plage — l'objet seul toléré,
+  le tableau dans l'ordre du serveur. Le chemin en ligne rejoint le
+  chemin hors ligne de l'index (tranche 4) : l'aller à la déclaration,
+  le retour au point de départ par l'historique M5-t4 qui consomme le
+  lieu. La règle des rôles tient : l'index répond vite, le serveur
+  répond juste, jamais de chaînage.
+- **Le raffinement des usages** (`OrdonnanceurLsp.references`, B-11) :
+  la requête au serveur par la clé du document, le contexte EXIGE les
+  déclarations — les usages indexés hors ligne (tranche 4) gagnent
+  leur raffinement sémantique au serveur.
+- **L'aide aux paramètres** (`SignatureLsp` +
+  `OrdonnanceurLsp.signature`, B-07) : les signatures candidates
+  décodées — paramètres en chaînes ou par bornes, la tranche du
+  libellé de signature —, la signature active et le paramètre courant
+  BORNÉ à l'arité : le serveur généreux au-delà ne casse pas le
+  surlignage, il retombe sur le dernier.
+- **Le modèle de signature** (`SignatureAideModel` dans
+  android-widgets, B-07) : la plage du paramètre courant dans le
+  libellé — ce que le peintre souligne —, cherchée DANS LA ZONE DES
+  PARAMÈTRES entre parenthèses (le nom de la méthode jamais confondu
+  avec un paramètre), séquentielle : les doublons tombent sur le
+  bon. L'index borné à l'arité, l'introuvable sans plage inventée.
+  Le placement au-dessus du curseur vit chez PopupPlacer (D-10,
+  livré M5) — la signature du côté opposé de la complétion.
+- **Les indices en ligne** (`IndiceLsp` + `OrdonnanceurLsp.indices`,
+  B-08) : le serveur les rend pour la plage visible, priorité DE FOND
+  — l'interactif du même document les devance (ADR-007), le test le
+  prouve. Le libellé en chaîne nue ou en parties typées, chaque
+  partie portant sa cible de navigation quand le serveur la donne.
+  Le dessin de la cellule d'encre pleine, même ligne de base, vit à
+  la vue (PIEGE-11 et PIEGE-12, livrés M3) : l'indice ne porte que
+  sa géométrie.
+- **La capacité `sertIndices`** lue à l'initialisation — la surface
+  bornée du protocole alignée sur les requêtes servies.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- **92 tests core-lsp** (17 neufs : 4 survol, 4 navigation,
+  5 signature, 4 indices), **39 android-widgets** (4 neufs :
+  SignatureAideModel), zéro échec ;
+- manifestes d'API `core-lsp` régénéré.
+
+### Écarts et limites
+
+1. **Le survol ne lit pas la forme tableau de MarkedString** : la
+   surface bornée garde la chaîne et le contenu balisé — les deux
+   formes que les serveurs réels envoient ; la forme tableau suivra
+   une trace de contrat qui l'exigera.
+2. **L'aide aux paramètres lit l'index actif du sommet** : le
+   `activeParameter` par signature (protocole 3.16+) suit une trace
+   de contrat qui l'exigera — le sommet suffit aux serveurs réels du
+   corpus.
