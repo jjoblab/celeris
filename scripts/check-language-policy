@@ -33,7 +33,12 @@ def git_files() -> list:
 
 
 def strip_java_comments_and_strings(text: str) -> str:
-    """Retire commentaires et chaînes pour ne garder que le code."""
+    """Retire commentaires et chaînes pour ne garder que le code.
+
+    Les blocs de texte Java (triple guillemet) portent du contenu factice
+    accentué dans les corpus de test — leur contenu s'ignore comme une
+    chaîne, jusqu'au délimiteur fermant non échappé.
+    """
     out = []
     i, n = 0, len(text)
     state = "code"
@@ -49,6 +54,10 @@ def strip_java_comments_and_strings(text: str) -> str:
                 state = "block"
                 i += 2
                 continue
+            if text[i:i + 3] == '"""':
+                state = "textblock"
+                i += 3
+                continue
             if c == '"':
                 state = "string"
                 i += 1
@@ -61,6 +70,14 @@ def strip_java_comments_and_strings(text: str) -> str:
         elif state == "block":
             if c == "*" and nxt == "/":
                 state = "code"
+                i += 2
+                continue
+        elif state == "textblock":
+            if text[i:i + 3] == '"""':
+                state = "code"
+                i += 3
+                continue
+            if c == "\\":
                 i += 2
                 continue
         elif state == "string":
