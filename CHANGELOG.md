@@ -9,6 +9,13 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 5 (M6) — complétion de base B-03 (les mots du fichier au
+  préfixe près, hors chaînes et commentaires, le mot tapé jamais
+  candidat de lui-même), import automatique B-05 (en tête du bloc
+  par édition de position unique, jamais re-inséré), optimisation
+  des imports B-27 (utilisés ou non signalés — hors lignes
+  d'import, chaînes et commentaires — jamais supprimés en silence) ;
+  19 tests neufs.
 - Tranche 4 (M6) — l'index de symboles hors ligne (ADR-005) : le
   plan du même arbre que la coloration alimente l'index, remplacé
   fichier par fichier ; usages B-11 en occurrences entières à casse

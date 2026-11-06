@@ -244,3 +244,46 @@
 2. **La navigation B-10 côté vue** : l'index donne les coordonnées
    (aller à la déclaration, retour par l'historique M5-t4), le
    raccord aux commandes de la vue vit au jalon qui le consomme.
+
+## Tranche 5 — la complétion de mots et les imports (2026-11-06)
+
+### Livré
+
+- **La complétion de base** (`CompletionMots`, B-03) : le préfixe
+  tape, les mots du fichier répondent — sans serveur, sans réseau,
+  au mot près. Les mots du CODE seulement : les jetons du lexique
+  décident, jamais les chaînes ni les commentaires. Le mot en cours
+  de frappe n'est pas son propre candidat — un mot identique
+  ailleurs, lui, l'est. Les mots réservés du langage se joignent par
+  paramètre, le tri ignore la casse, le plafond est de cent
+  candidats.
+- **L'import automatique** (`ImportAuto`, B-05) : le candidat
+  s'insère en tête du bloc des imports — après la déclaration de
+  paquet, avant le premier import, à la position zéro sans paquet —
+  par une ÉDITION DE POSITION UNIQUE, la sélection posée au début de
+  l'insert. L'import déjà présent ne se re-insère jamais : la
+  présence se vérifie à la ligne d'import entière, jamais dans une
+  chaîne.
+- **L'optimisation des imports** (`OptimiseurImports`, B-27) : chaque
+  import rapporté utilisé ou non — l'usage compte dans le code, hors
+  des lignes d'import elles-mêmes, jamais dans les chaînes ni les
+  commentaires ; l'import statique porte son dernier segment.
+  SIGNALÉ, jamais supprimé en silence : l'analyseur éclaire, l'hôte
+  décide.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- **107 tests core-intelligence** (19 neufs : 8 complétion, 5 import,
+  6 optimisation), zéro échec ;
+- manifeste d'API `core-intelligence` régénéré.
+
+### Écarts et limites
+
+1. **La complétion hors ligne propose des mots, pas des symboles
+   typés** : le raffinement (surcharge, arguments attendus) appartient
+   au serveur LSP (B-04, livré au fil de l'ordonnanceur) — la règle
+   des rôles de l'ADR-005 est tenue.
+2. **Le tri des candidats est alphabétique** : le score par fréquence
+   ou par distance au curseur suivra le besoin réel — la surface est
+   bornée à cent.
