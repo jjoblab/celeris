@@ -2,7 +2,6 @@ package jo.celeris.core.lsp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -21,6 +20,9 @@ import org.junit.jupiter.api.Test;
  * de banc d'essai : ce qui part d'un bout arrive encadré à l'autre.
  */
 class TransportFluxTest {
+
+    private static final java.util.concurrent.atomic.AtomicInteger echecsEcriture =
+            new java.util.concurrent.atomic.AtomicInteger();
 
     private PipedInputStream entree;
     private PipedOutputStream sortieEcrite;
@@ -49,7 +51,7 @@ class TransportFluxTest {
                 sortieEcrite.write(CadreurTrames.tramer("{\"cote\":\"serveur\"}"));
                 sortieEcrite.flush();
             } catch (IOException e) {
-                // le flux est fermé : rien à écrire
+                echecsEcriture.incrementAndGet();
             }
         }).start();
         attendreCondition(() -> !recues.isEmpty());
@@ -60,7 +62,8 @@ class TransportFluxTest {
     @Test
     void lemissionCadree() throws Exception {
         PipedInputStream lecture = new PipedInputStream();
-        TransportFlux emetteur = TransportFlux.sur(new PipedInputStream(), lecture, "emetteur");
+        PipedOutputStream ecriture = new PipedOutputStream(lecture);
+        TransportFlux emetteur = TransportFlux.sur(new PipedInputStream(), ecriture, "emetteur");
         emetteur.envoyer("{\"a\":1}");
         byte[] tampon = new byte[128];
         int lus = lecture.read(tampon);
@@ -80,7 +83,7 @@ class TransportFluxTest {
                     ecriture.write(CadreurTrames.tramer("{\"retenu\":true}"));
                     ecriture.flush();
                 } catch (IOException e) {
-                    // flux fermé
+                    echecsEcriture.incrementAndGet();
                 }
             });
             ecrivain.start();

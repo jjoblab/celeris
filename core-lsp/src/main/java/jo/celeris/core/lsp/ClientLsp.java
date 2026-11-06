@@ -254,8 +254,23 @@ public final class ClientLsp implements AutoCloseable {
 
     /** Émet une requête et rend son futur — la couche d'ordonnancement appelle ici. */
     CompletableFuture<ValeurJson> requete(String methode, @Nullable ValeurJson params) {
-        exigerOuvert();
         CompletableFuture<ValeurJson> futur = new CompletableFuture<>();
+        requeter(methode, params, futur);
+        return futur;
+    }
+
+    /**
+     * Enregistre le futur de l'appelant sous un nouvel identifiant et
+     * émet la requête — l'ordonnanceur annule par l'identifiant rendu.
+     *
+     * @param methode la méthode invoquée
+     * @param params  les paramètres, ou null
+     * @param futur   le futur complété par la réponse
+     * @return l'identifiant de la requête, pour l'annulation
+     */
+    long requeter(String methode, @Nullable ValeurJson params,
+                  CompletableFuture<ValeurJson> futur) {
+        exigerOuvert();
         long id;
         synchronized (this) {
             compteurIds++;
@@ -263,7 +278,19 @@ public final class ClientLsp implements AutoCloseable {
             enAttente.put(id, futur);
         }
         envoyer(new RequeteRpc(id, methode, params));
-        return futur;
+        return id;
+    }
+
+    /**
+     * Émet une notification — l'ordonnanceur y annule ses requêtes
+     * ($/cancelRequest), la surface du client y pousse ses documents.
+     *
+     * @param methode la méthode notifiée
+     * @param params  les paramètres, ou null
+     */
+    void notifier(String methode, @Nullable ValeurJson params) {
+        exigerOuvert();
+        envoyer(new NotificationRpc(methode, params));
     }
 
     private static ValeurJson joindre(CompletableFuture<ValeurJson> futur, long secondes) {

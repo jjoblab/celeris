@@ -80,9 +80,9 @@ class OrdonnanceurLspTest {
         // la vieille a échoué sur l'annulation
         ExecutionException annulee = assertInstanceOf(ExecutionException.class,
                 assertThrowsExecution(vieille));
-        assertInstanceOf(RequeteAnnuleeException.class, annulee.getCause());
-        assertEquals(RequeteAnnuleeException.Raison.REMPLACEE,
-                ((RequeteAnnuleeException) annulee.getCause()).raison());
+        RequeteAnnuleeException cause = assertInstanceOf(RequeteAnnuleeException.class,
+                annulee.getCause());
+        assertEquals(RequeteAnnuleeException.Raison.REMPLACEE, cause.raison());
         // le fil porte l'annulation de l'ancienne : la notification $/cancelRequest
         attendreCondition(() -> serveur.tramesRecues().stream()
                 .anyMatch(t -> t.contains("$/cancelRequest")));
@@ -114,8 +114,9 @@ class OrdonnanceurLspTest {
                 new OrdonnanceurLsp.Cle("file:///A.java", "hover"));
         ExecutionException devancee = assertInstanceOf(ExecutionException.class,
                 assertThrowsExecution(fond));
-        assertEquals(RequeteAnnuleeException.Raison.DEVANCEE,
-                ((RequeteAnnuleeException) devancee.getCause()).raison());
+        RequeteAnnuleeException causeDevancee = assertInstanceOf(
+                RequeteAnnuleeException.class, devancee.getCause());
+        assertEquals(RequeteAnnuleeException.Raison.DEVANCEE, causeDevancee.raison());
         // l'interactive vit sa vie
         serveur.acheverRequete("textDocument/hover", JsonObjet.vide()
                 .ajouter("contents", JsonChaine.of("le survol")));
@@ -126,16 +127,18 @@ class OrdonnanceurLspTest {
                         .ajouter("autre", JsonBooleen.of(true)),
                 OrdonnanceurLsp.Priorite.INTERACTIF,
                 new OrdonnanceurLsp.Cle("file:///A.java", "hover"));
-        ordonnanceur.demander("textDocument/formatting", JsonObjet.vide(),
+        CompletableFuture<ValeurJson> fondDeux = ordonnanceur.demander(
+                "textDocument/formatting", JsonObjet.vide(),
                 OrdonnanceurLsp.Priorite.FOND,
                 new OrdonnanceurLsp.Cle("file:///A.java", "formatting"));
         assertTrue(!interactiveDeux.isCompletedExceptionally(),
                 "le fond ne devance jamais l'interactif");
+        assertTrue(!fondDeux.isDone(), "le fond tient son vol, devancé par personne");
     }
 
     /**
      * La resynchronisation : la réponse d'une requête partie à la
-     * version 3 arrive après le passage à la version 4 — elle est
+     * version 1 arrive après le passage à la version 2 — elle est
      * périmée, l'appelant l'apprend, la requête fraîche passe.
      */
     @Test
@@ -151,8 +154,9 @@ class OrdonnanceurLspTest {
                 .ajouter(JsonObjet.vide().ajouter("label", JsonChaine.of("tardif"))));
         ExecutionException perimee = assertInstanceOf(ExecutionException.class,
                 assertThrowsExecution(aLaVersionUne));
-        assertEquals(RequeteAnnuleeException.Raison.PERIMEE,
-                ((RequeteAnnuleeException) perimee.getCause()).raison());
+        RequeteAnnuleeException causePerimee = assertInstanceOf(
+                RequeteAnnuleeException.class, perimee.getCause());
+        assertEquals(RequeteAnnuleeException.Raison.PERIMEE, causePerimee.raison());
         // la requête fraîche, partie après le changement, est servie
         CompletableFuture<ValeurJson> fraiche = ordonnanceur.demander(
                 "textDocument/completion", parametresCompletion("file:///A.java", 0, 6),
@@ -162,22 +166,23 @@ class OrdonnanceurLspTest {
         assertEquals("frais", libelle(fraiche.get(5, java.util.concurrent.TimeUnit.SECONDS)));
     }
 
-    /** La réponse d'une requête annulée qui arrive tard : ignorée sans erreur — l'ordonnanceur a déjà rendu son verdict. */
+    /** La réponse tardive d'une requête annulée : ignorée, l'ordonnanceur a déjà rendu son verdict. */
     @Test
     void laReponseTardiveEstIgnoree() throws Exception {
         serveur.reponseDifferee("textDocument/completion");
         CompletableFuture<ValeurJson> vieille = ordonnanceur.demander(
                 "textDocument/completion", parametresCompletion("file:///A.java", 1, 1),
                 OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
-        ordonnanceur.demander("textDocument/completion",
+        CompletableFuture<ValeurJson> neuve = ordonnanceur.demander(
+                "textDocument/completion",
                 parametresCompletion("file:///A.java", 2, 2),
                 OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
         assertTrue(vieille.isCompletedExceptionally());
         // le serveur achève la vieille requête annulée : la réponse tombe, rien ne casse
         serveur.acheverRequete("textDocument/completion", JsonChaine.of("trop tard"));
         serveur.acheverRequete("textDocument/completion", JsonChaine.of("la bonne"));
-        // aucune exception de fond, le client vit toujours
-        assertTrue(client.versionDe("file:///A.java") == -1);
+        // la neuve est servie, le client vit toujours
+        assertEquals(JsonChaine.of("la bonne"), attendreValeur(neuve));
     }
 
     /** La complétion typée (B-04) : les paramètres du protocole, la réponse au modèle — la coupure honorée. */
@@ -204,12 +209,15 @@ class OrdonnanceurLspTest {
                         && "textDocument/completion".equals(r.methode()))
                 .toList();
         assertEquals(1, requetes.size());
-        JsonObjet params = (JsonObjet) ((RequeteRpc) requetes.get(0)).params();
-        JsonObjet document = (JsonObjet) params.membre("textDocument");
+        JsonObjet params = assertInstanceOf(JsonObjet.class,
+                ((RequeteRpc) requetes.get(0)).params());
+        JsonObjet document = assertInstanceOf(JsonObjet.class, params.membre("textDocument"));
         assertEquals("file:///A.java", document.membreTexte("uri"));
-        JsonObjet position = (JsonObjet) params.membre("position");
-        assertEquals(3, ((JsonNombre) position.membre("line")).entier());
-        assertEquals(7, ((JsonNombre) position.membre("character")).entier());
+        JsonObjet position = assertInstanceOf(JsonObjet.class, params.membre("position"));
+        assertEquals(3, assertInstanceOf(JsonNombre.class,
+                position.membre("line")).entier());
+        assertEquals(7, assertInstanceOf(JsonNombre.class,
+                position.membre("character")).entier());
     }
 
     // ── Aides ─────────────────────────────────────────────────────────
@@ -227,20 +235,31 @@ class OrdonnanceurLspTest {
                 .ajouter("position", new PositionLsp(ligne, colonne).versJson());
     }
 
-    /** Le libellé du premier élément d'une réponse de complétion. */
+    /** Le libellé du premier élément d'une réponse de complétion — tableau nu ou objet items. */
     private static String libelle(ValeurJson reponse) {
-        JsonTableau items = (JsonTableau) ((JsonObjet) reponse).membre("items");
-        return ((JsonObjet) items.element(0)).membreTexte("label");
+        JsonTableau items = reponse instanceof JsonTableau tableau ? tableau
+                : assertInstanceOf(JsonTableau.class,
+                        assertInstanceOf(JsonObjet.class, reponse).membre("items"));
+        String libelle = assertInstanceOf(JsonObjet.class, items.element(0))
+                .membreTexte("label");
+        return assertInstanceOf(String.class, libelle);
+    }
+
+    /** Attend la valeur du futur — l'assertion d'échec est ailleurs. */
+    private static ValeurJson attendreValeur(CompletableFuture<ValeurJson> futur)
+            throws Exception {
+        return futur.get(5, java.util.concurrent.TimeUnit.SECONDS);
     }
 
     /** Attend l'échec du futur — le retourne en exception d'exécution. */
-    private static ExecutionException assertThrowsExecution(CompletableFuture<?> futur)
-            throws InterruptedException {
+    private static ExecutionException assertThrowsExecution(CompletableFuture<?> futur) {
         try {
             futur.get(5, java.util.concurrent.TimeUnit.SECONDS);
             throw new AssertionError("le futur devait echouer");
         } catch (java.util.concurrent.ExecutionException e) {
             return e;
+        } catch (InterruptedException | java.util.concurrent.TimeoutException e) {
+            throw new AssertionError("le futur devait echouer vite", e);
         }
     }
 
