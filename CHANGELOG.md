@@ -9,6 +9,16 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 6 (M6) — les éditions d'espace de travail et le bloqué
+  historique débloqué : modèle à deux sortes (éditions de document
+  et édits de gabarit celeris, la forme que la liaison tierce 1.0.0
+  du dépôt de départ imposait sans pouvoir être absorbée),
+  transposition en transaction annulable à ordre descendant,
+  renommage multi-fichiers B-19 sur l'index hors ligne aux conflits
+  signalés (ambiguïté, collision), correctifs B-17 par transaction,
+  squelettes de méthode B-06 aux trous tabulables, composition
+  démontrée de bout en bout chez le consommateur (ADR-002 : les
+  modules purs restent latéraux) ; 16 tests neufs.
 - Tranche 5 (M6) — complétion de base B-03 (les mots du fichier au
   préfixe près, hors chaînes et commentaires, le mot tapé jamais
   candidat de lui-même), import automatique B-05 (en tête du bloc

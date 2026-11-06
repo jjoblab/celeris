@@ -287,3 +287,61 @@
 2. **Le tri des candidats est alphabétique** : le score par fréquence
    ou par distance au curseur suivra le besoin réel — la surface est
    bornée à cent.
+
+## Tranche 6 — les éditions d'espace et le bloqué historique (2026-11-06)
+
+### Livré
+
+- **Le modèle d'édition d'espace** (`EditionEspaceLsp`,
+  `EditionDocumentLsp`, `EditionTexteLsp`, `EditionGabaritLsp`) : les
+  éditions de document ET les édits de gabarit — la forme que la
+  version 1.0.0 de la liaison tierce du dépôt de départ imposait et
+  qui n'avait jamais pu être absorbée. La forme est nôtre, documentée
+  (sorte `celeris/templateEdit`), le protocole standard n'en définit
+  aucune. La forme héritée « changes » (carte uri → éditions, sans
+  version) se plie dans les documents ; les réponses vides sont
+  tolérées.
+- **La transposition** (`EditsEspaceLsp`) : les plages LSP (unités
+  UTF-16, bornes clampées) deviennent une transaction de la voie
+  unique — diffable, annulable (B-17), ordre DESCROISSANT
+  d'application : les offsets originaux du serveur restent valides
+  au fil de la transaction séquentielle.
+- **Le renommage multi-fichiers** (`Renommage`, B-19) : le plan se
+  construit sur l'index hors ligne — une édition par occurrence,
+  fichier par fichier. Les conflits sont SIGNALÉS, jamais tranchés :
+  ambiguïté (deux déclarations du même nom), collision (nouveau nom
+  déjà pris) — le plan tient, l'hôte lit puis décide. Le renommage
+  AU SERVEUR rejoint l'ordonnanceur (`textDocument/rename`,
+  priorité interactive, garde de version).
+- **Les correctifs rapides** (`CorrectifLsp` + l'ordonnanceur, B-17) :
+  les titres à montrer, les éditions à appliquer par transaction
+  annulable — le correctif sans édition reste un correctif, l'hôte
+  montre le titre.
+- **Les squelettes de méthode** (`SquelettesMethode`, B-06) : le
+  squelette naît de la signature que le serveur a donnée — trous
+  `p1..pN` aux paramètres (défauts `argN` posés au rendu), corps en
+  dernier — curseurs aux trous dans l'ordre de tabulation, le moteur
+  de gabarits du M5 fait le reste.
+- **La composition** (`EditsEspaceDemoTest` dans la démo) : le point
+  de composition voit le client LSP et le moteur de gabarits — les
+  modules purs restent latéraux (ADR-002), la démo gagne la
+  dépendance `core-lsp` à cet effet. Renommage appliqué et annulé,
+  édit de gabarit inséré par la voie unique — défauts posés,
+  premier trou sélectionné, annulation intégrale : **le bloqué
+  historique débloqué de bout en bout**.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- **75 tests core-lsp** (6 neufs), **115 core-intelligence** (8
+  neufs), 5 à la démo (2 neufs de composition), zéro échec ;
+- manifestes d'API `core-lsp` et `core-intelligence` régénérés.
+
+### Écarts et limites
+
+1. **Les édits de gabarit ne vivent que dans la forme celeris** : le
+   protocole standard n'en définit pas — la forme est documentée,
+   les traces de contrat de la clôture la portent.
+2. **Le renommage au serveur est la requête** : la résolution
+   sémantique (quel symbole exactement) appartient au serveur ; le
+   chemin hors ligne signale ses ambiguïtés, il ne les tranche pas.
