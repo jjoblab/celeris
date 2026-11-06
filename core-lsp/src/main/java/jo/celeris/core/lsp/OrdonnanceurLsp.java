@@ -1,5 +1,6 @@
 package jo.celeris.core.lsp;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -102,6 +103,47 @@ public final class OrdonnanceurLsp {
                         .ajouter("position", position.versJson()),
                 Priorite.INTERACTIF, new Cle(uri, "completion"))
                 .thenApply(ListeCompletion::de);
+    }
+
+    /**
+     * Le renommage au serveur (B-19) : l'édition d'espace de travail
+     * qu'il propose — documents et gabarits compris.
+     *
+     * @param uri        l'uri du document
+     * @param position   la position du symbole à renommer
+     * @param nouveauNom le nom qui remplace l'ancien
+     * @return le futur de l'édition d'espace proposée
+     */
+    public CompletableFuture<EditionEspaceLsp> renommage(String uri, PositionLsp position,
+                                                         String nouveauNom) {
+        return demander("textDocument/rename",
+                JsonObjet.vide()
+                        .ajouter("textDocument", JsonObjet.vide()
+                                .ajouter("uri", JsonChaine.of(uri)))
+                        .ajouter("position", position.versJson())
+                        .ajouter("newName", JsonChaine.of(nouveauNom)),
+                Priorite.INTERACTIF, new Cle(uri, "renommage"))
+                .thenApply(EditionEspaceLsp::de);
+    }
+
+    /**
+     * Les correctifs rapides du serveur (B-17) : les titres à montrer,
+     * les éditions à appliquer — par la voie de transaction, annulables.
+     *
+     * @param uri   l'uri du document
+     * @param plage la plage visée par le correctif
+     * @return le futur des correctifs proposés
+     */
+    public CompletableFuture<List<CorrectifLsp>> correctifs(String uri, PlageLsp plage) {
+        return demander("textDocument/codeAction",
+                JsonObjet.vide()
+                        .ajouter("textDocument", JsonObjet.vide()
+                                .ajouter("uri", JsonChaine.of(uri)))
+                        .ajouter("range", plage.versJson())
+                        .ajouter("context", JsonObjet.vide()
+                                .ajouter("diagnostics", JsonTableau.vide())),
+                Priorite.INTERACTIF, new Cle(uri, "correctifs"))
+                .thenApply(CorrectifLsp::liste);
     }
 
     /**

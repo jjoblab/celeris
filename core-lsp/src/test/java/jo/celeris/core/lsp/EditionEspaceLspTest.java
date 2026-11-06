@@ -1,7 +1,6 @@
 package jo.celeris.core.lsp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -117,8 +116,8 @@ class EditionEspaceLspTest {
         Document doc = Document.of("un deux trois\n");
         EditionDocumentLsp edition = new EditionDocumentLsp("file:///A.txt", 1, List.of(
                 new EditionTexteLsp(new PlageLsp(new PositionLsp(0, 0), new PositionLsp(0, 2)), "1"),
-                new EditionTexteLsp(new PlageLsp(new PositionLsp(0, 7), new PositionLsp(0, 9)), "3"),
-                new EditionTexteLsp(new PlageLsp(new PositionLsp(0, 3), new PositionLsp(0, 6)), "2")));
+                new EditionTexteLsp(new PlageLsp(new PositionLsp(0, 8), new PositionLsp(0, 13)), "3"),
+                new EditionTexteLsp(new PlageLsp(new PositionLsp(0, 3), new PositionLsp(0, 7)), "2")));
         TextSession session = TextSession.of("un deux trois\n", System::nanoTime);
         session.apply(EditsEspaceLsp.transaction(doc, edition));
         assertEquals("1 2 3\n", session.text());

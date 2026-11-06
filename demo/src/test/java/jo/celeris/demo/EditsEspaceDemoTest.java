@@ -82,9 +82,11 @@ class EditsEspaceDemoTest {
         assertEquals("class A {\n"
                 + "void nouvelleMethode(String arg0) {\n    \n}\n"
                 + "}\n", session.text());
-        // le premier trou — le nom — est sélectionné : curseur aux trous (B-06)
-        assertEquals(position + "void ".length(),
-                session.selection().ranges().get(0).caret());
+        // le premier trou — le nom, son défaut sélectionné — porte le curseur :
+        // curseurs aux trous (B-06), prêt à être tapé par-dessus
+        jo.celeris.core.text.SelRange premierTrou = session.selection().ranges().get(0);
+        assertEquals(position + "void ".length(), premierTrou.anchor());
+        assertEquals(position + "void nouvelleMethode".length(), premierTrou.caret());
         session.undo();
         assertEquals("class A {\n}\n", session.text());
         assertTrue(gabarit.trous().size() == 3);

@@ -59,6 +59,19 @@ public final class jo.celeris.core.lsp.ClientLsp implements java.lang.AutoClosea
   public void close();
 }
 
+### jo.celeris.core.lsp.CorrectifLsp
+Compiled from "CorrectifLsp.java"
+public final class jo.celeris.core.lsp.CorrectifLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.CorrectifLsp(java.lang.String, jo.celeris.core.lsp.EditionEspaceLsp);
+  public static jo.celeris.core.lsp.CorrectifLsp de(jo.celeris.core.lsp.ValeurJson);
+  public static java.util.List<jo.celeris.core.lsp.CorrectifLsp> liste(jo.celeris.core.lsp.ValeurJson);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String titre();
+  public jo.celeris.core.lsp.EditionEspaceLsp edition();
+}
+
 ### jo.celeris.core.lsp.CurseurSource
 Compiled from "CurseurSource.java"
 final class jo.celeris.core.lsp.CurseurSource {
@@ -97,6 +110,68 @@ public final class jo.celeris.core.lsp.DiagnosticLsp extends java.lang.Record {
   public java.lang.String message();
   public java.lang.String code();
   public java.lang.String source();
+}
+
+### jo.celeris.core.lsp.EditionDocumentLsp
+Compiled from "EditionDocumentLsp.java"
+public final class jo.celeris.core.lsp.EditionDocumentLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.EditionDocumentLsp(java.lang.String, int, java.util.List<jo.celeris.core.lsp.EditionTexteLsp>);
+  public static jo.celeris.core.lsp.EditionDocumentLsp de(jo.celeris.core.lsp.ValeurJson);
+  public jo.celeris.core.lsp.JsonObjet versJson();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String uri();
+  public int version();
+  public java.util.List<jo.celeris.core.lsp.EditionTexteLsp> editions();
+}
+
+### jo.celeris.core.lsp.EditionEspaceLsp
+Compiled from "EditionEspaceLsp.java"
+public final class jo.celeris.core.lsp.EditionEspaceLsp extends java.lang.Record {
+  public static final jo.celeris.core.lsp.EditionEspaceLsp VIDE;
+  public jo.celeris.core.lsp.EditionEspaceLsp(java.util.List<jo.celeris.core.lsp.EditionDocumentLsp>, java.util.List<jo.celeris.core.lsp.EditionGabaritLsp>);
+  public static jo.celeris.core.lsp.EditionEspaceLsp de(jo.celeris.core.lsp.ValeurJson);
+  public jo.celeris.core.lsp.JsonObjet versJson();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.lsp.EditionDocumentLsp> documents();
+  public java.util.List<jo.celeris.core.lsp.EditionGabaritLsp> gabarits();
+}
+
+### jo.celeris.core.lsp.EditionGabaritLsp
+Compiled from "EditionGabaritLsp.java"
+public final class jo.celeris.core.lsp.EditionGabaritLsp extends java.lang.Record {
+  public static final java.lang.String SORTE;
+  public jo.celeris.core.lsp.EditionGabaritLsp(java.lang.String, jo.celeris.core.lsp.PositionLsp, java.lang.String);
+  public static jo.celeris.core.lsp.EditionGabaritLsp de(jo.celeris.core.lsp.ValeurJson);
+  public jo.celeris.core.lsp.JsonObjet versJson();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String uri();
+  public jo.celeris.core.lsp.PositionLsp position();
+  public java.lang.String corps();
+}
+
+### jo.celeris.core.lsp.EditionTexteLsp
+Compiled from "EditionTexteLsp.java"
+public final class jo.celeris.core.lsp.EditionTexteLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.EditionTexteLsp(jo.celeris.core.lsp.PlageLsp, java.lang.String);
+  public static jo.celeris.core.lsp.EditionTexteLsp de(jo.celeris.core.lsp.ValeurJson);
+  public jo.celeris.core.lsp.JsonObjet versJson();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.lsp.PlageLsp plage();
+  public java.lang.String nouveauTexte();
+}
+
+### jo.celeris.core.lsp.EditsEspaceLsp
+Compiled from "EditsEspaceLsp.java"
+public final class jo.celeris.core.lsp.EditsEspaceLsp {
+  public static jo.celeris.core.text.Transaction transaction(jo.celeris.core.text.Document, jo.celeris.core.lsp.EditionDocumentLsp);
 }
 
 ### jo.celeris.core.lsp.ElementCompletion
@@ -338,6 +413,8 @@ Compiled from "OrdonnanceurLsp.java"
 public final class jo.celeris.core.lsp.OrdonnanceurLsp {
   public static jo.celeris.core.lsp.OrdonnanceurLsp sur(jo.celeris.core.lsp.ClientLsp);
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.ListeCompletion> completion(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.EditionEspaceLsp> renommage(java.lang.String, jo.celeris.core.lsp.PositionLsp, java.lang.String);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.CorrectifLsp>> correctifs(java.lang.String, jo.celeris.core.lsp.PlageLsp);
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.ValeurJson> demander(java.lang.String, jo.celeris.core.lsp.JsonObjet, jo.celeris.core.lsp.OrdonnanceurLsp$Priorite, jo.celeris.core.lsp.OrdonnanceurLsp$Cle);
 }
 
