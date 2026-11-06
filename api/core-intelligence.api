@@ -36,6 +36,43 @@ public final class jo.celeris.core.intelligence.EditPlan extends java.lang.Recor
   public jo.celeris.core.text.MultiSelection selection();
 }
 
+### jo.celeris.core.intelligence.EditorConfig$Regles
+Compiled from "EditorConfig.java"
+public final class jo.celeris.core.intelligence.EditorConfig$Regles extends java.lang.Record {
+  public static final jo.celeris.core.intelligence.EditorConfig$Regles CANONIQUES;
+  public jo.celeris.core.intelligence.EditorConfig$Regles(jo.celeris.core.intelligence.IndentStyle, java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.intelligence.IndentStyle indentStyle();
+  public java.lang.String finDeLigne();
+  public java.lang.String encodage();
+}
+
+### jo.celeris.core.intelligence.EditorConfig$Section
+Compiled from "EditorConfig.java"
+final class jo.celeris.core.intelligence.EditorConfig$Section extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String motif();
+  public java.util.List<java.lang.String[]> proprietes();
+}
+
+### jo.celeris.core.intelligence.EditorConfig
+Compiled from "EditorConfig.java"
+public final class jo.celeris.core.intelligence.EditorConfig {
+  public static jo.celeris.core.intelligence.EditorConfig analyser(java.lang.String);
+  public jo.celeris.core.intelligence.EditorConfig$Regles pour(java.lang.String);
+  public static java.lang.String appliquerFins(java.lang.String, jo.celeris.core.intelligence.EditorConfig$Regles);
+}
+
+### jo.celeris.core.intelligence.Formateur
+Compiled from "Formateur.java"
+public final class jo.celeris.core.intelligence.Formateur {
+  public static java.lang.String formater(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.intelligence.IndentStyle);
+}
+
 ### jo.celeris.core.intelligence.Gabarit
 Compiled from "Gabarit.java"
 public final class jo.celeris.core.intelligence.Gabarit extends java.lang.Record {
@@ -55,6 +92,28 @@ Compiled from "Gabarits.java"
 public final class jo.celeris.core.intelligence.Gabarits {
   public static jo.celeris.core.intelligence.EditPlan inserer(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.Gabarit);
   public static java.util.List<jo.celeris.core.text.TextEdit> miroirs(java.lang.String, java.util.List<jo.celeris.core.intelligence.Trou>, jo.celeris.core.intelligence.Trou, jo.celeris.core.text.TextEdit);
+}
+
+### jo.celeris.core.intelligence.Generateurs$Champ
+Compiled from "Generateurs.java"
+public final class jo.celeris.core.intelligence.Generateurs$Champ extends java.lang.Record {
+  public jo.celeris.core.intelligence.Generateurs$Champ(java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String type();
+  public java.lang.String nom();
+}
+
+### jo.celeris.core.intelligence.Generateurs
+Compiled from "Generateurs.java"
+public final class jo.celeris.core.intelligence.Generateurs {
+  public static java.util.List<jo.celeris.core.intelligence.Generateurs$Champ> champs(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, java.lang.String);
+  public static jo.celeris.core.intelligence.Symbole classeDe(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, java.lang.String);
+  public static int positionInsertion(jo.celeris.core.intelligence.Symbole);
+  public static java.lang.String constructeur(java.lang.String, java.util.List<jo.celeris.core.intelligence.Generateurs$Champ>);
+  public static java.lang.String accesseurs(java.util.List<jo.celeris.core.intelligence.Generateurs$Champ>);
+  public static java.lang.String equalsHashCodeToString(java.lang.String, java.util.List<jo.celeris.core.intelligence.Generateurs$Champ>);
 }
 
 ### jo.celeris.core.intelligence.ImportAuto

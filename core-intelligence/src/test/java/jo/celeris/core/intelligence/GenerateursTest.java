@@ -99,6 +99,7 @@ class GenerateursTest {
         Analysis analyse = java.analyseFull(doc);
         Generateurs.Champ ignored = Generateurs.champs(doc, analyse, "Personne").get(0);
         Symbole classe = Generateurs.classeDe(doc, analyse, "Personne");
+        org.junit.jupiter.api.Assertions.assertNotNull(classe);
         int position = Generateurs.positionInsertion(classe);
         // juste avant le « } » qui ferme la classe
         assertEquals('}', doc.charAt(position));

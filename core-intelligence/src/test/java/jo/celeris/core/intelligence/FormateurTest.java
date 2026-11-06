@@ -70,8 +70,8 @@ class FormateurTest {
         assertEquals(premiere, seconde);
         // et sur les autres langages, idem
         String xml = "<a>\n  <b>\n <c/>\n   </b>\n</a>\n";
-        String xmlUne = formater(this.xml, xml, IndentStyle.ESPACES_2);
-        assertEquals(xmlUne, formater(this.xml, xmlUne, IndentStyle.ESPACES_2));
+        String xmlUne = formater(this.xml, xml, IndentStyle.spaces(2));
+        assertEquals(xmlUne, formater(this.xml, xmlUne, IndentStyle.spaces(2)));
         String kt = "class K {\nfun f() {\nval x = 1\n}\n}\n";
         String ktUne = formater(kotlin, kt, IndentStyle.ESPACES_4);
         assertEquals(ktUne, formater(kotlin, ktUne, IndentStyle.ESPACES_4));
@@ -106,6 +106,6 @@ class FormateurTest {
     void leFormatageXml() {
         String source = "<racine>\n<enfant>\n<petit/>\n</enfant>\n</racine>\n";
         String attendu = "<racine>\n  <enfant>\n    <petit/>\n  </enfant>\n</racine>\n";
-        assertEquals(attendu, formater(xml, source, IndentStyle.ESPACES_2));
+        assertEquals(attendu, formater(xml, source, IndentStyle.spaces(2)));
     }
 }
