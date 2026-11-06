@@ -702,6 +702,23 @@ public final class jo.celeris.core.syntax.XmlSyntax implements jo.celeris.core.s
   public jo.celeris.core.syntax.LanguageParser parser();
 }
 
+### jo.celeris.core.syntax.XmlValidation$Ouverture
+Compiled from "XmlValidation.java"
+final class jo.celeris.core.syntax.XmlValidation$Ouverture extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String nom();
+  public int debut();
+  public int fin();
+}
+
+### jo.celeris.core.syntax.XmlValidation
+Compiled from "XmlValidation.java"
+public final class jo.celeris.core.syntax.XmlValidation {
+  public static java.util.List<jo.celeris.core.syntax.SyntaxIssue> valider(jo.celeris.core.text.Document);
+}
+
 ### jo.celeris.core.syntax.package-info
 Compiled from "package-info.java"
 interface jo.celeris.core.syntax.package-info {

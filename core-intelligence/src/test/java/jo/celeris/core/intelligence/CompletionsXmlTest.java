@@ -45,13 +45,16 @@ final class CompletionsXmlTest {
         }
     }
 
-    /** Les valeurs de taille suggèrent les constantes et les unités. */
+    /** Les valeurs de taille suggèrent les constantes de mise en page. */
     @Test
     void valeursDeTailleSuggerentConstantesEtUnites() {
         String texte = "<Button\n    android:layout_width=\"ma";
         List<String> candidats = CompletionsXml.completer(texte, texte.length());
         assertTrue(candidats.contains("match_parent"), "match_parent suggéré : " + candidats);
-        assertTrue(candidats.contains("wrap_content"), "wrap_content suggéré : " + candidats);
+        String vide = "<Button\n    android:layout_height=\"";
+        List<String> toutes = CompletionsXml.completer(vide, vide.length());
+        assertTrue(toutes.contains("wrap_content"),
+                "sans préfixe, les deux constantes répondent : " + toutes);
     }
 
     /** Les unités dp et sp se suggèrent dans une taille à nombre. */

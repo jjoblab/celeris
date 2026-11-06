@@ -18,15 +18,21 @@ import org.junit.jupiter.api.Test;
  */
 final class ReferencesRessourcesTest {
 
-    private static final Map<String, String> PROJET = Map.of(
-            "res/values/strings.xml",
+    private static final String STRINGS =
             "<resources>\n  <string name=\"app_name\">Celeris</string>\n"
-                    + "  <string name=\"accueil\">Bienvenue</string>\n</resources>",
-            "res/layout/main.xml",
+                    + "  <string name=\"accueil\">Bienvenue</string>\n</resources>";
+
+    private static final String PRINCIPAL =
             "<LinearLayout>\n  <TextView android:text=\"@string/app_name\"/>\n"
-                    + "  <Button android:text=\"@string/accueil\"/>\n</LinearLayout>",
-            "res/layout/second.xml",
-            "<TextView android:text=\"@string/app_name\"/>");
+                    + "  <Button android:text=\"@string/accueil\"/>\n</LinearLayout>";
+
+    private static final String SECOND =
+            "<TextView android:text=\"@string/app_name\"/>";
+
+    private static final Map<String, String> PROJET = Map.of(
+            "res/values/strings.xml", STRINGS,
+            "res/layout/main.xml", PRINCIPAL,
+            "res/layout/second.xml", SECOND);
 
     /** La définition d'une ressource de valeurs se trouve à sa balise. */
     @Test
@@ -35,8 +41,7 @@ final class ReferencesRessourcesTest {
                 PROJET, "string", "app_name");
         assertTrue(lieu.isPresent(), "la ressource définie se trouve");
         assertEquals("res/values/strings.xml", lieu.get().chemin());
-        String contenu = PROJET.get("res/values/strings.xml");
-        assertEquals(contenu.indexOf("<string name=\"app_name\""), lieu.get().offset(),
+        assertEquals(STRINGS.indexOf("<string name=\"app_name\""), lieu.get().offset(),
                 "l'offset pointe la balise de définition");
     }
 
@@ -47,7 +52,7 @@ final class ReferencesRessourcesTest {
                 PROJET, "layout", "main");
         assertTrue(lieu.isPresent());
         assertEquals("res/layout/main.xml", lieu.get().chemin());
-        assertEquals(PROJET.get("res/layout/main.xml").indexOf('<'), lieu.get().offset(),
+        assertEquals(PRINCIPAL.indexOf('<'), lieu.get().offset(),
                 "l'offset pointe la première balise du fichier");
     }
 
@@ -63,13 +68,11 @@ final class ReferencesRessourcesTest {
         List<ReferencesRessources.Lieu> usages = ReferencesRessources.usages(
                 PROJET, "string", "app_name");
         assertEquals(2, usages.size(), "deux usages dans le projet");
-        String principal = PROJET.get("res/layout/main.xml");
-        String second = PROJET.get("res/layout/second.xml");
-        assertEquals(principal.indexOf("@string/app_name"),
+        assertEquals(PRINCIPAL.indexOf("@string/app_name"),
                 usages.stream().filter(u -> u.chemin().endsWith("main.xml"))
                         .findFirst().orElseThrow().offset(),
                 "l'usage du fichier principal est à l'offset exact");
-        assertEquals(second.indexOf("@string/app_name"),
+        assertEquals(SECOND.indexOf("@string/app_name"),
                 usages.stream().filter(u -> u.chemin().endsWith("second.xml"))
                         .findFirst().orElseThrow().offset(),
                 "l'usage du second fichier est à l'offset exact");

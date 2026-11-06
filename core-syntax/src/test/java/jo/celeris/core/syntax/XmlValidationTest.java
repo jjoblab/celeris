@@ -21,15 +21,16 @@ final class XmlValidationTest {
     /** Le document bien imbriqué ne produit rien, profondeurs comprises. */
     @Test
     void documentBienImbriqueNeProduitRien() {
-        String texte = "<?xml version=\"1.0\"?>\n"
-                + "<catalogue>\n"
-                + "  <!-- un </catalogue> dans un commentaire : ignoré -->\n"
-                + "  <produit>\n"
-                + "    <prix devise=\"EUR\">10</prix>\n"
-                + "    <stock />\n"
-                + "    <note><![CDATA[ du </produit> brut ]]></note>\n"
-                + "  </produit>\n"
-                + "</catalogue>";
+        String texte = """
+                <?xml version="1.0"?>
+                <catalogue>
+                  <!-- un </catalogue> dans un commentaire : ignoré -->
+                  <produit>
+                    <prix devise="EUR">10</prix>
+                    <stock />
+                    <note><![CDATA[ du </produit> brut ]]></note>
+                  </produit>
+                </catalogue>""";
         List<SyntaxIssue> problemes = XmlValidation.valider(Document.of(texte));
         assertTrue(problemes.isEmpty(), "le document valide ne produit rien : " + problemes);
     }
@@ -58,9 +59,10 @@ final class XmlValidationTest {
         List<SyntaxIssue> problemes = XmlValidation.valider(Document.of(texte));
         assertEquals(1, problemes.size(), "l'élément jamais fermé, seul fautif");
         SyntaxIssue probleme = problemes.get(0);
-        assertEquals(texte.indexOf("<item>"), probleme.startOffset(),
+        assertEquals(texte.indexOf("<item"), probleme.startOffset(),
                 "la plage commence à l'ouverture non fermée");
-        assertEquals("<item>".length(), probleme.length());
+        assertEquals("<item".length(), probleme.length(),
+                "la plage couvre le nom de l'ouverture, chevron compris");
         assertTrue(probleme.message().contains("item"), "le message nomme l'élément : "
                 + probleme.message());
     }
@@ -77,13 +79,16 @@ final class XmlValidationTest {
                 + probleme.message());
     }
 
-    /** La fermeture désassortie au milieu remonte jusqu'à l'assortie. */
+    /** La fermeture d'un ancêtre signale le traversé non fermé, à son ouverture. */
     @Test
-    void fermetureInterieureRefermeLesNiveauxTraverses() {
+    void fermetureDAncetreSignaleLeTraverseNonFerme() {
         String texte = "<a><b><c></c></a>";
         List<SyntaxIssue> problemes = XmlValidation.valider(Document.of(texte));
-        assertEquals(1, problemes.size(), "la récupération referme b sans le signaler deux fois");
-        assertEquals(texte.indexOf("</a>"), problemes.get(0).startOffset());
+        assertEquals(1, problemes.size(), "le niveau traversé seul est signalé");
+        assertEquals(texte.indexOf("<b"), problemes.get(0).startOffset(),
+                "la plage pointe l'ouverture jamais fermée");
+        assertEquals("<b".length(), problemes.get(0).length(),
+                "la plage couvre le nom de l'ouverture, chevron compris");
     }
 
     /** L'auto-fermeture ne compte pas comme ouverture en attente. */
