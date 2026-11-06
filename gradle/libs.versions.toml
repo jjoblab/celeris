@@ -22,6 +22,13 @@ pitest = "1.30.1"
 pitestJunit5 = "1.2.3"
 # Publication (ADR-011 : SBOM)
 cyclonedx = "3.5.1"
+# Interface de la démonstration (M3 — vérifiées sur Google Maven le
+# 2026-11-06, compatibles compileSdk 36)
+androidxActivity = "1.12.0"
+androidxAppcompat = "1.8.0"
+androidxCore = "1.18.0"
+androidxRecyclerview = "1.4.0"
+material = "1.14.0"
 
 [libraries]
 # Dépendances de test (modules purs et Android)
@@ -39,6 +46,13 @@ nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 # (l'artefact de ligne de commande entraîne le cœur de PIT).
 pitest-cli = { module = "org.pitest:pitest-command-line", version.ref = "pitest" }
 pitest-junit5 = { module = "org.pitest:pitest-junit5-plugin", version.ref = "pitestJunit5" }
+# Interface de la démonstration — la seule dépendance externe du dépôt
+# hors chaîne de build et de test ; la démo n'est pas publiée (ADR-011).
+androidx-activity = { module = "androidx.activity:activity", version.ref = "androidxActivity" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
+androidx-core = { module = "androidx.core:core", version.ref = "androidxCore" }
+androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "androidxRecyclerview" }
+google-material = { module = "com.google.android.material:material", version.ref = "material" }
 # Artefacts de plugin résolus par build-logic (aucun plugin appliqué par
 # identifiant hors des conventions) :
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }

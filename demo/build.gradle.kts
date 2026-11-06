@@ -18,4 +18,12 @@ dependencies {
     implementation(project(":core-text"))
     implementation(project(":core-syntax"))
     implementation(project(":core-syntax-grammars"))
+    // L'interface de la démonstration : Material 3, barres d'application,
+    // cartes, liste et bord-à-bord — les seules dépendances externes du
+    // dépôt côté exécution (la démo n'est pas publiée, ADR-011).
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.google.material)
 }
