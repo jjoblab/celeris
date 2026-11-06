@@ -9,6 +9,14 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 4 (M6) — l'index de symboles hors ligne (ADR-005) : le
+  plan du même arbre que la coloration alimente l'index, remplacé
+  fichier par fichier ; usages B-11 en occurrences entières à casse
+  exacte — jamais dans les chaînes ni les commentaires, les jetons
+  décident — ; recherche floue B-13 (identique, préfixe, début de
+  mot, sous-chaîne, sous-suite) ordonnée par score ; budget mémoire
+  borné et saturation signée ; persistance compacte identique ;
+  16 tests neufs.
 - Tranche 3 (M6) — l'ordonnancement des requêtes LSP : fusion des
   demandes identiques (une requête sur le fil, deux appelants
   servis), annulation au remplacement ($/cancelRequest, la réponse

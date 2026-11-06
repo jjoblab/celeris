@@ -198,3 +198,49 @@
    serveur)** vit avec le corpus de traces de la clôture — le
    transport à flux est prouvé sur tubes JVM, le branchement à un
    processus suivra le besoin réel de l'hôte.
+
+## Tranche 4 — l'indexeur hors ligne (2026-11-06)
+
+### Livré
+
+- **L'index de symboles** (`IndexSymboles`, `Symbole`) : alimenté par
+  le plan du même arbre que la coloration (B-16, livré M4),
+  remplacé fichier par fichier à chaque ré-analyse — jamais il ne
+  cumule — retiré à la fermeture. La règle des rôles de l'ADR-005
+  s'y lit : l'index répond **vite et hors ligne** (aller à un
+  symbole, usages de base), le serveur répond **juste** (complétion
+  typée, raffinement) — jamais de chaînage.
+- **Les usages** (B-11) : occurrences ENTIÈRES du nom à travers les
+  fichiers indexés, casse exacte, déclarations comprises. Les jetons
+  du lexique décident à l'indexation : jamais un usage dans une
+  chaîne ou un commentaire ; les balises du balisage comptent à
+  l'ouverture et à la fermeture (le chevron fermant s'ôte du nom).
+- **La recherche floue** (`RechercheFloue`, B-13) : identique >
+  préfixe > début de mot interne (camelCase ou souligné) >
+  sous-chaîne > sous-suite, insensible à la casse — l'aller à
+  symbole ordonne par score puis par nom, la requête muette montre
+  tout.
+- **Le budget mémoire** : les occurrences de tous les fichiers sont
+  bornées (200 000 par défaut), la saturation est signée par
+  fichier, l'ancien état rend son budget avant le nouveau décompte —
+  la dégradation est documentée, jamais silencieuse.
+- **La persistance** : forme sérialisée compacte (une entrée par
+  ligne, en-tête signé) qui refait l'index identique — symboles,
+  usages, compte.
+
+### Vérifié localement
+
+- `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
+- **88 tests core-intelligence** (16 neufs : 9 index, 7 recherche
+  floue), zéro échec ;
+- manifeste d'API `core-intelligence` régénéré.
+
+### Écarts et limites
+
+1. **L'incrément est par fichier** : la ré-analyse d'un fichier
+   remplace son état dans l'index — la granularité du plan M4, pas
+   celle du symbole. Suffisant au geste (une édition, un fichier),
+   documenté.
+2. **La navigation B-10 côté vue** : l'index donne les coordonnées
+   (aller à la déclaration, retour par l'historique M5-t4), le
+   raccord aux commandes de la vue vit au jalon qui le consomme.
