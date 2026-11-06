@@ -9,6 +9,17 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 1 (M6) — le socle du client LSP (ADR-005, zéro dépendance
+  tierce) : analyseur et sérialiseur JSON stricts (RFC 8259),
+  enveloppes JSON-RPC 2.0 aux codes du protocole compris (annulations
+  serveur distinguées), transport injectable avec cadrage
+  Content-Length à réassemblage par morceaux et paire en processus
+  à livraison synchrone ; liste de complétion (B-04) à la coupure du
+  serveur honorée — jamais réordonnée ni complétée localement
+  (PIEGE-17 couvert) —, jetons sémantiques (B-02) décodés du delta
+  en positions absolues, modèle de documentation de complétion
+  (B-09) aux blocs typés distincts (PIEGE-16 couvert) ; 45 tests
+  neufs (39 core-lsp, 6 android-widgets).
 - Clôture M5 — les critères de sortie du jalon sont tous couverts :
   catégorie A P0 (A-05, A-06, A-11, A-20 et sa barre) et
   D-08/D-09/D-10, chaque ligne de matrice M5 porte son scénario au
