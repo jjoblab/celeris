@@ -26,7 +26,8 @@ class RechercheFloueTest {
     void lePrefixe() {
         assertEquals(RechercheFloue.SCORE_PREFIXE, RechercheFloue.score("ClientService", "cl"));
         assertEquals(RechercheFloue.SCORE_PREFIXE, RechercheFloue.score("clone", "CL"));
-        assertTrue(!RechercheFloue.correspond("Client", "lient"));
+        // « lient » n'ouvre pas « Client » : c'est une sous-chaîne, pas un préfixe
+        assertEquals(RechercheFloue.SCORE_SOUS_CHAINE, RechercheFloue.score("Client", "lient"));
     }
 
     /** Le début de mot interne : camelCase ou après un souligné. */
@@ -50,8 +51,10 @@ class RechercheFloueTest {
     void laSousSuite() {
         assertEquals(RechercheFloue.SCORE_SOUS_SUITE, RechercheFloue.score("Colocalise", "cl"));
         assertEquals(RechercheFloue.SCORE_SOUS_SUITE, RechercheFloue.score("recule", "rl"));
-        // l'ordre compte : « lc » n'est pas dans « recule » en sous-suite avant « rl »
-        assertTrue(!RechercheFloue.correspond("abracadabra", "dbr"));
+        // l'ordre compte : « lc » n'est pas dans « recule » en sous-suite
+        assertTrue(!RechercheFloue.correspond("recule", "lc"));
+        // « drr » échoue : après le d et deux r, il n'y a plus rien
+        assertTrue(!RechercheFloue.correspond("abracadabra", "drr"));
     }
 
     /** Le non-match : les caractères absents, la requête plus longue que le nom. */

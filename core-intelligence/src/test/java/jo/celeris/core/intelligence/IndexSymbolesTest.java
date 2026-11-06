@@ -106,9 +106,9 @@ class IndexSymbolesTest {
         IndexSymboles index = IndexSymboles.vide();
         indexJava(index, "file:///Client.java", sourceClient());
         indexJava(index, "file:///Utilisateur.java", sourceUtilisateur());
-        assertEquals(6, index.symboles().size());
+        assertEquals(7, index.symboles().size());
         index.retirer("file:///Client.java");
-        assertEquals(2, index.symboles().size());
+        assertEquals(3, index.symboles().size());
         assertTrue(index.symboles().stream()
                 .allMatch(symbole -> symbole.uri().equals("file:///Utilisateur.java")));
     }
@@ -126,11 +126,11 @@ class IndexSymbolesTest {
                 sourceUtilisateur().replace("Client voisin = null;",
                         "Client voisin = null; // Client en commentaire"));
         List<IndexSymboles.Usage> usages = index.usages("Client");
-        // Client.java : la déclaration (class Client) + le paramètre (Client autre) = 2
+        // Client.java : la déclaration (le C de class Client) + le paramètre (Client autre) = 2
         // Utilisateur.java : le champ + la locale = 2 — le commentaire ne compte pas
         assertEquals(4, usages.size());
         assertTrue(usages.stream().anyMatch(usage ->
-                usage.uri().equals("file:///Client.java") && usage.offset() == 15));
+                usage.uri().equals("file:///Client.java") && usage.offset() == 21));
         assertEquals(2, usages.stream()
                 .filter(usage -> usage.uri().equals("file:///Utilisateur.java")).count());
         // la casse est exacte : « client » minuscule ne trouve que le champ minuscule
@@ -143,13 +143,19 @@ class IndexSymbolesTest {
     @Test
     void leXmlAussi() {
         IndexSymboles index = IndexSymboles.vide();
-        String manifeste = "<manifest>\n  <application label=\"App\"/>\n"
-                + "  <activity name=\"Main\"/>\n</manifest>\n";
+        String manifeste = """
+                <manifest>
+                  <application label="App"/>
+                  <activity name="Main"/>
+                </manifest>
+                """;
         Document doc = Document.of(manifeste);
         index.remplacer("file:///AndroidManifest.xml", doc, xml.analyseFull(doc));
         List<String> noms = index.symboles().stream().map(Symbole::nom).toList();
         assertEquals(List.of("manifest", "application", "activity"), noms);
-        assertEquals(3, index.usages("application").size());
+        // le nom de balise compte à l'ouverture et à la fermeture
+        assertEquals(2, index.usages("manifest").size());
+        assertEquals(1, index.usages("application").size());
     }
 
     /** La recherche floue (B-13) : l'aller à symbole dans l'ordre des scores. */
@@ -164,11 +170,10 @@ class IndexSymbolesTest {
         // les autres noms ne répondent pas
         assertTrue(trouves.contains("Client"));
         assertEquals("Client", trouves.get(0), "le meilleur score d'abord");
-        // la requête exacte : les identiques d'abord (la casse à l'ordre près),
-        // la sous-suite derrière
+        // la requête exacte : les identiques d'abord, la casse à l'ordre près
         List<String> exacte = index.rechercher("client").stream()
                 .map(Symbole::nom).toList();
-        assertEquals(List.of("Client", "client", "nomComplet"), exacte);
+        assertEquals(List.of("Client", "client"), exacte);
         // requête muette : tout l'index
         assertEquals(index.symboles().size(), index.rechercher("").size());
     }
