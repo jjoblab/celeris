@@ -34,8 +34,12 @@ public final class MainActivity extends AppCompatActivity {
         barre().setOnMenuItemClickListener(element ->
                 element.getItemId() == R.id.action_reglages && ouvrirReglages());
 
+        AdaptateurFichiers adaptateur = new AdaptateurFichiers(this::ouvrirFichier);
         liste().setLayoutManager(new LinearLayoutManager(this));
-        liste().setAdapter(new AdaptateurFichiers(this::ouvrirFichier));
+        liste().setAdapter(adaptateur);
+        // Les cartes doivent vivre dans l'adaptateur : une liste vide
+        // masquerait tout le catalogue — rien à ouvrir, rien à tester.
+        adaptateur.submitList(CarteFichier.catalogue());
 
         poserStatistiques();
         appliquerBordABord();
