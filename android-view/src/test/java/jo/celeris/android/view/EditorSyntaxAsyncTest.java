@@ -20,9 +20,10 @@ import jo.celeris.core.text.TextSession;
  * PIEGE-20) : l'exécuteur s'injecte, la première image ne paie jamais
  * l'arbre — sans analyse publiée, la source passe sans couleur ; la
  * publication habille les rangées et prévient la vue (le rappel
- * d'invalidation) ; l'édition pendant le vol retombe sans couleur puis
- * recolore à la publication de la bonne révision — jamais le lexique
- * d'une autre révision ne colore un document ; le retrait du langage
+ * d'invalidation) ; l'édition pendant le vol rattrape par remappage —
+ * les lignes épargnées gardent leurs couleurs, la ligne touchée
+ * attend sa publication à l'encre de base ; jamais une ligne au
+ * contenu non prouvé identique ne se colore ; le retrait du langage
  * referme le moteur.
  */
 class EditorSyntaxAsyncTest {
@@ -63,6 +64,22 @@ class EditorSyntaxAsyncTest {
         throw new UnsupportedOperationException("pas consultée par le pont");
     };
 
+    /** Source de rangées de test : sans pli ni coupure, la rangée r porte la ligne r. */
+    private static final class SourceParLigne implements RowSource {
+        private final Document document;
+
+        SourceParLigne(Document document) {
+            this.document = document;
+        }
+
+        @Override
+        public RowLayout layoutOf(RowKey key) {
+            String texte = document.lineText(key.row());
+            return new RowLayout(key.row(), 0, texte.length(), texte,
+                    texte.length() * 10f);
+        }
+    }
+
     /**
      * Sans analyse publiée, la source passe telle quelle : la première
      * image ne paie jamais l'arbre (PIEGE-20, facette vue).
@@ -98,25 +115,70 @@ class EditorSyntaxAsyncTest {
     }
 
     /**
-     * L'édition pendant le vol retombe sans couleur puis recolore à la
-     * publication de la bonne révision — le lexique d'une autre révision
-     * ne colore jamais un document (PIEGE-20).
+     * L'édition pendant le vol rattrape par remappage : les lignes
+     * épargnées par l'édition gardent les plages de la publication, la
+     * ligne touchée retombe à l'encre de base — puis la publication à
+     * jour recolore la ligne touchée (PIEGE-20 : seule une ligne au
+     * contenu démontré identique se colore).
      */
     @Test
-    void editionPendantLeVolRetombeSansCouleurPuisRecolore() {
+    void editionPendantLeVolRattrapeParRemappage() {
         ExecuteurACommande executeur = new ExecuteurACommande();
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
         syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        executeur.jouer();
         int cible = SOURCE.indexOf("methode");
         session.replaceRange(cible, cible + 7, "autre");
         Document edite = session.document();
+        RowSource habillee = syntaxe.habiller(
+                new SourceParLigne(edite), edite);
+
+        assertFalse(habillee == SOURCE_MUETTE,
+                "la publication périmée rattrape : la source se pare");
+        RowLayout ligneClasse = habillee.layoutOf(
+                new RowKey(edite.revision(), 2, 1, new FontSpec("mono", 14f)));
+        assertFalse(ligneClasse.spans().isEmpty(),
+                "la ligne épargnée (class Premiere) garde ses couleurs");
+        RowLayout ligneTouchee = habillee.layoutOf(
+                new RowKey(edite.revision(), 3, 1, new FontSpec("mono", 14f)));
+        assertTrue(ligneTouchee.spans().isEmpty(),
+                "la ligne touchée attend sa publication : encre de base");
+
+        executeur.jouer();
+        RowSource exacte = syntaxe.habiller(new SourceParLigne(edite), edite);
+        RowLayout recoloree = exacte.layoutOf(
+                new RowKey(edite.revision(), 3, 1, new FontSpec("mono", 14f)));
+        assertFalse(recoloree.spans().isEmpty(),
+                "la publication de la bonne révision recolore la ligne touchée");
+        syntaxe.fermer();
+    }
+
+    /**
+     * Une rafale d'éditions au-delà du plafond rompt la chaîne : le
+     * rattrapage cède — la source reste sans couleur jusqu'à la
+     * publication, jamais le remappage ne devine.
+     */
+    @Test
+    void rafaleAuDelaDuPlafondRomptLaChaine() {
+        ExecuteurACommande executeur = new ExecuteurACommande();
+        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        TextSession session = TextSession.of(SOURCE, () -> 0L);
+        syntaxe.attacher(session);
+        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        executeur.jouer();
+        int cible = SOURCE.indexOf("Premiere");
+        for (int i = 0; i < 300; i++) {
+            session.replaceRange(cible, cible, "x");
+            cible++;
+        }
+        Document edite = session.document();
         assertSame(SOURCE_MUETTE, syntaxe.habiller(SOURCE_MUETTE, edite),
-                "aucune analyse publiée pour la révision courante : sans couleur");
+                "chaîne rompue : sans couleur, le remappage ne devine pas");
         executeur.jouer();
         assertFalse(syntaxe.habiller(SOURCE_MUETTE, edite) == SOURCE_MUETTE,
-                "la publication de la bonne révision recolore");
+                "la publication à jour répare la chaîne et recolore");
         syntaxe.fermer();
     }
 

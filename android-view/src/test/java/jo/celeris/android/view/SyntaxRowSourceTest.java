@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
+import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.JavaSyntax;
 import jo.celeris.core.syntax.LexDocument;
 import jo.celeris.core.syntax.SyntaxService;
@@ -219,5 +220,80 @@ class SyntaxRowSourceTest {
         assertEquals(5, mise.end());
         assertEquals(50f, mise.width(), 1e-6f);
         assertTrue(mise.runs().isEmpty());
+    }
+
+    /**
+     * Sous remappage (publication périmée), la ligne épargnée par
+     * l'édition garde les plages de SA ligne du document publié — les
+     * jetons relatifs à la ligne restent exacts (ADR-004).
+     */
+    @Test
+    void remappeeLaLigneEpargneeGardeSesPlages() {
+        // Publié : trois lignes ; l'édition remplace « b » par « bb » à
+        // la ligne 1 (delta nul) : les lignes 0 et 2 sont épargnées.
+        String publie = "int a = 1;\nint b = 2;\nint c = 3;";
+        String edite = "int a = 1;\nint bb = 2;\nint c = 3;";
+        Document document = Document.of(edite);
+        RemapLignes remap = RemapLignes.de(List.of(new EditSite(1, 1, 0)));
+        SyntaxRowSource source = new SyntaxRowSource(
+                new SourceParLigne(document, EditorMetrics.of(
+                        new FontSpec("mono", 14f), new RegleFixe())),
+                lexique(publie), remap);
+
+        RowLayout ligneDeux = source.layoutOf(
+                new RowKey(1L, 2, 1, new FontSpec("mono", 14f)));
+        assertEquals("int c = 3;", reconstruit(ligneDeux),
+                "la ligne épargnée se couvre exactement");
+        assertTrue(ligneDeux.spans().size() >= 3, "mot réservé, nom, nombre : les plages du publié");
+        assertEquals(TokenKind.KEYWORD, ligneDeux.spans().get(0).kind());
+    }
+
+    /**
+     * La ligne touchée par l'édition en attente retombe à l'encre de
+     * base : aucune plage de la publication ne peut la colorer.
+     */
+    @Test
+    void remappeeLaLigneToucheeResteSansPlage() {
+        String publie = "int a = 1;\nint b = 2;\nint c = 3;";
+        String edite = "int a = 1;\nint bb = 2;\nint c = 3;";
+        Document document = Document.of(edite);
+        RemapLignes remap = RemapLignes.de(List.of(new EditSite(1, 1, 0)));
+        SyntaxRowSource source = new SyntaxRowSource(
+                new SourceParLigne(document, EditorMetrics.of(
+                        new FontSpec("mono", 14f), new RegleFixe())),
+                lexique(publie), remap);
+
+        RowLayout ligneUne = source.layoutOf(
+                new RowKey(1L, 1, 1, new FontSpec("mono", 14f)));
+        assertTrue(ligneUne.spans().isEmpty(),
+                "la ligne touchée attend sa publication : encre de base");
+    }
+
+    /**
+     * Une insertion de ligne décale les suivantes : la rangée sous
+     * l'insertion se pare des jetons de l'ANCIENNE ligne à son index
+     * publié — le contenu a glissé, les jetons relatifs le suivent.
+     */
+    @Test
+    void remappeeLigneInsereeDecaleLesSuivantes() {
+        // Publié : deux lignes ; l'édition insère une ligne vide en tête.
+        String publie = "int a = 1;\nint b = 2;";
+        String edite = "\nint a = 1;\nint b = 2;";
+        Document document = Document.of(edite);
+        RemapLignes remap = RemapLignes.de(List.of(new EditSite(0, 0, 1)));
+        SyntaxRowSource source = new SyntaxRowSource(
+                new SourceParLigne(document, EditorMetrics.of(
+                        new FontSpec("mono", 14f), new RegleFixe())),
+                lexique(publie), remap);
+
+        RowLayout ligneInseree = source.layoutOf(
+                new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
+        assertTrue(ligneInseree.spans().isEmpty(),
+                "la ligne insérée n'existait pas au publié : encre de base");
+        RowLayout ligneDecalee = source.layoutOf(
+                new RowKey(1L, 1, 1, new FontSpec("mono", 14f)));
+        assertEquals("int a = 1;", reconstruit(ligneDecalee),
+                "la ligne décalée porte les plages de sa ligne publiée");
+        assertEquals(TokenKind.KEYWORD, ligneDecalee.spans().get(0).kind());
     }
 }

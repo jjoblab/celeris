@@ -6,6 +6,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import jo.celeris.core.syntax.Analysis;
+import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.FoldSpan;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.MoteurAnalyse;
@@ -38,9 +39,11 @@ import org.jspecify.annotations.Nullable;
  * vit sur le fil d'écriture de la session — l'analyse se paie à la
  * première demande ; avec exécuteur injecté (ADR-007), le moteur hors
  * fil publie par lots — la fenêtre visible d'abord (G-01) — et la vue
- * n'habille JAMAIS un document avec le lexique d'une autre révision :
- * sans publication à jour, la source passe sans couleur, la première
- * image ne paie pas l'arbre (PIEGE-20, facette vue). Le rappel
+ * n'habille JAMAIS une ligne avec les jetons d'une autre révision sans
+ * preuve d'identité : sans publication à jour, les éditions en attente
+ * remappent les lignes épargnées (contenu démontré identique,
+ * RemapLignes), les lignes touchées passent à l'encre de base le temps
+ * du vol (PIEGE-20, facette vue — plus un mot ne clignote). Le rappel
  * {@code setSurAnalysePrete} part à chaque publication, sur le fil de
  * travail — l'hôte y invalide.</p>
  *
@@ -54,11 +57,19 @@ import org.jspecify.annotations.Nullable;
  */
 public final class EditorSyntax {
 
+    /** Taille maximale de la chaîne d'éditions en attente : au-delà, la chaîne se déclare rompue. */
+    private static final int CHAINE_MAX = 256;
+
+    /** Une édition en attente de publication : la révision produite et son site en lignes. */
+    private record EditionEnAttente(int revision, EditSite site) {
+    }
+
     private final FoldTracker suiviPlis;
     private final FoldModel plis;
     private final List<FoldSpan> regionsPliables = new ArrayList<>();
     private final EditListener ecouteurPlis = this::surEdition;
     private final @Nullable Executor executeur;
+    private final List<EditionEnAttente> editionsEnAttente = new ArrayList<>();
 
     private @Nullable TextSession session;
     private @Nullable LanguageSyntax langue;
@@ -71,6 +82,7 @@ public final class EditorSyntax {
     private @Nullable Document documentSuivi;
     private long revisionAnalysee = -1L;
     private GutterMarks marques = GutterMarks.VIDE;
+    private boolean chaineRompue;
 
     /**
      * Construit le pont synchrone sur le modèle de plis de la projection
@@ -113,6 +125,8 @@ public final class EditorSyntax {
         session = nouvelleSession;
         session.addEditListener(ecouteurPlis);
         documentSuivi = session.document();
+        editionsEnAttente.clear();
+        chaineRompue = false;
         rattacher();
         suiviPlis.clear();
         pousserPlan(List.of());
@@ -126,6 +140,8 @@ public final class EditorSyntax {
      */
     public void setLanguage(@Nullable LanguageSyntax nouvelleLangue) {
         langue = nouvelleLangue;
+        editionsEnAttente.clear();
+        chaineRompue = false;
         rattacher();
         revisionAnalysee = -1L;
         if (langue == null) {
@@ -227,8 +243,9 @@ public final class EditorSyntax {
      * Habille la source de rangées des plages de jetons (B-01) et
      * rafraîchit les régions pliables et les lignes en erreur quand
      * l'analyse change de révision — l'état replié s'interroge au
-     * vivant sur le modèle de plis. Sans analyse, la source passe
-     * telle quelle.
+     * vivant sur le modèle de plis. Sans analyse à jour, la publication
+     * périmée rattrape par remappage ; sans publication du tout, la
+     * source passe telle quelle.
      *
      * @param source   la source de rangées non colorées
      * @param document l'instantané affiché
@@ -237,7 +254,7 @@ public final class EditorSyntax {
     public RowSource habiller(RowSource source, Document document) {
         Analysis analyse = analyseCourante(document);
         if (analyse == null) {
-            return source;
+            return habillerPerimee(source);
         }
         if (analyse.revision() != revisionAnalysee) {
             revisionAnalysee = analyse.revision();
@@ -247,7 +264,51 @@ public final class EditorSyntax {
                     lignesEnErreur(document, analyse));
             pousserPlan(TreeOutline.entries(document, analyse));
         }
+        editionsEnAttente.clear();
+        chaineRompue = false;
         return new SyntaxRowSource(source, analyse.lex());
+    }
+
+    /**
+     * L'habillage de rattrapage : la publication date d'avant
+     * l'instantané affiché, les éditions en attente remappent ses
+     * lignes — celles dont le contenu a survécu gardent leurs couleurs,
+     * la ligne touchée retombe à l'encre de base. Sans publication ou
+     * chaîne rompue (rafale au-delà du plafond), la source reste sans
+     * couleur : jamais une ligne au contenu non prouvé identique ne se
+     * colore (PIEGE-20).
+     */
+    private RowSource habillerPerimee(RowSource source) {
+        MoteurAnalyse moteurLocal = moteur;
+        if (moteurLocal == null) {
+            return source;
+        }
+        Analysis publiee = moteurLocal.analysePubliee();
+        if (publiee == null || chaineRompue) {
+            return source;
+        }
+        List<EditSite> sites = sitesDepuis(publiee.revision());
+        if (sites.isEmpty()) {
+            return source;
+        }
+        return new SyntaxRowSource(source, publiee.lex(), RemapLignes.de(sites));
+    }
+
+    /**
+     * Les sites des éditions postérieures à la révision publiée, en
+     * ordre chronologique — les révisions croissent strictement, les
+     * sites absorbés par la publication se retirent de la tête.
+     */
+    private List<EditSite> sitesDepuis(int revisionPubliee) {
+        while (!editionsEnAttente.isEmpty()
+                && editionsEnAttente.get(0).revision() <= revisionPubliee) {
+            editionsEnAttente.remove(0);
+        }
+        List<EditSite> sites = new ArrayList<>(editionsEnAttente.size());
+        for (EditionEnAttente edition : editionsEnAttente) {
+            sites.add(edition.site());
+        }
+        return sites;
     }
 
     /**
@@ -382,14 +443,34 @@ public final class EditorSyntax {
     /**
      * Le remappage des plis à l'éditon (A-15) : l'instantané d'avant
      * accompagne la notification, le suivi décale les bornes, jamais
-     * l'état replié.
+     * l'état replié. Le site de l'édition rejoint la chaîne des
+     * éditions en attente — le rattrapage de coloration s'y servira
+     * tant que la publication n'est pas à jour.
      */
     private void surEdition(int start, int end, String removed, String inserted) {
         Document avant = documentSuivi;
         if (avant != null && session != null) {
+            Document apres = session.document();
             suiviPlis.surEdition(avant, start, end, removed, inserted);
-            documentSuivi = session.document();
+            documentSuivi = apres;
+            enregistrerEdition(avant, apres, start, end, inserted);
         }
+    }
+
+    /**
+     * Enregistre le site d'une édition en attente : la chaîne se borne,
+     * une rafale au-delà du plafond la déclare rompue — le rattrapage
+     * cède, jamais ne devine.
+     */
+    private void enregistrerEdition(Document avant, Document apres, int start,
+            int end, String insere) {
+        if (editionsEnAttente.size() >= CHAINE_MAX) {
+            editionsEnAttente.clear();
+            chaineRompue = true;
+            return;
+        }
+        editionsEnAttente.add(new EditionEnAttente(apres.revision(),
+                EditSite.of(avant, apres, start, end, insere)));
     }
 
     /** Les lignes porteuses d'un diagnostic, dédoublées et triées par GutterMarks. */

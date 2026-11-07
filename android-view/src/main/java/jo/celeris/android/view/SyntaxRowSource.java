@@ -8,6 +8,8 @@ import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Source de rangées colorées (B-01) : le décorateur greffe sur chaque
  * mise en page les plages de sa ligne — le rendu coloré lit les paniers
@@ -20,6 +22,12 @@ import jo.celeris.core.syntax.TokenKind;
  * l'identificateur — l'encre de base par défaut. Une rangée vide reste
  * sans plage : le chemin rapide du peintre.</p>
  *
+ * <p>Deux habillages : à jour, la ligne de la rangée se lit directement
+ * dans le lexique ; périmé (l'analyse publiée date d'avant les éditions
+ * en attente), un remappeur résout la ligne du document publié au
+ * contenu démontré identique — la ligne touchée par l'édition reste à
+ * l'encre de base, le temps que la publication à jour arrive.</p>
+ *
  * <p>Pure et testable sans SDK : le document lexicographié est injecté,
  * immuable ; l'époque syntaxique est signée par la reconstruction de la
  * source à chaque changement de langage — la révision du document signe
@@ -29,6 +37,7 @@ public final class SyntaxRowSource implements RowSource {
 
     private final RowSource deleguee;
     private final LexDocument lexique;
+    private final @Nullable RemapLignes remappeur;
 
     /**
      * Construit la source colorée sur une source déléguée.
@@ -37,8 +46,25 @@ public final class SyntaxRowSource implements RowSource {
      * @param lexique  le document lexicographié de l'analyse courante
      */
     public SyntaxRowSource(RowSource deleguee, LexDocument lexique) {
+        this(deleguee, lexique, null);
+    }
+
+    /**
+     * Construit la source colorée remappée sur une publication
+     * périmée : chaque rangée se pare des jetons de SA ligne du
+     * document publié, résolue par le remappeur — la ligne touchée par
+     * une édition en attente retombe à l'encre de base.
+     *
+     * @param deleguee  la source des mises en page non colorées
+     * @param lexique   le document lexicographié de la publication
+     * @param remappeur le remappeur des lignes vers le document publié,
+     *                  null pour l'habillage à jour
+     */
+    public SyntaxRowSource(RowSource deleguee, LexDocument lexique,
+            @Nullable RemapLignes remappeur) {
         this.deleguee = deleguee;
         this.lexique = lexique;
+        this.remappeur = remappeur;
     }
 
     @Override
@@ -61,7 +87,12 @@ public final class SyntaxRowSource implements RowSource {
         if (base.start() >= base.end()) {
             return List.of();
         }
-        LexedLine panier = lexique.line(base.line());
+        LexedLine panier = panierDe(base);
+        if (panier == null) {
+            // Ligne touchée par une édition en attente : aucun jeton de
+            // la publication ne peut la colorer — encre de base.
+            return List.of();
+        }
         Token[] jetons = panier.tokens();
         List<ColoredSpan> plages = new ArrayList<>();
         int curseur = base.start();
@@ -92,5 +123,22 @@ public final class SyntaxRowSource implements RowSource {
                     curseur - base.start(), base.end() - base.start()));
         }
         return plages;
+    }
+
+    /**
+     * Le panier de jetons de la ligne d'une rangée : le sien à jour, ou
+     * celui de sa ligne du document publié sous remappage — null quand
+     * la ligne a été touchée par une édition en attente.
+     */
+    private @Nullable LexedLine panierDe(RowLayout base) {
+        RemapLignes remap = remappeur;
+        if (remap == null) {
+            return lexique.line(base.line());
+        }
+        int lignePubliee = remap.lignePubliee(base.line(), lexique.lineCount());
+        if (lignePubliee < 0) {
+            return null;
+        }
+        return lexique.line(lignePubliee);
     }
 }

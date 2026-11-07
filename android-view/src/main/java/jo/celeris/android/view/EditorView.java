@@ -105,6 +105,10 @@ public final class EditorView extends View {
     private EditorTheme theme = EditorThemes.CLAIR;
     private long revisionSuivie;
     private boolean retourALaLigne;
+    /** Publication d'analyse reçue hors fil : la source se réhabille à
+     *  l'image suivante, les mises en page sans couleur de la révision
+     *  courante se remplacent (volatile : posée sur le fil de travail). */
+    private volatile boolean publicationRecue;
 
     float scrollX;
     float scrollY;
@@ -123,7 +127,10 @@ public final class EditorView extends View {
         super(context, attrs);
         setFocusable(true);
         setFocusableInTouchMode(true);
-        syntaxe.setSurAnalysePrete(this::postInvalidateOnAnimation);
+        syntaxe.setSurAnalysePrete(() -> {
+            publicationRecue = true;
+            postInvalidateOnAnimation();
+        });
         BrushFactory pinceaux = new PaintBrushes();
         gouttiere = new GutterPainter(pinceaux, margeGouttiere,
                 () -> marquesGouttiere.marques(syntaxe.marques()),
@@ -468,7 +475,17 @@ public final class EditorView extends View {
 
     private void suivreRevision(Document document) {
         int colonnesVoulues = retourALaLigne ? budgetColonnes() : 0;
-        if (document.revision() != revisionSuivie
+        // La publication arrive sur le fil de travail : la source se
+        // réhabille même à révision constante — les mises en page
+        // déposées sans couleur pendant le vol se remplacent (le cache
+        // les servait telles quelles, la couleur ne revenait qu'à
+        // l'édition suivante).
+        boolean recue = publicationRecue;
+        if (recue) {
+            publicationRecue = false;
+            cache.invalidate(document.revision());
+        }
+        if (recue || document.revision() != revisionSuivie
                 || colonnesVoulues != projection.columns()) {
             cache.invalidate(revisionSuivie);
             revisionSuivie = document.revision();
