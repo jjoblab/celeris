@@ -18,6 +18,8 @@
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/barre_reglages"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
             app:navigationContentDescription="@string/action_retour"
             app:navigationIcon="@drawable/ic_retour"
             app:title="@string/titre_reglages" />

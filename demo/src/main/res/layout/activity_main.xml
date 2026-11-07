@@ -17,6 +17,8 @@
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/barre_accueil"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
             app:title="@string/app_name" />
     </com.google.android.material.appbar.AppBarLayout>
 
