@@ -9,6 +9,23 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Corrigé
 
+- Les mots colorés s'éparpillaient, séparés d'un grand espace dès que la
+  coloration s'affichait : les pinceaux par sorte de jeton ne recevaient
+  jamais la police de l'image — seuls les tracés non colorés la posaient
+  (PIEGE-21) — chaque plage se traçait à la police par défaut de la
+  plateforme pendant que l'avance se calculait à la police de l'éditeur ;
+  chaque pinceau par sorte reçoit désormais la police de l'image avant
+  tout tracé, la règle qui mesure reste la police qui trace.
+- La coloration disparaissait puis revenait à chaque caractère tapé, la
+  suppression comprise : l'image qui affiche la frappe courait plus vite
+  que la publication d'analyse, se traçait sans couleur, et rien ne la
+  ramenait avant l'édition suivante — la source se réhabille à chaque
+  publication (le cache de rangées suit), et pendant le vol, la
+  publication périmée rattrape par remappage : les lignes épargnées par
+  l'édition gardent leurs couleurs (contenu démontré identique,
+  `RemapLignes`), la seule ligne touchée attend son encre le temps du
+  vol (PIEGE-20 : jamais une ligne au contenu non prouvé identique ne
+  se colore, une rafale au-delà du plafond retombe sans couleur).
 - Le retour à la ligne souple fermait l'application à l'activation : la
   fenêtre de rangées visibles n'était jamais bornée au contenu, et les
   rangées sous la dernière ligne projetaient la dernière ligne sur des
