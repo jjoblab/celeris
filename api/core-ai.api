@@ -99,6 +99,7 @@ public final class jo.celeris.core.ai.FauxModeleLocal implements jo.celeris.core
 Compiled from "GardeContexte.java"
 public final class jo.celeris.core.ai.GardeContexte implements jo.celeris.core.ai.ModeleTexteFantome,jo.celeris.core.ai.ModelePrediction {
   public jo.celeris.core.ai.GardeContexte(jo.celeris.core.ai.ModeleTexteFantome, jo.celeris.core.ai.ModelePrediction, java.lang.String, jo.celeris.core.ai.ExclusionsContexte);
+  public jo.celeris.core.ai.GardeContexte(jo.celeris.core.ai.ModeleTexteFantome, jo.celeris.core.ai.ModelePrediction, java.lang.String, jo.celeris.core.ai.ExclusionsContexte, java.util.function.BooleanSupplier);
   public void completer(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModeleTexteFantome$Recepteur);
   public void predire(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModelePrediction$Recepteur);
 }

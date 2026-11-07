@@ -68,6 +68,20 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 6 (M8) — le consentement et la clôture (F-10) : le garde du
+  contexte consulte le consentement à chaque départ — sans lui, la
+  requête reste au sol, fantôme et prédiction compris, le journal du
+  faux modèle en témoigne ; l'interrupteur des réglages de la
+  démonstration reste coupé par défaut, l'atelier IA refuse poliment
+  sans lui. La neutralité est structurelle : le manifeste de la
+  démonstration ne déclare aucune permission — pas même INTERNET — et
+  le test CI DemoNeutreTest le vérifie ; le scénario d'exclusions y
+  passe (le chemin exclu ne part jamais, même consentant). Le budget
+  de latence d'affichage du fantôme se consigne : mille tracés au
+  minimum de trois tours, chaque tracé sous le budget d'une image à
+  soixante hertz. La catégorie F complète entre au catalogue de la
+  démonstration ; aucun paquet celeris n'embarque de télémétrie,
+  l'option reste à l'hôte, documentée au README.
 - Tranche 5 (M8) — le rendu du fantôme et le menu d'intentions
   (F-01 interface, F-02, F-03) : la couche FantomePainter dessine la
   suggestion au chemin des indices en ligne — une cellule d'encre

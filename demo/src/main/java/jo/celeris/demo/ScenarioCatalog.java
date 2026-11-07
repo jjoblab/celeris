@@ -76,6 +76,7 @@ public final class ScenarioCatalog {
         tous.addAll(scenariosLangages());
         tous.addAll(scenariosAffichage());
         tous.addAll(integrationHote());
+        tous.addAll(iaNative());
         tous.addAll(scenariosGlobal());
         return List.copyOf(tous);
     }
@@ -83,6 +84,11 @@ public final class ScenarioCatalog {
     /** La catégorie E — les contrats d'intégration de l'hôte (M7). */
     private static List<Scenario> integrationHote() {
         return ScenariosIntegration.tous();
+    }
+
+    /** La catégorie F — l'IA native (M8). */
+    private static List<Scenario> iaNative() {
+        return ScenariosIA.tous();
     }
 
     /** A-01 à A-03 — curseurs, colonne, syntaxe. */

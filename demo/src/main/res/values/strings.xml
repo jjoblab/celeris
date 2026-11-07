@@ -41,6 +41,11 @@
     <string name="prediction_appliquee">Prediction applied — undo with one gesture.</string>
     <string name="prediction_refusee">Prediction refused: the document has moved since it was read. Nothing changed.</string>
     <string name="prediction_aucune">The model has nothing to predict here.</string>
+    <string name="consentement_titre">AI is off by default</string>
+    <string name="consentement_message">Nothing leaves the editor without your explicit consent — no model receives any text, not even the local one. The switch lives in the settings screen.</string>
+    <string name="consentement_ouvrir">Open settings</string>
+    <string name="reglage_ia">AI models</string>
+    <string name="desc_ia">Off by default (F-10): no request leaves the editor without this explicit activation. The demo model is local and offline; exclusions still guard the secrets.</string>
     <plurals name="etat_lint">
         <item quantity="one">Lint: %1$d issue</item>
         <item quantity="other">Lint: %1$d issues</item>

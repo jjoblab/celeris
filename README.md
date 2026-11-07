@@ -13,12 +13,25 @@ Android, l'application de démonstration et un exécutable en ligne de commande.
 
 ## État du projet
 
-**M1 — fondations (livrées, en attente de validation du propriétaire).**
-M0 est validé (2026-11-04) : le squelette des dix modules et de la
-démonstration est en place, l'outillage de build et les portes qualité sont
-bloquants, la CI est épinglée par somme SHA. Le point d'entrée est
-[`docs/RESUME-M1.md`](docs/RESUME-M1.md) ; le cadrage reste consultable
-dans [`docs/RESUME-M0.md`](docs/RESUME-M0.md).
+**M8 — IA native (livrée, en attente de validation du propriétaire).**
+M0 à M7 sont livrés : moteur de texte, vue Canvas, syntaxe, édition
+assistée, sémantique, Android et SPI. Le jalon M8 clos la catégorie F
+de la matrice de parité — texte fantôme, prédiction, revue d'agent,
+API d'outils pour agents (surface MCP), exclusions de contexte,
+consentement. Les points d'entrée : [`docs/RESUME-M8.md`](docs/RESUME-M8.md)
+et [`docs/feuille-de-route.md`](docs/feuille-de-route.md).
+
+## Vie privée
+
+Aucun paquet celeris n'embarque de télémétrie — ni collecte, ni
+déclaration d'usage. Les contrats IA du cœur ne connaissent aucun
+transport : les modèles se branchent par l'hôte, et rien ne part sans
+le consentement explicite de l'utilisateur (`GardeContexte`,
+[`docs/adr/012-contrats-ia-agents.md`](docs/adr/012-contrats-ia-agents.md)).
+L'hôte qui veut une télémétrie l'ajoute derrière son propre
+consentement, anonyme et documentée — jamais dans le cœur. La
+démonstration ne déclare d'ailleurs aucune permission réseau : sa
+neutralité par défaut est structurelle, vérifiée en CI.
 
 ## Modules prévus
 

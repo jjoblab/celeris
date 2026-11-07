@@ -44,6 +44,11 @@ public final class SettingsActivity extends AppCompatActivity {
         interrupteur(R.id.interrupteur_retour, prefs,
                 prefs.getBoolean(CLE_RETOUR, false), CLE_RETOUR);
         interrupteurTheme(prefs);
+        // F-10 — le consentement IA, coupé par défaut : aucune requête
+        // ne quitte l'éditeur sans cette activation explicite.
+        interrupteur(R.id.interrupteur_ia, prefs,
+                prefs.getBoolean(AtelierIA.CLE_CONSENTEMENT, false),
+                AtelierIA.CLE_CONSENTEMENT);
         appliquerBordABord();
     }
 

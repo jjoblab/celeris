@@ -215,7 +215,7 @@ public final class EditorActivity extends AppCompatActivity {
         // L'atelier IA (F-01, F-02, F-03) : le faux modèle local, sans
         // réseau — les actions vivent au menu comme les intentions
         // classiques.
-        atelierIA = new AtelierIA(this, editeur, session);
+        atelierIA = new AtelierIA(this, editeur, session, nomFichier);
         // Toute animation de vue (défilement, clic) rafraîchit la
         // position ; les clics restent portés par EditorView, qui
         // redéfinit performClick.

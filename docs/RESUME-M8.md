@@ -1,4 +1,4 @@
-# Résumé M8 — IA native (ouvert le 2026-11-08)
+# Résumé M8 — IA native (clos le 2026-11-08, tranches 1 à 6)
 
 > **Déclenchement** : clôture du jalon M7 (2026-11-07, critères de
 > sortie couverts — catégories C et E P0, SPI de référence, cli en CI).
@@ -10,12 +10,10 @@
 > budgets de latence tenus ; test « aucune requête sans consentement »
 > vert.
 >
-> **État** : jalon ouvert — tranches 1 à 5 livrées (les contrats du texte
-> fantôme et de la prédiction, les faux modèles, l'annulation ; la
-> revue des modifications d'agent ; l'API d'outils et sa surface
-> MCP ; les exclusions de contexte et les instructions d'agent ; le
-> rendu du fantôme, ses gestes et le menu d'intentions). La clôture
-> reste à écrire (voir « Reste ouvert »).
+> **État** : jalon clos le 2026-11-08 — les six tranches sont
+> consignées ci-dessous, critères de sortie couverts (catégorie F P0,
+> budgets de latence, test « aucune requête sans consentement »
+> vert). La catégorie F de la matrice est livrée entière.
 
 ## Avant la première tranche — l'hygiène inter-jalons (2026-11-08)
 
@@ -236,10 +234,53 @@ couvert, le registre suit) ; `:demo:check` vert — `PiloteFantomeTest`
 de 600 lignes. Les lignes F-01, F-02 et F-03 de la matrice passent à
 livrées.
 
-## Reste ouvert
+## Tranche 6 — le consentement et la clôture (2026-11-08)
 
-- **Tranche 6 — le consentement et la clôture** (F-10) : aucun trafic
-  sortant sans activation explicite, télémétrie en option anonyme
-  documentée, test CI « aucune requête réseau en mode par défaut » ;
-  budgets de latence IA consignés, matrice et changelog à jour,
-  scénarios de démonstration citant les lignes F.
+### Livré
+
+- **F-10 — le consentement dans le garde** : `GardeContexte` consulte
+  l'état de consentement à chaque départ — relu, jamais figé à la
+  construction. Sans consentement, la requête reste au sol, fantôme et
+  prédiction compris : pas de requête, donc pas de réponse, le
+  journal du faux modèle en témoigne. L'interrupteur des réglages de
+  la démonstration (`ia.consentement`, coupé par défaut) l'alimente ;
+  l'atelier IA refuse poliment sans lui et propose les réglages.
+- **F-10, la neutralité structurelle** : le manifeste de la
+  démonstration ne déclare AUCUNE permission — pas même INTERNET. Le
+  test CI `DemoNeutreTest` le vérifie (la preuve structurelle : un
+  paquet sans prise ne peut pas en ouvrir) et le scénario d'exclusions
+  y passe (le chemin exclu ne part jamais, même consentant).
+- **F-01 — le budget de latence d'affichage consigné** :
+  `LatenceFantomeVueTest` mesure mille tracés du fantôme au minimum de
+  trois tours (PIEGE-13), chaque tracé sous le budget d'une image à
+  soixante hertz (16 ms) — la protection est structurelle, le chemin
+  est fait d'appels purs sur l'état d'image.
+- **F-10 — la télémétrie documentée** : aucun paquet celeris
+  n'embarque de télémétrie — l'option reste à l'hôte, derrière un
+  consentement explicite, documentée au README (section « Vie
+  privée »).
+- **Les scénarios de démonstration** : la catégorie F complète entre
+  au catalogue — F-01 à F-10, chacun citant sa ligne de matrice ;
+  l'atelier IA branche le faux local derrière le garde du contexte
+  (consentement relu, exclusions embarquées).
+
+### Preuve
+
+`:core-ai:check` vert — 67 tests, mutation 80,5 % (190/236, seuil 80).
+`:android-view:check` et `:demo:check` verts (`DemoNeutreTest` et
+`PiloteFantomeTest` compris), `:demo:assembleDebug` assemblé (7,3 Mo).
+`./gradlew check` vert sur l'ensemble (SDK présent). Les lignes F-08,
+F-09 et F-10 de la matrice passent à livrées.
+
+## Clôture (2026-11-08)
+
+Critères de sortie du jalon couverts : catégorie F P0 couverte
+(F-01, F-04, F-05, F-09, F-10 livrées, les P1 avec — F-02, F-03,
+F-06, F-07, F-08) ; budgets de latence tenus (la frappe ne bloque
+jamais — mille demandes au modèle aveugle ; l'affichage sous le
+budget d'une image, minimum de trois tours) ; test « aucune
+requête sans consentement » vert en CI (`DemoNeutreTest`, la preuve
+structurelle en tête : le manifeste de la démonstration ne déclare
+aucune prise réseau). Matrice de parité mise à jour — la catégorie F
+entière passe à livrée. PIEGE-11 et PIEGE-23 couverts au registre en
+cours de jalon. `git status` propre, poussée sur `main`.
