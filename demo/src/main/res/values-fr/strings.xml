@@ -4,6 +4,11 @@
     <string name="accroche_marque">Éditeur de code embarquable · démonstration</string>
     <string name="stat_fichiers">Fichiers</string>
     <string name="stat_scenarios">Scénarios</string>
+    <string name="stat_specs">Vérifiés</string>
+    <string name="specs_compteur">%1$d/%2$d</string>
+    <string name="specs_titre">Vérifications des scénarios (rejouées en direct)</string>
+    <string name="spec_verdict_tenu">%1$s tient</string>
+    <string name="spec_verdict_tombe">%1$s TOMBE</string>
     <string name="section_exemples">Fichiers d\'exemple</string>
     <string name="note_exemples">Ouvrez un fichier pour essayer l\'éditeur complet : syntaxe, plis, recherche, plan, thèmes, points d\'arrêt.</string>
     <plurals name="sous_titre_fichier">

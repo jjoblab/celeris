@@ -4,6 +4,11 @@
     <string name="accroche_marque">Embeddable code editor · tech demo</string>
     <string name="stat_fichiers">Files</string>
     <string name="stat_scenarios">Scenarios</string>
+    <string name="stat_specs">Self-checked</string>
+    <string name="specs_compteur">%1$d/%2$d</string>
+    <string name="specs_titre">Scenario checks (played live)</string>
+    <string name="spec_verdict_tenu">%1$s holds</string>
+    <string name="spec_verdict_tombe">%1$s FAILS</string>
     <string name="section_exemples">Sample files</string>
     <string name="note_exemples">Open a file to try the full editor: syntax, folds, search, outline, themes, breakpoints.</string>
     <plurals name="sous_titre_fichier">
