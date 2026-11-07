@@ -7,6 +7,22 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### Corrigé
+
+- La démonstration s'ouvrait en arrêt forcé sur l'appareil : les
+  barres d'application de l'accueil et des réglages ne portaient ni
+  `layout_width` ni `layout_height` — l'inflation mourait au premier
+  écran, et ni la compilation ni l'assemblage ne le disaient ; un
+  test de cohérence des mises en page (chaque vue doit porter ses
+  dimensions) ferme la porte.
+- L'accueil de la démonstration affichait une liste vide : le
+  catalogue des cartes n'était jamais soumis à l'adaptateur — les
+  fichiers d'exemple n'étaient pas ouvrables depuis l'accueil.
+- L'APK de la démonstration porte désormais un numéro de version
+  (`versionCode` 1, `versionName` lu au catalogue) : le manifeste
+  assemblé en était dépourvu, et certains installateurs refusent un
+  paquet sans version.
+
 ### Ajouté
 
 - L'interface de la démonstration devient application : vrais layouts
