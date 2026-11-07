@@ -102,7 +102,7 @@ class ChromePainterTest {
      * curseur du thème.
      */
     @Test
-    void curseur_barreAUffsetVise() {
+    void curseur_barreAuOffsetVise() {
         Document document = Document.of("abcdef\nghijkl");
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);

@@ -103,7 +103,7 @@ class FenetreBorneeTest {
      * faisait fermer l'application n'existe plus.
      */
     @Test
-    void textPainter_rangéesFantômesImpossibles() {
+    void textPainter_rangeesFantomesImpossibles() {
         TextSession session = TextSession.of("abcdefghij", System::nanoTime);
         Document document = session.document();
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 16f),
