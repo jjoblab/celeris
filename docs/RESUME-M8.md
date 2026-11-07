@@ -10,11 +10,12 @@
 > budgets de latence tenus ; test « aucune requête sans consentement »
 > vert.
 >
-> **État** : jalon ouvert — tranches 1 à 4 livrées (les contrats du texte
+> **État** : jalon ouvert — tranches 1 à 5 livrées (les contrats du texte
 > fantôme et de la prédiction, les faux modèles, l'annulation ; la
 > revue des modifications d'agent ; l'API d'outils et sa surface
-> MCP ; les exclusions de contexte et les instructions d'agent).
-> Les tranches suivantes restent à écrire (voir « Reste ouvert »).
+> MCP ; les exclusions de contexte et les instructions d'agent ; le
+> rendu du fantôme, ses gestes et le menu d'intentions). La clôture
+> reste à écrire (voir « Reste ouvert »).
 
 ## Avant la première tranche — l'hygiène inter-jalons (2026-11-08)
 
@@ -194,12 +195,49 @@ Manifeste d'API régénéré — quatre types publics ajoutés, aucun
 retrait (SemVer mineure, ADR-009). La ligne F-07 de la matrice passe à
 livrée.
 
+## Tranche 5 — le rendu du fantôme et le menu d'intentions (2026-11-08)
+
+### Livré
+
+- **F-01, interface — `FantomePainter`** : le dessin éphémère au
+  chemin des indices en ligne — une cellule d'encre pleine par
+  caractère, sur la même ligne de base que le code (PIEGE-11, couvert
+  par le test nommé `inlayOccupiesExactInkCells_onCodeBaseline`). La
+  première ligne se pose à l'ancre, les suivantes au bord gauche du
+  texte, une rangée chacune — par-dessus le texte en place, l'encre
+  fanée (soixante pour cent de l'encre de base, la teinte du thème
+  reste) les distingue. Le découpage en lignes se prend au dépôt de la
+  suggestion : aucune allocation par image (PIEGE-15).
+- **F-01, gestes — `FantomeEditeur` et la vue** : l'acceptation au
+  clavier (Tab, action `ACCEPT_FANTOME` remappable dans la table
+  D-17) et au geste (l'appui sur la première ligne du fantôme) accepte
+  le premier mot — l'hôte exécute, la vue ne touche à aucune session
+  de modèle ; `GesteFantome` porte aussi la ligne, le bloc et le
+  refus.
+- **F-01, la démonstration — `PiloteFantome` et `AtelierIA`** : le
+  pilote, pur et testé, applique le fragment accepté à l'ancre décalée
+  — chaque fragment accepté avance l'ancre du suivant — et ré-ancre le
+  reste à la révision courante pour l'affichage ; la frappe suivante
+  ferme le fantôme et annule le vol (F-09). L'atelier IA demande au
+  faux modèle local (déterministe au contenu), affiche, applique.
+- **F-02 — la prédiction à l'atelier** : le modèle local prédit une
+  opération, la boîte de dialogue montre la description, l'application
+  reste explicite — transaction annulable, le refus se lit.
+- **F-03 — les actions IA au menu d'intentions** : suggestion et
+  prédiction vivent au menu de l'atelier, au même titre que les
+  intentions classiques — lint, aperçu de définition, revue du diff,
+  revue d'agent — même barre, même gestuelle.
+
+### Preuve
+
+`:android-view:check` vert — `FantomePainterTest` compris (PIEGE-11
+couvert, le registre suit) ; `:demo:check` vert — `PiloteFantomeTest`
+(la boucle complète sans appareil). `EditorView` reste sous le plafond
+de 600 lignes. Les lignes F-01, F-02 et F-03 de la matrice passent à
+livrées.
+
 ## Reste ouvert
 
-- **Tranche 5 — le rendu du fantôme et le menu d'intentions** (F-01
-  interface, F-03) : le dessin éphémère au chemin des indices en ligne
-  (PIEGE-11), l'acceptation au clavier et au geste, l'action IA au
-  même titre qu'une intention classique.
 - **Tranche 6 — le consentement et la clôture** (F-10) : aucun trafic
   sortant sans activation explicite, télémétrie en option anonyme
   documentée, test CI « aucune requête réseau en mode par défaut » ;

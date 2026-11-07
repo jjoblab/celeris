@@ -56,5 +56,8 @@ public enum EditorAction {
     /** Annule le dernier geste. */
     UNDO,
     /** Retablit le geste annulé. */
-    REDO
+    REDO,
+    /** Accepte le premier mot du texte fantôme (F-01) — Tab au
+     *  clavier matériel, l'hôte exécute le geste. */
+    ACCEPT_FANTOME
 }

@@ -9,6 +9,7 @@ plugins {
     // composant « java » du plugin JVM, qu'AGP ne fournit pas.
 }
 dependencies {
+    api(project(":core-ai"))
     api(project(":core-intelligence"))
     api(project(":core-language"))
 }

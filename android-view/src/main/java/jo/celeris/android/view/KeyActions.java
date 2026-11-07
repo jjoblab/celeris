@@ -35,6 +35,11 @@ final class KeyActions {
             case REDO -> session.redo();
             case SELECT_ALL -> session.setSelection(MultiSelection.of(
                     new SelRange(0, document.length())));
+            case ACCEPT_FANTOME -> {
+                if (!vue.fantome.surTab()) {
+                    return false;
+                }
+            }
             default -> mouvements(vue, action);
         }
         vue.invalidate();

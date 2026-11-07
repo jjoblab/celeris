@@ -96,6 +96,7 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierLint atelierLint;
     private AtelierDiff atelierDiff;
     private AtelierAgent atelierAgent;
+    private AtelierIA atelierIA;
     private List<OutlineEntry> entreesPlan = List.of();
     private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
 
@@ -117,6 +118,11 @@ public final class EditorActivity extends AppCompatActivity {
             majPosition();
             majMarques();
             majPastillesEtReperes();
+            // La frappe suivante refuse le fantôme (F-09) — l'atelier IA
+            // suit s'il est déjà en place.
+            if (atelierIA != null) {
+                atelierIA.surEdition();
+            }
         });
         setContentView(R.layout.activity_editor);
         brancherBarre();
@@ -155,6 +161,8 @@ public final class EditorActivity extends AppCompatActivity {
         actionsMenu.put(R.id.action_apercu, this::apercuDefinition);
         actionsMenu.put(R.id.action_diff, atelierDiff::ouvrir);
         actionsMenu.put(R.id.action_agent, atelierAgent::ouvrir);
+        actionsMenu.put(R.id.action_ia_fantome, () -> atelierIA.demanderFantome());
+        actionsMenu.put(R.id.action_ia_prediction, () -> atelierIA.demanderPrediction());
         actionsMenu.put(R.id.action_theme, this::tournerTheme);
         actionsMenu.put(R.id.action_diminuer, () -> zoomerPolice(-PAS_TAILLE));
         actionsMenu.put(R.id.action_agrandir, () -> zoomerPolice(PAS_TAILLE));
@@ -204,6 +212,10 @@ public final class EditorActivity extends AppCompatActivity {
         editeur = findViewById(R.id.editeur);
         // Le contenu du fichier ouvert doit vivre dans l'éditeur.
         editeur.setSession(session);
+        // L'atelier IA (F-01, F-02, F-03) : le faux modèle local, sans
+        // réseau — les actions vivent au menu comme les intentions
+        // classiques.
+        atelierIA = new AtelierIA(this, editeur, session);
         // Toute animation de vue (défilement, clic) rafraîchit la
         // position ; les clics restent portés par EditorView, qui
         // redéfinit performClick.

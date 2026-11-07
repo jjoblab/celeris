@@ -32,6 +32,15 @@
     <string name="action_agent">Revue des modifications d\'agent</string>
     <string name="titre_agent">Modification d\'agent — bloc %1$d</string>
     <string name="agent_revenir">Revenir au point de contrôle</string>
+    <string name="action_ia_fantome">IA\u00a0: suggérer une complétion</string>
+    <string name="action_ia_prediction">IA\u00a0: prédire la prochaine édition</string>
+    <string name="prediction_titre">Édition prédite</string>
+    <string name="prediction_description">Ajouter une ligne de journal à la fin du fichier</string>
+    <string name="prediction_question">Appliquer cette édition comme une transaction ordinaire, annulable ?</string>
+    <string name="prediction_appliquer">Appliquer</string>
+    <string name="prediction_appliquee">Prédiction appliquée — annulable d\'un geste.</string>
+    <string name="prediction_refusee">Prédiction refusée\u00a0: le document a bougé depuis sa lecture. Rien n\'a changé.</string>
+    <string name="prediction_aucune">Le modèle n\'a rien à prédire ici.</string>
     <plurals name="etat_lint">
         <item quantity="one">Lint : %1$d problème</item>
         <item quantity="other">Lint : %1$d problèmes</item>

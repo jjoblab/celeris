@@ -69,6 +69,8 @@ public final class KeyBindings {
         lier(table, EditorAction.DELETE_FORWARD, new KeyBinding(112, false, false, false));
         lier(table, EditorAction.UNDO, new KeyBinding(54, false, true, false));
         lier(table, EditorAction.REDO, new KeyBinding(52, false, true, false));
+        lier(table, EditorAction.ACCEPT_FANTOME,
+                new KeyBinding(61, false, false, false));
         return new KeyBindings(table);
     }
 

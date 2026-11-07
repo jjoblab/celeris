@@ -21,6 +21,7 @@ import android.view.inputmethod.InputConnection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import jo.celeris.core.ai.SuggestionFantome;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.Document;
@@ -118,6 +119,8 @@ public final class EditorView extends View {
     final CurseurClavier curseurClavier = new CurseurClavier(this);
     /** Le collaborateur du routage tactile. */
     private final TouchesEditeur touches = new TouchesEditeur(this);
+    /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
+    final FantomeEditeur fantome;
 
     public EditorView(Context context) {
         this(context, null);
@@ -132,6 +135,7 @@ public final class EditorView extends View {
             postInvalidateOnAnimation();
         });
         BrushFactory pinceaux = new PaintBrushes();
+        fantome = new FantomeEditeur(this, pinceaux);
         gouttiere = new GutterPainter(pinceaux, margeGouttiere,
                 () -> marquesGouttiere.marques(syntaxe.marques()),
                 () -> marquesGouttiere.coulisse(syntaxe.coulisse(
@@ -142,6 +146,7 @@ public final class EditorView extends View {
         trace.addLayer(new SelectionPainter(pinceaux));
         trace.addLayer(new ComposingPainter(pinceaux, composition));
         trace.addLayer(new TextPainter(pinceaux, cache, sourceLiee));
+        trace.addLayer(fantome.peintre());
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
         // logique (sp) se convertit une fois pour toutes (PIEGE-23).
@@ -288,6 +293,28 @@ public final class EditorView extends View {
     /** Les intégrations de la gouttière : marques, arrêts, clic (D-03 à D-05). */
     public MarquesGouttiere marquesGouttiere() {
         return marquesGouttiere;
+    }
+
+    /**
+     * Dépose (ou retire) la suggestion fantôme visible (F-01) : la
+     * première ligne à l'ancre, les suivantes au bord gauche du texte,
+     * à l'encre fanée.
+     *
+     * @param suggestion la suggestion, ou {@code null} pour fermer
+     */
+    public void setFantome(@Nullable SuggestionFantome suggestion) {
+        fantome.setSuggestion(suggestion);
+    }
+
+    /**
+     * Le rappel des gestes du fantôme (F-01) : Tab et l'appui sur le
+     * fantôme acceptent le premier mot, l'hôte exécute — la vue ne
+     * touche à aucune session de modèle.
+     *
+     * @param surGeste le rappel des gestes, ou {@code null} pour couper
+     */
+    public void setSurGesteFantome(@Nullable Consumer<GesteFantome> surGeste) {
+        fantome.setSurGeste(surGeste);
     }
 
     /** La session affichée — accès de paquet pour la colle IME. */
@@ -441,6 +468,9 @@ public final class EditorView extends View {
         pincements.onTouchEvent(event);
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                if (fantome.touche(event.getX(), event.getY())) {
+                    return true;
+                }
                 return touches.surAppui(event);
             case MotionEvent.ACTION_POINTER_DOWN:
                 return touches.surDoigtPose(event);

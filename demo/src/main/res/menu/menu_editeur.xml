@@ -58,6 +58,16 @@
         android:title="@string/action_agent"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_ia_fantome"
+        android:icon="@drawable/ic_corriger"
+        android:title="@string/action_ia_fantome"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_ia_prediction"
+        android:icon="@drawable/ic_plan"
+        android:title="@string/action_ia_prediction"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_retablir"
         android:icon="@drawable/ic_retablir"
         android:title="@string/action_retablir"

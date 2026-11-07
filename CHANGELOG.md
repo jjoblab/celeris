@@ -68,6 +68,18 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 5 (M8) — le rendu du fantôme et le menu d'intentions
+  (F-01 interface, F-02, F-03) : la couche FantomePainter dessine la
+  suggestion au chemin des indices en ligne — une cellule d'encre
+  pleine par caractère sur la ligne de base du code (PIEGE-11 couvert,
+  registre à jour), encre fanée, première ligne à l'ancre et suivantes
+  au bord gauche du texte ; l'acceptation se prend au clavier (Tab,
+  remappable) et au geste (appui sur le fantôme), GesteFantome porte
+  le mot, la ligne, le bloc et le refus ; PiloteFantome, pur et testé,
+  applique à l'ancre décalée et ré-ancre le reste ; les actions IA
+  (suggestion, prédiction) vivent au menu de l'atelier au même titre
+  que les intentions classiques, la prédiction s'applique
+  explicitement — transaction annulable, refus qui se lit.
 - Tranche 4 (M8) — les exclusions de contexte (F-07) : le fichier
   d'exclusion du dépôt déclare les chemins jamais envoyés à un modèle
   (chemins exacts, dossiers, jokers — une règle sans barre vaut pour

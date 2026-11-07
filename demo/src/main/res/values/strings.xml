@@ -32,6 +32,15 @@
     <string name="action_agent">Review agent edits</string>
     <string name="titre_agent">Agent edit — block %1$d</string>
     <string name="agent_revenir">Back to checkpoint</string>
+    <string name="action_ia_fantome">AI: suggest completion</string>
+    <string name="action_ia_prediction">AI: predict next edit</string>
+    <string name="prediction_titre">Predicted edit</string>
+    <string name="prediction_description">Append a logging line at the end of the file</string>
+    <string name="prediction_question">Apply this edit as a normal, undoable transaction?</string>
+    <string name="prediction_appliquer">Apply</string>
+    <string name="prediction_appliquee">Prediction applied — undo with one gesture.</string>
+    <string name="prediction_refusee">Prediction refused: the document has moved since it was read. Nothing changed.</string>
+    <string name="prediction_aucune">The model has nothing to predict here.</string>
     <plurals name="etat_lint">
         <item quantity="one">Lint: %1$d issue</item>
         <item quantity="other">Lint: %1$d issues</item>
