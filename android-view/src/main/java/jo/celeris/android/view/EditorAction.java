@@ -59,5 +59,11 @@ public enum EditorAction {
     REDO,
     /** Accepte le premier mot du texte fantôme (F-01) — Tab au
      *  clavier matériel, l'hôte exécute le geste. */
-    ACCEPT_FANTOME
+    ACCEPT_FANTOME,
+    /** Un palier de police au-dessus — Ctrl + plus ou molette (D-15). */
+    ZOOM_IN,
+    /** Un palier de police en dessous — Ctrl + moins ou molette (D-15). */
+    ZOOM_OUT,
+    /** La police par défaut — Ctrl + 0 (D-15). */
+    ZOOM_RESET
 }

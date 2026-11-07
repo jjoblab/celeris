@@ -39,8 +39,9 @@ final class GestesFabrique {
 
     /**
      * Le détecteur de pincements : zoome par paliers, le point sous le
-     * doigt stable (D-15) ; le panoramique à deux doigts vit dans la
-     * vue, qui suit déjà les pointeurs.
+     * doigt stable (D-15) — le facteur cumulé se reconstitue depuis
+     * l'écartement de départ (PIEGE-24) ; le panoramique à deux doigts
+     * vit dans la vue, qui suit déjà les pointeurs.
      *
      * @param context le contexte de la vue
      * @param vue     la vue propriétaire du zoom
@@ -51,21 +52,19 @@ final class GestesFabrique {
                 new ScaleGestureDetector.SimpleOnScaleGestureListener() {
             @Override
             public boolean onScaleBegin(ScaleGestureDetector detector) {
-                vue.pincementActif = true;
-                vue.tailleAuDepartDuPincement = vue.policeLogique.size();
+                vue.zoom.surEngagement(detector);
                 return true;
             }
 
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
-                vue.zoomer(detector.getFocusX(), detector.getFocusY(),
-                        detector.getScaleFactor());
+                vue.zoom.surCran(detector);
                 return true;
             }
 
             @Override
             public void onScaleEnd(ScaleGestureDetector detector) {
-                vue.pincementActif = false;
+                vue.zoom.surFin();
             }
         });
     }

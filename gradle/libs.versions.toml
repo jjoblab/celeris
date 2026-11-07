@@ -20,6 +20,12 @@ junitJupiter = "6.1.3"
 jqwik = "1.10.2"
 pitest = "1.30.1"
 pitestJunit5 = "1.2.3"
+# Tests de vue sur JVM (ADR-013 — vérifiées sur Maven Central le
+# 2026-11-08) : Robolectric se pilote par son lanceur JUnit 4, porté
+# sur la plateforme Jupiter par le moteur vintage (même version que
+# Jupiter, alignement du train de tests).
+junit4 = "4.13.2"
+robolectric = "4.15.1"
 # Publication (ADR-011 : SBOM)
 cyclonedx = "3.5.1"
 # Version de l'application de démonstration (non publiée) — toute
@@ -41,6 +47,12 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
 archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+# Rendu de vue sur JVM (ADR-013) : Robolectric porte son lanceur JUnit 4
+# (aucune extension Jupiter officielle à ce jour), le moteur vintage le
+# fait rouler sur la plateforme Jupiter commune au dépôt.
+junit4 = { module = "junit:junit", version.ref = "junit4" }
+junit-vintage = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 # Nullité en surface d'API (ADR-009) — annotations JSpecify
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 # Analyse statique javac (ADR-009 : Error Prone + NullAway)

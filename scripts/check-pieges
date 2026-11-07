@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Contrôle du registre des pièges (M7.5, §11, règle 5).
+
+Chaque test cité par docs/audit/PIEGES-HERITES.md existe VRAIMENT dans
+les sources de test du dépôt — une citation sans test est un mensonge
+de registre (PIEGE-23 l'a été).
+
+Sortie : décompte des pièges couverts / à écrire ; échec (exit 1) si
+une classe de test citée n'existe pas.
+
+Usage :  python3 scripts/check-pieges
+"""
+
+import os
+import re
+import sys
+
+RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REGISTRE = os.path.join(RACINE, 'docs', 'audit', 'PIEGES-HERITES.md')
+
+
+def classes_test():
+    resultat = set()
+    for racine, _, noms in os.walk(RACINE):
+        parties = racine.split(os.sep)
+        if 'src' in parties and 'test' in parties and 'celeris' in parties:
+            for nom in noms:
+                if nom.endswith('.java'):
+                    resultat.add(nom[:-5])
+    return resultat
+
+
+def main():
+    with open(REGISTRE, encoding='utf-8') as f:
+        lignes = f.read().split('\n')
+    tests = classes_test()
+    problemes = []
+    couverts = 0
+    aecrire = 0
+    for ligne in lignes:
+        m = re.match(r'^\| (PIEGE-\d+) \|', ligne)
+        if not m:
+            continue
+        if '| à écrire |' in ligne:
+            aecrire += 1
+            continue
+        couverts += 1
+        citations = re.findall(r'`([A-Z][A-Za-z0-9]+Test)`', ligne)
+        if not citations:
+            problemes.append('%s : couvert sans test cité' % m.group(1))
+            continue
+        for citation in citations:
+            if citation not in tests:
+                problemes.append(
+                    '%s : le test cité %s n\'existe pas' % (m.group(1), citation))
+    if problemes:
+        for probleme in problemes:
+            print('pièges : ' + probleme)
+        sys.exit(1)
+    print('pièges : %d couverts, %d à écrire — toutes les citations existent'
+          % (couverts, aecrire))
+
+
+if __name__ == '__main__':
+    main()

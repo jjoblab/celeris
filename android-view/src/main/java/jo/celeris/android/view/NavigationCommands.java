@@ -59,8 +59,8 @@ public final class NavigationCommands {
     public static void placeCaret(EditorView vue, int offset) {
         TextSession session = vue.session();
         session.setSelection(caretAt(offset, session.length()));
-        vue.revealCaret();
-        vue.annoncerSelection();
+        vue.curseurClavier.revealCaret();
+        vue.curseurClavier.annoncerSelection();
     }
 
     /**
@@ -75,7 +75,7 @@ public final class NavigationCommands {
     public static void selectRange(EditorView vue, int debut, int fin) {
         TextSession session = vue.session();
         session.setSelection(rangeBetween(debut, fin, session.length()));
-        vue.revealCaret();
-        vue.annoncerSelection();
+        vue.curseurClavier.revealCaret();
+        vue.curseurClavier.annoncerSelection();
     }
 }

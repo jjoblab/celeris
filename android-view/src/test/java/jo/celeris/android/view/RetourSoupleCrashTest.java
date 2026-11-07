@@ -184,20 +184,17 @@ class RetourSoupleCrashTest {
         MarquesGouttiere marquesGouttiere = new MarquesGouttiere();
         BrushFactory fabrique = new FabriqueSimple();
         ScrollFrame trace = new ScrollFrame();
+        GutterLanes coulisses = marquesGouttiere.coulisses(syntaxe.active());
         trace.addLayer(new GutterPainter(fabrique, 8f,
                 () -> marquesGouttiere.marques(syntaxe.marques()),
-                () -> marquesGouttiere.coulisse(
-                        syntaxe.coulisse(metrics.charWidth(), 8f),
-                        metrics.charWidth())));
+                () -> coulisses.laneWidth(metrics.charWidth(), 8f)));
         trace.addLayer(new SelectionPainter(fabrique));
         trace.addLayer(new TextPainter(fabrique, cache, source));
 
-        float coulisse = marquesGouttiere.coulisse(
-                syntaxe.coulisse(metrics.charWidth(), 8f),
-                metrics.charWidth());
-        float largeurGouttiere = GutterGeometry.width(
-                Math.max(1, projection.rowCount()),
-                metrics.charWidth(), 8f, coulisse);
+        float coulisse = coulisses.laneWidth(metrics.charWidth(), 8f);
+        float largeurGouttiere = GutterLayout.width(
+                GutterLayout.digitsFor(document.lineCount()),
+                metrics.charWidth(), 1f, 8f, coulisses);
         int premiere = 0;
         int visibles = ScrollGeometry.visibleRows(hauteur, metrics.lineHeight());
         syntaxe.fenetre(projection, premiere, visibles);

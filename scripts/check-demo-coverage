@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Contrôle de la couverture de la démonstration (M7.5, §9, §11).
+
+Une ligne de la matrice au statut « Démontré » ou « Vérifié appareil »
+doit être citée par un scénario du catalogue de la démo ; un scénario
+du catalogue doit citer une ligne CONNUE de la matrice — une carte qui
+cite une ligne inconnue ment, une ligne « démontrée » sans carte aussi.
+
+Sortie : décomptes ; échec (exit 1) à la première violation.
+
+Usage :  python3 scripts/check-demo-coverage
+"""
+
+import os
+import re
+import sys
+
+RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MATRICE = os.path.join(RACINE, 'docs', 'parite', 'MATRICE-PARITE.md')
+
+
+def lignes_matrice():
+    resultat = {}
+    with open(MATRICE, encoding='utf-8') as f:
+        for ligne in f:
+            m = re.match(r'^\| ([A-G]-\d{2}) \|(.+)\|$', ligne)
+            if not m:
+                continue
+            colonnes = [c.strip() for c in m.group(2).split('|')]
+            if len(colonnes) >= 9:
+                resultat[m.group(1)] = colonnes[6]
+    return resultat
+
+
+def lignes_citees_par_scenarios():
+    resultat = set()
+    base = os.path.join(RACINE, 'demo', 'src', 'main')
+    for racine, _, noms in os.walk(base):
+        for nom in noms:
+            if not nom.endswith('.java'):
+                continue
+            with open(os.path.join(racine, nom), encoding='utf-8') as f:
+                for m in re.finditer(r'\b([A-G]-\d{2})\b', f.read()):
+                    resultat.add(m.group(1))
+    return resultat
+
+
+def main():
+    matrice = lignes_matrice()
+    citees = lignes_citees_par_scenarios()
+    problemes = []
+    for identifiant, statut in matrice.items():
+        if statut in ('Démontré', 'Vérifié appareil') \
+                and identifiant not in citees:
+            problemes.append(
+                '%s : statut %s sans scénario de démo le citant'
+                % (identifiant, statut))
+    for identifiant in sorted(citees):
+        if identifiant not in matrice:
+            problemes.append(
+                'scénario citant %s : ligne inconnue de la matrice'
+                % identifiant)
+    if problemes:
+        for probleme in problemes:
+            print('démo : ' + probleme)
+        sys.exit(1)
+    demontrees = sum(1 for s in matrice.values() if s == 'Démontré')
+    print('démo : %d lignes citées par les scénarios, %d démontrées — cohérent'
+          % (len(citees), demontrees))
+
+
+if __name__ == '__main__':
+    main()

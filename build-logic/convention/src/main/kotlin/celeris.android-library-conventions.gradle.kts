@@ -38,6 +38,13 @@ extensions.configure(LibraryExtension::class.java) {
         // ADR-011 : lint bloquant, zéro baseline.
         abortOnError = true
     }
+    testOptions {
+        // ADR-013 : les tests de vue (Robolectric) lisent les vraies
+        // ressources du module — vue, thème, densités — depuis la JVM.
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 configureAndroidJavac()

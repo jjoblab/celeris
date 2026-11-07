@@ -1,4 +1,4 @@
-# Résumé M8 — IA native (clos le 2026-11-08, tranches 1 à 6)
+# Résumé M8 — IA native (clos le 2026-11-07, tranches 1 à 6)
 
 > **Déclenchement** : clôture du jalon M7 (2026-11-07, critères de
 > sortie couverts — catégories C et E P0, SPI de référence, cli en CI).
@@ -10,24 +10,24 @@
 > budgets de latence tenus ; test « aucune requête sans consentement »
 > vert.
 >
-> **État** : jalon clos le 2026-11-08 — les six tranches sont
+> **État** : jalon clos le 2026-11-07 — les six tranches sont
 > consignées ci-dessous, critères de sortie couverts (catégorie F P0,
 > budgets de latence, test « aucune requête sans consentement »
 > vert). La catégorie F de la matrice est livrée entière.
 
-## Avant la première tranche — l'hygiène inter-jalons (2026-11-08)
+## Avant la première tranche — l'hygiène inter-jalons (2026-11-07)
 
 Le registre des pièges rattrape les deux pièges du rapport d'appareil
 de M7 : la police qui trace devient **PIEGE-22** (couvert —
 `lesPlagesSeTracentALaPoliceDeLEditeur`, `TextPainterSyntaxTest`), les
 sp convertis à la densité deviennent **PIEGE-23** (couvert depuis le
-2026-11-08 — `taillesSpConvertiesALaDensite`, `TaillesSpTest` : la
+2026-11-07 — `taillesSpConvertiesALaDensite`, `TaillesSpTest` : la
 conversion quitte la vue pour `TaillesSp`, pure, échelle de police de
 l'accessibilité comprise). Les citations suivaient dans
 android-view, le changelog et le résumé M7 ; l'« État » de ce dernier,
 resté à « NON clos », dit désormais clos.
 
-## Tranche 1 — les contrats IA : texte fantôme, prédiction, faux modèles (2026-11-08)
+## Tranche 1 — les contrats IA : texte fantôme, prédiction, faux modèles (2026-11-07)
 
 ### Livré
 
@@ -89,7 +89,7 @@ mineure, ADR-009). `./gradlew check` vert sur l'ensemble (SDK présent).
 Les lignes F-01, F-02, F-08 et F-09 de la matrice passent à partiel
 (noyau livré, interface et scénarios de démonstration à venir).
 
-## Tranche 2 — la revue des modifications d'agent (2026-11-08)
+## Tranche 2 — la revue des modifications d'agent (2026-11-07)
 
 ### Livré
 
@@ -128,7 +128,7 @@ NullAway, couverture ≥ 90 % compris), mutation 83,1 % (118/142, seuil
 `RevueAgent` ajoutés, aucun retrait (SemVer mineure, ADR-009).
 `:demo:check` vert, la ligne F-04 de la matrice passe à livrée.
 
-## Tranche 3 — l'API d'outils pour agents (2026-11-08)
+## Tranche 3 — l'API d'outils pour agents (2026-11-07)
 
 ### Livré
 
@@ -165,7 +165,7 @@ Manifeste d'API régénéré — six types publics ajoutés, aucun retrait
 (SemVer mineure, ADR-009). Les lignes F-05 et F-06 de la matrice
 passent à livrées.
 
-## Tranche 4 — les exclusions de contexte (2026-11-08)
+## Tranche 4 — les exclusions de contexte (2026-11-07)
 
 ### Livré
 
@@ -193,7 +193,7 @@ Manifeste d'API régénéré — quatre types publics ajoutés, aucun
 retrait (SemVer mineure, ADR-009). La ligne F-07 de la matrice passe à
 livrée.
 
-## Tranche 5 — le rendu du fantôme et le menu d'intentions (2026-11-08)
+## Tranche 5 — le rendu du fantôme et le menu d'intentions (2026-11-07)
 
 ### Livré
 
@@ -234,7 +234,7 @@ couvert, le registre suit) ; `:demo:check` vert — `PiloteFantomeTest`
 de 600 lignes. Les lignes F-01, F-02 et F-03 de la matrice passent à
 livrées.
 
-## Tranche 6 — le consentement et la clôture (2026-11-08)
+## Tranche 6 — le consentement et la clôture (2026-11-07)
 
 ### Livré
 
@@ -272,7 +272,7 @@ livrées.
 `./gradlew check` vert sur l'ensemble (SDK présent). Les lignes F-08,
 F-09 et F-10 de la matrice passent à livrées.
 
-## Clôture (2026-11-08)
+## Clôture (2026-11-07)
 
 Critères de sortie du jalon couverts : catégorie F P0 couverte
 (F-01, F-04, F-05, F-09, F-10 livrées, les P1 avec — F-02, F-03,

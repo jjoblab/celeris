@@ -24,9 +24,10 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Deux habillages : à jour, la ligne de la rangée se lit directement
  * dans le lexique ; périmé (l'analyse publiée date d'avant les éditions
- * en attente), un remappeur résout la ligne du document publié au
- * contenu démontré identique — la ligne touchée par l'édition reste à
- * l'encre de base, le temps que la publication à jour arrive.</p>
+ * en attente), le rattrapage {@link TokenCatchUp} sert les jetons de la
+ * ligne publiée RECALÉS sur l'édition en attente — la ligne touchée
+ * garde ses couleurs, elle ne retombe plus à l'encre de base (PIEGE-26,
+ * stale-while-revalidate).</p>
  *
  * <p>Pure et testable sans SDK : le document lexicographié est injecté,
  * immuable ; l'époque syntaxique est signée par la reconstruction de la
@@ -37,7 +38,7 @@ public final class SyntaxRowSource implements RowSource {
 
     private final RowSource deleguee;
     private final LexDocument lexique;
-    private final @Nullable RemapLignes remappeur;
+    private final @Nullable TokenCatchUp remappeur;
 
     /**
      * Construit la source colorée sur une source déléguée.
@@ -50,18 +51,18 @@ public final class SyntaxRowSource implements RowSource {
     }
 
     /**
-     * Construit la source colorée remappée sur une publication
-     * périmée : chaque rangée se pare des jetons de SA ligne du
-     * document publié, résolue par le remappeur — la ligne touchée par
-     * une édition en attente retombe à l'encre de base.
+     * Construit la source colorée rattrapée sur une publication
+     * périmée : chaque rangée se pare des jetons de sa ligne, servie
+     * par le rattrapeur — recalés sur l'édition en attente pour la
+     * ligne touchée, tels quels pour les lignes épargnées.
      *
      * @param deleguee  la source des mises en page non colorées
      * @param lexique   le document lexicographié de la publication
-     * @param remappeur le remappeur des lignes vers le document publié,
-     *                  null pour l'habillage à jour
+     * @param remappeur le rattrapage des jetons sur l'édition en
+     *                  attente, null pour l'habillage à jour
      */
     public SyntaxRowSource(RowSource deleguee, LexDocument lexique,
-            @Nullable RemapLignes remappeur) {
+            @Nullable TokenCatchUp remappeur) {
         this.deleguee = deleguee;
         this.lexique = lexique;
         this.remappeur = remappeur;
@@ -79,6 +80,24 @@ public final class SyntaxRowSource implements RowSource {
     }
 
     /**
+     * RE-SPAM la mise en page donnée des plages de l'habillage courant
+     * : la mesure survit — même instance quand les plages n'ont pas
+     * changé, nouvelle instance (même mesure, plages neuves) sinon
+     * (PIEGE-26 : une publication ne rejette pas les mesures).
+     *
+     * @param base la mise en page en cache
+     * @return la mise en page à jour — la même si rien n'a changé
+     */
+    public RowLayout respan(RowLayout base) {
+        List<ColoredSpan> plages = plagesDe(base);
+        if (plages.equals(base.spans())) {
+            return base;
+        }
+        return new RowLayout(base.line(), base.start(), base.end(), base.text(),
+                base.width(), base.runs(), plages);
+    }
+
+    /**
      * Les plages colorées de la tranche d'une rangée : les jetons de sa
      * ligne, rognés aux bornes de la tranche, les trous comblés à
      * l'identificateur.
@@ -89,8 +108,8 @@ public final class SyntaxRowSource implements RowSource {
         }
         LexedLine panier = panierDe(base);
         if (panier == null) {
-            // Ligne touchée par une édition en attente : aucun jeton de
-            // la publication ne peut la colorer — encre de base.
+            // Le rattrapage n'a rien à servir pour cette ligne (ligne
+            // neuve sans lexeur) : encre de base — le seul cas restant.
             return List.of();
         }
         Token[] jetons = panier.tokens();
@@ -127,18 +146,14 @@ public final class SyntaxRowSource implements RowSource {
 
     /**
      * Le panier de jetons de la ligne d'une rangée : le sien à jour, ou
-     * celui de sa ligne du document publié sous remappage — null quand
-     * la ligne a été touchée par une édition en attente.
+     * celui que sert le rattrapage — jetons publiés recalés pour la
+     * ligne touchée, panier publié pour les lignes épargnées.
      */
     private @Nullable LexedLine panierDe(RowLayout base) {
-        RemapLignes remap = remappeur;
+        TokenCatchUp remap = remappeur;
         if (remap == null) {
             return lexique.line(base.line());
         }
-        int lignePubliee = remap.lignePubliee(base.line(), lexique.lineCount());
-        if (lignePubliee < 0) {
-            return null;
-        }
-        return lexique.line(lignePubliee);
+        return remap.basketFor(base.line());
     }
 }

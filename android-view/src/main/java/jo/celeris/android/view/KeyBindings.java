@@ -71,6 +71,11 @@ public final class KeyBindings {
         lier(table, EditorAction.REDO, new KeyBinding(52, false, true, false));
         lier(table, EditorAction.ACCEPT_FANTOME,
                 new KeyBinding(61, false, false, false));
+        // D-15 — les raccourcis de bureau du zoom : Ctrl + plus 81,
+        // Ctrl + moins 69, Ctrl + zéro 7, molette Ctrl dans la vue.
+        lier(table, EditorAction.ZOOM_IN, new KeyBinding(81, false, true, false));
+        lier(table, EditorAction.ZOOM_OUT, new KeyBinding(69, false, true, false));
+        lier(table, EditorAction.ZOOM_RESET, new KeyBinding(7, false, true, false));
         return new KeyBindings(table);
     }
 

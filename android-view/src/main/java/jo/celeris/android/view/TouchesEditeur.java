@@ -68,9 +68,7 @@ final class TouchesEditeur {
             poigneeTiree = poignee;
             return true;
         }
-        float coulisse = vue.marquesGouttiere.coulisse(vue.syntaxe.coulisse(
-                vue.metrics.charWidth(), vue.margeGouttiere),
-                vue.metrics.charWidth());
+        float coulisse = vue.gouttiereEtat.coulisseCourante();
         if (vue.syntaxe.basculerPliAuPoint(x, y, vue.scrollY,
                 vue.metrics.lineHeight(), coulisse, vue.projection)) {
             vue.invalidate();
@@ -93,7 +91,7 @@ final class TouchesEditeur {
             vue.session.setSelection(
                     MultiSelection.of(SelRange.caretAt(offset)));
         }
-        vue.annoncerSelection();
+        vue.curseurClavier.annoncerSelection();
         vue.invalidate();
         return true;
     }
@@ -115,7 +113,7 @@ final class TouchesEditeur {
      * sélection.
      */
     boolean surDeplacement(MotionEvent event) {
-        if (vue.pincementActif) {
+        if (vue.zoom.actif()) {
             return true;
         }
         if (panoramique && event.getPointerCount() >= 2) {
@@ -153,6 +151,11 @@ final class TouchesEditeur {
         panoramique = false;
         vue.glissement.up();
         return true;
+    }
+
+    /** Coupe le panoramique : le pincement engage prend la main (D-15). */
+    void couperPanoramique() {
+        panoramique = false;
     }
 
     /** Le relâchement : tout geste se conclut. */

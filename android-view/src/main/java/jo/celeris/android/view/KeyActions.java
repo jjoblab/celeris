@@ -40,6 +40,9 @@ final class KeyActions {
                     return false;
                 }
             }
+            case ZOOM_IN -> vue.zoom.agrandir();
+            case ZOOM_OUT -> vue.zoom.retrecir();
+            case ZOOM_RESET -> vue.zoom.retablir(EditorView.POLICE_PAR_DEFAUT.size());
             default -> mouvements(vue, action);
         }
         vue.invalidate();

@@ -92,3 +92,45 @@ jobs:
           name: demo-debug-apk
           path: demo/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+  # M7.5 (ADR-013) : les tests de vue (Robolectric) tournent à chaque
+  # commit, vite — la couture Android↔modèles purs ne reste plus sans
+  # preuve entre deux contrôles complets.
+  view-tests:
+    name: Tests de vue (Robolectric, JVM)
+    runs-on: ubuntu-latest
+    env:
+      CELERIS_SKIP_ANDROID: "1"
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: JDK 21 (Temurin)
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Gradle (validation du wrapper incluse)
+        uses: gradle/actions/setup-gradle@7296c772c13d12d9871528814b51fb2143c138ef # v6.4.1
+        with:
+          validate-wrappers: true
+      - name: Composants du SDK Android
+        run: |
+          if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ]; then
+            echo "SDK Android absent du runner : les tests de vue ne tourneraient pas" >&2
+            exit 1
+          fi
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null
+      - name: Tests de vue (Robolectric — gouttière, pincement, coloration, popups)
+        run: |
+          ./gradlew :android-view:testDebugUnitTest :android-widgets:testDebugUnitTest
+      - name: Rapports de tests (artefact)
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: view-tests-reports
+          path: |
+            android-view/build/reports/tests/
+            android-widgets/build/reports/tests/
+          if-no-files-found: warn

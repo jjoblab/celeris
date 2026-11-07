@@ -5,10 +5,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.Handler;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.CorrectionInfo;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.HandwritingGesture;
@@ -27,6 +29,7 @@ import java.util.function.IntConsumer;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
+import jo.celeris.core.text.TextSession;
 
 import org.jspecify.annotations.Nullable;
 
@@ -57,6 +60,27 @@ import org.jspecify.annotations.Nullable;
  * l'appelant), pas de commandes privées.</p>
  */
 final class EditorInputConnection implements InputConnection {
+
+    /**
+     * Remplit les informations IME de la session : texte de code sans
+     * suggestions, jamais plein écran, sélection initiale annoncée —
+     * la vue délègue, la colle possède sa surface.
+     *
+     * @param session  la session affichée
+     * @param outAttrs les informations à remplir
+     */
+    static void remplirInfos(TextSession session, EditorInfo outAttrs) {
+        outAttrs.inputType = InputType.TYPE_CLASS_TEXT
+                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
+                | EditorInfo.IME_ACTION_NONE;
+        List<SelRange> plages = session.selection().ranges();
+        if (!plages.isEmpty()) {
+            outAttrs.initialSelStart = plages.get(0).start();
+            outAttrs.initialSelEnd = plages.get(0).end();
+        }
+    }
 
     private final EditorView vue;
     private final CompositionState composition;
@@ -424,7 +448,7 @@ final class EditorInputConnection implements InputConnection {
         if (plan.caret() >= 0) {
             poserCurseur(plan.caret());
         } else {
-            vue.revealCaret();
+            vue.curseurClavier.revealCaret();
         }
         return true;
     }
@@ -437,7 +461,7 @@ final class EditorInputConnection implements InputConnection {
             return true;
         }
         if (vue.session().replaceRange(plan.start(), plan.end(), "")) {
-            vue.revealCaret();
+            vue.curseurClavier.revealCaret();
             return true;
         }
         return false;
@@ -457,7 +481,7 @@ final class EditorInputConnection implements InputConnection {
         vue.session().setSelection(MultiSelection.of(
                 SelRange.caretAt(Math.max(0, Math.min(offset,
                         vue.session().document().length())))));
-        vue.revealCaret();
+        vue.curseurClavier.revealCaret();
     }
 
     /**

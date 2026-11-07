@@ -19,6 +19,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import jo.celeris.core.ai.SuggestionFantome;
@@ -26,7 +27,6 @@ import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
-import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
 import org.jspecify.annotations.Nullable;
@@ -66,9 +66,8 @@ public final class EditorView extends View {
     /** La police par défaut : mono, 14 sp — la conversion en pixels
      *  suit la densité de l'appareil (PIEGE-23). */
     static final FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
-    /** La respiration de gouttière, adaptée à la classe de largeur (D-19). */
-    float margeGouttiere = ClasseLargeur.MOYEN.margeGouttiere();
-    private static final float MARGE_RETOUR = 8f;
+    /** La respiration du dévoilement de curseur, en dp (M7.5, §5). */
+    static final float MARGE_RETOUR_DP = 8f;
 
     private final AndroidFontRuler regle = new AndroidFontRuler();
     private final CanvasSurface surface = new CanvasSurface();
@@ -76,8 +75,9 @@ public final class EditorView extends View {
     private final ScrollFrame trace = new ScrollFrame();
     final SelectionDrag glissement = new SelectionDrag();
     private final FoldModel plis = new FoldModel();
-    final EditorSyntax syntaxe = new EditorSyntax(plis, ExecuteurAnalyse.parDefaut());
-    private final RowLayoutCache cache = new RowLayoutCache();
+    final EditorSyntax syntaxe;
+    // Visible du paquet : le banc de test y lit la mise en page servie (ADR-013).
+    final RowLayoutCache cache = new RowLayoutCache();
     final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
     private final ChromePainter chrome = new ChromePainter();
@@ -91,9 +91,10 @@ public final class EditorView extends View {
     private final ScaleGestureDetector pincements;
 
     private KeyBindings raccourcis = KeyBindings.defaults();
-    // — état de gestes, visible du paquet pour GestesFabrique (D-15/A-01)
-    float tailleAuDepartDuPincement;
-    boolean pincementActif;
+    // — le zoom au pincement vit dans son collaborateur (D-15, PIEGE-24)
+    final PinchZoomHandler zoom = new PinchZoomHandler(this);
+    // — la gouttière stable vit dans son collaborateur (PIEGE-25)
+    final EditorGutter gouttiereEtat = new EditorGutter();
 
     TextSession session = TextSession.of("", System::nanoTime);
     VisualProjection projection = new VisualProjection(session.document(), plis, 0);
@@ -110,15 +111,17 @@ public final class EditorView extends View {
      *  l'image suivante, les mises en page sans couleur de la révision
      *  courante se remplacent (volatile : posée sur le fil de travail). */
     private volatile boolean publicationRecue;
+    /** L'écouteur des changements de taille de police (D-15). */
+    private @Nullable Consumer<Float> onFontSizeChanged;
 
     float scrollX;
     float scrollY;
     float largeurGouttiere;
-    private boolean numerosVisibles = true;
+    boolean numerosVisibles = true;
     /** Le collaborateur du curseur et du clavier : clignotement, IME. */
     final CurseurClavier curseurClavier = new CurseurClavier(this);
     /** Le collaborateur du routage tactile. */
-    private final TouchesEditeur touches = new TouchesEditeur(this);
+    final TouchesEditeur touches = new TouchesEditeur(this);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
     final FantomeEditeur fantome;
 
@@ -127,7 +130,18 @@ public final class EditorView extends View {
     }
 
     public EditorView(Context context, @Nullable AttributeSet attrs) {
+        this(context, attrs, null);
+    }
+
+    /** Construit la vue avec l'exécuteur du travail d'analyse (ADR-007,
+     *  ADR-013) : null garde le fil démon — les tests de vue y pilotent
+     *  la publication par l'exécuteur manuel du banc. */
+    EditorView(Context context, @Nullable AttributeSet attrs,
+            @Nullable Executor executeurAnalyse) {
         super(context, attrs);
+        syntaxe = new EditorSyntax(plis,
+                executeurAnalyse != null ? executeurAnalyse
+                        : ExecuteurAnalyse.parDefaut());
         setFocusable(true);
         setFocusableInTouchMode(true);
         syntaxe.setSurAnalysePrete(() -> {
@@ -136,10 +150,13 @@ public final class EditorView extends View {
         });
         BrushFactory pinceaux = new PaintBrushes();
         fantome = new FantomeEditeur(this, pinceaux);
-        gouttiere = new GutterPainter(pinceaux, margeGouttiere,
+        // La respiration naît à la densité de l'appareil : la valeur
+        // vit en dp, la conversion se fait une fois, en pixels entiers
+        // (PIEGE-23, M7.5 §5).
+        gouttiereEtat.setClasse(ClasseLargeur.MOYEN, densite());
+        gouttiere = new GutterPainter(pinceaux, gouttiereEtat.margePx(),
                 () -> marquesGouttiere.marques(syntaxe.marques()),
-                () -> marquesGouttiere.coulisse(syntaxe.coulisse(
-                        metrics.charWidth(), margeGouttiere), metrics.charWidth()),
+                gouttiereEtat::coulisseCourante,
                 marquesGouttiere::pastille,
                 marquesGouttiere::reperePreview);
         trace.addLayer(gouttiere);
@@ -170,6 +187,7 @@ public final class EditorView extends View {
         session.addEditListener(ecouteurAnnonce);
         syntaxe.attacher(session);
         revisionSuivie = Long.MIN_VALUE;
+        gouttiereEtat.reinitialiser();
         cache.clear();
         scrollX = 0f;
         scrollY = 0f;
@@ -184,6 +202,7 @@ public final class EditorView extends View {
     public void setLanguage(@Nullable LanguageSyntax nouvelleLangue) {
         syntaxe.setLanguage(nouvelleLangue);
         revisionSuivie = Long.MIN_VALUE;
+        gouttiereEtat.reinitialiser();
         cache.clear();
         invalidate();
     }
@@ -201,16 +220,35 @@ public final class EditorView extends View {
     /**
      * Change la police : les métriques se redérivent par reconsultation
      * de la règle (PIEGE-05), le cache se vide par révision suivie, le
-     * budget de colonnes se redérive à l'image suivante.
+     * budget de colonnes se redérive à l'image suivante. La taille
+     * changeante prévient l'écouteur — l'hôte y persiste sa taille
+     * (D-15).
      *
      * @param police la spécification de police, taille en sp
      */
     public void setFont(FontSpec police) {
+        boolean tailleChangee = police.size() != policeLogique.size();
         policeLogique = police;
         metrics = EditorMetrics.of(enPixels(police), regle);
         viseur = new HitTest(metrics);
-        revisionSuivie = 0L;
+        // PIEGE-28 : la source de rangées se réinitialise même à
+        // révision constante — un document jamais édité (révision 0)
+        // doit se re-mesurer à la nouvelle police ; le cache se vide,
+        // les mises en page de l'ancienne police ne s'y accumulent pas.
+        revisionSuivie = Long.MIN_VALUE;
+        cache.clear();
+        if (tailleChangee && onFontSizeChanged != null) {
+            onFontSizeChanged.accept(police.size());
+        }
         invalidate();
+    }
+
+    /**
+     * L'écouteur des changements de taille de police (D-15) — l'hôte y
+     *  persiste la taille.
+     */
+    public void setOnFontSizeChanged(@Nullable Consumer<Float> ecouteur) {
+        onFontSizeChanged = ecouteur;
     }
 
     /**
@@ -280,9 +318,24 @@ public final class EditorView extends View {
      * @param classe la classe de largeur courante
      */
     public void setClasseLargeur(ClasseLargeur classe) {
-        margeGouttiere = classe.margeGouttiere();
-        gouttiere.setMarge(margeGouttiere);
+        gouttiereEtat.setClasse(classe, densite());
+        gouttiere.setMarge(gouttiereEtat.margePx());
         invalidate();
+    }
+
+    /**
+     * Retombe au plancher de chiffres de la gouttière (PIEGE-25) : le
+     * niveau d'eau ne se vide que là, au changement de session ou de
+     * langage — jamais pendant la frappe.
+     */
+    public void resetGutterWidth() {
+        gouttiereEtat.reinitialiser();
+        invalidate();
+    }
+
+    /** La densité de l'appareil — la porte unique des conversions dp. */
+    float densite() {
+        return getResources().getDisplayMetrics().density;
     }
 
     /** Le rappel du plan du fichier (B-16), parti à chaque publication d'analyse. */
@@ -341,32 +394,8 @@ public final class EditorView extends View {
             outAttrs.inputType = InputType.TYPE_NULL;
             return null;
         }
-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT
-                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-                | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
-        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
-                | EditorInfo.IME_ACTION_NONE;
-        List<SelRange> plages = session.selection().ranges();
-        if (!plages.isEmpty()) {
-            outAttrs.initialSelStart = plages.get(0).start();
-            outAttrs.initialSelEnd = plages.get(0).end();
-        }
+        EditorInputConnection.remplirInfos(session, outAttrs);
         return new EditorInputConnection(this, composition);
-    }
-
-    /**
-     * Dévoile le curseur primaire : réajustement minimum du
-     * défilement (CaretReveal), puis invalidation.
-     */
-    void revealCaret() {
-        List<SelRange> plages = session.selection().ranges();
-        int curseur = plages.isEmpty() ? 0 : plages.get(0).caret();
-        CaretReveal.Revealed devoile = CaretReveal.reveal(curseur,
-                session.document(), projection, metrics, largeurGouttiere,
-                getWidth(), getHeight(), scrollX, scrollY, MARGE_RETOUR);
-        scrollX = devoile.scrollX();
-        scrollY = devoile.scrollY();
-        invalidate();
     }
 
     /**
@@ -376,22 +405,6 @@ public final class EditorView extends View {
     FrameState etatImageCourante() {
         preparerEtatImage();
         return etatImage;
-    }
-
-    /** Défile d'une page, bornée au contenu. */
-    void defilerPage(boolean enAvant) {
-        float hauteurContenu = projection.rowCount() * metrics.lineHeight();
-        float pas = ScrollGeometry.visibleRows(getHeight(),
-                metrics.lineHeight()) * metrics.lineHeight();
-        scrollY = ScrollGeometry.clamp(
-                enAvant ? scrollY + pas : scrollY - pas,
-                hauteurContenu, getHeight());
-        invalidate();
-    }
-
-    /** Annonce le changement de sélection au lecteur d'écran (G-05). */
-    void annoncerSelection() {
-        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED);
     }
 
     @Override
@@ -436,21 +449,23 @@ public final class EditorView extends View {
     }
 
     /**
-     * Prépare l'état d'image : suivi de révision, bornage du
-     * défilement, gouttière et fenêtre visible.
+     * Prépare l'état d'image : gouttière AVANT le budget de colonnes
+     * (le cycle est cassé, PIEGE-25), suivi de révision, bornage du
+     * défilement et fenêtre visible.
      */
     private void preparerEtatImage() {
         Document document = session.document();
+        // La gouttière ne dépend QUE de grandeurs stables : lignes du
+        // document, métriques, densité et configuration de coulisse —
+        // jamais de la projection visuelle ni d'un état d'analyse
+        // (PIEGE-25). Le budget de colonnes la lit à l'image COURANTE.
+        gouttiereEtat.setCoulisses(
+                marquesGouttiere.coulisses(syntaxe.active()));
+        largeurGouttiere = gouttiereEtat.suivre(document.lineCount(),
+                metrics.charWidth(), densite(), numerosVisibles);
         suivreRevision(document);
         float hauteurContenu = projection.rowCount() * metrics.lineHeight();
         scrollY = ScrollGeometry.clamp(scrollY, hauteurContenu, getHeight());
-        // La coulisse effective compte les intégrations (D-03 à D-05).
-        float coulisse = marquesGouttiere.coulisse(syntaxe.coulisse(
-                metrics.charWidth(), margeGouttiere), metrics.charWidth());
-        largeurGouttiere = numerosVisibles
-                ? GutterGeometry.width(Math.max(1, projection.rowCount()),
-                        metrics.charWidth(), margeGouttiere, coulisse)
-                : GutterGeometry.laneOnly(margeGouttiere, coulisse);
         scrollX = ScrollGeometry.clamp(scrollX,
                 ScrollGeometry.largeurContenu(projection, metrics),
                 ScrollGeometry.largeurVisible(getWidth(), largeurGouttiere));
@@ -487,6 +502,12 @@ public final class EditorView extends View {
         }
     }
 
+    /** D-15 — la molette avec Ctrl zoome d'un palier (voir PinchZoomHandler). */
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        return zoom.surMolette(event) || super.onGenericMotionEvent(event);
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         // Toute frappe matérielle clôt la composition d'abord : la
@@ -512,52 +533,43 @@ public final class EditorView extends View {
     private void suivreRevision(Document document) {
         int colonnesVoulues = retourALaLigne ? budgetColonnes() : 0;
         // La publication arrive sur le fil de travail : la source se
-        // réhabille même à révision constante — les mises en page
-        // déposées sans couleur pendant le vol se remplacent (le cache
-        // les servait telles quelles, la couleur ne revenait qu'à
-        // l'édition suivante).
+        // réhabille même à révision constante.
         boolean recue = publicationRecue;
         if (recue) {
             publicationRecue = false;
-            cache.invalidate(document.revision());
         }
         if (recue || document.revision() != revisionSuivie
                 || colonnesVoulues != projection.columns()) {
-            cache.invalidate(revisionSuivie);
+            if (document.revision() != revisionSuivie) {
+                cache.invalidate(revisionSuivie);
+            }
             revisionSuivie = document.revision();
             projection = new VisualProjection(document, plis, colonnesVoulues);
-            sourceLiee.set(syntaxe.habiller(
+            RowSource habillee = syntaxe.habiller(
                     new DocumentRowSource(document, projection, metrics,
-                            colonnesVoulues), document));
+                            colonnesVoulues), document);
+            sourceLiee.set(habillee);
+            if (recue) {
+                // PIEGE-26 : la publication ne rejette pas les mesures —
+                // seules les rangées dont les plages ont changé se
+                // remplacent ; sans coloration, rien à préserver.
+                if (habillee instanceof SyntaxRowSource coloree) {
+                    cache.respan(document.revision(), coloree::respan);
+                } else {
+                    cache.invalidate(document.revision());
+                }
+            }
         }
     }
 
     /** Le budget de colonnes de la fenêtre, au moins une colonne (PIEGE-08). */
     private int budgetColonnes() {
-        float disponible = getWidth() - largeurGouttiere - MARGE_RETOUR;
+        float disponible = getWidth() - largeurGouttiere
+                - Math.round(MARGE_RETOUR_DP * densite());
         if (disponible <= 0f || metrics.charWidth() <= 0f) {
             return 1;
         }
         return Math.max(1, (int) Math.floor(disponible / metrics.charWidth()));
-    }
-
-    /** D-15 — zoome par paliers, le point sous le doigt stable. */
-    void zoomer(float focalX, float focalY, float facteur) {
-        float nouvelleTaille = PinchZoom.steppedSize(tailleAuDepartDuPincement,
-                facteur);
-        if (nouvelleTaille == policeLogique.size()) {
-            return;
-        }
-        float ancienCharWidth = metrics.charWidth();
-        float ancienLineHeight = metrics.lineHeight();
-        float ancienScrollX = scrollX;
-        float ancienScrollY = scrollY;
-        setFont(new FontSpec(policeLogique.family(), nouvelleTaille));
-        scrollX = PinchZoom.scrollXKeepingColumn(focalX, largeurGouttiere,
-                ancienScrollX, ancienCharWidth, metrics.charWidth());
-        scrollY = PinchZoom.scrollYKeepingRow(focalY, ancienScrollY,
-                ancienLineHeight, metrics.lineHeight());
-        invalidate();
     }
 
     @Override

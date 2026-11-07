@@ -60,8 +60,19 @@ public final class EditorSyntax {
     /** Taille maximale de la chaîne d'éditions en attente : au-delà, la chaîne se déclare rompue. */
     private static final int CHAINE_MAX = 256;
 
-    /** Une édition en attente de publication : la révision produite et son site en lignes. */
-    private record EditionEnAttente(int revision, EditSite site) {
+    /** Une édition en attente de publication : sa révision, son site en
+     *  lignes, ses coordonnées PUBLIÉES — décalées dès l'enregistrement
+     *  pour que le rattrapage les compose sans deviner — et son début
+     *  RELATIF à la ligne publiée touchée, la matière de la chirurgie
+     *  (PIEGE-26). */
+    private record EditionEnAttente(int revision, EditSite site,
+            int publieStart, int publieRemoved, int publieInserted,
+            int lignePubliee, int debutDansLigne, boolean structurelle) {
+
+        TokenCatchUp.PendingEdit versPendingEdit() {
+            return new TokenCatchUp.PendingEdit(debutDansLigne, publieRemoved,
+                    publieInserted, lignePubliee, structurelle);
+        }
     }
 
     private final FoldTracker suiviPlis;
@@ -226,14 +237,16 @@ public final class EditorSyntax {
 
     /**
      * La largeur de la coulisse de marqueurs : un caractère au moins,
-     * la marge au plancher — nulle sans analyse.
+     * la marge au plancher — nulle sans analyse. La coulisse se réserve
+     * dès l'attachement d'un langage, AVANT la première publication :
+     * jamais elle n'arrive avec un résultat (PIEGE-25).
      *
      * @param charWidth la largeur d'un caractère, en pixels
      * @param plancher  la marge minimale, en pixels
      * @return la largeur de coulisse, en pixels
      */
     public float coulisse(float charWidth, float plancher) {
-        if (coordinateur == null) {
+        if (!active()) {
             return 0f;
         }
         return Math.max(plancher, charWidth);
@@ -254,7 +267,7 @@ public final class EditorSyntax {
     public RowSource habiller(RowSource source, Document document) {
         Analysis analyse = analyseCourante(document);
         if (analyse == null) {
-            return habillerPerimee(source);
+            return habillerPerimee(source, document);
         }
         if (analyse.revision() != revisionAnalysee) {
             revisionAnalysee = analyse.revision();
@@ -271,14 +284,16 @@ public final class EditorSyntax {
 
     /**
      * L'habillage de rattrapage : la publication date d'avant
-     * l'instantané affiché, les éditions en attente remappent ses
-     * lignes — celles dont le contenu a survécu gardent leurs couleurs,
-     * la ligne touchée retombe à l'encre de base. Sans publication ou
-     * chaîne rompue (rafale au-delà du plafond), la source reste sans
-     * couleur : jamais une ligne au contenu non prouvé identique ne se
-     * colore (PIEGE-20).
+     * l'instantané affiché — les lignes dont le contenu a survécu
+     * gardent leurs couleurs publiées, la ligne touchée reçoit ses
+     * jetons recalés sur l'édition en attente (chirurgie fine, puis
+     * relecture quand la structure a changé) : jamais un mot ne
+     * retombe à l'encre de base en attendant la publication
+     * (PIEGE-26, TokenCatchUp). Sans publication ou chaîne rompue
+     * (rafale au-delà du plafond), la source reste sans couleur :
+     * jamais une ligne au contenu non prouvé ne se colore à devinant.
      */
-    private RowSource habillerPerimee(RowSource source) {
+    private RowSource habillerPerimee(RowSource source, Document document) {
         MoteurAnalyse moteurLocal = moteur;
         if (moteurLocal == null) {
             return source;
@@ -287,28 +302,33 @@ public final class EditorSyntax {
         if (publiee == null || chaineRompue) {
             return source;
         }
-        List<EditSite> sites = sitesDepuis(publiee.revision());
-        if (sites.isEmpty()) {
+        List<EditionEnAttente> enAttente = editionsDepuis(publiee.revision());
+        if (enAttente.isEmpty()) {
             return source;
         }
-        return new SyntaxRowSource(source, publiee.lex(), RemapLignes.de(sites));
+        List<EditSite> sites = new ArrayList<>(enAttente.size());
+        List<TokenCatchUp.PendingEdit> editions =
+                new ArrayList<>(enAttente.size());
+        for (EditionEnAttente edition : enAttente) {
+            sites.add(edition.site());
+            editions.add(edition.versPendingEdit());
+        }
+        return new SyntaxRowSource(source, publiee.lex(),
+                TokenCatchUp.of(publiee.lex(), editions, sites, document,
+                        langue == null ? null : langue.lexer()));
     }
 
     /**
-     * Les sites des éditions postérieures à la révision publiée, en
+     * Les éditions en attente postérieures à la révision publiée, en
      * ordre chronologique — les révisions croissent strictement, les
-     * sites absorbés par la publication se retirent de la tête.
+     * éditions absorbées par la publication se retirent de la tête.
      */
-    private List<EditSite> sitesDepuis(int revisionPubliee) {
+    private List<EditionEnAttente> editionsDepuis(int revisionPubliee) {
         while (!editionsEnAttente.isEmpty()
                 && editionsEnAttente.get(0).revision() <= revisionPubliee) {
             editionsEnAttente.remove(0);
         }
-        List<EditSite> sites = new ArrayList<>(editionsEnAttente.size());
-        for (EditionEnAttente edition : editionsEnAttente) {
-            sites.add(edition.site());
-        }
-        return sites;
+        return new ArrayList<>(editionsEnAttente);
     }
 
     /**
@@ -453,24 +473,54 @@ public final class EditorSyntax {
             Document apres = session.document();
             suiviPlis.surEdition(avant, start, end, removed, inserted);
             documentSuivi = apres;
-            enregistrerEdition(avant, apres, start, end, inserted);
+            enregistrerEdition(avant, apres, start, end, removed, inserted);
         }
     }
 
     /**
-     * Enregistre le site d'une édition en attente : la chaîne se borne,
-     * une rafale au-delà du plafond la déclare rompue — le rattrapage
-     * cède, jamais ne devine.
+     * Enregistre le site d'une édition en attente : ses coordonnées
+     * se décalent vers le document PUBLIÉ au passage — chaque édition
+     * suivante se transforme contre les précédentes, la chaîne se
+     * borne ; une rafale au-delà du plafond la déclare rompue — le
+     * rattrapage cède, jamais ne devine.
      */
     private void enregistrerEdition(Document avant, Document apres, int start,
-            int end, String insere) {
+            int end, String retire, String insere) {
         if (editionsEnAttente.size() >= CHAINE_MAX) {
             editionsEnAttente.clear();
             chaineRompue = true;
             return;
         }
+        boolean structurelle = retire.indexOf('\n') >= 0
+                || insere.indexOf('\n') >= 0;
+        for (EditionEnAttente ancienne : editionsEnAttente) {
+            structurelle |= ancienne.structurelle();
+        }
+        int publieStart = versPublie(start);
+        int ligne = apres.lineForOffset(start);
         editionsEnAttente.add(new EditionEnAttente(apres.revision(),
-                EditSite.of(avant, apres, start, end, insere)));
+                EditSite.of(avant, apres, start, end, insere),
+                publieStart, end - start, insere.length(), ligne,
+                publieStart - apres.lineStart(ligne), structurelle));
+    }
+
+    /**
+     * Le décalage d'une position courante vers le document publié :
+     * les éditions en attente se défont de la plus récente à la plus
+     * ancienne — position après le texte inséré, recule du delta ;
+     * position DANS le texte inséré, retombe au point d'édition.
+     */
+    private int versPublie(int position) {
+        int x = position;
+        for (int i = editionsEnAttente.size() - 1; i >= 0; i--) {
+            EditionEnAttente edition = editionsEnAttente.get(i);
+            if (x >= edition.publieStart() + edition.publieInserted()) {
+                x = x - edition.publieInserted() + edition.publieRemoved();
+            } else if (x > edition.publieStart()) {
+                x = edition.publieStart();
+            }
+        }
+        return x;
     }
 
     /** Les lignes porteuses d'un diagnostic, dédoublées et triées par GutterMarks. */

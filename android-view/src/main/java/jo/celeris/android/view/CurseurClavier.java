@@ -1,7 +1,12 @@
 package jo.celeris.android.view;
 
 import android.content.Context;
+import android.view.accessibility.AccessibilityEvent;
 import android.view.inputmethod.InputMethodManager;
+
+import java.util.List;
+
+import jo.celeris.core.text.SelRange;
 
 /**
  * Le collaborateur du curseur et du clavier : l'appui qui prend le
@@ -114,5 +119,40 @@ final class CurseurClavier {
         if (clavier != null) {
             clavier.showSoftInput(vue, InputMethodManager.SHOW_IMPLICIT);
         }
+    }
+
+    /**
+     * Dévoile le curseur primaire : réajustement minimum du défilement
+     * (CaretReveal), puis invalidation.
+     */
+    void revealCaret() {
+        List<SelRange> plages = vue.session().selection().ranges();
+        int curseur = plages.isEmpty() ? 0 : plages.get(0).caret();
+        CaretReveal.Revealed devoile = CaretReveal.reveal(curseur,
+                vue.session().document(), vue.projection, vue.metrics,
+                vue.largeurGouttiere, vue.getWidth(), vue.getHeight(),
+                vue.scrollX, vue.scrollY,
+                Math.round(EditorView.MARGE_RETOUR_DP * vue.densite()));
+        vue.scrollX = devoile.scrollX();
+        vue.scrollY = devoile.scrollY();
+        vue.invalidate();
+    }
+
+    /** Défile d'une page, bornée au contenu. */
+    void defilerPage(boolean enAvant) {
+        float hauteurContenu =
+                vue.projection.rowCount() * vue.metrics.lineHeight();
+        float pas = ScrollGeometry.visibleRows(vue.getHeight(),
+                vue.metrics.lineHeight()) * vue.metrics.lineHeight();
+        vue.scrollY = ScrollGeometry.clamp(
+                enAvant ? vue.scrollY + pas : vue.scrollY - pas,
+                hauteurContenu, vue.getHeight());
+        vue.invalidate();
+    }
+
+    /** Annonce le changement de sélection au lecteur d'écran (G-05). */
+    void annoncerSelection() {
+        vue.sendAccessibilityEvent(
+                AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED);
     }
 }

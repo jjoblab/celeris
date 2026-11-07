@@ -143,8 +143,9 @@ class EditorSyntaxAsyncTest {
                 "la ligne épargnée (class Premiere) garde ses couleurs");
         RowLayout ligneTouchee = habillee.layoutOf(
                 new RowKey(edite.revision(), 3, 1, new FontSpec("mono", 14f)));
-        assertTrue(ligneTouchee.spans().isEmpty(),
-                "la ligne touchée attend sa publication : encre de base");
+        assertFalse(ligneTouchee.spans().isEmpty(),
+                "PIEGE-26 : la ligne touchée garde ses couleurs publiées "
+                        + "recalées — plus d'encre de base en attendant");
 
         executeur.jouer();
         RowSource exacte = syntaxe.habiller(new SourceParLigne(edite), edite);
