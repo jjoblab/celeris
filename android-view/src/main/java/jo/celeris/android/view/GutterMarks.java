@@ -91,6 +91,26 @@ public final class GutterMarks {
         return new GutterMarks(pliables, replis, erreurs, marques);
     }
 
+    /**
+     * Les marques fondues avec des lignes d'erreur supplémentaires
+     * (C-12) : les diagnostics importés de l'hôte — le lint du build —
+     * s'ajoutent aux erreurs de la syntaxe, chaque ligne marquée se
+     * trace pareil qu'elle vienne de l'arbre ou du build.
+     *
+     * @param lignes les lignes porteuses d'un diagnostic importé,
+     *               numérotées à partir de zéro
+     * @return les marques fondues
+     */
+    public GutterMarks avecErreurs(int[] lignes) {
+        if (lignes.length == 0) {
+            return this;
+        }
+        int[] fondues = Arrays.copyOf(erreurs, erreurs.length + lignes.length);
+        System.arraycopy(lignes, 0, fondues, erreurs.length, lignes.length);
+        Arrays.sort(fondues);
+        return new GutterMarks(pliables, replis, fondues, integration);
+    }
+
     /** La marque de modification VCS de la ligne (D-03), inchangée par défaut. */
     public MarqueLigne marqueVcs(int ligne) {
         return integration.marqueVcs(ligne);

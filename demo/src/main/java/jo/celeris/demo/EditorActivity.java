@@ -25,9 +25,13 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.List;
 
+import jo.celeris.android.host.spi.AnalyseurLint;
 import jo.celeris.android.host.spi.Arret;
 import jo.celeris.android.host.spi.CadrePile;
 import jo.celeris.android.host.spi.CheminDoc;
+import jo.celeris.android.host.spi.CorrectifLint;
+import jo.celeris.android.host.spi.CorrectifsLint;
+import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.EtatLignesVcs;
 import jo.celeris.android.host.spi.FauxDebogueur;
 import jo.celeris.android.host.spi.LigneArret;
@@ -69,6 +73,8 @@ public final class EditorActivity extends AppCompatActivity {
     private static final EditorTheme[] THEMES = {
             EditorThemes.CLAIR, EditorThemes.SOMBRE, EditorThemes.CONTRASTE_ELEVE };
     private static final float PART_PLAN = 0.45f;
+    /** Le garde-fou des vagues de correctifs : chaque vague retire une occurrence. */
+    private static final int LIMITE_CORRECTIFS = 50;
 
     private EditorView editeur;
     private TextSession session;
@@ -85,6 +91,7 @@ public final class EditorActivity extends AppCompatActivity {
     private String reference;
     private CheminDoc chemin;
     private final FauxDebogueur debogueur = new FauxDebogueur();
+    private List<DiagnosticHote> diagnosticsLint = List.of();
 
     @Override
     protected void onCreate(Bundle etat) {
@@ -170,6 +177,10 @@ public final class EditorActivity extends AppCompatActivity {
             basculerRetourLigne();
         } else if (action == R.id.action_annuler) {
             rejouer(false);
+        } else if (action == R.id.action_lint) {
+            analyserLint();
+        } else if (action == R.id.action_corriger) {
+            corrigerLint();
         } else if (action == R.id.action_retablir) {
             rejouer(true);
         } else if (action == R.id.action_theme) {
@@ -401,6 +412,100 @@ public final class EditorActivity extends AppCompatActivity {
         barre.getMenu().findItem(R.id.action_debogage)
                 .setIcon(pause == null ? R.drawable.ic_debogage : R.drawable.ic_reprendre)
                 .setTitle(pause == null ? R.string.action_deboguer : R.string.action_reprendre);
+    }
+
+    /**
+     * Lance l'analyse lint du fichier ouvert (C-12) : le faux build
+     * rend la sortie au format de l'outils, l'analyseur la convertit
+     * en diagnostics — les lignes porteuses se peignent dans la
+     * gouttière, fondues aux erreurs de la syntaxe.
+     */
+    private void analyserLint() {
+        List<String> lignes = FauxLint.lignes(session.document().text());
+        diagnosticsLint = AnalyseurLint.parser(FauxLint.sortie(nomFichier, lignes));
+        majEtatLint();
+    }
+
+    /**
+     * Applique tous les correctifs mécaniques disponibles (C-12) :
+     * chaque correctif devient une transaction de remplacement — donc
+     * annulable d'un geste —, l'analyse se relance après chaque vague
+     * et l'état se rafraîchit.
+     */
+    private void corrigerLint() {
+        int corriges = 0;
+        for (int vague = 0; vague < LIMITE_CORRECTIFS; vague++) {
+            List<DiagnosticHote> restants = AnalyseurLint.parser(
+                    FauxLint.sortie(nomFichier, lignesCourantes()));
+            CorrectifLint correctif = premierCorrectif(restants);
+            if (correctif == null) {
+                break;
+            }
+            int[] debuts = debutsLignes();
+            if (!session.replaceRange(correctif.debut(debuts),
+                    correctif.fin(debuts), correctif.apres())) {
+                break;
+            }
+            corriges++;
+        }
+        analyserLint();
+        if (corriges > 0) {
+            etiquetteArrets.setText(getString(R.string.lint_correctifs, corriges));
+            etiquetteArrets.setVisibility(View.VISIBLE);
+        } else {
+            etiquetteArrets.setText(R.string.lint_propre);
+            etiquetteArrets.setVisibility(View.VISIBLE);
+        }
+        editeur.invalidate();
+        majMarques();
+    }
+
+    private List<String> lignesCourantes() {
+        return FauxLint.lignes(session.document().text());
+    }
+
+    private int[] debutsLignes() {
+        List<String> lignes = lignesCourantes();
+        int[] debuts = new int[lignes.size()];
+        int curseur = 0;
+        for (int i = 0; i < lignes.size(); i++) {
+            debuts[i] = curseur;
+            curseur += lignes.get(i).length() + 1;
+        }
+        return debuts;
+    }
+
+    private CorrectifLint premierCorrectif(List<DiagnosticHote> diagnostiques) {
+        List<String> lignes = lignesCourantes();
+        for (DiagnosticHote diagnostic : diagnostiques) {
+            if (!diagnostic.chemin().nom().equals(nomFichier)) {
+                continue;
+            }
+            CorrectifLint correctif = CorrectifsLint
+                    .pour(diagnostic, lignes).orElse(null);
+            if (correctif != null) {
+                return correctif;
+            }
+        }
+        return null;
+    }
+
+    /** L'état lint de la barre de statut : le compte des diagnostics. */
+    private void majEtatLint() {
+        int[] lignesMarquees = diagnosticsLint.stream()
+                .filter(d -> d.chemin().nom().equals(nomFichier))
+                .mapToInt(DiagnosticHote::ligne)
+                .map(ligne -> ligne - 1)
+                .distinct().toArray();
+        editeur.marquesGouttiere().setErreursImportees(lignesMarquees);
+        if (!diagnosticsLint.isEmpty()) {
+            etiquetteArrets.setText(getResources().getQuantityString(
+                    R.plurals.etat_lint, diagnosticsLint.size(), diagnosticsLint.size()));
+            etiquetteArrets.setVisibility(View.VISIBLE);
+        } else {
+            etiquetteArrets.setVisibility(View.GONE);
+        }
+        editeur.invalidate();
     }
 
     /**

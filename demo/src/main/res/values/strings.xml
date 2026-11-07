@@ -17,6 +17,14 @@
     <string name="action_deboguer">Debug</string>
     <string name="action_reprendre">Resume</string>
     <string name="action_annuler">Undo</string>
+    <string name="action_lint">Run lint</string>
+    <string name="action_corriger">Fix lint issues</string>
+    <string name="lint_propre">Lint: clean</string>
+    <string name="lint_correctifs">%1$d fixed</string>
+    <plurals name="etat_lint">
+        <item quantity="one">Lint: %1$d issue</item>
+        <item quantity="other">Lint: %1$d issues</item>
+    </plurals>
     <string name="action_retablir">Redo</string>
     <string name="action_theme">Theme</string>
     <string name="choix_theme">Theme: %1$s</string>

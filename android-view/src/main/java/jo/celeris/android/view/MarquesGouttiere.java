@@ -6,14 +6,16 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Le point d'entrée des intégrations dans la gouttière (D-03, D-04,
- * D-05) : la vue y dépose ses marques d'intégration et son écouteur de
- * clic — la coulisse s'élargit quand les intégrations parlent, le clic
- * dans le champ des numéros rend la ligne visée.
+ * D-05, C-12) : la vue y dépose ses marques d'intégration, ses lignes
+ * de diagnostics importés et son écouteur de clic — la coulisse
+ * s'élargit quand les intégrations parlent, le clic dans le champ des
+ * numéros rend la ligne visée.
  *
  * <p>La vue reste propriétaire : ce collaborateur ne fait que fondre
- * les marques de la syntaxe avec les intégrations et convertir le
- * point touché en ligne. Après un appel à {@link #setIntegration},
- * l'hôte invalide la vue — le rafraîchissement reste son geste.</p>
+ * les marques de la syntaxe avec les intégrations et les diagnostics
+ * importés, et convertir le point touché en ligne. Après un appel à
+ * {@link #setIntegration} ou {@link #setErreursImportees}, l'hôte
+ * invalide la vue — le rafraîchissement reste son geste.</p>
  */
 public final class MarquesGouttiere {
 
@@ -21,6 +23,8 @@ public final class MarquesGouttiere {
     private static final float COULISSE_INTEGRATION = 2f;
 
     private MarquesIntegration integration = MarquesIntegration.VIDE;
+
+    private int[] erreursImportees = new int[0];
 
     private @Nullable IntConsumer surClicLigne;
 
@@ -32,6 +36,17 @@ public final class MarquesGouttiere {
      */
     public void setIntegration(MarquesIntegration marques) {
         integration = marques;
+    }
+
+    /**
+     * Dépose les lignes porteuses d'un diagnostic importé du build
+     * (C-12) : elles se fondent aux erreurs de la syntaxe — tableau
+     * vide pour retirer.
+     *
+     * @param lignes les lignes, numérotées à partir de zéro
+     */
+    public void setErreursImportees(int[] lignes) {
+        erreursImportees = lignes.clone();
     }
 
     /**
@@ -48,10 +63,11 @@ public final class MarquesGouttiere {
      * Les marques fondues de l'image à venir.
      *
      * @param marques les marques de la syntaxe (plis, erreurs)
-     * @return les marques fondues avec les intégrations courantes
+     * @return les marques fondues avec les intégrations courantes et
+     *         les diagnostics importés
      */
     public GutterMarks marques(GutterMarks marques) {
-        return marques.avec(integration);
+        return marques.avec(integration).avecErreurs(erreursImportees);
     }
 
     /**
@@ -63,7 +79,7 @@ public final class MarquesGouttiere {
      * @return la coulisse effective, en pixels
      */
     public float coulisse(float coulisseSyntaxe, float charWidth) {
-        if (integration.estVide()) {
+        if (integration.estVide() && erreursImportees.length == 0) {
             return coulisseSyntaxe;
         }
         return Math.max(coulisseSyntaxe, COULISSE_INTEGRATION * charWidth);

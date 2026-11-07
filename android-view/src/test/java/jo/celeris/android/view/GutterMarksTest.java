@@ -1,6 +1,7 @@
 package jo.celeris.android.view;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -84,5 +85,30 @@ class GutterMarksTest {
             assertFalse(marques.replie(ligne));
             assertFalse(marques.erreur(ligne));
         }
+    }
+
+    /** Les diagnostics importes du build (C-12) se fondent aux erreurs. */
+    @Test
+    void lesErreursImporteesSeFondentAuxErreursDeSyntaxe() {
+        GutterMarks marques = GutterMarks.of(
+                List.of(), new FoldModel(), new int[] {4});
+
+        GutterMarks fondues = marques.avecErreurs(new int[] {4, 9});
+
+        assertTrue(fondues.erreur(4), "la ligne commune se marque une fois");
+        assertTrue(fondues.erreur(9), "la ligne importee se marque");
+        assertFalse(fondues.erreur(0));
+        assertFalse(fondues.erreur(5));
+        assertTrue(marques.erreur(4));
+        assertFalse(marques.erreur(9), "la source reste intacte");
+    }
+
+    /** Les erreurs importees vides ne changent rien : la fusion est gratuite. */
+    @Test
+    void lesErreursImporteesVidesNeChangentRien() {
+        GutterMarks marques = GutterMarks.of(
+                List.of(), new FoldModel(), new int[] {4});
+
+        assertSame(marques, marques.avecErreurs(new int[0]));
     }
 }

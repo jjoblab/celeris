@@ -180,6 +180,8 @@ public final class FichiersExemple {
             1. Pincer pour zoomer, double appui pour un second curseur
             2. Ouvrir le plan et sauter à une déclaration
             3. Chercher « completion » puis parcourir les occurrences
+            4. Lancer l'analyse lint... les points de suspension -- comme
+               ceux-ci -- se corrigent d'un geste
             """;
 
     private static final String PYTHON = """

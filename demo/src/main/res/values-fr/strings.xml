@@ -17,6 +17,14 @@
     <string name="action_deboguer">Déboguer</string>
     <string name="action_reprendre">Reprendre</string>
     <string name="action_annuler">Annuler</string>
+    <string name="action_lint">Analyser (lint)</string>
+    <string name="action_corriger">Corriger les problèmes</string>
+    <string name="lint_propre">Lint : rien à signaler</string>
+    <string name="lint_correctifs">%1$d corrigés</string>
+    <plurals name="etat_lint">
+        <item quantity="one">Lint : %1$d problème</item>
+        <item quantity="other">Lint : %1$d problèmes</item>
+    </plurals>
     <string name="action_retablir">Rétablir</string>
     <string name="action_theme">Thème</string>
     <string name="choix_theme">Thème : %1$s</string>
