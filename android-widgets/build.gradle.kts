@@ -10,4 +10,17 @@ plugins {
 }
 dependencies {
     api(project(":core-intelligence"))
+    // ADR-013 : les tests de vue de la couche de popups tournent sur
+    // JVM via Robolectric — lanceur JUnit 4 porté par le moteur vintage.
+    testImplementation(libs.robolectric)
+    testImplementation(libs.junit4)
+    testRuntimeOnly(libs.junit.vintage)
+}
+
+// ADR-013 : la façade Robolectric porte des annotations @RequiresApi
+// que la lecture de son classfile signale sans android.annotation au
+// classpath de test — le lint « classfile » se coupe ici, uniquement
+// pour ce bruit tiers ; -Werror reste actif pour le reste.
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("-Xlint:-classfile")
 }
