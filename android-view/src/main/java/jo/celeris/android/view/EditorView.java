@@ -118,6 +118,10 @@ public final class EditorView extends View {
     volatile boolean publicationRecue;
     /** L'écouteur des changements de taille de police (D-15). */
     private @Nullable Consumer<Float> onFontSizeChanged;
+    /** Le concentrateur d'intelligence (M7.5, §8) : frappe intelligente,
+     *  indentation, complétion — visible du paquet, la colle et les
+     *  actions clavier y passent. */
+    final IntelligenceHub intelligence = new IntelligenceHub(this);
     /** Le collaborateur de l'avis de fenêtre (M7.5, §7) : les popups
      *  se repositionnent au changement réel, jamais au clignotement.
      *  Visible du paquet : l'assemblage d'image y pose l'avis. */
@@ -217,6 +221,28 @@ public final class EditorView extends View {
         gouttiereEtat.reinitialiser();
         cache.clear();
         invalidate();
+    }
+
+    /**
+     * Le concentrateur d'intelligence de la vue (M7.5, §8) : les
+     * popups de l'hôte y lisent leurs candidats de complétion.
+     *
+     * @return le concentrateur posé sur la vue
+     */
+    public IntelligenceHub intelligence() {
+        return intelligence;
+    }
+
+    /**
+     * Pose le fournisseur d'intelligence (M7.5, §8) : la frappe
+     * intelligente, l'indentation à l'Entrée et la complétion se
+     * branchent — null les coupe, la frappe passe telle quelle.
+     *
+     * @param fournisseur le fournisseur, null pour couper
+     */
+    public void setIntelligenceProvider(
+            IntelligenceHub.@Nullable Provider fournisseur) {
+        intelligence.setProvider(fournisseur);
     }
 
     /**

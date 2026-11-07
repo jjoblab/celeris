@@ -15,6 +15,8 @@ public enum EditorAction {
     MOVE_UP,
     /** Curseur d'une rangée en bas. */
     MOVE_DOWN,
+    /** Insère un saut de ligne — indenté quand l'intelligence est posée (A-06). */
+    ENTER,
     /** Curseur d'un mot à gauche. */
     MOVE_WORD_LEFT,
     /** Curseur d'un mot à droite. */

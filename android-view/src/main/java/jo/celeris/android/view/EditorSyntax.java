@@ -335,9 +335,10 @@ public final class EditorSyntax {
      * L'analyse courante : la voie synchrone la calcule à la demande,
      * la voie hors fil ne rend QUE la publication à jour de l'instantané
      * affiché — jamais le lexique d'une autre révision ne colore un
-     * document (PIEGE-20).
+     * document (PIEGE-20). Visible du paquet : le concentrateur
+     * d'intelligence (M7.5, §8) y lit l'analyse de ses gestes.
      */
-    private @Nullable Analysis analyseCourante(Document document) {
+    @Nullable Analysis analyseCourante(Document document) {
         if (moteur != null) {
             Analysis publiee = moteur.analysePubliee();
             if (publiee == null || publiee.revision() != document.revision()) {
