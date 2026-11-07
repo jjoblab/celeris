@@ -6,7 +6,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.AttributeSet;
-import android.util.TypedValue;
+import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -210,12 +210,18 @@ public final class EditorView extends View {
 
     /**
      * La conversion sp vers pixels à la densité courante : la mesure et
-     * le tracé vivent en pixels, l'interface vit en sp (PIEGE-23).
+     * le tracé vivent en pixels, l'interface vit en sp — la conversion
+     * vit dans {@link TaillesSp}, pure et testée (PIEGE-23), jamais un
+     * pixel cru ne franchit cette porte.
      */
     private FontSpec enPixels(FontSpec police) {
-        return new FontSpec(police.family(), TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_SP, police.size(),
-                getResources().getDisplayMetrics()));
+        DisplayMetrics metriques = getResources().getDisplayMetrics();
+        // L'échelle de police de l'accessibilité vit dans la
+        // configuration (le champ scaledDensity est dépréqué) : la
+        // conversion reste sp × densité × échelle, pure et testée.
+        float echelle = getResources().getConfiguration().fontScale;
+        return new FontSpec(police.family(), TaillesSp.enPixels(police.size(),
+                metriques.density, echelle));
     }
 
     /**
