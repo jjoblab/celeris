@@ -7,6 +7,25 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.5 — reprise : les dix popups (2026-11-07)
+
+- Les dix popups se posent sur la couche : PopupController porte leurs
+  régiments d'exclusion (la documentation de complétion n'existe pas
+  sans sa liste, la barre de sélection cède à la frappe mais survit au
+  défilement, la bande d'erreurs ne cède à rien), PopupAnchor borne
+  chaque ancre à la couche, PopupPanel et TextRowsPopup partagent fond
+  arrondi et rangées — complétion, documentation, signature,
+  intentions, info-bulle, fil d'Ariane, bande d'erreurs et barre de
+  sélection ont leurs vues, PIEGE-27 prouvé à chacune. L'éditeur
+  expose l'ancre (`caretBounds`, `selectionBounds`) et prévient du
+  changement de fenêtre (`setSurViewportChange` — un avis par état
+  réel, jamais au clignotement) ; la session notifie chaque
+  changement effectif de sélection (`SelectionListener`, toute source
+  comprise). La démonstration branche les dix : PopupCoach décide (le
+  filtrage par préfixe, la signature comptée à plat, la documentation
+  du serveur factice), la barre de recherche coordonne son état — son
+  champ garde le focus, la couche l'interdit.
+
 ### M7.5 — jalon de redressement (2026-11-07)
 
 - Le zoom au pincement ne faisait rien : le facteur du détecteur est

@@ -496,7 +496,8 @@ public final class ScenarioCatalog {
                 "Bande d'erreurs annotée",
                 "Les diagnostics du même arbre alignent leurs marques le long du "
                         + "défilement — densité bornée à un cran, le clic saute au "
-                        + "diagnostic."));
+                        + "diagnostic. La reprise M7.5 la porte au bord droit de la "
+                        + "couche porte-popups, l'appui vise le cran le plus proche."));
         return List.copyOf(tous);
     }
 
@@ -508,13 +509,15 @@ public final class ScenarioCatalog {
                         "Fil d'Ariane",
                         "Le chemin du symbole courant sort du plan du même arbre, de la "
                                 + "plus externe à la plus interne ; la troncature par la largeur "
-                                + "élague la tête en ellipse."),
+                                + "élague la tête en ellipse. La reprise M7.5 l'étale en bandeau "
+                                + "haut de l'éditeur, il suit le curseur et survit au défilement."),
                 new Scenario(
                         "D-10",
                         "Popups unifiées",
                         "Complétion, documentation et signature coordonnées autour du "
                                 + "curseur — jamais superposées, jamais hors écran ; le contenu "
-                                + "s'annonce à l'explorateur."),
+                                + "s'annonce à l'explorateur. La reprise M7.5 pose les dix popups "
+                                + "sur la couche, aucune ne prend jamais le focus (PIEGE-27)."),
                 new Scenario(
                         "D-13",
                         "Thèmes à contraste vérifié",

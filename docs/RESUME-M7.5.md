@@ -165,7 +165,38 @@ préfixe non édité garde ses plages à l'identique, couverture exacte)
 et les tests de remappage réécrits au nouveau contrat. Appareil :
 NON EXÉCUTÉ.
 
-## Bug 4 — aucun popup : la COUCHE est posée, les popups ne le sont pas
+## Bug 4 — la reprise (2026-11-07) : les DIX popups se posent sur la couche
+
+Le premier chantier de la reprise est réglé : les dix popups ont leurs
+vues, leur branchement et leur ancrage. `PopupController` porte les dix
+RÉGIMES — la documentation de complétion n'ouvre pas sans sa liste et
+ferme avec elle, la barre de sélection cède à la frappe (la frappe
+remplace la sélection) mais survit au défilement, la bande d'erreurs
+ne cède ni à la frappe ni au défilement (elle vit avec les
+diagnostics, l'hôte l'ouvre et la ferme). `PopupAnchor`, pur, borne
+chaque ancre à la couche — sous/sur le curseur selon la place, près du
+point sans le recouvrir, bandeau haut, bord droit pleine hauteur,
+centrée sur la sélection. `PopupPanel` et `TextRowsPopup` partagent
+fond arrondi, liseré et rangées (texte, encre par rangée, surlignage,
+tronçon souligné) : CompletionListView (le filtrage vit chez l'hôte,
+la requête ne repart pas), CompletionDocView (titre et sections typés
+DISTINCTS, PIEGE-16), SignatureHelpView (le paramètre courant souligné
+par le tronçon exact du modèle), IntentionsMenuView,
+DiagnosticTooltipView, BreadcrumbView, ErrorBandView (l'appui saute au
+diagnostic du cran le plus proche), SelectionBarView — PIEGE-27 prouvé
+à chaque vue (`PopupViewsTest`, `PopupSurfacesTest`, `PopupRegimesTest`,
+`PopupAnchorTest`). L'ancre vient de la vue : `caretBounds()` et
+`selectionBounds()` (PopupAnchors, quatre tests au banc),
+`setSurViewportChange()` prévient au changement réel — jamais deux fois
+le même état (ViewportWatch, le clignotement ne notifie pas). La
+session notifie chaque changement effectif de sélection
+(`SelectionListener`, toute source comprise — pose, projection,
+annulation, refaire : `SelectionListenerTest`). La démonstration
+branche les dix : `PopupCoach` décide (pur, testé), `AtelierPopups`
+câble, la barre de recherche coordonne son ÉTAT — son champ garde le
+focus, la couche l'interdit (PIEGE-27 assumé et consigné).
+
+## Bug 4 — état au jalon (2026-11-07) : la COUCHE était posée, les popups non
 
 La cause du prompt est confirmée : il n'y avait que des modèles.
 `PopupController` (pur, `android-widgets`) porte la machine à états —
