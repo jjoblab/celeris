@@ -2,9 +2,11 @@ package jo.celeris.android.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -16,7 +18,6 @@ import android.view.accessibility.AccessibilityNodeProvider;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -24,7 +25,6 @@ import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
-import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
@@ -49,6 +49,12 @@ import org.jspecify.annotations.Nullable;
  * {@link EditorInputConnection} ; l'accessibilité (G-05) vit dans
  * {@link AccessibilityHost}.</p>
  *
+ * <p>Les tailles de police sont en SP : la vue les convertit en
+ * pixels par la densité de l'appareil — une taille se lit pareil sur
+ * tous les écrans (PIEGE-22). Le curseur d'écriture — une barre par
+ * plage vide — clignote tant que la vue tient le focus, et l'appui
+ * qui prend le focus ouvre le clavier logiciel.</p>
+ *
  * <p>La syntaxe (M4) se branche par {@link #setLanguage(LanguageSyntax)} :
  * le pont {@link EditorSyntax} habille la source de rangées des plages
  * de jetons (B-01) et sert la coulisse de marqueurs — plis (D-07,
@@ -56,23 +62,25 @@ import org.jspecify.annotations.Nullable;
  */
 public final class EditorView extends View {
 
-    private static final FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
-    private static final float MARGE_GOUTTIERE = 8f;
+    /** La police par défaut : mono, 14 sp — la conversion en pixels
+     *  suit la densité de l'appareil (PIEGE-22). */
+    static final FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
+    static final float MARGE_GOUTTIERE = 8f;
     private static final float MARGE_RETOUR = 8f;
 
     private final AndroidFontRuler regle = new AndroidFontRuler();
     private final CanvasSurface surface = new CanvasSurface();
     private final FrameState etatImage = new FrameState();
     private final ScrollFrame trace = new ScrollFrame();
-    private final SelectionDrag glissement = new SelectionDrag();
+    final SelectionDrag glissement = new SelectionDrag();
     private final FoldModel plis = new FoldModel();
-    private final EditorSyntax syntaxe = new EditorSyntax(plis, ExecuteurAnalyse.parDefaut());
+    final EditorSyntax syntaxe = new EditorSyntax(plis, ExecuteurAnalyse.parDefaut());
     private final RowLayoutCache cache = new RowLayoutCache();
     final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
     private final ChromePainter chrome = new ChromePainter();
     private final GutterPainter gouttiere;
-    private final MarquesGouttiere marquesGouttiere = new MarquesGouttiere();
+    final MarquesGouttiere marquesGouttiere = new MarquesGouttiere();
     private final AccessibilityHost accessibilite = new AccessibilityHost(this);
     private final EditListener ecouteurAnnonce = (debut, fin, retire, insere)
             -> sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
@@ -81,13 +89,14 @@ public final class EditorView extends View {
     private final ScaleGestureDetector pincements;
 
     private KeyBindings raccourcis = KeyBindings.defaults();
-    private SelectionHandles.HandleId poigneeTiree = SelectionHandles.HandleId.NONE;
     // — état de gestes, visible du paquet pour GestesFabrique (D-15/A-01)
     float tailleAuDepartDuPincement;
     boolean pincementActif;
 
-    private TextSession session = TextSession.of("", System::nanoTime);
-    private VisualProjection projection = new VisualProjection(session.document(), plis, 0);
+    TextSession session = TextSession.of("", System::nanoTime);
+    VisualProjection projection = new VisualProjection(session.document(), plis, 0);
+    /** La police logique, en sp — les métriques en dérivent par densité. */
+    FontSpec policeLogique = POLICE_PAR_DEFAUT;
     EditorMetrics metrics = EditorMetrics.of(POLICE_PAR_DEFAUT, regle);
     HitTest viseur = new HitTest(metrics);
     private final RebindingRowSource sourceLiee = new RebindingRowSource(
@@ -96,13 +105,14 @@ public final class EditorView extends View {
     private long revisionSuivie;
     private boolean retourALaLigne;
 
-    private float scrollX;
-    private float scrollY;
-    private float dernierX;
-    private float dernierY;
-    private float largeurGouttiere;
+    float scrollX;
+    float scrollY;
+    float largeurGouttiere;
     private boolean numerosVisibles = true;
-    private boolean panoramique;
+    /** Le collaborateur du curseur et du clavier : clignotement, IME. */
+    final CurseurClavier curseurClavier = new CurseurClavier(this);
+    /** Le collaborateur du routage tactile. */
+    private final TouchesEditeur touches = new TouchesEditeur(this);
 
     public EditorView(Context context) {
         this(context, null);
@@ -123,6 +133,10 @@ public final class EditorView extends View {
         trace.addLayer(new ComposingPainter(pinceaux, composition));
         trace.addLayer(new TextPainter(pinceaux, cache, sourceLiee));
         pinceauChrome = pinceaux.newBrush();
+        // Les métriques naissent à la densité de l'appareil : la police
+        // logique (sp) se convertit une fois pour toutes (PIEGE-22).
+        metrics = EditorMetrics.of(enPixels(POLICE_PAR_DEFAUT), regle);
+        viseur = new HitTest(metrics);
         syntaxe.attacher(session);
         session.addEditListener(ecouteurAnnonce);
         longPresses = GestesFabrique.appuisLongs(context, this);
@@ -174,13 +188,24 @@ public final class EditorView extends View {
      * de la règle (PIEGE-05), le cache se vide par révision suivie, le
      * budget de colonnes se redérive à l'image suivante.
      *
-     * @param police la spécification de police
+     * @param police la spécification de police, taille en sp
      */
     public void setFont(FontSpec police) {
-        metrics = EditorMetrics.of(police, regle);
+        policeLogique = police;
+        metrics = EditorMetrics.of(enPixels(police), regle);
         viseur = new HitTest(metrics);
         revisionSuivie = 0L;
         invalidate();
+    }
+
+    /**
+     * La conversion sp vers pixels à la densité courante : la mesure et
+     * le tracé vivent en pixels, l'interface vit en sp (PIEGE-22).
+     */
+    private FontSpec enPixels(FontSpec police) {
+        return new FontSpec(police.family(), TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_SP, police.size(),
+                getResources().getDisplayMetrics()));
     }
 
     /**
@@ -260,7 +285,8 @@ public final class EditorView extends View {
             return null;
         }
         outAttrs.inputType = InputType.TYPE_CLASS_TEXT
-                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
                 | EditorInfo.IME_ACTION_NONE;
         List<SelRange> plages = session.selection().ranges();
@@ -345,9 +371,10 @@ public final class EditorView extends View {
         preparerEtatImage();
         surface.attach(canvas);
         trace.drawFrame(surface, etatImage);
+        pinceauChrome.setFont(metrics.font());
         chrome.tracer(surface, pinceauChrome, theme, metrics, pilule,
                 etatImage.document(), projection, session.selection().ranges(),
-                largeurGouttiere, scrollX, scrollY);
+                largeurGouttiere, scrollX, scrollY, curseurClavier.visible());
         surface.detach();
     }
 
@@ -367,7 +394,9 @@ public final class EditorView extends View {
                 ? GutterGeometry.width(Math.max(1, projection.rowCount()),
                         metrics.charWidth(), MARGE_GOUTTIERE, coulisse)
                 : GutterGeometry.laneOnly(MARGE_GOUTTIERE, coulisse);
-        scrollX = ScrollGeometry.clamp(scrollX, largeurContenu(), largeurVisible());
+        scrollX = ScrollGeometry.clamp(scrollX,
+                ScrollGeometry.largeurContenu(projection, metrics),
+                ScrollGeometry.largeurVisible(getWidth(), largeurGouttiere));
         int premiere = ScrollGeometry.firstRow(scrollY, metrics.lineHeight());
         int visibles = ScrollGeometry.visibleRows(getHeight(), metrics.lineHeight());
         syntaxe.fenetre(projection, premiere, visibles);
@@ -382,17 +411,17 @@ public final class EditorView extends View {
         pincements.onTouchEvent(event);
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                return surAppui(event);
+                return touches.surAppui(event);
             case MotionEvent.ACTION_POINTER_DOWN:
-                return surDoigtPose(event);
+                return touches.surDoigtPose(event);
             case MotionEvent.ACTION_MOVE:
-                return surDeplacement(event);
+                return touches.surDeplacement(event);
             case MotionEvent.ACTION_POINTER_UP:
-                return surDoigtLeve();
+                return touches.surDoigtLeve();
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 performClick();
-                return surRelachement();
+                return touches.surRelachement();
             default:
                 return super.onTouchEvent(event);
         }
@@ -442,137 +471,18 @@ public final class EditorView extends View {
         return Math.max(1, (int) Math.floor(disponible / metrics.charWidth()));
     }
 
-    /** L'étendue horizontale du contenu : la plus large rangée, en pixels. */
-    private float largeurContenu() {
-        int portee = projection.columns() <= 0
-                ? projection.longestLineLength()
-                : Math.min(projection.longestLineLength(), projection.columns());
-        return portee * metrics.charWidth();
-    }
-
-    /** La largeur visible du contenu, gouttière déduite. */
-    private float largeurVisible() {
-        return Math.max(0f, getWidth() - largeurGouttiere);
-    }
-
-    private boolean surAppui(MotionEvent event) {
-        requestFocus();
-        dernierX = event.getX();
-        dernierY = event.getY();
-        panoramique = false;
-        float x = event.getX();
-        float y = event.getY();
-        if (pilule.isArmed() && pilule.contains(x, y)) {
-            pilule.hide();
-            invalidate();
-            return true;
-        }
-        SelectionHandles.HandleId poignee = poigneeVisee(x, y);
-        if (poignee != SelectionHandles.HandleId.NONE) {
-            poigneeTiree = poignee;
-            return true;
-        }
-        float coulisse = marquesGouttiere.coulisse(syntaxe.coulisse(
-                metrics.charWidth(), MARGE_GOUTTIERE), metrics.charWidth());
-        if (syntaxe.basculerPliAuPoint(x, y, scrollY, metrics.lineHeight(),
-                coulisse, projection)) {
-            invalidate();
-            return true;
-        }
-        if (marquesGouttiere.surAppui(x, y, largeurGouttiere, coulisse, scrollY,
-                metrics.lineHeight(), projection)) {
-            return true;
-        }
-        int offset = offsetAt(x, y);
-        glissement.down(offset);
-        if (pilule.isArmed()) {
-            session.setSelection(ajouterCurseur(offset));
-        } else {
-            session.setSelection(MultiSelection.of(SelRange.caretAt(offset)));
-        }
-        annoncerSelection();
-        invalidate();
-        return true;
-    }
-
-    private boolean surDoigtPose(MotionEvent event) {
-        if (event.getPointerCount() >= 2) {
-            panoramique = true;
-            glissement.up();
-            dernierX = event.getX();
-            dernierY = event.getY();
-        }
-        return true;
-    }
-
-    private boolean surDeplacement(MotionEvent event) {
-        if (pincementActif) {
-            return true;
-        }
-        if (panoramique && event.getPointerCount() >= 2) {
-            pilule.hide();
-            float hauteurContenu = projection.rowCount() * metrics.lineHeight();
-            scrollY = ScrollGeometry.clamp(scrollY + dernierY - event.getY(),
-                    hauteurContenu, getHeight());
-            scrollX = ScrollGeometry.clamp(scrollX + dernierX - event.getX(),
-                    largeurContenu(), largeurVisible());
-            dernierX = event.getX();
-            dernierY = event.getY();
-            invalidate();
-            return true;
-        }
-        if (poigneeTiree != SelectionHandles.HandleId.NONE) {
-            tirerPoignee(event.getX(), event.getY());
-            return true;
-        }
-        if (glissement.isActive()) {
-            session.setSelection(MultiSelection.of(
-                    glissement.dragTo(offsetAt(event.getX(), event.getY()))));
-            invalidate();
-        }
-        return true;
-    }
-
-    private void tirerPoignee(float x, float y) {
-        List<SelRange> plages = session.selection().ranges();
-        if (plages.size() != 1) {
-            poigneeTiree = SelectionHandles.HandleId.NONE;
-            return;
-        }
-        session.setSelection(MultiSelection.of(SelectionHandles.dragged(
-                plages.get(0), poigneeTiree, offsetAt(x, y))));
-        invalidate();
-    }
-
-    private SelectionHandles.HandleId poigneeVisee(float x, float y) {
-        List<SelRange> plages = session.selection().ranges();
-        if (plages.size() != 1 || plages.get(0).isEmpty()) {
-            return SelectionHandles.HandleId.NONE;
-        }
-        return SelectionHandles.hitTest(x, y, largeurGouttiere, scrollX, scrollY,
-                session.document(), projection, metrics, plages.get(0).start(),
-                plages.get(0).end());
-    }
-
-    /** Ajoute un curseur à l'offset visé, les existants tiennent (A-01). */
-    private MultiSelection ajouterCurseur(int offset) {
-        List<SelRange> plages = new ArrayList<>(session.selection().ranges());
-        plages.add(SelRange.caretAt(offset));
-        return MultiSelection.of(plages);
-    }
-
     /** D-15 — zoome par paliers, le point sous le doigt stable. */
     void zoomer(float focalX, float focalY, float facteur) {
         float nouvelleTaille = PinchZoom.steppedSize(tailleAuDepartDuPincement,
                 facteur);
-        if (nouvelleTaille == metrics.font().size()) {
+        if (nouvelleTaille == policeLogique.size()) {
             return;
         }
         float ancienCharWidth = metrics.charWidth();
         float ancienLineHeight = metrics.lineHeight();
         float ancienScrollX = scrollX;
         float ancienScrollY = scrollY;
-        setFont(new FontSpec(metrics.font().family(), nouvelleTaille));
+        setFont(new FontSpec(policeLogique.family(), nouvelleTaille));
         scrollX = PinchZoom.scrollXKeepingColumn(focalX, largeurGouttiere,
                 ancienScrollX, ancienCharWidth, metrics.charWidth());
         scrollY = PinchZoom.scrollYKeepingRow(focalY, ancienScrollY,
@@ -580,21 +490,28 @@ public final class EditorView extends View {
         invalidate();
     }
 
-    private boolean surDoigtLeve() {
-        panoramique = false;
-        glissement.up();
-        return true;
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        curseurClavier.surAttache();
     }
 
-    private boolean surRelachement() {
-        glissement.up();
-        panoramique = false;
-        poigneeTiree = SelectionHandles.HandleId.NONE;
-        return true;
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        curseurClavier.surDetache();
     }
 
-    private int offsetAt(float x, float y) {
-        return viseur.offsetAt(session.document(), projection, metrics,
-                largeurGouttiere, scrollX, scrollY, x, y);
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility);
+        curseurClavier.surVisibiliteFenetre(visibility);
+    }
+
+    @Override
+    protected void onFocusChanged(boolean gainFocus, int direction,
+            @Nullable Rect previouslyFocusedRect) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
+        curseurClavier.surFocus(gainFocus);
     }
 }

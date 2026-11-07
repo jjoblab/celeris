@@ -52,7 +52,7 @@ final class GestesFabrique {
             @Override
             public boolean onScaleBegin(ScaleGestureDetector detector) {
                 vue.pincementActif = true;
-                vue.tailleAuDepartDuPincement = vue.metrics.font().size();
+                vue.tailleAuDepartDuPincement = vue.policeLogique.size();
                 return true;
             }
 
