@@ -9,45 +9,45 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### M7.5 — jalon de redressement (2026-11-07)
 
-- Le zoom au pincement ne faisait rien : le facteur du détecteur est
+- Le zoom au pincement ne faisait rien : le facteur du détecteur est
   incrémental (rapport à l'événement précédent), la vue le lisait
   cumulé — le palier ne bougeait jamais. Le facteur cumulé se
   reconstitue depuis l'écartement d'engagement, la taille marche
   l'échelle par paliers avec bande d'hystérésis de 15 % de l'intervalle
-  (PIEGE-24) ; le point sous le doigt tient (gouttière lue avant le
-  palier, posée après) ; le changement de police re-mesure un document
-  jamais édité (PIEGE-28) ; Ctrl + plus/moins/zéro et la molette Ctrl
+  (PIEGE-24) ; le point sous le doigt tient (gouttière lue avant le
+  palier, posée après) ; le changement de police re-mesure un document
+  jamais édité (PIEGE-28) ; Ctrl + plus/moins/zéro et la molette Ctrl
   marchent d'un palier, l'écouteur onFontSizeChanged prévient l'hôte.
-- La largeur de gouttière n'était pas stable : elle se calculait sur
+- La largeur de gouttière n'était pas stable : elle se calculait sur
   les rangées visuelles, bouclait avec le budget de colonnes, n'avait
   ni plancher ni hystérésis, s'élargissait à l'arrivée des marques et
   vivait en pixels bruts. GutterLayout calcule sur les lignes du
   document, plancher de trois chiffres, marges en dp converties une
   fois, coulisse de configuration (GutterLanes) réservée dès
   l'attachement du langage, niveau d'eau monotone (PIEGE-25).
-- La ligne en cours de frappe scintillait : la ligne touchée perdait
+- La ligne en cours de frappe scintillait : la ligne touchée perdait
   toute sa couleur jusqu'à la publication, et la publication rejetait
   toutes les mesures. TokenCatchUp sert la ligne touchée par ses
   jetons publiés recalés sur l'édition en attente (l'inséré hérite du
   jeton de gauche, celui du point d'insertion s'étend), relit la ligne
-  depuis l'état publié quand la structure change ; la publication
+  depuis l'état publié quand la structure change ; la publication
   re-spanne le cache en place, la mesure survit (PIEGE-26, PIEGE-20
   amendé).
-- La couche porte-popups s'installe : PopupController (machine à états
+- La couche porte-popups s'installe : PopupController (machine à états
   pure — exclusions, cohabitations, fermetures à la frappe et au
   défilement) et PopupLayer (superposition dans la même fenêtre, sans
-  jeton de fenêtre) ; aucun popup ne prend jamais le focus d'entrée de
+  jeton de fenêtre) ; aucun popup ne prend jamais le focus d'entrée de
   l'éditeur (PIEGE-27). Les dix popups restent à livrer.
-- Le banc de test de vue (ADR-013) : Robolectric 4.15.1 sur JVM (rendu
+- Le banc de test de vue (ADR-013) : Robolectric 4.15.1 sur JVM (rendu
   natif), EditorTestRig (exécuteur d'analyse manuel, canvas
   enregistreur, gestes multi-pointeurs), travail CI view-tests à
   chaque commit.
-- La vérité des tableaux de bord : cadre de statut à cinq niveaux,
-  audit mécanique de la matrice (63 « livrés » affirmés ; 39 Câblé,
+- La vérité des tableaux de bord : cadre de statut à cinq niveaux,
+  audit mécanique de la matrice (63 « livrés » affirmés ; 39 Câblé,
   54 Noyau, 17 Non démarré, 0 Démontré prouvés), cinq contrôles
   bloquants dans check (matrice, pièges, démo, rempart de langue —
   408 identifiants français figés —, dates contre l'historique git).
-  RemapLignes se retire (remplacé par TokenCatchUp) ;
+  RemapLignes se retire (remplacé par TokenCatchUp) ;
   MarquesGouttiere.coulisse(coulisseSyntaxe, charWidth) devient
   coulisses(syntaxeActivee) de configuration.
 

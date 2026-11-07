@@ -1,16 +1,16 @@
 # Audit de la matrice de parité — M7.5 (2026-11-07)
 
-Le nouveau cadre de statut (M7.5, §11) : **Non démarré** (rien dans
+Le nouveau cadre de statut (M7.5, §11) : **Non démarré** (rien dans
 le code), **Noyau** (modèle pur testé, aucune vue), **Câblé** (vue et
 événements en place, au moins un test de vue cité), **Démontré**
 (scénario de démo jouable avec auto-vérification — la surcharge de la
 démo n'existe pas encore, aucune ligne ne l'atteint), **Vérifié
 appareil** (test d'instrumentation vert — aucun n'existe encore).
 
-L'audit est MÉCANIQUE : le statut se déduit des citations vérifiables
+L'audit est MÉCANIQUE : le statut se déduit des citations vérifiables
 (test de vue citant la ligne, scénario de démo citant la ligne), pas
 des affirmations des jalons précédents. La baisse de « livré » est le
-but de l'exercice : un modèle pur sans vue n'a jamais été livré.
+but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 
 ## Décomptes
 
@@ -143,16 +143,16 @@ but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 ## Écarts notables
 
 - Les lignes « livrées » des jalons M2 à M8 retombent au statut que
-  leurs PREUVES soutiennent : presque toutes « Noyau » ou « Câblé » —
+  leurs PREUVES soutiennent : presque toutes « Noyau » ou « Câblé » —
   la démonstration ne démontrait pas (catalogue décoratif, ateliers
   sans auto-vérification, aucun test d'appareil).
 - Les correctifs de M7.5 (D-15 pincement, D-01 gouttière, B-01
-  coloration stable) montent à « Câblé » : test de vue cité, test
+  coloration stable) montent à « Câblé » : test de vue cité, test
   d'appareil encore absent.
-- La catégorie F (IA native) retombe massivement à « Noyau » : les
+- La catégorie F (IA native) retombe massivement à « Noyau » : les
   contrats sont testés en isolation, la vue et les scénarios
   auto-vérifiés manquent (l'intelligence n'est pas branchée, §8 du
   prompt M7.5 — non livré dans cette fenêtre, consigné au résumé).
 
-Le contrôle continu vit dans `scripts/check-parity-matrix` (CI) :
+Le contrôle continu vit dans `scripts/check-parity-matrix` (CI) :
 statuts valides, tests cités existants, scénarios cités existants.
