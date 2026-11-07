@@ -12,7 +12,7 @@ vivent dans les ADR et le registre de portage, pas ici.
 - Les mots colorés s'éparpillaient, séparés d'un grand espace dès que la
   coloration s'affichait : les pinceaux par sorte de jeton ne recevaient
   jamais la police de l'image — seuls les tracés non colorés la posaient
-  (PIEGE-21) — chaque plage se traçait à la police par défaut de la
+  (PIEGE-22) — chaque plage se traçait à la police par défaut de la
   plateforme pendant que l'avance se calculait à la police de l'éditeur ;
   chaque pinceau par sorte reçoit désormais la police de l'image avant
   tout tracé, la règle qui mesure reste la police qui trace.
@@ -38,11 +38,11 @@ vivent dans les ADR et le registre de portage, pas ici.
   plateforme pendant que les positions se calculaient à la police de
   l'éditeur : colonnes dérivées, plages décalées, glyphe hors métrique
   ; chaque couche repose maintenant la police de l'image sur son
-  pinceau (TextBrush.setFont, PIEGE-21) — la règle qui mesure est la
+  pinceau (TextBrush.setFont, PIEGE-22) — la règle qui mesure est la
   police qui trace.
 - Les tailles de police se lisaient en pixels bruts — minuscules sur
   écran dense : elles vivent en sp, converties à la densité de
-  l'appareil (PIEGE-22) ; le pincement et ses paliers suivent la
+  l'appareil (PIEGE-23) ; le pincement et ses paliers suivent la
   police logique.
 - Le clavier logiciel n'apparaissait jamais : l'appui qui prend le
   focus dévoile l'IME explicitement — une vue focusable au toucher ne

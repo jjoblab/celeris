@@ -51,7 +51,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Les tailles de police sont en SP : la vue les convertit en
  * pixels par la densité de l'appareil — une taille se lit pareil sur
- * tous les écrans (PIEGE-22). Le curseur d'écriture — une barre par
+ * tous les écrans (PIEGE-23). Le curseur d'écriture — une barre par
  * plage vide — clignote tant que la vue tient le focus, et l'appui
  * qui prend le focus ouvre le clavier logiciel.</p>
  *
@@ -63,7 +63,7 @@ import org.jspecify.annotations.Nullable;
 public final class EditorView extends View {
 
     /** La police par défaut : mono, 14 sp — la conversion en pixels
-     *  suit la densité de l'appareil (PIEGE-22). */
+     *  suit la densité de l'appareil (PIEGE-23). */
     static final FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
     /** La respiration de gouttière, adaptée à la classe de largeur (D-19). */
     float margeGouttiere = ClasseLargeur.MOYEN.margeGouttiere();
@@ -144,7 +144,7 @@ public final class EditorView extends View {
         trace.addLayer(new TextPainter(pinceaux, cache, sourceLiee));
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
-        // logique (sp) se convertit une fois pour toutes (PIEGE-22).
+        // logique (sp) se convertit une fois pour toutes (PIEGE-23).
         metrics = EditorMetrics.of(enPixels(POLICE_PAR_DEFAUT), regle);
         viseur = new HitTest(metrics);
         syntaxe.attacher(session);
@@ -210,7 +210,7 @@ public final class EditorView extends View {
 
     /**
      * La conversion sp vers pixels à la densité courante : la mesure et
-     * le tracé vivent en pixels, l'interface vit en sp (PIEGE-22).
+     * le tracé vivent en pixels, l'interface vit en sp (PIEGE-23).
      */
     private FontSpec enPixels(FontSpec police) {
         return new FontSpec(police.family(), TypedValue.applyDimension(

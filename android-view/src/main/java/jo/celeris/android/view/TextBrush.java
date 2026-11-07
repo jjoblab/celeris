@@ -6,7 +6,7 @@ package jo.celeris.android.view;
  * <p>Le pinceau est mutable par nature (PIEGE-01) : chaque couche possède
  * le sien et repose explicitement sa couleur de base à chaque image — le
  * pipeline ne partage jamais un pinceau sans défense. La police suit la
- * même discipline (PIEGE-21) : reposée à chaque image depuis les
+ * même discipline (PIEGE-22) : reposée à chaque image depuis les
  * métriques, un pinceau fraîchement créé ne trace jamais à la police
  * par défaut de la plateforme — 12 pixels à chasse variable — pendant
  * que les positions se calculent à la police de l'éditeur.</p>

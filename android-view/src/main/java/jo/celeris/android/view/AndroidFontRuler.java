@@ -49,7 +49,7 @@ public final class AndroidFontRuler implements FontRuler {
 
     /**
      * La police de plateforme d'une famille — la table partagée de la
-     * mesure et du tracé (PIEGE-21) : ce qui mesure est ce qui trace.
+     * mesure et du tracé (PIEGE-22) : ce qui mesure est ce qui trace.
      *
      * @param famille la famille demandée
      * @return la police de plateforme correspondante

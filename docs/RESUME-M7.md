@@ -9,12 +9,13 @@
 > E-01 reste à fermer par l'adaptateur du framework d'accès au
 > stockage).
 >
-> **État** : jalon NON clos — les tranches 6 et suivantes restent à
-> écrire (voir « Reste ouvert »). Les tranches 1 à 3 ont répondu à la
-> reprise après interruption et à l'amélioration de la
-démonstration ; les tranches 4 et 5 livrent le bloc
-> XML/manifeste/catalogues et la peinture de gouttière des
-> intégrations — la démonstration devient terrain de débogage.
+> **État** : jalon clos le 2026-11-07 — les neuf tranches et les deux
+> corrections hors tranche sont consignées ci-dessous, critères de
+> sortie couverts (catégories C et E P0, SPI de référence, cli en
+> CI). Les tranches 1 à 3 ont répondu à la reprise après
+> interruption et à l'amélioration de la démonstration ; les tranches 4 et 5 livrent le bloc XML/manifeste/catalogues
+> et la peinture de gouttière des intégrations — la démonstration
+> devient terrain de débogage.
 
 ## Tranche 1 — la démonstration devient terrain d'essai (2026-11-06)
 
@@ -229,7 +230,7 @@ Cinq défauts signalés sur l'appareil, cinq racines trouvées et closes
    défaut de la plateforme (12 px à chasse variable) pendant que les
    positions se calculaient à la police de l'éditeur. Chaque couche
    repose la police de l'image sur son pinceau (`TextBrush.setFont`,
-   PIEGE-21 — la règle qui mesure est la police qui trace).
+   PIEGE-22 — la règle qui mesure est la police qui trace).
 3. **Le clavier n'apparaissait jamais** : une vue focusable au
    toucher n'ouvre pas l'IME d'elle-même — l'appui qui prend le focus
    dévoile le clavier explicitement.
@@ -238,7 +239,7 @@ Cinq défauts signalés sur l'appareil, cinq racines trouvées et closes
    tant que la vue tient le focus, pleine hauteur de rangée.
 5. **Le texte par défaut était minuscule** : les tailles se lisaient
    en pixels bruts ; elles vivent en sp, converties à la densité de
-   l'appareil (PIEGE-22), le pincement suit la police logique.
+   l'appareil (PIEGE-23), le pincement suit la police logique.
 
 La bascule du retour à la ligne entre dans la barre de l'atelier
 (icône directe, état dans le libellé) — le correctif se vérifie sans

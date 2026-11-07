@@ -30,7 +30,7 @@ class TextPainterSyntaxTest {
 
     /**
      * Pinceau mutable minimal : la couleur courante et la police
-     * courante — la police posée se capture comme la couleur (PIEGE-21).
+     * courante — la police posée se capture comme la couleur (PIEGE-22).
      */
     private static final class PinceauMutable implements TextBrush {
         private int couleur;
@@ -232,7 +232,7 @@ class TextPainterSyntaxTest {
     }
 
     /**
-     * PIEGE-21, volet coloration : chaque pinceau par sorte porte la
+     * PIEGE-22, volet coloration : chaque pinceau par sorte porte la
      * police de l'image au moment de son tracé — un pinceau jamais
      * habillé trace à la police par défaut de la plateforme pendant
      * que les positions avancent à la police de l'éditeur : les mots
@@ -258,7 +258,7 @@ class TextPainterSyntaxTest {
                 "une plage, un tracé — chacun à la police de l'image");
         for (Trace trace : surface.traces()) {
             assertEquals(new FontSpec("mono", 14f), trace.police(),
-                    "chaque plage se trace à la police de l'éditeur (PIEGE-21)");
+                    "chaque plage se trace à la police de l'éditeur (PIEGE-22)");
         }
     }
 

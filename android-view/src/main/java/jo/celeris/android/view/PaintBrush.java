@@ -39,7 +39,7 @@ public final class PaintBrush implements TextBrush {
     }
 
     /**
-     * Pose la police du tracé (PIEGE-21) : la même famille que la
+     * Pose la police du tracé (PIEGE-22) : la même famille que la
      * règle de mesure — « mono » rend la police à chasse fixe — à la
      * taille exacte des métriques, en pixels : ce que la règle a
      * mesuré est ce que la plateforme trace.

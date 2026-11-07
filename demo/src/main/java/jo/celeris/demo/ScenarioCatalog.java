@@ -470,7 +470,6 @@ public final class ScenarioCatalog {
     }
 
     /** D-01, D-03 à D-06, D-08 — gouttière, intégrations et bande d'erreurs. */
-    /** D-01, D-03 à D-06, D-08 — gouttière, intégrations et bande d'erreurs. */
     private static List<Scenario> affichageGouttiere() {
         List<Scenario> tous = new ArrayList<>();
         tous.add(new Scenario(

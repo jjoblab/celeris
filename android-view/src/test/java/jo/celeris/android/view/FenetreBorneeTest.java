@@ -166,7 +166,7 @@ class FenetreBorneeTest {
     }
 
     /**
-     * La couche repose sa police à chaque image (PIEGE-21) : le pinceau
+     * La couche repose sa police à chaque image (PIEGE-22) : le pinceau
      * reçoit la police des métriques avant tout tracé, une couche au
      * pinceau fraîchement créé ne trace jamais à la police par défaut.
      */
@@ -235,7 +235,7 @@ class FenetreBorneeTest {
     }
 
     /**
-     * Le pinceau concret de la plateforme implante la police (PIEGE-21)
+     * Le pinceau concret de la plateforme implante la police (PIEGE-22)
      * — sans implantation, le repli muet de l'interface laisserait le
      * tracé à la police par défaut, texte éparpillé garanti.
      */
