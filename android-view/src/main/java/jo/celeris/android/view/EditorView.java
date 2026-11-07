@@ -127,7 +127,9 @@ public final class EditorView extends View {
         gouttiere = new GutterPainter(pinceaux, MARGE_GOUTTIERE,
                 () -> marquesGouttiere.marques(syntaxe.marques()),
                 () -> marquesGouttiere.coulisse(syntaxe.coulisse(
-                        metrics.charWidth(), MARGE_GOUTTIERE), metrics.charWidth()));
+                        metrics.charWidth(), MARGE_GOUTTIERE), metrics.charWidth()),
+                marquesGouttiere::pastille,
+                marquesGouttiere::reperePreview);
         trace.addLayer(gouttiere);
         trace.addLayer(new SelectionPainter(pinceaux));
         trace.addLayer(new ComposingPainter(pinceaux, composition));

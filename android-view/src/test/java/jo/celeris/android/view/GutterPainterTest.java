@@ -419,4 +419,76 @@ class GutterPainterTest {
         assertEquals(8f, GutterGeometry.laneOnly(4f, 0f), 1e-6f,
                 "sans coulisse, la respiration seule reste");
     }
+
+    /**
+     * C-05 — la pastille de couleur se rend depuis la valeur résolue :
+     * un carré à droite du champ de numéros, à la couleur du littéral,
+     * une seule par ligne porteuse.
+     */
+    @Test
+    void pastilleRendueDepuisLaValeurResolue() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        GutterPainter gouttiere = new GutterPainter(() -> new PinceauMutable(), 8f,
+                () -> GutterMarks.VIDE, () -> 0f,
+                ligne -> ligne == 1 ? 0xFFFF5722 : 0, ligne -> false);
+        image.addLayer(gouttiere);
+        Document document = Document.of("<a>\n<color>#FF5722</color>\n</a>");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        float largeur = GutterGeometry.width(3, 10f, 8f);
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(3, new FoldModel()), 1L, metrics, THEME,
+                0, 3, largeur, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(1, surface.rectangles().size(),
+                "une seule pastille, la ligne porteuse seule");
+        RectTrace pastille = surface.rectangles().get(0);
+        assertEquals(0xFFFF5722, pastille.couleur(),
+                "la pastille porte la valeur résolue, pas une encre de thème");
+        // Le carré vit dans la respiration à droite du champ : bord de
+        // 2 px, côté de 4 px — entre largeur - 6 et largeur - 2.
+        assertEquals(largeur - 6f, pastille.left(), 1e-6f);
+        assertEquals(largeur - 2f, pastille.right(), 1e-6f);
+        // Posé au milieu vertical de la rangée 1 (0-based) : la rangée
+        // couvre 20 à 40, le carré 24 à 28.
+        assertEquals(24f, pastille.top(), 1e-6f);
+        assertEquals(28f, pastille.bottom(), 1e-6f);
+    }
+
+    /**
+     * C-11 — le repère {@code @Preview} se trace dans la coulisse, à
+     * sa ligne ; le rendu du composable reste la part de l'hôte.
+     */
+    @Test
+    void reperePreviewTraceDansLaCoulisseASaLigne() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        GutterPainter gouttiere = new GutterPainter(() -> new PinceauMutable(), 4f,
+                () -> GutterMarks.VIDE, () -> 12f,
+                ligne -> 0, ligne -> ligne == 1);
+        image.addLayer(gouttiere);
+        Document document = Document.of("package\n@Preview\nfun Apercu()");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(3, new FoldModel()), 1L, metrics, THEME,
+                0, 3, 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        // Le losange du repère : quatre traits, tous dans la coulisse,
+        // leur enceinte centrée sur l'axe de la coulisse (6 px).
+        assertEquals(4, surface.traits().size());
+        assertEquals(THEME.gutterTextColor(), surface.traits().get(0).couleur());
+        float min = Float.MAX_VALUE;
+        float max = -Float.MAX_VALUE;
+        for (TraitTrace trait : surface.traits()) {
+            min = Math.min(min, Math.min(trait.x1(), trait.x2()));
+            max = Math.max(max, Math.max(trait.x1(), trait.x2()));
+        }
+        assertEquals(6f, (min + max) / 2f, 1e-6f,
+                "le repère vit au centre de la coulisse de 12 px");
+        assertTrue(min >= 0f && max <= 12f, "le repère reste dans la coulisse");
+    }
 }

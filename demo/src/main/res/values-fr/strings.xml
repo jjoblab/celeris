@@ -21,6 +21,8 @@
     <string name="action_corriger">Corriger les problèmes</string>
     <string name="lint_propre">Lint : rien à signaler</string>
     <string name="lint_correctifs">%1$d corrigés</string>
+    <string name="titre_rendu_preview">Rendu @Preview</string>
+    <string name="message_rendu_preview">L\'hôte rend le composable « %1$s » (ligne %2$d) — le rendu est délégué, l\'éditeur ne porte que le repère.</string>
     <plurals name="etat_lint">
         <item quantity="one">Lint : %1$d problème</item>
         <item quantity="other">Lint : %1$d problèmes</item>

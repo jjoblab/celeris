@@ -22,15 +22,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.List;
 
-import jo.celeris.android.host.spi.AnalyseurLint;
 import jo.celeris.android.host.spi.Arret;
 import jo.celeris.android.host.spi.CadrePile;
 import jo.celeris.android.host.spi.CheminDoc;
-import jo.celeris.android.host.spi.CorrectifLint;
-import jo.celeris.android.host.spi.CorrectifsLint;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.EtatLignesVcs;
 import jo.celeris.android.host.spi.FauxDebogueur;
@@ -41,6 +39,8 @@ import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.FontSpec;
 import jo.celeris.android.view.MarquesIntegration;
 import jo.celeris.android.view.NavigationCommands;
+import jo.celeris.android.view.PastillesCouleur;
+import jo.celeris.android.view.ReperesPreview;
 import jo.celeris.android.widgets.OutlineView;
 import jo.celeris.android.widgets.SearchBarModel;
 import jo.celeris.core.syntax.LanguageSyntax;
@@ -73,8 +73,6 @@ public final class EditorActivity extends AppCompatActivity {
     private static final EditorTheme[] THEMES = {
             EditorThemes.CLAIR, EditorThemes.SOMBRE, EditorThemes.CONTRASTE_ELEVE };
     private static final float PART_PLAN = 0.45f;
-    /** Le garde-fou des vagues de correctifs : chaque vague retire une occurrence. */
-    private static final int LIMITE_CORRECTIFS = 50;
 
     private EditorView editeur;
     private TextSession session;
@@ -91,7 +89,8 @@ public final class EditorActivity extends AppCompatActivity {
     private String reference;
     private CheminDoc chemin;
     private final FauxDebogueur debogueur = new FauxDebogueur();
-    private List<DiagnosticHote> diagnosticsLint = List.of();
+    private List<ReperesPreview.ReperePreview> reperes = List.of();
+    private AtelierLint atelierLint;
 
     @Override
     protected void onCreate(Bundle etat) {
@@ -104,9 +103,11 @@ public final class EditorActivity extends AppCompatActivity {
         chemin = CheminDoc.de("/" + nomFichier);
         session = TextSession.of(fichier.contenu(), System::nanoTime);
         recherche = new SearchBarModel(session.document(), System::nanoTime);
+        atelierLint = new AtelierLint(nomFichier, session, this::etatLint);
         session.addEditListener((debut, fin, retire, insere) -> {
             majPosition();
             majMarques();
+            majPastillesEtReperes();
         });
         setContentView(R.layout.activity_editor);
         brancherBarre();
@@ -209,6 +210,11 @@ public final class EditorActivity extends AppCompatActivity {
         // Le terrain d'essai du débogueur : le clic dans le champ des
         // numéros pose et retire les points d'arrêt (D-04).
         editeur.marquesGouttiere().setSurClicLigne(this::basculerArret);
+        // Le rendu d'un repère @Preview reste la part de l'hôte (C-11)
+        // — la démonstration répond par sa propre scène.
+        editeur.marquesGouttiere().setSurRenduPreview(this::renduPreview);
+        // Les pastilles et repères du fichier ouvert se posent d'entrée.
+        majPastillesEtReperes();
 
         plan = findViewById(R.id.plan);
         plan.setBackgroundColor(Color.argb(235, 32, 33, 36));
@@ -414,98 +420,86 @@ public final class EditorActivity extends AppCompatActivity {
                 .setTitle(pause == null ? R.string.action_deboguer : R.string.action_reprendre);
     }
 
-    /**
-     * Lance l'analyse lint du fichier ouvert (C-12) : le faux build
-     * rend la sortie au format de l'outils, l'analyseur la convertit
-     * en diagnostics — les lignes porteuses se peignent dans la
-     * gouttière, fondues aux erreurs de la syntaxe.
-     */
     private void analyserLint() {
-        List<String> lignes = FauxLint.lignes(session.document().text());
-        diagnosticsLint = AnalyseurLint.parser(FauxLint.sortie(nomFichier, lignes));
-        majEtatLint();
+        atelierLint.analyser();
     }
 
     /**
      * Applique tous les correctifs mécaniques disponibles (C-12) :
      * chaque correctif devient une transaction de remplacement — donc
-     * annulable d'un geste —, l'analyse se relance après chaque vague
-     * et l'état se rafraîchit.
+     * annulable d'un geste —, l'état se rafraîchit.
      */
     private void corrigerLint() {
-        int corriges = 0;
-        for (int vague = 0; vague < LIMITE_CORRECTIFS; vague++) {
-            List<DiagnosticHote> restants = AnalyseurLint.parser(
-                    FauxLint.sortie(nomFichier, lignesCourantes()));
-            CorrectifLint correctif = premierCorrectif(restants);
-            if (correctif == null) {
-                break;
-            }
-            int[] debuts = debutsLignes();
-            if (!session.replaceRange(correctif.debut(debuts),
-                    correctif.fin(debuts), correctif.apres())) {
-                break;
-            }
-            corriges++;
-        }
-        analyserLint();
+        int corriges = atelierLint.corriger();
         if (corriges > 0) {
             etiquetteArrets.setText(getString(R.string.lint_correctifs, corriges));
-            etiquetteArrets.setVisibility(View.VISIBLE);
         } else {
             etiquetteArrets.setText(R.string.lint_propre);
-            etiquetteArrets.setVisibility(View.VISIBLE);
         }
+        etiquetteArrets.setVisibility(View.VISIBLE);
         editeur.invalidate();
         majMarques();
+    }
+
+    /** L'état lint de la barre de statut : les lignes se marquent. */
+    private void etatLint(List<DiagnosticHote> diagnostics) {
+        editeur.marquesGouttiere().setErreursImportees(
+                atelierLint.lignesMarquees());
+        if (!diagnostics.isEmpty()) {
+            etiquetteArrets.setText(getResources().getQuantityString(
+                    R.plurals.etat_lint, diagnostics.size(), diagnostics.size()));
+        } else {
+            etiquetteArrets.setText(R.string.lint_propre);
+        }
+        etiquetteArrets.setVisibility(View.VISIBLE);
+        editeur.invalidate();
+    }
+
+    /**
+     * Rafraîchit les pastilles de couleur (C-05) et les repères
+     * {@code @Preview} (C-11) : le balayage des littéraux et des
+     * annotations, une pastille par ligne porteuse, un repère par
+     * annotation.
+     */
+    private void majPastillesEtReperes() {
+        if (editeur == null) {
+            return;
+        }
+        List<String> lignes = lignesCourantes();
+        editeur.marquesGouttiere().setPastilles(
+                PastillesCouleur.desLignes(lignes));
+        reperes = ReperesPreview.desLignes(lignes);
+        int[] lignesRepere = new int[reperes.size()];
+        for (int i = 0; i < reperes.size(); i++) {
+            lignesRepere[i] = reperes.get(i).ligne();
+        }
+        editeur.marquesGouttiere().setReperesPreview(lignesRepere);
+        editeur.invalidate();
     }
 
     private List<String> lignesCourantes() {
         return FauxLint.lignes(session.document().text());
     }
 
-    private int[] debutsLignes() {
-        List<String> lignes = lignesCourantes();
-        int[] debuts = new int[lignes.size()];
-        int curseur = 0;
-        for (int i = 0; i < lignes.size(); i++) {
-            debuts[i] = curseur;
-            curseur += lignes.get(i).length() + 1;
-        }
-        return debuts;
-    }
-
-    private CorrectifLint premierCorrectif(List<DiagnosticHote> diagnostiques) {
-        List<String> lignes = lignesCourantes();
-        for (DiagnosticHote diagnostic : diagnostiques) {
-            if (!diagnostic.chemin().nom().equals(nomFichier)) {
-                continue;
-            }
-            CorrectifLint correctif = CorrectifsLint
-                    .pour(diagnostic, lignes).orElse(null);
-            if (correctif != null) {
-                return correctif;
+    /**
+     * Le rendu délégué d'un repère {@code @Preview} (C-11) : la
+     * démonstration joue l'hôte et rend le composable dans sa propre
+     * scène — un contrat vérifié, pas un rendu Compose embarqué.
+     */
+    private void renduPreview(int ligne) {
+        String composable = "";
+        for (ReperesPreview.ReperePreview repere : reperes) {
+            if (repere.ligne() == ligne) {
+                composable = repere.libelle();
+                break;
             }
         }
-        return null;
-    }
-
-    /** L'état lint de la barre de statut : le compte des diagnostics. */
-    private void majEtatLint() {
-        int[] lignesMarquees = diagnosticsLint.stream()
-                .filter(d -> d.chemin().nom().equals(nomFichier))
-                .mapToInt(DiagnosticHote::ligne)
-                .map(ligne -> ligne - 1)
-                .distinct().toArray();
-        editeur.marquesGouttiere().setErreursImportees(lignesMarquees);
-        if (!diagnosticsLint.isEmpty()) {
-            etiquetteArrets.setText(getResources().getQuantityString(
-                    R.plurals.etat_lint, diagnosticsLint.size(), diagnosticsLint.size()));
-            etiquetteArrets.setVisibility(View.VISIBLE);
-        } else {
-            etiquetteArrets.setVisibility(View.GONE);
-        }
-        editeur.invalidate();
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.titre_rendu_preview))
+                .setMessage(getString(R.string.message_rendu_preview,
+                        composable, ligne + 1))
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
     }
 
     /**

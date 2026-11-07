@@ -233,6 +233,53 @@ public final class FichiersExemple {
             -dontobfuscate
             """;
 
+    private static final String COULEURS = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <!-- La palette de la démonstration : les pastilles de la
+                 gouttière rendent chaque valeur résolue (C-05). -->
+            <resources>
+                <color name="marque">#FF5722</color>
+                <color name="fond_sombre">#121212</color>
+                <color name="texte">#E3E3E3</color>
+                <color name="accent">#03DAC6</color>
+                <color name="voile">#80FFFFFF</color>
+                <color name="alerte">#CF6679</color>
+                <color name="ok">#4CAF50</color>
+                <color name="rappel">#F00</color>
+            </resources>
+            """;
+
+    private static final String APERCUS = """
+            package com.exemple.atelier
+
+            import androidx.compose.foundation.layout.padding
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.ui.unit.dp
+
+            /**
+             * Les cartes de l'accueil : le repère @Preview de la
+             * gouttière délègue son rendu à l'hôte (C-11).
+             */
+            @Composable
+            fun TitreCarte(nom: String) {
+                Text(text = nom)
+            }
+
+            @Preview
+            @Composable
+            fun TitreCarteApercu() {
+                TitreCarte(nom = "Conversions.kt")
+            }
+
+            @Preview(showBackground = true)
+            @Composable
+            fun EcranAccueilApercu() {
+                TitreCarte(nom = "Celeris")
+            }
+            """;
+
     private static final List<FichierExemple> CATALOGUE = List.of(
             new FichierExemple("Conversions.kt", KOTLIN),
             new FichierExemple("ServiceUtilisateur.java", JAVA),
@@ -242,7 +289,9 @@ public final class FichiersExemple {
             new FichierExemple("catalogue.json", JSON),
             new FichierExemple("README.md", MARKDOWN),
             new FichierExemple("outils.py", PYTHON),
-            new FichierExemple("proguard-rules.pro", PROGUARD));
+            new FichierExemple("proguard-rules.pro", PROGUARD),
+            new FichierExemple("couleurs.xml", COULEURS),
+            new FichierExemple("Apercus.kt", APERCUS));
 
     private FichiersExemple() {
     }

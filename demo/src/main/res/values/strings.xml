@@ -21,6 +21,8 @@
     <string name="action_corriger">Fix lint issues</string>
     <string name="lint_propre">Lint: clean</string>
     <string name="lint_correctifs">%1$d fixed</string>
+    <string name="titre_rendu_preview">@Preview render</string>
+    <string name="message_rendu_preview">Host renders the composable « %1$s » (line %2$d) — the render is delegated, the editor only carries the marker.</string>
     <plurals name="etat_lint">
         <item quantity="one">Lint: %1$d issue</item>
         <item quantity="other">Lint: %1$d issues</item>

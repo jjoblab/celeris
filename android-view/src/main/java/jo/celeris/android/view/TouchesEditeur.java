@@ -76,6 +76,10 @@ final class TouchesEditeur {
             vue.invalidate();
             return true;
         }
+        if (vue.marquesGouttiere.surAppuiRepere(x, y, coulisse,
+                vue.scrollY, vue.metrics.lineHeight(), vue.projection)) {
+            return true;
+        }
         if (vue.marquesGouttiere.surAppui(x, y, vue.largeurGouttiere,
                 coulisse, vue.scrollY, vue.metrics.lineHeight(),
                 vue.projection)) {
