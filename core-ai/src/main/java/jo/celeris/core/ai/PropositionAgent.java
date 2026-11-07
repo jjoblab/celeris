@@ -41,28 +41,43 @@ public record PropositionAgent(EtiquetteAgent etiquette, int revision,
      * @param edits     les éditions proposées
      * @return la proposition validée
      * @throws IllegalArgumentException si une édition ne colle pas au
-     *         document, si les plages se chevauchent ou désordonnent
+     *         document ou si les plages se chevauchent
      */
     public static PropositionAgent de(Document reference, EtiquetteAgent etiquette,
             List<TextEdit> edits) {
+        if (!editsFideles(reference, edits)) {
+            throw new IllegalArgumentException(
+                    "editions infideles au document de reference");
+        }
+        return new PropositionAgent(etiquette, reference.revision(), edits);
+    }
+
+    /**
+     * Les éditions collent au document de référence : plages dans les
+     * bornes, textes retirés exacts, ordre croissant sans
+     * chevauchement — la prévalidation partagée de la voie d'agent
+     * (revue et API d'outils), simulation sur l'instantané immuable.
+     *
+     * @param reference le document de référence
+     * @param edits     les éditions à vérifier
+     * @return vrai si chaque édition colle, dans l'ordre, sans chevaucher
+     */
+    static boolean editsFideles(Document reference, List<TextEdit> edits) {
         int borne = reference.length();
         int finPrecedente = 0;
         for (TextEdit edition : edits) {
             if (edition.end() > borne) {
-                throw new IllegalArgumentException(
-                        "edition hors document : " + edition.start());
+                return false;
             }
             if (edition.start() < finPrecedente) {
-                throw new IllegalArgumentException(
-                        "edition desordonnee ou chevauchante : " + edition.start());
+                return false;
             }
             if (!reference.subText(edition.start(), edition.end())
                     .equals(edition.removed())) {
-                throw new IllegalArgumentException(
-                        "texte retire inexact a " + edition.start());
+                return false;
             }
             finPrecedente = edition.end();
         }
-        return new PropositionAgent(etiquette, reference.revision(), edits);
+        return true;
     }
 }

@@ -10,10 +10,10 @@
 > budgets de latence tenus ; test « aucune requête sans consentement »
 > vert.
 >
-> **État** : jalon ouvert — tranches 1 et 2 livrées (les contrats du texte
+> **État** : jalon ouvert — tranches 1 à 3 livrées (les contrats du texte
 > fantôme et de la prédiction, les faux modèles, l'annulation ; la
-> revue des modifications d'agent). Les tranches suivantes restent à
-> écrire (voir « Reste ouvert »).
+> revue des modifications d'agent ; l'API d'outils et sa surface
+> MCP). Les tranches suivantes restent à écrire (voir « Reste ouvert »).
 
 ## Avant la première tranche — l'hygiène inter-jalons (2026-11-08)
 
@@ -128,12 +128,45 @@ NullAway, couverture ≥ 90 % compris), mutation 83,1 % (118/142, seuil
 `RevueAgent` ajoutés, aucun retrait (SemVer mineure, ADR-009).
 `:demo:check` vert, la ligne F-04 de la matrice passe à livrée.
 
+## Tranche 3 — l'API d'outils pour agents (2026-11-08)
+
+### Livré
+
+- **F-05 — `OutilsEditeur` et `OutilsEditeurSurSession`** : lire des
+  plages et l'instantané entier — la réponse porte la révision servie,
+  c'est elle que l'agent rend en référence de sa transaction —, lister
+  les symboles (le plan B-16, la vue de l'index de l'ADR-005) et les
+  diagnostics, tous deux servis par les sources injectées par l'hôte.
+  L'application détecte le conflit d'abord : l'instantané de
+  référence doit correspondre, sinon refus explicite au message lisible
+  (« relire, recalculer, recommencer ») — jamais de fusion
+  silencieuse, la discipline de la prédiction (M8-t1) appliquée aux
+  agents. Les autres refus portent leur message aussi : session
+  protégée, éditions qui ne collent pas, transaction vide. La voie
+  d'application est la transaction ordinaire — une étape
+  d'annulation ; les éditions multiples vivent en coordonnées de
+  référence, ordonnées et disjointes, la prévalidation partagée avec
+  `PropositionAgent` (la simulation sur l'instantané immuable).
+- **F-06 — `ConnecteurMcp`** : la surface compatible avec les
+  serveurs d'outils du protocole MCP — le catalogue se liste (noms
+  `celeris.*`, descriptions, arguments), chaque appel traverse la
+  même méthode que l'appel direct, les réponses se rendent en JSON
+  avec échappement. Le cœur ne parle aucun transport (ADR-012) :
+  l'hôte qui sert JSON-RPC branche ces méthodes derrière les siennes.
+- **Les types** : `PlageLue` (le texte et sa révision),
+  `TransactionOutil` (les éditions et la révision lue),
+  `TransactionOutilReponse` (le sort, le message, la révision
+  courante).
+
+### Preuve
+
+`:core-ai:check` vert — 58 tests, mutation 81,1 % (154/190, seuil 80).
+Manifeste d'API régénéré — six types publics ajoutés, aucun retrait
+(SemVer mineure, ADR-009). Les lignes F-05 et F-06 de la matrice
+passent à livrées.
+
 ## Reste ouvert
 
-- **Tranche 3 — l'API d'outils pour agents** (F-05, F-06) : lire des
-  plages et des instantanés, lister les symboles, lire les
-  diagnostics, appliquer une transaction avec détection de conflit ;
-  surface compatible avec les serveurs d'outils du protocole MCP.
 - **Tranche 4 — les exclusions de contexte** (F-07) : le fichier
   d'exclusion (chemins jamais envoyés à un modèle, assertion sur le
   journal des faux), le fichier d'instructions d'agent honoré par les

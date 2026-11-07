@@ -15,6 +15,43 @@ public final class jo.celeris.core.ai.AppliquerPrediction {
   public static jo.celeris.core.ai.AppliquerPrediction$Resultat appliquer(jo.celeris.core.text.TextSession, jo.celeris.core.ai.PredictionEdition);
 }
 
+### jo.celeris.core.ai.ConnecteurMcp$DescriptionOutil
+Compiled from "ConnecteurMcp.java"
+public final class jo.celeris.core.ai.ConnecteurMcp$DescriptionOutil extends java.lang.Record {
+  public jo.celeris.core.ai.ConnecteurMcp$DescriptionOutil(java.lang.String, java.lang.String, java.util.List<java.lang.String>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String nom();
+  public java.lang.String description();
+  public java.util.List<java.lang.String> arguments();
+}
+
+### jo.celeris.core.ai.ConnecteurMcp$Outil
+Compiled from "ConnecteurMcp.java"
+public final class jo.celeris.core.ai.ConnecteurMcp$Outil extends java.lang.Enum<jo.celeris.core.ai.ConnecteurMcp$Outil> {
+  public static final jo.celeris.core.ai.ConnecteurMcp$Outil LIRE;
+  public static final jo.celeris.core.ai.ConnecteurMcp$Outil INSTANTANE;
+  public static final jo.celeris.core.ai.ConnecteurMcp$Outil SYMBOLES;
+  public static final jo.celeris.core.ai.ConnecteurMcp$Outil DIAGNOSTICS;
+  public static final jo.celeris.core.ai.ConnecteurMcp$Outil APPLIQUER;
+  public static jo.celeris.core.ai.ConnecteurMcp$Outil[] values();
+  public static jo.celeris.core.ai.ConnecteurMcp$Outil valueOf(java.lang.String);
+  public java.lang.String nom();
+  public java.lang.String description();
+}
+
+### jo.celeris.core.ai.ConnecteurMcp
+Compiled from "ConnecteurMcp.java"
+public final class jo.celeris.core.ai.ConnecteurMcp {
+  public static java.util.List<jo.celeris.core.ai.ConnecteurMcp$DescriptionOutil> catalogue();
+  public static java.lang.String lire(jo.celeris.core.ai.OutilsEditeur, int, int);
+  public static java.lang.String instantane(jo.celeris.core.ai.OutilsEditeur);
+  public static java.lang.String symboles(jo.celeris.core.ai.OutilsEditeur);
+  public static java.lang.String diagnostics(jo.celeris.core.ai.OutilsEditeur);
+  public static java.lang.String appliquer(jo.celeris.core.ai.OutilsEditeur, jo.celeris.core.ai.TransactionOutil);
+}
+
 ### jo.celeris.core.ai.EtiquetteAgent
 Compiled from "EtiquetteAgent.java"
 public final class jo.celeris.core.ai.EtiquetteAgent extends java.lang.Record {
@@ -72,6 +109,38 @@ public interface jo.celeris.core.ai.ModeleTexteFantome$Recepteur {
 Compiled from "ModeleTexteFantome.java"
 public interface jo.celeris.core.ai.ModeleTexteFantome {
   public abstract void completer(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModeleTexteFantome$Recepteur);
+}
+
+### jo.celeris.core.ai.OutilsEditeur
+Compiled from "OutilsEditeur.java"
+public interface jo.celeris.core.ai.OutilsEditeur {
+  public abstract jo.celeris.core.ai.PlageLue lire(int, int);
+  public abstract jo.celeris.core.ai.PlageLue instantane();
+  public abstract java.util.List<jo.celeris.core.syntax.OutlineEntry> symboles();
+  public abstract java.util.List<jo.celeris.core.syntax.SyntaxIssue> diagnostics();
+  public abstract jo.celeris.core.ai.TransactionOutilReponse appliquer(jo.celeris.core.ai.TransactionOutil);
+}
+
+### jo.celeris.core.ai.OutilsEditeurSurSession
+Compiled from "OutilsEditeurSurSession.java"
+public final class jo.celeris.core.ai.OutilsEditeurSurSession implements jo.celeris.core.ai.OutilsEditeur {
+  public jo.celeris.core.ai.OutilsEditeurSurSession(jo.celeris.core.text.TextSession, java.util.function.Function<jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.OutlineEntry>>, java.util.function.Supplier<java.util.List<jo.celeris.core.syntax.SyntaxIssue>>);
+  public jo.celeris.core.ai.PlageLue lire(int, int);
+  public jo.celeris.core.ai.PlageLue instantane();
+  public java.util.List<jo.celeris.core.syntax.OutlineEntry> symboles();
+  public java.util.List<jo.celeris.core.syntax.SyntaxIssue> diagnostics();
+  public jo.celeris.core.ai.TransactionOutilReponse appliquer(jo.celeris.core.ai.TransactionOutil);
+}
+
+### jo.celeris.core.ai.PlageLue
+Compiled from "PlageLue.java"
+public final class jo.celeris.core.ai.PlageLue extends java.lang.Record {
+  public jo.celeris.core.ai.PlageLue(int, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int revision();
+  public java.lang.String texte();
 }
 
 ### jo.celeris.core.ai.PredictionEdition
@@ -177,6 +246,41 @@ public final class jo.celeris.core.ai.SuggestionFantome extends java.lang.Record
   public final boolean equals(java.lang.Object);
   public java.lang.String texte();
   public int offset();
+  public int revision();
+}
+
+### jo.celeris.core.ai.TransactionOutil
+Compiled from "TransactionOutil.java"
+public final class jo.celeris.core.ai.TransactionOutil extends java.lang.Record {
+  public jo.celeris.core.ai.TransactionOutil(int, java.util.List<jo.celeris.core.text.TextEdit>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int revisionAttendue();
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+}
+
+### jo.celeris.core.ai.TransactionOutilReponse$Sortie
+Compiled from "TransactionOutilReponse.java"
+public final class jo.celeris.core.ai.TransactionOutilReponse$Sortie extends java.lang.Enum<jo.celeris.core.ai.TransactionOutilReponse$Sortie> {
+  public static final jo.celeris.core.ai.TransactionOutilReponse$Sortie APPLIQUEE;
+  public static final jo.celeris.core.ai.TransactionOutilReponse$Sortie REFUSEE_CONFLIT;
+  public static final jo.celeris.core.ai.TransactionOutilReponse$Sortie REFUSEE_PROTECTION;
+  public static final jo.celeris.core.ai.TransactionOutilReponse$Sortie REFUSEE_EDITS;
+  public static final jo.celeris.core.ai.TransactionOutilReponse$Sortie REFUSEE_VIDE;
+  public static jo.celeris.core.ai.TransactionOutilReponse$Sortie[] values();
+  public static jo.celeris.core.ai.TransactionOutilReponse$Sortie valueOf(java.lang.String);
+}
+
+### jo.celeris.core.ai.TransactionOutilReponse
+Compiled from "TransactionOutilReponse.java"
+public final class jo.celeris.core.ai.TransactionOutilReponse extends java.lang.Record {
+  public jo.celeris.core.ai.TransactionOutilReponse(jo.celeris.core.ai.TransactionOutilReponse$Sortie, java.lang.String, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.ai.TransactionOutilReponse$Sortie sortie();
+  public java.lang.String message();
   public int revision();
 }
 

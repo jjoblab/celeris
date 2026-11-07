@@ -68,6 +68,17 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 3 (M8) — l'API d'outils pour agents et sa surface MCP
+  (F-05, F-06) : lire des plages et l'instantané — la réponse porte la
+  révision servie —, lister les symboles et les diagnostics des
+  sources injectées par l'hôte ; appliquer une transaction avec
+  détection de conflit — l'instantané de référence doit correspondre,
+  refus explicite au message lisible (« relire, recalculer,
+  recommencer »), jamais de fusion silencieuse — par la voie de
+  transaction ordinaire, annulable d'un geste ; les éditions multiples
+  vivent en coordonnées de référence, ordonnées et disjointes. Le
+  connecteur MCP expose les mêmes outils sous leurs noms de serveur
+  (catalogue, réponses JSON), le transport reste à l'hôte.
 - Tranche 2 (M8) — la revue des modifications d'agent (F-04) : les
   propositions d'agent arrivent étiquetées (auteur, intention) et datées
   de leur instantané de référence, éditions ordonnées et disjointes
