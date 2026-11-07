@@ -1,4 +1,4 @@
-# Résumé M7 — Android et SPI (en cours, tranches 1 à 5 livrées le 2026-11-06)
+# Résumé M7 — Android et SPI (clos le 2026-11-07, tranches 1 à 9)
 
 > **Déclenchement** : clôture du jalon M6 (2026-11-06, critères de
 > sortie couverts — catégorie B P0, soixante scénarios). Périmètre
@@ -252,18 +252,116 @@ mince et sous le plafond de 600 lignes.
 `./gradlew check` vert sur l'ensemble (1 297 tests, politique de
 langue comprise), `:demo:assembleDebug` assemblé et vérifié (apksigner).
 
-## Reste ouvert (tranches suivantes de M7)
+## Tranche 6 — l'adaptateur de stockage et le lint importé (2026-11-07)
 
-1. **E-01 — l'adaptateur de production** : le framework d'accès au
-   stockage (arbres de documents, `ContentResolver`), mince et
-   documenté — le contrat et l'implémentation de référence sont
-   livrés, l'adaptateur reste à écrire.
-2. **C-11** (repères `@Preview` Compose, rendu délégué à l'hôte) et
-   **C-12** (diagnostics de linte importés — l'analyseur E-05 existe,
-   le branchement reste).
-3. **C-15** (SQL, C, C++ par la voie de grammaires), **C-05**
-   (pastilles de couleur), **D-11** (aperçu rapide de définition),
-   **D-12** (vue de différences), **D-19** (pliables, grands
-   écrans), **C-09** (règles R8, « M7+ »).
-4. Clôture : critères de sortie (catégories C et E P0 couvertes),
-   CHANGELOG, ce résumé mis à jour, `git status` propre, poussée.
+### Livré
+
+- **E-01 — `AdaptateurStockageDocuments`** : les chemins validés par
+  construction deviennent des identifiants de documents — la
+  résolution descend l'arbre segment par segment depuis le dossier
+  racine accordé. La porte `ArbreDocuments` garde le framework hors
+  de la logique ; `ArbreDocumentsSaf` est la seule classe du module à
+  toucher `ContentResolver` et `DocumentsContract` — mince, ligne à
+  ligne documentée. L'écriture crée les parents implicites (« mkdir
+  -p »), le listage rend l'ordre lexicographique : le même contrat que
+  l'implémentation de référence, testé sur un arbre factice.
+- **C-12 — `AnalyseurLint` et `CorrectifsLint`** : la sortie texte
+  d'Android Lint — « chemin:ligne(:colonne): Gravite: message
+  [IdRegle] » — se convertit en diagnostics aux lignes exactes ; les
+  lignes porteuses se peignent dans la gouttière, fondues aux erreurs
+  de la syntaxe (`GutterMarks.avecErreurs`,
+  `MarquesGouttiere.setErreursImportees`). Les correctifs mécaniques —
+  l'ellipse typographique, le tiret cadratin — s'appliquent en
+  transactions de remplacement annulables ; le catalogue est fermé et
+  honnête, le mécanisme est le livrable. La démonstration analyse et
+  corrige d'un geste (`FauxLint`, `AtelierLint`).
+
+### Preuve
+
+`:android-host:check` et `:demo:check` verts (lint zéro erreur),
+`:demo:assembleDebug` assemblé. La ligne E-01 de la matrice passe à
+livrée — le P0 de la catégorie E est couvert.
+
+## Tranche 7 — SQL, C, C++ et le garde-fou R8 (2026-11-07)
+
+### Livré
+
+- **C-15** : les trois langages P1 restants entrent par la voie de
+  grammaires — SQL (mots réservés insensibles à la casse, types,
+  blocs repliés), C (préprocesseur, types natifs, corps repliés) et
+  C++ (classes, espaces de noms, gabarits, `::`). Registre, cli et
+  catalogue de la démonstration suivent ; les budgets de ré-analyse de
+  50 000 lignes tiennent pour les trois.
+- **C-09** : la grammaire ProGuard colore règles, jokers et blocs de
+  membres repliés ; `ValidationRegles` garde le fichier — règles
+  inconnues hors catalogue, accolades fermantes orphelines, membres
+  sans point-virgule dans les blocs — à la plage exacte, sans faux
+  positif sur le corpus sain. `proguard-rules.pro` entre au catalogue
+  de la démonstration.
+
+### Preuve
+
+`:core-syntax:check` et `:core-syntax-grammars:check` verts (couverture
+≥ 90 %, budgets compris), manifestes d'API régénérés (SemVer mineure,
+ADR-009).
+
+## Tranche 8 — les pastilles de couleur et les repères @Preview (2026-11-07)
+
+### Livré
+
+- **C-05 — `PastillesCouleur`** : les quatre formes de littéraux
+  Android — `#RGB`, `#ARGB`, `#RRGGBB`, `#AARRGGBB` — se résolvent
+  (la forme courte étend ses composantes, la forme sans alpha prend
+  l'alpha plein) ; le carré se peint dans la respiration à droite du
+  champ de numéros, à la valeur résolue — test de capture à l'appui.
+- **C-11 — `ReperesPreview`** : chaque annotation `@Preview` ancre un
+  repère à sa ligne, le nom du composable se lit sur la ligne même ou
+  sur les deux suivantes ; le losange se trace dans la coulisse, le
+  clic sur le repère délègue le rendu à l'hôte
+  (`setSurRenduPreview`) — jamais embarqué. La démonstration répond
+  par sa propre scène.
+
+### Preuve
+
+`:android-view:check` et `:demo:check` verts ; `couleurs.xml` et
+`Apercus.kt` entrent au catalogue de la démonstration.
+
+## Tranche 9 — l'aperçu de définition, la revue de diff et les grands écrans (2026-11-07)
+
+### Livré
+
+- **D-11 — `ApercuDefinition`** : le plan du fichier (B-16) sert
+  d'index ; le symbole au curseur — les caractères d'identifiant qui
+  l'entourent — rend sa déclaration, à défaut l'entrée la plus intime
+  qui contient le curseur ; l'extrait reste borné à douze lignes. La
+  déclaration se lit dans une fenêtre flottante, sans quitter le
+  fichier.
+- **D-12 — `DiffBlocs` et `RevueDiff`** : la plus longue sous-suite
+  commune découpe les changements en blocs indépendants, plages
+  exactes des deux côtés ; les lectures en ligne (préfixes « - » et
+  « + ») et côte à côte (colonnes alignées) rendent le même diff. La
+  revue décide bloc par bloc — accepté, refusé, en attente —, le
+  refus réaligne les suivants, les points de contrôle reviennent en
+  arrière : la matière de la revue d'agent de M8 (F-04). La
+  démonstration relit son diff face au contenu d'origine et applique
+  la fusion en une transaction annulable (`AtelierDiff`).
+- **D-19 — `ClasseLargeur`** : les seuils des classes de taille
+  Material — compact sous 600 dp, étendu au-delà de 840 dp — décident
+  de la respiration de la gouttière : le compact resserre le champ de
+  numéros, l'étendu le respire, le pliable déplié change de classe
+  d'un geste (`EditorView.setClasseLargeur`).
+
+### Preuve
+
+`./gradlew check` vert sur l'ensemble, `:demo:assembleDebug` assemblé.
+Au menu de l'atelier : aperçu de définition et revue du diff.
+
+## Clôture (2026-11-07)
+
+Critères de sortie du jalon couverts : catégories C et E P0 couvertes
+(C P0 depuis M4 ; E-01 par la tranche 6), SPI VCS/débogueur/exécution
+avec implémentations de référence (tranche 2), `editor-cli` exécuté en
+CI (tranche 3, la fumée M1 le vérifie à chaque poussée). Matrice de
+parité mise à jour — C-05, C-09, C-11, C-12, C-15, D-11, D-12, D-19,
+E-01 et E-05 passent à livrés. `git status` propre, poussée sur
+`main`.

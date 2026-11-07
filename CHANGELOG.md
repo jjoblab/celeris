@@ -51,6 +51,42 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 9 (M7) — les trois surfaces d'interface restantes :
+  l'aperçu rapide d'une définition (D-11 — le plan du fichier sert
+  d'index, l'entrée la plus intime contenant le curseur se survole,
+  l'extrait reste borné à douze lignes) ; la vue de différences
+  (D-12 — DiffBlocs découpe par la plus longue sous-suite commune,
+  lectures en ligne et côte à côte, RevueDiff accepte et refuse par
+  bloc avec réalignement et points de contrôle) ; les grands écrans
+  (D-19 — ClasseLargeur suit les seuils des classes de taille, la
+  gouttière resserre ou respire, le pliable déplié change de classe
+  d'un geste). La démonstration relit son diff bloc par bloc et
+  applique la fusion en une transaction annulable.
+- Tranche 8 (M7) — les pastilles de couleur et les repères `@Preview`
+  : les quatre formes de littéraux Android se résolvent (C-05 — la
+  forme courte étend ses composantes, le carré se peint dans la
+  respiration droite de la gouttière à la valeur résolue) ; chaque
+  annotation `@Preview` ancre son losange dans la coulisse (C-11 — le
+  nom du composable se lit sur place ou dessous, le clic délègue le
+  rendu à l'hôte). couleurs.xml et Apercus.kt entrent au catalogue de
+  la démonstration.
+- Tranche 7 (M7) — les langages P1 restants par la voie de grammaires
+  (C-15) : SQL (mots insensibles à la casse, blocs repliés), C
+  (préprocesseur, types natifs, corps repliés) et C++ (classes, espaces
+  de noms, `::`), budgets de ré-analyse tenus ; les règles R8/ProGuard
+  (C-09) entrent avec leur grammaire et leur garde-fou — règles
+  inconnues, accolades orphelines, membres sans point-virgule — sans
+  faux positif sur le corpus sain.
+- Tranche 6 (M7) — l'adaptateur de stockage et le lint importé :
+  l'adaptateur de production du système de fichiers virtuel (E-01 —
+  AdaptateurStockageDocuments sur la porte ArbreDocuments,
+  ArbreDocumentsSaf seul à toucher au framework, parents implicites à
+  l'écriture, même contrat que l'implémentation de référence) ; la
+  sortie d'Android Lint se convertit en diagnostics aux lignes exactes
+  (C-12 — AnalyseurLint), les lignes porteuses se peignent dans la
+  gouttière fondues aux erreurs de la syntaxe, les correctifs
+  mécaniques (ellipse, cadratin) s'appliquent en transactions
+  annulables — AtelierLint et FauxLint servent la démonstration.
 - La bascule du retour à la ligne souple entre dans la barre de
   l'atelier — icône directe, état dans le libellé, persistance
   partagée avec les réglages ; plus besoin de quitter l'éditeur pour
