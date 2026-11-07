@@ -90,6 +90,7 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierAgent atelierAgent;
     private AtelierIA atelierIA;
     private AtelierPopups atelierPopups;
+    private AtelierRefactor atelierRefactor;
     private AtelierRecherche atelierRecherche;
     private AtelierSelection atelierSelection;
     private List<OutlineEntry> entreesPlan = List.of();
@@ -156,6 +157,10 @@ public final class EditorActivity extends AppCompatActivity {
         actionsMenu.put(R.id.action_retablir, () -> rejouer(true));
         actionsMenu.put(R.id.action_lint, this::analyserLint);
         actionsMenu.put(R.id.action_corriger, this::corrigerLint);
+        actionsMenu.put(R.id.action_gabarit, atelierRefactor::insererGabarit);
+        actionsMenu.put(R.id.action_formater, atelierRefactor::formaterDocument);
+        actionsMenu.put(R.id.action_renommer, atelierRefactor::renommerSymbole);
+        actionsMenu.put(R.id.action_importer, atelierRefactor::importerListe);
         actionsMenu.put(R.id.action_apercu, this::apercuDefinition);
         actionsMenu.put(R.id.action_diff, atelierDiff::ouvrir);
         actionsMenu.put(R.id.action_agent, atelierAgent::ouvrir);
@@ -231,6 +236,10 @@ public final class EditorActivity extends AppCompatActivity {
      * presse-papiers local.
      */
     private void brancherAteliers() {
+        // L'atelier de refactorisation (M7.5, §8) : gabarit, formatage,
+        // renommage et import — chaque geste une transaction annulable.
+        atelierRefactor = new AtelierRefactor(this, editeur, session,
+                nomFichier, this::verdictRefactor);
         // L'atelier des popups : la couche posée sur l'éditeur porte
         // les dix popups, la machine à états décide qui reste ouvert.
         PopupLayer couche = findViewById(R.id.couche_popups);
@@ -425,6 +434,12 @@ public final class EditorActivity extends AppCompatActivity {
 
     private void analyserLint() {
         atelierLint.analyser();
+    }
+
+    /** Le verdict des ateliers : la barre d'état le publie. */
+    private void verdictRefactor(CharSequence message) {
+        etiquetteArrets.setText(message);
+        etiquetteArrets.setVisibility(View.VISIBLE);
     }
 
     /**

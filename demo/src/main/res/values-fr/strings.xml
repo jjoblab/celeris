@@ -25,6 +25,16 @@
     <string name="action_reprendre">Reprendre</string>
     <string name="action_annuler">Annuler</string>
     <string name="action_lint">Analyser (lint)</string>
+    <string name="action_gabarit">Insérer le gabarit de méthode</string>
+    <string name="action_formater">Formater le document</string>
+    <string name="action_renommer">Renommer le symbole</string>
+    <string name="action_importer">Ajouter l\'import List</string>
+    <string name="format_deja_en_forme">Format\u00a0: déjà en forme</string>
+    <string name="titre_renomme">Renommer %1$s</string>
+    <string name="renomme_appliquer">Renommer</string>
+    <string name="renomme_aucun_symbole">Aucun symbole au curseur</string>
+    <string name="renomme_conflit">Renommage refusé\u00a0: conflit avec %1$s</string>
+    <string name="import_deja_present">Import déjà présent</string>
     <string name="action_corriger">Corriger les problèmes</string>
     <string name="lint_propre">Lint : rien à signaler</string>
     <string name="lint_correctifs">%1$d corrigés</string>
