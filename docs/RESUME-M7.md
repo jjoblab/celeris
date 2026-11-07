@@ -211,6 +211,47 @@ n'était pas branchée sur la vue.
 `:demo:check` vert (lint zéro erreur, Checkstyle, PMD, tests Jupiter —
 `CarteFichierTest` compris), `:demo:assembleDebug` assemblé.
 
+## Hors tranche — l'atelier corrigé sur rapport d'appareil (2026-11-07)
+
+Cinq défauts signalés sur l'appareil, cinq racines trouvées et closes
+— chacun avec son test qui échouait avant :
+
+1. **Le retour à la ligne souple fermait l'application** : la fenêtre
+   de rangées visibles n'était jamais bornée au contenu — les rangées
+   sous la dernière ligne projetaient des tranches hors document
+   (`IndexOutOfBoundsException` à l'image sous coupure). L'état
+   d'image borne sa fenêtre (`ScrollGeometry.borneesAuContenu`),
+   reproduction testée sur les huit contenus de la démonstration,
+   plis compris, budget d'une colonne compris (PIEGE-08).
+2. **Le contenu s'affichait éparpillé** — deux causes cumulées : la
+   dernière ligne se répétait sous la fenêtre (même racine que le
+   plantage, sans coupure), et les pinceaux traçaient à la police par
+   défaut de la plateforme (12 px à chasse variable) pendant que les
+   positions se calculaient à la police de l'éditeur. Chaque couche
+   repose la police de l'image sur son pinceau (`TextBrush.setFont`,
+   PIEGE-21 — la règle qui mesure est la police qui trace).
+3. **Le clavier n'apparaissait jamais** : une vue focusable au
+   toucher n'ouvre pas l'IME d'elle-même — l'appui qui prend le focus
+   dévoile le clavier explicitement.
+4. **Le curseur était absent** — jamais tracé : une barre par plage
+   vide (chaque curseur d'une sélection multiple, A-01), clignotante
+   tant que la vue tient le focus, pleine hauteur de rangée.
+5. **Le texte par défaut était minuscule** : les tailles se lisaient
+   en pixels bruts ; elles vivent en sp, converties à la densité de
+   l'appareil (PIEGE-22), le pincement suit la police logique.
+
+La bascule du retour à la ligne entre dans la barre de l'atelier
+(icône directe, état dans le libellé) — le correctif se vérifie sans
+quitter l'éditeur. Le routage tactile (`TouchesEditeur`) et le
+curseur avec son clavier (`CurseurClavier`) quittent la vue pour des
+collaborateurs de la famille d'`AccessibilityHost` — la vue reste
+mince et sous le plafond de 600 lignes.
+
+### Preuve
+
+`./gradlew check` vert sur l'ensemble (1 297 tests, politique de
+langue comprise), `:demo:assembleDebug` assemblé et vérifié (apksigner).
+
 ## Reste ouvert (tranches suivantes de M7)
 
 1. **E-01 — l'adaptateur de production** : le framework d'accès au

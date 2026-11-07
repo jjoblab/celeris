@@ -9,6 +9,32 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Corrigé
 
+- Le retour à la ligne souple fermait l'application à l'activation : la
+  fenêtre de rangées visibles n'était jamais bornée au contenu, et les
+  rangées sous la dernière ligne projetaient la dernière ligne sur des
+  tranches croissantes — hors document sous coupure (hors bornes à
+  l'image), répétée sous la fenêtre sans coupure (le contenu
+  « éparpillé ») ; l'état d'image borne désormais sa fenêtre au contenu
+  (ScrollGeometry.borneesAuContenu), test de reproduction sur les
+  contenus et langages réels de la démonstration, plis compris.
+- Le texte de l'éditeur se traçait à la police par défaut de la
+  plateforme pendant que les positions se calculaient à la police de
+  l'éditeur : colonnes dérivées, plages décalées, glyphe hors métrique
+  ; chaque couche repose maintenant la police de l'image sur son
+  pinceau (TextBrush.setFont, PIEGE-21) — la règle qui mesure est la
+  police qui trace.
+- Les tailles de police se lisaient en pixels bruts — minuscules sur
+  écran dense : elles vivent en sp, converties à la densité de
+  l'appareil (PIEGE-22) ; le pincement et ses paliers suivent la
+  police logique.
+- Le clavier logiciel n'apparaissait jamais : l'appui qui prend le
+  focus dévoile l'IME explicitement — une vue focusable au toucher ne
+  l'ouvre pas d'elle-même.
+- Le curseur d'écriture n'était jamais tracé : une barre par plage
+  vide — chaque curseur d'une sélection multiple trace le sien (A-01)
+  — pleine hauteur de rangée, clignotante tant que la vue tient le
+  focus ; les poignées de sélection s'élargissent à la police.
+
 - La démonstration s'ouvrait en arrêt forcé sur l'appareil : les
   barres d'application de l'accueil et des réglages ne portaient ni
   `layout_width` ni `layout_height` — l'inflation mourait au premier
@@ -25,6 +51,14 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- La bascule du retour à la ligne souple entre dans la barre de
+  l'atelier — icône directe, état dans le libellé, persistance
+  partagée avec les réglages ; plus besoin de quitter l'éditeur pour
+  l'essayer.
+- Le routage tactile (TouchesEditeur) et le curseur avec son clavier
+  (CurseurClavier) quittent la vue pour leurs collaborateurs — même
+  famille qu'AccessibilityHost ; la vue reste sous le plafond de
+  600 lignes.
 - L'interface de la démonstration devient application : vrais layouts
   Material 3 (accueil en cartes à monogrammes de langage, atelier
   d'édition à barre d'application et menu, réglages décrits), identité
