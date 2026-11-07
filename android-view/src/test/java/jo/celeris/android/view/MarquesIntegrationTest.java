@@ -91,18 +91,27 @@ final class MarquesIntegrationTest {
                 "les marques d'origine restent muettes sans fusion");
     }
 
-    /** La coulisse s'élargit aux intégrations, muette sans elles. */
+    /**
+     * La coulisse découle de la CONFIGURATION, pas des données
+     * (PIEGE-25) : les marques qui arrivent sans coulisse réservée ne
+     * décalent rien.
+     */
     @Test
-    void coulisseElargieAuxIntegrations() {
+    void coulisseDecouleDeLaConfiguration() {
         MarquesGouttiere gestion = new MarquesGouttiere();
-        assertEquals(10f, gestion.coulisse(10f, 8f), 1e-6f,
-                "sans intégration, la coulisse de la syntaxe prime");
+        assertEquals(0f, gestion.coulisses(false).laneWidth(10f, 8f), 1e-6f,
+                "rien d'activé : aucune coulisse réservée");
         gestion.setIntegration(MarquesIntegration.of(
                 Map.of(1, MarqueLigne.MODIFIE), Map.of(), null, Set.of()));
-        assertEquals(16f, gestion.coulisse(10f, 8f), 1e-6f,
-                "deux caractères s'ajoutent pour les intégrations");
-        assertEquals(18f, gestion.coulisse(18f, 8f), 1e-6f,
-                "la plus large des deux gagne");
+        assertEquals(0f, gestion.coulisses(false).laneWidth(10f, 8f), 1e-6f,
+                "des marques sans coulisse activée ne l'élargissent pas");
+        assertEquals(10f, gestion.coulisses(true).laneWidth(10f, 8f), 1e-6f,
+                "la syntaxe activée réserve un caractère au moins");
+        gestion.setCoulisseIntegration(true);
+        assertEquals(20f, gestion.coulisses(false).laneWidth(10f, 8f), 1e-6f,
+                "la coulisse activée réserve deux caractères");
+        assertEquals(20f, gestion.coulisses(true).laneWidth(10f, 8f), 1e-6f,
+                "la plus large des coulisses activées gagne");
     }
 
     /** Le clic dans le champ des numéros rend la ligne, la coulisse reste aux plis. */

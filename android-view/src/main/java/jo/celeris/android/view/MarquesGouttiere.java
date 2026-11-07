@@ -25,9 +25,6 @@ import org.jspecify.annotations.Nullable;
  */
 public final class MarquesGouttiere {
 
-    /** La coulisse réservée aux marques d'intégration : deux caractères. */
-    private static final float COULISSE_INTEGRATION = 2f;
-
     private MarquesIntegration integration = MarquesIntegration.VIDE;
 
     private int[] erreursImportees = new int[0];
@@ -35,6 +32,12 @@ public final class MarquesGouttiere {
     private Map<Integer, Integer> pastilles = Map.of();
 
     private int[] reperesPreview = new int[0];
+
+    private boolean coulisseIntegration;
+
+    private boolean coulisseErreursImportees;
+
+    private boolean coulissePreview;
 
     private @Nullable IntConsumer surClicLigne;
 
@@ -144,20 +147,47 @@ public final class MarquesGouttiere {
     }
 
     /**
-     * La largeur de coulisse de l'image à venir : celle de la syntaxe,
-     * élargie aux intégrations quand elles parlent — pastilles exceptées,
-     * elles peignent dans la respiration du champ de numéros.
+     * Réserve (ou retire) la coulisse des intégrations (D-03) : la
+     * largeur découle de la configuration, pas de l'arrivée des
+     * marques (PIEGE-25).
      *
-     * @param coulisseSyntaxe la coulisse demandée par la syntaxe, en pixels
-     * @param charWidth       la largeur d'un caractère, en pixels
-     * @return la coulisse effective, en pixels
+     * @param activee vrai pour réserver la coulisse
      */
-    public float coulisse(float coulisseSyntaxe, float charWidth) {
-        if (integration.estVide() && erreursImportees.length == 0
-                && reperesPreview.length == 0) {
-            return coulisseSyntaxe;
-        }
-        return Math.max(coulisseSyntaxe, COULISSE_INTEGRATION * charWidth);
+    public void setCoulisseIntegration(boolean activee) {
+        coulisseIntegration = activee;
+    }
+
+    /**
+     * Réserve (ou retire) la coulisse des diagnostics importés du
+     * build (C-12).
+     *
+     * @param activee vrai pour réserver la coulisse
+     */
+    public void setCoulisseErreursImportees(boolean activee) {
+        coulisseErreursImportees = activee;
+    }
+
+    /**
+     * Réserve (ou retire) la coulisse des repères {@code @Preview}
+     * (C-11).
+     *
+     * @param activee vrai pour réserver la coulisse
+     */
+    public void setCoulissePreview(boolean activee) {
+        coulissePreview = activee;
+    }
+
+    /**
+     * La configuration de coulisse de l'image à venir (M7.5, §5) : les
+     * intégrations ACTIVÉES — jamais celles qui parlent. La syntaxe
+     * s'y ajoute du côté de la vue, qui sait si l'analyse est branchée.
+     *
+     * @param syntaxeActivee vrai quand l'analyse est branchée
+     * @return la configuration courante
+     */
+    public GutterLanes coulisses(boolean syntaxeActivee) {
+        return new GutterLanes(syntaxeActivee, coulisseIntegration,
+                coulisseErreursImportees, coulissePreview);
     }
 
     /**

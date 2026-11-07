@@ -226,14 +226,16 @@ public final class EditorSyntax {
 
     /**
      * La largeur de la coulisse de marqueurs : un caractère au moins,
-     * la marge au plancher — nulle sans analyse.
+     * la marge au plancher — nulle sans analyse. La coulisse se réserve
+     * dès l'attachement d'un langage, AVANT la première publication :
+     * jamais elle n'arrive avec un résultat (PIEGE-25).
      *
      * @param charWidth la largeur d'un caractère, en pixels
      * @param plancher  la marge minimale, en pixels
      * @return la largeur de coulisse, en pixels
      */
     public float coulisse(float charWidth, float plancher) {
-        if (coordinateur == null) {
+        if (!active()) {
             return 0f;
         }
         return Math.max(plancher, charWidth);

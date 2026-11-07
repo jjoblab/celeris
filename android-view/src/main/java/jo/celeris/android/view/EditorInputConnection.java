@@ -448,7 +448,7 @@ final class EditorInputConnection implements InputConnection {
         if (plan.caret() >= 0) {
             poserCurseur(plan.caret());
         } else {
-            vue.revealCaret();
+            vue.curseurClavier.revealCaret();
         }
         return true;
     }
@@ -461,7 +461,7 @@ final class EditorInputConnection implements InputConnection {
             return true;
         }
         if (vue.session().replaceRange(plan.start(), plan.end(), "")) {
-            vue.revealCaret();
+            vue.curseurClavier.revealCaret();
             return true;
         }
         return false;
@@ -481,7 +481,7 @@ final class EditorInputConnection implements InputConnection {
         vue.session().setSelection(MultiSelection.of(
                 SelRange.caretAt(Math.max(0, Math.min(offset,
                         vue.session().document().length())))));
-        vue.revealCaret();
+        vue.curseurClavier.revealCaret();
     }
 
     /**

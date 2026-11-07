@@ -27,7 +27,6 @@ import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
-import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
 import org.jspecify.annotations.Nullable;
@@ -67,9 +66,8 @@ public final class EditorView extends View {
     /** La police par défaut : mono, 14 sp — la conversion en pixels
      *  suit la densité de l'appareil (PIEGE-23). */
     static final FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
-    /** La respiration de gouttière, adaptée à la classe de largeur (D-19). */
-    float margeGouttiere = ClasseLargeur.MOYEN.margeGouttiere();
-    private static final float MARGE_RETOUR = 8f;
+    /** La respiration du dévoilement de curseur, en dp (M7.5, §5). */
+    static final float MARGE_RETOUR_DP = 8f;
 
     private final AndroidFontRuler regle = new AndroidFontRuler();
     private final CanvasSurface surface = new CanvasSurface();
@@ -95,6 +93,8 @@ public final class EditorView extends View {
     private KeyBindings raccourcis = KeyBindings.defaults();
     // — le zoom au pincement vit dans son collaborateur (D-15, PIEGE-24)
     final PinchZoomHandler zoom = new PinchZoomHandler(this);
+    // — la gouttière stable vit dans son collaborateur (PIEGE-25)
+    final EditorGutter gouttiereEtat = new EditorGutter();
 
     TextSession session = TextSession.of("", System::nanoTime);
     VisualProjection projection = new VisualProjection(session.document(), plis, 0);
@@ -150,10 +150,13 @@ public final class EditorView extends View {
         });
         BrushFactory pinceaux = new PaintBrushes();
         fantome = new FantomeEditeur(this, pinceaux);
-        gouttiere = new GutterPainter(pinceaux, margeGouttiere,
+        // La respiration naît à la densité de l'appareil : la valeur
+        // vit en dp, la conversion se fait une fois, en pixels entiers
+        // (PIEGE-23, M7.5 §5).
+        gouttiereEtat.setClasse(ClasseLargeur.MOYEN, densite());
+        gouttiere = new GutterPainter(pinceaux, gouttiereEtat.margePx(),
                 () -> marquesGouttiere.marques(syntaxe.marques()),
-                () -> marquesGouttiere.coulisse(syntaxe.coulisse(
-                        metrics.charWidth(), margeGouttiere), metrics.charWidth()),
+                gouttiereEtat::coulisseCourante,
                 marquesGouttiere::pastille,
                 marquesGouttiere::reperePreview);
         trace.addLayer(gouttiere);
@@ -184,6 +187,7 @@ public final class EditorView extends View {
         session.addEditListener(ecouteurAnnonce);
         syntaxe.attacher(session);
         revisionSuivie = Long.MIN_VALUE;
+        gouttiereEtat.reinitialiser();
         cache.clear();
         scrollX = 0f;
         scrollY = 0f;
@@ -198,6 +202,7 @@ public final class EditorView extends View {
     public void setLanguage(@Nullable LanguageSyntax nouvelleLangue) {
         syntaxe.setLanguage(nouvelleLangue);
         revisionSuivie = Long.MIN_VALUE;
+        gouttiereEtat.reinitialiser();
         cache.clear();
         invalidate();
     }
@@ -313,9 +318,24 @@ public final class EditorView extends View {
      * @param classe la classe de largeur courante
      */
     public void setClasseLargeur(ClasseLargeur classe) {
-        margeGouttiere = classe.margeGouttiere();
-        gouttiere.setMarge(margeGouttiere);
+        gouttiereEtat.setClasse(classe, densite());
+        gouttiere.setMarge(gouttiereEtat.margePx());
         invalidate();
+    }
+
+    /**
+     * Retombe au plancher de chiffres de la gouttière (PIEGE-25) : le
+     * niveau d'eau ne se vide que là, au changement de session ou de
+     * langage — jamais pendant la frappe.
+     */
+    public void resetGutterWidth() {
+        gouttiereEtat.reinitialiser();
+        invalidate();
+    }
+
+    /** La densité de l'appareil — la porte unique des conversions dp. */
+    float densite() {
+        return getResources().getDisplayMetrics().density;
     }
 
     /** Le rappel du plan du fichier (B-16), parti à chaque publication d'analyse. */
@@ -379,43 +399,12 @@ public final class EditorView extends View {
     }
 
     /**
-     * Dévoile le curseur primaire : réajustement minimum du
-     * défilement (CaretReveal), puis invalidation.
-     */
-    void revealCaret() {
-        List<SelRange> plages = session.selection().ranges();
-        int curseur = plages.isEmpty() ? 0 : plages.get(0).caret();
-        CaretReveal.Revealed devoile = CaretReveal.reveal(curseur,
-                session.document(), projection, metrics, largeurGouttiere,
-                getWidth(), getHeight(), scrollX, scrollY, MARGE_RETOUR);
-        scrollX = devoile.scrollX();
-        scrollY = devoile.scrollY();
-        invalidate();
-    }
-
-    /**
      * L'état d'image courant — accès de paquet pour l'hôte
      * d'accessibilité (G-05) : l'état se prépare, puis se lit.
      */
     FrameState etatImageCourante() {
         preparerEtatImage();
         return etatImage;
-    }
-
-    /** Défile d'une page, bornée au contenu. */
-    void defilerPage(boolean enAvant) {
-        float hauteurContenu = projection.rowCount() * metrics.lineHeight();
-        float pas = ScrollGeometry.visibleRows(getHeight(),
-                metrics.lineHeight()) * metrics.lineHeight();
-        scrollY = ScrollGeometry.clamp(
-                enAvant ? scrollY + pas : scrollY - pas,
-                hauteurContenu, getHeight());
-        invalidate();
-    }
-
-    /** Annonce le changement de sélection au lecteur d'écran (G-05). */
-    void annoncerSelection() {
-        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED);
     }
 
     @Override
@@ -460,21 +449,23 @@ public final class EditorView extends View {
     }
 
     /**
-     * Prépare l'état d'image : suivi de révision, bornage du
-     * défilement, gouttière et fenêtre visible.
+     * Prépare l'état d'image : gouttière AVANT le budget de colonnes
+     * (le cycle est cassé, PIEGE-25), suivi de révision, bornage du
+     * défilement et fenêtre visible.
      */
     private void preparerEtatImage() {
         Document document = session.document();
+        // La gouttière ne dépend QUE de grandeurs stables : lignes du
+        // document, métriques, densité et configuration de coulisse —
+        // jamais de la projection visuelle ni d'un état d'analyse
+        // (PIEGE-25). Le budget de colonnes la lit à l'image COURANTE.
+        gouttiereEtat.setCoulisses(
+                marquesGouttiere.coulisses(syntaxe.active()));
+        largeurGouttiere = gouttiereEtat.suivre(document.lineCount(),
+                metrics.charWidth(), densite(), numerosVisibles);
         suivreRevision(document);
         float hauteurContenu = projection.rowCount() * metrics.lineHeight();
         scrollY = ScrollGeometry.clamp(scrollY, hauteurContenu, getHeight());
-        // La coulisse effective compte les intégrations (D-03 à D-05).
-        float coulisse = marquesGouttiere.coulisse(syntaxe.coulisse(
-                metrics.charWidth(), margeGouttiere), metrics.charWidth());
-        largeurGouttiere = numerosVisibles
-                ? GutterGeometry.width(Math.max(1, projection.rowCount()),
-                        metrics.charWidth(), margeGouttiere, coulisse)
-                : GutterGeometry.laneOnly(margeGouttiere, coulisse);
         scrollX = ScrollGeometry.clamp(scrollX,
                 ScrollGeometry.largeurContenu(projection, metrics),
                 ScrollGeometry.largeurVisible(getWidth(), largeurGouttiere));
@@ -564,7 +555,8 @@ public final class EditorView extends View {
 
     /** Le budget de colonnes de la fenêtre, au moins une colonne (PIEGE-08). */
     private int budgetColonnes() {
-        float disponible = getWidth() - largeurGouttiere - MARGE_RETOUR;
+        float disponible = getWidth() - largeurGouttiere
+                - Math.round(MARGE_RETOUR_DP * densite());
         if (disponible <= 0f || metrics.charWidth() <= 0f) {
             return 1;
         }

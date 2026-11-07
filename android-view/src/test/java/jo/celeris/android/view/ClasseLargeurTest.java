@@ -27,11 +27,11 @@ class ClasseLargeurTest {
         // Le compact resserre : la gouttière d'un numéro gagne des
         // pixels précieux sur un téléphone replié.
         float compacte = GutterGeometry.width(9, 10f,
-                ClasseLargeur.COMPACT.margeGouttiere());
+                ClasseLargeur.COMPACT.margeGouttiereDp());
         float moyenne = GutterGeometry.width(9, 10f,
-                ClasseLargeur.MOYEN.margeGouttiere());
+                ClasseLargeur.MOYEN.margeGouttiereDp());
         float etendue = GutterGeometry.width(9, 10f,
-                ClasseLargeur.ETENDU.margeGouttiere());
+                ClasseLargeur.ETENDU.margeGouttiereDp());
         assertEquals(18f, compacte, 1e-6f, "compact : 10 + 2 x 4");
         assertEquals(26f, moyenne, 1e-6f, "moyen : 10 + 2 x 8");
         assertEquals(34f, etendue, 1e-6f, "étendu : 10 + 2 x 12");

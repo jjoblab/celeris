@@ -41,11 +41,14 @@ public enum ClasseLargeur {
     /**
      * La respiration de la gouttière pour cette classe (D-19) : le
      * compact resserre le champ de numéros — chaque pixel compte —,
-     * l'étendu respire, le moyen garde la norme.
+     * l'étendu respire, le moyen garde la norme. La valeur vit en DP :
+     * la conversion en pixels se fait une fois, à la densité de
+     * l'appareil (PIEGE-23) — jamais de pixel cru dans une mesure
+     * d'interface (M7.5, §5).
      *
-     * @return la respiration de chaque côté du champ, en pixels
+     * @return la respiration de chaque côté du champ, en dp
      */
-    public float margeGouttiere() {
+    public float margeGouttiereDp() {
         return switch (this) {
             case COMPACT -> 4f;
             case MOYEN -> 8f;

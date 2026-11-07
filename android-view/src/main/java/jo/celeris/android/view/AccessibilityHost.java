@@ -86,7 +86,7 @@ final class AccessibilityHost {
         }
         if (action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
                 || action == AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD) {
-            vue.defilerPage(action
+            vue.curseurClavier.defilerPage(action
                     == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
             return true;
         }
@@ -140,7 +140,7 @@ final class AccessibilityHost {
                 : SelRange.caretAt(cible);
         vue.session().setSelection(MultiSelection.of(apres));
         vue.invalidate();
-        vue.annoncerSelection();
+        vue.curseurClavier.annoncerSelection();
         return true;
     }
 
@@ -160,7 +160,7 @@ final class AccessibilityHost {
                 Math.min(debut, document.length()),
                 Math.min(fin, document.length()))));
         vue.invalidate();
-        vue.annoncerSelection();
+        vue.curseurClavier.annoncerSelection();
         return true;
     }
 
@@ -172,7 +172,7 @@ final class AccessibilityHost {
         vue.session().setSelection(MultiSelection.of(SelRange.caretAt(
                 etat.document().lineStart(ligne) + colonne)));
         vue.invalidate();
-        vue.annoncerSelection();
+        vue.curseurClavier.annoncerSelection();
         return true;
     }
 

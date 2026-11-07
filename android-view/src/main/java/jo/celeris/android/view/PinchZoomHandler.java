@@ -164,6 +164,10 @@ final class PinchZoomHandler {
         vue.scrollX = PinchZoom.scrollXKeepingColumn(focalX, ancienneGouttiere,
                 nouvelleGouttiere, ancienScrollX, ancienCharWidth,
                 vue.metrics.charWidth());
+        // La gouttière courante suit le palier : le cran suivant du même
+        // geste — sans image entre les événements — lit la gouttière de
+        // SON image, pas celle d'avant le premier palier.
+        vue.largeurGouttiere = nouvelleGouttiere;
         vue.scrollY = PinchZoom.scrollYKeepingRow(focalY, ancienScrollY,
                 ancienLineHeight, vue.metrics.lineHeight());
         bornerDefilement(nouvelleGouttiere);
@@ -179,17 +183,14 @@ final class PinchZoomHandler {
     /**
      * La largeur de gouttière prévue aux métriques courantes — la
      * variante pure du calcul d'image, servie au zoom avant l'ajustement
-     * du défilement (D-15), unifiée avec la gouttière stable (M7.5 §5).
+     * du défilement (D-15), la même que celle de l'image (PIEGE-25).
      */
     private float largeurGouttierePrevue() {
-        float coulisse = vue.marquesGouttiere.coulisse(vue.syntaxe.coulisse(
-                vue.metrics.charWidth(), vue.margeGouttiere),
-                vue.metrics.charWidth());
-        return vue.numerosVisibles
-                ? GutterGeometry.width(
-                        Math.max(1, vue.session.document().lineCount()),
-                        vue.metrics.charWidth(), vue.margeGouttiere, coulisse)
-                : GutterGeometry.laneOnly(vue.margeGouttiere, coulisse);
+        vue.gouttiereEtat.setCoulisses(
+                vue.marquesGouttiere.coulisses(vue.syntaxe.active()));
+        return vue.gouttiereEtat.suivre(
+                vue.session.document().lineCount(),
+                vue.metrics.charWidth(), vue.densite(), vue.numerosVisibles);
     }
 
     /** Bornage du défilement à la taille du contenu (D-15). */
