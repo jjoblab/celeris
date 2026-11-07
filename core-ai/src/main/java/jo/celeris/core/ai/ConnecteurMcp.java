@@ -35,6 +35,10 @@ public final class ConnecteurMcp {
         /** Liste les diagnostics — aucun argument. */
         DIAGNOSTICS("celeris.diagnostics", "Liste les diagnostics courants"),
 
+        /** Sert les instructions d'agent du dépôt — aucun argument. */
+        INSTRUCTIONS("celeris.instructions",
+                "Sert les instructions d'agent du depot, telles quelles"),
+
         /** Applique une transaction — refus si l'instantané lu a bougé. */
         APPLIQUER("celeris.appliquer",
                 "Applique une transaction — refus explicite si l'instantane de reference a bouge");
@@ -72,6 +76,8 @@ public final class ConnecteurMcp {
                     Outil.SYMBOLES.description(), List.of()),
             new DescriptionOutil(Outil.DIAGNOSTICS.nom(),
                     Outil.DIAGNOSTICS.description(), List.of()),
+            new DescriptionOutil(Outil.INSTRUCTIONS.nom(),
+                    Outil.INSTRUCTIONS.description(), List.of()),
             new DescriptionOutil(Outil.APPLIQUER.nom(),
                     Outil.APPLIQUER.description(),
                     List.of("revision", "editions")));
@@ -163,6 +169,19 @@ public final class ConnecteurMcp {
                     .append(echapper(diagnostic.message())).append("\"}");
         }
         return json.append("]}").toString();
+    }
+
+    /**
+     * Sert les instructions d'agent par le connecteur — le même
+     * {@code instructions} qu'en direct.
+     *
+     * @param outils les outils de l'éditeur
+     * @return la réponse JSON : les instructions, ou absence honnête
+     */
+    public static String instructions(OutilsEditeur outils) {
+        InstructionsAgent instructions = outils.instructions();
+        return "{\"instructions\":\"" + echapper(instructions.texte())
+                + "\",\"absentes\":" + instructions.estAbsente() + "}";
     }
 
     /**

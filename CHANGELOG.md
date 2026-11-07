@@ -68,6 +68,14 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 4 (M8) — les exclusions de contexte (F-07) : le fichier
+  d'exclusion du dépôt déclare les chemins jamais envoyés à un modèle
+  (chemins exacts, dossiers, jokers — une règle sans barre vaut pour
+  tout suffixe de composante) ; le garde du contexte se glisse entre
+  la session et le modèle — le chemin exclu ne produit aucun départ,
+  le journal du faux modèle en témoigne ; le fichier d'instructions
+  d'agent se sert par la voie des outils (outil celeris.instructions,
+  sixième du catalogue MCP), jamais inventé.
 - Tranche 3 (M8) — l'API d'outils pour agents et sa surface MCP
   (F-05, F-06) : lire des plages et l'instantané — la réponse porte la
   révision servie —, lister les symboles et les diagnostics des

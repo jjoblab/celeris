@@ -34,6 +34,7 @@ public final class jo.celeris.core.ai.ConnecteurMcp$Outil extends java.lang.Enum
   public static final jo.celeris.core.ai.ConnecteurMcp$Outil INSTANTANE;
   public static final jo.celeris.core.ai.ConnecteurMcp$Outil SYMBOLES;
   public static final jo.celeris.core.ai.ConnecteurMcp$Outil DIAGNOSTICS;
+  public static final jo.celeris.core.ai.ConnecteurMcp$Outil INSTRUCTIONS;
   public static final jo.celeris.core.ai.ConnecteurMcp$Outil APPLIQUER;
   public static jo.celeris.core.ai.ConnecteurMcp$Outil[] values();
   public static jo.celeris.core.ai.ConnecteurMcp$Outil valueOf(java.lang.String);
@@ -49,6 +50,7 @@ public final class jo.celeris.core.ai.ConnecteurMcp {
   public static java.lang.String instantane(jo.celeris.core.ai.OutilsEditeur);
   public static java.lang.String symboles(jo.celeris.core.ai.OutilsEditeur);
   public static java.lang.String diagnostics(jo.celeris.core.ai.OutilsEditeur);
+  public static java.lang.String instructions(jo.celeris.core.ai.OutilsEditeur);
   public static java.lang.String appliquer(jo.celeris.core.ai.OutilsEditeur, jo.celeris.core.ai.TransactionOutil);
 }
 
@@ -61,6 +63,14 @@ public final class jo.celeris.core.ai.EtiquetteAgent extends java.lang.Record {
   public final boolean equals(java.lang.Object);
   public java.lang.String auteur();
   public java.lang.String intention();
+}
+
+### jo.celeris.core.ai.ExclusionsContexte
+Compiled from "ExclusionsContexte.java"
+public final class jo.celeris.core.ai.ExclusionsContexte {
+  public static jo.celeris.core.ai.ExclusionsContexte de(java.lang.String);
+  public static jo.celeris.core.ai.ExclusionsContexte aucune();
+  public boolean estExclu(java.lang.String);
 }
 
 ### jo.celeris.core.ai.FauxModeleDistant
@@ -83,6 +93,27 @@ public final class jo.celeris.core.ai.FauxModeleLocal implements jo.celeris.core
   public java.util.List<jo.celeris.core.ai.RequeteModele> requetes();
   public void completer(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModeleTexteFantome$Recepteur);
   public void predire(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModelePrediction$Recepteur);
+}
+
+### jo.celeris.core.ai.GardeContexte
+Compiled from "GardeContexte.java"
+public final class jo.celeris.core.ai.GardeContexte implements jo.celeris.core.ai.ModeleTexteFantome,jo.celeris.core.ai.ModelePrediction {
+  public jo.celeris.core.ai.GardeContexte(jo.celeris.core.ai.ModeleTexteFantome, jo.celeris.core.ai.ModelePrediction, java.lang.String, jo.celeris.core.ai.ExclusionsContexte);
+  public void completer(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModeleTexteFantome$Recepteur);
+  public void predire(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModelePrediction$Recepteur);
+}
+
+### jo.celeris.core.ai.InstructionsAgent
+Compiled from "InstructionsAgent.java"
+public final class jo.celeris.core.ai.InstructionsAgent extends java.lang.Record {
+  public static final jo.celeris.core.ai.InstructionsAgent AUCUNE;
+  public jo.celeris.core.ai.InstructionsAgent(java.lang.String);
+  public static jo.celeris.core.ai.InstructionsAgent de(java.lang.String);
+  public boolean estAbsente();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String texte();
 }
 
 ### jo.celeris.core.ai.ModelePrediction$Recepteur
@@ -118,6 +149,7 @@ public interface jo.celeris.core.ai.OutilsEditeur {
   public abstract jo.celeris.core.ai.PlageLue instantane();
   public abstract java.util.List<jo.celeris.core.syntax.OutlineEntry> symboles();
   public abstract java.util.List<jo.celeris.core.syntax.SyntaxIssue> diagnostics();
+  public abstract jo.celeris.core.ai.InstructionsAgent instructions();
   public abstract jo.celeris.core.ai.TransactionOutilReponse appliquer(jo.celeris.core.ai.TransactionOutil);
 }
 
@@ -125,10 +157,12 @@ public interface jo.celeris.core.ai.OutilsEditeur {
 Compiled from "OutilsEditeurSurSession.java"
 public final class jo.celeris.core.ai.OutilsEditeurSurSession implements jo.celeris.core.ai.OutilsEditeur {
   public jo.celeris.core.ai.OutilsEditeurSurSession(jo.celeris.core.text.TextSession, java.util.function.Function<jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.OutlineEntry>>, java.util.function.Supplier<java.util.List<jo.celeris.core.syntax.SyntaxIssue>>);
+  public jo.celeris.core.ai.OutilsEditeurSurSession(jo.celeris.core.text.TextSession, java.util.function.Function<jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.OutlineEntry>>, java.util.function.Supplier<java.util.List<jo.celeris.core.syntax.SyntaxIssue>>, jo.celeris.core.ai.InstructionsAgent);
   public jo.celeris.core.ai.PlageLue lire(int, int);
   public jo.celeris.core.ai.PlageLue instantane();
   public java.util.List<jo.celeris.core.syntax.OutlineEntry> symboles();
   public java.util.List<jo.celeris.core.syntax.SyntaxIssue> diagnostics();
+  public jo.celeris.core.ai.InstructionsAgent instructions();
   public jo.celeris.core.ai.TransactionOutilReponse appliquer(jo.celeris.core.ai.TransactionOutil);
 }
 

@@ -10,10 +10,11 @@
 > budgets de latence tenus ; test « aucune requête sans consentement »
 > vert.
 >
-> **État** : jalon ouvert — tranches 1 à 3 livrées (les contrats du texte
+> **État** : jalon ouvert — tranches 1 à 4 livrées (les contrats du texte
 > fantôme et de la prédiction, les faux modèles, l'annulation ; la
 > revue des modifications d'agent ; l'API d'outils et sa surface
-> MCP). Les tranches suivantes restent à écrire (voir « Reste ouvert »).
+> MCP ; les exclusions de contexte et les instructions d'agent).
+> Les tranches suivantes restent à écrire (voir « Reste ouvert »).
 
 ## Avant la première tranche — l'hygiène inter-jalons (2026-11-08)
 
@@ -165,12 +166,36 @@ Manifeste d'API régénéré — six types publics ajoutés, aucun retrait
 (SemVer mineure, ADR-009). Les lignes F-05 et F-06 de la matrice
 passent à livrées.
 
+## Tranche 4 — les exclusions de contexte (2026-11-08)
+
+### Livré
+
+- **F-07 — `ExclusionsContexte`** : le fichier du dépôt déclare les
+  chemins jamais envoyés à un modèle — secrets, clés, données du
+  propriétaire. Une règle par ligne : chemin exact, dossier (barre
+  finale ou ancêtre), ou joker ; une règle sans barre oblique vaut
+  pour le chemin entier et pour chacun de ses suffixes de composantes
+  — `*.jks` prend `certs/debug.jks` comme `debug.jks`.
+- **F-07 — `GardeContexte`** : le garde se glisse entre la session et
+  le modèle branché par l'hôte — fantôme et prédiction gardés
+  ensemble. Le chemin exclu ne produit aucun départ : pas de
+  requête, donc pas de réponse — le journal du faux modèle en
+  témoigne, le fantôme reste absent. Le chemin admis traverse tel
+  quel.
+- **F-07 — `InstructionsAgent`** : le fichier d'instructions du dépôt
+  se sert par la voie des outils (`celeris.instructions`, sixième
+  outil du connecteur MCP) — telles quelles, jamais inventées ; le
+  dépôt sans fichier répond honnêtement qu'il n'y a rien.
+
+### Preuve
+
+`:core-ai:check` vert — 64 tests, mutation 81,1 % (189/233, seuil 80).
+Manifeste d'API régénéré — quatre types publics ajoutés, aucun
+retrait (SemVer mineure, ADR-009). La ligne F-07 de la matrice passe à
+livrée.
+
 ## Reste ouvert
 
-- **Tranche 4 — les exclusions de contexte** (F-07) : le fichier
-  d'exclusion (chemins jamais envoyés à un modèle, assertion sur le
-  journal des faux), le fichier d'instructions d'agent honoré par les
-  outils exposés.
 - **Tranche 5 — le rendu du fantôme et le menu d'intentions** (F-01
   interface, F-03) : le dessin éphémère au chemin des indices en ligne
   (PIEGE-11), l'acceptation au clavier et au geste, l'action IA au

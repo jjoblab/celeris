@@ -30,16 +30,17 @@ class ConnecteurMcpTest {
     }
 
     /**
-     * F-06 — le catalogue : cinq outils, noms celeris.*, descriptions
-     * et arguments lus par le serveur.
+     * F-06 — le catalogue : les cinq outils de base plus les
+     * instructions (F-07), noms celeris.*, descriptions et arguments
+     * lus par le serveur.
      */
     @Test
-    void leCatalogueListeLesCinqOutils() {
+    void leCatalogueListeLesOutils() {
         List<ConnecteurMcp.DescriptionOutil> catalogue = ConnecteurMcp.catalogue();
-        assertEquals(5, catalogue.size());
+        assertEquals(6, catalogue.size());
         assertEquals("celeris.lire", catalogue.get(0).nom());
         assertEquals(List.of("debut", "fin"), catalogue.get(0).arguments());
-        assertEquals("celeris.appliquer", catalogue.get(4).nom());
+        assertEquals("celeris.appliquer", catalogue.get(5).nom());
         assertTrue(catalogue.stream().allMatch(d -> !d.description().isBlank()),
                 "chaque outil porte sa description");
     }

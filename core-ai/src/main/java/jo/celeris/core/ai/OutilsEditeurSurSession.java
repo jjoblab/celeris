@@ -29,9 +29,11 @@ public final class OutilsEditeurSurSession implements OutilsEditeur {
     private final TextSession session;
     private final Function<Document, List<OutlineEntry>> sourceSymboles;
     private final Supplier<List<SyntaxIssue>> sourceDiagnostics;
+    private final InstructionsAgent instructions;
 
     /**
-     * Les outils sur la session donnée.
+     * Les outils sur la session donnée, sans instructions d'agent —
+     * le dépôt qui n'en déclare pas répond qu'il n'y a rien.
      *
      * @param session           la session servie, sur son fil d'écriture
      * @param sourceSymboles    le plan du document (B-16), calculé par
@@ -42,9 +44,29 @@ public final class OutilsEditeurSurSession implements OutilsEditeur {
     public OutilsEditeurSurSession(TextSession session,
             Function<Document, List<OutlineEntry>> sourceSymboles,
             Supplier<List<SyntaxIssue>> sourceDiagnostics) {
+        this(session, sourceSymboles, sourceDiagnostics, InstructionsAgent.AUCUNE);
+    }
+
+    /**
+     * Les outils sur la session donnée, avec les instructions
+     * d'agent du dépôt (F-07).
+     *
+     * @param session           la session servie, sur son fil d'écriture
+     * @param sourceSymboles    le plan du document (B-16), calculé par
+     *                          l'hôte
+     * @param sourceDiagnostics les diagnostics courants, servis par
+     *                          l'hôte
+     * @param instructions      les instructions d'agent du dépôt, ou
+     *                          {@link InstructionsAgent#AUCUNE}
+     */
+    public OutilsEditeurSurSession(TextSession session,
+            Function<Document, List<OutlineEntry>> sourceSymboles,
+            Supplier<List<SyntaxIssue>> sourceDiagnostics,
+            InstructionsAgent instructions) {
         this.session = session;
         this.sourceSymboles = sourceSymboles;
         this.sourceDiagnostics = sourceDiagnostics;
+        this.instructions = instructions;
     }
 
     @Override
@@ -66,6 +88,11 @@ public final class OutilsEditeurSurSession implements OutilsEditeur {
     @Override
     public List<SyntaxIssue> diagnostics() {
         return List.copyOf(sourceDiagnostics.get());
+    }
+
+    @Override
+    public InstructionsAgent instructions() {
+        return instructions;
     }
 
     @Override

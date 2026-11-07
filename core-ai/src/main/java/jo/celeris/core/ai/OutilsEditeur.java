@@ -54,6 +54,15 @@ public interface OutilsEditeur {
     List<SyntaxIssue> diagnostics();
 
     /**
+     * Les instructions d'agent du dépôt (F-07) — servies telles
+     * quelles aux agents qui demandent, jamais inventées : le dépôt
+     * sans fichier répond qu'il n'y a rien.
+     *
+     * @return les instructions, vides si le dépôt n'en déclare pas
+     */
+    InstructionsAgent instructions();
+
+    /**
      * Applique une transaction d'agent : la détection de conflit
      * d'abord — l'instantané de référence doit correspondre, sinon
      * refus explicite — puis la voie de transaction ordinaire, donc
