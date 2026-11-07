@@ -3,8 +3,10 @@
 plugins {
     id("celeris.java-library-conventions")
     id("celeris.publishing-conventions")
+    id("celeris.mutation-conventions")
 }
 dependencies {
     api(project(":core-language"))
     api(project(":core-syntax"))
+    api(project(":core-text"))
 }

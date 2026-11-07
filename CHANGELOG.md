@@ -68,6 +68,19 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 1 (M8) — les contrats IA (ADR-012) : le texte fantôme
+  (F-01, noyau — suggestion multiligne datée par révision, jamais
+  ré-ancrée ; acceptation par mot, par ligne ou en bloc, le reste
+  survit ancré pareil ; refus à la frappe suivante) ; la prédiction
+  d'édition (F-02 — le modèle prédit une opération, l'application
+  explicite passe par la voie de transaction, donc annulable, jamais
+  silencieuse : refus de révision, de protection, d'éditions qui ne
+  collent pas au document) ; les faux modèles de référence (F-08 —
+  local synchrone, distant par exécuteur injecté, même contrat,
+  journal des requêtes) ; l'annulation au jeton et la latence non
+  bloquante (F-09 — la frappe suivante annule le vol, mille demandes
+  au modèle aveugle mesurées au minimum de trois tours). La mutation
+  s'étend à core-ai (86,4 %, seuil 80).
 - Tranche 9 (M7) — les trois surfaces d'interface restantes :
   l'aperçu rapide d'une définition (D-11 — le plan du fichier sert
   d'index, l'entrée la plus intime contenant le curseur se survole,

@@ -1,3 +1,124 @@
+### jo.celeris.core.ai.AppliquerPrediction$Resultat
+Compiled from "AppliquerPrediction.java"
+public final class jo.celeris.core.ai.AppliquerPrediction$Resultat extends java.lang.Enum<jo.celeris.core.ai.AppliquerPrediction$Resultat> {
+  public static final jo.celeris.core.ai.AppliquerPrediction$Resultat APPLIQUEE;
+  public static final jo.celeris.core.ai.AppliquerPrediction$Resultat REFUSEE_REVISION;
+  public static final jo.celeris.core.ai.AppliquerPrediction$Resultat REFUSEE_PROTECTION;
+  public static final jo.celeris.core.ai.AppliquerPrediction$Resultat REFUSEE_EDITS;
+  public static jo.celeris.core.ai.AppliquerPrediction$Resultat[] values();
+  public static jo.celeris.core.ai.AppliquerPrediction$Resultat valueOf(java.lang.String);
+}
+
+### jo.celeris.core.ai.AppliquerPrediction
+Compiled from "AppliquerPrediction.java"
+public final class jo.celeris.core.ai.AppliquerPrediction {
+  public static jo.celeris.core.ai.AppliquerPrediction$Resultat appliquer(jo.celeris.core.text.TextSession, jo.celeris.core.ai.PredictionEdition);
+}
+
+### jo.celeris.core.ai.FauxModeleDistant
+Compiled from "FauxModeleDistant.java"
+public final class jo.celeris.core.ai.FauxModeleDistant implements jo.celeris.core.ai.ModeleTexteFantome,jo.celeris.core.ai.ModelePrediction {
+  public jo.celeris.core.ai.FauxModeleDistant(java.util.concurrent.Executor);
+  public void fantome(jo.celeris.core.ai.SuggestionFantome);
+  public void prediction(jo.celeris.core.ai.PredictionEdition);
+  public java.util.List<jo.celeris.core.ai.RequeteModele> requetes();
+  public void completer(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModeleTexteFantome$Recepteur);
+  public void predire(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModelePrediction$Recepteur);
+}
+
+### jo.celeris.core.ai.FauxModeleLocal
+Compiled from "FauxModeleLocal.java"
+public final class jo.celeris.core.ai.FauxModeleLocal implements jo.celeris.core.ai.ModeleTexteFantome,jo.celeris.core.ai.ModelePrediction {
+  public jo.celeris.core.ai.FauxModeleLocal();
+  public void fantome(jo.celeris.core.ai.SuggestionFantome);
+  public void prediction(jo.celeris.core.ai.PredictionEdition);
+  public java.util.List<jo.celeris.core.ai.RequeteModele> requetes();
+  public void completer(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModeleTexteFantome$Recepteur);
+  public void predire(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModelePrediction$Recepteur);
+}
+
+### jo.celeris.core.ai.ModelePrediction$Recepteur
+Compiled from "ModelePrediction.java"
+public interface jo.celeris.core.ai.ModelePrediction$Recepteur {
+  public abstract void prediction(jo.celeris.core.ai.PredictionEdition);
+  public abstract void aucune();
+}
+
+### jo.celeris.core.ai.ModelePrediction
+Compiled from "ModelePrediction.java"
+public interface jo.celeris.core.ai.ModelePrediction {
+  public abstract void predire(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModelePrediction$Recepteur);
+}
+
+### jo.celeris.core.ai.ModeleTexteFantome$Recepteur
+Compiled from "ModeleTexteFantome.java"
+public interface jo.celeris.core.ai.ModeleTexteFantome$Recepteur {
+  public abstract void suggestion(jo.celeris.core.ai.SuggestionFantome);
+  public abstract void aucune();
+}
+
+### jo.celeris.core.ai.ModeleTexteFantome
+Compiled from "ModeleTexteFantome.java"
+public interface jo.celeris.core.ai.ModeleTexteFantome {
+  public abstract void completer(jo.celeris.core.ai.RequeteModele, jo.celeris.core.ai.ModeleTexteFantome$Recepteur);
+}
+
+### jo.celeris.core.ai.PredictionEdition
+Compiled from "PredictionEdition.java"
+public final class jo.celeris.core.ai.PredictionEdition extends java.lang.Record {
+  public jo.celeris.core.ai.PredictionEdition(java.lang.String, java.util.List<jo.celeris.core.text.TextEdit>, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String description();
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+  public int revision();
+}
+
+### jo.celeris.core.ai.RequeteModele
+Compiled from "RequeteModele.java"
+public final class jo.celeris.core.ai.RequeteModele extends java.lang.Record {
+  public jo.celeris.core.ai.RequeteModele(jo.celeris.core.text.Document, int, jo.celeris.core.syntax.JetonAnnulation);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.text.Document document();
+  public int offset();
+  public jo.celeris.core.syntax.JetonAnnulation jeton();
+}
+
+### jo.celeris.core.ai.SessionTexteFantome$1
+Compiled from "SessionTexteFantome.java"
+class jo.celeris.core.ai.SessionTexteFantome$1 implements jo.celeris.core.ai.ModeleTexteFantome$Recepteur {
+  public void suggestion(jo.celeris.core.ai.SuggestionFantome);
+  public void aucune();
+}
+
+### jo.celeris.core.ai.SessionTexteFantome
+Compiled from "SessionTexteFantome.java"
+public final class jo.celeris.core.ai.SessionTexteFantome {
+  public jo.celeris.core.ai.SessionTexteFantome(jo.celeris.core.ai.ModeleTexteFantome, java.util.concurrent.Executor);
+  public void demander(jo.celeris.core.text.Document, int);
+  public void frappe();
+  public void refuser();
+  public jo.celeris.core.ai.SuggestionFantome suggestionActive();
+  public java.lang.String accepterMot();
+  public java.lang.String accepterLigne();
+  public java.lang.String accepterTout();
+}
+
+### jo.celeris.core.ai.SuggestionFantome
+Compiled from "SuggestionFantome.java"
+public final class jo.celeris.core.ai.SuggestionFantome extends java.lang.Record {
+  public jo.celeris.core.ai.SuggestionFantome(java.lang.String, int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String texte();
+  public int offset();
+  public int revision();
+}
+
 ### jo.celeris.core.ai.package-info
 Compiled from "package-info.java"
 interface jo.celeris.core.ai.package-info {
