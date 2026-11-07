@@ -56,6 +56,14 @@ public final class TextPainter extends PainterLayer {
     protected void onPaint(DrawSurface surface, FrameState frame) {
         EditorMetrics metrics = frame.metrics();
         FontSpec police = metrics.font();
+        // PIEGE-21, volet coloration : chaque pinceau par sorte reçoit la
+        // police de l'image avant tout tracé — un pinceau jamais habillé
+        // tracerait à la police par défaut de la plateforme pendant que
+        // les positions avancent à la police de l'éditeur : les mots
+        // colorés s'éparpilleraient.
+        for (TextBrush pinceau : pinceauxParSorte) {
+            pinceau.setFont(police);
+        }
         int theme = frame.theme().id();
         long revision = frame.revision();
         int colonnes = frame.projection().columns();

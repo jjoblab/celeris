@@ -10,6 +10,7 @@ import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -27,9 +28,13 @@ class TextPainterSyntaxTest {
 
     private static final EditorTheme THEME = EditorThemes.CLAIR;
 
-    /** Pinceau mutable minimal : la couleur courante, rien d'autre. */
+    /**
+     * Pinceau mutable minimal : la couleur courante et la police
+     * courante — la police posée se capture comme la couleur (PIEGE-21).
+     */
     private static final class PinceauMutable implements TextBrush {
         private int couleur;
+        private @Nullable FontSpec police;
 
         @Override
         public void setColor(int argb) {
@@ -40,10 +45,19 @@ class TextPainterSyntaxTest {
         public int color() {
             return couleur;
         }
+
+        @Override
+        public void setFont(FontSpec police) {
+            this.police = police;
+        }
     }
 
-    /** Un tracé de texte : sa tranche et la couleur posée à l'instant de l'appel. */
-    private record Trace(CharSequence texte, int debut, int fin, float x, int couleur) {
+    /**
+     * Un tracé de texte : sa tranche, la couleur posée à l'instant de
+     * l'appel, et la police posée au même instant.
+     */
+    private record Trace(CharSequence texte, int debut, int fin, float x, int couleur,
+            @Nullable FontSpec police) {
     }
 
     /** Surface enregistreuse : capture chaque tracé avec la couleur au moment précis. */
@@ -52,13 +66,14 @@ class TextPainterSyntaxTest {
 
         @Override
         public void drawText(String text, float x, float y, TextBrush brush) {
-            traces.add(new Trace(text, 0, text.length(), x, brush.color()));
+            traces.add(new Trace(text, 0, text.length(), x, brush.color(),
+                    policeDe(brush)));
         }
 
         @Override
         public void drawText(CharSequence text, int start, int end, float x, float y,
                 TextBrush brush) {
-            traces.add(new Trace(text, start, end, x, brush.color()));
+            traces.add(new Trace(text, start, end, x, brush.color(), policeDe(brush)));
         }
 
         @Override
@@ -69,6 +84,13 @@ class TextPainterSyntaxTest {
 
         List<Trace> traces() {
             return traces;
+        }
+
+        private static @Nullable FontSpec policeDe(TextBrush brush) {
+            if (brush instanceof PinceauMutable pinceau) {
+                return pinceau.police;
+            }
+            return null;
         }
     }
 
@@ -207,6 +229,37 @@ class TextPainterSyntaxTest {
         assertEquals(40f + 5 * 10f, secondVisuel.x(), 1e-6f,
                 "le second segment se trace après le premier, largeur rendue en tête");
         assertEquals(THEME.syntaxe().couleur(TokenKind.STRING), secondVisuel.couleur());
+    }
+
+    /**
+     * PIEGE-21, volet coloration : chaque pinceau par sorte porte la
+     * police de l'image au moment de son tracé — un pinceau jamais
+     * habillé trace à la police par défaut de la plateforme pendant
+     * que les positions avancent à la police de l'éditeur : les mots
+     * colorés s'éparpilleraient.
+     */
+    @Test
+    void lesPlagesSeTracentALaPoliceDeLEditeur() {
+        String texte = "int x = 42;";
+        List<ColoredSpan> plages = List.of(
+                new ColoredSpan(TokenKind.KEYWORD, 0, 3),
+                new ColoredSpan(TokenKind.IDENTIFIER, 3, 5),
+                new ColoredSpan(TokenKind.NUMBER, 7, 9));
+        RowLayout mise = new RowLayout(0, 0, texte.length(), texte,
+                texte.length() * 10f, List.of(), plages);
+        SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
+        ScrollFrame image = new ScrollFrame();
+        image.addLayer(new TextPainter(() -> new PinceauMutable(),
+                new RowLayoutCache(), new SourceImposee(mise)));
+        image.drawFrame(surface, image(Document.of(texte),
+                new VisualProjection(1, new FoldModel()), 1));
+
+        assertEquals(plages.size(), surface.traces().size(),
+                "une plage, un tracé — chacun à la police de l'image");
+        for (Trace trace : surface.traces()) {
+            assertEquals(new FontSpec("mono", 14f), trace.police(),
+                    "chaque plage se trace à la police de l'éditeur (PIEGE-21)");
+        }
     }
 
     /**
