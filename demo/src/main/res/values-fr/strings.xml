@@ -13,6 +13,13 @@
     <string name="action_reglages">Réglages</string>
     <string name="action_retour">Retour</string>
     <string name="action_recherche">Rechercher</string>
+    <string name="action_completion">Compléter le mot</string>
+    <string name="action_intentions">Intentions au curseur</string>
+    <string name="action_survol">Survoler le symbole</string>
+    <string name="barre_couper">Couper</string>
+    <string name="barre_copier">Copier</string>
+    <string name="barre_coller">Coller</string>
+    <string name="barre_tout">Tout sélectionner</string>
     <string name="action_plan">Plan</string>
     <string name="action_deboguer">Déboguer</string>
     <string name="action_reprendre">Reprendre</string>

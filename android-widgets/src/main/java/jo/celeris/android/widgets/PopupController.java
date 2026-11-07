@@ -13,7 +13,13 @@ import java.util.Set;
  * complétion (au-dessus de la ligne) ; le survol et l'info-bulle se
  * ferment à la frappe et au défilement ; la complétion FILTRE
  * localement à la frappe — elle reste ouverte, la requête ne repart
- * pas ; la barre de recherche ne se ferme que sur demande.</p>
+ * pas ; la barre de recherche ne se ferme que sur demande. Les dix
+ * popups (M7.5, reprise) : la documentation de complétion n'existe
+ * pas sans sa liste — fermer la liste ferme la documentation ; la
+ * barre de sélection cède à la frappe (la frappe remplace la
+ * sélection) mais survit au défilement ; la bande d'erreurs ne cède
+ * ni à la frappe ni au défilement — elle vit avec les diagnostics,
+ * l'hôte l'ouvre et la ferme.</p>
  *
  * <p>PIEGE-27 par construction : le contrôleur ne connaît AUCUNE vue —
  * le focus d'entrée reste à l'éditeur, les vues ne font qu'obéir aux
@@ -33,6 +39,10 @@ public final class PopupController {
         /** L'aide aux paramètres — cohabite avec la complétion. */
         SIGNATURE_HELP,
 
+        /** La documentation de complétion — n'existe pas sans sa
+         *  liste, fermée avec elle. */
+        COMPLETION_DOC,
+
         /** Le survol de symbole — fermé à la frappe et au défilement. */
         HOVER,
 
@@ -43,7 +53,15 @@ public final class PopupController {
         BREADCRUMB,
 
         /** La barre de recherche — fermée sur demande seule. */
-        SEARCH_BAR
+        SEARCH_BAR,
+
+        /** La barre de sélection — cède à la frappe (la frappe remplace
+         *  la sélection), survit au défilement. */
+        SELECTION_BAR,
+
+        /** La bande d'erreurs — vit avec les diagnostics : ni la frappe
+         *  ni le défilement ne la ferment. */
+        ERROR_BAND
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -51,6 +69,8 @@ public final class PopupController {
     /**
      * Ouvre le popup donné : les exclusions s'appliquent — la
      * complétion et le menu d'intentions ne tiennent jamais ensemble.
+     * La documentation de complétion n'ouvre que sur une liste déjà
+     * ouverte — elle n'existe pas sans sa liste.
      *
      * @param kind le popup à ouvrir
      * @return vrai si l'état a changé
@@ -63,18 +83,26 @@ public final class PopupController {
             ouverts.remove(PopupKind.INTENTIONS_MENU);
         } else if (kind == PopupKind.INTENTIONS_MENU) {
             ouverts.remove(PopupKind.COMPLETION_LIST);
+        } else if (kind == PopupKind.COMPLETION_DOC
+                && !ouverts.contains(PopupKind.COMPLETION_LIST)) {
+            return false;
         }
         return ouverts.add(kind);
     }
 
     /**
-     * Ferme le popup donné.
+     * Ferme le popup donné. Fermer la liste de complétion ferme sa
+     * documentation — la documentation ne reste jamais seule.
      *
      * @param kind le popup à fermer
      * @return vrai si l'état a changé
      */
     public boolean close(PopupKind kind) {
-        return ouverts.remove(kind);
+        boolean change = ouverts.remove(kind);
+        if (kind == PopupKind.COMPLETION_LIST) {
+            change |= ouverts.remove(PopupKind.COMPLETION_DOC);
+        }
+        return change;
     }
 
     /** Ferme tout — la session se détache, la couche se vide. */
@@ -83,12 +111,15 @@ public final class PopupController {
     }
 
     /**
-     * La frappe : le survol et l'info-bulle se ferment, la complétion
-     * RESTE — elle filtre localement, la requête ne repart pas.
+     * La frappe : le survol, l'info-bulle et la barre de sélection se
+     * ferment (la frappe remplace la sélection), la complétion RESTE
+     * — elle filtre localement, la requête ne repart pas ; la bande
+     * d'erreurs survit — elle vit avec les diagnostics.
      */
     public void onKeystroke() {
         ouverts.remove(PopupKind.HOVER);
         ouverts.remove(PopupKind.DIAGNOSTIC_TOOLTIP);
+        ouverts.remove(PopupKind.SELECTION_BAR);
     }
 
     /**

@@ -13,6 +13,13 @@
     <string name="action_reglages">Settings</string>
     <string name="action_retour">Back</string>
     <string name="action_recherche">Search</string>
+    <string name="action_completion">Complete word</string>
+    <string name="action_intentions">Intentions at caret</string>
+    <string name="action_survol">Hover symbol doc</string>
+    <string name="barre_couper">Cut</string>
+    <string name="barre_copier">Copy</string>
+    <string name="barre_coller">Paste</string>
+    <string name="barre_tout">Select all</string>
     <string name="action_plan">Outline</string>
     <string name="action_deboguer">Debug</string>
     <string name="action_reprendre">Resume</string>

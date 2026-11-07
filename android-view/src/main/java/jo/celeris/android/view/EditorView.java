@@ -25,7 +25,6 @@ import java.util.function.Consumer;
 import jo.celeris.core.ai.SuggestionFantome;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
-import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
 import jo.celeris.core.text.TextSession;
 
@@ -71,10 +70,12 @@ public final class EditorView extends View {
 
     private final AndroidFontRuler regle = new AndroidFontRuler();
     private final CanvasSurface surface = new CanvasSurface();
-    private final FrameState etatImage = new FrameState();
+    // Visible du paquet : l'assemblage d'image (FrameAssembler) l'écrit.
+    final FrameState etatImage = new FrameState();
     private final ScrollFrame trace = new ScrollFrame();
     final SelectionDrag glissement = new SelectionDrag();
-    private final FoldModel plis = new FoldModel();
+    // Visible du paquet : la projection vit dans l'assemblage d'image.
+    final FoldModel plis = new FoldModel();
     final EditorSyntax syntaxe;
     // Visible du paquet : le banc de test y lit la mise en page servie (ADR-013).
     final RowLayoutCache cache = new RowLayoutCache();
@@ -102,17 +103,28 @@ public final class EditorView extends View {
     FontSpec policeLogique = POLICE_PAR_DEFAUT;
     EditorMetrics metrics = EditorMetrics.of(POLICE_PAR_DEFAUT, regle);
     HitTest viseur = new HitTest(metrics);
-    private final RebindingRowSource sourceLiee = new RebindingRowSource(
+    // Visible du paquet : l'assemblage d'image y pose la source liée.
+    final RebindingRowSource sourceLiee = new RebindingRowSource(
             new DocumentRowSource(session.document(), projection, metrics, 0));
-    private EditorTheme theme = EditorThemes.CLAIR;
-    private long revisionSuivie;
-    private boolean retourALaLigne;
+    // Visible du paquet : le thème se lit à l'assemblage d'image.
+    EditorTheme theme = EditorThemes.CLAIR;
+    // Visible du paquet : l'assemblage d'image suit la révision.
+    long revisionSuivie;
+    // Visible du paquet : le retour à la ligne décide du budget de colonnes.
+    boolean retourALaLigne;
     /** Publication d'analyse reçue hors fil : la source se réhabille à
      *  l'image suivante, les mises en page sans couleur de la révision
      *  courante se remplacent (volatile : posée sur le fil de travail). */
-    private volatile boolean publicationRecue;
+    volatile boolean publicationRecue;
     /** L'écouteur des changements de taille de police (D-15). */
     private @Nullable Consumer<Float> onFontSizeChanged;
+    /** Le collaborateur de l'avis de fenêtre (M7.5, §7) : les popups
+     *  se repositionnent au changement réel, jamais au clignotement.
+     *  Visible du paquet : l'assemblage d'image y pose l'avis. */
+    final ViewportWatch fenetre = new ViewportWatch();
+    /** Le collaborateur de l'assemblage d'image (ADR-006) : gouttière,
+     *  révision, défilement borné, fenêtre d'analyse, avis de fenêtre. */
+    private final FrameAssembler images = new FrameAssembler(this);
 
     float scrollX;
     float scrollY;
@@ -297,6 +309,47 @@ public final class EditorView extends View {
     }
 
     /**
+     * Le rappel des changements de fenêtre (M7.5, §7) : défilement,
+     *  zoom, police, retour à la ligne, redimensionnement — l'hôte y
+     *  repositionne ses popups, un avis par changement réel.
+     *
+     * @param ecouteur le rappel, ou {@code null} pour couper
+     */
+    public void setSurViewportChange(@Nullable Runnable ecouteur) {
+        fenetre.setListener(ecouteur);
+    }
+
+    /**
+     * Le rectangle du curseur principal, en coordonnées de la vue
+     * (M7.5, §7) — l'ancre des popups du caret : complétion, aide aux
+     * paramètres, menu d'intentions. Largeur nulle : l'ancre est le
+     * bord gauche du caractère visé, hauteur celle de la rangée.
+     *
+     * @return le rectangle du curseur principal
+     */
+    public Rect caretBounds() {
+        preparerEtatImage();
+        return PopupAnchors.caretRect(etatImage.document(), projection,
+                metrics, largeurGouttiere, scrollX, scrollY,
+                session.selection().ranges());
+    }
+
+    /**
+     * Le rectangle de la sélection principale (première plage), en
+     * coordonnées de la vue (M7.5, §7) — l'ancre de la barre de
+     * sélection : l'union des extrémités de la plage. Une plage vide
+     * rend le rectangle du curseur.
+     *
+     * @return le rectangle de la sélection principale
+     */
+    public Rect selectionBounds() {
+        preparerEtatImage();
+        return PopupAnchors.selectionRect(etatImage.document(), projection,
+                metrics, largeurGouttiere, scrollX, scrollY,
+                session.selection().ranges());
+    }
+
+    /**
      * Affiche ou masque les numéros de lignes (D-01) : masqués, la
      * gouttière se réduit à la coulisse des marqueurs (plis D-07,
      * erreurs D-02).
@@ -451,30 +504,11 @@ public final class EditorView extends View {
     /**
      * Prépare l'état d'image : gouttière AVANT le budget de colonnes
      * (le cycle est cassé, PIEGE-25), suivi de révision, bornage du
-     * défilement et fenêtre visible.
+     * défilement et fenêtre visible — l'assemblage vit dans
+     * {@link FrameAssembler}, l'avis de fenêtre y part (M7.5, §7).
      */
     private void preparerEtatImage() {
-        Document document = session.document();
-        // La gouttière ne dépend QUE de grandeurs stables : lignes du
-        // document, métriques, densité et configuration de coulisse —
-        // jamais de la projection visuelle ni d'un état d'analyse
-        // (PIEGE-25). Le budget de colonnes la lit à l'image COURANTE.
-        gouttiereEtat.setCoulisses(
-                marquesGouttiere.coulisses(syntaxe.active()));
-        largeurGouttiere = gouttiereEtat.suivre(document.lineCount(),
-                metrics.charWidth(), densite(), numerosVisibles);
-        suivreRevision(document);
-        float hauteurContenu = projection.rowCount() * metrics.lineHeight();
-        scrollY = ScrollGeometry.clamp(scrollY, hauteurContenu, getHeight());
-        scrollX = ScrollGeometry.clamp(scrollX,
-                ScrollGeometry.largeurContenu(projection, metrics),
-                ScrollGeometry.largeurVisible(getWidth(), largeurGouttiere));
-        int premiere = ScrollGeometry.firstRow(scrollY, metrics.lineHeight());
-        int visibles = ScrollGeometry.visibleRows(getHeight(), metrics.lineHeight());
-        syntaxe.fenetre(projection, premiere, visibles);
-        etatImage.beginFrame(document, session.selection(), projection,
-                document.revision(), metrics, theme, premiere, visibles,
-                largeurGouttiere, scrollX, scrollY);
+        images.preparer();
     }
 
     @Override
@@ -528,48 +562,6 @@ public final class EditorView extends View {
     @Override
     public boolean performClick() {
         return super.performClick();
-    }
-
-    private void suivreRevision(Document document) {
-        int colonnesVoulues = retourALaLigne ? budgetColonnes() : 0;
-        // La publication arrive sur le fil de travail : la source se
-        // réhabille même à révision constante.
-        boolean recue = publicationRecue;
-        if (recue) {
-            publicationRecue = false;
-        }
-        if (recue || document.revision() != revisionSuivie
-                || colonnesVoulues != projection.columns()) {
-            if (document.revision() != revisionSuivie) {
-                cache.invalidate(revisionSuivie);
-            }
-            revisionSuivie = document.revision();
-            projection = new VisualProjection(document, plis, colonnesVoulues);
-            RowSource habillee = syntaxe.habiller(
-                    new DocumentRowSource(document, projection, metrics,
-                            colonnesVoulues), document);
-            sourceLiee.set(habillee);
-            if (recue) {
-                // PIEGE-26 : la publication ne rejette pas les mesures —
-                // seules les rangées dont les plages ont changé se
-                // remplacent ; sans coloration, rien à préserver.
-                if (habillee instanceof SyntaxRowSource coloree) {
-                    cache.respan(document.revision(), coloree::respan);
-                } else {
-                    cache.invalidate(document.revision());
-                }
-            }
-        }
-    }
-
-    /** Le budget de colonnes de la fenêtre, au moins une colonne (PIEGE-08). */
-    private int budgetColonnes() {
-        float disponible = getWidth() - largeurGouttiere
-                - Math.round(MARGE_RETOUR_DP * densite());
-        if (disponible <= 0f || metrics.charWidth() <= 0f) {
-            return 1;
-        }
-        return Math.max(1, (int) Math.floor(disponible / metrics.charWidth()));
     }
 
     @Override

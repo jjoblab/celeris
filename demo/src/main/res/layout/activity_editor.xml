@@ -120,6 +120,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <!-- La couche porte-popups (M7.5, §7) : superposée à l'éditeur
+             dans la même fenêtre, elle ne prend jamais le focus — les
+             popups s'y posent en coordonnées de scène, l'atelier les
+             repositionne au défilement (PIEGE-27). -->
+        <jo.celeris.android.widgets.PopupLayer
+            android:id="@+id/couche_popups"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
         <jo.celeris.android.widgets.OutlineView
             android:id="@+id/plan"
             android:layout_width="match_parent"

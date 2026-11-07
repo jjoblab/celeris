@@ -33,6 +33,21 @@
         android:title="@string/action_annuler"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_completion"
+        android:icon="@drawable/ic_corriger"
+        android:title="@string/action_completion"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_intentions"
+        android:icon="@drawable/ic_plan"
+        android:title="@string/action_intentions"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_survol"
+        android:icon="@drawable/ic_recherche"
+        android:title="@string/action_survol"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_lint"
         android:icon="@drawable/ic_lint"
         android:title="@string/action_lint"

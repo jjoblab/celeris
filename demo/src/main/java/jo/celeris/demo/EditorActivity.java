@@ -5,13 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -44,8 +39,9 @@ import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
 import jo.celeris.android.widgets.ApercuDefinition;
+import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.android.widgets.OutlineView;
-import jo.celeris.android.widgets.SearchBarModel;
+import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.Document;
@@ -79,11 +75,7 @@ public final class EditorActivity extends AppCompatActivity {
 
     private EditorView editeur;
     private TextSession session;
-    private SearchBarModel recherche;
     private OutlineView plan;
-    private LinearLayout barreRechercheVue;
-    private EditText champRecherche;
-    private TextView compteurRecherche;
     private TextView etiquettePosition;
     private TextView etiquetteLangue;
     private TextView etiquetteArrets;
@@ -97,6 +89,9 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierDiff atelierDiff;
     private AtelierAgent atelierAgent;
     private AtelierIA atelierIA;
+    private AtelierPopups atelierPopups;
+    private AtelierRecherche atelierRecherche;
+    private AtelierSelection atelierSelection;
     private List<OutlineEntry> entreesPlan = List.of();
     private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
 
@@ -110,7 +105,6 @@ public final class EditorActivity extends AppCompatActivity {
         reference = fichier.contenu();
         chemin = CheminDoc.de("/" + nomFichier);
         session = TextSession.of(fichier.contenu(), System::nanoTime);
-        recherche = new SearchBarModel(session.document(), System::nanoTime);
         atelierLint = new AtelierLint(nomFichier, session, this::etatLint);
         atelierDiff = new AtelierDiff(this, reference, session, this::apresFusion);
         atelierAgent = new AtelierAgent(this, session, this::apresFusion);
@@ -125,8 +119,8 @@ public final class EditorActivity extends AppCompatActivity {
             }
         });
         setContentView(R.layout.activity_editor);
-        brancherBarre();
         brancherScene();
+        brancherBarre();
         appliquerPreferences();
         appliquerBordABord();
     }
@@ -150,7 +144,11 @@ public final class EditorActivity extends AppCompatActivity {
         barre.setTitle(nomFichier);
         barre.setNavigationOnClickListener(vue -> finish());
         barre.setOnMenuItemClickListener(this::surMenu);
-        actionsMenu.put(R.id.action_recherche, this::ouvrirRecherche);
+        actionsMenu.put(R.id.action_recherche, atelierRecherche::ouvrir);
+        actionsMenu.put(R.id.action_completion,
+                atelierPopups::basculerCompletion);
+        actionsMenu.put(R.id.action_intentions, atelierPopups::ouvrirIntentions);
+        actionsMenu.put(R.id.action_survol, atelierPopups::ouvrirSurvol);
         actionsMenu.put(R.id.action_plan, this::basculerPlan);
         actionsMenu.put(R.id.action_debogage, this::basculerDebogage);
         actionsMenu.put(R.id.action_retour_ligne, this::basculerRetourLigne);
@@ -168,35 +166,6 @@ public final class EditorActivity extends AppCompatActivity {
         actionsMenu.put(R.id.action_agrandir, () -> zoomerPolice(PAS_TAILLE));
         actionsMenu.put(R.id.action_reglages,
                 () -> startActivity(new Intent(this, SettingsActivity.class)));
-
-        barreRechercheVue = findViewById(R.id.barre_recherche);
-        champRecherche = findViewById(R.id.champ_recherche);
-        champRecherche.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int d, int n, int a) {
-                // seul l'après intéresse la barre
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int d, int n, int a) {
-                // seul l'après intéresse la barre
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                recherche.setQuery(s.toString());
-                majCompteurRecherche();
-            }
-        });
-        compteurRecherche = findViewById(R.id.compteur_recherche);
-        bouton(R.id.bouton_precedent, vue -> sauterRecherche(false));
-        bouton(R.id.bouton_suivant, vue -> sauterRecherche(true));
-        bouton(R.id.bouton_fermer_recherche, vue -> fermerRecherche());
-    }
-
-    private void bouton(int identifiant, View.OnClickListener ecouteur) {
-        ImageButton bouton = findViewById(identifiant);
-        bouton.setOnClickListener(ecouteur);
     }
 
     private boolean surMenu(MenuItem element) {
@@ -212,10 +181,8 @@ public final class EditorActivity extends AppCompatActivity {
         editeur = findViewById(R.id.editeur);
         // Le contenu du fichier ouvert doit vivre dans l'éditeur.
         editeur.setSession(session);
-        // L'atelier IA (F-01, F-02, F-03) : le faux modèle local, sans
-        // réseau — les actions vivent au menu comme les intentions
-        // classiques.
         atelierIA = new AtelierIA(this, editeur, session, nomFichier);
+        brancherAteliers();
         // Toute animation de vue (défilement, clic) rafraîchit la
         // position ; les clics restent portés par EditorView, qui
         // redéfinit performClick.
@@ -225,7 +192,10 @@ public final class EditorActivity extends AppCompatActivity {
         });
         editeur.setSurPlan(entrees -> {
             entreesPlan = entrees;
-            editeur.post(() -> plan.setEntries(entrees));
+            editeur.post(() -> {
+                plan.setEntries(entrees);
+                atelierPopups.setPlan(entrees);
+            });
         });
         // La gouttière s'adapte à la classe de largeur de la fenêtre
         // (D-19) — le pliable déplié change de classe d'un geste.
@@ -248,6 +218,31 @@ public final class EditorActivity extends AppCompatActivity {
         etiquettePosition = findViewById(R.id.etat_position);
         etiquetteLangue = findViewById(R.id.etat_langue);
         etiquetteArrets = findViewById(R.id.etat_arrets);
+    }
+
+    /**
+     * Les ateliers d'interaction (M7.5, §7, reprise) : l'IA (F-01 à
+     * F-03), les DIX popups sur la couche posée — jamais de focus volé
+     * (PIEGE-27) —, la recherche dépliable et la sélection au
+     * presse-papiers local.
+     */
+    private void brancherAteliers() {
+        // L'atelier des popups : la couche posée sur l'éditeur porte
+        // les dix popups, la machine à états décide qui reste ouvert.
+        PopupLayer couche = findViewById(R.id.couche_popups);
+        atelierPopups = new AtelierPopups(editeur, session, couche,
+                indexThemeCourant() != 0);
+        atelierPopups.setNomFichier(nomFichier);
+        atelierPopups.configurerIntentions(intentionsAuCurseur());
+        atelierSelection = new AtelierSelection(editeur, session);
+        atelierPopups.configurerActionsSelection(atelierSelection.items(
+                getString(R.string.barre_couper),
+                getString(R.string.barre_copier),
+                getString(R.string.barre_coller),
+                getString(R.string.barre_tout)));
+        atelierRecherche = new AtelierRecherche(this, editeur, session,
+                atelierPopups::ouvrirRecherche, atelierPopups::fermerRecherche);
+        atelierRecherche.brancher();
     }
 
     /** Le chrome s'étend bord à bord : encarts système et clavier
@@ -345,36 +340,24 @@ public final class EditorActivity extends AppCompatActivity {
                                 : R.string.retour_inactif)));
     }
 
-    private void ouvrirRecherche() {
-        barreRechercheVue.setVisibility(View.VISIBLE);
-        List<SelRange> plages = session.selection().ranges();
-        recherche.setCurrentNear(plages.isEmpty() ? 0 : plages.get(0).caret());
-        champRecherche.requestFocus();
-        majCompteurRecherche();
-    }
-
-    private void fermerRecherche() {
-        barreRechercheVue.setVisibility(View.GONE);
-        editeur.requestFocus();
-    }
-
-    private void sauterRecherche(boolean enAvant) {
-        boolean trouve = enAvant ? recherche.next() : recherche.previous();
-        SelRange courant = recherche.current();
-        if (trouve && courant != null) {
-            NavigationCommands.selectRange(editeur, courant.start(), courant.end());
-        }
-        majCompteurRecherche();
-    }
-
-    private void majCompteurRecherche() {
-        int nombre = recherche.matches().size();
-        if (nombre == 0) {
-            compteurRecherche.setText(R.string.aucun_resultat);
-            return;
-        }
-        int index = Math.max(recherche.currentIndex(), 0);
-        compteurRecherche.setText(getString(R.string.compteur_recherche, index + 1, nombre));
+    /** Les intentions du menu : les actions de l'atelier au curseur. */
+    private List<IntentionsMenuView.Item> intentionsAuCurseur() {
+        return List.of(
+                new IntentionsMenuView.Item(getString(R.string.action_lint),
+                        this::analyserLint),
+                new IntentionsMenuView.Item(
+                        getString(R.string.action_apercu),
+                        this::apercuDefinition),
+                new IntentionsMenuView.Item(getString(R.string.action_diff),
+                        atelierDiff::ouvrir),
+                new IntentionsMenuView.Item(getString(R.string.action_agent),
+                        atelierAgent::ouvrir),
+                new IntentionsMenuView.Item(
+                        getString(R.string.action_ia_fantome),
+                        () -> atelierIA.demanderFantome()),
+                new IntentionsMenuView.Item(
+                        getString(R.string.action_ia_prediction),
+                        () -> atelierIA.demanderPrediction()));
     }
 
     private void sautVersEntree(OutlineEntry entree) {
@@ -461,6 +444,7 @@ public final class EditorActivity extends AppCompatActivity {
     private void etatLint(List<DiagnosticHote> diagnostics) {
         editeur.marquesGouttiere().setErreursImportees(
                 atelierLint.lignesMarquees());
+        atelierPopups.setDiagnostics(diagnostics);
         if (!diagnostics.isEmpty()) {
             etiquetteArrets.setText(getResources().getQuantityString(
                     R.plurals.etat_lint, diagnostics.size(), diagnostics.size()));
