@@ -7,6 +7,26 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.5 — reprise : le branchement de l'intelligence (2026-11-07)
+
+- Le SPI IntelligenceHub.Provider vit sur la vue : les moteurs purs
+  répondent enfin aux événements réels — la frappe validée pose ses
+  paires (A-05, A-08), l'Entrée porte l'indentation de l'arbre et
+  cesse d'être muette (A-06), le retour arrière mange les paires
+  vides (A-07), le collage multiligne s'aligne à l'accueil (A-09) ;
+  sans fournisseur la frappe passe telle quelle, l'Entrée reste un
+  saut nu. La complétion de la démonstration lit les mots du CODE par
+  l'analyse publiée — jamais les chaînes (B-03) —, le coach ne garde
+  que le repli. L'atelier de refactorisation porte gabarit (A-22),
+  formatage (B-25), renommage des usages entiers (B-19) et import
+  (B-27) au menu, chaque geste une transaction annulable. Le serveur
+  de langage de référence vit EN PROCESSUS : l'aide aux paramètres
+  (B-07) et le survol (B-09) arrivent par le fil du protocole,
+  l'ordonnanceur annule et remplace (PIEGE-18). La démonstration
+  vérifie ses scénarios : douze spécifications rejouées par le fil
+  réel au banc de l'accueil, douze lignes de la matrice montent à
+  « Démontré ». La recette s'enrichit des étapes 12 à 27.
+
 ### M7.5 — reprise : les dix popups (2026-11-07)
 
 - Les dix popups se posent sur la couche : PopupController porte leurs

@@ -223,8 +223,17 @@ final class EditorInputConnection implements InputConnection {
 
     @Override
     public boolean commitText(CharSequence text, int newCursorPosition) {
+        // M7.5 §8 — la frappe intelligente ne touche qu'aux textes
+        // VALIDÉS : la composition reste l'affaire de l'IME, sa
+        // région lui appartient. Le fournisseur absent laisse la
+        // voie simple (sauf l'Entrée, jamais muette).
+        String contenu = text.toString();
+        if (!composition.isComposing() && vue.intelligence.onCommit(contenu)) {
+            vue.invalidate();
+            return true;
+        }
         return appliquer(composition.planCommit(vue.session().document(),
-                primaire(), text.toString(), newCursorPosition));
+                primaire(), contenu, newCursorPosition));
     }
 
     /** Variante à attribut (niveau 33) : l'attribut n'est pas porté. */

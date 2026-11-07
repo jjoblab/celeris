@@ -29,8 +29,15 @@ final class KeyActions {
         TextSession session = vue.session();
         Document document = session.document();
         switch (action) {
-            case DELETE_BACKWARD -> session.deleteBackward();
+            case DELETE_BACKWARD -> {
+                // M7.5 §8 — la paire vide et le cran d'indentation
+                // passent par le fournisseur, la main au cœur sinon.
+                if (!vue.intelligence.backspaceTyped()) {
+                    session.deleteBackward();
+                }
+            }
             case DELETE_FORWARD -> session.deleteForward();
+            case ENTER -> vue.intelligence.enterTyped();
             case UNDO -> session.undo();
             case REDO -> session.redo();
             case SELECT_ALL -> session.setSelection(MultiSelection.of(

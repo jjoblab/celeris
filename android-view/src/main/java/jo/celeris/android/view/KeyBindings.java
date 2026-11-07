@@ -67,6 +67,9 @@ public final class KeyBindings {
         lier(table, EditorAction.SELECT_ALL, new KeyBinding(29, false, true, false));
         lier(table, EditorAction.DELETE_BACKWARD, new KeyBinding(67, false, false, false));
         lier(table, EditorAction.DELETE_FORWARD, new KeyBinding(112, false, false, false));
+        // A-06 — l'Entrée (66) porte l'indentation quand un fournisseur
+        // d'intelligence vit sur la vue, le saut nu sinon.
+        lier(table, EditorAction.ENTER, new KeyBinding(66, false, false, false));
         lier(table, EditorAction.UNDO, new KeyBinding(54, false, true, false));
         lier(table, EditorAction.REDO, new KeyBinding(52, false, true, false));
         lier(table, EditorAction.ACCEPT_FANTOME,

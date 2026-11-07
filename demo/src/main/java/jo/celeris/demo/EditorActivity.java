@@ -90,8 +90,11 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierAgent atelierAgent;
     private AtelierIA atelierIA;
     private AtelierPopups atelierPopups;
+    private AtelierRefactor atelierRefactor;
     private AtelierRecherche atelierRecherche;
     private AtelierSelection atelierSelection;
+    /** La session de langage — serveur de référence en processus (M7.5, §8). */
+    private ServeurLangage serveurLangage;
     private List<OutlineEntry> entreesPlan = List.of();
     private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
 
@@ -132,6 +135,15 @@ public final class EditorActivity extends AppCompatActivity {
         appliquerPreferences();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // La session de langage vit avec l'activité — transports fermés d'entrée.
+        if (serveurLangage != null) {
+            serveurLangage.close();
+        }
+    }
+
     private FichierExemple resoudreFichier() {
         String demande = getIntent().getStringExtra(EXTRA_FICHIER);
         FichierExemple fichier = FichiersExemple.parNom(
@@ -156,6 +168,10 @@ public final class EditorActivity extends AppCompatActivity {
         actionsMenu.put(R.id.action_retablir, () -> rejouer(true));
         actionsMenu.put(R.id.action_lint, this::analyserLint);
         actionsMenu.put(R.id.action_corriger, this::corrigerLint);
+        actionsMenu.put(R.id.action_gabarit, atelierRefactor::insererGabarit);
+        actionsMenu.put(R.id.action_formater, atelierRefactor::formaterDocument);
+        actionsMenu.put(R.id.action_renommer, atelierRefactor::renommerSymbole);
+        actionsMenu.put(R.id.action_importer, atelierRefactor::importerListe);
         actionsMenu.put(R.id.action_apercu, this::apercuDefinition);
         actionsMenu.put(R.id.action_diff, atelierDiff::ouvrir);
         actionsMenu.put(R.id.action_agent, atelierAgent::ouvrir);
@@ -181,6 +197,10 @@ public final class EditorActivity extends AppCompatActivity {
         editeur = findViewById(R.id.editeur);
         // Le contenu du fichier ouvert doit vivre dans l'éditeur.
         editeur.setSession(session);
+        // L'intelligence de la démonstration se pose sur la vue (M7.5,
+        // §8) : frappe intelligente, Entrée indentée, collage réindenté,
+        // complétion par les mots du code.
+        editeur.intelligence().setProvider(new DemoIntelligence());
         atelierIA = new AtelierIA(this, editeur, session, nomFichier);
         brancherAteliers();
         // Toute animation de vue (défilement, clic) rafraîchit la
@@ -227,6 +247,10 @@ public final class EditorActivity extends AppCompatActivity {
      * presse-papiers local.
      */
     private void brancherAteliers() {
+        // La refactorisation et le serveur de langage en processus (M7.5, §8).
+        atelierRefactor = new AtelierRefactor(this, editeur, session,
+                nomFichier, this::verdictRefactor);
+        serveurLangage = ServeurLangage.demarrer();
         // L'atelier des popups : la couche posée sur l'éditeur porte
         // les dix popups, la machine à états décide qui reste ouvert.
         PopupLayer couche = findViewById(R.id.couche_popups);
@@ -234,6 +258,8 @@ public final class EditorActivity extends AppCompatActivity {
                 indexThemeCourant() != 0);
         atelierPopups.setNomFichier(nomFichier);
         atelierPopups.configurerIntentions(intentionsAuCurseur());
+        atelierPopups.brancherServeur(serveurLangage,
+                "file:///" + nomFichier);
         atelierSelection = new AtelierSelection(editeur, session);
         atelierPopups.configurerActionsSelection(atelierSelection.items(
                 getString(R.string.barre_couper),
@@ -421,6 +447,12 @@ public final class EditorActivity extends AppCompatActivity {
 
     private void analyserLint() {
         atelierLint.analyser();
+    }
+
+    /** Le verdict des ateliers : la barre d'état le publie. */
+    private void verdictRefactor(CharSequence message) {
+        etiquetteArrets.setText(message);
+        etiquetteArrets.setVisibility(View.VISIBLE);
     }
 
     /**

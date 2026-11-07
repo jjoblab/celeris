@@ -53,6 +53,26 @@
         android:title="@string/action_lint"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_gabarit"
+        android:icon="@drawable/ic_corriger"
+        android:title="@string/action_gabarit"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_formater"
+        android:icon="@drawable/ic_corriger"
+        android:title="@string/action_formater"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_renommer"
+        android:icon="@drawable/ic_plan"
+        android:title="@string/action_renommer"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_importer"
+        android:icon="@drawable/ic_corriger"
+        android:title="@string/action_importer"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_corriger"
         android:icon="@drawable/ic_corriger"
         android:title="@string/action_corriger"
