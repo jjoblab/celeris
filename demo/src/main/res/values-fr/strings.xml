@@ -20,6 +20,10 @@
     <string name="action_retablir">Rétablir</string>
     <string name="action_theme">Thème</string>
     <string name="choix_theme">Thème : %1$s</string>
+    <string name="action_retour_ligne">Retour à la ligne</string>
+    <string name="choix_retour_ligne">Retour à la ligne : %1$s</string>
+    <string name="retour_actif">activé</string>
+    <string name="retour_inactif">coupé</string>
     <string name="theme_clair">Clair</string>
     <string name="theme_sombre">Sombre</string>
     <string name="theme_contraste">Contraste élevé</string>

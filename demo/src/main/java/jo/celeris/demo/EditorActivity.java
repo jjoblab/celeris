@@ -166,6 +166,8 @@ public final class EditorActivity extends AppCompatActivity {
             basculerPlan();
         } else if (action == R.id.action_debogage) {
             basculerDebogage();
+        } else if (action == R.id.action_retour_ligne) {
+            basculerRetourLigne();
         } else if (action == R.id.action_annuler) {
             rejouer(false);
         } else if (action == R.id.action_retablir) {
@@ -238,6 +240,7 @@ public final class EditorActivity extends AppCompatActivity {
         editeur.setLanguage(langue);
         etiquetteLangue.setText(langue == null ? nomFichier : langue.id());
         majTitreTheme();
+        majTitreRetourLigne();
         majPosition();
     }
 
@@ -285,6 +288,28 @@ public final class EditorActivity extends AppCompatActivity {
 
     private void basculerPlan() {
         plan.setVisibility(plan.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+    }
+
+    /**
+     * Bascule le retour à la ligne souple (A-18) depuis l'atelier :
+     * l'état se persiste — les réglages et le retour de l'atelier
+     * relisent le même état — et le libellé du menu le dit.
+     */
+    private void basculerRetourLigne() {
+        boolean actif = !prefs.getBoolean(CLE_RETOUR, false);
+        prefs.edit().putBoolean(CLE_RETOUR, actif).apply();
+        editeur.setSoftWrap(actif);
+        majTitreRetourLigne();
+    }
+
+    /** Le libellé du menu du retour à la ligne suit l'état courant. */
+    private void majTitreRetourLigne() {
+        boolean actif = prefs.getBoolean(CLE_RETOUR, false);
+        MaterialToolbar barre = findViewById(R.id.barre_editeur);
+        barre.getMenu().findItem(R.id.action_retour_ligne)
+                .setTitle(getString(R.string.choix_retour_ligne,
+                        getString(actif ? R.string.retour_actif
+                                : R.string.retour_inactif)));
     }
 
     private void ouvrirRecherche() {

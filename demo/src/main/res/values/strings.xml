@@ -20,6 +20,10 @@
     <string name="action_retablir">Redo</string>
     <string name="action_theme">Theme</string>
     <string name="choix_theme">Theme: %1$s</string>
+    <string name="action_retour_ligne">Word wrap</string>
+    <string name="choix_retour_ligne">Word wrap: %1$s</string>
+    <string name="retour_actif">on</string>
+    <string name="retour_inactif">off</string>
     <string name="theme_clair">Light</string>
     <string name="theme_sombre">Dark</string>
     <string name="theme_contraste">High contrast</string>

@@ -21,6 +21,11 @@
         android:icon="@drawable/ic_debogage"
         android:title="@string/action_deboguer"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/action_retour_ligne"
+        android:icon="@drawable/ic_retour_ligne"
+        android:title="@string/action_retour_ligne"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_annuler"
