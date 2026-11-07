@@ -43,6 +43,7 @@ public final class TextSession {
     private final UndoStack undoStack;
     private final LongSupplier clock;
     private final List<EditListener> listeners = new ArrayList<>();
+    private final List<SelectionListener> selectionListeners = new ArrayList<>();
     private final List<PositionProjector> projectors = new ArrayList<>();
     private MultiSelection selection = MultiSelection.caretsAt(0);
     private boolean readOnly;
@@ -122,7 +123,9 @@ public final class TextSession {
                         + " beyond document length " + document.length());
             }
         }
+        MultiSelection avant = selection;
         selection = newSelection;
+        notifierSelection(avant);
     }
 
     /**
@@ -154,6 +157,26 @@ public final class TextSession {
      */
     public void removeEditListener(EditListener listener) {
         listeners.remove(listener);
+    }
+
+    /**
+     * Abonne un auditeur de sélection (notifié aussi par la projection
+     * des éditions, l'annulation et le refaire) — la barre de sélection
+     * des popups (M7.5, §7) y vit, de toute source de changement.
+     *
+     * @param listener l'auditeur
+     */
+    public void addSelectionListener(SelectionListener listener) {
+        selectionListeners.add(listener);
+    }
+
+    /**
+     * Désabonne un auditeur de sélection.
+     *
+     * @param listener l'auditeur à détacher
+     */
+    public void removeSelectionListener(SelectionListener listener) {
+        selectionListeners.remove(listener);
     }
 
     /**
@@ -191,6 +214,7 @@ public final class TextSession {
         MultiSelection avant = selection;
         appliquer(editions);
         enregistrer(editions, avant, selection);
+        notifierSelection(avant);
         return true;
     }
 
@@ -217,7 +241,9 @@ public final class TextSession {
             return false;
         }
         if (transaction.isEmpty()) {
+            MultiSelection avant = selection;
             selection = selectionAfter;
+            notifierSelection(avant);
             return true;
         }
         List<TextEdit> editions = transaction.edits();
@@ -226,6 +252,7 @@ public final class TextSession {
         appliquer(editions);
         selection = selectionAfter;
         enregistrer(editions, avant, selectionAfter);
+        notifierSelection(avant);
         return true;
     }
 
@@ -253,6 +280,7 @@ public final class TextSession {
         MultiSelection avant = selection;
         appliquer(editions);
         enregistrer(editions, avant, selection);
+        notifierSelection(avant);
         return true;
     }
 
@@ -280,6 +308,7 @@ public final class TextSession {
         validerBornes(editions);
         appliquer(editions);
         enregistrer(editions, avant, selection);
+        notifierSelection(avant);
         return true;
     }
 
@@ -309,6 +338,7 @@ public final class TextSession {
         validerBornes(editions);
         appliquer(editions);
         enregistrer(editions, avant, selection);
+        notifierSelection(avant);
         return true;
     }
 
@@ -338,6 +368,7 @@ public final class TextSession {
         validerBornes(editions);
         appliquer(editions);
         enregistrer(editions, avant, selection);
+        notifierSelection(avant);
         return true;
     }
 
@@ -382,6 +413,7 @@ public final class TextSession {
         MultiSelection avant = selection;
         appliquer(ajustees);
         undoStack.pushStep(new UndoStep(ajustees, avant, selection));
+        notifierSelection(avant);
         return ajustees.size();
     }
 
@@ -404,9 +436,11 @@ public final class TextSession {
             return false;
         }
         appliquer(editionsInverses(step));
+        MultiSelection avant = selection;
         if (step.selectionBefore() != null) {
             selection = step.selectionBefore();
         }
+        notifierSelection(avant);
         return true;
     }
 
@@ -428,9 +462,11 @@ public final class TextSession {
             return false;
         }
         appliquer(step.edits());
+        MultiSelection avant = selection;
         if (step.selectionAfter() != null) {
             selection = step.selectionAfter();
         }
+        notifierSelection(avant);
         return true;
     }
 
@@ -452,6 +488,15 @@ public final class TextSession {
     /** Nombre d'étapes à refaire. */
     public int redoDepth() {
         return undoStack.redoDepth();
+    }
+
+    private void notifierSelection(MultiSelection avant) {
+        if (avant.equals(selection)) {
+            return;
+        }
+        for (SelectionListener listener : selectionListeners) {
+            listener.onSelectionChanged(selection);
+        }
     }
 
     private static List<TextEdit> editionsInverses(UndoStep step) {

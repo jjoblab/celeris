@@ -425,6 +425,12 @@ public final class jo.celeris.core.text.SelRange extends java.lang.Record {
   public int caret();
 }
 
+### jo.celeris.core.text.SelectionListener
+Compiled from "SelectionListener.java"
+public interface jo.celeris.core.text.SelectionListener {
+  public abstract void onSelectionChanged(jo.celeris.core.text.MultiSelection);
+}
+
 ### jo.celeris.core.text.SoftWrap$Measurer
 Compiled from "SoftWrap.java"
 public interface jo.celeris.core.text.SoftWrap$Measurer {
@@ -466,6 +472,8 @@ public final class jo.celeris.core.text.TextSession {
   public void setReadOnly(boolean);
   public void addEditListener(jo.celeris.core.text.EditListener);
   public void removeEditListener(jo.celeris.core.text.EditListener);
+  public void addSelectionListener(jo.celeris.core.text.SelectionListener);
+  public void removeSelectionListener(jo.celeris.core.text.SelectionListener);
   public void addProjector(jo.celeris.core.text.PositionProjector);
   public boolean apply(jo.celeris.core.text.Transaction);
   public boolean apply(jo.celeris.core.text.Transaction, jo.celeris.core.text.MultiSelection);
