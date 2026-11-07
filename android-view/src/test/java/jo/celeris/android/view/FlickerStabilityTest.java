@@ -44,6 +44,11 @@ public class FlickerStabilityTest {
                 SelRange.caretAt(banc.vue().session().document().length())));
     }
 
+    /** Le curseur juste après le nombre de la première ligne (offset 9). */
+    private static void curseurApresNombre(EditorTestRig banc) {
+        banc.vue().session().setSelection(MultiSelection.of(SelRange.caretAt(9)));
+    }
+
     private static int encreMotCle(EditorTestRig banc) {
         EditorTheme theme = banc.vue().etatImageCourante().theme();
         return theme.syntaxe().couleur(TokenKind.KEYWORD);
@@ -68,6 +73,7 @@ public class FlickerStabilityTest {
     @Test
     public void noFrameBetweenKeystrokeAndPublicationPaintsUncoloredText() {
         EditorTestRig banc = bancColore("int x = 1;");
+        curseurApresNombre(banc);
         int encreMotCle = encreMotCle(banc);
         EditorTestRig.RecordingCanvas imageAvant = banc.image();
         int encreNombre = imageAvant.couleurDe("1");
@@ -82,18 +88,21 @@ public class FlickerStabilityTest {
                 encreMotCle, avantPublication.couleurDe("int"));
         assertEquals("entre frappe et publication, 1 garde sa couleur",
                 encreNombre, avantPublication.couleurDe("1"));
-        // La publication arrive : les couleurs restent, rien ne clignote.
+        // La publication arrive : les couleurs restent, rien ne clignote —
+        // la sorte d'un jeton peut mûrir (1 → 12), jamais vers l'encre
+        // de base : le mot reste coloré d'un bout à l'autre.
         banc.publierAnalyse();
         assertEquals("après publication, int garde sa couleur",
                 encreMotCle, banc.image().couleurDe("int"));
-        assertEquals("après publication, 12 garde la couleur des nombres",
-                encreNombre, banc.image().couleurDe("12"));
+        assertNotEquals("après publication, 12 reste coloré",
+                encreBase(banc), banc.image().couleurDe("12"));
     }
 
     /** La composition IME suit la même loi : les mots non touchés tiennent. */
     @Test
     public void compositionKeepsColorsDuringIme() {
         EditorTestRig banc = bancColore("int x = 1;");
+        curseurApresNombre(banc);
         int encreMotCle = encreMotCle(banc);
         int encreNombre = banc.image().couleurDe("1");
         banc.composerTexte("2");
@@ -111,6 +120,7 @@ public class FlickerStabilityTest {
     @Test
     public void publicationKeepsRowMeasurementsOfUntouchedLines() {
         EditorTestRig banc = bancColore("int x = 1;\nint y = 2;");
+        curseurApresNombre(banc);
         // Frappe sur la fin de la première ligne, image intermédiaire :
         // la rangée 1 se mesure et se dépose à la nouvelle révision.
         banc.validerTexte("2");

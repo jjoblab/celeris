@@ -223,22 +223,24 @@ class SyntaxRowSourceTest {
     }
 
     /**
-     * Sous remappage (publication périmée), la ligne épargnée par
+     * Sous rattrapage (publication périmée), la ligne épargnée par
      * l'édition garde les plages de SA ligne du document publié — les
-     * jetons relatifs à la ligne restent exacts (ADR-004).
+     * jetons relatifs à la ligne restent exacts (ADR-004, PIEGE-26).
      */
     @Test
-    void remappeeLaLigneEpargneeGardeSesPlages() {
+    void rattapeeLaLigneEpargneeGardeSesPlages() {
         // Publié : trois lignes ; l'édition remplace « b » par « bb » à
         // la ligne 1 (delta nul) : les lignes 0 et 2 sont épargnées.
         String publie = "int a = 1;\nint b = 2;\nint c = 3;";
         String edite = "int a = 1;\nint bb = 2;\nint c = 3;";
         Document document = Document.of(edite);
-        RemapLignes remap = RemapLignes.de(List.of(new EditSite(1, 1, 0)));
+        TokenCatchUp rattrapage = TokenCatchUp.of(lexique(publie),
+                List.of(new TokenCatchUp.PendingEdit(4, 1, 2, 1, false)),
+                List.of(new EditSite(1, 1, 0)), document, null);
         SyntaxRowSource source = new SyntaxRowSource(
                 new SourceParLigne(document, EditorMetrics.of(
                         new FontSpec("mono", 14f), new RegleFixe())),
-                lexique(publie), remap);
+                lexique(publie), rattrapage);
 
         RowLayout ligneDeux = source.layoutOf(
                 new RowKey(1L, 2, 1, new FontSpec("mono", 14f)));
@@ -249,51 +251,86 @@ class SyntaxRowSourceTest {
     }
 
     /**
-     * La ligne touchée par l'édition en attente retombe à l'encre de
-     * base : aucune plage de la publication ne peut la colorer.
+     * PIEGE-26 — la ligne touchée par l'édition en attente garde ses
+     * couleurs : ses jetons publiés se recalent, le mot réservé reste
+     * un mot réservé, le nombre un nombre.
      */
     @Test
-    void remappeeLaLigneToucheeResteSansPlage() {
+    void rattapeeLaLigneToucheeGardeSesCouleurs() {
         String publie = "int a = 1;\nint b = 2;\nint c = 3;";
         String edite = "int a = 1;\nint bb = 2;\nint c = 3;";
         Document document = Document.of(edite);
-        RemapLignes remap = RemapLignes.de(List.of(new EditSite(1, 1, 0)));
+        TokenCatchUp rattrapage = TokenCatchUp.of(lexique(publie),
+                List.of(new TokenCatchUp.PendingEdit(4, 1, 2, 1, false)),
+                List.of(new EditSite(1, 1, 0)), document, null);
         SyntaxRowSource source = new SyntaxRowSource(
                 new SourceParLigne(document, EditorMetrics.of(
                         new FontSpec("mono", 14f), new RegleFixe())),
-                lexique(publie), remap);
+                lexique(publie), rattrapage);
 
         RowLayout ligneUne = source.layoutOf(
                 new RowKey(1L, 1, 1, new FontSpec("mono", 14f)));
-        assertTrue(ligneUne.spans().isEmpty(),
-                "la ligne touchée attend sa publication : encre de base");
+        assertEquals("int bb = 2;", reconstruit(ligneUne),
+                "la ligne touchée se couvre exactement");
+        assertEquals(TokenKind.KEYWORD, ligneUne.spans().get(0).kind(),
+                "le mot réservé garde sa couleur à travers l'édition");
     }
 
     /**
-     * Une insertion de ligne décale les suivantes : la rangée sous
-     * l'insertion se pare des jetons de l'ANCIENNE ligne à son index
-     * publié — le contenu a glissé, les jetons relatifs le suivent.
+     * Une insertion de ligne (édition structurelle) décale les
+     * suivantes : la ligne décalée porte les plages de l'ANCIENNE ligne
+     * à son index publié ; la ligne vide insérée, sans lexeur à défaut
+     * de langage, reste à l'encre de base.
      */
     @Test
-    void remappeeLigneInsereeDecaleLesSuivantes() {
+    void rattapeeLigneInsereeDecaleLesSuivantes() {
         // Publié : deux lignes ; l'édition insère une ligne vide en tête.
         String publie = "int a = 1;\nint b = 2;";
         String edite = "\nint a = 1;\nint b = 2;";
         Document document = Document.of(edite);
-        RemapLignes remap = RemapLignes.de(List.of(new EditSite(0, 0, 1)));
+        TokenCatchUp rattrapage = TokenCatchUp.of(lexique(publie),
+                List.of(new TokenCatchUp.PendingEdit(0, 0, 1, 0, true)),
+                List.of(new EditSite(0, 0, 1)), document, null);
         SyntaxRowSource source = new SyntaxRowSource(
                 new SourceParLigne(document, EditorMetrics.of(
                         new FontSpec("mono", 14f), new RegleFixe())),
-                lexique(publie), remap);
+                lexique(publie), rattrapage);
 
         RowLayout ligneInseree = source.layoutOf(
                 new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
         assertTrue(ligneInseree.spans().isEmpty(),
-                "la ligne insérée n'existait pas au publié : encre de base");
+                "la ligne insérée vide n'a rien à colorer");
         RowLayout ligneDecalee = source.layoutOf(
                 new RowKey(1L, 1, 1, new FontSpec("mono", 14f)));
         assertEquals("int a = 1;", reconstruit(ligneDecalee),
                 "la ligne décalée porte les plages de sa ligne publiée");
         assertEquals(TokenKind.KEYWORD, ligneDecalee.spans().get(0).kind());
+    }
+
+    /**
+     * PIEGE-26 — deux éditions consécutives en attente se composent :
+     * la ligne garde ses couleurs à travers les deux frappes.
+     */
+    @Test
+    void rattapeeDeuxEditionsConsecutives() {
+        String publie = "int a = 1;";
+        String edite = "int axy = 1;";
+        Document document = Document.of(edite);
+        // « x » puis « y » insérés après le a — la seconde en coordonnées
+        // publiées (4), la chirurgie compose les deux.
+        TokenCatchUp rattrapage = TokenCatchUp.of(lexique(publie),
+                List.of(new TokenCatchUp.PendingEdit(4, 0, 1, 0, false),
+                        new TokenCatchUp.PendingEdit(4, 0, 1, 0, false)),
+                List.of(new EditSite(0, 0, 0), new EditSite(0, 0, 0)),
+                document, null);
+        SyntaxRowSource source = new SyntaxRowSource(
+                new SourceParLigne(document, EditorMetrics.of(
+                        new FontSpec("mono", 14f), new RegleFixe())),
+                lexique(publie), rattrapage);
+        RowLayout ligne = source.layoutOf(
+                new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
+        assertEquals("int axy = 1;", reconstruit(ligne),
+                "les deux insertions composées couvrent la ligne");
+        assertEquals(TokenKind.KEYWORD, ligne.spans().get(0).kind());
     }
 }

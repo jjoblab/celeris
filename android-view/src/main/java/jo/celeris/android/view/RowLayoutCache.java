@@ -2,6 +2,8 @@ package jo.celeris.android.view;
 
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.UnaryOperator;
+
 /**
  * Cache de mises en page par rangée, indexé sur des valeurs immuables
  * (PIEGE-02, ADR-006).
@@ -122,6 +124,24 @@ public final class RowLayoutCache {
     public void clear() {
         table = new Entree[CAPACITE_INITIALE];
         nombre = 0;
+    }
+
+    /**
+     * Re-spanne les mises en page de la révision donnée : l'opérateur
+     * rend la même instance quand les plages n'ont pas changé — la
+     * MESURE survit à la publication, seules les rangées dont les
+     * couleurs ont bougé se remplacent (PIEGE-26).
+     *
+     * @param revision la révision des mises en page à re-spanner
+     * @param aJour     l'opérateur de re-span, rendant la même instance
+     *                  sans changement
+     */
+    public void respan(long revision, UnaryOperator<RowLayout> aJour) {
+        for (Entree caseCourante : table) {
+            if (caseCourante != null && caseCourante.cle.revision() == revision) {
+                caseCourante.valeur = aJour.apply(caseCourante.valeur);
+            }
+        }
     }
 
     /** Le nombre de mises en page en cache. */

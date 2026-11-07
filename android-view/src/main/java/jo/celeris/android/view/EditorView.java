@@ -533,23 +533,32 @@ public final class EditorView extends View {
     private void suivreRevision(Document document) {
         int colonnesVoulues = retourALaLigne ? budgetColonnes() : 0;
         // La publication arrive sur le fil de travail : la source se
-        // réhabille même à révision constante — les mises en page
-        // déposées sans couleur pendant le vol se remplacent (le cache
-        // les servait telles quelles, la couleur ne revenait qu'à
-        // l'édition suivante).
+        // réhabille même à révision constante.
         boolean recue = publicationRecue;
         if (recue) {
             publicationRecue = false;
-            cache.invalidate(document.revision());
         }
         if (recue || document.revision() != revisionSuivie
                 || colonnesVoulues != projection.columns()) {
-            cache.invalidate(revisionSuivie);
+            if (document.revision() != revisionSuivie) {
+                cache.invalidate(revisionSuivie);
+            }
             revisionSuivie = document.revision();
             projection = new VisualProjection(document, plis, colonnesVoulues);
-            sourceLiee.set(syntaxe.habiller(
+            RowSource habillee = syntaxe.habiller(
                     new DocumentRowSource(document, projection, metrics,
-                            colonnesVoulues), document));
+                            colonnesVoulues), document);
+            sourceLiee.set(habillee);
+            if (recue) {
+                // PIEGE-26 : la publication ne rejette pas les mesures —
+                // seules les rangées dont les plages ont changé se
+                // remplacent ; sans coloration, rien à préserver.
+                if (habillee instanceof SyntaxRowSource coloree) {
+                    cache.respan(document.revision(), coloree::respan);
+                } else {
+                    cache.invalidate(document.revision());
+                }
+            }
         }
     }
 
