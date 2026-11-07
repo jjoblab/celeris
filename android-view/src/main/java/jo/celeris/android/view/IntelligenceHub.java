@@ -163,8 +163,15 @@ public final class IntelligenceHub {
         };
     }
 
-    /** Pose le fournisseur — null coupe l'intelligence, la frappe passe telle quelle. */
-    void setProvider(@Nullable Provider prochain) {
+    /**
+     * Pose le fournisseur d'intelligence (M7.5, §8) : la frappe
+     * intelligente, l'indentation à l'Entrée et la complétion se
+     * branchent — null les coupe, la frappe passe telle quelle, la
+     * vue ne décide jamais à la place de l'hôte.
+     *
+     * @param prochain le fournisseur, null pour couper
+     */
+    public void setProvider(@Nullable Provider prochain) {
         this.provider = prochain;
     }
 

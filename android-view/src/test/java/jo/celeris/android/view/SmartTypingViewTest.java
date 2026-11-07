@@ -34,7 +34,7 @@ public class SmartTypingViewTest {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), contenu);
         banc.vue().setLanguage(JavaSyntax.INSTANCE);
-        banc.vue().setIntelligenceProvider(IntelligenceHub.builtins());
+        banc.vue().intelligence().setProvider(IntelligenceHub.builtins());
         banc.publierAnalyse();
         return banc;
     }
