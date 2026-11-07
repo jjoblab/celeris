@@ -12,4 +12,10 @@ dependencies {
     api(project(":core-ai"))
     api(project(":core-intelligence"))
     api(project(":core-language"))
+    // ADR-013 : les tests de vue tournent sur JVM via Robolectric —
+    // lanceur JUnit 4 porté sur la plateforme Jupiter par le moteur
+    // vintage (mêmes tâches, mêmes rapports).
+    testImplementation(libs.robolectric)
+    testImplementation(libs.junit4)
+    testRuntimeOnly(libs.junit.vintage)
 }

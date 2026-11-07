@@ -19,6 +19,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import jo.celeris.core.ai.SuggestionFantome;
@@ -76,7 +77,7 @@ public final class EditorView extends View {
     private final ScrollFrame trace = new ScrollFrame();
     final SelectionDrag glissement = new SelectionDrag();
     private final FoldModel plis = new FoldModel();
-    final EditorSyntax syntaxe = new EditorSyntax(plis, ExecuteurAnalyse.parDefaut());
+    final EditorSyntax syntaxe;
     private final RowLayoutCache cache = new RowLayoutCache();
     final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
@@ -127,7 +128,18 @@ public final class EditorView extends View {
     }
 
     public EditorView(Context context, @Nullable AttributeSet attrs) {
+        this(context, attrs, null);
+    }
+
+    /** Construit la vue avec l'exécuteur du travail d'analyse (ADR-007,
+     *  ADR-013) : null garde le fil démon — les tests de vue y pilotent
+     *  la publication par l'exécuteur manuel du banc. */
+    EditorView(Context context, @Nullable AttributeSet attrs,
+            @Nullable Executor executeurAnalyse) {
         super(context, attrs);
+        syntaxe = new EditorSyntax(plis,
+                executeurAnalyse != null ? executeurAnalyse
+                        : ExecuteurAnalyse.parDefaut());
         setFocusable(true);
         setFocusableInTouchMode(true);
         syntaxe.setSurAnalysePrete(() -> {
