@@ -30,14 +30,17 @@ public abstract class PainterLayer {
     }
 
     /**
-     * Trace la couche pour l'image donnée : la couleur de base est
-     * reposée d'abord, le tracé concret suit.
+     * Trace la couche pour l'image donnée : la couleur de base et la
+     * police se reposent d'abord, le tracé concret suit — un pinceau
+     * fraîchement créé ne trace jamais à la police par défaut de la
+     * plateforme (PIEGE-21, même discipline que la couleur).
      *
      * @param surface la surface de dessin de l'image
      * @param frame   l'état d'image courant
      */
     public final void paint(DrawSurface surface, FrameState frame) {
         pinceau.setColor(baseColor(frame));
+        pinceau.setFont(frame.metrics().font());
         onPaint(surface, frame);
     }
 

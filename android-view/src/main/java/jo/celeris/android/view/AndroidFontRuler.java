@@ -47,7 +47,14 @@ public final class AndroidFontRuler implements FontRuler {
         peinture.setTextSize(spec.size());
     }
 
-    private static Typeface policeDe(String famille) {
+    /**
+     * La police de plateforme d'une famille — la table partagée de la
+     * mesure et du tracé (PIEGE-21) : ce qui mesure est ce qui trace.
+     *
+     * @param famille la famille demandée
+     * @return la police de plateforme correspondante
+     */
+    static Typeface policeDe(String famille) {
         switch (famille) {
             case "sans":
                 return Typeface.SANS_SERIF;
