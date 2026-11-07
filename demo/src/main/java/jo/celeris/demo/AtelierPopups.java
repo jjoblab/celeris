@@ -141,12 +141,13 @@ final class AtelierPopups {
 
     /**
      * Ouvre ou filtre la complétion au curseur : les candidats du
-     * coach, le premier surligné ; la documentation du premier candidat
-     * connu suit sa liste. Sans candidat, la liste se ferme.
+     * CONCENTRATEUR — les mots du code par l'analyseur, le coach en
+     * repli —, le premier surligné ; la documentation du premier
+     * candidat connu suit sa liste. Sans candidat, la liste se ferme.
      */
     void basculerCompletion() {
-        List<String> candidats = PopupCoach.completionFor(session.document(),
-                caret());
+        List<String> candidats = editeur.intelligence()
+                .completionCandidates(PopupCoach.motsReserves());
         if (candidats.isEmpty()) {
             fermer(PopupController.PopupKind.COMPLETION_LIST);
             return;

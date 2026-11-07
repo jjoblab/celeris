@@ -61,6 +61,16 @@ final class PopupCoach {
     }
 
     /**
+     * Les mots réservés du terrain de démonstration — la complétion
+     * y joint les mots du code du fichier ouvert.
+     *
+     * @return les mots réservés servis à la complétion
+     */
+    static List<String> motsReserves() {
+        return MOTS_RESERVES;
+    }
+
+    /**
      * La complétion du curseur : les identifiants du document et les
      * mots réservés, filtrés par le préfixe tapé — le mot sous le
      * curseur ne se propose pas à lui-même.
