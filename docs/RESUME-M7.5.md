@@ -215,22 +215,51 @@ livrés** : ni leurs vues, ni le branchement aux modèles
 l'ancrage (`caretBounds`). C'est le premier chantier de la reprise ;
 la matrice le dit.
 
-## Le branchement de l'intelligence (§8) : NON LIVRÉ
+## Le branchement de l'intelligence (§8) : LIVRÉ (la reprise)
 
-`SmartTyping`, `IndentEngine`, `Gabarits`, `CompletionMots`,
-`Formateur`, `Renommage`, `ImportAuto`, `ClientLsp` ne sont toujours
-pas branchés à la vue : le constat du prompt reste vrai. La fenêtre
-du jalon a été dépensée sur les trois défauts et le banc ; ce
-chantier entier — le SPI de fournisseurs, `IntelligenceHub`, le
-serveur de référence en processus — reste à faire.
+Le SPI `IntelligenceHub.Provider` vit sur la vue (`android-view`) :
+chaque méthode retombe sur le moteur pur du dépôt — l'hôte n'implante
+que ce qu'il veut détourner, `null` coupe tout, la frappe passe telle
+quelle. Les textes VALIDÉS de la colle d'entrée y passent (la
+composition reste à l'IME) : `SmartTyping` pose ses paires et saute
+les fermants (A-05), entoure la sélection (A-08) ; l'Entrée — code 66
+désormais LIÉ, elle était muette, défaut réel de la vue — porte
+l'indentation de `IndentEngine` (A-06) ; le retour arrière connaît
+les paires vides et les crans (A-07) ; le collage multiligne s'aligne
+par `PasteReindenter` (A-09). Tout passe par la voie de transaction
+unique avec sélection d'après explicite (A-13). La démonstration
+branche son fournisseur : `DemoIntelligence` sert la complétion par
+les mots du CODE (`CompletionMots` sur l'analyse publiée — jamais les
+chaînes, B-03), le coach ne garde que le repli. L'atelier de
+refactorisation porte les gestes au menu — gabarit au premier trou
+sélectionné (A-22), formatage annulable (B-25), renommage des usages
+entiers (B-19, B-11), import à la tête qui refuse les doublons
+(B-27). Le serveur de référence vit EN PROCESSUS (`ServeurReference`
+sur `TransportMemoire`, livraison synchrone, aucun réseau) : l'aide
+aux paramètres et le survol arrivent PAR LE FIL du protocole
+(`ClientLsp` + `OrdonnanceurLsp` sous `ServeurLangage`), l'annulation
+au remplacement tient les frappes rapides (PIEGE-18), le coach ne
+reste qu'en repli. Preuves : `SmartTypingViewTest` (10 tests de vue
+ROUGES puis VERTS, vraie connexion d'entrée et vrai clavier),
+`DemoIntelligenceTest` (3), `AtelierRefactorTest` (5),
+`ServeurLangageTest` (5, le fil entier rejoué), 330+ tests verts sur
+android-view, 61 sur la démo.
+## La démo qui démontre (§9) : LIVRÉE EN PARTIE (la reprise)
 
-## La démo qui démontre (§9) : NON LIVRÉE
-
-Le catalogue reste décoratif (aucune auto-vérification, pas de
-`ScenarioSpec`, pas de surimpression de diagnostic, pas de réglage de
-lenteur d'analyse). L'audit de la matrice en tient compte : **aucune
-ligne n'est « Démontré »**.
-
+Le catalogue cesse d'être décoratif : `ScenarioSpec` porte la
+vérification automatique d'un scénario, `BancSpecs` en rejoue DOUZE
+par le fil réel de la démonstration — les moteurs branchés, le
+serveur en processus, jamais des figures. L'accueil gagne son
+troisième compteur « Vérifiés » (12/12) : l'appui liste les verdicts
+ligne à ligne, EN et FR ; le premier écart s'y verrait. Douze lignes
+de la matrice montent à « Démontré » (A-05 à A-09, A-22, B-03, B-07,
+B-09, B-19, B-25, B-27) — le geste se joue dans la démo ET se
+vérifie au banc. La recette s'enrichit des étapes 12 à 27 : les dix
+popups, la frappe intelligente, les gestes de refactorisation, le
+compteur des vérifiés. NON livrés, consignés : la surimpression de
+diagnostic (le compteur d'images décolorées vit au banc,
+`FlickerStabilityTest`) et le réglage de lenteur d'analyse (la
+retenue de l'exécuteur manuel du banc joue ce rôle dans les preuves).
 ## Vérité des tableaux de bord (§11) : LIVRÉ
 
 - **Nouveau cadre de statut** à cinq niveaux (Non démarré, Noyau,
@@ -239,11 +268,15 @@ ligne n'est « Démontré »**.
   Test d'appareil, remplie par AUDIT MÉCANIQUE (les statuts se
   déduisent des citations vérifiables, pas des affirmations) :
   `docs/parite/AUDIT-M75.md`.
-- **Décomptes** : avant — 63 lignes affirmaient « livré » ; après —
-  39 Câblé, 54 Noyau, 17 Non démarré, **0 Démontré, 0 Vérifié
-  appareil**. La baisse est le but : un modèle pur n'a jamais été
-  livré. Les correctifs M7.5 (D-15, D-01, B-01) sont Câblé ; la
-  catégorie F tombe à 9 Noyau + 1 Câblé.
+- **Décomptes** : avant — 63 lignes affirmaient « livré » ;
+  après la reprise — 36 Câblé, 45 Noyau, 17 Non démarré,
+  **12 Démontré, 0 Vérifié appareil**. La baisse est le but :
+  un modèle pur n'a jamais été livré. Les correctifs M7.5
+  (D-15, D-01, B-01) sont Câblé ; la catégorie F tombe à 9
+  Noyau + 1 Câblé. La reprise du branchement (§8) fait monter
+  A-05 à A-09, A-22, B-03, B-07, B-09, B-19, B-25 et B-27 à
+  « Démontré » — le geste se joue dans la démo ET se vérifie
+  au banc (`BancSpecsTest`).
 - **Cinq contrôles bloquants** passent dans `./gradlew check` :
   `check-parity-matrix` (statuts valides, tests cités existants,
   scénarios cités connus, « Noyau » sans test de vue cité interdit),
@@ -273,12 +306,16 @@ ligne n'est « Démontré »**.
       IME, au banc ; PIEGE-26 couvert. (Pas de crochet de lenteur à
       300 ms dans la démo : la retenue de la publication par
       l'exécuteur manuel du banc joue ce rôle dans la preuve.)
-- [ ] Les dix popups s'ouvrent dans la démo : NON — la couche et
-      l'invariant de focus sont posés (PIEGE-27 couvert), les popups
-      non.
-- [ ] Copier/couper/coller et la barre de sélection : NON.
-- [ ] Frappe intelligente, indentation, gabarits, complétion,
-      formatage, renommage, imports, serveur de référence : NON.
+- [x] Les dix popups s'ouvrent dans la démo : OUI — les dix vues vivent
+      sur la couche (`PopupViewsTest`, `PopupSurfacesTest`,
+      `PopupRegimesTest`, `PopupAnchorTest`), la démonstration branche
+      les dix (`AtelierPopups`), la recette les rejoue (étapes 12 à 20).
+- [x] Copier/couper/coller et la barre de sélection : OUI — la barre
+      naît de la sélection, les quatre actions vivent en transactions
+      (`AtelierSelection`), la recette la rejoue (étape 14).
+- [x] Frappe intelligente, indentation, gabarits, complétion,
+      formatage, renommage, imports, serveur de référence : OUI — le
+      §8 livré ci-dessus, la recette le rejoue (étapes 21 à 26).
 - [x] Chaque ligne de la matrice a un statut du cadre M7.5, vérifié
       par script en CI ; « livré » n'existe plus.
 - [x] Le travail CI `view-tests` existe (chaque commit) ; les tests
@@ -306,29 +343,35 @@ ligne n'est « Démontré »**.
 
 ## Preuves finales exécutées dans cette fenêtre
 
-- `:android-view:testDebugUnitTest` — 311 tests verts (Robolectric
-  compris) ; `:android-widgets:testDebugUnitTest` — 57 verts ;
-  Checkstyle/PMD verts sur les deux modules.
-- Les contrôles de politique : matrice (110 lignes : 39 Câblé,
-  54 Noyau, 17 Non démarré), pièges (25 couverts, 3 à écrire — les
-  ellipses M5 PIEGE-09/10/12, plus le nouveau), démo (cohérente),
+- `:android-view:testDebugUnitTest` — 330 tests verts (Robolectric
+  compris, `SmartTypingViewTest` en tête) ;
+  `:android-widgets:testDebugUnitTest` — 57 verts ;
+  `:demo:check` complet vert — 61 tests dont
+  `DemoIntelligenceTest`, `AtelierRefactorTest`,
+  `ServeurLangageTest`, `BancSpecsTest`. Checkstyle/PMD verts
+  sur tous les modules touchés.
+- Les contrôles de politique : matrice (110 lignes : 36 Câblé,
+  45 Noyau, 17 Non démarré, 12 Démontré), pièges (25 couverts,
+  3 à écrire — les ellipses M5 PIEGE-09/10/12, plus le nouveau),
+  démo (cohérente),
   langue (408 figés), dates (aucune future) — tous verts.
 - Le `./gradlew check` complet et `:demo:assembleDebug` : exécutés en
   fin de jalon (commit de clôture) — sortie consignée au commit.
 
 ## Risques restants
 
-1. **Les popups sans vues** : la couche est posée mais n'a jamais
-   porté un vrai popup — l'ancrage, le repositionnement au clavier et
-   la fusion des sources resteront à prouver au premier branchement.
-2. **Le rattrapage approximatif aux découpes** : la ligne qui suit un
-   saut de ligne inséré se relit depuis l'état de la ligne QUI LA
+1. **Aucune preuve appareil** : tout ce qui précède se prouve au
+   banc (JVM) et dans la démonstration — le premier appareil dira
+   le reste (plan dans VERIFICATION-APPAREIL).
+2. **Le rattrapage approximatif aux découpes** : la ligne qui suit
+   un saut de ligne inséré se relit depuis l'état de la ligne QUI LA
    PRÉCÈDE au publié — imparfait si la ligne précédente a elle-même
-   changé d'état (chaîne non vide) ; l'invariant « jamais encre de
-   base » tient, la couleur peut être provisoirement fausse.
-3. **Le clic de numéro de ligne** (`surClicLigne`) reçoit la largeur
-   de gouttière de l'image courante — inchangé par le jalon, à
-   re-vérifier au branchement des popups.
+   changé d'état ; l'invariant « jamais encre de base » tient, la
+   couleur peut être provisoirement fausse.
+3. **La signature et le survol par le fil** : la réponse arrive en
+   futur — l'ordonnanceur annule et remplace (PIEGE-18), mais un
+   retard de serveur laisserait la popup ouverte sur l'état
+   précédent un instant ; le repli du coach reste synchrone.
 4. **La dette de langue** (408 identifiants) : gelée, pas payée.
-5. **Aucune preuve appareil** : tout ce qui précède est prouvé sur
-   JVM ; le premier appareil dira le reste.
+5. **La surimpression de diagnostic et le réglage de lenteur**
+   d'analyse ne sont pas livrés (§9, partie non livrée consignée).
