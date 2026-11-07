@@ -29,6 +29,9 @@
     <string name="titre_diff">Block %1$d</string>
     <string name="bloc_accepter">Accept block</string>
     <string name="bloc_refuser">Reject block</string>
+    <string name="action_agent">Review agent edits</string>
+    <string name="titre_agent">Agent edit — block %1$d</string>
+    <string name="agent_revenir">Back to checkpoint</string>
     <plurals name="etat_lint">
         <item quantity="one">Lint: %1$d issue</item>
         <item quantity="other">Lint: %1$d issues</item>

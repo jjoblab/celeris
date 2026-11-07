@@ -68,6 +68,17 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Ajouté
 
+- Tranche 2 (M8) — la revue des modifications d'agent (F-04) : les
+  propositions d'agent arrivent étiquetées (auteur, intention) et datées
+  de leur instantané de référence, éditions ordonnées et disjointes
+  validées dès la construction ; la revue découpe en blocs contigus,
+  décide bloc par bloc — le refus réaligne les suivants, les plages de
+  référence ne bougent jamais —, les points de contrôle reviennent en
+  arrière, la lecture en ligne rend les retraits et insertions par bloc
+  (« - » et « + ») ; l'application se prend en une transaction
+  annulable et refuse explicitement le document qui a bougé (jamais de
+  fusion silencieuse). La démonstration révise son agent factice bloc
+  par bloc, retour au point de contrôle compris.
 - Tranche 1 (M8) — les contrats IA (ADR-012) : le texte fantôme
   (F-01, noyau — suggestion multiligne datée par révision, jamais
   ré-ancrée ; acceptation par mot, par ligne ou en bloc, le reste

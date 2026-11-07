@@ -53,6 +53,11 @@
         android:title="@string/action_diff"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_agent"
+        android:icon="@drawable/ic_corriger"
+        android:title="@string/action_agent"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_retablir"
         android:icon="@drawable/ic_retablir"
         android:title="@string/action_retablir"

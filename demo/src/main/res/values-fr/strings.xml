@@ -29,6 +29,9 @@
     <string name="titre_diff">Bloc %1$d</string>
     <string name="bloc_accepter">Accepter le bloc</string>
     <string name="bloc_refuser">Refuser le bloc</string>
+    <string name="action_agent">Revue des modifications d\'agent</string>
+    <string name="titre_agent">Modification d\'agent — bloc %1$d</string>
+    <string name="agent_revenir">Revenir au point de contrôle</string>
     <plurals name="etat_lint">
         <item quantity="one">Lint : %1$d problème</item>
         <item quantity="other">Lint : %1$d problèmes</item>

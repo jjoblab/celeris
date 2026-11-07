@@ -10,9 +10,10 @@
 > budgets de latence tenus ; test « aucune requête sans consentement »
 > vert.
 >
-> **État** : jalon ouvert — tranche 1 livrée (les contrats du texte
-> fantôme et de la prédiction, les faux modèles, l'annulation). Les
-> tranches suivantes restent à écrire (voir « Reste ouvert »).
+> **État** : jalon ouvert — tranches 1 et 2 livrées (les contrats du texte
+> fantôme et de la prédiction, les faux modèles, l'annulation ; la
+> revue des modifications d'agent). Les tranches suivantes restent à
+> écrire (voir « Reste ouvert »).
 
 ## Avant la première tranche — l'hygiène inter-jalons (2026-11-08)
 
@@ -88,12 +89,47 @@ mineure, ADR-009). `./gradlew check` vert sur l'ensemble (SDK présent).
 Les lignes F-01, F-02, F-08 et F-09 de la matrice passent à partiel
 (noyau livré, interface et scénarios de démonstration à venir).
 
+## Tranche 2 — la revue des modifications d'agent (2026-11-08)
+
+### Livré
+
+- **F-04, noyau — `EtiquetteAgent`, `PropositionAgent`** : les éditions
+  d'agent arrivent comme propositions étiquetées (auteur, intention) et
+  datées de l'instantané de référence. Les éditions vivent en
+  coordonnées du document de référence — la discipline des éditions
+  d'espace de travail : ordonnées, disjointes, chaque texte retiré
+  exact, validé dès la construction. Une proposition infidèle ne s'ouvre
+  pas, la revue ne répare pas ce qu'elle reçoit.
+- **F-04 — `RevueAgent`** : la proposition se découpe en blocs d'éditions
+  contiguës, chaque bloc se décide seul — accepté, refusé, en attente —,
+  le refus réaligne les suivants : les plages de référence ne bougent
+  jamais, le bloc refusé se saute. La lecture en ligne rend le retiré
+  (« - ») et l'inséré (« + ») par bloc. Les points de contrôle
+  capturent l'état complet des décisions et reviennent en arrière. La
+  matière de `RevueDiff` de M7-t9, adaptée aux propositions d'agent ;
+  l'application se prend par la voie de transaction ordinaire — les
+  éditions acceptées deviennent une seule transaction, une étape
+  d'annulation — et le document qui a bougé depuis la proposition refuse
+  le transfert, explicitement (jamais de fusion silencieuse).
+- **La démonstration** : l'agent factice (`FauxAgent`, déterministe,
+  trois insertions éparses — tête, milieu, pied) propose sur le
+  document ouvert ; l'atelier (`AtelierAgent`) montre l'intention
+  déclarée et les lignes du bloc, décide bloc par bloc, revient au
+  point de contrôle d'ouverture d'un geste, applique la fusion en une
+  transaction annulable. Les dialogues de revue quittent l'activité —
+  l'atelier de diff suit le même patron, `EditorActivity` repasse sous
+  le plafond de 600 lignes.
+
+### Preuve
+
+`:core-ai:check` vert — 49 tests (Checkstyle, PMD, Error Prone,
+NullAway, couverture ≥ 90 % compris), mutation 83,1 % (118/142, seuil
+80). Manifeste d'API régénéré — `EtiquetteAgent`, `PropositionAgent`,
+`RevueAgent` ajoutés, aucun retrait (SemVer mineure, ADR-009).
+`:demo:check` vert, la ligne F-04 de la matrice passe à livrée.
+
 ## Reste ouvert
 
-- **Tranche 2 — la revue des modifications d'agent** (F-04) : les
-  éditions d'agent comme transactions étiquetées, le diff en ligne par
-  blocs acceptés/refusés, les points de contrôle — la matière
-  `DiffBlocs`/`RevueDiff` de M7-t9 et le même chemin de dessin.
 - **Tranche 3 — l'API d'outils pour agents** (F-05, F-06) : lire des
   plages et des instantanés, lister les symboles, lire les
   diagnostics, appliquer une transaction avec détection de conflit ;

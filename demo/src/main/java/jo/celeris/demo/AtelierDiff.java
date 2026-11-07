@@ -1,6 +1,11 @@
 package jo.celeris.demo;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.util.ArrayList;
 import java.util.List;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import jo.celeris.android.widgets.DiffBlocs;
 import jo.celeris.android.widgets.RevueDiff;
@@ -15,53 +20,39 @@ import jo.celeris.core.text.TextSession;
  */
 final class AtelierDiff {
 
+    private final AppCompatActivity activite;
     private final String reference;
     private final TextSession session;
+    private final Runnable apresApplication;
 
     private RevueDiff revue;
-
-    /** L'écouteur de l'état de la revue : le bloc courant et sa décision. */
-    interface SurEtat {
-
-        /**
-         * L'état change : le bloc courant, ses lignes préfixées, les
-         * décisions rendues et le nombre de blocs.
-         *
-         * @param bloc     l'index du bloc courant, -1 quand tout est décidé
-         * @param lignes   les lignes du bloc courant, préfixées
-         * @param decidable vrai tant qu'un bloc attend
-         */
-        void etat(int bloc, List<String> lignes, boolean decidable);
-    }
 
     /**
      * Construit l'atelier sur la session ouverte.
      *
-     * @param reference le contenu d'origine du fichier
-     * @param session   la session d'édition courante
+     * @param activite         l'activité hôte des boîtes de dialogue
+     * @param reference        le contenu d'origine du fichier
+     * @param session          la session d'édition courante
+     * @param apresApplication invoqué après une fusion appliquée
      */
-    AtelierDiff(String reference, TextSession session) {
+    AtelierDiff(AppCompatActivity activite, String reference,
+            TextSession session, Runnable apresApplication) {
+        this.activite = activite;
         this.reference = reference;
         this.session = session;
+        this.apresApplication = apresApplication;
     }
 
     /**
      * Ouvre (ou rouvre) la revue du texte courant face à l'origine.
-     *
-     * @param surEtat l'écouteur des états successifs
      */
-    void ouvrir(SurEtat surEtat) {
+    void ouvrir() {
         revue = RevueDiff.de(reference, session.document().text());
-        annoncer(surEtat);
+        montrerBloc();
     }
 
-    /**
-     * Décide le bloc courant et avance.
-     *
-     * @param decision la décision du bloc courant
-     * @param surEtat  l'écouteur des états successifs
-     */
-    void decider(RevueDiff.Decision decision, SurEtat surEtat) {
+    /** Décide le bloc courant et avance au suivant. */
+    private void decider(RevueDiff.Decision decision) {
         if (revue == null) {
             return;
         }
@@ -71,7 +62,7 @@ final class AtelierDiff {
                 break;
             }
         }
-        annoncer(surEtat);
+        montrerBloc();
     }
 
     /**
@@ -92,22 +83,37 @@ final class AtelierDiff {
                 fusion);
     }
 
-    private void annoncer(SurEtat surEtat) {
+    /** Le bloc courant : sa boîte de dialogue, ou la fusion appliquée. */
+    private void montrerBloc() {
+        if (revue == null) {
+            return;
+        }
         int courant = -1;
-        List<String> lignes = List.of();
         for (int i = 0; i < revue.nombreDeBlocs(); i++) {
             if (revue.decision(i) == RevueDiff.Decision.EN_ATTENTE) {
                 courant = i;
-                lignes = lignesDuBloc(i);
                 break;
             }
         }
-        surEtat.etat(courant, lignes, courant >= 0);
+        if (courant < 0) {
+            if (appliquer()) {
+                apresApplication.run();
+            }
+            return;
+        }
+        new MaterialAlertDialogBuilder(activite)
+                .setTitle(activite.getString(R.string.titre_diff, courant + 1))
+                .setMessage(String.join("\n", lignesDuBloc(courant)))
+                .setPositiveButton(R.string.bloc_accepter,
+                        (dialog, lequel) -> decider(RevueDiff.Decision.ACCEPTE))
+                .setNegativeButton(R.string.bloc_refuser,
+                        (dialog, lequel) -> decider(RevueDiff.Decision.REFUSE))
+                .show();
     }
 
     private List<String> lignesDuBloc(int bloc) {
         DiffBlocs diffs = DiffBlocs.de(reference, session.document().text());
-        List<String> rendues = new java.util.ArrayList<>();
+        List<String> rendues = new ArrayList<>();
         for (DiffBlocs.LigneDiff ligne : diffs.blocs().get(bloc).lignes()) {
             rendues.add((ligne.type() == DiffBlocs.TypeLigne.ENLEVEE ? "- " : "+ ")
                     + ligne.texte());

@@ -15,6 +15,17 @@ public final class jo.celeris.core.ai.AppliquerPrediction {
   public static jo.celeris.core.ai.AppliquerPrediction$Resultat appliquer(jo.celeris.core.text.TextSession, jo.celeris.core.ai.PredictionEdition);
 }
 
+### jo.celeris.core.ai.EtiquetteAgent
+Compiled from "EtiquetteAgent.java"
+public final class jo.celeris.core.ai.EtiquetteAgent extends java.lang.Record {
+  public jo.celeris.core.ai.EtiquetteAgent(java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String auteur();
+  public java.lang.String intention();
+}
+
 ### jo.celeris.core.ai.FauxModeleDistant
 Compiled from "FauxModeleDistant.java"
 public final class jo.celeris.core.ai.FauxModeleDistant implements jo.celeris.core.ai.ModeleTexteFantome,jo.celeris.core.ai.ModelePrediction {
@@ -75,6 +86,19 @@ public final class jo.celeris.core.ai.PredictionEdition extends java.lang.Record
   public int revision();
 }
 
+### jo.celeris.core.ai.PropositionAgent
+Compiled from "PropositionAgent.java"
+public final class jo.celeris.core.ai.PropositionAgent extends java.lang.Record {
+  public jo.celeris.core.ai.PropositionAgent(jo.celeris.core.ai.EtiquetteAgent, int, java.util.List<jo.celeris.core.text.TextEdit>);
+  public static jo.celeris.core.ai.PropositionAgent de(jo.celeris.core.text.Document, jo.celeris.core.ai.EtiquetteAgent, java.util.List<jo.celeris.core.text.TextEdit>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.ai.EtiquetteAgent etiquette();
+  public int revision();
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+}
+
 ### jo.celeris.core.ai.RequeteModele
 Compiled from "RequeteModele.java"
 public final class jo.celeris.core.ai.RequeteModele extends java.lang.Record {
@@ -85,6 +109,43 @@ public final class jo.celeris.core.ai.RequeteModele extends java.lang.Record {
   public jo.celeris.core.text.Document document();
   public int offset();
   public jo.celeris.core.syntax.JetonAnnulation jeton();
+}
+
+### jo.celeris.core.ai.RevueAgent$Decision
+Compiled from "RevueAgent.java"
+public final class jo.celeris.core.ai.RevueAgent$Decision extends java.lang.Enum<jo.celeris.core.ai.RevueAgent$Decision> {
+  public static final jo.celeris.core.ai.RevueAgent$Decision EN_ATTENTE;
+  public static final jo.celeris.core.ai.RevueAgent$Decision ACCEPTE;
+  public static final jo.celeris.core.ai.RevueAgent$Decision REFUSE;
+  public static jo.celeris.core.ai.RevueAgent$Decision[] values();
+  public static jo.celeris.core.ai.RevueAgent$Decision valueOf(java.lang.String);
+}
+
+### jo.celeris.core.ai.RevueAgent$Sortie
+Compiled from "RevueAgent.java"
+public final class jo.celeris.core.ai.RevueAgent$Sortie extends java.lang.Enum<jo.celeris.core.ai.RevueAgent$Sortie> {
+  public static final jo.celeris.core.ai.RevueAgent$Sortie APPLIQUEE;
+  public static final jo.celeris.core.ai.RevueAgent$Sortie REFUSEE_REVISION;
+  public static final jo.celeris.core.ai.RevueAgent$Sortie REFUSEE_PROTECTION;
+  public static final jo.celeris.core.ai.RevueAgent$Sortie VIDE;
+  public static jo.celeris.core.ai.RevueAgent$Sortie[] values();
+  public static jo.celeris.core.ai.RevueAgent$Sortie valueOf(java.lang.String);
+}
+
+### jo.celeris.core.ai.RevueAgent
+Compiled from "RevueAgent.java"
+public final class jo.celeris.core.ai.RevueAgent {
+  public static jo.celeris.core.ai.RevueAgent de(jo.celeris.core.text.Document, jo.celeris.core.ai.PropositionAgent);
+  public int nombreDeBlocs();
+  public jo.celeris.core.ai.RevueAgent$Decision decision(int);
+  public jo.celeris.core.ai.EtiquetteAgent etiquette();
+  public jo.celeris.core.ai.RevueAgent decider(int, jo.celeris.core.ai.RevueAgent$Decision);
+  public java.util.List<jo.celeris.core.text.TextEdit> editionsDuBloc(int);
+  public java.util.List<java.lang.String> lignesDuBloc(int);
+  public java.lang.String texte();
+  public jo.celeris.core.ai.RevueAgent pointDeControle();
+  public jo.celeris.core.ai.RevueAgent retourAuPointDeControle(jo.celeris.core.ai.RevueAgent);
+  public jo.celeris.core.ai.RevueAgent$Sortie appliquer(jo.celeris.core.text.TextSession);
 }
 
 ### jo.celeris.core.ai.SessionTexteFantome$1

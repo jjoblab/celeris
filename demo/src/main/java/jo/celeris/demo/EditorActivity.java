@@ -45,7 +45,6 @@ import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
 import jo.celeris.android.widgets.ApercuDefinition;
 import jo.celeris.android.widgets.OutlineView;
-import jo.celeris.android.widgets.RevueDiff;
 import jo.celeris.android.widgets.SearchBarModel;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
@@ -96,6 +95,7 @@ public final class EditorActivity extends AppCompatActivity {
     private List<ReperesPreview.ReperePreview> reperes = List.of();
     private AtelierLint atelierLint;
     private AtelierDiff atelierDiff;
+    private AtelierAgent atelierAgent;
     private List<OutlineEntry> entreesPlan = List.of();
     private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
 
@@ -111,7 +111,8 @@ public final class EditorActivity extends AppCompatActivity {
         session = TextSession.of(fichier.contenu(), System::nanoTime);
         recherche = new SearchBarModel(session.document(), System::nanoTime);
         atelierLint = new AtelierLint(nomFichier, session, this::etatLint);
-        atelierDiff = new AtelierDiff(reference, session);
+        atelierDiff = new AtelierDiff(this, reference, session, this::apresFusion);
+        atelierAgent = new AtelierAgent(this, session, this::apresFusion);
         session.addEditListener((debut, fin, retire, insere) -> {
             majPosition();
             majMarques();
@@ -152,7 +153,8 @@ public final class EditorActivity extends AppCompatActivity {
         actionsMenu.put(R.id.action_lint, this::analyserLint);
         actionsMenu.put(R.id.action_corriger, this::corrigerLint);
         actionsMenu.put(R.id.action_apercu, this::apercuDefinition);
-        actionsMenu.put(R.id.action_diff, this::revueDiff);
+        actionsMenu.put(R.id.action_diff, atelierDiff::ouvrir);
+        actionsMenu.put(R.id.action_agent, atelierAgent::ouvrir);
         actionsMenu.put(R.id.action_theme, this::tournerTheme);
         actionsMenu.put(R.id.action_diminuer, () -> zoomerPolice(-PAS_TAILLE));
         actionsMenu.put(R.id.action_agrandir, () -> zoomerPolice(PAS_TAILLE));
@@ -506,38 +508,14 @@ public final class EditorActivity extends AppCompatActivity {
     }
 
     /**
-     * La revue du diff du texte courant face à l'origine (D-12) : les
-     * blocs se décident un à un — accepter, refuser —, le texte
-     * fusionné s'applique en une transaction annulable.
+     * Les revues par blocs (D-12, F-04) vivent dans leurs ateliers ;
+     * après une fusion appliquée, la scène se rafraîchit — marques,
+     * pastilles et repères compris.
      */
-    private void revueDiff() {
-        atelierDiff.ouvrir(this::montrerBloc);
-    }
-
-    private void relancerRevue(int bloc, List<String> lignes, boolean decidable) {
-        runOnUiThread(() -> montrerBloc(bloc, lignes, decidable));
-    }
-
-    /** Le bloc courant de la revue : décider, ou appliquer la fusion. */
-    private void montrerBloc(int bloc, List<String> lignes, boolean decidable) {
-        if (!decidable) {
-            if (atelierDiff.appliquer()) {
-                editeur.invalidate();
-                majMarques();
-                majPastillesEtReperes();
-            }
-            return;
-        }
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(getString(R.string.titre_diff, bloc + 1))
-                .setMessage(String.join("\n", lignes))
-                .setPositiveButton(R.string.bloc_accepter,
-                        (dialog, lequel) -> atelierDiff.decider(
-                                RevueDiff.Decision.ACCEPTE, this::relancerRevue))
-                .setNegativeButton(R.string.bloc_refuser,
-                        (dialog, lequel) -> atelierDiff.decider(
-                                RevueDiff.Decision.REFUSE, this::relancerRevue))
-                .show();
+    private void apresFusion() {
+        editeur.invalidate();
+        majMarques();
+        majPastillesEtReperes();
     }
 
     /**

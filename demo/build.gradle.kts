@@ -28,6 +28,10 @@ dependencies {
     implementation(project(":core-text"))
     implementation(project(":core-syntax"))
     implementation(project(":core-syntax-grammars"))
+    // Le terrain d'IA native : contrats fantôme, prédiction et revue
+    // d'agent (F-01 à F-10, ADR-012) — faux modèles déterministes, la
+    // démonstration ne branche aucun réseau.
+    implementation(project(":core-ai"))
     // L'interface de la démonstration : Material 3, barres d'application,
     // cartes, liste et bord-à-bord — les seules dépendances externes du
     // dépôt côté exécution (la démo n'est pas publiée, ADR-011).
