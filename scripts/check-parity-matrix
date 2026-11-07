@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Contrôle de la matrice de parité (M7.5, §11).
+
+Vérifie sur docs/parite/MATRICE-PARITE.md :
+  1. chaque ligne porte un statut du cadre M7.5 (Non démarré, Noyau,
+     Câblé, Démontré, Vérifié appareil) ;
+  2. les statuts Câblé, Démontré et Vérifié appareil citent un test de
+     vue EXISTANT (fichier src/test du module cité) ;
+  3. les statuts Démontré et Vérifié appareil citent un scénario de la
+     démo qui EXISTE (identifiant de ligne cité par demo/src/main) ;
+  4. « livré » ne s'écrit plus dans la colonne de statut — le cadre
+     M7.5 l'a remplacé.
+
+Sortie : décompte par statut ; échec (exit 1) à la première violation.
+
+Usage :  python3 scripts/check-parity-matrix
+"""
+
+import os
+import re
+import sys
+
+RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MATRICE = os.path.join(RACINE, 'docs', 'parite', 'MATRICE-PARITE.md')
+
+STATUTS = {'Non démarré', 'Noyau', 'Câblé', 'Démontré', 'Vérifié appareil'}
+
+
+def classes_test():
+    resultat = []
+    for racine, _, noms in os.walk(RACINE):
+        parties = racine.split(os.sep)
+        if 'src' in parties and 'test' in parties and 'celeris' in parties:
+            for nom in noms:
+                if nom.endswith('.java'):
+                    resultat.append(nom[:-5])
+    return resultat
+
+
+def lignes_scenarios():
+    resultat = set()
+    base = os.path.join(RACINE, 'demo', 'src', 'main')
+    for racine, _, noms in os.walk(base):
+        for nom in noms:
+            if not nom.endswith('.java'):
+                continue
+            with open(os.path.join(racine, nom), encoding='utf-8') as f:
+                for m in re.finditer(r'\b([A-G]-\d{2})\b', f.read()):
+                    resultat.add(m.group(1))
+    return resultat
+
+
+def main():
+    with open(MATRICE, encoding='utf-8') as f:
+        contenu = f.read()
+    tests = set(classes_test())
+    scenarios = lignes_scenarios()
+    motif = re.compile(r'^\| ([A-G]-\d{2}) \|(.+)\|$', re.MULTILINE)
+    problemes = []
+    decomptes = {}
+    for m in motif.finditer(contenu):
+        identifiant, reste = m.group(1), m.group(2)
+        colonnes = [c.strip() for c in reste.split('|')]
+        if len(colonnes) < 9:
+            problemes.append('%s : colonnes M7.5 absentes' % identifiant)
+            continue
+        statut = colonnes[6]
+        test_vue = colonnes[7]
+        scenario = colonnes[8]
+        if statut not in STATUTS:
+            problemes.append('%s : statut inconnu « %s »' % (identifiant, statut))
+            continue
+        decomptes[statut] = decomptes.get(statut, 0) + 1
+        if statut in ('Câblé', 'Démontré', 'Vérifié appareil'):
+            if test_vue == '—' or test_vue not in tests:
+                problemes.append(
+                    '%s : statut %s sans test de vue existant (cité : %s)'
+                    % (identifiant, statut, test_vue or 'rien'))
+        if statut in ('Démontré', 'Vérifié appareil'):
+            if scenario != 'oui' or identifiant not in scenarios:
+                problemes.append(
+                    '%s : statut %s sans scénario de démo le citant'
+                    % (identifiant, statut))
+        if statut in ('Noyau', 'Non démarré') and test_vue != '—':
+            problemes.append(
+                '%s : statut %s mais un test de vue est cité — Câblé s\'impose'
+                % (identifiant, statut))
+    if problemes:
+        for probleme in problemes:
+            print('matrice : ' + probleme)
+        sys.exit(1)
+    print('matrice : %d lignes — %s' % (
+        sum(decomptes.values()),
+        ', '.join('%s %d' % (s, n) for s, n in sorted(decomptes.items()))))
+
+
+if __name__ == '__main__':
+    main()

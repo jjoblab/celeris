@@ -1,7 +1,7 @@
 # ADR-013 — Banc de test de vue : Robolectric sur JVM, appareils gérés sur CI
 
-- **Statut** : Acceptée (jalon de redressement M7.5, 2026-11-08)
-- **Date** : 2026-11-08
+- **Statut** : Acceptée (jalon de redressement M7.5, 2026-11-07)
+- **Date** : 2026-11-07
 
 ## Contexte
 
@@ -17,7 +17,7 @@ cycle de l'image n'ont jamais été rejoués automatiquement.
 
 ## Décision
 
-1. **Robolectric 4.15.1** (Maven Central, vérifiée le 2026-11-08) entre
+1. **Robolectric 4.15.1** (Maven Central, vérifiée le 2026-11-07) entre
    comme unique dépendance de test de vue des modules Android
    (`android-view`, puis `android-widgets` et `demo`) : elle porte le
    cadre d'exécution, les jarres `android-all` instrumentées se résolvent

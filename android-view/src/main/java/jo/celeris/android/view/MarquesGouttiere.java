@@ -39,6 +39,12 @@ public final class MarquesGouttiere {
 
     private boolean coulissePreview;
 
+    /** La dernière configuration servie — mémoïsée : le chemin d'image
+     *  n'alloue rien en régime établi (PIEGE-15). */
+    private GutterLanes dernieresCoulisses = new GutterLanes(false,
+            false, false, false);
+    private boolean dernierSyntaxeActif;
+
     private @Nullable IntConsumer surClicLigne;
 
     private @Nullable IntConsumer surRenduPreview;
@@ -186,8 +192,16 @@ public final class MarquesGouttiere {
      * @return la configuration courante
      */
     public GutterLanes coulisses(boolean syntaxeActivee) {
-        return new GutterLanes(syntaxeActivee, coulisseIntegration,
-                coulisseErreursImportees, coulissePreview);
+        if (syntaxeActivee == dernierSyntaxeActif
+                && dernieresCoulisses.integration() == coulisseIntegration
+                && dernieresCoulisses.importedDiagnostics() == coulisseErreursImportees
+                && dernieresCoulisses.preview() == coulissePreview) {
+            return dernieresCoulisses;
+        }
+        dernierSyntaxeActif = syntaxeActivee;
+        dernieresCoulisses = new GutterLanes(syntaxeActivee,
+                coulisseIntegration, coulisseErreursImportees, coulissePreview);
+        return dernieresCoulisses;
     }
 
     /**

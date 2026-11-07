@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Rempart de langue (M7.5, §11) : le cliquet des identifiants français.
+
+La règle du dépôt : le code est en ANGLAIS, la Javadoc et les
+commentaires en français. La dette existante — des dizaines de classes
+et méthodes françaises — se FIGE ici, module par module :
+`scripts/language-baseline.txt` porte le décompte courant ; la CI
+échoue pour tout identifiant français NOUVEAU (un dépassement du
+décompte figé), jamais pour l'existant. Le décompte ne peut que
+DESCENDRE — chaque renommage fait descendre la ligne de base.
+
+Le dictionnaire couvre les radicaux français non ambigus du dépôt
+(Editeur, Gouttiere, Coulisse, Fantome, Pinceau…) — les mots qui
+s'écrivent pareil en anglais (cache, publication) n'y entrent pas.
+
+Usage :  python3 scripts/check-language-baseline [--maj]
+Le mode --maj réécrit la ligne de base (après un renommage, jamais
+pour en ajouter).
+"""
+
+import argparse
+import os
+import re
+import sys
+
+RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASELINE = os.path.join(RACINE, 'scripts', 'language-baseline.txt')
+
+# Radicaux français non ambigus — un identifiant CamelCase qui les
+# porte est français (les nouveaux identifiants doivent être anglais).
+RACINES = (
+    'Editeur|Editeurs|Fabrique|Fabriques|Gouttiere|Gouttieres|Coulisse|'
+    'Coulisses|Fantome|Fantomes|Modele|Modeles|Faux[A-Z]|Apercu|Revues?|'
+    'Rangees?|Pinceaux?|Peinture|Peintre|Curseur|Curseurs|Clavier|Touches|'
+    'Gestes|Marques|Marque|Pilule|Pliage|Pliages|Defilement|Annule|Annulee?|'
+    'Retabli|Retablir|Frappe|Frappes|Largeur|Largeurs|Hauteur|Hauteurs|'
+    'Tailles?|Chiffres?|Lignes?|Paniers?|Lexique|Lexiques|Jeton|Jetons|'
+    'Arret|Arrets|Ecart|Ecarts|Paliers?|Plancher|Cran|Crans|Hysteresis|'
+    'Police|Polices|Texte|Textes|Langue|Langues|Session[sA-Z]|Traites?|'
+    'Habille|Habiller|Habillage|Perimee?|Perimées?|Publiee?|Publication|'
+    'Recaler|Recalage|Relire|Relecture|Rattrapage|Sortes?|Encre|Encres|'
+    'Theme|Themes|Sombre|Clair[s]?|Numeros?|Retour[s]?|Souple|Souple?s?'
+)
+
+MOTIF = re.compile(r'\b(?:' + RACINES + r')[A-Za-z0-9_]*')
+
+
+def comptage():
+    """Le décompte par module des identifiants français des sources."""
+    decomptes = {}
+    for module in sorted(os.listdir(RACINE)):
+        base = os.path.join(RACINE, module, 'src', 'main', 'java')
+        if not os.path.isdir(base):
+            continue
+        total = 0
+        for racine, _, noms in os.walk(base):
+            for nom in noms:
+                if not nom.endswith('.java'):
+                    continue
+                with open(os.path.join(racine, nom), encoding='utf-8') as f:
+                    # Hors commentaires : on retire les blocs de
+                    # commentaires avant de compter — la Javadoc
+                    # française est LÉGALE.
+                    code = re.sub(r'/\*.*?\*/', '', f.read(), flags=re.S)
+                    code = re.sub(r'//[^\n]*', '', code)
+                    total += len(MOTIF.findall(code))
+        if total:
+            decomptes[module] = total
+    return decomptes
+
+
+def main():
+    parseur = argparse.ArgumentParser()
+    parseur.add_argument('--maj', action='store_true',
+                         help='réécrit la ligne de base')
+    args = parseur.parse_args()
+
+    courant = comptage()
+    if args.maj:
+        with open(BASELINE, 'w', encoding='utf-8') as f:
+            for module, total in sorted(courant.items()):
+                f.write('%s %d\n' % (module, total))
+        print('ligne de base réécrite : %s' % courant)
+        return
+
+    fige = {}
+    with open(BASELINE, encoding='utf-8') as f:
+        for ligne in f:
+            parties = ligne.split()
+            if len(parties) == 2:
+                fige[parties[0]] = int(parties[1])
+
+    problemes = []
+    for module, total in sorted(courant.items()):
+        ancien = fige.get(module, 0)
+        if total > ancien:
+            problemes.append(
+                '%s : %d identifiants français, %d figés — la ligne de base '
+                'ne monte jamais (les nouveaux identifiants sont en anglais)'
+                % (module, total, ancien))
+    for module, ancien in sorted(fige.items()):
+        if module not in courant and ancien > 0:
+            print('langue : %s descend à 0 — MAJ la ligne de base (--maj)'
+                  % module)
+    if problemes:
+        for probleme in problemes:
+            print('langue : ' + probleme)
+        sys.exit(1)
+    total_courant = sum(courant.values())
+    total_fige = sum(fige.values())
+    print('langue : %d identifiants français figés (%d dans la base) — '
+          'le rempart tient' % (total_courant, total_fige))
+
+
+if __name__ == '__main__':
+    main()

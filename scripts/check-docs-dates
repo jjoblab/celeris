@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Contrôle des dates des documents (M7.5, §11).
+
+Aucun document du dépôt ne se date AU-DELÀ du dernier commit : un
+résumé qui se dit « clos le D » alors que l'historique git s'arrête
+avant D ment (constat M7.5 : RESUME-M8 se disait clos le 2026-11-08,
+les commits dataient du 2026-11-07).
+
+Sortie : la date de tête de git ; échec (exit 1) pour toute date
+future rencontrée dans docs/.
+
+Usage :  python3 scripts/check-docs-dates
+"""
+
+import datetime
+import os
+import re
+import subprocess
+import sys
+
+RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def main():
+    tete = subprocess.run(
+        ['git', 'log', '-1', '--format=%ad', '--date=short'],
+        cwd=RACINE, capture_output=True, text=True, check=True
+    ).stdout.strip()
+    limite = datetime.date.fromisoformat(tete)
+    problemes = []
+    base = os.path.join(RACINE, 'docs')
+    for racine, _, noms in os.walk(base):
+        for nom in noms:
+            if not nom.endswith('.md'):
+                continue
+            chemin = os.path.join(racine, nom)
+            with open(chemin, encoding='utf-8') as f:
+                for numero, ligne in enumerate(f, 1):
+                    for m in re.finditer(r'\b(20\d\d-\d\d-\d\d)\b', ligne):
+                        date = datetime.date.fromisoformat(m.group(1))
+                        if date > limite:
+                            problemes.append(
+                                '%s:%d : date %s au-delà du dernier commit %s'
+                                % (os.path.relpath(chemin, RACINE), numero,
+                                   m.group(1), tete))
+    if problemes:
+        for probleme in problemes:
+            print('dates : ' + probleme)
+        sys.exit(1)
+    print('dates : aucun document ne dépasse le dernier commit (%s)' % tete)
+
+
+if __name__ == '__main__':
+    main()
