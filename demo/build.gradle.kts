@@ -5,6 +5,16 @@ plugins {
     id("celeris.android-application-conventions")
 }
 
+// L'APK doit porter un numéro de version : sans versionCode ni
+// versionName, le manifeste reste muet et certains installateurs
+// refusent le paquet. La version vit au catalogue (ADR-011).
+android {
+    defaultConfig {
+        versionCode = 1
+        versionName = libs.versions.demo.get()
+    }
+}
+
 dependencies {
     implementation(project(":android-view"))
     // Point de composition des éditions d'espace de travail : la démo
