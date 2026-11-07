@@ -23,6 +23,12 @@
     <string name="lint_correctifs">%1$d corrigés</string>
     <string name="titre_rendu_preview">Rendu @Preview</string>
     <string name="message_rendu_preview">L\'hôte rend le composable « %1$s » (ligne %2$d) — le rendu est délégué, l\'éditeur ne porte que le repère.</string>
+    <string name="action_apercu">Aperçu de définition</string>
+    <string name="titre_apercu">Définition de %1$s</string>
+    <string name="action_diff">Revue du diff</string>
+    <string name="titre_diff">Bloc %1$d</string>
+    <string name="bloc_accepter">Accepter le bloc</string>
+    <string name="bloc_refuser">Refuser le bloc</string>
     <plurals name="etat_lint">
         <item quantity="one">Lint : %1$d problème</item>
         <item quantity="other">Lint : %1$d problèmes</item>

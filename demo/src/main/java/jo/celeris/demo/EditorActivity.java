@@ -1,6 +1,5 @@
 package jo.celeris.demo;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,7 +23,9 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jo.celeris.android.host.spi.Arret;
 import jo.celeris.android.host.spi.CadrePile;
@@ -33,6 +34,7 @@ import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.EtatLignesVcs;
 import jo.celeris.android.host.spi.FauxDebogueur;
 import jo.celeris.android.host.spi.LigneArret;
+import jo.celeris.android.view.ClasseLargeur;
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorThemes;
 import jo.celeris.android.view.EditorView;
@@ -41,7 +43,9 @@ import jo.celeris.android.view.MarquesIntegration;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
+import jo.celeris.android.widgets.ApercuDefinition;
 import jo.celeris.android.widgets.OutlineView;
+import jo.celeris.android.widgets.RevueDiff;
 import jo.celeris.android.widgets.SearchBarModel;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
@@ -91,6 +95,9 @@ public final class EditorActivity extends AppCompatActivity {
     private final FauxDebogueur debogueur = new FauxDebogueur();
     private List<ReperesPreview.ReperePreview> reperes = List.of();
     private AtelierLint atelierLint;
+    private AtelierDiff atelierDiff;
+    private List<OutlineEntry> entreesPlan = List.of();
+    private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle etat) {
@@ -104,6 +111,7 @@ public final class EditorActivity extends AppCompatActivity {
         session = TextSession.of(fichier.contenu(), System::nanoTime);
         recherche = new SearchBarModel(session.document(), System::nanoTime);
         atelierLint = new AtelierLint(nomFichier, session, this::etatLint);
+        atelierDiff = new AtelierDiff(reference, session);
         session.addEditListener((debut, fin, retire, insere) -> {
             majPosition();
             majMarques();
@@ -135,6 +143,21 @@ public final class EditorActivity extends AppCompatActivity {
         barre.setTitle(nomFichier);
         barre.setNavigationOnClickListener(vue -> finish());
         barre.setOnMenuItemClickListener(this::surMenu);
+        actionsMenu.put(R.id.action_recherche, this::ouvrirRecherche);
+        actionsMenu.put(R.id.action_plan, this::basculerPlan);
+        actionsMenu.put(R.id.action_debogage, this::basculerDebogage);
+        actionsMenu.put(R.id.action_retour_ligne, this::basculerRetourLigne);
+        actionsMenu.put(R.id.action_annuler, () -> rejouer(false));
+        actionsMenu.put(R.id.action_retablir, () -> rejouer(true));
+        actionsMenu.put(R.id.action_lint, this::analyserLint);
+        actionsMenu.put(R.id.action_corriger, this::corrigerLint);
+        actionsMenu.put(R.id.action_apercu, this::apercuDefinition);
+        actionsMenu.put(R.id.action_diff, this::revueDiff);
+        actionsMenu.put(R.id.action_theme, this::tournerTheme);
+        actionsMenu.put(R.id.action_diminuer, () -> zoomerPolice(-PAS_TAILLE));
+        actionsMenu.put(R.id.action_agrandir, () -> zoomerPolice(PAS_TAILLE));
+        actionsMenu.put(R.id.action_reglages,
+                () -> startActivity(new Intent(this, SettingsActivity.class)));
 
         barreRechercheVue = findViewById(R.id.barre_recherche);
         champRecherche = findViewById(R.id.champ_recherche);
@@ -167,34 +190,11 @@ public final class EditorActivity extends AppCompatActivity {
     }
 
     private boolean surMenu(MenuItem element) {
-        int action = element.getItemId();
-        if (action == R.id.action_recherche) {
-            ouvrirRecherche();
-        } else if (action == R.id.action_plan) {
-            basculerPlan();
-        } else if (action == R.id.action_debogage) {
-            basculerDebogage();
-        } else if (action == R.id.action_retour_ligne) {
-            basculerRetourLigne();
-        } else if (action == R.id.action_annuler) {
-            rejouer(false);
-        } else if (action == R.id.action_lint) {
-            analyserLint();
-        } else if (action == R.id.action_corriger) {
-            corrigerLint();
-        } else if (action == R.id.action_retablir) {
-            rejouer(true);
-        } else if (action == R.id.action_theme) {
-            tournerTheme();
-        } else if (action == R.id.action_diminuer) {
-            zoomerPolice(-PAS_TAILLE);
-        } else if (action == R.id.action_agrandir) {
-            zoomerPolice(PAS_TAILLE);
-        } else if (action == R.id.action_reglages) {
-            startActivity(new Intent(this, SettingsActivity.class));
-        } else {
+        Runnable action = actionsMenu.get(element.getItemId());
+        if (action == null) {
             return false;
         }
+        action.run();
         return true;
     }
 
@@ -205,8 +205,18 @@ public final class EditorActivity extends AppCompatActivity {
         // Toute animation de vue (défilement, clic) rafraîchit la
         // position ; les clics restent portés par EditorView, qui
         // redéfinit performClick.
-        editeur.setOnTouchListener(suivreCurseur());
-        editeur.setSurPlan(entrees -> editeur.post(() -> plan.setEntries(entrees)));
+        editeur.setOnTouchListener((vue, evenement) -> {
+            vue.post(this::majPosition);
+            return false;
+        });
+        editeur.setSurPlan(entrees -> {
+            entreesPlan = entrees;
+            editeur.post(() -> plan.setEntries(entrees));
+        });
+        // La gouttière s'adapte à la classe de largeur de la fenêtre
+        // (D-19) — le pliable déplié change de classe d'un geste.
+        editeur.setClasseLargeur(ClasseLargeur.de(
+                getResources().getConfiguration().screenWidthDp));
         // Le terrain d'essai du débogueur : le clic dans le champ des
         // numéros pose et retire les points d'arrêt (D-04).
         editeur.marquesGouttiere().setSurClicLigne(this::basculerArret);
@@ -224,14 +234,6 @@ public final class EditorActivity extends AppCompatActivity {
         etiquettePosition = findViewById(R.id.etat_position);
         etiquetteLangue = findViewById(R.id.etat_langue);
         etiquetteArrets = findViewById(R.id.etat_arrets);
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private View.OnTouchListener suivreCurseur() {
-        return (vue, evenement) -> {
-            vue.post(this::majPosition);
-            return false;
-        };
     }
 
     /** Le chrome s'étend bord à bord : encarts système et clavier
@@ -479,6 +481,63 @@ public final class EditorActivity extends AppCompatActivity {
 
     private List<String> lignesCourantes() {
         return FauxLint.lignes(session.document().text());
+    }
+
+    /**
+     * L'aperçu rapide de la définition du symbole au curseur (D-11) :
+     * la déclaration se lit dans une fenêtre flottante — sans quitter
+     * le fichier.
+     */
+    private void apercuDefinition() {
+        List<SelRange> plages = session.selection().ranges();
+        int curseur = plages.isEmpty() ? 0 : plages.get(0).caret();
+        ApercuDefinition apercu = ApercuDefinition.de(entreesPlan,
+                lignesCourantes(),
+                ApercuDefinition.symboleAu(session.document().text(), curseur),
+                curseur);
+        if (apercu == null) {
+            return;
+        }
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.titre_apercu, apercu.nom()))
+                .setMessage(String.join("\n", apercu.extrait()))
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    /**
+     * La revue du diff du texte courant face à l'origine (D-12) : les
+     * blocs se décident un à un — accepter, refuser —, le texte
+     * fusionné s'applique en une transaction annulable.
+     */
+    private void revueDiff() {
+        atelierDiff.ouvrir(this::montrerBloc);
+    }
+
+    private void relancerRevue(int bloc, List<String> lignes, boolean decidable) {
+        runOnUiThread(() -> montrerBloc(bloc, lignes, decidable));
+    }
+
+    /** Le bloc courant de la revue : décider, ou appliquer la fusion. */
+    private void montrerBloc(int bloc, List<String> lignes, boolean decidable) {
+        if (!decidable) {
+            if (atelierDiff.appliquer()) {
+                editeur.invalidate();
+                majMarques();
+                majPastillesEtReperes();
+            }
+            return;
+        }
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.titre_diff, bloc + 1))
+                .setMessage(String.join("\n", lignes))
+                .setPositiveButton(R.string.bloc_accepter,
+                        (dialog, lequel) -> atelierDiff.decider(
+                                RevueDiff.Decision.ACCEPTE, this::relancerRevue))
+                .setNegativeButton(R.string.bloc_refuser,
+                        (dialog, lequel) -> atelierDiff.decider(
+                                RevueDiff.Decision.REFUSE, this::relancerRevue))
+                .show();
     }
 
     /**

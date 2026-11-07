@@ -69,7 +69,7 @@ final class TouchesEditeur {
             return true;
         }
         float coulisse = vue.marquesGouttiere.coulisse(vue.syntaxe.coulisse(
-                vue.metrics.charWidth(), EditorView.MARGE_GOUTTIERE),
+                vue.metrics.charWidth(), vue.margeGouttiere),
                 vue.metrics.charWidth());
         if (vue.syntaxe.basculerPliAuPoint(x, y, vue.scrollY,
                 vue.metrics.lineHeight(), coulisse, vue.projection)) {

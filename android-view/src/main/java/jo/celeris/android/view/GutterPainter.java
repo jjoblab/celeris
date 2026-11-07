@@ -81,7 +81,7 @@ public final class GutterPainter extends PainterLayer {
 
     private final GutterNumbers numeros = new GutterNumbers();
     private final MarksSource marques;
-    private final float marge;
+    private float marge;
     private final LaneSource coulisse;
     private final PastilleSource pastilles;
     private final RepereSource reperes;
@@ -159,6 +159,17 @@ public final class GutterPainter extends PainterLayer {
      */
     public void setNumerosVisibles(boolean visibles) {
         numerosVisibles = visibles;
+    }
+
+    /**
+     * Change la respiration de chaque côté du champ de numéros (D-19) :
+     * la classe de largeur de fenêtre la décide — le compact resserre,
+     * l'étendu respire.
+     *
+     * @param padding la nouvelle respiration, en pixels
+     */
+    public void setMarge(float padding) {
+        marge = padding;
     }
 
     @Override

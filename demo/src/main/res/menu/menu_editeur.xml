@@ -43,6 +43,16 @@
         android:title="@string/action_corriger"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_apercu"
+        android:icon="@drawable/ic_plan"
+        android:title="@string/action_apercu"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_diff"
+        android:icon="@drawable/ic_debogage"
+        android:title="@string/action_diff"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_retablir"
         android:icon="@drawable/ic_retablir"
         android:title="@string/action_retablir"

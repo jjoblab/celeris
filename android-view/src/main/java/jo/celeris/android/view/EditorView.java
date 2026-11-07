@@ -65,7 +65,8 @@ public final class EditorView extends View {
     /** La police par défaut : mono, 14 sp — la conversion en pixels
      *  suit la densité de l'appareil (PIEGE-22). */
     static final FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
-    static final float MARGE_GOUTTIERE = 8f;
+    /** La respiration de gouttière, adaptée à la classe de largeur (D-19). */
+    float margeGouttiere = ClasseLargeur.MOYEN.margeGouttiere();
     private static final float MARGE_RETOUR = 8f;
 
     private final AndroidFontRuler regle = new AndroidFontRuler();
@@ -124,10 +125,10 @@ public final class EditorView extends View {
         setFocusableInTouchMode(true);
         syntaxe.setSurAnalysePrete(this::postInvalidateOnAnimation);
         BrushFactory pinceaux = new PaintBrushes();
-        gouttiere = new GutterPainter(pinceaux, MARGE_GOUTTIERE,
+        gouttiere = new GutterPainter(pinceaux, margeGouttiere,
                 () -> marquesGouttiere.marques(syntaxe.marques()),
                 () -> marquesGouttiere.coulisse(syntaxe.coulisse(
-                        metrics.charWidth(), MARGE_GOUTTIERE), metrics.charWidth()),
+                        metrics.charWidth(), margeGouttiere), metrics.charWidth()),
                 marquesGouttiere::pastille,
                 marquesGouttiere::reperePreview);
         trace.addLayer(gouttiere);
@@ -249,6 +250,20 @@ public final class EditorView extends View {
     public void setNumerosVisibles(boolean visibles) {
         numerosVisibles = visibles;
         gouttiere.setNumerosVisibles(visibles);
+        invalidate();
+    }
+
+    /**
+     * Adapte la gouttière à la classe de largeur de fenêtre (D-19 —
+     * pliables, grands écrans, mode bureau) : le compact resserre le
+     * champ de numéros, l'étendu le respire — le pliable déplié change
+     * de classe d'un geste, la gouttière suit.
+     *
+     * @param classe la classe de largeur courante
+     */
+    public void setClasseLargeur(ClasseLargeur classe) {
+        margeGouttiere = classe.margeGouttiere();
+        gouttiere.setMarge(margeGouttiere);
         invalidate();
     }
 
@@ -391,11 +406,11 @@ public final class EditorView extends View {
         scrollY = ScrollGeometry.clamp(scrollY, hauteurContenu, getHeight());
         // La coulisse effective compte les intégrations (D-03 à D-05).
         float coulisse = marquesGouttiere.coulisse(syntaxe.coulisse(
-                metrics.charWidth(), MARGE_GOUTTIERE), metrics.charWidth());
+                metrics.charWidth(), margeGouttiere), metrics.charWidth());
         largeurGouttiere = numerosVisibles
                 ? GutterGeometry.width(Math.max(1, projection.rowCount()),
-                        metrics.charWidth(), MARGE_GOUTTIERE, coulisse)
-                : GutterGeometry.laneOnly(MARGE_GOUTTIERE, coulisse);
+                        metrics.charWidth(), margeGouttiere, coulisse)
+                : GutterGeometry.laneOnly(margeGouttiere, coulisse);
         scrollX = ScrollGeometry.clamp(scrollX,
                 ScrollGeometry.largeurContenu(projection, metrics),
                 ScrollGeometry.largeurVisible(getWidth(), largeurGouttiere));
