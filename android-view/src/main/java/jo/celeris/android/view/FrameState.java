@@ -50,8 +50,12 @@ public final class FrameState {
         this.revision = revision;
         this.metrics = metrics;
         this.theme = theme;
-        this.firstRow = firstRow;
-        this.visibleRows = visibleRows;
+        // La fenêtre se borne au contenu : les rangées au-delà de la
+        // dernière ne se tracent pas — elles répéteraient la dernière
+        // ligne sans coupure, et déborderaient sous coupure.
+        this.firstRow = Math.max(0, Math.min(firstRow, projection.rowCount() - 1));
+        this.visibleRows = ScrollGeometry.borneesAuContenu(this.firstRow,
+                visibleRows, projection.rowCount());
         this.gutterWidth = gutterWidth;
         this.scrollX = scrollX;
         this.scrollY = scrollY;

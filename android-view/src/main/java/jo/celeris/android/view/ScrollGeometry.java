@@ -64,4 +64,48 @@ public final class ScrollGeometry {
     public static int visibleRows(float viewportHeight, float lineHeight) {
         return (int) Math.ceil(viewportHeight / lineHeight) + 1;
     }
+
+    /**
+     * Le nombre de rangées à tracer, borné au contenu : la fenêtre ne
+     * descend jamais sous la dernière rangée — sans ce bornage, les
+     * rangées au-delà du contenu projettent la dernière ligne sur des
+     * tranches croissantes (répétition du contenu sans coupure,
+     * hors bornes sous coupure).
+     *
+     * @param firstRow la première rangée visible, ≥ 0
+     * @param visibles le nombre de rangées couvrant la fenêtre
+     * @param rowCount le nombre de rangées du contenu, ≥ 0
+     * @return le nombre de rangées à tracer, ≥ 0
+     */
+    public static int borneesAuContenu(int firstRow, int visibles, int rowCount) {
+        int premiere = Math.max(0, Math.min(firstRow, rowCount));
+        return Math.max(0, Math.min(visibles, rowCount - premiere));
+    }
+
+    /**
+     * L'étendue horizontale du contenu : la plus large rangée, en
+     * pixels — bornée au budget de colonnes sous coupures (A-18).
+     *
+     * @param projection la projection rangées ↔ lignes courante
+     * @param metrics    les métriques d'éditeur courantes
+     * @return la largeur du contenu, en pixels
+     */
+    public static float largeurContenu(VisualProjection projection,
+            EditorMetrics metrics) {
+        int portee = projection.columns() <= 0
+                ? projection.longestLineLength()
+                : Math.min(projection.longestLineLength(), projection.columns());
+        return portee * metrics.charWidth();
+    }
+
+    /**
+     * La largeur visible du contenu, gouttière déduite.
+     *
+     * @param viewportWidth la largeur de la fenêtre, en pixels
+     * @param gutterWidth   la largeur de gouttière, en pixels
+     * @return la largeur visible, jamais négative
+     */
+    public static float largeurVisible(float viewportWidth, float gutterWidth) {
+        return Math.max(0f, viewportWidth - gutterWidth);
+    }
 }
