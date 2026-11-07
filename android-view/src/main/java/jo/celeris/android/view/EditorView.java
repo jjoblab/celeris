@@ -78,7 +78,8 @@ public final class EditorView extends View {
     final SelectionDrag glissement = new SelectionDrag();
     private final FoldModel plis = new FoldModel();
     final EditorSyntax syntaxe;
-    private final RowLayoutCache cache = new RowLayoutCache();
+    // Visible du paquet : le banc de test y lit la mise en page servie (ADR-013).
+    final RowLayoutCache cache = new RowLayoutCache();
     final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
     private final ChromePainter chrome = new ChromePainter();

@@ -43,6 +43,11 @@
 | PIEGE-21 | La voie de grammaires transporte sa pile de blocs ouverts d'une ligne à la suivante : une pile réifiée par identité ne reconverge jamais et la cascade relit le document entier à chaque édition — l'état transporté doit être à égalité de valeur (pile immuable, les règles partagées par identité), la cascade s'arrête exactement à la reconvergence | ADR-004 | `pileEtatsReconvergeParValeur` | `core-syntax-grammars` | M4 | couvert (2026-11-05, `GrammaireLexeurTest`) |
 | PIEGE-22 | Le chemin coloré ne reposait pas la police de l'image sur ses pinceaux par sorte de jeton : chaque plage se traçait à la police par défaut de la plateforme (chasse variable) pendant que l'avance se calculait à la police de l'éditeur — la règle qui mesure est la police qui trace, chaque pinceau reçoit la police avant tout tracé | `CHANGELOG.md` | `lesPlagesSeTracentALaPoliceDeLEditeur` | `android-view` | M7 | couvert (2026-11-07, `TextPainterSyntaxTest`) |
 | PIEGE-23 | Les tailles de police se lisaient en pixels bruts — minuscules sur écran dense : elles vivent en sp, converties une fois pour toutes à la densité de l'appareil — jamais de pixel cru dans une mesure d'interface | `CHANGELOG.md` | `taillesSpConvertiesALaDensite` | `android-view` | M7 | couvert (2026-11-08, `TaillesSpTest`) |
+| PIEGE-24 | Le facteur d'un détecteur de pincement est INCRÉMENTAL (rapport à l'événement précédent, voisin de 1,00) : il se cumule depuis le début du geste avant de choisir un palier — transmis tel quel à un choix par palier, le zoom ne fait jamais rien | M7.5 (constat du propriétaire, §4) | `pinchOutIncreasesFontSize` | `android-view` | M7.5 | à écrire |
+| PIEGE-25 | La largeur de gouttière ne dépend jamais de la projection visuelle (rangées ≠ lignes) ni d'un état d'analyse : plancher de chiffres, marges en dp, coulisse de configuration — jamais un résultat qui arrive | M7.5 (constat du propriétaire, §5) | `gutterWidthIsStableBeforeAndAfterFirstAnalysis` | `android-view` | M7.5 | à écrire |
+| PIEGE-26 | Aucune image ne trace sans couleur un caractère qui en avait une à l'image précédente, sauf si l'édition elle-même l'a changé — le lexique périmé se remappe finement sur le texte courant, il ne se jette pas | M7.5 (constat du propriétaire, §6) | `noFrameBetweenKeystrokeAndPublicationPaintsUncoloredText` | `android-view` | M7.5 | à écrire |
+| PIEGE-27 | Un popup ne prend jamais le focus d'entrée de l'éditeur : le clavier logiciel et la connexion d'entrée restent à la vue, les touches passent par l'intercepteur du contrôleur | M7.5 (constat du propriétaire, §7) | `popupNeverStealsInputFocus` | `android-widgets` | M7.5 | à écrire |
+| PIEGE-28 | Le changement de police réinitialise la source de rangées même à révision constante — les mises en page se mesurent à l'ancienne police, le cache se vide au passage | M7.5 (constat du propriétaire, §4) | `zoomOnUneditedDocumentRemeasuresText` | `android-view` | M7.5 | à écrire |
 
 ## Règle de traçabilité
 
@@ -54,6 +59,9 @@
    l'identifiant `PIEGE-nn` quand le piège est visible par l'utilisateur.
 4. Un piège ne peut être retiré de ce registre que par décision explicite du
    propriétaire, consignée dans un ADR.
+5. Chaque test cité par ce registre existe vraiment : le script
+   `scripts/check-pieges` vérifie les noms en CI — une citation sans test
+   est un mensonge de registre (PIEGE-23 l'a été).
 
 ## Constat d'audit associé
 
