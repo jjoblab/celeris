@@ -13,7 +13,7 @@ import jo.celeris.core.text.TextEdit;
  * discipline de {@link PropositionAgent} : ordonnées, disjointes,
  * textes retirés exacts. L'application refuse si le document a bougé
  * depuis — jamais de fusion silencieuse, le refus porte son message
- * (voir {@link ReponseTransaction}).</p>
+ * (voir {@link TransactionOutilReponse}).</p>
  *
  * @param revisionAttendue la révision de l'instantané lu par l'agent
  * @param edits            les éditions, ordonnées par position croissante
