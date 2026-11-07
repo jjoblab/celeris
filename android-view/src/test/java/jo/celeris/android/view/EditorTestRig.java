@@ -147,12 +147,12 @@ final class EditorTestRig {
                 new android.view.inputmethod.EditorInfo());
     }
 
-    private static MotionEvent obtenir(long depart, long event, int action,
+    static MotionEvent obtenir(long depart, long event, int action,
             float x, float y) {
         return MotionEvent.obtain(depart, event, action, x, y, 0);
     }
 
-    private static MotionEvent deuxDoigts(long event, int action,
+    static MotionEvent deuxDoigts(long event, int action,
             float x0, float y0, float x1, float y1) {
         MotionEvent.PointerProperties[] doigts =
                 new MotionEvent.PointerProperties[2];

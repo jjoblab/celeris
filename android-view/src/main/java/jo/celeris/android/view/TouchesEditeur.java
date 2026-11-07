@@ -115,7 +115,7 @@ final class TouchesEditeur {
      * sélection.
      */
     boolean surDeplacement(MotionEvent event) {
-        if (vue.pincementActif) {
+        if (vue.zoom.actif()) {
             return true;
         }
         if (panoramique && event.getPointerCount() >= 2) {
@@ -153,6 +153,11 @@ final class TouchesEditeur {
         panoramique = false;
         vue.glissement.up();
         return true;
+    }
+
+    /** Coupe le panoramique : le pincement engage prend la main (D-15). */
+    void couperPanoramique() {
+        panoramique = false;
     }
 
     /** Le relâchement : tout geste se conclut. */

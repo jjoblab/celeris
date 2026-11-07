@@ -93,9 +93,8 @@ public final class EditorView extends View {
     private final ScaleGestureDetector pincements;
 
     private KeyBindings raccourcis = KeyBindings.defaults();
-    // — état de gestes, visible du paquet pour GestesFabrique (D-15/A-01)
-    float tailleAuDepartDuPincement;
-    boolean pincementActif;
+    // — le zoom au pincement vit dans son collaborateur (D-15, PIEGE-24)
+    final PinchZoomHandler zoom = new PinchZoomHandler(this);
 
     TextSession session = TextSession.of("", System::nanoTime);
     VisualProjection projection = new VisualProjection(session.document(), plis, 0);
@@ -112,15 +111,17 @@ public final class EditorView extends View {
      *  l'image suivante, les mises en page sans couleur de la révision
      *  courante se remplacent (volatile : posée sur le fil de travail). */
     private volatile boolean publicationRecue;
+    /** L'écouteur des changements de taille de police (D-15). */
+    private @Nullable Consumer<Float> onFontSizeChanged;
 
     float scrollX;
     float scrollY;
     float largeurGouttiere;
-    private boolean numerosVisibles = true;
+    boolean numerosVisibles = true;
     /** Le collaborateur du curseur et du clavier : clignotement, IME. */
     final CurseurClavier curseurClavier = new CurseurClavier(this);
     /** Le collaborateur du routage tactile. */
-    private final TouchesEditeur touches = new TouchesEditeur(this);
+    final TouchesEditeur touches = new TouchesEditeur(this);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
     final FantomeEditeur fantome;
 
@@ -214,16 +215,35 @@ public final class EditorView extends View {
     /**
      * Change la police : les métriques se redérivent par reconsultation
      * de la règle (PIEGE-05), le cache se vide par révision suivie, le
-     * budget de colonnes se redérive à l'image suivante.
+     * budget de colonnes se redérive à l'image suivante. La taille
+     * changeante prévient l'écouteur — l'hôte y persiste sa taille
+     * (D-15).
      *
      * @param police la spécification de police, taille en sp
      */
     public void setFont(FontSpec police) {
+        boolean tailleChangee = police.size() != policeLogique.size();
         policeLogique = police;
         metrics = EditorMetrics.of(enPixels(police), regle);
         viseur = new HitTest(metrics);
-        revisionSuivie = 0L;
+        // PIEGE-28 : la source de rangées se réinitialise même à
+        // révision constante — un document jamais édité (révision 0)
+        // doit se re-mesurer à la nouvelle police ; le cache se vide,
+        // les mises en page de l'ancienne police ne s'y accumulent pas.
+        revisionSuivie = Long.MIN_VALUE;
+        cache.clear();
+        if (tailleChangee && onFontSizeChanged != null) {
+            onFontSizeChanged.accept(police.size());
+        }
         invalidate();
+    }
+
+    /**
+     * L'écouteur des changements de taille de police (D-15) — l'hôte y
+     *  persiste la taille.
+     */
+    public void setOnFontSizeChanged(@Nullable Consumer<Float> ecouteur) {
+        onFontSizeChanged = ecouteur;
     }
 
     /**
@@ -354,16 +374,7 @@ public final class EditorView extends View {
             outAttrs.inputType = InputType.TYPE_NULL;
             return null;
         }
-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT
-                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-                | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
-        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
-                | EditorInfo.IME_ACTION_NONE;
-        List<SelRange> plages = session.selection().ranges();
-        if (!plages.isEmpty()) {
-            outAttrs.initialSelStart = plages.get(0).start();
-            outAttrs.initialSelEnd = plages.get(0).end();
-        }
+        EditorInputConnection.remplirInfos(session, outAttrs);
         return new EditorInputConnection(this, composition);
     }
 
@@ -500,6 +511,12 @@ public final class EditorView extends View {
         }
     }
 
+    /** D-15 — la molette avec Ctrl zoome d'un palier (voir PinchZoomHandler). */
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        return zoom.surMolette(event) || super.onGenericMotionEvent(event);
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         // Toute frappe matérielle clôt la composition d'abord : la
@@ -552,25 +569,6 @@ public final class EditorView extends View {
             return 1;
         }
         return Math.max(1, (int) Math.floor(disponible / metrics.charWidth()));
-    }
-
-    /** D-15 — zoome par paliers, le point sous le doigt stable. */
-    void zoomer(float focalX, float focalY, float facteur) {
-        float nouvelleTaille = PinchZoom.steppedSize(tailleAuDepartDuPincement,
-                facteur);
-        if (nouvelleTaille == policeLogique.size()) {
-            return;
-        }
-        float ancienCharWidth = metrics.charWidth();
-        float ancienLineHeight = metrics.lineHeight();
-        float ancienScrollX = scrollX;
-        float ancienScrollY = scrollY;
-        setFont(new FontSpec(policeLogique.family(), nouvelleTaille));
-        scrollX = PinchZoom.scrollXKeepingColumn(focalX, largeurGouttiere,
-                ancienScrollX, ancienCharWidth, metrics.charWidth());
-        scrollY = PinchZoom.scrollYKeepingRow(focalY, ancienScrollY,
-                ancienLineHeight, metrics.lineHeight());
-        invalidate();
     }
 
     @Override
