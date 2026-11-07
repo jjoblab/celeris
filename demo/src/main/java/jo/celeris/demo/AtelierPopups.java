@@ -24,6 +24,7 @@ import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.SelectionBarView;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.android.widgets.SignatureHelpView;
+import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.text.MultiSelection;
@@ -69,6 +70,10 @@ final class AtelierPopups {
     private List<SelectionBarView.Item> actionsSelection = List.of();
     /** Le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     private String nomDuFichier = "";
+    /** Le serveur de langage branché — null retombe sur le coach (M7.5, §8). */
+    private ServeurLangage serveur;
+    /** L'uri du document ouvert auprès du serveur de langage. */
+    private String uriDocument = "";
     /** La frappe en cours : la sélection qui la suit ne rouvre pas
      *  l'info-bulle — le contrôleur vient de la fermer (M7.5, §7). */
     private boolean frappeEnCours;
@@ -110,6 +115,22 @@ final class AtelierPopups {
     /** Les intentions du menu — l'activité les fournit, libellés compris. */
     void configurerIntentions(List<IntentionsMenuView.Item> items) {
         intentions = List.copyOf(items);
+    }
+
+    /**
+     * Branche le serveur de langage (M7.5, §8) : l'aide aux
+     * paramètres et le survol passent par le fil du protocole — le
+     * coach ne garde que le repli. La langue se lit du fichier ouvert.
+     *
+     * @param serveurLangage la session de langage démarrée
+     * @param uri            l'uri du document ouvert
+     */
+    void brancherServeur(ServeurLangage serveurLangage, String uri) {
+        this.serveur = serveurLangage;
+        this.uriDocument = uri;
+        LanguageSyntax langue = FichiersExemple.languePour(nomDuFichier);
+        serveurLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
+                session.document().text());
     }
 
     /** Les actions de la barre de sélection — l'activité les fournit. */
@@ -179,11 +200,28 @@ final class AtelierPopups {
                         hauteurCouche(), margePx));
     }
 
-    /** Ouvre le survol du symbole au curseur — la documentation du coach. */
+    /**
+     * Ouvre le survol du symbole au curseur — la documentation du
+     * serveur de langage par le fil du protocole, la table du coach
+     * en repli.
+     */
     void ouvrirSurvol() {
         String symbole = symboleAuCaret();
-        CompletionDocModel doc = symbole == null ? null
-                : PopupCoach.docFor(symbole);
+        if (symbole == null) {
+            return;
+        }
+        if (serveur != null) {
+            int caret = caret();
+            serveur.survol(uriDocument, session.document(), symbole, caret)
+                    .whenComplete((doc, echec) -> editeur.post(
+                            () -> montrerSurvol(doc)));
+            return;
+        }
+        montrerSurvol(PopupCoach.docFor(symbole));
+    }
+
+    /** Pose le survol — null ferme, le modèle sinon s'ancre au point. */
+    private void montrerSurvol(CompletionDocModel doc) {
         if (doc == null) {
             return;
         }
@@ -196,22 +234,37 @@ final class AtelierPopups {
                         hauteurCouche(), margePx));
     }
 
-    /** Ouvre l'aide aux paramètres de l'appel ouvert sous le curseur. */
+    /** Ouvre l'aide aux paramètres de l'appel ouvert sous le curseur —
+     *  le serveur de langage par le fil du protocole, le coach en repli. */
     void rafraichirSignature() {
-        SignatureAideModel model = PopupCoach.signatureFor(
-                session.document(), caret());
-        if (model == null) {
+        if (serveur != null) {
+            int caret = caret();
+            serveur.signature(uriDocument, session.document(), caret)
+                    .whenComplete((modele, echec) -> editeur.post(
+                            () -> montrerSignature(modele)));
+            return;
+        }
+        montrerSignature(PopupCoach.signatureFor(
+                session.document(), caret()));
+    }
+
+    /** Pose l'aide aux paramètres — null ferme, le modèle sinon se place. */
+    private void montrerSignature(SignatureAideModel modele) {
+        if (modele == null) {
             fermer(PopupController.PopupKind.SIGNATURE_HELP);
             return;
         }
         controleur.open(PopupController.PopupKind.SIGNATURE_HELP);
-        aideSignature.setModel(model);
+        aideSignature.setModel(modele);
         placerCompletion();
     }
 
     private void surEdition() {
         frappeEnCours = true;
         controleur.onKeystroke();
+        if (serveur != null) {
+            serveur.synchroniser(uriDocument, session.document().text());
+        }
         if (controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST)) {
             basculerCompletion();
         }

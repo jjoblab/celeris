@@ -71,6 +71,36 @@ final class PopupCoach {
     }
 
     /**
+     * La documentation BRUTE d'un symbole — le markdown à clôtures,
+     * tel que le serveur de référence le sert au survol (M7.5, §8).
+     *
+     * @param symbole le nom du symbole
+     * @return la documentation markdown, null si la table ne connaît pas
+     */
+    static String documentationBrute(String symbole) {
+        return DOCUMENTATION.get(symbole);
+    }
+
+    /**
+     * Le symbole à l'offset — l'identifiant qui le porte, null au
+     * vide entre deux mots.
+     *
+     * @param document le document ouvert
+     * @param offset   la position visitée
+     * @return l'identifiant complet, null si aucun
+     */
+    static String symboleA(Document document, int offset) {
+        String texte = document.text();
+        int borne = Math.min(offset, texte.length());
+        int debut = debutIdentifiant(texte, borne);
+        int fin = borne;
+        while (fin < texte.length() && estIdentifiant(texte.charAt(fin))) {
+            fin++;
+        }
+        return debut == fin ? null : texte.substring(debut, fin);
+    }
+
+    /**
      * La complétion du curseur : les identifiants du document et les
      * mots réservés, filtrés par le préfixe tapé — le mot sous le
      * curseur ne se propose pas à lui-même.

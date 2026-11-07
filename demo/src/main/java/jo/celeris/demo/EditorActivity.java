@@ -93,6 +93,8 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierRefactor atelierRefactor;
     private AtelierRecherche atelierRecherche;
     private AtelierSelection atelierSelection;
+    /** La session de langage — serveur de référence en processus (M7.5, §8). */
+    private ServeurLangage serveurLangage;
     private List<OutlineEntry> entreesPlan = List.of();
     private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
 
@@ -131,6 +133,15 @@ public final class EditorActivity extends AppCompatActivity {
         super.onResume();
         // Les réglages ont pu changer pendant la pause : réappliquer.
         appliquerPreferences();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // La session de langage vit avec l'activité — transports fermés d'entrée.
+        if (serveurLangage != null) {
+            serveurLangage.close();
+        }
     }
 
     private FichierExemple resoudreFichier() {
@@ -236,10 +247,10 @@ public final class EditorActivity extends AppCompatActivity {
      * presse-papiers local.
      */
     private void brancherAteliers() {
-        // L'atelier de refactorisation (M7.5, §8) : gabarit, formatage,
-        // renommage et import — chaque geste une transaction annulable.
+        // La refactorisation et le serveur de langage en processus (M7.5, §8).
         atelierRefactor = new AtelierRefactor(this, editeur, session,
                 nomFichier, this::verdictRefactor);
+        serveurLangage = ServeurLangage.demarrer();
         // L'atelier des popups : la couche posée sur l'éditeur porte
         // les dix popups, la machine à états décide qui reste ouvert.
         PopupLayer couche = findViewById(R.id.couche_popups);
@@ -247,6 +258,8 @@ public final class EditorActivity extends AppCompatActivity {
                 indexThemeCourant() != 0);
         atelierPopups.setNomFichier(nomFichier);
         atelierPopups.configurerIntentions(intentionsAuCurseur());
+        atelierPopups.brancherServeur(serveurLangage,
+                "file:///" + nomFichier);
         atelierSelection = new AtelierSelection(editeur, session);
         atelierPopups.configurerActionsSelection(atelierSelection.items(
                 getString(R.string.barre_couper),
