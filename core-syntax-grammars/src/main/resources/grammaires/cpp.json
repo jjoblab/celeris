@@ -1,0 +1,99 @@
+{
+  "name": "C++",
+  "scopeName": "source.cpp",
+  "patterns": [
+    { "include": "#commentaires" },
+    { "include": "#preprocesseur" },
+    { "include": "#chaines" },
+    { "include": "#mots" },
+    { "include": "#types" },
+    { "include": "#constantes" },
+    { "include": "#fonctions" },
+    { "include": "#nombres" },
+    { "include": "#operateurs" },
+    { "include": "#ponctuation" }
+  ],
+  "repository": {
+    "commentaires": {
+      "patterns": [
+        { "match": "//[^\\n]*", "name": "comment.line.double-slash.cpp" },
+        { "begin": "/\\*", "end": "\\*/",
+          "name": "comment.block.cpp",
+          "contentName": "comment.block.cpp",
+          "beginCaptures": { "0": "punctuation.definition.comment.cpp" },
+          "endCaptures": { "0": "punctuation.definition.comment.cpp" } }
+      ]
+    },
+    "preprocesseur": {
+      "patterns": [
+        { "match": "^[ \\t]*#(?:include|define|undef|ifdef|ifndef|if|elif|else|endif|error|pragma)\\b", "name": "keyword.control.import.cpp" }
+      ]
+    },
+    "chaines": {
+      "patterns": [
+        { "begin": "(?:u8|u|U|L)?\"", "end": "\"",
+          "name": "string.quoted.double.cpp",
+          "contentName": "string.quoted.double.cpp",
+          "beginCaptures": { "0": "punctuation.definition.string.begin.cpp" },
+          "endCaptures": { "0": "punctuation.definition.string.end.cpp" },
+          "patterns": [ { "include": "#echappements" } ] },
+        { "begin": "(?:u8|u|U|L)?'", "end": "'",
+          "name": "string.quoted.single.cpp",
+          "contentName": "string.quoted.single.cpp",
+          "beginCaptures": { "0": "punctuation.definition.string.begin.cpp" },
+          "endCaptures": { "0": "punctuation.definition.string.end.cpp" },
+          "patterns": [ { "include": "#echappements" } ] }
+      ]
+    },
+    "echappements": {
+      "patterns": [
+        { "match": "\\\\[0tnr\"'\\\\]", "name": "constant.character.escape.cpp" }
+      ]
+    },
+    "mots": {
+      "patterns": [
+        { "match": "\\b(?:if|else|for|while|do|switch|case|default|break|continue|return|goto|sizeof|struct|union|enum|typedef|static|extern|const|volatile|register|inline|constexpr|consteval|namespace|using|template|typename|class|public|private|protected|virtual|override|final|new|delete|this|try|catch|throw|noexcept|operator|friend|explicit|mutable|thread_local|static_assert|concept|requires|co_await|co_return)\\b", "name": "keyword.control.cpp" }
+      ]
+    },
+    "types": {
+      "patterns": [
+        { "match": "\\b(?:void|int|char|long|short|float|double|unsigned|signed|bool|auto|char8_t|char16_t|char32_t|wchar_t|size_t|ptrdiff_t|int8_t|int16_t|int32_t|int64_t|uint8_t|uint16_t|uint32_t|uint64_t|std)\\b", "name": "support.type.cpp" },
+        { "match": "\\b[A-Z][A-Za-z0-9_]*_t\\b", "name": "support.type.cpp" }
+      ]
+    },
+    "constantes": {
+      "patterns": [
+        { "match": "\\b(?:true|false|nullptr|NULL)\\b", "name": "constant.language.cpp" },
+        { "match": "\\b[A-Z][A-Z0-9_]{2,}\\b", "name": "constant.other.cpp" }
+      ]
+    },
+    "fonctions": {
+      "patterns": [
+        { "match": "\\b[A-Za-z_]\\w*(?=[ \\t]*\\()", "name": "entity.name.function.cpp" }
+      ]
+    },
+    "nombres": {
+      "patterns": [
+        { "match": "\\b0[xX][0-9a-fA-F]+[uUlL]*\\b", "name": "constant.numeric.hex.cpp" },
+        { "match": "\\b\\d+\\.\\d+(?:[eE][-+]?\\d+)?[fFlL]?\\b", "name": "constant.numeric.float.cpp" },
+        { "match": "\\b\\d+[uUlL]*\\b", "name": "constant.numeric.integer.cpp" }
+      ]
+    },
+    "operateurs": {
+      "patterns": [
+        { "match": "::|->|\\+\\+|--|<<|>>|<=|>=|==|!=|&&|\\|\\||[-+*/%&|^~!<>=?:.]", "name": "keyword.operator.cpp" }
+      ]
+    },
+    "ponctuation": {
+      "patterns": [
+        { "match": "\\{", "name": "punctuation.section.block.begin.cpp" },
+        { "match": "\\}", "name": "punctuation.section.block.end.cpp" },
+        { "match": "\\(", "name": "punctuation.section.parens.begin.cpp" },
+        { "match": "\\)", "name": "punctuation.section.parens.end.cpp" },
+        { "match": "\\[", "name": "punctuation.section.brackets.begin.cpp" },
+        { "match": "\\]", "name": "punctuation.section.brackets.end.cpp" },
+        { "match": "[,;]", "name": "punctuation.separator.cpp" }
+      ]
+    }
+  }
+}

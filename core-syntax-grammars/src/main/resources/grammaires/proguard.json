@@ -1,0 +1,67 @@
+{
+  "name": "ProGuard",
+  "scopeName": "source.proguard",
+  "patterns": [
+    { "include": "#commentaires" },
+    { "include": "#regles" },
+    { "include": "#mots" },
+    { "include": "#types" },
+    { "include": "#membres" },
+    { "include": "#nombres" },
+    { "include": "#operateurs" },
+    { "include": "#ponctuation" }
+  ],
+  "repository": {
+    "commentaires": {
+      "patterns": [
+        { "match": "#[^\\n]*", "name": "comment.line.number-sign.proguard" }
+      ]
+    },
+    "regles": {
+      "patterns": [
+        { "match": "(?<=^|[ \\t])-\\s*(?:keepattributes|keepclasseswithmembernames|keepclassmembers|keepclasseswithmembers|keepnames|keep|dontwarn|dontnote|dontobfuscate|dontshrink|dontoptimize|dontpreverify|optimizations|optimizationpasses|allowaccessmodification|repackageclasses|flattenpackagehierarchy|useuniqueclassmembernames|mergeinterfacesaggressively|overloadaggressively|verbose|printconfiguration|printmapping|printusage|printseeds|include|basedirectory|injars|outjars|libraryjars|dontskipnonpubliclibraryclasses|dontskipnonpubliclibraryclassmembers|whyareyoukeeping)\\b", "name": "keyword.other.rule.proguard" },
+        { "match": "(?<=^|[ \\t])-(?:[a-z]+)\\b", "name": "invalid.illegal.unknown-rule.proguard" }
+      ]
+    },
+    "mots": {
+      "patterns": [
+        { "match": "\\b(?:extends|implements|public|private|protected|static|final|abstract|native|synchronized|transient|volatile|strictfp|class|interface|enum|record|annotation)\\b", "name": "keyword.control.proguard" }
+      ]
+    },
+    "types": {
+      "patterns": [
+        { "match": "\\b(?:void|boolean|int|long|float|double|char|byte|short)\\b", "name": "support.type.primitive.proguard" },
+        { "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)+\\b", "name": "support.type.class.proguard" }
+      ]
+    },
+    "membres": {
+      "patterns": [
+        { "match": "<(?:init|clinit|fields|methods)>", "name": "keyword.other.member.proguard" },
+        { "match": "\\*\\*", "name": "variable.language.wildcard.proguard" },
+        { "match": "\\*", "name": "variable.language.wildcard.proguard" },
+        { "match": "\\$\\d", "name": "variable.language.wildcard.proguard" }
+      ]
+    },
+    "nombres": {
+      "patterns": [
+        { "match": "\\b\\d+\\b", "name": "constant.numeric.proguard" }
+      ]
+    },
+    "operateurs": {
+      "patterns": [
+        { "match": "!", "name": "keyword.operator.negation.proguard" },
+        { "match": "\\.{3}", "name": "keyword.operator.ellipsis.proguard" }
+      ]
+    },
+    "ponctuation": {
+      "patterns": [
+        { "match": "\\{", "name": "punctuation.section.block.begin.proguard" },
+        { "match": "\\}", "name": "punctuation.section.block.end.proguard" },
+        { "match": "\\(", "name": "punctuation.section.parens.begin.proguard" },
+        { "match": "\\)", "name": "punctuation.section.parens.end.proguard" },
+        { "match": "[\\[\\]]", "name": "punctuation.section.array.proguard" },
+        { "match": "[,;.:@]", "name": "punctuation.separator.proguard" }
+      ]
+    }
+  }
+}

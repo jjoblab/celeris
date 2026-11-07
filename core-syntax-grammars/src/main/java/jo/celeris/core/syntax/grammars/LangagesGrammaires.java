@@ -7,9 +7,9 @@ import jo.celeris.core.language.Language;
 /**
  * Le catalogue des langages embarqués de la voie de grammaires
  * (C-15/C-16) : le reste des langages P1 (TOML, YAML, properties,
- * Markdown — SQL, C et C++ suivent leur jalon) et la longue traîne P2
- * (Python, Shell), sans analyseur dédié — coloration et plis par la
- * grammaire déclarative, portés par le socle incrémental commun. Les
+ * Markdown, SQL, C, C++) et la longue traîne P2 (Python, Shell),
+ * sans analyseur dédié — coloration et plis par la grammaire
+ * déclarative, portés par le socle incrémental commun. Les
  * {@link Language} nourrissent le registre des langages de l'hôte.
  */
 public final class LangagesGrammaires {
@@ -47,6 +47,26 @@ public final class LangagesGrammaires {
         return new GrammaireSyntax("shell", Grammaires.ressource("shell"));
     }
 
+    /** SQL — les migrations et les états de la base de l'hôte. */
+    public static GrammaireSyntax sql() {
+        return new GrammaireSyntax("sql", Grammaires.ressource("sql"));
+    }
+
+    /** C — le code natif des bibliothèques embarquées. */
+    public static GrammaireSyntax c() {
+        return new GrammaireSyntax("c", Grammaires.ressource("c"));
+    }
+
+    /** C++ — le code natif des moteurs et des bindings. */
+    public static GrammaireSyntax cpp() {
+        return new GrammaireSyntax("cpp", Grammaires.ressource("cpp"));
+    }
+
+    /** R8/ProGuard — les règles de réduction du paquet final. */
+    public static GrammaireSyntax proguard() {
+        return new GrammaireSyntax("proguard", Grammaires.ressource("proguard"));
+    }
+
     /**
      * Les langages du catalogue pour le registre : identifiants, noms
      * affichables et extensions.
@@ -60,6 +80,10 @@ public final class LangagesGrammaires {
                 new Language("properties", "Properties", List.of("properties")),
                 new Language("markdown", "Markdown", List.of("md", "markdown")),
                 new Language("python", "Python", List.of("py", "pyw")),
-                new Language("shell", "Shell", List.of("sh", "bash", "zsh")));
+                new Language("shell", "Shell", List.of("sh", "bash", "zsh")),
+                new Language("sql", "SQL", List.of("sql")),
+                new Language("c", "C", List.of("c", "h")),
+                new Language("cpp", "C++", List.of("cpp", "cc", "cxx", "hpp", "hxx")),
+                new Language("proguard", "ProGuard", List.of("pro")));
     }
 }

@@ -50,7 +50,14 @@ public final class Celeris {
             Map.entry("properties", LangagesGrammaires.proprietes()),
             Map.entry("md", LangagesGrammaires.markdown()),
             Map.entry("py", LangagesGrammaires.python()),
-            Map.entry("sh", LangagesGrammaires.shell()));
+            Map.entry("sh", LangagesGrammaires.shell()),
+            Map.entry("sql", LangagesGrammaires.sql()),
+            Map.entry("c", LangagesGrammaires.c()),
+            Map.entry("h", LangagesGrammaires.c()),
+            Map.entry("cpp", LangagesGrammaires.cpp()),
+            Map.entry("cc", LangagesGrammaires.cpp()),
+            Map.entry("hpp", LangagesGrammaires.cpp()),
+            Map.entry("pro", LangagesGrammaires.proguard()));
 
     private Celeris() {
     }

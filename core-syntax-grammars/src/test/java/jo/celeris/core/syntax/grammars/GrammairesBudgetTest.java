@@ -67,6 +67,24 @@ class GrammairesBudgetTest {
         budget(LangagesGrammaires.shell(), corpus("exemple.sh"));
     }
 
+    /** SQL — les états de la base de l'hôte. */
+    @Test
+    void sql() {
+        budget(LangagesGrammaires.sql(), corpus("exemple.sql"));
+    }
+
+    /** C — le code natif des bibliothèques embarquées. */
+    @Test
+    void c() {
+        budget(LangagesGrammaires.c(), corpus("exemple.c"));
+    }
+
+    /** C++ — le code natif des moteurs et des bindings. */
+    @Test
+    void cpp() {
+        budget(LangagesGrammaires.cpp(), corpus("exemple.cpp"));
+    }
+
     private static void budget(LanguageSyntax langage, String corpus) {
         String source = replique(corpus, LIGNES);
         Document doc = Document.of(source);

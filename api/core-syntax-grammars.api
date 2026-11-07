@@ -85,6 +85,10 @@ public final class jo.celeris.core.syntax.grammars.LangagesGrammaires {
   public static jo.celeris.core.syntax.grammars.GrammaireSyntax markdown();
   public static jo.celeris.core.syntax.grammars.GrammaireSyntax python();
   public static jo.celeris.core.syntax.grammars.GrammaireSyntax shell();
+  public static jo.celeris.core.syntax.grammars.GrammaireSyntax sql();
+  public static jo.celeris.core.syntax.grammars.GrammaireSyntax c();
+  public static jo.celeris.core.syntax.grammars.GrammaireSyntax cpp();
+  public static jo.celeris.core.syntax.grammars.GrammaireSyntax proguard();
   public static java.util.List<jo.celeris.core.language.Language> langages();
 }
 

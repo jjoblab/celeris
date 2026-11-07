@@ -29,6 +29,7 @@ public record CarteFichier(String nom, String monogramme, int couleur,
     private static final int JSON = 0xFFC3E88D;
     private static final int MARKDOWN = 0xFF9AA0A6;
     private static final int PYTHON = 0xFF82AAFF;
+    private static final int PROGUARD = 0xFFF07178;
     private static final int TEXTE = 0xFF9AA0A6;
 
     /**
@@ -90,6 +91,7 @@ public record CarteFichier(String nom, String monogramme, int couleur,
             case "json" -> "Js";
             case "md" -> "Md";
             case "py" -> "Py";
+            case "pro" -> "R8";
             default -> "Tx";
         };
     }
@@ -104,6 +106,7 @@ public record CarteFichier(String nom, String monogramme, int couleur,
             case "json" -> JSON;
             case "md" -> MARKDOWN;
             case "py" -> PYTHON;
+            case "pro" -> PROGUARD;
             default -> TEXTE;
         };
     }
@@ -118,6 +121,7 @@ public record CarteFichier(String nom, String monogramme, int couleur,
             case "json" -> "JSON";
             case "md" -> "Markdown";
             case "py" -> "Python";
+            case "pro" -> "ProGuard";
             default -> "Text";
         };
     }

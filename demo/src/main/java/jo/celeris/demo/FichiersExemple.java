@@ -205,6 +205,34 @@ public final class FichiersExemple {
                 return dict(CATEGORIES)
             """;
 
+    private static final String PROGUARD = """
+            # Règles R8 de la démonstration : l'API publique et les
+            # entrées réfléchies survivent à la réduction.
+
+            -verbose
+
+            -keep public class com.celeris.demo.MainActivity {
+                public static *** main(java.lang.String[]);
+            }
+
+            -keepclassmembers class * extends android.app.Activity {
+                <init>();
+                void onCreate(...);
+            }
+
+            -keepnames class com.celeris.core.text.**
+
+            -keepattributes Signature, *Annotation*
+
+            -keepclassmembers enum * {
+                public static **[] values();
+                public static ** valueOf(java.lang.String);
+            }
+
+            -dontwarn org.slf4j.**
+            -dontobfuscate
+            """;
+
     private static final List<FichierExemple> CATALOGUE = List.of(
             new FichierExemple("Conversions.kt", KOTLIN),
             new FichierExemple("ServiceUtilisateur.java", JAVA),
@@ -213,7 +241,8 @@ public final class FichiersExemple {
             new FichierExemple("libs.versions.toml", TOML),
             new FichierExemple("catalogue.json", JSON),
             new FichierExemple("README.md", MARKDOWN),
-            new FichierExemple("outils.py", PYTHON));
+            new FichierExemple("outils.py", PYTHON),
+            new FichierExemple("proguard-rules.pro", PROGUARD));
 
     private FichiersExemple() {
     }
@@ -275,6 +304,7 @@ public final class FichiersExemple {
             case "toml" -> LangagesGrammaires.toml();
             case "md" -> LangagesGrammaires.markdown();
             case "py" -> LangagesGrammaires.python();
+            case "pro" -> LangagesGrammaires.proguard();
             default -> null;
         };
     }

@@ -1,0 +1,73 @@
+{
+  "name": "SQL",
+  "scopeName": "source.sql",
+  "patterns": [
+    { "include": "#commentaires" },
+    { "include": "#chaines" },
+    { "include": "#mots" },
+    { "include": "#types" },
+    { "include": "#fonctions" },
+    { "include": "#nombres" },
+    { "include": "#operateurs" },
+    { "include": "#ponctuation" }
+  ],
+  "repository": {
+    "commentaires": {
+      "patterns": [
+        { "match": "--[^\\n]*", "name": "comment.line.double-dash.sql" },
+        { "begin": "/\\*", "end": "\\*/",
+          "name": "comment.block.sql",
+          "contentName": "comment.block.sql",
+          "beginCaptures": { "0": "punctuation.definition.comment.sql" },
+          "endCaptures": { "0": "punctuation.definition.comment.sql" } }
+      ]
+    },
+    "chaines": {
+      "patterns": [
+        { "begin": "'", "end": "'",
+          "name": "string.quoted.single.sql",
+          "contentName": "string.quoted.single.sql",
+          "beginCaptures": { "0": "punctuation.definition.string.begin.sql" },
+          "endCaptures": { "0": "punctuation.definition.string.end.sql" },
+          "patterns": [ { "match": "''", "name": "constant.character.escape.sql" } ] },
+        { "begin": "\"", "end": "\"",
+          "name": "string.quoted.double.identifier.sql",
+          "contentName": "string.quoted.double.identifier.sql",
+          "beginCaptures": { "0": "punctuation.definition.string.begin.sql" },
+          "endCaptures": { "0": "punctuation.definition.string.end.sql" } }
+      ]
+    },
+    "mots": {
+      "patterns": [
+        { "match": "(?i)\\b(?:select|from|where|group|by|having|order|limit|offset|insert|into|values|update|set|delete|create|table|view|index|drop|alter|add|column|primary|key|foreign|references|not|null|default|unique|check|constraint|as|and|or|in|like|between|is|distinct|asc|desc|union|all|exists|case|when|then|else|end|join|inner|left|right|full|outer|cross|on|using|begin|commit|rollback|transaction|if|grant|revoke)\\b", "name": "keyword.other.sql" }
+      ]
+    },
+    "types": {
+      "patterns": [
+        { "match": "(?i)\\b(?:int|integer|bigint|smallint|real|float|double|precision|decimal|numeric|char|varchar|text|date|time|timestamp|boolean|blob|serial)\\b", "name": "support.type.sql" }
+      ]
+    },
+    "fonctions": {
+      "patterns": [
+        { "match": "(?i)\\b(?:count|sum|avg|min|max|upper|lower|length|trim|coalesce|cast|substr|replace|round|abs|now)\\b(?=\\s*\\()", "name": "support.function.sql" }
+      ]
+    },
+    "nombres": {
+      "patterns": [
+        { "match": "\\b\\d+(?:\\.\\d+)?\\b", "name": "constant.numeric.sql" }
+      ]
+    },
+    "operateurs": {
+      "patterns": [
+        { "match": "<>|!=|<=|>=|\\|\\||[-+*/<>=!]", "name": "keyword.operator.sql" }
+      ]
+    },
+    "ponctuation": {
+      "patterns": [
+        { "match": "\\(", "name": "punctuation.section.parens.begin.sql" },
+        { "match": "\\)", "name": "punctuation.section.parens.end.sql" },
+        { "match": "[,;.]", "name": "punctuation.separator.sql" }
+      ]
+    }
+  }
+}

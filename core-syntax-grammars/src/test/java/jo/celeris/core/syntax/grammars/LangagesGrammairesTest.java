@@ -120,11 +120,74 @@ class LangagesGrammairesTest {
         assertFalse(regions.isEmpty(), "le corps de fonction multi-lignes se replie");
     }
 
+    /** SQL : mots réservés insensibles à la casse, bloc replié compris. */
+    @Test
+    void sqlColoreEtReplie() {
+        Document doc = Document.of(corpus("exemple.sql"));
+        Analysis analyse = analyse(LangagesGrammaires.sql(), doc);
+        assertTrue(aUneLigne(analyse, TokenKind.COMMENT), "les commentaires --");
+        assertTrue(aUneLigne(analyse, TokenKind.KEYWORD), "les mots réservés");
+        assertTrue(aUneLigne(analyse, TokenKind.TYPE), "les types des colonnes");
+        assertTrue(aUneLigne(analyse, TokenKind.IDENTIFIER), "les identifiants");
+        assertTrue(aUneLigne(analyse, TokenKind.STRING), "les chaînes et littéraux");
+        assertTrue(aUneLigne(analyse, TokenKind.NUMBER), "les nombres");
+        assertTrue(aUneLigne(analyse, TokenKind.OPERATOR), "les opérateurs");
+        List<FoldSpan> regions = TreeFolds.regions(doc, analyse);
+        assertFalse(regions.isEmpty(), "le commentaire en bloc se replie");
+    }
+
+    /** C : préprocesseur, types natifs et corps repliés. */
+    @Test
+    void cColoreEtReplie() {
+        Document doc = Document.of(corpus("exemple.c"));
+        Analysis analyse = analyse(LangagesGrammaires.c(), doc);
+        assertTrue(aUneLigne(analyse, TokenKind.COMMENT), "les commentaires en bloc");
+        assertTrue(aUneLigne(analyse, TokenKind.KEYWORD), "les mots réservés et le préprocesseur");
+        assertTrue(aUneLigne(analyse, TokenKind.TYPE), "les types natifs");
+        assertTrue(aUneLigne(analyse, TokenKind.CONSTANT), "NULL et les constantes");
+        assertTrue(aUneLigne(analyse, TokenKind.STRING), "les chaînes");
+        assertTrue(aUneLigne(analyse, TokenKind.NUMBER), "les nombres");
+        assertTrue(aUneLigne(analyse, TokenKind.OPERATOR), "les opérateurs");
+        List<FoldSpan> regions = TreeFolds.regions(doc, analyse);
+        assertFalse(regions.isEmpty(), "le corps des fonctions se replie");
+    }
+
+    /** C++ : classes, espaces de noms et gabarits, plis compris. */
+    @Test
+    void cppColoreEtReplie() {
+        Document doc = Document.of(corpus("exemple.cpp"));
+        Analysis analyse = analyse(LangagesGrammaires.cpp(), doc);
+        assertTrue(aUneLigne(analyse, TokenKind.COMMENT), "les commentaires //");
+        assertTrue(aUneLigne(analyse, TokenKind.KEYWORD), "class, namespace, template");
+        assertTrue(aUneLigne(analyse, TokenKind.TYPE), "std et les types natifs");
+        assertTrue(aUneLigne(analyse, TokenKind.CONSTANT), "nullptr et constantes");
+        assertTrue(aUneLigne(analyse, TokenKind.STRING), "les chaînes");
+        assertTrue(aUneLigne(analyse, TokenKind.NUMBER), "les nombres");
+        assertTrue(aUneLigne(analyse, TokenKind.OPERATOR), ":: et les opérateurs");
+        List<FoldSpan> regions = TreeFolds.regions(doc, analyse);
+        assertFalse(regions.isEmpty(), "le corps des classes se replie");
+    }
+
+    /** R8/ProGuard : les règles et leurs blocs de membres repliés. */
+    @Test
+    void proguardColoreEtReplie() {
+        Document doc = Document.of(corpus("exemple.pro"));
+        Analysis analyse = analyse(LangagesGrammaires.proguard(), doc);
+        assertTrue(aUneLigne(analyse, TokenKind.COMMENT), "les commentaires #");
+        assertTrue(aUneLigne(analyse, TokenKind.KEYWORD), "les règles -keep & co");
+        assertTrue(aUneLigne(analyse, TokenKind.TYPE), "les noms pleinement qualifiés");
+        assertTrue(aUneLigne(analyse, TokenKind.IDENTIFIER), "les jokers * et **");
+        assertTrue(aUneLigne(analyse, TokenKind.OPERATOR), "les points de suspension");
+        assertTrue(aUneLigne(analyse, TokenKind.PUNCTUATION), "les séparateurs");
+        List<FoldSpan> regions = TreeFolds.regions(doc, analyse);
+        assertFalse(regions.isEmpty(), "les blocs de membres se replient");
+    }
+
     /** Les langages de la voie se font identifier par nom de fichier. */
     @Test
     void registreIdentifieLesLangages() {
         List<Language> langages = LangagesGrammaires.langages();
-        assertEquals(6, langages.size(), "six langages embarqués");
+        assertEquals(10, langages.size(), "dix langages embarqués");
         LanguageRegistry registre = LanguageRegistry.of(
                 langages.toArray(new Language[0]));
         assertEquals("toml", identifie(registre, "conf/apparail.toml"));
@@ -133,6 +196,12 @@ class LangagesGrammairesTest {
         assertEquals("markdown", identifie(registre, "LISEZMOI.md"));
         assertEquals("python", identifie(registre, "outillage/build.py"));
         assertEquals("shell", identifie(registre, "scripts/assembly.sh"));
+        assertEquals("sql", identifie(registre, "migrations/001_registre.sql"));
+        assertEquals("c", identifie(registre, "natif/tampon.c"));
+        assertEquals("cpp", identifie(registre, "natif/moteur.cpp"));
+        assertEquals("c", identifie(registre, "natif/tampon.h"));
+        assertEquals("cpp", identifie(registre, "natif/moteur.hpp"));
+        assertEquals("proguard", identifie(registre, "app/proguard-rules.pro"));
     }
 
     private static String identifie(LanguageRegistry registre, String nom) {
