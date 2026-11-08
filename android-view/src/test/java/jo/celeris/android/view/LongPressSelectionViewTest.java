@@ -110,7 +110,7 @@ public class LongPressSelectionViewTest {
         assertTrue("l'appui long offre la pilule (A-01)", vue.pilule.isArmed());
         // l'appui sur la pilule : son centre vit au-dessus du doigt
         float piluleX = vue.pilule.x();
-        float piluleY = vue.pilule.y() - vue.pilule.HEIGHT / 2f;
+        float piluleY = vue.pilule.y() - CursorPill.HEIGHT / 2f;
         t = SystemClock.uptimeMillis();
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, piluleX, piluleY));
