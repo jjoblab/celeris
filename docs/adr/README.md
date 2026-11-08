@@ -34,6 +34,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-012](012-contrats-ia-agents.md) | Contrats IA et outils d'agent | Acceptée |
 | [ADR-013](013-banc-de-test-de-vue.md) | Banc de test de vue (Robolectric) | Acceptée |
 | [ADR-014](014-moteur-expressions-rationnelles.md) | Moteur d'expressions rationnelles des grammaires : joni | Proposition (spike M7.6) |
+| [ADR-015](015-client-lsp-sur-lsp4j.md) | Client LSP sur LSP4J derrière une frontière | Proposition (spike M7.6) |
 
 ## Règles
 

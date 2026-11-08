@@ -7,6 +7,19 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 — le spike du client LSP prouve LSP4J 1.0.0 contre le serveur réel (2026-11-08)
+
+- **ADR-015 : LSP4J 1.0.0 derrière la frontière `lsp-lsp4j`**. Le spike lance
+  LemMinX 0.31.2 (construit contre LSP4J 0.23.1) par le `LSPLauncher` de la
+  1.0.0 et rejoue poignée de main, diagnostics poussés, complétion documentée,
+  survol de DTD et extinction — tout passe (identique sous 0.24.0 et 0.23.1).
+  L'arbre des dépendances tient en gson seul (intervalle [2.9.1, 3.0) ; la
+  2.10.1 du serveur convient : **copie unique** possible en excluant lsp4j et
+  Gson de la découpe). Côté Android : 728 Ko de dex, 1 636 méthodes, zéro
+  référence interne (d8 + dexdump). Restent à l'intégration : règles R8 sur la
+  démo réduite, appareil API 26, découpe modifiée — avant toute suppression du
+  code maison, comme le prompt l'exige.
+
 ### M7.6 — le spike du moteur d'expressions rationnelles tranche pour joni (2026-11-08)
 
 - **ADR-014 : joni (2.2.9 + jcodings 1.0.64, MIT) entre comme moteur des
