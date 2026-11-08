@@ -84,19 +84,6 @@ MODULES = [
     "demo",
 ]
 
-# Identifiants neutres : aucun projet tiers n'est nommé dans ce dépôt.
-NEUTRAL_REFS = {
-    "lsp4j": "[EXT-5]",
-    "joni": "[EXT-3]",
-    "jcodings": "[EXT-3b]",
-}
-
-
-def neutralize(text: str) -> str:
-    """Remplace les noms de projets tiers par des identifiants neutres."""
-    for name, ident in NEUTRAL_REFS.items():
-        text = text.replace(name, ident)
-    return text
 
 
 # Typographie française : espace insécable avant ; : ! ? (idem --fix du
@@ -530,7 +517,7 @@ def main() -> int:
     args = parser.parse_args()
 
     m = measure(args.repo)
-    doc = french_typography(neutralize(render(m)))
+    doc = french_typography(render(m))
     out_dir = os.path.dirname(args.out)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)

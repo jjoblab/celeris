@@ -60,7 +60,7 @@ construit l'ensemble avec SDK.
 
 ## Portes qualité (toutes bloquantes)
 
-`check` enchaîne : politique de langue et neutralité (scripts), Checkstyle
+`check` enchaîne : politique de langue, références interdites et provenance des dépendances (scripts), Checkstyle
 (plafonds 600 lignes par fichier, 50 par méthode), PMD (complexité
 cyclomatique 15), Error Prone + NullAway (`@NullMarked` JSpecify), tests
 (Jupiter + jqwik + ArchUnit), couverture JaCoCo (≥ 90 % de lignes sur les
@@ -87,15 +87,21 @@ modules purs), manifeste d'API (`api/<module>.api`, régénérer par
   par nom ne rattrape ni les classes internes de test ni les utilitaires
   de test.
 
-## Neutralité (règle absolue)
+## Références externes (règle absolue, M7.6)
 
-Aucun projet, bibliothèque, éditeur ou dépôt tiers n'est nommé, cité ni
-décrit où que ce soit (code, docs, commits, noms de branches). Les
-identifiants neutres `[EXT-n]` les désignent dans les comptes rendus.
-Seules exceptions : les dépendances réellement déclarées (fichiers de
-build, `NOTICE`) et les normes (Android, Java, Gradle, LSP, MCP, Unicode).
-Le contrôle `scripts/check-external-refs` tourne en CI avec des motifs
-nominatifs lus dans le secret `CELERIS_FORBIDDEN_REFS`.
+Les projets, IDE, éditeurs, bibliothèques, normes et formats tiers se
+nomment librement dans la documentation, les ADR, la Javadoc, la matrice
+et le changelog : une mention est factuelle et sourcée (lien ou version) ;
+une dépendance ou une donnée reprise porte sa licence (`NOTICE`, registre
+de portage). **Deux projets sont interdits sans exception** — eux-mêmes,
+leurs artefacts et tout ce que publient leurs organisations ou leurs
+auteurs ; leurs noms ne se committent pas, ils vivent dans le secret de
+CI `CELERIS_FORBIDDEN_REFS` et dans l'environnement local. La parité se
+formule contre Android Studio en toutes lettres. Deux contrôles
+s'appuient sur ce secret en CI : `scripts/check-forbidden-refs`
+(références interdites dans les fichiers versionnés) et
+`scripts/check-dependency-provenance` (provenance des dépendances :
+catalogue de versions, métadonnées de vérification, URL de dépôts).
 
 ## Définition de « terminé »
 

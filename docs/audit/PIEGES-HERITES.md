@@ -68,5 +68,5 @@
 La documentation du dépôt de départ (changelog et dossier `docs/`) nomme des
 projets externes en plus de cent reprises, en violation de sa propre règle de
 désignation neutre : le contrôle n'y était visiblement pas appliqué. Dans
-celeris, `scripts/check-external-refs` couvre **tous** les fichiers versionnés,
+celeris, `scripts/check-forbidden-refs` (M7.6) couvre **tous** les fichiers versionnés,
 y compris la documentation et le changelog (voir ADR-011).

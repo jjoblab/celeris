@@ -43,7 +43,7 @@ défilement.
 
 La recherche (banc de candidats JVM purs : un serveur de scripts à
 ~12 Mo, un serveur d'intégration à ~69 Mo, d'autres natifs impossibles
-en processus) retient le serveur XML [EXT-6], EPL-2.0, identité et
+en processus) retient le serveur XML LemMinX, EPL-2.0, identité et
 provenance au `NOTICE` : Java 11, lancé par son API sur des flux
 quelconques, riche (complétion documentée, survol, définition,
 références, diagnostics de validation, symboles, plis).
