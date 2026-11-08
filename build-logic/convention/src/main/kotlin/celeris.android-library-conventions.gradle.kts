@@ -5,6 +5,7 @@
 // appliqué par le module via l'alias du catalogue (accesseurs typés).
 
 import com.android.build.api.dsl.LibraryExtension
+import jo.celeris.buildlogic.RobolectricDepsTask
 import jo.celeris.buildlogic.catalogVersion
 import jo.celeris.buildlogic.configureAndroidJavac
 import jo.celeris.buildlogic.configureJavadoc
@@ -99,3 +100,34 @@ val pmdAndroid = tasks.register<Pmd>("pmdAndroid") {
     setSource(sourcePrincipal)
 }
 tasks.named("check") { dependsOn(pmdAndroid) }
+
+// ADR-013 : le jar android-all des tests de vue arrive par résolution
+// Gradle (reprises configurées, cache partagé), jamais par le résolveur
+// HTTP de Robolectric — sans reprise, un bridage transitoire de Maven
+// Central (429, constat du 2026-11-08 en CI comme en local) fait
+// tomber toute la suite au premier démarrage. Le module qui teste des
+// vues déclare la dépendance dans sdkRobolectric ; la tâche
+// robolectricDeps écrit la correspondance qui oriente Robolectric vers
+// le jar du cache, et les tâches Test la lisent par propriété système.
+val sdkRobolectric = configurations.create("sdkRobolectric") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+val depsRobolectric = layout.buildDirectory.file("robolectric/robolectric-deps.properties")
+val ecrireDepsRobolectric = tasks.register<RobolectricDepsTask>("robolectricDeps") {
+    group = "verification"
+    description = "Écrit la correspondance du jar android-all pour Robolectric."
+    jarFiles.from(sdkRobolectric)
+    artifactKey.set(
+        "org.robolectric:android-all-instrumented:" +
+            catalogVersion("robolectricAndroidAll"),
+    )
+    propertiesFile.set(depsRobolectric)
+}
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    dependsOn(ecrireDepsRobolectric)
+    systemProperty(
+        "robolectric-deps.properties",
+        depsRobolectric.get().asFile.absolutePath,
+    )
+}

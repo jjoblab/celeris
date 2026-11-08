@@ -165,6 +165,56 @@ abstract class ApiCheckTask : org.gradle.api.DefaultTask() {
 }
 
 /**
+ * Écrit la correspondance robolectric-deps.properties qui détourne
+ * Robolectric de son résolveur Maven : au démarrage du test, la clé —
+ * nom court « groupe:artefact:version » du jar android-all — rend le
+ * chemin absolu du jar résolu par Gradle. Sans cette correspondance,
+ * Robolectric télécharge le jar par HTTP direct, sans reprise ni cache
+ * partagé : un bridage transitoire de Maven Central (429 observé le
+ * 2026-11-08, en CI comme en local) fait tomber toute la suite au
+ * premier démarrage (ADR-013).
+ */
+abstract class RobolectricDepsTask : org.gradle.api.DefaultTask() {
+
+    /** Le jar android-all résolu par la configuration dédiée (zéro ou un). */
+    @get:InputFiles
+    abstract val jarFiles: ConfigurableFileCollection
+
+    /** Nom court GAV attendu par PropertiesDependencyResolver. */
+    @get:Input
+    abstract val artifactKey: Property<String>
+
+    /** Fichier de correspondances lu par les tâches Test. */
+    @get:OutputFile
+    abstract val propertiesFile: RegularFileProperty
+
+    @TaskAction
+    fun write() {
+        val output = propertiesFile.get().asFile
+        val jars = jarFiles.files
+        if (jars.isEmpty()) {
+            // Module sans Robolectric : fichier vide, jamais lu — aucun
+            // test de ces modules n'initialise le résolveur.
+            output.writeText("")
+            return
+        }
+        if (jars.size > 1) {
+            throw GradleException(
+                "sdkRobolectric doit tenir en un seul jar (trouvés : " +
+                    jars.joinToString { it.name } + ")",
+            )
+        }
+        output.parentFile.mkdirs()
+        // Échappement .properties : « \: » dans la clé, sinon
+        // Properties.load coupe au premier deux-points et la clé lue ne
+        // porte que le groupe.
+        output.writeText(
+            "${artifactKey.get().replace(":", "\\:")}=${jars.single().absolutePath}\n",
+        )
+    }
+}
+
+/**
  * Vérifie le score de mutation lu dans le rapport XML de PIT contre le
  * seuil (80 % sur core-text, ADR-010). Sans mutation — squelette sans
  * ligne de production — le contrôle le déclare et passe : le seuil
