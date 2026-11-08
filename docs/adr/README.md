@@ -38,6 +38,8 @@ groupées sont consignées dans le résumé M0.
    décision se prête à la mesure.
 2. Un principe imposé par le mandat (section « Principes d'architecture »)
    ne peut être contourné que par un ADR chiffré validé par le propriétaire.
-3. Tout identifiant de projet tiers est remplacé par une référence neutre
-   `[EXT-n]` ; les dépendances réellement déclarées sont nommées dans les
-   fichiers de build et dans `NOTICE`, jamais dans la prose.
+3. Depuis M7.6, les projets et bibliothèques tiers se nomment en toutes
+   lettres, avec version ou lien ; les dépendances reprises portent leur
+   licence dans `NOTICE` et le registre de portage. Deux projets restent
+   interdits (règle 7 du jalon) : leurs noms ne paraissent ni ici ni
+   nulle part dans le dépôt.

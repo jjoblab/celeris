@@ -46,7 +46,7 @@ recommandation s'applique et est signalée en tête du compte rendu M1) :
 - **Matrice de parité A–G** (`docs/parite/MATRICE-PARITE.md`) : 116
   capacités, priorités P0/P1/P2, module cible, jalon et critère
   d'acceptation testable. Étalon vérifié en ligne le 2026-11-04 : la ligne
-  stable de l'IDE de référence est **2026.2.2** — le mandat citait la ligne
+  stable d'Android Studio est **2026.2.2** — le mandat citait la ligne
   2025.3, l'étalon a avancé de deux lignes.
 - **12 ADR en proposition** (`docs/adr/`) et **feuille de route chiffrée**
   (`docs/feuille-de-route.md`) : 220 à 315 j-h au total, chemin critique
