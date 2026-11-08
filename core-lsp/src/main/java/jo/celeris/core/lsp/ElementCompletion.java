@@ -39,10 +39,51 @@ public record ElementCompletion(String libelle, int genre, @Nullable String deta
         return new ElementCompletion(libelle,
                 genre == null ? 0 : genre.intValue(),
                 objet.membreTexte("detail"),
-                objet.membreTexte("documentation"),
+                documentationDe(objet.membre("documentation")),
                 objet.membreTexte("sortText"),
                 objet.membreTexte("filterText"),
                 objet.membreTexte("insertText"),
                 Boolean.TRUE.equals(objet.membreBooleen("deprecated")));
+    }
+
+    /**
+     * La documentation dans SES TROIS formes du protocole (le
+     * redressement du terrain réel, M8.6 : le serveur tiers retiré
+     * sert du contenu balisé) : chaîne nue, contenu balisé
+     * {@code {kind, value}} — la valeur s'en tire —, ou tableau de
+     * contenus balisés dont les valeurs se joignent.
+     *
+     * @param valeur le membre documentation, ou null
+     * @return le texte de la documentation, null si absent
+     */
+    static @Nullable String documentationDe(@Nullable ValeurJson valeur) {
+        if (valeur instanceof JsonChaine texte) {
+            return texte.texte();
+        }
+        if (valeur instanceof JsonObjet balise) {
+            return balise.membreTexte("value");
+        }
+        if (valeur instanceof JsonTableau morceaux) {
+            return joindreValeurs(morceaux);
+        }
+        return null;
+    }
+
+    /** Les valeurs d'un tableau de contenus balisés, jointes au retour à la ligne. */
+    private static @Nullable String joindreValeurs(JsonTableau morceaux) {
+        if (morceaux.taille() == 0) {
+            return null;
+        }
+        StringBuilder joint = new StringBuilder();
+        for (int i = 0; i < morceaux.taille(); i++) {
+            String texte = documentationDe(morceaux.element(i));
+            if (texte != null) {
+                if (joint.length() > 0) {
+                    joint.append('\n');
+                }
+                joint.append(texte);
+            }
+        }
+        return joint.length() == 0 ? null : joint.toString();
     }
 }

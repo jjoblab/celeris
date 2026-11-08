@@ -63,6 +63,8 @@ final class AtelierPopups {
     private final BreadcrumbView filAriane;
     private final ErrorBandView bandeErreurs;
     private final SelectionBarView barreSelection;
+    /** Le menu de débordement de la barre — la carte du kit sous la puce. */
+    private final MenuDebordement menuDebordement;
 
     /** Le thème courant — la palette des popups en dérive, le rafraîchissement la suit. */
     private EditorTheme theme;
@@ -73,10 +75,12 @@ final class AtelierPopups {
     private List<DiagnosticHote> diagnostics = List.of();
     private List<IntentionsMenuView.Item> intentions = List.of();
     private List<SelectionBarView.Item> actionsSelection = List.of();
+    /** Les actions repliées derrière la puce de débordement. */
+    private List<SelectionBarView.Item> debordementSelection = List.of();
     /** Le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     private String nomDuFichier = "";
-    /** Le serveur de langage branché — null retombe sur le coach (M7.5, §8). */
-    private ServeurLangage serveur;
+    /** La session de langage branchée — null retombe sur le coach (M7.5, §8) */
+    private LanguageSession serveur;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
     /** La frappe en cours : la sélection qui la suit ne rouvre pas
@@ -115,9 +119,14 @@ final class AtelierPopups {
         filAriane = new BreadcrumbView(couche.getContext(), palette);
         bandeErreurs = new ErrorBandView(couche.getContext(), palette);
         barreSelection = new SelectionBarView(couche.getContext(), palette);
+        menuDebordement = new MenuDebordement(controleur, menuIntentions,
+                couche, margePx);
 
         listeCompletion.setOnPick(this::choisirCompletion);
         bandeErreurs.setOnJump(this::sauterDiagnostic);
+        barreSelection.setOnOverflow(
+                () -> menuDebordement.ouvrir(barreSelection,
+                        debordementSelection));
         session.addEditListener((debut, fin, retire, insere) -> surEdition());
         session.addSelectionListener(this::surSelection);
         editeur.setSurViewportChange(this::surFenetre);
@@ -173,24 +182,34 @@ final class AtelierPopups {
     }
 
     /**
-     * Branche le serveur de langage (M7.5, §8) : l'aide aux
-     * paramètres et le survol passent par le fil du protocole — le
-     * coach ne garde que le repli. La langue se lit du fichier ouvert.
+     * Branche la session de langage (M7.5, §8 — M8.6 : le serveur tiers
+     * réel entre par la même porte) : l'aide aux paramètres, le survol
+     * et — quand le serveur les sert — les complétions passent par le
+     * fil du protocole, le coach ne garde que le repli. La langue se
+     * lit du fichier ouvert.
      *
-     * @param serveurLangage la session de langage démarrée
+     * @param sessionLangage la session de langage démarrée
      * @param uri            l'uri du document ouvert
      */
-    void brancherServeur(ServeurLangage serveurLangage, String uri) {
-        this.serveur = serveurLangage;
+    void brancherServeur(LanguageSession sessionLangage, String uri) {
+        this.serveur = sessionLangage;
         this.uriDocument = uri;
         LanguageSyntax langue = FichiersExemple.languePour(nomDuFichier);
-        serveurLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
+        sessionLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
                 session.document().text());
     }
 
-    /** Les actions de la barre de sélection — l'activité les fournit. */
-    void configurerActionsSelection(List<SelectionBarView.Item> items) {
-        actionsSelection = List.copyOf(items);
+    /**
+     * Les actions de la barre de sélection — l'activité les fournit :
+     * les principales en pastilles, le débordement derrière la puce.
+     *
+     * @param principales les actions visibles de la barre
+     * @param debordement les actions repliées, servies par le menu
+     */
+    void configurerActionsSelection(List<SelectionBarView.Item> principales,
+            List<SelectionBarView.Item> debordement) {
+        actionsSelection = List.copyOf(principales);
+        debordementSelection = List.copyOf(debordement);
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */
@@ -216,26 +235,47 @@ final class AtelierPopups {
     }
 
     /**
-     * Ouvre ou filtre la complétion au curseur : les candidats TYPÉS du
-     * CONCENTRATEUR — les mots du code par l'analyseur, le coach en
-     * repli — gagnent leur genre de badge et leur identité qualifiée,
-     * le préfixe tapé surligne ses runs, le premier candidat reste le
-     * courant ; la documentation du premier candidat connu suit sa
-     * liste. Sans candidat, la liste se ferme.
+     * Ouvre ou filtre la complétion au curseur (M8.6) : le serveur de
+     * langage qui SERT la complétion passe le premier — sa réponse
+     * brute devient les candidats typés du kit, leur documentation
+     * suit la liste ; sinon les mots du code et la table du coach.
+     * Sans candidat, la liste se ferme.
      */
     void basculerCompletion() {
+        if (serveur != null && serveur.sertCompletion()) {
+            serveur.completion(uriDocument, session.document(), caret())
+                    .whenComplete((reponse, echec) -> editeur.post(
+                            () -> poserCompletion(
+                                    PopupCoach.candidats(reponse),
+                                    PopupCoach.docDe(reponse, 0))));
+            return;
+        }
         List<String> bruts = editeur.intelligence()
                 .completionCandidates(PopupCoach.motsReserves());
         if (bruts.isEmpty()) {
             fermer(PopupController.PopupKind.COMPLETION_LIST);
             return;
         }
+        poserCompletion(PopupCoach.candidats(bruts),
+                PopupCoach.docFor(bruts.get(0)));
+    }
+
+    /**
+     * Pose la complétion mesurée : les candidats typés gagnent la
+     * liste, le préfixe tapé surligne ses runs, le premier candidat
+     * documenté ouvre sa documentation au flanc.
+     */
+    private void poserCompletion(List<CompletionListView.Candidat> candidats,
+            CompletionDocModel doc) {
+        if (candidats.isEmpty()) {
+            fermer(PopupController.PopupKind.COMPLETION_LIST);
+            return;
+        }
         controleur.open(PopupController.PopupKind.COMPLETION_LIST);
-        listeCompletion.setItems(PopupCoach.candidats(bruts));
+        listeCompletion.setItems(candidats);
         listeCompletion.setPrefix(PopupCoach.prefixeCourant(
                 session.document(), caret()));
         placerCompletion();
-        CompletionDocModel doc = PopupCoach.docFor(bruts.get(0));
         if (doc != null) {
             controleur.open(PopupController.PopupKind.COMPLETION_DOC);
             docCompletion.setModel(doc);
@@ -372,14 +412,21 @@ final class AtelierPopups {
             return;
         }
         controleur.open(PopupController.PopupKind.SELECTION_BAR);
-        barreSelection.setActions(actionsSelection);
+        barreSelection.setActions(actionsSelection, debordementSelection);
         Rect sel = editeur.selectionBounds();
         ancrer(PopupController.PopupKind.SELECTION_BAR, barreSelection,
                 PopupAnchor.centeredAboveSelection(sel.left, sel.right,
                         sel.top, taille(barreSelection), largeurCouche(),
                         hauteurCouche(), margePx));
+        if (controleur.isOpen(PopupController.PopupKind.SELECTION_OVERFLOW)) {
+            menuDebordement.ouvrir(barreSelection, debordementSelection);
+        }
     }
 
+    /**
+     * Le fil d'Ariane du curseur : les entrées du plan qui
+     * l'englobent, du dehors au dedans.
+     */
     private void rafraichirFilAriane() {
         List<String> chemin = PopupCoach.pathFor(plan, caret());
         if (chemin.isEmpty()) {
@@ -460,11 +507,7 @@ final class AtelierPopups {
             return;
         }
         int caret = caret();
-        String texte = session.document().text();
-        int debut = caret;
-        while (debut > 0 && estIdentifiant(texte.charAt(debut - 1))) {
-            debut--;
-        }
+        int debut = PopupCoach.debutMot(session.document(), caret);
         // l'édition de l'acceptation ne rouvre pas la liste
         acceptationEnCours = true;
         if (!session.replaceRange(debut, caret, candidat)) {
@@ -505,6 +548,8 @@ final class AtelierPopups {
             couche.dismiss(kind);
             if (kind == PopupController.PopupKind.COMPLETION_LIST) {
                 couche.dismiss(PopupController.PopupKind.COMPLETION_DOC);
+            } else if (kind == PopupController.PopupKind.SELECTION_BAR) {
+                couche.dismiss(PopupController.PopupKind.SELECTION_OVERFLOW);
             }
         }
     }
@@ -529,13 +574,7 @@ final class AtelierPopups {
     }
 
     private String symboleAuCaret() {
-        String texte = session.document().text();
-        int caret = caret();
-        int debut = caret;
-        while (debut > 0 && estIdentifiant(texte.charAt(debut - 1))) {
-            debut--;
-        }
-        return debut == caret ? null : texte.substring(debut, caret);
+        return PopupCoach.symboleA(session.document(), caret());
     }
 
     /** Pose le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
@@ -549,10 +588,6 @@ final class AtelierPopups {
 
     private int hauteurCouche() {
         return couche.getHeight();
-    }
-
-    private static boolean estIdentifiant(char c) {
-        return Character.isLetterOrDigit(c) || c == '_';
     }
 
     /** La machine à états courante — les bancs de la démo y lisent. */

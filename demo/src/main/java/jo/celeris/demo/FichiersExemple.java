@@ -96,6 +96,19 @@ public final class FichiersExemple {
 
     private static final String XML = """
             <?xml version="1.0" encoding="utf-8"?>
+            <!DOCTYPE resources [
+                <!-- Le catalogue des chaînes de l'application. -->
+                <!ELEMENT resources (string | plurals)*>
+                <!-- Une chaîne nommée, sa valeur en corps. -->
+                <!ELEMENT string (#PCDATA)>
+                <!ATTLIST string name CDATA #REQUIRED>
+                <!-- Des chaînes au pluriel, une par quantité. -->
+                <!ELEMENT plurals (item+)>
+                <!ATTLIST plurals name CDATA #REQUIRED>
+                <!-- Un pluriel pour une quantité donnée. -->
+                <!ELEMENT item (#PCDATA)>
+                <!ATTLIST item quantity CDATA #REQUIRED>
+            ]>
             <resources>
                 <string name="app_name"> exemple </string>
                 <string name="titre_accueil">Bienvenue</string>
@@ -104,10 +117,6 @@ public final class FichiersExemple {
                     <item quantity="one">%d message</item>
                     <item quantity="other">%d messages</item>
                 </plurals>
-                <string-array name="langues">
-                    <item>fr</item>
-                    <item>en</item>
-                </string-array>
             </resources>
             """;
 

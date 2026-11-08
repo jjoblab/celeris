@@ -39,6 +39,10 @@ androidxAppcompat = "1.8.0"
 androidxCore = "1.18.0"
 androidxRecyclerview = "1.4.0"
 material = "1.14.0"
+# Désucrage des bibliothèques du cœur (M8.6) : le serveur tiers retiré
+# touche les API Java 11 (List.of, String.strip) au-delà du niveau 26 —
+# vérifiée sur Google Maven le 2026-11-08.
+desugarJdkLibs = "2.1.5"
 
 [libraries]
 # Dépendances de test (modules purs et Android)
@@ -69,6 +73,9 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "a
 androidx-core = { module = "androidx.core:core", version.ref = "androidxCore" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "androidxRecyclerview" }
 google-material = { module = "com.google.android.material:material", version.ref = "material" }
+# Désucrage du cœur (M8.6) — les API Java 11 du serveur tiers retiré
+# au-dessus du niveau 26 (List.of, String.strip).
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 # Artefacts de plugin résolus par build-logic (aucun plugin appliqué par
 # identifiant hors des conventions) :
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }

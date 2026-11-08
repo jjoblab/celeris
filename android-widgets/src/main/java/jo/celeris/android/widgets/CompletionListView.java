@@ -39,6 +39,7 @@ public final class CompletionListView extends PopupPanel {
     private final float densite;
     private final float rangeePx;
     private final float largeurMaxPx;
+    private final float largeurMinPx;
     private @Nullable IntConsumer onPick;
 
     public CompletionListView(Context context, PopupPalette palette) {
@@ -46,6 +47,8 @@ public final class CompletionListView extends PopupPanel {
         this.densite = getResources().getDisplayMetrics().density;
         this.rangeePx = PopupTokens.HAUTEUR_RANGEE_LISTE_DP * densite;
         this.largeurMaxPx = PopupTokens.LARGEUR_MAX_LISTE_DP * densite
+                - 2 * paddingPx;
+        this.largeurMinPx = PopupTokens.LARGEUR_MIN_LISTE_DP * densite
                 - 2 * paddingPx;
     }
 
@@ -245,7 +248,11 @@ public final class CompletionListView extends PopupPanel {
             }
         }
         textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_TITRE));
-        return Math.round(Math.min(largeur, largeurMaxPx));
+        // La largeur vit entre le plancher et le plafond du kit : une
+        // carte raisonnable même à libellés courts, jamais une fenêtre
+        // qui mange l'écran à libellés longs.
+        return Math.round(Math.min(Math.max(largeur, largeurMinPx),
+                largeurMaxPx));
     }
 
     @Override

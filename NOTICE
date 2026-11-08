@@ -34,6 +34,29 @@ sera consignée ici avec son nom, sa version, sa licence et la
 vérification fichier par fichier exigée par le mandat, et restera
 compatible Apache-2.0 sauf validation explicite du propriétaire.
 
+## Dépendance embarquée de la démonstration (M8.6)
+
+La démonstration (`demo`, non publiée) embarque un serveur de langage
+RÉEL lancé en processus — la demande explicite du propriétaire
+(2026-11-08) ; EPL-2.0, hors compatible Apache-2.0 : la validation du
+propriétaire tient lieu d'exception au mandat.
+
+| Dépendance | Version | Licence | Usage |
+| --- | --- | --- | --- |
+| org.eclipse.serveur-retire (serveur de langage XML, [EXT-6]) | 0.31.2, artefact ubérifié découpé | EPL-2.0 | démonstration seule : le test à fond de la fonctionnalité LSP contre un serveur du monde réel |
+
+- Provenance : `https://repo.eclipse.org/content/repositories/serveur-retire-releases/org/eclipse/serveur-retire/org.eclipse.serveur-retire/0.31.2/org.eclipse.serveur-retire-0.31.2-uber.jar`
+  (somme de contrôle du paquet d'origine : `f4fde164e785c635e5f86361dbf4b993bfe2c5f83fdb52891d058b7dfc9bcfc8`).
+- Découpe sur mesure (bibliothèque de collections réduite à sa fermeture
+  de portée, doublons de plateforme ôtés, point d'entrée de ligne de
+  commande écarté) : `scripts/decoupe-serveur-retire` reproduit le paquet
+  embarqué `demo/libs/serveur-retire.jar` (7 007 296 octets,
+  `0c12af606fee60ccf843744b3a0181f652becd4a6b05d92d094c2583a4bd59ac`).
+- Le banc JVM `ServeurRetireTest` exécute le serveur DÉCOUPÉ de
+  bout en bout — la découpe qui briserait la portée échouerait au test.
+- Aucun artefact PUBLIÉ du dépôt ne l'embarque (ADR-011 : `demo` n'est
+  pas publié).
+
 ## Code hérité
 
 Les algorithmes portés depuis le dépôt de départ du propriétaire (Apache-2.0)

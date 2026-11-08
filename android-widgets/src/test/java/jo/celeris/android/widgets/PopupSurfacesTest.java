@@ -21,10 +21,11 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 /**
- * Les surfaces restantes des dix popups (M7.5, §7, reprise) : le fil
+ * Les surfaces restantes des popups (M7.5, §7, reprise) : le fil
  * d'Ariane tronque sa TÊTE en ellipse, la barre de sélection exécute
- * sa pastille visée, la bande d'erreurs saute au diagnostic du cran le
- * plus proche — et aucune ne prend le focus (PIEGE-27).
+ * sa pastille visée — la puce de débordement prévient l'hôte, le menu
+ * vit le même design —, la bande d'erreurs saute au diagnostic du cran
+ * le plus proche — et aucune ne prend le focus (PIEGE-27).
  */
 @RunWith(RobolectricTestRunner.class)
 public class PopupSurfacesTest {
@@ -73,7 +74,8 @@ public class PopupSurfacesTest {
         vue.setActions(List.of(
                 new SelectionBarView.Item("Couper", () -> execute.set(0)),
                 new SelectionBarView.Item("Copier", () -> execute.set(1)),
-                new SelectionBarView.Item("Coller", () -> execute.set(2))));
+                new SelectionBarView.Item("Coller", () -> execute.set(2))),
+                List.of());
         mesurer(vue);
         assertTrue("la barre se mesure", vue.getMeasuredWidth() > 0);
         float xDeuxieme = vue.paddingPx
@@ -84,6 +86,49 @@ public class PopupSurfacesTest {
         assertTrue(vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
                 MotionEvent.ACTION_UP, xDeuxieme, y, 0)));
         assertEquals("la deuxième pastille court", 1, execute.get());
+    }
+
+    /**
+     * La barre de sélection et sa PUCE DE DÉBORDEMENT (le kit du dépôt
+     * de départ, le motif de la plateforme) : le débordement plié
+     * agrandit la barre de la puce, l'appui dessus prévient l'hôte —
+     * les actions repliées courent au MENU, pas à la barre.
+     */
+    @Test
+    public void selectionBarOverflowChipOpensTheHostMenu() {
+        SelectionBarView vue = new SelectionBarView(contexte,
+                PopupPalette.dark());
+        vue.setActions(List.of(
+                new SelectionBarView.Item("Couper", () -> { }),
+                new SelectionBarView.Item("Copier", () -> { })),
+                List.of(new SelectionBarView.Item("Tout", () -> { })));
+        assertFalse("sans débordement la puce manque",
+                sansDebordement(contexte));
+        assertTrue("avec débordement la puce se montre", vue.aDebordement());
+        mesurer(vue);
+        int largeurSansPuce = vue.getMeasuredWidth();
+        assertTrue("la puce s'ancre à droite du contenu",
+                vue.puceDebordementCentreX() > 0f
+                        && vue.puceDebordementCentreX() < largeurSansPuce);
+        AtomicInteger ouvert = new AtomicInteger(0);
+        vue.setOnOverflow(ouvert::incrementAndGet);
+        float x = vue.paddingPx + vue.puceDebordementCentreX();
+        float y = vue.centerY();
+        vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
+                x, y, 0));
+        assertTrue("l'appui sur la puce se prend",
+                vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
+                        MotionEvent.ACTION_UP, x, y, 0)));
+        assertEquals("l'hôte est prévenu une fois", 1, ouvert.get());
+    }
+
+    /** Une barre sans débordement ne montre pas la puce. */
+    private static boolean sansDebordement(Context contexte) {
+        SelectionBarView vue = new SelectionBarView(contexte,
+                PopupPalette.dark());
+        vue.setActions(List.of(new SelectionBarView.Item("Couper", () -> { })),
+                List.of());
+        return vue.aDebordement();
     }
 
     /** La bande d'erreurs : marque au cran, appui → saut à l'offset. */

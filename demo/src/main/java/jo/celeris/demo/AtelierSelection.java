@@ -10,10 +10,12 @@ import jo.celeris.core.text.TextSession;
 
 /**
  * L'atelier de sélection de la démonstration (M7.5, §7, reprise) : les
- * actions de la barre de sélection — couper, copier, coller, tout
- * sélectionner — en transactions de session, un presse-papiers LOCAL
- * qui ne touche pas au système (les gestes de la recette restent
- * déterministes, l'atelier n'emporte rien au-dehors).
+ * actions de la barre de sélection en transactions de session, un
+ * presse-papiers LOCAL qui ne touche pas au système (les gestes de la
+ * recette restent déterministes, l'atelier n'emporte rien au-dehors).
+ * Les PRINCIPALES tiennent la barre — couper, copier, coller —, le
+ * DÉBORDEMENT vit derrière la puce du même nom — tout sélectionner —
+ * le motif de la barre de la plateforme.
  */
 final class AtelierSelection {
 
@@ -34,21 +36,31 @@ final class AtelierSelection {
     }
 
     /**
-     * Les actions de la barre, libellés compris.
+     * Les actions principales de la barre — celles qui tiennent en
+     * pastilles, libellés compris.
      *
      * @param couper le libellé de coupe
      * @param copier le libellé de copie
      * @param coller le libellé de collage
-     * @param tout   le libellé de tout-sélectionner
-     * @return les items de la barre de sélection
+     * @return les items principaux de la barre de sélection
      */
-    List<SelectionBarView.Item> items(String couper, String copier,
-            String coller, String tout) {
+    List<SelectionBarView.Item> principales(String couper, String copier,
+            String coller) {
         return List.of(
                 new SelectionBarView.Item(couper, this::couper),
                 new SelectionBarView.Item(copier, this::copier),
-                new SelectionBarView.Item(coller, this::coller),
-                new SelectionBarView.Item(tout, this::toutSelectionner));
+                new SelectionBarView.Item(coller, this::coller));
+    }
+
+    /**
+     * Les actions de débordement — servies par le menu de la puce.
+     *
+     * @param tout le libellé de tout-sélectionner
+     * @return les items repliés derrière la puce de débordement
+     */
+    List<SelectionBarView.Item> debordement(String tout) {
+        return List.of(new SelectionBarView.Item(tout,
+                this::toutSelectionner));
     }
 
     private void couper() {

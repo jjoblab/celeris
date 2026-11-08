@@ -22,13 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jo.celeris.android.host.spi.Arret;
-import jo.celeris.android.host.spi.CadrePile;
 import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.EtatLignesVcs;
-import jo.celeris.android.host.spi.FauxDebogueur;
-import jo.celeris.android.host.spi.LigneArret;
 import jo.celeris.android.view.ClasseLargeur;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.FontSpec;
@@ -78,8 +74,11 @@ public final class EditorActivity extends AppCompatActivity {
     private String nomFichier;
     private String reference;
     private CheminDoc chemin;
-    private final FauxDebogueur debogueur = new FauxDebogueur();
     private List<ReperesPreview.ReperePreview> reperes = List.of();
+    /** L'état de débogage — arrêts, pause simulée, étiquette (D-04, D-05). */
+    private EtatDebogage etatDebogage;
+    /** L'état des diagnostics — lint de l'hôte et serveur réel (M8.6). */
+    private EtatDiagnostics etatDiagnostics;
     private AtelierLint atelierLint;
     private AtelierDiff atelierDiff;
     private AtelierAgent atelierAgent;
@@ -88,8 +87,9 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierRefactor atelierRefactor;
     private AtelierRecherche atelierRecherche;
     private AtelierSelection atelierSelection;
-    /** La session de langage — serveur de référence en processus (M7.5, §8). */
-    private ServeurLangage serveurLangage;
+    /** La session de langage — serveur de référence en processus (M7.5, §8)
+     *  ou serveur tiers retiré pour les fichiers XML (M8.6). */
+    private LanguageSession serveurLangage;
     /** Les réglages de scène (M7.5, §9) : retenue et surimpression. */
     private SceneReglages sceneReglages;
     /** La bascule de thème (D-13) — rotation, persistance, libellé. */
@@ -107,7 +107,7 @@ public final class EditorActivity extends AppCompatActivity {
         reference = fichier.contenu();
         chemin = CheminDoc.de("/" + nomFichier);
         session = TextSession.of(fichier.contenu(), System::nanoTime);
-        atelierLint = new AtelierLint(nomFichier, session, this::etatLint);
+        atelierLint = new AtelierLint(nomFichier, session, this::surLint);
         atelierDiff = new AtelierDiff(this, reference, session, this::apresFusion);
         atelierAgent = new AtelierAgent(this, session, this::apresFusion);
         session.addEditListener((debut, fin, retire, insere) -> {
@@ -170,7 +170,10 @@ public final class EditorActivity extends AppCompatActivity {
         actionsMenu.put(R.id.action_intentions, atelierPopups::ouvrirIntentions);
         actionsMenu.put(R.id.action_survol, atelierPopups::ouvrirSurvol);
         actionsMenu.put(R.id.action_plan, this::basculerPlan);
-        actionsMenu.put(R.id.action_debogage, this::basculerDebogage);
+        actionsMenu.put(R.id.action_debogage, () -> {
+            etatDebogage.basculerPause();
+            majMarques();
+        });
         actionsMenu.put(R.id.action_retour_ligne, this::basculerRetourLigne);
         actionsMenu.put(R.id.action_annuler, () -> rejouer(false));
         actionsMenu.put(R.id.action_retablir, () -> rejouer(true));
@@ -235,13 +238,21 @@ public final class EditorActivity extends AppCompatActivity {
                 getResources().getConfiguration().screenWidthDp));
         // Le terrain d'essai du débogueur : le clic dans le champ des
         // numéros pose et retire les points d'arrêt (D-04).
-        editeur.marquesGouttiere().setSurClicLigne(this::basculerArret);
+        editeur.marquesGouttiere().setSurClicLigne(ligne -> {
+            etatDebogage.basculerArret(ligne);
+            majMarques();
+        });
         // Le rendu d'un repère @Preview reste la part de l'hôte (C-11)
         // — la démonstration répond par sa propre scène.
         editeur.marquesGouttiere().setSurRenduPreview(this::renduPreview);
         // Les pastilles et repères du fichier ouvert se posent d'entrée.
         majPastillesEtReperes();
+        brancherPlanEtEtiquettes();
+        poserEtatsDelegues();
+    }
 
+    /** Le plan latéral et les étiquettes de barre d'état se posent. */
+    private void brancherPlanEtEtiquettes() {
         plan = findViewById(R.id.plan);
         plan.setBackgroundColor(Color.argb(235, 32, 33, 36));
         plan.getLayoutParams().width = Math.round(largeurEcran() * PART_PLAN);
@@ -253,16 +264,34 @@ public final class EditorActivity extends AppCompatActivity {
     }
 
     /**
+     * Les états délégués — débogage d'un côté, diagnostics de l'autre
+     * — se posent une fois la scène complète : le serveur tiers retiré y
+     * publie ses diagnostics de validation (M8.6).
+     */
+    private void poserEtatsDelegues() {
+        etatDebogage = new EtatDebogage(this, editeur, session,
+                etiquetteArrets, chemin);
+        etatDiagnostics = new EtatDiagnostics(this, editeur, atelierPopups,
+                etiquetteArrets, chemin);
+        if (serveurLangage instanceof ServeurRetire serveurRetire) {
+            serveurRetire.poserAuditeurDiagnostics(etatDiagnostics::surServeur);
+        }
+    }
+
+    /**
      * Les ateliers d'interaction (M7.5, §7, reprise) : l'IA (F-01 à
      * F-03), les DIX popups sur la couche posée — jamais de focus volé
      * (PIEGE-27) —, la recherche dépliable et la sélection au
      * presse-papiers local.
      */
     private void brancherAteliers() {
-        // La refactorisation et le serveur de langage en processus (M7.5, §8).
+        // La refactorisation et la session de langage en processus (M7.5,
+        // §8 — M8.6 : le serveur tiers retiré pour les fichiers XML).
         atelierRefactor = new AtelierRefactor(this, editeur, session,
                 nomFichier, this::verdictRefactor);
-        serveurLangage = ServeurLangage.demarrer();
+        serveurLangage = nomFichier.endsWith(".xml")
+                ? ServeurRetire.demarrer()
+                : ServeurLangage.demarrer();
         // L'atelier des popups : la couche posée sur l'éditeur porte
         // les dix popups, la machine à états décide qui reste ouvert.
         PopupLayer couche = findViewById(R.id.couche_popups);
@@ -277,11 +306,13 @@ public final class EditorActivity extends AppCompatActivity {
         atelierPopups.brancherServeur(serveurLangage,
                 "file:///" + nomFichier);
         atelierSelection = new AtelierSelection(editeur, session);
-        atelierPopups.configurerActionsSelection(atelierSelection.items(
-                getString(R.string.barre_couper),
-                getString(R.string.barre_copier),
-                getString(R.string.barre_coller),
-                getString(R.string.barre_tout)));
+        atelierPopups.configurerActionsSelection(
+                atelierSelection.principales(
+                        getString(R.string.barre_couper),
+                        getString(R.string.barre_copier),
+                        getString(R.string.barre_coller)),
+                atelierSelection.debordement(
+                        getString(R.string.barre_tout)));
         atelierRecherche = new AtelierRecherche(this, editeur, session,
                 atelierPopups::ouvrirRecherche, atelierPopups::fermerRecherche);
         atelierRecherche.brancher();
@@ -390,63 +421,15 @@ public final class EditorActivity extends AppCompatActivity {
         NavigationCommands.placeCaret(editeur, entree.startOffset());
     }
 
-    /** Pose ou retire le point d'arrêt de la ligne cliquée (D-04). */
-    private void basculerArret(int ligne) {
-        boolean absent = debogueur.arrets().stream()
-                .noneMatch(arret -> arret.fichier().equals(chemin)
-                        && arret.ligne() == ligne + 1);
-        if (absent) {
-            debogueur.poserArret(chemin, ligne + 1);
-        } else {
-            debogueur.retirerArret(chemin, ligne + 1);
-        }
-        majEtatDebogage();
-        majMarques();
-    }
-
-    /**
-     * Bascule la pause simulée (D-05) : sans pause, l'exécution s'arrête
-     * au premier arrêt actif du fichier — à la cinquième ligne sinon —
-     * avec une pile de deux cadres ; en pause, l'exécution reprend.
-     */
-    private void basculerDebogage() {
-        if (debogueur.ligneCourante() != null) {
-            debogueur.simulerReprise();
-        } else {
-            Arret premier = debogueur.arrets().stream()
-                    .filter(arret -> arret.fichier().equals(chemin) && arret.actif())
-                    .findFirst().orElse(null);
-            int ligne = premier != null ? premier.ligne()
-                    : Math.min(5, session.document().lineCount());
-            debogueur.simulerPause(chemin, ligne, List.of(
-                    new CadrePile("Exemple", "corps", chemin.nom(), ligne),
-                    new CadrePile("Exemple", "appelant", chemin.nom(),
-                            Math.max(1, ligne - 2))));
-        }
-        majEtatDebogage();
-        majMarques();
-    }
-
-    private void majEtatDebogage() {
-        LigneArret pause = debogueur.ligneCourante();
-        if (pause != null) {
-            etiquetteArrets.setText(getString(R.string.etat_pause, pause.ligne()));
-            etiquetteArrets.setVisibility(View.VISIBLE);
-        } else {
-            long nombre = debogueur.arrets().stream()
-                    .filter(arret -> arret.fichier().equals(chemin)).count();
-            etiquetteArrets.setText(getResources().getQuantityString(
-                    R.plurals.etat_arrets, (int) nombre, (int) nombre));
-            etiquetteArrets.setVisibility(nombre == 0 ? View.GONE : View.VISIBLE);
-        }
-        MaterialToolbar barre = findViewById(R.id.barre_editeur);
-        barre.getMenu().findItem(R.id.action_debogage)
-                .setIcon(pause == null ? R.drawable.ic_debogage : R.drawable.ic_reprendre)
-                .setTitle(pause == null ? R.string.action_deboguer : R.string.action_reprendre);
-    }
-
     private void analyserLint() {
         atelierLint.analyser();
+    }
+
+    /** Le relais lint : les lignes marquées accompagnent l'état. */
+    private void surLint(List<DiagnosticHote> diagnostics) {
+        if (etatDiagnostics != null) {
+            etatDiagnostics.surLint(diagnostics, atelierLint.lignesMarquees());
+        }
     }
 
     /** Le verdict des ateliers : la barre d'état le publie. */
@@ -470,21 +453,6 @@ public final class EditorActivity extends AppCompatActivity {
         etiquetteArrets.setVisibility(View.VISIBLE);
         editeur.invalidate();
         majMarques();
-    }
-
-    /** L'état lint de la barre de statut : les lignes se marquent. */
-    private void etatLint(List<DiagnosticHote> diagnostics) {
-        editeur.marquesGouttiere().setErreursImportees(
-                atelierLint.lignesMarquees());
-        atelierPopups.setDiagnostics(diagnostics);
-        if (!diagnostics.isEmpty()) {
-            etiquetteArrets.setText(getResources().getQuantityString(
-                    R.plurals.etat_lint, diagnostics.size(), diagnostics.size()));
-        } else {
-            etiquetteArrets.setText(R.string.lint_propre);
-        }
-        etiquetteArrets.setVisibility(View.VISIBLE);
-        editeur.invalidate();
     }
 
     /**
@@ -578,8 +546,9 @@ public final class EditorActivity extends AppCompatActivity {
         }
         EtatLignesVcs etat = DiffLignes.etat(reference, session.document().text());
         MarquesIntegration marques = AdaptateurMarques.depuis(etat,
-                debogueur.arrets(), chemin, debogueur.ligneCourante(),
-                debogueur.pileCourante());
+                etatDebogage.debogueur().arrets(), chemin,
+                etatDebogage.debogueur().ligneCourante(),
+                etatDebogage.debogueur().pileCourante());
         editeur.marquesGouttiere().setIntegration(marques);
         editeur.invalidate();
     }
