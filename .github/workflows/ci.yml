@@ -99,8 +99,10 @@ jobs:
   view-tests:
     name: Tests de vue (Robolectric, JVM)
     runs-on: ubuntu-latest
-    env:
-      CELERIS_SKIP_ANDROID: "1"
+    # Pas de CELERIS_SKIP_ANDROID ici : ce travail INSTALLE le SDK puis
+    # exécute les tests de vue d'android-view et d'android-widgets —
+    # le refus explicite exclurait ces modules du build et la sélection
+    # de tâches échouerait (« project 'android-view' not found »).
     steps:
       - name: Récupérer le dépôt
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
