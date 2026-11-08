@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Contrôle de provenance des dépendances (M7.6, règle 7).
+
+Aucun artefact publié par les organisations ou les auteurs des projets
+interdits (règle 7 du jalon) n'entre dans le build. Le contrôle lit :
+
+- le catalogue de versions (gradle/libs.versions.toml) : coordonnées
+  groupe:artefact des bibliothèques et identifiants de plugins ;
+- les métadonnées de vérification des dépendances
+  (gradle/dependency-verification-metadata.xml) si présentes : groupes
+  de confiance et coordonnées ;
+- les URL de dépôts et de téléchargement déclarées en toutes lettres
+  dans les fichiers de build (settings.gradle.kts, build.gradle.kts,
+  scripts de construction).
+
+Il échoue si un groupe, un artefact, un identifiant de plugin ou une
+URL correspond à un motif interdit — mêmes variables d'environnement
+que scripts/check-forbidden-refs : CELERIS_FORBIDDEN_REFS (secret de
+CI) et FORBIDDEN_REFS_EXTRA (cumulatif, usage local). Aucun motif ne
+se committe dans ce dépôt. Sans motif défini, le contrôle le dit et
+rend zéro — la CI, elle, définit toujours les motifs comme secret.
+
+Usage :  python3 scripts/check-dependency-provenance
+"""
+
+import os
+import re
+import sys
+import tomllib
+import glob
+
+CATALOGUE = "gradle/libs.versions.toml"
+VERIFICATION = "gradle/dependency-verification-metadata.xml"
+FICHIERS_BUILD = ["settings.gradle.kts", "build.gradle.kts"]
+
+
+def forbidden_patterns() -> list:
+    env = os.environ.get("CELERIS_FORBIDDEN_REFS", "")
+    extra = os.environ.get("FORBIDDEN_REFS_EXTRA", "")
+    combined = f"{env};{extra}" if env and extra else (env or extra)
+    return [p for p in combined.split(";") if p.strip()]
+
+
+def coordonnees_catalogue() -> list:
+    """Coordonnées groupe:artefact et identifiants de plugins du catalogue."""
+    resultats = []
+    try:
+        with open(CATALOGUE, "rb") as fh:
+            catalogue = tomllib.load(fh)
+    except (OSError, tomllib.TOMLDecodeError) as err:
+        print(f"catalogue illisible ({CATALOGUE}) : {err}", file=sys.stderr)
+        raise SystemExit(2)
+    for cle, entree in catalogue.get("libraries", {}).items():
+        if isinstance(entree, dict):
+            module = entree.get("module")
+            groupe = entree.get("group")
+            nom = entree.get("name")
+            if module:
+                resultats.append((CATALOGUE, cle, module))
+            elif groupe and nom:
+                resultats.append((CATALOGUE, cle, f"{groupe}:{nom}"))
+    for cle, entree in catalogue.get("plugins", {}).items():
+        if isinstance(entree, dict) and entree.get("id"):
+            resultats.append((CATALOGUE, cle, entree["id"]))
+    return resultats
+
+
+def groupes_verification() -> list:
+    """Groupes et coordonnées des métadonnées de vérification, si présentes."""
+    if not os.path.exists(VERIFICATION):
+        return []
+    resultats = []
+    try:
+        with open(VERIFICATION, encoding="utf-8") as fh:
+            texte = fh.read()
+    except OSError:
+        return []
+    for m in re.finditer(r'group="([^"]+)"', texte):
+        resultats.append((VERIFICATION, "metadata", m.group(1)))
+    for m in re.finditer(r'<trusted-artifact group="([^"]+)" name="([^"]+)"', texte):
+        resultats.append((VERIFICATION, "metadata", f"{m.group(1)}:{m.group(2)}"))
+    return resultats
+
+
+def urls_build() -> list:
+    """URL de dépôts et de téléchargement écrites en toutes lettres."""
+    resultats = []
+    fichiers = list(FICHIERS_BUILD)
+    fichiers += glob.glob("*/build.gradle.kts")
+    fichiers += glob.glob("build-logic/**/*.gradle.kts", recursive=True)
+    fichiers += glob.glob("scripts/*")
+    for f in fichiers:
+        if not os.path.isfile(f):
+            continue
+        try:
+            with open(f, encoding="utf-8") as fh:
+                for numero, ligne in enumerate(fh, 1):
+                    for m in re.finditer(r"https?://[^\s\"'<>)]+", ligne):
+                        resultats.append((f, f"ligne {numero}", m.group(0)))
+        except (OSError, UnicodeDecodeError):
+            continue
+    return resultats
+
+
+def main() -> int:
+    patterns = forbidden_patterns()
+    if not patterns:
+        print(
+            "avertissement : CELERIS_FORBIDDEN_REFS absente — aucune "
+            "provenance vérifiée (la CI doit définir la variable comme "
+            "secret ; voir la règle 7 du jalon M7.6)"
+        )
+        return 0
+
+    compiled = []
+    for p in patterns:
+        try:
+            compiled.append((p, re.compile(p, re.IGNORECASE)))
+        except re.error as err:
+            print(f"motif invalide dans CELERIS_FORBIDDEN_REFS : {err}", file=sys.stderr)
+            return 2
+
+    problemes = []
+    for source, cle, valeur in (coordonnees_catalogue() + groupes_verification()):
+        for motif, rx in compiled:
+            if rx.search(valeur):
+                problemes.append(
+                    f"{source} : « {cle} » = {valeur} correspond au motif "
+                    f"interdit « {motif} »"
+                )
+    for source, cle, valeur in urls_build():
+        for motif, rx in compiled:
+            if rx.search(valeur):
+                problemes.append(
+                    f"{source} ({cle}) : {valeur} correspond au motif "
+                    f"interdit « {motif} »"
+                )
+
+    for p in problemes:
+        print(p)
+    print(f"provenance des dépendances : {len(problemes)} problème(s)")
+    return 1 if problemes else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

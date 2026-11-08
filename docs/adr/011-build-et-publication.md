@@ -47,9 +47,10 @@ voir ADR-001 — AGP 9.5.0, Gradle 9.8.2, `compileSdk`/`targetSdk` 36).
    retard des versions).
 7. **CI** : actions épinglées par SHA (acquis du dépôt de départ, conservé),
    validation du wrapper par somme de contrôle, exécution des scripts
-   `check-language-policy` et `check-external-refs` sur **tous** les
-   fichiers versionnés — y compris documentation et changelog, là où le
-   dépôt de départ a dérivé.
+   `check-language-policy`, `check-forbidden-refs` (M7.6, ex
+   `check-external-refs`) et `check-dependency-provenance` (M7.6) sur
+   **tous** les fichiers versionnés — y compris documentation et
+   changelog, là où le dépôt de départ a dérivé.
 8. **Sécurité** : aucun accès réseau par défaut dans les modules ; les
    serveurs de langage tournent en processus isolés ; validation des
    chemins contre la traversée de répertoires pour les éditions d'espace

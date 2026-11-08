@@ -13,7 +13,7 @@ android {
         versionCode = 1
         versionName = libs.versions.demo.get()
     }
-    // Le serveur tiers retiré (M8.6, [EXT-6] — voir NOTICE) touche
+    // Le serveur tiers retiré (M8.6, serveur-retire — voir NOTICE) touche
     // les API Java 11 au-delà du niveau 26 : le désucrage des
     // bibliothèques du cœur les rend sur l'appareil.
     compileOptions {
@@ -46,7 +46,7 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.recyclerview)
     implementation(libs.google.material)
-    // Le serveur tiers retiré (M8.6 — [EXT-6], identité, licence
+    // Le serveur tiers retiré (M8.6 — serveur-retire, identité, licence
     // et provenance au NOTICE) : découpe sur mesure de l'artefact
     // ubérifié — le serveur, sa liaison et ses analyseurs, la
     // bibliothèque de collections réduite à sa fermeture de portée,

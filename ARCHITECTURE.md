@@ -106,7 +106,7 @@ isolés.
 | Taille des classes | 600 lignes, 50 par méthode, complexité 15 — sans cliquet relevable | ADR-002 |
 | Accessibilité | arbre virtuel, `en`/`fr`, BiDi et Unicode dès la première version | ADR-008 |
 | Qualité | `-Werror`, zéro baseline lint, mutation, fuzz à oracle | ADR-010, ADR-011 |
-| Neutre | aucun projet tiers nommé dans le dépôt ; identifiants `[EXT-n]` | ADR-011 |
+| Références externes | projets tiers nommés librement et sourcés, deux interdits (règle 7) ; provenance des dépendances vérifiée | ADR-011, M7.6 |
 
 ## 4. Ce que l'éditeur n'est pas
 

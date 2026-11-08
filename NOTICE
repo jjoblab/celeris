@@ -43,7 +43,7 @@ propriétaire tient lieu d'exception au mandat.
 
 | Dépendance | Version | Licence | Usage |
 | --- | --- | --- | --- |
-| org.eclipse.serveur-retire (serveur de langage XML, [EXT-6]) | 0.31.2, artefact ubérifié découpé | EPL-2.0 | démonstration seule : le test à fond de la fonctionnalité LSP contre un serveur du monde réel |
+| org.eclipse.serveur-retire (serveur-retire, serveur de langage XML) | 0.31.2, artefact ubérifié découpé | EPL-2.0 | démonstration seule : le test à fond de la fonctionnalité LSP contre un serveur du monde réel |
 
 - Provenance : `https://repo.eclipse.org/content/repositories/serveur-retire-releases/org/eclipse/serveur-retire/org.eclipse.serveur-retire/0.31.2/org.eclipse.serveur-retire-0.31.2-uber.jar`
   (somme de contrôle du paquet d'origine : `f4fde164e785c635e5f86361dbf4b993bfe2c5f83fdb52891d058b7dfc9bcfc8`).

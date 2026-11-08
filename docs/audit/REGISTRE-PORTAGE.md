@@ -66,7 +66,7 @@
 | Élément source | Décision | Justification | Tests associés |
 | --- | --- | --- | --- |
 | contrats `Language` et providers (`cel-lsp-api`) | Porter | acquis cité par le mandat | tests de contrat |
-| client LSP sur [EXT-5] | Abandonner (client propre, ADR-005) | 0.22.0 figé par rupture de contrat ; 8 283 l. à remplacer par une surface bornée | traces de serveurs réels → corpus de tests de contrat |
+| client LSP sur LSP4J | Abandonner (client propre, ADR-005) | 0.22.0 figé par rupture de contrat ; 8 283 l. à remplacer par une surface bornée | traces de serveurs réels → corpus de tests de contrat |
 | `LanguageServerWrapper`, `LspEditor` | Spécifier | cycle de vie documenté (déconnexion, resynchronisation) = spécification | `LspDisconnectLifecycleTest` → oracle |
 | `MiniJava*` (démo, 22 fichiers, 9 301 l.) | Abandonner | hors bibliothèque ; remplacé par l'arbre (M4) puis l'index (M6) | — |
 

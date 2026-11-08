@@ -15,12 +15,13 @@ tasks.register<Exec>("policyLanguageCheck") {
     commandLine("python3", "scripts/check-language-policy")
 }
 
-// Neutralité : aucun projet externe nommé (ADR-011) ; les motifs
-// nominatifs viennent de l'environnement, jamais du dépôt.
-tasks.register<Exec>("policyExternalRefsCheck") {
+// Références interdites (M7.6, règle 7) : deux projets et leurs
+// artefacts restent interdits ; les autres se nomment librement.
+// Les motifs nominatifs viennent de l'environnement, jamais du dépôt.
+tasks.register<Exec>("policyForbiddenRefsCheck") {
     group = "verification"
-    description = "Neutralité du dépôt envers les projets externes (scripts/check-external-refs)."
-    commandLine("python3", "scripts/check-external-refs")
+    description = "Références interdites du dépôt (scripts/check-forbidden-refs)."
+    commandLine("python3", "scripts/check-forbidden-refs")
     environment(
         "CELERIS_FORBIDDEN_REFS",
         providers.environmentVariable("CELERIS_FORBIDDEN_REFS").getOrElse(""),
@@ -31,10 +32,43 @@ tasks.register<Exec>("policyExternalRefsCheck") {
     )
 }
 
+// Auto-test du contrôle des références interdites (M7.6) : motif
+// trouvé, motif absent, variable vide, motif invalide, exonérations.
+tasks.register<Exec>("policyForbiddenRefsSelfTest") {
+    group = "verification"
+    description = "Tests du contrôle des références interdites (scripts/test-check-forbidden-refs)."
+    commandLine("python3", "scripts/test-check-forbidden-refs")
+}
+
+// Provenance des dépendances (M7.6, règle 7) : aucun artefact publié
+// par les organisations ou auteurs interdits n'entre dans le build —
+// catalogue, métadonnées de vérification et URL de dépôts balayés.
+tasks.register<Exec>("policyDependencyProvenanceCheck") {
+    group = "verification"
+    description = "Provenance des dépendances (scripts/check-dependency-provenance)."
+    commandLine("python3", "scripts/check-dependency-provenance")
+    environment(
+        "CELERIS_FORBIDDEN_REFS",
+        providers.environmentVariable("CELERIS_FORBIDDEN_REFS").getOrElse(""),
+    )
+    environment(
+        "FORBIDDEN_REFS_EXTRA",
+        providers.environmentVariable("FORBIDDEN_REFS_EXTRA").getOrElse(""),
+    )
+}
+
+// Auto-test du contrôle de provenance (M7.6).
+tasks.register<Exec>("policyDependencyProvenanceSelfTest") {
+    group = "verification"
+    description = "Tests du contrôle de provenance (scripts/test-check-dependency-provenance)."
+    commandLine("python3", "scripts/test-check-dependency-provenance")
+}
+
 tasks.register("policyCheck") {
     group = "verification"
-    description = "Contrôles de politique (langue, références, rempart, matrice, pièges, démo, dates)."
-    dependsOn("policyLanguageCheck", "policyExternalRefsCheck")
+    description = "Contrôles de politique (langue, références interdites, provenance, rempart, matrice, pièges, démo, dates)."
+    dependsOn("policyLanguageCheck", "policyForbiddenRefsCheck", "policyForbiddenRefsSelfTest",
+            "policyDependencyProvenanceCheck", "policyDependencyProvenanceSelfTest")
 }
 
 // Rempart de langue (M7.5, §11) : la ligne de base des identifiants

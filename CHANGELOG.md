@@ -7,6 +7,25 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 (étape 1) — la règle des références externes change de visage (2026-11-08)
+
+- **Les projets tiers se nomment librement, deux restent interdits** :
+  le contrôle `check-external-refs` devient `check-forbidden-refs` (les
+  cinq heuristiques génériques disparaissent — « comportement de », « port
+  de », « mieux que », « équivalent de », « inspiré de » étaient du
+  français courant), ses tests couvrent motif trouvé, motif absent,
+  variable vide et motif invalide ; un nouveau contrôle de provenance,
+  `check-dependency-provenance`, vérifie que catalogue de versions,
+  métadonnées de vérification et URL de dépôts ne mènent à aucun artefact
+  interdit (règle 7). Les désignations neutres `[EXT-n]` disparaissent —
+  tree-sitter, LSP4J et serveur-retire se nomment ; la parité se formule contre
+  Android Studio en toutes lettres (matrice comprise) ; les ADR 004 et
+  005 reçoivent leur révision du 2026-11-08 ; `docs/REFERENCES.md`
+  consigne projets et normes cités, leur rôle, leur licence vérifiée en
+  ligne et la date de vérification. Action du propriétaire exécutée : le
+  secret de CI `CELERIS_FORBIDDEN_REFS` porte les motifs prescrits par le
+  prompt (mise à jour par l'API le 2026-11-08, confirmée).
+
 ### Le CI ne tombe plus sur le téléchargement d'android-all (2026-11-08)
 
 - **Le jar android-all de Robolectric arrive par résolution Gradle, plus
@@ -43,7 +62,7 @@ vivent dans les ADR et le registre de portage, pas ici.
   elle et se repositionne au défilement.
 - **Le serveur tiers retiré est embarqué et lancé EN PROCESSUS**
   (la demande du propriétaire : « un serveur LSP pas trop gros, inclus
-  dans le module démo, lancé en in process » — [EXT-6], identité et
+  dans le module démo, lancé en in process » — serveur-retire, identité et
   licence au NOTICE) : l'artefact ubérifié de 8,8 Mo, découpé sur
   mesure à 7,0 Mo (`scripts/decoupe-serveur-retire` — fermeture de portée
   de la bibliothèque de collections, doublons de plateforme ôtés),
