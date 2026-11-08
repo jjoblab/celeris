@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import android.os.Looper;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 
@@ -13,7 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.shadows.ShadowLooper;
+import static org.robolectric.Shadows.shadowOf;
 
 import jo.celeris.core.text.SelRange;
 
@@ -50,7 +51,7 @@ public class LongPressSelectionViewTest {
         // le doigt se pose au cœur de « alpha » (offsets 0..4)
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, xDe(banc, 2), y));
-        ShadowLooper.idleMainLooper(Duration.ofMillis(900));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(900));
         SelRange plage = vue.session().selection().ranges().get(0);
         assertEquals("le mot « alpha » commence à la sélection",
                 0, plage.start());
@@ -105,7 +106,7 @@ public class LongPressSelectionViewTest {
         long t = SystemClock.uptimeMillis();
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, xDe(banc, 2), y));
-        ShadowLooper.idleMainLooper(Duration.ofMillis(900));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(900));
         assertTrue("l'appui long offre la pilule (A-01)", vue.pilule.isArmed());
         // l'appui sur la pilule : son centre vit au-dessus du doigt
         float piluleX = vue.pilule.x();
@@ -134,7 +135,7 @@ public class LongPressSelectionViewTest {
         long t = SystemClock.uptimeMillis();
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, xDe(banc, 5), y));
-        ShadowLooper.idleMainLooper(Duration.ofMillis(900));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(900));
         SelRange plage = vue.session().selection().ranges().get(0);
         assertTrue("le blanc entre deux mots ne se sélectionne pas",
                 plage.isEmpty());
