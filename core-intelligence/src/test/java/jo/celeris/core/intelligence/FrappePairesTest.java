@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Optional;
 
+import jo.celeris.core.language.LanguageConfiguration;
+
 import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.text.Document;
@@ -22,7 +24,7 @@ import jo.celeris.core.text.TextSession;
  */
 class FrappePairesTest {
 
-    private final TypingRules regles = TypingRules.langage("java");
+    private final TypingRules regles = TypingRules.generic();
 
     /** L'ouvrant frappé sur un curseur vide insère la paire, curseur au milieu. */
     @Test
@@ -137,7 +139,7 @@ class FrappePairesTest {
     /** L'apostrophe ne ferme pas en java quand la règle du langage l'exclut. */
     @Test
     void reglesParLangageJsonNaccepteQueLesGuillemets() {
-        TypingRules json = TypingRules.langage("json");
+        TypingRules json = TypingRules.of(configurationJson());
         assertFalsePour(json, "'");
         assertTruePour(json, "\"");
     }
@@ -157,5 +159,22 @@ class FrappePairesTest {
                 MultiSelection.caretsAt(1), frappe, regles);
         assertTrue(plan.isPresent());
         assertEquals(2, plan.get().transaction().edits().get(0).inserted().length());
+    }
+
+    /** La configuration JSON : paires communes, citation double seule. */
+    private static LanguageConfiguration configurationJson() {
+        LanguageConfiguration.BracketPair crochets =
+                new LanguageConfiguration.BracketPair('(', ')');
+        return new LanguageConfiguration(
+                new LanguageConfiguration.Comments(null, null, null),
+                java.util.List.of(crochets),
+                java.util.List.of(
+                        new LanguageConfiguration.AutoClosePair('(', ')', java.util.Set.of()),
+                        new LanguageConfiguration.AutoClosePair('[', ']', java.util.Set.of()),
+                        new LanguageConfiguration.AutoClosePair('{', '}', java.util.Set.of()),
+                        new LanguageConfiguration.AutoClosePair('"', '"', java.util.Set.of("string"))),
+                java.util.List.of(), null,
+                new LanguageConfiguration.Folding(false, false, null, null),
+                new LanguageConfiguration.IndentRules(null, null, null, null), 4, false);
     }
 }

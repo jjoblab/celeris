@@ -9,6 +9,7 @@ import java.util.concurrent.Executor;
 
 import org.junit.jupiter.api.Test;
 
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.JavaSyntax;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.OutlineEntry;
@@ -60,7 +61,7 @@ class EditorSyntaxPlanTest {
         syntaxe.setSurPlan(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
 
         Document document = session.document();
         syntaxe.habiller(SOURCE_MUETTE, document);
@@ -89,7 +90,7 @@ class EditorSyntaxPlanTest {
         syntaxe.setSurPlan(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         syntaxe.habiller(SOURCE_MUETTE, session.document());
         int avant = plans.size();
 
@@ -118,7 +119,7 @@ class EditorSyntaxPlanTest {
         syntaxe.setSurPlan(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         syntaxe.habiller(SOURCE_MUETTE, session.document());
         int avant = plans.size();
         assertTrue(plans.get(avant - 1).stream()
@@ -142,7 +143,7 @@ class EditorSyntaxPlanTest {
         syntaxe.setSurPlan(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         syntaxe.habiller(SOURCE_MUETTE, session.document());
         assertTrue(plans.get(plans.size() - 1).size() > 0, "un plan est affiché");
 

@@ -34,55 +34,55 @@ class GrammairesBudgetTest {
     /** TOML — clés et valeurs par ligne. */
     @Test
     void toml() {
-        budget(LangagesGrammaires.toml(), corpus("exemple.toml"));
+        budget(syntaxeDePaquet("toml"), corpus("exemple.toml"));
     }
 
     /** YAML — clés et scalaires par ligne. */
     @Test
     void yaml() {
-        budget(LangagesGrammaires.yaml(), corpus("exemple.yaml"));
+        budget(syntaxeDePaquet("yaml"), corpus("exemple.yaml"));
     }
 
     /** properties — clé et valeur par ligne. */
     @Test
     void properties() {
-        budget(LangagesGrammaires.proprietes(), corpus("exemple.properties"));
+        budget(syntaxeDePaquet("properties"), corpus("exemple.properties"));
     }
 
     /** Markdown — blocs et en ligne. */
     @Test
     void markdown() {
-        budget(LangagesGrammaires.markdown(), corpus("exemple.md"));
+        budget(syntaxeDePaquet("markdown"), corpus("exemple.md"));
     }
 
     /** Python — la longue traîne. */
     @Test
     void python() {
-        budget(LangagesGrammaires.python(), corpus("exemple.py"));
+        budget(syntaxeDePaquet("python"), corpus("exemple.py"));
     }
 
     /** Shell — la longue traîne. */
     @Test
     void shell() {
-        budget(LangagesGrammaires.shell(), corpus("exemple.sh"));
+        budget(syntaxeDePaquet("shell"), corpus("exemple.sh"));
     }
 
     /** SQL — les états de la base de l'hôte. */
     @Test
     void sql() {
-        budget(LangagesGrammaires.sql(), corpus("exemple.sql"));
+        budget(syntaxeDePaquet("sql"), corpus("exemple.sql"));
     }
 
     /** C — le code natif des bibliothèques embarquées. */
     @Test
     void c() {
-        budget(LangagesGrammaires.c(), corpus("exemple.c"));
+        budget(syntaxeDePaquet("c"), corpus("exemple.c"));
     }
 
     /** C++ — le code natif des moteurs et des bindings. */
     @Test
     void cpp() {
-        budget(LangagesGrammaires.cpp(), corpus("exemple.cpp"));
+        budget(syntaxeDePaquet("cpp"), corpus("exemple.cpp"));
     }
 
     private static void budget(LanguageSyntax langage, String corpus) {
@@ -151,6 +151,20 @@ class GrammairesBudgetTest {
             return new String(flux.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new IllegalStateException("corpus illisible : " + chemin, e);
+        }
+    }
+
+    /** La source syntaxique d'un paquet intégré, par la vraie fabrique. */
+    static LanguageSyntax syntaxeDePaquet(String id) {
+        var flux = GrammairesBudgetTest.class.getResourceAsStream("/langages/" + id + "/grammar.json");
+        if (flux == null) {
+            throw new IllegalArgumentException("grammaire du paquet " + id);
+        }
+        try (flux) {
+            return PackGrammars.INSTANCE.compile(id, new String(flux.readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8));
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
         }
     }
 }

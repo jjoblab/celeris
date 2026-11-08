@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.FoldSpan;
+import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.SyntaxService;
 import jo.celeris.core.syntax.TreeFolds;
 import jo.celeris.core.text.Document;
@@ -25,7 +26,7 @@ class GrammaireParseurTest {
     /** Les chunks suivent les lignes de premier niveau. */
     @Test
     void chunksParLignesDePremierNiveau() {
-        SyntaxService service = SyntaxService.of(LangagesGrammaires.python());
+        SyntaxService service = SyntaxService.of(syntaxeDePaquet("python"));
         Analysis analyse = service.analyseFull(Document.of("""
                 x = 1
                 y = [
@@ -42,7 +43,7 @@ class GrammaireParseurTest {
     /** La paire de crochets multi-lignes devient une région de pli. */
     @Test
     void paireMultiLignesEnRegionDePli() {
-        SyntaxService service = SyntaxService.of(LangagesGrammaires.python());
+        SyntaxService service = SyntaxService.of(syntaxeDePaquet("python"));
         Document doc = Document.of("""
                 valeurs = [
                     1,
@@ -59,7 +60,7 @@ class GrammaireParseurTest {
     /** Les crochets fermés dans la ligne ne plient rien. */
     @Test
     void paireMonoLigneNePlieRien() {
-        SyntaxService service = SyntaxService.of(LangagesGrammaires.python());
+        SyntaxService service = SyntaxService.of(syntaxeDePaquet("python"));
         Document doc = Document.of("valeurs = [1, 2]\n");
         Analysis analyse = service.analyseFull(doc);
         assertTrue(TreeFolds.regions(doc, analyse).isEmpty(),
@@ -69,7 +70,7 @@ class GrammaireParseurTest {
     /** Le crochet non fermé se tolère : aucune région, jamais d'exception. */
     @Test
     void crochetNonFermeTolere() {
-        SyntaxService service = SyntaxService.of(LangagesGrammaires.toml());
+        SyntaxService service = SyntaxService.of(syntaxeDePaquet("toml"));
         Document doc = Document.of("""
                 palette = [
                 "clair",
@@ -84,7 +85,7 @@ class GrammaireParseurTest {
     /** La clôture de code du balisage léger se replie d'un pli. */
     @Test
     void clotureDeCodeRepliee() {
-        SyntaxService service = SyntaxService.of(LangagesGrammaires.markdown());
+        SyntaxService service = SyntaxService.of(syntaxeDePaquet("markdown"));
         Document doc = Document.of("""
             # Titre
 
@@ -100,5 +101,19 @@ class GrammaireParseurTest {
         assertEquals(1, regions.size(), "la clôture de code se replie");
         assertEquals(2, regions.get(0).startLine(), "ouverte à la ligne de clôture");
         assertEquals(5, regions.get(0).endLine(), "refermée à sa fermeture");
+    }
+
+    /** La source syntaxique d'un paquet intégré, par la vraie fabrique. */
+    static LanguageSyntax syntaxeDePaquet(String id) {
+        var flux = GrammaireParseurTest.class.getResourceAsStream("/langages/" + id + "/grammar.json");
+        if (flux == null) {
+            throw new IllegalArgumentException("grammaire du paquet " + id);
+        }
+        try (flux) {
+            return PackGrammars.INSTANCE.compile(id, new String(flux.readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8));
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.JavaSyntax;
 import jo.celeris.core.syntax.JsonSyntax;
 import jo.celeris.core.syntax.KotlinSyntax;
@@ -230,7 +231,7 @@ class RetourSoupleCrashTest {
         FoldModel plis = new FoldModel();
         EditorSyntax syntaxe = new EditorSyntax(plis);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(langue);
+        syntaxe.setLanguage(LanguageSupport.of(langue));
         SurfaceEnregistreuse surface =
                 image(session, plis, syntaxe, colonnes, 640, 1080, 0);
         assertTrue(!surface.textes.isEmpty());
@@ -258,7 +259,7 @@ class RetourSoupleCrashTest {
         FoldModel plis = new FoldModel();
         EditorSyntax syntaxe = new EditorSyntax(plis);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(KotlinSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(KotlinSyntax.INSTANCE));
         // Première image sans pli : les régions pliables se publient.
         image(session, plis, syntaxe, 40, 640, 1080, 0);
         // Plier la première région pliable publiée.
@@ -293,7 +294,7 @@ class RetourSoupleCrashTest {
         FoldModel plis = new FoldModel();
         EditorSyntax syntaxe = new EditorSyntax(plis);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(KotlinSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(KotlinSyntax.INSTANCE));
         Document document = session.document();
         session.setSelection(MultiSelection.of(new SelRange(
                 document.lineStart(5),

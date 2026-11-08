@@ -9,15 +9,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Locale;
 
-import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.language.LanguageSupport;
 
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests du catalogue de fichiers d'exemple : la démonstration ouvre de
  * vrais fichiers de chaque langage P0 de la matrice (C-14, C-15, C-16),
- * avec l'analyseur dédié ou la grammaire déclarative qui va avec —
- * l'écran d'éditeur ne doit jamais se retrouver sans matière à tester.
+ * et le langage de chacun se détecte par le registre de la plateforme
+ * (M7.6) — l'écran d'éditeur ne doit jamais se retrouver sans matière
+ * à tester.
  */
 final class FichiersExempleTest {
 
@@ -36,25 +37,36 @@ final class FichiersExempleTest {
             assertFalse(fichier.nom().isBlank(), "nom non vide");
             assertTrue(fichier.contenu().length() > 40,
                     fichier.nom() + " : contenu trop court pour tester l'éditeur");
-            assertNotNull(FichiersExemple.languePour(fichier.nom()),
-                    fichier.nom() + " : aucun analyseur associé");
+            assertNotNull(LangagesDemo.langageDe(fichier.nom(), null,
+                    fichier.contenu()),
+                    fichier.nom() + " : aucun langage détecté");
         }
     }
 
     @Test
-    void langageDetecteParExtension() {
-        assertEquals("kotlin", FichiersExemple.languePour("Calculateur.kt").id());
-        assertEquals("java", FichiersExemple.languePour("Service.java").id());
-        assertEquals("xml", FichiersExemple.languePour("strings.xml").id());
-        assertEquals("kts", FichiersExemple.languePour("build.gradle.kts").id());
-        assertEquals("toml", FichiersExemple.languePour("libs.versions.toml").id());
-        assertEquals("json", FichiersExemple.languePour("donnees.json").id());
+    void langageDetecteParLeRegistre() {
+        assertEquals("kotlin", langageDe("Calculateur.kt"));
+        assertEquals("java", langageDe("Service.java"));
+        assertEquals("xml", langageDe("strings.xml"));
+        assertEquals("kts", langageDe("build.gradle.kts"));
+        assertEquals("groovy", langageDe("build.gradle"));
+        assertEquals("toml", langageDe("libs.versions.toml"));
+        assertEquals("json", langageDe("donnees.json"));
+        assertEquals("markdown", langageDe("README.md"));
+        assertEquals("python", langageDe("outils.py"));
+        assertEquals("proguard", langageDe("regles.pro"));
+    }
+
+    /** L'identifiant du langage détecté d'un nom de fichier du banc. */
+    private static String langageDe(String nom) {
+        LanguageSupport support = LangagesDemo.langageDe(nom, null, null);
+        return support == null ? "" : support.id();
     }
 
     @Test
     void extensionInconnueSansLangue() {
-        assertNull(FichiersExemple.languePour("inconnu.xyz"));
-        assertNull(FichiersExemple.languePour("sansextension"));
+        assertNull(LangagesDemo.langageDe("inconnu.xyz", null, null));
+        assertNull(LangagesDemo.langageDe("sansextension", null, null));
     }
 
     @Test

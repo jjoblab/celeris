@@ -1,0 +1,191 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Contrôle d'architecture de la plateforme de langages (M7.6, étape 4).
+
+La règle du prompt : « aucun littéral d'identifiant de langage en de
+hors des paquets et du code d'enregistrement ». Ajouter un langage ne
+demande que des données — un dossier sous
+core-language/src/main/resources/langages/ — et ce contrôle le PROUVE :
+les identifiants viennent des paquets eux-mêmes (pack.json), le
+balayage couvre le code de production (src/main/java de chaque module),
+et seuls les fichiers d'enregistrement déclarés y échappent.
+
+Un littéral d'identifiant est une chaîne Java STRICTEMENT ÉGALE à
+l'identifiant d'un paquet (les commentaires s'ignorent — la Javadoc
+française cite les langages librement).
+
+Usage :  python3 scripts/check-language-registration
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+
+RACINE = os.environ.get("CELERIS_REGISTRATION_ROOT") or os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__)))
+DOSSIER_PAQUETS = os.path.join(
+    RACINE, "core-language/src/main/resources/langages")
+
+# Le code d'enregistrement : là où les identifiants se nomment en
+# Java, par design (les paquets les portent en données).
+EXEMPTIONS = {
+    # l'enregistrement des analyseurs écrits (le SPI de core-syntax
+    # déclare l'identifiant du langage qu'il analyse)
+    "core-syntax/src/main/java/jo/celeris/core/syntax/JavaSyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/KotlinSyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/KtsSyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/GroovySyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/XmlSyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/JsonSyntax.java",
+    # les deux enregistrements de la plateforme : l'attache des
+    # analyseurs écrits, le choix du serveur de la démo
+    "core-language/src/main/java/jo/celeris/core/language/WrittenLanguages.java",
+    "demo/src/main/java/jo/celeris/demo/LangagesDemo.java",
+    # la constante du protocole LSP (MarkupKind.markdown) — un genre de
+    # contenu balisé, pas un identifiant de langage ; la collision de
+    # nom avec le langage markdown est le fait du protocole
+    "demo/src/main/java/jo/celeris/demo/ServeurReference.java",
+}
+
+# Le présent script se lit lui-même (auto-référence des messages).
+SELF = "scripts/check-language-registration"
+
+
+def git_modules() -> list:
+    """Les fichiers suivis ET non suivis non ignorés du dépôt."""
+    fichiers = []
+    if os.path.isdir(os.path.join(RACINE, ".git")):
+        out = subprocess.run(
+            ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+            capture_output=True, text=True, cwd=RACINE,
+        )
+        fichiers = [f for f in out.stdout.splitlines() if f.strip()]
+    if fichiers:
+        return fichiers
+    # dépôt sans fichier suivi (banc de test) : balayage direct
+    for racine, _dirs, noms in os.walk(RACINE):
+        if os.sep + ".git" in racine or os.sep + "build" in racine:
+            continue
+        for nom in noms:
+            fichiers.append(os.path.relpath(
+                os.path.join(racine, nom), RACINE))
+    return fichiers
+
+
+def pack_ids() -> list:
+    """Les identifiants des paquets intégrés — la règle vit dans les données."""
+    ids = []
+    if not os.path.isdir(DOSSIER_PAQUETS):
+        return ids
+    for nom in sorted(os.listdir(DOSSIER_PAQUETS)):
+        chemin = os.path.join(DOSSIER_PAQUETS, nom, "pack.json")
+        if not os.path.isfile(chemin):
+            continue
+        try:
+            with open(chemin, encoding="utf-8") as fh:
+                manifeste = json.load(fh)
+        except (OSError, json.JSONDecodeError):
+            continue
+        identifiant = manifeste.get("id")
+        if isinstance(identifiant, str) and identifiant:
+            ids.append(identifiant)
+    return ids
+
+
+def strip_java_comments(text: str) -> str:
+    """Retire les commentaires — la Javadoc française cite librement."""
+    out = []
+    i, n = 0, len(text)
+    state = "code"
+    while i < n:
+        c = text[i]
+        nxt = text[i + 1] if i + 1 < n else ""
+        if state == "code":
+            if c == "/" and nxt == "/":
+                state = "line"
+                i += 2
+                continue
+            if c == "/" and nxt == "*":
+                state = "block"
+                i += 2
+                continue
+            if text[i:i + 3] == '"""':
+                state = "textblock"
+                out.append('"""')
+                i += 3
+                continue
+            out.append(c)
+        elif state == "line":
+            if c == "\n":
+                state = "code"
+                out.append(c)
+        elif state == "block":
+            if c == "*" and nxt == "/":
+                state = "code"
+                i += 2
+                continue
+        elif state == "textblock":
+            if text[i:i + 3] == '"""':
+                state = "code"
+                out.append('"""')
+                i += 3
+                continue
+            out.append(c)
+        i += 1
+    return "".join(out)
+
+
+CHAINE = re.compile(r'"((?:[^"\\\n]|\\.)*)"')
+
+
+def litteraux(code: str) -> list:
+    """Les chaînes littérales décodées d'un code sans commentaires."""
+    valeurs = []
+    for m in CHAINE.finditer(code):
+        brut = m.group(1)
+        try:
+            valeurs.append(bytes(brut, "utf-8").decode("unicode_escape"))
+        except (UnicodeDecodeError, ValueError):
+            valeurs.append(brut)
+    return valeurs
+
+
+def main() -> int:
+    ids = pack_ids()
+    if not ids:
+        print("enregistrement : aucun paquet intégré trouvé — rien à contrôler")
+        return 0
+    interdits = set(ids)
+
+    fichiers = git_modules()
+    production = [f for f in fichiers
+                  if "/src/main/java/" in f and f.endswith(".java")
+                  and f not in EXEMPTIONS and f != SELF]
+
+    problemes = []
+    for f in production:
+        try:
+            with open(os.path.join(RACINE, f), encoding="utf-8") as fh:
+                code = strip_java_comments(fh.read())
+        except (OSError, UnicodeDecodeError):
+            continue
+        for valeur in litteraux(code):
+            if valeur in interdits:
+                problemes.append(
+                    f"{f}: littéral d'identifiant de langage « {valeur} » "
+                    "hors des paquets et de l'enregistrement "
+                    "(le déplacer dans un paquet ou le code d'enregistrement)"
+                )
+
+    for p in problemes:
+        print(p)
+    print(f"enregistrement : {len(problemes)} problème(s), "
+          f"{len(ids)} langage(s) intégré(s), "
+          f"{len(production)} fichier(s) de production balayé(s)")
+    return 1 if problemes else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

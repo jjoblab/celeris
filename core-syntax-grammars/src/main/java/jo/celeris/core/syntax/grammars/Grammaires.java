@@ -1,9 +1,5 @@
 package jo.celeris.core.syntax.grammars;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,6 +10,8 @@ import java.util.regex.PatternSyntaxException;
 
 import org.jspecify.annotations.Nullable;
 
+import jo.celeris.core.language.JsonReader;
+
 /**
  * Chargeur de grammaires (format TextMate, ADR-004) : lit le JSON
  * déclaratif, compile les expressions et résout les inclusions du
@@ -22,33 +20,15 @@ import org.jspecify.annotations.Nullable;
  * tableau de valeurs qui contient des tableaux) se référencent sans
  * fin d'aplatissement. {@code $self} et {@code $base} sont refusés :
  * l'aplatissement n'y trouverait jamais son compte.
+ *
+ * <p>M7.6 : les grammaires embarquées vivent dans les paquets de
+ * langage ({@code langages/<id>/grammar.json} de core-language) et
+ * arrivent par la couture {@link PackGrammars} ; ce chargeur ne lit
+ * plus que du texte JSON.
  */
 public final class Grammaires {
 
-    private static final String CHEMIN = "/grammaires/";
-
     private Grammaires() {
-    }
-
-    /**
-     * Lit une grammaire embarquée du module ({@code /grammaires/<nom>.json}).
-     *
-     * @param nom le nom du fichier, sans extension
-     * @return la grammaire compilée
-     * @throws IllegalArgumentException si le nom est inconnu ou la grammaire mal formée
-     */
-    public static Grammaire ressource(String nom) {
-        InputStream flux = Grammaires.class.getResourceAsStream(CHEMIN + nom + ".json");
-        if (flux == null) {
-            throw new IllegalArgumentException("unknown grammar resource: " + nom);
-        }
-        byte[] octets;
-        try (flux) {
-            octets = flux.readAllBytes();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return lire(new String(octets, StandardCharsets.UTF_8));
     }
 
     /**
@@ -59,7 +39,7 @@ public final class Grammaires {
      * @throws IllegalArgumentException si la grammaire est mal formée
      */
     public static Grammaire lire(String json) {
-        Object racine = LecteurJson.lire(json);
+        Object racine = JsonReader.read(json);
         if (!(racine instanceof Map<?, ?> champs)) {
             throw new IllegalArgumentException("grammar root must be an object");
         }

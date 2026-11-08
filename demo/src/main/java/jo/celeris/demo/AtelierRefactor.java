@@ -20,7 +20,7 @@ import jo.celeris.core.intelligence.IndexSymboles;
 import jo.celeris.core.intelligence.IndentStyle;
 import jo.celeris.core.intelligence.Renommage;
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
@@ -270,11 +270,12 @@ final class AtelierRefactor {
 
     /** Le plan calculé sur une analyse FRAÎCHE — coordinateur ponctuel, fermé d'entrée. */
     private <T> @Nullable T planSurAnalyse(Function<Analysis, T> calcul) {
-        LanguageSyntax langue = FichiersExemple.languePour(nomFichier);
-        if (langue == null) {
+        LanguageSupport support = LangagesDemo.langageDe(nomFichier,
+                null, session.document().text());
+        if (support == null || support.syntax() == null) {
             return null;
         }
-        SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session, langue);
+        SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session, support.syntax());
         try {
             return calcul.apply(coordinateur.analysis());
         } finally {

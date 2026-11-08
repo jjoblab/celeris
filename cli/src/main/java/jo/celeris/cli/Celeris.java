@@ -6,21 +6,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
+import java.util.ServiceLoader;
+
+import jo.celeris.core.language.LanguageContributor;
+import jo.celeris.core.language.LanguageDetection;
+import jo.celeris.core.language.LanguagePlatform;
+import jo.celeris.core.language.LanguageRegistry;
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.GroovySyntax;
-import jo.celeris.core.syntax.JavaSyntax;
-import jo.celeris.core.syntax.JsonSyntax;
-import jo.celeris.core.syntax.KotlinSyntax;
-import jo.celeris.core.syntax.KtsSyntax;
-import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxService;
 import jo.celeris.core.syntax.TreeOutline;
-import jo.celeris.core.syntax.XmlSyntax;
-import jo.celeris.core.syntax.grammars.LangagesGrammaires;
+import jo.celeris.core.syntax.grammars.PackGrammars;
 import jo.celeris.core.text.Document;
 
 import org.jspecify.annotations.Nullable;
@@ -36,30 +34,26 @@ public final class Celeris {
 
     private static final String VERSION = "0.1.0-SNAPSHOT";
 
-    /** Les langages par extension : dédiés et voie de grammaires (C-14 à C-16). */
-    private static final Map<String, LanguageSyntax> LANGAGES = Map.ofEntries(
-            Map.entry("kt", KotlinSyntax.INSTANCE),
-            Map.entry("java", JavaSyntax.INSTANCE),
-            Map.entry("xml", XmlSyntax.INSTANCE),
-            Map.entry("kts", KtsSyntax.INSTANCE),
-            Map.entry("gradle", GroovySyntax.INSTANCE),
-            Map.entry("json", JsonSyntax.INSTANCE),
-            Map.entry("toml", LangagesGrammaires.toml()),
-            Map.entry("yaml", LangagesGrammaires.yaml()),
-            Map.entry("yml", LangagesGrammaires.yaml()),
-            Map.entry("properties", LangagesGrammaires.proprietes()),
-            Map.entry("md", LangagesGrammaires.markdown()),
-            Map.entry("py", LangagesGrammaires.python()),
-            Map.entry("sh", LangagesGrammaires.shell()),
-            Map.entry("sql", LangagesGrammaires.sql()),
-            Map.entry("c", LangagesGrammaires.c()),
-            Map.entry("h", LangagesGrammaires.c()),
-            Map.entry("cpp", LangagesGrammaires.cpp()),
-            Map.entry("cc", LangagesGrammaires.cpp()),
-            Map.entry("hpp", LangagesGrammaires.cpp()),
-            Map.entry("pro", LangagesGrammaires.proguard()));
-
     private Celeris() {
+    }
+
+    /**
+     * Le registre des langages du cli (M7.6) : les seize paquets
+     * intégrés assemblés par la plateforme — les analyseurs écrits
+     * s'y attachent par préférence, la voie de grammaires compile les
+     * autres — et les contributeurs découverts par ServiceLoader
+     * (le mécanisme réservé à la JVM, sans réflexion ailleurs).
+     *
+     * @return le registre assemblé
+     */
+    private static LanguageRegistry registre() {
+        LanguagePlatform plateforme = LanguagePlatform.with(PackGrammars.INSTANCE)
+                .builtinPacks();
+        for (LanguageContributor contributeur
+                : ServiceLoader.load(LanguageContributor.class)) {
+            plateforme.contributor(contributeur);
+        }
+        return plateforme.build();
     }
 
     /** Modules du cœur, dans l'ordre des dépendances descendantes. */
@@ -125,16 +119,16 @@ public final class Celeris {
             return 1;
         }
         Document document = Document.of(contenu);
-        LanguageSyntax langue = langueDuNom(args[1]);
+        LanguageSupport langue = langageDe(args[1], contenu, registre());
         sortie.println("fichier : " + Path.of(args[1]).getFileName());
         sortie.println("langage : "
                 + (langue == null ? "aucun" : langue.id()));
         sortie.println("lignes : " + lignesVisibles(document, contenu));
         sortie.println("caracteres : " + document.length());
-        if (langue == null) {
+        if (langue == null || langue.syntax() == null) {
             return 0;
         }
-        Analysis analyse = SyntaxService.of(langue).analyseFull(document);
+        Analysis analyse = SyntaxService.of(langue.syntax()).analyseFull(document);
         for (OutlineEntry entree : TreeOutline.entries(document, analyse)) {
             sortie.println("  plan : " + entree.name() + " (" + entree.category()
                     + ", ligne " + (entree.startLine() + 1) + ")");
@@ -185,12 +179,20 @@ public final class Celeris {
         return Math.max(1, document.lineCount() - 1);
     }
 
-    private static @Nullable LanguageSyntax langueDuNom(String chemin) {
+    /**
+     * Le langage d'un fichier par la détection du registre — nom,
+     * première ligne et échantillon compris (le {@code .h} de C ou C++
+     * se départage par son contenu), jamais par une table d'extensions.
+     */
+    private static @Nullable LanguageSupport langageDe(String chemin,
+            String contenu, LanguageRegistry registre) {
         String nom = Path.of(chemin).getFileName().toString();
-        int point = nom.lastIndexOf('.');
-        if (point < 0) {
-            return null;
-        }
-        return LANGAGES.get(nom.substring(point + 1).toLowerCase(Locale.ROOT));
+        int saut = contenu.indexOf('\n');
+        String premiereLigne = saut < 0 ? contenu : contenu.substring(0, saut);
+        LanguageDetection detection = registre.detect(nom, premiereLigne,
+                contenu.length() > 8192 ? contenu.substring(0, 8192) : contenu);
+        return detection instanceof LanguageDetection.Resolved resolu
+                ? resolu.support()
+                : null;
     }
 }
