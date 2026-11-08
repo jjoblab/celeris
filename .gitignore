@@ -8,7 +8,7 @@ classes/
 # Le jar du wrapper Gradle est versionné (wrapper autosuffisant, ADR-001)
 !gradle/wrapper/gradle-wrapper.jar
 # Le serveur tiers retiré embarqué dans la démonstration (M8.6,
-# [EXT-6] — découpe reproductible par scripts/decoupe-serveur-retire)
+# serveur-retire — découpe reproductible par scripts/decoupe-serveur-retire)
 !demo/libs/serveur-retire.jar
 *.hprof
 
@@ -21,3 +21,9 @@ local.properties
 
 # Spikes : seul le code source est versionné, jamais les classes produites
 spikes/**/out/
+
+# Spike M7.6 (moteur d'expressions rationnelles) : grammaires et
+# bibliothèques téléchargées à la mesure, jamais versionnées — le
+# script recuperer-grammaires les ramène de façon reproductible.
+spikes/regex/grammaires/
+spikes/regex/libs/
