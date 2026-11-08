@@ -1,6 +1,6 @@
-# Matrice de parité — celeris contre l'IDE de référence
+# Matrice de parité — celeris contre Android Studio
 
-> **Référentiel** : les capacités de l'IDE de référence ([EXT-1]) servent
+> **Référentiel** : les capacités d'Android Studio servent
 > d'étalon. Son état a été vérifié le 2026-11-04 sur sa documentation
 > officielle : la ligne stable actuelle est **2026.2.2** (le mandat annonçait
 > la ligne 2025.3 — déjà deux lignes de retard, voir « Sources ») ; le mode
@@ -173,7 +173,7 @@
 | D-14 | Polices à ligatures (licence libre) | P2 | présent | `android-view` | M3 | test de capture : ligatures activables, police libre attribuée dans `NOTICE` | Non démarré | — | oui | — |
 | D-15 | Zoom au pincement | P0 | présent (celeris M3-t4 : paliers bornés, point sous le doigt stable — test JVM vert ; appareil réel à vérifier) | `android-view` | M3 | test gestuel : paliers de taille, curseur stable sous le doigt | Câblé | KeyboardZoomTest | oui | — |
 | D-16 | Tactile : poignées, loupe, pilule, barre de symboles | P0 | présent | `android-view` | M3 | tests gestuels instrumentés ; PIEGE-03 (ancre figée au DOWN) | Noyau | — | oui | — |
-| D-17 | Clavier matériel : table de raccourcis alignée sur [EXT-1], reconfigurable | P0/P1 | partiel (celeris M3-t4 : table complète, remappage, encodage, mouvements et suppression avant par clusters — tests JVM verts ; instrumenté à venir) | `android-view` | M3/M5 | test : table par défaut complète, remappage persistant, conflits détectés | Câblé | CaretsMotionTest | oui | — |
+| D-17 | Clavier matériel : table de raccourcis alignée sur Android Studio, reconfigurable | P0/P1 | partiel (celeris M3-t4 : table complète, remappage, encodage, mouvements et suppression avant par clusters — tests JVM verts ; instrumenté à venir) | `android-view` | M3/M5 | test : table par défaut complète, remappage persistant, conflits détectés | Câblé | CaretsMotionTest | oui | — |
 | D-18 | Stylet, souris, pavé tactile (survol, cliquer-tirer, molette) | P1 | partiel (celeris : livré M5-t6 — molette Ctrl = zoom borné, info-bulle après station, déplacement qui la retire) | `android-view` | M5 | test : survol → info-bulle, sélection à la souris, molette avec Ctrl = zoom | Câblé | PointerGesturesTest | oui | — |
 | D-19 | Pliables, grands écrans, mode bureau | P1 | livré (celeris : M7-t9 — ClasseLargeur suit les seuils des classes de taille, la gouttière resserre ou respire selon la fenêtre, le pliable déplié change de classe d'un geste) | `android-view` | M7 | scénario pliable ; test : rangées/gouttière s'adaptent à la largeur | Câblé | ClasseLargeurTest | oui | — |
 | D-20 | Glisser-déposer (texte, fichiers) | P2 | absent | `android-view` | M7+ | scénario : dépôt de fichier → ouverture | Non démarré | — | non | — |
@@ -216,7 +216,7 @@
 
 ## État vérifié de l'étalon (2026-11-04)
 
-Vérifié sur la documentation officielle de l'IDE de référence et de la
+Vérifié sur la documentation officielle d'Android Studio et de la
 plateforme (voir « Sources ») :
 
 - la ligne stable est **2026.2.2** (le mandat citait la ligne 2025.3 d'avril
@@ -231,7 +231,7 @@ plateforme (voir « Sources ») :
 
 ## Sources consultées (2026-11-04)
 
-1. Notes de version de l'IDE de référence — documentation officielle de la
+1. Notes de version d'Android Studio — documentation officielle de la
    plateforme : `https://developer.android.com/studio/releases` (tableau de
    compatibilité des versions, lignes 2025.3 → 2026.2).
 2. Notes de version du plugin Gradle Android : `https://developer.android.com/build/releases` (9.5.0, octobre 2026).

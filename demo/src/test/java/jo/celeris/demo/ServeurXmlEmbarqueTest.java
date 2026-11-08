@@ -22,7 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Le serveur XML RÉEL embarqué (M8.6 — [EXT-6], identité au NOTICE) :
+ * Le serveur XML RÉEL embarqué (M8.6 — LemMinX, identité au NOTICE) :
  * lancé EN PROCESSUS sur les tubes mémoire, rejoint par le client du
  * cœur et son transport à flux — le test À FOND de la fonctionnalité
  * LSP contre un serveur du monde réel : cadrage Content-Length pour

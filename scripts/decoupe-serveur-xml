@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Découpe sur mesure de l'artefact ubérifié du serveur XML [EXT-6].
+"""Découpe sur mesure de l'artefact ubérifié du serveur XML LemMinX.
 
 Le dépôt embarque le serveur de langage XML réel dans le module de
 démonstration (M8.6, identité et licence au NOTICE) : l'artefact
