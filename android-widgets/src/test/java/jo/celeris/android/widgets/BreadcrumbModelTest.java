@@ -114,7 +114,8 @@ class BreadcrumbModelTest {
     @Test
     void ellipsisClipsByPixelWidth_notByCharCount() {
         // mesureur à chasse variable : « W » vaut dix unités, le reste
-        // deux — un compte de caractères couperait au mauvais endroit
+        // (l'ellipse comprise) deux — un compte de caractères
+        // couperait au mauvais endroit
         ToIntFunction<String> mesureur = s -> {
             int total = 0;
             for (int i = 0; i < s.length(); i++) {
@@ -122,15 +123,15 @@ class BreadcrumbModelTest {
             }
             return total;
         };
-        // « … › WWWWiiii » : la cible 35 laisse 22 au niveau ; par la
-        // largeur rendue, « WW » (20) tient, « WWW » (30) déborde — un
-        // compte de caractères aurait gardé « WWWWii » (26 unités,
-        // débord) ou coupé au hasard
+        // « … › WWWWiiii » : la cible 35 laisse 30 au niveau (ellipse 2,
+        // séparateur 3) ; par la largeur rendue, « WWW » (30) tient
+        // exactement, « WWWW » (40) déborde — un compte de caractères
+        // aurait gardé « WWWWii » au hasard de la chasse
         List<String> tronque = BreadcrumbModel.tronque(
                 List.of("WWWWiiii"), 35, mesureur);
-        assertEquals(List.of("…", "WW"), tronque,
+        assertEquals(List.of("…", "WWW"), tronque,
                 "la coupe se décide à la largeur rendue (PIEGE-10)");
-        // le maximum utile tient : un caractère de plus déborde
-        assertEquals(20, mesureur.applyAsInt(tronque.get(1)));
+        // le maximum utile tient : une lettre large de plus déborde
+        assertEquals(30, mesureur.applyAsInt(tronque.get(1)));
     }
 }
