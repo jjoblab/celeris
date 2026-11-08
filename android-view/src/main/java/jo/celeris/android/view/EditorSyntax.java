@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.FoldSpan;
@@ -83,7 +84,8 @@ public final class EditorSyntax {
     private final List<EditionEnAttente> editionsEnAttente = new ArrayList<>();
 
     private @Nullable TextSession session;
-    private @Nullable LanguageSyntax langue;
+    private @Nullable LanguageSupport langue;
+    private @Nullable LanguageSyntax syntaxeDuLangage;
     private @Nullable SyntaxCoordinator coordinateur;
     private @Nullable MoteurAnalyse moteur;
     private @Nullable Runnable surAnalysePrete;
@@ -144,13 +146,17 @@ public final class EditorSyntax {
     }
 
     /**
-     * Change le langage analysé ; null coupe l'analyse et vide la
-     * coulisse de marqueurs.
+     * Change le langage de l'éditeur (M7.6 : le support complet —
+     * descripteur, configuration, source syntaxique, capacités) ;
+     * null coupe l'analyse et vide la coulisse de marqueurs. La
+     * source syntaxique du support nourrit l'analyse, sa
+     * configuration nourrit la frappe.
      *
-     * @param nouvelleLangue le langage à analyser, null pour aucun
+     * @param nouvelleLangue le support du langage, null pour aucun
      */
-    public void setLanguage(@Nullable LanguageSyntax nouvelleLangue) {
+    public void setLanguage(@Nullable LanguageSupport nouvelleLangue) {
         langue = nouvelleLangue;
+        syntaxeDuLangage = nouvelleLangue == null ? null : nouvelleLangue.syntax();
         editionsEnAttente.clear();
         chaineRompue = false;
         rattacher();
@@ -160,8 +166,8 @@ public final class EditorSyntax {
         }
     }
 
-    /** Le langage analysé, null sans analyse. */
-    public @Nullable LanguageSyntax language() {
+    /** Le support du langage analysé, null sans analyse. */
+    public @Nullable LanguageSupport language() {
         return langue;
     }
 
@@ -332,7 +338,7 @@ public final class EditorSyntax {
         }
         return new SyntaxRowSource(source, publiee.lex(),
                 TokenCatchUp.of(publiee.lex(), editions, sites, document,
-                        langue == null ? null : langue.lexer()));
+                        syntaxeDuLangage == null ? null : syntaxeDuLangage.lexer()));
     }
 
     /**
@@ -442,14 +448,15 @@ public final class EditorSyntax {
             coordinateur.close();
             coordinateur = null;
         }
+        LanguageSyntax syntaxe = syntaxeDuLangage;
         if (executeur == null) {
-            coordinateur = langue == null || session == null
+            coordinateur = syntaxe == null || session == null
                     ? null
-                    : SyntaxCoordinator.on(session, langue);
+                    : SyntaxCoordinator.on(session, syntaxe);
             return;
         }
-        if (langue != null && session != null) {
-            moteur = MoteurAnalyse.sur(session, langue, executeur,
+        if (syntaxe != null && session != null) {
+            moteur = MoteurAnalyse.sur(session, syntaxe, executeur,
                     fenetrePremiere, fenetreDerniere);
             moteur.ajouterAuditeur(analyse -> notifierAnalysePrete());
             moteur.reanalyser();

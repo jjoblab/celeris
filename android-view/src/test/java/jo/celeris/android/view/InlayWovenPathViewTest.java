@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import jo.celeris.core.ai.SuggestionFantome;
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.JavaSyntax;
 
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class InlayWovenPathViewTest {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), "int nombre = 1;");
         EditorView vue = banc.vue();
-        vue.setLanguage(JavaSyntax.INSTANCE);
+        vue.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();
         // l'image sans indice : le chemin tissé du code
         EditorTestRig.RecordingCanvas sansIndice = banc.image();

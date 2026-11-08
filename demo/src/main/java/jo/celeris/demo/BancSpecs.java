@@ -36,6 +36,17 @@ final class BancSpecs {
     private static final String URI = "file:///exemple.java";
     private static final IndentStyle STYLE = IndentStyle.ESPACES_4;
 
+    /** Les règles du banc : la configuration du paquet java (M7.6). */
+    private static TypingRules regles() {
+        return TypingRules.of(LangagesDemo.registre()
+                .byFilename("exemple.java").configuration());
+    }
+
+    /** L'identifiant du langage du banc — la détection du registre. */
+    private static String languageId() {
+        return LangagesDemo.registre().byFilename("exemple.java").id();
+    }
+
     private BancSpecs() {
     }
 
@@ -117,7 +128,7 @@ final class BancSpecs {
         TextSession session = TextSession.of("f()", () -> 0L);
         session.setSelection(MultiSelection.of(SelRange.caretAt(2)));
         Optional<EditPlan> plan = SmartTyping.backspace(session.document(),
-                session.selection(), TypingRules.langage("java"), STYLE);
+                session.selection(), regles(), STYLE);
         return plan.isPresent() && session.apply(plan.get().transaction(),
                 plan.get().selection()) && "f".equals(
                         session.document().text()) && caret(session) == 1;
@@ -271,7 +282,7 @@ final class BancSpecs {
     /** La frappe d'un texte par le moteur — la voie du concentrateur. */
     private static boolean frapper(TextSession session, String texte) {
         Optional<EditPlan> plan = SmartTyping.insert(session.document(),
-                session.selection(), texte, TypingRules.langage("java"));
+                session.selection(), texte, regles());
         return plan.isPresent() && session.apply(plan.get().transaction(),
                 plan.get().selection());
     }
@@ -296,7 +307,7 @@ final class BancSpecs {
             DemandeAuFil<T> demande) {
         ServeurLangage serveur = ServeurLangage.demarrer();
         try {
-            serveur.ouvrir(URI, "java", texte);
+            serveur.ouvrir(URI, languageId(), texte);
             Document document = TextSession.of(texte, () -> 0L).document();
             return demande.demander(serveur, document, caret);
         } catch (Exception echec) {

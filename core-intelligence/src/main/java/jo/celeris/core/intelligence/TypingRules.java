@@ -1,57 +1,62 @@
 package jo.celeris.core.intelligence;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
+
+import jo.celeris.core.language.LanguageConfiguration;
 
 /**
- * Les règles de frappe par langage (M5, A-05) : les paires appariées qui
- * se ferment seules et les citations qui se dédoublent. Les règles sont
- * immuables et vivent par identifiant de langage — le même que
- * {@code LanguageSyntax#id()}.
+ * Les règles de frappe d'un langage (M5, A-05 ; M7.6 : pilotées par la
+ * configuration) : les paires appariées qui se ferment seules et les
+ * citations qui se dédoublent — les paires déclarées du paquet, celles
+ * des crochets par convention de VS Code, une paire ouvrante égale à sa
+ * fermante étant une citation. Plus aucun aiguillage par identifiant :
+ * la longue traîne frappe aussi bien que les langages dédiés.
  */
 public final class TypingRules {
 
-    /** Les paires communes aux langages impératifs et de données. */
-    private static final Map<Character, Character> PAIRES_COMMUNES =
-            Map.of('(', ')', '[', ']', '{', '}');
-
-    /** Les citations des langages de la famille C. */
-    private static final Set<Character> CITATIONS_C = Set.of('"', '\'');
-
-    /** La citation unique du JSON. */
-    private static final Set<Character> CITATIONS_JSON = Set.of('"');
-
     private final Map<Character, Character> paires;
 
-    private final Set<Character> citations;
+    private final Map<Character, Character> citations;
 
-    private TypingRules(Map<Character, Character> paires, Set<Character> citations) {
+    private TypingRules(Map<Character, Character> paires,
+            Map<Character, Character> citations) {
         this.paires = paires;
         this.citations = citations;
     }
 
     /**
-     * Les règles d'un langage par identifiant. Les identifiants inconnus
-     * retombent sur les règles par défaut — la longue traîne (C-16) frappe
-     * aussi bien.
+     * Les règles d'une configuration de langage : ses paires déclarées
+     * (ou celles dérivées de ses crochets), la citation dans les
+     * paires ouvrant sur elles-mêmes.
      *
-     * @param id l'identifiant du langage (par exemple {@code "json"})
+     * @param configuration la configuration du langage
      * @return ses règles
      */
-    public static TypingRules langage(String id) {
-        if ("json".equals(id)) {
-            return new TypingRules(PAIRES_COMMUNES, CITATIONS_JSON);
+    public static TypingRules of(LanguageConfiguration configuration) {
+        Map<Character, Character> paires = new LinkedHashMap<>();
+        Map<Character, Character> citations = new LinkedHashMap<>();
+        for (LanguageConfiguration.AutoClosePair paire
+                : configuration.effectiveAutoClosingPairs()) {
+            if (paire.open() == paire.close()) {
+                citations.put(paire.open(), paire.close());
+            } else {
+                paires.put(paire.open(), paire.close());
+            }
         }
-        return new TypingRules(PAIRES_COMMUNES, CITATIONS_C);
+        return new TypingRules(Map.copyOf(paires), Map.copyOf(citations));
     }
 
     /**
-     * Les règles par défaut : paires communes, citations de la famille C.
+     * Les règles génériques des langages sans configuration : paires
+     * communes, citations de la famille C — la configuration générique
+     * de la plateforme, exprimée ici pour les hôtes qui n'ont pas de
+     * langage.
      *
-     * @return les règles
+     * @return les règles génériques
      */
-    public static TypingRules parDefaut() {
-        return new TypingRules(PAIRES_COMMUNES, CITATIONS_C);
+    public static TypingRules generic() {
+        return of(LanguageConfiguration.generic());
     }
 
     /**
@@ -96,6 +101,6 @@ public final class TypingRules {
      * @return son statut de citation
      */
     public boolean estCitation(char c) {
-        return citations.contains(c);
+        return citations.containsKey(c);
     }
 }

@@ -11,6 +11,7 @@ import net.jqwik.api.Property;
 import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.IncrementalLexer;
 import jo.celeris.core.syntax.LanguageLexer;
+import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.LexDocument;
 import jo.celeris.core.syntax.LexResult;
 import jo.celeris.core.text.Document;
@@ -32,7 +33,7 @@ class GrammaireProprietesTest {
     void leIncrementalEgaleLeComplet(@ForAll long graine) {
         Random rng = new Random(graine);
         String texte = corpusPython();
-        LanguageLexer lexeur = LangagesGrammaires.python().lexer();
+        LanguageLexer lexeur = syntaxeDePaquet("python").lexer();
         IncrementalLexer moteur = new IncrementalLexer();
         LexResult courant = moteur.lexFull(Document.of(texte), lexeur);
 
@@ -80,5 +81,19 @@ class GrammaireProprietesTest {
 
                 x = Exemple()
                 """;
+    }
+
+    /** La source syntaxique d'un paquet intégré, par la vraie fabrique. */
+    static LanguageSyntax syntaxeDePaquet(String id) {
+        var flux = GrammaireProprietesTest.class.getResourceAsStream("/langages/" + id + "/grammar.json");
+        if (flux == null) {
+            throw new IllegalArgumentException("grammaire du paquet " + id);
+        }
+        try (flux) {
+            return PackGrammars.INSTANCE.compile(id, new String(flux.readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8));
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

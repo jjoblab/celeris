@@ -1,20 +1,426 @@
-### jo.celeris.core.language.Language
-Compiled from "Language.java"
-public final class jo.celeris.core.language.Language extends java.lang.Record {
-  public jo.celeris.core.language.Language(java.lang.String, java.lang.String, java.util.List<java.lang.String>);
+### jo.celeris.core.language.Completion
+Compiled from "Completion.java"
+public interface jo.celeris.core.language.Completion extends jo.celeris.core.language.LanguageCapability {
+  public abstract java.util.List<java.lang.String> candidates(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
+}
+
+### jo.celeris.core.language.ConfigurationParser
+Compiled from "ConfigurationParser.java"
+final class jo.celeris.core.language.ConfigurationParser {
+}
+
+### jo.celeris.core.language.GrammarFactory
+Compiled from "GrammarFactory.java"
+public interface jo.celeris.core.language.GrammarFactory {
+  public abstract jo.celeris.core.syntax.LanguageSyntax compile(java.lang.String, java.lang.String);
+}
+
+### jo.celeris.core.language.JsonChamps
+Compiled from "JsonChamps.java"
+final class jo.celeris.core.language.JsonChamps {
+}
+
+### jo.celeris.core.language.JsonReader
+Compiled from "JsonReader.java"
+public final class jo.celeris.core.language.JsonReader {
+  public static java.lang.Object read(java.lang.String);
+}
+
+### jo.celeris.core.language.LanguageCapability
+Compiled from "LanguageCapability.java"
+public interface jo.celeris.core.language.LanguageCapability {
+}
+
+### jo.celeris.core.language.LanguageConfiguration$AutoClosePair
+Compiled from "LanguageConfiguration.java"
+public final class jo.celeris.core.language.LanguageConfiguration$AutoClosePair extends java.lang.Record {
+  public jo.celeris.core.language.LanguageConfiguration$AutoClosePair(char, char, java.util.Set<java.lang.String>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public char open();
+  public char close();
+  public java.util.Set<java.lang.String> notIn();
+}
+
+### jo.celeris.core.language.LanguageConfiguration$BracketPair
+Compiled from "LanguageConfiguration.java"
+public final class jo.celeris.core.language.LanguageConfiguration$BracketPair extends java.lang.Record {
+  public jo.celeris.core.language.LanguageConfiguration$BracketPair(char, char);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public char open();
+  public char close();
+}
+
+### jo.celeris.core.language.LanguageConfiguration$Comments
+Compiled from "LanguageConfiguration.java"
+public final class jo.celeris.core.language.LanguageConfiguration$Comments extends java.lang.Record {
+  public jo.celeris.core.language.LanguageConfiguration$Comments(java.lang.String, java.lang.String, java.lang.String);
+  public boolean commentable();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String lineComment();
+  public java.lang.String blockStart();
+  public java.lang.String blockEnd();
+}
+
+### jo.celeris.core.language.LanguageConfiguration$Folding
+Compiled from "LanguageConfiguration.java"
+public final class jo.celeris.core.language.LanguageConfiguration$Folding extends java.lang.Record {
+  public jo.celeris.core.language.LanguageConfiguration$Folding(boolean, boolean, java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public boolean byIndentation();
+  public boolean offSide();
+  public java.lang.String beginMarker();
+  public java.lang.String endMarker();
+}
+
+### jo.celeris.core.language.LanguageConfiguration$IndentRules
+Compiled from "LanguageConfiguration.java"
+public final class jo.celeris.core.language.LanguageConfiguration$IndentRules extends java.lang.Record {
+  public jo.celeris.core.language.LanguageConfiguration$IndentRules(java.lang.String, java.lang.String, java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String increase();
+  public java.lang.String decrease();
+  public java.lang.String indentNextLine();
+  public java.lang.String unindentedLine();
+}
+
+### jo.celeris.core.language.LanguageConfiguration
+Compiled from "LanguageConfiguration.java"
+public final class jo.celeris.core.language.LanguageConfiguration extends java.lang.Record {
+  public static final jo.celeris.core.language.LanguageConfiguration EMPTY;
+  public jo.celeris.core.language.LanguageConfiguration(jo.celeris.core.language.LanguageConfiguration$Comments, java.util.List<jo.celeris.core.language.LanguageConfiguration$BracketPair>, java.util.List<jo.celeris.core.language.LanguageConfiguration$AutoClosePair>, java.util.List<jo.celeris.core.language.LanguageConfiguration$BracketPair>, java.lang.String, jo.celeris.core.language.LanguageConfiguration$Folding, jo.celeris.core.language.LanguageConfiguration$IndentRules, int, boolean);
+  public static jo.celeris.core.language.LanguageConfiguration generic();
+  public java.util.List<jo.celeris.core.language.LanguageConfiguration$AutoClosePair> effectiveAutoClosingPairs();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.language.LanguageConfiguration$Comments comments();
+  public java.util.List<jo.celeris.core.language.LanguageConfiguration$BracketPair> brackets();
+  public java.util.List<jo.celeris.core.language.LanguageConfiguration$AutoClosePair> autoClosingPairs();
+  public java.util.List<jo.celeris.core.language.LanguageConfiguration$BracketPair> surroundingPairs();
+  public java.lang.String wordPattern();
+  public jo.celeris.core.language.LanguageConfiguration$Folding folding();
+  public jo.celeris.core.language.LanguageConfiguration$IndentRules indentRules();
+  public int indentSize();
+  public boolean tabIndent();
+}
+
+### jo.celeris.core.language.LanguageContributor$Contribution
+Compiled from "LanguageContributor.java"
+public interface jo.celeris.core.language.LanguageContributor$Contribution {
+  public abstract <T extends jo.celeris.core.language.LanguageCapability> void capability(java.lang.String, java.lang.Class<T>, T);
+  public abstract <T extends jo.celeris.core.language.LanguageCapability> T declared(java.lang.String, java.lang.Class<T>);
+}
+
+### jo.celeris.core.language.LanguageContributor
+Compiled from "LanguageContributor.java"
+public interface jo.celeris.core.language.LanguageContributor {
+  public abstract void contribute(jo.celeris.core.language.LanguageContributor$Contribution);
+}
+
+### jo.celeris.core.language.LanguageDescriptor
+Compiled from "LanguageDescriptor.java"
+public final class jo.celeris.core.language.LanguageDescriptor extends java.lang.Record {
+  public jo.celeris.core.language.LanguageDescriptor(java.lang.String, java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.lang.String, java.util.List<java.lang.String>, java.lang.String, java.lang.String, java.lang.String, int);
+  public static jo.celeris.core.language.LanguageDescriptor of(java.lang.String, java.lang.String, java.util.List<java.lang.String>);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String id();
   public java.lang.String displayName();
+  public java.util.List<java.lang.String> aliases();
   public java.util.List<java.lang.String> extensions();
+  public java.util.List<java.lang.String> filenames();
+  public java.util.List<java.lang.String> filenamePatterns();
+  public java.lang.String firstLine();
+  public java.util.List<java.lang.String> mimeTypes();
+  public java.lang.String parentId();
+  public java.lang.String contentHint();
+  public java.lang.String badge();
+  public int badgeColor();
+}
+
+### jo.celeris.core.language.LanguageDetection$Ambiguous
+Compiled from "LanguageDetection.java"
+public final class jo.celeris.core.language.LanguageDetection$Ambiguous extends java.lang.Record implements jo.celeris.core.language.LanguageDetection {
+  public jo.celeris.core.language.LanguageDetection$Ambiguous(java.util.List<jo.celeris.core.language.LanguageSupport>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.language.LanguageSupport> candidates();
+}
+
+### jo.celeris.core.language.LanguageDetection$Resolved
+Compiled from "LanguageDetection.java"
+public final class jo.celeris.core.language.LanguageDetection$Resolved extends java.lang.Record implements jo.celeris.core.language.LanguageDetection {
+  public jo.celeris.core.language.LanguageDetection$Resolved(jo.celeris.core.language.LanguageSupport);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.language.LanguageSupport support();
+}
+
+### jo.celeris.core.language.LanguageDetection$Unresolved
+Compiled from "LanguageDetection.java"
+public final class jo.celeris.core.language.LanguageDetection$Unresolved extends java.lang.Record implements jo.celeris.core.language.LanguageDetection {
+  public jo.celeris.core.language.LanguageDetection$Unresolved();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+}
+
+### jo.celeris.core.language.LanguageDetection
+Compiled from "LanguageDetection.java"
+public interface jo.celeris.core.language.LanguageDetection {
+}
+
+### jo.celeris.core.language.LanguageInjection
+Compiled from "LanguageInjection.java"
+public final class jo.celeris.core.language.LanguageInjection extends java.lang.Record {
+  public jo.celeris.core.language.LanguageInjection(java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String scopeSelector();
+  public java.lang.String injectedLanguageId();
+}
+
+### jo.celeris.core.language.LanguagePack$SyntaxPreference
+Compiled from "LanguagePack.java"
+public final class jo.celeris.core.language.LanguagePack$SyntaxPreference extends java.lang.Record {
+  public jo.celeris.core.language.LanguagePack$SyntaxPreference(java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String preferred();
+  public java.lang.String fallback();
+}
+
+### jo.celeris.core.language.LanguagePack
+Compiled from "LanguagePack.java"
+public final class jo.celeris.core.language.LanguagePack extends java.lang.Record {
+  public jo.celeris.core.language.LanguagePack(jo.celeris.core.language.PackManifest, jo.celeris.core.language.LanguageDescriptor, jo.celeris.core.language.LanguageConfiguration, jo.celeris.core.syntax.LanguageSyntax, java.lang.String, java.util.List<jo.celeris.core.language.PackSnippet>, java.util.List<jo.celeris.core.language.LanguageInjection>, jo.celeris.core.language.LanguagePack$SyntaxPreference, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.language.PackManifest manifest();
+  public jo.celeris.core.language.LanguageDescriptor descriptor();
+  public jo.celeris.core.language.LanguageConfiguration configuration();
+  public jo.celeris.core.syntax.LanguageSyntax grammar();
+  public java.lang.String grammarJson();
+  public java.util.List<jo.celeris.core.language.PackSnippet> snippets();
+  public java.util.List<jo.celeris.core.language.LanguageInjection> injections();
+  public jo.celeris.core.language.LanguagePack$SyntaxPreference syntaxPreference();
+  public java.lang.String fingerprint();
+}
+
+### jo.celeris.core.language.LanguagePlatform$ContributionCollector
+Compiled from "LanguagePlatform.java"
+final class jo.celeris.core.language.LanguagePlatform$ContributionCollector implements jo.celeris.core.language.LanguageContributor$Contribution {
+  public <T extends jo.celeris.core.language.LanguageCapability> void capability(java.lang.String, java.lang.Class<T>, T);
+  public <T extends jo.celeris.core.language.LanguageCapability> T declared(java.lang.String, java.lang.Class<T>);
+}
+
+### jo.celeris.core.language.LanguagePlatform
+Compiled from "LanguagePlatform.java"
+public final class jo.celeris.core.language.LanguagePlatform {
+  public static jo.celeris.core.language.LanguagePlatform empty();
+  public static jo.celeris.core.language.LanguagePlatform with(jo.celeris.core.language.GrammarFactory);
+  public jo.celeris.core.language.LanguagePlatform addPackSource(jo.celeris.core.language.PackSource);
+  public jo.celeris.core.language.LanguagePlatform builtinPacks();
+  public jo.celeris.core.language.LanguagePlatform support(jo.celeris.core.language.LanguageSupport);
+  public jo.celeris.core.language.LanguagePlatform contributor(jo.celeris.core.language.LanguageContributor);
+  public <T extends jo.celeris.core.language.LanguageCapability> jo.celeris.core.language.LanguagePlatform generic(java.lang.Class<T>, T);
+  public jo.celeris.core.language.LanguagePlatform userChoice(java.lang.String, java.lang.String);
+  public jo.celeris.core.language.LanguageRegistry build();
+}
+
+### jo.celeris.core.language.LanguageRegistry$Builder
+Compiled from "LanguageRegistry.java"
+public final class jo.celeris.core.language.LanguageRegistry$Builder {
+  public jo.celeris.core.language.LanguageRegistry$Builder();
+  public jo.celeris.core.language.LanguageRegistry build();
+  public jo.celeris.core.language.LanguageRegistry$Builder support(jo.celeris.core.language.LanguageSupport);
+  public jo.celeris.core.language.LanguageRegistry$Builder supports(java.util.List<jo.celeris.core.language.LanguageSupport>);
+  public jo.celeris.core.language.LanguageRegistry$Builder userChoice(java.lang.String, java.lang.String);
+}
+
+### jo.celeris.core.language.LanguageRegistry$CompiledPattern
+Compiled from "LanguageRegistry.java"
+final class jo.celeris.core.language.LanguageRegistry$CompiledPattern extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.regex.Pattern pattern();
+  public boolean fullMatch();
+  public jo.celeris.core.language.LanguageSupport support();
 }
 
 ### jo.celeris.core.language.LanguageRegistry
 Compiled from "LanguageRegistry.java"
 public final class jo.celeris.core.language.LanguageRegistry {
-  public static jo.celeris.core.language.LanguageRegistry of(jo.celeris.core.language.Language...);
-  public jo.celeris.core.language.Language byFilename(java.lang.String);
+  public static jo.celeris.core.language.LanguageRegistry$Builder builder();
+  public java.util.List<jo.celeris.core.language.LanguageSupport> supports();
+  public jo.celeris.core.language.LanguageSupport byId(java.lang.String);
+  public jo.celeris.core.language.LanguageDetection detect(java.lang.String, java.lang.String, java.lang.String);
+  public jo.celeris.core.language.LanguageSupport byFilename(java.lang.String);
+}
+
+### jo.celeris.core.language.LanguageSupport$Builder
+Compiled from "LanguageSupport.java"
+public final class jo.celeris.core.language.LanguageSupport$Builder {
+  public jo.celeris.core.language.LanguageSupport$Builder configuration(jo.celeris.core.language.LanguageConfiguration);
+  public jo.celeris.core.language.LanguageSupport$Builder syntax(jo.celeris.core.syntax.LanguageSyntax);
+  public <T extends jo.celeris.core.language.LanguageCapability> jo.celeris.core.language.LanguageSupport$Builder capability(java.lang.Class<T>, T);
+  public jo.celeris.core.language.LanguageSupport$Builder capabilities(java.util.Map<java.lang.Class<? extends jo.celeris.core.language.LanguageCapability>, jo.celeris.core.language.LanguageCapability>);
+  public jo.celeris.core.language.LanguageSupport$Builder injections(java.util.List<jo.celeris.core.language.LanguageInjection>);
+  public jo.celeris.core.language.LanguageSupport$Builder parent(jo.celeris.core.language.LanguageSupport);
+  public jo.celeris.core.language.LanguageSupport build();
+}
+
+### jo.celeris.core.language.LanguageSupport
+Compiled from "LanguageSupport.java"
+public final class jo.celeris.core.language.LanguageSupport {
+  public static jo.celeris.core.language.LanguageSupport$Builder builder(jo.celeris.core.language.LanguageDescriptor);
+  public static jo.celeris.core.language.LanguageSupport of(jo.celeris.core.syntax.LanguageSyntax);
+  public jo.celeris.core.language.LanguageDescriptor descriptor();
+  public java.lang.String id();
+  public java.lang.String displayName();
+  public jo.celeris.core.language.LanguageConfiguration configuration();
+  public jo.celeris.core.syntax.LanguageSyntax syntax();
+  public java.util.List<jo.celeris.core.language.LanguageInjection> injections();
+  public jo.celeris.core.language.LanguageSupport parent();
+  public <T extends jo.celeris.core.language.LanguageCapability> T capability(java.lang.Class<T>);
+}
+
+### jo.celeris.core.language.PackLoader
+Compiled from "PackLoader.java"
+public final class jo.celeris.core.language.PackLoader {
+  public static jo.celeris.core.language.PackLoader create();
+  public static jo.celeris.core.language.PackLoader with(jo.celeris.core.language.GrammarFactory);
+  public jo.celeris.core.language.LanguagePack load(jo.celeris.core.language.PackSource$PackFiles) throws java.io.IOException;
+  public jo.celeris.core.language.LanguagePack cached(java.lang.String);
+}
+
+### jo.celeris.core.language.PackManifest
+Compiled from "PackManifest.java"
+public final class jo.celeris.core.language.PackManifest extends java.lang.Record {
+  public static final int CURRENT_SCHEMA_VERSION;
+  public jo.celeris.core.language.PackManifest(java.lang.String, java.lang.String, int, java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String id();
+  public java.lang.String version();
+  public int schemaVersion();
+  public java.lang.String license();
+  public java.lang.String provenance();
+}
+
+### jo.celeris.core.language.PackParser
+Compiled from "PackParser.java"
+final class jo.celeris.core.language.PackParser {
+}
+
+### jo.celeris.core.language.PackSnippet
+Compiled from "PackSnippet.java"
+public final class jo.celeris.core.language.PackSnippet extends java.lang.Record {
+  public jo.celeris.core.language.PackSnippet(java.lang.String, java.lang.String, java.util.List<java.lang.String>, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String name();
+  public java.lang.String prefix();
+  public java.util.List<java.lang.String> body();
+  public java.lang.String description();
+}
+
+### jo.celeris.core.language.PackSource$PackFiles
+Compiled from "PackSource.java"
+public interface jo.celeris.core.language.PackSource$PackFiles {
+  public abstract java.lang.String name();
+  public abstract boolean has(java.lang.String);
+  public abstract byte[] read(java.lang.String) throws java.io.IOException;
+}
+
+### jo.celeris.core.language.PackSource
+Compiled from "PackSource.java"
+public interface jo.celeris.core.language.PackSource {
+  public abstract java.util.List<jo.celeris.core.language.PackSource$PackFiles> packs() throws java.io.IOException;
+}
+
+### jo.celeris.core.language.Packs$ArchivePacks$ArchivePack
+Compiled from "Packs.java"
+final class jo.celeris.core.language.Packs$ArchivePacks$ArchivePack extends java.lang.Record implements jo.celeris.core.language.PackSource$PackFiles {
+  public boolean has(java.lang.String);
+  public byte[] read(java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String name();
+  public java.util.Map<java.lang.String, byte[]> entries();
+}
+
+### jo.celeris.core.language.Packs$ArchivePacks
+Compiled from "Packs.java"
+final class jo.celeris.core.language.Packs$ArchivePacks implements jo.celeris.core.language.PackSource {
+  public java.util.List<jo.celeris.core.language.PackSource$PackFiles> packs() throws java.io.IOException;
+}
+
+### jo.celeris.core.language.Packs$ClasspathPacks$ClasspathPack
+Compiled from "Packs.java"
+final class jo.celeris.core.language.Packs$ClasspathPacks$ClasspathPack implements jo.celeris.core.language.PackSource$PackFiles {
+  public java.lang.String name();
+  public boolean has(java.lang.String);
+  public byte[] read(java.lang.String);
+}
+
+### jo.celeris.core.language.Packs$ClasspathPacks
+Compiled from "Packs.java"
+final class jo.celeris.core.language.Packs$ClasspathPacks implements jo.celeris.core.language.PackSource {
+  public java.util.List<jo.celeris.core.language.PackSource$PackFiles> packs();
+}
+
+### jo.celeris.core.language.Packs$FolderPacks$FolderPack
+Compiled from "Packs.java"
+final class jo.celeris.core.language.Packs$FolderPacks$FolderPack extends java.lang.Record implements jo.celeris.core.language.PackSource$PackFiles {
+  public java.lang.String name();
+  public boolean has(java.lang.String);
+  public byte[] read(java.lang.String) throws java.io.IOException;
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.nio.file.Path folder();
+}
+
+### jo.celeris.core.language.Packs$FolderPacks
+Compiled from "Packs.java"
+final class jo.celeris.core.language.Packs$FolderPacks implements jo.celeris.core.language.PackSource {
+  public java.util.List<jo.celeris.core.language.PackSource$PackFiles> packs() throws java.io.IOException;
+}
+
+### jo.celeris.core.language.Packs
+Compiled from "Packs.java"
+public final class jo.celeris.core.language.Packs {
+  public static jo.celeris.core.language.PackSource classpath(java.lang.String);
+  public static jo.celeris.core.language.PackSource folder(java.nio.file.Path);
+  public static jo.celeris.core.language.PackSource archive(java.nio.file.Path);
+}
+
+### jo.celeris.core.language.WrittenLanguages
+Compiled from "WrittenLanguages.java"
+public final class jo.celeris.core.language.WrittenLanguages {
+  public static jo.celeris.core.syntax.LanguageSyntax syntaxOf(java.lang.String);
+  public static java.util.Set<java.lang.String> ids();
 }
 
 ### jo.celeris.core.language.package-info

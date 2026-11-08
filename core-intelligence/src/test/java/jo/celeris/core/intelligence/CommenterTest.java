@@ -6,7 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
+
 import org.junit.jupiter.api.Test;
+
+import jo.celeris.core.language.LanguageConfiguration;
 
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
@@ -21,12 +25,33 @@ import jo.celeris.core.text.SelRange;
  */
 class CommenterTest {
 
+    /** La configuration d'un langage au commentaire de ligne et de bloc. */
+    private static LanguageConfiguration configuration(
+            @Nullable String ligne, @Nullable String blocDebut,
+            @Nullable String blocFin) {
+        return new LanguageConfiguration(
+                new LanguageConfiguration.Comments(ligne, blocDebut, blocFin),
+                java.util.List.of(), java.util.List.of(), java.util.List.of(),
+                null, new LanguageConfiguration.Folding(false, false, null, null),
+                new LanguageConfiguration.IndentRules(null, null, null, null),
+                4, false);
+    }
+
+    private static final LanguageConfiguration JAVA =
+            configuration("// ", "/* ", " */");
+    private static final LanguageConfiguration XML =
+            configuration(null, "<!--", "-->");
+    private static final LanguageConfiguration JSON =
+            configuration(null, null, null);
+    private static final LanguageConfiguration PYTHON =
+            configuration("# ", null, null);
+
     /** Commenter une ligne Java : le préfixe s'insère en tête de ligne. */
     @Test
     void commenterUneLigneJava() {
         Document doc = Document.of("int a;\nint b;");
         Optional<EditPlan> plan = Commenter.toggle(doc,
-                MultiSelection.of(new SelRange(0, 6)), CommentRules.parLangage("java"));
+                MultiSelection.of(new SelRange(0, 6)), CommentRules.of(JAVA));
         assertTrue(plan.isPresent());
         EditPlan geste = plan.get();
         assertEquals(1, geste.transaction().edits().size());
@@ -41,7 +66,7 @@ class CommenterTest {
         Document doc = Document.of("// int a;\n// int b;");
         // la sélection couvre les deux lignes ([0,15) touche les lignes 0 et 1)
         Optional<EditPlan> plan = Commenter.toggle(doc,
-                MultiSelection.of(new SelRange(0, 15)), CommentRules.parLangage("java"));
+                MultiSelection.of(new SelRange(0, 15)), CommentRules.of(JAVA));
         assertTrue(plan.isPresent());
         assertEquals(2, plan.get().transaction().edits().size());
         assertEquals("// ", plan.get().transaction().edits().get(0).removed());
@@ -55,7 +80,7 @@ class CommenterTest {
     void basculementMixteCommenteTout() {
         Document doc = Document.of("int a;\n// int b;");
         Optional<EditPlan> plan = Commenter.toggle(doc,
-                MultiSelection.of(new SelRange(0, 15)), CommentRules.parLangage("java"));
+                MultiSelection.of(new SelRange(0, 15)), CommentRules.of(JAVA));
         assertTrue(plan.isPresent());
         assertEquals(2, plan.get().transaction().edits().size());
         assertEquals("// ", plan.get().transaction().edits().get(0).inserted());
@@ -68,7 +93,7 @@ class CommenterTest {
         Document doc = Document.of("<a>\n  <b/>\n</a>");
         // sélection sur «   <b/> » (offsets 4..10)
         Optional<EditPlan> plan = Commenter.toggle(doc,
-                MultiSelection.of(new SelRange(4, 10)), CommentRules.parLangage("xml"));
+                MultiSelection.of(new SelRange(4, 10)), CommentRules.of(XML));
         assertTrue(plan.isPresent());
         EditPlan geste = plan.get();
         assertEquals("  <b/>", geste.transaction().edits().get(0).removed());
@@ -84,7 +109,7 @@ class CommenterTest {
     void xmlRetireLeBlocAuSecondBasculement() {
         Document doc = Document.of("<!--  <b/>-->");
         Optional<EditPlan> plan = Commenter.toggle(doc,
-                MultiSelection.of(new SelRange(0, 13)), CommentRules.parLangage("xml"));
+                MultiSelection.of(new SelRange(0, 13)), CommentRules.of(XML));
         assertTrue(plan.isPresent());
         assertEquals("<!--  <b/>-->", plan.get().transaction().edits().get(0).removed());
         assertEquals("  <b/>", plan.get().transaction().edits().get(0).inserted());
@@ -93,10 +118,10 @@ class CommenterTest {
     /** JSON n'a pas de commentaire : l'action est masquée (A-11). */
     @Test
     void jsonNaPasDeCommentaire() {
-        assertFalse(CommentRules.parLangage("json").commentable());
+        assertFalse(CommentRules.of(JSON).commentable());
         Document doc = Document.of("{\"a\": 1}");
         Optional<EditPlan> plan = Commenter.toggle(doc,
-                MultiSelection.of(new SelRange(0, 8)), CommentRules.parLangage("json"));
+                MultiSelection.of(new SelRange(0, 8)), CommentRules.of(JSON));
         assertFalse(plan.isPresent());
     }
 
@@ -105,15 +130,15 @@ class CommenterTest {
     void pythonCommenteAuDiese() {
         Document doc = Document.of("print(1)");
         Optional<EditPlan> plan = Commenter.toggle(doc,
-                MultiSelection.of(new SelRange(0, 8)), CommentRules.parLangage("python"));
+                MultiSelection.of(new SelRange(0, 8)), CommentRules.of(PYTHON));
         assertTrue(plan.isPresent());
         assertEquals("# ", plan.get().transaction().edits().get(0).inserted());
     }
 
-    /** Les langages inconnus masquent l'action plutôt que de deviner. */
+    /** La configuration vide masque l'action plutôt que de deviner. */
     @Test
-    void langageInconnuMasque() {
-        assertFalse(CommentRules.parLangage("zzz-inconnu").commentable());
+    void configurationSansCommentaireMasque() {
+        assertFalse(CommentRules.of(LanguageConfiguration.EMPTY).commentable());
     }
 
     /** La ligne vide ne bloque pas le commentaire du bloc. */
@@ -121,7 +146,7 @@ class CommenterTest {
     void laLigneVideNeComptePas() {
         Document doc = Document.of("\n// a");
         Optional<EditPlan> plan = Commenter.toggle(doc,
-                MultiSelection.of(new SelRange(0, 5)), CommentRules.parLangage("java"));
+                MultiSelection.of(new SelRange(0, 5)), CommentRules.of(JAVA));
         assertTrue(plan.isPresent());
         // la ligne vide n'est pas commentée, la commentée est décommentée
         assertEquals(1, plan.get().transaction().edits().size());

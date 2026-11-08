@@ -64,11 +64,28 @@ tasks.register<Exec>("policyDependencyProvenanceSelfTest") {
     commandLine("python3", "scripts/test-check-dependency-provenance")
 }
 
+// Enregistrement des langages (M7.6, étape 4) : aucun littéral
+// d'identifiant de langage hors des paquets et du code
+// d'enregistrement — ajouter un langage ne demande que des données.
+tasks.register<Exec>("policyLanguageRegistrationCheck") {
+    group = "verification"
+    description = "Enregistrement des langages (scripts/check-language-registration)."
+    commandLine("python3", "scripts/check-language-registration")
+}
+
+// Auto-test du contrôle d'enregistrement (M7.6).
+tasks.register<Exec>("policyLanguageRegistrationSelfTest") {
+    group = "verification"
+    description = "Tests du contrôle d'enregistrement (scripts/test-check-language-registration)."
+    commandLine("python3", "scripts/test-check-language-registration")
+}
+
 tasks.register("policyCheck") {
     group = "verification"
-    description = "Contrôles de politique (langue, références interdites, provenance, rempart, matrice, pièges, démo, dates)."
+    description = "Contrôles de politique (langue, références interdites, provenance, enregistrement des langages, rempart, matrice, pièges, démo, dates)."
     dependsOn("policyLanguageCheck", "policyForbiddenRefsCheck", "policyForbiddenRefsSelfTest",
-            "policyDependencyProvenanceCheck", "policyDependencyProvenanceSelfTest")
+            "policyDependencyProvenanceCheck", "policyDependencyProvenanceSelfTest",
+            "policyLanguageRegistrationCheck", "policyLanguageRegistrationSelfTest")
 }
 
 // Rempart de langue (M7.5, §11) : la ligne de base des identifiants
