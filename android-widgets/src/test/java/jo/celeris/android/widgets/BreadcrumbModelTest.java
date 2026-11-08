@@ -81,4 +81,56 @@ class BreadcrumbModelTest {
                 List.of("a", "b", "c"), 100, mesureur);
         assertEquals(List.of("a", "b", "c"), tronque);
     }
+
+    /**
+     * PIEGE-09 — la coupe dichotomique conserve le MAXIMUM de texte
+     * utile : quand même le dernier niveau seul déborde, le préfixe
+     * gardé est le plus long qui tient — jamais deux caractères de
+     * trop.
+     */
+    @Test
+    void ellipsisKeepsMaximumUsefulText() {
+        // mesureur à chasse fixe : dix unités par caractère, l'ellipse
+        // en vaut une
+        ToIntFunction<String> mesureur = s -> s.length() * 10;
+        // « … › abcdefghijklmnopqrstuvwxyz » (26 lettres) : 10 + 3 + 260
+        // = 273 ; la cible 163 laisse 150 au niveau — quinze lettres
+        // exactement, pas treize, pas quatorze
+        List<String> tronque = BreadcrumbModel.tronque(
+                List.of("abcdefghijklmnopqrstuvwxyz"), 163, mesureur);
+        assertEquals(2, tronque.size());
+        assertEquals("…", tronque.get(0));
+        assertEquals("abcdefghijklmno", tronque.get(1),
+                "la coupe garde le maximum de texte utile (PIEGE-09)");
+        // quinze lettres : 150 unités tiennent, seize (160) débordent
+        assertEquals(150, tronque.get(1).length() * 10);
+    }
+
+    /**
+     * PIEGE-10 — l'ellipse se calcule par LARGEUR RENDUE, jamais par
+     * nombre de caractères : le mesureur décide seul, les lettres
+     * larges coupent plus tôt que les étroites.
+     */
+    @Test
+    void ellipsisClipsByPixelWidth_notByCharCount() {
+        // mesureur à chasse variable : « W » vaut dix unités, le reste
+        // deux — un compte de caractères couperait au mauvais endroit
+        ToIntFunction<String> mesureur = s -> {
+            int total = 0;
+            for (int i = 0; i < s.length(); i++) {
+                total += s.charAt(i) == 'W' ? 10 : 2;
+            }
+            return total;
+        };
+        // « … › WWWWiiii » : la cible 35 laisse 22 au niveau ; par la
+        // largeur rendue, « WW » (20) tient, « WWW » (30) déborde — un
+        // compte de caractères aurait gardé « WWWWii » (26 unités,
+        // débord) ou coupé au hasard
+        List<String> tronque = BreadcrumbModel.tronque(
+                List.of("WWWWiiii"), 35, mesureur);
+        assertEquals(List.of("…", "WW"), tronque,
+                "la coupe se décide à la largeur rendue (PIEGE-10)");
+        // le maximum utile tient : un caractère de plus déborde
+        assertEquals(20, mesureur.applyAsInt(tronque.get(1)));
+    }
 }

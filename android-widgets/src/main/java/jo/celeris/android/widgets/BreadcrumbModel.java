@@ -53,6 +53,13 @@ public final class BreadcrumbModel {
      * restent, la tête élaguée est signalée par l'ellipse — qui compte
      * dans la largeur. Quand tout tient, rien ne tombe.
      *
+     * <p>Quand même le dernier niveau seul déborde, la coupe
+     * DICHOTOMIQUE du niveau garde le maximum de texte utile
+     * (PIEGE-09 : jamais deux caractères de trop), par LARGEUR RENDUE
+     * (PIEGE-10 : jamais par nombre de caractères) : la moitié
+     * supérieure se garde tant qu'elle tient, la largeur rendue
+     * décide seule.</p>
+     *
      * @param niveaux les noms des niveaux, de la plus externe à la plus interne
      * @param largeur la largeur disponible
      * @param mesure  le mesureur de largeur d'un nom (le peintre fournit le sien)
@@ -73,7 +80,36 @@ public final class BreadcrumbModel {
                 return List.copyOf(avecEllipse);
             }
         }
-        return List.of(ELLIPSE, niveaux.get(niveaux.size() - 1));
+        // même le dernier niveau seul déborde : la coupe dichotomique
+        // du niveau, par largeur rendue (PIEGE-09, PIEGE-10)
+        String dernier = niveaux.get(niveaux.size() - 1);
+        int cible = largeur - mesure.applyAsInt(ELLIPSE) - SEPARATEUR.length();
+        return List.of(ELLIPSE, coupeAuPlusLong(dernier, cible, mesure));
+    }
+
+    /**
+     * La coupe dichotomique : le plus long préfixe qui tient dans la
+     * cible, par largeur rendue — la moitié haute se garde tant qu'elle
+     * tient, la décision n'appartient qu'à la mesure (PIEGE-10), le
+     * maximum de texte utile survit (PIEGE-09). Un substitut coupé ne
+     * survit jamais.
+     */
+    private static String coupeAuPlusLong(String texte, int cible,
+            ToIntFunction<String> mesure) {
+        int bas = 0;
+        int haut = texte.length();
+        while (bas < haut) {
+            int milieu = (bas + haut + 1) / 2;
+            if (mesure.applyAsInt(texte.substring(0, milieu)) <= cible) {
+                bas = milieu;
+            } else {
+                haut = milieu - 1;
+            }
+        }
+        while (bas > 0 && Character.isHighSurrogate(texte.charAt(bas - 1))) {
+            bas--;
+        }
+        return texte.substring(0, bas);
     }
 
     private static int largeur(List<String> niveaux, ToIntFunction<String> mesure) {
