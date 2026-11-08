@@ -30,8 +30,6 @@ import jo.celeris.android.host.spi.EtatLignesVcs;
 import jo.celeris.android.host.spi.FauxDebogueur;
 import jo.celeris.android.host.spi.LigneArret;
 import jo.celeris.android.view.ClasseLargeur;
-import jo.celeris.android.view.EditorTheme;
-import jo.celeris.android.view.EditorThemes;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.FontSpec;
 import jo.celeris.android.view.MarquesIntegration;
@@ -61,7 +59,6 @@ public final class EditorActivity extends AppCompatActivity {
     /** La clé de l'intention : le nom du fichier d'exemple à ouvrir. */
     public static final String EXTRA_FICHIER = "fichier";
 
-    private static final String CLE_THEME = "theme.index";
     private static final String CLE_NUMEROS = "gouttiere.numeros";
     private static final String CLE_RETOUR = "retour.souple";
     private static final String CLE_TAILLE = "police.taille";
@@ -69,8 +66,6 @@ public final class EditorActivity extends AppCompatActivity {
     private static final float TAILLE_MIN = 8f;
     private static final float TAILLE_MAX = 40f;
     private static final float PAS_TAILLE = 2f;
-    private static final EditorTheme[] THEMES = {
-            EditorThemes.CLAIR, EditorThemes.SOMBRE, EditorThemes.CONTRASTE_ELEVE };
     private static final float PART_PLAN = 0.45f;
 
     private EditorView editeur;
@@ -95,9 +90,10 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierSelection atelierSelection;
     /** La session de langage — serveur de référence en processus (M7.5, §8). */
     private ServeurLangage serveurLangage;
-    /** La surimpression de diagnostic (M7.5, §9) — la ligne de vérité
-     *  du rendu sur la scène. */
-    private DiagnosticOverlay surimpression;
+    /** Les réglages de scène (M7.5, §9) : retenue et surimpression. */
+    private SceneReglages sceneReglages;
+    /** La bascule de thème (D-13) — rotation, persistance, libellé. */
+    private BasculeTheme basculeTheme;
     private List<OutlineEntry> entreesPlan = List.of();
     private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
 
@@ -142,8 +138,8 @@ public final class EditorActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         // La boucle de la surimpression se repose en coulisses.
-        if (surimpression != null) {
-            surimpression.arreter();
+        if (sceneReglages != null) {
+            sceneReglages.reposer();
         }
     }
 
@@ -189,7 +185,7 @@ public final class EditorActivity extends AppCompatActivity {
         actionsMenu.put(R.id.action_agent, atelierAgent::ouvrir);
         actionsMenu.put(R.id.action_ia_fantome, () -> atelierIA.demanderFantome());
         actionsMenu.put(R.id.action_ia_prediction, () -> atelierIA.demanderPrediction());
-        actionsMenu.put(R.id.action_theme, this::tournerTheme);
+        actionsMenu.put(R.id.action_theme, basculeTheme::tourner);
         actionsMenu.put(R.id.action_diminuer, () -> zoomerPolice(-PAS_TAILLE));
         actionsMenu.put(R.id.action_agrandir, () -> zoomerPolice(PAS_TAILLE));
         actionsMenu.put(R.id.action_reglages,
@@ -209,6 +205,10 @@ public final class EditorActivity extends AppCompatActivity {
         editeur = findViewById(R.id.editeur);
         // Le contenu du fichier ouvert doit vivre dans l'éditeur.
         editeur.setSession(session);
+        // M7.5, §9 — les réglages de scène se posent d'entrée.
+        sceneReglages = new SceneReglages(editeur,
+                findViewById(R.id.surimpression));
+        basculeTheme = new BasculeTheme(this, editeur, prefs);
         // L'intelligence de la démonstration se pose sur la vue (M7.5,
         // §8) : frappe intelligente, Entrée indentée, collage réindenté,
         // complétion par les mots du code.
@@ -296,61 +296,20 @@ public final class EditorActivity extends AppCompatActivity {
     }
 
     private void appliquerPreferences() {
-        int indexTheme = indexThemeCourant();
-        editeur.setTheme(THEMES[indexTheme]);
+        basculeTheme.appliquer();
         editeur.setNumerosVisibles(prefs.getBoolean(CLE_NUMEROS, true));
         editeur.setSoftWrap(prefs.getBoolean(CLE_RETOUR, false));
         editeur.setFont(new FontSpec("mono",
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)));
-        // M7.5, §9 — le réglage de lenteur livré : la retenue d'analyse
-        // se relit à chaque retour des réglages, à chaud.
-        editeur.setRetenueAnalyseMs(prefs.getLong(
-                SettingsActivity.CLE_RETENU,
-                EditorView.DELAI_RETENU_PAR_DEFAUT_MS));
-        // M7.5, §9 — la surimpression de diagnostic, sur demande.
-        TextView ligne = findViewById(R.id.surimpression);
-        boolean montrer = prefs.getBoolean(SettingsActivity.CLE_SURIMPRESSION,
-                false);
-        ligne.setVisibility(montrer ? View.VISIBLE : View.GONE);
-        if (surimpression == null) {
-            surimpression = new DiagnosticOverlay(editeur, ligne);
-        }
-        if (montrer) {
-            surimpression.demarrer();
-        } else {
-            surimpression.arreter();
-        }
+        // M7.5, §9 — la retenue d'analyse et la surimpression de
+        // diagnostic, depuis les préférences.
+        sceneReglages.appliquer(prefs);
         LanguageSyntax langue = FichiersExemple.languePour(nomFichier);
         editeur.setLanguage(langue);
         etiquetteLangue.setText(langue == null ? nomFichier : langue.id());
-        majTitreTheme();
+        basculeTheme.majTitre();
         majTitreRetourLigne();
         majPosition();
-    }
-
-    private int indexThemeCourant() {
-        return Math.min(Math.max(prefs.getInt(CLE_THEME, 0), 0), THEMES.length - 1);
-    }
-
-    private void tournerTheme() {
-        int suivant = (indexThemeCourant() + 1) % THEMES.length;
-        prefs.edit().putInt(CLE_THEME, suivant).apply();
-        editeur.setTheme(THEMES[suivant]);
-        majTitreTheme();
-    }
-
-    private void majTitreTheme() {
-        MaterialToolbar barre = findViewById(R.id.barre_editeur);
-        barre.getMenu().findItem(R.id.action_theme)
-                .setTitle(getString(R.string.choix_theme, nomTheme()));
-    }
-
-    private String nomTheme() {
-        return getString(switch (indexThemeCourant()) {
-            case 1 -> R.string.theme_sombre;
-            case 2 -> R.string.theme_contraste;
-            default -> R.string.theme_clair;
-        });
     }
 
     private void zoomerPolice(float pas) {
