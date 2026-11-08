@@ -9,28 +9,44 @@ import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 
 /**
- * Le routage tactile de l'éditeur (M7.5, redressement) : le simple
- * appui pose le curseur et ouvre le clavier, l'APPUI LONG sélectionne
- * le mot sous le doigt et retire le clavier — le dragage qui suit
- * étend la sélection, ancre figée à l'armement (PIEGE-03), le mot de
- * départ toujours englobé. La pilule « ajouter un curseur » (A-01)
- * s'offre au-dessus du mot sélectionné : l'appui dessus ajoute le
- * curseur, l'appui ailleurs la congédie. Le panoramique à deux doigts
- * défile, l'appui sur une poignée la tire — la vue route, ce
- * collaborateur décide.
+ * Le routage tactile de l'éditeur (redressement du propriétaire) : le
+ * DOIGT POSÉ n'arme ni clavier ni curseur — le geste décide. Le
+ * mouvement au-delà du seuil de tap devient un DÉFILEMENT (les deux
+ * axes, un doigt) ; le relâchement SANS mouvement est un TAP, lui seul
+ * pose le curseur et ouvre le clavier ; l'APPUI LONG sélectionne le
+ * mot sous le doigt et retire le clavier — le dragage qui suit étend
+ * la sélection, ancre figée à l'armement (PIEGE-03). La pilule
+ * « ajouter un curseur » (A-01) s'offre au-dessus du mot sélectionné :
+ * le tap dessus ajoute le curseur, le tap ailleurs la congédie. Le
+ * panoramique à deux doigts défile, l'appui sur une poignée la tire —
+ * la vue route, ce collaborateur décide.
  *
  * <p>Vue-collaborateur par délégation (même famille qu'
- * {@link AccessibilityHost}) : l'état de geste — dernier point, mode
- * panoramique, poignée tirée, armement long — vit ici, la vue reste la
- * racine de composition et le clavier et le curseur passent par
- * {@link CurseurClavier}.</p>
+ * {@link AccessibilityHost}) : l'état de geste — dernier point, point
+ * de départ, mode panoramique, défilement engagé, poignée tirée,
+ * armement long — vit ici, la vue reste la racine de composition et le
+ * clavier et le curseur passent par {@link CurseurClavier}.</p>
  */
 final class TouchesEditeur {
+
+    /**
+     * Le seuil de tap, en pixels : le geste qui s'éloigne du point de
+     * départ au-delà de cette distance n'est plus un tap — c'est un
+     * défilement (la discipline du dépôt de départ, 24 px).
+     */
+    private static final float SEUIL_TAP_PX = 24f;
 
     private final EditorView vue;
 
     private float dernierX;
     private float dernierY;
+    /** Le point de départ du geste — la décision tap/défilement s'y lit. */
+    private float departX;
+    private float departY;
+    /** Le DOWN de CE geste nous est arrivé — le fantôme l'engloutit sinon. */
+    private boolean doigtPose;
+    /** Le geste a dépassé le seuil : c'est un défilement, jamais un tap. */
+    private boolean defilement;
     private boolean panoramique;
     private SelectionHandles.HandleId poigneeTiree =
             SelectionHandles.HandleId.NONE;
@@ -58,57 +74,28 @@ final class TouchesEditeur {
     }
 
     /**
-     * L'appui d'un doigt : focus et clavier, puis pilule armée
-     * (l'appui dessus ajoute le curseur, ailleurs elle se congedie),
-     * poignée visée, chevron de pli, champ de numéros — ou pose du
-     * curseur. Le simple appui ne sélectionne PAS : seul l'appui long
-     * arme la sélection (M7.5, redressement).
+     * Le doigt se pose : RIEN ne s'arme — ni clavier, ni curseur (le
+     * geste n'a pas encore parlé). Seule la poignée visée se retient :
+     * son tirage commence au doigt posé, pas au relâchement. La pilule,
+     * les plis, les marques et la pose du curseur se résolvent au TAP
+     * ({@link #surRelachement}) — le doigt posé qui glisse déféfile,
+     * jamais il ne déclenche l'IME. Un geste précédent non conclu se
+     * referme ici : l'armement long ne survit jamais à un nouvel appui.
      */
     boolean surAppui(MotionEvent event) {
-        vue.curseurClavier.surAppui();
-        dernierX = event.getX();
-        dernierY = event.getY();
-        panoramique = false;
         float x = event.getX();
         float y = event.getY();
-        if (vue.pilule.isArmed()) {
-            boolean surPilule = vue.pilule.contains(x, y);
-            vue.pilule.hide();
-            if (surPilule) {
-                vue.session.setSelection(
-                        ajouterCurseur(offsetAt(vue.pilule.x(), vue.pilule.y())));
-                vue.curseurClavier.annoncerSelection();
-            }
-            vue.invalidate();
-            if (surPilule) {
-                return true;
-            }
-        }
+        doigtPose = true;
+        defilement = false;
+        panoramique = false;
+        armeLong = false;
+        vue.glissement.up();
+        departX = dernierX = x;
+        departY = dernierY = y;
         SelectionHandles.HandleId poignee = poigneeVisee(x, y);
         if (poignee != SelectionHandles.HandleId.NONE) {
             poigneeTiree = poignee;
-            return true;
         }
-        float coulisse = vue.gouttiereEtat.coulisseCourante();
-        if (vue.syntaxe.basculerPliAuPoint(x, y, vue.scrollY,
-                vue.metrics.lineHeight(), coulisse, vue.projection)) {
-            vue.invalidate();
-            return true;
-        }
-        if (vue.marquesGouttiere.surAppuiRepere(x, y, coulisse,
-                vue.scrollY, vue.metrics.lineHeight(), vue.projection)) {
-            return true;
-        }
-        if (vue.marquesGouttiere.surAppui(x, y, vue.largeurGouttiere,
-                coulisse, vue.scrollY, vue.metrics.lineHeight(),
-                vue.projection)) {
-            return true;
-        }
-        int offset = offsetAt(x, y);
-        vue.session.setSelection(
-                MultiSelection.of(SelRange.caretAt(offset)));
-        vue.curseurClavier.annoncerSelection();
-        vue.invalidate();
         return true;
     }
 
@@ -116,8 +103,8 @@ final class TouchesEditeur {
      * L'appui long (M7.5, redressement) : le mot sous le doigt se
      * sélectionne, le clavier se retire — le dragage qui suit étend la
      * sélection au doigt, sans clavier. La pilule « ajouter un curseur »
-     * (A-01) s'offre au-dessus du mot : l'appui dessus ajoute le
-     * curseur, l'appui ailleurs la congédie.
+     * (A-01) s'offre au-dessus du mot : le tap dessus ajoute le
+     * curseur, le tap ailleurs la congédie.
      */
     void surAppuiLong(float x, float y) {
         int offset = offsetAt(x, y);
@@ -144,6 +131,7 @@ final class TouchesEditeur {
     boolean surDoigtPose(MotionEvent event) {
         if (event.getPointerCount() >= 2) {
             panoramique = true;
+            defilement = false;
             vue.glissement.up();
             dernierX = event.getX();
             dernierY = event.getY();
@@ -154,10 +142,12 @@ final class TouchesEditeur {
     /**
      * Le déplacement : pincement en cours se consomme, panoramique à
      * deux doigts défile, poignée tirée s'étire, dragage armé par
-     * l'appui long étend la sélection. L'ancre se choisit à la SORTIE
-     * du mot : le bord que le doigt quitte reste figé (PIEGE-03), le
-     * mot de départ reste englobé — tant que le doigt y vit, le mot
-     * reste sélectionné tel quel.
+     * l'appui long étend la sélection — et le glissement À UN DOIGT
+     * au-delà du seuil de tap devient un DÉFILEMENT (les deux axes) :
+     * le geste de lecture ne pose ni curseur ni clavier. L'ancre se
+     * choisit à la SORTIE du mot : le bord que le doigt quitte reste
+     * figé (PIEGE-03), le mot de départ reste englobé — tant que le
+     * doigt y vit, le mot reste sélectionné tel quel.
      */
     boolean surDeplacement(MotionEvent event) {
         if (vue.zoom.actif()) {
@@ -193,8 +183,58 @@ final class TouchesEditeur {
                     vue.glissement.dragTo(
                             offsetAt(event.getX(), event.getY()))));
             vue.invalidate();
+            return true;
+        }
+        return surDeplacementUnDoigt(event);
+    }
+
+    /** Le doigt levé : le panoramique s'arrête, le glissement lâche. */
+    boolean surDoigtLeve() {
+        panoramique = false;
+        vue.glissement.up();
+        return true;
+    }
+
+    /** Coupe le panoramique : le pincement engage prend la main (D-15). */
+    void couperPanoramique() {
+        panoramique = false;
+    }
+
+    /**
+     * Le déplacement à un doigt hors sélection : le seuil de tap
+     * dépassé, le geste devient un défilement — le contenu suit le
+     * doigt sur les DEUX axes, borné par la géométrie de défilement.
+     */
+    private boolean surDeplacementUnDoigt(MotionEvent event) {
+        if (!armeLong && !defilement && doigtPose
+                && distanceCarree(departX, departY, event) > SEUIL_TAP_PX
+                        * SEUIL_TAP_PX) {
+            defilement = true;
+            vue.pilule.hide();
+        }
+        if (defilement) {
+            float hauteurContenu =
+                    vue.projection.rowCount() * vue.metrics.lineHeight();
+            vue.scrollY = ScrollGeometry.clamp(
+                    vue.scrollY + dernierY - event.getY(),
+                    hauteurContenu, vue.getHeight());
+            vue.scrollX = ScrollGeometry.clamp(
+                    vue.scrollX + dernierX - event.getX(),
+                    ScrollGeometry.largeurContenu(vue.projection, vue.metrics),
+                    ScrollGeometry.largeurVisible(vue.getWidth(),
+                            vue.largeurGouttiere));
+            dernierX = event.getX();
+            dernierY = event.getY();
+            vue.invalidate();
         }
         return true;
+    }
+
+    /** La distance au carré du point de départ — la décision tap/défilement. */
+    private static float distanceCarree(float x, float y, MotionEvent event) {
+        float dx = event.getX() - x;
+        float dy = event.getY() - y;
+        return dx * dx + dy * dy;
     }
 
     /**
@@ -214,25 +254,74 @@ final class TouchesEditeur {
         }
     }
 
-    /** Le doigt levé : le panoramique s'arrête, le glissement lâche. */
-    boolean surDoigtLeve() {
-        panoramique = false;
-        vue.glissement.up();
-        return true;
-    }
-
-    /** Coupe le panoramique : le pincement engage prend la main (D-15). */
-    void couperPanoramique() {
-        panoramique = false;
-    }
-
-    /** Le relâchement : tout geste se conclut. */
-    boolean surRelachement() {
-        vue.glissement.up();
+    /**
+     * Le doigt levé : le geste se conclut. Le TAP — relâchement SANS
+     * mouvement d'un doigt posé hors poignée, hors appui long — résout
+     * la cascade (pilule, pli, marques, curseur et clavier) ; tout
+     * autre geste (défilement, panoramique, dragage, poignée) se
+     * conclut sans rien armer. L'annulation du geste (CANCEL) conclut
+     * sans résoudre : le geste n'a jamais eu lieu.
+     */
+    boolean surRelachement(MotionEvent event) {
+        boolean annulation = event.getActionMasked() == MotionEvent.ACTION_CANCEL;
+        boolean tap = !annulation && doigtPose && !defilement && !armeLong
+                && poigneeTiree == SelectionHandles.HandleId.NONE
+                && !panoramique
+                && distanceCarree(departX, departY, event)
+                        <= SEUIL_TAP_PX * SEUIL_TAP_PX;
+        doigtPose = false;
+        defilement = false;
         panoramique = false;
         armeLong = false;
         poigneeTiree = SelectionHandles.HandleId.NONE;
+        vue.glissement.up();
+        if (tap) {
+            resoudreTap(event.getX(), event.getY());
+        }
         return true;
+    }
+
+    /**
+     * La cascade du TAP (la discipline du dépôt de départ) : la pilule
+     * armée d'abord (l'appui dessus ajoute le curseur, ailleurs elle se
+     * congédie), le chevron de pli, la marque de gouttière et son
+     * repère — et la pose du curseur au point touché, qui seule ouvre
+     * le clavier.
+     */
+    private void resoudreTap(float x, float y) {
+        if (vue.pilule.isArmed()) {
+            boolean surPilule = vue.pilule.contains(x, y);
+            vue.pilule.hide();
+            if (surPilule) {
+                vue.session.setSelection(
+                        ajouterCurseur(offsetAt(vue.pilule.x(), vue.pilule.y())));
+                vue.curseurClavier.annoncerSelection();
+                vue.invalidate();
+                return;
+            }
+            vue.invalidate();
+        }
+        float coulisse = vue.gouttiereEtat.coulisseCourante();
+        if (vue.syntaxe.basculerPliAuPoint(x, y, vue.scrollY,
+                vue.metrics.lineHeight(), coulisse, vue.projection)) {
+            vue.invalidate();
+            return;
+        }
+        if (vue.marquesGouttiere.surAppuiRepere(x, y, coulisse,
+                vue.scrollY, vue.metrics.lineHeight(), vue.projection)) {
+            return;
+        }
+        if (vue.marquesGouttiere.surAppui(x, y, vue.largeurGouttiere,
+                coulisse, vue.scrollY, vue.metrics.lineHeight(),
+                vue.projection)) {
+            return;
+        }
+        int offset = offsetAt(x, y);
+        vue.session.setSelection(
+                MultiSelection.of(SelRange.caretAt(offset)));
+        vue.curseurClavier.annoncerSelection();
+        vue.curseurClavier.surAppui();
+        vue.invalidate();
     }
 
     /**
