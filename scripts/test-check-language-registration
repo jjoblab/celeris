@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Tests du contrôle d'enregistrement des langages (check-language-registration).
+
+Trois cas : un littéral d'identifiant hors des paquets et de
+l'enregistrement se refuse ; le même littéral dans un fichier
+d'enregistrement exonéré passe ; un code sans littéral passe. Les
+bancs bâtissent un faux dépôt (paquet + sources) et le contrôle y
+tourne par la racine d'environnement.
+
+Usage :  python3 scripts/test-check-language-registration
+"""
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+
+SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                      "check-language-registration")
+
+
+class FauxDepot:
+    """Un dépôt fictif : un paquet langage-essai, des sources Java."""
+
+    def __enter__(self):
+        self.dossier = tempfile.mkdtemp(prefix="celeris-enregistrement-")
+        paquet = os.path.join(self.dossier,
+                              "core-language/src/main/resources/langages/essai")
+        os.makedirs(paquet)
+        with open(os.path.join(paquet, "pack.json"), "w", encoding="utf-8") as fh:
+            json.dump({"id": "essai", "version": "1.0.0", "schemaVersion": 1,
+                       "license": "X", "provenance": "banc"}, fh)
+        return self.dossier
+
+    def __exit__(self, *args):
+        shutil.rmtree(self.dossier, ignore_errors=True)
+
+    def ecrire(self, chemin: str, contenu: str):
+        """Écrit une source du faux dépôt (chemin relatif au dépôt)."""
+        cible = os.path.join(self.dossier, chemin)
+        os.makedirs(os.path.dirname(cible), exist_ok=True)
+        with open(cible, "w", encoding="utf-8") as fh:
+            fh.write(contenu)
+
+
+def lancer(racine: str) -> subprocess.CompletedProcess:
+    """Exécute le contrôle contre la racine donnée."""
+    env = dict(os.environ)
+    env["CELERIS_REGISTRATION_ROOT"] = racine
+    return subprocess.run(
+        [sys.executable, SCRIPT],
+        capture_output=True, text=True, env=env, timeout=30,
+    )
+
+
+class ControleEnregistrementTest(unittest.TestCase):
+    """Les trois cas du contrôle, sur un faux dépôt."""
+
+    def setUp(self):
+        self.depot = FauxDepot()
+        self.racine = self.depot.__enter__()
+
+    def tearDown(self):
+        self.depot.__exit__()
+
+    def testLitteralHorsEnregistrementRefuse(self):
+        self.depot.ecrire(
+            "core-syntax/src/main/java/jo/celeris/core/syntax/Facade.java",
+            'package jo.celeris.core.syntax;\n'
+            'final class Facade { String id() { return "essai"; } }\n')
+        resultat = lancer(self.racine)
+        self.assertEqual(1, resultat.returncode,
+                         "le littéral hors enregistrement échoue")
+        self.assertIn("essai", resultat.stdout)
+
+    def testLitteralDansLEnregistrementPasse(self):
+        self.depot.ecrire(
+            "core-language/src/main/java/jo/celeris/core/language/"
+            "WrittenLanguages.java",
+            'package jo.celeris.core.language;\n'
+            'final class WrittenLanguages { String id() { return "essai"; } }\n')
+        resultat = lancer(self.racine)
+        self.assertEqual(0, resultat.returncode,
+                         "le code d'enregistrement est exonéré")
+
+    def testCodeSansLitteralPasse(self):
+        self.depot.ecrire(
+            "core-syntax/src/main/java/jo/celeris/core/syntax/Honnete.java",
+            'package jo.celeris.core.syntax;\n'
+            'final class Honnete { int id() { return 1; } }\n')
+        resultat = lancer(self.racine)
+        self.assertEqual(0, resultat.returncode, "rien à refuser")
+
+    def testLeCommentaireFrancaisNeComptePas(self):
+        self.depot.ecrire(
+            "demo/src/main/java/jo/celeris/demo/Activite.java",
+            'package jo.celeris.demo;\n'
+            '/** La Javadoc cite le langage essai librement. */\n'
+            'final class Activite { int x() { return 2; } }\n')
+        resultat = lancer(self.racine)
+        self.assertEqual(0, resultat.returncode,
+                         "la Javadoc française cite les langages")
+
+    def testLesSourcesDeTestNeSeBalayentPas(self):
+        self.depot.ecrire(
+            "core-syntax/src/test/java/jo/celeris/core/syntax/UnTest.java",
+            'package jo.celeris.core.syntax;\n'
+            'final class UnTest { String id() { return "essai"; } }\n')
+        resultat = lancer(self.racine)
+        self.assertEqual(0, resultat.returncode,
+                         "le code de test cite les langages qu'il éprouve")
+
+
+if __name__ == "__main__":
+    unittest.main()

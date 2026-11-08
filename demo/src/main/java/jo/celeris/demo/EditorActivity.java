@@ -36,7 +36,7 @@ import jo.celeris.android.widgets.ApercuDefinition;
 import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.android.widgets.OutlineView;
 import jo.celeris.android.widgets.PopupLayer;
-import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.SelRange;
@@ -289,7 +289,10 @@ public final class EditorActivity extends AppCompatActivity {
         // §8 — M8.6 : le serveur XML réel pour les fichiers XML).
         atelierRefactor = new AtelierRefactor(this, editeur, session,
                 nomFichier, this::verdictRefactor);
-        serveurLangage = nomFichier.endsWith(".xml")
+        LanguageSupport langueOuverte = LangagesDemo.langageDe(nomFichier,
+                null, session.document().text());
+        serveurLangage = langueOuverte != null
+                && LangagesDemo.serveurXmlEmbarque(langueOuverte.id())
                 ? ServeurXmlEmbarque.demarrer()
                 : ServeurLangage.demarrer();
         // L'atelier des popups : la couche posée sur l'éditeur porte
@@ -343,9 +346,10 @@ public final class EditorActivity extends AppCompatActivity {
         // M7.5, §9 — la retenue d'analyse et la surimpression de
         // diagnostic, depuis les préférences.
         sceneReglages.appliquer(prefs);
-        LanguageSyntax langue = FichiersExemple.languePour(nomFichier);
+        LanguageSupport langue = LangagesDemo.langageDe(nomFichier,
+                null, session.document().text());
         editeur.setLanguage(langue);
-        etiquetteLangue.setText(langue == null ? nomFichier : langue.id());
+        etiquetteLangue.setText(langue == null ? nomFichier : langue.displayName());
         basculeTheme.majTitre();
         majTitreRetourLigne();
         majPosition();

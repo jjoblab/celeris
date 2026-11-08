@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import android.view.KeyEvent;
 
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.JavaSyntax;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -33,7 +34,7 @@ public class SmartTypingViewTest {
     private static EditorTestRig bancBranche(String contenu) {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), contenu);
-        banc.vue().setLanguage(JavaSyntax.INSTANCE);
+        banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.vue().intelligence().setProvider(IntelligenceHub.builtins());
         banc.publierAnalyse();
         return banc;
@@ -118,7 +119,7 @@ public class SmartTypingViewTest {
     public void withoutProviderEnterInsertsPlainNewline() {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), "int x;");
-        banc.vue().setLanguage(JavaSyntax.INSTANCE);
+        banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         curseurA(banc, 6);
         frappe(banc, KeyEvent.KEYCODE_ENTER);
         assertEquals("l'Entrée sans fournisseur reste un saut nu",
@@ -131,7 +132,7 @@ public class SmartTypingViewTest {
     public void withoutProviderTypingStaysPlain() {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), "int valeur");
-        banc.vue().setLanguage(JavaSyntax.INSTANCE);
+        banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         curseurA(banc, 10);
         banc.validerTexte("(");
         assertEquals("sans fournisseur, la frappe passe telle quelle",

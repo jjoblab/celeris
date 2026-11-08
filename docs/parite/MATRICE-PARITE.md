@@ -36,6 +36,18 @@
 >   reste au propriétaire — D-02, D-07 et D-14 rejoignent leur
 >   jalon (M4/M5).
 
+> - **M7.6 — plateforme de langages (en cours)** : étape 4 livrée — le
+>   modèle (descripteur, configuration, support, capacités, détection),
+>   les seize langages en paquets de données (six analyseurs écrits
+>   attachés par préférence, dix grammaires compilées par la couture
+>   `PackGrammars`), la détection à précédence complète (réglage, nom
+>   exact, motif, extension composée, première ligne, indice de
+>   contenu), la suppression des aiguillages par identifiant
+>   (`CommentRules`/`TypingRules` pilotés par la configuration, le cli
+>   et la démo par le registre) et le contrôle d'architecture
+>   `check-language-registration` ; les étapes suivantes du jalon
+>   (moteur de grammaires, analyse structurelle, LSP) avancent la
+>   catégorie H avec elles.
 > - **M4 — syntaxe (en cours)** : socle d'analyse incrémentale livré
 >   (tranche 1 : jetons à offsets relatifs, états par ligne, cascade de
 >   commentaires bornée — PIEGE-19 — arbre tolérant ancré par chunks,
@@ -213,6 +225,24 @@
 | G-03 | Exécutable sans Android (`editor-cli` : analyser, diagnostiquer, formater, refactorer) | P1 | absent | `cli` | M7 | exécution en CI sur corpus, sortie déterministe | Non démarré | — | non | — |
 | G-04 | Plugins isolés (peintres, gouttière, commandes) : l'erreur d'un plugin ne tue pas l'éditeur | P1 | absent (celeris : livré M5-t6 — l'extension qui lève est journalisée, les suivantes courent, image suivante intacte) | `android-view` | M5 | test : plugin lançant une exception → ligne de journal, image suivante intacte | Câblé | PluginHostTest | oui | — |
 | G-05 | Accessibilité exemplaire dès la première version | P0 | absent (au départ ; celeris M3-t6 : arbre virtuel de rangées visibles, granularités, annonces — tests JVM verts ; auditeur et lecteur d'écran sur appareil à vérifier) | `android-view` | M3 | auditeur automatique vert sur chaque scénario ; lecture par lignes et plages | Câblé | MovementGranularityTest | oui | — |
+
+## H. Langages et protocole (M7.6)
+
+| Id | Capacité | Prio | Dépôt de départ | Module | Jalon | Critère d'acceptation | Statut (M7.5) | Test de vue | Scénario de démo | Test d'appareil |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| H-01 | Détection des langages (réglage, nom exact, motif, extension composée, première ligne, contenu) | P0 | présent | `core-language` | M7.6 | tableau de 30+ cas couvrant chaque rang de la précédence ; propriété : jamais deux noms exacts revendiqués | Câblé | DetectionPaquetsIntegresTest | non | — |
+| H-02 | Configuration de langage pilotée par les données (commentaires, fermeture automatique, entourage, plis, indentation) | P0 | présent (codée en dur par classe) | `core-language` | M7.6 | UN test paramétré sur tous les langages intégrés ; plus aucun aiguillage par identifiant | Câblé | PaquetsIntegresParametresTest | non | — |
+| H-03 | Paquets de langage intégrés (seize langages en données) | P0 | absent | `core-language` | M7.6 | les seize paquets se chargent et se valident entiers ; l'index se génère à la construction | Câblé | PackGrammarsTest | non | — |
+| H-04 | Ajouter un langage sans recompiler (paquet de l'utilisateur, dossier ou archive) | P0 | absent | `core-language` | M7.6 | le paquet jouet copié au stockage se charge à chaud, se colore, se plie et se commente ; sécurité : zip-slip, liens symboliques, tailles, profondeur, schéma — chacun refusé avec message précis | Noyau | — | non | — |
+| H-05 | Compatibilité TextMate réelle (captures objets, inclusions externes, injections L/R) | P0 | absent | `core-syntax-grammars` | M7.6 | au moins dix grammaires du commerce chargées sans modification | Non démarré | — | non | — |
+| H-06 | Langages incorporés (script dans HTML, code dans Markdown) | P1 | présent | `core-syntax-grammars` | M7.6 | la grammaire incorporée s'empile sur l'hôte, les deux se colorent | Noyau | — | non | — |
+| H-07 | Thèmes par portées (sélecteurs TextMate, import tokenColors de VS Code) | P1 | présent | `core-syntax` | M7.6 | la couleur se résout depuis la pile de portées ; le tracé n'alloue rien par image | Non démarré | — | non | — |
+| H-08 | Analyse structurelle niveau 1 (plis et plan génériques par données) | P0 | présent | `core-syntax` | M7.6 | Python, YAML et SQL ont plis et plan sans une ligne de Java | Non démarré | — | non | — |
+| H-09 | Analyse structurelle niveau 2 (tree-sitter natif) | P2 | absent | — | M7.6 | ADR chiffré : si les budgets ne tiennent pas, l'ADR dit pourquoi (écarté — ADR-016) | Non démarré | — | non | — |
+| H-10 | Analyse structurelle niveau 3 (analyseurs écrits factorisés, attachés par paquets) | P0 | présent (non factorisés) | `core-syntax` | M7.6 | Java, Kotlin, KTS et Groovy en spécialisations d'au plus 150 lignes ; instantanés identiques | Noyau | — | non | — |
+| H-11 | Client LSP sur LSP4J derrière la frontière `lsp-lsp4j` | P0 | absent | `core-lsp` | M7.6 | les tests de contrat passent par la nouvelle voie ; une seule copie de lsp4j et Gson dans l'APK | Non démarré | — | non | — |
+| H-12 | Couverture LSP nouvelle (symboles, formatage, plis, correctifs, indices en ligne) | P1 | absent | `core-lsp` | M7.6 | au moins douze méthodes raccordées à une interface | Non démarré | — | non | — |
+| H-13 | Serveurs déclarés dans les paquets (`servers.json`) | P1 | absent | `core-language` | M7.6 | un langage dont le serveur est disponible reçoit ses fournisseurs LSP automatiquement | Non démarré | — | non | — |
 
 ## État vérifié de l'étalon (2026-11-04)
 
