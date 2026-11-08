@@ -7,8 +7,8 @@
 >
 > Ce que cette recette ne couvre pas encore : la preuve APPAREIL des
 > budgets de rendu (aucun test d'instrumentation n'existe — le plan
-> vit dans `docs/qualite/VERIFICATION-APPAREIL.md`), la surimpression
-> de diagnostic et le réglage de lenteur d'analyse.
+> vit dans `docs/qualite/VERIFICATION-APPAREIL.md`).
+
 
 ## 1. La gouttière ne bouge plus
 
@@ -125,14 +125,43 @@
     scénario vérifié rejoue ses gestes par le fil réel de la
     démonstration, un écart s'y verrait.
 
-## 8. Ce qui reste ouvert (le propriétaire le verra)
+## 8. Le redressement du 2026-11-08 : quatre défauts d'usage corrigés
+
+28. **La sélection naît de l'appui long.** Toucher un mot simplement
+    et glisser : RIEN ne se sélectionne, le curseur se pose. Appuyer
+    LONGUEMENT sur un mot : le mot ENTIER se sélectionne et le
+    clavier SE RETIRE ; glisser : la sélection s'étend au doigt —
+    revenir sur le mot ne le ronge pas ; la pilule « ajouter un
+    curseur » flotte au-dessus, l'appui dessus ajoute le curseur à
+    cet endroit.
+29. **La gouttière se lit.** Le chevron de pli est grand et épais,
+    toutes les marques (erreur, arrêt, aperçu) vivent à la même
+    place au milieu de leur ligne, le fond de la gouttière est un
+    voile légèrement transparent — le texte transparaît à peine.
+30. **Les popups sont en verre.** Ouvrir la complétion (menu ou
+    frappe) : le fond du panneau laisse transparaître le code
+    dessous ; sélectionner un mot : la barre de coupe/copier/coller
+    porte le même verre.
+31. **La complétion propose à la frappe.** Dans un fichier Java,
+    taper les premières lettres d'un identifiant du fichier : la
+    liste s'ouvre DÈS LA PREMIÈRE lettre, se filtre à chaque
+    frappe ; taper une espace : elle se referme ; accepter un
+    candidat (toucher) : il s'insère et la liste ne se repropose
+    pas.
+32. **La surimpression de diagnostic.** Réglages : activer
+    « Surimpression de diagnostic » ; revenir à l'éditeur. **Vu** :
+    une petite ligne monospace au coin de la scène lit la taille de
+    police, la largeur de gouttière, le compteur d'images
+    décolorées et la retenue — frapper vite : le compteur reste à
+    zéro (PIEGE-26).
+33. **Le réglage de lenteur d'analyse.** Réglages : le curseur
+    « Lenteur d'analyse » ; le mettre à zéro, revenir, frapper vite :
+    la coloration suit immédiatement chaque frappe ; le remonter à
+    600 ms : la coloration arrive au calme du doigt — la
+    surimpression affiche la valeur en direct.
+
+## 9. Ce qui reste ouvert (le propriétaire le verra)
 
 - Aucune preuve APPAREIL : tous les statuts « Démontré » de la
   matrice se prouvent au banc (JVM) et dans la démo — le premier
   appareil dira le reste (voir VERIFICATION-APPAREIL).
-- La surimpression de diagnostic (taille de police, largeur de
-  gouttière, compteur d'images décolorées) n'est pas livrée : le
-  compteur vit au banc (`FlickerStabilityTest`).
-- Le réglage de lenteur d'analyse n'est pas livré : la retenue de la
-  publication par l'exécuteur manuel du banc joue ce rôle dans les
-  preuves.
