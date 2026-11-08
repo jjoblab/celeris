@@ -160,3 +160,29 @@ ou jdk.internal. Arbre des dépendances (POM) : gson seul, intervalle
 
 Décision : **ADR-015 — LSP4J 1.0.0 derrière la frontière `lsp-lsp4j`,
 copie unique avec le serveur par découpe excluant lsp4j et Gson.**
+
+## Spike M7.6 — tree-sitter, niveau 2 de l'analyse structurelle (ADR-016)
+
+Le harnais (`spikes/treesitter/` : liaison JNI minimale `liaison.c`,
+harnais Java, benchmark C pur `bench.c`, sonde `sonde.c`) mesure le
+runtime **v0.27.2** et trois grammaires (json v0.24.8, python v0.25.0,
+javascript v0.25.0 — MIT, épinglées par `recuperer-sources`, sources
+jamais versionnées) sur des corpus VALIDES à l'échelle du mandat.
+Corpus et commandes : voir `results/`.
+
+| Mesure (corpus valides) | json 2,5 Mo | python 1,0 Mo | javascript 1,0 Mo |
+| --- | --- | --- | --- |
+| Analyse complète (min de 3 tours) | 263 ms | 132 ms | 144–156 ms |
+| Incrémental 1 caractère, plancher fixe sans erreur (p50/p95) | 15,5/16,7 ms | 9,6/9,9 ms | 24,6/37,4 ms |
+| Incrémental, frappe réelle aléatoire (p50/p95) | 16,5/18,9 ms | 33,7/60,9 ms | 44,5/49,5 ms |
+| Mémoire de l'arbre | 82 Mo (30×) | 32 Mo (31×) | 26 Mo (26×) |
+
+La sonde (`results/sonde*.txt`) isole le comportement : `ts_tree_edit`
+est gratuit, le re-parse avec ancien arbre tombe à 0,5 ms à 190 Ko
+(contre 18 ms sans — l'incrémental fonctionne), mais le plancher croît
+linéairement (≈ 6–10 ms/Mo). Tailles (hôte x86_64, `-O2`, élagué) :
+runtime 223 Ko, grammaires +8 Ko (json) à +464 Ko (python) —
+`results/tailles.txt`.
+
+Décision : **ADR-016 — écarté à M7.6, budgets non tenus ; niveaux 1 et
+3 portent le jalon, la case reste déclarée et révisable.**

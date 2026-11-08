@@ -1,0 +1,21 @@
+analyse complète : 19.1 ms (190801 octets), erreur : non
+édition  0 à l'octet  128134 : tree_edit 0.004 ms, re-parse 0.547 ms, erreur : non
+édition  1 à l'octet  160462 : tree_edit 0.003 ms, re-parse 0.376 ms, erreur : OUI
+édition  2 à l'octet   67673 : tree_edit 0.001 ms, re-parse 0.362 ms, erreur : OUI
+édition  3 à l'octet  172776 : tree_edit 0.002 ms, re-parse 0.379 ms, erreur : OUI
+édition  4 à l'octet   64610 : tree_edit 0.001 ms, re-parse 0.364 ms, erreur : OUI
+édition  5 à l'octet   24876 : tree_edit 0.001 ms, re-parse 0.390 ms, erreur : OUI
+édition  6 à l'octet  158476 : tree_edit 0.001 ms, re-parse 0.431 ms, erreur : OUI
+édition  7 à l'octet  137565 : tree_edit 0.001 ms, re-parse 0.392 ms, erreur : OUI
+édition  8 à l'octet   67768 : tree_edit 0.002 ms, re-parse 0.361 ms, erreur : OUI
+édition  9 à l'octet   34554 : tree_edit 0.001 ms, re-parse 0.388 ms, erreur : OUI
+édition 10 à l'octet  111697 : tree_edit 0.002 ms, re-parse 0.362 ms, erreur : OUI
+édition 11 à l'octet   33424 : tree_edit 0.001 ms, re-parse 0.388 ms, erreur : OUI
+édition 12 à l'octet   71812 : tree_edit 0.001 ms, re-parse 0.351 ms, erreur : OUI
+édition 13 à l'octet   69569 : tree_edit 0.002 ms, re-parse 0.387 ms, erreur : OUI
+édition 14 à l'octet  122053 : tree_edit 0.001 ms, re-parse 0.351 ms, erreur : OUI
+édition 15 à l'octet  120826 : tree_edit 0.001 ms, re-parse 0.368 ms, erreur : OUI
+édition 16 à l'octet  156365 : tree_edit 0.001 ms, re-parse 0.362 ms, erreur : OUI
+édition 17 à l'octet   24495 : tree_edit 0.002 ms, re-parse 0.369 ms, erreur : OUI
+édition 18 à l'octet   56078 : tree_edit 0.002 ms, re-parse 0.359 ms, erreur : OUI
+édition 19 à l'octet   31294 : tree_edit 0.002 ms, re-parse 0.380 ms, erreur : OUI
