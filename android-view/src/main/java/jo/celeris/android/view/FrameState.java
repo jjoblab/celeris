@@ -24,6 +24,13 @@ public final class FrameState {
     private float gutterWidth;
     private float scrollX;
     private float scrollY;
+    /** Une publication d'analyse existe (M7.5, §9) : une rangée sans
+     *  couleur se comptera comme décolorée — avant la première
+     *  publication, rien n'avait de couleur à perdre. */
+    private boolean couleurAttendue;
+    /** L'image en cours a tracé une rangée sans couleur qu'elle
+     *  possédait (M7.5, §9 — la surimpression de diagnostic le lit). */
+    private boolean imageDecoloree;
 
     /**
      * Configure l'état de l'image à venir.
@@ -59,6 +66,44 @@ public final class FrameState {
         this.gutterWidth = gutterWidth;
         this.scrollX = scrollX;
         this.scrollY = scrollY;
+        this.couleurAttendue = false;
+        this.imageDecoloree = false;
+    }
+
+    /**
+     * Pose l'attente de couleur de l'image (M7.5, §9) : l'assembleur
+     * l'annonce après {@link #beginFrame} — une publication d'analyse
+     * existe, une rangée sans couleur se comptera comme décolorée.
+     *
+     * @param attendue vrai quand une publication existe
+     */
+    public void attendCouleur(boolean attendue) {
+        this.couleurAttendue = attendue;
+    }
+
+    /**
+     * Vrai quand une publication d'analyse existe : le peintre de
+     * texte y marque les rangées décolorées (M7.5, §9).
+     */
+    public boolean couleurAttendue() {
+        return couleurAttendue;
+    }
+
+    /**
+     * Marque l'image : une rangée sans couleur qu'elle possédait y a
+     * été tracée (M7.5, §9) — la vue la compte après le tracé.
+     */
+    public void marquerImageDecoloree() {
+        imageDecoloree = true;
+    }
+
+    /**
+     * Vrai quand l'image a tracé une rangée sans couleur qu'elle
+     * possédait (M7.5, §9) — lue après le tracé, remise à l'image
+     * suivante.
+     */
+    public boolean imageDecoloree() {
+        return imageDecoloree;
     }
 
     /** L'instantané de document affiché. */

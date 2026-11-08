@@ -171,6 +171,23 @@ public final class EditorSyntax {
     }
 
     /**
+     * Une publication d'analyse existe-t-elle ? (M7.5, §9) : OUI dès
+     * la première publication — une rangée qui trace sans couleur
+     * ensuite se comptera comme décolorée ; avant, rien n'avait de
+     * couleur à perdre. La voie synchrone publie à la première
+     * demande : elle n'attend jamais.
+     *
+     * @return vrai quand une publication existe
+     */
+    public boolean couleurAttendue() {
+        MoteurAnalyse moteurLocal = moteur;
+        if (moteurLocal != null) {
+            return moteurLocal.analysePubliee() != null;
+        }
+        return coordinateur != null;
+    }
+
+    /**
      * Indique la fenêtre visible : la voie hors fil y paie l'arbre
      * d'abord (G-01). Le travail en vol ne s'annule pas — le défilement
      * ne coûte rien.

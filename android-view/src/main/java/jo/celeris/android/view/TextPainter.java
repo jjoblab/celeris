@@ -82,6 +82,12 @@ public final class TextPainter extends PainterLayer {
             }
             float y = baseY + (rangee - premiere) * hauteur;
             if (layout.runs().isEmpty() && layout.spans().isEmpty()) {
+                // M7.5, §9 : une rangée qui porte de l'encre et vivait
+                // sous une publication tracée sans couleur — image
+                // décolorée, la surimpression de diagnostic la compte.
+                if (frame.couleurAttendue() && porteEncre(layout.text())) {
+                    frame.marquerImageDecoloree();
+                }
                 // Chemin rapide : une rangée purement gauche-à-droite et
                 // sans coloration se trace d'un seul tenant, l'instance
                 // du cache.
@@ -94,6 +100,19 @@ public final class TextPainter extends PainterLayer {
                         metrics.charWidth(), palette);
             }
         }
+    }
+
+    /**
+     * Vrai quand le texte porte au moins une lettre ou un chiffre : le
+     * blanc seul ne se compte jamais comme décoloré (M7.5, §9).
+     */
+    private static boolean porteEncre(String texte) {
+        for (int i = 0; i < texte.length(); i++) {
+            if (Character.isLetterOrDigit(texte.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

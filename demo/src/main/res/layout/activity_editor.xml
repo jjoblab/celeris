@@ -135,6 +135,26 @@
             android:layout_height="match_parent"
             android:layout_gravity="end"
             android:visibility="gone" />
+
+        <!-- La surimpression de diagnostic (M7.5, §9) : la ligne de
+             vérité du rendu — taille, gouttière, images décolorées,
+             retenue — posée sur le coin de la scène, verre fumé. -->
+        <TextView
+            android:id="@+id/surimpression"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"
+            android:background="#D92E2E32"
+            android:elevation="4dp"
+            android:fontFamily="monospace"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:textColor="#FFE6E6EC"
+            android:textSize="11sp"
+            android:visibility="gone" />
     </FrameLayout>
 
     <LinearLayout
