@@ -125,3 +125,38 @@ java -cp spikes/regex/out:demo/libs/serveur-retire.jar:spikes/regex/libs/joni-2.
 | Android statique (d8 + dexdump) | — | 615 Ko, 546 méthodes, zéro Unsafe |
 
 Décision : **ADR-014 — joni retenue.**
+
+## Spike M7.6 — client LSP sur LSP4J (ADR-015)
+
+Le harnais `spikes/lsp4j/SpikeLsp4j.java` lance serveur-retire 0.31.2 (l'archive
+découpée de M8.6) par le `LSPLauncher` de LSP4J sur des tubes à file
+(jamais les tubes du JDK — la leçon M8.6 sur la vivacité du fil écrivain),
+un lanceur par bout, puis rejoue poignée de main, ouverture, diagnostics
+poussés, complétion documentée, survol de DTD et extinction. La version de
+LSP4J qui sert les DEUX bouts est décidée par l'ordre du classpath ;
+bibliothèques ramenées par `spikes/lsp4j/recuperer-bibliotheques`.
+
+Reproduction :
+
+```bash
+./spikes/lsp4j/recuperer-bibliotheques
+CP="spikes/lsp4j/libs/lsp4j-1.0.0.jar:spikes/lsp4j/libs/lsp4j-jsonrpc-1.0.0.jar:spikes/lsp4j/libs/gson-2.10.1.jar:demo/libs/serveur-retire.jar"
+javac -cp "$CP" -d spikes/lsp4j/out spikes/lsp4j/SpikeLsp4j.java
+java -cp "spikes/lsp4j/out:$CP" spike.lsp4j.SpikeLsp4j
+```
+
+| Essai (min de 3 lancements, JVM de bureau) | initialize (à froid) | complétion | survol | fil complet |
+| --- | --- | --- | --- | --- |
+| LSP4J **1.0.0** + serveur-retire 0.31.2 | 133–163 ms | 36–64 ms | 11–25 ms | ~600 ms |
+| LSP4J 0.24.0 (repli LSP 3.17) | ~130 ms | ~62 ms | ~9 ms | ~570 ms |
+| LSP4J 0.23.1 (celle de serveur-retire) | ~123 ms | ~68 ms | ~5 ms | ~660 ms |
+
+Les trois versions passent le fil entier — la 1.0.0 est donc compatible
+à l'exécution avec le serveur réel, au-delà de sa version de
+construction. Android statique (d8 + dexdump, lsp4j + jsonrpc + gson
+2.10.1) : 728 Ko de dex, 1 636 méthodes, zéro référence à sun.misc.Unsafe
+ou jdk.internal. Arbre des dépendances (POM) : gson seul, intervalle
+[2.9.1, 3.0) — la 2.10.1 embarquée par le serveur convient.
+
+Décision : **ADR-015 — LSP4J 1.0.0 derrière la frontière `lsp-lsp4j`,
+copie unique avec le serveur par découpe excluant lsp4j et Gson.**
