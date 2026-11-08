@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Le serveur de langage XML RÉEL, embarqué et lancé EN PROCESSUS
- * (M8.6 — [EXT-6], voir NOTICE pour l'identité et la licence) : la
+ * (M8.6 — LemMinX, voir NOTICE pour l'identité et la licence) : la
  * démonstration y branche son client LSP par le transport à flux sur
  * des tubes mémoire — cadrage Content-Length pour de vrai, poignée de
  * main, documents versionnés, complétion, survol, définition et

@@ -14,8 +14,8 @@
 
 ## Le design du kit de popups — le portage intégral
 
-La source est le kit du dépôt de départ (`view/popup/kit/` de
-[EXT-1]) : jetons, carte verre, badges, rendus. Chaque valeur est
+La source est le kit du dépôt de départ (`view/popup/kit/`) : jetons,
+carte verre, badges, rendus. Chaque valeur est
 portée telle quelle, pas réinterprétée.
 
 - **`PopupTokens`** (nouveau) : les jetons d'origine — rayons 14 dp

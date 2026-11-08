@@ -48,7 +48,7 @@ pour réviser la décision :
 | Option | Avantages | Inconvénients | Verdict |
 | --- | --- | --- | --- |
 | A. Analyseurs Java écrits ici, incrémentaux | cœur sans dépendance native ; testables JVM ; contrôle total de la tolérance aux erreurs ; budgets mesurés | effort par langage (2 à 4 semaines pièce) | **retenue** |
-| B. Moteur d'analyse incrémental par grammaires, écrit en C, intégré par liaison native [EXT-4] | des dizaines de grammaires existantes ; incrémental éprouvé | charge native par ABI (arm64, x86_64…) ; taille d'artefact ; JNI dans le chemin chaud de rendu ; grammaires tierces à auditer ; complexité de débogage sur appareil | écartée à M0, révisable par ADR si les budgets d'effort dérapent |
+| B. Moteur d'analyse incrémental par grammaires, écrit en C, intégré par liaison native : tree-sitter | des dizaines de grammaires existantes ; incrémental éprouvé | charge native par ABI (arm64, x86_64…) ; taille d'artefact ; JNI dans le chemin chaud de rendu ; grammaires tierces à auditer ; complexité de débogage sur appareil | écartée à M0, révisable par ADR si les budgets d'effort dérapent |
 | C. Générateur d'analyseurs non incrémental | grammaire déclarative | re-analyse complète à chaque frappe : le spike mesure déjà 8 ms pour la seule lexicographie, l'analyse complète dépasserait le budget | écartée |
 
 ## Compromis
@@ -70,6 +70,26 @@ pour réviser la décision :
 - L'effort de M4 est le plus gros de la feuille de route (voir
   `docs/feuille-de-route.md`) ; la voie de grammaires sécurise la longue
   traîne pendant que les analyseurs P0 arrivent.
+
+## Révision du 2026-11-08 (jalon M7.6)
+
+L'option B se nomme enfin : **tree-sitter** (moteur incrémental en C,
+licence MIT). Le jalon M7.6 rouvre la question par un spike chiffré et
+un ADR dédié — liaison JNI écrite ici sur le runtime C (la liaison
+Android la plus répandue est exclue : règle 7 du jalon), grammaires
+compilées depuis leur `parser.c`, budgets de l'ADR-006 mesurés par ABI
+sur appareil de milieu de gamme. Le format de grammaires hérité du
+dépôt de départ se révèle en outre n'être **pas** du TextMate réel
+(captures en chaînes, inclusions non résolues, `java.util.regex`) : le
+moteur de `core-syntax-grammars` devient réellement compatible
+TextMate au même jalon, avec le choix du moteur d'expressions
+rationnelles (traduction vers `java.util.regex` contre joni, portage
+Java d'Oniguruma) tranché par spike et ADR. Les analyzeurs écrits à la
+main restent la voie des langages P0 (Java, Kotlin, Groovy, XML,
+JSON), factorisés sur un socle commun — la mesure de départ tient
+(Kotlin et Groovy partagent 80 % de leurs lignes de lexeur). Les
+nouveaux ADR du jalon (moteur d'expressions rationnelles, liaison
+tree-sitter) complètent la présente décision sans la réécrire.
 
 ## Actions
 
