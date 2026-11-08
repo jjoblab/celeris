@@ -7,6 +7,46 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M8.5 — redressement : le design des popups du dépôt de départ et le clavier du défilement (2026-11-08)
+
+- **Le design des popups revient au kit du dépôt de départ, toutes
+  surfaces comprises.** `PopupTokens` porte les jetons d'origine (rayons
+  14/8/6 dp, respirations 12/8/6 dp, échelle typographique
+  0,90/0,85/0,75/0,70 × la taille de texte de l'éditeur) ;
+  `PopupPalette` dérive le VERRE du thème hôte (fond de l'éditeur à
+  alpha 0xDB sombre / 0xE0 clair, liseré hairline blanc à 10 % / noir à
+  8 %) et porte les encres sémantiques (atténué, teinte de sélection,
+  accent, mot-clé, les trois gravités) ; `PopupPanel` redessine la
+  carte (rayon 14 dp, liseré d'un pixel, clip arrondi, filets et bandes
+  teintées). La complétion porte ses RANGÉES DEUX LIGNES — badge de
+  genre en puce teintée à 20 % (glyphe à l'encre du genre, palette
+  calibrée, assombrie sur thème clair), runs de match du préfixe à
+  l'accent et au gras, identité qualifiée en atténué dessous, largeur
+  plafonnée à 280 dp ; la documentation aligne sa bande signature
+  teintée, ses libellés de genre en micro-typographie, ses lignes
+  PARAM indentées et RETOUR en gras atténué ; la signature se rend en
+  TROIS PALIERS (frappés à l'accent, actif à l'accent et au gras, à
+  venir en atténué — la ligne devient sa propre barre de progression) ;
+  l'info-bulle pose son marqueur de gravité (× erreur, ! avertissement)
+  au-dessus d'un message à l'encre du texte ; le fil d'Ariane passe au
+  palier méta atténué ; la bande d'erreurs redevient le TIRET de 4 dp
+  au bord droit (10 dp tactiles) et colore ses marques à la gravité
+  (le modèle porte désormais la sienne) ; la barre de sélection
+  surligne sa pastille pressée de la teinte de sélection. La
+  démonstration dérive la palette du thème d'éditeur courant — le
+  verre suit la rotation des thèmes et la taille de texte de l'éditeur
+  (le coach sert les candidats typés : genre de badge, signature en
+  identité qualifiée, préfixe de match).
+- **Le défilement au doigt n'ouvre plus le clavier** (le constat du
+  propriétaire : « je ne peux pas défiler horizontal et vertical sans
+  que le clavier ne devienne visible »). Le doigt posé n'arme ni IME ni
+  curseur : le geste qui dépasse le seuil de tap (24 px) devient un
+  défilement à un doigt sur les DEUX axes, borné par la géométrie de
+  défilement ; le relâchement sans mouvement seul résout le tap
+  (pilule, pli, marques, pose du curseur et ouverture du clavier) ;
+  l'appui long et son dragage ne rouvrent pas le clavier au
+  relâchement, l'armement long ne survit jamais à un nouvel appui.
+
 ### M7.5 — reprise : le branchement de l'intelligence (2026-11-07)
 
 - Le SPI IntelligenceHub.Provider vit sur la vue : les moteurs purs
