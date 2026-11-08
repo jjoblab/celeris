@@ -24,7 +24,7 @@ def lignes_matrice():
     resultat = {}
     with open(MATRICE, encoding='utf-8') as f:
         for ligne in f:
-            m = re.match(r'^\| ([A-G]-\d{2}) \|(.+)\|$', ligne)
+            m = re.match(r'^\| ([A-H]-\d{2}) \|(.+)\|$', ligne)
             if not m:
                 continue
             colonnes = [c.strip() for c in m.group(2).split('|')]
@@ -41,7 +41,7 @@ def lignes_citees_par_scenarios():
             if not nom.endswith('.java'):
                 continue
             with open(os.path.join(racine, nom), encoding='utf-8') as f:
-                for m in re.finditer(r'\b([A-G]-\d{2})\b', f.read()):
+                for m in re.finditer(r'\b([A-H]-\d{2})\b', f.read()):
                     resultat.add(m.group(1))
     return resultat
 

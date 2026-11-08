@@ -2,6 +2,7 @@ package jo.celeris.android.view;
 
 import static org.junit.Assert.assertEquals;
 
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.JavaSyntax;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -26,7 +27,7 @@ public class DiscoloredFramesViewTest {
     public void beforeFirstPublicationNothingCounts() {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
-        banc.vue().setLanguage(JavaSyntax.INSTANCE);
+        banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         // analyse retenue : aucune publication encore
         banc.retenirAnalyse();
         banc.image();
@@ -44,7 +45,7 @@ public class DiscoloredFramesViewTest {
     public void retainedKeystrokesKeepTheCounterAtZero() {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
-        banc.vue().setLanguage(JavaSyntax.INSTANCE);
+        banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();
         banc.image();
         for (int i = 0; i < 12; i++) {

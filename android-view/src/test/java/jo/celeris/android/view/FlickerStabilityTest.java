@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertSame;
 
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.JavaSyntax;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.MultiSelection;
@@ -32,7 +33,7 @@ public class FlickerStabilityTest {
     private static EditorTestRig bancColore(String contenu) {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), contenu);
-        banc.vue().setLanguage(JavaSyntax.INSTANCE);
+        banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();
         banc.image();
         curseurEnFin(banc);

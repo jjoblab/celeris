@@ -1,0 +1,93 @@
+{
+  "id": "cpp",
+  "name": "C++",
+  "extensions": [
+    ".cpp",
+    ".cc",
+    ".cxx",
+    ".hpp",
+    ".hxx",
+    ".h"
+  ],
+  "badge": "C+",
+  "badgeColor": "#82AAFF",
+  "syntax": {
+    "preferred": "grammar"
+  },
+  "contentHint": "template\\s*<|namespace\\s+\\w|std::|using\\s+namespace",
+  "comments": {
+    "lineComment": "// ",
+    "blockComment": [
+      "/* ",
+      " */"
+    ]
+  },
+  "brackets": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "(",
+      "close": ")",
+      "notIn": []
+    },
+    {
+      "open": "[",
+      "close": "]",
+      "notIn": []
+    },
+    {
+      "open": "{",
+      "close": "}",
+      "notIn": []
+    },
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string",
+        "comment"
+      ]
+    }
+  ],
+  "surroundingPairs": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ],
+    [
+      "\"",
+      "\""
+    ],
+    [
+      "'",
+      "'"
+    ]
+  ]
+}

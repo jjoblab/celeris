@@ -13,7 +13,7 @@ public final class jo.celeris.core.intelligence.CatalogueVersions {
 Compiled from "CommentRules.java"
 public final class jo.celeris.core.intelligence.CommentRules extends java.lang.Record {
   public jo.celeris.core.intelligence.CommentRules(java.lang.String, java.lang.String, java.lang.String);
-  public static jo.celeris.core.intelligence.CommentRules parLangage(java.lang.String);
+  public static jo.celeris.core.intelligence.CommentRules of(jo.celeris.core.language.LanguageConfiguration);
   public boolean commentable();
   public final java.lang.String toString();
   public final int hashCode();
@@ -406,12 +406,19 @@ public final class jo.celeris.core.intelligence.Trou extends java.lang.Record {
 ### jo.celeris.core.intelligence.TypingRules
 Compiled from "TypingRules.java"
 public final class jo.celeris.core.intelligence.TypingRules {
-  public static jo.celeris.core.intelligence.TypingRules langage(java.lang.String);
-  public static jo.celeris.core.intelligence.TypingRules parDefaut();
+  public static jo.celeris.core.intelligence.TypingRules of(jo.celeris.core.language.LanguageConfiguration);
+  public static jo.celeris.core.intelligence.TypingRules generic();
   public boolean estOuvrant(char);
   public boolean estFermant(char);
   public char fermantDe(char);
   public boolean estCitation(char);
+}
+
+### jo.celeris.core.intelligence.WordCompletion
+Compiled from "WordCompletion.java"
+public final class jo.celeris.core.intelligence.WordCompletion implements jo.celeris.core.language.Completion {
+  public static final jo.celeris.core.intelligence.WordCompletion INSTANCE;
+  public java.util.List<java.lang.String> candidates(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
 }
 
 ### jo.celeris.core.intelligence.package-info

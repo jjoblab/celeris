@@ -1,0 +1,83 @@
+{
+  "id": "proguard",
+  "name": "ProGuard",
+  "extensions": [
+    ".pro"
+  ],
+  "badge": "R8",
+  "badgeColor": "#F07178",
+  "syntax": {
+    "preferred": "grammar"
+  },
+  "comments": {
+    "lineComment": "# "
+  },
+  "brackets": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "(",
+      "close": ")",
+      "notIn": []
+    },
+    {
+      "open": "[",
+      "close": "]",
+      "notIn": []
+    },
+    {
+      "open": "{",
+      "close": "}",
+      "notIn": []
+    },
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string",
+        "comment"
+      ]
+    }
+  ],
+  "surroundingPairs": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ],
+    [
+      "\"",
+      "\""
+    ],
+    [
+      "'",
+      "'"
+    ]
+  ]
+}

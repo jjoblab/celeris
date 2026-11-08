@@ -1,0 +1,83 @@
+{
+  "id": "sql",
+  "name": "SQL",
+  "extensions": [
+    ".sql"
+  ],
+  "badge": "Sq",
+  "badgeColor": "#FF5370",
+  "syntax": {
+    "preferred": "grammar"
+  },
+  "comments": {
+    "lineComment": "-- "
+  },
+  "brackets": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "(",
+      "close": ")",
+      "notIn": []
+    },
+    {
+      "open": "[",
+      "close": "]",
+      "notIn": []
+    },
+    {
+      "open": "{",
+      "close": "}",
+      "notIn": []
+    },
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string",
+        "comment"
+      ]
+    }
+  ],
+  "surroundingPairs": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ],
+    [
+      "\"",
+      "\""
+    ],
+    [
+      "'",
+      "'"
+    ]
+  ]
+}

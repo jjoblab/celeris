@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
  * référentiel résolues en références, cycles et noms inconnus refusés
  * au chargement, jamais découverts à la lexicographie.
  */
-class LecteurJsonGrammaireTest {
+class GrammairesTest {
 
     /** Une grammaire minimale se charge : nom, portée racine, motifs. */
     @Test
@@ -130,21 +130,29 @@ class LecteurJsonGrammaireTest {
                 """));
     }
 
-    /** Les grammaires embarquées du module se chargent. */
+    /** Les grammaires des paquets intégrés se chargent (M7.6 : déplacées
+     * du module vers les paquets de core-language, lues ici par leur
+     * ressource de paquet). */
     @Test
-    void grammairesEmbarquees() {
+    void grammairesDesPaquetsEmbarques() {
         for (String nom : new String[] {"toml", "yaml", "properties", "markdown",
-                "python", "shell"}) {
-            Grammaire grammaire = Grammaires.ressource(nom);
+                "python", "shell", "sql", "c", "cpp", "proguard"}) {
+            Grammaire grammaire = Grammaires.lire(texteDePaquet(nom));
             assertNotNull(grammaire, nom + " se charge");
             assertTrue(!grammaire.motifs().isEmpty(), nom + " a des motifs");
         }
     }
 
-    /** Une ressource inconnue est refusée. */
-    @Test
-    void ressourceInconnueRefusee() {
-        assertThrows(IllegalArgumentException.class, () -> Grammaires.ressource("inconnu"));
+    /** Le texte JSON de la grammaire d'un paquet intégré. */
+    private static String texteDePaquet(String id) {
+        var flux = GrammairesTest.class.getResourceAsStream(
+                "/langages/" + id + "/grammar.json");
+        assertNotNull(flux, "grammaire du paquet " + id);
+        try (flux) {
+            return new String(flux.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /** Le JSON mal formé est refusé avec la position. */

@@ -25,7 +25,7 @@ import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.SelectionBarView;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.android.widgets.SignatureHelpView;
-import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -194,7 +194,8 @@ final class AtelierPopups {
     void brancherServeur(LanguageSession sessionLangage, String uri) {
         this.serveur = sessionLangage;
         this.uriDocument = uri;
-        LanguageSyntax langue = FichiersExemple.languePour(nomDuFichier);
+        LanguageSupport langue = LangagesDemo.langageDe(nomDuFichier,
+                null, session.document().text());
         sessionLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
                 session.document().text());
     }
