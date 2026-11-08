@@ -256,10 +256,9 @@ de la matrice montent à « Démontré » (A-05 à A-09, A-22, B-03, B-07,
 B-09, B-19, B-25, B-27) — le geste se joue dans la démo ET se
 vérifie au banc. La recette s'enrichit des étapes 12 à 27 : les dix
 popups, la frappe intelligente, les gestes de refactorisation, le
-compteur des vérifiés. NON livrés, consignés : la surimpression de
-diagnostic (le compteur d'images décolorées vit au banc,
-`FlickerStabilityTest`) et le réglage de lenteur d'analyse (la
-retenue de l'exécuteur manuel du banc joue ce rôle dans les preuves).
+compteur des vérifiés. Les deux restes du §9 — la surimpression de
+diagnostic et le réglage de lenteur d'analyse — se livrent au
+redressement du 2026-11-08 (section ci-dessous).
 ## Vérité des tableaux de bord (§11) : LIVRÉ
 
 - **Nouveau cadre de statut** à cinq niveaux (Non démarré, Noyau,
@@ -293,6 +292,73 @@ retenue de l'exécuteur manuel du banc joue ce rôle dans les preuves).
   module, `check` vert à chaque pas). Le code NOUVEAU du jalon est en
   anglais dès le premier commit (`GutterLayout`, `PopupLayer`,
   `PinchZoomHandler`, `TokenCatchUp`, `EditorGutter`, `RecordingCanvas`).
+
+## Le redressement du 2026-11-08 (retour du propriétaire) : quatre défauts d'usage et le §9 complet
+
+Le propriétaire a rejoué la démonstration ; quatre défauts d'usage
+sont remontés, corrigés par la boucle test-rouge → correctif →
+test-vert, et les deux restes du §9 se livrent :
+
+- **La sélection naît de l'appui long** (le constat : le simple
+  appui étendait la sélection au dragage, clavier visible). Le simple
+  appui pose le curseur et n'étend RIEN ; l'appui long prend le mot
+  sous le doigt (`IdentifierBounds`), RETIRE le clavier
+  (`CurseurClavier.masquerClavier`) et arme l'extension — l'ancre se
+  fige à la SORTIE du mot (PIEGE-03), le mot de départ reste englobé
+  (`SelectionDrag` armé sur mot) ; la pilule « ajouter un
+  curseur » (A-01) s'offre sur le mot, l'appui dessus ajoute le
+  curseur. Preuves : `LongPressSelectionViewTest` (vrais
+  `MotionEvent`, loomer avancé comme sur l'appareil),
+  `IdentifierBoundsTest`, `SelectionDragTest`.
+- **La gouttière redevient lisible** (le constat : chevron trop
+  petit, tailles incohérentes, fond opaque). Chaque marque vit dans
+  la MÊME cellule carrée — le côté le plus étroit de la coulisse et
+  de la rangée — centrée au milieu visuel ; le chevron prend ses
+  bras (un tiers de côté) et son ÉPAISSEUR de trait (deux pixels au
+  moins, `TextBrush.setStrokeWidth`) ; la coulisse de syntaxe
+  réserve deux caractères ; le fond se VOILE de translucide
+  (`EditorTheme.gutterBackground`, alpha compté — un thème sans voile
+  n'en trace pas). Preuve : `GutterPainterTest` (voile, cellule,
+  trait épais, centre).
+- **Les popups reprennent leur verre du dépôt de départ** : le fond
+  des panneaux devient translucide — fumé à 85 % (sombre), dépoli à
+  90 % (clair) — le code transparaît, liseré et encres restent
+  opaques ; la barre de sélection partage le même panneau, donc le
+  même verre. (`PopupPalette`.)
+- **La complétion se propose à la FRAPPE** (le constat : aucun
+  suggestion en tapant un fichier Java) : dès le premier caractère
+  d'identifiant avant le curseur la liste s'ouvre
+  (`PopupCoach.doitOuvrirALaFrappe`), la frappe suivante filtre sans
+  refermer, le blanc et la ponctuation referment, l'acceptation d'un
+  candidat ne repropose pas (`AtelierPopups`, garde d'acceptation).
+- **§9 livré — la surimpression de diagnostic** : `DiagnosticOverlay`
+  pose sur la scène la ligne de vérité — taille de police, largeur de
+  gouttière, compteur d'images décolorées, retenue — rafraîchie à
+  400 ms, interrupteur aux réglages. Le compteur vit dans la vue :
+  `FrameState` porte l'attente de couleur, `TextPainter` marque
+  l'image qui trace sans couleur une rangée qui en avait,
+  `SceneDiagnostics` compte, `EditorView.discoloredFrames()` expose.
+  Preuves : `DiscoloredFramesViewTest` (zéro à la frappe retenue,
+  rien avant la première publication), `DiagnosticOverlayTest`.
+- **§9 livré — le réglage de lenteur d'analyse** : `RetainedExecutor`
+  debounche le travail d'analyse — chaque soumission retire la
+  planifiée et reprogramme après le délai (250 ms par défaut,
+  `EditorView.DELAI_RETENU_PAR_DEFAUT_MS`), l'hôte qui injecte son
+  exécuteur n'est jamais détourné, le curseur des réglages règle de
+  zéro (immédiat) à 600 ms à chaud. Preuve : `RetainedExecutorTest`
+  (la rafale ne laisse partir que la dernière, délai nul immédiat,
+  réglage à chaud).
+- **Les trois pièges restants se couvrent** — le registre ferme à
+  **28 couverts, 0 à écrire** : PIEGE-09 et PIEGE-10 (la coupe
+  dichotomique de l'ellipse du fil d'Ariane, par largeur rendue —
+  `BreadcrumbModel.coupeAuPlusLong`, `BreadcrumbModelTest`) et
+  PIEGE-12 (la ligne qui porte un indice en ligne retombe au chemin
+  tissé — le code se trace identique, l'indice fané se tisse
+  par-dessus ; `InlayWovenPathViewTest`).
+- **La vue repasse sous son plafond** (600 lignes, ADR-002) : les
+  accès de scène vivent dans `SceneDiagnostics`, les ancres de popups
+  dans `CaretAnchors`, les polices dans `ViewFonts` — la vue délègue,
+  l'API publique ne bouge pas.
 
 ## Définition de terminé — ligne à ligne
 
@@ -374,4 +440,6 @@ retenue de l'exécuteur manuel du banc joue ce rôle dans les preuves).
    précédent un instant ; le repli du coach reste synchrone.
 4. **La dette de langue** (408 identifiants) : gelée, pas payée.
 5. **La surimpression de diagnostic et le réglage de lenteur**
-   d'analyse ne sont pas livrés (§9, partie non livrée consignée).
+   d'analyse : LIVRÉS au redressement du 2026-11-08 — la boucle de
+   400 ms pose la ligne de vérité sur la scène, l'exécuteur retenu
+   debounche la publication (250 ms par défaut, curseur aux réglages).
