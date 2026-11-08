@@ -75,10 +75,11 @@ pour réviser la décision :
 
 L'option B se nomme enfin : **tree-sitter** (moteur incrémental en C,
 licence MIT). Le jalon M7.6 rouvre la question par un spike chiffré et
-un ADR dédié — liaison JNI écrite ici sur le runtime C (la liaison
-Android la plus répandue est exclue : règle 7 du jalon), grammaires
-compilées depuis leur `parser.c`, budgets de l'ADR-006 mesurés par ABI
-sur appareil de milieu de gamme. Le format de grammaires hérité du
+un ADR dédié (**ADR-016 : écarté à M7.6** — l'incrémental mesure 9,6 à
+44,5 ms de p50 à l'échelle des 50 000 lignes de l'étalon, contre le
+budget de 10 ms, et les arbres pèsent 26 à 31 fois le texte ; liaison
+JNI écrite ici sur le runtime C, la liaison Android la plus répandue
+étant exclue par la règle 7 du jalon). Le format de grammaires hérité du
 dépôt de départ se révèle en outre n'être **pas** du TextMate réel
 (captures en chaînes, inclusions non résolues, `java.util.regex`) : le
 moteur de `core-syntax-grammars` devient réellement compatible

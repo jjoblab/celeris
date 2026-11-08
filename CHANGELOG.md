@@ -7,6 +7,20 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 — le spike tree-sitter écarte le niveau 2 natif : les budgets ne tiennent pas (2026-11-08)
+
+- **ADR-016 : tree-sitter (v0.27.2, MIT) écarté à M7.6 — ce n'est pas un échec,
+  c'est la réponse chiffrée que le spike devait donner**. Liaison JNI minimale
+  écrite ici (règle 7 : la liaison répandue de l'organisation interdite exclue),
+  trois grammaires (json, python, javascript, MIT), corpus VALIDES à l'échelle du
+  mandat : l'incrémental après un caractère mesure 9,6 à 44,5 ms de p50 (budget
+  ADR-004 : 10 ms) — le plancher croît linéairement avec le document (≈ 6-10 ms/Mo,
+  0,5 ms à 190 Ko) — et les arbres pèsent 26 à 31 fois le texte (budget : 3×).
+  Tailles (hôte, élagué) : runtime 223 Ko, grammaires +8 à +464 Ko — la taille
+  n'était pas le bloqueur. Les niveaux 1 (grammaire générique, plan par données)
+  et 3 (analyseurs factorisés) portent le jalon ; la case du niveau 2 reste
+  déclarée dans les paquets, révisable par ADR avec mesures sur appareil.
+
 ### M7.6 — le spike du client LSP prouve LSP4J 1.0.0 contre le serveur réel (2026-11-08)
 
 - **ADR-015 : LSP4J 1.0.0 derrière la frontière `lsp-lsp4j`**. Le spike lance
