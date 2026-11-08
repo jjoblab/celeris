@@ -1,0 +1,10 @@
+== Spike lsp4j × LemMinX 0.31.2 (M7.6) ==
+lsp4j chargé : file:/home/z/my-project/celeris/spikes/lsp4j/libs/lsp4j-jsonrpc-0.24.0.jar
+serveur : file:/home/z/my-project/celeris/demo/libs/serveur-xml-0.31.2.jar
+initialize : 130 ms — capacités présentes : true
+publishDiagnostics : 1 diagnostic(s) (le document a une frappe inachevée)
+completion : 62 ms — 1 item(s), 1 documenté(s)
+hover : 9 ms — contenu : Le nom de l'exemple.
+shutdown : 1 ms
+AU TOTAL depuis le lancement : 567 ms
+SPIKE OK : poignée de main, diagnostics poussés, complétion, survol et extinction passent sur cette version de lsp4j
