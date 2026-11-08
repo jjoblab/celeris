@@ -12,56 +12,124 @@ import java.util.function.IntConsumer;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Le panneau à rangées de texte des popups (M7.5, §7, reprise) : les
- * contenus verticaux — complétion, documentation, signature,
- * intentions, info-bulle — partagent la même rangée : un texte, une
- * encre, une bande de surlignage, un tronçon souligné (le paramètre
- * courant de l'aide aux paramètres). L'appui sur une rangée prévient
- * l'hôte : la sélection d'un candidat ou d'une intention.
+ * Le panneau à rangées de texte des popups (portage du rendu du dépôt
+ * de départ) : les contenus verticaux — complétion, documentation,
+ * signature, intentions, info-bulle — partagent la rangée typée du kit
+ * : un texte, une encre, un palier typographique
+ * ({@link Tier}), une bande de surlignage (la teinte de sélection,
+ * encadrée à un pixel comme au dépôt de départ), une bande teintée
+ * douce (les signatures de la documentation) et un filet de séparation
+ * devant la rangée qui l'arme. L'appui sur une rangée prévient l'hôte
+ * : la sélection d'un candidat ou d'une intention.
  */
 abstract class TextRowsPopup extends PopupPanel {
 
+    /** Les paliers typographiques d'une rangée (l'échelle du kit). */
+    protected enum Tier {
+        /** Titre de carte / libellé principal. */
+        TITRE,
+        /** Corps de texte. */
+        CORPS,
+        /** Méta — détail, conteneur. */
+        META,
+        /** Micro-typographie — compteur, légende. */
+        MICRO
+    }
+
+    /** La respiration d'une indentation de rangée, en dp (le motif
+     *  PARAM du dépôt de départ). */
+    private static final float INDENT_DP = 8f;
+
     /**
      * Une rangée : son texte, son encre (—1 pour l'encre du panneau),
-     * son tronçon souligné (début inclusif, fin exclusive, —1 pour
-     * aucun).
+     * son palier, sa bande teintée, son filet de tête et son
+     * indentation éventuelle.
      */
-    protected record Row(String text, int ink, int underlineStart,
-            int underlineEnd) {
+    protected record Row(String text, int ink, Tier tier, boolean teintee,
+            boolean filetAvant, boolean indentee) {
 
         static Row of(String text) {
-            return new Row(text, -1, -1, -1);
+            return new Row(text, -1, Tier.CORPS, false, false, false);
         }
 
         static Row of(String text, int ink) {
-            return new Row(text, ink, -1, -1);
+            return new Row(text, ink, Tier.CORPS, false, false, false);
+        }
+
+        /** Une rangée à palier explicite. */
+        static Row tier(String text, int ink, Tier tier) {
+            return new Row(text, ink, tier, false, false, false);
+        }
+
+        /** Une rangée sur bande teintée douce (le motif signature). */
+        static Row teintee(String text, int ink, Tier tier) {
+            return new Row(text, ink, tier, true, false, false);
+        }
+
+        /** Une rangée indentée (le motif PARAM du dépôt de départ). */
+        static Row indentee(String text, int ink, Tier tier) {
+            return new Row(text, ink, tier, false, false, true);
+        }
+
+        /** La même rangée, précédée d'un filet de séparation. */
+        static Row apresFilet(Row rangee) {
+            return new Row(rangee.text(), rangee.ink(), rangee.tier(),
+                    rangee.teintee(), true, rangee.indentee());
         }
     }
 
-    /** La respiration entre rangées, en dp. */
-    private static final float ECART_DP = 3f;
-
     private final List<Row> rows = new ArrayList<>();
+    /** La hauteur de chaque rangée posée — les paliers diffèrent. */
+    private final List<Integer> hauteurs = new ArrayList<>();
+    /** L'écart de respiration entre rangées, en pixels. */
     private final int ecartPx;
-    /** La rangée surlignée (bande d'accent) — —1 pour aucune. */
+    /** L'indentation des rangées PARAM, en pixels. */
+    private final int indentPx;
+    /** La rangée surlignée (bande de teinte de sélection) — —1 pour aucune. */
     private int highlighted = -1;
     private @Nullable IntConsumer onPick;
 
     TextRowsPopup(Context context, PopupPalette palette) {
         super(context, palette);
-        this.ecartPx = Math.round(ECART_DP
-                * getResources().getDisplayMetrics().density);
+        float densite = getResources().getDisplayMetrics().density;
+        this.ecartPx = Math.round(PopupTokens.ECART_DP * densite);
+        this.indentPx = Math.round(INDENT_DP * densite);
     }
 
     /** Pose les rangées — le panneau se redimensionne et se redessine. */
     protected final void setRows(List<Row> nouvelles) {
         rows.clear();
         rows.addAll(nouvelles);
+        hauteurs.clear();
+        for (Row rangee : rows) {
+            Paint.FontMetrics metriques = metriquesDe(rangee.tier());
+            hauteurs.add(Math.round(metriques.bottom - metriques.top
+                    + ecartPx));
+        }
         requestLayout();
         invalidate();
     }
 
-    /** La rangée surlignée (bande d'accent), —1 pour aucune. */
+    /** Les métriques du pinceau posé au palier donné. */
+    private Paint.FontMetrics metriquesDe(Tier tier) {
+        textPaint().setTextSize(tailleTexte(facteurDe(tier)));
+        return textPaint().getFontMetrics();
+    }
+
+    /** Le facteur d'échelle d'un palier. */
+    private static float facteurDe(Tier tier) {
+        return switch (tier) {
+            case TITRE -> PopupTokens.TEXTE_TITRE;
+            case CORPS -> PopupTokens.TEXTE_CORPS;
+            case META -> PopupTokens.TEXTE_META;
+            case MICRO -> PopupTokens.TEXTE_MICRO;
+        };
+    }
+
+    /**
+     * La rangée surlignée (bande de teinte de sélection), —1 pour
+     * aucune.
+     */
     protected final void setHighlighted(int index) {
         highlighted = index;
         invalidate();
@@ -74,42 +142,52 @@ abstract class TextRowsPopup extends PopupPanel {
 
     @Override
     void drawContent(Canvas canvas) {
-        float ligne = -textPaint().getFontMetrics().top;
-        Paint pinceau = textPaint();
+        float y = 0f;
         for (int i = 0; i < rows.size(); i++) {
             Row rangee = rows.get(i);
+            int hauteur = hauteurs.get(i);
+            if (rangee.filetAvant()) {
+                tracerFilet(canvas, y);
+                y += ecartPx;
+            }
+            if (rangee.teintee()) {
+                dessinerBande(canvas, y, hauteur + ecartPx,
+                        palette.selection());
+            }
             if (i == highlighted) {
-                pinceau.setColor(palette.accent());
-                canvas.drawRect(-paddingPx, ligne - rowHeightPx,
-                        contentWidth() + paddingPx, ligne + ecartPx, pinceau);
+                dessinerBande(canvas, y, hauteur,
+                        palette.selection());
             }
-            pinceau.setColor(rangee.ink() < 0 ? palette.text() : rangee.ink());
-            canvas.drawText(rangee.text(), 0f, ligne, pinceau);
-            if (rangee.underlineEnd() > rangee.underlineStart()) {
-                drawUnderline(canvas, rangee, ligne);
-            }
-            ligne += rowHeightPx + ecartPx;
+            textPaint().setTextSize(tailleTexte(facteurDe(rangee.tier())));
+            textPaint().setColor(
+                    rangee.ink() < 0 ? palette.text() : rangee.ink());
+            Paint.FontMetrics metriques = textPaint().getFontMetrics();
+            float ligne = y - metriques.top;
+            float x = rangee.indentee() ? indentPx : 0f;
+            canvas.drawText(rangee.text(), x, ligne, textPaint());
+            y += hauteur;
         }
     }
 
-    private void drawUnderline(Canvas canvas, Row rangee, float ligne) {
-        Paint pinceau = textPaint();
-        pinceau.setColor(palette.accent());
-        float debut = pinceau.measureText(rangee.text(), 0,
-                Math.max(0, rangee.underlineStart()));
-        float fin = pinceau.measureText(rangee.text(), 0,
-                Math.min(rangee.text().length(), rangee.underlineEnd()));
-        float bas = ligne + Math.round(pinceau.getFontMetrics().bottom * 0.4f);
-        canvas.drawRect(debut, bas, fin, bas + Math.max(2f,
-                pinceau.getStrokeWidth() + 1f), pinceau);
+    /**
+     * La bande pleine largeur, encadrée à un pixel (le motif du dépôt
+     * de départ : la bande vit sous le clip arrondi de la carte).
+     */
+    private void dessinerBande(Canvas canvas, float y, float hauteur,
+            int couleur) {
+        bandPaint().setColor(couleur);
+        canvas.drawRect(-paddingPx + 1f, y,
+                contentWidth() + paddingPx - 1f, y + hauteur, bandPaint());
     }
 
     @Override
     int contentWidth() {
         float largeur = 0f;
         for (Row rangee : rows) {
+            textPaint().setTextSize(tailleTexte(facteurDe(rangee.tier())));
             largeur = Math.max(largeur,
-                    textPaint().measureText(rangee.text()));
+                    (rangee.indentee() ? indentPx : 0f)
+                            + textPaint().measureText(rangee.text()));
         }
         return Math.round(largeur);
     }
@@ -119,7 +197,14 @@ abstract class TextRowsPopup extends PopupPanel {
         if (rows.isEmpty()) {
             return 0;
         }
-        return rows.size() * rowHeightPx + (rows.size() - 1) * ecartPx;
+        int hauteur = 0;
+        for (int i = 0; i < rows.size(); i++) {
+            hauteur += hauteurs.get(i);
+            if (rows.get(i).filetAvant()) {
+                hauteur += ecartPx;
+            }
+        }
+        return hauteur;
     }
 
     /** Le nombre de rangées courantes — lisibilité des sous-classes. */
@@ -127,18 +212,37 @@ abstract class TextRowsPopup extends PopupPanel {
         return rows.size();
     }
 
-    /** L'ordonnée du CENTRE de la rangée donnée, respiration comprise
-     *  — les bancs y visent leur appui. */
+    /**
+     * L'ordonnée du CENTRE de la rangée donnée, respirations comprises
+     * — les bancs y visent leur appui.
+     */
     final float rowCenterY(int index) {
-        return paddingPx + index * (rowHeightPx + ecartPx)
-                + rowHeightPx / 2f;
+        if (hauteurs.isEmpty()) {
+            return paddingYPx;
+        }
+        float y = 0f;
+        for (int i = 0; i < index && i < hauteurs.size(); i++) {
+            y += hauteurs.get(i);
+            if (rows.get(i).filetAvant()) {
+                y += ecartPx;
+            }
+        }
+        return y + hauteurs.get(Math.min(index, hauteurs.size() - 1)) / 2f;
     }
 
     /** La rangée visée par l'ordonnée donnée, —1 si hors contenu. */
     private int rowAt(float y) {
-        int pas = rowHeightPx + ecartPx;
-        int index = (int) Math.floor(y / pas);
-        return index >= 0 && index < rows.size() ? index : -1;
+        float curseur = 0f;
+        for (int i = 0; i < rows.size(); i++) {
+            if (rows.get(i).filetAvant()) {
+                curseur += ecartPx;
+            }
+            if (y >= curseur && y < curseur + hauteurs.get(i)) {
+                return i;
+            }
+            curseur += hauteurs.get(i);
+        }
+        return -1;
     }
 
     @Override
@@ -146,7 +250,7 @@ abstract class TextRowsPopup extends PopupPanel {
         if (event.getActionMasked() != MotionEvent.ACTION_UP || onPick == null) {
             return event.getActionMasked() == MotionEvent.ACTION_DOWN;
         }
-        int index = rowAt(event.getY() - paddingPx);
+        int index = rowAt(event.getY() - paddingYPx);
         if (index >= 0) {
             onPick.accept(index);
             performClick();

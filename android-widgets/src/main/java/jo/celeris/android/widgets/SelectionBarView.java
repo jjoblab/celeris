@@ -12,9 +12,10 @@ import java.util.List;
  * La barre de sélection (M7.5, §7, reprise) : les actions de la
  * sélection en pastilles horizontales — couper, copier, coller, tout
  * sélectionner — centrée AU-DESSUS de la sélection, l'appui exécute.
- * Cède à la frappe (la frappe remplace la sélection), survit au
- * défilement ; jamais de focus (PIEGE-27), le clavier reste à
- * l'éditeur.
+ * La pastille se surligne à l'appui de la teinte de sélection, les
+ * séparateurs restent des filets hairline. Cède à la frappe (la
+ * frappe remplace la sélection), survit au défilement ; jamais de
+ * focus (PIEGE-27), le clavier reste à l'éditeur.
  */
 public final class SelectionBarView extends PopupPanel {
 
@@ -28,6 +29,8 @@ public final class SelectionBarView extends PopupPanel {
     private final List<Item> actions = new ArrayList<>();
     private final List<Float> finsDePuce = new ArrayList<>();
     private final int ecartPx;
+    /** La pastille sous le doigt, —1 hors appui. */
+    private int pressee = -1;
 
     public SelectionBarView(Context context, PopupPalette palette) {
         super(context, palette);
@@ -44,6 +47,7 @@ public final class SelectionBarView extends PopupPanel {
         actions.clear();
         actions.addAll(items);
         finsDePuce.clear();
+        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_TITRE));
         float curseur = 0f;
         for (Item item : items) {
             curseur += textPaint().measureText(item.label());
@@ -56,9 +60,20 @@ public final class SelectionBarView extends PopupPanel {
 
     @Override
     void drawContent(Canvas canvas) {
+        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_TITRE));
         float ligne = -textPaint().getFontMetrics().top;
         float x = 0f;
         for (int i = 0; i < actions.size(); i++) {
+            if (i == pressee) {
+                bandPaint().setColor(palette.selection());
+                canvas.drawRoundRect(x - 4f, ligne - rowHeightPx,
+                        finsDePuce.get(i) + 4f, ligne,
+                        PopupTokens.RAYON_RANGEE_DP
+                                * getResources().getDisplayMetrics().density,
+                        PopupTokens.RAYON_RANGEE_DP
+                                * getResources().getDisplayMetrics().density,
+                        bandPaint());
+            }
             textPaint().setColor(palette.text());
             canvas.drawText(actions.get(i).label(), x, ligne, textPaint());
             x = finsDePuce.get(i) + ecartPx;
@@ -85,7 +100,7 @@ public final class SelectionBarView extends PopupPanel {
 
     /** L'ordonnée du centre du contenu — les bancs y visent. */
     float centerY() {
-        return paddingPx + rowHeightPx / 2f;
+        return paddingYPx + rowHeightPx / 2f;
     }
 
     /** L'index de la pastille visée par l'abscisse, —1 si hors barre. */
@@ -100,10 +115,17 @@ public final class SelectionBarView extends PopupPanel {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            pressee = chipAt(event.getX() - paddingPx);
+            invalidate();
+            return true;
+        }
         if (event.getActionMasked() != MotionEvent.ACTION_UP) {
-            return event.getActionMasked() == MotionEvent.ACTION_DOWN;
+            return false;
         }
         int index = chipAt(event.getX() - paddingPx);
+        pressee = -1;
+        invalidate();
         if (index >= 0 && index < actions.size()) {
             actions.get(index).action().run();
             performClick();

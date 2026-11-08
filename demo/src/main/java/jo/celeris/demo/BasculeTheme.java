@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
+import java.util.function.Consumer;
+
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorThemes;
 import jo.celeris.android.view.EditorView;
@@ -28,6 +30,8 @@ final class BasculeTheme {
     private final AppCompatActivity activite;
     private final EditorView editeur;
     private final SharedPreferences prefs;
+    /** Le rappel de changement — l'atelier des popups y redérive sa palette. */
+    private @org.jspecify.annotations.Nullable Consumer<EditorTheme> surChangement;
 
     /**
      * Construit la bascule de thème.
@@ -48,9 +52,32 @@ final class BasculeTheme {
         return Math.min(Math.max(prefs.getInt(CLE, 0), 0), THEMES.length - 1);
     }
 
+    /** Le thème courant — l'atelier des popups en dérive sa palette. */
+    EditorTheme themeCourant() {
+        return THEMES[indexCourant()];
+    }
+
+    /**
+     * Le rappel de changement de thème — invoqué après chaque
+     * application (initiale comprise) avec le thème posé.
+     *
+     * @param rappel le consommateur de thème, null pour couper
+     */
+    void setSurChangement(
+            @org.jspecify.annotations.Nullable Consumer<EditorTheme> rappel) {
+        surChangement = rappel;
+    }
+
+    private void notifier(EditorTheme theme) {
+        if (surChangement != null) {
+            surChangement.accept(theme);
+        }
+    }
+
     /** Applique le thème persisté — l'image suivante s'y habille. */
     void appliquer() {
-        editeur.setTheme(THEMES[indexCourant()]);
+        editeur.setTheme(themeCourant());
+        notifier(themeCourant());
         majTitre();
     }
 
@@ -59,6 +86,7 @@ final class BasculeTheme {
         int suivant = (indexCourant() + 1) % THEMES.length;
         prefs.edit().putInt(CLE, suivant).apply();
         editeur.setTheme(THEMES[suivant]);
+        notifier(THEMES[suivant]);
         majTitre();
     }
 

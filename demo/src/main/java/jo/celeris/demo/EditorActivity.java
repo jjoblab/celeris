@@ -267,7 +267,11 @@ public final class EditorActivity extends AppCompatActivity {
         // les dix popups, la machine à états décide qui reste ouvert.
         PopupLayer couche = findViewById(R.id.couche_popups);
         atelierPopups = new AtelierPopups(editeur, session, couche,
-                basculeTheme.indexCourant() != 0);
+                basculeTheme.themeCourant(),
+                prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
+        // Le thème tourne : la palette des popups suit (le verre du
+        // dépôt de départ se dérive du fond de l'éditeur).
+        basculeTheme.setSurChangement(atelierPopups::surTheme);
         atelierPopups.setNomFichier(nomFichier);
         atelierPopups.configurerIntentions(intentionsAuCurseur());
         atelierPopups.brancherServeur(serveurLangage,
@@ -301,6 +305,10 @@ public final class EditorActivity extends AppCompatActivity {
         editeur.setSoftWrap(prefs.getBoolean(CLE_RETOUR, false));
         editeur.setFont(new FontSpec("mono",
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)));
+        if (atelierPopups != null) {
+            atelierPopups.surTailleTexte(
+                    prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
+        }
         // M7.5, §9 — la retenue d'analyse et la surimpression de
         // diagnostic, depuis les préférences.
         sceneReglages.appliquer(prefs);
@@ -317,6 +325,9 @@ public final class EditorActivity extends AppCompatActivity {
         float bornee = Math.min(Math.max(courante + pas, TAILLE_MIN), TAILLE_MAX);
         prefs.edit().putFloat(CLE_TAILLE, bornee).apply();
         editeur.setFont(new FontSpec("mono", bornee));
+        if (atelierPopups != null) {
+            atelierPopups.surTailleTexte(bornee);
+        }
     }
 
     private void rejouer(boolean enAvant) {

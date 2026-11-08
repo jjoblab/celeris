@@ -2,12 +2,13 @@ package jo.celeris.demo;
 
 import android.graphics.Rect;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.GraviteDiagnostic;
+import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorView;
+import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.android.widgets.BreadcrumbView;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
@@ -26,7 +27,6 @@ import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.android.widgets.SignatureHelpView;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.OutlineEntry;
-import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
@@ -64,6 +64,11 @@ final class AtelierPopups {
     private final ErrorBandView bandeErreurs;
     private final SelectionBarView barreSelection;
 
+    /** Le thème courant — la palette des popups en dérive, le rafraîchissement la suit. */
+    private EditorTheme theme;
+    /** La taille de texte de l'éditeur, en sp — la typographie des popups s'y accorde. */
+    private float tailleTexteSp;
+
     private List<OutlineEntry> plan = List.of();
     private List<DiagnosticHote> diagnostics = List.of();
     private List<IntentionsMenuView.Item> intentions = List.of();
@@ -82,23 +87,26 @@ final class AtelierPopups {
     private boolean acceptationEnCours;
 
     /**
-     * Construit l'atelier : les vues naissent avec la palette du thème
-     * courant, les écouteurs de la session et de la fenêtre y courtent.
+     * Construit l'atelier : les vues naissent avec la palette dérivée
+     * du thème d'éditeur courant (le verre du dépôt de départ), les
+     * écouteurs de la session et de la fenêtre y courtent.
      *
-     * @param editeur la vue d'éditeur ouverte
-     * @param session la session d'édition courante
-     * @param couche  la couche porte-popups posée sur l'éditeur
-     * @param sombre  vrai pour la palette sombre du thème courant
+     * @param editeur      la vue d'éditeur ouverte
+     * @param session      la session d'édition courante
+     * @param couche       la couche porte-popups posée sur l'éditeur
+     * @param theme        le thème d'éditeur courant
+     * @param tailleTexteSp la taille de texte de l'éditeur, en sp
      */
     AtelierPopups(EditorView editeur, TextSession session, PopupLayer couche,
-            boolean sombre) {
+            EditorTheme theme, float tailleTexteSp) {
         this.editeur = editeur;
         this.session = session;
         this.couche = couche;
+        this.theme = theme;
+        this.tailleTexteSp = tailleTexteSp;
         this.margePx = Math.round(MARGE_DP
                 * couche.getResources().getDisplayMetrics().density);
-        PopupPalette palette = sombre ? PopupPalette.dark()
-                : PopupPalette.light();
+        PopupPalette palette = paletteDe(theme, tailleTexteSp);
         listeCompletion = new CompletionListView(couche.getContext(), palette);
         docCompletion = new CompletionDocView(couche.getContext(), palette);
         aideSignature = new SignatureHelpView(couche.getContext(), palette);
@@ -113,6 +121,50 @@ final class AtelierPopups {
         session.addEditListener((debut, fin, retire, insere) -> surEdition());
         session.addSelectionListener(this::surSelection);
         editeur.setSurViewportChange(this::surFenetre);
+    }
+
+    /**
+     * Le thème tourne : la palette des popups se redérive — le verre
+     * suit le fond de l'éditeur, les encres suivent le thème, les
+     * panneaux ouverts se redessinent.
+     *
+     * @param nouveau le thème d'éditeur appliqué
+     */
+    void surTheme(EditorTheme nouveau) {
+        theme = nouveau;
+        rafraichirPalette();
+    }
+
+    /**
+     * La taille de texte de l'éditeur change : la typographie des
+     * popups s'y accorde (l'échelle du kit dérive de la base).
+     *
+     * @param tailleSp la nouvelle taille, en sp
+     */
+    void surTailleTexte(float tailleSp) {
+        tailleTexteSp = tailleSp;
+        rafraichirPalette();
+    }
+
+    private void rafraichirPalette() {
+        PopupPalette palette = paletteDe(theme, tailleTexteSp);
+        listeCompletion.setPalette(palette);
+        docCompletion.setPalette(palette);
+        aideSignature.setPalette(palette);
+        menuIntentions.setPalette(palette);
+        infoBulle.setPalette(palette);
+        filAriane.setPalette(palette);
+        bandeErreurs.setPalette(palette);
+        barreSelection.setPalette(palette);
+    }
+
+    /** La palette dérivée du thème d'éditeur (le verre du dépôt de départ). */
+    private static PopupPalette paletteDe(EditorTheme theme,
+            float tailleTexteSp) {
+        return PopupPalette.verre(theme.backgroundColor(),
+                theme.baseTextColor(), theme.gutterTextColor(),
+                theme.selectionColor(), theme.cursorColor(),
+                theme.syntaxe().couleur(TokenKind.KEYWORD), tailleTexteSp);
     }
 
     /** Les intentions du menu — l'activité les fournit, libellés compris. */
@@ -164,22 +216,26 @@ final class AtelierPopups {
     }
 
     /**
-     * Ouvre ou filtre la complétion au curseur : les candidats du
+     * Ouvre ou filtre la complétion au curseur : les candidats TYPÉS du
      * CONCENTRATEUR — les mots du code par l'analyseur, le coach en
-     * repli —, le premier surligné ; la documentation du premier
-     * candidat connu suit sa liste. Sans candidat, la liste se ferme.
+     * repli — gagnent leur genre de badge et leur identité qualifiée,
+     * le préfixe tapé surligne ses runs, le premier candidat reste le
+     * courant ; la documentation du premier candidat connu suit sa
+     * liste. Sans candidat, la liste se ferme.
      */
     void basculerCompletion() {
-        List<String> candidats = editeur.intelligence()
+        List<String> bruts = editeur.intelligence()
                 .completionCandidates(PopupCoach.motsReserves());
-        if (candidats.isEmpty()) {
+        if (bruts.isEmpty()) {
             fermer(PopupController.PopupKind.COMPLETION_LIST);
             return;
         }
         controleur.open(PopupController.PopupKind.COMPLETION_LIST);
-        listeCompletion.setItems(candidats);
+        listeCompletion.setItems(PopupCoach.candidats(bruts));
+        listeCompletion.setPrefix(PopupCoach.prefixeCourant(
+                session.document(), caret()));
         placerCompletion();
-        CompletionDocModel doc = PopupCoach.docFor(candidats.get(0));
+        CompletionDocModel doc = PopupCoach.docFor(bruts.get(0));
         if (doc != null) {
             controleur.open(PopupController.PopupKind.COMPLETION_DOC);
             docCompletion.setModel(doc);
@@ -343,8 +399,11 @@ final class AtelierPopups {
             return;
         }
         controleur.open(PopupController.PopupKind.ERROR_BAND);
-        bandeErreurs.setModel(ErrorBandModel.of(issues(), session.document(),
-                CRANS_BANDE), CRANS_BANDE);
+        bandeErreurs.setModel(ErrorBandModel.of(
+                PopupCoach.issues(diagnostics, nomDuFichier,
+                        session.document()),
+                PopupCoach.gravites(diagnostics, nomDuFichier),
+                session.document(), CRANS_BANDE), CRANS_BANDE);
         bandeErreurs.setSpanPx(Math.max(1, hauteurCouche() - 2 * margePx));
         PopupPlacer.Cadre placee = PopupAnchor.rightEdge(taille(bandeErreurs),
                 largeurCouche(), hauteurCouche(), margePx);
@@ -482,18 +541,6 @@ final class AtelierPopups {
     /** Pose le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     void setNomFichier(String nom) {
         nomDuFichier = nom;
-    }
-
-    private List<SyntaxIssue> issues() {
-        List<SyntaxIssue> issues = new ArrayList<>();
-        for (DiagnosticHote diagnostic : diagnostics) {
-            if (diagnostic.chemin().nom().equals(nomDuFichier)) {
-                int ligne = Math.max(0, diagnostic.ligne() - 1);
-                int debut = session.document().lineStart(ligne);
-                issues.add(new SyntaxIssue(debut, 1, diagnostic.message()));
-            }
-        }
-        return issues;
     }
 
     private int largeurCouche() {
