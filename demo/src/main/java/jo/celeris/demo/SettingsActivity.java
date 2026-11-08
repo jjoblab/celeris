@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,20 +14,29 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.slider.Slider;
+
+import jo.celeris.android.view.EditorView;
 
 /**
- * Écran de réglages en direct : trois interrupteurs Material — numéros
- * de ligne, retour souple, thème sombre de l'éditeur — chacun décrit et
- * persisté immédiatement (SharedPreferences) ; l'écran d'éditeur
- * réapplique tout à son retour. Le thème sombre se lit dans l'index de
- * thème de l'éditeur (1 = sombre). Libellés en ressources
- * {@code en}/{@code fr} complètes (ADR-008).
+ * Écran de réglages en direct : cinq interrupteurs et un curseur
+ * Material — numéros de ligne, retour souple, thème sombre de
+ * l'éditeur, consentement IA, lenteur d'analyse et surimpression de
+ * diagnostic — chacun décrit et persisté immédiatement
+ * (SharedPreferences) ; l'écran d'éditeur réapplique tout à son
+ * retour. Le thème sombre se lit dans l'index de thème de l'éditeur
+ * (1 = sombre). Libellés en ressources {@code en}/{@code fr}
+ * complètes (ADR-008).
  */
 public final class SettingsActivity extends AppCompatActivity {
 
     private static final String CLE_NUMEROS = "gouttiere.numeros";
     private static final String CLE_RETOUR = "retour.souple";
     private static final String CLE_THEME = "theme.index";
+    /** Le délai de retenue d'analyse, en millisecondes (M7.5, §9). */
+    public static final String CLE_RETENU = "analyse.retenuMs";
+    /** La surimpression de diagnostic, coupée par défaut (M7.5, §9). */
+    public static final String CLE_SURIMPRESSION = "scene.surimpression";
 
     @Override
     protected void onCreate(Bundle etat) {
@@ -49,6 +59,9 @@ public final class SettingsActivity extends AppCompatActivity {
         interrupteur(R.id.interrupteur_ia, prefs,
                 prefs.getBoolean(AtelierIA.CLE_CONSENTEMENT, false),
                 AtelierIA.CLE_CONSENTEMENT);
+        curseurLenteur(prefs);
+        interrupteur(R.id.interrupteur_surimpression, prefs,
+                prefs.getBoolean(CLE_SURIMPRESSION, false), CLE_SURIMPRESSION);
         appliquerBordABord();
     }
 
@@ -64,6 +77,32 @@ public final class SettingsActivity extends AppCompatActivity {
         vue.setChecked(prefs.getInt(CLE_THEME, 0) == 1);
         vue.setOnCheckedChangeListener((interrupteur, coche) -> prefs.edit()
                 .putInt(CLE_THEME, coche ? 1 : 0).apply());
+    }
+
+    /**
+     * Le curseur de lenteur d'analyse (M7.5, §9) : de zéro (immédiat)
+     * à six cents millisecondes par crans de cinquante — la valeur se
+     * persiste en entier, l'étiquette la dit en direct.
+     *
+     * @param prefs les préférences de la démonstration
+     */
+    private void curseurLenteur(SharedPreferences prefs) {
+        Slider curseur = findViewById(R.id.curseur_lenteur);
+        TextView valeur = findViewById(R.id.valeur_lenteur);
+        int retenu = (int) Math.min(curseur.getValueTo(),
+                Math.max(0L, prefs.getLong(CLE_RETENU,
+                        EditorView.DELAI_RETENU_PAR_DEFAUT_MS)));
+        // le cran le plus proche du réglage persisté
+        int pas = (int) curseur.getStepSize();
+        curseur.setValue((float) Math.round(retenu / (float) pas) * pas);
+        valeur.setText(getString(R.string.unite_ms, retenu));
+        curseur.setLabelFormatter(valeurMs ->
+                getString(R.string.unite_ms, (int) valeurMs));
+        curseur.addOnChangeListener((slider, nouvelle, parUtilisateur) -> {
+            int ms = (int) nouvelle;
+            prefs.edit().putLong(CLE_RETENU, ms).apply();
+            valeur.setText(getString(R.string.unite_ms, ms));
+        });
     }
 
     /**

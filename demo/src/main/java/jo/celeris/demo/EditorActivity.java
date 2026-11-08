@@ -95,6 +95,9 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierSelection atelierSelection;
     /** La session de langage — serveur de référence en processus (M7.5, §8). */
     private ServeurLangage serveurLangage;
+    /** La surimpression de diagnostic (M7.5, §9) — la ligne de vérité
+     *  du rendu sur la scène. */
+    private DiagnosticOverlay surimpression;
     private List<OutlineEntry> entreesPlan = List.of();
     private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
 
@@ -133,6 +136,15 @@ public final class EditorActivity extends AppCompatActivity {
         super.onResume();
         // Les réglages ont pu changer pendant la pause : réappliquer.
         appliquerPreferences();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // La boucle de la surimpression se repose en coulisses.
+        if (surimpression != null) {
+            surimpression.arreter();
+        }
     }
 
     @Override
@@ -290,6 +302,24 @@ public final class EditorActivity extends AppCompatActivity {
         editeur.setSoftWrap(prefs.getBoolean(CLE_RETOUR, false));
         editeur.setFont(new FontSpec("mono",
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)));
+        // M7.5, §9 — le réglage de lenteur livré : la retenue d'analyse
+        // se relit à chaque retour des réglages, à chaud.
+        editeur.setRetenueAnalyseMs(prefs.getLong(
+                SettingsActivity.CLE_RETENU,
+                EditorView.DELAI_RETENU_PAR_DEFAUT_MS));
+        // M7.5, §9 — la surimpression de diagnostic, sur demande.
+        TextView ligne = findViewById(R.id.surimpression);
+        boolean montrer = prefs.getBoolean(SettingsActivity.CLE_SURIMPRESSION,
+                false);
+        ligne.setVisibility(montrer ? View.VISIBLE : View.GONE);
+        if (surimpression == null) {
+            surimpression = new DiagnosticOverlay(editeur, ligne);
+        }
+        if (montrer) {
+            surimpression.demarrer();
+        } else {
+            surimpression.arreter();
+        }
         LanguageSyntax langue = FichiersExemple.languePour(nomFichier);
         editeur.setLanguage(langue);
         etiquetteLangue.setText(langue == null ? nomFichier : langue.id());

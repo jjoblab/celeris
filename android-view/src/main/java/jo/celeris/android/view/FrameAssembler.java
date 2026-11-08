@@ -51,6 +51,9 @@ final class FrameAssembler {
                 vue.projection, document.revision(), vue.metrics, vue.theme,
                 premiere, visibles, vue.largeurGouttiere, vue.scrollX,
                 vue.scrollY);
+        // L'attente de couleur (M7.5, §9) : une publication existe —
+        // une rangée sans couleur se comptera comme décolorée.
+        vue.etatImage.attendCouleur(vue.syntaxe.couleurAttendue());
         // L'avis de fenêtre (M7.5, §7) : les popups se repositionnent
         // au changement réel — le clignotement ne notifie jamais.
         vue.fenetre.review(vue.scrollX, vue.scrollY, vue.largeurGouttiere,

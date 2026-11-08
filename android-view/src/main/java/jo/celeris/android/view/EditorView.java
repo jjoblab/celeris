@@ -69,6 +69,10 @@ public final class EditorView extends View {
     static final FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
     /** La respiration du dévoilement de curseur, en dp (M7.5, §5). */
     static final float MARGE_RETOUR_DP = 8f;
+    /** Le délai de retenue d'analyse par défaut (M7.5, §9 — le réglage
+     *  de lenteur livré) : la frappe rapide ne paie plus une passe par
+     *  caractère, la publication arrive au calme du doigt. */
+    public static final long DELAI_RETENU_PAR_DEFAUT_MS = 250L;
 
     private final AndroidFontRuler regle = new AndroidFontRuler();
     private final CanvasSurface surface = new CanvasSurface();
@@ -141,6 +145,14 @@ public final class EditorView extends View {
     final TouchesEditeur touches = new TouchesEditeur(this);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
     final FantomeEditeur fantome;
+    /** L'exécuteur RETENU du travail d'analyse (M7.5, §9) — null quand
+     *  l'hôte a injecté le sien : le réglage ne détourne jamais un
+     *  exécuteur étranger. */
+    private final @Nullable RetainedExecutor retenueAnalyse;
+    /** Le compteur d'images décolorées (M7.5, §9 — la surimpression
+     *  de diagnostic s'y abbreuve) : une image y entre quand une
+     *  rangée qui AVAIT sa couleur trace à l'encre de base. */
+    private long imagesDecolorees;
 
     public EditorView(Context context) {
         this(context, null);
@@ -156,9 +168,19 @@ public final class EditorView extends View {
     EditorView(Context context, @Nullable AttributeSet attrs,
             @Nullable Executor executeurAnalyse) {
         super(context, attrs);
-        syntaxe = new EditorSyntax(plis,
-                executeurAnalyse != null ? executeurAnalyse
-                        : ExecuteurAnalyse.parDefaut());
+        Executor executeur = executeurAnalyse;
+        if (executeur == null) {
+            // M7.5, §9 : la retenue par défaut — l'hôte qui injecte son
+            // exécuteur garde la main entière, jamais détournée.
+            retenueAnalyse = new RetainedExecutor(
+                    ExecuteurAnalyse.parDefaut(),
+                    RetainedExecutor.daemonDelayer(),
+                    DELAI_RETENU_PAR_DEFAUT_MS);
+            executeur = retenueAnalyse;
+        } else {
+            retenueAnalyse = null;
+        }
+        syntaxe = new EditorSyntax(plis, executeur);
         setFocusable(true);
         setFocusableInTouchMode(true);
         syntaxe.setSurAnalysePrete(() -> {
@@ -206,6 +228,7 @@ public final class EditorView extends View {
         revisionSuivie = Long.MIN_VALUE;
         gouttiereEtat.reinitialiser();
         cache.clear();
+        imagesDecolorees = 0L;
         scrollX = 0f;
         scrollY = 0f;
         invalidate();
@@ -221,6 +244,7 @@ public final class EditorView extends View {
         revisionSuivie = Long.MIN_VALUE;
         gouttiereEtat.reinitialiser();
         cache.clear();
+        imagesDecolorees = 0L;
         invalidate();
     }
 
@@ -328,6 +352,58 @@ public final class EditorView extends View {
      */
     public void setSurViewportChange(@Nullable Runnable ecouteur) {
         fenetre.setListener(ecouteur);
+    }
+
+    /**
+     * Le réglage de lenteur d'analyse (M7.5, §9 — livré) : le délai de
+     * retenue de la publication, en millisecondes — zéro rend la main
+     * immédiate. L'hôte qui a injecté son propre exécuteur n'est
+     * jamais détourné : l'appel s'ignore, son exécuteur reste le sien.
+     *
+     * @param delaiMs le délai de retenue, en millisecondes
+     */
+    public void setRetenueAnalyseMs(long delaiMs) {
+        RetainedExecutor retenue = retenueAnalyse;
+        if (retenue != null) {
+            retenue.setDelayMs(delaiMs);
+        }
+    }
+
+    /**
+     * Le délai de retenue courant, en millisecondes — zéro quand la
+     * main est immédiate ou l'exécuteur injecté par l'hôte.
+     */
+    public long retenueAnalyseMs() {
+        RetainedExecutor retenue = retenueAnalyse;
+        return retenue == null ? 0L : retenue.delayMs();
+    }
+
+    /**
+     * La taille de police courante, en sp (M7.5, §9 — la surimpression
+     * de diagnostic s'y abbreuve).
+     */
+    public float fontSizeSp() {
+        return policeLogique.size();
+    }
+
+    /**
+     * La largeur de gouttière courante, en pixels (M7.5, §9 — la
+     * surimpression de diagnostic s'y abbreuve) ; l'état d'image se
+     * prépare d'abord, la valeur vit à l'image courante.
+     */
+    public float gutterWidth() {
+        preparerEtatImage();
+        return largeurGouttiere;
+    }
+
+    /**
+     * Le nombre d'images décolorées depuis l'ouverture (M7.5, §9) :
+     * chaque image y entre quand une rangée qui AVAIT sa couleur
+     * trace à l'encre de base — le rattrapage PIEGE-26 le garde à
+     * zéro, la surimpression le prouve en direct.
+     */
+    public long discoloredFrames() {
+        return imagesDecolorees;
     }
 
     /**
@@ -505,6 +581,11 @@ public final class EditorView extends View {
         preparerEtatImage();
         surface.attach(canvas);
         trace.drawFrame(surface, etatImage);
+        // M7.5, §9 : l'image qui a tracé une rangée sans couleur
+        // qu'elle possédait se compte — la surimpression le lit.
+        if (etatImage.imageDecoloree()) {
+            imagesDecolorees++;
+        }
         pinceauChrome.setFont(metrics.font());
         chrome.tracer(surface, pinceauChrome, theme, metrics, pilule,
                 etatImage.document(), projection, session.selection().ranges(),
