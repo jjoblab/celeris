@@ -7,6 +7,21 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### Le CI ne tombe plus sur le téléchargement d'android-all (2026-11-08)
+
+- **Le jar android-all de Robolectric arrive par résolution Gradle, plus
+  par HTTP au démarrage du test** : le résolveur intégré de Robolectric
+  téléchargeait son jar (199 Mo) sans reprise ni cache partagé — un
+  bridage transitoire de Maven Central (429) faisait tomber TOUTE la
+  suite de tests de vue au premier démarrage (initializationError sur
+  chaque classe, constaté en CI et en local). La convention Android
+  résout désormais le jar par Gradle (configuration `sdkRobolectric`,
+  reprises configurées et cache) et la tâche `robolectricDeps` écrit la
+  correspondance `robolectric-deps.properties` que Robolectric lit au
+  démarrage : plus aucun réseau au moment du test. La version vit au
+  catalogue (`robolectricAndroidAll`), épinglée sur robolectric.properties
+  (sdk 35) et Robolectric 4.15.1.
+
 ### M8.6 — le serveur de langage réel embarqué, la barre au menu de débordement et la complétion raisonnable (2026-11-08)
 
 - **La carte de complétion garde une taille raisonnable** (le

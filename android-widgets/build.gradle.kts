@@ -13,6 +13,11 @@ dependencies {
     // ADR-013 : les tests de vue de la couche de popups tournent sur
     // JVM via Robolectric — lanceur JUnit 4 porté par le moteur vintage.
     testImplementation(libs.robolectric)
+    // ADR-013 : le jar android-all du SDK 35 pour les tests de la couche
+    // de popups — résolu par Gradle via la configuration de la convention
+    // (tâche robolectricDeps), jamais téléchargé par Robolectric au
+    // démarrage du test (429 de Maven Central constatés le 2026-11-08).
+    "sdkRobolectric"(libs.robolectric.android.all)
     testImplementation(libs.junit4)
     testRuntimeOnly(libs.junit.vintage)
 }

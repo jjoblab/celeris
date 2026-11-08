@@ -26,6 +26,17 @@ pitestJunit5 = "1.2.3"
 # Jupiter, alignement du train de tests).
 junit4 = "4.13.2"
 robolectric = "4.15.1"
+# Étage SDK des tests de vue (ADR-013) : Robolectric télécharge le jar
+# android-all au premier démarrage du test, par HTTP direct et sans
+# reprise — un bridage transitoire de Maven Central (429 observé le
+# 2026-11-08, en CI comme en local) suffit à faire tomber TOUTE la suite
+# (initializationError sur chaque classe). Le jar est donc résolu par
+# Gradle (configuration sdkRobolectric de la convention Android : reprises
+# configurées, cache partagé) et la tâche robolectricDeps oriente
+# Robolectric vers le jar du cache — plus aucun réseau au démarrage du
+# test. Littéral aligné sur robolectric.properties (sdk=35) et
+# Robolectric 4.15.1 — vérifié sur Maven Central le 2026-11-08.
+robolectricAndroidAll = "15-robolectric-12650502-i7"
 # Publication (ADR-011 : SBOM)
 cyclonedx = "3.5.1"
 # Version de l'application de démonstration (non publiée) — toute
@@ -57,6 +68,9 @@ archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 junit-vintage = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+# Jar android-all du SDK des tests (voir la note de robolectricAndroidAll
+# ci-dessus) : testImplementation, jamais dans les artefacts publiés.
+robolectric-android-all = { module = "org.robolectric:android-all-instrumented", version.ref = "robolectricAndroidAll" }
 # Nullité en surface d'API (ADR-009) — annotations JSpecify
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 # Analyse statique javac (ADR-009 : Error Prone + NullAway)
