@@ -161,10 +161,14 @@ public class LongPressSelectionViewTest {
 
     /**
      * L'abscisse du bord gauche du caractère à l'offset donné — le quart
-     * gauche du glyphe, jamais son centre (PIEGE-06).
+     * gauche du glyphe, jamais son centre (PIEGE-06). L'état d'image se
+     * prépare D'ABORD : la première touche y passe par le fantôme, la
+     * gouttière y devient réelle — les coordonnées se calculent sur la
+     * MÊME gouttière que le test de visée.
      */
     private static float xDe(EditorTestRig banc, int offset) {
         EditorView vue = banc.vue();
+        vue.gutterWidth();
         return vue.largeurGouttiere + offset * vue.metrics.charWidth() + 1f;
     }
 }
