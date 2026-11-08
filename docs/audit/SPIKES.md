@@ -97,3 +97,31 @@ ce spike fixe le protocole (mesure par ligne, par fenêtre, distribution p50/p95
   le minimum de trois tours sont retenus.
 - La rope mesurée est celle du dépôt de départ, hors pipeline de session ;
   la chaîne complète sera budgétée à M2.
+
+## Spike M7.6 — moteur d'expressions rationnelles (ADR-014)
+
+Le jalon M7.6 rouvre la question du moteur que suppose le format TextMate.
+Le code vit dans `spikes/regex/` (grammaires réelles et bibliothèques
+ramenées par `spikes/regex/recuperer-grammaires`, jamais versionnées) ;
+les résultats bruts sont dans `spikes/regex/results/regex.txt` (et les
+avertissements du JDK, piécés à l'appui de la divergence silencieuse,
+dans `regex-avertissements.txt`).
+
+Reproduction :
+
+```bash
+./spikes/regex/recuperer-grammaires
+javac -cp demo/libs/serveur-xml-0.31.2.jar:spikes/regex/libs/joni-2.2.9.jar:spikes/regex/libs/jcodings-1.0.64.jar \
+    -d spikes/regex/out spikes/regex/SpikeRegex.java
+java -cp spikes/regex/out:demo/libs/serveur-xml-0.31.2.jar:spikes/regex/libs/joni-2.2.9.jar:spikes/regex/libs/jcodings-1.0.64.jar \
+    spike.regex.SpikeRegex
+```
+
+| Mesure (11 grammaires réelles, 3 700 motifs) | Traduction java.util.regex | joni 2.2.9 |
+| --- | --- | --- |
+| Compilation sans échec | 3 349 (91 %) | 3 670 (99 %) |
+| Réécritures silencieuses (sémantique changée) | 122 | 0 |
+| Temps, 40 motifs × 50 000 lignes, min de 3 tours | 50–2 778 ms | 73–3 304 ms (rapport 0,46× à 2,56×) |
+| Android statique (d8 + dexdump) | — | 615 Ko, 546 méthodes, zéro Unsafe |
+
+Décision : **ADR-014 — joni retenue.**
