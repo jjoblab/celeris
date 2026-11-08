@@ -1,0 +1,8 @@
+=== json ===
+json : analyse complète 268.2 ms (2544003 octets), erreur : non, fin à 2544003
+json : incrémental p50 16.536 ms, p95 18.882 ms, max 21.855 ms
+=== python ===
+python : analyse complète 131.7 ms (1043200 octets), erreur : non, fin à 1043200
+python : incrémental p50 33.684 ms, p95 60.883 ms, max 74.384 ms
+=== javascript ===
+TIMEOUT/échec sur javascript

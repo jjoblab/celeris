@@ -97,3 +97,92 @@ ce spike fixe le protocole (mesure par ligne, par fenêtre, distribution p50/p95
   le minimum de trois tours sont retenus.
 - La rope mesurée est celle du dépôt de départ, hors pipeline de session ;
   la chaîne complète sera budgétée à M2.
+
+## Spike M7.6 — moteur d'expressions rationnelles (ADR-014)
+
+Le jalon M7.6 rouvre la question du moteur que suppose le format TextMate.
+Le code vit dans `spikes/regex/` (grammaires réelles et bibliothèques
+ramenées par `spikes/regex/recuperer-grammaires`, jamais versionnées) ;
+les résultats bruts sont dans `spikes/regex/results/regex.txt` (et les
+avertissements du JDK, piécés à l'appui de la divergence silencieuse,
+dans `regex-avertissements.txt`).
+
+Reproduction :
+
+```bash
+./spikes/regex/recuperer-grammaires
+javac -cp demo/libs/serveur-retire.jar:spikes/regex/libs/joni-2.2.9.jar:spikes/regex/libs/jcodings-1.0.64.jar \
+    -d spikes/regex/out spikes/regex/SpikeRegex.java
+java -cp spikes/regex/out:demo/libs/serveur-retire.jar:spikes/regex/libs/joni-2.2.9.jar:spikes/regex/libs/jcodings-1.0.64.jar \
+    spike.regex.SpikeRegex
+```
+
+| Mesure (11 grammaires réelles, 3 700 motifs) | Traduction java.util.regex | joni 2.2.9 |
+| --- | --- | --- |
+| Compilation sans échec | 3 349 (91 %) | 3 670 (99 %) |
+| Réécritures silencieuses (sémantique changée) | 122 | 0 |
+| Temps, 40 motifs × 50 000 lignes, min de 3 tours | 50–2 778 ms | 73–3 304 ms (rapport 0,46× à 2,56×) |
+| Android statique (d8 + dexdump) | — | 615 Ko, 546 méthodes, zéro Unsafe |
+
+Décision : **ADR-014 — joni retenue.**
+
+## Spike M7.6 — client LSP sur LSP4J (ADR-015)
+
+Le harnais `spikes/lsp4j/SpikeLsp4j.java` lance serveur-retire 0.31.2 (l'archive
+découpée de M8.6) par le `LSPLauncher` de LSP4J sur des tubes à file
+(jamais les tubes du JDK — la leçon M8.6 sur la vivacité du fil écrivain),
+un lanceur par bout, puis rejoue poignée de main, ouverture, diagnostics
+poussés, complétion documentée, survol de DTD et extinction. La version de
+LSP4J qui sert les DEUX bouts est décidée par l'ordre du classpath ;
+bibliothèques ramenées par `spikes/lsp4j/recuperer-bibliotheques`.
+
+Reproduction :
+
+```bash
+./spikes/lsp4j/recuperer-bibliotheques
+CP="spikes/lsp4j/libs/lsp4j-1.0.0.jar:spikes/lsp4j/libs/lsp4j-jsonrpc-1.0.0.jar:spikes/lsp4j/libs/gson-2.10.1.jar:demo/libs/serveur-retire.jar"
+javac -cp "$CP" -d spikes/lsp4j/out spikes/lsp4j/SpikeLsp4j.java
+java -cp "spikes/lsp4j/out:$CP" spike.lsp4j.SpikeLsp4j
+```
+
+| Essai (min de 3 lancements, JVM de bureau) | initialize (à froid) | complétion | survol | fil complet |
+| --- | --- | --- | --- | --- |
+| LSP4J **1.0.0** + serveur-retire 0.31.2 | 133–163 ms | 36–64 ms | 11–25 ms | ~600 ms |
+| LSP4J 0.24.0 (repli LSP 3.17) | ~130 ms | ~62 ms | ~9 ms | ~570 ms |
+| LSP4J 0.23.1 (celle de serveur-retire) | ~123 ms | ~68 ms | ~5 ms | ~660 ms |
+
+Les trois versions passent le fil entier — la 1.0.0 est donc compatible
+à l'exécution avec le serveur réel, au-delà de sa version de
+construction. Android statique (d8 + dexdump, lsp4j + jsonrpc + gson
+2.10.1) : 728 Ko de dex, 1 636 méthodes, zéro référence à sun.misc.Unsafe
+ou jdk.internal. Arbre des dépendances (POM) : gson seul, intervalle
+[2.9.1, 3.0) — la 2.10.1 embarquée par le serveur convient.
+
+Décision : **ADR-015 — LSP4J 1.0.0 derrière la frontière `lsp-lsp4j`,
+copie unique avec le serveur par découpe excluant lsp4j et Gson.**
+
+## Spike M7.6 — tree-sitter, niveau 2 de l'analyse structurelle (ADR-016)
+
+Le harnais (`spikes/treesitter/` : liaison JNI minimale `liaison.c`,
+harnais Java, benchmark C pur `bench.c`, sonde `sonde.c`) mesure le
+runtime **v0.27.2** et trois grammaires (json v0.24.8, python v0.25.0,
+javascript v0.25.0 — MIT, épinglées par `recuperer-sources`, sources
+jamais versionnées) sur des corpus VALIDES à l'échelle du mandat.
+Corpus et commandes : voir `results/`.
+
+| Mesure (corpus valides) | json 2,5 Mo | python 1,0 Mo | javascript 1,0 Mo |
+| --- | --- | --- | --- |
+| Analyse complète (min de 3 tours) | 263 ms | 132 ms | 144–156 ms |
+| Incrémental 1 caractère, plancher fixe sans erreur (p50/p95) | 15,5/16,7 ms | 9,6/9,9 ms | 24,6/37,4 ms |
+| Incrémental, frappe réelle aléatoire (p50/p95) | 16,5/18,9 ms | 33,7/60,9 ms | 44,5/49,5 ms |
+| Mémoire de l'arbre | 82 Mo (30×) | 32 Mo (31×) | 26 Mo (26×) |
+
+La sonde (`results/sonde*.txt`) isole le comportement : `ts_tree_edit`
+est gratuit, le re-parse avec ancien arbre tombe à 0,5 ms à 190 Ko
+(contre 18 ms sans — l'incrémental fonctionne), mais le plancher croît
+linéairement (≈ 6–10 ms/Mo). Tailles (hôte x86_64, `-O2`, élagué) :
+runtime 223 Ko, grammaires +8 Ko (json) à +464 Ko (python) —
+`results/tailles.txt`.
+
+Décision : **ADR-016 — écarté à M7.6, budgets non tenus ; niveaux 1 et
+3 portent le jalon, la case reste déclarée et révisable.**

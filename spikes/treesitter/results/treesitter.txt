@@ -1,0 +1,10 @@
+== Spike tree-sitter v0.27.2 (M7.6) ==
+json        analyse complète de 50000 lignes (2716691 octets) : 391 ms (min de 3) — 1633353 nœuds, erreur : true, racine finit à l'octet 2716691
+json        incrémental après insertion d'un caractère : p50 153.0 ms, p95 183.0 ms, max 224.4 ms (1000 éditions)
+json        mémoire résidente de l'arbre : 82.0 Mo (RSS 405.1 → 487.1 Mo)
+python      analyse complète de 50000 lignes (1089994 octets) : 149 ms (min de 3) — 353333 nœuds, erreur : false, racine finit à l'octet 1089994
+python      incrémental après insertion d'un caractère : p50 48.8 ms, p95 77.0 ms, max 106.5 ms (1000 éditions)
+python      mémoire résidente de l'arbre : 32.5 Mo (RSS 517.6 → 550.0 Mo)
+javascript  analyse complète de 50000 lignes (1118193 octets) : 203 ms (min de 3) — 500004 nœuds, erreur : false, racine finit à l'octet 1118193
+javascript  incrémental après insertion d'un caractère : p50 92.4 ms, p95 505.4 ms, max 703.4 ms (1000 éditions)
+javascript  mémoire résidente de l'arbre : 26.4 Mo (RSS 675.1 → 701.6 Mo)

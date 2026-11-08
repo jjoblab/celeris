@@ -75,16 +75,19 @@ pour réviser la décision :
 
 L'option B se nomme enfin : **tree-sitter** (moteur incrémental en C,
 licence MIT). Le jalon M7.6 rouvre la question par un spike chiffré et
-un ADR dédié — liaison JNI écrite ici sur le runtime C (la liaison
-Android la plus répandue est exclue : règle 7 du jalon), grammaires
-compilées depuis leur `parser.c`, budgets de l'ADR-006 mesurés par ABI
-sur appareil de milieu de gamme. Le format de grammaires hérité du
+un ADR dédié (**ADR-016 : écarté à M7.6** — l'incrémental mesure 9,6 à
+44,5 ms de p50 à l'échelle des 50 000 lignes de l'étalon, contre le
+budget de 10 ms, et les arbres pèsent 26 à 31 fois le texte ; liaison
+JNI écrite ici sur le runtime C, la liaison Android la plus répandue
+étant exclue par la règle 7 du jalon). Le format de grammaires hérité du
 dépôt de départ se révèle en outre n'être **pas** du TextMate réel
 (captures en chaînes, inclusions non résolues, `java.util.regex`) : le
 moteur de `core-syntax-grammars` devient réellement compatible
 TextMate au même jalon, avec le choix du moteur d'expressions
 rationnelles (traduction vers `java.util.regex` contre joni, portage
-Java d'Oniguruma) tranché par spike et ADR. Les analyzeurs écrits à la
+Java d'Oniguruma) tranché par le spike du 2026-11-08 : **ADR-014, joni
+retenue** (99 % des motifs du commerce compilés contre 91 %, et 122 motifs
+que le JDK réécrivait en silence). Les analyzeurs écrits à la
 main restent la voie des langages P0 (Java, Kotlin, Groovy, XML,
 JSON), factorisés sur un socle commun — la mesure de départ tient
 (Kotlin et Groovy partagent 80 % de leurs lignes de lexeur). Les

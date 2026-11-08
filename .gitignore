@@ -27,3 +27,5 @@ spikes/**/out/
 # script recuperer-grammaires les ramène de façon reproductible.
 spikes/regex/grammaires/
 spikes/regex/libs/
+spikes/treesitter/sources/
+spikes/treesitter/out/

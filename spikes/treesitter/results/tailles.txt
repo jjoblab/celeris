@@ -1,0 +1,3 @@
+json: grammaire ≈ 8 Ko (runtime 223 Ko + grammaire)
+python: grammaire ≈ 464 Ko (runtime 223 Ko + grammaire)
+javascript: grammaire ≈ 416 Ko (runtime 223 Ko + grammaire)

@@ -1,0 +1,9 @@
+json : analyse complète 263.1 ms (2544003 octets), erreur : non, fin à 2544003
+json : incrémental fixe (sans erreur) p50 15.505 ms, p95 16.688 ms, max 20.639 ms (500 éditions)
+python : analyse complète 134.4 ms (1043200 octets), erreur : non, fin à 1043200
+python : incrémental fixe (sans erreur) p50 9.573 ms, p95 9.942 ms, max 18.811 ms (500 éditions)
+javascript : analyse complète 155.7 ms (1029000 octets), erreur : non, fin à 1029000
+javascript : incrémental fixe (sans erreur) p50 24.610 ms, p95 37.440 ms, max 53.526 ms (500 éditions)
+=== aléatoire, javascript borné ===
+javascript : analyse complète 144.2 ms (1029000 octets), erreur : non, fin à 1029000
+javascript : incrémental aléatoire (frappe réelle) p50 44.516 ms, p95 49.528 ms, max 51.984 ms (200 éditions)
