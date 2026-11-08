@@ -84,7 +84,9 @@ dépôt de départ se révèle en outre n'être **pas** du TextMate réel
 moteur de `core-syntax-grammars` devient réellement compatible
 TextMate au même jalon, avec le choix du moteur d'expressions
 rationnelles (traduction vers `java.util.regex` contre joni, portage
-Java d'Oniguruma) tranché par spike et ADR. Les analyzeurs écrits à la
+Java d'Oniguruma) tranché par le spike du 2026-11-08 : **ADR-014, joni
+retenue** (99 % des motifs du commerce compilés contre 91 %, et 122 motifs
+que le JDK réécrivait en silence). Les analyzeurs écrits à la
 main restent la voie des langages P0 (Java, Kotlin, Groovy, XML,
 JSON), factorisés sur un socle commun — la mesure de départ tient
 (Kotlin et Groovy partagent 80 % de leurs lignes de lexeur). Les
