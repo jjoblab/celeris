@@ -101,6 +101,24 @@ final class PopupCoach {
     }
 
     /**
+     * La complétion s'ouvre-t-elle à la frappe ? (M7.5, redressement —
+     * le constat du propriétaire : aucune suggestion en tapant) : OUI
+     * dès que le curseur termine un identifiant d'au moins un caractère
+     * — comme tout éditeur, le premier caractère tapé propose ; le
+     * blanc, la ponctuation et les déclencheurs à venir ne proposent
+     * rien sur ce canal.
+     *
+     * @param document le document ouvert
+     * @param caret    la position du curseur
+     * @return vrai quand la liste se propose à la frappe
+     */
+    static boolean doitOuvrirALaFrappe(Document document, int caret) {
+        String texte = document.text();
+        int borne = Math.min(caret, texte.length());
+        return borne > 0 && estIdentifiant(texte.charAt(borne - 1));
+    }
+
+    /**
      * La complétion du curseur : les identifiants du document et les
      * mots réservés, filtrés par le préfixe tapé — le mot sous le
      * curseur ne se propose pas à lui-même.

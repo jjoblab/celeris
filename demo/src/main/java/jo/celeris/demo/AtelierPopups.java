@@ -77,6 +77,9 @@ final class AtelierPopups {
     /** La frappe en cours : la sélection qui la suit ne rouvre pas
      *  l'info-bulle — le contrôleur vient de la fermer (M7.5, §7). */
     private boolean frappeEnCours;
+    /** L'acceptation d'un candidat vient d'avoir lieu : l'édition qui
+     *  l'accompagne ne rouvre pas la liste (M7.5, redressement). */
+    private boolean acceptationEnCours;
 
     /**
      * Construit l'atelier : les vues naissent avec la palette du thème
@@ -265,8 +268,20 @@ final class AtelierPopups {
         if (serveur != null) {
             serveur.synchroniser(uriDocument, session.document().text());
         }
-        if (controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST)) {
+        if (acceptationEnCours) {
+            // l'édition de l'acceptation ne rouvre pas la liste : le
+            // candidat retenu ne se repropose pas (M7.5, redressement)
+            acceptationEnCours = false;
+        } else if (PopupCoach.doitOuvrirALaFrappe(session.document(),
+                caret())) {
+            // M7.5, redressement — le constat du propriétaire : la
+            // complétion se propose à la FRAPPE, comme tout éditeur ;
+            // déjà ouverte, la même voie filtre sans refermer
             basculerCompletion();
+        } else if (controleur.isOpen(
+                PopupController.PopupKind.COMPLETION_LIST)) {
+            // le blanc et la ponctuation referment la liste
+            fermer(PopupController.PopupKind.COMPLETION_LIST);
         }
         rafraichirSignature();
         rafraichirFilAriane();
@@ -391,12 +406,17 @@ final class AtelierPopups {
         while (debut > 0 && estIdentifiant(texte.charAt(debut - 1))) {
             debut--;
         }
+        // l'édition de l'acceptation ne rouvre pas la liste
+        acceptationEnCours = true;
         if (!session.replaceRange(debut, caret, candidat)) {
+            acceptationEnCours = false;
             return;
         }
+        // la liste se ferme AVANT la sélection : l'écouteur de
+        // sélection ne la rouvre pas sur le curseur d'après
+        fermer(PopupController.PopupKind.COMPLETION_LIST);
         session.setSelection(MultiSelection.of(
                 SelRange.caretAt(debut + candidat.length())));
-        fermer(PopupController.PopupKind.COMPLETION_LIST);
     }
 
     private void sauterDiagnostic(int offset) {
