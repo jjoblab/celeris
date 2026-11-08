@@ -7,6 +7,21 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 — le spike du moteur d'expressions rationnelles tranche pour joni (2026-11-08)
+
+- **ADR-014 : joni (2.2.9 + jcodings 1.0.64, MIT) entre comme moteur des
+  grammaires TextMate**. Le spike (`spikes/regex/`, onze grammaires réelles des
+  extensions de VS Code, 3 700 motifs) mesure : la traduction vers
+  `java.util.regex` compile 91 % des motifs mais en **réécrit 122 en silence**
+  (quantificateurs possessifs changés sans échec — divergence invisible,
+  pire qu'un refus) et rejette 234 motifs sur le seul mode étendu (?x) ;
+  joni compile 99 % des motifs du commerce avec la sémantique Oniguruma que
+  le format suppose, à vitesse comparable (rapport 0,46× à 2,56× selon la
+  grammaire). Côté Android : 615 Ko de dex, 546 méthodes, zéro référence à
+  sun.misc.Unsafe ou jdk.internal (d8 + dexdump). Le bornage exigé par le
+  prompt (jamais un gel de l'interface) reste à la charge du moteur :
+  validation des paquets et budget par ligne.
+
 ### M7.6 (étape 1) — la règle des références externes change de visage (2026-11-08)
 
 - **Les projets tiers se nomment librement, deux restent interdits** :

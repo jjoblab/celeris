@@ -93,7 +93,8 @@ porte seul la dépendance et la correspondance des types. Le serveur
 XML réel embarqué par M8.6 (LemMinX) apporte déjà LSP4J et Gson dans
 l'APK de démonstration — le banc JVM les exécute ; restent à prouver
 le comportement sous R8 et sur appareil, objet du spike et de l'ADR du
-jalon qui remplace la décision 1 et le tableau d'options ci-dessus.
+jalon (**ADR-015, en cours d'écriture**) qui remplace la décision 1 et le
+tableau d'options ci-dessus.
 Les sept tests de `ServeurXmlEmbarqueTest` servent de critère de
 parité : ils doivent passer sans modification sur la voie LSP4J.
 

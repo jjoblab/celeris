@@ -1,0 +1,110 @@
+== Spike moteur d'expressions rationnelles (M7.6) ==
+grammaires réelles : extensions VS Code (MIT), 11 langages
+
+-- Acceptation à la compilation (traduction vs joni) --
+grammaire    motifs  java traduit          joni refus java (top)
+json             23        21 (91%)     23 (100%) 2× mode étendu (?x
+yaml             14         9 (64%)     12 (86%) 2× \x{10FFFF} au-delà du BMP ; 1× Illegal repetition range near index 9
+python          352       262 (74%)    339 (96%) 85× mode étendu (?x ; 2× Illegal repetition near index 2
+shell           194       190 (98%)    189 (97%) 1× Illegal repetition near index 10 ; 1× Illegal repetition near index 13
+c               332       317 (95%)    332 (100%) 11× mode étendu (?x ; 4× Illegal repetition near index 1
+cpp             977       913 (93%)    977 (100%) 13× Illegal/unsupported escape sequence near index 1104 ; 10× Illegal/unsupported escape sequence near index 1103
+markdown        311       300 (96%)    308 (99%) 5× mode étendu (?x ; 2× Illegal/unsupported escape sequence near index 43
+html            226       220 (97%)    226 (100%) 3× \x{1FFFE} au-delà du BMP ; 2× \x{10000} au-delà du BMP
+css             222       167 (75%)    219 (99%) 40× mode étendu (?x ; 10× Illegal repetition near index 1
+javascript      534       483 (90%)    532 (100%) 44× mode étendu (?x ; 1× Illegal repetition near index 1
+typescript      515       467 (91%)    513 (100%) 42× mode étendu (?x ; 1× Illegal repetition near index 1
+TOTAL          3700      3349 (91%)   3670 (99%)
+
+histogramme des refus de la traduction :
+   234× mode étendu (?x
+    17× Illegal repetition near index 1
+    13× Illegal/unsupported escape sequence near index 1104
+    10× Illegal/unsupported escape sequence near index 1103
+     4× Illegal repetition near index 128
+     4× Illegal repetition near index 2
+     4× Illegal/unsupported escape sequence near index 1487
+     3× \x{1FFFE} au-delà du BMP
+     2× Illegal repetition near index 129
+     2× Illegal repetition near index 18
+     2× Illegal repetition near index 19
+     2× Illegal repetition near index 29
+     2× Illegal repetition near index 4
+     2× Illegal repetition near index 7
+     2× Illegal repetition near index 84
+     2× Illegal/unsupported escape sequence near index 1471
+     2× Illegal/unsupported escape sequence near index 1577
+     2× Illegal/unsupported escape sequence near index 1746
+     2× Illegal/unsupported escape sequence near index 1779
+     2× Illegal/unsupported escape sequence near index 1881
+     2× Illegal/unsupported escape sequence near index 225
+     2× Illegal/unsupported escape sequence near index 43
+     2× \x{10000} au-delà du BMP
+     2× \x{10FFFF} au-delà du BMP
+     1× Illegal repetition near index 10
+     1× Illegal repetition near index 13
+     1× Illegal repetition near index 15
+     1× Illegal repetition near index 160
+     1× Illegal repetition near index 17
+     1× Illegal repetition near index 22
+     1× Illegal repetition near index 26
+     1× Illegal repetition near index 3
+     1× Illegal repetition near index 36
+     1× Illegal repetition near index 6
+     1× Illegal repetition range near index 9
+     1× Illegal/unsupported escape sequence near index 1135
+     1× Illegal/unsupported escape sequence near index 1271
+     1× Illegal/unsupported escape sequence near index 128
+     1× Illegal/unsupported escape sequence near index 1280
+     1× Illegal/unsupported escape sequence near index 1377
+     1× Illegal/unsupported escape sequence near index 1470
+     1× Illegal/unsupported escape sequence near index 1564
+     1× Illegal/unsupported escape sequence near index 1591
+     1× Illegal/unsupported escape sequence near index 1609
+     1× Illegal/unsupported escape sequence near index 1680
+     1× Illegal/unsupported escape sequence near index 1942
+     1× Illegal/unsupported escape sequence near index 2011
+     1× Illegal/unsupported escape sequence near index 34
+     1× Illegal/unsupported escape sequence near index 99
+     1× Look-behind group does not have an obvious maximum length near index 13
+     1× Look-behind group does not have an obvious maximum length near index 16
+     1× Look-behind group does not have an obvious maximum length near index 6
+     1× Look-behind group does not have an obvious maximum length near index 76
+     1× \x{010000} au-delà du BMP
+
+-- Recherche de 40 motifs sur 50000 lignes (min de 3 tours, corpus identique) --
+grammaire          jetons      java (ms)  joni (ms)    rapport
+  (note : 439314 jetons java contre 454255 joni sur json)
+json               439314            157         73      0.46×
+yaml               150000             50        128      2.56×
+  (note : 233257 jetons java contre 408219 joni sur python)
+python             233257            409        719      1.76×
+shell              411063            906        576      0.64×
+c                  227520           1097        595      0.54×
+  (note : 374503 jetons java contre 395268 joni sur cpp)
+cpp                374503           1053       1019      0.97×
+markdown           878577            453        802      1.77×
+html               923763            423        397      0.94×
+  (note : 653827 jetons java contre 808197 joni sur css)
+css                653827            403        636      1.58×
+  (note : 754220 jetons java contre 691726 joni sur javascript)
+javascript         754220           2216       2104      0.95×
+  (note : 773369 jetons java contre 723336 joni sur typescript)
+typescript         773369           2778       3304      1.19×
+
+-- Mémoire : tas consommé par une passe (motifs compilés) : 0.8 Mo pour 1.1 Mo de texte
+   (mesure indicative : allocations temporaires dominantes, GC entre passes)
+
+-- Constructions Oniguruma rencontrées (occurrences, tous motifs) --
+      7× (?<nom> groupe nommé
+     19× (?> atomique
+     68× [[: classe POSIX
+      4× \k<nom> référence nommée
+      8× \x{ codepoint étendu}
+    984× ancres \A \B \G \z \b
+     16× intersection de classes
+   1223× lookbehind
+    405× quantificateur possessif
+
+-- Compatibilité Android (statique, joni 2.2.9 + jcodings 1.0.64) --
+   détails par d8/dexdump : voir results/regex.txt (méthodes, sun.misc.Unsafe)

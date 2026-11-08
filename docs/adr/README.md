@@ -11,8 +11,9 @@ mandat : **Contexte, Décision, Options, Compromis, Conséquences, Actions**.
 | Acceptée | validée par le propriétaire ; ne change plus que par un ADR de remplacement |
 | Remplacée | annulée par un ADR ultérieur ; conservée pour l'historique |
 
-Les douze ADR, rédigées en proposition à M0, sont **acceptées** par le
-propriétaire le 2026-11-04 (validation M0) ; les réponses aux questions
+Les ADR 001 à 013 (M0 à M7.5), rédigées en proposition à M0 ou en
+cours de jalon, sont **acceptées** par le propriétaire (validation M0
+le 2026-11-04, ADR-013 au jalon M7.5) ; les réponses aux questions
 groupées sont consignées dans le résumé M0.
 
 ## Index
@@ -31,6 +32,8 @@ groupées sont consignées dans le résumé M0.
 | [ADR-010](010-strategie-de-test.md) | Stratégie de test | Acceptée |
 | [ADR-011](011-build-et-publication.md) | Build, publication et sécurité des dépendances | Acceptée |
 | [ADR-012](012-contrats-ia-agents.md) | Contrats IA et outils d'agent | Acceptée |
+| [ADR-013](013-banc-de-test-de-vue.md) | Banc de test de vue (Robolectric) | Acceptée |
+| [ADR-014](014-moteur-expressions-rationnelles.md) | Moteur d'expressions rationnelles des grammaires : joni | Proposition (spike M7.6) |
 
 ## Règles
 
