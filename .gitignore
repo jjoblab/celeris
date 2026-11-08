@@ -7,6 +7,9 @@ classes/
 *.aar
 # Le jar du wrapper Gradle est versionné (wrapper autosuffisant, ADR-001)
 !gradle/wrapper/gradle-wrapper.jar
+# Le serveur de langage XML réel embarqué dans la démonstration (M8.6,
+# [EXT-6] — découpe reproductible par scripts/decoupe-serveur-xml)
+!demo/libs/serveur-xml-0.31.2.jar
 *.hprof
 
 # Environnements et IDE

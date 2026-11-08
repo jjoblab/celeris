@@ -104,6 +104,30 @@ class ListeCompletionTest {
         assertTrue(liste.filtrer("zz").elements().isEmpty());
     }
 
+    /**
+     * La documentation dans ses trois formes du protocole (le
+     * redressement du terrain réel, M8.6 : le serveur XML embarqué sert
+     * du CONTENU BALISÉ) : chaîne nue, objet {@code {kind, value}} —
+     * la valeur s'en tire —, tableau de contenus dont les valeurs se
+     * joignent.
+     */
+    @Test
+    void laDocumentationDansSesTroisFormes() {
+        assertEquals("la doc", ElementCompletion.documentationDe(
+                JsonLecteur.lire("\"la doc\"")));
+        assertEquals("Un exemple nommé.", ElementCompletion.documentationDe(
+                JsonLecteur.lire("{\"kind\": \"plaintext\", "
+                        + "\"value\": \"Un exemple nommé.\"}")));
+        assertEquals("première\nseconde",
+                ElementCompletion.documentationDe(JsonLecteur.lire(
+                        "[{\"value\": \"première\"}, "
+                                + "{\"language\": \"xml\", "
+                                + "\"value\": \"seconde\"}]")));
+        assertNull(ElementCompletion.documentationDe(
+                JsonLecteur.lire("[]")));
+        assertNull(ElementCompletion.documentationDe(null));
+    }
+
     /** La liste vide : tableau vide, objet sans items, items null — trois formes, un vide. */
     @Test
     void laListeVide() {

@@ -12,13 +12,18 @@ import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionListView;
 import jo.celeris.android.widgets.ErrorBandModel;
 import jo.celeris.android.widgets.SignatureAideModel;
+import jo.celeris.core.lsp.ElementCompletion;
+import jo.celeris.core.lsp.ListeCompletion;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.text.Document;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Les décisions de contenu des popups de la démonstration (M7.5, §7,
- * reprise) : QUI s'ouvre et avec QUOI — la complétion lit les
+ * reprise — M8.6 : les réponses du serveur réel y gagnent leurs
+ * candidats) : QUI s'ouvre et avec QUOI — la complétion lit les
  * identifiants du document et les mots réservés, la signature cherche
  * l'appel ouvert sous le curseur dans le serveur factice, la
  * documentation et le survol servent la même table, le fil d'Ariane
@@ -29,6 +34,27 @@ final class PopupCoach {
 
     /** Le nombre maximal de candidats montrés par la liste. */
     static final int MAX_CANDIDATS = 8;
+
+    /** Le genre de badge par genre du protocole (CompletionItemKind)
+     *  — la table remplace les branches, le hors-table est variable. */
+    private static final Map<Integer, BadgeGenre.Genre> GENRES = Map.ofEntries(
+            Map.entry(2, BadgeGenre.Genre.METHODE),
+            Map.entry(3, BadgeGenre.Genre.METHODE),
+            Map.entry(4, BadgeGenre.Genre.METHODE),
+            Map.entry(5, BadgeGenre.Genre.CHAMP),
+            Map.entry(10, BadgeGenre.Genre.CHAMP),
+            Map.entry(21, BadgeGenre.Genre.CHAMP),
+            Map.entry(7, BadgeGenre.Genre.CLASSE),
+            Map.entry(23, BadgeGenre.Genre.CLASSE),
+            Map.entry(25, BadgeGenre.Genre.CLASSE),
+            Map.entry(8, BadgeGenre.Genre.INTERFACE),
+            Map.entry(13, BadgeGenre.Genre.ENUM),
+            Map.entry(20, BadgeGenre.Genre.ENUM),
+            Map.entry(9, BadgeGenre.Genre.PAQUET),
+            Map.entry(17, BadgeGenre.Genre.PAQUET),
+            Map.entry(19, BadgeGenre.Genre.PAQUET),
+            Map.entry(14, BadgeGenre.Genre.MOT_CLE),
+            Map.entry(15, BadgeGenre.Genre.EXTRAIT));
 
     /** Les mots réservés du terrain de démonstration (Java). */
     private static final List<String> MOTS_RESERVES = List.of(
@@ -103,6 +129,19 @@ final class PopupCoach {
             fin++;
         }
         return debut == fin ? null : texte.substring(debut, fin);
+    }
+
+    /**
+     * Le DÉBUT du mot qui finit au caret — l'acceptation d'un candidat
+     * y remplace le mot en entier.
+     *
+     * @param document le document ouvert
+     * @param caret    la position du curseur
+     * @return l'offset du début du mot, le caret sans mot
+     */
+    static int debutMot(Document document, int caret) {
+        String symbole = symboleA(document, caret);
+        return symbole == null ? caret : caret - symbole.length();
     }
 
     /**
@@ -185,6 +224,72 @@ final class PopupCoach {
             }
         }
         return types;
+    }
+
+    /**
+     * Les candidats typés du SERVEUR (M8.6) : la réponse brute du
+     * protocole gagne ses genres de badge — le détail sert
+     * d'identité qualifiée, la première ligne de documentation sinon —
+     * capés au plafond du terrain.
+     *
+     * @param reponse la liste de complétion du protocole, null sûre
+     * @return les candidats typés, même ordre que le serveur
+     */
+    static List<CompletionListView.Candidat> candidats(
+            @Nullable ListeCompletion reponse) {
+        if (reponse == null) {
+            return List.of();
+        }
+        List<CompletionListView.Candidat> types = new ArrayList<>();
+        for (ElementCompletion element : reponse.elements()) {
+            if (types.size() >= MAX_CANDIDATS) {
+                break;
+            }
+            types.add(new CompletionListView.Candidat(element.libelle(),
+                    identiteDe(element), genreDe(element.genre())));
+        }
+        return types;
+    }
+
+    /** L'identité qualifiée d'un élément du serveur : son détail, la
+     *  première ligne de sa documentation sinon, vide sans rien. */
+    private static String identiteDe(ElementCompletion element) {
+        if (element.detail() != null && !element.detail().isEmpty()) {
+            return element.detail();
+        }
+        if (element.documentation() != null) {
+            String premiere = element.documentation().strip();
+            int finLigne = premiere.indexOf('\n');
+            return finLigne < 0 ? premiere
+                    : premiere.substring(0, finLigne).strip();
+        }
+        return "";
+    }
+
+    /** Le genre de badge du protocole (CompletionItemKind) au
+     *  vocabulaire du kit — le hors-table reste variable. */
+    private static BadgeGenre.Genre genreDe(int kind) {
+        return GENRES.getOrDefault(kind, BadgeGenre.Genre.VARIABLE);
+    }
+
+    /**
+     * La documentation d'un élément du serveur — le modèle du flanc
+     * de la liste, null sans documentation.
+     *
+     * @param reponse la liste de complétion du protocole, null sûre
+     * @param index   l'index de l'élément documenté
+     * @return le modèle de documentation, null si l'élément n'en dit rien
+     */
+    static @Nullable CompletionDocModel docDe(
+            @Nullable ListeCompletion reponse, int index) {
+        if (reponse == null || index < 0
+                || index >= reponse.elements().size()) {
+            return null;
+        }
+        ElementCompletion element = reponse.elements().get(index);
+        return element.documentation() == null ? null
+                : CompletionDocModel.of(element.libelle(),
+                        element.documentation());
     }
 
     /**

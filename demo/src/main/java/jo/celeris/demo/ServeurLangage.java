@@ -18,15 +18,15 @@ import jo.celeris.core.text.Document;
 import org.jspecify.annotations.Nullable;
 
 /**
- * La session de langage de la démonstration (M7.5, §8) : le client
- * LSP branché au serveur de référence EN PROCESSUS — transport
+ * La session de langage de référence de la démonstration (M7.5, §8) : le
+ * client LSP branché au serveur de référence EN PROCESSUS — transport
  * mémoire, livraison synchrone, aucun réseau. Les popups y demandent
  * l'aide aux paramètres et le survol par les futurs du protocole ;
  * la synchronisation complète suit la session à chaque édition —
  * l'ordonnanceur annule et remplace, les frappes rapides ne
  * s'empilent jamais (PIEGE-18).
  */
-public final class ServeurLangage implements AutoCloseable {
+public final class ServeurLangage implements LanguageSession {
 
     private final TransportMemoire.Paire paire;
     private final ServeurReference serveur;
@@ -58,57 +58,49 @@ public final class ServeurLangage implements AutoCloseable {
                 OrdonnanceurLsp.sur(client));
     }
 
-    /**
-     * Ouvre le document suivi — version 1, synchronisation complète.
-     *
-     * @param uri    l'uri du document
-     * @param langue l'identifiant du langage
-     * @param texte  le contenu initial
-     */
+    @Override
     public void ouvrir(String uri, String langue, String texte) {
         client.ouvrir(uri, langue, texte);
     }
 
-    /**
-     * La synchronisation complète : le texte entier, la version
-     * suivante — l'état du serveur suit la session d'édition.
-     *
-     * @param uri   l'uri du document
-     * @param texte le contenu complet courant
-     */
+    @Override
     public void synchroniser(String uri, String texte) {
         client.changer(uri, ++version, texte);
     }
 
-    /**
-     * L'aide aux paramètres au curseur — le futur du modèle de la
-     * vue, déjà converti (B-07) ; null dans le futur sans signature.
-     *
-     * @param uri   l'uri du document
-     * @param doc   l'instantané courant
-     * @param caret la position du curseur
-     * @return le futur du modèle, null si le serveur n'en dit rien
-     */
+    @Override
     public CompletableFuture<@Nullable SignatureAideModel> signature(
             String uri, Document doc, int caret) {
         return ordonnanceur.signature(uri, PositionsLsp.position(doc, caret))
                 .thenApply(ServeurLangage::enModele);
     }
 
-    /**
-     * Le survol du symbole au curseur — le futur du modèle de
-     * documentation, déjà converti (B-09) ; null sans documentation.
-     *
-     * @param uri      l'uri du document
-     * @param doc      l'instantané courant
-     * @param symbole  le symbole survolé — le titre du modèle
-     * @param caret    la position du curseur
-     * @return le futur du modèle, null si le serveur n'en dit rien
-     */
+    @Override
     public CompletableFuture<@Nullable CompletionDocModel> survol(
             String uri, Document doc, String symbole, int caret) {
         return ordonnanceur.survol(uri, PositionsLsp.position(doc, caret))
                 .thenApply(survol -> enModele(survol, symbole));
+    }
+
+    @Override
+    public boolean sertCompletion() {
+        // la complétion reste l'affaire des mots du code — le serveur
+        // de référence ne sert que la signature et le survol
+        return false;
+    }
+
+    @Override
+    public CompletableFuture<jo.celeris.core.lsp.ListeCompletion> completion(
+            String uri, Document doc, int caret) {
+        throw new UnsupportedOperationException(
+                "le serveur de référence ne sert pas la complétion");
+    }
+
+    @Override
+    public void poserAuditeurDiagnostics(
+            java.util.function.BiConsumer<String,
+                    java.util.List<jo.celeris.core.lsp.DiagnosticLsp>> auditeur) {
+        // le serveur de référence ne publie jamais de diagnostics
     }
 
     /**

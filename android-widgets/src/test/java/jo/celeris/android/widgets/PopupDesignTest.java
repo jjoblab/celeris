@@ -76,6 +76,8 @@ public class PopupDesignTest {
         assertEquals(0.75f, PopupTokens.TEXTE_META, 0f);
         assertEquals(0.70f, PopupTokens.TEXTE_MICRO, 0f);
         assertEquals(280f, PopupTokens.LARGEUR_MAX_LISTE_DP, 0f);
+        assertEquals("le plancher de la complétion tient la carte raisonnable",
+                240f, PopupTokens.LARGEUR_MIN_LISTE_DP, 0f);
         assertEquals(40f, PopupTokens.HAUTEUR_RANGEE_LISTE_DP, 0f);
     }
 
