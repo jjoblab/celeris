@@ -267,7 +267,7 @@ public final class EditorActivity extends AppCompatActivity {
         // les dix popups, la machine à états décide qui reste ouvert.
         PopupLayer couche = findViewById(R.id.couche_popups);
         atelierPopups = new AtelierPopups(editeur, session, couche,
-                indexThemeCourant() != 0);
+                basculeTheme.indexCourant() != 0);
         atelierPopups.setNomFichier(nomFichier);
         atelierPopups.configurerIntentions(intentionsAuCurseur());
         atelierPopups.brancherServeur(serveurLangage,
