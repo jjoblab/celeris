@@ -16,6 +16,11 @@ dependencies {
     // lanceur JUnit 4 porté sur la plateforme Jupiter par le moteur
     // vintage (mêmes tâches, mêmes rapports).
     testImplementation(libs.robolectric)
+    // ADR-013 : le jar android-all du SDK 35 pour les tests de vue —
+    // résolu par Gradle via la configuration de la convention (tâche
+    // robolectricDeps), jamais téléchargé par Robolectric au démarrage
+    // du test (429 de Maven Central constatés le 2026-11-08).
+    "sdkRobolectric"(libs.robolectric.android.all)
     testImplementation(libs.junit4)
     testRuntimeOnly(libs.junit.vintage)
 }
