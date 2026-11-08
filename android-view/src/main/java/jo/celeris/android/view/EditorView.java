@@ -6,7 +6,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -69,12 +68,10 @@ public final class EditorView extends View {
     static final FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
     /** La respiration du dévoilement de curseur, en dp (M7.5, §5). */
     static final float MARGE_RETOUR_DP = 8f;
-    /** Le délai de retenue d'analyse par défaut (M7.5, §9 — le réglage
-     *  de lenteur livré) : la frappe rapide ne paie plus une passe par
-     *  caractère, la publication arrive au calme du doigt. */
+    /** Le délai de retenue d'analyse par défaut (M7.5, §9) : la
+     *  publication arrive au calme du doigt, pas une passe par frappe. */
     public static final long DELAI_RETENU_PAR_DEFAUT_MS = 250L;
 
-    private final AndroidFontRuler regle = new AndroidFontRuler();
     private final CanvasSurface surface = new CanvasSurface();
     // Visible du paquet : l'assemblage d'image (FrameAssembler) l'écrit.
     final FrameState etatImage = new FrameState();
@@ -107,7 +104,9 @@ public final class EditorView extends View {
     VisualProjection projection = new VisualProjection(session.document(), plis, 0);
     /** La police logique, en sp — les métriques en dérivent par densité. */
     FontSpec policeLogique = POLICE_PAR_DEFAUT;
-    EditorMetrics metrics = EditorMetrics.of(POLICE_PAR_DEFAUT, regle);
+    // métriques provisoires : le constructeur les redérive à la densité (PIEGE-23)
+    EditorMetrics metrics = EditorMetrics.of(POLICE_PAR_DEFAUT,
+            new AndroidFontRuler());
     HitTest viseur = new HitTest(metrics);
     // Visible du paquet : l'assemblage d'image y pose la source liée.
     final RebindingRowSource sourceLiee = new RebindingRowSource(
@@ -145,14 +144,13 @@ public final class EditorView extends View {
     final TouchesEditeur touches = new TouchesEditeur(this);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
     final FantomeEditeur fantome;
-    /** L'exécuteur RETENU du travail d'analyse (M7.5, §9) — null quand
-     *  l'hôte a injecté le sien : le réglage ne détourne jamais un
-     *  exécuteur étranger. */
-    private final @Nullable RetainedExecutor retenueAnalyse;
-    /** Le compteur d'images décolorées (M7.5, §9 — la surimpression
-     *  de diagnostic s'y abbreuve) : une image y entre quand une
-     *  rangée qui AVAIT sa couleur trace à l'encre de base. */
-    private long imagesDecolorees;
+    /** Le collaborateur de diagnostic de scène (M7.5, §9) : retenue
+     *  d'analyse, compteur d'images décolorées, lectures de vérité. */
+    final SceneDiagnostics diagnostics;
+    /** Le collaborateur des ancres de popups (M7.5, §7). */
+    final CaretAnchors ancres = new CaretAnchors(this);
+    /** Le collaborateur des polices (PIEGE-05, PIEGE-23, PIEGE-28). */
+    final ViewFonts polices = new ViewFonts(this);
 
     public EditorView(Context context) {
         this(context, null);
@@ -168,19 +166,10 @@ public final class EditorView extends View {
     EditorView(Context context, @Nullable AttributeSet attrs,
             @Nullable Executor executeurAnalyse) {
         super(context, attrs);
-        Executor executeur = executeurAnalyse;
-        if (executeur == null) {
-            // M7.5, §9 : la retenue par défaut — l'hôte qui injecte son
-            // exécuteur garde la main entière, jamais détournée.
-            retenueAnalyse = new RetainedExecutor(
-                    ExecuteurAnalyse.parDefaut(),
-                    RetainedExecutor.daemonDelayer(),
-                    DELAI_RETENU_PAR_DEFAUT_MS);
-            executeur = retenueAnalyse;
-        } else {
-            retenueAnalyse = null;
-        }
-        syntaxe = new EditorSyntax(plis, executeur);
+        // M7.5, §9 : la retenue par défaut — l'hôte qui injecte son
+        // exécuteur garde la main entière, jamais détournée.
+        diagnostics = new SceneDiagnostics(this, executeurAnalyse);
+        syntaxe = new EditorSyntax(plis, diagnostics.executor());
         setFocusable(true);
         setFocusableInTouchMode(true);
         syntaxe.setSurAnalysePrete(() -> {
@@ -206,7 +195,7 @@ public final class EditorView extends View {
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
         // logique (sp) se convertit une fois pour toutes (PIEGE-23).
-        metrics = EditorMetrics.of(enPixels(POLICE_PAR_DEFAUT), regle);
+        metrics = polices.metricsOf(POLICE_PAR_DEFAUT);
         viseur = new HitTest(metrics);
         syntaxe.attacher(session);
         session.addEditListener(ecouteurAnnonce);
@@ -228,7 +217,7 @@ public final class EditorView extends View {
         revisionSuivie = Long.MIN_VALUE;
         gouttiereEtat.reinitialiser();
         cache.clear();
-        imagesDecolorees = 0L;
+        diagnostics.reinitialiser();
         scrollX = 0f;
         scrollY = 0f;
         invalidate();
@@ -244,7 +233,7 @@ public final class EditorView extends View {
         revisionSuivie = Long.MIN_VALUE;
         gouttiereEtat.reinitialiser();
         cache.clear();
-        imagesDecolorees = 0L;
+        diagnostics.reinitialiser();
         invalidate();
     }
 
@@ -265,29 +254,13 @@ public final class EditorView extends View {
     }
 
     /**
-     * Change la police : les métriques se redérivent par reconsultation
-     * de la règle (PIEGE-05), le cache se vide par révision suivie, le
-     * budget de colonnes se redérive à l'image suivante. La taille
-     * changeante prévient l'écouteur — l'hôte y persiste sa taille
-     * (D-15).
+     * Change la police (PIEGE-05, PIEGE-28) — la mécanique vit dans
+     * {@link ViewFonts}.
      *
      * @param police la spécification de police, taille en sp
      */
     public void setFont(FontSpec police) {
-        boolean tailleChangee = police.size() != policeLogique.size();
-        policeLogique = police;
-        metrics = EditorMetrics.of(enPixels(police), regle);
-        viseur = new HitTest(metrics);
-        // PIEGE-28 : la source de rangées se réinitialise même à
-        // révision constante — un document jamais édité (révision 0)
-        // doit se re-mesurer à la nouvelle police ; le cache se vide,
-        // les mises en page de l'ancienne police ne s'y accumulent pas.
-        revisionSuivie = Long.MIN_VALUE;
-        cache.clear();
-        if (tailleChangee && onFontSizeChanged != null) {
-            onFontSizeChanged.accept(police.size());
-        }
-        invalidate();
+        polices.setFont(police);
     }
 
     /**
@@ -295,23 +268,7 @@ public final class EditorView extends View {
      *  persiste la taille.
      */
     public void setOnFontSizeChanged(@Nullable Consumer<Float> ecouteur) {
-        onFontSizeChanged = ecouteur;
-    }
-
-    /**
-     * La conversion sp vers pixels à la densité courante : la mesure et
-     * le tracé vivent en pixels, l'interface vit en sp — la conversion
-     * vit dans {@link TaillesSp}, pure et testée (PIEGE-23), jamais un
-     * pixel cru ne franchit cette porte.
-     */
-    private FontSpec enPixels(FontSpec police) {
-        DisplayMetrics metriques = getResources().getDisplayMetrics();
-        // L'échelle de police de l'accessibilité vit dans la
-        // configuration (le champ scaledDensity est dépréqué) : la
-        // conversion reste sp × densité × échelle, pure et testée.
-        float echelle = getResources().getConfiguration().fontScale;
-        return new FontSpec(police.family(), TaillesSp.enPixels(police.size(),
-                metriques.density, echelle));
+        polices.setOnFontSizeChanged(ecouteur);
     }
 
     /**
@@ -355,85 +312,47 @@ public final class EditorView extends View {
     }
 
     /**
-     * Le réglage de lenteur d'analyse (M7.5, §9 — livré) : le délai de
-     * retenue de la publication, en millisecondes — zéro rend la main
-     * immédiate. L'hôte qui a injecté son propre exécuteur n'est
-     * jamais détourné : l'appel s'ignore, son exécuteur reste le sien.
+     * Le réglage de lenteur d'analyse (M7.5, §9) : zéro rend la main
+     * immédiate ; l'exécuteur injecté par l'hôte reste le sien.
      *
      * @param delaiMs le délai de retenue, en millisecondes
      */
     public void setRetenueAnalyseMs(long delaiMs) {
-        RetainedExecutor retenue = retenueAnalyse;
-        if (retenue != null) {
-            retenue.setDelayMs(delaiMs);
-        }
+        diagnostics.setRetenueMs(delaiMs);
     }
 
-    /**
-     * Le délai de retenue courant, en millisecondes — zéro quand la
-     * main est immédiate ou l'exécuteur injecté par l'hôte.
-     */
+    /** Le délai de retenue courant, en millisecondes — zéro : main immédiate. */
     public long retenueAnalyseMs() {
-        RetainedExecutor retenue = retenueAnalyse;
-        return retenue == null ? 0L : retenue.delayMs();
+        return diagnostics.retenueMs();
     }
 
-    /**
-     * La taille de police courante, en sp (M7.5, §9 — la surimpression
-     * de diagnostic s'y abbreuve).
-     */
+    /** La taille de police courante, en sp (M7.5, §9). */
     public float fontSizeSp() {
-        return policeLogique.size();
+        return diagnostics.fontSizeSp();
     }
 
-    /**
-     * La largeur de gouttière courante, en pixels (M7.5, §9 — la
-     * surimpression de diagnostic s'y abbreuve) ; l'état d'image se
-     * prépare d'abord, la valeur vit à l'image courante.
-     */
+    /** La largeur de gouttière à l'image courante, en pixels (M7.5, §9). */
     public float gutterWidth() {
-        preparerEtatImage();
-        return largeurGouttiere;
+        return diagnostics.gutterWidth();
     }
 
-    /**
-     * Le nombre d'images décolorées depuis l'ouverture (M7.5, §9) :
-     * chaque image y entre quand une rangée qui AVAIT sa couleur
-     * trace à l'encre de base — le rattrapage PIEGE-26 le garde à
-     * zéro, la surimpression le prouve en direct.
-     */
+    /** Le nombre d'images décolorées depuis l'ouverture (M7.5, §9) —
+     *  le rattrapage PIEGE-26 le garde à zéro. */
     public long discoloredFrames() {
-        return imagesDecolorees;
+        return diagnostics.discoloredFrames();
     }
 
-    /**
-     * Le rectangle du curseur principal, en coordonnées de la vue
-     * (M7.5, §7) — l'ancre des popups du caret : complétion, aide aux
-     * paramètres, menu d'intentions. Largeur nulle : l'ancre est le
-     * bord gauche du caractère visé, hauteur celle de la rangée.
-     *
-     * @return le rectangle du curseur principal
-     */
+    /** Le rectangle du curseur principal (M7.5, §7) — l'ancre des
+     *  popups du caret ; la géométrie vit dans {@link CaretAnchors}. */
     public Rect caretBounds() {
-        preparerEtatImage();
-        return PopupAnchors.caretRect(etatImage.document(), projection,
-                metrics, largeurGouttiere, scrollX, scrollY,
-                session.selection().ranges());
+        return ancres.caretBounds();
     }
 
-    /**
-     * Le rectangle de la sélection principale (première plage), en
-     * coordonnées de la vue (M7.5, §7) — l'ancre de la barre de
-     * sélection : l'union des extrémités de la plage. Une plage vide
-     * rend le rectangle du curseur.
-     *
-     * @return le rectangle de la sélection principale
-     */
+    /** Le rectangle de la sélection principale (M7.5, §7) — l'ancre de
+     *  la barre de sélection ; une plage vide rend le rectangle du
+     *  curseur. */
     public Rect selectionBounds() {
-        preparerEtatImage();
-        return PopupAnchors.selectionRect(etatImage.document(), projection,
-                metrics, largeurGouttiere, scrollX, scrollY,
-                session.selection().ranges());
+        return ancres.selectionBounds();
     }
 
     /**
@@ -581,11 +500,7 @@ public final class EditorView extends View {
         preparerEtatImage();
         surface.attach(canvas);
         trace.drawFrame(surface, etatImage);
-        // M7.5, §9 : l'image qui a tracé une rangée sans couleur
-        // qu'elle possédait se compte — la surimpression le lit.
-        if (etatImage.imageDecoloree()) {
-            imagesDecolorees++;
-        }
+        diagnostics.surImageTracee();
         pinceauChrome.setFont(metrics.font());
         chrome.tracer(surface, pinceauChrome, theme, metrics, pilule,
                 etatImage.document(), projection, session.selection().ranges(),
@@ -598,8 +513,10 @@ public final class EditorView extends View {
      * (le cycle est cassé, PIEGE-25), suivi de révision, bornage du
      * défilement et fenêtre visible — l'assemblage vit dans
      * {@link FrameAssembler}, l'avis de fenêtre y part (M7.5, §7).
+     * Visible du paquet : les collaborateurs (ancres, diagnostic) y
+     * préparent avant de lire.
      */
-    private void preparerEtatImage() {
+    void preparerEtatImage() {
         images.preparer();
     }
 
