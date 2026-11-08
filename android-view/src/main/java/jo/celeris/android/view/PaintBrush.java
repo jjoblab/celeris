@@ -49,4 +49,10 @@ public final class PaintBrush implements TextBrush {
         peinture.setTypeface(AndroidFontRuler.policeDe(police.family()));
         peinture.setTextSize(police.size());
     }
+
+    /** L'épaisseur des traits — les chevrons de la gouttière (M7.5). */
+    @Override
+    public void setStrokeWidth(float pixels) {
+        peinture.setStrokeWidth(Math.max(1f, pixels));
+    }
 }

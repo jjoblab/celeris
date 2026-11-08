@@ -15,29 +15,35 @@ package jo.celeris.android.view;
  * @param baseTextColor   la couleur de base du texte
  * @param selectionColor  le fond des sélections
  * @param cursorColor     la couleur du curseur
- * @param gutterTextColor la couleur du texte de la gouttière
+ * @param gutterTextColor la couleur du texte de gouttière
+ * @param gutterBackground le fond TRANSLUCIDE de la gouttière — un voile
+ *                        posé sur le fond de la zone de texte, jamais
+ *                        un plein opaque (M7.5, redressement : le
+ *                        dépôt de départ teintait sa gouttière ainsi)
  * @param syntaxe         la palette syntaxique résolue, une encre par
  *                        sorte de jeton
  */
 public record EditorTheme(int id, int backgroundColor, int baseTextColor,
         int selectionColor, int cursorColor, int gutterTextColor,
-        SyntaxPalette syntaxe) {
+        int gutterBackground, SyntaxPalette syntaxe) {
 
     /**
      * Le thème hérité à six champs : la palette syntaxique est
      * monochrome à l'encre de base — un thème sans coloration déclarée
-     * reste un thème valide.
+     * reste un thème valide. Le fond de gouttière reste SANS voile
+     * (alpha nul) : la gouttière vit sur le fond de la zone de texte.
      *
      * @param id              l'identifiant du thème, unique par thème
      * @param backgroundColor le fond de la zone de texte
      * @param baseTextColor   la couleur de base du texte
      * @param selectionColor  le fond des sélections
      * @param cursorColor     la couleur du curseur
-     * @param gutterTextColor la couleur du texte de la gouttière
+     * @param gutterTextColor la couleur du texte de gouttière
      */
     public EditorTheme(int id, int backgroundColor, int baseTextColor,
             int selectionColor, int cursorColor, int gutterTextColor) {
         this(id, backgroundColor, baseTextColor, selectionColor, cursorColor,
-                gutterTextColor, SyntaxPalette.monochrome(baseTextColor));
+                gutterTextColor, 0x00000000,
+                SyntaxPalette.monochrome(baseTextColor));
     }
 }

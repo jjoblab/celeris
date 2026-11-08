@@ -36,4 +36,18 @@ public interface TextBrush {
     default void setFont(FontSpec police) {
         // repli muet — voir la documentation
     }
+
+    /**
+     * Pose l'épaisseur des traits — les chevrons de pli de la
+     * gouttière (M7.5, redressement) : un trait d'un pixel y était
+     * minuscule, la cellule cohérente porte son épaisseur.
+     *
+     * <p>Le repli par défaut n'opère rien : les pinceaux d'essai
+     * restent muets.</p>
+     *
+     * @param pixels l'épaisseur, en pixels
+     */
+    default void setStrokeWidth(float pixels) {
+        // repli muet — voir la documentation
+    }
 }

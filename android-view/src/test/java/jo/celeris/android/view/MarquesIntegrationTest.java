@@ -105,8 +105,8 @@ final class MarquesIntegrationTest {
                 Map.of(1, MarqueLigne.MODIFIE), Map.of(), null, Set.of()));
         assertEquals(0f, gestion.coulisses(false).laneWidth(10f, 8f), 1e-6f,
                 "des marques sans coulisse activée ne l'élargissent pas");
-        assertEquals(10f, gestion.coulisses(true).laneWidth(10f, 8f), 1e-6f,
-                "la syntaxe activée réserve un caractère au moins");
+        assertEquals(20f, gestion.coulisses(true).laneWidth(10f, 8f), 1e-6f,
+                "la syntaxe activée réserve deux caractères — le chevron y vit à l'aise");
         gestion.setCoulisseIntegration(true);
         assertEquals(20f, gestion.coulisses(false).laneWidth(10f, 8f), 1e-6f,
                 "la coulisse activée réserve deux caractères");

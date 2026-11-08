@@ -76,8 +76,9 @@ class GutterLayoutTest {
     @Test
     void laneComesFromConfigurationOnly() {
         assertEquals(0f, GutterLanes.AUCUNE.laneWidth(8f, 8f), 1e-6f);
-        assertEquals(8f, new GutterLanes(true, false, false, false)
-                .laneWidth(8f, 6f), 1e-6f, "la syntaxe réserve un caractère au moins");
+        assertEquals(16f, new GutterLanes(true, false, false, false)
+                .laneWidth(8f, 6f), 1e-6f,
+                "la syntaxe réserve deux caractères — le chevron y vit à l'aise");
         assertEquals(16f, new GutterLanes(false, true, false, false)
                 .laneWidth(8f, 6f), 1e-6f, "l'intégration réserve deux caractères");
         assertEquals(16f, new GutterLanes(false, true, true, true)
