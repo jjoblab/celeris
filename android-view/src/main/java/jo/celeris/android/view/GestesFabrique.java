@@ -9,9 +9,9 @@ import android.view.ScaleGestureDetector;
  * Fabrique des détecteurs de gestes de la vue d'éditeur : la
  * construction des écouteurs anonymes quitte le constructeur de la
  * vue, qui gagne en lisibilité — le comportement est inchangé, la vue
- * reste la seule propriétaire de l'état (appui long : pilule
- * multi-curseur A-01 ; pincement : zoom par paliers D-15, point focal
- * stable).
+ * reste la seule propriétaire de l'état (appui long : sélection du
+ * mot sous le doigt, clavier retiré, pilule multi-curseur A-01 en
+ * offre ; pincement : zoom par paliers D-15, point focal stable).
  */
 final class GestesFabrique {
 
@@ -19,11 +19,12 @@ final class GestesFabrique {
     }
 
     /**
-     * Le détecteur d'appuis longs : arme la pilule « ajouter un
-     * curseur » au point touché (A-01).
+     * Le détecteur d'appuis longs (M7.5, redressement) : le mot sous
+     * le doigt se sélectionne, le clavier se retire, le dragage
+     * étend — la pilule « ajouter un curseur » s'y offre (A-01).
      *
      * @param context le contexte de la vue
-     * @param vue     la vue propriétaire de la pilule
+     * @param vue     la vue propriétaire des gestes
      * @return le détecteur branché
      */
     static GestureDetector appuisLongs(Context context, EditorView vue) {
@@ -31,8 +32,7 @@ final class GestesFabrique {
                 .SimpleOnGestureListener() {
             @Override
             public void onLongPress(MotionEvent event) {
-                vue.pilule.show(event.getX(), event.getY());
-                vue.invalidate();
+                vue.touches.surAppuiLong(event.getX(), event.getY());
             }
         });
     }

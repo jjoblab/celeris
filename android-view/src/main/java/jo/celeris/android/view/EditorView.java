@@ -38,14 +38,16 @@ import org.jspecify.annotations.Nullable;
  * sans appareil vit dans les classes pures du module ; la vue les
  * assemble, attache la surface au canvas de l'image et route le
  * tactile et le clavier. Le défilement est borné au contenu ; le
- * tactile pose le curseur puis étend la sélection (ancre figée au
- * DOWN, PIEGE-03) ou tire une poignée, l'appui long arme la pilule
- * « ajouter un curseur » (A-01), le pincement zoome par paliers
- * (D-15), le panoramique à deux doigts défile, le clavier matériel
- * passe par la table de raccourcis (D-17). Le retour à la ligne
- * souple (A-18) se règle par {@link #setSoftWrap(boolean)}. L'IME
- * s'attache par {@link #onCreateInputConnection(EditorInfo)} — la
- * composition vit dans {@link CompositionState}, la colle dans
+ * simple appui pose le curseur et ouvre le clavier, l'appui long
+ * sélectionne le mot sous le doigt et retire le clavier — le dragage
+ * qui suit étend la sélection, ancre figée à l'armement (PIEGE-03) —
+ * ou tire une poignée, la pilule « ajouter un curseur » s'y offre
+ * (A-01), le pincement zoome par paliers (D-15), le panoramique à
+ * deux doigts défile, le clavier matériel passe par la table de
+ * raccourcis (D-17). Le retour à la ligne souple (A-18) se règle par
+ * {@link #setSoftWrap(boolean)}. L'IME s'attache par
+ * {@link #onCreateInputConnection(EditorInfo)} — la composition vit
+ * dans {@link CompositionState}, la colle dans
  * {@link EditorInputConnection} ; l'accessibilité (G-05) vit dans
  * {@link AccessibilityHost}.</p>
  *
