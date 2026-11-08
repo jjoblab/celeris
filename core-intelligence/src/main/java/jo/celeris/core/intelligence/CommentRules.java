@@ -1,11 +1,16 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.language.LanguageConfiguration;
+
 import org.jspecify.annotations.Nullable;
 
 /**
- * Les règles de commentaire par langage (M5, A-11) : le préfixe de
- * ligne, les délimiteurs de bloc. Un langage sans commentaire (JSON) ou
- * inconnu masque l'action — jamais de préfixe deviné.
+ * Les règles de commentaire d'un langage (M5, A-11 ; M7.6 : pilotées
+ * par la configuration) : le préfixe de ligne, les délimiteurs de
+ * bloc. Un langage sans commentaire (JSON) masque l'action — jamais de
+ * préfixe deviné. Les règles viennent du paquet de langage
+ * ({@link LanguageConfiguration.Comments}) : plus aucun aiguillage par
+ * identifiant.
  *
  * @param ligne      le préfixe de commentaire de ligne, ou null
  * @param blocDebut l'ouverture du commentaire de bloc, ou null
@@ -15,24 +20,15 @@ public record CommentRules(@Nullable String ligne, @Nullable String blocDebut,
         @Nullable String blocFin) {
 
     /**
-     * Les règles d'un langage par identifiant. La famille C au double
-     * barre (Java, Kotlin, KTS, Groovy), la famille au dièse (Python,
-     * Shell, YAML, properties, TOML), le balisage au bloc (XML, HTML) ;
-     * JSON n'a pas de commentaire, les identifiants inconnus masquent
-     * l'action.
+     * Les règles d'une configuration de langage.
      *
-     * @param id l'identifiant du langage
+     * @param configuration la configuration du langage
      * @return ses règles, éventuellement sans commentaire
      */
-    public static CommentRules parLangage(String id) {
-        return switch (id) {
-            case "java", "kotlin", "kts", "groovy" ->
-                new CommentRules("// ", "/* ", " */");
-            case "python", "shell", "sh", "yaml", "properties", "toml" ->
-                new CommentRules("# ", null, null);
-            case "xml", "html" -> new CommentRules(null, "<!--", "-->");
-            default -> new CommentRules(null, null, null);
-        };
+    public static CommentRules of(LanguageConfiguration configuration) {
+        LanguageConfiguration.Comments commentaires = configuration.comments();
+        return new CommentRules(commentaires.lineComment(),
+                commentaires.blockStart(), commentaires.blockEnd());
     }
 
     /**

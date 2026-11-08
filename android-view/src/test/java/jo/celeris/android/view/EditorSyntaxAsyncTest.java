@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.JavaSyntax;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
@@ -90,7 +91,7 @@ class EditorSyntaxAsyncTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         assertFalse(executeur.file.isEmpty(), "le moteur a programmé son ouverture");
         Document document = session.document();
         assertSame(SOURCE_MUETTE, syntaxe.habiller(SOURCE_MUETTE, document),
@@ -109,7 +110,7 @@ class EditorSyntaxAsyncTest {
         syntaxe.setSurAnalysePrete(() -> prevenue.set(true));
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         assertTrue(prevenue.get(), "la publication directe prévient la vue");
         syntaxe.fermer();
     }
@@ -127,7 +128,7 @@ class EditorSyntaxAsyncTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         executeur.jouer();
         int cible = SOURCE.indexOf("methode");
         session.replaceRange(cible, cible + 7, "autre");
@@ -167,7 +168,7 @@ class EditorSyntaxAsyncTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         executeur.jouer();
         int cible = SOURCE.indexOf("Premiere");
         for (int i = 0; i < 300; i++) {
@@ -189,7 +190,7 @@ class EditorSyntaxAsyncTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
-        syntaxe.setLanguage(JavaSyntax.INSTANCE);
+        syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         syntaxe.setLanguage(null);
         assertFalse(syntaxe.active(), "sans langage, plus de moteur");
         assertSame(SOURCE_MUETTE, syntaxe.habiller(SOURCE_MUETTE, session.document()));

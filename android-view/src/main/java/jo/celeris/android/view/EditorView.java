@@ -22,7 +22,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import jo.celeris.core.ai.SuggestionFantome;
-import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.EditListener;
 import jo.celeris.core.text.TextSession;
@@ -56,10 +56,9 @@ import org.jspecify.annotations.Nullable;
  * plage vide — clignote tant que la vue tient le focus, et l'appui
  * qui prend le focus ouvre le clavier logiciel.</p>
  *
- * <p>La syntaxe (M4) se branche par {@link #setLanguage(LanguageSyntax)} :
- * le pont {@link EditorSyntax} habille la source de rangées des plages
- * de jetons (B-01) et sert la coulisse de marqueurs — plis (D-07,
- * A-15), lignes en erreur (D-02) — l'appui sur un chevron bascule.</p>
+ * <p>Le langage se branche par {@link #setLanguage(LanguageSupport)}
+ * (M7.6 : le support complet) : le pont {@link EditorSyntax} en tire
+ * coloration, plis et marqueurs ; la configuration nourrit la frappe.</p>
  */
 public final class EditorView extends View {
 
@@ -224,11 +223,12 @@ public final class EditorView extends View {
     }
 
     /**
-     * Analyse le langage donne : coloration, plis et diagnostics du
-     * meme arbre (B-01, A-15, D-02, D-07) ; null coupe l'analyse.
-     * @param nouvelleLangue le langage, null pour aucun
+     * Branche le langage — le support complet (M7.6) : sa source donne
+     * coloration, plis et diagnostics (B-01, A-15, D-02, D-07), sa
+     * configuration nourrit la frappe ; null coupe l'analyse.
+     * @param nouvelleLangue le support du langage, null pour aucun
      */
-    public void setLanguage(@Nullable LanguageSyntax nouvelleLangue) {
+    public void setLanguage(@Nullable LanguageSupport nouvelleLangue) {
         syntaxe.setLanguage(nouvelleLangue);
         revisionSuivie = Long.MIN_VALUE;
         gouttiereEtat.reinitialiser();

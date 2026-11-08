@@ -11,7 +11,7 @@ import jo.celeris.core.intelligence.PasteReindenter;
 import jo.celeris.core.intelligence.SmartTyping;
 import jo.celeris.core.intelligence.TypingRules;
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -324,10 +324,15 @@ public final class IntelligenceHub {
         return primaryRange().caret();
     }
 
-    /** Les règles du langage courant — les règles communes sans langage. */
+    /**
+     * Les règles du langage courant : la configuration de son support
+     * (M7.6) — les règles génériques sans langage.
+     */
     private TypingRules rules() {
-        LanguageSyntax langue = vue.syntaxe.language();
-        return TypingRules.langage(langue == null ? "" : langue.id());
+        LanguageSupport langue = vue.syntaxe.language();
+        return langue == null
+                ? TypingRules.generic()
+                : TypingRules.of(langue.configuration());
     }
 
     private IndentStyle style() {

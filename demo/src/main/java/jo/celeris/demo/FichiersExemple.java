@@ -1,25 +1,14 @@
 package jo.celeris.demo;
 
 import java.util.List;
-import java.util.Locale;
-
-import jo.celeris.core.syntax.GroovySyntax;
-import jo.celeris.core.syntax.JavaSyntax;
-import jo.celeris.core.syntax.JsonSyntax;
-import jo.celeris.core.syntax.KotlinSyntax;
-import jo.celeris.core.syntax.KtsSyntax;
-import jo.celeris.core.syntax.LanguageSyntax;
-import jo.celeris.core.syntax.XmlSyntax;
-import jo.celeris.core.syntax.grammars.LangagesGrammaires;
 
 import org.jspecify.annotations.Nullable;
 
 /**
  * Le catalogue des fichiers d'exemple : la matière première du terrain
  * de démonstration. Chaque langage P0 de la matrice (C-14, C-15) y
- * figure avec un fichier réaliste — l'analyseur dédié quand il existe
- * (Kotlin, Java, XML, KTS, JSON, Groovy), la grammaire déclarative
- * sinon (TOML, Markdown, Python — C-16).
+ * figure avec un fichier réaliste — l'analyse vit dans les paquets de
+ * la plateforme (M7.6), la démo ne porte plus que la matière.
  */
 public final class FichiersExemple {
 
@@ -339,31 +328,5 @@ public final class FichiersExemple {
         return CATALOGUE.get(0);
     }
 
-    /**
-     * L'analyseur du fichier selon son extension : dédié pour les P0,
-     * grammaire déclarative pour la longue traîne (C-14 à C-16).
-     *
-     * @param nom le nom du fichier, extension comprise
-     * @return le langage, null si l'extension est inconnue
-     */
-    public static @Nullable LanguageSyntax languePour(String nom) {
-        int point = nom.lastIndexOf('.');
-        if (point < 0) {
-            return null;
-        }
-        String extension = nom.substring(point + 1).toLowerCase(Locale.ROOT);
-        return switch (extension) {
-            case "kt" -> KotlinSyntax.INSTANCE;
-            case "java" -> JavaSyntax.INSTANCE;
-            case "xml" -> XmlSyntax.INSTANCE;
-            case "kts" -> KtsSyntax.INSTANCE;
-            case "gradle" -> GroovySyntax.INSTANCE;
-            case "json" -> JsonSyntax.INSTANCE;
-            case "toml" -> LangagesGrammaires.toml();
-            case "md" -> LangagesGrammaires.markdown();
-            case "py" -> LangagesGrammaires.python();
-            case "pro" -> LangagesGrammaires.proguard();
-            default -> null;
-        };
-    }
 }
+

@@ -1,0 +1,87 @@
+{
+  "id": "java",
+  "name": "Java",
+  "extensions": [
+    ".java"
+  ],
+  "badge": "Jv",
+  "badgeColor": "#CC7832",
+  "syntax": {
+    "preferred": "handwritten"
+  },
+  "comments": {
+    "lineComment": "// ",
+    "blockComment": [
+      "/* ",
+      " */"
+    ]
+  },
+  "brackets": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "(",
+      "close": ")",
+      "notIn": []
+    },
+    {
+      "open": "[",
+      "close": "]",
+      "notIn": []
+    },
+    {
+      "open": "{",
+      "close": "}",
+      "notIn": []
+    },
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string",
+        "comment"
+      ]
+    }
+  ],
+  "surroundingPairs": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ],
+    [
+      "\"",
+      "\""
+    ],
+    [
+      "'",
+      "'"
+    ]
+  ]
+}

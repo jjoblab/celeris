@@ -43,7 +43,13 @@ public final class MainActivity extends AppCompatActivity {
         liste().setAdapter(adaptateur);
         // Les cartes doivent vivre dans l'adaptateur : une liste vide
         // masquerait tout le catalogue — rien à ouvrir, rien à tester.
-        adaptateur.submitList(CarteFichier.catalogue());
+        // L'assemblage du registre se paie hors fil UI (ADR-007, M7.6) :
+        // les cartes se soumettent dès qu'il vit.
+        LangagesDemo.precharger();
+        new Thread(() -> {
+            LangagesDemo.registre();
+            runOnUiThread(() -> adaptateur.submitList(CarteFichier.catalogue()));
+        }, "celeris-cartes").start();
 
         poserStatistiques();
         appliquerBordABord();

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.LanguageLexer;
+import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.SyntaxService;
 import jo.celeris.core.syntax.Token;
@@ -38,7 +39,7 @@ class GrammaireLexeurTest {
     /** La pile transportée est à égalité de valeur, jamais réifiée par identité. */
     @Test
     void pileEtatsReconvergeParValeur() {
-        SyntaxService service = SyntaxService.of(LangagesGrammaires.python());
+        SyntaxService service = SyntaxService.of(syntaxeDePaquet("python"));
         Analysis analyse = service.analyseFull(Document.of(PYTHON));
         EtatGrammaire sortie = (EtatGrammaire) analyse.lex().line(1).exitState();
         assertTrue(sortie.dansBloc(), "la chaîne triple est ouverte en fin de ligne 1");
@@ -61,7 +62,7 @@ class GrammaireLexeurTest {
      */
     @Test
     void cascadeBorneeParLaReconvergence() {
-        SyntaxService service = SyntaxService.of(LangagesGrammaires.python());
+        SyntaxService service = SyntaxService.of(syntaxeDePaquet("python"));
         Document doc = Document.of(PYTHON);
         Analysis complet = service.analyseFull(doc);
 
@@ -85,7 +86,7 @@ class GrammaireLexeurTest {
     /** La chaîne triple ouvre un crochet apparié, son contenu traverse les lignes. */
     @Test
     void chaineTripleEnCrochetsApparies() {
-        SyntaxService service = SyntaxService.of(LangagesGrammaires.python());
+        SyntaxService service = SyntaxService.of(syntaxeDePaquet("python"));
         Analysis analyse = service.analyseFull(Document.of(PYTHON));
 
         assertTrue(contient(analyse, 1, TokenKind.OPEN_BRACKET),
@@ -101,7 +102,7 @@ class GrammaireLexeurTest {
     /** Les mots réservés, nombres et commentaires de la grammaire python. */
     @Test
     void motsNombresCommentaires() {
-        Grammaire grammaire = Grammaires.ressource("python");
+        Grammaire grammaire = Grammaires.lire(texteDePaquet("python"));
         LanguageLexer lexeur = new GrammaireLexeur(grammaire);
         LexedLine ligne = lexeur.lex("if x >= 2:  # borne",
                 EtatGrammaire.VIDE);
@@ -124,7 +125,7 @@ class GrammaireLexeurTest {
      */
     @Test
     void editionDeLOuvertureCascadeJusquauBout() {
-        SyntaxService service = SyntaxService.of(LangagesGrammaires.python());
+        SyntaxService service = SyntaxService.of(syntaxeDePaquet("python"));
         Document doc = Document.of(PYTHON);
         Analysis complet = service.analyseFull(doc);
 
@@ -153,5 +154,22 @@ class GrammaireLexeurTest {
             }
         }
         return false;
+    }
+
+    /** Le texte JSON de la grammaire d'un paquet intégré (M7.6). */
+    private static String texteDePaquet(String id) {
+        var flux = GrammaireLexeurTest.class.getResourceAsStream(
+                "/langages/" + id + "/grammar.json");
+        assertSame(true, flux != null, "grammaire du paquet " + id);
+        try (flux) {
+            return new String(flux.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** La source syntaxique d'un paquet intégré, par la vraie fabrique. */
+    private static LanguageSyntax syntaxeDePaquet(String id) {
+        return PackGrammars.INSTANCE.compile(id, texteDePaquet(id));
     }
 }

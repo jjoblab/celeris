@@ -1,0 +1,87 @@
+{
+  "id": "kotlin",
+  "name": "Kotlin",
+  "extensions": [
+    ".kt"
+  ],
+  "badge": "Kt",
+  "badgeColor": "#F06292",
+  "syntax": {
+    "preferred": "handwritten"
+  },
+  "comments": {
+    "lineComment": "// ",
+    "blockComment": [
+      "/* ",
+      " */"
+    ]
+  },
+  "brackets": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "(",
+      "close": ")",
+      "notIn": []
+    },
+    {
+      "open": "[",
+      "close": "]",
+      "notIn": []
+    },
+    {
+      "open": "{",
+      "close": "}",
+      "notIn": []
+    },
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string",
+        "comment"
+      ]
+    }
+  ],
+  "surroundingPairs": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ],
+    [
+      "\"",
+      "\""
+    ],
+    [
+      "'",
+      "'"
+    ]
+  ]
+}
