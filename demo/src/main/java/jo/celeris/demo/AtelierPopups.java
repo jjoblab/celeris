@@ -278,9 +278,9 @@ final class AtelierPopups {
             // complétion se propose à la FRAPPE, comme tout éditeur ;
             // déjà ouverte, la même voie filtre sans refermer
             basculerCompletion();
-        } else if (controleur.isOpen(
-                PopupController.PopupKind.COMPLETION_LIST)) {
-            // le blanc et la ponctuation referment la liste
+        } else {
+            // le blanc et la ponctuation referment la liste — fermer
+            // une liste close ne fait rien, le garde isOpen est de trop
             fermer(PopupController.PopupKind.COMPLETION_LIST);
         }
         rafraichirSignature();
