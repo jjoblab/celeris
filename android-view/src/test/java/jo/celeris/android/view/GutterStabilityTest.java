@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Map;
 import java.util.Set;
 
+import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.JavaSyntax;
 
 import org.junit.Test;
@@ -92,7 +93,7 @@ public class GutterStabilityTest {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), texte.toString());
         EditorView vue = banc.vue();
-        vue.setLanguage(JavaSyntax.INSTANCE);
+        vue.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();
         banc.image();
         float deplie = vue.largeurGouttiere;

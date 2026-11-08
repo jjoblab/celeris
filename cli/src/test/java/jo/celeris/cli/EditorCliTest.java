@@ -76,6 +76,32 @@ public final class EditorCliTest {
         assertTrue(sortie.contains("langage : toml"), "grammaire toml : " + sortie);
     }
 
+    /** Le point H se départage par son contenu : les marqueurs C++
+     * emportent le C++, leur absence laisse le C. */
+    @Test
+    public void analyseUnFichierDEnteteC() throws IOException {
+        Path c = ecrire("entete.h", "#include <stdio.h>\nstruct maillon { int v; };\n");
+        assertTrue(sortieDe(new String[] {"analyse", c.toString()})
+                .contains("langage : c"), "le C sans marque C++ : ");
+
+        Path cpp = ecrire("entete.hpp", "namespace o { template<typename T> struct A {}; }\n");
+        assertTrue(sortieDe(new String[] {"analyse", cpp.toString()})
+                .contains("langage : cpp"), "le C++ aux marqueurs : ");
+    }
+
+    /** Un gros fichier garde sa détection : l'échantillon se borne,
+     * le nom suffit et la première ligne passe. */
+    @Test
+    public void analyseUnGrosFichier() throws IOException {
+        StringBuilder gros = new StringBuilder("#!/bin/bash\n");
+        for (int i = 0; i < 9000; i++) {
+            gros.append("echo ligne ").append(i).append('\n');
+        }
+        Path fichier = ecrire("script-sans-extension", gros.toString());
+        String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
+        assertTrue(sortie.contains("langage : shell"), "le shebang parle : " + sortie);
+    }
+
     /** La recherche rend les occurrences avec lignes et colonnes exactes. */
     @Test
     public void rechercheLesOccurrences() throws IOException {

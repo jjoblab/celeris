@@ -19,7 +19,7 @@ import jo.celeris.core.text.MultiSelection;
  */
 class RetourArriereTest {
 
-    private final TypingRules regles = TypingRules.langage("java");
+    private final TypingRules regles = TypingRules.generic();
 
     /** La paire vide disparaît entière : un seul geste, un seul pas d'annulation. */
     @Test
