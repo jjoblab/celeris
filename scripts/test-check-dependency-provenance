@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Tests du contrôle de provenance (scripts/check-dependency-provenance).
+
+Le prompt M7.6 veut le contrôle branché dans check ; ces tests
+couvrent : provenance interdite dans le catalogue, provenance
+interdite dans une URL de build, catalogue honnête, variable vide,
+motif invalide. Les motifs des tests sont des mots factices — les
+véritables motifs interdits ne se committent jamais (règle 7).
+
+Usage :  python3 scripts/test-check-dependency-provenance
+"""
+
+import os
+import subprocess
+import sys
+import tempfile
+import unittest
+
+SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "check-dependency-provenance")
+DEPOT = os.path.dirname(os.path.dirname(os.path.abspath(SCRIPT)))
+
+
+def lancer(motifs: str, cwd: str) -> subprocess.CompletedProcess:
+    env = {
+        "PATH": os.environ.get("PATH", "/usr/bin"),
+        "HOME": os.environ.get("HOME", "/tmp"),
+    }
+    if motifs:
+        env["CELERIS_FORBIDDEN_REFS"] = motifs
+    return subprocess.run(
+        [sys.executable, SCRIPT],
+        capture_output=True,
+        text=True,
+        env=env,
+        cwd=cwd,
+        timeout=30,
+    )
+
+
+class Fixture:
+    """Mini-dépôt : catalogue et fichiers de build factices."""
+
+    def __enter__(self):
+        self.dossier = tempfile.mkdtemp(prefix="celeris-prov-")
+        os.makedirs(os.path.join(self.dossier, "gradle"), exist_ok=True)
+        with open(os.path.join(self.dossier, "gradle", "libs.versions.toml"), "w", encoding="utf-8") as fh:
+            fh.write('[versions]\npropre = "1.0"\n\n[libraries]\n'
+                     'propre = { module = "org.exemple:propre", version.ref = "propre" }\n'
+                     'suspecte = { module = "io.zorblax:suspecte", version.ref = "propre" }\n\n'
+                     '[plugins]\npropre-plugin = { id = "org.exemple.plugin", version.ref = "propre" }\n')
+        with open(os.path.join(self.dossier, "build.gradle.kts"), "w", encoding="utf-8") as fh:
+            fh.write('repositories { maven("https://maven.zorblax.io/repo") }\n')
+        with open(os.path.join(self.dossier, "settings.gradle.kts"), "w", encoding="utf-8") as fh:
+            fh.write('pluginManagement { repositories { google() } }\n')
+        return self.dossier
+
+    def __exit__(self, *args):
+        pass
+
+
+class ControleProvenanceTest(unittest.TestCase):
+    """Catalogue, URL de build, honnêteté, variable vide, motif invalide."""
+
+    def setUp(self):
+        self.fixture = Fixture()
+        self.dossier = self.fixture.__enter__()
+
+    def test_groupe_interdit_au_catalogue(self):
+        """Une coordonnée du catalogue qui correspond au motif : échec (1)."""
+        resultat = lancer("zorblax", self.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout + resultat.stderr)
+        self.assertIn("io.zorblax:suspecte", resultat.stdout)
+
+    def test_url_de_depot_interdite(self):
+        """Une URL de dépôt qui correspond au motif : échec (1)."""
+        with open(os.path.join(self.dossier, "gradle", "libs.versions.toml"), "w", encoding="utf-8") as fh:
+            fh.write('[libraries]\npropre = { module = "org.exemple:propre", version = "1.0" }\n')
+        resultat = lancer("zorblax", self.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout + resultat.stderr)
+        self.assertIn("https://maven.zorblax.io/repo", resultat.stdout)
+
+    def test_catalogue_honnete(self):
+        """Rien ne correspond au motif : succès (0)."""
+        with open(os.path.join(self.dossier, "gradle", "libs.versions.toml"), "w", encoding="utf-8") as fh:
+            fh.write('[libraries]\npropre = { module = "org.exemple:propre", version = "1.0" }\n')
+        with open(os.path.join(self.dossier, "build.gradle.kts"), "w", encoding="utf-8") as fh:
+            fh.write('repositories { mavenCentral() }\n')
+        resultat = lancer("zorblax", self.dossier)
+        self.assertEqual(resultat.returncode, 0, resultat.stdout + resultat.stderr)
+        self.assertIn("0 problème", resultat.stdout)
+
+    def test_variable_vide(self):
+        """Aucun motif défini : succès (0) et avertissement explicite."""
+        resultat = lancer("", self.dossier)
+        self.assertEqual(resultat.returncode, 0, resultat.stdout + resultat.stderr)
+        self.assertIn("CELERIS_FORBIDDEN_REFS absente", resultat.stdout)
+
+    def test_motif_invalide(self):
+        """Motif invalide : échec (2)."""
+        resultat = lancer("[nonfermee", self.dossier)
+        self.assertEqual(resultat.returncode, 2, resultat.stdout + resultat.stderr)
+        self.assertIn("motif invalide", resultat.stderr)
+
+    def test_vrai_catalogue_honnete(self):
+        """Le vrai catalogue du dépôt, avec un motif factice : succès (0)."""
+        resultat = lancer("zorblaxfacticeinconnu", DEPOT)
+        self.assertEqual(resultat.returncode, 0, resultat.stdout + resultat.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

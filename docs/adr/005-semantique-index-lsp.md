@@ -7,11 +7,11 @@
 
 La sémantique du dépôt de départ repose entièrement sur un client LSP
  externe : 8 283 lignes dans `cel-lsp` construites sur une bibliothèque
-tierce de liaison LSP [EXT-5], restée en version 0.22.0 **par refus
+tierce de liaison LSP LSP4J, restée en version 0.22.0 **par refus
 délibéré** documenté dans le catalogue de versions du dépôt de départ : la
 version 1.0.0 de cette bibliothèque change le contrat des éditions d'espace
 de travail (édits de type gabarit) et n'a pas pu être absorbée. L'audit
-relève en outre que la bibliothèque [EXT-5] est offerte sous licence EPL-2.0
+relève en outre que la bibliothèque LSP4J est offerte sous licence EPL-2.0
 ou BSD-3-Clause — consommable sous BSD-3-Clause donc compatible Apache-2.0,
 mais l'épisode 0.22.0→1.0.0 montre une dépendance structurelle au rythme de
 publication d'un tiers.
@@ -58,7 +58,7 @@ sur l'appareil pour Java, Kotlin et le XML Android.
 | Option | Verdict | Raison |
 | --- | --- | --- |
 | A. Client propre, surface LSP bornée | **retenue** | dépendance zéro ; contrat maîtrisé ; le refus 1.0.0 documenté montre le coût de la voie contraire |
-| B. Liaison tierce [EXT-5] en version 1.0.0 | écartée | re-risque de blocage à la prochaine rupture ; licence consommable mais validation de fichier par fichier à refaire ; l'annulation/priorité reste à écrire nous-mêmes |
+| B. Liaison tierce LSP4J en version 1.0.0 | écartée | re-risque de blocage à la prochaine rupture ; licence consommable mais validation de fichier par fichier à refaire ; l'annulation/priorité reste à écrire nous-mêmes |
 | C. Tout par l'indexeur maison, sans LSP | écartée | réécrire la sémantique de Java et Kotlin dépasse le mandat ; les serveurs existants de l'écosystème restent la source de vérité |
 
 ## Compromis
@@ -76,6 +76,26 @@ sur l'appareil pour Java, Kotlin et le XML Android.
   dans le périmètre M6 avec ses tests.
 - Un test de contrat rejoue les traces enregistrées de vrais serveurs
   (corpus embarqué) à chaque exécution CI.
+
+## Révision du 2026-11-08 (jalon M7.6)
+
+La bibliothèque écartée se nomme enfin : **LSP4J** (EPL-2.0 ou
+BSD-3-Clause, consommable sous BSD-3-Clause donc compatible
+Apache-2.0). L'argument du refus — la rupture 0.22.0 → 1.0.0 sur les
+édits de gabarit — décrit un mauvais usage (une liaison sans couche
+d'isolation), pas la bibliothèque : la 1.0.0 de LSP4J modélise
+désormais ces édits (`SnippetTextEdit`), et le client maison mesure
+déjà 3 442 lignes pour 17 méthodes quand un éditeur ambitieux en
+demande cinquante ou plus. Le jalon M7.6 adopte LSP4J **derrière une
+frontière** : `core-lsp` garde l'API du domaine en Java pur (types
+immuables, ordonnancement, annulation, UTF-16), un module `lsp-lsp4j`
+porte seul la dépendance et la correspondance des types. Le serveur
+XML réel embarqué par M8.6 (LemMinX) apporte déjà LSP4J et Gson dans
+l'APK de démonstration — le banc JVM les exécute ; restent à prouver
+le comportement sous R8 et sur appareil, objet du spike et de l'ADR du
+jalon qui remplace la décision 1 et le tableau d'options ci-dessus.
+Les sept tests de `ServeurXmlEmbarqueTest` servent de critère de
+parité : ils doivent passer sans modification sur la voie LSP4J.
 
 ## Actions
 
