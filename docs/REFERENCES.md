@@ -18,7 +18,8 @@
 | --- | --- | --- | --- |
 | [LSP4J](https://github.com/eclipse-lsp4j/lsp4j) | candidate (M7.6) : protocole LSP et JSON-RPC derrière la frontière du module `lsp-lsp4j` ; déjà présent dans l'APK de démo via LemMinX | EPL-2.0 OU BSD-3-Clause (consommable sous BSD-3-Clause, compatible Apache-2.0) | 2026-11-08 |
 | [LemMinX](https://github.com/eclipse/lemminx) | dépendance embarquée de la démonstration (M8.6) : serveur de langage XML réel, lancé en processus | EPL-2.0 (obligations de l'archive modifiée au `NOTICE`) | 2026-11-08 |
-| [joni](https://github.com/jruby/joni) | candidate (M7.6, spike) : portage Java d'Oniguruma pour le moteur d'expressions rationnelles des grammaires TextMate | MIT | 2026-11-08 |
+| [joni](https://github.com/jruby/joni) | dépendance du runtime publié `core-syntax-grammars` (M7.6, ADR-014) : portage Java d'Oniguruma, moteur des expressions des grammaires TextMate | MIT | 2026-11-08 |
+| [jcodings](https://github.com/jruby/jcodings) | rouage d'encodages de joni (UTF-8 seul sert), même module publié | MIT | 2026-11-08 |
 | [tree-sitter](https://github.com/tree-sitter/tree-sitter) | candidate (M7.6, spike) : moteur d'analyse incrémental en C, niveau 2 de l'analyse structurelle par liaison JNI écrite ici | MIT | 2026-11-08 |
 | [Gson](https://github.com/google/gson) | transitive de LemMinX (217 classes dans l'archive découpée) ; le module `lsp-lsp4j` n'en embarquera qu'une seule copie | Apache-2.0 | 2026-11-08 |
 
@@ -35,7 +36,7 @@
 | Norme | Rôle dans celeris | Licence de la spécification | Vérifié le |
 | --- | --- | --- | --- |
 | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) | le protocole des serveurs de langage (3.17/3.18) | CC-BY-4.0 | 2026-11-08 |
-| Format de grammaires TextMate | le format chargé par le moteur de `core-syntax-grammars` (M7.6 : compatibilité réelle) ; chaque grammaire re porte la sienne, consignée au paquet et au `NOTICE` | par grammaire | 2026-11-08 |
+| Format de grammaires TextMate | le format chargé par le moteur de `core-syntax-grammars` (M7.6 : compatibilité réelle — joni, captures en objets, inclusions résolues) ; chaque grammaire re porte la sienne, consignée au paquet et au `NOTICE` | par grammaire | 2026-11-08 |
 | [Oniguruma](https://github.com/kkos/oniguruma) | la sémantique d'expressions rationnelles que suppose le format TextMate (joni en est le portage Java) | BSD-2-Clause | 2026-11-08 |
 | Model Context Protocol (MCP) | la compatibilité de l'API d'outils de l'IA native (ADR-012) | spécification ouverte | 2026-11-08 |
 | Unicode (UAX #29, UAX #9) | groupes de graphèmes et algorithme bidirectionnel du cœur | spécification ouverte | 2026-11-08 |
