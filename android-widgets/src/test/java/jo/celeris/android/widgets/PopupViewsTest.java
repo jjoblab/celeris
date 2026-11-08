@@ -18,11 +18,13 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 /**
- * Les vues de popups à rangées (M7.5, §7, reprise) : la complétion
- * surligne son candidat courant et choisit à l'appui, la documentation
- * aligne titre et sections distincts (PIEGE-16), la signature souligne
- * le paramètre courant, le menu d'intentions exécute, l'info-bulle
- * suit la sévérité. Robolectric : mesure, dessin et toucher réels.
+ * Les vues de popups (portage du design du dépôt de départ) : la
+ * complétion porte ses candidats TYPÉS — rangées deux lignes, badge de
+ * genre, runs de match — et choisit à l'appui, la documentation aligne
+ * la bande signature teintée et les sections distinctes (PIEGE-16), la
+ * signature se mesure à ses trois tiers, le menu d'intentions
+ * exécute, l'info-bulle suit la sévérité. Robolectric : mesure, dessin
+ * et toucher réels.
  */
 @RunWith(RobolectricTestRunner.class)
 public class PopupViewsTest {
@@ -41,17 +43,28 @@ public class PopupViewsTest {
                         android.view.View.MeasureSpec.UNSPECIFIED));
     }
 
-    /** La complétion : le premier candidat surligné, l'appui choisit. */
+    /**
+     * La complétion : les candidats typés se mesurent en rangées deux
+     * lignes, le premier surligné, l'appui choisit.
+     */
     @Test
-    public void completionListsAndPicks() {
+    public void completionListsAndPicksTypedCandidates() {
         CompletionListView vue = new CompletionListView(contexte,
                 PopupPalette.dark());
-        vue.setItems(List.of("valeur", "variable", "valide"));
+        vue.setItems(List.of(
+                new CompletionListView.Candidat("valeur", "",
+                        BadgeGenre.Genre.VARIABLE),
+                new CompletionListView.Candidat("variable", "",
+                        BadgeGenre.Genre.VARIABLE),
+                new CompletionListView.Candidat("ajouter",
+                        "ajouter(int a, int b)", BadgeGenre.Genre.METHODE)));
+        vue.setPrefix("va");
         mesurer(vue);
         assertTrue("la liste se mesure",
                 vue.getMeasuredWidth() > 0 && vue.getMeasuredHeight() > 0);
         assertEquals("valeur", vue.itemAt(0));
-        assertNotNull(vue.itemAt(2));
+        assertEquals("l'identité qualifiée reste lisible",
+                "ajouter(int a, int b)", vue.candidatAt(2).detail());
 
         AtomicInteger choisi = new AtomicInteger(-1);
         vue.setOnPick(choisi::set);
@@ -82,9 +95,10 @@ public class PopupViewsTest {
                 vue.getMeasuredHeight() < hauteurAvec);
     }
 
-    /** La signature : une rangée, le paramètre courant souligné. */
+    /** La signature : le modèle rend la plage du paramètre courant, le
+     *  panneau se mesure — le rendu à trois tiers vit au dessin. */
     @Test
-    public void signatureUnderlinesCurrentParameter() {
+    public void signatureMeasuresAndBoundsCurrentParameter() {
         SignatureHelpView vue = new SignatureHelpView(contexte,
                 PopupPalette.dark());
         SignatureAideModel model = SignatureAideModel.of(
@@ -94,10 +108,13 @@ public class PopupViewsTest {
         assertTrue("la signature se mesure", vue.getMeasuredWidth() > 0);
         assertNotNull("le modèle rend la plage du paramètre courant",
                 model.plageParametreCourant());
+        assertEquals("les plages de paramètres se comptent",
+                2, SignatureHelpView.plagesParametres(
+                        "ajouter(int a, int b)").length);
         vue.setModel(null);
         mesurer(vue);
         assertEquals("vidée, la signature ne mesure rien de contenu", 0,
-                vue.getMeasuredHeight() - 2 * vue.paddingPx);
+                vue.getMeasuredHeight() - 2 * vue.paddingYPx);
     }
 
     /** Le menu d'intentions : l'appui exécute l'action choisie. */
@@ -130,7 +147,7 @@ public class PopupViewsTest {
         vue.setMessage(null, DiagnosticTooltipView.Severity.ERROR);
         mesurer(vue);
         assertFalse("vide, l'info-bulle ne retient rien",
-                vue.getMeasuredHeight() > 2 * vue.paddingPx);
+                vue.getMeasuredHeight() > 2 * vue.paddingYPx);
     }
 
     /** Aucune vue de popup ne se déclare focalisable (PIEGE-27). */

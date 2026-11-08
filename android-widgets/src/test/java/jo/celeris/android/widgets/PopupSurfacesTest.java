@@ -61,7 +61,7 @@ public class PopupSurfacesTest {
         vue.setPath(List.of(), 10_000);
         mesurer(vue);
         assertFalse("vide, le fil ne retient rien",
-                vue.getMeasuredHeight() > 2 * vue.paddingPx);
+                vue.getMeasuredHeight() > 2 * vue.paddingYPx);
     }
 
     /** La barre de sélection : l'appui sur une pastille l'exécute. */

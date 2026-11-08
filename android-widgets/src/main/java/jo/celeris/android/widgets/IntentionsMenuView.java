@@ -9,10 +9,10 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Le menu d'intentions (M7.5, §7, reprise — F-03, D-10) : les actions
- * disponibles au curseur en rangées cliquables — intentions
- * classiques (lint, aperçu, revue) et actions IA au même titre, même
- * barre, même gestuelle. L'appui exécute : l'hôte ferme le menu et
- * déroule l'action choisie.
+ * disponibles au curseur en rangées cliquables au palier titre —
+ * intentions classiques (lint, aperçu, revue) et actions IA au même
+ * titre, même barre, même gestuelle. L'appui exécute : l'hôte ferme le
+ * menu et déroule l'action choisie.
  */
 public final class IntentionsMenuView extends TextRowsPopup {
 
@@ -36,7 +36,7 @@ public final class IntentionsMenuView extends TextRowsPopup {
         this.actions = List.copyOf(items);
         List<Row> rangees = new ArrayList<>(items.size());
         for (Item item : items) {
-            rangees.add(Row.of(item.label()));
+            rangees.add(Row.tier(item.label(), -1, Tier.TITRE));
         }
         setRows(rangees);
     }

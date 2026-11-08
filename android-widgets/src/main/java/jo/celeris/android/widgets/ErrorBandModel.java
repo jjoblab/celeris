@@ -16,8 +16,13 @@ import jo.celeris.core.text.Document;
  */
 public final class ErrorBandModel {
 
-    /** Une marque : la ligne du diagnostic, son cran de bande, sa cible de saut. */
-    public record Marque(int ligne, int cran, int startOffset) {
+    /** La gravité d'une marque : 3 l'erreur, 2 l'avertissement (la
+     *  convention du dépôt de départ — autre chose vaut information). */
+    public static final int GRAVITE_ERREUR = 3;
+
+    /** Une marque : la ligne du diagnostic, son cran de bande, sa
+     *  cible de saut, sa gravité. */
+    public record Marque(int ligne, int cran, int startOffset, int gravite) {
     }
 
     private final List<Marque> marques;
@@ -27,7 +32,8 @@ public final class ErrorBandModel {
     }
 
     /**
-     * Construit la bande des diagnostics d'un document.
+     * Construit la bande des diagnostics d'un document — les marques
+     * tiennent l'erreur pour gravité (la voie historique).
      *
      * @param diagnostics les diagnostics courants, dans l'ordre du source
      * @param doc         le document porteur (offsets → lignes)
@@ -36,17 +42,37 @@ public final class ErrorBandModel {
      */
     public static ErrorBandModel of(List<SyntaxIssue> diagnostics, Document doc,
             int hauteur) {
+        int[] gravites = new int[diagnostics.size()];
+        java.util.Arrays.fill(gravites, GRAVITE_ERREUR);
+        return of(diagnostics, gravites, doc, hauteur);
+    }
+
+    /**
+     * Construit la bande des diagnostics d'un document, gravité par
+     * gravité — la marque porte la sienne, le peintre la suit.
+     *
+     * @param diagnostics les diagnostics courants, dans l'ordre du source
+     * @param gravites    la gravité de chaque diagnostic (3 erreur,
+     *                    2 avertissement, autre information), même ordre
+     * @param doc         le document porteur (offsets → lignes)
+     * @param hauteur     la hauteur de la bande en crans
+     * @return la bande, densité bornée à un cran
+     */
+    public static ErrorBandModel of(List<SyntaxIssue> diagnostics,
+            int[] gravites, Document doc, int hauteur) {
         int crans = Math.max(1, hauteur);
         List<Marque> marques = new ArrayList<>();
         int cranOccupe = -1;
-        for (SyntaxIssue diagnostic : diagnostics) {
+        for (int i = 0; i < diagnostics.size(); i++) {
+            SyntaxIssue diagnostic = diagnostics.get(i);
             if (diagnostic.startOffset() >= doc.length()) {
                 continue;
             }
             int ligne = doc.lineForOffset(diagnostic.startOffset());
             int cran = Math.min(crans - 1, ligne * crans / Math.max(1, doc.lineCount()));
             if (cran != cranOccupe) {
-                marques.add(new Marque(ligne, cran, diagnostic.startOffset()));
+                marques.add(new Marque(ligne, cran, diagnostic.startOffset(),
+                        i < gravites.length ? gravites[i] : GRAVITE_ERREUR));
                 cranOccupe = cran;
             }
         }

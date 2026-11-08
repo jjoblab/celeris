@@ -6,9 +6,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import jo.celeris.android.host.spi.DiagnosticHote;
+import jo.celeris.android.widgets.BadgeGenre;
 import jo.celeris.android.widgets.CompletionDocModel;
+import jo.celeris.android.widgets.CompletionListView;
+import jo.celeris.android.widgets.ErrorBandModel;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.text.Document;
 
 /**
@@ -150,6 +155,100 @@ final class PopupCoach {
         return candidats.size() > MAX_CANDIDATS
                 ? List.copyOf(candidats.subList(0, MAX_CANDIDATS))
                 : List.copyOf(candidats);
+    }
+
+    /**
+     * Les candidats TYPÉS du curseur (le design du dépôt de départ) :
+     * chaque libellé gagne son genre de badge — mot réservé, méthode
+     * documentée avec sa signature en identité qualifiée, identifiant
+     * du document en variable — et « String » en classe.
+     *
+     * @param bruts les candidats libellés du concentrateur, déjà filtrés
+     * @return les candidats typés, même ordre
+     */
+    static List<CompletionListView.Candidat> candidats(List<String> bruts) {
+        List<CompletionListView.Candidat> types = new ArrayList<>(bruts.size());
+        for (String nom : bruts) {
+            SignatureConnue signature = SIGNATURES.get(nom);
+            if (signature != null) {
+                types.add(new CompletionListView.Candidat(nom,
+                        signature.libelle(), BadgeGenre.Genre.METHODE));
+            } else if ("String".equals(nom)) {
+                types.add(new CompletionListView.Candidat(nom, "",
+                        BadgeGenre.Genre.CLASSE));
+            } else if (MOTS_RESERVES.contains(nom)) {
+                types.add(new CompletionListView.Candidat(nom, "",
+                        BadgeGenre.Genre.MOT_CLE));
+            } else {
+                types.add(new CompletionListView.Candidat(nom, "",
+                        BadgeGenre.Genre.VARIABLE));
+            }
+        }
+        return types;
+    }
+
+    /**
+     * Le préfixe tapé au curseur — les caractères qui matchent dans
+     * les libellés passent à l'accent et au gras.
+     *
+     * @param document le document ouvert
+     * @param caret    la position du curseur
+     * @return le préfixe, vide hors de tout identifiant
+     */
+    static String prefixeCourant(Document document, int caret) {
+        String texte = document.text();
+        int borne = Math.min(caret, texte.length());
+        return texte.substring(debutIdentifiant(texte, borne), borne);
+    }
+
+    /**
+     * Les issues de syntaxe des diagnostics du fichier ouvert — la
+     * bande d'erreurs s'y abreuve.
+     *
+     * @param diagnostics les diagnostics de l'hôte
+     * @param nomFichier  le nom du fichier ouvert — le filtre s'y fait
+     * @param document    le document ouvert (offsets de ligne)
+     * @return les issues, dans l'ordre des diagnostics
+     */
+    static List<SyntaxIssue> issues(List<DiagnosticHote> diagnostics,
+            String nomFichier, Document document) {
+        List<SyntaxIssue> issues = new ArrayList<>();
+        for (DiagnosticHote diagnostic : diagnostics(diagnostics, nomFichier)) {
+            int ligne = Math.max(0, diagnostic.ligne() - 1);
+            int debut = document.lineStart(ligne);
+            issues.add(new SyntaxIssue(debut, 1, diagnostic.message()));
+        }
+        return issues;
+    }
+
+    /**
+     * Les gravités des diagnostics du fichier ouvert, même ordre que
+     * {@link #issues} — la bande colore ses marques à la gravité.
+     *
+     * @param diagnostics les diagnostics de l'hôte
+     * @param nomFichier  le nom du fichier ouvert — le filtre s'y fait
+     * @return les gravités (3 erreur, 2 avertissement, autre information)
+     */
+    static int[] gravites(List<DiagnosticHote> diagnostics, String nomFichier) {
+        List<DiagnosticHote> duFichier = diagnostics(diagnostics, nomFichier);
+        int[] gravites = new int[duFichier.size()];
+        for (int i = 0; i < duFichier.size(); i++) {
+            gravites[i] = duFichier.get(i).gravite()
+                    == jo.celeris.android.host.spi.GraviteDiagnostic.ERREUR
+                    ? ErrorBandModel.GRAVITE_ERREUR : 2;
+        }
+        return gravites;
+    }
+
+    private static List<DiagnosticHote> diagnostics(
+            List<DiagnosticHote> diagnostics, String nomFichier) {
+        List<DiagnosticHote> duFichier = new ArrayList<>();
+        for (DiagnosticHote diagnostic : diagnostics) {
+            if (diagnostic.chemin().nom().equals(nomFichier)) {
+                duFichier.add(diagnostic);
+            }
+        }
+        return duFichier;
     }
 
     /**
