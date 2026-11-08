@@ -5,22 +5,30 @@ import jo.celeris.core.syntax.TokenKind;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Couche de gouttière : les numéros de lignes, alignés à droite dans le
- * champ de la gouttière (D-01 — numéros absolus), et les marques de la
- * coulisse — chevrons de pli (D-07) et marques d'erreur (D-02).
+ * Couche de gouttière : le voile TRANSLUCIDE du fond (M7.5,
+ * redressement — la gouttière du dépôt de départ se teintait ainsi),
+ * les numéros de lignes, alignés à droite dans le champ de la
+ * gouttière (D-01 — numéros absolus), et les marques de la coulisse —
+ * chevrons de pli (D-07) et marques d'erreur (D-02).
  *
  * <p>La gouttière défile verticalement avec le contenu (chaque numéro
  * suit sa rangée) mais jamais horizontalement : son abscisse ne dépend
  * pas du défilement horizontal. Les numéros passent par la projection
  * (PIEGE-04) — la rangée d'un pli porte le numéro de son en-tête — et
  * les étiquettes mémoïsées n'allouent rien en régime établi
- * (PIEGE-15). Les marques vivent dans la coulisse à gauche du champ de
- * numéros : le chevron replié pointe à droite, le chevron pliable
- * pointe vers le bas, la marque d'erreur se trace à l'encre d'erreur
- * du thème. Les pastilles de couleur (C-05) peignent dans la
- * respiration à droite du champ, à la valeur résolue ; les repères
- * {@code @Preview} (C-11) peignent dans la coulisse — l'œil du
- * composable, le rendu appartient à l'hôte.</p>
+ * (PIEGE-15).</p>
+ *
+ * <p>La CELLULE cohérente (M7.5, redressement) : chaque marque vit
+ * dans la même cellule carrée — le côté le plus étroit de la coulisse
+ * et de la hauteur de rangée — centrée au milieu de la rangée ; le
+ * chevron de pli y prend ses bras et son ÉPAISSEUR de trait, un
+ * trait d'un pixel y était minuscule. Les marques vivent dans la
+ * coulisse à gauche du champ de numéros : le chevron replié pointe à
+ * droite, le chevron pliable pointe vers le bas, la marque d'erreur
+ * se trace à l'encre d'erreur du thème. Les pastilles de couleur
+ * (C-05) peignent dans la respiration à droite du champ, à la valeur
+ * résolue ; les repères {@code @Preview} (C-11) peignent dans la
+ * coulisse — l'œil du composable, le rendu appartient à l'hôte.</p>
  */
 public final class GutterPainter extends PainterLayer {
 
@@ -181,6 +189,8 @@ public final class GutterPainter extends PainterLayer {
         int derniere = premiere + frame.visibleRows();
         float baseY = metrics.rowBaseline(premiere) - frame.scrollY();
         float hauteur = metrics.lineHeight();
+        tracerVoile(surface, frame, largeurGouttiere, hauteur,
+                derniere - premiere);
         GutterMarks marquesImage = marques.marques();
         for (int rangee = premiere; rangee < derniere; rangee++) {
             // A-18 : le numéro ne se pose que sur la première tranche
@@ -209,6 +219,23 @@ public final class GutterPainter extends PainterLayer {
     }
 
     /**
+     * Le voile du fond de gouttière (M7.5, redressement) : un rectangle
+     * TRANSLUCIDE posé sur toute la hauteur visible — un thème sans
+     * voile (alpha nul) n'en trace aucun, la gouttière vit sur le fond
+     * de la zone de texte.
+     */
+    private void tracerVoile(DrawSurface surface, FrameState frame,
+            float largeurGouttiere, float hauteur, int rangeesVisibles) {
+        int voile = frame.theme().gutterBackground();
+        if ((voile >>> 24) == 0 || largeurGouttiere <= 0f) {
+            return;
+        }
+        brush().setColor(voile);
+        surface.drawRect(0f, -hauteur, largeurGouttiere,
+                (rangeesVisibles + 1) * hauteur, brush());
+    }
+
+    /**
      * La pastille de couleur (C-05) : un carré posé dans la respiration
      * à droite du champ de numéros, à la valeur résolue du littéral —
      * la couleur de la ressource, pas celle d'un thème.
@@ -229,16 +256,16 @@ public final class GutterPainter extends PainterLayer {
 
     /**
      * Les repères {@code @Preview} (C-11) : l'œil du composable dans la
-     * coulisse — un losange plein à l'encre du texte de gouttière, le
-     * rendu du composé reste délégué à l'hôte.
+     * coulisse — un losange plein dans la cellule, à l'encre du texte
+     * de gouttière, le rendu du composé reste délégué à l'hôte.
      */
     private void tracerRepere(DrawSurface surface, int ligne, float centreX,
-            float centreY, float coulisse, float hauteur, FrameState frame) {
+            float centreY, float cellule, FrameState frame) {
         if (!reperes.repere(ligne)) {
             return;
         }
         brush().setColor(frame.theme().gutterTextColor());
-        float demi = Math.min(coulisse, hauteur) / 5f;
+        float demi = cellule / 4f;
         surface.drawLine(centreX - demi, centreY, centreX, centreY - demi, brush());
         surface.drawLine(centreX, centreY - demi, centreX + demi, centreY, brush());
         surface.drawLine(centreX + demi, centreY, centreX, centreY + demi, brush());
@@ -246,64 +273,77 @@ public final class GutterPainter extends PainterLayer {
     }
 
     /**
-     * Trace les marques d'une ligne dans la coulisse : la marque
-     * d'erreur (D-02) puis le chevron de pli (D-07) — la ligne peut
-     * porter les deux — puis les marques d'intégration (D-03, D-04,
-     * D-05) et le repère {@code @Preview} (C-11).
+     * Trace les marques d'une ligne dans la coulisse — toutes vivent dans
+     * la MÊME cellule carrée, centrée au milieu de la rangée (M7.5,
+     * redressement : taille et position cohérentes pour chaque marque) :
+     * la marque d'erreur (D-02) puis le chevron de pli (D-07) — la ligne
+     * peut porter les deux — puis les marques d'intégration (D-03,
+     * D-04, D-05) et le repère {@code @Preview} (C-11).
      */
     private void tracerMarques(DrawSurface surface, GutterMarks marques, int ligne,
             float y, float hauteur, float coulisse, FrameState frame) {
+        float cellule = Math.min(coulisse, hauteur);
         float centreX = coulisse / 2f;
-        float centreY = y - hauteur / 4f;
+        // le MILIEU VISUEL de la rangée : la rangée couvre
+        // [y - ascent, y + descent], le centre vit à y - ascent + h/2
+        float centreY = y - frame.metrics().ascent() + hauteur / 2f;
         if (marques.erreur(ligne)) {
             brush().setColor(frame.theme().syntaxe().couleur(TokenKind.ERROR));
-            float demi = Math.min(coulisse, hauteur) / 6f;
+            float demi = cellule / 5f;
             surface.drawRect(centreX - demi, centreY - demi,
                     centreX + demi, centreY + demi, brush());
         }
         if (marques.pliable(ligne)) {
-            tracerPli(surface, marques, ligne, centreX, centreY, coulisse, frame);
+            tracerPli(surface, marques, ligne, centreX, centreY, cellule, frame);
         }
-        tracerIntegration(surface, marques, ligne, y, hauteur, coulisse, frame);
-        tracerRepere(surface, ligne, centreX, centreY, coulisse, hauteur, frame);
+        tracerIntegration(surface, marques, ligne, y, hauteur, coulisse, cellule,
+                frame);
+        tracerRepere(surface, ligne, centreX, centreY, cellule, frame);
     }
 
-    /** Le chevron de pli (D-07) : replié regarde à droite, pliable vers le bas. */
+    /**
+     * Le chevron de pli (D-07) : replié regarde à droite, pliable vers
+     * le bas. M7.5, redressement : les bras prennent la cellule (un
+     * tiers de côté) et le trait son ÉPAISSEUR (un huitième de côté,
+     * deux pixels au moins) — le chevron se voit et se vise.
+     */
     private void tracerPli(DrawSurface surface, GutterMarks marques, int ligne,
-            float centreX, float centreY, float coulisse, FrameState frame) {
-        float ouverture = coulisse / 4f;
+            float centreX, float centreY, float cellule, FrameState frame) {
+        float bras = cellule / 3f;
         brush().setColor(frame.theme().gutterTextColor());
+        brush().setStrokeWidth(Math.max(2f, cellule / 8f));
         if (marques.replie(ligne)) {
             // chevron replié : la pointe regarde à droite
-            surface.drawLine(centreX - ouverture / 2f, centreY - ouverture,
-                    centreX + ouverture / 2f, centreY, brush());
-            surface.drawLine(centreX + ouverture / 2f, centreY,
-                    centreX - ouverture / 2f, centreY + ouverture, brush());
+            surface.drawLine(centreX - bras / 2f, centreY - bras,
+                    centreX + bras / 2f, centreY, brush());
+            surface.drawLine(centreX + bras / 2f, centreY,
+                    centreX - bras / 2f, centreY + bras, brush());
         } else {
             // chevron pliable : la pointe regarde vers le bas
-            surface.drawLine(centreX - ouverture, centreY - ouverture / 2f,
-                    centreX, centreY + ouverture / 2f, brush());
-            surface.drawLine(centreX, centreY + ouverture / 2f,
-                    centreX + ouverture, centreY - ouverture / 2f, brush());
+            surface.drawLine(centreX - bras, centreY - bras / 2f,
+                    centreX, centreY + bras / 2f, brush());
+            surface.drawLine(centreX, centreY + bras / 2f,
+                    centreX + bras, centreY - bras / 2f, brush());
         }
     }
 
     /**
      * Les marques d'intégration (D-03, D-04, D-05) : la barre de
      * modification VCS au bord gauche — modifiée à l'encre de
-     * sélection, ajoutée à l'encre de chaîne —, le point d'arrêt au
-     * centre de la coulisse — plein et rouge posé, creux et neutre
-     * désactivé —, le repère d'exécution par-dessus : la flèche de la
-     * ligne courante à l'encre du curseur, le chevron discret des
-     * lignes de pile.
+     * sélection, ajoutée à l'encre de chaîne —, le point d'arrêt dans
+     * la cellule — plein et rouge posé, creux et neutre désactivé —,
+     * le repère d'exécution par-dessus : la flèche de la ligne
+     * courante à l'encre du curseur, le chevron discret des lignes de
+     * pile.
      */
     private void tracerIntegration(DrawSurface surface, GutterMarks marques, int ligne,
-            float y, float hauteur, float coulisse, FrameState frame) {
+            float y, float hauteur, float coulisse, float cellule,
+            FrameState frame) {
         tracerBarreVcs(surface, marques, ligne, y, hauteur, coulisse, frame);
         float centreX = coulisse / 2f;
-        float centreY = y - hauteur / 4f;
-        tracerArret(surface, marques, ligne, centreX, centreY, coulisse, hauteur, frame);
-        tracerExecution(surface, marques, ligne, centreX, centreY, coulisse, frame);
+        float centreY = y - frame.metrics().ascent() + hauteur / 2f;
+        tracerArret(surface, marques, ligne, centreX, centreY, cellule, frame);
+        tracerExecution(surface, marques, ligne, centreX, centreY, cellule, frame);
     }
 
     /** La barre de modification VCS (D-03), plein rang de hauteur. */
@@ -319,15 +359,15 @@ public final class GutterPainter extends PainterLayer {
         surface.drawRect(0f, y - hauteur, Math.max(2f, coulisse / 6f), y, brush());
     }
 
-    /** Le point d'arrêt (D-04) : carré plein posé, carré creux désactivé. */
+    /** Le point d'arrêt (D-04) : carré plein posé, carré creux désactivé —
+     *  dans la cellule cohérente. */
     private void tracerArret(DrawSurface surface, GutterMarks marques, int ligne,
-            float centreX, float centreY, float coulisse, float hauteur,
-            FrameState frame) {
+            float centreX, float centreY, float cellule, FrameState frame) {
         EtatArret arret = marques.arret(ligne);
         if (arret == EtatArret.AUCUN) {
             return;
         }
-        float demi = Math.min(coulisse, hauteur) / 4f;
+        float demi = cellule / 3f;
         if (arret == EtatArret.POSE) {
             brush().setColor(frame.theme().syntaxe().couleur(TokenKind.ERROR));
             surface.drawRect(centreX - demi, centreY - demi,
@@ -345,20 +385,22 @@ public final class GutterPainter extends PainterLayer {
                 brush());
     }
 
-    /** Le repère d'exécution (D-05) : flèche à la ligne courante, chevron à la pile. */
+    /** Le repère d'exécution (D-05) : flèche à la ligne courante, chevron
+     *  à la pile — dans la cellule cohérente. */
     private void tracerExecution(DrawSurface surface, GutterMarks marques, int ligne,
-            float centreX, float centreY, float coulisse, FrameState frame) {
+            float centreX, float centreY, float cellule, FrameState frame) {
         @Nullable Integer courante = marques.ligneCourante();
         if (courante != null && courante == ligne) {
             brush().setColor(frame.theme().cursorColor());
-            float ouverture = coulisse / 4f;
+            brush().setStrokeWidth(Math.max(2f, cellule / 8f));
+            float ouverture = cellule / 3f;
             surface.drawLine(centreX - ouverture / 2f, centreY - ouverture,
                     centreX + ouverture / 2f, centreY, brush());
             surface.drawLine(centreX + ouverture / 2f, centreY,
                     centreX - ouverture / 2f, centreY + ouverture, brush());
         } else if (marques.dansPile(ligne)) {
             brush().setColor(frame.theme().gutterTextColor());
-            float ouverture = coulisse / 6f;
+            float ouverture = cellule / 6f;
             surface.drawLine(centreX - ouverture, centreY - ouverture,
                     centreX, centreY, brush());
             surface.drawLine(centreX, centreY,

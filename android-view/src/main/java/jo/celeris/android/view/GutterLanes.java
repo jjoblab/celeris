@@ -8,7 +8,9 @@ package jo.celeris.android.view;
  * <p>La largeur de coulisse découle de cette configuration seule : une
  * marque qui arrive se dessine dans la coulisse déjà réservée, elle ne
  * l'élargit pas — le texte ne se décale jamais à l'arrivée d'un
- * résultat (PIEGE-25).</p>
+ * résultat (PIEGE-25). La coulisse de syntaxe réserve DEUX caractères
+ * (M7.5, redressement) : le chevron de pli y vit à l'aise — une
+ * cellule cohérente pour chaque marque, la cible du doigt comprise.</p>
  *
  * @param syntax              vrai pour la coulisse de la syntaxe (plis,
  *                            chevrons, lignes en erreur) — réservée dès
@@ -37,7 +39,7 @@ public record GutterLanes(boolean syntax, boolean integration,
     public float laneWidth(float charWidth, float padding) {
         float coulisse = 0f;
         if (syntax) {
-            coulisse = Math.max(coulisse, Math.max(padding, charWidth));
+            coulisse = Math.max(coulisse, Math.max(padding, 2f * charWidth));
         }
         if (integration || importedDiagnostics || preview) {
             coulisse = Math.max(coulisse, 2f * charWidth);

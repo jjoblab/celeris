@@ -25,9 +25,17 @@ class GutterPainterTest {
             new EditorTheme(1, 0xFFFFFFFF, 0xFF202124, 0xFF1A73E8,
                     0xFF000000, 0xFF5F6368);
 
-    /** Pinceau mutable minimal : la couleur courante, rien d'autre. */
+    /** Un thème à voile : la gouttière teintée, translucide (M7.5). */
+    private static final EditorTheme THEME_VOILE =
+            new EditorTheme(4, 0xFFFFFFFF, 0xFF202124, 0xFF1A73E8,
+                    0xFF000000, 0xFF5F6368, 0x14202124,
+                    SyntaxPalette.monochrome(0xFF202124));
+
+    /** Pinceau mutable minimal : la couleur courante et l'épaisseur de
+     *  trait posée, rien d'autre. */
     private static final class PinceauMutable implements TextBrush {
         private int couleur;
+        private float epaisseur;
 
         @Override
         public void setColor(int argb) {
@@ -37,6 +45,16 @@ class GutterPainterTest {
         @Override
         public int color() {
             return couleur;
+        }
+
+        /** La dernière épaisseur de trait posée — le chevron s'y éprouve. */
+        float epaisseur() {
+            return epaisseur;
+        }
+
+        @Override
+        public void setStrokeWidth(float pixels) {
+            epaisseur = pixels;
         }
     }
 
@@ -490,5 +508,95 @@ class GutterPainterTest {
         assertEquals(6f, (min + max) / 2f, 1e-6f,
                 "le repère vit au centre de la coulisse de 12 px");
         assertTrue(min >= 0f && max <= 12f, "le repère reste dans la coulisse");
+    }
+
+    /**
+     * M7.5, redressement — le VOILE translucide du fond : un thème à
+     * voile le trace sur toute la largeur de la gouttière et la hauteur
+     * visible, à sa couleur ; un thème sans voile n'en trace aucun.
+     */
+    @Test
+    void voileTranslucideSurTouteLaGouttiere() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
+        Document document = Document.of("a\nb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(2, new FoldModel()), 1L, metrics,
+                THEME_VOILE, 0, 2, 28f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(1, surface.rectangles().size(),
+                "le voile du fond est l'unique rectangle");
+        RectTrace voile = surface.rectangles().get(0);
+        assertEquals(0f, voile.left(), 1e-6f);
+        assertEquals(28f, voile.right(), 1e-6f,
+                "le voile couvre la largeur de la gouttière");
+        assertTrue(voile.bottom() >= 40f,
+                "le voile couvre la hauteur visible (deux rangées de 20 px)");
+        assertEquals(THEME_VOILE.gutterBackground(), voile.couleur());
+        assertEquals(2, surface.textes().size(), "les numéros restent");
+    }
+
+    /** M7.5, redressement — sans voile (alpha nul), aucun fond tracé. */
+    @Test
+    void themeSansVoileNeTraceAucunFond() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
+        Document document = Document.of("a\nb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
+                0, 2, 28f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(0, surface.rectangles().size(),
+                "un thème sans voile ne trace aucun fond de gouttière");
+    }
+
+    /**
+     * M7.5, redressement — le chevron vit dans sa CELLULE : bras au
+     * tiers du côté (coulisse 12 × hauteur 20 → cellule 12, bras 4),
+     * trait ÉPAIS (un huitième de côté, deux pixels au moins), centre
+     * au MILIEU de la rangée — plus jamais un chevron minuscule au
+     * quart supérieur.
+     */
+    @Test
+    void chevronVitDansSaCelluleEpaisEtCentre() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        PinceauMutable pinceau = new PinceauMutable();
+        GutterMarks marques = GutterMarks.of(
+                List.of(new FoldSpan(0, 1)), new FoldModel(), new int[0]);
+        image.addLayer(new GutterPainter(() -> pinceau, 4f,
+                () -> marques, () -> 12f));
+        Document document = Document.of("a\nb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
+                0, 2, 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(2, surface.traits().size(), "le chevron pliable vit en deux traits");
+        // les bras : la cellule est min(12, 20) = 12, le bras en vaut le
+        // tiers — le chevron s'ouvre sur 8 px de large
+        TraitTrace premier = surface.traits().get(0);
+        TraitTrace second = surface.traits().get(1);
+        assertEquals(8f, Math.abs(premier.x1() - second.x2()), 1e-6f,
+                "les bras prennent le tiers de la cellule");
+        // le centre : au MILIEU de la rangée — la rangée 0 couvre 0 à 20,
+        // le centre vit à 10, le chevron l'encadre de bras/2
+        float centreY = (premier.y1() + second.y1()) / 2f;
+        assertEquals(10f, centreY, 1e-6f,
+                "le chevron vit au milieu de la rangée, plus au quart");
+        // le trait : épais — deux pixels au moins, un huitième de la cellule
+        assertTrue(pinceau.epaisseur() >= 2f,
+                "le trait du chevron se pose épais (au moins deux pixels)");
+        assertEquals(Math.max(2f, 12f / 8f), pinceau.epaisseur(), 1e-6f);
     }
 }
