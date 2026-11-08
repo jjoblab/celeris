@@ -78,6 +78,25 @@ public class PopupViewsTest {
                 2, choisi.get());
     }
 
+    /**
+     * La carte de complétion vit ENTRE son plancher et son plafond (le
+     * redressement du propriétaire, 2026-11-08 : « la largeur du popup
+     * de complétion trop petite, il n'a pas une taille raisonnable ») :
+     * les libellés courts ne rétrécissent plus la fenêtre.
+     */
+    @Test
+    public void completionKeepsAReasonableWidth() {
+        CompletionListView vue = new CompletionListView(contexte,
+                PopupPalette.dark());
+        vue.setItems(List.of(new CompletionListView.Candidat("int", "",
+                BadgeGenre.Genre.MOT_CLE)));
+        mesurer(vue);
+        float densite = vue.getResources().getDisplayMetrics().density;
+        assertEquals("à libellé court, la carte prend son plancher",
+                PopupTokens.LARGEUR_MIN_LISTE_DP * densite,
+                vue.getMeasuredWidth(), 2f);
+    }
+
     /** La documentation : le titre distinct, les sections typées à part. */
     @Test
     public void docKeepsTitleAndSectionsApart() {

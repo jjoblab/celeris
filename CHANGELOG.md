@@ -7,6 +7,55 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M8.6 — le serveur de langage réel embarqué, la barre au menu de débordement et la complétion raisonnable (2026-11-08)
+
+- **La carte de complétion garde une taille raisonnable** (le
+  redressement du propriétaire : « la largeur du popup de complétion
+  trop petite, il n'a pas une taille raisonnable ») : le plancher
+  `LARGEUR_MIN_LISTE_DP` (240 dp) s'ajoute au plafond du dépôt de
+  départ (280 dp) — les libellés courts ne rétrécissent plus la
+  fenêtre, la rangée deux lignes y respire, les libellés longs ne
+  mangent toujours pas l'écran.
+- **La barre de sélection porte son MENU DE DÉBORDEMENT, au design du
+  kit** (la demande du propriétaire : « le toolbar de sélection avec le
+  menu overflow même design ») : les actions principales — couper,
+  copier, coller — tiennent les pastilles ; la PUCE DE DÉBORDEMENT
+  (carré arrondi au rayon du kit, teinté à vingt pour cent, trois
+  points à l'encre du texte, teinte de sélection à l'appui) ouvre le
+  menu des actions repliées — la même carte que le menu d'intentions,
+  ancrée sous la puce. La machine à états porte le régime : le menu
+  n'ouvre pas sans sa barre, ne lui survit pas, cède à la frappe avec
+  elle et se repositionne au défilement.
+- **Le serveur de langage XML RÉEL est embarqué et lancé EN PROCESSUS**
+  (la demande du propriétaire : « un serveur LSP pas trop gros, inclus
+  dans le module démo, lancé en in process » — [EXT-6], identité et
+  licence au NOTICE) : l'artefact ubérifié de 8,8 Mo, découpé sur
+  mesure à 7,0 Mo (`scripts/decoupe-serveur-xml` — fermeture de portée
+  de la bibliothèque de collections, doublons de plateforme ôtés),
+  rejoint le client du cœur par le transport à flux sur des TUBES
+  MÉMOIRE — le cadrage Content-Length circule pour de vrai. Pourquoi
+  des tubes propres : ceux du JDK couplent la lecture à la vivacité du
+  fil écrivain — les réponses du serveur partent de fils de piscine
+  éphémères, et leur mort brisait la liaison (un fil de lecture tué
+  silencieusement, des réponses en attente pour toujours). Les fichiers
+  XML de la démonstration y gagnent la complétion documentée de leur
+  DTD, le survol des commentaires de déclaration, la définition et les
+  diagnostics de validation POUSSÉS — gouttière, bande d'erreurs et
+  barre d'état suivent. La fermeture ne lui envoie jamais `exit` :
+  l'implémentation y éteint la machine virtuelle, fatale au processus
+  hôte. Le banc JVM `ServeurXmlEmbarqueTest` exécute le serveur découpé
+  de bout en bout — poignée de main, synchronisation versionnée,
+  complétion, survol, diagnostics, et le remplacement en vol des
+  frappes rapides (PIEGE-18) contre un serveur du monde réel.
+- **La documentation de complétion lit ses trois formes du protocole**
+  (le constat du terrain réel : le serveur XML sert du CONTENU BALISÉ
+  `{kind, value}`, le lecteur n'en tirait rien) : `ElementCompletion`
+  décode la chaîne nue, l'objet balisé et le tableau de contenus — la
+  documentation arrive enfin du monde réel.
+- **L'exemple XML porte une DTD interne documentée** : déclarations
+  commentées, attributs requis — la matière du test à fond sur
+  appareil, sans ressource externe ni réseau.
+
 ### M8.5 — redressement : le design des popups du dépôt de départ et le clavier du défilement (2026-11-08)
 
 - **Le design des popups revient au kit du dépôt de départ, toutes

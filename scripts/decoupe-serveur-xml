@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Découpe sur mesure de l'artefact ubérifié du serveur XML [EXT-6].
+
+Le dépôt embarque le serveur de langage XML réel dans le module de
+démonstration (M8.6, identité et licence au NOTICE) : l'artefact
+ubérifié de 8,8 Mo y perd ce que le terrain n'utilise pas — la
+bibliothèque de collections réduite à sa FERMETURE DE PORTÉE depuis
+les points d'entrée (le serveur, sa liaison, les fournisseurs de
+services), les doublons de plateforme (org/w3c, org/xml, javax/xml
+hors StAX — l'appareil les fournit), le point d'entrée en ligne de
+commande (il attend la mort du processus PARENT : sur appareil, le
+parent EST l'application) et les classes que la stub androidx porte
+déjà. Résultat : ~7,0 Mo, la mémoire tampon des tubes mémoire en
+moins.
+
+La fermeture est STATIQUE : pool de constantes dépouillé, un
+long/double réserve le créneau fantôme qui suit (JLS §4.4.5), les
+CONSTANT_Class se résolvent à la seconde passe — l'Utf8 pointé peut
+venir plus tard dans le pool. Le banc JVM du module de démonstration
+(ServeurXmlEmbarqueTest) exécute le serveur DÉCOUPÉ de bout en bout :
+la découpe qui casserait la portée y échouerait pour de vrai.
+
+Usage :  python3 scripts/decoupe-serveur-xml <source.jar> <sortie.jar>
+"""
+
+import re
+import sys
+import zipfile
+
+GARDER_TOUT = (
+    'org/eclipse/lemminx/', 'org/eclipse/lsp4j/', 'com/google/gson/',
+    'org/apache/xerces/', 'org/apache/xml/', 'org/apache/html/',
+    'org/apache/wml/', 'jp/gr/xml/', 'org/jsoup/', 'com/overzealous/',
+    'com/thaiopensource/', 'org/iso_relax/', 'org/relaxng/',
+    'javax/xml/stream/',
+)
+FERMETURE = ('com/google/common/', 'com/google/thirdparty/',
+             'org/apache/commons/')
+EXCLURE = ('org/w3c/', 'org/xml/', 'javax/xml/', 'module-info',
+           'META-INF/versions/')
+# Le point d'entrée en LIGNE DE COMMANDE : il attend la mort du
+# processus PARENT (java.lang.ProcessHandle, absent du niveau 26) — la
+# démonstration lance le serveur par l'API, jamais par main(). La
+# CLASSE ET SES IMBRIQUÉES partent ensemble : une imbriquée exige son
+# hôte de nid au chargement. L'attendeur reste : le serveur implémente
+# son interface imbriquée, qui exige sa classe porteuse.
+# ListenableFuture : la brique androidx de compatibilité la porte déjà
+# — la classe de la bibliothèque de collections la dupliquerait à la
+# construction de l'APK.
+EXCLURE_EXPLICITE = ('org/eclipse/lemminx/XMLServerLauncher',
+                     'com/google/common/util/concurrent/'
+                     'ListenableFuture.class')
+
+DESCRIPTEUR = re.compile(rb'L([a-zA-Z0-9_$]+(?:/[a-zA-Z0-9_$]+)+);')
+
+
+def _parcourir(data, nom):
+    """Déroule le pool : rend (utf8 par index, classes citées).
+
+    Une long/double réserve le créneau fantôme qui suit (JLS §4.4.5) ;
+    les descripteurs des Utf8 portent les types en L…; ; les
+    CONSTANT_Class sont résolus à la seconde passe, l'Utf8 pointé peut
+    venir plus tard dans le pool.
+    """
+    compte = int.from_bytes(data[8:10], 'big')
+    utf8 = {}
+    for _ in range(2):
+        pos = 10
+        i = 1
+        while i < compte:
+            tag = data[pos]
+            pos += 1
+            if tag == 1:
+                lng = int.from_bytes(data[pos:pos + 2], 'big')
+                pos += 2
+                utf8[i] = data[pos:pos + lng]
+                pos += lng
+            elif tag in (5, 6):
+                pos += 8
+                i += 1
+            elif tag == 15:
+                pos += 3
+            elif tag in (3, 4, 9, 10, 11, 12, 17, 18):
+                pos += 4
+            elif tag in (8, 16, 19, 20):
+                pos += 2
+            elif tag == 7:
+                pos += 2
+            else:
+                raise ValueError(f'tag inconnu {tag} dans {nom}')
+            i += 1
+    classes = set()
+    pos = 10
+    i = 1
+    while i < compte:
+        tag = data[pos]
+        pos += 1
+        if tag == 1:
+            lng = int.from_bytes(data[pos:pos + 2], 'big')
+            pos += 2
+            bout = data[pos:pos + lng]
+            pos += lng
+            for m in DESCRIPTEUR.findall(bout):
+                classes.add(m.decode())
+        elif tag == 7:
+            idx = int.from_bytes(data[pos:pos + 2], 'big')
+            texte = utf8.get(idx, b'').decode('utf-8', 'replace')
+            texte = texte.lstrip('[').rstrip(';')
+            if texte and texte[0].isalpha():
+                classes.add(texte)
+            pos += 2
+        elif tag in (5, 6):
+            pos += 8
+            i += 1
+        elif tag == 15:
+            pos += 3
+        elif tag in (3, 4, 9, 10, 11, 12, 17, 18):
+            pos += 4
+        elif tag in (8, 16, 19, 20):
+            pos += 2
+        else:
+            raise ValueError(f'tag inconnu {tag} dans {nom}')
+        i += 1
+    return classes
+
+
+def references(nom, z):
+    """Les classes référencées par une classe, pool de constantes dépouillé."""
+    data = z.read(nom)
+    if data[:4] != b'\xca\xfe\xba\xbe':
+        return set()
+    return _parcourir(data, nom)
+
+
+def decoupe(source, sortie):
+    """Découpe l'artefact source : la fermeture décide, la sortie s'écrit."""
+    z = zipfile.ZipFile(source)
+    entrees = {i.filename for i in z.infolist()
+               if i.filename.endswith('.class')}
+    services = [n for n in z.namelist()
+                if n.startswith('META-INF/services/')]
+    racines = ['org/eclipse/lemminx/XMLLanguageServer.class',
+               'org/eclipse/lsp4j/launch/LSPLauncher.class']
+    for service in services:
+        for fournisseur in z.read(service).decode().split():
+            racines.append(fournisseur.replace('.', '/') + '.class')
+    vus = set()
+    pile = [r for r in racines if r in entrees]
+    if not pile:
+        raise SystemExit('aucune racine trouvée — la fermeture serait vide')
+    while pile:
+        nom = pile.pop()
+        if nom in vus:
+            continue
+        vus.add(nom)
+        for ref in references(nom, z):
+            if ref + '.class' in entrees and ref + '.class' not in vus:
+                pile.append(ref + '.class')
+    prefixes = tuple(p for p in EXCLURE_EXPLICITE if not p.endswith('.class'))
+    gardes, coupes = [], []
+    taille = 0
+    for i in z.infolist():
+        nom = i.filename
+        if nom.endswith('/'):
+            continue
+        if nom.endswith('.class'):
+            if nom in EXCLURE_EXPLICITE or nom.startswith(prefixes):
+                ok = False
+            elif nom.startswith(GARDER_TOUT):
+                ok = True
+            elif nom.startswith(FERMETURE):
+                ok = nom in vus
+            else:
+                ok = False  # w3c/xml/javax déjà exclus, le reste suit
+        elif nom.startswith('META-INF/'):
+            if nom.startswith('META-INF/services/'):
+                ok = True
+            elif nom.startswith('META-INF/versions/'):
+                ok = False
+            else:
+                ok = nom.lower().endswith(('.txt', '.md', '.html', ''))
+        else:
+            ok = True
+        (gardes if ok else coupes).append((nom, i.compress_size))
+        if ok:
+            taille += i.compress_size
+    avec = zipfile.ZipFile(sortie, 'w', zipfile.ZIP_DEFLATED)
+    for nom, _ in gardes:
+        avec.writestr(nom, z.read(nom))
+    avec.close()
+    print(f"fermeture : {len(vus)} classes visitées")
+    print(f"gardées : {len(gardes)} entrées, {taille / 1e6:.2f} Mo compressés")
+    print(f"entrées coupées : {len(coupes)}")
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        raise SystemExit(__doc__)
+    decoupe(sys.argv[1], sys.argv[2])

@@ -56,6 +56,14 @@ public final class PopupTokens {
      *  départ fixait la largeur de la liste à 280 dp). */
     public static final float LARGEUR_MAX_LISTE_DP = 280f;
 
+    /** Le PLANCHER de largeur d'une carte de complétion : la carte
+     *  garde une taille raisonnable même à libellés courts — le
+     *  redressement du propriétaire (2026-11-08 : « la largeur du
+     *  popup de complétion trop petite, il n'a pas une taille
+     *  raisonnable »). La rangée deux lignes — badge, libellé,
+     *  identité qualifiée — y respire. */
+    public static final float LARGEUR_MIN_LISTE_DP = 240f;
+
     /** La hauteur d'une rangée de complétion, deux lignes comprises. */
     public static final float HAUTEUR_RANGEE_LISTE_DP = 40f;
 
