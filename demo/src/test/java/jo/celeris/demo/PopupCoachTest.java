@@ -1,6 +1,7 @@
 package jo.celeris.demo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,6 +10,7 @@ import java.util.List;
 
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
 
 import org.junit.jupiter.api.Test;
@@ -92,5 +94,26 @@ class PopupCoachTest {
                 "la plus externe d'abord, la plus interne en dernier");
         assertTrue(PopupCoach.pathFor(List.of(externe, interne), 150)
                 .isEmpty(), "hors de tout symbole, le fil se vide");
+    }
+
+    /**
+     * M7.5, redressement — la complétion se propose à la FRAPPE : dès
+     * le premier caractère d'identifiant avant le curseur ; le blanc,
+     * la ponctuation et le début du document ne proposent rien.
+     */
+    @Test
+    void completionOpensOnTypingAnIdentifier() {
+        TextSession session = TextSession.of("int nombreLu = 3;", System::nanoTime);
+        Document document = session.document();
+        assertFalse(PopupCoach.doitOuvrirALaFrappe(document, 0),
+                "au début du document, rien ne se propose");
+        assertFalse(PopupCoach.doitOuvrirALaFrappe(document, 4),
+                "après un blanc, rien ne se propose");
+        assertFalse(PopupCoach.doitOuvrirALaFrappe(document, 14),
+                "après un signe, rien ne se propose");
+        assertTrue(PopupCoach.doitOuvrirALaFrappe(document, 1),
+                "le premier caractère tapé propose");
+        assertTrue(PopupCoach.doitOuvrirALaFrappe(document, 10),
+                "au cœur d'un mot, la liste filtre");
     }
 }
