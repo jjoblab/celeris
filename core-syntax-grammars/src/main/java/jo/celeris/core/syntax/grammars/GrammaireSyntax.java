@@ -5,11 +5,12 @@ import jo.celeris.core.syntax.LanguageParser;
 import jo.celeris.core.syntax.LanguageSyntax;
 
 /**
- * Un langage servi par la voie de grammaires (ADR-004, C-15/C-16) :
- * l'identifiant du langage et sa grammaire déclarative — lexeur et
- * parseur génériques en sortent, le même socle d'analyse incrémentale
- * que les analyseurs dédiés les porte. Coloration et plis seulement :
- * le plan reste l'affaire des analyseurs dédiés.
+ * Un langage servi par la voie de grammaires (ADR-004 révisé, ADR-014,
+ * C-15/C-16) : l'identifiant du langage et sa grammaire déclarative au
+ * format TextMate réel — lexeur et parseur génériques en sortent, le
+ * même socle d'analyse incrémentale que les analyseurs dédiés les
+ * porte. Coloration et plis seulement : le plan reste l'affaire des
+ * analyseurs dédiés.
  */
 public final class GrammaireSyntax implements LanguageSyntax {
 
