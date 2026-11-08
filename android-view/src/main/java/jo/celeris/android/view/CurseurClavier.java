@@ -51,8 +51,11 @@ final class CurseurClavier {
     }
 
     /**
-     * L'appui : le focus se prend, le clavier se dévoile, le curseur
-     * se réveille plein.
+     * Le TAP (redressement du propriétaire) : le focus se prend, le
+     * clavier se dévoile, le curseur se réveille plein. Le doigt POSÉ
+     * n'appelle plus ici — le geste qui glisse devient défilement et
+     * n'arme rien ; le relâchement sans mouvement, lui seul, ouvre
+     * l'IME.
      */
     void surAppui() {
         vue.requestFocus();

@@ -539,7 +539,7 @@ public final class EditorView extends View {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 performClick();
-                return touches.surRelachement();
+                return touches.surRelachement(event);
             default:
                 return super.onTouchEvent(event);
         }
