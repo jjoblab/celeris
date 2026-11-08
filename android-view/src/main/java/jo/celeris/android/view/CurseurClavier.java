@@ -30,6 +30,10 @@ final class CurseurClavier {
     private final EditorView vue;
     private final Runnable battement = this::surBattement;
     private boolean visible = true;
+    /** Vrai tant que le clavier s'est vu demander de se montrer —
+     *  l'appui long de sélection le retire (M7.5). Accès de paquet :
+     *  le banc y lit l'état sans fenêtre réelle. */
+    private boolean clavierDemande;
 
     /**
      * Construit le collaborateur de la vue donnée — la vue n'est
@@ -53,7 +57,27 @@ final class CurseurClavier {
     void surAppui() {
         vue.requestFocus();
         montrerClavier();
+        clavierDemande = true;
         reveiller();
+    }
+
+    /**
+     * L'appui long de sélection (M7.5) : le clavier se RETIRE — la
+     * sélection se continue au doigt, le clavier n'a rien à faire
+     * là ; le curseur clignote toujours.
+     */
+    void masquerClavier() {
+        InputMethodManager clavier = (InputMethodManager)
+                vue.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (clavier != null && vue.getWindowToken() != null) {
+            clavier.hideSoftInputFromWindow(vue.getWindowToken(), 0);
+        }
+        clavierDemande = false;
+    }
+
+    /** Vrai tant que le clavier est demandé montré — accès de paquet, bancs. */
+    boolean clavierDemande() {
+        return clavierDemande;
     }
 
     /** Le gain ou la perte de focus démarre ou arrête le battement. */
