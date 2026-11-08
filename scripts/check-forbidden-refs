@@ -36,7 +36,11 @@ EXEMPT_FILES = {"scripts/check-forbidden-refs", "scripts/check-dependency-proven
 
 
 def git_files() -> list:
-    out = subprocess.run(["git", "ls-files"], capture_output=True, text=True)
+    out = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+        capture_output=True, text=True,
+    )  # fichiers suivis ET non suivis non ignorés : un fichier tout
+    # nouveau ne doit pas échapper au contrôle avant son premier commit
     return [f for f in out.stdout.splitlines() if f.strip()]
 
 

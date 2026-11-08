@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Récupération reproductible des grammaires TextMate réelles du spike
+# M7.6 (moteur d'expressions rationnelles). Les grammaires viennent du
+# dépôt VS Code (licence MIT) — elles servent de mesures au spike et ne
+# se versionnent pas (patron des spikes M0 : rien de tiers n'entre
+# avant validation). Les sommes SHA-256 sont consignées à la première
+# mesure dans results/.
+set -euo pipefail
+
+ICI="$(cd "$(dirname "$0")" && pwd)"
+DEST="$ICI/grammaires"
+mkdir -p "$DEST"
+
+# Épinglé au main de VS Code (licence MIT), vérifié le 2026-11-08.
+COMMUN="https://raw.githubusercontent.com/microsoft/vscode/main/extensions"
+declare -A GRAMMAIRES=(
+  [json]="json/syntaxes/JSONC.tmLanguage.json"
+  [yaml]="yaml/syntaxes/yaml.tmLanguage.json"
+  [python]="python/syntaxes/MagicPython.tmLanguage.json"
+  [shell]="shellscript/syntaxes/shell-unix-bash.tmLanguage.json"
+  [c]="cpp/syntaxes/c.tmLanguage.json"
+  [cpp]="cpp/syntaxes/cpp.tmLanguage.json"
+  [markdown]="markdown-basics/syntaxes/markdown.tmLanguage.json"
+  [html]="html/syntaxes/html.tmLanguage.json"
+  [css]="css/syntaxes/css.tmLanguage.json"
+  [javascript]="javascript/syntaxes/JavaScript.tmLanguage.json"
+  [typescript]="typescript-basics/syntaxes/TypeScript.tmLanguage.json"
+)
+
+for nom in "${!GRAMMAIRES[@]}"; do
+  chemin="${GRAMMAIRES[$nom]}"
+  curl -sL --fail --max-time 60 -o "$DEST/$nom.tmLanguage.json" "$COMMUN/$chemin"
+  echo "  $nom ← $chemin"
+done
+
+# Bibliothèques de la voie (b) : joni (MIT) et jcodings (MIT), par le
+# miroir du dépôt central (Maven Central peut être bridé — 429 constaté
+# le 2026-11-08).
+LIBS="$ICI/libs"
+mkdir -p "$LIBS"
+curl -sL --fail --max-time 60 -o "$LIBS/joni-2.2.9.jar" \
+  "https://repo.maven.apache.org/maven2/org/jruby/joni/joni/2.2.9/joni-2.2.9.jar" \
+  || curl -sL --fail --max-time 60 -o "$LIBS/joni-2.2.9.jar" \
+  "https://maven.aliyun.com/repository/central/org/jruby/joni/joni/2.2.9/joni-2.2.9.jar"
+curl -sL --fail --max-time 60 -o "$LIBS/jcodings-1.0.64.jar" \
+  "https://repo.maven.apache.org/maven2/org/jruby/jcodings/jcodings/1.0.64/jcodings-1.0.64.jar" \
+  || curl -sL --fail --max-time 60 -o "$LIBS/jcodings-1.0.64.jar" \
+  "https://maven.aliyun.com/repository/central/org/jruby/jcodings/jcodings/1.0.64/jcodings-1.0.64.jar"
+echo "  joni-2.2.9.jar + jcodings-1.0.64.jar (voie b)"
+
+echo "grammaires et bibliothèques du spike en place : $DEST, $LIBS"
