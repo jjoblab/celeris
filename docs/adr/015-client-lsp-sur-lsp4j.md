@@ -1,7 +1,7 @@
 # ADR-015 — Client LSP sur LSP4J derrière une frontière
 
-- **Statut** : Proposition (spike exécuté le 2026-11-08 — les chiffres sont mesurés, la validation reste au propriétaire)
-- **Date** : 2026-11-08
+- **Statut** : Acceptée (spike exécuté le 2026-11-08 ; validée par le propriétaire le 2026-11-09 — module séparé confirmé, nommage neutre gravé)
+- **Date** : 2026-11-08 (révisée le 2026-11-09)
 - **Remplace** : la décision 1 et le tableau d'options de l'ADR-005 (qui reçoit sa note de révision)
 
 ## Contexte
@@ -35,13 +35,13 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
 ## Décision
 
 **LSP4J 1.0.0, épinglée au catalogue, derrière la frontière
-`lsp-lsp4j`.**
+`lsp-protocole`.**
 
 1. `core-lsp` garde l'API du domaine en Java pur sans dépendance — types
    immuables, `OrdonnanceurLsp` (priorités, annulation, fusion),
    transposition UTF-16 (ADR-003). Aucun type LSP4J n'y paraît.
-2. Un module **`lsp-lsp4j`**, seul dépendant de `org.eclipse.lsp4j` et
-   de Gson, porte `Lsp4jSession`, la correspondance des types, la
+2. Un module **`lsp-protocole`** (l'artefact dit sa fonction, jamais sa marque — style maison de `core-syntax-grammars`), seul dépendant de `org.eclipse.lsp4j` et
+   de Gson, porte `SessionLsp`, la correspondance des types, la
    négociation de capacités (enregistrement dynamique compris) et les
    requêtes serveur→client (`workspace/applyEdit`, `registerCapability`,
    `workDoneProgress`, `showMessage`, `workspace/configuration`) — le
@@ -61,12 +61,37 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
    correspondance et des tests de contrat, pas une migration (la
    frontière est là pour cela).
 
+## Révision du 2026-11-09 (validation du propriétaire)
+
+- **Le module séparé est confirmé.** La piste du mono-module (`core-lsp`
+  portant lui-même la liaison) a été examinée et tranchée : elle
+  convertirait la frontière mécanique (chemin de classes Gradle + ArchUnit)
+  en discipline de relecture — précisément ce que l'audit fondateur
+  (ADR-002) a condamné. La liste blanche d'ArchUnit de `core-lsp` reste
+  donc ce qu'elle est ; preuve, pas promesse.
+- **Nom d'artefact : `lsp-protocole`.** Le prompt orthographiait
+  « `lsp-lsp4j` » (ligne H-11 de la matrice) ; l'amendement est
+  consigné ici et pris en responsabilité par le propriétaire ; la
+  matrice et les ADR concernés sont corrigés dans le même commit.
+- **Règle de nommage gravée (directive du propriétaire, « très important »)** :
+  aucun nom de bibliothèque tierce dans un identifiant — classe, méthode,
+  paquet. Le module porte donc `SessionLsp`, `CorrespondanceLsp`, paquet
+  `jo.celeris.lsp.protocole`. LSP4J et Gson se nomment dans la
+  documentation, le NOTICE et le SBOM (règle 5), jamais dans le code.
+  La règle vaut pour tout le dépôt et vit dans `AGENT.md`.
+- **L'éditeur prime sur la démo (directive du propriétaire).** Le module
+  sert d'abord la pile de l'éditeur — cli, hôte Android, vue ; la
+  démonstration n'est que le banc de validation de l'éditeur, jamais sa
+  finalité. La parité des sept tests reste le critère d'entrée, mais
+  l'ordonnancement (priorités, annulation, fusion) et la transposition
+  UTF-16 de `core-lsp` continuent de servir l'éditeur d'abord.
+
 ## Options
 
 | Option | Verdict | Raison mesurée |
 | --- | --- | --- |
 | A. Client maison étendu (statu quo ADR-005) | écartée | 3 442 lignes pour 17 méthodes ; chaque méthode de plus coûte types et codecs ; la panne réelle du lecteur de documentation (M8.6) est exactement la classe de pièges que la bibliothèque élimine (`Either<String, MarkupContent>`) |
-| B. LSP4J 1.0.0 derrière `lsp-lsp4j` | **retenue** | compatibilité prouvée contre le serveur réel embarqué ; arbre de dépendances mince (gson seul) ; 728 Ko / 1 636 méthodes ; la copie unique avec le serveur tient (Gson 2.10.1 dans l'intervalle exigé) |
+| B. LSP4J 1.0.0 derrière `lsp-protocole` | **retenue** | compatibilité prouvée contre le serveur réel embarqué ; arbre de dépendances mince (gson seul) ; 728 Ko / 1 636 méthodes ; la copie unique avec le serveur tient (Gson 2.10.1 dans l'intervalle exigé) |
 | C. LSP4J 0.24.0 (LSP 3.17 finalisée) | repli documenté | si un blocage apparaît à l'intégration (R8, appareil) ; le spike la montre aussi compatible avec le serveur |
 
 ## Compromis
@@ -94,7 +119,7 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
 
 ## Actions
 
-- [ ] M7.6 (étape 7 du jalon) : module `lsp-lsp4j`, parité sur les sept
+- [ ] M7.6 (étape 7 du jalon) : module `lsp-protocole`, parité sur les sept
       tests, suppression du code maison après parité.
 - [ ] M7.6 : découpe du serveur sans lsp4j/Gson, copie unique dans
       l'APK.
