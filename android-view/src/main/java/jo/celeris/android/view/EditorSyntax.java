@@ -15,8 +15,6 @@ import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.syntax.TreeDiagnostics;
-import jo.celeris.core.syntax.TreeFolds;
-import jo.celeris.core.syntax.TreeOutline;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
 import jo.celeris.core.text.TextSession;
@@ -54,7 +52,10 @@ import org.jspecify.annotations.Nullable;
  * chaque changement de révision, jamais celles d'une autre révision.
  * Le rattachement d'une session et le retrait du langage poussent un
  * plan vide : le consommateur n'affiche jamais les entrées d'un
- * document parti.</p>
+ * document parti. Depuis M7.6 (H-08), le plan vient des règles du
+ * paquet quand il en porte et les plis suivent l'indentation déclarée
+ * par la configuration : un langage sans analyseur dédié se replie et
+ * se structure pareil.</p>
  */
 public final class EditorSyntax {
 
@@ -295,10 +296,12 @@ public final class EditorSyntax {
         if (analyse.revision() != revisionAnalysee) {
             revisionAnalysee = analyse.revision();
             regionsPliables.clear();
-            regionsPliables.addAll(TreeFolds.regions(document, analyse));
+            regionsPliables.addAll(
+                    LanguageStructure.plis(langue, document, analyse));
             marques = GutterMarks.of(regionsPliables, plis,
                     lignesEnErreur(document, analyse));
-            pousserPlan(TreeOutline.entries(document, analyse));
+            pousserPlan(LanguageStructure.plan(langue, document, analyse,
+                    regionsPliables));
         }
         editionsEnAttente.clear();
         chaineRompue = false;
