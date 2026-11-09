@@ -29,16 +29,12 @@ import org.jspecify.annotations.Nullable;
  */
 public final class ClientLsp implements AutoCloseable {
 
-    /** L'auditeur des diagnostics publiés. */
-    public interface AuditeurDiagnostics {
-
-        /**
-         * Des diagnostics publiés pour un document.
-         *
-         * @param uri        l'uri du document
-         * @param diagnostics les diagnostics, le dernier état du serveur
-         */
-        void diagnostics(String uri, List<DiagnosticLsp> diagnostics);
+    /**
+     * L'auditeur des diagnostics publiés — le contrat du domaine
+     * ({@link AuditeurDiagnostics}), porté ici le temps de la parité
+     * (ADR-015) : la voie maison disparaîtra, le contrat reste.
+     */
+    public interface AuditeurDiagnostics extends jo.celeris.core.lsp.AuditeurDiagnostics {
     }
 
     /** L'auditeur des jetons sémantiques. */

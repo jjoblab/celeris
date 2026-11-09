@@ -115,17 +115,27 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
 1. **R8** : règles consommateur du module (Gson par réflexion casse en
    silence après réduction) et preuve sur la **démo réduite**
    (`assembleRelease` : poignée de main, complétion, diagnostic, édition
-   d'espace rejoués sur ce binaire).
+   d'espace rejoués sur ce binaire — le rejeu sur appareil vit dans
+   VERIFICATION-APPAREIL, le bac n'en a pas).
 2. **Appareil** : comportement au niveau d'API 26 et au niveau courant
    (le bac n'a pas d'appareil ; plan dans VERIFICATION-APPAREIL).
-3. La découpe modifiée du serveur (exclusion lsp4j/Gson) reproduite au
-   octet près et les sept tests repassés sur l'archive ainsi découpée.
+3. **Fait le 2026-11-10** : la découpe modifiée du serveur (exclusion
+   lsp4j/Gson) rejouée depuis l'ubérifié d'origine (somme vérifiée)
+   reproduit le paquet embarqué au octet près (`f03644…`), et les sept
+   tests repassent sur l'archive ainsi découpée — **la parité est
+   prononcée** (7/7 verts, banc non modifié).
 
 ## Actions
 
-- [ ] M7.6 (étape 7 du jalon) : module `lsp-protocole`, parité sur les sept
-      tests, suppression du code maison après parité.
-- [ ] M7.6 : découpe du serveur sans lsp4j/Gson, copie unique dans
-      l'APK.
-- [ ] M7.6 : règles R8 consommateur + démo réduite ; catalogue, SBOM,
-      NOTICE, empreintes (règle 5).
+- [x] M7.6 (étape 7 du jalon) : module `lsp-protocole` monté, parité
+      sur les sept tests prononcée le 2026-11-10
+      (`ServeurXmlEmbarqueTest` 7/7 verts, banc non modifié, serveur
+      XML réel sur tubes mémoire, archive découpée copie unique).
+- [ ] M7.6 : suppression du code maison (décodages JSON, cadrage RPC,
+      `ClientLsp`, transports maison) — la parité étant prononcée, il
+      ne reste qu'à couper ; la construction doit rester verte.
+- [x] M7.6 : découpe du serveur sans lsp4j/Gson, copie unique tenue
+      (reproduction au octet près vérifiée le 2026-11-10, empreinte au
+      NOTICE).
+- [ ] M7.6 : règles R8 consommateur + démo réduite ; SBOM, empreintes
+      (règle 5 — catalogue et NOTICE déjà à jour).
