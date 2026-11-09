@@ -3,9 +3,10 @@ package jo.celeris.core.syntax;
 /**
  * Le langage Java (ADR-004, priorité P0) : lexeur ligne à ligne à états
  * transportés — commentaires de bloc et de documentation, textes en bloc —
- * et parseur tolérant ancré par chunks. L'instance est unique et sans état ;
- * le lexeur, lui, est à usage de fil unique (ADR-007) : le moteur en crée
- * un par passe.
+ * et parseur tolérant ancré par chunks, l'un et l'autre portés par le
+ * socle C-like (M7.6, H-10) au dialecte Java. L'instance est unique et
+ * sans état ; le lexeur, lui, est à usage de fil unique (ADR-007) :
+ * le moteur en crée un par passe.
  */
 public final class JavaSyntax implements LanguageSyntax {
 
@@ -22,11 +23,11 @@ public final class JavaSyntax implements LanguageSyntax {
 
     @Override
     public LanguageLexer lexer() {
-        return new JavaLexeur();
+        return new CLikeLexer(JavaDialect.INSTANCE);
     }
 
     @Override
     public LanguageParser parser() {
-        return new JavaParseur();
+        return new CLikeParser(JavaDialect.INSTANCE);
     }
 }

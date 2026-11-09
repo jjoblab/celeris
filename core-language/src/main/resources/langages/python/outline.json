@@ -1,0 +1,19 @@
+{
+  "rules": [
+    {
+      "pattern": "^\\s*(?:async\\s+)?def\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "category": "function",
+      "name": 1
+    },
+    {
+      "pattern": "^\\s*class\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "category": "type",
+      "name": 1
+    },
+    {
+      "pattern": "^([A-Za-z_][A-Za-z0-9_]*)\\s*=",
+      "category": "field",
+      "name": 1
+    }
+  ]
+}

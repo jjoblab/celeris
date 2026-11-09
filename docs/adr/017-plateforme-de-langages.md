@@ -74,10 +74,12 @@ n'a aucun consommateur de production.
   l'API de `core-language` change — rupture annoncée au changelog
   (pré-1.0, ADR-009).
 - Les éléments reportés : conversion des extraits en gabarits vivants
-  (avec la capacité), `outline.json` et plis par configuration (avec
-  le niveau 1 de l'analyse structurelle), `servers.json` (avec le
-  jalon LSP), la persistance du cache de paquets compilés côté
-  stockage Android (avec le scénario de paquet jouet de la démo).
+  (avec la capacité), `servers.json` (avec le jalon LSP), la
+  persistance du cache de paquets compilés côté stockage Android
+  (avec le scénario de paquet jouet de la démo). `outline.json` et
+  les plis par configuration sont arrivés avec le niveau 1 de
+  l'analyse structurelle (étape 6, H-08) : les paquets portent leurs
+  règles de plan, la configuration porte ses plis d'indentation.
 
 ## Actions
 
