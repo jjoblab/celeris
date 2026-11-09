@@ -36,7 +36,7 @@
 >   reste au propriétaire — D-02, D-07 et D-14 rejoignent leur
 >   jalon (M4/M5).
 
-> - **M7.6 — plateforme de langages (en cours)** : étape 6 livrée — le
+> - **M7.6 — plateforme de langages (en cours)** : étapes 1 à 7 livrées — le
 >   modèle (descripteur, configuration, support, capacités, détection),
 >   les seize langages en paquets de données (six analyseurs écrits
 >   attachés par préférence, dix grammaires réellement TextMate
@@ -48,7 +48,13 @@
 >   Python, YAML et SQL sans une ligne de Java dédiée) et le niveau 3
 >   factorisé (H-10 : Java, Kotlin, KTS et Groovy en spécialisations
 >   d’au plus 150 lignes du socle C-like, instantanés identiques) ;
->   les étapes suivantes du jalon (LSP, démo/matrice) avancent la
+>   la frontière protocolaire du LSP est née et prononcée (H-11 :
+>   étape 7 — le module `lsp-protocole` porte le protocole par la
+>   bibliothèque, la parité est prononcée sur les sept tests du banc
+>   SANS MODIFICATION, le code maison est supprimé, le corpus de
+>   traces lit par le Gson de la bibliothèque, les règles R8 sont
+>   prouvées sur la démo réduite — ADR-015) ; les étapes suivantes
+>   du jalon (couverture nouvelle H-12, démo/matrice) avancent la
 >   catégorie H avec elles.
 > - **M4 — syntaxe (en cours)** : socle d'analyse incrémentale livré
 >   (tranche 1 : jetons à offsets relatifs, états par ligne, cascade de
@@ -242,7 +248,7 @@
 | H-08 | Analyse structurelle niveau 1 (plis et plan génériques par données) | P0 | présent | `core-syntax` | M7.6 | Python, YAML et SQL ont plis et plan sans une ligne de Java | Câblé | DataStructureTest | non | — |
 | H-09 | Analyse structurelle niveau 2 (tree-sitter natif) | P2 | absent | — | M7.6 | ADR chiffré : si les budgets ne tiennent pas, l'ADR dit pourquoi (écarté — ADR-016) | Non démarré | — | non | — |
 | H-10 | Analyse structurelle niveau 3 (analyseurs écrits factorisés, attachés par paquets) | P0 | présent (non factorisés) | `core-syntax` | M7.6 | Java, Kotlin, KTS et Groovy en spécialisations d'au plus 150 lignes ; instantanés identiques | Câblé | ClikeSnapshotsTest | non | — |
-| H-11 | Client LSP sur LSP4J derrière la frontière `lsp-protocole` | P0 | absent | `core-lsp` | M7.6 | les tests de contrat passent par la nouvelle voie ; une seule copie de lsp4j et Gson dans l'APK | Noyau | — | non | — |
+| H-11 | Client LSP sur LSP4J derrière la frontière `lsp-protocole` | P0 | livré (celeris : la parité est prononcée à l'étape 7 de M7.6 — les sept tests de ServeurXmlEmbarqueTest passent SANS MODIFICATION par la frontière lsp-protocole contre le serveur XML réel, l'archive découpée n'embarque plus la liaison ni son rouage JSON, copie unique ; le code maison est supprimé le même jour — le corpus de traces passe par le Gson de la bibliothèque, la couverture du domaine se reconstruit par construction directe ; les règles R8 sont prouvées sur la démo réduite — assembleRelease vert, 6,3 Mo contre 10,3, le dex vérifié porte la bibliothèque et sa copie unique de Gson, cinq scénarios rejoués sur le binaire réduit — ADR-015) | `core-lsp` | M7.6 | les tests de contrat passent par la nouvelle voie ; une seule copie de lsp4j et Gson dans l'APK | Noyau | — | non | — |
 | H-12 | Couverture LSP nouvelle (symboles, formatage, plis, correctifs, indices en ligne) | P1 | absent | `core-lsp` | M7.6 | au moins douze méthodes raccordées à une interface | Non démarré | — | non | — |
 | H-13 | Serveurs déclarés dans les paquets (`servers.json`) | P1 | absent | `core-language` | M7.6 | un langage dont le serveur est disponible reçoit ses fournisseurs LSP automatiquement | Non démarré | — | non | — |
 

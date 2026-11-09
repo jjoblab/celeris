@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.lsp.protocole;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,20 +6,22 @@ import java.io.OutputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
+
 /**
- * Les tubes mémoire de la liaison en processus (M8.6) : une direction
- * de flux dont l'écriture gare des trames et la lecture les attend —
- * le pont entre le client du cœur et un serveur de langage lancé DANS
- * le processus, par son API, sur des flux quelconques.
+ * Les tubes mémoire de la liaison en processus (ADR-015) : une
+ * direction de flux dont l'écriture gare des octets et la lecture les
+ * attend — le pont entre la session et un serveur de langage lancé
+ * DANS le processus, par son API, sur des flux quelconques.
  *
  * <p>Pourquoi pas les tubes du JDK : leur sémantique de VIVACITÉ — une
  * lecture échoue dès que le fil qui a écrit meurt — casse la liaison
  * quand le serveur répond depuis ses fils de piscine, éphémères par
- * nature. Ici, les trames vivent dans une file bloquante : aucune
- * filature de fil, la lecture attend des octets ou la fermeture,
- * jamais la mort de l'écrivain.</p>
+ * nature (constat M8.6). Ici, les octets vivent dans une file
+ * bloquante : aucune filature de fil, la lecture attend des octets ou
+ * la fermeture, jamais la mort de l'écrivain.</p>
  */
-final class TubesMemoire {
+public final class TubesMemoire {
 
     private TubesMemoire() {
     }
@@ -31,12 +33,12 @@ final class TubesMemoire {
      *
      * @return la direction : son flux d'écriture et son flux de lecture
      */
-    static Direction creer() {
+    public static Direction creer() {
         return new Direction();
     }
 
-    /** Une direction de la liaison : une file de trames entre deux bouts. */
-    static final class Direction {
+    /** Une direction de la liaison : une file d'octets entre deux bouts. */
+    public static final class Direction {
 
         private final LinkedBlockingQueue<byte[]> trames =
                 new LinkedBlockingQueue<>();
@@ -105,7 +107,7 @@ final class TubesMemoire {
         };
 
         /** La prochaine trame à livrer : le restant, la file, sinon rien. */
-        private byte[] trameSuivante() throws IOException {
+        private byte @Nullable [] trameSuivante() throws IOException {
             if (curseurRestant < restant.length) {
                 return restant;
             }
@@ -135,18 +137,20 @@ final class TubesMemoire {
         }
 
         /** Le flux d'écriture de la direction. */
-        OutputStream sortie() {
+        public OutputStream sortie() {
             return sortie;
         }
 
         /** Le flux de lecture de la direction. */
-        InputStream entree() {
+        public InputStream entree() {
             return entree;
         }
 
-        /** Ferme la direction SANS exception vérifiée — l'écriture
-         *  suivante échouera, la lecture finit ce qui reste. */
-        void fermer() {
+        /**
+         * Ferme la direction SANS exception vérifiée — l'écriture
+         * suivante échouera, la lecture finit ce qui reste.
+         */
+        public void fermer() {
             fermee = true;
         }
     }

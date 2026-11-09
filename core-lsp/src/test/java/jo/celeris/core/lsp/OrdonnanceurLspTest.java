@@ -1,98 +1,112 @@
 package jo.celeris.core.lsp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * L'ordonnancement des requêtes (ADR-005) : annulation, priorités,
- * fusion, resynchronisation — la couche qui manque à toute liaison
- * tierce et la raison d'être du client propre. Le serveur factice
- * retient ses réponses : les requêtes vivent en vol, l'ordonnanceur
- * décide.
+ * L'ordonnancement des requêtes (ADR-005) sur la voie générique de la
+ * frontière protocolaire (ADR-015) : annulation, priorités, fusion,
+ * resynchronisation — les quatre règles du domaine, éprouvées sur des
+ * futurs opaques sans aucun fil ni aucune trame. L'émetteur rend un
+ * futur que le banc tient : c'est le banc qui fait office de serveur,
+ * l'annulation au fil s'observe sur le futur émis.
  */
 class OrdonnanceurLspTest {
 
-    private TransportMemoire.Paire paire;
-    private ServeurFactice serveur;
-    private ClientLsp client;
-    private OrdonnanceurLsp ordonnanceur;
+    private static final String URI = "file:///A.java";
 
-    @BeforeEach
-    void monter() {
-        paire = TransportMemoire.creerPaire();
-        serveur = ServeurFactice.brancher(paire);
-        client = ClientLsp.sur(paire.boutA(), "tests-celeris");
-        client.initialiser(JsonObjet.vide());
-        ordonnanceur = OrdonnanceurLsp.sur(client);
+    /** Le suivi des versions du banc : une carte que le banc fait vivre. */
+    private static final class Versions implements SuiviVersions {
+        private final Map<String, Integer> versions = new ConcurrentHashMap<>();
+
+        @Override
+        public int versionDe(String uri) {
+            return versions.getOrDefault(uri, -1);
+        }
     }
 
-    @AfterEach
-    void demonter() {
-        client.close();
-        serveur.close();
+    private final Versions versions = new Versions();
+
+    /** Ordonnance une demande de complétion dont l'émission rend un futur tenu. */
+    private CompletableFuture<String> completion(
+            OrdonnanceurLsp ordonnanceur, Object identite,
+            Supplier<CompletableFuture<String>> emission) {
+        return ordonnanceur.ordonnancer("completion", URI,
+                OrdonnanceurLsp.Priorite.INTERACTIF, identite, emission);
     }
 
-    /** La fusion : deux demandes identiques en vol, UNE requête sur le fil — les deux servies. */
-    @Test
-    void laFusionDesRequetesIdentiques() throws Exception {
-        serveur.reponseDifferee("textDocument/completion");
-        JsonObjet params = parametresCompletion("file:///A.java", 3, 7);
-        CompletableFuture<ValeurJson> premiere = ordonnanceur.demander(
-                "textDocument/completion", params,
-                OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
-        CompletableFuture<ValeurJson> seconde = ordonnanceur.demander(
-                "textDocument/completion", params,
-                OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
-        assertEquals(1, serveur.requetesEnAttente("textDocument/completion"),
-                "une seule requete doit etre en vol");
-        serveur.acheverRequete("textDocument/completion", JsonTableau.vide()
-                .ajouter(JsonObjet.vide().ajouter("label", JsonChaine.of("un"))));
-        assertEquals("un", libelle(premiere.get(5, java.util.concurrent.TimeUnit.SECONDS)));
-        assertEquals("un", libelle(seconde.get(5, java.util.concurrent.TimeUnit.SECONDS)));
-        // les deux futurs servis, une seule requête au fil — comptée chez le serveur
-        assertTrue(serveur.tramesRecues().stream()
-                .filter(t -> t.contains("textDocument/completion")).count() == 1);
+    private static <T> T joindre(CompletableFuture<T> futur) throws Exception {
+        return futur.get(5, TimeUnit.SECONDS);
+    }
+
+    private static RequeteAnnuleeException annulationDe(CompletableFuture<?> futur)
+            throws Exception {
+        ExecutionException echec = assertThrows(ExecutionException.class,
+                () -> joindre(futur));
+        return assertInstanceOf(RequeteAnnuleeException.class, echec.getCause());
     }
 
     /**
-     * L'annulation au remplacement : une complétion en vol remplacée par
-     * une plus fraîche — l'ancienne est annulée au fil ($/cancelRequest),
-     * son futur échoue, la nouvelle part.
+     * La fusion : deux demandes identiques en vol, UNE émission —
+     * les deux appelants servis par le même futur.
+     */
+    @Test
+    void laFusionDesRequetesIdentiques() throws Exception {
+        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        AtomicInteger emissions = new AtomicInteger();
+        CompletableFuture<String> tenue = new CompletableFuture<>();
+        record Position(int ligne, int colonne) {
+        }
+        Position identite = new Position(3, 7);
+        CompletableFuture<String> premiere = completion(ordonnanceur, identite, () -> {
+            emissions.incrementAndGet();
+            return tenue;
+        });
+        CompletableFuture<String> seconde = completion(ordonnanceur, identite, () -> {
+            emissions.incrementAndGet();
+            return new CompletableFuture<>();
+        });
+        assertEquals(1, emissions.get(),
+                "une seule émission pour deux demandes identiques en vol");
+        tenue.complete("un");
+        assertEquals("un", joindre(premiere));
+        assertEquals("un", joindre(seconde));
+    }
+
+    /**
+     * L'annulation au remplacement : une complétion en vol remplacée
+     * par une plus fraîche — le futur émis est ANNULÉ (la voie y
+     * traduit $/cancelRequest), le futur visible échoue REMPLACÉE, la
+     * nouvelle part.
      */
     @Test
     void lannulationAuRemplacement() throws Exception {
-        serveur.reponseDifferee("textDocument/completion");
-        CompletableFuture<ValeurJson> vieille = ordonnanceur.demander(
-                "textDocument/completion", parametresCompletion("file:///A.java", 3, 7),
-                OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
-        CompletableFuture<ValeurJson> neuve = ordonnanceur.demander(
-                "textDocument/completion", parametresCompletion("file:///A.java", 3, 8),
-                OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
-        // la vieille a échoué sur l'annulation
-        ExecutionException annulee = assertInstanceOf(ExecutionException.class,
-                assertThrowsExecution(vieille));
-        RequeteAnnuleeException cause = assertInstanceOf(RequeteAnnuleeException.class,
-                annulee.getCause());
-        assertEquals(RequeteAnnuleeException.Raison.REMPLACEE, cause.raison());
-        // le fil porte l'annulation de l'ancienne : la notification $/cancelRequest
-        attendreCondition(() -> serveur.tramesRecues().stream()
-                .anyMatch(t -> t.contains("$/cancelRequest")));
-        // la nouvelle est en vol
-        assertEquals(2, serveur.requetesEnAttente("textDocument/completion"));
-        // le serveur achève la plus ancienne — la remplacée — sa réponse tardive tombe, ignorée
-        serveur.acheverRequete("textDocument/completion", JsonChaine.of("trop tard"));
-        serveur.acheverRequete("textDocument/completion", JsonTableau.vide()
-                .ajouter(JsonObjet.vide().ajouter("label", JsonChaine.of("fraiche"))));
-        assertEquals("fraiche", libelle(neuve.get(5, java.util.concurrent.TimeUnit.SECONDS)));
+        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        CompletableFuture<String> vieuxVol = new CompletableFuture<>();
+        CompletableFuture<String> neuve = completion(ordonnanceur,
+                new PositionLsp(3, 7), () -> vieuxVol);
+        CompletableFuture<String> fraiche = completion(ordonnanceur,
+                new PositionLsp(3, 8), () -> new CompletableFuture<>());
+        assertEquals(RequeteAnnuleeException.Raison.REMPLACEE,
+                annulationDe(neuve).raison());
+        assertTrue(vieuxVol.isCancelled(),
+                "le futur émis de la remplacée est annulé — la voie y"
+                        + " traduit $/cancelRequest");
+        // le serveur achève la remplacée : sa réponse tardive tombe, ignorée
+        assertFalse(fraiche.isDone(), "la fraîche tient son vol");
     }
 
     /**
@@ -101,39 +115,33 @@ class OrdonnanceurLspTest {
      */
     @Test
     void laPrioriteInteractive() throws Exception {
-        serveur.reponseDifferee("textDocument/formatting");
-        serveur.reponseDifferee("textDocument/hover");
-        client.ouvrir("file:///A.java", "java", "class A {}\n");
-        CompletableFuture<ValeurJson> fond = ordonnanceur.demander(
-                "textDocument/formatting", JsonObjet.vide(),
-                OrdonnanceurLsp.Priorite.FOND,
-                new OrdonnanceurLsp.Cle("file:///A.java", "formatting"));
-        CompletableFuture<ValeurJson> interactive = ordonnanceur.demander(
-                "textDocument/hover", JsonObjet.vide(),
-                OrdonnanceurLsp.Priorite.INTERACTIF,
-                new OrdonnanceurLsp.Cle("file:///A.java", "hover"));
-        ExecutionException devancee = assertInstanceOf(ExecutionException.class,
-                assertThrowsExecution(fond));
-        RequeteAnnuleeException causeDevancee = assertInstanceOf(
-                RequeteAnnuleeException.class, devancee.getCause());
-        assertEquals(RequeteAnnuleeException.Raison.DEVANCEE, causeDevancee.raison());
-        // l'interactive vit sa vie
-        serveur.acheverRequete("textDocument/hover", JsonObjet.vide()
-                .ajouter("contents", JsonChaine.of("le survol")));
-        assertTrue(interactive.get(5, java.util.concurrent.TimeUnit.SECONDS) != null);
+        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        CompletableFuture<String> volFond = new CompletableFuture<>();
+        CompletableFuture<String> fond = ordonnanceur.ordonnancer("formatage",
+                URI, OrdonnanceurLsp.Priorite.FOND, "tout", () -> volFond);
+        CompletableFuture<String> interactive = ordonnanceur.ordonnancer(
+                "survol", URI, OrdonnanceurLsp.Priorite.INTERACTIF, "ici",
+                () -> new CompletableFuture<>());
+        assertEquals(RequeteAnnuleeException.Raison.DEVANCEE,
+                annulationDe(fond).raison());
+        assertTrue(volFond.isCancelled(),
+                "le vol de fond est annulé au fil quand l'interactive arrive");
+        assertFalse(interactive.isDone(), "l'interactive vit sa vie");
         // et l'inverse ne déloge pas : le fond n'annule jamais l'interactif
-        CompletableFuture<ValeurJson> interactiveDeux = ordonnanceur.demander(
-                "textDocument/hover", JsonObjet.vide()
-                        .ajouter("autre", JsonBooleen.of(true)),
-                OrdonnanceurLsp.Priorite.INTERACTIF,
-                new OrdonnanceurLsp.Cle("file:///A.java", "hover"));
-        CompletableFuture<ValeurJson> fondDeux = ordonnanceur.demander(
-                "textDocument/formatting", JsonObjet.vide(),
-                OrdonnanceurLsp.Priorite.FOND,
-                new OrdonnanceurLsp.Cle("file:///A.java", "formatting"));
-        assertTrue(!interactiveDeux.isCompletedExceptionally(),
+        CompletableFuture<String> volInteractif = new CompletableFuture<>();
+        CompletableFuture<String> interactiveDeux = ordonnanceur.ordonnancer(
+                "survol", URI, OrdonnanceurLsp.Priorite.INTERACTIF, "la-bas",
+                () -> volInteractif);
+        CompletableFuture<String> volFondDeux = new CompletableFuture<>();
+        CompletableFuture<String> fondDeux = ordonnanceur.ordonnancer(
+                "formatage", URI, OrdonnanceurLsp.Priorite.FOND, "encore",
+                () -> volFondDeux);
+        assertFalse(interactiveDeux.isCompletedExceptionally(),
                 "le fond ne devance jamais l'interactif");
-        assertTrue(!fondDeux.isDone(), "le fond tient son vol, devancé par personne");
+        assertFalse(volInteractif.isCancelled(),
+                "le vol interactif tient, délogé par personne");
+        assertFalse(fondDeux.isDone(), "le fond tient son vol, délogé par personne");
+        assertFalse(volFondDeux.isCancelled(), "le vol de fond tient aussi");
     }
 
     /**
@@ -143,139 +151,55 @@ class OrdonnanceurLspTest {
      */
     @Test
     void laResynchronisation() throws Exception {
-        serveur.reponseDifferee("textDocument/completion");
-        client.ouvrir("file:///A.java", "java", "class A {}\n");
-        CompletableFuture<ValeurJson> aLaVersionUne = ordonnanceur.demander(
-                "textDocument/completion", parametresCompletion("file:///A.java", 0, 5),
-                OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
+        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        versions.versions.put(URI, 1);
+        CompletableFuture<String> vol = new CompletableFuture<>();
+        CompletableFuture<String> aLaVersionUne = completion(ordonnanceur,
+                new PositionLsp(0, 5), () -> vol);
         // le document change pendant le vol : la réponse qui arrive est périmée
-        client.changer("file:///A.java", 2, "class A { void f() {} }\n");
-        serveur.acheverRequete("textDocument/completion", JsonTableau.vide()
-                .ajouter(JsonObjet.vide().ajouter("label", JsonChaine.of("tardif"))));
-        ExecutionException perimee = assertInstanceOf(ExecutionException.class,
-                assertThrowsExecution(aLaVersionUne));
-        RequeteAnnuleeException causePerimee = assertInstanceOf(
-                RequeteAnnuleeException.class, perimee.getCause());
-        assertEquals(RequeteAnnuleeException.Raison.PERIMEE, causePerimee.raison());
-        // la requête fraîche, partie après le changement, est servie
-        CompletableFuture<ValeurJson> fraiche = ordonnanceur.demander(
-                "textDocument/completion", parametresCompletion("file:///A.java", 0, 6),
-                OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
-        serveur.acheverRequete("textDocument/completion", JsonTableau.vide()
-                .ajouter(JsonObjet.vide().ajouter("label", JsonChaine.of("frais"))));
-        assertEquals("frais", libelle(fraiche.get(5, java.util.concurrent.TimeUnit.SECONDS)));
+        versions.versions.put(URI, 2);
+        vol.complete("tardif");
+        assertEquals(RequeteAnnuleeException.Raison.PERIMEE,
+                annulationDe(aLaVersionUne).raison());
+        // la demande fraîche, partie après le changement, est servie
+        CompletableFuture<String> volFrais = new CompletableFuture<>();
+        CompletableFuture<String> fraiche = completion(ordonnanceur,
+                new PositionLsp(0, 6), () -> volFrais);
+        volFrais.complete("frais");
+        assertEquals("frais", joindre(fraiche));
     }
 
     /** La réponse tardive d'une requête annulée : ignorée, l'ordonnanceur a déjà rendu son verdict. */
     @Test
     void laReponseTardiveEstIgnoree() throws Exception {
-        serveur.reponseDifferee("textDocument/completion");
-        CompletableFuture<ValeurJson> vieille = ordonnanceur.demander(
-                "textDocument/completion", parametresCompletion("file:///A.java", 1, 1),
-                OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
-        CompletableFuture<ValeurJson> neuve = ordonnanceur.demander(
-                "textDocument/completion",
-                parametresCompletion("file:///A.java", 2, 2),
-                OrdonnanceurLsp.Priorite.INTERACTIF, cle("file:///A.java"));
-        assertTrue(vieille.isCompletedExceptionally());
+        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        CompletableFuture<String> vieuxVol = new CompletableFuture<>();
+        CompletableFuture<String> vieille = completion(ordonnanceur,
+                new PositionLsp(1, 1), () -> vieuxVol);
+        CompletableFuture<String> volNeuf = new CompletableFuture<>();
+        CompletableFuture<String> neuve = completion(ordonnanceur,
+                new PositionLsp(2, 2), () -> volNeuf);
+        assertTrue(vieille.isCompletedExceptionally(),
+                "la remplacée a déjà son verdict");
         // le serveur achève la vieille requête annulée : la réponse tombe, rien ne casse
-        serveur.acheverRequete("textDocument/completion", JsonChaine.of("trop tard"));
-        serveur.acheverRequete("textDocument/completion", JsonChaine.of("la bonne"));
-        // la neuve est servie, le client vit toujours
-        assertEquals(JsonChaine.of("la bonne"), attendreValeur(neuve));
+        volNeuf.complete("la bonne");
+        assertEquals("la bonne", joindre(neuve));
+        assertEquals(RequeteAnnuleeException.Raison.REMPLACEE,
+                annulationDe(vieille).raison());
     }
 
-    /** La complétion typée (B-04) : les paramètres du protocole, la réponse au modèle — la coupure honorée. */
+    /** L'émission qui échoue sur place : le futur visible porte l'échec, sans vol mort. */
     @Test
-    void laCompletionTypee() throws Exception {
-        serveur.reponseScriptee("textDocument/completion",
-                JsonObjet.vide()
-                        .ajouter("isIncomplete", JsonBooleen.of(true))
-                        .ajouter("items", JsonTableau.vide()
-                                .ajouter(JsonObjet.vide()
-                                        .ajouter("label", JsonChaine.of("zebra")))
-                                .ajouter(JsonObjet.vide()
-                                        .ajouter("label", JsonChaine.of("apple")))));
-        CompletableFuture<ListeCompletion> future = ordonnanceur.completion(
-                "file:///A.java", new PositionLsp(3, 7));
-        ListeCompletion liste = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
-        assertTrue(liste.estIncomplete());
-        assertEquals(List.of("zebra", "apple"),
-                liste.elements().stream().map(ElementCompletion::libelle).toList());
-        // les paramètres partis au fil : textDocument et position
-        List<MessageRpc> requetes = serveur.tramesRecues().stream()
-                .map(t -> MessageRpc.de(JsonLecteur.lire(t)))
-                .filter(m -> m instanceof RequeteRpc r
-                        && "textDocument/completion".equals(r.methode()))
-                .toList();
-        assertEquals(1, requetes.size());
-        JsonObjet params = assertInstanceOf(JsonObjet.class,
-                ((RequeteRpc) requetes.get(0)).params());
-        JsonObjet document = assertInstanceOf(JsonObjet.class, params.membre("textDocument"));
-        assertEquals("file:///A.java", document.membreTexte("uri"));
-        JsonObjet position = assertInstanceOf(JsonObjet.class, params.membre("position"));
-        assertEquals(3, assertInstanceOf(JsonNombre.class,
-                position.membre("line")).entier());
-        assertEquals(7, assertInstanceOf(JsonNombre.class,
-                position.membre("character")).entier());
-    }
-
-    // ── Aides ─────────────────────────────────────────────────────────
-
-    /** La clé de remplacement d'un document. */
-    private static OrdonnanceurLsp.Cle cle(String uri) {
-        return new OrdonnanceurLsp.Cle(uri, "completion");
-    }
-
-    /** Les paramètres d'une complétion à une position. */
-    private static JsonObjet parametresCompletion(String uri, int ligne, int colonne) {
-        return JsonObjet.vide()
-                .ajouter("textDocument", JsonObjet.vide()
-                        .ajouter("uri", JsonChaine.of(uri)))
-                .ajouter("position", new PositionLsp(ligne, colonne).versJson());
-    }
-
-    /** Le libellé du premier élément d'une réponse de complétion — tableau nu ou objet items. */
-    private static String libelle(ValeurJson reponse) {
-        JsonTableau items = reponse instanceof JsonTableau tableau ? tableau
-                : assertInstanceOf(JsonTableau.class,
-                        assertInstanceOf(JsonObjet.class, reponse).membre("items"));
-        String libelle = assertInstanceOf(JsonObjet.class, items.element(0))
-                .membreTexte("label");
-        return assertInstanceOf(String.class, libelle);
-    }
-
-    /** Attend la valeur du futur — l'assertion d'échec est ailleurs. */
-    private static ValeurJson attendreValeur(CompletableFuture<ValeurJson> futur)
-            throws Exception {
-        return futur.get(5, java.util.concurrent.TimeUnit.SECONDS);
-    }
-
-    /** Attend l'échec du futur — le retourne en exception d'exécution. */
-    private static ExecutionException assertThrowsExecution(CompletableFuture<?> futur) {
-        try {
-            futur.get(5, java.util.concurrent.TimeUnit.SECONDS);
-            throw new AssertionError("le futur devait echouer");
-        } catch (java.util.concurrent.ExecutionException e) {
-            return e;
-        } catch (InterruptedException | java.util.concurrent.TimeoutException e) {
-            throw new AssertionError("le futur devait echouer vite", e);
-        }
-    }
-
-    /** Attend que la condition soit vraie — sonde courte, bornée. */
-    private static void attendreCondition(java.util.function.BooleanSupplier condition) {
-        long fin = System.nanoTime() + 5_000_000_000L;
-        while (System.nanoTime() < fin) {
-            if (condition.getAsBoolean()) {
-                return;
-            }
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
+    void lemissionQuiEchoueSeVoit() {
+        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        IllegalStateException panne = new IllegalStateException("panne d'émission");
+        CompletableFuture<String> visible = completion(ordonnanceur,
+                new PositionLsp(4, 4), () -> {
+                    throw panne;
+                });
+        java.util.concurrent.CompletionException echec =
+                assertThrows(java.util.concurrent.CompletionException.class,
+                        () -> visible.join());
+        assertEquals(panne, echec.getCause());
     }
 }
