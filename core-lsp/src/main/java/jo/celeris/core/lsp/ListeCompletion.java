@@ -54,6 +54,20 @@ public final class ListeCompletion {
         return new ListeCompletion(incomplete, elements);
     }
 
+    /**
+     * Construit la liste de ses éléments résolus — la voie typée de la
+     * frontière protocolaire (ADR-015) : la correspondance y dépose
+     * les éléments déjà lus de la bibliothèque.
+     *
+     * @param incomplete le serveur annonce sa liste tronquée
+     * @param elements   les éléments dans l'ordre exact du serveur
+     * @return la liste construite
+     */
+    public static ListeCompletion de(boolean incomplete,
+            List<ElementCompletion> elements) {
+        return new ListeCompletion(incomplete, elements);
+    }
+
     /** Vrai quand le serveur annonce sa liste tronquée. */
     public boolean estIncomplete() {
         return incomplete;

@@ -42,6 +42,21 @@ public final class SignatureLsp {
     }
 
     /**
+     * Construit l'aide aux paramètres de ses entrées résolues — la voie
+     * typée de la frontière protocolaire (ADR-015) : la correspondance
+     * y dépose les signatures déjà lues de la bibliothèque.
+     *
+     * @param entrees          les signatures candidates dans l'ordre du serveur
+     * @param signatureActive  l'index de la signature active, -1 si absent
+     * @param parametreActif   l'index du paramètre actif, -1 si absent
+     * @return l'aide construite
+     */
+    public static SignatureLsp de(List<Entree> entrees, int signatureActive,
+            int parametreActif) {
+        return new SignatureLsp(entrees, signatureActive, parametreActif);
+    }
+
+    /**
      * Analyse l'aide aux paramètres depuis sa réponse.
      *
      * @param json la valeur « result » de la requête d'aide aux

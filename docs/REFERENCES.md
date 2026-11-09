@@ -16,12 +16,12 @@
 
 | Projet | Rôle dans celeris | Licence | Vérifié le |
 | --- | --- | --- | --- |
-| [LSP4J](https://github.com/eclipse-lsp4j/lsp4j) | candidate (M7.6) : protocole LSP et JSON-RPC derrière la frontière du module `lsp-protocole` ; déjà présent dans l'APK de démo via serveur-retire | EPL-2.0 OU BSD-3-Clause (consommable sous BSD-3-Clause, compatible Apache-2.0) | 2026-11-08 |
+| [LSP4J](https://github.com/eclipse-lsp4j/lsp4j) | dépendance du runtime publié `lsp-protocole` (M7.6, ADR-015) : protocole LSP et JSON-RPC derrière la frontière ; déjà présent dans l'APK de démo via serveur-retire | EPL-2.0 OU BSD-3-Clause (consommable sous BSD-3-Clause, compatible Apache-2.0) | 2026-11-09 |
 | [serveur-retire](https://github.com/eclipse/serveur-retire) | dépendance embarquée de la démonstration (M8.6) : serveur tiers retiré, lancé en processus | EPL-2.0 (obligations de l'archive modifiée au `NOTICE`) | 2026-11-08 |
 | [joni](https://github.com/jruby/joni) | dépendance du runtime publié `core-syntax-grammars` (M7.6, ADR-014) : portage Java d'Oniguruma, moteur des expressions des grammaires TextMate | MIT | 2026-11-08 |
 | [jcodings](https://github.com/jruby/jcodings) | rouage d'encodages de joni (UTF-8 seul sert), même module publié | MIT | 2026-11-08 |
 | [tree-sitter](https://github.com/tree-sitter/tree-sitter) | candidate (M7.6, spike) : moteur d'analyse incrémental en C, niveau 2 de l'analyse structurelle par liaison JNI écrite ici | MIT | 2026-11-08 |
-| [Gson](https://github.com/google/gson) | transitive de serveur-retire (217 classes dans l'archive découpée) ; le module `lsp-lsp4j` n'en embarquera qu'une seule copie | Apache-2.0 | 2026-11-08 |
+| [Gson](https://github.com/google/gson) | rouage JSON de la bibliothèque LSP derrière la frontière `lsp-protocole` (M7.6, ADR-015), épinglée STRICTEMENT : la copie unique avec le serveur tiers retiré (découpe à venir) ; transitive de serveur-retire (217 classes dans l'archive découpée) | Apache-2.0 | 2026-11-09 |
 
 ## Points de comparaison
 

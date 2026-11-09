@@ -41,7 +41,7 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
    immuables, `OrdonnanceurLsp` (priorités, annulation, fusion),
    transposition UTF-16 (ADR-003). Aucun type LSP4J n'y paraît.
 2. Un module **`lsp-protocole`** (l'artefact dit sa fonction, jamais sa marque — style maison de `core-syntax-grammars`), seul dépendant de `org.eclipse.lsp4j` et
-   de Gson, porte `SessionLsp`, la correspondance des types, la
+   de Gson, porte `LspSession`, la correspondance des types, la
    négociation de capacités (enregistrement dynamique compris) et les
    requêtes serveur→client (`workspace/applyEdit`, `registerCapability`,
    `workDoneProgress`, `showMessage`, `workspace/configuration`) — le
@@ -75,10 +75,14 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
   matrice et les ADR concernés sont corrigés dans le même commit.
 - **Règle de nommage gravée (directive du propriétaire, « très important »)** :
   aucun nom de bibliothèque tierce dans un identifiant — classe, méthode,
-  paquet. Le module porte donc `SessionLsp`, `CorrespondanceLsp`, paquet
+  paquet. Le module porte donc `LspSession`, `CorrespondanceLsp`, paquet
   `jo.celeris.lsp.protocole`. LSP4J et Gson se nomment dans la
   documentation, le NOTICE et le SBOM (règle 5), jamais dans le code.
   La règle vaut pour tout le dépôt et vit dans `AGENT.md`.
+  Le retournement du suffixe — `LspSession`, jamais `SessionLsp` —
+  obéit au rempart de langue (M7.5) : « Session » y est un radical
+  français figé, les nouveaux identifiants sont anglais et le décompte
+  ne peut que descendre.
 - **L'éditeur prime sur la démo (directive du propriétaire).** Le module
   sert d'abord la pile de l'éditeur — cli, hôte Android, vue ; la
   démonstration n'est que le banc de validation de l'éditeur, jamais sa
