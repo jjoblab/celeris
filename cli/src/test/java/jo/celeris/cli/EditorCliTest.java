@@ -76,6 +76,29 @@ public final class EditorCliTest {
         assertTrue(sortie.contains("langage : toml"), "grammaire toml : " + sortie);
     }
 
+    /** Le Python se plie à l'indentation et se planifie par les règles de son paquet (H-08). */
+    @Test
+    public void analyseUnFichierPythonPlisEtPlan() throws IOException {
+        Path fichier = ecrire("outils.py", """
+                CATEGORIES = {
+                    "code": 0,
+                }
+
+                def classifier(ligne):
+                    if not ligne.strip():
+                        return "vide"
+                    return "code"
+                """);
+        String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
+
+        assertTrue(sortie.contains("langage : python"), "langage détecté : " + sortie);
+        assertTrue(sortie.contains("plan : CATEGORIES"), "la constante figure : " + sortie);
+        assertTrue(sortie.contains("plan : classifier"),
+                "la définition figure au plan : " + sortie);
+        assertTrue(sortie.contains("pli : lignes 5-8"),
+                "la définition se replie : " + sortie);
+    }
+
     /** Le point H se départage par son contenu : les marqueurs C++
      * emportent le C++, leur absence laisse le C. */
     @Test

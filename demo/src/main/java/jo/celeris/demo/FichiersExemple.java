@@ -203,6 +203,49 @@ public final class FichiersExemple {
                 return dict(CATEGORIES)
             """;
 
+    private static final String YAML = """
+            # Les dépendances de la démonstration : le pipeline des
+            # versions se déclare, il ne s'écrit pas dans les scripts.
+            catalogue:
+              nom: exemples
+              version: 3
+              entrees:
+                - id: A-13
+                  libelle: annulation groupee
+                  priorite: P0
+                - id: B-03
+                  libelle: completion de base
+                  priorite: P0
+              actif: true
+
+            pipeline:
+              etapes:
+                - nom: compilation
+                  duree: 42
+                - nom: tests
+                  duree: 17
+            """;
+
+    private static final String SQL = """
+            -- L'inventaire de la démonstration : le plan sort des
+            -- règles du paquet, les plis des crochets du lexique.
+            CREATE TABLE clients (
+                id INTEGER PRIMARY KEY,
+                nom TEXT NOT NULL,
+                ville TEXT
+            );
+
+            CREATE VIEW clients_actifs AS
+                SELECT id, nom FROM clients
+                WHERE ville IS NOT NULL;
+
+            CREATE UNIQUE INDEX clients_nom ON clients (nom);
+
+            INSERT INTO clients (id, nom, ville) VALUES
+                (1, 'Ada', 'Paris'),
+                (2, 'Grace', NULL);
+            """;
+
     private static final String PROGUARD = """
             # Règles R8 de la démonstration : l'API publique et les
             # entrées réfléchies survivent à la réduction.
@@ -287,6 +330,8 @@ public final class FichiersExemple {
             new FichierExemple("catalogue.json", JSON),
             new FichierExemple("README.md", MARKDOWN),
             new FichierExemple("outils.py", PYTHON),
+            new FichierExemple("dependances.yml", YAML),
+            new FichierExemple("inventaire.sql", SQL),
             new FichierExemple("proguard-rules.pro", PROGUARD),
             new FichierExemple("couleurs.xml", COULEURS),
             new FichierExemple("Apercus.kt", APERCUS));

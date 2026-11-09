@@ -54,6 +54,8 @@ final class FichiersExempleTest {
         assertEquals("json", langageDe("donnees.json"));
         assertEquals("markdown", langageDe("README.md"));
         assertEquals("python", langageDe("outils.py"));
+        assertEquals("yaml", langageDe("dependances.yml"));
+        assertEquals("sql", langageDe("inventaire.sql"));
         assertEquals("proguard", langageDe("regles.pro"));
     }
 

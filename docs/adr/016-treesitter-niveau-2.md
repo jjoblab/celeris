@@ -109,9 +109,17 @@ pas un échec — c'est la réponse chiffrée que le spike devait donner.
 
 ## Actions
 
-- [ ] M7.6 niveaux 1 et 3 : moteur générique (plis, appariement,
+- [x] M7.6 niveaux 1 et 3 : moteur générique (plis, appariement,
       indentation, plan par données) et factorisation C-like — le
-      jalon continue sans le natif.
+      jalon continue sans le natif. Livré à l'étape 6 : les plis par
+      indentation (`IndentationFolds`, réglage `offSide` de la
+      configuration, lignes vides et de commentaire seul jamais
+      clôturantes) et le plan par règles (`outline.json` des paquets,
+      `RuleOutline` — Python, YAML et SQL se structurent sans une
+      ligne de Java dédiée) ; les analyseurs écrits de Java, Kotlin,
+      KTS et Groovy deviennent des spécialisations d'au plus 150
+      lignes du socle `CLikeLexer`/`CLikeParser`, les instantanés des
+      corpus prouvant l'identité (`ClikeSnapshotsTest`).
 - [ ] Si le propriétaire veut rouvrir : mesures sur l'appareil de
       référence d'abord (plan VERIFICATION-APPAREIL), puis ADR de
       révision avec le bornage par taille.

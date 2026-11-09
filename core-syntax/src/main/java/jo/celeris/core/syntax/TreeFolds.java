@@ -6,6 +6,8 @@ import java.util.List;
 
 import jo.celeris.core.text.Document;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Régions de pli calculées depuis l'arbre et le lexique (A-15) : chaque
  * nœud structurant de deux lignes ou plus — bloc, type, fonction, tag —
@@ -27,12 +29,32 @@ public final class TreeFolds {
      * @return les régions (en-tête visible, lignes suivantes repliées)
      */
     public static List<FoldSpan> regions(Document doc, Analysis analysis) {
+        return regions(doc, analysis, null);
+    }
+
+    /**
+     * Les régions de pli d'une analyse, celles de l'arbre et des
+     * commentaires, plus celles de l'indentation quand le langage se
+     * replie au décalage (M7.6, H-08) : les régions se fondent, une
+     * même ligne de début garde la plus longue.
+     *
+     * @param doc      le document porteur
+     * @param analysis l'analyse courante
+     * @param settings le réglage des plis par indentation, null pour
+     *                 les langages qui ne s'y replient pas
+     * @return les régions (en-tête visible, lignes suivantes repliées)
+     */
+    public static List<FoldSpan> regions(Document doc, Analysis analysis,
+            IndentationFolds.@Nullable Settings settings) {
         List<FoldSpan> regions = new ArrayList<>();
         for (Chunk chunk : analysis.tree().chunks()) {
             int base = analysis.tree().chunkStartOffset(doc, chunk);
             collecter(doc, chunk.root(), base, regions);
         }
         collecterCommentaires(analysis.lex(), regions);
+        if (settings != null) {
+            regions.addAll(IndentationFolds.regions(doc, analysis.lex(), settings));
+        }
         regions.sort(Comparator.comparingInt(FoldSpan::startLine)
                 .thenComparingInt(FoldSpan::endLine));
         List<FoldSpan> uniques = new ArrayList<>();

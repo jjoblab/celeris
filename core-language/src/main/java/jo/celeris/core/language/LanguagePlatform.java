@@ -189,7 +189,8 @@ public final class LanguagePlatform {
         LanguageSupport.Builder batisseur = LanguageSupport
                 .builder(pack.descriptor())
                 .configuration(pack.configuration())
-                .injections(pack.injections());
+                .injections(pack.injections())
+                .outlineRules(pack.outlineRules());
         LanguageSyntax source = sourceSyntaxique(pack);
         if (source != null) {
             batisseur.syntax(source);
@@ -270,6 +271,7 @@ public final class LanguagePlatform {
                 .builder(support.descriptor())
                 .configuration(support.configuration())
                 .injections(support.injections())
+                .outlineRules(support.outlineRules())
                 .parent(parent);
         if (support.syntax() != null) {
             batisseur.syntax(support.syntax());
