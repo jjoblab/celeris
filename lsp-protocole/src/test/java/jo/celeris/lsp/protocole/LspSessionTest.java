@@ -6,13 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.lsp.DiagnosticLsp;
@@ -20,6 +22,7 @@ import jo.celeris.core.lsp.ListeCompletion;
 import jo.celeris.core.lsp.LieuLsp;
 import jo.celeris.core.lsp.PlageLsp;
 import jo.celeris.core.lsp.PositionLsp;
+import jo.celeris.core.lsp.RequeteAnnuleeException;
 import jo.celeris.core.lsp.SignatureLsp;
 import jo.celeris.core.lsp.SurvolLsp;
 
@@ -58,14 +61,15 @@ public final class LspSessionTest {
     }
 
     private static Banc demarrer() throws Exception {
-        PipedInputStream lectureServeur = new PipedInputStream();
-        PipedOutputStream ecritureClient = new PipedOutputStream(lectureServeur);
-        PipedInputStream lectureClient = new PipedInputStream();
-        PipedOutputStream ecritureServeur = new PipedOutputStream(lectureClient);
+        // tube à file, le transport de la démo et des bancs (ADR-015) :
+        // les tubes du JDK couplent la lecture à la vivacité du fil
+        // écrivain — les fils de piscine du serveur sont éphémères
+        TubesMemoire.Direction versServeur = TubesMemoire.creer();
+        TubesMemoire.Direction duServeur = TubesMemoire.creer();
         ServeurFactice.Etat etat = ServeurFactice.demarrer(
-                lectureServeur, ecritureServeur);
+                versServeur.entree(), duServeur.sortie());
         LspSession session = LspSession.sur(
-                lectureClient, ecritureClient, "celeris-banc");
+                duServeur.entree(), versServeur.sortie(), "celeris-banc");
         session.initialiser();
         return new Banc(session, etat);
     }
@@ -79,6 +83,14 @@ public final class LspSessionTest {
             vu = sonde.get();
         }
         return vu;
+    }
+
+    private static void attendreCondition(java.util.function.BooleanSupplier condition)
+            throws Exception {
+        long borne = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (!condition.getAsBoolean() && System.nanoTime() < borne) {
+            Thread.sleep(10);
+        }
     }
 
     @Test
@@ -207,15 +219,50 @@ public final class LspSessionTest {
 
     @Test
     void laSessionRefuseSansInitialisation() throws Exception {
-        PipedInputStream lectureServeur = new PipedInputStream();
-        PipedOutputStream ecritureClient = new PipedOutputStream(lectureServeur);
-        PipedInputStream lectureClient = new PipedInputStream();
-        PipedOutputStream ecritureServeur = new PipedOutputStream(lectureClient);
-        ServeurFactice.demarrer(lectureServeur, ecritureServeur);
+        TubesMemoire.Direction versServeur = TubesMemoire.creer();
+        TubesMemoire.Direction duServeur = TubesMemoire.creer();
+        ServeurFactice.demarrer(versServeur.entree(), duServeur.sortie());
         try (LspSession session = LspSession.sur(
-                lectureClient, ecritureClient, "celeris-banc")) {
+                duServeur.entree(), versServeur.sortie(), "celeris-banc")) {
             assertThrows(IllegalStateException.class,
                     () -> session.ouvrir(URI, "xml", "<ex/>"));
+        }
+    }
+
+    /**
+     * PIEGE-18 — les frappes rapides, la preuve au fil : deux
+     * complétions de suite, la seconde remplace la première en vol —
+     * le futur remplacé échoue REMPLACÉE, l'annulation TRAVERSE le
+     * fil ({@code $/cancelRequest} : le futur tenu côté serveur est
+     * annulé par le cadre de la bibliothèque), le dernier mot gagne.
+     */
+    @Test
+    void lesFrappesRapidesRemplacentEnVolAuFil() throws Exception {
+        try (Banc banc = demarrer()) {
+            banc.etat().tenirCompletion.set(true);
+            banc.session().ouvrir(URI, "xml", "<ex");
+            CompletableFuture<ListeCompletion> vieille = banc.session()
+                    .completion(URI, new PositionLsp(0, 2));
+            CompletableFuture<ListeCompletion> fraiche = banc.session()
+                    .completion(URI, new PositionLsp(0, 3));
+            attendreCondition(() -> banc.etat().volsCompletion.size() >= 2);
+            assertEquals(2, banc.etat().volsCompletion.size(),
+                    "les deux demandes ont volé");
+            ExecutionException remplacee = assertThrows(ExecutionException.class,
+                    () -> vieille.get(5, TimeUnit.SECONDS));
+            assertTrue(remplacee.getCause() instanceof RequeteAnnuleeException annulee
+                    && annulee.raison() == RequeteAnnuleeException.Raison.REMPLACEE,
+                    "le futur remplacé échoue REMPLACÉE : " + remplacee.getCause());
+            attendreCondition(() -> banc.etat().volsCompletion.get(0).isCancelled());
+            assertTrue(banc.etat().volsCompletion.get(0).isCancelled(),
+                    "l'annulation traverse le fil : le vol tenu côté serveur"
+                            + " est annulé par $/cancelRequest");
+            // le dernier mot gagne : le banc achève le second vol, la fraîche est servie
+            banc.etat().volsCompletion.get(1).complete(Either.forRight(
+                    new CompletionList(false, List.of())));
+            ListeCompletion servie = fraiche.get(5, TimeUnit.SECONDS);
+            assertFalse(servie.estIncomplete(),
+                    "la demande fraîche est servie, jamais empilée");
         }
     }
 }

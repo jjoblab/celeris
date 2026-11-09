@@ -1,0 +1,437 @@
+package jo.celeris.lsp.protocole;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
+
+import org.eclipse.lsp4j.DidChangeTextDocumentParams;
+import org.eclipse.lsp4j.DidCloseTextDocumentParams;
+import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.HoverParams;
+import org.eclipse.lsp4j.InitializeParams;
+import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.ParameterInformation;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.ServerCapabilities;
+import org.eclipse.lsp4j.SignatureHelp;
+import org.eclipse.lsp4j.SignatureHelpOptions;
+import org.eclipse.lsp4j.SignatureHelpParams;
+import org.eclipse.lsp4j.SignatureInformation;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lsp4j.services.LanguageClientAware;
+import org.eclipse.lsp4j.services.LanguageServer;
+import org.eclipse.lsp4j.services.TextDocumentService;
+import org.eclipse.lsp4j.services.WorkspaceService;
+import org.jspecify.annotations.Nullable;
+
+import jo.celeris.core.lsp.PlageLsp;
+import jo.celeris.core.lsp.PositionLsp;
+import jo.celeris.core.lsp.SignatureLsp;
+import jo.celeris.core.lsp.SurvolLsp;
+
+/**
+ * Le montage du serveur EMBARQUÉ derrière la frontière (ADR-015) : un
+ * serveur de langage lancé EN PROCESSUS, rejoint par une session sur
+ * des tubes à file — le banc de la démonstration y monte le serveur
+ * XML réel comme son serveur de référence, sans que la bibliothèque
+ * paraisse dans son code : l'objet serveur et l'interface cliente se
+ * donnent opaques, la session rend les types du domaine.
+ *
+ * <p>Pourquoi ici : le montage utilise le lanceur de la bibliothèque
+ * (cadrage, fils de lecture), donc vit du bon côté de la frontière —
+ * le seul module qui connaît la bibliothèque. Le serveur se lance par
+ * son API, JAMAIS par sa ligne de commande : les points d'entrée en
+ * ligne de commande attendent la mort du processus PARENT (constat
+ * M8.6) — sur appareil, le parent EST l'application.</p>
+ *
+ * <p>L'injection du proxy client suit la convention des serveurs
+ * embarqués : la méthode {@code setClient(LanguageClient)} d'abord
+ * (l'idiome du serveur tiers retiré, qui transtype ensuite vers sa propre
+ * interface étendue — d'où l'interface cliente à passer au montage),
+ * puis {@code connect(LanguageClient)} de l'interface standard de la
+ * bibliothèque. Sans l'un ni l'autre, le serveur vit sans rappels du
+ * client.</p>
+ *
+ * <p>La fermeture ne lui envoie JAMAIS {@code exit} : l'implémentation
+ * d'un serveur réel y éteint la machine (constat M8.6) — la session
+ * demande {@code shutdown}, les tubes se ferment, la piscine du
+ * serveur s'arrête ; les fils sont des démons.</p>
+ */
+public final class ServeurEmbarque implements AutoCloseable {
+
+    /**
+     * Le service de documents d'un serveur de référence : la
+     * synchronisation suivie, le survol et l'aide aux paramètres — les
+     * types du domaine, jamais ceux de la bibliothèque. Les méthodes
+     * ont leurs replis : un service qui ne sert pas le survol rend
+     * null, la demande reçoit sa réponse vide du protocole.
+     */
+    public interface Documents {
+
+        /**
+         * Un document s'ouvre — synchronisation complète, version 1.
+         *
+         * @param uri    l'uri du document
+         * @param langue l'identifiant de langage
+         * @param texte  le texte entier
+         */
+        default void ouvrir(String uri, String langue, String texte) {
+        }
+
+        /**
+         * Un document change — le texte entier remplace l'état.
+         *
+         * @param uri     l'uri du document
+         * @param version la version annoncée par l'hôte
+         * @param texte   le texte entier
+         */
+        default void changer(String uri, int version, String texte) {
+        }
+
+        /** Un document se ferme — l'état suivi s'arrête. */
+        default void fermer(String uri) {
+        }
+
+        /**
+         * Le survol d'une position : la documentation du symbole —
+         * null quand le service n'en sert pas.
+         *
+         * @param uri      l'uri du document
+         * @param position la position survolée
+         * @return le survol, ou null
+         */
+        default @Nullable SurvolLsp survol(String uri, PositionLsp position) {
+            return null;
+        }
+
+        /**
+         * L'aide aux paramètres à une position : les signatures de
+         * l'appel ouvert — null quand le service n'en sert pas.
+         *
+         * @param uri      l'uri du document
+         * @param position la position du curseur dans l'appel
+         * @return l'aide aux paramètres, ou null
+         */
+        default @Nullable SignatureLsp signature(String uri, PositionLsp position) {
+            return null;
+        }
+    }
+
+    private final LspSession session;
+    private final ExecutorService executeur;
+    private final TubesMemoire.Direction versServeur;
+    private final TubesMemoire.Direction duServeur;
+
+    private ServeurEmbarque(LspSession session, ExecutorService executeur,
+            TubesMemoire.Direction versServeur, TubesMemoire.Direction duServeur) {
+        this.session = session;
+        this.executeur = executeur;
+        this.versServeur = versServeur;
+        this.duServeur = duServeur;
+    }
+
+    /**
+     * Monte un serveur existant de la bibliothèque — un objet opaque
+     * (le serveur tiers retiré par exemple) et l'interface cliente que son
+     * lanceur doit procurer au proxy : la convention des serveurs
+     * réels, qui étendent l'interface standard pour leurs services
+     * propres.
+     *
+     * @param serveur         l'objet serveur, lancé par son API
+     * @param interfaceClient l'interface du proxy client, dérivée de
+     *                        l'interface standard de la bibliothèque
+     * @param nomClient       le nom annoncé à la poignée de main
+     * @return le montage, sa session prête à s'initialiser
+     */
+    @SuppressWarnings("FutureReturnValueIgnored")
+    public static ServeurEmbarque monter(Object serveur,
+            Class<?> interfaceClient, String nomClient) {
+        TubesMemoire.Direction versServeur = TubesMemoire.creer();
+        TubesMemoire.Direction duServeur = TubesMemoire.creer();
+        ExecutorService executeur = executeur();
+        @SuppressWarnings("unchecked")
+        Class<LanguageClient> interfaceStandard =
+                (Class<LanguageClient>) interfaceClient.asSubclass(
+                        LanguageClient.class);
+        Launcher<LanguageClient> lanceur =
+                new LSPLauncher.Builder<LanguageClient>()
+                .setLocalService(serveur)
+                .setRemoteInterface(interfaceStandard)
+                .setInput(versServeur.entree())
+                .setOutput(duServeur.sortie())
+                .setExecutorService(executeur)
+                .create();
+        injecterClient(serveur, lanceur.getRemoteProxy());
+        lanceur.startListening();
+        return achever(versServeur, duServeur, executeur, nomClient);
+    }
+
+    /**
+     * Monte un serveur de référence sur le service de documents du
+     * domaine : le survol et l'aide aux paramètres du terrain, servis
+     * par le protocole — la voie de la démonstration (M7.5, §8), sans
+     * qu'aucun type de la bibliothèque paraisse côté terrain.
+     *
+     * @param service   le service de documents du domaine
+     * @param nomClient le nom annoncé à la poignée de main
+     * @return le montage, sa session prête à s'initialiser
+     */
+    @SuppressWarnings("FutureReturnValueIgnored")
+    public static ServeurEmbarque monter(Documents service, String nomClient) {
+        TubesMemoire.Direction versServeur = TubesMemoire.creer();
+        TubesMemoire.Direction duServeur = TubesMemoire.creer();
+        ExecutorService executeur = executeur();
+        Launcher<LanguageClient> lanceur = LSPLauncher.createServerLauncher(
+                new ServeurDocuments(service), versServeur.entree(),
+                duServeur.sortie(), executeur, Function.identity());
+        lanceur.startListening();
+        return achever(versServeur, duServeur, executeur, nomClient);
+    }
+
+    /**
+     * Monte un serveur désigné par ses noms : la classe du serveur et
+     * l'interface cliente, en toutes lettres — la voie des
+     * DÉCLARATIONS (serveurs des paquets, H-13) : l'appelant ne
+     * connaît aucune classe de la bibliothèque ni du serveur, le
+     * montage instancie par son constructeur vide et injecte le proxy
+     * selon la convention. Le serveur réel de la démonstration y
+     * monte ainsi, sans qu'un seul type du serveur ou de la
+     * bibliothèque paraisse dans son code.
+     *
+     * @param classeServeur   le nom complet de la classe du serveur
+     * @param interfaceClient le nom complet de l'interface du proxy
+     *                        client, dérivée de l'interface standard
+     * @param nomClient       le nom annoncé à la poignée de main
+     * @return le montage, sa session prête à s'initialiser
+     */
+    public static ServeurEmbarque monter(String classeServeur,
+            String interfaceClient, String nomClient) {
+        try {
+            Class<?> serveur = Class.forName(classeServeur);
+            Object instance = serveur.getDeclaredConstructor().newInstance();
+            return monter(instance, Class.forName(interfaceClient), nomClient);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(
+                    "le serveur demandé ne monte pas : " + classeServeur, e);
+        }
+    }
+
+    /** Le corps commun des montages : la session sur l'autre bout des tubes. */
+    private static ServeurEmbarque achever(TubesMemoire.Direction versServeur,
+            TubesMemoire.Direction duServeur, ExecutorService executeur,
+            String nomClient) {
+        LspSession session = LspSession.sur(duServeur.entree(),
+                versServeur.sortie(), nomClient);
+        return new ServeurEmbarque(session, executeur, versServeur, duServeur);
+    }
+
+    /** La piscine du serveur : des fils démons, ils meurent avec l'hôte. */
+    private static ExecutorService executeur() {
+        return Executors.newCachedThreadPool(fil -> {
+            Thread daemon = new Thread(fil, "celeris-serveur-embarque");
+            daemon.setDaemon(true);
+            return daemon;
+        });
+    }
+
+    /**
+     * L'injection du proxy client chez le serveur : la convention
+     * {@code setClient} des serveurs embarqués, puis l'interface
+     * standard {@code connect} de la bibliothèque — sans l'un ni
+     * l'autre, le serveur vit sans rappels du client.
+     */
+    private static void injecterClient(Object serveur, LanguageClient proxy) {
+        try {
+            Method setClient = serveur.getClass()
+                    .getMethod("setClient", LanguageClient.class);
+            setClient.invoke(serveur, proxy);
+        } catch (NoSuchMethodException e) {
+            // pas de setClient : la convention standard de la
+            // bibliothèque dit peut-être connect
+            if (serveur instanceof LanguageClientAware conscient) {
+                conscient.connect(proxy);
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(
+                    "l'injection du client a échoué chez le serveur", e);
+        }
+    }
+
+    /** La session du montage — sa poignée de main reste à l'appelant. */
+    public LspSession session() {
+        return session;
+    }
+
+    @Override
+    public void close() {
+        // JAMAIS de notification exit : elle tuerait le processus hôte.
+        session.close();
+        versServeur.fermer();
+        duServeur.fermer();
+        executeur.shutdownNow();
+    }
+
+    /**
+     * Le serveur de documents de référence : l'adaptateur du SPI du
+     * domaine au service de documents de la bibliothèque — la
+     * correspondance inverse y vit, les types du terrain ne connaissent
+     * que le domaine.
+     */
+    private static final class ServeurDocuments implements LanguageServer {
+
+        private final Documents documents;
+
+        private ServeurDocuments(Documents documents) {
+            this.documents = documents;
+        }
+
+        @Override
+        public CompletableFuture<InitializeResult> initialize(
+                InitializeParams params) {
+            ServerCapabilities capacites = new ServerCapabilities();
+            capacites.setHoverProvider(Either.forLeft(Boolean.TRUE));
+            capacites.setSignatureHelpProvider(
+                    new SignatureHelpOptions(List.of("(")));
+            return CompletableFuture.completedFuture(
+                    new InitializeResult(capacites));
+        }
+
+        @Override
+        public CompletableFuture<Object> shutdown() {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        @Override
+        public void exit() {
+            // jamais appelé par la session (constat M8.6) ; rien à éteindre
+        }
+
+        @Override
+        public TextDocumentService getTextDocumentService() {
+            return new ServiceDocuments();
+        }
+
+        @Override
+        public WorkspaceService getWorkspaceService() {
+            return new WorkspaceService() {
+                @Override
+                public void didChangeConfiguration(
+                        org.eclipse.lsp4j.DidChangeConfigurationParams params) {
+                    // le terrain ne configure rien
+                }
+
+                @Override
+                public void didChangeWatchedFiles(
+                        org.eclipse.lsp4j.DidChangeWatchedFilesParams params) {
+                    // le terrain ne surveille rien
+                }
+            };
+        }
+
+        /** Le service de documents : la synchronisation, le survol, la signature. */
+        private final class ServiceDocuments implements TextDocumentService {
+
+            @Override
+            public void didOpen(DidOpenTextDocumentParams params) {
+                documents.ouvrir(params.getTextDocument().getUri(),
+                        params.getTextDocument().getLanguageId(),
+                        params.getTextDocument().getText());
+            }
+
+            @Override
+            public void didChange(DidChangeTextDocumentParams params) {
+                List<org.eclipse.lsp4j.TextDocumentContentChangeEvent> changements =
+                        params.getContentChanges();
+                if (!changements.isEmpty()) {
+                    documents.changer(params.getTextDocument().getUri(),
+                            params.getTextDocument().getVersion(),
+                            changements.get(changements.size() - 1).getText());
+                }
+            }
+
+            @Override
+            public void didClose(DidCloseTextDocumentParams params) {
+                documents.fermer(params.getTextDocument().getUri());
+            }
+
+            @Override
+            public void didSave(DidSaveTextDocumentParams params) {
+                // le terrain ne sauvegarde jamais
+            }
+
+            @Override
+            public CompletableFuture<@Nullable Hover> hover(HoverParams params) {
+                SurvolLsp survol = documents.survol(
+                        params.getTextDocument().getUri(), position(params));
+                if (survol == null || survol.texte().isEmpty()) {
+                    return CompletableFuture.completedFuture(null);
+                }
+                MarkupContent contenu = new MarkupContent(
+                        survol.genre().isEmpty() ? MarkupKind.MARKDOWN : survol.genre(),
+                        survol.texte());
+                return CompletableFuture.completedFuture(
+                        new Hover(contenu, plage(survol.plage())));
+            }
+
+            @Override
+            public CompletableFuture<@Nullable SignatureHelp> signatureHelp(
+                    SignatureHelpParams params) {
+                SignatureLsp aide = documents.signature(
+                        params.getTextDocument().getUri(), position(params));
+                if (aide == null || aide.entrees().isEmpty()) {
+                    return CompletableFuture.completedFuture(null);
+                }
+                return CompletableFuture.completedFuture(ecrireSignature(aide));
+            }
+        }
+
+        /** La position du domaine des paramètres de la bibliothèque. */
+        private static PositionLsp position(
+                org.eclipse.lsp4j.TextDocumentPositionParams params) {
+            return new PositionLsp(params.getPosition().getLine(),
+                    params.getPosition().getCharacter());
+        }
+
+        /** La plage du domaine auRange de la bibliothèque — null reste null. */
+        private static @Nullable Range plage(@Nullable PlageLsp plage) {
+            return plage == null ? null : new Range(
+                    new Position(plage.debut().ligne(), plage.debut().colonne()),
+                    new Position(plage.fin().ligne(), plage.fin().colonne()));
+        }
+
+        /** L'aide aux paramètres du domaine à la réponse du protocole. */
+        private static SignatureHelp ecrireSignature(SignatureLsp aide) {
+            List<SignatureInformation> signatures = new ArrayList<>();
+            for (SignatureLsp.Entree entree : aide.entrees()) {
+                List<ParameterInformation> parametres = new ArrayList<>();
+                for (SignatureLsp.Parametre parametre : entree.parametres()) {
+                    parametres.add(new ParameterInformation(parametre.libelle()));
+                }
+                signatures.add(new SignatureInformation(entree.libelle(),
+                        entree.documentation(), parametres));
+            }
+            SignatureHelp reponse = new SignatureHelp();
+            reponse.setSignatures(signatures);
+            if (aide.signatureActiveIndex() >= 0
+                    && aide.signatureActiveIndex() < signatures.size()) {
+                reponse.setActiveSignature(aide.signatureActiveIndex());
+            }
+            if (aide.parametreCourant() >= 0) {
+                reponse.setActiveParameter(aide.parametreCourant());
+            }
+            return reponse;
+        }
+    }
+}
