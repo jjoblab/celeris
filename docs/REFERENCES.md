@@ -16,7 +16,7 @@
 
 | Projet | Rôle dans celeris | Licence | Vérifié le |
 | --- | --- | --- | --- |
-| [LSP4J](https://github.com/eclipse-lsp4j/lsp4j) | candidate (M7.6) : protocole LSP et JSON-RPC derrière la frontière du module `lsp-lsp4j` ; déjà présent dans l'APK de démo via LemMinX | EPL-2.0 OU BSD-3-Clause (consommable sous BSD-3-Clause, compatible Apache-2.0) | 2026-11-08 |
+| [LSP4J](https://github.com/eclipse-lsp4j/lsp4j) | candidate (M7.6) : protocole LSP et JSON-RPC derrière la frontière du module `lsp-protocole` ; déjà présent dans l'APK de démo via LemMinX | EPL-2.0 OU BSD-3-Clause (consommable sous BSD-3-Clause, compatible Apache-2.0) | 2026-11-08 |
 | [LemMinX](https://github.com/eclipse/lemminx) | dépendance embarquée de la démonstration (M8.6) : serveur de langage XML réel, lancé en processus | EPL-2.0 (obligations de l'archive modifiée au `NOTICE`) | 2026-11-08 |
 | [joni](https://github.com/jruby/joni) | dépendance du runtime publié `core-syntax-grammars` (M7.6, ADR-014) : portage Java d'Oniguruma, moteur des expressions des grammaires TextMate | MIT | 2026-11-08 |
 | [jcodings](https://github.com/jruby/jcodings) | rouage d'encodages de joni (UTF-8 seul sert), même module publié | MIT | 2026-11-08 |
