@@ -59,6 +59,16 @@ desugarJdkLibs = "2.1.5"
 # format — vérifiées sur Maven Central le 2026-11-09 (POM MIT lus).
 joni = "2.2.9"
 jcodings = "1.0.64"
+# Client LSP sur bibliothèque (M7.6, ADR-015) : le protocole et le
+# JSON-RPC viennent de la bibliothèque derrière la frontière
+# lsp-protocole — licence EPL-2.0 OU BSD-3-Clause (consommable sous
+# BSD-3-Clause, compatible Apache-2.0), arbre réduit à gson seul —
+# vérifiées sur Maven Central le 2026-11-09 (POM lus au spike).
+lsp4j = "1.0.0"
+# La copie unique de Gson (ADR-015, décision 3) : la version que le
+# serveur tiers retiré apporte déjà, dans l'intervalle exigé par la
+# bibliothèque — vérifiée sur Maven Central le 2026-11-09.
+gson = "2.10.1"
 
 [libraries]
 # Dépendances de test (modules purs et Android)
@@ -101,6 +111,15 @@ desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref 
 # RUNTIME d'un artefact publié : SBOM, NOTICE et REFERENCES la couvrent.
 joni = { module = "org.jruby.joni:joni", version.ref = "joni" }
 jcodings = { module = "org.jruby.jcodings:jcodings", version.ref = "jcodings" }
+# Le protocole LSP derrière la frontière `lsp-protocole` (ADR-015) :
+# dépendance interne du module — aucun type de la bibliothèque ne
+# paraît dans son API (implementation, comme joni) ; SBOM, NOTICE et
+# REFERENCES la couvrent (règle 5).
+lsp4j = { module = "org.eclipse.lsp4j:org.eclipse.lsp4j", version.ref = "lsp4j" }
+# Épinglée STRICTEMENT : l'intervalle de la bibliothèque laisse flotter
+# la version, la copie unique avec le serveur exige la maîtrise de
+# l'octet (ADR-015, décision 3).
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 # Artefacts de plugin résolus par build-logic (aucun plugin appliqué par
 # identifiant hors des conventions) :
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }

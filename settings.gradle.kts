@@ -28,6 +28,11 @@ include(":core-language")
 include(":core-intelligence")
 include(":core-lsp")
 include(":core-ai")
+// La frontière protocolaire du LSP (M7.6, ADR-015) : seul module
+// dépendant de la bibliothèque LSP4J et de Gson — l'artefact dit sa
+// fonction, jamais sa marque (règle de nommage du propriétaire,
+// 2026-11-09), comme core-syntax-grammars ne dit pas son moteur.
+include(":lsp-protocole")
 include(":cli")
 
 // Modules Android : inclus uniquement si un SDK est détecté — l'absence de
