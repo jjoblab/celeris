@@ -1,10 +1,10 @@
 package jo.celeris.core.syntax.grammars;
 
 /**
- * Une règle de grammaire (format TextMate, ADR-004) : soit un motif
- * simple, soit un bloc début/fin. Les inclusions du référentiel sont
- * aplaties au chargement — une règle d'inclusion ne survit jamais au
- * chargement.
+ * Une règle de grammaire TextMate : un motif simple, un bloc début/fin
+ * ou une référence d'inclusion ({@code #clé} du référentiel,
+ * {@code $self}, {@code $base}, portée externe) — les inclusions
+ * survivent au chargement, parcourues au fil de la lexicographie.
  */
 public interface Regle {
 }

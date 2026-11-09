@@ -7,6 +7,56 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 (étape 5) — le moteur de grammaires devient réellement TextMate (joni), la plateforme gagne l'option tree-sitter (2026-11-08)
+
+- **Le moteur de la voie de grammaires charge le format TextMate RÉEL,
+  telles que les extensions de VS Code les publient** (ADR-004 révisé,
+  ADR-014) : captures en objets portant un nom (plus de captures en
+  chaînes), inclusions du référentiel résolues en RÉFÉRENCES parcourues
+  à la lexicographie (les cycles se traversent, plus d'aplatissement),
+  `$self` et `$base` pointent la racine, les fermetures à RÉFÉRENCES de
+  l'ouverture (`\1`, `\2` — ici-documents shell, clôtures de blocs
+  Markdown) se substituent à chaque ouverture, échappées littéralement.
+  Les DIX grammaires des paquets de langage sont réécrites au format
+  réel. Les expressions passent toutes par joni (2.2.9 + jcodings
+  1.0.64, MIT, sémantique Oniguruma) — première dépendance tierce du
+  RUNTIME d'un artefact publié : catalogue, SBOM, section runtime
+  du `NOTICE` avec sommes de contrôle SHA-256, `REFERENCES.md`
+  (règle 5). Le transcodage UTF-8 par ligne (`Utf8Line` et sa table
+  octets↔UTF-16, ASCII sans table) se teste sur l'accentué et l'emoji
+  (ADR-003, ADR-014).
+- **Le bornage exigé par le prompt tient, jamais un gel de
+  l'interface** : le garde catastrophique REJETTE au chargement les
+  quantificateurs non bornés imbriqués — la forme exponentielle
+  classique (`(a+)+`, `(?:\w+\s*)*`) — quand la forme DÉLIMITÉE passe
+  (`(?:\.\w+)+`, le point des noms qualifiés : chaque itération
+  commence par un atome que la suite ne peut pas avaler, le retour
+  arrière reste polynomial) ; le lexeur dépense un BUDGET d'essais
+  par ligne — au dépassement, la fin de ligne garde la portée de son
+  contexte, l'incident se journalise. Ce qui s'écarte se COMPTE au
+  rapport de chargement (`RapportGrammaire`) : motifs refusés,
+  règles `while` dégradées, sous-motifs de capture réduits au nom,
+  injections ignorées, inclusions externes sans registre — jamais en
+  silence.
+- **Le banc de conformité devient un seuil bloquant** : chaque
+  grammaire de paquet se rejoue sur son corpus (jetons produits,
+  déterminisme vérifié, aucun incident de budget) et son taux
+  d'acceptation doit rester 100 % — une montée de version de joni
+  qui rejetterait un motif que les paquets emploient échoue la CI
+  avant jamais d'atteindre l'utilisateur.
+- **La plateforme gagne l'option tree-sitter, à côté de TextMate** (la
+  demande du propriétaire : « en plus de TextMate je souhaite
+  aussi ajouter l'option tree-sitter ») : le niveau
+  `tree-sitter` rejoint `handwritten` et `grammar` dans la préférence
+  syntaxique des paquets (`"syntax": {"preferred": "tree-sitter",
+  "fallback": "grammar"}`), résolu par `LanguagePlatform` comme les
+  autres, et l'enregistrement `TreeSitterLanguages` porte la case —
+  VIDE à M7.6 (ADR-016 : l'arrière natif ne rentre pas au dépôt,
+  les budgets mesurés ne tiennent pas). Un hôte qui embarquerait un
+  jour l'arrière natif enregistre ses sources : la préférence se
+  met à servir, le repli cesse de servir, aucun consommateur ne
+  change ; sans arrière, la déclaration retombe sur son repli,
+  jamais d'improvisation — le tout testé (`TreeSitterOptionTest`).
 ### M7.6 — le spike tree-sitter écarte le niveau 2 natif : les budgets ne tiennent pas (2026-11-08)
 
 - **ADR-016 : tree-sitter (v0.27.2, MIT) écarté à M7.6 — ce n'est pas un échec,

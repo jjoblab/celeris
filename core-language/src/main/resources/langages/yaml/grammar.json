@@ -51,10 +51,14 @@
           "name": "string.quoted.double.yaml",
           "contentName": "string.quoted.double.yaml",
           "beginCaptures": {
-            "0": "punctuation.definition.string.begin.yaml"
+            "0": {
+              "name": "punctuation.definition.string.begin.yaml"
+            }
           },
           "endCaptures": {
-            "0": "punctuation.definition.string.end.yaml"
+            "0": {
+              "name": "punctuation.definition.string.end.yaml"
+            }
           },
           "patterns": [
             {
@@ -69,10 +73,14 @@
           "name": "string.quoted.single.yaml",
           "contentName": "string.quoted.single.yaml",
           "beginCaptures": {
-            "0": "punctuation.definition.string.begin.yaml"
+            "0": {
+              "name": "punctuation.definition.string.begin.yaml"
+            }
           },
           "endCaptures": {
-            "0": "punctuation.definition.string.end.yaml"
+            "0": {
+              "name": "punctuation.definition.string.end.yaml"
+            }
           }
         },
         {
@@ -109,10 +117,14 @@
           "name": "meta.flow-sequence.yaml",
           "contentName": "meta.flow-sequence.yaml",
           "beginCaptures": {
-            "0": "punctuation.section.sequence.begin.yaml"
+            "0": {
+              "name": "punctuation.section.sequence.begin.yaml"
+            }
           },
           "endCaptures": {
-            "0": "punctuation.section.sequence.end.yaml"
+            "0": {
+              "name": "punctuation.section.sequence.end.yaml"
+            }
           },
           "patterns": [
             {
@@ -129,10 +141,14 @@
           "name": "meta.flow-mapping.yaml",
           "contentName": "meta.flow-mapping.yaml",
           "beginCaptures": {
-            "0": "punctuation.section.mapping.begin.yaml"
+            "0": {
+              "name": "punctuation.section.mapping.begin.yaml"
+            }
           },
           "endCaptures": {
-            "0": "punctuation.section.mapping.end.yaml"
+            "0": {
+              "name": "punctuation.section.mapping.end.yaml"
+            }
           },
           "patterns": [
             {
