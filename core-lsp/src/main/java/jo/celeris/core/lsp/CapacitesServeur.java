@@ -1,6 +1,5 @@
 package jo.celeris.core.lsp;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,10 +9,9 @@ import java.util.List;
  * renommage, de correctifs, de formatage et d'indices en ligne, genre
  * de synchronisation, légende des jetons sémantiques.
  *
- * <p>Deux voies construisent l'objet (ADR-015) : l'analyse de la
- * réponse JSON du protocole maison, et la fabrique typée alimentée par
- * la correspondance de la frontière protocolaire — les champs sont les
- * mêmes, seule l'entrée diffère.</p>
+ * <p>L'objet se construit par la fabrique typée (ADR-015) : la
+ * correspondance de la frontière protocolaire y dépose ce que la
+ * bibliothèque a négocié à la poignée de main.</p>
  */
 public final class CapacitesServeur {
 
@@ -84,54 +82,6 @@ public final class CapacitesServeur {
                 sertSignature, sertDefinition, sertReferences, sertRennomage,
                 sertCorrectifs, sertFormatage, sertIndices, typesJetons,
                 modificateursJetons);
-    }
-
-    /**
-     * Analyse les capacités depuis la réponse d'initialisation — la
-     * voie JSON du protocole maison.
-     *
-     * @param resultat la valeur « result » de la requête initialize
-     * @return les capacités lues, vides si la forme est incomplète
-     */
-    public static CapacitesServeur de(ValeurJson resultat) {
-        if (resultat instanceof JsonObjet objet
-                && objet.membre("capabilities") instanceof JsonObjet capacites) {
-            return new CapacitesServeur(entierOuAbsent(capacites, "textDocumentSync"),
-                    capacites.membre("completionProvider") != null,
-                    Boolean.TRUE.equals(capacites.membreBooleen("hoverProvider")),
-                    capacites.membre("signatureHelpProvider") != null,
-                    Boolean.TRUE.equals(capacites.membreBooleen("definitionProvider")),
-                    Boolean.TRUE.equals(capacites.membreBooleen("referencesProvider")),
-                    capacites.membre("renameProvider") != null,
-                    capacites.membre("codeActionProvider") != null,
-                    Boolean.TRUE.equals(
-                            capacites.membreBooleen("documentFormattingProvider")),
-                    capacites.membre("inlayHintProvider") != null,
-                    legende(capacites, "tokenTypes"),
-                    legende(capacites, "tokenModifiers"));
-        }
-        return vides();
-    }
-
-    private static int entierOuAbsent(JsonObjet objet, String cle) {
-        Long valeur = objet.membreEntier(cle);
-        return valeur == null ? -1 : valeur.intValue();
-    }
-
-    private static List<String> legende(JsonObjet capacites, String cle) {
-        List<String> valeurs = new ArrayList<>();
-        if (capacites.membre("semanticTokensProvider") instanceof JsonObjet fournisseur
-                && fournisseur.membre("legend") instanceof JsonObjet legende
-                && legende.membre(cle) instanceof JsonTableau tableau) {
-            for (int i = 0; i < tableau.taille(); i++) {
-                String texte = tableau.element(i) instanceof JsonChaine chaine
-                        ? chaine.texte() : null;
-                if (texte != null) {
-                    valeurs.add(texte);
-                }
-            }
-        }
-        return List.copyOf(valeurs);
     }
 
     /** Le genre de synchronisation (1 complète, 2 incrémentale), -1 si absent. */

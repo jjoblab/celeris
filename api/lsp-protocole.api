@@ -13,9 +13,19 @@ Compiled from "CorrespondanceLsp.java"
 final class jo.celeris.lsp.protocole.CorrespondanceLsp {
 }
 
+### jo.celeris.lsp.protocole.LspSession$IdentiteDocument
+Compiled from "LspSession.java"
+final class jo.celeris.lsp.protocole.LspSession$IdentiteDocument extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String uri();
+  public jo.celeris.core.lsp.PositionLsp position();
+}
+
 ### jo.celeris.lsp.protocole.LspSession
 Compiled from "LspSession.java"
-public final class jo.celeris.lsp.protocole.LspSession implements java.lang.AutoCloseable {
+public final class jo.celeris.lsp.protocole.LspSession implements java.lang.AutoCloseable,jo.celeris.core.lsp.SuiviVersions {
   public static jo.celeris.lsp.protocole.LspSession sur(java.io.InputStream, java.io.OutputStream, java.lang.String);
   public jo.celeris.core.lsp.CapacitesServeur initialiser();
   public jo.celeris.core.lsp.CapacitesServeur capacites();
@@ -24,7 +34,7 @@ public final class jo.celeris.lsp.protocole.LspSession implements java.lang.Auto
   public void fermer(java.lang.String);
   public int versionDe(java.lang.String);
   public java.util.List<jo.celeris.core.lsp.DiagnosticLsp> diagnosticsDe(java.lang.String);
-  public void ajouterAuditeurDiagnostics(jo.celeris.core.lsp.ClientLsp$AuditeurDiagnostics);
+  public void ajouterAuditeurDiagnostics(jo.celeris.core.lsp.AuditeurDiagnostics);
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.ListeCompletion> completion(java.lang.String, jo.celeris.core.lsp.PositionLsp);
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SurvolLsp> survol(java.lang.String, jo.celeris.core.lsp.PositionLsp);
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SignatureLsp> signature(java.lang.String, jo.celeris.core.lsp.PositionLsp);
@@ -41,6 +51,85 @@ final class jo.celeris.lsp.protocole.RecepteurServeur implements org.eclipse.lsp
   public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.MessageActionItem> showMessageRequest(org.eclipse.lsp4j.ShowMessageRequestParams);
   public void logMessage(org.eclipse.lsp4j.MessageParams);
   public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.ApplyWorkspaceEditResponse> applyEdit(org.eclipse.lsp4j.ApplyWorkspaceEditParams);
+}
+
+### jo.celeris.lsp.protocole.ServeurEmbarque$Documents
+Compiled from "ServeurEmbarque.java"
+public interface jo.celeris.lsp.protocole.ServeurEmbarque$Documents {
+  public default void ouvrir(java.lang.String, java.lang.String, java.lang.String);
+  public default void changer(java.lang.String, int, java.lang.String);
+  public default void fermer(java.lang.String);
+  public default jo.celeris.core.lsp.SurvolLsp survol(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public default jo.celeris.core.lsp.SignatureLsp signature(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+}
+
+### jo.celeris.lsp.protocole.ServeurEmbarque$ServeurDocuments$1
+Compiled from "ServeurEmbarque.java"
+class jo.celeris.lsp.protocole.ServeurEmbarque$ServeurDocuments$1 implements org.eclipse.lsp4j.services.WorkspaceService {
+  public void didChangeConfiguration(org.eclipse.lsp4j.DidChangeConfigurationParams);
+  public void didChangeWatchedFiles(org.eclipse.lsp4j.DidChangeWatchedFilesParams);
+}
+
+### jo.celeris.lsp.protocole.ServeurEmbarque$ServeurDocuments$ServiceDocuments
+Compiled from "ServeurEmbarque.java"
+final class jo.celeris.lsp.protocole.ServeurEmbarque$ServeurDocuments$ServiceDocuments implements org.eclipse.lsp4j.services.TextDocumentService {
+  public void didOpen(org.eclipse.lsp4j.DidOpenTextDocumentParams);
+  public void didChange(org.eclipse.lsp4j.DidChangeTextDocumentParams);
+  public void didClose(org.eclipse.lsp4j.DidCloseTextDocumentParams);
+  public void didSave(org.eclipse.lsp4j.DidSaveTextDocumentParams);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.Hover> hover(org.eclipse.lsp4j.HoverParams);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.SignatureHelp> signatureHelp(org.eclipse.lsp4j.SignatureHelpParams);
+}
+
+### jo.celeris.lsp.protocole.ServeurEmbarque$ServeurDocuments
+Compiled from "ServeurEmbarque.java"
+final class jo.celeris.lsp.protocole.ServeurEmbarque$ServeurDocuments implements org.eclipse.lsp4j.services.LanguageServer {
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.InitializeResult> initialize(org.eclipse.lsp4j.InitializeParams);
+  public java.util.concurrent.CompletableFuture<java.lang.Object> shutdown();
+  public void exit();
+  public org.eclipse.lsp4j.services.TextDocumentService getTextDocumentService();
+  public org.eclipse.lsp4j.services.WorkspaceService getWorkspaceService();
+}
+
+### jo.celeris.lsp.protocole.ServeurEmbarque
+Compiled from "ServeurEmbarque.java"
+public final class jo.celeris.lsp.protocole.ServeurEmbarque implements java.lang.AutoCloseable {
+  public static jo.celeris.lsp.protocole.ServeurEmbarque monter(java.lang.Object, java.lang.Class<?>, java.lang.String);
+  public static jo.celeris.lsp.protocole.ServeurEmbarque monter(jo.celeris.lsp.protocole.ServeurEmbarque$Documents, java.lang.String);
+  public static jo.celeris.lsp.protocole.ServeurEmbarque monter(java.lang.String, java.lang.String, java.lang.String);
+  public jo.celeris.lsp.protocole.LspSession session();
+  public void close();
+}
+
+### jo.celeris.lsp.protocole.TubesMemoire$Direction$1
+Compiled from "TubesMemoire.java"
+class jo.celeris.lsp.protocole.TubesMemoire$Direction$1 extends java.io.OutputStream {
+  public void write(int) throws java.io.IOException;
+  public void write(byte[], int, int) throws java.io.IOException;
+  public void close();
+}
+
+### jo.celeris.lsp.protocole.TubesMemoire$Direction$2
+Compiled from "TubesMemoire.java"
+class jo.celeris.lsp.protocole.TubesMemoire$Direction$2 extends java.io.InputStream {
+  public int read(byte[], int, int) throws java.io.IOException;
+  public int read() throws java.io.IOException;
+  public void close();
+}
+
+### jo.celeris.lsp.protocole.TubesMemoire$Direction
+Compiled from "TubesMemoire.java"
+public final class jo.celeris.lsp.protocole.TubesMemoire$Direction {
+  public jo.celeris.lsp.protocole.TubesMemoire$Direction();
+  public java.io.OutputStream sortie();
+  public java.io.InputStream entree();
+  public void fermer();
+}
+
+### jo.celeris.lsp.protocole.TubesMemoire
+Compiled from "TubesMemoire.java"
+public final class jo.celeris.lsp.protocole.TubesMemoire {
+  public static jo.celeris.lsp.protocole.TubesMemoire$Direction creer();
 }
 
 ### jo.celeris.lsp.protocole.package-info

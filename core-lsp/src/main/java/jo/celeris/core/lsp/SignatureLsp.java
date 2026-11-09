@@ -1,6 +1,5 @@
 package jo.celeris.core.lsp;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -12,6 +11,8 @@ import org.jspecify.annotations.Nullable;
  * l'arité de la signature active : les serveurs généreux qui envoient
  * un indice au-delà ne cassent pas le surlignage, il retombe sur le
  * dernier. Les champs absents restent nuls ou négatifs, jamais devinés.
+ * La lecture du fil — chaîne nue ou décalages bornés — vit derrière la
+ * frontière protocolaire (ADR-015, CorrespondanceDocuments).
  */
 public final class SignatureLsp {
 
@@ -56,26 +57,6 @@ public final class SignatureLsp {
         return new SignatureLsp(entrees, signatureActive, parametreActif);
     }
 
-    /**
-     * Analyse l'aide aux paramètres depuis sa réponse.
-     *
-     * @param json la valeur « result » de la requête d'aide aux
-     *             paramètres
-     * @return l'aide lue — aucune signature si la réponse est vide ou
-     *         nulle
-     */
-    public static SignatureLsp de(ValeurJson json) {
-        List<Entree> entrees = new ArrayList<>();
-        if (json instanceof JsonObjet objet
-                && objet.membre("signatures") instanceof JsonTableau tableau) {
-            for (int i = 0; i < tableau.taille(); i++) {
-                entrees.add(entreeDe(tableau.element(i)));
-            }
-        }
-        return new SignatureLsp(entrees, entierOuAbsent(json, "activeSignature"),
-                entierOuAbsent(json, "activeParameter"));
-    }
-
     /** Les signatures candidates dans l'ordre du serveur. */
     public List<Entree> entrees() {
         return entrees;
@@ -114,57 +95,5 @@ public final class SignatureLsp {
             return ABSENT;
         }
         return Math.min(parametreActif, active.parametres().size() - 1);
-    }
-
-    private static Entree entreeDe(ValeurJson json) {
-        if (!(json instanceof JsonObjet objet)) {
-            return new Entree("", List.of(), null);
-        }
-        String libelle = objet.membreTexte("label");
-        List<Parametre> parametres = new ArrayList<>();
-        if (objet.membre("parameters") instanceof JsonTableau tableau) {
-            for (int i = 0; i < tableau.taille(); i++) {
-                parametres.add(parametreDe(tableau.element(i),
-                        libelle == null ? "" : libelle));
-            }
-        }
-        return new Entree(libelle == null ? "" : libelle, parametres,
-                objet.membreTexte("documentation"));
-    }
-
-    private static Parametre parametreDe(ValeurJson json, String libelleSignature) {
-        if (!(json instanceof JsonObjet objet)) {
-            return new Parametre("", null);
-        }
-        return new Parametre(libelleDeParametre(objet.membre("label"), libelleSignature),
-                objet.membreTexte("documentation"));
-    }
-
-    /** Le libellé du paramètre : la chaîne du serveur ou la tranche du libellé de signature. */
-    private static String libelleDeParametre(@Nullable ValeurJson label, String libelleSignature) {
-        if (label instanceof JsonChaine chaine) {
-            return chaine.texte();
-        }
-        if (label instanceof JsonTableau bornes && bornes.taille() == 2
-                && bornes.element(0) instanceof JsonNombre debut
-                && bornes.element(1) instanceof JsonNombre fin
-                && debut.estEntier() && fin.estEntier()) {
-            int d = (int) debut.entier();
-            int f = (int) fin.entier();
-            if (d >= 0 && f >= d && f <= libelleSignature.length()) {
-                return libelleSignature.substring(d, f);
-            }
-        }
-        return "";
-    }
-
-    private static int entierOuAbsent(ValeurJson json, String cle) {
-        if (json instanceof JsonObjet objet) {
-            Long valeur = objet.membreEntier(cle);
-            if (valeur != null) {
-                return valeur.intValue();
-            }
-        }
-        return ABSENT;
     }
 }

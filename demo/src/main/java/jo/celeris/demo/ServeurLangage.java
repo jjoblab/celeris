@@ -6,79 +6,69 @@ import java.util.concurrent.CompletableFuture;
 
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.SignatureAideModel;
-import jo.celeris.core.lsp.ClientLsp;
-import jo.celeris.core.lsp.JsonObjet;
-import jo.celeris.core.lsp.OrdonnanceurLsp;
 import jo.celeris.core.lsp.PositionsLsp;
 import jo.celeris.core.lsp.SignatureLsp;
 import jo.celeris.core.lsp.SurvolLsp;
-import jo.celeris.core.lsp.TransportMemoire;
 import jo.celeris.core.text.Document;
+import jo.celeris.lsp.protocole.ServeurEmbarque;
 
 import org.jspecify.annotations.Nullable;
 
 /**
- * La session de langage de référence de la démonstration (M7.5, §8) : le
- * client LSP branché au serveur de référence EN PROCESSUS — transport
- * mémoire, livraison synchrone, aucun réseau. Les popups y demandent
- * l'aide aux paramètres et le survol par les futurs du protocole ;
- * la synchronisation complète suit la session à chaque édition —
- * l'ordonnanceur annule et remplace, les frappes rapides ne
- * s'empilent jamais (PIEGE-18).
+ * La session de langage de référence de la démonstration (M7.5, §8) :
+ * la session de la frontière protocolaire (ADR-015) montée sur le
+ * serveur de référence du terrain, EN PROCESSUS — tubes à file, aucun
+ * réseau. Les popups y demandent l'aide aux paramètres et le survol
+ * par les futurs du protocole ; la synchronisation complète suit la
+ * session à chaque édition — l'ordonnancement vit dans la session,
+ * les frappes rapides ne s'empilent jamais (PIEGE-18).
  */
 public final class ServeurLangage implements LanguageSession {
 
-    private final TransportMemoire.Paire paire;
-    private final ServeurReference serveur;
-    private final ClientLsp client;
-    private final OrdonnanceurLsp ordonnanceur;
-    private int version = 1;
+    private final ServeurEmbarque montage;
 
-    private ServeurLangage(TransportMemoire.Paire paire,
-            ServeurReference serveur, ClientLsp client,
-            OrdonnanceurLsp ordonnanceur) {
-        this.paire = paire;
-        this.serveur = serveur;
-        this.client = client;
-        this.ordonnanceur = ordonnanceur;
+    private ServeurLangage(ServeurEmbarque montage) {
+        this.montage = montage;
     }
 
     /**
-     * Démarre la session de langage : la paire en mémoire, le serveur
-     * de référence sur un bout, le client poignée-de-main sur l'autre.
+     * Démarre la session de langage : le montage du module y lance le
+     * serveur de référence sur un bout des tubes, la session
+     * poignée-de-main sur l'autre.
      *
      * @return la session démarrée, prête à ouvrir un document
      */
     public static ServeurLangage demarrer() {
-        TransportMemoire.Paire paire = TransportMemoire.creerPaire();
-        ServeurReference serveur = ServeurReference.brancher(paire);
-        ClientLsp client = ClientLsp.sur(paire.boutA(), "celeris-demo");
-        client.initialiser(JsonObjet.vide());
-        return new ServeurLangage(paire, serveur, client,
-                OrdonnanceurLsp.sur(client));
+        ServeurEmbarque montage = ServeurEmbarque.monter(
+                new ServeurReference(), "celeris-demo");
+        montage.session().initialiser();
+        return new ServeurLangage(montage);
     }
 
     @Override
     public void ouvrir(String uri, String langue, String texte) {
-        client.ouvrir(uri, langue, texte);
+        montage.session().ouvrir(uri, langue, texte);
     }
 
     @Override
     public void synchroniser(String uri, String texte) {
-        client.changer(uri, ++version, texte);
+        montage.session().changer(uri,
+                montage.session().versionDe(uri) + 1, texte);
     }
 
     @Override
     public CompletableFuture<@Nullable SignatureAideModel> signature(
             String uri, Document doc, int caret) {
-        return ordonnanceur.signature(uri, PositionsLsp.position(doc, caret))
+        return montage.session().signature(uri,
+                PositionsLsp.position(doc, caret))
                 .thenApply(ServeurLangage::enModele);
     }
 
     @Override
     public CompletableFuture<@Nullable CompletionDocModel> survol(
             String uri, Document doc, String symbole, int caret) {
-        return ordonnanceur.survol(uri, PositionsLsp.position(doc, caret))
+        return montage.session().survol(uri,
+                PositionsLsp.position(doc, caret))
                 .thenApply(survol -> enModele(survol, symbole));
     }
 
@@ -131,9 +121,6 @@ public final class ServeurLangage implements LanguageSession {
 
     @Override
     public void close() {
-        client.close();
-        serveur.close();
-        paire.boutA().close();
-        paire.boutB().close();
+        montage.close();
     }
 }

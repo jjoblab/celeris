@@ -21,35 +21,4 @@ public record EditionGabaritLsp(String uri, PositionLsp position, String corps) 
 
     /** La sorte d'entrée « documentChanges » qui désigne un édit de gabarit. */
     public static final String SORTE = "celeris/templateEdit";
-
-    /**
-     * Analyse l'édit de gabarit depuis sa forme JSON.
-     *
-     * @param json l'objet « celeris/templateEdit »
-     * @return l'édit lu — uri vide, position zéro et corps vide si la
-     *         forme est incomplète
-     */
-    public static EditionGabaritLsp de(ValeurJson json) {
-        if (!(json instanceof JsonObjet objet)) {
-            return new EditionGabaritLsp("", new PositionLsp(0, 0), "");
-        }
-        String uri = "";
-        if (objet.membre("textDocument") instanceof JsonObjet document) {
-            String lu = document.membreTexte("uri");
-            uri = lu == null ? "" : lu;
-        }
-        PositionLsp position = PositionLsp.de(objet.membreOu("position", JsonObjet.vide()));
-        String corps = objet.membreTexte("template");
-        return new EditionGabaritLsp(uri, position, corps == null ? "" : corps);
-    }
-
-    /** La forme JSON de l'édit de gabarit. */
-    public JsonObjet versJson() {
-        return JsonObjet.vide()
-                .ajouter("kind", JsonChaine.of(SORTE))
-                .ajouter("textDocument", JsonObjet.vide()
-                        .ajouter("uri", JsonChaine.of(uri)))
-                .ajouter("position", position.versJson())
-                .ajouter("template", JsonChaine.of(corps));
-    }
 }
