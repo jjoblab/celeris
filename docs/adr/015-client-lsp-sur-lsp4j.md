@@ -110,22 +110,53 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
 - 1 636 méthodes et 728 Ko de plus dans l'APK : mesurés, consignés,
   assumés contre 3 442 lignes à écrire et maintenir.
 
-## Ce qui reste à prouver à l'intégration (avant toute suppression de code)
+## Preuves d'intégration (exigées avant la suppression du code)
 
-1. **R8** : règles consommateur du module (Gson par réflexion casse en
-   silence après réduction) et preuve sur la **démo réduite**
-   (`assembleRelease` : poignée de main, complétion, diagnostic, édition
-   d'espace rejoués sur ce binaire).
+1. **R8 — fait le 2026-11-10.** Les règles de conservation vivent en
+   deux fichiers : `lsp-protocole/regles-conservation.pro` (règles
+   CONSOMMATEUR du module — le rouage JSON réflexif, les proxys du
+   cadre, les TypeToken) et `demo/regles-r8.pro` (le serveur embarqué
+   monté par désignation et son archive découpée au octet près — ce
+   qu'elle porte se garde entier). `assembleRelease` est vert :
+   6,3 Mo et 6 383 classes contre 10,3 Mo et 14 005 au débogage
+   (−39 % / −54 %) ; le dex vérifié porte la bibliothèque (568
+   classes) et Gson (217, la copie unique) à leurs noms d'origine,
+   les 671 classes du serveur entières, les services ServiceLoader
+   rendus. Le rejeu des scénarios sur le binaire réduit (R8 en mode
+   classfile, mêmes règles, hôte de bureau — le bac n'a pas
+   d'appareil) passe la poignée de main, la complétion documentée,
+   les diagnostics de validation et l'édition d'espace — cinq
+   scénarios, le témoin non réduit à l'identique. La réduction y a
+   révélé un défaut latent : le lexeur de grammaires journalisait
+   par l'API System.Logger, absente de la plateforme avant le
+   niveau 33 — corrigé vers l'API de journalisation du JDK, présente
+   des deux côtés depuis toujours.
 2. **Appareil** : comportement au niveau d'API 26 et au niveau courant
    (le bac n'a pas d'appareil ; plan dans VERIFICATION-APPAREIL).
-3. La découpe modifiée du serveur (exclusion lsp4j/Gson) reproduite au
-   octet près et les sept tests repassés sur l'archive ainsi découpée.
+3. **Fait le 2026-11-10** : la découpe modifiée du serveur (exclusion
+   lsp4j/Gson) rejouée depuis l'ubérifié d'origine (somme vérifiée)
+   reproduit le paquet embarqué au octet près (`f03644…`), et les sept
+   tests repassent sur l'archive ainsi découpée — **la parité est
+   prononcée** (7/7 verts, banc non modifié).
 
 ## Actions
 
-- [ ] M7.6 (étape 7 du jalon) : module `lsp-protocole`, parité sur les sept
-      tests, suppression du code maison après parité.
-- [ ] M7.6 : découpe du serveur sans lsp4j/Gson, copie unique dans
-      l'APK.
-- [ ] M7.6 : règles R8 consommateur + démo réduite ; catalogue, SBOM,
-      NOTICE, empreintes (règle 5).
+- [x] M7.6 (étape 7 du jalon) : module `lsp-protocole` monté, parité
+      sur les sept tests prononcée le 2026-11-10
+      (`ServeurRetireTest` 7/7 verts, banc non modifié, serveur
+      XML réel sur tubes mémoire, archive découpée copie unique).
+- [x] M7.6 : suppression du code maison (décodages JSON, cadrage RPC,
+      `ClientLsp`, transports maison) — faite le 2026-11-10 : la parité
+      prononcée, le corpus de traces migre derrière la frontière (le
+      Gson de la bibliothèque lit les quatre traces sans alternative
+      ambiguë ; la définition se lit en `List<Location>` posée en
+      `Either.forLeft`, l'`Either` de deux listes étant ambigu sans le
+      résolveur de requêtes), la couverture du domaine se reconstruit
+      par construction directe, `check` reste vert.
+- [x] M7.6 : découpe du serveur sans lsp4j/Gson, copie unique tenue
+      (reproduction au octet près vérifiée le 2026-11-10, empreinte au
+      NOTICE).
+- [x] M7.6 : règles R8 consommateur + démo réduite (le 2026-11-10,
+      voir les preuves d'intégration) ; le SBOM CycloneDX de
+      publication et les empreintes suivent la porte de publication
+      (ADR-011), la règle 5 tient (catalogue et NOTICE à jour).

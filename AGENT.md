@@ -9,8 +9,9 @@ le propriétaire le 2026-11-04 ; le point d'entrée du cadrage est
 ## Vue d'ensemble
 
 Réécriture complète de l'éditeur de code embarquable : **Java 17**
-(artefacts) construit sur **JDK 21**, rendu Canvas, onze modules plus la
-démonstration (ADR-002, la voie de grammaires s'y ajoute à M4) :
+(artefacts) construit sur **JDK 21**, rendu Canvas, douze modules plus la
+démonstration (ADR-002, la voie de grammaires s'y ajoute à M4,
+la frontière protocolaire du LSP à M7.6) :
 
 | Module | Nature | Rôle |
 | --- | --- | --- |
@@ -19,7 +20,8 @@ démonstration (ADR-002, la voie de grammaires s'y ajoute à M4) :
 | `core-syntax-grammars` | JVM pure | voie de grammaires, longue traîne (ADR-004) |
 | `core-language` | JVM pure | contrats de langage |
 | `core-intelligence` | JVM pure | index, complétion, refactorisations |
-| `core-lsp` | JVM pure | client LSP (ADR-005) |
+| `core-lsp` | JVM pure | API du domaine LSP : types immuables, ordonnancement, UTF-16 (ADR-015) |
+| `lsp-protocole` | JVM pure | frontière protocolaire du LSP : session, correspondance, montage embarqué (ADR-015) |
 | `core-ai` | JVM pure | contrats IA, outils d'agent (ADR-012) |
 | `android-view` | Android | vue Canvas, rendu, IME, accessibilité |
 | `android-widgets` | Android | popups, gouttière, barres |
@@ -91,6 +93,12 @@ modules purs), manifeste d'API (`api/<module>.api`, régénérer par
   (`--mutableCodePaths` du source set principal) : le filtre d'exclusion
   par nom ne rattrape ni les classes internes de test ni les utilitaires
   de test.
+- La réduction R8 de la démo (M7.6, ADR-015) a révélé qu'un module
+  pur peut journaliser par une API absente de la plateforme avant le
+  niveau 33 (`System.Logger`) : dans un module pur, la journalisation
+  passe par l'API du JDK présente des deux côtés (`java.util.logging`)
+  — la réduction rend ces latences visibles, `assembleRelease` est la
+  porte qui les crie.
 
 ## Références externes (règle absolue, M7.6)
 

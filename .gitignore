@@ -19,6 +19,10 @@ classes/
 local.properties
 .DS_Store
 
+# La base de données du moteur de propriétés (jqwik) naît à la racine
+# du module au premier passage des tests — artefact de banc, jamais versionné
+.jqwik-database
+
 # Spikes : seul le code source est versionné, jamais les classes produites
 spikes/**/out/
 

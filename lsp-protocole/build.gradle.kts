@@ -1,7 +1,7 @@
 // lsp-protocole — la frontière protocolaire du LSP (ADR-015, M7.6) :
 // seul module du dépôt dépendant de la bibliothèque LSP4J et de Gson.
 // L'artefact dit sa fonction, jamais sa marque (règle de nommage du
-// propriétaire, 2026-11-09) ; le module porte SessionLsp, la
+// propriétaire, 2026-11-09) ; le module porte LspSession, la
 // correspondance des types et la négociation de capacités — aucun type
 // de la bibliothèque ne paraît dans son API (implementation, comme
 // joni dans core-syntax-grammars).

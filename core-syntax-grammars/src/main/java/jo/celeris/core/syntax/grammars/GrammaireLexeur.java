@@ -6,6 +6,8 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.joni.Matcher;
 import org.joni.Option;
@@ -34,8 +36,12 @@ import org.jspecify.annotations.Nullable;
  */
 final class GrammaireLexeur implements LanguageLexer {
 
-    private static final System.Logger JOURNAL =
-            System.getLogger(GrammaireLexeur.class.getName());
+    // L'API de journalisation du JDK, pas celle de System.Logger :
+    // la seconde manque sur appareil avant le niveau 33 (R8 l'a
+    // révélé à la réduction, M7.6 étape 7) — la première vit sur le
+    // bureau comme sur Android depuis toujours.
+    private static final Logger JOURNAL =
+            Logger.getLogger(GrammaireLexeur.class.getName());
 
     /** Le budget par défaut : essais d'expression par ligne. */
     private static final int BUDGET_ETAPES_DEFAUT = 20_000;
@@ -162,7 +168,7 @@ final class GrammaireLexeur implements LanguageLexer {
         if (!deborde) {
             deborde = true;
             incidents++;
-            JOURNAL.log(System.Logger.Level.WARNING,
+            JOURNAL.log(Level.WARNING,
                     "budget de lexicographie dépassé sur une ligne de {0} caractères : "
                             + "la fin de ligne garde la portée de son contexte",
                     donnees.texte().length());

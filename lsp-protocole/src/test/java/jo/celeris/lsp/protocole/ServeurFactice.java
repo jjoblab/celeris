@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,10 +66,24 @@ final class ServeurFactice implements LanguageServer {
         final AtomicBoolean arretDemande = new AtomicBoolean();
         final AtomicBoolean sortieDemandee = new AtomicBoolean();
         final AtomicReference<String> dernierTexte = new AtomicReference<>("");
+        /** Arme le mode « complétion tenue » : la prochaine réponse ne part pas. */
+        final AtomicBoolean tenirCompletion = new AtomicBoolean();
+        /** Les vols de complétion tenus, dans l'ordre d'arrivée — le banc les achève. */
+        final List<CompletableFuture<Either<List<CompletionItem>, CompletionList>>> volsCompletion =
+                new CopyOnWriteArrayList<>();
     }
 
     private final Etat etat = new Etat();
     private volatile @Nullable LanguageClient client;
+
+    /**
+     * La convention des serveurs embarqués : le proxy client injecté
+     * chez le serveur — le montage du module l'appelle pour les
+     * serveurs montés par objet opaque (comme le serveur tiers retiré).
+     */
+    public void setClient(LanguageClient client) {
+        this.client = client;
+    }
 
     /**
      * Démarre le serveur factice sur un bout des flux du banc.
@@ -159,6 +174,14 @@ final class ServeurFactice implements LanguageServer {
         @Override
         public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(
                 CompletionParams params) {
+            if (etat.tenirCompletion.get()) {
+                // le banc tient la réponse : la demande vit en vol, son
+                // annulation au fil s'observera sur ce futur côté serveur
+                CompletableFuture<Either<List<CompletionItem>, CompletionList>> vol =
+                        new CompletableFuture<>();
+                etat.volsCompletion.add(vol);
+                return vol;
+            }
             CompletionItem element = new CompletionItem();
             element.setLabel("ex:exemplaire");
             element.setKind(CompletionItemKind.Field);

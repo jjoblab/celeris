@@ -19,6 +19,21 @@ android {
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
     }
+    // La démo réduite (ADR-015) : la preuve R8 du jalon — les règles
+    // CONSOMMATEUR de la frontière protocolaire gardent le fil
+    // réflexif (rouage JSON, proxys, TypeToken), celles du terrain
+    // gardent le serveur embarqué monté par désignation et son
+    // archive découpée au octet près.
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                project(":lsp-protocole").file("regles-conservation.pro"),
+                "regles-r8.pro"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -38,6 +53,11 @@ dependencies {
     // d'agent (F-01 à F-10, ADR-012) — faux modèles déterministes, la
     // démonstration ne branche aucun réseau.
     implementation(project(":core-ai"))
+    // La frontière protocolaire du LSP (ADR-015) : la session qui
+    // porte le protocole et l'ordonnancement du domaine — le banc de
+    // parité de l'étape 7 y branché le serveur tiers retiré comme le
+    // serveur de référence.
+    implementation(project(":lsp-protocole"))
     // L'interface de la démonstration : Material 3, barres d'application,
     // cartes, liste et bord-à-bord — les seules dépendances externes du
     // dépôt côté exécution (la démo n'est pas publiée, ADR-011).
@@ -48,10 +68,13 @@ dependencies {
     implementation(libs.google.material)
     // Le serveur tiers retiré (M8.6 — serveur-retire, identité, licence
     // et provenance au NOTICE) : découpe sur mesure de l'artefact
-    // ubérifié — le serveur, sa liaison et ses analyseurs, la
-    // bibliothèque de collections réduite à sa fermeture de portée,
-    // les doublons de plateforme ôtés. Lancé EN PROCESSUS par son API,
-    // jamais par sa ligne de commande (voir ServeurRetire).
+    // ubérifié — le serveur et ses analyseurs, la bibliothèque de
+    // collections réduite à sa fermeture de portée, les doublons de
+    // plateforme ôtés, la LIAISON PROTOCOLAIRE ET SON ROUAGE JSON
+    // EXCLUS (copie unique, ADR-015 : le chemin de classes les fournit
+    // par lsp-protocole aux deux bouts, version épinglée au catalogue).
+    // Lancé EN PROCESSUS par son API, jamais par sa ligne de commande
+    // (voir ServeurRetire).
     implementation(files("libs/serveur-retire.jar"))
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
