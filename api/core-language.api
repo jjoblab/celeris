@@ -208,7 +208,7 @@ public final class jo.celeris.core.language.LanguagePack$SyntaxPreference extend
 ### jo.celeris.core.language.LanguagePack
 Compiled from "LanguagePack.java"
 public final class jo.celeris.core.language.LanguagePack extends java.lang.Record {
-  public jo.celeris.core.language.LanguagePack(jo.celeris.core.language.PackManifest, jo.celeris.core.language.LanguageDescriptor, jo.celeris.core.language.LanguageConfiguration, jo.celeris.core.syntax.LanguageSyntax, java.lang.String, java.util.List<jo.celeris.core.language.PackSnippet>, java.util.List<jo.celeris.core.language.LanguageInjection>, jo.celeris.core.language.LanguagePack$SyntaxPreference, java.lang.String);
+  public jo.celeris.core.language.LanguagePack(jo.celeris.core.language.PackManifest, jo.celeris.core.language.LanguageDescriptor, jo.celeris.core.language.LanguageConfiguration, jo.celeris.core.syntax.LanguageSyntax, java.lang.String, java.util.List<jo.celeris.core.language.PackSnippet>, java.util.List<jo.celeris.core.language.LanguageInjection>, java.util.List<jo.celeris.core.syntax.OutlineRule>, jo.celeris.core.language.LanguagePack$SyntaxPreference, java.lang.String);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -219,6 +219,7 @@ public final class jo.celeris.core.language.LanguagePack extends java.lang.Recor
   public java.lang.String grammarJson();
   public java.util.List<jo.celeris.core.language.PackSnippet> snippets();
   public java.util.List<jo.celeris.core.language.LanguageInjection> injections();
+  public java.util.List<jo.celeris.core.syntax.OutlineRule> outlineRules();
   public jo.celeris.core.language.LanguagePack$SyntaxPreference syntaxPreference();
   public java.lang.String fingerprint();
 }
@@ -280,6 +281,7 @@ Compiled from "LanguageSupport.java"
 public final class jo.celeris.core.language.LanguageSupport$Builder {
   public jo.celeris.core.language.LanguageSupport$Builder configuration(jo.celeris.core.language.LanguageConfiguration);
   public jo.celeris.core.language.LanguageSupport$Builder syntax(jo.celeris.core.syntax.LanguageSyntax);
+  public jo.celeris.core.language.LanguageSupport$Builder outlineRules(java.util.List<jo.celeris.core.syntax.OutlineRule>);
   public <T extends jo.celeris.core.language.LanguageCapability> jo.celeris.core.language.LanguageSupport$Builder capability(java.lang.Class<T>, T);
   public jo.celeris.core.language.LanguageSupport$Builder capabilities(java.util.Map<java.lang.Class<? extends jo.celeris.core.language.LanguageCapability>, jo.celeris.core.language.LanguageCapability>);
   public jo.celeris.core.language.LanguageSupport$Builder injections(java.util.List<jo.celeris.core.language.LanguageInjection>);
@@ -297,6 +299,7 @@ public final class jo.celeris.core.language.LanguageSupport {
   public java.lang.String displayName();
   public jo.celeris.core.language.LanguageConfiguration configuration();
   public jo.celeris.core.syntax.LanguageSyntax syntax();
+  public java.util.List<jo.celeris.core.syntax.OutlineRule> outlineRules();
   public java.util.List<jo.celeris.core.language.LanguageInjection> injections();
   public jo.celeris.core.language.LanguageSupport parent();
   public <T extends jo.celeris.core.language.LanguageCapability> T capability(java.lang.Class<T>);

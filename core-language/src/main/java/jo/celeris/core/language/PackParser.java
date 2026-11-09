@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
+import jo.celeris.core.syntax.OutlineRule;
+
 /**
  * L'analyseur du manifeste, du descripteur et des extraits d'un paquet
  * (M7.6) ; la configuration vit dans son analyseur dédié
@@ -107,6 +109,37 @@ final class PackParser {
                     JsonChamps.chaineNulle(extrait.get("description"))));
         }
         return extraits;
+    }
+
+    /**
+     * Les règles du plan d'un outline.json lu (M7.6, H-08) : motif,
+     * catégorie et groupe du nom — la première règle qui matche nomme
+     * la ligne. Chaque méprise (motif qui ne compile pas, catégorie
+     * inconnue, groupe hors bornes) se refuse avec le champ en cause.
+     */
+    static List<OutlineRule> outline(String json) {
+        Object brut = JsonChamps.objet(JsonReader.read(json), "outline.json")
+                .get("rules");
+        if (brut == null) {
+            return List.of();
+        }
+        List<OutlineRule> regles = new ArrayList<>();
+        int indice = 0;
+        for (Object element : JsonChamps.liste(brut, "rules")) {
+            Map<String, Object> champs = JsonChamps.objet(element, "rules[]");
+            String ou = "rules[" + indice + "]";
+            try {
+                regles.add(OutlineRule.of(
+                        JsonChamps.chaineRequise(champs, "pattern", ou),
+                        JsonChamps.chaineRequise(champs, "category", ou),
+                        JsonChamps.entierRequis(champs, "name", ou)));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("outline.json " + ou + ": "
+                        + e.getMessage(), e);
+            }
+            indice++;
+        }
+        return List.copyOf(regles);
     }
 
     /** Le badge du descripteur : deux lettres par défaut. */

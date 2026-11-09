@@ -20,7 +20,7 @@ class KotlinLexeurTest {
     private final LanguageLexer lexeur = KotlinSyntax.INSTANCE.lexer();
 
     private Token[] lex(String ligne) {
-        return lexeur.lex(ligne, KotlinLexeur.Etat.NORMAL).tokens();
+        return lexeur.lex(ligne, CLikeLexer.SimpleState.NORMAL).tokens();
     }
 
     /** Les mots réservés du langage se distinguent des identificateurs. */
@@ -49,15 +49,15 @@ class KotlinLexeurTest {
     /** La chaîne brute ouvre un crochet apparié et traverse les lignes. */
     @Test
     void chaineBruteMultiLignes() {
-        LexedLine ouverture = lexeur.lex("val b = \"\"\"", KotlinLexeur.Etat.NORMAL);
+        LexedLine ouverture = lexeur.lex("val b = \"\"\"", CLikeLexer.SimpleState.NORMAL);
         assertEquals(TokenKind.OPEN_BRACKET, ouverture.tokens()[3].kind());
-        assertSame(KotlinLexeur.Etat.CHAINE_BRUTE, ouverture.exitState());
+        assertEquals(new CLikeLexer.InTripleString('"'), ouverture.exitState());
         LexedLine milieu = lexeur.lex("brute $gabarit", ouverture.exitState());
         assertEquals(1, milieu.tokens().length);
         assertEquals(TokenKind.STRING, milieu.tokens()[0].kind());
         LexedLine fermeture = lexeur.lex("fin\"\"\";", ouverture.exitState());
         assertEquals(TokenKind.CLOSE_BRACKET, fermeture.tokens()[1].kind());
-        assertSame(KotlinLexeur.Etat.NORMAL, fermeture.exitState());
+        assertSame(CLikeLexer.SimpleState.NORMAL, fermeture.exitState());
     }
 
     /** Les commentaires de bloc se nichent — l'état porte la profondeur. */
@@ -68,13 +68,13 @@ class KotlinLexeurTest {
         assertEquals(TokenKind.COMMENT, memeLigne[1].kind());
         assertEquals(TokenKind.IDENTIFIER, memeLigne[2].kind());
 
-        LexedLine ouverture = lexeur.lex("/* niveau un", KotlinLexeur.Etat.NORMAL);
-        assertEquals(new KotlinLexeur.DansBloc(1, false), ouverture.exitState());
+        LexedLine ouverture = lexeur.lex("/* niveau un", CLikeLexer.SimpleState.NORMAL);
+        assertEquals(new CLikeLexer.InBlockComment(1, false), ouverture.exitState());
         LexedLine niche = lexeur.lex("/* niche", ouverture.exitState());
-        assertEquals(new KotlinLexeur.DansBloc(2, false), niche.exitState());
+        assertEquals(new CLikeLexer.InBlockComment(2, false), niche.exitState());
         LexedLine fermeture = lexeur.lex("*/ puis */ suite", niche.exitState());
         assertEquals(TokenKind.COMMENT, fermeture.tokens()[0].kind());
-        assertSame(KotlinLexeur.Etat.NORMAL, fermeture.exitState());
+        assertSame(CLikeLexer.SimpleState.NORMAL, fermeture.exitState());
         assertEquals(TokenKind.IDENTIFIER, fermeture.tokens()[1].kind());
     }
 
@@ -124,7 +124,7 @@ class KotlinLexeurTest {
         IncrementalLexer moteur = new IncrementalLexer();
         LexResult resultat = moteur.lexFull(Document.of(source), lexeur);
         assertEquals(Document.of(source).lineCount(), resultat.lex().lineCount());
-        assertSame(KotlinLexeur.Etat.NORMAL,
+        assertSame(CLikeLexer.SimpleState.NORMAL,
                 resultat.lex().line(resultat.lex().lineCount() - 1).exitState());
     }
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.syntax.OutlineRule;
 
 import org.jspecify.annotations.Nullable;
 
@@ -83,16 +84,19 @@ public final class PackLoader {
         byte[] snippetsBytes = files.has("snippets.json")
                 ? read(files, "snippets.json")
                 : null;
+        byte[] outlineBytes = files.has("outline.json")
+                ? read(files, "outline.json")
+                : null;
         bornerLaTaille(files, manifestBytes, languageBytes, grammarBytes,
-                snippetsBytes);
+                snippetsBytes, outlineBytes);
         String fingerprint = fingerprint(files.name(), manifestBytes,
-                languageBytes, grammarBytes, snippetsBytes);
+                languageBytes, grammarBytes, snippetsBytes, outlineBytes);
         LanguagePack enCache = cache.get(fingerprint);
         if (enCache != null) {
             return enCache;
         }
         LanguagePack charge = assembler(files, manifestBytes, languageBytes,
-                grammarBytes, snippetsBytes, fingerprint);
+                grammarBytes, snippetsBytes, outlineBytes, fingerprint);
         cache.put(fingerprint, charge);
         return charge;
     }
@@ -106,7 +110,7 @@ public final class PackLoader {
     private LanguagePack assembler(PackSource.PackFiles files,
             byte[] manifestBytes, byte[] languageBytes,
             byte @Nullable [] grammarBytes, byte @Nullable [] snippetsBytes,
-            String fingerprint) {
+            byte @Nullable [] outlineBytes, String fingerprint) {
         PackManifest manifest = PackParser.manifest(texte(manifestBytes));
         String languageJson = texte(languageBytes);
         LanguageDescriptor descriptor = PackParser.descriptor(languageJson);
@@ -123,13 +127,16 @@ public final class PackLoader {
         List<PackSnippet> snippets = snippetsBytes == null
                 ? List.of()
                 : PackParser.snippets(texte(snippetsBytes));
+        List<OutlineRule> outlineRules = outlineBytes == null
+                ? List.of()
+                : PackParser.outline(texte(outlineBytes));
         LanguageSyntax grammar = null;
         if (grammarBytes != null) {
             grammar = compiler(files, manifest.id(), texte(grammarBytes));
         }
         return new LanguagePack(manifest, descriptor, configuration, grammar,
                 grammarBytes == null ? null : texte(grammarBytes), snippets,
-                injections, preference, fingerprint);
+                injections, outlineRules, preference, fingerprint);
     }
 
     /** Compile la grammaire : la fabrique manque ou refuse, tout se dit. */
@@ -161,7 +168,8 @@ public final class PackLoader {
 
     /** L'empreinte SHA-256 des fichiers du paquet, dans l'ordre des noms. */
     private static String fingerprint(String name, byte[] manifest,
-            byte[] language, byte @Nullable [] grammar, byte @Nullable [] snippets) {
+            byte[] language, byte @Nullable [] grammar, byte @Nullable [] snippets,
+            byte @Nullable [] outline) {
         MessageDigest condenseur = condenseur();
         condenseur.update(name.getBytes(StandardCharsets.UTF_8));
         condenseur.update((byte) 0);
@@ -176,16 +184,21 @@ public final class PackLoader {
             condenseur.update((byte) 0);
             condenseur.update(snippets);
         }
+        if (outline != null) {
+            condenseur.update((byte) 0);
+            condenseur.update(outline);
+        }
         return HexFormat.of().formatHex(condenseur.digest());
     }
 
     /** Le plafond du paquet tient : la somme des fichiers se borne. */
     private static void bornerLaTaille(PackSource.PackFiles files,
             byte[] manifest, byte[] language, byte @Nullable [] grammar,
-            byte @Nullable [] snippets) {
+            byte @Nullable [] snippets, byte @Nullable [] outline) {
         int total = manifest.length + language.length
                 + (grammar == null ? 0 : grammar.length)
-                + (snippets == null ? 0 : snippets.length);
+                + (snippets == null ? 0 : snippets.length)
+                + (outline == null ? 0 : outline.length);
         if (total > MAX_PACK_BYTES) {
             throw new IllegalArgumentException(files.name() + ": pack exceeds "
                     + MAX_PACK_BYTES + " bytes (" + total + " read)");
