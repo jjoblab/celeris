@@ -38,6 +38,11 @@ dependencies {
     // d'agent (F-01 à F-10, ADR-012) — faux modèles déterministes, la
     // démonstration ne branche aucun réseau.
     implementation(project(":core-ai"))
+    // La frontière protocolaire du LSP (ADR-015) : la session qui
+    // porte le protocole et l'ordonnancement du domaine — le banc de
+    // parité de l'étape 7 y branché le serveur XML réel comme le
+    // serveur de référence.
+    implementation(project(":lsp-protocole"))
     // L'interface de la démonstration : Material 3, barres d'application,
     // cartes, liste et bord-à-bord — les seules dépendances externes du
     // dépôt côté exécution (la démo n'est pas publiée, ADR-011).
@@ -48,10 +53,13 @@ dependencies {
     implementation(libs.google.material)
     // Le serveur de langage XML RÉEL (M8.6 — LemMinX, identité, licence
     // et provenance au NOTICE) : découpe sur mesure de l'artefact
-    // ubérifié — le serveur, sa liaison et ses analyseurs, la
-    // bibliothèque de collections réduite à sa fermeture de portée,
-    // les doublons de plateforme ôtés. Lancé EN PROCESSUS par son API,
-    // jamais par sa ligne de commande (voir ServeurXmlEmbarque).
+    // ubérifié — le serveur et ses analyseurs, la bibliothèque de
+    // collections réduite à sa fermeture de portée, les doublons de
+    // plateforme ôtés, la LIAISON PROTOCOLAIRE ET SON ROUAGE JSON
+    // EXCLUS (copie unique, ADR-015 : le chemin de classes les fournit
+    // par lsp-protocole aux deux bouts, version épinglée au catalogue).
+    // Lancé EN PROCESSUS par son API, jamais par sa ligne de commande
+    // (voir ServeurXmlEmbarque).
     implementation(files("libs/serveur-xml-0.31.2.jar"))
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

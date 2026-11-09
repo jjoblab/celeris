@@ -6,20 +6,25 @@ Le dépôt embarque le serveur de langage XML réel dans le module de
 démonstration (M8.6, identité et licence au NOTICE) : l'artefact
 ubérifié de 8,8 Mo y perd ce que le terrain n'utilise pas — la
 bibliothèque de collections réduite à sa FERMETURE DE PORTÉE depuis
-les points d'entrée (le serveur, sa liaison, les fournisseurs de
-services), les doublons de plateforme (org/w3c, org/xml, javax/xml
-hors StAX — l'appareil les fournit), le point d'entrée en ligne de
-commande (il attend la mort du processus PARENT : sur appareil, le
-parent EST l'application) et les classes que la stub androidx porte
-déjà. Résultat : ~7,0 Mo, la mémoire tampon des tubes mémoire en
-moins.
+les points d'entrée (le serveur et les fournisseurs de services), la
+liaison protocolaire et son rouage JSON (copie unique de l'ADR-015,
+décision 3 : le chemin de classes les fournit aux deux bouts, la
+version épinglée au catalogue — jamais deux exemplaires dans l'APK),
+les doublons de plateforme (org/w3c, org/xml, javax/xml hors StAX —
+l'appareil les fournit), le point d'entrée en ligne de commande (il
+attend la mort du processus PARENT : sur appareil, le parent EST
+l'application) et les classes que la stub androidx porte déjà.
 
 La fermeture est STATIQUE : pool de constantes dépouillé, un
 long/double réserve le créneau fantôme qui suit (JLS §4.4.5), les
 CONSTANT_Class se résolvent à la seconde passe — l'Utf8 pointé peut
-venir plus tard dans le pool. Le banc JVM du module de démonstration
-(ServeurXmlEmbarqueTest) exécute le serveur DÉCOUPÉ de bout en bout :
-la découpe qui casserait la portée y échouerait pour de vrai.
+venir plus tard dans le pool. La sortie est REPRODUCTIBLE AU OCTET
+PRÈS : chaque entrée garde l'horodatage de sa source, deux passages
+sur le même ubérifié rendent le même fichier — la somme consignée au
+NOTICE se vérifie d'une exécution à l'autre. Le banc JVM du module de
+démonstration (ServeurXmlEmbarqueTest) exécute le serveur DÉCOUPÉ de
+bout en bout : la découpe qui casserait la portée y échouerait pour
+de vrai.
 
 Usage :  python3 scripts/decoupe-serveur-xml <source.jar> <sortie.jar>
 """
@@ -29,16 +34,21 @@ import sys
 import zipfile
 
 GARDER_TOUT = (
-    'org/eclipse/lemminx/', 'org/eclipse/lsp4j/', 'com/google/gson/',
-    'org/apache/xerces/', 'org/apache/xml/', 'org/apache/html/',
-    'org/apache/wml/', 'jp/gr/xml/', 'org/jsoup/', 'com/overzealous/',
-    'com/thaiopensource/', 'org/iso_relax/', 'org/relaxng/',
-    'javax/xml/stream/',
+    'org/eclipse/lemminx/', 'org/apache/xerces/', 'org/apache/xml/',
+    'org/apache/html/', 'org/apache/wml/', 'jp/gr/xml/', 'org/jsoup/',
+    'com/overzealous/', 'com/thaiopensource/', 'org/iso_relax/',
+    'org/relaxng/', 'javax/xml/stream/',
 )
 FERMETURE = ('com/google/common/', 'com/google/thirdparty/',
              'org/apache/commons/')
-EXCLURE = ('org/w3c/', 'org/xml/', 'javax/xml/', 'module-info',
-           'META-INF/versions/')
+# La copie unique de l'ADR-015 (décision 3) : la liaison protocolaire
+# (org.eclipse.lsp4j) et son rouage JSON (Gson) ne voyagent PLUS dans
+# l'archive — le chemin de classes les fournit aux DEUX bouts (le
+# client de la frontière comme le serveur), à la version épinglée au
+# catalogue ; deux exemplaires dans l'APK seraient un conflit de
+# classes, pas un poids.
+EXCLURE = ('org/w3c/', 'org/xml/', 'javax/xml/', 'org/eclipse/lsp4j/',
+           'com/google/gson/', 'module-info', 'META-INF/versions/')
 # Le point d'entrée en LIGNE DE COMMANDE : il attend la mort du
 # processus PARENT (java.lang.ProcessHandle, absent du niveau 26) — la
 # démonstration lance le serveur par l'API, jamais par main(). La
@@ -140,8 +150,10 @@ def decoupe(source, sortie):
                if i.filename.endswith('.class')}
     services = [n for n in z.namelist()
                 if n.startswith('META-INF/services/')]
-    racines = ['org/eclipse/lemminx/XMLLanguageServer.class',
-               'org/eclipse/lsp4j/launch/LSPLauncher.class']
+    # Les racines de la fermeture : le serveur et les fournisseurs de
+    # services — la liaison protocolaire n'est plus de l'archive (copie
+    # unique, ADR-015) : ses classes viennent du chemin de classes.
+    racines = ['org/eclipse/lemminx/XMLLanguageServer.class']
     for service in services:
         for fournisseur in z.read(service).decode().split():
             racines.append(fournisseur.replace('.', '/') + '.class')
@@ -172,22 +184,27 @@ def decoupe(source, sortie):
             elif nom.startswith(FERMETURE):
                 ok = nom in vus
             else:
-                ok = False  # w3c/xml/javax déjà exclus, le reste suit
+                ok = False  # w3c/xml/javax/lsp4j/gson déjà exclus, le reste suit
         elif nom.startswith('META-INF/'):
             if nom.startswith('META-INF/services/'):
                 ok = True
             elif nom.startswith('META-INF/versions/'):
                 ok = False
             else:
-                ok = nom.lower().endswith(('.txt', '.md', '.html', ''))
+                # Les métadonnées Maven d'une bibliothèque exclue (copie
+                # unique, ADR-015) partent avec ses classes ; le reste
+                # des métadonnées se garde tel quel.
+                ok = not nom.startswith('META-INF/maven/com.google.code.gson/')
         else:
             ok = True
-        (gardes if ok else coupes).append((nom, i.compress_size))
+        (gardes if ok else coupes).append((i, nom, i.compress_size))
         if ok:
             taille += i.compress_size
+    # Chaque entrée garde l'horodatage de sa source : la sortie est
+    # reproductible au octet près, deux passages rendent le même fichier.
     avec = zipfile.ZipFile(sortie, 'w', zipfile.ZIP_DEFLATED)
-    for nom, _ in gardes:
-        avec.writestr(nom, z.read(nom))
+    for i, nom, _ in gardes:
+        avec.writestr(i, z.read(nom))
     avec.close()
     print(f"fermeture : {len(vus)} classes visitées")
     print(f"gardées : {len(gardes)} entrées, {taille / 1e6:.2f} Mo compressés")
