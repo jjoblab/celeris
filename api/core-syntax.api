@@ -23,6 +23,83 @@ public final class jo.celeris.core.syntax.BracketMatcher {
   public static jo.celeris.core.syntax.TokenMatch matchAt(jo.celeris.core.text.Document, jo.celeris.core.syntax.LexDocument, int);
 }
 
+### jo.celeris.core.syntax.CLikeDialect
+Compiled from "CLikeDialect.java"
+abstract class jo.celeris.core.syntax.CLikeDialect {
+}
+
+### jo.celeris.core.syntax.CLikeKind
+Compiled from "CLikeKind.java"
+final class jo.celeris.core.syntax.CLikeKind extends java.lang.Enum<jo.celeris.core.syntax.CLikeKind> implements jo.celeris.core.syntax.NodeKind {
+  public static final jo.celeris.core.syntax.CLikeKind TYPE;
+  public static final jo.celeris.core.syntax.CLikeKind METHOD;
+  public static final jo.celeris.core.syntax.CLikeKind FIELD;
+  public static final jo.celeris.core.syntax.CLikeKind INITIALIZER;
+  public static final jo.celeris.core.syntax.CLikeKind STATEMENT;
+  public static final jo.celeris.core.syntax.CLikeKind BLOC;
+  public static final jo.celeris.core.syntax.CLikeKind ERREUR;
+  public static final jo.celeris.core.syntax.CLikeKind AUTRE;
+  public static jo.celeris.core.syntax.CLikeKind[] values();
+  public static jo.celeris.core.syntax.CLikeKind valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.CLikeLexer$InBlockComment
+Compiled from "CLikeLexer.java"
+final class jo.celeris.core.syntax.CLikeLexer$InBlockComment extends java.lang.Record implements jo.celeris.core.syntax.LexState {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int depth();
+  public boolean documentation();
+}
+
+### jo.celeris.core.syntax.CLikeLexer$InTripleString
+Compiled from "CLikeLexer.java"
+final class jo.celeris.core.syntax.CLikeLexer$InTripleString extends java.lang.Record implements jo.celeris.core.syntax.LexState {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public char delimiter();
+}
+
+### jo.celeris.core.syntax.CLikeLexer$SimpleState
+Compiled from "CLikeLexer.java"
+final class jo.celeris.core.syntax.CLikeLexer$SimpleState extends java.lang.Enum<jo.celeris.core.syntax.CLikeLexer$SimpleState> implements jo.celeris.core.syntax.LexState {
+  public static final jo.celeris.core.syntax.CLikeLexer$SimpleState NORMAL;
+  public static jo.celeris.core.syntax.CLikeLexer$SimpleState[] values();
+  public static jo.celeris.core.syntax.CLikeLexer$SimpleState valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.CLikeLexer
+Compiled from "CLikeLexer.java"
+final class jo.celeris.core.syntax.CLikeLexer implements jo.celeris.core.syntax.LanguageLexer {
+  public jo.celeris.core.syntax.LexState initialState();
+  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
+}
+
+### jo.celeris.core.syntax.CLikeParser
+Compiled from "CLikeParser.java"
+final class jo.celeris.core.syntax.CLikeParser implements jo.celeris.core.syntax.LanguageParser {
+  public int chunkLevel();
+  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
+  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
+}
+
+### jo.celeris.core.syntax.CLikeStrings$Outcome
+Compiled from "CLikeStrings.java"
+final class jo.celeris.core.syntax.CLikeStrings$Outcome extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int resume();
+  public jo.celeris.core.syntax.LexState exitState();
+}
+
+### jo.celeris.core.syntax.CLikeStrings
+Compiled from "CLikeStrings.java"
+final class jo.celeris.core.syntax.CLikeStrings {
+}
+
 ### jo.celeris.core.syntax.Chunk$Attente
 Compiled from "Chunk.java"
 final class jo.celeris.core.syntax.Chunk$Attente extends java.lang.Enum<jo.celeris.core.syntax.Chunk$Attente> implements jo.celeris.core.syntax.NodeKind {
@@ -76,81 +153,9 @@ public final class jo.celeris.core.syntax.FoldSpan extends java.lang.Record {
   public int endLine();
 }
 
-### jo.celeris.core.syntax.GroovyKind
-Compiled from "GroovyKind.java"
-final class jo.celeris.core.syntax.GroovyKind extends java.lang.Enum<jo.celeris.core.syntax.GroovyKind> implements jo.celeris.core.syntax.NodeKind {
-  public static final jo.celeris.core.syntax.GroovyKind TYPE;
-  public static final jo.celeris.core.syntax.GroovyKind METHOD;
-  public static final jo.celeris.core.syntax.GroovyKind FIELD;
-  public static final jo.celeris.core.syntax.GroovyKind STATEMENT;
-  public static final jo.celeris.core.syntax.GroovyKind BLOC;
-  public static final jo.celeris.core.syntax.GroovyKind ERREUR;
-  public static final jo.celeris.core.syntax.GroovyKind AUTRE;
-  public static jo.celeris.core.syntax.GroovyKind[] values();
-  public static jo.celeris.core.syntax.GroovyKind valueOf(java.lang.String);
-}
-
-### jo.celeris.core.syntax.GroovyLexeur$DansBloc
-Compiled from "GroovyLexeur.java"
-final class jo.celeris.core.syntax.GroovyLexeur$DansBloc extends java.lang.Record implements jo.celeris.core.syntax.LexState {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public int profondeur();
-  public boolean documentation();
-}
-
-### jo.celeris.core.syntax.GroovyLexeur$DansTriple
-Compiled from "GroovyLexeur.java"
-final class jo.celeris.core.syntax.GroovyLexeur$DansTriple extends java.lang.Record implements jo.celeris.core.syntax.LexState {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public char delimiteur();
-}
-
-### jo.celeris.core.syntax.GroovyLexeur$Etat
-Compiled from "GroovyLexeur.java"
-final class jo.celeris.core.syntax.GroovyLexeur$Etat extends java.lang.Enum<jo.celeris.core.syntax.GroovyLexeur$Etat> implements jo.celeris.core.syntax.LexState {
-  public static final jo.celeris.core.syntax.GroovyLexeur$Etat NORMAL;
-  public static jo.celeris.core.syntax.GroovyLexeur$Etat[] values();
-  public static jo.celeris.core.syntax.GroovyLexeur$Etat valueOf(java.lang.String);
-}
-
-### jo.celeris.core.syntax.GroovyLexeur$Gabarit
-Compiled from "GroovyLexeur.java"
-final class jo.celeris.core.syntax.GroovyLexeur$Gabarit {
-}
-
-### jo.celeris.core.syntax.GroovyLexeur
-Compiled from "GroovyLexeur.java"
-final class jo.celeris.core.syntax.GroovyLexeur implements jo.celeris.core.syntax.LanguageLexer {
-  public jo.celeris.core.syntax.LexState initialState();
-  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
-}
-
-### jo.celeris.core.syntax.GroovyParseur$Scan
-Compiled from "GroovyParseur.java"
-final class jo.celeris.core.syntax.GroovyParseur$Scan extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public int ouvrante();
-  public int fermante();
-  public int fin();
-}
-
-### jo.celeris.core.syntax.GroovyParseur
-Compiled from "GroovyParseur.java"
-final class jo.celeris.core.syntax.GroovyParseur implements jo.celeris.core.syntax.LanguageParser {
-  public int chunkLevel();
-  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
-  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
-}
-
-### jo.celeris.core.syntax.GroovySignes
-Compiled from "GroovySignes.java"
-final class jo.celeris.core.syntax.GroovySignes {
+### jo.celeris.core.syntax.GroovyDialect
+Compiled from "GroovyDialect.java"
+final class jo.celeris.core.syntax.GroovyDialect extends jo.celeris.core.syntax.CLikeDialect {
 }
 
 ### jo.celeris.core.syntax.GroovySyntax
@@ -181,61 +186,36 @@ Compiled from "IncrementalParser.java"
 final class jo.celeris.core.syntax.IncrementalParser {
 }
 
-### jo.celeris.core.syntax.JavaKind
-Compiled from "JavaKind.java"
-final class jo.celeris.core.syntax.JavaKind extends java.lang.Enum<jo.celeris.core.syntax.JavaKind> implements jo.celeris.core.syntax.NodeKind {
-  public static final jo.celeris.core.syntax.JavaKind PAQUET_IMPORT;
-  public static final jo.celeris.core.syntax.JavaKind TYPE;
-  public static final jo.celeris.core.syntax.JavaKind METHOD;
-  public static final jo.celeris.core.syntax.JavaKind FIELD;
-  public static final jo.celeris.core.syntax.JavaKind INITIALIZER;
-  public static final jo.celeris.core.syntax.JavaKind STATEMENT;
-  public static final jo.celeris.core.syntax.JavaKind BLOC;
-  public static final jo.celeris.core.syntax.JavaKind ERREUR;
-  public static final jo.celeris.core.syntax.JavaKind AUTRE;
-  public static jo.celeris.core.syntax.JavaKind[] values();
-  public static jo.celeris.core.syntax.JavaKind valueOf(java.lang.String);
+### jo.celeris.core.syntax.IndentationFolds$Opening
+Compiled from "IndentationFolds.java"
+final class jo.celeris.core.syntax.IndentationFolds$Opening {
 }
 
-### jo.celeris.core.syntax.JavaLexeur$Etat
-Compiled from "JavaLexeur.java"
-final class jo.celeris.core.syntax.JavaLexeur$Etat extends java.lang.Enum<jo.celeris.core.syntax.JavaLexeur$Etat> implements jo.celeris.core.syntax.LexState {
-  public static final jo.celeris.core.syntax.JavaLexeur$Etat NORMAL;
-  public static final jo.celeris.core.syntax.JavaLexeur$Etat BLOC;
-  public static final jo.celeris.core.syntax.JavaLexeur$Etat DOC;
-  public static final jo.celeris.core.syntax.JavaLexeur$Etat BLOC_TEXTE;
-  public static jo.celeris.core.syntax.JavaLexeur$Etat[] values();
-  public static jo.celeris.core.syntax.JavaLexeur$Etat valueOf(java.lang.String);
+### jo.celeris.core.syntax.IndentationFolds$Settings
+Compiled from "IndentationFolds.java"
+public final class jo.celeris.core.syntax.IndentationFolds$Settings extends java.lang.Record {
+  public jo.celeris.core.syntax.IndentationFolds$Settings(int, boolean);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int indentSize();
+  public boolean offSide();
 }
 
-### jo.celeris.core.syntax.JavaLexeur
-Compiled from "JavaLexeur.java"
-final class jo.celeris.core.syntax.JavaLexeur implements jo.celeris.core.syntax.LanguageLexer {
-  public jo.celeris.core.syntax.LexState initialState();
-  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
+### jo.celeris.core.syntax.IndentationFolds
+Compiled from "IndentationFolds.java"
+public final class jo.celeris.core.syntax.IndentationFolds {
+  public static java.util.List<jo.celeris.core.syntax.FoldSpan> regions(jo.celeris.core.text.Document, jo.celeris.core.syntax.LexDocument, jo.celeris.core.syntax.IndentationFolds$Settings);
+}
+
+### jo.celeris.core.syntax.JavaDialect
+Compiled from "JavaDialect.java"
+final class jo.celeris.core.syntax.JavaDialect extends jo.celeris.core.syntax.CLikeDialect {
 }
 
 ### jo.celeris.core.syntax.JavaNombres
 Compiled from "JavaNombres.java"
 final class jo.celeris.core.syntax.JavaNombres {
-}
-
-### jo.celeris.core.syntax.JavaParseur$ScanMembre
-Compiled from "JavaParseur.java"
-final class jo.celeris.core.syntax.JavaParseur$ScanMembre {
-}
-
-### jo.celeris.core.syntax.JavaParseur
-Compiled from "JavaParseur.java"
-final class jo.celeris.core.syntax.JavaParseur implements jo.celeris.core.syntax.LanguageParser {
-  public int chunkLevel();
-  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
-  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
-}
-
-### jo.celeris.core.syntax.JavaSignes
-Compiled from "JavaSignes.java"
-final class jo.celeris.core.syntax.JavaSignes {
 }
 
 ### jo.celeris.core.syntax.JavaSyntax
@@ -311,69 +291,9 @@ public final class jo.celeris.core.syntax.JsonSyntax implements jo.celeris.core.
   public jo.celeris.core.syntax.LanguageParser parser();
 }
 
-### jo.celeris.core.syntax.KotlinKind
-Compiled from "KotlinKind.java"
-final class jo.celeris.core.syntax.KotlinKind extends java.lang.Enum<jo.celeris.core.syntax.KotlinKind> implements jo.celeris.core.syntax.NodeKind {
-  public static final jo.celeris.core.syntax.KotlinKind TYPE;
-  public static final jo.celeris.core.syntax.KotlinKind METHOD;
-  public static final jo.celeris.core.syntax.KotlinKind FIELD;
-  public static final jo.celeris.core.syntax.KotlinKind INITIALIZER;
-  public static final jo.celeris.core.syntax.KotlinKind STATEMENT;
-  public static final jo.celeris.core.syntax.KotlinKind BLOC;
-  public static final jo.celeris.core.syntax.KotlinKind ERREUR;
-  public static final jo.celeris.core.syntax.KotlinKind AUTRE;
-  public static jo.celeris.core.syntax.KotlinKind[] values();
-  public static jo.celeris.core.syntax.KotlinKind valueOf(java.lang.String);
-}
-
-### jo.celeris.core.syntax.KotlinLexeur$DansBloc
-Compiled from "KotlinLexeur.java"
-final class jo.celeris.core.syntax.KotlinLexeur$DansBloc extends java.lang.Record implements jo.celeris.core.syntax.LexState {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public int profondeur();
-  public boolean documentation();
-}
-
-### jo.celeris.core.syntax.KotlinLexeur$Etat
-Compiled from "KotlinLexeur.java"
-final class jo.celeris.core.syntax.KotlinLexeur$Etat extends java.lang.Enum<jo.celeris.core.syntax.KotlinLexeur$Etat> implements jo.celeris.core.syntax.LexState {
-  public static final jo.celeris.core.syntax.KotlinLexeur$Etat NORMAL;
-  public static final jo.celeris.core.syntax.KotlinLexeur$Etat CHAINE_BRUTE;
-  public static jo.celeris.core.syntax.KotlinLexeur$Etat[] values();
-  public static jo.celeris.core.syntax.KotlinLexeur$Etat valueOf(java.lang.String);
-}
-
-### jo.celeris.core.syntax.KotlinLexeur
-Compiled from "KotlinLexeur.java"
-final class jo.celeris.core.syntax.KotlinLexeur implements jo.celeris.core.syntax.LanguageLexer {
-  public jo.celeris.core.syntax.LexState initialState();
-  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
-}
-
-### jo.celeris.core.syntax.KotlinParseur$Scan
-Compiled from "KotlinParseur.java"
-final class jo.celeris.core.syntax.KotlinParseur$Scan extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public int ouvrante();
-  public int fermante();
-  public int fin();
-}
-
-### jo.celeris.core.syntax.KotlinParseur
-Compiled from "KotlinParseur.java"
-final class jo.celeris.core.syntax.KotlinParseur implements jo.celeris.core.syntax.LanguageParser {
-  public int chunkLevel();
-  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
-  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
-}
-
-### jo.celeris.core.syntax.KotlinSignes
-Compiled from "KotlinSignes.java"
-final class jo.celeris.core.syntax.KotlinSignes {
+### jo.celeris.core.syntax.KotlinDialect
+Compiled from "KotlinDialect.java"
+final class jo.celeris.core.syntax.KotlinDialect extends jo.celeris.core.syntax.CLikeDialect {
 }
 
 ### jo.celeris.core.syntax.KotlinSyntax
@@ -452,6 +372,35 @@ public final class jo.celeris.core.syntax.LexedLine {
   public jo.celeris.core.syntax.LexState exitState();
 }
 
+### jo.celeris.core.syntax.MemberScans$LineScan
+Compiled from "MemberScans.java"
+final class jo.celeris.core.syntax.MemberScans$LineScan extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int opening();
+  public int closing();
+  public int end();
+}
+
+### jo.celeris.core.syntax.MemberScans$SemicolonScan
+Compiled from "MemberScans.java"
+final class jo.celeris.core.syntax.MemberScans$SemicolonScan extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int end();
+  public int body();
+  public int bodyEnd();
+  public boolean equalSeen();
+  public boolean error();
+}
+
+### jo.celeris.core.syntax.MemberScans
+Compiled from "MemberScans.java"
+final class jo.celeris.core.syntax.MemberScans {
+}
+
 ### jo.celeris.core.syntax.MoteurAnalyse$Auditeur
 Compiled from "MoteurAnalyse.java"
 public interface jo.celeris.core.syntax.MoteurAnalyse$Auditeur {
@@ -510,6 +459,25 @@ public final class jo.celeris.core.syntax.OutlineEntry extends java.lang.Record 
   public int endOffset();
   public int startLine();
   public int endLine();
+}
+
+### jo.celeris.core.syntax.OutlineRule
+Compiled from "OutlineRule.java"
+public final class jo.celeris.core.syntax.OutlineRule extends java.lang.Record {
+  public jo.celeris.core.syntax.OutlineRule(java.util.regex.Pattern, jo.celeris.core.syntax.NodeCategory, int);
+  public static jo.celeris.core.syntax.OutlineRule of(java.lang.String, java.lang.String, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.regex.Pattern pattern();
+  public jo.celeris.core.syntax.NodeCategory category();
+  public int nameGroup();
+}
+
+### jo.celeris.core.syntax.RuleOutline
+Compiled from "RuleOutline.java"
+public final class jo.celeris.core.syntax.RuleOutline {
+  public static java.util.List<jo.celeris.core.syntax.OutlineEntry> entries(jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.OutlineRule>, java.util.List<jo.celeris.core.syntax.FoldSpan>);
 }
 
 ### jo.celeris.core.syntax.SynNode
@@ -634,6 +602,7 @@ public final class jo.celeris.core.syntax.TreeDiagnostics {
 Compiled from "TreeFolds.java"
 public final class jo.celeris.core.syntax.TreeFolds {
   public static java.util.List<jo.celeris.core.syntax.FoldSpan> regions(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
+  public static java.util.List<jo.celeris.core.syntax.FoldSpan> regions(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.syntax.IndentationFolds$Settings);
 }
 
 ### jo.celeris.core.syntax.TreeIndent

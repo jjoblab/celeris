@@ -1,5 +1,6 @@
 package jo.celeris.core.language;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.syntax.OutlineRule;
 
 import org.jspecify.annotations.Nullable;
 
@@ -30,6 +32,8 @@ public final class LanguageSupport {
 
     private final @Nullable LanguageSyntax syntax;
 
+    private final List<OutlineRule> outlineRules;
+
     private final Map<Class<? extends LanguageCapability>, LanguageCapability> capabilities;
 
     private final List<LanguageInjection> injections;
@@ -42,6 +46,7 @@ public final class LanguageSupport {
         this.descriptor = builder.descriptor;
         this.configuration = builder.configuration;
         this.syntax = builder.syntax;
+        this.outlineRules = List.copyOf(builder.outlineRules);
         this.capabilities = Map.copyOf(builder.capabilities);
         this.injections = List.copyOf(builder.injections);
         this.parent = builder.parent;
@@ -107,6 +112,17 @@ public final class LanguageSupport {
         return syntax;
     }
 
+    /**
+     * Les règles du plan par données (M7.6, H-08) : le paquet les
+     * porte pour les langages sans analyseur dédié — vides, le plan
+     * vient de l'arbre de l'analyse.
+     *
+     * @return les règles du plan, éventuellement vides
+     */
+    public List<OutlineRule> outlineRules() {
+        return outlineRules;
+    }
+
     /** Les incorporations déclarées du langage. */
     public List<LanguageInjection> injections() {
         return injections;
@@ -150,6 +166,7 @@ public final class LanguageSupport {
         Builder copy = builder(descriptor)
                 .configuration(configuration)
                 .injections(injections)
+                .outlineRules(outlineRules)
                 .capabilities(capabilities);
         if (syntax != null) {
             copy.syntax(syntax);
@@ -169,6 +186,8 @@ public final class LanguageSupport {
         private LanguageConfiguration configuration = LanguageConfiguration.EMPTY;
 
         private @Nullable LanguageSyntax syntax;
+
+        private final List<OutlineRule> outlineRules = new ArrayList<>();
 
         private final Map<Class<? extends LanguageCapability>, LanguageCapability>
                 capabilities = new LinkedHashMap<>();
@@ -203,6 +222,18 @@ public final class LanguageSupport {
          */
         public Builder syntax(@Nullable LanguageSyntax syntax) {
             this.syntax = syntax;
+            return this;
+        }
+
+        /**
+         * Fixe les règles du plan par données.
+         *
+         * @param rules les règles du plan du paquet
+         * @return le bâtisseur
+         */
+        public Builder outlineRules(List<OutlineRule> rules) {
+            this.outlineRules.clear();
+            this.outlineRules.addAll(rules);
             return this;
         }
 

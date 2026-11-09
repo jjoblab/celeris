@@ -2,10 +2,10 @@ package jo.celeris.core.syntax;
 
 /**
  * Le dialecte Gradle Groovy (ADR-004, priorité P0 — C-07) : les scripts
- * de construction {@code build.gradle} — le lexeur et le parseur
- * Groovy, l'identifiant propre au dialecte. Le registre des langages
- * distingue {@code build.gradle} de {@code build.gradle.kts} par
- * l'extension composée la plus longue.
+ * de construction {@code build.gradle} — le socle C-like et le dialecte
+ * Groovy (M7.6, H-10), l'identifiant propre au dialecte. Le registre des
+ * langages distingue {@code build.gradle} de {@code build.gradle.kts}
+ * par l'extension composée la plus longue.
  */
 public final class GroovySyntax implements LanguageSyntax {
 
@@ -22,11 +22,11 @@ public final class GroovySyntax implements LanguageSyntax {
 
     @Override
     public LanguageLexer lexer() {
-        return new GroovyLexeur();
+        return new CLikeLexer(GroovyDialect.INSTANCE);
     }
 
     @Override
     public LanguageParser parser() {
-        return new GroovyParseur();
+        return new CLikeParser(GroovyDialect.INSTANCE);
     }
 }

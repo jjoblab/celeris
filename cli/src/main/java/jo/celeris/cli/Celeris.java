@@ -9,14 +9,19 @@ import java.util.List;
 
 import java.util.ServiceLoader;
 
+import jo.celeris.core.language.LanguageConfiguration;
 import jo.celeris.core.language.LanguageContributor;
 import jo.celeris.core.language.LanguageDetection;
 import jo.celeris.core.language.LanguagePlatform;
 import jo.celeris.core.language.LanguageRegistry;
 import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.Analysis;
+import jo.celeris.core.syntax.FoldSpan;
+import jo.celeris.core.syntax.IndentationFolds;
 import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.RuleOutline;
 import jo.celeris.core.syntax.SyntaxService;
+import jo.celeris.core.syntax.TreeFolds;
 import jo.celeris.core.syntax.TreeOutline;
 import jo.celeris.core.syntax.grammars.PackGrammars;
 import jo.celeris.core.text.Document;
@@ -129,11 +134,36 @@ public final class Celeris {
             return 0;
         }
         Analysis analyse = SyntaxService.of(langue.syntax()).analyseFull(document);
-        for (OutlineEntry entree : TreeOutline.entries(document, analyse)) {
+        for (FoldSpan region : plis(langue, analyse, document)) {
+            sortie.println("  pli : lignes " + (region.startLine() + 1) + "-"
+                    + (region.endLine() + 1));
+        }
+        for (OutlineEntry entree : plan(langue, analyse, document)) {
             sortie.println("  plan : " + entree.name() + " (" + entree.category()
                     + ", ligne " + (entree.startLine() + 1) + ")");
         }
         return 0;
+    }
+
+    /** Les plis du fichier : l'arbre, les commentaires, l'indentation déclarée (H-08). */
+    private static List<FoldSpan> plis(LanguageSupport langue, Analysis analyse,
+            Document document) {
+        LanguageConfiguration.Folding pliage = langue.configuration().folding();
+        if (!pliage.byIndentation()) {
+            return TreeFolds.regions(document, analyse);
+        }
+        return TreeFolds.regions(document, analyse, new IndentationFolds.Settings(
+                langue.configuration().indentSize(), pliage.offSide()));
+    }
+
+    /** Le plan du fichier : les règles du paquet quand il en porte, l'arbre sinon (H-08). */
+    private static List<OutlineEntry> plan(LanguageSupport langue, Analysis analyse,
+            Document document) {
+        if (langue.outlineRules().isEmpty()) {
+            return TreeOutline.entries(document, analyse);
+        }
+        return RuleOutline.entries(document, langue.outlineRules(),
+                plis(langue, analyse, document));
     }
 
     private static int chercher(String[] args, PrintStream sortie) {
