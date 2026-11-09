@@ -3,14 +3,19 @@ package jo.celeris.demo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.intelligence.Gabarit;
 import jo.celeris.core.intelligence.Gabarits;
+import jo.celeris.core.lsp.EditionDocumentLsp;
 import jo.celeris.core.lsp.EditionEspaceLsp;
 import jo.celeris.core.lsp.EditionGabaritLsp;
+import jo.celeris.core.lsp.EditionTexteLsp;
 import jo.celeris.core.lsp.EditsEspaceLsp;
-import jo.celeris.core.lsp.JsonLecteur;
+import jo.celeris.core.lsp.PlageLsp;
+import jo.celeris.core.lsp.PositionLsp;
 import jo.celeris.core.lsp.PositionsLsp;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
@@ -22,35 +27,36 @@ import jo.celeris.core.text.TextSession;
  * version 1.0.0 de la liaison tierce, jamais absorbés — débloqué de bout
  * en bout. La démo est le point de composition : elle voit le client LSP
  * et le moteur de gabarits, les modules purs restent latéraux (ADR-002).
+ *
+ * <p>Le modèle se construit ici par ses champs résolus : la lecture de
+ * la réponse du serveur — l'objet {@code WorkspaceEdit} de la
+ * bibliothèque, édits de gabarit compris — vit derrière la frontière
+ * protocolaire et rejoint la correspondance à la couverture nouvelle
+ * (ADR-015, H-12).</p>
  */
 class EditsEspaceDemoTest {
 
-    /** Une édition d'espace en deux temps : un renommage et un gabarit posé. */
-    private static final String TRACE = """
-            {
-              "documentChanges": [
-                {
-                  "textDocument": {"uri": "file:///A.java", "version": 2},
-                  "edits": [
-                    {"range": {"start": {"line": 0, "character": 6},
-                               "end": {"line": 0, "character": 12}},
-                     "newText": "Acheteur"}
-                  ]
-                },
-                {
-                  "kind": "celeris/templateEdit",
-                  "textDocument": {"uri": "file:///A.java"},
-                  "position": {"line": 1, "character": 0},
-                  "template": "void ${nom:nouvelleMethode}(${p1:String arg0}) {\\n    ${corps}\\n}\\n"
-                }
-              ]
-            }
-            """;
+    private static final String URI = "file:///A.java";
+
+    /**
+     * L'espace en deux temps, construit directement : un renommage de
+     * document (version 2) et un édit de gabarit posé à la ligne
+     * suivante — la même réponse que le serveur enverrait.
+     */
+    private static EditionEspaceLsp espace() {
+        return new EditionEspaceLsp(
+                List.of(new EditionDocumentLsp(URI, 2, List.of(new EditionTexteLsp(
+                        new PlageLsp(new PositionLsp(0, 6), new PositionLsp(0, 12)),
+                        "Acheteur")))),
+                List.of(new EditionGabaritLsp(URI, new PositionLsp(1, 0),
+                        "void ${nom:nouvelleMethode}(${p1:String arg0}) {\n"
+                                + "    ${corps}\n}\n")));
+    }
 
     /** Le renommage : transaction annulable par la voie unique (B-17, B-19). */
     @Test
     void leRenommageAppliqueEtAnnule() {
-        EditionEspaceLsp espace = EditionEspaceLsp.de(JsonLecteur.lire(TRACE));
+        EditionEspaceLsp espace = espace();
         assertEquals(1, espace.documents().size());
         TextSession session = TextSession.of("class Client {\n}\n", System::nanoTime);
         Document doc = session.document();
@@ -67,7 +73,7 @@ class EditsEspaceDemoTest {
      */
     @Test
     void leditDeGabaritAppliqueEtAnnule() {
-        EditionEspaceLsp espace = EditionEspaceLsp.de(JsonLecteur.lire(TRACE));
+        EditionEspaceLsp espace = espace();
         assertEquals(1, espace.gabarits().size());
         EditionGabaritLsp edit = espace.gabarits().get(0);
         TextSession session = TextSession.of("class A {\n}\n", System::nanoTime);
