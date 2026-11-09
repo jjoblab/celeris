@@ -6,9 +6,10 @@ Ce produit inclut des logiciels développés par le projet celeris
 
 ## Dépendances tierces
 
-Le dépôt déclare sa première dépendance tierce au RUNTIME d'un artefact
-publié (M7.6, ADR-014 : le moteur des expressions des grammaires
-TextMate) ; elle est consignée ci-dessous. L'outillage de build et de
+Le dépôt déclare ses dépendances tierces au RUNTIME des artefacts
+publiés (M7.6 : le moteur des expressions des grammaires TextMate,
+ADR-014 ; la frontière protocolaire du LSP, ADR-015) ; elles sont
+consignées ci-dessous. L'outillage de build et de
 test déclare en revanche les dépendances suivantes (elles ne sont
 embarquées dans aucun artefact) :
 
@@ -33,7 +34,7 @@ sera consignée ici avec son nom, sa version, sa licence et la
 vérification fichier par fichier exigée par le mandat, et restera
 compatible Apache-2.0 sauf validation explicite du propriétaire.
 
-## Dépendance tierce au runtime des artefacts publiés (M7.6)
+## Dépendance tierce au runtime des artefacts publiés — grammaires (M7.6)
 
 Le module publié `core-syntax-grammars` embarque le moteur
 d'expressions rationnelles de ses grammaires (ADR-014 : la sémantique
@@ -61,6 +62,40 @@ n'apparaît dans son API.
   ou jdk.internal.
 - Le SBOM CycloneDX de publication (ADR-011) porte la dépendance dans
   chaque publication de `core-syntax-grammars`.
+
+## Dépendance tierce au runtime des artefacts publiés — frontière LSP (M7.6)
+
+Le module publié `lsp-protocole` porte la frontière protocolaire du
+LSP (ADR-015, acceptée le 2026-11-09) : le protocole et le JSON-RPC
+viennent de la bibliothèque, la correspondance rend au domaine —
+aucun type de la bibliothèque ne paraît dans son API. Licence
+EPL-2.0 OU BSD-3-Clause (consommable sous BSD-3-Clause, compatible
+Apache-2.0) ; Gson Apache-2.0.
+
+| Dépendance | Version | Licence | Usage |
+| --- | --- | --- | --- |
+| org.eclipse.lsp4j (lsp4j) | 1.0.0 | EPL-2.0 OU BSD-3-Clause | protocole LSP et JSON-RPC derrière la frontière `lsp-protocole` (ADR-015) |
+| org.eclipse.lsp4j.jsonrpc (jsonrpc) | 1.0.0 | EPL-2.0 OU BSD-3-Clause | rouage JSON-RPC de la bibliothèque, même frontière |
+| com.google.code.gson (Gson) | 2.10.1, épinglée STRICTEMENT | Apache-2.0 | rouage de sérialisation ; la copie unique avec le serveur XML embarqué (découpe à venir, ADR-015, décision 3) |
+
+- Provenance : `https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/1.0.0/`,
+  `https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/1.0.0/`
+  et `https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/`
+  (licences vérifiées dans les POM le 2026-11-09, au spike de
+  l'ADR-015).
+- Sommes de contrôle (SHA-256 des artefacts résolus, épinglées au
+  catalogue `gradle/libs.versions.toml`) :
+  `org.eclipse.lsp4j-1.0.0.jar` =
+  `ccd78893facc6bfcc359d56cba05d3d5b85eb41e4c40d4b4215ca45db5f416d9` ;
+  `org.eclipse.lsp4j.jsonrpc-1.0.0.jar` =
+  `9647feb0524bf763c878e12ab878a684102b81cccb3f77feecbec709d54f9bbb` ;
+  `gson-2.10.1.jar` =
+  `4241c14a7727c34feea6507ec801318a3d4a90f070e4525681079fb94ee4c593`.
+- Côté Android (mesuré au spike de l'ADR-015, d8 + dexdump, API 26,
+  les trois artefacts ensemble) : 728 Ko de dex, 1 636 méthodes
+  définies, zéro référence à sun.misc.Unsafe ou jdk.internal.
+- Le SBOM CycloneDX de publication (ADR-011) porte la dépendance dans
+  chaque publication de `lsp-protocole`.
 
 ## Dépendance embarquée de la démonstration (M8.6)
 

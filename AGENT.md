@@ -54,6 +54,11 @@ construit l'ensemble avec SDK.
   un commit par changement, sujet et corps explicatifs, en français.
 - Tout correctif de bug arrive avec un test qui échoue avant et passe
   après.
+- **Nommage neutre** : aucun nom de bibliothèque tierce dans un
+  identifiant — classe, méthode, paquet (la frontière LSP porte
+  `LspSession`, pas le nom de sa liaison ; `core-syntax-grammars` ne
+  dit pas le nom de son moteur). La technologie se nomme dans la
+  documentation, le NOTICE et le SBOM (règles 5 et 7), jamais dans le code.
 - Toute version vit dans `gradle/libs.versions.toml` — une version en
   dur dans un module casse la CI.
 - `CHANGELOG.md` : une entrée par version, court par construction.
