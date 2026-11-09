@@ -33,31 +33,48 @@ public final class JetonsSemantiques {
      */
     public static JetonsSemantiques de(ValeurJson json) {
         if (!(json instanceof JsonObjet objet)) {
-            return new JetonsSemantiques(null, List.of());
+            return de(null, List.of());
         }
         String identifiant = objet.membreTexte("resultId");
-        List<JetonSemantique> jetons = new ArrayList<>();
-        if (objet.membre("data") instanceof JsonTableau donnees) {
-            if (donnees.taille() % 5 != 0) {
-                throw new IllegalArgumentException(
-                        "semantic token data must be a list of quintuples");
-            }
-            int ligne = 0;
-            int colonne = 0;
-            for (int i = 0; i < donnees.taille(); i += 5) {
-                ligne += entier(donnees, i);
-                colonne = ligneVientDeBouger(donnees, i)
-                        ? entier(donnees, i + 1) : colonne + entier(donnees, i + 1);
-                jetons.add(new JetonSemantique(ligne, colonne,
-                        entier(donnees, i + 2), entier(donnees, i + 3),
-                        entier(donnees, i + 4)));
+        List<Integer> donnees = new ArrayList<>();
+        if (objet.membre("data") instanceof JsonTableau tableau) {
+            for (int i = 0; i < tableau.taille(); i++) {
+                donnees.add(entier(tableau, i));
             }
         }
-        return new JetonsSemantiques(identifiant, jetons);
+        return de(identifiant, donnees);
     }
 
-    private static boolean ligneVientDeBouger(JsonTableau donnees, int indice) {
-        return entier(donnees, indice) != 0;
+    /**
+     * Décode les jetons de leur charge encodée — la voie typée de la
+     * frontière protocolaire (ADR-015) : la bibliothèque rend la liste
+     * d'entiers telle quelle, le décodage relatif-à-absolu reste au
+     * domaine.
+     *
+     * @param identifiant l'identifiant de résultat du serveur, ou null
+     * @param donnees      la charge « data » du protocole, quintuples
+     *                    relatifs
+     * @return les jetons en positions absolues, vide sans données
+     * @throws IllegalArgumentException si les données ne sont pas une
+     *         suite de quintuples
+     */
+    public static JetonsSemantiques de(@Nullable String identifiant,
+            List<Integer> donnees) {
+        if (donnees.size() % 5 != 0) {
+            throw new IllegalArgumentException(
+                    "semantic token data must be a list of quintuples");
+        }
+        List<JetonSemantique> jetons = new ArrayList<>();
+        int ligne = 0;
+        int colonne = 0;
+        for (int i = 0; i < donnees.size(); i += 5) {
+            ligne += donnees.get(i);
+            colonne = donnees.get(i) != 0 ? donnees.get(i + 1)
+                    : colonne + donnees.get(i + 1);
+            jetons.add(new JetonSemantique(ligne, colonne, donnees.get(i + 2),
+                    donnees.get(i + 3), donnees.get(i + 4)));
+        }
+        return new JetonsSemantiques(identifiant, jetons);
     }
 
     private static int entier(JsonTableau donnees, int indice) {
