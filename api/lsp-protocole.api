@@ -1,0 +1,50 @@
+### jo.celeris.lsp.protocole.CorrespondanceDocuments
+Compiled from "CorrespondanceDocuments.java"
+final class jo.celeris.lsp.protocole.CorrespondanceDocuments {
+}
+
+### jo.celeris.lsp.protocole.CorrespondanceLsp$1
+Compiled from "CorrespondanceLsp.java"
+class jo.celeris.lsp.protocole.CorrespondanceLsp$1 {
+}
+
+### jo.celeris.lsp.protocole.CorrespondanceLsp
+Compiled from "CorrespondanceLsp.java"
+final class jo.celeris.lsp.protocole.CorrespondanceLsp {
+}
+
+### jo.celeris.lsp.protocole.LspSession
+Compiled from "LspSession.java"
+public final class jo.celeris.lsp.protocole.LspSession implements java.lang.AutoCloseable {
+  public static jo.celeris.lsp.protocole.LspSession sur(java.io.InputStream, java.io.OutputStream, java.lang.String);
+  public jo.celeris.core.lsp.CapacitesServeur initialiser();
+  public jo.celeris.core.lsp.CapacitesServeur capacites();
+  public void ouvrir(java.lang.String, java.lang.String, java.lang.String);
+  public void changer(java.lang.String, int, java.lang.String);
+  public void fermer(java.lang.String);
+  public int versionDe(java.lang.String);
+  public java.util.List<jo.celeris.core.lsp.DiagnosticLsp> diagnosticsDe(java.lang.String);
+  public void ajouterAuditeurDiagnostics(jo.celeris.core.lsp.ClientLsp$AuditeurDiagnostics);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.ListeCompletion> completion(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SurvolLsp> survol(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SignatureLsp> signature(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.LieuLsp>> definition(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public void close();
+}
+
+### jo.celeris.lsp.protocole.RecepteurServeur
+Compiled from "RecepteurServeur.java"
+final class jo.celeris.lsp.protocole.RecepteurServeur implements org.eclipse.lsp4j.services.LanguageClient {
+  public void telemetryEvent(java.lang.Object);
+  public void publishDiagnostics(org.eclipse.lsp4j.PublishDiagnosticsParams);
+  public void showMessage(org.eclipse.lsp4j.MessageParams);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.MessageActionItem> showMessageRequest(org.eclipse.lsp4j.ShowMessageRequestParams);
+  public void logMessage(org.eclipse.lsp4j.MessageParams);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.ApplyWorkspaceEditResponse> applyEdit(org.eclipse.lsp4j.ApplyWorkspaceEditParams);
+}
+
+### jo.celeris.lsp.protocole.package-info
+Compiled from "package-info.java"
+interface jo.celeris.lsp.protocole.package-info {
+}
+

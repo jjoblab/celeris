@@ -56,7 +56,7 @@ construit l'ensemble avec SDK.
   après.
 - **Nommage neutre** : aucun nom de bibliothèque tierce dans un
   identifiant — classe, méthode, paquet (la frontière LSP porte
-  `SessionLsp`, pas le nom de sa liaison ; `core-syntax-grammars` ne
+  `LspSession`, pas le nom de sa liaison ; `core-syntax-grammars` ne
   dit pas le nom de son moteur). La technologie se nomme dans la
   documentation, le NOTICE et le SBOM (règles 5 et 7), jamais dans le code.
 - Toute version vit dans `gradle/libs.versions.toml` — une version en

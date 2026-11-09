@@ -42,6 +42,24 @@ class JetonsSemantiquesTest {
                 .identifiantResultat());
     }
 
+    /**
+     * La fabrique typée (ADR-015, la voie de la frontière protocolaire) :
+     * la charge d'entiers décode comme la voie JSON — les deux voies
+     * partagent le décodage relatif-à-absolu du domaine.
+     */
+    @Test
+    void laFabriqueTypeeDecodeCommeLaVoieJson() {
+        JetonsSemantiques jetons = JetonsSemantiques.de("resultat-2",
+                List.of(2, 4, 5, 3, 1, 0, 3, 2, 0, 0, 1, 0, 8, 42, 0));
+        List<JetonSemantique> absolus = jetons.jetons();
+        assertEquals("resultat-2", jetons.identifiantResultat());
+        assertEquals(3, absolus.size());
+        assertEquals(new JetonSemantique(2, 4, 5, 3, 1), absolus.get(0));
+        assertEquals(new JetonSemantique(2, 7, 2, 0, 0), absolus.get(1));
+        assertEquals(new JetonSemantique(3, 0, 8, 42, 0), absolus.get(2));
+        assertEquals(List.of(), JetonsSemantiques.de(null, List.of()).jetons());
+    }
+
     /** Les formes vides : data absent, data null, data vide — jamais d'exception. */
     @Test
     void lesFormesVides() {
