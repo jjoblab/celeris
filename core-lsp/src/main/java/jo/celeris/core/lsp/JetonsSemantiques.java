@@ -10,7 +10,11 @@ import org.jspecify.annotations.Nullable;
  * serveur — chaque jeton relatif au précédent — décodé en positions
  * absolues. Le décodage est une fonction pure de la charge « data » :
  * aucun autre flux n'y entre (PIEGE-18 — les diagnostics et les jetons
- * sont deux sources indépendantes, jamais chaînées).
+ * sont deux sources indépendantes, jamais chaînées). La bibliothèque
+ * rend la liste d'entiers telle quelle derrière la frontière
+ * protocolaire (ADR-015) ; le décodage relatif-à-absolu reste au
+ * domaine. Les jetons rejoindront la session à la couverture nouvelle
+ * (H-12).
  */
 public final class JetonsSemantiques {
 
@@ -24,29 +28,7 @@ public final class JetonsSemantiques {
     }
 
     /**
-     * Décode la réponse du serveur.
-     *
-     * @param json la valeur « result » de la requête de jetons
-     * @return les jetons en positions absolues, vide si la réponse est vide
-     * @throws IllegalArgumentException si les données ne sont pas une
-     *         suite de quintuples
-     */
-    public static JetonsSemantiques de(ValeurJson json) {
-        if (!(json instanceof JsonObjet objet)) {
-            return de(null, List.of());
-        }
-        String identifiant = objet.membreTexte("resultId");
-        List<Integer> donnees = new ArrayList<>();
-        if (objet.membre("data") instanceof JsonTableau tableau) {
-            for (int i = 0; i < tableau.taille(); i++) {
-                donnees.add(entier(tableau, i));
-            }
-        }
-        return de(identifiant, donnees);
-    }
-
-    /**
-     * Décode les jetons de leur charge encodée — la voie typée de la
+     * Décode les jetons de leur charge encodée — la voie de la
      * frontière protocolaire (ADR-015) : la bibliothèque rend la liste
      * d'entiers telle quelle, le décodage relatif-à-absolu reste au
      * domaine.
@@ -75,10 +57,6 @@ public final class JetonsSemantiques {
                     donnees.get(i + 3), donnees.get(i + 4)));
         }
         return new JetonsSemantiques(identifiant, jetons);
-    }
-
-    private static int entier(JsonTableau donnees, int indice) {
-        return (int) ((JsonNombre) donnees.element(indice)).decimal();
     }
 
     /** L'identifiant de résultat du serveur, pour un décodage incrémental — ou null. */

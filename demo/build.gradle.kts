@@ -19,6 +19,21 @@ android {
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
     }
+    // La démo réduite (ADR-015) : la preuve R8 du jalon — les règles
+    // CONSOMMATEUR de la frontière protocolaire gardent le fil
+    // réflexif (rouage JSON, proxys, TypeToken), celles du terrain
+    // gardent le serveur embarqué monté par désignation et son
+    // archive découpée au octet près.
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                project(":lsp-protocole").file("regles-conservation.pro"),
+                "regles-r8.pro"
+            )
+        }
+    }
 }
 
 dependencies {

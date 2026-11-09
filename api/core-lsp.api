@@ -4,19 +4,11 @@ public interface jo.celeris.core.lsp.AuditeurDiagnostics {
   public abstract void diagnostics(java.lang.String, java.util.List<jo.celeris.core.lsp.DiagnosticLsp>);
 }
 
-### jo.celeris.core.lsp.CadreurTrames
-Compiled from "CadreurTrames.java"
-public final class jo.celeris.core.lsp.CadreurTrames {
-  public static byte[] tramer(java.lang.String);
-  public static void ecrire(java.io.OutputStream, java.lang.String) throws java.io.IOException;
-}
-
 ### jo.celeris.core.lsp.CapacitesServeur
 Compiled from "CapacitesServeur.java"
 public final class jo.celeris.core.lsp.CapacitesServeur {
   public static jo.celeris.core.lsp.CapacitesServeur vides();
   public static jo.celeris.core.lsp.CapacitesServeur de(int, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
-  public static jo.celeris.core.lsp.CapacitesServeur de(jo.celeris.core.lsp.ValeurJson);
   public int genreSynchro();
   public boolean sertCompletion();
   public boolean sertSurvol();
@@ -31,84 +23,12 @@ public final class jo.celeris.core.lsp.CapacitesServeur {
   public java.util.List<java.lang.String> modificateursJetons();
 }
 
-### jo.celeris.core.lsp.ClientLsp$1
-Compiled from "ClientLsp.java"
-class jo.celeris.core.lsp.ClientLsp$1 implements jo.celeris.core.lsp.Recepteur {
-  public void recoit(java.lang.String);
-}
-
-### jo.celeris.core.lsp.ClientLsp$AuditeurDiagnostics
-Compiled from "ClientLsp.java"
-public interface jo.celeris.core.lsp.ClientLsp$AuditeurDiagnostics extends jo.celeris.core.lsp.AuditeurDiagnostics {
-}
-
-### jo.celeris.core.lsp.ClientLsp$AuditeurJetons
-Compiled from "ClientLsp.java"
-public interface jo.celeris.core.lsp.ClientLsp$AuditeurJetons {
-  public abstract void jetons(java.lang.String, jo.celeris.core.lsp.JetonsSemantiques);
-}
-
-### jo.celeris.core.lsp.ClientLsp
-Compiled from "ClientLsp.java"
-public final class jo.celeris.core.lsp.ClientLsp implements java.lang.AutoCloseable {
-  public static jo.celeris.core.lsp.ClientLsp sur(jo.celeris.core.lsp.Transport, java.lang.String);
-  public jo.celeris.core.lsp.CapacitesServeur initialiser(jo.celeris.core.lsp.JsonObjet);
-  public jo.celeris.core.lsp.CapacitesServeur capacites();
-  public void ouvrir(java.lang.String, java.lang.String, java.lang.String);
-  public void changer(java.lang.String, int, java.lang.String);
-  public void fermer(java.lang.String);
-  public int versionDe(java.lang.String);
-  public java.util.List<jo.celeris.core.lsp.DiagnosticLsp> diagnosticsDe(java.lang.String);
-  public jo.celeris.core.lsp.JetonsSemantiques jetonsDe(java.lang.String);
-  public jo.celeris.core.lsp.JetonsSemantiques tirerJetons(java.lang.String);
-  public void ajouterAuditeurDiagnostics(jo.celeris.core.lsp.ClientLsp$AuditeurDiagnostics);
-  public void ajouterAuditeurJetons(jo.celeris.core.lsp.ClientLsp$AuditeurJetons);
-  public void close();
-}
-
-### jo.celeris.core.lsp.CorrectifLsp
-Compiled from "CorrectifLsp.java"
-public final class jo.celeris.core.lsp.CorrectifLsp extends java.lang.Record {
-  public jo.celeris.core.lsp.CorrectifLsp(java.lang.String, jo.celeris.core.lsp.EditionEspaceLsp);
-  public static jo.celeris.core.lsp.CorrectifLsp de(jo.celeris.core.lsp.ValeurJson);
-  public static java.util.List<jo.celeris.core.lsp.CorrectifLsp> liste(jo.celeris.core.lsp.ValeurJson);
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public java.lang.String titre();
-  public jo.celeris.core.lsp.EditionEspaceLsp edition();
-}
-
-### jo.celeris.core.lsp.CurseurSource
-Compiled from "CurseurSource.java"
-final class jo.celeris.core.lsp.CurseurSource {
-}
-
-### jo.celeris.core.lsp.DecodeurTrames$Etat
-Compiled from "DecodeurTrames.java"
-final class jo.celeris.core.lsp.DecodeurTrames$Etat extends java.lang.Enum<jo.celeris.core.lsp.DecodeurTrames$Etat> {
-  public static final jo.celeris.core.lsp.DecodeurTrames$Etat ENTETE;
-  public static final jo.celeris.core.lsp.DecodeurTrames$Etat CORPS;
-  public static jo.celeris.core.lsp.DecodeurTrames$Etat[] values();
-  public static jo.celeris.core.lsp.DecodeurTrames$Etat valueOf(java.lang.String);
-}
-
-### jo.celeris.core.lsp.DecodeurTrames
-Compiled from "DecodeurTrames.java"
-public final class jo.celeris.core.lsp.DecodeurTrames {
-  public jo.celeris.core.lsp.DecodeurTrames();
-  public void ajouter(byte[], int, int);
-  public void ajouter(byte[]);
-  public java.util.List<java.lang.String> messages();
-}
-
 ### jo.celeris.core.lsp.DiagnosticLsp
 Compiled from "DiagnosticLsp.java"
 public final class jo.celeris.core.lsp.DiagnosticLsp extends java.lang.Record {
   public static final int ERREUR;
   public static final int AVERTISSEMENT;
   public jo.celeris.core.lsp.DiagnosticLsp(jo.celeris.core.lsp.PlageLsp, int, java.lang.String, java.lang.String, java.lang.String);
-  public static jo.celeris.core.lsp.DiagnosticLsp de(jo.celeris.core.lsp.ValeurJson);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -123,8 +43,6 @@ public final class jo.celeris.core.lsp.DiagnosticLsp extends java.lang.Record {
 Compiled from "EditionDocumentLsp.java"
 public final class jo.celeris.core.lsp.EditionDocumentLsp extends java.lang.Record {
   public jo.celeris.core.lsp.EditionDocumentLsp(java.lang.String, int, java.util.List<jo.celeris.core.lsp.EditionTexteLsp>);
-  public static jo.celeris.core.lsp.EditionDocumentLsp de(jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet versJson();
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -138,8 +56,6 @@ Compiled from "EditionEspaceLsp.java"
 public final class jo.celeris.core.lsp.EditionEspaceLsp extends java.lang.Record {
   public static final jo.celeris.core.lsp.EditionEspaceLsp VIDE;
   public jo.celeris.core.lsp.EditionEspaceLsp(java.util.List<jo.celeris.core.lsp.EditionDocumentLsp>, java.util.List<jo.celeris.core.lsp.EditionGabaritLsp>);
-  public static jo.celeris.core.lsp.EditionEspaceLsp de(jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet versJson();
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -152,8 +68,6 @@ Compiled from "EditionGabaritLsp.java"
 public final class jo.celeris.core.lsp.EditionGabaritLsp extends java.lang.Record {
   public static final java.lang.String SORTE;
   public jo.celeris.core.lsp.EditionGabaritLsp(java.lang.String, jo.celeris.core.lsp.PositionLsp, java.lang.String);
-  public static jo.celeris.core.lsp.EditionGabaritLsp de(jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet versJson();
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -166,8 +80,6 @@ public final class jo.celeris.core.lsp.EditionGabaritLsp extends java.lang.Recor
 Compiled from "EditionTexteLsp.java"
 public final class jo.celeris.core.lsp.EditionTexteLsp extends java.lang.Record {
   public jo.celeris.core.lsp.EditionTexteLsp(jo.celeris.core.lsp.PlageLsp, java.lang.String);
-  public static jo.celeris.core.lsp.EditionTexteLsp de(jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet versJson();
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -185,7 +97,6 @@ public final class jo.celeris.core.lsp.EditsEspaceLsp {
 Compiled from "ElementCompletion.java"
 public final class jo.celeris.core.lsp.ElementCompletion extends java.lang.Record {
   public jo.celeris.core.lsp.ElementCompletion(java.lang.String, int, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean);
-  public static jo.celeris.core.lsp.ElementCompletion de(jo.celeris.core.lsp.ValeurJson);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -197,34 +108,6 @@ public final class jo.celeris.core.lsp.ElementCompletion extends java.lang.Recor
   public java.lang.String texteFiltre();
   public java.lang.String texteInsertion();
   public boolean obsolete();
-}
-
-### jo.celeris.core.lsp.ErreurLspException
-Compiled from "ErreurLspException.java"
-public final class jo.celeris.core.lsp.ErreurLspException extends java.lang.RuntimeException {
-  public jo.celeris.core.lsp.ErreurLspException(jo.celeris.core.lsp.ErreurRpc);
-  public int code();
-}
-
-### jo.celeris.core.lsp.ErreurRpc
-Compiled from "ErreurRpc.java"
-public final class jo.celeris.core.lsp.ErreurRpc extends java.lang.Record {
-  public static final int PARSE_ERROR;
-  public static final int INVALID_REQUEST;
-  public static final int METHOD_NOT_FOUND;
-  public static final int INVALID_PARAMS;
-  public static final int INTERNAL_ERROR;
-  public static final int REQUEST_CANCELLED;
-  public static final int CONTENT_MODIFIED;
-  public jo.celeris.core.lsp.ErreurRpc(int, java.lang.String, jo.celeris.core.lsp.ValeurJson);
-  public static jo.celeris.core.lsp.ErreurRpc de(jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet versJson();
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public int code();
-  public java.lang.String message();
-  public jo.celeris.core.lsp.ValeurJson donnees();
 }
 
 ### jo.celeris.core.lsp.IndiceLsp$Partie
@@ -242,8 +125,6 @@ public final class jo.celeris.core.lsp.IndiceLsp$Partie extends java.lang.Record
 Compiled from "IndiceLsp.java"
 public final class jo.celeris.core.lsp.IndiceLsp extends java.lang.Record {
   public jo.celeris.core.lsp.IndiceLsp(jo.celeris.core.lsp.PositionLsp, java.util.List<jo.celeris.core.lsp.IndiceLsp$Partie>, int, boolean, boolean);
-  public static jo.celeris.core.lsp.IndiceLsp de(jo.celeris.core.lsp.ValeurJson);
-  public static java.util.List<jo.celeris.core.lsp.IndiceLsp> liste(jo.celeris.core.lsp.ValeurJson);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -271,118 +152,15 @@ public final class jo.celeris.core.lsp.JetonSemantique extends java.lang.Record 
 ### jo.celeris.core.lsp.JetonsSemantiques
 Compiled from "JetonsSemantiques.java"
 public final class jo.celeris.core.lsp.JetonsSemantiques {
-  public static jo.celeris.core.lsp.JetonsSemantiques de(jo.celeris.core.lsp.ValeurJson);
   public static jo.celeris.core.lsp.JetonsSemantiques de(java.lang.String, java.util.List<java.lang.Integer>);
   public java.lang.String identifiantResultat();
   public java.util.List<jo.celeris.core.lsp.JetonSemantique> jetons();
-}
-
-### jo.celeris.core.lsp.JsonBooleen
-Compiled from "JsonBooleen.java"
-public final class jo.celeris.core.lsp.JsonBooleen extends java.lang.Record implements jo.celeris.core.lsp.ValeurJson {
-  public static final jo.celeris.core.lsp.JsonBooleen VRAI;
-  public static final jo.celeris.core.lsp.JsonBooleen FAUX;
-  public jo.celeris.core.lsp.JsonBooleen(boolean);
-  public static jo.celeris.core.lsp.JsonBooleen of(boolean);
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public boolean valeur();
-}
-
-### jo.celeris.core.lsp.JsonChaine
-Compiled from "JsonChaine.java"
-public final class jo.celeris.core.lsp.JsonChaine extends java.lang.Record implements jo.celeris.core.lsp.ValeurJson {
-  public jo.celeris.core.lsp.JsonChaine(java.lang.String);
-  public static jo.celeris.core.lsp.JsonChaine of(java.lang.String);
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public java.lang.String texte();
-}
-
-### jo.celeris.core.lsp.JsonEcrivain
-Compiled from "JsonEcrivain.java"
-public final class jo.celeris.core.lsp.JsonEcrivain {
-  public static java.lang.String ecrire(jo.celeris.core.lsp.ValeurJson);
-}
-
-### jo.celeris.core.lsp.JsonLecteur
-Compiled from "JsonLecteur.java"
-public final class jo.celeris.core.lsp.JsonLecteur {
-  public static jo.celeris.core.lsp.ValeurJson lire(java.lang.String);
-}
-
-### jo.celeris.core.lsp.JsonNombre
-Compiled from "JsonNombre.java"
-public final class jo.celeris.core.lsp.JsonNombre extends java.lang.Record implements jo.celeris.core.lsp.ValeurJson {
-  public jo.celeris.core.lsp.JsonNombre(double);
-  public static jo.celeris.core.lsp.JsonNombre of(long);
-  public static jo.celeris.core.lsp.JsonNombre of(double);
-  public boolean estEntier();
-  public long entier();
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public double decimal();
-}
-
-### jo.celeris.core.lsp.JsonNul
-Compiled from "JsonNul.java"
-public final class jo.celeris.core.lsp.JsonNul extends java.lang.Record implements jo.celeris.core.lsp.ValeurJson {
-  public jo.celeris.core.lsp.JsonNul();
-  public static jo.celeris.core.lsp.JsonNul nul();
-  public java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-}
-
-### jo.celeris.core.lsp.JsonObjet
-Compiled from "JsonObjet.java"
-public final class jo.celeris.core.lsp.JsonObjet implements jo.celeris.core.lsp.ValeurJson {
-  public static jo.celeris.core.lsp.JsonObjet vide();
-  public jo.celeris.core.lsp.JsonObjet ajouter(java.lang.String, jo.celeris.core.lsp.ValeurJson);
-  public int taille();
-  public java.util.List<java.lang.String> cles();
-  public jo.celeris.core.lsp.ValeurJson membre(java.lang.String);
-  public jo.celeris.core.lsp.ValeurJson membreOu(java.lang.String, jo.celeris.core.lsp.ValeurJson);
-  public java.lang.String membreTexte(java.lang.String);
-  public java.lang.Long membreEntier(java.lang.String);
-  public java.lang.Boolean membreBooleen(java.lang.String);
-  public boolean equals(java.lang.Object);
-  public int hashCode();
-  public java.lang.String toString();
-}
-
-### jo.celeris.core.lsp.JsonTableau
-Compiled from "JsonTableau.java"
-public final class jo.celeris.core.lsp.JsonTableau implements jo.celeris.core.lsp.ValeurJson {
-  public static jo.celeris.core.lsp.JsonTableau vide();
-  public jo.celeris.core.lsp.JsonTableau ajouter(jo.celeris.core.lsp.ValeurJson);
-  public int taille();
-  public jo.celeris.core.lsp.ValeurJson element(int);
-  public java.util.List<jo.celeris.core.lsp.ValeurJson> elements();
-  public boolean equals(java.lang.Object);
-  public int hashCode();
-  public java.lang.String toString();
-}
-
-### jo.celeris.core.lsp.LecteurChaine
-Compiled from "LecteurChaine.java"
-final class jo.celeris.core.lsp.LecteurChaine {
-}
-
-### jo.celeris.core.lsp.LecteurNombre
-Compiled from "LecteurNombre.java"
-final class jo.celeris.core.lsp.LecteurNombre {
 }
 
 ### jo.celeris.core.lsp.LieuLsp
 Compiled from "LieuLsp.java"
 public final class jo.celeris.core.lsp.LieuLsp extends java.lang.Record {
   public jo.celeris.core.lsp.LieuLsp(java.lang.String, jo.celeris.core.lsp.PlageLsp);
-  public static jo.celeris.core.lsp.LieuLsp de(jo.celeris.core.lsp.ValeurJson);
-  public static java.util.List<jo.celeris.core.lsp.LieuLsp> liste(jo.celeris.core.lsp.ValeurJson);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -393,33 +171,11 @@ public final class jo.celeris.core.lsp.LieuLsp extends java.lang.Record {
 ### jo.celeris.core.lsp.ListeCompletion
 Compiled from "ListeCompletion.java"
 public final class jo.celeris.core.lsp.ListeCompletion {
-  public static jo.celeris.core.lsp.ListeCompletion de(jo.celeris.core.lsp.ValeurJson);
   public static jo.celeris.core.lsp.ListeCompletion de(boolean, java.util.List<jo.celeris.core.lsp.ElementCompletion>);
   public boolean estIncomplete();
   public java.util.List<jo.celeris.core.lsp.ElementCompletion> elements();
   public jo.celeris.core.lsp.ListeCompletion filtrer(java.lang.String);
   public jo.celeris.core.lsp.ListeCompletion trier();
-}
-
-### jo.celeris.core.lsp.MessageRpc
-Compiled from "MessageRpc.java"
-public interface jo.celeris.core.lsp.MessageRpc {
-  public abstract jo.celeris.core.lsp.ValeurJson versJson();
-  public static jo.celeris.core.lsp.MessageRpc de(jo.celeris.core.lsp.ValeurJson);
-}
-
-### jo.celeris.core.lsp.NotificationRpc
-Compiled from "NotificationRpc.java"
-public final class jo.celeris.core.lsp.NotificationRpc extends java.lang.Record implements jo.celeris.core.lsp.MessageRpc {
-  public jo.celeris.core.lsp.NotificationRpc(java.lang.String, jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet versJson();
-  public static jo.celeris.core.lsp.NotificationRpc de(jo.celeris.core.lsp.JsonObjet);
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public java.lang.String methode();
-  public jo.celeris.core.lsp.ValeurJson params();
-  public jo.celeris.core.lsp.ValeurJson versJson();
 }
 
 ### jo.celeris.core.lsp.OrdonnanceurLsp$Cle
@@ -468,8 +224,6 @@ public final class jo.celeris.core.lsp.OrdonnanceurLsp {
 Compiled from "PlageLsp.java"
 public final class jo.celeris.core.lsp.PlageLsp extends java.lang.Record {
   public jo.celeris.core.lsp.PlageLsp(jo.celeris.core.lsp.PositionLsp, jo.celeris.core.lsp.PositionLsp);
-  public static jo.celeris.core.lsp.PlageLsp de(jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet versJson();
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -481,8 +235,6 @@ public final class jo.celeris.core.lsp.PlageLsp extends java.lang.Record {
 Compiled from "PositionLsp.java"
 public final class jo.celeris.core.lsp.PositionLsp extends java.lang.Record {
   public jo.celeris.core.lsp.PositionLsp(int, int);
-  public static jo.celeris.core.lsp.PositionLsp de(jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet versJson();
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -497,28 +249,6 @@ public final class jo.celeris.core.lsp.PositionsLsp {
   public static int offset(jo.celeris.core.text.Document, jo.celeris.core.lsp.PositionLsp);
   public static jo.celeris.core.lsp.PlageLsp plage(jo.celeris.core.text.Document, int, int);
   public static int[] bornes(jo.celeris.core.text.Document, jo.celeris.core.lsp.PlageLsp);
-}
-
-### jo.celeris.core.lsp.Recepteur
-Compiled from "Recepteur.java"
-public interface jo.celeris.core.lsp.Recepteur {
-  public abstract void recoit(java.lang.String);
-  public default void ferme();
-}
-
-### jo.celeris.core.lsp.ReponseRpc
-Compiled from "ReponseRpc.java"
-public final class jo.celeris.core.lsp.ReponseRpc extends java.lang.Record implements jo.celeris.core.lsp.MessageRpc {
-  public jo.celeris.core.lsp.ReponseRpc(long, jo.celeris.core.lsp.ValeurJson, jo.celeris.core.lsp.ErreurRpc);
-  public jo.celeris.core.lsp.JsonObjet versJson();
-  public static jo.celeris.core.lsp.ReponseRpc de(jo.celeris.core.lsp.JsonObjet);
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public long id();
-  public jo.celeris.core.lsp.ValeurJson resultat();
-  public jo.celeris.core.lsp.ErreurRpc erreur();
-  public jo.celeris.core.lsp.ValeurJson versJson();
 }
 
 ### jo.celeris.core.lsp.RequeteAnnuleeException$Raison
@@ -536,21 +266,6 @@ Compiled from "RequeteAnnuleeException.java"
 public final class jo.celeris.core.lsp.RequeteAnnuleeException extends java.lang.RuntimeException {
   public jo.celeris.core.lsp.RequeteAnnuleeException(jo.celeris.core.lsp.RequeteAnnuleeException$Raison);
   public jo.celeris.core.lsp.RequeteAnnuleeException$Raison raison();
-}
-
-### jo.celeris.core.lsp.RequeteRpc
-Compiled from "RequeteRpc.java"
-public final class jo.celeris.core.lsp.RequeteRpc extends java.lang.Record implements jo.celeris.core.lsp.MessageRpc {
-  public jo.celeris.core.lsp.RequeteRpc(long, java.lang.String, jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet versJson();
-  public static jo.celeris.core.lsp.RequeteRpc de(jo.celeris.core.lsp.JsonObjet);
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public long id();
-  public java.lang.String methode();
-  public jo.celeris.core.lsp.ValeurJson params();
-  public jo.celeris.core.lsp.ValeurJson versJson();
 }
 
 ### jo.celeris.core.lsp.SignatureLsp$Entree
@@ -580,7 +295,6 @@ public final class jo.celeris.core.lsp.SignatureLsp$Parametre extends java.lang.
 Compiled from "SignatureLsp.java"
 public final class jo.celeris.core.lsp.SignatureLsp {
   public static jo.celeris.core.lsp.SignatureLsp de(java.util.List<jo.celeris.core.lsp.SignatureLsp$Entree>, int, int);
-  public static jo.celeris.core.lsp.SignatureLsp de(jo.celeris.core.lsp.ValeurJson);
   public java.util.List<jo.celeris.core.lsp.SignatureLsp$Entree> entrees();
   public int signatureActiveIndex();
   public jo.celeris.core.lsp.SignatureLsp$Entree signatureActive();
@@ -598,60 +312,12 @@ Compiled from "SurvolLsp.java"
 public final class jo.celeris.core.lsp.SurvolLsp extends java.lang.Record {
   public static final jo.celeris.core.lsp.SurvolLsp VIDE;
   public jo.celeris.core.lsp.SurvolLsp(java.lang.String, java.lang.String, jo.celeris.core.lsp.PlageLsp);
-  public static jo.celeris.core.lsp.SurvolLsp de(jo.celeris.core.lsp.ValeurJson);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String texte();
   public java.lang.String genre();
   public jo.celeris.core.lsp.PlageLsp plage();
-}
-
-### jo.celeris.core.lsp.Transport
-Compiled from "Transport.java"
-public interface jo.celeris.core.lsp.Transport extends java.lang.AutoCloseable {
-  public abstract void envoyer(java.lang.String);
-  public abstract void brancher(jo.celeris.core.lsp.Recepteur);
-  public abstract void close();
-}
-
-### jo.celeris.core.lsp.TransportFlux
-Compiled from "TransportFlux.java"
-public final class jo.celeris.core.lsp.TransportFlux implements jo.celeris.core.lsp.Transport {
-  public static jo.celeris.core.lsp.TransportFlux sur(java.io.InputStream, java.io.OutputStream, java.lang.String);
-  public void envoyer(java.lang.String);
-  public synchronized void brancher(jo.celeris.core.lsp.Recepteur);
-  public void close();
-}
-
-### jo.celeris.core.lsp.TransportMemoire$Bout
-Compiled from "TransportMemoire.java"
-final class jo.celeris.core.lsp.TransportMemoire$Bout implements jo.celeris.core.lsp.Transport {
-  public void envoyer(java.lang.String);
-  public synchronized void brancher(jo.celeris.core.lsp.Recepteur);
-  public synchronized void close();
-}
-
-### jo.celeris.core.lsp.TransportMemoire$Paire
-Compiled from "TransportMemoire.java"
-public final class jo.celeris.core.lsp.TransportMemoire$Paire extends java.lang.Record {
-  public jo.celeris.core.lsp.TransportMemoire$Paire(jo.celeris.core.lsp.Transport, jo.celeris.core.lsp.Transport);
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public jo.celeris.core.lsp.Transport boutA();
-  public jo.celeris.core.lsp.Transport boutB();
-}
-
-### jo.celeris.core.lsp.TransportMemoire
-Compiled from "TransportMemoire.java"
-public final class jo.celeris.core.lsp.TransportMemoire {
-  public static jo.celeris.core.lsp.TransportMemoire$Paire creerPaire();
-}
-
-### jo.celeris.core.lsp.ValeurJson
-Compiled from "ValeurJson.java"
-public interface jo.celeris.core.lsp.ValeurJson {
 }
 
 ### jo.celeris.core.lsp.package-info

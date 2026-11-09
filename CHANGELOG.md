@@ -7,6 +7,45 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 (étape 7) — le client LSP passe par la bibliothèque derrière la frontière, le code maison disparaît, la démo réduite par R8 est prouvée (2026-11-10)
+
+- **La frontière protocolaire `lsp-protocole` (ADR-015) porte désormais
+  le protocole SEULE** : la parité était prononcée — les sept tests du
+  banc `ServeurRetireTest` passaient SANS MODIFICATION par la
+  frontière —, le code maison est coupé : décodages JSON, cadrage
+  RPC, `ClientLsp`, transports — 334 lignes d'API publique rendues au
+  manifeste, la couverture du domaine se reconstruit par construction
+  directe (`CapacitesServeurTest`, `TypesDomaineLspTest`).
+- **Le corpus de traces du jalon lit par le Gson de la bibliothèque**
+  (`CorpusTracesTest` derrière la frontière) : la conclusion de l'enquête
+  Gson — les quatre traces sans alternative ambiguë se lisent
+  directement par `MessageJsonHandler.getGson()` ; la définition se lit
+  en `List<Location>` posée en `Either.forLeft`, l'`Either` de deux
+  listes étant ambigu sans le résolveur de requêtes (« ambiguous Either
+  type ») ; les traces indices et édition d'espace attendent la
+  couverture nouvelle (H-12) — l'édit de gabarit `celeris/templateEdit`
+  reste une forme nôtre que les types standard refusent.
+- **Les règles R8 consommateur sont prouvées sur la démo réduite**
+  (ADR-015) : `lsp-protocole/regles-conservation.pro` garde le fil
+  réflexif (rouage JSON, proxys, TypeToken), `demo/regles-r8.pro`
+  garde le serveur embarqué monté par désignation et son archive
+  découpée au octet près. `assembleRelease` vert : 6,3 Mo et
+  6 383 classes contre 10,3 Mo et 14 005 au débogage (−39 % /
+  −54 %) ; le dex vérifié porte la bibliothèque (568 classes) et
+  Gson (217, copie unique) à leurs noms d'origine, les 671 classes du
+  serveur entières, les services ServiceLoader rendus ; cinq scénarios
+  — poignée de main, complétion documentée, diagnostics, survol,
+  édition d'espace — rejoués sur le binaire réduit (R8 classfile,
+  mêmes règles). La réduction y révèle un défaut latent : le lexeur
+  de grammaires journalisait par `System.Logger`, absente de la
+  plateforme avant le niveau 33 — corrigé vers `java.util.logging`,
+  présente des deux côtés.
+- **Ruptures pré-1.0 (ADR-009)** : les fabriques JSON de `core-lsp`
+  (`CapacitesServeur.de(ValeurJson)` et sa famille) disparaissent — les
+  types du domaine se construisent par leurs fabriques typées, la
+  lecture du fil vit derrière la frontière ; manifestes d'API
+  régénérés.
+
 ### M7.6 (étape 6) — l'analyse structurelle niveaux 1 et 3 : plis et plan par les données, analyseurs écrits factorisés (2026-11-09)
 
 - **Niveau 1 (H-08, ADR-016)** : les plis par indentation
