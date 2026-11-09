@@ -8,8 +8,9 @@ public final class jo.celeris.core.lsp.CadreurTrames {
 ### jo.celeris.core.lsp.CapacitesServeur
 Compiled from "CapacitesServeur.java"
 public final class jo.celeris.core.lsp.CapacitesServeur {
+  public static jo.celeris.core.lsp.CapacitesServeur vides();
+  public static jo.celeris.core.lsp.CapacitesServeur de(int, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
   public static jo.celeris.core.lsp.CapacitesServeur de(jo.celeris.core.lsp.ValeurJson);
-  public jo.celeris.core.lsp.JsonObjet brutes();
   public int genreSynchro();
   public boolean sertCompletion();
   public boolean sertSurvol();
@@ -266,6 +267,7 @@ public final class jo.celeris.core.lsp.JetonSemantique extends java.lang.Record 
 Compiled from "JetonsSemantiques.java"
 public final class jo.celeris.core.lsp.JetonsSemantiques {
   public static jo.celeris.core.lsp.JetonsSemantiques de(jo.celeris.core.lsp.ValeurJson);
+  public static jo.celeris.core.lsp.JetonsSemantiques de(java.lang.String, java.util.List<java.lang.Integer>);
   public java.lang.String identifiantResultat();
   public java.util.List<jo.celeris.core.lsp.JetonSemantique> jetons();
 }
@@ -387,6 +389,7 @@ public final class jo.celeris.core.lsp.LieuLsp extends java.lang.Record {
 Compiled from "ListeCompletion.java"
 public final class jo.celeris.core.lsp.ListeCompletion {
   public static jo.celeris.core.lsp.ListeCompletion de(jo.celeris.core.lsp.ValeurJson);
+  public static jo.celeris.core.lsp.ListeCompletion de(boolean, java.util.List<jo.celeris.core.lsp.ElementCompletion>);
   public boolean estIncomplete();
   public java.util.List<jo.celeris.core.lsp.ElementCompletion> elements();
   public jo.celeris.core.lsp.ListeCompletion filtrer(java.lang.String);
@@ -579,6 +582,7 @@ public final class jo.celeris.core.lsp.SignatureLsp$Parametre extends java.lang.
 ### jo.celeris.core.lsp.SignatureLsp
 Compiled from "SignatureLsp.java"
 public final class jo.celeris.core.lsp.SignatureLsp {
+  public static jo.celeris.core.lsp.SignatureLsp de(java.util.List<jo.celeris.core.lsp.SignatureLsp$Entree>, int, int);
   public static jo.celeris.core.lsp.SignatureLsp de(jo.celeris.core.lsp.ValeurJson);
   public java.util.List<jo.celeris.core.lsp.SignatureLsp$Entree> entrees();
   public int signatureActiveIndex();
