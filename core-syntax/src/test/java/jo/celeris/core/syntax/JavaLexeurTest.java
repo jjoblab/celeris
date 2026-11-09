@@ -20,7 +20,7 @@ class JavaLexeurTest {
     private final LanguageLexer lexeur = JavaSyntax.INSTANCE.lexer();
 
     private Token[] lex(String ligne) {
-        return lexeur.lex(ligne, JavaLexeur.Etat.NORMAL).tokens();
+        return lexeur.lex(ligne, CLikeLexer.SimpleState.NORMAL).tokens();
     }
 
     /** Les mots réservés et les littéraux se distinguent des identificateurs. */
@@ -68,7 +68,7 @@ class JavaLexeurTest {
     void chaineNonFermee() {
         Token[] jetons = lex("\"sans fin");
         assertEquals(TokenKind.ERROR, jetons[0].kind());
-        assertSame(JavaLexeur.Etat.NORMAL, lexeur.lex("\"sans fin", JavaLexeur.Etat.NORMAL).exitState());
+        assertSame(CLikeLexer.SimpleState.NORMAL, lexeur.lex("\"sans fin", CLikeLexer.SimpleState.NORMAL).exitState());
     }
 
     /** Les commentaires de ligne, de bloc et de documentation. */
@@ -84,36 +84,36 @@ class JavaLexeurTest {
     /** Un commentaire de bloc ouvert traverse les lignes par l'état. */
     @Test
     void commentaireDeBlocMultiLignes() {
-        LexedLine premiere = lexeur.lex("a /* ouvert", JavaLexeur.Etat.NORMAL);
-        assertSame(JavaLexeur.Etat.BLOC, premiere.exitState());
+        LexedLine premiere = lexeur.lex("a /* ouvert", CLikeLexer.SimpleState.NORMAL);
+        assertEquals(new CLikeLexer.InBlockComment(1, false), premiere.exitState());
         LexedLine milieu = lexeur.lex("encore", premiere.exitState());
         assertEquals(1, milieu.tokens().length);
         assertEquals(TokenKind.COMMENT, milieu.tokens()[0].kind());
         LexedLine fermeture = lexeur.lex("fin */ b", milieu.exitState());
         assertEquals(TokenKind.COMMENT, fermeture.tokens()[0].kind());
         assertEquals(TokenKind.IDENTIFIER, fermeture.tokens()[1].kind());
-        assertSame(JavaLexeur.Etat.NORMAL, fermeture.exitState());
+        assertSame(CLikeLexer.SimpleState.NORMAL, fermeture.exitState());
     }
 
     /** La documentation (double astérisque) se distingue du bloc simple. */
     @Test
     void documentationContreBloc() {
-        LexedLine doc = lexeur.lex("/** ouverte", JavaLexeur.Etat.NORMAL);
-        assertSame(JavaLexeur.Etat.DOC, doc.exitState());
+        LexedLine doc = lexeur.lex("/** ouverte", CLikeLexer.SimpleState.NORMAL);
+        assertEquals(new CLikeLexer.InBlockComment(1, true), doc.exitState());
         assertEquals(TokenKind.DOC, doc.tokens()[0].kind());
     }
 
     /** Le texte en bloc (triple guillemet) traverse les lignes. */
     @Test
     void texteEnBloc() {
-        LexedLine ouverture = lexeur.lex("return \"\"\"", JavaLexeur.Etat.NORMAL);
+        LexedLine ouverture = lexeur.lex("return \"\"\"", CLikeLexer.SimpleState.NORMAL);
         assertEquals(TokenKind.OPEN_BRACKET, ouverture.tokens()[1].kind());
-        assertSame(JavaLexeur.Etat.BLOC_TEXTE, ouverture.exitState());
+        assertEquals(new CLikeLexer.InTripleString('"'), ouverture.exitState());
         LexedLine milieu = lexeur.lex("du texte", ouverture.exitState());
         assertEquals(1, milieu.tokens().length);
         assertEquals(TokenKind.STRING, milieu.tokens()[0].kind());
         LexedLine fermeture = lexeur.lex("encore\"\"\";", ouverture.exitState());
-        assertSame(JavaLexeur.Etat.NORMAL, fermeture.exitState());
+        assertSame(CLikeLexer.SimpleState.NORMAL, fermeture.exitState());
     }
 
     /** Annotations, opérateurs, ponctuation et crochets. */
@@ -166,7 +166,7 @@ class JavaLexeurTest {
         IncrementalLexer moteur = new IncrementalLexer();
         LexResult resultat = moteur.lexFull(Document.of(source), lexeur);
         assertEquals(Document.of(source).lineCount(), resultat.lex().lineCount());
-        assertSame(JavaLexeur.Etat.NORMAL,
+        assertSame(CLikeLexer.SimpleState.NORMAL,
                 resultat.lex().line(resultat.lex().lineCount() - 1).exitState());
     }
 

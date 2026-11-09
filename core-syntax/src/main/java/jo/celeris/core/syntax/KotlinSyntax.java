@@ -3,8 +3,9 @@ package jo.celeris.core.syntax;
 /**
  * Le langage Kotlin (ADR-004, priorité P0) : lexeur ligne à ligne à états
  * transportés — chaînes brutes, commentaires de bloc nichés — et parseur
- * tolérant ancré par chunks. L'instance est unique et sans état ; le
- * lexeur, lui, est à usage de fil unique (ADR-007).
+ * tolérant ancré par chunks, l'un et l'autre portés par le socle C-like
+ * (M7.6, H-10) au dialecte Kotlin. L'instance est unique et sans état ;
+ * le lexeur, lui, est à usage de fil unique (ADR-007).
  */
 public final class KotlinSyntax implements LanguageSyntax {
 
@@ -21,11 +22,11 @@ public final class KotlinSyntax implements LanguageSyntax {
 
     @Override
     public LanguageLexer lexer() {
-        return new KotlinLexeur();
+        return new CLikeLexer(KotlinDialect.INSTANCE);
     }
 
     @Override
     public LanguageParser parser() {
-        return new KotlinParseur();
+        return new CLikeParser(KotlinDialect.INSTANCE);
     }
 }

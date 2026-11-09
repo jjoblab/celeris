@@ -7,6 +7,29 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 (étape 6) — l'analyse structurelle niveaux 1 et 3 : plis et plan par les données, analyseurs écrits factorisés (2026-11-09)
+
+- **Niveau 1 (H-08, ADR-016)** : les plis par indentation
+  (`IndentationFolds` — réglage `offSide` de la configuration, lignes
+  vides et de commentaire seul jamais clôturantes, tabulations au
+  taquet) et le plan par règles (`outline.json` des paquets,
+  `OutlineRule`/`RuleOutline` — la première règle qui matche nomme la
+  ligne, l'entrée couvre sa région de pli) ; Python, YAML et SQL ont
+  plis et plan sans une ligne de Java dédiée — la vue, le cli et la
+  démo les servent par la plateforme (`DataStructureTest`,
+  `DataStructureDemoTest`), deux fichiers d'exemple les rendent
+  visibles à la démonstration (`dependances.yml`, `inventaire.sql`).
+- **Niveau 3 (H-10, ADR-016)** : Java, Kotlin, KTS et Groovy deviennent
+  des spécialisations d'au plus 150 lignes (134, 123 et 147) du socle
+  `CLikeLexer`/`CLikeParser` — les douze classes par langage disparaissent,
+  les instantanés des corpus figés AVANT le remaniement prouvent
+  l'identité (états, jetons, arbre) : `ClikeSnapshotsTest`. La ligne de
+  base de langue descend de 29 identifiants français.
+- **Ruptures pré-1.0 (ADR-009)** : `LanguagePack` gagne ses règles de
+  plan, `LanguageSupport` les expose, `core-syntax` gagne
+  `IndentationFolds`, `OutlineRule`, `RuleOutline` et la fusion des
+  plis de `TreeFolds` — manifestes d'API régénérés.
+
 ### M7.6 (étape 5) — le moteur de grammaires devient réellement TextMate (joni), la plateforme gagne l'option tree-sitter (2026-11-08)
 
 - **Le moteur de la voie de grammaires charge le format TextMate RÉEL,

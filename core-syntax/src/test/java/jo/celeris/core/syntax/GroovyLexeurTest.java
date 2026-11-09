@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
  */
 class GroovyLexeurTest {
 
-    private final GroovyLexeur lexeur = new GroovyLexeur();
+    private final CLikeLexer lexeur = new CLikeLexer(GroovyDialect.INSTANCE);
 
     private LexedLine ligne(String texte, LexState entree) {
         return lexeur.lex(texte, entree);
@@ -26,7 +26,7 @@ class GroovyLexeurTest {
     /** Le commentaire de ligne couvre la fin de ligne. */
     @Test
     void commentaireDeLigne() {
-        LexedLine lue = ligne("x = 1 // note", GroovyLexeur.Etat.NORMAL);
+        LexedLine lue = ligne("x = 1 // note", CLikeLexer.SimpleState.NORMAL);
         assertTrue(lue.tokens().length >= 2);
         Token dernier = lue.tokens()[lue.tokens().length - 1];
         assertEquals(TokenKind.COMMENT, dernier.kind());
@@ -36,15 +36,15 @@ class GroovyLexeurTest {
     /** Le commentaire de bloc niche : la profondeur traverse les lignes par état. */
     @Test
     void commentaireDeBlocNicheParEtat() {
-        LexedLine premiere = ligne("/* ouvre /* niche", GroovyLexeur.Etat.NORMAL);
+        LexedLine premiere = ligne("/* ouvre /* niche", CLikeLexer.SimpleState.NORMAL);
         assertEquals(1, premiere.tokens().length);
         assertEquals(TokenKind.COMMENT, premiere.tokens()[0].kind());
-        assertTrue(premiere.exitState() instanceof GroovyLexeur.DansBloc);
-        GroovyLexeur.DansBloc dansBloc = (GroovyLexeur.DansBloc) premiere.exitState();
-        assertEquals(2, dansBloc.profondeur());
+        assertTrue(premiere.exitState() instanceof CLikeLexer.InBlockComment);
+        CLikeLexer.InBlockComment dansBloc = (CLikeLexer.InBlockComment) premiere.exitState();
+        assertEquals(2, dansBloc.depth());
         LexedLine seconde = ligne(" ferme */ */ code", dansBloc);
         assertEquals(TokenKind.COMMENT, seconde.tokens()[0].kind());
-        assertEquals(GroovyLexeur.Etat.NORMAL, seconde.exitState());
+        assertEquals(CLikeLexer.SimpleState.NORMAL, seconde.exitState());
         Token[] suite = seconde.tokens();
         assertEquals(TokenKind.IDENTIFIER, suite[1].kind());
     }
@@ -52,7 +52,7 @@ class GroovyLexeurTest {
     /** La documentation se distingue du commentaire ordinaire. */
     @Test
     void documentationDistinguee() {
-        LexedLine lue = ligne("/** doc du script */", GroovyLexeur.Etat.NORMAL);
+        LexedLine lue = ligne("/** doc du script */", CLikeLexer.SimpleState.NORMAL);
         assertEquals(1, lue.tokens().length);
         assertEquals(TokenKind.DOC, lue.tokens()[0].kind());
     }
@@ -60,7 +60,7 @@ class GroovyLexeurTest {
     /** La chaîne à apostrophe est un jeton soudé. */
     @Test
     void chaineSimpleApostrophe() {
-        LexedLine lue = ligne("id 'java-library'", GroovyLexeur.Etat.NORMAL);
+        LexedLine lue = ligne("id 'java-library'", CLikeLexer.SimpleState.NORMAL);
         Token[] jetons = lue.tokens();
         assertEquals(TokenKind.STRING, jetons[1].kind());
         assertEquals(3, jetons[1].start());
@@ -70,7 +70,7 @@ class GroovyLexeurTest {
     /** Les guillemets internes aux accolades d'un gabarit ne clôturent pas. */
     @Test
     void gabaritGuillemetsInternesAuxAccolades() {
-        LexedLine lue = ligne("println \"cle ${map[\"k\"]}\"", GroovyLexeur.Etat.NORMAL);
+        LexedLine lue = ligne("println \"cle ${map[\"k\"]}\"", CLikeLexer.SimpleState.NORMAL);
         Token[] jetons = lue.tokens();
         assertEquals(TokenKind.STRING, jetons[1].kind());
         assertEquals(8, jetons[1].start());
@@ -80,7 +80,7 @@ class GroovyLexeurTest {
     /** Un gabarit non fermé est un jeton ERROR. */
     @Test
     void gabaritNonFermeEstErreur() {
-        LexedLine lue = ligne("println \"ouvert", GroovyLexeur.Etat.NORMAL);
+        LexedLine lue = ligne("println \"ouvert", CLikeLexer.SimpleState.NORMAL);
         Token[] jetons = lue.tokens();
         assertEquals(TokenKind.ERROR, jetons[jetons.length - 1].kind());
     }
@@ -88,12 +88,12 @@ class GroovyLexeurTest {
     /** La chaîne triple ouvre un crochet apparié et traverse les lignes par état. */
     @Test
     void tripleSimpleMultiLignes() {
-        LexedLine ouverture = ligne("def doc = '''texte", GroovyLexeur.Etat.NORMAL);
+        LexedLine ouverture = ligne("def doc = '''texte", CLikeLexer.SimpleState.NORMAL);
         Token[] jetons = ouverture.tokens();
         assertEquals(TokenKind.OPEN_BRACKET, jetons[3].kind());
-        assertTrue(ouverture.exitState() instanceof GroovyLexeur.DansTriple);
-        GroovyLexeur.DansTriple dansTriple = (GroovyLexeur.DansTriple) ouverture.exitState();
-        assertEquals('\'', dansTriple.delimiteur());
+        assertTrue(ouverture.exitState() instanceof CLikeLexer.InTripleString);
+        CLikeLexer.InTripleString dansTriple = (CLikeLexer.InTripleString) ouverture.exitState();
+        assertEquals('\'', dansTriple.delimiter());
         LexedLine milieu = ligne("suite", dansTriple);
         assertEquals(1, milieu.tokens().length);
         assertEquals(TokenKind.STRING, milieu.tokens()[0].kind());
@@ -101,22 +101,22 @@ class GroovyLexeurTest {
         LexedLine fermeture = ligne("fin''' + x", dansTriple);
         assertEquals(TokenKind.STRING, fermeture.tokens()[0].kind());
         assertEquals(TokenKind.CLOSE_BRACKET, fermeture.tokens()[1].kind());
-        assertEquals(GroovyLexeur.Etat.NORMAL, fermeture.exitState());
+        assertEquals(CLikeLexer.SimpleState.NORMAL, fermeture.exitState());
     }
 
     /** La chaîne triple à guillemets suit la même voie. */
     @Test
     void tripleDoublePareil() {
-        LexedLine ouverture = ligne("println \"\"\"gabarit ${x}", GroovyLexeur.Etat.NORMAL);
+        LexedLine ouverture = ligne("println \"\"\"gabarit ${x}", CLikeLexer.SimpleState.NORMAL);
         Token[] jetons = ouverture.tokens();
         assertEquals(TokenKind.OPEN_BRACKET, jetons[1].kind());
-        assertTrue(ouverture.exitState() instanceof GroovyLexeur.DansTriple);
+        assertTrue(ouverture.exitState() instanceof CLikeLexer.InTripleString);
     }
 
     /** Annotations, mots réservés propres et convention de casse. */
     @Test
     void annotationsMotsReservesEtCasse() {
-        LexedLine lue = ligne("@Task def it = Nouveau.MAX", GroovyLexeur.Etat.NORMAL);
+        LexedLine lue = ligne("@Task def it = Nouveau.MAX", CLikeLexer.SimpleState.NORMAL);
         Token[] jetons = lue.tokens();
         assertEquals(TokenKind.ANNOTATION, jetons[0].kind());
         assertEquals(TokenKind.KEYWORD, jetons[1].kind());
@@ -129,7 +129,7 @@ class GroovyLexeurTest {
     /** Les signes propres de Groovy se lexe au plus long d'abord. */
     @Test
     void signesPropres() {
-        LexedLine lue = ligne("a?.b *.c d..<e f<=>g h==~i", GroovyLexeur.Etat.NORMAL);
+        LexedLine lue = ligne("a?.b *.c d..<e f<=>g h==~i", CLikeLexer.SimpleState.NORMAL);
         Token[] jetons = lue.tokens();
         int operateurs = 0;
         for (Token jeton : jetons) {
