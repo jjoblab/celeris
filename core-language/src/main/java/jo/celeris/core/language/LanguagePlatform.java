@@ -27,6 +27,10 @@ import org.jspecify.annotations.Nullable;
  */
 public final class LanguagePlatform {
 
+    /** Les niveaux de préférence syntaxique connus (le niveau 2 y vit). */
+    private static final java.util.Set<String> NIVEAUX =
+            java.util.Set.of("handwritten", "grammar", "tree-sitter");
+
     private final PackLoader loader;
 
     private final List<LanguageSupport> supports;
@@ -196,16 +200,11 @@ public final class LanguagePlatform {
     /** La source syntaxique d'un paquet : préférence, repli, refus précis. */
     private @Nullable LanguageSyntax sourceSyntaxique(LanguagePack pack) {
         String preferee = pack.syntaxPreference().preferred();
-        if ("handwritten".equals(preferee)) {
-            LanguageSyntax ecrite = WrittenLanguages.syntaxOf(pack.descriptor().id());
-            if (ecrite != null) {
-                return ecrite;
-            }
-        } else if ("grammar".equals(preferee)) {
-            if (pack.grammar() != null) {
-                return pack.grammar();
-            }
-        } else {
+        LanguageSyntax cherie = prefereeCherie(pack, preferee);
+        if (cherie != null) {
+            return cherie;
+        }
+        if (!NIVEAUX.contains(preferee)) {
             throw new IllegalArgumentException(pack.manifest().id()
                     + ": unknown syntax preference " + preferee);
         }
@@ -219,12 +218,30 @@ public final class LanguagePlatform {
                 return ecrite;
             }
         }
+        if ("tree-sitter".equals(repli) && TreeSitterLanguages.syntaxOf(
+                pack.descriptor().id()) != null) {
+            return TreeSitterLanguages.syntaxOf(pack.descriptor().id());
+        }
         if (preferee.equals("grammar") && pack.grammar() == null) {
             throw new IllegalArgumentException(pack.manifest().id()
                     + ": syntax preference \"grammar\" without grammar.json");
         }
         throw new IllegalArgumentException(pack.manifest().id()
                 + ": syntax preference \"" + preferee + "\" has no source");
+    }
+
+    /** La source de la préférence voulue, ou null — le niveau 2 vit ici. */
+    private @Nullable LanguageSyntax prefereeCherie(LanguagePack pack, String preferee) {
+        if ("handwritten".equals(preferee)) {
+            return WrittenLanguages.syntaxOf(pack.descriptor().id());
+        }
+        if ("grammar".equals(preferee)) {
+            return pack.grammar();
+        }
+        if ("tree-sitter".equals(preferee)) {
+            return TreeSitterLanguages.syntaxOf(pack.descriptor().id());
+        }
+        return null;
     }
 
     /**
