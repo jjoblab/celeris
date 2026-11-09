@@ -1,23 +1,71 @@
+### jo.celeris.core.syntax.grammars.Alphabet
+Compiled from "Alphabet.java"
+final class jo.celeris.core.syntax.grammars.Alphabet extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String source();
+  public int debut();
+  public int fin();
+}
+
+### jo.celeris.core.syntax.grammars.BlocOuvert
+Compiled from "BlocOuvert.java"
+final class jo.celeris.core.syntax.grammars.BlocOuvert {
+  public boolean equals(java.lang.Object);
+  public int hashCode();
+}
+
+### jo.celeris.core.syntax.grammars.Capture
+Compiled from "Capture.java"
+final class jo.celeris.core.syntax.grammars.Capture extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String nom();
+}
+
+### jo.celeris.core.syntax.grammars.Delimitation
+Compiled from "Delimitation.java"
+final class jo.celeris.core.syntax.grammars.Delimitation {
+}
+
 ### jo.celeris.core.syntax.grammars.EtatGrammaire
 Compiled from "EtatGrammaire.java"
 final class jo.celeris.core.syntax.grammars.EtatGrammaire extends java.lang.Record implements jo.celeris.core.syntax.LexState {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public jo.celeris.core.syntax.grammars.RegleBloc bloc();
+  public jo.celeris.core.syntax.grammars.BlocOuvert bloc();
   public jo.celeris.core.syntax.grammars.EtatGrammaire parent();
+}
+
+### jo.celeris.core.syntax.grammars.Expressions
+Compiled from "Expressions.java"
+final class jo.celeris.core.syntax.grammars.Expressions {
+}
+
+### jo.celeris.core.syntax.grammars.GardeCatastrophique$Groupe
+Compiled from "GardeCatastrophique.java"
+final class jo.celeris.core.syntax.grammars.GardeCatastrophique$Groupe {
+}
+
+### jo.celeris.core.syntax.grammars.GardeCatastrophique
+Compiled from "GardeCatastrophique.java"
+final class jo.celeris.core.syntax.grammars.GardeCatastrophique {
 }
 
 ### jo.celeris.core.syntax.grammars.Grammaire
 Compiled from "Grammaire.java"
 public final class jo.celeris.core.syntax.grammars.Grammaire extends java.lang.Record {
-  public jo.celeris.core.syntax.grammars.Grammaire(java.lang.String, java.lang.String, java.util.List<jo.celeris.core.syntax.grammars.Regle>);
+  public jo.celeris.core.syntax.grammars.Grammaire(java.lang.String, java.lang.String, java.util.List<jo.celeris.core.syntax.grammars.Regle>, jo.celeris.core.syntax.grammars.RapportGrammaire);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String nom();
   public java.lang.String porteeRacine();
   public java.util.List<jo.celeris.core.syntax.grammars.Regle> motifs();
+  public jo.celeris.core.syntax.grammars.RapportGrammaire rapport();
 }
 
 ### jo.celeris.core.syntax.grammars.GrammaireKind
@@ -38,9 +86,10 @@ final class jo.celeris.core.syntax.grammars.GrammaireLexeur$Candidat extends jav
   public final boolean equals(java.lang.Object);
   public int debut();
   public int fin();
-  public java.util.regex.Matcher matcher();
+  public org.joni.Matcher matcher();
   public char type();
   public jo.celeris.core.syntax.grammars.RegleBloc bloc();
+  public jo.celeris.core.syntax.grammars.BlocOuvert ferme();
   public jo.celeris.core.syntax.grammars.RegleSimple simple();
 }
 
@@ -73,6 +122,12 @@ public final class jo.celeris.core.syntax.grammars.GrammaireSyntax implements jo
 Compiled from "Grammaires.java"
 public final class jo.celeris.core.syntax.grammars.Grammaires {
   public static jo.celeris.core.syntax.grammars.Grammaire lire(java.lang.String);
+  public static jo.celeris.core.syntax.grammars.Grammaire lire(java.lang.String, java.util.Map<java.lang.String, jo.celeris.core.syntax.grammars.Grammaire>);
+}
+
+### jo.celeris.core.syntax.grammars.LecteurGrammaire
+Compiled from "LecteurGrammaire.java"
+final class jo.celeris.core.syntax.grammars.LecteurGrammaire {
 }
 
 ### jo.celeris.core.syntax.grammars.PackGrammars
@@ -87,6 +142,29 @@ Compiled from "Portees.java"
 final class jo.celeris.core.syntax.grammars.Portees {
 }
 
+### jo.celeris.core.syntax.grammars.RapportGrammaire$Tisseur
+Compiled from "RapportGrammaire.java"
+final class jo.celeris.core.syntax.grammars.RapportGrammaire$Tisseur {
+}
+
+### jo.celeris.core.syntax.grammars.RapportGrammaire
+Compiled from "RapportGrammaire.java"
+public final class jo.celeris.core.syntax.grammars.RapportGrammaire extends java.lang.Record {
+  public jo.celeris.core.syntax.grammars.RapportGrammaire(int, int, int, int, int, int, int, int);
+  public double acceptation();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int motifs();
+  public int acceptes();
+  public int refuses();
+  public int inclusionsExterieures();
+  public int reglesWhile();
+  public int reglesDrapeaux();
+  public int capturesSousMotifs();
+  public int injectionsIgnorees();
+}
+
 ### jo.celeris.core.syntax.grammars.Regle
 Compiled from "Regle.java"
 public interface jo.celeris.core.syntax.grammars.Regle {
@@ -98,12 +176,14 @@ final class jo.celeris.core.syntax.grammars.RegleBloc extends java.lang.Record i
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public java.util.regex.Pattern debut();
-  public java.util.regex.Pattern fin();
+  public org.joni.Regex debut();
+  public java.lang.String sourceFin();
+  public org.joni.Regex fin();
+  public boolean referencesFin();
   public java.lang.String portee();
-  public java.lang.String porteeContenu();
-  public java.util.Map<java.lang.Integer, java.lang.String> capturesDebut();
-  public java.util.Map<java.lang.Integer, java.lang.String> capturesFin();
+  public java.lang.String contenu();
+  public java.util.Map<java.lang.Integer, jo.celeris.core.syntax.grammars.Capture> capturesDebut();
+  public java.util.Map<java.lang.Integer, jo.celeris.core.syntax.grammars.Capture> capturesFin();
   public java.util.List<jo.celeris.core.syntax.grammars.Regle> motifs();
 }
 
@@ -118,9 +198,14 @@ final class jo.celeris.core.syntax.grammars.RegleSimple extends java.lang.Record
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public java.util.regex.Pattern motif();
+  public org.joni.Regex motif();
   public java.lang.String portee();
-  public java.util.Map<java.lang.Integer, java.lang.String> captures();
+  public java.util.Map<java.lang.Integer, jo.celeris.core.syntax.grammars.Capture> captures();
+}
+
+### jo.celeris.core.syntax.grammars.Utf8Line
+Compiled from "Utf8Line.java"
+final class jo.celeris.core.syntax.grammars.Utf8Line {
 }
 
 ### jo.celeris.core.syntax.grammars.package-info

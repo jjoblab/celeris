@@ -54,6 +54,11 @@ material = "1.14.0"
 # touche les API Java 11 (List.of, String.strip) au-delà du niveau 26 —
 # vérifiée sur Google Maven le 2026-11-08.
 desugarJdkLibs = "2.1.5"
+# Moteur d'expressions rationnelles des grammaires TextMate (M7.6,
+# ADR-014) : portage Java d'Oniguruma, sémantique de référence du
+# format — vérifiées sur Maven Central le 2026-11-09 (POM MIT lus).
+joni = "2.2.9"
+jcodings = "1.0.64"
 
 [libraries]
 # Dépendances de test (modules purs et Android)
@@ -90,6 +95,12 @@ google-material = { module = "com.google.android.material:material", version.ref
 # Désucrage du cœur (M8.6) — les API Java 11 du serveur XML embarqué
 # au-dessus du niveau 26 (List.of, String.strip).
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+# Moteur des expressions des grammaires TextMate (M7.6, ADR-014) : joni,
+# portage Java d'Oniguruma — la sémantique que le format suppose — et son
+# rouage d'encodages (UTF-8 seul sert). Première dépendance tierce du
+# RUNTIME d'un artefact publié : SBOM, NOTICE et REFERENCES la couvrent.
+joni = { module = "org.jruby.joni:joni", version.ref = "joni" }
+jcodings = { module = "org.jruby.jcodings:jcodings", version.ref = "jcodings" }
 # Artefacts de plugin résolus par build-logic (aucun plugin appliqué par
 # identifiant hors des conventions) :
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }

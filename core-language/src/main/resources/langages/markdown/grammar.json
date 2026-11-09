@@ -2,76 +2,167 @@
   "name": "Markdown",
   "scopeName": "text.markdown",
   "patterns": [
-    { "include": "#titres" },
-    { "include": "#clotures" },
-    { "include": "#citations" },
-    { "include": "#listes" },
-    { "include": "#enligne" }
+    {
+      "include": "#titres"
+    },
+    {
+      "include": "#clotures"
+    },
+    {
+      "include": "#citations"
+    },
+    {
+      "include": "#listes"
+    },
+    {
+      "include": "#enligne"
+    }
   ],
   "repository": {
     "titres": {
       "patterns": [
-        { "match": "^(#{1,6})([ \\t].*)$",
+        {
+          "match": "^(#{1,6})([ \\t].*)$",
           "captures": {
-            "1": "punctuation.definition.heading.markdown",
-            "2": "entity.name.section.markdown"
-          } }
+            "1": {
+              "name": "punctuation.definition.heading.markdown"
+            },
+            "2": {
+              "name": "entity.name.section.markdown"
+            }
+          }
+        }
       ]
     },
     "clotures": {
       "patterns": [
-        { "begin": "^```[^`\\n]*$", "end": "^```[ \\t]*$",
+        {
+          "begin": "^(`{3,})([^`\\n]*)$",
+          "end": "^\\1[ \\t]*$",
           "name": "markup.raw.block.markdown",
           "contentName": "markup.raw.block.markdown",
-          "beginCaptures": { "0": "punctuation.section.fenced.begin.markdown" },
-          "endCaptures": { "0": "punctuation.section.fenced.end.markdown" } },
-        { "begin": "^~~~[^~\\n]*$", "end": "^~~~[ \\t]*$",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.section.fenced.begin.markdown"
+            },
+            "2": {
+              "name": "constant.language.info-string.markdown"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.fenced.end.markdown"
+            }
+          }
+        },
+        {
+          "begin": "^(~{3,})([^~\\n]*)$",
+          "end": "^\\1[ \\t]*$",
           "name": "markup.raw.block.markdown",
           "contentName": "markup.raw.block.markdown",
-          "beginCaptures": { "0": "punctuation.section.fenced.begin.markdown" },
-          "endCaptures": { "0": "punctuation.section.fenced.end.markdown" } }
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.section.fenced.begin.markdown"
+            },
+            "2": {
+              "name": "constant.language.info-string.markdown"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.fenced.end.markdown"
+            }
+          }
+        }
       ]
     },
     "citations": {
       "patterns": [
-        { "match": "^[ \\t]*>.*$", "name": "markup.quote.markdown" }
+        {
+          "match": "^[ \\t]*>.*$",
+          "name": "markup.quote.markdown"
+        }
       ]
     },
     "listes": {
       "patterns": [
-        { "match": "^[ \\t]*(?:[-*+]|\\d+\\.)[ \\t]", "name": "punctuation.definition.list.markdown" },
-        { "match": "^[ \\t]*(?:-{3,}|={3,}|\\*{3,})[ \\t]*$", "name": "punctuation.definition.hr.markdown" }
+        {
+          "match": "^[ \\t]*(?:[-*+]|\\d+\\.)[ \\t]",
+          "name": "punctuation.definition.list.markdown"
+        },
+        {
+          "match": "^[ \\t]*(?:-{3,}|={3,}|\\*{3,})[ \\t]*$",
+          "name": "punctuation.definition.hr.markdown"
+        }
       ]
     },
     "enligne": {
       "patterns": [
-        { "match": "(\\*\\*)([^*\\n]+)(\\*\\*)",
+        {
+          "match": "(\\*\\*)([^*\\n]+)(\\*\\*)",
           "captures": {
-            "1": "punctuation.definition.bold.markdown",
-            "2": "markup.bold.markdown",
-            "3": "punctuation.definition.bold.markdown"
-          } },
-        { "match": "(?<![\\w*])(\\*)([^*\\n]+)(\\*)(?![\\w*])",
+            "1": {
+              "name": "punctuation.definition.bold.markdown"
+            },
+            "2": {
+              "name": "markup.bold.markdown"
+            },
+            "3": {
+              "name": "punctuation.definition.bold.markdown"
+            }
+          }
+        },
+        {
+          "match": "(?<![\\w*])(\\*)([^*\\n]+)(\\*)(?![\\w*])",
           "captures": {
-            "1": "punctuation.definition.italic.markdown",
-            "2": "markup.italic.markdown",
-            "3": "punctuation.definition.italic.markdown"
-          } },
-        { "match": "(`)([^`\\n]+)(`)",
+            "1": {
+              "name": "punctuation.definition.italic.markdown"
+            },
+            "2": {
+              "name": "markup.italic.markdown"
+            },
+            "3": {
+              "name": "punctuation.definition.italic.markdown"
+            }
+          }
+        },
+        {
+          "match": "(`)([^`\\n]+)(`)",
           "captures": {
-            "1": "punctuation.definition.raw.markdown",
-            "2": "markup.raw.inline.markdown",
-            "3": "punctuation.definition.raw.markdown"
-          } },
-        { "match": "(\\[)([^\\]\\n]*)(\\])(\\()([^)\\n]*)(\\))",
+            "1": {
+              "name": "punctuation.definition.raw.markdown"
+            },
+            "2": {
+              "name": "markup.raw.inline.markdown"
+            },
+            "3": {
+              "name": "punctuation.definition.raw.markdown"
+            }
+          }
+        },
+        {
+          "match": "(\\[)([^\\]\\n]*)(\\])(\\()([^)\\n]*)(\\))",
           "captures": {
-            "1": "punctuation.definition.link.markdown",
-            "2": "string.other.link.markdown",
-            "3": "punctuation.definition.link.markdown",
-            "4": "punctuation.definition.link.markdown",
-            "5": "markup.underline.link.markdown",
-            "6": "punctuation.definition.link.markdown"
-          } }
+            "1": {
+              "name": "punctuation.definition.link.markdown"
+            },
+            "2": {
+              "name": "string.other.link.markdown"
+            },
+            "3": {
+              "name": "punctuation.definition.link.markdown"
+            },
+            "4": {
+              "name": "punctuation.definition.link.markdown"
+            },
+            "5": {
+              "name": "markup.underline.link.markdown"
+            },
+            "6": {
+              "name": "punctuation.definition.link.markdown"
+            }
+          }
+        }
       ]
     }
   }

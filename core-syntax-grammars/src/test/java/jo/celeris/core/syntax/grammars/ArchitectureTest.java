@@ -32,9 +32,15 @@ public final class ArchitectureTest {
                             "java..",
                             "javax..",
                             "org.jspecify.annotations..",
+                            // joni et son rouage d'encodages : moteur des
+                            // expressions des grammaires (ADR-014) — la
+                            // seule dépendance tierce du module, interne.
+                            "org.joni..",
+                            "org.jcodings..",
                             "jo.celeris.core.text..",
                             "jo.celeris.core.syntax..",
                             "jo.celeris.core.language..",
                             "jo.celeris.core.syntax.grammars..")
-                    .because("les dépendances ne vont que vers le bas (ADR-002)");
+                    .because("les dépendances ne vont que vers le bas (ADR-002), "
+                            + "joni exceptée par l'ADR-014");
 }

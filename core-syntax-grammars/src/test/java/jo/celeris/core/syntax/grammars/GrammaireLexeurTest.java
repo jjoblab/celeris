@@ -43,7 +43,7 @@ class GrammaireLexeurTest {
         Analysis analyse = service.analyseFull(Document.of(PYTHON));
         EtatGrammaire sortie = (EtatGrammaire) analyse.lex().line(1).exitState();
         assertTrue(sortie.dansBloc(), "la chaîne triple est ouverte en fin de ligne 1");
-        RegleBloc bloc = sortie.bloc();
+        BlocOuvert bloc = sortie.bloc();
         EtatGrammaire ouvertA = new EtatGrammaire(bloc, EtatGrammaire.VIDE);
         EtatGrammaire ouvertB = new EtatGrammaire(bloc, EtatGrammaire.VIDE);
         assertNotSame(ouvertA, ouvertB, "deux piles distinctes");

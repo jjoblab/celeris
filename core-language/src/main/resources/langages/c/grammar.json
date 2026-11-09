@@ -2,98 +2,222 @@
   "name": "C",
   "scopeName": "source.c",
   "patterns": [
-    { "include": "#commentaires" },
-    { "include": "#preprocesseur" },
-    { "include": "#chaines" },
-    { "include": "#mots" },
-    { "include": "#types" },
-    { "include": "#constantes" },
-    { "include": "#fonctions" },
-    { "include": "#nombres" },
-    { "include": "#operateurs" },
-    { "include": "#ponctuation" }
+    {
+      "include": "#commentaires"
+    },
+    {
+      "include": "#preprocesseur"
+    },
+    {
+      "include": "#chaines"
+    },
+    {
+      "include": "#mots"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#constantes"
+    },
+    {
+      "include": "#fonctions"
+    },
+    {
+      "include": "#nombres"
+    },
+    {
+      "include": "#operateurs"
+    },
+    {
+      "include": "#ponctuation"
+    }
   ],
   "repository": {
     "commentaires": {
       "patterns": [
-        { "match": "//[^\\n]*", "name": "comment.line.double-slash.c" },
-        { "begin": "/\\*", "end": "\\*/",
+        {
+          "match": "//[^\\n]*",
+          "name": "comment.line.double-slash.c"
+        },
+        {
+          "begin": "/\\*",
+          "end": "\\*/",
           "name": "comment.block.c",
           "contentName": "comment.block.c",
-          "beginCaptures": { "0": "punctuation.definition.comment.c" },
-          "endCaptures": { "0": "punctuation.definition.comment.c" } }
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.c"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.c"
+            }
+          }
+        }
       ]
     },
     "preprocesseur": {
       "patterns": [
-        { "match": "^[ \\t]*#(?:include|define|undef|ifdef|ifndef|if|elif|else|endif|error|pragma)\\b", "name": "keyword.control.import.c" },
-        { "match": "^[ \\t]*#[ \\t]*\\d+.*$", "name": "comment.line.linemarker.c" }
+        {
+          "match": "^[ \\t]*#(?:include|define|undef|ifdef|ifndef|if|elif|else|endif|error|pragma)\\b",
+          "name": "keyword.control.import.c"
+        },
+        {
+          "match": "^[ \\t]*#[ \\t]*\\d+.*$",
+          "name": "comment.line.linemarker.c"
+        }
       ]
     },
     "chaines": {
       "patterns": [
-        { "begin": "\"", "end": "\"",
+        {
+          "begin": "\"",
+          "end": "\"",
           "name": "string.quoted.double.c",
           "contentName": "string.quoted.double.c",
-          "beginCaptures": { "0": "punctuation.definition.string.begin.c" },
-          "endCaptures": { "0": "punctuation.definition.string.end.c" },
-          "patterns": [ { "include": "#echappements" } ] },
-        { "begin": "'", "end": "'",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.c"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.c"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#echappements"
+            }
+          ]
+        },
+        {
+          "begin": "'",
+          "end": "'",
           "name": "string.quoted.single.c",
           "contentName": "string.quoted.single.c",
-          "beginCaptures": { "0": "punctuation.definition.string.begin.c" },
-          "endCaptures": { "0": "punctuation.definition.string.end.c" },
-          "patterns": [ { "include": "#echappements" } ] }
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.c"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.c"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#echappements"
+            }
+          ]
+        }
       ]
     },
     "echappements": {
       "patterns": [
-        { "match": "\\\\[0tnr\"'\\\\]", "name": "constant.character.escape.c" }
+        {
+          "match": "\\\\[0tnr\"'\\\\]",
+          "name": "constant.character.escape.c"
+        }
       ]
     },
     "mots": {
       "patterns": [
-        { "match": "\\b(?:if|else|for|while|do|switch|case|default|break|continue|return|goto|sizeof|struct|union|enum|typedef|static|extern|const|volatile|register|inline|restrict)\\b", "name": "keyword.control.c" }
+        {
+          "match": "\\b(?:if|else|for|while|do|switch|case|default|break|continue|return|goto|sizeof|struct|union|enum|typedef|static|extern|const|volatile|register|inline|restrict)\\b",
+          "name": "keyword.control.c"
+        }
       ]
     },
     "types": {
       "patterns": [
-        { "match": "\\b(?:void|int|char|long|short|float|double|unsigned|signed|bool|size_t|ssize_t|int8_t|int16_t|int32_t|int64_t|uint8_t|uint16_t|uint32_t|uint64_t)\\b", "name": "support.type.c" },
-        { "match": "\\b[A-Z][A-Za-z0-9_]*_t\\b", "name": "support.type.c" }
+        {
+          "match": "\\b(?:void|int|char|long|short|float|double|unsigned|signed|bool|size_t|ssize_t|int8_t|int16_t|int32_t|int64_t|uint8_t|uint16_t|uint32_t|uint64_t)\\b",
+          "name": "support.type.c"
+        },
+        {
+          "match": "\\b[A-Z][A-Za-z0-9_]*_t\\b",
+          "name": "support.type.c"
+        }
       ]
     },
     "constantes": {
       "patterns": [
-        { "match": "\\b(?:true|false|NULL)\\b", "name": "constant.language.c" },
-        { "match": "\\b[A-Z][A-Z0-9_]{2,}\\b", "name": "constant.other.c" }
+        {
+          "match": "\\b(?:true|false|NULL)\\b",
+          "name": "constant.language.c"
+        },
+        {
+          "match": "\\b[A-Z][A-Z0-9_]{2,}\\b",
+          "name": "constant.other.c"
+        }
       ]
     },
     "fonctions": {
       "patterns": [
-        { "match": "\\b[A-Za-z_]\\w*(?=[ \\t]*\\()", "name": "entity.name.function.c" }
+        {
+          "match": "\\b[A-Za-z_]\\w*(?=[ \\t]*\\()",
+          "name": "entity.name.function.c"
+        }
       ]
     },
     "nombres": {
       "patterns": [
-        { "match": "\\b0[xX][0-9a-fA-F]+[uUlL]*\\b", "name": "constant.numeric.hex.c" },
-        { "match": "\\b\\d+\\.\\d+(?:[eE][-+]?\\d+)?[fFlL]?\\b", "name": "constant.numeric.float.c" },
-        { "match": "\\b\\d+[uUlL]*\\b", "name": "constant.numeric.integer.c" }
+        {
+          "match": "\\b0[xX][0-9a-fA-F]+[uUlL]*\\b",
+          "name": "constant.numeric.hex.c"
+        },
+        {
+          "match": "\\b\\d+\\.\\d+(?:[eE][-+]?\\d+)?[fFlL]?\\b",
+          "name": "constant.numeric.float.c"
+        },
+        {
+          "match": "\\b\\d+[uUlL]*\\b",
+          "name": "constant.numeric.integer.c"
+        }
       ]
     },
     "operateurs": {
       "patterns": [
-        { "match": "->|\\+\\+|--|<<|>>|<=|>=|==|!=|&&|\\|\\||[-+*/%&|^~!<>=?:.]", "name": "keyword.operator.c" }
+        {
+          "match": "->|\\+\\+|--|<<|>>|<=|>=|==|!=|&&|\\|\\||[-+*/%&|^~!<>=?:.]",
+          "name": "keyword.operator.c"
+        }
       ]
     },
     "ponctuation": {
       "patterns": [
-        { "match": "\\{", "name": "punctuation.section.block.begin.c" },
-        { "match": "\\}", "name": "punctuation.section.block.end.c" },
-        { "match": "\\(", "name": "punctuation.section.parens.begin.c" },
-        { "match": "\\)", "name": "punctuation.section.parens.end.c" },
-        { "match": "\\[", "name": "punctuation.section.brackets.begin.c" },
-        { "match": "\\]", "name": "punctuation.section.brackets.end.c" },
-        { "match": "[,;]", "name": "punctuation.separator.c" }
+        {
+          "match": "\\{",
+          "name": "punctuation.section.block.begin.c"
+        },
+        {
+          "match": "\\}",
+          "name": "punctuation.section.block.end.c"
+        },
+        {
+          "match": "\\(",
+          "name": "punctuation.section.parens.begin.c"
+        },
+        {
+          "match": "\\)",
+          "name": "punctuation.section.parens.end.c"
+        },
+        {
+          "match": "\\[",
+          "name": "punctuation.section.brackets.begin.c"
+        },
+        {
+          "match": "\\]",
+          "name": "punctuation.section.brackets.end.c"
+        },
+        {
+          "match": "[,;]",
+          "name": "punctuation.separator.c"
+        }
       ]
     }
   }

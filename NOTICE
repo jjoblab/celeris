@@ -6,12 +6,11 @@ Ce produit inclut des logiciels développés par le projet celeris
 
 ## Dépendances tierces
 
-À la date de ce document, le dépôt ne déclare **aucune dépendance tierce
-au runtime des artefacts publiés** : les modules du cœur sont des
-bibliothèques JVM pures sans dépendance.
-
-L'outillage de build et de test déclare en revanche les dépendances
-suivantes (elles ne sont embarquées dans aucun artefact) :
+Le dépôt déclare sa première dépendance tierce au RUNTIME d'un artefact
+publié (M7.6, ADR-014 : le moteur des expressions des grammaires
+TextMate) ; elle est consignée ci-dessous. L'outillage de build et de
+test déclare en revanche les dépendances suivantes (elles ne sont
+embarquées dans aucun artefact) :
 
 | Dépendance | Version | Licence | Usage |
 | --- | --- | --- | --- |
@@ -33,6 +32,35 @@ Chaque dépendance future (grammaire, police, bibliothèque de protocole…)
 sera consignée ici avec son nom, sa version, sa licence et la
 vérification fichier par fichier exigée par le mandat, et restera
 compatible Apache-2.0 sauf validation explicite du propriétaire.
+
+## Dépendance tierce au runtime des artefacts publiés (M7.6)
+
+Le module publié `core-syntax-grammars` embarque le moteur
+d'expressions rationnelles de ses grammaires (ADR-014 : la sémantique
+Oniguruma que le format TextMate suppose — `java.util.regex` réécrivait
+122 motifs du corpus du spike en silence). Licences MIT, compatibles
+Apache-2.0 ; la dépendance est interne au module, aucun type de joni
+n'apparaît dans son API.
+
+| Dépendance | Version | Licence | Usage |
+| --- | --- | --- | --- |
+| org.jruby.joni (joni) | 2.2.9 | MIT | moteur des expressions des grammaires TextMate (`core-syntax-grammars`, ADR-014) |
+| org.jruby.jcodings (jcodings) | 1.0.64 | MIT | rouage d'encodages de joni (UTF-8 seul sert) |
+
+- Provenance : `https://repo1.maven.org/maven2/org/jruby/joni/joni/2.2.9/`
+  et `https://repo1.maven.org/maven2/org/jruby/jcodings/jcodings/1.0.64/`
+  (licences MIT vérifiées dans les POM le 2026-11-09).
+- Sommes de contrôle (SHA-256 des artefacts résolus, épinglées au
+  catalogue `gradle/libs.versions.toml`) :
+  `joni-2.2.9.jar` =
+  `971017813b98d3819fbadac807a7766af1775523bc3a4f256fb26473f90ef1a1` ;
+  `jcodings-1.0.64.jar` =
+  `0b4d0b0c1e2f1bdf17f4c30ecf5261bf62763af6f18b0fd1e743226c994ccf96`.
+- Côté Android (mesuré au spike de l'ADR-014, d8 + dexdump, API 26) :
+  615 Ko de dex, 546 méthodes définies, zéro référence à sun.misc.Unsafe
+  ou jdk.internal.
+- Le SBOM CycloneDX de publication (ADR-011) porte la dépendance dans
+  chaque publication de `core-syntax-grammars`.
 
 ## Dépendance embarquée de la démonstration (M8.6)
 

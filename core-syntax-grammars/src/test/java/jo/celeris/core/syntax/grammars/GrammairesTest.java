@@ -76,19 +76,25 @@ class GrammairesTest {
         assertTrue(valeurs.regles().get(1) instanceof RegleBloc, "le tableau est un bloc");
     }
 
-    /** $self est refusé : l'aplatissement n'y trouverait jamais son compte. */
+    /** $self se résout en la racine : la grammaire s'inclut elle-même (TextMate réel). */
     @Test
-    void selfEstRefuse() {
-        IllegalArgumentException erreur = assertThrows(IllegalArgumentException.class,
-                () -> Grammaires.lire("""
-                        {
-                          "name": "Essai",
-                          "scopeName": "source.essai",
-                          "patterns": [ { "include": "$self" } ]
-                        }
-                        """));
-        assertTrue(String.valueOf(erreur.getMessage()).contains("unsupported include"),
-                "message explicite");
+    void selfSeResoutALaRacine() {
+        Grammaire grammaire = Grammaires.lire("""
+                {
+                  "name": "Essai",
+                  "scopeName": "source.essai",
+                  "patterns": [
+                    { "match": "#.*$", "name": "comment.line.essai" },
+                    { "begin": "\\\\{", "end": "\\\\}",
+                      "patterns": [ { "include": "$self" } ] }
+                  ]
+                }
+                """);
+        assertTrue(grammaire.motifs().get(1) instanceof RegleBloc, "le second motif est un bloc");
+        RegleBloc bloc = (RegleBloc) grammaire.motifs().get(1);
+        assertEquals(1, bloc.motifs().size(), "une inclusion");
+        assertTrue(bloc.motifs().get(0) instanceof RegleListe,
+                "$self devient une référence de liste");
     }
 
     /** Une inclusion inconnue est refusée au chargement. */
@@ -103,19 +109,27 @@ class GrammairesTest {
                 """));
     }
 
-    /** Un motif invalide est refusé avec l'expression en cause. */
+    /**
+     * Un motif invalide écarte sa règle et se compte au rapport —
+     * comme la référence tolère les grammaires imparfaites, jamais en
+     * silence : le taux d'acceptation le dit.
+     */
     @Test
-    void motifInvalideRefuse() {
-        IllegalArgumentException erreur = assertThrows(IllegalArgumentException.class,
-                () -> Grammaires.lire("""
-                        {
-                          "name": "Essai",
-                          "scopeName": "source.essai",
-                          "patterns": [ { "match": "(", "name": "keyword.essai" } ]
-                        }
-                        """));
-        assertTrue(String.valueOf(erreur.getMessage()).contains("bad pattern"),
-                "message explicite");
+    void motifInvalideEcarteEtCompte() {
+        Grammaire grammaire = Grammaires.lire("""
+                {
+                  "name": "Essai",
+                  "scopeName": "source.essai",
+                  "patterns": [
+                    { "match": "(", "name": "keyword.essai" },
+                    { "match": "\\\\d+", "name": "constant.numeric.essai" }
+                  ]
+                }
+                """);
+        assertEquals(1, grammaire.motifs().size(), "la règle invalide est écartée");
+        assertEquals(1, grammaire.rapport().refuses(), "un refus compté");
+        assertEquals(2, grammaire.rapport().motifs(), "deux expressions rencontrées");
+        assertEquals(0.5, grammaire.rapport().acceptation(), "le taux le dit");
     }
 
     /** Un bloc sans fermeture est refusé. */

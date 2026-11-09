@@ -416,6 +416,15 @@ public final class jo.celeris.core.language.Packs {
   public static jo.celeris.core.language.PackSource archive(java.nio.file.Path);
 }
 
+### jo.celeris.core.language.TreeSitterLanguages
+Compiled from "TreeSitterLanguages.java"
+public final class jo.celeris.core.language.TreeSitterLanguages {
+  public static void enregistrer(java.lang.String, jo.celeris.core.syntax.LanguageSyntax);
+  public static void oublier(java.lang.String);
+  public static jo.celeris.core.syntax.LanguageSyntax syntaxOf(java.lang.String);
+  public static java.util.Set<java.lang.String> ids();
+}
+
 ### jo.celeris.core.language.WrittenLanguages
 Compiled from "WrittenLanguages.java"
 public final class jo.celeris.core.language.WrittenLanguages {
