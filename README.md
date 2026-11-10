@@ -36,6 +36,30 @@ consentement, anonyme et documentée — jamais dans le cœur. La
 démonstration ne déclare d'ailleurs aucune permission réseau : sa
 neutralité par défaut est structurelle, vérifiée en CI.
 
+## Charge et limites
+
+Les budgets mesurés — bancs de la CI, tas dédié de 1 Go, minimum de
+trois tours (calibrages consignés dans les bancs) :
+
+| Charge | Budget | Mesuré |
+| --- | --- | --- |
+| Édition, 50 000 lignes | ≤ 1 ms | 0,145 ms |
+| Première image, 100 000 lignes | ≤ 500 ms | 154 ms (texte), 224 ms (analyse par fenêtre) |
+| Ouverture, 480 000 lignes (12,1 M caractères) — la fenêtre d'abord | ≤ 2 500 ms | 1214–1441 ms, tas +90 Mo |
+| Édition au milieu, 480 000 lignes — l'incrément | ≤ 100 ms | 2–36 ms |
+
+Le défilement ne coûte rien : la fenêtre visible se note, le travail
+en vol ne s'annule pas ; l'analyse vit hors fil
+([ADR-007](docs/adr/007-modele-de-threading.md)) — la fenêtre d'abord,
+la complétion par lots ensuite. Au-delà des seuils « gros document »
+du dépôt de départ (2,5 M caractères ou 50 000 lignes), le régime des
+fonctions lourdes coupe la complétion au curseur — l'édition reste
+entière : coloration, frappe et annulation ne se coupent jamais.
+Tri-état à la manière du dépôt de départ :
+`editorView.intelligence().setLargeFileMode(AUTO | ON | OFF)` — AUTO
+(défaut) suit les seuils du document, ON force les coupures, OFF les
+ferme même au-delà des seuils.
+
 ## Modules
 
 | Module | Nature | Rôle |

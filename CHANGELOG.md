@@ -54,6 +54,22 @@ vivent dans les ADR et le registre de portage, pas ici.
   hors des conteneurs hôtes — l'inventaire est consigné
   (`docs/audit/INVENTAIRE-SURFACES.md`).
 
+### Charge et limites — chantier C10
+
+- **Banc à 480 000 lignes** (`Charge480kLignesTest`, tas dédié de 1 Go
+  sur les tâches de test des modules de bancs) : la fenêtre d'abord
+  1441 ms (budget 2500 ms), l'incrément après édition au milieu 36 ms
+  (budget 100 ms), le tas de l'ouverture +90 Mo (budget 192 Mo) — le
+  calibrage est consigné dans le banc, le défilement ne coûte rien.
+- **Mode gros fichiers tri-état** (`LargeFileMode`, à la manière du
+  dépôt de départ) : AUTO (défaut) suit les seuils « gros document »
+  (2,5 M caractères, 50 000 lignes), ON force les coupures, OFF les
+  ferme — la complétion au curseur coupe, l'édition reste entière
+  (coloration, frappe, annulation).
+- **Limites au README** (nouvelle section « Charge et limites ») : les
+  budgets mesurés et les seuils du mode — le futur `USAGE.md` les
+  reprendra (chantier C4).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
