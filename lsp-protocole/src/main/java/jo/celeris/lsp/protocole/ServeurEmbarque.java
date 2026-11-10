@@ -1,45 +1,32 @@
 package jo.celeris.lsp.protocole;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
-import org.eclipse.lsp4j.DidChangeTextDocumentParams;
-import org.eclipse.lsp4j.DidCloseTextDocumentParams;
-import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-import org.eclipse.lsp4j.DidSaveTextDocumentParams;
-import org.eclipse.lsp4j.Hover;
-import org.eclipse.lsp4j.HoverParams;
-import org.eclipse.lsp4j.InitializeParams;
-import org.eclipse.lsp4j.InitializeResult;
-import org.eclipse.lsp4j.MarkupContent;
-import org.eclipse.lsp4j.MarkupKind;
-import org.eclipse.lsp4j.ParameterInformation;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.ServerCapabilities;
-import org.eclipse.lsp4j.SignatureHelp;
-import org.eclipse.lsp4j.SignatureHelpOptions;
-import org.eclipse.lsp4j.SignatureHelpParams;
-import org.eclipse.lsp4j.SignatureInformation;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
-import org.eclipse.lsp4j.services.LanguageServer;
-import org.eclipse.lsp4j.services.TextDocumentService;
-import org.eclipse.lsp4j.services.WorkspaceService;
 import org.jspecify.annotations.Nullable;
 
+import jo.celeris.core.lsp.CorrectifLsp;
+import jo.celeris.core.lsp.EditionEspaceLsp;
+import jo.celeris.core.lsp.EditionTexteLsp;
+import jo.celeris.core.lsp.IndiceLsp;
+import jo.celeris.core.lsp.SemanticTokensLsp;
+import jo.celeris.core.lsp.LieuLsp;
+import jo.celeris.core.lsp.OptionsFormatageLsp;
 import jo.celeris.core.lsp.PlageLsp;
+import jo.celeris.core.lsp.PliLsp;
 import jo.celeris.core.lsp.PositionLsp;
+import jo.celeris.core.lsp.PreparationRennomageLsp;
 import jo.celeris.core.lsp.SignatureLsp;
+import jo.celeris.core.lsp.SurlignageLsp;
 import jo.celeris.core.lsp.SurvolLsp;
+import jo.celeris.core.lsp.SymboleLsp;
 
 /**
  * Le montage du serveur EMBARQUÉ derrière la frontière (ADR-015) : un
@@ -126,6 +113,157 @@ public final class ServeurEmbarque implements AutoCloseable {
          */
         default @Nullable SignatureLsp signature(String uri, PositionLsp position) {
             return null;
+        }
+
+        // ── La couverture du jalon (H-12) : autant de replis vides,
+        //    le serveur de référence n'écrit que ce qu'il sert. ──────
+
+        /**
+         * Les symboles du document — vide quand le service n'en sert pas.
+         *
+         * @param uri l'uri du document
+         * @return les symboles, hiérarchie du terrain
+         */
+        default List<SymboleLsp> symboles(String uri) {
+            return List.of();
+        }
+
+        /**
+         * Les plis du serveur — vide quand le service n'en sert pas.
+         *
+         * @param uri l'uri du document
+         * @return les plis, fin exclusive
+         */
+        default List<PliLsp> plis(String uri) {
+            return List.of();
+        }
+
+        /**
+         * Le formatage du document — vide quand le service n'en sert pas.
+         *
+         * @param uri     l'uri du document
+         * @param options les options de formatage
+         * @return les éditions de texte du formatage
+         */
+        default List<EditionTexteLsp> formatage(String uri,
+                OptionsFormatageLsp options) {
+            return List.of();
+        }
+
+        /**
+         * Les surlignages d'occurrences — vide quand le service n'en sert pas.
+         *
+         * @param uri      l'uri du document
+         * @param position la position du curseur
+         * @return les surlignages
+         */
+        default List<SurlignageLsp> surlignages(String uri, PositionLsp position) {
+            return List.of();
+        }
+
+        /**
+         * La préparation du renommage — null quand le service n'en sert pas.
+         *
+         * @param uri      l'uri du document
+         * @param position la position du nom
+         * @return la préparation, ou null
+         */
+        default @Nullable PreparationRennomageLsp preparerRennomage(
+                String uri, PositionLsp position) {
+            return null;
+        }
+
+        /**
+         * Le renommage — l'édition vide quand le service n'en sert pas.
+         *
+         * @param uri        l'uri du document
+         * @param position   la position du nom
+         * @param nouveauNom le nom qui remplace
+         * @return l'édition d'espace du renommage
+         */
+        default EditionEspaceLsp rennomage(String uri, PositionLsp position,
+                String nouveauNom) {
+            return EditionEspaceLsp.VIDE;
+        }
+
+        /**
+         * Les correctifs rapides — vide quand le service n'en sert pas.
+         *
+         * @param uri   l'uri du document
+         * @param plage la plage porteuse
+         * @return les correctifs
+         */
+        default List<CorrectifLsp> correctifs(String uri, PlageLsp plage) {
+            return List.of();
+        }
+
+        /**
+         * Les indices en ligne — vide quand le service n'en sert pas.
+         *
+         * @param uri   l'uri du document
+         * @param plage la plage visible
+         * @return les indices
+         */
+        default List<IndiceLsp> indices(String uri, PlageLsp plage) {
+            return List.of();
+        }
+
+        /**
+         * Les jetons sémantiques — vide quand le service n'en sert pas.
+         *
+         * @param uri l'uri du document
+         * @return les jetons
+         */
+        default SemanticTokensLsp jetons(String uri) {
+            return SemanticTokensLsp.de(null, List.of());
+        }
+
+        /**
+         * Le formatage d'une plage — vide quand le service n'en sert pas.
+         *
+         * @param uri     l'uri du document
+         * @param plage   la plage à formater
+         * @param options les options de formatage
+         * @return les éditions de texte du formatage
+         */
+        default List<EditionTexteLsp> formatagePlage(String uri, PlageLsp plage,
+                OptionsFormatageLsp options) {
+            return List.of();
+        }
+
+        /**
+         * Les plages de sélection — vide quand le service n'en sert pas.
+         *
+         * @param uri      l'uri du document
+         * @param position la position de départ
+         * @return les plages englobantes, de la plus intime à la plus large
+         */
+        default List<PlageLsp> plagesSelection(String uri,
+                PositionLsp position) {
+            return List.of();
+        }
+
+        /**
+         * Les jetons sémantiques d'une plage — vide quand le service n'en
+         * sert pas.
+         *
+         * @param uri   l'uri du document
+         * @param plage la plage visible
+         * @return les jetons de la plage
+         */
+        default SemanticTokensLsp jetonsPlage(String uri, PlageLsp plage) {
+            return SemanticTokensLsp.de(null, List.of());
+        }
+
+        /**
+         * Les lieux de référence — vide quand le service n'en sert pas.
+         *
+         * @param uri      l'uri du document
+         * @param position la position du symbole
+         * @return les lieux de référence
+         */
+        default List<LieuLsp> references(String uri, PositionLsp position) {
+            return List.of();
         }
     }
 
@@ -283,155 +421,4 @@ public final class ServeurEmbarque implements AutoCloseable {
         executeur.shutdownNow();
     }
 
-    /**
-     * Le serveur de documents de référence : l'adaptateur du SPI du
-     * domaine au service de documents de la bibliothèque — la
-     * correspondance inverse y vit, les types du terrain ne connaissent
-     * que le domaine.
-     */
-    private static final class ServeurDocuments implements LanguageServer {
-
-        private final Documents documents;
-
-        private ServeurDocuments(Documents documents) {
-            this.documents = documents;
-        }
-
-        @Override
-        public CompletableFuture<InitializeResult> initialize(
-                InitializeParams params) {
-            ServerCapabilities capacites = new ServerCapabilities();
-            capacites.setHoverProvider(Either.forLeft(Boolean.TRUE));
-            capacites.setSignatureHelpProvider(
-                    new SignatureHelpOptions(List.of("(")));
-            return CompletableFuture.completedFuture(
-                    new InitializeResult(capacites));
-        }
-
-        @Override
-        public CompletableFuture<Object> shutdown() {
-            return CompletableFuture.completedFuture(null);
-        }
-
-        @Override
-        public void exit() {
-            // jamais appelé par la session (constat M8.6) ; rien à éteindre
-        }
-
-        @Override
-        public TextDocumentService getTextDocumentService() {
-            return new ServiceDocuments();
-        }
-
-        @Override
-        public WorkspaceService getWorkspaceService() {
-            return new WorkspaceService() {
-                @Override
-                public void didChangeConfiguration(
-                        org.eclipse.lsp4j.DidChangeConfigurationParams params) {
-                    // le terrain ne configure rien
-                }
-
-                @Override
-                public void didChangeWatchedFiles(
-                        org.eclipse.lsp4j.DidChangeWatchedFilesParams params) {
-                    // le terrain ne surveille rien
-                }
-            };
-        }
-
-        /** Le service de documents : la synchronisation, le survol, la signature. */
-        private final class ServiceDocuments implements TextDocumentService {
-
-            @Override
-            public void didOpen(DidOpenTextDocumentParams params) {
-                documents.ouvrir(params.getTextDocument().getUri(),
-                        params.getTextDocument().getLanguageId(),
-                        params.getTextDocument().getText());
-            }
-
-            @Override
-            public void didChange(DidChangeTextDocumentParams params) {
-                List<org.eclipse.lsp4j.TextDocumentContentChangeEvent> changements =
-                        params.getContentChanges();
-                if (!changements.isEmpty()) {
-                    documents.changer(params.getTextDocument().getUri(),
-                            params.getTextDocument().getVersion(),
-                            changements.get(changements.size() - 1).getText());
-                }
-            }
-
-            @Override
-            public void didClose(DidCloseTextDocumentParams params) {
-                documents.fermer(params.getTextDocument().getUri());
-            }
-
-            @Override
-            public void didSave(DidSaveTextDocumentParams params) {
-                // le terrain ne sauvegarde jamais
-            }
-
-            @Override
-            public CompletableFuture<@Nullable Hover> hover(HoverParams params) {
-                SurvolLsp survol = documents.survol(
-                        params.getTextDocument().getUri(), position(params));
-                if (survol == null || survol.texte().isEmpty()) {
-                    return CompletableFuture.completedFuture(null);
-                }
-                MarkupContent contenu = new MarkupContent(
-                        survol.genre().isEmpty() ? MarkupKind.MARKDOWN : survol.genre(),
-                        survol.texte());
-                return CompletableFuture.completedFuture(
-                        new Hover(contenu, plage(survol.plage())));
-            }
-
-            @Override
-            public CompletableFuture<@Nullable SignatureHelp> signatureHelp(
-                    SignatureHelpParams params) {
-                SignatureLsp aide = documents.signature(
-                        params.getTextDocument().getUri(), position(params));
-                if (aide == null || aide.entrees().isEmpty()) {
-                    return CompletableFuture.completedFuture(null);
-                }
-                return CompletableFuture.completedFuture(ecrireSignature(aide));
-            }
-        }
-
-        /** La position du domaine des paramètres de la bibliothèque. */
-        private static PositionLsp position(
-                org.eclipse.lsp4j.TextDocumentPositionParams params) {
-            return new PositionLsp(params.getPosition().getLine(),
-                    params.getPosition().getCharacter());
-        }
-
-        /** La plage du domaine auRange de la bibliothèque — null reste null. */
-        private static @Nullable Range plage(@Nullable PlageLsp plage) {
-            return plage == null ? null : new Range(
-                    new Position(plage.debut().ligne(), plage.debut().colonne()),
-                    new Position(plage.fin().ligne(), plage.fin().colonne()));
-        }
-
-        /** L'aide aux paramètres du domaine à la réponse du protocole. */
-        private static SignatureHelp ecrireSignature(SignatureLsp aide) {
-            List<SignatureInformation> signatures = new ArrayList<>();
-            for (SignatureLsp.Entree entree : aide.entrees()) {
-                List<ParameterInformation> parametres = new ArrayList<>();
-                for (SignatureLsp.Parametre parametre : entree.parametres()) {
-                    parametres.add(new ParameterInformation(parametre.libelle()));
-                }
-                signatures.add(new SignatureInformation(entree.libelle(),
-                        entree.documentation(), parametres));
-            }
-            SignatureHelp reponse = new SignatureHelp();
-            reponse.setSignatures(signatures);
-            if (aide.signatureActiveIndex() >= 0
-                    && aide.signatureActiveIndex() < signatures.size()) {
-                reponse.setActiveSignature(aide.signatureActiveIndex());
-            }
-            if (aide.parametreCourant() >= 0) {
-                reponse.setActiveParameter(aide.parametreCourant());
-            }
-            return reponse;
-        }
-    }
 }

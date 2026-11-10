@@ -3,6 +3,7 @@ package jo.celeris.lsp.protocole;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
@@ -214,4 +215,5 @@ final class CorrespondanceDocuments {
         }
         return List.copyOf(lieux);
     }
+
 }

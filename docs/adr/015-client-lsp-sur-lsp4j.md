@@ -160,3 +160,6 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
       voir les preuves d'intégration) ; le SBOM CycloneDX de
       publication et les empreintes suivent la porte de publication
       (ADR-011), la règle 5 tient (catalogue et NOTICE à jour).
+- [x] M7.6 (étape 8) : la couverture LSP nouvelle (H-12) — treize
+      méthodes derrière la frontière, le SPI du montage suit, la preuve
+      en trois étages dont le serveur réel (2026-11-10).

@@ -48,6 +48,12 @@ final class CorrespondanceLsp {
                 : new PositionLsp(position.getLine(), position.getCharacter());
     }
 
+    /** La plage du domaine à envoyer au serveur. */
+    static Range ecrirePlage(PlageLsp plage) {
+        return new Range(ecrirePosition(plage.debut()),
+                ecrirePosition(plage.fin()));
+    }
+
     /** La plage lue du serveur — absente, elle vaut la plage vide à l'origine. */
     static PlageLsp lirePlage(@Nullable Range plage) {
         if (plage == null) {
@@ -128,8 +134,7 @@ final class CorrespondanceLsp {
     /** Les capacités négociées : ce que le serveur a répondu à la poignée de main. */
     static CapacitesServeur lireCapacites(@Nullable ServerCapabilities capacites) {
         if (capacites == null) {
-            return CapacitesServeur.de(-1, false, false, false, false, false,
-                    false, false, false, false, List.of(), List.of());
+            return CapacitesServeur.vides();
         }
         return CapacitesServeur.de(
                 genreSynchro(capacites.getTextDocumentSync()),
@@ -138,6 +143,10 @@ final class CorrespondanceLsp {
                 capacites.getSignatureHelpProvider() != null,
                 capacites.getDefinitionProvider() != null,
                 capacites.getReferencesProvider() != null,
+                capacites.getDocumentHighlightProvider() != null,
+                capacites.getDocumentSymbolProvider() != null,
+                capacites.getFoldingRangeProvider() != null,
+                capacites.getSelectionRangeProvider() != null,
                 capacites.getRenameProvider() != null,
                 capacites.getCodeActionProvider() != null,
                 capacites.getDocumentFormattingProvider() != null,

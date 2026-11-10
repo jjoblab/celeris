@@ -30,19 +30,31 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.jspecify.annotations.Nullable;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageServer;
 
 import jo.celeris.core.lsp.AuditeurDiagnostics;
 import jo.celeris.core.lsp.CapacitesServeur;
+import jo.celeris.core.lsp.CorrectifLsp;
 import jo.celeris.core.lsp.DiagnosticLsp;
+import jo.celeris.core.lsp.EditionEspaceLsp;
+import jo.celeris.core.lsp.EditionTexteLsp;
+import jo.celeris.core.lsp.IndiceLsp;
+import jo.celeris.core.lsp.SemanticTokensLsp;
 import jo.celeris.core.lsp.ListeCompletion;
 import jo.celeris.core.lsp.LieuLsp;
+import jo.celeris.core.lsp.OptionsFormatageLsp;
 import jo.celeris.core.lsp.OrdonnanceurLsp;
+import jo.celeris.core.lsp.PlageLsp;
+import jo.celeris.core.lsp.PliLsp;
 import jo.celeris.core.lsp.PositionLsp;
+import jo.celeris.core.lsp.PreparationRennomageLsp;
 import jo.celeris.core.lsp.SignatureLsp;
+import jo.celeris.core.lsp.SurlignageLsp;
 import jo.celeris.core.lsp.SuiviVersions;
 import jo.celeris.core.lsp.SurvolLsp;
+import jo.celeris.core.lsp.SymboleLsp;
 
 /**
  * La session LSP de la frontière protocolaire (ADR-015) : le protocole
@@ -83,6 +95,7 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
     private final Future<Void> ecoute;
     private final String nomClient;
     private final OrdonnanceurLsp ordonnanceur;
+    private final RequetesCouverture couverture;
     private final Map<String, Integer> versions = new ConcurrentHashMap<>();
     private CapacitesServeur capacites = CapacitesServeur.vides();
     private volatile boolean initialises;
@@ -100,6 +113,8 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
         this.ecoute = lanceur.startListening();
         this.nomClient = nomClient;
         this.ordonnanceur = OrdonnanceurLsp.sur(this);
+        this.couverture = new RequetesCouverture(serveur, ordonnanceur,
+                this::exigerInitialisee);
     }
 
     /**
@@ -264,6 +279,180 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
                         identifiant(uri),
                         CorrespondanceLsp.ecrirePosition(position))))
                 .thenApply(CorrespondanceDocuments::lireLieux);
+    }
+
+    // ── La couverture du jalon (H-12) : les treize méthodes nouvelles,
+    //    déléguées à la maison des demandes — l'API publique ne bouge
+    //    pas, l'ordonnancement reste celui du domaine. ────────────────
+
+    /**
+     * Les références d'un symbole (H-12) : les lieux qui le citent —
+     * priorité interactive, l'utilisateur vient de la demander.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du symbole
+     * @return le futur des lieux de référence
+     */
+    public CompletableFuture<List<LieuLsp>> references(String uri,
+            PositionLsp position) {
+        return couverture.references(uri, position);
+    }
+
+    /**
+     * Les symboles du document (H-12) : le plan, le fil d'Ariane et
+     * l'aller au symbole — travail de fond, le document est stable.
+     *
+     * @param uri l'uri du document
+     * @return le futur des symboles, hiérarchie du serveur
+     */
+    public CompletableFuture<List<SymboleLsp>> symboles(String uri) {
+        return couverture.symboles(uri);
+    }
+
+    /**
+     * Les surlignages d'occurrences (H-12) : les plages du symbole
+     * sous le curseur — priorité interactive.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du curseur
+     * @return le futur des surlignages
+     */
+    public CompletableFuture<List<SurlignageLsp>> surlignages(String uri,
+            PositionLsp position) {
+        return couverture.surlignages(uri, position);
+    }
+
+    /**
+     * La préparation du renommage (H-12) : la plage du nom et son
+     * amorce — null quand le serveur ne prépare pas, le renommage se
+     * tait, jamais il ne devine.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du nom
+     * @return le futur de la préparation, null sans préparation
+     */
+    public CompletableFuture<@Nullable PreparationRennomageLsp>
+            preparerRennomage(String uri, PositionLsp position) {
+        return couverture.preparerRennomage(uri, position);
+    }
+
+    /**
+     * Le renommage (H-12) : l'édition d'espace qui porte le nouveau
+     * nom, chaque occurrence à sa place — priorité interactive.
+     *
+     * @param uri        l'uri du document
+     * @param position   la position du nom
+     * @param nouveauNom le nom qui remplace
+     * @return le futur de l'édition d'espace
+     */
+    public CompletableFuture<EditionEspaceLsp> rennomage(String uri,
+            PositionLsp position, String nouveauNom) {
+        return couverture.rennomage(uri, position, nouveauNom);
+    }
+
+    /**
+     * Les correctifs rapides d'une plage (H-12) : le menu
+     * d'intentions — priorité interactive, l'utilisateur attend.
+     *
+     * @param uri   l'uri du document
+     * @param plage la plage porteuse, le curseur typiquement
+     * @return le futur des correctifs, titres et éditions
+     */
+    public CompletableFuture<List<CorrectifLsp>> correctifs(String uri,
+            PlageLsp plage) {
+        return couverture.correctifs(uri, plage);
+    }
+
+    /**
+     * Le formatage du document entier (H-12) : les éditions du
+     * serveur, travail de fond — la capacité Formatter y branchée.
+     *
+     * @param uri     l'uri du document
+     * @param options les options de formatage
+     * @return le futur des éditions de texte
+     */
+    public CompletableFuture<List<EditionTexteLsp>> formatage(String uri,
+            OptionsFormatageLsp options) {
+        return couverture.formatage(uri, options);
+    }
+
+    /**
+     * Le formatage d'une plage (H-12) : le remaniement local, travail
+     * de fond.
+     *
+     * @param uri     l'uri du document
+     * @param plage   la plage à formater
+     * @param options les options de formatage
+     * @return le futur des éditions de texte
+     */
+    public CompletableFuture<List<EditionTexteLsp>> formatagePlage(String uri,
+            PlageLsp plage, OptionsFormatageLsp options) {
+        return couverture.formatagePlage(uri, plage, options);
+    }
+
+    /**
+     * Les plis du serveur (H-12) : la fin inclusive du protocole
+     * devient EXCLUSIVE — la convention de l'arbre commun ; le
+     * consommateur fusionne, le serveur n'est qu'une source.
+     *
+     * @param uri l'uri du document
+     * @return le futur des plis
+     */
+    public CompletableFuture<List<PliLsp>> plis(String uri) {
+        return couverture.plis(uri);
+    }
+
+    /**
+     * Les plages de sélection (H-12) : la chaîne des englobantes de la
+     * position, de la plus intime à la plus large — l'extension de
+     * sélection y descend palier après palier.
+     *
+     * @param uri      l'uri du document
+     * @param position la position de départ
+     * @return le futur des plages englobantes
+     */
+    public CompletableFuture<List<PlageLsp>> plagesSelection(String uri,
+            PositionLsp position) {
+        return couverture.plagesSelection(uri, position);
+    }
+
+    /**
+     * Les jetons sémantiques du document entier (H-12) : la charge
+     * encodée, le décodage relatif-à-absolu au domaine — deux flux
+     * indépendants, jamais chaînés aux diagnostics (PIEGE-18).
+     *
+     * @param uri l'uri du document
+     * @return le futur des jetons
+     */
+    public CompletableFuture<SemanticTokensLsp> jetons(String uri) {
+        return couverture.jetons(uri);
+    }
+
+    /**
+     * Les jetons sémantiques d'une plage (H-12) : la mise à jour
+     * locale, sans retracer tout le fichier.
+     *
+     * @param uri   l'uri du document
+     * @param plage la plage visible
+     * @return le futur des jetons
+     */
+    public CompletableFuture<SemanticTokensLsp> jetonsPlage(String uri,
+            PlageLsp plage) {
+        return couverture.jetonsPlage(uri, plage);
+    }
+
+    /**
+     * Les indices en ligne d'une plage (H-12) : les petits textes de
+     * la marge — types inférés, noms de paramètres — la géométrie de
+     * saisie ne bouge pas d'un pixel.
+     *
+     * @param uri   l'uri du document
+     * @param plage la plage visible
+     * @return le futur des indices
+     */
+    public CompletableFuture<List<IndiceLsp>> indices(String uri,
+            PlageLsp plage) {
+        return couverture.indices(uri, plage);
     }
 
     /**

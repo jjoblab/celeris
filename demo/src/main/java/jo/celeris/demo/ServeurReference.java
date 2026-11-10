@@ -3,11 +3,25 @@ package jo.celeris.demo;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.List;
+
 import jo.celeris.android.widgets.SignatureAideModel;
+import jo.celeris.core.lsp.CorrectifLsp;
+import jo.celeris.core.lsp.EditionEspaceLsp;
+import jo.celeris.core.lsp.EditionTexteLsp;
+import jo.celeris.core.lsp.IndiceLsp;
+import jo.celeris.core.lsp.SemanticTokensLsp;
+import jo.celeris.core.lsp.LieuLsp;
+import jo.celeris.core.lsp.OptionsFormatageLsp;
+import jo.celeris.core.lsp.PlageLsp;
+import jo.celeris.core.lsp.PliLsp;
 import jo.celeris.core.lsp.PositionLsp;
 import jo.celeris.core.lsp.PositionsLsp;
+import jo.celeris.core.lsp.PreparationRennomageLsp;
 import jo.celeris.core.lsp.SignatureLsp;
+import jo.celeris.core.lsp.SurlignageLsp;
 import jo.celeris.core.lsp.SurvolLsp;
+import jo.celeris.core.lsp.SymboleLsp;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
 import jo.celeris.lsp.protocole.ServeurEmbarque;
@@ -21,12 +35,16 @@ import org.jspecify.annotations.Nullable;
  * frontière. Il suit la synchronisation complète (didOpen, didChange,
  * didClose) et répond à l'aide aux paramètres (B-07) et au survol
  * (B-09) : l'appel ouvert sous la position sert sa signature connue,
- * le symbole survolé sert sa documentation — les tables du terrain,
- * servies par le protocole, pas par l'appel direct.
+ * le symbole survolé sert sa documentation. La couverture du jalon
+ * (H-12) délègue aux {@link TablesCouverture} — les tables du
+ * terrain, servies par le protocole, pas par l'appel direct.
  */
 public final class ServeurReference implements ServeurEmbarque.Documents {
 
     private final Map<String, String> documents = new HashMap<>();
+
+    private final TablesCouverture tables =
+            new TablesCouverture(this::documentSuivi);
 
     @Override
     public void ouvrir(String uri, String langue, String texte) {
@@ -109,4 +127,61 @@ public final class ServeurReference implements ServeurEmbarque.Documents {
         }
         return noms;
     }
+
+    // ── La couverture du jalon (H-12) : les tables du terrain,
+    //    déléguées — servies par le protocole. ──────────────────────
+
+    @Override
+    public List<SymboleLsp> symboles(String uri) {
+        return tables.symboles(uri);
+    }
+
+    @Override
+    public List<PliLsp> plis(String uri) {
+        return tables.plis(uri);
+    }
+
+    @Override
+    public List<EditionTexteLsp> formatage(String uri,
+            OptionsFormatageLsp options) {
+        return tables.formatage(uri, options);
+    }
+
+    @Override
+    public List<SurlignageLsp> surlignages(String uri, PositionLsp position) {
+        return tables.surlignages(uri, position);
+    }
+
+    @Override
+    public @Nullable PreparationRennomageLsp preparerRennomage(String uri,
+            PositionLsp position) {
+        return tables.preparerRennomage(uri, position);
+    }
+
+    @Override
+    public EditionEspaceLsp rennomage(String uri, PositionLsp position,
+            String nouveauNom) {
+        return tables.rennomage(uri, position, nouveauNom);
+    }
+
+    @Override
+    public List<CorrectifLsp> correctifs(String uri, PlageLsp plage) {
+        return tables.correctifs(uri, plage);
+    }
+
+    @Override
+    public List<IndiceLsp> indices(String uri, PlageLsp plage) {
+        return tables.indices(uri, plage);
+    }
+
+    @Override
+    public SemanticTokensLsp jetons(String uri) {
+        return tables.jetons(uri);
+    }
+
+    @Override
+    public List<LieuLsp> references(String uri, PositionLsp position) {
+        return tables.references(uri, position);
+    }
+
 }

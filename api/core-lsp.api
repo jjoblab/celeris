@@ -8,19 +8,34 @@ public interface jo.celeris.core.lsp.AuditeurDiagnostics {
 Compiled from "CapacitesServeur.java"
 public final class jo.celeris.core.lsp.CapacitesServeur {
   public static jo.celeris.core.lsp.CapacitesServeur vides();
-  public static jo.celeris.core.lsp.CapacitesServeur de(int, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
+  public static jo.celeris.core.lsp.CapacitesServeur de(int, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
   public int genreSynchro();
   public boolean sertCompletion();
   public boolean sertSurvol();
   public boolean sertSignature();
   public boolean sertDefinition();
   public boolean sertReferences();
+  public boolean sertSurlignages();
+  public boolean sertSymboles();
+  public boolean sertPlis();
+  public boolean sertSelectionPlages();
   public boolean sertRennomage();
   public boolean sertCorrectifs();
   public boolean sertFormatage();
   public boolean sertIndices();
   public java.util.List<java.lang.String> typesJetons();
   public java.util.List<java.lang.String> modificateursJetons();
+}
+
+### jo.celeris.core.lsp.CorrectifLsp
+Compiled from "CorrectifLsp.java"
+public final class jo.celeris.core.lsp.CorrectifLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.CorrectifLsp(java.lang.String, jo.celeris.core.lsp.EditionEspaceLsp);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String titre();
+  public jo.celeris.core.lsp.EditionEspaceLsp edition();
 }
 
 ### jo.celeris.core.lsp.DiagnosticLsp
@@ -135,28 +150,6 @@ public final class jo.celeris.core.lsp.IndiceLsp extends java.lang.Record {
   public boolean remplissageDroite();
 }
 
-### jo.celeris.core.lsp.JetonSemantique
-Compiled from "JetonSemantique.java"
-public final class jo.celeris.core.lsp.JetonSemantique extends java.lang.Record {
-  public jo.celeris.core.lsp.JetonSemantique(int, int, int, int, int);
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public int ligne();
-  public int colonne();
-  public int longueur();
-  public int type();
-  public int modificateurs();
-}
-
-### jo.celeris.core.lsp.JetonsSemantiques
-Compiled from "JetonsSemantiques.java"
-public final class jo.celeris.core.lsp.JetonsSemantiques {
-  public static jo.celeris.core.lsp.JetonsSemantiques de(java.lang.String, java.util.List<java.lang.Integer>);
-  public java.lang.String identifiantResultat();
-  public java.util.List<jo.celeris.core.lsp.JetonSemantique> jetons();
-}
-
 ### jo.celeris.core.lsp.LieuLsp
 Compiled from "LieuLsp.java"
 public final class jo.celeris.core.lsp.LieuLsp extends java.lang.Record {
@@ -176,6 +169,18 @@ public final class jo.celeris.core.lsp.ListeCompletion {
   public java.util.List<jo.celeris.core.lsp.ElementCompletion> elements();
   public jo.celeris.core.lsp.ListeCompletion filtrer(java.lang.String);
   public jo.celeris.core.lsp.ListeCompletion trier();
+}
+
+### jo.celeris.core.lsp.OptionsFormatageLsp
+Compiled from "OptionsFormatageLsp.java"
+public final class jo.celeris.core.lsp.OptionsFormatageLsp extends java.lang.Record {
+  public static final jo.celeris.core.lsp.OptionsFormatageLsp DEFAUT;
+  public jo.celeris.core.lsp.OptionsFormatageLsp(int, boolean);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int largeurTab();
+  public boolean espaces();
 }
 
 ### jo.celeris.core.lsp.OrdonnanceurLsp$Cle
@@ -231,6 +236,17 @@ public final class jo.celeris.core.lsp.PlageLsp extends java.lang.Record {
   public jo.celeris.core.lsp.PositionLsp fin();
 }
 
+### jo.celeris.core.lsp.PliLsp
+Compiled from "PliLsp.java"
+public final class jo.celeris.core.lsp.PliLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.PliLsp(int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int ligneDebut();
+  public int ligneFin();
+}
+
 ### jo.celeris.core.lsp.PositionLsp
 Compiled from "PositionLsp.java"
 public final class jo.celeris.core.lsp.PositionLsp extends java.lang.Record {
@@ -251,6 +267,17 @@ public final class jo.celeris.core.lsp.PositionsLsp {
   public static int[] bornes(jo.celeris.core.text.Document, jo.celeris.core.lsp.PlageLsp);
 }
 
+### jo.celeris.core.lsp.PreparationRennomageLsp
+Compiled from "PreparationRennomageLsp.java"
+public final class jo.celeris.core.lsp.PreparationRennomageLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.PreparationRennomageLsp(jo.celeris.core.lsp.PlageLsp, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.lsp.PlageLsp plage();
+  public java.lang.String texteAmorce();
+}
+
 ### jo.celeris.core.lsp.RequeteAnnuleeException$Raison
 Compiled from "RequeteAnnuleeException.java"
 public final class jo.celeris.core.lsp.RequeteAnnuleeException$Raison extends java.lang.Enum<jo.celeris.core.lsp.RequeteAnnuleeException$Raison> {
@@ -266,6 +293,28 @@ Compiled from "RequeteAnnuleeException.java"
 public final class jo.celeris.core.lsp.RequeteAnnuleeException extends java.lang.RuntimeException {
   public jo.celeris.core.lsp.RequeteAnnuleeException(jo.celeris.core.lsp.RequeteAnnuleeException$Raison);
   public jo.celeris.core.lsp.RequeteAnnuleeException$Raison raison();
+}
+
+### jo.celeris.core.lsp.SemanticTokenLsp
+Compiled from "SemanticTokenLsp.java"
+public final class jo.celeris.core.lsp.SemanticTokenLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.SemanticTokenLsp(int, int, int, int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int ligne();
+  public int colonne();
+  public int longueur();
+  public int type();
+  public int modificateurs();
+}
+
+### jo.celeris.core.lsp.SemanticTokensLsp
+Compiled from "SemanticTokensLsp.java"
+public final class jo.celeris.core.lsp.SemanticTokensLsp {
+  public static jo.celeris.core.lsp.SemanticTokensLsp de(java.lang.String, java.util.List<java.lang.Integer>);
+  public java.lang.String identifiantResultat();
+  public java.util.List<jo.celeris.core.lsp.SemanticTokenLsp> jetons();
 }
 
 ### jo.celeris.core.lsp.SignatureLsp$Entree
@@ -307,6 +356,17 @@ public interface jo.celeris.core.lsp.SuiviVersions {
   public abstract int versionDe(java.lang.String);
 }
 
+### jo.celeris.core.lsp.SurlignageLsp
+Compiled from "SurlignageLsp.java"
+public final class jo.celeris.core.lsp.SurlignageLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.SurlignageLsp(jo.celeris.core.lsp.PlageLsp, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.lsp.PlageLsp plage();
+  public int genre();
+}
+
 ### jo.celeris.core.lsp.SurvolLsp
 Compiled from "SurvolLsp.java"
 public final class jo.celeris.core.lsp.SurvolLsp extends java.lang.Record {
@@ -318,6 +378,20 @@ public final class jo.celeris.core.lsp.SurvolLsp extends java.lang.Record {
   public java.lang.String texte();
   public java.lang.String genre();
   public jo.celeris.core.lsp.PlageLsp plage();
+}
+
+### jo.celeris.core.lsp.SymboleLsp
+Compiled from "SymboleLsp.java"
+public final class jo.celeris.core.lsp.SymboleLsp extends java.lang.Record {
+  public jo.celeris.core.lsp.SymboleLsp(java.lang.String, int, jo.celeris.core.lsp.PlageLsp, jo.celeris.core.lsp.PlageLsp, java.util.List<jo.celeris.core.lsp.SymboleLsp>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String nom();
+  public int genre();
+  public jo.celeris.core.lsp.PlageLsp plage();
+  public jo.celeris.core.lsp.PlageLsp plageSelection();
+  public java.util.List<jo.celeris.core.lsp.SymboleLsp> enfants();
 }
 
 ### jo.celeris.core.lsp.package-info

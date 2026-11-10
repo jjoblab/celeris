@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
  */
 class TypesDomaineLspTest {
 
-    /** Le diagnostic : chaque champ se relit, les gravités portent leurs noms. */
+    /** Le diagnostic : la gravité porte ses constantes, les champs ses valeurs. */
     @Test
     void leDiagnosticPorteSesChamps() {
         PlageLsp plage = new PlageLsp(new PositionLsp(1, 2), new PositionLsp(3, 4));
