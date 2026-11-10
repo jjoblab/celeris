@@ -19,8 +19,8 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
- * Les tests de la plateforme de langages (M7.6) : l'assemblage des
- * paquets intégrés (les seize langages, les analyseurs écrits attachés
+ * Les tests de la plateforme de langages (M7.6, chantier C5) : l'assemblage des
+ * paquets intégrés (les dix-sept langages, les analyseurs écrits attachés
  * par préférence, la famille kts→kotlin liée), les contributeurs de
  * capacités, les fournisseurs génériques — et les refus précis : parent
  * inconnu, préférence sans source.
@@ -51,12 +51,12 @@ final class LanguagePlatformTest {
     }
 
     @Test
-    void lesSeizeLangagesIntegresSAssemblent() {
+    void lesDixSeptLangagesIntegresSAssemblent() {
         LanguageRegistry registre = registreIntegre();
-        assertEquals(16, registre.supports().size());
+        assertEquals(17, registre.supports().size());
         for (String id : new String[] {"java", "kotlin", "kts", "groovy",
                 "xml", "json", "toml", "yaml", "properties", "markdown",
-                "python", "shell", "sql", "c", "cpp", "proguard"}) {
+                "python", "shell", "sql", "c", "cpp", "proguard", "html"}) {
             assertNotNull(registre.byId(id), id);
         }
     }

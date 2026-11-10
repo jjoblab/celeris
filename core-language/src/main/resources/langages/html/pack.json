@@ -1,0 +1,7 @@
+{
+  "id": "html",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "license": "MIT",
+  "provenance": "grammaire html.tmLanguage.json du dépôt microsoft/vscode (MIT, main épinglé du 2026-11-08, récupéré par spikes/regex/recuperer-grammaires), reprise SANS MODIFICATION du banc du commerce (H-05) — chantier C5, la première grammaire du commerce livrée en paquet intégré ; somme SHA-256 épinglée au NOTICE et au registre de portage"
+}

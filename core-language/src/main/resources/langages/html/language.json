@@ -1,0 +1,113 @@
+{
+  "id": "html",
+  "name": "HTML",
+  "extensions": [
+    ".html",
+    ".htm"
+  ],
+  "badge": "Ht",
+  "badgeColor": "#E44D26",
+  "syntax": {
+    "preferred": "grammar"
+  },
+  "comments": {
+    "blockComment": [
+      "<!--",
+      "-->"
+    ]
+  },
+  "brackets": [
+    [
+      "<",
+      ">"
+    ],
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "{",
+      "close": "}",
+      "notIn": []
+    },
+    {
+      "open": "[",
+      "close": "]",
+      "notIn": []
+    },
+    {
+      "open": "(",
+      "close": ")",
+      "notIn": []
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string",
+        "comment"
+      ]
+    },
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "`",
+      "close": "`",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "<",
+      "close": ">",
+      "notIn": [
+        "comment"
+      ]
+    }
+  ],
+  "surroundingPairs": [
+    [
+      "{",
+      "}"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "(",
+      ")"
+    ],
+    [
+      "'",
+      "'"
+    ],
+    [
+      "\"",
+      "\""
+    ],
+    [
+      "`",
+      "`"
+    ],
+    [
+      "<",
+      ">"
+    ]
+  ]
+}
