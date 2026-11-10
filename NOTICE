@@ -46,20 +46,26 @@ dépôt `microsoft/vscode` (licence MIT, épinglé au main vérifié le
 2026-11-08 par `spikes/regex/recuperer-grammaires`, sommes consignées
 à `spikes/regex/results/`) ; reproduction inchangée.
 
-## Donnée tierce au runtime — la grammaire HTML du paquet intégré (chantier C5)
+## Données tierces au runtime — les grammaires du commerce des paquets intégrés (chantier C5)
 
-Le paquet intégré `html` de `core-language` (`langages/html/`)
-embarque la grammaire TextMate HTML des extensions de VS Code — la
-première grammaire du commerce livrée en paquet (chantier C5,
-ADR-017), reprise SANS MODIFICATION de la copie épinglée du banc du
-commerce (H-05) : le banc de conformité `PaquetHtmlIntegreTest`
-verrouille l'égalité octet pour octet, l'acceptation au seuil du
-banc et le rejeu déterministe de l'échantillon. Source : le dépôt
-`microsoft/vscode` (`extensions/html/syntaxes/html.tmLanguage.json`,
-licence MIT, main épinglé du 2026-11-08, récupéré par
-`spikes/regex/recuperer-grammaires`). Somme de contrôle (SHA-256,
-épinglée) : `langages/html/grammar.json` =
-`80dedf4fb27e88889ac8fb72763954a6d2660502c686f4415208d8c8d00352cd`.
+Les paquets intégrés de `core-language` (`langages/`) embarquent les
+grammaires TextMate du commerce des extensions de VS Code — la voie
+des paquets de données de l'ADR-017, ouverte par le chantier C5 avec
+HTML puis étendue à la famille web entière (CSS, JavaScript,
+TypeScript). Chaque grammaire est reprise SANS MODIFICATION de la
+copie épinglée du banc du commerce (H-05) : le banc de conformité du
+paquet verrouille l'égalité octet pour octet, l'acceptation au seuil
+du banc et le rejeu déterministe de l'échantillon — la dérive d'une
+montée de version crève l'égalité avant d'atteindre l'utilisateur.
+Source : le dépôt `microsoft/vscode` (licence MIT, main épinglé du
+2026-11-08, récupéré par `spikes/regex/recuperer-grammaires`).
+
+| Paquet | Fichier du dépôt `microsoft/vscode` | Somme SHA-256 épinglée de `langages/<id>/grammar.json` |
+| --- | --- | --- |
+| `html` | `extensions/html/syntaxes/html.tmLanguage.json` | `80dedf4fb27e88889ac8fb72763954a6d2660502c686f4415208d8c8d00352cd` |
+| `css` | `extensions/css/syntaxes/css.tmLanguage.json` | `55a3e184f702da6a5a64dc4d7ce82ab298a1bae8d35e2924483941eb223d54b1` |
+| `javascript` | `extensions/javascript/syntaxes/JavaScript.tmLanguage.json` | `db6f17f15bc4f5e860a3b8fa6055a69720a53df845c8d5121cdc4f128c16291f` |
+| `typescript` | `extensions/typescript-basics/syntaxes/TypeScript.tmLanguage.json` | `4e92e0d7de560217d6c8d3236d85e6e17a5d77825b15729a230c761743122661` |
 
 ## Dépendance tierce au runtime des artefacts publiés — grammaires (M7.6)
 
