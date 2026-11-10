@@ -46,7 +46,7 @@ développement, quel que soit le statut de C12.
 | C2 | Hygiène du dépôt : dependabot + politique de sécurité | P0 | ~1 h | Terminé |
 | C3 | Cohérence documentaire : les incohérences de l'audit | P0 | ~0,5 j | Terminé |
 | C4 | `USAGE.md` : guide d'intégration hôte | P0 | 2–3 j | Non démarré |
-| C5 | Langages par paquets : HTML d'abord, puis la longue traîne | P1 | 1–2 j / langue | Non démarré |
+| C5 | Langages par paquets : HTML d'abord, puis la longue traîne | P1 | 1–2 j / langue | En cours |
 | C6 | Raffinements de complétion | P1 | 3–5 j | Non démarré |
 | C7 | Signature riche et snippets riches | P1 | 3–5 j | Non démarré |
 | C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | Non démarré |
@@ -134,7 +134,8 @@ les noms d'API du guide vérifiés contre les manifestes d'API (`api/`).
 
 ### C5 — Langages par paquets
 
-**Statut** : non démarré.
+**Statut** : en cours — HTML livré le 2026-11-10 (la première
+grammaire du commerce en paquet intégré).
 
 **Périmètre** : rapprocher les seize langages livrés des vingt-neuf du
 dépôt de départ par la voie des paquets de données (ADR-017, prouvée
@@ -143,7 +144,13 @@ par le paquet jouet H-04) : grammaires du commerce d'abord — HTML
 
 **Sortie** : par langue — paquet épinglé, licence au NOTICE et au
 registre de portage, échantillon rejoué avec déterminisme, ligne de
-matrice à jour, banc de conformité étendu.
+matrice à jour, banc de conformité étendu. HTML (2026-11-10) : le
+paquet `langages/html` reprend la grammaire du dépôt de VS Code SANS
+MODIFICATION (somme SHA-256 épinglée au NOTICE et au registre), le
+banc `PaquetHtmlIntegreTest` verrouille l'égalité octet pour octet,
+l'acceptation (98,7 %) et le rejeu déterministe ; la matrice compte
+dix-sept langages intégrés. Restent : Go, Rust, PHP, Ruby,
+TypeScript…
 
 **Source** : audit § 9, recommandation 5 ; § 6, gap 4.
 

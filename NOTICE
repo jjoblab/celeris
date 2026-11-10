@@ -46,6 +46,21 @@ dépôt `microsoft/vscode` (licence MIT, épinglé au main vérifié le
 2026-11-08 par `spikes/regex/recuperer-grammaires`, sommes consignées
 à `spikes/regex/results/`) ; reproduction inchangée.
 
+## Donnée tierce au runtime — la grammaire HTML du paquet intégré (chantier C5)
+
+Le paquet intégré `html` de `core-language` (`langages/html/`)
+embarque la grammaire TextMate HTML des extensions de VS Code — la
+première grammaire du commerce livrée en paquet (chantier C5,
+ADR-017), reprise SANS MODIFICATION de la copie épinglée du banc du
+commerce (H-05) : le banc de conformité `PaquetHtmlIntegreTest`
+verrouille l'égalité octet pour octet, l'acceptation au seuil du
+banc et le rejeu déterministe de l'échantillon. Source : le dépôt
+`microsoft/vscode` (`extensions/html/syntaxes/html.tmLanguage.json`,
+licence MIT, main épinglé du 2026-11-08, récupéré par
+`spikes/regex/recuperer-grammaires`). Somme de contrôle (SHA-256,
+épinglée) : `langages/html/grammar.json` =
+`80dedf4fb27e88889ac8fb72763954a6d2660502c686f4415208d8c8d00352cd`.
+
 ## Dépendance tierce au runtime des artefacts publiés — grammaires (M7.6)
 
 Le module publié `core-syntax-grammars` embarque le moteur
