@@ -5,6 +5,20 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [1.1.0] — en cours
+
+### Chantier C2 — hygiène du dépôt
+
+- **Dependabot** (`.github/dependabot.yml`) : veille hebdomadaire sur
+  le catalogue de versions gradué et sur les actions épinglées par
+  somme SHA ; correctifs et mineures groupés, majeures isolées —
+  chaque montée de version traverse les portes qualité.
+- **Politique de sécurité** (`SECURITY.md`) : versions prises en
+  charge, signalement privé par courriel (jamais d'issue publique),
+  délais annoncés, périmètre des huit artefacts publiés — la
+  procédure du dépôt de départ, adaptée à l'état réel du dépôt
+  (SBOM, provenance, revue M9).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet

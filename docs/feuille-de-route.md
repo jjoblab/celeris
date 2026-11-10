@@ -43,7 +43,7 @@ développement, quel que soit le statut de C12.
 | # | Chantier | Priorité | Effort | Statut |
 | --- | --- | --- | --- | --- |
 | C1 | Publication réelle de 1.0.0 : tag, workflow distant, artefact vérifié | P0 | ~1 j | Bloqué |
-| C2 | Hygiène du dépôt : dependabot + politique de sécurité | P0 | ~1 h | En cours |
+| C2 | Hygiène du dépôt : dependabot + politique de sécurité | P0 | ~1 h | Terminé |
 | C3 | Cohérence documentaire : les incohérences de l'audit | P0 | ~0,5 j | Non démarré |
 | C4 | `USAGE.md` : guide d'intégration hôte | P0 | 2–3 j | Non démarré |
 | C5 | Langages par paquets : HTML d'abord, puis la longue traîne | P1 | 1–2 j / langue | Non démarré |
@@ -81,7 +81,7 @@ publication ne sort du dépôt.
 
 ### C2 — Hygiène du dépôt
 
-**Statut** : en cours (démarré le 2026-11-10).
+**Statut** : terminé le 2026-11-10 (dependabot, `SECURITY.md`, entrée `[1.1.0]` du changelog).
 
 **Périmètre** : dependabot hebdomadaire — dépendances graduées du
 catalogue `gradle/libs.versions.toml` et actions GitHub épinglées par
@@ -283,7 +283,7 @@ dépôt de départ, hors de ce bac à sable.
 
 | Date | Chantier | Preuve |
 | --- | --- | --- |
-| (aucune clôture pour l'instant) | | |
+| 2026-11-10 | C2 — hygiène du dépôt | dependabot (`.github/dependabot.yml`, commit e84ba50) et `SECURITY.md` (commit 8f20df7) ; entrée `[1.1.0]` du changelog |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 
