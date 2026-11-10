@@ -1,0 +1,13 @@
+# Titre du banc
+
+Un paragraphe avec *emphase* et `code`.
+
+- première entrée
+- seconde entrée
+
+```python
+def bonjour():
+    return "salut"
+```
+
+> Une citation pour la route.

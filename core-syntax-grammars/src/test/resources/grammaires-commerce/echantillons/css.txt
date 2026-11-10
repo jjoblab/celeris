@@ -1,0 +1,12 @@
+:root {
+  --encre: #202124;
+  --fond: #ffffff;
+}
+.essai, .autre {
+  color: var(--encre);
+  background: var(--fond);
+  margin: 0 auto;
+}
+@media (max-width: 600px) {
+  .essai { display: none; }
+}

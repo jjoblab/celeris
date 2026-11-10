@@ -70,6 +70,12 @@
 | `LanguageServerWrapper`, `LspEditor` | Spécifier | cycle de vie documenté (déconnexion, resynchronisation) = spécification | `LspDisconnectLifecycleTest` → oracle |
 | `MiniJava*` (démo, 22 fichiers, 9 301 l.) | Abandonner | hors bibliothèque ; remplacé par l'arbre (M4) puis l'index (M6) | — |
 
+## Données de banc (M7.6, H-05)
+
+| Élément | Décision | Justification | Tests associés |
+| --- | --- | --- | --- |
+| grammaires TextMate du commerce (11 fichiers `*.tmLanguage.json`, extensions VS Code, MIT) | Reprendre inchangées | le banc de conformité du commerce prouve le chargement SANS MODIFICATION (H-05) ; ressources de test uniquement, hors artefacts publiés ; provenance épinglée (main du 2026-11-08, sommes au spike) | `GrammairesCommerceTest` |
+
 ## Outillage
 
 | Élément source | Décision | Justification |

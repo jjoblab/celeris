@@ -99,14 +99,17 @@ class GrammairesTest {
 
     /** Une inclusion inconnue est refusée au chargement. */
     @Test
-    void inclusionInconnueRefusee() {
-        assertThrows(IllegalArgumentException.class, () -> Grammaires.lire("""
+    void inclusionInconnueSauteComptee() {
+        Grammaire grammaire = Grammaires.lire("""
                 {
                   "name": "Essai",
                   "scopeName": "source.essai",
                   "patterns": [ { "include": "#absent" } ]
                 }
-                """));
+                """);
+        assertEquals(1, grammaire.rapport().inclusionsInternes(),
+                "l'inclusion inconnue se saute et se compte — les grammaires"
+                        + " du commerce s'en portent auteurs");
     }
 
     /**

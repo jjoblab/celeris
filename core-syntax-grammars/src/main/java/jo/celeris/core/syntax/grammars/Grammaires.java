@@ -1,12 +1,15 @@
 package jo.celeris.core.syntax.grammars;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 
 import jo.celeris.core.language.JsonReader;
+import jo.celeris.core.syntax.ScopeSelector;
 
 /**
  * Chargeur de grammaires au format TextMate réel (ADR-004 révisé,
@@ -18,9 +21,14 @@ import jo.celeris.core.language.JsonReader;
  * d'aplatissement. {@code $self} et {@code $base} pointent la racine de
  * la grammaire chargée ; les inclusions de portée externe se résolvent
  * par le registre passé au chargement — absentes du registre, elles se
- * sautent et se comptent, comme la référence les tolère. Une forme
- * catastrophique visible (quantificateurs non bornés imbriqués) rejette
- * le paquet entier ; un motif invalide écarte sa règle.
+ * sautent et se comptent, comme la référence les tolère. Les injections
+ * se lisent (H-05) : leur clé porte le sélecteur et la priorité
+ * ({@code L:} ou {@code R:}), leurs règles s'appliquent partout où le
+ * sélecteur matche la pile courante. Une forme catastrophique visible
+ * (quantificateurs non bornés imbriqués) écarte SA règle — comptée au
+ * rapport, comme un motif invalide : jamais le paquet entier (H-05,
+ * les grammaires du commerce chargent telles que publiées), jamais un
+ * gel de l'interface (le budget d'exécution y veille).
  *
  * <p>M7.6 : les grammaires embarquées vivent dans les paquets de
  * langage ({@code langages/<id>/grammar.json} de core-language) et
@@ -75,10 +83,37 @@ public final class Grammaires {
                     .fixer(lecteur.reglesDe(entree.getValue(), "#" + entree.getKey()));
         }
         racine.fixer(lecteur.aplatir(champs.get("patterns"), "patterns"));
-        if (champs.containsKey("injections")) {
-            rapport.injectionIgnoree();
+        List<Injection> injections = injections(champs.get("injections"), lecteur);
+        return new Grammaire(nom, porteeRacine, racine.regles(), injections,
+                rapport.tisser());
+    }
+
+    /**
+     * Les injections déclarées (H-05) : la clé porte le sélecteur et
+     * sa priorité ({@code L:} avant le contexte, {@code R:} après,
+     * sans préfixe : après — l'hôte reste maître chez lui), la valeur
+     * porte les règles injectées.
+     */
+    private static List<Injection> injections(@Nullable Object brut,
+            LecteurGrammaire lecteur) {
+        List<Injection> injections = new ArrayList<>();
+        if (brut == null) {
+            return injections;
         }
-        return new Grammaire(nom, porteeRacine, racine.regles(), rapport.tisser());
+        if (!(brut instanceof Map<?, ?> cles)) {
+            throw new IllegalArgumentException(
+                    "injections : un objet est attendu");
+        }
+        for (Map.Entry<?, ?> entree : cles.entrySet()) {
+            String cle = String.valueOf(entree.getKey());
+            boolean gauche = cle.startsWith("L:");
+            String selecteur = cle.startsWith("L:") || cle.startsWith("R:")
+                    ? cle.substring(2) : cle;
+            injections.add(new Injection(ScopeSelector.parse(selecteur),
+                    lecteur.reglesDe(entree.getValue(), "injections." + cle),
+                    gauche));
+        }
+        return injections;
     }
 
     /** Le référentiel brut : chaque clé vers son contenu non résolu. */

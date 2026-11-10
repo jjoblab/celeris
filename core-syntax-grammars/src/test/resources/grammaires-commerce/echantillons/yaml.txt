@@ -1,0 +1,7 @@
+nom: exemple
+version: 2
+mots:
+  - un
+  - deux
+actif: true
+note: "citée"

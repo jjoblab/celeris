@@ -1,0 +1,8 @@
+{
+  "name": "exemple",
+  "version": 2,
+  "mots": ["un", "deux"],
+  "actif": true,
+  "vide": null,
+  "note": 3.5
+}

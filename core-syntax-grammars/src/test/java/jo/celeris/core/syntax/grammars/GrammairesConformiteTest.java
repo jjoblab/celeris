@@ -44,6 +44,9 @@ class GrammairesConformiteTest {
                             + grammaire.rapport().motifs() + ")");
             assertEquals(0, grammaire.rapport().refuses(),
                     entree[0] + " : aucune règle écartée");
+            assertEquals(0, grammaire.rapport().inclusionsInternes(),
+                    entree[0] + " : aucune inclusion de référentiel inconnue"
+                            + " — les paquets écrits ici restent stricts");
         }
     }
 

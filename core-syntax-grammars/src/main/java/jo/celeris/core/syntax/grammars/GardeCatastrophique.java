@@ -14,8 +14,9 @@ package jo.celeris.core.syntax.grammars;
  * {@link Delimitation}. Le balayage est délibérément conservateur :
  * les formes bornées ({@code (a+){2}}) passent, les atténuations
  * subtiles (possessifs intérieurs) restent refusées — un faux négatif
- * coûte un ralentissement, un faux positif un message explicite que
- * l'auteur de la grammaire corrige.</p>
+ * coûte un ralentissement, un faux positif une règle écartée et
+ * comptée au rapport (H-05) : la règle absente ne colore rien, le
+ * paquet charge quand même, jamais un gel de l'interface.</p>
  */
 final class GardeCatastrophique {
 
