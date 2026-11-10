@@ -70,18 +70,10 @@ vivent dans les ADR et le registre de portage, pas ici.
   budgets mesurés et les seuils du mode — le futur `USAGE.md` les
   reprendra (chantier C4).
 
-### Langages par paquets — chantier C5 (HTML)
+### Langages par paquets — chantier C5
 
-- **Première grammaire du commerce livrée en paquet intégré** : `html`
-  rejoint les paquets intégrés (`langages/html/`) — la grammaire
-  TextMate HTML des extensions de VS Code (MIT, main épinglé du
-  2026-11-08), reprise SANS MODIFICATION de la copie épinglée du banc
-  du commerce ; `PaquetHtmlIntegreTest` verrouille l'égalité octet
-  pour octet, l'acceptation (98,7 % ≥ seuil 97 %) et le rejeu
-  déterministe de l'échantillon. Licence MIT au NOTICE, somme SHA-256
-  épinglée au NOTICE et au registre de portage ; la matrice compte
-  dix-sept langages intégrés. Le chantier poursuit : Go, Rust, PHP,
-  Ruby, TypeScript…
+- **HTML, première grammaire du commerce livrée en paquet intégré** : `html` rejoint les paquets intégrés (`langages/html/`) — la grammaire TextMate HTML des extensions de VS Code (MIT, main épinglé du 2026-11-08), reprise SANS MODIFICATION de la copie épinglée du banc du commerce ; `PaquetHtmlIntegreTest` verrouille l'égalité octet pour octet, l'acceptation (98,7 % ≥ seuil 97 %) et le rejeu déterministe de l'échantillon. Licence MIT au NOTICE, somme SHA-256 épinglée au NOTICE et au registre de portage.
+- **La famille web du commerce entière** : `css`, `javascript` et `typescript` rejoignent HTML — les grammaires TextMate des extensions de VS Code (MIT, main épinglé du 2026-11-08), reprises SANS MODIFICATION des copies épinglées du banc ; les bancs `PaquetCssIntegreTest`, `PaquetJavascriptIntegreTest` et `PaquetTypescriptIntegreTest` verrouillent l'égalité octet pour octet, les acceptations (css 96,6 % ≥ 95 %, javascript 90,3 % ≥ 88 %, typescript 90,2 % ≥ 88 %) et le rejeu déterministe des échantillons. Licences MIT au NOTICE, sommes SHA-256 épinglées au NOTICE et au registre de portage ; la matrice compte vingt langages intégrés. Le chantier poursuit : Go, Rust, PHP, Ruby… (grammaires à épingler au banc du commerce).
 
 ## [1.0.0] — 2026-11-10
 
