@@ -37,7 +37,8 @@ import org.jspecify.annotations.Nullable;
  */
 public final class Celeris {
 
-    private static final String VERSION = "0.1.0-SNAPSHOT";
+    /** La version affichée — celle de la sortie courante du dépôt (build racine). */
+    private static final String VERSION = "1.0.0";
 
     private Celeris() {
     }
