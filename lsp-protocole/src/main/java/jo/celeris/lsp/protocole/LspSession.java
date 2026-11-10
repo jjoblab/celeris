@@ -30,23 +30,47 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.jspecify.annotations.Nullable;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import jo.celeris.core.lsp.AuditeurDiagnostics;
 import jo.celeris.core.lsp.CapacitesServeur;
-import jo.celeris.core.lsp.ClientLsp;
+import jo.celeris.core.lsp.CorrectifLsp;
 import jo.celeris.core.lsp.DiagnosticLsp;
+import jo.celeris.core.lsp.EditionEspaceLsp;
+import jo.celeris.core.lsp.EditionTexteLsp;
+import jo.celeris.core.lsp.IndiceLsp;
+import jo.celeris.core.lsp.SemanticTokensLsp;
 import jo.celeris.core.lsp.ListeCompletion;
 import jo.celeris.core.lsp.LieuLsp;
+import jo.celeris.core.lsp.OptionsFormatageLsp;
+import jo.celeris.core.lsp.OrdonnanceurLsp;
+import jo.celeris.core.lsp.PlageLsp;
+import jo.celeris.core.lsp.PliLsp;
 import jo.celeris.core.lsp.PositionLsp;
+import jo.celeris.core.lsp.PreparationRennomageLsp;
 import jo.celeris.core.lsp.SignatureLsp;
+import jo.celeris.core.lsp.SurlignageLsp;
+import jo.celeris.core.lsp.SuiviVersions;
 import jo.celeris.core.lsp.SurvolLsp;
+import jo.celeris.core.lsp.SymboleLsp;
 
 /**
  * La session LSP de la frontière protocolaire (ADR-015) : le protocole
  * et le JSON-RPC viennent de la bibliothèque, les types rendus sont
  * ceux du domaine de core-lsp — aucun type de la bibliothèque ne
  * paraît dans l'API.
+ *
+ * <p>L'ordonnancement du domaine (ADR-005) s'assoit AU-DESSUS de la
+ * session : les quatre règles — fusion, remplacement, priorités,
+ * resynchronisation — vivent dans {@link OrdonnanceurLsp} du cœur et
+ * ordonnancent ici les futurs bruts de la bibliothèque. Le futur
+ * émis, c'est le futur du proxy : son annulation traverse le fil en
+ * notification {@code $/cancelRequest}, la bibliothèque s'en charge ;
+ * la correspondance des réponses se fait APRÈS le vol, jamais dedans.
+ * Les frappes rapides ne s'empilent jamais (PIEGE-18) — la règle du
+ * cœur, servie par la voie de la bibliothèque.</p>
  *
  * <p>Modèle d'exécution : les fils de la piscine sont des démons — la
  * lecture des trames vit chez la bibliothèque sur ces fils, la session
@@ -58,11 +82,9 @@ import jo.celeris.core.lsp.SurvolLsp;
  * <p>La fermeture n'appelle JAMAIS {@code exit} — l'implémentation d'un
  * serveur réel y éteint la machine (constat M8.6) : la requête
  * {@code shutdown} part, la piscine s'arrête, l'appelant ferme ses
- * flux. L'ordonnancement (priorités, annulation, fusion) reste au
- * domaine (ADR-005) et s'assoit au-dessus de cette session à la
- * parité.</p>
+ * flux.</p>
  */
-public final class LspSession implements AutoCloseable {
+public final class LspSession implements AutoCloseable, SuiviVersions {
 
     private static final long DELAI_INITIALISATION = 30;
     private static final long DELAI_EXTINCTION = 5;
@@ -72,10 +94,16 @@ public final class LspSession implements AutoCloseable {
     private final ExecutorService executeur;
     private final Future<Void> ecoute;
     private final String nomClient;
+    private final OrdonnanceurLsp ordonnanceur;
+    private final RequetesCouverture couverture;
     private final Map<String, Integer> versions = new ConcurrentHashMap<>();
     private CapacitesServeur capacites = CapacitesServeur.vides();
     private volatile boolean initialises;
     private volatile boolean fermee;
+
+    /** L'identité de fusion d'une demande positionnée : document et position. */
+    private record IdentiteDocument(String uri, PositionLsp position) {
+    }
 
     private LspSession(Launcher<LanguageServer> lanceur, RecepteurServeur recepteur,
             ExecutorService executeur, String nomClient) {
@@ -84,6 +112,9 @@ public final class LspSession implements AutoCloseable {
         this.executeur = executeur;
         this.ecoute = lanceur.startListening();
         this.nomClient = nomClient;
+        this.ordonnanceur = OrdonnanceurLsp.sur(this);
+        this.couverture = new RequetesCouverture(serveur, ordonnanceur,
+                this::exigerInitialisee);
     }
 
     /**
@@ -159,12 +190,7 @@ public final class LspSession implements AutoCloseable {
                 new TextDocumentIdentifier(uri)));
     }
 
-    /**
-     * La dernière version envoyée pour un document.
-     *
-     * @param uri l'uri du document
-     * @return la version, ou -1 si le document n'est pas suivi
-     */
+    @Override
     public int versionDe(String uri) {
         Integer version = versions.get(uri);
         return version == null ? -1 : version;
@@ -176,45 +202,272 @@ public final class LspSession implements AutoCloseable {
     }
 
     /** Branche un auditeur de diagnostics — le contrat du domaine (ADR-005). */
-    public void ajouterAuditeurDiagnostics(ClientLsp.AuditeurDiagnostics auditeur) {
+    public void ajouterAuditeurDiagnostics(AuditeurDiagnostics auditeur) {
         recepteur.ajouterAuditeurDiagnostics(auditeur);
     }
 
-    /** La complétion typée — le futur du domaine, la coupure du serveur honorée. */
+    /**
+     * La complétion typée (B-04) sous les règles du domaine : priorité
+     * interactive, la coupure du serveur honorée (PIEGE-17 : jamais
+     * réordonnée ni complétée localement), la demande fraîche remplace
+     * celle en vol (PIEGE-18).
+     *
+     * @param uri      l'uri du document
+     * @param position la position du curseur
+     * @return le futur de la liste de complétion
+     */
     public CompletableFuture<ListeCompletion> completion(String uri,
             PositionLsp position) {
         exigerInitialisee();
-        return serveur.getTextDocumentService().completion(
-                new CompletionParams(identifiant(uri),
-                        CorrespondanceLsp.ecrirePosition(position)))
+        return ordonnancer("completion", uri, position, () -> serveur
+                .getTextDocumentService().completion(
+                        new CompletionParams(identifiant(uri),
+                                CorrespondanceLsp.ecrirePosition(position))))
                 .thenApply(CorrespondanceDocuments::lireListe);
     }
 
-    /** Le survol — la documentation se résout à la demande, jamais avant. */
+    /**
+     * Le survol (B-09) : la documentation se RÉSOUT À LA DEMANDE — la
+     * requête part à l'appel, jamais avant — priorité interactive.
+     *
+     * @param uri      l'uri du document
+     * @param position la position survolée
+     * @return le futur du survol
+     */
     public CompletableFuture<SurvolLsp> survol(String uri, PositionLsp position) {
         exigerInitialisee();
-        return serveur.getTextDocumentService().hover(new HoverParams(
-                identifiant(uri), CorrespondanceLsp.ecrirePosition(position)))
+        return ordonnancer("survol", uri, position, () -> serveur
+                .getTextDocumentService().hover(new HoverParams(
+                        identifiant(uri),
+                        CorrespondanceLsp.ecrirePosition(position))))
                 .thenApply(CorrespondanceDocuments::lireSurvol);
     }
 
-    /** L'aide aux paramètres — aucune signature quand le serveur n'en sert pas. */
+    /**
+     * L'aide aux paramètres (B-07) : les signatures du serveur, la
+     * signature active et le paramètre courant borné — priorité
+     * interactive, l'utilisateur tape.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du curseur dans l'appel
+     * @return le futur de l'aide aux paramètres
+     */
     public CompletableFuture<SignatureLsp> signature(String uri,
             PositionLsp position) {
         exigerInitialisee();
-        return serveur.getTextDocumentService().signatureHelp(
-                new SignatureHelpParams(identifiant(uri),
-                        CorrespondanceLsp.ecrirePosition(position)))
+        return ordonnancer("signature", uri, position, () -> serveur
+                .getTextDocumentService().signatureHelp(
+                        new SignatureHelpParams(identifiant(uri),
+                                CorrespondanceLsp.ecrirePosition(position))))
                 .thenApply(CorrespondanceDocuments::lireSignature);
     }
 
-    /** La définition — les lieux donnés par le serveur. */
+    /**
+     * La définition (B-10) : les lieux donnés par le serveur — le
+     * chemin en ligne de la navigation, le retour au point de départ
+     * par l'historique M5-t4.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du symbole
+     * @return le futur des lieux de définition
+     */
     public CompletableFuture<List<LieuLsp>> definition(String uri,
             PositionLsp position) {
         exigerInitialisee();
-        return serveur.getTextDocumentService().definition(new DefinitionParams(
-                identifiant(uri), CorrespondanceLsp.ecrirePosition(position)))
+        return ordonnancer("definition", uri, position, () -> serveur
+                .getTextDocumentService().definition(new DefinitionParams(
+                        identifiant(uri),
+                        CorrespondanceLsp.ecrirePosition(position))))
                 .thenApply(CorrespondanceDocuments::lireLieux);
+    }
+
+    // ── La couverture du jalon (H-12) : les treize méthodes nouvelles,
+    //    déléguées à la maison des demandes — l'API publique ne bouge
+    //    pas, l'ordonnancement reste celui du domaine. ────────────────
+
+    /**
+     * Les références d'un symbole (H-12) : les lieux qui le citent —
+     * priorité interactive, l'utilisateur vient de la demander.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du symbole
+     * @return le futur des lieux de référence
+     */
+    public CompletableFuture<List<LieuLsp>> references(String uri,
+            PositionLsp position) {
+        return couverture.references(uri, position);
+    }
+
+    /**
+     * Les symboles du document (H-12) : le plan, le fil d'Ariane et
+     * l'aller au symbole — travail de fond, le document est stable.
+     *
+     * @param uri l'uri du document
+     * @return le futur des symboles, hiérarchie du serveur
+     */
+    public CompletableFuture<List<SymboleLsp>> symboles(String uri) {
+        return couverture.symboles(uri);
+    }
+
+    /**
+     * Les surlignages d'occurrences (H-12) : les plages du symbole
+     * sous le curseur — priorité interactive.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du curseur
+     * @return le futur des surlignages
+     */
+    public CompletableFuture<List<SurlignageLsp>> surlignages(String uri,
+            PositionLsp position) {
+        return couverture.surlignages(uri, position);
+    }
+
+    /**
+     * La préparation du renommage (H-12) : la plage du nom et son
+     * amorce — null quand le serveur ne prépare pas, le renommage se
+     * tait, jamais il ne devine.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du nom
+     * @return le futur de la préparation, null sans préparation
+     */
+    public CompletableFuture<@Nullable PreparationRennomageLsp>
+            preparerRennomage(String uri, PositionLsp position) {
+        return couverture.preparerRennomage(uri, position);
+    }
+
+    /**
+     * Le renommage (H-12) : l'édition d'espace qui porte le nouveau
+     * nom, chaque occurrence à sa place — priorité interactive.
+     *
+     * @param uri        l'uri du document
+     * @param position   la position du nom
+     * @param nouveauNom le nom qui remplace
+     * @return le futur de l'édition d'espace
+     */
+    public CompletableFuture<EditionEspaceLsp> rennomage(String uri,
+            PositionLsp position, String nouveauNom) {
+        return couverture.rennomage(uri, position, nouveauNom);
+    }
+
+    /**
+     * Les correctifs rapides d'une plage (H-12) : le menu
+     * d'intentions — priorité interactive, l'utilisateur attend.
+     *
+     * @param uri   l'uri du document
+     * @param plage la plage porteuse, le curseur typiquement
+     * @return le futur des correctifs, titres et éditions
+     */
+    public CompletableFuture<List<CorrectifLsp>> correctifs(String uri,
+            PlageLsp plage) {
+        return couverture.correctifs(uri, plage);
+    }
+
+    /**
+     * Le formatage du document entier (H-12) : les éditions du
+     * serveur, travail de fond — la capacité Formatter y branchée.
+     *
+     * @param uri     l'uri du document
+     * @param options les options de formatage
+     * @return le futur des éditions de texte
+     */
+    public CompletableFuture<List<EditionTexteLsp>> formatage(String uri,
+            OptionsFormatageLsp options) {
+        return couverture.formatage(uri, options);
+    }
+
+    /**
+     * Le formatage d'une plage (H-12) : le remaniement local, travail
+     * de fond.
+     *
+     * @param uri     l'uri du document
+     * @param plage   la plage à formater
+     * @param options les options de formatage
+     * @return le futur des éditions de texte
+     */
+    public CompletableFuture<List<EditionTexteLsp>> formatagePlage(String uri,
+            PlageLsp plage, OptionsFormatageLsp options) {
+        return couverture.formatagePlage(uri, plage, options);
+    }
+
+    /**
+     * Les plis du serveur (H-12) : la fin inclusive du protocole
+     * devient EXCLUSIVE — la convention de l'arbre commun ; le
+     * consommateur fusionne, le serveur n'est qu'une source.
+     *
+     * @param uri l'uri du document
+     * @return le futur des plis
+     */
+    public CompletableFuture<List<PliLsp>> plis(String uri) {
+        return couverture.plis(uri);
+    }
+
+    /**
+     * Les plages de sélection (H-12) : la chaîne des englobantes de la
+     * position, de la plus intime à la plus large — l'extension de
+     * sélection y descend palier après palier.
+     *
+     * @param uri      l'uri du document
+     * @param position la position de départ
+     * @return le futur des plages englobantes
+     */
+    public CompletableFuture<List<PlageLsp>> plagesSelection(String uri,
+            PositionLsp position) {
+        return couverture.plagesSelection(uri, position);
+    }
+
+    /**
+     * Les jetons sémantiques du document entier (H-12) : la charge
+     * encodée, le décodage relatif-à-absolu au domaine — deux flux
+     * indépendants, jamais chaînés aux diagnostics (PIEGE-18).
+     *
+     * @param uri l'uri du document
+     * @return le futur des jetons
+     */
+    public CompletableFuture<SemanticTokensLsp> jetons(String uri) {
+        return couverture.jetons(uri);
+    }
+
+    /**
+     * Les jetons sémantiques d'une plage (H-12) : la mise à jour
+     * locale, sans retracer tout le fichier.
+     *
+     * @param uri   l'uri du document
+     * @param plage la plage visible
+     * @return le futur des jetons
+     */
+    public CompletableFuture<SemanticTokensLsp> jetonsPlage(String uri,
+            PlageLsp plage) {
+        return couverture.jetonsPlage(uri, plage);
+    }
+
+    /**
+     * Les indices en ligne d'une plage (H-12) : les petits textes de
+     * la marge — types inférés, noms de paramètres — la géométrie de
+     * saisie ne bouge pas d'un pixel.
+     *
+     * @param uri   l'uri du document
+     * @param plage la plage visible
+     * @return le futur des indices
+     */
+    public CompletableFuture<List<IndiceLsp>> indices(String uri,
+            PlageLsp plage) {
+        return couverture.indices(uri, plage);
+    }
+
+    /**
+     * Ordonnance l'émission d'une demande positionnée : les règles du
+     * domaine (fusion, remplacement, priorités, péremption) s'y
+     * appliquent, le futur ÉMIS est celui du proxy — son annulation
+     * traverse le fil en {@code $/cancelRequest} — la correspondance
+     * se fait après le vol.
+     */
+    private <T> CompletableFuture<T> ordonnancer(String famille, String uri,
+            PositionLsp position,
+            java.util.function.Supplier<CompletableFuture<T>> emission) {
+        return ordonnanceur.ordonnancer(famille, uri,
+                OrdonnanceurLsp.Priorite.INTERACTIF,
+                new IdentiteDocument(uri, position), emission);
     }
 
     @Override

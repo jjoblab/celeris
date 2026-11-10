@@ -88,7 +88,11 @@ final class BancSpecs {
                         BancSpecs::formatage),
                 new ScenarioSpec("B-27",
                         "L'import se pose à la tête, le doublon se refuse",
-                        BancSpecs::importation));
+                        BancSpecs::importation),
+                new ScenarioSpec("H-12",
+                        "Les méthodes nouvelles servent le plan, le pli et"
+                                + " le formatage par le fil",
+                        BancSpecs::couverture));
     }
 
     /** Les verdicts rejoués au banc — l'identifiant et sa preuve. */
@@ -300,6 +304,33 @@ final class BancSpecs {
         } finally {
             coordinateur.close();
         }
+    }
+
+    /**
+     * H-12 — la couverture nouvelle par le fil : les symboles du plan,
+     * les plis du document, le formatage de l'alignement — chacun
+     * servi par le protocole du serveur de référence, rendu en domaine.
+     */
+    private static boolean couverture() {
+        String document = "int total = ajouter(1, 2);\n";
+        java.util.List<jo.celeris.core.lsp.SymboleLsp> symboles = auFil(
+                document, 0, (serveur, doc, position) -> serveur.symboles(URI)
+                        .get(2, java.util.concurrent.TimeUnit.SECONDS));
+        boolean lePlan = symboles != null && symboles.stream()
+                .anyMatch(s -> "total".equals(s.nom()));
+        String imbrique = "int ajouter(int a, int b) {\n    return a + b;\n}\n";
+        java.util.List<jo.celeris.core.lsp.PliLsp> plis = auFil(
+                imbrique, 0, (serveur, doc, position) -> serveur.plis(URI)
+                        .get(2, java.util.concurrent.TimeUnit.SECONDS));
+        boolean lePli = plis != null && !plis.isEmpty();
+        java.util.List<jo.celeris.core.lsp.EditionTexteLsp> editions = auFil(
+                "  int total = 1;\n", 0,
+                (serveur, doc, position) -> serveur.formatage(URI,
+                        jo.celeris.core.lsp.OptionsFormatageLsp.DEFAUT)
+                        .get(2, java.util.concurrent.TimeUnit.SECONDS));
+        boolean leFormat = editions != null && !editions.isEmpty()
+                && editions.get(0).nouveauTexte().startsWith("int");
+        return lePlan && lePli && leFormat;
     }
 
     /** Le fil du protocole : la session de langage démarrée, la demande jointe. */
