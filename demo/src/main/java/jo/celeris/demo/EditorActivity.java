@@ -154,8 +154,12 @@ public final class EditorActivity extends AppCompatActivity {
 
     private FichierExemple resoudreFichier() {
         String demande = getIntent().getStringExtra(EXTRA_FICHIER);
-        FichierExemple fichier = FichiersExemple.parNom(
-                demande == null ? FichiersExemple.premier().nom() : demande);
+        // Le paquet jouet (H-04) : l'échantillon ne se résout que si le
+        // paquet vit au stockage — la carte n'ouvrait pas sinon.
+        String nom = demande == null ? FichiersExemple.premier().nom() : demande;
+        FichierExemple fichier = FichiersExemple.parNom(nom,
+                PaquetJouet.installe(getFilesDir().toPath()
+                        .resolve(PaquetJouet.DOSSIER)));
         return fichier == null ? FichiersExemple.premier() : fichier;
     }
 

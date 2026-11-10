@@ -50,7 +50,19 @@ public record CarteFichier(String nom, String monogramme, int couleur,
      * @return les cartes, non modifiables
      */
     public static List<CarteFichier> catalogue() {
-        return FichiersExemple.catalogue().stream()
+        return catalogue(false);
+    }
+
+    /**
+     * Les cartes du catalogue complet, l'échantillon du paquet jouet
+     * compris quand il est installé (H-04) : sa carte porte le badge du
+     * langage détecté — « Lg » de Logo quand le paquet vit au stockage.
+     *
+     * @param paquetJouet vrai quand le paquet jouet vit au stockage
+     * @return les cartes, non modifiables
+     */
+    public static List<CarteFichier> catalogue(boolean paquetJouet) {
+        return FichiersExemple.catalogue(paquetJouet).stream()
                 .map(CarteFichier::depuis).collect(Collectors.toList());
     }
 

@@ -110,6 +110,8 @@
     <string name="desc_theme">Switch the editor palette between light and dark</string>
     <string name="reglage_lenteur">Analysis lag</string>
     <string name="desc_lenteur">Delay before the coloring republishes after typing</string>
+    <string name="reglage_paquet_jouet">Toy language pack</string>
+    <string name="desc_paquet_jouet">Copy the Logo toy pack to storage — the editor gains a language without recompiling (H-04)</string>
     <string name="reglage_surimpression">Diagnostic overlay</string>
     <string name="desc_surimpression">Show font size, gutter width and discolored frames over the scene</string>
     <string name="unite_ms">%1$d ms</string>

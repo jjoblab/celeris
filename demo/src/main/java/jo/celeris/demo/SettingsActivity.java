@@ -16,15 +16,19 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 import jo.celeris.android.view.EditorView;
 
 /**
- * Écran de réglages en direct : cinq interrupteurs et un curseur
+ * Écran de réglages en direct : six interrupteurs et un curseur
  * Material — numéros de ligne, retour souple, thème sombre de
- * l'éditeur, consentement IA, lenteur d'analyse et surimpression de
- * diagnostic — chacun décrit et persisté immédiatement
- * (SharedPreferences) ; l'écran d'éditeur réapplique tout à son
- * retour. Le thème sombre se lit dans l'index de thème de l'éditeur
+ * l'éditeur, consentement IA, lenteur d'analyse, surimpression de
+ * diagnostic et paquet de langage jouet (H-04) — chacun décrit et
+ * persisté immédiatement (SharedPreferences, le paquet jouet au
+ * stockage) ; l'écran d'éditeur réapplique tout à son retour. Le
+ * thème sombre se lit dans l'index de thème de l'éditeur
  * (1 = sombre). Libellés en ressources {@code en}/{@code fr}
  * complètes (ADR-008).
  */
@@ -62,6 +66,7 @@ public final class SettingsActivity extends AppCompatActivity {
         curseurLenteur(prefs);
         interrupteur(R.id.interrupteur_surimpression, prefs,
                 prefs.getBoolean(CLE_SURIMPRESSION, false), CLE_SURIMPRESSION);
+        interrupteurPaquetJouet();
         appliquerBordABord();
     }
 
@@ -121,6 +126,56 @@ public final class SettingsActivity extends AppCompatActivity {
         vue.setOnCheckedChangeListener(
                 (interrupteur, nouvelEtat) -> prefs.edit()
                         .putBoolean(cle, nouvelEtat).apply());
+    }
+
+    /**
+     * Le paquet de langage jouet (H-04, M9) : la bascule COPIE le
+     * paquet Logo au dossier des paquets de l'utilisateur ou le
+     * RETIRE — le registre se RECHARGE à chaud, l'accueil resoumet
+     * ses cartes au retour : ajouter un langage ne recompile rien,
+     * c'est cela que la bascule démontre.
+     */
+    private void interrupteurPaquetJouet() {
+        MaterialSwitch vue = findViewById(R.id.interrupteur_paquet_jouet);
+        Path dossier = getFilesDir().toPath().resolve(PaquetJouet.DOSSIER);
+        LangagesDemo.dossierPaquets(dossier);
+        vue.setChecked(PaquetJouet.installe(dossier));
+        vue.setOnCheckedChangeListener((interrupteur, coche) -> {
+            vue.setEnabled(false);
+            new Thread(() -> basculerPaquet(dossier, coche),
+                    "celeris-paquet-jouet").start();
+        });
+    }
+
+    /**
+     * La bascule exécutée hors fil UI : l'écriture au stockage, puis le
+     * rechargement du registre — l'interrupteur se réactive à la fin,
+     * échec ou pas.
+     *
+     * @param dossier le dossier des paquets de l'utilisateur
+     * @param coche    l'état demandé par la bascule
+     */
+    private void basculerPaquet(Path dossier, boolean coche) {
+        try {
+            if (coche) {
+                PaquetJouet.installer(dossier);
+            } else {
+                PaquetJouet.retirer(dossier);
+            }
+            LangagesDemo.recharger();
+        } catch (IOException echec) {
+            runOnUiThread(() -> retablirInterrupteur(coche));
+            return;
+        }
+        runOnUiThread(() ->
+                findViewById(R.id.interrupteur_paquet_jouet).setEnabled(true));
+    }
+
+    /** Rétablit l'interrupteur après un échec d'écriture. */
+    private void retablirInterrupteur(boolean coche) {
+        MaterialSwitch vue = findViewById(R.id.interrupteur_paquet_jouet);
+        vue.setChecked(!coche);
+        vue.setEnabled(true);
     }
 
     /** Le chrome s'étend bord à bord : les encarts deviennent marges. */
