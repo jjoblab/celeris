@@ -44,7 +44,7 @@ développement, quel que soit le statut de C12.
 | --- | --- | --- | --- | --- |
 | C1 | Publication réelle de 1.0.0 : tag, workflow distant, artefact vérifié | P0 | ~1 j | Bloqué |
 | C2 | Hygiène du dépôt : dependabot + politique de sécurité | P0 | ~1 h | Terminé |
-| C3 | Cohérence documentaire : les incohérences de l'audit | P0 | ~0,5 j | Non démarré |
+| C3 | Cohérence documentaire : les incohérences de l'audit | P0 | ~0,5 j | Terminé |
 | C4 | `USAGE.md` : guide d'intégration hôte | P0 | 2–3 j | Non démarré |
 | C5 | Langages par paquets : HTML d'abord, puis la longue traîne | P1 | 1–2 j / langue | Non démarré |
 | C6 | Raffinements de complétion | P1 | 3–5 j | Non démarré |
@@ -96,7 +96,7 @@ racine ; le changelog en rend compte.
 
 ### C3 — Cohérence documentaire
 
-**Statut** : non démarré.
+**Statut** : terminé le 2026-11-10 (erratum du résumé M9, bannière du cli en 1.0.0).
 
 **Périmètre** : réconcilier les incohérences vérifiées par l'audit
 (§ 7.1) —
@@ -284,6 +284,7 @@ dépôt de départ, hors de ce bac à sable.
 | Date | Chantier | Preuve |
 | --- | --- | --- |
 | 2026-11-10 | C2 — hygiène du dépôt | dependabot (`.github/dependabot.yml`, commit e84ba50) et `SECURITY.md` (commit 8f20df7) ; entrée `[1.1.0]` du changelog |
+| 2026-11-10 | C3 — cohérence documentaire | erratum du résumé M9 (commit 4f580e9) ; bannière du cli en 1.0.0 et test cliquet (commit 7acce1f) |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 

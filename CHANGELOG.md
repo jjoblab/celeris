@@ -19,6 +19,14 @@ vivent dans les ADR et le registre de portage, pas ici.
   procédure du dépôt de départ, adaptée à l'état réel du dépôt
   (SBOM, provenance, revue M9).
 
+### Chantier C3 — cohérence documentaire
+
+- **Erratum du résumé M9** : huit modules publiés (le `cli` n'a pas
+  `maven-publish`), 16 lignes P0 au statut Noyau (la dette consignée
+  ligne à ligne par la matrice), parité en/fr mesurée à 99/99 clés.
+- **cli** : la bannière affiche 1.0.0 ; un test épingle la version
+  annoncée — plus de version fantôme.
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
