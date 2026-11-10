@@ -14,26 +14,29 @@ import jo.celeris.core.text.TextEdit;
 
 /**
  * L'extraction (B-20) : l'expression sélectionnée devient une
- * déclaration et la sélection se remplace par son nom. Trois variantes
+ * déclaration et la sélection se remplace par son nom. Cinq variantes
  * — la variable locale avant la ligne de la sélection
  * ({@code var nom = expression ;}), la constante et le champ de classe
- * avant l'accolade fermante de la classe porteuse. Le plan se construit
- * sur l'arbre (méthode porteuse, classe porteuse) et s'applique par la
- * voie de transaction, annulable ; les éditions descendent — les offsets
- * originaux restent valides au fil de l'application séquentielle.
+ * avant l'accolade fermante de la classe porteuse, la méthode après la
+ * méthode porteuse (l'analyse des flux décide les paramètres) et le
+ * paramètre de la méthode porteuse (la signature se réécrit, les appels
+ * du document suivent). Le plan se construit sur l'arbre (méthode et
+ * classe porteuses) et s'applique par la voie de transaction,
+ * annulable ; les éditions descendent — les offsets originaux restent
+ * valides au fil de l'application séquentielle.
  *
- * <p>Limites documentées : les variantes méthode (flux d'exécution à
- * extraire, paramètres à inférer) et paramètre (signature porteuse à
- * réécrire) attendent l'analyse des flux — elles restent au chantier.
- * Le type de la constante et du champ se lit sur la FORME du littéral
- * par {@link #literalType(String)} — sans littéral lisible, les deux
- * variantes refusent (plan nul, jamais un plan faux) ; la variable
- * locale tombe sur {@code var}, qui n'exige rien. La déclaration locale
- * se pose avant la LIGNE de la sélection : l'instruction multi-lignes
- * qui porterait la sélection au-delà de sa première ligne reste la
- * limite documentée. La validité du nom reste la charge de l'appelant
- * — la constante se crie en majuscules aux joints de casse, le champ
- * garde la casse donnée.</p>
+ * <p>Limites documentées : le type de la constante et du champ se lit
+ * sur la FORME du littéral par {@link #literalType(String)} — sans
+ * littéral lisible, les deux variantes refusent (plan nul, jamais un
+ * plan faux) ; la variable locale tombe sur {@code var}, qui n'exige
+ * rien. La déclaration locale se pose avant la LIGNE de la sélection :
+ * l'instruction multi-lignes qui porterait la sélection au-delà de sa
+ * première ligne reste la limite documentée. La validité du nom reste
+ * la charge de l'appelant — la constante se crie en majuscules aux
+ * joints de casse, les autres gardent la casse donnée. Les règles de
+ * lecture des flux (références libres, déclarations, types, appels)
+ * vivent dans {@link FlowAnalysis}, {@link MethodStructure},
+ * {@link TypeRun}, {@link ExpressionTypes} et {@link FlowExtractions}.</p>
  */
 public final class Extraction {
 
@@ -134,7 +137,73 @@ public final class Extraction {
     }
 
     /**
-     * Le type lexical d'une expression littérale : la forme du texte
+     * Extrait l'expression sélectionnée en méthode : la sélection se
+     * remplace par l'appel et la méthode naît après la méthode porteuse.
+     * Les références libres de la sélection déclarées dans la porteuse
+     * (paramètres de signature, locaux du corps) deviennent les
+     * paramètres de la nouvelle méthode, dans l'ordre de leur première
+     * lecture ; les champs de la classe porteuse passent sans paramètre
+     * ; une référence nue non résolue refuse le plan — jamais un plan
+     * faux. Le type de retour se lit sur la forme de l'expression :
+     * littéral, référence seule, promotion numérique des mélanges
+     * arithmétiques, concaténation quand une chaîne se joint à des
+     * « + » seuls.
+     *
+     * @param doc     le document, jamais muté
+     * @param analyse l'analyse courante du document
+     * @param start   début de la sélection
+     * @param end     fin de la sélection (exclusive)
+     * @param name    le nom de la méthode, casse gardée
+     * @return le plan, ou null hors d'une méthode porteuse, sur une
+     *         référence nue non résolue ou sans type de retour lisible
+     * @throws IllegalArgumentException si la sélection est vide, inversée
+     *         ou hors bornes, ou si le nom est blanc
+     */
+    public static @Nullable ExtractionPlan method(Document doc, Analysis analyse,
+            int start, int end, String name) {
+        requireSelection(doc, start, end);
+        requireName(name);
+        OutlineEntry enclosing = enclosing(doc, analyse, start, end, NodeCategory.FUNCTION);
+        if (enclosing == null) {
+            return null;
+        }
+        return FlowExtractions.method(doc, analyse, enclosing, start, end, name);
+    }
+
+    /**
+     * Extrait l'expression sélectionnée en paramètre de la méthode
+     * porteuse : la signature gagne le paramètre typé, la sélection se
+     * remplace par son nom et chaque appel du document passe l'expression
+     * en argument. L'expression ne peut lire que des littéraux et des
+     * champs — ce qui est invalide aux appels refuse le plan. Un appel
+     * sur un récepteur qui n'est pas {@code this} (cible inconnue), une
+     * référence de méthode ({@code ::nom}) ou une surcharge homonyme
+     * refuse le plan — jamais un plan faux.
+     *
+     * @param doc     le document, jamais muté
+     * @param analyse l'analyse courante du document
+     * @param start   début de la sélection
+     * @param end     fin de la sélection (exclusive)
+     * @param name    le nom du paramètre, casse gardée
+     * @return le plan, ou null hors d'une méthode porteuse, sur une
+     *         expression invivable aux appels, sur un appel ambigu ou
+     *         une surcharge homonyme
+     * @throws IllegalArgumentException si la sélection est vide, inversée
+     *         ou hors bornes, ou si le nom est blanc
+     */
+    public static @Nullable ExtractionPlan parameter(Document doc, Analysis analyse,
+            int start, int end, String name) {
+        requireSelection(doc, start, end);
+        requireName(name);
+        OutlineEntry enclosing = enclosing(doc, analyse, start, end, NodeCategory.FUNCTION);
+        if (enclosing == null) {
+            return null;
+        }
+        return FlowExtractions.parameter(doc, analyse, enclosing, start, end, name);
+    }
+
+    /**
+     * Le type lexical d'une expression littérale : la forme du text
      * décide, jamais le contexte — {@code int} pour l'entier décimal,
      * hexadécimal ou binaire ({@code long} avec le suffixe), {@code
      * double} et {@code float} pour les décimaux à point, {@code
@@ -255,7 +324,7 @@ public final class Extraction {
      * L'entrée du plan qui enclot la sélection : la déclaration la plus
      * intime de la catégorie donnée.
      */
-    private static @Nullable OutlineEntry enclosing(Document doc, Analysis analyse,
+    static @Nullable OutlineEntry enclosing(Document doc, Analysis analyse,
             int start, int end, NodeCategory category) {
         OutlineEntry best = null;
         for (OutlineEntry entry : TreeOutline.entries(doc, analyse)) {
@@ -270,8 +339,8 @@ public final class Extraction {
         return best;
     }
 
-    /** Le retrait d'une ligne : espaces et tabulations de tête. */
-    private static String indentationOf(Document doc, int lineStart) {
+    /** Le indent d'une ligne : espaces et tabulations de tête. */
+    static String indentationOf(Document doc, int lineStart) {
         int end = lineStart;
         while (end < doc.length() && (doc.charAt(end) == ' ' || doc.charAt(end) == '\t')) {
             end++;
