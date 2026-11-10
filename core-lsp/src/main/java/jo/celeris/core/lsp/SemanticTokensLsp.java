@@ -16,13 +16,13 @@ import org.jspecify.annotations.Nullable;
  * domaine. Les jetons rejoindront la session à la couverture nouvelle
  * (H-12).
  */
-public final class JetonsSemantiques {
+public final class SemanticTokensLsp {
 
     private final @Nullable String identifiantResultat;
-    private final List<JetonSemantique> jetons;
+    private final List<SemanticTokenLsp> jetons;
 
-    private JetonsSemantiques(@Nullable String identifiantResultat,
-                              List<JetonSemantique> jetons) {
+    private SemanticTokensLsp(@Nullable String identifiantResultat,
+                              List<SemanticTokenLsp> jetons) {
         this.identifiantResultat = identifiantResultat;
         this.jetons = List.copyOf(jetons);
     }
@@ -40,23 +40,23 @@ public final class JetonsSemantiques {
      * @throws IllegalArgumentException si les données ne sont pas une
      *         suite de quintuples
      */
-    public static JetonsSemantiques de(@Nullable String identifiant,
+    public static SemanticTokensLsp de(@Nullable String identifiant,
             List<Integer> donnees) {
         if (donnees.size() % 5 != 0) {
             throw new IllegalArgumentException(
                     "semantic token data must be a list of quintuples");
         }
-        List<JetonSemantique> jetons = new ArrayList<>();
+        List<SemanticTokenLsp> jetons = new ArrayList<>();
         int ligne = 0;
         int colonne = 0;
         for (int i = 0; i < donnees.size(); i += 5) {
             ligne += donnees.get(i);
             colonne = donnees.get(i) != 0 ? donnees.get(i + 1)
                     : colonne + donnees.get(i + 1);
-            jetons.add(new JetonSemantique(ligne, colonne, donnees.get(i + 2),
+            jetons.add(new SemanticTokenLsp(ligne, colonne, donnees.get(i + 2),
                     donnees.get(i + 3), donnees.get(i + 4)));
         }
-        return new JetonsSemantiques(identifiant, jetons);
+        return new SemanticTokensLsp(identifiant, jetons);
     }
 
     /** L'identifiant de résultat du serveur, pour un décodage incrémental — ou null. */
@@ -65,7 +65,7 @@ public final class JetonsSemantiques {
     }
 
     /** Les jetons en positions absolues, dans l'ordre du flux. */
-    public List<JetonSemantique> jetons() {
+    public List<SemanticTokenLsp> jetons() {
         return jetons;
     }
 }

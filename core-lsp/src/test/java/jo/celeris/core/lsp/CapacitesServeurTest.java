@@ -22,6 +22,7 @@ class CapacitesServeurTest {
     void laFabriqueTypee() {
         CapacitesServeur capacites = CapacitesServeur.de(2,
                 true, true, true, true, true, true, true, true, true,
+                true, true, true, true,
                 List.of("keyword", "variable"), List.of("declaration"));
         assertEquals(2, capacites.genreSynchro());
         assertTrue(capacites.sertCompletion());
@@ -29,6 +30,10 @@ class CapacitesServeurTest {
         assertTrue(capacites.sertSignature());
         assertTrue(capacites.sertDefinition());
         assertTrue(capacites.sertReferences());
+        assertTrue(capacites.sertSurlignages());
+        assertTrue(capacites.sertSymboles());
+        assertTrue(capacites.sertPlis());
+        assertTrue(capacites.sertSelectionPlages());
         assertTrue(capacites.sertRennomage());
         assertTrue(capacites.sertCorrectifs());
         assertTrue(capacites.sertFormatage());
@@ -47,6 +52,10 @@ class CapacitesServeurTest {
         assertFalse(vides.sertSignature());
         assertFalse(vides.sertDefinition());
         assertFalse(vides.sertReferences());
+        assertFalse(vides.sertSurlignages());
+        assertFalse(vides.sertSymboles());
+        assertFalse(vides.sertPlis());
+        assertFalse(vides.sertSelectionPlages());
         assertFalse(vides.sertRennomage());
         assertFalse(vides.sertCorrectifs());
         assertFalse(vides.sertFormatage());
