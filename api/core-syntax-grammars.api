@@ -58,13 +58,14 @@ final class jo.celeris.core.syntax.grammars.GardeCatastrophique {
 ### jo.celeris.core.syntax.grammars.Grammaire
 Compiled from "Grammaire.java"
 public final class jo.celeris.core.syntax.grammars.Grammaire extends java.lang.Record {
-  public jo.celeris.core.syntax.grammars.Grammaire(java.lang.String, java.lang.String, java.util.List<jo.celeris.core.syntax.grammars.Regle>, jo.celeris.core.syntax.grammars.RapportGrammaire);
+  public jo.celeris.core.syntax.grammars.Grammaire(java.lang.String, java.lang.String, java.util.List<jo.celeris.core.syntax.grammars.Regle>, java.util.List<jo.celeris.core.syntax.grammars.Injection>, jo.celeris.core.syntax.grammars.RapportGrammaire);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String nom();
   public java.lang.String porteeRacine();
   public java.util.List<jo.celeris.core.syntax.grammars.Regle> motifs();
+  public java.util.List<jo.celeris.core.syntax.grammars.Injection> injections();
   public jo.celeris.core.syntax.grammars.RapportGrammaire rapport();
 }
 
@@ -125,6 +126,18 @@ public final class jo.celeris.core.syntax.grammars.Grammaires {
   public static jo.celeris.core.syntax.grammars.Grammaire lire(java.lang.String, java.util.Map<java.lang.String, jo.celeris.core.syntax.grammars.Grammaire>);
 }
 
+### jo.celeris.core.syntax.grammars.Injection
+Compiled from "Injection.java"
+public final class jo.celeris.core.syntax.grammars.Injection extends java.lang.Record {
+  public jo.celeris.core.syntax.grammars.Injection(jo.celeris.core.syntax.ScopeSelector, java.util.List<jo.celeris.core.syntax.grammars.Regle>, boolean);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.syntax.ScopeSelector selector();
+  public java.util.List<jo.celeris.core.syntax.grammars.Regle> regles();
+  public boolean prioriteGauche();
+}
+
 ### jo.celeris.core.syntax.grammars.LecteurGrammaire
 Compiled from "LecteurGrammaire.java"
 final class jo.celeris.core.syntax.grammars.LecteurGrammaire {
@@ -154,10 +167,10 @@ public final class jo.celeris.core.syntax.grammars.RapportGrammaire extends java
   public int acceptes();
   public int refuses();
   public int inclusionsExterieures();
+  public int inclusionsInternes();
   public int reglesWhile();
   public int reglesDrapeaux();
   public int capturesSousMotifs();
-  public int injectionsIgnorees();
 }
 
 ### jo.celeris.core.syntax.grammars.Regle

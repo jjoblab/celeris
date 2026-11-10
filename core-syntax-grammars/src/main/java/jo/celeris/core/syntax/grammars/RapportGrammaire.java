@@ -9,22 +9,24 @@ package jo.celeris.core.syntax.grammars;
  *
  * @param motifs              les expressions rencontrées (match, begin, end)
  * @param acceptes            les expressions compilées par joni
- * @param refuses             les règles écartées — motif invalide pour Oniguruma
+ * @param refuses             les règles écartées — motif invalide ou forme catastrophique
  * @param inclusionsExterieures les inclusions de portée externe absentes du registre
+ * @param inclusionsInternes  les inclusions de référentiel inconnues — sautées,
+ *                            comptées (les grammaires du commerce s'en
+ *                            portent auteurs, VS Code les tolère aussi)
  * @param reglesWhile         les règles {@code begin/while} dégradées en motif simple
  * @param reglesDrapeaux      les drapeaux tolérés ({@code applyEndPatternLast} ignoré)
  * @param capturesSousMotifs  les captures à sous-motifs, dégradées au seul nom
- * @param injectionsIgnorees  les injections racine ignorées
  */
 public record RapportGrammaire(int motifs, int acceptes, int refuses,
-        int inclusionsExterieures, int reglesWhile, int reglesDrapeaux,
-        int capturesSousMotifs, int injectionsIgnorees) {
+        int inclusionsExterieures, int inclusionsInternes, int reglesWhile,
+        int reglesDrapeaux, int capturesSousMotifs) {
 
     /** Le constructeur canonique refuse les compteurs négatifs. */
     public RapportGrammaire {
         if (motifs < 0 || acceptes < 0 || refuses < 0 || inclusionsExterieures < 0
-                || reglesWhile < 0 || reglesDrapeaux < 0 || capturesSousMotifs < 0
-                || injectionsIgnorees < 0) {
+                || inclusionsInternes < 0 || reglesWhile < 0 || reglesDrapeaux < 0
+                || capturesSousMotifs < 0) {
             throw new IllegalArgumentException("les compteurs sont positifs");
         }
     }
@@ -47,10 +49,10 @@ public record RapportGrammaire(int motifs, int acceptes, int refuses,
         private int acceptes;
         private int refuses;
         private int inclusionsExterieures;
+        private int inclusionsInternes;
         private int reglesWhile;
         private int reglesDrapeaux;
         private int capturesSousMotifs;
-        private int injectionsIgnorees;
 
         /** Une expression rencontrée et compilée. */
         void accepte() {
@@ -69,6 +71,11 @@ public record RapportGrammaire(int motifs, int acceptes, int refuses,
             inclusionsExterieures++;
         }
 
+        /** Une inclusion de référentiel inconnue — sautée, comptée. */
+        void inclusionInterne() {
+            inclusionsInternes++;
+        }
+
         /** Une règle begin/while dégradée en motif simple. */
         void regleWhile() {
             reglesWhile++;
@@ -84,15 +91,11 @@ public record RapportGrammaire(int motifs, int acceptes, int refuses,
             capturesSousMotifs++;
         }
 
-        /** Une injection racine ignorée. */
-        void injectionIgnoree() {
-            injectionsIgnorees++;
-        }
-
         /** Le rapport figé. */
         RapportGrammaire tisser() {
             return new RapportGrammaire(motifs, acceptes, refuses, inclusionsExterieures,
-                    reglesWhile, reglesDrapeaux, capturesSousMotifs, injectionsIgnorees);
+                    inclusionsInternes, reglesWhile, reglesDrapeaux,
+                    capturesSousMotifs);
         }
     }
 }

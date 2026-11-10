@@ -1,0 +1,9 @@
+'use strict';
+const vitesse = 10;
+function calculer(total, ...reste) {
+  return total + reste.reduce((a, b) => a + b, 0);
+}
+class Essai {
+  constructor(nom) { this.nom = nom; }
+}
+export { calculer, Essai };

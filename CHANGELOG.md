@@ -7,6 +7,49 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 (H-05) — les injections vivent, les grammaires du commerce chargent sans modification (2026-11-10)
+
+- **Les injections TextMate s'appliquent (H-05)** : la clé de chaque
+  injection porte son sélecteur de portées et sa priorité —
+  `L:` devant la fermeture et le contexte, `R:` et sans
+  préfixe derrière (l'hôte reste maître chez lui). Le lexeur
+  évalue les sélecteurs contre la PILE courante à chaque position ;
+  la règle injectée porte sa pile, empilée sur le contexte
+  accueil. Les grammaires SANS injection gardent le chemin rapide
+  d'avant. Le compteur « injections ignorées » disparaît du
+  rapport : elles ne s'ignorent plus.
+- **La forme catastrophique écarte SA règle, jamais le paquet** :
+  le garde de l'étape 5 refusait le paquet entier — or les
+  grammaires du commerce portent des formes que l'analyse textuelle
+  refuse à tort (`(?x)` étendu de python, attributs HTML) et
+  le critère du jalon exige leur chargement SANS MODIFICATION. La
+  règle écartée se compte au rapport comme un motif invalide :
+  elle ne colore rien, le budget d'exécution garde le reste, jamais
+  un gel. Même justice pour les inclusions de référentiel
+  inconnues (sautées, comptées — le shell du commerce s'en porte
+  auteur) ; le banc des PAQUETS INTÉGRÉS exige leur absence,
+  les paquets écrits ici restent stricts.
+- **Le banc de conformité du commerce (H-05)** : les ONZE grammaires
+  des extensions de VS Code (c, cpp, css, html, javascript, json,
+  markdown, python, shell, typescript, yaml — MIT, épinglées,
+  provenance au registre de portage et au NOTICE, hors artefacts
+  publiés) chargent TELLES QUE PUBLIÉES, rejouent leur échantillon
+  avec déterminisme, jetons à piles de portées, aucun incident de
+  budget. L'acceptation se mesure et se seuille par grammaire — le
+  cliquet contre la dérive d'une montée de version : json 100 %,
+  python 98,8 %, html 98,7 %, shell 99,4 %, css 96,6 %, c 95,8 %,
+  markdown 93,9 %, javascript 90,3 %, typescript 90,2 %, yaml
+  87,5 %, cpp 71,5 % (les refus : garde catastrophique
+  conservateur, comptés, jamais silencieux).
+- **La preuve** : `InjectionsLexeurTest` (L: gagne les ex æquo,
+  R: les cède, le sélecteur ne s'applique que sur sa pile,
+  l'exclusion écarte) ; `GrammairesCommerceTest` (chargement,
+  seuils, rejeu, déterminisme, injections html présentes) ;
+  l'inclusion inconnue et la forme catastrophique se comptent au
+  rapport dans `GrammairesTest` et `GrammairesTextMateTest` ; les
+  paquets intégrés restent à 100 % d'acceptation et sans
+  inclusion inconnue (`GrammairesConformiteTest`).
+
 ### M7.6 (H-07) — les thèmes se résolvent par portées : sélecteurs TextMate, import tokenColors, la couleur quitte la sorte (2026-11-10)
 
 - **La pile de portées vit dans le jeton** : le lexeur de la voie

@@ -34,6 +34,18 @@ sera consignée ici avec son nom, sa version, sa licence et la
 vérification fichier par fichier exigée par le mandat, et restera
 compatible Apache-2.0 sauf validation explicite du propriétaire.
 
+## Données de banc — grammaires du commerce (M7.6, H-05)
+
+Les ONZE grammaires TextMate des extensions de VS Code (c, cpp, css,
+html, javascript, json, markdown, python, shell, typescript, yaml)
+vivent aux ressources de TEST de `core-syntax-grammars`
+(`grammaires-commerce/`) : elles servent au banc de conformité du
+commerce (chargement sans modification, seuils d'acceptation par
+grammaire) et ne paraissent dans AUCUN artefact publié. Source : le
+dépôt `microsoft/vscode` (licence MIT, épinglé au main vérifié le
+2026-11-08 par `spikes/regex/recuperer-grammaires`, sommes consignées
+à `spikes/regex/results/`) ; reproduction inchangée.
+
 ## Dépendance tierce au runtime des artefacts publiés — grammaires (M7.6)
 
 Le module publié `core-syntax-grammars` embarque le moteur
