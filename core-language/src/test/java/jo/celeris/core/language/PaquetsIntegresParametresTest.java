@@ -57,7 +57,7 @@ final class PaquetsIntegresParametresTest {
         LanguageConfiguration configuration = pack.configuration();
         List<String> attendusAvecCommentaire = List.of("java", "kotlin", "kts",
                 "groovy", "xml", "toml", "yaml", "properties", "markdown",
-                "python", "shell", "sql", "c", "cpp", "proguard");
+                "python", "shell", "sql", "c", "cpp", "proguard", "html");
         if (attendusAvecCommentaire.contains(id)) {
             assertTrue(configuration.comments().commentable(),
                     id + " déclare ses commentaires");
