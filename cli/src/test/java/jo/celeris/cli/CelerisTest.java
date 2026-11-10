@@ -40,4 +40,17 @@ public final class CelerisTest {
         assertTrue(sortie.contains("core-text"), "le premier module doit apparaître");
         assertTrue(sortie.contains("core-ai"), "le dernier module doit apparaître");
     }
+
+    /**
+     * La bannière épingle la version de la sortie courante — le cliquet
+     * du chantier C3 : la constante datait de l'avant-publication.
+     */
+    @Test
+    public void laBanniereAnnonceLaVersionDeLaSortie() {
+        ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+        Celeris.executer(new String[0],
+                new PrintStream(tampon, true, StandardCharsets.UTF_8));
+        assertTrue(tampon.toString(StandardCharsets.UTF_8).startsWith("celeris 1.0.0"),
+                "la bannière doit annoncer la version du dépôt");
+    }
 }
