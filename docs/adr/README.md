@@ -37,7 +37,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-015](015-client-lsp-sur-lsp4j.md) | Client LSP sur LSP4J derrière une frontière | Acceptée (spike M7.6, validée le 2026-11-09) |
 | [ADR-016](016-treesitter-niveau-2.md) | Analyse structurelle niveau 2 : tree-sitter écarté à M7.6 | Proposition (spike M7.6) |
 | [ADR-017](017-plateforme-de-langages.md) | Plateforme de langages : paquets, modèle et coutures | Acceptée (jalon M7.6) |
-| [ADR-018](018-interface-tout-en-popups.md) | Interface fonctionnelle : tout en popups | Acceptée (décision du propriétaire, 2026-11-11) |
+| [ADR-018](018-interface-tout-en-popups.md) | Interface fonctionnelle : tout en popups | Acceptée (décision du propriétaire, 2026-11-10) |
 
 ## Règles
 

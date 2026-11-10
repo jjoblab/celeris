@@ -1,7 +1,7 @@
 # ADR-018 — Interface fonctionnelle : tout en popups
 
-- **Statut** : Acceptée (décision du propriétaire du 2026-11-11)
-- **Date** : 2026-11-11
+- **Statut** : Acceptée (décision du propriétaire du 2026-11-10)
+- **Date** : 2026-11-10
 
 ## Contexte
 
@@ -13,7 +13,7 @@ Mais aucune règle n'interdisait jusqu'ici à une fonctionnalité d'ouvrir
 un écran plein cadre ou un dialogue système, et la démonstration porte
 des surfaces plein cadre (écran de réglages, catalogue de scénarios).
 
-Le propriétaire arrête le principe le 2026-11-11 : pour les
+Le propriétaire arrête le principe le 2026-11-10 : pour les
 fonctionnalités des chantiers en cours, à venir et existantes, il ne
 veut que des popups — feuilles surgissantes basses et hautes, popups
 ancrées.
@@ -67,7 +67,7 @@ Android l'exige — mais ses surfaces fonctionnelles migrent en feuilles.
 
 ## Actions
 
-- [x] Consigner la décision (le présent ADR, le 2026-11-11).
+- [x] Consigner la décision (le présent ADR, le 2026-11-10).
 - [ ] Inventorier les surfaces fonctionnelles existantes (la
       démonstration en tête) et migrer les non-conformes — chantier
       dédié de la feuille de route.
