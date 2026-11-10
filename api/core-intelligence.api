@@ -102,6 +102,16 @@ public final class jo.celeris.core.intelligence.EditorConfig {
   public static java.lang.String appliquerFins(java.lang.String, jo.celeris.core.intelligence.EditorConfig$Regles);
 }
 
+### jo.celeris.core.intelligence.ExpressionTypes$MixState
+Compiled from "ExpressionTypes.java"
+final class jo.celeris.core.intelligence.ExpressionTypes$MixState {
+}
+
+### jo.celeris.core.intelligence.ExpressionTypes
+Compiled from "ExpressionTypes.java"
+final class jo.celeris.core.intelligence.ExpressionTypes {
+}
+
 ### jo.celeris.core.intelligence.Extraction$ExtractionPlan
 Compiled from "Extraction.java"
 public final class jo.celeris.core.intelligence.Extraction$ExtractionPlan extends java.lang.Record {
@@ -118,7 +128,67 @@ public final class jo.celeris.core.intelligence.Extraction {
   public static jo.celeris.core.intelligence.Extraction$ExtractionPlan variable(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
   public static jo.celeris.core.intelligence.Extraction$ExtractionPlan constant(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
   public static jo.celeris.core.intelligence.Extraction$ExtractionPlan field(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
+  public static jo.celeris.core.intelligence.Extraction$ExtractionPlan method(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
+  public static jo.celeris.core.intelligence.Extraction$ExtractionPlan parameter(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
   public static java.lang.String literalType(java.lang.String);
+}
+
+### jo.celeris.core.intelligence.FlowAnalysis$AbsoluteToken
+Compiled from "FlowAnalysis.java"
+final class jo.celeris.core.intelligence.FlowAnalysis$AbsoluteToken extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.syntax.TokenKind kind();
+  public int offset();
+  public java.lang.String text();
+}
+
+### jo.celeris.core.intelligence.FlowAnalysis$Call
+Compiled from "FlowAnalysis.java"
+final class jo.celeris.core.intelligence.FlowAnalysis$Call extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int openParen();
+  public int closeParen();
+}
+
+### jo.celeris.core.intelligence.FlowAnalysis$CallCollector
+Compiled from "FlowAnalysis.java"
+final class jo.celeris.core.intelligence.FlowAnalysis$CallCollector {
+}
+
+### jo.celeris.core.intelligence.FlowAnalysis$CallSites
+Compiled from "FlowAnalysis.java"
+final class jo.celeris.core.intelligence.FlowAnalysis$CallSites extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.intelligence.FlowAnalysis$Call> calls();
+  public boolean ambiguous();
+  public boolean methodReference();
+}
+
+### jo.celeris.core.intelligence.FlowAnalysis$Reference
+Compiled from "FlowAnalysis.java"
+final class jo.celeris.core.intelligence.FlowAnalysis$Reference extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String name();
+  public int offset();
+  public boolean receiver();
+}
+
+### jo.celeris.core.intelligence.FlowAnalysis
+Compiled from "FlowAnalysis.java"
+final class jo.celeris.core.intelligence.FlowAnalysis {
+}
+
+### jo.celeris.core.intelligence.FlowExtractions
+Compiled from "FlowExtractions.java"
+final class jo.celeris.core.intelligence.FlowExtractions {
 }
 
 ### jo.celeris.core.intelligence.Formateur
@@ -250,6 +320,11 @@ public final class jo.celeris.core.intelligence.LineActions {
 Compiled from "LineSorter.java"
 public final class jo.celeris.core.intelligence.LineSorter {
   public static jo.celeris.core.intelligence.EditPlan sort(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, boolean);
+}
+
+### jo.celeris.core.intelligence.MethodStructure
+Compiled from "MethodStructure.java"
+final class jo.celeris.core.intelligence.MethodStructure {
 }
 
 ### jo.celeris.core.intelligence.OptimiseurImports$RapportImport
@@ -420,6 +495,11 @@ public final class jo.celeris.core.intelligence.Trou extends java.lang.Record {
   public int debut();
   public int fin();
   public java.lang.String variable();
+}
+
+### jo.celeris.core.intelligence.TypeRun
+Compiled from "TypeRun.java"
+final class jo.celeris.core.intelligence.TypeRun {
 }
 
 ### jo.celeris.core.intelligence.TypingRules
