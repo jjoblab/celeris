@@ -91,17 +91,26 @@ vivent dans les ADR et le registre de portage, pas ici.
   course. Le critère de la matrice se vérifie mot pour mot :
   « monCompteurDeLignes » se coupe en 4 mots (`CamelWordTest`,
   `CaretsMotionTest`).
-- **Extraire en variable, constante, champ (B-20)** : `Extraction` —
-  l'expression sélectionnée devient une déclaration et la sélection se
-  remplace par son nom. La variable locale se pose avant la ligne de la
-  sélection (`var nom = expression ;`, méthode porteuse exigée) ; la
-  constante et le champ se posent avant l'accolade fermante de la classe
-  porteuse, le type lu sur la forme du littéral (`literalType` : int,
-  long, double, float, boolean, char, String), le nom de constante crié
-  aux joints de casse (« maLimite » devient « MA_LIMITE »). Refus par
-  plan nul, jamais par plan faux ; les éditions descendent — le plan
-  s'applique en une transaction annulable (`ExtractionTest`). Restent au
-  chantier : extraire en méthode et en paramètre (analyse des flux).
+- **Extraire — les cinq variantes (B-20)** : `Extraction` — l'expression
+  sélectionnée devient une déclaration et la sélection se remplace par
+  son nom. La variable locale se pose avant la ligne de la sélection
+  (`var nom = expression ;`, méthode porteuse exigée) ; la constante et
+  le champ se posent avant l'accolade fermante de la classe porteuse, le
+  type lu sur la forme du littéral (`literalType` : int, long, double,
+  float, boolean, char, String), le nom de constante crié aux joints de
+  casse (« maLimite » devient « MA_LIMITE ») ; la méthode naît après
+  la porteuse — l'analyse des flux (`FlowAnalysis`, `MethodStructure`,
+  `TypeRun`, `ExpressionTypes`) lit les références libres : les
+  paramètres et locaux de la porteuse deviennent ceux de la nouvelle
+  méthode (dans l'ordre de leur première lecture, `var` lu sur son
+  initialisateur littéral), les champs passent, le type de retour se lit
+  sur la forme (promotion numérique, concaténation à « + » seuls) ; le
+  paramètre réécrit la signature et passe l'expression à chaque appel du
+  document (constructions comprises), l'expression n'y lit que littéraux
+  et champs — l'appel sur récepteur hors `this`, la référence `::` et la
+  surcharge homonyme refusent. Refus par plan nul, jamais par plan
+  faux ; les éditions descendent — le plan s'applique en une
+  transaction annulable (`ExtractionTest`).
 
 ## [1.0.0] — 2026-11-10
 

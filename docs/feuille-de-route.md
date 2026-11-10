@@ -307,11 +307,12 @@ fumée.
 **Avancement (2026-11-10)** : A-04 clos — `CamelWord` (core-text)
 raffine les frontières UAX #29 par les bossages de casse et de nature,
 `CaretsMotion` (android-view) y branche le déplacement et la sélection
-par mots, la matrice passe à Câblé (`CaretsMotionTest`) ; B-20 entamé
-et câblé sur ses trois variantes déclaratives — variable, constante,
-champ (`Extraction`, `ExtractionTest`, matrice à Câblé) — restent les
-variantes méthode et paramètre (analyse des flux), puis B-21 à B-23,
-A-14, A-17, D-14, D-20, G-03 et le volume de tests.
+par mots, la matrice passe à Câblé (`CaretsMotionTest`) ; B-20 clos —
+les cinq variantes câblées sur l’analyse des flux (variable, constante,
+champ, puis méthode et paramètre : `FlowAnalysis`, `MethodStructure`,
+`TypeRun`, `ExpressionTypes`, `FlowExtractions` — la matrice B-20 compte
+ses cinq), restent B-21 à B-23, A-14, A-17, D-14, D-20, G-03 et le
+volume de tests.
 
 **Source** : audit § 6, gaps 10 à 13.
 

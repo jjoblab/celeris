@@ -87,7 +87,7 @@
 | Élément | Décision | Justification | Tests associés |
 | --- | --- | --- | --- |
 | mots à bosses de chameau (A-04) | Spécifier | l'ancien ne la porte pas (« non vérifié » à l'audit) ; l'étalon est la matrice Android Studio — trois règles de bossage raffinent les frontières UAX #29, la base normative reste entière | `CamelWordTest` (critère de la matrice mot pour mot, BiDi et CJK), `CaretsMotionTest` (déplacement et sélection) |
-| extraire en variable, constante, champ (B-20) | Spécifier | l'ancien ne le porte pas (renommage et occurrences seuls) ; l'étalon est la matrice — le plan se construit sur l'arbre (méthode et classe porteuses), le type lexical sur la forme du littéral, refus par plan nul | `ExtractionTest` (variantes variable, constante, champ ; types lexicaux ; refus) ; restent méthode et paramètre (analyse des flux) |
+| extraire — les cinq variantes (B-20) | Spécifier | l'ancien ne le porte pas (renommage et occurrences seuls) ; l'étalon est la matrice — le plan se construit sur l'arbre (méthode et classe porteuses), le type lexical sur la forme du littéral, refus par plan nul ; les variantes méthode et paramètre étendent la même règle par l'analyse des flux — les références libres se résolvent aux déclarations de la porteuse et aux champs (le lexeur soude les jetons, les textes se décollent), les types se lisent sur la forme (promotion numérique, concaténation), les appels du document s'apparient par parenthèses ; le lu, jamais le deviné, décide | `ExtractionTest` (cinq variantes sur corpus Java : application, texte résultant, annulation, refus — hors méthode, nom inconnu, `var` illisible, local aux appels, surcharge, récepteur ambigu) |
 
 ## Outillage
 
