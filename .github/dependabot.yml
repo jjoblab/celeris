@@ -1,0 +1,36 @@
+# Dependabot (chantier C2 de la feuille de route ; audit comparatif
+# § 9, recommandation 2). Veille hebdomadaire sur :
+#   - les dépendances graduées — toute version vit au catalogue
+#     gradle/libs.versions.toml (ADR-011) ;
+#   - les actions GitHub du fichier .github/workflows/ci.yml,
+#     épinglées par somme SHA (le commentaire de version sert de
+#     repère à la mise à jour).
+# Correctifs et mineures se groupent en une seule demande ; les
+# majeures restent isolées — chaque montée de version traverse les
+# portes qualité du dépôt.
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "America/Port-au-Prince"
+    open-pull-requests-limit: 5
+    groups:
+      correctifs-et-mineures:
+        update-types:
+          - "patch"
+          - "minor"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "America/Port-au-Prince"
+    open-pull-requests-limit: 5
+    groups:
+      correctifs-et-mineures:
+        update-types:
+          - "patch"
+          - "minor"
