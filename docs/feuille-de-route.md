@@ -51,7 +51,7 @@ développement, quel que soit le statut de C12.
 | C7 | Signature riche et snippets riches | P1 | 3–5 j | Non démarré |
 | C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | Non démarré |
 | C9 | Chrome de l'éditeur : minimap, fil d'Ariane, barre d'erreurs, défilement rapide | P1 | 1–2 j / ornement | Non démarré |
-| C10 | Charge et limites : 480 000 lignes, mode gros fichiers | P1 | 2–3 j | Non démarré |
+| C10 | Charge et limites : 480 000 lignes, mode gros fichiers | P1 | 2–3 j | Terminé |
 | C11 | Second étage appareil de la vérification sur vitre | P1 | 1–2 j | Bloqué |
 | C12 | Harmonisation tout en popups des surfaces existantes (ADR-018) | P1 | 2–4 j | Terminé |
 | C13 | Deuxième vague : refactorings, ornement, volume de tests, CLI complète | P2 | 10–15 j | Non démarré |
@@ -201,14 +201,22 @@ matrice et son budget de rendu tenu (ADR-006).
 
 ### C10 — Charge et limites
 
-**Statut** : non démarré.
+**Statut** : terminé le 2026-11-10 (banc 480 000 lignes verrouillé, mode
+gros fichiers livré, limites au README).
 
 **Périmètre** : banc à 480 000 lignes à la manière du dépôt de départ
 (tas dédié), limites documentées équivalentes, mode gros fichiers — la
 charge n'est prouvée aujourd'hui qu'à 100 000 lignes (G-01).
 
-**Sortie** : le banc est verrouillé (ou son report est consigné) ; les
-limites sont écrites au README et au futur `USAGE.md` ; G-01 étendu.
+**Sortie** : le banc est verrouillé — `Charge480kLignesTest` (core-syntax,
+tas dédié de 1 Go : fenêtre d'abord 1441 ms / budget 2500 ms, incrément au
+milieu 36 ms / budget 100 ms, tas de l'ouverture +90 Mo / budget 192 Mo,
+calibrage consigné dans le banc) ; le mode gros fichiers tri-état
+AUTO/ON/OFF vit au concentrateur d'intelligence (`LargeFileMode`,
+`LargeFileModeTest`) — la complétion coupe au-delà des seuils du dépôt de
+départ, l'édition reste entière ; les limites sont écrites au README
+(section « Charge et limites » — le futur `USAGE.md` les reprendra, chantier
+C4) ; G-01 étendu à la matrice.
 
 **Source** : audit § 9, recommandation 8 ; § 6, gap 9.
 
@@ -292,6 +300,7 @@ dépôt de départ, hors de ce bac à sable.
 | 2026-11-10 | C2 — hygiène du dépôt | dependabot (`.github/dependabot.yml`, commit e84ba50) et `SECURITY.md` (commit 8f20df7) ; entrée `[1.1.0]` du changelog |
 | 2026-11-10 | C3 — cohérence documentaire | erratum du résumé M9 (commit 4f580e9) ; bannière du cli en 1.0.0 et test cliquet (commit 7acce1f) |
 | 2026-11-10 | C12 — harmonisation tout en popups | feuilles du kit (`FeuilleBas`, `FeuilleHaut`, 11 tests de vue), douze surfaces migrées, écran de réglages disparu du manifeste ; inventaire consigné (`docs/audit/INVENTAIRE-SURFACES.md`) |
+| 2026-11-10 | C10 — charge et limites | banc `Charge480kLignesTest` (480 000 lignes, tas dédié 1 Go), mode gros fichiers tri-état (`LargeFileMode` + `LargeFileModeTest`), limites au README (« Charge et limites ») ; G-01 étendu à la matrice |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 
