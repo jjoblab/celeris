@@ -64,6 +64,10 @@ construit l'ensemble avec SDK.
 - Toute version vit dans `gradle/libs.versions.toml` — une version en
   dur dans un module casse la CI.
 - `CHANGELOG.md` : une entrée par version, court par construction.
+- **Interface tout en popups (ADR-018)** : toute surface
+  fonctionnelle — nouvelle ou existante — est une popup (feuille du
+  bas, feuille du haut, popup ancrée) ; jamais d'écran plein cadre ni
+  de dialogue système pour une fonctionnalité.
 
 ## Portes qualité (toutes bloquantes)
 
