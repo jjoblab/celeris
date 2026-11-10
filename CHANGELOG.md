@@ -7,6 +7,48 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 (H-13) — les serveurs de langage se déclarent en données : `servers.json`, l'éditeur n'en connaît aucun (2026-11-10)
+
+- **La déclaration de serveur devient une donnée** : un
+  `LanguageServerDeclaration` — transport (`embedded`, `stdio` ou
+  `tcp`), classe du serveur, interface cliente, nom annoncé, options
+  d'initialisation — lu du `servers.json` d'un paquet ou du fichier
+  de l'hôte qui assemble son registre. Chaque transport exige ses
+  champs, la première faute nomme le sien, un paquet ne déclare QUE
+  son langage — et les SEIZE paquets intégrés n'en déclarent AUCUN :
+  l'éditeur ne connaît pas les serveurs de ses hôtes, il porte la
+  déclaration jusqu'à eux (règle du propriétaire : le module de
+  démonstration n'est pas l'utilisateur final de l'éditeur).
+- **La démonstration déclare, le montage exécute** : la ressource
+  `serveurs/servers.json` du module démo déclare le serveur tiers retiré
+  embarqué (M8.6 — identité au NOTICE) ; `DeclaredServers` lit la
+  donnée, vérifie la DISPONIBILITÉ (la classe vit au chemin de
+  classes) et monte par la désignation de la frontière — la table
+  codée en dur `SERVES_XML_EMBARQUE` et l'aiguillage `instanceof` de
+  `EditorActivity` disparaissent, l'exemption `LangagesDemo` du
+  contrôle d'enregistrement se retire (plus aucun littéral à
+  exempter). Indisponible, le serveur déclaré cède la place au
+  serveur de référence (M7.5, §8) — l'index répond vite et hors
+  ligne, le serveur répond juste, la vue ne sait toujours pas qui a
+  répondu (ADR-005).
+- **La session générique des serveurs déclarés** :
+  `DeclaredServerSession` remplace les connaissances XML codées
+  (`ServeurRetire` disparaît) — les CAPACITÉS NÉGOCIÉES à la
+  poignée de main décident des demandes : le serveur qui n'annonce
+  pas l'aide aux paramètres n'y est jamais sollicité, la complétion
+  se sert de la négociation, plus jamais d'une constante. La poignée
+  de main emporte les options d'initialisation de la déclaration,
+  telles quelles (`LspSession.initialiser(options)`).
+- **La preuve** : `LanguageServerDeclarationTest` (lecture entière et
+  refus précis des trois transports, paquet qui déclare le langage
+  d'un autre refusé, paquets intégrés sans serveur, plateforme
+  assemble les déclarations du paquet ET de l'hôte) ;
+  `DeclaredServersTest` (la déclaration de la démo décrit le serveur
+  XML, le langage déclaré monte SON serveur, sans déclaration ni
+  serveur indisponible le repli répond) ; les SEPT tests de parité et
+  les HUIT de couverture rejoués INTACTS par le chemin de la
+  déclaration — aucun nom de serveur dans le code de la démo.
+
 ### M7.6 (étape 8) — la couverture LSP nouvelle : treize méthodes derrière la frontière, le serveur réel les sert (2026-11-10)
 
 - **Treize méthodes du protocole raccordées, chacune à une interface

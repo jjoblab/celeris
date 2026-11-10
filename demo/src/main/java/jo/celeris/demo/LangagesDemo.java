@@ -1,6 +1,5 @@
 package jo.celeris.demo;
 
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -18,11 +17,11 @@ import org.jspecify.annotations.Nullable;
  * L'enregistrement des langages de la démonstration (M7.6) : le
  * registre assemblé de la plateforme — les seize paquets intégrés, la
  * fabrique de grammaires de la voie déclarative, la complétion
- * générique par les mots du code en repli de tous les langages. C'est
- * du code d'enregistrement : les littéraux d'identifiant y vivent (le
- * choix du serveur tiers retiré), comme dans les paquets, et nulle
- * part ailleurs — la règle {@code servers.json} des paquets les
- * remplacera au jalon LSP.
+ * générique par les mots du code en repli de tous les langages, les
+ * serveurs déclarés par la donnée de la démonstration (H-13,
+ * {@code serveurs/servers.json} — l'éditeur n'en connaît pas un mot).
+ * C'est du code d'enregistrement : la donnée des paquets et des
+ * déclarations y coule, aucun littéral d'identifiant n'y vit.
  *
  * <p>L'assemblement se fait une fois, à la première demande : le
  * chargeur de paquets travaille hors fil UI (ADR-007) — l'accueil le
@@ -30,9 +29,6 @@ import org.jspecify.annotations.Nullable;
  * dégelui.</p>
  */
 public final class LangagesDemo {
-
-    /** Les identifiants servis par le serveur tiers retiré (M8.6). */
-    private static final Set<String> SERVES_XML_EMBARQUE = Set.of("xml");
 
     /** Le fil démon du préchargement (ADR-007) — un seul, il ne sert
      *  qu'au premier dégelui de l'application. */
@@ -68,6 +64,7 @@ public final class LangagesDemo {
             if (present == null) {
                 present = LanguagePlatform.with(PackGrammars.INSTANCE)
                         .builtinPacks()
+                        .servers(DeclaredServers.declarations())
                         .generic(Completion.class, WordCompletion.INSTANCE)
                         .build();
                 registre = present;
@@ -92,17 +89,5 @@ public final class LangagesDemo {
         return detection instanceof LanguageDetection.Resolved resolu
                 ? resolu.support()
                 : null;
-    }
-
-    /**
-     * Le serveur tiers retiré sert-il ce langage ? (M8.6 —
-     * l'enregistrement de la démo ; la règle {@code servers.json} des
-     * paquets remplacera cette table au jalon LSP.)
-     *
-     * @param languageId l'identifiant du langage
-     * @return vrai quand le serveur tiers retiré le sert
-     */
-    public static boolean serveurRetire(String languageId) {
-        return SERVES_XML_EMBARQUE.contains(languageId);
     }
 }

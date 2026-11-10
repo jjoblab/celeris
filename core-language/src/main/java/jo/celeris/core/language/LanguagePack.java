@@ -10,10 +10,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * Un paquet de langage chargé et validé (M7.6) : manifeste,
  * descripteur, configuration, grammaire (compilée par la fabrique de
- * l'hôte), extraits, incorporations, règles du plan et préférence de
- * source syntaxique. Le paquet reste de la donnée ; l'assemblage en
- * {@link LanguageSupport} — le choix de la source, la famille, les
- * capacités — appartient à la plateforme.
+ * l'hôte), extraits, incorporations, règles du plan, serveurs déclarés
+ * (H-13) et préférence de source syntaxique. Le paquet reste de la
+ * donnée ; l'assemblage en {@link LanguageSupport} — le choix de la
+ * source, la famille, les capacités — appartient à la plateforme.
  *
  * @param manifest   le manifeste du paquet
  * @param descriptor le descripteur du langage
@@ -23,6 +23,9 @@ import org.jspecify.annotations.Nullable;
  * @param snippets   les extraits du paquet, éventuellement vides
  * @param injections les incorporations déclarées
  * @param outlineRules les règles du plan par données (H-08), éventuellement vides
+ * @param servers    les serveurs de langage déclarés (H-13),
+ *                   éventuellement vides — l'éditeur les porte en
+ *                   données, l'hôte décide de les monter
  * @param syntaxPreference la préférence de source syntaxique
  *                         ({@code handwritten}, {@code grammar})
  * @param fingerprint l'empreinte SHA-256 des fichiers du paquet
@@ -36,6 +39,7 @@ public record LanguagePack(
         List<PackSnippet> snippets,
         List<LanguageInjection> injections,
         List<OutlineRule> outlineRules,
+        List<LanguageServerDeclaration> servers,
         SyntaxPreference syntaxPreference,
         String fingerprint) {
 
@@ -44,6 +48,7 @@ public record LanguagePack(
         snippets = List.copyOf(snippets);
         injections = List.copyOf(injections);
         outlineRules = List.copyOf(outlineRules);
+        servers = List.copyOf(servers);
         if (fingerprint == null || fingerprint.isEmpty()) {
             throw new IllegalArgumentException("pack fingerprint must not be empty");
         }

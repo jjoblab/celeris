@@ -36,7 +36,7 @@
 >   reste au propriétaire — D-02, D-07 et D-14 rejoignent leur
 >   jalon (M4/M5).
 
-> - **M7.6 — plateforme de langages (en cours)** : étapes 1 à 7 livrées — le
+> - **M7.6 — plateforme de langages (en cours)** : étapes 1 à 8 livrées — le
 >   modèle (descripteur, configuration, support, capacités, détection),
 >   les seize langages en paquets de données (six analyseurs écrits
 >   attachés par préférence, dix grammaires réellement TextMate
@@ -53,9 +53,14 @@
 >   bibliothèque, la parité est prononcée sur les sept tests du banc
 >   SANS MODIFICATION, le code maison est supprimé, le corpus de
 >   traces lit par le Gson de la bibliothèque, les règles R8 sont
->   prouvées sur la démo réduite — ADR-015) ; les étapes suivantes
->   du jalon (couverture nouvelle H-12, démo/matrice) avancent la
->   catégorie H avec elles.
+>   prouvées sur la démo réduite — ADR-015) ; la couverture nouvelle est
+>   raccordée (H-12 : étape 8 — treize méthodes derrière la frontière,
+>   servies par le serveur réel, le banc et la porte de session de la
+>   démo les rejouent) ; les serveurs se déclarent en données (H-13 :
+>   `servers.json` des paquets et de l'hôte, les seize paquets intégrés
+>   n'en déclarent aucun — l'éditeur ne connaît pas les serveurs de ses
+>   hôtes, la démo déclare le sien et la disponibilité décide du montage
+>   ou du repli).
 > - **M4 — syntaxe (en cours)** : socle d'analyse incrémentale livré
 >   (tranche 1 : jetons à offsets relatifs, états par ligne, cascade de
 >   commentaires bornée — PIEGE-19 — arbre tolérant ancré par chunks,
@@ -250,7 +255,7 @@
 | H-10 | Analyse structurelle niveau 3 (analyseurs écrits factorisés, attachés par paquets) | P0 | présent (non factorisés) | `core-syntax` | M7.6 | Java, Kotlin, KTS et Groovy en spécialisations d'au plus 150 lignes ; instantanés identiques | Câblé | ClikeSnapshotsTest | non | — |
 | H-11 | Client LSP sur LSP4J derrière la frontière `lsp-protocole` | P0 | livré (celeris : la parité est prononcée à l'étape 7 de M7.6 — les sept tests de ServeurRetireTest passent SANS MODIFICATION par la frontière lsp-protocole contre le serveur tiers retiré, l'archive découpée n'embarque plus la liaison ni son rouage JSON, copie unique ; le code maison est supprimé le même jour — le corpus de traces passe par le Gson de la bibliothèque, la couverture du domaine se reconstruit par construction directe ; les règles R8 sont prouvées sur la démo réduite — assembleRelease vert, 6,3 Mo contre 10,3, le dex vérifié porte la bibliothèque et sa copie unique de Gson, cinq scénarios rejoués sur le binaire réduit — ADR-015) | `core-lsp` | M7.6 | les tests de contrat passent par la nouvelle voie ; une seule copie de lsp4j et Gson dans l'APK | Noyau | — | non | — |
 | H-12 | Couverture LSP nouvelle (symboles, formatage, plis, correctifs, indices en ligne) | P1 | absent | `core-lsp` | M7.6 | au moins douze méthodes raccordées à une interface | Câblé | ServeurRetireCouvertureTest | oui | — |
-| H-13 | Serveurs déclarés dans les paquets (`servers.json`) | P1 | absent | `core-language` | M7.6 | un langage dont le serveur est disponible reçoit ses fournisseurs LSP automatiquement | Non démarré | — | non | — |
+| H-13 | Serveurs déclarés dans les paquets (`servers.json`) | P1 | livré (celeris : H-13 — `LanguageServerDeclaration` du `core-language`, donnée pure validée au chargement, portée par les paquets et par l'hôte qui assemble ; les seize paquets intégrés n'en déclarent AUCUN, l'éditeur ne connaît pas les serveurs de ses hôtes — la démo déclare le sien en ressource `serveurs/servers.json`, `DeclaredServers` vérifie la disponibilité et monte par la désignation de la frontière, le repli sur le serveur de référence sinon, la session générique `DeclaredServerSession` ne demande que ce que la négociation annonce) | `core-language` | M7.6 | un langage dont le serveur est disponible reçoit ses fournisseurs LSP automatiquement | Câblé | DeclaredServersTest | oui | — |
 
 ## État vérifié de l'étalon (2026-11-04)
 

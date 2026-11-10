@@ -39,10 +39,8 @@ EXEMPTIONS = {
     "core-syntax/src/main/java/jo/celeris/core/syntax/GroovySyntax.java",
     "core-syntax/src/main/java/jo/celeris/core/syntax/XmlSyntax.java",
     "core-syntax/src/main/java/jo/celeris/core/syntax/JsonSyntax.java",
-    # les deux enregistrements de la plateforme : l'attache des
-    # analyseurs écrits, le choix du serveur de la démo
+    # l'attache des analyseurs écrits à la plateforme
     "core-language/src/main/java/jo/celeris/core/language/WrittenLanguages.java",
-    "demo/src/main/java/jo/celeris/demo/LangagesDemo.java",
     # la constante du protocole LSP (MarkupKind.markdown) — un genre de
     # contenu balisé, pas un identifiant de langage ; la collision de
     # nom avec le langage markdown est le fait du protocole
