@@ -28,6 +28,9 @@ import java.util.StringJoiner;
  */
 public final class MainActivity extends AppCompatActivity {
 
+    /** L'adaptateur des cartes, gardé pour les resoumissions (H-04). */
+    private AdaptateurFichiers adaptateur;
+
     @Override
     protected void onCreate(Bundle etat) {
         super.onCreate(etat);
@@ -45,14 +48,44 @@ public final class MainActivity extends AppCompatActivity {
         // masquerait tout le catalogue — rien à ouvrir, rien à tester.
         // L'assemblage du registre se paie hors fil UI (ADR-007, M7.6) :
         // les cartes se soumettent dès qu'il vit.
+        LangagesDemo.dossierPaquets(dossierPaquets());
         LangagesDemo.precharger();
-        new Thread(() -> {
-            LangagesDemo.registre();
-            runOnUiThread(() -> adaptateur.submitList(CarteFichier.catalogue()));
-        }, "celeris-cartes").start();
+        this.adaptateur = adaptateur;
+        soumettreCartes();
 
         poserStatistiques();
         appliquerBordABord();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Le paquet jouet (H-04) s'installe dans les réglages : au retour,
+        // les cartes se resoumettent — la carte du langage jouet y entre
+        // et en sort à chaud.
+        if (adaptateur != null) {
+            soumettreCartes();
+        }
+    }
+
+    /** Le dossier des paquets de l'utilisateur (H-04). */
+    private java.nio.file.Path dossierPaquets() {
+        return getFilesDir().toPath().resolve(PaquetJouet.DOSSIER);
+    }
+
+    /** Soumet les cartes du catalogue au registre assemblé (H-04 compris). */
+    private void soumettreCartes() {
+        AdaptateurFichiers adaptateur = this.adaptateur;
+        new Thread(() -> {
+            LangagesDemo.registre();
+            boolean jouet = PaquetJouet.installe(dossierPaquets());
+            runOnUiThread(() -> {
+                adaptateur.submitList(CarteFichier.catalogue(jouet));
+                TextView fichiers = findViewById(R.id.stat_fichiers_valeur);
+                fichiers.setText(String.valueOf(
+                        FichiersExemple.catalogue(jouet).size()));
+            });
+        }, "celeris-cartes").start();
     }
 
     private MaterialToolbar barre() {
@@ -66,8 +99,6 @@ public final class MainActivity extends AppCompatActivity {
     /** Les compteurs réels : fichiers du catalogue, scénarios connus,
      *  vérifications du banc (M7.5, §9) — l'appui liste les verdicts. */
     private void poserStatistiques() {
-        TextView fichiers = findViewById(R.id.stat_fichiers_valeur);
-        fichiers.setText(String.valueOf(FichiersExemple.catalogue().size()));
         TextView scenarios = findViewById(R.id.stat_scenarios_valeur);
         scenarios.setText(String.valueOf(ScenarioCatalog.scenarios().size()));
         Map<String, Boolean> verdicts = BancSpecs.verdicts();

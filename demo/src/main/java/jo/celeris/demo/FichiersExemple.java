@@ -321,6 +321,38 @@ public final class FichiersExemple {
             }
             """;
 
+    /** L'échantillon du paquet jouet (H-04) : le Logo de la tortue, le
+     *  langage que l'utilisateur ajoute sans recompiler. */
+    private static final String LOGO = """
+            ; logo — le dessin du jour (paquet jouet, H-04)
+            pour carre taille
+              baisse
+              repete 4 [
+                avance taille
+                tourne 90
+              ]
+              leve
+            fin
+
+            pour triangle taille
+              baisse
+              repete 3 [
+                avance taille
+                tourne 120
+              ]
+              leve
+            fin
+
+            ; la scene principale
+            couleur rouge
+            carre 40
+            couleur bleu
+            triangle 30
+            avance 20
+            couleur vert
+            carre 10
+            """;
+
     private static final List<FichierExemple> CATALOGUE = List.of(
             new FichierExemple("Conversions.kt", KOTLIN),
             new FichierExemple("ServiceUtilisateur.java", JAVA),
@@ -336,6 +368,10 @@ public final class FichiersExemple {
             new FichierExemple("couleurs.xml", COULEURS),
             new FichierExemple("Apercus.kt", APERCUS));
 
+    /** Le fichier d'exemple du paquet jouet (H-04). */
+    private static final FichierExemple JOUET =
+            new FichierExemple("tortue.lgo", LOGO);
+
     private FichiersExemple() {
     }
 
@@ -345,7 +381,23 @@ public final class FichiersExemple {
      * @return les fichiers d'exemple, non modifiables
      */
     public static List<FichierExemple> catalogue() {
-        return CATALOGUE;
+        return catalogue(false);
+    }
+
+    /**
+     * Le catalogue complet, l'échantillon du paquet jouet compris quand
+     * il est installé (H-04) : la carte n'apparaît que si le langage
+     * peut se colorer — la démonstration se joue à chaud.
+     *
+     * @param paquetJouet vrai quand le paquet jouet vit au stockage
+     * @return les fichiers d'exemple, non modifiables
+     */
+    public static List<FichierExemple> catalogue(boolean paquetJouet) {
+        if (!paquetJouet) {
+            return CATALOGUE;
+        }
+        return java.util.stream.Stream.concat(CATALOGUE.stream(),
+                java.util.stream.Stream.of(JOUET)).toList();
     }
 
     /**
@@ -355,7 +407,20 @@ public final class FichiersExemple {
      * @return le fichier, null si le nom est inconnu
      */
     public static @Nullable FichierExemple parNom(String nom) {
-        for (FichierExemple fichier : CATALOGUE) {
+        return parNom(nom, false);
+    }
+
+    /**
+     * Le fichier d'exemple portant ce nom exact, l'échantillon du
+     * paquet jouet compris quand il est installé (H-04).
+     *
+     * @param nom        le nom cherché, extension comprise
+     * @param paquetJouet vrai quand le paquet jouet vit au stockage
+     * @return le fichier, null si le nom est inconnu
+     */
+    public static @Nullable FichierExemple parNom(String nom,
+            boolean paquetJouet) {
+        for (FichierExemple fichier : catalogue(paquetJouet)) {
             if (fichier.nom().equals(nom)) {
                 return fichier;
             }
