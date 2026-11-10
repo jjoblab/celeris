@@ -1,0 +1,15 @@
+# Un commentaire de ligne
+class Essai
+  VITESSE = 10
+
+  def initialize(nom)
+    @nom = nom
+  end
+
+  def saluer
+    "Bonjour #{@nom} !"
+  end
+end
+
+essai = Essai.new("monde")
+essai.saluer.each_char { |c| puts c }

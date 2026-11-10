@@ -16,7 +16,7 @@ import jo.celeris.core.syntax.ScopeStacks;
 
 /**
  * Le banc de conformité des grammaires du commerce (M7.6, H-05) : les
- * ONZE grammaires TextMate des extensions de VS Code — reprises telles
+ * TREIZE grammaires TextMate des extensions de VS Code — reprises telles
  * que publiées, SANS MODIFICATION, licence MIT et provenance au
  * registre de portage — se chargent par le moteur réel, rejouent leur
  * échantillon avec déterminisme et sans incident de budget. Ce que le
@@ -34,7 +34,8 @@ class GrammairesCommerceTest {
         {"json", "0.99"}, {"yaml", "0.80"}, {"python", "0.97"},
         {"shell", "0.98"}, {"c", "0.93"}, {"cpp", "0.70"},
         {"markdown", "0.92"}, {"html", "0.97"}, {"css", "0.95"},
-        {"javascript", "0.88"}, {"typescript", "0.88"}};
+        {"javascript", "0.88"}, {"typescript", "0.88"},
+        {"php", "0.95"}, {"ruby", "0.98"}};
 
     /**
      * Chaque grammaire du commerce charge SANS MODIFICATION et son
