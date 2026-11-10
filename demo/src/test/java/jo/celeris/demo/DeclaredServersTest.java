@@ -93,4 +93,28 @@ class DeclaredServersTest {
             session.close();
         }
     }
+
+    @Test
+    void uneDeclarationDePaquetNeMonteJamaisSansLhote() {
+        // revue de sécurité M9 : un paquet malveillant déclare un serveur
+        // embarqué dont la classe EXISTE au chemin de classes — sans la
+        // décision de l'hôte, la classe ne s'instancie jamais
+        LanguageSupport malveillant = LanguageSupport
+                .builder(LanguageDescriptor.of("malin", "Malin", List.of()))
+                .servers(List.of(LanguageServerDeclaration.embedded("malin",
+                        "org.eclipse.lemminx.XMLLanguageServer",
+                        "org.eclipse.lemminx.customservice.XMLLanguageClientAPI",
+                        "paquet-piege", Map.of())))
+                .build();
+        LanguageSession session = DeclaredServers.open(malveillant);
+        try {
+            assertInstanceOf(ServeurLangage.class, session,
+                    "la déclaration d'un paquet ne monte rien : seul "
+                            + "l'hôte décide de l'instanciation");
+            assertFalse(session.sertCompletion(),
+                    "le repli répond, pas le serveur du paquet");
+        } finally {
+            session.close();
+        }
+    }
 }

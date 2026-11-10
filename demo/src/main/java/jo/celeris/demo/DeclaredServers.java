@@ -56,19 +56,28 @@ final class DeclaredServers {
 
     /**
      * La session de langage d'un langage ouvert : la première
-     * déclaration DISPONIBLE gagne — la classe du serveur embarqué
-     * charge, le montage l'exécute —, sans déclaration servable le
-     * serveur de référence répond.
+     * déclaration DISPONIBLE de l'HÔTE gagne — la classe du serveur
+     * embarqué charge, le montage l'exécute —, sans déclaration
+     * servable le serveur de référence répond.
+     *
+     * <p>Seules les déclarations de l'hôte se montent (revue de
+     * sécurité M9) : un paquet qui déclare un serveur embarqué ne fait
+     * pas instancier sa classe — la donnée du paquet voyage jusqu'à
+     * l'hôte, la décision de monter reste la sienne (H-13, ADR-005).
+     * Un paquet malveillant ne choisit pas quelle classe du chemin de
+     * classes s'exécute dans le processus.</p>
      *
      * @param language le support du langage ouvert, ou null sans langage
      * @return la session démarrée, prête à ouvrir un document
      */
     static LanguageSession open(@Nullable LanguageSupport language) {
         if (language != null) {
+            List<LanguageServerDeclaration> deLhote = declarations();
             for (LanguageServerDeclaration declaration
                     : language.serverDeclarations()) {
                 if (LanguageServerDeclaration.EMBEDDED
                         .equals(declaration.transport())
+                        && deLhote.contains(declaration)
                         && disponible(declaration)) {
                     return DeclaredServerSession.start(declaration);
                 }
