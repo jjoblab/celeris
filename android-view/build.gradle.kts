@@ -24,3 +24,11 @@ dependencies {
     testImplementation(libs.junit4)
     testRuntimeOnly(libs.junit.vintage)
 }
+
+// Chantier C10 : les bancs de charge (GrosFichiersTest) ouvrent des
+// documents de 480 000 lignes — le tas par défaut des tests (512 Mo)
+// fait vivre les bancs en pleine pression GC et rend les mesures non
+// représentatives. 1 Go, comme le module de syntaxe.
+tasks.withType<Test>().configureEach {
+    maxHeapSize = "1g"
+}
