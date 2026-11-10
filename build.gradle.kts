@@ -80,12 +80,31 @@ tasks.register<Exec>("policyLanguageRegistrationSelfTest") {
     commandLine("python3", "scripts/test-check-language-registration")
 }
 
+// Auditeur automatique d'accessibilité (M9, ADR-008) : la promesse de
+// M3 vit enfin en CI — labels des interactifs (propres ou labelFor),
+// aucun littéral, titres des menus, parité en/fr des clés, câblage de
+// l'arbre virtuel (AccessibilityHost exposé, sélection annoncée).
+tasks.register<Exec>("policyAccessibilityCheck") {
+    group = "verification"
+    description = "Auditeur d'accessibilité du dépôt (scripts/check-accessibilite)."
+    commandLine("python3", "scripts/check-accessibilite")
+}
+
+// Auto-test de l'auditeur d'accessibilité (M9) : chaque règle, une
+// fixture, un verdict.
+tasks.register<Exec>("policyAccessibilitySelfTest") {
+    group = "verification"
+    description = "Tests de l'auditeur d'accessibilité (scripts/test-check-accessibilite)."
+    commandLine("python3", "scripts/test-check-accessibilite")
+}
+
 tasks.register("policyCheck") {
     group = "verification"
-    description = "Contrôles de politique (langue, références interdites, provenance, enregistrement des langages, rempart, matrice, pièges, démo, dates)."
+    description = "Contrôles de politique (langue, références interdites, provenance, enregistrement des langages, accessibilité, rempart, matrice, pièges, démo, dates)."
     dependsOn("policyLanguageCheck", "policyForbiddenRefsCheck", "policyForbiddenRefsSelfTest",
             "policyDependencyProvenanceCheck", "policyDependencyProvenanceSelfTest",
-            "policyLanguageRegistrationCheck", "policyLanguageRegistrationSelfTest")
+            "policyLanguageRegistrationCheck", "policyLanguageRegistrationSelfTest",
+            "policyAccessibilityCheck", "policyAccessibilitySelfTest")
 }
 
 // Rempart de langue (M7.5, §11) : la ligne de base des identifiants

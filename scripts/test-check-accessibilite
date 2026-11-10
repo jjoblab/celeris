@@ -1,0 +1,226 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Tests de l'auditeur d'accessibilité (scripts/check-accessibilite).
+
+Chaque règle de l'auditeur se prouve par une fixture minuscule : un
+interactif sans nom échoue, un interactif nommé par labelFor passe, un
+label littéral échoue, un interactif exclu échoue, un décoratif exclu
+passe, un item de menu sans titre échoue, une parité en/fr rompue
+échoue, un câblage disparu échoue — et un dépôt minuscule conforme
+passe.
+
+Usage :  python3 scripts/test-check-accessibilite
+"""
+
+import os
+import subprocess
+import sys
+import tempfile
+import unittest
+
+SCRIPT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "check-accessibilite"
+)
+
+
+def lancer(racine):
+    """Exécute l'auditeur contre une racine, renvoie le résultat."""
+    return subprocess.run(
+        [sys.executable, SCRIPT, racine],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+
+
+class Fixture:
+    """Dépôt minuscule en tout point conforme, à rompre à volonté."""
+
+    def __enter__(self):
+        self.dossier = tempfile.mkdtemp(prefix="celeris-a11y-")
+        self.layouts = os.path.join(
+            self.dossier, "demo", "src", "main", "res", "layout")
+        self.menus = os.path.join(
+            self.dossier, "demo", "src", "main", "res", "menu")
+        self.valeurs = os.path.join(
+            self.dossier, "demo", "src", "main", "res", "values")
+        self.valeurs_fr = os.path.join(
+            self.dossier, "demo", "src", "main", "res", "values-fr")
+        self.vue = os.path.join(
+            self.dossier, "android-view", "src", "main", "java", "vue")
+        for dossier in (self.layouts, self.menus, self.valeurs,
+                        self.valeurs_fr, self.vue):
+            os.makedirs(dossier, exist_ok=True)
+        self.ecrire_layout("ok.xml", LAYOUT_CONFORME)
+        self.ecrire_menu("menu.xml", MENU_CONFORME)
+        self.ecrire_chaines(os.path.join(self.valeurs, "strings.xml"))
+        self.ecrire_chaines(os.path.join(self.valeurs_fr, "strings.xml"))
+        self.ecrire_cablage()
+        return self
+
+    def __exit__(self, *args):
+        pass  # le répertoire temporaire vit le temps du processus
+
+    def ecrire_layout(self, nom, contenu):
+        with open(os.path.join(self.layouts, nom), "w", encoding="utf-8") as f:
+            f.write(contenu)
+
+    def ecrire_menu(self, nom, contenu):
+        with open(os.path.join(self.menus, nom), "w", encoding="utf-8") as f:
+            f.write(contenu)
+
+    def ecrire_chaines(self, chemin, cles=("action_ouvrir",)):
+        corps = "\n".join(
+            f'    <string name="{cle}">t</string>' for cle in cles)
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write(f"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                    f"<resources>\n{corps}\n</resources>\n")
+
+    def ecrire_cablage(self, present=True):
+        hote = os.path.join(self.vue, "AccessibilityHost.java")
+        editeur = os.path.join(self.vue, "EditorView.java")
+        if present:
+            with open(hote, "w", encoding="utf-8") as f:
+                f.write("class AccessibilityHost {}\n")
+            with open(editeur, "w", encoding="utf-8") as f:
+                f.write(
+                    "getAccessibilityNodeProvider\n"
+                    "TYPE_VIEW_TEXT_SELECTION_CHANGED\n")
+        else:
+            os.remove(hote)
+            os.remove(editeur)
+
+
+LAYOUT_CONFORME = """<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageButton
+        android:id="@+id/ouvrir"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/action_ouvrir" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/interrupteur"
+        android:text="@string/action_ouvrir" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/interrupteur"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>
+"""
+
+MENU_CONFORME = """<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_ouvrir"
+        android:title="@string/action_ouvrir" />
+</menu>
+"""
+
+
+class ControleAccessibiliteTest(unittest.TestCase):
+    """Chaque règle, une fixture, un verdict."""
+
+    def setUp(self):
+        self.fixture = Fixture()
+        self.fixture.__enter__()
+
+    def tearDown(self):
+        self.fixture.__exit__(None, None, None)
+
+    def test_depot_conforme(self):
+        """Le dépôt minuscule conforme passe (code 0)."""
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 0,
+                         resultat.stdout + resultat.stderr)
+        self.assertIn("conforme", resultat.stdout)
+
+    def test_interactif_sans_nom(self):
+        """Un interactif sans label ni labelFor échoue."""
+        self.fixture.ecrire_layout("nu.xml", LAYOUT_CONFORME.replace(
+            'android:contentDescription="@string/action_ouvrir"', ""))
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout)
+        self.assertIn("sans nom", resultat.stdout)
+
+    def test_interactif_exclu(self):
+        """Un interactif exclu du lecteur d'écran échoue."""
+        self.fixture.ecrire_layout("exclu.xml", LAYOUT_CONFORME.replace(
+            'android:contentDescription="@string/action_ouvrir"',
+            'android:contentDescription="@null"'
+            ' android:importantForAccessibility="no"'))
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout)
+        self.assertIn("exclu du lecteur", resultat.stdout)
+
+    def test_label_litteral(self):
+        """Un label littéral (hors ressources) échoue."""
+        self.fixture.ecrire_layout("litteral.xml", LAYOUT_CONFORME.replace(
+            'android:contentDescription="@string/action_ouvrir"',
+            'android:contentDescription="Ouvrir"'))
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout)
+        self.assertIn("label littéral", resultat.stdout)
+
+    def test_decoratif_exclu_passe(self):
+        """Un décoratif explicitement exclu passe (déjà dans conforme)."""
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 0,
+                         resultat.stdout + resultat.stderr)
+
+    def test_menu_sans_titre(self):
+        """Un item de menu sans android:title échoue."""
+        self.fixture.ecrire_menu("muet.xml", MENU_CONFORME.replace(
+            'android:title="@string/action_ouvrir"', ""))
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout)
+        self.assertIn("sans android:title", resultat.stdout)
+
+    def test_menu_titre_litteral(self):
+        """Un item de menu titré littéralement échoue."""
+        self.fixture.ecrire_menu("litteral.xml", MENU_CONFORME.replace(
+            'android:title="@string/action_ouvrir"',
+            'android:title="Ouvrir"'))
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout)
+        self.assertIn("titré littéralement", resultat.stdout)
+
+    def test_parite_fr_absente(self):
+        """Un strings.xml sans values-fr échoue."""
+        os.remove(os.path.join(self.fixture.valeurs_fr, "strings.xml"))
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout)
+        self.assertIn("values-fr/strings.xml manquant", resultat.stdout)
+
+    def test_parite_cle_absente(self):
+        """Une clé présente en défaut mais absente en français échoue."""
+        self.fixture.ecrire_chaines(
+            os.path.join(self.fixture.valeurs, "strings.xml"),
+            cles=("action_ouvrir", "action_fermer"))
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout)
+        self.assertIn("action_fermer", resultat.stdout)
+        self.assertIn("absente en français", resultat.stdout)
+
+    def test_cablage_disparu(self):
+        """L'arbre virtuel disparu d'android-view échoue."""
+        self.fixture.ecrire_cablage(present=False)
+        resultat = lancer(self.fixture.dossier)
+        self.assertEqual(resultat.returncode, 1, resultat.stdout)
+        self.assertIn("AccessibilityHost.java introuvable", resultat.stdout)
+        self.assertIn("témoin de câblage absent", resultat.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()
