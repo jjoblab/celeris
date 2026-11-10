@@ -67,8 +67,12 @@ public final class Grammaires {
         if (!(racineBrute instanceof Map<?, ?> champs)) {
             throw new IllegalArgumentException("la racine de la grammaire est un objet");
         }
-        String nom = texte(champs.get("name"), "name");
         String porteeRacine = texte(champs.get("scopeName"), "scopeName");
+        // Le nom racine est FACULTATIF au format TextMate — la
+        // grammaire PHP du commerce (microsoft/vscode) s'en passe ; la
+        // portée racine sert de repli affichable.
+        Object brutNom = champs.get("name");
+        String nom = brutNom == null ? porteeRacine : texte(brutNom, "name");
         RapportGrammaire.Tisseur rapport = new RapportGrammaire.Tisseur();
         Map<String, Object> bruts = bruts(champs.get("repository"));
         Map<String, RegleListe> referentiel = new LinkedHashMap<>();
