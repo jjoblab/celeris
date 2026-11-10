@@ -70,6 +70,43 @@ public final class PopupTokens {
     /** Le badge de genre d'un candidat, au plus (dp). */
     public static final float BADGE_MAX_DP = 20f;
 
+    // ── Feuilles de l'ADR-018 (maquettes du 2026-11-10) ─────────────
+
+    /** Le rayon des coins OUVERTS d'une feuille (bas : coins hauts,
+     *  haut : coins bas) — 18 px à la maquette de référence. */
+    public static final float RAYON_FEUILLE_DP = 18f;
+
+    /** La largeur au plus d'une feuille du bas (maquette : 660 px). */
+    public static final float LARGEUR_MAX_FEUILLE_BAS_DP = 660f;
+
+    /** La largeur au plus d'une feuille du haut (maquette : 760 px). */
+    public static final float LARGEUR_MAX_FEUILLE_HAUT_DP = 760f;
+
+    /** La poignée de glissement d'une feuille : sa largeur (dp). */
+    public static final float POIGNEE_LARGEUR_DP = 44f;
+
+    /** La poignée de glissement d'une feuille : son épaisseur (dp). */
+    public static final float POIGNEE_EPAISSEUR_DP = 5f;
+
+    /** L'aire tactile de la poignée — la cible minimale du kit (dp). */
+    public static final float POIGNEE_AIRE_DP = 48f;
+
+    /** La cible tactile minimale d'une commande de feuille, fermeture
+     *  comprise (dp) — la maquette exige 44 px, le kit pose 48. */
+    public static final float CIBLE_MIN_FEUILLE_DP = 48f;
+
+    /** La part de la hauteur de l'hôte qu'une feuille occupe au plus
+     *  (maquette : 76 %). */
+    public static final float PART_HAUTEUR_FEUILLE = 0.76f;
+
+    /** La durée du glissement d'une feuille, en millisecondes
+     *  (maquette : 0,18 s). */
+    public static final long DUREE_FEUILLE_MS = 180L;
+
+    /** Le seuil de glissement qui emporte la feuille — au-delà, la
+     *  fermeture suit le geste (dp). */
+    public static final float SEUIL_GLISS_FEUILLE_DP = 120f;
+
     private PopupTokens() {
     }
 }
