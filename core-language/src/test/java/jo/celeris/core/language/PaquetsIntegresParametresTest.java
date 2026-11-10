@@ -58,7 +58,7 @@ final class PaquetsIntegresParametresTest {
         List<String> attendusAvecCommentaire = List.of("java", "kotlin", "kts",
                 "groovy", "xml", "toml", "yaml", "properties", "markdown",
                 "python", "shell", "sql", "c", "cpp", "proguard", "html",
-                "css", "javascript", "typescript");
+                "css", "javascript", "typescript", "php", "ruby");
         if (attendusAvecCommentaire.contains(id)) {
             assertTrue(configuration.comments().commentable(),
                     id + " déclare ses commentaires");
