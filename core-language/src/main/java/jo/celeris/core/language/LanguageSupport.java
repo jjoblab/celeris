@@ -34,6 +34,8 @@ public final class LanguageSupport {
 
     private final List<OutlineRule> outlineRules;
 
+    private final List<LanguageServerDeclaration> servers;
+
     private final Map<Class<? extends LanguageCapability>, LanguageCapability> capabilities;
 
     private final List<LanguageInjection> injections;
@@ -47,6 +49,7 @@ public final class LanguageSupport {
         this.configuration = builder.configuration;
         this.syntax = builder.syntax;
         this.outlineRules = List.copyOf(builder.outlineRules);
+        this.servers = List.copyOf(builder.servers);
         this.capabilities = Map.copyOf(builder.capabilities);
         this.injections = List.copyOf(builder.injections);
         this.parent = builder.parent;
@@ -123,6 +126,19 @@ public final class LanguageSupport {
         return outlineRules;
     }
 
+    /**
+     * Les serveurs de langage déclarés (M7.6, H-13) : de la donnée —
+     * celle du paquet, celle de l'hôte qui assemble — jamais du code.
+     * L'éditeur ne connaît aucun serveur : il porte la déclaration,
+     * l'hôte décide de la disponibilité et du montage ; sans serveur
+     * disponible, les fournisseurs locaux servent (ADR-005).
+     *
+     * @return les déclarations, éventuellement vides
+     */
+    public List<LanguageServerDeclaration> serverDeclarations() {
+        return servers;
+    }
+
     /** Les incorporations déclarées du langage. */
     public List<LanguageInjection> injections() {
         return injections;
@@ -167,6 +183,7 @@ public final class LanguageSupport {
                 .configuration(configuration)
                 .injections(injections)
                 .outlineRules(outlineRules)
+                .servers(servers)
                 .capabilities(capabilities);
         if (syntax != null) {
             copy.syntax(syntax);
@@ -188,6 +205,8 @@ public final class LanguageSupport {
         private @Nullable LanguageSyntax syntax;
 
         private final List<OutlineRule> outlineRules = new ArrayList<>();
+
+        private final List<LanguageServerDeclaration> servers = new ArrayList<>();
 
         private final Map<Class<? extends LanguageCapability>, LanguageCapability>
                 capabilities = new LinkedHashMap<>();
@@ -234,6 +253,19 @@ public final class LanguageSupport {
         public Builder outlineRules(List<OutlineRule> rules) {
             this.outlineRules.clear();
             this.outlineRules.addAll(rules);
+            return this;
+        }
+
+        /**
+         * Fixe les serveurs de langage déclarés (H-13) — la donnée du
+         * paquet ou celle de l'hôte.
+         *
+         * @param declarations les déclarations de serveurs
+         * @return le bâtisseur
+         */
+        public Builder servers(List<LanguageServerDeclaration> declarations) {
+            this.servers.clear();
+            this.servers.addAll(declarations);
             return this;
         }
 

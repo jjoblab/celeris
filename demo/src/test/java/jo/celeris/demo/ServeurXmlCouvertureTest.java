@@ -26,13 +26,15 @@ import org.junit.jupiter.api.Test;
 
 /**
  * La couverture LSP nouvelle du jalon (H-12) contre le serveur XML
- * RÉEL embarqué (M8.6 — LemMinX, identité au NOTICE) : les méthodes
- * raccordées à la porte de session de la démonstration — symboles,
- * plis, formatage, surlignages, préparation de renommage, renommage,
- * références, plages de sélection — servies par le fil protocolaire
- * de la frontière (ADR-015), rendues en types du domaine. Les sept
- * tests de parité de {@code ServeurXmlEmbarqueTest} restent INTACTS :
- * ici croît la surface, là se garde la parité.
+ * RÉEL embarqué (M8.6 — LemMinX, identité au NOTICE), monté par sa
+ * DÉCLARATION (H-13 — servers.json, le chemin réel de la
+ * démonstration) : les méthodes raccordées à la porte de session de
+ * la démonstration — symboles, plis, formatage, surlignages,
+ * préparation de renommage, renommage, références, plages de
+ * sélection — servies par le fil protocolaire de la frontière
+ * (ADR-015), rendues en types du domaine. Les sept tests de parité
+ * de {@code ServeurXmlEmbarqueTest} restent INTACTS : ici croît la
+ * surface, là se garde la parité.
  */
 class ServeurXmlCouvertureTest {
 
@@ -50,12 +52,15 @@ class ServeurXmlCouvertureTest {
             </catalogue>
             """;
 
-    private ServeurXmlEmbarque serveur;
+    private LanguageSession serveur;
     private jo.celeris.core.text.Document document;
 
     @BeforeEach
     void demarrer() {
-        serveur = ServeurXmlEmbarque.demarrer();
+        // le chemin réel de la démonstration (H-13) : la déclaration
+        // servers.json décide du serveur, le montage l'exécute
+        serveur = DeclaredServers.open(
+                LangagesDemo.langageDe("couverture.xml", null, null));
         serveur.ouvrir(URI, "xml", DOCUMENT);
         document = TextSession.of(DOCUMENT, () -> 0L).document();
     }

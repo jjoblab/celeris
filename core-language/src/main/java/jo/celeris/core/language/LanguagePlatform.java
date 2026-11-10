@@ -38,6 +38,8 @@ public final class LanguagePlatform {
     private final Map<String, Map<Class<? extends LanguageCapability>,
             LanguageCapability>> contributions;
 
+    private final Map<String, List<LanguageServerDeclaration>> hostServers;
+
     private final Map<Class<? extends LanguageCapability>, LanguageCapability>
             generics;
 
@@ -45,11 +47,13 @@ public final class LanguagePlatform {
 
     private LanguagePlatform(PackLoader loader, List<LanguageSupport> supports,
             Map<String, Map<Class<? extends LanguageCapability>, LanguageCapability>> contributions,
+            Map<String, List<LanguageServerDeclaration>> hostServers,
             Map<Class<? extends LanguageCapability>, LanguageCapability> generics,
             Map<String, String> userChoices) {
         this.loader = loader;
         this.supports = supports;
         this.contributions = contributions;
+        this.hostServers = hostServers;
         this.generics = generics;
         this.userChoices = userChoices;
     }
@@ -61,7 +65,8 @@ public final class LanguagePlatform {
      */
     public static LanguagePlatform empty() {
         return new LanguagePlatform(PackLoader.create(), new ArrayList<>(),
-                new LinkedHashMap<>(), new LinkedHashMap<>(), new LinkedHashMap<>());
+                new LinkedHashMap<>(), new LinkedHashMap<>(),
+                new LinkedHashMap<>(), new LinkedHashMap<>());
     }
 
     /**
@@ -73,7 +78,8 @@ public final class LanguagePlatform {
      */
     public static LanguagePlatform with(GrammarFactory factory) {
         return new LanguagePlatform(PackLoader.with(factory), new ArrayList<>(),
-                new LinkedHashMap<>(), new LinkedHashMap<>(), new LinkedHashMap<>());
+                new LinkedHashMap<>(), new LinkedHashMap<>(),
+                new LinkedHashMap<>(), new LinkedHashMap<>());
     }
 
     /**
@@ -149,6 +155,25 @@ public final class LanguagePlatform {
     }
 
     /**
+     * Ajoute les serveurs de langage déclarés par l'HÔTE (H-13) : de
+     * la donnée lue hors des paquets — le fichier
+     * {@code servers.json} de l'hôte, par exemple. Chaque déclaration
+     * porte son langage ; l'éditeur ne connaît aucun serveur, il porte
+     * la déclaration jusqu'à son hôte.
+     *
+     * @param declarations les déclarations de l'hôte
+     * @return la plateforme
+     */
+    public LanguagePlatform servers(
+            List<LanguageServerDeclaration> declarations) {
+        for (LanguageServerDeclaration declaration : declarations) {
+            hostServers.computeIfAbsent(declaration.language(),
+                    id -> new ArrayList<>()).add(declaration);
+        }
+        return this;
+    }
+
+    /**
      * Le réglage de l'utilisateur : ce fichier parle ce langage.
      *
      * @param filename   le nom de fichier exact
@@ -190,7 +215,8 @@ public final class LanguagePlatform {
                 .builder(pack.descriptor())
                 .configuration(pack.configuration())
                 .injections(pack.injections())
-                .outlineRules(pack.outlineRules());
+                .outlineRules(pack.outlineRules())
+                .servers(pack.servers());
         LanguageSyntax source = sourceSyntaxique(pack);
         if (source != null) {
             batisseur.syntax(source);
@@ -272,6 +298,7 @@ public final class LanguagePlatform {
                 .configuration(support.configuration())
                 .injections(support.injections())
                 .outlineRules(support.outlineRules())
+                .servers(serveursDe(support.id()))
                 .parent(parent);
         if (support.syntax() != null) {
             batisseur.syntax(support.syntax());
@@ -282,6 +309,21 @@ public final class LanguagePlatform {
             batisseur.capabilities(capacites);
         }
         return batisseur.build().withGenericFallbacks(generics);
+    }
+
+    /**
+     * Les serveurs d'un langage assemblé (H-13) : ceux du paquet,
+     * puis ceux de l'hôte — la donnée seule décide.
+     */
+    private List<LanguageServerDeclaration> serveursDe(String languageId) {
+        List<LanguageServerDeclaration> duPaquet = new ArrayList<>();
+        for (LanguageSupport support : supports) {
+            if (support.id().equals(languageId)) {
+                duPaquet.addAll(support.serverDeclarations());
+            }
+        }
+        duPaquet.addAll(hostServers.getOrDefault(languageId, List.of()));
+        return duPaquet;
     }
 
     /** Le collecteur des capacités d'un contributeur. */

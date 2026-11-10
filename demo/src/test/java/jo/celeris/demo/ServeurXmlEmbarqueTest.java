@@ -23,12 +23,14 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Le serveur XML RÉEL embarqué (M8.6 — LemMinX, identité au NOTICE) :
- * lancé EN PROCESSUS sur les tubes mémoire, rejoint par le client du
- * cœur et son transport à flux — le test À FOND de la fonctionnalité
- * LSP contre un serveur du monde réel : cadrage Content-Length pour
- * de vrai, poignée de main, synchronisation complète versionnée,
- * complétion documentée, survol, diagnostics de validation poussés,
- * et l'ordonnanceur qui remplace les demandes en vol (PIEGE-18).
+ * lancé EN PROCESSUS sur les tubes mémoire par sa DÉCLARATION (H-13 —
+ * le fichier servers.json de la démonstration, le montage générique
+ * de la frontière), rejoint par le client du cœur et son transport à
+ * flux — le test À FOND de la fonctionnalité LSP contre un serveur du
+ * monde réel : cadrage Content-Length pour de vrai, poignée de main,
+ * synchronisation complète versionnée, complétion documentée, survol,
+ * diagnostics de validation poussés, et l'ordonnanceur qui remplace
+ * les demandes en vol (PIEGE-18).
  */
 class ServeurXmlEmbarqueTest {
 
@@ -58,14 +60,18 @@ class ServeurXmlEmbarqueTest {
     private static final String AVEC_FRAPPE = VALIDE.replace("</racine>",
             "    <ex\n</racine>");
 
-    private ServeurXmlEmbarque serveur;
+    private LanguageSession serveur;
     private final CopyOnWriteArrayList<List<DiagnosticLsp>> publications =
             new CopyOnWriteArrayList<>();
     private CountDownLatch verrou;
 
     @BeforeEach
     void demarrer() {
-        serveur = ServeurXmlEmbarque.demarrer();
+        // le chemin réel de la démonstration (H-13) : le registre
+        // détecte le langage, la déclaration servers.json monte le
+        // serveur disponible — aucun nom de serveur dans le code
+        serveur = DeclaredServers.open(
+                LangagesDemo.langageDe("exemple.xml", null, null));
         verrou = new CountDownLatch(1);
         serveur.poserAuditeurDiagnostics((uri, diagnostics) -> {
             publications.add(List.copyOf(diagnostics));
