@@ -5,7 +5,37 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
-## [Non publié]
+## [1.0.0] — 2026-11-10
+
+### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
+
+- **Audit d'accessibilité complet (M9-a)** : les six décisions de
+  l'ADR-008 passées en revue, DEUX défauts réels corrigés (cinq
+  interrupteurs et un curseur de réglage sans nom, étiquetés par
+  `labelFor`) ; l'auditeur automatique promis dès M3 vit enfin en CI
+  (`scripts/check-accessibilite`, cinq règles, dix auto-tests,
+  bloquant).
+- **Revue de sécurité (M9-b)** : une faille fermée — la déclaration
+  d'un serveur embarqué par un PAQUET ne monte plus : seul l'hôte
+  décide de l'instanciation (`DeclaredServers`, rouge puis vert) ;
+  `allowBackup` interdit au manifeste, exigé par test ; dix surfaces
+  passées en revue (`docs/audit/REVUE-SECURITE-M9.md`).
+- **Performance finale, cliquet resserré (M9-c)** : les bancs
+  calibrés (calibrage consigné : date, machine, mesures, marge) —
+  édition 0,5 ms par édition (mandat 1 ms, mesure 0,145), passe de
+  remplacement 150 ms, annulation 100 ms ; les budgets produit ne
+  bougent pas.
+- **Documentation exhaustive (M9-d)** : `MIGRATION.md` final (table
+  de correspondance API, reprise des thèmes et gabarits, extensions
+  de langage, checklist de performances) ; le README rattrape l'état
+  (treize modules, ADR 001-017, catégories A à H).
+- **Démonstration complète (M9-e)** : le paquet jouet de
+  l'utilisateur se joue à chaud depuis les réglages (H-04) — un
+  langage ENTIER en données seules (Logo), copié au stockage, chargé
+  sans recompiler ; la matrice passe la ligne à DÉMONTRÉ.
+- **Publication 1.0.0** : artefacts à `jo.celeris:*:1.0.0`, SBOM et
+  sommes de contrôle vérifiés.
+
 
 ### M7.6 (H-05) — les injections vivent, les grammaires du commerce chargent sans modification (2026-11-10)
 

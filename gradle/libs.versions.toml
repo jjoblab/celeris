@@ -42,7 +42,7 @@ cyclonedx = "3.5.1"
 # Version de l'application de démonstration (non publiée) — toute
 # version vit au catalogue ; l'APK doit porter versionCode et
 # versionName, sinon certains installateurs refusent le paquet.
-demo = "0.1.0"
+demo = "1.0.0"
 # Interface de la démonstration (M3 — vérifiées sur Google Maven le
 # 2026-11-06, compatibles compileSdk 36)
 androidxActivity = "1.12.0"
