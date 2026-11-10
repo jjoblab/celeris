@@ -17,6 +17,7 @@ import org.joni.Region;
 import jo.celeris.core.syntax.LanguageLexer;
 import jo.celeris.core.syntax.LexState;
 import jo.celeris.core.syntax.LexedLine;
+import jo.celeris.core.syntax.ScopeStacks;
 import jo.celeris.core.syntax.Token;
 
 import org.jspecify.annotations.Nullable;
@@ -216,14 +217,18 @@ final class GrammaireLexeur implements LanguageLexer {
      * la portée de base ; avec captures, chaque groupe capturé porte sa
      * portée et l'intervalle non couvert porte celle de la base — la
      * capture 0 couvre le tout. La base absente laisse la portée du
-     * contexte.
+     * contexte. Chaque jeton porte sa PILE de portées internée (H-07)
+     * — la couleur s'y résoudra par le thème, la sorte n'en reste que
+     * la catégorie dérivée.
      */
     private void emettreCaptures(List<Token> jetons, Utf8Line donnees, Matcher m,
             @Nullable Map<Integer, Capture> captures, @Nullable String porteeBase,
             EtatGrammaire etat) {
         String base = porteeBase != null ? porteeBase : contextePortee(etat);
+        int pileContexte = pileContexte(etat);
         if (captures == null) {
-            jetons.add(jeton(base, donnees, m.getBegin(), m.getEnd()));
+            jetons.add(jeton(pileContexte, base, donnees, m.getBegin(),
+                    m.getEnd()));
             return;
         }
         Region groupes = m.getEagerRegion();
@@ -239,22 +244,24 @@ final class GrammaireLexeur implements LanguageLexer {
                 continue;
             }
             if (gd > curseur) {
-                jetons.add(jeton(base, donnees, curseur, gd));
+                jetons.add(jeton(pileContexte, base, donnees, curseur, gd));
             }
             Capture capture = entree.getValue();
-            jetons.add(jeton(capture.nom() != null ? capture.nom() : base, donnees, gd, gf));
+            jetons.add(jeton(pileContexte,
+                    capture.nom() != null ? capture.nom() : base,
+                    donnees, gd, gf));
             curseur = gf;
         }
         if (m.getEnd() > curseur) {
-            jetons.add(jeton(base, donnees, curseur, m.getEnd()));
+            jetons.add(jeton(pileContexte, base, donnees, curseur, m.getEnd()));
         }
     }
 
     /**
      * L'écart non couvert : les blancs seuls ne produisent rien, le
-     * reste porte la portée de la pile — le contenu du bloc le plus
-     * profond qui en porte une, la construction sinon, la racine au
-     * plancher — rogné de ses blancs d'escorte.
+     * reste porte la pile de son contexte — le contenu du bloc le
+     * plus profond qui porte une portée, la construction sinon, la
+     * racine au plancher — rogné de ses blancs d'escorte.
      */
     private void ecart(Utf8Line donnees, List<Token> jetons, int debutOctet, int finOctet,
             EtatGrammaire etat) {
@@ -266,7 +273,38 @@ final class GrammaireLexeur implements LanguageLexer {
             return;
         }
         int dernier = dernierNonBlanc(ligne, debut, fin);
-        jetons.add(new Token(Portees.de(contextePortee(etat)), premier, dernier + 1));
+        int pile = pileContexte(etat);
+        jetons.add(new Token(ScopeStacks.kindOf(pile), premier, dernier + 1,
+                pile));
+    }
+
+    /**
+     * La pile de portées du contexte (H-07) : la racine de la
+     * grammaire, puis chaque bloc ouvert de l'extérieur vers
+     * l'intérieur — sa portée de contenu, sinon sa portée de
+     * construction — internée une fois, partagée par tous les jetons
+     * qui la portent.
+     */
+    private int pileContexte(EtatGrammaire etat) {
+        List<String> portees = new ArrayList<>();
+        for (EtatGrammaire cadre = etat; cadre != null
+                && !EtatGrammaire.VIDE.equals(cadre); cadre = cadre.parent()) {
+            BlocOuvert ouvert = cadre.bloc();
+            if (ouvert == null) {
+                break;
+            }
+            RegleBloc regle = ouvert.regle();
+            String portee = regle.contenu() != null
+                    ? regle.contenu() : regle.portee();
+            if (portee != null) {
+                portees.add(portee);
+            }
+        }
+        int pile = ScopeStacks.root(grammaire.porteeRacine());
+        for (int i = portees.size() - 1; i >= 0; i--) {
+            pile = ScopeStacks.push(pile, portees.get(i));
+        }
+        return pile;
     }
 
     /** La portée de la pile : contenu, construction, englobant, racine au plancher. */
@@ -291,10 +329,11 @@ final class GrammaireLexeur implements LanguageLexer {
         return new LexedLine(jetons.toArray(new Token[0]), etat);
     }
 
-    private static Token jeton(String portee, Utf8Line donnees, int debutOctet,
-            int finOctet) {
-        return new Token(Portees.de(portee), donnees.versChar(debutOctet),
-                donnees.versChar(finOctet));
+    private static Token jeton(int pileContexte, String portee, Utf8Line donnees,
+            int debutOctet, int finOctet) {
+        int pile = ScopeStacks.push(pileContexte, portee);
+        return new Token(ScopeStacks.kindOf(pile), donnees.versChar(debutOctet),
+                donnees.versChar(finOctet), pile);
     }
 
     private static int premierNonBlanc(CharSequence ligne, int debut, int fin) {

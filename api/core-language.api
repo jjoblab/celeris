@@ -448,6 +448,20 @@ public final class jo.celeris.core.language.Packs {
   public static jo.celeris.core.language.PackSource archive(java.nio.file.Path);
 }
 
+### jo.celeris.core.language.TokenColorsTheme
+Compiled from "TokenColorsTheme.java"
+public final class jo.celeris.core.language.TokenColorsTheme extends java.lang.Record {
+  public jo.celeris.core.language.TokenColorsTheme(java.lang.String, int, int, jo.celeris.core.syntax.ScopeTheme);
+  public static jo.celeris.core.language.TokenColorsTheme parse(java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String name();
+  public int background();
+  public int foreground();
+  public jo.celeris.core.syntax.ScopeTheme scopes();
+}
+
 ### jo.celeris.core.language.TreeSitterLanguages
 Compiled from "TreeSitterLanguages.java"
 public final class jo.celeris.core.language.TreeSitterLanguages {

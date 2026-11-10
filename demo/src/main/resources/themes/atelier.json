@@ -1,0 +1,53 @@
+{
+  "name": "Atelier",
+  "colors": {
+    "editor.background": "#FBF6EE",
+    "editor.foreground": "#3A3630"
+  },
+  "tokenColors": [
+    {
+      "scope": "comment.block.documentation",
+      "settings": { "foreground": "#6B5D48" }
+    },
+    {
+      "scope": "comment",
+      "settings": { "foreground": "#5F5B52", "fontStyle": "italic" }
+    },
+    {
+      "scope": "string",
+      "settings": { "foreground": "#1D6F30" }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": { "foreground": "#0B5394" }
+    },
+    {
+      "scope": "keyword.operator",
+      "settings": { "foreground": "#4A4E54" }
+    },
+    {
+      "scope": ["keyword", "storage"],
+      "settings": { "foreground": "#5B1E8E" }
+    },
+    {
+      "scope": "entity.name.type, entity.name.section, entity.name.tag, support.type",
+      "settings": { "foreground": "#086B5D" }
+    },
+    {
+      "scope": "entity.name.function",
+      "settings": { "foreground": "#8A4B08", "fontStyle": "bold" }
+    },
+    {
+      "scope": "constant, support.constant",
+      "settings": { "foreground": "#9C2757" }
+    },
+    {
+      "scope": "meta.annotation",
+      "settings": { "foreground": "#8A5200" }
+    },
+    {
+      "scope": "invalid.illegal",
+      "settings": { "foreground": "#B3261E", "fontStyle": "underline" }
+    }
+  ]
+}

@@ -2,6 +2,9 @@ package jo.celeris.android.view;
 
 import java.util.List;
 
+import jo.celeris.core.syntax.ScopeStacks;
+import jo.celeris.core.syntax.ScopeStyle;
+import jo.celeris.core.syntax.ScopeTheme;
 import jo.celeris.core.syntax.TokenKind;
 
 /**
@@ -28,11 +31,16 @@ public final class TextPainter extends PainterLayer {
     private final RowSource source;
     private final TextBrush[] pinceauxParSorte;
 
+    /** Le pinceau des plages à pile de portées (H-07) — ses attributs
+     *  se reposent à chaque tracé, aucune couleur résiduelle. */
+    private final TextBrush pinceauPortees;
+
     /**
      * Construit la couche de texte.
      *
      * @param brushes la fabrique de pinceaux (la couche prend les siens :
-     *                un par sorte de jeton, plus celui de la base)
+     *                un par sorte de jeton, plus ceux de la base et des
+     *                portées)
      * @param cache   le cache de mises en page par rangée
      * @param source  la source des rangées manquantes au cache
      */
@@ -45,6 +53,7 @@ public final class TextPainter extends PainterLayer {
         for (int i = 0; i < sortes.length; i++) {
             pinceauxParSorte[i] = brushes.newBrush();
         }
+        this.pinceauPortees = brushes.newBrush();
     }
 
     @Override
@@ -64,6 +73,7 @@ public final class TextPainter extends PainterLayer {
         for (TextBrush pinceau : pinceauxParSorte) {
             pinceau.setFont(police);
         }
+        pinceauPortees.setFont(police);
         int theme = frame.theme().id();
         long revision = frame.revision();
         int colonnes = frame.projection().columns();
@@ -73,6 +83,7 @@ public final class TextPainter extends PainterLayer {
         float hauteur = metrics.lineHeight();
         float bordGauche = frame.gutterWidth() - frame.scrollX();
         SyntaxPalette palette = frame.theme().syntaxe();
+        ScopeTheme portees = frame.theme().portees();
         for (int rangee = premiere; rangee < derniere; rangee++) {
             RowLayout layout = cache.find(revision, rangee, theme, police, colonnes);
             if (layout == null) {
@@ -94,10 +105,10 @@ public final class TextPainter extends PainterLayer {
                 surface.drawText(layout.text(), bordGauche, y, brush());
             } else if (layout.runs().isEmpty()) {
                 tracerPlages(surface, layout, bordGauche, y, metrics.charWidth(),
-                        palette);
+                        palette, portees);
             } else {
                 tracerSegments(surface, layout, bordGauche, y,
-                        metrics.charWidth(), palette);
+                        metrics.charWidth(), palette, portees);
             }
         }
     }
@@ -119,15 +130,17 @@ public final class TextPainter extends PainterLayer {
      * Trace la rangée plage par plage, de gauche à droite : chaque plage
      * se peint à l'encre de sa sorte, le tracé avance de la largeur
      * rendue — aucune allocation, la variante à bornes de la surface
-     * sert la plage telle quelle.
+     * sert la plage telle quelle. La plage à pile de portées se peint
+     * par le thème (H-07) — style en cache, aucune chaîne, aucun
+     * objet nouveau.
      */
     private void tracerPlages(DrawSurface surface, RowLayout layout,
-            float bordGauche, float y, float largeurCar, SyntaxPalette palette) {
+            float bordGauche, float y, float largeurCar, SyntaxPalette palette,
+            ScopeTheme portees) {
         String texte = layout.text();
         float x = bordGauche;
         for (ColoredSpan plage : layout.spans()) {
-            TextBrush pinceau = pinceauxParSorte[plage.kind().ordinal()];
-            pinceau.setColor(palette.couleur(plage.kind()));
+            TextBrush pinceau = pinceauDe(plage, palette, portees);
             surface.drawText(texte, plage.start(), plage.end(), x, y, pinceau);
             x += (plage.end() - plage.start()) * largeurCar;
         }
@@ -142,7 +155,8 @@ public final class TextPainter extends PainterLayer {
      * couleur suit le découpage logique, l'ordre reste visuel.
      */
     private void tracerSegments(DrawSurface surface, RowLayout layout,
-            float bordGauche, float y, float largeurCar, SyntaxPalette palette) {
+            float bordGauche, float y, float largeurCar, SyntaxPalette palette,
+            ScopeTheme portees) {
         String texte = layout.text();
         List<ColoredSpan> plages = layout.spans();
         float x = bordGauche;
@@ -159,11 +173,32 @@ public final class TextPainter extends PainterLayer {
                 if (fin <= debut) {
                     continue;
                 }
-                TextBrush pinceau = pinceauxParSorte[plage.kind().ordinal()];
-                pinceau.setColor(palette.couleur(plage.kind()));
+                TextBrush pinceau = pinceauDe(plage, palette, portees);
                 surface.drawText(texte, debut, fin, x, y, pinceau);
                 x += (fin - debut) * largeurCar;
             }
         }
+    }
+
+    /**
+     * Le pinceau d'une plage : celui du thème par portées quand sa pile
+     * y résout (H-07 — encre et attributs posés, style en cache, aucune
+     * allocation), celui de sa sorte sinon — la palette fait foi.
+     */
+    private TextBrush pinceauDe(ColoredSpan plage, SyntaxPalette palette,
+            ScopeTheme portees) {
+        if (plage.scope() != ScopeStacks.NONE) {
+            ScopeStyle style = portees.styleFor(plage.scope());
+            if (style != null) {
+                pinceauPortees.setStyle(style.bold(), style.italic(),
+                        style.underline());
+                pinceauPortees.setColor(style.hasInk() ? style.foreground()
+                        : palette.couleur(plage.kind()));
+                return pinceauPortees;
+            }
+        }
+        TextBrush pinceau = pinceauxParSorte[plage.kind().ordinal()];
+        pinceau.setColor(palette.couleur(plage.kind()));
+        return pinceau;
     }
 }

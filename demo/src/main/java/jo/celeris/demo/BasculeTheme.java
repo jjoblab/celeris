@@ -14,7 +14,9 @@ import jo.celeris.android.view.EditorView;
 
 /**
  * La bascule de thème de l'atelier (D-13) : la rotation clair → sombre
- * → contraste élevé, l'index persisté, le libellé du menu au courant —
+ * → contraste élevé → thème importé (M7.6, H-07 — le fichier
+ * {@code tokenColors} au format de VS Code, lu par l'importeur du
+ * core-language), l'index persisté, le libellé du menu au courant —
  * extraite de l'activité (plafond de 600 lignes, ADR-002), l'activité
  * délègue.
  */
@@ -25,7 +27,7 @@ final class BasculeTheme {
 
     private static final EditorTheme[] THEMES = {
             EditorThemes.CLAIR, EditorThemes.SOMBRE,
-            EditorThemes.CONTRASTE_ELEVE };
+            EditorThemes.CONTRASTE_ELEVE, ImportedThemes.atelier() };
 
     private final AppCompatActivity activite;
     private final EditorView editeur;
@@ -101,6 +103,7 @@ final class BasculeTheme {
         return activite.getString(switch (indexCourant()) {
             case 1 -> R.string.theme_sombre;
             case 2 -> R.string.theme_contraste;
+            case 3 -> R.string.theme_importe;
             default -> R.string.theme_clair;
         });
     }

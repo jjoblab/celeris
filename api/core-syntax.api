@@ -480,6 +480,79 @@ public final class jo.celeris.core.syntax.RuleOutline {
   public static java.util.List<jo.celeris.core.syntax.OutlineEntry> entries(jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.OutlineRule>, java.util.List<jo.celeris.core.syntax.FoldSpan>);
 }
 
+### jo.celeris.core.syntax.ScopeSelector$Complex
+Compiled from "ScopeSelector.java"
+final class jo.celeris.core.syntax.ScopeSelector$Complex extends java.lang.Record {
+  public java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<java.lang.String> elements();
+  public java.util.List<java.lang.String> exclusions();
+}
+
+### jo.celeris.core.syntax.ScopeSelector
+Compiled from "ScopeSelector.java"
+public final class jo.celeris.core.syntax.ScopeSelector {
+  public static jo.celeris.core.syntax.ScopeSelector parse(java.lang.String);
+  public java.lang.Integer score(java.util.List<java.lang.String>);
+  public java.lang.String toString();
+}
+
+### jo.celeris.core.syntax.ScopeStacks$Node
+Compiled from "ScopeStacks.java"
+final class jo.celeris.core.syntax.ScopeStacks$Node {
+}
+
+### jo.celeris.core.syntax.ScopeStacks
+Compiled from "ScopeStacks.java"
+public final class jo.celeris.core.syntax.ScopeStacks {
+  public static final int NONE;
+  public static int root(java.lang.String);
+  public static int push(int, java.lang.String);
+  public static java.util.List<java.lang.String> scopesOf(int);
+  public static jo.celeris.core.syntax.TokenKind kindOf(int);
+}
+
+### jo.celeris.core.syntax.ScopeStyle
+Compiled from "ScopeStyle.java"
+public final class jo.celeris.core.syntax.ScopeStyle extends java.lang.Record {
+  public jo.celeris.core.syntax.ScopeStyle(int, boolean, boolean, boolean);
+  public static jo.celeris.core.syntax.ScopeStyle ink(int);
+  public boolean hasInk();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int foreground();
+  public boolean bold();
+  public boolean italic();
+  public boolean underline();
+}
+
+### jo.celeris.core.syntax.ScopeTheme$Rule
+Compiled from "ScopeTheme.java"
+public final class jo.celeris.core.syntax.ScopeTheme$Rule {
+  public jo.celeris.core.syntax.ScopeTheme$Rule(java.lang.String, jo.celeris.core.syntax.ScopeStyle);
+  public java.lang.String selector();
+  public jo.celeris.core.syntax.ScopeStyle style();
+}
+
+### jo.celeris.core.syntax.ScopeTheme
+Compiled from "ScopeTheme.java"
+public final class jo.celeris.core.syntax.ScopeTheme {
+  public static jo.celeris.core.syntax.ScopeTheme empty();
+  public static jo.celeris.core.syntax.ScopeTheme of(java.util.List<jo.celeris.core.syntax.ScopeTheme$Rule>);
+  public jo.celeris.core.syntax.ScopeStyle styleFor(int);
+  public java.util.List<jo.celeris.core.syntax.ScopeTheme$Rule> rules();
+}
+
+### jo.celeris.core.syntax.ScopeThemes
+Compiled from "ScopeThemes.java"
+public final class jo.celeris.core.syntax.ScopeThemes {
+  public static jo.celeris.core.syntax.ScopeTheme light();
+  public static jo.celeris.core.syntax.ScopeTheme dark();
+  public static jo.celeris.core.syntax.ScopeTheme highContrast();
+}
+
 ### jo.celeris.core.syntax.SynNode
 Compiled from "SynNode.java"
 public final class jo.celeris.core.syntax.SynNode {
@@ -537,6 +610,7 @@ public final class jo.celeris.core.syntax.SyntaxTree {
 Compiled from "Token.java"
 public final class jo.celeris.core.syntax.Token extends java.lang.Record {
   public jo.celeris.core.syntax.Token(jo.celeris.core.syntax.TokenKind, int, int);
+  public jo.celeris.core.syntax.Token(jo.celeris.core.syntax.TokenKind, int, int, int);
   public int length();
   public final java.lang.String toString();
   public final int hashCode();
@@ -544,6 +618,7 @@ public final class jo.celeris.core.syntax.Token extends java.lang.Record {
   public jo.celeris.core.syntax.TokenKind kind();
   public int start();
   public int end();
+  public int scope();
 }
 
 ### jo.celeris.core.syntax.TokenKind

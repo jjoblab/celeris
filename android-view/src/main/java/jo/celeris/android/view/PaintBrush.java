@@ -55,4 +55,16 @@ public final class PaintBrush implements TextBrush {
     public void setStrokeWidth(float pixels) {
         peinture.setStrokeWidth(Math.max(1f, pixels));
     }
+
+    /**
+     * Les attributs d'une plage à pile de portées (H-07) : la graisse
+     * et le soulignement par drapeaux, l'italique par l'inclinaison
+     * du tracé — tout se repose à chaque plage, rien ne se propage.
+     */
+    @Override
+    public void setStyle(boolean bold, boolean italic, boolean underline) {
+        peinture.setFakeBoldText(bold);
+        peinture.setTextSkewX(italic ? -0.25f : 0f);
+        peinture.setUnderlineText(underline);
+    }
 }

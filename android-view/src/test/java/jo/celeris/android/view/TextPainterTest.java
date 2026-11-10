@@ -167,9 +167,10 @@ class TextPainterTest {
         assertEquals("alpha", texte.texte());
         assertNotSame(rect.pinceau(), texte.pinceau(),
                 "chaque couche doit posséder son pinceau (fabrique saine)");
-        // 1 pinceau de sélection, 1 de base et 14 de sortes de jetons
-        // (B-01) : chacun possède le sien, aucun n'est partagé.
-        assertEquals(16, saine.creations);
+        // 1 pinceau de sélection, 1 de base, 14 de sortes de jetons
+        // (B-01) et 1 de portées (M7.6, H-07) : chacun possède le
+        // sien, aucun n'est partagé.
+        assertEquals(17, saine.creations);
 
         // Second volet : fabrique hostile — le même pinceau partagé pour
         // tout le pipeline. La couleur de base est reposée à chaque image
