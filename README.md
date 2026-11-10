@@ -60,7 +60,7 @@ neutralité par défaut est structurelle, vérifiée en CI.
 - [`MIGRATION.md`](MIGRATION.md) — guide de migration du dépôt de départ vers celeris (final à M9).
 - [`docs/adr/`](docs/adr/) — décisions d'architecture (ADR-001 à ADR-017).
 - [`docs/parite/MATRICE-PARITE.md`](docs/parite/MATRICE-PARITE.md) — référentiel de parité, catégories A à H.
-- [`docs/audit/`](docs/audit/) — état des lieux du dépôt de départ, registre de portage, pièges hérités, spikes, audit d'accessibilité et revue de sécurité (M9).
+- [`docs/audit/`](docs/audit/) — état des lieux du dépôt de départ, registre de portage, pièges hérités, spikes, audit d'accessibilité et revue de sécurité (M9), analyse comparative avec le dépôt de départ.
 - [`docs/REFERENCES.md`](docs/REFERENCES.md) — projets et normes cités, licences vérifiées.
 - [`docs/feuille-de-route.md`](docs/feuille-de-route.md) — jalons M1 à M9 et effort estimé.
 - [`docs/GLOSSAIRE.md`](docs/GLOSSAIRE.md) — terminologie française de référence.
