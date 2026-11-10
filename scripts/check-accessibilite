@@ -1,0 +1,291 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Auditeur automatique d'accessibilité (ADR-008, promesse M3 — livré à M9).
+
+L'ADR-008 promettait « vérifications automatiques en CI (auditeur
+d'accessibilité) dès M3 » : l'auditeur n'existait pas, l'audit M9 le
+livre. Il contrôle ce qui se vérifie MÉCANIQUEMENT dans ce dépôt —
+les bancs JVM couvrent le comportement (granularités, annonces,
+contraste WCAG), l'auditeur veille sur les surfaces déclaratives :
+
+  1. chaque widget interactif d'un layout porte un label de ressource
+     (contentDescription, text ou hint en @string/…) — un interactif
+     exclu (@null ou importantForAccessibility="no") est une violation,
+     il se tait au lecteur d'écran ;
+  2. aucun label littéral : les attributs de label des layouts et les
+     titres des menus vivent en ressources (i18n, ADR-008 n° 2) ;
+  3. chaque item de menu porte un titre @string/… ;
+  4. parité values/ ↔ values-fr/ des clés de chaînes, quand des
+     ressources existent ;
+  5. le câblage de l'arbre virtuel vit toujours : AccessibilityHost
+     existe, la vue expose son fournisseur de nœuds, la sélection
+     s'annonce (TYPE_VIEW_TEXT_SELECTION_CHANGED) — l'audit de M9
+     vérifie, l'auditeur garde.
+
+Le contrôle s'exécute depuis la racine passée en argument (le dépôt
+par défaut) ; les auto-tests pointent des fixtures minuscules.
+
+Sortie : décomptes ; échec (exit 1) à la première violation.
+
+Usage :  python3 scripts/check-accessibilite [RACINE]
+"""
+
+import os
+import sys
+import xml.etree.ElementTree as ET
+
+ANDROID = "{http://schemas.android.com/apk/res/android}"
+
+# Widgets interactifs : l'utilisateur agit dessus — chacun porte un nom.
+# Le nom de balise se compare par son suffixe (les widgets Material vivent
+# en balises pleinement qualifiées, com.google.android.material.…).
+INTERACTIFS = {
+    "Button", "ImageButton", "MaterialButton", "MaterialButtonToggleGroup",
+    "CheckBox", "MaterialCheckBox", "Switch", "MaterialSwitch",
+    "RadioButton", "MaterialRadioButton", "ToggleButton",
+    "FloatingActionButton", "Chip", "SeekBar", "Slider", "MaterialSlider",
+    "EditText", "AutoCompleteTextView", "MaterialAutoCompleteTextView",
+    "Spinner", "SearchBar", "SearchView",
+}
+
+# Attributs qui nomment un élément pour le lecteur d'écran.
+LABELS = ("contentDescription", "text", "hint")
+
+# Valeurs d'exclusion explicite : l'élément se déclare non porteur.
+EXCLUSIONS = ("@null",)
+
+
+def balise(elem):
+    """Le nom de balise sans espace de noms (suffixe après le dernier point)."""
+    return elem.tag.rsplit("}", 1)[-1].rsplit(".", 1)[-1]
+
+
+def attribut(elem, nom):
+    """La valeur d'un attribut android:, ou None."""
+    return elem.get(ANDROID + nom)
+
+
+def label_ressource(valeur):
+    """Une valeur de label acceptable : référence de ressource chaîne."""
+    return valeur is not None and (
+        valeur.startswith("@string/") or valeur.startswith("@android:string/")
+    )
+
+
+def exclu(elem):
+    """L'élément se déclare explicitement non porteur de nom."""
+    cd = attribut(elem, "contentDescription")
+    if cd in EXCLUSIONS:
+        return True
+    return attribut(elem, "importantForAccessibility") == "no"
+
+
+def nomme(elem, associations):
+    """L'élément est nommé : label propre ou labelFor d'un autre élément."""
+    for attribut_nom in LABELS:
+        if label_ressource(attribut(elem, attribut_nom)):
+            return True
+    identifiant = attribut(elem, "id")
+    if identifiant:
+        cle = identifiant.replace("@+id/", "@id/")
+        return cle in associations
+    return False
+
+
+def auditer_layout(chemin, problemes):
+    """Règles 1 et 2 : labels des interactifs, aucun littéral."""
+    interactifs = 0
+    etiquettes = 0
+    try:
+        racine = ET.parse(chemin).getroot()
+    except ET.ParseError as err:
+        problemes.append(f"{chemin} : XML illisible ({err})")
+        return 0, 0
+    # Les associations labelFor : un TextView qui se déclare label
+    # d'un autre élément nomme cet élément pour le lecteur d'écran.
+    associations = set()
+    for elem in racine.iter():
+        cible = attribut(elem, "labelFor")
+        if cible:
+            associations.add(cible.replace("@+id/", "@id/"))
+    for elem in racine.iter():
+        nom = balise(elem)
+        est_interactif = nom in INTERACTIFS
+        if est_interactif:
+            interactifs += 1
+            if exclu(elem):
+                problemes.append(
+                    f"{chemin} : {nom} interactif exclu du lecteur "
+                    f"d'écran — il porte un nom, toujours"
+                )
+                continue
+            for attribut_nom in LABELS:
+                valeur = attribut(elem, attribut_nom)
+                if valeur is None:
+                    continue
+                if not (label_ressource(valeur) or valeur in EXCLUSIONS):
+                    problemes.append(
+                        f"{chemin} : {nom} porte le label littéral "
+                        f"« {valeur} » — les labels vivent en @string/"
+                    )
+            if nomme(elem, associations):
+                etiquettes += 1
+            else:
+                problemes.append(
+                    f"{chemin} : {nom} interactif sans nom de ressource "
+                    f"(label propre ou labelFor d'un libellé)"
+                )
+        else:
+            for attribut_nom in ("contentDescription", "hint", "text"):
+                valeur = attribut(elem, attribut_nom)
+                if valeur is None or exclu(elem):
+                    continue
+                if not (label_ressource(valeur) or valeur in EXCLUSIONS):
+                    problemes.append(
+                        f"{chemin} : {nom} porte le label littéral "
+                        f"« {valeur} » — les labels vivent en @string/"
+                    )
+    return interactifs, etiquettes
+
+
+def auditer_menu(chemin, problemes):
+    """Règle 3 : chaque item de menu porte un titre de ressource."""
+    items = 0
+    titres = 0
+    try:
+        racine = ET.parse(chemin).getroot()
+    except ET.ParseError as err:
+        problemes.append(f"{chemin} : XML illisible ({err})")
+        return 0, 0
+    for elem in racine.iter():
+        if balise(elem) != "item":
+            continue
+        items += 1
+        titre = attribut(elem, "title")
+        if titre is None:
+            problemes.append(f"{chemin} : item de menu sans android:title")
+        elif not label_ressource(titre):
+            problemes.append(
+                f"{chemin} : item de menu titré littéralement "
+                f"« {titre} » — les titres vivent en @string/"
+            )
+        else:
+            titres += 1
+    return items, titres
+
+
+def cles_chaines(chemin):
+    """Les noms des <string> d'un fichier de ressources, None si absent."""
+    try:
+        racine = ET.parse(chemin).getroot()
+    except ET.ParseError as err:
+        return None, [f"{chemin} : XML illisible ({err})"]
+    return {elem.get("name") for elem in racine.iter("string")}, []
+
+
+def auditer_ressources(racine_depot, problemes):
+    """Règle 4 : parité des clés values/ ↔ values-fr/ par module."""
+    paires = 0
+    for base, dossiers, _noms in os.walk(os.path.join(racine_depot, "")):
+        if os.path.basename(base) != "values":
+            continue
+        fichiers = set(os.listdir(base)) if os.path.isdir(base) else set()
+        if "strings.xml" not in fichiers:
+            continue
+        paires += 1
+        chemin_defaut = os.path.join(base, "strings.xml")
+        chemin_fr = os.path.join(os.path.dirname(base), "values-fr", "strings.xml")
+        if not os.path.isfile(chemin_fr):
+            problemes.append(
+                f"{chemin_defaut} : values-fr/strings.xml manquant "
+                f"(ADR-008 n° 2 : en et fr à 100 %)"
+            )
+            continue
+        cles_defaut, erreurs = cles_chaines(chemin_defaut)
+        problemes.extend(erreurs)
+        cles_fr, erreurs = cles_chaines(chemin_fr)
+        problemes.extend(erreurs)
+        if cles_defaut is None or cles_fr is None:
+            continue
+        for cle in sorted(cles_defaut - cles_fr):
+            problemes.append(f"{chemin_fr} : clé absente en français : {cle}")
+        for cle in sorted(cles_fr - cles_defaut):
+            problemes.append(f"{chemin_fr} : clé absente en défaut : {cle}")
+    return paires
+
+
+def auditer_cablage(racine_depot, problemes):
+    """Règle 5 : l'arbre virtuel vit toujours dans android-view."""
+    source_vue = os.path.join(racine_depot, "android-view", "src", "main")
+    vue = os.path.join(source_vue, "java")
+    if not os.path.isdir(vue):
+        problemes.append("android-view/src/main/java : introuvable")
+        return 0
+    fichiers = []
+    for base, _dossiers, noms in os.walk(vue):
+        fichiers.extend(os.path.join(base, n) for n in noms if n.endswith(".java"))
+    noms_fichiers = {os.path.basename(f) for f in fichiers}
+    if "AccessibilityHost.java" not in noms_fichiers:
+        problemes.append(
+            "android-view : AccessibilityHost.java introuvable — "
+            "l'arbre d'accessibilité virtuel a disparu (G-05, ADR-008)"
+        )
+    texte_vue = ""
+    for chemin in fichiers:
+        try:
+            with open(chemin, encoding="utf-8") as f:
+                texte_vue += f.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+    for temoin in ("getAccessibilityNodeProvider", "TYPE_VIEW_TEXT_SELECTION_CHANGED"):
+        if temoin not in texte_vue:
+            problemes.append(
+                f"android-view : témoin de câblage absent : {temoin} "
+                f"(l'arbre virtuel s'expose et la sélection s'annonce)"
+            )
+    return len(fichiers)
+
+
+def main():
+    racine = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else ".")
+    problemes = []
+
+    interactifs = 0
+    etiquettes = 0
+    layouts = os.path.join(racine, "demo", "src", "main", "res", "layout")
+    if os.path.isdir(layouts):
+        for base, _dossiers, noms in os.walk(layouts):
+            for nom in sorted(noms):
+                if nom.endswith(".xml"):
+                    i, e = auditer_layout(os.path.join(base, nom), problemes)
+                    interactifs += i
+                    etiquettes += e
+    elif os.path.isdir(os.path.join(racine, "demo")):
+        problemes.append("demo/src/main/res/layout : introuvable")
+
+    items = 0
+    titres = 0
+    menus = os.path.join(racine, "demo", "src", "main", "res", "menu")
+    if os.path.isdir(menus):
+        for base, _dossiers, noms in os.walk(menus):
+            for nom in sorted(noms):
+                if nom.endswith(".xml"):
+                    i, t = auditer_menu(os.path.join(base, nom), problemes)
+                    items += i
+                    titres += t
+
+    paires = auditer_ressources(racine, problemes)
+    auditer_cablage(racine, problemes)
+
+    for probleme in problemes:
+        print("accessibilité : " + probleme)
+    print(
+        f"accessibilité : {interactifs} widgets interactifs ({etiquettes} "
+        f"étiquetés), {items} items de menu ({titres} titrés), {paires} "
+        f"paires en/fr — {'conforme' if not problemes else 'NON conforme'}"
+    )
+    return 1 if problemes else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
