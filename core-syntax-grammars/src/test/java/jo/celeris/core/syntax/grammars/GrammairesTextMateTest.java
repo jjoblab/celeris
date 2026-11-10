@@ -389,14 +389,19 @@ class GrammairesTextMateTest {
         assertEquals(etat, suite.exitState(), "la fermeture substituée invalide ne matche jamais");
     }
 
-    /** La grammaire dont le nom manque se refuse avec le champ en cause. */
+    /**
+     * Le nom racine manquant se tolère : le format TextMate le rend
+     * facultatif et la grammaire PHP du commerce (microsoft/vscode)
+     * s'en passe — la portée racine sert de repli affichable (H-05,
+     * la longue traîne du chantier C5).
+     */
     @Test
-    void nomAbsentRefuse() {
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> Grammaires.lire("""
-                        { "scopeName": "source.essai", "patterns": [] }
-                        """));
-        assertTrue(String.valueOf(e.getMessage()).contains("name"));
+    void nomAbsentTombeSurLaPorteeRacine() {
+        Grammaire grammaire = Grammaires.lire("""
+                { "scopeName": "source.essai", "patterns": [] }
+                """);
+        assertEquals("source.essai", grammaire.nom(),
+                "la portée racine sert de nom quand le nom manque");
     }
 
     /** La grammaire dont la portée racine manque se refuse. */
