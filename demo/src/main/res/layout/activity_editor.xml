@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- L'atelier d'édition : barre d'application au nom du fichier et au
      menu d'actions (recherche, plan, débogage, annulations, thème,
-     zoom, réglages), barre de recherche dépliable en champ garni,
-     scène pleine (EditorView, le plan en tiroir à droite) et barre
+     zoom, réglages), scène pleine (EditorView sur sa couche de popups,
+     ADR-018 : le plan et la recherche vivent en feuilles) et barre
      d'état en police à chasse fixe. Les encarts système et clavier
      deviennent des marges du chrome (bord à bord, EditorActivity). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -31,84 +31,6 @@
             app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <LinearLayout
-        android:id="@+id/barre_recherche"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/surface"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="6dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        android:visibility="gone">
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:boxBackgroundColor="@color/surface_variante"
-            app:boxCornerRadiusBottomEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxStrokeWidth="0dp"
-            app:boxStrokeWidthFocused="0dp"
-            app:hintEnabled="false"
-            app:startIconDrawable="@drawable/ic_recherche">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/champ_recherche"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/indication_recherche"
-                android:imeOptions="actionSearch"
-                android:inputType="text"
-                android:maxLines="1"
-                android:singleLine="true"
-                android:textSize="14sp" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView
-            android:id="@+id/compteur_recherche"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:fontFamily="monospace"
-            android:minWidth="52dp"
-            android:textAlignment="center"
-            android:textColor="@color/encre_douce"
-            android:textSize="13sp" />
-
-        <ImageButton
-            android:id="@+id/bouton_precedent"
-            style="?attr/materialIconButtonStyle"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:contentDescription="@string/action_precedent"
-            android:src="@drawable/ic_monter"
-            app:iconSize="20dp" />
-
-        <ImageButton
-            android:id="@+id/bouton_suivant"
-            style="?attr/materialIconButtonStyle"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:contentDescription="@string/action_suivant"
-            android:src="@drawable/ic_descendre"
-            app:iconSize="20dp" />
-
-        <ImageButton
-            android:id="@+id/bouton_fermer_recherche"
-            style="?attr/materialIconButtonStyle"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:contentDescription="@string/action_fermer"
-            android:src="@drawable/ic_fermer"
-            app:iconSize="20dp" />
-    </LinearLayout>
-
     <FrameLayout
         android:id="@+id/scene_edition"
         android:layout_width="match_parent"
@@ -128,13 +50,6 @@
             android:id="@+id/couche_popups"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-
-        <jo.celeris.android.widgets.OutlineView
-            android:id="@+id/plan"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="end"
-            android:visibility="gone" />
 
         <!-- La surimpression de diagnostic (M7.5, §9) : la ligne de
              vérité du rendu — taille, gouttière, images décolorées,

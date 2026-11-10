@@ -1,11 +1,13 @@
 package jo.celeris.demo;
 
-import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -14,22 +16,36 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.Map;
 import java.util.StringJoiner;
+
+import org.jspecify.annotations.Nullable;
+
+import jo.celeris.android.widgets.FeuilleBas;
 
 /**
  * Écran d'accueil de la démonstration : la carte de marque porte les
  * deux compteurs réels du dépôt (fichiers d'exemple, scénarios du
  * catalogue), puis chaque fichier devient une carte qui ouvre l'écran
- * d'éditeur complet. Libellés en ressources {@code en}/{@code fr}
- * complètes (ADR-008).
+ * d'éditeur complet. Les surfaces fonctionnelles vivent en popups
+ * (ADR-018) : les verdicts du banc et les réglages en feuilles du
+ * bas. Libellés en ressources {@code en}/{@code fr} complètes
+ * (ADR-008).
  */
 public final class MainActivity extends AppCompatActivity {
 
     /** L'adaptateur des cartes, gardé pour les resoumissions (H-04). */
     private AdaptateurFichiers adaptateur;
+
+    /** La feuille des réglages (ADR-018, C12). */
+    private FeuilleReglages feuilleReglages;
+
+    /** La feuille des verdicts du banc — née à son premier appel. */
+    private @Nullable FeuilleBas feuilleVerdicts;
+
+    /** Les lignes de verdicts, gardées pour les réouvertures. */
+    private @Nullable TextView lignesVerdicts;
 
     @Override
     protected void onCreate(Bundle etat) {
@@ -53,8 +69,14 @@ public final class MainActivity extends AppCompatActivity {
         this.adaptateur = adaptateur;
         soumettreCartes();
 
+        // La feuille des réglages (ADR-018) : le paquet jouet (H-04)
+        // s'y installe, les cartes se resoumettent à sa fermeture.
+        feuilleReglages = new FeuilleReglages(this, () -> PalettesDemo.de(this),
+                this::soumettreCartes);
+
         poserStatistiques();
         appliquerBordABord();
+        brancherRetour();
     }
 
     @Override
@@ -115,29 +137,69 @@ public final class MainActivity extends AppCompatActivity {
                 vue -> montrerVerdicts(verdicts));
     }
 
-    /** Les verdicts du banc, ligne à ligne — la démo qui démontre se lit. */
+    /**
+     * Les verdicts du banc, ligne à ligne — la démo qui démontre se
+     * lit, en feuille du bas (ADR-018) : plus aucun dialogue système.
+     */
     private void montrerVerdicts(Map<String, Boolean> verdicts) {
+        FeuilleBas feuille = feuilleVerdicts;
+        if (feuille == null) {
+            feuille = new FeuilleBas(this, PalettesDemo.de(this));
+            feuille.titre(getString(R.string.specs_titre));
+            feuille.libelleFermeture(getString(R.string.action_fermer));
+            lignesVerdicts = new TextView(this);
+            lignesVerdicts.setTypeface(Typeface.MONOSPACE);
+            feuille.contenu(lignesVerdicts);
+            feuilleVerdicts = feuille;
+        }
         StringJoiner lignes = new StringJoiner("\n");
         for (Map.Entry<String, Boolean> verdict : verdicts.entrySet()) {
             lignes.add(getString(verdict.getValue()
                     ? R.string.spec_verdict_tenu : R.string.spec_verdict_tombe,
                     verdict.getKey()));
         }
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.specs_titre)
-                .setMessage(lignes.toString())
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
+        lignesVerdicts.setText(lignes.toString());
+        feuille.setPalette(PalettesDemo.de(this));
+        feuille.montrer(hote());
     }
 
     private boolean ouvrirReglages() {
-        startActivity(new Intent(this, SettingsActivity.class));
+        feuilleReglages.montrer();
         return true;
     }
 
     private void ouvrirFichier(CarteFichier carte) {
-        startActivity(new Intent(this, EditorActivity.class)
+        startActivity(new android.content.Intent(this, EditorActivity.class)
                 .putExtra(EditorActivity.EXTRA_FICHIER, carte.nom()));
+    }
+
+    /** Le cadre de contenu de la fenêtre — toujours un FrameLayout. */
+    private ViewGroup hote() {
+        return (ViewGroup) findViewById(android.R.id.content);
+    }
+
+    /** La touche retour ferme la feuille ouverte — sinon elle poursuit
+     *  son chemin vers l'hôte (ADR-018 : la feuille se referme). */
+    private void brancherRetour() {
+        getOnBackPressedDispatcher().addCallback(this,
+                new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (!fermerFeuilleActive()) {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
+    }
+
+    /** Ferme la feuille ouverte, s'il y en a une — le retour s'y consomme. */
+    private boolean fermerFeuilleActive() {
+        if (feuilleReglages.surRetour()) {
+            return true;
+        }
+        FeuilleBas feuille = feuilleVerdicts;
+        return feuille != null && feuille.surRetour();
     }
 
     /** Le chrome s'étend bord à bord : les encarts deviennent marges. */

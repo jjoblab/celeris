@@ -1,16 +1,19 @@
 package jo.celeris.demo;
 
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.NavigationCommands;
+import jo.celeris.android.widgets.FeuilleBas;
+import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.intelligence.Formateur;
 import jo.celeris.core.intelligence.Gabarit;
@@ -52,7 +55,7 @@ final class AtelierRefactor {
                 ${corps:}
             }""";
 
-    /** L'activité hôtesse — les dialogues y vivent. */
+    /** L'activité hôtesse — la feuille de renommage y vit. */
     private final AppCompatActivity activite;
     /** La vue d'éditeur ouverte — l'invalidation et le dévoilement. */
     private final EditorView editeur;
@@ -62,6 +65,13 @@ final class AtelierRefactor {
     private final String nomFichier;
     /** Le verdict de la barre d'état — un identifiant de ressource. */
     private final Verdict verdict;
+    /** La palette courante des feuilles, dérivée à chaque ouverture. */
+    private final Supplier<PopupPalette> palettes;
+
+    /** La feuille de renommage — née à sa première demande. */
+    private @Nullable FeuilleBas feuilleRennomage;
+    /** Le champ de la feuille de renommage. */
+    private @Nullable EditText champRennomage;
 
     /** Le verdict de l'atelier : un message à la barre d'état de l'hôte. */
     interface Verdict {
@@ -73,18 +83,21 @@ final class AtelierRefactor {
     /**
      * Construit l'atelier de refactorisation.
      *
-     * @param activite   l'activité hôtesse des dialogues
+     * @param activite   l'activité hôtesse de la feuille de renommage
      * @param editeur    la vue d'éditeur ouverte
      * @param session    la session d'édition courante
      * @param nomFichier le nom du fichier ouvert
+     * @param palettes   la palette courante, dérivée à chaque ouverture
      * @param verdict    le canal des messages d'état
      */
     AtelierRefactor(AppCompatActivity activite, EditorView editeur,
-            TextSession session, String nomFichier, Verdict verdict) {
+            TextSession session, String nomFichier,
+            Supplier<PopupPalette> palettes, Verdict verdict) {
         this.activite = activite;
         this.editeur = editeur;
         this.session = session;
         this.nomFichier = nomFichier;
+        this.palettes = palettes;
         this.verdict = verdict;
     }
 
@@ -208,7 +221,9 @@ final class AtelierRefactor {
     /**
      * B-19, B-11 — le renommage du symbole au curseur : les usages
      * ENTIERS portent le nouveau nom, une transaction annulable — le
-     * nouveau nom se demande, les conflits se disent.
+     * nouveau nom se demande en feuille du bas (ADR-018, C12 : le
+     * champ tient le focus, la feuille vit hors de la couche), les
+     * conflits se disent.
      */
     void renommerSymbole() {
         List<SelRange> plages = session.selection().ranges();
@@ -218,17 +233,51 @@ final class AtelierRefactor {
             verdict.publier(activite.getString(R.string.renomme_aucun_symbole));
             return;
         }
-        EditText champ = new EditText(activite);
-        champ.setText(symbole);
-        champ.setSelection(symbole.length());
-        new MaterialAlertDialogBuilder(activite)
-                .setTitle(activite.getString(R.string.titre_renomme, symbole))
-                .setView(champ)
-                .setPositiveButton(R.string.renomme_appliquer,
-                        (dialog, lequel) -> renommer(symbole,
-                                champ.getText().toString().trim()))
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
+        FeuilleBas feuille = feuilleRennomage;
+        if (feuille == null) {
+            FeuilleBas neuve = new FeuilleBas(activite, palettes.get());
+            neuve.libelleFermeture(
+                    activite.getString(R.string.action_fermer));
+            View contenu = activite.getLayoutInflater()
+                    .inflate(R.layout.feuille_renommage, null);
+            neuve.contenu(contenu);
+            champRennomage = contenu.findViewById(R.id.champ_renommage);
+            neuve.findViewById(R.id.bouton_renommage_annuler)
+                    .setOnClickListener(vue -> neuve.cacher());
+            neuve.findViewById(R.id.bouton_renommage_appliquer)
+                    .setOnClickListener(vue -> {
+                        EditText champ = champRennomage;
+                        if (champ != null) {
+                            neuve.cacher();
+                            renommer(symbole,
+                                    champ.getText().toString().trim());
+                        }
+                    });
+            feuilleRennomage = neuve;
+            feuille = neuve;
+        }
+        EditText champ = champRennomage;
+        if (champ != null) {
+            champ.setText(symbole);
+            champ.setSelection(symbole.length());
+        }
+        feuille.titre(activite.getString(R.string.titre_renomme, symbole));
+        feuille.setPalette(palettes.get());
+        feuille.montrer(hote());
+        if (champ != null) {
+            champ.requestFocus();
+        }
+    }
+
+    /** La touche retour rencontre la feuille — ouverte, elle se referme. */
+    boolean surRetour() {
+        FeuilleBas feuille = feuilleRennomage;
+        return feuille != null && feuille.surRetour();
+    }
+
+    /** Le cadre de contenu de la fenêtre — toujours un FrameLayout. */
+    private ViewGroup hote() {
+        return (ViewGroup) activite.findViewById(android.R.id.content);
     }
 
     /** Le renommage effectif : le plan sur l'analyse fraîche, les conflits se disent. */

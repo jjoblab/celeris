@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le contenu de la feuille de renommage (B-19, B-11, ADR-018) : le
+     nouveau nom se demande dans une feuille du bas — le champ doit
+     tenir le focus, la feuille vit hors de la couche (PIEGE-27 ne la
+     concerne pas), le renommage entier reste une transaction annulable. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="4dp">
+
+    <EditText
+        android:id="@+id/champ_renommage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/indication_renomme"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/bouton_renommage_annuler"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@android:string/cancel" />
+
+        <Button
+            android:id="@+id/bouton_renommage_appliquer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/renomme_appliquer" />
+    </LinearLayout>
+</LinearLayout>

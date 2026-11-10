@@ -21,6 +21,5 @@
             android:name=".EditorActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".SettingsActivity" android:exported="false" />
     </application>
 </manifest>

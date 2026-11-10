@@ -8,7 +8,6 @@ import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.GraviteDiagnostic;
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorView;
-import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.android.widgets.BreadcrumbView;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
@@ -54,6 +53,8 @@ final class AtelierPopups {
     private final PopupController controleur = new PopupController();
     private final PopupLayer couche;
     private final int margePx;
+    /** Le poseur de documents ancrés — survol, aperçu, rendu @Preview. */
+    private final DocAncre docAncre;
 
     private final CompletionListView listeCompletion;
     private final CompletionDocView docCompletion;
@@ -121,6 +122,8 @@ final class AtelierPopups {
         barreSelection = new SelectionBarView(couche.getContext(), palette);
         menuDebordement = new MenuDebordement(controleur, menuIntentions,
                 couche, margePx);
+        docAncre = new DocAncre(editeur.getContext(), controleur,
+                docCompletion, couche, editeur, session, margePx);
 
         listeCompletion.setOnPick(this::choisirCompletion);
         bandeErreurs.setOnJump(this::sauterDiagnostic);
@@ -167,13 +170,11 @@ final class AtelierPopups {
         barreSelection.setPalette(palette);
     }
 
-    /** La palette dérivée du thème d'éditeur (le verre du dépôt de départ). */
+    /** La palette dérivée du thème d'éditeur — le verre du dépôt de
+     *  départ, par la voie commune de la démonstration. */
     private static PopupPalette paletteDe(EditorTheme theme,
             float tailleTexteSp) {
-        return PopupPalette.verre(theme.backgroundColor(),
-                theme.baseTextColor(), theme.gutterTextColor(),
-                theme.selectionColor(), theme.cursorColor(),
-                theme.syntaxe().couleur(TokenKind.KEYWORD), tailleTexteSp);
+        return PalettesDemo.de(theme, tailleTexteSp);
     }
 
     /** Les intentions du menu — l'activité les fournit, libellés compris. */
@@ -322,16 +323,12 @@ final class AtelierPopups {
 
     /** Pose le survol — null ferme, le modèle sinon s'ancre au point. */
     private void montrerSurvol(CompletionDocModel doc) {
-        if (doc == null) {
-            return;
-        }
-        controleur.open(PopupController.PopupKind.HOVER);
-        docCompletion.setModel(doc);
-        Rect curseur = editeur.caretBounds();
-        ancrer(PopupController.PopupKind.HOVER, docCompletion,
-                PopupAnchor.atPoint(curseur.left, curseur.top,
-                        taille(docCompletion), largeurCouche(),
-                        hauteurCouche(), margePx));
+        docAncre.survol(doc);
+    }
+
+    /** Le poseur de documents ancrés — l'activité y lit (C12). */
+    DocAncre docAncre() {
+        return docAncre;
     }
 
     /** Ouvre l'aide aux paramètres de l'appel ouvert sous le curseur —

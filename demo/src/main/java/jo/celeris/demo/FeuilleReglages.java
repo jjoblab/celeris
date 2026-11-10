@@ -2,37 +2,34 @@ package jo.celeris.demo;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 import jo.celeris.android.view.EditorView;
+import jo.celeris.android.widgets.FeuilleBas;
+import jo.celeris.android.widgets.PopupPalette;
 
 /**
- * Écran de réglages en direct : six interrupteurs et un curseur
- * Material — numéros de ligne, retour souple, thème sombre de
- * l'éditeur, consentement IA, lenteur d'analyse, surimpression de
- * diagnostic et paquet de langage jouet (H-04) — chacun décrit et
- * persisté immédiatement (SharedPreferences, le paquet jouet au
- * stockage) ; l'écran d'éditeur réapplique tout à son retour. Le
- * thème sombre se lit dans l'index de thème de l'éditeur
- * (1 = sombre). Libellés en ressources {@code en}/{@code fr}
- * complètes (ADR-008).
+ * La feuille des réglages (ADR-018, chantier C12) : l'écran plein
+ * cadre de la démonstration migre en feuille du bas — le contenu ne
+ * change pas (six interrupteurs, un curseur, le paquet jouet H-04), la
+ * persistance non plus : chaque bascule s'écrit aussitôt, l'hôte
+ * réapplique son état au rappel de fermeture. Les états se RELESENT à
+ * chaque ouverture — la feuille vit plus longtemps que l'écran qu'elle
+ * remplace. Le thème sombre se lit dans l'index de thème de l'éditeur
+ * (1 = sombre). Libellés en ressources {@code en}/{@code fr} complètes
+ * (ADR-008).
  */
-public final class SettingsActivity extends AppCompatActivity {
+public final class FeuilleReglages {
 
     private static final String CLE_NUMEROS = "gouttiere.numeros";
     private static final String CLE_RETOUR = "retour.souple";
@@ -42,17 +39,64 @@ public final class SettingsActivity extends AppCompatActivity {
     /** La surimpression de diagnostic, coupée par défaut (M7.5, §9). */
     public static final String CLE_SURIMPRESSION = "scene.surimpression";
 
-    @Override
-    protected void onCreate(Bundle etat) {
-        super.onCreate(etat);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_settings);
+    private final AppCompatActivity activite;
+    private final SharedPreferences prefs;
+    private final Supplier<PopupPalette> palettes;
+    private final Runnable surFermetureHote;
+    private final FeuilleBas feuille;
 
-        MaterialToolbar barre = findViewById(R.id.barre_reglages);
-        barre.setNavigationOnClickListener(vue -> finish());
+    /**
+     * Construit la feuille des réglages — le contenu s'y inflate d'entrée.
+     *
+     * @param activite     l'activité hôte de la feuille
+     * @param palettes     la palette courante, dérivée à chaque ouverture
+     * @param surFermeture le rappel de l'hôte — il y réapplique son état
+     */
+    FeuilleReglages(AppCompatActivity activite,
+            Supplier<PopupPalette> palettes, Runnable surFermeture) {
+        this.activite = activite;
+        this.palettes = palettes;
+        this.surFermetureHote = surFermeture;
+        this.prefs = activite.getSharedPreferences("celeris",
+                Context.MODE_PRIVATE);
+        feuille = new FeuilleBas(activite, palettes.get());
+        feuille.titre(activite.getString(R.string.titre_reglages));
+        feuille.libelleFermeture(activite.getString(R.string.action_fermer));
+        feuille.contenu(activite.getLayoutInflater()
+                .inflate(R.layout.feuille_reglages, null));
+        feuille.setSurFermeture(() -> {
+            relire();
+            surFermetureHote.run();
+        });
+        relire();
+    }
 
-        SharedPreferences prefs =
-                getSharedPreferences("celeris", Context.MODE_PRIVATE);
+    /**
+     * Montre la feuille — la palette se redérive (le thème a pu tourner
+     * depuis la dernière ouverture) et les états se relisent.
+     */
+    void montrer() {
+        feuille.setPalette(palettes.get());
+        relire();
+        feuille.montrer(hote());
+    }
+
+    /** La touche retour rencontre la feuille — ouverte, elle se referme. */
+    boolean surRetour() {
+        return feuille.surRetour();
+    }
+
+    /** Le cadre de contenu de la fenêtre — toujours un FrameLayout. */
+    private ViewGroup hote() {
+        return (ViewGroup) activite.findViewById(android.R.id.content);
+    }
+
+    /**
+     * Relit chaque état persisté et rebranche les interrupteurs : la
+     * feuille vit plus longtemps qu'un écran, ses états se resynchronisent
+     * à chaque ouverture et à chaque fermeture.
+     */
+    private void relire() {
         interrupteur(R.id.interrupteur_numeros, prefs,
                 prefs.getBoolean(CLE_NUMEROS, true), CLE_NUMEROS);
         interrupteur(R.id.interrupteur_retour, prefs,
@@ -67,7 +111,6 @@ public final class SettingsActivity extends AppCompatActivity {
         interrupteur(R.id.interrupteur_surimpression, prefs,
                 prefs.getBoolean(CLE_SURIMPRESSION, false), CLE_SURIMPRESSION);
         interrupteurPaquetJouet();
-        appliquerBordABord();
     }
 
     /**
@@ -78,7 +121,8 @@ public final class SettingsActivity extends AppCompatActivity {
      * @param prefs les préférences de la démonstration
      */
     private void interrupteurTheme(SharedPreferences prefs) {
-        MaterialSwitch vue = findViewById(R.id.interrupteur_theme);
+        MaterialSwitch vue = feuille.findViewById(R.id.interrupteur_theme);
+        vue.setOnCheckedChangeListener(null);
         vue.setChecked(prefs.getInt(CLE_THEME, 0) == 1);
         vue.setOnCheckedChangeListener((interrupteur, coche) -> prefs.edit()
                 .putInt(CLE_THEME, coche ? 1 : 0).apply());
@@ -92,21 +136,23 @@ public final class SettingsActivity extends AppCompatActivity {
      * @param prefs les préférences de la démonstration
      */
     private void curseurLenteur(SharedPreferences prefs) {
-        Slider curseur = findViewById(R.id.curseur_lenteur);
-        TextView valeur = findViewById(R.id.valeur_lenteur);
+        Slider curseur = feuille.findViewById(R.id.curseur_lenteur);
+        TextView valeur = feuille.findViewById(R.id.valeur_lenteur);
         int retenu = (int) Math.min(curseur.getValueTo(),
                 Math.max(0L, prefs.getLong(CLE_RETENU,
                         EditorView.DELAI_RETENU_PAR_DEFAUT_MS)));
         // le cran le plus proche du réglage persisté
         int pas = (int) curseur.getStepSize();
         curseur.setValue((float) Math.round(retenu / (float) pas) * pas);
-        valeur.setText(getString(R.string.unite_ms, retenu));
+        valeur.setText(activite.getString(R.string.unite_ms, retenu));
         curseur.setLabelFormatter(valeurMs ->
-                getString(R.string.unite_ms, (int) valeurMs));
+                activite.getString(R.string.unite_ms, (int) valeurMs));
+        // les ecouteurs se cumulent sinon : la relecture les remplace
+        curseur.clearOnChangeListeners();
         curseur.addOnChangeListener((slider, nouvelle, parUtilisateur) -> {
             int ms = (int) nouvelle;
             prefs.edit().putLong(CLE_RETENU, ms).apply();
-            valeur.setText(getString(R.string.unite_ms, ms));
+            valeur.setText(activite.getString(R.string.unite_ms, ms));
         });
     }
 
@@ -121,7 +167,8 @@ public final class SettingsActivity extends AppCompatActivity {
      */
     private void interrupteur(int identifiant, SharedPreferences prefs,
             boolean coche, String cle) {
-        MaterialSwitch vue = findViewById(identifiant);
+        MaterialSwitch vue = feuille.findViewById(identifiant);
+        vue.setOnCheckedChangeListener(null);
         vue.setChecked(coche);
         vue.setOnCheckedChangeListener(
                 (interrupteur, nouvelEtat) -> prefs.edit()
@@ -132,14 +179,17 @@ public final class SettingsActivity extends AppCompatActivity {
      * Le paquet de langage jouet (H-04, M9) : la bascule COPIE le
      * paquet Logo au dossier des paquets de l'utilisateur ou le
      * RETIRE — le registre se RECHARGE à chaud, l'accueil resoumet
-     * ses cartes au retour : ajouter un langage ne recompile rien,
+     * ses cartes à la fermeture : ajouter un langage ne recompile rien,
      * c'est cela que la bascule démontre.
      */
     private void interrupteurPaquetJouet() {
-        MaterialSwitch vue = findViewById(R.id.interrupteur_paquet_jouet);
-        Path dossier = getFilesDir().toPath().resolve(PaquetJouet.DOSSIER);
+        MaterialSwitch vue = feuille.findViewById(R.id.interrupteur_paquet_jouet);
+        Path dossier = activite.getFilesDir().toPath()
+                .resolve(PaquetJouet.DOSSIER);
         LangagesDemo.dossierPaquets(dossier);
+        vue.setOnCheckedChangeListener(null);
         vue.setChecked(PaquetJouet.installe(dossier));
+        vue.setEnabled(true);
         vue.setOnCheckedChangeListener((interrupteur, coche) -> {
             vue.setEnabled(false);
             new Thread(() -> basculerPaquet(dossier, coche),
@@ -164,27 +214,20 @@ public final class SettingsActivity extends AppCompatActivity {
             }
             LangagesDemo.recharger();
         } catch (IOException echec) {
-            runOnUiThread(() -> retablirInterrupteur(coche));
+            activite.runOnUiThread(() -> retablirInterrupteur(coche));
             return;
         }
-        runOnUiThread(() ->
-                findViewById(R.id.interrupteur_paquet_jouet).setEnabled(true));
+        activite.runOnUiThread(() -> {
+            MaterialSwitch vue =
+                    feuille.findViewById(R.id.interrupteur_paquet_jouet);
+            vue.setEnabled(true);
+        });
     }
 
     /** Rétablit l'interrupteur après un échec d'écriture. */
     private void retablirInterrupteur(boolean coche) {
-        MaterialSwitch vue = findViewById(R.id.interrupteur_paquet_jouet);
+        MaterialSwitch vue = feuille.findViewById(R.id.interrupteur_paquet_jouet);
         vue.setChecked(!coche);
         vue.setEnabled(true);
-    }
-
-    /** Le chrome s'étend bord à bord : les encarts deviennent marges. */
-    private void appliquerBordABord() {
-        View racine = findViewById(R.id.racine_reglages);
-        ViewCompat.setOnApplyWindowInsetsListener(racine, (vue, encarts) -> {
-            Insets barres = encarts.getInsets(WindowInsetsCompat.Type.systemBars());
-            vue.setPadding(0, barres.top, 0, barres.bottom);
-            return WindowInsetsCompat.CONSUMED;
-        });
     }
 }

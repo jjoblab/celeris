@@ -1,22 +1,20 @@
 package jo.celeris.demo;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,10 +30,9 @@ import jo.celeris.android.view.MarquesIntegration;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
-import jo.celeris.android.widgets.ApercuDefinition;
 import jo.celeris.android.widgets.IntentionsMenuView;
-import jo.celeris.android.widgets.OutlineView;
 import jo.celeris.android.widgets.PopupLayer;
+import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.core.language.LanguageSupport;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.text.Document;
@@ -46,9 +43,11 @@ import jo.celeris.core.text.TextSession;
  * L'atelier d'édition de la démonstration : un fichier d'exemple ouvert
  * dans la vue Canvas complète — coloration, plis, recherche, plan,
  * thèmes, zoom et annulation — porté par un vrai layout (barre
- * d'application au menu d'actions, barre de recherche dépliable, barre
- * d'état en police à chasse fixe). Les réglages persistés se
- * réappliquent au retour de l'écran de réglages en direct.
+ * d'application au menu d'actions, barre d'état en police à chasse
+ * fixe). Les surfaces fonctionnelles vivent en popups (ADR-018) : les
+ * dix popups ancrées sur la couche, le plan, la recherche, les revues
+ * et les réglages en feuilles. Les réglages persistés se réappliquent
+ * à la fermeture de leur feuille.
  */
 public final class EditorActivity extends AppCompatActivity {
 
@@ -62,11 +61,9 @@ public final class EditorActivity extends AppCompatActivity {
     private static final float TAILLE_MIN = 8f;
     private static final float TAILLE_MAX = 40f;
     private static final float PAS_TAILLE = 2f;
-    private static final float PART_PLAN = 0.45f;
 
     private EditorView editeur;
     private TextSession session;
-    private OutlineView plan;
     private TextView etiquettePosition;
     private TextView etiquetteLangue;
     private TextView etiquetteArrets;
@@ -74,6 +71,10 @@ public final class EditorActivity extends AppCompatActivity {
     private String nomFichier;
     private String reference;
     private CheminDoc chemin;
+    /** La feuille des réglages (ADR-018, C12) — l'écran plein cadre migre. */
+    private FeuilleReglages feuilleReglages;
+    /** La feuille du plan (ADR-018 : « plan » vit en feuille du bas). */
+    private FeuillePlan feuillePlan;
     private List<ReperesPreview.ReperePreview> reperes = List.of();
     /** L'état de débogage — arrêts, pause simulée, étiquette (D-04, D-05). */
     private EtatDebogage etatDebogage;
@@ -108,8 +109,10 @@ public final class EditorActivity extends AppCompatActivity {
         chemin = CheminDoc.de("/" + nomFichier);
         session = TextSession.of(fichier.contenu(), System::nanoTime);
         atelierLint = new AtelierLint(nomFichier, session, this::surLint);
-        atelierDiff = new AtelierDiff(this, reference, session, this::apresFusion);
-        atelierAgent = new AtelierAgent(this, session, this::apresFusion);
+        atelierDiff = new AtelierDiff(this, reference, session,
+                this::paletteFeuilles, this::apresFusion);
+        atelierAgent = new AtelierAgent(this, session,
+                this::paletteFeuilles, this::apresFusion);
         session.addEditListener((debut, fin, retire, insere) -> {
             majPosition();
             majMarques();
@@ -122,9 +125,14 @@ public final class EditorActivity extends AppCompatActivity {
         });
         setContentView(R.layout.activity_editor);
         brancherScene();
+        // La feuille des réglages vit après la scène : sa palette se
+        // dérive du thème de l'éditeur, qui nait dans la scène (ADR-018).
+        feuilleReglages = new FeuilleReglages(this, this::paletteFeuilles,
+                this::appliquerPreferences);
         brancherBarre();
         appliquerPreferences();
         appliquerBordABord();
+        brancherRetour();
     }
 
     @Override
@@ -187,7 +195,8 @@ public final class EditorActivity extends AppCompatActivity {
         actionsMenu.put(R.id.action_formater, atelierRefactor::formaterDocument);
         actionsMenu.put(R.id.action_renommer, atelierRefactor::renommerSymbole);
         actionsMenu.put(R.id.action_importer, atelierRefactor::importerListe);
-        actionsMenu.put(R.id.action_apercu, this::apercuDefinition);
+        actionsMenu.put(R.id.action_apercu, () -> atelierPopups.docAncre()
+                .apercu(entreesPlan, lignesCourantes()));
         actionsMenu.put(R.id.action_diff, atelierDiff::ouvrir);
         actionsMenu.put(R.id.action_agent, atelierAgent::ouvrir);
         actionsMenu.put(R.id.action_ia_fantome, () -> atelierIA.demanderFantome());
@@ -195,8 +204,7 @@ public final class EditorActivity extends AppCompatActivity {
         actionsMenu.put(R.id.action_theme, basculeTheme::tourner);
         actionsMenu.put(R.id.action_diminuer, () -> zoomerPolice(-PAS_TAILLE));
         actionsMenu.put(R.id.action_agrandir, () -> zoomerPolice(PAS_TAILLE));
-        actionsMenu.put(R.id.action_reglages,
-                () -> startActivity(new Intent(this, SettingsActivity.class)));
+        actionsMenu.put(R.id.action_reglages, feuilleReglages::montrer);
     }
 
     private boolean surMenu(MenuItem element) {
@@ -220,8 +228,13 @@ public final class EditorActivity extends AppCompatActivity {
         // §8) : frappe intelligente, Entrée indentée, collage réindenté,
         // complétion par les mots du code.
         editeur.intelligence().setProvider(new DemoIntelligence());
-        atelierIA = new AtelierIA(this, editeur, session, nomFichier);
+        atelierIA = new AtelierIA(this, editeur, session, nomFichier,
+                this::paletteFeuilles, this::verdictRefactor,
+                () -> feuilleReglages.montrer());
         brancherAteliers();
+        // La feuille du plan vit après le thème : sa palette s'en dérive.
+        feuillePlan = new FeuillePlan(this, this::paletteFeuilles,
+                this::sautVersEntree);
         // Toute animation de vue (défilement, clic) rafraîchit la
         // position ; les clics restent portés par EditorView, qui
         // redéfinit performClick.
@@ -232,7 +245,7 @@ public final class EditorActivity extends AppCompatActivity {
         editeur.setSurPlan(entrees -> {
             entreesPlan = entrees;
             editeur.post(() -> {
-                plan.setEntries(entrees);
+                feuillePlan.setEntrees(entrees);
                 atelierPopups.setPlan(entrees);
             });
         });
@@ -240,28 +253,27 @@ public final class EditorActivity extends AppCompatActivity {
         // (D-19) — le pliable déplié change de classe d'un geste.
         editeur.setClasseLargeur(ClasseLargeur.de(
                 getResources().getConfiguration().screenWidthDp));
-        // Le terrain d'essai du débogueur : le clic dans le champ des
-        // numéros pose et retire les points d'arrêt (D-04).
-        editeur.marquesGouttiere().setSurClicLigne(ligne -> {
-            etatDebogage.basculerArret(ligne);
-            majMarques();
-        });
-        // Le rendu d'un repère @Preview reste la part de l'hôte (C-11)
-        // — la démonstration répond par sa propre scène.
-        editeur.marquesGouttiere().setSurRenduPreview(this::renduPreview);
+        brancherGouttiere();
         // Les pastilles et repères du fichier ouvert se posent d'entrée.
         majPastillesEtReperes();
         brancherPlanEtEtiquettes();
         poserEtatsDelegues();
     }
 
-    /** Le plan latéral et les étiquettes de barre d'état se posent. */
-    private void brancherPlanEtEtiquettes() {
-        plan = findViewById(R.id.plan);
-        plan.setBackgroundColor(Color.argb(235, 32, 33, 36));
-        plan.getLayoutParams().width = Math.round(largeurEcran() * PART_PLAN);
-        plan.setSurClic(this::sautVersEntree);
+    /** La gouttière : les arrêts au clic des numéros (D-04), le rendu
+     *  d'un repère @Preview en popup ancrée au coin (C-11, ADR-018). */
+    private void brancherGouttiere() {
+        editeur.marquesGouttiere().setSurClicLigne(ligne -> {
+            etatDebogage.basculerArret(ligne);
+            majMarques();
+        });
+        editeur.marquesGouttiere().setSurRenduPreview(ligne ->
+                atelierPopups.docAncre().renduPreview(ligne, reperes));
+    }
 
+    /** Le plan en feuille du bas (ADR-018) et les étiquettes de barre
+     *  d'état se posent. */
+    private void brancherPlanEtEtiquettes() {
         etiquettePosition = findViewById(R.id.etat_position);
         etiquetteLangue = findViewById(R.id.etat_langue);
         etiquetteArrets = findViewById(R.id.etat_arrets);
@@ -293,7 +305,7 @@ public final class EditorActivity extends AppCompatActivity {
         // §8 — M7.6, H-13 : la déclaration serveurs.json décide, le
         // montage exécute, le serveur de référence reste le repli).
         atelierRefactor = new AtelierRefactor(this, editeur, session,
-                nomFichier, this::verdictRefactor);
+                nomFichier, this::paletteFeuilles, this::verdictRefactor);
         LanguageSupport langueOuverte = LangagesDemo.langageDe(nomFichier,
                 null, session.document().text());
         serveurLangage = DeclaredServers.open(langueOuverte);
@@ -319,7 +331,8 @@ public final class EditorActivity extends AppCompatActivity {
                 atelierSelection.debordement(
                         getString(R.string.barre_tout)));
         atelierRecherche = new AtelierRecherche(this, editeur, session,
-                atelierPopups::ouvrirRecherche, atelierPopups::fermerRecherche);
+                this::paletteFeuilles, atelierPopups::ouvrirRecherche,
+                atelierPopups::fermerRecherche);
         atelierRecherche.brancher();
     }
 
@@ -377,8 +390,46 @@ public final class EditorActivity extends AppCompatActivity {
         majPosition();
     }
 
+    /**
+     * Bascule le plan en feuille du bas (ADR-018 : « plan » vit en
+     * feuille du bas) : le fichier s'y parcourt, l'entrée choisie y
+     * saute et la feuille se referme.
+     */
     private void basculerPlan() {
-        plan.setVisibility(plan.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+        feuillePlan.basculer();
+    }
+
+    /** La palette courante des feuilles — le verre suit le thème de
+     *  l'éditeur et sa taille de texte. */
+    private PopupPalette paletteFeuilles() {
+        return PalettesDemo.de(basculeTheme.themeCourant(),
+                prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
+    }
+
+    /** La touche retour ferme la feuille ouverte — sinon elle poursuit
+     *  son chemin vers l'hôte (ADR-018 : la feuille se referme). */
+    private void brancherRetour() {
+        getOnBackPressedDispatcher().addCallback(this,
+                new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (!fermerFeuilleActive()) {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
+    }
+
+    /** Ferme la feuille ouverte, s'il y en a une — le retour s'y consomme. */
+    private boolean fermerFeuilleActive() {
+        return feuilleReglages.surRetour()
+                || atelierRecherche.surRetour()
+                || (feuillePlan != null && feuillePlan.surRetour())
+                || atelierRefactor.surRetour()
+                || atelierDiff.surRetour()
+                || atelierAgent.surRetour()
+                || atelierIA.surRetour();
     }
 
     /**
@@ -410,7 +461,8 @@ public final class EditorActivity extends AppCompatActivity {
                         this::analyserLint),
                 new IntentionsMenuView.Item(
                         getString(R.string.action_apercu),
-                        this::apercuDefinition),
+                        () -> atelierPopups.docAncre().apercu(
+                                entreesPlan, lignesCourantes())),
                 new IntentionsMenuView.Item(getString(R.string.action_diff),
                         atelierDiff::ouvrir),
                 new IntentionsMenuView.Item(getString(R.string.action_agent),
@@ -488,28 +540,6 @@ public final class EditorActivity extends AppCompatActivity {
     }
 
     /**
-     * L'aperçu rapide de la définition du symbole au curseur (D-11) :
-     * la déclaration se lit dans une fenêtre flottante — sans quitter
-     * le fichier.
-     */
-    private void apercuDefinition() {
-        List<SelRange> plages = session.selection().ranges();
-        int curseur = plages.isEmpty() ? 0 : plages.get(0).caret();
-        ApercuDefinition apercu = ApercuDefinition.de(entreesPlan,
-                lignesCourantes(),
-                ApercuDefinition.symboleAu(session.document().text(), curseur),
-                curseur);
-        if (apercu == null) {
-            return;
-        }
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(getString(R.string.titre_apercu, apercu.nom()))
-                .setMessage(String.join("\n", apercu.extrait()))
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
-    }
-
-    /**
      * Les revues par blocs (D-12, F-04) vivent dans leurs ateliers ;
      * après une fusion appliquée, la scène se rafraîchit — marques,
      * pastilles et repères compris.
@@ -518,27 +548,6 @@ public final class EditorActivity extends AppCompatActivity {
         editeur.invalidate();
         majMarques();
         majPastillesEtReperes();
-    }
-
-    /**
-     * Le rendu délégué d'un repère {@code @Preview} (C-11) : la
-     * démonstration joue l'hôte et rend le composable dans sa propre
-     * scène — un contrat vérifié, pas un rendu Compose embarqué.
-     */
-    private void renduPreview(int ligne) {
-        String composable = "";
-        for (ReperesPreview.ReperePreview repere : reperes) {
-            if (repere.ligne() == ligne) {
-                composable = repere.libelle();
-                break;
-            }
-        }
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(getString(R.string.titre_rendu_preview))
-                .setMessage(getString(R.string.message_rendu_preview,
-                        composable, ligne + 1))
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
     }
 
     /**
@@ -567,9 +576,5 @@ public final class EditorActivity extends AppCompatActivity {
         int colonne = curseur - document.lineStart(ligne) + 1;
         etiquettePosition.setText(getString(R.string.position_curseur,
                 ligne + 1, colonne));
-    }
-
-    private int largeurEcran() {
-        return getResources().getDisplayMetrics().widthPixels;
     }
 }

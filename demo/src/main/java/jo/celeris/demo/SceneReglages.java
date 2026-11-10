@@ -40,10 +40,10 @@ final class SceneReglages {
      */
     void appliquer(SharedPreferences prefs) {
         editeur.setRetenueAnalyseMs(prefs.getLong(
-                SettingsActivity.CLE_RETENU,
+                FeuilleReglages.CLE_RETENU,
                 EditorView.DELAI_RETENU_PAR_DEFAUT_MS));
-        boolean montrer = prefs.getBoolean(SettingsActivity.CLE_SURIMPRESSION,
-                false);
+        boolean montrer = prefs.getBoolean(
+                FeuilleReglages.CLE_SURIMPRESSION, false);
         ligne.setVisibility(montrer ? View.VISIBLE : View.GONE);
         if (montrer) {
             surimpression.demarrer();
