@@ -27,37 +27,10 @@ public final class ListeCompletion {
     }
 
     /**
-     * Analyse la réponse du serveur — la liste objet (avec sa coupure)
-     * ou le tableau nu (toujours complet).
-     *
-     * @param json la valeur « result » de la requête de complétion
-     * @return la liste lue, vide si la réponse est vide ou nulle
-     */
-    public static ListeCompletion de(ValeurJson json) {
-        if (json instanceof JsonTableau tableau) {
-            return deTableau(tableau, false);
-        }
-        if (!(json instanceof JsonObjet objet)) {
-            return new ListeCompletion(false, List.of());
-        }
-        boolean incomplete = Boolean.TRUE.equals(objet.membreBooleen("isIncomplete"));
-        return deTableau(objet.membreOu("items", JsonTableau.vide()), incomplete);
-    }
-
-    private static ListeCompletion deTableau(ValeurJson items, boolean incomplete) {
-        List<ElementCompletion> elements = new ArrayList<>();
-        if (items instanceof JsonTableau tableau) {
-            for (int i = 0; i < tableau.taille(); i++) {
-                elements.add(ElementCompletion.de(tableau.element(i)));
-            }
-        }
-        return new ListeCompletion(incomplete, elements);
-    }
-
-    /**
-     * Construit la liste de ses éléments résolus — la voie typée de la
+     * Construit la liste de ses éléments résolus — la voie de la
      * frontière protocolaire (ADR-015) : la correspondance y dépose
-     * les éléments déjà lus de la bibliothèque.
+     * les éléments déjà lus de la bibliothèque, la coupure du serveur
+     * portée par l'objet liste du protocole.
      *
      * @param incomplete le serveur annonce sa liste tronquée
      * @param elements   les éléments dans l'ordre exact du serveur

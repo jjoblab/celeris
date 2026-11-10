@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,10 +66,24 @@ final class ServeurFactice implements LanguageServer {
         final AtomicBoolean arretDemande = new AtomicBoolean();
         final AtomicBoolean sortieDemandee = new AtomicBoolean();
         final AtomicReference<String> dernierTexte = new AtomicReference<>("");
+        /** Arme le mode « complétion tenue » : la prochaine réponse ne part pas. */
+        final AtomicBoolean tenirCompletion = new AtomicBoolean();
+        /** Les vols de complétion tenus, dans l'ordre d'arrivée — le banc les achève. */
+        final List<CompletableFuture<Either<List<CompletionItem>, CompletionList>>> volsCompletion =
+                new CopyOnWriteArrayList<>();
     }
 
     private final Etat etat = new Etat();
     private volatile @Nullable LanguageClient client;
+
+    /**
+     * La convention des serveurs embarqués : le proxy client injecté
+     * chez le serveur — le montage du module l'appelle pour les
+     * serveurs montés par objet opaque (comme le serveur tiers retiré).
+     */
+    public void setClient(LanguageClient client) {
+        this.client = client;
+    }
 
     /**
      * Démarre le serveur factice sur un bout des flux du banc.
@@ -105,6 +120,15 @@ final class ServeurFactice implements LanguageServer {
         jetons.setLegend(new SemanticTokensLegend(
                 List.of("type", "fonction"), List.of("declaration")));
         capacites.setSemanticTokensProvider(jetons);
+        capacites.setReferencesProvider(Either.forLeft(Boolean.TRUE));
+        capacites.setDocumentHighlightProvider(Either.forLeft(Boolean.TRUE));
+        capacites.setDocumentSymbolProvider(Either.forLeft(Boolean.TRUE));
+        capacites.setFoldingRangeProvider(Either.forLeft(Boolean.TRUE));
+        capacites.setDocumentFormattingProvider(Boolean.TRUE);
+        capacites.setRenameProvider(Either.forLeft(Boolean.TRUE));
+        capacites.setCodeActionProvider(Either.forLeft(Boolean.TRUE));
+        capacites.setInlayHintProvider(Either.forLeft(Boolean.TRUE));
+        capacites.setSelectionRangeProvider(Either.forLeft(Boolean.TRUE));
         TextDocumentSyncOptions incrementale = new TextDocumentSyncOptions();
         incrementale.setChange(TextDocumentSyncKind.Incremental);
         capacites.setTextDocumentSync(Either.forRight(incrementale));
@@ -159,6 +183,14 @@ final class ServeurFactice implements LanguageServer {
         @Override
         public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(
                 CompletionParams params) {
+            if (etat.tenirCompletion.get()) {
+                // le banc tient la réponse : la demande vit en vol, son
+                // annulation au fil s'observera sur ce futur côté serveur
+                CompletableFuture<Either<List<CompletionItem>, CompletionList>> vol =
+                        new CompletableFuture<>();
+                etat.volsCompletion.add(vol);
+                return vol;
+            }
             CompletionItem element = new CompletionItem();
             element.setLabel("ex:exemplaire");
             element.setKind(CompletionItemKind.Field);
@@ -200,6 +232,163 @@ final class ServeurFactice implements LanguageServer {
             Location lieu = new Location(params.getTextDocument().getUri(),
                     new Range(new Position(0, 0), new Position(0, 1)));
             return CompletableFuture.completedFuture(Either.forLeft(List.of(lieu)));
+        }
+
+        // ── La couverture du jalon (H-12), chaque forme servie ──────
+
+        @Override
+        public CompletableFuture<List<Either<org.eclipse.lsp4j.SymbolInformation,
+                org.eclipse.lsp4j.DocumentSymbol>>> documentSymbol(
+                        org.eclipse.lsp4j.DocumentSymbolParams params) {
+            org.eclipse.lsp4j.DocumentSymbol racine =
+                    new org.eclipse.lsp4j.DocumentSymbol("exemplaire",
+                            org.eclipse.lsp4j.SymbolKind.Field,
+                            new Range(new Position(0, 0), new Position(2, 0)),
+                            new Range(new Position(0, 0), new Position(0, 10)),
+                            null,
+                            List.of(new org.eclipse.lsp4j.DocumentSymbol(
+                                    "imbrique", org.eclipse.lsp4j.SymbolKind.Function,
+                                    new Range(new Position(1, 0), new Position(1, 5)),
+                                    new Range(new Position(1, 0), new Position(1, 8)))));
+            return CompletableFuture.completedFuture(
+                    List.of(Either.forRight(racine)));
+        }
+
+        @Override
+        public CompletableFuture<List<org.eclipse.lsp4j.FoldingRange>> foldingRange(
+                org.eclipse.lsp4j.FoldingRangeRequestParams params) {
+            // fin INCLUSIVE au protocole : la ligne 4 ferme la ligne 1
+            return CompletableFuture.completedFuture(List.of(
+                    new org.eclipse.lsp4j.FoldingRange(1, 4)));
+        }
+
+        @Override
+        public CompletableFuture<List<? extends org.eclipse.lsp4j.TextEdit>> formatting(
+                org.eclipse.lsp4j.DocumentFormattingParams params) {
+            return CompletableFuture.completedFuture(List.of(
+                    new org.eclipse.lsp4j.TextEdit(
+                            new Range(new Position(0, 0), new Position(0, 2)),
+                            "  ")));
+        }
+
+        @Override
+        public CompletableFuture<List<? extends org.eclipse.lsp4j.TextEdit>> rangeFormatting(
+                org.eclipse.lsp4j.DocumentRangeFormattingParams params) {
+            return CompletableFuture.completedFuture(List.of(
+                    new org.eclipse.lsp4j.TextEdit(
+                            params.getRange(), "formate")));
+        }
+
+        @Override
+        public CompletableFuture<List<? extends org.eclipse.lsp4j.DocumentHighlight>> documentHighlight(
+                org.eclipse.lsp4j.DocumentHighlightParams params) {
+            org.eclipse.lsp4j.DocumentHighlight surlignage =
+                    new org.eclipse.lsp4j.DocumentHighlight();
+            surlignage.setRange(new Range(new Position(0, 4),
+                    new Position(0, 9)));
+            surlignage.setKind(org.eclipse.lsp4j.DocumentHighlightKind.Read);
+            return CompletableFuture.completedFuture(List.of(surlignage));
+        }
+
+        @Override
+        public CompletableFuture<org.eclipse.lsp4j.jsonrpc.messages.Either3<
+                org.eclipse.lsp4j.Range, org.eclipse.lsp4j.PrepareRenameResult,
+                org.eclipse.lsp4j.PrepareRenameDefaultBehavior>> prepareRename(
+                        org.eclipse.lsp4j.PrepareRenameParams params) {
+            return CompletableFuture.completedFuture(
+                    org.eclipse.lsp4j.jsonrpc.messages.Either3.forSecond(
+                            new org.eclipse.lsp4j.PrepareRenameResult(
+                                    new Range(new Position(0, 4),
+                                            new Position(0, 9)),
+                                    "ancien")));
+        }
+
+        @Override
+        public CompletableFuture<org.eclipse.lsp4j.WorkspaceEdit> rename(
+                org.eclipse.lsp4j.RenameParams params) {
+            org.eclipse.lsp4j.WorkspaceEdit edition =
+                    new org.eclipse.lsp4j.WorkspaceEdit();
+            edition.getChanges().put(params.getTextDocument().getUri(),
+                    List.of(new org.eclipse.lsp4j.TextEdit(
+                            new Range(new Position(0, 4), new Position(0, 9)),
+                            params.getNewName())));
+            return CompletableFuture.completedFuture(edition);
+        }
+
+        @Override
+        public CompletableFuture<List<Either<org.eclipse.lsp4j.Command,
+                org.eclipse.lsp4j.CodeAction>>> codeAction(
+                        org.eclipse.lsp4j.CodeActionParams params) {
+            org.eclipse.lsp4j.CodeAction action =
+                    new org.eclipse.lsp4j.CodeAction("Entourer d'accolades");
+            org.eclipse.lsp4j.WorkspaceEdit edition =
+                    new org.eclipse.lsp4j.WorkspaceEdit();
+            edition.getChanges().put(params.getTextDocument().getUri(),
+                    List.of(new org.eclipse.lsp4j.TextEdit(
+                            params.getRange(), "{sélection}")));
+            action.setEdit(edition);
+            return CompletableFuture.completedFuture(List.of(
+                    Either.forRight(action)));
+        }
+
+        @Override
+        public CompletableFuture<List<? extends org.eclipse.lsp4j.Location>> references(
+                org.eclipse.lsp4j.ReferenceParams params) {
+            Location lieu = new Location(params.getTextDocument().getUri(),
+                    new Range(new Position(3, 1), new Position(3, 6)));
+            return CompletableFuture.completedFuture(List.of(lieu));
+        }
+
+        @Override
+        public CompletableFuture<org.eclipse.lsp4j.SemanticTokens> semanticTokensFull(
+                org.eclipse.lsp4j.SemanticTokensParams params) {
+            org.eclipse.lsp4j.SemanticTokens jetons =
+                    new org.eclipse.lsp4j.SemanticTokens();
+            jetons.setResultId("factice-1");
+            // un quintuple : ligne 2, colonne 4, 5 caractères, type 1
+            jetons.setData(List.of(2, 4, 5, 1, 0));
+            return CompletableFuture.completedFuture(jetons);
+        }
+
+        @Override
+        public CompletableFuture<org.eclipse.lsp4j.SemanticTokens> semanticTokensRange(
+                org.eclipse.lsp4j.SemanticTokensRangeParams params) {
+            org.eclipse.lsp4j.SemanticTokens jetons =
+                    new org.eclipse.lsp4j.SemanticTokens();
+            jetons.setData(List.of(0, 0, 3, 0, 0));
+            return CompletableFuture.completedFuture(jetons);
+        }
+
+        @Override
+        public CompletableFuture<List<org.eclipse.lsp4j.InlayHint>> inlayHint(
+                org.eclipse.lsp4j.InlayHintParams params) {
+            org.eclipse.lsp4j.InlayHintLabelPart deuxPoints =
+                    new org.eclipse.lsp4j.InlayHintLabelPart();
+            deuxPoints.setValue("Double");
+            deuxPoints.setLocation(new Location(params.getTextDocument().getUri(),
+                    new Range(new Position(9, 0), new Position(9, 3))));
+            org.eclipse.lsp4j.InlayHintLabelPart etiquette =
+                    new org.eclipse.lsp4j.InlayHintLabelPart();
+            etiquette.setValue("total");
+            org.eclipse.lsp4j.InlayHint indice = new org.eclipse.lsp4j.InlayHint();
+            indice.setPosition(new Position(4, 2));
+            indice.setLabel(Either.forRight(List.of(deuxPoints, etiquette)));
+            indice.setKind(org.eclipse.lsp4j.InlayHintKind.Type);
+            indice.setPaddingLeft(Boolean.TRUE);
+            return CompletableFuture.completedFuture(List.of(indice));
+        }
+
+        @Override
+        public CompletableFuture<List<org.eclipse.lsp4j.SelectionRange>> selectionRange(
+                org.eclipse.lsp4j.SelectionRangeParams params) {
+            org.eclipse.lsp4j.SelectionRange parent =
+                    new org.eclipse.lsp4j.SelectionRange();
+            parent.setRange(new Range(new Position(0, 0), new Position(0, 20)));
+            org.eclipse.lsp4j.SelectionRange intime =
+                    new org.eclipse.lsp4j.SelectionRange();
+            intime.setRange(new Range(new Position(0, 4), new Position(0, 9)));
+            intime.setParent(parent);
+            return CompletableFuture.completedFuture(List.of(intime));
         }
     }
 
