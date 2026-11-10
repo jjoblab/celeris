@@ -88,6 +88,14 @@ Compiled from "BidiRuns.java"
 final class jo.celeris.core.text.BidiRuns {
 }
 
+### jo.celeris.core.text.CamelWord
+Compiled from "CamelWord.java"
+public final class jo.celeris.core.text.CamelWord {
+  public static int nextBoundary(java.lang.String, int);
+  public static int previousBoundary(java.lang.String, int);
+  public static java.util.List<java.lang.Integer> boundaries(java.lang.String);
+}
+
 ### jo.celeris.core.text.ClusterDeletes
 Compiled from "ClusterDeletes.java"
 final class jo.celeris.core.text.ClusterDeletes {

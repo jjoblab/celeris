@@ -3,10 +3,10 @@ package jo.celeris.android.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import jo.celeris.core.text.CamelWord;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
-import jo.celeris.core.text.Word;
 import jo.celeris.core.text.Grapheme;
 
 /**
@@ -20,6 +20,11 @@ import jo.celeris.core.text.Grapheme;
  * document : jamais le texte entier ne se matérialise pour une touche,
  * et un cluster (ou un mot) plus long que la fenêtre ne se coupe
  * jamais.</p>
+ *
+ * <p>Le déplacement et la sélection par mots suivent les bossages de
+ * chameau (A-04) : « monCompteurDeLignes » se parcourt en quatre
+ * mots, la frontière de course de majuscules se lit sur le caractère
+ * qui la suit — la fenêtre du recul l'embarque d'un caractère.</p>
  */
 public final class CaretsMotion {
 
@@ -162,7 +167,7 @@ public final class CaretsMotion {
         while (true) {
             int end = Math.min(document.length(), offset + window);
             String chunk = document.subText(offset, end);
-            int local = Word.nextBoundary(chunk, 0);
+            int local = CamelWord.nextBoundary(chunk, 0);
             if (local < chunk.length() || end >= document.length()) {
                 return offset + local;
             }
@@ -174,15 +179,12 @@ public final class CaretsMotion {
         int window = FENETRE_MOTS;
         while (true) {
             int start = Math.max(0, offset - window);
-            String chunk = document.subText(start, offset);
-            List<Integer> frontieres = Word.boundaries(chunk);
-            int local = 0;
-            for (int i = 0; i < frontieres.size(); i++) {
-                int candidate = frontieres.get(i);
-                if (candidate < chunk.length() && candidate > local) {
-                    local = candidate;
-                }
-            }
+            // Un caractère au-delà du curseur : la fin de course de
+            // majuscules (« HTTPServer ») se prononce sur le caractère
+            // qui suit la frontière candidate.
+            int end = Math.min(document.length(), offset + 1);
+            String chunk = document.subText(start, end);
+            int local = CamelWord.previousBoundary(chunk, offset - start);
             if (local > 0 || start == 0) {
                 return start + local;
             }
