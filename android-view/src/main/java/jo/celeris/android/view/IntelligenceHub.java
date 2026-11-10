@@ -138,6 +138,9 @@ public final class IntelligenceHub {
     /** Le style d'indentation par défaut du concentrateur : quatre espaces. */
     private static final IndentStyle DEFAULT_STYLE = IndentStyle.ESPACES_4;
 
+    /** Le régime des fonctions lourdes (C10) — défaut AUTO. */
+    private LargeFileMode regimeGrosFichier = LargeFileMode.AUTO;
+
     private final EditorView vue;
     private @Nullable Provider provider;
 
@@ -181,6 +184,43 @@ public final class IntelligenceHub {
     }
 
     /**
+     * Pose le régime des fonctions lourdes (chantier C10) : la
+     * complétion au curseur — qui balaye les mots du document — se
+     * coupe sur un gros document, l'édition reste entière (coloration,
+     * frappe, annulation). Le changement prend effet immédiatement ;
+     * null retombe sur AUTO, le régime des seuils.
+     *
+     * @param regime le régime souhaité, null pour AUTO
+     */
+    public void setLargeFileMode(LargeFileMode regime) {
+        this.regimeGrosFichier = regime != null ? regime : LargeFileMode.AUTO;
+    }
+
+    /** Le régime courant des fonctions lourdes (C10). */
+    public LargeFileMode largeFileMode() {
+        return regimeGrosFichier;
+    }
+
+    /**
+     * L'état EFFECTIF du régime des fonctions lourdes : forcé ON, ou
+     * AUTO sur un document au-delà des seuils « gros document » du
+     * dépôt de départ (2,5 M caractères, 50 000 lignes). Consommé par
+     * la complétion au curseur ; l'hôte y lit pour ses propres
+     * fonctions lourdes.
+     *
+     * @return vrai quand les fonctions lourdes se coupent
+     */
+    public boolean isLargeFileModeActive() {
+        if (regimeGrosFichier == LargeFileMode.ON) {
+            return true;
+        }
+        if (regimeGrosFichier == LargeFileMode.OFF) {
+            return false;
+        }
+        return vue.session().document().isLarge();
+    }
+
+    /**
      * Les candidats de complétion au curseur, servis par le
      * fournisseur — les popups de l'hôte s'y abreuvent (B-03).
      *
@@ -189,7 +229,7 @@ public final class IntelligenceHub {
      */
     public List<String> completionCandidates(List<String> keywords) {
         Provider courant = provider;
-        if (courant == null) {
+        if (courant == null || isLargeFileModeActive()) {
             return List.of();
         }
         return courant.completionCandidates(document(), analysis(), caret(),
