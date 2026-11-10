@@ -7,6 +7,59 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 (H-07) — les thèmes se résolvent par portées : sélecteurs TextMate, import tokenColors, la couleur quitte la sorte (2026-11-10)
+
+- **La pile de portées vit dans le jeton** : le lexeur de la voie
+  des grammaires empile la racine du langage, les blocs ouverts
+  (contenu, sinon construction) et la portée du jeton — internée
+  une fois dans un arbre de préfixes (`ScopeStacks`), désignée
+  par un ENTIER que le jeton porte. La profondeur et la table se
+  bornent (une grammaire hostile y perd de la précision, jamais
+  l'éditeur sa mémoire). `Token` gagne son champ de pile ;
+  `Portees.de` disparaît : la sorte de jeton devient la
+  catégorie DÉRIVÉE de la portée de tête (les consommateurs hérités
+  — crochets, plis — ne changent pas), la COULEUR se résout depuis
+  la pile.
+- **Le thème par portées (`ScopeTheme`, core-syntax)** :
+  sélecteurs au format TextMate — virgules, descendance, exclusion
+  `-`, préfixe hiérarchique — scorés par profondeur couplée,
+  nombre d'éléments et précision du dernier (`keyword.operator`
+  l'emporte sur `keyword` sur la même portée). La résolution
+  FUSIONNE les règles qui matchent — l'encre de la meilleure, les
+  attributs (graisse, italique, souligné) cumulés — et se GARDE EN
+  CACHE par identifiant de pile : le tracé ne manipule aucune
+  chaîne et n'alloue rien par image (PIEGE-15). Les thèmes clair,
+  sombre et contraste élevé sont écrits ici — mêmes teintes que les
+  palettes par sorte (le banc WCAG de la vue s'y appuie), mécanisme
+  de portées.
+- **Le tracè suit (`TextPainter`)** : la plage qui porte sa
+  pile se peint par le thème — pinceau dédié, encre et attributs
+  posés à chaque tracé, aucun ne fuit vers la plage suivante
+  (PIEGE-01), `PaintBrush` porte les trois attributs — ; la
+  plage sans pile garde la palette par sorte (`EditorTheme`
+  porte son `ScopeTheme`, `ColoredSpan` sa pile,
+  `SyntaxRowSource` les relie).
+- **L'importeur tokenColors de VS Code (`TokenColorsTheme`,
+  core-language)** : nom, couleurs d'éditeur (`editor.background`,
+  `editor.foreground`) et règles au sélecteur chaîne ou liste
+  se lisent ; l'encre exige l'opacité, la première faute nomme sa
+  position. La démonstration s'en sert : le thème « Atelier »
+  (écrit ici, au format du commerce) rejoint la rotation des thèmes
+  — son chrome vient du fichier, sa palette par sorte se DÉRIVE des
+  résolutions du thème : une seule table de couleurs vit dans le
+  fichier.
+- **La preuve** : `ScopeStacksTest` (l'internement partage, la
+  dérivation de la sorte, les bornes), `ScopeSelectorTest`
+  (descendance, exclusion, préfixe, score), `ScopeThemeTest`
+  (la meilleure encre, les attributs cumulés, le cache rend la même
+  instance), `PilesPorteesTest` (le jeton porte sa pile de la
+  racine à sa portée, l'écart vit dans son bloc, déterminisme),
+  `TextPainterScopesTest` (la plage à pile se peint à l'encre
+  du thème, les attributs ne fuient pas), `ScopeThemeContrastTest`
+  (chaque encre des trois thèmes livrés contraste ≥ 4,5:1 sur son
+  fond), `TokenColorsThemeTest` et `ImportedThemesTest`
+  (l'import lit, résout, dérive la palette et contraste).
+
 ### M7.6 (H-13) — les serveurs de langage se déclarent en données : `servers.json`, l'éditeur n'en connaît aucun (2026-11-10)
 
 - **La déclaration de serveur devient une donnée** : un

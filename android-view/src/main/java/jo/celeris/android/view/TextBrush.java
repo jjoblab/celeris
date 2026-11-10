@@ -50,4 +50,21 @@ public interface TextBrush {
     default void setStrokeWidth(float pixels) {
         // repli muet — voir la documentation
     }
+
+    /**
+     * Pose les attributs de tracé d'une plage à pile de portées
+     * (M7.6, H-07) : graisse, italique, soulignement — le style du
+     * thème par portées. Les trois se posent ENSEMBLE à chaque
+     * plage : aucune couleur résiduelle ne se propage (PIEGE-01).
+     *
+     * <p>Le repli par défaut n'opère rien : les pinceaux d'essai
+     * restent muets — le banc s'en tient aux couleurs.</p>
+     *
+     * @param bold      vrai quand la plage se trace en graisse
+     * @param italic    vrai quand la plage se trace en italique
+     * @param underline vrai quand la plage se trace soulignée
+     */
+    default void setStyle(boolean bold, boolean italic, boolean underline) {
+        // repli muet — voir la documentation
+    }
 }
