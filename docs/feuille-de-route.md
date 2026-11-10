@@ -53,7 +53,7 @@ développement, quel que soit le statut de C12.
 | C9 | Chrome de l'éditeur : minimap, fil d'Ariane, barre d'erreurs, défilement rapide | P1 | 1–2 j / ornement | Non démarré |
 | C10 | Charge et limites : 480 000 lignes, mode gros fichiers | P1 | 2–3 j | Non démarré |
 | C11 | Second étage appareil de la vérification sur vitre | P1 | 1–2 j | Bloqué |
-| C12 | Harmonisation tout en popups des surfaces existantes (ADR-018) | P1 | 2–4 j | Non démarré |
+| C12 | Harmonisation tout en popups des surfaces existantes (ADR-018) | P1 | 2–4 j | Terminé |
 | C13 | Deuxième vague : refactorings, ornement, volume de tests, CLI complète | P2 | 10–15 j | Non démarré |
 | C14 | Statut du dépôt de départ : archivage et bannière de migration | P2 | ~1 h | Bloqué |
 
@@ -231,8 +231,8 @@ fournit l'émulateur.
 
 ### C12 — Harmonisation tout en popups
 
-**Statut** : non démarré (la directive s'applique néanmoins dès
-maintenant aux nouveaux développements).
+**Statut** : terminé le 2026-11-10 (feuilles du kit, douze surfaces
+migrées, inventaire consigné).
 
 **Périmètre** : inventorier les surfaces fonctionnelles existantes — la
 démonstration en tête (écran de réglages, catalogue de scénarios), puis
@@ -241,9 +241,14 @@ les non-conformes aux trois formes de l'ADR-018 ; livrer la feuille du
 haut à son premier besoin si aucun chantier ne l'a encore fait naître.
 Maquettes de référence : [`docs/maquettes/popups.html`](maquettes/popups.html).
 
-**Sortie** : l'inventaire est consigné ; les surfaces non conformes
-sont migrées ; aucune surface fonctionnelle plein cadre ne reste dans
-la démonstration.
+**Sortie** : l'inventaire est consigné
+([`docs/audit/INVENTAIRE-SURFACES.md`](audit/INVENTAIRE-SURFACES.md)) ;
+les surfaces non conformes sont migrées — l'écran de réglages, le plan
+latéral, la barre de recherche, six dialogues système et trois verdicts ;
+aucune surface fonctionnelle plein cadre ne reste dans la démonstration.
+La feuille du haut vit sa première vie (revues par blocs, consentement,
+prédiction) et la feuille du bas sa première famille (réglages, plan,
+recherche, renommage, verdicts du banc).
 
 **Source** : ADR-018 ; décision du propriétaire du 2026-11-10.
 
@@ -286,6 +291,7 @@ dépôt de départ, hors de ce bac à sable.
 | --- | --- | --- |
 | 2026-11-10 | C2 — hygiène du dépôt | dependabot (`.github/dependabot.yml`, commit e84ba50) et `SECURITY.md` (commit 8f20df7) ; entrée `[1.1.0]` du changelog |
 | 2026-11-10 | C3 — cohérence documentaire | erratum du résumé M9 (commit 4f580e9) ; bannière du cli en 1.0.0 et test cliquet (commit 7acce1f) |
+| 2026-11-10 | C12 — harmonisation tout en popups | feuilles du kit (`FeuilleBas`, `FeuilleHaut`, 11 tests de vue), douze surfaces migrées, écran de réglages disparu du manifeste ; inventaire consigné (`docs/audit/INVENTAIRE-SURFACES.md`) |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 

@@ -71,8 +71,11 @@ Android l'exige — mais ses surfaces fonctionnelles migrent en feuilles.
 - [x] Maquettes de référence des trois formes :
       `docs/maquettes/popups.html` (réactives, autonomes, sans
       dépendance).
-- [ ] Inventorier les surfaces fonctionnelles existantes (la
+- [x] Inventorier les surfaces fonctionnelles existantes (la
       démonstration en tête) et migrer les non-conformes — chantier
-      dédié de la feuille de route.
-- [ ] Livrer la feuille du haut à son premier besoin, avec ses tests
-      de vue.
+      C12, clos le 2026-11-10 (l'inventaire vit dans
+      [`docs/audit/INVENTAIRE-SURFACES.md`](../audit/INVENTAIRE-SURFACES.md)).
+- [x] Livrer la feuille du haut à son premier besoin, avec ses tests
+      de vue — les revues par blocs (diff D-12, agent F-04), le
+      consentement IA (F-10) et la décision de prédiction (F-02),
+      chantier C12.

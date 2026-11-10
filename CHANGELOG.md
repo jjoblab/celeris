@@ -36,6 +36,24 @@ vivent dans les ADR et le registre de portage, pas ici.
   fichier HTML autonome, sans dépendance ; trois thèmes (clair, sombre,
   contraste élevé) et trois gabarits (téléphone, tablette, bureau).
 
+### Interface — chantier C12, tout en popups
+
+- **Feuilles du kit** (`android-widgets`) : la feuille du bas et la
+  feuille du haut de l'ADR-018 — poignée de glissement, rangée de
+  titre, bouton de fermeture, corps défilant, voile, quatre
+  fermetures (bouton, voile, glissement au-delà du seuil, retour) —
+  aux jetons de la maquette ; onze tests de vue (Robolectric).
+- **Douze surfaces migrées** : l'écran de réglages devient feuille du
+  bas (l'activité disparaît du manifeste) ; le plan latéral, la
+  recherche et le renommage la rejoignent ; les revues par blocs
+  (diff D-12, agent F-04), le rappel de consentement IA (F-10) et la
+  décision de prédiction (F-02) ouvrent la feuille du haut ; l'aperçu
+  de définition (D-11) et le rendu `@Preview` (C-11) passent en
+  popups ancrées ; les verdicts de prédiction rejoignent la barre
+  d'état. Plus aucun dialogue système, plus aucun écran plein cadre
+  hors des conteneurs hôtes — l'inventaire est consigné
+  (`docs/audit/INVENTAIRE-SURFACES.md`).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
