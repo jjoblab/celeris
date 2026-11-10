@@ -38,7 +38,7 @@ final class ScenarioCatalogTest {
                 "E-01", "E-02", "E-03", "E-04", "E-05", "E-06",
                 "F-01", "F-02", "F-03", "F-04", "F-05",
                 "F-06", "F-07", "F-08", "F-09", "F-10",
-                "G-01", "G-02", "G-04", "G-05", "H-12"), identifiants);
+                "G-01", "G-02", "G-04", "G-05", "H-04", "H-12"), identifiants);
     }
 
     @Test

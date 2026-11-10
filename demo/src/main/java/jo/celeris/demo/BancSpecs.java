@@ -7,6 +7,11 @@ import java.util.Optional;
 
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.SignatureAideModel;
+import jo.celeris.core.language.LanguageConfiguration;
+import jo.celeris.core.language.LanguagePlatform;
+import jo.celeris.core.language.LanguageRegistry;
+import jo.celeris.core.language.LanguageSupport;
+import jo.celeris.core.language.Packs;
 import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.intelligence.IndentStyle;
 import jo.celeris.core.intelligence.PasteReindenter;
@@ -14,8 +19,15 @@ import jo.celeris.core.intelligence.Renommage;
 import jo.celeris.core.intelligence.SmartTyping;
 import jo.celeris.core.intelligence.TypingRules;
 import jo.celeris.core.syntax.Analysis;
+import jo.celeris.core.syntax.FoldSpan;
+import jo.celeris.core.syntax.IndentationFolds;
+import jo.celeris.core.syntax.SyntaxService;
+import jo.celeris.core.syntax.Token;
+import jo.celeris.core.syntax.TokenKind;
+import jo.celeris.core.syntax.TreeFolds;
 import jo.celeris.core.syntax.JavaSyntax;
 import jo.celeris.core.syntax.SyntaxCoordinator;
+import jo.celeris.core.syntax.grammars.PackGrammars;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -92,7 +104,59 @@ final class BancSpecs {
                 new ScenarioSpec("H-12",
                         "Les méthodes nouvelles servent le plan, le pli et"
                                 + " le formatage par le fil",
-                        BancSpecs::couverture));
+                        BancSpecs::couverture),
+                new ScenarioSpec("H-04",
+                        "Le paquet jouet se charge à chaud, se colore, se"
+                                + " plie et se commente",
+                        BancSpecs::paquetJouet));
+    }
+
+    /**
+     * H-04 — le paquet jouet de l'utilisateur : copié au dossier des
+     * paquets, chargé à chaud par la plateforme — l'échantillon se
+     * détecte, se colore (commentaires et mots-clés par la grammaire du
+     * paquet), se plie (l'indentation de la configuration) et se
+     * commente (le point-virgule de la configuration) — sans un mot de
+     * Logo dans le code du banc.
+     */
+    private static boolean paquetJouet() {
+        try {
+            java.nio.file.Path bac = java.nio.file.Files.createTempDirectory(
+                    "celeris-h04");
+            PaquetJouet.installer(bac);
+            LanguageRegistry registre = LanguagePlatform
+                    .with(PackGrammars.INSTANCE)
+                    .addPackSource(Packs.folder(bac))
+                    .build();
+            LanguageSupport logo = registre.byFilename("tortue.lgo");
+            if (logo == null || !PaquetJouet.LANGAGE.equals(logo.id())
+                    || logo.syntax() == null) {
+                return false;
+            }
+            String source = FichiersExemple.parNom("tortue.lgo", true).contenu();
+            Analysis analyse = SyntaxService.of(
+                    logo.syntax()).analyseFull(Document.of(source));
+            boolean commentee = false;
+            boolean motCle = false;
+            for (int ligne = 0; ligne < analyse.lex().lineCount(); ligne++) {
+                for (Token jeton : analyse.lex().line(ligne).tokens()) {
+                    commentee |= jeton.kind() == TokenKind.COMMENT;
+                    motCle |= jeton.kind() == TokenKind.KEYWORD;
+                }
+            }
+            LanguageConfiguration.Folding pliage =
+                    logo.configuration().folding();
+            List<FoldSpan> plis = TreeFolds.regions(Document.of(source),
+                    analyse, pliage.byIndentation()
+                            ? new IndentationFolds.Settings(
+                                    logo.configuration().indentSize(),
+                                    pliage.offSide())
+                            : null);
+            return commentee && motCle && !plis.isEmpty()
+                    && "; ".equals(logo.configuration().comments().lineComment());
+        } catch (java.io.IOException echec) {
+            return false;
+        }
     }
 
     /** Les verdicts rejoués au banc — l'identifiant et sa preuve. */

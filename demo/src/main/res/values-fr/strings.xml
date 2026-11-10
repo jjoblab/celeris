@@ -110,6 +110,8 @@
     <string name="desc_theme">Basculer la palette de l\'éditeur entre clair et sombre</string>
     <string name="reglage_lenteur">Lenteur d\'analyse</string>
     <string name="desc_lenteur">Délai avant que la coloration ne se republie après la frappe</string>
+    <string name="reglage_paquet_jouet">Paquet de langage jouet</string>
+    <string name="desc_paquet_jouet">Copier le paquet jouet Logo au stockage — l\'éditeur gagne un langage sans recompiler (H-04)</string>
     <string name="reglage_surimpression">Surimpression de diagnostic</string>
     <string name="desc_surimpression">Afficher taille de police, largeur de gouttière et images décolorées sur la scène</string>
     <string name="unite_ms">%1$d ms</string>
