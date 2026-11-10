@@ -76,7 +76,32 @@ vivent dans les ADR et le registre de portage, pas ici.
 - **La famille web du commerce entière** : `css`, `javascript` et `typescript` rejoignent HTML — les grammaires TextMate des extensions de VS Code (MIT, main épinglé du 2026-11-08), reprises SANS MODIFICATION des copies épinglées du banc ; les bancs `PaquetCssIntegreTest`, `PaquetJavascriptIntegreTest` et `PaquetTypescriptIntegreTest` verrouillent l'égalité octet pour octet, les acceptations (css 96,6 % ≥ 95 %, javascript 90,3 % ≥ 88 %, typescript 90,2 % ≥ 88 %) et le rejeu déterministe des échantillons. Licences MIT au NOTICE, sommes SHA-256 épinglées au NOTICE et au registre de portage ; la matrice compte vingt-deux langages intégrés. Le chantier poursuit : Go, Rust… (mêmes dépôt et épingle que le banc).
 
 - **Le nom racine des grammaires devient facultatif** : le format TextMate l'autorise et la grammaire PHP des extensions de VS Code s'en passe — le chargeur tolère l'absence (la portée racine sert de repli affichable), le banc de conformité suit le nouveau contrat ; une grammaire réelle du commerce ne se réécrit plus pour charger.
-- **PHP et Ruby vivent en paquets intégrés** : la longue traîne annoncée commence — `langages/php` et `langages/ruby` reprendent les grammaires du dépôt VS Code SANS MODIFICATION (main épinglé du 2026-11-08, vérifié inchangé le 2026-11-10) ; `PaquetPhpIntegreTest` et `PaquetRubyIntegreTest` verrouillent l'égalité octet pour octet, les acceptations (php 96,4 % ≥ 95 %, ruby 98,9 % ≥ 98 %) et le rejeu déterministe des échantillons ; le banc du commerce compte treize grammaires.
+- **PHP et Ruby vivent en paquets intégrés** : la longue traîne annoncée commence — `langages/php` et `langages/ruby` reprendent les grammaires du dépôt VS Code SANS MODIFICATION (main épinglé du 2026-11-08, vérifié inchangé le 2026-11-10) ; `PaquetPhpIntegreTest` et `PaquetRubyIntegreTest` verrouillent l'égalité octet pour octet, les acceptations (php 96,4 % ≥ 95 %, ruby 98,9 % ≥ 98 %) et le rejeu déterministe des échantillons ; le banc du commerce compte treize grammaires. La suite de la longue traîne est différée (décision du propriétaire du 2026-11-10) : Go, Rust… attendront — le chantier reprendra sur son signal.
+
+### Deuxième vague — chantier C13 (parité Android Studio d'abord)
+
+- **Mots à bosses de chameau (A-04)** : `CamelWord` raffine les frontières
+  de mots UAX #29 — minuscule vers majuscule (« monCompteur » coupe avant
+  le C), fin de course de majuscules (« HTTPServer » coupe avant le S
+  final), lettre et chiffre du script commun (« abc123def » se coupe en
+  trois) ; les écritures sans casse (CJK, arabe, hébreu) ne changent d'un
+  cran, une bosse ne coupe jamais deux mots UAX. Le déplacement et la
+  sélection par mots (`CaretsMotion`) suivent les bossages — la fenêtre du
+  recul embarque un caractère au-delà du curseur pour lire la fin de
+  course. Le critère de la matrice se vérifie mot pour mot :
+  « monCompteurDeLignes » se coupe en 4 mots (`CamelWordTest`,
+  `CaretsMotionTest`).
+- **Extraire en variable, constante, champ (B-20)** : `Extraction` —
+  l'expression sélectionnée devient une déclaration et la sélection se
+  remplace par son nom. La variable locale se pose avant la ligne de la
+  sélection (`var nom = expression ;`, méthode porteuse exigée) ; la
+  constante et le champ se posent avant l'accolade fermante de la classe
+  porteuse, le type lu sur la forme du littéral (`literalType` : int,
+  long, double, float, boolean, char, String), le nom de constante crié
+  aux joints de casse (« maLimite » devient « MA_LIMITE »). Refus par
+  plan nul, jamais par plan faux ; les éditions descendent — le plan
+  s'applique en une transaction annulable (`ExtractionTest`). Restent au
+  chantier : extraire en méthode et en paramètre (analyse des flux).
 
 ## [1.0.0] — 2026-11-10
 

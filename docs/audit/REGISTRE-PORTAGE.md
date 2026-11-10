@@ -82,6 +82,13 @@
 | grammaire PHP (`php.tmLanguage.json` du dépôt microsoft/vscode, MIT) | Livrer en paquet intégré (chantier C5 : la longue traîne) | le paquet `langages/php` la reprend SANS MODIFICATION — le banc de conformité du paquet verrouille l'égalité octet pour octet avec la copie épinglée du banc, l'acceptation tient le seuil (96,4 %), l'échantillon se rejoue avec déterminisme ; licence MIT au NOTICE, somme SHA-256 épinglée au NOTICE et ici : `dea92689034f878009c556d59abef08a16e0995ad423ac8ffe93fad78d065c1c` | `PaquetPhpIntegreTest` |
 | grammaire Ruby (`ruby.tmLanguage.json` du dépôt microsoft/vscode, MIT) | Livrer en paquet intégré (chantier C5 : la longue traîne) | le paquet `langages/ruby` la reprend SANS MODIFICATION — le banc de conformité du paquet verrouille l'égalité octet pour octet avec la copie épinglée du banc, l'acceptation tient le seuil (98,9 %), l'échantillon se rejoue avec déterminisme ; licence MIT au NOTICE, somme SHA-256 épinglée au NOTICE et ici : `050632ddb85d98e2fa9db029951334575e26f6fcca2083675398f6a241605f98` | `PaquetRubyIntegreTest` |
 
+## Refactorisations — chantier C13 (travaux neufs, l'ancien ne porte pas la source)
+
+| Élément | Décision | Justification | Tests associés |
+| --- | --- | --- | --- |
+| mots à bosses de chameau (A-04) | Spécifier | l'ancien ne la porte pas (« non vérifié » à l'audit) ; l'étalon est la matrice Android Studio — trois règles de bossage raffinent les frontières UAX #29, la base normative reste entière | `CamelWordTest` (critère de la matrice mot pour mot, BiDi et CJK), `CaretsMotionTest` (déplacement et sélection) |
+| extraire en variable, constante, champ (B-20) | Spécifier | l'ancien ne le porte pas (renommage et occurrences seuls) ; l'étalon est la matrice — le plan se construit sur l'arbre (méthode et classe porteuses), le type lexical sur la forme du littéral, refus par plan nul | `ExtractionTest` (variantes variable, constante, champ ; types lexicaux ; refus) ; restent méthode et paramètre (analyse des flux) |
+
 ## Outillage
 
 | Élément source | Décision | Justification |

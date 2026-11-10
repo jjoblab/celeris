@@ -54,7 +54,7 @@ développement, quel que soit le statut de C12.
 | C10 | Charge et limites : 480 000 lignes, mode gros fichiers | P1 | 2–3 j | Terminé |
 | C11 | Second étage appareil de la vérification sur vitre | P1 | 1–2 j | Bloqué |
 | C12 | Harmonisation tout en popups des surfaces existantes (ADR-018) | P1 | 2–4 j | Terminé |
-| C13 | Deuxième vague : refactorings, ornement, volume de tests, CLI complète | P2 | 10–15 j | Non démarré |
+| C13 | Deuxième vague : refactorings, ornement, volume de tests, CLI complète | P2 | 10–15 j | En cours |
 | C14 | Statut du dépôt de départ : archivage et bannière de migration | P2 | ~1 h | Bloqué |
 
 ## Détail par chantier
@@ -137,6 +137,10 @@ les noms d'API du guide vérifiés contre les manifestes d'API (`api/`).
 **Statut** : en cours — la famille web du commerce (HTML, CSS,
 JavaScript, TypeScript) puis la longue traîne (PHP, Ruby) livrées en
 paquets intégrés le 2026-11-10.
+
+Le propriétaire décide le 2026-11-10 : « on ajoutera d'autres langues
+après » — la suite de la longue traîne (Go, Rust…) attend son signal,
+le chantier dort jusqu'alors.
 
 **Périmètre** : rapprocher les seize langages livrés des vingt-neuf du
 dépôt de départ par la voie des paquets de données (ADR-017, prouvée
@@ -278,7 +282,16 @@ recherche, renommage, verdicts du banc).
 
 ### C13 — Deuxième vague : refactorings, ornement, tests, CLI
 
-**Statut** : non démarré.
+**Statut** : en cours — première vague
+livrée le 2026-11-10 (A-04 mots à bosses de chameau, B-20 extraire en
+variable, constante et champ).
+
+Directrice du propriétaire du 2026-11-10 : la parité Android Studio
+(lignes de la matrice) passe AVANT les gaps de l'analyse comparative
+code-editor — les refactorings, l'historique local et les mots
+casse-chameau précèdent les ligatures et le chrome ; les autres
+langages (suite de C5) attendront, le propriétaire ajoutera les autres
+langues après.
 
 **Périmètre** : les gaps P2 de l'audit — refactorings (extraire B-20,
 aligner B-21, signature B-22, déplacement sûr B-23), historique local
@@ -290,6 +303,15 @@ vers 3 000+ (l'écart mesuré : 1 761 contre 3 130) ; CLI complète
 **Sortie** : par item — spécification au registre de portage, tests,
 ligne de matrice ; les trois commandes de la CLI avec leurs tests de
 fumée.
+
+**Avancement (2026-11-10)** : A-04 clos — `CamelWord` (core-text)
+raffine les frontières UAX #29 par les bossages de casse et de nature,
+`CaretsMotion` (android-view) y branche le déplacement et la sélection
+par mots, la matrice passe à Câblé (`CaretsMotionTest`) ; B-20 entamé
+et câblé sur ses trois variantes déclaratives — variable, constante,
+champ (`Extraction`, `ExtractionTest`, matrice à Câblé) — restent les
+variantes méthode et paramètre (analyse des flux), puis B-21 à B-23,
+A-14, A-17, D-14, D-20, G-03 et le volume de tests.
 
 **Source** : audit § 6, gaps 10 à 13.
 
