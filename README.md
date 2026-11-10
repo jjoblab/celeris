@@ -13,13 +13,16 @@ Android, l'application de démonstration et un exécutable en ligne de commande.
 
 ## État du projet
 
-**M8 — IA native (livrée, en attente de validation du propriétaire).**
-M0 à M7 sont livrés : moteur de texte, vue Canvas, syntaxe, édition
-assistée, sémantique, Android et SPI. Le jalon M8 clos la catégorie F
-de la matrice de parité — texte fantôme, prédiction, revue d'agent,
-API d'outils pour agents (surface MCP), exclusions de contexte,
-consentement. Les points d'entrée : [`docs/RESUME-M8.md`](docs/RESUME-M8.md)
-et [`docs/feuille-de-route.md`](docs/feuille-de-route.md).
+**M9 — durcissement et 1.0 (livré).** M0 à M8 sont livrés :
+moteur de texte, vue Canvas, syntaxe, édition assistée, sémantique,
+Android et SPI, IA native, plateforme de langages (M7.6 : seize
+langages en données, grammaires réellement TextMate, LSP derrière la
+frontière protocolaire). M9 referme le cycle : audit d'accessibilité
+complet (auditeur automatique en CI), revue de sécurité (faille de
+montage fermée), cliquet de performance calibré, guide de migration
+final, puis publication 1.0.0. Les points d'entrée :
+[`docs/RESUME-M9.md`](docs/RESUME-M9.md) et
+[`docs/feuille-de-route.md`](docs/feuille-de-route.md).
 
 ## Vie privée
 
@@ -33,15 +36,17 @@ consentement, anonyme et documentée — jamais dans le cœur. La
 démonstration ne déclare d'ailleurs aucune permission réseau : sa
 neutralité par défaut est structurelle, vérifiée en CI.
 
-## Modules prévus
+## Modules
 
 | Module | Nature | Rôle |
 | --- | --- | --- |
 | `core-text` | JVM pure | modèle de texte, instantanés, transactions, multi-sélection, annulation |
 | `core-syntax` | JVM pure | analyse syntaxique incrémentale, structure (plis, plan, crochets) |
-| `core-language` | JVM pure | contrats de langage (providers), modèles de données, registre |
+| `core-syntax-grammars` | JVM pure | voie de grammaires TextMate, longue traîne (ADR-014) |
+| `core-language` | JVM pure | plateforme de langages : contrats, paquets de données, registre (ADR-017) |
 | `core-intelligence` | JVM pure | index de symboles, complétion, refactorings, formatage |
-| `core-lsp` | JVM pure | client LSP (protocole et transport) |
+| `core-lsp` | JVM pure | domaine LSP : types immuables, ordonnancement, UTF-16 (ADR-015) |
+| `lsp-protocole` | JVM pure | frontière protocolaire du LSP : session, montages embarqués (ADR-015) |
 | `core-ai` | JVM pure | contrats IA et API d'outils pour agents |
 | `android-view` | bibliothèque Android | vue Canvas, rendu, entrées, IME, accessibilité |
 | `android-widgets` | bibliothèque Android | popups, gouttière, barres |
@@ -52,9 +57,11 @@ neutralité par défaut est structurelle, vérifiée en CI.
 ## Documentation
 
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — vue d'ensemble technique et règles de dépendance.
-- [`docs/adr/`](docs/adr/) — décisions d'architecture (ADR-001 à ADR-012, en proposition).
-- [`docs/parite/MATRICE-PARITE.md`](docs/parite/MATRICE-PARITE.md) — référentiel de parité, catégories A à G.
-- [`docs/audit/`](docs/audit/) — état des lieux mesuré du dépôt de départ, registre de portage, pièges hérités, spikes.
+- [`MIGRATION.md`](MIGRATION.md) — guide de migration du dépôt de départ vers celeris (final à M9).
+- [`docs/adr/`](docs/adr/) — décisions d'architecture (ADR-001 à ADR-017).
+- [`docs/parite/MATRICE-PARITE.md`](docs/parite/MATRICE-PARITE.md) — référentiel de parité, catégories A à H.
+- [`docs/audit/`](docs/audit/) — état des lieux du dépôt de départ, registre de portage, pièges hérités, spikes, audit d'accessibilité et revue de sécurité (M9).
+- [`docs/REFERENCES.md`](docs/REFERENCES.md) — projets et normes cités, licences vérifiées.
 - [`docs/feuille-de-route.md`](docs/feuille-de-route.md) — jalons M1 à M9 et effort estimé.
 - [`docs/GLOSSAIRE.md`](docs/GLOSSAIRE.md) — terminologie française de référence.
 
