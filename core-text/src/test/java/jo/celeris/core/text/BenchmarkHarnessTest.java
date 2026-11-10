@@ -50,9 +50,12 @@ class BenchmarkHarnessTest {
     /**
      * Mesure réelle de l'annulation : document de 2 000 lignes, cent
      * remplacements distincts, undo × 100 puis redo × 100 par tour, chaque
-     * phase chronométrée séparément, minimum de trois tours conservé. Le
-     * budget généreux (2 s par phase) protège d'une régression structurelle,
-     * pas de quelques pourcents de bruit résiduel.
+     * phase chronométrée séparément, minimum de trois tours conservé.
+     * Cliquet resserré à M9 (calibrage du 2026-11-10, bac à sable de
+     * développement à 2 cœurs : 0,84 ms mesurés pour undo, 1,06 ms pour
+     * redo — le cliquet de 100 ms garde ~×100 : il attrape la régression
+     * structurelle — la pile devenue quadratique, l'étape qui recopie le
+     * document — pas quelques pourcents de bruit résiduel (PIEGE-13).
      */
     @Test
     void undoRedoBenchmark_minOfThreeHoldsBudget() {
@@ -84,9 +87,9 @@ class BenchmarkHarnessTest {
         System.out.printf("[benchmark] undo x100 (2000 lignes, min de 3 tours) : %.2f ms ;"
                         + " redo : %.2f ms%n",
                 retenus[0] / 1e6, retenus[1] / 1e6);
-        assertTrue(retenus[0] < 2_000_000_000L,
+        assertTrue(retenus[0] < 100_000_000L,
                 "undo trop lent : " + (retenus[0] / 1e6) + " ms (min de 3 tours)");
-        assertTrue(retenus[1] < 2_000_000_000L,
+        assertTrue(retenus[1] < 100_000_000L,
                 "redo trop lent : " + (retenus[1] / 1e6) + " ms (min de 3 tours)");
         assertEquals(apresEditions, session.text());
         assertEquals(100, session.undoDepth());
@@ -98,10 +101,12 @@ class BenchmarkHarnessTest {
      * caractère par tour — par la voie de mutation unique de la session
      * (lecture du texte retiré, splice de la rope, maintien de l'index de
      * lignes, enregistrement d'étape) — minimum de trois tours conservé
-     * (PIEGE-13). Budget du mandat (ADR-006) : 1 ms par édition ; le seuil
-     * asserté est exactement ce budget, c'est-à-dire une protection
-     * structurelle (un facteur ~50 au-dessus de la mesure courante), pas
-     * une chasse aux pourcents de bruit résiduel.
+     * (PIEGE-13). Budget du mandat (ADR-006) : 1 ms par édition ; le
+     * cliquet resserré à M9 (calibrage du 2026-11-10, bac à sable de
+     * développement à 2 cœurs : 145,41 ms mesurés pour les mille éditions,
+     * soit 0,145 ms par édition) prend le mandat à la moitié — 0,5 ms par
+     * édition (500 ms la passe) : ~×3,4 de marge pour la variance des
+     * machines de CI, une protection structurelle qui mord désormais.
      *
      * <p>Positions déterministes à graine fixe, calculées une fois contre
      * le document initial : chaque remplacement conserve la longueur, les
@@ -131,7 +136,7 @@ class BenchmarkHarnessTest {
         System.out.printf("[benchmark] edition x1000 (50000 lignes, min de 3 tours) :"
                         + " %.2f ms ; par edition : %.4f ms%n",
                 retenus[0] / 1e6, parEdition);
-        assertTrue(retenus[0] < 1_000_000_000L,
+        assertTrue(retenus[0] < 500_000_000L,
                 "edition trop lente : " + parEdition + " ms par edition (min de 3 tours)");
     }
 
@@ -143,8 +148,10 @@ class BenchmarkHarnessTest {
      * une étape d'annulation) — minimum de trois tours conservé
      * (PIEGE-13). Chaque tour enchaîne remplacement puis annulation :
      * l'annulation réarme le document pour le tour suivant, chaque phase
-     * est chronométrée séparément. Protection structurelle (pas une
-     * chasse aux pourcents de bruit résiduel).
+     * est chronométrée séparément. Cliquet resserré à M9 (calibrage du
+     * 2026-11-10, bac à sable à 2 cœurs : 39,83 ms mesurés pour la passe,
+     * 37,01 ms pour son annulation) : 150 ms par phase, ~×4 de marge pour
+     * la variance des machines de CI — la protection structurelle mord.
      */
     @Test
     void replaceAllBenchmark_minOfThreeHoldsBudget() {
@@ -169,10 +176,10 @@ class BenchmarkHarnessTest {
                         + " min de 3 tours) : %.2f ms (%.4f ms/occurrence) ;"
                         + " annulation : %.2f ms%n",
                 retenus[0] / 1e6, parOccurrence, retenus[1] / 1e6);
-        assertTrue(retenus[0] < 1_000_000_000L,
+        assertTrue(retenus[0] < 150_000_000L,
                 "replace-all trop lent : " + parOccurrence
                         + " ms par occurrence (min de 3 tours)");
-        assertTrue(retenus[1] < 1_000_000_000L,
+        assertTrue(retenus[1] < 150_000_000L,
                 "annulation du replace-all trop lente : "
                         + retenus[1] / 1e6 + " ms (min de 3 tours)");
         assertEquals(initial, session.text(), "l'annulation finale restaure l'original");
