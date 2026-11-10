@@ -1,0 +1,7 @@
+{
+  "id": "ruby",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "license": "MIT",
+  "provenance": "grammaire ruby.tmLanguage.json du dépôt microsoft/vscode (MIT, main épinglé du 2026-11-08, vérifié inchangé le 2026-11-10, récupéré par spikes/regex/recuperer-grammaires), reprise SANS MODIFICATION du banc du commerce (H-05) — chantier C5, la longue traîne commence ; somme SHA-256 épinglée au NOTICE et au registre de portage"
+}

@@ -44,7 +44,7 @@ public final class Celeris {
     }
 
     /**
-     * Le registre des langages du cli (M7.6) : les vingt paquets
+     * Le registre des langages du cli (M7.6) : les vingt-deux paquets
      * intégrés assemblés par la plateforme — les analyseurs écrits
      * s'y attachent par préférence, la voie de grammaires compile les
      * autres — et les contributeurs découverts par ServiceLoader

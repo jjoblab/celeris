@@ -22,14 +22,14 @@ import org.junit.jupiter.api.Test;
 
 /**
  * L'intégration réelle des paquets intégrés par la fabrique de
- * grammaires (M7.6, chantier C5) : les vingt paquets du module du
- * bas se chargent par la couture {@link PackGrammars} — les quatorze
+ * grammaires (M7.6, chantier C5) : les vingt-deux paquets du module du
+ * bas se chargent par la couture {@link PackGrammars} — les seize
  * grammaires compilent (la vraie voie, pas la fabrique de banc), et
  * le registre assemblé sert les sources syntaxiques attendues.
  */
 final class PackGrammarsTest {
 
-    /** Les vingt paquets intégrés, chargés par la vraie fabrique. */
+    /** Les vingt-deux paquets intégrés, chargés par la vraie fabrique. */
     private static List<LanguagePack> paquetsCharges() throws IOException {
         PackLoader chargeur = PackLoader.with(PackGrammars.INSTANCE);
         List<LanguagePack> charges = new ArrayList<>();
@@ -40,9 +40,9 @@ final class PackGrammarsTest {
     }
 
     @Test
-    void lesVingtPaquetsSeChargentParLaVraieFabrique() throws IOException {
+    void lesVingtDeuxPaquetsSeChargentParLaVraieFabrique() throws IOException {
         List<LanguagePack> charges = paquetsCharges();
-        assertEquals(20, charges.size());
+        assertEquals(22, charges.size());
         for (LanguagePack pack : charges) {
             assertEquals(1, pack.manifest().schemaVersion(),
                     pack.manifest().id() + " au schéma courant");
@@ -50,11 +50,11 @@ final class PackGrammarsTest {
     }
 
     @Test
-    void lesQuatorzeGrammairesCompilentEnSourcesSyntaxiques() throws IOException {
+    void lesSeizeGrammairesCompilentEnSourcesSyntaxiques() throws IOException {
         List<LanguagePack> charges = paquetsCharges();
         List<String> aGrammaire = List.of("toml", "yaml", "properties", "markdown",
                 "python", "shell", "sql", "c", "cpp", "proguard", "html",
-                "css", "javascript", "typescript");
+                "css", "javascript", "typescript", "php", "ruby");
         for (LanguagePack pack : charges) {
             if (aGrammaire.contains(pack.manifest().id())) {
                 LanguageSyntax source = pack.grammar();
@@ -67,10 +67,10 @@ final class PackGrammarsTest {
     }
 
     @Test
-    void leRegistreAssembleLesVingtLangages() {
+    void leRegistreAssembleLesVingtDeuxLangages() {
         LanguageRegistry registre = LanguagePlatform.with(PackGrammars.INSTANCE)
                 .builtinPacks().build();
-        assertEquals(20, registre.supports().size());
+        assertEquals(22, registre.supports().size());
         LanguageSupport toml = registre.byId("toml");
         assertNotNull(toml, "toml est là");
         LanguageSyntax source = toml.syntax();
