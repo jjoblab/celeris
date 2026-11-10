@@ -46,6 +46,21 @@ class DemoNeutreTest {
     }
 
     /**
+     * Revue de sécurité M9 — la sauvegarde nuage est interdite : sans
+     * {@code allowBackup="false"}, les préférences et les fichiers de
+     * l'application partiraient au transport Android par défaut — la
+     * démonstration n'y consent pas.
+     */
+    @Test
+    void leManifesteInterditLaSauvegardeNuage() throws Exception {
+        String manifeste = new String(Files.readAllBytes(
+                Path.of("src", "main", "AndroidManifest.xml")),
+                StandardCharsets.UTF_8);
+        assertTrue(manifeste.contains("android:allowBackup=\"false\""),
+                "la démonstration interdit la sauvegarde de ses données");
+    }
+
+    /**
      * F-10 — le consentement coupé par défaut ne produit aucun départ :
      * la demande reste au sol, le journal du faux modèle en témoigne —
      * même le modèle local n'est pas consulté sans l'activation
