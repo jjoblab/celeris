@@ -1,0 +1,13 @@
+<?php
+namespace App\Modele;
+
+final class Essai {
+    private const VITESSE = 10;
+
+    public function __construct(private string $nom) {}
+
+    public function saluer(): string {
+        // un commentaire de ligne
+        return "Bonjour {$this->nom} !";
+    }
+}

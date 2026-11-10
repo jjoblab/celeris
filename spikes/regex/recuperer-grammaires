@@ -11,7 +11,9 @@ ICI="$(cd "$(dirname "$0")" && pwd)"
 DEST="$ICI/grammaires"
 mkdir -p "$DEST"
 
-# Épinglé au main de VS Code (licence MIT), vérifié le 2026-11-08.
+# Épinglé au main de VS Code (licence MIT), vérifié le 2026-11-08 —
+# main inchangé au 2026-11-10 (somme css identique), php et ruby s'y
+# ajoutent à la même épingle.
 COMMUN="https://raw.githubusercontent.com/microsoft/vscode/main/extensions"
 declare -A GRAMMAIRES=(
   [json]="json/syntaxes/JSONC.tmLanguage.json"
@@ -25,6 +27,8 @@ declare -A GRAMMAIRES=(
   [css]="css/syntaxes/css.tmLanguage.json"
   [javascript]="javascript/syntaxes/JavaScript.tmLanguage.json"
   [typescript]="typescript-basics/syntaxes/TypeScript.tmLanguage.json"
+  [php]="php/syntaxes/php.tmLanguage.json"
+  [ruby]="ruby/syntaxes/ruby.tmLanguage.json"
 )
 
 for nom in "${!GRAMMAIRES[@]}"; do
