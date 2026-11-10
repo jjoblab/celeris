@@ -8,19 +8,15 @@ import java.util.List;
  * scénarios de la matrice de parité qu'il couvre, avec leur test de
  * fumée correspondant.
  *
- * <p>Jalon M2 (moteur de texte, JVM pure) : A-13 (annulation groupée avec
- * restauration de sélection), A-18 (retour à la ligne souple — la coupe
- * par caractère du cœur), A-20 (recherche/remplacement par la voie de
- * transaction), A-24 (encodages, fins de ligne, BOM) et A-25 (très gros
- * fichiers côté modèle).</p>
+ * <p>Jalon M2 (moteur de texte, JVM pure) : A-13 (annulation groupée),
+ * A-18 (retour à la ligne souple), A-20 (recherche par transaction),
+ * A-24 (encodages, fins de ligne, BOM) et A-25 (très gros fichiers).</p>
  *
  * <p>Jalon M3 (vue minimale) : A-01 (pilule multi-curseur tactile), la
- * facette vue de A-18 (rangées et tranches), D-01 (gouttière à numéros),
- * D-13 (thèmes à contraste vérifié), D-15 (zoom au pincement), D-16
- * (poignées, pilule, loupe), D-17 (clavier matériel), G-01 (ouverture
- * progressive), G-02 (tactile d'abord, hors ligne) et G-05
- * (accessibilité). Les facettes non livrées — D-14 (ligatures) —
- * rejoignent leur jalon.</p>
+ * facette vue de A-18, D-01 (gouttière), D-13 (thèmes à contraste),
+ * D-15 (zoom), D-16 (poignées, pilule, loupe), D-17 (clavier), G-01
+ * (ouverture progressive), G-02 (tactile, hors ligne) et G-05
+ * (accessibilité) — D-14 (ligatures) rejoint son jalon.</p>
  *
  * <p>Jalon M5 (édition assistée) : A-02 (sélection en colonne),
  * A-03 (sélection syntaxique), A-05 à A-09 (frappe intelligente :
@@ -55,15 +51,13 @@ import java.util.List;
  * C et C++ suivent leur jalon.</p>
  *
  * <p>Jalon M7 (Android et SPI) : E-01 à E-06 — les contrats
- * d'intégration de l'hôte, chacun avec son implémentation de
- * référence testée sans appareil (chemins validés contre la
- * traversée, marques et blame VCS, arrêts désactivables et survol
- * borné, lancements signalés, diagnostics de build aux plages
- * exactes, cadres de pile au fichier:ligne exact) — puis la peinture
- * de gouttière D-03/D-04/D-05 (marques VCS vivantes face au contenu
- * d'origine, points d'arrêt au clic des numéros, repères d'exécution
- * à la pause simulée) et le bloc XML C-02/C-03/C-04, le manifeste
- * C-06 et les catalogues C-08. L'adaptateur de stockage suit.</p>
+ * d'intégration de l'hôte et leurs implémentations de référence
+ * testées sans appareil — puis la peinture de gouttière
+ * D-03/D-04/D-05 et le bloc XML C-02/C-03/C-04, le manifeste C-06 et
+ * les catalogues C-08. L'adaptateur de stockage suit.</p>
+ *
+ * <p>Jalon M7.6 (plateforme de langages) : H-12 — la couverture LSP
+ * nouvelle par la frontière protocolaire (ADR-015).</p>
  */
 public final class ScenarioCatalog {
 
@@ -594,6 +588,12 @@ public final class ScenarioCatalog {
                         "L'éditeur s'expose comme un nœud éditable dont les "
                                 + "enfants virtuels sont les rangées visibles : "
                                 + "lecture par lignes et plages, mouvements à "
-                                + "granularité — clusters, mots, rangées, pages."));
+                                + "granularité — clusters, mots, rangées, pages."), new Scenario(
+                        "H-12",
+                        "Couverture LSP nouvelle",
+                        "Symboles, plis, formatage, surlignages, renommage, "
+                                + "correctifs, indices, jetons : la frontière "
+                                + "protocolaire porte chaque méthode, le domaine "
+                                + "les rend (M7.6, ADR-015)."));
     }
 }

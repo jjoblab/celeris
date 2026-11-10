@@ -1,19 +1,18 @@
 package jo.celeris.core.lsp;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Les capacités du serveur, lues de la réponse d'initialisation — la
  * surface bornée du protocole que le client consomme : fournisseurs de
  * complétion, de survol, de signature, de définition, de références, de
- * renommage, de correctifs, de formatage et d'indices en ligne, genre
- * de synchronisation, légende des jetons sémantiques.
+ * surlignages, de symboles, de plis, de sélection, de renommage, de
+ * correctifs, de formatage et d'indices en ligne, genre de
+ * synchronisation, légende des jetons sémantiques.
  *
- * <p>Deux voies construisent l'objet (ADR-015) : l'analyse de la
- * réponse JSON du protocole maison, et la fabrique typée alimentée par
- * la correspondance de la frontière protocolaire — les champs sont les
- * mêmes, seule l'entrée diffère.</p>
+ * <p>L'objet se construit par la fabrique typée (ADR-015) : la
+ * correspondance de la frontière protocolaire y dépose ce que la
+ * bibliothèque a négocié à la poignée de main.</p>
  */
 public final class CapacitesServeur {
 
@@ -23,6 +22,10 @@ public final class CapacitesServeur {
     private final boolean sertSignature;
     private final boolean sertDefinition;
     private final boolean sertReferences;
+    private final boolean sertSurlignages;
+    private final boolean sertSymboles;
+    private final boolean sertPlis;
+    private final boolean sertSelectionPlages;
     private final boolean sertRennomage;
     private final boolean sertCorrectifs;
     private final boolean sertFormatage;
@@ -32,15 +35,20 @@ public final class CapacitesServeur {
 
     private CapacitesServeur(int genreSynchro, boolean sertCompletion,
             boolean sertSurvol, boolean sertSignature, boolean sertDefinition,
-            boolean sertReferences, boolean sertRennomage, boolean sertCorrectifs,
-            boolean sertFormatage, boolean sertIndices, List<String> typesJetons,
-            List<String> modificateursJetons) {
+            boolean sertReferences, boolean sertSurlignages, boolean sertSymboles,
+            boolean sertPlis, boolean sertSelectionPlages, boolean sertRennomage,
+            boolean sertCorrectifs, boolean sertFormatage, boolean sertIndices,
+            List<String> typesJetons, List<String> modificateursJetons) {
         this.genreSynchro = genreSynchro;
         this.sertCompletion = sertCompletion;
         this.sertSurvol = sertSurvol;
         this.sertSignature = sertSignature;
         this.sertDefinition = sertDefinition;
         this.sertReferences = sertReferences;
+        this.sertSurlignages = sertSurlignages;
+        this.sertSymboles = sertSymboles;
+        this.sertPlis = sertPlis;
+        this.sertSelectionPlages = sertSelectionPlages;
         this.sertRennomage = sertRennomage;
         this.sertCorrectifs = sertCorrectifs;
         this.sertFormatage = sertFormatage;
@@ -52,7 +60,7 @@ public final class CapacitesServeur {
     /** Les capacités vides — avant l'initialisation. */
     public static CapacitesServeur vides() {
         return de(-1, false, false, false, false, false, false, false,
-                false, false, List.of(), List.of());
+                false, false, false, false, false, false, List.of(), List.of());
     }
 
     /**
@@ -67,9 +75,16 @@ public final class CapacitesServeur {
      * @param sertSignature       le serveur propose l'aide aux paramètres
      * @param sertDefinition      le serveur propose la définition
      * @param sertReferences      le serveur propose les références
+     * @param sertSurlignages     le serveur propose les surlignages
+     *                            d'occurrences
+     * @param sertSymboles        le serveur propose les symboles de
+     *                            document
+     * @param sertPlis            le serveur propose les plis
+     * @param sertSelectionPlages le serveur propose les plages de
+     *                            sélection
      * @param sertRennomage       le serveur propose le renommage
      * @param sertCorrectifs      le serveur propose les correctifs rapides
-     * @param sertFormatage       le serveur propose le formatage
+     * @param sertFormatage       le serveur propose le formatage du document
      * @param sertIndices         le serveur propose les indices en ligne
      * @param typesJetons         la légende des types de jetons, vide sans légende
      * @param modificateursJetons la légende des modificateurs, vide sans légende
@@ -77,61 +92,15 @@ public final class CapacitesServeur {
      */
     public static CapacitesServeur de(int genreSynchro, boolean sertCompletion,
             boolean sertSurvol, boolean sertSignature, boolean sertDefinition,
-            boolean sertReferences, boolean sertRennomage, boolean sertCorrectifs,
-            boolean sertFormatage, boolean sertIndices, List<String> typesJetons,
-            List<String> modificateursJetons) {
+            boolean sertReferences, boolean sertSurlignages, boolean sertSymboles,
+            boolean sertPlis, boolean sertSelectionPlages, boolean sertRennomage,
+            boolean sertCorrectifs, boolean sertFormatage, boolean sertIndices,
+            List<String> typesJetons, List<String> modificateursJetons) {
         return new CapacitesServeur(genreSynchro, sertCompletion, sertSurvol,
-                sertSignature, sertDefinition, sertReferences, sertRennomage,
+                sertSignature, sertDefinition, sertReferences, sertSurlignages,
+                sertSymboles, sertPlis, sertSelectionPlages, sertRennomage,
                 sertCorrectifs, sertFormatage, sertIndices, typesJetons,
                 modificateursJetons);
-    }
-
-    /**
-     * Analyse les capacités depuis la réponse d'initialisation — la
-     * voie JSON du protocole maison.
-     *
-     * @param resultat la valeur « result » de la requête initialize
-     * @return les capacités lues, vides si la forme est incomplète
-     */
-    public static CapacitesServeur de(ValeurJson resultat) {
-        if (resultat instanceof JsonObjet objet
-                && objet.membre("capabilities") instanceof JsonObjet capacites) {
-            return new CapacitesServeur(entierOuAbsent(capacites, "textDocumentSync"),
-                    capacites.membre("completionProvider") != null,
-                    Boolean.TRUE.equals(capacites.membreBooleen("hoverProvider")),
-                    capacites.membre("signatureHelpProvider") != null,
-                    Boolean.TRUE.equals(capacites.membreBooleen("definitionProvider")),
-                    Boolean.TRUE.equals(capacites.membreBooleen("referencesProvider")),
-                    capacites.membre("renameProvider") != null,
-                    capacites.membre("codeActionProvider") != null,
-                    Boolean.TRUE.equals(
-                            capacites.membreBooleen("documentFormattingProvider")),
-                    capacites.membre("inlayHintProvider") != null,
-                    legende(capacites, "tokenTypes"),
-                    legende(capacites, "tokenModifiers"));
-        }
-        return vides();
-    }
-
-    private static int entierOuAbsent(JsonObjet objet, String cle) {
-        Long valeur = objet.membreEntier(cle);
-        return valeur == null ? -1 : valeur.intValue();
-    }
-
-    private static List<String> legende(JsonObjet capacites, String cle) {
-        List<String> valeurs = new ArrayList<>();
-        if (capacites.membre("semanticTokensProvider") instanceof JsonObjet fournisseur
-                && fournisseur.membre("legend") instanceof JsonObjet legende
-                && legende.membre(cle) instanceof JsonTableau tableau) {
-            for (int i = 0; i < tableau.taille(); i++) {
-                String texte = tableau.element(i) instanceof JsonChaine chaine
-                        ? chaine.texte() : null;
-                if (texte != null) {
-                    valeurs.add(texte);
-                }
-            }
-        }
-        return List.copyOf(valeurs);
     }
 
     /** Le genre de synchronisation (1 complète, 2 incrémentale), -1 si absent. */
@@ -162,6 +131,26 @@ public final class CapacitesServeur {
     /** Vrai quand le serveur propose les références. */
     public boolean sertReferences() {
         return sertReferences;
+    }
+
+    /** Vrai quand le serveur propose les surlignages d'occurrences. */
+    public boolean sertSurlignages() {
+        return sertSurlignages;
+    }
+
+    /** Vrai quand le serveur propose les symboles de document. */
+    public boolean sertSymboles() {
+        return sertSymboles;
+    }
+
+    /** Vrai quand le serveur propose les plis. */
+    public boolean sertPlis() {
+        return sertPlis;
+    }
+
+    /** Vrai quand le serveur propose les plages de sélection. */
+    public boolean sertSelectionPlages() {
+        return sertSelectionPlages;
     }
 
     /** Vrai quand le serveur propose le renommage. */

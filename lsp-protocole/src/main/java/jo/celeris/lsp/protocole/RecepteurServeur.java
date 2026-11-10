@@ -14,7 +14,7 @@ import org.eclipse.lsp4j.ShowMessageRequestParams;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.jspecify.annotations.Nullable;
 
-import jo.celeris.core.lsp.ClientLsp;
+import jo.celeris.core.lsp.AuditeurDiagnostics;
 import jo.celeris.core.lsp.DiagnosticLsp;
 
 /**
@@ -33,7 +33,7 @@ final class RecepteurServeur implements LanguageClient {
 
     private final Map<String, List<DiagnosticLsp>> diagnostics =
             new ConcurrentHashMap<>();
-    private final List<ClientLsp.AuditeurDiagnostics> auditeurs =
+    private final List<AuditeurDiagnostics> auditeurs =
             new CopyOnWriteArrayList<>();
 
     @Override
@@ -46,7 +46,7 @@ final class RecepteurServeur implements LanguageClient {
         String uri = params.getUri();
         List<DiagnosticLsp> figee = CorrespondanceLsp.diagnosticsPublies(params);
         diagnostics.put(uri, figee);
-        for (ClientLsp.AuditeurDiagnostics auditeur : auditeurs) {
+        for (AuditeurDiagnostics auditeur : auditeurs) {
             auditeur.diagnostics(uri, figee);
         }
     }
@@ -84,7 +84,7 @@ final class RecepteurServeur implements LanguageClient {
     }
 
     /** Branche un auditeur de diagnostics du domaine. */
-    void ajouterAuditeurDiagnostics(ClientLsp.AuditeurDiagnostics auditeur) {
+    void ajouterAuditeurDiagnostics(AuditeurDiagnostics auditeur) {
         auditeurs.add(auditeur);
     }
 }
