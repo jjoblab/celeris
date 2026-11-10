@@ -61,6 +61,72 @@ class CaretsMotionTest {
                         MultiSelection.caretsAt(3), EditorAction.MOVE_WORD_RIGHT, 10));
     }
 
+    /** A-04 — le mouvement par mots suit les bossages de chameau. */
+    @Test
+    void motion_movesByCamelHumps() {
+        Document document = Document.of("int monCompteurDeLignes;");
+        VisualProjection projection =
+                new VisualProjection(document, new FoldModel(), 0);
+
+        // « monCompteurDeLignes » se parcourt en quatre mots (critère A-04).
+        assertEquals(MultiSelection.caretsAt(7),
+                CaretsMotion.move(document, projection,
+                        MultiSelection.caretsAt(4), EditorAction.MOVE_WORD_RIGHT, 10));
+        assertEquals(MultiSelection.caretsAt(15),
+                CaretsMotion.move(document, projection,
+                        MultiSelection.caretsAt(7), EditorAction.MOVE_WORD_RIGHT, 10));
+        assertEquals(MultiSelection.caretsAt(17),
+                CaretsMotion.move(document, projection,
+                        MultiSelection.caretsAt(15), EditorAction.MOVE_WORD_RIGHT, 10));
+        assertEquals(MultiSelection.caretsAt(23),
+                CaretsMotion.move(document, projection,
+                        MultiSelection.caretsAt(17), EditorAction.MOVE_WORD_RIGHT, 10));
+        // Et le retour recule les mêmes frontières, une à une.
+        assertEquals(MultiSelection.caretsAt(15),
+                CaretsMotion.move(document, projection,
+                        MultiSelection.caretsAt(17), EditorAction.MOVE_WORD_LEFT, 10));
+        assertEquals(MultiSelection.caretsAt(4),
+                CaretsMotion.move(document, projection,
+                        MultiSelection.caretsAt(7), EditorAction.MOVE_WORD_LEFT, 10));
+    }
+
+    /** A-04 — la course de majuscules coupe avant sa dernière majuscule. */
+    @Test
+    void motion_cutsUpperCaseRunsOnTheirLastUpper() {
+        Document document = Document.of("var x = HTTPServer;");
+        VisualProjection projection =
+                new VisualProjection(document, new FoldModel(), 0);
+
+        assertEquals(MultiSelection.caretsAt(12),
+                CaretsMotion.move(document, projection,
+                        MultiSelection.caretsAt(8), EditorAction.MOVE_WORD_RIGHT, 10));
+        // Le recul lit la fin de course sur le caractère qui la suit :
+        // depuis le « e » de « Server », la frontière remonte au S.
+        assertEquals(MultiSelection.caretsAt(12),
+                CaretsMotion.move(document, projection,
+                        MultiSelection.caretsAt(13), EditorAction.MOVE_WORD_LEFT, 10));
+        // Et la course entière se recule d'un trait.
+        assertEquals(MultiSelection.caretsAt(8),
+                CaretsMotion.move(document, projection,
+                        MultiSelection.caretsAt(12), EditorAction.MOVE_WORD_LEFT, 10));
+    }
+
+    /** A-04 — la sélection par mots étend la plage aux bossages près. */
+    @Test
+    void motion_selectsByCamelHumps() {
+        Document document = Document.of("monCompteurDeLignes;");
+        VisualProjection projection =
+                new VisualProjection(document, new FoldModel(), 0);
+
+        MultiSelection apres = CaretsMotion.move(document, projection,
+                MultiSelection.caretsAt(0), EditorAction.SELECT_WORD_RIGHT, 10);
+        assertEquals(MultiSelection.of(new SelRange(0, 3)), apres);
+        MultiSelection encore = CaretsMotion.move(document, projection, apres,
+                EditorAction.SELECT_WORD_RIGHT, 10);
+        assertEquals(MultiSelection.of(new SelRange(0, 11)), encore,
+                "l'ancre tient, le curseur avance d'un bossage");
+    }
+
     /** D-17/A-18 — monter et descendre se compte en RANGÉES, pas en lignes. */
     @Test
     void motion_movesByVisualRows() {
