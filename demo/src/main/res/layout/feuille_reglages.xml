@@ -1,34 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Les réglages en direct : barre d'application avec retour, une carte
-     de trois lignes — icône, titre et description, interrupteur Material
-     qui persiste immédiatement. Les encarts système deviennent des
-     marges du chrome (bord à bord, SettingsActivity). -->
+<!-- Le contenu de la feuille des réglages (ADR-018, C12) : l'écran
+     plein cadre migre en feuille du bas — la carte à trois interrupteurs
+     (numéros, retour souple, thème sombre), le consentement IA, la carte
+     du rendu (lenteur d'analyse et surimpression) et le paquet jouet
+     (H-04). La feuille porte le titre et la fermeture ; chaque
+     interrupteur porte son libellé (ADR-008) et persiste immédiatement. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/racine_reglages"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
-
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/surface"
-        app:elevation="0dp">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/barre_reglages"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationContentDescription="@string/action_retour"
-            app:navigationIcon="@drawable/ic_retour"
-            app:title="@string/titre_reglages" />
-    </com.google.android.material.appbar.AppBarLayout>
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="4dp">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginBottom="12dp"
         app:cardBackgroundColor="@color/surface_contenant_bas"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
@@ -191,9 +178,7 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="12dp"
         app:cardBackgroundColor="@color/surface_contenant_bas"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
@@ -251,9 +236,7 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="12dp"
         app:cardBackgroundColor="@color/surface_contenant_bas"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
@@ -372,13 +355,11 @@
 
     <!-- Le paquet de langage de l'utilisateur (H-04, M9) : la bascule
          copie le paquet jouet au stockage ou le retire — le registre se
-         recharge à chaud, l'accueil resoumet ses cartes au retour. -->
+         recharge à chaud, l'hôte resoumet ses cartes à la fermeture. -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="4dp"
         app:cardBackgroundColor="@color/surface_contenant_bas"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
@@ -429,5 +410,4 @@
                 android:layout_marginStart="12dp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
-
 </LinearLayout>

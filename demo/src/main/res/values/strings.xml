@@ -26,6 +26,7 @@
     <string name="barre_coller">Paste</string>
     <string name="barre_tout">Select all</string>
     <string name="action_plan">Outline</string>
+    <string name="titre_feuille_plan">File outline</string>
     <string name="action_deboguer">Debug</string>
     <string name="action_reprendre">Resume</string>
     <string name="action_annuler">Undo</string>
@@ -36,6 +37,7 @@
     <string name="action_importer">Add List import</string>
     <string name="format_deja_en_forme">Format: already in shape</string>
     <string name="titre_renomme">Rename %1$s</string>
+    <string name="indication_renomme">New name</string>
     <string name="renomme_appliquer">Rename</string>
     <string name="renomme_aucun_symbole">No symbol at the caret</string>
     <string name="renomme_conflit">Rename refused: %1$s conflicts</string>
@@ -49,11 +51,13 @@
     <string name="titre_apercu">Definition of %1$s</string>
     <string name="action_diff">Review diff</string>
     <string name="titre_diff">Block %1$d</string>
+    <string name="titre_feuille_diff">Diff review — block %1$d</string>
     <string name="bloc_accepter">Accept block</string>
     <string name="bloc_refuser">Reject block</string>
     <string name="action_agent">Review agent edits</string>
     <string name="titre_agent">Agent edit — block %1$d</string>
     <string name="agent_revenir">Back to checkpoint</string>
+    <string name="legende_agent">Each block is accepted or rejected one by one — the agent never touches the document without your validation.</string>
     <string name="action_ia_fantome">AI: suggest completion</string>
     <string name="action_ia_prediction">AI: predict next edit</string>
     <string name="prediction_titre">Predicted edit</string>

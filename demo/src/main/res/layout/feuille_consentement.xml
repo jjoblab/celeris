@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le contenu de la feuille de consentement IA (F-10, ADR-018) : le
+     rappel contextuel en feuille du haut — rien ne part sans
+     consentement explicite, l'action ouvre la feuille des réglages. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="4dp">
+
+    <TextView
+        android:id="@+id/message_consentement"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/consentement_message"
+        android:textColor="@color/encre"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/bouton_consentement_annuler"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@android:string/cancel" />
+
+        <Button
+            android:id="@+id/bouton_consentement_ouvrir"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/consentement_ouvrir" />
+    </LinearLayout>
+</LinearLayout>

@@ -26,6 +26,7 @@
     <string name="barre_coller">Coller</string>
     <string name="barre_tout">Tout sélectionner</string>
     <string name="action_plan">Plan</string>
+    <string name="titre_feuille_plan">Plan du fichier</string>
     <string name="action_deboguer">Déboguer</string>
     <string name="action_reprendre">Reprendre</string>
     <string name="action_annuler">Annuler</string>
@@ -36,6 +37,7 @@
     <string name="action_importer">Ajouter l\'import List</string>
     <string name="format_deja_en_forme">Format\u00a0: déjà en forme</string>
     <string name="titre_renomme">Renommer %1$s</string>
+    <string name="indication_renomme">Nouveau nom</string>
     <string name="renomme_appliquer">Renommer</string>
     <string name="renomme_aucun_symbole">Aucun symbole au curseur</string>
     <string name="renomme_conflit">Renommage refusé\u00a0: conflit avec %1$s</string>
@@ -49,11 +51,13 @@
     <string name="titre_apercu">Définition de %1$s</string>
     <string name="action_diff">Revue du diff</string>
     <string name="titre_diff">Bloc %1$d</string>
+    <string name="titre_feuille_diff">Revue du diff — bloc %1$d</string>
     <string name="bloc_accepter">Accepter le bloc</string>
     <string name="bloc_refuser">Refuser le bloc</string>
     <string name="action_agent">Revue des modifications d\'agent</string>
     <string name="titre_agent">Modification d\'agent — bloc %1$d</string>
     <string name="agent_revenir">Revenir au point de contrôle</string>
+    <string name="legende_agent">Chaque bloc s\'accepte ou se refuse un à un — l\'agent ne touche jamais le document sans votre validation.</string>
     <string name="action_ia_fantome">IA\u00a0: suggérer une complétion</string>
     <string name="action_ia_prediction">IA\u00a0: prédire la prochaine édition</string>
     <string name="prediction_titre">Édition prédite</string>
