@@ -265,17 +265,17 @@ public final class EditorActivity extends AppCompatActivity {
 
     /**
      * Les états délégués — débogage d'un côté, diagnostics de l'autre
-     * — se posent une fois la scène complète : le serveur XML réel y
-     * publie ses diagnostics de validation (M8.6).
+     * — se posent une fois la scène complète : le serveur déclaré et
+     * disponible y publie ses diagnostics de validation (M8.6), le
+     * serveur de référence reste muet (ADR-005 : la vue ne sait pas
+     * qui a répondu — la porte de session, elle, écoute qui parle).
      */
     private void poserEtatsDelegues() {
         etatDebogage = new EtatDebogage(this, editeur, session,
                 etiquetteArrets, chemin);
         etatDiagnostics = new EtatDiagnostics(this, editeur, atelierPopups,
                 etiquetteArrets, chemin);
-        if (serveurLangage instanceof ServeurXmlEmbarque serveurXml) {
-            serveurXml.poserAuditeurDiagnostics(etatDiagnostics::surServeur);
-        }
+        serveurLangage.poserAuditeurDiagnostics(etatDiagnostics::surServeur);
     }
 
     /**
@@ -285,16 +285,14 @@ public final class EditorActivity extends AppCompatActivity {
      * presse-papiers local.
      */
     private void brancherAteliers() {
-        // La refactorisation et la session de langage en processus (M7.5,
-        // §8 — M8.6 : le serveur XML réel pour les fichiers XML).
+        // La refactorisation et la session de langage déclarée (M7.5,
+        // §8 — M7.6, H-13 : la déclaration serveurs.json décide, le
+        // montage exécute, le serveur de référence reste le repli).
         atelierRefactor = new AtelierRefactor(this, editeur, session,
                 nomFichier, this::verdictRefactor);
         LanguageSupport langueOuverte = LangagesDemo.langageDe(nomFichier,
                 null, session.document().text());
-        serveurLangage = langueOuverte != null
-                && LangagesDemo.serveurXmlEmbarque(langueOuverte.id())
-                ? ServeurXmlEmbarque.demarrer()
-                : ServeurLangage.demarrer();
+        serveurLangage = DeclaredServers.open(langueOuverte);
         // L'atelier des popups : la couche posée sur l'éditeur porte
         // les dix popups, la machine à états décide qui reste ouvert.
         PopupLayer couche = findViewById(R.id.couche_popups);

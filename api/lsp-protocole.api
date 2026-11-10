@@ -38,6 +38,7 @@ Compiled from "LspSession.java"
 public final class jo.celeris.lsp.protocole.LspSession implements java.lang.AutoCloseable,jo.celeris.core.lsp.SuiviVersions {
   public static jo.celeris.lsp.protocole.LspSession sur(java.io.InputStream, java.io.OutputStream, java.lang.String);
   public jo.celeris.core.lsp.CapacitesServeur initialiser();
+  public jo.celeris.core.lsp.CapacitesServeur initialiser(java.util.Map<java.lang.String, java.lang.Object>);
   public jo.celeris.core.lsp.CapacitesServeur capacites();
   public void ouvrir(java.lang.String, java.lang.String, java.lang.String);
   public void changer(java.lang.String, int, java.lang.String);

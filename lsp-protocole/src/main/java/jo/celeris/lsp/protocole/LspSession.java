@@ -147,11 +147,28 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @return les capacités du serveur
      */
     public CapacitesServeur initialiser() {
+        return initialiser(Map.of());
+    }
+
+    /**
+     * La poignée de main avec ses options d'initialisation — la
+     * DONNÉE de la déclaration du serveur (H-13) traverse telle
+     * quelle : le protocole la rend telle quelle au serveur, la
+     * session ne l'interprète pas.
+     *
+     * @param initializationOptions les options du serveur, éventuellement
+     *                              vides
+     * @return les capacités du serveur
+     */
+    public CapacitesServeur initialiser(Map<String, Object> initializationOptions) {
         exigerOuverte();
         InitializeParams params = new InitializeParams();
         params.setProcessId(null);
         params.setClientInfo(new ClientInfo(nomClient));
         params.setCapabilities(new ClientCapabilities());
+        if (!initializationOptions.isEmpty()) {
+            params.setInitializationOptions(initializationOptions);
+        }
         capacites = CorrespondanceLsp.lireCapacites(
                 attendre(serveur.initialize(params), DELAI_INITIALISATION)
                         .getCapabilities());

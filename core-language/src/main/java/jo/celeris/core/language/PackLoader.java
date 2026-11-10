@@ -87,16 +87,21 @@ public final class PackLoader {
         byte[] outlineBytes = files.has("outline.json")
                 ? read(files, "outline.json")
                 : null;
+        byte[] serversBytes = files.has("servers.json")
+                ? read(files, "servers.json")
+                : null;
         bornerLaTaille(files, manifestBytes, languageBytes, grammarBytes,
-                snippetsBytes, outlineBytes);
+                snippetsBytes, outlineBytes, serversBytes);
         String fingerprint = fingerprint(files.name(), manifestBytes,
-                languageBytes, grammarBytes, snippetsBytes, outlineBytes);
+                languageBytes, grammarBytes, snippetsBytes, outlineBytes,
+                serversBytes);
         LanguagePack enCache = cache.get(fingerprint);
         if (enCache != null) {
             return enCache;
         }
         LanguagePack charge = assembler(files, manifestBytes, languageBytes,
-                grammarBytes, snippetsBytes, outlineBytes, fingerprint);
+                grammarBytes, snippetsBytes, outlineBytes, serversBytes,
+                fingerprint);
         cache.put(fingerprint, charge);
         return charge;
     }
@@ -110,7 +115,8 @@ public final class PackLoader {
     private LanguagePack assembler(PackSource.PackFiles files,
             byte[] manifestBytes, byte[] languageBytes,
             byte @Nullable [] grammarBytes, byte @Nullable [] snippetsBytes,
-            byte @Nullable [] outlineBytes, String fingerprint) {
+            byte @Nullable [] outlineBytes, byte @Nullable [] serversBytes,
+            String fingerprint) {
         PackManifest manifest = PackParser.manifest(texte(manifestBytes));
         String languageJson = texte(languageBytes);
         LanguageDescriptor descriptor = PackParser.descriptor(languageJson);
@@ -130,13 +136,36 @@ public final class PackLoader {
         List<OutlineRule> outlineRules = outlineBytes == null
                 ? List.of()
                 : PackParser.outline(texte(outlineBytes));
+        List<LanguageServerDeclaration> servers = serversBytes == null
+                ? List.of()
+                : serveursDuPaquet(files, manifest.id(),
+                        texte(serversBytes));
         LanguageSyntax grammar = null;
         if (grammarBytes != null) {
             grammar = compiler(files, manifest.id(), texte(grammarBytes));
         }
         return new LanguagePack(manifest, descriptor, configuration, grammar,
                 grammarBytes == null ? null : texte(grammarBytes), snippets,
-                injections, outlineRules, preference, fingerprint);
+                injections, outlineRules, servers, preference, fingerprint);
+    }
+
+    /**
+     * Les serveurs déclarés d'un paquet (H-13) : chaque entrée sert le
+     * langage DU paquet — une entrée qui en sert un autre se refuse
+     * avec les deux identifiants en cause.
+     */
+    private static List<LanguageServerDeclaration> serveursDuPaquet(
+            PackSource.PackFiles files, String id, String serversJson) {
+        List<LanguageServerDeclaration> declarations =
+                LanguageServerDeclaration.parse(serversJson);
+        for (LanguageServerDeclaration declaration : declarations) {
+            if (!id.equals(declaration.language())) {
+                throw new IllegalArgumentException(files.name()
+                        + ": servers.json declares \"" + declaration.language()
+                        + "\" but the pack serves \"" + id + "\"");
+            }
+        }
+        return declarations;
     }
 
     /** Compile la grammaire : la fabrique manque ou refuse, tout se dit. */
@@ -169,7 +198,7 @@ public final class PackLoader {
     /** L'empreinte SHA-256 des fichiers du paquet, dans l'ordre des noms. */
     private static String fingerprint(String name, byte[] manifest,
             byte[] language, byte @Nullable [] grammar, byte @Nullable [] snippets,
-            byte @Nullable [] outline) {
+            byte @Nullable [] outline, byte @Nullable [] servers) {
         MessageDigest condenseur = condenseur();
         condenseur.update(name.getBytes(StandardCharsets.UTF_8));
         condenseur.update((byte) 0);
@@ -188,17 +217,23 @@ public final class PackLoader {
             condenseur.update((byte) 0);
             condenseur.update(outline);
         }
+        if (servers != null) {
+            condenseur.update((byte) 0);
+            condenseur.update(servers);
+        }
         return HexFormat.of().formatHex(condenseur.digest());
     }
 
     /** Le plafond du paquet tient : la somme des fichiers se borne. */
     private static void bornerLaTaille(PackSource.PackFiles files,
             byte[] manifest, byte[] language, byte @Nullable [] grammar,
-            byte @Nullable [] snippets, byte @Nullable [] outline) {
+            byte @Nullable [] snippets, byte @Nullable [] outline,
+            byte @Nullable [] servers) {
         int total = manifest.length + language.length
                 + (grammar == null ? 0 : grammar.length)
                 + (snippets == null ? 0 : snippets.length)
-                + (outline == null ? 0 : outline.length);
+                + (outline == null ? 0 : outline.length)
+                + (servers == null ? 0 : servers.length);
         if (total > MAX_PACK_BYTES) {
             throw new IllegalArgumentException(files.name() + ": pack exceeds "
                     + MAX_PACK_BYTES + " bytes (" + total + " read)");

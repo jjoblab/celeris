@@ -208,7 +208,7 @@ public final class jo.celeris.core.language.LanguagePack$SyntaxPreference extend
 ### jo.celeris.core.language.LanguagePack
 Compiled from "LanguagePack.java"
 public final class jo.celeris.core.language.LanguagePack extends java.lang.Record {
-  public jo.celeris.core.language.LanguagePack(jo.celeris.core.language.PackManifest, jo.celeris.core.language.LanguageDescriptor, jo.celeris.core.language.LanguageConfiguration, jo.celeris.core.syntax.LanguageSyntax, java.lang.String, java.util.List<jo.celeris.core.language.PackSnippet>, java.util.List<jo.celeris.core.language.LanguageInjection>, java.util.List<jo.celeris.core.syntax.OutlineRule>, jo.celeris.core.language.LanguagePack$SyntaxPreference, java.lang.String);
+  public jo.celeris.core.language.LanguagePack(jo.celeris.core.language.PackManifest, jo.celeris.core.language.LanguageDescriptor, jo.celeris.core.language.LanguageConfiguration, jo.celeris.core.syntax.LanguageSyntax, java.lang.String, java.util.List<jo.celeris.core.language.PackSnippet>, java.util.List<jo.celeris.core.language.LanguageInjection>, java.util.List<jo.celeris.core.syntax.OutlineRule>, java.util.List<jo.celeris.core.language.LanguageServerDeclaration>, jo.celeris.core.language.LanguagePack$SyntaxPreference, java.lang.String);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -220,6 +220,7 @@ public final class jo.celeris.core.language.LanguagePack extends java.lang.Recor
   public java.util.List<jo.celeris.core.language.PackSnippet> snippets();
   public java.util.List<jo.celeris.core.language.LanguageInjection> injections();
   public java.util.List<jo.celeris.core.syntax.OutlineRule> outlineRules();
+  public java.util.List<jo.celeris.core.language.LanguageServerDeclaration> servers();
   public jo.celeris.core.language.LanguagePack$SyntaxPreference syntaxPreference();
   public java.lang.String fingerprint();
 }
@@ -241,6 +242,7 @@ public final class jo.celeris.core.language.LanguagePlatform {
   public jo.celeris.core.language.LanguagePlatform support(jo.celeris.core.language.LanguageSupport);
   public jo.celeris.core.language.LanguagePlatform contributor(jo.celeris.core.language.LanguageContributor);
   public <T extends jo.celeris.core.language.LanguageCapability> jo.celeris.core.language.LanguagePlatform generic(java.lang.Class<T>, T);
+  public jo.celeris.core.language.LanguagePlatform servers(java.util.List<jo.celeris.core.language.LanguageServerDeclaration>);
   public jo.celeris.core.language.LanguagePlatform userChoice(java.lang.String, java.lang.String);
   public jo.celeris.core.language.LanguageRegistry build();
 }
@@ -276,12 +278,38 @@ public final class jo.celeris.core.language.LanguageRegistry {
   public jo.celeris.core.language.LanguageSupport byFilename(java.lang.String);
 }
 
+### jo.celeris.core.language.LanguageServerDeclaration
+Compiled from "LanguageServerDeclaration.java"
+public final class jo.celeris.core.language.LanguageServerDeclaration extends java.lang.Record {
+  public static final java.lang.String EMBEDDED;
+  public static final java.lang.String STDIO;
+  public static final java.lang.String TCP;
+  public jo.celeris.core.language.LanguageServerDeclaration(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.List<java.lang.String>, java.lang.String, int, java.util.Map<java.lang.String, java.lang.Object>);
+  public static jo.celeris.core.language.LanguageServerDeclaration embedded(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>);
+  public static jo.celeris.core.language.LanguageServerDeclaration stdio(java.lang.String, java.util.List<java.lang.String>, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>);
+  public static jo.celeris.core.language.LanguageServerDeclaration tcp(java.lang.String, java.lang.String, int, java.lang.String, java.util.Map<java.lang.String, java.lang.Object>);
+  public static java.util.List<jo.celeris.core.language.LanguageServerDeclaration> parse(java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String language();
+  public java.lang.String transport();
+  public java.lang.String serverClass();
+  public java.lang.String clientInterface();
+  public java.lang.String clientName();
+  public java.util.List<java.lang.String> command();
+  public java.lang.String host();
+  public int port();
+  public java.util.Map<java.lang.String, java.lang.Object> initializationOptions();
+}
+
 ### jo.celeris.core.language.LanguageSupport$Builder
 Compiled from "LanguageSupport.java"
 public final class jo.celeris.core.language.LanguageSupport$Builder {
   public jo.celeris.core.language.LanguageSupport$Builder configuration(jo.celeris.core.language.LanguageConfiguration);
   public jo.celeris.core.language.LanguageSupport$Builder syntax(jo.celeris.core.syntax.LanguageSyntax);
   public jo.celeris.core.language.LanguageSupport$Builder outlineRules(java.util.List<jo.celeris.core.syntax.OutlineRule>);
+  public jo.celeris.core.language.LanguageSupport$Builder servers(java.util.List<jo.celeris.core.language.LanguageServerDeclaration>);
   public <T extends jo.celeris.core.language.LanguageCapability> jo.celeris.core.language.LanguageSupport$Builder capability(java.lang.Class<T>, T);
   public jo.celeris.core.language.LanguageSupport$Builder capabilities(java.util.Map<java.lang.Class<? extends jo.celeris.core.language.LanguageCapability>, jo.celeris.core.language.LanguageCapability>);
   public jo.celeris.core.language.LanguageSupport$Builder injections(java.util.List<jo.celeris.core.language.LanguageInjection>);
@@ -300,6 +328,7 @@ public final class jo.celeris.core.language.LanguageSupport {
   public jo.celeris.core.language.LanguageConfiguration configuration();
   public jo.celeris.core.syntax.LanguageSyntax syntax();
   public java.util.List<jo.celeris.core.syntax.OutlineRule> outlineRules();
+  public java.util.List<jo.celeris.core.language.LanguageServerDeclaration> serverDeclarations();
   public java.util.List<jo.celeris.core.language.LanguageInjection> injections();
   public jo.celeris.core.language.LanguageSupport parent();
   public <T extends jo.celeris.core.language.LanguageCapability> T capability(java.lang.Class<T>);
