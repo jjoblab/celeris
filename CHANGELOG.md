@@ -70,6 +70,19 @@ vivent dans les ADR et le registre de portage, pas ici.
   budgets mesurés et les seuils du mode — le futur `USAGE.md` les
   reprendra (chantier C4).
 
+### Langages par paquets — chantier C5 (HTML)
+
+- **Première grammaire du commerce livrée en paquet intégré** : `html`
+  rejoint les paquets intégrés (`langages/html/`) — la grammaire
+  TextMate HTML des extensions de VS Code (MIT, main épinglé du
+  2026-11-08), reprise SANS MODIFICATION de la copie épinglée du banc
+  du commerce ; `PaquetHtmlIntegreTest` verrouille l'égalité octet
+  pour octet, l'acceptation (98,7 % ≥ seuil 97 %) et le rejeu
+  déterministe de l'échantillon. Licence MIT au NOTICE, somme SHA-256
+  épinglée au NOTICE et au registre de portage ; la matrice compte
+  dix-sept langages intégrés. Le chantier poursuit : Go, Rust, PHP,
+  Ruby, TypeScript…
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet

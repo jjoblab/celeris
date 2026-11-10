@@ -75,6 +75,7 @@
 | Élément | Décision | Justification | Tests associés |
 | --- | --- | --- | --- |
 | grammaires TextMate du commerce (11 fichiers `*.tmLanguage.json`, extensions VS Code, MIT) | Reprendre inchangées | le banc de conformité du commerce prouve le chargement SANS MODIFICATION (H-05) ; ressources de test uniquement, hors artefacts publiés ; provenance épinglée (main du 2026-11-08, sommes au spike) | `GrammairesCommerceTest` |
+| grammaire HTML (`html.tmLanguage.json` du dépôt microsoft/vscode, MIT) | Livrer en paquet intégré (chantier C5 : la première grammaire du commerce livrée) | le paquet `langages/html` la reprend SANS MODIFICATION — le banc de conformité du paquet verrouille l'égalité octet pour octet avec la copie épinglée du banc, l'acceptation tient le seuil (98,7 %), l'échantillon se rejoue avec déterminisme ; licence MIT au NOTICE, somme SHA-256 épinglée au NOTICE et ici : `80dedf4fb27e88889ac8fb72763954a6d2660502c686f4415208d8c8d00352cd` | `PaquetHtmlIntegreTest` |
 
 ## Outillage
 
