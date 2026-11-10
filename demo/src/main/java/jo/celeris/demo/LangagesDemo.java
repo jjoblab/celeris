@@ -17,7 +17,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * L'enregistrement des langages de la démonstration (M7.6) : le
- * registre assemblé de la plateforme — les dix-sept paquets intégrés, la
+ * registre assemblé de la plateforme — les vingt paquets intégrés, la
  * fabrique de grammaires de la voie déclarative, la complétion
  * générique par les mots du code en repli de tous les langages, les
  * serveurs déclarés par la donnée de la démonstration (H-13,
@@ -54,7 +54,7 @@ public final class LangagesDemo {
 
     /**
      * Précharge le registre hors fil UI (ADR-007) : l'assemblage —
-     * lecture des dix-sept paquets, compilation des grammaires — part sur
+     * lecture des vingt paquets, compilation des grammaires — part sur
      * le fil démon ; l'accueil soumet ses cartes quand il vit.
      */
     public static void precharger() {
