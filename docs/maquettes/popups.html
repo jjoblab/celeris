@@ -1,0 +1,761 @@
+<!doctype html>
+<!--
+  Maquettes réactives des popups de celeris — ADR-018
+  (docs/adr/018-interface-tout-en-popups.md), chantier de la feuille
+  de route. Fichier autonome : aucune dépendance, aucun réseau, aucune
+  construction. Trois formes (feuille du bas, feuille du haut, popup
+  ancrée), trois thèmes (clair, sombre, contraste élevé — ADR-008),
+  trois gabarits (téléphone, tablette, bureau). 2026-11-10.
+-->
+<html lang="fr" data-theme="sombre">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquettes — les popups de celeris (ADR-018)</title>
+<style>
+  /* Thèmes — les trois du produit (ADR-008, banc WCAG). */
+  :root, html[data-theme="clair"] {
+    --fond: #f4f5f7; --surface: #ffffff; --surface-2: #eceef2;
+    --texte: #1d232b; --texte-2: #57606d; --bord: #c9ced6;
+    --accent: #2f54c9; --accent-texte: #ffffff; --accent-2: #e7ecfb;
+    --editeur-fond: #ffffff; --editeur-texte: #242b34;
+    --mot-cle: #a2188f; --mot-cle-2: #8a5000; --chaine: #16726d;
+    --commentaire: #6b7480; --methode: #1f4fbf; --nombre: #a13c00;
+    --diagnostic: #c62a2f; --voile: rgb(15 18 24 / 46%);
+    --ombre: 0 10px 32px rgb(15 18 24 / 22%);
+  }
+  html[data-theme="sombre"] {
+    --fond: #14171c; --surface: #1d2128; --surface-2: #262b34;
+    --texte: #e7eaef; --texte-2: #9aa3b0; --bord: #3a414d;
+    --accent: #7fa5f5; --accent-texte: #10151d; --accent-2: #23314e;
+    --editeur-fond: #171a20; --editeur-texte: #d7dbe2;
+    --mot-cle: #d08cf2; --mot-cle-2: #e0b46a; --chaine: #7fd0c3;
+    --commentaire: #77808e; --methode: #8ab4f8; --nombre: #f0956a;
+    --diagnostic: #ff7b72; --voile: rgb(0 0 0 / 52%);
+    --ombre: 0 12px 36px rgb(0 0 0 / 46%);
+  }
+  html[data-theme="contraste"] {
+    --fond: #000000; --surface: #0a0a0a; --surface-2: #171717;
+    --texte: #ffffff; --texte-2: #f0f0f0; --bord: #ffffff;
+    --accent: #ffd60a; --accent-texte: #000000; --accent-2: #3a3000;
+    --editeur-fond: #000000; --editeur-texte: #ffffff;
+    --mot-cle: #ffd60a; --mot-cle-2: #58e07c; --chaine: #6ee7ff;
+    --commentaire: #b9b9b9; --methode: #6ee7ff; --nombre: #ff9be0;
+    --diagnostic: #ffde5e; --voile: rgb(0 0 0 / 70%);
+    --ombre: 0 0 0 3px #ffffff;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fond); color: var(--texte);
+    font: 16px/1.55 system-ui, "Segoe UI", Roboto, sans-serif;
+  }
+  code, kbd, .code {
+    font-family: ui-monospace, "Cascadia Code", "Source Code Pro",
+                 Menlo, Consolas, monospace;
+  }
+
+  /* En-tête et commandes de la page. */
+  .entete { max-width: 1060px; margin: 0 auto; padding: 28px 20px 8px; }
+  .entete h1 { font-size: 24px; margin: 0 0 6px; }
+  .entete p { color: var(--texte-2); margin: 0 0 14px; max-width: 70ch; }
+  .barre-choix {
+    display: flex; flex-wrap: wrap; gap: 14px; margin: 6px 0 4px;
+  }
+  .groupe-choix { display: flex; gap: 6px; align-items: center; }
+  .groupe-choix span { font-size: 13px; color: var(--texte-2); }
+  .choix {
+    min-height: 44px; padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--bord); background: var(--surface);
+    color: var(--texte); font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .choix[aria-pressed="true"] {
+    background: var(--accent); color: var(--accent-texte);
+    border-color: var(--accent); font-weight: 600;
+  }
+
+  .declencheurs {
+    max-width: 1060px; margin: 10px auto 14px; padding: 0 20px;
+    display: grid; gap: 10px;
+  }
+  .groupe { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .groupe > h2 {
+    font-size: 13px; margin: 0 14px 0 0; font-weight: 700;
+    color: var(--texte-2); text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .declencheur {
+    min-height: 48px; padding: 10px 16px; border-radius: 12px;
+    border: 1px solid var(--bord); background: var(--surface);
+    color: var(--texte); font: inherit; cursor: pointer;
+  }
+  .declencheur:hover { border-color: var(--accent); }
+
+  /* La scène : cadre « appareil » qui porte les popups. */
+  .cadre-externe { padding: 6px 20px 26px; }
+  .scene {
+    position: relative; margin: 0 auto; height: 560px;
+    max-width: 100%; overflow: hidden; border-radius: 18px;
+    border: 1px solid var(--bord); background: var(--editeur-fond);
+    box-shadow: var(--ombre); transition: max-width .25s ease;
+  }
+  .scene[data-viewport="telephone"] { max-width: 380px; }
+  .scene[data-viewport="tablette"] { max-width: 740px; }
+  .scene[data-viewport="bureau"] { max-width: 1020px; }
+  .etiquette-viewport {
+    text-align: center; color: var(--texte-2); font-size: 13px;
+    margin: 8px 0 0;
+  }
+
+  /* L'éditeur factice. */
+  .code { margin: 0; padding: 16px 12px; font-size: 14px; line-height: 1.7; }
+  .ligne { display: flex; white-space: pre; }
+  .num {
+    flex: 0 0 44px; text-align: right; padding-right: 14px;
+    color: var(--commentaire); user-select: none;
+  }
+  .c-mot-cle { color: var(--mot-cle); }
+  .c-mot-cle-2 { color: var(--mot-cle-2); }
+  .c-chaine { color: var(--chaine); }
+  .c-commentaire { color: var(--commentaire); font-style: italic; }
+  .c-methode { color: var(--methode); }
+  .c-nombre { color: var(--nombre); }
+  .caret {
+    display: inline-block; width: 2px; height: 1.15em;
+    background: var(--accent); vertical-align: text-bottom;
+    animation: clignote 1.1s steps(1) infinite;
+  }
+  @keyframes clignote { 50% { opacity: 0; } }
+  .mot-diagnostic {
+    text-decoration: underline wavy var(--diagnostic);
+    text-underline-offset: 3px; cursor: help;
+  }
+
+  /* Le voile modal commun. */
+  .voile {
+    position: absolute; inset: 0; background: var(--voile);
+    opacity: 0; pointer-events: none; transition: opacity .18s ease;
+  }
+  .voile.visiblee { opacity: 1; pointer-events: auto; }
+
+  /* Les trois formes de l'ADR-018. */
+  .feuille, .popup {
+    position: absolute; background: var(--surface); color: var(--texte);
+    border: 1px solid var(--bord); box-shadow: var(--ombre);
+    opacity: 0; visibility: hidden; transition:
+      opacity .18s ease, transform .18s ease, visibility .18s;
+  }
+  .feuille.ouverte, .popup.ouverte { opacity: 1; visibility: visible; }
+
+  .feuille--bas {
+    left: 0; right: 0; bottom: 0; margin: 0 auto;
+    width: min(100%, 660px); max-height: 76%;
+    border-radius: 18px 18px 0 0; border-bottom: 0;
+    transform: translateY(24px); display: flex; flex-direction: column;
+  }
+  .feuille--bas.ouverte { transform: translateY(0); }
+  .feuille--haut {
+    left: 0; right: 0; top: 0; margin: 0 auto;
+    width: min(100%, 760px); border-radius: 0 0 18px 18px; border-top: 0;
+    transform: translateY(-24px);
+  }
+  .feuille--haut.ouverte { transform: translateY(0); }
+  .popup { border-radius: 12px; z-index: 3; }
+
+  .poignee {
+    flex: 0 0 auto; padding: 10px 0 4px; display: grid;
+    place-items: center; cursor: grab;
+  }
+  .poignee::before {
+    content: ""; width: 44px; height: 5px; border-radius: 999px;
+    background: var(--bord);
+  }
+  .feuille--haut .poignee { padding: 4px 0 8px; }
+  .feuille-titre {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 18px 10px; margin: 0;
+  }
+  .feuille-titre h3 { font-size: 16px; margin: 0; flex: 1; }
+  .fermer {
+    min-width: 44px; min-height: 44px; border-radius: 10px;
+    border: 1px solid var(--bord); background: var(--surface-2);
+    color: var(--texte); font-size: 17px; cursor: pointer;
+  }
+  .feuille-corps { padding: 2px 18px 18px; overflow: auto; }
+
+  /* Réglages — surface dense, volets en colonnes. */
+  .reglages-grille { display: grid; grid-template-columns: 1fr; gap: 4px 26px; }
+  .scene[data-viewport="tablette"] .reglages-grille,
+  .scene[data-viewport="bureau"] .reglages-grille { grid-template-columns: 1fr 1fr; }
+  .reglage {
+    display: flex; align-items: center; gap: 12px; min-height: 48px;
+    border-bottom: 1px solid var(--surface-2);
+  }
+  .reglage label { flex: 1; font-size: 15px; }
+  .reglage label small { display: block; color: var(--texte-2); font-size: 12.5px; }
+  .reglage input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); }
+  .reglage-plage { grid-column: 1 / -1; }
+  .reglage-plage label { flex: none; width: 100%; }
+  .reglage-plage input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+  /* Palette de commandes. */
+  .palette-champ {
+    width: 100%; min-height: 48px; padding: 10px 14px; font: inherit;
+    border-radius: 10px; border: 1px solid var(--bord);
+    background: var(--surface-2); color: var(--texte);
+  }
+  .palette-liste { list-style: none; margin: 10px 0 0; padding: 0; }
+  .palette-liste li, .completion-liste li {
+    display: flex; align-items: center; gap: 10px; min-height: 44px;
+    padding: 8px 10px; border-radius: 10px; cursor: pointer;
+  }
+  .palette-liste li.choisi, .completion-liste li.choisi {
+    background: var(--accent-2); outline: 2px solid var(--accent);
+  }
+  .palette-liste kbd, .completion-liste kbd {
+    margin-left: auto; padding: 2px 7px; border-radius: 6px;
+    border: 1px solid var(--bord); background: var(--surface-2);
+    font-size: 12px;
+  }
+
+  /* Recherche et remplacement. */
+  .recherche-grille { display: grid; gap: 8px; }
+  .recherche-champ { display: flex; gap: 8px; }
+  .recherche-champ input {
+    flex: 1; min-height: 44px; padding: 8px 12px; font: inherit;
+    border-radius: 10px; border: 1px solid var(--bord);
+    background: var(--surface-2); color: var(--texte);
+  }
+  .compteur { align-self: center; min-width: 5.5ch; text-align: center;
+    color: var(--texte-2); font-size: 14px; }
+  .petit-bouton {
+    min-height: 44px; padding: 8px 12px; border-radius: 10px;
+    border: 1px solid var(--bord); background: var(--surface-2);
+    color: var(--texte); font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .petit-bouton.primaire { background: var(--accent); color: var(--accent-texte);
+    border-color: var(--accent); }
+  .recherche-aide { color: var(--texte-2); font-size: 13px; margin: 4px 0 0; }
+
+  /* Revue d'agent — feuille du haut. */
+  .agent-ligne { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .agent-bloc {
+    padding: 8px 12px; border-radius: 10px; border: 1px dashed var(--bord);
+    background: var(--surface-2); font-size: 14px; cursor: pointer;
+    min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .agent-bloc::before { content: "◻"; color: var(--accent); font-size: 15px; }
+  .agent-bloc.retenu { border-style: solid; border-color: var(--accent); }
+  .agent-bloc.retenu::before { content: "◼"; }
+  .agent-legende { color: var(--texte-2); font-size: 13px; margin: 8px 0 0; }
+
+  /* Complétion et popups ancrées. */
+  .completion-liste { list-style: none; margin: 0; padding: 6px; min-width: 300px; }
+  .completion-liste .type {
+    color: var(--texte-2); font-size: 12px; margin-left: auto;
+  }
+  .signature { padding: 10px 14px; max-width: 460px; }
+  .signature code { font-size: 13.5px; }
+  .signature .actif {
+    background: var(--accent-2); border-bottom: 2px solid var(--accent);
+    padding: 1px 2px; border-radius: 3px;
+  }
+  .signature-doc { color: var(--texte-2); font-size: 13px; margin: 8px 0 0; }
+  .diagnostic-corps { padding: 10px 14px; max-width: 380px; }
+  .diagnostic-corps strong { color: var(--diagnostic); }
+  .diagnostic-corps ul { margin: 8px 0 2px; padding: 0; list-style: none; }
+  .diagnostic-corps li { min-height: 40px; display: flex; align-items: center;
+    gap: 8px; cursor: pointer; border-radius: 8px; padding: 4px 8px; }
+  .diagnostic-corps li:hover { background: var(--accent-2); }
+
+  /* Notes et conformité. */
+  .notes, .conformite {
+    max-width: 1060px; margin: 4px auto; padding: 0 20px 8px;
+  }
+  .notes h2, .conformite h2 { font-size: 18px; }
+  .notes ul { list-style: none; padding: 0; display: grid; gap: 8px; }
+  .notes li {
+    padding: 10px 14px; border-radius: 12px; background: var(--surface);
+    border: 1px solid var(--bord); font-size: 14.5px;
+  }
+  .notes li b { color: var(--accent); }
+  .conformite table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  .conformite th, .conformite td {
+    text-align: left; padding: 10px 12px; border: 1px solid var(--bord);
+    vertical-align: top;
+  }
+  .conformite th { background: var(--surface-2); }
+  .pied {
+    max-width: 1060px; margin: 0 auto; padding: 10px 20px 30px;
+    color: var(--texte-2); font-size: 13px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="entete">
+  <h1>Maquettes réactives — les popups de celeris</h1>
+  <p>La décision ADR-018 en formes vivantes&nbsp;: toute surface
+     fonctionnelle est une <b>feuille du bas</b>, une <b>feuille du
+     haut</b> ou une <b>popup ancrée</b> — jamais un écran plein cadre,
+     jamais un dialogue système. Ouvrez les maquettes, changez le
+     gabarit et le thème&nbsp;; tout se joue dans le cadre ci-dessous.</p>
+  <div class="barre-choix">
+    <div class="groupe-choix" role="group" aria-label="Gabarit">
+      <span>Gabarit</span>
+      <button class="choix" data-viewport="telephone">Téléphone</button>
+      <button class="choix" data-viewport="tablette">Tablette</button>
+      <button class="choix" data-viewport="bureau" aria-pressed="true">Bureau</button>
+    </div>
+    <div class="groupe-choix" role="group" aria-label="Thème">
+      <span>Thème</span>
+      <button class="choix" data-theme="clair">Clair</button>
+      <button class="choix" data-theme="sombre" aria-pressed="true">Sombre</button>
+      <button class="choix" data-theme="contraste">Contraste élevé</button>
+    </div>
+  </div>
+</header>
+
+<nav class="declencheurs" aria-label="Ouvrir les maquettes">
+  <div class="groupe">
+    <h2>Feuille du bas</h2>
+    <button class="declencheur" data-ouvre="f-reglages">Réglages</button>
+    <button class="declencheur" data-ouvre="f-commandes">Palette de commandes</button>
+    <button class="declencheur" data-ouvre="f-recherche">Recherche et remplacement</button>
+  </div>
+  <div class="groupe">
+    <h2>Feuille du haut</h2>
+    <button class="declencheur" data-ouvre="f-agent">Revue d'agent</button>
+  </div>
+  <div class="groupe">
+    <h2>Popup ancrée</h2>
+    <button class="declencheur" data-ouvre="p-completion">Complétion</button>
+    <button class="declencheur" data-ouvre="p-diagnostic">Diagnostic</button>
+    <button class="declencheur" data-ouvre="p-parametres">Aide aux paramètres</button>
+  </div>
+</nav>
+
+<div class="cadre-externe">
+  <div class="scene" id="scene" data-viewport="bureau" aria-label="Éditeur de démonstration">
+    <pre class="code" aria-hidden="true"><span class="ligne"><span class="num">1</span><span><span class="c-commentaire">// Éditeur celeris — extrait factice pour l'ancrage des popups</span></span></span>
+<span class="ligne"><span class="num">2</span><span><span class="c-mot-cle">final class</span> MachineATexte {</span></span>
+<span class="ligne"><span class="num">3</span></span>
+<span class="ligne"><span class="num">4</span><span>    <span class="c-commentaire">/** Les lignes visibles du document. */</span></span></span>
+<span class="ligne"><span class="num">5</span><span>    <span class="c-mot-cle-2">int</span> lignesVisibles(Document document, <span class="c-mot-cle-2">String</span> contenu) {</span></span>
+<span class="ligne"><span class="num">6</span><span>        <span class="c-mot-cle-2">int</span> <span class="mot-diagnostic" id="ancre-diagnostic" tabindex="0">avertissement</span> = <span class="c-nombre">0</span>;</span></span>
+<span class="ligne"><span class="num">7</span><span>        <span class="c-mot-cle">if</span> (contenu.isEmpty()) {</span></span>
+<span class="ligne"><span class="num">8</span><span>            <span class="c-mot-cle">return</span> document.<span class="c-methode">lineCount</span>();</span></span>
+<span class="ligne"><span class="num">9</span><span>        }</span></span>
+<span class="ligne"><span class="num">10</span><span>        <span class="c-mot-cle-2">int</span> ligne = document.<span class="c-methode"><span id="ancre-parametres">lineForOffset</span>(position)</span>;</span></span>
+<span class="ligne"><span class="num">11</span><span>        <span class="c-mot-cle">return</span> document.<span class="caret" id="ancre-completion"></span></span></span>
+<span class="ligne"><span class="num">12</span><span>    }</span></span>
+<span class="ligne"><span class="num">13</span><span>}</span></span></pre>
+
+    <div class="voile" id="voile"></div>
+
+    <!-- Feuille du bas : réglages. -->
+    <section class="feuille feuille--bas" id="f-reglages" role="dialog"
+             aria-modal="true" aria-labelledby="t-reglages">
+      <div class="poignee" aria-hidden="true"></div>
+      <div class="feuille-titre">
+        <h3 id="t-reglages">Réglages</h3>
+        <button class="fermer" data-ferme aria-label="Fermer les réglages">✕</button>
+      </div>
+      <div class="feuille-corps">
+        <div class="reglages-grille">
+          <div class="reglage">
+            <label for="r-numeros">Numéros de ligne
+              <small>Gouttière, largeur adaptée au document</small></label>
+            <input type="checkbox" id="r-numeros" checked>
+          </div>
+          <div class="reglage">
+            <label for="r-retour">Retour à la ligne
+              <small>Souple — les mots entiers descendent</small></label>
+            <input type="checkbox" id="r-retour" checked>
+          </div>
+          <div class="reglage">
+            <label for="r-plis">Pliage du code
+              <small>Plis de l'arbre et de l'indentation</small></label>
+            <input type="checkbox" id="r-plis" checked>
+          </div>
+          <div class="reglage">
+            <label for="r-fantome">Texte fantôme IA
+              <small>Aucune requête sans consentement</small></label>
+            <input type="checkbox" id="r-fantome">
+          </div>
+          <div class="reglage reglage-plage">
+            <label for="r-lenteur">Lenteur du rendu
+              <small>Curseur d'examen — ralentit l'animation pour juger les images</small></label>
+            <input type="range" id="r-lenteur" min="0" max="100" value="25">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feuille du bas : palette de commandes. -->
+    <section class="feuille feuille--bas" id="f-commandes" role="dialog"
+             aria-modal="true" aria-labelledby="t-commandes">
+      <div class="poignee" aria-hidden="true"></div>
+      <div class="feuille-titre">
+        <h3 id="t-commandes">Palette de commandes</h3>
+        <button class="fermer" data-ferme aria-label="Fermer la palette">✕</button>
+      </div>
+      <div class="feuille-corps">
+        <input class="palette-champ" id="palette-champ" type="text"
+               placeholder="Tapez une commande…" autocomplete="off"
+               aria-label="Filtrer les commandes">
+        <ul class="palette-liste" id="palette-liste">
+          <li class="choisi" data-nom="aller à la définition" data-choisi tabindex="-1">
+            <span>Aller à la définition</span><kbd>F3</kbd></li>
+          <li data-nom="renommer le symbole" tabindex="-1">
+            <span>Renommer le symbole</span><kbd>Maj F6</kbd></li>
+          <li data-nom="formater le document" tabindex="-1">
+            <span>Formater le document</span><kbd>Ctrl Alt L</kbd></li>
+          <li data-nom="rechercher dans le fichier" tabindex="-1">
+            <span>Rechercher dans le fichier</span><kbd>Ctrl F</kbd></li>
+          <li data-nom="commenter les lignes" tabindex="-1">
+            <span>Commenter les lignes</span><kbd>Ctrl /</kbd></li>
+          <li data-nom="basculer la casse-chameau" tabindex="-1">
+            <span>Basculer la casse-chameau</span><kbd>Alt Maj ←</kbd></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Feuille du bas : recherche et remplacement. -->
+    <section class="feuille feuille--bas" id="f-recherche" role="dialog"
+             aria-modal="true" aria-labelledby="t-recherche">
+      <div class="poignee" aria-hidden="true"></div>
+      <div class="feuille-titre">
+        <h3 id="t-recherche">Recherche et remplacement</h3>
+        <button class="fermer" data-ferme aria-label="Fermer la recherche">✕</button>
+      </div>
+      <div class="feuille-corps">
+        <div class="recherche-grille">
+          <div class="recherche-champ">
+            <input type="text" value="document" aria-label="Texte recherché">
+            <span class="compteur" id="compteur-recherche">3 / 17</span>
+            <button class="petit-bouton" id="r-precedent" aria-label="Occurrence précédente">↑</button>
+            <button class="petit-bouton" id="r-suivant" aria-label="Occurrence suivante">↓</button>
+          </div>
+          <div class="recherche-champ">
+            <input type="text" value="texte" aria-label="Texte de remplacement">
+            <button class="petit-bouton" id="r-remplacer">Remplacer</button>
+            <button class="petit-bouton primaire" id="r-tout">Tout remplacer</button>
+          </div>
+          <p class="recherche-aide">Respect de la casse · mots entiers ·
+             expressions rationnelles du moteur des grammaires</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feuille du haut : revue d'agent. -->
+    <section class="feuille feuille--haut" id="f-agent" role="dialog"
+             aria-modal="true" aria-labelledby="t-agent">
+      <div class="poignee" aria-hidden="true"></div>
+      <div class="feuille-titre">
+        <h3 id="t-agent">Revue d'agent — 3 blocs proposés</h3>
+        <button class="fermer" data-ferme aria-label="Fermer la revue">✕</button>
+      </div>
+      <div class="feuille-corps">
+        <div class="agent-ligne">
+          <button class="agent-bloc" data-bloc>lignes 7-9 · garde vide</button>
+          <button class="agent-bloc" data-bloc>ligne 11 · complétion</button>
+          <button class="agent-bloc" data-bloc>ligne 6 · variable morte</button>
+        </div>
+        <p class="agent-legende">Chaque bloc se retient ou se rejette un à
+           un (points de contrôle) — l'agent ne touche jamais le document
+           sans validation.</p>
+      </div>
+    </section>
+
+    <!-- Popup ancrée : complétion. -->
+    <section class="popup" id="p-completion" role="dialog" aria-modal="true"
+             aria-label="Complétion" style="display:none">
+      <ul class="completion-liste" id="completion-liste">
+        <li class="choisi" tabindex="-1"><span>lineForOffset(</span><span class="type">méthode</span></li>
+        <li tabindex="-1"><span>lineStart(</span><span class="type">méthode</span></li>
+        <li tabindex="-1"><span>lineCount()</span><span class="type">méthode</span></li>
+        <li tabindex="-1"><span>length()</span><span class="type">méthode</span></li>
+      </ul>
+    </section>
+
+    <!-- Popup ancrée : diagnostic (éphémère, non modale). -->
+    <section class="popup" id="p-diagnostic" role="dialog" aria-label="Diagnostic"
+             style="display:none">
+      <div class="diagnostic-corps">
+        <strong>avertissement</strong> — variable locale jamais lue
+        <ul>
+          <li tabindex="0">Supprimer la variable</li>
+          <li tabindex="0">Renommer en <code>resultat</code></li>
+          <li tabindex="0">Examiner les usages</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Popup ancrée : aide aux paramètres. -->
+    <section class="popup" id="p-parametres" role="dialog" aria-modal="true"
+             aria-label="Aide aux paramètres" style="display:none">
+      <div class="signature">
+        <code><span class="c-mot-cle-2">int</span> <span class="c-methode">lineForOffset</span>(
+          <span class="actif">position</span>, …)</code>
+        <p class="signature-doc"><b>position :</b> décalage en caractères
+           UTF-16 depuis le début du document — la convention du domaine
+           LSP (ADR-015).</p>
+      </div>
+    </section>
+  </div>
+  <p class="etiquette-viewport" id="etiquette-viewport">Gabarit bureau — la feuille se resserre à 660 px, la scène occupe la largeur</p>
+</div>
+
+<section class="notes">
+  <h2>Comment lire chaque maquette</h2>
+  <ul>
+    <li><b>Réglages</b> — feuille du bas, surface dense : deux colonnes sur
+        tablette et bureau, une sur téléphone ; poignée de glissement ;
+        fermeture par Échap, voile ou bouton. Chaque interrupteur porte
+        son libellé (ADR-008 — l'audit M9 en a fait tomber cinq nus).</li>
+    <li><b>Palette de commandes</b> — feuille du bas, filtrage au clavier
+        (↑ ↓ Entrée), cibles tactiles d'au moins 44 px.</li>
+    <li><b>Recherche et remplacement</b> — feuille du bas (ligne A-20) :
+        compteur d'occurrences, navigation, remplacer, tout remplacer.</li>
+    <li><b>Revue d'agent</b> — feuille du haut, rappel contextuel : les
+        blocs d'agent (M8) se retiennent un à un, points de contrôle.</li>
+    <li><b>Complétion</b> — popup ancrée au caret : au-dessus quand la
+        place manque dessous, navigation ↑ ↓ Entrée.</li>
+    <li><b>Diagnostic</b> — popup ancrée éphémère : au survol du mot
+        souligné (ou au focus clavier — tabuler jusqu'à lui), non
+        modale, correctifs proposés.</li>
+    <li><b>Aide aux paramètres</b> — popup ancrée sous l'appel : le
+        paramètre actif se met en évidence.</li>
+  </ul>
+</section>
+
+<section class="conformite">
+  <h2>Conformité ADR-018 — les trois formes, rien d'autre</h2>
+  <table>
+    <tr><th>Forme</th><th>Usage</th><th>Maquettes</th></tr>
+    <tr><td>Feuille du bas</td>
+        <td>surfaces denses : paramètres, plan, recherche/remplacement,
+            palette de commandes</td>
+        <td>Réglages, Palette, Recherche</td></tr>
+    <tr><td>Feuille du haut</td>
+        <td>rappels et barres d'outils contextuelles</td>
+        <td>Revue d'agent</td></tr>
+    <tr><td>Popup ancrée</td>
+        <td>au point d'intérêt : complétion, diagnostics, aide aux
+            paramètres</td>
+        <td>Complétion, Diagnostic, Paramètres</td></tr>
+    <tr><td>Proscrits</td>
+        <td colspan="2">écran plein cadre, dialogue système, tiroir de
+            navigation fonctionnel — pour toute fonctionnalité, sans
+            exception.</td></tr>
+    <tr><td>Accessibilité (ADR-008)</td>
+        <td colspan="2">rôle <code>dialog</code>, Échap, libellés de
+            chaque commande, cibles ≥ 44 px, mouvement réduit respecté,
+            trois thèmes dont contraste élevé.</td></tr>
+  </table>
+</section>
+
+<p class="pied">Maquette du 2026-11-10 — décision ADR-018 du
+   propriétaire. Fichier autonome, aucune dépendance, aucun réseau :
+   <code>docs/maquettes/popups.html</code>.</p>
+
+<script>
+  "use strict";
+  const scene = document.getElementById("scene");
+  const voile = document.getElementById("voile");
+  const pile = [];              // popups ouvertes, la dernière est au sommet
+  let retourFocus = null;       // où rendre le focus à la fermeture
+
+  /* Ouvrir une maquette : voile (sauf popup éphémère), focus dedans. */
+  function ouvrir(id, declencheur) {
+    const el = document.getElementById(id);
+    if (!el || pile.some(p => p.el === el)) return;
+    if (pile.length === 0) retourFocus =
+      declencheur || document.activeElement;
+    el.style.display = "";
+    if (el.dataset.ephemere !== "oui") voile.classList.add("visiblee");
+    el.setAttribute("aria-hidden", "false");
+    if (id === "p-completion" || id === "p-parametres" || id === "p-diagnostic") {
+      ancrer(el);
+    }
+    requestAnimationFrame(() => el.classList.add("ouverte"));
+    pile.push({ el: el });
+    const cible = el.querySelector(
+      "input, button, [tabindex]:not([tabindex='-1'])");
+    if (cible) cible.focus();
+  }
+
+  function fermer(el) {
+    const i = pile.findIndex(p => p.el === el);
+    if (i < 0) return;
+    pile.splice(i, 1);
+    el.classList.remove("ouverte");
+    el.setAttribute("aria-hidden", "true");
+    setTimeout(() => { el.style.display = "none"; }, 190);
+    if (pile.length === 0) {
+      voile.classList.remove("visiblee");
+      if (retourFocus) { retourFocus.focus(); retourFocus = null; }
+    }
+  }
+
+  const fermerSommet = () => {
+    if (pile.length) fermer(pile[pile.length - 1].el);
+  };
+
+  /* Ancrage : au caret ou au mot souligné, au-dessus si la place manque. */
+  function ancrer(el) {
+    const ancres = { "p-completion": "ancre-completion",
+                     "p-parametres": "ancre-parametres",
+                     "p-diagnostic": "ancre-diagnostic" };
+    const ancre = document.getElementById(ancres[el.id]);
+    if (!ancre) return;
+    const s = scene.getBoundingClientRect();
+    const a = ancre.getBoundingClientRect();
+    const p = el.getBoundingClientRect();
+    let x = a.left - s.left;
+    x = Math.max(8, Math.min(x, s.width - p.width - 8));
+    let y = a.bottom - s.top + 8;                     // dessous par défaut
+    if (y + p.height > s.height - 8) {                // la place manque
+      y = a.top - s.top - p.height - 8;               // au-dessus alors
+    }
+    el.style.left = x + "px";
+    el.style.top = Math.max(8, y) + "px";
+  }
+
+  /* Déclencheurs, fermetures, voile, Échap. */
+  document.querySelectorAll("[data-ouvre]").forEach(b => {
+    b.addEventListener("click", () => ouvrir(b.dataset.ouvre, b));
+  });
+  document.querySelectorAll("[data-ferme]").forEach(b => {
+    b.addEventListener("click", () => fermer(b.closest(".feuille, .popup")));
+  });
+  voile.addEventListener("click", fermerSommet);
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") fermerSommet();
+  });
+
+  /* Diagnostic : survol ou focus du mot souligné (popup éphémère). */
+  const diagnostic = document.getElementById("p-diagnostic");
+  diagnostic.dataset.ephemere = "oui";
+  const motDiag = document.getElementById("ancre-diagnostic");
+  let leaveTimer = null;
+  const montrerDiagnostic = () => {
+    clearTimeout(leaveTimer);
+    if (!pile.some(p => p.el === diagnostic)) ouvrir("p-diagnostic");
+  };
+  const cacherDiagnostic = () => {
+    leaveTimer = setTimeout(() => fermer(diagnostic), 160);
+  };
+  motDiag.addEventListener("mouseenter", montrerDiagnostic);
+  motDiag.addEventListener("focus", montrerDiagnostic);
+  motDiag.addEventListener("mouseleave", cacherDiagnostic);
+  motDiag.addEventListener("blur", cacherDiagnostic);
+  diagnostic.addEventListener("mouseenter", () => clearTimeout(leaveTimer));
+  diagnostic.addEventListener("mouseleave", cacherDiagnostic);
+
+  /* Palette : filtrage, ↑ ↓, Entrée. */
+  const champ = document.getElementById("palette-champ");
+  const elements = Array.from(
+    document.querySelectorAll("#palette-liste li"));
+  const choisir = li => {
+    elements.forEach(x => x.classList.remove("choisi"));
+    li.classList.add("choisi");
+    li.scrollIntoView({ block: "nearest" });
+  };
+  champ.addEventListener("input", () => {
+    const q = champ.value.trim().toLowerCase();
+    elements.forEach(li => {
+      li.style.display = li.dataset.nom.includes(q) ? "" : "none";
+    });
+    const premier = elements.find(li => li.style.display !== "none");
+    if (premier) choisir(premier);
+  });
+  champ.addEventListener("keydown", e => {
+    const visibles = elements.filter(li => li.style.display !== "none");
+    if (!visibles.length) return;
+    const i = visibles.findIndex(li => li.classList.contains("choisi"));
+    if (e.key === "ArrowDown") {
+      e.preventDefault(); choisir(visibles[(i + 1) % visibles.length]);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      choisir(visibles[(i - 1 + visibles.length) % visibles.length]);
+    } else if (e.key === "Enter") {
+      e.preventDefault(); fermer(document.getElementById("f-commandes"));
+    }
+  });
+  elements.forEach(li => li.addEventListener("click", () =>
+    fermer(document.getElementById("f-commandes"))));
+
+  /* Complétion : ↑ ↓, Entrée. */
+  const completions = Array.from(
+    document.querySelectorAll("#completion-liste li"));
+  const choisirCompletion = li => {
+    completions.forEach(x => x.classList.remove("choisi"));
+    li.classList.add("choisi");
+  };
+  completions.forEach(li => {
+    li.addEventListener("click", () =>
+      fermer(document.getElementById("p-completion")));
+    li.addEventListener("mouseenter", () => choisirCompletion(li));
+  });
+  document.getElementById("p-completion").addEventListener("keydown", e => {
+    const i = completions.findIndex(li => li.classList.contains("choisi"));
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      choisirCompletion(completions[(i + 1) % completions.length]);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      choisirCompletion(completions[(i - 1 + completions.length) % completions.length]);
+    } else if (e.key === "Enter") {
+      e.preventDefault(); fermer(document.getElementById("p-completion"));
+    }
+  });
+
+  /* Recherche : compteur factice. */
+  let occurrence = 3;
+  const compteur = document.getElementById("compteur-recherche");
+  const bouger = d => {
+    occurrence = ((occurrence - 1 + d + 17) % 17) + 1;
+    compteur.textContent = occurrence + " / 17";
+  };
+  document.getElementById("r-suivant").addEventListener("click", () => bouger(1));
+  document.getElementById("r-precedent").addEventListener("click", () => bouger(-1));
+
+  /* Revue d'agent : retenir un à un. */
+  document.querySelectorAll("[data-bloc]").forEach(b =>
+    b.addEventListener("click", () => b.classList.toggle("retenu")));
+
+  /* Gabarits et thèmes. */
+  const etiquettes = {
+    telephone: "Gabarit téléphone — tout se tient en une colonne, la feuille prend la largeur",
+    tablette: "Gabarit tablette — les réglages passent en deux colonnes, les feuilles se resserrent",
+    bureau: "Gabarit bureau — la feuille se resserre à 660 px, la scène occupe la largeur"
+  };
+  const etiquette = document.getElementById("etiquette-viewport");
+  document.querySelectorAll(".choix[data-viewport]").forEach(b =>
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".choix[data-viewport]").forEach(x =>
+        x.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      scene.dataset.viewport = b.dataset.viewport;
+      etiquette.textContent = etiquettes[b.dataset.viewport];
+    }));
+  document.querySelectorAll(".choix[data-theme]").forEach(b =>
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".choix[data-theme]").forEach(x =>
+        x.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      document.documentElement.dataset.theme = b.dataset.theme;
+    }));
+
+  /* Les popups fermées au départ. */
+  document.querySelectorAll(".feuille, .popup").forEach(el =>
+    el.setAttribute("aria-hidden", "true"));
+</script>
+</body>
+</html>

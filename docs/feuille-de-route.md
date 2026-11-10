@@ -239,6 +239,7 @@ démonstration en tête (écran de réglages, catalogue de scénarios), puis
 les popups et barres livrées ; statuer surface par surface ; ramener
 les non-conformes aux trois formes de l'ADR-018 ; livrer la feuille du
 haut à son premier besoin si aucun chantier ne l'a encore fait naître.
+Maquettes de référence : [`docs/maquettes/popups.html`](maquettes/popups.html).
 
 **Sortie** : l'inventaire est consigné ; les surfaces non conformes
 sont migrées ; aucune surface fonctionnelle plein cadre ne reste dans
