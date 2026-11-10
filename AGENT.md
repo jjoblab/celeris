@@ -4,7 +4,7 @@ Document court et factuel : uniquement ce qui a été vérifié dans ce dépôt
 Les décisions structurantes vivent dans les ADR (`docs/adr/`), validées par
 le propriétaire le 2026-11-04 ; le point d'entrée du cadrage est
 [`docs/RESUME-M0.md`](docs/RESUME-M0.md), l'avancement courant dans
-[`docs/RESUME-M8.5.md`](docs/RESUME-M8.5.md).
+[`docs/RESUME-M7.6.md`](docs/RESUME-M7.6.md).
 
 ## Vue d'ensemble
 
