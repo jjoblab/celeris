@@ -27,6 +27,15 @@ vivent dans les ADR et le registre de portage, pas ici.
 - **cli** : la bannière affiche 1.0.0 ; un test épingle la version
   annoncée — plus de version fantôme.
 
+### Interface — maquettes ADR-018
+
+- **Maquettes réactives des popups** (`docs/maquettes/popups.html`) :
+  les trois formes de l'ADR-018 — feuille du bas (réglages, palette de
+  commandes, recherche/remplacement), feuille du haut (revue d'agent),
+  popup ancrée (complétion, diagnostic, aide aux paramètres) — en un
+  fichier HTML autonome, sans dépendance ; trois thèmes (clair, sombre,
+  contraste élevé) et trois gabarits (téléphone, tablette, bureau).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet

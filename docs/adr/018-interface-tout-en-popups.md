@@ -68,6 +68,9 @@ Android l'exige — mais ses surfaces fonctionnelles migrent en feuilles.
 ## Actions
 
 - [x] Consigner la décision (le présent ADR, le 2026-11-10).
+- [x] Maquettes de référence des trois formes :
+      `docs/maquettes/popups.html` (réactives, autonomes, sans
+      dépendance).
 - [ ] Inventorier les surfaces fonctionnelles existantes (la
       démonstration en tête) et migrer les non-conformes — chantier
       dédié de la feuille de route.

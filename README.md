@@ -63,6 +63,7 @@ neutralité par défaut est structurelle, vérifiée en CI.
 - [`docs/audit/`](docs/audit/) — état des lieux du dépôt de départ, registre de portage, pièges hérités, spikes, audit d'accessibilité et revue de sécurité (M9), analyse comparative avec le dépôt de départ.
 - [`docs/REFERENCES.md`](docs/REFERENCES.md) — projets et normes cités, licences vérifiées.
 - [`docs/feuille-de-route.md`](docs/feuille-de-route.md) — chantiers post-1.0.0 (document vivant, mis à jour à chaque clôture) ; jalons M1 à M9 en historique.
+- [`docs/maquettes/popups.html`](docs/maquettes/popups.html) — maquettes réactives des popups (ADR-018) : feuille du bas, feuille du haut, popup ancrée.
 - [`docs/GLOSSAIRE.md`](docs/GLOSSAIRE.md) — terminologie française de référence.
 
 ## Language / Langue
