@@ -197,30 +197,65 @@ class GrammairesTextMateTest {
         assertEquals(1, grammaire.rapport().capturesSousMotifs(), "la dégradation se compte");
     }
 
-    /** Les injections racine s'ignorent — comptées, jamais en silence. */
+    /** Les injections se lisent (H-05) : sélecteur, priorité, règles. */
     @Test
-    void injectionsIgnoreesComptees() {
+    void injectionsLuesAvecLeurPriorite() {
         Grammaire grammaire = Grammaires.lire("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [ { "match": "a", "name": "keyword.essai" } ],
-                  "injections": { "source.autre": { "patterns": [] } }
+                  "injections": {
+                    "L:source.essai": { "patterns": [] },
+                    "R:source.essai": { "patterns": [] },
+                    "source.essai meta.b": { "patterns": [] }
+                  }
                 }
                 """);
-        assertEquals(1, grammaire.rapport().injectionsIgnorees());
+        assertEquals(3, grammaire.injections().size(),
+                "chaque clé d'injection se lit, préfixe ou pas");
+        assertTrue(grammaire.injections().get(0).prioriteGauche(),
+                "L: porte la priorité gauche");
+        assertTrue(!grammaire.injections().get(1).prioriteGauche(),
+                "R: porte la priorité droite");
+        assertTrue(!grammaire.injections().get(2).prioriteGauche(),
+                "sans préfixe, l'hôte reste maître chez lui");
     }
 
-    /** La forme catastrophique visible rejette le paquet entier. */
+    /** Un sélecteur d'injection mal formé refuse la grammaire. */
     @Test
-    void formeCatastrophiqueRejeteeAuChargement() {
+    void selecteurDInjectionMalFormeRefuse() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> Grammaires.lire("""
                         {
-                          "name": "X", "scopeName": "source.x",
-                          "patterns": [ { "match": "(a+)+", "name": "meta.a" } ]
+                          "name": "Essai", "scopeName": "source.essai",
+                          "patterns": [ { "match": "a" } ],
+                          "injections": { "L:,": { "patterns": [] } }
                         }
                         """));
-        assertTrue(String.valueOf(e.getMessage()).contains("catastrophique"));
+        assertTrue(String.valueOf(e.getMessage()).contains("scope selector"),
+                "le refus nomme le sélecteur : " + e.getMessage());
+    }
+
+    /**
+     * La forme catastrophique écarte SA règle — comptée au rapport,
+     * jamais le paquet entier (H-05 : les grammaires du commerce
+     * chargent telles que publiées, la règle absente ne colore rien).
+     */
+    @Test
+    void formeCatastrophiqueEcarteSaRegle() {
+        Grammaire grammaire = Grammaires.lire("""
+                {
+                  "name": "X", "scopeName": "source.x",
+                  "patterns": [
+                    { "match": "(a+)+", "name": "meta.a" },
+                    { "match": "sain", "name": "keyword.x" }
+                  ]
+                }
+                """);
+        assertEquals(1, grammaire.rapport().refuses(),
+                "la forme catastrophique se compte, jamais en silence");
+        assertEquals(1, grammaire.motifs().size(),
+                "la règle saine charge, le paquet reste entier");
     }
 
     /**

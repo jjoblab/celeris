@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+for fichier in *.txt; do
+  echo "traite $fichier" >&2
+done
+exit 0

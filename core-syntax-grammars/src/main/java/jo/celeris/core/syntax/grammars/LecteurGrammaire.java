@@ -19,8 +19,8 @@ import org.jspecify.annotations.Nullable;
  * racine, les inclusions de portée externe se résolvent par le registre
  * du chargeur. Les formes que le moteur ne porte pas encore se
  * comptent au rapport, jamais en silence : règles {@code while}
- * dégradées, sous-motifs de capture réduits au nom, drapeaux tolérés,
- * injections racine ignorées. Un motif invalide écarte sa règle — comme
+ * dégradées, sous-motifs de capture réduits au nom, drapeaux tolérés.
+ * Un motif invalide écarte sa règle — comme
  * la référence — une forme catastrophique visible rejette le paquet.
  */
 final class LecteurGrammaire {
@@ -75,7 +75,7 @@ final class LecteurGrammaire {
         }
         Object inclusion = champs.get("include");
         if (inclusion != null) {
-            RegleListe liee = inclusion(texte(inclusion, ou + " include"), ou);
+            RegleListe liee = inclusion(texte(inclusion, ou + " include"));
             if (liee != null) {
                 sortie.add(liee);
             }
@@ -150,15 +150,18 @@ final class LecteurGrammaire {
 
     /**
      * Résout une inclusion : {@code #clé} du référentiel (inconnue :
-     * grammaire mal formée, refusée), {@code $self} et {@code $base} la
-     * racine, une portée externe par le registre du chargeur (absente :
+     * sautée et comptée — les grammaires du commerce s'en portent
+     * auteurs, VS Code les tolère aussi ; le banc des paquets intégrés
+     * exige leur absence), {@code $self} et {@code $base} la racine,
+     * une portée externe par le registre du chargeur (absente :
      * l'inclusion se saute, comptée, comme la référence tolère).
      */
-    private @Nullable RegleListe inclusion(String cible, String ou) {
+    private @Nullable RegleListe inclusion(String cible) {
         if (cible.startsWith("#")) {
             RegleListe liste = referentiel.get(cible.substring(1));
             if (liste == null) {
-                throw new IllegalArgumentException(ou + " : inclusion inconnue " + cible);
+                rapport.inclusionInterne();
+                return null;
             }
             return liste;
         }
@@ -225,14 +228,16 @@ final class LecteurGrammaire {
 
     /**
      * Compile une expression en comptant au rapport : une forme
-     * catastrophique visible rejette le paquet, un motif invalide écarte
-     * sa règle.
+     * catastrophique visible ÉCARTE SA RÈGLE — comptée comme les
+     * motifs invalides, jamais le paquet entier (H-05 : les grammaires
+     * du commerce portent des formes que l'analyse textuelle refuse à
+     * tort ; la règle absente ne colore rien, le budget d'exécution
+     * garde le reste) ; un motif invalide écarte sa règle aussi.
      */
     private @Nullable Regex tenter(String motif) {
         if (GardeCatastrophique.catastrophique(motif)) {
-            throw new IllegalArgumentException(
-                    "forme catastrophique refusée (quantificateurs non bornés imbriqués) : "
-                            + motif);
+            rapport.refuse();
+            return null;
         }
         try {
             Regex compilee = Expressions.compiler(motif);

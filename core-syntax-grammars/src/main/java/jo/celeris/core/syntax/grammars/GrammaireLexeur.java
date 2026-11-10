@@ -19,7 +19,6 @@ import jo.celeris.core.syntax.LexState;
 import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.ScopeStacks;
 import jo.celeris.core.syntax.Token;
-
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -30,10 +29,12 @@ import org.jspecify.annotations.Nullable;
  * l'ordre des règles, la fermeture du bloc ouvert prime. Les portées se
  * posent en pile : le contenu d'un bloc porte sa portée de contenu,
  * sinon la portée de sa construction, sinon celle du bloc englobant —
- * la portée racine sert de plancher. Le budget par ligne borne le
- * travail (ADR-014) : au dépassement, la fin de ligne garde la portée
- * de son contexte, l'incident se journalise — jamais un gel de
- * l'interface.
+ * la portée racine sert de plancher. Les injections (H-05) s'appliquent
+ * partout où leur sélecteur matche la pile courante, à gauche ou à
+ * droite des règles du contexte selon leur priorité. Le budget par
+ * ligne borne le travail (ADR-014) : au dépassement, la fin de ligne
+ * garde la portée de son contexte, l'incident se journalise — jamais un
+ * gel de l'interface.
  */
 final class GrammaireLexeur implements LanguageLexer {
 
@@ -111,17 +112,45 @@ final class GrammaireLexeur implements LanguageLexer {
      * Le candidat le plus à gauche à partir de la position : la
      * fermeture du bloc ouvert d'abord, les règles du contexte ensuite —
      * chaque liste référencée d'un contexte ne se considère qu'une fois.
-     * Rend null quand plus rien ne matche.
+     * Les injections (H-05) s'intercalent selon leur priorité : à gauche
+     * ({@code L:}) avant la fermeture et le contexte, à droite
+     * ({@code R:} et sans préfixe) après — l'hôte reste maître chez
+     * lui. Rend null quand plus rien ne matche.
      */
     private @Nullable Candidat premier(Utf8Line donnees, int pos, EtatGrammaire etat) {
         Set<List<Regle>> vus = Collections.newSetFromMap(new IdentityHashMap<>());
         Candidat meilleur = null;
+        List<Injection> injections = grammaire.injections();
+        if (injections.isEmpty()) {
+            BlocOuvert ouvert = etat.bloc();
+            if (ouvert != null) {
+                meilleur = chercher(donnees, pos, ouvert.fin(), Candidat.FIN,
+                        null, ouvert, null);
+            }
+            return parcourir(contexte(etat), donnees, pos, meilleur, vus);
+        }
+        List<String> pile = ScopeStacks.scopesOf(pileContexte(etat));
+        for (Injection injection : injections) {
+            if (injection.prioriteGauche()
+                    && injection.selector().score(pile) != null) {
+                meilleur = parcourir(injection.regles(), donnees, pos,
+                        meilleur, vus);
+            }
+        }
         BlocOuvert ouvert = etat.bloc();
         if (ouvert != null) {
-            meilleur = chercher(donnees, pos, ouvert.fin(), Candidat.FIN,
-                    null, ouvert, null);
+            meilleur = garder(meilleur, chercher(donnees, pos, ouvert.fin(),
+                    Candidat.FIN, null, ouvert, null));
         }
-        return parcourir(contexte(etat), donnees, pos, meilleur, vus);
+        meilleur = parcourir(contexte(etat), donnees, pos, meilleur, vus);
+        for (Injection injection : injections) {
+            if (!injection.prioriteGauche()
+                    && injection.selector().score(pile) != null) {
+                meilleur = parcourir(injection.regles(), donnees, pos,
+                        meilleur, vus);
+            }
+        }
+        return meilleur;
     }
 
     /** Les règles applicables : celles du bloc ouvert, ou celles de la grammaire. */

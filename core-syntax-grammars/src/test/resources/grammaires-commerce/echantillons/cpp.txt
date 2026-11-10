@@ -1,0 +1,11 @@
+#include <vector>
+#include <string>
+namespace essai {
+class Point {
+public:
+    Point(int x, int y) : x_(x), y_(y) {}
+private:
+    int x_, y_;
+};
+std::vector<std::string> noms() { return {"un", "deux"}; }
+}

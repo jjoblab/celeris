@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Essai</title>
+  <style>body { color: #202124; }</style>
+</head>
+<body>
+  <p class="essai">Bonjour <em>le monde</em></p>
+  <script>const x = 1;</script>
+</body>
+</html>

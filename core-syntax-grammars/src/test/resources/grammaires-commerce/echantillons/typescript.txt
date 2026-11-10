@@ -1,0 +1,8 @@
+interface Point { x: number; y: number; }
+type Liste<T> = Array<T>;
+const vitesse: number = 10;
+function somme(valeurs: number[]): number {
+  return valeurs.reduce((a, b) => a + b, 0);
+}
+enum Couleur { Rouge, Vert }
+export { somme, Couleur, Point, Liste };

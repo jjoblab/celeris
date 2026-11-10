@@ -1,0 +1,8 @@
+import os
+from typing import List
+
+def somme(valeurs: List[int]) -> int:
+    total = 0
+    for valeur in valeurs:
+        total += valeur  # cumul
+    return f"total={total}"
