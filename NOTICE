@@ -51,8 +51,8 @@ dépôt `microsoft/vscode` (licence MIT, épinglé au main vérifié le
 Les paquets intégrés de `core-language` (`langages/`) embarquent les
 grammaires TextMate du commerce des extensions de VS Code — la voie
 des paquets de données de l'ADR-017, ouverte par le chantier C5 avec
-HTML puis étendue à la famille web entière (CSS, JavaScript,
-TypeScript). Chaque grammaire est reprise SANS MODIFICATION de la
+HTML, étendue à la famille web entière (CSS, JavaScript, TypeScript)
+puis à la longue traîne (PHP, Ruby). Chaque grammaire est reprise SANS MODIFICATION de la
 copie épinglée du banc du commerce (H-05) : le banc de conformité du
 paquet verrouille l'égalité octet pour octet, l'acceptation au seuil
 du banc et le rejeu déterministe de l'échantillon — la dérive d'une
@@ -66,6 +66,8 @@ Source : le dépôt `microsoft/vscode` (licence MIT, main épinglé du
 | `css` | `extensions/css/syntaxes/css.tmLanguage.json` | `55a3e184f702da6a5a64dc4d7ce82ab298a1bae8d35e2924483941eb223d54b1` |
 | `javascript` | `extensions/javascript/syntaxes/JavaScript.tmLanguage.json` | `db6f17f15bc4f5e860a3b8fa6055a69720a53df845c8d5121cdc4f128c16291f` |
 | `typescript` | `extensions/typescript-basics/syntaxes/TypeScript.tmLanguage.json` | `4e92e0d7de560217d6c8d3236d85e6e17a5d77825b15729a230c761743122661` |
+| `php` | `extensions/php/syntaxes/php.tmLanguage.json` | `dea92689034f878009c556d59abef08a16e0995ad423ac8ffe93fad78d065c1c` |
+| `ruby` | `extensions/ruby/syntaxes/ruby.tmLanguage.json` | `050632ddb85d98e2fa9db029951334575e26f6fcca2083675398f6a241605f98` |
 
 ## Dépendance tierce au runtime des artefacts publiés — grammaires (M7.6)
 

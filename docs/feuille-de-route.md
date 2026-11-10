@@ -46,7 +46,7 @@ développement, quel que soit le statut de C12.
 | C2 | Hygiène du dépôt : dependabot + politique de sécurité | P0 | ~1 h | Terminé |
 | C3 | Cohérence documentaire : les incohérences de l'audit | P0 | ~0,5 j | Terminé |
 | C4 | `USAGE.md` : guide d'intégration hôte | P0 | 2–3 j | Non démarré |
-| C5 | Langages par paquets : la famille web livrée, puis la longue traîne | P1 | 1–2 j / langue | En cours |
+| C5 | Langages par paquets : la famille web et la longue traîne livrées, restent Go, Rust… | P1 | 1–2 j / langue | En cours |
 | C6 | Raffinements de complétion | P1 | 3–5 j | Non démarré |
 | C7 | Signature riche et snippets riches | P1 | 3–5 j | Non démarré |
 | C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | Non démarré |
@@ -134,30 +134,32 @@ les noms d'API du guide vérifiés contre les manifestes d'API (`api/`).
 
 ### C5 — Langages par paquets
 
-**Statut** : en cours — la famille web du commerce livrée le
-2026-11-10 (HTML, puis CSS, JavaScript et TypeScript en paquets
-intégrés).
+**Statut** : en cours — la famille web du commerce (HTML, CSS,
+JavaScript, TypeScript) puis la longue traîne (PHP, Ruby) livrées en
+paquets intégrés le 2026-11-10.
 
 **Périmètre** : rapprocher les seize langages livrés des vingt-neuf du
 dépôt de départ par la voie des paquets de données (ADR-017, prouvée
 par le paquet jouet H-04) : grammaires du commerce d'abord — la
 famille web (HTML 98,7 %, CSS 96,6 %, JavaScript 90,3 %, TypeScript
-90,2 % d'acceptation au banc), puis la longue traîne : Go, Rust, PHP,
-Ruby…
+90,2 % d'acceptation au banc), puis la longue traîne — PHP (96,4 %)
+et Ruby (98,9 %) livrés ; restent Go, Rust… (mêmes dépôt et
+épingle que le banc du commerce).
 
 **Sortie** : par langue — paquet épinglé, licence au NOTICE et au
 registre de portage, échantillon rejoué avec déterminisme, ligne de
-matrice à jour, banc de conformité étendu. HTML, puis CSS, JavaScript
-et TypeScript (2026-11-10) : les paquets `langages/html`,
-`langages/css`, `langages/javascript` et `langages/typescript`
-reprennent les grammaires du dépôt de VS Code SANS MODIFICATION
-(sommes SHA-256 épinglées au NOTICE et au registre), les bancs
-`PaquetHtmlIntegreTest`, `PaquetCssIntegreTest`,
-`PaquetJavascriptIntegreTest` et `PaquetTypescriptIntegreTest`
-verrouillent l'égalité octet pour octet, les acceptations et le rejeu
-déterministe ; la matrice compte vingt langages intégrés. Restent :
-Go, Rust, PHP, Ruby… (grammaires absentes du banc : à épingler avant
-de vivre en paquets).
+matrice à jour, banc de conformité étendu. HTML, CSS, JavaScript,
+TypeScript puis PHP et Ruby (2026-11-10) : les paquets
+`langages/html`, `langages/css`, `langages/javascript`,
+`langages/typescript`, `langages/php` et `langages/ruby` reprendent
+les grammaires du dépôt de VS Code SANS MODIFICATION (sommes
+SHA-256 épinglées au NOTICE et au registre), les bancs de
+conformité (`PaquetHtmlIntegreTest` à `PaquetRubyIntegreTest`)
+verrouillent l'égalité octet pour octet, les acceptations et le
+rejeu déterministe ; le chargeur tolère désormais le nom racine
+absent — le format TextMate le rend facultatif, la grammaire PHP du
+commerce s'en passe ; la matrice compte vingt-deux langages
+intégrés. Restent : Go, Rust…
 
 **Source** : audit § 9, recommandation 5 ; § 6, gap 4.
 
