@@ -7,6 +7,58 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [Non publié]
 
+### M7.6 (étape 8) — la couverture LSP nouvelle : treize méthodes derrière la frontière, le serveur réel les sert (2026-11-10)
+
+- **Treize méthodes du protocole raccordées, chacune à une interface
+  (H-12, ADR-015)** : `references`, `documentSymbol`,
+  `documentHighlight`, `prepareRename`, `rename`, `codeAction`,
+  `formatting`, `rangeFormatting`, `foldingRange`, `selectionRange`,
+  `semanticTokens` (entier et plage) et `inlayHint` — la session de la
+  frontière les émet au-dessus de l'ordonnanceur du domaine
+  (interactives devant, travaux de fond derrière), les réponses
+  redeviennent les types immuables de `core-lsp` : cinq types nouveaux
+  (`SymboleLsp`, `PliLsp` fin EXCLUSIVE — la convention de l'arbre
+  commun, `SurlignageLsp`, `OptionsFormatageLsp`,
+  `PreparationRennomageLsp`) et `CapacitesServeur` porte ses quatre
+  capacités nouvelles. La porte de session de la démonstration
+  (`LanguageSession`) les déclare toutes : le serveur réel, le serveur
+  de référence et le terrain muet y répondent — la vue ne voit que le
+  domaine.
+- **Le montage du serveur de référence suit la couverture** : le SPI
+  `ServeurEmbarque.Documents` gagne ses replis (le service qui n'en
+  sert pas rend ses vides du protocole, JAMAIS l'exception de la
+  bibliothèque — `rangeFormatting`, `selectionRange` et
+  `semanticTokensRange` entraient en défaut muet), et l'adaptateur rend
+  la forme moderne `documentChanges` des éditions d'espace — la
+  VERSION du document survit au aller-retour, les édits de gabarit
+  voyagent en `SnippetTextEdit`.
+- **La preuve en trois étages** : `ServeurDocumentsCouvertureTest` (le
+  aller-retour complet au monteur — le domaine part du terrain,
+  devient protocole sur le fil, redevient domaine à la session, les
+  treize méthodes et les replis vides) ; `ServeurXmlCouvertureTest`
+  (HUIT tests contre le serveur XML RÉEL — symboles, plis, formatage,
+  surlignages, préparation de renommage au repli près, renommage dont
+  l'erreur interne du serveur 0.31.2 traverse la frontière
+  FIDÈLEMENT, références, plages de sélection) ; le banc `BancSpecs`
+  porte son scénario H-12 (plan, pli et formatage par le fil du
+  serveur de référence). Les sept tests de parité restent INTACTS, le
+  corpus de traces en sert SEPT — les traces d'indices et d'édition
+  d'espace, qui attendaient leur correspondance depuis l'étape 7, la
+  trouvent.
+- **La scission des plafonds (ADR-002)** : le module de la frontière
+  tient ses 600 lignes par fichier et sa complexité de classe à 80 —
+  l'adaptateur du serveur de référence (`ServeurDocuments`), la maison
+  des demandes de couverture (`RequetesCouverture`) et les
+  correspondances (`CorrespondanceCouverture`, `CorrespondanceEspace`)
+  naissent de la scission, l'API publique ne bouge pas d'une signature.
+- **Ruptures pré-1.0 (ADR-009)** : `CapacitesServeur.de` gagne quatre
+  paramètres, `ServeurEmbarque.Documents` gagne trois replis
+  (`formatagePlage`, `plagesSelection`, `jetonsPlage`), `LanguageSession`
+  de la démo gagne treize méthodes, `JetonSemantique`/`JetonsSemantiques`
+  deviennent `SemanticTokenLsp`/`SemanticTokensLsp` (la règle de langue,
+  la ligne de base de `core-lsp` descend à zéro) — manifestes
+  régénérés.
+
 ### M7.6 (étape 7) — le client LSP passe par la bibliothèque derrière la frontière, le code maison disparaît, la démo réduite par R8 est prouvée (2026-11-10)
 
 - **La frontière protocolaire `lsp-protocole` (ADR-015) porte désormais

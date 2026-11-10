@@ -5,9 +5,23 @@ import java.util.function.BiConsumer;
 
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.SignatureAideModel;
+import java.util.List;
+
+import jo.celeris.core.lsp.CorrectifLsp;
 import jo.celeris.core.lsp.DiagnosticLsp;
+import jo.celeris.core.lsp.EditionEspaceLsp;
+import jo.celeris.core.lsp.EditionTexteLsp;
+import jo.celeris.core.lsp.IndiceLsp;
+import jo.celeris.core.lsp.SemanticTokensLsp;
+import jo.celeris.core.lsp.LieuLsp;
 import jo.celeris.core.lsp.ListeCompletion;
+import jo.celeris.core.lsp.OptionsFormatageLsp;
+import jo.celeris.core.lsp.PlageLsp;
+import jo.celeris.core.lsp.PliLsp;
 import jo.celeris.core.lsp.PositionsLsp;
+import jo.celeris.core.lsp.PreparationRennomageLsp;
+import jo.celeris.core.lsp.SurlignageLsp;
+import jo.celeris.core.lsp.SymboleLsp;
 import jo.celeris.core.text.Document;
 import jo.celeris.lsp.protocole.ServeurEmbarque;
 
@@ -115,6 +129,90 @@ public final class ServeurXmlEmbarque implements LanguageSession {
     public void poserAuditeurDiagnostics(
             BiConsumer<String, java.util.List<DiagnosticLsp>> auditeur) {
         montage.session().ajouterAuditeurDiagnostics(auditeur::accept);
+    }
+
+    // ── La couverture du jalon (H-12) : le serveur RÉEL sert ce
+    //    qu'il annonce — la session rend le domaine, jamais la
+    //    bibliothèque. ────────────────────────────────────────────────
+
+    @Override
+    public CompletableFuture<List<SymboleLsp>> symboles(String uri) {
+        return montage.session().symboles(uri);
+    }
+
+    @Override
+    public CompletableFuture<List<PliLsp>> plis(String uri) {
+        return montage.session().plis(uri);
+    }
+
+    @Override
+    public CompletableFuture<List<EditionTexteLsp>> formatage(String uri,
+            OptionsFormatageLsp options) {
+        return montage.session().formatage(uri, options);
+    }
+
+    @Override
+    public CompletableFuture<List<EditionTexteLsp>> formatagePlage(String uri,
+            PlageLsp plage, OptionsFormatageLsp options) {
+        return montage.session().formatagePlage(uri, plage, options);
+    }
+
+    @Override
+    public CompletableFuture<List<SurlignageLsp>> surlignages(String uri,
+            Document doc, int caret) {
+        return montage.session().surlignages(uri,
+                PositionsLsp.position(doc, caret));
+    }
+
+    @Override
+    public CompletableFuture<List<PlageLsp>> plagesSelection(String uri,
+            Document doc, int caret) {
+        return montage.session().plagesSelection(uri,
+                PositionsLsp.position(doc, caret));
+    }
+
+    @Override
+    public CompletableFuture<@Nullable PreparationRennomageLsp> preparerRennomage(
+            String uri, Document doc, int caret) {
+        return montage.session().preparerRennomage(uri,
+                PositionsLsp.position(doc, caret));
+    }
+
+    @Override
+    public CompletableFuture<EditionEspaceLsp> rennomage(String uri,
+            Document doc, int caret, String nouveauNom) {
+        return montage.session().rennomage(uri,
+                PositionsLsp.position(doc, caret), nouveauNom);
+    }
+
+    @Override
+    public CompletableFuture<List<CorrectifLsp>> correctifs(String uri,
+            PlageLsp plage) {
+        return montage.session().correctifs(uri, plage);
+    }
+
+    @Override
+    public CompletableFuture<List<IndiceLsp>> indices(String uri,
+            PlageLsp plage) {
+        return montage.session().indices(uri, plage);
+    }
+
+    @Override
+    public CompletableFuture<SemanticTokensLsp> jetons(String uri) {
+        return montage.session().jetons(uri);
+    }
+
+    @Override
+    public CompletableFuture<SemanticTokensLsp> jetonsPlage(String uri,
+            PlageLsp plage) {
+        return montage.session().jetonsPlage(uri, plage);
+    }
+
+    @Override
+    public CompletableFuture<List<LieuLsp>> references(String uri,
+            Document doc, int caret) {
+        return montage.session().references(uri,
+                PositionsLsp.position(doc, caret));
     }
 
     @Override

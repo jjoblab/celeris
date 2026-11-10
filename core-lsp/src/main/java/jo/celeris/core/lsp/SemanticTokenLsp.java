@@ -11,6 +11,6 @@ package jo.celeris.core.lsp;
  * @param type          l'index du type de jeton dans la légende convenue
  * @param modificateurs le champ de bits des modificateurs
  */
-public record JetonSemantique(int ligne, int colonne, int longueur, int type,
+public record SemanticTokenLsp(int ligne, int colonne, int longueur, int type,
                               int modificateurs) {
 }

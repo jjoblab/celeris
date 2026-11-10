@@ -1,20 +1,24 @@
 package jo.celeris.lsp.protocole;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SignatureHelp;
+import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.junit.jupiter.api.Test;
@@ -23,7 +27,10 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import jo.celeris.core.lsp.CapacitesServeur;
+import jo.celeris.core.lsp.EditionEspaceLsp;
+import jo.celeris.core.lsp.EditionGabaritLsp;
 import jo.celeris.core.lsp.ElementCompletion;
+import jo.celeris.core.lsp.IndiceLsp;
 import jo.celeris.core.lsp.ListeCompletion;
 import jo.celeris.core.lsp.LieuLsp;
 import jo.celeris.core.lsp.PlageLsp;
@@ -32,29 +39,19 @@ import jo.celeris.core.lsp.SignatureLsp;
 import jo.celeris.core.lsp.SurvolLsp;
 
 /**
- * Le corpus de traces du jalon (sortie M6, ADR-005) lu par la frontière
- * protocolaire (ADR-015) : les réponses enregistrées de serveurs réels
- * — l'initialisation, la complétion tronquée, le survol balisé, la
- * signature aux paramètres par bornes, la définition multiple — passent
- * par le Gson de la bibliothèque puis par la correspondance vers les
- * types du domaine : chaque décodeur tient la forme enregistrée, toute
- * divergence future casse la construction. Contenu original, aucune
- * pièce tierce (neutralité, ADR-011).
- *
- * <p>L'enquête Gson de l'étape s'y lit : les quatre traces sans
- * alternative ambiguë se lisent directement par le Gson de la
- * bibliothèque ; la définition — un {@code Either} de deux listes — se
- * lit en {@code List<Location>} puis se pose en
- * {@code Either.forLeft} : sans le résolveur de requêtes qui, en
- * production, connaît le type de retour de la méthode appelée, le
- * lecteur refuse le choix (« ambiguous Either type »).</p>
- *
- * <p>Les deux traces restantes du corpus attendent la couverture
- * nouvelle (H-12) : les indices rejoindront la correspondance quand
- * elle saura lire les {@code InlayHint} ; l'édition d'espace porte
- * l'édit de gabarit {@code celeris/templateEdit} — une forme nôtre que
- * les types standard de la bibliothèque refusent (« kind » non
- * standard) — sa lecture reste du côté du domaine.</p>
+ * Les traces de contrat du jalon (sortie M6, portées à la frontière par
+ * l'ADR-015) : les réponses enregistrées de vrais serveurs —
+ * l'initialisation, la complétion tronquée, le survol balisé, la
+ * signature aux paramètres par bornes, la définition multiple, les
+ * indices à parties, l'édition d'espace avec édit de gabarit — se
+ * rejouent par la MÊME machinerie que le fil : le désérialiseur de la
+ * bibliothèque lit la forme enregistrée, la correspondance la traduit
+ * en domaine. Toute divergence future — une montée de version qui
+ * change la lecture, une forme que le domaine ne tient plus — casse la
+ * construction. L'édit de gabarit, forme maison de M6, est porté à la
+ * forme de la 1.0.0 de la bibliothèque (édits de gabarit du protocole)
+ * — la trace garde ses valeurs, la forme change de siècle. Contenu
+ * original, aucune pièce tierce (neutralité, ADR-011).
  */
 public final class CorpusTracesTest {
 
@@ -65,6 +62,10 @@ public final class CorpusTracesTest {
      * correspondance en production.
      */
     private static final Gson GSON = new MessageJsonHandler(Map.of()).getGson();
+
+    /** La forme d'une liste d'indices — le type du fil. */
+    private static final Type INLAY_HINTS =
+            new TypeToken<List<InlayHint>>() { }.getType();
 
     /** L'initialisation : la surface bornée se lit des capacités annoncées. */
     @Test
@@ -153,6 +154,48 @@ public final class CorpusTracesTest {
         PlageLsp seconde = lieux.get(1).plage();
         assertNotNull(seconde);
         assertEquals(new PositionLsp(40, 2), seconde.debut());
+    }
+
+    /** Les indices : parties cliquables, la chaîne nue, les remplissages. */
+    @Test
+    void laTraceIndices() {
+        List<IndiceLsp> indices = CorrespondanceCouverture.lireIndices(
+                GSON.fromJson(trace("indices"),
+                        INLAY_HINTS));
+        assertEquals(2, indices.size());
+        IndiceLsp premier = indices.get(0);
+        assertEquals(3, premier.parties().size());
+        assertEquals(1, premier.genre());
+        assertTrue(premier.remplissageGauche());
+        assertFalse(premier.remplissageDroite());
+        LieuLsp cible = premier.parties().get(1).cible();
+        assertNotNull(cible, "la partie « : » porte sa cible de navigation");
+        assertEquals("file:///src/main/java/com/exemple/app/Calcul.kt", cible.uri());
+        IndiceLsp second = indices.get(1);
+        assertEquals(1, second.parties().size());
+        assertEquals("a =", second.parties().get(0).valeur());
+        assertTrue(second.remplissageDroite());
+    }
+
+    /**
+     * L'édition d'espace : le document édité ET l'édit de gabarit —
+     * la forme de la 1.0.0, le bloqué historique débloqué (ADR-015).
+     */
+    @Test
+    void laTraceEditionEspace() {
+        EditionEspaceLsp espace = CorrespondanceEspace.lireEspace(
+                GSON.fromJson(trace("edition-espace"),
+                        WorkspaceEdit.class));
+        assertEquals(1, espace.documents().size());
+        assertEquals(7, espace.documents().get(0).version());
+        assertEquals("additionner", espace.documents().get(0).editions()
+                .get(0).nouveauTexte());
+        assertEquals(1, espace.gabarits().size(), "l'edit de gabarit vit dans la trace");
+        EditionGabaritLsp gabarit = espace.gabarits().get(0);
+        assertEquals("file:///src/main/java/com/exemple/app/Calcul.kt",
+                gabarit.uri());
+        assertEquals(new PositionLsp(20, 4), gabarit.position());
+        assertTrue(gabarit.corps().contains("${nom:soustraire}"));
     }
 
     private static String trace(String nom) {
