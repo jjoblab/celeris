@@ -151,3 +151,27 @@ la démonstration porte `versionName` 1.0.0. `CHANGELOG.md` : entrée
   distant (Maven Central ou équivalent) demande des décisions du
   propriétaire (espaces de noms, signatures, secrets) qui ne
   dépendent pas de ce dépôt.
+
+## Erratum (2026-11-10, chantier C3 de la feuille de route)
+
+L'audit comparatif (`docs/audit/ANALYSE-COMPARATIVE.md`, § 7.1) a
+mesuré trois affirmations de ce résumé contre l'état réel du dépôt ;
+elles se corrigent ici — le corps du texte reste tel que clos.
+
+1. **« neuf modules publiés » (section 6)** : ils sont **huit** —
+   `core-text`, `core-syntax`, `core-syntax-grammars`,
+   `core-language`, `core-intelligence`, `core-lsp`, `lsp-protocole`,
+   `core-ai`. Le `cli` n'a pas `maven-publish` (convention
+   d'application, pas de bibliothèque) : il ne publie pas.
+2. **« aucun “Non démarré” ni “Noyau” en P0 » (critères de sortie)** :
+   la matrice compte **16 lignes P0 au statut Noyau** — des
+   fonctionnalités livrées au cœur, sans test de vue cité. Le critère
+   se relit : P0 câblé au cœur, démontré quand le scénario existe ;
+   la dette « Noyau » est consignée ligne à ligne par la matrice.
+3. **« parité en/fr (116/116) » (section 1)** : la mesure directe des
+   `strings.xml` donne **99/99 clés** — aucune clé ne manque, le
+   chiffre 116 était faux.
+
+La quatrième incohérence de l'audit (l'index des ADR arrêté à 016)
+est rattrapée à l'ADR-018 ; la cinquième (la `VERSION` du `cli`)
+est alignée sur 1.0.0 par ce même chantier C3.
