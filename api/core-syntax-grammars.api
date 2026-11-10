@@ -137,11 +137,6 @@ public final class jo.celeris.core.syntax.grammars.PackGrammars implements jo.ce
   public jo.celeris.core.syntax.LanguageSyntax compile(java.lang.String, java.lang.String);
 }
 
-### jo.celeris.core.syntax.grammars.Portees
-Compiled from "Portees.java"
-final class jo.celeris.core.syntax.grammars.Portees {
-}
-
 ### jo.celeris.core.syntax.grammars.RapportGrammaire$Tisseur
 Compiled from "RapportGrammaire.java"
 final class jo.celeris.core.syntax.grammars.RapportGrammaire$Tisseur {

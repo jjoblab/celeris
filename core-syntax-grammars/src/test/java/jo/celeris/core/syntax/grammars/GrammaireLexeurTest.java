@@ -108,13 +108,27 @@ class GrammaireLexeurTest {
                 EtatGrammaire.VIDE);
         Token[] jetons = ligne.tokens();
         assertEquals(6, jetons.length, "six jetons, blancs exclus");
-        assertEquals(new Token(TokenKind.KEYWORD, 0, 2), jetons[0], "if est réservé");
-        assertEquals(new Token(TokenKind.IDENTIFIER, 3, 4), jetons[1], "x est un écart");
-        assertEquals(new Token(TokenKind.OPERATOR, 5, 7), jetons[2], ">= est un opérateur");
-        assertEquals(new Token(TokenKind.NUMBER, 8, 9), jetons[3], "2 est un nombre");
-        assertEquals(new Token(TokenKind.PUNCTUATION, 9, 10), jetons[4], "le séparateur");
-        assertEquals(new Token(TokenKind.COMMENT, 12, 19), jetons[5],
+        // la pile de portées vit dans les jetons (H-07) : les bornes
+        // attendues se comparent champ à champ, la pile a son banc propre
+        assertEquals(TokenKind.KEYWORD, jetons[0].kind(), "if est réservé");
+        assertEquals(0, jetons[0].start());
+        assertEquals(2, jetons[0].end());
+        assertEquals(TokenKind.IDENTIFIER, jetons[1].kind(), "x est un écart");
+        assertEquals(3, jetons[1].start());
+        assertEquals(4, jetons[1].end());
+        assertEquals(TokenKind.OPERATOR, jetons[2].kind(), ">= est un opérateur");
+        assertEquals(5, jetons[2].start());
+        assertEquals(7, jetons[2].end());
+        assertEquals(TokenKind.NUMBER, jetons[3].kind(), "2 est un nombre");
+        assertEquals(8, jetons[3].start());
+        assertEquals(9, jetons[3].end());
+        assertEquals(TokenKind.PUNCTUATION, jetons[4].kind(), "le séparateur");
+        assertEquals(9, jetons[4].start());
+        assertEquals(10, jetons[4].end());
+        assertEquals(TokenKind.COMMENT, jetons[5].kind(),
                 "le commentaire de fin de ligne");
+        assertEquals(12, jetons[5].start());
+        assertEquals(19, jetons[5].end());
         assertEquals(EtatGrammaire.VIDE, ligne.exitState(), "rien d'ouvert en sortie");
     }
 

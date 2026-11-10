@@ -82,6 +82,7 @@
     <string name="theme_clair">Clair</string>
     <string name="theme_sombre">Sombre</string>
     <string name="theme_contraste">Contraste élevé</string>
+    <string name="theme_importe">Atelier (importé)</string>
     <string name="action_diminuer">Réduire le texte</string>
     <string name="action_agrandir">Agrandir le texte</string>
     <string name="action_fermer">Fermer</string>

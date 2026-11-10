@@ -100,7 +100,9 @@ public final class SyntaxRowSource implements RowSource {
     /**
      * Les plages colorées de la tranche d'une rangée : les jetons de sa
      * ligne, rognés aux bornes de la tranche, les trous comblés à
-     * l'identificateur.
+     * l'identificateur. Les jetons qui portent une PILE de portées la
+     * gardent dans leur plage (H-07) — la couleur s'y résout par le
+     * thème, la sorte reste le repli.
      */
     private List<ColoredSpan> plagesDe(RowLayout base) {
         if (base.start() >= base.end()) {
@@ -130,7 +132,8 @@ public final class SyntaxRowSource implements RowSource {
             int finRogne = Math.min(jeton.end(), base.end());
             if (finRogne > debutRogne) {
                 plages.add(new ColoredSpan(jeton.kind(),
-                        debutRogne - base.start(), finRogne - base.start()));
+                        debutRogne - base.start(), finRogne - base.start(),
+                        jeton.scope()));
             }
             curseur = Math.max(curseur, jeton.end());
             if (curseur >= base.end()) {
