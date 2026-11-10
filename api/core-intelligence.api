@@ -102,6 +102,25 @@ public final class jo.celeris.core.intelligence.EditorConfig {
   public static java.lang.String appliquerFins(java.lang.String, jo.celeris.core.intelligence.EditorConfig$Regles);
 }
 
+### jo.celeris.core.intelligence.Extraction$ExtractionPlan
+Compiled from "Extraction.java"
+public final class jo.celeris.core.intelligence.Extraction$ExtractionPlan extends java.lang.Record {
+  public jo.celeris.core.intelligence.Extraction$ExtractionPlan(java.util.List<jo.celeris.core.text.TextEdit>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+}
+
+### jo.celeris.core.intelligence.Extraction
+Compiled from "Extraction.java"
+public final class jo.celeris.core.intelligence.Extraction {
+  public static jo.celeris.core.intelligence.Extraction$ExtractionPlan variable(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
+  public static jo.celeris.core.intelligence.Extraction$ExtractionPlan constant(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
+  public static jo.celeris.core.intelligence.Extraction$ExtractionPlan field(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
+  public static java.lang.String literalType(java.lang.String);
+}
+
 ### jo.celeris.core.intelligence.Formateur
 Compiled from "Formateur.java"
 public final class jo.celeris.core.intelligence.Formateur {
