@@ -63,6 +63,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:labelFor="@id/interrupteur_numeros"
                         android:text="@string/reglage_numeros"
                         android:textColor="@color/encre"
                         android:textSize="15sp" />
@@ -113,6 +114,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:labelFor="@id/interrupteur_retour"
                         android:text="@string/reglage_retour"
                         android:textColor="@color/encre"
                         android:textSize="15sp" />
@@ -163,6 +165,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:labelFor="@id/interrupteur_theme"
                         android:text="@string/reglage_theme"
                         android:textColor="@color/encre"
                         android:textSize="15sp" />
@@ -220,6 +223,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:labelFor="@id/interrupteur_ia"
                     android:text="@string/reglage_ia"
                     android:textColor="@color/encre"
                     android:textSize="15sp" />
@@ -284,6 +288,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:labelFor="@id/curseur_lenteur"
                         android:text="@string/reglage_lenteur"
                         android:textColor="@color/encre"
                         android:textSize="15sp" />
@@ -342,6 +347,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:labelFor="@id/interrupteur_surimpression"
                         android:text="@string/reglage_surimpression"
                         android:textColor="@color/encre"
                         android:textSize="15sp" />
