@@ -28,11 +28,12 @@ l'historique des chantiers et le journal des clôtures dans
 
 ## Publication
 
-Onze artefacts Maven, groupe `jo.celeris`, version 1.0.0 — chacun avec son
+Douze artefacts Maven, groupe `jo.celeris`, version 1.0.0 — chacun avec son
 jar (ou son AAR pour les bibliothèques Android, depuis le 2026-11-11), ses
 sources, sa Javadoc, son SBOM CycloneDX et sa somme SHA-256 (ADR-011) :
 `core-text`, `core-syntax`, `core-syntax-grammars`, `core-language`,
-`core-intelligence`, `core-lsp`, `core-ai`, `lsp-protocole` (JVM pure) ;
+`core-intelligence`, `core-lsp`, `core-ai`, `lsp-protocole`,
+`serveur-lsp-java` (JVM pure) ;
 `android-view`, `android-widgets`, `android-host` (AAR). La publication
 distante (registre de l'hébergeur) attend les secrets du propriétaire —
 chantier C1. Coordonnées et déclaration des dépendances :
@@ -99,6 +100,7 @@ portes) :
 | [`core-intelligence`](core-intelligence/README.md) | JVM pure | index de symboles, complétion, refactorings, formatage |
 | [`core-lsp`](core-lsp/README.md) | JVM pure | domaine LSP : types immuables, ordonnancement, UTF-16 (ADR-015) |
 | [`lsp-protocole`](lsp-protocole/README.md) | JVM pure | frontière protocolaire du LSP : session, montages embarqués (ADR-015) |
+| [`serveur-lsp-java`](serveur-lsp-java/README.md) | JVM pure | mini serveur de langage Java : compagnon de banc de l'éditeur (ADR-015) |
 | [`core-ai`](core-ai/README.md) | JVM pure | contrats IA et API d'outils pour agents |
 | [`android-view`](android-view/README.md) | bibliothèque Android | vue Canvas, rendu, entrées, IME, accessibilité, gouttière |
 | [`android-widgets`](android-widgets/README.md) | bibliothèque Android | kit de popups (ADR-018), complétion, recherche, plan, minimap, défilement rapide |
@@ -106,7 +108,7 @@ portes) :
 | [`cli`](cli/README.md) | application JVM | exécutable sans Android (diagnostiquer, formater, refactorer) |
 | [`demo`](demo/README.md) | application Android | terrain de démonstration complet |
 
-Onze des treize modules se publient en artefacts Maven
+Douze des quatorze modules se publient en artefacts Maven
 (`jo.celeris:*`, section « Publication ») ; la cli et la démo sont des
 applications, jamais publiées.
 

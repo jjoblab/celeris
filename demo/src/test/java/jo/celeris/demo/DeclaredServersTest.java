@@ -3,6 +3,7 @@ package jo.celeris.demo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -24,11 +25,33 @@ import org.junit.jupiter.api.Test;
 class DeclaredServersTest {
 
     @Test
-    void laDemonstrationNeDeclareAucunServeur() {
+    void laDeclarationDeLaDemonstrationDescritLeServeurJava() {
         List<LanguageServerDeclaration> declarations =
                 DeclaredServers.declarations();
-        assertEquals(List.of(), declarations,
-                "sans déclaration, la démonstration vit sur son repli");
+        assertEquals(1, declarations.size(),
+                "la démonstration déclare un serveur, en données");
+        LanguageServerDeclaration declaration = declarations.get(0);
+        assertEquals("java", declaration.language());
+        assertEquals(LanguageServerDeclaration.EMBEDDED,
+                declaration.transport());
+        assertEquals("jo.celeris.serveur.java.JavaLanguageServer",
+                declaration.serverClass());
+        assertTrue(declaration.clientName().startsWith("celeris"),
+                "le nom annoncé reste celui de l'application");
+    }
+
+    @Test
+    void leLangageDeclareMonteSonServeur() {
+        LanguageSession session = DeclaredServers.open(
+                LangagesDemo.langageDe("exemple.java", null, null));
+        try {
+            assertInstanceOf(DeclaredServerSession.class, session,
+                    "le langage déclaré reçoit la session de son serveur");
+            assertTrue(session.sertCompletion(),
+                    "le serveur déclaré sert la complétion, la négociation le dit");
+        } finally {
+            session.close();
+        }
     }
 
     @Test

@@ -120,7 +120,10 @@ n'apparaît dans son API.
 Le module publié `lsp-protocole` porte la frontière protocolaire du
 LSP (ADR-015, acceptée le 2026-11-09) : le protocole et le JSON-RPC
 viennent de la bibliothèque, la correspondance rend au domaine —
-aucun type de la bibliothèque ne paraît dans son API. Licence
+aucun type de la bibliothèque ne paraît dans son API. Le module
+publié `serveur-lsp-java` (mini serveur de langage Java, compagnon
+de banc de l'éditeur) parle la même bibliothèque côté serveur : la
+même dépendance, la même version épinglée, le même NOTICE. Licence
 EPL-2.0 OU BSD-3-Clause (consommable sous BSD-3-Clause, compatible
 Apache-2.0) ; Gson Apache-2.0.
 
