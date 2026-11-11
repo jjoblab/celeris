@@ -794,6 +794,18 @@ public final class jo.celeris.core.intelligence.WordCompletion implements jo.cel
   public java.util.List<java.lang.String> candidates(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
 }
 
+### jo.celeris.core.intelligence.XmlLinkedTags$Targets
+Compiled from "XmlLinkedTags.java"
+final class jo.celeris.core.intelligence.XmlLinkedTags$Targets {
+}
+
+### jo.celeris.core.intelligence.XmlLinkedTags
+Compiled from "XmlLinkedTags.java"
+public final class jo.celeris.core.intelligence.XmlLinkedTags {
+  public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> typeChar(jo.celeris.core.text.Document, int, java.lang.String);
+  public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> backspace(jo.celeris.core.text.Document, int);
+}
+
 ### jo.celeris.core.intelligence.package-info
 Compiled from "package-info.java"
 interface jo.celeris.core.intelligence.package-info {
