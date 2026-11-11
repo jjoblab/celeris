@@ -50,7 +50,8 @@ final class FlowExtractions {
             OutlineEntry enclosing, int start, int end, String name) {
         List<FlowAnalysis.AbsoluteToken> methodTokens = FlowAnalysis.tokens(doc, analyse.lex(),
                 enclosing.startOffset(), enclosing.endOffset());
-        Map<String, String> declared = MethodStructure.declarations(methodTokens);
+        Map<String, MethodDeclarations.Declaration> declared =
+                MethodStructure.declarations(methodTokens);
         OutlineEntry owner = Extraction.enclosing(doc, analyse, start, end, NodeCategory.TYPE);
         Map<String, String> fields = owner == null ? Map.of()
                 : FlowAnalysis.classFields(doc, analyse, owner);
@@ -103,7 +104,8 @@ final class FlowExtractions {
         if (body < 0 || parens == null || start < body + 1) {
             return null;
         }
-        Map<String, String> declared = MethodStructure.declarations(methodTokens);
+        Map<String, MethodDeclarations.Declaration> declared =
+                MethodStructure.declarations(methodTokens);
         OutlineEntry owner = Extraction.enclosing(doc, analyse, start, end, NodeCategory.TYPE);
         Map<String, String> fields = owner == null ? Map.of()
                 : FlowAnalysis.classFields(doc, analyse, owner);
@@ -134,16 +136,17 @@ final class FlowExtractions {
      * Rend null sur une référence nue non résolue — jamais un plan faux.
      */
     private static @Nullable Map<String, String> freeParameters(List<FlowAnalysis.Reference> refs,
-            Map<String, String> declared, Map<String, String> fields, Map<String, String> resolved) {
+            Map<String, MethodDeclarations.Declaration> declared, Map<String, String> fields,
+            Map<String, String> resolved) {
         Map<String, String> parameters = new LinkedHashMap<>();
         for (FlowAnalysis.Reference ref : refs) {
             if (resolved.containsKey(ref.name())) {
                 continue;
             }
-            String local = declared.get(ref.name());
+            MethodDeclarations.Declaration local = declared.get(ref.name());
             if (local != null) {
-                resolved.put(ref.name(), local);
-                parameters.put(ref.name(), local);
+                resolved.put(ref.name(), local.type());
+                parameters.put(ref.name(), local.type());
                 continue;
             }
             String field = fields.get(ref.name());
@@ -163,7 +166,7 @@ final class FlowExtractions {
      * déclaré dans la porteuse ou inconnu refuse le plan.
      */
     private static @Nullable Map<String, String> fieldReferences(List<FlowAnalysis.Reference> refs,
-            Map<String, String> declared, Map<String, String> fields) {
+            Map<String, MethodDeclarations.Declaration> declared, Map<String, String> fields) {
         Map<String, String> resolved = new HashMap<>();
         for (FlowAnalysis.Reference ref : refs) {
             String field = fields.get(ref.name());

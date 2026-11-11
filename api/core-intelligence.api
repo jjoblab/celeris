@@ -302,6 +302,43 @@ public final class jo.celeris.core.intelligence.IndexSymboles {
   public static jo.celeris.core.intelligence.IndexSymboles deserialiser(java.lang.String);
 }
 
+### jo.celeris.core.intelligence.Inline$InlinePlan
+Compiled from "Inline.java"
+public final class jo.celeris.core.intelligence.Inline$InlinePlan extends java.lang.Record {
+  public jo.celeris.core.intelligence.Inline$InlinePlan(java.util.List<jo.celeris.core.text.TextEdit>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+}
+
+### jo.celeris.core.intelligence.Inline
+Compiled from "Inline.java"
+public final class jo.celeris.core.intelligence.Inline {
+  public static jo.celeris.core.intelligence.Inline$InlinePlan declaration(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int);
+}
+
+### jo.celeris.core.intelligence.InlineFields
+Compiled from "InlineFields.java"
+final class jo.celeris.core.intelligence.InlineFields {
+}
+
+### jo.celeris.core.intelligence.InlineSafety$Usage
+Compiled from "InlineSafety.java"
+final class jo.celeris.core.intelligence.InlineSafety$Usage extends java.lang.Enum<jo.celeris.core.intelligence.InlineSafety$Usage> {
+  public static final jo.celeris.core.intelligence.InlineSafety$Usage READ;
+  public static final jo.celeris.core.intelligence.InlineSafety$Usage THIS_MEMBER;
+  public static final jo.celeris.core.intelligence.InlineSafety$Usage FOREIGN_MEMBER;
+  public static final jo.celeris.core.intelligence.InlineSafety$Usage OTHER;
+  public static jo.celeris.core.intelligence.InlineSafety$Usage[] values();
+  public static jo.celeris.core.intelligence.InlineSafety$Usage valueOf(java.lang.String);
+}
+
+### jo.celeris.core.intelligence.InlineSafety
+Compiled from "InlineSafety.java"
+final class jo.celeris.core.intelligence.InlineSafety {
+}
+
 ### jo.celeris.core.intelligence.LineActions$Bloc
 Compiled from "LineActions.java"
 final class jo.celeris.core.intelligence.LineActions$Bloc {
@@ -320,6 +357,25 @@ public final class jo.celeris.core.intelligence.LineActions {
 Compiled from "LineSorter.java"
 public final class jo.celeris.core.intelligence.LineSorter {
   public static jo.celeris.core.intelligence.EditPlan sort(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, boolean);
+}
+
+### jo.celeris.core.intelligence.MethodDeclarations$Declaration
+Compiled from "MethodDeclarations.java"
+final class jo.celeris.core.intelligence.MethodDeclarations$Declaration extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String name();
+  public java.lang.String type();
+  public int statementStart();
+  public int statementEnd();
+  public int initializerStart();
+  public int initializerEnd();
+}
+
+### jo.celeris.core.intelligence.MethodDeclarations
+Compiled from "MethodDeclarations.java"
+final class jo.celeris.core.intelligence.MethodDeclarations {
 }
 
 ### jo.celeris.core.intelligence.MethodStructure
