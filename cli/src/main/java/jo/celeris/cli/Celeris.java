@@ -9,6 +9,10 @@ import java.util.List;
 
 import java.util.ServiceLoader;
 
+import jo.celeris.core.intelligence.Formateur;
+import jo.celeris.core.intelligence.IndexSymboles;
+import jo.celeris.core.intelligence.IndentStyle;
+import jo.celeris.core.intelligence.Renommage;
 import jo.celeris.core.language.LanguageConfiguration;
 import jo.celeris.core.language.LanguageContributor;
 import jo.celeris.core.language.LanguageDetection;
@@ -20,20 +24,34 @@ import jo.celeris.core.syntax.FoldSpan;
 import jo.celeris.core.syntax.IndentationFolds;
 import jo.celeris.core.syntax.OutlineEntry;
 import jo.celeris.core.syntax.RuleOutline;
+import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.syntax.SyntaxService;
+import jo.celeris.core.syntax.TreeDiagnostics;
 import jo.celeris.core.syntax.TreeFolds;
 import jo.celeris.core.syntax.TreeOutline;
 import jo.celeris.core.syntax.grammars.PackGrammars;
 import jo.celeris.core.text.Document;
+import jo.celeris.core.text.TextEdit;
+import jo.celeris.core.text.TextSession;
+import jo.celeris.core.text.Transaction;
 
 import org.jspecify.annotations.Nullable;
 
 /**
  * Exécutable de celeris sans Android : l'éditeur en ligne de commande
  * (M7) — analyser un fichier (langage détecté, lignes, plan) et
- * chercher un motif (occurrences aux lignes et colonnes exactes). La
- * bannière sans argument reste la fumée de la CI (critère de sortie
- * M1) ; l'édition interactive viendra des jalons suivants.
+ * chercher un motif (occurrences aux lignes et colonnes exactes).
+ * La chaîne outillée s'y ajoute (G-03) : diagnostiquer (les plages
+ * malformées de l'arbre, une par ligne), formater (le texte formaté,
+ * seul sur la sortie — le résultat se dirige vers un fichier) et
+ * refactorer renommer (le fichier renommé sur la sortie, les conflits
+ * signalés sans être tranchés). La bannière sans argument reste la
+ * fumée de la CI (critère de sortie M1).
+ *
+ * <p>Codes de sortie : 0 succès, 1 fichier illisible ou langage sans
+ * analyse, 2 usage inconnu, 3 diagnostics trouvés, 4 conflit de
+ * renommage. La sortie est déterministe : mêmes arguments, mêmes
+ * lignes — les bancs et la CI s'y appuient (G-03).</p>
  */
 public final class Celeris {
 
@@ -99,6 +117,9 @@ public final class Celeris {
         return switch (args[0]) {
             case "analyse" -> analyser(args, sortie);
             case "recherche" -> chercher(args, sortie);
+            case "diagnostiquer" -> diagnostiquer(args, sortie);
+            case "formater" -> formater(args, sortie);
+            case "refactorer" -> refactorer(args, sortie);
             default -> usage(sortie);
         };
     }
@@ -112,7 +133,9 @@ public final class Celeris {
 
     private static int usage(PrintStream sortie) {
         sortie.println("usage : celeris [version | analyse <fichier> | "
-                + "recherche <fichier> <motif>]");
+                + "recherche <fichier> <motif> | diagnostiquer <fichier> | "
+                + "formater <fichier> | refactorer <fichier> renommer "
+                + "<ancien> <nouveau>]");
         return 2;
     }
 
@@ -187,6 +210,98 @@ public final class Celeris {
             position = contenu.indexOf(motif, position + motif.length());
         }
         sortie.println(total + " occurrence(s)");
+        return 0;
+    }
+
+    /**
+     * Diagnostique le fichier (G-03) : chaque plage malformée de l'arbre
+     * se dit par sa ligne et sa colonne, à la manière de la recherche —
+     * le décompte clôt.
+     */
+    private static int diagnostiquer(String[] args, PrintStream sortie) {
+        if (args.length != 2) {
+            return usage(sortie);
+        }
+        String contenu = lire(args[1], sortie);
+        if (contenu == null) {
+            return 1;
+        }
+        Document document = Document.of(contenu);
+        LanguageSupport langue = langageDe(args[1], contenu, registre());
+        int total = 0;
+        if (langue != null && langue.syntax() != null) {
+            Analysis analyse = SyntaxService.of(langue.syntax()).analyseFull(document);
+            for (SyntaxIssue issue : TreeDiagnostics.issues(document, analyse)) {
+                int ligne = document.lineForOffset(issue.startOffset());
+                int colonne = issue.startOffset() - document.lineStart(ligne) + 1;
+                sortie.println((ligne + 1) + ":" + colonne + " " + issue.message());
+                total++;
+            }
+        }
+        sortie.println(total + " diagnostic(s)");
+        return total == 0 ? 0 : 3;
+    }
+
+    /**
+     * Formate le fichier (G-03) : le texte formaté paraît seul sur la
+     * sortie — le résultat se dirige vers un fichier, quatre espaces
+     * par niveau (le style de la maison).
+     */
+    private static int formater(String[] args, PrintStream sortie) {
+        if (args.length != 2) {
+            return usage(sortie);
+        }
+        String contenu = lire(args[1], sortie);
+        if (contenu == null) {
+            return 1;
+        }
+        Document document = Document.of(contenu);
+        LanguageSupport langue = langageDe(args[1], contenu, registre());
+        if (langue == null || langue.syntax() == null) {
+            sortie.println("langage sans analyse : " + args[1]);
+            return 1;
+        }
+        Analysis analyse = SyntaxService.of(langue.syntax()).analyseFull(document);
+        sortie.print(Formateur.formater(document, analyse, IndentStyle.ESPACES_4));
+        return 0;
+    }
+
+    /**
+     * Refactore le fichier (G-03) : renommer un symbole — le fichier
+     * renommé paraît seul sur la sortie ; les conflits se signalent sans
+     * se trancher (B-19), l'ambiguïté comme la collision, et le code 4
+     * les dit.
+     */
+    private static int refactorer(String[] args, PrintStream sortie) {
+        if (args.length != 5 || !"renommer".equals(args[2])) {
+            return usage(sortie);
+        }
+        String contenu = lire(args[1], sortie);
+        if (contenu == null) {
+            return 1;
+        }
+        Document document = Document.of(contenu);
+        LanguageSupport langue = langageDe(args[1], contenu, registre());
+        if (langue == null || langue.syntax() == null) {
+            sortie.println("langage sans analyse : " + args[1]);
+            return 1;
+        }
+        Analysis analyse = SyntaxService.of(langue.syntax()).analyseFull(document);
+        IndexSymboles index = IndexSymboles.vide();
+        index.remplacer(args[1], document, analyse);
+        Renommage.PlanRenommage plan = Renommage.plan(index, args[3], args[4]);
+        if (!plan.conflits().isEmpty()) {
+            for (Renommage.ConflitRenommage conflit : plan.conflits()) {
+                sortie.println("conflit : " + conflit.nom() + " " + conflit.raison());
+            }
+            return 4;
+        }
+        TextSession session = TextSession.of(contenu, System::nanoTime);
+        List<TextEdit> editions = plan.editions().getOrDefault(args[1], List.of());
+        if (!editions.isEmpty()) {
+            session.apply(Transaction.of(editions));
+        }
+        sortie.print(session.text());
         return 0;
     }
 
