@@ -181,8 +181,8 @@ final class AtelierPopups {
     }
 
     /**
-     * Branche la session de langage (M7.5, §8 — M8.6 : le serveur XML
-     * réel entre par la même porte) : l'aide aux paramètres, le survol
+     * Branche la session de langage (M7.5, §8 — M8.6 : tout serveur
+     * déclaré entre par la même porte) : l'aide aux paramètres, le survol
      * et — quand le serveur les sert — les complétions passent par le
      * fil du protocole, le coach ne garde que le repli. La langue se
      * lit du fichier ouvert.

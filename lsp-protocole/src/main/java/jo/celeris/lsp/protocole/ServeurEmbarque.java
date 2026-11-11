@@ -31,10 +31,10 @@ import jo.celeris.core.lsp.SymboleLsp;
 /**
  * Le montage du serveur EMBARQUÉ derrière la frontière (ADR-015) : un
  * serveur de langage lancé EN PROCESSUS, rejoint par une session sur
- * des tubes à file — le banc de la démonstration y monte le serveur
- * XML réel comme son serveur de référence, sans que la bibliothèque
- * paraisse dans son code : l'objet serveur et l'interface cliente se
- * donnent opaques, la session rend les types du domaine.
+ * des tubes à file — le banc de la démonstration y monte son serveur
+ * de référence, sans que la bibliothèque paraisse dans son code :
+ * l'objet serveur et l'interface cliente se donnent opaques, la
+ * session rend les types du domaine.
  *
  * <p>Pourquoi ici : le montage utilise le lanceur de la bibliothèque
  * (cadrage, fils de lecture), donc vit du bon côté de la frontière —
@@ -45,7 +45,7 @@ import jo.celeris.core.lsp.SymboleLsp;
  *
  * <p>L'injection du proxy client suit la convention des serveurs
  * embarqués : la méthode {@code setClient(LanguageClient)} d'abord
- * (l'idiome du serveur XML réel, qui transtype ensuite vers sa propre
+ * (l'idiome des serveurs tiers étendus, qui transtype ensuite vers sa propre
  * interface étendue — d'où l'interface cliente à passer au montage),
  * puis {@code connect(LanguageClient)} de l'interface standard de la
  * bibliothèque. Sans l'un ni l'autre, le serveur vit sans rappels du
@@ -282,7 +282,7 @@ public final class ServeurEmbarque implements AutoCloseable {
 
     /**
      * Monte un serveur existant de la bibliothèque — un objet opaque
-     * (le serveur XML réel par exemple) et l'interface cliente que son
+     * (tout serveur tiers monté par son API) et l'interface cliente que son
      * lanceur doit procurer au proxy : la convention des serveurs
      * réels, qui étendent l'interface standard pour leurs services
      * propres.

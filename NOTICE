@@ -128,7 +128,7 @@ Apache-2.0) ; Gson Apache-2.0.
 | --- | --- | --- | --- |
 | org.eclipse.lsp4j (lsp4j) | 1.0.0 | EPL-2.0 OU BSD-3-Clause | protocole LSP et JSON-RPC derrière la frontière `lsp-protocole` (ADR-015) |
 | org.eclipse.lsp4j.jsonrpc (jsonrpc) | 1.0.0 | EPL-2.0 OU BSD-3-Clause | rouage JSON-RPC de la bibliothèque, même frontière |
-| com.google.code.gson (Gson) | 2.10.1, épinglée STRICTEMENT | Apache-2.0 | rouage de sérialisation ; la copie unique avec le serveur XML embarqué tient (découpe de l'archive faite, ADR-015, décision 3, reproduite au octet près le 2026-11-10) |
+| com.google.code.gson (Gson) | 2.10.1, épinglée STRICTEMENT | Apache-2.0 | rouage de sérialisation ; version épinglée au catalogue pour la maîtrise de l'octet du runtime (ADR-015, décision 3) |
 
 - Provenance : `https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/1.0.0/`,
   `https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/1.0.0/`
@@ -148,33 +148,6 @@ Apache-2.0) ; Gson Apache-2.0.
   définies, zéro référence à sun.misc.Unsafe ou jdk.internal.
 - Le SBOM CycloneDX de publication (ADR-011) porte la dépendance dans
   chaque publication de `lsp-protocole`.
-
-## Dépendance embarquée de la démonstration (M8.6)
-
-La démonstration (`demo`, non publiée) embarque un serveur de langage
-RÉEL lancé en processus — la demande explicite du propriétaire
-(2026-11-08) ; EPL-2.0, hors compatible Apache-2.0 : la validation du
-propriétaire tient lieu d'exception au mandat.
-
-| Dépendance | Version | Licence | Usage |
-| --- | --- | --- | --- |
-| org.eclipse.lemminx (LemMinX, serveur de langage XML) | 0.31.2, artefact ubérifié découpé | EPL-2.0 | démonstration seule : le test à fond de la fonctionnalité LSP contre un serveur du monde réel |
-
-- Provenance : `https://repo.eclipse.org/content/repositories/lemminx-releases/org/eclipse/lemminx/org.eclipse.lemminx/0.31.2/org.eclipse.lemminx-0.31.2-uber.jar`
-  (somme de contrôle du paquet d'origine : `f4fde164e785c635e5f86361dbf4b993bfe2c5f83fdb52891d058b7dfc9bcfc8`).
-- Découpe sur mesure (bibliothèque de collections réduite à sa fermeture
-  de portée, doublons de plateforme ôtés, point d'entrée de ligne de
-  commande écarté, liaison protocolaire et rouage JSON exclus — copie
-  unique de l'ADR-015 : le chemin de classes les fournit aux deux bouts
-  par `lsp-protocole`) : `scripts/decoupe-serveur-xml` reproduit le
-  paquet embarqué `demo/libs/serveur-xml-0.31.2.jar` (6 038 383 octets,
-  `f03644458cab2e09f476957d621311e811ee695e64d08ce0f15325ebdb1da161` ;
-  reproduction vérifiée au octet près le 2026-11-10 depuis l'ubérifié
-  d'origine ci-dessus).
-- Le banc JVM `ServeurXmlEmbarqueTest` exécute le serveur DÉCOUPÉ de
-  bout en bout — la découpe qui briserait la portée échouerait au test.
-- Aucun artefact PUBLIÉ du dépôt ne l'embarque (ADR-011 : `demo` n'est
-  pas publié).
 
 ## Code hérité
 

@@ -16,8 +16,8 @@ import jo.celeris.core.lsp.DiagnosticLsp;
 
 /**
  * L'état des diagnostics de la démonstration (M8.6) : les deux voies —
- * l'analyse lint de l'hôte, les diagnostics POUSSÉS par le serveur XML
- * réel — s'y convertissent en marques de gouttière, bande d'erreurs et
+ * l'analyse lint de l'hôte, les diagnostics POUSSÉS par le serveur
+ * de langage — s'y convertissent en marques de gouttière, bande d'erreurs et
  * étiquette de barre d'état. Les publications du serveur arrivent sur
  * le fil du client : elles repassent par le fil d'interface avant de
  * toucher la scène.
@@ -54,7 +54,7 @@ final class EtatDiagnostics {
     }
 
     /**
-     * Les diagnostics publiés par le serveur XML réel : la réponse
+     * Les diagnostics publiés par le serveur de langage : la réponse
      * arrive sur le fil du client — elle repasse par le fil
      * d'interface avant de toucher la scène.
      *

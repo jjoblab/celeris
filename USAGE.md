@@ -393,10 +393,10 @@ l'hôte seul décide de le monter. Le format :
 {
   "servers": [
     {
-      "language": "xml",
+      "language": "java",
       "transport": "embedded",
-      "serverClass": "org.eclipse.lemminx.XMLLanguageServer",
-      "clientInterface": "org.eclipse.lemminx.customservice.XMLLanguageClientAPI",
+      "serverClass": "com.monhote.langage.ServeurJava",
+      "clientInterface": "org.eclipse.lsp4j.services.LanguageClient",
       "clientName": "mon-hote"
     }
   ]

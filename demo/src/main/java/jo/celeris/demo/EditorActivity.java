@@ -91,8 +91,8 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierRefactor atelierRefactor;
     private AtelierRecherche atelierRecherche;
     private AtelierSelection atelierSelection;
-    /** La session de langage — serveur de référence en processus (M7.5, §8)
-     *  ou serveur XML réel embarqué pour les fichiers XML (M8.6). */
+    /** La session de langage — serveur de référence en processus (M7.5,
+     *  §8) ou serveur déclaré disponible par l'hôte (M7.6, H-13). */
     private LanguageSession serveurLangage;
     /** Les réglages de scène (M7.5, §9) : retenue et surimpression. */
     private SceneReglages sceneReglages;

@@ -15,8 +15,8 @@ dependencies {
     implementation(libs.lsp4j)
     // Copie unique maîtrisée à l'octet (ADR-015, décision 3) : la
     // bibliothèque exige gson dans l'intervalle [2.9.1, 3.0) — la
-    // contrainte STRICTE verrouille la version que le serveur XML
-    // embarqué apporte déjà, jamais la plus récente venue du réseau.
+    // contrainte STRICTE verrouille la version épinglée au catalogue,
+    // jamais la plus récente venue du réseau.
     constraints {
         implementation(libs.gson) {
             version { strictly(libs.versions.gson.get()) }

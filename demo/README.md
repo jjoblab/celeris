@@ -14,7 +14,7 @@ est structurelle (vie privée, [README](../README.md) racine).
 | Nature | application Android (`minSdk` 26, `compileSdk`/`targetSdk` 36 — ADR-011) |
 | Publication | jamais publiée — l'APK debug se construit en CI (`:demo:assembleDebug`), signature vérifiée |
 | Dépendances | `android-view`, `android-widgets`, `android-host`, les modules purs du cœur, `lsp-protocole` |
-| Bancs | 23 bancs, 97 méthodes `@Test` (2026-11-11) — Robolectric sur JVM (ADR-013) |
+| Bancs | 21 bancs, 81 méthodes `@Test` (2026-11-12) — Robolectric sur JVM (ADR-013) |
 
 ## Ce qu'elle porte
 

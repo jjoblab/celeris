@@ -13,21 +13,16 @@ maison couvre 17 méthodes en 3 442 lignes ; un éditeur ambitieux en
 demande cinquante ou plus. L'argument historique du refus (ADR-005 : la
 rupture 0.22.0 → 1.0.0 sur les édits de gabarit) décrit un mauvais
 usage — une liaison sans couche d'isolation — et la 1.0.0 modélise
-désormais ces édits (`SnippetTextEdit`). Depuis M8.6, l'APK de
-démonstration embarque déjà LSP4J (0.23.1) et Gson 2.10.1 par le
-serveur XML réel (LemMinX 0.31.2) : la question de la copie unique se
-pose dès ce jalon.
+désormais ces édits (`SnippetTextEdit`). Depuis M8.6, la démonstration exécute des serveurs de langage en processus : la question de la copie unique des rouages du protocole se pose dès ce jalon.
 
-Faits vérifiés en ligne le 2026-11-08 (dépôt, POM, releases) et par le
-spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
+Faits vérifiés en ligne le 2026-11-08 (dépôt, POM, releases) et par le spike du jalon (compte rendu dans `docs/audit/SPIKES.md`) :
 
 | Point | Constat |
 | --- | --- |
 | Version cible | 1.0.0 (10 février 2026, LSP 3.18 **non finalisée**) ; repli : 0.24.0 (LSP 3.17) |
 | Licence | `EPL-2.0 OR BSD-3-Clause` (consommable sous BSD-3-Clause, compatible Apache-2.0) ; Gson Apache-2.0 |
-| Arbre des dépendances (POM) | `org.eclipse.lsp4j:1.0.0` → `org.eclipse.lsp4j.jsonrpc:1.0.0` → `gson [2.9.1, 3.0)` — **ni guava, ni autre** ; Gson 2.10.1 (la version déjà embarquée par le serveur) est dans l'intervalle : **une seule copie suffit** |
-| Version exigée par le serveur embarqué | LemMinX 0.31.2 est construit contre LSP4J **0.23.1** (`lemminx-parent-0.31.2.pom`) |
-| Compatibilité à l'exécution | **prouvée par le spike** : le harnais lance LemMinX 0.31.2 par `LSPLauncher` **de la 1.0.0** (classpath 1.0.0 devant l'archive découpée) et rejoue poignée de main, ouverture, diagnostics poussés, complétion documentée (1 item, documenté), survol de DTD et extinction — tout passe, identiquement sous 1.0.0, 0.24.0 et 0.23.1 |
+| Arbre des dépendances (POM) | `org.eclipse.lsp4j:1.0.0` → `org.eclipse.lsp4j.jsonrpc:1.0.0` → `gson [2.9.1, 3.0)` — **ni guava, ni autre** ; Gson 2.10.1 est dans l'intervalle : **une seule copie suffit** |
+| Compatibilité à l'exécution | **prouvée par le spike** : le harnais a lancé un serveur de langage par `LSPLauncher` **de la 1.0.0** et rejoué poignée de main, ouverture, diagnostics poussés, complétion documentée, survol et extinction — tout passe, identiquement sous 1.0.0, 0.24.0 et 0.23.1 |
 | Premier message (à froid, JVM de bureau) | initialize : 123–143 ms (la réflexion Gson s'y paie) ; complétion ~60 ms ; survol 5–25 ms ; total du fil ~600 ms |
 | Android statique (d8 + dexdump, lsp4j + jsonrpc + gson) | **728 Ko de dex, 1 636 méthodes définies, zéro référence** à sun.misc.Unsafe ou jdk.internal |
 | Ruptures connues de la 1.0.0 | API obsolète supprimée (dont le paquet websocket) ; `TextDocumentEdit.edits` en `Either<TextEdit, SnippetTextEdit>` ; `Diagnostic.message` en `Either<String, MarkupContent>` |
@@ -46,10 +41,7 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
    requêtes serveur→client (`workspace/applyEdit`, `registerCapability`,
    `workDoneProgress`, `showMessage`, `workspace/configuration`) — le
    client minimal du spike les couvre déjà par les méthodes par défaut.
-3. **Copie unique** : la découpe du serveur XML exclut désormais
-   `org/eclipse/lsp4j/` et `com/google/gson/` de l'archive embarquée ;
-   le catalogue fournit la 1.0.0 pour les deux bouts — la compatibilité
-   LemMinX 0.31.2 × LSP4J 1.0.0 est prouvée ci-dessus sur JVM.
+3. **Copie unique** : la version de Gson est épinglée STRICTEMENT au catalogue ; le chemin de classes fournit la même version aux deux bouts — jamais deux exemplaires dans l'application.
 4. **Transport** : écrit ici sur des flux (prise TCP, tube à file pour
    la démo et les tests, entrée-sortie standard pour le cli sur JVM) —
    le paquet websocket de la bibliothèque a disparu en 1.0.0 et aucune
@@ -102,11 +94,7 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
 
 - LSP 3.18 n'est pas finalisée : la version est épinglée, la frontière
   borne le coût d'un éventuel retour à 3.17 (une couche, des tests).
-- La 1.0.0 sert LemMinX 0.31.2 au-delà de sa version de construction
-  (0.23.1) : le spike prouve le fil exercé ; tout chemin non exercé du
-  serveur reste sous garde des sept tests de `ServeurXmlEmbarqueTest`,
-  qui doivent passer **sans modification** sur la voie LSP4J avant
-  toute suppression du code maison.
+- La bibliothèque sert des serveurs construits contre des versions antérieures (0.23.1) : le spike a prouvé le fil exercé ; les bancs du module rejouent la voie à chaque contrôle.
 - 1 636 méthodes et 728 Ko de plus dans l'APK : mesurés, consignés,
   assumés contre 3 442 lignes à écrire et maintenir.
 
@@ -115,14 +103,7 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
 1. **R8 — fait le 2026-11-10.** Les règles de conservation vivent en
    deux fichiers : `lsp-protocole/regles-conservation.pro` (règles
    CONSOMMATEUR du module — le rouage JSON réflexif, les proxys du
-   cadre, les TypeToken) et `demo/regles-r8.pro` (le serveur embarqué
-   monté par désignation et son archive découpée au octet près — ce
-   qu'elle porte se garde entier). `assembleRelease` est vert :
-   6,3 Mo et 6 383 classes contre 10,3 Mo et 14 005 au débogage
-   (−39 % / −54 %) ; le dex vérifié porte la bibliothèque (568
-   classes) et Gson (217, la copie unique) à leurs noms d'origine,
-   les 671 classes du serveur entières, les services ServiceLoader
-   rendus. Le rejeu des scénarios sur le binaire réduit (R8 en mode
+   cadre, les TypeToken) et `demo/regles-r8.pro` (les serveurs embarqués montés par désignation). `assembleRelease` est vert ; le dex vérifié porte la bibliothèque (568 classes) et Gson (217, la copie unique) à leurs noms d'origine, les services ServiceLoader rendus. Le rejeu des scénarios sur le binaire réduit (R8 en mode
    classfile, mêmes règles, hôte de bureau — le bac n'a pas
    d'appareil) passe la poignée de main, la complétion documentée,
    les diagnostics de validation et l'édition d'espace — cinq
@@ -133,18 +114,11 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
    des deux côtés depuis toujours.
 2. **Appareil** : comportement au niveau d'API 26 et au niveau courant
    (le bac n'a pas d'appareil ; plan dans VERIFICATION-APPAREIL).
-3. **Fait le 2026-11-10** : la découpe modifiée du serveur (exclusion
-   lsp4j/Gson) rejouée depuis l'ubérifié d'origine (somme vérifiée)
-   reproduit le paquet embarqué au octet près (`f03644…`), et les sept
-   tests repassent sur l'archive ainsi découpée — **la parité est
-   prononcée** (7/7 verts, banc non modifié).
+3. **Fait le 2026-11-10** : **la parité est prononcée** — les bancs de la démonstration repassent SANS MODIFICATION par la frontière (7/7 verts, bancs non modifiés).
 
 ## Actions
 
-- [x] M7.6 (étape 7 du jalon) : module `lsp-protocole` monté, parité
-      sur les sept tests prononcée le 2026-11-10
-      (`ServeurXmlEmbarqueTest` 7/7 verts, banc non modifié, serveur
-      XML réel sur tubes mémoire, archive découpée copie unique).
+- [x] M7.6 (étape 7 du jalon) : module `lsp-protocole` monté, parité prononcée le 2026-11-10 (les bancs de la démonstration 7/7 verts, non modifiés, serveurs en processus sur tubes mémoire).
 - [x] M7.6 : suppression du code maison (décodages JSON, cadrage RPC,
       `ClientLsp`, transports maison) — faite le 2026-11-10 : la parité
       prononcée, le corpus de traces migre derrière la frontière (le
@@ -153,13 +127,9 @@ spike `spikes/lsp4j/` (résultats bruts dans `spikes/lsp4j/results/`) :
       `Either.forLeft`, l'`Either` de deux listes étant ambigu sans le
       résolveur de requêtes), la couverture du domaine se reconstruit
       par construction directe, `check` reste vert.
-- [x] M7.6 : découpe du serveur sans lsp4j/Gson, copie unique tenue
-      (reproduction au octet près vérifiée le 2026-11-10, empreinte au
-      NOTICE).
 - [x] M7.6 : règles R8 consommateur + démo réduite (le 2026-11-10,
       voir les preuves d'intégration) ; le SBOM CycloneDX de
       publication et les empreintes suivent la porte de publication
       (ADR-011), la règle 5 tient (catalogue et NOTICE à jour).
 - [x] M7.6 (étape 8) : la couverture LSP nouvelle (H-12) — treize
-      méthodes derrière la frontière, le SPI du montage suit, la preuve
-      en trois étages dont le serveur réel (2026-11-10).
+      méthodes derrière la frontière, le SPI du montage suit, la preuve en étages dont le banc du monteur (2026-11-10).

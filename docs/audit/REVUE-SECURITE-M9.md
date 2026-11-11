@@ -116,10 +116,7 @@ aucun fournisseur de contenu, aucun récepteur.
 ## 6. Les licences tierces
 
 Le `NOTICE` consigne les dépendances de RUNTIME des artefacts
-publiés (joni MIT — ADR-014 ; LSP4J EPL-2.0 OU BSD-3-Clause, Gson
-EPL-2.0 — ADR-015) et l'ubérifié découpé de la démonstration
-(LemMinX EPL-2.0, découpe reproductible par
-`scripts/decoupe-serveur-xml`) ; les grammaires du commerce vivent
+publiés (joni MIT — ADR-014 ; LSP4J EPL-2.0 OU BSD-3-Clause, Gson EPL-2.0 — ADR-015) ; les grammaires du commerce vivent
 aux ressources de TEST, hors artefacts (licences MIT vérifiées,
 sommes consignées). `docs/REFERENCES.md` tient les projets et normes
 cités avec licences vérifiées en ligne.
@@ -157,16 +154,6 @@ DOIT écrire le mot « secret » dans du texte d'essai) et le
 `REGISTRY_TOKEN` des conventions de publication, lu de
 l'ENVIRONNEMENT (`System.getenv`), jamais en dur. `local.properties`
 est ignoré par construction (`AGENT.md`, « à ne pas faire »).
-
-## 10. L'archive du serveur XML embarqué
-
-`demo/libs/serveur-xml-0.31.2.jar` (6 Mo) est versionnée — la
-découpe est reproductible au octet près par le script, le NOTICE
-consigne identité, licence et provenance. La revue note la limite :
-le jar versionné n'est pas vérifié par somme à la construction (le
-script produit le même fichier, mais rien ne rejoue la comparaison
-en CI) — risque d'acceptabilité faible (le fichier vit dans le
-dépôt, la reproductibilité prouvée), consigné comme telle.
 
 ## Constats résiduels, acceptés
 
