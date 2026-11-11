@@ -311,12 +311,11 @@ par mots, la matrice passe à Câblé (`CaretsMotionTest`) ; B-20 clos —
 les cinq variantes câblées sur l’analyse des flux (variable, constante,
 champ, puis méthode et paramètre : `FlowAnalysis`, `MethodStructure`,
 `TypeRun`, `ExpressionTypes`, `FlowExtractions` — la matrice B-20 compte
-ses cinq) et B-21 clos — `Inline`, `InlineSafety`, `InlineFields`,
+ses cinq) ; B-21 clos — `Inline`, `InlineSafety`, `InlineFields`,
 `MethodDeclarations` alignent la déclaration désignée (usages remplacés,
-déclaration supprimée si locale ou privée), la matrice B-21 à Câblé ;
-restent B-22 à B-23, A-14, A-17, D-14, D-20, G-03 et le
-volume de tests.
-
+déclaration supprimée si locale ou privée) ; B-22 clos —
+`SignatureChange` réordonne la signature et chaque appel du document.
+Restent B-23, A-14, A-17, D-14, D-20, G-03 et le volume de tests.
 
 **Statut** : bloqué (décision du propriétaire).
 

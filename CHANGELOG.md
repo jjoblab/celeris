@@ -122,6 +122,14 @@ vivent dans les ADR et le registre de portage, pas ici.
   refusée (composée, incrément, décrément), ombre homonyme refusée
   (redéclaration, paramètre de lambda, champ ombré par une locale),
   récepteur étranger refusé (`InlineTest`).
+- **Changer la signature (B-22)** : `SignatureChange.reorder` — les paramètres
+  de la méthode désignée se réordonnent, la signature et chaque appel du
+  document (constructions et appels récursifs compris) suivent le nouvel
+  ordre en une transaction annulable. Le refus mène, jamais le faux :
+  surcharge homonyme, référence de méthode, appel d'arité différente,
+  varargs, chevrons non appariés (comparaison ou type explicite —
+  l'ambiguïté ne se tranche pas) ; l'ordre qui n'est pas une permutation
+  se refuse d'exception (`SignatureChangeTest`).
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
