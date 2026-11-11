@@ -353,6 +353,7 @@ Compiled from "Gabarit.java"
 public final class jo.celeris.core.intelligence.Gabarit extends java.lang.Record {
   public jo.celeris.core.intelligence.Gabarit(java.lang.String, java.util.List<jo.celeris.core.intelligence.Trou>);
   public static jo.celeris.core.intelligence.Gabarit of(java.lang.String);
+  public static jo.celeris.core.intelligence.Gabarit of(java.lang.String, java.util.Map<java.lang.String, java.lang.String>);
   public java.util.List<java.lang.String> variables();
   public java.util.List<jo.celeris.core.intelligence.Trou> occurrencesDe(java.lang.String);
   public final java.lang.String toString();
@@ -804,13 +805,17 @@ public final class jo.celeris.core.intelligence.Symbole extends java.lang.Record
 Compiled from "Trou.java"
 public final class jo.celeris.core.intelligence.Trou extends java.lang.Record {
   public jo.celeris.core.intelligence.Trou(int, int, java.lang.String);
+  public jo.celeris.core.intelligence.Trou(int, int, java.lang.String, java.util.List<java.lang.String>);
   public int longueur();
+  public boolean aDesChoix();
+  public java.lang.String choixSuivant(java.lang.String);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public int debut();
   public int fin();
   public java.lang.String variable();
+  public java.util.List<java.lang.String> choix();
 }
 
 ### jo.celeris.core.intelligence.TypeRun

@@ -45,22 +45,29 @@ class AtelierRefactorTest {
             }
             """;
 
-    /** A-22 — le gabarit rend ses défauts, le premier trou vit sélectionné. */
+    /**
+     * A-22 — le gabarit rend ses défauts, le premier trou vit sélectionné.
+     * C7 — la macro FICHIER se résout au rendu, le trou à choix du genre
+     * rend son premier choix.
+     */
     @Test
     void templatePlanSelectsItsFirstHole() {
         TextSession session = TextSession.of("class Exemple {\n}\n", () -> 0L);
         int caret = session.document().text().indexOf('\n') + 1;
         session.setSelection(MultiSelection.of(SelRange.caretAt(caret)));
         EditPlan plan = AtelierRefactor.planGabarit(session.document(),
-                session.selection(), AtelierRefactor.GABARIT_METHODE);
+                session.selection(), AtelierRefactor.GABARIT_METHODE,
+                java.util.Map.of("FICHIER", "Exemple.java"));
         session.apply(plan.transaction(), plan.selection());
-        String attendu = "class Exemple {\nprivate void nouvelleMethode() {\n    \n}}\n";
+        String attendu = "class Exemple {\n"
+                + "// Exemple.java — posée par le gabarit de la démonstration\n"
+                + "private void nouvelleMethode() {\n    \n}}\n";
         assertEquals(attendu, session.document().text(),
-                "le gabarit rend ses défauts, indenté tel quel");
+                "le gabarit rend ses défauts, macro résolue, indenté tel quel");
         SelRange premiere = session.selection().ranges().get(0);
-        assertEquals("nouvelleMethode",
+        assertEquals("void",
                 session.document().subText(premiere.start(), premiere.end()),
-                "le premier trou vit sélectionné");
+                "le premier trou — le trou à choix du genre — vit sélectionné");
     }
 
     /** B-25 — le formatage redresse l'indentation, en une transaction annulable. */

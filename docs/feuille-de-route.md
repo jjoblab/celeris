@@ -48,7 +48,7 @@ développement, quel que soit le statut de C12.
 | C4 | `USAGE.md` : guide d'intégration hôte | P0 | 2–3 j | Terminé |
 | C5 | Langages par paquets : la famille web et la longue traîne livrées, restent Go, Rust… | P1 | 1–2 j / langue | En cours |
 | C6 | Raffinements de complétion | P1 | 3–5 j | Terminé |
-| C7 | Signature riche et snippets riches | P1 | 3–5 j | Non démarré |
+| C7 | Signature riche et snippets riches | P1 | 3–5 j | Terminé |
 | C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | Terminé |
 | C9 | Chrome de l'éditeur : minimap, fil d'Ariane, barre d'erreurs, défilement rapide | P1 | 1–2 j / ornement | Non démarré |
 | C10 | Charge et limites : 480 000 lignes, mode gros fichiers | P1 | 2–3 j | Terminé |
@@ -193,14 +193,35 @@ brancher un fournisseur ne retire ni les mots-clés ni les gabarits) ;
 
 ### C7 — Signature riche et snippets riches
 
-**Statut** : non démarré.
+**Statut** : terminé le 2026-11-11 — la signature riche
+(`SignatureAideModel` surchargé, `SignatureHelpView` riche) et les
+trous riches du gabarit (choix, macros) livrés.
 
 **Périmètre** : la signature sur trois paliers avec stepper et
 peek ; les snippets à trous riches (choix, macros, mirroring) — les
 gabarits livrés n'ont que des trous simples.
 
 **Sortie** : les deux surfaces livrées en popups conformes à
-l'ADR-018, avec tests de vue et lignes de matrice.
+l'ADR-018, avec tests de vue et lignes de matrice. La signature
+riche : `SignatureAideModel` porte les surcharges — toutes les
+entrées candidates avec leur documentation —, le stepper navigue
+(`precedente`/`suivante`, le cycle revient, jamais bloqué), la fenêtre
+±1 borne ce que la vue montre autour de l'active, le peek sert la
+documentation (l'appui long bascule, le panneau grandit) ; la vue
+rend les voisines atténuées au palier méta, le stepper ‹ i/n › au
+palier micro, l'active garde ses trois paliers ; la conversion du
+protocole porte TOUTES les entrées (`ServeurLangage.enModele`), le
+coach sert le repli local sur réponse vide (`AtelierPopups`). Les
+trous riches : le trou à choix `${genre|int,long|}` porte sa liste
+fermée (doublons retirés, choix vide refusé, le premier rend par
+défaut, le choix se cycle — `Trou.choixSuivant`), les macros de
+l'hôte (`${FICHIER}`) se résolvent au rendu SANS trou, l'inconnue
+reste un trou libre — jamais d'invention ; les miroirs étaient livrés
+(M5, `Gabarits.miroirs`). Bancs : `SignatureAideModelTest` (riche),
+`PopupViewsTest` (stepper au toucher, peek à l'appui long),
+`GabaritTest` (choix, cycle, macros), `AtelierRefactorTest` (le
+gabarit de la démo rend sa macro et son choix). Matrice B-07 et A-22
+à jour.
 
 **Source** : audit § 6, gap 7.
 
@@ -375,6 +396,7 @@ dépôt de départ, hors de ce bac à sable.
 | 2026-11-11 | C6 — raffinements de complétion | `CompletionMatcher` (six paliers), `AcceptanceHistory` (apprentissage), `ContextualCompletion` (contextes enum/annotation), `FusedFloor` (plancher fusionné) ; `RaffinementsCompletionTest` (commit 8d934c3) |
 | 2026-11-11 | C4 — USAGE.md : guide d'intégration hôte | `USAGE.md` à la racine (719 lignes, commit 023ad2d) ; coordonnées d'artefacts et noms d'API vérifiés contre les manifestes `api/` |
 | 2026-11-11 | C8 — frappe fine | `FrappeJava` (découpage de chaînes, cran des labels de cas) et `ClasspathIndex` + `ClasspathImports` (auto-import classpath) ; bancs `FrappeJavaTest`, `ClasspathImportsTest`, `DemoIntelligenceTest` ; câblés dans la démo (gestes dédiés Java, atelier d'import) |
+| 2026-11-11 | C7 — signature riche et snippets riches | `SignatureAideModel` surchargé (stepper, fenêtre ±1, peek) + `SignatureHelpView` riche (voisines, stepper ‹ i/n ›, peek à l'appui long, repli local sur réponse vide) ; trous à choix et macros au gabarit (`Trou.choix`, `Gabarit.of(corps, macros)`) ; bancs `SignatureAideModelTest`, `PopupViewsTest`, `GabaritTest`, `AtelierRefactorTest` ; câblés dans la démo (conversion entière, coach en repli, gabarit de méthode enrichi) |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 

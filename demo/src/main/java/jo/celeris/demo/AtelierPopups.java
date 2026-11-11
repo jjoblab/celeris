@@ -332,13 +332,16 @@ final class AtelierPopups {
     }
 
     /** Ouvre l'aide aux paramètres de l'appel ouvert sous le curseur —
-     *  le serveur de langage par le fil du protocole, le coach en repli. */
+     *  le serveur de langage par le fil du protocole, le coach en
+     *  repli local sur réponse vide (C7). */
     void rafraichirSignature() {
+        int caret = caret();
         if (serveur != null) {
-            int caret = caret();
             serveur.signature(uriDocument, session.document(), caret)
                     .whenComplete((modele, echec) -> editeur.post(
-                            () -> montrerSignature(modele)));
+                            () -> montrerSignature(modele != null ? modele
+                                    : PopupCoach.signatureFor(
+                                            session.document(), caret))));
             return;
         }
         montrerSignature(PopupCoach.signatureFor(
