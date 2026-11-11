@@ -42,6 +42,9 @@ public final class ScrollFrame {
             FantomeEditeur fantome) {
         ScrollFrame pipeline = new ScrollFrame();
         pipeline.addLayer(gouttiere);
+        // Les guides d'indentation (A-17) se tracent SOUS la sélection
+        // et le texte : ils alignent, ils ne lisent pas.
+        pipeline.addLayer(new IndentGuides(pinceaux));
         pipeline.addLayer(new SelectionPainter(pinceaux));
         pipeline.addLayer(new ComposingPainter(pinceaux, composition));
         pipeline.addLayer(new TextPainter(pinceaux, cache, source));
