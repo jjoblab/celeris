@@ -7,7 +7,6 @@ import java.util.List;
 
 import jo.celeris.core.syntax.ScopeStacks;
 import jo.celeris.core.syntax.ScopeStyle;
-import jo.celeris.core.syntax.ScopeThemes;
 import jo.celeris.core.syntax.TokenKind;
 
 import org.junit.jupiter.api.Test;
