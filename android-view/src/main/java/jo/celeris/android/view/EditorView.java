@@ -146,6 +146,8 @@ public final class EditorView extends View {
     final CurseurClavier curseurClavier = new CurseurClavier(this);
     /** Le collaborateur du routage tactile. */
     final TouchesEditeur touches = new TouchesEditeur(this);
+    // — le glisser-déposer vit dans son collaborateur (D-20)
+    final GlisserDeposer depot = new GlisserDeposer(this);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
     final FantomeEditeur fantome;
     /** Le collaborateur de diagnostic de scène (M7.5, §9) : retenue
@@ -202,6 +204,9 @@ public final class EditorView extends View {
         session.addEditListener(ecouteurAnnonce);
         longPresses = GestesFabrique.appuisLongs(context, this);
         pincements = GestesFabrique.pincements(context, this);
+        // D-20 : la vue reçoit les dépôts — le texte s'insère au point
+        // de chute, les fichiers partent à l'hôte par le rappel.
+        setOnDragListener(depot);
     }
 
     /**
@@ -331,12 +336,8 @@ public final class EditorView extends View {
         return fractions.lignesVisibles();
     }
 
-    /**
-     * Le réglage de lenteur d'analyse (M7.5, §9) : zéro rend la main
-     * immédiate ; l'exécuteur injecté par l'hôte reste le sien.
-     *
-     * @param delaiMs le délai de retenue, en millisecondes
-     */
+    /** Le réglage de lenteur d'analyse (M7.5, §9) : zéro rend la main immédiate,
+     *  l'exécuteur injecté par l'hôte reste le sien. */
     public void setRetenueAnalyseMs(long delaiMs) {
         diagnostics.setRetenueMs(delaiMs);
     }
@@ -375,13 +376,8 @@ public final class EditorView extends View {
         return ancres.selectionBounds();
     }
 
-    /**
-     * Affiche ou masque les numéros de lignes (D-01) : masqués, la
-     * gouttière se réduit à la coulisse des marqueurs (plis D-07,
-     * erreurs D-02).
-     *
-     * @param visibles vrai pour tracer les numéros (défaut)
-     */
+    /** Affiche ou masque les numéros de lignes (D-01) : masqués, la gouttière
+     *  se réduit à la coulisse des marqueurs (plis D-07, erreurs D-02). */
     public void setNumerosVisibles(boolean visibles) {
         numerosVisibles = visibles;
         gouttiere.setNumerosVisibles(visibles);
@@ -413,6 +409,16 @@ public final class EditorView extends View {
     /** La densité de l'appareil — la porte unique des conversions dp. */
     float densite() {
         return getResources().getDisplayMetrics().density;
+    }
+
+    /** Le rappel des fichiers déposés (D-20) : chaque uri déposée y
+     *  part, l'hôte décide de l'ouverture — jamais la vue ; le texte
+     *  déposé s'insère au point de chute.
+     *
+     * @param rappel le consommateur d'uri, null pour couper
+     */
+    public void setSurFichierDepose(@Nullable Consumer<String> rappel) {
+        depot.poserSurFichier(rappel);
     }
 
     /** Le rappel du plan du fichier (B-16), parti à chaque publication d'analyse. */
@@ -552,19 +558,13 @@ public final class EditorView extends View {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // Toute frappe matérielle clôt la composition d'abord : la
-        // composition est une interaction de plage primaire.
-        if (composition.isComposing()) {
-            composition.finish();
-            invalidate();
-        }
-        KeyBinding touche = new KeyBinding(keyCode, event.isShiftPressed(),
-                event.isCtrlPressed(), event.isAltPressed());
-        EditorAction action = raccourcis.actionOf(touche);
-        if (action == null) {
-            return super.onKeyDown(keyCode, event);
-        }
-        return KeyActions.appliquer(this, action);
+        // La frappe passe au collaborateur (plafond ADR-002) : la
+        // composition se clôt, la table de raccourcis décide.
+        EditorAction action = KeyActions.action(this, raccourcis, composition,
+                keyCode, event);
+        return action == null
+                ? super.onKeyDown(keyCode, event)
+                : KeyActions.appliquer(this, action);
     }
 
     @Override
