@@ -47,7 +47,7 @@ développement, quel que soit le statut de C12.
 | C3 | Cohérence documentaire : les incohérences de l'audit | P0 | ~0,5 j | Terminé |
 | C4 | `USAGE.md` : guide d'intégration hôte | P0 | 2–3 j | Non démarré |
 | C5 | Langages par paquets : la famille web et la longue traîne livrées, restent Go, Rust… | P1 | 1–2 j / langue | En cours |
-| C6 | Raffinements de complétion | P1 | 3–5 j | Non démarré |
+| C6 | Raffinements de complétion | P1 | 3–5 j | Terminé |
 | C7 | Signature riche et snippets riches | P1 | 3–5 j | Non démarré |
 | C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | En cours |
 | C9 | Chrome de l'éditeur : minimap, fil d'Ariane, barre d'erreurs, défilement rapide | P1 | 1–2 j / ornement | Non démarré |
@@ -169,7 +169,7 @@ intégrés. Restent : Go, Rust…
 
 ### C6 — Raffinements de complétion
 
-**Statut** : non démarré.
+**Statut** : terminé le 2026-11-11 (paliers, apprentissage, contexte, plancher).
 
 **Périmètre** : l'apprentissage du classement, le contexte
 enum/annotation, les six paliers et le plancher fusionné du dépôt de
@@ -178,6 +178,17 @@ départ — spécifiés au registre de portage, l'ancien servant d'oracle.
 **Sortie** : par raffinement — spécification au registre, banc
 comparatif contre l'oracle, tests de caractère.
 
+**Sortie** : les quatre raffinements livrés contre l'oracle du dépôt de
+départ — `CompletionMatcher` (l'apparieur unifié à six paliers : exact,
+casse, préfixe, casse, bosses de chameau canoniques, sous-séquence ;
+groupes de départage, tri stable, identifiant de tête, positions en
+gras), `AcceptanceHistory` (l'apprentissage du classement : fréquence
+puis fraîcheur, compartiments étanches, capacité 200, bascule, purge,
+persistance versionnée), `ContextualCompletion` (constantes
+d'énumération après le point, attributs d'annotation dans la
+parenthèse, lus sur les jetons), `FusedFloor` (le plancher fusionné :
+brancher un fournisseur ne retire ni les mots-clés ni les gabarits) ;
+`RaffinementsCompletionTest` (11 tests) verrouille les quatre.
 **Source** : audit § 9, recommandation 6 ; § 6, gap 6.
 
 ### C7 — Signature riche et snippets riches
@@ -344,6 +355,7 @@ dépôt de départ, hors de ce bac à sable.
 | 2026-11-10 | C3 — cohérence documentaire | erratum du résumé M9 (commit 4f580e9) ; bannière du cli en 1.0.0 et test cliquet (commit 7acce1f) |
 | 2026-11-10 | C12 — harmonisation tout en popups | feuilles du kit (`FeuilleBas`, `FeuilleHaut`, 11 tests de vue), douze surfaces migrées, écran de réglages disparu du manifeste ; inventaire consigné (`docs/audit/INVENTAIRE-SURFACES.md`) |
 | 2026-11-10 | C10 — charge et limites | banc `Charge480kLignesTest` (480 000 lignes, tas dédié 1 Go), mode gros fichiers tri-état (`LargeFileMode` + `LargeFileModeTest`), limites au README (« Charge et limites ») ; G-01 étendu à la matrice |
+| 2026-11-11 | C6 — raffinements de complétion | `CompletionMatcher` (six paliers), `AcceptanceHistory` (apprentissage), `ContextualCompletion` (contextes enum/annotation), `FusedFloor` (plancher fusionné) ; `RaffinementsCompletionTest` (commit 8d934c3) |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 
