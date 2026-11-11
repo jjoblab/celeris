@@ -397,8 +397,13 @@ d’indentation, à mi-chemin entre les colonnes de bord, de la première à la
 dernière rangée de chaque niveau — le pli replié se traverse au niveau le
 plus faible de son bouquet, les blancs de tête se comptent en primitives,
 l’alpha discret vit dans le canal alpha de l’encre de base
-(`IndentGuidesTest`, le canvas du banc capture les lignes). Restent D-14,
-D-20 et le volume de tests.
+(`IndentGuidesTest`, le canvas du banc capture les lignes) ; D-20 clos —
+`GlisserDeposer` (android-view) reçoit les dépôts : le texte s’insère au
+point de chute par la voie de transaction, l’uri de fichier va à l’hôte
+par le rappel (`setSurFichierDepose`), la précédence au texte, le geste
+vide refuse, la lecture seule refuse (`GlisserDeposerTest`, la vue vit
+dans la fenêtre d’une activité — le vrai dispatch). Restent D-14 et le
+volume de tests.
 
 **Statut** : bloqué (décision du propriétaire).
 
