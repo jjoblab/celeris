@@ -288,6 +288,33 @@ vivent dans les ADR et le registre de portage, pas ici.
   (`$FILE$`, `$DATE$`, `$USER$`) — la table de l'hôte porte les valeurs.
   Les miroirs étaient livrés (M5, `Gabarits.miroirs`). Câblé dans la
   démo : le gabarit de méthode gagne la macro FICHIER (résolue du
+
+- **La minimap (C9)** : `MinimapModel` porte la silhouette du document —
+  chaque rangée de la carte charge son bouquet de lignes (la longueur de
+  la plus longue, plafonnée à 120), le cran d'une ligne se calcule au
+  prorata, la ligne d'un cran est la première de son bouquet — le saut
+  retombe toujours sur une vraie ligne. `MinimapView` rend chaque rangée
+  en un trait à sa charge, la fenêtre visible à l'encre d'accent :
+  l'appui ET le glissement sautent, le doigt tient la carte ; aucune
+  allocation par image, 200 crans au plus — le budget de rendu tient
+  (ADR-006). Câblée dans la démo au bord droit, à gauche du pouce et de
+  la bande d'erreurs (`MinimapModelTest`, `PopupSurfacesTest`).
+
+- **Le défilement rapide (C9)** : `FastScrollerView` — le pouce au bord
+  droit suit la fraction du défilement, sa hauteur la part visible :
+  le glissement rend la fraction visée (le doigt porte le HAUT du
+  pouce), le pouce GROSSIT sous le doigt — le retour du geste à la
+  manière du kit de la plateforme ; tout tient : le pouce se
+  tait. `EditorView` gagne la voie publique : `scrollFractionY`,
+  `visibleFractionY`, `scrollToFractionY`, `premiereLigneVisible`,
+  `lignesVisibles` — le corps vit chez `ViewportFractions`
+  (l'`EditorView` tient son plafond ADR-002 : le corps d'`onDraw`
+  vit chez `FrameAssembler.dessiner`, le montage des couches chez
+  `ScrollFrame.assemble`, la fabrique IME chez
+  `EditorInputConnection.creer`, la réinitialisation de scène chez
+  `FrameAssembler.reinitialiserScene`), le défilement se borne à
+  l'image suivante, l'avis de fenêtre y part (`ScrollFractionTest`,
+  `PopupSurfacesTest`).
   nom du fichier ouvert) et le trou à choix du genre du retour
   (`AtelierRefactorTest`).
 

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
@@ -71,10 +70,12 @@ public final class EditorView extends View {
      *  publication arrive au calme du doigt, pas une passe par frappe. */
     public static final long DELAI_RETENU_PAR_DEFAUT_MS = 250L;
 
-    private final CanvasSurface surface = new CanvasSurface();
+    // Visible du paquet : l'assemblage d'image y attache la surface (C9).
+    final CanvasSurface surface = new CanvasSurface();
     // Visible du paquet : l'assemblage d'image (FrameAssembler) l'écrit.
     final FrameState etatImage = new FrameState();
-    private final ScrollFrame trace = new ScrollFrame();
+    // Visible du paquet : l'assemblage d'image y trace les couches (C9).
+    final ScrollFrame trace;
     final SelectionDrag glissement = new SelectionDrag();
     // Visible du paquet : la projection vit dans l'assemblage d'image.
     final FoldModel plis = new FoldModel();
@@ -83,13 +84,15 @@ public final class EditorView extends View {
     final RowLayoutCache cache = new RowLayoutCache();
     final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
-    private final ChromePainter chrome = new ChromePainter();
+    // Visible du paquet : l'assemblage d'image y trace le chrome (C9).
+    final ChromePainter chrome = new ChromePainter();
     private final GutterPainter gouttiere;
     final MarquesGouttiere marquesGouttiere = new MarquesGouttiere();
     private final AccessibilityHost accessibilite = new AccessibilityHost(this);
     private final EditListener ecouteurAnnonce = (debut, fin, retire, insere)
             -> sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
-    private final TextBrush pinceauChrome;
+    // Visible du paquet : l'assemblage d'image y pose son pinceau (C9).
+    final TextBrush pinceauChrome;
     private final GestureDetector longPresses;
     private final ScaleGestureDetector pincements;
 
@@ -98,6 +101,8 @@ public final class EditorView extends View {
     final PinchZoomHandler zoom = new PinchZoomHandler(this);
     // — la gouttière stable vit dans son collaborateur (PIEGE-25)
     final EditorGutter gouttiereEtat = new EditorGutter();
+    // — les fractions du défilement vivent dans leur collaborateur (C9)
+    private final ViewportFractions fractions = new ViewportFractions(this);
 
     TextSession session = TextSession.of("", System::nanoTime);
     VisualProjection projection = new VisualProjection(session.document(), plis, 0);
@@ -186,11 +191,8 @@ public final class EditorView extends View {
                 gouttiereEtat::coulisseCourante,
                 marquesGouttiere::pastille,
                 marquesGouttiere::reperePreview);
-        trace.addLayer(gouttiere);
-        trace.addLayer(new SelectionPainter(pinceaux));
-        trace.addLayer(new ComposingPainter(pinceaux, composition));
-        trace.addLayer(new TextPainter(pinceaux, cache, sourceLiee));
-        trace.addLayer(fantome.peintre());
+        trace = ScrollFrame.assemble(gouttiere, pinceaux, composition,
+                cache, sourceLiee, fantome);
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
         // logique (sp) se convertit une fois pour toutes (PIEGE-23).
@@ -213,13 +215,7 @@ public final class EditorView extends View {
         session = nouvelleSession;
         session.addEditListener(ecouteurAnnonce);
         syntaxe.attacher(session);
-        revisionSuivie = Long.MIN_VALUE;
-        gouttiereEtat.reinitialiser();
-        cache.clear();
-        diagnostics.reinitialiser();
-        scrollX = 0f;
-        scrollY = 0f;
-        invalidate();
+        images.reinitialiserScene(true);
     }
 
     /**
@@ -230,11 +226,7 @@ public final class EditorView extends View {
      */
     public void setLanguage(@Nullable LanguageSupport nouvelleLangue) {
         syntaxe.setLanguage(nouvelleLangue);
-        revisionSuivie = Long.MIN_VALUE;
-        gouttiereEtat.reinitialiser();
-        cache.clear();
-        diagnostics.reinitialiser();
-        invalidate();
+        images.reinitialiserScene(false);
     }
 
     /** Le concentrateur d'intelligence de la vue (M7.5, §8) — la frappe
@@ -272,10 +264,8 @@ public final class EditorView extends View {
     }
 
     /**
-     * Active ou coupe le retour à la ligne souple par offsets (A-18) :
-     * le budget de colonnes redérive de la fenêtre, la projection se
-     * reconstruit et le défilement horizontal se rabat — le contenu
-     * tient désormais dans la fenêtre.
+     * Active ou coupe le retour à la ligne souple par offsets (A-18) —
+     * le budget de colonnes redérive, le défilement horizontal se rabat.
      *
      * @param actif vrai pour couper les lignes à la fenêtre
      */
@@ -309,6 +299,36 @@ public final class EditorView extends View {
      */
     public void setSurViewportChange(@Nullable Runnable ecouteur) {
         fenetre.setListener(ecouteur);
+    }
+
+    /** La fraction verticale du défilement — 0 en tête, 1 au pied (C9). */
+    public float scrollFractionY() {
+        return fractions.fraction();
+    }
+
+    /** La part visible du contenu vertical — 1 quand tout tient (C9). */
+    public float visibleFractionY() {
+        return fractions.partVisible();
+    }
+
+    /**
+     * Défile à la fraction verticale (C9) : 0 en tête, 1 au pied — le
+     * bornage et l'avis de fenêtre partent à l'image suivante.
+     *
+     * @param fraction la fraction visée du défilement
+     */
+    public void scrollToFractionY(float fraction) {
+        fractions.defilerA(fraction);
+    }
+
+    /** La première ligne visible — la rangée du haut de la fenêtre (C9). */
+    public int premiereLigneVisible() {
+        return fractions.premiereLigneVisible();
+    }
+
+    /** Le nombre de lignes visibles, au moins une (C9). */
+    public int lignesVisibles() {
+        return fractions.lignesVisibles();
     }
 
     /**
@@ -369,10 +389,8 @@ public final class EditorView extends View {
     }
 
     /**
-     * Adapte la gouttière à la classe de largeur de fenêtre (D-19 —
-     * pliables, grands écrans, mode bureau) : le compact resserre le
-     * champ de numéros, l'étendu le respire — le pliable déplié change
-     * de classe d'un geste, la gouttière suit.
+     * Adapte la gouttière à la classe de largeur de fenêtre (D-19) :
+     * le compact resserre le champ de numéros, l'étendu le respire.
      *
      * @param classe la classe de largeur courante
      */
@@ -442,25 +460,17 @@ public final class EditorView extends View {
 
     /**
      * La connexion d'entrée IME : texte de code sans suggestions,
-     * jamais plein écran, sélection initiale annoncée. En lecture
-     * seule, la vue se déclare non éditable (TYPE_NULL, pas de
-     * connexion).
+     * jamais plein écran, sélection initiale annoncée — la fabrique
+     * vit dans {@link EditorInputConnection}, la lecture seule rend
+     * la vue non éditable (TYPE_NULL).
      */
     @Override
     public @Nullable InputConnection onCreateInputConnection(
             EditorInfo outAttrs) {
-        if (session.isReadOnly()) {
-            outAttrs.inputType = InputType.TYPE_NULL;
-            return null;
-        }
-        EditorInputConnection.remplirInfos(session, outAttrs);
-        return new EditorInputConnection(this, composition);
+        return EditorInputConnection.creer(this, composition, outAttrs);
     }
 
-    /**
-     * L'état d'image courant — accès de paquet pour l'hôte
-     * d'accessibilité (G-05) : l'état se prépare, puis se lit.
-     */
+    /** L'état d'image courant — l'hôte d'accessibilité (G-05) y lit. */
     FrameState etatImageCourante() {
         preparerEtatImage();
         return etatImage;
@@ -488,33 +498,22 @@ public final class EditorView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        // Le budget de colonnes dérive de la largeur : l'image suivante
-        // reconstruit la projection s'il a changé.
+        // Le budget de colonnes dérive de la largeur (image suivante).
         invalidate();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawColor(theme.backgroundColor());
-        preparerEtatImage();
-        surface.attach(canvas);
-        trace.drawFrame(surface, etatImage);
-        diagnostics.surImageTracee();
-        pinceauChrome.setFont(metrics.font());
-        chrome.tracer(surface, pinceauChrome, theme, metrics, pilule,
-                etatImage.document(), projection, session.selection().ranges(),
-                largeurGouttiere, scrollX, scrollY, curseurClavier.visible());
-        surface.detach();
+        images.dessiner(canvas);
     }
 
     /**
      * Prépare l'état d'image : gouttière AVANT le budget de colonnes
      * (le cycle est cassé, PIEGE-25), suivi de révision, bornage du
      * défilement et fenêtre visible — l'assemblage vit dans
-     * {@link FrameAssembler}, l'avis de fenêtre y part (M7.5, §7).
-     * Visible du paquet : les collaborateurs (ancres, diagnostic) y
-     * préparent avant de lire.
+     * {@link FrameAssembler}. Visible du paquet : les collaborateurs
+     * (ancres, diagnostic) y préparent avant de lire.
      */
     void preparerEtatImage() {
         images.preparer();

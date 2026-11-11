@@ -23,6 +23,32 @@ public final class ScrollFrame {
         layers.add(layer);
     }
 
+    /**
+     * Assemble le pipeline de couches de la vue (chantier C9 — le
+     * montage vit chez son assemblage) : gouttière, sélection,
+     * composition, texte, fantôme — dans l'ordre du tracé.
+     *
+     * @param gouttiere   le peintre de gouttière
+     * @param pinceaux    la fabrique de pinceaux de la vue
+     * @param composition l'état de composition de la vue
+     * @param cache       le cache de rangées de la vue
+     * @param source      la source de rangées liée de la vue
+     * @param fantome     l'éditeur du texte fantôme
+     * @return le pipeline assemblé
+     */
+    public static ScrollFrame assemble(GutterPainter gouttiere,
+            BrushFactory pinceaux, CompositionState composition,
+            RowLayoutCache cache, RebindingRowSource source,
+            FantomeEditeur fantome) {
+        ScrollFrame pipeline = new ScrollFrame();
+        pipeline.addLayer(gouttiere);
+        pipeline.addLayer(new SelectionPainter(pinceaux));
+        pipeline.addLayer(new ComposingPainter(pinceaux, composition));
+        pipeline.addLayer(new TextPainter(pinceaux, cache, source));
+        pipeline.addLayer(fantome.peintre());
+        return pipeline;
+    }
+
     /** Le nombre de couches du pipeline. */
     public int layerCount() {
         return layers.size();
