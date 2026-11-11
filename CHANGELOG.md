@@ -150,6 +150,18 @@ vivent dans les ADR et le registre de portage, pas ici.
   réindente au niveau des membres de la cible, en une transaction
   annulable (`SafeDeleteTest`, `SafeMoveTest`).
 
+- **Historique local par fichier (A-14)** : `HistoriqueLocal` enveloppe le
+  système de fichiers virtuel (E-01) — chaque écriture archive le
+  contenu qui s'en va (l'écriture qui ne change rien n'archive rien),
+  l'horloge injectée horodate chaque `RevisionLocale`. `revisions`
+  sert l'histoire chronologique du fichier, vide pour un fichier sans
+  passé ; `restaurer` réécrit le contenu d'une révision passée par la
+  porte commune — la restauration archive le contenu remplacé, elle
+  se défait comme elle s'est faite. La révision d'un autre fichier,
+  ou forgée, refuse d'exception. L'isolement tient par construction :
+  l'histoire vit par chemin, celle d'un fichier ne fuit jamais dans
+  celle d'un autre (`HistoriqueLocalTest`).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
