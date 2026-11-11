@@ -184,6 +184,16 @@ vivent dans les ADR et le registre de portage, pas ici.
   l'expression vide, littérale ou mal terminée refusent
   (`PostfixCompletionTest`).
 
+- **Recherche dans le projet (A-21)** : `RechercheProjet.chercher` — la requête
+  se pose sur le projet embarqué, hors ligne. La requête qui nomme un
+  identifiant entier suit la voie de l'index (les occurrences déjà comptées
+  servent, jamais les chaînes ni les commentaires) ; la requête partielle
+  suit la voie du balayage (chaque fichier se lit de bout en bout, chaînes
+  comprises). Ordre déterministe : uris du dictionnaire puis offsets
+  croissants ; motif vide refusé d'exception ; latence consignée au banc
+  (60 fichiers de 200 lignes : index 0 ms / budget 200 ms, balayage 1 ms /
+  budget 400 ms) (`RechercheProjetTest`).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
