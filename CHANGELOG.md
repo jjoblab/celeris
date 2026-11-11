@@ -112,6 +112,16 @@ vivent dans les ADR et le registre de portage, pas ici.
   faux ; les éditions descendent — le plan s'applique en une
   transaction annulable (`ExtractionTest`).
 
+- **Aligner en ligne (B-21)** : `Inline.declaration` — la déclaration
+  désignée disparaît : ses usages reçoivent le littéral de son
+  initialisateur, la déclaration se supprime si elle est locale ou
+  privée, le champ visible hors de la classe reste déclaré. Le membre
+  de `this` se remplace en entier (`this.champ` devient le littéral).
+  Le refus mène, jamais le faux : initialisateur littéral seul (un
+  littéral est atomique, aucune précédence ne se brise), réaffectation
+  refusée (composée, incrément, décrément), ombre homonyme refusée
+  (redéclaration, paramètre de lambda, champ ombré par une locale),
+  récepteur étranger refusé (`InlineTest`).
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
