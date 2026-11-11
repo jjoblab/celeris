@@ -45,7 +45,7 @@ développement, quel que soit le statut de C12.
 | C1 | Publication réelle de 1.0.0 : tag, workflow distant, artefact vérifié | P0 | ~1 j | Bloqué |
 | C2 | Hygiène du dépôt : dependabot + politique de sécurité | P0 | ~1 h | Terminé |
 | C3 | Cohérence documentaire : les incohérences de l'audit | P0 | ~0,5 j | Terminé |
-| C4 | `USAGE.md` : guide d'intégration hôte | P0 | 2–3 j | Non démarré |
+| C4 | `USAGE.md` : guide d'intégration hôte | P0 | 2–3 j | Terminé |
 | C5 | Langages par paquets : la famille web et la longue traîne livrées, restent Go, Rust… | P1 | 1–2 j / langue | En cours |
 | C6 | Raffinements de complétion | P1 | 3–5 j | Terminé |
 | C7 | Signature riche et snippets riches | P1 | 3–5 j | Non démarré |
@@ -119,7 +119,7 @@ son statut SNAPSHOT est assumé par décision consignée.
 
 ### C4 — USAGE.md : guide d'intégration hôte
 
-**Statut** : non démarré.
+**Statut** : terminé le 2026-11-11 (`USAGE.md` à la racine, 719 lignes ; coordonnées et noms d'API vérifiés contre les manifestes `api/`, commit 023ad2d).
 
 **Périmètre** : le guide d'intégration qui manque à tout hôte —
 déclaration des dépendances, montage de la vue, registre des langages,
@@ -356,6 +356,7 @@ dépôt de départ, hors de ce bac à sable.
 | 2026-11-10 | C12 — harmonisation tout en popups | feuilles du kit (`FeuilleBas`, `FeuilleHaut`, 11 tests de vue), douze surfaces migrées, écran de réglages disparu du manifeste ; inventaire consigné (`docs/audit/INVENTAIRE-SURFACES.md`) |
 | 2026-11-10 | C10 — charge et limites | banc `Charge480kLignesTest` (480 000 lignes, tas dédié 1 Go), mode gros fichiers tri-état (`LargeFileMode` + `LargeFileModeTest`), limites au README (« Charge et limites ») ; G-01 étendu à la matrice |
 | 2026-11-11 | C6 — raffinements de complétion | `CompletionMatcher` (six paliers), `AcceptanceHistory` (apprentissage), `ContextualCompletion` (contextes enum/annotation), `FusedFloor` (plancher fusionné) ; `RaffinementsCompletionTest` (commit 8d934c3) |
+| 2026-11-11 | C4 — USAGE.md : guide d'intégration hôte | `USAGE.md` à la racine (719 lignes, commit 023ad2d) ; coordonnées d'artefacts et noms d'API vérifiés contre les manifestes `api/` |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 
