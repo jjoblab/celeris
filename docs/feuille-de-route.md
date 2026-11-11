@@ -2,7 +2,10 @@
 
 > **Document vivant** : ce fichier se met à jour à la clôture de chaque
 > chantier — statut, date, preuve au journal des clôtures (décision du
-> propriétaire du 2026-11-10). Les jalons M0 à M9 sont bouclés : la
+> propriétaire du 2026-11-10). Les étapes restantes vivent dans
+> [`feuille-de-route-restante.md`](feuille-de-route-restante.md)
+> (décision du propriétaire du 2026-11-11) ; ce fichier garde
+> l'historique des chantiers et le journal des clôtures. Les jalons M0 à M9 sont bouclés : la
 > version 1.0.0 est publiée en local le 2026-11-10 (huit artefacts
 > `jo.celeris:*`, SBOM et sommes de contrôle vérifiés) ; leur
 > planification historique reste consultable en fin de fichier.
@@ -54,7 +57,7 @@ développement, quel que soit le statut de C12.
 | C10 | Charge et limites : 480 000 lignes, mode gros fichiers | P1 | 2–3 j | Terminé |
 | C11 | Second étage appareil de la vérification sur vitre | P1 | 1–2 j | Bloqué |
 | C12 | Harmonisation tout en popups des surfaces existantes (ADR-018) | P1 | 2–4 j | Terminé |
-| C13 | Deuxième vague : refactorings, ornement, volume de tests, CLI complète | P2 | 10–15 j | En cours |
+| C13 | Deuxième vague : refactorings, ornement, volume de tests, CLI complète | P2 | 10–15 j | Terminé |
 | C14 | Statut du dépôt de départ : archivage et bannière de migration | P2 | ~1 h | Bloqué |
 
 ## Détail par chantier
@@ -354,9 +357,10 @@ recherche, renommage, verdicts du banc).
 
 ### C13 — Deuxième vague : refactorings, ornement, tests, CLI
 
-**Statut** : en cours — première vague
-livrée le 2026-11-10 (A-04 mots à bosses de chameau, B-20 extraire en
-variable, constante et champ).
+**Statut** : terminé le 2026-11-11 — le périmètre est livré, le volume
+de tests se clôt par décision du propriétaire (voir la clôture).
+Première vague livrée le 2026-11-10 (A-04 mots à bosses de chameau,
+B-20 extraire en variable, constante et champ).
 
 Directrice du propriétaire du 2026-11-10 : la parité Android Studio
 (lignes de la matrice) passe AVANT les gaps de l'analyse comparative
@@ -429,6 +433,19 @@ les plages vidés signalent les chemins rapides du peintre) — 19 tests
 de plus ; volume courant : 2 047 méthodes `@Test` contre 3 130 à
 l’audit, la traîne continue.
 
+**Clôture (2026-11-11)** : le périmètre est livré — les cinq
+refactorings (A-04, B-20 à B-23), l’historique local (A-14), les
+guides d’indentation (A-17), les ligatures (D-14), le glisser-déposer
+(D-20), la complétion postfixe (A-23), la recherche projet (A-21) et
+la CLI complète (G-03). Sur le volume de tests, décision du
+propriétaire du 2026-11-11 : la parité de volume avec l’audit
+(3 130 méthodes `@Test`) n’est pas un but — le relevé courant
+(2 048 méthodes `@Test`, 326 bancs, les treize modules compris) fait
+foi, les bancs continuent de naître au fil des chantiers sans quota,
+les cliquets (couverture, mutation, plafonds, manifestes) restent les
+seuls juges. Les étapes restantes vivent dans
+[`feuille-de-route-restante.md`](feuille-de-route-restante.md).
+
 **Statut** : bloqué (décision du propriétaire).
 
 **Périmètre** : archiver le dépôt gelé (commit `f310a39`, gel déjà
@@ -455,6 +472,7 @@ dépôt de départ, hors de ce bac à sable.
 | 2026-11-11 | C4 — USAGE.md : guide d'intégration hôte | `USAGE.md` à la racine (719 lignes, commit 023ad2d) ; coordonnées d'artefacts et noms d'API vérifiés contre les manifestes `api/` |
 | 2026-11-11 | C8 — frappe fine | `JavaSmartTyping` (découpage de chaînes, cran des labels de cas) et `ClasspathIndex` + `ClasspathImports` (auto-import classpath) ; bancs `JavaSmartTypingTest`, `ClasspathImportsTest`, `DemoIntelligenceTest` ; câblés dans la démo (gestes dédiés Java, atelier d'import) |
 | 2026-11-11 | C7 — signature riche et snippets riches | `SignatureAideModel` surchargé (stepper, fenêtre ±1, peek) + `SignatureHelpView` riche (voisines, stepper ‹ i/n ›, peek à l'appui long, repli local sur réponse vide) ; trous à choix et macros au gabarit (`Trou.choix`, `Gabarit.of(corps, macros)`) ; bancs `SignatureAideModelTest`, `PopupViewsTest`, `GabaritTest`, `AtelierRefactorTest` ; câblés dans la démo (conversion entière, coach en repli, gabarit de méthode enrichi) |
+| 2026-11-11 | C13 — deuxième vague : refactorings, ornement, CLI | A-04 (`CamelWord`, `CaretsMotion`), B-20 à B-23 (`Extraction`, `Inline`, `SignatureChange`, `SafeDelete`/`SafeMove`), A-14 (`HistoriqueLocal`), A-17 (`IndentGuides`), D-14 (`setLigatures`), D-20 (`GlisserDeposer`), A-23 (`PostfixCompletion`), A-21 (`RechercheProjet`), G-03 (cli : diagnostiquer, formater, refactorer) ; volume de tests clos par décision (2 048 méthodes `@Test`, pas de quota — détail ci-dessus) |
 | 2026-11-11 | C9 — chrome de l'éditeur | `MinimapModel` + `MinimapView` (silhouette, fenêtre visible, saut au toucher et au glissement) et `FastScrollerView` (pouce, glissement, tout tient : le pouce se tait) ; `EditorView` gagne la voie publique du défilement par fraction (`ViewportFractions`) ; bancs `MinimapModelTest`, `PopupSurfacesTest`, `ScrollFractionTest` ; câblés dans la démo au bord droit |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)

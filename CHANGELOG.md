@@ -472,6 +472,31 @@ vivent dans les ADR et le registre de portage, pas ici.
   volumineux, décision du propriétaire du 2026-11-11) — plus aucun ADR
   accepté absent de l'index.
 
+### Feuille de route — C13 se clôt, les étapes restantes se consignent
+
+- **C13 (deuxième vague) se clôt le 2026-11-11** : le périmètre est
+  livré — refactorings (A-04, B-20 à B-23), historique local (A-14),
+  guides d'indentation (A-17), ligatures (D-14), glisser-déposer
+  (D-20), complétion postfixe (A-23), recherche projet (A-21), CLI
+  complète (G-03). Sur le volume de tests, décision du propriétaire du
+  2026-11-11 : la parité de volume avec l'audit (3 130 méthodes
+  `@Test`) n'est pas un but — le relevé courant (2 048 méthodes
+  `@Test`, 326 bancs, les treize modules compris) fait foi, les bancs
+  continuent de naître au fil des chantiers sans quota ; les cliquets
+  (couverture, mutation, plafonds, manifestes) restent les seuls
+  juges.
+- **`docs/feuille-de-route-restante.md` naît** (décision du
+  propriétaire du 2026-11-11) : l'inventaire honnête de tout ce qui
+  reste — publication distante des onze artefacts (C1, secrets du
+  registre), clôture de la 1.1.0 et tag `v1.1.0`, langages suivants
+  (C5, dort sur le signal du propriétaire), vérification sur vitre
+  (C11, appareil de référence), archivage du dépôt de départ (C14,
+  décision), entretien continu (dependabot, montées de version). Le
+  volume de tests n'y figure pas comme étape. La feuille de route
+  historique garde les chantiers C1 à C14, les jalons M0 à M9 et le
+  journal des clôtures ; C13 y passe à terminé avec sa preuve au
+  journal.
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
