@@ -1,9 +1,13 @@
 package jo.celeris.android.view;
 
+import android.view.KeyEvent;
+
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * L'application des actions clavier sur la session (D-17) : les
@@ -16,6 +20,30 @@ import jo.celeris.core.text.TextSession;
 final class KeyActions {
 
     private KeyActions() {
+    }
+
+    /**
+     * L'action d'une frappe matérielle (D-17) : toute frappe clôt la
+     * composition d'abord — la composition est une interaction de plage
+     * primaire — puis la table de raccourcis de la vue décide ; la
+     * frappe inconnue rend null, la vue rend la main à sa classe mère.
+     *
+     * @param vue     la vue propriétaire du clavier
+     * @param liaison la table de raccourcis courante
+     * @param clavier l'état de composition IME
+     * @param keyCode le code de la touche
+     * @param event   l'événement de frappe
+     * @return l'action liée, ou null quand la frappe est libre
+     */
+    static @Nullable EditorAction action(EditorView vue, KeyBindings liaison,
+            CompositionState clavier, int keyCode, KeyEvent event) {
+        if (clavier.isComposing()) {
+            clavier.finish();
+            vue.invalidate();
+        }
+        KeyBinding touche = new KeyBinding(keyCode, event.isShiftPressed(),
+                event.isCtrlPressed(), event.isAltPressed());
+        return liaison.actionOf(touche);
     }
 
     /**
