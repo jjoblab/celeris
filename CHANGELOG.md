@@ -7,6 +7,42 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [1.1.0] — en cours
 
+### Mini serveur de langage Java — le compagnon de banc de l'éditeur
+
+- **Le module `serveur-lsp-java` (JVM pure, douzième artefact publié)** :
+  un serveur LSP Java complet mais volontairement petit, déterministe,
+  sans réseau ni système de fichiers — pour éprouver l'éditeur de bout
+  en bout contre un serveur réel, sans archive tierce.
+- **Les capacités servies** : poignée de main et négociation (complétion,
+  survol, symboles, plis, formatage, synchronisation complète),
+  diagnostics POUSSÉS à chaque ouverture et changement (équilibre des
+  paires, littéraux non fermés, point-virgule probable), complétion par
+  mots-clés et symboles du document, survol documenté, symboles
+  hiérarchiques, plis d'accolades et de commentaires, formatage
+  d'indentation idempotent.
+- **Le montage** : la convention des serveurs embarqués (constructeur
+  vide, `setClient`) — montable par objet, PAR DÉSIGNATION (la voie des
+  déclarations `servers.json`), ou exécutable seul sur l'entrée-sortie
+  standard (`JavaLanguageServerMain`) pour les bancs et l'intégration
+  continue qui veulent un processus séparé. Il ne surveille jamais la
+  mort d'un processus parent (le piège fatal aux hôtes embarqués,
+  constat M8.6).
+- **La preuve** : `JavaLanguageServerTest` monte le serveur sur des
+  tubes à file et le rejoint par la session cliente de `lsp-protocole`
+  — la poignée de main, les diagnostics poussés, la complétion
+  documentée, le survol, les symboles, les plis et le formatage
+  traversent les deux bouts de la même bibliothèque, et le montage par
+  désignation s'y éprouve comme la démo le vivra ; les analyses pures
+  ont chacune leur banc (`JavaSourceTest`, `JavaDiagnosticsTest`,
+  `JavaSymbolsTest`, `JavaFoldsTest`, `JavaCompletionTest`,
+  `JavaHoverTest`, `JavaFormatterTest`) et l'architecture son
+  `ArchitectureTest` (aucune dépendance montante, la bibliothèque
+  exceptée). La démonstration déclare le serveur en donnée
+  (`serveurs/servers.json`, langage Java) et le monte par la
+  désignation : `DeclaredServersTest` le prouve.
+- **Ruptures pré-1.0 (ADR-009)** : aucune — module nouveau, manifeste
+  `api/serveur-lsp-java.api` commité.
+
 ### Chantier C2 — hygiène du dépôt
 
 - **Dependabot** (`.github/dependabot.yml`) : veille hebdomadaire sur

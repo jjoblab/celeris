@@ -8,3 +8,7 @@
 # l'hôte apporte ici ses propres -keep. Celles de la frontière
 # protocolaire (rouage JSON réflexif, proxys, TypeToken) vivent dans
 # lsp-protocole/regles-conservation.pro, côté consommateur.
+
+# Le mini serveur de langage Java : monté par désignation (donnée
+# serveurs/servers.json), ses classes s'instancient par réflexion.
+-keep class jo.celeris.serveur.java.** { *; }

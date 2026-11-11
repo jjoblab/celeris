@@ -1,0 +1,184 @@
+### jo.celeris.serveur.java.JavaCompletion$Candidate
+Compiled from "JavaCompletion.java"
+final class jo.celeris.serveur.java.JavaCompletion$Candidate extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String label();
+  public org.eclipse.lsp4j.CompletionItemKind kind();
+  public java.lang.String detail();
+  public java.lang.String documentation();
+}
+
+### jo.celeris.serveur.java.JavaCompletion
+Compiled from "JavaCompletion.java"
+public final class jo.celeris.serveur.java.JavaCompletion {
+  public static java.util.List<org.eclipse.lsp4j.CompletionItem> at(jo.celeris.serveur.java.JavaSource, java.util.List<jo.celeris.serveur.java.JavaSymbols$Symbol>, int);
+}
+
+### jo.celeris.serveur.java.JavaDiagnostics$Finding
+Compiled from "JavaDiagnostics.java"
+public final class jo.celeris.serveur.java.JavaDiagnostics$Finding extends java.lang.Record {
+  public jo.celeris.serveur.java.JavaDiagnostics$Finding(int, int, int, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int start();
+  public int end();
+  public int severity();
+  public java.lang.String message();
+}
+
+### jo.celeris.serveur.java.JavaDiagnostics
+Compiled from "JavaDiagnostics.java"
+public final class jo.celeris.serveur.java.JavaDiagnostics {
+  public static final int ERROR;
+  public static final int WARNING;
+  public static java.util.List<jo.celeris.serveur.java.JavaDiagnostics$Finding> of(jo.celeris.serveur.java.JavaSource);
+}
+
+### jo.celeris.serveur.java.JavaFolds$Fold
+Compiled from "JavaFolds.java"
+public final class jo.celeris.serveur.java.JavaFolds$Fold extends java.lang.Record {
+  public jo.celeris.serveur.java.JavaFolds$Fold(int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int startLine();
+  public int endLine();
+}
+
+### jo.celeris.serveur.java.JavaFolds
+Compiled from "JavaFolds.java"
+public final class jo.celeris.serveur.java.JavaFolds {
+  public static java.util.List<jo.celeris.serveur.java.JavaFolds$Fold> of(jo.celeris.serveur.java.JavaSource);
+}
+
+### jo.celeris.serveur.java.JavaFormatter
+Compiled from "JavaFormatter.java"
+public final class jo.celeris.serveur.java.JavaFormatter {
+  public static java.lang.String format(jo.celeris.serveur.java.JavaSource, int, boolean);
+}
+
+### jo.celeris.serveur.java.JavaHover
+Compiled from "JavaHover.java"
+public final class jo.celeris.serveur.java.JavaHover {
+  public static org.eclipse.lsp4j.Hover at(jo.celeris.serveur.java.JavaSource, java.util.List<jo.celeris.serveur.java.JavaSymbols$Symbol>, int);
+}
+
+### jo.celeris.serveur.java.JavaLanguageServer$1
+Compiled from "JavaLanguageServer.java"
+class jo.celeris.serveur.java.JavaLanguageServer$1 implements org.eclipse.lsp4j.services.WorkspaceService {
+  public void didChangeConfiguration(org.eclipse.lsp4j.DidChangeConfigurationParams);
+  public void didChangeWatchedFiles(org.eclipse.lsp4j.DidChangeWatchedFilesParams);
+}
+
+### jo.celeris.serveur.java.JavaLanguageServer$Documents
+Compiled from "JavaLanguageServer.java"
+final class jo.celeris.serveur.java.JavaLanguageServer$Documents implements org.eclipse.lsp4j.services.TextDocumentService {
+  public void didOpen(org.eclipse.lsp4j.DidOpenTextDocumentParams);
+  public void didChange(org.eclipse.lsp4j.DidChangeTextDocumentParams);
+  public void didClose(org.eclipse.lsp4j.DidCloseTextDocumentParams);
+  public void didSave(org.eclipse.lsp4j.DidSaveTextDocumentParams);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.Hover> hover(org.eclipse.lsp4j.HoverParams);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.jsonrpc.messages.Either<java.util.List<org.eclipse.lsp4j.CompletionItem>, org.eclipse.lsp4j.CompletionList>> completion(org.eclipse.lsp4j.CompletionParams);
+  public java.util.concurrent.CompletableFuture<java.util.List<org.eclipse.lsp4j.jsonrpc.messages.Either<org.eclipse.lsp4j.SymbolInformation, org.eclipse.lsp4j.DocumentSymbol>>> documentSymbol(org.eclipse.lsp4j.DocumentSymbolParams);
+  public java.util.concurrent.CompletableFuture<java.util.List<org.eclipse.lsp4j.FoldingRange>> foldingRange(org.eclipse.lsp4j.FoldingRangeRequestParams);
+  public java.util.concurrent.CompletableFuture<java.util.List<? extends org.eclipse.lsp4j.TextEdit>> formatting(org.eclipse.lsp4j.DocumentFormattingParams);
+}
+
+### jo.celeris.serveur.java.JavaLanguageServer
+Compiled from "JavaLanguageServer.java"
+public final class jo.celeris.serveur.java.JavaLanguageServer implements org.eclipse.lsp4j.services.LanguageServer {
+  public jo.celeris.serveur.java.JavaLanguageServer();
+  public void setClient(org.eclipse.lsp4j.services.LanguageClient);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.InitializeResult> initialize(org.eclipse.lsp4j.InitializeParams);
+  public java.util.concurrent.CompletableFuture<java.lang.Object> shutdown();
+  public void exit();
+  public org.eclipse.lsp4j.services.TextDocumentService getTextDocumentService();
+  public org.eclipse.lsp4j.services.WorkspaceService getWorkspaceService();
+}
+
+### jo.celeris.serveur.java.JavaLanguageServerMain
+Compiled from "JavaLanguageServerMain.java"
+public final class jo.celeris.serveur.java.JavaLanguageServerMain {
+  public static void main(java.lang.String[]) throws java.lang.Exception;
+}
+
+### jo.celeris.serveur.java.JavaSource$Spot
+Compiled from "JavaSource.java"
+public final class jo.celeris.serveur.java.JavaSource$Spot extends java.lang.Record {
+  public jo.celeris.serveur.java.JavaSource$Spot(int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int line();
+  public int column();
+}
+
+### jo.celeris.serveur.java.JavaSource$StrippedCode$Comment
+Compiled from "JavaSource.java"
+public final class jo.celeris.serveur.java.JavaSource$StrippedCode$Comment extends java.lang.Record {
+  public jo.celeris.serveur.java.JavaSource$StrippedCode$Comment(int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int start();
+  public int end();
+}
+
+### jo.celeris.serveur.java.JavaSource$StrippedCode
+Compiled from "JavaSource.java"
+public final class jo.celeris.serveur.java.JavaSource$StrippedCode extends java.lang.Record {
+  public jo.celeris.serveur.java.JavaSource$StrippedCode(java.lang.String, java.util.List<java.lang.Integer>, java.util.List<jo.celeris.serveur.java.JavaSource$StrippedCode$Comment>);
+  public static jo.celeris.serveur.java.JavaSource$StrippedCode of(java.lang.String);
+  public int firstUnclosedBrace();
+  public int firstUnclosedParen();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String text();
+  public java.util.List<java.lang.Integer> unclosedLiterals();
+  public java.util.List<jo.celeris.serveur.java.JavaSource$StrippedCode$Comment> comments();
+}
+
+### jo.celeris.serveur.java.JavaSource
+Compiled from "JavaSource.java"
+public final class jo.celeris.serveur.java.JavaSource {
+  public static jo.celeris.serveur.java.JavaSource of(java.lang.String);
+  public java.lang.String text();
+  public int lineCount();
+  public java.lang.String line(int);
+  public int lineStart(int);
+  public int lineEnd(int);
+  public int lineOf(int);
+  public int offset(int, int);
+  public jo.celeris.serveur.java.JavaSource$Spot spot(int);
+  public java.lang.String wordAround(int);
+  public java.lang.String identifierPrefix(int);
+  public jo.celeris.serveur.java.JavaSource$StrippedCode stripped();
+}
+
+### jo.celeris.serveur.java.JavaSymbols$Symbol
+Compiled from "JavaSymbols.java"
+public final class jo.celeris.serveur.java.JavaSymbols$Symbol extends java.lang.Record {
+  public jo.celeris.serveur.java.JavaSymbols$Symbol(java.lang.String, int, int, int, int, int, java.util.List<jo.celeris.serveur.java.JavaSymbols$Symbol>);
+  public boolean isNamed(java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String name();
+  public int kind();
+  public int start();
+  public int end();
+  public int nameStart();
+  public int nameEnd();
+  public java.util.List<jo.celeris.serveur.java.JavaSymbols$Symbol> children();
+}
+
+### jo.celeris.serveur.java.JavaSymbols
+Compiled from "JavaSymbols.java"
+public final class jo.celeris.serveur.java.JavaSymbols {
+  public static java.util.List<jo.celeris.serveur.java.JavaSymbols$Symbol> of(jo.celeris.serveur.java.JavaSource);
+}
+

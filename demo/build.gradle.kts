@@ -57,6 +57,11 @@ dependencies {
     // parité y branche le serveur de référence comme tout serveur
     // déclaré par l'hôte.
     implementation(project(":lsp-protocole"))
+    // Le mini serveur de langage Java (JVM pure) : la démonstration le
+    // déclare en donnée (serveurs/servers.json) et le monte EN PROCESSUS
+    // par la désignation — diagnostics poussés, complétion et survol
+    // réels pour les fichiers Java, sans archive tierce.
+    implementation(project(":serveur-lsp-java"))
     // L'interface de la démonstration : Material 3, barres d'application,
     // cartes, liste et bord-à-bord — les seules dépendances externes du
     // dépôt côté exécution (la démo n'est pas publiée, ADR-011).

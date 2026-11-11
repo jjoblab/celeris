@@ -1,3 +1,12 @@
 {
-  "servers": []
+  "servers": [
+    {
+      "language": "java",
+      "transport": "embedded",
+      "serverClass": "jo.celeris.serveur.java.JavaLanguageServer",
+      "clientInterface": "org.eclipse.lsp4j.services.LanguageClient",
+      "clientName": "celeris-demo",
+      "initializationOptions": { }
+    }
+  ]
 }

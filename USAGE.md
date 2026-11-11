@@ -395,7 +395,7 @@ l'hôte seul décide de le monter. Le format :
     {
       "language": "java",
       "transport": "embedded",
-      "serverClass": "com.monhote.langage.ServeurJava",
+      "serverClass": "jo.celeris.serveur.java.JavaLanguageServer",
       "clientInterface": "org.eclipse.lsp4j.services.LanguageClient",
       "clientName": "mon-hote"
     }

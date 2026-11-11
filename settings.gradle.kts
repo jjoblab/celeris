@@ -33,6 +33,10 @@ include(":core-ai")
 // fonction, jamais sa marque (règle de nommage du propriétaire,
 // 2026-11-09), comme core-syntax-grammars ne dit pas son moteur.
 include(":lsp-protocole")
+// Le mini serveur de langage Java (JVM pure) : le compagnon de banc de
+// l'éditeur — montable en processus par la frontière protocolaire ou
+// exécutable seul sur l'entrée-sortie standard.
+include(":serveur-lsp-java")
 include(":cli")
 
 // Modules Android : inclus uniquement si un SDK est détecté — l'absence de
