@@ -228,11 +228,33 @@ final class EditorTestRig {
         record TextDraw(CharSequence text, int color, float x, float y) {
         }
 
-        private final List<TextDraw> traces = new ArrayList<>();
+        /** Un tracé de ligne : ses bornes, sa couleur. */
+        record LineDraw(float x1, float y1, float x2, float y2, int color) {
+        }
 
-        /** Les tracés de l'image, dans l'ordre du dessin. */
+        private final List<TextDraw> traces = new ArrayList<>();
+        private final List<LineDraw> lignes = new ArrayList<>();
+
+        /** Les tracés de texte de l'image, dans l'ordre du dessin. */
         List<TextDraw> traces() {
             return List.copyOf(traces);
+        }
+
+        /** Les tracés de ligne de l'image, dans l'ordre du dessin. */
+        List<LineDraw> lignes() {
+            return List.copyOf(lignes);
+        }
+
+        /** Le nombre de lignes verticales tracées à l'abscisse donnée (±1 px). */
+        int lignesVerticalesA(float x) {
+            int total = 0;
+            for (LineDraw ligne : lignes) {
+                if (Math.abs(ligne.x1() - x) <= 1f
+                        && Math.abs(ligne.x2() - x) <= 1f) {
+                    total++;
+                }
+            }
+            return total;
         }
 
         /**
@@ -249,6 +271,13 @@ final class EditorTestRig {
                 }
             }
             return 0;
+        }
+
+        @Override
+        public void drawLine(float startX, float startY, float stopX,
+                float stopY, Paint paint) {
+            lignes.add(new LineDraw(startX, startY, stopX, stopY,
+                    paint.getColor()));
         }
 
         @Override
