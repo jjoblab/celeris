@@ -194,6 +194,20 @@ vivent dans les ADR et le registre de portage, pas ici.
   (60 fichiers de 200 lignes : index 0 ms / budget 200 ms, balayage 1 ms /
   budget 400 ms) (`RechercheProjetTest`).
 
+- **Raffinements de complétion (C6)** : les quatre raffinements du dépôt de
+  départ, l'ancien servant d'oracle. `CompletionMatcher` — l'apparieur unifié
+  à six paliers (exact, casse, préfixe, casse, bosses de chameau,
+  sous-séquence), groupes de départage (résolu, mot-clé, gabarit, mot du
+  tampon), tri stable, identifiant de tête (la signature ne participe jamais
+  au flou), positions en gras exactes. `AcceptanceHistory` — l'apprentissage
+  du classement : fréquence puis fraîcheur, compartiments étanches par
+  langage, capacité 200 identifiants, bascule, purge, persistance par
+  photographie versionnée. `ContextualCompletion` — les constantes
+  d'énumération après le point, les attributs d'annotation dans la
+  parenthèse, lus sur les jetons. `FusedFloor` — le plancher fusionné :
+  brancher un fournisseur ne retire ni les mots-clés ni les gabarits
+  (`RaffinementsCompletionTest`).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
