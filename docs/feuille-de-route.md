@@ -206,12 +206,12 @@ l'ADR-018, avec tests de vue et lignes de matrice.
 
 ### C8 — Frappe fine
 
-**Statut** : non démarré.
+**Statut** : en cours — la complétion postfixe (A-23, `PostfixCompletion`) et le renommage lié des balises XML (`XmlLinkedTags`) livrés le 2026-11-11.
 
 **Périmètre** : smart typing Java/XML, complétion postfixe, renommage
 XML lié, auto-import classpath — non démarrés (ligne A-23 en tête).
 
-**Sortie** : par raffinement — spécification au registre de portage,
+**Sortée** : par raffinement — la complétion postfixe (A-23) et le renommage XML lié livrés avec leurs bancs (`PostfixCompletionTest`, `XmlLinkedTagsTest`) ; restent le smart typing Java dédié (découpage de chaînes, labels de cas) et l'auto-import classpath.
 tests, ligne de matrice.
 
 **Source** : audit § 6, gap 8.

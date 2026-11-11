@@ -208,6 +208,15 @@ vivent dans les ADR et le registre de portage, pas ici.
   brancher un fournisseur ne retire ni les mots-clés ni les gabarits
   (`RaffinementsCompletionTest`).
 
+- **Renommage lié des balises XML (C8)** : `XmlLinkedTags` — l'édition du nom
+  d'une balise ouvrante (frappe ou retour arrière, caret au milieu ou en fin
+  de nom) se reflète à la position alignée du nom fermant apparié, en un
+  seul lot d'annulation. L'appariement est un empilement par nom : les
+  homonymes imbriqués se respectent, les auto-fermantes ne comptent pas,
+  les commentaires, CDATA et processing instructions se sautent ; la
+  liaison est à sens unique (éditer la fermante ne touche jamais
+  l'ouvrante) (`XmlLinkedTagsTest`).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
