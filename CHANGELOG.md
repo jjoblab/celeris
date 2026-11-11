@@ -381,6 +381,24 @@ vivent dans les ADR et le registre de portage, pas ici.
   deux côtés). Volume courant : 2 028 méthodes `@Test` contre
   3 130 à l’audit — la traîne continue.
 
+- **Le volume de tests — deuxième traîne (C13)** : trois
+  collaborateurs purs de la géométrie de la vue gagnent leurs
+  bancs (19 tests) — `CaretGeometryTest` (A-18 : sous
+  coupures, la rangée, l’abscisse et l’ordonnée d’un curseur
+  vivent sur SA tranche ; le miroir exact de la visée —
+  PIEGE-06, la visée du quart gauche retombe sur sa colonne ;
+  la rangée fantôme de la fin de ligne documentée),
+  `GutterLanesTest` (la coulisse découle de la configuration
+  seule, PIEGE-25 : la syntaxe réserve deux caractères, le
+  maximum de la respiration et des deux caractères, chaque
+  intégration partage la coulisse — le maximum jamais la
+  somme), `RowLayoutTest` (la tranche vide est légale, la fin
+  inversée refuse, ligne négative et débuts négatifs refusent,
+  les listes nulles refusent — les segments et les plages
+  vidés signalent les chemins rapides du peintre). Volume
+  courant : 2 047 méthodes `@Test` contre 3 130 à l’audit —
+  la traîne continue.
+
 ### Qualité — le rempart de langue et le plafond relevé (ADR-019)
 
 - **Le rempart de langue tient de nouveau** : les identifiants

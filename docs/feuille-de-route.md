@@ -416,7 +416,18 @@ règle (D-14), l’exécuteur injecté jamais détourné (M7.5, §9), le
 geste du fantôme (F-01) et le clignotement du curseur au rythme de la
 plateforme ; volume courant : 2 028 méthodes `@Test` (2 092
 exécutions) contre 3 130 à l’audit — l’écart vit surtout dans
-l’interface (l’audit § 4.4), la traîne continue.
+l’interface (l’audit § 4.4), la traîne continue. Deuxième traîne le
+2026-11-11 : trois collaborateurs purs de la géométrie gagnent leurs
+bancs — `CaretGeometryTest` (A-18 : la rangée, l’abscisse et
+l’ordonnée d’un curseur vivent sur SA tranche, le miroir exact de la
+visée — PIEGE-06, la rangée fantôme de la fin de ligne documentée),
+`GutterLanesTest` (M7.5, §5 : la coulisse découle de la configuration
+seule, PIEGE-25 — la syntaxe réserve deux caractères, les intégrations
+partagent la coulisse, le maximum jamais la somme) et `RowLayoutTest`
+(la tranche vide est légale, la fin inversée refuse, les segments et
+les plages vidés signalent les chemins rapides du peintre) — 19 tests
+de plus ; volume courant : 2 047 méthodes `@Test` contre 3 130 à
+l’audit, la traîne continue.
 
 **Statut** : bloqué (décision du propriétaire).
 
