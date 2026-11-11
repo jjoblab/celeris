@@ -150,6 +150,7 @@ final class jo.celeris.core.intelligence.FlowAnalysis$Call extends java.lang.Rec
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
+  public int nameOffset();
   public int openParen();
   public int closeParen();
 }
@@ -168,6 +169,7 @@ final class jo.celeris.core.intelligence.FlowAnalysis$CallSites extends java.lan
   public java.util.List<jo.celeris.core.intelligence.FlowAnalysis$Call> calls();
   public boolean ambiguous();
   public boolean methodReference();
+  public java.util.List<java.lang.Integer> suspects();
 }
 
 ### jo.celeris.core.intelligence.FlowAnalysis$Reference
@@ -472,6 +474,50 @@ public final class jo.celeris.core.intelligence.Renommage$RaisonConflit extends 
 Compiled from "Renommage.java"
 public final class jo.celeris.core.intelligence.Renommage {
   public static jo.celeris.core.intelligence.Renommage$PlanRenommage plan(jo.celeris.core.intelligence.IndexSymboles, java.lang.String, java.lang.String);
+}
+
+### jo.celeris.core.intelligence.SafeDelete$Usage
+Compiled from "SafeDelete.java"
+public final class jo.celeris.core.intelligence.SafeDelete$Usage extends java.lang.Record {
+  public jo.celeris.core.intelligence.SafeDelete$Usage(int, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int offset();
+  public java.lang.String text();
+}
+
+### jo.celeris.core.intelligence.SafeDelete$Verdict
+Compiled from "SafeDelete.java"
+public final class jo.celeris.core.intelligence.SafeDelete$Verdict extends java.lang.Record {
+  public jo.celeris.core.intelligence.SafeDelete$Verdict(java.util.List<jo.celeris.core.intelligence.SafeDelete$Usage>, java.util.List<jo.celeris.core.text.TextEdit>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.intelligence.SafeDelete$Usage> usages();
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+}
+
+### jo.celeris.core.intelligence.SafeDelete
+Compiled from "SafeDelete.java"
+public final class jo.celeris.core.intelligence.SafeDelete {
+  public static jo.celeris.core.intelligence.SafeDelete$Verdict delete(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int);
+}
+
+### jo.celeris.core.intelligence.SafeMove$MovePlan
+Compiled from "SafeMove.java"
+public final class jo.celeris.core.intelligence.SafeMove$MovePlan extends java.lang.Record {
+  public jo.celeris.core.intelligence.SafeMove$MovePlan(java.util.List<jo.celeris.core.text.TextEdit>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+}
+
+### jo.celeris.core.intelligence.SafeMove
+Compiled from "SafeMove.java"
+public final class jo.celeris.core.intelligence.SafeMove {
+  public static jo.celeris.core.intelligence.SafeMove$MovePlan move(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
 }
 
 ### jo.celeris.core.intelligence.ScanIdentifiants$NomOffset
