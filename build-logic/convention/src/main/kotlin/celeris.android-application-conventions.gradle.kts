@@ -58,10 +58,12 @@ tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
     }
 }
 
-// Mêmes plafonds que les modules purs (ADR-002).
+// Mêmes plafonds que les modules purs (ADR-002) ; nominations du
+// plafond relevé des bancs (ADR-019).
 extensions.configure(CheckstyleExtension::class.java) {
     toolVersion = catalogVersion("checkstyle")
     configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+    configDirectory.set(rootProject.file("config/checkstyle"))
 }
 extensions.configure(PmdExtension::class.java) {
     toolVersion = catalogVersion("pmd")
@@ -70,14 +72,15 @@ extensions.configure(PmdExtension::class.java) {
 }
 
 // Sous AGP, les plugins de qualité ne matérialisent aucune tâche :
-// les portes se posent explicitement sur le source set principal —
-// les mêmes plafonds que les modules purs (ADR-002), bloquants.
+// les portes se posent explicitement sur les sources — main et bancs
+// (ADR-019) — les mêmes plafonds que les modules purs, bloquants.
 val sourcePrincipal = fileTree("src/main/java")
+val sourceBancs = fileTree("src/test/java")
 
 val checkstyleAndroid = tasks.register<Checkstyle>("checkstyleAndroid") {
     group = "verification"
-    description = "Vérifie le style du source set principal (plafonds 600/50)."
-    setSource(sourcePrincipal)
+    description = "Vérifie le style de main et des bancs (plafonds 600/800, ADR-019)."
+    setSource(listOf(sourcePrincipal, sourceBancs))
     classpath = files()
 }
 tasks.named("check") { dependsOn(checkstyleAndroid) }

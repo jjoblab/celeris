@@ -48,10 +48,12 @@ tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
     }
 }
 
-// Checkstyle — plafonds ADR-002 : 600 lignes par fichier, 50 par méthode.
+// Checkstyle — plafonds ADR-002 : 600 lignes par fichier, 50 par méthode ;
+// nominations du plafond relevé (ADR-019).
 extensions.configure(CheckstyleExtension::class.java) {
     toolVersion = catalogVersion("checkstyle")
     configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+    configDirectory.set(rootProject.file("config/checkstyle"))
 }
 
 // PMD — complexité cyclomatique 15 et plafonds de longueur (ADR-002).

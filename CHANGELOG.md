@@ -235,7 +235,7 @@ vivent dans les ADR et le registre de portage, pas ici.
   les commentaires, CDATA et processing instructions se sautent ; la
   liaison est à sens unique (éditer la fermante ne touche jamais
   l'ouvrante) (`XmlLinkedTagsTest`).
-- **La frappe fine Java dédiée (C8)** : `FrappeJava` — deux gestes que le
+- **La frappe fine Java dédiée (C8)** : `JavaSmartTyping` — deux gestes que le
   moteur générique ne connaît pas. Le découpage des chaînes à l'Entrée :
   le caret dans un littéral ferme la chaîne, pose la concaténation et la
   rouvre à la ligne un cran sous la sienne (`"abc⏎def"` devient
@@ -246,7 +246,7 @@ vivent dans les ADR et le registre de portage, pas ici.
   ternaire et la ligne de commentaire ne trompent pas. Le geste dédié se
   pose sur le moteur générique plage par plage (multi-curseurs mêlés
   compris), la lecture des chaînes est textuelle — elle survit à l'arbre
-  périmé d'une édition à peine frappée (`FrappeJavaTest`) ; câblé dans
+  périmé d'une édition à peine frappée (`JavaSmartTypingTest`) ; câblé dans
   la démo par la langue du fichier — les citations d'un attribut XML ne
   se découpent jamais (`DemoIntelligenceTest`).
 
@@ -380,6 +380,27 @@ vivent dans les ADR et le registre de portage, pas ici.
   respirations dérivent de la densité, la mesure les réserve des
   deux côtés). Volume courant : 2 028 méthodes `@Test` contre
   3 130 à l’audit — la traîne continue.
+
+### Qualité — le rempart de langue et le plafond relevé (ADR-019)
+
+- **Le rempart de langue tient de nouveau** : les identifiants
+  français nouveaux de la vague revenaient à l’anglais — `FrappeJava`
+  devient `JavaSmartTyping` (le nom dit sa famille : le moteur générique
+  est `SmartTyping`), la rangée de la minimap devient `MapRow(slot,
+  load)`, le montage du pipeline prend la couche (`PainterLayer`) au
+  lieu de l’éditeur fantôme — la ligne de base redescend à l’identique
+  (344 figés), la CI redevient verte sur les trois travaux.
+- **Plafond relevé des bancs volumineux (ADR-019)** : 600 lignes par
+  fichier restent la règle ; les bancs nommés — première nomination :
+  `GutterPainterTest` (602 lignes, dix-neuf tests d’un seul
+  collaborateur) — vivent sous un plafond relevé à 800, nominatif et
+  consigné (`config/checkstyle/suppressions.xml`) ; le cliquet demeure,
+  plus haut. Les portes Checkstyle des modules Android couvrent
+  désormais les bancs (`src/test/java`) comme le source principal —
+  mêmes plafonds que les modules purs ; les violations des bancs
+  (imports inutilisés, import étoile, lignes trop longues, méthodes de
+  banc au-delà de 50 lignes) sont corrigées au passage — les méthodes
+  longues se découpent, jamais le plafond de méthode ne se relève.
 
 ## [1.0.0] — 2026-11-10
 
