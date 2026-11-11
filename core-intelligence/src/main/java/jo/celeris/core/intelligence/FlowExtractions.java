@@ -12,7 +12,6 @@ import jo.celeris.core.intelligence.Extraction.ExtractionPlan;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.OutlineEntry;
-import jo.celeris.core.syntax.TreeOutline;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextEdit;
 
@@ -94,7 +93,7 @@ final class FlowExtractions {
      */
     static @Nullable ExtractionPlan parameter(Document doc, Analysis analyse,
             OutlineEntry enclosing, int start, int end, String name) {
-        if (overloaded(doc, analyse, enclosing)) {
+        if (FlowAnalysis.overloaded(doc, analyse, enclosing)) {
             return null;
         }
         List<FlowAnalysis.AbsoluteToken> methodTokens = FlowAnalysis.tokens(doc, analyse.lex(),
@@ -211,18 +210,6 @@ final class FlowExtractions {
             text.append(parameter.getValue()).append(' ').append(parameter.getKey());
         }
         return text.toString();
-    }
-
-    /** Vrai quand une autre méthode du document porte le même nom. */
-    private static boolean overloaded(Document doc, Analysis analyse, OutlineEntry enclosing) {
-        for (OutlineEntry entry : TreeOutline.entries(doc, analyse)) {
-            if (entry.category() == NodeCategory.FUNCTION
-                    && entry.name().equals(enclosing.name())
-                    && entry.startOffset() != enclosing.startOffset()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /** Les éditions en ordre descendant d'application ; à offset égal, le remplacement précède. */
