@@ -447,6 +447,31 @@ vivent dans les ADR et le registre de portage, pas ici.
   chantiers C7 et C9 y figuraient encore « non démarrés » alors qu'ils
   sont livrés depuis le 2026-11-11.
 
+### Documentation — un README par module, le racine honnête
+
+- **Treize README de module** : chaque module porte désormais son
+  README — rôle, nature, coordonnées, dépendances, bancs (chiffres
+  relevés au 2026-11-11) et portes propres ; les modules purs citent
+  leur manifeste d'API, les modules Android en sont exempts (ADR-009 ne
+  couvre que les modules purs) et déclarent leur AAR publié depuis le
+  2026-11-11 ; la cli et la démo se déclarent applications, jamais
+  publiées.
+- **Le README racine dit l'état réel** : 1.0.0 livrée le 2026-11-10 en
+  publication locale, 1.1.0 en chantier, dix chantiers clos, un qui
+  dort sur le signal du propriétaire (C5), trois bloqués sur un moyen
+  extérieur (C1 secrets, C11 appareil, C14 décision) ; nouvelle
+  section « Publication » (les onze artefacts), nouvelle section
+  « Bancs et cliquets » (326 bancs, 2 048 méthodes `@Test` relevés au
+  2026-11-11 — le volume n'est pas un but en soi, décision du
+  propriétaire : les cliquets font foi) ; la table des modules relie
+  chaque README et corrige les rôles (la gouttière vit dans
+  `android-view`, le kit de popups et les ornements dans
+  `android-widgets`) ; la documentation référence ADR-019 et la
+  feuille de route restante.
+- **L'index des ADR rattrape ADR-019** (plafond relevé des bancs
+  volumineux, décision du propriétaire du 2026-11-11) — plus aucun ADR
+  accepté absent de l'index.
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
