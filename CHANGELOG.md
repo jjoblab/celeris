@@ -235,6 +235,31 @@ vivent dans les ADR et le registre de portage, pas ici.
   les commentaires, CDATA et processing instructions se sautent ; la
   liaison est à sens unique (éditer la fermante ne touche jamais
   l'ouvrante) (`XmlLinkedTagsTest`).
+- **La frappe fine Java dédiée (C8)** : `FrappeJava` — deux gestes que le
+  moteur générique ne connaît pas. Le découpage des chaînes à l'Entrée :
+  le caret dans un littéral ferme la chaîne, pose la concaténation et la
+  rouvre à la ligne un cran sous la sienne (`"abc⏎def"` devient
+  `"abc" +⏎    "def"`) — blocs de texte, échappée pendante et chaîne non
+  fermée refusent. Le cran des labels de cas : l'Entrée qui suit
+  « case … : », « case … -> » ou « default: » gagne un cran — le
+  corps du cas vit sous son étiquette ; le mot de tête décide, le
+  ternaire et la ligne de commentaire ne trompent pas. Le geste dédié se
+  pose sur le moteur générique plage par plage (multi-curseurs mêlés
+  compris), la lecture des chaînes est textuelle — elle survit à l'arbre
+  périmé d'une édition à peine frappée (`FrappeJavaTest`) ; câblé dans
+  la démo par la langue du fichier — les citations d'un attribut XML ne
+  se découpent jamais (`DemoIntelligenceTest`).
+
+- **L'auto-import adossé au classpath (C8)** : `ClasspathIndex` porte
+  l'index de l'hôte — nom simple vers noms qualifiés, ordre de préférence
+  conservé, doublons retirés, noms mal formés refusés d'exception.
+  `ClasspathImports.candidats` propose les noms qualifiés du nom simple
+  sous le curseur, dans l'ordre de l'index ; l'import déjà présent ne
+  se re-propose pas, les autres candidats du même nom restent proposés —
+  le choix reste à l'utilisateur. L'insertion vit chez `ImportAuto` :
+  une édition de position unique à la tête du bloc
+  (`ClasspathImportsTest`) ; câblé dans l'atelier de la démo sur le
+  classpath du terrain — le geste d'import suit le symbole au curseur.
 
 ## [1.0.0] — 2026-11-10
 

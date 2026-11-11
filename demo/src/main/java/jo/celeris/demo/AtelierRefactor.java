@@ -14,6 +14,8 @@ import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.widgets.FeuilleBas;
 import jo.celeris.android.widgets.PopupPalette;
+import jo.celeris.core.intelligence.ClasspathIndex;
+import jo.celeris.core.intelligence.ClasspathImports;
 import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.intelligence.Formateur;
 import jo.celeris.core.intelligence.Gabarit;
@@ -79,6 +81,18 @@ final class AtelierRefactor {
         /** Publie le message — l'hôte décide de sa barre. */
         void publier(CharSequence message);
     }
+
+    /**
+     * Le classpath du terrain de démonstration (C8) : une poignée de
+     * types courants du JDK, l'ordre de préférence du terrain — la
+     * même table sert le geste d'import et ses bancs.
+     */
+    static final ClasspathIndex CLASSPATH = ClasspathIndex.of(
+            java.util.Map.of(
+                    "List", List.of("java.util.List", "java.awt.List"),
+                    "Map", List.of("java.util.Map"),
+                    "Set", List.of("java.util.Set"),
+                    "Optional", List.of("java.util.Optional")));
 
     /**
      * Construit l'atelier de refactorisation.
@@ -304,11 +318,20 @@ final class AtelierRefactor {
 
     /**
      * B-27 — l'import à la tête du bloc : le doublon se refuse, le
-     * geste muet ne crée pas d'étape.
+     * geste muet ne crée pas d'étape. Adossé au classpath du terrain
+     * (C8) : le nom simple sous le curseur propose ses noms qualifiés,
+     * le premier se pose — sans symbole, le repli démontre le geste
+     * sur {@code java.util.List}.
      */
     void importerListe() {
-        EditPlan plan = planImport(session.document(),
-                "import java.util.List;\n");
+        int curseur = session.selection().ranges().isEmpty() ? 0
+                : session.selection().ranges().get(0).caret();
+        List<String> candidats = ClasspathImports.candidats(
+                session.document(), curseur, CLASSPATH);
+        EditPlan plan = candidats.isEmpty()
+                ? planImport(session.document(), "import java.util.List;\n")
+                : ClasspathImports.importer(session.document(),
+                        candidats.get(0));
         if (plan == null) {
             verdict.publier(activite.getString(R.string.import_deja_present));
             return;

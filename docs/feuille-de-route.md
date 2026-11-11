@@ -49,7 +49,7 @@ développement, quel que soit le statut de C12.
 | C5 | Langages par paquets : la famille web et la longue traîne livrées, restent Go, Rust… | P1 | 1–2 j / langue | En cours |
 | C6 | Raffinements de complétion | P1 | 3–5 j | Terminé |
 | C7 | Signature riche et snippets riches | P1 | 3–5 j | Non démarré |
-| C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | En cours |
+| C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | Terminé |
 | C9 | Chrome de l'éditeur : minimap, fil d'Ariane, barre d'erreurs, défilement rapide | P1 | 1–2 j / ornement | Non démarré |
 | C10 | Charge et limites : 480 000 lignes, mode gros fichiers | P1 | 2–3 j | Terminé |
 | C11 | Second étage appareil de la vérification sur vitre | P1 | 1–2 j | Bloqué |
@@ -206,13 +206,30 @@ l'ADR-018, avec tests de vue et lignes de matrice.
 
 ### C8 — Frappe fine
 
-**Statut** : en cours — la complétion postfixe (A-23, `PostfixCompletion`) et le renommage lié des balises XML (`XmlLinkedTags`) livrés le 2026-11-11.
+**Statut** : terminé le 2026-11-11 — la complétion postfixe (A-23,
+`PostfixCompletion`), le renommage lié des balises XML (`XmlLinkedTags`),
+la frappe fine Java dédiée (`FrappeJava`) et l'auto-import classpath
+(`ClasspathIndex` + `ClasspathImports`) livrés.
 
 **Périmètre** : smart typing Java/XML, complétion postfixe, renommage
 XML lié, auto-import classpath — non démarrés (ligne A-23 en tête).
 
-**Sortée** : par raffinement — la complétion postfixe (A-23) et le renommage XML lié livrés avec leurs bancs (`PostfixCompletionTest`, `XmlLinkedTagsTest`) ; restent le smart typing Java dédié (découpage de chaînes, labels de cas) et l'auto-import classpath.
-tests, ligne de matrice.
+**Sortée** : par raffinement — la complétion postfixe (A-23) et le
+renommage XML lié livrés avec leurs bancs (`PostfixCompletionTest`,
+`XmlLinkedTagsTest`) ; la frappe fine Java dédiée livrée le
+2026-11-11 : `FrappeJava` découpe la chaîne à l'Entrée (le caret
+dans un littéral ferme la chaîne, pose la concaténation et la rouvre à
+la ligne un cran sous la sienne — blocs de texte, échappée pendante et
+chaîne non fermée refusent) et pose le cran des labels de cas (le mot
+de tête `case`/`default` aux trois formes, ternaire et commentaire
+épargnés — `FrappeJavaTest`), câblée dans la démo par la langue du
+fichier ; l'auto-import classpath livré : `ClasspathIndex`
+porte l'index de l'hôte, `ClasspathImports` propose les noms qualifiés
+du nom simple sous le curseur dans l'ordre de l'index, l'import déjà
+présent ne se re-propose pas, l'insertion reste chez `ImportAuto`
+(`ClasspathImportsTest`, `DemoIntelligenceTest`), câblé dans l'atelier
+de la démo. Les quatre surfaces vivent au moteur, la matrice A-06 et
+B-05 passent à jour.
 
 **Source** : audit § 6, gap 8.
 
@@ -357,6 +374,7 @@ dépôt de départ, hors de ce bac à sable.
 | 2026-11-10 | C10 — charge et limites | banc `Charge480kLignesTest` (480 000 lignes, tas dédié 1 Go), mode gros fichiers tri-état (`LargeFileMode` + `LargeFileModeTest`), limites au README (« Charge et limites ») ; G-01 étendu à la matrice |
 | 2026-11-11 | C6 — raffinements de complétion | `CompletionMatcher` (six paliers), `AcceptanceHistory` (apprentissage), `ContextualCompletion` (contextes enum/annotation), `FusedFloor` (plancher fusionné) ; `RaffinementsCompletionTest` (commit 8d934c3) |
 | 2026-11-11 | C4 — USAGE.md : guide d'intégration hôte | `USAGE.md` à la racine (719 lignes, commit 023ad2d) ; coordonnées d'artefacts et noms d'API vérifiés contre les manifestes `api/` |
+| 2026-11-11 | C8 — frappe fine | `FrappeJava` (découpage de chaînes, cran des labels de cas) et `ClasspathIndex` + `ClasspathImports` (auto-import classpath) ; bancs `FrappeJavaTest`, `ClasspathImportsTest`, `DemoIntelligenceTest` ; câblés dans la démo (gestes dédiés Java, atelier d'import) |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 
