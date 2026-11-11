@@ -45,12 +45,13 @@ final class FlowAnalysis {
     record Reference(String name, int offset, boolean receiver) {
     }
 
-    /** Un appel du nom : les offsets de ses parenthèses ouvrante et fermante. */
-    record Call(int openParen, int closeParen) {
+    /** Un appel du nom : l'offset de son nom, ses parenthèses ouvrante et fermante. */
+    record Call(int nameOffset, int openParen, int closeParen) {
     }
 
     /** Les appels d'un nom dans le document et leur verdict. */
-    record CallSites(List<Call> calls, boolean ambiguous, boolean methodReference) {
+    record CallSites(List<Call> calls, boolean ambiguous, boolean methodReference,
+            List<Integer> suspects) {
     }
 
     private FlowAnalysis() {
@@ -165,9 +166,13 @@ final class FlowAnalysis {
                         constructor, before, neighbor(tokens, i - 2), collector);
                 continue;
             }
-            methodReference = methodReference || before.equals("::");
+            if (before.equals("::")) {
+                methodReference = true;
+                collector.suspects.add(token.offset());
+            }
         }
-        return new CallSites(List.copyOf(collector.found), collector.ambiguous, methodReference);
+        return new CallSites(List.copyOf(collector.found), collector.ambiguous,
+                methodReference, List.copyOf(collector.suspects));
     }
 
     /**
@@ -211,7 +216,7 @@ final class FlowAnalysis {
         if (inHeader) {
             return;
         }
-        Call call = callAt(tokens, i + 1, matchingClose(tokens, i + 1));
+        Call call = callAt(tokens, i, i + 1, matchingClose(tokens, i + 1));
         if (call == null) {
             return;
         }
@@ -224,25 +229,28 @@ final class FlowAnalysis {
                 collector.found.add(call);
             } else {
                 collector.ambiguous = true;
+                collector.suspects.add(tokens.get(i).offset());
             }
         } else if (!before.equals("::")) {
             collector.found.add(call);
         }
     }
 
-    /** Le receuil des appels : les trouvés, le drapeau ambigu. */
+    /** Le recueil des appels : les trouvés, le drapeau ambigu, les suspects. */
     private static final class CallCollector {
         final List<Call> found = new ArrayList<>();
+        final List<Integer> suspects = new ArrayList<>();
         boolean ambiguous;
     }
 
     /** L'appel d'une parenthèse ouvrante, ou null si non appariée. */
-    private static @Nullable Call callAt(List<AbsoluteToken> tokens, int openIndex,
-            int closeIndex) {
+    private static @Nullable Call callAt(List<AbsoluteToken> tokens, int nameIndex,
+            int openIndex, int closeIndex) {
         if (closeIndex <= openIndex) {
             return null;
         }
-        return new Call(tokens.get(openIndex).offset(), tokens.get(closeIndex).offset());
+        return new Call(tokens.get(nameIndex).offset(),
+                tokens.get(openIndex).offset(), tokens.get(closeIndex).offset());
     }
 
     /**

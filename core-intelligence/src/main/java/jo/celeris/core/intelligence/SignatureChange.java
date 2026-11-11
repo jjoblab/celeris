@@ -130,7 +130,7 @@ public final class SignatureChange {
     }
 
     /** Vrai quand le nom déclaré est un constructeur (classe porteuse homonyme). */
-    private static boolean isConstructor(Document doc, Analysis analyse, OutlineEntry enclosing) {
+    static boolean isConstructor(Document doc, Analysis analyse, OutlineEntry enclosing) {
         OutlineEntry owner = null;
         for (OutlineEntry entry : jo.celeris.core.syntax.TreeOutline.entries(doc, analyse)) {
             if (entry.category() == NodeCategory.TYPE
