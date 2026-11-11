@@ -17,7 +17,9 @@ import jo.celeris.core.text.TextEdit;
  * occurrences, dans l'ordre du rendu — et des variables liées — la même
  * variable éditée partout à la fois. Le rendu porte les valeurs par
  * défaut, l'insertion sélectionne le premier trou, les miroirs
- * propagent l'édition aux occurrences sœurs.
+ * propagent l'édition aux occurrences sœurs. Les trous riches (C7) :
+ * les trous à choix portent leur liste fermée, le choix se cycle ; les
+ * macros de l'hôte se résolvent au rendu, sans trou.
  */
 class GabaritTest {
 
@@ -115,5 +117,98 @@ class GabaritTest {
         List<TextEdit> miroirs = Gabarits.miroirs(gabarit.rendu(), occurrences,
                 occurrences.get(0), new TextEdit(0, "unique", "autre"));
         assertTrue(miroirs.isEmpty());
+    }
+
+    // ------------------------------------------------ trous riches (C7)
+
+    /** Le trou à choix rend son premier choix, la liste fermée vit au trou. */
+    @Test
+    void trouAChoixRendSonPremierChoix() {
+        Gabarit gabarit = Gabarit.of("final ${genre|int,long,double|} ${nom:taille} = 0;");
+        assertEquals("final int taille = 0;", gabarit.rendu());
+        Trou genre = gabarit.occurrencesDe("genre").get(0);
+        assertTrue(genre.aDesChoix());
+        assertEquals(List.of("int", "long", "double"), genre.choix());
+        assertEquals(6, genre.debut());
+        assertEquals(9, genre.fin());
+        assertTrue(!gabarit.occurrencesDe("nom").get(0).aDesChoix());
+    }
+
+    /** Le trou à choix numéroté de l'audit se lit pareil. */
+    @Test
+    void trouAChoixNumeroDeLAudit() {
+        Gabarit gabarit = Gabarit.of("${1|un,deux,trois|}");
+        assertEquals("un", gabarit.rendu());
+        assertEquals(List.of("un", "deux", "trois"),
+                gabarit.trous().get(0).choix());
+    }
+
+    /** Le choix se cycle : le suivant suit le courant, le dernier rend le premier. */
+    @Test
+    void leChoixSeCycle() {
+        Trou trou = Gabarit.of("${genre|int,long,double|}")
+                .occurrencesDe("genre").get(0);
+        assertEquals("long", trou.choixSuivant("int"));
+        assertEquals("double", trou.choixSuivant("long"));
+        assertEquals("int", trou.choixSuivant("double"));
+        // le courant inconnu rend le premier
+        assertEquals("int", trou.choixSuivant("float"));
+        // le trou libre rend le courant tel quel
+        Trou libre = Gabarit.of("${nom:monde}").occurrencesDe("nom").get(0);
+        assertEquals("autre", libre.choixSuivant("autre"));
+    }
+
+    /** Les doublons de choix se retirent, le choix vide refuse. */
+    @Test
+    void doublonsDeChoixRetiresEtChoixVideRefuse() {
+        Gabarit gabarit = Gabarit.of("${genre|int,int,long|}");
+        assertEquals(List.of("int", "long"),
+                gabarit.occurrencesDe("genre").get(0).choix());
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> Gabarit.of("${genre|int,,long|}"));
+        // le choix non fermé refuse — la barre fermante manque
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> Gabarit.of("${genre|a,b}"));
+    }
+
+    /** Les macros de l'hôte se résolvent au rendu, sans trou. */
+    @Test
+    void macrosDeLhoteResoluesAuRendu() {
+        Gabarit gabarit = Gabarit.of(
+                "// ${USER} écrit ${FILE} le ${DATE}\nval ${nom:monde}",
+                java.util.Map.of("USER", "Ada", "FILE", "Banc.java",
+                        "DATE", "2026-11-11"));
+        // les macros du dépôt de départ vivent en MAJUSCULES ($USER$,
+        // $FILE$, $DATE$) ; la table de l'hôte les résout par le nom —
+        // la syntaxe celeris reste ${NOM}, la valeur rend telle quelle
+        assertEquals("// Ada écrit Banc.java le 2026-11-11\nval monde",
+                gabarit.rendu());
+        // seule la variable non-macro devient un trou
+        assertEquals(1, gabarit.trous().size());
+        assertEquals("nom", gabarit.trous().get(0).variable());
+    }
+
+    /** La macro inconnue reste un trou libre — jamais d'invention. */
+    @Test
+    void macroInconnueResteUnTrou() {
+        Gabarit gabarit = Gabarit.of("${USER}/${nom:monde}",
+                java.util.Map.of());
+        // « USER » sans table reste une variable : son défaut vide
+        assertEquals("/monde", gabarit.rendu());
+        assertEquals(2, gabarit.trous().size());
+        assertTrue(gabarit.occurrencesDe("USER").get(0).longueur() == 0);
+    }
+
+    /** La macro se lie : les occurrences de la même macro partagent la valeur. */
+    @Test
+    void macrosEtChoixComposent() {
+        Gabarit gabarit = Gabarit.of(
+                "${FILE} ${FILE} ${genre|int,long|}",
+                java.util.Map.of("FILE", "Banc.java"));
+        assertEquals("Banc.java Banc.java int", gabarit.rendu());
+        assertEquals(1, gabarit.trous().size());
+        assertEquals(List.of("int", "long"), gabarit.trous().get(0).choix());
     }
 }

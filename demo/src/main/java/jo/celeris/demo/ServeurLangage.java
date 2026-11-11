@@ -106,20 +106,25 @@ public final class ServeurLangage implements LanguageSession {
     }
 
     /**
-     * La conversion : la signature du protocole au modèle de la vue —
-     * l'entrée active, ses paramètres, le paramètre courant borné.
+     * La conversion : la signature du protocole au modèle riche de la
+     * vue (C7) — TOUTES les entrées candidates avec leur documentation
+     * (le peek), l'active et le paramètre courant borné.
      */
     static @Nullable SignatureAideModel enModele(SignatureLsp lsp) {
-        SignatureLsp.Entree active = lsp.signatureActive();
-        if (active == null) {
+        if (lsp.entrees().isEmpty()) {
             return null;
         }
-        List<String> libelles = new ArrayList<>();
-        for (SignatureLsp.Parametre parametre : active.parametres()) {
-            libelles.add(parametre.libelle());
+        List<SignatureAideModel.Entree> entrees = new ArrayList<>();
+        for (SignatureLsp.Entree source : lsp.entrees()) {
+            List<String> libelles = new ArrayList<>();
+            for (SignatureLsp.Parametre parametre : source.parametres()) {
+                libelles.add(parametre.libelle());
+            }
+            entrees.add(new SignatureAideModel.Entree(source.libelle(),
+                    libelles, source.documentation()));
         }
-        return SignatureAideModel.of(active.libelle(), libelles,
-                lsp.parametreCourant());
+        int active = Math.max(0, lsp.signatureActiveIndex());
+        return SignatureAideModel.of(entrees, active, lsp.parametreCourant());
     }
 
     /** La conversion : le survol du protocole au modèle de documentation. */

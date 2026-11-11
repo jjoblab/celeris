@@ -234,10 +234,13 @@ final class BancSpecs {
         TextSession session = TextSession.of("class Exemple {\n}\n", () -> 0L);
         session.setSelection(MultiSelection.of(SelRange.caretAt(16)));
         EditPlan plan = AtelierRefactor.planGabarit(session.document(),
-                session.selection(), AtelierRefactor.GABARIT_METHODE);
+                session.selection(), AtelierRefactor.GABARIT_METHODE,
+                java.util.Map.of("FICHIER", "Banc.java"));
         session.apply(plan.transaction(), plan.selection());
+        // la macro FICHIER se résout au rendu (C7) : le premier trou est
+        // le trou à choix du genre, son premier choix rendu
         SelRange premiere = session.selection().ranges().get(0);
-        return "nouvelleMethode".equals(session.document()
+        return "void".equals(session.document()
                 .subText(premiere.start(), premiere.end()));
     }
 

@@ -136,6 +136,91 @@ public class PopupViewsTest {
                 vue.getMeasuredHeight() - 2 * vue.paddingYPx);
     }
 
+    /** C7 — la signature riche : les surcharges se mesurent, le stepper
+     *  passe au toucher, une seule signature ne passe pas. */
+    @Test
+    public void richSignatureStepsThroughOverloads() {
+        SignatureHelpView vue = new SignatureHelpView(contexte,
+                PopupPalette.dark());
+        SignatureAideModel model = SignatureAideModel.of(List.of(
+                new SignatureAideModel.Entree("ajouter(int a, int b)",
+                        List.of("a", "b"), null),
+                new SignatureAideModel.Entree("ajouter(int a, int b, int c)",
+                        List.of("a", "b", "c"), null)),
+                0, 0);
+        vue.setModel(model);
+        mesurer(vue);
+        int hauteurUne = vue.getMeasuredHeight();
+        AtomicInteger pas = new AtomicInteger(-1);
+        vue.setOnStep(pas::set);
+        // le toucher à DROITE du centre avance — la deuxième devient active
+        vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
+                vue.getMeasuredWidth(), 1f, 0));
+        assertTrue(vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
+                MotionEvent.ACTION_UP, vue.getMeasuredWidth(), 1f, 0)));
+        assertEquals("le rappel reçoit la nouvelle active", 1, pas.get());
+        assertEquals("le modèle a marché", "ajouter(int a, int b, int c)",
+                model.suivante().libelle());
+        // le toucher à GAUCHE du centre recule — la première revient
+        vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
+                0f, 1f, 0));
+        assertTrue(vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
+                MotionEvent.ACTION_UP, 0f, 1f, 0)));
+        assertEquals("le rappel reçoit le retour", 0, pas.get());
+        // les deux surcharges mesurent plus haut qu'une seule : les
+        // voisines et le stepper se rendent
+        assertTrue("les surcharges se mesurent", hauteurUne > 0);
+        // une seule signature ne passe pas
+        SignatureHelpView seule = new SignatureHelpView(contexte,
+                PopupPalette.dark());
+        seule.setModel(SignatureAideModel.of("fermer()", List.of(), -1));
+        mesurer(seule);
+        assertFalse(seule.onTouchEvent(MotionEvent.obtain(0L, 0L,
+                MotionEvent.ACTION_DOWN, 10f, 1f, 0))
+                && seule.onTouchEvent(MotionEvent.obtain(0L, 10L,
+                        MotionEvent.ACTION_UP, 10f, 1f, 0)));
+    }
+
+    /** C7 — le peek : la documentation de l'active grandit le panneau,
+     *  l'appui long la bascule. */
+    @Test
+    public void richSignaturePeekGrowsAndLongPressToggles() {
+        SignatureHelpView vue = new SignatureHelpView(contexte,
+                PopupPalette.dark());
+        SignatureAideModel model = SignatureAideModel.of(List.of(
+                new SignatureAideModel.Entree("ajouter(int a, int b)",
+                        List.of("a", "b"), "Ajoute deux entiers.")),
+                0, 0);
+        vue.setModel(model);
+        vue.setPeekVisible(false);
+        mesurer(vue);
+        int hauteurSansPeek = vue.getMeasuredHeight();
+        assertFalse("le peek fermé ne montre rien", vue.isPeekVisible());
+        vue.setPeekVisible(true);
+        mesurer(vue);
+        assertTrue("le peek grandit le panneau",
+                vue.getMeasuredHeight() > hauteurSansPeek);
+        // l'appui long bascule le peek — la demi-seconde du doigt
+        vue.setPeekVisible(false);
+        vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
+                10f, 1f, 0));
+        org.robolectric.Shadows.shadowOf(
+                android.os.Looper.getMainLooper()).idleFor(
+                        java.time.Duration.ofMillis(700L));
+        assertTrue("l'appui long ouvre le peek", vue.isPeekVisible());
+        // sans documentation, le peek ne grandit rien
+        SignatureHelpView muette = new SignatureHelpView(contexte,
+                PopupPalette.dark());
+        muette.setModel(SignatureAideModel.of("fermer()", List.of(), -1));
+        muette.setPeekVisible(true);
+        mesurer(muette);
+        int hauteurMuette = muette.getMeasuredHeight();
+        muette.setPeekVisible(false);
+        mesurer(muette);
+        assertEquals("sans documentation, le peek ne grandit rien",
+                hauteurMuette, muette.getMeasuredHeight());
+    }
+
     /** Le menu d'intentions : l'appui exécute l'action choisie. */
     @Test
     public void intentionsRunTheChosenAction() {

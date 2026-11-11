@@ -261,6 +261,36 @@ vivent dans les ADR et le registre de portage, pas ici.
   (`ClasspathImportsTest`) ; câblé dans l'atelier de la démo sur le
   classpath du terrain — le geste d'import suit le symbole au curseur.
 
+- **La signature riche (C7)** : `SignatureAideModel` porte les surcharges —
+  TOUTES les entrées candidates avec leur documentation. Le stepper navigue :
+  `precedente` et `suivante` rendent le modèle voisin, le cycle revient —
+  jamais bloqué. La fenêtre ±1 borne ce que la vue montre autour de
+  l'active ; le peek sert la documentation de la signature active —
+  l'appui long bascule, le panneau grandit. `SignatureHelpView` rend les
+  voisines atténuées au palier méta, le stepper ‹ i/n › au palier micro,
+  l'active garde ses trois paliers (frappé accent, actif gras, à venir
+  atténué) ; le pas au toucher prévient l'hôte par le rappel. La
+  conversion du protocole porte TOUTES les entrées
+  (`ServeurLangage.enModele`) ; le coach sert le repli local sur
+  réponse vide (`AtelierPopups`). Bancs : `SignatureAideModelTest`
+  (stepper, fenêtre, peek, bornes), `PopupViewsTest` (le pas au toucher,
+  le peek à l'appui long, une seule signature ne passe pas).
+
+- **Les trous riches du gabarit (C7)** : le trou à choix
+  `${genre|int,long|}` porte sa liste fermée — les doublons se retirent,
+  le choix vide refuse d'exception, le premier rend par défaut, le choix
+  se cycle (`Trou.choixSuivant` — le courant inconnu rend le premier, le
+  trou libre rend le courant tel quel). Les macros de l'hôte se résolvent
+  au rendu (`Gabarit.of(corps, macros)`) — `${FICHIER}` devient sa
+  valeur SANS trou : elle n'attend pas la frappe ; l'inconnue
+  de la table reste un trou libre, jamais d'invention. La syntaxe celeris
+  reste `${NOM}`, les macros de l'ancien vivaient en MAJUSCULES
+  (`$FILE$`, `$DATE$`, `$USER$`) — la table de l'hôte porte les valeurs.
+  Les miroirs étaient livrés (M5, `Gabarits.miroirs`). Câblé dans la
+  démo : le gabarit de méthode gagne la macro FICHIER (résolue du
+  nom du fichier ouvert) et le trou à choix du genre du retour
+  (`AtelierRefactorTest`).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet

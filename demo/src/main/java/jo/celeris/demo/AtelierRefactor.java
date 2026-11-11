@@ -48,12 +48,15 @@ import org.jspecify.annotations.Nullable;
 final class AtelierRefactor {
 
     /**
-     * Le gabarit de méthode du terrain : le nom et le corps sont des
-     * trous liés, le premier sélectionné à l'insertion — prêt à la
+     * Le gabarit de méthode du terrain (C7) : la macro FICHIER se résout
+     * du nom du fichier ouvert, le genre du retour est un trou à choix —
+     * « void » ou « int » —, le nom et le corps restent des trous
+     * liés libres, le premier sélectionné à l'insertion — prêt à la
      * frappe (A-22).
      */
     static final String GABARIT_METHODE = """
-            private void ${nom:nouvelleMethode}() {
+            // ${FICHIER} — posée par le gabarit de la démonstration
+            private ${genre|void,int|} ${nom:nouvelleMethode}() {
                 ${corps:}
             }""";
 
@@ -117,7 +120,8 @@ final class AtelierRefactor {
 
     /**
      * Le plan d'insertion d'un gabarit au curseur : le rendu remplace
-     * la sélection, le premier trou vit sélectionné (A-22).
+     * la sélection, le premier trou vit sélectionné (A-22) — sans
+     * macros.
      *
      * @param doc       le document, jamais muté
      * @param selection la sélection courante
@@ -126,7 +130,23 @@ final class AtelierRefactor {
      */
     static EditPlan planGabarit(Document doc, MultiSelection selection,
             String corps) {
-        return Gabarits.inserer(doc, selection, Gabarit.of(corps));
+        return planGabarit(doc, selection, corps, java.util.Map.of());
+    }
+
+    /**
+     * Le plan d'insertion d'un gabarit au curseur, macros comprises
+     * (C7) : les macros de l'hôte se résolvent au rendu, le rendu
+     * remplace la sélection, le premier trou vit sélectionné (A-22).
+     *
+     * @param doc       le document, jamais muté
+     * @param selection la sélection courante
+     * @param corps     le corps du gabarit, balises comprises
+     * @param macros    la table des macros de l'hôte
+     * @return le plan du geste
+     */
+    static EditPlan planGabarit(Document doc, MultiSelection selection,
+            String corps, java.util.Map<String, String> macros) {
+        return Gabarits.inserer(doc, selection, Gabarit.of(corps, macros));
     }
 
     /**
@@ -201,13 +221,14 @@ final class AtelierRefactor {
     // ---------------------------------------------------------- gestes
 
     /**
-     * A-22 — le gabarit de méthode au curseur : le rendu remplace la
+     * A-22 — le gabarit de méthode au curseur : la macro FICHIER se
+     * résout du nom du fichier ouvert (C7), le rendu remplace la
      * sélection, le premier trou vit sélectionné, prêt à la frappe —
      * transaction annulable d'un geste.
      */
     void insererGabarit() {
         EditPlan plan = planGabarit(session.document(), session.selection(),
-                GABARIT_METHODE);
+                GABARIT_METHODE, java.util.Map.of("FICHIER", nomFichier));
         if (session.apply(plan.transaction(), plan.selection())) {
             SelRange premiere = session.selection().ranges().get(0);
             NavigationCommands.selectRange(editeur, premiere.start(),
