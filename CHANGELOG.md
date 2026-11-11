@@ -334,6 +334,21 @@ vivent dans les ADR et le registre de portage, pas ici.
   guides alignés aux niveaux, le guide traverse le pli, la tabulation
   ouvre son niveau, sans indentation rien ne se trace).
 
+- **Le glisser-déposer (D-20)** : `GlisserDeposer`, collaborateur de la vue —
+  le TEXTE déposé s’insère au point de chute : l’offset se résout par le
+  viseur, l’insertion passe par la voie de transaction (ADR-003), une
+  annulation la défait ; l’URI de FICHIER déposée va à l’HÔTE par le
+  rappel (`setSurFichierDepose`) — la vue ne décide jamais ce qu’ouvrir
+  (le scénario de la matrice : dépôt de fichier → ouverture) ; le texte
+  a la précédence : un dépôt qui porte les deux insère le texte, l’uri
+  suit le rappel ; le geste vide refuse — la vue n’accepte que ce
+  qu’elle sait déposer ; la lecture seule refuse le texte. Le décodage
+  du presse-papiers assemble les tranches TEXT et ramasse les uris des
+  tranches porteuses d’uri. L’`EditorView` tient son plafond ADR-002 :
+  le corps d’`onKeyDown` déménage chez `KeyActions.action` (`GlisserDeposerTest`
+  — la vue vit dans la fenêtre d’une activité, les gestes passent par le
+  vrai dispatch).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
