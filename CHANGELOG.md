@@ -349,6 +349,22 @@ vivent dans les ADR et le registre de portage, pas ici.
   — la vue vit dans la fenêtre d’une activité, les gestes passent par le
   vrai dispatch).
 
+- **Les ligatures (D-14)** : `setLigatures` — « liga » ouvre les
+  ligatures de la police (la police à ligatures posée par l’hôte livre
+  ses glyphes liés), « -liga » les ferme ; toutes les peintures du
+  texte suivent, fermées par défaut. `poserPolice(famille, police)` —
+  la police libre vit sous son nom de famille dans la table de la
+  règle : la mesure et le tracé la lisent ensemble (PIEGE-22), la
+  famille active se redérive — métriques, viseur, cache. La
+  démonstration embarque Fira Code 6.2 (SIL OFL 1.1, attribuée au
+  `NOTICE`, somme SHA-256 épinglée) : l’interrupteur « Ligatures »
+  de la feuille des réglages l’ouvre, la famille suit. L’`EditorView`
+  tient son plafond ADR-002 : le montage de la gouttière déménage
+  chez `GutterPainter.monter` (`LigaturesTest` — test de capture :
+  fermées par défaut, la bascule ouvre puis referme, la police posée
+  vit au tracé comme à la mesure, la famille active se redérive au
+  repos).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
