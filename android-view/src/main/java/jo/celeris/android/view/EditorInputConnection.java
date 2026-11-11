@@ -62,6 +62,27 @@ import org.jspecify.annotations.Nullable;
 final class EditorInputConnection implements InputConnection {
 
     /**
+     * La fabrique de connexion : la vue s'y délègue (C9 — le corps
+     * de {@code onCreateInputConnection} vit dans sa colle) — en
+     * lecture seule, la vue se déclare non éditable (TYPE_NULL, pas de
+     * connexion).
+     *
+     * @param vue         la vue propriétaire de la session
+     * @param composition l'état de composition de la vue
+     * @param outAttrs    les informations à remplir
+     * @return la connexion, ou null en lecture seule
+     */
+    static @Nullable InputConnection creer(EditorView vue,
+            CompositionState composition, EditorInfo outAttrs) {
+        if (vue.session.isReadOnly()) {
+            outAttrs.inputType = InputType.TYPE_NULL;
+            return null;
+        }
+        remplirInfos(vue.session, outAttrs);
+        return new EditorInputConnection(vue, composition);
+    }
+
+    /**
      * Remplit les informations IME de la session : texte de code sans
      * suggestions, jamais plein écran, sélection initiale annoncée —
      * la vue délègue, la colle possède sa surface.

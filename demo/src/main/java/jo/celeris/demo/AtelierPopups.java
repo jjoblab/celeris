@@ -15,7 +15,10 @@ import jo.celeris.android.widgets.CompletionListView;
 import jo.celeris.android.widgets.DiagnosticTooltipView;
 import jo.celeris.android.widgets.ErrorBandModel;
 import jo.celeris.android.widgets.ErrorBandView;
+import jo.celeris.android.widgets.FastScrollerView;
 import jo.celeris.android.widgets.IntentionsMenuView;
+import jo.celeris.android.widgets.MinimapModel;
+import jo.celeris.android.widgets.MinimapView;
 import jo.celeris.android.widgets.PopupAnchor;
 import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupLayer;
@@ -47,6 +50,8 @@ final class AtelierPopups {
     private static final float MARGE_DP = 8f;
     /** Le nombre de crans de la bande d'erreurs. */
     private static final int CRANS_BANDE = 200;
+    /** Le nombre de rangees de la minimap (chantier C9). */
+    private static final int RANGEES_MINIMAP = 200;
 
     private final EditorView editeur;
     private final TextSession session;
@@ -64,6 +69,10 @@ final class AtelierPopups {
     private final BreadcrumbView filAriane;
     private final ErrorBandView bandeErreurs;
     private final SelectionBarView barreSelection;
+    /** La minimap du bord droit — la silhouette du document (chantier C9). */
+    private final MinimapView minimap;
+    /** Le défilement rapide du bord droit — le pouce suit, le doigt emporte (chantier C9). */
+    private final FastScrollerView defilementRapide;
     /** Le menu de débordement de la barre — la carte du kit sous la puce. */
     private final MenuDebordement menuDebordement;
 
@@ -120,6 +129,8 @@ final class AtelierPopups {
         filAriane = new BreadcrumbView(couche.getContext(), palette);
         bandeErreurs = new ErrorBandView(couche.getContext(), palette);
         barreSelection = new SelectionBarView(couche.getContext(), palette);
+        minimap = new MinimapView(couche.getContext(), palette);
+        defilementRapide = new FastScrollerView(couche.getContext(), palette);
         menuDebordement = new MenuDebordement(controleur, menuIntentions,
                 couche, margePx);
         docAncre = new DocAncre(editeur.getContext(), controleur,
@@ -127,6 +138,11 @@ final class AtelierPopups {
 
         listeCompletion.setOnPick(this::choisirCompletion);
         bandeErreurs.setOnJump(this::sauterDiagnostic);
+        minimap.setOnJump(ligne -> editeur.scrollToFractionY(
+                session.document().lineCount() <= 1 ? 0f
+                        : ligne / (float) session.document().lineCount()));
+        defilementRapide.setOnScroll(fraction
+                -> editeur.scrollToFractionY((float) fraction));
         barreSelection.setOnOverflow(
                 () -> menuDebordement.ouvrir(barreSelection,
                         debordementSelection));
@@ -167,6 +183,8 @@ final class AtelierPopups {
         infoBulle.setPalette(palette);
         filAriane.setPalette(palette);
         bandeErreurs.setPalette(palette);
+        minimap.setPalette(palette);
+        defilementRapide.setPalette(palette);
         barreSelection.setPalette(palette);
     }
 
@@ -382,6 +400,7 @@ final class AtelierPopups {
         }
         rafraichirSignature();
         rafraichirFilAriane();
+        rafraichirMinimap();
     }
 
     private void surSelection(MultiSelection selection) {
@@ -457,6 +476,61 @@ final class AtelierPopups {
                 largeurCouche(), hauteurCouche(), margePx);
         couche.show(PopupController.PopupKind.ERROR_BAND, bandeErreurs,
                 placee.x(), placee.y());
+    }
+
+    /**
+     * La minimap du bord droit (chantier C9) : la silhouette du
+     * document, sa fenêtre visible à l'encre d'accent — l'appui et le
+     * glissement sautent, le modèle se reconstruit à l'édition.
+     */
+    private void rafraichirMinimap() {
+        controleur.open(PopupController.PopupKind.MINIMAP);
+        minimap.setModel(MinimapModel.of(session.document(), RANGEES_MINIMAP),
+                session.document().lineCount());
+        minimap.setViewport(editeur.premiereLigneVisible(),
+                editeur.lignesVisibles(), session.document().lineCount());
+        minimap.setSpanPx(Math.max(1, hauteurCouche() - 2 * margePx));
+        PopupPlacer.Cadre placee = bordDroit(minimap,
+                largeurMesuree(bandeErreurs) + largeurMesuree(defilementRapide));
+        couche.show(PopupController.PopupKind.MINIMAP, minimap,
+                placee.x(), placee.y());
+    }
+
+    /**
+     * Le défilement rapide du bord droit (chantier C9) : le pouce
+     * suit la fraction du défilement, sa hauteur la part visible —
+     * tout tient : le pouce se tait, la bande reste muette.
+     */
+    private void rafraichirDefilementRapide() {
+        controleur.open(PopupController.PopupKind.FAST_SCROLLER);
+        defilementRapide.setEtat(editeur.scrollFractionY(),
+                editeur.visibleFractionY());
+        defilementRapide.setSpanPx(Math.max(1, hauteurCouche() - 2 * margePx));
+        PopupPlacer.Cadre placee = bordDroit(defilementRapide,
+                largeurMesuree(bandeErreurs));
+        couche.show(PopupController.PopupKind.FAST_SCROLLER, defilementRapide,
+                placee.x(), placee.y());
+    }
+
+    /**
+     * Le cadre du bord droit — la largeur déjà prise à sa droite
+     * déduite (bande d'erreurs, pouce), pleine hauteur respirée.
+     */
+    private PopupPlacer.Cadre bordDroit(android.view.View vue,
+            int priseADroite) {
+        PopupPlacer.Cadre taille = taille(vue);
+        int x = Math.max(margePx, largeurCouche() - margePx
+                - taille.largeur() - priseADroite);
+        return new PopupPlacer.Cadre(x, margePx, taille.largeur(),
+                Math.max(margePx, hauteurCouche() - 2 * margePx));
+    }
+
+    /** La largeur mesurée d'une vue de bord — son empreinte au bord droit. */
+    private int largeurMesuree(android.view.View vue) {
+        if (vue.getMeasuredWidth() <= 0) {
+            taille(vue);
+        }
+        return vue.getMeasuredWidth();
     }
 
     private void rafraichirInfoBulle(MultiSelection selection) {
@@ -536,6 +610,8 @@ final class AtelierPopups {
         if (controleur.isOpen(PopupController.PopupKind.ERROR_BAND)) {
             rafraichirBandeErreurs();
         }
+        rafraichirMinimap();
+        rafraichirDefilementRapide();
         if (controleur.isOpen(PopupController.PopupKind.SELECTION_BAR)) {
             rafraichirBarreSelection(session.selection());
         }

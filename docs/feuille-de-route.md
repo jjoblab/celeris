@@ -50,7 +50,7 @@ développement, quel que soit le statut de C12.
 | C6 | Raffinements de complétion | P1 | 3–5 j | Terminé |
 | C7 | Signature riche et snippets riches | P1 | 3–5 j | Terminé |
 | C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | Terminé |
-| C9 | Chrome de l'éditeur : minimap, fil d'Ariane, barre d'erreurs, défilement rapide | P1 | 1–2 j / ornement | Non démarré |
+| C9 | Chrome de l'éditeur : minimap, fil d'Ariane, barre d'erreurs, défilement rapide | P1 | 1–2 j / ornement | Terminé |
 | C10 | Charge et limites : 480 000 lignes, mode gros fichiers | P1 | 2–3 j | Terminé |
 | C11 | Second étage appareil de la vérification sur vitre | P1 | 1–2 j | Bloqué |
 | C12 | Harmonisation tout en popups des surfaces existantes (ADR-018) | P1 | 2–4 j | Terminé |
@@ -256,12 +256,35 @@ B-05 passent à jour.
 
 ### C9 — Chrome de l'éditeur
 
-**Statut** : non démarré.
+**Statut** : terminé le 2026-11-11 — la minimap (D-21) et le défilement
+rapide (D-22) livrés ; le fil d'Ariane (D-09) et la barre d'erreurs
+(D-08) l'étaient déjà (M5-t5).
 
 **Périmètre** : minimap, fil d'Ariane, barre d'erreurs (error stripe),
 défilement rapide (fast-scroller) — le kit de popups porté à M5 prouve
 que la voie est praticable ; toute surface interactive reste conforme à
 l'ADR-018.
+
+**Sortie** : par ornement — livré avec son test de vue, sa ligne de
+matrice et son budget de rendu tenu (ADR-006). La minimap :
+`MinimapModel` porte la silhouette (chaque rangée charge son bouquet de
+lignes — la plus longue, plafonnée à 120 ; le cran d'une ligne au
+prorata, la ligne d'un cran est la première de son bouquet — le saut
+retombe toujours sur une vraie ligne), `MinimapView` rend chaque rangée
+en un trait à sa charge, la fenêtre visible à l'encre d'accent, l'appui
+ET le glissement sautent ; aucune allocation par image, 200 crans au
+plus. Le défilement rapide : `FastScrollerView` — le pouce suit la
+fraction du défilement, sa hauteur la part visible, le glissement rend
+la fraction visée (le doigt porte le HAUT du pouce), le pouce grossit
+sous le doigt ; tout tient : le pouce se tait. `EditorView` gagne la
+voie publique — `scrollFractionY`, `visibleFractionY`,
+`scrollToFractionY`, `premiereLigneVisible`, `lignesVisibles` — le
+corps vit chez `ViewportFractions`, le défilement se borne à l'image
+suivante, l'avis de fenêtre y part. Câblés dans la démo au bord droit
+(minimap à gauche du pouce et de la bande d'erreurs). Bancs :
+`MinimapModelTest`, `PopupSurfacesTest` (saut au toucher, glissement),
+`ScrollFractionTest` (fraction lue, défilement borné, document qui
+tient). Matrice D-21 et D-22 ajoutées.
 
 **Sortie** : par ornement — livré avec son test de vue, sa ligne de
 matrice et son budget de rendu tenu (ADR-006).
@@ -397,6 +420,7 @@ dépôt de départ, hors de ce bac à sable.
 | 2026-11-11 | C4 — USAGE.md : guide d'intégration hôte | `USAGE.md` à la racine (719 lignes, commit 023ad2d) ; coordonnées d'artefacts et noms d'API vérifiés contre les manifestes `api/` |
 | 2026-11-11 | C8 — frappe fine | `FrappeJava` (découpage de chaînes, cran des labels de cas) et `ClasspathIndex` + `ClasspathImports` (auto-import classpath) ; bancs `FrappeJavaTest`, `ClasspathImportsTest`, `DemoIntelligenceTest` ; câblés dans la démo (gestes dédiés Java, atelier d'import) |
 | 2026-11-11 | C7 — signature riche et snippets riches | `SignatureAideModel` surchargé (stepper, fenêtre ±1, peek) + `SignatureHelpView` riche (voisines, stepper ‹ i/n ›, peek à l'appui long, repli local sur réponse vide) ; trous à choix et macros au gabarit (`Trou.choix`, `Gabarit.of(corps, macros)`) ; bancs `SignatureAideModelTest`, `PopupViewsTest`, `GabaritTest`, `AtelierRefactorTest` ; câblés dans la démo (conversion entière, coach en repli, gabarit de méthode enrichi) |
+| 2026-11-11 | C9 — chrome de l'éditeur | `MinimapModel` + `MinimapView` (silhouette, fenêtre visible, saut au toucher et au glissement) et `FastScrollerView` (pouce, glissement, tout tient : le pouce se tait) ; `EditorView` gagne la voie publique du défilement par fraction (`ViewportFractions`) ; bancs `MinimapModelTest`, `PopupSurfacesTest`, `ScrollFractionTest` ; câblés dans la démo au bord droit |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 

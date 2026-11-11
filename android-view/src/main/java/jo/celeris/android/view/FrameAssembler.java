@@ -19,6 +19,49 @@ final class FrameAssembler {
     }
 
     /**
+     * Dessine l'image entière (chantier C9 — le corps de {@code onDraw}
+     * vit chez son collaborateur) : fond, état préparé, couches, chrome
+     * — la surface s'attache au canvas et s'en détache, l'état d'image
+     * se prépare AVANT le tracé.
+     *
+     * @param canvas le canvas de l'image
+     */
+    void dessiner(android.graphics.Canvas canvas) {
+        canvas.drawColor(vue.theme.backgroundColor());
+        preparer();
+        vue.surface.attach(canvas);
+        vue.trace.drawFrame(vue.surface, vue.etatImage);
+        vue.diagnostics.surImageTracee();
+        vue.pinceauChrome.setFont(vue.metrics.font());
+        vue.chrome.tracer(vue.surface, vue.pinceauChrome, vue.theme,
+                vue.metrics, vue.pilule, vue.etatImage.document(),
+                vue.projection, vue.session.selection().ranges(),
+                vue.largeurGouttiere, vue.scrollX, vue.scrollY,
+                vue.curseurClavier.visible());
+        vue.surface.detach();
+    }
+
+    /**
+     * Réinitialise la scène (chantier C9 — le corps des poseurs de
+     * session et de langage vit chez son assemblage) : suivi de
+     * révision, plafond d'eau de la gouttière (PIEGE-25), cache,
+     * diagnostics — le défilement se rabat quand la session change.
+     *
+     * @param defilement vrai pour rabattre aussi le défilement
+     */
+    void reinitialiserScene(boolean defilement) {
+        vue.revisionSuivie = Long.MIN_VALUE;
+        vue.gouttiereEtat.reinitialiser();
+        vue.cache.clear();
+        vue.diagnostics.reinitialiser();
+        if (defilement) {
+            vue.scrollX = 0f;
+            vue.scrollY = 0f;
+        }
+        vue.invalidate();
+    }
+
+    /**
      * Prépare l'état d'image : gouttière AVANT le budget de colonnes
      * (le cycle est cassé, PIEGE-25), suivi de révision, bornage du
      * défilement et fenêtre visible.

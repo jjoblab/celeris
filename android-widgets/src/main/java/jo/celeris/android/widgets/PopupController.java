@@ -68,7 +68,15 @@ public final class PopupController {
 
         /** La bande d'erreurs — vit avec les diagnostics : ni la frappe
          *  ni le défilement ne la ferment. */
-        ERROR_BAND
+        ERROR_BAND,
+
+        /** La minimap — ornement du bord droit (chantier C9) : vit avec
+         *  le document, ni la frappe ni le défilement ne la ferment. */
+        MINIMAP,
+
+        /** Le défilement rapide — ornement du bord droit (chantier C9) :
+         *  le pouce suit le défilement, le glissement l'emporte. */
+        FAST_SCROLLER
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
