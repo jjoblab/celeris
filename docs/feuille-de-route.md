@@ -402,8 +402,12 @@ l’alpha discret vit dans le canal alpha de l’encre de base
 point de chute par la voie de transaction, l’uri de fichier va à l’hôte
 par le rappel (`setSurFichierDepose`), la précédence au texte, le geste
 vide refuse, la lecture seule refuse (`GlisserDeposerTest`, la vue vit
-dans la fenêtre d’une activité — le vrai dispatch). Restent D-14 et le
-volume de tests.
+dans la fenêtre d’une activité — le vrai dispatch) ; D-14 clos —
+`setLigatures` (« liga » ouvre, « -liga » ferme, fermées par défaut)
+et `poserPolice` (la table des familles de la règle, mesure et tracé
+ensemble, PIEGE-22) ; la démo embarque Fira Code 6.2 (OFL, attribuée
+au `NOTICE`) derrière l’interrupteur « Ligatures » (`LigaturesTest`,
+test de capture). Restent le volume de tests.
 
 **Statut** : bloqué (décision du propriétaire).
 
