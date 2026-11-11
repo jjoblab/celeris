@@ -1,7 +1,6 @@
 package jo.celeris.android.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jo.celeris.core.text.Document;

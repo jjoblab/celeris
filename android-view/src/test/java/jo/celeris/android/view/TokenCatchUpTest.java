@@ -1,7 +1,6 @@
 package jo.celeris.android.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
@@ -10,6 +9,7 @@ import java.util.Random;
 import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.JavaSyntax;
 import jo.celeris.core.syntax.LexDocument;
+import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.SyntaxService;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.Document;
@@ -81,37 +81,49 @@ class TokenCatchUpTest {
             var panier = rattrapage.basketFor(0);
             assertNotNull(panier,
                     "essai " + essai + " : la ligne garde un panier");
-            // Le préfixe avant le point d'édition : plages identiques au
-            // publié, sorte pour sorte, jusqu'au point d'édition.
-            var publie = lex.line(0);
-            for (var jetonPublie : publie.tokens()) {
-                if (jetonPublie.end() > point) {
+            verifierPrefixeIntact(lex, panier, point, essai);
+            verifierCouvertureExacte(panier, editee, essai);
+        }
+    }
+
+    /**
+     * Le préfixe avant le point d'édition : plages identiques au
+     * publié, sorte pour sorte, jusqu'au point d'édition.
+     */
+    private static void verifierPrefixeIntact(LexDocument lex,
+            LexedLine panier, int point, int essai) {
+        var publie = lex.line(0);
+        for (var jetonPublie : publie.tokens()) {
+            if (jetonPublie.end() > point) {
+                break;
+            }
+            boolean retrouve = false;
+            for (var jeton : panier.tokens()) {
+                if (jeton.start() == jetonPublie.start()
+                        && jeton.end() == jetonPublie.end()
+                        && jeton.kind() == jetonPublie.kind()) {
+                    retrouve = true;
                     break;
                 }
-                boolean retrouve = false;
-                for (var jeton : panier.tokens()) {
-                    if (jeton.start() == jetonPublie.start()
-                            && jeton.end() == jetonPublie.end()
-                            && jeton.kind() == jetonPublie.kind()) {
-                        retrouve = true;
-                        break;
-                    }
-                }
-                assertEquals(true, retrouve, "essai " + essai
-                        + " : le jeton publié [" + jetonPublie.start() + ", "
-                        + jetonPublie.end() + ") " + jetonPublie.kind()
-                        + " survit au recalage");
             }
-            // La couverture : la ligne reste couverte par les jetons.
-            int couverture = 0;
-            for (var jeton : panier.tokens()) {
-                assertEquals(jeton.start(), couverture,
-                        "essai " + essai + " : les jetons restent soudés");
-                couverture = jeton.end();
-            }
-            assertEquals(editee.length(), couverture,
-                    "essai " + essai + " : la ligne reste couverte exactement");
+            assertEquals(true, retrouve, "essai " + essai
+                    + " : le jeton publié [" + jetonPublie.start() + ", "
+                    + jetonPublie.end() + ") " + jetonPublie.kind()
+                    + " survit au recalage");
         }
+    }
+
+    /** La couverture : la ligne reste couverte par les jetons soudés. */
+    private static void verifierCouvertureExacte(LexedLine panier,
+            String editee, int essai) {
+        int couverture = 0;
+        for (var jeton : panier.tokens()) {
+            assertEquals(jeton.start(), couverture,
+                    "essai " + essai + " : les jetons restent soudés");
+            couverture = jeton.end();
+        }
+        assertEquals(editee.length(), couverture,
+                "essai " + essai + " : la ligne reste couverte exactement");
     }
 
     /**

@@ -20,7 +20,7 @@ class AnalyseurLintTest {
     void laFormeCompleteSeConvertitAuxLignesExactes() {
         String sortie = """
                 app/src/main/java/com/exemple/App.kt:42: Error: Missing permission check [MissingPermission]
-                app/src/main/res/values/strings.xml:7: Warning: Replace "..." with ellipsis character [TypographyEllipsis]
+                res/values/strings.xml:7: Warning: Replace "..." with ellipsis character [TypographyEllipsis]
                 """;
         List<DiagnosticHote> diagnostiques = AnalyseurLint.parser(sortie);
         assertEquals(2, diagnostiques.size());
@@ -59,7 +59,7 @@ class AnalyseurLintTest {
     @Test
     void lIdentifiantDeRegleSePorteParLeMessage() {
         DiagnosticHote diagnostic = AnalyseurLint
-                .parser("res/values/strings.xml:7: Warning: Replace \"...\" with ellipsis character [TypographyEllipsis]")
+                .parser(ligneLintEllipse(7))
                 .get(0);
         assertEquals("TypographyEllipsis", AnalyseurLint.regle(diagnostic.message()));
         assertEquals("Replace \"...\" with ellipsis character",
@@ -70,7 +70,7 @@ class AnalyseurLintTest {
     @Test
     void leCorrectifDeLigneSeCalculeALOccurrenceExacte() {
         DiagnosticHote diagnostic = AnalyseurLint
-                .parser("res/values/strings.xml:7: Warning: Replace \"...\" with ellipsis character [TypographyEllipsis]")
+                .parser(ligneLintEllipse(7))
                 .get(0);
         List<String> lignes = List.of(
                 "<resources>",
@@ -115,7 +115,7 @@ class AnalyseurLintTest {
     @Test
     void laLigneSansLeTexteFautifNeProposeRien() {
         DiagnosticHote diagnostic = AnalyseurLint
-                .parser("res/values/strings.xml:1: Warning: Replace \"...\" with ellipsis character [TypographyEllipsis]")
+                .parser(ligneLintEllipse(1))
                 .get(0);
         assertTrue(CorrectifsLint.pour(diagnostic, List.of("rien a corriger")).isEmpty());
     }
@@ -123,12 +123,18 @@ class AnalyseurLintTest {
     @Test
     void lesDecalagesDuCorrectifSeCalculentDepuisLesDebutsDeLignes() {
         DiagnosticHote diagnostic = AnalyseurLint
-                .parser("res/values/strings.xml:2: Warning: Replace \"...\" with ellipsis character [TypographyEllipsis]")
+                .parser(ligneLintEllipse(2))
                 .get(0);
         List<String> lignes = List.of("<resources>", "attente ...");
         CorrectifLint correctif = CorrectifsLint.pour(diagnostic, lignes).orElseThrow();
         int[] debuts = {0, 13};
         assertEquals(13 + 8, correctif.debut(debuts));
         assertEquals(13 + 8 + 3, correctif.fin(debuts));
+    }
+    /** La ligne de sortie Lint de l'ellipse, à la ligne près. */
+    private static String ligneLintEllipse(int ligne) {
+        return "res/values/strings.xml:" + ligne
+                + ": Warning: Replace \"...\" with ellipsis character"
+                + " [TypographyEllipsis]";
     }
 }

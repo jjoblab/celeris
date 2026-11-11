@@ -134,14 +134,9 @@ class TextPainterTest {
 
     /**
      * PIEGE-01 — la couche de texte possède son pinceau et repose
-     * explicitement sa couleur de base à chaque image.
-     *
-     * <p>Premier volet : avec une fabrique saine, le pinceau de la couche
-     * de sélection et celui de la couche de texte sont deux instances
-     * distinctes. Second volet : même avec la pire fabrique — le même
-     * pinceau mutable pour tout le pipeline — le texte part toujours de la
-     * couleur de base du thème, jamais de la couleur résiduelle laissée
-     * par la couche précédente.</p>
+     * explicitement sa couleur de base à chaque image. Premier volet :
+     * avec une fabrique saine, le pinceau de la couche de sélection et
+     * celui de la couche de texte sont deux instances distinctes.
      */
     @Test
     void textPainter_layerOwnsItsPaint_perFrame() {
@@ -151,7 +146,6 @@ class TextPainterTest {
         VisualProjection projection = new VisualProjection(2, new FoldModel());
         RowLayoutCache cache = new RowLayoutCache();
 
-        // Premier volet : fabrique saine, pinceaux distincts par couche.
         FabriqueSaine saine = new FabriqueSaine();
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new SelectionPainter(saine));
@@ -171,11 +165,22 @@ class TextPainterTest {
         // (B-01) et 1 de portées (M7.6, H-07) : chacun possède le
         // sien, aucun n'est partagé.
         assertEquals(17, saine.creations);
+    }
 
-        // Second volet : fabrique hostile — le même pinceau partagé pour
-        // tout le pipeline. La couleur de base est reposée à chaque image
-        // par chaque couche : le texte hérite de la couleur résiduelle de
-        // personne.
+    /**
+     * PIEGE-01, second volet : même avec la pire fabrique — le même
+     * pinceau mutable pour tout le pipeline — le texte part toujours de
+     * la couleur de base du thème, jamais de la couleur résiduelle
+     * laissée par la couche précédente.
+     */
+    @Test
+    void textPainter_reposeSaCouleurBase_fabriqueHostile() {
+        Document document = Document.of("alpha\nbeta");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        MultiSelection selection = MultiSelection.of(new SelRange(0, 5));
+        VisualProjection projection = new VisualProjection(2, new FoldModel());
+        RowLayoutCache cache = new RowLayoutCache();
+
         FabriquePartagee hostile = new FabriquePartagee();
         ScrollFrame imageHostile = new ScrollFrame();
         imageHostile.addLayer(new SelectionPainter(hostile));

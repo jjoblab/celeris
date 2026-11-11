@@ -1,6 +1,5 @@
 package jo.celeris.android.view;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -206,8 +205,18 @@ class RetourSoupleCrashTest {
                 largeurGouttiere, 0f, 0f);
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         trace.drawFrame(surface, etat);
+        viserEtDevoilerChaqueColonne(document, projection, metrics,
+                largeurGouttiere, largeur, hauteur);
+        return surface;
+    }
 
-        // La visée et le dévoilement sous coupures, comme au toucher.
+    /**
+     * La visée et le dévoilement sous coupures, comme au toucher :
+     * chaque colonne visible de chaque rangée se vise puis se dévoile.
+     */
+    private static void viserEtDevoilerChaqueColonne(Document document,
+            VisualProjection projection, EditorMetrics metrics,
+            float largeurGouttiere, int largeur, int hauteur) {
         HitTest viseur = new HitTest(metrics);
         for (int rangee = 0; rangee < projection.rowCount(); rangee++) {
             int ligne = projection.firstLineOfRow(rangee);
@@ -223,7 +232,6 @@ class RetourSoupleCrashTest {
                         largeurGouttiere, largeur, hauteur, 0f, 0f, 8f);
             }
         }
-        return surface;
     }
 
     private void rejouer(String contenu, LanguageSyntax langue, int colonnes) {

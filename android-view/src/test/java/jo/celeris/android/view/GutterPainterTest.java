@@ -10,7 +10,6 @@ import jo.celeris.core.syntax.FoldSpan;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
-import jo.celeris.core.text.SelRange;
 
 import org.junit.jupiter.api.Test;
 

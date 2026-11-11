@@ -114,25 +114,7 @@ class FenetreBorneeTest {
                 metrics, 4);
         RowLayoutCache cache = new RowLayoutCache();
         List<String> textes = new ArrayList<>();
-        DrawSurface surface = new DrawSurface() {
-            @Override
-            public void drawText(String text, float x, float y,
-                    TextBrush brush) {
-                textes.add(text);
-            }
-
-            @Override
-            public void drawText(CharSequence text, int start, int end,
-                    float x, float y, TextBrush brush) {
-                textes.add(text.subSequence(start, end).toString());
-            }
-
-            @Override
-            public void drawRect(float left, float top, float right,
-                    float bottom, TextBrush brush) {
-                // la couche de texte ne trace aucun rectangle
-            }
-        };
+        DrawSurface surface = surfaceCollectantTextes(textes);
         FrameState etat = new FrameState();
         // La fenêtre demandée dépasse largement le contenu.
         etat.beginFrame(document, session.selection(), projection,
@@ -173,28 +155,10 @@ class FenetreBorneeTest {
     @Test
     void painterLayer_policeReposeeAChaqueImage() {
         List<FontSpec> policesRecues = new ArrayList<>();
-        TextBrush pinceauEspion = new TextBrush() {
-            private int couleur;
-
-            @Override
-            public void setColor(int argb) {
-                couleur = argb;
-            }
-
-            @Override
-            public int color() {
-                return couleur;
-            }
-
-            @Override
-            public void setFont(FontSpec police) {
-                policesRecues.add(police);
-            }
-        };
         PainterLayer couche = new PainterLayer(new BrushFactory() {
             @Override
             public TextBrush newBrush() {
-                return pinceauEspion;
+                return pinceauEspion(policesRecues);
             }
         }) {
             @Override
@@ -245,5 +209,50 @@ class FenetreBorneeTest {
                 PaintBrush.class.getMethod("setFont", FontSpec.class)
                         .getDeclaringClass());
         assertTrue(TextBrush.class.isAssignableFrom(PaintBrush.class));
+    }
+
+    /** Une surface qui collectionne les textes tracés, muette ailleurs. */
+    private static DrawSurface surfaceCollectantTextes(List<String> textes) {
+        return new DrawSurface() {
+            @Override
+            public void drawText(String text, float x, float y,
+                    TextBrush brush) {
+                textes.add(text);
+            }
+
+            @Override
+            public void drawText(CharSequence text, int start, int end,
+                    float x, float y, TextBrush brush) {
+                textes.add(text.subSequence(start, end).toString());
+            }
+
+            @Override
+            public void drawRect(float left, float top, float right,
+                    float bottom, TextBrush brush) {
+                // la couche de texte ne trace aucun rectangle
+            }
+        };
+    }
+
+    /** Un pinceau espion : il note la police qu'on lui repose. */
+    private static TextBrush pinceauEspion(List<FontSpec> policesRecues) {
+        return new TextBrush() {
+            private int couleur;
+
+            @Override
+            public void setColor(int argb) {
+                couleur = argb;
+            }
+
+            @Override
+            public int color() {
+                return couleur;
+            }
+
+            @Override
+            public void setFont(FontSpec police) {
+                policesRecues.add(police);
+            }
+        };
     }
 }
