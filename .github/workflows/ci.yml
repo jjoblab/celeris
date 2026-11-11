@@ -74,6 +74,8 @@ jobs:
           "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null
       - name: Contrôles complets (tous modules, SDK présent)
         run: ./gradlew check
+      - name: Publication locale (onze artefacts — purs et Android, SBOM, sommes de contrôle)
+        run: ./gradlew publishToMavenLocal publicationChecksums
       - name: Démonstration (APK debug)
         run: ./gradlew :demo:assembleDebug
       - name: APK de démonstration signé (porte)

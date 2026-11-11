@@ -32,7 +32,11 @@ voir ADR-001 — AGP 9.5.0, Gradle 9.8.2, `compileSdk`/`targetSdk` 36).
    gestion mémoire ; l'écart restant (~1 %) est le prix annoncé.
    `targetSdk`/`compileSdk` 36 (exigence du magasin depuis août 2026).
 4. **Publication** : artefacts Maven avec sources, Javadoc et POM complets,
-   sommes de contrôle et SBOM générés à chaque publication ; cible
+   sommes de contrôle et SBOM générés à chaque publication. Depuis le
+   2026-11-11 (décision du propriétaire), les trois bibliothèques Android
+   (`android-view`, `android-widgets`, `android-host`) se publient comme
+   les modules purs — AAR de la variante release, sources, Javadoc, SBOM
+   et sommes de contrôle (onze artefacts au total) ; cible
    proposée : le registre de paquets de l'hébergeur du dépôt (authentifié,
    privé en pré-1.0) — décision de cible confirmée par le propriétaire
    le 2026-11-04 (registre de l'hébergeur en pré-1.0) ; le registre public central reste possible
@@ -89,3 +93,6 @@ voir ADR-001 — AGP 9.5.0, Gradle 9.8.2, `compileSdk`/`targetSdk` 36).
 - [x] M1 : workflows CI épinglés par SHA, wrapper validé, scripts de
       politique branchés et bloquants.
 - [x] M1 : génération SBOM et sommes de contrôle à la publication.
+- [x] 1.1.0 : publication des trois bibliothèques Android comme les
+      modules purs (variante release, AAR, sources, Javadoc — vérifiée
+      en mavenLocal et en CI), décision du propriétaire du 2026-11-11.

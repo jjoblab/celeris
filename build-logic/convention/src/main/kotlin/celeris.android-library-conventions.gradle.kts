@@ -1,7 +1,8 @@
 // Convention des modules de bibliothèque Android (android-view,
 // android-widgets, android-host) : niveaux d'API de l'ADR-001/011, javac
 // strict, Error Prone + NullAway, Checkstyle/PMD aux mêmes plafonds que
-// les modules purs, lint bloquant sans baseline. Le plugin AGP est
+// les modules purs, lint bloquant sans baseline, publication comme les
+// modules purs (décision du propriétaire du 2026-11-11). Le plugin AGP est
 // appliqué par le module via l'alias du catalogue (accesseurs typés).
 
 import com.android.build.api.dsl.LibraryExtension
@@ -44,6 +45,15 @@ extensions.configure(LibraryExtension::class.java) {
         // ressources du module — vue, thème, densités — depuis la JVM.
         unitTests {
             isIncludeAndroidResources = true
+        }
+    }
+    publishing {
+        // ADR-011 (décision du propriétaire du 2026-11-11) : les
+        // bibliothèques Android se publient comme les modules purs —
+        // variante release (AAR), sources et Javadoc à chaque publication.
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
         }
     }
 }

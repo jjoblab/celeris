@@ -64,19 +64,25 @@ le SBOM, jamais dans un identifiant.
 ## 2. Coordonnées et disponibilité
 
 Les coordonnées Maven, groupe `jo.celeris`, version `1.0.0` —
-l'artifactId porte le nom du module. **Huit artefacts sont publiés**,
-chacun avec son jar, ses sources, sa Javadoc, son SBOM CycloneDX et sa
-somme SHA-256 (§ 16) :
+l'artifactId porte le nom du module. **Onze artefacts sont publiés**,
+chacun avec son jar (ou son AAR), ses sources, sa Javadoc, son SBOM
+CycloneDX et sa somme SHA-256 (§ 16) — les huit modules purs :
 
 `jo.celeris:core-text:1.0.0` · `jo.celeris:core-syntax:1.0.0` ·
 `jo.celeris:core-syntax-grammars:1.0.0` · `jo.celeris:core-language:1.0.0` ·
 `jo.celeris:core-intelligence:1.0.0` · `jo.celeris:core-lsp:1.0.0` ·
 `jo.celeris:core-ai:1.0.0` · `jo.celeris:lsp-protocole:1.0.0`
 
+et, depuis le 2026-11-11 (décision du propriétaire), les trois
+bibliothèques Android en AAR :
+
+`jo.celeris:android-view:1.0.0` · `jo.celeris:android-widgets:1.0.0` ·
+`jo.celeris:android-host:1.0.0`
+
 État vérifié au 2026-11-11 :
 
 - **Publication locale** : `./gradlew publishToMavenLocal
-  publicationChecksums` est vert — un projet vierge consomme les huit
+  publicationChecksums` est vert — un projet vierge consomme les onze
   artefacts depuis `mavenLocal()` dès aujourd'hui.
 - **Publication distante** : le registre de paquets de l'hébergeur
   (`https://maven.pkg.github.com/jjoblab/celeris`) est configuré mais
@@ -85,8 +91,9 @@ somme SHA-256 (§ 16) :
   est le point de contact ; l'annonce de la publication distante s'y
   lira le moment venu.
 - **Modules Android** (`android-view`, `android-widgets`, `android-host`) :
-  **pas des artefacts publiés à 1.0.0** — ils s'intègrent par inclusion
-  de source (§ 3.3), comme le fait la démonstration du dépôt.
+  publiés comme les modules purs depuis le 2026-11-11 — AAR de la
+  variante release, sources, Javadoc, SBOM et sommes de contrôle ;
+  l'inclusion de source reste possible (§ 3.3) pour lire et adapter.
 
 ## 3. Déclarer les dépendances
 
@@ -107,6 +114,10 @@ dependencies {
     implementation("jo.celeris:core-ai:1.0.0")
     // uniquement si vous montez des serveurs de langage embarqués
     implementation("jo.celeris:lsp-protocole:1.0.0")
+    // surfaces Android (AAR, publiées depuis le 2026-11-11)
+    implementation("jo.celeris:android-view:1.0.0")
+    implementation("jo.celeris:android-widgets:1.0.0")
+    implementation("jo.celeris:android-host:1.0.0")
 }
 ```
 
@@ -133,9 +144,15 @@ nom d'utilisateur votre identifiant GitHub. Les coordonnées ne changent
 pas — seul le dépôt s'ajoute (annonce et vérification des sommes au
 chantier C1, § 18).
 
-### 3.3 Les modules Android — inclusion de source
+### 3.3 Les modules Android — artefacts, ou inclusion de source
 
-Les trois modules Android et leurs ressources se copient dans votre
+Depuis le 2026-11-11, les trois modules Android se consomment comme les
+modules purs — par coordonnées (§ 3.1) : l'AAR de la variante release,
+ses sources et sa Javadoc se publient à chaque publication, SBOM et
+sommes de contrôle compris.
+
+L'inclusion de source reste possible — pour lire, adapter ou déboguer.
+Les trois modules et leurs ressources se copient dans votre
 build (ils sont autonomes, sans dépendance externe au runtime) puis se
 déclarent dans votre `settings.gradle.kts` :
 
@@ -163,8 +180,8 @@ dependencies {
 Ces modules référencent les artefacts du cœur par les mêmes
 coordonnées (`jo.celeris:*:1.0.0`) — votre `mavenLocal()` ou le dépôt
 distant les résout. La publication des modules Android comme artefacts
-est une question ouverte du chantier C1 ; ce paragraphe disparaîtra
-quand elle sera tranchée.
+est tranchée depuis le 2026-11-11 (décision du propriétaire, ADR-011) ;
+l'inclusion de source reste la voie de secours pour lire et adapter.
 
 ## 4. Montage de la vue
 
@@ -661,20 +678,16 @@ sha256sum core-text-1.0.0.jar
 ## 18. Ce qui manque encore
 
 État vérifié au 2026-11-11 (la liste tenue à jour vit dans
-[`docs/feuille-de-route.md`](docs/feuille-de-route.md)) :
+[`docs/feuille-de-route-restante.md`](docs/feuille-de-route-restante.md)) :
 
-- **Publication distante** (C1, bloqué) : les huit artefacts ne vivent
+- **Publication distante** (C1, bloqué) : les onze artefacts ne vivent
   aujourd'hui qu'en `mavenLocal` ; le registre de l'hébergeur attend
-  les secrets du propriétaire. Les modules Android ne sont pas
-  publiés (§ 3.3).
+  les secrets du propriétaire.
 - **Langages** (C5, en cours) : restent Go, Rust et la longue traîne
   au-delà des vingt-deux paquets livrés — la voie de paquets (§ 7)
   est ouverte pour les vôtres.
-- **Signature riche et snippets riches** (C7, non démarré) : l'aide
-  aux paramètres vit en liste simple, les gabarits en trous tabulables
-  sans macros.
-- **Chrome de l'éditeur** (C9, non démarré) : minimap, fil d'Ariane,
-  barre d'erreurs, défilement rapide.
+- **Archivage du dépôt de départ** (C14, bloqué) : la bannière de
+  migration et l'archivage attendent la décision du propriétaire.
 - **Second étage appareil de vérification** (C11, bloqué) : les
   budgets de § 13 restent à calibrer sur l'appareil de référence — le
   banc JVM ne remplace pas la vitre.

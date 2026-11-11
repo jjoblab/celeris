@@ -420,6 +420,33 @@ vivent dans les ADR et le registre de portage, pas ici.
   banc au-delà de 50 lignes) sont corrigées au passage — les méthodes
   longues se découpent, jamais le plafond de méthode ne se relève.
 
+### Publication — les modules Android vivent en artefacts Maven
+
+- **Les trois bibliothèques Android se publient comme les modules purs**
+  (décision du propriétaire du 2026-11-11, ADR-011) :
+  `android-view`, `android-widgets` et `android-host` portent la
+  convention de publication — AAR de la variante release, sources,
+  Javadoc, POM, métadonnées Gradle, SBOM CycloneDX et sommes de
+  contrôle SHA-256, aux mêmes coordonnées `jo.celeris:*` que les huit
+  modules purs. **Onze artefacts publiés** au total ; la démo et la cli
+  restent des applications, jamais publiées.
+- **La variante release se déclare une fois** dans la convention des
+  bibliothèques Android (`singleVariant("release")`, sources et
+  Javadoc comprises) ; la convention de publication existante servait
+  déjà la variante Android quand le composant `release` existe — elle
+  entre enfin en service, le commentaire de report (M2/M3) disparaît.
+- **La CI publie aussi sous SDK** : le travail Android de la CI vérifie
+  la publication locale des onze artefacts (`publishToMavenLocal
+  publicationChecksums`), comme le travail des modules purs — vérifié
+  en mavenLocal : AAR, sources, Javadoc, POM et `.module` présents,
+  POM résolvant les dépendances du cœur aux mêmes coordonnées.
+- **Les documents suivent** : `USAGE.md` (§ 2 et § 3 — onze
+  coordonnées, l'AAR d'abord, l'inclusion de source en voie de secours
+  pour lire et adapter), `SECURITY.md` (périmètre des onze artefacts),
+  ADR-011 (décision consignée), et la § 18 se corrige au passage — les
+  chantiers C7 et C9 y figuraient encore « non démarrés » alors qu'ils
+  sont livrés depuis le 2026-11-11.
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet

@@ -4,9 +4,9 @@
 plugins {
     alias(libs.plugins.android.library)
     id("celeris.android-library-conventions")
-    // Publication Android différée à l'arrivée du code correspondant
-    // (M2/M3, écart n° 5 du résumé M1) : la convention commune exige le
-    // composant « java » du plugin JVM, qu'AGP ne fournit pas.
+    // ADR-011 (décision du propriétaire du 2026-11-11) : publié comme les
+    // modules purs — variante release, sources, Javadoc, SBOM, sommes.
+    id("celeris.publishing-conventions")
 }
 dependencies {
     api(project(":core-intelligence"))
