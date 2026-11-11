@@ -288,6 +288,9 @@ vivent dans les ADR et le registre de portage, pas ici.
   (`$FILE$`, `$DATE$`, `$USER$`) — la table de l'hôte porte les valeurs.
   Les miroirs étaient livrés (M5, `Gabarits.miroirs`). Câblé dans la
   démo : le gabarit de méthode gagne la macro FICHIER (résolue du
+  nom du fichier ouvert) et le trou à choix du genre du retour
+  (`AtelierRefactorTest`).
+
 
 - **La minimap (C9)** : `MinimapModel` porte la silhouette du document —
   chaque rangée de la carte charge son bouquet de lignes (la longueur de
@@ -315,8 +318,6 @@ vivent dans les ADR et le registre de portage, pas ici.
   `FrameAssembler.reinitialiserScene`), le défilement se borne à
   l'image suivante, l'avis de fenêtre y part (`ScrollFractionTest`,
   `PopupSurfacesTest`).
-  nom du fichier ouvert) et le trou à choix du genre du retour
-  (`AtelierRefactorTest`).
 
 ## [1.0.0] — 2026-11-10
 
