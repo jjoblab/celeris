@@ -499,6 +499,36 @@ public final class jo.celeris.core.intelligence.SchemaAndroid {
   public static java.util.List<java.lang.String> references();
 }
 
+### jo.celeris.core.intelligence.SignatureChange$Designation
+Compiled from "SignatureChange.java"
+final class jo.celeris.core.intelligence.SignatureChange$Designation extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.syntax.OutlineEntry enclosing();
+  public int openParen();
+  public int closeParen();
+  public int body();
+  public boolean constructor();
+  public java.util.List<int[]> parameters();
+}
+
+### jo.celeris.core.intelligence.SignatureChange$SignaturePlan
+Compiled from "SignatureChange.java"
+public final class jo.celeris.core.intelligence.SignatureChange$SignaturePlan extends java.lang.Record {
+  public jo.celeris.core.intelligence.SignatureChange$SignaturePlan(java.util.List<jo.celeris.core.text.TextEdit>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.text.TextEdit> edits();
+}
+
+### jo.celeris.core.intelligence.SignatureChange
+Compiled from "SignatureChange.java"
+public final class jo.celeris.core.intelligence.SignatureChange {
+  public static jo.celeris.core.intelligence.SignatureChange$SignaturePlan reorder(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, int[]);
+}
+
 ### jo.celeris.core.intelligence.SmartTyping$Geste
 Compiled from "SmartTyping.java"
 final class jo.celeris.core.intelligence.SmartTyping$Geste extends java.lang.Record {

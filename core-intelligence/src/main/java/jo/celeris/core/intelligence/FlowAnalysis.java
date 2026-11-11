@@ -170,6 +170,27 @@ final class FlowAnalysis {
         return new CallSites(List.copyOf(collector.found), collector.ambiguous, methodReference);
     }
 
+    /**
+     * Vrai quand une autre méthode du document porte le même nom —
+     * l'appel ne se distingue pas par le nom seul, les plans qui
+     * réécrivent les appels refusent.
+     *
+     * @param doc       le document porteur
+     * @param analyse   l'analyse courante
+     * @param enclosing la méthode déclarée
+     * @return vrai sur une surcharge homonyme
+     */
+    static boolean overloaded(Document doc, Analysis analyse, OutlineEntry enclosing) {
+        for (OutlineEntry entry : TreeOutline.entries(doc, analyse)) {
+            if (entry.category() == NodeCategory.FUNCTION
+                    && entry.name().equals(enclosing.name())
+                    && entry.startOffset() != enclosing.startOffset()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Le voisin d'un jeton par son index, chaîne vide aux bornes. */
     private static String neighbor(List<AbsoluteToken> tokens, int i) {
         return i >= 0 && i < tokens.size() ? tokens.get(i).text() : "";
