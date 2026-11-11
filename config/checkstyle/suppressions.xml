@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+          "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+          "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<!-- Nominations du plafond relevé (ADR-019, décision du propriétaire du
+     2026-11-11) : les bancs nommés ci-dessous vivent sous le plafond
+     relevé (800 lignes), hors du plafond standard (600) — jamais hors de
+     tout plafond. Chaque nomination porte sa justification. -->
+<suppressions>
+    <!-- Le banc de la gouttière (ADR-019) : dix-neuf tests d'un seul
+         collaborateur partageant leurs appareils (602 lignes) — la
+         traîne C13 du volume de tests continue d'y grossir. -->
+    <suppress id="PlafondStandard" files="GutterPainterTest\.java"/>
+</suppressions>

@@ -72,7 +72,8 @@ construit l'ensemble avec SDK.
 ## Portes qualité (toutes bloquantes)
 
 `check` enchaîne : politique de langue, références interdites et provenance des dépendances (scripts), Checkstyle
-(plafonds 600 lignes par fichier, 50 par méthode), PMD (complexité
+(plafonds 600 lignes par fichier — 800 pour les bancs nommés, ADR-019 —,
+50 par méthode), PMD (complexité
 cyclomatique 15), Error Prone + NullAway (`@NullMarked` JSpecify), tests
 (Jupiter + jqwik + ArchUnit), couverture JaCoCo (≥ 90 % de lignes sur les
 modules purs), manifeste d'API (`api/<module>.api`, régénérer par
