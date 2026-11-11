@@ -439,6 +439,23 @@ public final class jo.celeris.core.intelligence.RechercheFloue {
   public static int score(java.lang.String, java.lang.String);
 }
 
+### jo.celeris.core.intelligence.RechercheProjet$Trouvaille
+Compiled from "RechercheProjet.java"
+public final class jo.celeris.core.intelligence.RechercheProjet$Trouvaille extends java.lang.Record {
+  public jo.celeris.core.intelligence.RechercheProjet$Trouvaille(java.lang.String, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String uri();
+  public int offset();
+}
+
+### jo.celeris.core.intelligence.RechercheProjet
+Compiled from "RechercheProjet.java"
+public final class jo.celeris.core.intelligence.RechercheProjet {
+  public static java.util.List<jo.celeris.core.intelligence.RechercheProjet$Trouvaille> chercher(java.util.Map<java.lang.String, jo.celeris.core.text.Document>, jo.celeris.core.intelligence.IndexSymboles, java.lang.String);
+}
+
 ### jo.celeris.core.intelligence.ReferencesRessources$Lieu
 Compiled from "ReferencesRessources.java"
 public final class jo.celeris.core.intelligence.ReferencesRessources$Lieu extends java.lang.Record {
