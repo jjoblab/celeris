@@ -49,7 +49,7 @@ développement, quel que soit le statut de C12.
 | C5 | Langages par paquets : la famille web et la longue traîne livrées, restent Go, Rust… | P1 | 1–2 j / langue | En cours |
 | C6 | Raffinements de complétion | P1 | 3–5 j | Non démarré |
 | C7 | Signature riche et snippets riches | P1 | 3–5 j | Non démarré |
-| C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | Non démarré |
+| C8 | Frappe fine : smart typing, postfixe, renommage XML, auto-import | P1 | 3–5 j | En cours |
 | C9 | Chrome de l'éditeur : minimap, fil d'Ariane, barre d'erreurs, défilement rapide | P1 | 1–2 j / ornement | Non démarré |
 | C10 | Charge et limites : 480 000 lignes, mode gros fichiers | P1 | 2–3 j | Terminé |
 | C11 | Second étage appareil de la vérification sur vitre | P1 | 1–2 j | Bloqué |
@@ -319,8 +319,8 @@ B-23 clos — `SafeDelete` rend les usages barants ou le plan
 d'effacement (méthode, type, champ — le faux positif refuse, le faux
 négatif n'existe pas) et `SafeMove` déménage la méthode dans un autre
 type du document si rien ne pend (usage du nom, champ d'origine lu,
-appel sœur, conflit dans la cible — le corps se réindente) ; A-14 clos — `HistoriqueLocal` (android-host) archive le contenu remplacé à chaque écriture, isole l’histoire par fichier et restaure une version antérieure qui se défait comme elle s’est faite ; G-03 clos — la cli porte diagnostiquer (TreeDiagnostics), formater (Formateur) et refactorer renommer (IndexSymboles + Renommage), sortie déterministe et codes de sortie documentés.
-Restent A-17, D-14, D-20 et le volume de tests.
+appel sœur, conflit dans la cible — le corps se réindente) ; A-14 clos — `HistoriqueLocal` (android-host) archive le contenu remplacé à chaque écriture, isole l’histoire par fichier et restaure une version antérieure qui se défait comme elle s’est faite ; G-03 clos — la cli porte diagnostiquer (TreeDiagnostics), formater (Formateur) et refactorer renommer (IndexSymboles + Renommage), sortie déterministe et codes de sortie documentés ; A-23 clos — `PostfixCompletion` consomme l’expression devant le point dans son gabarit, une seule édition, jamais le préfixe ne se matérialise (le piège hérité du lot L0) — la première pierre du chantier C8.
+Restent A-17, D-14, D-20, la frappe fine (C8, hors postfixe) et le volume de tests.
 
 **Statut** : bloqué (décision du propriétaire).
 
