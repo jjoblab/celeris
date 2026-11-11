@@ -173,6 +173,17 @@ vivent dans les ADR et le registre de portage, pas ici.
   analyse, 2 usage inconnu, 3 diagnostics trouvés, 4 conflit de
   renommage ; la sortie est déterministe (`CelerisOutilsTest`).
 
+- **Complétion postfixe (A-23)** : `PostfixCompletion.expand` — l'expression
+  devant le point se consomme dans son gabarit, en une seule édition :
+  `expr.if` devient `if (expr) {}`, jamais le préfixe ne se matérialise
+  (le piège hérité du lot L0). Sept motifs à la syntaxe Java (`for`,
+  `if`, `not`, `notnull`, `null`, `return`, `while`), le curseur entre
+  les accolades pour les blocs et à la fin pour les fins
+  d'instruction ; l'expression se lit en remontant identifiants,
+  points et appels appariés ; le mot incomplet, sans point,
+  l'expression vide, littérale ou mal terminée refusent
+  (`PostfixCompletionTest`).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
