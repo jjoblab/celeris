@@ -108,6 +108,8 @@
     <string name="titre_reglages">Réglages</string>
     <string name="reglage_numeros">Numéros de ligne</string>
     <string name="desc_numeros">Afficher les numéros dans la gouttière</string>
+    <string name="reglage_ligatures">Ligatures</string>
+    <string name="desc_ligatures">Ligatures de police (Fira Code)</string>
     <string name="reglage_retour">Retour à la ligne souple</string>
     <string name="desc_retour">Replier les lignes longues au bord de la vue</string>
     <string name="reglage_theme">Thème d\'éditeur sombre</string>

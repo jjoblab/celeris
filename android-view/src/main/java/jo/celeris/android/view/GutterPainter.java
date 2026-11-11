@@ -153,6 +153,25 @@ public final class GutterPainter extends PainterLayer {
         this.reperes = reperes;
     }
 
+    /**
+     * Monte la gouttière complète de la vue — le montage vivait dans le
+     * constructeur de l'{@link EditorView}, il déménage ici (plafond
+     * ADR-002, le geste de M7.5) : coulisse de marqueurs, pastilles de
+     * couleur (C-05) et repères {@code @Preview} (C-11), la respiration
+     * suit l'état de gouttière de la vue.
+     *
+     * @param brushes la fabrique de pinceaux (la couche prend le sien)
+     * @param vue     la vue dont la gouttière se monte
+     * @return la couche montée, branchée sur l'état de la vue
+     */
+    static GutterPainter monter(BrushFactory brushes, EditorView vue) {
+        return new GutterPainter(brushes, vue.gouttiereEtat.margePx(),
+                () -> vue.marquesGouttiere.marques(vue.syntaxe.marques()),
+                vue.gouttiereEtat::coulisseCourante,
+                vue.marquesGouttiere::pastille,
+                vue.marquesGouttiere::reperePreview);
+    }
+
     @Override
     protected int baseColor(FrameState frame) {
         return frame.theme().gutterTextColor();

@@ -33,6 +33,8 @@ public final class FeuilleReglages {
 
     private static final String CLE_NUMEROS = "gouttiere.numeros";
     private static final String CLE_RETOUR = "retour.souple";
+    /** Les ligatures de police (D-14), coupées par défaut. */
+    public static final String CLE_LIGATURES = "police.ligatures";
     private static final String CLE_THEME = "theme.index";
     /** Le délai de retenue d'analyse, en millisecondes (M7.5, §9). */
     public static final String CLE_RETENU = "analyse.retenuMs";
@@ -101,6 +103,8 @@ public final class FeuilleReglages {
                 prefs.getBoolean(CLE_NUMEROS, true), CLE_NUMEROS);
         interrupteur(R.id.interrupteur_retour, prefs,
                 prefs.getBoolean(CLE_RETOUR, false), CLE_RETOUR);
+        interrupteur(R.id.interrupteur_ligatures, prefs,
+                prefs.getBoolean(CLE_LIGATURES, false), CLE_LIGATURES);
         interrupteurTheme(prefs);
         // F-10 — le consentement IA, coupé par défaut : aucune requête
         // ne quitte l'éditeur sans cette activation explicite.

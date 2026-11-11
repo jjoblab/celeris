@@ -21,16 +21,20 @@ import org.jspecify.annotations.Nullable;
 final class ViewFonts {
 
     private final EditorView vue;
-    private final AndroidFontRuler regle = new AndroidFontRuler();
+    private final AndroidFontRuler regle;
     private @Nullable Consumer<Float> onFontSizeChanged;
 
     /**
-     * Construit le collaborateur des polices de la vue donnée.
+     * Construit le collaborateur des polices de la vue donnée, sur la
+     * règle porteuse de la table des familles (D-14, PIEGE-22 : la
+     * mesure et le tracé lisent la même table).
      *
-     * @param vue la vue propriétaire des métriques
+     * @param vue   la vue propriétaire des métriques
+     * @param regle la règle de police partagée
      */
-    ViewFonts(EditorView vue) {
+    ViewFonts(EditorView vue, AndroidFontRuler regle) {
         this.vue = vue;
+        this.regle = regle;
     }
 
     /**
@@ -67,6 +71,24 @@ final class ViewFonts {
      */
     void setOnFontSizeChanged(@Nullable Consumer<Float> ecouteur) {
         onFontSizeChanged = ecouteur;
+    }
+
+    /**
+     * Pose une police sous un nom de famille (D-14) : la table de la
+     * règle la gagne, la mesure et le tracé la suivent (PIEGE-22) ; la
+     * famille active se redérive — métriques, viseur, cache (PIEGE-05,
+     * PIEGE-28) — la famille dormante attend son setFont.
+     *
+     * @param famille le nom de famille, celui du {@link FontSpec}
+     * @param police  la police de plateforme à poser
+     */
+    void poserPolice(String famille, android.graphics.Typeface police) {
+        regle.poserPolice(famille, police);
+        if (vue.policeLogique.family().equals(famille)) {
+            setFont(vue.policeLogique);
+        } else {
+            vue.invalidate();
+        }
     }
 
     /**
