@@ -24,7 +24,7 @@ import jo.celeris.core.text.TextSession;
  * vit sous son label. Le reste retombe sur le moteur générique,
  * geste pour geste.
  */
-class FrappeJavaTest {
+class JavaSmartTypingTest {
 
     private final SyntaxService service = SyntaxService.of(JavaSyntax.INSTANCE);
 
@@ -35,7 +35,7 @@ class FrappeJavaTest {
     void decoupeChaineAuMilieu() {
         Document doc = Document.of("        String s = \"abcdef\";");
         // la citation ouvre en 19, « abc » vit de 20 à 22 : le caret en 23
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(23), IndentStyle.spaces(4));
         assertEquals("\" +\n            \"",
                 plan.transaction().edits().get(0).inserted());
@@ -52,7 +52,7 @@ class FrappeJavaTest {
     @Test
     void decoupeChaineApresLOuvrante() {
         Document doc = Document.of("        String s = \"abcdef\";");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(20), IndentStyle.spaces(4));
         assertEquals("\" +\n            \"",
                 plan.transaction().edits().get(0).inserted());
@@ -62,7 +62,7 @@ class FrappeJavaTest {
     @Test
     void decoupeChaineAvantLaFermante() {
         Document doc = Document.of("String s = \"abcdef\";");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(18), IndentStyle.spaces(4));
         TextSession session = TextSession.of("String s = \"abcdef\";", () -> 0L);
         session.apply(plan.transaction(), plan.selection());
@@ -73,7 +73,7 @@ class FrappeJavaTest {
     @Test
     void decoupeChaineStyleTabulations() {
         Document doc = Document.of("String s = \"abcdef\";");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(15), IndentStyle.tabs(4));
         assertEquals("\" +\n\t\"", plan.transaction().edits().get(0).inserted());
     }
@@ -83,7 +83,7 @@ class FrappeJavaTest {
     void citationEchappeeNeComptePas() {
         Document doc = Document.of("String s = \"a\\\"bc\";");
         // la citation ouvre en 11, l'échappée vit en 13-14, b en 15 : le caret en 16
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(16), IndentStyle.spaces(4));
         TextSession session = TextSession.of("String s = \"a\\\"bc\";", () -> 0L);
         session.apply(plan.transaction(), plan.selection());
@@ -95,7 +95,7 @@ class FrappeJavaTest {
     void caretDansUneEchappeeRefuse() {
         Document doc = Document.of("String s = \"ab\\ncd\";");
         // la barre oblique inverse vit en 14 : le caret en 15, dans l'échappée
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(15), IndentStyle.spaces(4));
         assertFalse(plan.transaction().edits().get(0).inserted().contains(" +"));
     }
@@ -104,7 +104,7 @@ class FrappeJavaTest {
     @Test
     void chaineNonFermeeRefuse() {
         Document doc = Document.of("String s = \"abcdef;");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(15), IndentStyle.spaces(4));
         assertFalse(plan.transaction().edits().get(0).inserted().contains(" +"));
     }
@@ -113,7 +113,7 @@ class FrappeJavaTest {
     @Test
     void blocDeTexteRefuse() {
         Document doc = Document.of("String s = \"\"\"\n        corps\n        \"\"\";");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(14), IndentStyle.spaces(4));
         // retombée générique : saut indenté, jamais un découpage
         assertFalse(plan.transaction().edits().get(0).inserted().contains(" +"));
@@ -123,7 +123,7 @@ class FrappeJavaTest {
     @Test
     void horsChaineRetombeSurGenerique() {
         Document doc = Document.of("class A {\n}");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(9), IndentStyle.spaces(4));
         assertEquals("\n    ", plan.transaction().edits().get(0).inserted());
         assertEquals(List.of(14), plan.selection().carets());
@@ -136,7 +136,7 @@ class FrappeJavaTest {
     void labelDeCasGagneUnCran() {
         Document doc = Document.of("    switch (x) {\n        case 1:\n    }");
         // le label vit en ligne 1, son deux-points en 31 : le caret en 32
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(32), IndentStyle.spaces(4));
         assertEquals("\n            ", plan.transaction().edits().get(0).inserted());
         assertEquals(List.of(45), plan.selection().carets());
@@ -146,7 +146,7 @@ class FrappeJavaTest {
     @Test
     void labelFlecheGagneUnCran() {
         Document doc = Document.of("        case 1 ->");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(17), IndentStyle.spaces(4));
         assertEquals("\n            ", plan.transaction().edits().get(0).inserted());
     }
@@ -155,7 +155,7 @@ class FrappeJavaTest {
     @Test
     void defaultGagneUnCran() {
         Document doc = Document.of("        default:");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(16), IndentStyle.spaces(4));
         assertEquals("\n            ", plan.transaction().edits().get(0).inserted());
     }
@@ -164,7 +164,7 @@ class FrappeJavaTest {
     @Test
     void blancsDeQueueNeMasquentPas() {
         Document doc = Document.of("        case 1:  ");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(17), IndentStyle.spaces(4));
         assertEquals("\n            ", plan.transaction().edits().get(0).inserted());
     }
@@ -173,7 +173,7 @@ class FrappeJavaTest {
     @Test
     void labelMultiConstantesGagneUnCran() {
         Document doc = Document.of("        case A, B:");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(18), IndentStyle.spaces(4));
         assertEquals("\n            ", plan.transaction().edits().get(0).inserted());
     }
@@ -182,7 +182,7 @@ class FrappeJavaTest {
     @Test
     void pasUnLabelRetombeSurGenerique() {
         Document doc = Document.of("        int x = 1;");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(18), IndentStyle.spaces(4));
         assertEquals("\n", plan.transaction().edits().get(0).inserted());
     }
@@ -191,7 +191,7 @@ class FrappeJavaTest {
     @Test
     void ternaireNEstPasUnLabel() {
         Document doc = Document.of("        int y = a ? b :");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(22), IndentStyle.spaces(4));
         assertFalse(plan.transaction().edits().get(0).inserted().contains("            "));
     }
@@ -200,7 +200,7 @@ class FrappeJavaTest {
     @Test
     void commentaireNEstPasUnLabel() {
         Document doc = Document.of("        // case X:");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(17), IndentStyle.spaces(4));
         assertFalse(plan.transaction().edits().get(0).inserted().contains("            "));
     }
@@ -210,7 +210,7 @@ class FrappeJavaTest {
     void cranAppliqueEtAnnule() {
         String texte = "        case 1:";
         Document doc = Document.of(texte);
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(15), IndentStyle.spaces(4));
         TextSession session = TextSession.of(texte, () -> 0L);
         assertTrue(session.apply(plan.transaction(), plan.selection()));
@@ -231,7 +231,7 @@ class FrappeJavaTest {
         Document doc = Document.of(texte);
         // caret 0 : entre c et d de la chaîne (offset 15) ;
         // caret 1 : fin du label (offset 36)
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(15, 36), IndentStyle.spaces(4));
         assertEquals(2, plan.transaction().edits().size());
         assertEquals("\" +\n    \"", plan.transaction().edits().get(0).inserted());
@@ -247,7 +247,7 @@ class FrappeJavaTest {
     @Test
     void selectionSurLabelRemplacee() {
         Document doc = Document.of("        case 1: DUO");
-        EditPlan plan = FrappeJava.enter(doc, analyse(doc),
+        EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.of(new SelRange(16, 19)), IndentStyle.spaces(4));
         assertEquals("DUO", plan.transaction().edits().get(0).removed());
         assertEquals("\n            ", plan.transaction().edits().get(0).inserted());

@@ -290,33 +290,6 @@ public final class jo.celeris.core.intelligence.Formateur {
   public static java.lang.String formater(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.intelligence.IndentStyle);
 }
 
-### jo.celeris.core.intelligence.FrappeJava$EtatChaine
-Compiled from "FrappeJava.java"
-final class jo.celeris.core.intelligence.FrappeJava$EtatChaine extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public boolean dansChaine();
-  public boolean echappe();
-}
-
-### jo.celeris.core.intelligence.FrappeJava$Geste
-Compiled from "FrappeJava.java"
-final class jo.celeris.core.intelligence.FrappeJava$Geste extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public jo.celeris.core.text.TextEdit edition();
-  public jo.celeris.core.text.SelRange selection();
-  public int delta();
-}
-
-### jo.celeris.core.intelligence.FrappeJava
-Compiled from "FrappeJava.java"
-public final class jo.celeris.core.intelligence.FrappeJava {
-  public static jo.celeris.core.intelligence.EditPlan enter(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
-}
-
 ### jo.celeris.core.intelligence.FusedFloor$Entree
 Compiled from "FusedFloor.java"
 final class jo.celeris.core.intelligence.FusedFloor$Entree extends java.lang.Record {
@@ -489,6 +462,33 @@ final class jo.celeris.core.intelligence.InlineSafety$Usage extends java.lang.En
 ### jo.celeris.core.intelligence.InlineSafety
 Compiled from "InlineSafety.java"
 final class jo.celeris.core.intelligence.InlineSafety {
+}
+
+### jo.celeris.core.intelligence.JavaSmartTyping$EtatChaine
+Compiled from "JavaSmartTyping.java"
+final class jo.celeris.core.intelligence.JavaSmartTyping$EtatChaine extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public boolean dansChaine();
+  public boolean echappe();
+}
+
+### jo.celeris.core.intelligence.JavaSmartTyping$Geste
+Compiled from "JavaSmartTyping.java"
+final class jo.celeris.core.intelligence.JavaSmartTyping$Geste extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.text.TextEdit edition();
+  public jo.celeris.core.text.SelRange selection();
+  public int delta();
+}
+
+### jo.celeris.core.intelligence.JavaSmartTyping
+Compiled from "JavaSmartTyping.java"
+public final class jo.celeris.core.intelligence.JavaSmartTyping {
+  public static jo.celeris.core.intelligence.EditPlan enter(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
 }
 
 ### jo.celeris.core.intelligence.LineActions$Bloc
