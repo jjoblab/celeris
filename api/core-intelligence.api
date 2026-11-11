@@ -409,6 +409,24 @@ public final class jo.celeris.core.intelligence.PasteReindenter {
   public static java.lang.String reindent(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, java.lang.String, jo.celeris.core.intelligence.IndentStyle);
 }
 
+### jo.celeris.core.intelligence.PostfixCompletion$PostfixEdit
+Compiled from "PostfixCompletion.java"
+public final class jo.celeris.core.intelligence.PostfixCompletion$PostfixEdit extends java.lang.Record {
+  public jo.celeris.core.intelligence.PostfixCompletion$PostfixEdit(jo.celeris.core.text.TextEdit, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.text.TextEdit edit();
+  public int caret();
+}
+
+### jo.celeris.core.intelligence.PostfixCompletion
+Compiled from "PostfixCompletion.java"
+public final class jo.celeris.core.intelligence.PostfixCompletion {
+  public static java.util.List<java.lang.String> motifs();
+  public static jo.celeris.core.intelligence.PostfixCompletion$PostfixEdit expand(jo.celeris.core.text.Document, int);
+}
+
 ### jo.celeris.core.intelligence.RechercheFloue
 Compiled from "RechercheFloue.java"
 public final class jo.celeris.core.intelligence.RechercheFloue {
