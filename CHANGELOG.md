@@ -130,6 +130,26 @@ vivent dans les ADR et le registre de portage, pas ici.
   varargs, chevrons non appariés (comparaison ou type explicite —
   l'ambiguïté ne se tranche pas) ; l'ordre qui n'est pas une permutation
   se refuse d'exception (`SignatureChangeTest`).
+
+- **Déplacement et suppression sûre (B-23)** : `SafeDelete.delete` — la
+  déclaration désignée par la sélection (méthode, type ou champ — la
+  plus intime) ne disparaît que si le document ne l'utilise nulle part
+  ailleurs : le verdict rend les usages barants (le client les montre
+  avant de renoncer, à la manière de l'étalon) ou le plan d'effacement
+  quand la voie est libre. Les appels et leurs suspects barrent une
+  méthode (récepteur étranger ambigu, référence `::`), les occurrences
+  du nom barrent un type ou un champ (l'appel homonyme d'une méthode
+  déclarée ne lit pas le champ), la récursion seule ne barre pas, le
+  champ qui partage sa ligne ou sa déclaration refuse ; l'effacement
+  prend les lignes entières, la ligne blanche voisine part avec lui.
+  `SafeMove.move` — la méthode désignée déménage dans un autre type du
+  document, annotations contiguës comprises, si et seulement si rien ne
+  pend : usage du nom hors déclaration, lecture d'un champ d'origine,
+  appel d'une méthode sœur, conflit homonyme dans la cible,
+  constructeur, surcharge, cible d'une ligne refusent ; le corps se
+  réindente au niveau des membres de la cible, en une transaction
+  annulable (`SafeDeleteTest`, `SafeMoveTest`).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet

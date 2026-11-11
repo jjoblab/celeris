@@ -304,18 +304,23 @@ vers 3 000+ (l'écart mesuré : 1 761 contre 3 130) ; CLI complète
 ligne de matrice ; les trois commandes de la CLI avec leurs tests de
 fumée.
 
-**Avancement (2026-11-10)** : A-04 clos — `CamelWord` (core-text)
+**Avancement (2026-11-11)** : A-04 clos — `CamelWord` (core-text)
 raffine les frontières UAX #29 par les bossages de casse et de nature,
 `CaretsMotion` (android-view) y branche le déplacement et la sélection
 par mots, la matrice passe à Câblé (`CaretsMotionTest`) ; B-20 clos —
-les cinq variantes câblées sur l’analyse des flux (variable, constante,
+les cinq variantes câblées sur l'analyse des flux (variable, constante,
 champ, puis méthode et paramètre : `FlowAnalysis`, `MethodStructure`,
 `TypeRun`, `ExpressionTypes`, `FlowExtractions` — la matrice B-20 compte
 ses cinq) ; B-21 clos — `Inline`, `InlineSafety`, `InlineFields`,
 `MethodDeclarations` alignent la déclaration désignée (usages remplacés,
 déclaration supprimée si locale ou privée) ; B-22 clos —
-`SignatureChange` réordonne la signature et chaque appel du document.
-Restent B-23, A-14, A-17, D-14, D-20, G-03 et le volume de tests.
+`SignatureChange` réordonne la signature et chaque appel du document ;
+B-23 clos — `SafeDelete` rend les usages barants ou le plan
+d'effacement (méthode, type, champ — le faux positif refuse, le faux
+négatif n'existe pas) et `SafeMove` déménage la méthode dans un autre
+type du document si rien ne pend (usage du nom, champ d'origine lu,
+appel sœur, conflit dans la cible — le corps se réindente).
+Restent A-14, A-17, D-14, D-20, G-03 et le volume de tests.
 
 **Statut** : bloqué (décision du propriétaire).
 
