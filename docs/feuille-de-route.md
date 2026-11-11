@@ -392,7 +392,13 @@ d'effacement (méthode, type, champ — le faux positif refuse, le faux
 négatif n'existe pas) et `SafeMove` déménage la méthode dans un autre
 type du document si rien ne pend (usage du nom, champ d'origine lu,
 appel sœur, conflit dans la cible — le corps se réindente) ; A-14 clos — `HistoriqueLocal` (android-host) archive le contenu remplacé à chaque écriture, isole l’histoire par fichier et restaure une version antérieure qui se défait comme elle s’est faite ; G-03 clos — la cli porte diagnostiquer (TreeDiagnostics), formater (Formateur) et refactorer renommer (IndexSymboles + Renommage), sortie déterministe et codes de sortie documentés ; A-23 clos — `PostfixCompletion` consomme l’expression devant le point dans son gabarit, une seule édition, jamais le préfixe ne se matérialise (le piège hérité du lot L0) — la première pierre du chantier C8 ; A-21 clos — `RechercheProjet` pose la requête sur le projet embarqué : l’identifiant entier suit la voie de l’index (jamais les chaînes ni les commentaires), le partiel balaie — latence consignée au banc.
-Restent A-17, D-14, D-20, la frappe fine (C8, hors postfixe) et le volume de tests.
+A-17 clos — `IndentGuides` (android-view) trace un guide par cran
+d’indentation, à mi-chemin entre les colonnes de bord, de la première à la
+dernière rangée de chaque niveau — le pli replié se traverse au niveau le
+plus faible de son bouquet, les blancs de tête se comptent en primitives,
+l’alpha discret vit dans le canal alpha de l’encre de base
+(`IndentGuidesTest`, le canvas du banc capture les lignes). Restent D-14,
+D-20 et le volume de tests.
 
 **Statut** : bloqué (décision du propriétaire).
 

@@ -319,6 +319,21 @@ vivent dans les ADR et le registre de portage, pas ici.
   l'image suivante, l'avis de fenêtre y part (`ScrollFractionTest`,
   `PopupSurfacesTest`).
 
+- **Les guides d’indentation (A-17)** : `IndentGuides`, couche de chrome —
+  un trait vertical par cran d’indentation (`UNIT` = 4 colonnes), tracé à
+  mi-chemin entre les colonnes de bord, de la première à la dernière rangée
+  de chaque niveau ; les rangées contiguës d’un même niveau se joignent en
+  une ligne continue. Le niveau se lit par rangée, la projection décide de
+  la ligne — un pli replié couvre ses lignes, le guide le traverse au
+  niveau le plus faible de son bouquet ; les blancs de tête se comptent en
+  primitives (aucune allocation dans la boucle), la tabulation compte à son
+  cran ; l’alpha discret (0x1A) vit dans le canal alpha de l’encre de
+  base — le guide aligne, il ne lit pas. Tracés sous la sélection et le
+  texte : la couche s’insère entre la gouttière et la sélection
+  (`IndentGuidesTest` — le canvas du banc capture les lignes tracées :
+  guides alignés aux niveaux, le guide traverse le pli, la tabulation
+  ouvre son niveau, sans indentation rien ne se trace).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
