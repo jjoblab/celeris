@@ -30,9 +30,9 @@ import jo.celeris.core.text.Transaction;
  * ligne par ligne : elle ne dépend d'aucune analyse, elle survit à
  * l'arbre périmé d'une édition à peine frappée.</p>
  */
-public final class FrappeJava {
+public final class JavaSmartTyping {
 
-    private FrappeJava() {
+    private JavaSmartTyping() {
     }
 
     /**

@@ -229,7 +229,7 @@ gabarit de la démo rend sa macro et son choix). Matrice B-07 et A-22
 
 **Statut** : terminé le 2026-11-11 — la complétion postfixe (A-23,
 `PostfixCompletion`), le renommage lié des balises XML (`XmlLinkedTags`),
-la frappe fine Java dédiée (`FrappeJava`) et l'auto-import classpath
+la frappe fine Java dédiée (`JavaSmartTyping`) et l'auto-import classpath
 (`ClasspathIndex` + `ClasspathImports`) livrés.
 
 **Périmètre** : smart typing Java/XML, complétion postfixe, renommage
@@ -238,12 +238,12 @@ XML lié, auto-import classpath — non démarrés (ligne A-23 en tête).
 **Sortée** : par raffinement — la complétion postfixe (A-23) et le
 renommage XML lié livrés avec leurs bancs (`PostfixCompletionTest`,
 `XmlLinkedTagsTest`) ; la frappe fine Java dédiée livrée le
-2026-11-11 : `FrappeJava` découpe la chaîne à l'Entrée (le caret
+2026-11-11 : `JavaSmartTyping` découpe la chaîne à l'Entrée (le caret
 dans un littéral ferme la chaîne, pose la concaténation et la rouvre à
 la ligne un cran sous la sienne — blocs de texte, échappée pendante et
 chaîne non fermée refusent) et pose le cran des labels de cas (le mot
 de tête `case`/`default` aux trois formes, ternaire et commentaire
-épargnés — `FrappeJavaTest`), câblée dans la démo par la langue du
+épargnés — `JavaSmartTypingTest`), câblée dans la démo par la langue du
 fichier ; l'auto-import classpath livré : `ClasspathIndex`
 porte l'index de l'hôte, `ClasspathImports` propose les noms qualifiés
 du nom simple sous le curseur dans l'ordre de l'index, l'import déjà
@@ -442,7 +442,7 @@ dépôt de départ, hors de ce bac à sable.
 | 2026-11-10 | C10 — charge et limites | banc `Charge480kLignesTest` (480 000 lignes, tas dédié 1 Go), mode gros fichiers tri-état (`LargeFileMode` + `LargeFileModeTest`), limites au README (« Charge et limites ») ; G-01 étendu à la matrice |
 | 2026-11-11 | C6 — raffinements de complétion | `CompletionMatcher` (six paliers), `AcceptanceHistory` (apprentissage), `ContextualCompletion` (contextes enum/annotation), `FusedFloor` (plancher fusionné) ; `RaffinementsCompletionTest` (commit 8d934c3) |
 | 2026-11-11 | C4 — USAGE.md : guide d'intégration hôte | `USAGE.md` à la racine (719 lignes, commit 023ad2d) ; coordonnées d'artefacts et noms d'API vérifiés contre les manifestes `api/` |
-| 2026-11-11 | C8 — frappe fine | `FrappeJava` (découpage de chaînes, cran des labels de cas) et `ClasspathIndex` + `ClasspathImports` (auto-import classpath) ; bancs `FrappeJavaTest`, `ClasspathImportsTest`, `DemoIntelligenceTest` ; câblés dans la démo (gestes dédiés Java, atelier d'import) |
+| 2026-11-11 | C8 — frappe fine | `JavaSmartTyping` (découpage de chaînes, cran des labels de cas) et `ClasspathIndex` + `ClasspathImports` (auto-import classpath) ; bancs `JavaSmartTypingTest`, `ClasspathImportsTest`, `DemoIntelligenceTest` ; câblés dans la démo (gestes dédiés Java, atelier d'import) |
 | 2026-11-11 | C7 — signature riche et snippets riches | `SignatureAideModel` surchargé (stepper, fenêtre ±1, peek) + `SignatureHelpView` riche (voisines, stepper ‹ i/n ›, peek à l'appui long, repli local sur réponse vide) ; trous à choix et macros au gabarit (`Trou.choix`, `Gabarit.of(corps, macros)`) ; bancs `SignatureAideModelTest`, `PopupViewsTest`, `GabaritTest`, `AtelierRefactorTest` ; câblés dans la démo (conversion entière, coach en repli, gabarit de méthode enrichi) |
 | 2026-11-11 | C9 — chrome de l'éditeur | `MinimapModel` + `MinimapView` (silhouette, fenêtre visible, saut au toucher et au glissement) et `FastScrollerView` (pouce, glissement, tout tient : le pouce se tait) ; `EditorView` gagne la voie publique du défilement par fraction (`ViewportFractions`) ; bancs `MinimapModelTest`, `PopupSurfacesTest`, `ScrollFractionTest` ; câblés dans la démo au bord droit |
 

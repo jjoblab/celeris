@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 import jo.celeris.android.view.IntelligenceHub;
 import jo.celeris.core.intelligence.CompletionMots;
 import jo.celeris.core.intelligence.EditPlan;
-import jo.celeris.core.intelligence.FrappeJava;
+import jo.celeris.core.intelligence.JavaSmartTyping;
 import jo.celeris.core.intelligence.IndentStyle;
 import jo.celeris.core.intelligence.SmartTyping;
 import jo.celeris.core.language.LanguageSupport;
@@ -71,7 +71,7 @@ final class DemoIntelligence implements IntelligenceHub.Provider {
             MultiSelection selection, IndentStyle style) {
         LanguageSupport langue = langueCourante.get();
         if (langue != null && langue.syntax() == JavaSyntax.INSTANCE) {
-            return FrappeJava.enter(doc, analysis, selection, style);
+            return JavaSmartTyping.enter(doc, analysis, selection, style);
         }
         return SmartTyping.enter(doc, analysis, selection, style);
     }

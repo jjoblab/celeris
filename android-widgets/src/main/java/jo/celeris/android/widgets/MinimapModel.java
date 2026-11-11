@@ -24,12 +24,12 @@ public final class MinimapModel {
     public static final int CHARGE_MAX = 120;
 
     /** Une rangée de la carte : son cran, la charge de son bouquet. */
-    public record Rangee(int cran, int charge) {
+    public record MapRow(int slot, int load) {
     }
 
-    private final List<Rangee> rangees;
+    private final List<MapRow> rangees;
 
-    private MinimapModel(List<Rangee> rangees) {
+    private MinimapModel(List<MapRow> rangees) {
         this.rangees = List.copyOf(rangees);
     }
 
@@ -50,9 +50,9 @@ public final class MinimapModel {
             int charge = Math.min(CHARGE_MAX, texte.stripTrailing().length());
             charges[cran] = Math.max(charges[cran], charge);
         }
-        List<Rangee> carte = new ArrayList<>(crans);
+        List<MapRow> carte = new ArrayList<>(crans);
         for (int cran = 0; cran < crans; cran++) {
-            carte.add(new Rangee(cran, charges[cran]));
+            carte.add(new MapRow(cran, charges[cran]));
         }
         return new MinimapModel(carte);
     }
@@ -73,7 +73,7 @@ public final class MinimapModel {
     }
 
     /** Les rangees de la carte, dans l'ordre des crans. */
-    public List<Rangee> rangees() {
+    public List<MapRow> rangees() {
         return rangees;
     }
 

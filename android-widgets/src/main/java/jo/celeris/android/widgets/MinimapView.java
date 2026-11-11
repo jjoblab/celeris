@@ -78,7 +78,7 @@ public final class MinimapView extends View {
         var rangees = model.rangees();
         this.charges = new int[rangees.size()];
         for (int i = 0; i < rangees.size(); i++) {
-            this.charges[i] = rangees.get(i).charge();
+            this.charges[i] = rangees.get(i).load();
         }
         this.lignes = Math.max(1, lignes);
         requestLayout();

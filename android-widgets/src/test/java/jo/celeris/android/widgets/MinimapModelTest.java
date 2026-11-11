@@ -32,9 +32,9 @@ class MinimapModelTest {
         assertEquals(2, carte.taille());
         // le bouquet de la rangée 0 tient « courte » et la ligne vide :
         // la charge est celle de « courte », 6 caractères
-        assertEquals(6, carte.rangees().get(0).charge());
+        assertEquals(6, carte.rangees().get(0).load());
         // le bouquet de la rangée 1 tient la longue et « fin » : 25
-        assertEquals(25, carte.rangees().get(1).charge());
+        assertEquals(25, carte.rangees().get(1).load());
     }
 
     /** La ligne vide charge zéro — le trait ne se rend pas. */
@@ -42,8 +42,8 @@ class MinimapModelTest {
     void laLigneVideChargeZero() {
         Document doc = TextSession.of("\n\n", () -> 0L).document();
         MinimapModel carte = MinimapModel.of(doc, 2);
-        assertEquals(0, carte.rangees().get(0).charge());
-        assertEquals(0, carte.rangees().get(1).charge());
+        assertEquals(0, carte.rangees().get(0).load());
+        assertEquals(0, carte.rangees().get(1).load());
     }
 
     /** La charge plafonne — au-delà de CHARGE_MAX, le trait sature. */
@@ -55,7 +55,7 @@ class MinimapModelTest {
         }
         Document doc = TextSession.of(longue.toString(), () -> 0L).document();
         MinimapModel carte = MinimapModel.of(doc, 1);
-        assertEquals(MinimapModel.CHARGE_MAX, carte.rangees().get(0).charge());
+        assertEquals(MinimapModel.CHARGE_MAX, carte.rangees().get(0).load());
     }
 
     /** Le cran d'une ligne : au prorata, la dernière tombe dans le dernier cran. */
@@ -100,8 +100,8 @@ class MinimapModelTest {
         MinimapModel carte = MinimapModel.of(
                 TextSession.of("seule", () -> 0L).document(), 200);
         assertEquals(200, carte.taille());
-        assertEquals(5, carte.rangees().get(0).charge());
-        assertEquals(0, carte.rangees().get(199).charge());
+        assertEquals(5, carte.rangees().get(0).load());
+        assertEquals(0, carte.rangees().get(199).load());
         assertTrue(carte.ligneDeCran(199, 1) == 0);
     }
 }
