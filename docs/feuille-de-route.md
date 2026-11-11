@@ -319,8 +319,8 @@ B-23 clos — `SafeDelete` rend les usages barants ou le plan
 d'effacement (méthode, type, champ — le faux positif refuse, le faux
 négatif n'existe pas) et `SafeMove` déménage la méthode dans un autre
 type du document si rien ne pend (usage du nom, champ d'origine lu,
-appel sœur, conflit dans la cible — le corps se réindente) ; A-14 clos — `HistoriqueLocal` (android-host) archive le contenu remplacé à chaque écriture, isole l’histoire par fichier et restaure une version antérieure qui se défait comme elle s’est faite.
-Restent A-17, D-14, D-20, G-03 et le volume de tests.
+appel sœur, conflit dans la cible — le corps se réindente) ; A-14 clos — `HistoriqueLocal` (android-host) archive le contenu remplacé à chaque écriture, isole l’histoire par fichier et restaure une version antérieure qui se défait comme elle s’est faite ; G-03 clos — la cli porte diagnostiquer (TreeDiagnostics), formater (Formateur) et refactorer renommer (IndexSymboles + Renommage), sortie déterministe et codes de sortie documentés.
+Restent A-17, D-14, D-20 et le volume de tests.
 
 **Statut** : bloqué (décision du propriétaire).
 

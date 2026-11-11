@@ -162,6 +162,17 @@ vivent dans les ADR et le registre de portage, pas ici.
   l'histoire vit par chemin, celle d'un fichier ne fuit jamais dans
   celle d'un autre (`HistoriqueLocalTest`).
 
+- **La cli outillée (G-03)** : l'exécutable sans Android gagne les trois
+  commandes qui lui manquaient — `diagnostiquer` (les plages malformées
+  de l'arbre, ligne et colonne, code 3 quand un diagnostic existe),
+  `formater` (le texte formaté seul sur la sortie, quatre espaces par
+  niveau) et `refactorer renommer` (le fichier renommé seul sur la
+  sortie, appliqué par la transaction ; les conflits signalés sans être
+  tranchés — ambiguïté et collision disent code 4). Les codes de sortie
+  se documentent : 0 succès, 1 fichier illisible ou langage sans
+  analyse, 2 usage inconnu, 3 diagnostics trouvés, 4 conflit de
+  renommage ; la sortie est déterministe (`CelerisOutilsTest`).
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
