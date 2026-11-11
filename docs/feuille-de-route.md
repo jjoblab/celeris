@@ -407,7 +407,16 @@ dans la fenêtre d’une activité — le vrai dispatch) ; D-14 clos —
 et `poserPolice` (la table des familles de la règle, mesure et tracé
 ensemble, PIEGE-22) ; la démo embarque Fira Code 6.2 (OFL, attribuée
 au `NOTICE`) derrière l’interrupteur « Ligatures » (`LigaturesTest`,
-test de capture). Restent le volume de tests.
+test de capture). Le volume de tests — première traîne le 2026-11-11 :
+six collaborateurs vivaient sans aucun banc (`EditorGutter`,
+`ViewFonts`, `SceneDiagnostics`, `FantomeEditeur`, `CurseurClavier`,
+`PopupPanel`), leurs bancs éponymes naissent — 31 tests, dont le
+niveau d’eau de la gouttière (PIEGE-25), la table des familles de la
+règle (D-14), l’exécuteur injecté jamais détourné (M7.5, §9), le
+geste du fantôme (F-01) et le clignotement du curseur au rythme de la
+plateforme ; volume courant : 2 028 méthodes `@Test` (2 092
+exécutions) contre 3 130 à l’audit — l’écart vit surtout dans
+l’interface (l’audit § 4.4), la traîne continue.
 
 **Statut** : bloqué (décision du propriétaire).
 

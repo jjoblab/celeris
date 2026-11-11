@@ -365,6 +365,22 @@ vivent dans les ADR et le registre de portage, pas ici.
   vit au tracé comme à la mesure, la famille active se redérive au
   repos).
 
+- **Le volume de tests — première traîne (C13)** : six collaborateurs
+  vivaient sans aucun banc, leurs bancs éponymes naissent (31 tests,
+  C13 volume) — `EditorGutterTest` (le niveau d’eau croît et ne
+  rétrécit jamais, la coulisse découle de la configuration seule,
+  PIEGE-25), `ViewFontsTest` (le changement redérive métriques et
+  viseur, la police posée sur la famille active redérive — la
+  dormante attend, la table de la règle, PIEGE-22), `SceneDiagnosticsTest`
+  (l’exécuteur injecté jamais détourné, les lectures de vérité),
+  `FantomeEditeurTest` (la suggestion se dépose, Tab et l’appui
+  partent à l’hôte, F-01), `CurseurClavierTest` (le clignotement au
+  rythme de la plateforme — la vue vit dans la fenêtre d’une
+  activité, la perte de focus arrête), `PopupPanelTest` (les
+  respirations dérivent de la densité, la mesure les réserve des
+  deux côtés). Volume courant : 2 028 méthodes `@Test` contre
+  3 130 à l’audit — la traîne continue.
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet
