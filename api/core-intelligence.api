@@ -1,3 +1,30 @@
+### jo.celeris.core.intelligence.AcceptanceHistory$Snapshot
+Compiled from "AcceptanceHistory.java"
+public final class jo.celeris.core.intelligence.AcceptanceHistory$Snapshot {
+  public static final int FORMAT_VERSION;
+  public jo.celeris.core.intelligence.AcceptanceHistory$Snapshot(java.util.Map<java.lang.String, java.util.Map<java.lang.String, long[]>>, int);
+  public int version();
+  public java.util.Map<java.lang.String, java.util.Map<java.lang.String, long[]>> entries();
+}
+
+### jo.celeris.core.intelligence.AcceptanceHistory
+Compiled from "AcceptanceHistory.java"
+public final class jo.celeris.core.intelligence.AcceptanceHistory {
+  public static final int PER_LANGUAGE_CAPACITY;
+  public jo.celeris.core.intelligence.AcceptanceHistory();
+  public synchronized void record(java.lang.String, java.lang.String);
+  public synchronized long boost(java.lang.String, java.lang.String);
+  public synchronized void setEnabled(boolean);
+  public synchronized boolean isEnabled();
+  public synchronized void clear();
+  public synchronized void clear(java.lang.String);
+  public synchronized int size();
+  public synchronized long recordedAcceptanceCount();
+  public synchronized long boostedAcceptanceCount();
+  public synchronized jo.celeris.core.intelligence.AcceptanceHistory$Snapshot snapshot();
+  public synchronized void restore(jo.celeris.core.intelligence.AcceptanceHistory$Snapshot);
+}
+
 ### jo.celeris.core.intelligence.CatalogueVersions
 Compiled from "CatalogueVersions.java"
 public final class jo.celeris.core.intelligence.CatalogueVersions {
@@ -29,6 +56,28 @@ public final class jo.celeris.core.intelligence.Commenter {
   public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> toggle(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.CommentRules);
 }
 
+### jo.celeris.core.intelligence.CompletionMatcher
+Compiled from "CompletionMatcher.java"
+public final class jo.celeris.core.intelligence.CompletionMatcher {
+  public static final int TIER_EXACT;
+  public static final int TIER_EXACT_CI;
+  public static final int TIER_PREFIX;
+  public static final int TIER_PREFIX_CI;
+  public static final int TIER_CAMEL_HUMP;
+  public static final int TIER_SUBSEQUENCE;
+  public static final int TIER_NONE;
+  public static final int GROUP_RESOLVED;
+  public static final int GROUP_KEYWORD;
+  public static final int GROUP_SNIPPET;
+  public static final int GROUP_BUFFER_WORD;
+  public static java.lang.String leadingIdentifier(java.lang.String);
+  public static int tier(java.lang.String, java.lang.String, java.lang.String);
+  public static boolean matches(java.lang.String, java.lang.String, java.lang.String);
+  public static int group(boolean, boolean, boolean);
+  public static java.util.List<java.lang.Integer> matchPositions(java.lang.String, java.lang.String);
+  public static boolean camelHumpSubsequence(java.lang.String, java.lang.String);
+}
+
 ### jo.celeris.core.intelligence.CompletionMots
 Compiled from "CompletionMots.java"
 public final class jo.celeris.core.intelligence.CompletionMots {
@@ -58,6 +107,33 @@ Compiled from "CompletionsXml.java"
 public final class jo.celeris.core.intelligence.CompletionsXml {
   public static final int MAX_CANDIDATS;
   public static java.util.List<java.lang.String> completer(java.lang.String, int);
+}
+
+### jo.celeris.core.intelligence.ContextualCompletion$Context
+Compiled from "ContextualCompletion.java"
+public final class jo.celeris.core.intelligence.ContextualCompletion$Context extends java.lang.Record {
+  public jo.celeris.core.intelligence.ContextualCompletion$Context(jo.celeris.core.intelligence.ContextualCompletion$Kind, java.util.List<java.lang.String>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.intelligence.ContextualCompletion$Kind kind();
+  public java.util.List<java.lang.String> candidates();
+}
+
+### jo.celeris.core.intelligence.ContextualCompletion$Kind
+Compiled from "ContextualCompletion.java"
+public final class jo.celeris.core.intelligence.ContextualCompletion$Kind extends java.lang.Enum<jo.celeris.core.intelligence.ContextualCompletion$Kind> {
+  public static final jo.celeris.core.intelligence.ContextualCompletion$Kind ENUM_CONSTANTS;
+  public static final jo.celeris.core.intelligence.ContextualCompletion$Kind ANNOTATION_ATTRIBUTES;
+  public static final jo.celeris.core.intelligence.ContextualCompletion$Kind NONE;
+  public static jo.celeris.core.intelligence.ContextualCompletion$Kind[] values();
+  public static jo.celeris.core.intelligence.ContextualCompletion$Kind valueOf(java.lang.String);
+}
+
+### jo.celeris.core.intelligence.ContextualCompletion
+Compiled from "ContextualCompletion.java"
+public final class jo.celeris.core.intelligence.ContextualCompletion {
+  public static jo.celeris.core.intelligence.ContextualCompletion$Context context(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
 }
 
 ### jo.celeris.core.intelligence.EditPlan
@@ -197,6 +273,37 @@ final class jo.celeris.core.intelligence.FlowExtractions {
 Compiled from "Formateur.java"
 public final class jo.celeris.core.intelligence.Formateur {
   public static java.lang.String formater(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.intelligence.IndentStyle);
+}
+
+### jo.celeris.core.intelligence.FusedFloor$Entree
+Compiled from "FusedFloor.java"
+final class jo.celeris.core.intelligence.FusedFloor$Entree extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String label();
+  public int tier();
+  public int group();
+  public int rang();
+}
+
+### jo.celeris.core.intelligence.FusedFloor$Floor
+Compiled from "FusedFloor.java"
+public final class jo.celeris.core.intelligence.FusedFloor$Floor extends java.lang.Record {
+  public jo.celeris.core.intelligence.FusedFloor$Floor(java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
+  public static jo.celeris.core.intelligence.FusedFloor$Floor vide();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<java.lang.String> keywords();
+  public java.util.List<java.lang.String> snippets();
+  public java.util.List<java.lang.String> words();
+}
+
+### jo.celeris.core.intelligence.FusedFloor
+Compiled from "FusedFloor.java"
+public final class jo.celeris.core.intelligence.FusedFloor {
+  public static java.util.List<java.lang.String> merged(java.util.List<java.lang.String>, jo.celeris.core.intelligence.FusedFloor$Floor, java.lang.String);
 }
 
 ### jo.celeris.core.intelligence.Gabarit
