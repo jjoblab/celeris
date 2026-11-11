@@ -44,6 +44,27 @@ final class TypeRun {
      * @return le type lu, ou null quand la course ne se referme pas
      */
     static @Nullable String beforeName(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
+        int run = runStart(tokens, i);
+        if (run < 0) {
+            return null;
+        }
+        String type = joinTokens(tokens, run, i);
+        while (startsWithModifier(type)) {
+            type = type.substring(type.indexOf(' ') + 1);
+        }
+        return type.isBlank() ? null : type;
+    }
+
+    /**
+     * L'index du premier jeton de la course de type qui précède un nom —
+     * la course se referme (chevrons équilibrés, ouverture qui porte un
+     * type), sinon -1.
+     *
+     * @param tokens les jetons de la déclaration
+     * @param i      l'index du nom déclaré
+     * @return l'index du premier jeton de la course, ou -1
+     */
+    static int runStart(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
         int angles = 0;
         int end = i;
         int j = i - 1;
@@ -64,13 +85,9 @@ final class TypeRun {
             j--;
         }
         if (end >= i || angles != 0 || !startsType(tokens.get(end))) {
-            return null;
+            return -1;
         }
-        String type = joinTokens(tokens, end, i);
-        while (startsWithModifier(type)) {
-            type = type.substring(type.indexOf(' ') + 1);
-        }
-        return type.isBlank() ? null : type;
+        return end;
     }
 
     /** Vrai quand le nom est suivi d'un déclarateur : = ; : , ou ). */
