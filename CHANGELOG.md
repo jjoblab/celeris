@@ -67,8 +67,27 @@ vivent dans les ADR et le registre de portage, pas ici.
   ferme — la complétion au curseur coupe, l'édition reste entière
   (coloration, frappe, annulation).
 - **Limites au README** (nouvelle section « Charge et limites ») : les
-  budgets mesurés et les seuils du mode — le futur `USAGE.md` les
-  reprendra (chantier C4).
+  budgets mesurés et les seuils du mode — repris au `USAGE.md`
+  (chantier C4).
+
+### Chantier C4 — guide d'intégration hôte
+
+- **`USAGE.md` à la racine** (719 lignes) : le guide d'intégration
+  qui manquait à tout hôte — coordonnées des huit artefacts et leur
+  disponibilité (mavenLocal aujourd'hui, registre de l'hébergeur à C1,
+  modules Android par inclusion de source), déclaration des
+  dépendances, montage de la vue, modèle de texte, registre des
+  langages, paquets de données, serveurs de langage déclarés, popups
+  et feuilles (ADR-018), SPI hôte (VCS, exécution, débogueur,
+  fichiers), contrats IA et consentement, thèmes, budgets de
+  performance attendus, grands documents et coupures, cli, intégrité
+  et provenance, vie privée, dettes restantes, pièges d'intégration.
+- **Vérifié contre les manifestes** : chaque coordonnée d'artefact
+  et chaque nom d'API cité est vérifié contre `api/*.api` (ADR-009)
+  et les sources publiques des modules Android — 175 identifiants
+  balayés, tous présents ; le squelette suit `MIGRATION.md` et
+  l'USAGE.md du dépôt de départ (audit § 9, recommandation 4 ; § 6,
+  gap 3).
 
 ### Langages par paquets — chantier C5
 

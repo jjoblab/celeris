@@ -80,6 +80,7 @@ ferme même au-delà des seuils.
 
 ## Documentation
 
+- [`USAGE.md`](USAGE.md) — guide d'intégration hôte : dépendances, montage de la vue, langages, serveurs de langage, popups, SPI, contrats IA, budgets (chantier C4).
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — vue d'ensemble technique et règles de dépendance.
 - [`MIGRATION.md`](MIGRATION.md) — guide de migration du dépôt de départ vers celeris (final à M9).
 - [`docs/adr/`](docs/adr/) — décisions d'architecture (ADR-001 à ADR-018).
