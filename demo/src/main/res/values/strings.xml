@@ -108,6 +108,8 @@
     <string name="titre_reglages">Settings</string>
     <string name="reglage_numeros">Line numbers</string>
     <string name="desc_numeros">Show line numbers in the gutter</string>
+    <string name="reglage_ligatures">Ligatures</string>
+    <string name="desc_ligatures">Font ligatures (Fira Code)</string>
     <string name="reglage_retour">Soft wrap</string>
     <string name="desc_retour">Wrap long lines at the edge of the view</string>
     <string name="reglage_theme">Dark editor theme</string>

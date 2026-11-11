@@ -2,6 +2,7 @@ package jo.celeris.demo;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -57,6 +59,7 @@ public final class EditorActivity extends AppCompatActivity {
     private static final String CLE_NUMEROS = "gouttiere.numeros";
     private static final String CLE_RETOUR = "retour.souple";
     private static final String CLE_TAILLE = "police.taille";
+    private static final String CLE_LIGATURES = "police.ligatures";
     private static final float TAILLE_DEFAUT = 14f;
     private static final float TAILLE_MIN = 8f;
     private static final float TAILLE_MAX = 40f;
@@ -352,9 +355,21 @@ public final class EditorActivity extends AppCompatActivity {
 
     private void appliquerPreferences() {
         basculeTheme.appliquer();
+        // D-14 — la police à ligatures de la démonstration (Fira
+        // Code, OFL — attribuée au NOTICE) : posée sous sa famille,
+        // la mesure et le tracé la suivent ; ligatures coupées sans
+        // la bascule, la famille revient au mono de la plateforme.
+        Typeface fira = ResourcesCompat.getFont(this,
+                R.font.fira_code_regular);
+        boolean ligatures = prefs.getBoolean(CLE_LIGATURES, false);
+        if (fira != null) {
+            editeur.poserPolice("fira", fira);
+        }
+        editeur.setLigatures(ligatures);
         editeur.setNumerosVisibles(prefs.getBoolean(CLE_NUMEROS, true));
         editeur.setSoftWrap(prefs.getBoolean(CLE_RETOUR, false));
-        editeur.setFont(new FontSpec("mono",
+        editeur.setFont(new FontSpec(fira != null && ligatures
+                ? "fira" : "mono",
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)));
         if (atelierPopups != null) {
             atelierPopups.surTailleTexte(

@@ -13,14 +13,19 @@ import android.graphics.Paint;
 public final class PaintBrush implements TextBrush {
 
     private final Paint peinture;
+    private final AndroidFontRuler regle;
 
     /**
      * Construit le pinceau sur la peinture donnée.
      *
      * @param peinture la peinture Android sous-jacente
+     * @param regle    la règle porteuse de la table des familles
+     *                 (PIEGE-22 : le tracé lit la même table que la
+     *                 mesure)
      */
-    public PaintBrush(Paint peinture) {
+    public PaintBrush(Paint peinture, AndroidFontRuler regle) {
         this.peinture = peinture;
+        this.regle = regle;
     }
 
     /** La peinture Android sous-jacente (accès package). */
@@ -39,14 +44,15 @@ public final class PaintBrush implements TextBrush {
     }
 
     /**
-     * Pose la police du tracé (PIEGE-22) : la même famille que la
-     * règle de mesure — « mono » rend la police à chasse fixe — à la
+     * Pose la police du tracé (PIEGE-22) : la même table de familles
+     * que la règle de mesure — « mono » rend la police à chasse fixe,
+     * la famille posée par l'hôte rend sa police (D-14) — à la
      * taille exacte des métriques, en pixels : ce que la règle a
      * mesuré est ce que la plateforme trace.
      */
     @Override
     public void setFont(FontSpec police) {
-        peinture.setTypeface(AndroidFontRuler.policeDe(police.family()));
+        peinture.setTypeface(regle.policeDe(police.family()));
         peinture.setTextSize(police.size());
     }
 

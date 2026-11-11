@@ -3,6 +3,7 @@ package jo.celeris.android.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
@@ -155,8 +156,14 @@ public final class EditorView extends View {
     final SceneDiagnostics diagnostics;
     /** Le collaborateur des ancres de popups (M7.5, §7). */
     final CaretAnchors ancres = new CaretAnchors(this);
+    // — la règle porte la table des familles : la mesure et le tracé la
+    // lisent ensemble (D-14, PIEGE-22)
+    final AndroidFontRuler reglePolices = new AndroidFontRuler();
     /** Le collaborateur des polices (PIEGE-05, PIEGE-23, PIEGE-28). */
-    final ViewFonts polices = new ViewFonts(this);
+    final ViewFonts polices = new ViewFonts(this, reglePolices);
+    /** L'usine des pinceaux du texte (PIEGE-01) — la bascule des
+     *  ligatures y vit (D-14). */
+    private final PaintBrushes usinePinceaux;
 
     public EditorView(Context context) {
         this(context, null);
@@ -182,17 +189,13 @@ public final class EditorView extends View {
             publicationRecue = true;
             postInvalidateOnAnimation();
         });
-        BrushFactory pinceaux = new PaintBrushes();
+        BrushFactory pinceaux = usinePinceaux = new PaintBrushes(reglePolices);
         fantome = new FantomeEditeur(this, pinceaux);
         // La respiration naît à la densité de l'appareil : la valeur
         // vit en dp, la conversion se fait une fois, en pixels entiers
         // (PIEGE-23, M7.5 §5).
         gouttiereEtat.setClasse(ClasseLargeur.MOYEN, densite());
-        gouttiere = new GutterPainter(pinceaux, gouttiereEtat.margePx(),
-                () -> marquesGouttiere.marques(syntaxe.marques()),
-                gouttiereEtat::coulisseCourante,
-                marquesGouttiere::pastille,
-                marquesGouttiere::reperePreview);
+        gouttiere = GutterPainter.monter(pinceaux, this);
         trace = ScrollFrame.assemble(gouttiere, pinceaux, composition,
                 cache, sourceLiee, fantome);
         pinceauChrome = pinceaux.newBrush();
@@ -268,24 +271,34 @@ public final class EditorView extends View {
         polices.setOnFontSizeChanged(ecouteur);
     }
 
+    /** Bascule les ligatures du texte (D-14) : « liga » ouvre les
+     *  ligatures de la police posée par l'hôte, « -liga » les ferme ;
+     *  toutes les peintures du texte suivent, fermées par défaut. */
+    public void setLigatures(boolean actives) {
+        if (usinePinceaux.setLigatures(actives)) {
+            invalidate();
+        }
+    }
+
+    /** Pose une police de plateforme sous un nom de famille (D-14) : la
+     *  mesure et le tracé la suivent (PIEGE-22) — la voie de l'hôte pour
+     *  sa police à ligatures ; la famille active se redérive aussitôt. */
+    public void poserPolice(String famille, Typeface police) {
+        polices.poserPolice(famille, police);
+    }
+
     /**
      * Active ou coupe le retour à la ligne souple par offsets (A-18) —
-     * le budget de colonnes redérive, le défilement horizontal se rabat.
-     *
-     * @param actif vrai pour couper les lignes à la fenêtre
-     */
+     * le budget de colonnes redérive, le défilement horizontal se
+     * rabat. */
     public void setSoftWrap(boolean actif) {
         retourALaLigne = actif;
         scrollX = 0f;
         invalidate();
     }
 
-    /**
-     * Remplace la table de raccourcis clavier (D-17 : remappage
-     * reconfigurable, persistant chez l'hôte par encodage).
-     *
-     * @param nouvelles la table à appliquer
-     */
+    /** Remplace la table de raccourcis clavier (D-17 : remappage
+     *  reconfigurable, persistant chez l'hôte par encodage). */
     public void setKeyBindings(KeyBindings nouvelles) {
         raccourcis = nouvelles;
     }
@@ -295,13 +308,9 @@ public final class EditorView extends View {
         return raccourcis;
     }
 
-    /**
-     * Le rappel des changements de fenêtre (M7.5, §7) : défilement,
+    /** Le rappel des changements de fenêtre (M7.5, §7) : défilement,
      *  zoom, police, retour à la ligne, redimensionnement — l'hôte y
-     *  repositionne ses popups, un avis par changement réel.
-     *
-     * @param ecouteur le rappel, ou {@code null} pour couper
-     */
+     *  repositionne ses popups, un avis par changement réel. */
     public void setSurViewportChange(@Nullable Runnable ecouteur) {
         fenetre.setListener(ecouteur);
     }
@@ -384,12 +393,8 @@ public final class EditorView extends View {
         invalidate();
     }
 
-    /**
-     * Adapte la gouttière à la classe de largeur de fenêtre (D-19) :
-     * le compact resserre le champ de numéros, l'étendu le respire.
-     *
-     * @param classe la classe de largeur courante
-     */
+    /** Adapte la gouttière à la classe de largeur de fenêtre (D-19) :
+     *  le compact resserre le champ de numéros, l'étendu le respire. */
     public void setClasseLargeur(ClasseLargeur classe) {
         gouttiereEtat.setClasse(classe, densite());
         gouttiere.setMarge(gouttiereEtat.margePx());
@@ -431,24 +436,16 @@ public final class EditorView extends View {
         return marquesGouttiere;
     }
 
-    /**
-     * Dépose (ou retire) la suggestion fantôme visible (F-01) : la
-     * première ligne à l'ancre, les suivantes au bord gauche du texte,
-     * à l'encre fanée.
-     *
-     * @param suggestion la suggestion, ou {@code null} pour fermer
-     */
+    /** Dépose (ou retire) la suggestion fantôme visible (F-01) : la
+     *  première ligne à l'ancre, les suivantes au bord gauche du
+     *  texte, à l'encre fanée. */
     public void setFantome(@Nullable SuggestionFantome suggestion) {
         fantome.setSuggestion(suggestion);
     }
 
-    /**
-     * Le rappel des gestes du fantôme (F-01) : Tab et l'appui sur le
-     * fantôme acceptent le premier mot, l'hôte exécute — la vue ne
-     * touche à aucune session de modèle.
-     *
-     * @param surGeste le rappel des gestes, ou {@code null} pour couper
-     */
+    /** Le rappel des gestes du fantôme (F-01) : Tab et l'appui sur le
+     *  fantôme acceptent le premier mot, l'hôte exécute — la vue ne
+     *  touche à aucune session de modèle. */
     public void setSurGesteFantome(@Nullable Consumer<GesteFantome> surGeste) {
         fantome.setSurGeste(surGeste);
     }

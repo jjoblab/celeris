@@ -3,6 +3,7 @@ package jo.celeris.android.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.MotionEvent;
@@ -224,8 +225,10 @@ final class EditorTestRig {
      */
     static final class RecordingCanvas extends Canvas {
 
-        /** Un tracé de texte : la tranche, sa couleur, sa position. */
-        record TextDraw(CharSequence text, int color, float x, float y) {
+        /** Un tracé de texte : la tranche, sa couleur, sa position,
+         *  ses ligatures, sa police (D-14). */
+        record TextDraw(CharSequence text, int color, float x, float y,
+                @Nullable String ligatures, @Nullable Typeface police) {
         }
 
         /** Un tracé de ligne : ses bornes, sa couleur. */
@@ -282,28 +285,32 @@ final class EditorTestRig {
 
         @Override
         public void drawText(String text, float x, float y, Paint paint) {
-            traces.add(new TextDraw(text, paint.getColor(), x, y));
+            traces.add(new TextDraw(text, paint.getColor(), x, y,
+                    paint.getFontFeatureSettings(), paint.getTypeface()));
         }
 
         @Override
         public void drawText(CharSequence text, int start, int end,
                 float x, float y, Paint paint) {
             traces.add(new TextDraw(text.subSequence(start, end),
-                    paint.getColor(), x, y));
+                    paint.getColor(), x, y,
+                    paint.getFontFeatureSettings(), paint.getTypeface()));
         }
 
         @Override
         public void drawText(String text, int start, int end,
                 float x, float y, Paint paint) {
             traces.add(new TextDraw(text.substring(start, end),
-                    paint.getColor(), x, y));
+                    paint.getColor(), x, y,
+                    paint.getFontFeatureSettings(), paint.getTypeface()));
         }
 
         @Override
         public void drawText(char[] text, int index, int count,
                 float x, float y, Paint paint) {
             traces.add(new TextDraw(new String(text, index, count),
-                    paint.getColor(), x, y));
+                    paint.getColor(), x, y,
+                    paint.getFontFeatureSettings(), paint.getTypeface()));
         }
     }
 }
