@@ -54,21 +54,12 @@
    fil interface ensuite) — un léger dégelui de moins d'une seconde
    n'est pas une panne.
 
-## 5. Le serveur tiers déclaré en données (H-13, H-11, H-12)
+## 5. Les serveurs déclarés en données (H-13, H-11, H-12)
 
-1. Ouvrir `exemple.xml` (DTD valide incluse) : **attendu** — la
-   complétion au curseur propose les éléments de la DTD documentés,
-   le survol d'une déclaration rend sa documentation.
-2. Corriger une balise (par exemple fermer `</exemples>` au lieu de
-   `</exemple>`) : **attendu** — la bande d'erreurs porte un cran, la
-   gouttière l'encre d'erreur (diagnostics POUSSÉS par le serveur
-   réel, monté par sa déclaration `servers.json` — aucun nom de
-   serveur dans le code).
-3. Menu des intentions sur un attribut : **attendu** — symboles,
-   plis et formatage du serveur passent par la porte de session.
-4. Ouvrir `exemple.java` : **attendu** — le REPLI répond : le serveur
-   de référence (signature, survol), la complétion par les mots du
-   code — la vue ne dit pas qui a répondu.
+1. Ouvrir `exemple.xml` (DTD valide incluse) : **attendu** — sans déclaration servable, le REPLI répond : serveur de référence (signature, survol), complétion par les mots du code — la vue ne dit pas qui a répondu.
+2. Corriger une balise (par exemple fermer `</exemples>` au lieu de `</exemple>`) : **attendu** — les diagnostics de l'analyse du cœur portent en gouttière, la bande d'erreurs suit ; la voie POUSSÉE d'un serveur déclaré s'y additionne quand il en sert.
+3. Menu des intentions sur un attribut : **attendu** — symboles, plis et formatage du serveur passent par la porte de session.
+4. Ouvrir `exemple.java` : **attendu** — le REPLI répond : le serveur de référence (signature, survol), la complétion par les mots du code — la vue ne dit pas qui a répondu.
 
 ## 6. Le paquet jouet de l'utilisateur (H-04) — NON JOUABLE
 

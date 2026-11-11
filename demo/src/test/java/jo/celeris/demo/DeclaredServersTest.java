@@ -3,7 +3,6 @@ package jo.celeris.demo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -25,40 +24,20 @@ import org.junit.jupiter.api.Test;
 class DeclaredServersTest {
 
     @Test
-    void laDeclarationDeLaDemonstrationDescritLeServeurRetire() {
+    void laDemonstrationNeDeclareAucunServeur() {
         List<LanguageServerDeclaration> declarations =
                 DeclaredServers.declarations();
-        assertEquals(1, declarations.size(),
-                "la démonstration déclare un serveur, en données");
-        LanguageServerDeclaration declaration = declarations.get(0);
-        assertEquals("xml", declaration.language());
-        assertEquals(LanguageServerDeclaration.EMBEDDED,
-                declaration.transport());
-        assertTrue(declaration.clientName().startsWith("celeris"),
-                "le nom annoncé reste celui de l'application");
+        assertEquals(List.of(), declarations,
+                "sans déclaration, la démonstration vit sur son repli");
     }
 
     @Test
-    void leLangageDeclareMonteSonServeur() {
+    void leLangageSansDeclarationRepondLeServeurDeReference() {
         LanguageSession session = DeclaredServers.open(
                 LangagesDemo.langageDe("exemple.xml", null, null));
         try {
-            assertInstanceOf(DeclaredServerSession.class, session,
-                    "le langage déclaré reçoit la session de son serveur");
-            assertTrue(session.sertCompletion(),
-                    "le serveur réel sert la complétion, la négociation le dit");
-        } finally {
-            session.close();
-        }
-    }
-
-    @Test
-    void unLangageSansDeclarationRepondLeServeurDeReference() {
-        LanguageSession session = DeclaredServers.open(
-                LangagesDemo.langageDe("exemple.java", null, null));
-        try {
             assertInstanceOf(ServeurLangage.class, session,
-                    "sans déclaration, le serveur de référence répond");
+                    "sans déclaration servable, le serveur de référence répond");
             assertFalse(session.sertCompletion(),
                     "le serveur de référence ne sert pas la complétion");
         } finally {
@@ -102,8 +81,8 @@ class DeclaredServersTest {
         LanguageSupport malveillant = LanguageSupport
                 .builder(LanguageDescriptor.of("malin", "Malin", List.of()))
                 .servers(List.of(LanguageServerDeclaration.embedded("malin",
-                        "org.eclipse.serveur-retire.XMLLanguageServer",
-                        "org.eclipse.serveur-retire.customservice.XMLLanguageClientAPI",
+                        "jo.celeris.demo.ServeurLangage",
+                        "jo.celeris.demo.LanguageSession",
                         "paquet-piege", Map.of())))
                 .build();
         LanguageSession session = DeclaredServers.open(malveillant);

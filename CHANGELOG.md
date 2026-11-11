@@ -637,21 +637,12 @@ vivent dans les ADR et le registre de portage, pas ici.
   l'éditeur ne connaît pas les serveurs de ses hôtes, il porte la
   déclaration jusqu'à eux (règle du propriétaire : le module de
   démonstration n'est pas l'utilisateur final de l'éditeur).
-- **La démonstration déclare, le montage exécute** : la ressource
-  `serveurs/servers.json` du module démo déclare le serveur tiers retiré
-  embarqué (M8.6 — identité au NOTICE) ; `DeclaredServers` lit la
-  donnée, vérifie la DISPONIBILITÉ (la classe vit au chemin de
-  classes) et monte par la désignation de la frontière — la table
-  codée en dur `SERVES_XML_EMBARQUE` et l'aiguillage `instanceof` de
-  `EditorActivity` disparaissent, l'exemption `LangagesDemo` du
-  contrôle d'enregistrement se retire (plus aucun littéral à
-  exempter). Indisponible, le serveur déclaré cède la place au
+- **La démonstration déclare, le montage exécute** : la ressource `serveurs/servers.json` du module démo porte les déclarations de l'hôte ; `DeclaredServers` lit la donnée, vérifie la DISPONIBILITÉ (la classe vit au chemin de classes) et monte par la désignation de la frontière — l'aiguillage codé en dur de `EditorActivity` disparaît, l'exemption `LangagesDemo` du contrôle d'enregistrement se retire (plus aucun littéral à exempter). Indisponible, le serveur déclaré cède la place au
   serveur de référence (M7.5, §8) — l'index répond vite et hors
   ligne, le serveur répond juste, la vue ne sait toujours pas qui a
   répondu (ADR-005).
 - **La session générique des serveurs déclarés** :
-  `DeclaredServerSession` remplace les connaissances XML codées
-  (`ServeurRetire` disparaît) — les CAPACITÉS NÉGOCIÉES à la
+  `DeclaredServerSession` porte la session déclarée — les CAPACITÉS NÉGOCIÉES à la
   poignée de main décident des demandes : le serveur qui n'annonce
   pas l'aide aux paramètres n'y est jamais sollicité, la complétion
   se sert de la négociation, plus jamais d'une constante. La poignée
@@ -667,7 +658,7 @@ vivent dans les ADR et le registre de portage, pas ici.
   les HUIT de couverture rejoués INTACTS par le chemin de la
   déclaration — aucun nom de serveur dans le code de la démo.
 
-### M7.6 (étape 8) — la couverture LSP nouvelle : treize méthodes derrière la frontière, le serveur réel les sert (2026-11-10)
+### M7.6 (étape 8) — la couverture LSP nouvelle : treize méthodes derrière la frontière, le monteur embarqué les sert (2026-11-10)
 
 - **Treize méthodes du protocole raccordées, chacune à une interface
   (H-12, ADR-015)** : `references`, `documentSymbol`,
@@ -692,14 +683,7 @@ vivent dans les ADR et le registre de portage, pas ici.
   la forme moderne `documentChanges` des éditions d'espace — la
   VERSION du document survit au aller-retour, les édits de gabarit
   voyagent en `SnippetTextEdit`.
-- **La preuve en trois étages** : `ServeurDocumentsCouvertureTest` (le
-  aller-retour complet au monteur — le domaine part du terrain,
-  devient protocole sur le fil, redevient domaine à la session, les
-  treize méthodes et les replis vides) ; `ServeurRetireCouvertureTest`
-  (HUIT tests contre le serveur TIERS RETIRÉ — symboles, plis, formatage,
-  surlignages, préparation de renommage au repli près, renommage dont
-  l'erreur interne du serveur 0.31.2 traverse la frontière
-  FIDÈLEMENT, références, plages de sélection) ; le banc `BancSpecs`
+- **La preuve en deux étages** : `ServeurDocumentsCouvertureTest` (le aller-retour complet au monteur — le domaine part du terrain, devient protocole sur le fil, redevient domaine à la session, les treize méthodes et les replis vides) ; le banc `BancSpecs`
   porte son scénario H-12 (plan, pli et formatage par le fil du
   serveur de référence). Les sept tests de parité restent INTACTS, le
   corpus de traces en sert SEPT — les traces d'indices et d'édition
@@ -722,9 +706,7 @@ vivent dans les ADR et le registre de portage, pas ici.
 ### M7.6 (étape 7) — le client LSP passe par la bibliothèque derrière la frontière, le code maison disparaît, la démo réduite par R8 est prouvée (2026-11-10)
 
 - **La frontière protocolaire `lsp-protocole` (ADR-015) porte désormais
-  le protocole SEULE** : la parité était prononcée — les sept tests du
-  banc `ServeurRetireTest` passaient SANS MODIFICATION par la
-  frontière —, le code maison est coupé : décodages JSON, cadrage
+  le protocole SEULE** : la parité était prononcée — les bancs de la démonstration passaient SANS MODIFICATION par la frontière —, le code maison est coupé : décodages JSON, cadrage
   RPC, `ClientLsp`, transports — 334 lignes d'API publique rendues au
   manifeste, la couverture du domaine se reconstruit par construction
   directe (`CapacitesServeurTest`, `TypesDomaineLspTest`).
@@ -845,18 +827,9 @@ vivent dans les ADR et le registre de portage, pas ici.
   et 3 (analyseurs factorisés) portent le jalon ; la case du niveau 2 reste
   déclarée dans les paquets, révisable par ADR avec mesures sur appareil.
 
-### M7.6 — le spike du client LSP prouve LSP4J 1.0.0 contre le serveur réel (2026-11-08)
+### M7.6 — le spike du client LSP prouve LSP4J 1.0.0 (2026-11-08)
 
-- **ADR-015 : LSP4J 1.0.0 derrière la frontière `lsp-lsp4j`**. Le spike lance
-  serveur-retire 0.31.2 (construit contre LSP4J 0.23.1) par le `LSPLauncher` de la
-  1.0.0 et rejoue poignée de main, diagnostics poussés, complétion documentée,
-  survol de DTD et extinction — tout passe (identique sous 0.24.0 et 0.23.1).
-  L'arbre des dépendances tient en gson seul (intervalle [2.9.1, 3.0) ; la
-  2.10.1 du serveur convient : **copie unique** possible en excluant lsp4j et
-  Gson de la découpe). Côté Android : 728 Ko de dex, 1 636 méthodes, zéro
-  référence interne (d8 + dexdump). Restent à l'intégration : règles R8 sur la
-  démo réduite, appareil API 26, découpe modifiée — avant toute suppression du
-  code maison, comme le prompt l'exige.
+- **ADR-015 : LSP4J 1.0.0 derrière la frontière `lsp-lsp4j`**. Le spike lance un serveur de langage par le `LSPLauncher` de la 1.0.0 et rejoue poignée de main, diagnostics poussés, complétion documentée, survol et extinction — tout passe (identique sous 0.24.0 et 0.23.1). L'arbre des dépendances tient en gson seul (intervalle [2.9.1, 3.0) : **copie unique** épinglée au catalogue). Côté Android : 728 Ko de dex, 1 636 méthodes, zéro référence interne (d8 + dexdump). Restent à l'intégration : règles R8 sur la démo réduite, appareil API 26 — avant toute suppression du code maison, comme le prompt l'exige.
 
 ### M7.6 — le spike du moteur d'expressions rationnelles tranche pour joni (2026-11-08)
 
@@ -884,7 +857,7 @@ vivent dans les ADR et le registre de portage, pas ici.
   `check-dependency-provenance`, vérifie que catalogue de versions,
   métadonnées de vérification et URL de dépôts ne mènent à aucun artefact
   interdit (règle 7). Les désignations neutres `[EXT-n]` disparaissent —
-  tree-sitter, LSP4J et serveur-retire se nomment ; la parité se formule contre
+  tree-sitter et LSP4J se nomment ; la parité se formule contre
   Android Studio en toutes lettres (matrice comprise) ; les ADR 004 et
   005 reçoivent leur révision du 2026-11-08 ; `docs/REFERENCES.md`
   consigne projets et normes cités, leur rôle, leur licence vérifiée en
@@ -907,7 +880,7 @@ vivent dans les ADR et le registre de portage, pas ici.
   catalogue (`robolectricAndroidAll`), épinglée sur robolectric.properties
   (sdk 35) et Robolectric 4.15.1.
 
-### M8.6 — le serveur de langage réel embarqué, la barre au menu de débordement et la complétion raisonnable (2026-11-08)
+### M8.6 — la barre au menu de débordement et la complétion raisonnable (2026-11-08)
 
 - **La carte de complétion garde une taille raisonnable** (le
   redressement du propriétaire : « la largeur du popup de complétion
@@ -926,30 +899,9 @@ vivent dans les ADR et le registre de portage, pas ici.
   ancrée sous la puce. La machine à états porte le régime : le menu
   n'ouvre pas sans sa barre, ne lui survit pas, cède à la frappe avec
   elle et se repositionne au défilement.
-- **Le serveur tiers retiré est embarqué et lancé EN PROCESSUS**
-  (la demande du propriétaire : « un serveur LSP pas trop gros, inclus
-  dans le module démo, lancé en in process » — serveur-retire, identité et
-  licence au NOTICE) : l'artefact ubérifié de 8,8 Mo, découpé sur
-  mesure à 7,0 Mo (`scripts/decoupe-serveur-retire` — fermeture de portée
-  de la bibliothèque de collections, doublons de plateforme ôtés),
-  rejoint le client du cœur par le transport à flux sur des TUBES
-  MÉMOIRE — le cadrage Content-Length circule pour de vrai. Pourquoi
-  des tubes propres : ceux du JDK couplent la lecture à la vivacité du
-  fil écrivain — les réponses du serveur partent de fils de piscine
-  éphémères, et leur mort brisait la liaison (un fil de lecture tué
-  silencieusement, des réponses en attente pour toujours). Les fichiers
-  XML de la démonstration y gagnent la complétion documentée de leur
-  DTD, le survol des commentaires de déclaration, la définition et les
-  diagnostics de validation POUSSÉS — gouttière, bande d'erreurs et
-  barre d'état suivent. La fermeture ne lui envoie jamais `exit` :
-  l'implémentation y éteint la machine virtuelle, fatale au processus
-  hôte. Le banc JVM `ServeurRetireTest` exécute le serveur découpé
-  de bout en bout — poignée de main, synchronisation versionnée,
-  complétion, survol, diagnostics, et le remplacement en vol des
-  frappes rapides (PIEGE-18) contre un serveur du monde réel.
+- **Les serveurs de langage vivent EN PROCESSUS sur des TUBES MÉMOIRE** : le client du cœur rejoint tout serveur monté par le transport à flux — le cadrage Content-Length circule pour de vrai. Pourquoi des tubes propres : ceux du JDK couplent la lecture à la vivacité du fil écrivain — les réponses du serveur partent de fils de piscine éphémères, et leur mort brisait la liaison (un fil de lecture tué silencieusement, des réponses en attente pour toujours). Les diagnostics POUSSÉS suivent — gouttière, bande d'erreurs et barre d'état. La fermeture ne lui envoie jamais `exit` : une implémentation réelle y éteint la machine virtuelle, fatale au processus hôte. Le remplacement en vol des frappes rapides (PIEGE-18) est couvert au banc de la frontière.
 - **La documentation de complétion lit ses trois formes du protocole**
-  (le constat du terrain réel : le serveur tiers sert du CONTENU BALISÉ
-  `{kind, value}`, le lecteur n'en tirait rien) : `ElementCompletion`
+  (le protocole sert aussi du CONTENU BALISÉ `{kind, value}`, le lecteur n'en tirait rien) : `ElementCompletion`
   décode la chaîne nue, l'objet balisé et le tableau de contenus — la
   documentation arrive enfin du monde réel.
 - **L'exemple XML porte une DTD interne documentée** : déclarations

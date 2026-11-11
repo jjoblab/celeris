@@ -27,8 +27,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * La session de langage de la démonstration (M8.6) : la surface commune
  * des serveurs que l'atelier des popups consomme — le serveur de
- * référence en mémoire (M7.5, §8) comme le serveur TIERS RETIRÉ,
- * lancé en processus sur des tubes mémoire. L'hôte n'en connaît que
+ * référence en mémoire (M7.5, §8) comme tout serveur déclaré par
+ * l'hôte, lancé en processus sur des tubes mémoire. L'hôte n'en connaît que
  * cette porte : ouvrir, synchroniser, et les trois canaux du protocole
  * — signature, survol, complétion — plus les diagnostics publiés.
  */

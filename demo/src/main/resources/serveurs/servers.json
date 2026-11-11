@@ -1,11 +1,3 @@
 {
-  "servers": [
-    {
-      "language": "xml",
-      "transport": "embedded",
-      "serverClass": "org.eclipse.serveur-retire.XMLLanguageServer",
-      "clientInterface": "org.eclipse.serveur-retire.customservice.XMLLanguageClientAPI",
-      "clientName": "celeris-demo"
-    }
-  ]
+  "servers": []
 }

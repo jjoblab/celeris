@@ -33,8 +33,7 @@ import org.jspecify.annotations.Nullable;
  * générique de la frontière protocolaire (ADR-015), lancé par la
  * DONNÉE de la déclaration — classe du serveur, interface cliente et
  * nom annoncés par le fichier {@code servers.json}, jamais par le
- * code. Le serveur tiers retiré de la démonstration (M8.6 — serveur-retire,
- * identité au NOTICE) y monte comme tout serveur embarqué : cette
+ * code. Tout serveur embarqué de l'hôte y monte comme un autre : cette
  * session ne connaît ni son nom ni ses particularités, elle lit les
  * capacités négociées à la poignée de main et ne demande que ce que
  * le serveur annonce servir.

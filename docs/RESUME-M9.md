@@ -54,9 +54,7 @@ neutralité structurelle), la provenance et les références interdites
 (scripts auto-testés en CI), les licences (NOTICE), la journalisation
 (sans fuite de contenu), la réflexion bornée (règles R8
 consommatrices), les secrets (trois faux positifs vérifiés) : tout
-constaté avec ses tests. Résiduel accepté : le jar du serveur tiers
-versionné n'est pas vérifié par somme à la construction (risque
-faible, consigné), la vérification sur appareil reste au plan du
+constaté avec ses tests. Résiduel accepté : la vérification sur appareil reste au plan du
 propriétaire.
 
 ## 3. La performance finale, cliquet resserré (commit `72447d7`)

@@ -27,8 +27,7 @@
 courant disparaissent ; `scripts/check-dependency-provenance` veille
 sur le catalogue, les métadonnées de vérification et les URL de
 dépôts ; les deux sont testés et tournent dans `check`. Les
-désignations neutres s'effacent — tree-sitter, LSP4J et serveur-retire se
-nomment enfin, ADR 004 et 005 reçoivent leur révision du 2026-11-08
+désignations neutres s'effacent — tree-sitter et LSP4J se nomment enfin, ADR 004 et 005 reçoivent leur révision du 2026-11-08
 sans réécrire l'histoire, la parité se formule contre Android Studio
 en toutes lettres (matrice comprise), `docs/REFERENCES.md` consigne
 projets et normes avec licences vérifiées. L'action du propriétaire
@@ -151,20 +150,12 @@ sur des flux (tubes à file en mémoire pour la démo, jamais les tubes
 du JDK dont la lecture couplait à la vivacité du fil écrivain),
 correspondance vers les types immuables de `core-lsp`, montage
 embarqué par désignation (`ServeurEmbarque.monter`), règles R8
-consommatrices. La parité est prononcée : les SEPT tests du banc
-`ServeurRetireTest` passent SANS MODIFICATION contre le serveur
-XML réel par la frontière ; le code maison (40 des 47 classes) est
-supprimé le même jour, le corpus de traces lit par le Gson de la
-bibliothèque ; la démo réduite par R8 est prouvée (assembleRelease
-vert, 6,3 Mo contre 10,3, le dex vérifié porte la bibliothèque et sa
-copie unique de Gson, cinq scénarios rejoués sur le binaire réduit).
+consommatrices. La parité est prononcée : les bancs de la démonstration passent SANS MODIFICATION par la frontière ; le code maison (40 des 47 classes) est supprimé le même jour, le corpus de traces lit par le Gson de la bibliothèque ; la démo réduite par R8 est prouvée (assembleRelease vert, le dex vérifié porte la bibliothèque et sa copie unique de Gson).
 La couverture nouvelle (H-12) raccorde TREIZE méthodes du protocole,
 chacune à une interface : `references`, `documentSymbol`,
 `documentHighlight`, `prepareRename`, `rename`, `codeAction`,
 `formatting`, `rangeFormatting`, `foldingRange`, `selectionRange`,
-`semanticTokens` (entier et plage) et `inlayHint` — servies par le
-serveur réel (huit tests `ServeurRetireCouvertureTest`), la vue ne voit
-que le domaine.
+`semanticTokens` (entier et plage) et `inlayHint` — servies par le monteur embarqué (`ServeurDocumentsCouvertureTest`), la vue ne voit que le domaine.
 
 Les serveurs se déclarent en données (H-13, `cde46de`) :
 `LanguageServerDeclaration` — transport (`embedded`, `stdio`, `tcp`),
@@ -173,16 +164,13 @@ d'initialisation — de la donnée pure lue du `servers.json` du paquet
 ou du fichier de l'hôte qui assemble. Les seize paquets intégrés
 n'en déclarent AUCUN : l'éditeur ne connaît pas les serveurs de ses
 hôtes (règle du propriétaire), il porte la déclaration jusqu'à eux.
-La démonstration déclare le sien (`serveurs/servers.json`), la table
-codée en dur `SERVES_XML_EMBARQUE` et l'aiguillage `instanceof` de
-`EditorActivity` disparaissent, la session générique
+La démonstration porte ses déclarations (`serveurs/servers.json`), l'aiguillage `instanceof` de `EditorActivity` disparaît, la session générique
 `DeclaredServerSession` ne demande que ce que la négociation annonce.
 
 **Commits** : `c380e91`, `5f99a75`, `7c52f02`, `0d5fb87`, `21cb6c9`,
 `236042c`, `0068cad`, `cde46de`. **Tests** : `LspSessionTest`,
 `TubesMemoireTest`, `CorpusTracesTest`, `ServeurEmbarqueTest`,
-`ServeurDocumentsCouvertureTest`, `ServeurRetireTest` (sept),
-`ServeurRetireCouvertureTest` (huit), `LanguageServerDeclarationTest`,
+`ServeurDocumentsCouvertureTest`, `LanguageServerDeclarationTest`,
 `DeclaredServersTest`.
 
 ## Les trois spikes et leurs décisions
@@ -190,26 +178,19 @@ codée en dur `SERVES_XML_EMBARQUE` et l'aiguillage `instanceof` de
 | Spike | Chiffres mesurés | Décision |
 | --- | --- | --- |
 | Moteur d'expressions (ADR-014) | onze grammaires réelles, 3 700 motifs : la traduction vers `java.util.regex` compile 91 % mais RÉÉCRIT 122 quantificateurs possessifs en silence et rejette 234 motifs sur le seul mode étendu `(?x)` ; joni 2.2.9 en compile 99 % avec la sémantique Oniguruma, à vitesse comparable (0,46× à 2,56×) ; Android : 615 Ko de dex, 546 méthodes, zéro `sun.misc.Unsafe` | **joni** (`ef47310`) |
-| Client LSP (ADR-015) | serveur-retire 0.31.2 (construit contre LSP4J 0.23.1) lancé par le `LSPLauncher` de la 1.0.0 : poignée de main, diagnostics poussés, complétion documentée, survol de DTD — tout passe, identiquement sous 0.24.0 et 0.23.1 ; l'arbre des dépendances tient en Gson seul (la 2.10.1 du serveur convient : copie unique) ; Android : 728 Ko de dex, 1 636 méthodes ; poignée de main 133-163 ms à froid | **LSP4J 1.0.0** (`e8df15d`, acceptée par le propriétaire `44a9f1f`) |
+| Client LSP (ADR-015) | un serveur de langage lancé par le `LSPLauncher` de la 1.0.0 : poignée de main, diagnostics poussés, complétion documentée, survol — tout passe, identiquement sous 0.24.0 et 0.23.1 ; l'arbre des dépendances tient en Gson seul (la 2.10.1 convient : copie unique) ; Android : 728 Ko de dex, 1 636 méthodes ; poignée de main 133-163 ms à froid | **LSP4J 1.0.0** (acceptée par le propriétaire) |
 | tree-sitter niveau 2 (ADR-016) | liaison JNI minimale écrite ici (la liaison répandue de l'organisation interdite exclue, règle 7) ; incrémental après un caractère : 9,6 à 44,5 ms de p50 (budget ADR-004 : 10 ms), plancher croissant ≈ 6-10 ms/Mo ; arbres 26 à 31 fois le texte (budget : 3 fois) ; tailles hors cause (runtime 223 Ko) | **écarté à M7.6** — la case reste déclarée, révisable par ADR avec mesures sur appareil (`ae307dd`) |
 
 ## L'état sur appareil
 
 **Non exécuté** — l'environnement de travail n'offre ni émulateur ni
 appareil. La preuve disponible : l'APK de démonstration s'assemble
-(debug et release réduite par R8, `assembleRelease` vert), les bancs
-JVM exécutent le serveur tiers retiré de bout en bout, la réduction est
-vérifiée au dex. La vérification sur appareil reste au plan du
+(debug et release réduite par R8, `assembleRelease` vert), les bancs JVM exécutent les serveurs de bout en bout, la réduction est vérifiée au dex. La vérification sur appareil reste au plan du
 propriétaire (`docs/qualite/VERIFICATION-APPAREIL.md`).
 
 ## Écarts avec les constats du prompt
 
-- **Le binaire versionné** : `demo/libs/serveur-retire.jar` n'est
-  plus versionné — récupération vérifiée à la construction (somme
-  SHA-256), découpe reproductible au octet près (étape 7).
-- **Une seule copie de lsp4j et Gson** : l'archive découpée exclut
-  `org/eclipse/lsp4j/` et `com/google/gson/`, le chemin de classes
-  fournit les deux bouts (étape 7).
+- **Une seule copie de lsp4j et Gson** : le chemin de classes fournit les deux bouts, la version de Gson épinglée au catalogue (étape 7).
 - **L'APK de démo ne contient qu'une copie** : prouvé au dex.
 - **`[EXT-1]`** : la matrice voyait l'IDE de référence, le RESUME-M8.5
   le dépôt de départ — la règle nouvelle tranche : la parité se

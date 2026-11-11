@@ -112,7 +112,7 @@ elle est spécifiée.
 | Langages intégrés | 29 (14 tokéniseurs) + 23 grammaires | 16 (6 analyseurs écrits + 10 grammaires TextMate) |
 | Client LSP | LSP4J 0.22.0 direct, 14 providers | LSP4J 1.0.0 derrière frontière (ADR-015), 13 familles |
 | SDK / build | compileSdk 34, minSdk 24, AGP 9.0.0, Gradle 9.5.1, JDK 17 | compileSdk 36, minSdk 26, AGP 9.5.0, Gradle 9.8.2, JDK 21 (release 17) |
-| Dépendances embarquées | LSP4J + Gson ; joni/jcodings (jars versionnés) | lsp4j 1.0.0 + Gson 2.10.1 (frontière) ; joni/jcodings (coordonnées) ; serveur-retire (démo) |
+| Dépendances embarquées | LSP4J + Gson ; joni/jcodings (jars versionnés) | lsp4j 1.0.0 + Gson 2.10.1 (frontière) ; joni/jcodings (coordonnées) |
 | Multi-curseur | absent (planifié, non livré) | natif (A-01) |
 | Bidirectionnel (UAX #9) | non supporté (décision explicite) | cœur + rendu |
 | Graphèmes (UAX #29) | non (suppression par caractère) | partout (clusters) |
@@ -395,8 +395,7 @@ l'âge de celeris :
   (celeris) — complétion, diagnostics, survol, définition, références,
   renommage, correctifs, symboles, signature, plis, formatage, indices en
   ligne, surlignage. celeris y ajoute un **ordonnanceur** (fusion,
-  annulation, priorités, resynchronisation) et prouve la frontière contre
-  un **serveur réel embarqué** (serveur-retire 0.31.2), là où l'ancien se testait
+  annulation, priorités, resynchronisation) et prouve la frontière contre ses bancs de montage en processus, là où l'ancien se testait
   contre son mini-serveur de démo. L'ancien garde l'avantage **opératoire**
   (5 transports, multi-serveurs avec shutdown borné, debouncer, timeouts)
   que celeris délègue à LSP4J et à l'hôte.
@@ -453,9 +452,7 @@ non exécuté faute d'émulateur).
 - **Jeunesse radicale** : 7 jours, un contributeur, zéro appareil, zéro
   hôte consommateur réel. Le 1.0.0 est une plateforme, pas un produit fini.
 - **Périmètre non livré consigné par sa propre matrice** : 47 lignes au
-  noyau, 18 non démarrées (P1/P2), cpp au banc du commerce à 71,5 %
-  (garde conservateur), jar du serveur tiers non vérifié par somme à la
-  construction (risque faible, consigné).
+  noyau, 18 non démarrées (P1/P2), cpp au banc du commerce à 71,5 % (garde conservateur).
 - **Cinq incohérences documentaires internes vérifiées** pendant cette
   analyse — à réconcilier :
   1. RESUME-M9 annonce « neuf modules publiés » (dont `cli`) ; la

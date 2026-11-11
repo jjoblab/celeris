@@ -79,7 +79,7 @@ final class ServeurFactice implements LanguageServer {
     /**
      * La convention des serveurs embarqués : le proxy client injecté
      * chez le serveur — le montage du module l'appelle pour les
-     * serveurs montés par objet opaque (comme le serveur tiers retiré).
+     * serveurs montés par objet opaque.
      */
     public void setClient(LanguageClient client) {
         this.client = client;
