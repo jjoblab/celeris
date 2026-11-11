@@ -311,12 +311,12 @@ par mots, la matrice passe à Câblé (`CaretsMotionTest`) ; B-20 clos —
 les cinq variantes câblées sur l’analyse des flux (variable, constante,
 champ, puis méthode et paramètre : `FlowAnalysis`, `MethodStructure`,
 `TypeRun`, `ExpressionTypes`, `FlowExtractions` — la matrice B-20 compte
-ses cinq), restent B-21 à B-23, A-14, A-17, D-14, D-20, G-03 et le
+ses cinq) et B-21 clos — `Inline`, `InlineSafety`, `InlineFields`,
+`MethodDeclarations` alignent la déclaration désignée (usages remplacés,
+déclaration supprimée si locale ou privée), la matrice B-21 à Câblé ;
+restent B-22 à B-23, A-14, A-17, D-14, D-20, G-03 et le
 volume de tests.
 
-**Source** : audit § 6, gaps 10 à 13.
-
-### C14 — Statut du dépôt de départ
 
 **Statut** : bloqué (décision du propriétaire).
 
