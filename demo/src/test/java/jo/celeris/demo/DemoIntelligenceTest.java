@@ -28,7 +28,8 @@ class DemoIntelligenceTest {
             }
             """;
 
-    private final DemoIntelligence fournisseur = new DemoIntelligence();
+    private final DemoIntelligence fournisseur = new DemoIntelligence(
+            () -> LangagesDemo.langageDe("Banc.java", null, DOCUMENT));
 
     /**
      * B-03 — la voie analytique : les mots du code répondent au
@@ -79,5 +80,44 @@ class DemoIntelligenceTest {
                 PopupCoach.motsReserves());
         assertTrue(candidats.isEmpty(),
                 "sans préfixe, le repli ne propose rien");
+    }
+
+    /**
+     * C8 — l'Entrée d'un fichier Java porte le découpage des chaînes :
+     * le fournisseur délègue aux gestes dédiés quand la langue est
+     * Java.
+     */
+    @Test
+    void entreeJavaDecoupeLaChaine() {
+        String document = "String s = \"abcdef\";\n";
+        TextSession session = TextSession.of(document, () -> 0L);
+        DemoIntelligence java = new DemoIntelligence(
+                () -> LangagesDemo.langageDe("Banc.java", null, document));
+        jo.celeris.core.intelligence.EditPlan plan = java.enter(
+                session.document(), null,
+                jo.celeris.core.text.MultiSelection.caretsAt(15),
+                jo.celeris.core.intelligence.IndentStyle.ESPACES_4);
+        assertTrue(plan.transaction().edits().get(0).inserted()
+                .contains(" +\n    \""),
+                "la chaîne se ferme, se concatène et se rouvre — C8");
+    }
+
+    /**
+     * C8 — l'Entrée d'un fichier d'une autre langue ne découpe rien :
+     * les citations d'un attribut XML ne se coupent jamais.
+     */
+    @Test
+    void entreeXmlNeDecoupePas() {
+        String document = "<a attr=\"abcdef\"/>\n";
+        TextSession session = TextSession.of(document, () -> 0L);
+        DemoIntelligence xml = new DemoIntelligence(
+                () -> LangagesDemo.langageDe("Banc.xml", null, document));
+        jo.celeris.core.intelligence.EditPlan plan = xml.enter(
+                session.document(), null,
+                jo.celeris.core.text.MultiSelection.caretsAt(10),
+                jo.celeris.core.intelligence.IndentStyle.ESPACES_4);
+        assertFalse(plan.transaction().edits().get(0).inserted()
+                .contains(" +"),
+                "les citations XML ne se découpent jamais — C8");
     }
 }

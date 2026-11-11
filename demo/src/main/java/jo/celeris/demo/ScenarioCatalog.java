@@ -123,7 +123,11 @@ public final class ScenarioCatalog {
                         "Indentation automatique",
                         "L'Entrée porte le retrait lu dans l'arbre au point de coupe ; "
                                 + "le fermant restant descend seul sous le curseur ; le style — "
-                                + "espaces ou tabulations — appartient à l'hôte."),
+                                + "espaces ou tabulations — appartient à l'hôte. Sur Java, deux "
+                                + "gestes dédiés s'ajoutent : le curseur dans une chaîne la ferme, "
+                                + "pose la concaténation et la rouvre à la ligne ; l'Entrée qui "
+                                + "suit un label de cas gagne un cran — le corps du cas vit sous "
+                                + "son étiquette."),
                 new Scenario(
                         "A-07",
                         "Retour arrière intelligent",
@@ -291,7 +295,10 @@ public final class ScenarioCatalog {
                         "Import automatique",
                         "Le candidat s'insère en tête du bloc des imports par une "
                                 + "édition de position unique ; l'import déjà présent "
-                                + "ne se re-insère jamais."),
+                                + "ne se re-insère jamais. Adossé au classpath de "
+                                + "l'hôte, le nom simple sous le curseur propose ses "
+                                + "noms qualifiés, dans l'ordre de l'index — jamais "
+                                + "celui qui est déjà importé."),
                 new Scenario(
                         "B-06",
                         "Squelettes de méthode",

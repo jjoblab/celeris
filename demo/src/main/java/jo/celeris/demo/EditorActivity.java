@@ -227,7 +227,9 @@ public final class EditorActivity extends AppCompatActivity {
         // L'intelligence de la démonstration se pose sur la vue (M7.5,
         // §8) : frappe intelligente, Entrée indentée, collage réindenté,
         // complétion par les mots du code.
-        editeur.intelligence().setProvider(new DemoIntelligence());
+        editeur.intelligence().setProvider(new DemoIntelligence(
+                () -> LangagesDemo.langageDe(nomFichier, null,
+                        session.document().text())));
         atelierIA = new AtelierIA(this, editeur, session, nomFichier,
                 this::paletteFeuilles, this::verdictRefactor,
                 () -> feuilleReglages.montrer());

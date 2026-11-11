@@ -250,7 +250,9 @@ final class BancSpecs {
         SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session,
                 JavaSyntax.INSTANCE);
         try {
-            DemoIntelligence fournisseur = new DemoIntelligence();
+            DemoIntelligence fournisseur = new DemoIntelligence(
+                    () -> LangagesDemo.langageDe("Banc.java", null,
+                            session.document().text()));
             int caret = document.indexOf("nombreLu;")
                     + "nombreLu".length();
             List<String> candidats = fournisseur.completionCandidates(
