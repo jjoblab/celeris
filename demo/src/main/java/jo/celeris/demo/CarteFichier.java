@@ -3,7 +3,8 @@ package jo.celeris.demo;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jo.celeris.core.language.LanguageSupport;
+import jo.celeris.core.language.model.LanguageSupport;
+
 
 /**
  * La carte d'un fichier d'exemple pour l'écran d'accueil : monogramme,

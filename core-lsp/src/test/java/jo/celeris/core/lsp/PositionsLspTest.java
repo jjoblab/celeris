@@ -1,5 +1,7 @@
 package jo.celeris.core.lsp;
 
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.TreeIndent;
+import jo.celeris.core.syntax.structure.TreeIndent;
 import jo.celeris.core.text.Document;
 
 /**

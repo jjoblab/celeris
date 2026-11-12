@@ -1,5 +1,9 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.scope.ScopeStacks;
+import jo.celeris.core.syntax.scope.ScopeStyle;
+import jo.celeris.core.syntax.scope.ScopeTheme;
+import jo.celeris.core.syntax.scope.ScopeThemes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

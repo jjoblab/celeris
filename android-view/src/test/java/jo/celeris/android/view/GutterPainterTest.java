@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import jo.celeris.core.syntax.FoldSpan;
+import jo.celeris.core.syntax.structure.FoldSpan;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;

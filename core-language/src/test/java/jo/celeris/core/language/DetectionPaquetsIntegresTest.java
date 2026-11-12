@@ -1,5 +1,8 @@
 package jo.celeris.core.language;
 
+import jo.celeris.core.language.model.LanguageDescriptor;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.language.packs.GrammarFactory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -22,7 +25,7 @@ final class DetectionPaquetsIntegresTest {
 
     /** La fabrique de banc : la couleur exacte n'importe pas ici. */
     private static final GrammarFactory FABRIQUE =
-            (id, json) -> jo.celeris.core.syntax.JavaSyntax.INSTANCE;
+            (id, json) -> jo.celeris.core.syntax.clike.JavaSyntax.INSTANCE;
 
     private static LanguageRegistry registre() {
         LanguageSupport makefile = LanguageSupport.builder(new LanguageDescriptor(

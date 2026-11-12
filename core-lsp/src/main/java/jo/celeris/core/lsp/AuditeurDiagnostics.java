@@ -1,6 +1,7 @@
 package jo.celeris.core.lsp;
 
 import java.util.List;
+import jo.celeris.core.lsp.types.DiagnosticLsp;
 
 /**
  * L'auditeur des diagnostics publiés par le serveur : le contrat du

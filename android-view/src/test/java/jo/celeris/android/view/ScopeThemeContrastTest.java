@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import jo.celeris.core.syntax.ScopeStacks;
-import jo.celeris.core.syntax.ScopeStyle;
+import jo.celeris.core.syntax.scope.ScopeStacks;
+import jo.celeris.core.syntax.scope.ScopeStyle;
 import jo.celeris.core.syntax.TokenKind;
 
 import org.junit.jupiter.api.Test;

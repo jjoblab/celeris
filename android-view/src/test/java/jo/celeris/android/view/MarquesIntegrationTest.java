@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import jo.celeris.core.syntax.FoldSpan;
+import jo.celeris.core.syntax.structure.FoldSpan;
 
 import org.junit.jupiter.api.Test;
 

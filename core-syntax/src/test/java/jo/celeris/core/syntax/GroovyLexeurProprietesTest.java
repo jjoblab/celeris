@@ -1,5 +1,6 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.clike.GroovySyntax;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

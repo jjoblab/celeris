@@ -1,5 +1,7 @@
 package jo.celeris.core.language;
 
+import jo.celeris.core.language.model.LanguageDescriptor;
+import jo.celeris.core.language.model.LanguageSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

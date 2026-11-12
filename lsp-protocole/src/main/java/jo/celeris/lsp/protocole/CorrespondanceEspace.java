@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import jo.celeris.core.lsp.types.EditionDocumentLsp;
+import jo.celeris.core.lsp.types.EditionEspaceLsp;
+import jo.celeris.core.lsp.types.EditionGabaritLsp;
+import jo.celeris.core.lsp.types.EditionTexteLsp;
 import org.eclipse.lsp4j.SnippetTextEdit;
 import org.eclipse.lsp4j.TextDocumentEdit;
 import org.eclipse.lsp4j.TextEdit;
@@ -11,10 +15,10 @@ import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.jspecify.annotations.Nullable;
 
-import jo.celeris.core.lsp.EditionDocumentLsp;
-import jo.celeris.core.lsp.EditionEspaceLsp;
-import jo.celeris.core.lsp.EditionGabaritLsp;
-import jo.celeris.core.lsp.EditionTexteLsp;
+
+
+
+
 
 /**
  * La correspondance des éditions d'espace de travail (H-12, ADR-015) :

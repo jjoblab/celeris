@@ -1,14 +1,13 @@
 package jo.celeris.core.intelligence;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-
+import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.NodeCategory;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextEdit;
@@ -132,7 +131,7 @@ public final class SignatureChange {
     /** Vrai quand le nom déclaré est un constructeur (classe porteuse homonyme). */
     static boolean isConstructor(Document doc, Analysis analyse, OutlineEntry enclosing) {
         OutlineEntry owner = null;
-        for (OutlineEntry entry : jo.celeris.core.syntax.TreeOutline.entries(doc, analyse)) {
+        for (OutlineEntry entry : jo.celeris.core.syntax.structure.TreeOutline.entries(doc, analyse)) {
             if (entry.category() == NodeCategory.TYPE
                     && entry.startOffset() <= enclosing.startOffset()
                     && enclosing.endOffset() <= entry.endOffset()

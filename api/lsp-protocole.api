@@ -23,6 +23,11 @@ Compiled from "CorrespondanceLsp.java"
 final class jo.celeris.lsp.protocole.CorrespondanceLsp {
 }
 
+### jo.celeris.lsp.protocole.EcritureDocuments
+Compiled from "EcritureDocuments.java"
+final class jo.celeris.lsp.protocole.EcritureDocuments {
+}
+
 ### jo.celeris.lsp.protocole.LspSession$IdentiteDocument
 Compiled from "LspSession.java"
 final class jo.celeris.lsp.protocole.LspSession$IdentiteDocument extends java.lang.Record {
@@ -30,7 +35,7 @@ final class jo.celeris.lsp.protocole.LspSession$IdentiteDocument extends java.la
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String uri();
-  public jo.celeris.core.lsp.PositionLsp position();
+  public jo.celeris.core.lsp.types.PositionLsp position();
 }
 
 ### jo.celeris.lsp.protocole.LspSession
@@ -44,25 +49,25 @@ public final class jo.celeris.lsp.protocole.LspSession implements java.lang.Auto
   public void changer(java.lang.String, int, java.lang.String);
   public void fermer(java.lang.String);
   public int versionDe(java.lang.String);
-  public java.util.List<jo.celeris.core.lsp.DiagnosticLsp> diagnosticsDe(java.lang.String);
+  public java.util.List<jo.celeris.core.lsp.types.DiagnosticLsp> diagnosticsDe(java.lang.String);
   public void ajouterAuditeurDiagnostics(jo.celeris.core.lsp.AuditeurDiagnostics);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.ListeCompletion> completion(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SurvolLsp> survol(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SignatureLsp> signature(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.LieuLsp>> definition(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.LieuLsp>> references(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.SymboleLsp>> symboles(java.lang.String);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.SurlignageLsp>> surlignages(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.PreparationRennomageLsp> preparerRennomage(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.EditionEspaceLsp> rennomage(java.lang.String, jo.celeris.core.lsp.PositionLsp, java.lang.String);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.CorrectifLsp>> correctifs(java.lang.String, jo.celeris.core.lsp.PlageLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.EditionTexteLsp>> formatage(java.lang.String, jo.celeris.core.lsp.OptionsFormatageLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.EditionTexteLsp>> formatagePlage(java.lang.String, jo.celeris.core.lsp.PlageLsp, jo.celeris.core.lsp.OptionsFormatageLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.PliLsp>> plis(java.lang.String);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.PlageLsp>> plagesSelection(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SemanticTokensLsp> jetons(java.lang.String);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.SemanticTokensLsp> jetonsPlage(java.lang.String, jo.celeris.core.lsp.PlageLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.IndiceLsp>> indices(java.lang.String, jo.celeris.core.lsp.PlageLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.ListeCompletion> completion(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SurvolLsp> survol(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SignatureLsp> signature(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> definition(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> references(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.SymboleLsp>> symboles(java.lang.String);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.SurlignageLsp>> surlignages(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.PreparationRennomageLsp> preparerRennomage(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.EditionEspaceLsp> rennomage(java.lang.String, jo.celeris.core.lsp.types.PositionLsp, java.lang.String);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.CorrectifLsp>> correctifs(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.EditionTexteLsp>> formatage(java.lang.String, jo.celeris.core.lsp.types.OptionsFormatageLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.EditionTexteLsp>> formatagePlage(java.lang.String, jo.celeris.core.lsp.types.PlageLsp, jo.celeris.core.lsp.types.OptionsFormatageLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.PliLsp>> plis(java.lang.String);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.PlageLsp>> plagesSelection(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> jetons(java.lang.String);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> jetonsPlage(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.IndiceLsp>> indices(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
   public void close();
 }
 
@@ -84,7 +89,7 @@ final class jo.celeris.lsp.protocole.RequetesCouverture$Demande extends java.lan
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String uri();
-  public jo.celeris.core.lsp.PositionLsp position();
+  public jo.celeris.core.lsp.types.PositionLsp position();
 }
 
 ### jo.celeris.lsp.protocole.RequetesCouverture
@@ -139,21 +144,21 @@ public interface jo.celeris.lsp.protocole.ServeurEmbarque$Documents {
   public default void ouvrir(java.lang.String, java.lang.String, java.lang.String);
   public default void changer(java.lang.String, int, java.lang.String);
   public default void fermer(java.lang.String);
-  public default jo.celeris.core.lsp.SurvolLsp survol(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public default jo.celeris.core.lsp.SignatureLsp signature(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public default java.util.List<jo.celeris.core.lsp.SymboleLsp> symboles(java.lang.String);
-  public default java.util.List<jo.celeris.core.lsp.PliLsp> plis(java.lang.String);
-  public default java.util.List<jo.celeris.core.lsp.EditionTexteLsp> formatage(java.lang.String, jo.celeris.core.lsp.OptionsFormatageLsp);
-  public default java.util.List<jo.celeris.core.lsp.SurlignageLsp> surlignages(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public default jo.celeris.core.lsp.PreparationRennomageLsp preparerRennomage(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public default jo.celeris.core.lsp.EditionEspaceLsp rennomage(java.lang.String, jo.celeris.core.lsp.PositionLsp, java.lang.String);
-  public default java.util.List<jo.celeris.core.lsp.CorrectifLsp> correctifs(java.lang.String, jo.celeris.core.lsp.PlageLsp);
-  public default java.util.List<jo.celeris.core.lsp.IndiceLsp> indices(java.lang.String, jo.celeris.core.lsp.PlageLsp);
-  public default jo.celeris.core.lsp.SemanticTokensLsp jetons(java.lang.String);
-  public default java.util.List<jo.celeris.core.lsp.EditionTexteLsp> formatagePlage(java.lang.String, jo.celeris.core.lsp.PlageLsp, jo.celeris.core.lsp.OptionsFormatageLsp);
-  public default java.util.List<jo.celeris.core.lsp.PlageLsp> plagesSelection(java.lang.String, jo.celeris.core.lsp.PositionLsp);
-  public default jo.celeris.core.lsp.SemanticTokensLsp jetonsPlage(java.lang.String, jo.celeris.core.lsp.PlageLsp);
-  public default java.util.List<jo.celeris.core.lsp.LieuLsp> references(java.lang.String, jo.celeris.core.lsp.PositionLsp);
+  public default jo.celeris.core.lsp.types.SurvolLsp survol(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public default jo.celeris.core.lsp.types.SignatureLsp signature(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.SymboleLsp> symboles(java.lang.String);
+  public default java.util.List<jo.celeris.core.lsp.types.PliLsp> plis(java.lang.String);
+  public default java.util.List<jo.celeris.core.lsp.types.EditionTexteLsp> formatage(java.lang.String, jo.celeris.core.lsp.types.OptionsFormatageLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.SurlignageLsp> surlignages(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public default jo.celeris.core.lsp.types.PreparationRennomageLsp preparerRennomage(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public default jo.celeris.core.lsp.types.EditionEspaceLsp rennomage(java.lang.String, jo.celeris.core.lsp.types.PositionLsp, java.lang.String);
+  public default java.util.List<jo.celeris.core.lsp.types.CorrectifLsp> correctifs(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.IndiceLsp> indices(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
+  public default jo.celeris.core.lsp.types.SemanticTokensLsp jetons(java.lang.String);
+  public default java.util.List<jo.celeris.core.lsp.types.EditionTexteLsp> formatagePlage(java.lang.String, jo.celeris.core.lsp.types.PlageLsp, jo.celeris.core.lsp.types.OptionsFormatageLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.PlageLsp> plagesSelection(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public default jo.celeris.core.lsp.types.SemanticTokensLsp jetonsPlage(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.LieuLsp> references(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
 }
 
 ### jo.celeris.lsp.protocole.ServeurEmbarque

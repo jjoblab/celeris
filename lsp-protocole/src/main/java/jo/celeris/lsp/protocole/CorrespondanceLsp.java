@@ -3,6 +3,9 @@ package jo.celeris.lsp.protocole;
 import java.util.ArrayList;
 import java.util.List;
 
+import jo.celeris.core.lsp.types.DiagnosticLsp;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.MarkupContent;
@@ -16,9 +19,9 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.jspecify.annotations.Nullable;
 
 import jo.celeris.core.lsp.CapacitesServeur;
-import jo.celeris.core.lsp.DiagnosticLsp;
-import jo.celeris.core.lsp.PlageLsp;
-import jo.celeris.core.lsp.PositionLsp;
+
+
+
 
 /**
  * La correspondance des structures et de la négociation (ADR-015) :

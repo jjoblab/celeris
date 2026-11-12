@@ -22,8 +22,10 @@ import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.SelectionBarView;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.android.widgets.SignatureHelpView;
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.language.model.LanguageSupport;
+
+import jo.celeris.core.syntax.structure.OutlineEntry;
+
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;

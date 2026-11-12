@@ -6,20 +6,34 @@ import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.SignatureAideModel;
 import java.util.List;
 
-import jo.celeris.core.lsp.CorrectifLsp;
-import jo.celeris.core.lsp.DiagnosticLsp;
-import jo.celeris.core.lsp.EditionEspaceLsp;
-import jo.celeris.core.lsp.EditionTexteLsp;
-import jo.celeris.core.lsp.IndiceLsp;
-import jo.celeris.core.lsp.SemanticTokensLsp;
-import jo.celeris.core.lsp.LieuLsp;
-import jo.celeris.core.lsp.ListeCompletion;
-import jo.celeris.core.lsp.OptionsFormatageLsp;
-import jo.celeris.core.lsp.PlageLsp;
-import jo.celeris.core.lsp.PliLsp;
-import jo.celeris.core.lsp.PreparationRennomageLsp;
-import jo.celeris.core.lsp.SurlignageLsp;
-import jo.celeris.core.lsp.SymboleLsp;
+import jo.celeris.core.lsp.types.CorrectifLsp;
+import jo.celeris.core.lsp.types.DiagnosticLsp;
+import jo.celeris.core.lsp.types.EditionEspaceLsp;
+import jo.celeris.core.lsp.types.EditionTexteLsp;
+import jo.celeris.core.lsp.types.IndiceLsp;
+import jo.celeris.core.lsp.types.SemanticTokensLsp;
+import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.ListeCompletion;
+import jo.celeris.core.lsp.types.OptionsFormatageLsp;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PliLsp;
+import jo.celeris.core.lsp.types.PreparationRennomageLsp;
+import jo.celeris.core.lsp.types.SurlignageLsp;
+import jo.celeris.core.lsp.types.SymboleLsp;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import jo.celeris.core.text.Document;
 
 import org.jspecify.annotations.Nullable;

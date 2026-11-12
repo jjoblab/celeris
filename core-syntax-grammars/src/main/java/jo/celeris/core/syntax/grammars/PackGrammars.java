@@ -1,7 +1,9 @@
 package jo.celeris.core.syntax.grammars;
 
-import jo.celeris.core.language.GrammarFactory;
-import jo.celeris.core.language.LanguagePack;
+import jo.celeris.core.language.packs.GrammarFactory;
+import jo.celeris.core.language.packs.LanguagePack;
+
+
 import jo.celeris.core.syntax.LanguageSyntax;
 
 /**

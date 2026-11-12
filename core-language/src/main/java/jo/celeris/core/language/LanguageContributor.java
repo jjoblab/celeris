@@ -1,5 +1,6 @@
 package jo.celeris.core.language;
 
+import jo.celeris.core.language.model.LanguageCapability;
 import org.jspecify.annotations.Nullable;
 
 /**

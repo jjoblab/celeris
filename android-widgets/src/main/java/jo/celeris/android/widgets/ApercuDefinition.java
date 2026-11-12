@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineEntry;
 
 /**
  * L'aperçu rapide d'une définition (D-11) : la déclaration du symbole

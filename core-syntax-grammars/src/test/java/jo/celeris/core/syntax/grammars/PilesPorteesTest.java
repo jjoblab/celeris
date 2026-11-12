@@ -1,5 +1,6 @@
 package jo.celeris.core.syntax.grammars;
 
+import jo.celeris.core.syntax.scope.ScopeStacks;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.syntax.LexState;
 import jo.celeris.core.syntax.LexedLine;
-import jo.celeris.core.syntax.ScopeStacks;
+
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
 

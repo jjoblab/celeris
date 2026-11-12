@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import jo.celeris.core.lsp.types.DiagnosticLsp;
 import org.eclipse.lsp4j.ApplyWorkspaceEditResponse;
 import org.eclipse.lsp4j.MessageActionItem;
 import org.eclipse.lsp4j.MessageParams;
@@ -15,7 +16,7 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.jspecify.annotations.Nullable;
 
 import jo.celeris.core.lsp.AuditeurDiagnostics;
-import jo.celeris.core.lsp.DiagnosticLsp;
+
 
 /**
  * Le récepteur des requêtes du serveur vers le client (ADR-015) : les

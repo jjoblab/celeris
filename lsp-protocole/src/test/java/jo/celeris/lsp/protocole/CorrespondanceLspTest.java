@@ -1,5 +1,11 @@
 package jo.celeris.lsp.protocole;
 
+import jo.celeris.core.lsp.types.DiagnosticLsp;
+import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.ListeCompletion;
+import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.SignatureLsp;
+import jo.celeris.core.lsp.types.SurvolLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,12 +39,12 @@ import org.eclipse.lsp4j.jsonrpc.messages.Tuple;
 import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.lsp.CapacitesServeur;
-import jo.celeris.core.lsp.DiagnosticLsp;
-import jo.celeris.core.lsp.ListeCompletion;
-import jo.celeris.core.lsp.LieuLsp;
-import jo.celeris.core.lsp.PositionLsp;
-import jo.celeris.core.lsp.SignatureLsp;
-import jo.celeris.core.lsp.SurvolLsp;
+
+
+
+
+
+
 
 /**
  * La correspondance exercée forme par forme : chaque branche du
@@ -110,7 +116,7 @@ public final class CorrespondanceLspTest {
         complet.setDetail("detail");
         complet.setDocumentation(Either.forLeft("documentation nue"));
         complet.setDeprecated(Boolean.TRUE);
-        jo.celeris.core.lsp.ElementCompletion lu = CorrespondanceDocuments.lireElement(complet);
+        jo.celeris.core.lsp.types.ElementCompletion lu = CorrespondanceDocuments.lireElement(complet);
         assertTrue(lu.obsolete());
         assertEquals("documentation nue", lu.documentation());
         CompletionItem sansGenre = new CompletionItem();
@@ -159,7 +165,7 @@ public final class CorrespondanceLspTest {
         SurvolLsp lu = CorrespondanceDocuments.lireSurvol(balise);
         assertEquals("survolee", lu.texte());
         assertEquals("markdown", lu.genre());
-        jo.celeris.core.lsp.PlageLsp plageLue = lu.plage();
+        jo.celeris.core.lsp.types.PlageLsp plageLue = lu.plage();
         assertNotNull(plageLue);
         assertEquals(new PositionLsp(1, 0), plageLue.debut());
         Hover muet = new Hover();
@@ -197,7 +203,7 @@ public final class CorrespondanceLspTest {
         List<LieuLsp> lus = CorrespondanceDocuments.lireLieux(
                 Either.forRight(List.of(lien)));
         assertEquals(1, lus.size());
-        jo.celeris.core.lsp.PlageLsp plageCible = lus.get(0).plage();
+        jo.celeris.core.lsp.types.PlageLsp plageCible = lus.get(0).plage();
         assertNotNull(plageCible);
         assertEquals(new PositionLsp(2, 0), plageCible.debut());
     }

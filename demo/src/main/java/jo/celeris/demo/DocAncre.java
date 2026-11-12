@@ -15,7 +15,8 @@ import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.view.ReperesPreview;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineEntry;
+
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 

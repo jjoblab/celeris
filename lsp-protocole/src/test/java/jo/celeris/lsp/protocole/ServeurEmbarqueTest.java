@@ -1,5 +1,8 @@
 package jo.celeris.lsp.protocole;
 
+import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.SignatureLsp;
+import jo.celeris.core.lsp.types.SurvolLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,9 +14,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
-import jo.celeris.core.lsp.PositionLsp;
-import jo.celeris.core.lsp.SignatureLsp;
-import jo.celeris.core.lsp.SurvolLsp;
+
+
+
 
 /**
  * Le montage du serveur embarqué (ADR-015) exercé de bout en bout : un
@@ -140,7 +143,7 @@ class ServeurEmbarqueTest {
             assertTrue(session.initialiser().sertCompletion(),
                     "le serveur factice monte par l'objet opaque et répond");
             session.ouvrir(URI, "xml", "<ex/>");
-            List<jo.celeris.core.lsp.DiagnosticLsp> publies = new java.util.ArrayList<>();
+            List<jo.celeris.core.lsp.types.DiagnosticLsp> publies = new java.util.ArrayList<>();
             session.ajouterAuditeurDiagnostics((uri, diags) -> publies.addAll(diags));
             session.ouvrir(URI + "2", "xml", "<ex/>");
             long borne = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);

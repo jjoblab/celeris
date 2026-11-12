@@ -22,8 +22,8 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 import jo.celeris.core.ai.SuggestionFantome;
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.text.EditListener;
 import jo.celeris.core.text.TextSession;
 

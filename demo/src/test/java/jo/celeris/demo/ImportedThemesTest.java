@@ -1,13 +1,15 @@
 package jo.celeris.demo;
 
+import jo.celeris.core.syntax.scope.ScopeStacks;
+import jo.celeris.core.syntax.scope.ScopeStyle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.core.language.TokenColorsTheme;
-import jo.celeris.core.syntax.ScopeStacks;
-import jo.celeris.core.syntax.ScopeStyle;
+
+
 import jo.celeris.core.syntax.TokenKind;
 
 import org.junit.jupiter.api.Test;

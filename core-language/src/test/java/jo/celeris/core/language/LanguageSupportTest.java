@@ -1,5 +1,10 @@
 package jo.celeris.core.language;
 
+import jo.celeris.core.language.model.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageDescriptor;
+import jo.celeris.core.language.model.LanguageInjection;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -11,7 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.JavaSyntax;
+
 import jo.celeris.core.text.Document;
 
 import org.jspecify.annotations.Nullable;

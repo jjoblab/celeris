@@ -1,6 +1,6 @@
 package jo.celeris.android.view;
 
-import jo.celeris.core.syntax.ScopeTheme;
+import jo.celeris.core.syntax.scope.ScopeTheme;
 
 /**
  * Thème d'éditeur : les couleurs résolues du chemin de dessin (ADR-008 :

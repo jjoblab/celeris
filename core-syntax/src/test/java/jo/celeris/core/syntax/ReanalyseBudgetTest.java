@@ -1,5 +1,11 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.clike.GroovySyntax;
+import jo.celeris.core.syntax.clike.JavaSyntax;
+import jo.celeris.core.syntax.clike.KotlinSyntax;
+import jo.celeris.core.syntax.clike.KtsSyntax;
+import jo.celeris.core.syntax.json.JsonSyntax;
+import jo.celeris.core.syntax.xml.XmlSyntax;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;

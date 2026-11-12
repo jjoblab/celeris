@@ -1,13 +1,15 @@
 package jo.celeris.core.language;
 
+import jo.celeris.core.syntax.scope.ScopeStacks;
+import jo.celeris.core.syntax.scope.ScopeStyle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jo.celeris.core.syntax.ScopeStacks;
-import jo.celeris.core.syntax.ScopeStyle;
+
+
 
 import org.junit.jupiter.api.Test;
 
@@ -95,7 +97,7 @@ final class TokenColorsThemeTest {
 
     /** L'encre résolue d'une règle isolée sur la portée donnée. */
     private static int encreLue(String encre) {
-        jo.celeris.core.syntax.ScopeStyle style = TokenColorsTheme.parse("""
+        jo.celeris.core.syntax.scope.ScopeStyle style = TokenColorsTheme.parse("""
                 {"tokenColors": [{"scope": "a",
                  "settings": {"foreground": "%s"}}]}
                 """.formatted(encre)).scopes().styleFor(

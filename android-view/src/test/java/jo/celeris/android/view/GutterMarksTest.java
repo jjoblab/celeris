@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import jo.celeris.core.syntax.FoldSpan;
+import jo.celeris.core.syntax.structure.FoldSpan;
 
 import org.junit.jupiter.api.Test;
 

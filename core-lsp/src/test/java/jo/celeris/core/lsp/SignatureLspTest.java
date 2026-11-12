@@ -1,5 +1,6 @@
 package jo.celeris.core.lsp;
 
+import jo.celeris.core.lsp.types.SignatureLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 

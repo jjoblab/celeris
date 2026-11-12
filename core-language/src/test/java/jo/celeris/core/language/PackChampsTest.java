@@ -1,5 +1,15 @@
 package jo.celeris.core.language;
 
+import jo.celeris.core.language.model.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageDescriptor;
+import jo.celeris.core.language.model.LanguageInjection;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.language.packs.GrammarFactory;
+import jo.celeris.core.language.packs.LanguagePack;
+import jo.celeris.core.language.packs.PackLoader;
+import jo.celeris.core.language.packs.PackManifest;
+import jo.celeris.core.language.packs.PackSnippet;
+import jo.celeris.core.language.packs.Packs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,7 +38,7 @@ final class PackChampsTest {
 
     /** La fabrique de banc — la grammaire n'entre pas en jeu ici. */
     private static final GrammarFactory FABRIQUE =
-            (id, json) -> jo.celeris.core.syntax.JavaSyntax.INSTANCE;
+            (id, json) -> jo.celeris.core.syntax.clike.JavaSyntax.INSTANCE;
 
     @TempDir
     Path bac;

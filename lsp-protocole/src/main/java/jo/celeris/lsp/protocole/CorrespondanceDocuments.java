@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+import jo.celeris.core.lsp.types.ElementCompletion;
+import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.ListeCompletion;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.SignatureLsp;
+import jo.celeris.core.lsp.types.SurvolLsp;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
@@ -19,12 +25,12 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Tuple;
 import org.jspecify.annotations.Nullable;
 
-import jo.celeris.core.lsp.ElementCompletion;
-import jo.celeris.core.lsp.ListeCompletion;
-import jo.celeris.core.lsp.LieuLsp;
-import jo.celeris.core.lsp.PlageLsp;
-import jo.celeris.core.lsp.SignatureLsp;
-import jo.celeris.core.lsp.SurvolLsp;
+
+
+
+
+
+
 
 /**
  * La correspondance des réponses de document (ADR-015) : complétion,

@@ -3,7 +3,7 @@ package jo.celeris.core.intelligence;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import jo.celeris.core.language.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageConfiguration;
 
 /**
  * Les règles de frappe d'un langage (M5, A-05 ; M7.6 : pilotées par la

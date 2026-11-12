@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import jo.celeris.core.lsp.types.EditionDocumentLsp;
+import jo.celeris.core.lsp.types.EditionTexteLsp;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextEdit;
 import jo.celeris.core.text.Transaction;

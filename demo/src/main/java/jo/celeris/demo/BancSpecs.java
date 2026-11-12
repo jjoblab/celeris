@@ -7,27 +7,38 @@ import java.util.Optional;
 
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.SignatureAideModel;
-import jo.celeris.core.language.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageConfiguration;
 import jo.celeris.core.language.LanguagePlatform;
 import jo.celeris.core.language.LanguageRegistry;
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.language.Packs;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.language.packs.Packs;
 import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.intelligence.IndentStyle;
 import jo.celeris.core.intelligence.PasteReindenter;
 import jo.celeris.core.intelligence.Renommage;
 import jo.celeris.core.intelligence.SmartTyping;
 import jo.celeris.core.intelligence.TypingRules;
+
+
+
+import jo.celeris.core.lsp.types.EditionTexteLsp;
+import jo.celeris.core.lsp.types.OptionsFormatageLsp;
+import jo.celeris.core.lsp.types.PliLsp;
+import jo.celeris.core.lsp.types.SymboleLsp;
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.FoldSpan;
-import jo.celeris.core.syntax.IndentationFolds;
+import jo.celeris.core.syntax.structure.FoldSpan;
+import jo.celeris.core.syntax.structure.IndentationFolds;
 import jo.celeris.core.syntax.SyntaxService;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
-import jo.celeris.core.syntax.TreeFolds;
-import jo.celeris.core.syntax.JavaSyntax;
+import jo.celeris.core.syntax.structure.TreeFolds;
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.syntax.SyntaxCoordinator;
+
 import jo.celeris.core.syntax.grammars.PackGrammars;
+
+
+
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -382,20 +393,20 @@ final class BancSpecs {
      */
     private static boolean couverture() {
         String document = "int total = ajouter(1, 2);\n";
-        java.util.List<jo.celeris.core.lsp.SymboleLsp> symboles = auFil(
+        java.util.List<jo.celeris.core.lsp.types.SymboleLsp> symboles = auFil(
                 document, 0, (serveur, doc, position) -> serveur.symboles(URI)
                         .get(2, java.util.concurrent.TimeUnit.SECONDS));
         boolean lePlan = symboles != null && symboles.stream()
                 .anyMatch(s -> "total".equals(s.nom()));
         String imbrique = "int ajouter(int a, int b) {\n    return a + b;\n}\n";
-        java.util.List<jo.celeris.core.lsp.PliLsp> plis = auFil(
+        java.util.List<jo.celeris.core.lsp.types.PliLsp> plis = auFil(
                 imbrique, 0, (serveur, doc, position) -> serveur.plis(URI)
                         .get(2, java.util.concurrent.TimeUnit.SECONDS));
         boolean lePli = plis != null && !plis.isEmpty();
-        java.util.List<jo.celeris.core.lsp.EditionTexteLsp> editions = auFil(
+        java.util.List<jo.celeris.core.lsp.types.EditionTexteLsp> editions = auFil(
                 "  int total = 1;\n", 0,
                 (serveur, doc, position) -> serveur.formatage(URI,
-                        jo.celeris.core.lsp.OptionsFormatageLsp.DEFAUT)
+                        jo.celeris.core.lsp.types.OptionsFormatageLsp.DEFAUT)
                         .get(2, java.util.concurrent.TimeUnit.SECONDS));
         boolean leFormat = editions != null && !editions.isEmpty()
                 && editions.get(0).nouveauTexte().startsWith("int");

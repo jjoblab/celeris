@@ -1,5 +1,13 @@
 package jo.celeris.demo;
 
+import jo.celeris.core.language.model.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.language.packs.LanguagePack;
+import jo.celeris.core.language.packs.PackLoader;
+import jo.celeris.core.language.packs.Packs;
+import jo.celeris.core.syntax.structure.FoldSpan;
+import jo.celeris.core.syntax.structure.IndentationFolds;
+import jo.celeris.core.syntax.structure.TreeFolds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -11,20 +19,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import jo.celeris.core.language.LanguageConfiguration;
-import jo.celeris.core.language.LanguagePack;
+
+
 import jo.celeris.core.language.LanguagePlatform;
 import jo.celeris.core.language.LanguageRegistry;
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.language.PackLoader;
-import jo.celeris.core.language.Packs;
+
+
+
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.FoldSpan;
-import jo.celeris.core.syntax.IndentationFolds;
+
+
 import jo.celeris.core.syntax.SyntaxService;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
-import jo.celeris.core.syntax.TreeFolds;
+
 import jo.celeris.core.text.Document;
 import jo.celeris.core.syntax.grammars.PackGrammars;
 

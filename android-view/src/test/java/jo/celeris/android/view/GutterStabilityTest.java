@@ -5,8 +5,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.Map;
 import java.util.Set;
 
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.syntax.JavaSyntax;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.syntax.clike.JavaSyntax;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

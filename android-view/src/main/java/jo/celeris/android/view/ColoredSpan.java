@@ -1,6 +1,6 @@
 package jo.celeris.android.view;
 
-import jo.celeris.core.syntax.ScopeStacks;
+import jo.celeris.core.syntax.scope.ScopeStacks;
 import jo.celeris.core.syntax.TokenKind;
 
 /**

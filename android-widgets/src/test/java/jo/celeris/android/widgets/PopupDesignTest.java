@@ -1,5 +1,6 @@
 package jo.celeris.android.widgets;
 
+import jo.celeris.core.syntax.SyntaxIssue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 

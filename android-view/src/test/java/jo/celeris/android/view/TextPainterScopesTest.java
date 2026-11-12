@@ -6,10 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import jo.celeris.core.syntax.ScopeStacks;
-import jo.celeris.core.syntax.ScopeStyle;
-import jo.celeris.core.syntax.ScopeTheme;
-import jo.celeris.core.syntax.ScopeThemes;
+import jo.celeris.core.syntax.scope.ScopeStacks;
+import jo.celeris.core.syntax.scope.ScopeStyle;
+import jo.celeris.core.syntax.scope.ScopeTheme;
+import jo.celeris.core.syntax.scope.ScopeThemes;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
@@ -171,7 +171,7 @@ class TextPainterScopesTest {
     void lesAttributsSePosentSansFuirVersLaPlageSuivante() {
         ScopeTheme theme = ScopeTheme.of(List.of(
                 new ScopeTheme.Rule("entity.name.function",
-                        new jo.celeris.core.syntax.ScopeStyle(0, true, false,
+                        new jo.celeris.core.syntax.scope.ScopeStyle(0, true, false,
                                 false))));
         EditorTheme aThemes = new EditorTheme(9, 0xFFFFFFFF, 0xFF202124,
                 0xFFD3E3FD, 0xFF1A73E8, 0xFF5F6368, 0x14202124,

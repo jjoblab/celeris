@@ -1,5 +1,12 @@
 package jo.celeris.demo;
 
+import jo.celeris.core.language.model.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.syntax.structure.FoldSpan;
+import jo.celeris.core.syntax.structure.IndentationFolds;
+import jo.celeris.core.syntax.structure.OutlineEntry;
+import jo.celeris.core.syntax.structure.RuleOutline;
+import jo.celeris.core.syntax.structure.TreeFolds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -7,16 +14,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import jo.celeris.core.language.LanguageConfiguration;
-import jo.celeris.core.language.LanguageSupport;
+
+
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.FoldSpan;
-import jo.celeris.core.syntax.IndentationFolds;
+
+
 import jo.celeris.core.syntax.NodeCategory;
-import jo.celeris.core.syntax.OutlineEntry;
-import jo.celeris.core.syntax.RuleOutline;
+
+
 import jo.celeris.core.syntax.SyntaxService;
-import jo.celeris.core.syntax.TreeFolds;
+
 import jo.celeris.core.text.Document;
 
 import org.jspecify.annotations.Nullable;

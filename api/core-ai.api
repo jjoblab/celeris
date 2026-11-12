@@ -148,7 +148,7 @@ Compiled from "OutilsEditeur.java"
 public interface jo.celeris.core.ai.OutilsEditeur {
   public abstract jo.celeris.core.ai.PlageLue lire(int, int);
   public abstract jo.celeris.core.ai.PlageLue instantane();
-  public abstract java.util.List<jo.celeris.core.syntax.OutlineEntry> symboles();
+  public abstract java.util.List<jo.celeris.core.syntax.structure.OutlineEntry> symboles();
   public abstract java.util.List<jo.celeris.core.syntax.SyntaxIssue> diagnostics();
   public abstract jo.celeris.core.ai.InstructionsAgent instructions();
   public abstract jo.celeris.core.ai.TransactionOutilReponse appliquer(jo.celeris.core.ai.TransactionOutil);
@@ -157,11 +157,11 @@ public interface jo.celeris.core.ai.OutilsEditeur {
 ### jo.celeris.core.ai.OutilsEditeurSurSession
 Compiled from "OutilsEditeurSurSession.java"
 public final class jo.celeris.core.ai.OutilsEditeurSurSession implements jo.celeris.core.ai.OutilsEditeur {
-  public jo.celeris.core.ai.OutilsEditeurSurSession(jo.celeris.core.text.TextSession, java.util.function.Function<jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.OutlineEntry>>, java.util.function.Supplier<java.util.List<jo.celeris.core.syntax.SyntaxIssue>>);
-  public jo.celeris.core.ai.OutilsEditeurSurSession(jo.celeris.core.text.TextSession, java.util.function.Function<jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.OutlineEntry>>, java.util.function.Supplier<java.util.List<jo.celeris.core.syntax.SyntaxIssue>>, jo.celeris.core.ai.InstructionsAgent);
+  public jo.celeris.core.ai.OutilsEditeurSurSession(jo.celeris.core.text.TextSession, java.util.function.Function<jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.structure.OutlineEntry>>, java.util.function.Supplier<java.util.List<jo.celeris.core.syntax.SyntaxIssue>>);
+  public jo.celeris.core.ai.OutilsEditeurSurSession(jo.celeris.core.text.TextSession, java.util.function.Function<jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.structure.OutlineEntry>>, java.util.function.Supplier<java.util.List<jo.celeris.core.syntax.SyntaxIssue>>, jo.celeris.core.ai.InstructionsAgent);
   public jo.celeris.core.ai.PlageLue lire(int, int);
   public jo.celeris.core.ai.PlageLue instantane();
-  public java.util.List<jo.celeris.core.syntax.OutlineEntry> symboles();
+  public java.util.List<jo.celeris.core.syntax.structure.OutlineEntry> symboles();
   public java.util.List<jo.celeris.core.syntax.SyntaxIssue> diagnostics();
   public jo.celeris.core.ai.InstructionsAgent instructions();
   public jo.celeris.core.ai.TransactionOutilReponse appliquer(jo.celeris.core.ai.TransactionOutil);
