@@ -85,11 +85,16 @@ final class BancAppareil {
 
     /**
      * Attend la mise en page de l'éditeur : le premier passage de
-     * mesures. Sans cette attente, les captures mesureraient une vitre
-     * encore vide.
+     * mesures. L'image ATD s'éveille muette — la vitre se réveille et
+     * se maintient allumée AVANT les mesures : sans cela, les captures
+     * reviennent unies et les gestes injectés se perdent (l'écran
+     * dort, la politique d'entrée jette les touchers).
      */
     static EditorView attendreVue(ActivityScenario<EditorActivity> scenario)
-            throws InterruptedException {
+            throws Exception {
+        appareil().wakeUp();
+        appareil().executeShellCommand("svc power stayon true");
+        Thread.sleep(400L);
         EditorView[] vue = new EditorView[1];
         for (int essai = 0; essai < 50; essai++) {
             scenario.onActivity(ecran -> {

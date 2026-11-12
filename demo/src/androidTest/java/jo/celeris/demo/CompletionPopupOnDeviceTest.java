@@ -39,7 +39,7 @@ public class CompletionPopupOnDeviceTest {
      */
     @Test
     public void lePremierPopupReelNeVolePasLeFocusDeLediteur()
-            throws InterruptedException {
+            throws Exception {
         try (ActivityScenario<EditorActivity> scenario = BancAppareil.ouvrirScenario()) {
             BancAppareil.attendreVue(scenario);
             BancAppareil.focaliser(scenario);
