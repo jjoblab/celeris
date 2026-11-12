@@ -50,7 +50,7 @@ public final class CelerisTest {
         ByteArrayOutputStream tampon = new ByteArrayOutputStream();
         Celeris.executer(new String[0],
                 new PrintStream(tampon, true, StandardCharsets.UTF_8));
-        assertTrue(tampon.toString(StandardCharsets.UTF_8).startsWith("celeris 1.0.0"),
+        assertTrue(tampon.toString(StandardCharsets.UTF_8).startsWith("celeris 1.1.0"),
                 "la bannière doit annoncer la version du dépôt");
     }
 }

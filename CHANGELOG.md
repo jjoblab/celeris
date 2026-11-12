@@ -5,7 +5,7 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
-## [1.1.0] — en cours
+## [1.1.0] — 2026-11-12
 
 ### Mini serveur de langage Java — le compagnon de banc de l'éditeur
 
@@ -563,6 +563,28 @@ vivent dans les ADR et le registre de portage, pas ici.
   fusion du renommage, atomicité de la transaction de texte) exigent
   des bancs dédiés : ils restent consignés au rapport d'audit pour
   traitement ultérieur, jamais corrigés en aveugle.
+
+### La démonstration vit sans serveur embarqué
+
+- **Le repli de référence reprend la main** : plus aucune dépendance
+  tierce ne vit dans le dépôt — la déclaration de l'hôte se vide, le
+  serveur de référence (M7.5, §8) répond pour tous les langages ouverts,
+  NOTICE, REFERENCES, résumés, audits, recette et matrice ne consignent
+  plus qu'une dépendance tierce au runtime : la frontière protocolaire
+  et ses sommes. La dernière règle d'exception du binaire retiré quitte
+  `.gitignore`.
+- **L'histoire du dépôt se recoud** : les mentions du tiers retiré
+  s'effacent de toute la lignée des commits — l'identité, les
+  coordonnées et les archives nommées ne s'y trouvent plus, le dépôt se
+  relit sans eux de la première à la dernière ligne.
+
+### Hygiène — la CI redevient verte
+
+- **Quatre imports post-réflow partent** (`android-widgets`) : la
+  découpe en sous-paquets avait laissé deux imports vers `Corps` —
+  devenu interne au paquet `clike` — et deux imports `SyntaxIssue`
+  inemployés ; compilation, Checkstyle et bancs de vue repassent
+  (contrôles complets avec SDK, tests Robolectric).
 
 ## [1.0.0] — 2026-11-10
 
