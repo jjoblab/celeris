@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Les identifiants des actions repliées derrière la puce de
+     débordement (le redressement du propriétaire, le design du dépôt
+     de départ) : les actions ne vivent plus dans le XML du menu
+     système — la CARTE du kit les sert —, leurs identifiants restent
+     déclarés ici : le canal des actions de l'atelier (actionsMenu)
+     y lit toujours, les tests de parité y comptent. -->
+<resources>
+    <item name="action_completion" type="id" />
+    <item name="action_intentions" type="id" />
+    <item name="action_survol" type="id" />
+    <item name="action_lint" type="id" />
+    <item name="action_corriger" type="id" />
+    <item name="action_gabarit" type="id" />
+    <item name="action_formater" type="id" />
+    <item name="action_renommer" type="id" />
+    <item name="action_importer" type="id" />
+    <item name="action_apercu" type="id" />
+    <item name="action_diff" type="id" />
+    <item name="action_agent" type="id" />
+    <item name="action_ia_fantome" type="id" />
+    <item name="action_ia_prediction" type="id" />
+    <item name="action_annuler" type="id" />
+    <item name="action_retablir" type="id" />
+    <item name="action_theme" type="id" />
+    <item name="action_diminuer" type="id" />
+    <item name="action_agrandir" type="id" />
+    <item name="action_reglages" type="id" />
+</resources>

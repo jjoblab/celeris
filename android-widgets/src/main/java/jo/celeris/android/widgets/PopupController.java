@@ -76,7 +76,13 @@ public final class PopupController {
 
         /** Le défilement rapide — ornement du bord droit (chantier C9) :
          *  le pouce suit le défilement, le glissement l'emporte. */
-        FAST_SCROLLER
+        FAST_SCROLLER,
+
+        /** La barre de touches de code (le dépôt de départ, 4.5.0) :
+         *  ornement du bas de la scène AU-DESSUS DU CLAVIER — l'hôte la
+         *  pose, ni la frappe ni le défilement ne la ferment (le
+         *  clavier la remonte avec l'IME). */
+        TOUCH_BAR
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);

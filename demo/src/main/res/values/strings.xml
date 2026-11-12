@@ -17,6 +17,12 @@
     </plurals>
     <string name="action_reglages">Settings</string>
     <string name="action_retour">Back</string>
+    <string name="touche_tab">Tab</string>
+    <string name="touche_commenter">Comment</string>
+    <string name="touche_ligne_haut">Line up</string>
+    <string name="touche_ligne_bas">Line down</string>
+    <string name="touche_dupliquer">Duplicate</string>
+    <string name="action_debordement">More actions</string>
     <string name="action_recherche">Search</string>
     <string name="action_completion">Complete word</string>
     <string name="action_intentions">Intentions at caret</string>

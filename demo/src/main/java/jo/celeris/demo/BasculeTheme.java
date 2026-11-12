@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.view.MenuItem;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.function.Consumer;
@@ -92,11 +93,22 @@ final class BasculeTheme {
         majTitre();
     }
 
-    /** Le libellé du menu dit le thème courant. */
+    /** Le libellé du menu dit le thème courant — l'item ne vit plus
+     *  au menu système (la carte du kit le sert désormais) : la
+     *  recherche ne trouve plus rien, le libellé de la CARTE dit le
+     *  thème à l'ouverture. */
     void majTitre() {
         MaterialToolbar barre = activite.findViewById(R.id.barre_editeur);
-        barre.getMenu().findItem(R.id.action_theme)
-                .setTitle(activite.getString(R.string.choix_theme, nom()));
+        MenuItem item = barre.getMenu().findItem(R.id.action_theme);
+        if (item != null) {
+            item.setTitle(activite.getString(R.string.choix_theme, nom()));
+        }
+    }
+
+    /** Le nom du thème courant — la carte de débordement y lit son
+     *  libellé à l'ouverture (l'item du menu ne vit plus au système). */
+    String nomCourant() {
+        return nom();
     }
 
     private String nom() {

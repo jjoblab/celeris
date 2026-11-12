@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +34,23 @@ import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
 import jo.celeris.android.widgets.IntentionsMenuView;
+import jo.celeris.android.widgets.TouchBarView;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupPalette;
+import jo.celeris.core.intelligence.CommentRules;
+import jo.celeris.core.intelligence.Commenter;
+import jo.celeris.core.intelligence.IndentStyle;
+import jo.celeris.core.intelligence.EditPlan;
+import jo.celeris.core.intelligence.LineActions;
+import jo.celeris.core.language.model.LanguageConfiguration;
 import jo.celeris.core.language.model.LanguageSupport;
 
 import jo.celeris.core.syntax.structure.OutlineEntry;
 
 import jo.celeris.core.text.Document;
+import jo.celeris.core.text.MultiSelection;
+import jo.celeris.core.text.TextEdit;
+import jo.celeris.core.text.Transaction;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
@@ -93,6 +104,10 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierRefactor atelierRefactor;
     private AtelierRecherche atelierRecherche;
     private AtelierSelection atelierSelection;
+    /** L'atelier de la barre d'application (le design du dépôt de
+     *  départ) : la carte du kit remplace le menu système de
+     *  débordement, la barre de touches vit au-dessus du clavier. */
+    private AtelierBarreToolbar atelierBarreToolbar;
     /** La session de langage — serveur de référence en processus (M7.5,
      *  §8) ou serveur déclaré disponible par l'hôte (M7.6, H-13). */
     private LanguageSession serveurLangage;
@@ -122,6 +137,11 @@ public final class EditorActivity extends AppCompatActivity {
             majPosition();
             majMarques();
             majPastillesEtReperes();
+            // les touches de code se ré-évaluent à la frappe — l'état
+            // activé suit le document
+            if (atelierBarreToolbar != null) {
+                atelierBarreToolbar.barreTouches().refreshEnabled();
+            }
             // La frappe suivante refuse le fantôme (F-09) — l'atelier IA
             // suit s'il est déjà en place.
             if (atelierIA != null) {
@@ -247,6 +267,12 @@ public final class EditorActivity extends AppCompatActivity {
         // redéfinit performClick.
         editeur.setOnTouchListener((vue, evenement) -> {
             vue.post(this::majPosition);
+            // les touches de code se ré-évaluent au geste du doigt —
+            // l'état activé suit le caret
+            if (atelierBarreToolbar != null) {
+                vue.post(() -> atelierBarreToolbar.barreTouches()
+                        .refreshEnabled());
+            }
             return false;
         });
         editeur.setSurPlan(entrees -> {
@@ -323,8 +349,14 @@ public final class EditorActivity extends AppCompatActivity {
                 basculeTheme.themeCourant(),
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
         // Le thème tourne : la palette des popups suit (le verre du
-        // dépôt de départ se dérive du fond de l'éditeur).
-        basculeTheme.setSurChangement(atelierPopups::surTheme);
+        // dépôt de départ se dérive du fond de l'éditeur) — la barre
+        // de touches y dérive la sienne à la même source.
+        basculeTheme.setSurChangement(theme -> {
+            atelierPopups.surTheme(theme);
+            if (atelierBarreToolbar != null) {
+                atelierBarreToolbar.surPalette(paletteFeuilles());
+            }
+        });
         atelierPopups.setNomFichier(nomFichier);
         atelierPopups.configurerIntentions(intentionsAuCurseur());
         atelierPopups.brancherServeur(serveurLangage,
@@ -345,6 +377,169 @@ public final class EditorActivity extends AppCompatActivity {
         // mot, la documentation du serveur déclaré s'y offre — comme
         // tout éditeur, la popup survit au geste, null la ferme.
         editeur.setSurAppuiLong(offset -> atelierPopups.ouvrirSurvol());
+        // Le design du dépôt de départ (le redressement du
+        // propriétaire) : le menu de DÉBORDEMENT de la toolbar vit
+        // dans la CARTE du kit — rangées cliquables du verre, jamais
+        // le menu système —, la BARRE DE TOUCHES de code vit
+        // au-dessus du clavier (Tab, commentaire, déplacements,
+        // duplication).
+        atelierBarreToolbar = new AtelierBarreToolbar(
+                atelierPopups.controleur(), couche(),
+                atelierPopups.carteMenus(), paletteFeuilles());
+        atelierBarreToolbar.poserBarreTouches(touchesUsuelles());
+        actionsMenu.put(R.id.action_debordement,
+                () -> atelierBarreToolbar.ouvrirDebordement(
+                        itemsDebordement()));
+    }
+
+    /** La couche porte-popups de la scène — l'atelier de la barre s'y
+     *  pose (les cartes et la barre de touches y vivent). */
+    private PopupLayer couche() {
+        return findViewById(R.id.couche_popups);
+    }
+
+    /** Les items du menu de débordement de la toolbar — les actions
+     *  repliées, dans l'ordre du menu d'avant redressement. */
+    private List<IntentionsMenuView.Item> itemsDebordement() {
+        return List.of(
+                itemMenu(R.string.action_completion, R.id.action_completion),
+                itemMenu(R.string.action_intentions, R.id.action_intentions),
+                itemMenu(R.string.action_survol, R.id.action_survol),
+                itemMenu(R.string.action_lint, R.id.action_lint),
+                itemMenu(R.string.action_gabarit, R.id.action_gabarit),
+                itemMenu(R.string.action_formater, R.id.action_formater),
+                itemMenu(R.string.action_renommer, R.id.action_renommer),
+                itemMenu(R.string.action_ia_prediction,
+                        R.id.action_ia_prediction),
+                itemMenu(R.string.action_annuler, R.id.action_annuler),
+                itemMenu(R.string.action_retablir, R.id.action_retablir),
+                new IntentionsMenuView.Item(
+                        getString(R.string.choix_theme, basculeTheme.nomCourant()),
+                        actionsMenu.get(R.id.action_theme)),
+                itemMenu(R.string.action_diminuer, R.id.action_diminuer),
+                itemMenu(R.string.action_agrandir, R.id.action_agrandir),
+                itemMenu(R.string.action_reglages, R.id.action_reglages));
+    }
+
+    /** Un item de la carte : le libellé de la chaîne, l'action du menu
+     *  déjà branchée — le même canal, la carte seule change de peau. */
+    private IntentionsMenuView.Item itemMenu(int libelle, int id) {
+        return new IntentionsMenuView.Item(getString(libelle),
+                actionsMenu.get(id));
+    }
+
+    /** Les cinq touches usuelles de code (le dépôt de départ) : Tab,
+     *  commentaire, déplacer la ligne, dupliquer — branchées aux
+     *  moteurs purs de la maison. */
+    private List<TouchBarView.Touche> touchesUsuelles() {
+        return List.of(
+                new TouchBarView.Touche(getString(R.string.touche_tab),
+                        null, this::indenterBloc),
+                new TouchBarView.Touche(getString(R.string.touche_commenter),
+                        null, this::commenterBloc),
+                new TouchBarView.Touche(getString(R.string.touche_ligne_haut),
+                        this::pasPremiereLigne, () -> deplacerBloc(-1)),
+                new TouchBarView.Touche(getString(R.string.touche_ligne_bas),
+                        this::pasDerniereLigne, () -> deplacerBloc(1)),
+                new TouchBarView.Touche(getString(R.string.touche_dupliquer),
+                        null, this::dupliquerBloc));
+    }
+
+    /** Vrai quand le caret vit AU-DELÀ de la première ligne — la
+     *  touche « vers le haut » y reste vivante. */
+    private boolean pasPremiereLigne() {
+        return session.document().lineForOffset(
+                session.selection().ranges().isEmpty() ? 0
+                        : session.selection().ranges().get(0).caret()) > 0;
+    }
+
+    /** Vrai quand le caret vit EN-DEÇÀ de la dernière ligne — la
+     *  touche « vers le bas » y reste vivante. */
+    private boolean pasDerniereLigne() {
+        return session.document().lineForOffset(
+                session.selection().ranges().isEmpty() ? 0
+                        : session.selection().ranges().get(0).caret())
+                < session.document().lineCount() - 1;
+    }
+
+    /** Le support du langage ouvert — la voie de la démonstration :
+     *  le nom du fichier y décide, le texte porte les déclarations. */
+    private LanguageSupport langueOuverte() {
+        return LangagesDemo.langageDe(nomFichier, null,
+                session.document().text());
+    }
+
+    /** Le plan du geste appliqué — la voie unique, l'image suit. */
+    private boolean appliquer(EditPlan plan) {
+        if (session.apply(plan.transaction(), plan.selection())) {
+            editeur.invalidate();
+            return true;
+        }
+        return false;
+    }
+
+    /** Tab : le bloc touché gagne un cran — les lignes de la
+     *  sélection, le style du langage ouvert. */
+    private void indenterBloc() {
+        Document doc = session.document();
+        MultiSelection selection = session.selection();
+        IndentStyle style = styleMaison();
+        String cran = style.indent(1);
+        List<TextEdit> editions = new ArrayList<>();
+        List<SelRange> apres = new ArrayList<>();
+        int delta = 0;
+        for (SelRange plage : selection.ranges()) {
+            int premiere = doc.lineForOffset(plage.start());
+            int derniere = doc.lineForOffset(Math.max(plage.start(),
+                    plage.end() - 1));
+            for (int ligne = premiere; ligne <= derniere; ligne++) {
+                editions.add(new TextEdit(doc.lineStart(ligne) + delta,
+                        "", cran));
+                delta += cran.length();
+            }
+            apres.add(new SelRange(plage.start() + delta
+                    - (derniere - premiere + 1) * cran.length(),
+                    plage.end() + delta));
+        }
+        appliquer(new EditPlan(Transaction.of(editions),
+                MultiSelection.of(apres)));
+    }
+
+    /** Le style d'indentation du langage ouvert — la configuration y
+     *  décide, le canonique quatre espaces tient sans langage. */
+    private IndentStyle styleMaison() {
+        LanguageSupport langue = langueOuverte();
+        if (langue == null) {
+            return IndentStyle.spaces(4);
+        }
+        return langue.configuration().tabIndent()
+                ? IndentStyle.tabs(langue.configuration().indentSize())
+                : IndentStyle.spaces(langue.configuration().indentSize());
+    }
+
+    /** Commentaire : le bloc touché se commente ou se décommente —
+     *  les règles du langage ouvert, le plan vide ne fait rien. */
+    private void commenterBloc() {
+        LanguageSupport langue = langueOuverte();
+        CommentRules rules = langue == null
+                ? CommentRules.of(LanguageConfiguration.EMPTY)
+                : CommentRules.of(langue.configuration());
+        Commenter.toggle(session.document(), session.selection(), rules)
+                .ifPresent(this::appliquer);
+    }
+
+    /** Déplacement du bloc touché : le moteur pur, la direction au
+     *  signe. */
+    private void deplacerBloc(int direction) {
+        appliquer(LineActions.moveLines(session.document(),
+                session.selection(), direction));
+    }
+
+    /** Duplication du bloc touché : les curseurs descendent dans la
+     *  copie. */
+    private void dupliquerBloc() {
+        appliquer(LineActions.duplicateLines(session.document(),
+                session.selection()));
     }
 
     /** Le chrome s'étend bord à bord : encarts système et clavier

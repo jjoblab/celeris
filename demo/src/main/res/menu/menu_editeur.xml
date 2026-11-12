@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Le menu de l'atelier : recherche, plan et débogage en icônes
-     directes ; annulations, thème, zoom et réglages en réserve. Le
-     libellé du thème et l'icône de débogage sont ajustés à l'exécution
-     (EditorActivity). -->
+<!-- Le menu de l'atelier : recherche, plan, débogage et retour à la
+     ligne en icônes directes ; TOUT LE RESTE vit derrière la puce de
+     débordement — la CARTE du kit du dépôt de départ s'y ouvre (le
+     menu système ne s'affiche plus jamais : rangées cliquables du
+     verre, fermeture au choix). Le libellé du thème et l'icône de
+     débogage sont ajustés à l'exécution (EditorActivity). -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -27,104 +29,12 @@
         android:title="@string/action_retour_ligne"
         app:showAsAction="always" />
 
+    <!-- La puce de débordement : le design du kit du dépôt de départ
+         (la même carte que le menu d'intentions) remplace le menu
+         système — les quatorze actions repliées y courent. -->
     <item
-        android:id="@+id/action_annuler"
-        android:icon="@drawable/ic_annuler"
-        android:title="@string/action_annuler"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_completion"
-        android:icon="@drawable/ic_corriger"
-        android:title="@string/action_completion"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_intentions"
-        android:icon="@drawable/ic_plan"
-        android:title="@string/action_intentions"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_survol"
-        android:icon="@drawable/ic_recherche"
-        android:title="@string/action_survol"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_lint"
-        android:icon="@drawable/ic_lint"
-        android:title="@string/action_lint"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_gabarit"
-        android:icon="@drawable/ic_corriger"
-        android:title="@string/action_gabarit"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_formater"
-        android:icon="@drawable/ic_corriger"
-        android:title="@string/action_formater"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_renommer"
-        android:icon="@drawable/ic_plan"
-        android:title="@string/action_renommer"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_importer"
-        android:icon="@drawable/ic_corriger"
-        android:title="@string/action_importer"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_corriger"
-        android:icon="@drawable/ic_corriger"
-        android:title="@string/action_corriger"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_apercu"
-        android:icon="@drawable/ic_plan"
-        android:title="@string/action_apercu"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_diff"
-        android:icon="@drawable/ic_debogage"
-        android:title="@string/action_diff"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_agent"
-        android:icon="@drawable/ic_corriger"
-        android:title="@string/action_agent"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_ia_fantome"
-        android:icon="@drawable/ic_corriger"
-        android:title="@string/action_ia_fantome"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_ia_prediction"
-        android:icon="@drawable/ic_plan"
-        android:title="@string/action_ia_prediction"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_retablir"
-        android:icon="@drawable/ic_retablir"
-        android:title="@string/action_retablir"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_theme"
-        android:icon="@drawable/ic_theme"
-        android:title="@string/action_theme"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_diminuer"
-        android:icon="@drawable/ic_diminuer"
-        android:title="@string/action_diminuer"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_agrandir"
-        android:icon="@drawable/ic_agrandir"
-        android:title="@string/action_agrandir"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_reglages"
-        android:icon="@drawable/ic_reglages"
-        android:title="@string/action_reglages"
-        app:showAsAction="never" />
+        android:id="@+id/action_debordement"
+        android:icon="@drawable/ic_debordement"
+        android:title="@string/action_debordement"
+        app:showAsAction="always" />
 </menu>

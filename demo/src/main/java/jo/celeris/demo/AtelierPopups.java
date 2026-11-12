@@ -581,4 +581,10 @@ final class AtelierPopups {
     PopupController controleur() {
         return controleur;
     }
+
+    /** La carte des menus du kit — l'overflow de la toolbar la partage
+     *  (le motif du dépôt de départ : une carte, tous les menus). */
+    IntentionsMenuView carteMenus() {
+        return menuIntentions;
+    }
 }
