@@ -7,6 +7,10 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [1.2.0] — en cours
 
+### Reprise du propriétaire — cinq écarts redressés, la revue ouverte
+- **La reprise du 2026-11-12 a couvert les cinq écarts de la revue comparative** : l'icône de pli répond au doigt (`PliAuTapTest`, PIEGE-02 tenu par vidage du cache) ; la minimap se rend COLORÉE (`MinimapModelTest` — segments encrés, code, chaînes, commentaires, nombres, mots-clés) ; la toolbar porte son débordement dans la CARTE du kit et sa barre de touches au-dessus du clavier (`TouchBarViewTest`, ADR-018) ; l'Entrée entre accolades rend le repli textuel (`EntreeRepliTextuelTest`) ; le serveur Java déclaré s'éprouve entier — la signature joint le survol au POINT D'USAGE, les diagnostics se poussent, les popups vivent aux bons moments (`JavaSignatureTest`, `JavaHoverTest`, `ServeurDeclareMomentsTest`, H-13). La revue comparative s'ouvre contre Android Studio :
+  [`ANALYSE-COMPARATIVE-2.md`](docs/audit/ANALYSE-COMPARATIVE-2.md) — 119 lignes de la matrice couvertes sur 125, AUCUNE P0 ouverte, six P2 restantes. La porte verte se referme au passage{NB}: parité des ressources mesurée aux noms (ADR-008), plafonds ADR-002 repris (le serveur, la minimap, la démo redescendent sous les plafonds), manifeste d'API du serveur committé (ajouts purs, SemVer tenu).
+
 ### Langages par paquets — Go et Rust, la longue traîne reprend (C5)
 - **Go et Rust vivent en paquets intégrés** : la longue traîne reprend — `langages/go` et `langages/rust` reprennent les grammaires du dépôt VS Code SANS MODIFICATION (main vérifié le 2026-11-12 ; go convertie du projet worlpaker/go-syntax, rust du projet dustypomerleau/rust-syntax, l’amont consigné au cgmanifest du dépôt vscode) ; `PaquetGoIntegreTest` et `PaquetRustIntegreTest` verrouillent l’égalité octet pour octet, les acceptations (go 85,3 % ≥ 85 %, rust 100 % ≥ 98 %) et le rejeu déterministe des échantillons ; le banc du commerce compte quinze grammaires, la matrice compte vingt-quatre langages intégrés. Le reste de la traîne (vingt-sept du dépôt de départ) dort sur le signal du propriétaire.
 

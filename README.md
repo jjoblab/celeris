@@ -31,7 +31,9 @@ rend le repli textuel, et le serveur Java déclaré s'éprouve entier
 vivent dans
 [`docs/feuille-de-route-restante.md`](docs/feuille-de-route-restante.md) ;
 l'historique des chantiers et le journal des clôtures dans
-[`docs/feuille-de-route.md`](docs/feuille-de-route.md).
+[`docs/feuille-de-route.md`](docs/feuille-de-route.md) ; la revue
+comparative courante dans
+[`docs/audit/ANALYSE-COMPARATIVE-2.md`](docs/audit/ANALYSE-COMPARATIVE-2.md).
 
 ## Publication
 
