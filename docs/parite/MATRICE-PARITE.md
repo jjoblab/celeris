@@ -61,6 +61,23 @@
 >   n'en déclarent aucun — l'éditeur ne connaît pas les serveurs de ses
 >   hôtes, la démo déclare le sien et la disponibilité décide du montage
 >   ou du repli).
+> - **Reprise du 2026-11-13 — les cinq P2 de valeur (et la P1 A-26) livrées** :
+>   l'extraction d'une chaîne vers une ressource (C-13 —
+>   `ExtractionRessourceTest`, le littéral devient `getString`, la
+>   ressource naît dans le fichier de valeurs, annulable d'un geste par
+>   fichier) ; les hiérarchies de types et d'appels (B-12 —
+>   `HierarchiesTest`, ancêtres par générations et descendants en
+>   profondeur, appelants en arbre, le doute signalé jamais tranché) ;
+>   la documentation des modificateurs au survol (C-10 —
+>   `DocModificateursTest`, la table servie au fil du protocole, la
+>   spécification rejouée au banc de la démo) ; l'aperçu d'un correctif
+>   avant acceptation (B-18 — `ApercuCorrectifTest`, l'édition se joue
+>   sur une copie pour se prévoir, l'acceptation annulable d'un geste) ;
+>   les fichiers binaires (A-26 — `FichiersBinairesTest`, détection sur
+>   les octets bruts dans le préfixe borné, aperçu hexadécimal plafonné,
+>   refus d'écriture destructrice). 124 lignes couvertes sur 125 — la
+>   dernière, H-09 (tree-sitter natif niveau 2), reste le chantier de
+>   fond « à ne commencer que sur signal ».
 > - **M4 — syntaxe (en cours)** : socle d'analyse incrémentale livré
 >   (tranche 1 : jetons à offsets relatifs, états par ligne, cascade de
 >   commentaires bornée — PIEGE-19 — arbre tolérant ancré par chunks,

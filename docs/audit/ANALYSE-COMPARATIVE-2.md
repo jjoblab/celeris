@@ -218,6 +218,19 @@ suit son signal : vingt-quatre langages intégrés (Go et Rust livrés
 le 2026-11-12), le reste du dépôt de départ (vingt-sept) dort sur la
 décision du propriétaire (chantier C5).
 
+**Post-scriptum (2026-11-13)** : cinq des six se couvrent — B-18
+(`ApercuCorrectifTest` et la spécification rejouée au banc de la
+démo : l'aperçu du correctif se voit avant l'acceptation), A-26
+(`FichiersBinairesTest` : détection sur les octets bruts, aperçu
+hexadécimal plafonné, refus d'édition destructrice), C-13
+(`ExtractionRessourceTest` : la chaîne devient ressource, annulable
+d'un geste par fichier), C-10 (`DocModificateursTest` : la table des
+modificateurs servie au survol, par le fil du protocole) et B-12
+(`HierarchiesTest` : types et appels en arbres, la profondeur prouvée
+sur corpus). Reste H-09, le chantier de fond — « à ne commencer que
+sur signal », la recommandation 2 le dit. La grille compte alors
+124 lignes couvertes sur 125, aucune P0 ni P1 ouverte.
+
 ---
 
 ## 4. Les écarts de posture — assumés, pas des gaps
@@ -340,3 +353,18 @@ adoucies, D-21 relue) ; `5188282` (la gouttière se réécrit — bande de
 plis au code, icônes en figures, arrêt à l'appui long, D-04 et D-07
 relues) ; `5ccb28f` (le dragage déplace la barre de sélection — le
 popup se re-monte, il ne re-naît pas, D-10 relue).
+
+Les livraisons du 2026-11-13 (cinq des six P2 restantes, la
+recommandation 2 servie à l'exception du chantier de fond) :
+`404acc4` (la chaîne se ressource — le littéral devient référence,
+la ressource naît dans les valeurs, C-13) ; `b0d6463` (les
+hiérarchies se parcourent — types par générations et profondeur,
+appelants en arbre, le doute signalé, B-12) ; `f8d6d37` (la
+documentation des modificateurs se sert au survol — la table au fil
+du protocole, la spécification rejouée au banc, C-10) ; `d361344`
+(l'aperçu du correctif se prévoit avant l'acceptation — l'édition
+jouée sur une copie, l'acceptation annulable, B-18) ; `a1536c4`
+(le binaire se détecte, se prévoit et se refuse — octets bruts,
+aperçu hexadécimal plafonné, écriture textuelle refusée, A-26).
+124 lignes couvertes sur 125 : seule H-09 (tree-sitter natif
+niveau 2) reste ouverte, « à ne commencer que sur signal ».
