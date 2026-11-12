@@ -36,7 +36,7 @@ robolectric = "4.15.1"
 # Robolectric vers le jar du cache — plus aucun réseau au démarrage du
 # test. Littéral aligné sur robolectric.properties (sdk=35) et
 # Robolectric 4.15.1 — vérifié sur Maven Central le 2026-11-08.
-robolectricAndroidAll = "15-robolectric-12650502-i7"
+robolectricAndroidAll = "17-robolectric-16653203-i7"
 # Publication (ADR-011 : SBOM)
 cyclonedx = "3.5.1"
 # Version de l'application de démonstration (non publiée) — toute
