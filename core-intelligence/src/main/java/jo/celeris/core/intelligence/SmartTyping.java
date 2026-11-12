@@ -24,7 +24,10 @@ import jo.celeris.core.text.Transaction;
  * <p>La profondeur d'indentation se lit dans l'arbre
  * ({@link IndentEngine#depthAtCaret}) : les nœuds structurants qui
  * englobent le caret. L'arbre peut être absent (langage inconnu, analyse
- * en cours) : le repli conserve l'indentation de la ligne courante. Un
+ * en cours) : le repli conserve l'indentation de la ligne courante —
+ * la discipline du dépôt de départ y gagne ses crans : l'ouvrant collé
+ * au caret gagne un cran, la paire vide s'étend en deux sauts, le
+ * fermant rend le retrait de sa ligne d'ouverture. Un
  * arbre périmé d'une édition à peine frappée peut décaler le retrait
  * d'un cran jusqu'à la ré-analyse — borné, documenté, jamais faux de
  * plus d'un cran.</p>
@@ -110,9 +113,13 @@ public final class SmartTyping {
      * L'Entrée : le saut porte l'indentation attendue — la profondeur
      * lue dans l'arbre au point de coupe, le style de l'hôte. Le fermant
      * qui reste sur la ligne descend seul sous le curseur : l'Entrée
-     * entre accolades produit les deux sauts. Une sélection non vide est
-     * remplacée par le saut indenté. Sans arbre, la ligne courante prête
-     * son indentation.
+     * entre accolades produit les deux sauts — le corps au cran de
+     * l'ouverture plus un, le fermant au cran de l'ouverture. Une
+     * sélection non vide est remplacée par le saut indenté. Sans arbre
+     * (la norme à la frappe : la publication suit l'édition), le repli
+     * textuel du dépôt de départ prend le relais — l'ouvrant collé au
+     * caret gagne son cran, la paire vide s'étend, le fermant rend le
+     * retrait de sa ligne — jamais il ne tombe à la colonne zéro.
      *
      * @param doc       le document, jamais muté
      * @param analysis  l'analyse courante, éventuellement absente
@@ -134,11 +141,13 @@ public final class SmartTyping {
             String insere;
             if (!plage.isEmpty()) {
                 insere = "\n" + indentation;
-            } else if (commenceParFermant(reste) && !indentation.isEmpty()) {
-                int profondeur = IndentEngine.depthAtCaret(doc, analysis, coupe);
-                insere = "\n" + indentation + "\n" + style.indent(profondeur - 1);
             } else {
-                insere = "\n" + indentation;
+                String retraitFermant = commenceParFermant(reste)
+                        ? retraitDuFermant(doc, analysis, coupe, ligne, style)
+                        : null;
+                insere = retraitFermant == null
+                        ? "\n" + indentation
+                        : "\n" + indentation + "\n" + retraitFermant;
             }
             editions.add(new TextEdit(plage.start() + delta, retire, insere));
             apres.add(SelRange.caretAt(plage.start() + delta + 1 + indentation.length()));
@@ -268,14 +277,88 @@ public final class SmartTyping {
 
     /**
      * L'indentation attendue d'une coupe : la profondeur de l'arbre au
-     * point de coupe, l'indentation de la ligne en repli.
+     * point de coupe, l'indentation de la ligne en repli — l'ouvrant
+     * collé au caret y AJOUTE son cran (la discipline du dépôt de
+     * départ : l'arbre suit la frappe, jamais il ne devance la main).
      */
     private static String indentationAttendue(Document doc, @Nullable Analysis analysis,
             int coupe, int ligne, IndentStyle style) {
         if (analysis != null) {
             return style.indent(IndentEngine.depthAtCaret(doc, analysis, coupe));
         }
-        return IndentEngine.leadingWhitespace(doc.lineText(ligne));
+        String retrait = IndentEngine.leadingWhitespace(doc.lineText(ligne));
+        if (ouvrantColle(doc, coupe) && !dansLitteral(doc, coupe, ligne)) {
+            return retrait + style.indent(1);
+        }
+        return retrait;
+    }
+
+    /**
+     * Le retrait de la ligne du fermant (D-06) : le cran de son ouverture.
+     * L'arbre qui englobe la coupe le rend ; sans arbre — la norme à la
+     * frappe, la publication suit l'édition — la paire vide collée au
+     * caret ({@code {|}}, {@code [|]}, {@code (|)}) restitue le retrait de
+     * sa ligne ; sans paire, le fermant ne descend pas : un seul saut,
+     * jamais le fermant à la colonne zéro.
+     *
+     * @return le retrait de la ligne du fermant, null pour le saut simple
+     */
+    private static @Nullable String retraitDuFermant(Document doc,
+            @Nullable Analysis analysis, int coupe, int ligne, IndentStyle style) {
+        if (analysis != null) {
+            int profondeur = IndentEngine.depthAtCaret(doc, analysis, coupe);
+            if (profondeur >= 1) {
+                return style.indent(profondeur - 1);
+            }
+        }
+        if (paireVideAu(doc, coupe) && !dansLitteral(doc, coupe, ligne)) {
+            return IndentEngine.leadingWhitespace(doc.lineText(ligne));
+        }
+        return null;
+    }
+
+    /**
+     * Vrai quand l'ouvrant collé derrière le caret ferme une paire vide
+     * immédiate ({@code {|}}).
+     */
+    private static boolean paireVideAu(Document doc, int coupe) {
+        if (coupe < 1 || coupe >= doc.length()) {
+            return false;
+        }
+        char ouvrant = doc.charAt(coupe - 1);
+        char fermant = doc.charAt(coupe);
+        return (ouvrant == '{' && fermant == '}')
+                || (ouvrant == '[' && fermant == ']')
+                || (ouvrant == '(' && fermant == ')');
+    }
+
+    /** Vrai quand le caractère collé derrière le caret ouvre un bloc. */
+    private static boolean ouvrantColle(Document doc, int coupe) {
+        if (coupe < 1) {
+            return false;
+        }
+        char avant = doc.charAt(coupe - 1);
+        return avant == '{' || avant == '[' || avant == '(';
+    }
+
+    /**
+     * Vrai quand la coupe vit dans un littéral de sa ligne : parité des
+     * guillemets, échappés exceptés — le repli n'y gagne ni cran ni
+     * descente du fermant.
+     */
+    private static boolean dansLitteral(Document doc, int coupe, int ligne) {
+        boolean guillemet = false;
+        for (int i = doc.lineStart(ligne); i < coupe; i++) {
+            char c = doc.charAt(i);
+            if (c == '\\' && i + 1 < coupe) {
+                i++;
+                continue;
+            }
+            if (c == '"') {
+                guillemet = !guillemet;
+            }
+        }
+        return guillemet;
     }
 
     /**
