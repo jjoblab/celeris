@@ -11,10 +11,10 @@ hôte n'en voit jamais le nom (ADR-015).
 | | |
 | --- | --- |
 | Nature | JVM pure — se construit et se teste sans SDK Android |
-| Coordonnées | `jo.celeris:lsp-protocole:1.0.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
+| Coordonnées | `jo.celeris:lsp-protocole:1.1.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
 | Manifeste d'API | [`api/lsp-protocole.api`](../api/lsp-protocole.api), vérifié à chaque `check` (ADR-009) |
 | Dépendances | `core-lsp` ; la bibliothèque de protocole et sa liaison de données (NOTICE) |
-| Bancs | 9 bancs, 62 méthodes `@Test` (2026-11-11) |
+| Bancs | 9 bancs, 63 méthodes `@Test` (relevé du 2026-11-12) |
 
 ## Ce qu'il porte
 
@@ -28,6 +28,20 @@ hôte n'en voit jamais le nom (ADR-015).
 - **La couverture** — `RequetesCouverture` et
   `CorrespondanceCouverture` traduisent les réponses riches (surcharges
   de signature, chantier C7).
+
+## Exemple
+
+```java
+// Le montage PAR DÉSIGNATION : les noms viennent de la donnée
+// (servers.json), jamais du code — la voie de la démo et de l'hôte.
+try (ServeurEmbarque monte = ServeurEmbarque.monter(
+        "jo.celeris.serveur.java.JavaLanguageServer",
+        "org.eclipse.lsp4j.services.LanguageClient",
+        "mon-hote")) {
+    LspSession session = monte.session();
+    session.ouvrir(uri, "java", texte);
+}
+```
 
 ## Bancs et cliquets
 

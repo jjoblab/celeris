@@ -11,10 +11,10 @@ pures (mémoire, faux) pour la démonstration et les bancs.
 | | |
 | --- | --- |
 | Nature | bibliothèque Android (`minSdk` 26, `compileSdk` 36 — ADR-011) |
-| Coordonnées | `jo.celeris:android-host:1.0.0` (AAR de la variante release, sources, Javadoc, SBOM, sommes — depuis le 2026-11-11) |
+| Coordonnées | `jo.celeris:android-host:1.1.0` (AAR de la variante release, sources, Javadoc, SBOM, sommes — depuis le 2026-11-11) |
 | Manifeste d'API | pas de manifeste (ADR-009 couvre les modules purs) — l'API publique vit dans `src/main/java` |
 | Dépendances | `core-language` |
-| Bancs | 10 bancs, 59 méthodes `@Test` (2026-11-11) |
+| Bancs | 10 bancs, 59 méthodes `@Test` (relevé du 2026-11-12) |
 
 ## Ce qu'il porte
 
@@ -37,6 +37,18 @@ pures (mémoire, faux) pour la démonstration et les bancs.
   `FauxVcs`, `FauxExecution`, `FauxDebogueur`,
   `RevisionLocale` : des implémentations de référence complètes, sans
   appareil — la démonstration et les bancs tournent dessus.
+
+## Exemple
+
+```java
+// L'éditeur ne connaît que l'interface — l'hôte implémente.
+public final class MonVcs implements IntegrationVcs {
+    @Override
+    public List<AnnotationBlame> blame(CheminDoc fichier) {
+        return List.of();   // l'annotation par ligne, ou rien
+    }
+}
+```
 
 ## Bancs et cliquets
 

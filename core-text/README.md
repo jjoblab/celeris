@@ -9,10 +9,10 @@ par ici — en JVM pure, sans SDK Android (critère de sortie M1).
 | | |
 | --- | --- |
 | Nature | JVM pure — se construit et se teste sans SDK Android |
-| Coordonnées | `jo.celeris:core-text:1.0.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
+| Coordonnées | `jo.celeris:core-text:1.1.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
 | Manifeste d'API | [`api/core-text.api`](../api/core-text.api), vérifié à chaque `check` (ADR-009) |
 | Dépendances | aucune |
-| Bancs | 33 bancs, 427 méthodes `@Test` (2026-11-11) ; mutation ≥ 80 % (ADR-010) |
+| Bancs | 33 bancs, 427 méthodes `@Test` (relevé du 2026-11-12) ; mutation ≥ 80 % (ADR-010) |
 
 ## Ce qu'il porte
 
@@ -29,6 +29,20 @@ par ici — en JVM pure, sans SDK Android (critère de sortie M1).
   chameau (`CamelWord`, A-04), encodages et BOM (`Utf8Codec`,
   `WideCodecs`), retour à la ligne souple (`SoftWrap`), projection des
   positions (`PositionProjector`).
+
+## Exemple
+
+```java
+TextSession session = TextSession.of("class Exemple {}", System::nanoTime);
+session.apply(Transaction.of(
+        new TextEdit(6, "Exemple", "Essai")));
+System.out.println(session.text());   // class Essai {}
+session.undo();
+System.out.println(session.text());   // class Exemple {}
+```
+
+Tout passe par la transaction unique : l'annulation et le refait
+traversent le même plan, jamais un chemin parallèle (ADR-003).
 
 ## Bancs et cliquets
 

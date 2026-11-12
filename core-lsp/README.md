@@ -11,10 +11,10 @@ moteur et la frontière protocolaire.
 | | |
 | --- | --- |
 | Nature | JVM pure — se construit et se teste sans SDK Android |
-| Coordonnées | `jo.celeris:core-lsp:1.0.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
+| Coordonnées | `jo.celeris:core-lsp:1.1.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
 | Manifeste d'API | [`api/core-lsp.api`](../api/core-lsp.api), vérifié à chaque `check` (ADR-009) |
 | Dépendances | `core-language` |
-| Bancs | 9 bancs, 36 méthodes `@Test` (2026-11-11) |
+| Bancs | 9 bancs, 37 méthodes `@Test` (relevé du 2026-11-12) |
 
 ## Ce qu'il porte
 
@@ -26,6 +26,18 @@ moteur et la frontière protocolaire.
   vers les offsets du modèle, jamais l'inverse (ADR-015).
 - **L'ordonnancement** — les versions de document s'ordonnent, les
   réponses tardives se rejettent, les jetons d'annulation se propagent.
+
+## Exemple
+
+```java
+// Le vocabulaire partagé : un diagnostic arrive immuable, la gravité
+// et la plage déjà converties hors UTF-16.
+DiagnosticLsp constat = new DiagnosticLsp(plage,
+        DiagnosticLsp.ERREUR, message, null, null);
+```
+
+Les types ne connaissent aucun transport : ils traversent le moteur
+et la frontière protocolaire sans se réinterpréter (ADR-015).
 
 ## Bancs et cliquets
 

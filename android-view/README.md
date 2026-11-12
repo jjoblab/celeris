@@ -11,10 +11,10 @@ peindre et écouter (ADR-002, ADR-006).
 | | |
 | --- | --- |
 | Nature | bibliothèque Android (`minSdk` 26, `compileSdk` 36 — ADR-011) |
-| Coordonnées | `jo.celeris:android-view:1.0.0` (AAR de la variante release, sources, Javadoc, SBOM, sommes — depuis le 2026-11-11) |
+| Coordonnées | `jo.celeris:android-view:1.1.0` (AAR de la variante release, sources, Javadoc, SBOM, sommes — depuis le 2026-11-11) |
 | Manifeste d'API | pas de manifeste (ADR-009 couvre les modules purs) — l'API publique vit dans `src/main/java` |
 | Dépendances | `core-ai`, `core-intelligence`, `core-language` |
-| Bancs | 90 bancs, 438 méthodes `@Test` (2026-11-11) — Robolectric sur JVM (ADR-013) |
+| Bancs | 91 bancs, 441 méthodes `@Test` (relevé du 2026-11-12) — Robolectric sur JVM (ADR-013) |
 
 ## Ce qu'il porte
 
@@ -29,7 +29,9 @@ peindre et écouter (ADR-002, ADR-006).
   `ColumnSelection`), pincement (`PinchZoom`), glisser-déposer
   (`GlisserDeposer`, D-20), clavier (`KeyBinding`, `KeyBindings`),
   IME par niveau d'API (`SurroundingTexts`, `CompositionState`),
-  loupe (`MagnifierGeometry`).
+  loupe (`MagnifierGeometry`), appui long (`setSurAppuiLong` : la
+  sélection du mot posée, l'offset notifié à l'hôte — le moment juste
+  de la documentation au survol, M7.6).
 - **Les ornements du canvas** — gouttière (`GutterPainter`,
   `GutterLanes`, `GutterNumbers`, `GutterMarks`), guides
   d'indentation (`IndentGuides`, A-17), caractères invisibles,
@@ -39,6 +41,19 @@ peindre et écouter (ADR-002, ADR-006).
   d'accessibilité virtuel, mode gros fichiers tri-état
   (`LargeFileMode`, chantier C10), raccord de l'intelligence
   (`IntelligenceHub`, `PluginHost`).
+
+## Exemple
+
+```java
+EditorView editeur = findViewById(R.id.editeur);
+editeur.setSession(TextSession.of(contenu, System::nanoTime));
+editeur.setLanguage(registre.byFilename("exemple.java"));
+editeur.setSurAppuiLong(offset ->
+        survolServir(offset));   // l'appui long a déjà sélectionné le mot
+```
+
+La vue reste mince : la logique vérifiable vit dans les modules purs,
+la vue assemble, peint et écoute (ADR-006).
 
 ## Bancs et cliquets
 

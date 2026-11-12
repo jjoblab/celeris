@@ -10,10 +10,10 @@ rien ne part sans son consentement explicite (ADR-012).
 | | |
 | --- | --- |
 | Nature | JVM pure — se construit et se teste sans SDK Android |
-| Coordonnées | `jo.celeris:core-ai:1.0.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
+| Coordonnées | `jo.celeris:core-ai:1.1.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
 | Manifeste d'API | [`api/core-ai.api`](../api/core-ai.api), vérifié à chaque `check` (ADR-009) |
 | Dépendances | `core-text`, `core-syntax`, `core-language` |
-| Bancs | 10 bancs, 60 méthodes `@Test` (2026-11-11) |
+| Bancs | 10 bancs, 60 méthodes `@Test` (relevé du 2026-11-12) |
 
 ## Ce qu'il porte
 
@@ -28,6 +28,22 @@ rien ne part sans son consentement explicite (ADR-012).
 - **Les faux modèles** — `FauxModeleLocal` et `FauxModeleDistant`
   déterministes : la démonstration et les bancs ne parlent jamais à un
   vrai modèle.
+
+## Exemple
+
+```java
+// Le contrat du texte fantôme : le modèle répond au récepteur, ou se
+// tait — l'appelant ne bloque jamais (ADR-012).
+ModeleTexteFantome modele = hote.modeleFantome();
+modele.completer(requete, new ModeleTexteFantome.Recepteur() {
+    @Override public void suggestion(SuggestionFantome s) {
+        vue.setFantome(s);
+    }
+    @Override public void aucune() {
+        vue.setFantome(null);
+    }
+});
+```
 
 ## Bancs et cliquets
 

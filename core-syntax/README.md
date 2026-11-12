@@ -10,10 +10,10 @@ plis, plan, indentation) partagent le même arbre (ADR-004).
 | | |
 | --- | --- |
 | Nature | JVM pure — se construit et se teste sans SDK Android |
-| Coordonnées | `jo.celeris:core-syntax:1.0.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
+| Coordonnées | `jo.celeris:core-syntax:1.1.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
 | Manifeste d'API | [`api/core-syntax.api`](../api/core-syntax.api), vérifié à chaque `check` (ADR-009) |
 | Dépendances | `core-text` |
-| Bancs | 44 bancs, 212 méthodes `@Test` (2026-11-11) |
+| Bancs | 44 bancs, 216 méthodes `@Test` (relevé du 2026-11-12) |
 
 ## Ce qu'il porte
 
@@ -31,6 +31,19 @@ plis, plan, indentation) partagent le même arbre (ADR-004).
 - **La fenêtre d'abord** — `AnalyseFenetre` analyse la fenêtre visible
   avant le reste ; `Charge480kLignesTest` tient le banc de charge
   480 000 lignes (fenêtre 1441 ms, incrément 36 ms — chantier C10).
+
+## Exemple
+
+```java
+Document doc = session.document();
+Analysis analyse = analyseur.analyser(doc);  // le socle incrémental
+for (OutlineEntry entree : TreeOutline.entries(doc, analyse)) {
+    System.out.println(entree.kind() + " " + entree.name());
+}
+```
+
+Le plan du fichier descend l'arbre tolérant : les entrées restent
+parlantes même quand une accolade manque (ADR-004).
 
 ## Bancs et cliquets
 

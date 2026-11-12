@@ -13,30 +13,40 @@ Android, l'application de démonstration et un exécutable en ligne de commande.
 
 ## État du projet
 
-**1.0.0 livrée le 2026-11-10 (publication locale) ; 1.1.0 en chantier.**
+**1.1.0 taguée `v1.1.0` le 2026-11-12 ; la 1.2.0 est en chantier.**
 Les jalons M0 à M9 sont bouclés : moteur de texte, vue Canvas, syntaxe,
 édition assistée, sémantique, Android et SPI, IA native, plateforme de
 vingt-quatre langages (grammaires réellement TextMate, LSP derrière la
-frontière protocolaire), durcissement. Les chantiers post-1.0 suivent :
-dix clos (C2, C3, C4, C6, C7, C8, C9, C10, C12, C13), un dort sur le
-signal du propriétaire (C5 — langages suivants), trois attendent un moyen
-extérieur (C1 — publication distante, C11 — appareil de référence,
-C14 — archivage du dépôt de départ). Les étapes restantes vivent dans
+frontière protocolaire), durcissement. Les chantiers post-1.0 : onze
+clos (C1, C2, C3, C4, C6, C7, C8, C9, C10, C12, C13) ; C5 vit (Go
+et Rust livrés le 2026-11-12, la traîne dort sur le signal du
+propriétaire), C11 est livré et passé vert (la recette manuelle du
+propriétaire reste), C14 attend sa décision. La reprise du propriétaire
+du 2026-11-12 a redressé cinq écarts de la revue comparative : l'icône
+de pli répond au doigt (la garde vit pour toute analyse), la minimap
+se rend COLORÉE, la toolbar porte son débordement dans la carte du kit
+et sa barre de touches au-dessus du clavier, l'Entrée entre accolades
+rend le repli textuel, et le serveur Java déclaré s'éprouve entier
+(signature jointe au survol, diagnostics poussés). Les étapes restantes
+vivent dans
 [`docs/feuille-de-route-restante.md`](docs/feuille-de-route-restante.md) ;
 l'historique des chantiers et le journal des clôtures dans
 [`docs/feuille-de-route.md`](docs/feuille-de-route.md).
 
 ## Publication
 
-Douze artefacts Maven, groupe `jo.celeris`, version 1.0.0 — chacun avec son
+Douze artefacts Maven, groupe `jo.celeris`, version 1.1.0 — chacun avec son
 jar (ou son AAR pour les bibliothèques Android, depuis le 2026-11-11), ses
 sources, sa Javadoc, son SBOM CycloneDX et sa somme SHA-256 (ADR-011) :
 `core-text`, `core-syntax`, `core-syntax-grammars`, `core-language`,
 `core-intelligence`, `core-lsp`, `core-ai`, `lsp-protocole`,
 `serveur-lsp-java` (JVM pure) ;
 `android-view`, `android-widgets`, `android-host` (AAR). La publication
-distante (registre de l'hébergeur) attend les secrets du propriétaire —
-chantier C1. Coordonnées et déclaration des dépendances :
+distante est close (chantier C1, 2026-11-12) : les douze artefacts
+paraissent au registre de paquets de l'hébergeur
+(`maven.pkg.github.com/jjoblab/celeris`), un projet vierge les consomme
+et les sommes correspondent octet pour octet. Coordonnées et déclaration
+des dépendances :
 [`USAGE.md`](USAGE.md) (§ 2, § 3).
 
 ## Vie privée
@@ -77,8 +87,8 @@ ferme même au-delà des seuils.
 
 ## Bancs et cliquets
 
-326 bancs, 2 048 méthodes `@Test` (relevé du 2026-11-11, les treize
-modules compris). Le volume n'est pas un but en soi (décision du
+341 bancs JVM et 2 161 méthodes `@Test`, plus les quatre bancs
+d'appareil (relevé du 2026-11-12, les quatorze modules compris). Le volume n'est pas un but en soi (décision du
 propriétaire du 2026-11-11 : la parité de volume avec l'audit du dépôt
 de départ ne se poursuit pas) — les cliquets font foi : couverture
 JaCoCo ≥ 90 % de lignes sur les modules purs, score de mutation ≥ 80 %

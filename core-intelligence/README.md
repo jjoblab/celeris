@@ -10,10 +10,10 @@ sert la vue et la cli.
 | | |
 | --- | --- |
 | Nature | JVM pure — se construit et se teste sans SDK Android |
-| Coordonnées | `jo.celeris:core-intelligence:1.0.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
+| Coordonnées | `jo.celeris:core-intelligence:1.1.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
 | Manifeste d'API | [`api/core-intelligence.api`](../api/core-intelligence.api), vérifié à chaque `check` (ADR-009) |
 | Dépendances | `core-text`, `core-syntax`, `core-language` |
-| Bancs | 36 bancs, 298 méthodes `@Test` (2026-11-11) |
+| Bancs | 37 bancs, 309 méthodes `@Test` (relevé du 2026-11-12) |
 
 ## Ce qu'il porte
 
@@ -29,11 +29,29 @@ sert la vue et la cli.
   `Inline`/`InlineSafety` (aligner, B-21), `SignatureChange` (B-22),
   `SafeDelete`/`SafeMove` (B-23), `Renommage`, `XmlLinkedTags` (le
   renommage lié des balises), `EditPlan`.
-- **La frappe et le format** — `JavaSmartTyping` (découpage de chaînes,
-  cran des labels de cas — C8), `IndentEngine`, `EditorConfig`,
-  `Formateur`, `PasteReindenter`, `ImportAuto`, `OptimiseurImports`,
-  `ClasspathIndex`/`ClasspathImports` (l'auto-import classpath, C8),
-  `Commenter`, `LineActions`, `LineSorter`.
+- **La frappe et le format** — `SmartTyping` (l'Entrée entre
+  accolades fait les deux sauts — le repli textuel tient même sans
+  arbre, reprise du 2026-11-12), `JavaSmartTyping` (découpage de
+  chaînes, cran des labels de cas — C8), `IndentEngine`,
+  `EditorConfig`, `Formateur`, `PasteReindenter`, `ImportAuto`,
+  `OptimiseurImports`, `ClasspathIndex`/`ClasspathImports`
+  (l'auto-import classpath, C8), `Commenter`, `LineActions`,
+  `LineSorter`.
+
+## Exemple
+
+```java
+// L'Entrée entre accolades : « {\n} » devient deux lignes indentées,
+// le curseur au milieu — même sans arbre d'analyse (reprise 2026-11-12).
+Document doc = session.document();
+EditPlan plan = SmartTyping.enter(doc, null,
+        session.selection(), IndentStyle.spaces(4));
+session.apply(plan.transaction(), plan.selection());
+```
+
+Chaque geste intelligent rend un `EditPlan` : la transaction et la
+sélection qui suivent voyagent ensemble, l'annulation défait le geste
+entier, jamais la moitié.
 
 ## Bancs et cliquets
 

@@ -11,10 +11,10 @@ fonction.
 | | |
 | --- | --- |
 | Nature | JVM pure — se construit et se teste sans SDK Android |
-| Coordonnées | `jo.celeris:core-syntax-grammars:1.0.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
+| Coordonnées | `jo.celeris:core-syntax-grammars:1.1.0` (jar, sources, Javadoc, SBOM, sommes — ADR-011) |
 | Manifeste d'API | [`api/core-syntax-grammars.api`](../api/core-syntax-grammars.api), vérifié à chaque `check` (ADR-009) |
 | Dépendances | `core-syntax`, `core-language` ; moteur d'expressions rationnelles (NOTICE) |
-| Bancs | 21 bancs, 106 méthodes `@Test` (2026-11-11) |
+| Bancs | 23 bancs, 115 méthodes `@Test` (relevé du 2026-11-12) |
 
 ## Ce qu'il porte
 
@@ -31,7 +31,8 @@ fonction.
 ## Bancs et cliquets
 
 Bancs de conformité par grammaire reprise du commerce (HTML, CSS,
-JavaScript, TypeScript, PHP, Ruby — chantier C5) : égalité octet pour
+JavaScript, TypeScript, PHP, Ruby — chantier C5 ; Go et Rust
+livrés le 2026-11-12) : égalité octet pour
 octet, acceptation au-dessus du seuil, rejeu déterministe. Couverture
 JaCoCo ≥ 90 % de lignes.
 
