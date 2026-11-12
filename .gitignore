@@ -7,9 +7,6 @@ classes/
 *.aar
 # Le jar du wrapper Gradle est versionné (wrapper autosuffisant, ADR-001)
 !gradle/wrapper/gradle-wrapper.jar
-# Le serveur tiers retiré embarqué dans la démonstration (M8.6,
-# serveur-retire — découpe reproductible par scripts/decoupe-serveur-retire)
-!demo/libs/serveur-retire.jar
 *.hprof
 
 # Environnements et IDE
