@@ -1,10 +1,9 @@
 package jo.celeris.demo;
 
 import android.app.Activity;
-import android.app.UiAutomation;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.SystemClock;
 import android.view.InputDevice;
@@ -16,7 +15,6 @@ import androidx.test.core.app.ActivityScenario;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
@@ -28,17 +26,13 @@ import jo.celeris.android.widgets.PopupLayer;
 /**
  * Le socle commun des bancs d'appareil du second étage (C11,
  * M7.5) : ouvre l'écran d'édition de la démonstration, porte la
- * frappe par la connexion d'entrée (la voie exacte de l'IME, sans
- * clavier visible — la vitre reste stable pour les captures), pose
- * la retenue d'analyse (le crochet de débogage), pince par
- * l'injection de MotionEvents à deux pointeurs et capture la vitre
- * en PNG.
- *
- * <p>L'arbre d'accessibilité de l'image ATD ne porte pas la vitre —
- * les recherches d'UiAutomator reviennent vides : les gestes vivent
- * donc par la voie d'entrée brute (injectInputEvent, celle
- * qu'UiAutomator emprunte lui-même), la géométrie venant des bornes
- * mesurées de la vue.</p>
+ * frappe par la connexion d'entrée (la voie exacte de l'IME), pose
+ * la retenue d'analyse (le crochet de débogage), distribue les
+ * pincements à la vue (la voie exacte du banc JVM — l'injection au
+ * système, sur l'image ATD, coalesçait le geste : la vitre garde le
+ * dépôt) et capture LE RENDU RÉEL DE LA VUE par son propre dessin
+ * (le vrai Skia de l'appareil — le compositeur de l'image ATD
+ * demeure muet, son GPU v37 rejette les options d'AGP).
  *
  * <p>Le curseur se porte en fin de document par la sélection de la
  * connexion d'entrée — la connexion borne d'elle-même les valeurs
@@ -85,10 +79,9 @@ final class BancAppareil {
 
     /**
      * Attend la mise en page de l'éditeur : le premier passage de
-     * mesures. L'image ATD s'éveille muette — la vitre se réveille et
-     * se maintient allumée AVANT les mesures : sans cela, les captures
-     * reviennent unies et les gestes injectés se perdent (l'écran
-     * dort, la politique d'entrée jette les touchers).
+     * mesures. Sans cette attente, les captures mesureraient une vue
+     * encore vide. L'écran se réveille au passage — la politique
+     * d'entrée jette les gestes d'une vitre endormie.
      */
     static EditorView attendreVue(ActivityScenario<EditorActivity> scenario)
             throws Exception {
@@ -110,22 +103,6 @@ final class BancAppareil {
             Thread.sleep(100L);
         }
         throw new AssertionError("l'éditeur n'a jamais été mesuré à l'écran");
-    }
-
-    /**
-     * Les bornes de l'éditeur à l'écran — la géométrie des gestes
-     * injectés s'y cale.
-     */
-    static Rect bornesEditeur(ActivityScenario<EditorActivity> scenario) {
-        Rect[] bornes = new Rect[1];
-        scenario.onActivity(ecran -> {
-            EditorView vue = editeur(ecran);
-            int[] origine = new int[2];
-            vue.getLocationOnScreen(origine);
-            bornes[0] = new Rect(origine[0], origine[1],
-                    origine[0] + vue.getWidth(), origine[1] + vue.getHeight());
-        });
-        return Objects.requireNonNull(bornes[0]);
     }
 
     /**
@@ -171,47 +148,49 @@ final class BancAppareil {
     }
 
     /**
-     * Pince l'éditeur à l'écran : deux pointeurs RÉELS, posés,
-     * écartés (ou resserrés) puis levés — les MotionEvents à deux
-     * doigts passent par la voie d'entrée du système
-     * (injectInputEvent SYNCHRONE), la construction EXACTE du banc
-     * JVM : doigts VERTICAUX autour du centre, cadence de 16 ms,
-     * instant partagé en ancre, le premier doigt pose seul, le
-     * dernier posé se lève premier.
+     * Pince l'éditeur : deux pointeurs RÉELS — les mêmes
+     * {@code MotionEvent} que le banc JVM, doigts VERTICAUX autour du
+     * centre, cadence de 16 ms, le premier doigt pose seul, le dernier
+     * posé se lève premier — distribués à la vue sur le fil principal :
+     * le vrai détecteur d'échelle, la vraie re-mesure, le vrai rendu
+     * de l'appareil (l'injection au système, sur l'image ATD,
+     * coalesçait le geste en un cran).
      *
-     * @return le compte d'événements acceptés par la voie d'entrée
+     * @return le compte d'événements distribués à la vue
      */
     static int pincer(ActivityScenario<EditorActivity> scenario, float ecartDepart,
             float ecartArrivee) throws InterruptedException {
-        Rect bornes = bornesEditeur(scenario);
-        UiAutomation automatisation = InstrumentationRegistry.getInstrumentation()
-                .getUiAutomation();
-        long ancre = SystemClock.uptimeMillis();
-        long instant = ancre;
-        int acceptes = 0;
-        acceptes += injecter(automatisation, evenement(ancre, instant,
-                MotionEvent.ACTION_DOWN, 1, bornes, ecartDepart)) ? 1 : 0;
-        instant += 16L;
-        acceptes += injecter(automatisation, evenement(ancre, instant,
-                MotionEvent.ACTION_POINTER_DOWN
-                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
-                2, bornes, ecartDepart)) ? 1 : 0;
-        for (int etape = 1; etape <= 24; etape++) {
+        int[] distribues = new int[1];
+        Rect[] bornesVue = new Rect[1];
+        scenario.onActivity(ecran -> {
+            EditorView vue = editeur(ecran);
+            bornesVue[0] = new Rect(0, 0, vue.getWidth(), vue.getHeight());
+            long ancre = SystemClock.uptimeMillis();
+            long instant = ancre;
+            distribues[0] += distribuer(vue, evenement(ancre, instant,
+                    MotionEvent.ACTION_DOWN, 1, bornesVue[0], ecartDepart));
             instant += 16L;
-            float ecart = ecartDepart + (ecartArrivee - ecartDepart) * etape / 24f;
-            acceptes += injecter(automatisation, evenement(ancre, instant,
-                    MotionEvent.ACTION_MOVE, 2, bornes, ecart)) ? 1 : 0;
-        }
-        instant += 16L;
-        acceptes += injecter(automatisation, evenement(ancre, instant,
-                MotionEvent.ACTION_POINTER_UP
-                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
-                2, bornes, ecartArrivee)) ? 1 : 0;
-        instant += 16L;
-        acceptes += injecter(automatisation, evenement(ancre, instant,
-                MotionEvent.ACTION_UP, 1, bornes, ecartArrivee)) ? 1 : 0;
+            distribues[0] += distribuer(vue, evenement(ancre, instant,
+                    MotionEvent.ACTION_POINTER_DOWN
+                    | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
+                    2, bornesVue[0], ecartDepart));
+            for (int etape = 1; etape <= 24; etape++) {
+                instant += 16L;
+                float ecart = ecartDepart + (ecartArrivee - ecartDepart) * etape / 24f;
+                distribues[0] += distribuer(vue, evenement(ancre, instant,
+                        MotionEvent.ACTION_MOVE, 2, bornesVue[0], ecart));
+            }
+            instant += 16L;
+            distribues[0] += distribuer(vue, evenement(ancre, instant,
+                    MotionEvent.ACTION_POINTER_UP
+                    | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
+                    2, bornesVue[0], ecartArrivee));
+            instant += 16L;
+            distribues[0] += distribuer(vue, evenement(ancre, instant,
+                    MotionEvent.ACTION_UP, 1, bornesVue[0], ecartArrivee));
+        });
         appareil().waitForIdle();
-        return acceptes;
+        return distribues[0];
     }
 
     /**
@@ -239,6 +218,13 @@ final class BancAppareil {
         return Objects.requireNonNull(MotionEvent.obtain(ancre, instant,
                 action, compte, proprietes, coordonnees, 0, 0, 1f, 1f, 0, 0,
                 InputDevice.SOURCE_TOUCHSCREEN, 0));
+    }
+
+    /** Distribue l'événement à la vue, sur le fil principal. */
+    private static int distribuer(EditorView vue, MotionEvent evenement) {
+        boolean servi = vue.dispatchTouchEvent(evenement);
+        evenement.recycle();
+        return servi ? 1 : 0;
     }
 
     /**
@@ -271,53 +257,41 @@ final class BancAppareil {
         return sortie.substring(debut, fin < 0 ? sortie.length() : fin).trim();
     }
 
-    /**
-     * Porte l'événement à la voie d'entrée du système, en synchrone —
-     * la voie d'UiAutomator (injectEventSync) : l'injection asynchrone
-     * se perdait.
-     */
-    private static boolean injecter(UiAutomation automatisation, MotionEvent evenement) {
-        boolean accepte = automatisation.injectInputEvent(evenement, true);
-        evenement.recycle();
-        return accepte;
-    }
-
     /** L'appareil UiAutomator du banc. */
     private static UiDevice appareil() {
         return UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
     }
 
     /**
-     * Capture la vitre entière en PNG, relue en bitmap — le banc le
-     * dit si la capture ou la relecture manque.
+     * Capture LE RENDU RÉEL DE LA VUE : la vue se dessine entière
+     * dans une bitmap — le vrai Skia de l'appareil, la vraie mise en
+     * page, le vrai pinceau (le compositeur de l'image ATD demeure
+     * muet : les défauts du jalon vivent dans le rendu de l'éditeur,
+     * pas dans la composition de la vitre). Les coordonnées de la
+     * capture sont celles de la vue.
      */
-    static Bitmap capturer() throws IOException {
-        File cible = File.createTempFile("celeris-capture", ".png",
-                InstrumentationRegistry.getInstrumentation()
-                        .getTargetContext().getCacheDir());
-        if (!appareil().takeScreenshot(cible)) {
-            throw new AssertionError("la capture de la vitre a échoué");
-        }
-        Bitmap image = BitmapFactory.decodeFile(cible.getAbsolutePath());
-        if (image == null) {
-            throw new AssertionError("la capture ne se relit pas en bitmap");
-        }
-        return image;
+    static Bitmap capturerVue(ActivityScenario<EditorActivity> scenario) {
+        Bitmap[] image = new Bitmap[1];
+        scenario.onActivity(ecran -> {
+            EditorView vue = editeur(ecran);
+            Bitmap cible = Bitmap.createBitmap(vue.getWidth(), vue.getHeight(),
+                    Bitmap.Config.ARGB_8888);
+            vue.draw(new Canvas(cible));
+            image[0] = cible;
+        });
+        return Objects.requireNonNull(image[0]);
     }
 
     /**
-     * La bande des premières lignes : le haut de l'éditeur à l'écran,
-     * jamais touchée par les frappes (elles vivent en fin de document).
+     * La bande des premières lignes : le haut de l'éditeur, en
+     * coordonnées de vue, jamais touchée par les frappes (elles
+     * vivent en fin de document).
      */
     static Rect bandePremieresLignes(ActivityScenario<EditorActivity> scenario) {
         Rect[] bande = new Rect[1];
         scenario.onActivity(ecran -> {
             EditorView vue = editeur(ecran);
-            int[] origine = new int[2];
-            vue.getLocationOnScreen(origine);
-            int hauteur = Math.max(1, Math.round(vue.getHeight() * 0.15f));
-            bande[0] = new Rect(origine[0], origine[1],
-                    origine[0] + vue.getWidth(), origine[1] + hauteur);
+            bande[0] = new Rect(0, 0, vue.getWidth(), Math.max(1, vue.getHeight() / 7));
         });
         return Objects.requireNonNull(bande[0]);
     }

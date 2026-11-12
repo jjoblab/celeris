@@ -42,13 +42,13 @@ public class FlickerOnDeviceTest {
             Rect bande = BancAppareil.bandePremieresLignes(scenario);
             BancAppareil.frapper(scenario, "x");
             Bitmap[] captures = new Bitmap[4];
-            captures[0] = BancAppareil.capturer();
+            captures[0] = BancAppareil.capturerVue(scenario);
             Thread.sleep(700L);
-            captures[1] = BancAppareil.capturer();
+            captures[1] = BancAppareil.capturerVue(scenario);
             Thread.sleep(700L);
-            captures[2] = BancAppareil.capturer();
+            captures[2] = BancAppareil.capturerVue(scenario);
             Thread.sleep(BancAppareil.RETENUE_MS + 500L);
-            captures[3] = BancAppareil.capturer();
+            captures[3] = BancAppareil.capturerVue(scenario);
             int encre = ComparaisonImage.abscissePremiereEncre(captures[0], bande);
             assertTrue("la bande ne porte aucune encre — la capture ne mesure rien\n"
                     + BancAppareil.apercu(captures[0], bande),
