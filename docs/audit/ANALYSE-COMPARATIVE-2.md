@@ -49,6 +49,7 @@ sont peu nombreux, secondaires et datables.
 | Lignes P0 de la matrice Android Studio | **Zéro ouverte (34/34 couvertes)** |
 | Lignes P1 | **Zéro ouverte** |
 | Lignes P2 | 6 ouvertes (§ 3) — aucune bloquante |
+| Les sept « Noyau » sans banc cité (post-scriptum 2026-11-12) | **Bancs nommés et relus — la recommandation 1 est servie** |
 | Popups : moments d'ouverture/fermeture | **Alignés sur l'étalon** (complétion au préfixe, survol à l'appui long, signature dans l'appel, diagnostics poussés à l'ouverture) |
 | Gouttière de plis | **Équivalente et tactile** (chevron permanent, tap ; l'étalon affiche ses chevrons au survol par défaut) |
 | Minimap | **Supérieure à l'étalon** (Android Studio n'en a pas ; celeris la rend colorée) |
@@ -330,3 +331,12 @@ touches vit au-dessus du clavier) ; `a0f926a` (l'apostrophe
 française s'échappe aux ressources) ; `ad2fdd6` (la porte verte se
 referme — parité aux noms, plafonds repris, manifeste committé) ;
 `6108228` (les READMEs relisent la vérité).
+
+Les reprises du 2026-11-12 (le jour même, post-scriptum) :
+`8ba12c1` (les accolades appariées se surlignent — le rectangle
+encadre la paire, la jonction guide l'œil, D-23) ; `9b4f4e6` (la
+minimap se tisse serrée — brique par cran, hauteur honnête, encres
+adoucies, D-21 relue) ; `5188282` (la gouttière se réécrit — bande de
+plis au code, icônes en figures, arrêt à l'appui long, D-04 et D-07
+relues) ; `5ccb28f` (le dragage déplace la barre de sélection — le
+popup se re-monte, il ne re-naît pas, D-10 relue).

@@ -3,7 +3,7 @@ package jo.celeris.android.view;
 import jo.celeris.core.text.Document;
 
 /**
- * L'appariement des accolades et parenthèses (D-14, la reprise du
+ * L'appariement des accolades et parenthèses (D-23, la reprise du
  * propriétaire) : la paire qui encadre le curseur se cherche par un
  * balayage de profondeur naïf, BORNÉ — une parenthèse non appariée
  * dans un très grand fichier ne coûte jamais O(N) par frappe.

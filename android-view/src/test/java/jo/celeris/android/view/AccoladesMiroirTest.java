@@ -14,7 +14,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 /**
- * Les accolades appariées se surlignent (D-14, la reprise du
+ * Les accolades appariées se surlignent (D-23, la reprise du
  * propriétaire — le petit rectangle qui encadre la paire) : la paire
  * sous le curseur se trouve (borne avant, borne sur), l'imbrication
  * s'y respecte, l'orpheline n'y répond pas et le plafond tient.

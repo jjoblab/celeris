@@ -6,7 +6,7 @@ import jo.celeris.core.text.Document;
 import jo.celeris.core.text.SelRange;
 
 /**
- * Couche de chrome des accolades appariées (D-14, la reprise du
+ * Couche de chrome des accolades appariées (D-23, la reprise du
  * propriétaire — le petit rectangle qui encadre la paire) : quand le
  * curseur vit juste avant ou juste après une borne, chaque borne de
  * sa paire se contour d'un rectangle fin à l'encre du curseur — et
