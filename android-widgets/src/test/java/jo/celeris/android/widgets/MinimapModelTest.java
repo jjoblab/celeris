@@ -104,4 +104,105 @@ class MinimapModelTest {
         assertEquals(0, carte.rangees().get(199).load());
         assertTrue(carte.ligneDeCran(199, 1) == 0);
     }
+
+    // ── Les segments encrés de la ligne représentative (le rendu du
+    // dépôt de départ : la silhouette COLORÉE, chaque token à son encre)
+
+    /** Les segments classent la ligne : mot-clé, code, nombre, chaîne. */
+    @Test
+    void lesSegmentsClassentLaLigne() {
+        List<MinimapModel.MapSegment> segments =
+                MinimapModel.segmentsDe("int x = 42");
+        // « int » mot-clé en tête, « 42 » nombre en queue — le code nu
+        // vit entre les deux, le point-virgule final est code soudé
+        assertEquals(MinimapModel.ENCRE_MOTCLE, segments.get(0).encre());
+        assertEquals(0, segments.get(0).colonne());
+        assertEquals(3, segments.get(0).colonnes());
+        MinimapModel.MapSegment nombre = segments.stream()
+                .filter(s -> s.encre() == MinimapModel.ENCRE_NOMBRE)
+                .findFirst().orElseThrow();
+        assertEquals(8, nombre.colonne());
+        assertEquals(2, nombre.colonnes());
+        // le code nu vit entre les deux
+        assertTrue(segments.stream()
+                .anyMatch(s -> s.encre() == MinimapModel.ENCRE_CODE));
+    }
+
+    /** La chaîne littérale porte son encre, guillemets compris. */
+    @Test
+    void laChainePorteSonEncre() {
+        List<MinimapModel.MapSegment> segments =
+                MinimapModel.segmentsDe("mesurer(\"cm\", 3)");
+        MinimapModel.MapSegment chaine = segments.stream()
+                .filter(s -> s.encre() == MinimapModel.ENCRE_CHAINE)
+                .findFirst().orElseThrow();
+        assertEquals(8, chaine.colonne());
+        assertEquals(4, chaine.colonnes());
+    }
+
+    /** La chaîne non fermée vit jusqu'à la fin de sa ligne. */
+    @Test
+    void laChaineNonFermeeVitJusquauBout() {
+        List<MinimapModel.MapSegment> segments =
+                MinimapModel.segmentsDe("x = \"inacheve");
+        MinimapModel.MapSegment chaine = segments.stream()
+                .filter(s -> s.encre() == MinimapModel.ENCRE_CHAINE)
+                .findFirst().orElseThrow();
+        assertEquals(4, chaine.colonne());
+        assertEquals(9, chaine.colonnes());
+    }
+
+    /** Le commentaire de fin de ligne : du « // » à la fin. */
+    @Test
+    void leCommentaireDeFinDeLigne() {
+        List<MinimapModel.MapSegment> segments =
+                MinimapModel.segmentsDe("int x = 1; // le reste se tait");
+        MinimapModel.MapSegment commentaire = segments.stream()
+                .filter(s -> s.encre() == MinimapModel.ENCRE_COMMENTAIRE)
+                .findFirst().orElseThrow();
+        assertEquals(11, commentaire.colonne());
+    }
+
+    /** La ligne entière de commentaire ou de bloc : une seule plage. */
+    @Test
+    void laLigneDeCommentementEntiere() {
+        assertEquals(1, MinimapModel.segmentsDe("// tout se tait").size());
+        assertEquals(MinimapModel.ENCRE_COMMENTAIRE,
+                MinimapModel.segmentsDe("// tout se tait").get(0).encre());
+        assertEquals(MinimapModel.ENCRE_COMMENTAIRE,
+                MinimapModel.segmentsDe(" * la suite d'un bloc").get(0).encre());
+        assertEquals(MinimapModel.ENCRE_COMMENTAIRE,
+                MinimapModel.segmentsDe("/* l'ouverture").get(0).encre());
+    }
+
+    /** Les plages voisines de même encre se soudent — le code nu ne se miette pas. */
+    @Test
+    void lesPlagesVoisinesSeSoudent() {
+        List<MinimapModel.MapSegment> segments =
+                MinimapModel.segmentsDe("a + b - c");
+        // « a », « + », « b », « - », « c » : les identifiants, les
+        // signes et les blancs portent tous le code — UNE plage continue
+        assertEquals(1, segments.size());
+        assertEquals(MinimapModel.ENCRE_CODE, segments.get(0).encre());
+        assertEquals(9, segments.get(0).colonnes());
+    }
+
+    /** La rangée porte les segments de sa ligne REPRÉSENTATIVE — la plus longue du bouquet. */
+    @Test
+    void laRangeePorteLesSegmentsDeSaRepresentative() {
+        Document doc = TextSession.of(
+                "int a = 1;\nreturn \"texte\";", () -> 0L).document();
+        MinimapModel carte = MinimapModel.of(doc, 1);
+        List<MinimapModel.MapSegment> segments =
+                carte.rangees().get(0).segments();
+        // la représentative est la ligne du retour : le mot-clé « return »
+        // y vit, la chaîne aussi
+        assertTrue(segments.stream()
+                .anyMatch(s -> s.encre() == MinimapModel.ENCRE_MOTCLE));
+        assertTrue(segments.stream()
+                .anyMatch(s -> s.encre() == MinimapModel.ENCRE_CHAINE));
+        // la rangée vide ne rend rien
+        assertTrue(MinimapModel.of(TextSession.of("\n", () -> 0L)
+                .document(), 4).rangees().get(0).segments().isEmpty());
+    }
 }
