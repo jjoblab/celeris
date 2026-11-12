@@ -96,10 +96,6 @@ final class BancAppareil {
         appareil().executeShellCommand("svc power stayon true");
         appareil().executeShellCommand("wm dismiss-keyguard");
         Thread.sleep(400L);
-        System.out.println("PUISSANCE: " + appareil().executeShellCommand(
-                "dumpsys power | grep -iE 'mWakefulness|Display Power' | head -3"));
-        System.out.println("FOCUS: " + appareil().executeShellCommand(
-                "dumpsys window | grep -iE 'mCurrentFocus|mFocusedWindow' | head -3"));
         EditorView[] vue = new EditorView[1];
         for (int essai = 0; essai < 50; essai++) {
             scenario.onActivity(ecran -> {
@@ -178,50 +174,63 @@ final class BancAppareil {
      * Pince l'éditeur à l'écran : deux pointeurs RÉELS, posés,
      * écartés (ou resserrés) puis levés — les MotionEvents à deux
      * doigts passent par la voie d'entrée du système
-     * (injectInputEvent), celle qu'UiAutomator emprunte lui-même ;
+     * (injectInputEvent SYNCHRONE, la construction exacte
+     * d'UiAutomator : le premier doigt pose seul, le second rejoint,
+     * les MOVE portent les deux, le dernier posé se lève premier) ;
      * l'écartement suit la géométrie EXACTE du banc JVM (120 à 520
      * pour l'ample, 400 à 160 pour le resserré), les doigts
      * symétriques autour du centre — le point focal ne bouge pas.
+     *
+     * @return le compte d'événements acceptés par la voie d'entrée
      */
-    static void pincer(ActivityScenario<EditorActivity> scenario, float ecartDepart,
+    static int pincer(ActivityScenario<EditorActivity> scenario, float ecartDepart,
             float ecartArrivee) throws InterruptedException {
         Rect bornes = bornesEditeur(scenario);
         UiAutomation automatisation = InstrumentationRegistry.getInstrumentation()
                 .getUiAutomation();
-        long depart = SystemClock.uptimeMillis();
+        long ancre = SystemClock.uptimeMillis();
         int acceptes = 0;
-        acceptes += injecter(automatisation, evenement(depart, depart,
-                MotionEvent.ACTION_DOWN, bornes, ecartDepart)) ? 1 : 0;
-        acceptes += injecter(automatisation, evenement(depart, depart + 20L,
-                MotionEvent.ACTION_POINTER_DOWN | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
-                bornes, ecartDepart)) ? 1 : 0;
+        acceptes += injecter(automatisation, evenement(ancre,
+                SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, 1, bornes,
+                ecartDepart)) ? 1 : 0;
+        SystemClock.sleep(20L);
+        acceptes += injecter(automatisation, evenement(ancre,
+                SystemClock.uptimeMillis(), MotionEvent.ACTION_POINTER_DOWN
+                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT, 2, bornes,
+                ecartDepart)) ? 1 : 0;
         for (int pas = 1; pas <= 20; pas++) {
             int ecart = Math.round(ecartDepart
                     + (ecartArrivee - ecartDepart) * pas / 20f);
-            acceptes += injecter(automatisation, evenement(depart, depart + 20L + pas * 40L,
-                    MotionEvent.ACTION_MOVE, bornes, ecart)) ? 1 : 0;
-            Thread.sleep(20L);
+            acceptes += injecter(automatisation, evenement(ancre,
+                    SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, 2, bornes,
+                    ecart)) ? 1 : 0;
+            SystemClock.sleep(20L);
         }
-        acceptes += injecter(automatisation, evenement(depart, depart + 840L,
-                MotionEvent.ACTION_POINTER_UP | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
-                bornes, ecartArrivee)) ? 1 : 0;
-        acceptes += injecter(automatisation, evenement(depart, depart + 860L,
-                MotionEvent.ACTION_UP, bornes, ecartArrivee)) ? 1 : 0;
-        System.out.println("INJECTIONS ACCEPTÉES: " + acceptes + "/23");
+        acceptes += injecter(automatisation, evenement(ancre,
+                SystemClock.uptimeMillis(), MotionEvent.ACTION_POINTER_UP
+                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT, 2, bornes,
+                ecartArrivee)) ? 1 : 0;
+        SystemClock.sleep(20L);
+        acceptes += injecter(automatisation, evenement(ancre,
+                SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 1, bornes,
+                ecartArrivee)) ? 1 : 0;
         appareil().waitForIdle();
+        return acceptes;
     }
 
     /**
-     * L'événement à deux pointeurs, symétriques autour du centre des
-     * bornes — le doigt zéro à l'ouest, le doigt un à l'est.
+     * L'événement de geste : pointeurs symétriques autour du centre
+     * des bornes — le doigt zéro à l'ouest, le doigt un à l'est ; le
+     * compte porte les premiers pointeurs seuls (la voie du premier
+     * contact ne compte qu'un doigt).
      */
-    private static MotionEvent evenement(long instantPose, long instant,
-            int action, Rect bornes, float ecart) {
+    private static MotionEvent evenement(long ancre, long instant, int action,
+            int compte, Rect bornes, float ecart) {
         int demi = Math.max(8, Math.round(ecart / 2f));
         MotionEvent.PointerProperties[] proprietes =
-                new MotionEvent.PointerProperties[2];
-        MotionEvent.PointerCoords[] coordonnees = new MotionEvent.PointerCoords[2];
-        for (int doigt = 0; doigt < 2; doigt++) {
+                new MotionEvent.PointerProperties[compte];
+        MotionEvent.PointerCoords[] coordonnees = new MotionEvent.PointerCoords[compte];
+        for (int doigt = 0; doigt < compte; doigt++) {
             proprietes[doigt] = new MotionEvent.PointerProperties();
             proprietes[doigt].id = doigt;
             proprietes[doigt].toolType = MotionEvent.TOOL_TYPE_FINGER;
@@ -231,14 +240,34 @@ final class BancAppareil {
             coordonnees[doigt].pressure = 1f;
             coordonnees[doigt].size = 1f;
         }
-        return Objects.requireNonNull(MotionEvent.obtain(instantPose, instant,
-                action, 2, proprietes, coordonnees, 0, 0, 1f, 1f, 0, 0,
+        return Objects.requireNonNull(MotionEvent.obtain(ancre, instant,
+                action, compte, proprietes, coordonnees, 0, 0, 1f, 1f, 0, 0,
                 InputDevice.SOURCE_TOUCHSCREEN, 0));
     }
 
-    /** Porte l'événement à la voie d'entrée du système. */
+    /**
+     * L'état du système vu du banc — la puissance de l'écran et la
+     * fenêtre focalisée : les messages d'échec le portent quand la
+     * vitre reste muette.
+     */
+    static String etatSysteme() {
+        try {
+            return " puissance: " + appareil().executeShellCommand(
+                    "dumpsys power | grep -iE 'mWakefulness|Display Power' | head -2")
+                    + " focus: " + appareil().executeShellCommand(
+                    "dumpsys window | grep -iE 'mCurrentFocus' | head -2");
+        } catch (IOException echec) {
+            return " état illisible : " + echec.getMessage();
+        }
+    }
+
+    /**
+     * Porte l'événement à la voie d'entrée du système, en synchrone —
+     * la voie d'UiAutomator (injectEventSync) : l'injection asynchrone
+     * se perdait.
+     */
     private static boolean injecter(UiAutomation automatisation, MotionEvent evenement) {
-        boolean accepte = automatisation.injectInputEvent(evenement, false);
+        boolean accepte = automatisation.injectInputEvent(evenement, true);
         evenement.recycle();
         return accepte;
     }

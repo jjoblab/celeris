@@ -47,7 +47,8 @@ public class GutterStabilityOnDeviceTest {
             int encreFrappe = ComparaisonImage.abscissePremiereEncre(apresFrappe, bande);
             int encreAnalyse = ComparaisonImage.abscissePremiereEncre(apresAnalyse, bande);
             assertTrue("la bande ne porte aucune encre — la capture ne mesure rien\n"
-                    + BancAppareil.apercu(avant, bande),
+                    + BancAppareil.apercu(avant, bande)
+                    + BancAppareil.etatSysteme(),
                     encreAvant > bande.left);
             assertEquals("l'abscisse de la première encre ne bouge pas à la frappe",
                     encreAvant, encreFrappe);

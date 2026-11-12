@@ -67,8 +67,17 @@ jobs:
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses > /dev/null || true
           "$SDKMANAGER" --install "platform-tools" > /dev/null
+      - name: Affichage virtuel pour l'émulateur
+        run: |
+          # Le GPU « auto » de l'émulateur v37 rejette l'option
+          # auto-no-window d'AGP et tombe sans serveur d'affichage —
+          # le framebuffer reste muet (captures noires). Xvfb sert de
+          # vitrine : le rendu vit, les captures voient.
+          sudo apt-get update -qq > /dev/null
+          sudo apt-get install -y -qq xvfb > /dev/null
+          test -x /usr/bin/Xvfb
       - name: Tests d'instrumentation (pincement, gouttière, coloration, popups)
-        run: ./gradlew :demo:pixel2api34DebugAndroidTest
+        run: xvfb-run -a ./gradlew :demo:pixel2api34DebugAndroidTest
       - name: Journal des échecs (diagnostic des bancs)
         if: failure()
         run: |

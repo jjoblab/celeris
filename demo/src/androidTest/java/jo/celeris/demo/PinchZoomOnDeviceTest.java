@@ -35,10 +35,12 @@ public class PinchZoomOnDeviceTest {
                     taille[0] = BancAppareil.editeur(ecran).fontSizeSp());
             assertEquals("la police de départ vit au palier 14 sp",
                     14f, taille[0], 1e-6f);
-            BancAppareil.pincer(scenario, 120f, 520f);
+            int acceptesAmple = BancAppareil.pincer(scenario, 120f, 520f);
             scenario.onActivity(ecran ->
                     taille[0] = BancAppareil.editeur(ecran).fontSizeSp());
-            assertEquals("un pincement ample doit mener au palier maximal 28 sp",
+            assertEquals("un pincement ample doit mener au palier maximal 28 sp "
+                    + "(injections acceptées " + acceptesAmple + "/24,"
+                    + BancAppareil.etatSysteme() + ")",
                     28f, taille[0], 1e-6f);
         }
     }
@@ -57,10 +59,12 @@ public class PinchZoomOnDeviceTest {
             });
             assertEquals("la police posée vit au palier 28 sp",
                     28f, taille[0], 1e-6f);
-            BancAppareil.pincer(scenario, 400f, 160f);
+            int acceptesResserre = BancAppareil.pincer(scenario, 400f, 160f);
             scenario.onActivity(ecran ->
                     taille[0] = BancAppareil.editeur(ecran).fontSizeSp());
-            assertEquals("un pincement resserré doit ramener au palier 14 sp",
+            assertEquals("un pincement resserré doit ramener au palier 14 sp "
+                    + "(injections acceptées " + acceptesResserre + "/24,"
+                    + BancAppareil.etatSysteme() + ")",
                     14f, taille[0], 1e-6f);
         }
     }
