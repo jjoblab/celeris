@@ -29,7 +29,9 @@ public class FlickerOnDeviceTest {
 
     /**
      * Trois captures pendant la frappe retenue, une après la
-     * publication : les mots non touchés gardent leurs pixels.
+     * publication : les mots non touchés gardent leurs pixels — la
+     * porte d'encre garde le vert honnête, un banc en vide ne
+     * prouverait rien.
      */
     @Test
     public void lesMotsNonTouchesGardentLeursPixelsPendantLaFrappeRetenue()
@@ -47,13 +49,18 @@ public class FlickerOnDeviceTest {
             captures[2] = BancAppareil.capturer();
             Thread.sleep(BancAppareil.RETENUE_MS + 500L);
             captures[3] = BancAppareil.capturer();
+            int encre = ComparaisonImage.abscissePremiereEncre(captures[0], bande);
+            assertTrue("la bande ne porte aucune encre — la capture ne mesure rien\n"
+                    + BancAppareil.apercu(captures[0], bande),
+                    encre > bande.left);
             for (int premiere = 0; premiere < captures.length; premiere++) {
                 for (int seconde = premiere + 1; seconde < captures.length; seconde++) {
                     int fraction = ComparaisonImage.fractionForte(
                             captures[premiere], captures[seconde], bande);
                     assertTrue("les mots non touchés gardent leurs pixels "
                             + "(captures " + (premiere + 1) + " et " + (seconde + 1)
-                            + ", fraction " + fraction + "‰)",
+                            + ", fraction " + fraction + "‰)\n"
+                            + BancAppareil.apercu(captures[premiere], bande),
                             fraction <= FRACTION_MAXIMALE_MILLIEMES);
                 }
             }

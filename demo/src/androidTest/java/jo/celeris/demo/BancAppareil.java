@@ -16,7 +16,9 @@ import androidx.test.uiautomator.UiObject2;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.PopupLayer;
@@ -74,25 +76,30 @@ final class BancAppareil {
 
     /**
      * Attend la mise en page de l'éditeur : le premier passage de
-     * mesures. Sans cette attente, les captures mesureraient une vitre
-     * encore vide.
+     * mesures, puis l'arbre d'accessibilité qui le porte — sans cette
+     * double attente, les captures mesureraient une vitre encore
+     * vide et les gestes iraient sur un écran encore muet.
      */
     static EditorView attendreVue(ActivityScenario<EditorActivity> scenario)
             throws InterruptedException {
         EditorView[] vue = new EditorView[1];
-        for (int essai = 0; essai < 40; essai++) {
+        for (int essai = 0; essai < 50; essai++) {
             scenario.onActivity(ecran -> {
                 EditorView candidat = editeur(ecran);
                 if (candidat.getWidth() > 0 && candidat.getHeight() > 0) {
                     vue[0] = candidat;
                 }
             });
-            if (vue[0] != null) {
+            if (vue[0] != null && editeurVisible() != null) {
                 return vue[0];
             }
             Thread.sleep(100L);
         }
-        throw new AssertionError("l'éditeur n'a jamais été mesuré à l'écran");
+        if (vue[0] == null) {
+            throw new AssertionError("l'éditeur n'a jamais été mesuré à l'écran");
+        }
+        throw new AssertionError(
+                "l'arbre d'accessibilité n'a jamais porté l'éditeur");
     }
 
     /**
@@ -145,8 +152,7 @@ final class BancAppareil {
      * maximal.
      */
     static void ecarter() throws InterruptedException {
-        UiObject2 objet = editeurVisible();
-        objet.pinchOpen(0.23f, 1500);
+        editeurVisible().pinchOpen(0.23f, 1500);
         appareil().waitForIdle();
     }
 
@@ -157,8 +163,7 @@ final class BancAppareil {
      * banc JVM, 400 à 160) ramène la police au palier minimal.
      */
     static void resserrer() throws InterruptedException {
-        UiObject2 objet = editeurVisible();
-        objet.pinchClose(0.4f, 1500);
+        editeurVisible().pinchClose(0.4f, 1500);
         appareil().waitForIdle();
     }
 
@@ -167,14 +172,64 @@ final class BancAppareil {
         return UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
     }
 
-    /** L'éditeur vu d'UiAutomator — le banc le dit s'il est invisible. */
+    /**
+     * L'éditeur vu d'UiAutomator — le banc le dit s'il est invisible.
+     * L'éditeur déclare son nœud d'accessibilité sous la classe du
+     * texte ({@code android.widget.EditText} — AccessibilityHost :
+     * l'IME et les lecteurs d'écran passent avant la désignation du
+     * bac) : la recherche se fait par la classe DÉCLARÉE, jamais par
+     * le nom de la classe Java de la vue.
+     */
     private static UiObject2 editeurVisible() {
-        UiObject2 objet = appareil().findObject(
-                By.clazz(EditorView.class.getName()));
-        if (objet == null) {
-            throw new AssertionError("l'éditeur n'est pas visible à l'écran");
+        return appareil().findObject(By.clazz("android.widget.EditText"));
+    }
+
+    /**
+     * L'aperçu ASCII d'une bande de capture — les bancs à captures le
+     * portent à leurs messages d'échec : la CI n'a pas d'œil sur la
+     * vitre, le journal en tient lieu. Soixante colonnes, vingt
+     * rangées, la gamme de luminance en dix marches, les dimensions de
+     * la bitmap et son compte de couleurs distinctes en tête.
+     */
+    static String apercu(Bitmap image, Rect bande) {
+        StringBuilder journal = new StringBuilder();
+        journal.append("bitmap ").append(image.getWidth()).append('x')
+                .append(image.getHeight())
+                .append(", couleurs distinctes ~").append(compteCouleurs(image))
+                .append(", bande ").append(bande).append('\n');
+        for (int rang = 0; rang < 20; rang++) {
+            int y = bande.top + (bande.height() * rang / 20);
+            for (int colonne = 0; colonne < 60; colonne++) {
+                int x = bande.left + (bande.width() * colonne / 60);
+                journal.append(marche(luminance(image.getPixel(x, y))));
+            }
+            journal.append('\n');
         }
-        return objet;
+        return journal.toString();
+    }
+
+    /** La luminance d'un pixel, en cinquantièmes (0 à 50). */
+    private static int luminance(int pixel) {
+        int somme = ((pixel >> 16) & 0xFF) * 3 + ((pixel >> 8) & 0xFF) * 6
+                + (pixel & 0xFF);
+        return (somme + 25) / 51;
+    }
+
+    /** La marche ASCII d'une luminance — du plus clair au plus foncé. */
+    private static char marche(int luminance) {
+        final String marches = " .:-=+*#%@";
+        return marches.charAt(Math.min(9, luminance / 5));
+    }
+
+    /** Le compte de couleurs distinctes, échantillonné au treizième. */
+    private static int compteCouleurs(Bitmap image) {
+        Set<Integer> vues = new HashSet<>();
+        for (int y = 0; y < image.getHeight(); y += 13) {
+            for (int x = 0; x < image.getWidth(); x += 13) {
+                vues.add(image.getPixel(x, y));
+            }
+        }
+        return vues.size();
     }
 
     /**

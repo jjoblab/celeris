@@ -3,6 +3,8 @@ package jo.celeris.demo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import android.widget.TextView;
+
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -31,6 +33,9 @@ public class CompletionPopupOnDeviceTest {
     /**
      * Le premier popup réel s'ouvre à la frappe, le focus reste à
      * l'éditeur ; le blanc referme la liste, le focus y reste encore.
+     * La frappe porte « s » — le fichier Java du banc y sert des
+     * symboles (ServiceUtilisateur) et des mots-clés (super, switch) :
+     * le serveur répond des candidats, la liste vit.
      */
     @Test
     public void lePremierPopupReelNeVolePasLeFocusDeLediteur()
@@ -38,9 +43,19 @@ public class CompletionPopupOnDeviceTest {
         try (ActivityScenario<EditorActivity> scenario = BancAppareil.ouvrirScenario()) {
             BancAppareil.attendreVue(scenario);
             BancAppareil.focaliser(scenario);
-            BancAppareil.frapper(scenario, "q");
-            assertTrue("le popup de complétion s'ouvre à la frappe",
-                    attendrePopupOuvert(scenario));
+            BancAppareil.frapper(scenario, "s");
+            if (!attendrePopupOuvert(scenario)) {
+                String[] langue = { "?" };
+                scenario.onActivity(ecran -> {
+                    TextView etiquette = ecran.findViewById(R.id.etat_langue);
+                    if (etiquette != null) {
+                        langue[0] = etiquette.getText().toString();
+                    }
+                });
+                assertTrue("le popup de complétion s'ouvre à la frappe — "
+                        + "langue à l'écran : " + langue[0],
+                        false);
+            }
             scenario.onActivity(ecran -> {
                 PopupLayer couche = BancAppareil.couchePopups(ecran);
                 assertFalse("la couche des popups reste non focalisable (PIEGE-27)",
