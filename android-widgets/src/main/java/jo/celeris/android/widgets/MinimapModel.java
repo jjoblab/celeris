@@ -139,21 +139,14 @@ public final class MinimapModel {
      * chaque plage, jamais son texte.
      */
     static List<MapSegment> segmentsDe(String ligne) {
-        List<MapSegment> segments = new ArrayList<>();
+        List<MapSegment> segments = new ArrayList<>(commentaireEntier(ligne));
         int n = ligne.length();
-        int i = 0;
-        // la ligne de commentaire ou de bloc dépouillée : toute la
-        // ligne porte l'encre du commentaire
-        String depouillee = ligne.stripLeading();
-        if (depouillee.startsWith("//") || depouillee.startsWith("/*")
-                || depouillee.startsWith("*")) {
-            if (!depouillee.isEmpty()) {
-                segments.add(new MapSegment(0,
-                        Math.min(CHARGE_MAX, ligne.stripTrailing().length()),
-                        ENCRE_COMMENTAIRE));
-            }
+        // la ligne entière en commentaire ne se balaye pas : toute la
+        // ligne porte déjà son encre
+        if (!segments.isEmpty()) {
             return segments;
         }
+        int i = 0;
         while (i < n) {
             char c = ligne.charAt(i);
             if (c == '/' && i + 1 < n && ligne.charAt(i + 1) == '/') {
@@ -171,23 +164,13 @@ public final class MinimapModel {
             }
             if (Character.isDigit(c) && (i == 0
                     || !Character.isJavaIdentifierPart(ligne.charAt(i - 1)))) {
-                int fin = i + 1;
-                while (fin < n && "0123456789._eEfdLxXaAbBcCdDfF".indexOf(
-                        ligne.charAt(fin)) >= 0
-                        && (Character.isLetterOrDigit(ligne.charAt(fin))
-                        || ligne.charAt(fin) == '.')) {
-                    fin++;
-                }
+                int fin = finDeNombre(ligne, i);
                 segments.add(souder(segments, i, fin, ENCRE_NOMBRE));
                 i = fin;
                 continue;
             }
             if (Character.isJavaIdentifierStart(c)) {
-                int fin = i;
-                while (fin < n && Character.isJavaIdentifierPart(
-                        ligne.charAt(fin))) {
-                    fin++;
-                }
+                int fin = finDeMot(ligne, i, n);
                 String mot = ligne.substring(i, fin);
                 segments.add(souder(segments, i, fin,
                         MOTS_CLES.contains(mot) ? ENCRE_MOTCLE : ENCRE_CODE));
@@ -200,6 +183,44 @@ public final class MinimapModel {
             i++;
         }
         return compacter(segments);
+    }
+
+    /** La ligne ENTIÈRE en commentaire : le segment unique qui la
+     *  porte — « // », « /* », « * » en tête dépouillée ; liste vide
+     *  quand la ligne n'est pas un commentaire entier. */
+    private static List<MapSegment> commentaireEntier(String ligne) {
+        String depouillee = ligne.stripLeading();
+        if ((depouillee.startsWith("//") || depouillee.startsWith("/*")
+                || depouillee.startsWith("*")) && !depouillee.isEmpty()) {
+            return List.of(new MapSegment(0,
+                    Math.min(CHARGE_MAX, ligne.stripTrailing().length()),
+                    ENCRE_COMMENTAIRE));
+        }
+        return List.of();
+    }
+
+    /** La fin d'un littéral numérique : chiffres, points, exposants
+     *  et affixes — la lettre d'un identifiant ne s'y rallonge pas. */
+    private static int finDeNombre(String ligne, int debut) {
+        int n = ligne.length();
+        int fin = debut + 1;
+        while (fin < n && "0123456789._eEfdLxXaAbBcCdDfF".indexOf(
+                ligne.charAt(fin)) >= 0
+                && (Character.isLetterOrDigit(ligne.charAt(fin))
+                || ligne.charAt(fin) == '.')) {
+            fin++;
+        }
+        return fin;
+    }
+
+    /** La fin du mot qui commence à la borne — identifiant ou mot-clé. */
+    private static int finDeMot(String ligne, int debut, int finMax) {
+        int fin = debut;
+        while (fin < finMax && Character.isJavaIdentifierPart(
+                ligne.charAt(fin))) {
+            fin++;
+        }
+        return fin;
     }
 
     /** La fin utile d'une ligne — la queue de blancs ne se rend pas. */

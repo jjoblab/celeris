@@ -81,6 +81,7 @@ final class jo.celeris.serveur.java.JavaLanguageServer$Documents implements org.
   public void didClose(org.eclipse.lsp4j.DidCloseTextDocumentParams);
   public void didSave(org.eclipse.lsp4j.DidSaveTextDocumentParams);
   public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.Hover> hover(org.eclipse.lsp4j.HoverParams);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.SignatureHelp> signatureHelp(org.eclipse.lsp4j.SignatureHelpParams);
   public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.jsonrpc.messages.Either<java.util.List<org.eclipse.lsp4j.CompletionItem>, org.eclipse.lsp4j.CompletionList>> completion(org.eclipse.lsp4j.CompletionParams);
   public java.util.concurrent.CompletableFuture<java.util.List<org.eclipse.lsp4j.jsonrpc.messages.Either<org.eclipse.lsp4j.SymbolInformation, org.eclipse.lsp4j.DocumentSymbol>>> documentSymbol(org.eclipse.lsp4j.DocumentSymbolParams);
   public java.util.concurrent.CompletableFuture<java.util.List<org.eclipse.lsp4j.FoldingRange>> foldingRange(org.eclipse.lsp4j.FoldingRangeRequestParams);
@@ -103,6 +104,22 @@ public final class jo.celeris.serveur.java.JavaLanguageServer implements org.ecl
 Compiled from "JavaLanguageServerMain.java"
 public final class jo.celeris.serveur.java.JavaLanguageServerMain {
   public static void main(java.lang.String[]) throws java.lang.Exception;
+}
+
+### jo.celeris.serveur.java.JavaSignature$Appel
+Compiled from "JavaSignature.java"
+final class jo.celeris.serveur.java.JavaSignature$Appel extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String nom();
+  public int parametreCourant();
+}
+
+### jo.celeris.serveur.java.JavaSignature
+Compiled from "JavaSignature.java"
+public final class jo.celeris.serveur.java.JavaSignature {
+  public static org.eclipse.lsp4j.SignatureHelp at(jo.celeris.serveur.java.JavaSource, java.util.List<jo.celeris.serveur.java.JavaSymbols$Symbol>, int);
 }
 
 ### jo.celeris.serveur.java.JavaSource$Spot

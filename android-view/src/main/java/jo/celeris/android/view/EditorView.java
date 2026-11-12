@@ -194,9 +194,8 @@ public final class EditorView extends View {
         });
         BrushFactory pinceaux = usinePinceaux = new PaintBrushes(reglePolices);
         fantome = new FantomeEditeur(this, pinceaux);
-        // La respiration naît à la densité de l'appareil : la valeur
-        // vit en dp, la conversion se fait une fois, en pixels entiers
-        // (PIEGE-23, M7.5 §5).
+        // La respiration naît à la densité de l'appareil : la valeur vit
+        // en dp, convertie une fois, en pixels entiers (PIEGE-23, M7.5 §5).
         gouttiereEtat.setClasse(ClasseLargeur.MOYEN, densite());
         gouttiere = GutterPainter.monter(pinceaux, this);
         trace = ScrollFrame.assemble(gouttiere, pinceaux, composition,
@@ -524,7 +523,7 @@ public final class EditorView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        // Le budget de colonnes dérive de la largeur (image suivante).
+        // Le budget de colonnes dérive de la largeur : image suivante.
         invalidate();
     }
 
@@ -549,25 +548,7 @@ public final class EditorView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         longPresses.onTouchEvent(event);
         pincements.onTouchEvent(event);
-        switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                if (fantome.touche(event.getX(), event.getY())) {
-                    return true;
-                }
-                return touches.surAppui(event);
-            case MotionEvent.ACTION_POINTER_DOWN:
-                return touches.surDoigtPose(event);
-            case MotionEvent.ACTION_MOVE:
-                return touches.surDeplacement(event);
-            case MotionEvent.ACTION_POINTER_UP:
-                return touches.surDoigtLeve();
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
-                performClick();
-                return touches.surRelachement(event);
-            default:
-                return super.onTouchEvent(event);
-        }
+        return touches.router(event, super::onTouchEvent);
     }
 
     /** D-15 — la molette avec Ctrl zoome d'un palier (voir PinchZoomHandler). */
@@ -578,8 +559,8 @@ public final class EditorView extends View {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // La frappe passe au collaborateur (plafond ADR-002) : la
-        // composition se clôt, la table de raccourcis décide.
+        // La frappe passe au collaborateur (plafond ADR-002) : la composition
+        // se clôt, la table de raccourcis décide.
         EditorAction action = KeyActions.action(this, raccourcis, composition,
                 keyCode, event);
         return action == null

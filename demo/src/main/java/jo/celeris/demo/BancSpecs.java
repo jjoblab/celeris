@@ -1,5 +1,6 @@
 package jo.celeris.demo;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +75,14 @@ final class BancSpecs {
 
     /** Les spécifications vérifiées, dans l'ordre de la matrice. */
     static List<ScenarioSpec> specs() {
+        List<ScenarioSpec> specs = new ArrayList<>(specsDeFrappeEtRefactor());
+        specs.addAll(specsDuFilEtDuPaquet());
+        return List.copyOf(specs);
+    }
+
+    /** Les spécifications de frappe et de refactorisation
+     *  (A, B) — les paires aux gabarits. */
+    private static List<ScenarioSpec> specsDeFrappeEtRefactor() {
         return List.of(
                 new ScenarioSpec("A-05",
                         "L'ouvrant pose sa paire, le fermant se saute",
@@ -110,7 +119,13 @@ final class BancSpecs {
                         BancSpecs::formatage),
                 new ScenarioSpec("B-27",
                         "L'import se pose à la tête, le doublon se refuse",
-                        BancSpecs::importation),
+                        BancSpecs::importation));
+    }
+
+    /** Les spécifications du fil du protocole et du paquet (H) — les
+     *  méthodes nouvelles, le serveur déclaré, le paquet jouet. */
+    private static List<ScenarioSpec> specsDuFilEtDuPaquet() {
+        return List.of(
                 new ScenarioSpec("H-12",
                         "Les méthodes nouvelles servent le plan, le pli et"
                                 + " le formatage par le fil",
@@ -448,24 +463,44 @@ final class BancSpecs {
                 return false;
             }
             Document document = TextSession.of(texte, () -> 0L).document();
-            java.util.concurrent.CountDownLatch poussee =
-                    new java.util.concurrent.CountDownLatch(1);
-            java.util.List<DiagnosticLsp> constatsPousses =
-                    new java.util.ArrayList<>();
-            session.poserAuditeurDiagnostics((uri, constats) -> {
-                constatsPousses.addAll(constats);
-                poussee.countDown();
-            });
-            session.ouvrir(URI, languageId(), texte);
-            boolean lesDiagnostics;
-            try {
-                lesDiagnostics = poussee.await(2,
-                        java.util.concurrent.TimeUnit.SECONDS)
-                        && !constatsPousses.isEmpty();
-            } catch (InterruptedException echec) {
-                Thread.currentThread().interrupt();
-                return false;
-            }
+            return diagnosticsPousses(session, texte)
+                    && capacitesServies(session, document, texte);
+        } catch (Exception echec) {
+            return false;
+        } finally {
+            session.close();
+        }
+    }
+
+    /** Les diagnostics poussés du serveur déclaré : un constat réel
+     *  arrive au fil — jamais un vent vide (l'accolade manquante
+     *  porte la preuve). */
+    private static boolean diagnosticsPousses(LanguageSession session,
+            String texte) {
+        java.util.concurrent.CountDownLatch poussee =
+                new java.util.concurrent.CountDownLatch(1);
+        java.util.List<DiagnosticLsp> constatsPousses =
+                new java.util.ArrayList<>();
+        session.poserAuditeurDiagnostics((uri, constats) -> {
+            constatsPousses.addAll(constats);
+            poussee.countDown();
+        });
+        session.ouvrir(URI, languageId(), texte);
+        try {
+            return poussee.await(2, java.util.concurrent.TimeUnit.SECONDS)
+                    && !constatsPousses.isEmpty();
+        } catch (InterruptedException echec) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
+    /** Les capacités servies au fil : complétion, survol, signature,
+     *  symboles, plis et formatage — l'ouverture les éprouve ; tout
+     *  échec du fil rend la capacité non servie. */
+    private static boolean capacitesServies(LanguageSession session,
+            Document document, String texte) {
+        try {
             boolean laCompletion = session.sertCompletion()
                     && session.completion(URI, document,
                             texte.indexOf("int total = a"))
@@ -486,12 +521,10 @@ final class BancSpecs {
             boolean leFormat = !session.formatage(URI,
                     jo.celeris.core.lsp.types.OptionsFormatageLsp.DEFAUT)
                     .get(2, java.util.concurrent.TimeUnit.SECONDS).isEmpty();
-            return lesDiagnostics && laCompletion && leSurvol
-                    && laBonneSignature && lePlan && lePli && leFormat;
+            return laCompletion && leSurvol && laBonneSignature
+                    && lePlan && lePli && leFormat;
         } catch (Exception echec) {
             return false;
-        } finally {
-            session.close();
         }
     }
 

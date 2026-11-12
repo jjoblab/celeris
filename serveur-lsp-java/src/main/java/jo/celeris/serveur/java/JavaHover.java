@@ -53,35 +53,8 @@ public final class JavaHover {
             symbole = parSonNom(symbols, mot);
         }
         if (symbole != null) {
-            JavaSource.Spot debut;
-            JavaSource.Spot fin;
-            String genre = genreDe(symbole.kind());
-            String ligneDeclaree = source.line(
-                    source.lineOf(symbole.start())).strip();
-            if (surDeclaration) {
-                // sur le site de déclaration : les bornes du nom déclaré
-                debut = source.spot(symbole.nameStart());
-                fin = source.spot(symbole.nameEnd());
-                return new Hover(new org.eclipse.lsp4j.MarkupContent(
-                        MarkupKind.MARKDOWN,
-                        "**" + symbole.name() + "** — " + genre
-                                + " dans ce document :\n\n```java\n"
-                                + ligneDeclaree + "\n```"),
-                        new Range(new Position(debut.line(), debut.column()),
-                                new Position(fin.line(), fin.column())));
-            }
-            // sur un site d'usage : les bornes du mot survolé, la
-            // déclaration citée dans le corps
-            int debutMot = borneMotAvant(source, offset);
-            debut = source.spot(debutMot);
-            fin = source.spot(debutMot + mot.length());
-            return new Hover(new org.eclipse.lsp4j.MarkupContent(
-                    MarkupKind.MARKDOWN,
-                    "**" + mot + "** — " + genre
-                            + " : déclaré ainsi dans ce document :\n\n```java\n"
-                            + ligneDeclaree + "\n```"),
-                    new Range(new Position(debut.line(), debut.column()),
-                            new Position(fin.line(), fin.column())));
+            return survolSymbole(source, mot, symbole,
+                    surDeclaration, offset);
         }
         String documentation = documentationMotCle(mot);
         if (documentation == null) {
@@ -89,14 +62,56 @@ public final class JavaHover {
         }
         // les bornes du mot se scannent autour du curseur : le
         // milieu d'un mot tient le mot entier
+        return survolMotCle(source, mot, documentation, offset);
+    }
+
+    /** Le survol d'un symbole : sur SON site, les bornes du nom
+     *  déclaré ; sur un site d'USAGE, les bornes du mot survolé et
+     *  la déclaration citée dans le corps. */
+    private static Hover survolSymbole(JavaSource source, String mot,
+            Symbol symbole, boolean surDeclaration, int offset) {
+        String genre = genreDe(symbole.kind());
+        String ligneDeclaree = source.line(
+                source.lineOf(symbole.start())).strip();
+        if (surDeclaration) {
+            // sur le site de déclaration : les bornes du nom déclaré
+            return new Hover(new org.eclipse.lsp4j.MarkupContent(
+                    MarkupKind.MARKDOWN,
+                    "**" + symbole.name() + "** — " + genre
+                            + " dans ce document :\n\n```java\n"
+                            + ligneDeclaree + "\n```"),
+                    plage(source, symbole.nameStart(),
+                            symbole.nameEnd()));
+        }
+        // sur un site d'usage : les bornes du mot survolé, la
+        // déclaration citée dans le corps
         int debutMot = borneMotAvant(source, offset);
-        int finMot = borneMotApres(source, offset);
-        JavaSource.Spot debut = source.spot(debutMot);
-        JavaSource.Spot fin = source.spot(finMot);
-        return new Hover(new org.eclipse.lsp4j.MarkupContent(MarkupKind.MARKDOWN,
+        return new Hover(new org.eclipse.lsp4j.MarkupContent(
+                MarkupKind.MARKDOWN,
+                "**" + mot + "** — " + genre
+                        + " : déclaré ainsi dans ce document :\n\n```java\n"
+                        + ligneDeclaree + "\n```"),
+                plage(source, debutMot, debutMot + mot.length()));
+    }
+
+    /** Le survol d'un mot-clé : sa documentation, ancrée sur le mot
+     *  autour du curseur. */
+    private static Hover survolMotCle(JavaSource source, String mot,
+            String documentation, int offset) {
+        return new Hover(new org.eclipse.lsp4j.MarkupContent(
+                MarkupKind.MARKDOWN,
                 "**" + mot + "** — " + documentation + "."),
-                new Range(new Position(debut.line(), debut.column()),
-                        new Position(fin.line(), fin.column())));
+                plage(source, borneMotAvant(source, offset),
+                        borneMotApres(source, offset)));
+    }
+
+    /** La plage LSP de deux décalages du document suivi. */
+    private static Range plage(JavaSource source, int debut, int fin) {
+        JavaSource.Spot pointDebut = source.spot(debut);
+        JavaSource.Spot pointFin = source.spot(fin);
+        return new Range(
+                new Position(pointDebut.line(), pointDebut.column()),
+                new Position(pointFin.line(), pointFin.column()));
     }
 
     /** Le premier symbole (parcours en profondeur) qui porte ce nom. */

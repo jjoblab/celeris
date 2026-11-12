@@ -94,34 +94,8 @@ public final class JavaSignature {
                     continue;
                 }
                 // l'ouvrante la plus proche : le nom avant elle décide
-                int finNom = i;
-                int debutNom = finNom;
-                while (debutNom > 0
-                        && Character.isJavaIdentifierPart(
-                        texte.charAt(debutNom - 1))) {
-                    debutNom--;
-                }
-                if (debutNom == finNom) {
-                    return null;
-                }
-                String nom = texte.substring(debutNom, finNom);
-                // « new » n'est pas un appel : le constructeur se nomme avant
-                if ("new".equals(nom)) {
-                    int finConstr = debutNom;
-                    int debutConstr = finConstr;
-                    while (debutConstr > 0
-                            && Character.isJavaIdentifierPart(
-                            texte.charAt(debutConstr - 1))) {
-                        debutConstr--;
-                    }
-                    if (debutConstr == finConstr) {
-                        return null;
-                    }
-                    nom = texte.substring(debutConstr, finConstr);
-                } else if (siteDeDeclaration(symbols, nom, debutNom)) {
-                    // l'EN-TÊTE d'une déclaration : la signature qui se
-                    // déclare n'est pas un appel qui se sert — null, la
-                    // popup ne s'ouvre pas à côté
+                String nom = nomAppele(texte, i, symbols);
+                if (nom == null) {
                     return null;
                 }
                 return new Appel(nom,
@@ -129,6 +103,46 @@ public final class JavaSignature {
             }
         }
         return null;
+    }
+
+    /** Le nom appelé devant l'ouvrante : l'identifiant qui la
+     *  touche — nul si aucun ne la touche, si « new » précède sans
+     *  constructeur nommé, ou si l'ouvrante ouvre l'en-tête d'une
+     *  DÉCLARATION (le nom qui se déclare ne se sert pas). */
+    private static @Nullable String nomAppele(String texte, int ouvrante,
+            List<Symbol> symbols) {
+        int finNom = ouvrante;
+        int debutNom = finNom;
+        while (debutNom > 0
+                && Character.isJavaIdentifierPart(
+                texte.charAt(debutNom - 1))) {
+            debutNom--;
+        }
+        if (debutNom == finNom) {
+            return null;
+        }
+        String nom = texte.substring(debutNom, finNom);
+        // « new » n'est pas un appel : le constructeur se nomme avant
+        if ("new".equals(nom)) {
+            return nomAvant(texte, debutNom);
+        }
+        if (siteDeDeclaration(symbols, nom, debutNom)) {
+            // l'EN-TÊTE d'une déclaration : la signature qui se
+            // déclare n'est pas un appel qui se sert — null, la
+            // popup ne s'ouvre pas à côté
+            return null;
+        }
+        return nom;
+    }
+
+    /** L'identifiant qui se termine à la borne donnée — null si aucun. */
+    private static @Nullable String nomAvant(String texte, int fin) {
+        int debut = fin;
+        while (debut > 0 && Character.isJavaIdentifierPart(
+                texte.charAt(debut - 1))) {
+            debut--;
+        }
+        return debut == fin ? null : texte.substring(debut, fin);
     }
 
     /**
@@ -210,25 +224,43 @@ public final class JavaSignature {
         if (ouvrante < 0 || ouvrante > declaration.end()) {
             return List.of();
         }
+        return tranches(texte, ouvrante + 1, declaration.end());
+    }
+
+    /** Les tranches de premier niveau : coupées aux virgules de
+     *  profondeur zéro, refermées au fermant — les imbriqués ne
+     *  comptent pas (celui de l'appel boucle par-dessus l'en-tête). */
+    private static List<String> tranches(String texte, int debut,
+            int fin) {
         List<String> parametres = new ArrayList<>();
         int profondeur = 0;
-        int debut = ouvrante + 1;
-        for (int i = ouvrante + 1; i <= declaration.end() && i < texte.length(); i++) {
+        int debutTranche = debut;
+        for (int i = debut; i <= fin && i < texte.length(); i++) {
             char c = texte.charAt(i);
-            if (c == '(' || c == '[' || c == '<' || c == '{') {
+            int d = delta(c);
+            if (d == 0 && c == ',' && profondeur == 0) {
+                ajoute(parametres, texte.substring(debutTranche, i));
+                debutTranche = i + 1;
+            } else if (d > 0) {
                 profondeur++;
-            } else if (c == ')' || c == ']' || c == '>' || c == '}') {
-                if (c == ')' && profondeur == 0) {
-                    ajoute(parametres, texte.substring(debut, i));
-                    return parametres;
-                }
+            } else if (c == ')' && profondeur == 0) {
+                ajoute(parametres, texte.substring(debutTranche, i));
+                return parametres;
+            } else if (d < 0) {
                 profondeur--;
-            } else if (c == ',' && profondeur == 0) {
-                ajoute(parametres, texte.substring(debut, i));
-                debut = i + 1;
             }
         }
         return parametres;
+    }
+
+    /** +1 pour tout ouvrant, -1 pour tout fermant, 0 sinon — la
+     *  profondeur de premier niveau se suit char à char. */
+    private static int delta(char c) {
+        return switch (c) {
+            case '(', '[', '<', '{' -> 1;
+            case ')', ']', '>', '}' -> -1;
+            default -> 0;
+        };
     }
 
     /** La tranche nettoyée — vide si rien ne reste. */

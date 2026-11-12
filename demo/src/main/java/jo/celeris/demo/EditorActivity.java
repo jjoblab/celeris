@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -18,10 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.DiagnosticHote;
@@ -33,24 +29,13 @@ import jo.celeris.android.view.MarquesIntegration;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
-import jo.celeris.android.widgets.IntentionsMenuView;
-import jo.celeris.android.widgets.TouchBarView;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupPalette;
-import jo.celeris.core.intelligence.CommentRules;
-import jo.celeris.core.intelligence.Commenter;
-import jo.celeris.core.intelligence.IndentStyle;
-import jo.celeris.core.intelligence.EditPlan;
-import jo.celeris.core.intelligence.LineActions;
-import jo.celeris.core.language.model.LanguageConfiguration;
 import jo.celeris.core.language.model.LanguageSupport;
 
 import jo.celeris.core.syntax.structure.OutlineEntry;
 
 import jo.celeris.core.text.Document;
-import jo.celeris.core.text.MultiSelection;
-import jo.celeris.core.text.TextEdit;
-import jo.celeris.core.text.Transaction;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
@@ -76,7 +61,7 @@ public final class EditorActivity extends AppCompatActivity {
     private static final float TAILLE_DEFAUT = 14f;
     private static final float TAILLE_MIN = 8f;
     private static final float TAILLE_MAX = 40f;
-    private static final float PAS_TAILLE = 2f;
+    static final float PAS_TAILLE = 2f;
 
     private EditorView editeur;
     private TextSession session;
@@ -92,8 +77,9 @@ public final class EditorActivity extends AppCompatActivity {
     /** La feuille du plan (ADR-018 : « plan » vit en feuille du bas). */
     private FeuillePlan feuillePlan;
     private List<ReperesPreview.ReperePreview> reperes = List.of();
-    /** L'état de débogage — arrêts, pause simulée, étiquette (D-04, D-05). */
-    private EtatDebogage etatDebogage;
+    /** L'état de débogage — arrêts, pause simulée, étiquette (D-04, D-05).
+     *  Visible du paquet : le catalogue des actions y bascule la pause. */
+    EtatDebogage etatDebogage;
     /** L'état des diagnostics — lint de l'hôte et serveur réel (M8.6). */
     private EtatDiagnostics etatDiagnostics;
     private AtelierLint atelierLint;
@@ -116,7 +102,9 @@ public final class EditorActivity extends AppCompatActivity {
     /** La bascule de thème (D-13) — rotation, persistance, libellé. */
     private BasculeTheme basculeTheme;
     private List<OutlineEntry> entreesPlan = List.of();
-    private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
+    /** Le catalogue des actions (menu, carte de débordement,
+     *  intentions) — visible du paquet, monté après la scène. */
+    private CatalogueActions catalogue;
 
     @Override
     protected void onCreate(Bundle etat) {
@@ -154,7 +142,15 @@ public final class EditorActivity extends AppCompatActivity {
         // dérive du thème de l'éditeur, qui nait dans la scène (ADR-018).
         feuilleReglages = new FeuilleReglages(this, this::paletteFeuilles,
                 this::appliquerPreferences);
-        brancherBarre();
+        // Le catalogue des actions suit la scène : les ateliers s'y
+        // trouvent montés — le menu, la carte et les intentions y lisent.
+        catalogue = new CatalogueActions(this, nomFichier, atelierLint,
+                atelierDiff, atelierAgent, atelierIA, atelierPopups,
+                atelierRefactor, atelierRecherche, basculeTheme,
+                feuilleReglages, () -> entreesPlan, this::lignesCourantes,
+                atelierBarreToolbar);
+        catalogue.brancher();
+        atelierPopups.configurerIntentions(catalogue.intentions());
         appliquerPreferences();
         appliquerBordABord();
         brancherRetour();
@@ -196,51 +192,6 @@ public final class EditorActivity extends AppCompatActivity {
         return fichier == null ? FichiersExemple.premier() : fichier;
     }
 
-    private void brancherBarre() {
-        MaterialToolbar barre = findViewById(R.id.barre_editeur);
-        barre.setTitle(nomFichier);
-        barre.setNavigationOnClickListener(vue -> finish());
-        barre.setOnMenuItemClickListener(this::surMenu);
-        actionsMenu.put(R.id.action_recherche, atelierRecherche::ouvrir);
-        actionsMenu.put(R.id.action_completion,
-                atelierPopups::basculerCompletion);
-        actionsMenu.put(R.id.action_intentions, atelierPopups::ouvrirIntentions);
-        actionsMenu.put(R.id.action_survol, atelierPopups::ouvrirSurvol);
-        actionsMenu.put(R.id.action_plan, this::basculerPlan);
-        actionsMenu.put(R.id.action_debogage, () -> {
-            etatDebogage.basculerPause();
-            majMarques();
-        });
-        actionsMenu.put(R.id.action_retour_ligne, this::basculerRetourLigne);
-        actionsMenu.put(R.id.action_annuler, () -> rejouer(false));
-        actionsMenu.put(R.id.action_retablir, () -> rejouer(true));
-        actionsMenu.put(R.id.action_lint, this::analyserLint);
-        actionsMenu.put(R.id.action_corriger, this::corrigerLint);
-        actionsMenu.put(R.id.action_gabarit, atelierRefactor::insererGabarit);
-        actionsMenu.put(R.id.action_formater, atelierRefactor::formaterDocument);
-        actionsMenu.put(R.id.action_renommer, atelierRefactor::renommerSymbole);
-        actionsMenu.put(R.id.action_importer, atelierRefactor::importerListe);
-        actionsMenu.put(R.id.action_apercu, () -> atelierPopups.docAncre()
-                .apercu(entreesPlan, lignesCourantes()));
-        actionsMenu.put(R.id.action_diff, atelierDiff::ouvrir);
-        actionsMenu.put(R.id.action_agent, atelierAgent::ouvrir);
-        actionsMenu.put(R.id.action_ia_fantome, () -> atelierIA.demanderFantome());
-        actionsMenu.put(R.id.action_ia_prediction, () -> atelierIA.demanderPrediction());
-        actionsMenu.put(R.id.action_theme, basculeTheme::tourner);
-        actionsMenu.put(R.id.action_diminuer, () -> zoomerPolice(-PAS_TAILLE));
-        actionsMenu.put(R.id.action_agrandir, () -> zoomerPolice(PAS_TAILLE));
-        actionsMenu.put(R.id.action_reglages, feuilleReglages::montrer);
-    }
-
-    private boolean surMenu(MenuItem element) {
-        Runnable action = actionsMenu.get(element.getItemId());
-        if (action == null) {
-            return false;
-        }
-        action.run();
-        return true;
-    }
-
     private void brancherScene() {
         editeur = findViewById(R.id.editeur);
         // Le contenu du fichier ouvert doit vivre dans l'éditeur.
@@ -253,8 +204,7 @@ public final class EditorActivity extends AppCompatActivity {
         // §8) : frappe intelligente, Entrée indentée, collage réindenté,
         // complétion par les mots du code.
         editeur.intelligence().setProvider(new DemoIntelligence(
-                () -> LangagesDemo.langageDe(nomFichier, null,
-                        session.document().text())));
+                this::langueOuverte));
         atelierIA = new AtelierIA(this, editeur, session, nomFichier,
                 this::paletteFeuilles, this::verdictRefactor,
                 () -> feuilleReglages.montrer());
@@ -262,19 +212,6 @@ public final class EditorActivity extends AppCompatActivity {
         // La feuille du plan vit après le thème : sa palette s'en dérive.
         feuillePlan = new FeuillePlan(this, this::paletteFeuilles,
                 this::sautVersEntree);
-        // Toute animation de vue (défilement, clic) rafraîchit la
-        // position ; les clics restent portés par EditorView, qui
-        // redéfinit performClick.
-        editeur.setOnTouchListener((vue, evenement) -> {
-            vue.post(this::majPosition);
-            // les touches de code se ré-évaluent au geste du doigt —
-            // l'état activé suit le caret
-            if (atelierBarreToolbar != null) {
-                vue.post(() -> atelierBarreToolbar.barreTouches()
-                        .refreshEnabled());
-            }
-            return false;
-        });
         editeur.setSurPlan(entrees -> {
             entreesPlan = entrees;
             editeur.post(() -> {
@@ -290,7 +227,24 @@ public final class EditorActivity extends AppCompatActivity {
         // Les pastilles et repères du fichier ouvert se posent d'entrée.
         majPastillesEtReperes();
         brancherPlanEtEtiquettes();
+        brancherSuiviTactile();
         poserEtatsDelegues();
+    }
+
+    /** Toute animation de vue (défilement, clic) rafraîchit la
+     *  position et les états des touches de code — les clics restent
+     *  portés par EditorView, qui redéfinit performClick. */
+    private void brancherSuiviTactile() {
+        editeur.setOnTouchListener((vue, evenement) -> {
+            vue.post(this::majPosition);
+            // les touches de code se ré-évaluent au geste du doigt —
+            // l'état activé suit le caret
+            if (atelierBarreToolbar != null) {
+                vue.post(() -> atelierBarreToolbar.barreTouches()
+                        .refreshEnabled());
+            }
+            return false;
+        });
     }
 
     /** La gouttière : les arrêts au clic des numéros (D-04), le rendu
@@ -339,9 +293,7 @@ public final class EditorActivity extends AppCompatActivity {
         // montage exécute, le serveur de référence reste le repli).
         atelierRefactor = new AtelierRefactor(this, editeur, session,
                 nomFichier, this::paletteFeuilles, this::verdictRefactor);
-        LanguageSupport langueOuverte = LangagesDemo.langageDe(nomFichier,
-                null, session.document().text());
-        serveurLangage = DeclaredServers.open(langueOuverte);
+        serveurLangage = DeclaredServers.open(langueOuverte());
         // L'atelier des popups : la couche posée sur l'éditeur porte
         // les dix popups, la machine à états décide qui reste ouvert.
         PopupLayer couche = findViewById(R.id.couche_popups);
@@ -358,7 +310,6 @@ public final class EditorActivity extends AppCompatActivity {
             }
         });
         atelierPopups.setNomFichier(nomFichier);
-        atelierPopups.configurerIntentions(intentionsAuCurseur());
         atelierPopups.brancherServeur(serveurLangage,
                 "file:///" + nomFichier);
         atelierSelection = new AtelierSelection(editeur, session);
@@ -377,19 +328,22 @@ public final class EditorActivity extends AppCompatActivity {
         // mot, la documentation du serveur déclaré s'y offre — comme
         // tout éditeur, la popup survit au geste, null la ferme.
         editeur.setSurAppuiLong(offset -> atelierPopups.ouvrirSurvol());
-        // Le design du dépôt de départ (le redressement du
-        // propriétaire) : le menu de DÉBORDEMENT de la toolbar vit
-        // dans la CARTE du kit — rangées cliquables du verre, jamais
-        // le menu système —, la BARRE DE TOUCHES de code vit
-        // au-dessus du clavier (Tab, commentaire, déplacements,
-        // duplication).
+        brancherToolbar();
+    }
+
+    /** Le design du dépôt de départ (le redressement du
+     *  propriétaire) : le menu de DÉBORDEMENT de la toolbar vit
+     *  dans la CARTE du kit — rangées cliquables du verre, jamais
+     *  le menu système —, la BARRE DE TOUCHES de code vit
+     *  au-dessus du clavier (Tab, commentaire, déplacements,
+     *  duplication). */
+    private void brancherToolbar() {
         atelierBarreToolbar = new AtelierBarreToolbar(
                 atelierPopups.controleur(), couche(),
                 atelierPopups.carteMenus(), paletteFeuilles());
-        atelierBarreToolbar.poserBarreTouches(touchesUsuelles());
-        actionsMenu.put(R.id.action_debordement,
-                () -> atelierBarreToolbar.ouvrirDebordement(
-                        itemsDebordement()));
+        atelierBarreToolbar.poserBarreTouches(
+                new AtelierTouchesCode(this, editeur, session,
+                        this::langueOuverte).touches());
     }
 
     /** La couche porte-popups de la scène — l'atelier de la barre s'y
@@ -398,148 +352,11 @@ public final class EditorActivity extends AppCompatActivity {
         return findViewById(R.id.couche_popups);
     }
 
-    /** Les items du menu de débordement de la toolbar — les actions
-     *  repliées, dans l'ordre du menu d'avant redressement. */
-    private List<IntentionsMenuView.Item> itemsDebordement() {
-        return List.of(
-                itemMenu(R.string.action_completion, R.id.action_completion),
-                itemMenu(R.string.action_intentions, R.id.action_intentions),
-                itemMenu(R.string.action_survol, R.id.action_survol),
-                itemMenu(R.string.action_lint, R.id.action_lint),
-                itemMenu(R.string.action_gabarit, R.id.action_gabarit),
-                itemMenu(R.string.action_formater, R.id.action_formater),
-                itemMenu(R.string.action_renommer, R.id.action_renommer),
-                itemMenu(R.string.action_ia_prediction,
-                        R.id.action_ia_prediction),
-                itemMenu(R.string.action_annuler, R.id.action_annuler),
-                itemMenu(R.string.action_retablir, R.id.action_retablir),
-                new IntentionsMenuView.Item(
-                        getString(R.string.choix_theme, basculeTheme.nomCourant()),
-                        actionsMenu.get(R.id.action_theme)),
-                itemMenu(R.string.action_diminuer, R.id.action_diminuer),
-                itemMenu(R.string.action_agrandir, R.id.action_agrandir),
-                itemMenu(R.string.action_reglages, R.id.action_reglages));
-    }
-
-    /** Un item de la carte : le libellé de la chaîne, l'action du menu
-     *  déjà branchée — le même canal, la carte seule change de peau. */
-    private IntentionsMenuView.Item itemMenu(int libelle, int id) {
-        return new IntentionsMenuView.Item(getString(libelle),
-                actionsMenu.get(id));
-    }
-
-    /** Les cinq touches usuelles de code (le dépôt de départ) : Tab,
-     *  commentaire, déplacer la ligne, dupliquer — branchées aux
-     *  moteurs purs de la maison. */
-    private List<TouchBarView.Touche> touchesUsuelles() {
-        return List.of(
-                new TouchBarView.Touche(getString(R.string.touche_tab),
-                        null, this::indenterBloc),
-                new TouchBarView.Touche(getString(R.string.touche_commenter),
-                        null, this::commenterBloc),
-                new TouchBarView.Touche(getString(R.string.touche_ligne_haut),
-                        this::pasPremiereLigne, () -> deplacerBloc(-1)),
-                new TouchBarView.Touche(getString(R.string.touche_ligne_bas),
-                        this::pasDerniereLigne, () -> deplacerBloc(1)),
-                new TouchBarView.Touche(getString(R.string.touche_dupliquer),
-                        null, this::dupliquerBloc));
-    }
-
-    /** Vrai quand le caret vit AU-DELÀ de la première ligne — la
-     *  touche « vers le haut » y reste vivante. */
-    private boolean pasPremiereLigne() {
-        return session.document().lineForOffset(
-                session.selection().ranges().isEmpty() ? 0
-                        : session.selection().ranges().get(0).caret()) > 0;
-    }
-
-    /** Vrai quand le caret vit EN-DEÇÀ de la dernière ligne — la
-     *  touche « vers le bas » y reste vivante. */
-    private boolean pasDerniereLigne() {
-        return session.document().lineForOffset(
-                session.selection().ranges().isEmpty() ? 0
-                        : session.selection().ranges().get(0).caret())
-                < session.document().lineCount() - 1;
-    }
-
     /** Le support du langage ouvert — la voie de la démonstration :
      *  le nom du fichier y décide, le texte porte les déclarations. */
     private LanguageSupport langueOuverte() {
         return LangagesDemo.langageDe(nomFichier, null,
                 session.document().text());
-    }
-
-    /** Le plan du geste appliqué — la voie unique, l'image suit. */
-    private boolean appliquer(EditPlan plan) {
-        if (session.apply(plan.transaction(), plan.selection())) {
-            editeur.invalidate();
-            return true;
-        }
-        return false;
-    }
-
-    /** Tab : le bloc touché gagne un cran — les lignes de la
-     *  sélection, le style du langage ouvert. */
-    private void indenterBloc() {
-        Document doc = session.document();
-        MultiSelection selection = session.selection();
-        IndentStyle style = styleMaison();
-        String cran = style.indent(1);
-        List<TextEdit> editions = new ArrayList<>();
-        List<SelRange> apres = new ArrayList<>();
-        int delta = 0;
-        for (SelRange plage : selection.ranges()) {
-            int premiere = doc.lineForOffset(plage.start());
-            int derniere = doc.lineForOffset(Math.max(plage.start(),
-                    plage.end() - 1));
-            for (int ligne = premiere; ligne <= derniere; ligne++) {
-                editions.add(new TextEdit(doc.lineStart(ligne) + delta,
-                        "", cran));
-                delta += cran.length();
-            }
-            apres.add(new SelRange(plage.start() + delta
-                    - (derniere - premiere + 1) * cran.length(),
-                    plage.end() + delta));
-        }
-        appliquer(new EditPlan(Transaction.of(editions),
-                MultiSelection.of(apres)));
-    }
-
-    /** Le style d'indentation du langage ouvert — la configuration y
-     *  décide, le canonique quatre espaces tient sans langage. */
-    private IndentStyle styleMaison() {
-        LanguageSupport langue = langueOuverte();
-        if (langue == null) {
-            return IndentStyle.spaces(4);
-        }
-        return langue.configuration().tabIndent()
-                ? IndentStyle.tabs(langue.configuration().indentSize())
-                : IndentStyle.spaces(langue.configuration().indentSize());
-    }
-
-    /** Commentaire : le bloc touché se commente ou se décommente —
-     *  les règles du langage ouvert, le plan vide ne fait rien. */
-    private void commenterBloc() {
-        LanguageSupport langue = langueOuverte();
-        CommentRules rules = langue == null
-                ? CommentRules.of(LanguageConfiguration.EMPTY)
-                : CommentRules.of(langue.configuration());
-        Commenter.toggle(session.document(), session.selection(), rules)
-                .ifPresent(this::appliquer);
-    }
-
-    /** Déplacement du bloc touché : le moteur pur, la direction au
-     *  signe. */
-    private void deplacerBloc(int direction) {
-        appliquer(LineActions.moveLines(session.document(),
-                session.selection(), direction));
-    }
-
-    /** Duplication du bloc touché : les curseurs descendent dans la
-     *  copie. */
-    private void dupliquerBloc() {
-        appliquer(LineActions.duplicateLines(session.document(),
-                session.selection()));
     }
 
     /** Le chrome s'étend bord à bord : encarts système et clavier
@@ -579,8 +396,7 @@ public final class EditorActivity extends AppCompatActivity {
         // M7.5, §9 — la retenue d'analyse et la surimpression de
         // diagnostic, depuis les préférences.
         sceneReglages.appliquer(prefs);
-        LanguageSupport langue = LangagesDemo.langageDe(nomFichier,
-                null, session.document().text());
+        LanguageSupport langue = langueOuverte();
         editeur.setLanguage(langue);
         etiquetteLangue.setText(langue == null ? nomFichier : langue.displayName());
         basculeTheme.majTitre();
@@ -588,7 +404,7 @@ public final class EditorActivity extends AppCompatActivity {
         majPosition();
     }
 
-    private void zoomerPolice(float pas) {
+    void zoomerPolice(float pas) {
         float courante = prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT);
         float bornee = Math.min(Math.max(courante + pas, TAILLE_MIN), TAILLE_MAX);
         prefs.edit().putFloat(CLE_TAILLE, bornee).apply();
@@ -598,7 +414,7 @@ public final class EditorActivity extends AppCompatActivity {
         }
     }
 
-    private void rejouer(boolean enAvant) {
+    void rejouer(boolean enAvant) {
         if (enAvant) {
             session.redo();
         } else {
@@ -613,7 +429,7 @@ public final class EditorActivity extends AppCompatActivity {
      * feuille du bas) : le fichier s'y parcourt, l'entrée choisie y
      * saute et la feuille se referme.
      */
-    private void basculerPlan() {
+    void basculerPlan() {
         feuillePlan.basculer();
     }
 
@@ -655,7 +471,7 @@ public final class EditorActivity extends AppCompatActivity {
      * l'état se persiste — les réglages et le retour de l'atelier
      * relisent le même état — et le libellé du menu le dit.
      */
-    private void basculerRetourLigne() {
+    void basculerRetourLigne() {
         boolean actif = !prefs.getBoolean(CLE_RETOUR, false);
         prefs.edit().putBoolean(CLE_RETOUR, actif).apply();
         editeur.setSoftWrap(actif);
@@ -672,33 +488,8 @@ public final class EditorActivity extends AppCompatActivity {
                                 : R.string.retour_inactif)));
     }
 
-    /** Les intentions du menu : les actions de l'atelier au curseur. */
-    private List<IntentionsMenuView.Item> intentionsAuCurseur() {
-        return List.of(
-                new IntentionsMenuView.Item(getString(R.string.action_lint),
-                        this::analyserLint),
-                new IntentionsMenuView.Item(
-                        getString(R.string.action_apercu),
-                        () -> atelierPopups.docAncre().apercu(
-                                entreesPlan, lignesCourantes())),
-                new IntentionsMenuView.Item(getString(R.string.action_diff),
-                        atelierDiff::ouvrir),
-                new IntentionsMenuView.Item(getString(R.string.action_agent),
-                        atelierAgent::ouvrir),
-                new IntentionsMenuView.Item(
-                        getString(R.string.action_ia_fantome),
-                        () -> atelierIA.demanderFantome()),
-                new IntentionsMenuView.Item(
-                        getString(R.string.action_ia_prediction),
-                        () -> atelierIA.demanderPrediction()));
-    }
-
     private void sautVersEntree(OutlineEntry entree) {
         NavigationCommands.placeCaret(editeur, entree.startOffset());
-    }
-
-    private void analyserLint() {
-        atelierLint.analyser();
     }
 
     /** Le relais lint : les lignes marquées accompagnent l'état. */
@@ -719,7 +510,7 @@ public final class EditorActivity extends AppCompatActivity {
      * chaque correctif devient une transaction de remplacement — donc
      * annulable d'un geste —, l'état se rafraîchit.
      */
-    private void corrigerLint() {
+    void corrigerLint() {
         int corriges = atelierLint.corriger();
         if (corriges > 0) {
             etiquetteArrets.setText(getString(R.string.lint_correctifs, corriges));
@@ -773,7 +564,7 @@ public final class EditorActivity extends AppCompatActivity {
      * ligne à ligne face au contenu d'origine (D-03), les arrêts (D-04)
      * et les repères d'exécution (D-05).
      */
-    private void majMarques() {
+    void majMarques() {
         if (editeur == null) {
             return;
         }

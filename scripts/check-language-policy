@@ -7,10 +7,14 @@ Vérifie, sur tous les fichiers versionnés :
   2. typographie française des fichiers Markdown (espace insécable avant
      « ; », « : », « ! », « ? ») ;
   3. présence d'une Javadoc pour les classes publiques des sources et spikes ;
-  4. parité des ressources de langues si des ressources existent.
+  4. parité des CHAÎNES AFFICHÉES entre values/ et values-fr/ (ADR-008 :
+     les fichiers sans élément traduisible — identifiants, couleurs, thèmes
+     — restent hors du contrôle ; les fichiers qui portent des chaînes,
+     tableaux ou plurals doivent exister en français ET y déclarer chaque
+     nom — la parité se mesure aux noms, pas à la seule existence).
 
 Usage :  python3 scripts/check-language-policy [--fix]
-Le mode --figer... --fix corrige la typographie (2) ; tout le reste échoue.
+Le mode --fix corrige la typographie (2) ; tout le reste échoue.
 """
 
 import argparse
@@ -185,8 +189,21 @@ def check_javadoc(path: str) -> list:
     return problems
 
 
+# Élément d'un fichier de ressources qui porte du texte affichable :
+# seule cette matière se traduit (ADR-008) — identifiants, couleurs et
+# thèmes ne changent jamais de langue.
+TRADUISIBLE = re.compile(r"<(?:string|string-array|plurals)\b")
+NOM_RESSOURCE = re.compile(
+    r"<(?:string|string-array|plurals)\b[^>]*?name=\"([^\"]+)\"")
+
+
+def noms_ressources(text: str) -> set:
+    """Les noms de chaînes, tableaux et plurals déclarés dans le texte."""
+    return set(NOM_RESSOURCE.findall(text))
+
+
 def check_string_parity() -> list:
-    """Vérifie values/ contre values-fr/ quand des ressources existent."""
+    """Vérifie la parité des chaînes affichées values/ ↔ values-fr/."""
     problems = []
     if not os.path.isdir("demo/src/main/res/values"):
         return problems  # aucune ressource à M0 : contrôle inactif
@@ -194,10 +211,31 @@ def check_string_parity() -> list:
         base = os.path.join(module, "src/main/res")
         if not os.path.isdir(os.path.join(base, "values")):
             continue
-        for name in os.listdir(os.path.join(base, "values")):
-            fr = os.path.join(base, "values-fr", name)
-            if not os.path.exists(fr):
+        for name in sorted(os.listdir(os.path.join(base, "values"))):
+            if not name.endswith(".xml"):
+                continue
+            chemin_defaut = os.path.join(base, "values", name)
+            try:
+                with open(chemin_defaut, encoding="utf-8") as fh:
+                    defaut = fh.read()
+            except (OSError, UnicodeDecodeError):
+                problems.append(f"{module}: values/{name} illisible")
+                continue
+            if not TRADUISIBLE.search(defaut):
+                continue  # rien de traduisible : la locale n'y change rien
+            chemin_fr = os.path.join(base, "values-fr", name)
+            try:
+                with open(chemin_fr, encoding="utf-8") as fh:
+                    francais = fh.read()
+            except (OSError, UnicodeDecodeError):
                 problems.append(f"{module}: values-fr/{name} manquant")
+                continue
+            for nom in sorted(noms_ressources(defaut) - noms_ressources(francais)):
+                problems.append(
+                    f"{module}: values-fr/{name} : « {nom} » sans traduction")
+            for nom in sorted(noms_ressources(francais) - noms_ressources(defaut)):
+                problems.append(
+                    f"{module}: values-fr/{name} : « {nom} » sans ressource par défaut")
     return problems
 
 

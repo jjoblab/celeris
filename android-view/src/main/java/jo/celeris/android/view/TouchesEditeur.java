@@ -4,6 +4,7 @@ import android.view.MotionEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -71,6 +72,38 @@ final class TouchesEditeur {
     /** La poignée tirée, None hors glissement (accès paquet, tests). */
     SelectionHandles.HandleId poigneeTiree() {
         return poigneeTiree;
+    }
+
+    /**
+     * Route l'événement tactile brut à son traitement : l'appui, le
+     * doigt posé, le déplacement, le doigt levé et le relâchement
+     * partent chacun à sa méthode ; l'action inconnue part au
+     * traitement de la vue (le survol du stylet, par exemple).
+     *
+     * @param event   l'événement tactile
+     * @param inconnu le traitement de la vue pour l'action inconnue
+     * @return vrai si l'événement est consommé
+     */
+    boolean router(MotionEvent event, Predicate<MotionEvent> inconnu) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                if (vue.fantome.touche(event.getX(), event.getY())) {
+                    return true;
+                }
+                return surAppui(event);
+            case MotionEvent.ACTION_POINTER_DOWN:
+                return surDoigtPose(event);
+            case MotionEvent.ACTION_MOVE:
+                return surDeplacement(event);
+            case MotionEvent.ACTION_POINTER_UP:
+                return surDoigtLeve();
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                vue.performClick();
+                return surRelachement(event);
+            default:
+                return inconnu.test(event);
+        }
     }
 
     /**
