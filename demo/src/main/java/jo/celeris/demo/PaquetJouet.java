@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import jo.celeris.core.language.packs.Packs;
 
 /**
  * Le paquet jouet de l'utilisateur (H-04, M9) : un langage ENTIER — le
@@ -15,7 +16,7 @@ import java.util.Map;
  * {@code outline.json}, {@code snippets.json}). Les réglages de la
  * démonstration le copient au stockage ({@code paquets/logo/}) ou
  * l'en retirent ; le registre le charge à chaud par le dossier des
- * paquets ({@link jo.celeris.core.language.Packs#folder}) — ajouter un
+ * paquets ({@link jo.celeris.core.language.packs.Packs#folder}) — ajouter un
  * langage ne demande AUCUNE recompilation, c'est cela que la
  * démonstration démontre.
  *

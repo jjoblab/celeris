@@ -11,8 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.syntax.JavaSyntax;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
 

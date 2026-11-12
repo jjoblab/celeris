@@ -1,5 +1,6 @@
 package jo.celeris.core.syntax.grammars;
 
+import jo.celeris.core.syntax.scope.ScopeStacks;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.syntax.LexState;
 import jo.celeris.core.syntax.LexedLine;
-import jo.celeris.core.syntax.ScopeStacks;
+
 
 /**
  * Le banc de conformité des grammaires du commerce (M7.6, H-05) : les

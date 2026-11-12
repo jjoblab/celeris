@@ -24,8 +24,9 @@ import jo.celeris.core.intelligence.ImportAuto;
 import jo.celeris.core.intelligence.IndexSymboles;
 import jo.celeris.core.intelligence.IndentStyle;
 import jo.celeris.core.intelligence.Renommage;
+import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.language.LanguageSupport;
+
 import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;

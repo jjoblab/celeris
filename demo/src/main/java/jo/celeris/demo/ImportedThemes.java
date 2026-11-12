@@ -8,9 +8,12 @@ import java.nio.charset.StandardCharsets;
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.SyntaxPalette;
 import jo.celeris.core.language.TokenColorsTheme;
-import jo.celeris.core.syntax.ScopeStacks;
-import jo.celeris.core.syntax.ScopeStyle;
-import jo.celeris.core.syntax.ScopeTheme;
+import jo.celeris.core.syntax.scope.ScopeStacks;
+import jo.celeris.core.syntax.scope.ScopeStyle;
+import jo.celeris.core.syntax.scope.ScopeTheme;
+
+
+
 
 
 import org.jspecify.annotations.Nullable;

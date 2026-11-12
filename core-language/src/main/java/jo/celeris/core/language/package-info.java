@@ -4,7 +4,7 @@
  * sources syntaxiques. Les analyseurs écrits s'enregistrent
  * ({@link jo.celeris.core.language.WrittenLanguages}) ; la case
  * tree-sitter du niveau 2 s'y déclare aussi
- * ({@link jo.celeris.core.language.TreeSitterLanguages}) — vide à
+ * ({@link jo.celeris.core.language.packs.TreeSitterLanguages}) — vide à
  * M7.6 (ADR-016), prête à l'hôte qui embarquerait l'arrière natif.
  */
 @NullMarked

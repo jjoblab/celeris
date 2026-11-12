@@ -1,5 +1,6 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

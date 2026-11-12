@@ -6,8 +6,10 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import jo.celeris.core.language.LanguageServerDeclaration;
-import jo.celeris.core.language.LanguageSupport;
+import jo.celeris.core.language.model.LanguageServerDeclaration;
+import jo.celeris.core.language.model.LanguageSupport;
+
+
 
 import org.jspecify.annotations.Nullable;
 

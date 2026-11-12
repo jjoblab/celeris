@@ -33,12 +33,12 @@ DOSSIER_PAQUETS = os.path.join(
 EXEMPTIONS = {
     # l'enregistrement des analyseurs écrits (le SPI de core-syntax
     # déclare l'identifiant du langage qu'il analyse)
-    "core-syntax/src/main/java/jo/celeris/core/syntax/JavaSyntax.java",
-    "core-syntax/src/main/java/jo/celeris/core/syntax/KotlinSyntax.java",
-    "core-syntax/src/main/java/jo/celeris/core/syntax/KtsSyntax.java",
-    "core-syntax/src/main/java/jo/celeris/core/syntax/GroovySyntax.java",
-    "core-syntax/src/main/java/jo/celeris/core/syntax/XmlSyntax.java",
-    "core-syntax/src/main/java/jo/celeris/core/syntax/JsonSyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/clike/JavaSyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/clike/KotlinSyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/clike/KtsSyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/clike/GroovySyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/xml/XmlSyntax.java",
+    "core-syntax/src/main/java/jo/celeris/core/syntax/json/JsonSyntax.java",
     # l'attache des analyseurs écrits à la plateforme
     "core-language/src/main/java/jo/celeris/core/language/WrittenLanguages.java",
     # la constante du protocole LSP (MarkupKind.markdown) — un genre de

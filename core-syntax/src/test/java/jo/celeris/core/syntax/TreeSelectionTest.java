@@ -1,5 +1,9 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.clike.JavaSyntax;
+import jo.celeris.core.syntax.clike.KotlinSyntax;
+import jo.celeris.core.syntax.structure.TreeSelection;
+import jo.celeris.core.syntax.xml.XmlSyntax;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 

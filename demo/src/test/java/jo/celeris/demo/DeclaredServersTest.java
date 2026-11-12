@@ -1,5 +1,8 @@
 package jo.celeris.demo;
 
+import jo.celeris.core.language.model.LanguageDescriptor;
+import jo.celeris.core.language.model.LanguageServerDeclaration;
+import jo.celeris.core.language.model.LanguageSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -8,9 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Map;
 
-import jo.celeris.core.language.LanguageDescriptor;
-import jo.celeris.core.language.LanguageServerDeclaration;
-import jo.celeris.core.language.LanguageSupport;
+
+
+
 
 import org.junit.jupiter.api.Test;
 

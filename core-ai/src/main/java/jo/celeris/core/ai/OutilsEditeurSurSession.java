@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;

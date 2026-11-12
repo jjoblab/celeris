@@ -1,5 +1,7 @@
 package jo.celeris.core.lsp;
 
+import jo.celeris.core.lsp.types.SemanticTokenLsp;
+import jo.celeris.core.lsp.types.SemanticTokensLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

@@ -1,5 +1,9 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.structure.FoldSpan;
+import jo.celeris.core.syntax.structure.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineRule;
+import jo.celeris.core.syntax.structure.RuleOutline;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;

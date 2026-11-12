@@ -1,5 +1,7 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.structure.FoldSpan;
+import jo.celeris.core.syntax.structure.TreeFolds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

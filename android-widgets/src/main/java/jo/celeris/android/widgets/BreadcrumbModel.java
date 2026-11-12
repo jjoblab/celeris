@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.function.ToIntFunction;
 
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.OutlineEntry;
-import jo.celeris.core.syntax.TreeOutline;
+import jo.celeris.core.syntax.structure.OutlineEntry;
+import jo.celeris.core.syntax.structure.TreeOutline;
 import jo.celeris.core.text.Document;
 
 /**

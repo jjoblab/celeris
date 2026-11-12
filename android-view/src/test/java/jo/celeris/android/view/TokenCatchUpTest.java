@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 import jo.celeris.core.syntax.EditSite;
-import jo.celeris.core.syntax.JavaSyntax;
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.syntax.LexDocument;
 import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.SyntaxService;

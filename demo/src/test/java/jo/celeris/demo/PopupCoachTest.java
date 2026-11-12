@@ -1,5 +1,6 @@
 package jo.celeris.demo;
 
+import jo.celeris.core.syntax.structure.OutlineEntry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 import jo.celeris.core.syntax.NodeCategory;
-import jo.celeris.core.syntax.OutlineEntry;
+
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
 

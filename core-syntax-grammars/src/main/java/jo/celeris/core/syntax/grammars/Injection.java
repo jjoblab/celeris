@@ -2,7 +2,8 @@ package jo.celeris.core.syntax.grammars;
 
 import java.util.List;
 
-import jo.celeris.core.syntax.ScopeSelector;
+import jo.celeris.core.syntax.scope.ScopeSelector;
+
 
 /**
  * Une injection de grammaire (M7.6, H-05) : des règles qui s'appliquent

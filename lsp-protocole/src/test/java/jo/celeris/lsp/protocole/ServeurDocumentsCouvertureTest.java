@@ -1,5 +1,19 @@
 package jo.celeris.lsp.protocole;
 
+import jo.celeris.core.lsp.types.CorrectifLsp;
+import jo.celeris.core.lsp.types.EditionDocumentLsp;
+import jo.celeris.core.lsp.types.EditionEspaceLsp;
+import jo.celeris.core.lsp.types.EditionTexteLsp;
+import jo.celeris.core.lsp.types.IndiceLsp;
+import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.OptionsFormatageLsp;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PliLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.PreparationRennomageLsp;
+import jo.celeris.core.lsp.types.SemanticTokensLsp;
+import jo.celeris.core.lsp.types.SurlignageLsp;
+import jo.celeris.core.lsp.types.SymboleLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,20 +25,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jo.celeris.core.lsp.CorrectifLsp;
-import jo.celeris.core.lsp.EditionDocumentLsp;
-import jo.celeris.core.lsp.EditionEspaceLsp;
-import jo.celeris.core.lsp.EditionTexteLsp;
-import jo.celeris.core.lsp.IndiceLsp;
-import jo.celeris.core.lsp.LieuLsp;
-import jo.celeris.core.lsp.OptionsFormatageLsp;
-import jo.celeris.core.lsp.PlageLsp;
-import jo.celeris.core.lsp.PliLsp;
-import jo.celeris.core.lsp.PositionLsp;
-import jo.celeris.core.lsp.PreparationRennomageLsp;
-import jo.celeris.core.lsp.SemanticTokensLsp;
-import jo.celeris.core.lsp.SurlignageLsp;
-import jo.celeris.core.lsp.SymboleLsp;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * La couverture du jalon (H-12) exercée au MONTEUR : le serveur de

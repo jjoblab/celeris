@@ -3,13 +3,19 @@ package jo.celeris.core.language;
 import java.util.Map;
 import java.util.Set;
 
-import jo.celeris.core.syntax.GroovySyntax;
-import jo.celeris.core.syntax.JavaSyntax;
-import jo.celeris.core.syntax.JsonSyntax;
-import jo.celeris.core.syntax.KotlinSyntax;
-import jo.celeris.core.syntax.KtsSyntax;
+import jo.celeris.core.syntax.clike.GroovySyntax;
+import jo.celeris.core.syntax.clike.JavaSyntax;
+import jo.celeris.core.syntax.json.JsonSyntax;
+import jo.celeris.core.syntax.clike.KotlinSyntax;
+import jo.celeris.core.syntax.clike.KtsSyntax;
 import jo.celeris.core.syntax.LanguageSyntax;
-import jo.celeris.core.syntax.XmlSyntax;
+import jo.celeris.core.syntax.xml.XmlSyntax;
+
+
+
+
+
+
 
 import org.jspecify.annotations.Nullable;
 

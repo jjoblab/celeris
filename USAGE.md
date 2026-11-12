@@ -313,7 +313,7 @@ import jo.celeris.core.language.Completion;
 import jo.celeris.core.language.LanguageDetection;
 import jo.celeris.core.language.LanguagePlatform;
 import jo.celeris.core.language.LanguageRegistry;
-import jo.celeris.core.language.LanguageSupport;
+import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.grammars.PackGrammars;
 
 LanguageRegistry registre = LanguagePlatform
@@ -363,7 +363,7 @@ aucune recompilation — six fichiers, trois obligatoires :
 Chargement depuis votre stockage :
 
 ```java
-import jo.celeris.core.language.Packs;
+import jo.celeris.core.language.packs.Packs;
 
 LanguagePlatform plateforme = LanguagePlatform
         .with(PackGrammars.INSTANCE)
@@ -404,7 +404,7 @@ l'hôte seul décide de le monter. Le format :
 ```
 
 ```java
-import jo.celeris.core.language.LanguageServerDeclaration;
+import jo.celeris.core.language.model.LanguageServerDeclaration;
 import jo.celeris.lsp.protocole.ServeurEmbarque;
 
 List<LanguageServerDeclaration> declarations =

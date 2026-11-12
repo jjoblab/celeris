@@ -6,10 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import jo.celeris.core.syntax.scope.ScopeSelector;
 import org.jspecify.annotations.Nullable;
 
 import jo.celeris.core.language.JsonReader;
-import jo.celeris.core.syntax.ScopeSelector;
+
 
 /**
  * Chargeur de grammaires au format TextMate réel (ADR-004 révisé,

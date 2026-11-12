@@ -2,6 +2,7 @@ package jo.celeris.core.language;
 
 import java.util.List;
 
+import jo.celeris.core.language.model.LanguageCapability;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.text.Document;
 

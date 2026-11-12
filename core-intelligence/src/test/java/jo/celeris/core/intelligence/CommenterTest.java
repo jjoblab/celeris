@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.junit.jupiter.api.Test;
 
-import jo.celeris.core.language.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageConfiguration;
 
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;

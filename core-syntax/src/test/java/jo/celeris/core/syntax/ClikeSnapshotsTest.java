@@ -1,5 +1,9 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.clike.GroovySyntax;
+import jo.celeris.core.syntax.clike.JavaSyntax;
+import jo.celeris.core.syntax.clike.KotlinSyntax;
+import jo.celeris.core.syntax.clike.KtsSyntax;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;

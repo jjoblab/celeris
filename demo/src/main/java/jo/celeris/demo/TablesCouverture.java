@@ -4,20 +4,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import jo.celeris.core.lsp.CorrectifLsp;
-import jo.celeris.core.lsp.EditionEspaceLsp;
-import jo.celeris.core.lsp.EditionTexteLsp;
-import jo.celeris.core.lsp.IndiceLsp;
-import jo.celeris.core.lsp.SemanticTokensLsp;
-import jo.celeris.core.lsp.LieuLsp;
-import jo.celeris.core.lsp.OptionsFormatageLsp;
-import jo.celeris.core.lsp.PlageLsp;
-import jo.celeris.core.lsp.PliLsp;
-import jo.celeris.core.lsp.PositionLsp;
+import jo.celeris.core.lsp.types.CorrectifLsp;
+import jo.celeris.core.lsp.types.EditionEspaceLsp;
+import jo.celeris.core.lsp.types.EditionTexteLsp;
+import jo.celeris.core.lsp.types.IndiceLsp;
+import jo.celeris.core.lsp.types.SemanticTokensLsp;
+import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.OptionsFormatageLsp;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PliLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
 import jo.celeris.core.lsp.PositionsLsp;
-import jo.celeris.core.lsp.PreparationRennomageLsp;
-import jo.celeris.core.lsp.SurlignageLsp;
-import jo.celeris.core.lsp.SymboleLsp;
+import jo.celeris.core.lsp.types.PreparationRennomageLsp;
+import jo.celeris.core.lsp.types.SurlignageLsp;
+import jo.celeris.core.lsp.types.SymboleLsp;
+
+import jo.celeris.core.lsp.types.EditionDocumentLsp;
+
+
+
+
+
+
+
+
+
+
+
+
 import jo.celeris.core.text.Document;
 
 import org.jspecify.annotations.Nullable;
@@ -224,7 +238,7 @@ final class TablesCouverture {
         surlignages(uri, position).forEach(surlignage -> editions.add(
                 new EditionTexteLsp(surlignage.plage(), nouveauNom)));
         return new EditionEspaceLsp(
-                List.of(new jo.celeris.core.lsp.EditionDocumentLsp(uri, -1,
+                List.of(new jo.celeris.core.lsp.types.EditionDocumentLsp(uri, -1,
                         editions)),
                 List.of());
     }

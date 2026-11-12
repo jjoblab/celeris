@@ -3,6 +3,17 @@ package jo.celeris.lsp.protocole;
 import java.util.ArrayList;
 import java.util.List;
 
+import jo.celeris.core.lsp.types.CorrectifLsp;
+import jo.celeris.core.lsp.types.EditionEspaceLsp;
+import jo.celeris.core.lsp.types.EditionTexteLsp;
+import jo.celeris.core.lsp.types.IndiceLsp;
+import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PliLsp;
+import jo.celeris.core.lsp.types.PreparationRennomageLsp;
+import jo.celeris.core.lsp.types.SemanticTokensLsp;
+import jo.celeris.core.lsp.types.SurlignageLsp;
+import jo.celeris.core.lsp.types.SymboleLsp;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.DocumentHighlight;
@@ -21,17 +32,17 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
 import org.jspecify.annotations.Nullable;
 
-import jo.celeris.core.lsp.CorrectifLsp;
-import jo.celeris.core.lsp.EditionEspaceLsp;
-import jo.celeris.core.lsp.EditionTexteLsp;
-import jo.celeris.core.lsp.IndiceLsp;
-import jo.celeris.core.lsp.SemanticTokensLsp;
-import jo.celeris.core.lsp.LieuLsp;
-import jo.celeris.core.lsp.PlageLsp;
-import jo.celeris.core.lsp.PliLsp;
-import jo.celeris.core.lsp.PreparationRennomageLsp;
-import jo.celeris.core.lsp.SurlignageLsp;
-import jo.celeris.core.lsp.SymboleLsp;
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * La correspondance des réponses de la COUVERTURE du jalon (H-12,

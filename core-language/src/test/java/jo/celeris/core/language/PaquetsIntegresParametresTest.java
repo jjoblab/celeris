@@ -1,5 +1,11 @@
 package jo.celeris.core.language;
 
+import jo.celeris.core.language.model.LanguageConfiguration;
+import jo.celeris.core.language.packs.GrammarFactory;
+import jo.celeris.core.language.packs.LanguagePack;
+import jo.celeris.core.language.packs.PackLoader;
+import jo.celeris.core.language.packs.PackSource;
+import jo.celeris.core.language.packs.Packs;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,7 +31,7 @@ final class PaquetsIntegresParametresTest {
 
     /** La fabrique de banc : la grammaire exacte n'importe pas ici. */
     private static final GrammarFactory FABRIQUE =
-            (id, json) -> jo.celeris.core.syntax.JavaSyntax.INSTANCE;
+            (id, json) -> jo.celeris.core.syntax.clike.JavaSyntax.INSTANCE;
 
     /** Les identifiants des paquets intégrés, par l'index du module. */
     static Stream<String> idsDesPaquets() throws IOException {

@@ -1,6 +1,6 @@
 package jo.celeris.core.intelligence;
 
-import jo.celeris.core.language.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageConfiguration;
 
 import org.jspecify.annotations.Nullable;
 

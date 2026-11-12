@@ -3,7 +3,7 @@ package jo.celeris.android.view;
 import java.util.Arrays;
 import java.util.List;
 
-import jo.celeris.core.syntax.FoldSpan;
+import jo.celeris.core.syntax.structure.FoldSpan;
 
 import org.jspecify.annotations.Nullable;
 

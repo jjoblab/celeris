@@ -2,9 +2,9 @@ package jo.celeris.android.view;
 
 import java.util.List;
 
-import jo.celeris.core.syntax.ScopeStacks;
-import jo.celeris.core.syntax.ScopeStyle;
-import jo.celeris.core.syntax.ScopeTheme;
+import jo.celeris.core.syntax.scope.ScopeStacks;
+import jo.celeris.core.syntax.scope.ScopeStyle;
+import jo.celeris.core.syntax.scope.ScopeTheme;
 import jo.celeris.core.syntax.TokenKind;
 
 /**

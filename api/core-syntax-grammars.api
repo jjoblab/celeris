@@ -129,11 +129,11 @@ public final class jo.celeris.core.syntax.grammars.Grammaires {
 ### jo.celeris.core.syntax.grammars.Injection
 Compiled from "Injection.java"
 public final class jo.celeris.core.syntax.grammars.Injection extends java.lang.Record {
-  public jo.celeris.core.syntax.grammars.Injection(jo.celeris.core.syntax.ScopeSelector, java.util.List<jo.celeris.core.syntax.grammars.Regle>, boolean);
+  public jo.celeris.core.syntax.grammars.Injection(jo.celeris.core.syntax.scope.ScopeSelector, java.util.List<jo.celeris.core.syntax.grammars.Regle>, boolean);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public jo.celeris.core.syntax.ScopeSelector selector();
+  public jo.celeris.core.syntax.scope.ScopeSelector selector();
   public java.util.List<jo.celeris.core.syntax.grammars.Regle> regles();
   public boolean prioriteGauche();
 }
@@ -145,7 +145,7 @@ final class jo.celeris.core.syntax.grammars.LecteurGrammaire {
 
 ### jo.celeris.core.syntax.grammars.PackGrammars
 Compiled from "PackGrammars.java"
-public final class jo.celeris.core.syntax.grammars.PackGrammars implements jo.celeris.core.language.GrammarFactory {
+public final class jo.celeris.core.syntax.grammars.PackGrammars implements jo.celeris.core.language.packs.GrammarFactory {
   public static final jo.celeris.core.syntax.grammars.PackGrammars INSTANCE;
   public jo.celeris.core.syntax.LanguageSyntax compile(java.lang.String, java.lang.String);
 }

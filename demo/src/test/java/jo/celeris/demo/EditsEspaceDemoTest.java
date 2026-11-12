@@ -1,5 +1,11 @@
 package jo.celeris.demo;
 
+import jo.celeris.core.lsp.types.EditionDocumentLsp;
+import jo.celeris.core.lsp.types.EditionEspaceLsp;
+import jo.celeris.core.lsp.types.EditionGabaritLsp;
+import jo.celeris.core.lsp.types.EditionTexteLsp;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,13 +15,13 @@ import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.intelligence.Gabarit;
 import jo.celeris.core.intelligence.Gabarits;
-import jo.celeris.core.lsp.EditionDocumentLsp;
-import jo.celeris.core.lsp.EditionEspaceLsp;
-import jo.celeris.core.lsp.EditionGabaritLsp;
-import jo.celeris.core.lsp.EditionTexteLsp;
+
+
+
+
 import jo.celeris.core.lsp.EditsEspaceLsp;
-import jo.celeris.core.lsp.PlageLsp;
-import jo.celeris.core.lsp.PositionLsp;
+
+
 import jo.celeris.core.lsp.PositionsLsp;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;

@@ -1,5 +1,7 @@
 package jo.celeris.core.syntax.grammars;
 
+import jo.celeris.core.syntax.structure.FoldSpan;
+import jo.celeris.core.syntax.structure.TreeFolds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -8,10 +10,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.FoldSpan;
+
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.SyntaxService;
-import jo.celeris.core.syntax.TreeFolds;
+
 import jo.celeris.core.text.Document;
 
 /**

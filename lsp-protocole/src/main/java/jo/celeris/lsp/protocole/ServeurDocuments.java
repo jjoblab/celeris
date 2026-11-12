@@ -1,5 +1,16 @@
 package jo.celeris.lsp.protocole;
 
+import static jo.celeris.lsp.protocole.EcritureDocuments.position;
+import static jo.celeris.lsp.protocole.EcritureDocuments.lirePlage;
+import static jo.celeris.lsp.protocole.EcritureDocuments.ecrirePlagesSelection;
+import static jo.celeris.lsp.protocole.EcritureDocuments.plage;
+import static jo.celeris.lsp.protocole.EcritureDocuments.ecrireSignature;
+import static jo.celeris.lsp.protocole.EcritureDocuments.ecrireSymbole;
+import static jo.celeris.lsp.protocole.EcritureDocuments.ecrireEditions;
+import static jo.celeris.lsp.protocole.EcritureDocuments.ecrireEspace;
+import static jo.celeris.lsp.protocole.EcritureDocuments.optionsFormatage;
+import static jo.celeris.lsp.protocole.EcritureDocuments.encoderJetons;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -30,7 +41,6 @@ import org.eclipse.lsp4j.InlayHintLabelPart;
 import org.eclipse.lsp4j.InlayHintParams;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
-import org.eclipse.lsp4j.ParameterInformation;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
@@ -45,10 +55,7 @@ import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.SignatureHelp;
 import org.eclipse.lsp4j.SignatureHelpOptions;
 import org.eclipse.lsp4j.SignatureHelpParams;
-import org.eclipse.lsp4j.SignatureInformation;
 import org.eclipse.lsp4j.SymbolInformation;
-import org.eclipse.lsp4j.TextDocumentEdit;
-import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -58,23 +65,19 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import org.jspecify.annotations.Nullable;
 
-import jo.celeris.core.lsp.CorrectifLsp;
-import jo.celeris.core.lsp.EditionDocumentLsp;
-import jo.celeris.core.lsp.EditionEspaceLsp;
-import jo.celeris.core.lsp.EditionTexteLsp;
-import jo.celeris.core.lsp.IndiceLsp;
-import jo.celeris.core.lsp.SemanticTokenLsp;
-import jo.celeris.core.lsp.SemanticTokensLsp;
-import jo.celeris.core.lsp.LieuLsp;
-import jo.celeris.core.lsp.OptionsFormatageLsp;
-import jo.celeris.core.lsp.PlageLsp;
-import jo.celeris.core.lsp.PliLsp;
-import jo.celeris.core.lsp.PositionLsp;
-import jo.celeris.core.lsp.PreparationRennomageLsp;
-import jo.celeris.core.lsp.SignatureLsp;
-import jo.celeris.core.lsp.SurlignageLsp;
-import jo.celeris.core.lsp.SurvolLsp;
-import jo.celeris.core.lsp.SymboleLsp;
+import jo.celeris.core.lsp.types.CorrectifLsp;
+import jo.celeris.core.lsp.types.EditionEspaceLsp;
+import jo.celeris.core.lsp.types.IndiceLsp;
+import jo.celeris.core.lsp.types.SemanticTokensLsp;
+import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PliLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.PreparationRennomageLsp;
+import jo.celeris.core.lsp.types.SignatureLsp;
+import jo.celeris.core.lsp.types.SurlignageLsp;
+import jo.celeris.core.lsp.types.SurvolLsp;
+import jo.celeris.core.lsp.types.SymboleLsp;
 
 /**
  * L'adaptateur du SPI du domaine au service de documents de la
@@ -420,170 +423,14 @@ final class ServeurDocuments implements LanguageServer {
         }
     }
 
-    /** La position du domaine des paramètres de la bibliothèque. */
-    private static PositionLsp position(
-            org.eclipse.lsp4j.TextDocumentPositionParams params) {
-        return new PositionLsp(params.getPosition().getLine(),
-                params.getPosition().getCharacter());
-    }
-
-    /** La plage du protocole au domaine — jamais nulle ici, l'appel est né d'elle. */
-    private static PlageLsp lirePlage(Range plage) {
-        return new PlageLsp(
-                new PositionLsp(plage.getStart().getLine(),
-                        plage.getStart().getCharacter()),
-                new PositionLsp(plage.getEnd().getLine(),
-                        plage.getEnd().getCharacter()));
-    }
-
-    /**
-     * La chaîne des plages englobantes au protocole : la plus large
-     * devient le parent de la précédente, la plus intime répond.
-     */
-    private static org.eclipse.lsp4j.SelectionRange ecrirePlagesSelection(
-            List<PlageLsp> plages) {
-        org.eclipse.lsp4j.SelectionRange chaine =
-                new org.eclipse.lsp4j.SelectionRange(
-                        plage(plages.get(plages.size() - 1)), null);
-        for (int i = plages.size() - 2; i >= 0; i--) {
-            chaine = new org.eclipse.lsp4j.SelectionRange(
-                    plage(plages.get(i)), chaine);
-        }
-        return chaine;
-    }
-
-    /** La plage du domaine au Range de la bibliothèque — null reste null. */
-    private static @Nullable Range plage(@Nullable PlageLsp plage) {
-        return plage == null ? null : new Range(
-                new Position(plage.debut().ligne(), plage.debut().colonne()),
-                new Position(plage.fin().ligne(), plage.fin().colonne()));
-    }
-
-    /** L'aide aux paramètres du domaine à la réponse du protocole. */
-    private static SignatureHelp ecrireSignature(SignatureLsp aide) {
-        List<SignatureInformation> signatures = new ArrayList<>();
-        for (SignatureLsp.Entree entree : aide.entrees()) {
-            List<ParameterInformation> parametres = new ArrayList<>();
-            for (SignatureLsp.Parametre parametre : entree.parametres()) {
-                parametres.add(new ParameterInformation(parametre.libelle()));
-            }
-            signatures.add(new SignatureInformation(entree.libelle(),
-                    entree.documentation(), parametres));
-        }
-        SignatureHelp reponse = new SignatureHelp();
-        reponse.setSignatures(signatures);
-        if (aide.signatureActiveIndex() >= 0
-                && aide.signatureActiveIndex() < signatures.size()) {
-            reponse.setActiveSignature(aide.signatureActiveIndex());
-        }
-        if (aide.parametreCourant() >= 0) {
-            reponse.setActiveParameter(aide.parametreCourant());
-        }
-        return reponse;
-    }
-
-        /** Le symbole du domaine au symbole du protocole, ses enfants suivent. */
-        private static DocumentSymbol ecrireSymbole(
-                SymboleLsp symbole) {
-            List<DocumentSymbol> enfants = new ArrayList<>();
-            for (SymboleLsp enfant : symbole.enfants()) {
-                enfants.add(ecrireSymbole(enfant));
-            }
-            return new DocumentSymbol(symbole.nom(),
-                    SymbolKind.forValue(symbole.genre()),
-                    plage(symbole.plage()),
-                    symbole.plageSelection() == null ? plage(symbole.plage())
-                            : plage(symbole.plageSelection()),
-                    null, enfants);
-        }
-
-        /** Les éditions du domaine aux éditions du protocole. */
-        private static List<TextEdit> ecrireEditions(
-                List<EditionTexteLsp> editions) {
-            List<TextEdit> protocole = new ArrayList<>();
-            for (EditionTexteLsp edition : editions) {
-                protocole.add(new TextEdit(
-                        plage(edition.plage()), edition.nouveauTexte()));
-            }
-            return protocole;
-        }
-
-        /**
-         * L'édition d'espace du domaine au protocole : la forme moderne
-         * {@code documentChanges} porte les versions, les gabarits y
-         * voyagent en édits de gabarit — le aller-retour ne perd rien.
-         */
-        private static @Nullable WorkspaceEdit ecrireEspace(
-                EditionEspaceLsp espace) {
-            if (espace.documents().isEmpty() && espace.gabarits().isEmpty()) {
-                return null;
-            }
-            WorkspaceEdit protocole = new WorkspaceEdit();
-            List<Either<TextDocumentEdit,
-                    org.eclipse.lsp4j.ResourceOperation>> changements =
-                            new ArrayList<>();
-            for (EditionDocumentLsp document : espace.documents()) {
-                List<Either<TextEdit,
-                        org.eclipse.lsp4j.SnippetTextEdit>> editions =
-                                new ArrayList<>();
-                for (EditionTexteLsp edition : document.editions()) {
-                    editions.add(Either.forLeft(new TextEdit(
-                            plage(edition.plage()), edition.nouveauTexte())));
-                }
-                changements.add(Either.forLeft(new TextDocumentEdit(
-                        new org.eclipse.lsp4j.VersionedTextDocumentIdentifier(
-                                document.uri(), document.version()),
-                        editions)));
-            }
-            for (jo.celeris.core.lsp.EditionGabaritLsp gabarit
-                    : espace.gabarits()) {
-                List<Either<TextEdit,
-                        org.eclipse.lsp4j.SnippetTextEdit>> editions =
-                                new ArrayList<>();
-                Range ancrage = new Range(
-                        new Position(gabarit.position().ligne(),
-                                gabarit.position().colonne()),
-                        new Position(gabarit.position().ligne(),
-                                gabarit.position().colonne()));
-                org.eclipse.lsp4j.StringValue corps =
-                        new org.eclipse.lsp4j.StringValue();
-                corps.setValue(gabarit.corps());
-                editions.add(Either.forRight(
-                        new org.eclipse.lsp4j.SnippetTextEdit(ancrage,
-                                corps)));
-                changements.add(Either.forLeft(new TextDocumentEdit(
-                        new org.eclipse.lsp4j.VersionedTextDocumentIdentifier(
-                                gabarit.uri(), -1),
-                        editions)));
-            }
-            protocole.setDocumentChanges(changements);
-            return protocole;
-        }
-
-        /** Les options de formatage du protocole au domaine. */
-        private static OptionsFormatageLsp optionsFormatage(
-                org.eclipse.lsp4j.FormattingOptions options) {
-            return new OptionsFormatageLsp(options.getTabSize(),
-                    options.isInsertSpaces());
-        }
-
-        /** Les jetons absolus du domaine redeviennent la charge encodée du protocole. */
-        private static List<Integer> encoderJetons(SemanticTokensLsp jetons) {
-            List<Integer> donnees = new ArrayList<>();
-            int lignePrecedente = 0;
-            int colonnePrecedente = 0;
-            for (SemanticTokenLsp jeton : jetons.jetons()) {
-                donnees.add(jeton.ligne() - lignePrecedente);
-                donnees.add(jeton.ligne() == lignePrecedente
-                        ? jeton.colonne() - colonnePrecedente
-                        : jeton.colonne());
-                donnees.add(jeton.longueur());
-                donnees.add(jeton.type());
-                donnees.add(jeton.modificateurs());
-                lignePrecedente = jeton.ligne();
-                colonnePrecedente = jeton.colonne();
-            }
-            return donnees;
-        }
-
+    
+    
+    
+    
+    
+        
+        
+        
+        
+        
 }

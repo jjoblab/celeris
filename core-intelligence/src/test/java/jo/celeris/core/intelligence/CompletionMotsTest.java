@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.JavaSyntax;
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.syntax.SyntaxService;
 import jo.celeris.core.text.Document;
 

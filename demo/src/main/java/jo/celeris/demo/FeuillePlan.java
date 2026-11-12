@@ -11,7 +11,8 @@ import java.util.function.Supplier;
 import jo.celeris.android.widgets.FeuilleBas;
 import jo.celeris.android.widgets.OutlineView;
 import jo.celeris.android.widgets.PopupPalette;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineEntry;
+
 
 /**
  * La feuille du plan de la démonstration (ADR-018, chantier C12) : le

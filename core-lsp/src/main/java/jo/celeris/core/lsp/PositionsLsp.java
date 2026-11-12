@@ -1,5 +1,7 @@
 package jo.celeris.core.lsp;
 
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
 import jo.celeris.core.text.Document;
 
 /**

@@ -1,5 +1,13 @@
 package jo.celeris.core.lsp;
 
+import jo.celeris.core.lsp.types.DiagnosticLsp;
+import jo.celeris.core.lsp.types.EditionEspaceLsp;
+import jo.celeris.core.lsp.types.EditionGabaritLsp;
+import jo.celeris.core.lsp.types.IndiceLsp;
+import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.SurvolLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

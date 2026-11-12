@@ -9,9 +9,11 @@ import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.intelligence.JavaSmartTyping;
 import jo.celeris.core.intelligence.IndentStyle;
 import jo.celeris.core.intelligence.SmartTyping;
-import jo.celeris.core.language.LanguageSupport;
+import jo.celeris.core.language.model.LanguageSupport;
+
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.JavaSyntax;
+import jo.celeris.core.syntax.clike.JavaSyntax;
+
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 

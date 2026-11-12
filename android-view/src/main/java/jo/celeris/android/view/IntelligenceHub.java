@@ -11,7 +11,7 @@ import jo.celeris.core.intelligence.PasteReindenter;
 import jo.celeris.core.intelligence.SmartTyping;
 import jo.celeris.core.intelligence.TypingRules;
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.language.LanguageSupport;
+import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;

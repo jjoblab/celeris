@@ -1,5 +1,6 @@
 package jo.celeris.demo;
 
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -7,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jo.celeris.core.intelligence.EditPlan;
-import jo.celeris.core.syntax.JavaSyntax;
+
 import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;

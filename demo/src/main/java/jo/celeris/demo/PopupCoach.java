@@ -12,10 +12,13 @@ import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionListView;
 import jo.celeris.android.widgets.ErrorBandModel;
 import jo.celeris.android.widgets.SignatureAideModel;
-import jo.celeris.core.lsp.ElementCompletion;
-import jo.celeris.core.lsp.ListeCompletion;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.lsp.types.ElementCompletion;
+import jo.celeris.core.lsp.types.ListeCompletion;
+
+
+import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxIssue;
+
 import jo.celeris.core.text.Document;
 
 import org.jspecify.annotations.Nullable;

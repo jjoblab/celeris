@@ -1,6 +1,6 @@
 package jo.celeris.android.view;
 
-import jo.celeris.core.syntax.ScopeThemes;
+import jo.celeris.core.syntax.scope.ScopeThemes;
 
 /**
  * Palettes complètes de l'éditeur : clair, sombre, contraste élevé

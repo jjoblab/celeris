@@ -11,7 +11,7 @@ import android.view.View;
 import java.util.List;
 import java.util.function.Consumer;
 
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineEntry;
 
 import org.jspecify.annotations.Nullable;
 

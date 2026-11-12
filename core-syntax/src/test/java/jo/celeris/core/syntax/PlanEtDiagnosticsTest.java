@@ -1,5 +1,8 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.structure.OutlineEntry;
+import jo.celeris.core.syntax.structure.TreeDiagnostics;
+import jo.celeris.core.syntax.structure.TreeOutline;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

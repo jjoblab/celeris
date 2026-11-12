@@ -1,5 +1,15 @@
 package jo.celeris.lsp.protocole;
 
+import jo.celeris.core.lsp.types.EditionEspaceLsp;
+import jo.celeris.core.lsp.types.EditionGabaritLsp;
+import jo.celeris.core.lsp.types.ElementCompletion;
+import jo.celeris.core.lsp.types.IndiceLsp;
+import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.ListeCompletion;
+import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.SignatureLsp;
+import jo.celeris.core.lsp.types.SurvolLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,16 +37,16 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import jo.celeris.core.lsp.CapacitesServeur;
-import jo.celeris.core.lsp.EditionEspaceLsp;
-import jo.celeris.core.lsp.EditionGabaritLsp;
-import jo.celeris.core.lsp.ElementCompletion;
-import jo.celeris.core.lsp.IndiceLsp;
-import jo.celeris.core.lsp.ListeCompletion;
-import jo.celeris.core.lsp.LieuLsp;
-import jo.celeris.core.lsp.PlageLsp;
-import jo.celeris.core.lsp.PositionLsp;
-import jo.celeris.core.lsp.SignatureLsp;
-import jo.celeris.core.lsp.SurvolLsp;
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Les traces de contrat du jalon (sortie M6, portées à la frontière par

@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Optional;
 
-import jo.celeris.core.language.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageConfiguration;
 
 import org.junit.jupiter.api.Test;
 

@@ -1,5 +1,6 @@
 package jo.celeris.core.syntax;
 
+import jo.celeris.core.syntax.scope.ScopeStacks;
 /**
  * Jeton d'une ligne : sorte, bornes RELATIVES au début de la ligne
  * (fin exclusive) et pile de portées internée. Le relatif est la clé

@@ -4,6 +4,7 @@ package spike.syntax;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import jo.celeris.core.syntax.LexState;
 
 /**
  * Spike d'analyse lexicale incrémentale (M0, alimente l'ADR-004).

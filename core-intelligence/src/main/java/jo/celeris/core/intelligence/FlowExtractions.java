@@ -11,7 +11,7 @@ import org.jspecify.annotations.Nullable;
 import jo.celeris.core.intelligence.Extraction.ExtractionPlan;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.NodeCategory;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextEdit;
 

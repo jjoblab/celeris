@@ -9,8 +9,10 @@ import jo.celeris.core.language.Completion;
 import jo.celeris.core.language.LanguageDetection;
 import jo.celeris.core.language.LanguagePlatform;
 import jo.celeris.core.language.LanguageRegistry;
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.language.Packs;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.language.packs.Packs;
+
+
 import jo.celeris.core.syntax.grammars.PackGrammars;
 
 import org.jspecify.annotations.Nullable;

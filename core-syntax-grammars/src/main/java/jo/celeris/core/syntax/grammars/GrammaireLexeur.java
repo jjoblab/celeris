@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import jo.celeris.core.syntax.scope.ScopeStacks;
 import org.joni.Matcher;
 import org.joni.Option;
 import org.joni.Regex;
@@ -17,7 +18,7 @@ import org.joni.Region;
 import jo.celeris.core.syntax.LanguageLexer;
 import jo.celeris.core.syntax.LexState;
 import jo.celeris.core.syntax.LexedLine;
-import jo.celeris.core.syntax.ScopeStacks;
+
 import jo.celeris.core.syntax.Token;
 import org.jspecify.annotations.Nullable;
 

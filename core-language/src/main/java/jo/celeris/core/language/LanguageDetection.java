@@ -1,6 +1,7 @@
 package jo.celeris.core.language;
 
 import java.util.List;
+import jo.celeris.core.language.model.LanguageSupport;
 
 /**
  * Le résultat d'une détection de langage (M7.6) : un langage l'emporte,

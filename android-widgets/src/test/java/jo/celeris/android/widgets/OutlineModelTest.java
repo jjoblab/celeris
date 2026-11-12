@@ -11,11 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.EditSite;
-import jo.celeris.core.syntax.JavaSyntax;
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.syntax.NodeCategory;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxService;
-import jo.celeris.core.syntax.TreeOutline;
+import jo.celeris.core.syntax.structure.TreeOutline;
 import jo.celeris.core.text.Document;
 
 /**

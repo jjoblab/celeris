@@ -9,9 +9,9 @@ import java.util.concurrent.Executor;
 
 import org.junit.jupiter.api.Test;
 
-import jo.celeris.core.language.LanguageConfiguration;
-import jo.celeris.core.language.LanguageDescriptor;
-import jo.celeris.core.language.LanguageSupport;
+import jo.celeris.core.language.model.LanguageConfiguration;
+import jo.celeris.core.language.model.LanguageDescriptor;
+import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.LanguageLexer;
 import jo.celeris.core.syntax.LanguageParser;
 import jo.celeris.core.syntax.LanguageSyntax;
@@ -19,8 +19,8 @@ import jo.celeris.core.syntax.LexState;
 import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.NodeKind;
-import jo.celeris.core.syntax.OutlineEntry;
-import jo.celeris.core.syntax.OutlineRule;
+import jo.celeris.core.syntax.structure.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineRule;
 import jo.celeris.core.syntax.SynNode;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;

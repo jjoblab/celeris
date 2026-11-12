@@ -35,8 +35,10 @@ import jo.celeris.android.view.ReperesPreview;
 import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupPalette;
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.language.model.LanguageSupport;
+
+import jo.celeris.core.syntax.structure.OutlineEntry;
+
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;

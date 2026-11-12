@@ -2,5 +2,5 @@ android-host 27
 android-view 64
 android-widgets 37
 core-ai 49
-core-syntax 82
+core-syntax 91
 demo 85

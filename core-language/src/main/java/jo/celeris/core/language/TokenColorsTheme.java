@@ -5,8 +5,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import jo.celeris.core.syntax.ScopeStyle;
-import jo.celeris.core.syntax.ScopeTheme;
+import jo.celeris.core.language.packs.JsonChamps;
+import jo.celeris.core.syntax.scope.ScopeStyle;
+import jo.celeris.core.syntax.scope.ScopeTheme;
+
+
 
 /**
  * L'importeur de thèmes {@code tokenColors} de VS Code (M7.6, H-07) :

@@ -10,10 +10,10 @@ import org.jspecify.annotations.Nullable;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.LexDocument;
 import jo.celeris.core.syntax.NodeCategory;
-import jo.celeris.core.syntax.OutlineEntry;
+import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
-import jo.celeris.core.syntax.TreeOutline;
+import jo.celeris.core.syntax.structure.TreeOutline;
 import jo.celeris.core.text.Document;
 
 /**

@@ -1,5 +1,11 @@
 package jo.celeris.core.syntax.grammars;
 
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.language.packs.LanguagePack;
+import jo.celeris.core.language.packs.PackLoader;
+import jo.celeris.core.language.packs.PackSource;
+import jo.celeris.core.language.packs.Packs;
+import jo.celeris.core.syntax.scope.ScopeStacks;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -11,16 +17,16 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import jo.celeris.core.language.LanguagePack;
+
 import jo.celeris.core.language.LanguagePlatform;
 import jo.celeris.core.language.LanguageRegistry;
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.language.PackLoader;
-import jo.celeris.core.language.PackSource;
-import jo.celeris.core.language.Packs;
+
+
+
+
 import jo.celeris.core.syntax.LexState;
 import jo.celeris.core.syntax.LexedLine;
-import jo.celeris.core.syntax.ScopeStacks;
+
 import jo.celeris.core.syntax.Token;
 
 /**

@@ -1,11 +1,12 @@
 package jo.celeris.demo;
 
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import jo.celeris.core.syntax.JavaSyntax;
+
 import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.text.TextSession;
 

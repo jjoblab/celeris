@@ -1,5 +1,6 @@
 package jo.celeris.lsp.protocole;
 
+import jo.celeris.core.lsp.types.DiagnosticLsp;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,7 +14,7 @@ import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.ShowMessageRequestParams;
 import org.junit.jupiter.api.Test;
 
-import jo.celeris.core.lsp.DiagnosticLsp;
+
 
 /**
  * Le récepteur des requêtes du serveur vers le client (ADR-015) : les

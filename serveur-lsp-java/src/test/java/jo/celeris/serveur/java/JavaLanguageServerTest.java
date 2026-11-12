@@ -1,5 +1,13 @@
 package jo.celeris.serveur.java;
 
+import jo.celeris.core.lsp.types.DiagnosticLsp;
+import jo.celeris.core.lsp.types.EditionTexteLsp;
+import jo.celeris.core.lsp.types.ListeCompletion;
+import jo.celeris.core.lsp.types.OptionsFormatageLsp;
+import jo.celeris.core.lsp.types.PliLsp;
+import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.SurvolLsp;
+import jo.celeris.core.lsp.types.SymboleLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,14 +23,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.lsp.CapacitesServeur;
-import jo.celeris.core.lsp.DiagnosticLsp;
-import jo.celeris.core.lsp.EditionTexteLsp;
-import jo.celeris.core.lsp.ListeCompletion;
-import jo.celeris.core.lsp.OptionsFormatageLsp;
-import jo.celeris.core.lsp.PliLsp;
-import jo.celeris.core.lsp.PositionLsp;
-import jo.celeris.core.lsp.SurvolLsp;
-import jo.celeris.core.lsp.SymboleLsp;
+
+
+
+
+
+
+
+
 import jo.celeris.lsp.protocole.LspSession;
 import jo.celeris.lsp.protocole.ServeurEmbarque;
 import jo.celeris.lsp.protocole.TubesMemoire;
@@ -166,7 +174,7 @@ class JavaLanguageServerTest {
         assertNotNull(survol);
         assertEquals("markdown", survol.genre());
         assertTrue(survol.texte().startsWith("**class**"));
-        jo.celeris.core.lsp.PlageLsp plage = survol.plage();
+        jo.celeris.core.lsp.types.PlageLsp plage = survol.plage();
         assertNotNull(plage, "le survol porte sa plage");
         assertEquals(0, plage.debut().ligne());
     }

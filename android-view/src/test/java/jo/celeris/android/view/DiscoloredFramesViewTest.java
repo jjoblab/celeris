@@ -2,8 +2,8 @@ package jo.celeris.android.view;
 
 import static org.junit.Assert.assertEquals;
 
-import jo.celeris.core.language.LanguageSupport;
-import jo.celeris.core.syntax.JavaSyntax;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 

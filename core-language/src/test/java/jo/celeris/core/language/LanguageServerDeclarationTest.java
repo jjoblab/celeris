@@ -1,5 +1,12 @@
 package jo.celeris.core.language;
 
+import jo.celeris.core.language.model.LanguageServerDeclaration;
+import jo.celeris.core.language.model.LanguageSupport;
+import jo.celeris.core.language.packs.GrammarFactory;
+import jo.celeris.core.language.packs.LanguagePack;
+import jo.celeris.core.language.packs.PackLoader;
+import jo.celeris.core.language.packs.PackSource;
+import jo.celeris.core.language.packs.Packs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -29,7 +36,7 @@ final class LanguageServerDeclarationTest {
 
     /** La fabrique de banc : compile n'importe quoi en la façade Java. */
     private static final GrammarFactory FABRIQUE = (id, json) ->
-            jo.celeris.core.syntax.JavaSyntax.INSTANCE;
+            jo.celeris.core.syntax.clike.JavaSyntax.INSTANCE;
 
     @TempDir
     Path bac;

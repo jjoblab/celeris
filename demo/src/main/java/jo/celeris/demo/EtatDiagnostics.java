@@ -12,7 +12,8 @@ import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.GraviteDiagnostic;
 import jo.celeris.android.view.EditorView;
-import jo.celeris.core.lsp.DiagnosticLsp;
+import jo.celeris.core.lsp.types.DiagnosticLsp;
+
 
 /**
  * L'état des diagnostics de la démonstration (M8.6) : les deux voies —
