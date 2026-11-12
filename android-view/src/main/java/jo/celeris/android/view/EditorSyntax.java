@@ -398,7 +398,12 @@ public final class EditorSyntax {
      */
     public boolean basculerPliAuPoint(float x, float y, float scrollY,
             float hauteurLigne, float coulisse, VisualProjection projection) {
-        if (coordinateur == null || x >= coulisse) {
+        // D-07 : la coulisse vit pour l'analyse, qu'elle soit servie par le
+        // coordinateur synchrone OU par le moteur hors fil — la voie de
+        // production démo embarque TOUJOURS un moteur (SceneDiagnostics
+        // fabrique l'exécuteur quand l'hôte n'en fournit pas), l'ancienne
+        // garde y tuait l'appui avant même le test d'appartenance.
+        if (!active() || x >= coulisse) {
             return false;
         }
         int rangee = ScrollGeometry.firstRow(scrollY + y, hauteurLigne);

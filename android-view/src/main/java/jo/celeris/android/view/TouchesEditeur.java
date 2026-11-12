@@ -304,6 +304,13 @@ final class TouchesEditeur {
         float coulisse = vue.gouttiereEtat.coulisseCourante();
         if (vue.syntaxe.basculerPliAuPoint(x, y, vue.scrollY,
                 vue.metrics.lineHeight(), coulisse, vue.projection)) {
+            // PIEGE-02 : le pli change le SENS des rangées sans toucher
+            // la révision du document — la rangée 12 après le repli n'est
+            // plus la rangée 12 d'avant, et aucune composante de clé ne
+            // signe l'état des plis. Le cache des mises en page
+            // s'oublie ENTIER, sinon les rangées sous le pli
+            // resserviraient le texte périmé d'avant le repli.
+            vue.cache.clear();
             vue.invalidate();
             return;
         }
