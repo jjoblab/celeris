@@ -86,7 +86,7 @@ jobs:
           # la CI n'a pas d'œil sur l'appareil sans eux.
           find demo/build -path "*androidTest*" -name "TEST-*.xml" -print | while read -r journal; do
             echo "===== $journal ====="
-            sed -e 's/></>\n</g' "$journal" | head -120
+            sed -e 's/></>\n</g' "$journal" | head -600
           done
       - name: Rapports de l'appareil (artefact)
         if: always()

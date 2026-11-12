@@ -246,19 +246,32 @@ final class BancAppareil {
     }
 
     /**
-     * L'état du système vu du banc — la puissance de l'écran et la
+     * L'état du système vu du banc — la veille de l'écran et la
      * fenêtre focalisée : les messages d'échec le portent quand la
-     * vitre reste muette.
+     * vitre reste muette. La sortie brute de dumpsys se filtre en
+     * Java : la voie de commandes n'interprète pas les tubes.
      */
     static String etatSysteme() {
         try {
-            return " puissance: " + appareil().executeShellCommand(
-                    "dumpsys power | grep -iE 'mWakefulness|Display Power' | head -2")
-                    + " focus: " + appareil().executeShellCommand(
-                    "dumpsys window | grep -iE 'mCurrentFocus' | head -2");
+            return " veille: " + ligne(appareil().executeShellCommand("dumpsys power"),
+                    "mWakefulness")
+                    + ", focus: " + ligne(appareil().executeShellCommand(
+                    "dumpsys window"), "mCurrentFocus")
+                    + ", top: " + ligne(appareil().executeShellCommand(
+                    "dumpsys activity top"), "ACTIVITY");
         } catch (IOException echec) {
             return " état illisible : " + echec.getMessage();
         }
+    }
+
+    /** La ligne qui porte la marque, tirée d'une sortie brute. */
+    private static String ligne(String sortie, String marque) {
+        int debut = sortie.indexOf(marque);
+        if (debut < 0) {
+            return marque + " introuvable";
+        }
+        int fin = sortie.indexOf('\n', debut);
+        return sortie.substring(debut, fin < 0 ? sortie.length() : fin).trim();
     }
 
     /**
