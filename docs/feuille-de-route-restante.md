@@ -21,7 +21,7 @@
 | 1 | Publication distante des douze artefacts (C1) | Clos le 2026-11-12 | douze artefacts publiés (les onze + `serveur-lsp-java`) — projet vierge vérifié, sommes conformes |
 | 2 | Clôture de la 1.1.0 et tag `v1.1.0` | Clos le 2026-11-12 | — |
 | 3 | Langages suivants : Go, Rust… (C5) | Go et Rust livrés le 2026-11-12 | la suite de la traîne dort sur le signal |
-| 4 | Second étage appareil de vérification (C11) | Livré le 2026-11-12 | la CI exécute au nocturne — la recette manuelle du propriétaire reste |
+| 4 | Second étage appareil de vérification (C11) | Livré et passé vert le 2026-11-12 | la CI exécute au nocturne — la recette manuelle du propriétaire reste |
 | 5 | Archivage du dépôt de départ (C14) | Bloqué | décision du propriétaire ; poussée hors de ce bac à sable |
 | 6 | Entretien continu (dependabot, montées de version) | Permanent | rien — veille hebdomadaire |
 
@@ -88,17 +88,19 @@ matrice est à zéro sur 125 lignes.
 
 **Sortie** : rapport d'exécution consigné au document de vérification.
 
-**Avancement** : livré le 2026-11-12 — les quatre bancs d'instrumentation
-vivent dans `demo/src/androidTest` (`PinchZoomOnDeviceTest`,
-`GutterStabilityOnDeviceTest`, `FlickerOnDeviceTest`,
-`CompletionPopupOnDeviceTest`), l'appareil géré `pixel2api34` (image
-ATD) les exécute, le travail CI `appareil.yml` court au nocturne, à
-chaque fusion et au déclenchement manuel — rapports en artefact
-`device-tests-reports`. Le plafond Checkstyle couvre le banc d'appareil
-comme les bancs JVM ; la compilation se vérifie partout, l'exécution
-demande la virtualisation matérielle — les runners Ubuntu la portent.
-La colonne « Vérifié appareil » de la matrice se remplit par ces
-passages nocturnes.
+**Avancement** : livré et PASSÉ VERT le 2026-11-12 — les quatre bancs
+d'instrumentation vivent dans `demo/src/androidTest`
+(`PinchZoomOnDeviceTest`, `GutterStabilityOnDeviceTest`,
+`FlickerOnDeviceTest`, `CompletionPopupOnDeviceTest`), l'appareil géré
+`pixel2api34` (image ATD) les exécute, le travail CI `appareil.yml`
+court au nocturne, à chaque fusion et au déclenchement manuel — le
+premier passage vert vit au déclenchement manuel du 2026-11-12, les
+rapports partent en artefact `device-tests-reports`. Le plafond
+Checkstyle couvre le banc d'appareil comme les bancs JVM ; les leçons
+de l'image ATD (l'arbre d'accessibilité muet, l'écran qui s'éveille
+muet, le seuil d'envergure du détecteur, le compositeur sans vitrine)
+se consignent au document de vérification. La colonne « Vérifié
+appareil » de la matrice se remplit par ces passages nocturnes.
 
 **Ce qui reste au propriétaire** : la recette manuelle de cinq minutes
 sur l'appareil de référence
