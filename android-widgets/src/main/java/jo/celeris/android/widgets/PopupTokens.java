@@ -1,6 +1,5 @@
 package jo.celeris.android.widgets;
 
-import jo.celeris.core.syntax.clike.Corps;
 /**
  * Les jetons de design des popups (portage du kit du dépôt de départ)
  * : rayons, respirations, échelle typographique — un seul endroit où
