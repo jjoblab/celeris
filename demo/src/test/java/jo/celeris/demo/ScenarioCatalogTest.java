@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
  * Test de fumée du catalogue de scénarios : le jalon M7 y ajoute les
  * contrats d'intégration de l'hôte — E-01 à E-06 — puis la peinture de
  * gouttière des intégrations — D-03 à D-05 — et le bloc Android du
- * langage — C-02, C-03, C-04, C-06, C-08 — en plus des jalons
- * précédents, dans l'ordre de la matrice de parité, uniques et
- * complets.
+ * langage — C-02, C-03, C-04, C-06, C-08 — puis la documentation des
+ * modificateurs au survol — C-10 — en plus des jalons précédents,
+ * dans l'ordre de la matrice de parité, uniques et complets.
  */
 final class ScenarioCatalogTest {
 
@@ -33,7 +33,7 @@ final class ScenarioCatalogTest {
                 "B-08", "B-09", "B-10", "B-11", "B-13", "B-14", "B-15",
                 "B-16", "B-17", "B-19", "B-24", "B-25", "B-26", "B-27",
                 "C-01", "C-02", "C-03", "C-04", "C-06", "C-07",
-                "C-08", "C-14", "C-15", "C-16",
+                "C-08", "C-10", "C-14", "C-15", "C-16",
                 "D-01", "D-03", "D-04", "D-05", "D-06", "D-08", "D-09",
                 "D-10", "D-13", "D-15",
                 "D-16", "D-17", "D-18",

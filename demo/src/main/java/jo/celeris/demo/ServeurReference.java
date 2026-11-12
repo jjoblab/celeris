@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.List;
 
 import jo.celeris.android.widgets.SignatureAideModel;
+import jo.celeris.core.lsp.DocModificateurs;
 import jo.celeris.core.lsp.types.CorrectifLsp;
 import jo.celeris.core.lsp.types.EditionEspaceLsp;
 import jo.celeris.core.lsp.types.EditionTexteLsp;
@@ -99,13 +100,20 @@ public final class ServeurReference implements ServeurEmbarque.Documents {
 
     /**
      * Le survol (B-09) : la documentation du symbole à la position —
-     * le contenu balisé markdown, la forme du protocole.
+     * le modificateur d'agencement connu y sert sa table d'abord (C-10,
+     * le nom seul décide), puis la table du terrain — le contenu
+     * balisé markdown, la forme du protocole.
      */
     @Override
     public @Nullable SurvolLsp survol(String uri, PositionLsp position) {
         Document document = documentSuivi(uri);
         if (document == null) {
             return null;
+        }
+        SurvolLsp modificateur = DocModificateurs.survol(document,
+                PositionsLsp.offset(document, position));
+        if (modificateur != null) {
+            return modificateur;
         }
         String symbole = PopupCoach.symboleA(document,
                 PositionsLsp.offset(document, position));

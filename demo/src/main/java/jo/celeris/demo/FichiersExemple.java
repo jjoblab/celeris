@@ -296,6 +296,7 @@ public final class FichiersExemple {
             import androidx.compose.foundation.layout.padding
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
             import androidx.compose.ui.tooling.preview.Preview
             import androidx.compose.ui.unit.dp
 
@@ -305,7 +306,7 @@ public final class FichiersExemple {
              */
             @Composable
             fun TitreCarte(nom: String) {
-                Text(text = nom)
+                Text(text = nom, modifier = Modifier.padding(16.dp))
             }
 
             @Preview

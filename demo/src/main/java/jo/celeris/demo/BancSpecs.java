@@ -76,8 +76,17 @@ final class BancSpecs {
     /** Les spécifications vérifiées, dans l'ordre de la matrice. */
     static List<ScenarioSpec> specs() {
         List<ScenarioSpec> specs = new ArrayList<>(specsDeFrappeEtRefactor());
+        specs.addAll(specsDeLangage());
         specs.addAll(specsDuFilEtDuPaquet());
         return List.copyOf(specs);
+    }
+
+    /** Les spécifications de langage (C) — la documentation servie au survol. */
+    private static List<ScenarioSpec> specsDeLangage() {
+        return List.of(
+                new ScenarioSpec("C-10",
+                        "Le survol d'un modificateur sert sa documentation",
+                        BancSpecs::survolModificateur));
     }
 
     /** Les spécifications de frappe et de refactorisation
@@ -318,6 +327,31 @@ final class BancSpecs {
                         documentPur, "ajouter", position)
                         .get(2, java.util.concurrent.TimeUnit.SECONDS));
         return doc != null && "ajouter".equals(doc.titre());
+    }
+
+    /** C-10 — le modificateur d'agencement survolé sert sa documentation (Compose). */
+    private static boolean survolModificateur() {
+        FichierExemple fichier = FichiersExemple.parNom("Apercus.kt");
+        if (fichier == null) {
+            return false;
+        }
+        String texte = fichier.contenu();
+        String uri = "file:///Apercus.kt";
+        String langue = LangagesDemo.registre().byFilename("Apercus.kt").id();
+        int caret = texte.indexOf("padding(16.dp)") + 2;
+        ServeurLangage serveur = ServeurLangage.demarrer();
+        try {
+            serveur.ouvrir(uri, langue, texte);
+            Document document = TextSession.of(texte, () -> 0L).document();
+            CompletionDocModel doc = serveur.survol(uri, document, "padding", caret)
+                    .get(2, java.util.concurrent.TimeUnit.SECONDS);
+            return doc != null && "padding".equals(doc.titre())
+                    && doc.texteLibre().contains("L'espace autour du contenu");
+        } catch (Exception echec) {
+            return false;
+        } finally {
+            serveur.close();
+        }
     }
 
     /** B-19 — le renommage porte les usages entiers, un geste défait tout. */

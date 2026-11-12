@@ -437,6 +437,14 @@ public final class ScenarioCatalog {
                         + "ré-analyse ne relit que le bloc touché."));
         tous.addAll(ScenariosAndroid.cataloguesVersions());
         tous.add(new Scenario(
+                "C-10",
+                "Compose : documentation des modificateurs au survol",
+                "Le modificateur d'agencement survolé sert sa table — "
+                        + "padding, background, size… et le récepteur "
+                        + "Modifier lui-même : l'appui long du doigt "
+                        + "sélectionne le nom, la documentation s'ancre "
+                        + "au curseur, le nom connu seul décide (C-10)."));
+        tous.add(new Scenario(
                 "C-14",
                 "Langages P0 : Java, Kotlin, XML",
                 "Trois grammaires réelles sur le même socle : jetons soudés "

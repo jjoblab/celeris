@@ -27,6 +27,13 @@ public final class jo.celeris.core.lsp.CapacitesServeur {
   public java.util.List<java.lang.String> modificateursJetons();
 }
 
+### jo.celeris.core.lsp.DocModificateurs
+Compiled from "DocModificateurs.java"
+public final class jo.celeris.core.lsp.DocModificateurs {
+  public static jo.celeris.core.lsp.types.SurvolLsp survol(jo.celeris.core.text.Document, int);
+  public static java.lang.String documentation(java.lang.String);
+}
+
 ### jo.celeris.core.lsp.EditsEspaceLsp
 Compiled from "EditsEspaceLsp.java"
 public final class jo.celeris.core.lsp.EditsEspaceLsp {
