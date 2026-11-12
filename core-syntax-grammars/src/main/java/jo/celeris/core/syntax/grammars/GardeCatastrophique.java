@@ -17,6 +17,11 @@ package jo.celeris.core.syntax.grammars;
  * coûte un ralentissement, un faux positif une règle écartée et
  * comptée au rapport (H-05) : la règle absente ne colore rien, le
  * paquet charge quand même, jamais un gel de l'interface.</p>
+ *
+ * <p>Le quantificateur non borné se rapporte à tout groupe ouvert à
+ * sa position, pas au sommet seul : un groupe CONTENANT un autre
+ * groupe non borné est lui-même non borné — c'est la lettre de la
+ * règle, {@code ((a+))+} vit le même refus que {@code (a+)+}.</p>
  */
 final class GardeCatastrophique {
 
@@ -47,7 +52,12 @@ final class GardeCatastrophique {
                     return true;
                 }
             } else if (!pile.isEmpty() && quantificateurNonBorne(c, motif, i)) {
-                pile.peek().nonBorne = true;
+                // le quantificateur non borné vit dans TOUS les groupes
+                // ouverts à sa position : la forme ((a+))+ le cachait
+                // au sommet seul — le mal remonte jusqu'au père
+                for (Groupe ouvert : pile) {
+                    ouvert.nonBorne = true;
+                }
             }
         }
         return false;

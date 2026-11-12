@@ -27,6 +27,16 @@ class KotlinArbreTest {
 
     private final SyntaxService service = SyntaxService.of(KotlinSyntax.INSTANCE);
 
+    /** Un modificateur orphelin en fin de fichier ne lève jamais : le
+     * parseur du langage rend un arbre, la malformation se digère. */
+    @Test
+    void modificateurOrphelinEnFinDeFichierNeLeveJamais() {
+        Document doc = Document.of("class A {\npublic");
+        Analysis analyse = service.analyseFull(doc);
+        assertFalse(analyse.tree().chunks().isEmpty(),
+                "l'arbre existe même mal formé");
+    }
+
     /** Le plan liste fonctions, classes, objets et propriétés. */
     @Test
     void planDuFichier() {

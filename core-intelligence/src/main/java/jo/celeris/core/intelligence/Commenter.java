@@ -44,16 +44,7 @@ public final class Commenter {
 
     /** Le basculement ligne à ligne : tout ou rien sur le bloc touché. */
     private static EditPlan lignes(Document doc, MultiSelection selection, String prefixe) {
-        List<Integer> lignes = new ArrayList<>();
-        for (SelRange plage : selection.ranges()) {
-            int premiere = doc.lineForOffset(plage.start());
-            int derniere = doc.lineForOffset(Math.max(plage.start(), plage.end() - 1));
-            for (int l = premiere; l <= derniere; l++) {
-                if (!lignes.contains(l)) {
-                    lignes.add(l);
-                }
-            }
-        }
+        List<Integer> lignes = lignesTouchees(doc, selection);
         boolean auMoinsUne = false;
         boolean toutesCommentees = true;
         for (int l : lignes) {
@@ -82,9 +73,12 @@ public final class Commenter {
                 tournures.add(new int[] {debutSignificatif, 0, prefixe.length()});
                 delta += prefixe.length();
             } else if (auMoinsUne && debutSignificatif(texte).startsWith(prefixe.strip())) {
-                editions.add(new TextEdit(debutSignificatif + delta, prefixe, ""));
-                tournures.add(new int[] {debutSignificatif, prefixe.length(), 0});
-                delta -= prefixe.length();
+                // le préfixe réellement présent part : « //x » sans espace
+                // se décommente, la transaction ne lève jamais
+                String retire = prefixePresent(debutSignificatif(texte), prefixe);
+                editions.add(new TextEdit(debutSignificatif + delta, retire, ""));
+                tournures.add(new int[] {debutSignificatif, retire.length(), 0});
+                delta -= retire.length();
             }
         }
         for (SelRange plage : selection.ranges()) {
@@ -149,8 +143,30 @@ public final class Commenter {
                 MultiSelection.of(apres)));
     }
 
+    /** Les lignes du bloc touché, sans doublon, dans l'ordre. */
+    private static List<Integer> lignesTouchees(Document doc, MultiSelection selection) {
+        List<Integer> lignes = new ArrayList<>();
+        for (SelRange plage : selection.ranges()) {
+            int premiere = doc.lineForOffset(plage.start());
+            int derniere = doc.lineForOffset(Math.max(plage.start(), plage.end() - 1));
+            for (int l = premiere; l <= derniere; l++) {
+                if (!lignes.contains(l)) {
+                    lignes.add(l);
+                }
+            }
+        }
+        return lignes;
+    }
+
     private static String debutSignificatif(String ligne) {
         return ligne.substring(indentation(ligne));
+    }
+
+    /** Le préfixe réellement présent sur une ligne commentée : la
+     * forme canonique si la ligne la porte, la forme nue sinon — le
+     * retrait ne lève jamais la transaction sur un document légal. */
+    private static String prefixePresent(String significatif, String prefixe) {
+        return significatif.startsWith(prefixe) ? prefixe : prefixe.strip();
     }
 
     private static int indentation(String ligne) {

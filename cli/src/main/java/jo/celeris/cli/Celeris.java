@@ -200,6 +200,12 @@ public final class Celeris {
         }
         Document document = Document.of(contenu);
         String motif = args[2];
+        if (motif.isEmpty()) {
+            // le motif vide s'égale à chaque position : la boucle ne
+            // finirait jamais — le refus se dit et le code d'usage revient
+            sortie.println("le motif de recherche ne peut pas être vide");
+            return 2;
+        }
         int total = 0;
         int position = contenu.indexOf(motif);
         while (position >= 0) {

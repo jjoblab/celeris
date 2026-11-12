@@ -38,8 +38,13 @@ public final class EditsEspaceLsp {
         List<TextEdit> editions = new ArrayList<>();
         for (EditionTexteLsp editionTexte : edition.editions()) {
             int[] bornes = PositionsLsp.bornes(doc, editionTexte.plage());
-            editions.add(new TextEdit(bornes[0],
-                    doc.subText(bornes[0], bornes[1]), editionTexte.nouveauTexte()));
+            // un serveur généreux peut rendre une plage inversée : le
+            // clampage l'aurait laissée vivre, la transaction non — les
+            // bornes s'ordonnent, la doctrine du rempart tient
+            int debut = Math.min(bornes[0], bornes[1]);
+            int fin = Math.max(bornes[0], bornes[1]);
+            editions.add(new TextEdit(debut,
+                    doc.subText(debut, fin), editionTexte.nouveauTexte()));
         }
         editions.sort(Comparator.comparingInt(TextEdit::start).reversed());
         return Transaction.of(editions);

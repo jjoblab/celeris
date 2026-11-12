@@ -152,4 +152,23 @@ class CommenterTest {
         assertEquals(1, plan.get().transaction().edits().size());
         assertEquals("// ", plan.get().transaction().edits().get(0).removed());
     }
+
+    /** Décommenter « //x » sans espace ne lève jamais : le préfixe
+     * réellement présent part, pas sa forme canonique — la transaction
+     * s'applique au document légal sans exception. */
+    @Test
+    void decommenteLaLigneSansEspaceSansLever() {
+        String source = "//x int a;";
+        Document doc = Document.of(source);
+        Optional<EditPlan> plan = Commenter.toggle(doc,
+                MultiSelection.of(new SelRange(0, 10)), CommentRules.of(JAVA));
+        assertTrue(plan.isPresent());
+        assertEquals("//", plan.get().transaction().edits().get(0).removed(),
+                "le préfixe présent sans espace part, deux caractères");
+        jo.celeris.core.text.TextSession session =
+                jo.celeris.core.text.TextSession.of(source, System::nanoTime);
+        session.apply(plan.get().transaction());
+        assertEquals("x int a;", session.text(),
+                "la ligne décommentée vit sans son préfixe");
+    }
 }

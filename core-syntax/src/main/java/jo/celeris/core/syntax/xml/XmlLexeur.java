@@ -228,15 +228,14 @@ final class XmlLexeur implements LanguageLexer {
         return fin;
     }
 
-    /** La valeur d'attribut, échappements compris ; non fermée = ERROR. */
+    /** La valeur d'attribut jusqu'au guillemet fermant — l'antislash
+     * n'échappe rien en XML, seul «&#x2f;&…;&#x2f;» est une entité : le
+     * chemin Windows se ferme comme toute valeur ; non fermée =
+     * ERROR. */
     private int lexValeur(CharSequence texte, List<Token> jetons, int i, int n) {
         int fin = i + 1;
         while (fin < n) {
             char c = texte.charAt(fin);
-            if (c == '\\') {
-                fin += 2;
-                continue;
-            }
             if (c == '"') {
                 jetons.add(new Token(TokenKind.STRING, i, fin + 1));
                 return fin + 1;

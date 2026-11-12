@@ -533,6 +533,37 @@ vivent dans les ADR et le registre de portage, pas ici.
   journal des clôtures ; C13 y passe à terminé avec sa preuve au
   journal.
 
+### Corrections — la chasse aux bugs de l'audit paie : trois critiques et sept majeurs, régressions comprises
+
+- **Les trois défauts critiques prouvés tombent**, chacun avec son test
+  de régression : le modificateur Kotlin orphelin en fin de fichier
+  (l'accès hors bornes du dialecte — `KotlinArbreTest` garde
+  `class A {\npublic`), la suppression du chunk ancre d'une ligne
+  unique (le second plantage du parseur incrémental — la tranche de
+  marche vidée rend un chunk en attente,
+  `ArbreIncrementalTest` garde le scénario) et le tiret seul en fin de
+  ligne JSON (le jeton débordait sa ligne — `JsonLexeurTest` garde la
+  frappe en cours digérée).
+- **Sept défauts majeurs au correctif isolé suivent** : la sonde de
+  présence des paquets ferme son flux (`Packs`), la plage inversée
+  d'un serveur généreux s'ordonne avant la transaction
+  (`EditsEspaceLsp`), le motif vide de la recherche en ligne de
+  commande se refuse au lieu de tourner sans fin (`Celeris`), le
+  chemin Windows en attribut XML se ferme — l'antislash n'échappe rien
+  en XML (`XmlLexeur`), le décommentage d'une ligne `//x` sans espace
+  retire le préfixe réellement présent — la transaction ne lève plus
+  sur un document légal (`Commenter`), le garde catastrophique rapporte
+  le quantificateur non borné à tous les groupes ouverts — `((a+))+`
+  ne passe plus par le sommet seul (`GardeCatastrophique`, aucune règle
+  des grammaires livrées écartée, le seuil de conformité le prouve), et
+  la fermeture d'un document purge ses diagnostics — une session longue
+  n'accumule plus au `didClose` (`LspSession`, `RecepteurServeur`).
+- **Les défauts majeurs restants** (amputation de paires de drapeaux
+  au-delà de la fenêtre, garde de temps des regex tierces, identité de
+  fusion du renommage, atomicité de la transaction de texte) exigent
+  des bancs dédiés : ils restent consignés au rapport d'audit pour
+  traitement ultérieur, jamais corrigés en aveugle.
+
 ## [1.0.0] — 2026-11-10
 
 ### M9 — durcissement et 1.0 : audit d'accessibilité, revue de sécurité, cliquet calibré, guide final, paquet jouet

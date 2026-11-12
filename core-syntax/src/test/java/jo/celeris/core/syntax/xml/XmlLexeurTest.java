@@ -96,6 +96,24 @@ class XmlLexeurTest {
         assertEquals(TokenKind.CLOSE_BRACKET, jetons[3].kind());
     }
 
+    /** Le chemin Windows en valeur d'attribut se ferme : l'antislash
+     * n'échappe rien en XML — le guillemet après les antislashs ferme
+     * la valeur, la cascade d'état ne dérive plus. */
+    @Test
+    void leCheminWindowsEnAttributSeFerme() {
+        String ligne = "<projet chemin=\"C:\\Users\\celeris\">";
+        Token[] jetons = lex(ligne);
+        assertEquals(TokenKind.STRING, jetons[3].kind());
+        assertEquals("\"C:\\Users\\celeris\"", texte(ligne, jetons[3]));
+        assertEquals(">", texte(ligne, jetons[jetons.length - 1]));
+
+        String enTraine = "<a racine=\"C:\\\">";
+        Token[] traine = lex(enTraine);
+        assertEquals(TokenKind.STRING, traine[3].kind(),
+                "l'antislash final ne saute pas le guillemet fermant");
+        assertEquals("\"C:\\\"", texte(enTraine, traine[3]));
+    }
+
     /** Un commentaire ouvert traverse les lignes par l'état, puis reprend. */
     @Test
     void commentaireMultiLignes() {

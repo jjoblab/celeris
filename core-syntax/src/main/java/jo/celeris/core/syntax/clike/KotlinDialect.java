@@ -117,6 +117,12 @@ final class KotlinDialect extends CLikeDialect {
     int parseMember(TokenSlice slice, int start, int to, List<SynNode> members) {
         int afterTrivia = Jetons.sauterTrivia(slice, start);
         int afterHeader = skipHeader(slice, afterTrivia);
+        // la fin de tranche peut n'être que modificateurs ou annotations :
+        // la garde du GroovyDialect s'applique ici aussi — jamais de lecture
+        // hors bornes sur un membre orphelin
+        if (afterHeader >= slice.size()) {
+            return to;
+        }
         String word = Jetons.mot(slice, afterHeader);
         boolean function = "fun".equals(word) || "init".equals(word);
         members.add(MemberScans.lineMember(slice, start, afterHeader, function,

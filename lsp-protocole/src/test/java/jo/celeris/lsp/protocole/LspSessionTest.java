@@ -155,6 +155,18 @@ public final class LspSessionTest {
     }
 
     @Test
+    void laFermetureOublieLesDiagnostics() throws Exception {
+        try (Banc banc = demarrer()) {
+            banc.session().ouvrir(URI, "xml", "<ex/>");
+            attendreNonVide(() -> banc.session().diagnosticsDe(URI));
+            banc.session().fermer(URI);
+            assertTrue(banc.session().diagnosticsDe(URI).isEmpty(),
+                    "la fermeture purge la carte des diagnostics : "
+                            + "une session longue n'accumule rien");
+        }
+    }
+
+    @Test
     void lEditionSuitLeDocumentEtRevalide() throws Exception {
         try (Banc banc = demarrer()) {
             banc.session().ouvrir(URI, "xml", "<ex>");
