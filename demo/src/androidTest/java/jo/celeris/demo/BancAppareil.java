@@ -174,12 +174,10 @@ final class BancAppareil {
      * Pince l'éditeur à l'écran : deux pointeurs RÉELS, posés,
      * écartés (ou resserrés) puis levés — les MotionEvents à deux
      * doigts passent par la voie d'entrée du système
-     * (injectInputEvent SYNCHRONE, la construction exacte
-     * d'UiAutomator : le premier doigt pose seul, le second rejoint,
-     * les MOVE portent les deux, le dernier posé se lève premier) ;
-     * l'écartement suit la géométrie EXACTE du banc JVM (120 à 520
-     * pour l'ample, 400 à 160 pour le resserré), les doigts
-     * symétriques autour du centre — le point focal ne bouge pas.
+     * (injectInputEvent SYNCHRONE), la construction EXACTE du banc
+     * JVM : doigts VERTICAUX autour du centre, cadence de 16 ms,
+     * instant partagé en ancre, le premier doigt pose seul, le
+     * dernier posé se lève premier.
      *
      * @return le compte d'événements acceptés par la voie d'entrée
      */
@@ -189,40 +187,38 @@ final class BancAppareil {
         UiAutomation automatisation = InstrumentationRegistry.getInstrumentation()
                 .getUiAutomation();
         long ancre = SystemClock.uptimeMillis();
+        long instant = ancre;
         int acceptes = 0;
-        acceptes += injecter(automatisation, evenement(ancre,
-                SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, 1, bornes,
-                ecartDepart)) ? 1 : 0;
-        SystemClock.sleep(20L);
-        acceptes += injecter(automatisation, evenement(ancre,
-                SystemClock.uptimeMillis(), MotionEvent.ACTION_POINTER_DOWN
-                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT, 2, bornes,
-                ecartDepart)) ? 1 : 0;
-        for (int pas = 1; pas <= 20; pas++) {
-            int ecart = Math.round(ecartDepart
-                    + (ecartArrivee - ecartDepart) * pas / 20f);
-            acceptes += injecter(automatisation, evenement(ancre,
-                    SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, 2, bornes,
-                    ecart)) ? 1 : 0;
-            SystemClock.sleep(20L);
+        acceptes += injecter(automatisation, evenement(ancre, instant,
+                MotionEvent.ACTION_DOWN, 1, bornes, ecartDepart)) ? 1 : 0;
+        instant += 16L;
+        acceptes += injecter(automatisation, evenement(ancre, instant,
+                MotionEvent.ACTION_POINTER_DOWN
+                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
+                2, bornes, ecartDepart)) ? 1 : 0;
+        for (int etape = 1; etape <= 24; etape++) {
+            instant += 16L;
+            float ecart = ecartDepart + (ecartArrivee - ecartDepart) * etape / 24f;
+            acceptes += injecter(automatisation, evenement(ancre, instant,
+                    MotionEvent.ACTION_MOVE, 2, bornes, ecart)) ? 1 : 0;
         }
-        acceptes += injecter(automatisation, evenement(ancre,
-                SystemClock.uptimeMillis(), MotionEvent.ACTION_POINTER_UP
-                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT, 2, bornes,
-                ecartArrivee)) ? 1 : 0;
-        SystemClock.sleep(20L);
-        acceptes += injecter(automatisation, evenement(ancre,
-                SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 1, bornes,
-                ecartArrivee)) ? 1 : 0;
+        instant += 16L;
+        acceptes += injecter(automatisation, evenement(ancre, instant,
+                MotionEvent.ACTION_POINTER_UP
+                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
+                2, bornes, ecartArrivee)) ? 1 : 0;
+        instant += 16L;
+        acceptes += injecter(automatisation, evenement(ancre, instant,
+                MotionEvent.ACTION_UP, 1, bornes, ecartArrivee)) ? 1 : 0;
         appareil().waitForIdle();
         return acceptes;
     }
 
     /**
-     * L'événement de geste : pointeurs symétriques autour du centre
-     * des bornes — le doigt zéro à l'ouest, le doigt un à l'est ; le
-     * compte porte les premiers pointeurs seuls (la voie du premier
-     * contact ne compte qu'un doigt).
+     * L'événement de geste : doigts VERTICAUX symétriques autour du
+     * centre des bornes — le doigt zéro au nord, le doigt un au sud
+     * (la géométrie du banc JVM) ; le compte porte le premier doigt
+     * seul au premier et dernier contact.
      */
     private static MotionEvent evenement(long ancre, long instant, int action,
             int compte, Rect bornes, float ecart) {
@@ -235,8 +231,8 @@ final class BancAppareil {
             proprietes[doigt].id = doigt;
             proprietes[doigt].toolType = MotionEvent.TOOL_TYPE_FINGER;
             coordonnees[doigt] = new MotionEvent.PointerCoords();
-            coordonnees[doigt].x = bornes.centerX() + (doigt == 0 ? -demi : demi);
-            coordonnees[doigt].y = bornes.centerY();
+            coordonnees[doigt].x = bornes.centerX();
+            coordonnees[doigt].y = bornes.centerY() + (doigt == 0 ? -demi : demi);
             coordonnees[doigt].pressure = 1f;
             coordonnees[doigt].size = 1f;
         }
