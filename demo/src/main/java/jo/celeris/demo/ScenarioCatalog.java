@@ -384,6 +384,15 @@ public final class ScenarioCatalog {
                                 + "transaction diffable et annulable — le correctif "
                                 + "sans édition reste un correctif."),
                 new Scenario(
+                        "B-18",
+                        "Aperçu d'un correctif",
+                        "Le correctif proposé sur la sélection se prévise "
+                                + "AVANT l'acceptation : les lignes en moins et "
+                                + "en plus se lisent préfixées, le contexte "
+                                + "encadrant — l'acceptation applique par "
+                                + "transaction, annulable d'un geste ; le refus "
+                                + "ne touche à rien."),
+                new Scenario(
                         "B-19",
                         "Renommage multi-fichiers",
                         "Le plan par occurrence, fichier par fichier, sur l'index "

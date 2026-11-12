@@ -28,6 +28,7 @@ final class CatalogueActions {
     private final String nomFichier;
     private final AtelierLint lint;
     private final AtelierDiff diff;
+    private final AtelierCorrectif correctif;
     private final AtelierAgent agent;
     private final AtelierIA ia;
     private final AtelierPopups popups;
@@ -47,6 +48,7 @@ final class CatalogueActions {
      * @param nomFichier     le nom du fichier ouvert — titre de la barre
      * @param lint           l'atelier lint (analyse, correctifs)
      * @param diff           l'atelier des revues de fusion
+     * @param correctif      l'atelier de l'aperçu d'un correctif (B-18)
      * @param agent          l'atelier de l'agent
      * @param ia             l'atelier IA (fantôme, prédiction)
      * @param popups         l'atelier des popups (complétion, survol)
@@ -59,7 +61,8 @@ final class CatalogueActions {
      * @param barreToolbar   l'atelier de la barre (carte de débordement)
      */
     CatalogueActions(EditorActivity activite, String nomFichier,
-            AtelierLint lint, AtelierDiff diff, AtelierAgent agent,
+            AtelierLint lint, AtelierDiff diff, AtelierCorrectif correctif,
+            AtelierAgent agent,
             AtelierIA ia, AtelierPopups popups, AtelierRefactor refactor,
             AtelierRecherche recherche, BasculeTheme basculeTheme,
             FeuilleReglages feuilleReglages,
@@ -70,6 +73,7 @@ final class CatalogueActions {
         this.nomFichier = nomFichier;
         this.lint = lint;
         this.diff = diff;
+        this.correctif = correctif;
         this.agent = agent;
         this.ia = ia;
         this.popups = popups;
@@ -180,6 +184,9 @@ final class CatalogueActions {
                 new IntentionsMenuView.Item(
                         activite.getString(R.string.action_diff),
                         diff::ouvrir),
+                new IntentionsMenuView.Item(
+                        activite.getString(R.string.action_apercu_correctif),
+                        correctif::ouvrir),
                 new IntentionsMenuView.Item(
                         activite.getString(R.string.action_agent),
                         agent::ouvrir),

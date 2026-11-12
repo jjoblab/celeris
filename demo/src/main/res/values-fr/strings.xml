@@ -59,6 +59,8 @@
     <string name="titre_diff">Bloc %1$d</string>
     <string name="titre_feuille_diff">Revue du diff — bloc %1$d</string>
     <string name="bloc_accepter">Accepter le bloc</string>
+    <string name="action_apercu_correctif">Aperçu du correctif</string>
+    <string name="titre_feuille_correctif">Aperçu du correctif — %1$s</string>
     <string name="bloc_refuser">Refuser le bloc</string>
     <string name="action_agent">Revue des modifications d\'agent</string>
     <string name="titre_agent">Modification d\'agent — bloc %1$d</string>

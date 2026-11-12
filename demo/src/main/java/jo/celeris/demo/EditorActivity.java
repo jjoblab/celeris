@@ -105,6 +105,9 @@ public final class EditorActivity extends AppCompatActivity {
     /** Le catalogue des actions (menu, carte de débordement,
      *  intentions) — visible du paquet, monté après la scène. */
     private CatalogueActions catalogue;
+    /** L'atelier de l'aperçu d'un correctif (B-18) : le correctif
+     *  proposé sur la sélection se prévise avant l'acceptation. */
+    private AtelierCorrectif atelierCorrectif;
 
     @Override
     protected void onCreate(Bundle etat) {
@@ -119,6 +122,12 @@ public final class EditorActivity extends AppCompatActivity {
         atelierLint = new AtelierLint(nomFichier, session, this::surLint);
         atelierDiff = new AtelierDiff(this, reference, session,
                 this::paletteFeuilles, this::apresFusion);
+        // L'atelier de l'aperçu du correctif (B-18) : le serveur se lit
+        // à l'ouverture — il se branche après la scène, l'uri suit le
+        // fichier ouvert.
+        atelierCorrectif = new AtelierCorrectif(this, session,
+                this::paletteFeuilles, this::apresFusion,
+                () -> serveurLangage, () -> "file:///" + nomFichier);
         atelierAgent = new AtelierAgent(this, session,
                 this::paletteFeuilles, this::apresFusion);
         session.addEditListener((debut, fin, retire, insere) -> {
@@ -145,7 +154,7 @@ public final class EditorActivity extends AppCompatActivity {
         // Le catalogue des actions suit la scène : les ateliers s'y
         // trouvent montés — le menu, la carte et les intentions y lisent.
         catalogue = new CatalogueActions(this, nomFichier, atelierLint,
-                atelierDiff, atelierAgent, atelierIA, atelierPopups,
+                atelierDiff, atelierCorrectif, atelierAgent, atelierIA, atelierPopups,
                 atelierRefactor, atelierRecherche, basculeTheme,
                 feuilleReglages, () -> entreesPlan, this::lignesCourantes,
                 atelierBarreToolbar);
@@ -473,6 +482,7 @@ public final class EditorActivity extends AppCompatActivity {
                 || (feuillePlan != null && feuillePlan.surRetour())
                 || atelierRefactor.surRetour()
                 || atelierDiff.surRetour()
+                || atelierCorrectif.surRetour()
                 || atelierAgent.surRetour()
                 || atelierIA.surRetour();
     }

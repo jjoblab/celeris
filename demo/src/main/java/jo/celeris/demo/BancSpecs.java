@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jo.celeris.android.widgets.ApercuCorrectif;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.core.language.model.LanguageConfiguration;
@@ -42,6 +43,9 @@ import jo.celeris.core.text.TextEdit;
 import jo.celeris.core.text.TextSession;
 import jo.celeris.core.text.Transaction;
 
+import jo.celeris.core.lsp.EditsEspaceLsp;
+import jo.celeris.core.lsp.PositionsLsp;
+import jo.celeris.core.lsp.types.CorrectifLsp;
 import jo.celeris.core.lsp.types.DiagnosticLsp;
 
 import org.jspecify.annotations.Nullable;
@@ -120,6 +124,9 @@ final class BancSpecs {
                 new ScenarioSpec("B-09",
                         "Le survol sert la documentation par le fil",
                         BancSpecs::survol),
+                new ScenarioSpec("B-18",
+                        "L'aperçu du correctif se voit avant l'acceptation",
+                        BancSpecs::apercuCorrectif),
                 new ScenarioSpec("B-19",
                         "Le renommage porte les usages entiers, annulable",
                         BancSpecs::renommage),
@@ -327,6 +334,46 @@ final class BancSpecs {
                         documentPur, "ajouter", position)
                         .get(2, java.util.concurrent.TimeUnit.SECONDS));
         return doc != null && "ajouter".equals(doc.titre());
+    }
+
+    /** B-18 — l'aperçu du correctif se voit avant l'acceptation, l'application reste annulable. */
+    private static boolean apercuCorrectif() {
+        String document = "int total = ajouter(1, 2);\n";
+        int debut = document.indexOf("ajouter(1, 2)");
+        ServeurLangage serveur = ServeurLangage.demarrer();
+        try {
+            serveur.ouvrir(URI, languageId(), document);
+            Document pur = TextSession.of(document, () -> 0L).document();
+            List<CorrectifLsp> correctifs = serveur.correctifs(URI,
+                    PositionsLsp.plage(pur, debut, debut + "ajouter(1, 2)".length()))
+                    .get(2, java.util.concurrent.TimeUnit.SECONDS);
+            if (correctifs == null || correctifs.isEmpty()
+                    || correctifs.get(0).edition().documents().isEmpty()) {
+                return false;
+            }
+            // l'épreuve porte l'aperçu : la session reste intacte tant
+            // que l'acceptation n'a pas parlé
+            Transaction edition = EditsEspaceLsp.transaction(pur,
+                    correctifs.get(0).edition().documents().get(0));
+            TextSession epreuve = TextSession.of(document, () -> 0L);
+            if (!epreuve.apply(edition)) {
+                return false;
+            }
+            ApercuCorrectif apercu = ApercuCorrectif.de(document, epreuve.text());
+            boolean seVoit = apercu.rendues().contains("- int total = ajouter(1, 2);")
+                    && apercu.rendues().contains("+ int total = {ajouter(1, 2)};");
+            // l'acceptation applique par la voie de transaction — un
+            // geste défait tout
+            TextSession session = TextSession.of(document, () -> 0L);
+            session.apply(edition);
+            boolean applique = session.text().contains("{ajouter(1, 2)}");
+            session.undo();
+            return seVoit && applique && document.equals(session.text());
+        } catch (Exception echec) {
+            return false;
+        } finally {
+            serveur.close();
+        }
     }
 
     /** C-10 — le modificateur d'agencement survolé sert sa documentation (Compose). */

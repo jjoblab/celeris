@@ -59,6 +59,8 @@
     <string name="titre_diff">Block %1$d</string>
     <string name="titre_feuille_diff">Diff review — block %1$d</string>
     <string name="bloc_accepter">Accept block</string>
+    <string name="action_apercu_correctif">Fix preview</string>
+    <string name="titre_feuille_correctif">Fix preview — %1$s</string>
     <string name="bloc_refuser">Reject block</string>
     <string name="action_agent">Review agent edits</string>
     <string name="titre_agent">Agent edit — block %1$d</string>

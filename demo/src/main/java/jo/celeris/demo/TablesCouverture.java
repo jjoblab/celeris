@@ -239,12 +239,26 @@ final class TablesCouverture {
     }
 
     /**
-     * Les correctifs (H-12) : envelopper la sélection — le terrain
-     * n'en sert qu'un, l'édition vide n'engage à rien.
+     * Les correctifs (H-12, B-18) : envelopper la sélection — la
+     * sélection vide n'engage à rien, l'édition proposée s'y prévise
+     * avant l'acceptation (B-17 : diffable et annulable).
      */
     List<CorrectifLsp> correctifs(String uri, PlageLsp plage) {
+        Document document = documentsSuivis.apply(uri);
+        if (document == null) {
+            return List.of();
+        }
+        int[] bornes = PositionsLsp.bornes(document, plage);
+        if (bornes[0] >= bornes[1]) {
+            return List.of();
+        }
+        String enveloppe = "{" + document.subText(bornes[0], bornes[1]) + "}";
+        EditionTexteLsp edition = new EditionTexteLsp(plage, enveloppe);
         return List.of(new CorrectifLsp("Entourer d'accolades",
-                EditionEspaceLsp.VIDE));
+                new EditionEspaceLsp(
+                        List.of(new jo.celeris.core.lsp.types.EditionDocumentLsp(uri, -1,
+                                List.of(edition))),
+                        List.of())));
     }
 
     /**
