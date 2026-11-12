@@ -95,7 +95,7 @@ vivent dans `demo/src/androidTest` (`PinchZoomOnDeviceTest`,
 ATD) les exécute, le travail CI `appareil.yml` court au nocturne, à
 chaque fusion et au déclenchement manuel — rapports en artefact
 `device-tests-reports`. Le plafond Checkstyle couvre le banc d'appareil
-comme les bancs JVM ; la compilation se vérifie partout, l'exécution
+comme les bancs JVM ; la compilation se vérifie partout, l'exécution
 demande la virtualisation matérielle — les runners Ubuntu la portent.
 La colonne « Vérifié appareil » de la matrice se remplit par ces
 passages nocturnes.
