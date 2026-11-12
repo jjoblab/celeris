@@ -33,6 +33,17 @@ public interface ArbreDocuments {
     String lire(String idFichier);
 
     /**
+     * Lit les octets BRUTS du fichier donné (A-26) : la détection
+     * binaire s'y lit, l'aperçu hexadécimal s'y sert — jamais après
+     * l'aller-retour du décodage (il détruirait ce qu'il lit : le
+     * binaire ne se juge pas décodé).
+     *
+     * @param idFichier l'identifiant du fichier
+     * @return les octets intégraux, bruts
+     */
+    byte[] lireOctets(String idFichier);
+
+    /**
      * Remplace le contenu du fichier donné.
      *
      * @param idFichier l'identifiant du fichier existant

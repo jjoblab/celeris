@@ -50,11 +50,34 @@ public final class AdaptateurStockageDocuments implements SystemeFichiersVirtuel
     }
 
     @Override
+    public boolean estBinaire(CheminDoc chemin) {
+        EntreeDocument entree = resoudre(chemin);
+        return entree != null && !entree.dossier()
+                && DetectionBinaire.binaire(arbre.lireOctets(entree.idDocument()));
+    }
+
+    @Override
+    public @org.jspecify.annotations.Nullable String apercuBinaire(CheminDoc chemin) {
+        if (!estBinaire(chemin)) {
+            return null;
+        }
+        EntreeDocument entree = resoudre(chemin);
+        String vidage = entree == null ? null : String.join("\n",
+                ApercuHexadecimal.de(arbre.lireOctets(entree.idDocument())).lignes());
+        return vidage;
+    }
+
+    @Override
     public void ecrire(CheminDoc chemin, String contenu) {
         EntreeDocument existant = resoudre(chemin);
         if (existant != null) {
             if (existant.dossier()) {
                 throw new FichierAbsentException(chemin);
+            }
+            // A-26 : le binaire ne repart jamais par la voie texte —
+            // l'aller-retour du décodage se refuse d'entrée.
+            if (DetectionBinaire.binaire(arbre.lireOctets(existant.idDocument()))) {
+                throw new FichierBinaireException(chemin);
             }
             arbre.remplacer(existant.idDocument(), contenu);
             return;

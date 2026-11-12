@@ -10,6 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.nio.charset.StandardCharsets;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -23,7 +25,7 @@ class AdaptateurStockageDocumentsTest {
     /** L'arbre en mémoire : les identifiants sont des compteurs. */
     private static final class ArbreFaux implements ArbreDocuments {
         private final Map<String, List<EntreeDocument>> dossiers = new LinkedHashMap<>();
-        private final Map<String, String> fichiers = new LinkedHashMap<>();
+        private final Map<String, byte[]> fichiers = new LinkedHashMap<>();
         private int compteur;
 
         ArbreFaux() {
@@ -36,7 +38,14 @@ class AdaptateurStockageDocumentsTest {
 
         void fichier(String idParent, String nom, String contenu) {
             String id = nouvelId();
-            fichiers.put(id, contenu);
+            fichiers.put(id, contenu.getBytes(StandardCharsets.UTF_8));
+            dossiers.get(idParent).add(new EntreeDocument(nom, id, false));
+        }
+
+        /** Le fichier binaire : des octets bruts, jamais décodés. */
+        void fichierBinaire(String idParent, String nom, byte[] octets) {
+            String id = nouvelId();
+            fichiers.put(id, octets.clone());
             dossiers.get(idParent).add(new EntreeDocument(nom, id, false));
         }
 
@@ -53,11 +62,20 @@ class AdaptateurStockageDocumentsTest {
 
         @Override
         public String lire(String idFichier) {
-            String contenu = fichiers.get(idFichier);
+            byte[] contenu = fichiers.get(idFichier);
             if (contenu == null) {
                 throw new IllegalStateException("not a file: " + idFichier);
             }
-            return contenu;
+            return new String(contenu, StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public byte[] lireOctets(String idFichier) {
+            byte[] contenu = fichiers.get(idFichier);
+            if (contenu == null) {
+                throw new IllegalStateException("not a file: " + idFichier);
+            }
+            return contenu.clone();
         }
 
         @Override
@@ -65,7 +83,7 @@ class AdaptateurStockageDocumentsTest {
             if (!fichiers.containsKey(idFichier)) {
                 throw new IllegalStateException("not a file: " + idFichier);
             }
-            fichiers.put(idFichier, contenu);
+            fichiers.put(idFichier, contenu.getBytes(StandardCharsets.UTF_8));
         }
 
         @Override
@@ -75,7 +93,7 @@ class AdaptateurStockageDocumentsTest {
                 this.dossiers.put(id, new ArrayList<>());
                 this.dossiers.get(idParent).add(new EntreeDocument(nom, id, true));
             } else {
-                fichiers.put(id, "");
+                fichiers.put(id, new byte[0]);
                 this.dossiers.get(idParent).add(new EntreeDocument(nom, id, false));
             }
             return id;

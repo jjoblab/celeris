@@ -76,6 +76,11 @@ public final class ArbreDocumentsSaf implements ArbreDocuments {
 
     @Override
     public String lire(String idFichier) {
+        return new String(lireOctets(idFichier), StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public byte[] lireOctets(String idFichier) {
         Uri document = DocumentsContract.buildDocumentUriUsingTree(racineArbre, idFichier);
         try (InputStream flot = resolver.openInputStream(document)) {
             if (flot == null) {
@@ -86,7 +91,7 @@ public final class ArbreDocumentsSaf implements ArbreDocuments {
             for (int lu = flot.read(bloc); lu >= 0; lu = flot.read(bloc)) {
                 tampon.write(bloc, 0, lu);
             }
-            return new String(tampon.toByteArray(), StandardCharsets.UTF_8);
+            return tampon.toByteArray();
         } catch (IOException e) {
             throw new IllegalStateException("read failed: " + idFichier, e);
         }
