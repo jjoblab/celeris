@@ -106,6 +106,25 @@ final class BancAppareil {
     }
 
     /**
+     * Les mesures du détecteur d'échelle de l'appareil — la densité,
+     * le seuil de touche, l'envergure minimale : les messages d'échec
+     * les portent, la calibration s'y lit.
+     */
+    static String mesuresEchelle(
+            ActivityScenario<EditorActivity> scenario) {
+        String[] mesures = new String[1];
+        scenario.onActivity(ecran -> {
+            android.view.ViewConfiguration configuration =
+                    android.view.ViewConfiguration.get(ecran);
+            mesures[0] = "densité " + ecran.getResources().getDisplayMetrics().density
+                    + ", touche " + configuration.getScaledTouchSlop()
+                    + " px, envergure minimale "
+                    + configuration.getScaledMinimumScalingSpan() + " px";
+        });
+        return mesures[0];
+    }
+
+    /**
      * Les bornes de l'éditeur, en coordonnées de vue — la géométrie
      * du geste s'y cale.
      */
@@ -161,14 +180,15 @@ final class BancAppareil {
     }
 
     /**
-     * Pince l'éditeur : deux pointeurs RÉELS — les mêmes
-     * {@code MotionEvent} que le banc JVM, doigts VERTICAUX autour du
-     * centre — distribués à la vue à la cadence du doigt : un
-     * événement tous les seize millisecondes, horodaté au moment
-     * réel. Le détecteur d'échelle de l'appareil ré-ancre les sauts
-     * d'envergure (une rafale d'événements en une milliseconde
-     * ressemble à un saut de digitaliseur : l'engagement se
-     * reprend, le facteur retombe à l'unité).
+     * Pince l'éditeur : deux pointeurs RÉELS — les mêmes rapports
+     * d'envergure que le banc JVM (environ quatre et un tiers pour
+     * l'ample, quatre dixièmes pour le resserré) — mais des envergures
+     * CALIBRÉES au-dessus du seuil du détecteur de l'appareil : le
+     * détecteur d'échelle n'engage le geste que lorsque l'envergure
+     * atteint l'envergure minimale de mise à l'échelle (environ deux
+     * cents dp — le banc JVM, sous Robolectric, n'a pas le même
+     * seuil). Les doigts vivent VERTICALEMENT autour du centre, un
+     * événement tous les seize millisecondes, horodaté réel.
      *
      * @return le compte d'événements distribués à la vue
      */
