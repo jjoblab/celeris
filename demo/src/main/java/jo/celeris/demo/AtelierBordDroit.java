@@ -33,7 +33,8 @@ final class AtelierBordDroit {
 
     /** Le nombre de crans de la bande d'erreurs. */
     private static final int CRANS_BANDE = 200;
-    /** Le nombre de rangees de la minimap. */
+    /** Le plafond de rangees de la minimap — le document court compte
+     *  les siennes, une par ligne. */
     private static final int RANGEES_MINIMAP = 200;
 
     private final PopupController controleur;
@@ -104,8 +105,12 @@ final class AtelierBordDroit {
      */
     void rafraichir(int largeurCouche, int hauteurCouche) {
         controleur.open(PopupController.PopupKind.MINIMAP);
-        minimap.setModel(MinimapModel.of(session.document(), RANGEES_MINIMAP),
-                session.document().lineCount());
+        // La carte honnête : le document court garde SES rangees (une
+        // par ligne — la miniature ne s'étire pas), le document long
+        // plafonne au même nombre de crans serrés.
+        int lignes = session.document().lineCount();
+        minimap.setModel(MinimapModel.of(session.document(),
+                Math.max(1, Math.min(RANGEES_MINIMAP, lignes))), lignes);
         minimap.setViewport(editeur.premiereLigneVisible(),
                 editeur.lignesVisibles(), session.document().lineCount());
         minimap.setSpanPx(Math.max(1, hauteurCouche - 2 * margePx));

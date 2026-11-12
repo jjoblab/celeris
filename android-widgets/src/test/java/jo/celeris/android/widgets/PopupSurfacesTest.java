@@ -182,7 +182,9 @@ public class PopupSurfacesTest {
         vue.setSpanPx(1000);
         mesurer(vue);
         vue.layout(0, 0, vue.getMeasuredWidth(), vue.getMeasuredHeight());
-        assertEquals("la carte prend l'étendue posée", 1000,
+        // la carte honnête : cent rangees à 2,5 dp (densité 1) — elle ne
+        // s'étire pas sur l'étendue posée
+        assertEquals("la carte courte prend sa hauteur honnête", 250,
                 vue.getMeasuredHeight());
         AtomicInteger ligne = new AtomicInteger(-1);
         vue.setOnJump(ligne::set);
