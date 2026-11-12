@@ -150,47 +150,51 @@ final class BancAppareil {
     /**
      * Pince l'éditeur : deux pointeurs RÉELS — les mêmes
      * {@code MotionEvent} que le banc JVM, doigts VERTICAUX autour du
-     * centre, cadence de 16 ms, le premier doigt pose seul, le dernier
-     * posé se lève premier — distribués à la vue sur le fil principal :
-     * le vrai détecteur d'échelle, la vraie re-mesure, le vrai rendu
-     * de l'appareil (l'injection au système, sur l'image ATD,
-     * coalesçait le geste en un cran).
+     * centre — distribués à la vue à la cadence du doigt : un
+     * événement tous les seize millisecondes, horodaté au moment
+     * réel. Le détecteur d'échelle de l'appareil ré-ancre les sauts
+     * d'envergure (une rafale d'événements en une milliseconde
+     * ressemble à un saut de digitaliseur : l'engagement se
+     * reprend, le facteur retombe à l'unité).
      *
      * @return le compte d'événements distribués à la vue
      */
     static int pincer(ActivityScenario<EditorActivity> scenario, float ecartDepart,
             float ecartArrivee) throws InterruptedException {
+        Rect bornes = bornesEditeur(scenario);
         int[] distribues = new int[1];
-        Rect[] bornesVue = new Rect[1];
-        scenario.onActivity(ecran -> {
-            EditorView vue = editeur(ecran);
-            bornesVue[0] = new Rect(0, 0, vue.getWidth(), vue.getHeight());
-            long ancre = SystemClock.uptimeMillis();
-            long instant = ancre;
-            distribues[0] += distribuer(vue, evenement(ancre, instant,
-                    MotionEvent.ACTION_DOWN, 1, bornesVue[0], ecartDepart));
-            instant += 16L;
-            distribues[0] += distribuer(vue, evenement(ancre, instant,
-                    MotionEvent.ACTION_POINTER_DOWN
-                    | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
-                    2, bornesVue[0], ecartDepart));
-            for (int etape = 1; etape <= 24; etape++) {
-                instant += 16L;
-                float ecart = ecartDepart + (ecartArrivee - ecartDepart) * etape / 24f;
-                distribues[0] += distribuer(vue, evenement(ancre, instant,
-                        MotionEvent.ACTION_MOVE, 2, bornesVue[0], ecart));
-            }
-            instant += 16L;
-            distribues[0] += distribuer(vue, evenement(ancre, instant,
-                    MotionEvent.ACTION_POINTER_UP
-                    | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
-                    2, bornesVue[0], ecartArrivee));
-            instant += 16L;
-            distribues[0] += distribuer(vue, evenement(ancre, instant,
-                    MotionEvent.ACTION_UP, 1, bornesVue[0], ecartArrivee));
-        });
+        distribuerEtape(scenario, bornes, distribues,
+                MotionEvent.ACTION_DOWN, 1, ecartDepart);
+        Thread.sleep(16L);
+        distribuerEtape(scenario, bornes, distribues,
+                MotionEvent.ACTION_POINTER_DOWN
+                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT, 2, ecartDepart);
+        for (int etape = 1; etape <= 24; etape++) {
+            Thread.sleep(16L);
+            float ecart = ecartDepart + (ecartArrivee - ecartDepart) * etape / 24f;
+            distribuerEtape(scenario, bornes, distribues,
+                    MotionEvent.ACTION_MOVE, 2, ecart);
+        }
+        Thread.sleep(16L);
+        distribuerEtape(scenario, bornes, distribues,
+                MotionEvent.ACTION_POINTER_UP
+                | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT, 2, ecartArrivee);
+        Thread.sleep(16L);
+        distribuerEtape(scenario, bornes, distribues,
+                MotionEvent.ACTION_UP, 1, ecartArrivee);
         appareil().waitForIdle();
         return distribues[0];
+    }
+
+    /** Distribue une étape du geste à la vue, à l'instant réel. */
+    private static void distribuerEtape(
+            ActivityScenario<EditorActivity> scenario, Rect bornes,
+            int[] distribues, int action, int compte, float ecart) {
+        scenario.onActivity(ecran -> {
+            long maintenant = SystemClock.uptimeMillis();
+            distribues[0] += distribuer(editeur(ecran), evenement(maintenant,
+                    maintenant, action, compte, bornes, ecart));
+        });
     }
 
     /**
