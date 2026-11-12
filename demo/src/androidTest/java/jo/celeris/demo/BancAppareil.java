@@ -94,7 +94,12 @@ final class BancAppareil {
             throws Exception {
         appareil().wakeUp();
         appareil().executeShellCommand("svc power stayon true");
+        appareil().executeShellCommand("wm dismiss-keyguard");
         Thread.sleep(400L);
+        System.out.println("PUISSANCE: " + appareil().executeShellCommand(
+                "dumpsys power | grep -iE 'mWakefulness|Display Power' | head -3"));
+        System.out.println("FOCUS: " + appareil().executeShellCommand(
+                "dumpsys window | grep -iE 'mCurrentFocus|mFocusedWindow' | head -3"));
         EditorView[] vue = new EditorView[1];
         for (int essai = 0; essai < 50; essai++) {
             scenario.onActivity(ecran -> {
@@ -184,23 +189,25 @@ final class BancAppareil {
         UiAutomation automatisation = InstrumentationRegistry.getInstrumentation()
                 .getUiAutomation();
         long depart = SystemClock.uptimeMillis();
-        injecter(automatisation, evenement(depart, depart,
-                MotionEvent.ACTION_DOWN, bornes, ecartDepart));
-        injecter(automatisation, evenement(depart, depart + 20L,
+        int acceptes = 0;
+        acceptes += injecter(automatisation, evenement(depart, depart,
+                MotionEvent.ACTION_DOWN, bornes, ecartDepart)) ? 1 : 0;
+        acceptes += injecter(automatisation, evenement(depart, depart + 20L,
                 MotionEvent.ACTION_POINTER_DOWN | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
-                bornes, ecartDepart));
+                bornes, ecartDepart)) ? 1 : 0;
         for (int pas = 1; pas <= 20; pas++) {
             int ecart = Math.round(ecartDepart
                     + (ecartArrivee - ecartDepart) * pas / 20f);
-            injecter(automatisation, evenement(depart, depart + 20L + pas * 40L,
-                    MotionEvent.ACTION_MOVE, bornes, ecart));
+            acceptes += injecter(automatisation, evenement(depart, depart + 20L + pas * 40L,
+                    MotionEvent.ACTION_MOVE, bornes, ecart)) ? 1 : 0;
             Thread.sleep(20L);
         }
-        injecter(automatisation, evenement(depart, depart + 840L,
+        acceptes += injecter(automatisation, evenement(depart, depart + 840L,
                 MotionEvent.ACTION_POINTER_UP | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
-                bornes, ecartArrivee));
-        injecter(automatisation, evenement(depart, depart + 860L,
-                MotionEvent.ACTION_UP, bornes, ecartArrivee));
+                bornes, ecartArrivee)) ? 1 : 0;
+        acceptes += injecter(automatisation, evenement(depart, depart + 860L,
+                MotionEvent.ACTION_UP, bornes, ecartArrivee)) ? 1 : 0;
+        System.out.println("INJECTIONS ACCEPTÉES: " + acceptes + "/23");
         appareil().waitForIdle();
     }
 
@@ -230,9 +237,10 @@ final class BancAppareil {
     }
 
     /** Porte l'événement à la voie d'entrée du système. */
-    private static void injecter(UiAutomation automatisation, MotionEvent evenement) {
-        automatisation.injectInputEvent(evenement, false);
+    private static boolean injecter(UiAutomation automatisation, MotionEvent evenement) {
+        boolean accepte = automatisation.injectInputEvent(evenement, false);
         evenement.recycle();
+        return accepte;
     }
 
     /** L'appareil UiAutomator du banc. */
@@ -287,6 +295,10 @@ final class BancAppareil {
         journal.append("bitmap ").append(image.getWidth()).append('x')
                 .append(image.getHeight())
                 .append(", couleurs distinctes ~").append(compteCouleurs(image))
+                .append(", coin haut-gauche 0x").append(Integer.toHexString(
+                        image.getPixel(3, 3)))
+                .append(", centre 0x").append(Integer.toHexString(
+                        image.getPixel(image.getWidth() / 2, image.getHeight() / 2)))
                 .append(", bande ").append(bande).append('\n');
         for (int rang = 0; rang < 20; rang++) {
             int y = bande.top + (bande.height() * rang / 20);
