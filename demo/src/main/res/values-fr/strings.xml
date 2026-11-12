@@ -22,7 +22,7 @@
     <string name="touche_ligne_haut">Ligne haut</string>
     <string name="touche_ligne_bas">Ligne bas</string>
     <string name="touche_dupliquer">Dupliquer</string>
-    <string name="action_debordement">Plus d'actions</string>
+    <string name="action_debordement">Plus d\'actions</string>
     <string name="action_recherche">Rechercher</string>
     <string name="action_completion">Compléter le mot</string>
     <string name="action_intentions">Intentions au curseur</string>
