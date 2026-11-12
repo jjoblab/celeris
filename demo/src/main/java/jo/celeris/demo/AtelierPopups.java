@@ -543,6 +543,14 @@ final class AtelierPopups {
 
     private void ancrer(PopupController.PopupKind kind,
             android.view.View vue, PopupPlacer.Cadre placee) {
+        // déjà montré, MÊME vue : le popup se RE-MONTE sans jamais
+        // quitter la couche — le dragage de sélection y déplace la
+        // barre d'un seul tenant, identique à l'appui long qui l'a
+        // posée (aucune re-naissance d'image en image)
+        if (couche.popupOf(kind) == vue) {
+            couche.remonter(kind, placee.x(), placee.y());
+            return;
+        }
         couche.show(kind, vue, placee.x(), placee.y());
     }
 

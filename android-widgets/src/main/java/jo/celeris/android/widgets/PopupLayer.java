@@ -85,6 +85,31 @@ public final class PopupLayer extends ViewGroup {
     }
 
     /**
+     * Re-monte le popup DÉJÀ montré à la position donnée : même vue,
+     * même instance — le contenu se re-mesure (il peut avoir changé)
+     * et se re-pose, sans jamais quitter la couche. Le suivi au doigt
+     * (le dragage de sélection qui déplace la barre image après
+     * image) s'y vit d'un seul tenant : le popup ne re-naît pas à
+     * chaque image, il SE DÉPLACE — ce que l'appui long a posé, le
+     * dragage le garde identique.
+     *
+     * @param kind le popup déjà montré à re-positionner
+     * @param x    la nouvelle abscisse, en pixels
+     * @param y    la nouvelle ordonnée, en pixels
+     */
+    public void remonter(PopupController.PopupKind kind, int x, int y) {
+        View popup = popups.get(kind);
+        if (popup == null) {
+            return;
+        }
+        popup.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        popup.layout(x, y, x + popup.getMeasuredWidth(),
+                y + popup.getMeasuredHeight());
+        invalidate();
+    }
+
+    /**
      * Ferme le popup donné.
      *
      * @param kind le popup à fermer

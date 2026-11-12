@@ -2,6 +2,7 @@ package jo.celeris.android.widgets;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
@@ -206,6 +207,35 @@ public class PopupSurfacesTest {
         vue.setViewport(50, 10, 100);
         assertTrue("la fenêtre se pose sans casser",
                 vue.getMeasuredHeight() > 0);
+    }
+
+    /** La re-monte déplace le popup SANS le re-naître : même
+     *  instance, même couche, la position suit — le dragage de
+     *  sélection y garde la barre identique à l'appui long qui l'a
+     *  posée. */
+    @Test
+    public void remonterDeplaceSansReposer() {
+        PopupLayer couche = new PopupLayer(contexte);
+        SelectionBarView barre = new SelectionBarView(contexte,
+                PopupPalette.dark());
+        barre.setActions(List.of(new SelectionBarView.Item("copier", () -> { })),
+                List.of());
+        couche.show(PopupController.PopupKind.SELECTION_BAR, barre, 10, 20);
+        int enfantsAvant = couche.getChildCount();
+        View enfant = couche.popupOf(PopupController.PopupKind.SELECTION_BAR);
+        couche.remonter(PopupController.PopupKind.SELECTION_BAR, 30, 40);
+        assertTrue("le popup reste montré",
+                couche.isShowing(PopupController.PopupKind.SELECTION_BAR));
+        assertSame("la MÊME instance vit encore dans la couche",
+                enfant, couche.popupOf(PopupController.PopupKind.SELECTION_BAR));
+        assertEquals("l'enfant ne re-naît pas d'une re-monte",
+                enfantsAvant, couche.getChildCount());
+        assertEquals(30, enfant.getLeft());
+        assertEquals(40, enfant.getTop());
+        // la re-monte d'un popup absent reste muette — rien ne se pose
+        couche.remonter(PopupController.PopupKind.BREADCRUMB, 5, 5);
+        assertFalse("rien ne se pose sur un popup absent",
+                couche.isShowing(PopupController.PopupKind.BREADCRUMB));
     }
 
     /** C9 — le défilement rapide : le pouce suit l'état, le glissement
