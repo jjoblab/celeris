@@ -20,6 +20,7 @@ final class EditorGutter {
     private int chiffres = GutterLayout.DIGITS_FLOOR;
     private GutterLanes coulisses = GutterLanes.AUCUNE;
     private float coulisseCourante;
+    private float bandePliCourante;
 
     /**
      * Adapte la respiration à la classe de largeur (D-19) : la valeur
@@ -63,6 +64,7 @@ final class EditorGutter {
             boolean numeros) {
         chiffres = Math.max(chiffres, GutterLayout.digitsFor(lineCount));
         coulisseCourante = coulisses.laneWidth(charWidth, margePx);
+        bandePliCourante = coulisses.foldStripWidth(charWidth, margePx);
         return numeros
                 ? GutterLayout.width(chiffres, charWidth, density, margeDp,
                         coulisses)
@@ -72,6 +74,11 @@ final class EditorGutter {
     /** La largeur de coulisse réservée, en pixels (0 sans coulisse). */
     float coulisseCourante() {
         return coulisseCourante;
+    }
+
+    /** La largeur de la bande de plis réservée, en pixels (0 sans syntaxe). */
+    float bandePliCourante() {
+        return bandePliCourante;
     }
 
     /** Retombe au plancher : changement de session ou de langage. */

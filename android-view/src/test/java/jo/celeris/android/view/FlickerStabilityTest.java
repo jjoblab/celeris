@@ -73,44 +73,46 @@ public class FlickerStabilityTest {
      */
     @Test
     public void noFrameBetweenKeystrokeAndPublicationPaintsUncoloredText() {
-        EditorTestRig banc = bancColore("int x = 1;");
+        EditorTestRig banc = bancColore("int x = 7;");
         curseurApresNombre(banc);
         int encreMotCle = encreMotCle(banc);
         EditorTestRig.RecordingCanvas imageAvant = banc.image();
-        int encreNombre = imageAvant.couleurDe("1");
+        // la sonde « 7 » ne salue jamais le numéro de ligne courant —
+        // celui-ci se graisse à l'encre du texte de base désormais
+        int encreNombre = imageAvant.couleurDe("7");
         assertEquals("avant frappe, le mot-clé est coloré",
                 encreMotCle, imageAvant.couleurDe("int"));
         assertNotEquals("avant frappe, le nombre est coloré",
                 encreBase(banc), encreNombre);
-        // La frappe : « int x = 12; » — la publication ne part PAS.
+        // La frappe : « int x = 72; » — la publication ne part PAS.
         banc.validerTexte("2");
         EditorTestRig.RecordingCanvas avantPublication = banc.image();
         assertEquals("entre frappe et publication, int garde sa couleur",
                 encreMotCle, avantPublication.couleurDe("int"));
-        assertEquals("entre frappe et publication, 1 garde sa couleur",
-                encreNombre, avantPublication.couleurDe("1"));
+        assertEquals("entre frappe et publication, 7 garde sa couleur",
+                encreNombre, avantPublication.couleurDe("7"));
         // La publication arrive : les couleurs restent, rien ne clignote —
-        // la sorte d'un jeton peut mûrir (1 → 12), jamais vers l'encre
+        // la sorte d'un jeton peut mûrir (7 → 72), jamais vers l'encre
         // de base : le mot reste coloré d'un bout à l'autre.
         banc.publierAnalyse();
         assertEquals("après publication, int garde sa couleur",
                 encreMotCle, banc.image().couleurDe("int"));
-        assertNotEquals("après publication, 12 reste coloré",
-                encreBase(banc), banc.image().couleurDe("12"));
+        assertNotEquals("après publication, 72 reste coloré",
+                encreBase(banc), banc.image().couleurDe("72"));
     }
 
     /** La composition IME suit la même loi : les mots non touchés tiennent. */
     @Test
     public void compositionKeepsColorsDuringIme() {
-        EditorTestRig banc = bancColore("int x = 1;");
+        EditorTestRig banc = bancColore("int x = 7;");
         curseurApresNombre(banc);
         int encreMotCle = encreMotCle(banc);
-        int encreNombre = banc.image().couleurDe("1");
+        int encreNombre = banc.image().couleurDe("7");
         banc.composerTexte("2");
         assertEquals("en composition, int garde sa couleur",
                 encreMotCle, banc.image().couleurDe("int"));
-        assertEquals("en composition, 1 garde sa couleur",
-                encreNombre, banc.image().couleurDe("1"));
+        assertEquals("en composition, 7 garde sa couleur",
+                encreNombre, banc.image().couleurDe("7"));
     }
 
     /**

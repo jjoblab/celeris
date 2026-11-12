@@ -18,11 +18,13 @@ import org.robolectric.RuntimeEnvironment;
 
 /**
  * L'icône de pli de la gouttière répond au doigt (D-07, le constat du
- * propriétaire) : l'appui du chevron replie — le texte sous le pli
- * disparaît de l'image et se réhabille au dépliage, les rangées sous le
- * pli resservent le texte d'APRÈS le repli (PIEGE-02 : le cache des
+ * propriétaire, la reprise du design) : l'appui du chevron — dans la
+ * BANDE DE PLIS au bord droit de la gouttière, contre le code — replie
+ * la région ; le texte sous le pli disparaît de l'image et se
+ * réhabille au dépliage, les rangées sous le pli resservent le texte
+ * d'APRÈS le repli (PIEGE-02 : le cache des
  * mises en page s'oublie entier, sinon la rangée 4 repliée resservait
- * encore le texte d'avant). L'appui hors coulisse ne plie rien.
+ * encore le texte d'avant). L'appui hors bande ne plie rien.
  *
  * <p>La garde du pli vit pour l'analyse, qu'elle soit servie par le
  * coordinateur synchrone OU par le moteur hors fil (le banc embarque
@@ -110,12 +112,15 @@ public class PliAuTapTest {
                 vue.syntaxe.marques().replie(0));
     }
 
-    /** Le tap dans la coulisse, rangée donnée — DOWN puis UP au chevron. */
+    /** Le tap dans la bande de plis, rangée donnée — DOWN puis UP au
+     *  chevron, au bord droit de la gouttière, contre le code. */
     private static void tapCoulisse(EditorTestRig banc, int rangee) {
         EditorView vue = banc.vue();
         float y = (rangee + 0.5f) * vue.metrics.lineHeight();
-        // la coulisse : la moitié gauche de la gouttière, où vit le chevron
-        float x = vue.gouttiereEtat.coulisseCourante() / 2f;
+        // la bande de plis : le bord droit de la gouttière, où vit le
+        // chevron — sa cible tactile
+        float bande = vue.gouttiereEtat.bandePliCourante();
+        float x = vue.largeurGouttiere - bande / 2f;
         long t = SystemClock.uptimeMillis();
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, x, y));

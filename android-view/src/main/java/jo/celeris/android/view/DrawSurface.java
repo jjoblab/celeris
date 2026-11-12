@@ -64,4 +64,38 @@ public interface DrawSurface {
         // les surfaces qui ne tracent pas de trait l'ignorent : la
         // gouttière sans marqueurs n'en dépend jamais
     }
+
+    /**
+     * Trace un cercle — les points d'arrêt de la gouttière (D-04) s'y
+     * servent : plein posé, creux désactivé. L'épaisseur du pinceau
+     * porte le contour du cercle creux.
+     *
+     * @param cx     l'abscisse du centre, en pixels
+     * @param cy     l'ordonnée du centre, en pixels
+     * @param rayon  le rayon, en pixels
+     * @param plein  vrai pour le disque plein, faux pour le contour seul
+     * @param brush  le pinceau, couleur et épaisseur déjà posées
+     */
+    default void drawCircle(float cx, float cy, float rayon, boolean plein,
+            TextBrush brush) {
+        // les surfaces qui ne tracent pas de cercle l'ignorent
+    }
+
+    /**
+     * Trace un triangle PLEIN — les chevrons de pli (D-07) et la
+     * flèche d'exécution (D-05) s'y servent : pointant en bas quand
+     * la région s'ouvre, à droite quand elle vit repliée. Le demi-côté
+     * {@code rayon} porte l'étendue du glyphe.
+     *
+     * @param centreX  l'abscisse du centre, en pixels
+     * @param centreY  l'ordonnée du centre, en pixels
+     * @param rayon    le demi-côté du triangle, en pixels
+     * @param pointeEnBas vrai pour la pointe en bas (région ouvrante),
+     *                    faux pour la pointe à droite (région repliée)
+     * @param brush    le pinceau, couleur déjà posée
+     */
+    default void drawTriangle(float centreX, float centreY, float rayon,
+            boolean pointeEnBas, TextBrush brush) {
+        // les surfaces qui ne tracent pas de triangle l'ignorent
+    }
 }

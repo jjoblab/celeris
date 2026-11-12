@@ -385,25 +385,29 @@ public final class EditorSyntax {
 
     /**
      * Bascule le pli de la ligne sous le point donné (D-07) : l'appui
-     * dans la coulisse déplie une ligne repliée, replie une région
-     * pliable sur l'étendue de l'arbre.
+     * dans la BANDE DE PLIS — le bord droit de la gouttière, contre le
+     * code — déplie une ligne repliée, replie une région pliable sur
+     * l'étendue de l'arbre.
      *
      * @param x          l'abscisse de l'appui, en pixels
      * @param y          l'ordonnée de l'appui, en pixels
      * @param scrollY    le défilement vertical courant, en pixels
      * @param hauteurLigne la hauteur d'une rangée, en pixels
-     * @param coulisse   la largeur de la coulisse des marqueurs, en pixels
+     * @param largeurGouttiere la largeur totale de la gouttière, en pixels
+     * @param bandePli   la largeur de la bande de plis, en pixels
      * @param projection la projection rangées ↔ lignes courante
-     * @return vrai quand l'appui est consommé par la coulisse
+     * @return vrai quand l'appui est consommé par la bande de plis
      */
     public boolean basculerPliAuPoint(float x, float y, float scrollY,
-            float hauteurLigne, float coulisse, VisualProjection projection) {
-        // D-07 : la coulisse vit pour l'analyse, qu'elle soit servie par le
+            float hauteurLigne, float largeurGouttiere, float bandePli,
+            VisualProjection projection) {
+        // D-07 : la bande vit pour l'analyse, qu'elle soit servie par le
         // coordinateur synchrone OU par le moteur hors fil — la voie de
         // production démo embarque TOUJOURS un moteur (SceneDiagnostics
         // fabrique l'exécuteur quand l'hôte n'en fournit pas), l'ancienne
         // garde y tuait l'appui avant même le test d'appartenance.
-        if (!active() || x >= coulisse) {
+        if (!active()
+                || !GutterGeometry.dansLaBande(x, largeurGouttiere, bandePli)) {
             return false;
         }
         int rangee = ScrollGeometry.firstRow(scrollY + y, hauteurLigne);

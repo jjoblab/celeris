@@ -206,12 +206,15 @@ public final class MarquesGouttiere {
 
     /**
      * Le clic dans le champ des numéros de la gouttière : la ligne
-     * visée se rend à l'écouteur, le clic se consomme.
+     * visée se rend à l'écouteur, le clic se consomme. Le champ vit
+     * entre la coulisse à gauche et la bande de plis à droite — le
+     * chevron garde sa cible, les numéros la leur.
      *
      * @param x                l'abscisse touchée, en pixels
      * @param y                l'ordonnée touchée, en pixels
      * @param largeurGouttiere la largeur courante de la gouttière
      * @param coulisse         la largeur courante de la coulisse
+     * @param bandePli         la largeur courante de la bande de plis
      * @param scrollY          le défilement vertical courant
      * @param hauteurLigne     la hauteur d'une ligne, en pixels
      * @param projection       la projection courante (rangée vers ligne)
@@ -219,9 +222,10 @@ public final class MarquesGouttiere {
      *         numéros
      */
     public boolean surAppui(float x, float y, float largeurGouttiere,
-            float coulisse, float scrollY, float hauteurLigne,
+            float coulisse, float bandePli, float scrollY, float hauteurLigne,
             VisualProjection projection) {
-        if (surClicLigne == null || x <= coulisse || x >= largeurGouttiere) {
+        if (surClicLigne == null || x <= coulisse
+                || x >= largeurGouttiere - bandePli) {
             return false;
         }
         int rangee = ScrollGeometry.firstRow(scrollY + y, hauteurLigne);

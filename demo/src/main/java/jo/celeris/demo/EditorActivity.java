@@ -247,15 +247,26 @@ public final class EditorActivity extends AppCompatActivity {
         });
     }
 
-    /** La gouttière : les arrêts au clic des numéros (D-04), le rendu
-     *  d'un repère @Preview en popup ancrée au coin (C-11, ADR-018). */
+    /** La gouttière : les arrêts à l'APPUIS LONG (D-04, la reprise), le
+     *  curseur au clic des numéros, le repère @Preview au coin (C-11). */
     private void brancherGouttiere() {
-        editeur.marquesGouttiere().setSurClicLigne(ligne -> {
+        // l'appui long de gouttière bascule l'arrêt — l'hôte y décide
+        editeur.setSurBasculeArret(ligne -> {
             etatDebogage.basculerArret(ligne);
             majMarques();
         });
+        editeur.marquesGouttiere().setSurClicLigne(this::poserCurseurALigne);
         editeur.marquesGouttiere().setSurRenduPreview(ligne ->
                 atelierPopups.docAncre().renduPreview(ligne, reperes));
+    }
+
+    /** Pose le curseur au début de la ligne visée (clic de numéros). */
+    private void poserCurseurALigne(int ligne) {
+        var document = session.document();
+        int borne = Math.min(Math.max(0, ligne), document.lineCount() - 1);
+        session.setSelection(jo.celeris.core.text.MultiSelection.of(
+                SelRange.caretAt(document.lineStart(borne))));
+        editeur.invalidate();
     }
 
     /** Le plan en feuille du bas (ADR-018) et les étiquettes de barre

@@ -1,15 +1,19 @@
 package jo.celeris.android.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import jo.celeris.core.syntax.structure.FoldSpan;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
+import jo.celeris.core.text.SelRange;
 
 import org.junit.jupiter.api.Test;
 
@@ -30,11 +34,12 @@ class GutterPainterTest {
                     0xFF000000, 0xFF5F6368, 0x14202124,
                     SyntaxPalette.monochrome(0xFF202124));
 
-    /** Pinceau mutable minimal : la couleur courante et l'épaisseur de
-     *  trait posée, rien d'autre. */
+    /** Pinceau mutable minimal : la couleur courante, l'épaisseur de
+     *  trait et la graisse posées, rien d'autre. */
     private static final class PinceauMutable implements TextBrush {
         private int couleur;
         private float epaisseur;
+        private boolean gras;
 
         @Override
         public void setColor(int argb) {
@@ -51,14 +56,24 @@ class GutterPainterTest {
             return epaisseur;
         }
 
+        /** La graisse courante — le numéro courant s'y éprouve. */
+        boolean gras() {
+            return gras;
+        }
+
         @Override
         public void setStrokeWidth(float pixels) {
             epaisseur = pixels;
         }
+
+        @Override
+        public void setStyle(boolean bold, boolean italic, boolean underline) {
+            gras = bold;
+        }
     }
 
-    /** Un texte tracé : son contenu, son abscisse et sa couleur. */
-    private record TexteTrace(String texte, float x, int couleur) {
+    /** Un texte tracé : son contenu, son abscisse, sa couleur et sa graisse. */
+    private record TexteTrace(String texte, float x, int couleur, boolean gras) {
     }
 
     /** Surface enregistreuse de textes. */
@@ -67,7 +82,7 @@ class GutterPainterTest {
 
         @Override
         public void drawText(String text, float x, float y, TextBrush brush) {
-            textes.add(new TexteTrace(text, x, brush.color()));
+            textes.add(new TexteTrace(text, x, brush.color(), grasDe(brush)));
         }
 
         @Override
@@ -81,6 +96,11 @@ class GutterPainterTest {
         }
     }
 
+    /** La graisse du pinceau au tracé — faux sur un pinceau muet. */
+    private static boolean grasDe(TextBrush brush) {
+        return brush instanceof PinceauMutable pinceau && pinceau.gras();
+    }
+
     /** Un trait tracé : ses deux extrémités et sa couleur. */
     private record TraitTrace(float x1, float y1, float x2, float y2, int couleur) {
     }
@@ -89,15 +109,28 @@ class GutterPainterTest {
     private record RectTrace(float left, float top, float right, float bottom, int couleur) {
     }
 
-    /** Surface enregistreuse complète : textes, traits et rectangles. */
+    /** Un cercle tracé : son centre, son rayon, son remplissage, sa couleur. */
+    private record CercleTrace(float cx, float cy, float rayon, boolean plein,
+            int couleur) {
+    }
+
+    /** Un triangle plein tracé : son centre, sa pointe, sa couleur. */
+    private record TriangleTrace(float cx, float cy, float rayon,
+            boolean pointeEnBas, int couleur) {
+    }
+
+    /** Surface enregistreuse complète : textes, traits, rectangles,
+     *  cercles et triangles. */
     private static final class SurfaceMarques implements DrawSurface {
         private final List<TexteTrace> textes = new ArrayList<>();
         private final List<TraitTrace> traits = new ArrayList<>();
         private final List<RectTrace> rectangles = new ArrayList<>();
+        private final List<CercleTrace> cercles = new ArrayList<>();
+        private final List<TriangleTrace> triangles = new ArrayList<>();
 
         @Override
         public void drawText(String text, float x, float y, TextBrush brush) {
-            textes.add(new TexteTrace(text, x, brush.color()));
+            textes.add(new TexteTrace(text, x, brush.color(), grasDe(brush)));
         }
 
         @Override
@@ -111,6 +144,19 @@ class GutterPainterTest {
             traits.add(new TraitTrace(x1, y1, x2, y2, brush.color()));
         }
 
+        @Override
+        public void drawCircle(float cx, float cy, float rayon, boolean plein,
+                TextBrush brush) {
+            cercles.add(new CercleTrace(cx, cy, rayon, plein, brush.color()));
+        }
+
+        @Override
+        public void drawTriangle(float centreX, float centreY, float rayon,
+                boolean pointeEnBas, TextBrush brush) {
+            triangles.add(new TriangleTrace(centreX, centreY, rayon,
+                    pointeEnBas, brush.color()));
+        }
+
         List<TexteTrace> textes() {
             return textes;
         }
@@ -121,6 +167,14 @@ class GutterPainterTest {
 
         List<RectTrace> rectangles() {
             return rectangles;
+        }
+
+        List<CercleTrace> cercles() {
+            return cercles;
+        }
+
+        List<TriangleTrace> triangles() {
+            return triangles;
         }
     }
 
@@ -272,8 +326,9 @@ class GutterPainterTest {
     }
 
     /**
-     * D-07 — l'en-tête replié porte son chevron : deux traits, pointe
-     * à droite, dans la coulisse des marqueurs.
+     * D-07 — l'en-tête replié porte son chevron : TRIANGLE PLEIN à
+     * pointe à droite, dans la BANDE DE PLIS au bord droit de la
+     * gouttière, contre le code qu'il replie.
      */
     @Test
     void enTeteRepliePorteSonChevron() {
@@ -284,7 +339,8 @@ class GutterPainterTest {
         GutterMarks marques = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), replis, new int[0]);
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f));
+                () -> marques, () -> 12f, () -> 8f, ligne -> 0,
+                ligne -> false));
         Document document = Document.of("a\nb\nc\nd\ne");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection = new VisualProjection(5, replis);
@@ -293,26 +349,22 @@ class GutterPainterTest {
                 THEME, 0, projection.rowCount(), 30f, 0f, 0f);
         image.drawFrame(surface, etat);
 
-        assertEquals(2, surface.traits().size(), "le chevron replié vit en deux traits");
-        TraitTrace premier = surface.traits().get(0);
-        TraitTrace second = surface.traits().get(1);
-        // pointe à droite : le premier trait finit où le second commence
-        assertEquals(premier.x2(), second.x1(), 1e-6f,
-                "les deux traits se rejoignent à la pointe");
-        assertTrue(premier.y1() < second.y1(),
-                "le premier trait part plus haut que le second");
-        assertTrue(premier.x1() < premier.x2(),
-                "la pointe du chevron replié regarde vers la droite");
-        assertTrue(premier.x2() <= 12f,
-                "le chevron vit dans la coulisse des marqueurs");
-        assertEquals(THEME.gutterTextColor(), premier.couleur());
+        assertEquals(1, surface.triangles().size(),
+                "le chevron replié vit en un triangle plein");
+        TriangleTrace chevron = surface.triangles().get(0);
+        // la bande de plis vit au bord droit : huit pixels, centre à 26
+        assertEquals(26f, chevron.cx(), 0.5f,
+                "le chevron vit dans la bande de plis, contre le code");
+        assertFalse(chevron.pointeEnBas(),
+                "la pointe du chevron replié regarde à droite");
+        assertEquals(attenuer(THEME.gutterTextColor(), 0.8f), chevron.couleur());
         // les numéros restent : lignes 1, 2 et 5 visibles
         assertEquals(3, surface.textes().size());
     }
 
     /**
-     * D-07 — l'en-tête pliable non replié porte un chevron pointant
-     * vers le bas : le contenu se déplie dessous.
+     * D-07 — l'en-tête pliable non replié porte un chevron TRIANGLE
+     * PLEIN pointant vers le bas : le contenu se déplie dessous.
      */
     @Test
     void enTetePliablePointeVersLeBas() {
@@ -321,7 +373,8 @@ class GutterPainterTest {
         GutterMarks marques = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), new FoldModel(), new int[0]);
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f));
+                () -> marques, () -> 12f, () -> 8f, ligne -> 0,
+                ligne -> false));
         Document document = Document.of("a\nb\nc\nd\ne");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         FrameState etat = new FrameState();
@@ -330,20 +383,17 @@ class GutterPainterTest {
                 0, 5, 30f, 0f, 0f);
         image.drawFrame(surface, etat);
 
-        assertEquals(2, surface.traits().size());
-        TraitTrace premier = surface.traits().get(0);
-        TraitTrace second = surface.traits().get(1);
-        // pointe en bas : le premier trait finit où le second commence
-        assertEquals(premier.y2(), second.y1(), 1e-6f,
-                "les deux traits se rejoignent à la pointe basse");
-        assertTrue(premier.y2() > premier.y1(),
+        assertEquals(1, surface.triangles().size());
+        TriangleTrace chevron = surface.triangles().get(0);
+        assertTrue(chevron.pointeEnBas(),
                 "la pointe du chevron déplié regarde vers le bas");
-        assertTrue(premier.x1() < second.x2(), "le chevron s'ouvre vers le haut");
+        assertEquals(26f, chevron.cx(), 0.5f,
+                "le chevron vit dans la bande de plis");
     }
 
     /**
-     * D-02 — la ligne en erreur porte sa marque dans la coulisse, à
-     * l'encre d'erreur du thème.
+     * D-02 — la ligne en erreur porte sa marque dans la coulisse à
+     * gauche : un POINT PLEIN à l'encre d'erreur du thème.
      */
     @Test
     void ligneEnErreurPorteSaMarque() {
@@ -361,14 +411,17 @@ class GutterPainterTest {
                 0, 2, 30f, 0f, 0f);
         image.drawFrame(surface, etat);
 
-        assertEquals(1, surface.rectangles().size(), "une marque d'erreur, un rectangle");
-        RectTrace marque = surface.rectangles().get(0);
-        assertTrue(marque.right() <= 12f,
+        assertEquals(1, surface.cercles().size(),
+                "une marque d'erreur, un point plein");
+        CercleTrace marque = surface.cercles().get(0);
+        assertTrue(marque.cx() <= 12f,
                 "la marque vit dans la coulisse des marqueurs");
+        assertTrue(marque.plein(), "la marque d'erreur se rend PLEINE");
         assertEquals(THEME.syntaxe().couleur(TokenKind.ERROR), marque.couleur());
     }
 
-    /** Sans marques, la gouttière ne trace ni trait ni rectangle : le chemin reste muet. */
+    /** Sans marques, la gouttière ne trace ni trait ni figure : le
+     *  chemin reste muet. */
     @Test
     void sansMarquesLaGouttiereResteMuet() {
         SurfaceMarques surface = new SurfaceMarques();
@@ -384,6 +437,8 @@ class GutterPainterTest {
 
         assertEquals(0, surface.traits().size());
         assertEquals(0, surface.rectangles().size());
+        assertEquals(0, surface.cercles().size());
+        assertEquals(0, surface.triangles().size());
         assertEquals(2, surface.textes().size(), "les numéros restent seuls");
     }
 
@@ -396,9 +451,9 @@ class GutterPainterTest {
 
     /**
      * Numéros masqués : aucune étiquette tracée, la coulisse des
-     * marqueurs reste entière — la bascule des numéros (D-01) ne
-     * sacrifie ni les chevrons de pli (D-07) ni les marques d'erreur
-     * (D-02).
+     * marqueurs et la bande de plis restent entières — la bascule des
+     * numéros (D-01) ne sacrifie ni les chevrons de pli (D-07) ni les
+     * marques d'erreur (D-02).
      */
     @Test
     void numerosMasquesLaCoulisseResteEntiere() {
@@ -409,7 +464,8 @@ class GutterPainterTest {
         GutterMarks marques = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), replis, new int[] {0});
         GutterPainter gouttiere = new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f);
+                () -> marques, () -> 12f, () -> 8f, ligne -> 0,
+                ligne -> false);
         gouttiere.setNumerosVisibles(false);
         image.addLayer(gouttiere);
         Document document = Document.of("a\nb\nc\nd\ne");
@@ -421,8 +477,8 @@ class GutterPainterTest {
         image.drawFrame(surface, etat);
 
         assertEquals(0, surface.textes().size(), "aucun numéro tracé");
-        assertEquals(2, surface.traits().size(), "le chevron de pli reste");
-        assertEquals(1, surface.rectangles().size(), "la marque d'erreur reste");
+        assertEquals(1, surface.triangles().size(), "le chevron de pli reste");
+        assertEquals(1, surface.cercles().size(), "la marque d'erreur reste");
     }
 
     /**
@@ -559,19 +615,94 @@ class GutterPainterTest {
 
     /**
      * M7.5, redressement — le chevron vit dans sa CELLULE : bras au
-     * tiers du côté (coulisse 12 × hauteur 20 → cellule 12, bras 4),
-     * trait ÉPAIS (un huitième de côté, deux pixels au moins), centre
-     * au MILIEU de la rangée — plus jamais un chevron minuscule au
-     * quart supérieur.
+     * tiers du côté (bande 8 × hauteur 20 → cellule 8), centre au
+     * MILIEU de la rangée et au centre de la bande — un triangle qui
+     * se voit et se vise.
      */
     @Test
     void chevronVitDansSaCelluleEpaisEtCentre() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
-        PinceauMutable pinceau = new PinceauMutable();
         GutterMarks marques = GutterMarks.of(
                 List.of(new FoldSpan(0, 1)), new FoldModel(), new int[0]);
-        image.addLayer(new GutterPainter(() -> pinceau, 4f,
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
+                () -> marques, () -> 12f, () -> 8f, ligne -> 0,
+                ligne -> false));
+        Document document = Document.of("a\nb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
+                0, 2, 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(1, surface.triangles().size(),
+                "le chevron pliable vit en un triangle plein");
+        TriangleTrace chevron = surface.triangles().get(0);
+        // la cellule est min(8, 20) = 8 — le triangle en vaut deux cinquièmes
+        assertEquals(8f * 0.4f, chevron.rayon(), 1e-6f,
+                "le triangle prend sa cellule");
+        // le centre : au MILIEU de la rangée — la rangée 0 couvre 0 à 20,
+        // le centre vit à 10 — et au centre de la bande (26)
+        assertEquals(10f, chevron.cy(), 1e-6f,
+                "le chevron vit au milieu de la rangée");
+        assertEquals(26f, chevron.cx(), 1e-6f,
+                "le chevron vit au centre de la bande de plis");
+    }
+
+    /**
+     * La reprise du design — le numéro de la ligne COURANTE se graisse
+     * à l'encre du texte de base ; les autres restent à l'encre de
+     * gouttière, maigres.
+     */
+    @Test
+    void leNumeroCourantSeGraisse() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
+        Document document = Document.of("a\nb\nc");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        // le curseur vit sur la ligne 1 — son numéro se graisse
+        etat.beginFrame(document, MultiSelection.of(SelRange.caretAt(2)),
+                new VisualProjection(3, new FoldModel()), 1L, metrics, THEME,
+                0, 3, 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(3, surface.textes().size());
+        TexteTrace courant = null;
+        for (TexteTrace texte : surface.textes()) {
+            if ("2".equals(texte.texte())) {
+                courant = texte;
+            }
+        }
+        assertTrue(courant != null, "le numéro de la ligne courante se trace");
+        assertTrue(courant.gras(), "le numéro courant se graisse");
+        assertEquals(THEME.baseTextColor(), courant.couleur(),
+                "le numéro courant prend l'encre du texte de base");
+        for (TexteTrace texte : surface.textes()) {
+            if (!"2".equals(texte.texte())) {
+                assertFalse(texte.gras(), "les autres numéros restent maigres");
+                assertEquals(THEME.gutterTextColor(), texte.couleur(),
+                        "les autres numéros gardent l'encre de gouttière");
+            }
+        }
+    }
+
+    /**
+     * D-04, la reprise du design — le point d'arrêt se rend CERCLE :
+     * PLEIN à l'encre d'erreur posé, CREUX à l'encre de gouttière
+     * désactivé, au centre de la coulisse.
+     */
+    @Test
+    void lePointDArretSeRendCercle() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        GutterMarks marques = GutterMarks.of(List.of(), new FoldModel(),
+                new int[0]).avec(MarquesIntegration.of(Map.of(),
+                        Map.of(0, EtatArret.POSE, 1, EtatArret.DESACTIVE),
+                        null, Set.of()));
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
                 () -> marques, () -> 12f));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
@@ -581,21 +712,55 @@ class GutterPainterTest {
                 0, 2, 30f, 0f, 0f);
         image.drawFrame(surface, etat);
 
-        assertEquals(2, surface.traits().size(), "le chevron pliable vit en deux traits");
-        // les bras : la cellule est min(12, 20) = 12, le bras en vaut le
-        // tiers — le chevron s'ouvre sur 8 px de large
-        TraitTrace premier = surface.traits().get(0);
-        TraitTrace second = surface.traits().get(1);
-        assertEquals(8f, Math.abs(premier.x1() - second.x2()), 1e-6f,
-                "les bras prennent le tiers de la cellule");
-        // le centre : au MILIEU de la rangée — la rangée 0 couvre 0 à 20,
-        // le centre vit à 10, le chevron l'encadre de bras/2
-        float centreY = (premier.y1() + second.y1()) / 2f;
-        assertEquals(10f, centreY, 1e-6f,
-                "le chevron vit au milieu de la rangée, plus au quart");
-        // le trait : épais — deux pixels au moins, un huitième de la cellule
-        assertTrue(pinceau.epaisseur() >= 2f,
-                "le trait du chevron se pose épais (au moins deux pixels)");
-        assertEquals(Math.max(2f, 12f / 8f), pinceau.epaisseur(), 1e-6f);
+        assertEquals(2, surface.cercles().size(), "deux arrêts, deux cercles");
+        CercleTrace pose = surface.cercles().get(0);
+        CercleTrace desactive = surface.cercles().get(1);
+        assertTrue(pose.plein(), "l'arrêt posé se rend PLEIN");
+        assertEquals(THEME.syntaxe().couleur(TokenKind.ERROR), pose.couleur(),
+                "l'arrêt posé prend l'encre d'erreur");
+        assertFalse(desactive.plein(), "l'arrêt désactivé se rend CREUX");
+        assertEquals(THEME.gutterTextColor(), desactive.couleur(),
+                "l'arrêt désactivé garde l'encre de gouttière");
+        assertEquals(6f, pose.cx(), 0.5f,
+                "les deux cercles vivent au centre de la coulisse");
+    }
+
+    /**
+     * D-05, la reprise du design — le repère d'exécution se rend FLÈCHE
+     * PLEINE à l'encre du curseur, par-dessus l'arrêt éventuel.
+     */
+    @Test
+    void laFlecheDExecutionSeRendTriangle() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        GutterMarks marques = GutterMarks.of(List.of(), new FoldModel(),
+                new int[0]).avec(MarquesIntegration.of(Map.of(),
+                        Map.of(0, EtatArret.POSE), 0, Set.of()));
+        image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
+                () -> marques, () -> 12f));
+        Document document = Document.of("a\nb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
+                0, 2, 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(1, surface.triangles().size(),
+                "la flèche d'exécution vit en un triangle plein");
+        TriangleTrace fleche = surface.triangles().get(0);
+        assertFalse(fleche.pointeEnBas(), "la flèche pointe à droite");
+        assertEquals(THEME.cursorColor(), fleche.couleur(),
+                "la flèche prend l'encre du curseur");
+        // la flèche vit PAR-DESSUS l'arrêt : le cercle se trace aussi
+        assertEquals(1, surface.cercles().size(),
+                "l'arrêt sous la flèche reste tracé");
+    }
+
+    /** L'atténuation d'une couleur ARGB — comme la couche. */
+    private static int attenuer(int couleur, float facteur) {
+        int a = (int) (((couleur >>> 24) & 0xFF)
+                * Math.max(0f, Math.min(1f, facteur)));
+        return (a << 24) | (couleur & 0x00FFFFFF);
     }
 }

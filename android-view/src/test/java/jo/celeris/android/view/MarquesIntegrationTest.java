@@ -122,13 +122,16 @@ final class MarquesIntegrationTest {
         gestion.setSurClicLigne(cliques::add);
         VisualProjection projection = new VisualProjection(3, new FoldModel());
 
-        assertTrue(gestion.surAppui(20f, 45f, 40f, 10f, 0f, 20f, projection),
+        assertTrue(gestion.surAppui(20f, 45f, 40f, 10f, 0f, 0f, 20f,
+                projection),
                 "le champ des numéros consomme le clic");
         assertEquals(List.of(2), cliques, "y 45, ligne 20 px : la ligne 2");
 
-        assertFalse(gestion.surAppui(5f, 45f, 40f, 10f, 0f, 20f, projection),
+        assertFalse(gestion.surAppui(5f, 45f, 40f, 10f, 0f, 0f, 20f,
+                projection),
                 "la coulisse des marqueurs reste aux plis et aux arrêts");
-        assertFalse(gestion.surAppui(45f, 45f, 40f, 10f, 0f, 20f, projection),
+        assertFalse(gestion.surAppui(45f, 45f, 40f, 10f, 0f, 0f, 20f,
+                projection),
                 "hors gouttière, le clic traverse au texte");
     }
 
@@ -137,7 +140,8 @@ final class MarquesIntegrationTest {
     void sansEcouteurLeClicTraverse() {
         MarquesGouttiere gestion = new MarquesGouttiere();
         VisualProjection projection = new VisualProjection(3, new FoldModel());
-        assertFalse(gestion.surAppui(20f, 45f, 40f, 10f, 0f, 20f, projection));
+        assertFalse(gestion.surAppui(20f, 45f, 40f, 10f, 0f, 0f, 20f,
+                projection));
     }
 
     /** Le clic suit le défilement vertical : la rangée sous le doigt décide. */
@@ -148,8 +152,27 @@ final class MarquesIntegrationTest {
         gestion.setSurClicLigne(cliques::add);
         VisualProjection projection = new VisualProjection(30, new FoldModel());
 
-        assertTrue(gestion.surAppui(20f, 5f, 40f, 10f, 40f, 20f, projection));
+        assertTrue(gestion.surAppui(20f, 5f, 40f, 10f, 0f, 40f, 20f,
+                projection));
         assertEquals(List.of(2), cliques,
                 "y 5 avec 40 px de défilement : la rangée 2 sous le doigt");
+    }
+
+    /** Le champ des numéros s'arrête à la BANDE DE PLIS : le chevron
+     *  garde sa cible au bord droit de la gouttière. */
+    @Test
+    void leChampSArreteALaBandeDePlis() {
+        MarquesGouttiere gestion = new MarquesGouttiere();
+        List<Integer> cliques = new java.util.ArrayList<>();
+        gestion.setSurClicLigne(cliques::add);
+        VisualProjection projection = new VisualProjection(3, new FoldModel());
+        // la bande de plis vit au bord droit : les huit derniers pixels
+        assertFalse(gestion.surAppui(35f, 45f, 40f, 10f, 8f, 0f, 20f,
+                        projection),
+                "la bande de plis garde sa cible au chevron");
+        // juste avant la bande : le champ consomme
+        assertTrue(gestion.surAppui(31f, 45f, 40f, 10f, 8f, 0f, 20f,
+                projection));
+        assertEquals(List.of(2), cliques, "y 45, ligne 20 px : la ligne 2");
     }
 }

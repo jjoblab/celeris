@@ -97,10 +97,9 @@ public final class EditorView extends View {
     final TextBrush pinceauChrome;
     private final GestureDetector longPresses;
     private final ScaleGestureDetector pincements;
-
     private KeyBindings raccourcis = KeyBindings.defaults();
-    /** Le consommateur d'appui long de l'hôte (M7.6) — le moment juste du survol. */
-    private volatile @Nullable IntConsumer surAppuiLong;
+    // — les rappels de gestes de l'hôte vivent dans leur porteur (ADR-002)
+    final RappelsHote rappels = new RappelsHote();
     // — le zoom au pincement vit dans son collaborateur (D-15, PIEGE-24)
     final PinchZoomHandler zoom = new PinchZoomHandler(this);
     // — la gouttière stable vit dans son collaborateur (PIEGE-25)
@@ -434,23 +433,24 @@ public final class EditorView extends View {
     }
 
     /**
-     * Le rappel d'appui long (M7.6) : l'offset du mot sous le doigt y
-     * part après sa sélection — le moment juste de la documentation
-     * au survol pour l'hôte qui en sert une ; la vue, elle, n'ouvre
-     * jamais de popup. Null coupe le rappel.
+     * Le rappel d'appui long (M7.6) : l'offset sélectionné y part —
+     * le moment juste de la documentation au survol. Null coupe.
      *
      * @param consommateur le consommateur d'offset, null pour couper
      */
     public void setSurAppuiLong(@Nullable IntConsumer consommateur) {
-        surAppuiLong = consommateur;
+        rappels.poserAppuiLong(consommateur);
     }
 
-    /** Notifie l'hôte de l'appui long — la sélection est déjà posée. */
-    void notifierAppuiLong(int offset) {
-        IntConsumer consommateur = surAppuiLong;
-        if (consommateur != null) {
-            consommateur.accept(offset);
-        }
+    /**
+     * Le rappel de bascule de point d'arrêt (D-04, la reprise) :
+     * l'appui long de gouttière rend la LIGNE visée à l'hôte — c'est
+     * lui qui pose, retire ou désactive l'arrêt. Null coupe.
+     *
+     * @param consommateur le consommateur de ligne, null pour couper
+     */
+    public void setSurBasculeArret(@Nullable IntConsumer consommateur) {
+        rappels.poserBasculeArret(consommateur);
     }
 
     /** Les intégrations de la gouttière : marques, arrêts, clic (D-03 à D-05). */

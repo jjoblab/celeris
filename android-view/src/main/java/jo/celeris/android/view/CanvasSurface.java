@@ -2,6 +2,7 @@ package jo.celeris.android.view;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 
 import org.jspecify.annotations.Nullable;
 
@@ -12,10 +13,17 @@ import org.jspecify.annotations.Nullable;
  * <p>PIEGE-15 : la surface est possédée par la vue, attachée au canvas à
  * chaque image et détachée après — jamais allouée dans la boucle de
  * dessin. Seuls les pinceaux de ce module y sont admis.</p>
+ *
+ * <p>La discipline ★ du style de peinture : le cercle creux bascule la
+ * peinture en STROKE puis la REPOSE en FILL avant de rendre la main —
+ * aucune trace du contour ne fuit vers le tracé suivant ; le triangle
+ * se sert d'un chemin réutilisé, réécrit à chaque tracé.</p>
  */
 public final class CanvasSurface implements DrawSurface {
 
     private @Nullable Canvas canvas;
+    /** Le chemin du triangle — réutilisé, jamais alloué par image (PIEGE-15). */
+    private final Path chemin = new Path();
 
     /** Attache la surface au canvas de l'image à venir. */
     public void attach(Canvas canvas) {
@@ -47,6 +55,41 @@ public final class CanvasSurface implements DrawSurface {
     @Override
     public void drawLine(float x1, float y1, float x2, float y2, TextBrush brush) {
         canvas().drawLine(x1, y1, x2, y2, peintureDe(brush));
+    }
+
+    @Override
+    public void drawCircle(float cx, float cy, float rayon, boolean plein,
+            TextBrush brush) {
+        Paint peinture = peintureDe(brush);
+        if (!plein) {
+            peinture.setStyle(Paint.Style.STROKE);
+        }
+        canvas().drawCircle(cx, cy, Math.max(0.5f, rayon), peinture);
+        if (!plein) {
+            // ★ la peinture retrouve son FILL — le contour ne fuit
+            // jamais vers le tracé suivant
+            peinture.setStyle(Paint.Style.FILL);
+        }
+    }
+
+    @Override
+    public void drawTriangle(float centreX, float centreY, float rayon,
+            boolean pointeEnBas, TextBrush brush) {
+        float etendue = Math.max(0.5f, rayon);
+        chemin.rewind();
+        if (pointeEnBas) {
+            // ▾ — la pointe regarde en bas : la région s'ouvre
+            chemin.moveTo(centreX - etendue, centreY - etendue * 0.6f);
+            chemin.lineTo(centreX + etendue, centreY - etendue * 0.6f);
+            chemin.lineTo(centreX, centreY + etendue * 0.7f);
+        } else {
+            // ▸ — la pointe regarde à droite : la région vit repliée
+            chemin.moveTo(centreX - etendue * 0.6f, centreY - etendue);
+            chemin.lineTo(centreX + etendue * 0.7f, centreY);
+            chemin.lineTo(centreX - etendue * 0.6f, centreY + etendue);
+        }
+        chemin.close();
+        canvas().drawPath(chemin, peintureDe(brush));
     }
 
     private Canvas canvas() {

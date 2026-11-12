@@ -34,7 +34,10 @@ public final class GutterLayout {
     }
 
     /**
-     * La largeur de la gouttière avec numéros.
+     * La largeur de la gouttière avec numéros : le champ des numéros,
+     * sa respiration, la coulisse des marqueurs À GAUCHE et la bande
+     * de plis À DROITE (D-07, la reprise du design — le chevron vit
+     * contre le code).
      *
      * @param digits    le nombre de chiffres du champ (niveau d'eau compris)
      * @param charWidth la largeur d'un caractère, en pixels
@@ -47,12 +50,13 @@ public final class GutterLayout {
             float paddingDp, GutterLanes lanes) {
         int marge = paddingPx(density, paddingDp);
         return Math.round(digits * charWidth + 2f * marge
-                + lanes.laneWidth(charWidth, marge));
+                + lanes.laneWidth(charWidth, marge)
+                + lanes.foldStripWidth(charWidth, marge));
     }
 
     /**
      * La largeur de la gouttière sans numéros : la coulisse et sa
-     * respiration, rien d'autre (D-01).
+     * respiration, la bande de plis comprise, rien d'autre (D-01).
      *
      * @param density   la densité de l'appareil
      * @param paddingDp la respiration, en dp
@@ -63,7 +67,8 @@ public final class GutterLayout {
     public static int laneOnly(float density, float paddingDp,
             float charWidth, GutterLanes lanes) {
         int marge = paddingPx(density, paddingDp);
-        return Math.round(2f * marge + lanes.laneWidth(charWidth, marge));
+        return Math.round(2f * marge + lanes.laneWidth(charWidth, marge)
+                + lanes.foldStripWidth(charWidth, marge));
     }
 
     /** La conversion unique de la respiration : dp vers pixels entiers. */

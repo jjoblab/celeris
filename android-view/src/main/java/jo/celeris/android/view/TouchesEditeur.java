@@ -133,13 +133,27 @@ final class TouchesEditeur {
     }
 
     /**
-     * L'appui long (M7.5, redressement) : le mot sous le doigt se
+     * L'appui long (M7.5, redressement ; la reprise du design, D-04) :
+     * dans la GOUTTIÈRE, il pose ou retire le point d'arrêt de la
+     * ligne visée — l'hôte y répond, la vue ne touche à aucun état
+     * d'exécution ; dans la zone de texte, le mot sous le doigt se
      * sélectionne, le clavier se retire — le dragage qui suit étend la
      * sélection au doigt, sans clavier. La pilule « ajouter un curseur »
      * (A-01) s'offre au-dessus du mot : le tap dessus ajoute le
      * curseur, le tap ailleurs la congédie.
      */
     void surAppuiLong(float x, float y) {
+        if (x < vue.largeurGouttiere) {
+            // le point d'arrêt vit à l'appui long de gouttière (D-04) :
+            // la ligne visée part à l'hôte, le geste se consomme sans
+            // toucher au curseur ni au clavier
+            int rangee = ScrollGeometry.firstRow(vue.scrollY + y,
+                    vue.metrics.lineHeight());
+            vue.rappels.notifierBasculeArret(
+                    vue.projection.firstLineOfRow(rangee));
+            armeLong = true;
+            return;
+        }
         int offset = offsetAt(x, y);
         IdentifierBounds.Around mot = IdentifierBounds.around(
                 vue.session.document(), offset);
@@ -159,7 +173,7 @@ final class TouchesEditeur {
         vue.pilule.show(x, y);
         // le moment juste du survol : le mot est sélectionné, l'hôte
         // qui sert une documentation l'ouvre — la vue n'ouvre rien
-        vue.notifierAppuiLong(offset);
+        vue.rappels.notifierAppuiLong(offset);
         vue.invalidate();
     }
 
@@ -338,8 +352,10 @@ final class TouchesEditeur {
             vue.invalidate();
         }
         float coulisse = vue.gouttiereEtat.coulisseCourante();
+        float bandePli = vue.gouttiereEtat.bandePliCourante();
         if (vue.syntaxe.basculerPliAuPoint(x, y, vue.scrollY,
-                vue.metrics.lineHeight(), coulisse, vue.projection)) {
+                vue.metrics.lineHeight(), vue.largeurGouttiere, bandePli,
+                vue.projection)) {
             // PIEGE-02 : le pli change le SENS des rangées sans toucher
             // la révision du document — la rangée 12 après le repli n'est
             // plus la rangée 12 d'avant, et aucune composante de clé ne
@@ -355,7 +371,7 @@ final class TouchesEditeur {
             return;
         }
         if (vue.marquesGouttiere.surAppui(x, y, vue.largeurGouttiere,
-                coulisse, vue.scrollY, vue.metrics.lineHeight(),
+                coulisse, bandePli, vue.scrollY, vue.metrics.lineHeight(),
                 vue.projection)) {
             return;
         }

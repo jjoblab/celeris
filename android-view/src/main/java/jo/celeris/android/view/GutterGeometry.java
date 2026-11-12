@@ -83,4 +83,38 @@ public final class GutterGeometry {
             float padding) {
         return gutterWidth - padding - labelLength * charWidth;
     }
+
+    /**
+     * L'abscisse du numéro pour l'aligner à droite dans la gouttière,
+     * AVANT la bande de plis : le champ des numéros se termine où la
+     * bande commence — le chevron vit à droite du dernier chiffre,
+     * contre le code qu'il replie (D-07, la reprise du design).
+     *
+     * @param labelLength le nombre de caractères du numéro affiché
+     * @param gutterWidth la largeur totale de la gouttière
+     * @param bandePli    la largeur de la bande de plis, en pixels
+     * @param charWidth   la largeur d'un caractère, en pixels
+     * @param padding     la respiration à droite du champ, en pixels
+     * @return l'abscisse de départ du numéro
+     */
+    public static float numberX(int labelLength, float gutterWidth, float bandePli,
+            float charWidth, float padding) {
+        return gutterWidth - bandePli - padding - labelLength * charWidth;
+    }
+
+    /**
+     * Vrai quand l'abscisse vit dans la BANDE DE PLIS de la gouttière :
+     * l'intervalle du bord droit, entre la fin du champ de numéros et
+     * le bord du code — la cible tactile du chevron.
+     *
+     * @param x                l'abscisse testée, en pixels
+     * @param largeurGouttiere la largeur totale de la gouttière, en pixels
+     * @param bandePli         la largeur de la bande de plis, en pixels
+     * @return vrai quand l'abscisse tombe dans la bande
+     */
+    public static boolean dansLaBande(float x, float largeurGouttiere,
+            float bandePli) {
+        float dansBande = x - (largeurGouttiere - bandePli);
+        return dansBande >= 0f && dansBande < bandePli;
+    }
 }

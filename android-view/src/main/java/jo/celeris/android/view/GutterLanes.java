@@ -46,4 +46,23 @@ public record GutterLanes(boolean syntax, boolean integration,
         }
         return coulisse;
     }
+
+    /**
+     * La largeur de la BANDE DE PLIS réservée par cette configuration :
+     * la syntaxe seule l'ouvre — les chevrons de pli y vivent au bord
+     * DROIT de la gouttière, contre le code qu'ils replient ; sans
+     * syntaxe, la bande n'existe pas (D-07, la reprise du design : la
+     * cible du chevron se réserve à sa place, jamais à l'arrivée d'un
+     * résultat).
+     *
+     * @param charWidth la largeur d'un caractère, en pixels
+     * @param padding   la respiration minimale, en pixels
+     * @return la largeur de la bande de plis, en pixels (0 sans syntaxe)
+     */
+    public float foldStripWidth(float charWidth, float padding) {
+        if (!syntax) {
+            return 0f;
+        }
+        return Math.max(padding, 2f * charWidth);
+    }
 }
