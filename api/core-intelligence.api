@@ -51,6 +51,11 @@ public final class jo.celeris.core.intelligence.ClasspathIndex {
   public int taille();
 }
 
+### jo.celeris.core.intelligence.ClausesHeritage
+Compiled from "ClausesHeritage.java"
+final class jo.celeris.core.intelligence.ClausesHeritage {
+}
+
 ### jo.celeris.core.intelligence.CommentRules
 Compiled from "CommentRules.java"
 public final class jo.celeris.core.intelligence.CommentRules extends java.lang.Record {
@@ -250,6 +255,11 @@ public final class jo.celeris.core.intelligence.ExtractionRessource {
   public static jo.celeris.core.intelligence.ExtractionRessource$PlanRessource plan(java.lang.String, jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, java.lang.String, java.util.Map<java.lang.String, java.lang.String>);
 }
 
+### jo.celeris.core.intelligence.FichierProjet
+Compiled from "FichierProjet.java"
+final class jo.celeris.core.intelligence.FichierProjet {
+}
+
 ### jo.celeris.core.intelligence.FlowAnalysis$AbsoluteToken
 Compiled from "FlowAnalysis.java"
 final class jo.celeris.core.intelligence.FlowAnalysis$AbsoluteToken extends java.lang.Record {
@@ -389,6 +399,53 @@ public final class jo.celeris.core.intelligence.Generateurs {
   public static java.lang.String constructeur(java.lang.String, java.util.List<jo.celeris.core.intelligence.Generateurs$Champ>);
   public static java.lang.String accesseurs(java.util.List<jo.celeris.core.intelligence.Generateurs$Champ>);
   public static java.lang.String equalsHashCodeToString(java.lang.String, java.util.List<jo.celeris.core.intelligence.Generateurs$Champ>);
+}
+
+### jo.celeris.core.intelligence.Hierarchies$Doute
+Compiled from "Hierarchies.java"
+final class jo.celeris.core.intelligence.Hierarchies$Doute {
+}
+
+### jo.celeris.core.intelligence.Hierarchies$HierarchieAppels
+Compiled from "Hierarchies.java"
+public final class jo.celeris.core.intelligence.Hierarchies$HierarchieAppels extends java.lang.Record {
+  public jo.celeris.core.intelligence.Hierarchies$HierarchieAppels(java.util.List<jo.celeris.core.intelligence.Hierarchies$Sommet>, boolean);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.intelligence.Hierarchies$Sommet> appelants();
+  public boolean doute();
+}
+
+### jo.celeris.core.intelligence.Hierarchies$HierarchieTypes
+Compiled from "Hierarchies.java"
+public final class jo.celeris.core.intelligence.Hierarchies$HierarchieTypes extends java.lang.Record {
+  public jo.celeris.core.intelligence.Hierarchies$HierarchieTypes(java.util.List<jo.celeris.core.intelligence.Hierarchies$Sommet>, java.util.List<jo.celeris.core.intelligence.Hierarchies$Sommet>, java.util.List<java.lang.String>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.List<jo.celeris.core.intelligence.Hierarchies$Sommet> ancetres();
+  public java.util.List<jo.celeris.core.intelligence.Hierarchies$Sommet> descendants();
+  public java.util.List<java.lang.String> introuvables();
+}
+
+### jo.celeris.core.intelligence.Hierarchies$Sommet
+Compiled from "Hierarchies.java"
+public final class jo.celeris.core.intelligence.Hierarchies$Sommet extends java.lang.Record {
+  public jo.celeris.core.intelligence.Hierarchies$Sommet(java.lang.String, java.lang.String, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String nom();
+  public java.lang.String uri();
+  public int profondeur();
+}
+
+### jo.celeris.core.intelligence.Hierarchies
+Compiled from "Hierarchies.java"
+public final class jo.celeris.core.intelligence.Hierarchies {
+  public static jo.celeris.core.intelligence.Hierarchies$HierarchieTypes types(java.lang.String, java.util.Map<java.lang.String, jo.celeris.core.text.Document>, jo.celeris.core.syntax.SyntaxService);
+  public static jo.celeris.core.intelligence.Hierarchies$HierarchieAppels appelants(java.lang.String, java.util.Map<java.lang.String, jo.celeris.core.text.Document>, jo.celeris.core.syntax.SyntaxService);
 }
 
 ### jo.celeris.core.intelligence.ImportAuto
