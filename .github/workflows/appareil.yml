@@ -48,6 +48,16 @@ jobs:
             echo "Le runner ne porte pas /dev/kvm : l'appareil géré ne tournerait pas" >&2
             exit 1
           fi
+          # Le périphérique vit sans droit d'accès pour l'utilisateur du
+          # runner : la règle udev l'ouvre à tous, le déclencheur la
+          # porte sans redémarrage — sinon l'émulateur x86_64 refuse de
+          # naître (« x86_64 emulation currently requires hardware
+          # acceleration! »).
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
       - name: Composants du SDK Android
         run: |
           if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ]; then
