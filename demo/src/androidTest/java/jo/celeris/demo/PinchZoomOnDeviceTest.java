@@ -17,9 +17,9 @@ import org.junit.runner.RunWith;
  * pincement resserré ramène au palier minimal 14 sp. Le banc JVM
  * ({@code PinchZoomGestureTest}) a prouvé la logique du détecteur sur
  * de vrais {@code MotionEvent} ; celui-ci prouve la voie d'entrée
- * réelle — UiAutomator pince réellement à deux pointeurs
- * ({@code pinchOpen} écarte du quart de la diagonale aux coins,
- * {@code pinchClose} resserre des coins aux quatre dixièmes).
+ * réelle — deux pointeurs vivants injectés par la voie du système
+ * (la même qu'UiAutomator), l'écartement exact du banc JVM (120 à 520
+ * pour l'ample, 400 à 160 pour le resserré).
  */
 @RunWith(AndroidJUnit4.class)
 public class PinchZoomOnDeviceTest {
@@ -27,7 +27,7 @@ public class PinchZoomOnDeviceTest {
     /** Un pincement ample porte la police de 14 sp au palier 28 sp. */
     @Test
     public void lePincementAmpleZoomeAuPalierMaximal()
-            throws InterruptedException {
+            throws Exception {
         try (ActivityScenario<EditorActivity> scenario = BancAppareil.ouvrirScenario()) {
             BancAppareil.attendreVue(scenario);
             float[] taille = new float[1];
@@ -35,7 +35,7 @@ public class PinchZoomOnDeviceTest {
                     taille[0] = BancAppareil.editeur(ecran).fontSizeSp());
             assertEquals("la police de départ vit au palier 14 sp",
                     14f, taille[0], 1e-6f);
-            BancAppareil.ecarter();
+            BancAppareil.pincer(scenario, 120f, 520f);
             scenario.onActivity(ecran ->
                     taille[0] = BancAppareil.editeur(ecran).fontSizeSp());
             assertEquals("un pincement ample doit mener au palier maximal 28 sp",
@@ -46,7 +46,7 @@ public class PinchZoomOnDeviceTest {
     /** Un pincement resserré ramène 28 sp au palier minimal 14 sp. */
     @Test
     public void lePincementResserreRameneAuPalierMinimal()
-            throws InterruptedException {
+            throws Exception {
         try (ActivityScenario<EditorActivity> scenario = BancAppareil.ouvrirScenario()) {
             BancAppareil.attendreVue(scenario);
             float[] taille = new float[1];
@@ -57,7 +57,7 @@ public class PinchZoomOnDeviceTest {
             });
             assertEquals("la police posée vit au palier 28 sp",
                     28f, taille[0], 1e-6f);
-            BancAppareil.resserrer();
+            BancAppareil.pincer(scenario, 400f, 160f);
             scenario.onActivity(ecran ->
                     taille[0] = BancAppareil.editeur(ecran).fontSizeSp());
             assertEquals("un pincement resserré doit ramener au palier 14 sp",

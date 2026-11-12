@@ -37,6 +37,7 @@ public class GutterStabilityOnDeviceTest {
             BancAppareil.retenirAnalyse(scenario, BancAppareil.RETENUE_MS);
             Rect bande = BancAppareil.bandePremieresLignes(scenario);
             Bitmap avant = BancAppareil.capturer();
+            System.out.println("APERCU AVANT\n" + BancAppareil.apercu(avant, bande));
             BancAppareil.frapper(scenario, "\ndix");
             Thread.sleep(250L);
             Bitmap apresFrappe = BancAppareil.capturer();

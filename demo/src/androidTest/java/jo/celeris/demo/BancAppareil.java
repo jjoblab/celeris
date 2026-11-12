@@ -1,18 +1,20 @@
 package jo.celeris.demo;
 
 import android.app.Activity;
+import android.app.UiAutomation;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.os.SystemClock;
+import android.view.InputDevice;
+import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.UiDevice;
-import androidx.test.uiautomator.UiObject2;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +31,14 @@ import jo.celeris.android.widgets.PopupLayer;
  * frappe par la connexion d'entrée (la voie exacte de l'IME, sans
  * clavier visible — la vitre reste stable pour les captures), pose
  * la retenue d'analyse (le crochet de débogage), pince par
- * UiAutomator et capture la vitre en PNG.
+ * l'injection de MotionEvents à deux pointeurs et capture la vitre
+ * en PNG.
+ *
+ * <p>L'arbre d'accessibilité de l'image ATD ne porte pas la vitre —
+ * les recherches d'UiAutomator reviennent vides : les gestes vivent
+ * donc par la voie d'entrée brute (injectInputEvent, celle
+ * qu'UiAutomator emprunte lui-même), la géométrie venant des bornes
+ * mesurées de la vue.</p>
  *
  * <p>Le curseur se porte en fin de document par la sélection de la
  * connexion d'entrée — la connexion borne d'elle-même les valeurs
@@ -76,9 +85,8 @@ final class BancAppareil {
 
     /**
      * Attend la mise en page de l'éditeur : le premier passage de
-     * mesures, puis l'arbre d'accessibilité qui le porte — sans cette
-     * double attente, les captures mesureraient une vitre encore
-     * vide et les gestes iraient sur un écran encore muet.
+     * mesures. Sans cette attente, les captures mesureraient une vitre
+     * encore vide.
      */
     static EditorView attendreVue(ActivityScenario<EditorActivity> scenario)
             throws InterruptedException {
@@ -90,16 +98,28 @@ final class BancAppareil {
                     vue[0] = candidat;
                 }
             });
-            if (vue[0] != null && editeurVisible() != null) {
+            if (vue[0] != null) {
                 return vue[0];
             }
             Thread.sleep(100L);
         }
-        if (vue[0] == null) {
-            throw new AssertionError("l'éditeur n'a jamais été mesuré à l'écran");
-        }
-        throw new AssertionError(
-                "l'arbre d'accessibilité n'a jamais porté l'éditeur");
+        throw new AssertionError("l'éditeur n'a jamais été mesuré à l'écran");
+    }
+
+    /**
+     * Les bornes de l'éditeur à l'écran — la géométrie des gestes
+     * injectés s'y cale.
+     */
+    static Rect bornesEditeur(ActivityScenario<EditorActivity> scenario) {
+        Rect[] bornes = new Rect[1];
+        scenario.onActivity(ecran -> {
+            EditorView vue = editeur(ecran);
+            int[] origine = new int[2];
+            vue.getLocationOnScreen(origine);
+            bornes[0] = new Rect(origine[0], origine[1],
+                    origine[0] + vue.getWidth(), origine[1] + vue.getHeight());
+        });
+        return Objects.requireNonNull(bornes[0]);
     }
 
     /**
@@ -145,26 +165,69 @@ final class BancAppareil {
     }
 
     /**
-     * Pince l'éditeur à l'écran en ÉCARTANT : deux pointeurs réels
-     * partent du quart de la diagonale pour en couvrir le bout — le
-     * facteur cumulé du détecteur (environ quatre et un tiers, la
-     * géométrie du banc JVM, 120 à 520) mène la police au palier
-     * maximal.
+     * Pince l'éditeur à l'écran : deux pointeurs RÉELS, posés,
+     * écartés (ou resserrés) puis levés — les MotionEvents à deux
+     * doigts passent par la voie d'entrée du système
+     * (injectInputEvent), celle qu'UiAutomator emprunte lui-même ;
+     * l'écartement suit la géométrie EXACTE du banc JVM (120 à 520
+     * pour l'ample, 400 à 160 pour le resserré), les doigts
+     * symétriques autour du centre — le point focal ne bouge pas.
      */
-    static void ecarter() throws InterruptedException {
-        editeurVisible().pinchOpen(0.23f, 1500);
+    static void pincer(ActivityScenario<EditorActivity> scenario, float ecartDepart,
+            float ecartArrivee) throws InterruptedException {
+        Rect bornes = bornesEditeur(scenario);
+        UiAutomation automatisation = InstrumentationRegistry.getInstrumentation()
+                .getUiAutomation();
+        long depart = SystemClock.uptimeMillis();
+        injecter(automatisation, evenement(depart, depart,
+                MotionEvent.ACTION_DOWN, bornes, ecartDepart));
+        injecter(automatisation, evenement(depart, depart + 20L,
+                MotionEvent.ACTION_POINTER_DOWN | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
+                bornes, ecartDepart));
+        for (int pas = 1; pas <= 20; pas++) {
+            int ecart = Math.round(ecartDepart
+                    + (ecartArrivee - ecartDepart) * pas / 20f);
+            injecter(automatisation, evenement(depart, depart + 20L + pas * 40L,
+                    MotionEvent.ACTION_MOVE, bornes, ecart));
+            Thread.sleep(20L);
+        }
+        injecter(automatisation, evenement(depart, depart + 840L,
+                MotionEvent.ACTION_POINTER_UP | 1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT,
+                bornes, ecartArrivee));
+        injecter(automatisation, evenement(depart, depart + 860L,
+                MotionEvent.ACTION_UP, bornes, ecartArrivee));
         appareil().waitForIdle();
     }
 
     /**
-     * Pince l'éditeur à l'écran en RESSERRANT : deux pointeurs réels
-     * partent des coins pour se rejoindre aux quatre dixièmes de la
-     * diagonale — le facteur cumulé (quatre dixièmes, la géométrie du
-     * banc JVM, 400 à 160) ramène la police au palier minimal.
+     * L'événement à deux pointeurs, symétriques autour du centre des
+     * bornes — le doigt zéro à l'ouest, le doigt un à l'est.
      */
-    static void resserrer() throws InterruptedException {
-        editeurVisible().pinchClose(0.4f, 1500);
-        appareil().waitForIdle();
+    private static MotionEvent evenement(long instantPose, long instant,
+            int action, Rect bornes, float ecart) {
+        int demi = Math.max(8, Math.round(ecart / 2f));
+        MotionEvent.PointerProperties[] proprietes =
+                new MotionEvent.PointerProperties[2];
+        MotionEvent.PointerCoords[] coordonnees = new MotionEvent.PointerCoords[2];
+        for (int doigt = 0; doigt < 2; doigt++) {
+            proprietes[doigt] = new MotionEvent.PointerProperties();
+            proprietes[doigt].id = doigt;
+            proprietes[doigt].toolType = MotionEvent.TOOL_TYPE_FINGER;
+            coordonnees[doigt] = new MotionEvent.PointerCoords();
+            coordonnees[doigt].x = bornes.centerX() + (doigt == 0 ? -demi : demi);
+            coordonnees[doigt].y = bornes.centerY();
+            coordonnees[doigt].pressure = 1f;
+            coordonnees[doigt].size = 1f;
+        }
+        return Objects.requireNonNull(MotionEvent.obtain(instantPose, instant,
+                action, 2, proprietes, coordonnees, 0, 0, 1f, 1f, 0, 0,
+                InputDevice.SOURCE_TOUCHSCREEN, 0));
+    }
+
+    /** Porte l'événement à la voie d'entrée du système. */
+    private static void injecter(UiAutomation automatisation, MotionEvent evenement) {
+        automatisation.injectInputEvent(evenement, false);
+        evenement.recycle();
     }
 
     /** L'appareil UiAutomator du banc. */
@@ -173,15 +236,38 @@ final class BancAppareil {
     }
 
     /**
-     * L'éditeur vu d'UiAutomator — le banc le dit s'il est invisible.
-     * L'éditeur déclare son nœud d'accessibilité sous la classe du
-     * texte ({@code android.widget.EditText} — AccessibilityHost :
-     * l'IME et les lecteurs d'écran passent avant la désignation du
-     * bac) : la recherche se fait par la classe DÉCLARÉE, jamais par
-     * le nom de la classe Java de la vue.
+     * Capture la vitre entière en PNG, relue en bitmap — le banc le
+     * dit si la capture ou la relecture manque.
      */
-    private static UiObject2 editeurVisible() {
-        return appareil().findObject(By.clazz("android.widget.EditText"));
+    static Bitmap capturer() throws IOException {
+        File cible = File.createTempFile("celeris-capture", ".png",
+                InstrumentationRegistry.getInstrumentation()
+                        .getTargetContext().getCacheDir());
+        if (!appareil().takeScreenshot(cible)) {
+            throw new AssertionError("la capture de la vitre a échoué");
+        }
+        Bitmap image = BitmapFactory.decodeFile(cible.getAbsolutePath());
+        if (image == null) {
+            throw new AssertionError("la capture ne se relit pas en bitmap");
+        }
+        return image;
+    }
+
+    /**
+     * La bande des premières lignes : le haut de l'éditeur à l'écran,
+     * jamais touchée par les frappes (elles vivent en fin de document).
+     */
+    static Rect bandePremieresLignes(ActivityScenario<EditorActivity> scenario) {
+        Rect[] bande = new Rect[1];
+        scenario.onActivity(ecran -> {
+            EditorView vue = editeur(ecran);
+            int[] origine = new int[2];
+            vue.getLocationOnScreen(origine);
+            int hauteur = Math.max(1, Math.round(vue.getHeight() * 0.15f));
+            bande[0] = new Rect(origine[0], origine[1],
+                    origine[0] + vue.getWidth(), origine[1] + hauteur);
+        });
+        return Objects.requireNonNull(bande[0]);
     }
 
     /**
@@ -230,40 +316,5 @@ final class BancAppareil {
             }
         }
         return vues.size();
-    }
-
-    /**
-     * Capture la vitre entière en PNG, relue en bitmap — le banc le
-     * dit si la capture ou la relecture manque.
-     */
-    static Bitmap capturer() throws IOException {
-        File cible = File.createTempFile("celeris-capture", ".png",
-                InstrumentationRegistry.getInstrumentation()
-                        .getTargetContext().getCacheDir());
-        if (!appareil().takeScreenshot(cible)) {
-            throw new AssertionError("la capture de la vitre a échoué");
-        }
-        Bitmap image = BitmapFactory.decodeFile(cible.getAbsolutePath());
-        if (image == null) {
-            throw new AssertionError("la capture ne se relit pas en bitmap");
-        }
-        return image;
-    }
-
-    /**
-     * La bande des premières lignes : le haut de l'éditeur à l'écran,
-     * jamais touchée par les frappes (elles vivent en fin de document).
-     */
-    static Rect bandePremieresLignes(ActivityScenario<EditorActivity> scenario) {
-        Rect[] bande = new Rect[1];
-        scenario.onActivity(ecran -> {
-            EditorView vue = editeur(ecran);
-            int[] origine = new int[2];
-            vue.getLocationOnScreen(origine);
-            int hauteur = Math.max(1, Math.round(vue.getHeight() * 0.15f));
-            bande[0] = new Rect(origine[0], origine[1],
-                    origine[0] + vue.getWidth(), origine[1] + hauteur);
-        });
-        return Objects.requireNonNull(bande[0]);
     }
 }
