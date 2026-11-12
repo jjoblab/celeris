@@ -139,6 +139,21 @@ public final class EditorCliTest {
                 + sortie);
     }
 
+    /** Le motif vide se refuse : la boucle d'occurrences ne tournerait
+     * jamais — le code d'usage revient et le motif se nomme. */
+    @Test
+    public void motifVideRefuse() throws IOException {
+        Path fichier = ecrire("texte.txt", "bonjour\n");
+        ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+        int code = Celeris.executer(
+                new String[] {"recherche", fichier.toString(), ""},
+                new PrintStream(tampon, true, StandardCharsets.UTF_8));
+        assertEquals(2, code, "code d'erreur d'usage");
+        String sortie = tampon.toString(StandardCharsets.UTF_8);
+        assertTrue(sortie.contains("le motif de recherche ne peut pas être vide"),
+                "le refus se dit : " + sortie);
+    }
+
     /** Un fichier illisible rend un code d'erreur et un message, pas une trace. */
     @Test
     public void fichierAbsentRefuse() {

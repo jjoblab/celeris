@@ -282,6 +282,12 @@ final class IncrementalParser {
 
     private static Chunk construireChunk(Document doc, LanguageParser parser, PasseJetons passe,
                                          int debutMarche, int debut, int fin, int premiereLigne) {
+        // l'édition peut vider la tranche de marche de ses jetons (la
+        // suppression du chunk ancre) : pas de jeton à lire, pas de chunk
+        if (debutMarche + debut >= passe.jetons().length) {
+            return Chunk.enAttente(premiereLigne, doc.lineStart(premiereLigne),
+                    premiereLigne, doc.lineEnd(premiereLigne));
+        }
         TokenSlice trancheMarche = new TokenSlice(doc, passe.jetons(), passe.lignes(), debutMarche,
                 passe.jetons().length, doc.lineStart(premiereLigne));
         int baseChunk = doc.lineStart(premiereLigne) + trancheMarche.start(debut);

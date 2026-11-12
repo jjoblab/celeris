@@ -33,6 +33,17 @@ class JsonLexeurTest {
         assertEquals(9, jetons[2].length(), "les échappements restent dans la chaîne");
     }
 
+    /** Le tiret seul en fin de ligne ne dépasse jamais la ligne : la fin
+     * du jeton reste dans les bornes, la frappe en cours se digère. */
+    @Test
+    void tiretSeulEnFinDeLigne() {
+        Token[] jetons = lex("[ 1, -");
+        Token dernier = jetons[jetons.length - 1];
+        assertEquals(TokenKind.NUMBER, dernier.kind());
+        assertEquals(6, dernier.end(),
+                "le tiret seul ferme le jeton à la fin de la ligne, pas au-delà");
+    }
+
     /** Les nombres signés, à virgule et à exposant forment un jeton chacun. */
     @Test
     void nombres() {

@@ -28,6 +28,20 @@ class ExpressionsTest {
                 "conservateur : le délimiteur revient aussi en fin d'itération");
     }
 
+    /** L'imbriquée cache le mal au père : le quantificateur non borné
+     * vit dans tous les groupes ouverts, la forme ((a+))+ ne passe
+     * plus par le sommet seul. */
+    @Test
+    void formesImbriqueesRefusees() {
+        assertTrue(GardeCatastrophique.catastrophique("((a+))+"),
+                "l'imbriquée porte le mal au père, pas au sommet seul");
+        assertTrue(GardeCatastrophique.catastrophique("((a+))*"));
+        assertTrue(GardeCatastrophique.catastrophique("(((a+)))+"),
+                "la profondeur supplémentaire ne dilue rien");
+        assertTrue(GardeCatastrophique.catastrophique("((?:\\w+\\s*))+"),
+                "l'imbriquée délimitée d'intérieur non borné se refuse aussi");
+    }
+
     /** Les formes bornées ou délimitées passent. */
     @Test
     void formesBornesEtDelimiteesPasse() {

@@ -88,4 +88,11 @@ final class RecepteurServeur implements LanguageClient {
     void ajouterAuditeurDiagnostics(AuditeurDiagnostics auditeur) {
         auditeurs.add(auditeur);
     }
+
+    /** Purge les diagnostics d'un document fermé : la carte ne
+     * vieillit pas avec les documents visités — une session longue
+     * n'accumule rien au didClose. */
+    void purgerDiagnostics(String uri) {
+        diagnostics.remove(uri);
+    }
 }

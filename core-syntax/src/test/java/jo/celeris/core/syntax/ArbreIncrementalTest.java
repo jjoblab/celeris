@@ -142,6 +142,22 @@ class ArbreIncrementalTest {
         assertEquals("neuf", neuf.root().outlineName());
     }
 
+    /** La suppression du second chunk d'une ligne unique ne lève jamais :
+     * la tranche de marche vidée rend un chunk en attente, pas d'accès
+     * hors bornes. */
+    @Test
+    void suppressionDuChunkAncreSurLigneUniqueNeLeveJamais() {
+        String ligneUnique = "fn a { } fn b { }";
+        Document doc = Document.of(ligneUnique);
+        Analysis complet = service.analyseFull(doc);
+        int coupe = ligneUnique.indexOf(" fn b");
+        Document edite = doc.replace(coupe, ligneUnique.length(), "");
+        Analysis diff = service.analyseIncremental(edite, complet,
+                EditSite.of(doc, edite, coupe, ligneUnique.length(), ""));
+        assertFalse(diff.tree().chunks().isEmpty(),
+                "l'arbre incrémental existe après la suppression");
+    }
+
     /** Un crochet non fermé devient un chunk en erreur, jamais une exception. */
     @Test
     void crochetNonFermeDevientErreurPasException() {

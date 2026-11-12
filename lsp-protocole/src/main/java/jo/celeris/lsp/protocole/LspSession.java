@@ -216,12 +216,14 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
                 List.of(new TextDocumentContentChangeEvent(texte))));
     }
 
-    /** Ferme un document — l'état suivi est oublié. */
+    /** Ferme un document — l'état suivi est oublié, diagnostics
+     * compris : la carte ne vieillit pas avec les documents visités. */
     public void fermer(String uri) {
         exigerInitialisee();
         versions.remove(uri);
         serveur.getTextDocumentService().didClose(new DidCloseTextDocumentParams(
                 new TextDocumentIdentifier(uri)));
+        recepteur.purgerDiagnostics(uri);
     }
 
     @Override

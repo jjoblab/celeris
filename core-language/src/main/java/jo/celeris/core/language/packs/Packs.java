@@ -121,7 +121,14 @@ public final class Packs {
 
             @Override
             public boolean has(String file) {
-                return Packs.class.getResourceAsStream("/" + prefix + "/" + file) != null;
+                // le flux se ferme toujours : la sonde d'existence n'a
+                // pas à laisser de descripteur ouvert derrière elle
+                try (var flux = Packs.class.getResourceAsStream(
+                        "/" + prefix + "/" + file)) {
+                    return flux != null;
+                } catch (java.io.IOException e) {
+                    return false;
+                }
             }
 
             @Override

@@ -86,7 +86,7 @@ final class JsonLexeur implements LanguageLexer {
 
     private int lexNombre(CharSequence texte, List<Token> jetons, int i, int n) {
         int fin = i + 1;
-        if (texte.charAt(i) == '-') {
+        if (texte.charAt(i) == '-' && fin < n && estChiffre(texte.charAt(fin))) {
             fin++;
         }
         fin = chiffres(texte, fin, n);

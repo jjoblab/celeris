@@ -1,5 +1,9 @@
 package jo.celeris.core.lsp;
 
+import jo.celeris.core.lsp.types.EditionDocumentLsp;
+import jo.celeris.core.lsp.types.EditionTexteLsp;
+import jo.celeris.core.text.Document;
+import jo.celeris.core.text.Transaction;
 import jo.celeris.core.lsp.types.DiagnosticLsp;
 import jo.celeris.core.lsp.types.EditionEspaceLsp;
 import jo.celeris.core.lsp.types.EditionGabaritLsp;
@@ -29,6 +33,22 @@ import org.junit.jupiter.api.Test;
  * construction, profondes pour l'auditeur.
  */
 class TypesDomaineLspTest {
+
+    /** Une plage inversée du serveur se transpose sans exception : les
+     * bornes s'ordonnent, la doctrine du clampage tient jusqu'au bout. */
+    @Test
+    void laPlageInverseeDuServeurSetranspose() {
+        Document doc = Document.of("abcdef");
+        EditionDocumentLsp edition = new EditionDocumentLsp("file:///f", 1,
+                List.of(new EditionTexteLsp(new PlageLsp(
+                        new PositionLsp(0, 4), new PositionLsp(0, 2)),
+                        "XY")));
+        Transaction transaction = EditsEspaceLsp.transaction(doc, edition);
+        assertEquals(1, transaction.edits().size());
+        assertEquals("cd", transaction.edits().get(0).removed(),
+                "les bornes inversées s'ordonnent : le texte retiré est le bon");
+        assertEquals("XY", transaction.edits().get(0).inserted());
+    }
 
     /** Le diagnostic : la gravité porte ses constantes, les champs ses valeurs. */
     @Test
