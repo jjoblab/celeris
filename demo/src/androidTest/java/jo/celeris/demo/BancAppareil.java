@@ -253,8 +253,9 @@ final class BancAppareil {
                     "mWakefulness")
                     + ", focus: " + ligne(appareil().executeShellCommand(
                     "dumpsys window"), "mCurrentFocus")
-                    + ", top: " + ligne(appareil().executeShellCommand(
-                    "dumpsys activity top"), "ACTIVITY");
+                    + ", couche: " + (appareil().executeShellCommand(
+                    "dumpsys SurfaceFlinger").contains("jo.celeris.demo")
+                    ? "présente" : "absente de SurfaceFlinger");
         } catch (IOException echec) {
             return " état illisible : " + echec.getMessage();
         }

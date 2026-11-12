@@ -71,14 +71,17 @@ jobs:
         run: ./gradlew :demo:pixel2api34Setup
       - name: GPU logiciel de l'appareil géré
         run: |
-          AVD="$HOME/.android/avd/dev34_aosp_atd_x86_64_Pixel_2.avd/config.ini"
-          if [ ! -f "$AVD" ]; then
-            echo "AVD introuvable : $AVD" >&2
+          # Le framebuffer demeurait muet : le GPU auto de l'émulateur
+          # v37 rejette l'option AGP et tombe sans vitrine. Swiftshader
+          # rend SANS écran — les captures voient enfin. L'AVD se cherche
+          # à sa vraie place (le nom du dossier varie).
+          AVD=$(find "$HOME" -maxdepth 6 -name config.ini -path "*.avd*" 2>/dev/null | head -1)
+          if [ -z "$AVD" ]; then
+            echo "AVD introuvable — aucune config.ini d'AVD sous $HOME" >&2
+            find "$HOME" -maxdepth 5 \( -name "*.avd" -o -name "*.ini" \) 2>/dev/null | head -8
             exit 1
           fi
-          # Le framebuffer demeurait muet : le GPU auto de
-          # l'émulateur v37 rejette l'option AGP et tombe sans vitrine.
-          # Swiftshader rend SANS écran — les captures voient enfin.
+          echo "AVD trouvé : $AVD"
           printf 'hw.gpu.enabled=yes\nhw.gpu.mode=swiftshader_indirect\n' >> "$AVD"
           tail -6 "$AVD"
       - name: Tests d'instrumentation (pincement, gouttière, coloration, popups)
