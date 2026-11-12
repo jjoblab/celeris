@@ -124,6 +124,9 @@ final class TouchesEditeur {
         vue.curseurClavier.masquerClavier();
         vue.curseurClavier.annoncerSelection();
         vue.pilule.show(x, y);
+        // le moment juste du survol : le mot est sélectionné, l'hôte
+        // qui sert une documentation l'ouvre — la vue n'ouvre rien
+        vue.notifierAppuiLong(offset);
         vue.invalidate();
     }
 

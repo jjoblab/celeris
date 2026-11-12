@@ -24,6 +24,9 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.ServerCapabilities;
+import org.eclipse.lsp4j.SignatureHelp;
+import org.eclipse.lsp4j.SignatureHelpOptions;
+import org.eclipse.lsp4j.SignatureHelpParams;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.TextDocumentSyncOptions;
@@ -89,6 +92,7 @@ public final class JavaLanguageServer implements LanguageServer {
         ServerCapabilities capacites = new ServerCapabilities();
         capacites.setCompletionProvider(new CompletionOptions());
         capacites.setHoverProvider(Either.forLeft(Boolean.TRUE));
+        capacites.setSignatureHelpProvider(new SignatureHelpOptions());
         capacites.setDocumentSymbolProvider(Either.forLeft(Boolean.TRUE));
         capacites.setFoldingRangeProvider(Either.forLeft(Boolean.TRUE));
         capacites.setDocumentFormattingProvider(Boolean.TRUE);
@@ -184,6 +188,19 @@ public final class JavaLanguageServer implements LanguageServer {
             int offset = offset(document, params.getPosition());
             return CompletableFuture.completedFuture(JavaHover.at(document,
                     JavaSymbols.of(document), offset));
+        }
+
+        @Override
+        public CompletableFuture<@Nullable SignatureHelp> signatureHelp(
+                SignatureHelpParams params) {
+            JavaSource document = documents.get(
+                    params.getTextDocument().getUri());
+            if (document == null) {
+                return CompletableFuture.completedFuture(null);
+            }
+            int offset = offset(document, params.getPosition());
+            return CompletableFuture.completedFuture(JavaSignature.at(
+                    document, JavaSymbols.of(document), offset));
         }
 
         @Override

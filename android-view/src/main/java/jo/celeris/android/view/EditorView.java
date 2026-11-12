@@ -20,6 +20,7 @@ import android.view.inputmethod.InputConnection;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 import jo.celeris.core.ai.SuggestionFantome;
 import jo.celeris.core.language.model.LanguageSupport;
@@ -98,6 +99,8 @@ public final class EditorView extends View {
     private final ScaleGestureDetector pincements;
 
     private KeyBindings raccourcis = KeyBindings.defaults();
+    /** Le consommateur d'appui long de l'hôte (M7.6) — le moment juste du survol. */
+    private volatile @Nullable IntConsumer surAppuiLong;
     // — le zoom au pincement vit dans son collaborateur (D-15, PIEGE-24)
     final PinchZoomHandler zoom = new PinchZoomHandler(this);
     // — la gouttière stable vit dans son collaborateur (PIEGE-25)
@@ -429,6 +432,26 @@ public final class EditorView extends View {
     /** Le rappel du plan du fichier (B-16), parti à chaque publication d'analyse. */
     public void setSurPlan(@Nullable Consumer<List<OutlineEntry>> consommateur) {
         syntaxe.setSurPlan(consommateur);
+    }
+
+    /**
+     * Le rappel d'appui long (M7.6) : l'offset du mot sous le doigt y
+     * part après sa sélection — le moment juste de la documentation
+     * au survol pour l'hôte qui en sert une ; la vue, elle, n'ouvre
+     * jamais de popup. Null coupe le rappel.
+     *
+     * @param consommateur le consommateur d'offset, null pour couper
+     */
+    public void setSurAppuiLong(@Nullable IntConsumer consommateur) {
+        surAppuiLong = consommateur;
+    }
+
+    /** Notifie l'hôte de l'appui long — la sélection est déjà posée. */
+    void notifierAppuiLong(int offset) {
+        IntConsumer consommateur = surAppuiLong;
+        if (consommateur != null) {
+            consommateur.accept(offset);
+        }
     }
 
     /** Les intégrations de la gouttière : marques, arrêts, clic (D-03 à D-05). */

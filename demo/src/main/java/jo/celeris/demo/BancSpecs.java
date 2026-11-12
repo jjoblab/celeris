@@ -41,6 +41,10 @@ import jo.celeris.core.text.TextEdit;
 import jo.celeris.core.text.TextSession;
 import jo.celeris.core.text.Transaction;
 
+import jo.celeris.core.lsp.types.DiagnosticLsp;
+
+import org.jspecify.annotations.Nullable;
+
 /**
  * Le banc des vérifications automatiques (M7.5, §9) : chaque
  * spécification rejoue les gestes du fil RÉEL de la démonstration —
@@ -111,6 +115,11 @@ final class BancSpecs {
                         "Les méthodes nouvelles servent le plan, le pli et"
                                 + " le formatage par le fil",
                         BancSpecs::couverture),
+                new ScenarioSpec("H-13",
+                        "Le serveur Java déclaré sert chaque capacité"
+                                + " annoncée — complétion, survol, signature,"
+                                + " symboles, plis, formatage, diagnostics",
+                        BancSpecs::serveurDeclare),
                 new ScenarioSpec("H-04",
                         "Le paquet jouet se charge à chaud, se colore, se"
                                 + " plie et se commente",
@@ -406,6 +415,125 @@ final class BancSpecs {
         boolean leFormat = editions != null && !editions.isEmpty()
                 && editions.get(0).nouveauTexte().startsWith("int");
         return lePlan && lePli && leFormat;
+    }
+
+    /**
+     * H-13 — la couverture du serveur DÉCLARÉ : le mini serveur Java
+     * de la démonstration monte par sa déclaration ({@code
+     * servers.json}), et chaque capacité annoncée à la poignée de main
+     * répond au fil — complétion, survol, signature, symboles, plis,
+     * formatage, diagnostics poussés. La démo qui démontre : le
+     * serveur embarqué se teste entier, à l'ouverture.
+     */
+    private static boolean serveurDeclare() {
+        // l'accolade fermante de « corps » manque : les diagnostics
+        // poussés portent un constat réel, jamais un vent vide
+        String texte = "class Exemple {\n"
+                + "    int ajouter(int a, int b) {\n"
+                + "        return a + b;\n"
+                + "    }\n"
+                + "    void corps() {\n"
+                + "        int total = ajouter(1, 2);\n"
+                + "    }\n";
+        LanguageSupport langue = LangagesDemo.langageDe("exemple.java",
+                null, texte);
+        if (langue == null) {
+            return false;
+        }
+        LanguageSession session = DeclaredServers.open(langue);
+        try {
+            if (!(session instanceof DeclaredServerSession)) {
+                // le serveur déclaré n'a pas monté : la couverture ne
+                // se prouve pas sur le serveur de repli
+                return false;
+            }
+            Document document = TextSession.of(texte, () -> 0L).document();
+            java.util.concurrent.CountDownLatch poussee =
+                    new java.util.concurrent.CountDownLatch(1);
+            java.util.List<DiagnosticLsp> constatsPousses =
+                    new java.util.ArrayList<>();
+            session.poserAuditeurDiagnostics((uri, constats) -> {
+                constatsPousses.addAll(constats);
+                poussee.countDown();
+            });
+            session.ouvrir(URI, languageId(), texte);
+            boolean lesDiagnostics;
+            try {
+                lesDiagnostics = poussee.await(2,
+                        java.util.concurrent.TimeUnit.SECONDS)
+                        && !constatsPousses.isEmpty();
+            } catch (InterruptedException echec) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+            boolean laCompletion = session.sertCompletion()
+                    && session.completion(URI, document,
+                            texte.indexOf("int total = a"))
+                            .get(2, java.util.concurrent.TimeUnit.SECONDS)
+                            .elements().stream()
+                            .anyMatch(c -> "ajouter".equals(c.libelle()));
+            boolean leSurvol = survolDu(session, document,
+                    texte.indexOf("ajouter(1,") + 3) != null;
+            SignatureAideModel laSignature = signatureDu(session, document,
+                    texte.indexOf("ajouter(1,") + "ajouter(1,".length());
+            boolean laBonneSignature = laSignature != null
+                    && "ajouter(int a, int b)".equals(laSignature.libelle())
+                    && laSignature.parametreCourant() == 1;
+            boolean lePlan = porteLeNom(session.symboles(URI)
+                    .get(2, java.util.concurrent.TimeUnit.SECONDS), "ajouter");
+            boolean lePli = !session.plis(URI)
+                    .get(2, java.util.concurrent.TimeUnit.SECONDS).isEmpty();
+            boolean leFormat = !session.formatage(URI,
+                    jo.celeris.core.lsp.types.OptionsFormatageLsp.DEFAUT)
+                    .get(2, java.util.concurrent.TimeUnit.SECONDS).isEmpty();
+            return lesDiagnostics && laCompletion && leSurvol
+                    && laBonneSignature && lePlan && lePli && leFormat;
+        } catch (Exception echec) {
+            return false;
+        } finally {
+            session.close();
+        }
+    }
+
+    /**
+     * Le plan porte-t-il le nom, PREMIER RANG OU ENFANTS : la classe
+     * enveloppe ses méthodes — le plan du fichier descend l'arbre des
+     * symboles, jamais il ne reste au premier étage.
+     */
+    private static boolean porteLeNom(
+            java.util.List<jo.celeris.core.lsp.types.SymboleLsp> symboles,
+            String nom) {
+        for (jo.celeris.core.lsp.types.SymboleLsp symbole : symboles) {
+            if (nom.equals(symbole.nom())) {
+                return true;
+            }
+            if (porteLeNom(symbole.enfants(), nom)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Le survol d'une coupe joint borné — null au fil muet. */
+    private static @Nullable CompletionDocModel survolDu(
+            LanguageSession session, Document document, int caret) {
+        try {
+            return session.survol(URI, document, "ajouter", caret)
+                    .get(2, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (Exception echec) {
+            return null;
+        }
+    }
+
+    /** La signature d'une coupe jointe bornée — null au fil muet. */
+    private static @Nullable SignatureAideModel signatureDu(
+            LanguageSession session, Document document, int caret) {
+        try {
+            return session.signature(URI, document, caret)
+                    .get(2, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (Exception echec) {
+            return null;
+        }
     }
 
     /** Le fil du protocole : la session de langage démarrée, la demande jointe. */

@@ -57,6 +57,13 @@ final class ScenariosGlobales {
                         "Couverture LSP nouvelle",
                         "Symboles, plis, formatage, surlignages, renommage, correctifs, "
                                 + "indices, jetons : la frontière protocolaire porte chaque "
-                                + "méthode, le domaine les rend (M7.6, ADR-015)."));
+                                + "méthode, le domaine les rend (M7.6, ADR-015)."),
+                new Scenario(
+                        "H-13",
+                        "Serveur Java déclaré éprouvé",
+                        "Le mini serveur Java embarqué monte par sa déclaration "
+                                + "servers.json : complétion, survol, signature, symboles, "
+                                + "plis, formatage et diagnostics poussés répondent au fil "
+                                + "— la démo qui démontre se prouve à l'ouverture."));
     }
 }

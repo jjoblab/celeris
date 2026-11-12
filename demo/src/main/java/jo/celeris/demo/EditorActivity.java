@@ -341,6 +341,10 @@ public final class EditorActivity extends AppCompatActivity {
                 this::paletteFeuilles, atelierPopups::ouvrirRecherche,
                 atelierPopups::fermerRecherche);
         atelierRecherche.brancher();
+        // Le moment juste du survol (M7.6) : l'appui long sélectionne le
+        // mot, la documentation du serveur déclaré s'y offre — comme
+        // tout éditeur, la popup survit au geste, null la ferme.
+        editeur.setSurAppuiLong(offset -> atelierPopups.ouvrirSurvol());
     }
 
     /** Le chrome s'étend bord à bord : encarts système et clavier

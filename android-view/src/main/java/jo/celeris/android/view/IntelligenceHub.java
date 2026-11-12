@@ -376,7 +376,17 @@ public final class IntelligenceHub {
     }
 
     private IndentStyle style() {
-        return DEFAULT_STYLE;
+        // M7.6 : le style d'indentation vit dans la configuration du
+        // langage courant — un pack à deux espaces y entre, une
+        // indentation à tabulations y tabule. Sans langage, le style
+        // canonique quatre espaces tient.
+        LanguageSupport langue = vue.syntaxe.language();
+        if (langue == null) {
+            return DEFAULT_STYLE;
+        }
+        return langue.configuration().tabIndent()
+                ? IndentStyle.tabs(langue.configuration().indentSize())
+                : IndentStyle.spaces(langue.configuration().indentSize());
     }
 
     /** L'analyse publiée à la révision courante — jamais celle d'une autre. */
