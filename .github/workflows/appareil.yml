@@ -69,12 +69,22 @@ jobs:
           "$SDKMANAGER" --install "platform-tools" > /dev/null
       - name: Tests d'instrumentation (pincement, gouttière, coloration, popups)
         run: ./gradlew :demo:pixel2api34DebugAndroidTest
+      - name: Journal des échecs (diagnostic des bancs)
+        if: failure()
+        run: |
+          # Les résultats d'instrumentation vivent en XML par classe —
+          # les messages d'assertion et traces s'impriment au journal,
+          # la CI n'a pas d'œil sur l'appareil sans eux.
+          find demo/build -path "*androidTest*" -name "TEST-*.xml" -print | while read -r journal; do
+            echo "===== $journal ====="
+            sed -e 's/></>\n</g' "$journal" | head -120
+          done
       - name: Rapports de l'appareil (artefact)
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: device-tests-reports
           path: |
+            demo/build/reports/androidTests/
             demo/build/outputs/androidTest/
-            demo/build/reports/androidTest/
           if-no-files-found: warn
