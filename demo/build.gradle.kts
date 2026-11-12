@@ -8,10 +8,13 @@ plugins {
 // L'APK doit porter un numéro de version : sans versionCode ni
 // versionName, le manifeste reste muet et certains installateurs
 // refusent le paquet. La version vit au catalogue (ADR-011).
+// Le coureur d'AndroidX porte JUnit 4 sur l'appareil du second étage
+// (C11) — le banc d'instrumentation vit dans src/androidTest.
 android {
     defaultConfig {
         versionCode = 1
         versionName = libs.versions.demo.get()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     // La frontière protocolaire du LSP (ADR-015) touche les API Java
     // au-delà du niveau 26 : le désucrage des bibliothèques les rend
@@ -31,6 +34,23 @@ android {
                 project(":lsp-protocole").file("regles-conservation.pro"),
                 "regles-r8.pro"
             )
+        }
+    }
+    // C11 — l'appareil géré du second étage : l'image ATD (allégée pour
+    // la CI, KVM du runner Ubuntu) ne se télécharge que pour la tâche
+    // d'instrumentation, jamais pour le build courant. L'hôte sans
+    // virtualisation matérielle la laisse à la CI — la commande exacte
+    // vit au document de vérification. (AGP 9 : le conteneur local
+    // des appareils virtuels porte le nom localDevices.)
+    testOptions {
+        managedDevices {
+            localDevices {
+                register("pixel2api34") {
+                    device = "Pixel 2"
+                    apiLevel = 34
+                    systemImageSource = "aosp-atd"
+                }
+            }
         }
     }
 }
@@ -71,4 +91,11 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.google.material)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+    // Étage appareil (C11) : le coureur et le couplage ext portent
+    // JUnit 4 sur l'appareil géré ; UiAutomator pince, tape et capture
+    // sur la vitre — jamais dans les artefacts publiés (la démo n'est
+    // pas publiée, ADR-011).
+    androidTestImplementation(libs.android.test.runner)
+    androidTestImplementation(libs.android.test.ext.junit)
+    androidTestImplementation(libs.android.uiautomator)
 }

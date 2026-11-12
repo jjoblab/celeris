@@ -22,6 +22,34 @@ vivent dans les ADR et le registre de portage, pas ici.
   est la preuve. Les tags `v1.0.0` et `v1.1.0` se posent (le premier sur
   le commit de la 1.0.0, le second sur la clôture).
 
+### Étage appareil de vérification — le second étage se pose (C11)
+
+- **Les quatre bancs d'instrumentation vivent dans `demo/src/androidTest`**
+  (2026-11-12) : `PinchZoomOnDeviceTest` (UiAutomator pince réellement à
+  deux pointeurs — 14 puis 28 puis 14 sp, les paliers de PIEGE-24),
+  `GutterStabilityOnDeviceTest` (captures avant/après la publication
+  d'une analyse — l'abscisse de la première encre et le décalage minimal
+  restent sous le pixel, PIEGE-25), `FlickerOnDeviceTest` (trois captures
+  pendant une frappe à analyse retenue par le crochet de débogage, une
+  après publication — les mots non touchés gardent leurs pixels,
+  PIEGE-26) et `CompletionPopupOnDeviceTest` (le premier popup réel de
+  complétion par le serveur de langage Java — le focus ne quitte jamais
+  l'éditeur, le blanc referme la liste, PIEGE-27).
+- **La frappe vit par la voie exacte de l'IME** : la connexion d'entrée
+  de l'éditeur porte les textes, le curseur se borne en fin de document —
+  les bandes mesurées (les premières lignes) restent jamais touchées ;
+  l'appareil géré `pixel2api34` (image ATD, API 34) les exécute, les
+  dépendances d'instrumentation vivent au catalogue (`androidx.test`,
+  UiAutomator 2.3.0 — jamais dans les artefacts publiés).
+- **La CI exécute l'étage** : le travail `appareil.yml` court au
+  nocturne, à chaque fusion de demande et au déclenchement manuel —
+  rapports en artefact `device-tests-reports`, la porte `/dev/kvm`
+  échoue à défaut d'accélération matérielle. Le plafond Checkstyle
+  couvre `src/androidTest` comme les bancs JVM (plafonds 600/800,
+  ADR-019) ; la compilation se vérifie partout, l'exécution vit à la CI —
+  la recette manuelle du propriétaire
+  (`docs/recette/RECETTE-M7.5.md`) garde la vitre de référence.
+
 ## [1.1.0] — 2026-11-12
 
 ### Mini serveur de langage Java — le compagnon de banc de l'éditeur

@@ -1,0 +1,70 @@
+# Appareil — le second étage des tests (C11, M7.5, ADR-013
+# décision 4) : les tests d'instrumentation vivant dans
+# demo/src/androidTest tournent sur l'appareil géré Gradle
+# (pixel2api34, image ATD) — les runners Ubuntu portent la
+# virtualisation matérielle que l'hôte de développement n'a pas.
+#
+# Nocturne, à chaque fusion de demande, et au déclenchement manuel :
+# les rapports partent en artefact — un travail sans test ne prouverait
+# rien, celui-ci porte les quatre bancs du document de vérification.
+name: appareil
+
+on:
+  schedule:
+    # Nocturne à 03:17 UTC — l'heure creuse du registre d'appareils.
+    - cron: "17 3 * * *"
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  device-tests:
+    name: Tests d'instrumentation (appareil géré ATD)
+    runs-on: ubuntu-latest
+    # Les fusions seules comptent : une demande refermée sans fusion
+    # n'a rien à vérifier ; nocturne et déclenchement manuel passent.
+    if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
+    timeout-minutes: 45
+    env:
+      CELERIS_FORBIDDEN_REFS: ${{ secrets.CELERIS_FORBIDDEN_REFS }}
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: JDK 21 (Temurin)
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Gradle (validation du wrapper incluse)
+        uses: gradle/actions/setup-gradle@7296c772c13d12d9871528814b51fb2143c138ef # v6.4.1
+        with:
+          validate-wrappers: true
+      - name: Accélération matérielle de l'émulateur
+        run: |
+          if [ ! -e /dev/kvm ]; then
+            echo "Le runner ne porte pas /dev/kvm : l'appareil géré ne tournerait pas" >&2
+            exit 1
+          fi
+      - name: Composants du SDK Android
+        run: |
+          if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ]; then
+            echo "SDK Android absent du runner : l'appareil géré n'y naîtrait pas" >&2
+            exit 1
+          fi
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" --install "platform-tools" > /dev/null
+      - name: Tests d'instrumentation (pincement, gouttière, coloration, popups)
+        run: ./gradlew :demo:pixel2api34DebugAndroidTest
+      - name: Rapports de l'appareil (artefact)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: device-tests-reports
+          path: |
+            demo/build/outputs/androidTest/
+            demo/build/reports/androidTest/
+          if-no-files-found: warn

@@ -37,6 +37,13 @@ robolectric = "4.15.1"
 # test. Littéral aligné sur robolectric.properties (sdk=35) et
 # Robolectric 4.15.1 — vérifié sur Maven Central le 2026-11-08.
 robolectricAndroidAll = "15-robolectric-12650502-i7"
+# Étage appareil des tests d'instrumentation (C11 — vérifiées sur
+# Google Maven le 2026-11-12) : le coureur d'AndroidX et le couplage
+# ext:junit portent JUnit 4 sur l'appareil géré ; UiAutomator pince,
+# tape et capture sur la vraie vitre.
+androidxTestRunner = "1.6.2"
+androidxTestExtJunit = "1.2.1"
+androidxTestUiAutomator = "2.3.0"
 # Publication (ADR-011 : SBOM)
 cyclonedx = "3.5.1"
 # Version de l'application de démonstration (non publiée) — toute
@@ -86,6 +93,12 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 # Jar android-all du SDK des tests (voir la note de robolectricAndroidAll
 # ci-dessus) : testImplementation, jamais dans les artefacts publiés.
 robolectric-android-all = { module = "org.robolectric:android-all-instrumented", version.ref = "robolectricAndroidAll" }
+# Étage appareil (C11) : le coureur et le couplage ext portent JUnit 4
+# sur l'appareil géré ; UiAutomator pince, tape et capture sur la vitre —
+# androidTestImplementation, jamais dans les artefacts publiés.
+android-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
+android-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestExtJunit" }
+android-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "androidxTestUiAutomator" }
 # Nullité en surface d'API (ADR-009) — annotations JSpecify
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 # Analyse statique javac (ADR-009 : Error Prone + NullAway)

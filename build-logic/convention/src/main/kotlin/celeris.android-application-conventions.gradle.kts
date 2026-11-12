@@ -72,15 +72,17 @@ extensions.configure(PmdExtension::class.java) {
 }
 
 // Sous AGP, les plugins de qualité ne matérialisent aucune tâche :
-// les portes se posent explicitement sur les sources — main et bancs
-// (ADR-019) — les mêmes plafonds que les modules purs, bloquants.
+// les portes se posent explicitement sur les sources — main, bancs et
+// bancs d'appareil (C11, ADR-019) — les mêmes plafonds que les modules
+// purs, bloquants.
 val sourcePrincipal = fileTree("src/main/java")
 val sourceBancs = fileTree("src/test/java")
+val sourceBancsAppareil = fileTree("src/androidTest/java")
 
 val checkstyleAndroid = tasks.register<Checkstyle>("checkstyleAndroid") {
     group = "verification"
-    description = "Vérifie le style de main et des bancs (plafonds 600/800, ADR-019)."
-    setSource(listOf(sourcePrincipal, sourceBancs))
+    description = "Vérifie le style de main, des bancs et des bancs d'appareil (plafonds 600/800, ADR-019)."
+    setSource(listOf(sourcePrincipal, sourceBancs, sourceBancsAppareil))
     classpath = files()
 }
 tasks.named("check") { dependsOn(checkstyleAndroid) }
