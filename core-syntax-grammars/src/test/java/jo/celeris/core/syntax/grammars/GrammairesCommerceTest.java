@@ -36,7 +36,8 @@ class GrammairesCommerceTest {
         {"shell", "0.98"}, {"c", "0.93"}, {"cpp", "0.70"},
         {"markdown", "0.92"}, {"html", "0.97"}, {"css", "0.95"},
         {"javascript", "0.88"}, {"typescript", "0.88"},
-        {"php", "0.95"}, {"ruby", "0.98"}};
+        {"php", "0.95"}, {"ruby", "0.98"},
+        {"go", "0.85"}, {"rust", "0.98"}};
 
     /**
      * Chaque grammaire du commerce charge SANS MODIFICATION et son

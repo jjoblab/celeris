@@ -5,6 +5,23 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [1.2.0] — en cours
+
+### Langages par paquets — Go et Rust, la longue traîne reprend (C5)
+- **Go et Rust vivent en paquets intégrés** : la longue traîne reprend — `langages/go` et `langages/rust` reprennent les grammaires du dépôt VS Code SANS MODIFICATION (main vérifié le 2026-11-12 ; go convertie du projet worlpaker/go-syntax, rust du projet dustypomerleau/rust-syntax, l’amont consigné au cgmanifest du dépôt vscode) ; `PaquetGoIntegreTest` et `PaquetRustIntegreTest` verrouillent l’égalité octet pour octet, les acceptations (go 85,3 % ≥ 85 %, rust 100 % ≥ 98 %) et le rejeu déterministe des échantillons ; le banc du commerce compte quinze grammaires, la matrice compte vingt-quatre langages intégrés. Le reste de la traîne (vingt-sept du dépôt de départ) dort sur le signal du propriétaire.
+
+### Publication distante — les douze artefacts paraissent (C1)
+- **La publication distante vit enfin** (2026-11-12) : les DOUZE artefacts
+  `jo.celeris:*` — les huit modules purs, les trois bibliothèques Android
+  en AAR, le nouveau `serveur-lsp-java` — paraissent au registre de
+  paquets de l’hébergeur (`maven.pkg.github.com/jjoblab/celeris`, ADR-011) ;
+  un projet vierge consomme `jo.celeris:core-text:1.1.0` (compile, exécute,
+  édite) et l’AAR `android-view` s’y vérifie : les sommes SHA-256 des
+  artefacts consommés depuis le registre correspondent octet pour octet
+  aux artefacts construits — la sortie est reproductible, la publication
+  est la preuve. Les tags `v1.0.0` et `v1.1.0` se posent (le premier sur
+  le commit de la 1.0.0, le second sur la clôture).
+
 ## [1.1.0] — 2026-11-12
 
 ### Mini serveur de langage Java — le compagnon de banc de l'éditeur
@@ -131,7 +148,7 @@ vivent dans les ADR et le registre de portage, pas ici.
 - **La famille web du commerce entière** : `css`, `javascript` et `typescript` rejoignent HTML — les grammaires TextMate des extensions de VS Code (MIT, main épinglé du 2026-11-08), reprises SANS MODIFICATION des copies épinglées du banc ; les bancs `PaquetCssIntegreTest`, `PaquetJavascriptIntegreTest` et `PaquetTypescriptIntegreTest` verrouillent l'égalité octet pour octet, les acceptations (css 96,6 % ≥ 95 %, javascript 90,3 % ≥ 88 %, typescript 90,2 % ≥ 88 %) et le rejeu déterministe des échantillons. Licences MIT au NOTICE, sommes SHA-256 épinglées au NOTICE et au registre de portage ; la matrice compte vingt-deux langages intégrés. Le chantier poursuit : Go, Rust… (mêmes dépôt et épingle que le banc).
 
 - **Le nom racine des grammaires devient facultatif** : le format TextMate l'autorise et la grammaire PHP des extensions de VS Code s'en passe — le chargeur tolère l'absence (la portée racine sert de repli affichable), le banc de conformité suit le nouveau contrat ; une grammaire réelle du commerce ne se réécrit plus pour charger.
-- **PHP et Ruby vivent en paquets intégrés** : la longue traîne annoncée commence — `langages/php` et `langages/ruby` reprendent les grammaires du dépôt VS Code SANS MODIFICATION (main épinglé du 2026-11-08, vérifié inchangé le 2026-11-10) ; `PaquetPhpIntegreTest` et `PaquetRubyIntegreTest` verrouillent l'égalité octet pour octet, les acceptations (php 96,4 % ≥ 95 %, ruby 98,9 % ≥ 98 %) et le rejeu déterministe des échantillons ; le banc du commerce compte treize grammaires. La suite de la longue traîne est différée (décision du propriétaire du 2026-11-10) : Go, Rust… attendront — le chantier reprendra sur son signal.
+- **PHP et Ruby vivent en paquets intégrés** : la longue traîne annoncée commence — `langages/php` et `langages/ruby` reprendent les grammaires du dépôt VS Code SANS MODIFICATION (main épinglé du 2026-11-08, vérifié inchangé le 2026-11-10) ; `PaquetPhpIntegreTest` et `PaquetRubyIntegreTest` verrouillent l'égalité octet pour octet, les acceptations (php 96,4 % ≥ 95 %, ruby 98,9 % ≥ 98 %) et le rejeu déterministe des échantillons ; le banc du commerce compte treize grammaires. Le signal du propriénaire arrive le 2026-11-12 — la traîne poursuit dessous.
 
 ### Deuxième vague — chantier C13 (parité Android Studio d'abord)
 
@@ -566,24 +583,24 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### La démonstration vit sans serveur embarqué
 
-- **Le repli de référence reprend la main** : plus aucune dépendance
+- **Le repli de référence reprend la main** : plus aucune dépendance
   tierce ne vit dans le dépôt — la déclaration de l'hôte se vide, le
   serveur de référence (M7.5, §8) répond pour tous les langages ouverts,
   NOTICE, REFERENCES, résumés, audits, recette et matrice ne consignent
-  plus qu'une dépendance tierce au runtime : la frontière protocolaire
+  plus qu'une dépendance tierce au runtime : la frontière protocolaire
   et ses sommes. La dernière règle d'exception du binaire retiré quitte
   `.gitignore`.
-- **L'histoire du dépôt se recoud** : les mentions du tiers retiré
+- **L'histoire du dépôt se recoud** : les mentions du tiers retiré
   s'effacent de toute la lignée des commits — l'identité, les
   coordonnées et les archives nommées ne s'y trouvent plus, le dépôt se
   relit sans eux de la première à la dernière ligne.
 
 ### Hygiène — la CI redevient verte
 
-- **Quatre imports post-réflow partent** (`android-widgets`) : la
+- **Quatre imports post-réflow partent** (`android-widgets`) : la
   découpe en sous-paquets avait laissé deux imports vers `Corps` —
   devenu interne au paquet `clike` — et deux imports `SyntaxIssue`
-  inemployés ; compilation, Checkstyle et bancs de vue repassent
+  inemployés ; compilation, Checkstyle et bancs de vue repassent
   (contrôles complets avec SDK, tests Robolectric).
 
 ## [1.0.0] — 2026-11-10

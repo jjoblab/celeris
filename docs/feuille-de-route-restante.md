@@ -18,9 +18,9 @@
 
 | # | Étape | Statut | Ce qui bloque |
 | --- | --- | --- | --- |
-| 1 | Publication distante des onze artefacts (C1) | Bloqué | secrets du registre (`REGISTRY_USER`/`REGISTRY_TOKEN`) |
-| 2 | Clôture de la 1.1.0 et tag `v1.1.0` | Prêt | décision du propriétaire sur la date |
-| 3 | Langages suivants : Go, Rust… (C5) | Dort | signal du propriétaire |
+| 1 | Publication distante des douze artefacts (C1) | Clos le 2026-11-12 | douze artefacts publiés (les onze + `serveur-lsp-java`) — projet vierge vérifié, sommes conformes |
+| 2 | Clôture de la 1.1.0 et tag `v1.1.0` | Clos le 2026-11-12 | — |
+| 3 | Langages suivants : Go, Rust… (C5) | Go et Rust livrés le 2026-11-12 | la suite de la traîne dort sur le signal |
 | 4 | Second étage appareil de vérification (C11) | Bloqué | appareil de référence ou émulateur |
 | 5 | Archivage du dépôt de départ (C14) | Bloqué | décision du propriétaire ; poussée hors de ce bac à sable |
 | 6 | Entretien continu (dependabot, montées de version) | Permanent | rien — veille hebdomadaire |
@@ -70,10 +70,12 @@ au NOTICE et au registre de portage, banc de conformité par langue.
 **Sortie** : par langue — paquet épinglé, licence consignée, échantillon
 rejoué avec déterminisme, ligne de matrice, banc de conformité étendu.
 
+**Avancement** : Go et Rust livrés le 2026-11-12 (signal du propriétaire — « continue avec les étapes suivantes » — paquets `langages/go` et `langages/rust`, grammaires du commerce épinglées, bancs `PaquetGoIntegreTest` et `PaquetRustIntegreTest`, lignes de matrice et registre consignées). Vingt-quatre langages intégrés désormais — la suite de la traîne (vingt-sept langages du dépôt de départ) dort sur le signal.
+
 **Blocage** : décision du propriétaire du 2026-11-10 — « on ajoutera
 d'autres langues après » : le chantier dort jusqu'à son signal.
 
-**Source** : audit § 9, recommandation 5 ; § 6, gap 4 ; vingt-deux
+**Source** : audit § 9, recommandation 5 ; § 6, gap 4 ; vingt-quatre
 langages intégrés à ce jour.
 
 ## 4 — Second étage appareil de vérification (C11)

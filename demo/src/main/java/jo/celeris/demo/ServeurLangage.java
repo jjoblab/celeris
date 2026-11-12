@@ -22,20 +22,6 @@ import jo.celeris.core.lsp.types.SurlignageLsp;
 import jo.celeris.core.lsp.types.SurvolLsp;
 import jo.celeris.core.lsp.types.SymboleLsp;
 
-import jo.celeris.core.lsp.types.DiagnosticLsp;
-
-
-
-
-import jo.celeris.core.lsp.types.ListeCompletion;
-
-
-
-
-
-
-
-
 
 import jo.celeris.core.text.Document;
 import jo.celeris.lsp.protocole.ServeurEmbarque;

@@ -1,0 +1,7 @@
+{
+  "id": "go",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "license": "MIT",
+  "provenance": "grammaire go.tmLanguage.json du dépôt microsoft/vscode (MIT, main vérifié le 2026-11-12, convertie du projet worlpaker/go-syntax — l'amont consigné au cgmanifest du dépôt vscode), reprise SANS MODIFICATION du banc du commerce (H-05) — chantier C5, la longue traîne ; somme SHA-256 épinglée au NOTICE et au registre de portage"
+}

@@ -19,11 +19,6 @@ import jo.celeris.core.lsp.types.PreparationRennomageLsp;
 import jo.celeris.core.lsp.types.SurlignageLsp;
 import jo.celeris.core.lsp.types.SymboleLsp;
 
-import jo.celeris.core.lsp.types.EditionDocumentLsp;
-
-
-
-
 
 
 

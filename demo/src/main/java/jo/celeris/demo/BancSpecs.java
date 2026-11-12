@@ -20,11 +20,6 @@ import jo.celeris.core.intelligence.SmartTyping;
 import jo.celeris.core.intelligence.TypingRules;
 
 
-
-import jo.celeris.core.lsp.types.EditionTexteLsp;
-import jo.celeris.core.lsp.types.OptionsFormatageLsp;
-import jo.celeris.core.lsp.types.PliLsp;
-import jo.celeris.core.lsp.types.SymboleLsp;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.structure.FoldSpan;
 import jo.celeris.core.syntax.structure.IndentationFolds;

@@ -1,0 +1,86 @@
+// Le banc d'échantillon Rust du commerce — une caisse outils.
+use std::collections::HashMap;
+use std::fmt;
+
+/// Une erreur repliable du corpus.
+#[derive(Debug, Clone)]
+pub enum ErreurCorpus {
+    Vide,
+    HorsBornes(usize),
+}
+
+impl fmt::Display for ErreurCorpus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ErreurCorpus::Vide => write!(f, "corpus vide"),
+            ErreurCorpus::HorsBornes(i) => write!(f, "index {} hors bornes", i),
+        }
+    }
+}
+
+/// Un corpus embarque des lignes repliables.
+pub struct Corpus<'a> {
+    nom: &'a str,
+    lignes: Vec<&'a str>,
+    cache: HashMap<usize, String>,
+}
+
+impl<'a> Corpus<'a> {
+    /// Construit un corpus nommé, trié.
+    pub fn nouveau(nom: &'a str, lignes: Vec<&'a str>) -> Self {
+        let mut trie = lignes.clone();
+        trie.sort_unstable();
+        Corpus { nom, lignes: trie, cache: HashMap::new() }
+    }
+
+    /// Retourne la ligne demandée.
+    pub fn ligne(&mut self, i: usize) -> Result<&str, ErreurCorpus> {
+        if i >= self.lignes.len() {
+            return Err(ErreurCorpus::HorsBornes(i));
+        }
+        Ok(self.lignes[i])
+    }
+
+    /// Replie les lignes par un filtre et un repli.
+    pub fn replier(&self, seuil: usize) -> impl Iterator<Item = &&str> + '_ {
+        self.lignes.iter().filter(|l| l.len() < seuil).take(3)
+    }
+}
+
+/// Une macro d'essai pour la grammaire.
+macro_rules! crier {
+    ($nom:expr) => {
+        println!("corpus {} ouvert", $nom);
+    };
+}
+
+/// Générique éprouve les durées de vie et les traits bornés.
+pub fn generique<T: Clone + Ord>(valeurs: &[T]) -> Vec<T> {
+    let mut uniq: Vec<T> = Vec::with_capacity(valeurs.len());
+    for v in valeurs {
+        if uniq.last() != Some(v) {
+            uniq.push(v.clone());
+        }
+    }
+    uniq
+}
+
+const TAILLE_MIN: usize = 0x10;
+static NOM_BRUT: &str = r#"une chaîne brute « écrue »"#;
+
+fn main() {
+    let mut corpus = Corpus::nouveau("essai", vec!["ligne", "échantillon", "corpus"]);
+    let premiere = 'é';
+    let flottant = 3.14159e-2f64;
+    let closure = |x: i32| x * 2;
+    crier!("essai");
+    if let Some(premiere) = corpus.lignes.first() {
+        println!("{} : {}", corpus.nom, premiere);
+    }
+    match corpus.ligne(0) {
+        Ok(l) => assert!(!l.is_empty()),
+        Err(e) => eprintln!("{}", e),
+    }
+    let comptes: Vec<(usize, &str)> = corpus.replier(8).enumerate().collect();
+    std::hint::black_box((closure(21), comptes, TAILLE_MIN, NOM_BRUT, premiere, flottant));
+}

@@ -1,7 +1,7 @@
 # USAGE — le guide d'intégration hôte
 
 > Guide d'intégration de **celeris** pour les applications hôtes Android.
-> Version 1.0.0 — chaque coordonnée d'artefact et chaque nom d'API cité
+> Version 1.1.0 — chaque coordonnée d'artefact et chaque nom d'API cité
 > ici est vérifié contre les manifestes `api/*.api` du dépôt (ADR-009) et
 > contre les sources publiques des modules Android. Ce qui manque encore
 > se lit honnêtement en § 18 ; la terminologie vit dans
@@ -63,33 +63,35 @@ le SBOM, jamais dans un identifiant.
 
 ## 2. Coordonnées et disponibilité
 
-Les coordonnées Maven, groupe `jo.celeris`, version `1.0.0` —
-l'artifactId porte le nom du module. **Onze artefacts sont publiés**,
+Les coordonnées Maven, groupe `jo.celeris`, version `1.1.0` —
+l'artifactId porte le nom du module. **Douze artefacts sont publiés**,
 chacun avec son jar (ou son AAR), ses sources, sa Javadoc, son SBOM
-CycloneDX et sa somme SHA-256 (§ 16) — les huit modules purs :
+CycloneDX et sa somme SHA-256 (§ 16) — les neuf modules purs :
 
-`jo.celeris:core-text:1.0.0` · `jo.celeris:core-syntax:1.0.0` ·
-`jo.celeris:core-syntax-grammars:1.0.0` · `jo.celeris:core-language:1.0.0` ·
-`jo.celeris:core-intelligence:1.0.0` · `jo.celeris:core-lsp:1.0.0` ·
-`jo.celeris:core-ai:1.0.0` · `jo.celeris:lsp-protocole:1.0.0`
+`jo.celeris:core-text:1.1.0` · `jo.celeris:core-syntax:1.1.0` ·
+`jo.celeris:core-syntax-grammars:1.1.0` · `jo.celeris:core-language:1.1.0` ·
+`jo.celeris:core-intelligence:1.1.0` · `jo.celeris:core-lsp:1.1.0` ·
+`jo.celeris:core-ai:1.1.0` · `jo.celeris:lsp-protocole:1.1.0` ·
+`jo.celeris:serveur-lsp-java:1.1.0`
 
 et, depuis le 2026-11-11 (décision du propriétaire), les trois
 bibliothèques Android en AAR :
 
-`jo.celeris:android-view:1.0.0` · `jo.celeris:android-widgets:1.0.0` ·
-`jo.celeris:android-host:1.0.0`
+`jo.celeris:android-view:1.1.0` · `jo.celeris:android-widgets:1.1.0` ·
+`jo.celeris:android-host:1.1.0`
 
 État vérifié au 2026-11-11 :
 
 - **Publication locale** : `./gradlew publishToMavenLocal
-  publicationChecksums` est vert — un projet vierge consomme les onze
+  publicationChecksums` est vert — un projet vierge consomme les douze
   artefacts depuis `mavenLocal()` dès aujourd'hui.
 - **Publication distante** : le registre de paquets de l'hébergeur
-  (`https://maven.pkg.github.com/jjoblab/celeris`) est configuré mais
-  **pas encore exécuté** — c'est le chantier C1 de la feuille de route
-  (bloqué sur les secrets du propriétaire). Le dépôt GitHub du projet
-  est le point de contact ; l'annonce de la publication distante s'y
-  lira le moment venu.
+  (`https://maven.pkg.github.com/jjoblab/celeris`) porte les douze
+  artefacts `1.1.0` depuis le 2026-11-12 (chantier C1 clos) — un projet
+  vierge consomme `core-text` (compile, exécute, édite), l'AAR
+  `android-view` s'y vérifie, les sommes SHA-256 correspondent.
+  Le dépôt GitHub du projet est le point de contact ; l'annonce de la
+  publication distante s'y lira le moment venu.
 - **Modules Android** (`android-view`, `android-widgets`, `android-host`) :
   publiés comme les modules purs depuis le 2026-11-11 — AAR de la
   variante release, sources, Javadoc, SBOM et sommes de contrôle ;
@@ -105,19 +107,19 @@ repositories {
 }
 
 dependencies {
-    implementation("jo.celeris:core-text:1.0.0")
-    implementation("jo.celeris:core-syntax:1.0.0")
-    implementation("jo.celeris:core-syntax-grammars:1.0.0")
-    implementation("jo.celeris:core-language:1.0.0")
-    implementation("jo.celeris:core-intelligence:1.0.0")
-    implementation("jo.celeris:core-lsp:1.0.0")
-    implementation("jo.celeris:core-ai:1.0.0")
+    implementation("jo.celeris:core-text:1.1.0")
+    implementation("jo.celeris:core-syntax:1.1.0")
+    implementation("jo.celeris:core-syntax-grammars:1.1.0")
+    implementation("jo.celeris:core-language:1.1.0")
+    implementation("jo.celeris:core-intelligence:1.1.0")
+    implementation("jo.celeris:core-lsp:1.1.0")
+    implementation("jo.celeris:core-ai:1.1.0")
     // uniquement si vous montez des serveurs de langage embarqués
-    implementation("jo.celeris:lsp-protocole:1.0.0")
+    implementation("jo.celeris:lsp-protocole:1.1.0")
     // surfaces Android (AAR, publiées depuis le 2026-11-11)
-    implementation("jo.celeris:android-view:1.0.0")
-    implementation("jo.celeris:android-widgets:1.0.0")
-    implementation("jo.celeris:android-host:1.0.0")
+    implementation("jo.celeris:android-view:1.1.0")
+    implementation("jo.celeris:android-widgets:1.1.0")
+    implementation("jo.celeris:android-host:1.1.0")
 }
 ```
 
@@ -178,7 +180,7 @@ dependencies {
 ```
 
 Ces modules référencent les artefacts du cœur par les mêmes
-coordonnées (`jo.celeris:*:1.0.0`) — votre `mavenLocal()` ou le dépôt
+coordonnées (`jo.celeris:*:1.1.0`) — votre `mavenLocal()` ou le dépôt
 distant les résout. La publication des modules Android comme artefacts
 est tranchée depuis le 2026-11-11 (décision du propriétaire, ADR-011) ;
 l'inclusion de source reste la voie de secours pour lire et adapter.
@@ -331,10 +333,11 @@ LanguageSupport langue = detection instanceof LanguageDetection.Resolved r
 editeur.setLanguage(langue);
 ```
 
-Les vingt-deux paquets intégrés à 1.0.0 : `c`, `cpp`, `css`, `groovy`,
-`html`, `java`, `javascript`, `json`, `kotlin`, `kts`, `markdown`,
-`php`, `proguard`, `properties`, `python`, `ruby`, `shell`, `sql`,
-`toml`, `typescript`, `xml`, `yaml`. Six langages P0 portent en plus un
+Les vingt-quatre paquets intégrés (vingt-deux à la 1.0.0, Go et Rust depuis la 1.2.0) : `c`,
+`cpp`, `css`, `go`, `groovy`, `html`, `java`, `javascript`, `json`,
+`kotlin`, `kts`, `markdown`, `php`, `proguard`, `properties`,
+`python`, `ruby`, `rust`, `shell`, `sql`, `toml`, `typescript`, `xml`,
+`yaml`. Six langages P0 portent en plus un
 **analyseur écrit** (`JavaSyntax`, `KotlinSyntax`, `KtsSyntax`,
 `GroovySyntax`, `XmlSyntax`, `JsonSyntax` de `core-syntax`) — arbre
 tolérant incrémental, plis, plan, crochets et indentation sur le même
@@ -646,8 +649,8 @@ renommage (refactorer). Le jar se construit par
   que vous consommez :
 
 ```bash
-sha256sum core-text-1.0.0.jar
-# à comparer au condensé de core-text-1.0.0.jar.sha256
+sha256sum core-text-1.1.0.jar
+# à comparer au condensé de core-text-1.1.0.jar.sha256
 ```
 
 - **SBOM** : chaque artefact embarque un SBOM CycloneDX — la
@@ -680,17 +683,8 @@ sha256sum core-text-1.0.0.jar
 État vérifié au 2026-11-11 (la liste tenue à jour vit dans
 [`docs/feuille-de-route-restante.md`](docs/feuille-de-route-restante.md)) :
 
-- **Publication distante** (C1, bloqué) : les onze artefacts ne vivent
-  aujourd'hui qu'en `mavenLocal` ; le registre de l'hébergeur attend
-  les secrets du propriétaire.
-- **Langages** (C5, en cours) : restent Go, Rust et la longue traîne
-  au-delà des vingt-deux paquets livrés — la voie de paquets (§ 7)
-  est ouverte pour les vôtres.
-- **Archivage du dépôt de départ** (C14, bloqué) : la bannière de
-  migration et l'archivage attendent la décision du propriétaire.
-- **Second étage appareil de vérification** (C11, bloqué) : les
-  budgets de § 13 restent à calibrer sur l'appareil de référence — le
-  banc JVM ne remplace pas la vitre.
+- **Publication distante** (C1, clos le 2026-11-12) : les douze artefacts vivent
+  au registre de l'hébergeur — le chantier de la 1.2.0 le consigne.
 
 ## 19. Pièges d'intégration
 

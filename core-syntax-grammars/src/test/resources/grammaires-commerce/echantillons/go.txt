@@ -1,0 +1,82 @@
+// Package outils : le banc d'échantillon Go du commerce.
+package outils
+
+import (
+	"errors"
+	"fmt"
+	"sort"
+)
+
+// ErreurVide se retourne quand le corpus est absent.
+var ErreurVide = errors.New("corpus vide")
+
+// Corpus embarque des lignes repliables.
+type Corpus struct {
+	nom    string
+	lignes []string
+	cache  map[int]string
+}
+
+// NouveauCorpus construit un corpus nommé.
+func NouveauCorpus(nom string, lignes ...string) *Corpus {
+	c := &Corpus{nom: nom, lignes: lignes, cache: make(map[int]string)}
+	sort.Strings(c.lignes)
+	return c
+}
+
+// Ligne retourne la ligne demandée ; le repli sert de défaut.
+func (c *Corpus) Ligne(i int) (string, error) {
+	if i < 0 || i >= len(c.lignes) {
+		return "", fmt.Errorf("index %d hors bornes (%d lignes)", i, len(c.lignes))
+	}
+	if v, ok := c.cache[i]; ok {
+		return v, nil
+	}
+	v := c.lignes[i]
+	c.cache[i] = v
+	return v, nil
+}
+
+// Replier collecte les lignes par un canal, une goroutine, un defer.
+func (c *Corpus) Replier(seuil int) ([]string, error) {
+	if len(c.lignes) == 0 {
+		return nil, ErreurVide
+	}
+	sortie := make(chan string, seuil)
+	retenu := make([]string, 0, len(c.lignes))
+	go func() {
+		defer close(sortie)
+		for _, ligne := range c.lignes {
+			sortie <- ligne
+		}
+	}()
+	for ligne := range sortie {
+		retenu = append(retenu, ligne)
+	}
+	// un commentaire de bloc /* au passage */
+	_ = `une chaîne brute « échappée » \n sans effet`
+	return retenu, nil
+}
+
+// Generique éprouve les paramètres de type nouveaux.
+func Generique[T comparable](valeurs []T) []T {
+	uniq := make([]T, 0, len(valeurs))
+	vus := map[T]struct{}{}
+	for _, v := range valeurs {
+		if _, ok := vus[v]; !ok {
+			vus[v] = struct{}{}
+			uniq = append(uniq, v)
+		}
+	}
+	return uniq
+}
+
+const (
+	tailleMin = 1 << 4
+	tailleMax = 0o777
+)
+
+// Rune et numérique : les littéraux du langage.
+var runeSeule = 'é'
+var hexa = 0xDE_AD_BEEF
+var flottant = 3.14159e-2

@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import jo.celeris.core.language.packs.Packs;
 
 /**
  * Le paquet jouet de l'utilisateur (H-04, M9) : un langage ENTIER — le

@@ -16,7 +16,7 @@ Android, l'application de démonstration et un exécutable en ligne de commande.
 **1.0.0 livrée le 2026-11-10 (publication locale) ; 1.1.0 en chantier.**
 Les jalons M0 à M9 sont bouclés : moteur de texte, vue Canvas, syntaxe,
 édition assistée, sémantique, Android et SPI, IA native, plateforme de
-vingt-deux langages (grammaires réellement TextMate, LSP derrière la
+vingt-quatre langages (grammaires réellement TextMate, LSP derrière la
 frontière protocolaire), durcissement. Les chantiers post-1.0 suivent :
 dix clos (C2, C3, C4, C6, C7, C8, C9, C10, C12, C13), un dort sur le
 signal du propriétaire (C5 — langages suivants), trois attendent un moyen
