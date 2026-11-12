@@ -46,6 +46,9 @@ public final class ScrollFrame {
         // et le texte : ils alignent, ils ne lisent pas.
         pipeline.addLayer(new IndentGuides(pinceaux));
         pipeline.addLayer(new SelectionPainter(pinceaux));
+        // Les accolades appariées (D-14) : leurs rectangles se tracent
+        // sur la bande de sélection, SOUS le texte — le glyphe prime.
+        pipeline.addLayer(new AccoladesMiroir(pinceaux));
         pipeline.addLayer(new ComposingPainter(pinceaux, composition));
         pipeline.addLayer(new TextPainter(pinceaux, cache, source));
         pipeline.addLayer(fantome);
