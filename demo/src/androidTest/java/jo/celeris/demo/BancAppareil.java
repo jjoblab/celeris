@@ -106,6 +106,19 @@ final class BancAppareil {
     }
 
     /**
+     * Les bornes de l'éditeur, en coordonnées de vue — la géométrie
+     * du geste s'y cale.
+     */
+    static Rect bornesEditeur(ActivityScenario<EditorActivity> scenario) {
+        Rect[] bornes = new Rect[1];
+        scenario.onActivity(ecran -> {
+            EditorView vue = editeur(ecran);
+            bornes[0] = new Rect(0, 0, vue.getWidth(), vue.getHeight());
+        });
+        return Objects.requireNonNull(bornes[0]);
+    }
+
+    /**
      * Pose la retenue d'analyse — le crochet de débogage du banc : la
      * publication attend le calme du doigt, les captures prennent la
      * frappe AVANT l'analyse.
