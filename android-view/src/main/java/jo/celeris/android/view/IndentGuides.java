@@ -1,113 +1,124 @@
 package jo.celeris.android.view;
 
-import jo.celeris.core.text.Document;
-
 /**
- * Couche de chrome des guides d'indentation (chantier C13, A-17) : les
- * traits verticaux qui alignent les niveaux — un guide par cran
- * d'indentation ({@value #UNIT} colonnes), tracé à mi-chemin entre les
- * colonnes de bord, de la première à la dernière rangée de chaque
- * niveau. Les rangées contiguës d'un même niveau se joignent
- * visuellement en une ligne continue.
+ * Couche de chrome des guides d'indentation (A-17 relue, H-09 — la
+ * structure sert le trait) : les lignes verticales qui alignent les
+ * BLOCS du document — un guide par accolade appariée (ou par région
+ * d'indentation pour les langages à décalage), tracé à la colonne de
+ * la ligne qui ouvre le bloc, DEVANT son premier caractère, de la
+ * ligne APRÈS l'accolade ouvrante à la ligne AVANT la fermante — les
+ * lignes vides du corps se joignent au trait, un seul segment continu
+ * par bloc. Jamais un trait par cran de blancs : le guide suit la
+ * structure, une accolade dans une chaîne n'ouvre rien.
  *
- * <p>PIEGE-04 : le niveau se lit PAR RANGÉE — la projection décide de
- * la ligne (un pli replié couvre ses lignes, le guide traverse le pli
- * au niveau le plus faible de son bouquet) ; PIEGE-15 : aucune
- * allocation dans la boucle — le niveau se mesure en colonnes de
- * blancs de tête, en primitives.</p>
+ * <p>La table vit dans le pont de syntaxe — elle porte SA révision,
+ * le trait ne se tire que collé à l'instantané affiché : jamais la
+ * structure d'une autre révision ne s'aligne sur les rangées courantes
+ * (PIEGE-20). La projection règle les rangées à l'image (PIEGE-04) :
+ * un guide traverse le pli replié, un bloc entier sous un pli ne se
+ * trace pas ; une ouvrante coupée par le retour à la ligne descend le
+ * départ du trait sous la rangée qui porte le crochet. Aucune
+ * allocation dans la boucle (PIEGE-15) : la table se lit à
+ * l'indice.</p>
  */
 public final class IndentGuides extends PainterLayer {
 
-    /** Le cran d'un niveau d'indentation, en colonnes. */
-    public static final int UNIT = 4;
+    /** La source des guides structurels courants, consultée à chaque image. */
+    @FunctionalInterface
+    public interface GuidesSource {
 
-    /** L'alpha du guide — une ombre discrète de l'encre de base. */
-    private static final int ALPHA = 0x1A;
+        /**
+         * La table des guides de l'image à venir.
+         *
+         * @return la table, {@link GuidesStructurels#VIDE} sans
+         *         structure à jour
+         */
+        GuidesStructurels guides();
+    }
+
+    /**
+     * L'alpha du guide — une ombre de structure : lisible sans lire,
+     * l'encre du texte reste seule à parler.
+     */
+    private static final int ALPHA = 0x2B;
+
+    /** La source des guides courants. */
+    private final GuidesSource source;
 
     /**
      * Construit la couche des guides.
      *
      * @param brushes la fabrique de pinceaux (la couche prend le sien)
+     * @param source  la source des guides structurels courants
      */
-    public IndentGuides(BrushFactory brushes) {
+    public IndentGuides(BrushFactory brushes, GuidesSource source) {
         super(brushes);
+        this.source = source;
     }
 
     @Override
     protected int baseColor(FrameState frame) {
-        // l'ombre discrète de l'encre de base : le guide aligne, il
-        // ne lit pas — la transparence vit dans le canal alpha
+        // l'ombre de structure de l'encre de base : le guide aligne,
+        // il ne lit pas — la transparence vit dans le canal alpha
         return (frame.theme().baseTextColor() & 0x00FFFFFF) | (ALPHA << 24);
     }
 
     @Override
     protected void onPaint(DrawSurface surface, FrameState frame) {
-        Document document = frame.document();
+        GuidesStructurels table = source.guides();
+        if (table.revision() != frame.document().revision()) {
+            return;
+        }
         EditorMetrics metrics = frame.metrics();
         VisualProjection projection = frame.projection();
-        int premiere = frame.firstRow();
-        int derniere = premiere + frame.visibleRows();
-        for (int rangee = premiere; rangee < derniere
-                && rangee < projection.rowCount(); rangee++) {
-            peindreRangee(surface, frame, metrics, projection, document,
-                    rangee);
-        }
-    }
-
-    /**
-     * Peint les guides d'une rangée : un trait par niveau de son
-     * indentation, de son bord haut à son bord bas.
-     */
-    private void peindreRangee(DrawSurface surface, FrameState frame,
-            EditorMetrics metrics, VisualProjection projection,
-            Document document, int rangee) {
-        int niveaux = niveauDe(projection, document, rangee);
-        float haut = metrics.rowTop(rangee) - frame.scrollY();
-        float bas = haut + metrics.lineHeight();
-        for (int niveau = 1; niveau <= niveaux; niveau++) {
-            float x = frame.gutterWidth()
-                    + (niveau * UNIT - 0.5f) * metrics.charWidth()
-                    - frame.scrollX();
-            surface.drawLine(x, haut, x, bas, brush());
-        }
-    }
-
-    /**
-     * Le niveau d'indentation d'une rangée : le plus faible blanc de
-     * tête des lignes de son bouquet (un pli replié compte toutes ses
-     * lignes — le guide traverse le pli), en crans de
-     * {@value #UNIT} colonnes.
-     */
-    private static int niveauDe(VisualProjection projection, Document document,
-            int rangee) {
-        int premiere = projection.firstLineOfRow(rangee);
-        int derniere = projection.lastLineOfRow(rangee);
-        int plusFaible = Integer.MAX_VALUE;
-        for (int ligne = premiere; ligne <= derniere
-                && ligne < document.lineCount(); ligne++) {
-            plusFaible = Math.min(plusFaible, blancsDeTete(document, ligne));
-        }
-        if (plusFaible == Integer.MAX_VALUE || plusFaible < UNIT) {
-            return 0;
-        }
-        return plusFaible / UNIT;
-    }
-
-    /** Les colonnes de blancs de tête d'une ligne, en primitives. */
-    private static int blancsDeTete(Document document, int ligne) {
-        int debut = document.lineStart(ligne);
-        int fin = document.lineEnd(ligne);
-        int colonnes = 0;
-        for (int i = debut; i < fin; i++) {
-            char c = document.charAt(i);
-            if (c == ' ') {
-                colonnes++;
-            } else if (c == '\t') {
-                colonnes += UNIT - colonnes % UNIT;
-            } else {
+        int colonnes = projection.columns();
+        int premiereLigne = projection.firstLineOfRow(frame.firstRow());
+        int derniereLigne = projection.lastLineOfRow(
+                frame.firstRow() + frame.visibleRows() - 1);
+        float hautFenetre = metrics.rowTop(frame.firstRow()) - frame.scrollY();
+        float basFenetre = metrics.rowTop(frame.firstRow() + frame.visibleRows())
+                - frame.scrollY();
+        brush().setStrokeWidth(Math.max(1f, metrics.charWidth() * 0.06f));
+        for (int i = 0; i < table.nombre(); i++) {
+            GuidesStructurels.Guide guide = table.guide(i);
+            if (guide.ligneOuverture() > derniereLigne) {
                 break;
             }
+            if (guide.ligneApresFin() > premiereLigne) {
+                tracerGuide(surface, frame, metrics, projection, colonnes,
+                        guide, hautFenetre, basFenetre);
+            }
         }
-        return colonnes;
+    }
+
+    /**
+     * Trace le guide d'un bloc : un seul segment vertical, du bas de
+     * la rangée qui porte l'ouvrante au haut de la rangée qui porte
+     * la fermante — rogné aux bords de la fenêtre quand le bloc
+     * déborde, muet quand rien ne reste à couvrir.
+     */
+    private void tracerGuide(DrawSurface surface, FrameState frame,
+            EditorMetrics metrics, VisualProjection projection, int colonnes,
+            GuidesStructurels.Guide guide, float hautFenetre, float basFenetre) {
+        int rangneeOuvrante = projection.rowOfLine(guide.ligneOuverture());
+        int rangneeFermante = projection.rowOfLine(guide.ligneApresFin());
+        if (colonnes > 0) {
+            rangneeOuvrante += guide.colonneOuvrante() / colonnes;
+            rangneeFermante += guide.colonneFermante() / colonnes;
+        }
+        if (rangneeFermante <= rangneeOuvrante) {
+            return;
+        }
+        float haut = metrics.rowTop(rangneeOuvrante) + metrics.lineHeight()
+                - frame.scrollY();
+        float bas = metrics.rowTop(rangneeFermante) - frame.scrollY();
+        haut = Math.max(haut, hautFenetre);
+        bas = Math.min(bas, basFenetre);
+        if (bas <= haut) {
+            return;
+        }
+        float x = frame.gutterWidth()
+                + guide.colonne() * metrics.charWidth() - frame.scrollX();
+        surface.drawLine(x, haut, x, bas, brush());
     }
 }

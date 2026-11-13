@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
  * hors-bloc ne se montre jamais ; les textes identiques ne se
  * prévisent pas, l'aperçu n'engage à rien.
  */
-class ApercuCorrectifTest {
+class PatchPreviewTest {
 
     private static final String AVANT = """
             un

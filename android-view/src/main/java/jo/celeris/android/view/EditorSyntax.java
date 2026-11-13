@@ -83,6 +83,11 @@ public final class EditorSyntax {
     private final EditListener ecouteurPlis = this::surEdition;
     private final @Nullable Executor executeur;
     private final List<EditionEnAttente> editionsEnAttente = new ArrayList<>();
+    /** La table des guides verticaux structurels (H-09, A-17 relue),
+     *  remappée à l'édition, redérivée à la publication — VIDE sans
+     *  analyse à jour. Visible du paquet : la couche des guides y lit
+     *  la table courante, collée à la révision (PIEGE-20). */
+    GuidesStructurels guides = GuidesStructurels.VIDE;
 
     private @Nullable TextSession session;
     private @Nullable LanguageSupport langue;
@@ -141,6 +146,7 @@ public final class EditorSyntax {
         documentSuivi = session.document();
         editionsEnAttente.clear();
         chaineRompue = false;
+        guides = GuidesStructurels.VIDE;
         rattacher();
         suiviPlis.clear();
         pousserPlan(List.of());
@@ -160,6 +166,7 @@ public final class EditorSyntax {
         syntaxeDuLangage = nouvelleLangue == null ? null : nouvelleLangue.syntax();
         editionsEnAttente.clear();
         chaineRompue = false;
+        guides = GuidesStructurels.VIDE;
         rattacher();
         revisionAnalysee = -1L;
         if (langue == null) {
@@ -300,6 +307,7 @@ public final class EditorSyntax {
                     LanguageStructure.plis(langue, document, analyse));
             marques = GutterMarks.of(regionsPliables, plis,
                     lignesEnErreur(document, analyse));
+            guides = GuidesStructurels.de(langue, document, analyse);
             pousserPlan(LanguageStructure.plan(langue, document, analyse,
                     regionsPliables));
         }
@@ -510,6 +518,8 @@ public final class EditorSyntax {
             Document apres = session.document();
             suiviPlis.surEdition(avant, start, end, removed, inserted);
             documentSuivi = apres;
+            guides = guides.remapper(apres.revision(), avant, start, end,
+                    removed, inserted);
             enregistrerEdition(avant, apres, start, end, removed, inserted);
         }
     }

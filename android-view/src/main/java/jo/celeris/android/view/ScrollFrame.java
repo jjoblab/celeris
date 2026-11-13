@@ -30,6 +30,7 @@ public final class ScrollFrame {
      *
      * @param gouttiere   le peintre de gouttière
      * @param pinceaux    la fabrique de pinceaux de la vue
+     * @param guides      la source des guides structurels courants
      * @param composition l'état de composition de la vue
      * @param cache       le cache de rangées de la vue
      * @param source      la source de rangées liée de la vue
@@ -37,14 +38,14 @@ public final class ScrollFrame {
      * @return le pipeline assemblé
      */
     public static ScrollFrame assemble(GutterPainter gouttiere,
-            BrushFactory pinceaux, CompositionState composition,
-            RowLayoutCache cache, RebindingRowSource source,
-            PainterLayer fantome) {
+            BrushFactory pinceaux, IndentGuides.GuidesSource guides,
+            CompositionState composition, RowLayoutCache cache,
+            RebindingRowSource source, PainterLayer fantome) {
         ScrollFrame pipeline = new ScrollFrame();
         pipeline.addLayer(gouttiere);
         // Les guides d'indentation (A-17) se tracent SOUS la sélection
         // et le texte : ils alignent, ils ne lisent pas.
-        pipeline.addLayer(new IndentGuides(pinceaux));
+        pipeline.addLayer(new IndentGuides(pinceaux, guides));
         pipeline.addLayer(new SelectionPainter(pinceaux));
         // Les accolades appariées (D-14) : leurs rectangles se tracent
         // sur la bande de sélection, SOUS le texte — le glyphe prime.
