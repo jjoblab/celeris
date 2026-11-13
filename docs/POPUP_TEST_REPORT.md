@@ -3,7 +3,7 @@
 > La phase 8 de la mission — « tests et validation » — se rapporte ici :
 > les bancs du chantier, la non-régression, le journal des échecs
 > tranchés, le verdict de la passe de référence. État vérifié au
-> 2026-11-13 — la passe se rafraîchit à CHAQUE LIVRAISON (2 420 tests : la passe des six surfaces du signal du 2026-11-13 — type, hiérarchie, notification, valeurs de débogage, aller à, documentation externe et import local). Le mandat est formel : ne pas masquer un échec, ne pas
+> 2026-11-13 — la passe se rafraîchit à CHAQUE LIVRAISON (2 442 tests : le feu vert du soir du 2026-11-13 a livré les cinq dernières — génération et entourage, sûreté, masquage d'inspection, détails d'exception). Le mandat est formel : ne pas masquer un échec, ne pas
 > désactiver un banc pour verdir — les quatre échecs rencontrés en route
 > se tranchent ci-dessous, banc après banc, au verdict près.
 
