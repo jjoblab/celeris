@@ -91,13 +91,15 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.SELECTION_BAR);
         controleur.open(PopupController.PopupKind.SELECTION_OVERFLOW);
         controleur.open(PopupController.PopupKind.COLOR_PICKER);
+        controleur.open(PopupController.PopupKind.TYPE_INFO);
         controleur.open(PopupController.PopupKind.COMPLETION_LIST);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.HOVER,
                         PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
                         PopupController.PopupKind.SELECTION_BAR,
                         PopupController.PopupKind.SELECTION_OVERFLOW,
-                        PopupController.PopupKind.COLOR_PICKER),
+                        PopupController.PopupKind.COLOR_PICKER,
+                        PopupController.PopupKind.TYPE_INFO),
                 controleur.onKeystroke());
         assertEquals(java.util.EnumSet.noneOf(PopupController.PopupKind.class),
                 controleur.onKeystroke(), "la fermeture est idempotente");
@@ -111,11 +113,13 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.HOVER);
         controleur.open(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
         controleur.open(PopupController.PopupKind.COLOR_PICKER);
+        controleur.open(PopupController.PopupKind.TYPE_INFO);
         controleur.open(PopupController.PopupKind.MINIMAP);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.HOVER,
                         PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
-                        PopupController.PopupKind.COLOR_PICKER),
+                        PopupController.PopupKind.COLOR_PICKER,
+                        PopupController.PopupKind.TYPE_INFO),
                 controleur.onScroll());
         assertTrue(controleur.isOpen(PopupController.PopupKind.MINIMAP),
                 "l'ornement ne cède pas au défilement");
@@ -300,5 +304,36 @@ class PopupControllerTest {
                 "la carte d'actions cède au geste extérieur");
         assertTrue(controleur.isOpen(PopupController.PopupKind.MINIMAP),
                 "le chrome survit aux trois régimes");
+    }
+
+    /** L'info de type (catégorie A de l'inventaire — le fil rouge du
+     *  guide du développeur, la seconde surface réveillée) vit les
+     *  régimes du survol : elle décrit, elle ne choisit pas — la
+     *  frappe et le défilement la referment (la saisie remplace son
+     *  objet, son ancre vit au curseur), le tap hors cartes aussi —
+     *  elle cohabite avec tout (aucune exclusion : une bulle qui
+     *  décrit ne chasse personne). */
+    @Test
+    void typeInfoVitLesRegimesDuSurvol() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.open(PopupController.PopupKind.TYPE_INFO),
+                "l'info de type ouvre sur la complétion ouverte");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la bulle qui décrit ne chasse pas la saisie");
+        controleur.onKeystroke();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.TYPE_INFO),
+                "la saisie remplace l'objet décrit");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion filtre, elle reste");
+        controleur.open(PopupController.PopupKind.TYPE_INFO);
+        controleur.onScroll();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.TYPE_INFO),
+                "l'ancre vit au curseur, le défilement la chasse");
+        controleur.open(PopupController.PopupKind.TYPE_INFO);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.TYPE_INFO),
+                controleur.surToucheHorsCartes(),
+                "la bulle cède au geste extérieur");
     }
 }

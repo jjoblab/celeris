@@ -10,6 +10,7 @@
     <item name="action_intentions" type="id" />
     <item name="action_survol" type="id" />
     <item name="action_usages" type="id" />
+    <item name="action_type_info" type="id" />
     <item name="action_lint" type="id" />
     <item name="action_corriger" type="id" />
     <item name="action_gabarit" type="id" />

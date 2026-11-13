@@ -71,6 +71,9 @@ final class AtelierPopups {
     /** L'atelier des usages — la carte des références du symbole au
      *  curseur (le signal du propriétaire du 2026-11-13). */
     private final AtelierUsages atelierUsages;
+    /** L'atelier d'info de type — la carte du type du symbole au
+     *  curseur (catégorie A, le fil rouge du guide du développeur). */
+    private final AtelierTypeInfo atelierTypeInfo;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -142,8 +145,8 @@ final class AtelierPopups {
                 couche.getContext().getString(R.string.menu_plus));
         atelierCouleur = new AtelierCouleur(editeur, session, popups,
                 margePx, palette);
-        atelierUsages = new AtelierUsages(editeur, session, popups,
-                margePx, palette);
+        atelierUsages = new AtelierUsages(editeur, session, popups, margePx, palette);
+        atelierTypeInfo = new AtelierTypeInfo(editeur, session, popups, margePx, palette);
         docAncre = new DocAncre(couche.getContext(), popups, editeur,
                 session, margePx, palette);
         bordDroit = new AtelierBordDroit(popups, editeur, session, margePx,
@@ -183,6 +186,7 @@ final class AtelierPopups {
         barreSelection.setPalette(palette);
         atelierCouleur.surPalette(palette);
         atelierUsages.surPalette(palette);
+        atelierTypeInfo.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -247,6 +251,13 @@ final class AtelierPopups {
      *  propriétaire du 2026-11-13, la première surface réveillée). */
     void ouvrirUsages() {
         atelierUsages.ouvrir();
+    }
+
+    /** Ouvre la carte d'info de type du symbole au curseur — le type
+     *  lu à la déclaration par le coach local (catégorie A, le fil
+     *  rouge du guide du développeur, la seconde surface réveillée). */
+    void ouvrirTypeInfo() {
+        atelierTypeInfo.ouvrir();
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */

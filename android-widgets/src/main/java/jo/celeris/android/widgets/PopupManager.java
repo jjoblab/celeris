@@ -63,7 +63,8 @@ public final class PopupManager {
             PopupController.PopupKind.TOOLBAR_OVERFLOW,
             PopupController.PopupKind.SELECTION_OVERFLOW,
             PopupController.PopupKind.SELECTION_BAR,
-            PopupController.PopupKind.REFERENCES};
+            PopupController.PopupKind.REFERENCES,
+            PopupController.PopupKind.TYPE_INFO};
 
     /** Ce que l'échappement referme quand aucune carte interactive ne
      *  tient — les bulles qui suivent le contexte, pas le chrome. */
@@ -71,7 +72,8 @@ public final class PopupManager {
             PopupController.PopupKind.SIGNATURE_HELP,
             PopupController.PopupKind.HOVER,
             PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
-            PopupController.PopupKind.COLOR_PICKER};
+            PopupController.PopupKind.COLOR_PICKER,
+            PopupController.PopupKind.TYPE_INFO};
 
     private final PopupController controleur;
     private final PopupLayer couche;

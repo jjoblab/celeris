@@ -14,8 +14,8 @@ import java.util.Set;
  * ferment à la frappe et au défilement ; la complétion FILTRE
  * localement à la frappe — elle reste ouverte, la requête ne repart
  * pas ; la barre de recherche ne se ferme que sur demande. Les genres
- * (M7.5, reprise — dix-sept depuis le signal du propriétaire du
- * 2026-11-13 : la carte des usages, la première surface réveillée) : la
+ * (M7.5, reprise — dix-huit depuis la seconde surface réveillée : la
+ * carte d'info de type, fil rouge du guide du développeur) : la
  * documentation de complétion n'existe pas sans sa liste — fermer la
  * liste ferme la documentation ; la barre de sélection cède à la frappe
  * (la frappe remplace la sélection) mais survit au défilement, et son
@@ -110,7 +110,15 @@ public final class PopupController {
          *  symbole, la saisie remplace son objet), le défilement la
          *  ferme (son ancre vit au curseur), le tap hors cartes la
          *  referme — le choix d'une occurrence saute et la referme. */
-        REFERENCES
+        REFERENCES,
+
+        /** L'info de type — le nom du type du symbole au curseur
+         *  (catégorie A de l'inventaire, le fil rouge du guide du
+         *  développeur) : elle vit les régimes du survol — fermée à
+         *  la frappe et au défilement, refermée au tap hors cartes
+         *  (elle décrit, elle ne choisit pas) ; elle cohabite avec
+         *  tout : une bulle qui décrit ne chasse personne. */
+        TYPE_INFO
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -252,7 +260,7 @@ public final class PopupController {
         return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.SELECTION_BAR, PopupKind.SELECTION_OVERFLOW,
                 PopupKind.COLOR_PICKER, PopupKind.TOOLBAR_OVERFLOW,
-                PopupKind.REFERENCES);
+                PopupKind.REFERENCES, PopupKind.TYPE_INFO);
     }
 
     /**
@@ -265,7 +273,8 @@ public final class PopupController {
      */
     public Set<PopupKind> onScroll() {
         return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
-                PopupKind.COLOR_PICKER, PopupKind.REFERENCES);
+                PopupKind.COLOR_PICKER, PopupKind.REFERENCES,
+                PopupKind.TYPE_INFO);
     }
 
     /**
@@ -283,7 +292,7 @@ public final class PopupController {
         return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.COLOR_PICKER, PopupKind.INTENTIONS_MENU,
                 PopupKind.SELECTION_OVERFLOW, PopupKind.TOOLBAR_OVERFLOW,
-                PopupKind.REFERENCES);
+                PopupKind.REFERENCES, PopupKind.TYPE_INFO);
     }
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se
