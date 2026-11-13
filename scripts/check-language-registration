@@ -39,6 +39,9 @@ EXEMPTIONS = {
     "core-syntax/src/main/java/jo/celeris/core/syntax/clike/GroovySyntax.java",
     "core-syntax/src/main/java/jo/celeris/core/syntax/xml/XmlSyntax.java",
     "core-syntax/src/main/java/jo/celeris/core/syntax/json/JsonSyntax.java",
+    # la source du niveau 2 (ADR-020) : le SPI natif déclare
+    # l'identifiant du langage qu'il analyse, comme les analyseurs écrits
+    "core-syntax/src/main/java/jo/celeris/core/syntax/SyntaxeNatif.java",
     # l'attache des analyseurs écrits à la plateforme
     "core-language/src/main/java/jo/celeris/core/language/WrittenLanguages.java",
     # la constante du protocole LSP (MarkupKind.markdown) — un genre de

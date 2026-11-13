@@ -8,6 +8,8 @@ import jo.celeris.core.intelligence.WordCompletion;
 import jo.celeris.core.language.Completion;
 import jo.celeris.core.language.LanguageDetection;
 import jo.celeris.core.language.LanguagePlatform;
+import jo.celeris.core.language.packs.TreeSitterLanguages;
+import jo.celeris.core.syntax.SyntaxeNatif;
 import jo.celeris.core.language.LanguageRegistry;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.language.packs.Packs;
@@ -106,6 +108,7 @@ public final class LangagesDemo {
     /** L'assemblement : paquets intégrés, paquets de l'utilisateur,
      *  serveurs déclarés, complétion générique de repli. */
     private static LanguageRegistry assembler() {
+        enregistrerNiveau2();
         LanguagePlatform plateforme = LanguagePlatform.with(
                 PackGrammars.INSTANCE)
                 .builtinPacks()
@@ -116,6 +119,27 @@ public final class LangagesDemo {
             plateforme.addPackSource(Packs.folder(paquets));
         }
         return plateforme.build();
+    }
+
+    /**
+     * La case déclarée du niveau 2 (ADR-020) : les sources natives se
+     *  déclarent quand la bibliothèque partagée vit — les paquets json,
+     *  python et javascript y servent leur préférence, leur repli sert
+     *  sinon (la bibliothèque absente ne change RIEN au consommateur).
+     */
+    private static void enregistrerNiveau2() {
+        SyntaxeNatif json = SyntaxeNatif.json();
+        if (json != null) {
+            TreeSitterLanguages.enregistrer(json.id(), json);
+        }
+        SyntaxeNatif python = SyntaxeNatif.python();
+        if (python != null) {
+            TreeSitterLanguages.enregistrer(python.id(), python);
+        }
+        SyntaxeNatif javascript = SyntaxeNatif.javascript();
+        if (javascript != null) {
+            TreeSitterLanguages.enregistrer(javascript.id(), javascript);
+        }
     }
 
     /**

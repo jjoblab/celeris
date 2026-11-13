@@ -10,7 +10,8 @@
   "badge": "Js",
   "badgeColor": "#F0DB4F",
   "syntax": {
-    "preferred": "grammar"
+    "preferred": "tree-sitter",
+    "fallback": "grammar"
   },
   "firstLine": "^#!.*\\bnode\\b",
   "comments": {

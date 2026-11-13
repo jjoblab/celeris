@@ -16,3 +16,16 @@ dependencies {
 tasks.withType<Test>().configureEach {
     maxHeapSize = "1g"
 }
+
+// Niveau 2 (ADR-020) : la construction de la liaison native — runtime
+// et grammaires épinglés se téléchargent puis gcc assemble la
+// bibliothèque partagée. Tâche OPTATIVE : jamais dans `check` (la
+// chaîne de build du dépôt reste pure), le banc du niveau 2 s'y saute
+// sans elle (assumeTrue), la voie retombe sur le repli des paquets.
+tasks.register<Exec>("natif") {
+    description = "Construit la bibliothèque partagée du niveau 2 (télécharge runtime et grammaires épinglés)."
+    group = "build"
+    workingDir = projectDir
+    commandLine("bash", "natif/construire")
+    outputs.file(layout.buildDirectory.file("natif/libliaison.so"))
+}

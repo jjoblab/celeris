@@ -39,6 +39,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-017](017-plateforme-de-langages.md) | Plateforme de langages : paquets, modèle et coutures | Acceptée (jalon M7.6) |
 | [ADR-018](018-interface-tout-en-popups.md) | Interface fonctionnelle : tout en popups | Acceptée (décision du propriétaire, 2026-11-10) |
 | [ADR-019](019-plafond-releve-des-bancs.md) | Plafond relevé des bancs volumineux (600/800) | Acceptée (décision du propriétaire, 2026-11-11) |
+| [ADR-020](020-niveau-2-natif-borne.md) | Niveau 2 natif borné (révision de l'ADR-016) | Acceptée (signal du propriétaire, 2026-11-13) |
 
 ## Règles
 

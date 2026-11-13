@@ -54,6 +54,14 @@ public final class jo.celeris.core.syntax.EditSite extends java.lang.Record {
   public int lineDelta();
 }
 
+### jo.celeris.core.syntax.EtatNatif
+Compiled from "EtatNatif.java"
+final class jo.celeris.core.syntax.EtatNatif extends java.lang.Enum<jo.celeris.core.syntax.EtatNatif> implements jo.celeris.core.syntax.LexState {
+  public static final jo.celeris.core.syntax.EtatNatif PREMIER;
+  public static jo.celeris.core.syntax.EtatNatif[] values();
+  public static jo.celeris.core.syntax.EtatNatif valueOf(java.lang.String);
+}
+
 ### jo.celeris.core.syntax.IncrementalLexer
 Compiled from "IncrementalLexer.java"
 public final class jo.celeris.core.syntax.IncrementalLexer {
@@ -151,6 +159,27 @@ public final class jo.celeris.core.syntax.LexedLine {
   public jo.celeris.core.syntax.LexState exitState();
 }
 
+### jo.celeris.core.syntax.LiaisonArbre
+Compiled from "LiaisonArbre.java"
+final class jo.celeris.core.syntax.LiaisonArbre {
+}
+
+### jo.celeris.core.syntax.MaterialisationNatif$LeafToken
+Compiled from "MaterialisationNatif.java"
+final class jo.celeris.core.syntax.MaterialisationNatif$LeafToken extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.syntax.TokenKind sorte();
+  public int debut();
+  public int fin();
+}
+
+### jo.celeris.core.syntax.MaterialisationNatif
+Compiled from "MaterialisationNatif.java"
+final class jo.celeris.core.syntax.MaterialisationNatif {
+}
+
 ### jo.celeris.core.syntax.MoteurAnalyse$Auditeur
 Compiled from "MoteurAnalyse.java"
 public interface jo.celeris.core.syntax.MoteurAnalyse$Auditeur {
@@ -174,6 +203,27 @@ public final class jo.celeris.core.syntax.MoteurAnalyse {
   public synchronized void ajouterAuditeur(jo.celeris.core.syntax.MoteurAnalyse$Auditeur);
   public synchronized void retirerAuditeur(jo.celeris.core.syntax.MoteurAnalyse$Auditeur);
   public void close();
+}
+
+### jo.celeris.core.syntax.MoteurNatif
+Compiled from "MoteurNatif.java"
+public final class jo.celeris.core.syntax.MoteurNatif {
+  public static jo.celeris.core.syntax.MoteurNatif sur(jo.celeris.core.text.TextSession, jo.celeris.core.syntax.SyntaxeNatif, java.util.concurrent.Executor);
+  public static jo.celeris.core.syntax.MoteurNatif de(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
+  public synchronized jo.celeris.core.syntax.Analysis analysePubliee();
+  public synchronized jo.celeris.core.syntax.Analysis analyseDeRevision(int);
+  public void reanalyser();
+  public void fenetre(int, int);
+  public synchronized void ajouterAuditeur(java.util.function.Consumer<jo.celeris.core.syntax.Analysis>);
+  public void close();
+}
+
+### jo.celeris.core.syntax.NativeNodeKind
+Compiled from "NativeNodeKind.java"
+final class jo.celeris.core.syntax.NativeNodeKind extends java.lang.Enum<jo.celeris.core.syntax.NativeNodeKind> implements jo.celeris.core.syntax.NodeKind {
+  public static final jo.celeris.core.syntax.NativeNodeKind NODE;
+  public static jo.celeris.core.syntax.NativeNodeKind[] values();
+  public static jo.celeris.core.syntax.NativeNodeKind valueOf(java.lang.String);
 }
 
 ### jo.celeris.core.syntax.NodeCategory
@@ -247,6 +297,17 @@ public final class jo.celeris.core.syntax.SyntaxTree {
   public boolean estComplet();
   public int chunkStartOffset(jo.celeris.core.text.Document, jo.celeris.core.syntax.Chunk);
   public int chunkEndOffset(jo.celeris.core.text.Document, jo.celeris.core.syntax.Chunk);
+}
+
+### jo.celeris.core.syntax.SyntaxeNatif
+Compiled from "SyntaxeNatif.java"
+public final class jo.celeris.core.syntax.SyntaxeNatif implements jo.celeris.core.syntax.LanguageSyntax {
+  public static jo.celeris.core.syntax.SyntaxeNatif json();
+  public static jo.celeris.core.syntax.SyntaxeNatif python();
+  public static jo.celeris.core.syntax.SyntaxeNatif javascript();
+  public java.lang.String id();
+  public jo.celeris.core.syntax.LanguageLexer lexer();
+  public jo.celeris.core.syntax.LanguageParser parser();
 }
 
 ### jo.celeris.core.syntax.Token
@@ -703,6 +764,7 @@ public final class jo.celeris.core.syntax.structure.RuleOutline {
 Compiled from "TreeDiagnostics.java"
 public final class jo.celeris.core.syntax.structure.TreeDiagnostics {
   public static java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
+  public static int[] lignesEnErreur(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
 }
 
 ### jo.celeris.core.syntax.structure.TreeFolds

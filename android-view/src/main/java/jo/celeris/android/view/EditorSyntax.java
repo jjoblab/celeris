@@ -11,9 +11,9 @@ import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.structure.FoldSpan;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.MoteurAnalyse;
+import jo.celeris.core.syntax.MoteurNatif;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxCoordinator;
-import jo.celeris.core.syntax.SyntaxIssue;
 import jo.celeris.core.syntax.structure.TreeDiagnostics;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
@@ -34,15 +34,13 @@ import org.jspecify.annotations.Nullable;
  * détache, la dernière analyse reste consultable. L'éditon remappe les
  * plis sur l'instantané d'avant, comme le coordinateur pour ses sites.</p>
  *
- * <p>Deux voies d'analyse (tranche 6) : sans exécuteur, le coordinateur
- * vit sur le fil d'écriture de la session — l'analyse se paie à la
- * première demande ; avec exécuteur injecté (ADR-007), le moteur hors
+ * <p>Trois voies d'analyse : la source native du niveau 2 (ADR-020 —
+ * le document ENTIER, borné) ; sans exécuteur, le coordinateur vit sur
+ * le fil d'écriture ; avec exécuteur injecté (ADR-007), le moteur hors
  * fil publie par lots — la fenêtre visible d'abord (G-01) — et la vue
  * n'habille JAMAIS une ligne avec les jetons d'une autre révision sans
- * preuve d'identité : sans publication à jour, les éditions en attente
- * remappent les lignes épargnées (contenu démontré identique,
- * RemapLignes), les lignes touchées passent à l'encre de base le temps
- * du vol (PIEGE-20, facette vue — plus un mot ne clignote). Le rappel
+ * preuve d'identité (PIEGE-20) : les lignes épargnées se remappent,
+ * les touchées passent à l'encre de base le temps du vol. Le rappel
  * {@code setSurAnalysePrete} part à chaque publication, sur le fil de
  * travail — l'hôte y invalide.</p>
  *
@@ -94,6 +92,7 @@ public final class EditorSyntax {
     private @Nullable LanguageSyntax syntaxeDuLangage;
     private @Nullable SyntaxCoordinator coordinateur;
     private @Nullable MoteurAnalyse moteur;
+    private @Nullable MoteurNatif moteurNatif;
     private @Nullable Runnable surAnalysePrete;
     private @Nullable Consumer<List<OutlineEntry>> surPlan;
     private int fenetrePremiere;
@@ -130,13 +129,8 @@ public final class EditorSyntax {
         this.executeur = executeur;
     }
 
-    /**
-     * Attache la session suivie : l'auditeur de plis s'y abonne, le
-     * coordinateur s'y rattache, les plis de la session précédente
-     * s'oublient — un pli appartient à son document.
-     *
-     * @param nouvelleSession la session d'éditon affichée
-     */
+    /** Attache la session suivie : les plis de la précédente s'oublient —
+     *  un pli appartient à son document. */
     public void attacher(TextSession nouvelleSession) {
         if (session != null) {
             session.removeEditListener(ecouteurPlis);
@@ -181,7 +175,7 @@ public final class EditorSyntax {
 
     /** Vrai quand l'analyse est branchée. */
     public boolean active() {
-        return coordinateur != null || moteur != null;
+        return coordinateur != null || moteur != null || moteurNatif != null;
     }
 
     /**
@@ -194,6 +188,9 @@ public final class EditorSyntax {
      * @return vrai quand une publication existe
      */
     public boolean couleurAttendue() {
+        if (moteurNatif != null) {
+            return moteurNatif.analysePubliee() != null;
+        }
         MoteurAnalyse moteurLocal = moteur;
         if (moteurLocal != null) {
             return moteurLocal.analysePubliee() != null;
@@ -254,13 +251,9 @@ public final class EditorSyntax {
         surPlan = consommateur;
     }
 
-    /** Referme le pont : le moteur et le coordinateur se détachent, la gouttière se vide. */
+    /** Referme le pont : les moteurs se détachent, la gouttière se vide. */
     public void fermer() {
         fermerMoteur();
-        if (coordinateur != null) {
-            coordinateur.close();
-            coordinateur = null;
-        }
         if (session != null) {
             session.removeEditListener(ecouteurPlis);
         }
@@ -306,7 +299,7 @@ public final class EditorSyntax {
             regionsPliables.addAll(
                     LanguageStructure.plis(langue, document, analyse));
             marques = GutterMarks.of(regionsPliables, plis,
-                    lignesEnErreur(document, analyse));
+                    TreeDiagnostics.lignesEnErreur(document, analyse));
             guides = GuidesStructurels.de(langue, document, analyse);
             pousserPlan(LanguageStructure.plan(langue, document, analyse,
                     regionsPliables));
@@ -374,6 +367,9 @@ public final class EditorSyntax {
      * d'intelligence (M7.5, §8) y lit l'analyse de ses gestes.
      */
     @Nullable Analysis analyseCourante(Document document) {
+        if (moteurNatif != null) {
+            return moteurNatif.analyseDeRevision(document.revision());
+        }
         if (moteur != null) {
             Analysis publiee = moteur.analysePubliee();
             if (publiee == null || publiee.revision() != document.revision()) {
@@ -465,11 +461,14 @@ public final class EditorSyntax {
 
     private void rattacher() {
         fermerMoteur();
-        if (coordinateur != null) {
-            coordinateur.close();
-            coordinateur = null;
-        }
         LanguageSyntax syntaxe = syntaxeDuLangage;
+        // La voie du niveau 2 (ADR-020) : la source native sert l'entier.
+        moteurNatif = MoteurNatif.de(syntaxe, session, executeur);
+        if (moteurNatif != null) {
+            moteurNatif.ajouterAuditeur(analyse -> notifierAnalysePrete());
+            moteurNatif.reanalyser();
+            return;
+        }
         if (executeur == null) {
             coordinateur = syntaxe == null || session == null
                     ? null
@@ -485,9 +484,17 @@ public final class EditorSyntax {
     }
 
     private void fermerMoteur() {
+        if (moteurNatif != null) {
+            moteurNatif.close();
+            moteurNatif = null;
+        }
         if (moteur != null) {
             moteur.close();
             moteur = null;
+        }
+        if (coordinateur != null) {
+            coordinateur.close();
+            coordinateur = null;
         }
     }
 
@@ -556,28 +563,18 @@ public final class EditorSyntax {
      * Le décalage d'une position courante vers le document publié :
      * les éditions en attente se défont de la plus récente à la plus
      * ancienne — position après le texte inséré, recule du delta ;
-     * position DANS le texte inséré, retombe au point d'édition.
+     * position DANS le texte inséré, retombe au point d'édition ; avant
+     * le point, elle ne bouge pas.
      */
     private int versPublie(int position) {
         int x = position;
         for (int i = editionsEnAttente.size() - 1; i >= 0; i--) {
             EditionEnAttente edition = editionsEnAttente.get(i);
-            if (x >= edition.publieStart() + edition.publieInserted()) {
-                x = x - edition.publieInserted() + edition.publieRemoved();
-            } else if (x > edition.publieStart()) {
-                x = edition.publieStart();
-            }
+            x = x >= edition.publieStart() + edition.publieInserted()
+                    ? x - edition.publieInserted() + edition.publieRemoved()
+                    : Math.min(x, edition.publieStart());
         }
         return x;
     }
 
-    /** Les lignes porteuses d'un diagnostic, dédoublées et triées par GutterMarks. */
-    private static int[] lignesEnErreur(Document document, Analysis analyse) {
-        List<SyntaxIssue> problemes = TreeDiagnostics.issues(document, analyse);
-        int[] lignes = new int[problemes.size()];
-        for (int i = 0; i < problemes.size(); i++) {
-            lignes[i] = document.lineForOffset(problemes.get(i).startOffset());
-        }
-        return lignes;
-    }
 }

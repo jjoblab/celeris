@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Construction de la liaison native du niveau 2 (ADR-020) : le runtime
+# et les grammaires épinglées se téléchargent de façon reproductible —
+# JAMAIS versionnés (le patron des spikes M0, la règle 7 : provenance
+# vérifiée, licences MIT) — puis gcc assemble la bibliothèque partagée.
+# La chaîne de build du dépôt reste pure : cette tâche est OPTATIVE,
+# jamais dans `check`.
+#   core-syntax/natif/construire   →  core-syntax/build/natif/libliaison.so
+set -euo pipefail
+
+ICI="$(cd "$(dirname "$0")" && pwd)"
+DEST="$ICI/sources"
+SORTIE="$ICI/../build/natif"
+mkdir -p "$DEST" "$SORTIE"
+
+RUNTIME="v0.27.2"
+declare -A GRAMMAIRES=(
+  [json]="v0.24.8"
+  [python]="v0.25.0"
+  [javascript]="v0.25.0"
+)
+
+if [ ! -f "$DEST/runtime/lib/include/tree_sitter/api.h" ]; then
+  curl -sL --fail --max-time 120 -o "$DEST/runtime.tar.gz" \
+    "https://github.com/tree-sitter/tree-sitter/archive/refs/tags/$RUNTIME.tar.gz"
+  tar -xzf "$DEST/runtime.tar.gz" -C "$DEST"
+  mv "$DEST/tree-sitter-${RUNTIME#v}" "$DEST/runtime"
+  echo "  runtime $RUNTIME"
+fi
+
+for nom in "${!GRAMMAIRES[@]}"; do
+  tag="${GRAMMAIRES[$nom]}"
+  if [ ! -d "$DEST/grammaire-$nom" ]; then
+    curl -sL --fail --max-time 60 -o "$DEST/ts-$nom.tar.gz" \
+      "https://github.com/tree-sitter/tree-sitter-$nom/archive/refs/tags/$tag.tar.gz"
+    tar -xzf "$DEST/ts-$nom.tar.gz" -C "$DEST"
+    mv "$DEST/tree-sitter-$nom-${tag#v}" "$DEST/grammaire-$nom"
+    echo "  grammaire $nom $tag"
+  fi
+done
+
+gcc -O2 -fPIC -shared \
+  -I "$JAVA_HOME/include" \
+  -I "$JAVA_HOME/include/linux" \
+  -I "$DEST/runtime/lib/include" \
+  "$ICI/liaison.c" \
+  "$DEST/runtime/lib/src/lib.c" \
+  "$DEST"/grammaire-*/src/*.c \
+  -o "$SORTIE/libliaison.so"
+echo "liaison native en place : $SORTIE/libliaison.so"

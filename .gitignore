@@ -30,3 +30,8 @@ spikes/regex/grammaires/
 spikes/regex/libs/
 spikes/treesitter/sources/
 spikes/treesitter/out/
+
+# Niveau 2 natif (ADR-020) : runtime et grammaires téléchargés à la
+# construction par natif/construire, jamais versionnés — la bibliothèque
+# partagée naît dans build/, hors du dépôt.
+core-syntax/natif/sources/

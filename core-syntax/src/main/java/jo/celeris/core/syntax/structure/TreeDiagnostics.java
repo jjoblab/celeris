@@ -36,6 +36,23 @@ public final class TreeDiagnostics {
         return List.copyOf(problemes);
     }
 
+    /**
+     * Les lignes porteuses d'un diagnostic de l'analyse — le pont de la
+     * vue y lit les lignes en erreur de la gouttière (D-02).
+     *
+     * @param doc      le document porteur
+     * @param analysis l'analyse courante
+     * @return les lignes des plages en erreur
+     */
+    public static int[] lignesEnErreur(Document doc, Analysis analysis) {
+        List<SyntaxIssue> problemes = issues(doc, analysis);
+        int[] lignes = new int[problemes.size()];
+        for (int i = 0; i < problemes.size(); i++) {
+            lignes[i] = doc.lineForOffset(problemes.get(i).startOffset());
+        }
+        return lignes;
+    }
+
     private static void collecter(SynNode noeud, int base, List<SyntaxIssue> problemes) {
         if (noeud.isError()) {
             problemes.add(new SyntaxIssue(base + noeud.start(),
