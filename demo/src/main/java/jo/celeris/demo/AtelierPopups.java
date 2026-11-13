@@ -357,7 +357,7 @@ final class AtelierPopups {
 
     private void surEdition() {
         frappeEnCours = true;
-        controleur.onKeystroke();
+        retirer(controleur.onKeystroke());
         if (serveur != null) {
             serveur.synchroniser(uriDocument, session.document().text());
         }
@@ -398,7 +398,7 @@ final class AtelierPopups {
     }
 
     private void surFenetre() {
-        controleur.onScroll();
+        retirer(controleur.onScroll());
         repositionnerTout();
     }
 
@@ -585,5 +585,14 @@ final class AtelierPopups {
      *  (le motif du dépôt de départ : une carte, tous les menus). */
     IntentionsMenuView carteMenus() {
         return menuIntentions;
+    }
+
+    /** Les genres fermés par la machine quittent la couche — la vue ne
+     *  survit jamais à son état (jamais de zombie : la frappe ferme
+     *  l'état ET la vue). */
+    private void retirer(java.util.Set<PopupController.PopupKind> fermes) {
+        for (PopupController.PopupKind ferme : fermes) {
+            couche.dismiss(ferme);
+        }
     }
 }

@@ -175,6 +175,19 @@ abstract class PopupPanel extends View {
     }
 
     /**
+     * Défait la mort armée — la carte re-posée AVANT la fin de son
+     * voile ne se retire pas d'elle-même : le retrait différé se
+     * dissout, l'horloge se ferme (le filtre de complétion re-pose la
+     * MÊME vue à chaque frappe, jamais la carte vivante ne meurt de
+     * sa re-pose).
+     */
+    void annulerMort() {
+        morteArmee = false;
+        morteA = -1L;
+        retrait = null;
+    }
+
+    /**
      * Vrai pendant la naissance ou la mort de la carte — le banc y lit
      * l'animation en cours, la couche y distingue le voile du steady.
      */

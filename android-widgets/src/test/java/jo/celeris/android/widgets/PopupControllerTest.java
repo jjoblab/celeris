@@ -80,4 +80,60 @@ class PopupControllerTest {
         controleur.closeAll();
         assertEquals(Set.of(), controleur.openPopups());
     }
+
+    /** La frappe rend les genres fermés — la couche les retire,
+     *  la vue ne survit jamais à son état (jamais de zombie). */
+    @Test
+    void keystrokeReturnsTheClosedGenres() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.HOVER);
+        controleur.open(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
+        controleur.open(PopupController.PopupKind.SELECTION_BAR);
+        controleur.open(PopupController.PopupKind.SELECTION_OVERFLOW);
+        controleur.open(PopupController.PopupKind.COLOR_PICKER);
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.HOVER,
+                        PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
+                        PopupController.PopupKind.SELECTION_BAR,
+                        PopupController.PopupKind.SELECTION_OVERFLOW,
+                        PopupController.PopupKind.COLOR_PICKER),
+                controleur.onKeystroke());
+        assertEquals(java.util.EnumSet.noneOf(PopupController.PopupKind.class),
+                controleur.onKeystroke(), "la fermeture est idempotente");
+    }
+
+    /** Le défilement rend les genres fermés — le retrait de la couche
+     *  suit, jamais la vue ne survit à son état. */
+    @Test
+    void scrollReturnsTheClosedGenres() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.HOVER);
+        controleur.open(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
+        controleur.open(PopupController.PopupKind.COLOR_PICKER);
+        controleur.open(PopupController.PopupKind.MINIMAP);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.HOVER,
+                        PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
+                        PopupController.PopupKind.COLOR_PICKER),
+                controleur.onScroll());
+        assertTrue(controleur.isOpen(PopupController.PopupKind.MINIMAP),
+                "l'ornement ne cède pas au défilement");
+    }
+
+    /** closeAll rend TOUT ce qui vivait — le retrait de la couche
+     *  suit, même le vide se rend honnêtement. */
+    @Test
+    void closeAllReturnsEveryOpenGenre() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.SELECTION_BAR);
+        controleur.open(PopupController.PopupKind.BREADCRUMB);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.SELECTION_BAR,
+                        PopupController.PopupKind.BREADCRUMB),
+                controleur.closeAll());
+        assertEquals(Set.of(), controleur.openPopups());
+        assertEquals(java.util.EnumSet.noneOf(PopupController.PopupKind.class),
+                controleur.closeAll());
+    }
 }

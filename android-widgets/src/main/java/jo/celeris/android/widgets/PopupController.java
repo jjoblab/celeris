@@ -141,9 +141,16 @@ public final class PopupController {
         return change;
     }
 
-    /** Ferme tout — la session se détache, la couche se vide. */
-    public void closeAll() {
+    /** Ferme tout — la session se détache, la couche se vide.
+     *
+     * @return les genres qui se fermaient — la couche les retire, la
+     * vue ne survit jamais à son état
+     */
+    public Set<PopupKind> closeAll() {
+        Set<PopupKind> fermes = ouverts.isEmpty()
+                ? EnumSet.noneOf(PopupKind.class) : EnumSet.copyOf(ouverts);
         ouverts.clear();
+        return fermes;
     }
 
     /**
@@ -152,23 +159,39 @@ public final class PopupController {
      * débordement suit), la complétion RESTE
      * — elle filtre localement, la requête ne repart pas ; la bande
      * d'erreurs survit — elle vit avec les diagnostics.
+     *
+     * @return les genres qui se fermaient — la couche les retire, la
+     * vue ne survit jamais à son état (le zombie ne s'y rencontre
+     * jamais)
      */
-    public void onKeystroke() {
-        ouverts.remove(PopupKind.HOVER);
-        ouverts.remove(PopupKind.DIAGNOSTIC_TOOLTIP);
-        ouverts.remove(PopupKind.SELECTION_BAR);
-        ouverts.remove(PopupKind.SELECTION_OVERFLOW);
-        ouverts.remove(PopupKind.COLOR_PICKER);
+    public Set<PopupKind> onKeystroke() {
+        return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
+                PopupKind.SELECTION_BAR, PopupKind.SELECTION_OVERFLOW,
+                PopupKind.COLOR_PICKER);
     }
 
     /**
      * Le défilement : le survol et l'info-bulle se ferment — les
      * popups qui restent se REPOSITIONNENT, ils ne se ferment pas.
+     *
+     * @return les genres qui se fermaient — la couche les retire, la
+     * vue ne survit jamais à son état
      */
-    public void onScroll() {
-        ouverts.remove(PopupKind.HOVER);
-        ouverts.remove(PopupKind.DIAGNOSTIC_TOOLTIP);
-        ouverts.remove(PopupKind.COLOR_PICKER);
+    public Set<PopupKind> onScroll() {
+        return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
+                PopupKind.COLOR_PICKER);
+    }
+
+    /** Les genres donnés se ferment — la copie fraîche des fermés se
+     *  rend, l'état reste au contrôleur. */
+    private Set<PopupKind> fermer(PopupKind... genres) {
+        Set<PopupKind> fermes = EnumSet.noneOf(PopupKind.class);
+        for (PopupKind genre : genres) {
+            if (ouverts.remove(genre)) {
+                fermes.add(genre);
+            }
+        }
+        return fermes;
     }
 
     /** Vrai si le popup donné est ouvert. */

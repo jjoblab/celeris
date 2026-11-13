@@ -45,7 +45,12 @@ public final class PopupLayer extends ViewGroup {
 
     /**
      * Montre le popup donné à la position donnée : la vue se rend non
-     * focalisable (PIEGE-27), la couche se redessine.
+     * focalisable (PIEGE-27), la couche se redessine. La MÊME vue
+     * re-posée sous son genre ne re-naît ni ne meurt — elle se
+     * re-mesure et se re-place (le filtre de complétion, sans
+     * refermer) ; une vue qui vivait sous un AUTRE genre le quitte —
+     * une vue ne vit jamais sous deux genres, son attache reste
+     * unique.
      *
      * @param kind  le popup à montrer
      * @param popup la vue du popup
@@ -54,20 +59,31 @@ public final class PopupLayer extends ViewGroup {
      */
     public void show(PopupController.PopupKind kind, View popup, int x, int y) {
         View ancienne = popups.remove(kind);
-        if (ancienne != null) {
+        if (ancienne != null && ancienne != popup) {
             // l'ancienne carte meurt en voile — le remplacement se
             // croise en douceur, jamais un échange brusque
             refermer(ancienne);
         }
+        // la même vue sous un autre genre : elle le quitte — l'attache
+        // reste unique, jamais la vue ne se re-pose par-dessus elle-même
+        popups.values().removeIf(vue -> vue == popup);
         // PIEGE-27 : aucun popup ne prend le focus d'entrée.
         popup.setFocusable(false);
         popup.setFocusableInTouchMode(false);
         popups.put(kind, popup);
-        addView(popup);
-        // la fluidité du propriétaire (2026-11-13) : la carte NAÎT en
-        // voile qui monte — jamais un remplacement sans le re-naitre
+        boolean nouvelle = popup.getParent() != this;
         if (popup instanceof PopupPanel panneau) {
-            panneau.naissance();
+            // la carte re-posée défait sa mort : le retrait différé se
+            // dissout, jamais la carte vivante ne se retire d'elle-même
+            panneau.annulerMort();
+        }
+        if (nouvelle) {
+            addView(popup);
+            // la fluidité du propriétaire (2026-11-13) : la carte NAÎT en
+            // voile qui monte — jamais un remplacement sans le re-naitre
+            if (popup instanceof PopupPanel panneau) {
+                panneau.naissance();
+            }
         }
         popup.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
