@@ -92,6 +92,7 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.SELECTION_OVERFLOW);
         controleur.open(PopupController.PopupKind.COLOR_PICKER);
         controleur.open(PopupController.PopupKind.TYPE_INFO);
+        controleur.open(PopupController.PopupKind.HIERARCHY);
         controleur.open(PopupController.PopupKind.COMPLETION_LIST);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.HOVER,
@@ -99,7 +100,8 @@ class PopupControllerTest {
                         PopupController.PopupKind.SELECTION_BAR,
                         PopupController.PopupKind.SELECTION_OVERFLOW,
                         PopupController.PopupKind.COLOR_PICKER,
-                        PopupController.PopupKind.TYPE_INFO),
+                        PopupController.PopupKind.TYPE_INFO,
+                        PopupController.PopupKind.HIERARCHY),
                 controleur.onKeystroke());
         assertEquals(java.util.EnumSet.noneOf(PopupController.PopupKind.class),
                 controleur.onKeystroke(), "la fermeture est idempotente");
@@ -114,12 +116,14 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
         controleur.open(PopupController.PopupKind.COLOR_PICKER);
         controleur.open(PopupController.PopupKind.TYPE_INFO);
+        controleur.open(PopupController.PopupKind.HIERARCHY);
         controleur.open(PopupController.PopupKind.MINIMAP);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.HOVER,
                         PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
                         PopupController.PopupKind.COLOR_PICKER,
-                        PopupController.PopupKind.TYPE_INFO),
+                        PopupController.PopupKind.TYPE_INFO,
+                        PopupController.PopupKind.HIERARCHY),
                 controleur.onScroll());
         assertTrue(controleur.isOpen(PopupController.PopupKind.MINIMAP),
                 "l'ornement ne cède pas au défilement");
@@ -304,6 +308,44 @@ class PopupControllerTest {
                 "la carte d'actions cède au geste extérieur");
         assertTrue(controleur.isOpen(PopupController.PopupKind.MINIMAP),
                 "le chrome survit aux trois régimes");
+        controleur.open(PopupController.PopupKind.HIERARCHY);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.HIERARCHY),
+                controleur.surToucheHorsCartes(),
+                "la hiérarchie, carte d'actions, cède au geste extérieur");
+    }
+
+    /** La hiérarchie (catégorie C de l'inventaire — les moteurs
+     *  vivaient, la surface dormait) joint la famille des surfaces
+     *  d'actions : elle ferme le menu du caret, le débordement de la
+     *  toolbar ET la carte des usages — eux la ferment ; la
+     *  complétion cohabite (la saisie la chassera à la frappe). */
+    @Test
+    void hierarchyExcludesTheActionSurfacesAndReciprocally() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertTrue(controleur.open(PopupController.PopupKind.HIERARCHY),
+                "la hiérarchie ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "…et ferme la carte des usages — une surface d'actions à la fois");
+        controleur.open(PopupController.PopupKind.TOOLBAR_OVERFLOW);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.HIERARCHY),
+                "le débordement de la toolbar ferme la hiérarchie");
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.TOOLBAR_OVERFLOW),
+                "la carte des usages ferme le débordement");
+        controleur.open(PopupController.PopupKind.HIERARCHY);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "la hiérarchie ferme la carte des usages");
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.isOpen(PopupController.PopupKind.HIERARCHY),
+                "la hiérarchie cohabite avec la complétion — elle décrit le"
+                        + " symbole, la saisie la chassera");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion survit : la carte décrit, la saisie chassera");
     }
 
     /** L'info de type (catégorie A de l'inventaire — le fil rouge du

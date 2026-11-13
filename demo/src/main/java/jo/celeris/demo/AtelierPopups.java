@@ -74,6 +74,9 @@ final class AtelierPopups {
     /** L'atelier d'info de type — la carte du type du symbole au
      *  curseur (catégorie A, le fil rouge du guide du développeur). */
     private final AtelierTypeInfo atelierTypeInfo;
+    /** L'atelier des hiérarchies — l'arbre de types ou d'appels du
+     *  symbole au curseur (catégorie C, les moteurs se réveillent). */
+    private final AtelierHierarchies atelierHierarchies;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -143,12 +146,12 @@ final class AtelierPopups {
         // traduit par la démonstration
         menuDebordement = new MenuDebordement(popups, palette, margePx,
                 couche.getContext().getString(R.string.menu_plus));
-        atelierCouleur = new AtelierCouleur(editeur, session, popups,
-                margePx, palette);
+        atelierCouleur = new AtelierCouleur(editeur, session, popups, margePx, palette);
         atelierUsages = new AtelierUsages(editeur, session, popups, margePx, palette);
         atelierTypeInfo = new AtelierTypeInfo(editeur, session, popups, margePx, palette);
-        docAncre = new DocAncre(couche.getContext(), popups, editeur,
-                session, margePx, palette);
+        atelierHierarchies = new AtelierHierarchies(editeur, session, popups,
+                margePx, palette, () -> plan, () -> nomDuFichier);
+        docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette);
         bordDroit = new AtelierBordDroit(popups, editeur, session, margePx,
                 palette, this::sauterDiagnostic);
 
@@ -187,6 +190,7 @@ final class AtelierPopups {
         atelierCouleur.surPalette(palette);
         atelierUsages.surPalette(palette);
         atelierTypeInfo.surPalette(palette);
+        atelierHierarchies.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -258,6 +262,13 @@ final class AtelierPopups {
      *  rouge du guide du développeur, la seconde surface réveillée). */
     void ouvrirTypeInfo() {
         atelierTypeInfo.ouvrir();
+    }
+
+    /** Ouvre la hiérarchie du symbole au curseur — de types s'il nomme
+     *  un type, d'appels s'il nomme une méthode (catégorie C, les
+     *  moteurs de core-intelligence se réveillent). */
+    void ouvrirHierarchie() {
+        atelierHierarchies.ouvrir();
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */

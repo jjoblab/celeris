@@ -29,6 +29,14 @@
     <string name="action_survol">Survoler le symbole</string>
     <string name="action_usages">Rechercher les usages</string>
     <string name="action_type_info">Info de type au curseur</string>
+    <string name="action_hierarchie">Hiérarchie de types ou d\'appels</string>
+    <string name="titre_hierarchie_types">Hiérarchie de types de « %1$s »</string>
+    <string name="titre_hierarchie_appels">Hiérarchie d\'appels de « %1$s »</string>
+    <string name="section_supertypes">Supertypes</string>
+    <string name="section_soustypes">Sous-types</string>
+    <string name="section_appelants">Appelants</string>
+    <string name="section_hors_projet">Hors projet</string>
+    <string name="legende_doute_hierarchie">Des sites d\'appels ne se résolvent pas — le doute se montre, jamais ne se tranche</string>
     <string name="titre_usages">%1$d usages de « %2$s »</string>
     <string name="barre_couper">Couper</string>
     <string name="barre_copier">Copier</string>

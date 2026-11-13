@@ -118,7 +118,18 @@ public final class PopupController {
          *  la frappe et au défilement, refermée au tap hors cartes
          *  (elle décrit, elle ne choisit pas) ; elle cohabite avec
          *  tout : une bulle qui décrit ne chasse personne. */
-        TYPE_INFO
+        TYPE_INFO,
+
+        /** La hiérarchie de types ou d'appels — l'arbre du symbole
+         *  au curseur (catégorie C de l'inventaire, les moteurs
+         *  vivaient, la surface dormait) : elle joint la famille des
+         *  surfaces d'actions — elle ferme le menu d'intentions, le
+         *  débordement de la toolbar ET la carte des usages, eux la
+         *  ferment (une surface d'actions à la fois) ; la frappe la
+         *  ferme (la saisie remplace son objet), le défilement la
+         *  ferme (son ancre vit au curseur), le tap hors cartes la
+         *  referme — le choix d'un sommet saute et la referme. */
+        HIERARCHY
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -159,13 +170,18 @@ public final class PopupController {
                     PopupKind.TOOLBAR_OVERFLOW));
         } else if (kind == PopupKind.INTENTIONS_MENU) {
             rendus.addAll(fermerParExclusion(PopupKind.COMPLETION_LIST,
-                    PopupKind.TOOLBAR_OVERFLOW, PopupKind.REFERENCES));
+                    PopupKind.TOOLBAR_OVERFLOW, PopupKind.REFERENCES,
+                    PopupKind.HIERARCHY));
         } else if (kind == PopupKind.TOOLBAR_OVERFLOW) {
             rendus.addAll(fermerParExclusion(PopupKind.COMPLETION_LIST,
-                    PopupKind.INTENTIONS_MENU, PopupKind.REFERENCES));
+                    PopupKind.INTENTIONS_MENU, PopupKind.REFERENCES,
+                    PopupKind.HIERARCHY));
         } else if (kind == PopupKind.REFERENCES) {
             rendus.addAll(fermerParExclusion(PopupKind.INTENTIONS_MENU,
-                    PopupKind.TOOLBAR_OVERFLOW));
+                    PopupKind.TOOLBAR_OVERFLOW, PopupKind.HIERARCHY));
+        } else if (kind == PopupKind.HIERARCHY) {
+            rendus.addAll(fermerParExclusion(PopupKind.INTENTIONS_MENU,
+                    PopupKind.TOOLBAR_OVERFLOW, PopupKind.REFERENCES));
         } else if (kind == PopupKind.COMPLETION_DOC
                 && !ouverts.contains(PopupKind.COMPLETION_LIST)) {
             return rendus;
@@ -260,7 +276,8 @@ public final class PopupController {
         return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.SELECTION_BAR, PopupKind.SELECTION_OVERFLOW,
                 PopupKind.COLOR_PICKER, PopupKind.TOOLBAR_OVERFLOW,
-                PopupKind.REFERENCES, PopupKind.TYPE_INFO);
+                PopupKind.REFERENCES, PopupKind.TYPE_INFO,
+                PopupKind.HIERARCHY);
     }
 
     /**
@@ -274,7 +291,7 @@ public final class PopupController {
     public Set<PopupKind> onScroll() {
         return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.COLOR_PICKER, PopupKind.REFERENCES,
-                PopupKind.TYPE_INFO);
+                PopupKind.TYPE_INFO, PopupKind.HIERARCHY);
     }
 
     /**
@@ -292,7 +309,8 @@ public final class PopupController {
         return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.COLOR_PICKER, PopupKind.INTENTIONS_MENU,
                 PopupKind.SELECTION_OVERFLOW, PopupKind.TOOLBAR_OVERFLOW,
-                PopupKind.REFERENCES, PopupKind.TYPE_INFO);
+                PopupKind.REFERENCES, PopupKind.TYPE_INFO,
+                PopupKind.HIERARCHY);
     }
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se
