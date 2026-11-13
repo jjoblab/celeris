@@ -140,7 +140,19 @@ public final class PopupController {
          *  tap qui la prend aussi) ; aucune exclusion : elle cohabite
          *  avec tout ; le voile modal la coupe — la feuille la
          *  recouvre. */
-        NOTIFICATION
+        NOTIFICATION,
+
+        /** La documentation externe — la documentation du symbole
+         *  hors contexte de complétion (catégorie A de l'inventaire,
+         *  la carte de documentation se dérive) : elle vit le régime
+         *  de la CONSULTATION — la frappe ne la chasse pas (on tape à
+         *  côté), le défilement ne la ferme pas non plus (elle se
+         *  REPOSITIONNE chez l'hôte, elle suit le curseur), le tap
+         *  hors cartes la referme (la consultation cède au geste qui
+         *  déplace le curseur), l'échappement la referme comme bulle
+         *  éphémère ; aucune exclusion : une documentation ne chasse
+         *  personne. */
+        EXTERNAL_DOC
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -321,7 +333,7 @@ public final class PopupController {
                 PopupKind.COLOR_PICKER, PopupKind.INTENTIONS_MENU,
                 PopupKind.SELECTION_OVERFLOW, PopupKind.TOOLBAR_OVERFLOW,
                 PopupKind.REFERENCES, PopupKind.TYPE_INFO,
-                PopupKind.HIERARCHY);
+                PopupKind.HIERARCHY, PopupKind.EXTERNAL_DOC);
     }
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se

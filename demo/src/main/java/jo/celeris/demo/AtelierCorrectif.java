@@ -70,10 +70,15 @@ final class AtelierCorrectif {
         this.uri = uri;
     }
 
-    /** Ouvre (ou rouvre) l'aperçu du correctif proposé sur la sélection. */
+    /** Ouvre (ou rouvre) l'aperçu du correctif proposé sur la sélection
+     *  — le serveur qui ne propose rien laisse la place au correctif
+     *  d'IMPORT LOCAL (catégorie B de l'inventaire) : le classpath du
+     *  terrain résout l'identifiant au curseur, la feuille d'aperçu
+     *  sert la même voie (B-18, B-17). */
     void ouvrir() {
         LanguageSession courant = serveur.get();
         if (courant == null) {
+            servirLocal();
             return;
         }
         MultiSelection selection = session.selection();
@@ -90,7 +95,40 @@ final class AtelierCorrectif {
                 PositionsLsp.plage(session.document(), principale.start(),
                         principale.end()))
                 .whenComplete((correctifs, echec) ->
-                        activite.runOnUiThread(() -> servir(correctifs)));
+                        activite.runOnUiThread(() -> {
+                            servir(correctifs);
+                            if (correctifs == null || correctifs.isEmpty()) {
+                                servirLocal();
+                            }
+                        }));
+    }
+
+    /** Le correctif d'import local : le classpath du terrain résout
+     *  l'identifiant au curseur — la première candidate, l'aperçu se
+     *  prévoit sur une copie comme toute édition proposée. */
+    private void servirLocal() {
+        if (edition != null) {
+            return;
+        }
+        List<SelRange> plages = session.selection().ranges();
+        int caret = plages.isEmpty() ? 0 : plages.get(0).caret();
+        CorrectifImport.Candidat candidat = CorrectifImport.local(
+                session.document(), caret, AtelierRefactor.CLASSPATH);
+        if (candidat == null) {
+            return;
+        }
+        String avant = session.document().text();
+        TextSession epreuve = TextSession.of(avant, () -> 0L);
+        if (!epreuve.apply(candidat.edition())) {
+            return;
+        }
+        PatchPreview apercu = PatchPreview.de(avant, epreuve.text());
+        if (!apercu.porteChangement()) {
+            return;
+        }
+        edition = candidat.edition();
+        montrer(activite.getString(R.string.titre_correctif_import,
+                candidat.fqn()), apercu);
     }
 
     /** Le correctif servi : son édition se prévoit sur une copie, puis se montre. */

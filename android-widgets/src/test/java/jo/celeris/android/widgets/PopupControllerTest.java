@@ -348,6 +348,37 @@ class PopupControllerTest {
                 "la complétion survit : la carte décrit, la saisie chassera");
     }
 
+    /** La documentation externe (catégorie A de l'inventaire — la carte
+     *  de documentation se dérive) vit le régime de la CONSULTATION :
+     *  ouverte, elle se lit — la frappe ne la chasse pas (on tape à
+     *  côté), le défilement ne la ferme pas non plus (elle se
+     *  repositionne chez l'hôte), le tap hors cartes la referme (la
+     *  consultation cède au geste qui déplace le curseur) ; elle
+     *  cohabite avec tout : une documentation ne chasse personne. */
+    @Test
+    void documentationExterneSeConsulteSansCederALaFrappe() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.open(PopupController.PopupKind.EXTERNAL_DOC),
+                "la documentation ouvre sur la complétion ouverte");
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.EXTERNAL_DOC),
+                "la frappe ne chasse pas la consultation");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.EXTERNAL_DOC),
+                "le défilement la repositionne, il ne la ferme pas");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion poursuit sa vie");
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.EXTERNAL_DOC),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la consultation");
+        controleur.open(PopupController.PopupKind.EXTERNAL_DOC);
+        controleur.close(PopupController.PopupKind.EXTERNAL_DOC);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.EXTERNAL_DOC),
+                "la fermeture sur demande reste franche");
+    }
+
     /** La notification (catégorie G de l'inventaire — la forme restait
      *  à décider, la bulle éphémère l'emporte) vit le régime UNIQUE :
      *  elle annonce, elle ne décrit pas le texte — la frappe et le

@@ -43,6 +43,8 @@
     <string name="indication_aller">Nom de fichier ou symbole…</string>
     <string name="genre_fichier_aller">Fichier</string>
     <string name="genre_symbole_aller">Symbole</string>
+    <string name="action_doc">Documentation externe</string>
+    <string name="titre_correctif_import">Importer %1$s</string>
     <string name="titre_usages">%1$d usages de « %2$s »</string>
     <string name="barre_couper">Couper</string>
     <string name="barre_copier">Copier</string>

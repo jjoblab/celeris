@@ -80,6 +80,9 @@ final class AtelierPopups {
     /** L'atelier des notifications — la bulle éphémère du coin
      *  bas-droit (catégorie G, la forme se décide). */
     private final AtelierNotifications atelierNotifications;
+    /** L'atelier de documentation externe — la documentation du symbole
+     *  hors complétion (catégorie A, la carte se dérive). */
+    private final AtelierDocExterne atelierDocExterne;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -150,14 +153,14 @@ final class AtelierPopups {
         menuDebordement = new MenuDebordement(popups, palette, margePx,
                 couche.getContext().getString(R.string.menu_plus));
         atelierCouleur = new AtelierCouleur(editeur, session, popups, margePx, palette);
+        atelierDocExterne = new AtelierDocExterne(editeur, session, popups, margePx, palette);
         atelierUsages = new AtelierUsages(editeur, session, popups, margePx, palette);
         atelierTypeInfo = new AtelierTypeInfo(editeur, session, popups, margePx, palette);
         atelierHierarchies = new AtelierHierarchies(editeur, session, popups,
                 margePx, palette, () -> plan, () -> nomDuFichier);
         atelierNotifications = new AtelierNotifications(popups, margePx, palette);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette);
-        bordDroit = new AtelierBordDroit(popups, editeur, session, margePx,
-                palette, this::sauterDiagnostic);
+        bordDroit = new AtelierBordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
 
         listeCompletion.setOnPick(this::choisirCompletion);
         barreSelection.setOnOverflow(
@@ -196,6 +199,7 @@ final class AtelierPopups {
         atelierTypeInfo.surPalette(palette);
         atelierHierarchies.surPalette(palette);
         atelierNotifications.surPalette(palette);
+        atelierDocExterne.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -232,6 +236,7 @@ final class AtelierPopups {
         this.uriDocument = uri;
         docAncre.brancherServeur(sessionLangage, uri);
         atelierUsages.brancherServeur(sessionLangage, uri);
+        atelierDocExterne.brancherServeur(sessionLangage, uri);
         LanguageSupport langue = LangagesDemo.langageDe(nomDuFichier,
                 null, session.document().text());
         sessionLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
@@ -281,6 +286,13 @@ final class AtelierPopups {
      *  événements réels de la démonstration y passent). */
     void annoncer(String titre, String message) {
         atelierNotifications.annoncer(titre, message);
+    }
+
+    /** Ouvre la documentation du symbole au curseur — hors contexte de
+     *  complétion, le régime de la consultation (catégorie A, la carte
+     *  de documentation se dérive). */
+    void ouvrirDocExterne() {
+        atelierDocExterne.ouvrir();
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */
@@ -597,6 +609,9 @@ final class AtelierPopups {
     private void repositionnerTout() {
         if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {
             placerCompletion();
+        }
+        if (popups.estOuvert(PopupController.PopupKind.EXTERNAL_DOC)) {
+            atelierDocExterne.repositionner();
         }
         if (popups.estOuvert(PopupController.PopupKind.BREADCRUMB)) {
             rafraichirFilAriane();
