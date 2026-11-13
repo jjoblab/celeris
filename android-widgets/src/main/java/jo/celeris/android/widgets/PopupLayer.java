@@ -55,13 +55,20 @@ public final class PopupLayer extends ViewGroup {
     public void show(PopupController.PopupKind kind, View popup, int x, int y) {
         View ancienne = popups.remove(kind);
         if (ancienne != null) {
-            removeView(ancienne);
+            // l'ancienne carte meurt en voile — le remplacement se
+            // croise en douceur, jamais un échange brusque
+            refermer(ancienne);
         }
         // PIEGE-27 : aucun popup ne prend le focus d'entrée.
         popup.setFocusable(false);
         popup.setFocusableInTouchMode(false);
         popups.put(kind, popup);
         addView(popup);
+        // la fluidité du propriétaire (2026-11-13) : la carte NAÎT en
+        // voile qui monte — jamais un remplacement sans le re-naitre
+        if (popup instanceof PopupPanel panneau) {
+            panneau.naissance();
+        }
         popup.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
         popup.layout(x, y, x + popup.getMeasuredWidth(),
@@ -118,11 +125,26 @@ public final class PopupLayer extends ViewGroup {
     public boolean dismiss(PopupController.PopupKind kind) {
         View popup = popups.remove(kind);
         if (popup != null) {
-            removeView(popup);
+            // la carte MEURT en voile qui descend — le retrait suit à la
+            // fin du voile (l'état de la couche tourne AUSSI : le
+            // popup n'y montre déjà plus)
+            refermer(popup);
             invalidate();
             return true;
         }
         return false;
+    }
+
+    /**
+     * Referme une carte : la carte du kit descend en voile puis se
+     * retire ; la vue qui n'est pas du kit part aussitôt.
+     */
+    private void refermer(View popup) {
+        if (popup instanceof PopupPanel panneau) {
+            panneau.mourir(() -> removeView(popup));
+        } else {
+            removeView(popup);
+        }
     }
 
     /** Vrai si le popup donné est montré. */

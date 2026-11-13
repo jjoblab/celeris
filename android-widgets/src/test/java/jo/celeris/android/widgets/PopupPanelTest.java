@@ -1,6 +1,7 @@
 package jo.celeris.android.widgets;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
@@ -49,6 +50,20 @@ public class PopupPanelTest {
         int contentHeight() {
             return HAUTEUR;
         }
+    }
+
+    /** Mesure et dessine le panneau sur un bitmap — l'image rend. */
+    private static void dessiner(PopupPanel panneau) {
+        int largeur = android.view.View.MeasureSpec.makeMeasureSpec(0,
+                android.view.View.MeasureSpec.UNSPECIFIED);
+        panneau.measure(largeur, largeur);
+        panneau.layout(0, 0, panneau.getMeasuredWidth(),
+                panneau.getMeasuredHeight());
+        android.graphics.Bitmap image = android.graphics.Bitmap.createBitmap(
+                Math.max(1, panneau.getWidth()),
+                Math.max(1, panneau.getHeight()),
+                android.graphics.Bitmap.Config.ARGB_8888);
+        panneau.draw(new Canvas(image));
     }
 
     private static PopupPalette palette() {
@@ -100,6 +115,46 @@ public class PopupPanelTest {
         assertEquals("la hauteur mesure le contenu et deux respirations",
                 PanneauEssai.HAUTEUR + 2 * panneau.paddingYPx,
                 panneau.getMeasuredHeight());
+    }
+
+    /** La fluidité du propriétaire (2026-11-13 : « ajoute une petite
+     *  animation pour les popups ») : la carte NAÎT — la couche arme à
+     *  sa pose, le voile s'ouvre à la première image ; le banc fige
+     *  la naissance, la carte dessinée hors couche reste STEADY. */
+    @Test
+    public void laCarteNaitEnVoileEtLeBancLaFige() {
+        PanneauEssai panneau = new PanneauEssai(contexte, palette());
+        assertFalse("hors naissance, la carte reste steady",
+                panneau.voileEnCours());
+        // la couche arme la naissance à la pose
+        panneau.naissance();
+        assertTrue("la naissance armée ouvre à la première image",
+                panneau.voileEnCours());
+        // la première image ouvre l'horloge — le voile vit
+        dessiner(panneau);
+        assertTrue("l'horloge ouverte, le voile de naissance vit",
+                panneau.voileEnCours());
+        // le banc fige la naissance : la carte se tient
+        panneau.finirEntree();
+        assertFalse("la carte figée se tient, sans voile",
+                panneau.voileEnCours());
+    }
+
+    /** La carte MEURT en voile : la couche arme la mort au renvoi, le
+     *  retrait différé part à la fin du voile — jamais un retrait
+     *  brusque. */
+    @Test
+    public void laCarteMeurtEnVoileAvantSonRetrait() {
+        PanneauEssai panneau = new PanneauEssai(contexte, palette());
+        final boolean[] retire = {false};
+        panneau.mourir(() -> retire[0] = true);
+        assertTrue("la mort armée, le voile vit", panneau.voileEnCours());
+        // le retrait ne part PAS à l'armement — le voile d'abord
+        dessiner(panneau);
+        assertFalse("le retrait différé ne part pas à l'armement",
+                retire[0]);
+        assertTrue("l'horloge ouverte, le voile de mort vit",
+                panneau.voileEnCours());
     }
 
     /** La palette qui se remplace redérive tout : respirations et

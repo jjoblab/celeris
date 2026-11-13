@@ -126,8 +126,11 @@ public final class SelectionBarView extends PopupPanel {
         invalidate();
     }
 
-    /** Clôt l'entrée d'un geste — les bancs y figent la cascade. */
+    /** Clôt l'entrée d'un geste — les bancs y figent la cascade ET la
+     *  naissance de la carte (le voile du panneau). */
+    @Override
     void finirEntree() {
+        super.finirEntree();
         entreeDepart = -1L;
     }
 

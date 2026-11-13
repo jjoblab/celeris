@@ -7,6 +7,8 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.view.View;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Le panneau de base des popups (portage de la carte du dépôt de
  * départ) : surface verre + liseré hairline, rayon de carte aux jetons
@@ -20,8 +22,25 @@ import android.view.View;
  *
  * <p>La taille de texte suit le sp : la conversion en pixels se fait
  * une fois, à la densité et à l'échelle de police de l'appareil.</p>
+ *
+ * <p>La fluidité du propriétaire (2026-11-13 : « ajoute une petite
+ * animation pour les popups pour qu'il soit plus fluide ») : la carte
+ * NAÎT — voile qui monte, 120 ms, l'horloge du dessin la pilote, la
+ * couche l'arme à sa pose — et MEURT — voile qui descend, 100 ms,
+ * refermée par la couche AVANT son retrait. Le banc fige la naissance
+ * ({@link #finirEntree()}) : le panneau dessiné hors couche reste
+ * STEADY, jamais un banc ne rend un voile à demi.</p>
  */
 abstract class PopupPanel extends View {
+
+    /** La durée de la naissance de la carte, en millisecondes. */
+    private static final long DUREE_NAISSANCE_MS = 120L;
+
+    /** La durée de la mort de la carte, en millisecondes. */
+    private static final long DUREE_MORT_MS = 100L;
+
+    /** La montée de la naissance, en dp (le geste du dépôt de départ). */
+    private static final float MONTEE_DP = 6f;
 
     /** La palette posée — l'hôte la dérive de son thème, le rafraîchissement la remplace. */
     PopupPalette palette;
@@ -36,10 +55,22 @@ abstract class PopupPanel extends View {
     private final Paint pinceauLisere = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pinceauTexte = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pinceauBande = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /** Le voile de la naissance et de la mort — l'alpha de la carte. */
+    private final Paint voileAnime = new Paint();
     private final RectF coins = new RectF();
     /** Le chemin de la carte — le clip arrondi du contenu (motif du dépôt de départ). */
     private final Path cheminCarte = new Path();
     private final float densite;
+    /** La naissance s'arme à la pose — l'horloge du dessin l'ouvre. */
+    private boolean naissanceArmee;
+    /** L'instant de la naissance, —1 hors entrée. */
+    private long naissanceA = -1L;
+    /** La mort s'arme au renvoi — l'horloge du dessin l'ouvre. */
+    private boolean morteArmee;
+    /** L'instant de la mort, —1 hors sortie. */
+    private long morteA = -1L;
+    /** Le retrait différé de la vue morte — la couche y passe. */
+    private @Nullable Runnable retrait;
 
     PopupPanel(Context context, PopupPalette palette) {
         super(context, null);
@@ -115,23 +146,112 @@ abstract class PopupPanel extends View {
         canvas.drawLine(0f, y, contentWidth(), y, pinceauLisere);
     }
 
+    /**
+     * Arme la naissance de la carte — la couche y appelle à sa pose :
+     * la prochaine image ouvre l'horloge, la carte monte en voile.
+     * Le panneau dessiné hors couche reste STEADY sans elle.
+     */
+    void naissance() {
+        naissanceArmee = true;
+    }
+
+    /**
+     * Arme la mort de la carte — la couche y appelle AVANT son retrait :
+     * la carte descend en voile, puis le retrait différé part.
+     *
+     * @param retrait le retrait de la vue, à la fin du voile
+     */
+    void mourir(Runnable retrait) {
+        this.retrait = retrait;
+        morteArmee = true;
+        postInvalidateOnAnimation();
+    }
+
+    /**
+     * Vrai pendant la naissance ou la mort de la carte — le banc y lit
+     * l'animation en cours, la couche y distingue le voile du steady.
+     */
+    boolean voileEnCours() {
+        return naissanceArmee || naissanceA >= 0L
+                || morteArmee || morteA >= 0L;
+    }
+
+    /**
+     * Fige la naissance — le banc y passe : le panneau rendu hors
+     * couche reste STEADY, la carte se dessine sans voile.
+     */
+    void finirEntree() {
+        naissanceArmee = false;
+        naissanceA = -1L;
+    }
+
     @Override
     protected final void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+        float alpha = 1f;
+        float montee = 0f;
+        if (naissanceArmee) {
+            naissanceA = getDrawingTime();
+            naissanceArmee = false;
+        }
+        if (naissanceA >= 0L) {
+            long ecoule = getDrawingTime() - naissanceA;
+            if (ecoule >= DUREE_NAISSANCE_MS) {
+                naissanceA = -1L;
+            } else {
+                // la naissance : le voile qui monte, 120 ms — la carte
+                // naît d'en haut, adoucie (le geste du dépôt de départ)
+                alpha = Math.max(0f, Math.min(1f, ecoule / 120f));
+                montee = (1f - alpha) * MONTEE_DP * densite;
+                postInvalidateOnAnimation();
+            }
+        }
+        if (morteArmee) {
+            morteA = getDrawingTime();
+            morteArmee = false;
+        }
+        if (morteA >= 0L) {
+            long ecoule = getDrawingTime() - morteA;
+            if (ecoule >= DUREE_MORT_MS) {
+                // la mort se conclut : le retrait différé part, la carte
+                // reste STEADY jusqu'à ce qu'il l'emporte
+                morteA = -1L;
+                Runnable retraitDiffere = retrait;
+                retrait = null;
+                if (retraitDiffere != null) {
+                    post(retraitDiffere);
+                }
+            } else {
+                // la mort : le voile qui descend, 100 ms — jamais le
+                // retrait brusque de la carte
+                alpha *= Math.max(0f, 1f - ecoule / 100f);
+                postInvalidateOnAnimation();
+            }
+        }
+        boolean anime = alpha < 1f || montee > 0f;
+        int sauve = -1;
+        if (anime) {
+            voileAnime.setAlpha(Math.round(alpha * 255f));
+            sauve = canvas.saveLayer(0f, 0f, getWidth(), getHeight(),
+                    voileAnime);
+            canvas.translate(0f, -montee);
+        }
         coins.set(0f, 0f, getWidth(), getHeight());
         float rayon = rayonCartePx();
         cheminCarte.reset();
         cheminCarte.addRoundRect(coins, rayon, rayon, Path.Direction.CW);
         canvas.drawPath(cheminCarte, pinceauFond);
         canvas.drawPath(cheminCarte, pinceauLisere);
-        int sauve = canvas.save();
+        int sauveContenu = canvas.save();
         // Le contenu se clippe à la carte arrondie (le motif du dépôt
         // de départ) : la bande de sélection d'une rangée ne déborde
         // jamais sur les coins.
         canvas.clipPath(cheminCarte);
         canvas.translate(paddingPx, paddingYPx);
         drawContent(canvas);
-        canvas.restore();
+        canvas.restoreToCount(sauveContenu);
+        if (anime) {
+            canvas.restoreToCount(sauve);
+        }
     }
 
     /** Dessine le contenu, origine translatée aux respirations comprises. */
