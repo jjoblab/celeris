@@ -63,7 +63,7 @@ public final class AdaptateurStockageDocuments implements SystemeFichiersVirtuel
         }
         EntreeDocument entree = resoudre(chemin);
         String vidage = entree == null ? null : String.join("\n",
-                ApercuHexadecimal.de(arbre.lireOctets(entree.idDocument())).lignes());
+                HexadecimalPreview.de(arbre.lireOctets(entree.idDocument())).lignes());
         return vidage;
     }
 

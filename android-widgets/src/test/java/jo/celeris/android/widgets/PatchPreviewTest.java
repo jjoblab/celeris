@@ -33,7 +33,7 @@ class ApercuCorrectifTest {
     @Test
     void leBlocChangeSePrefixeEtLeContexteEncadre() {
         String apres = AVANT.replace("quatre", "QUATRE!");
-        ApercuCorrectif apercu = ApercuCorrectif.de(AVANT, apres);
+        PatchPreview apercu = PatchPreview.de(AVANT, apres);
         assertTrue(apercu.porteChangement(), "l'édition engage des lignes");
         assertEquals(List.of(
                 "  deux",
@@ -50,7 +50,7 @@ class ApercuCorrectifTest {
     @Test
     void leHorsBlocNeSeMontrePas() {
         String apres = AVANT.replace("quatre", "QUATRE!");
-        List<String> rendues = ApercuCorrectif.de(AVANT, apres).rendues();
+        List<String> rendues = PatchPreview.de(AVANT, apres).rendues();
         assertFalse(rendues.stream().anyMatch(ligne -> ligne.contains("un")),
                 "la ligne d'avant-bloc ne se montre pas");
         assertFalse(rendues.stream().anyMatch(ligne -> ligne.contains("huit")),
@@ -66,7 +66,7 @@ class ApercuCorrectifTest {
     void leContexteNulNeMontreQueLesChangees() {
         String apres = AVANT.replace("quatre", "QUATRE!");
         assertEquals(List.of("- quatre", "+ QUATRE!"),
-                ApercuCorrectif.de(AVANT, apres, 0).rendues(),
+                PatchPreview.de(AVANT, apres, 0).rendues(),
                 "sans contexte, seules les lignes changées se montrent");
     }
 
@@ -84,7 +84,7 @@ class ApercuCorrectifTest {
                 "+ CINQ!",
                 "  six",
                 "  sept"),
-                ApercuCorrectif.de(AVANT, apres).rendues(),
+                PatchPreview.de(AVANT, apres).rendues(),
                 "la ligne intacte entre les deux blocs se montre une fois, "
                         + "la portée des deux côtés");
     }
@@ -99,7 +99,7 @@ class ApercuCorrectifTest {
                 "+ milieu",
                 "  cinq",
                 "  six"),
-                ApercuCorrectif.de(AVANT, apres).rendues(),
+                PatchPreview.de(AVANT, apres).rendues(),
                 "la ligne ajoutée s'ancre entre les intactes qui l'entourent");
     }
 
@@ -112,7 +112,7 @@ class ApercuCorrectifTest {
                 "  huit",
                 "+ neuf",
                 "  "),
-                ApercuCorrectif.de(AVANT, apres).rendues(),
+                PatchPreview.de(AVANT, apres).rendues(),
                 "l'ajout de fin se rend avant la ligne vide de fin, intacte elle aussi");
     }
 
@@ -121,14 +121,14 @@ class ApercuCorrectifTest {
     void laSuppressionPureSeMontre() {
         String apres = AVANT.replace("trois\n", "");
         assertEquals(List.of("- trois"),
-                ApercuCorrectif.de(AVANT, apres, 0).rendues(),
+                PatchPreview.de(AVANT, apres, 0).rendues(),
                 "la suppression pure ne montre que l'enlevée");
     }
 
     /** B-18 — les textes identiques ne se prévisent pas. */
     @Test
     void lesTextesIdentiquesNeSePrevisentPas() {
-        ApercuCorrectif apercu = ApercuCorrectif.de(AVANT, AVANT);
+        PatchPreview apercu = PatchPreview.de(AVANT, AVANT);
         assertTrue(apercu.lignes().isEmpty(), "rien ne change, rien ne se montre");
         assertFalse(apercu.porteChangement());
     }
@@ -137,19 +137,19 @@ class ApercuCorrectifTest {
     @Test
     void leContexteNegatifRefuseDEntree() {
         assertThrows(IllegalArgumentException.class,
-                () -> ApercuCorrectif.de(AVANT, AVANT, -1));
+                () -> PatchPreview.de(AVANT, AVANT, -1));
     }
 
     /** B-18 — le préfixe suit le genre : « - », « + », deux blancs. */
     @Test
     void lePrefixeSuitLeGenre() {
-        assertEquals("- ", new ApercuCorrectif.Ligne(
-                ApercuCorrectif.GenreLigne.ENLEVEE, "x").prefixe());
-        assertEquals("+ ", new ApercuCorrectif.Ligne(
-                ApercuCorrectif.GenreLigne.AJOUTEE, "x").prefixe());
-        assertEquals("  ", new ApercuCorrectif.Ligne(
-                ApercuCorrectif.GenreLigne.INTACTE, "x").prefixe());
-        assertEquals("+ x", new ApercuCorrectif.Ligne(
-                ApercuCorrectif.GenreLigne.AJOUTEE, "x").rendue());
+        assertEquals("- ", new PatchPreview.Line(
+                PatchPreview.LineKind.ENLEVEE, "x").prefixe());
+        assertEquals("+ ", new PatchPreview.Line(
+                PatchPreview.LineKind.AJOUTEE, "x").prefixe());
+        assertEquals("  ", new PatchPreview.Line(
+                PatchPreview.LineKind.INTACTE, "x").prefixe());
+        assertEquals("+ x", new PatchPreview.Line(
+                PatchPreview.LineKind.AJOUTEE, "x").rendue());
     }
 }

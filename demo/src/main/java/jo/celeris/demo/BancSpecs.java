@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import jo.celeris.android.widgets.ApercuCorrectif;
+import jo.celeris.android.widgets.PatchPreview;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.core.language.model.LanguageConfiguration;
@@ -359,7 +359,7 @@ final class BancSpecs {
             if (!epreuve.apply(edition)) {
                 return false;
             }
-            ApercuCorrectif apercu = ApercuCorrectif.de(document, epreuve.text());
+            PatchPreview apercu = PatchPreview.de(document, epreuve.text());
             boolean seVoit = apercu.rendues().contains("- int total = ajouter(1, 2);")
                     && apercu.rendues().contains("+ int total = {ajouter(1, 2)};");
             // l'acceptation applique par la voie de transaction — un
@@ -378,13 +378,13 @@ final class BancSpecs {
 
     /** C-10 — le modificateur d'agencement survolé sert sa documentation (Compose). */
     private static boolean survolModificateur() {
-        FichierExemple fichier = FichiersExemple.parNom("Apercus.kt");
+        FichierExemple fichier = FichiersExemple.parNom("Previews.kt");
         if (fichier == null) {
             return false;
         }
         String texte = fichier.contenu();
-        String uri = "file:///Apercus.kt";
-        String langue = LangagesDemo.registre().byFilename("Apercus.kt").id();
+        String uri = "file:///Previews.kt";
+        String langue = LangagesDemo.registre().byFilename("Previews.kt").id();
         int caret = texte.indexOf("padding(16.dp)") + 2;
         ServeurLangage serveur = ServeurLangage.demarrer();
         try {

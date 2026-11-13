@@ -19,19 +19,19 @@ import java.util.Objects;
  * ne montre que les lignes changées. Les textes identiques ne montrent
  * rien : un correctif qui n'engage à rien ne se prévise pas.</p>
  */
-public final class ApercuCorrectif {
+public final class PatchPreview {
 
     /** Le contexte par défaut : deux lignes intactes autour d'un bloc. */
     public static final int CONTEXTE_DEFAUT = 2;
 
-    private final List<Ligne> lignes;
+    private final List<Line> lignes;
 
-    private ApercuCorrectif(List<Ligne> lignes) {
+    private PatchPreview(List<Line> lignes) {
         this.lignes = List.copyOf(lignes);
     }
 
     /** Le genre d'une ligne d'aperçu. */
-    public enum GenreLigne {
+    public enum LineKind {
 
         /** La ligne existe dans l'ancien texte seulement. */
         ENLEVEE,
@@ -44,7 +44,7 @@ public final class ApercuCorrectif {
     }
 
     /** Une ligne d'aperçu : son genre et son texte. */
-    public record Ligne(GenreLigne genre, String texte) {
+    public record Line(LineKind genre, String texte) {
 
         /** Le préfixe de la ligne rendue : « - », « + » ou deux blancs. */
         public String prefixe() {
@@ -69,7 +69,7 @@ public final class ApercuCorrectif {
      * @param apres le texte après l'édition proposée
      * @return l'aperçu, ou l'aperçu vide quand les textes sont identiques
      */
-    public static ApercuCorrectif de(String avant, String apres) {
+    public static PatchPreview de(String avant, String apres) {
         return de(avant, apres, CONTEXTE_DEFAUT);
     }
 
@@ -85,7 +85,7 @@ public final class ApercuCorrectif {
      * @return l'aperçu, ou l'aperçu vide quand les textes sont identiques
      * @throws IllegalArgumentException si le contexte est négatif
      */
-    public static ApercuCorrectif de(String avant, String apres, int contexte) {
+    public static PatchPreview de(String avant, String apres, int contexte) {
         Objects.requireNonNull(avant, "avant");
         Objects.requireNonNull(apres, "apres");
         if (contexte < 0) {
@@ -93,31 +93,31 @@ public final class ApercuCorrectif {
         }
         List<DiffBlocs.BlocDiff> blocs = DiffBlocs.de(avant, apres).blocs();
         List<String> anciennes = lignes(avant);
-        List<Ligne> rendues = new ArrayList<>();
+        List<Line> rendues = new ArrayList<>();
         // Le parcours unifié : chaque ligne ancienne se rend au plus une
         // fois — intacte de contexte, ou dans son bloc avec ses
         // ajoutées derrière ; les blocs d'ajout pur s'ancrent à leur
         // ligne — leurs lignes se rendent avant elle.
         for (int i = 0; i < anciennes.size(); i++) {
             ajoutsPurs(blocs, i).forEach(ligne ->
-                    rendues.add(new Ligne(genre(ligne), ligne.texte())));
+                    rendues.add(new Line(genre(ligne), ligne.texte())));
             DiffBlocs.BlocDiff bloc = blocDe(blocs, i);
             if (bloc != null) {
-                for (DiffBlocs.LigneDiff ligne : bloc.lignes()) {
-                    rendues.add(new Ligne(genre(ligne), ligne.texte()));
+                for (DiffBlocs.LineDiff ligne : bloc.lignes()) {
+                    rendues.add(new Line(genre(ligne), ligne.texte()));
                 }
                 i = bloc.finAncien() - 1;
                 continue;
             }
             if (presDe(blocs, i, contexte)) {
-                rendues.add(new Ligne(GenreLigne.INTACTE, anciennes.get(i)));
+                rendues.add(new Line(LineKind.INTACTE, anciennes.get(i)));
             }
         }
         // L'ajout pur ancré à la fin du texte : le parcours ne l'atteint
         // jamais — il se rend en dernier.
         ajoutsPurs(blocs, anciennes.size()).forEach(ligne ->
-                rendues.add(new Ligne(genre(ligne), ligne.texte())));
-        return new ApercuCorrectif(rendues);
+                rendues.add(new Line(genre(ligne), ligne.texte())));
+        return new PatchPreview(rendues);
     }
 
     /**
@@ -126,7 +126,7 @@ public final class ApercuCorrectif {
      *
      * @return les lignes, non modifiables
      */
-    public List<Ligne> lignes() {
+    public List<Line> lignes() {
         return lignes;
     }
 
@@ -136,8 +136,8 @@ public final class ApercuCorrectif {
      * @return vrai si au moins une ligne changée se montre
      */
     public boolean porteChangement() {
-        for (Ligne ligne : lignes) {
-            if (ligne.genre() != GenreLigne.INTACTE) {
+        for (Line ligne : lignes) {
+            if (ligne.genre() != LineKind.INTACTE) {
                 return true;
             }
         }
@@ -151,14 +151,14 @@ public final class ApercuCorrectif {
      */
     public List<String> rendues() {
         List<String> sortie = new ArrayList<>();
-        for (Ligne ligne : lignes) {
+        for (Line ligne : lignes) {
             sortie.add(ligne.rendue());
         }
         return sortie;
     }
 
     /** Les lignes d'ajout pur du bloc ancré à la ligne ancienne donnée. */
-    private static List<DiffBlocs.LigneDiff> ajoutsPurs(List<DiffBlocs.BlocDiff> blocs,
+    private static List<DiffBlocs.LineDiff> ajoutsPurs(List<DiffBlocs.BlocDiff> blocs,
             int ligneAncienne) {
         for (DiffBlocs.BlocDiff bloc : blocs) {
             if (bloc.debutAncien() == ligneAncienne
@@ -193,9 +193,9 @@ public final class ApercuCorrectif {
     }
 
     /** Le genre d'aperçu d'une ligne de diff. */
-    private static GenreLigne genre(DiffBlocs.LigneDiff ligne) {
+    private static LineKind genre(DiffBlocs.LineDiff ligne) {
         return ligne.type() == DiffBlocs.TypeLigne.ENLEVEE
-                ? GenreLigne.ENLEVEE : GenreLigne.AJOUTEE;
+                ? LineKind.ENLEVEE : LineKind.AJOUTEE;
     }
 
     /** Les lignes du texte, la convention du diff : coupe au saut. */

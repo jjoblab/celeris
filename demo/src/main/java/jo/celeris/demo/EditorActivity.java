@@ -120,26 +120,23 @@ public final class EditorActivity extends AppCompatActivity {
         chemin = CheminDoc.de("/" + nomFichier);
         session = TextSession.of(fichier.contenu(), System::nanoTime);
         atelierLint = new AtelierLint(nomFichier, session, this::surLint);
-        atelierDiff = new AtelierDiff(this, reference, session,
-                this::paletteFeuilles, this::apresFusion);
-        // L'atelier de l'aperçu du correctif (B-18) : le serveur se lit
-        // à l'ouverture — il se branche après la scène, l'uri suit le
-        // fichier ouvert.
-        atelierCorrectif = new AtelierCorrectif(this, session,
-                this::paletteFeuilles, this::apresFusion,
-                () -> serveurLangage, () -> "file:///" + nomFichier);
-        atelierAgent = new AtelierAgent(this, session,
-                this::paletteFeuilles, this::apresFusion);
+        atelierDiff = new AtelierDiff(this, reference, session, this::paletteFeuilles, this::apresFusion);
+        // L'atelier de l'aperçu du correctif (B-18) : le serveur se lit à
+        // l'ouverture, l'uri suit le fichier ouvert.
+        atelierCorrectif = new AtelierCorrectif(this, session, this::paletteFeuilles,
+                this::apresFusion, () -> serveurLangage, () -> "file:///" + nomFichier);
+        atelierAgent = new AtelierAgent(this, session, this::paletteFeuilles,
+                this::apresFusion);
         session.addEditListener((debut, fin, retire, insere) -> {
             majPosition();
             majMarques();
             majPastillesEtReperes();
-            // les touches de code se ré-évaluent à la frappe — l'état
+            // les touches de code se ré-évaluent à la frappe : l'état
             // activé suit le document
             if (atelierBarreToolbar != null) {
                 atelierBarreToolbar.barreTouches().refreshEnabled();
             }
-            // La frappe suivante refuse le fantôme (F-09) — l'atelier IA
+            // La frappe suivante refuse le fantôme (F-09) : l'atelier IA
             // suit s'il est déjà en place.
             if (atelierIA != null) {
                 atelierIA.surEdition();
@@ -147,8 +144,8 @@ public final class EditorActivity extends AppCompatActivity {
         });
         setContentView(R.layout.activity_editor);
         brancherScene();
-        // La feuille des réglages vit après la scène : sa palette se
-        // dérive du thème de l'éditeur, qui nait dans la scène (ADR-018).
+        // La feuille des réglages vit après la scène : sa palette se dérive
+        // du thème de l'éditeur, qui nait dans la scène (ADR-018).
         feuilleReglages = new FeuilleReglages(this, this::paletteFeuilles,
                 this::appliquerPreferences);
         // Le catalogue des actions suit la scène : les ateliers s'y
@@ -156,8 +153,7 @@ public final class EditorActivity extends AppCompatActivity {
         catalogue = new CatalogueActions(this, nomFichier, atelierLint,
                 atelierDiff, atelierCorrectif, atelierAgent, atelierIA, atelierPopups,
                 atelierRefactor, atelierRecherche, basculeTheme,
-                feuilleReglages, () -> entreesPlan, this::lignesCourantes,
-                atelierBarreToolbar);
+                feuilleReglages, () -> entreesPlan, this::lignesCourantes, atelierBarreToolbar);
         catalogue.brancher();
         atelierPopups.configurerIntentions(catalogue.intentions());
         appliquerPreferences();
@@ -212,15 +208,12 @@ public final class EditorActivity extends AppCompatActivity {
         // L'intelligence de la démonstration se pose sur la vue (M7.5,
         // §8) : frappe intelligente, Entrée indentée, collage réindenté,
         // complétion par les mots du code.
-        editeur.intelligence().setProvider(new DemoIntelligence(
-                this::langueOuverte));
-        atelierIA = new AtelierIA(this, editeur, session, nomFichier,
-                this::paletteFeuilles, this::verdictRefactor,
-                () -> feuilleReglages.montrer());
+        editeur.intelligence().setProvider(new DemoIntelligence(this::langueOuverte));
+        atelierIA = new AtelierIA(this, editeur, session, nomFichier, this::paletteFeuilles,
+                this::verdictRefactor, () -> feuilleReglages.montrer());
         brancherAteliers();
         // La feuille du plan vit après le thème : sa palette s'en dérive.
-        feuillePlan = new FeuillePlan(this, this::paletteFeuilles,
-                this::sautVersEntree);
+        feuillePlan = new FeuillePlan(this, this::paletteFeuilles, this::sautVersEntree);
         editeur.setSurPlan(entrees -> {
             entreesPlan = entrees;
             editeur.post(() -> {
@@ -330,12 +323,10 @@ public final class EditorActivity extends AppCompatActivity {
             }
         });
         atelierPopups.setNomFichier(nomFichier);
-        atelierPopups.brancherServeur(serveurLangage,
-                "file:///" + nomFichier);
+        atelierPopups.brancherServeur(serveurLangage, "file:///" + nomFichier);
         atelierSelection = new AtelierSelection(editeur, session);
         atelierPopups.configurerActionsSelection(
-                atelierSelection.principales(
-                        getString(R.string.barre_couper),
+                atelierSelection.principales(getString(R.string.barre_couper),
                         getString(R.string.barre_copier),
                         getString(R.string.barre_coller)),
                 atelierSelection.debordement(
@@ -358,8 +349,7 @@ public final class EditorActivity extends AppCompatActivity {
      *  au-dessus du clavier (Tab, commentaire, déplacements,
      *  duplication). */
     private void brancherToolbar() {
-        atelierBarreToolbar = new AtelierBarreToolbar(
-                atelierPopups.controleur(), couche(),
+        atelierBarreToolbar = new AtelierBarreToolbar(atelierPopups.controleur(), couche(),
                 atelierPopups.carteMenus(), paletteFeuilles());
         atelierBarreToolbar.poserBarreTouches(
                 new AtelierTouchesCode(this, editeur, session,
@@ -592,8 +582,7 @@ public final class EditorActivity extends AppCompatActivity {
         EtatLignesVcs etat = DiffLignes.etat(reference, session.document().text());
         MarquesIntegration marques = AdaptateurMarques.depuis(etat,
                 etatDebogage.debogueur().arrets(), chemin,
-                etatDebogage.debogueur().ligneCourante(),
-                etatDebogage.debogueur().pileCourante());
+                etatDebogage.debogueur().ligneCourante(), etatDebogage.debogueur().pileCourante());
         editeur.marquesGouttiere().setIntegration(marques);
         editeur.invalidate();
     }

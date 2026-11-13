@@ -64,7 +64,7 @@ class FichiersBinairesTest {
     @Test
     void lApercuRendSesLignes() {
         byte[] octets = new byte[] {'A', 'c', 'c', 'u', 'e', 'i', 'l', 0x00, 'b', 'o', 'r', 'd'};
-        ApercuHexadecimal.Apercu apercu = ApercuHexadecimal.de(octets);
+        HexadecimalPreview.Dump apercu = HexadecimalPreview.de(octets);
         assertFalse(apercu.tronque(), "douze octets tiennent sous le plafond");
         assertEquals(1, apercu.lignes().size());
         assertEquals("00000000  41 63 63 75 65 69 6C 00 62 6F 72 64 "
@@ -76,12 +76,12 @@ class FichiersBinairesTest {
     /** A-26 — le plafond tient : 256 lignes, 4 Kio, le drapeau de coupe le dit. */
     @Test
     void lePlafondTient() {
-        ApercuHexadecimal.Apercu plein = ApercuHexadecimal.de(new byte[4096]);
-        assertEquals(ApercuHexadecimal.PLAFOND_LIGNES, plein.lignes().size(),
+        HexadecimalPreview.Dump plein = HexadecimalPreview.de(new byte[4096]);
+        assertEquals(HexadecimalPreview.PLAFOND_LIGNES, plein.lignes().size(),
                 "4 Kio exact : 256 lignes, pas de coupe");
         assertFalse(plein.tronque());
-        ApercuHexadecimal.Apercu vaste = ApercuHexadecimal.de(new byte[4097]);
-        assertEquals(ApercuHexadecimal.PLAFOND_LIGNES, vaste.lignes().size(),
+        HexadecimalPreview.Dump vaste = HexadecimalPreview.de(new byte[4097]);
+        assertEquals(HexadecimalPreview.PLAFOND_LIGNES, vaste.lignes().size(),
                 "l'octet de trop se coupe : le plafond tient");
         assertTrue(vaste.tronque(), "le drapeau de coupe se porte");
     }

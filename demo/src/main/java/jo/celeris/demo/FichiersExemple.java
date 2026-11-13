@@ -367,7 +367,7 @@ public final class FichiersExemple {
             new FichierExemple("inventaire.sql", SQL),
             new FichierExemple("proguard-rules.pro", PROGUARD),
             new FichierExemple("couleurs.xml", COULEURS),
-            new FichierExemple("Apercus.kt", APERCUS));
+            new FichierExemple("Previews.kt", APERCUS));
 
     /** Le fichier d'exemple du paquet jouet (H-04). */
     private static final FichierExemple JOUET =

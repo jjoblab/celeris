@@ -31,7 +31,7 @@ public final class DiffBlocs {
     }
 
     /** Une ligne du diff : son type, ses lignes d'origine et son texte. */
-    public record LigneDiff(TypeLigne type, int ligneAncienne, int ligneNouvelle,
+    public record LineDiff(TypeLigne type, int ligneAncienne, int ligneNouvelle,
             String texte) {
     }
 
@@ -46,7 +46,7 @@ public final class DiffBlocs {
      * @param lignes      les lignes du bloc, enlevées puis ajoutées
      */
     public record BlocDiff(int debutAncien, int finAncien, int debutNouveau,
-            int finNouveau, List<LigneDiff> lignes) {
+            int finNouveau, List<LineDiff> lignes) {
     }
 
     private final List<BlocDiff> blocs;
@@ -81,13 +81,13 @@ public final class DiffBlocs {
                     : nouvelles.size();
             if (suivantAncien > ancreAncienne + 1
                     || suivantNouveau > ancreNouvelle + 1) {
-                List<LigneDiff> lignesBloc = new ArrayList<>();
+                List<LineDiff> lignesBloc = new ArrayList<>();
                 for (int i = ancreAncienne + 1; i < suivantAncien; i++) {
-                    lignesBloc.add(new LigneDiff(TypeLigne.ENLEVEE, i, -1,
+                    lignesBloc.add(new LineDiff(TypeLigne.ENLEVEE, i, -1,
                             anciennes.get(i)));
                 }
                 for (int j = ancreNouvelle + 1; j < suivantNouveau; j++) {
-                    lignesBloc.add(new LigneDiff(TypeLigne.AJOUTEE, -1, j,
+                    lignesBloc.add(new LineDiff(TypeLigne.AJOUTEE, -1, j,
                             nouvelles.get(j)));
                 }
                 blocs.add(new BlocDiff(ancreAncienne + 1, suivantAncien,
@@ -150,7 +150,7 @@ public final class DiffBlocs {
     public List<String> enLigne() {
         List<String> rendues = new ArrayList<>();
         for (BlocDiff bloc : blocs) {
-            for (LigneDiff ligne : bloc.lignes()) {
+            for (LineDiff ligne : bloc.lignes()) {
                 rendues.add((ligne.type() == TypeLigne.ENLEVEE ? "- " : "+ ")
                         + ligne.texte());
             }
@@ -169,9 +169,9 @@ public final class DiffBlocs {
     public List<String> coteACote(int largeur) {
         List<String> rendues = new ArrayList<>();
         for (BlocDiff bloc : blocs) {
-            List<LigneDiff> enlevees = new ArrayList<>();
-            List<LigneDiff> ajoutees = new ArrayList<>();
-            for (LigneDiff ligne : bloc.lignes()) {
+            List<LineDiff> enlevees = new ArrayList<>();
+            List<LineDiff> ajoutees = new ArrayList<>();
+            for (LineDiff ligne : bloc.lignes()) {
                 if (ligne.type() == TypeLigne.ENLEVEE) {
                     enlevees.add(ligne);
                 } else {

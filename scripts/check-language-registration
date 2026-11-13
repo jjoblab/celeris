@@ -45,6 +45,10 @@ EXEMPTIONS = {
     # contenu balisé, pas un identifiant de langage ; la collision de
     # nom avec le langage markdown est le fait du protocole
     "demo/src/main/java/jo/celeris/demo/ServeurReference.java",
+    # le survol des modificateurs (C-10) porte le même genre de contenu
+    # balisé — la documentation s'y habille en markdown du protocole,
+    # l'identifiant de langage ne s'y trouve pas plus
+    "core-lsp/src/main/java/jo/celeris/core/lsp/DocModificateurs.java",
 }
 
 # Le présent script se lit lui-même (auto-référence des messages).

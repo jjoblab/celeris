@@ -11,4 +11,9 @@
          collaborateur partageant leurs appareils (602 lignes) — la
          traîne C13 du volume de tests continue d'y grossir. -->
     <suppress id="PlafondStandard" files="GutterPainterTest\.java"/>
+    <!-- Le banc de la spécification de la démonstration (ADR-019,
+         nomination du 2026-11-13) : chaque chantier livré y rejoue son
+         scénario sur les mêmes appareils (675 lignes) — le banc suit la
+         grille, la grille suit les livraisons. -->
+    <suppress id="PlafondStandard" files="BancSpecs\.java"/>
 </suppressions>

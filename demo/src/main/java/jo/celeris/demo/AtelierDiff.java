@@ -162,7 +162,7 @@ final class AtelierDiff {
     private List<String> lignesDuBloc(int bloc) {
         DiffBlocs diffs = DiffBlocs.de(reference, session.document().text());
         List<String> rendues = new ArrayList<>();
-        for (DiffBlocs.LigneDiff ligne : diffs.blocs().get(bloc).lignes()) {
+        for (DiffBlocs.LineDiff ligne : diffs.blocs().get(bloc).lignes()) {
             rendues.add((ligne.type() == DiffBlocs.TypeLigne.ENLEVEE ? "- " : "+ ")
                     + ligne.texte());
         }

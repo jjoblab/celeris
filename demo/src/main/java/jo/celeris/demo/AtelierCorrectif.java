@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
-import jo.celeris.android.widgets.ApercuCorrectif;
+import jo.celeris.android.widgets.PatchPreview;
 import jo.celeris.android.widgets.FeuilleHaut;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.core.lsp.EditsEspaceLsp;
@@ -111,7 +111,7 @@ final class AtelierCorrectif {
         if (!epreuve.apply(proposee)) {
             return;
         }
-        ApercuCorrectif apercu = ApercuCorrectif.de(avant, epreuve.text());
+        PatchPreview apercu = PatchPreview.de(avant, epreuve.text());
         if (!apercu.porteChangement()) {
             return;
         }
@@ -130,7 +130,7 @@ final class AtelierCorrectif {
     }
 
     /** La feuille de l'aperçu : titre, lignes préfixées, les deux décisions. */
-    private void montrer(String titre, ApercuCorrectif apercu) {
+    private void montrer(String titre, PatchPreview apercu) {
         FeuilleHaut feuilleCourante = feuille;
         if (feuilleCourante == null) {
             feuilleCourante = new FeuilleHaut(activite, palettes.get());

@@ -17,7 +17,7 @@ import java.util.Objects;
  * (le refus d'édition destructrice, A-26 : le binaire ne repart
  * JAMAIS par la voie texte).</p>
  */
-public final class ApercuHexadecimal {
+public final class HexadecimalPreview {
 
     /** Le plafond de lignes : 256 lignes, 4 Kio d'octets. */
     public static final int PLAFOND_LIGNES = 256;
@@ -25,7 +25,7 @@ public final class ApercuHexadecimal {
     /** Les octets par ligne : seize, le classique du vidage. */
     public static final int OCTETS_PAR_LIGNE = 16;
 
-    private ApercuHexadecimal() {
+    private HexadecimalPreview() {
     }
 
     /**
@@ -34,10 +34,10 @@ public final class ApercuHexadecimal {
      * @param lignes  les lignes rendues, au plus {@link #PLAFOND_LIGNES}
      * @param tronque vrai quand le fichier dépasse le plafond
      */
-    public record Apercu(List<String> lignes, boolean tronque) {
+    public record Dump(List<String> lignes, boolean tronque) {
 
         /** Constructeur canonique : liste figée. */
-        public Apercu {
+        public Dump {
             lignes = List.copyOf(lignes);
         }
     }
@@ -51,14 +51,14 @@ public final class ApercuHexadecimal {
      * @param octets les octets bruts du fichier
      * @return l'aperçu : ses lignes et son drapeau de coupe
      */
-    public static Apercu de(byte[] octets) {
+    public static Dump de(byte[] octets) {
         Objects.requireNonNull(octets, "octets");
         List<String> lignes = new ArrayList<>();
         int total = Math.min(octets.length, PLAFOND_LIGNES * OCTETS_PAR_LIGNE);
         for (int debut = 0; debut < total; debut += OCTETS_PAR_LIGNE) {
             lignes.add(ligne(octets, debut, total));
         }
-        return new Apercu(lignes, octets.length > total);
+        return new Dump(lignes, octets.length > total);
     }
 
     /** La ligne du vidage : décalage, seize octets, gouttière. */
