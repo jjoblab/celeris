@@ -163,11 +163,15 @@ aucune dépendance nouvelle ; la passe de référence reste verte
 restes, décisions du propriétaire — dont le plafond relevable à
 1 200 lignes, par nomination, le jour où un fichier du chantier bute).
 
-**Blocage** : aucun — le signal du 2026-11-13 (« lancé 90 % du chantier ») a réveillé
-la première vague (le pas étendu PAGE_UP/PAGE_DOWN, la carte des
-usages du symbole ; voir [`feuille-de-route-popups.md`](feuille-de-route-popups.md)) ; les suivantes (hiérarchies, valeurs de débogage, notifications,
-recherche de symbole) dorment sur le prochain signal, chacune
-reprendra le socle par la recette du guide.
+**Blocage** : aucun — le signal du 2026-11-13 (« lancé 90 % du chantier ») est
+ÉPUISÉ : la passe des six surfaces du même jour a livré son reste
+(l'info de type, la hiérarchie de types et d'appels, la notification,
+les valeurs de débogage en ligne, l'aller à fichier/symbole, la
+documentation externe et la résolution d'import local — le journal vit
+à [`feuille-de-route-popups.md`](feuille-de-route-popups.md), 2 420
+tests, 0 échec) ; les suivantes (suppress inspection, catégorie D,
+exception details) dorment sur le prochain signal, chacune reprendra le
+socle par la recette du guide.
 
 **Source** : le mandat du propriétaire ;
 [`POPUP_SYSTEM_AUDIT.md`](POPUP_SYSTEM_AUDIT.md) ;
