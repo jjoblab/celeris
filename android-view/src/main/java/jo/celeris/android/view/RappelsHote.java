@@ -1,6 +1,7 @@
 package jo.celeris.android.view;
 
 import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 
 import org.jspecify.annotations.Nullable;
 
@@ -21,6 +22,10 @@ final class RappelsHote {
     /** Le consommateur d'appui long de l'hôte (M7.6) — le moment du survol. */
     private volatile @Nullable IntConsumer surAppuiLong;
 
+    /** Le verdict de double-tap de l'hôte — le moment du color picker
+     *  d'un littéral de couleur, par exemple. */
+    private volatile @Nullable IntPredicate surDoubleTap;
+
     /** Le consommateur de bascule d'arrêt de l'hôte (D-04) — l'appui long de gouttière. */
     private volatile @Nullable IntConsumer surBasculeArret;
 
@@ -39,6 +44,25 @@ final class RappelsHote {
         if (consommateur != null) {
             consommateur.accept(offset);
         }
+    }
+
+    /**
+     * Pose (ou coupe) le verdict de double-tap.
+     *
+     * @param consommateur le verdict d'offset, null pour couper
+     */
+    void poserDoubleTap(@Nullable IntPredicate consommateur) {
+        surDoubleTap = consommateur;
+    }
+
+    /**
+     * Notifie l'hôte du double-tap : vrai quand l'hôte CONSOMME le
+     * geste (la cascade du tap simple ne suit pas), faux quand il le
+     * laisse passer.
+     */
+    boolean notifierDoubleTap(int offset) {
+        IntPredicate consommateur = surDoubleTap;
+        return consommateur != null && consommateur.test(offset);
     }
 
     /**

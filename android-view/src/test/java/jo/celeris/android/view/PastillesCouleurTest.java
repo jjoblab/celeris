@@ -61,6 +61,29 @@ class PastillesCouleurTest {
     }
 
     @Test
+    void tousLesLitterauxDuneLigneSEncadrent() {
+        List<PastilleCouleur> pastilles =
+                PastillesCouleur.tous(3, "a #fff b #0000CD c");
+        assertEquals(2, pastilles.size());
+        assertEquals(3, pastilles.get(0).ligne());
+        assertEquals(3, pastilles.get(0).colonne());
+        assertEquals(0xFFFFFFFF, pastilles.get(0).argb());
+        assertEquals(4, pastilles.get(0).longueur());
+        assertEquals(10, pastilles.get(1).colonne());
+        assertEquals(0xFF0000CD, pastilles.get(1).argb());
+        assertEquals(7, pastilles.get(1).longueur());
+        assertTrue(PastillesCouleur.tous(0, "sans couleur").isEmpty());
+    }
+
+    @Test
+    void leFormatTientLaLargeurDuLitteral() {
+        assertEquals("#e43", PastillesCouleur.formater(0xFFF44336, 3));
+        assertEquals("#822196f3", PastillesCouleur.formater(0x822196F3, 8));
+        assertEquals("#2196f3", PastillesCouleur.formater(0xFF2196F3, 6));
+        assertEquals("#8f00", PastillesCouleur.formater(0x80FF0000, 4));
+    }
+
+    @Test
     void lesLignesRendentLeursPastillesDansLOrdre() {
         List<PastilleCouleur> pastilles = PastillesCouleur.desLignes(List.of(
                 "<resources>",

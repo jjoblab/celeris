@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 
 import jo.celeris.core.ai.SuggestionFantome;
 import jo.celeris.core.language.model.LanguageSupport;
@@ -193,12 +194,11 @@ public final class EditorView extends View {
         });
         BrushFactory pinceaux = usinePinceaux = new PaintBrushes(reglePolices);
         fantome = new FantomeEditeur(this, pinceaux);
-        // La respiration naît à la densité de l'appareil : la valeur vit
-        // en dp, convertie une fois, en pixels entiers (PIEGE-23, M7.5 §5).
+        // La respiration naît à la densité de l'appareil (PIEGE-23, M7.5 §5).
         gouttiereEtat.setClasse(ClasseLargeur.MOYEN, densite());
         gouttiere = GutterPainter.monter(pinceaux, this);
         trace = ScrollFrame.assemble(gouttiere, pinceaux, () -> syntaxe.guides,
-                sourceLiee::pieceDuPli, composition, cache, sourceLiee, fantome.peintre());
+                sourceLiee::pieceDuPli, densite(), composition, cache, sourceLiee, fantome.peintre());
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
         // logique (sp) se convertit une fois pour toutes (PIEGE-23).
@@ -432,23 +432,21 @@ public final class EditorView extends View {
         syntaxe.setSurPlan(consommateur);
     }
 
-    /**
-     * Le rappel d'appui long (M7.6) : l'offset sélectionné y part —
-     * le moment juste de la documentation au survol. Null coupe.
-     *
-     * @param consommateur le consommateur d'offset, null pour couper
-     */
+    /** Le rappel d'appui long (M7.6) : l'offset sélectionné — le moment
+     *  juste du survol. Null coupe. */
     public void setSurAppuiLong(@Nullable IntConsumer consommateur) {
         rappels.poserAppuiLong(consommateur);
     }
 
-    /**
-     * Le rappel de bascule de point d'arrêt (D-04, la reprise) :
-     * l'appui long de gouttière rend la LIGNE visée à l'hôte — c'est
-     * lui qui pose, retire ou désactive l'arrêt. Null coupe.
-     *
-     * @param consommateur le consommateur de ligne, null pour couper
-     */
+    /** Le verdict de double-tap (le signal du propriétaire : le color
+     *  picker d'un littéral au double-clic) : consommé, la cascade du
+     *  tap simple ne suit pas. Null coupe. */
+    public void setSurDoubleTap(@Nullable IntPredicate consommateur) {
+        rappels.poserDoubleTap(consommateur);
+    }
+
+    /** Le rappel de bascule de point d'arrêt (D-04) : l'appui long de
+     *  gouttière rend la LIGNE visée. Null coupe. */
     public void setSurBasculeArret(@Nullable IntConsumer consommateur) {
         rappels.poserBasculeArret(consommateur);
     }

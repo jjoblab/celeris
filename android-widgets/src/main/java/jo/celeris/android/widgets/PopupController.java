@@ -82,7 +82,14 @@ public final class PopupController {
          *  ornement du bas de la scène AU-DESSUS DU CLAVIER — l'hôte la
          *  pose, ni la frappe ni le défilement ne la ferment (le
          *  clavier la remonte avec l'IME). */
-        TOUCH_BAR
+        TOUCH_BAR,
+
+        /** Le sélecteur de couleur (le signal du propriétaire du
+         *  2026-11-13 : le color picker au double-clic d'un littéral)
+         *  — fermé à la frappe et au défilement, comme le survol : le
+         *  pick s'applique implicite, la carte ne survit pas au geste
+         *  qui la quitte. */
+        COLOR_PICKER
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -151,6 +158,7 @@ public final class PopupController {
         ouverts.remove(PopupKind.DIAGNOSTIC_TOOLTIP);
         ouverts.remove(PopupKind.SELECTION_BAR);
         ouverts.remove(PopupKind.SELECTION_OVERFLOW);
+        ouverts.remove(PopupKind.COLOR_PICKER);
     }
 
     /**
@@ -160,6 +168,7 @@ public final class PopupController {
     public void onScroll() {
         ouverts.remove(PopupKind.HOVER);
         ouverts.remove(PopupKind.DIAGNOSTIC_TOOLTIP);
+        ouverts.remove(PopupKind.COLOR_PICKER);
     }
 
     /** Vrai si le popup donné est ouvert. */

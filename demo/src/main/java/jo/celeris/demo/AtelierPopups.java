@@ -66,6 +66,8 @@ final class AtelierPopups {
     private final AtelierBordDroit bordDroit;
     /** Le menu de débordement de la barre — la carte du kit sous la puce. */
     private final MenuDebordement menuDebordement;
+    /** L'atelier des couleurs — le sélecteur au double-tap d'un littéral. */
+    private final AtelierCouleur atelierCouleur;
 
     /** Le thème courant — la palette des popups en dérive, le rafraîchissement la suit. */
     private EditorTheme theme;
@@ -121,6 +123,8 @@ final class AtelierPopups {
         barreSelection = new SelectionBarView(couche.getContext(), palette);
         menuDebordement = new MenuDebordement(controleur, menuIntentions,
                 couche, margePx);
+        atelierCouleur = new AtelierCouleur(editeur, session, controleur,
+                couche, margePx, palette);
         docAncre = new DocAncre(editeur.getContext(), controleur,
                 docCompletion, couche, editeur, session, margePx);
         bordDroit = new AtelierBordDroit(controleur, couche, editeur,
@@ -135,24 +139,13 @@ final class AtelierPopups {
         editeur.setSurViewportChange(this::surFenetre);
     }
 
-    /**
-     * Le thème tourne : la palette des popups se redérive — le verre
-     * suit le fond de l'éditeur, les encres suivent le thème, les
-     * panneaux ouverts se redessinent.
-     *
-     * @param nouveau le thème d'éditeur appliqué
-     */
+    /** Le thème tourne : la palette se redérive — le verre suit. */
     void surTheme(EditorTheme nouveau) {
         theme = nouveau;
         rafraichirPalette();
     }
 
-    /**
-     * La taille de texte de l'éditeur change : la typographie des
-     * popups s'y accorde (l'échelle du kit dérive de la base).
-     *
-     * @param tailleSp la nouvelle taille, en sp
-     */
+    /** La taille de texte tourne : la typographie des popups suit. */
     void surTailleTexte(float tailleSp) {
         tailleTexteSp = tailleSp;
         rafraichirPalette();
@@ -168,6 +161,7 @@ final class AtelierPopups {
         filAriane.setPalette(palette);
         bordDroit.surPalette(palette);
         barreSelection.setPalette(palette);
+        atelierCouleur.surPalette(palette);
     }
 
     /** La palette dérivée du thème d'éditeur — le verre du dépôt de
@@ -212,6 +206,12 @@ final class AtelierPopups {
             List<SelectionBarView.Item> debordement) {
         actionsSelection = List.copyOf(principales);
         debordementSelection = List.copyOf(debordement);
+    }
+
+    /** Ouvre le sélecteur de couleur au double-tap d'un littéral — le
+     *  verdict dit si le geste est consommé. */
+    boolean ouvrirColorPicker(int offset) {
+        return atelierCouleur.ouvrirAuDoubleTap(offset);
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */
@@ -316,15 +316,10 @@ final class AtelierPopups {
             int caret = caret();
             serveur.survol(uriDocument, session.document(), symbole, caret)
                     .whenComplete((doc, echec) -> editeur.post(
-                            () -> montrerSurvol(doc)));
+                            () -> docAncre.survol(doc)));
             return;
         }
-        montrerSurvol(PopupCoach.docFor(symbole));
-    }
-
-    /** Pose le survol — null ferme, le modèle sinon s'ancre au point. */
-    private void montrerSurvol(CompletionDocModel doc) {
-        docAncre.survol(doc);
+        docAncre.survol(PopupCoach.docFor(symbole));
     }
 
     /** Le poseur de documents ancrés — l'activité y lit (C12). */

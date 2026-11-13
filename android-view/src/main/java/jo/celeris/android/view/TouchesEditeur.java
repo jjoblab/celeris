@@ -37,6 +37,12 @@ final class TouchesEditeur {
      */
     private static final float SEUIL_TAP_PX = 24f;
 
+    /**
+     * L'écart maximal des deux taps d'un double-tap, en millisecondes —
+     * au-delà, le second tap retombe dans la cascade du simple.
+     */
+    private static final long ECART_DOUBLE_TAP_MS = 300L;
+
     private final EditorView vue;
 
     private float dernierX;
@@ -58,6 +64,12 @@ final class TouchesEditeur {
     private int motFin;
     /** L'offset de l'appui long — l'ancre simple hors de tout mot. */
     private int offsetAppuiLong;
+    /** L'instant du dernier tap conclu — l'écart au suivant y lit le
+     *  double-tap ; zéro hors tap. */
+    private long dernierTapA;
+    /** La position du dernier tap conclu. */
+    private float dernierTapX;
+    private float dernierTapY;
 
     /**
      * Construit le collaborateur de la vue donnée — la vue n'est
@@ -326,9 +338,36 @@ final class TouchesEditeur {
         poigneeTiree = SelectionHandles.HandleId.NONE;
         vue.glissement.up();
         if (tap) {
+            if (doubleTapRapproche(event) && vue.rappels.notifierDoubleTap(
+                    offsetAt(event.getX(), event.getY()))) {
+                // l'hôte consomme le geste : la cascade du tap simple ne
+                // suit pas — le curseur ne bouge pas, le clavier ne s'arme pas
+                dernierTapA = 0L;
+                return true;
+            }
             resoudreTap(event.getX(), event.getY());
+            dernierTapA = event.getEventTime();
+            dernierTapX = event.getX();
+            dernierTapY = event.getY();
+        } else {
+            dernierTapA = 0L;
         }
         return true;
+    }
+
+    /**
+     * Vrai quand CE tap en rapproche un dernier conclu — dans l'écart du
+     * double-tap et à portée de seuil de tap : un double-tap, le geste
+     * de l'hôte (le color picker d'un littéral de couleur, par exemple).
+     */
+    private boolean doubleTapRapproche(MotionEvent event) {
+        if (dernierTapA == 0L
+                || event.getEventTime() - dernierTapA > ECART_DOUBLE_TAP_MS) {
+            return false;
+        }
+        float dx = event.getX() - dernierTapX;
+        float dy = event.getY() - dernierTapY;
+        return dx * dx + dy * dy <= SEUIL_TAP_PX * SEUIL_TAP_PX;
     }
 
     /**

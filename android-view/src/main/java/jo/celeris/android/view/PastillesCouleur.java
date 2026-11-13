@@ -59,6 +59,60 @@ public final class PastillesCouleur {
     }
 
     /**
+     * TOUTES les pastilles de la ligne donnée, dans l'ordre du balayage
+     * — le texte encadre chaque littéral de couleur, pas seulement le
+     * premier (le constat du propriétaire : « lorsque je tape une
+     * couleur par exemple #fff, #ffffff encadré le avec la couleur
+     * comme dans l'ancien projet »).
+     *
+     * @param numero la ligne, numérotée à partir de zéro
+     * @param ligne  le texte de la ligne
+     * @return les pastilles de la ligne, vide sans littéral
+     */
+    public static List<PastilleCouleur> tous(int numero, String ligne) {
+        List<PastilleCouleur> pastilles = new ArrayList<>();
+        Matcher chercheur = LITTERAL.matcher(ligne);
+        while (chercheur.find()) {
+            String chiffres = chercheur.group(1);
+            pastilles.add(new PastilleCouleur(numero, chercheur.start() + 1,
+                    resoudre(chiffres), chiffres.length() + 1));
+        }
+        return pastilles;
+    }
+
+    /**
+     * Le littéral formaté d'une couleur — l'inverse de la résolution : la
+     * largeur du littéral d'origine tient (ses chiffres), la forme courte
+     * quantifie chaque composante au nibble le plus proche, la sortie
+     * reste en minuscules — le code environnant ne bouge pas, le pick
+     * remplace le littéral en place.
+     *
+     * @param argb    la couleur au format ARGB
+     * @param chiffres la largeur voulue du littéral (ses chiffres, sans le dièse)
+     * @return le littéral formaté, dièse compris
+     */
+    public static String formater(int argb, int chiffres) {
+        return switch (chiffres) {
+            case 3 -> String.format("#%1$x%2$x%3$x",
+                    quantifie((argb >>> 16) & 0xFF),
+                    quantifie((argb >>> 8) & 0xFF),
+                    quantifie(argb & 0xFF));
+            case 4 -> String.format("#%1$x%2$x%3$x%4$x",
+                    quantifie((argb >>> 24) & 0xFF),
+                    quantifie((argb >>> 16) & 0xFF),
+                    quantifie((argb >>> 8) & 0xFF),
+                    quantifie(argb & 0xFF));
+            case 6 -> String.format("#%06x", argb & 0xFFFFFF);
+            default -> String.format("#%08x", argb);
+        };
+    }
+
+    /** La composante quantifiée au nibble le plus proche. */
+    private static int quantifie(int composante) {
+        return Math.round(composante * 15f / 255f);
+    }
+
+    /**
      * La valeur résolue d'un littéral sans son dièse : la forme courte
      * étend ses composantes, la forme sans alpha prend l'alpha plein.
      *

@@ -33,6 +33,8 @@ public final class ScrollFrame {
      * @param pinceaux    la fabrique de pinceaux de la vue
      * @param guides      la source des guides structurels courants
      * @param piecesPli   la source des pièces de pli composé courantes
+     * @param densite     la densité de l'appareil, pour les pastilles de
+     *                    couleur du texte
      * @param composition l'état de composition de la vue
      * @param cache       le cache de rangées de la vue
      * @param source      la source de rangées liée de la vue
@@ -41,8 +43,9 @@ public final class ScrollFrame {
      */
     public static ScrollFrame assemble(GutterPainter gouttiere,
             BrushFactory pinceaux, IndentGuides.GuidesSource guides,
-            FoldPlaceholder.Source piecesPli, CompositionState composition,
-            RowLayoutCache cache, RebindingRowSource source, PainterLayer fantome) {
+            FoldPlaceholder.Source piecesPli, float densite,
+            CompositionState composition, RowLayoutCache cache,
+            RebindingRowSource source, PainterLayer fantome) {
         ScrollFrame pipeline = new ScrollFrame();
         pipeline.addLayer(gouttiere);
         // Les guides d'indentation (A-17) se tracent SOUS la sélection
@@ -57,6 +60,10 @@ public final class ScrollFrame {
         pipeline.addLayer(new FoldPlaceholder(pinceaux, piecesPli));
         pipeline.addLayer(new ComposingPainter(pinceaux, composition));
         pipeline.addLayer(new TextPainter(pinceaux, cache, source));
+        // Les pastilles de couleur (C-05 relue) se tracent APRÈS le
+        // texte : le voile du littéral teinte le glyphe, le trait du
+        // cadre l'encadre — la couleur se voit autour du texte.
+        pipeline.addLayer(new PastillesTexte(pinceaux, densite));
         pipeline.addLayer(fantome);
         return pipeline;
     }

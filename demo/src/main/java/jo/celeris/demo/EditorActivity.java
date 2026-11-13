@@ -336,9 +336,10 @@ public final class EditorActivity extends AppCompatActivity {
                 atelierPopups::fermerRecherche);
         atelierRecherche.brancher();
         // Le moment juste du survol (M7.6) : l'appui long sélectionne le
-        // mot, la documentation du serveur déclaré s'y offre — comme
-        // tout éditeur, la popup survit au geste, null la ferme.
+        // mot, la documentation du serveur déclaré s'y offre.
         editeur.setSurAppuiLong(offset -> atelierPopups.ouvrirSurvol());
+        // Le double-tap d'un littéral de couleur ouvre le sélecteur.
+        editeur.setSurDoubleTap(atelierPopups::ouvrirColorPicker);
         brancherToolbar();
     }
 
