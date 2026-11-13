@@ -36,10 +36,9 @@ import jo.celeris.core.text.TextSession;
  * genres vivant dans la couche posée sur l'éditeur, le MANAGER du kit
  * tient la boucle état→vues d'un seul tenant — l'atelier déclenche, la
  * machine décide, la couche porte. PIEGE-27 : aucun popup ne prend le
- * focus, le clavier reste à l'éditeur — les touches matérielles lui
- * sont DÉLÉGUÉES ({@link #surTouche}) ; la barre de recherche reste
- * l'affaire de l'activité — son champ doit tenir le focus, la couche
- * l'interdit — l'atelier n'en coordonne que l'ÉTAT.
+ * focus, les touches matérielles lui sont DÉLÉGUÉES ({@link #surTouche}) ;
+ * la barre de recherche reste l'affaire de l'activité — son champ doit
+ * tenir le focus, la couche l'interdit — l'atelier n'en coordonne que l'ÉTAT.
  */
 final class AtelierPopups {
 
@@ -98,8 +97,7 @@ final class AtelierPopups {
     /**
      * Construit l'atelier : le manager naît sur la machine et la couche
      * de la scène, les vues se lient à leurs genres (jamais une carte
-     * pour deux — le chantier d'unification), les écouteurs de la
-     * session et de la fenêtre y courtent.
+     * pour deux), les écouteurs y courtent.
      *
      * @param editeur      la vue d'éditeur ouverte
      * @param session      la session d'édition courante
@@ -204,9 +202,8 @@ final class AtelierPopups {
     /**
      * Branche la session de langage (M7.5, §8 — M8.6 : tout serveur
      * déclaré entre par la même porte) : l'aide aux paramètres, le survol
-     * et — quand le serveur les sert — les complétions passent par le
-     * fil du protocole, le coach ne garde que le repli. La langue se
-     * lit du fichier ouvert.
+     * et — quand le serveur les sert — les complétions passent par le fil
+     * du protocole ; la langue se lit du fichier ouvert.
      *
      * @param sessionLangage la session de langage démarrée
      * @param uri            l'uri du document ouvert
@@ -221,13 +218,11 @@ final class AtelierPopups {
                 session.document().text());
     }
 
-    /**
-     * Les actions de la barre de sélection — l'activité les fournit :
+    /** Les actions de la barre de sélection — l'activité les fournit :
      * les principales en pastilles, le débordement derrière la puce.
      *
      * @param principales les actions visibles de la barre
-     * @param debordement les actions repliées, servies par le menu
-     */
+     * @param debordement les actions repliées, servies par le menu */
     void configurerActionsSelection(List<SelectionBarView.Item> principales,
             List<SelectionBarView.Item> debordement) {
         actionsSelection = List.copyOf(principales);
@@ -265,9 +260,9 @@ final class AtelierPopups {
 
     /**
      * La touche matérielle DÉLÉGUÉE par l'éditeur (PIEGE-27 : il garde
-     * le focus) : flèches, validation et échappement servent la carte
-     * interactive ouverte — le manager route, la touche déclinée
-     * retourne à l'éditeur.
+     * le focus) : la carte interactive ouverte reçoit flèches, validation
+     * et échappement — le manager route, la touche déclinée retourne à
+     * l'éditeur.
      *
      * @param keyCode le code de la touche déléguée
      * @return vrai quand la touche a servi un popup
@@ -284,10 +279,10 @@ final class AtelierPopups {
 
     /**
      * Ouvre ou filtre la complétion au curseur (M8.6) : le serveur de
-     * langage qui SERT la complétion passe le premier — sa réponse
-     * brute devient les candidats typés du kit, leur documentation
-     * suit la liste ; sinon les mots du code et la table du coach.
-     * Sans candidat, la liste se ferme.
+     * langage qui SERT la complétion passe le premier — sa réponse brute
+     * devient les candidats typés du kit et leur documentation ; sinon
+     * les mots du code et la table du coach — sans candidat, la liste se
+     * ferme.
      */
     void basculerCompletion() {
         if (serveur != null && serveur.sertCompletion()) {
@@ -308,11 +303,9 @@ final class AtelierPopups {
                 PopupCoach.docFor(bruts.get(0)));
     }
 
-    /**
-     * Pose la complétion mesurée : les candidats typés gagnent la
-     * liste, le préfixe tapé surligne ses runs, le premier candidat
-     * documenté ouvre sa documentation au flanc.
-     */
+    /** Pose la complétion mesurée : les candidats typés gagnent la liste,
+     * le préfixe tapé surligne ses runs, le premier candidat documenté
+     * ouvre sa documentation au flanc. */
     private void poserCompletion(List<CompletionListView.Candidat> candidats,
             CompletionDocModel doc) {
         if (candidats.isEmpty()) {
@@ -464,10 +457,8 @@ final class AtelierPopups {
         }
     }
 
-    /**
-     * Le fil d'Ariane du curseur : les entrées du plan qui
-     * l'englobent, du dehors au dedans.
-     */
+    /** Le fil d'Ariane du curseur : les entrées du plan qui
+     * l'englobent, du dehors au dedans. */
     private void rafraichirFilAriane() {
         List<String> chemin = PopupCoach.pathFor(plan, caret());
         if (chemin.isEmpty()) {
@@ -575,11 +566,8 @@ final class AtelierPopups {
         }
     }
 
-    /**
-     * Le détachement de fin de vie (chantier d'unification) : tout se
-     * ferme, l'avis du tap hors cartes se coupe, les liens se
-     * dissolvent — la scène peut recycler.
-     */
+    /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors
+     * cartes se coupe, les liens se dissolvent — la scène peut recycler. */
     void detacher() {
         popups.detacher();
     }

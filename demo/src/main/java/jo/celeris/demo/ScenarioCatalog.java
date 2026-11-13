@@ -539,7 +539,10 @@ public final class ScenarioCatalog {
                         "Complétion, documentation et signature coordonnées autour du "
                                 + "curseur — jamais superposées, jamais hors écran ; le contenu "
                                 + "s'annonce à l'explorateur. La reprise M7.5 pose les dix popups "
-                                + "sur la couche, aucune ne prend jamais le focus (PIEGE-27)."),
+                                + "sur la couche, aucune ne prend jamais le focus (PIEGE-27). Le "
+                                + "chantier d'unification : le manager tient l'état ET les cartes "
+                                + "d'un seul tenant, le clavier se délègue (l'éditeur garde le "
+                                + "focus), le tap hors cartes referme les genres qui cèdent."),
                 new Scenario(
                         "D-13",
                         "Thèmes à contraste vérifié",

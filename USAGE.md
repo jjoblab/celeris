@@ -448,52 +448,93 @@ d'écran plein cadre, jamais de dialogue système : **l'hôte reste
 maître de son écran et de sa navigation**. La bibliothèque rend des
 surfaces, elle n'impose pas d'écran.
 
-Le montage se fait en trois temps :
+Le montage tient en trois temps — **lier, déclenquer, déléguer :
 
 1. **la couche** — `PopupLayer` posée sur la vue dans votre gabarit
    (§ 4.1) ; elle porte les popups en coordonnées de scène et se
    repositionne au défilement ;
-2. **le contrôleur** — `PopupController` ouvre et ferme par genre :
+2. **le manager** — `PopupManager` tient la machine
+   (`PopupController`) ET la couche d'un seul tenant : l'hôte ne
+   retire plus jamais une vue lui-même, l'état et les cartes ne
+   divergent jamais.
 
 ```java
 import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupLayer;
+import jo.celeris.android.widgets.PopupManager;
 
-PopupController popups = new PopupController();
-popups.open(PopupController.PopupKind.COMPLETION_LIST);
-popups.close(PopupController.PopupKind.SIGNATURE_HELP);
-// la frappe fait vivre les listes filtrées — les genres fermés se
-// rendent : la couche les retire, jamais une vue ne survit à son état
-for (PopupController.PopupKind ferme : popups.onKeystroke()) {
-    couche.dismiss(ferme);
-}
-// le défilement referme ce qui doit refermer — même rendu, même retrait
-for (PopupController.PopupKind ferme : popups.onScroll()) {
-    couche.dismiss(ferme);
-}
-for (PopupController.PopupKind ferme : popups.closeAll()) {
-    couche.dismiss(ferme);
-}
+PopupManager popups = new PopupManager(new PopupController(), couche);
+// lier : UNE vue par genre, UN genre par vue — la carte partagée
+// entre genres se refuse dès le câblage
+popups.lier(PopupController.PopupKind.COMPLETION_LIST, liste);
+popups.lier(PopupController.PopupKind.COMPLETION_DOC, doc);
+// déclencher : l'état s'ouvre, les exclus quittent la couche AVANT
+// la pose, la carte se borne aux murs de la couche
+popups.montrer(PopupController.PopupKind.COMPLETION_LIST, x, y);
+// les régimes : la frappe referme les bulles, la liste filtre — les
+// cartes des fermés quittent la couche, sans boucle à coder
+popups.surFrappe();
+popups.surDefilement();
+// les cascades : fermer la liste emporte SA documentation
+popups.fermer(PopupController.PopupKind.COMPLETION_LIST);
+// la feuille modale qui s'ouvre coupe l'intelligence, le chrome vit
+popups.fermerSousVoile();
+// la mesure unique — vos ancres (PopupAnchor) y anticipent la pose
+PopupPlacer.Cadre taille = popups.taille(PopupController.PopupKind.HOVER);
+// le détachement de fin de vie : tout se ferme, l'avis du tap se coupe
+popups.detacher();
 ```
 
-La règle qui porte ce rendu : **la vue ne survit jamais à son état**.
-`onKeystroke`, `onScroll` et `closeAll` rendent les genres qu'ils
-fermaient — l'hôte les retire de sa `PopupLayer`, sinon la vue y
-restait en zombie. Le re-pose de la MÊME vue sous son genre (le filtre
-de complétion, à chaque frappe) ne la re-naît pas : elle se re-mesure
-et se re-place ; une même vue changée de genre quitte l'ancien — une
-vue ne vit jamais sous deux genres.
+La règle qui porte ce rendu : **la vue ne survit jamais à son état** —
+le manager la garantit. Tout ce qui ferme (frappe, défilement,
+exclusion, cascade, voile) rend ses genres et RETIRE leurs cartes
+d'un seul tenant ; la documentation suit sa liste, le débordement
+suit sa barre, jamais l'hôte ne recode les cascades. Le re-pose de
+la MÊME vue sous son genre (le filtre de complétion, à chaque
+frappe) ne la re-naît pas : elle se re-mesure et se re-place ; une
+même vue changée de genre quitte l'ancien — une vue ne vit jamais
+sous deux genres. La machine reste publique pour qui compose à la
+main : `onKeystroke`, `onScroll` et `closeAll` rendent les genres
+qu'ils fermaient — l'hôte sans manager les retire de sa
+`PopupLayer` lui-même, sinon la vue y reste en zombie.
 
-3. **les feuilles** — `FeuilleBas` et `FeuilleHaut` (`android-widgets`)
-   pour les surfaces denses (recherche, réglages, plan) et les rappels
-   contextuels, construites avec votre `PopupPalette` — la
-   démonstration dérive la sienne du thème et de la taille de texte.
+3. **le clavier délégué** — PIEGE-27 : les popups ne prennent JAMAIS
+   le focus, l'éditeur le garde et délègue. Le crochet public se
+   consulte en tête de `onKeyDown`, le verdict consommé rend la main
+   sans toucher au curseur :
 
-Les genres du contrôleur (`PopupKind`) couvrent la liste de complétion,
-le menu d'intentions, l'aide aux paramètres et la documentation de
-complétion ; vos surfaces propres vivent dans les feuilles. Le kit est
-thémé et accessible par construction (ADR-008) : poignée de
-glissement, bouton de fermeture, voile, fermeture au retour.
+```java
+editeur.setSurTouchePopup(popups::surTouche);
+```
+
+UP et DOWN déplacent la surbrillance de la première carte
+interactive ouverte, Enter et Tab valident, Escape referme (la
+complétion emporte sa documentation) ; la touche inconnue retourne à
+l'éditeur — la table de raccourcis décide sa vie normale. Les cartes
+interactives du kit (complétion, menus d'intentions et de
+débordement) reçoivent par le contrat `PopupClavier` (`surFleche`,
+`surValidation`) — les vôtres y gagnent la même délégation. Le doigt
+qui tombe HORS de toute carte referme les genres qui cèdent (les
+menus, les bulles — la complétion suit le curseur, le chrome vit
+avec le document) : l'avis vit à la couche, branché par le manager,
+le geste poursuit sa vie vers l'éditeur.
+
+Les surfaces denses vivent dans les feuilles — `FeuilleBas` et
+`FeuilleHaut` (`android-widgets`) pour la recherche, les réglages et
+le plan, les rappels contextuels compris, construites avec votre
+`PopupPalette` ; la démonstration dérive la sienne du thème et de la
+taille de texte.
+
+Les genres du contrôleur (`PopupKind`) — seize depuis le chantier
+d'unification — couvrent les surfaces de l'éditeur : complétion et
+sa documentation, menu d'intentions, aide aux paramètres, survol,
+info-bulle de diagnostic, fil d'Ariane, recherche, barre de
+sélection et son débordement, bande d'erreurs, minimap, pouce de
+défilement, barre de touches, sélecteur de couleur, débordement de
+la barre d'application ; vos surfaces propres vivent dans les
+feuilles. Le kit est thémé et accessible par construction
+(ADR-008) : poignée de glissement, bouton de fermeture, voile,
+fermeture au retour.
 
 ## 10. Le SPI hôte — VCS, exécution, débogueur, fichiers
 

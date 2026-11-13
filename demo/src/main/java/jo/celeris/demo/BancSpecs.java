@@ -1,6 +1,7 @@
 package jo.celeris.demo;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Optional;
 
 import jo.celeris.android.widgets.PatchPreview;
 import jo.celeris.android.widgets.CompletionDocModel;
+import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.core.language.model.LanguageConfiguration;
 import jo.celeris.core.language.LanguagePlatform;
@@ -81,8 +83,19 @@ final class BancSpecs {
     static List<ScenarioSpec> specs() {
         List<ScenarioSpec> specs = new ArrayList<>(specsDeFrappeEtRefactor());
         specs.addAll(specsDeLangage());
+        specs.addAll(specsDesPopupsUnifiees());
         specs.addAll(specsDuFilEtDuPaquet());
         return List.copyOf(specs);
+    }
+
+    /** Les spécifications des popups unifiées (D) — le clavier
+     *  délégué du chantier d'unification. */
+    private static List<ScenarioSpec> specsDesPopupsUnifiees() {
+        return List.of(
+                new ScenarioSpec("D-10",
+                        "Le clavier délégué des popups unifiées : la frappe"
+                                + " ouvre, Enter accepte, Escape referme",
+                        BancSpecs::clavierPopup));
     }
 
     /** Les spécifications de langage (C) — la documentation servie au survol. */
@@ -312,6 +325,88 @@ final class BancSpecs {
         } finally {
             coordinateur.close();
         }
+    }
+
+    /** D-10 — le clavier délégué des popups unifiées (le chantier
+     *  d'unification) : la frappe OUVRE (le prédicat du coach, les
+     *  mots du code par le fournisseur), la liste SURVIT à la frappe
+     *  suivante (le régime du filtre — la frappe referme les bulles,
+     *  jamais la liste), Enter ACCEPTE (le candidat surligné à sa
+     *  naissance remplace le mot au curseur, la liste ferme et SA
+     *  DOCUMENTATION suit — la cascade du manager), Escape REFERME
+     *  (la cascade encore). Les flèches déplacent la surbrillance par
+     *  la même délégation — leur preuve vit au banc du kit
+     *  ({@code PopupManagerTest.leClavierDelegueSertLaCompletion}). */
+    private static boolean clavierPopup() {
+        // la frappe ouvre : « no » au curseur, le coach propose « nombre »
+        TextSession session = TextSession.of(
+                "int nombre = 0;\nint no", () -> 0L);
+        SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session,
+                JavaSyntax.INSTANCE);
+        try {
+            DemoIntelligence fournisseur = new DemoIntelligence(
+                    () -> LangagesDemo.langageDe("Banc.java", null,
+                            session.document().text()));
+            int caret = session.document().text().length();
+            if (!PopupCoach.doitOuvrirALaFrappe(session.document(), caret)
+                    || !laFrappePropose(
+                            fournisseur.completionCandidates(
+                                    session.document(), coordinateur.analysis(),
+                                    caret, PopupCoach.motsReserves()))) {
+                return false;
+            }
+            PopupController popups = new PopupController();
+            // l'état s'ouvre : la liste, SA documentation suit (la machine
+            // l'ouvre sur elle — contrôleur neuf, l'ouverture ne peut que
+            // réussir)
+            popups.open(PopupController.PopupKind.COMPLETION_LIST);
+            popups.open(PopupController.PopupKind.COMPLETION_DOC);
+            // la frappe suivante FILTRE : le régime ne referme PAS la
+            // liste — elle vit pour filtrer, jamais de zombie
+            if (popups.onKeystroke().contains(
+                    PopupController.PopupKind.COMPLETION_LIST)) {
+                return false;
+            }
+            return enterAccepte(popups, session, "nombre", caret)
+                    && escapeReferme(popups);
+        } finally {
+            coordinateur.close();
+        }
+    }
+
+    /** La frappe ouvre : la liste servie porte le candidat attendu,
+     *  SEUL — la surbrillance naît à la tête, jamais vide. */
+    private static boolean laFrappePropose(List<String> candidats) {
+        return List.of("nombre").equals(candidats);
+    }
+
+    /** Enter accepte : le candidat remplace le mot au curseur
+     *  (choisirCompletion de l'atelier — la cascade vit au manager). */
+    private static boolean enterAccepte(PopupController popups,
+            TextSession session, String retenu, int caret) {
+        int debut = PopupCoach.debutMot(session.document(), caret);
+        // le remplacement qui échoue se dénonce : le texte attendu ne
+        // tiendrait pas — l'assertion finale le subsume
+        session.replaceRange(debut, caret, retenu);
+        boolean cascade = popups.closeRendus(
+                PopupController.PopupKind.COMPLETION_LIST).equals(
+                EnumSet.of(PopupController.PopupKind.COMPLETION_LIST,
+                        PopupController.PopupKind.COMPLETION_DOC));
+        session.setSelection(MultiSelection.of(
+                SelRange.caretAt(debut + retenu.length())));
+        return cascade && "int nombre = 0;\nint nombre".equals(
+                session.document().text());
+    }
+
+    /** Escape referme : la liste rouverte, SA documentation suit — la
+     *  cascade du manager, encore, jamais codée deux fois. */
+    private static boolean escapeReferme(PopupController popups) {
+        popups.open(PopupController.PopupKind.COMPLETION_LIST);
+        popups.open(PopupController.PopupKind.COMPLETION_DOC);
+        return popups.closeRendus(
+                PopupController.PopupKind.COMPLETION_LIST).equals(
+                EnumSet.of(PopupController.PopupKind.COMPLETION_LIST,
+                        PopupController.PopupKind.COMPLETION_DOC));
     }
 
     /** B-07 — la signature de l'appel ouvert arrive par le fil du protocole. */

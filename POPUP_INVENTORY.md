@@ -1,10 +1,10 @@
 # Inventaire des popups de Celeris
 
-> Inventaire exhaustif (Phase 1) : chaque composant qui affiche une surface
+> Inventaire exhaustif (Phase 1) : chaque composant qui affiche une surface
 > contextuelle au-dessus de l'éditeur, fiche par fiche, puis classification
 > (catégorie fonctionnelle, forme visuelle, verdict de l'audit). Les chemins
 > sont exacts. Les catégories A–G reprennent le plan de classification de la
-> mission ; la colonne « état » reprend les six classes possibles :
+> mission ; la colonne « état » reprend les six classes possibles :
 > [1] fonctionnel et réutilisable, [2] fonctionnel mais à refactorer,
 > [3] partiellement implémenté, [4] dupliqué, [5] obsolète/inutilisé,
 > [6] manquant.
@@ -16,11 +16,11 @@
 | # | Classe | Fiche | État |
 | --- | --- | --- | --- |
 | I-1 | `PopupController` | Machine à états pure, 15 genres, exclusions (complétion ⇄ intentions), cascades (doc suit la liste, débordement suit la barre), régimes frappe/défilement/`closeAll`. Aucune vue. | [1] |
-| I-2 | `PopupLayer` | ViewGroup porteur, PIEGE-27, voile naissance/mort avec retrait différé, `show`/`reposition`/`remonter`/`dismiss`, invariant une-vue-un-genre. | [2] — `show` ne borne pas les coordonnées ; course du retrait différé (voir audit P6). |
-| I-3 | `PopupPanel` (abstraite) | Carte de base : verre, liseré hairline, coins arrondis, clip, animations 120/100 ms, palette. | [1] |
+| I-2 | `PopupLayer` | ViewGroup porteur, PIEGE-27, voile naissance/mort avec retrait différé, `show`/`reposition`/`remonter`/`dismiss`, invariant une-vue-un-genre. | [2] — `show` ne borne pas les coordonnées ; course du retrait différé (voir audit P6). |
+| I-3 | `PopupPanel` (abstraite) | Carte de base : verre, liseré hairline, coins arrondis, clip, animations 120/100 ms, palette. | [1] |
 | I-4 | `TextRowsPopup` (abstraite) | Carte à rangées typées + surbrillance + rappel tactile `setOnPick`. | [1] |
 | I-5 | `PopupPlacer` | Placement coordonné du trio complétion/documentation/signature, borné, pur. | [1] |
-| I-6 | `PopupAnchor` | Ancres simples bornées : `belowOrAboveCaret`, `aboveOrBelowCaret`, `atPoint`, `topLeftCorner`, `rightEdge`, `centeredAboveSelection`. | [2] — `rightEdge` mort (jamais appelé en production). |
+| I-6 | `PopupAnchor` | Ancres simples bornées : `belowOrAboveCaret`, `aboveOrBelowCaret`, `atPoint`, `topLeftCorner`, `rightEdge`, `centeredAboveSelection`. | [2] — `rightEdge` mort (jamais appelé en production). |
 | I-7 | `PopupPalette` / `PopupTokens` | Thème verre (dark/light/dérivé) + jetons dp/sp. | [1] |
 
 ### 1.2 Surfaces portées par la couche (android-widgets)
@@ -28,16 +28,16 @@
 | # | Classe | Genre | Fonction | Déclencheur | Données | Positionnement | Fermeture | État |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | S-1 | `CompletionListView` | `COMPLETION_LIST` | Liste de complétion deux lignes, badge de genre, runs du préfixe. | Frappe (démo), sélection si ouverte, action de menu. | LSP `LanguageSession.completion` ou repli `IntelligenceHub` + `PopupCoach`. | `PopupPlacer` sous le curseur. | Frappe sur blanc/ponctuation, acceptation, action menu. | [2] — aucun clavier (flèches/Enter/Escape). |
-| S-2 | `CompletionDocView` (+`CompletionDocModel`) | `COMPLETION_DOC` ET `HOVER` | Documentation flottante de complétion ET survol/peek/`@Preview` — MÊME instance. | Ouverture avec la liste ; double-tap ; « i » de la barre ; peek (menu) ; clic repère gouttière. | LSP `survol` ou table `PopupCoach` ; `ApercuDefinition` (plan local). | `PopupPlacer` (flanc) ou `PopupAnchor.atPoint`/`topLeftCorner`. | Suit la liste ; frappe/défilement ferment le `HOVER`. | [4]-risque — l'instance partagée entre deux genres fait mentir l'état (audit P1). |
-| S-3 | `SignatureHelpView` (+`SignatureAideModel`) | `SIGNATURE_HELP` | Aide aux paramètres : surcharges ±1, paramètre actif à l'accent, stepper tactile, peek appui long. | Chaque édition/sélection. | LSP `signature` ou `PopupCoach.signatureFor`. | `PopupPlacer` (côté opposé). | Modèle null. | [2] — `Handler` sans nettoyage au détachement. |
-| S-4 | `IntentionsMenuView` | `INTENTIONS_MENU` ET `SELECTION_OVERFLOW` | Menu d'actions au curseur ET carte de débordement — MÊME instance. | Action menu ; puce « ⋯ » barre ; puce toolbar. | `CatalogueActions` (activité). | `PopupAnchor.belowOrAboveCaret` / ad hoc coin haut-droit (toolbar). | Choix d'une action avant exécution ; exclusions. | [4]-risque — trois usages, deux genres, deux positionnements concurrents (audit P1). |
+| S-2 | `CompletionDocView` (+`CompletionDocModel`) | `COMPLETION_DOC` ET `HOVER` | Documentation flottante de complétion ET survol/peek/`@Preview` — MÊME instance. | Ouverture avec la liste ; double-tap ; « i » de la barre ; peek (menu) ; clic repère gouttière. | LSP `survol` ou table `PopupCoach` ; `ApercuDefinition` (plan local). | `PopupPlacer` (flanc) ou `PopupAnchor.atPoint`/`topLeftCorner`. | Suit la liste ; frappe/défilement ferment le `HOVER`. | [4]-risque — l'instance partagée entre deux genres fait mentir l'état (audit P1). |
+| S-3 | `SignatureHelpView` (+`SignatureAideModel`) | `SIGNATURE_HELP` | Aide aux paramètres : surcharges ±1, paramètre actif à l'accent, stepper tactile, peek appui long. | Chaque édition/sélection. | LSP `signature` ou `PopupCoach.signatureFor`. | `PopupPlacer` (côté opposé). | Modèle null. | [2] — `Handler` sans nettoyage au détachement. |
+| S-4 | `IntentionsMenuView` | `INTENTIONS_MENU` ET `SELECTION_OVERFLOW` | Menu d'actions au curseur ET carte de débordement — MÊME instance. | Action menu ; puce « ⋯ » barre ; puce toolbar. | `CatalogueActions` (activité). | `PopupAnchor.belowOrAboveCaret` / ad hoc coin haut-droit (toolbar). | Choix d'une action avant exécution ; exclusions. | [4]-risque — trois usages, deux genres, deux positionnements concurrents (audit P1). |
 | S-5 | `DiagnosticTooltipView` | `DIAGNOSTIC_TOOLTIP` | Info-bulle de diagnostic (×/!, message). | Sélection (hors frappe) sur ligne diagnostiquée. | `DiagnosticHote` (SPI). | `PopupAnchor.atPoint` au caret. | Frappe, défilement. | [1] |
 | S-6 | `BreadcrumbView` (+`BreadcrumbModel`) | `BREADCRUMB` | Fil d'Ariane (chemin du plan englobant). | Chaque édition/sélection. | `OutlineEntry` (plan). | `PopupAnchor.topLeftCorner`. | Chemin vide. | [1] |
-| S-7 | `SelectionBarView` | `SELECTION_BAR` | Pilule d'actions de la sélection + « i » + « ⋯ ». | Sélection non vide ; dragage la déplace (`remonter`). | Actions de l'activité. | `PopupAnchor.centeredAboveSelection`. | Frappe, sélection vide. | [1] |
+| S-7 | `SelectionBarView` | `SELECTION_BAR` | Pilule d'actions de la sélection + « i » + « ⋯ ». | Sélection non vide ; dragage la déplace (`remonter`). | Actions de l'activité. | `PopupAnchor.centeredAboveSelection`. | Frappe, sélection vide. | [1] |
 | S-8 | `ColorPickerView` | `COLOR_PICKER` | Sélecteur de couleur (champ SV + teinte + palette Material). | Double-tap sur littéral de couleur. | `PastillesCouleur` (vue) + modèle interne. | `PopupAnchor.belowOrAboveCaret`. | Pick implicite, frappe, défilement — le « tap hors carte » documenté N'EST PAS implémenté. | [2] |
-| S-9 | `TouchBarView` | `TOUCH_BAR` | Barre de touches de code au-dessus du clavier. | Posée par l'hôte ; reposée au layout global. | Touches de l'activité. | Ad hoc bas centré (`reposerBarre`). | Jamais (vit avec le document). | [2] — listener global irrécupérable (audit P6). |
+| S-9 | `TouchBarView` | `TOUCH_BAR` | Barre de touches de code au-dessus du clavier. | Posée par l'hôte ; reposée au layout global. | Touches de l'activité. | Ad hoc bas centré (`reposerBarre`). | Jamais (vit avec le document). | [2] — listener global irrécupérable (audit P6). |
 | S-10 | `ErrorBandView` (+`ErrorBandModel`) | `ERROR_BAND` | Bande d'erreurs au bord droit (tirets de gravité, saut tactile). | Diagnostics de l'hôte. | `DiagnosticHote`. | Ad hoc `AtelierBordDroit.bordDroit()`. | Sans diagnostics. | [2] — positionnement ad hoc hors `PopupAnchor`. |
-| S-11 | `MinimapView` (+`MinimapModel`) | `MINIMAP` | Silhouette colorée + cartouche de fenêtre. | Édition/défilement. | Document + arbre syntaxique. | Ad hoc `bordDroit()`. | Jamais. | [2] — idem ; palette locale. |
+| S-11 | `MinimapView` (+`MinimapModel`) | `MINIMAP` | Silhouette colorée + cartouche de fenêtre. | Édition/défilement. | Document + arbre syntaxique. | Ad hoc `bordDroit()`. | Jamais. | [2] — idem ; palette locale. |
 | S-12 | `FastScrollerView` | `FAST_SCROLLER` | Pouce de défilement rapide qui grossit sous le doigt. | Défilement/doigt. | Fenêtre du document. | Ad hoc `bordDroit()`. | Jamais. | [2] — idem. |
 
 ### 1.3 Feuilles modales (ADR-018) — android-widgets + demo
@@ -64,19 +64,19 @@
 `ApercuDefinition` (peek ≤ 12 lignes du plan), `BadgeGenre` (genres de
 badges), `OutlineModel`/`OutlineView`/`OutlinePainter`/`OutlineSurface`
 (plan), `DiffBlocs`/`RevueDiff`/`PatchPreview` (diffs et correctifs) —
-tous [1] : purs, testés, sans vue.
+tous [1] : purs, testés, sans vue.
 
 ### 1.6 Orchestration (demo)
 
 | # | Classe | Rôle | État |
 | --- | --- | --- | --- |
-| O-1 | `AtelierPopups` (598 l.) | Chef d'orchestre de facto : possède contrôleur + vues, branche session/vue, délègue aux satellites. | [2] — au plafond ADR-002 ; six copies de mesure ; cascades en double. |
+| O-1 | `AtelierPopups` (598 l.) | Chef d'orchestre de facto : possède contrôleur + vues, branche session/vue, délègue aux satellites. | [2] — au plafond ADR-002 ; six copies de mesure ; cascades en double. |
 | O-2 | `DocAncre` | Survol/peek/`@Preview` sur la carte partagée. | [4]-risque (vue partagée). |
 | O-3 | `MenuDebordement` | Débordement de la barre sur la carte partagée. | [4]-risque. |
 | O-4 | `AtelierCouleur` | Color picker au double-tap. | [2]. |
 | O-5 | `AtelierBordDroit` | Bande/minimap/pouce, positionnement ad hoc. | [2]. |
 | O-6 | `AtelierBarreToolbar` | Carte de débordement toolbar (genre `INTENTIONS_MENU` !) + touchbar. | [4]-risque + fuite listener. |
-| O-7 | `PopupCoach` | Décisions de contenu pur : candidats, tables de repli, `doitOuvrirALaFrappe`, path, issues. | [1] |
+| O-7 | `PopupCoach` | Décisions de contenu pur : candidats, tables de repli, `doitOuvrirALaFrappe`, path, issues. | [1] |
 | O-8 | `CatalogueActions` | Table unique des actions, trois peaux (menu, carte, intentions). | [1] |
 
 ## 2. Classification par catégorie fonctionnelle (phase 3 de la mission)
@@ -159,34 +159,34 @@ tous [1] : purs, testés, sans vue.
 
 ## 3. Bilan chiffré
 
-- 15 genres d'état au contrôleur ; 12 surfaces portées par la couche ;
-  3 feuilles modales (+ 9 ateliers de feuilles en démo) ; 3 surfaces
-  in-canvas assumées (loupe, fantôme, HUD) ; 2 surfaces interactives
+- 15 genres d'état au contrôleur ; 12 surfaces portées par la couche ;
+  3 feuilles modales (+ 9 ateliers de feuilles en démo) ; 3 surfaces
+  in-canvas assumées (loupe, fantôme, HUD) ; 2 surfaces interactives
   hors couche (gouttière, poignées).
-- Fonctionnalités réellement opérationnelles (tactile) : complétion + doc
+- Fonctionnalités réellement opérationnelles (tactile) : complétion + doc
   + signature + intentions + survol + peek + info-bulle + fil d'Ariane +
   barre de sélection + débordements + color picker + touchbar + bande +
   minimap + pouce + plan + recherche + réglages + renommage + diff +
   correctifs + IA/agent + `@Preview`.
-- Manquants prioritaires (au sens « la donnée existe, la surface manque ») :
-  navigation clavier des popups ; fermeture au clic extérieur ;
-  usages/references ; hiérarchies ; valeurs de débogage ; notifications ;
+- Manquants prioritaires (au sens « la donnée existe, la surface manque ») :
+  navigation clavier des popups ; fermeture au clic extérieur ;
+  usages/references ; hiérarchies ; valeurs de débogage ; notifications ;
   recherche de symbole/fichier.
-- Aucun doublon de MOTEUR réel : les trois voies de complétion
+- Aucun doublon de MOTEUR réel : les trois voies de complétion
   (`CompletionMots`, `PopupCoach.completionFor`, capacité `Completion` de
   `core-language`) vivent à des étages différents (production, repli de
   repli, contrat non branché) — la capacité `Completion` enregistrée par
-  `LangagesDemo` n'est LUE nulle part en production : [5] à décider en
+  `LangagesDemo` n'est LUE nulle part en production : [5] à décider en
   phase architecture.
 
 ## 4. Règles de coexistence constatées (aujourd'hui)
 
-Écrites dans `PopupController` : complétion ⇄ intentions s'excluent ;
-`COMPLETION_DOC` exige la liste, fermé avec elle ; `SELECTION_OVERFLOW`
-exige la barre, fermé avec elle ; frappe ferme survol + info-bulle +
-barre + débordement + color picker ; défilement ferme survol + info-bulle +
-color picker, repositionne le reste ; bande/minimap/pouce/touchbar ne
+Écrites dans `PopupController` : complétion ⇄ intentions s'excluent ;
+`COMPLETION_DOC` exige la liste, fermé avec elle ; `SELECTION_OVERFLOW`
+exige la barre, fermé avec elle ; frappe ferme survol + info-bulle +
+barre + débordement + color picker ; défilement ferme survol + info-bulle +
+color picker, repositionne le reste ; bande/minimap/pouce/touchbar ne
 ferment jamais. La barre de recherche ferme sur demande seule. Les feuilles
 ignorent le contrôleur (P8). Aucune priorité explicite entre
-`INTENTIONS_MENU` caret et débordement toolbar : même genre, même carte —
+`INTENTIONS_MENU` caret et débordement toolbar : même genre, même carte —
 conflit silencieux (P1).
