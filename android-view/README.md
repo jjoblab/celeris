@@ -30,9 +30,9 @@ peindre et écouter (ADR-002, ADR-006).
   (`GlisserDeposer`, D-20), clavier (`KeyBinding`, `KeyBindings`),
   IME par niveau d'API (`SurroundingTexts`, `CompositionState`),
   loupe du dragage (`Loupe` et sa géométrie `MagnifierGeometry`,
-  D-16 : la bulle du dépôt de départ, la frame photographiée), appui
+  D-16 : la bulle du dépôt de départ, la frame photographiée), appui
   long (la sélection du mot posée, sans survol — le redressement du
-  2026-11-13 : la documentation ne vit plus qu'au double-clic et au
+  2026-11-13 : la documentation ne vit plus qu'au double-clic et au
   « i » de la barre de sélection).
 - **Les ornements du canvas** — gouttière (`GutterPainter`,
   `GutterLanes`, `GutterNumbers`, `GutterMarks`), guides
@@ -50,8 +50,8 @@ peindre et écouter (ADR-002, ADR-006).
 EditorView editeur = findViewById(R.id.editeur);
 editeur.setSession(TextSession.of(contenu, System::nanoTime));
 editeur.setLanguage(registre.byFilename("exemple.java"));
-editeur.setSurAppuiLong(offset ->
-        survolServir(offset));   // l'appui long a déjà sélectionné le mot
+editeur.setSurDoubleTap(offset ->
+        survolServir(offset));   // vrai : consommé, la cascade du tap simple ne suit pas
 ```
 
 La vue reste mince : la logique vérifiable vit dans les modules purs,
