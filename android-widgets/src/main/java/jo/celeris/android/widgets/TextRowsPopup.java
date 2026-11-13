@@ -180,11 +180,13 @@ abstract class TextRowsPopup extends PopupPanel {
             }
             textPaint().setTextSize(tailleTexte(facteurDe(rangee.tier())));
             // l'en-tête de section prend l'encre muette et ses
-            // petites capitales ; —2 le dit, —1 garde l'encre du panneau
-            textPaint().setColor(
-                    rangee.ink() == -2 ? palette.muted()
-                            : rangee.ink() < 0 ? palette.text()
-                                    : rangee.ink());
+            // petites capitales ; —2 le dit, —1 garde l'encre du panneau —
+            // l'encre EXPLICITE se pose telle quelle (l'audit Android
+            // Studio du 2026-11-14 : les encres de la palette vivent en
+            // entiers NÉGATIFS (alpha opaque), le plonger au texte du
+            // panneau mentait — le marqueur d'erreur, l'introuvable muet
+            // et le cadre étranger rendaient à l'encre du texte)
+            textPaint().setColor(encreDe(rangee.ink()));
             String texte = rangee.enTete()
                     ? rangee.text().toUpperCase() : rangee.text();
             Paint.FontMetrics metriques = textPaint().getFontMetrics();
@@ -256,6 +258,18 @@ abstract class TextRowsPopup extends PopupPanel {
             }
         }
         return y + hauteurs.get(Math.min(index, hauteurs.size() - 1)) / 2f;
+    }
+
+    /** L'encre résolue d'une rangée : —1 garde l'encre du panneau, —2
+     *  l'atténuée, toute autre valeur se pose TELLE QUELLE — l'encre
+     *  explicite (les entiers négatifs des couleurs opaques comprises)
+     *  n'est plus confondue avec les sentinelles. Les bancs y lisent
+     *  la résolution sans passer par le rendu. */
+    final int encreDe(int encreRangee) {
+        if (encreRangee == -1) {
+            return palette.text();
+        }
+        return encreRangee == -2 ? palette.muted() : encreRangee;
     }
 
     /** La rangée visée par l'ordonnée donnée, —1 si hors contenu ou

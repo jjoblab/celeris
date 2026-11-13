@@ -297,6 +297,54 @@ public class PopupViewsTest {
                 vue.getMeasuredHeight() > 2 * vue.paddingYPx);
     }
 
+    /** L'audit Android Studio : la fiche EMPILE les problèmes du lieu
+     *  — un filet sépare chaque problème, l'indice d'actions clôt —
+     *  l'IDE de référence ne sert jamais une bulle par diagnostic. */
+    @Test
+    public void tooltipStacksTheProblemsOfThePlace() {
+        DiagnosticTooltipView vue = new DiagnosticTooltipView(contexte,
+                PopupPalette.dark());
+        vue.setProblemes(List.of(
+                new DiagnosticTooltipView.Probleme("Point-virgule absent",
+                        DiagnosticTooltipView.Severity.ERROR),
+                new DiagnosticTooltipView.Probleme("Variable jamais lue",
+                        DiagnosticTooltipView.Severity.WARNING)),
+                "Plus d'actions · menu d'intentions");
+        mesurer(vue);
+        // deux problèmes d'une ligne chacun + l'indice d'actions
+        assertEquals("la fiche empile les problèmes et l'indice", 5,
+                vue.rowCount());
+        assertTrue("la fiche se mesure à son contenu",
+                vue.getMeasuredHeight() > 0);
+        // sans indice, la fiche clôt aux problèmes seuls
+        vue.setProblemes(List.of(
+                new DiagnosticTooltipView.Probleme("Point-virgule absent",
+                        DiagnosticTooltipView.Severity.ERROR)), null);
+        assertEquals("l'indice retiré ne laisse que le problème", 2,
+                vue.rowCount());
+    }
+
+    /** L'encre explicite d'une rangée se pose TELLE QUELLE — l'entier
+     *  négatif des couleurs opaques n'est plus confondu avec les
+     *  sentinelles (le marqueur d'erreur, l'introuvable muet et le
+     *  cadre étranger rendaient à l'encre du texte). */
+    @Test
+    public void explicitInkRendersAsItself() {
+        DiagnosticTooltipView vue = new DiagnosticTooltipView(contexte,
+                PopupPalette.dark());
+        PopupPalette palette = PopupPalette.dark();
+        assertEquals("la sentinelle du panneau garde son encre",
+                palette.text(), vue.encreDe(-1));
+        assertEquals("la sentinelle muette garde son encre",
+                palette.muted(), vue.encreDe(-2));
+        assertEquals("l'encre d'erreur se pose telle quelle",
+                palette.error(), vue.encreDe(palette.error()));
+        assertEquals("l'encre d'avertissement se pose telle quelle",
+                palette.warning(), vue.encreDe(palette.warning()));
+        assertEquals("l'encre d'accent se pose telle quelle",
+                palette.accent(), vue.encreDe(palette.accent()));
+    }
+
     /** Aucune vue de popup ne se déclare focalisable (PIEGE-27). */
     @Test
     public void noPopupViewIsFocusable() {

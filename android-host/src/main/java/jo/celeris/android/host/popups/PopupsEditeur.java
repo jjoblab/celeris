@@ -2,6 +2,7 @@ package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jo.celeris.android.host.R;
@@ -15,6 +16,7 @@ import jo.celeris.android.widgets.CompletionListView;
 import jo.celeris.android.widgets.DiagnosticTooltipView;
 import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.android.widgets.MenuDebordement;
+import jo.celeris.android.widgets.NotificationView;
 import jo.celeris.android.widgets.PopupAnchor;
 import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupLayer;
@@ -487,25 +489,41 @@ public final class PopupsEditeur {
             return;
         }
         int ligne = session.document().lineForOffset(plages.get(0).caret());
+        // l'audit Android Studio : la fiche empile TOUS les problèmes
+        // du lieu — jamais une bulle par diagnostic
+        List<DiagnosticTooltipView.Probleme> problemes = new ArrayList<>();
         for (DiagnosticHote diagnostic : diagnostics) {
             if (diagnostic.ligne() == ligne + 1
                     && diagnostic.chemin().nom().equals(nomDuFichier)) {
-                popups.controleur().open(
-                        PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
-                infoBulle.setMessage(diagnostic.message(),
+                problemes.add(new DiagnosticTooltipView.Probleme(
+                        diagnostic.message(),
                         diagnostic.gravite() == GraviteDiagnostic.ERREUR
                                 ? DiagnosticTooltipView.Severity.ERROR
-                                : DiagnosticTooltipView.Severity.WARNING);
-                Rect curseur = editeur.caretBounds();
-                PopupPlacer.Cadre placee = PopupAnchor.atPoint(
-                        curseur.left, curseur.top,
-                        popups.taille(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP),
-                        largeurCouche(), hauteurCouche(), margePx);
-                popups.montrer(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
-                        placee.x(), placee.y());
-                return;
+                                : DiagnosticTooltipView.Severity.WARNING));
             }
         }
+        if (problemes.isEmpty()) {
+            return;
+        }
+        popups.controleur().open(
+                PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
+        infoBulle.setProblemes(problemes, indiceDActions());
+        Rect curseur = editeur.caretBounds();
+        PopupPlacer.Cadre placee = PopupAnchor.atPoint(
+                curseur.left, curseur.top,
+                popups.taille(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP),
+                largeurCouche(), hauteurCouche(), margePx);
+        popups.montrer(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
+                placee.x(), placee.y());
+    }
+
+    /** L'indice d'actions qui clôt la fiche — le lien du bas de
+     *  l'IDE de référence (« More actions… ») : il ne se pose que
+     *  quand des intentions existent au caret (l'IDE ne promet pas
+     *  de correctifs sans correctifs). */
+    private @Nullable String indiceDActions() {
+        return intentions.isEmpty() ? null
+                : couche.getContext().getString(R.string.indice_actions);
     }
 
     private void placerCompletion() {
@@ -577,6 +595,14 @@ public final class PopupsEditeur {
      *  seule (4 000 ms) ; ce qui ne touche pas le texte s'y montre. */
     public void notifier(String titre, String message) {
         notifications.notifier(titre, message);
+    }
+
+    /** Publie une notification au coin bas-droit avec ses LIENS (l'audit
+     *  Android Studio : les actions de la bulle de l'IDE de référence) —
+     *  la prise d'un lien referme la bulle puis la fait courir. */
+    public void notifier(String titre, String message,
+            List<NotificationView.Action> actions) {
+        notifications.notifier(titre, message, actions);
     }
 
     /** Ouvre la carte d'info de type du symbole au curseur — le type

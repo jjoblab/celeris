@@ -7,6 +7,8 @@ import android.content.Context;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
@@ -22,7 +24,12 @@ import org.robolectric.shadows.ShadowLooper;
  * en TITRE et CORPS, le tap LA PREND la referme (le Runnable de
  * l'hôte seul décide), l'HORLOGE la referme à son heure — la re-pose
  * réarme l'horloge, jamais deux courses (la queue du fil ne sert que
- * la dernière annonce).
+ * la dernière annonce). L'audit Android Studio du 2026-11-14 y pose
+ * les LIENS : les actions de la bulle de l'IDE de référence suivent
+ * le message derrière un filet, la prise d'un lien referme la bulle
+ * puis fait courir son action (l'ordre de l'IDE : la bulle cède
+ * d'abord — une action qui re-pose n'est jamais tuée par sa propre
+ * fermeture).
  */
 @RunWith(RobolectricTestRunner.class)
 public class NotificationViewTest {
@@ -99,5 +106,39 @@ public class NotificationViewTest {
         vue.desarmer();
         shadow.runToEndOfTasks();
         assertEquals("l'horloge désarmée ne court plus", 1, courses.get());
+    }
+
+    /** L'audit Android Studio : les LIENS suivent le message derrière
+     * un filet — la prise du lien referme la bulle puis fait courir son
+     * action, la prise du titre referme seule. */
+    @Test
+    public void lesLiensSuiventLeMessageEtLaPriseLesReferme() {
+        List<String> trace = new ArrayList<>();
+        NotificationView vue = new NotificationView(contexte,
+                PopupPalette.dark());
+        vue.setAnnonce("Lint", "3 fixed", List.of(
+                new NotificationView.Action("Annuler",
+                        () -> trace.add("action"))));
+        assertEquals("le titre, le message et le lien", 3, vue.rowCount());
+        vue.setSurPrise(() -> trace.add("prise"));
+        mesurer(vue);
+        long t = android.os.SystemClock.uptimeMillis();
+        // la prise du LIEN : la bulle cède d'abord, l'action court ensuite
+        float lien = vue.rowCenterY(2) + vue.paddingYPx;
+        vue.onTouchEvent(MotionEvent.obtain(t, t, MotionEvent.ACTION_DOWN,
+                10f, lien, 0));
+        vue.onTouchEvent(MotionEvent.obtain(t, t + 16L, MotionEvent.ACTION_UP,
+                10f, lien, 0));
+        assertEquals("la prise du lien referme puis exécute",
+                List.of("prise", "action"), trace);
+        // la prise du TITRE : la bulle referme seule, l'action ne court pas
+        trace.clear();
+        float titre = vue.rowCenterY(0) + vue.paddingYPx;
+        vue.onTouchEvent(MotionEvent.obtain(t, t + 32L,
+                MotionEvent.ACTION_DOWN, 10f, titre, 0));
+        vue.onTouchEvent(MotionEvent.obtain(t, t + 48L,
+                MotionEvent.ACTION_UP, 10f, titre, 0));
+        assertEquals("la prise du titre referme seule",
+                List.of("prise"), trace);
     }
 }

@@ -124,4 +124,43 @@ public class ReferencesViewTest {
         assertFalse("la carte vide décline la validation",
                 vue.surValidation());
     }
+
+    /** L'audit Android Studio : l'IDE de référence montre les usages
+     *  de tous les fichiers — l'occurrence ÉTRANGÈRE (au saut nul) vit
+     *  muette : ni le doigt ni la flèche ne la prennent, la flèche la
+     *  saute. */
+    @Test
+    public void letrangereVitMueEtJamaisPrise() {
+        AtomicInteger courses = new AtomicInteger(-1);
+        ReferencesView vue = new ReferencesView(contexte, PopupPalette.dark());
+        vue.setTitre("3 usages");
+        vue.setOccurrences(List.of(
+                new ReferencesView.Occurrence("L1 · locale", () -> courses.set(1)),
+                new ReferencesView.Occurrence("autre.kt · L5 · hors document", null),
+                new ReferencesView.Occurrence("L7 · locale", () -> courses.set(2))));
+        mesurer(vue);
+        long t = android.os.SystemClock.uptimeMillis();
+        // l'étrangère vit derrière la locale : son rang compte l'en-tête
+        float etrangere = vue.rowCenterY(2) + vue.paddingYPx;
+        vue.onTouchEvent(MotionEvent.obtain(t, t, MotionEvent.ACTION_DOWN,
+                10f, etrangere, 0));
+        vue.onTouchEvent(MotionEvent.obtain(t, t + 16L, MotionEvent.ACTION_UP,
+                10f, etrangere, 0));
+        assertEquals("l'étrangère muette ne se prend jamais", -1, courses.get());
+        // la flèche saute l'étrangère : la première prenable, puis la suivante
+        assertTrue(vue.surFleche(1));
+        assertEquals("la flèche part de la première locale", 0,
+                vue.surbrillance());
+        assertTrue(vue.surFleche(1));
+        assertEquals("la flèche saute l'étrangère muette", 2,
+                vue.surbrillance());
+        assertTrue("la validation exécute la locale surlignée",
+                vue.surValidation());
+        assertEquals(2, courses.get());
+        // une carte d'étrangères seules décline la flèche
+        vue.setOccurrences(List.of(
+                new ReferencesView.Occurrence("a.kt · L1", null)));
+        vue.setTitre(null);
+        assertFalse("sans prenable, la flèche décline", vue.surFleche(1));
+    }
 }

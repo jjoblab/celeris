@@ -1,5 +1,7 @@
 package jo.celeris.android.host.popups;
 
+import java.util.List;
+
 import jo.celeris.android.widgets.NotificationView;
 import jo.celeris.android.widgets.PopupAnchor;
 import jo.celeris.android.widgets.PopupController;
@@ -61,10 +63,25 @@ final class Notifications {
      * @param message le message de l'annonce, ses lignes suivent
      */
     void notifier(String titre, String message) {
+        notifier(titre, message, List.of());
+    }
+
+    /**
+     * Publie une notification avec ses liens — l'audit Android Studio
+     * du 2026-11-14 : la bulle de l'IDE de référence porte ses actions
+     * en hyperliens derrière le message, la prise d'un lien referme la
+     * bulle puis la fait courir.
+     *
+     * @param titre   le titre de l'annonce
+     * @param message le message de l'annonce, ses lignes suivent
+     * @param actions les liens de la bulle, vides pour aucun
+     */
+    void notifier(String titre, String message,
+            List<NotificationView.Action> actions) {
         if (titre.isBlank() || message.isBlank()) {
             return;
         }
-        carte.setAnnonce(titre, message);
+        carte.setAnnonce(titre, message, actions);
         carte.armer(DUREE_ANNONCE_MS, this::fermer);
         PopupPlacer.Cadre placee = PopupAnchor.bottomRightCorner(
                 popups.taille(PopupController.PopupKind.NOTIFICATION),
