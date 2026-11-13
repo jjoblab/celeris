@@ -2,6 +2,8 @@ package jo.celeris.android.view;
 
 import jo.celeris.core.text.Document;
 
+import android.graphics.Canvas;
+
 /**
  * L'assemblage de l'état d'image (ADR-006, PIEGE-25 et PIEGE-26) : la
  * gouttière AVANT le budget de colonnes (le cycle est cassé), suivi de
@@ -22,11 +24,35 @@ final class FrameAssembler {
      * Dessine l'image entière (chantier C9 — le corps de {@code onDraw}
      * vit chez son collaborateur) : fond, état préparé, couches, chrome
      * — la surface s'attache au canvas et s'en détache, l'état d'image
-     * se prépare AVANT le tracé.
+     * se prépare AVANT le tracé. La LOUPE du dragage (D-16) y
+     * photographie la frame : la vue rend dans la bitmap retenue, le
+     * canvas reçoit la photographie entière, puis la bulle y sert sa
+     * zone agrandie — la loupe montre la VRAIE frame (voile de
+     * sélection, curseur, poignées), pas une redite simplifiée.
      *
      * @param canvas le canvas de l'image
      */
     void dessiner(android.graphics.Canvas canvas) {
+        if (vue.loupe.active()) {
+            Canvas toile = vue.loupe.toileDe(vue.getWidth(), vue.getHeight());
+            if (toile != null) {
+                // la photographie : la frame s'y rend entière, la vue
+                // reçoit la photographie pleine — puis la bulle y sert
+                // sa zone agrandie, au-dessus du doigt
+                dessinerImage(toile);
+                android.graphics.Bitmap photographie =
+                        vue.loupe.photographie();
+                canvas.drawBitmap(photographie, 0f, 0f, null);
+                vue.loupe.tracer(canvas, photographie, vue.theme,
+                        vue.getWidth(), vue.getHeight(), vue.densite());
+                return;
+            }
+        }
+        dessinerImage(canvas);
+    }
+
+    /** Le corps de l'image, sur le canvas donné (vue ou photographie). */
+    private void dessinerImage(android.graphics.Canvas canvas) {
         canvas.drawColor(vue.theme.backgroundColor());
         preparer();
         vue.surface.attach(canvas);

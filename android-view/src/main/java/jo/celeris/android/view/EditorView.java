@@ -148,6 +148,11 @@ public final class EditorView extends View {
     final CurseurClavier curseurClavier = new CurseurClavier(this);
     /** Le collaborateur du routage tactile. */
     final TouchesEditeur touches = new TouchesEditeur(this);
+    /** Le collaborateur de la loupe du dragage (D-16, le
+     *  redressement du 2026-11-13 : « ajoute la fonctionnalité de
+     *  magnifier, quand on fait longclick et on commence à draguer »)
+     *  — la bulle au-dessus du doigt, l'image photographiée. */
+    final Loupe loupe = new Loupe();
     // — le glisser-déposer vit dans son collaborateur (D-20)
     final GlisserDeposer depot = new GlisserDeposer(this);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
@@ -441,6 +446,15 @@ public final class EditorView extends View {
      *  gouttière rend la LIGNE visée. Null coupe. */
     public void setSurBasculeArret(@Nullable IntConsumer consommateur) {
         rappels.poserBasculeArret(consommateur);
+    }
+
+    /**
+     * La loupe du dragage (D-16) : le dragage armé par l'appui long ou
+     * la poignée tirée l'y suit, le geste levé la referme — l'hôte y
+     * règle le zoom ({@code setZoom}, ×2 par défaut).
+     */
+    public Loupe loupe() {
+        return loupe;
     }
 
     /** Les intégrations de la gouttière : marques, arrêts, clic (D-03 à D-05). */

@@ -134,6 +134,7 @@ final class TouchesEditeur {
         defilement = false;
         panoramique = false;
         armeLong = false;
+        vue.loupe.cesser();
         vue.glissement.up();
         departX = dernierX = x;
         departY = dernierY = y;
@@ -188,9 +189,11 @@ final class TouchesEditeur {
         vue.invalidate();
     }
 
-    /** Le second doigt posé : le panoramique s'arme, le glissement lâche. */
+    /** Le second doigt se pose : le panoramique s'arme, le glissement
+     *  lâche — la loupe se referme (le geste à deux doigts ne règle rien). */
     boolean surDoigtPose(MotionEvent event) {
         if (event.getPointerCount() >= 2) {
+            vue.loupe.cesser();
             panoramique = true;
             defilement = false;
             vue.glissement.up();
@@ -238,6 +241,9 @@ final class TouchesEditeur {
             armerAncre(offsetAt(event.getX(), event.getY()));
         }
         if (vue.glissement.isActive()) {
+            // la loupe suit le dragage de sélection (D-16) : le texte
+            // sous le doigt s'agrandit au-dessus — le réglage se voit
+            suivreLoupe(event);
             vue.session.setSelection(MultiSelection.of(
                     vue.glissement.dragTo(
                             offsetAt(event.getX(), event.getY()))));
@@ -332,6 +338,7 @@ final class TouchesEditeur {
         panoramique = false;
         armeLong = false;
         poigneeTiree = SelectionHandles.HandleId.NONE;
+        vue.loupe.cesser();
         vue.glissement.up();
         if (tap) {
             if (doubleTapRapproche(event) && vue.rappels.notifierDoubleTap(
@@ -410,9 +417,35 @@ final class TouchesEditeur {
             poigneeTiree = SelectionHandles.HandleId.NONE;
             return;
         }
+        // la loupe suit la poignée tirée (D-16, le dépôt de départ) :
+        // l'extrémité réglée s'agrandit au-dessus du doigt
+        suivreLoupe(x, y);
         vue.session.setSelection(MultiSelection.of(SelectionHandles.dragged(
                 plages.get(0), poigneeTiree, offsetAt(x, y))));
         vue.invalidate();
+    }
+
+    /**
+     * La loupe suit le geste de réglage : l'ordonnée SNAPPÉE au centre
+     * de la rangée sous le doigt (le contenu de la bulle ne tremble
+     * JAMAIS verticalement — un PAS net d'une ligne au changement de
+     * rangée), l'abscisse amortie s'y pose — la sémantique des loupes
+     * de plateforme (B9 du dépôt de départ).
+     */
+    private void suivreLoupe(MotionEvent event) {
+        suivreLoupe(event.getX(), event.getY());
+    }
+
+    /**
+     * La loupe suit le point du geste : le centre de la rangée sous
+     * le doigt y passe, l'amortissement vit dans la loupe.
+     */
+    private void suivreLoupe(float x, float y) {
+        int rangee = ScrollGeometry.firstRow(vue.scrollY + y,
+                vue.metrics.lineHeight());
+        float centreRangee = rangee * vue.metrics.lineHeight()
+                + vue.metrics.lineHeight() / 2f - vue.scrollY;
+        vue.loupe.suivre(x, centreRangee);
     }
 
     private SelectionHandles.HandleId poigneeVisee(float x, float y) {
