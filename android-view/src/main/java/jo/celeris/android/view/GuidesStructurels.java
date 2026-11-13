@@ -7,6 +7,7 @@ import java.util.List;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.LexDocument;
+import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.syntax.structure.FoldSpan;
@@ -28,12 +29,14 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>La structure décide, pas la géométrie des blancs : les accolades
  * appariées des jetons servent les langages à crochets — une accolade
- * dans une chaîne ou un commentaire n'ouvre rien ; les régions
- * d'indentation ({@link IndentationFolds}) servent les langages à
- * décalage — la table suit les mêmes sources que les plis de la
- * gouttière. La table vit en LIGNES du document : le pli replié ne la
- * change pas (PIEGE-04), la projection règle les rangées à
- * l'image.</p>
+ * dans une chaîne ou un commentaire n'ouvre rien ; les suites de
+ * commentaires (javadoc comprise) servent leur propre trait, à la
+ * colonne de leur première ligne, comme les blocs qu'elles
+ * documentent ; les régions d'indentation ({@link IndentationFolds})
+ * servent les langages à décalage — la table suit les mêmes sources
+ * que les plis de la gouttière. La table vit en LIGNES du document :
+ * le pli replié ne la change pas (PIEGE-04), la projection règle les
+ * rangées à l'image.</p>
  *
  * <p>La table porte SA révision : le peintre ne la lit que collée à
  * l'instantané affiché — la structure d'une autre révision ne se trace
@@ -124,15 +127,18 @@ public final class GuidesStructurels {
     }
 
     /**
-     * Les guides des accolades appariées : un balayage des jetons du
-     * document, pile des ouvrantes en main — chaînes et commentaires
-     * ne portent pas de jetons de crochets, une accolade dedans
-     * n'ouvre rien. Le jeton de crochet soude ses blancs de tête : le
-     * GLYPHE se cherche au premier caractère non blanc de sa portée —
-     * jamais au début du jeton (la convention du lexeur). La fermante
-     * apparie la dernière ouvrante concordante : les intrus
-     * intermédiaires perdent leur tour, un document imparfait rend
-     * ses guides quand même.
+     * Les guides des accolades appariées ET des commentaires de bloc
+     * (le signal du propriétaire du 2026-11-13 : « la ligne verticale
+     * doit aussi suivre les commentaires ou javadocs ») : un balayage
+     * des jetons du document, pile des ouvrantes en main — chaînes et
+     * commentaires ne portent pas de jetons de crochets, une accolade
+     * dedans n'ouvre rien ; chaque suite de lignes de commentaire ouvre
+     * son propre trait à la colonne de sa première ligne. Le jeton de
+     * crochet soude ses blancs de tête : le GLYPHE se cherche au premier
+     * caractère non blanc de sa portée — jamais au début du jeton (la
+     * convention du lexeur). La fermante apparie la dernière ouvrante
+     * concordante : les intrus intermédiaires perdent leur tour, un
+     * document imparfait rend ses guides quand même.
      */
     private static List<Guide> guidesParCrochets(Document document,
             LexDocument lex, int taquet) {
@@ -157,7 +163,77 @@ public final class GuidesStructurels {
                 }
             }
         }
+        guides.addAll(guidesDeCommentaires(document, lex, taquet));
         return trier(guides);
+    }
+
+    /**
+     * Les guides des suites de commentaires (javadoc comprise) : chaque
+     * suite de lignes dont la tête parle en commentaire ouvre son trait
+     * à la colonne de SA première ligne, de la ligne après l'ouverture à
+     * la ligne avant la fermeture — même géométrie que les blocs
+     * d'accolades, le trait suit la construction multi-lignes. Une suite
+     * d'une ligne n'ouvre rien : le commentaire seul aligne déjà.
+     */
+    private static List<Guide> guidesDeCommentaires(Document document,
+            LexDocument lex, int taquet) {
+        List<Guide> guides = new ArrayList<>();
+        int ouverture = -1;
+        int lignes = Math.min(lex.lineCount(), document.lineCount());
+        for (int ligne = 0; ligne <= lignes; ligne++) {
+            boolean commentaire = ligne < lignes
+                    && porteCommentaire(lex, ligne);
+            if (commentaire && ouverture < 0) {
+                ouverture = ligne;
+            } else if (!commentaire && ouverture >= 0) {
+                if (ligne - 1 > ouverture) {
+                    guides.add(guideDeCommentaire(document, lex, taquet,
+                            ouverture, ligne - 1));
+                }
+                ouverture = -1;
+            }
+        }
+        return guides;
+    }
+
+    /**
+     * Le guide d'une suite de commentaires : colonne du retrait de sa
+     * première ligne, ouverture à sa première ligne, colonnes des
+     * glyphes d'ouverture et de fermeture pour la coupure des rangées.
+     */
+    private static Guide guideDeCommentaire(Document document,
+            LexDocument lex, int taquet, int ouverture, int fermeture) {
+        String texteOuverture = document.lineText(ouverture);
+        String texteFermeture = document.lineText(fermeture);
+        return new Guide(indentation(texteOuverture, taquet),
+                colonneDuCrochet(texteOuverture, lex.line(ouverture).tokens()[0]),
+                ouverture,
+                colonneDuCrochet(texteFermeture,
+                        dernierCommentaire(lex.line(fermeture))),
+                fermeture);
+    }
+
+    /**
+     * Vrai quand la tête de la ligne parle en commentaire ou
+     * documentation — le commentaire de FIN de ligne ne compte pas : il
+     * n'ouvre rien, il aligne avec le code qui le porte.
+     */
+    private static boolean porteCommentaire(LexDocument lex, int ligne) {
+        Token[] jetons = lex.line(ligne).tokens();
+        return jetons.length > 0 && (jetons[0].kind() == TokenKind.COMMENT
+                || jetons[0].kind() == TokenKind.DOC);
+    }
+
+    /** Le dernier jeton de commentaire d'une ligne — sa ligne même sinon. */
+    private static Token dernierCommentaire(LexedLine panier) {
+        Token dernier = panier.tokens()[panier.tokens().length - 1];
+        for (Token jeton : panier.tokens()) {
+            if (jeton.kind() == TokenKind.COMMENT
+                    || jeton.kind() == TokenKind.DOC) {
+                dernier = jeton;
+            }
+        }
+        return dernier;
     }
 
     /**

@@ -43,6 +43,17 @@ class GuidesStructurelsTest {
             }
             """;
 
+    /** Le corps documenté : la javadoc multi-lignes précède la méthode. */
+    private static final String DOCUMENTE = """
+            class A {
+                /**
+                 * doc
+                 */
+                void m() {
+                }
+            }
+            """;
+
     /** L'accolade dans une chaîne ou un commentaire n'ouvre rien. */
     private static final String PIEGES = """
             class A {
@@ -207,6 +218,40 @@ class GuidesStructurelsTest {
         assertEquals(1, guides.nombre());
         assertEquals(0, guides.guide(0).ligneOuverture());
         assertEquals(3, guides.guide(0).ligneApresFin());
+    }
+
+    /** La javadoc multi-lignes suit aussi le trait (le signal du
+     *  propriétaire du 2026-11-13) : sa suite de lignes ouvre SON
+     *  guide à la colonne de sa première ligne, de la ligne après
+     *  l'ouverture à la ligne avant la fermeture — comme le bloc
+     *  qu'elle documente (la méthode adjacente n'ouvre rien : corps
+     *  d'une ligne). */
+    @Test
+    void laJavadocOuvreSonPropreGuide() {
+        GuidesStructurels guides = publier(DOCUMENTE,
+                LanguageSupport.of(JavaSyntax.INSTANCE));
+        assertEquals(2, guides.nombre());
+        GuidesStructurels.Guide javadoc = guides.guide(1);
+        assertEquals(4, javadoc.colonne());
+        assertEquals(1, javadoc.ligneOuverture());
+        assertEquals(3, javadoc.ligneApresFin());
+        // la classe garde la sienne, le trait traverse la javadoc
+        assertEquals(0, guides.guide(0).ligneOuverture());
+        assertEquals(6, guides.guide(0).ligneApresFin());
+    }
+
+    /** Le commentaire d'une seule ligne n'ouvre rien : seul aligné, il
+     *  n'a pas de corps à couvrir — le guide de la classe le traverse. */
+    @Test
+    void leCommentaireDuneLigneNouvreRien() {
+        GuidesStructurels guides = publier("""
+                class A {
+                    // note
+                }
+                """, LanguageSupport.of(JavaSyntax.INSTANCE));
+        assertEquals(1, guides.nombre());
+        assertEquals(0, guides.guide(0).ligneOuverture());
+        assertEquals(2, guides.guide(0).ligneApresFin());
     }
 
     /** L'accolade jamais fermée n'ouvre rien, celle de la même ligne
