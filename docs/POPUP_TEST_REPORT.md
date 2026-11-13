@@ -3,7 +3,7 @@
 > La phase 8 de la mission — « tests et validation » — se rapporte ici :
 > les bancs du chantier, la non-régression, le journal des échecs
 > tranchés, le verdict de la passe de référence. État vérifié au
-> 2026-11-13 — la passe se rafraîchit AU SIGNAL du propriétaire du même jour (2 393 tests : le pas étendu, la carte des usages). Le mandat est formel : ne pas masquer un échec, ne pas
+> 2026-11-13 — la passe se rafraîchit à CHAQUE LIVRAISON (2 420 tests : la passe des six surfaces du signal du 2026-11-13 — type, hiérarchie, notification, valeurs de débogage, aller à, documentation externe et import local). Le mandat est formel : ne pas masquer un échec, ne pas
 > désactiver un banc pour verdir — les quatre échecs rencontrés en route
 > se tranchent ci-dessous, banc après banc, au verdict près.
 
@@ -19,7 +19,7 @@ modules compris) :
 
 | Mesure | Verdict |
 | --- | --- |
-| Tests exécutés (14 modules) | **2 393 — 0 échec, 0 écart** (3 ignorés : les bancs natifs qui sautent sans la bibliothèque JNI construite, ADR-020 — hors de la mission popups) |
+| Tests exécutés (14 modules) | **2 420 — 0 échec, 0 écart** (3 ignorés : les bancs natifs qui sautent sans la bibliothèque JNI construite, ADR-020 — hors de la mission popups) |
 | Compilation (sources principales et bancs, 14 modules) | verte |
 | Politique de langue (identifiants ASCII, typographie française des Markdown, Javadoc des classes publiques, parité des chaînes) | verte |
 | Checkstyle (plafonds 600/800 lignes, 50 par méthode, 120 colonnes) | vert |
@@ -79,6 +79,23 @@ d'ouvertures/fermetures (`openRendusCarryTheExcludedGenres`,
 | `UsagesReferencesTest` (demo, 2 — le signal du 2026-11-13) | les lieux du MOT ENTIER servis par le fil (`references`) ; la transpose de l'atelier — le début de plage devient l'offset du saut, le curseur porte au point d'usage |
 | `BancSpecsTest` (demo) — spécification D-10 | le clavier de BOUT EN BOUT : la frappe ouvre (le prédicat du coach, les mots du code), la liste survit à la frappe suivante (elle filtre — le régime rend la liste vivante), les flèches déplacent, Enter accepte (le candidat remplace le mot au curseur, sa documentation suit), Escape referme (la cascade comprise) |
 
+### 2.3bis Les bancs de la passe des six surfaces (2026-11-13)
+
+| Banc | Ce qu'il prouve |
+| --- | --- |
+| `TypeInfoViewTest` (2) | la carte d'info de type : une rangée titre, la carte passive ne réalise pas `PopupClavier` (la flèche déléguée la saute) |
+| `TypeInfoTest` (demo, 3) | le lecteur de types : la déclaration se lit sur la ligne, les formes riches (génériques, tableaux), le mot de conduite ne se prend jamais pour un type — jamais deviné |
+| `HierarchiesViewTest` (3) | la carte des hiérarchies : l'arbre se rend en sections indentées par profondeur, le choix saute (pas la section), la flèche se borne aux sommets PRENANTS, la page décline |
+| `HierarchiesTransposeTest` (demo, 2) | la transpose des moteurs : le sommet connu se prend et son saut court, l'introuvable vit muet — sur le moteur RÉEL (`Hierarchies.types`/`appelants`) |
+| `NotificationViewTest` (3) | la bulle éphémère : l'annonce se pose (titre + message), le tap LA PREND, l'horloge la referme et se réarme — jamais deux courses, le désarmement coupe |
+| `PopupAnchorTest` (+1) | l'ancre du coin bas-droit : collée aux murs, respiration comprise, bornée même trop large |
+| `ValeursPainterTest` (android-view, 2) | les valeurs de débogage : en fin de ligne UTILE (blancs de queue exclus), ligne de base du code (PIEGE-11), encre de gouttière — la ligne hors document ne se trace pas |
+| `FauxDebogueurTest` (+1, android-host) | la pause d'après retire les valeurs d'avant — chaque pause recommence à zéro |
+| `ValeursPauseTest` (demo, 2) | la pause simulée lit les affectations ÉCRITES de sa ligne — déterministe, jamais deviné |
+| `ResultatsAllerTest` (demo, 2) | l'aller à : la requête muette sert le catalogue en raccourci, la floue répond par score (fichiers d'abord à égalité, le symbole porte SA ligne) |
+| `CorrectifImportTest` (demo, 2) | la résolution d'import : la première candidate du classpath gagne (l'ordre de préférence, jamais l'aléa), l'édition s'applique — sans résolution, rien ne se propose |
+| `PopupControllerTest` (+5) | les régimes des cinq genres nouveaux : `typeInfoVitLesRegimesDuSurvol`, `hierarchyExcludesTheActionSurfacesAndReciprocally`, `notificationVitLeRegimeUniqueDeLannonce`, `documentationExterneSeConsulteSansCederALaFrappe` — et les tables exhaustives des régimes gagnent les genres |
+
 ### 2.4 La non-régression
 
 Les bancs du kit existants (27 classes de banc à l'état audité — 28
@@ -117,6 +134,16 @@ jamais masqué :
 | `PopupManagerTest.laMesureDuGenreSeRend` | le banc attendait 100 (le contenu seul), la mesure rend 124 (la carte entière — respirations comprises) | **banc corrigé** : la sémantique établie depuis la première livraison est la carte ENTIÈRE (l'ancre de l'hôte y anticipe la pose bornée) — `git show` de l'historique la confirme |
 | `PopupManagerTest.laPoseSeBorneAuxMurs` | le banc attendait la pose au bord du CONTENU, le bornage s'applique à la largeur ENTIÈRE | **banc corrigé** : le mur droit reçoit le bord entier de la carte (cohérent avec la mesure entière du banc précédent) |
 
+La passe des six surfaces (2026-11-13) a tranché de la même lame —
+banc après banc, jamais masqué :
+
+| Échec | Diagnostic | Verdict |
+| --- | --- | --- |
+| `HierarchiesViewTest.leChoixDunSommetSautePasLaSection` | la conversion rang→index de la carte ne comptait pas les en-têtes de SECTION — le doigt tombait hors sommet | **implémentation corrigée** : `indiceDe` compte l'en-tête, chaque section et ses sommets |
+| `TypeInfoTest.leMotReserveNeSePrendPasPourUnType` | le banc interdisait la for-each et l'usage après déclaration — la sémantique du lecteur lit TOUTE déclaration, où qu'elle vive | **banc corrigé** : la for-each DÉCLARE sa variable, l'usage renvoie à sa déclaration (la sémantique documentée : « la première déclaration gagne ») |
+| `ResultatsAllerTest.laRequeteRepondParLeScore` | la construction du banc omettait `startLine` (le record en exige six champs) ; le symbole vit à la LIGNE 3, pas 2 | **banc corrigé** : constructions complètes, le modèle lit `startLine()` du plan (le document ne re-paraît plus dans l'API du modèle) |
+| `CorrectifImportTest` (les deux) | le banc attendait l'import APRÈS la ligne vide et l'absence de candidat quand l'import existe — le moteur documente : l'import se pose derrière le paquet, les AUTRES candidats restent proposés (le choix à l'utilisateur) | **banc corrigé** : la sémantique documentée du moteur fait foi (`git show` de l'historique la confirme) |
+
 Le tranchage s'est fait par la sémantique HISTORIQUE du dépôt (lecture
 des versions antérieures du kit par `git show HEAD:<fichier>`) : quand
 le banc contredit une sémantique établie et testée ailleurs, c'est le
@@ -138,3 +165,4 @@ après ») est tenu dans les deux sens.
 - Les cliquets restent intacts : couverture ≥ 90 % (modules purs),
   mutation ≥ 80 % (`core-text`), plafonds Checkstyle/PMD, manifestes
   d'API — aucune exemption demandée par le chantier.
+

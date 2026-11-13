@@ -41,7 +41,7 @@ public class TypeInfoViewTest {
     /** Le type se pose en UNE rangée titre : la carte se mesure à son
      *  contenu, respirations comprises — le contenu suit la pose. */
     @Test
-    public void leTypeSePoseEnRangéeDeTitre() {
+    public void leTypeSePoseEnRangeeDeTitre() {
         TypeInfoView vue = new TypeInfoView(contexte, PopupPalette.dark());
         vue.setType("int");
         mesurer(vue);

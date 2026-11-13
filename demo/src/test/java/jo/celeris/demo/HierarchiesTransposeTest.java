@@ -50,7 +50,7 @@ class HierarchiesTransposeTest {
     /** Les sections de types : le connu se prend, l'introuvable vit
      *  muet — le saut du sommet choisi court chez le sauteur. */
     @Test
-    void lesSectionsDeTypesServentLeConnuEtLaFrontière() {
+    void lesSectionsDeTypesServentLeConnuEtLaFrontiere() {
         Document document = Document.of(TERRAIN);
         Hierarchies.HierarchieTypes arbre = Hierarchies.types("Chat",
                 Map.of("Exemple.java", document), java);

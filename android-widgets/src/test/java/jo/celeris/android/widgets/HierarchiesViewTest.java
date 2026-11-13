@@ -112,7 +112,7 @@ public class HierarchiesViewTest {
      *  bas, remonte bornée — la validation exécute le saut du sommet
      *  surligné, la page décline, la carte vide décline tout. */
     @Test
-    public void laFlècheSeBorneAuxSommetsPrenants() {
+    public void laFlecheSeBorneAuxSommetsPrenants() {
         AtomicInteger courses = new AtomicInteger(-1);
         HierarchiesView vue = new HierarchiesView(contexte, PopupPalette.dark());
         vue.setArbre("Hiérarchie d'appels", List.of(

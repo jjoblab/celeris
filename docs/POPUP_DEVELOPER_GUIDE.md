@@ -62,9 +62,10 @@ comprise (la documentation suit SA liste, le débordement suit SA barre).
 ## 3. La recette — huit pas, un genre nouveau
 
 Le fil rouge : une carte d'**info de type** au caret (catégorie A de
-l'inventaire, manquante aujourd'hui). Illustration pédagogique — la
-surface n'existe pas au dépôt ; le chemin, lui, est celui que suivent
-toutes les surfaces réelles du dépôt.
+l'inventaire). Illustration devenue RÉELLE — la surface vit au dépôt
+depuis la passe des six surfaces du 2026-11-13 (`TypeInfoView`, genre
+`TYPE_INFO`, commit `7845790`) ; le chemin ci-dessous est celui qu'elle
+a réellement suivi, et celui que suivent toutes les surfaces du dépôt.
 
 ### Pas 1 — le genre, à la machine à états
 
@@ -76,8 +77,10 @@ EXISTE déjà — l'énumération suffit :
 
 ```java
 // PopupController.PopupKind — la javadoc du régime se pose avec le genre
-/** L'info de type au caret — fermée à la frappe et au défilement,
- *  comme le survol : elle décrit, elle ne choisit pas. */
+/** L'info de type — le nom du type du symbole au curseur (catégorie A
+ *  de l'inventaire, le fil rouge du guide du développeur) : elle vit
+ *  les régimes du survol — fermée à la frappe et au défilement,
+ *  refermée au tap hors cartes (elle décrit, elle ne choisit pas). */
 TYPE_INFO,
 ```
 
@@ -282,9 +285,12 @@ couche (§1.2), les feuilles (§1.3), les surfaces in-canvas assumées
 (§1.4), l'orchestration de la démo (§1.6), et la classification
 catégorie par catégorie (§2). L'API publique du kit se lit dans
 l'USAGE §9 ; les signatures exactes dans `android-widgets` —
-`PopupManager`, `PopupController`, `PopupLayer`, `PopupAnchor`,
-`PopupPlacer`, `PopupPanel`, `TextRowsPopup`, `PopupClavier`,
-`ReferencesView`, `PopupPalette`, `PopupTokens`.
+`PopupManager`, `PopupController`, `PopupLayer`, `PopupAnchor`
+(`bottomRightCorner` comprise — l'ancre de la notification),
+`PopupPlacer`, `PopupPanel`, `TextRowsPopup` (le patron des rangées
+indentées par PROFONDEUR — `Row.arbre`), `PopupClavier`,
+`ReferencesView`, `TypeInfoView`, `HierarchiesView`,
+`NotificationView`, `PopupPalette`, `PopupTokens`.
 
 ## 8. Faire évoluer le socle — le guide de maintenance
 

@@ -525,14 +525,18 @@ le plan, les rappels contextuels compris, construites avec votre
 `PopupPalette` ; la démonstration dérive la sienne du thème et de la
 taille de texte.
 
-Les genres du contrôleur (`PopupKind`) — dix-sept depuis le signal
-du propriétaire — couvrent les surfaces de l'éditeur : complétion et
-sa documentation, menu d'intentions, aide aux paramètres, survol,
-info-bulle de diagnostic, fil d'Ariane, recherche, barre de
-sélection et son débordement, bande d'erreurs, minimap, pouce de
-défilement, barre de touches, sélecteur de couleur, débordement de
-la barre d'application, carte des usages ; vos surfaces propres vivent dans les
-feuilles. Le kit est thémé et accessible par construction
+Les genres du contrôleur (`PopupKind`) — vingt-et-un depuis la passe
+des six surfaces du signal — couvrent les surfaces de l'éditeur :
+complétion et sa documentation, menu d'intentions, aide aux
+paramètres, survol, info-bulle de diagnostic, fil d'Ariane,
+recherche, barre de sélection et son débordement, bande d'erreurs,
+minimap, pouce de défilement, barre de touches, sélecteur de
+couleur, débordement de la barre d'application, carte des usages,
+info de type, hiérarchie de types et d'appels, notification,
+documentation externe ; les valeurs de débogage en ligne vivent
+in-canvas (`EditorView.setValeursEnLigne`) et l'aller à
+fichier/symbole en feuille (`FeuilleAller`) — vos surfaces propres
+vivent dans les feuilles. Le kit est thémé et accessible par construction
 (ADR-008) : poignée de glissement, bouton de fermeture, voile,
 fermeture au retour.
 
