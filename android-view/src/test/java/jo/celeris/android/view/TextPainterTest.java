@@ -197,8 +197,9 @@ class TextPainterTest {
                 "deux images : chacune peint un rectangle de sélection et deux textes");
         for (Dessin dessin : dessins) {
             if ("<rect>".equals(dessin.texte())) {
-                assertEquals(THEME.selectionColor(), dessin.couleur(),
-                        "la sélection peint dans sa couleur propre");
+                assertEquals((THEME.selectionColor() & 0x00FFFFFF) | 0x99000000,
+                        dessin.couleur(),
+                        "la sélection peint dans sa couleur propre, en voile");
             } else {
                 assertEquals(THEME.baseTextColor(), dessin.couleur(),
                         "le texte repose sa couleur de base à chaque image (PIEGE-01)");

@@ -16,6 +16,16 @@ import jo.celeris.core.text.SelRange;
 public final class SelectionPainter extends PainterLayer {
 
     /**
+     * L'alpha du voile de sélection — le redressement du constat du
+     * propriétaire (2026-11-13 : « un rectangle bleu foncé qui cache le
+     * mot ou caractère sélectionné ») : la teinte du thème y pose son
+     * voile au lieu de son plein, le texte tracé par-dessus reste
+     * lisible — le mot sélectionné se voit ENTIÈREMENT, le fond ne le
+     * recouvre plus d'un opaque.
+     */
+    private static final int ALPHA = 0x99;
+
+    /**
      * Construit la couche de sélection.
      *
      * @param brushes la fabrique de pinceaux (la couche prend le sien)
@@ -26,7 +36,9 @@ public final class SelectionPainter extends PainterLayer {
 
     @Override
     protected int baseColor(FrameState frame) {
-        return frame.theme().selectionColor();
+        // le voile de la teinte de sélection : la transparence vit dans
+        // le canal alpha — le texte au-dessus reste seul à parler
+        return (frame.theme().selectionColor() & 0x00FFFFFF) | (ALPHA << 24);
     }
 
     @Override

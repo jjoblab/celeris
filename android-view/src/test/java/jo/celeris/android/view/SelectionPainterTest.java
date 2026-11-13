@@ -37,8 +37,9 @@ class SelectionPainterTest {
         }
     }
 
-    /** Un rectangle tracé : ses bornes. */
-    private record RectTrace(float gauche, float haut, float droite, float bas) {
+    /** Un rectangle tracé : ses bornes et son encre. */
+    private record RectTrace(float gauche, float haut, float droite, float bas,
+            int couleur) {
     }
 
     /** Surface enregistreuse de rectangles. */
@@ -53,7 +54,8 @@ class SelectionPainterTest {
         @Override
         public void drawRect(float left, float top, float right, float bottom,
                 TextBrush brush) {
-            rectangles.add(new RectTrace(left, top, right, bottom));
+            rectangles.add(new RectTrace(left, top, right, bottom,
+                    brush.color()));
         }
 
         List<RectTrace> rectangles() {
@@ -147,5 +149,31 @@ class SelectionPainterTest {
         RectTrace seconde = surface.rectangles().get(1);
         assertEquals(20f, seconde.gauche(), 1e-6f);
         assertEquals(20f + 20f, seconde.droite(), 1e-6f);
+    }
+
+    /** Le redressement du constat du propriétaire (2026-11-13 : « un
+     *  rectangle bleu foncé qui cache le mot ou caractère sélectionné ») :
+     *  la bande se peint en VOILE de la teinte de sélection — jamais en
+     *  plein opaque — le texte tracé par-dessus reste lisible, le mot
+     *  sélectionné se voit entièrement. */
+    @Test
+    void selection_sePeintEnVoile() {
+        Document document = Document.of("abcd");
+        VisualProjection projection =
+                new VisualProjection(document, new FoldModel(), 0);
+        EditorMetrics metrics =
+                EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
+
+        FrameState image = new FrameState();
+        image.beginFrame(document,
+                MultiSelection.of(new SelRange(0, 4)), projection, 1L, metrics,
+                THEME, 0, 1, 20f, 0f, 0f);
+
+        SurfaceRectangles surface = new SurfaceRectangles();
+        new SelectionPainter(() -> new PinceauMutable()).paint(surface, image);
+
+        assertEquals(1, surface.rectangles().size());
+        assertEquals((THEME.selectionColor() & 0x00FFFFFF) | 0x99000000,
+                surface.rectangles().get(0).couleur());
     }
 }
