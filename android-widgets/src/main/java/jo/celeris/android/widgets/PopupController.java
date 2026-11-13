@@ -14,8 +14,8 @@ import java.util.Set;
  * ferment à la frappe et au défilement ; la complétion FILTRE
  * localement à la frappe — elle reste ouverte, la requête ne repart
  * pas ; la barre de recherche ne se ferme que sur demande. Les genres
- * (M7.5, reprise — dix-huit depuis la seconde surface réveillée : la
- * carte d'info de type, fil rouge du guide du développeur) : la
+ * (M7.5, reprise — vingt-deux depuis la carte de génération, la
+ * sixième surface réveillée du signal « terminez le reste ») : la
  * documentation de complétion n'existe pas sans sa liste — fermer la
  * liste ferme la documentation ; la barre de sélection cède à la frappe
  * (la frappe remplace la sélection) mais survit au défilement, et son
@@ -152,7 +152,22 @@ public final class PopupController {
          *  déplace le curseur), l'échappement la referme comme bulle
          *  éphémère ; aucune exclusion : une documentation ne chasse
          *  personne. */
-        EXTERNAL_DOC
+        EXTERNAL_DOC,
+
+        /** La carte de génération et de gabarits — les actions de
+         *  génération de code au caret (catégorie D de l'inventaire,
+         *  les moteurs vivaient, la surface dormait) : constructeur,
+         *  accesseurs, equals/hashCode/toString lus des champs de la
+         *  classe englobante, l'entourage de la sélection (try/catch,
+         *  if) et le gabarit de méthode à trous liés. Elle joint la
+         *  famille des surfaces d'actions — elle ferme le menu
+         *  d'intentions, le débordement de la toolbar, la carte des
+         *  usages et la hiérarchie, eux la ferment (une surface
+         *  d'actions à la fois) ; la saisie la chasse quand la
+         *  complétion s'ouvre (un menu ne survit pas à la liste), le
+         *  tap hors cartes la referme — le défilement la repositionne
+         *  (le genre suit les régimes du menu du caret). */
+        GABARITS
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -190,21 +205,27 @@ public final class PopupController {
         }
         if (kind == PopupKind.COMPLETION_LIST) {
             rendus.addAll(fermerParExclusion(PopupKind.INTENTIONS_MENU,
-                    PopupKind.TOOLBAR_OVERFLOW));
+                    PopupKind.TOOLBAR_OVERFLOW, PopupKind.GABARITS));
         } else if (kind == PopupKind.INTENTIONS_MENU) {
             rendus.addAll(fermerParExclusion(PopupKind.COMPLETION_LIST,
                     PopupKind.TOOLBAR_OVERFLOW, PopupKind.REFERENCES,
-                    PopupKind.HIERARCHY));
+                    PopupKind.HIERARCHY, PopupKind.GABARITS));
         } else if (kind == PopupKind.TOOLBAR_OVERFLOW) {
             rendus.addAll(fermerParExclusion(PopupKind.COMPLETION_LIST,
                     PopupKind.INTENTIONS_MENU, PopupKind.REFERENCES,
-                    PopupKind.HIERARCHY));
+                    PopupKind.HIERARCHY, PopupKind.GABARITS));
         } else if (kind == PopupKind.REFERENCES) {
             rendus.addAll(fermerParExclusion(PopupKind.INTENTIONS_MENU,
-                    PopupKind.TOOLBAR_OVERFLOW, PopupKind.HIERARCHY));
+                    PopupKind.TOOLBAR_OVERFLOW, PopupKind.HIERARCHY,
+                    PopupKind.GABARITS));
         } else if (kind == PopupKind.HIERARCHY) {
             rendus.addAll(fermerParExclusion(PopupKind.INTENTIONS_MENU,
-                    PopupKind.TOOLBAR_OVERFLOW, PopupKind.REFERENCES));
+                    PopupKind.TOOLBAR_OVERFLOW, PopupKind.REFERENCES,
+                    PopupKind.GABARITS));
+        } else if (kind == PopupKind.GABARITS) {
+            rendus.addAll(fermerParExclusion(PopupKind.COMPLETION_LIST,
+                    PopupKind.INTENTIONS_MENU, PopupKind.TOOLBAR_OVERFLOW,
+                    PopupKind.REFERENCES, PopupKind.HIERARCHY));
         } else if (kind == PopupKind.COMPLETION_DOC
                 && !ouverts.contains(PopupKind.COMPLETION_LIST)) {
             return rendus;
@@ -333,7 +354,8 @@ public final class PopupController {
                 PopupKind.COLOR_PICKER, PopupKind.INTENTIONS_MENU,
                 PopupKind.SELECTION_OVERFLOW, PopupKind.TOOLBAR_OVERFLOW,
                 PopupKind.REFERENCES, PopupKind.TYPE_INFO,
-                PopupKind.HIERARCHY, PopupKind.EXTERNAL_DOC);
+                PopupKind.HIERARCHY, PopupKind.EXTERNAL_DOC,
+                PopupKind.GABARITS);
     }
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se

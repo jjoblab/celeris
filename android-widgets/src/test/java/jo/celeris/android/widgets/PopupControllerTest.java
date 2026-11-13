@@ -434,4 +434,44 @@ class PopupControllerTest {
                 controleur.surToucheHorsCartes(),
                 "la bulle cède au geste extérieur");
     }
+
+    /** La carte de gabarits (catégorie D de l'inventaire — les moteurs
+     *  de génération vivaient, la surface dormait) joint la famille des
+     *  surfaces d'actions : elle ferme le menu du caret, le
+     *  débordement de la toolbar, la carte des usages ET la hiérarchie
+     *  — eux la ferment ; la saisie la chasse quand la complétion
+     *  s'ouvre (un menu ne survit pas à la liste) ; elle vit les
+     *  régimes du menu du caret — la frappe seule et le défilement
+     *  l'épargnent (elle se repositionne), le tap hors cartes la
+     *  referme. */
+    @Test
+    void gabaritsExcludeTheActionSurfacesAndReciprocally() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertTrue(controleur.open(PopupController.PopupKind.GABARITS),
+                "la carte de gabarits ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "…et ferme la carte des usages — une surface d'actions à la fois");
+        controleur.open(PopupController.PopupKind.TOOLBAR_OVERFLOW);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.GABARITS),
+                "le débordement de la toolbar ferme les gabarits");
+        controleur.open(PopupController.PopupKind.GABARITS);
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.GABARITS),
+                "la complétion chasse le menu — la saisie prend le relais");
+        controleur.open(PopupController.PopupKind.GABARITS);
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.GABARITS),
+                "la frappe seule ne referme pas le menu du caret");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.GABARITS),
+                "le défilement le repositionne, il ne le ferme pas");
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.GABARITS),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la carte d'actions");
+    }
 }

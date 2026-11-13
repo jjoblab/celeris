@@ -44,6 +44,13 @@
     <string name="genre_fichier_aller">File</string>
     <string name="genre_symbole_aller">Symbol</string>
     <string name="action_doc">External documentation</string>
+    <string name="action_generer">Generate code</string>
+    <string name="section_gabarits">Generate &amp; templates</string>
+    <string name="gabarits_constructeur">Constructor of %1$s</string>
+    <string name="gabarits_accesseurs">Getters and setters of %1$s</string>
+    <string name="gabarits_equality">equals, hashCode and toString of %1$s</string>
+    <string name="gabarits_entourer_try">Surround with try/catch</string>
+    <string name="gabarits_entourer_if">Surround with if</string>
     <string name="titre_correctif_import">Import %1$s</string>
     <string name="titre_usages">%1$d usages of « %2$s »</string>
     <string name="barre_couper">Cut</string>

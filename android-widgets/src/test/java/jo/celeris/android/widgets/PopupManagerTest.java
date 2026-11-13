@@ -384,6 +384,43 @@ public class PopupManagerTest {
                 popups.estOuvert(PopupController.PopupKind.REFERENCES));
     }
 
+    /** La carte de gabarits (catégorie D de l'inventaire — les moteurs
+     *  de génération vivaient, la surface dormait) reçoit le clavier
+     *  délégué : l'ouverture chasse le menu du caret (une surface
+     *  d'actions à la fois), les flèches y surlignent, Enter exécute
+     *  l'action choisie, l'échappement la referme. */
+    @Test
+    public void leClavierDelegueSertLesGabarits() {
+        PopupLayer couche = couche();
+        PopupManager popups = new PopupManager(new PopupController(), couche);
+        IntentionsMenuView carte = new IntentionsMenuView(couche.getContext(),
+                PopupPalette.dark());
+        popups.lier(PopupController.PopupKind.GABARITS, carte);
+        popups.lier(PopupController.PopupKind.INTENTIONS_MENU, panneau());
+        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        assertNotNull("la carte du menu se montre d'abord",
+                popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
+        boolean[] pris = { false };
+        carte.setActions(List.of(
+                new IntentionsMenuView.Item("Constructeur",
+                        () -> pris[0] = true),
+                new IntentionsMenuView.Item("equals et hashCode",
+                        () -> pris[0] = true)));
+        popups.montrer(PopupController.PopupKind.GABARITS, 10, 80);
+        assertFalse("l'ouverture chasse le menu du caret",
+                popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
+        assertNull("la carte du menu quitte la couche",
+                popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertEquals("la flèche surligne la première action", 0,
+                carte.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ENTER));
+        assertTrue("Enter exécute l'action surlignée", pris[0]);
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        assertFalse("l'échappement referme la carte des gabarits",
+                popups.estOuvert(PopupController.PopupKind.GABARITS));
+    }
+
     /** L'échappement sans carte interactive referme les bulles
      *  éphémères — le chrome demeure. */
     @Test

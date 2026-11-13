@@ -83,6 +83,10 @@ final class AtelierPopups {
     /** L'atelier de documentation externe — la documentation du symbole
      *  hors complétion (catégorie A, la carte se dérive). */
     private final AtelierDocExterne atelierDocExterne;
+    /** L'atelier de génération et de gabarits — les actions de
+     *  génération de code au caret (catégorie D, les moteurs se
+     *  réveillent). */
+    private final AtelierGabarits atelierGabarits;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -108,6 +112,16 @@ final class AtelierPopups {
     /** L'acceptation d'un candidat vient d'avoir lieu : l'édition qui
      *  l'accompagne ne rouvre pas la liste (M7.5, redressement). */
     private boolean acceptationEnCours;
+    /** La table des repositionnements — le genre ouvert, son geste de
+     *  re-pose : le défilement REPOSITIONNE les cartes restantes, il ne
+     *  les ferme jamais ; la table se remplit au montage, exhaustive. */
+    private final List<Repositionnement> repositionnements;
+
+    /** Un couple repositionnement : le genre à surveiller, le geste de
+     *  sa re-pose — la boucle de repositionnement y lit. */
+    private record Repositionnement(PopupController.PopupKind genre,
+            Runnable geste) {
+    }
 
     /**
      * Construit l'atelier : le manager naît sur la machine et la couche
@@ -119,9 +133,12 @@ final class AtelierPopups {
      * @param couche       la couche porte-popups posée sur l'éditeur
      * @param theme        le thème d'éditeur courant
      * @param tailleTexteSp la taille de texte de l'éditeur, en sp
+     * @param gabaritMethode le geste du gabarit de méthode — le canal
+     *                       unique de la refactorisation (A-22), la carte
+     *                       de génération n'est qu'une peau de plus
      */
     AtelierPopups(EditorView editeur, TextSession session, PopupLayer couche,
-            EditorTheme theme, float tailleTexteSp) {
+            EditorTheme theme, float tailleTexteSp, Runnable gabaritMethode) {
         this.editeur = editeur;
         this.session = session;
         this.couche = couche;
@@ -159,9 +176,41 @@ final class AtelierPopups {
         atelierHierarchies = new AtelierHierarchies(editeur, session, popups,
                 margePx, palette, () -> plan, () -> nomDuFichier);
         atelierNotifications = new AtelierNotifications(popups, margePx, palette);
+        atelierGabarits = new AtelierGabarits(editeur, session, popups,
+                margePx, palette, () -> plan, () -> nomDuFichier,
+                gabaritMethode);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette);
         bordDroit = new AtelierBordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
+        repositionnements = tableDesRepositionnements();
+        brancherEcouteurs();
+    }
 
+    /** La table exhaustive des repositionnements — chaque genre qui se
+     *  re-pose au défilement, avec son geste : la liste, la
+     *  consultation, les gabarits, le fil d'Ariane, la bande, la barre
+     *  de sélection, le menu du caret. */
+    private List<Repositionnement> tableDesRepositionnements() {
+        return List.of(
+                new Repositionnement(PopupController.PopupKind.COMPLETION_LIST,
+                        this::placerCompletion),
+                new Repositionnement(PopupController.PopupKind.EXTERNAL_DOC,
+                        atelierDocExterne::repositionner),
+                new Repositionnement(PopupController.PopupKind.GABARITS,
+                        atelierGabarits::repositionner),
+                new Repositionnement(PopupController.PopupKind.BREADCRUMB,
+                        this::rafraichirFilAriane),
+                new Repositionnement(PopupController.PopupKind.ERROR_BAND,
+                        this::rafraichirBandeDErreurs),
+                new Repositionnement(PopupController.PopupKind.SELECTION_BAR,
+                        () -> rafraichirBarreSelection(session.selection())),
+                new Repositionnement(PopupController.PopupKind.INTENTIONS_MENU,
+                        this::ouvrirIntentions));
+    }
+
+    /** Les écouteurs de la scène — la carte choisie, la barre qui
+     *  déborde, le survol demandé, l'édition et la sélection qui
+     *  suivent, la fenêtre qui défile. */
+    private void brancherEcouteurs() {
         listeCompletion.setOnPick(this::choisirCompletion);
         barreSelection.setOnOverflow(
                 () -> menuDebordement.ouvrir(barreSelection,
@@ -200,6 +249,7 @@ final class AtelierPopups {
         atelierHierarchies.surPalette(palette);
         atelierNotifications.surPalette(palette);
         atelierDocExterne.surPalette(palette);
+        atelierGabarits.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -293,6 +343,13 @@ final class AtelierPopups {
      *  de documentation se dérive). */
     void ouvrirDocExterne() {
         atelierDocExterne.ouvrir();
+    }
+
+    /** Ouvre la carte de génération et de gabarits au curseur — les
+     *  actions lues du document réel (catégorie D, les moteurs de
+     *  génération s'éveillent). */
+    void ouvrirGabarits() {
+        atelierGabarits.ouvrir();
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */
@@ -606,27 +663,20 @@ final class AtelierPopups {
         session.setSelection(MultiSelection.of(SelRange.caretAt(offset)));
     }
 
+    /** La bande d'erreurs se re-pose sur l'état courant — les
+     *  diagnostics du fichier ouvert, la couche mesurée. */
+    private void rafraichirBandeDErreurs() {
+        bordDroit.rafraichirBande(diagnostics, nomDuFichier,
+                largeurCouche(), hauteurCouche());
+    }
+
     private void repositionnerTout() {
-        if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {
-            placerCompletion();
-        }
-        if (popups.estOuvert(PopupController.PopupKind.EXTERNAL_DOC)) {
-            atelierDocExterne.repositionner();
-        }
-        if (popups.estOuvert(PopupController.PopupKind.BREADCRUMB)) {
-            rafraichirFilAriane();
-        }
-        if (popups.estOuvert(PopupController.PopupKind.ERROR_BAND)) {
-            bordDroit.rafraichirBande(diagnostics, nomDuFichier,
-                    largeurCouche(), hauteurCouche());
+        for (Repositionnement reposition : repositionnements) {
+            if (popups.estOuvert(reposition.genre())) {
+                reposition.geste().run();
+            }
         }
         bordDroit.rafraichir(largeurCouche(), hauteurCouche());
-        if (popups.estOuvert(PopupController.PopupKind.SELECTION_BAR)) {
-            rafraichirBarreSelection(session.selection());
-        }
-        if (popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU)) {
-            ouvrirIntentions();
-        }
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors

@@ -41,11 +41,13 @@ public final class PopupManager {
      * ensemble, l'ordre ne départage que les débordements —, la carte
      * des usages et la hiérarchie en dernier (elles ne tiennent jamais
      * avec les menus, le routage ne les sert que seules — elles ne
-     * tiennent jamais ensemble non plus, l'ordre ne départage pas).
+     * tiennent jamais ensemble non plus, l'ordre ne départage pas). La
+     * carte de gabarits vit avec les menus du caret.
      */
     private static final PopupController.PopupKind[] ORDRE_CLAVIER = {
             PopupController.PopupKind.COMPLETION_LIST,
             PopupController.PopupKind.INTENTIONS_MENU,
+            PopupController.PopupKind.GABARITS,
             PopupController.PopupKind.TOOLBAR_OVERFLOW,
             PopupController.PopupKind.SELECTION_OVERFLOW,
             PopupController.PopupKind.REFERENCES,
@@ -69,7 +71,8 @@ public final class PopupManager {
             PopupController.PopupKind.TYPE_INFO,
             PopupController.PopupKind.HIERARCHY,
             PopupController.PopupKind.NOTIFICATION,
-            PopupController.PopupKind.EXTERNAL_DOC};
+            PopupController.PopupKind.EXTERNAL_DOC,
+            PopupController.PopupKind.GABARITS};
 
     /** Ce que l'échappement referme quand aucune carte interactive ne
      *  tient — les bulles qui suivent le contexte, pas le chrome. */
