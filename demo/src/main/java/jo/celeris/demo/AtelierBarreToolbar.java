@@ -1,13 +1,13 @@
 package jo.celeris.demo;
 
-import android.view.View;
+import android.view.ViewTreeObserver;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.android.widgets.PopupController;
-import jo.celeris.android.widgets.PopupLayer;
+import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.TouchBarView;
@@ -16,54 +16,58 @@ import jo.celeris.android.widgets.TouchBarView;
  * L'atelier de la barre d'application (le redressement du
  * propriétaire, le design du dépôt de départ) : le menu de
  * DÉBORDEMENT de la toolbar ne vit plus au menu système — la CARTE du
- * kit s'y ouvre, la même que le menu d'intentions (rangées cliquables
- * du verre, fermeture au choix), pendue sous la puce au bord droit.
- * La BARRE DE TOUCHES de code vit au bas de la scène, AU-DESSUS DU
- * CLAVIER (le dépôt de départ, 4.5.0) : Tab, commentaire,
- * déplacements de lignes, duplication — l'hôte y pose ses touches.
+ * kit s'y ouvre, pendue sous la puce au bord droit. La BARRE DE
+ * TOUCHES de code vit au bas de la scène, AU-DESSUS DU CLAVIER (le
+ * dépôt de départ, 4.5.0) : Tab, commentaire, déplacements de lignes,
+ * duplication — l'hôte y pose ses touches.
  *
- * <p>La carte s'ouvre sur le genre INTENTIONS_MENU de la machine : un
- * menu remplace la complétion, deux menus ne tiennent jamais — la
- * carte est PARTAGÉE avec le menu d'intentions (une carte, tous les
- * menus, le motif du dépôt de départ). La touchbar vit sur le genre
- * TOUCH_BAR : ni la frappe ni le défilement ne la ferment, le
- * clavier la remonte avec l'IME (l'activité bord à bord).</p>
+ * <p>Le chantier d'unification : la carte vit son PROPRE genre
+ * ({@code TOOLBAR_OVERFLOW}) — elle détournait le menu d'intentions,
+ * deux surfaces dans un créneau — le manager tient l'état et la vue
+ * d'un seul tenant ; l'observateur du layout global se garde RETIRABLE
+ * ({@link #detacher()}), jamais une référence de méthode ne s'y
+ * perd.</p>
  */
 final class AtelierBarreToolbar {
 
     /** La respiration des ancres aux bords de la couche, en dp. */
     private static final float MARGE_DP = 8f;
 
-    private final PopupController controleur;
-    private final PopupLayer couche;
+    private final PopupManager popups;
     private final IntentionsMenuView carte;
     /** Le titre de la section du débordement — l'état NavMenu de la carte. */
     private final String section;
     private final TouchBarView barreTouches;
     private final int margePx;
+    /** L'observateur du layout global — gardé, jamais perdu, retirable. */
+    private final ViewTreeObserver.OnGlobalLayoutListener observateur;
 
     /**
-     * Construit l'atelier sur la couche des popups.
+     * Construit l'atelier sur le coordinateur des popups : la carte naît
+     * liée au genre débordement de toolbar, la barre de touches au sien.
      *
-     * @param controleur la machine à états des popups
-     * @param couche     la couche porte-popups posée sur l'éditeur
-     * @param carte      la carte partagée du kit — le menu d'intentions
-     * @param palette    la palette dérivée du thème courant
+     * @param popups  le coordinateur des popups de la scène
+     * @param palette la palette dérivée du thème courant
+     * @param section le titre de section du débordement
      */
-    AtelierBarreToolbar(PopupController controleur, PopupLayer couche,
-            IntentionsMenuView carte, PopupPalette palette, String section) {
-        this.controleur = controleur;
-        this.couche = couche;
-        this.carte = carte;
+    AtelierBarreToolbar(PopupManager popups, PopupPalette palette,
+            String section) {
+        this.popups = popups;
+        this.carte = new IntentionsMenuView(popups.couche().getContext(),
+                palette);
+        popups.lier(PopupController.PopupKind.TOOLBAR_OVERFLOW, carte);
         this.section = section;
-        this.barreTouches = new TouchBarView(couche.getContext(), palette);
+        this.barreTouches = new TouchBarView(popups.couche().getContext(),
+                palette);
+        popups.lier(PopupController.PopupKind.TOUCH_BAR, barreTouches);
         this.margePx = Math.round(MARGE_DP
-                * couche.getResources().getDisplayMetrics().density);
+                * popups.couche().getResources().getDisplayMetrics().density);
         // la touchbar se REPOSE au changement de layout : la rotation
-        // la recolle au bas de la scène — l'observateur global de la
-        // couche y veille, sans toucher aux écouteurs de l'éditeur
-        couche.getViewTreeObserver().addOnGlobalLayoutListener(
-                this::reposerBarre);
+        // la recolle au bas de la scène — l'observateur garde SA
+        // référence, jamais la perte ne se paie au détachement
+        observateur = this::reposerBarre;
+        popups.couche().getViewTreeObserver()
+                .addOnGlobalLayoutListener(observateur);
     }
 
     /**
@@ -77,24 +81,22 @@ final class AtelierBarreToolbar {
         if (actions.isEmpty()) {
             return;
         }
-        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
         // la carte prend son état NavMenu : la section du débordement
         carte.setSection(section);
         carte.setActions(items(actions));
-        PopupPlacer.Cadre taille = tailleMesuree(carte);
+        PopupPlacer.Cadre taille = popups.taille(
+                PopupController.PopupKind.TOOLBAR_OVERFLOW);
         // la carte pend sous la puce : le long du bord DROIT, en tête
         // de scène — la puce de la toolbar vit au-dessus à droite
         int x = Math.max(margePx,
-                couche.getWidth() - margePx - taille.largeur());
+                popups.couche().getWidth() - margePx - taille.largeur());
         int y = margePx;
-        couche.show(PopupController.PopupKind.INTENTIONS_MENU, carte, x, y);
+        popups.montrer(PopupController.PopupKind.TOOLBAR_OVERFLOW, x, y);
     }
 
     /** Ferme la carte — la couche suit. */
     void fermerDebordement() {
-        if (controleur.close(PopupController.PopupKind.INTENTIONS_MENU)) {
-            couche.dismiss(PopupController.PopupKind.INTENTIONS_MENU);
-        }
+        popups.fermer(PopupController.PopupKind.TOOLBAR_OVERFLOW);
     }
 
     /**
@@ -106,7 +108,7 @@ final class AtelierBarreToolbar {
      */
     void poserBarreTouches(List<TouchBarView.Touche> touches) {
         barreTouches.setActions(touches);
-        controleur.open(PopupController.PopupKind.TOUCH_BAR);
+        popups.controleur().open(PopupController.PopupKind.TOUCH_BAR);
         reposerBarre();
     }
 
@@ -118,11 +120,21 @@ final class AtelierBarreToolbar {
     /** La palette tourne : la barre de touches la suit. */
     void surPalette(PopupPalette palette) {
         barreTouches.setPalette(palette);
+        carte.setPalette(palette);
+    }
+
+    /**
+     * Le détachement de fin de vie : l'observateur du layout se retire
+     * — jamais la fuite ne se paie (chantier d'unification).
+     */
+    void detacher() {
+        popups.couche().getViewTreeObserver()
+                .removeOnGlobalLayoutListener(observateur);
     }
 
     /** Recolle la barre au bas de la scène — au layout global. */
     private void reposerBarre() {
-        if (!controleur.isOpen(PopupController.PopupKind.TOUCH_BAR)
+        if (!popups.estOuvert(PopupController.PopupKind.TOUCH_BAR)
                 || barreTouches.getMeasuredWidth() <= 0) {
             return;
         }
@@ -130,10 +142,10 @@ final class AtelierBarreToolbar {
                 barreTouches.getMeasuredWidth(),
                 barreTouches.getMeasuredHeight());
         int x = Math.max(margePx,
-                (couche.getWidth() - taille.largeur()) / 2);
+                (popups.couche().getWidth() - taille.largeur()) / 2);
         int y = Math.max(margePx,
-                couche.getHeight() - taille.hauteur() - margePx);
-        couche.show(PopupController.PopupKind.TOUCH_BAR, barreTouches, x, y);
+                popups.couche().getHeight() - taille.hauteur() - margePx);
+        popups.montrer(PopupController.PopupKind.TOUCH_BAR, x, y);
     }
 
     /** Les items de la carte : chaque action court APRÈS la fermeture. */
@@ -147,15 +159,5 @@ final class AtelierBarreToolbar {
             }));
         }
         return items;
-    }
-
-    /** La taille mesurée d'une vue — l'ancre y anticipe la pose. */
-    private PopupPlacer.Cadre tailleMesuree(View vue) {
-        vue.measure(View.MeasureSpec.makeMeasureSpec(0,
-                        View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0,
-                        View.MeasureSpec.UNSPECIFIED));
-        return new PopupPlacer.Cadre(0, 0, vue.getMeasuredWidth(),
-                vue.getMeasuredHeight());
     }
 }

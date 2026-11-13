@@ -12,8 +12,12 @@ import org.jspecify.annotations.Nullable;
  * redressement du 2026-11-13 retire le survol de l'appui long : il
  * entrait en conflit avec la barre de sélection, seul le double-clic
  * et le « i » de la barre l'ouvrent) ; l'appui long de gouttière y
- * rend la ligne visée — le moment juste du point d'arrêt. La vue ne
- * fait que tenir les consommateurs et notifier : les états
+ * rend la ligne visée — le moment juste du point d'arrêt. Le chantier
+ * d'unification (2026-11-13) y pose le VERDICT DES TOUCHES
+ * MATÉRIELLES : l'hôte y délègue la navigation clavier de ses popups
+ * (PIEGE-27 : la vue garde le focus, la touche remonte à l'hôte AVANT
+ * la table de raccourcis — jamais la composition IME ne s'y sert).
+ * La vue ne fait que tenir les consommateurs et notifier : les états
  * d'exécution appartiennent à l'hôte.
  *
  * <p>Porteur mince : la vue y délègue ses poseurs publics, ses
@@ -28,6 +32,10 @@ final class RappelsHote {
 
     /** Le consommateur de bascule d'arrêt de l'hôte (D-04) — l'appui long de gouttière. */
     private volatile @Nullable IntConsumer surBasculeArret;
+
+    /** Le verdict des touches matérielles de l'hôte — la navigation
+     *  clavier de ses popups, déléguée sans jamais le focus. */
+    private volatile @Nullable IntPredicate surTouchePopup;
 
     /**
      * Pose (ou coupe) le verdict de double-tap.
@@ -63,5 +71,26 @@ final class RappelsHote {
         if (consommateur != null) {
             consommateur.accept(ligne);
         }
+    }
+
+    /**
+     * Pose (ou coupe) le verdict des touches matérielles de l'hôte.
+     *
+     * @param consommateur le verdict de touche, null pour couper
+     */
+    void poserTouchePopup(@Nullable IntPredicate consommateur) {
+        surTouchePopup = consommateur;
+    }
+
+    /**
+     * Notifie l'hôte de la touche matérielle : vrai quand l'hôte la
+     * CONSOMME pour ses popups — la composition IME en cours la rend
+     * à la vie normale de l'éditeur, jamais une frappe composée ne
+     * sert une carte.
+     */
+    boolean consommerTouche(CompositionState clavier, int keyCode) {
+        IntPredicate consommateur = surTouchePopup;
+        return consommateur != null && !clavier.isComposing()
+                && consommateur.test(keyCode);
     }
 }

@@ -20,9 +20,10 @@ import org.jspecify.annotations.Nullable;
  * sélection, encadrée à un pixel, sous le clip arrondi de la carte.
  * Le FILTRAGE vit chez l'hôte (la complétion filtre sans se fermer,
  * M7.5 §7) : la liste ne montre que ce qu'on lui pose. PIEGE-27 :
- * jamais de focus, l'éditeur garde le clavier.
+ * jamais de focus, l'éditeur garde le clavier — la navigation s'y
+ * reçoit DÉLÉGUÉE ({@link PopupClavier} : flèches, validation).
  */
-public final class CompletionListView extends PopupPanel {
+public final class CompletionListView extends PopupPanel implements PopupClavier {
 
     /** Le nombre maximal de candidats montrés — l'hôte tronque sa fenêtre. */
     public static final int MAX_MONTRES = 8;
@@ -280,5 +281,37 @@ public final class CompletionListView extends PopupPanel {
             return true;
         }
         return false;
+    }
+
+    /** L'index du candidat courant, —1 si la liste est vide — la
+     *  navigation déléguée y part, les bancs y vérifient. */
+    public int surbrillance() {
+        return highlighted;
+    }
+
+    @Override
+    public boolean surFleche(int pas) {
+        if (candidats.isEmpty()) {
+            return false;
+        }
+        // la flèche part de la tête quand la surbrillance n'existe pas —
+        // jamais de saut hors des bornes, le bornage serre les murs
+        int cible = highlighted < 0 ? 0
+                : Math.min(candidats.size() - 1, Math.max(0, highlighted + pas));
+        setHighlighted(cible);
+        return true;
+    }
+
+    @Override
+    public boolean surValidation() {
+        if (highlighted < 0 || highlighted >= candidats.size()
+                || onPick == null) {
+            return false;
+        }
+        // la validation clavier prend le MÊME chemin que le doigt : le
+        // rappel de l'hôte seul décide ce qu'accepter veut dire
+        onPick.accept(highlighted);
+        performClick();
+        return true;
     }
 }

@@ -14,6 +14,7 @@ import jo.celeris.android.widgets.MinimapModel;
 import jo.celeris.android.widgets.MinimapView;
 import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupLayer;
+import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.core.text.TextSession;
@@ -37,8 +38,7 @@ final class AtelierBordDroit {
      *  les siennes, une par ligne. */
     private static final int RANGEES_MINIMAP = 200;
 
-    private final PopupController controleur;
-    private final PopupLayer couche;
+    private final PopupManager popups;
     private final EditorView editeur;
     private final TextSession session;
     private final ErrorBandView bandeErreurs;
@@ -47,18 +47,21 @@ final class AtelierBordDroit {
     private final IntConsumer sautDiagnostic;
     private final int margePx;
 
-    AtelierBordDroit(PopupController controleur, PopupLayer couche,
-            EditorView editeur, TextSession session, int margePx,
-            PopupPalette palette, IntConsumer sautDiagnostic) {
-        this.controleur = controleur;
-        this.couche = couche;
+    AtelierBordDroit(PopupManager popups, EditorView editeur,
+            TextSession session, int margePx, PopupPalette palette,
+            IntConsumer sautDiagnostic) {
+        this.popups = popups;
         this.editeur = editeur;
         this.session = session;
         this.margePx = margePx;
         this.sautDiagnostic = sautDiagnostic;
+        PopupLayer couche = popups.couche();
         bandeErreurs = new ErrorBandView(couche.getContext(), palette);
         minimap = new MinimapView(couche.getContext(), palette);
         defilementRapide = new FastScrollerView(couche.getContext(), palette);
+        popups.lier(PopupController.PopupKind.ERROR_BAND, bandeErreurs);
+        popups.lier(PopupController.PopupKind.MINIMAP, minimap);
+        popups.lier(PopupController.PopupKind.FAST_SCROLLER, defilementRapide);
         bandeErreurs.setOnJump(sautDiagnostic::accept);
         minimap.setOnJump(ligne -> editeur.scrollToFractionY(
                 session.document().lineCount() <= 1 ? 0f
@@ -82,10 +85,9 @@ final class AtelierBordDroit {
     void rafraichirBande(List<DiagnosticHote> diagnostics, String nomFichier,
             int largeurCouche, int hauteurCouche) {
         if (diagnostics.isEmpty()) {
-            fermer(PopupController.PopupKind.ERROR_BAND);
+            popups.fermer(PopupController.PopupKind.ERROR_BAND);
             return;
         }
-        controleur.open(PopupController.PopupKind.ERROR_BAND);
         bandeErreurs.setModel(ErrorBandModel.of(
                 PopupCoach.issues(diagnostics, nomFichier,
                         session.document()),
@@ -94,7 +96,7 @@ final class AtelierBordDroit {
         bandeErreurs.setSpanPx(Math.max(1, hauteurCouche - 2 * margePx));
         PopupPlacer.Cadre placee = bordDroit(bandeErreurs, 0,
                 largeurCouche, hauteurCouche);
-        couche.show(PopupController.PopupKind.ERROR_BAND, bandeErreurs,
+        popups.montrer(PopupController.PopupKind.ERROR_BAND,
                 placee.x(), placee.y());
     }
 
@@ -104,7 +106,6 @@ final class AtelierBordDroit {
      * la minimap vit à gauche du pouce, le pouce à gauche de la bande.
      */
     void rafraichir(int largeurCouche, int hauteurCouche) {
-        controleur.open(PopupController.PopupKind.MINIMAP);
         // La carte honnête : le document court garde SES rangees (une
         // par ligne — la miniature ne s'étire pas), le document long
         // plafonne au même nombre de crans serrés.
@@ -118,22 +119,15 @@ final class AtelierBordDroit {
                 largeurMesuree(bandeErreurs)
                         + largeurMesuree(defilementRapide),
                 largeurCouche, hauteurCouche);
-        couche.show(PopupController.PopupKind.MINIMAP, minimap,
+        popups.montrer(PopupController.PopupKind.MINIMAP,
                 carte.x(), carte.y());
-        controleur.open(PopupController.PopupKind.FAST_SCROLLER);
         defilementRapide.setEtat(editeur.scrollFractionY(),
                 editeur.visibleFractionY());
         defilementRapide.setSpanPx(Math.max(1, hauteurCouche - 2 * margePx));
         PopupPlacer.Cadre pouce = bordDroit(defilementRapide,
                 largeurMesuree(bandeErreurs), largeurCouche, hauteurCouche);
-        couche.show(PopupController.PopupKind.FAST_SCROLLER, defilementRapide,
+        popups.montrer(PopupController.PopupKind.FAST_SCROLLER,
                 pouce.x(), pouce.y());
-    }
-
-    private void fermer(PopupController.PopupKind kind) {
-        if (controleur.close(kind)) {
-            couche.dismiss(kind);
-        }
     }
 
     /** La largeur mesurée d'une vue de bord — son empreinte au bord droit. */

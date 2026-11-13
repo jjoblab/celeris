@@ -446,6 +446,14 @@ public final class EditorView extends View {
         rappels.poserBasculeArret(consommateur);
     }
 
+    /** Le verdict popup des touches matérielles (chantier
+     *  d'unification) : l'hôte reçoit la touche AVANT la table de
+     *  raccourcis — flèches, validation, échappement de ses popups
+     *  (PIEGE-27 : l'éditeur garde le focus). Null coupe. */
+    public void setSurTouchePopup(@Nullable IntPredicate consommateur) {
+        rappels.poserTouchePopup(consommateur);
+    }
+
     /** La loupe du dragage (D-16) — l'hôte y règle le zoom, ×2 par défaut. */
     public Loupe loupe() {
         return loupe;
@@ -531,13 +539,9 @@ public final class EditorView extends View {
         images.dessiner(canvas);
     }
 
-    /**
-     * Prépare l'état d'image : gouttière AVANT le budget de colonnes
-     * (le cycle est cassé, PIEGE-25), suivi de révision, bornage du
-     * défilement et fenêtre visible — l'assemblage vit dans
-     * {@link FrameAssembler}. Visible du paquet : les collaborateurs
-     * (ancres, diagnostic) y préparent avant de lire.
-     */
+    /** Prépare l'état d'image (gouttière AVANT le budget de colonnes,
+     *  PIEGE-25) — l'assemblage vit dans {@link FrameAssembler} ; visible
+     *  du paquet : les collaborateurs y préparent avant de lire. */
     void preparerEtatImage() {
         images.preparer();
     }
@@ -557,18 +561,16 @@ public final class EditorView extends View {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // La frappe passe au collaborateur (plafond ADR-002) : la composition
-        // se clôt, la table de raccourcis décide.
+        // La touche d'abord aux popups de l'hôte (PIEGE-27 : délégation
+        // sans le focus), puis la table de raccourcis décide.
+        if (rappels.consommerTouche(composition, keyCode)) {
+            return true;
+        }
         EditorAction action = KeyActions.action(this, raccourcis, composition,
                 keyCode, event);
         return action == null
                 ? super.onKeyDown(keyCode, event)
                 : KeyActions.appliquer(this, action);
-    }
-
-    @Override
-    public boolean performClick() {
-        return super.performClick();
     }
 
     @Override

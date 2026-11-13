@@ -17,6 +17,7 @@ import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.android.widgets.PopupAnchor;
 import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupLayer;
+import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.SelectionBarView;
@@ -32,14 +33,13 @@ import jo.celeris.core.text.TextSession;
 
 /**
  * L'atelier des popups de la démonstration (M7.5, §7, reprise) : les
- * DIX popups vivent dans la couche posée sur l'éditeur, la machine à
- * états décide qui reste ouvert — la frappe fait filtrer la complétion
- * sans refermer la liste, le défilement repositionne sans fermer, la
- * barre de sélection naît de la sélection et cède à la frappe, la
- * bande d'erreurs vit avec les diagnostics. PIEGE-27 : aucun popup ne
- * prend le focus, le clavier reste à l'éditeur ; la barre de recherche
- * reste l'affaire de l'activité — son champ doit tenir le focus, la
- * couche l'interdit — l'atelier n'en coordonne que l'ÉTAT.
+ * genres vivant dans la couche posée sur l'éditeur, le MANAGER du kit
+ * tient la boucle état→vues d'un seul tenant — l'atelier déclenche, la
+ * machine décide, la couche porte. PIEGE-27 : aucun popup ne prend le
+ * focus, le clavier reste à l'éditeur — les touches matérielles lui
+ * sont DÉLÉGUÉES ({@link #surTouche}) ; la barre de recherche reste
+ * l'affaire de l'activité — son champ doit tenir le focus, la couche
+ * l'interdit — l'atelier n'en coordonne que l'ÉTAT.
  */
 final class AtelierPopups {
 
@@ -48,7 +48,7 @@ final class AtelierPopups {
 
     private final EditorView editeur;
     private final TextSession session;
-    private final PopupController controleur = new PopupController();
+    private final PopupManager popups;
     private final PopupLayer couche;
     private final int margePx;
     /** Le poseur de documents ancrés — survol, aperçu, rendu @Preview. */
@@ -64,12 +64,14 @@ final class AtelierPopups {
     /** Le bord droit de la couche — bande d'erreurs, minimap, pouce
      *  (chantier C9, plafond ADR-002 : le chrome y vit seul). */
     private final AtelierBordDroit bordDroit;
-    /** Le menu de débordement de la barre — la carte du kit sous la puce. */
+    /** Le menu de débordement de la barre — sa carte propre sous la
+     *  puce (le chantier d'unification : plus de carte partagée). */
     private final MenuDebordement menuDebordement;
     /** L'atelier des couleurs — le sélecteur au double-tap d'un littéral. */
     private final AtelierCouleur atelierCouleur;
 
-    /** Le thème courant — la palette des popups en dérive, le rafraîchissement la suit. */
+    /** Le thème courant — la palette des popups en dérive, le
+     *  rafraîchissement la suit. */
     private EditorTheme theme;
     /** La taille de texte de l'éditeur, en sp — la typographie des popups s'y accorde. */
     private float tailleTexteSp;
@@ -82,7 +84,7 @@ final class AtelierPopups {
     private List<SelectionBarView.Item> debordementSelection = List.of();
     /** Le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     private String nomDuFichier = "";
-    /** La session de langage branchée — null retombe sur le coach (M7.5, §8) */
+    /** La session de langage branchée — null retombe sur le coach (M7.5, §8). */
     private LanguageSession serveur;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
@@ -94,9 +96,10 @@ final class AtelierPopups {
     private boolean acceptationEnCours;
 
     /**
-     * Construit l'atelier : les vues naissent avec la palette dérivée
-     * du thème d'éditeur courant (le verre du dépôt de départ), les
-     * écouteurs de la session et de la fenêtre y courtent.
+     * Construit l'atelier : le manager naît sur la machine et la couche
+     * de la scène, les vues se lient à leurs genres (jamais une carte
+     * pour deux — le chantier d'unification), les écouteurs de la
+     * session et de la fenêtre y courtent.
      *
      * @param editeur      la vue d'éditeur ouverte
      * @param session      la session d'édition courante
@@ -113,6 +116,8 @@ final class AtelierPopups {
         this.tailleTexteSp = tailleTexteSp;
         this.margePx = Math.round(MARGE_DP
                 * couche.getResources().getDisplayMetrics().density);
+        PopupController controleur = new PopupController();
+        popups = new PopupManager(controleur, couche);
         PopupPalette palette = paletteDe(theme, tailleTexteSp);
         listeCompletion = new CompletionListView(couche.getContext(), palette);
         docCompletion = new CompletionDocView(couche.getContext(), palette);
@@ -121,17 +126,25 @@ final class AtelierPopups {
         infoBulle = new DiagnosticTooltipView(couche.getContext(), palette);
         filAriane = new BreadcrumbView(couche.getContext(), palette);
         barreSelection = new SelectionBarView(couche.getContext(), palette);
+        // le lien des genres : une carte par genre, un genre par carte
+        // — le manager l'exige, le zombie d'état ne revient plus
+        popups.lier(PopupController.PopupKind.COMPLETION_LIST, listeCompletion);
+        popups.lier(PopupController.PopupKind.COMPLETION_DOC, docCompletion);
+        popups.lier(PopupController.PopupKind.SIGNATURE_HELP, aideSignature);
+        popups.lier(PopupController.PopupKind.INTENTIONS_MENU, menuIntentions);
+        popups.lier(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP, infoBulle);
+        popups.lier(PopupController.PopupKind.BREADCRUMB, filAriane);
+        popups.lier(PopupController.PopupKind.SELECTION_BAR, barreSelection);
         // la section du débordement : le « MORE » du dépôt de départ,
         // traduit par la démonstration
-        menuDebordement = new MenuDebordement(controleur, menuIntentions,
-                couche, margePx,
+        menuDebordement = new MenuDebordement(popups, palette, margePx,
                 couche.getContext().getString(R.string.menu_plus));
-        atelierCouleur = new AtelierCouleur(editeur, session, controleur,
-                couche, margePx, palette);
-        docAncre = new DocAncre(editeur.getContext(), controleur,
-                docCompletion, couche, editeur, session, margePx);
-        bordDroit = new AtelierBordDroit(controleur, couche, editeur,
-                session, margePx, palette, this::sauterDiagnostic);
+        atelierCouleur = new AtelierCouleur(editeur, session, popups,
+                margePx, palette);
+        docAncre = new DocAncre(couche.getContext(), popups, editeur,
+                session, margePx, palette);
+        bordDroit = new AtelierBordDroit(popups, editeur, session, margePx,
+                palette, this::sauterDiagnostic);
 
         listeCompletion.setOnPick(this::choisirCompletion);
         barreSelection.setOnOverflow(
@@ -166,6 +179,14 @@ final class AtelierPopups {
         bordDroit.surPalette(palette);
         barreSelection.setPalette(palette);
         atelierCouleur.surPalette(palette);
+        menuDebordement.surPalette(palette);
+        docAncre.surPalette(palette);
+    }
+
+    /** Le manager du kit — l'activité y branche la toolbar et la
+     *  délégation clavier. */
+    PopupManager manager() {
+        return popups;
     }
 
     /** La palette dérivée du thème d'éditeur — le verre du dépôt de
@@ -234,12 +255,31 @@ final class AtelierPopups {
 
     /** La barre de recherche s'ouvre — l'état suit, le champ reste à l'activité. */
     void ouvrirRecherche() {
-        controleur.open(PopupController.PopupKind.SEARCH_BAR);
+        popups.controleur().open(PopupController.PopupKind.SEARCH_BAR);
     }
 
     /** La barre de recherche se ferme — sur demande seule (M7.5, §7). */
     void fermerRecherche() {
-        controleur.close(PopupController.PopupKind.SEARCH_BAR);
+        popups.controleur().close(PopupController.PopupKind.SEARCH_BAR);
+    }
+
+    /**
+     * La touche matérielle DÉLÉGUÉE par l'éditeur (PIEGE-27 : il garde
+     * le focus) : flèches, validation et échappement servent la carte
+     * interactive ouverte — le manager route, la touche déclinée
+     * retourne à l'éditeur.
+     *
+     * @param keyCode le code de la touche déléguée
+     * @return vrai quand la touche a servi un popup
+     */
+    boolean surTouche(int keyCode) {
+        return popups.surTouche(keyCode);
+    }
+
+    /** La feuille modale qui s'ouvre coupe l'intelligence de la couche :
+     *  le manager ferme d'un seul tenant, le chrome demeure. */
+    void fermerSousVoile() {
+        popups.fermerSousVoile();
     }
 
     /**
@@ -261,7 +301,7 @@ final class AtelierPopups {
         List<String> bruts = editeur.intelligence()
                 .completionCandidates(PopupCoach.motsReserves());
         if (bruts.isEmpty()) {
-            fermer(PopupController.PopupKind.COMPLETION_LIST);
+            popups.fermer(PopupController.PopupKind.COMPLETION_LIST);
             return;
         }
         poserCompletion(PopupCoach.candidats(bruts),
@@ -276,20 +316,20 @@ final class AtelierPopups {
     private void poserCompletion(List<CompletionListView.Candidat> candidats,
             CompletionDocModel doc) {
         if (candidats.isEmpty()) {
-            fermer(PopupController.PopupKind.COMPLETION_LIST);
+            popups.fermer(PopupController.PopupKind.COMPLETION_LIST);
             return;
         }
-        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        popups.controleur().open(PopupController.PopupKind.COMPLETION_LIST);
         listeCompletion.setItems(candidats);
         listeCompletion.setPrefix(PopupCoach.prefixeCourant(
                 session.document(), caret()));
         placerCompletion();
         if (doc != null) {
-            controleur.open(PopupController.PopupKind.COMPLETION_DOC);
+            popups.controleur().open(PopupController.PopupKind.COMPLETION_DOC);
             docCompletion.setModel(doc);
             placerCompletion();
         } else {
-            fermer(PopupController.PopupKind.COMPLETION_DOC);
+            popups.fermer(PopupController.PopupKind.COMPLETION_DOC);
         }
     }
 
@@ -298,16 +338,17 @@ final class AtelierPopups {
         if (intentions.isEmpty()) {
             return;
         }
-        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
         // le menu d'intentions du caret ne porte AUCUNE section — la
         // carte partagée la laisse au débordement des barres
         menuIntentions.setSection(null);
         menuIntentions.setActions(intentions);
         Rect curseur = editeur.caretBounds();
-        ancrer(PopupController.PopupKind.INTENTIONS_MENU, menuIntentions,
-                PopupAnchor.belowOrAboveCaret(curseur.left, curseur.bottom,
-                        taille(menuIntentions), largeurCouche(),
-                        hauteurCouche(), margePx));
+        PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
+                curseur.left, curseur.bottom,
+                popups.taille(PopupController.PopupKind.INTENTIONS_MENU),
+                largeurCouche(), hauteurCouche(), margePx);
+        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU,
+                placee.x(), placee.y());
     }
 
     /** Ouvre le survol du symbole au curseur — le « i » de la barre
@@ -347,17 +388,17 @@ final class AtelierPopups {
     /** Pose l'aide aux paramètres — null ferme, le modèle sinon se place. */
     private void montrerSignature(SignatureAideModel modele) {
         if (modele == null) {
-            fermer(PopupController.PopupKind.SIGNATURE_HELP);
+            popups.fermer(PopupController.PopupKind.SIGNATURE_HELP);
             return;
         }
-        controleur.open(PopupController.PopupKind.SIGNATURE_HELP);
+        popups.controleur().open(PopupController.PopupKind.SIGNATURE_HELP);
         aideSignature.setModel(modele);
         placerCompletion();
     }
 
     private void surEdition() {
         frappeEnCours = true;
-        retirer(controleur.onKeystroke());
+        popups.surFrappe();
         if (serveur != null) {
             serveur.synchroniser(uriDocument, session.document().text());
         }
@@ -374,7 +415,7 @@ final class AtelierPopups {
         } else {
             // le blanc et la ponctuation referment la liste — fermer
             // une liste close ne fait rien, le garde isOpen est de trop
-            fermer(PopupController.PopupKind.COMPLETION_LIST);
+            popups.fermer(PopupController.PopupKind.COMPLETION_LIST);
         }
         rafraichirSignature();
         rafraichirFilAriane();
@@ -386,19 +427,19 @@ final class AtelierPopups {
         frappeEnCours = false;
         rafraichirBarreSelection(selection);
         rafraichirFilAriane();
-        if (controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST)) {
+        if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {
             basculerCompletion();
         }
         if (!apresFrappe) {
             rafraichirInfoBulle(selection);
         }
-        if (controleur.isOpen(PopupController.PopupKind.SIGNATURE_HELP)) {
+        if (popups.estOuvert(PopupController.PopupKind.SIGNATURE_HELP)) {
             rafraichirSignature();
         }
     }
 
     private void surFenetre() {
-        retirer(controleur.onScroll());
+        popups.surDefilement();
         repositionnerTout();
     }
 
@@ -406,17 +447,19 @@ final class AtelierPopups {
         List<SelRange> plages = selection.ranges();
         boolean visible = plages.size() == 1 && !plages.get(0).isEmpty();
         if (!visible) {
-            fermer(PopupController.PopupKind.SELECTION_BAR);
+            popups.fermer(PopupController.PopupKind.SELECTION_BAR);
             return;
         }
-        controleur.open(PopupController.PopupKind.SELECTION_BAR);
+        popups.controleur().open(PopupController.PopupKind.SELECTION_BAR);
         barreSelection.setActions(actionsSelection, debordementSelection);
         Rect sel = editeur.selectionBounds();
-        ancrer(PopupController.PopupKind.SELECTION_BAR, barreSelection,
-                PopupAnchor.centeredAboveSelection(sel.left, sel.right,
-                        sel.top, taille(barreSelection), largeurCouche(),
-                        hauteurCouche(), margePx));
-        if (controleur.isOpen(PopupController.PopupKind.SELECTION_OVERFLOW)) {
+        PopupPlacer.Cadre placee = PopupAnchor.centeredAboveSelection(
+                sel.left, sel.right, sel.top,
+                popups.taille(PopupController.PopupKind.SELECTION_BAR),
+                largeurCouche(), hauteurCouche(), margePx);
+        popups.montrer(PopupController.PopupKind.SELECTION_BAR,
+                placee.x(), placee.y());
+        if (popups.estOuvert(PopupController.PopupKind.SELECTION_OVERFLOW)) {
             menuDebordement.ouvrir(barreSelection, debordementSelection);
         }
     }
@@ -428,14 +471,16 @@ final class AtelierPopups {
     private void rafraichirFilAriane() {
         List<String> chemin = PopupCoach.pathFor(plan, caret());
         if (chemin.isEmpty()) {
-            fermer(PopupController.PopupKind.BREADCRUMB);
+            popups.fermer(PopupController.PopupKind.BREADCRUMB);
             return;
         }
-        controleur.open(PopupController.PopupKind.BREADCRUMB);
+        popups.controleur().open(PopupController.PopupKind.BREADCRUMB);
         filAriane.setPath(chemin, largeurCouche());
-        ancrer(PopupController.PopupKind.BREADCRUMB, filAriane,
-                PopupAnchor.topLeftCorner(taille(filAriane),
-                        largeurCouche(), hauteurCouche(), margePx));
+        PopupPlacer.Cadre placee = PopupAnchor.topLeftCorner(
+                popups.taille(PopupController.PopupKind.BREADCRUMB),
+                largeurCouche(), hauteurCouche(), margePx);
+        popups.montrer(PopupController.PopupKind.BREADCRUMB,
+                placee.x(), placee.y());
     }
 
     private void rafraichirInfoBulle(MultiSelection selection) {
@@ -447,16 +492,19 @@ final class AtelierPopups {
         for (DiagnosticHote diagnostic : diagnostics) {
             if (diagnostic.ligne() == ligne + 1
                     && diagnostic.chemin().nom().equals(nomDuFichier)) {
-                controleur.open(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
+                popups.controleur().open(
+                        PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
                 infoBulle.setMessage(diagnostic.message(),
                         diagnostic.gravite() == GraviteDiagnostic.ERREUR
                                 ? DiagnosticTooltipView.Severity.ERROR
                                 : DiagnosticTooltipView.Severity.WARNING);
                 Rect curseur = editeur.caretBounds();
-                ancrer(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP, infoBulle,
-                        PopupAnchor.atPoint(curseur.left, curseur.top,
-                                taille(infoBulle), largeurCouche(),
-                                hauteurCouche(), margePx));
+                PopupPlacer.Cadre placee = PopupAnchor.atPoint(
+                        curseur.left, curseur.top,
+                        popups.taille(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP),
+                        largeurCouche(), hauteurCouche(), margePx);
+                popups.montrer(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
+                        placee.x(), placee.y());
                 return;
             }
         }
@@ -467,16 +515,18 @@ final class AtelierPopups {
         PopupPlacer.Placement placee = PopupPlacer.placer(
                 new PopupPlacer.Cadre(curseur.left, curseur.top, 0,
                         curseur.height()),
-                taille(listeCompletion), taille(docCompletion),
-                taille(aideSignature), largeurCouche(), hauteurCouche());
-        couche.show(PopupController.PopupKind.COMPLETION_LIST, listeCompletion,
+                popups.taille(PopupController.PopupKind.COMPLETION_LIST),
+                popups.taille(PopupController.PopupKind.COMPLETION_DOC),
+                popups.taille(PopupController.PopupKind.SIGNATURE_HELP),
+                largeurCouche(), hauteurCouche());
+        popups.montrer(PopupController.PopupKind.COMPLETION_LIST,
                 placee.completion().x(), placee.completion().y());
-        if (controleur.isOpen(PopupController.PopupKind.COMPLETION_DOC)) {
-            couche.show(PopupController.PopupKind.COMPLETION_DOC, docCompletion,
+        if (popups.estOuvert(PopupController.PopupKind.COMPLETION_DOC)) {
+            popups.montrer(PopupController.PopupKind.COMPLETION_DOC,
                     placee.documentation().x(), placee.documentation().y());
         }
-        if (controleur.isOpen(PopupController.PopupKind.SIGNATURE_HELP)) {
-            couche.show(PopupController.PopupKind.SIGNATURE_HELP, aideSignature,
+        if (popups.estOuvert(PopupController.PopupKind.SIGNATURE_HELP)) {
+            popups.montrer(PopupController.PopupKind.SIGNATURE_HELP,
                     placee.signature().x(), placee.signature().y());
         }
     }
@@ -494,9 +544,9 @@ final class AtelierPopups {
             acceptationEnCours = false;
             return;
         }
-        // la liste se ferme AVANT la sélection : l'écouteur de
-        // sélection ne la rouvre pas sur le curseur d'après
-        fermer(PopupController.PopupKind.COMPLETION_LIST);
+        // la liste se ferme AVANT la sélection (sa documentation suit —
+        // la cascade vit au manager, jamais codée deux fois)
+        popups.fermer(PopupController.PopupKind.COMPLETION_LIST);
         session.setSelection(MultiSelection.of(
                 SelRange.caretAt(debut + candidat.length())));
     }
@@ -506,61 +556,32 @@ final class AtelierPopups {
     }
 
     private void repositionnerTout() {
-        if (controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST)) {
+        if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {
             placerCompletion();
         }
-        if (controleur.isOpen(PopupController.PopupKind.BREADCRUMB)) {
+        if (popups.estOuvert(PopupController.PopupKind.BREADCRUMB)) {
             rafraichirFilAriane();
         }
-        if (controleur.isOpen(PopupController.PopupKind.ERROR_BAND)) {
+        if (popups.estOuvert(PopupController.PopupKind.ERROR_BAND)) {
             bordDroit.rafraichirBande(diagnostics, nomDuFichier,
                     largeurCouche(), hauteurCouche());
         }
         bordDroit.rafraichir(largeurCouche(), hauteurCouche());
-        if (controleur.isOpen(PopupController.PopupKind.SELECTION_BAR)) {
+        if (popups.estOuvert(PopupController.PopupKind.SELECTION_BAR)) {
             rafraichirBarreSelection(session.selection());
         }
-        if (controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU)) {
+        if (popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU)) {
             ouvrirIntentions();
         }
     }
 
-    private void fermer(PopupController.PopupKind kind) {
-        if (controleur.close(kind)) {
-            couche.dismiss(kind);
-            if (kind == PopupController.PopupKind.COMPLETION_LIST) {
-                couche.dismiss(PopupController.PopupKind.COMPLETION_DOC);
-            } else if (kind == PopupController.PopupKind.SELECTION_BAR) {
-                couche.dismiss(PopupController.PopupKind.SELECTION_OVERFLOW);
-            }
-        }
-    }
-
-    private void ancrer(PopupController.PopupKind kind,
-            android.view.View vue, PopupPlacer.Cadre placee) {
-        // déjà montré, MÊME vue : le popup se RE-MONTE sans jamais
-        // quitter la couche — le dragage de sélection y déplace la
-        // barre d'un seul tenant, identique à l'appui long qui l'a
-        // posée (aucune re-naissance d'image en image)
-        if (couche.popupOf(kind) == vue) {
-            couche.remonter(kind, placee.x(), placee.y());
-            return;
-        }
-        couche.show(kind, vue, placee.x(), placee.y());
-    }
-
-    private PopupPlacer.Cadre taille(android.view.View vue) {
-        vue.measure(android.view.View.MeasureSpec.makeMeasureSpec(0,
-                        android.view.View.MeasureSpec.UNSPECIFIED),
-                android.view.View.MeasureSpec.makeMeasureSpec(0,
-                        android.view.View.MeasureSpec.UNSPECIFIED));
-        return new PopupPlacer.Cadre(0, 0, vue.getMeasuredWidth(),
-                vue.getMeasuredHeight());
-    }
-
-    private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+    /**
+     * Le détachement de fin de vie (chantier d'unification) : tout se
+     * ferme, l'avis du tap hors cartes se coupe, les liens se
+     * dissolvent — la scène peut recycler.
+     */
+    void detacher() {
+        popups.detacher();
     }
 
     /** Pose le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
@@ -576,23 +597,14 @@ final class AtelierPopups {
         return couche.getHeight();
     }
 
+    /** Le caret courant — la première plage de sélection, zéro si vide. */
+    private int caret() {
+        List<SelRange> plages = session.selection().ranges();
+        return plages.isEmpty() ? 0 : plages.get(0).caret();
+    }
+
     /** La machine à états courante — les bancs de la démo y lisent. */
     PopupController controleur() {
-        return controleur;
-    }
-
-    /** La carte des menus du kit — l'overflow de la toolbar la partage
-     *  (le motif du dépôt de départ : une carte, tous les menus). */
-    IntentionsMenuView carteMenus() {
-        return menuIntentions;
-    }
-
-    /** Les genres fermés par la machine quittent la couche — la vue ne
-     *  survit jamais à son état (jamais de zombie : la frappe ferme
-     *  l'état ET la vue). */
-    private void retirer(java.util.Set<PopupController.PopupKind> fermes) {
-        for (PopupController.PopupKind ferme : fermes) {
-            couche.dismiss(ferme);
-        }
+        return popups.controleur();
     }
 }

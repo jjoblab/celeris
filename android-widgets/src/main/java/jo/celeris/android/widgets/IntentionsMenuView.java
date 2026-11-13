@@ -12,7 +12,8 @@ import org.jspecify.annotations.Nullable;
  * disponibles au curseur en rangées cliquables au palier titre —
  * intentions classiques (lint, aperçu, revue) et actions IA au même
  * titre, même barre, même gestuelle. L'appui exécute : l'hôte ferme
- * le menu et déroule l'action choisie.
+ * le menu et déroule l'action choisie. PIEGE-27 : jamais de focus —
+ * la navigation clavier s'y reçoit DÉLÉGUÉE ({@link PopupClavier}).
  *
  * <p>Le menu de DÉBORDEMENT de la barre de sélection y prend le motif
  * NavMenu du dépôt de départ : une SECTION en petites capitales muettes
@@ -20,7 +21,7 @@ import org.jspecify.annotations.Nullable;
  * prend jamais, le choix d'une action la referme avant de l'exécuter.
  * {@link #setSection(String)} la pose, null la retire.</p>
  */
-public final class IntentionsMenuView extends TextRowsPopup {
+public final class IntentionsMenuView extends TextRowsPopup implements PopupClavier {
 
     /** Une action du menu : son libellé et ce qu'elle fait. */
     public record Item(String label, Runnable action) {
@@ -29,6 +30,8 @@ public final class IntentionsMenuView extends TextRowsPopup {
     private List<Item> actions = List.of();
     /** L'en-tête de section du débordement — null : pas d'en-tête. */
     private @Nullable String section;
+    /** L'action surlignée par le clavier délégué — —1 si aucune. */
+    private int surligne = -1;
 
     public IntentionsMenuView(Context context, PopupPalette palette) {
         super(context, palette);
@@ -42,6 +45,9 @@ public final class IntentionsMenuView extends TextRowsPopup {
      */
     public void setActions(List<Item> items) {
         this.actions = List.copyOf(items);
+        // le contenu neuf efface la surbrillance clavier — jamais
+        // d'action retenue d'un contenu d'avant
+        this.surligne = -1;
         rebatirRangees();
     }
 
@@ -82,5 +88,43 @@ public final class IntentionsMenuView extends TextRowsPopup {
     public @Nullable Item itemAt(int index) {
         return index >= 0 && index < actions.size() ? actions.get(index)
                 : null;
+    }
+
+    /** L'action surlignée par le clavier délégué, —1 si aucune — les
+     *  bancs y vérifient la navigation. */
+    public int surbrillance() {
+        return surligne;
+    }
+
+    @Override
+    public boolean surFleche(int pas) {
+        if (actions.isEmpty()) {
+            return false;
+        }
+        // la flèche part de la tête quand la surbrillance n'existe pas —
+        // jamais de saut hors des bornes ni d'arrêt sur l'en-tête
+        int cible = surligne < 0 ? 0
+                : Math.min(actions.size() - 1, Math.max(0, surligne + pas));
+        surligne = cible;
+        setHighlighted(rangDe(cible));
+        return true;
+    }
+
+    @Override
+    public boolean surValidation() {
+        if (surligne < 0 || surligne >= actions.size()) {
+            return false;
+        }
+        // la validation clavier prend le MÊME chemin que le doigt : le
+        // runnable de l'action seule décide ce que choisir veut dire
+        actions.get(surligne).action().run();
+        performClick();
+        return true;
+    }
+
+    /** Le rang d'affichage de l'action d'index donné — l'en-tête de
+     *  section éventuel compte une rangée, jamais plus il ne se prend. */
+    private int rangDe(int index) {
+        return index + (section != null && !section.isEmpty() ? 1 : 0);
     }
 }

@@ -2,6 +2,7 @@ package jo.celeris.android.widgets;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -24,12 +25,21 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Les popups sont des vues légères posées à des coordonnées de la
  * fenêtre ; l'hôte les repositionne au défilement, au zoom et à
- * l'apparition du clavier — la couche ne fait que les porter.</p>
+ * l'apparition du clavier — la couche ne fait que les porter. Le
+ * chantier d'unification (2026-11-13) y ajoute la défense en profondeur :
+ * toute pose se BORNE aux murs de la couche, et le doigt qui tombe hors
+ * de toute carte AVERTIT le coordinateur sans consommer le geste — le
+ * caret de l'éditeur poursuit sa vie, les cartes qui cèdent se
+ * referment.</p>
  */
 public final class PopupLayer extends ViewGroup {
 
     private final Map<PopupController.PopupKind, View> popups =
             new EnumMap<>(PopupController.PopupKind.class);
+
+    /** L'avis du tap hors cartes — le coordinateur y ferme les cartes
+     *  qui cèdent au geste extérieur. */
+    private @Nullable Runnable surToucheHorsCartes;
 
     public PopupLayer(Context context) {
         this(context, null);
@@ -87,8 +97,21 @@ public final class PopupLayer extends ViewGroup {
         }
         popup.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        popup.layout(x, y, x + popup.getMeasuredWidth(),
-                y + popup.getMeasuredHeight());
+        poser(kind, popup, x, y);
+    }
+
+    /** La vue se pose bornée aux murs de la couche — la défense en
+     *  profondeur : les ancres bornent déjà, la couche veille quand
+     *  l'hôte calcule lui-même (les poses d'avant layout restent
+     *  telles quelles, la couche n'a pas encore de murs). */
+    private void poser(PopupController.PopupKind kind, View popup, int x, int y) {
+        int borneX = getWidth() > 0
+                ? Math.max(0, Math.min(x, getWidth() - popup.getMeasuredWidth())) : x;
+        int borneY = getHeight() > 0
+                ? Math.max(0, Math.min(y, getHeight() - popup.getMeasuredHeight())) : y;
+        popup.layout(borneX, borneY,
+                borneX + popup.getMeasuredWidth(),
+                borneY + popup.getMeasuredHeight());
         invalidate();
     }
 
@@ -102,7 +125,7 @@ public final class PopupLayer extends ViewGroup {
     public void reposition(PopupController.PopupKind kind, int x, int y) {
         View popup = popups.get(kind);
         if (popup != null) {
-            popup.layout(x, y, x + popup.getWidth(), y + popup.getHeight());
+            poserVueMesuree(popup, x, y);
             invalidate();
         }
     }
@@ -127,9 +150,20 @@ public final class PopupLayer extends ViewGroup {
         }
         popup.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        popup.layout(x, y, x + popup.getMeasuredWidth(),
-                y + popup.getMeasuredHeight());
+        poserVueMesuree(popup, x, y);
         invalidate();
+    }
+
+    /** La vue MESURÉE se pose bornée — le re-monte de la couche y
+     *  passe, la largeur et la hauteur mesurées servent le bornage. */
+    private void poserVueMesuree(View popup, int x, int y) {
+        int borneX = getWidth() > 0
+                ? Math.max(0, Math.min(x, getWidth() - popup.getMeasuredWidth())) : x;
+        int borneY = getHeight() > 0
+                ? Math.max(0, Math.min(y, getHeight() - popup.getMeasuredHeight())) : y;
+        popup.layout(borneX, borneY,
+                borneX + popup.getMeasuredWidth(),
+                borneY + popup.getMeasuredHeight());
     }
 
     /**
@@ -153,14 +187,60 @@ public final class PopupLayer extends ViewGroup {
 
     /**
      * Referme une carte : la carte du kit descend en voile puis se
-     * retire ; la vue qui n'est pas du kit part aussitôt.
+     * retire ; la vue qui n'est pas du kit part aussitôt. La carte
+     * re-posée entre sa mort et son retrait ne se retire JAMAIS
+     * d'elle-même (la course du retrait différé, chantier
+     * d'unification : le retrait ne part que si la carte n'a pas été
+     * re-prise).
      */
     private void refermer(View popup) {
         if (popup instanceof PopupPanel panneau) {
-            panneau.mourir(() -> removeView(popup));
+            panneau.mourir(() -> {
+                if (!popups.containsValue(popup)) {
+                    removeView(popup);
+                }
+            });
         } else {
             removeView(popup);
         }
+    }
+
+    /**
+     * Pose (ou coupe) l'avis du tap HORS CARTES : le doigt qui tombe
+     * hors de toute carte portée prévient le coordinateur — SANS
+     * consommer le geste, qui poursuit sa vie vers l'éditeur (le caret
+     * bouge, la sélection suit).
+     *
+     * @param avis l'avertisseur du tap extérieur, null pour couper
+     */
+    public void setSurToucheHorsCartes(@Nullable Runnable avis) {
+        surToucheHorsCartes = avis;
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN
+                && horsDesCartes(event)) {
+            Runnable avis = surToucheHorsCartes;
+            if (avis != null) {
+                avis.run();
+            }
+        }
+        return super.dispatchTouchEvent(event);
+    }
+
+    /** Vrai quand le doigt tombe hors de TOUTE carte portée — aucune
+     *  carte ne se touchera sur ce geste. */
+    private boolean horsDesCartes(MotionEvent event) {
+        for (int i = 0; i < getChildCount(); i++) {
+            View enfant = getChildAt(i);
+            if (event.getX() >= enfant.getLeft() && event.getX() < enfant.getRight()
+                    && event.getY() >= enfant.getTop()
+                    && event.getY() < enfant.getBottom()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** Vrai si le popup donné est montré. */

@@ -130,12 +130,16 @@ final class CatalogueActions {
                 () -> barreToolbar.ouvrirDebordement(itemsDebordement()));
     }
 
-    /** Le relais du menu : l'action de l'élément choisi, si connue. */
+    /** Le relais du menu : l'action de l'élément choisi, si connue. Le
+     *  tap au menu coupe l'intelligence sous voile (chantier
+     *  d'unification) : une complétion ne survit jamais sous une
+     *  feuille modale, le chrome demeure. */
     boolean surMenu(MenuItem element) {
         Runnable action = actionsMenu.get(element.getItemId());
         if (action == null) {
             return false;
         }
+        popups.fermerSousVoile();
         action.run();
         return true;
     }

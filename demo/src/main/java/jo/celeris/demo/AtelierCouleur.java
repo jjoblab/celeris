@@ -8,7 +8,7 @@ import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.widgets.ColorPickerView;
 import jo.celeris.android.widgets.PopupAnchor;
 import jo.celeris.android.widgets.PopupController;
-import jo.celeris.android.widgets.PopupLayer;
+import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.core.text.Document;
@@ -24,14 +24,16 @@ import jo.celeris.core.text.TextSession;
  * départ, champ de saturation, bande de teinte, palette Material — et
  * le pick APPLIQUE implicite : l'alpha d'origine survit, le littéral
  * reformaté remplace l'ancien EN PLACE, à SA largeur — le code
- * environnant ne bouge pas.
+ * environnant ne bouge pas. Le chantier d'unification lui donne le
+ * coordinateur : la carte vit liée à son genre, le tap HORS CARTES
+ * la referme (l'annulation enfin tenue, comme la documentation le
+ * promettait).
  */
 final class AtelierCouleur {
 
     private final EditorView editeur;
     private final TextSession session;
-    private final PopupController controleur;
-    private final PopupLayer couche;
+    private final PopupManager popups;
     private final int margePx;
     private final ColorPickerView selecteur;
 
@@ -44,24 +46,23 @@ final class AtelierCouleur {
     private int chiffres;
 
     /**
-     * Construit l'atelier des couleurs.
+     * Construit l'atelier des couleurs sur le coordinateur des popups.
      *
      * @param editeur   la vue d'éditeur ouverte
      * @param session   la session d'édition courante
-     * @param controleur la machine à états des popups
-     * @param couche    la couche porte-popups posée sur l'éditeur
+     * @param popups    le coordinateur des popups de la scène
      * @param margePx   la respiration des ancres aux bords, en pixels
      * @param palette   la palette courante des popups
      */
     AtelierCouleur(EditorView editeur, TextSession session,
-            PopupController controleur, PopupLayer couche, int margePx,
-            PopupPalette palette) {
+            PopupManager popups, int margePx, PopupPalette palette) {
         this.editeur = editeur;
         this.session = session;
-        this.controleur = controleur;
-        this.couche = couche;
+        this.popups = popups;
         this.margePx = margePx;
-        this.selecteur = new ColorPickerView(couche.getContext(), palette);
+        this.selecteur = new ColorPickerView(
+                popups.couche().getContext(), palette);
+        popups.lier(PopupController.PopupKind.COLOR_PICKER, selecteur);
         selecteur.setOnAppliquer(this::appliquer);
     }
 
@@ -93,13 +94,13 @@ final class AtelierCouleur {
             finLitteral = debutLitteral + pastille.longueur();
             alphaOrigine = pastille.argb() >>> 24;
             chiffres = pastille.longueur() - 1;
-            controleur.open(PopupController.PopupKind.COLOR_PICKER);
             selecteur.ouvrir(pastille.argb(), chiffres);
             Rect curseur = editeur.caretBounds();
             PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                    curseur.left, curseur.bottom, taille(selecteur),
-                    couche.getWidth(), couche.getHeight(), margePx);
-            couche.show(PopupController.PopupKind.COLOR_PICKER, selecteur,
+                    curseur.left, curseur.bottom, taille(),
+                    popups.couche().getWidth(),
+                    popups.couche().getHeight(), margePx);
+            popups.montrer(PopupController.PopupKind.COLOR_PICKER,
                     placee.x(), placee.y());
             return true;
         }
@@ -114,21 +115,15 @@ final class AtelierCouleur {
     private void appliquer(int teinte) {
         int compose = (alphaOrigine << 24) | (teinte & 0xFFFFFF);
         String litteral = PastillesCouleur.formater(compose, chiffres);
-        controleur.close(PopupController.PopupKind.COLOR_PICKER);
-        couche.dismiss(PopupController.PopupKind.COLOR_PICKER);
+        popups.fermer(PopupController.PopupKind.COLOR_PICKER);
         if (session.replaceRange(debutLitteral, finLitteral, litteral)) {
             session.setSelection(MultiSelection.of(
                     SelRange.caretAt(debutLitteral + litteral.length())));
         }
     }
 
-    /** La carte mesurée sans contrainte — son ancre y prend sa taille. */
-    private static PopupPlacer.Cadre taille(ColorPickerView vue) {
-        vue.measure(android.view.View.MeasureSpec.makeMeasureSpec(0,
-                        android.view.View.MeasureSpec.UNSPECIFIED),
-                android.view.View.MeasureSpec.makeMeasureSpec(0,
-                        android.view.View.MeasureSpec.UNSPECIFIED));
-        return new PopupPlacer.Cadre(0, 0, vue.getMeasuredWidth(),
-                vue.getMeasuredHeight());
+    /** La taille mesurée de la carte — l'ancre y prend sa taille. */
+    private PopupPlacer.Cadre taille() {
+        return popups.taille(PopupController.PopupKind.COLOR_PICKER);
     }
 }

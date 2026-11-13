@@ -13,14 +13,14 @@ import java.util.Set;
  * complétion (au-dessus de la ligne) ; le survol et l'info-bulle se
  * ferment à la frappe et au défilement ; la complétion FILTRE
  * localement à la frappe — elle reste ouverte, la requête ne repart
- * pas ; la barre de recherche ne se ferme que sur demande. Les dix
- * popups (M7.5, reprise) : la documentation de complétion n'existe
- * pas sans sa liste — fermer la liste ferme la documentation ; la
- * barre de sélection cède à la frappe (la frappe remplace la
- * sélection) mais survit au défilement, et son MENU DE DÉBORDEMENT
- * ne survit jamais à sa barre — la barre fermée l'emporte ; la bande
- * d'erreurs ne cède ni à la frappe ni au défilement — elle vit avec
- * les diagnostics, l'hôte l'ouvre et la ferme.</p>
+ * pas ; la barre de recherche ne se ferme que sur demande. Les genres
+ * (M7.5, reprise — seize depuis le chantier d'unification) : la
+ * documentation de complétion n'existe pas sans sa liste — fermer la
+ * liste ferme la documentation ; la barre de sélection cède à la frappe
+ * (la frappe remplace la sélection) mais survit au défilement, et son
+ * MENU DE DÉBORDEMENT ne survit jamais à sa barre — la barre fermée
+ * l'emporte ; la bande d'erreurs ne cède ni à la frappe ni au défilement
+ * — elle vit avec les diagnostics, l'hôte l'ouvre et la ferme.</p>
  *
  * <p>PIEGE-27 par construction : le contrôleur ne connaît AUCUNE vue —
  * le focus d'entrée reste à l'éditeur, les vues ne font qu'obéir aux
@@ -89,37 +89,83 @@ public final class PopupController {
          *  — fermé à la frappe et au défilement, comme le survol : le
          *  pick s'applique implicite, la carte ne survit pas au geste
          *  qui la quitte. */
-        COLOR_PICKER
+        COLOR_PICKER,
+
+        /** La carte de débordement de la barre d'application (le
+         *  redressement de la toolbar) : PENDUE sous la puce au coin de
+         *  scène, PAS au texte — elle vit son PROPRE genre depuis le
+         *  chantier d'unification (elle détournait le menu
+         *  d'intentions) : deux menus ne tiennent jamais (elle ferme la
+         *  complétion et le menu du caret, eux la ferment), la frappe la
+         *  ferme, le défilement l'épargne — l'ancre ne suit pas le
+         *  texte, le tap hors cartes la referme. */
+        TOOLBAR_OVERFLOW
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
 
     /**
      * Ouvre le popup donné : les exclusions s'appliquent — la
-     * complétion et le menu d'intentions ne tiennent jamais ensemble.
-     * La documentation de complétion n'ouvre que sur une liste déjà
-     * ouverte — elle n'existe pas sans sa liste ; le menu de
-     * débordement n'ouvre que sur une barre de sélection déjà ouverte.
+     * complétion et le menu d'intentions ne tiennent jamais ensemble,
+     * la carte de la toolbar non plus (deux menus ne tiennent jamais,
+     * le chantier d'unification). La documentation de complétion
+     * n'ouvre que sur une liste déjà ouverte — elle n'existe pas sans
+     * sa liste ; le menu de débordement n'ouvre que sur une barre de
+     * sélection déjà ouverte.
      *
      * @param kind le popup à ouvrir
      * @return vrai si l'état a changé
      */
     public boolean open(PopupKind kind) {
+        return !ouvrirRendus(kind).isEmpty();
+    }
+
+    /**
+     * Ouvre le popup donné et rend TOUT ce qui a changé — le genre
+     * ouvert et les genres exclus : le coordinateur y retire d'un seul
+     * tenant les vues des exclus, l'état et la couche ne divergent
+     * jamais (le chantier d'unification : les zombies d'état ne
+     * s'y rencontrent plus).
+     *
+     * @param kind le popup à ouvrir
+     * @return les genres ouverts ou exclus — vide quand rien ne change
+     */
+    public Set<PopupKind> ouvrirRendus(PopupKind kind) {
+        Set<PopupKind> rendus = EnumSet.noneOf(PopupKind.class);
         if (ouverts.contains(kind)) {
-            return false;
+            return rendus;
         }
         if (kind == PopupKind.COMPLETION_LIST) {
-            ouverts.remove(PopupKind.INTENTIONS_MENU);
+            rendus.addAll(fermerParExclusion(PopupKind.INTENTIONS_MENU,
+                    PopupKind.TOOLBAR_OVERFLOW));
         } else if (kind == PopupKind.INTENTIONS_MENU) {
-            ouverts.remove(PopupKind.COMPLETION_LIST);
+            rendus.addAll(fermerParExclusion(PopupKind.COMPLETION_LIST,
+                    PopupKind.TOOLBAR_OVERFLOW));
+        } else if (kind == PopupKind.TOOLBAR_OVERFLOW) {
+            rendus.addAll(fermerParExclusion(PopupKind.COMPLETION_LIST,
+                    PopupKind.INTENTIONS_MENU));
         } else if (kind == PopupKind.COMPLETION_DOC
                 && !ouverts.contains(PopupKind.COMPLETION_LIST)) {
-            return false;
+            return rendus;
         } else if (kind == PopupKind.SELECTION_OVERFLOW
                 && !ouverts.contains(PopupKind.SELECTION_BAR)) {
-            return false;
+            return rendus;
         }
-        return ouverts.add(kind);
+        ouverts.add(kind);
+        rendus.add(kind);
+        return rendus;
+    }
+
+    /** Les genres exclus qui se fermaient — l'ouverture d'un menu
+     *  chasse ses concurrents, l'état les rend. */
+    private Set<PopupKind> fermerParExclusion(PopupKind... genres) {
+        Set<PopupKind> fermes = EnumSet.noneOf(PopupKind.class);
+        for (PopupKind genre : genres) {
+            if (ouverts.remove(genre)) {
+                fermes.add(genre);
+            }
+        }
+        return fermes;
     }
 
     /**
@@ -132,13 +178,34 @@ public final class PopupController {
      * @return vrai si l'état a changé
      */
     public boolean close(PopupKind kind) {
-        boolean change = ouverts.remove(kind);
-        if (kind == PopupKind.COMPLETION_LIST) {
-            change |= ouverts.remove(PopupKind.COMPLETION_DOC);
-        } else if (kind == PopupKind.SELECTION_BAR) {
-            change |= ouverts.remove(PopupKind.SELECTION_OVERFLOW);
+        return !closeRendus(kind).isEmpty();
+    }
+
+    /**
+     * Ferme le popup donné et rend TOUT ce qui s'est fermé — le genre
+     * demandé et ses cascades (la documentation suit sa liste, le
+     * débordement suit sa barre) : le coordinateur y retire d'un seul
+     * tenant les vues des fermés, l'état et la couche ne divergent
+     * jamais.
+     *
+     * @param kind le popup à fermer
+     * @return les genres fermés — vide quand tout était déjà fermé
+     */
+    public Set<PopupKind> closeRendus(PopupKind kind) {
+        Set<PopupKind> fermes = EnumSet.noneOf(PopupKind.class);
+        if (ouverts.remove(kind)) {
+            fermes.add(kind);
         }
-        return change;
+        if (kind == PopupKind.COMPLETION_LIST) {
+            if (ouverts.remove(PopupKind.COMPLETION_DOC)) {
+                fermes.add(PopupKind.COMPLETION_DOC);
+            }
+        } else if (kind == PopupKind.SELECTION_BAR) {
+            if (ouverts.remove(PopupKind.SELECTION_OVERFLOW)) {
+                fermes.add(PopupKind.SELECTION_OVERFLOW);
+            }
+        }
+        return fermes;
     }
 
     /** Ferme tout — la session se détache, la couche se vide.
@@ -156,7 +223,8 @@ public final class PopupController {
     /**
      * La frappe : le survol, l'info-bulle et la barre de sélection se
      * ferment (la frappe remplace la sélection — son menu de
-     * débordement suit), la complétion RESTE
+     * débordement suit), la carte de la toolbar cède aussi (un menu
+     * ne survit pas à la saisie), la complétion RESTE
      * — elle filtre localement, la requête ne repart pas ; la bande
      * d'erreurs survit — elle vit avec les diagnostics.
      *
@@ -167,7 +235,7 @@ public final class PopupController {
     public Set<PopupKind> onKeystroke() {
         return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.SELECTION_BAR, PopupKind.SELECTION_OVERFLOW,
-                PopupKind.COLOR_PICKER);
+                PopupKind.COLOR_PICKER, PopupKind.TOOLBAR_OVERFLOW);
     }
 
     /**
@@ -180,6 +248,22 @@ public final class PopupController {
     public Set<PopupKind> onScroll() {
         return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.COLOR_PICKER);
+    }
+
+    /**
+     * Le tap HORS CARTES (le chantier d'unification, phase 5 de la
+     * mission) : les cartes d'actions et les bulles éphémères cèdent —
+     * le survol, l'info-bulle, le sélecteur de couleur, le menu
+     * d'intentions et les débordements ; la complétion, la signature,
+     * le fil d'Ariane et le chrome suivent le curseur ou le document,
+     * ils ne cèdent pas au geste qui déplace le curseur.
+     *
+     * @return les genres qui se fermaient — la couche les retire
+     */
+    public Set<PopupKind> surToucheHorsCartes() {
+        return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
+                PopupKind.COLOR_PICKER, PopupKind.INTENTIONS_MENU,
+                PopupKind.SELECTION_OVERFLOW, PopupKind.TOOLBAR_OVERFLOW);
     }
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se

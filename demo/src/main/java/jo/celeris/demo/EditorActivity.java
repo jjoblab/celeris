@@ -184,6 +184,9 @@ public final class EditorActivity extends AppCompatActivity {
         if (serveurLangage != null) {
             serveurLangage.close();
         }
+        // Les popups se détachent — l'observateur du layout suit.
+        atelierPopups.detacher();
+        atelierBarreToolbar.detacher();
     }
 
     private FichierExemple resoudreFichier() {
@@ -334,32 +337,26 @@ public final class EditorActivity extends AppCompatActivity {
         brancherToolbar();
     }
 
-    /** Le survol se sert AU DOUBLE-TAP et au « i » de la barre
-     *  (le redressement du 2026-11-13 : l'appui long entrait en conflit
-     *  avec la barre) — le color picker d'un littéral d'abord, la
-     *  documentation du symbole sinon. */
+    /** Le survol se sert AU DOUBLE-TAP et au « i » de la barre (le
+     *  redressement du 2026-11-13) : le color picker d'abord. */
     private void brancherSurvolDoubleTap() {
         editeur.setSurDoubleTap(offset ->
                 atelierPopups.ouvrirColorPicker(offset)
                         || atelierPopups.ouvrirSurvolAuDoubleTap(offset));
+        // la délégation clavier (chantier d'unification) : les touches
+        // matérielles remontent aux popups AVANT la table de raccourcis
+        editeur.setSurTouchePopup(atelierPopups::surTouche);
     }
 
     /** Le dépôt de départ : le débordement de la toolbar vit dans la
-     *  CARTE du kit (jamais le menu système), la barre de touches de
-     *  code vit au-dessus du clavier. */
+     *  CARTE du kit, la barre de touches au-dessus du clavier. */
     private void brancherToolbar() {
-        atelierBarreToolbar = new AtelierBarreToolbar(atelierPopups.controleur(), couche(),
-                atelierPopups.carteMenus(), paletteFeuilles(),
+        atelierBarreToolbar = new AtelierBarreToolbar(
+                atelierPopups.manager(), paletteFeuilles(),
                 getString(R.string.menu_plus));
         atelierBarreToolbar.poserBarreTouches(
                 new AtelierTouchesCode(this, editeur, session,
                         this::langueOuverte).touches());
-    }
-
-    /** La couche porte-popups de la scène — l'atelier de la barre s'y
-     *  pose (les cartes et la barre de touches y vivent). */
-    private PopupLayer couche() {
-        return findViewById(R.id.couche_popups);
     }
 
     /** Le support du langage ouvert — la voie de la démonstration :

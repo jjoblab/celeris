@@ -2,7 +2,6 @@ package jo.celeris.demo;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.view.View;
 
 import java.util.List;
 
@@ -12,7 +11,8 @@ import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
 import jo.celeris.android.widgets.PopupAnchor;
 import jo.celeris.android.widgets.PopupController;
-import jo.celeris.android.widgets.PopupLayer;
+import jo.celeris.android.widgets.PopupManager;
+import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.view.ReperesPreview;
 import jo.celeris.core.syntax.structure.OutlineEntry;
@@ -26,18 +26,19 @@ import org.jspecify.annotations.Nullable;
 /**
  * Le document ancré de l'atelier des popups (ADR-018, chantier C12) :
  * le survol de symbole, l'aperçu rapide de définition (D-11) et le
- * rendu délégué d'un repère {@code @Preview} (C-11) partagent la même
- * carte de documentation, posée sur la couche à l'ancre donnée — au
- * curseur ou au coin de la gouttière, la colonne des repères. Popup
- * ancrée, au point d'intérêt : la déclaration se lit sans quitter le
- * fichier.
+ * rendu délégué d'un repère {@code @Preview} (C-11) partagent le même
+ * GENRE de carte de documentation, posée sur la couche à l'ancre
+ * donnée — au curseur ou au coin de la gouttière, la colonne des
+ * repères. Popup ancrée, au point d'intérêt : la déclaration se lit
+ * sans quitter le fichier. Le chantier d'unification lui donne sa
+ * CARTE PROPRE sous le genre survol — la documentation de complétion
+ * ne se vole plus entre deux créneaux, l'état ne ment plus.
  */
 final class DocAncre {
 
     private final Context contexte;
-    private final PopupController controleur;
+    private final PopupManager popups;
     private final CompletionDocView vue;
-    private final PopupLayer couche;
     private final EditorView editeur;
     private final TextSession session;
     private final int margePx;
@@ -47,23 +48,23 @@ final class DocAncre {
     private String uriDocument = "";
 
     /**
-     * Construit le poseur de documents ancrés.
+     * Construit le poseur de documents ancrés : la carte naît liée à son
+     * genre — le survol — par le manager, la palette courante la vêt.
      *
      * @param contexte  le contexte — les libellés s'y lisent
-     * @param controleur la machine à états des popups
-     * @param vue        la carte de documentation partagée
-     * @param couche     la couche porte-popups
-     * @param editeur    la vue d'éditeur ouverte
-     * @param session    la session d'édition courante
-     * @param margePx    la respiration des ancres aux bords de la couche
+     * @param popups    le coordinateur des popups de la scène
+     * @param editeur   la vue d'éditeur ouverte
+     * @param session   la session d'édition courante
+     * @param margePx   la respiration des ancres aux bords de la couche
+     * @param palette   la palette courante des popups
      */
-    DocAncre(Context contexte, PopupController controleur,
-            CompletionDocView vue, PopupLayer couche, EditorView editeur,
-            TextSession session, int margePx) {
+    DocAncre(Context contexte, PopupManager popups, EditorView editeur,
+            TextSession session, int margePx, PopupPalette palette) {
         this.contexte = contexte;
-        this.controleur = controleur;
-        this.vue = vue;
-        this.couche = couche;
+        this.popups = popups;
+        this.vue = new CompletionDocView(popups.couche().getContext(),
+                palette);
+        popups.lier(PopupController.PopupKind.HOVER, vue);
         this.editeur = editeur;
         this.session = session;
         this.margePx = margePx;
@@ -79,6 +80,11 @@ final class DocAncre {
     void brancherServeur(@Nullable LanguageSession serveur, String uri) {
         this.serveur = serveur;
         this.uriDocument = uri;
+    }
+
+    /** La palette tourne : la carte du survol la suit. */
+    void surPalette(PopupPalette palette) {
+        vue.setPalette(palette);
     }
 
     /**
@@ -180,31 +186,34 @@ final class DocAncre {
     private void auCurseur(CompletionDocModel doc) {
         Rect curseur = editeur.caretBounds();
         poser(doc, PopupAnchor.atPoint(curseur.left, curseur.top,
-                taille(), couche.getWidth(), couche.getHeight(), margePx));
+                taille(), coucheLargeur(), coucheHauteur(), margePx));
     }
 
     /** Ouvre le document au COIN de la gouttière — rendu @Preview. */
     private void auCoin(CompletionDocModel doc) {
         poser(doc, PopupAnchor.topLeftCorner(taille(),
-                couche.getWidth(), couche.getHeight(), margePx));
+                coucheLargeur(), coucheHauteur(), margePx));
     }
 
-    /** Le document posé : la carte HOVER porte le modèle à l'ancre. */
+    /** Le document posé : la carte HOVER porte le modèle à l'ancre — le
+     *  manager tient l'état ET la vue d'un seul tenant. */
     private void poser(CompletionDocModel doc, PopupPlacer.Cadre placee) {
-        controleur.open(PopupController.PopupKind.HOVER);
         vue.setModel(doc);
-        couche.show(PopupController.PopupKind.HOVER, vue,
+        popups.montrer(PopupController.PopupKind.HOVER,
                 placee.x(), placee.y());
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
     private PopupPlacer.Cadre taille() {
-        vue.measure(View.MeasureSpec.makeMeasureSpec(0,
-                        View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0,
-                        View.MeasureSpec.UNSPECIFIED));
-        return new PopupPlacer.Cadre(0, 0, vue.getMeasuredWidth(),
-                vue.getMeasuredHeight());
+        return popups.taille(PopupController.PopupKind.HOVER);
+    }
+
+    private int coucheLargeur() {
+        return popups.couche().getWidth();
+    }
+
+    private int coucheHauteur() {
+        return popups.couche().getHeight();
     }
 
     private int caret() {
