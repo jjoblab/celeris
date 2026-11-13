@@ -17,6 +17,7 @@ import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.view.ReperesPreview;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 
+import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
@@ -40,6 +41,10 @@ final class DocAncre {
     private final EditorView editeur;
     private final TextSession session;
     private final int margePx;
+    /** La session de langage branchée — le survol y passe au protocole. */
+    private @Nullable LanguageSession serveur;
+    /** L'uri du document ouvert auprès du serveur de langage. */
+    private String uriDocument = "";
 
     /**
      * Construit le poseur de documents ancrés.
@@ -62,6 +67,56 @@ final class DocAncre {
         this.editeur = editeur;
         this.session = session;
         this.margePx = margePx;
+    }
+
+    /**
+     * Branche la session de langage — le survol du symbole au curseur y
+     * passe au fil du protocole, la table du coach reste le repli.
+     *
+     * @param serveur la session démarrée, null pour le repli seul
+     * @param uri     l'uri du document ouvert
+     */
+    void brancherServeur(@Nullable LanguageSession serveur, String uri) {
+        this.serveur = serveur;
+        this.uriDocument = uri;
+    }
+
+    /**
+     * Ouvre le survol du symbole au curseur — le « i » de la barre de
+     * sélection y vient : la documentation du serveur de langage par le
+     * fil du protocole, la table du coach en repli.
+     */
+    void survolAuCaret() {
+        String symbole = PopupCoach.symboleA(session.document(), caret());
+        if (symbole == null) {
+            return;
+        }
+        if (serveur != null) {
+            serveur.survol(uriDocument, session.document(), symbole, caret())
+                    .whenComplete((doc, echec) -> editeur.post(
+                            () -> survol(doc)));
+            return;
+        }
+        survol(PopupCoach.docFor(symbole));
+    }
+
+    /**
+     * Le survol AU DOUBLE-TAP (le redressement du propriétaire
+     * 2026-11-13 : « utilisons seulement le double clic et l'option
+     * i ») : le curseur prend le point du geste — l'ancre du popup de
+     * documentation y vit ; vrai quand un symbole s'y trouve, faux
+     * quand la cascade du tap suit.
+     *
+     * @param offset l'offset du double-tap
+     * @return vrai quand le survol s'ouvre
+     */
+    boolean survolAuDoubleTap(int offset) {
+        if (PopupCoach.symboleA(session.document(), offset) == null) {
+            return false;
+        }
+        session.setSelection(MultiSelection.of(SelRange.caretAt(offset)));
+        survolAuCaret();
+        return true;
     }
 
     /**

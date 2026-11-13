@@ -149,9 +149,7 @@ public final class EditorView extends View {
     /** Le collaborateur du routage tactile. */
     final TouchesEditeur touches = new TouchesEditeur(this);
     /** Le collaborateur de la loupe du dragage (D-16, le
-     *  redressement du 2026-11-13 : « ajoute la fonctionnalité de
-     *  magnifier, quand on fait longclick et on commence à draguer »)
-     *  — la bulle au-dessus du doigt, l'image photographiée. */
+     *  redressement du 2026-11-13) — la bulle au-dessus du doigt. */
     final Loupe loupe = new Loupe();
     // — le glisser-déposer vit dans son collaborateur (D-20)
     final GlisserDeposer depot = new GlisserDeposer(this);
@@ -448,11 +446,7 @@ public final class EditorView extends View {
         rappels.poserBasculeArret(consommateur);
     }
 
-    /**
-     * La loupe du dragage (D-16) : le dragage armé par l'appui long ou
-     * la poignée tirée l'y suit, le geste levé la referme — l'hôte y
-     * règle le zoom ({@code setZoom}, ×2 par défaut).
-     */
+    /** La loupe du dragage (D-16) — l'hôte y règle le zoom, ×2 par défaut. */
     public Loupe loupe() {
         return loupe;
     }

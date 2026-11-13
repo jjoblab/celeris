@@ -452,16 +452,12 @@ public final class EditorSyntax {
     }
 
     /**
-     * Vrai quand la plage donnée CROISE un pli déjà replié — elle le
-     * chevauche sans le contenir ni s'y contenir : l'imbrication passe,
-     * la traversée seule se refuse.
+     * Vrai quand la plage donnée CROISE un pli déjà replié : la règle
+     * vit dans {@link FoldModel#croise} — LA source unique.
      */
     private boolean croiseUnPli(int debut, int fin) {
         for (FoldModel.Pli pli : plis.plis()) {
-            boolean chevauche = debut <= pli.fin() && pli.debut() <= fin;
-            boolean contient = pli.debut() <= debut && fin <= pli.fin();
-            boolean contenu = debut <= pli.debut() && pli.fin() <= fin;
-            if (chevauche && !contient && !contenu) {
+            if (FoldModel.croise(debut, fin, pli)) {
                 return true;
             }
         }

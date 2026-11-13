@@ -193,6 +193,7 @@ final class AtelierPopups {
     void brancherServeur(LanguageSession sessionLangage, String uri) {
         this.serveur = sessionLangage;
         this.uriDocument = uri;
+        docAncre.brancherServeur(sessionLangage, uri);
         LanguageSupport langue = LangagesDemo.langageDe(nomDuFichier,
                 null, session.document().text());
         sessionLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
@@ -309,46 +310,16 @@ final class AtelierPopups {
                         hauteurCouche(), margePx));
     }
 
-    /**
-     * Ouvre le survol du symbole au curseur — la documentation du
-     * serveur de langage par le fil du protocole, la table du coach
-     * en repli. Le « i » de la barre de sélection y vient.
-     */
+    /** Ouvre le survol du symbole au curseur — le « i » de la barre
+     *  de sélection y vient (la résolution vit dans {@code DocAncre}). */
     void ouvrirSurvol() {
-        String symbole = symboleAuCaret();
-        if (symbole == null) {
-            return;
-        }
-        if (serveur != null) {
-            int caret = caret();
-            serveur.survol(uriDocument, session.document(), symbole, caret)
-                    .whenComplete((doc, echec) -> editeur.post(
-                            () -> docAncre.survol(doc)));
-            return;
-        }
-        docAncre.survol(PopupCoach.docFor(symbole));
+        docAncre.survolAuCaret();
     }
 
-    /**
-     * Le survol AU DOUBLE-TAP (le redressement du propriétaire
-     * 2026-11-13 : « utilisons seulement le double clic et l'option
-     * i ») : la documentation du symbole sous le geste — le curseur y
-     * prend le point, l'ancre du popup y vit ; vrai quand le geste se
-     * consomme (un symbole y vit), faux quand la cascade du tap suit.
-     *
-     * @param offset l'offset du double-tap
-     * @return vrai quand le survol s'ouvre
-     */
+    /** Le survol au DOUBLE-TAP — le geste seul et le « i » l'ouvrent
+     *  (le redressement du 2026-11-13). */
     boolean ouvrirSurvolAuDoubleTap(int offset) {
-        String symbole = PopupCoach.symboleA(session.document(), offset);
-        if (symbole == null) {
-            return false;
-        }
-        // le curseur prend le point du double-clic : l'ancre du popup
-        // de documentation y vit, comme le color picker d'un littéral
-        session.setSelection(MultiSelection.of(SelRange.caretAt(offset)));
-        ouvrirSurvol();
-        return true;
+        return docAncre.survolAuDoubleTap(offset);
     }
 
     /** Le poseur de documents ancrés — l'activité y lit (C12). */
@@ -590,10 +561,6 @@ final class AtelierPopups {
     private int caret() {
         List<SelRange> plages = session.selection().ranges();
         return plages.isEmpty() ? 0 : plages.get(0).caret();
-    }
-
-    private String symboleAuCaret() {
-        return PopupCoach.symboleA(session.document(), caret());
     }
 
     /** Pose le nom du fichier ouvert — le filtre des diagnostics s'y fait. */

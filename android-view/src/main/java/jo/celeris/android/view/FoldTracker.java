@@ -132,10 +132,7 @@ public final class FoldTracker {
             return false;
         }
         for (FoldModel.Pli pli : modele.plis()) {
-            boolean chevauche = debut <= pli.fin() && pli.debut() <= fin;
-            boolean contient = pli.debut() <= debut && fin <= pli.fin();
-            boolean contenu = debut <= pli.debut() && pli.fin() <= fin;
-            if (chevauche && !contient && !contenu) {
+            if (FoldModel.croise(debut, fin, pli)) {
                 return false;
             }
         }

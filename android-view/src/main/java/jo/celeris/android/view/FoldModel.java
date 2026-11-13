@@ -181,9 +181,16 @@ public final class FoldModel {
 
     /**
      * Vrai quand la plage CROISE le pli donné : elle le chevauche sans
-     * le contenir ni s'y contenir — deux plis qui se traversent.
+     * le contenir ni s'y contenir — deux plis qui se traversent. LA
+     * source unique de la règle : le modèle au repli, le suivi au
+     * remappage et le pont au geste s'y servent.
+     *
+     * @param debut le début de la plage candidate
+     * @param fin   la fin de la plage candidate
+     * @param pli   le pli confronté
+     * @return vrai quand la plage traverse le pli
      */
-    private static boolean croise(int debut, int fin, Pli pli) {
+    static boolean croise(int debut, int fin, Pli pli) {
         boolean chevauche = debut <= pli.fin() && pli.debut() <= fin;
         boolean contient = pli.debut() <= debut && fin <= pli.fin();
         boolean contenu = debut <= pli.debut() && pli.fin() <= fin;

@@ -294,28 +294,22 @@ public final class EditorActivity extends AppCompatActivity {
         serveurLangage.poserAuditeurDiagnostics(etatDiagnostics::surServeur);
     }
 
-    /**
-     * Les ateliers d'interaction (M7.5, §7, reprise) : l'IA (F-01 à
-     * F-03), les DIX popups sur la couche posée — jamais de focus volé
-     * (PIEGE-27) —, la recherche dépliable et la sélection au
-     * presse-papiers local.
-     */
+    /** Les ateliers d'interaction (M7.5, §7, reprise) : l'IA, les DIX
+     *  popups sur la couche — jamais de focus volé (PIEGE-27) —, la
+     *  recherche dépliable et la sélection au presse-papiers local. */
     private void brancherAteliers() {
-        // La refactorisation et la session de langage déclarée (M7.5,
-        // §8 — M7.6, H-13 : la déclaration serveurs.json décide, le
-        // montage exécute, le serveur de référence reste le repli).
+        // La refactorisation et le serveur déclaré (M7.5, §8 — M7.6,
+        // H-13 : servers.json décide, le montage exécute).
         atelierRefactor = new AtelierRefactor(this, editeur, session,
                 nomFichier, this::paletteFeuilles, this::verdictRefactor);
         serveurLangage = DeclaredServers.open(langueOuverte());
-        // L'atelier des popups : la couche posée sur l'éditeur porte
-        // les dix popups, la machine à états décide qui reste ouvert.
+        // la couche posée sur l'éditeur porte les dix popups.
         PopupLayer couche = findViewById(R.id.couche_popups);
         atelierPopups = new AtelierPopups(editeur, session, couche,
                 basculeTheme.themeCourant(),
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
-        // Le thème tourne : la palette des popups suit (le verre du
-        // dépôt de départ se dérive du fond de l'éditeur) — la barre
-        // de touches y dérive la sienne à la même source.
+        // le verre des popups se dérive du fond de l'éditeur (le dépôt
+        // de départ) — la barre de touches y suit la même source.
         basculeTheme.setSurChangement(theme -> {
             atelierPopups.surTheme(theme);
             if (atelierBarreToolbar != null) {
@@ -336,28 +330,23 @@ public final class EditorActivity extends AppCompatActivity {
                 this::paletteFeuilles, atelierPopups::ouvrirRecherche,
                 atelierPopups::fermerRecherche);
         atelierRecherche.brancher();
-        // Le survol du symbole se sert AU DOUBLE-TAP et au « i » de la
-        // barre de sélection (le redressement du propriétaire
-        // 2026-11-13 : l'appui long entrait en conflit avec la barre —
-        // le popup de survol ne s'ouvre plus que du double-clic et de
-        // l'option info de la barre). Le double-tap sert d'abord le
-        // color picker d'un littéral de couleur, la documentation du
-        // symbole sinon.
-        editeur.setSurDoubleTap(offset -> {
-            if (atelierPopups.ouvrirColorPicker(offset)) {
-                return true;
-            }
-            return atelierPopups.ouvrirSurvolAuDoubleTap(offset);
-        });
+        brancherSurvolDoubleTap();
         brancherToolbar();
     }
 
-    /** Le design du dépôt de départ (le redressement du
-     *  propriétaire) : le menu de DÉBORDEMENT de la toolbar vit
-     *  dans la CARTE du kit — rangées cliquables du verre, jamais
-     *  le menu système —, la BARRE DE TOUCHES de code vit
-     *  au-dessus du clavier (Tab, commentaire, déplacements,
-     *  duplication). */
+    /** Le survol se sert AU DOUBLE-TAP et au « i » de la barre
+     *  (le redressement du 2026-11-13 : l'appui long entrait en conflit
+     *  avec la barre) — le color picker d'un littéral d'abord, la
+     *  documentation du symbole sinon. */
+    private void brancherSurvolDoubleTap() {
+        editeur.setSurDoubleTap(offset ->
+                atelierPopups.ouvrirColorPicker(offset)
+                        || atelierPopups.ouvrirSurvolAuDoubleTap(offset));
+    }
+
+    /** Le dépôt de départ : le débordement de la toolbar vit dans la
+     *  CARTE du kit (jamais le menu système), la barre de touches de
+     *  code vit au-dessus du clavier. */
     private void brancherToolbar() {
         atelierBarreToolbar = new AtelierBarreToolbar(atelierPopups.controleur(), couche(),
                 atelierPopups.carteMenus(), paletteFeuilles(),

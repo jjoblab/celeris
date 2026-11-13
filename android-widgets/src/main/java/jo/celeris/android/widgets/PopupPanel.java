@@ -146,6 +146,13 @@ abstract class PopupPanel extends View {
         canvas.drawLine(0f, y, contentWidth(), y, pinceauLisere);
     }
 
+    /** L'alpha courant du voile — 1 en steady, la naissance × mort
+     *  l'abaissent pendant leur horloge. */
+    private float alphaVoile = 1f;
+
+    /** La montée courante de la naissance, en pixels. */
+    private float monteeVoile;
+
     /**
      * Arme la naissance de la carte — la couche y appelle à sa pose :
      * la prochaine image ouvre l'horloge, la carte monte en voile.
@@ -187,8 +194,30 @@ abstract class PopupPanel extends View {
 
     @Override
     protected final void onDraw(Canvas canvas) {
-        float alpha = 1f;
-        float montee = 0f;
+        avancerVoile();
+        boolean anime = alphaVoile < 1f || monteeVoile > 0f;
+        int sauve = -1;
+        if (anime) {
+            voileAnime.setAlpha(Math.round(alphaVoile * 255f));
+            sauve = canvas.saveLayer(0f, 0f, getWidth(), getHeight(),
+                    voileAnime);
+            canvas.translate(0f, -monteeVoile);
+        }
+        dessinerCarte(canvas);
+        if (anime) {
+            canvas.restoreToCount(sauve);
+        }
+    }
+
+    /**
+     * Le voile avance d'une image : la naissance armée ouvre son
+     * horloge (120 ms de montée), la mort armée conclut la sienne
+     * (100 ms de descente, puis le retrait différé part) — les champs
+     * portent l'alpha et la montée que le tracé sert.
+     */
+    private void avancerVoile() {
+        alphaVoile = 1f;
+        monteeVoile = 0f;
         if (naissanceArmee) {
             naissanceA = getDrawingTime();
             naissanceArmee = false;
@@ -198,43 +227,49 @@ abstract class PopupPanel extends View {
             if (ecoule >= DUREE_NAISSANCE_MS) {
                 naissanceA = -1L;
             } else {
-                // la naissance : le voile qui monte, 120 ms — la carte
-                // naît d'en haut, adoucie (le geste du dépôt de départ)
-                alpha = Math.max(0f, Math.min(1f, ecoule / 120f));
-                montee = (1f - alpha) * MONTEE_DP * densite;
+                // la carte naît d'en haut, adoucie (le dépôt de départ)
+                alphaVoile = Math.max(0f, Math.min(1f,
+                        ecoule / (float) DUREE_NAISSANCE_MS));
+                monteeVoile = (1f - alphaVoile) * MONTEE_DP * densite;
                 postInvalidateOnAnimation();
             }
         }
+        avancerMort();
+    }
+
+    /**
+     * La mort avance d'une image : le voile descend, 100 ms — la
+     * conclusion pose le retrait différé, la carte reste STEADY
+     * jusqu'à ce qu'il l'emporte (jamais un retrait brusque).
+     */
+    private void avancerMort() {
         if (morteArmee) {
             morteA = getDrawingTime();
             morteArmee = false;
         }
-        if (morteA >= 0L) {
-            long ecoule = getDrawingTime() - morteA;
-            if (ecoule >= DUREE_MORT_MS) {
-                // la mort se conclut : le retrait différé part, la carte
-                // reste STEADY jusqu'à ce qu'il l'emporte
-                morteA = -1L;
-                Runnable retraitDiffere = retrait;
-                retrait = null;
-                if (retraitDiffere != null) {
-                    post(retraitDiffere);
-                }
-            } else {
-                // la mort : le voile qui descend, 100 ms — jamais le
-                // retrait brusque de la carte
-                alpha *= Math.max(0f, 1f - ecoule / 100f);
-                postInvalidateOnAnimation();
+        if (morteA < 0L) {
+            return;
+        }
+        long ecoule = getDrawingTime() - morteA;
+        if (ecoule >= DUREE_MORT_MS) {
+            morteA = -1L;
+            Runnable retraitDiffere = retrait;
+            retrait = null;
+            if (retraitDiffere != null) {
+                post(retraitDiffere);
             }
+            return;
         }
-        boolean anime = alpha < 1f || montee > 0f;
-        int sauve = -1;
-        if (anime) {
-            voileAnime.setAlpha(Math.round(alpha * 255f));
-            sauve = canvas.saveLayer(0f, 0f, getWidth(), getHeight(),
-                    voileAnime);
-            canvas.translate(0f, -montee);
-        }
+        alphaVoile *= Math.max(0f, 1f - ecoule / (float) DUREE_MORT_MS);
+        postInvalidateOnAnimation();
+    }
+
+    /**
+     * La carte se trace : le verre et son liseré hairline, le contenu
+     * clippé aux coins arrondis (le motif du dépôt de départ — la bande
+     * de sélection d'une rangée ne déborde jamais sur les coins).
+     */
+    private void dessinerCarte(Canvas canvas) {
         coins.set(0f, 0f, getWidth(), getHeight());
         float rayon = rayonCartePx();
         cheminCarte.reset();
@@ -242,16 +277,10 @@ abstract class PopupPanel extends View {
         canvas.drawPath(cheminCarte, pinceauFond);
         canvas.drawPath(cheminCarte, pinceauLisere);
         int sauveContenu = canvas.save();
-        // Le contenu se clippe à la carte arrondie (le motif du dépôt
-        // de départ) : la bande de sélection d'une rangée ne déborde
-        // jamais sur les coins.
         canvas.clipPath(cheminCarte);
         canvas.translate(paddingPx, paddingYPx);
         drawContent(canvas);
         canvas.restoreToCount(sauveContenu);
-        if (anime) {
-            canvas.restoreToCount(sauve);
-        }
     }
 
     /** Dessine le contenu, origine translatée aux respirations comprises. */
