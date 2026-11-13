@@ -252,11 +252,13 @@ public final class PopupManager {
     /**
      * La touche matérielle déléguée par l'éditeur (PIEGE-27 : il garde
      * le focus, il rend le verdict des touches aux popups) : la
-     * première carte interactive ouverte reçoit les flèches et la
-     * validation (Enter, Tab — la complétion ouverte précède le fantôme
-     * IA) ; l'échappement referme la première carte interactive, sinon
-     * les bulles éphémères. Toute autre touche retourne faux — l'éditeur
-     * suit sa vie normale.
+     * première carte interactive ouverte reçoit les flèches, les pages
+     * (PAGE_UP, PAGE_DOWN — le pas étendu, une page par unité : la
+     * carte qui ne pagine pas décline) et la validation (Enter, Tab —
+     * la complétion ouverte précède le fantôme IA) ; l'échappement
+     * referme la première carte interactive, sinon les bulles
+     * éphémères. Toute autre touche retourne faux — l'éditeur suit sa
+     * vie normale.
      *
      * @param keyCode le code de la touche déléguée
      * @return vrai si la touche a servi un popup
@@ -306,6 +308,12 @@ public final class PopupManager {
         View vue = vues.get(genre);
         if (!(vue instanceof PopupClavier carte)) {
             return false;
+        }
+        if (keyCode == KeyEvent.KEYCODE_PAGE_UP) {
+            return carte.surPage(-1);
+        }
+        if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) {
+            return carte.surPage(1);
         }
         if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
             return carte.surFleche(-1);

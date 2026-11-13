@@ -14,6 +14,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
@@ -293,6 +294,53 @@ public class PopupManagerTest {
         assertEquals("Enter exécute l'action surlignée", 2, execute[0]);
         assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
         assertFalse(popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
+    }
+
+    /** La page DÉLÉGUÉE sert la complétion (le pas étendu, premier
+     *  reste du signal du propriétaire du 2026-11-13) : PAGE_DOWN
+     *  saute la surbrillance d'une PAGE de candidats visibles — huit,
+     *  le plafond de la liste —, PAGE_UP remonte d'autant, le saut se
+     *  borne aux murs de la liste ; la carte sans pages DÉCLINE, la
+     *  touche retourne à la vie normale de l'éditeur. */
+    @Test
+    public void laPageEtendueSertLaCompletion() {
+        PopupLayer couche = couche();
+        PopupManager popups = new PopupManager(new PopupController(), couche);
+        CompletionListView liste = new CompletionListView(
+                couche.getContext(), PopupPalette.dark());
+        popups.lier(PopupController.PopupKind.COMPLETION_LIST, liste);
+        List<CompletionListView.Candidat> candidats = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            candidats.add(new CompletionListView.Candidat("c" + i, "",
+                    BadgeGenre.Genre.MOT_CLE));
+        }
+        liste.setItems(candidats);
+        popups.montrer(PopupController.PopupKind.COMPLETION_LIST, 10, 10);
+        assertEquals("la surbrillance naît à la tête", 0, liste.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertEquals("la page descend de huit rangées", 8,
+                liste.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertEquals("la page se borne au bas de la liste", 11,
+                liste.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_UP));
+        assertEquals("la page remonte de huit", 3, liste.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_UP));
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_UP));
+        assertEquals("la page se borne à la tête", 0, liste.surbrillance());
+        popups.fermer(PopupController.PopupKind.COMPLETION_LIST);
+        IntentionsMenuView menu = new IntentionsMenuView(
+                couche.getContext(), PopupPalette.dark());
+        popups.lier(PopupController.PopupKind.INTENTIONS_MENU, menu);
+        int[] execute = { 0 };
+        menu.setActions(List.of(
+                new IntentionsMenuView.Item("premier", () -> execute[0] = 1),
+                new IntentionsMenuView.Item("second", () -> execute[0] = 2)));
+        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        assertFalse("le menu décline les pages — la touche retourne à "
+                + "l'éditeur", popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertTrue("le menu vit, la page déclinée ne l'a pas servie",
+                popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
     }
 
     /** L'échappement sans carte interactive referme les bulles

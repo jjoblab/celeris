@@ -508,12 +508,12 @@ editeur.setSurTouchePopup(popups::surTouche);
 ```
 
 UP et DOWN déplacent la surbrillance de la première carte
-interactive ouverte, Enter et Tab valident, Escape referme (la
+interactive ouverte, PAGE_UP et PAGE_DOWN sautent d'une PAGE (le pas étendu — huit rangées à la complétion, son plafond visible ; la carte sans pages décline, la touche retourne à l'éditeur et le document y défile), Enter et Tab valident, Escape referme (la
 complétion emporte sa documentation) ; la touche inconnue retourne à
 l'éditeur — la table de raccourcis décide sa vie normale. Les cartes
 interactives du kit (complétion, menus d'intentions et de
 débordement) reçoivent par le contrat `PopupClavier` (`surFleche`,
-`surValidation`) — les vôtres y gagnent la même délégation. Le doigt
+`surPage`, `surValidation`) — les vôtres y gagnent la même délégation. Le doigt
 qui tombe HORS de toute carte referme les genres qui cèdent (les
 menus, les bulles — la complétion suit le curseur, le chrome vit
 avec le document) : l'avis vit à la couche, branché par le manager,

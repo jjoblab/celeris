@@ -3,8 +3,10 @@
 > La mission du propriétaire — « audit, restructuration et unification du
 > popup system de Celeris » — reçue le 2026-11-13, se suit ici : les neuf
 > phases du mandat, le journal des clôtures, ce qui reste. L'état est
-> vérifié au 2026-11-13 (la phase 8 fermée au commit `c400665`, la phase 9
-> ferme au présent commit). Les documents de la mission vivent tous dans
+> vérifié au 2026-11-13 (la phase 9 fermée au commit `7c05767` ; le signal
+> du propriétaire du même jour — « lancé 90 % du chantier » — ouvre la
+> SUITE : les surfaces qui dormaient se réveillent une à une, le journal
+> tient les livraisons). Les documents de la mission vivent tous dans
 > `docs/` : l'audit ([`POPUP_SYSTEM_AUDIT.md`](POPUP_SYSTEM_AUDIT.md)),
 > l'inventaire ([`POPUP_INVENTORY.md`](POPUP_INVENTORY.md)),
 > l'architecture cible ([`POPUP_SYSTEM_ARCHITECTURE.md`]\
@@ -24,7 +26,7 @@
 | 2 | Architecture unifiée | architecture cible | **clos le 2026-11-13** — le manager unique écrivain, le contrat commun étendu là où l'audit constatait le déficit, cinq décisions explicitement rejetées |
 | 3 | Classification et organisation | inventaire §2 | **clos le 2026-11-13** — les catégories A–G, chaque surface avec sa forme propre (carte ancrée, feuille, infobulle, chrome), les manquants nommés |
 | 4 | Priorités et conflits | contrôleur + manager | **clos le 2026-11-13** — exclusions binaires (deux menus ne tiennent jamais), ordre de routage clavier, régime sous voile, tap hors cartes |
-| 5 | Positionnement et comportement | couche + clavier délégué | **clos le 2026-11-13** — bornage défensif des poses, ancres bornées, navigation clavier par délégation (PIEGE-27 préservé) ; PAGE_UP/PAGE_DOWN à venir |
+| 5 | Positionnement et comportement | couche + clavier délégué | **clos le 2026-11-13** — bornage défensif des poses, ancres bornées, navigation clavier par délégation (PIEGE-27 préservé) ; le pas étendu PAGE_UP/PAGE_DOWN, resté à venir, se livre au signal du propriétaire (journal §2) |
 | 6 | Intégration des moteurs | contrats vérifiés | **clos par constat** — aucune fausse intégration : les popups ne demandent que ce que les moteurs servent réellement (audit §5) |
 | 7 | Migration des popups existants | rapport de migration | **clos le 2026-11-13** — aucun composant réécrit, aucune classe supprimée ; le manager absorbe les duplications, les satellites rétrécissent |
 | 8 | Tests et validation | rapport de tests | **clos le 2026-11-13** — bancs dédiés au kit, à la vue et à la démo ; la passe de référence reste verte (2 384 tests, 0 échec, 14 modules) |
@@ -39,16 +41,18 @@
 | 2026-11-13 | `38d315c` | Le cœur du chantier : `PopupManager` (l'unique écrivain de l'état ET des vues), le contrat `PopupClavier`, le genre propre `TOOLBAR_OVERFLOW`, le tap hors cartes, le crochet public `EditorView.setSurTouchePopup` (la délégation clavier, PIEGE-27 préservé), la démo migre (le manager règne, les cartes partagées meurent). Bancs : `PopupManagerTest` (13), `TouchePopupVueTest` (2), `PopupControllerTest` +5 (13 tests). Les trois documents d'audit, d'architecture et d'inventaire se committent. |
 | 2026-11-13 | `c400665` | La phase 8 ferme : la spécification D-10 de `BancSpecs` rejouée par le banc (le clavier de bout en bout — frappe, flèches, Enter, Escape), l'USAGE §9 réécrit au montage en trois temps, la typographie des trois documents réparée. |
 | 2026-11-13 | présent commit | La phase 9 ferme : les documents de la mission s'achèvent et se rangent dans `docs/` — la feuille de route (la présente), le rapport de migration, le rapport de tests, le guide du développeur ; la feuille de route restante du projet et le changelog suivent. |
+| 2026-11-13 (le signal ouvre la suite) | présent 
 
-## 3. Ce qui reste de la mission — sur signal
+## 3. Ce qui reste de la mission — le signal reçu, les surfaces se réveillent
 
-La mission a livré l'INFRASTRUCTURE ; les surfaces manquantes de
-l'inventaire (§3 de `POPUP_INVENTORY.md`) dorment jusqu'au signal du
-propriétaire, chacune reprendra le socle commun sans y rien ajouter :
+Le signal du propriétaire du 2026-11-13 (« lancé 90 % du chantier »)
+réveille la suite : les surfaces manquantes de l'inventaire (§3 de
+`POPUP_INVENTORY.md`) ; la première — le pas étendu PAGE_UP/PAGE_DOWN — est livrée au
+journal §2, celle des usages suit, chacune reprend le socle commun sans y
+rien ajouter :
 
 | Reste | Nature | Ce qui existe déjà |
 | --- | --- | --- |
-| PAGE_UP/PAGE_DOWN dans la complétion | navigation clavier | le routage délégué vit (`PopupManager.surTouche`) ; seul le pas étendu manque, au plafond de huit candidats visibles |
 | Usages / références | surface (catégorie C) | les données sont servies (`LanguageSession.references`) ; la carte à rangées (`TextRowsPopup`) attend |
 | Hiérarchies de types et d'appels | surface (catégorie C) | les moteurs vivent (`Hierarchies`, core-intelligence) |
 | Valeurs de débogage en ligne | surface (catégorie E) | la SPI est servie (`ValeurEnLigne`, `FauxDebogueur` de la démo) |

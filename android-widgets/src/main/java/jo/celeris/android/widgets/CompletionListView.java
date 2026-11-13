@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
  * Le FILTRAGE vit chez l'hôte (la complétion filtre sans se fermer,
  * M7.5 §7) : la liste ne montre que ce qu'on lui pose. PIEGE-27 :
  * jamais de focus, l'éditeur garde le clavier — la navigation s'y
- * reçoit DÉLÉGUÉE ({@link PopupClavier} : flèches, validation).
+ * reçoit DÉLÉGUÉE ({@link PopupClavier} : flèches, pages, validation).
  */
 public final class CompletionListView extends PopupPanel implements PopupClavier {
 
@@ -300,6 +300,14 @@ public final class CompletionListView extends PopupPanel implements PopupClavier
                 : Math.min(candidats.size() - 1, Math.max(0, highlighted + pas));
         setHighlighted(cible);
         return true;
+    }
+
+    @Override
+    public boolean surPage(int pas) {
+        // le pas étendu : une page vaut les rangées visibles du plafond
+        // de la liste — le saut se borne aux murs de la liste, la
+        // flèche serre déjà les bornes
+        return surFleche(pas * MAX_MONTRES);
     }
 
     @Override
