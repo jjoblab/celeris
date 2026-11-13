@@ -132,8 +132,13 @@ final class FrameAssembler {
             if (recue) {
                 // PIEGE-26 : la publication ne rejette pas les mesures —
                 // seules les rangées dont les plages ont changé se
-                // remplacent ; sans coloration, rien à préserver.
-                if (habillee instanceof SyntaxRowSource coloree) {
+                // remplacent ; sans coloration, rien à préserver. Les
+                // rangées composées de pli se recomposent entières —
+                // le texte plié a pu changer d'une publication à
+                // l'autre.
+                if (habillee instanceof FoldedRowSource composee) {
+                    vue.cache.respan(document.revision(), composee::respan);
+                } else if (habillee instanceof SyntaxRowSource coloree) {
                     vue.cache.respan(document.revision(), coloree::respan);
                 } else {
                     vue.cache.invalidate(document.revision());

@@ -44,4 +44,18 @@ public final class RebindingRowSource implements RowSource {
         }
         return locale.layoutOf(key);
     }
+
+    /**
+     * La pièce du pli composé de la ligne d'en-tête donnée (« {…} » au
+     * repli) — servie par la source courante quand elle compose les
+     * plis, null sinon : la couche de fond y lit la géométrie du TEXTE
+     * qu'elle trace, jamais celle d'une autre révision (PIEGE-20).
+     *
+     * @param ligne la ligne d'en-tête interrogée
+     * @return sa pièce, null sans pli composé courant
+     */
+    public FoldedRowSource.@Nullable PieceDePli pieceDuPli(int ligne) {
+        return deleguee instanceof FoldedRowSource composee
+                ? composee.piece(ligne) : null;
+    }
 }

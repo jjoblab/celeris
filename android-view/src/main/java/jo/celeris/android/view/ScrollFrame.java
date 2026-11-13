@@ -25,12 +25,14 @@ public final class ScrollFrame {
 
     /**
      * Assemble le pipeline de couches de la vue (chantier C9 — le
-     * montage vit chez son assemblage) : gouttière, sélection,
-     * composition, texte, fantôme — dans l'ordre du tracé.
+     * montage vit chez son assemblage) : gouttière, guides, sélection,
+     * accolades, pli, composition, texte, fantôme — dans l'ordre du
+     * tracé.
      *
      * @param gouttiere   le peintre de gouttière
      * @param pinceaux    la fabrique de pinceaux de la vue
      * @param guides      la source des guides structurels courants
+     * @param piecesPli   la source des pièces de pli composé courantes
      * @param composition l'état de composition de la vue
      * @param cache       le cache de rangées de la vue
      * @param source      la source de rangées liée de la vue
@@ -39,8 +41,8 @@ public final class ScrollFrame {
      */
     public static ScrollFrame assemble(GutterPainter gouttiere,
             BrushFactory pinceaux, IndentGuides.GuidesSource guides,
-            CompositionState composition, RowLayoutCache cache,
-            RebindingRowSource source, PainterLayer fantome) {
+            FoldPlaceholder.Source piecesPli, CompositionState composition,
+            RowLayoutCache cache, RebindingRowSource source, PainterLayer fantome) {
         ScrollFrame pipeline = new ScrollFrame();
         pipeline.addLayer(gouttiere);
         // Les guides d'indentation (A-17) se tracent SOUS la sélection
@@ -50,6 +52,9 @@ public final class ScrollFrame {
         // Les accolades appariées (D-14) : leurs rectangles se tracent
         // sur la bande de sélection, SOUS le texte — le glyphe prime.
         pipeline.addLayer(new AccoladesMiroir(pinceaux));
+        // Le placeholder de pli ({…}) : sa bande se trace sur la sélection
+        // et sous le texte — la chip se distingue, l'encre prime.
+        pipeline.addLayer(new FoldPlaceholder(pinceaux, piecesPli));
         pipeline.addLayer(new ComposingPainter(pinceaux, composition));
         pipeline.addLayer(new TextPainter(pinceaux, cache, source));
         pipeline.addLayer(fantome);

@@ -198,7 +198,7 @@ public final class EditorView extends View {
         gouttiereEtat.setClasse(ClasseLargeur.MOYEN, densite());
         gouttiere = GutterPainter.monter(pinceaux, this);
         trace = ScrollFrame.assemble(gouttiere, pinceaux, () -> syntaxe.guides,
-                composition, cache, sourceLiee, fantome.peintre());
+                sourceLiee::pieceDuPli, composition, cache, sourceLiee, fantome.peintre());
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
         // logique (sp) se convertit une fois pour toutes (PIEGE-23).

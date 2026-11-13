@@ -313,7 +313,8 @@ public final class EditorSyntax {
         }
         editionsEnAttente.clear();
         chaineRompue = false;
-        return new SyntaxRowSource(source, analyse.lex());
+        return new FoldedRowSource(new SyntaxRowSource(source, analyse.lex()),
+                document, plis, analyse.lex());
     }
 
     /**

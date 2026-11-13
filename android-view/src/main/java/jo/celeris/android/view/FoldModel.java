@@ -77,6 +77,21 @@ public final class FoldModel {
         return false;
     }
 
+    /**
+     * La dernière ligne cachée par le pli de l'en-tête donné.
+     *
+     * @param startLine la ligne d'en-tête à interroger
+     * @return sa dernière ligne cachée, —1 si aucun pli ne la porte
+     */
+    public int finDe(int startLine) {
+        for (Pli pli : plis) {
+            if (pli.debut() == startLine) {
+                return pli.fin();
+            }
+        }
+        return -1;
+    }
+
     /** Les plis triés par début, pour la projection visuelle. */
     List<Pli> plis() {
         return plis;
