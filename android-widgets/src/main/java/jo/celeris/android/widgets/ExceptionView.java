@@ -109,13 +109,13 @@ public final class ExceptionView extends TextRowsPopup {
     /** Le décalage des cadres — le type et le message éventuels
      *  comptent leurs rangées. */
     private int decalage() {
-        int rangées = 0;
+        int rangees = 0;
         if (type != null && !type.isEmpty()) {
-            rangées++;
+            rangees++;
         }
         if (message != null && !message.isEmpty()) {
-            rangées += message.split("\n", -1).length;
+            rangees += message.split("\n", -1).length;
         }
-        return rangées;
+        return rangees;
     }
 }

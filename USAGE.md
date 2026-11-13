@@ -526,7 +526,7 @@ le plan, les rappels contextuels compris, construites avec votre
 taille de texte.
 
 Les genres du contrôleur (`PopupKind`) — vingt-six depuis le feu vert
-du 2026-11-14 — couvrent les surfaces de l'éditeur :
+du 2026-11-13 — couvrent les surfaces de l'éditeur :
 complétion et sa documentation, menu d'intentions, aide aux
 paramètres, survol, info-bulle de diagnostic, fil d'Ariane,
 recherche, barre de sélection et son débordement, bande d'erreurs,

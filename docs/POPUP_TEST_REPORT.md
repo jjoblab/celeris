@@ -36,7 +36,7 @@ tranchés à l'analyse (§4), jamais à la suppression.
 
 ## 2. Les bancs du chantier
 
-### 2.1 `PopupManagerTest` — le coordinateur (Robolectric, 16 — dont 2 nés au signal du 2026-11-13, 1 au feu vert du 2026-11-14)
+### 2.1 `PopupManagerTest` — le coordinateur (Robolectric, 16 — dont 2 nés au signal du 2026-11-13, 1 au feu vert du soir du 2026-11-13)
 
 | Banc | Ce qu'il prouve |
 | --- | --- |
@@ -56,7 +56,7 @@ tranchés à l'analyse (§4), jamais à la suppression.
 | `laPageEtendueSertLaCompletion` | PAGE_UP/PAGE_DOWN sautent la surbrillance d'une page de huit candidats (bornée aux murs de la liste) ; le menu décline, la touche retourne à l'éditeur — le pas étendu du signal |
 | `leClavierDelegueSertLesUsages` | la carte des usages reçoit la délégation (flèches, Enter — la page décline) ; son ouverture chasse le menu du caret, sa carte quitte la couche |
 
-### 2.2 `PopupControllerTest` — la machine (22 — dont 3 nés à `b6fa94b`, 5 à `38d315c`, 5 au signal du 2026-11-13 et 7 au feu vert du 2026-11-14)
+### 2.2 `PopupControllerTest` — la machine (22 — dont 3 nés à `b6fa94b`, 5 à `38d315c`, 5 au signal du 2026-11-13 et 7 au feu vert du soir du 2026-11-13)
 
 Les 5 historiques (exclusions, cascades, régimes) restent VERTS sans
 modification de leurs attentes ; les bancs nouveaux couvrent : les rendus
@@ -67,7 +67,7 @@ genre `TOOLBAR_OVERFLOW` (`toolbarOverflowExcludesTheMenus`,
 d'ouvertures/fermetures (`openRendusCarryTheExcludedGenres`,
 `closeRendusCarryTheCascadedGenres`) et le régime du tap hors cartes
 (`tapOutsideClosesActionCardsAndBubblesOnly`). Le signal du 2026-11-13 ajoute les régimes de la carte des usages (`referencesExcludeTheMenusAndReciprocally` — deux surfaces d'actions ne tiennent jamais, exclusions réciproques avec les menus ;
-`referencesYieldToKeystrokeScrollAndOutsideTap` — frappe, défilement, tap hors cartes). Le feu vert du 2026-11-14 ajoute les régimes des cinq genres nouveaux : `gabaritsExcludeTheActionSurfacesAndReciprocally` (la carte de génération joint la famille — la complétion la chasse, le défilement la repositionne), `safeDeleteVitLesRegimesDeLaCarteDesUsages` (les usages qui barrent vivent les régimes de la carte des usages), `safeMoveVitLesRegimesDuMenuDuCaret` (les cibles du déménagement vivent les régimes du menu), `suppressInspectionVitLesRegimesDuMenuDuCaret` (le masquage vit les régimes du menu), `exceptionDetailsSeConsultentSansCederALaFrappe` (les détails d'exception vivent la consultation) — la table exhaustive `FAMILLE_ACTIONS` couvre la famille entière.
+`referencesYieldToKeystrokeScrollAndOutsideTap` — frappe, défilement, tap hors cartes). Le feu vert du 2026-11-13 ajoute les régimes des cinq genres nouveaux : `gabaritsExcludeTheActionSurfacesAndReciprocally` (la carte de génération joint la famille — la complétion la chasse, le défilement la repositionne), `safeDeleteVitLesRegimesDeLaCarteDesUsages` (les usages qui barrent vivent les régimes de la carte des usages), `safeMoveVitLesRegimesDuMenuDuCaret` (les cibles du déménagement vivent les régimes du menu), `suppressInspectionVitLesRegimesDuMenuDuCaret` (le masquage vit les régimes du menu), `exceptionDetailsSeConsultentSansCederALaFrappe` (les détails d'exception vivent la consultation) — la table exhaustive `FAMILLE_ACTIONS` couvre la famille entière.
 
 ### 2.3 Les autres bancs nés du chantier
 
@@ -97,17 +97,17 @@ d'ouvertures/fermetures (`openRendusCarryTheExcludedGenres`,
 | `PopupControllerTest` (+5) | les régimes des cinq genres nouveaux : `typeInfoVitLesRegimesDuSurvol`, `hierarchyExcludesTheActionSurfacesAndReciprocally`, `notificationVitLeRegimeUniqueDeLannonce`, `documentationExterneSeConsulteSansCederALaFrappe` — et les tables exhaustives des régimes gagnent les genres |
 
 
-### 2.3ter Les bancs du feu vert du 2026-11-14 — la passe des cinq surfaces
+### 2.3ter Les bancs du feu vert du 2026-11-13 — la passe des cinq surfaces
 
 | Banc | Ce qu'il prouve |
 | --- | --- |
-| `EntourerTest` (demo, 3) | l'entourage : le bloc ceint s'indente d'un cran par ligne portante (les vides restent vides), la sélection se reporte sur le bloc ceint — un geste défait l'entourage ; la sélection vide ou multiple ne s'entoure pas |
-| `AtelierGabaritsTest` (demo, 2) | le plan de génération : le généré se pose avant la fermante de la classe, à son cran de membre, le caret à sa suite — la classe inconnue ne génère rien |
-| `AtelierSureteTest` (demo, 2) | la transpose de sûreté : les types candidats excluent la classe englobante, les usages qui barrent deviennent des occurrences cliquables (le libellé lu du document, le saut à l'offset exact) |
-| `SuppressionInspectionTest` (demo, 3) | le masquage : la marque se pose en fin de ligne (les suivantes ne bougent pas) et se défait d'un geste, la ligne déjà masquée se refuse, LA BOUCLE COMPLÈTE — masquer puis relancer : la règle masquée ne se rapporte plus, l'autre demeure |
+| `EntourerTest` (demo, 3) | l'entourage : le bloc ceint s'indente d'un cran par ligne portante (les vides restent vides), la sélection se reporte sur le bloc ceint — un geste défait l'entourage ; la sélection vide ou multiple ne s'entoure pas |
+| `AtelierGabaritsTest` (demo, 2) | le plan de génération : le généré se pose avant la fermante de la classe, à son cran de membre, le caret à sa suite — la classe inconnue ne génère rien |
+| `AtelierSureteTest` (demo, 2) | la transpose de sûreté : les types candidats excluent la classe englobante, les usages qui barrent deviennent des occurrences cliquables (le libellé lu du document, le saut à l'offset exact) |
+| `SuppressionInspectionTest` (demo, 3) | le masquage : la marque se pose en fin de ligne (les suivantes ne bougent pas) et se défait d'un geste, la ligne déjà masquée se refuse, LA BOUCLE COMPLÈTE — masquer puis relancer : la règle masquée ne se rapporte plus, l'autre demeure |
 | `FauxLintTest` (+1) | la marque « noinspection » masque SA règle en la ligne — jamais les autres |
-| `TraceExecutionTest` (demo, 3) | la trace : le sommet vit à la LIGNE DU CARET dans sa méthode (jamais deviné), les cadres suivent à leurs lignes de déclaration — relus par l'analyseur de piles ; la transpose saute au fichier ouvert seul, le fichier sans méthode ne peut échouer |
-| `ExceptionViewTest` (2) | la carte des détails : le type et le message ne se prennent jamais, le cadre CONNU se prend au doigt et saute, le cadre étranger vit muet |
+| `TraceExecutionTest` (demo, 3) | la trace : le sommet vit à la LIGNE DU CARET dans sa méthode (jamais deviné), les cadres suivent à leurs lignes de déclaration — relus par l'analyseur de piles ; la transpose saute au fichier ouvert seul, le fichier sans méthode ne peut échouer |
+| `ExceptionViewTest` (2) | la carte des détails : le type et le message ne se prennent jamais, le cadre CONNU se prend au doigt et saute, le cadre étranger vit muet |
 
 ### 2.4 La non-régression
 
@@ -158,15 +158,15 @@ banc après banc, jamais masqué :
 | `CorrectifImportTest` (les deux) | le banc attendait l'import APRÈS la ligne vide et l'absence de candidat quand l'import existe — le moteur documente : l'import se pose derrière le paquet, les AUTRES candidats restent proposés (le choix à l'utilisateur) | **banc corrigé** : la sémantique documentée du moteur fait foi (`git show` de l'historique la confirme) |
 
 
-La passe des cinq surfaces (2026-11-14) a tranché de la même lame :
+La passe des cinq surfaces (2026-11-13) a tranché de la même lame :
 
 | Échec | Diagnostic | Verdict |
 | --- | --- | --- |
-| `EntourerTest` (le premier jet) | la sélection se reportait sur le bloc NON indenté — le plan comptait la longueur d'avant l'entourage | **implémentation corrigée** : la sélection couvre le bloc ceint, cran compris |
-| `AtelierGabaritsTest.lePlanGenereSinsereAvantLaFermante` | le généré se posait sans son cran de membre — le fermant restait collé à la marge | **implémentation corrigée** : chaque ligne portante du généré gagne ses quatre espaces (`membre`) |
-| `AtelierSureteTest.lesCiblesExcluentLaClasseEnglobante` | le banc plaçait le caret « hors classe » à la toute fin du texte — il vivait encore dans la dernière classe (entre `}` et la fin) | **banc corrigé** : le caret vit sur la ligne blanche entre les deux classes |
-| `TraceExecutionTest.laTransposeSauteAuFichierOuvertSeul` | l'ordre des arguments de `assertNull` (message d'abord) — la signature JUnit 5 prend le message en DERNIER | **banc corrigé** : l'ordre des arguments |
-| `ExceptionViewTest.lappuiChoisitLeCadrePrenantPasLEntete` | le banc visait le rang 2 pour le cadre muet — le rang 2 est le PRENANT (type, message, prenant, muet) | **banc corrigé** : le doigt vise le rang du cadre visé |
+| `EntourerTest` (le premier jet) | la sélection se reportait sur le bloc NON indenté — le plan comptait la longueur d'avant l'entourage | **implémentation corrigée** : la sélection couvre le bloc ceint, cran compris |
+| `AtelierGabaritsTest.lePlanGenereSinsereAvantLaFermante` | le généré se posait sans son cran de membre — le fermant restait collé à la marge | **implémentation corrigée** : chaque ligne portante du généré gagne ses quatre espaces (`membre`) |
+| `AtelierSureteTest.lesCiblesExcluentLaClasseEnglobante` | le banc plaçait le caret « hors classe » à la toute fin du texte — il vivait encore dans la dernière classe (entre `}` et la fin) | **banc corrigé** : le caret vit sur la ligne blanche entre les deux classes |
+| `TraceExecutionTest.laTransposeSauteAuFichierOuvertSeul` | l'ordre des arguments de `assertNull` (message d'abord) — la signature JUnit 5 prend le message en DERNIER | **banc corrigé** : l'ordre des arguments |
+| `ExceptionViewTest.lappuiChoisitLeCadrePrenantPasLEntete` | le banc visait le rang 2 pour le cadre muet — le rang 2 est le PRENANT (type, message, prenant, muet) | **banc corrigé** : le doigt vise le rang du cadre visé |
 
 Le tranchage s'est fait par la sémantique HISTORIQUE du dépôt (lecture
 des versions antérieures du kit par `git show HEAD:<fichier>`) : quand

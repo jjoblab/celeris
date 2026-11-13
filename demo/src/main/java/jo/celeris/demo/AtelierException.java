@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import jo.celeris.android.host.spi.CheminDoc;
-import jo.celeris.android.host.spi.FauxExecution;
-import jo.celeris.android.host.spi.Lancement;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.widgets.ExceptionView;
@@ -52,8 +49,6 @@ final class AtelierException {
     private final Supplier<String> nomFichier;
     /** Le canal des annonces — la bulle éphémère du coin bas-droit. */
     private final BiConsumer<String, String> annonces;
-    /** La fausse exécution de référence (E-04) — les lancements y vivent. */
-    private final FauxExecution execution = new FauxExecution();
 
     /**
      * Construit l'atelier d'exception sur le coordinateur des popups :
@@ -90,26 +85,23 @@ final class AtelierException {
     }
 
     /**
-     * Exécute le fichier ouvert — le lancement naît, sa fin se
-     * simule : l'échec porte la trace du document réel (le type et
-     * les méthodes du plan, la ligne du caret au sommet), la carte
-     * des détails se pose ; le fichier sans méthode ne peut échouer —
-     * l'exécution s'annonce terminée.
+     * Exécute le fichier ouvert — l'exécution simulée du terrain
+     * (comme le faux build de lint simule l'analyse) : l'échec porte
+     * la trace du document réel (le type et les méthodes du plan, la
+     * ligne du caret au sommet), la carte des détails se pose ; le
+     * fichier sans méthode ne peut échouer — l'exécution s'annonce
+     * terminée.
      */
     void executer() {
-        Lancement lancement = execution.lancer(
-                CheminDoc.de("/" + nomFichier.get()), false);
         TraceExecution.Echec echec = TraceExecution.echec(
                 "java.lang.Exception",
                 popups.couche().getContext().getString(
                         R.string.execution_echec_message),
                 nomFichier.get(), session.document(), plan.get(), caret());
         if (echec == null) {
-            execution.simulerFin(lancement, false);
             annoncer(R.string.execution_terminee);
             return;
         }
-        execution.simulerFin(lancement, true);
         annoncer(R.string.execution_echouee);
         poser(echec);
     }

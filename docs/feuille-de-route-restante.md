@@ -24,7 +24,7 @@
 | 4 | Second étage appareil de vérification (C11) | Livré et passé vert le 2026-11-12 | la CI exécute au nocturne — la recette manuelle du propriétaire reste |
 | 5 | Archivage du dépôt de départ (C14) | Bloqué | décision du propriétaire ; poussée hors de ce bac à sable |
 | 6 | Entretien continu (dependabot, montées de version) | Permanent | rien — veille hebdomadaire |
-| 7 | Mission popups : audit, restructuration, unification | Clos le 2026-11-14 — les neuf phases, les six livrables, l'inventaire sans manquant | — |
+| 7 | Mission popups : audit, restructuration, unification | Clos le 2026-11-13 — les neuf phases, les six livrables, l'inventaire sans manquant | — |
 
 ## 1 — Publication distante des onze artefacts (C1)
 
@@ -163,7 +163,7 @@ aucune dépendance nouvelle ; la passe de référence reste verte
 restes, décisions du propriétaire — dont le plafond relevable à
 1 200 lignes, par nomination, le jour où un fichier du chantier bute).
 
-**Blocage** : aucun — le second signal du 2026-11-14 (« tu as le feu
+**Blocage** : aucun — le second signal du 2026-11-13 (« tu as le feu
 vert pour terminer tout ce qui reste ») est ÉPUISÉ : la passe des
 CINQ surfaces l'a livré (la génération et l'entourage, la suppression
 sûre et le déplacement, le masquage d'inspection, les détails
