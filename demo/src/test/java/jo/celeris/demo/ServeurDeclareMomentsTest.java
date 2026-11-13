@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
+import jo.celeris.android.host.popups.LanguageSession;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.lsp.types.DiagnosticLsp;
 import jo.celeris.core.text.TextSession;

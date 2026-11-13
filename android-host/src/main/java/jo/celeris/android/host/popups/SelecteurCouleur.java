@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
@@ -17,19 +17,15 @@ import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
 /**
- * L'atelier des couleurs de la démonstration (le signal du
- * propriétaire du 2026-11-13 : « ajouter aussi le double clic dessus
- * pour afficher le popups couleur picker ») : le double-tap sur un
- * littéral de couleur ouvre le sélecteur du kit — la carte du dépôt de
- * départ, champ de saturation, bande de teinte, palette Material — et
- * le pick APPLIQUE implicite : l'alpha d'origine survit, le littéral
- * reformaté remplace l'ancien EN PLACE, à SA largeur — le code
- * environnant ne bouge pas. Le chantier d'unification lui donne le
- * coordinateur : la carte vit liée à son genre, le tap HORS CARTES
- * la referme (l'annulation enfin tenue, comme la documentation le
- * promettait).
+ * Le sélecteur de couleur de l'éditeur : le double-tap sur un littéral
+ * de couleur ouvre la carte du kit — champ de saturation, bande de
+ * teinte, palette Material — et le pick APPLIQUE implicite : l'alpha
+ * d'origine survit, le littéral reformaté remplace l'ancien EN PLACE,
+ * à SA largeur — le code environnant ne bouge pas. Le coordinateur
+ * tient la carte liée à son genre, le tap HORS CARTES la referme
+ * (l'annulation enfin tenue, comme la documentation le promettait).
  */
-final class AtelierCouleur {
+public final class SelecteurCouleur {
 
     private final EditorView editeur;
     private final TextSession session;
@@ -46,15 +42,15 @@ final class AtelierCouleur {
     private int chiffres;
 
     /**
-     * Construit l'atelier des couleurs sur le coordinateur des popups.
+     * Construit le sélecteur sur le coordinateur des popups.
      *
-     * @param editeur   la vue d'éditeur ouverte
-     * @param session   la session d'édition courante
-     * @param popups    le coordinateur des popups de la scène
-     * @param margePx   la respiration des ancres aux bords, en pixels
-     * @param palette   la palette courante des popups
+     * @param editeur la vue d'éditeur ouverte
+     * @param session la session d'édition courante
+     * @param popups  le coordinateur des popups de la scène
+     * @param margePx la respiration des ancres aux bords, en pixels
+     * @param palette la palette courante des popups
      */
-    AtelierCouleur(EditorView editeur, TextSession session,
+    SelecteurCouleur(EditorView editeur, TextSession session,
             PopupManager popups, int margePx, PopupPalette palette) {
         this.editeur = editeur;
         this.session = session;

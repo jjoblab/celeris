@@ -19,6 +19,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.List;
 
+import jo.celeris.android.host.popups.LanguageSession;
+import jo.celeris.android.host.popups.PalettesPopups;
+import jo.celeris.android.host.popups.PopupsEditeur;
 import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.EtatLignesVcs;
@@ -29,6 +32,7 @@ import jo.celeris.android.view.MarquesIntegration;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
+import jo.celeris.android.widgets.BarreToolbar;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.core.language.model.LanguageSupport;
@@ -45,7 +49,7 @@ import jo.celeris.core.text.TextSession;
  * thèmes, zoom et annulation — porté par un vrai layout (barre
  * d'application au menu d'actions, barre d'état en police à chasse
  * fixe). Les surfaces fonctionnelles vivent en popups (ADR-018) : les
- * dix popups ancrées sur la couche, le plan, la recherche, les revues
+ * popups de l'éditeur ancrées sur la couche, le plan, la recherche, les revues
  * et les réglages en feuilles. Les réglages persistés se réappliquent
  * à la fermeture de leur feuille.
  */
@@ -86,14 +90,14 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierDiff atelierDiff;
     private AtelierAgent atelierAgent;
     private AtelierIA atelierIA;
-    private AtelierPopups atelierPopups;
+    private PopupsEditeur popups;
     private AtelierRefactor atelierRefactor;
     private AtelierRecherche atelierRecherche;
     private AtelierSelection atelierSelection;
-    /** L'atelier de la barre d'application (le design du dépôt de
+    /** La barre d'application du kit (le design du dépôt de
      *  départ) : la carte du kit remplace le menu système de
      *  débordement, la barre de touches vit au-dessus du clavier. */
-    private AtelierBarreToolbar atelierBarreToolbar;
+    private BarreToolbar barreToolbar;
     /** La session de langage — serveur de référence en processus (M7.5,
      *  §8) ou serveur déclaré disponible par l'hôte (M7.6, H-13). */
     private LanguageSession serveurLangage;
@@ -133,8 +137,8 @@ public final class EditorActivity extends AppCompatActivity {
             majPastillesEtReperes();
             // les touches de code se ré-évaluent à la frappe : l'état
             // activé suit le document
-            if (atelierBarreToolbar != null) {
-                atelierBarreToolbar.barreTouches().refreshEnabled();
+            if (barreToolbar != null) {
+                barreToolbar.barreTouches().refreshEnabled();
             }
             // La frappe suivante refuse le fantôme (F-09) : l'atelier IA
             // suit s'il est déjà en place.
@@ -151,11 +155,11 @@ public final class EditorActivity extends AppCompatActivity {
         // Le catalogue des actions suit la scène : les ateliers s'y
         // trouvent montés — le menu, la carte et les intentions y lisent.
         catalogue = new CatalogueActions(this, nomFichier, atelierLint,
-                atelierDiff, atelierCorrectif, atelierAgent, atelierIA, atelierPopups,
+                atelierDiff, atelierCorrectif, atelierAgent, atelierIA, popups,
                 atelierRefactor, atelierRecherche, basculeTheme,
-                feuilleReglages, () -> entreesPlan, this::lignesCourantes, atelierBarreToolbar);
+                feuilleReglages, () -> entreesPlan, this::lignesCourantes, barreToolbar);
         catalogue.brancher();
-        atelierPopups.configurerIntentions(catalogue.intentions());
+        popups.configurerIntentions(catalogue.intentions());
         appliquerPreferences();
         appliquerBordABord();
         brancherRetour();
@@ -185,8 +189,8 @@ public final class EditorActivity extends AppCompatActivity {
             serveurLangage.close();
         }
         // Les popups se détachent — l'observateur du layout suit.
-        atelierPopups.detacher();
-        atelierBarreToolbar.detacher();
+        popups.detacher();
+        barreToolbar.detacher();
     }
 
     private FichierExemple resoudreFichier() {
@@ -221,7 +225,7 @@ public final class EditorActivity extends AppCompatActivity {
             entreesPlan = entrees;
             editeur.post(() -> {
                 feuillePlan.setEntrees(entrees);
-                atelierPopups.setPlan(entrees);
+                popups.setPlan(entrees);
             });
         });
         // La gouttière s'adapte à la classe de largeur de la fenêtre
@@ -244,8 +248,8 @@ public final class EditorActivity extends AppCompatActivity {
             vue.post(this::majPosition);
             // les touches de code se ré-évaluent au geste du doigt —
             // l'état activé suit le caret
-            if (atelierBarreToolbar != null) {
-                vue.post(() -> atelierBarreToolbar.barreTouches()
+            if (barreToolbar != null) {
+                vue.post(() -> barreToolbar.barreTouches()
                         .refreshEnabled());
             }
             return false;
@@ -262,7 +266,7 @@ public final class EditorActivity extends AppCompatActivity {
         });
         editeur.marquesGouttiere().setSurClicLigne(this::poserCurseurALigne);
         editeur.marquesGouttiere().setSurRenduPreview(ligne ->
-                atelierPopups.docAncre().renduPreview(ligne, reperes));
+                popups.docAncre().renduPreview(ligne, reperes));
     }
 
     /** Pose le curseur au début de la ligne visée (clic de numéros). */
@@ -292,37 +296,37 @@ public final class EditorActivity extends AppCompatActivity {
     private void poserEtatsDelegues() {
         etatDebogage = new EtatDebogage(this, editeur, session,
                 etiquetteArrets, chemin);
-        etatDiagnostics = new EtatDiagnostics(this, editeur, atelierPopups,
+        etatDiagnostics = new EtatDiagnostics(this, editeur, popups,
                 etiquetteArrets, chemin);
         serveurLangage.poserAuditeurDiagnostics(etatDiagnostics::surServeur);
     }
 
-    /** Les ateliers d'interaction (M7.5, §7, reprise) : l'IA, les DIX
-     *  popups sur la couche — jamais de focus volé (PIEGE-27) —, la
-     *  recherche dépliable et la sélection au presse-papiers local. */
+    /** Les ateliers d'interaction : l'IA, les popups de l'éditeur sur
+     *  la couche (PIEGE-27 : jamais de focus volé), la recherche
+     *  dépliable et la sélection au presse-papiers local. */
     private void brancherAteliers() {
-        // La refactorisation et le serveur déclaré (M7.5, §8 — M7.6,
-        // H-13 : servers.json décide, le montage exécute).
+        // La refactorisation et le serveur déclaré (servers.json décide).
         atelierRefactor = new AtelierRefactor(this, editeur, session,
                 nomFichier, this::paletteFeuilles, this::verdictRefactor);
         serveurLangage = DeclaredServers.open(langueOuverte());
-        // la couche posée sur l'éditeur porte les dix popups.
+        // la couche posée sur l'éditeur porte les popups de l'éditeur.
         PopupLayer couche = findViewById(R.id.couche_popups);
-        atelierPopups = new AtelierPopups(editeur, session, couche,
+        popups = new PopupsEditeur(editeur, session, couche,
                 basculeTheme.themeCourant(),
-                prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
-        // le verre des popups se dérive du fond de l'éditeur (le dépôt
-        // de départ) — la barre de touches y suit la même source.
+                prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT), new CoachDemo());
+        // le verre des popups se dérive du fond de l'éditeur — la barre
+        // de touches suit la même source.
         basculeTheme.setSurChangement(theme -> {
-            atelierPopups.surTheme(theme);
-            if (atelierBarreToolbar != null) {
-                atelierBarreToolbar.surPalette(paletteFeuilles());
+            popups.surTheme(theme);
+            if (barreToolbar != null) {
+                barreToolbar.surPalette(paletteFeuilles());
             }
         });
-        atelierPopups.setNomFichier(nomFichier);
-        atelierPopups.brancherServeur(serveurLangage, "file:///" + nomFichier);
+        popups.setNomFichier(nomFichier);
+        popups.brancherServeur(serveurLangage, "file:///" + nomFichier,
+                langueOuverte());
         atelierSelection = new AtelierSelection(editeur, session);
-        atelierPopups.configurerActionsSelection(
+        popups.configurerActionsSelection(
                 atelierSelection.principales(getString(R.string.barre_couper),
                         getString(R.string.barre_copier),
                         getString(R.string.barre_coller),
@@ -330,8 +334,8 @@ public final class EditorActivity extends AppCompatActivity {
                 atelierSelection.debordement(
                         getString(R.string.barre_dupliquer)));
         atelierRecherche = new AtelierRecherche(this, editeur, session,
-                this::paletteFeuilles, atelierPopups::ouvrirRecherche,
-                atelierPopups::fermerRecherche);
+                this::paletteFeuilles, popups::ouvrirRecherche,
+                popups::fermerRecherche);
         atelierRecherche.brancher();
         brancherSurvolDoubleTap();
         brancherToolbar();
@@ -341,20 +345,20 @@ public final class EditorActivity extends AppCompatActivity {
      *  redressement du 2026-11-13) : le color picker d'abord. */
     private void brancherSurvolDoubleTap() {
         editeur.setSurDoubleTap(offset ->
-                atelierPopups.ouvrirColorPicker(offset)
-                        || atelierPopups.ouvrirSurvolAuDoubleTap(offset));
+                popups.ouvrirColorPicker(offset)
+                        || popups.ouvrirSurvolAuDoubleTap(offset));
         // la délégation clavier (chantier d'unification) : les touches
         // matérielles remontent aux popups AVANT la table de raccourcis
-        editeur.setSurTouchePopup(atelierPopups::surTouche);
+        editeur.setSurTouchePopup(popups::surTouche);
     }
 
     /** Le dépôt de départ : le débordement de la toolbar vit dans la
      *  CARTE du kit, la barre de touches au-dessus du clavier. */
     private void brancherToolbar() {
-        atelierBarreToolbar = new AtelierBarreToolbar(
-                atelierPopups.manager(), paletteFeuilles(),
+        barreToolbar = new BarreToolbar(
+                popups.manager(), paletteFeuilles(),
                 getString(R.string.menu_plus));
-        atelierBarreToolbar.poserBarreTouches(
+        barreToolbar.poserBarreTouches(
                 new AtelierTouchesCode(this, editeur, session,
                         this::langueOuverte).touches());
     }
@@ -396,8 +400,8 @@ public final class EditorActivity extends AppCompatActivity {
         editeur.setFont(new FontSpec(fira != null && ligatures
                 ? "fira" : "mono",
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)));
-        if (atelierPopups != null) {
-            atelierPopups.surTailleTexte(
+        if (popups != null) {
+            popups.surTailleTexte(
                     prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
         }
         // M7.5, §9 — la retenue d'analyse et la surimpression de
@@ -416,8 +420,8 @@ public final class EditorActivity extends AppCompatActivity {
         float bornee = Math.min(Math.max(courante + pas, TAILLE_MIN), TAILLE_MAX);
         prefs.edit().putFloat(CLE_TAILLE, bornee).apply();
         editeur.setFont(new FontSpec("mono", bornee));
-        if (atelierPopups != null) {
-            atelierPopups.surTailleTexte(bornee);
+        if (popups != null) {
+            popups.surTailleTexte(bornee);
         }
     }
 
@@ -443,7 +447,7 @@ public final class EditorActivity extends AppCompatActivity {
     /** La palette courante des feuilles — le verre suit le thème de
      *  l'éditeur et sa taille de texte. */
     private PopupPalette paletteFeuilles() {
-        return PalettesDemo.de(basculeTheme.themeCourant(),
+        return PalettesPopups.de(basculeTheme.themeCourant(),
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
     }
 

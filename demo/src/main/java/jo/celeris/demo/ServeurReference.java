@@ -5,6 +5,7 @@ import java.util.Map;
 
 import java.util.List;
 
+import jo.celeris.android.host.popups.ContenuPopups;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.core.lsp.DocModificateurs;
 import jo.celeris.core.lsp.types.CorrectifLsp;
@@ -115,7 +116,7 @@ public final class ServeurReference implements ServeurEmbarque.Documents {
         if (modificateur != null) {
             return modificateur;
         }
-        String symbole = PopupCoach.symboleA(document,
+        String symbole = ContenuPopups.symboleA(document,
                 PositionsLsp.offset(document, position));
         String documentation = symbole == null ? null
                 : PopupCoach.documentationBrute(symbole);

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Les libellés par défaut des popups de l'éditeur : l'hôte les
+     surcharge à sa langue — la carte de survol et l'aperçu de
+     définition restent muets sans eux. -->
+<resources>
+    <string name="menu_plus">MORE</string>
+    <string name="titre_apercu">Definition of %1$s</string>
+    <string name="titre_rendu_preview">@Preview render</string>
+    <string name="message_rendu_preview">Host renders the composable « %1$s » (line %2$d) — the render is delegated, the editor only carries the marker.</string>
+</resources>

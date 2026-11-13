@@ -1,34 +1,25 @@
-package jo.celeris.demo;
+package jo.celeris.android.widgets;
 
 import android.view.ViewTreeObserver;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import jo.celeris.android.widgets.IntentionsMenuView;
-import jo.celeris.android.widgets.PopupController;
-import jo.celeris.android.widgets.PopupManager;
-import jo.celeris.android.widgets.PopupPalette;
-import jo.celeris.android.widgets.PopupPlacer;
-import jo.celeris.android.widgets.TouchBarView;
-
 /**
- * L'atelier de la barre d'application (le redressement du
- * propriétaire, le design du dépôt de départ) : le menu de
- * DÉBORDEMENT de la toolbar ne vit plus au menu système — la CARTE du
- * kit s'y ouvre, pendue sous la puce au bord droit. La BARRE DE
- * TOUCHES de code vit au bas de la scène, AU-DESSUS DU CLAVIER (le
- * dépôt de départ, 4.5.0) : Tab, commentaire, déplacements de lignes,
- * duplication — l'hôte y pose ses touches.
+ * La barre d'application de la scène d'édition (le design du dépôt de
+ * départ) : le menu de DÉBORDEMENT de la toolbar ne vit pas au menu
+ * système — la CARTE du kit s'y ouvre, pendue sous la puce au bord
+ * droit. La BARRE DE TOUCHES de code vit au bas de la scène,
+ * AU-DESSUS DU CLAVIER (le dépôt de départ, 4.5.0) : Tab,
+ * commentaire, déplacements de lignes, duplication — l'hôte y pose
+ * ses touches.
  *
- * <p>Le chantier d'unification : la carte vit son PROPRE genre
- * ({@code TOOLBAR_OVERFLOW}) — elle détournait le menu d'intentions,
- * deux surfaces dans un créneau — le manager tient l'état et la vue
- * d'un seul tenant ; l'observateur du layout global se garde RETIRABLE
- * ({@link #detacher()}), jamais une référence de méthode ne s'y
- * perd.</p>
+ * <p>La carte vit son PROPRE genre ({@code TOOLBAR_OVERFLOW}) — deux
+ * menus ne tiennent jamais ; l'observateur du layout global se garde
+ * RETIRABLE ({@link #detacher()}), jamais une référence de méthode ne
+ * s'y perd.</p>
  */
-final class AtelierBarreToolbar {
+public final class BarreToolbar {
 
     /** La respiration des ancres aux bords de la couche, en dp. */
     private static final float MARGE_DP = 8f;
@@ -43,14 +34,15 @@ final class AtelierBarreToolbar {
     private final ViewTreeObserver.OnGlobalLayoutListener observateur;
 
     /**
-     * Construit l'atelier sur le coordinateur des popups : la carte naît
-     * liée au genre débordement de toolbar, la barre de touches au sien.
+     * Construit la barre d'application sur le coordinateur des popups :
+     * la carte naît liée au genre débordement de toolbar, la barre de
+     * touches au sien.
      *
      * @param popups  le coordinateur des popups de la scène
      * @param palette la palette dérivée du thème courant
      * @param section le titre de section du débordement
      */
-    AtelierBarreToolbar(PopupManager popups, PopupPalette palette,
+    public BarreToolbar(PopupManager popups, PopupPalette palette,
             String section) {
         this.popups = popups;
         this.carte = new IntentionsMenuView(popups.couche().getContext(),
@@ -77,7 +69,7 @@ final class AtelierBarreToolbar {
      *
      * @param actions les actions repliées derrière la puce
      */
-    void ouvrirDebordement(List<IntentionsMenuView.Item> actions) {
+    public void ouvrirDebordement(List<IntentionsMenuView.Item> actions) {
         if (actions.isEmpty()) {
             return;
         }
@@ -95,7 +87,7 @@ final class AtelierBarreToolbar {
     }
 
     /** Ferme la carte — la couche suit. */
-    void fermerDebordement() {
+    public void fermerDebordement() {
         popups.fermer(PopupController.PopupKind.TOOLBAR_OVERFLOW);
     }
 
@@ -106,28 +98,28 @@ final class AtelierBarreToolbar {
      *
      * @param touches les touches de code, dans l'ordre d'affichage
      */
-    void poserBarreTouches(List<TouchBarView.Touche> touches) {
+    public void poserBarreTouches(List<TouchBarView.Touche> touches) {
         barreTouches.setActions(touches);
         popups.controleur().open(PopupController.PopupKind.TOUCH_BAR);
         reposerBarre();
     }
 
     /** La barre de touches — l'hôte y rafraîchit les états activés. */
-    TouchBarView barreTouches() {
+    public TouchBarView barreTouches() {
         return barreTouches;
     }
 
     /** La palette tourne : la barre de touches la suit. */
-    void surPalette(PopupPalette palette) {
+    public void surPalette(PopupPalette palette) {
         barreTouches.setPalette(palette);
         carte.setPalette(palette);
     }
 
     /**
      * Le détachement de fin de vie : l'observateur du layout se retire
-     * — jamais la fuite ne se paie (chantier d'unification).
+     * — jamais la fuite ne se paie.
      */
-    void detacher() {
+    public void detacher() {
         popups.couche().getViewTreeObserver()
                 .removeOnGlobalLayoutListener(observateur);
     }

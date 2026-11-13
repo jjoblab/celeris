@@ -1,9 +1,6 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import java.util.concurrent.CompletableFuture;
-
-import jo.celeris.android.widgets.CompletionDocModel;
-import jo.celeris.android.widgets.SignatureAideModel;
 import java.util.List;
 
 import jo.celeris.core.lsp.types.CorrectifLsp;
@@ -21,32 +18,23 @@ import jo.celeris.core.lsp.types.PreparationRennomageLsp;
 import jo.celeris.core.lsp.types.SurlignageLsp;
 import jo.celeris.core.lsp.types.SymboleLsp;
 
-
-
-
-
-
-
-
-
-
-
-
-
+import jo.celeris.android.widgets.CompletionDocModel;
+import jo.celeris.android.widgets.SignatureAideModel;
 
 import jo.celeris.core.text.Document;
 
 import org.jspecify.annotations.Nullable;
 
 /**
- * La session de langage de la démonstration (M8.6) : la surface commune
- * des serveurs que l'atelier des popups consomme — le serveur de
- * référence en mémoire (M7.5, §8) comme tout serveur déclaré par
- * l'hôte, lancé en processus sur des tubes mémoire. L'hôte n'en connaît que
- * cette porte : ouvrir, synchroniser, et les trois canaux du protocole
- * — signature, survol, complétion — plus les diagnostics publiés.
+ * La session de langage de l'éditeur : la surface commune des serveurs
+ * que {@link PopupsEditeur} consomme — tout serveur déclaré par
+ * l'hôte, lancé en processus ou en mémoire, entre par cette porte.
+ * L'hôte n'en connaît que cette surface : ouvrir, synchroniser, et les
+ * trois canaux des popups — signature, survol, complétion — plus les
+ * diagnostics publiés. Les modèles du kit y arrivent DÉJÀ convertis :
+ * l'orchestration n'attrape jamais le protocole.
  */
-interface LanguageSession extends AutoCloseable {
+public interface LanguageSession extends AutoCloseable {
 
     /**
      * Ouvre le document suivi — version 1, synchronisation complète.
@@ -68,7 +56,7 @@ interface LanguageSession extends AutoCloseable {
 
     /**
      * L'aide aux paramètres au curseur — le futur du modèle de la
-     * vue, déjà converti (B-07) ; null dans le futur sans signature.
+     * vue, déjà converti ; null dans le futur sans signature.
      *
      * @param uri   l'uri du document
      * @param doc   l'instantané courant
@@ -80,7 +68,7 @@ interface LanguageSession extends AutoCloseable {
 
     /**
      * Le survol du symbole au curseur — le futur du modèle de
-     * documentation, déjà converti (B-09) ; null sans documentation.
+     * documentation, déjà converti ; null sans documentation.
      *
      * @param uri      l'uri du document
      * @param doc      l'instantané courant
@@ -120,12 +108,12 @@ interface LanguageSession extends AutoCloseable {
     void poserAuditeurDiagnostics(
             java.util.function.BiConsumer<String, java.util.List<DiagnosticLsp>> auditeur);
 
-    // ── La couverture du jalon (H-12) : chaque méthode du protocole
+    // ── La couverture du protocole : chaque méthode du protocole
     //    raccordée à cette porte — le serveur qui n'en sert pas rend
     //    ses vides du domaine, l'hôte n'attrape jamais de protocole. ──
 
     /**
-     * Les symboles du document (H-12) — le plan, le fil d'Ariane.
+     * Les symboles du document — le plan, le fil d'Ariane.
      *
      * @param uri l'uri du document
      * @return le futur des symboles
@@ -133,8 +121,8 @@ interface LanguageSession extends AutoCloseable {
     CompletableFuture<List<SymboleLsp>> symboles(String uri);
 
     /**
-     * Les plis du serveur (H-12), fin EXCLUSIVE — le consommateur
-     * fusionne avec l'arbre commun.
+     * Les plis du serveur, fin EXCLUSIVE — le consommateur fusionne
+     * avec l'arbre commun.
      *
      * @param uri l'uri du document
      * @return le futur des plis
@@ -142,7 +130,7 @@ interface LanguageSession extends AutoCloseable {
     CompletableFuture<List<PliLsp>> plis(String uri);
 
     /**
-     * Le formatage du document (H-12) — la capacité Formatter branchée.
+     * Le formatage du document — la capacité Formatter branchée.
      *
      * @param uri     l'uri du document
      * @param options les options de formatage
@@ -152,7 +140,7 @@ interface LanguageSession extends AutoCloseable {
             OptionsFormatageLsp options);
 
     /**
-     * Le formatage d'une plage (H-12) — le remaniement local.
+     * Le formatage d'une plage — le remaniement local.
      *
      * @param uri     l'uri du document
      * @param plage   la plage à formater
@@ -163,7 +151,7 @@ interface LanguageSession extends AutoCloseable {
             PlageLsp plage, OptionsFormatageLsp options);
 
     /**
-     * Les surlignages d'occurrences sous le curseur (H-12).
+     * Les surlignages d'occurrences sous le curseur.
      *
      * @param uri   l'uri du document
      * @param doc   l'instantané courant
@@ -174,7 +162,7 @@ interface LanguageSession extends AutoCloseable {
             Document doc, int caret);
 
     /**
-     * Les plages de sélection englobantes (H-12) — l'extension de la
+     * Les plages de sélection englobantes — l'extension de la
      * sélection, de la plus intime à la plus large.
      *
      * @param uri   l'uri du document
@@ -186,7 +174,7 @@ interface LanguageSession extends AutoCloseable {
             Document doc, int caret);
 
     /**
-     * La préparation du renommage (H-12) — null sans préparation.
+     * La préparation du renommage — null sans préparation.
      *
      * @param uri   l'uri du document
      * @param doc   l'instantané courant
@@ -197,7 +185,7 @@ interface LanguageSession extends AutoCloseable {
             String uri, Document doc, int caret);
 
     /**
-     * Le renommage (H-12) — l'édition d'espace qui porte le nouveau nom.
+     * Le renommage — l'édition d'espace qui porte le nouveau nom.
      *
      * @param uri        l'uri du document
      * @param doc        l'instantané courant
@@ -209,7 +197,7 @@ interface LanguageSession extends AutoCloseable {
             int caret, String nouveauNom);
 
     /**
-     * Les correctifs rapides d'une plage (H-12) — le menu d'intentions.
+     * Les correctifs rapides d'une plage — le menu d'intentions.
      *
      * @param uri   l'uri du document
      * @param plage la plage porteuse
@@ -218,7 +206,7 @@ interface LanguageSession extends AutoCloseable {
     CompletableFuture<List<CorrectifLsp>> correctifs(String uri, PlageLsp plage);
 
     /**
-     * Les indices en ligne d'une plage (H-12).
+     * Les indices en ligne d'une plage.
      *
      * @param uri   l'uri du document
      * @param plage la plage visible
@@ -227,7 +215,7 @@ interface LanguageSession extends AutoCloseable {
     CompletableFuture<List<IndiceLsp>> indices(String uri, PlageLsp plage);
 
     /**
-     * Les jetons sémantiques du document (H-12).
+     * Les jetons sémantiques du document.
      *
      * @param uri l'uri du document
      * @return le futur des jetons
@@ -235,7 +223,7 @@ interface LanguageSession extends AutoCloseable {
     CompletableFuture<SemanticTokensLsp> jetons(String uri);
 
     /**
-     * Les jetons sémantiques d'une plage (H-12) — la mise à jour locale.
+     * Les jetons sémantiques d'une plage — la mise à jour locale.
      *
      * @param uri   l'uri du document
      * @param plage la plage visible
@@ -244,7 +232,7 @@ interface LanguageSession extends AutoCloseable {
     CompletableFuture<SemanticTokensLsp> jetonsPlage(String uri, PlageLsp plage);
 
     /**
-     * Les références du symbole (H-12).
+     * Les références du symbole.
      *
      * @param uri   l'uri du document
      * @param doc   l'instantané courant

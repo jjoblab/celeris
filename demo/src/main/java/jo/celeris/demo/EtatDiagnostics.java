@@ -8,6 +8,7 @@ import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import jo.celeris.android.host.popups.PopupsEditeur;
 import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.GraviteDiagnostic;
@@ -27,16 +28,16 @@ final class EtatDiagnostics {
 
     private final AppCompatActivity activite;
     private final EditorView editeur;
-    private final AtelierPopups atelierPopups;
+    private final PopupsEditeur popups;
     private final TextView etiquette;
     private final CheminDoc chemin;
 
     EtatDiagnostics(AppCompatActivity activite, EditorView editeur,
-            AtelierPopups atelierPopups, TextView etiquette,
+            PopupsEditeur popups, TextView etiquette,
             CheminDoc chemin) {
         this.activite = activite;
         this.editeur = editeur;
-        this.atelierPopups = atelierPopups;
+        this.popups = popups;
         this.etiquette = etiquette;
         this.chemin = chemin;
     }
@@ -50,7 +51,7 @@ final class EtatDiagnostics {
      */
     void surLint(List<DiagnosticHote> diagnostics, int[] lignesMarquees) {
         editeur.marquesGouttiere().setErreursImportees(lignesMarquees);
-        atelierPopups.setDiagnostics(diagnostics);
+        popups.setDiagnostics(diagnostics);
         publier(diagnostics);
     }
 
@@ -82,7 +83,7 @@ final class EtatDiagnostics {
                     diagnostic.message()));
         }
         editeur.marquesGouttiere().setErreursImportees(lignes);
-        atelierPopups.setDiagnostics(convertis);
+        popups.setDiagnostics(convertis);
         publier(convertis);
     }
 

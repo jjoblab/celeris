@@ -1,30 +1,24 @@
-package jo.celeris.demo;
+package jo.celeris.android.widgets;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import jo.celeris.android.widgets.IntentionsMenuView;
-import jo.celeris.android.widgets.PopupAnchor;
-import jo.celeris.android.widgets.PopupController;
-import jo.celeris.android.widgets.PopupManager;
-import jo.celeris.android.widgets.PopupPalette;
-import jo.celeris.android.widgets.PopupPlacer;
-import jo.celeris.android.widgets.SelectionBarView;
-
 /**
- * Le menu de débordement de la barre de sélection (M8.6 — le design du
- * kit du dépôt de départ, le motif de la plateforme) : le tap sur la
- * puce « ⋯ » ouvre la CARTE du kit en son état NavMenu — une SECTION en
+ * Le menu de débordement de la barre de sélection (le design du kit du
+ * dépôt de départ, le motif de la plateforme) : le tap sur la puce
+ * « ⋯ » ouvre la CARTE du kit en son état NavMenu — une SECTION en
  * petites capitales muettes (« MORE » au dépôt de départ) annonce les
  * actions repliées, rangées cliquables du même verre que le menu
  * d'intentions. Le menu ne survit jamais à sa barre (la machine à états
  * l'emporte avec elle) ; le choix d'une action la referme AVANT de
- * l'exécuter, l'en-tête de section ne se prend jamais. Le chantier
- * d'unification lui donne sa CARTE PROPRE sous son genre — le menu
- * d'intentions du caret vit sa vie, jamais deux créneaux pour une
- * même carte.
+ * l'exécuter, l'en-tête de section ne se prend jamais.
+ *
+ * <p>Le montage tient en deux temps : {@link #ouvrir} sous la puce de
+ * la barre (les actions repliées y courent), {@link #fermer} sur le
+ * choix ou la fermeture de la barre — la machine à états tient le
+ * reste, l'hôte n'y code rien.</p>
  */
-final class MenuDebordement {
+public final class MenuDebordement {
 
     private final PopupManager popups;
     private final IntentionsMenuView carte;
@@ -44,8 +38,8 @@ final class MenuDebordement {
      * @param section le titre de section du débordement (« MORE » au
      *                dépôt de départ) — l'état NavMenu de la carte
      */
-    MenuDebordement(PopupManager popups, PopupPalette palette, int margePx,
-            String section) {
+    public MenuDebordement(PopupManager popups, PopupPalette palette,
+            int margePx, String section) {
         this.popups = popups;
         this.carte = new IntentionsMenuView(popups.couche().getContext(),
                 palette);
@@ -55,7 +49,7 @@ final class MenuDebordement {
     }
 
     /** La palette tourne : la carte du débordement la suit. */
-    void surPalette(PopupPalette palette) {
+    public void surPalette(PopupPalette palette) {
         carte.setPalette(palette);
     }
 
@@ -66,7 +60,8 @@ final class MenuDebordement {
      * @param barre   la barre de sélection porteuse, déjà posée
      * @param actions les actions repliées derrière la puce
      */
-    void ouvrir(SelectionBarView barre, List<SelectionBarView.Item> actions) {
+    public void ouvrir(SelectionBarView barre,
+            List<SelectionBarView.Item> actions) {
         if (actions.isEmpty()) {
             return;
         }
@@ -96,7 +91,7 @@ final class MenuDebordement {
     }
 
     /** Ferme le menu — la couche suit, la barre reste. */
-    void fermer() {
+    public void fermer() {
         popups.fermer(PopupController.PopupKind.SELECTION_OVERFLOW);
     }
 

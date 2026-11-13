@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jo.celeris.android.host.popups.ContenuPopups;
+import jo.celeris.android.host.popups.LanguageSession;
 import jo.celeris.android.widgets.PatchPreview;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.PopupController;
@@ -328,7 +330,7 @@ final class BancSpecs {
     }
 
     /** D-10 — le clavier délégué des popups unifiées (le chantier
-     *  d'unification) : la frappe OUVRE (le prédicat du coach, les
+     *  d'unification) : la frappe OUVRE (le prédicat de l'éditeur, les
      *  mots du code par le fournisseur), la liste SURVIT à la frappe
      *  suivante (le régime du filtre — la frappe referme les bulles,
      *  jamais la liste), Enter ACCEPTE (le candidat surligné à sa
@@ -348,7 +350,7 @@ final class BancSpecs {
                     () -> LangagesDemo.langageDe("Banc.java", null,
                             session.document().text()));
             int caret = session.document().text().length();
-            if (!PopupCoach.doitOuvrirALaFrappe(session.document(), caret)
+            if (!ContenuPopups.doitOuvrirALaFrappe(session.document(), caret)
                     || !laFrappePropose(
                             fournisseur.completionCandidates(
                                     session.document(), coordinateur.analysis(),
@@ -384,7 +386,7 @@ final class BancSpecs {
      *  (choisirCompletion de l'atelier — la cascade vit au manager). */
     private static boolean enterAccepte(PopupController popups,
             TextSession session, String retenu, int caret) {
-        int debut = PopupCoach.debutMot(session.document(), caret);
+        int debut = ContenuPopups.debutMot(session.document(), caret);
         // le remplacement qui échoue se dénonce : le texte attendu ne
         // tiendrait pas — l'assertion finale le subsume
         session.replaceRange(debut, caret, retenu);

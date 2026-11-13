@@ -1,17 +1,12 @@
 package jo.celeris.demo;
 
-import jo.celeris.core.syntax.structure.OutlineEntry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import jo.celeris.core.syntax.NodeCategory;
-
-import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
 
 import org.junit.jupiter.api.Test;
@@ -82,39 +77,8 @@ class PopupCoachTest {
                 "le titre est le symbole, jamais fondu (PIEGE-16)");
     }
 
-    /** Le fil d'Ariane englobe le curseur, externe vers interne. */
-    @Test
-    void pathGoesOuterToInner() {
-        OutlineEntry externe = new OutlineEntry(NodeCategory.FUNCTION,
-                "mesurer", 0, 100, 0, 4);
-        OutlineEntry interne = new OutlineEntry(NodeCategory.FIELD,
-                "total", 50, 60, 2, 2);
-        List<String> chemin = PopupCoach.pathFor(
-                List.of(externe, interne), 55);
-        assertEquals(List.of("mesurer", "total"), chemin,
-                "la plus externe d'abord, la plus interne en dernier");
-        assertTrue(PopupCoach.pathFor(List.of(externe, interne), 150)
-                .isEmpty(), "hors de tout symbole, le fil se vide");
-    }
-
-    /**
-     * M7.5, redressement — la complétion se propose à la FRAPPE : dès
-     * le premier caractère d'identifiant avant le curseur ; le blanc,
-     * la ponctuation et le début du document ne proposent rien.
-     */
-    @Test
-    void completionOpensOnTypingAnIdentifier() {
-        TextSession session = TextSession.of("int nombreLu = 3;", System::nanoTime);
-        Document document = session.document();
-        assertFalse(PopupCoach.doitOuvrirALaFrappe(document, 0),
-                "au début du document, rien ne se propose");
-        assertFalse(PopupCoach.doitOuvrirALaFrappe(document, 4),
-                "après un blanc, rien ne se propose");
-        assertFalse(PopupCoach.doitOuvrirALaFrappe(document, 14),
-                "après un signe, rien ne se propose");
-        assertTrue(PopupCoach.doitOuvrirALaFrappe(document, 1),
-                "le premier caractère tapé propose");
-        assertTrue(PopupCoach.doitOuvrirALaFrappe(document, 10),
-                "au cœur d'un mot, la liste filtre");
-    }
+    /** Le fil d'Ariane et le régime de frappe ont déménagé chez
+     *  l'éditeur ({@code ContenuPopupsTest} d'android-host, le
+     *  déménagement du 2026-11-14) : les tables du terrain restent
+     *  ici — complétion, signature, documentation. */
 }

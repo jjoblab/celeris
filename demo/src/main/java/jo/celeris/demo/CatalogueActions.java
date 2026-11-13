@@ -9,6 +9,8 @@ import java.util.function.Supplier;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
+import jo.celeris.android.host.popups.PopupsEditeur;
+import jo.celeris.android.widgets.BarreToolbar;
 import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 
@@ -31,14 +33,14 @@ final class CatalogueActions {
     private final AtelierCorrectif correctif;
     private final AtelierAgent agent;
     private final AtelierIA ia;
-    private final AtelierPopups popups;
+    private final PopupsEditeur popups;
     private final AtelierRefactor refactor;
     private final AtelierRecherche recherche;
     private final BasculeTheme basculeTheme;
     private final FeuilleReglages feuilleReglages;
     private final Supplier<List<OutlineEntry>> plan;
     private final Supplier<List<String>> lignes;
-    private final AtelierBarreToolbar barreToolbar;
+    private final BarreToolbar barreToolbar;
     private final Map<Integer, Runnable> actionsMenu = new HashMap<>();
 
     /**
@@ -51,24 +53,24 @@ final class CatalogueActions {
      * @param correctif      l'atelier de l'aperçu d'un correctif (B-18)
      * @param agent          l'atelier de l'agent
      * @param ia             l'atelier IA (fantôme, prédiction)
-     * @param popups         l'atelier des popups (complétion, survol)
+     * @param popups         l'orchestrateur des popups (complétion, survol)
      * @param refactor       l'atelier de refactorisation
      * @param recherche      l'atelier de recherche
      * @param basculeTheme   la bascule de thème
      * @param feuilleReglages la feuille des réglages
      * @param plan           le plan courant du fichier, vif au document
      * @param lignes         les lignes courantes du document, vives
-     * @param barreToolbar   l'atelier de la barre (carte de débordement)
+     * @param barreToolbar   la barre du kit (carte de débordement)
      */
     CatalogueActions(EditorActivity activite, String nomFichier,
             AtelierLint lint, AtelierDiff diff, AtelierCorrectif correctif,
             AtelierAgent agent,
-            AtelierIA ia, AtelierPopups popups, AtelierRefactor refactor,
+            AtelierIA ia, PopupsEditeur popups, AtelierRefactor refactor,
             AtelierRecherche recherche, BasculeTheme basculeTheme,
             FeuilleReglages feuilleReglages,
             Supplier<List<OutlineEntry>> plan,
             Supplier<List<String>> lignes,
-            AtelierBarreToolbar barreToolbar) {
+            BarreToolbar barreToolbar) {
         this.activite = activite;
         this.nomFichier = nomFichier;
         this.lint = lint;

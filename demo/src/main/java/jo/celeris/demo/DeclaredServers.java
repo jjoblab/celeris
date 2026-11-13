@@ -6,6 +6,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import jo.celeris.android.host.popups.LanguageSession;
 import jo.celeris.core.language.model.LanguageServerDeclaration;
 import jo.celeris.core.language.model.LanguageSupport;
 

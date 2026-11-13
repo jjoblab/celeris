@@ -1,11 +1,13 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.content.Context;
 import android.graphics.Rect;
 
 import java.util.List;
 
+import jo.celeris.android.host.R;
 import jo.celeris.android.view.EditorView;
+import jo.celeris.android.view.ReperesPreview;
 import jo.celeris.android.widgets.ApercuDefinition;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
@@ -14,7 +16,6 @@ import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
-import jo.celeris.android.view.ReperesPreview;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 
 import jo.celeris.core.text.MultiSelection;
@@ -24,23 +25,24 @@ import jo.celeris.core.text.TextSession;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Le document ancré de l'atelier des popups (ADR-018, chantier C12) :
- * le survol de symbole, l'aperçu rapide de définition (D-11) et le
- * rendu délégué d'un repère {@code @Preview} (C-11) partagent le même
- * GENRE de carte de documentation, posée sur la couche à l'ancre
- * donnée — au curseur ou au coin de la gouttière, la colonne des
- * repères. Popup ancrée, au point d'intérêt : la déclaration se lit
- * sans quitter le fichier. Le chantier d'unification lui donne sa
- * CARTE PROPRE sous le genre survol — la documentation de complétion
- * ne se vole plus entre deux créneaux, l'état ne ment plus.
+ * Le document ancré de l'éditeur (ADR-018) : le survol de symbole,
+ * l'aperçu rapide de définition et le rendu délégué d'un repère
+ * {@code @Preview} partagent le même GENRE de carte de documentation,
+ * posée sur la couche à l'ancre donnée — au curseur ou au coin de la
+ * gouttière, la colonne des repères. Popup ancrée, au point
+ * d'intérêt : la déclaration se lit sans quitter le fichier. La
+ * carte vit sous son PROPRE genre survol — la documentation de
+ * complétion ne se vole plus entre deux créneaux, l'état ne ment
+ * plus.
  */
-final class DocAncre {
+public final class DocAncre {
 
     private final Context contexte;
     private final PopupManager popups;
     private final CompletionDocView vue;
     private final EditorView editeur;
     private final TextSession session;
+    private final CoachPopups coach;
     private final int margePx;
     /** La session de langage branchée — le survol y passe au protocole. */
     private @Nullable LanguageSession serveur;
@@ -57,9 +59,11 @@ final class DocAncre {
      * @param session   la session d'édition courante
      * @param margePx   la respiration des ancres aux bords de la couche
      * @param palette   la palette courante des popups
+     * @param coach     le coach de l'hôte — le repli du survol sans serveur
      */
     DocAncre(Context contexte, PopupManager popups, EditorView editeur,
-            TextSession session, int margePx, PopupPalette palette) {
+            TextSession session, int margePx, PopupPalette palette,
+            CoachPopups coach) {
         this.contexte = contexte;
         this.popups = popups;
         this.vue = new CompletionDocView(popups.couche().getContext(),
@@ -67,6 +71,7 @@ final class DocAncre {
         popups.lier(PopupController.PopupKind.HOVER, vue);
         this.editeur = editeur;
         this.session = session;
+        this.coach = coach;
         this.margePx = margePx;
     }
 
@@ -92,8 +97,8 @@ final class DocAncre {
      * sélection y vient : la documentation du serveur de langage par le
      * fil du protocole, la table du coach en repli.
      */
-    void survolAuCaret() {
-        String symbole = PopupCoach.symboleA(session.document(), caret());
+    public void survolAuCaret() {
+        String symbole = ContenuPopups.symboleA(session.document(), caret());
         if (symbole == null) {
             return;
         }
@@ -103,21 +108,19 @@ final class DocAncre {
                             () -> survol(doc)));
             return;
         }
-        survol(PopupCoach.docFor(symbole));
+        survol(coach.docDe(symbole));
     }
 
     /**
-     * Le survol AU DOUBLE-TAP (le redressement du propriétaire
-     * 2026-11-13 : « utilisons seulement le double clic et l'option
-     * i ») : le curseur prend le point du geste — l'ancre du popup de
-     * documentation y vit ; vrai quand un symbole s'y trouve, faux
-     * quand la cascade du tap suit.
+     * Le survol AU DOUBLE-TAP : le curseur prend le point du geste —
+     * l'ancre du popup de documentation y vit ; vrai quand un symbole
+     * s'y trouve, faux quand la cascade du tap suit.
      *
      * @param offset l'offset du double-tap
      * @return vrai quand le survol s'ouvre
      */
-    boolean survolAuDoubleTap(int offset) {
-        if (PopupCoach.symboleA(session.document(), offset) == null) {
+    public boolean survolAuDoubleTap(int offset) {
+        if (ContenuPopups.symboleA(session.document(), offset) == null) {
             return false;
         }
         session.setSelection(MultiSelection.of(SelRange.caretAt(offset)));
@@ -131,7 +134,7 @@ final class DocAncre {
      *
      * @param doc le modèle du survol, null pour fermer
      */
-    void survol(@Nullable CompletionDocModel doc) {
+    public void survol(@Nullable CompletionDocModel doc) {
         if (doc == null) {
             return;
         }
@@ -139,14 +142,14 @@ final class DocAncre {
     }
 
     /**
-     * L'aperçu rapide de la définition du symbole au curseur (D-11) :
-     * la déclaration se lit dans la carte ancrée au curseur — sans
+     * L'aperçu rapide de la définition du symbole au curseur : la
+     * déclaration se lit dans la carte ancrée au curseur — sans
      * quitter le fichier. Aucun symbole, aucun aperçu.
      *
-     * @param plan  les entrées du plan du fichier ouvert
+     * @param plan   les entrées du plan du fichier ouvert
      * @param lignes les lignes du document ouvert
      */
-    void apercu(List<OutlineEntry> plan, List<String> lignes) {
+    public void apercu(List<OutlineEntry> plan, List<String> lignes) {
         int curseur = caret();
         ApercuDefinition apercu = ApercuDefinition.de(plan, lignes,
                 ApercuDefinition.symboleAu(session.document().text(), curseur),
@@ -160,14 +163,14 @@ final class DocAncre {
     }
 
     /**
-     * Le rendu délégué d'un repère {@code @Preview} (C-11) : la scène
-     * reste à l'hôte, la réponse se lit dans la carte ancrée au coin de
-     * la gouttière — la colonne des repères porte l'ancre.
+     * Le rendu délégué d'un repère {@code @Preview} : la scène reste à
+     * l'hôte, la réponse se lit dans la carte ancrée au coin de la
+     * gouttière — la colonne des repères porte l'ancre.
      *
      * @param ligne   la ligne du repère cliqué dans la gouttière
      * @param reperes les repères du fichier ouvert
      */
-    void renduPreview(int ligne,
+    public void renduPreview(int ligne,
             List<ReperesPreview.ReperePreview> reperes) {
         String composable = "";
         for (ReperesPreview.ReperePreview repere : reperes) {

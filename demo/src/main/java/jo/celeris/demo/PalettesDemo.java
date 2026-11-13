@@ -4,34 +4,17 @@ import android.content.res.Configuration;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.widgets.PopupPalette;
-import jo.celeris.core.syntax.TokenKind;
 
 /**
- * Les palettes des feuilles de la démonstration (ADR-018) : le kit des
- * popups dérive son verre du thème de l'éditeur — les feuilles suivent
- * la même voie quand elles vivent au-dessus de l'éditeur, et l'accueil,
- * qui n'a pas d'éditeur, suit le mode nuit du système.
+ * Les palettes de l'accueil de la démonstration : le mode nuit du
+ * système décide du verre, clair le jour, sombre la nuit — la
+ * dérivation du thème d'éditeur vit désormais chez l'éditeur
+ * ({@code PalettesPopups}, le déménagement du 2026-11-14).
  */
 final class PalettesDemo {
 
     private PalettesDemo() {
-    }
-
-    /**
-     * La palette dérivée du thème d'éditeur courant — le calcul du
-     * verre du dépôt de départ.
-     *
-     * @param theme         le thème d'éditeur courant
-     * @param tailleTexteSp la taille de texte de l'éditeur, en sp
-     * @return la palette des feuilles de l'éditeur
-     */
-    static PopupPalette de(EditorTheme theme, float tailleTexteSp) {
-        return PopupPalette.verre(theme.backgroundColor(),
-                theme.baseTextColor(), theme.gutterTextColor(),
-                theme.selectionColor(), theme.cursorColor(),
-                theme.syntaxe().couleur(TokenKind.KEYWORD), tailleTexteSp);
     }
 
     /**

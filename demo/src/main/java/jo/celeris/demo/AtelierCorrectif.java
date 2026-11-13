@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
+import jo.celeris.android.host.popups.LanguageSession;
 import jo.celeris.android.widgets.PatchPreview;
 import jo.celeris.android.widgets.FeuilleHaut;
 import jo.celeris.android.widgets.PopupPalette;

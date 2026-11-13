@@ -1,5 +1,6 @@
 package jo.celeris.demo;
 
+import jo.celeris.android.host.popups.LanguageSession;
 import jo.celeris.core.language.model.LanguageDescriptor;
 import jo.celeris.core.language.model.LanguageServerDeclaration;
 import jo.celeris.core.language.model.LanguageSupport;
@@ -108,7 +109,7 @@ class DeclaredServersTest {
                 .builder(LanguageDescriptor.of("malin", "Malin", List.of()))
                 .servers(List.of(LanguageServerDeclaration.embedded("malin",
                         "jo.celeris.demo.ServeurLangage",
-                        "jo.celeris.demo.LanguageSession",
+                        "jo.celeris.android.host.popups.LanguageSession",
                         "paquet-piege", Map.of())))
                 .build();
         LanguageSession session = DeclaredServers.open(malveillant);

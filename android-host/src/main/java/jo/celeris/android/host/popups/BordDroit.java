@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.view.View;
 
@@ -20,17 +20,16 @@ import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.core.text.TextSession;
 
 /**
- * L'atelier du bord droit de la couche (chantier C9) : la bande
- * d'erreurs, la minimap et le défilement rapide — extraits
- * d'AtelierPopups qui crevait ses plafonds (ADR-002 : 600 lignes par
- * fichier, complexité de classe 80). La bande d'erreurs vit avec les
- * diagnostics ; la minimap porte la silhouette du document, sa fenêtre
- * visible à l'encre d'accent — l'appui et le glissement sautent, le
- * modèle se reconstruit à l'édition ; le pouce du défilement rapide
- * suit la fraction du défilement, sa hauteur la part visible — tout
- * tient : le pouce se tait, la bande reste muette.
+ * Le bord droit de la couche de l'éditeur : la bande d'erreurs, la
+ * minimap et le défilement rapide. La bande d'erreurs vit avec les
+ * diagnostics ; la minimap porte la silhouette du document, sa
+ * fenêtre visible à l'encre d'accent — l'appui et le glissement
+ * sautent, le modèle se reconstruit à l'édition ; le pouce du
+ * défilement rapide suit la fraction du défilement, sa hauteur la
+ * part visible — tout tient : le pouce se tait, la bande reste
+ * muette.
  */
-final class AtelierBordDroit {
+public final class BordDroit {
 
     /** Le nombre de crans de la bande d'erreurs. */
     private static final int CRANS_BANDE = 200;
@@ -47,7 +46,18 @@ final class AtelierBordDroit {
     private final IntConsumer sautDiagnostic;
     private final int margePx;
 
-    AtelierBordDroit(PopupManager popups, EditorView editeur,
+    /**
+     * Construit le chrome du bord droit sur le coordinateur des
+     * popups : les trois vues naissent liées à leurs genres.
+     *
+     * @param popups        le coordinateur des popups de la scène
+     * @param editeur       la vue d'éditeur ouverte
+     * @param session       la session d'édition courante
+     * @param margePx       la respiration aux bords de la couche
+     * @param palette       la palette courante des popups
+     * @param sautDiagnostic le consommateur des sauts de la bande
+     */
+    BordDroit(PopupManager popups, EditorView editeur,
             TextSession session, int margePx, PopupPalette palette,
             IntConsumer sautDiagnostic) {
         this.popups = popups;
@@ -89,9 +99,9 @@ final class AtelierBordDroit {
             return;
         }
         bandeErreurs.setModel(ErrorBandModel.of(
-                PopupCoach.issues(diagnostics, nomFichier,
+                ContenuPopups.issues(diagnostics, nomFichier,
                         session.document()),
-                PopupCoach.gravites(diagnostics, nomFichier),
+                ContenuPopups.gravites(diagnostics, nomFichier),
                 session.document(), CRANS_BANDE), CRANS_BANDE);
         bandeErreurs.setSpanPx(Math.max(1, hauteurCouche - 2 * margePx));
         PopupPlacer.Cadre placee = bordDroit(bandeErreurs, 0,

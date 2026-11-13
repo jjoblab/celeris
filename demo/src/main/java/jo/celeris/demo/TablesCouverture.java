@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import jo.celeris.android.host.popups.ContenuPopups;
 import jo.celeris.core.lsp.types.CorrectifLsp;
 import jo.celeris.core.lsp.types.EditionEspaceLsp;
 import jo.celeris.core.lsp.types.EditionTexteLsp;
@@ -158,7 +159,7 @@ final class TablesCouverture {
         if (document == null) {
             return surlignages;
         }
-        String symbole = PopupCoach.symboleA(document,
+        String symbole = ContenuPopups.symboleA(document,
                 PositionsLsp.offset(document, position));
         if (symbole == null || symbole.isEmpty()) {
             return surlignages;
@@ -205,7 +206,7 @@ final class TablesCouverture {
         if (document == null) {
             return null;
         }
-        String symbole = PopupCoach.symboleA(document,
+        String symbole = ContenuPopups.symboleA(document,
                 PositionsLsp.offset(document, position));
         if (symbole == null || symbole.isEmpty()) {
             return null;
@@ -224,7 +225,7 @@ final class TablesCouverture {
         if (document == null) {
             return EditionEspaceLsp.VIDE;
         }
-        String symbole = PopupCoach.symboleA(document,
+        String symbole = ContenuPopups.symboleA(document,
                 PositionsLsp.offset(document, position));
         if (symbole == null || symbole.isEmpty()) {
             return EditionEspaceLsp.VIDE;
