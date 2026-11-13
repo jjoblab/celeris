@@ -91,10 +91,14 @@ public final class ScenarioCatalog {
 
                 new Scenario(
                         "A-01",
-                        "Pilule « ajouter un curseur »",
-                        "L'appui long arme la pilule, chaque appui ailleurs "
-                                + "ajoute un curseur — les existants tiennent ; la "
-                                + "frappe multi-curseurs vit au cœur depuis M2."),
+                        "Appui long du dépôt de départ",
+                        "L'appui long sélectionne le mot sous le doigt, sans "
+                                + "AUCUN rectangle plein qui le couvre (le "
+                                + "redressement du 2026-11-13 : la pilule "
+                                + "« ajouter un curseur » se retire, la barre "
+                                + "de sélection du dépôt de départ l'offre) ; "
+                                + "la frappe multi-curseurs vit au cœur depuis "
+                                + "M2."),
                 new Scenario(
                         "A-02",
                         "Sélection en colonne",
@@ -555,11 +559,13 @@ public final class ScenarioCatalog {
                                 + "restent."),
                 new Scenario(
                         "D-16",
-                        "Poignées, pilule et loupe",
-                        "Les poignées suivent les tranches de rangée, le "
+                        "Poignées et loupe",
+                        "Les poignées suivent les tranches de rangée — des "
+                                + "cercles pleins SOUS la rangée d'ancre, le "
                                 + "glissement ne déplace qu'une extrémité ; la "
-                                + "géométrie de loupe flotte au-dessus du doigt, "
-                                + "bornée à la fenêtre."),
+                                + "loupe du dragage d'appui long flotte "
+                                + "au-dessus du doigt, Y snappé à la rangée, X "
+                                + "amorti, bornée à la fenêtre."),
                 new Scenario(
                         "D-17",
                         "Clavier matériel",

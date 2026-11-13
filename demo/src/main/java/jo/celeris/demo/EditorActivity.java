@@ -336,10 +336,19 @@ public final class EditorActivity extends AppCompatActivity {
                 this::paletteFeuilles, atelierPopups::ouvrirRecherche,
                 atelierPopups::fermerRecherche);
         atelierRecherche.brancher();
-        // Le moment juste du survol (M7.6) : l'appui long offre la documentation.
-        editeur.setSurAppuiLong(offset -> atelierPopups.ouvrirSurvol());
-        // Le double-tap d'un littéral de couleur ouvre le sélecteur.
-        editeur.setSurDoubleTap(atelierPopups::ouvrirColorPicker);
+        // Le survol du symbole se sert AU DOUBLE-TAP et au « i » de la
+        // barre de sélection (le redressement du propriétaire
+        // 2026-11-13 : l'appui long entrait en conflit avec la barre —
+        // le popup de survol ne s'ouvre plus que du double-clic et de
+        // l'option info de la barre). Le double-tap sert d'abord le
+        // color picker d'un littéral de couleur, la documentation du
+        // symbole sinon.
+        editeur.setSurDoubleTap(offset -> {
+            if (atelierPopups.ouvrirColorPicker(offset)) {
+                return true;
+            }
+            return atelierPopups.ouvrirSurvolAuDoubleTap(offset);
+        });
         brancherToolbar();
     }
 

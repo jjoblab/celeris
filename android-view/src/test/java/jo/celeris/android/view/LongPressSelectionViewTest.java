@@ -23,9 +23,10 @@ import jo.celeris.core.text.SelRange;
  * propriétaire) : le simple appui pose le curseur et n'étend RIEN au
  * dragage, l'appui long sélectionne le mot sous le doigt et RETIRE le
  * clavier, le dragage qui suit étend la sélection — le mot de départ
- * toujours englobé, l'ancre figée à la sortie du mot (PIEGE-03). La
- * pilule « ajouter un curseur » (A-01) s'offre au-dessus du mot :
- * l'appui dessus ajoute le curseur.
+ * toujours englobé, l'ancre figée à la sortie du mot (PIEGE-03).
+ * Le redressement du 2026-11-13 : AUCUN rectangle plein ne couvre le
+ * mot sélectionné — la pilule « ajouter un curseur » s'est retirée,
+ * la barre de sélection du dépôt de départ l'offre à la place.
  *
  * <p>Banc réel (ADR-013) : de vrais {@link MotionEvent} à la vue
  * posée, l'appui long part du détecteur de la plateforme — le temps
@@ -94,11 +95,13 @@ public class LongPressSelectionViewTest {
     }
 
     /**
-     * A-01 — la pilule posée par l'appui long : l'appui DESSUS ajoute
-     * un curseur au point de l'appui long.
+     * Le redressement du 2026-11-13 : l'appui long ne peint RIEN sur le
+     * mot — le chrome de la vue reste nu au-dessus de la sélection,
+     * c'est la BARRE du dépôt de départ (posée par l'hôte) qui s'y
+     * offre ; l'appui qui suit ailleurs pose le curseur à son point.
      */
     @Test
-    public void piluleDeLappuiLongAjouteUnCurseur() {
+    public void appuiLongNePeintAucunRectangleSurLeMot() {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
@@ -107,22 +110,20 @@ public class LongPressSelectionViewTest {
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, xDe(banc, 2), y));
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(900));
-        assertTrue("l'appui long offre la pilule (A-01)", vue.pilule.isArmed());
-        // l'appui sur la pilule : son centre vit au-dessus du doigt
-        float piluleX = vue.pilule.x();
-        float piluleY = vue.pilule.y() - CursorPill.HEIGHT / 2f;
+        SelRange plage = vue.session().selection().ranges().get(0);
+        assertEquals("le mot « alpha » entier est sélectionné",
+                5, plage.end());
+        // l'appui qui suit ailleurs pose le curseur à son point — la
+        // cascade du tap vit comme avant, la pilule ne s'y interpose
         t = SystemClock.uptimeMillis();
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
-                MotionEvent.ACTION_DOWN, piluleX, piluleY));
+                MotionEvent.ACTION_DOWN, xDe(banc, 8), y));
         vue.onTouchEvent(EditorTestRig.obtenir(t, t + 16L,
-                MotionEvent.ACTION_UP, piluleX, piluleY));
-        assertEquals("la pilule ajoute un curseur, jamais une plage",
-                1, vue.session().selection().ranges().size());
-        SelRange plage = vue.session().selection().ranges().get(0);
-        assertTrue(plage.isEmpty());
-        assertEquals("le curseur vit au point de l'appui long",
-                2, plage.caret());
-        assertFalse("la pilule se congédie", vue.pilule.isArmed());
+                MotionEvent.ACTION_UP, xDe(banc, 8), y));
+        SelRange apres = vue.session().selection().ranges().get(0);
+        assertTrue("le tap après l'appui long pose un curseur",
+                apres.isEmpty());
+        assertEquals("le curseur vit au point du tap", 8, apres.caret());
     }
 
     /** L'appui long sur le blanc entre deux mots ne sélectionne rien. */

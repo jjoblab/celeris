@@ -42,8 +42,7 @@ import org.jspecify.annotations.Nullable;
  * simple appui pose le curseur et ouvre le clavier, l'appui long
  * sélectionne le mot sous le doigt et retire le clavier — le dragage
  * qui suit étend la sélection, ancre figée à l'armement (PIEGE-03) —
- * ou tire une poignée, la pilule « ajouter un curseur » s'y offre
- * (A-01), le pincement zoome par paliers (D-15), le panoramique à
+ * ou tire une poignée, le pincement zoome par paliers (D-15), le panoramique à
  * deux doigts défile, le clavier matériel passe par la table de
  * raccourcis (D-17). Le retour à la ligne souple (A-18) se règle par
  * {@link #setSoftWrap(boolean)}. L'IME s'attache par
@@ -85,7 +84,6 @@ public final class EditorView extends View {
     final EditorSyntax syntaxe;
     // Visible du paquet : le banc de test y lit la mise en page servie (ADR-013).
     final RowLayoutCache cache = new RowLayoutCache();
-    final CursorPill pilule = new CursorPill();
     private final CompositionState composition = new CompositionState();
     // Visible du paquet : l'assemblage d'image y trace le chrome (C9).
     final ChromePainter chrome = new ChromePainter();
@@ -430,12 +428,6 @@ public final class EditorView extends View {
     /** Le rappel du plan du fichier (B-16), parti à chaque publication d'analyse. */
     public void setSurPlan(@Nullable Consumer<List<OutlineEntry>> consommateur) {
         syntaxe.setSurPlan(consommateur);
-    }
-
-    /** Le rappel d'appui long (M7.6) : l'offset sélectionné — le moment
-     *  juste du survol. Null coupe. */
-    public void setSurAppuiLong(@Nullable IntConsumer consommateur) {
-        rappels.poserAppuiLong(consommateur);
     }
 
     /** Le verdict de double-tap (le signal du propriétaire : le color

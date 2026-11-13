@@ -7,10 +7,13 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Les rappels de l'hôte sur les gestes de la vue (M7.6, D-04 la
- * reprise) : l'appui long du texte y rend l'offset sélectionné — le
- * moment juste de la documentation au survol ; l'appui long de
- * gouttière y rend la ligne visée — le moment juste du point d'arrêt.
- * La vue ne fait que tenir les consommateurs et notifier : les états
+ * reprise) : le double-tap du texte y rend son verdict (le color
+ * picker d'un littéral, la documentation au symbole — le
+ * redressement du 2026-11-13 retire le survol de l'appui long : il
+ * entrait en conflit avec la barre de sélection, seul le double-clic
+ * et le « i » de la barre l'ouvrent) ; l'appui long de gouttière y
+ * rend la ligne visée — le moment juste du point d'arrêt. La vue ne
+ * fait que tenir les consommateurs et notifier : les états
  * d'exécution appartiennent à l'hôte.
  *
  * <p>Porteur mince : la vue y délègue ses poseurs publics, ses
@@ -19,32 +22,12 @@ import org.jspecify.annotations.Nullable;
  */
 final class RappelsHote {
 
-    /** Le consommateur d'appui long de l'hôte (M7.6) — le moment du survol. */
-    private volatile @Nullable IntConsumer surAppuiLong;
-
     /** Le verdict de double-tap de l'hôte — le moment du color picker
      *  d'un littéral de couleur, par exemple. */
     private volatile @Nullable IntPredicate surDoubleTap;
 
     /** Le consommateur de bascule d'arrêt de l'hôte (D-04) — l'appui long de gouttière. */
     private volatile @Nullable IntConsumer surBasculeArret;
-
-    /**
-     * Pose (ou coupe) le consommateur d'appui long.
-     *
-     * @param consommateur le consommateur d'offset, null pour couper
-     */
-    void poserAppuiLong(@Nullable IntConsumer consommateur) {
-        surAppuiLong = consommateur;
-    }
-
-    /** Notifie l'hôte de l'appui long — la sélection est déjà posée. */
-    void notifierAppuiLong(int offset) {
-        IntConsumer consommateur = surAppuiLong;
-        if (consommateur != null) {
-            consommateur.accept(offset);
-        }
-    }
 
     /**
      * Pose (ou coupe) le verdict de double-tap.

@@ -306,7 +306,7 @@ final class AtelierPopups {
     /**
      * Ouvre le survol du symbole au curseur — la documentation du
      * serveur de langage par le fil du protocole, la table du coach
-     * en repli.
+     * en repli. Le « i » de la barre de sélection y vient.
      */
     void ouvrirSurvol() {
         String symbole = symboleAuCaret();
@@ -321,6 +321,28 @@ final class AtelierPopups {
             return;
         }
         docAncre.survol(PopupCoach.docFor(symbole));
+    }
+
+    /**
+     * Le survol AU DOUBLE-TAP (le redressement du propriétaire
+     * 2026-11-13 : « utilisons seulement le double clic et l'option
+     * i ») : la documentation du symbole sous le geste — le curseur y
+     * prend le point, l'ancre du popup y vit ; vrai quand le geste se
+     * consomme (un symbole y vit), faux quand la cascade du tap suit.
+     *
+     * @param offset l'offset du double-tap
+     * @return vrai quand le survol s'ouvre
+     */
+    boolean ouvrirSurvolAuDoubleTap(int offset) {
+        String symbole = PopupCoach.symboleA(session.document(), offset);
+        if (symbole == null) {
+            return false;
+        }
+        // le curseur prend le point du double-clic : l'ancre du popup
+        // de documentation y vit, comme le color picker d'un littéral
+        session.setSelection(MultiSelection.of(SelRange.caretAt(offset)));
+        ouvrirSurvol();
+        return true;
     }
 
     /** Le poseur de documents ancrés — l'activité y lit (C12). */

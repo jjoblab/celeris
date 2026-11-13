@@ -7,6 +7,12 @@ import jo.celeris.core.text.SelRange;
  * Poignées de sélection : la visée désigne l'extrémité touchée (début,
  * fin ou aucune) et le glissement ne bouge que son extrémité — les
  * positions suivent les tranches de rangée (A-18).
+ *
+ * <p>Le design du dépôt de départ (redressement du 2026-11-13) : une
+ * poignée est un CERCLE PLEIN sous la rangée d'ancre — jamais un
+ * rectangle plein qui couvrirait le mot ou le caractère sélectionné.
+ * La visée vise le centre du cercle dessiné, la géométrie reste
+ * pures et sans densité : le rayon dérive de la hauteur de rangée.</p>
  */
 public final class SelectionHandles {
 
@@ -52,6 +58,38 @@ public final class SelectionHandles {
     public static float yOfOffset(Document document, VisualProjection projection,
             EditorMetrics metrics, float scrollY, int offset) {
         return CaretGeometry.yOfOffset(document, projection, metrics, scrollY, offset);
+    }
+
+    /**
+     * L'ordonnée du CENTRE du cercle d'une poignée : sous la rangée
+     * d'ancre, du rayon qui respire la rangée (le dépôt de départ :
+     * {@code ligne + hauteur + r × 0,6}).
+     *
+     * @param document   l'instantané de document affiché
+     * @param projection la projection rangées ↔ lignes
+     * @param metrics    les métriques d'éditeur courantes
+     * @param scrollY    le défilement vertical, en pixels
+     * @param offset     l'offset de l'extrémité
+     * @return l'ordonnée du centre du cercle, en pixels
+     */
+    public static float centreYPoignee(Document document,
+            VisualProjection projection, EditorMetrics metrics, float scrollY,
+            int offset) {
+        float rayon = rayonPoignee(metrics);
+        return yOfOffset(document, projection, metrics, scrollY, offset)
+                + metrics.lineHeight() + rayon * 0.6f;
+    }
+
+    /**
+     * Le rayon du cercle d'une poignée : un cinquième de la hauteur de
+     * rangée, au moins six pixels — il suit le zoom et la police sans
+     * jamais demander la densité.
+     *
+     * @param metrics les métriques d'éditeur courantes
+     * @return le rayon du cercle, en pixels
+     */
+    public static float rayonPoignee(EditorMetrics metrics) {
+        return Math.max(6f, metrics.lineHeight() * 0.2f);
     }
 
     /**
@@ -118,8 +156,8 @@ public final class SelectionHandles {
             VisualProjection projection, EditorMetrics metrics, int offset) {
         float hx = xOfOffset(document, projection, metrics, gutterWidth, scrollX,
                 offset);
-        float hy = yOfOffset(document, projection, metrics, scrollY, offset)
-                + metrics.lineHeight() / 2f;
+        float hy = centreYPoignee(document, projection, metrics, scrollY,
+                offset);
         float dx = px - hx;
         float dy = py - hy;
         return dx * dx + dy * dy <= HIT_RADIUS * HIT_RADIUS;

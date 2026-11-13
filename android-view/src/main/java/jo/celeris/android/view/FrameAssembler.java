@@ -34,7 +34,7 @@ final class FrameAssembler {
         vue.diagnostics.surImageTracee();
         vue.pinceauChrome.setFont(vue.metrics.font());
         vue.chrome.tracer(vue.surface, vue.pinceauChrome, vue.theme,
-                vue.metrics, vue.pilule, vue.etatImage.document(),
+                vue.metrics, vue.etatImage.document(),
                 vue.projection, vue.session.selection().ranges(),
                 vue.largeurGouttiere, vue.scrollX, vue.scrollY,
                 vue.curseurClavier.visible());

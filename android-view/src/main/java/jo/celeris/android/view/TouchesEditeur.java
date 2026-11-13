@@ -2,7 +2,6 @@ package jo.celeris.android.view;
 
 import android.view.MotionEvent;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -16,11 +15,12 @@ import jo.celeris.core.text.SelRange;
  * axes, un doigt) ; le relâchement SANS mouvement est un TAP, lui seul
  * pose le curseur et ouvre le clavier ; l'APPUI LONG sélectionne le
  * mot sous le doigt et retire le clavier — le dragage qui suit étend
- * la sélection, ancre figée à l'armement (PIEGE-03). La pilule
- * « ajouter un curseur » (A-01) s'offre au-dessus du mot sélectionné :
- * le tap dessus ajoute le curseur, le tap ailleurs la congédie. Le
- * panoramique à deux doigts défile, l'appui sur une poignée la tire —
- * la vue route, ce collaborateur décide.
+ * la sélection, ancre figée à l'armement (PIEGE-03), et la LOUPE y
+ * naît (D-16, le redressement du 2026-11-13 : « ajoute la
+ * fonctionnalité de magnifier ») : le texte sous le doigt s'agrandit
+ * dans une bulle au-dessus, le réglage se voit. Le panoramique à
+ * deux doigts défile, l'appui sur une poignée la tire — la vue
+ * route, ce collaborateur décide.
  *
  * <p>Vue-collaborateur par délégation (même famille qu'
  * {@link AccessibilityHost}) : l'état de geste — dernier point, point
@@ -121,8 +121,8 @@ final class TouchesEditeur {
     /**
      * Le doigt se pose : RIEN ne s'arme — ni clavier, ni curseur (le
      * geste n'a pas encore parlé). Seule la poignée visée se retient :
-     * son tirage commence au doigt posé, pas au relâchement. La pilule,
-     * les plis, les marques et la pose du curseur se résolvent au TAP
+     * son tirage commence au doigt posé, pas au relâchement. Les plis,
+     * les marques et la pose du curseur se résolvent au TAP
      * ({@link #surRelachement}) — le doigt posé qui glisse déféfile,
      * jamais il ne déclenche l'IME. Un geste précédent non conclu se
      * referme ici : l'armement long ne survit jamais à un nouvel appui.
@@ -150,9 +150,12 @@ final class TouchesEditeur {
      * ligne visée — l'hôte y répond, la vue ne touche à aucun état
      * d'exécution ; dans la zone de texte, le mot sous le doigt se
      * sélectionne, le clavier se retire — le dragage qui suit étend la
-     * sélection au doigt, sans clavier. La pilule « ajouter un curseur »
-     * (A-01) s'offre au-dessus du mot : le tap dessus ajoute le
-     * curseur, le tap ailleurs la congédie.
+     * sélection au doigt, sans clavier, et la LOUPE y naît (D-16) :
+     * le texte sous le doigt s'agrandit dans une bulle au-dessus — le
+     * mot sélectionné se voit ENTIÈREMENT, aucun rectangle plein ne
+     * le couvre (le redressement du 2026-11-13 : la pilule
+     * « ajouter un curseur » se retire, la barre de sélection du dépôt
+     * de départ l'offre à la place).
      */
     void surAppuiLong(float x, float y) {
         if (x < vue.largeurGouttiere) {
@@ -182,10 +185,6 @@ final class TouchesEditeur {
         armeLong = true;
         vue.curseurClavier.masquerClavier();
         vue.curseurClavier.annoncerSelection();
-        vue.pilule.show(x, y);
-        // le moment juste du survol : le mot est sélectionné, l'hôte
-        // qui sert une documentation l'ouvre — la vue n'ouvre rien
-        vue.rappels.notifierAppuiLong(offset);
         vue.invalidate();
     }
 
@@ -216,7 +215,6 @@ final class TouchesEditeur {
             return true;
         }
         if (panoramique && event.getPointerCount() >= 2) {
-            vue.pilule.hide();
             float hauteurContenu =
                     vue.projection.rowCount() * vue.metrics.lineHeight();
             vue.scrollY = ScrollGeometry.clamp(
@@ -240,7 +238,6 @@ final class TouchesEditeur {
             armerAncre(offsetAt(event.getX(), event.getY()));
         }
         if (vue.glissement.isActive()) {
-            vue.pilule.hide();
             vue.session.setSelection(MultiSelection.of(
                     vue.glissement.dragTo(
                             offsetAt(event.getX(), event.getY()))));
@@ -272,7 +269,6 @@ final class TouchesEditeur {
                 && distanceCarree(departX, departY, event) > SEUIL_TAP_PX
                         * SEUIL_TAP_PX) {
             defilement = true;
-            vue.pilule.hide();
         }
         if (defilement) {
             float hauteurContenu =
@@ -319,7 +315,7 @@ final class TouchesEditeur {
     /**
      * Le doigt levé : le geste se conclut. Le TAP — relâchement SANS
      * mouvement d'un doigt posé hors poignée, hors appui long — résout
-     * la cascade (pilule, pli, marques, curseur et clavier) ; tout
+     * la cascade (pli, marques, curseur et clavier) ; tout
      * autre geste (défilement, panoramique, dragage, poignée) se
      * conclut sans rien armer. L'annulation du geste (CANCEL) conclut
      * sans résoudre : le geste n'a jamais eu lieu.
@@ -371,25 +367,11 @@ final class TouchesEditeur {
     }
 
     /**
-     * La cascade du TAP (la discipline du dépôt de départ) : la pilule
-     * armée d'abord (l'appui dessus ajoute le curseur, ailleurs elle se
-     * congédie), le chevron de pli, la marque de gouttière et son
-     * repère — et la pose du curseur au point touché, qui seule ouvre
-     * le clavier.
+     * La cascade du TAP (la discipline du dépôt de départ) : le
+     * chevron de pli, la marque de gouttière et son repère — et la
+     * pose du curseur au point touché, qui seule ouvre le clavier.
      */
     private void resoudreTap(float x, float y) {
-        if (vue.pilule.isArmed()) {
-            boolean surPilule = vue.pilule.contains(x, y);
-            vue.pilule.hide();
-            if (surPilule) {
-                vue.session.setSelection(
-                        ajouterCurseur(offsetAt(vue.pilule.x(), vue.pilule.y())));
-                vue.curseurClavier.annoncerSelection();
-                vue.invalidate();
-                return;
-            }
-            vue.invalidate();
-        }
         float coulisse = vue.gouttiereEtat.coulisseCourante();
         float bandePli = vue.gouttiereEtat.bandePliCourante();
         if (vue.syntaxe.basculerPliAuPoint(x, y, vue.scrollY,
@@ -420,22 +402,6 @@ final class TouchesEditeur {
         vue.curseurClavier.annoncerSelection();
         vue.curseurClavier.surAppui();
         vue.invalidate();
-    }
-
-    /**
-     * Ajoute un curseur à l'offset visé, les curseurs existants
-     * tiennent (A-01) — les plages non vides se replient en curseurs :
-     * la pilule ajoute un CURSEUR, jamais une plage.
-     */
-    private MultiSelection ajouterCurseur(int offset) {
-        List<SelRange> plages = new ArrayList<>();
-        for (SelRange plage : vue.session.selection().ranges()) {
-            if (plage.isEmpty()) {
-                plages.add(plage);
-            }
-        }
-        plages.add(SelRange.caretAt(offset));
-        return MultiSelection.of(plages);
     }
 
     private void tirerPoignee(float x, float y) {

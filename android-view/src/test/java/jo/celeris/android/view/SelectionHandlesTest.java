@@ -88,6 +88,14 @@ class SelectionHandlesTest {
                 SelectionHandles.hitTest(70f, 10f, 20f, 0f, 0f,
                         document, projection, metrics, 1, 9),
                 "entre les poignées : aucune");
+        // le CERCLE dessiné se vise : son centre sous la rangée d'ancre
+        // touche (le redressement du 2026-11-13)
+        float cy = SelectionHandles.centreYPoignee(document, projection,
+                metrics, 0f, 1);
+        assertEquals(SelectionHandles.HandleId.START,
+                SelectionHandles.hitTest(start, cy, 20f, 0f, 0f,
+                        document, projection, metrics, 1, 9),
+                "le centre du cercle dessiné se vise");
     }
 
     /** Le glissement d'une poignée ne bouge QUE son extrémité. */

@@ -113,7 +113,6 @@ public class DoubleTapViewTest {
         assertEquals("aucun verdict ne part", 0, appels[0]);
         assertEquals("le curseur suit le second tap simple",
                 10, vue.session().selection().ranges().get(0).caret());
-        assertFalse(vue.pilule.isArmed());
         // le looper reste propre pour les bancs suivants
         org.robolectric.Shadows.shadowOf(Looper.getMainLooper())
                 .idleFor(Duration.ofMillis(50L));

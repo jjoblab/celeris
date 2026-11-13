@@ -24,9 +24,9 @@ import org.robolectric.Shadows;
  * du design — le constat du propriétaire) : l'appui long dans la
  * gouttière rend la LIGNE visée à l'hôte — c'est lui qui pose, retire
  * ou désactive l'arrêt — sans toucher au curseur ni au clavier ; le
- * mot ne s'y sélectionne pas, la pilule ne s'y offre pas. L'appui long
- * dans le TEXTE garde son comportement : le mot se sélectionne, la
- * documentation peut s'ouvrir — aucune ligne n'y part.
+ * mot ne s'y sélectionne pas, aucun chrome ne s'y offre. L'appui long
+ * dans le TEXTE garde son comportement : le mot se sélectionne —
+ * aucune ligne n'y part.
  */
 @RunWith(RobolectricTestRunner.class)
 public class ArretAppuiLongTest {
