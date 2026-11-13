@@ -24,4 +24,11 @@
          mêmes (AtelierUsages, AtelierCouleur, DocAncre…) restent sous
          le plafond standard, l'orchestreur seul porte les câbles. -->
     <suppress id="PlafondStandard" files="AtelierPopups\.java"/>
+    <!-- L'activité d'édition de la démonstration (nomination du
+         2026-11-13, la même décision du propriétaire) : le hub câble
+         les ateliers à la scène — les surfaces réveillées y gagnent
+         leurs événements réels (les annonces de correctifs et de pause
+         de débogage y passent, 614 lignes) ; les ateliers mêmes
+         restent sous le plafond standard, le hub seul porte la scène. -->
+    <suppress id="PlafondStandard" files="EditorActivity\.java"/>
 </suppressions>

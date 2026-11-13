@@ -522,8 +522,14 @@ public final class EditorActivity extends AppCompatActivity {
         int corriges = atelierLint.corriger();
         if (corriges > 0) {
             etiquetteArrets.setText(getString(R.string.lint_correctifs, corriges));
+            atelierPopups.annoncer(
+                    getString(R.string.titre_notification),
+                    getString(R.string.lint_correctifs, corriges));
         } else {
             etiquetteArrets.setText(R.string.lint_propre);
+            atelierPopups.annoncer(
+                    getString(R.string.titre_notification),
+                    getString(R.string.lint_propre));
         }
         etiquetteArrets.setVisibility(View.VISIBLE);
         editeur.invalidate();
@@ -581,7 +587,19 @@ public final class EditorActivity extends AppCompatActivity {
                 etatDebogage.debogueur().arrets(), chemin,
                 etatDebogage.debogueur().ligneCourante(), etatDebogage.debogueur().pileCourante());
         editeur.marquesGouttiere().setIntegration(marques);
+        annoncerPauseSiPausee();
         editeur.invalidate();
+    }
+
+    /** La pause de débogage s'annonce — la reprise aussi : la bulle du
+     *  coin bas-droit porte l'événement réel, l'horloge la referme. */
+    private void annoncerPauseSiPausee() {
+        jo.celeris.android.host.spi.LigneArret pause =
+                etatDebogage.debogueur().ligneCourante();
+        if (pause != null) {
+            atelierPopups.annoncer(getString(R.string.titre_notification),
+                    getString(R.string.etat_pause, pause.ligne()));
+        }
     }
 
     private void majPosition() {

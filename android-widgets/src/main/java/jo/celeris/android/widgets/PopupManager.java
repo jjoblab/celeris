@@ -67,7 +67,8 @@ public final class PopupManager {
             PopupController.PopupKind.SELECTION_BAR,
             PopupController.PopupKind.REFERENCES,
             PopupController.PopupKind.TYPE_INFO,
-            PopupController.PopupKind.HIERARCHY};
+            PopupController.PopupKind.HIERARCHY,
+            PopupController.PopupKind.NOTIFICATION};
 
     /** Ce que l'échappement referme quand aucune carte interactive ne
      *  tient — les bulles qui suivent le contexte, pas le chrome. */

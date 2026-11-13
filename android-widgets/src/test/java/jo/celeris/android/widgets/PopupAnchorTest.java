@@ -88,6 +88,26 @@ class PopupAnchorTest {
                 "pleine hauteur de couche, respirations comprises");
     }
 
+    /** La notification : coin bas-droit — l'ancre de l'annonce, la
+     *  respiration la sépare des murs, la carte reste ENTIÈRE dans la
+     *  couche (l'annonce ne chevauche jamais le fil d'Ariane). */
+    @Test
+    void notificationHoldsTheBottomRightCorner() {
+        PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 320, 96);
+        PopupPlacer.Cadre bulle = PopupAnchor.bottomRightCorner(popup,
+                LARGEUR, HAUTEUR, MARGE);
+        assertEquals(LARGEUR - 320 - MARGE, bulle.x(),
+                "collée au bord droit, respiration comprise");
+        assertEquals(HAUTEUR - 96 - MARGE, bulle.y(),
+                "posée au mur du bas, respiration comprise");
+        // la bulle plus large que la couche : bornée, jamais hors murs
+        PopupPlacer.Cadre tropLarge = new PopupPlacer.Cadre(0, 0, LARGEUR, 96);
+        PopupPlacer.Cadre bornee = PopupAnchor.bottomRightCorner(tropLarge,
+                LARGEUR, HAUTEUR, MARGE);
+        assertTrue(bornee.x() >= MARGE && bornee.y() >= MARGE,
+                "jamais hors couche, même trop large");
+    }
+
     /** La barre de sélection : centrée sur la sélection, au-dessus. */
     @Test
     void selectionBarCentersAboveTheSelection() {

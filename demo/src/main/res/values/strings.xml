@@ -37,6 +37,7 @@
     <string name="section_appelants">Callers</string>
     <string name="section_hors_projet">Out of project</string>
     <string name="legende_doute_hierarchie">Some call sites did not resolve — the doubt is shown, never guessed</string>
+    <string name="titre_notification">Notice</string>
     <string name="titre_usages">%1$d usages of « %2$s »</string>
     <string name="barre_couper">Cut</string>
     <string name="barre_copier">Copy</string>

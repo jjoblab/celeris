@@ -129,7 +129,18 @@ public final class PopupController {
          *  ferme (la saisie remplace son objet), le défilement la
          *  ferme (son ancre vit au curseur), le tap hors cartes la
          *  referme — le choix d'un sommet saute et la referme. */
-        HIERARCHY
+        HIERARCHY,
+
+        /** La notification — la bulle éphémère du coin bas-droit
+         *  (catégorie G de l'inventaire, la forme restait à décider)
+         *  : elle annonce, elle ne décrit pas le texte — le régime
+         *  UNIQUE — la frappe, le défilement et le tap hors cartes
+         *  l'épargnent (l'annonce vit son quart, le geste ne
+         *  l'interrompt pas), l'HORLOGE la referme à son heure (le
+         *  tap qui la prend aussi) ; aucune exclusion : elle cohabite
+         *  avec tout ; le voile modal la coupe — la feuille la
+         *  recouvre. */
+        NOTIFICATION
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);

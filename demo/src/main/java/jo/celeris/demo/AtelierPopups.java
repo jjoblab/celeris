@@ -77,6 +77,9 @@ final class AtelierPopups {
     /** L'atelier des hiérarchies — l'arbre de types ou d'appels du
      *  symbole au curseur (catégorie C, les moteurs se réveillent). */
     private final AtelierHierarchies atelierHierarchies;
+    /** L'atelier des notifications — la bulle éphémère du coin
+     *  bas-droit (catégorie G, la forme se décide). */
+    private final AtelierNotifications atelierNotifications;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -151,6 +154,7 @@ final class AtelierPopups {
         atelierTypeInfo = new AtelierTypeInfo(editeur, session, popups, margePx, palette);
         atelierHierarchies = new AtelierHierarchies(editeur, session, popups,
                 margePx, palette, () -> plan, () -> nomDuFichier);
+        atelierNotifications = new AtelierNotifications(popups, margePx, palette);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette);
         bordDroit = new AtelierBordDroit(popups, editeur, session, margePx,
                 palette, this::sauterDiagnostic);
@@ -191,6 +195,7 @@ final class AtelierPopups {
         atelierUsages.surPalette(palette);
         atelierTypeInfo.surPalette(palette);
         atelierHierarchies.surPalette(palette);
+        atelierNotifications.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -269,6 +274,13 @@ final class AtelierPopups {
      *  moteurs de core-intelligence se réveillent). */
     void ouvrirHierarchie() {
         atelierHierarchies.ouvrir();
+    }
+
+    /** Annonce à l'usager — la bulle éphémère du coin bas-droit se
+     *  pose, l'horloge la referme à son heure (catégorie G, les
+     *  événements réels de la démonstration y passent). */
+    void annoncer(String titre, String message) {
+        atelierNotifications.annoncer(titre, message);
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */

@@ -117,6 +117,28 @@ public final class PopupAnchor {
     }
 
     /**
+     * Le coin bas-droit de la couche — l'ancre de la notification :
+     * l'annonce se pose au mur du bas, collée au bord droit, la
+     * respiration la sépare des murs (elle ne chevauche jamais le fil
+     * d'Ariane, qui vit au coin opposé).
+     *
+     * @param popup    la taille du popup
+     * @param layerWidth  la largeur de la couche
+     * @param layerHeight la hauteur de la couche
+     * @param margin   la respiration aux bords, en pixels
+     * @return le cadre borné du popup
+     */
+    public static PopupPlacer.Cadre bottomRightCorner(PopupPlacer.Cadre popup,
+            int layerWidth, int layerHeight, int margin) {
+        int largeur = Math.min(popup.largeur(), layerWidth - 2 * margin);
+        int hauteur = Math.min(popup.hauteur(), layerHeight - 2 * margin);
+        return new PopupPlacer.Cadre(
+                Math.max(margin, layerWidth - largeur - margin),
+                Math.max(margin, layerHeight - hauteur - margin),
+                largeur, hauteur);
+    }
+
+    /**
      * Centrée au-dessus de la sélection, sous elle si la place
      * manque — l'ancre de la barre de sélection.
      *

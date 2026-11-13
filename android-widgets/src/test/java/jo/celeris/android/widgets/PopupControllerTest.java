@@ -348,6 +348,31 @@ class PopupControllerTest {
                 "la complétion survit : la carte décrit, la saisie chassera");
     }
 
+    /** La notification (catégorie G de l'inventaire — la forme restait
+     *  à décider, la bulle éphémère l'emporte) vit le régime UNIQUE :
+     *  elle annonce, elle ne décrit pas le texte — la frappe et le
+     *  défilement l'épargnent, le tap hors cartes l'épargne aussi
+     *  (l'annonce vit son quart, le geste ne l'interrompt pas, la
+     *  queue du fil la referme) ; le voile modal la coupe — la feuille
+     *  la recouvre ; aucune exclusion : elle cohabite avec tout. */
+    @Test
+    void notificationVitLeRegimeUniqueDeLannonce() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        controleur.open(PopupController.PopupKind.NOTIFICATION);
+        controleur.onKeystroke();
+        controleur.onScroll();
+        controleur.surToucheHorsCartes();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.NOTIFICATION),
+                "l'annonce vit son quart — frappe, défilement et geste"
+                        + " extérieur ne l'interrompent pas");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la saisie poursuit sa vie, l'annonce ne chasse personne");
+        controleur.closeAll();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.NOTIFICATION),
+                "la queue du fil la referme, la couche suit");
+    }
+
     /** L'info de type (catégorie A de l'inventaire — le fil rouge du
      *  guide du développeur, la seconde surface réveillée) vit les
      *  régimes du survol : elle décrit, elle ne choisit pas — la
