@@ -65,6 +65,10 @@
     <string name="suppression_item">Masquer %1$s</string>
     <string name="suppression_aucune_inspection">Aucune inspection réglée à cette ligne</string>
     <string name="suppression_inspection_effectuee">%1$s masquée — le lint se relance</string>
+    <string name="action_executer">Exécuter le fichier (simulé)</string>
+    <string name="execution_echec_message">L\'exécution simulée échoue — la trace suit le plan du fichier</string>
+    <string name="execution_echouee">L\'exécution a échoué — les détails de l\'exception suivent</string>
+    <string name="execution_terminee">Exécution terminée — le fichier ne porte aucune méthode, rien à faire échouer</string>
     <string name="titre_correctif_import">Importer %1$s</string>
     <string name="titre_usages">%1$d usages de « %2$s »</string>
     <string name="barre_couper">Couper</string>

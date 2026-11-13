@@ -93,6 +93,10 @@ final class AtelierPopups {
     /** L'atelier de masquage d'inspection — la règle de la ligne se
      *  masque, le lint l'honore (catégorie B, la marque naît). */
     private final AtelierSuppression atelierSuppression;
+    /** L'atelier d'exécution et d'exception — l'échec simulé porte la
+     *  trace du fichier, la carte des détails se pose (catégorie E,
+     *  l'analyseur de piles se réveille). */
+    private final AtelierException atelierException;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -153,8 +157,7 @@ final class AtelierPopups {
         this.couche = couche;
         this.theme = theme;
         this.tailleTexteSp = tailleTexteSp;
-        this.margePx = Math.round(MARGE_DP
-                * couche.getResources().getDisplayMetrics().density);
+        this.margePx = Math.round(MARGE_DP * couche.getResources().getDisplayMetrics().density);
         PopupController controleur = new PopupController();
         popups = new PopupManager(controleur, couche);
         PopupPalette palette = paletteDe(theme, tailleTexteSp);
@@ -174,8 +177,7 @@ final class AtelierPopups {
         popups.lier(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP, infoBulle);
         popups.lier(PopupController.PopupKind.BREADCRUMB, filAriane);
         popups.lier(PopupController.PopupKind.SELECTION_BAR, barreSelection);
-        // la section du débordement : le « MORE » du dépôt de départ,
-        // traduit par la démonstration
+        // la section du débordement : le « MORE » du dépôt de départ
         menuDebordement = new MenuDebordement(popups, palette, margePx,
                 couche.getContext().getString(R.string.menu_plus));
         atelierCouleur = new AtelierCouleur(editeur, session, popups, margePx, palette);
@@ -192,6 +194,8 @@ final class AtelierPopups {
         atelierSuppression = new AtelierSuppression(editeur, session, popups,
                 margePx, palette, () -> diagnostics, () -> nomDuFichier,
                 relancerLint, this::annoncer);
+        atelierException = new AtelierException(editeur, session, popups,
+                margePx, palette, () -> plan, () -> nomDuFichier, this::annoncer);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette);
         bordDroit = new AtelierBordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
         repositionnements = tableDesRepositionnements();
@@ -214,6 +218,8 @@ final class AtelierPopups {
                         atelierSurete::repositionner),
                 new Repositionnement(PopupController.PopupKind.SUPPRESS_INSPECTION,
                         atelierSuppression::repositionner),
+                new Repositionnement(PopupController.PopupKind.EXCEPTION_DETAILS,
+                        atelierException::repositionner),
                 new Repositionnement(PopupController.PopupKind.BREADCRUMB,
                         this::rafraichirFilAriane),
                 new Repositionnement(PopupController.PopupKind.ERROR_BAND,
@@ -226,7 +232,8 @@ final class AtelierPopups {
 
     /** Les écouteurs de la scène — la carte choisie, la barre qui
      *  déborde, le survol demandé, l'édition et la sélection qui
-     *  suivent, la fenêtre qui défile. */
+     *  suivent, la fenêtre qui défile (le défilement referme les
+     *  cartes qui cèdent, repositionne les autres). */
     private void brancherEcouteurs() {
         listeCompletion.setOnPick(this::choisirCompletion);
         barreSelection.setOnOverflow(
@@ -235,7 +242,10 @@ final class AtelierPopups {
         barreSelection.setOnDocs(this::ouvrirSurvol);
         session.addEditListener((debut, fin, retire, insere) -> surEdition());
         session.addSelectionListener(this::surSelection);
-        editeur.setSurViewportChange(this::surFenetre);
+        editeur.setSurViewportChange(() -> {
+            popups.surDefilement();
+            repositionnerTout();
+        });
     }
 
     /** Le thème tourne : la palette se redérive — le verre suit. */
@@ -269,6 +279,7 @@ final class AtelierPopups {
         atelierGabarits.surPalette(palette);
         atelierSurete.surPalette(palette);
         atelierSuppression.surPalette(palette);
+        atelierException.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -390,6 +401,13 @@ final class AtelierPopups {
      *  (catégorie B, la marque naît). */
     void ouvrirSuppressionInspection() {
         atelierSuppression.ouvrir();
+    }
+
+    /** Exécute le fichier ouvert — le lancement naît, l'échec simulé
+     *  porte la trace du document réel, la carte des détails se pose
+     *  (catégorie E, l'analyseur de piles se réveille). */
+    void executerFichier() {
+        atelierException.executer();
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */
@@ -586,11 +604,6 @@ final class AtelierPopups {
         if (popups.estOuvert(PopupController.PopupKind.SIGNATURE_HELP)) {
             rafraichirSignature();
         }
-    }
-
-    private void surFenetre() {
-        popups.surDefilement();
-        repositionnerTout();
     }
 
     private void rafraichirBarreSelection() {

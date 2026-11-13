@@ -591,4 +591,36 @@ class PopupControllerTest {
                 controleur.surToucheHorsCartes(),
                 "le geste extérieur referme la carte d'actions");
     }
+
+    /** Les détails d'exception (catégorie E de l'inventaire — la
+     *  surface dormait, la trace se réveille) vivent le régime de la
+     *  CONSULTATION : la frappe ne la chasse pas, le défilement la
+     *  REPOSITIONNE chez l'hôte, le tap hors cartes la referme,
+     *  l'échappement aussi — aucune exclusion : une trace ne chasse
+     *  personne. */
+    @Test
+    void exceptionDetailsSeConsultentSansCederALaFrappe() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.open(PopupController.PopupKind.EXCEPTION_DETAILS),
+                "la carte des détails ouvre sur la complétion ouverte");
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.EXCEPTION_DETAILS),
+                "la frappe ne chasse pas la consultation de la trace");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.EXCEPTION_DETAILS),
+                "le défilement la repositionne, il ne la ferme pas");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion poursuit sa vie");
+        assertEquals(
+                java.util.EnumSet.of(
+                        PopupController.PopupKind.EXCEPTION_DETAILS),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la consultation");
+        controleur.open(PopupController.PopupKind.EXCEPTION_DETAILS);
+        controleur.close(PopupController.PopupKind.EXCEPTION_DETAILS);
+        assertFalse(controleur.isOpen(
+                        PopupController.PopupKind.EXCEPTION_DETAILS),
+                "la fermeture sur demande reste franche");
+    }
 }

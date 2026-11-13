@@ -57,7 +57,8 @@ public final class PopupManager {
             PopupController.PopupKind.HIERARCHY,
             PopupController.PopupKind.SAFE_DELETE,
             PopupController.PopupKind.SAFE_MOVE,
-            PopupController.PopupKind.SUPPRESS_INSPECTION};
+            PopupController.PopupKind.SUPPRESS_INSPECTION,
+            PopupController.PopupKind.EXCEPTION_DETAILS};
 
     /** Ce qu'une feuille modale coupe : l'intelligence et les actions
      *  cèdent au voile — le fil d'Ariane et le chrome (bande, minimap,
@@ -91,7 +92,8 @@ public final class PopupManager {
             PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
             PopupController.PopupKind.COLOR_PICKER,
             PopupController.PopupKind.TYPE_INFO,
-            PopupController.PopupKind.EXTERNAL_DOC};
+            PopupController.PopupKind.EXTERNAL_DOC,
+            PopupController.PopupKind.EXCEPTION_DETAILS};
 
     private final PopupController controleur;
     private final PopupLayer couche;

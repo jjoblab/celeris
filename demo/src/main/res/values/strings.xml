@@ -65,6 +65,10 @@
     <string name="suppression_item">Suppress %1$s</string>
     <string name="suppression_aucune_inspection">No inspection with a rule at this line</string>
     <string name="suppression_inspection_effectuee">%1$s hidden — the lint reruns</string>
+    <string name="action_executer">Run file (simulated)</string>
+    <string name="execution_echec_message">The simulated run fails — the trace follows the outline of the file</string>
+    <string name="execution_echouee">Run failed — the exception details follow</string>
+    <string name="execution_terminee">Run finished — the file carries no method, nothing to fail</string>
     <string name="titre_correctif_import">Import %1$s</string>
     <string name="titre_usages">%1$d usages of « %2$s »</string>
     <string name="barre_couper">Cut</string>

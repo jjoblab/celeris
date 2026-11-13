@@ -15,9 +15,9 @@ import java.util.Set;
  * ferment à la frappe et au défilement ; la complétion FILTRE
  * localement à la frappe — elle reste ouverte, la requête ne repart
  * pas ; la barre de recherche ne se ferme que sur demande. Les genres
- * (M7.5, reprise — vingt-cinq depuis la carte de masquage
- * d'inspection, la neuvième surface réveillée du signal « terminez le
- * reste ») : la documentation de complétion n'existe pas sans sa liste — fermer la
+ * (M7.5, reprise — vingt-six depuis la carte des détails d'exception,
+ * la dixième surface réveillée du signal « terminez le reste ») : la
+ * documentation de complétion n'existe pas sans sa liste — fermer la
  * liste ferme la documentation ; la barre de sélection cède à la frappe
  * (la frappe remplace la sélection) mais survit au défilement, et son
  * MENU DE DÉBORDEMENT ne survit jamais à sa barre — la barre fermée
@@ -206,7 +206,19 @@ public final class PopupController {
          *  d'actions, la complétion la chasse, la frappe seule et le
          *  défilement l'épargnent (elle se repositionne), le tap hors
          *  cartes la referme. */
-        SUPPRESS_INSPECTION
+        SUPPRESS_INSPECTION,
+
+        /** Les détails d'exception — la carte de l'échec d'exécution
+         *  (catégorie E de l'inventaire, « Exception Details », la
+         *  surface dormait : la trace se réveille, l'analyseur de
+         *  piles sert les cadres) : le type à l'encre d'erreur, le
+         *  message, la pile — le cadre CONNU du fichier ouvert se
+         *  prend et son saut court, l'étranger vit muet. Elle vit le
+         *  régime de la CONSULTATION — la frappe ne la chasse pas, le
+         *  défilement la REPOSITIONNE chez l'hôte, le tap hors cartes
+         *  la referme, l'échappement aussi ; aucune exclusion : la
+         *  trace ne chasse personne. */
+        EXCEPTION_DETAILS
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -469,7 +481,8 @@ public final class PopupController {
                 PopupKind.REFERENCES, PopupKind.TYPE_INFO,
                 PopupKind.HIERARCHY, PopupKind.EXTERNAL_DOC,
                 PopupKind.GABARITS, PopupKind.SAFE_DELETE,
-                PopupKind.SAFE_MOVE, PopupKind.SUPPRESS_INSPECTION);
+                PopupKind.SAFE_MOVE, PopupKind.SUPPRESS_INSPECTION,
+                PopupKind.EXCEPTION_DETAILS);
     }
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se

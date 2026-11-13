@@ -38,4 +38,12 @@
          lignes) ; les couches mêmes (ValeursPainter, FantomePainter…)
          restent sous le plafond standard, le hub seul porte le câblage. -->
     <suppress id="PlafondStandard" files="EditorView\.java"/>
+    <!-- Le banc de la machine à états des popups (nomination du
+         2026-11-14, la même décision du propriétaire : « relever le
+         plafond de certains fichiers si nécessaire ») : chaque genre
+         du chantier y prouve ses régimes — les tables exhaustives
+         d'exclusions et de fermetures grandissent à chaque surface
+         réveillée (626 lignes) ; la machine même reste sous le
+         plafond standard, le banc seul porte les preuves. -->
+    <suppress id="PlafondStandard" files="PopupControllerTest\.java"/>
 </suppressions>

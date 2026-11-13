@@ -115,6 +115,7 @@ final class CatalogueActions {
         actionsMenu.put(R.id.action_deplacer_dans, popups::ouvrirDeplacement);
         actionsMenu.put(R.id.action_masquer_inspection,
                 popups::ouvrirSuppressionInspection);
+        actionsMenu.put(R.id.action_executer, popups::executerFichier);
         actionsMenu.put(R.id.action_plan, activite::basculerPlan);
         actionsMenu.put(R.id.action_debogage, () -> {
             activite.etatDebogage.basculerPause();
@@ -178,6 +179,7 @@ final class CatalogueActions {
                 itemMenu(R.string.action_deplacer_dans, R.id.action_deplacer_dans),
                 itemMenu(R.string.action_masquer_inspection,
                         R.id.action_masquer_inspection),
+                itemMenu(R.string.action_executer, R.id.action_executer),
                 itemMenu(R.string.action_lint, R.id.action_lint),
                 itemMenu(R.string.action_gabarit, R.id.action_gabarit),
                 itemMenu(R.string.action_formater, R.id.action_formater),
@@ -202,54 +204,50 @@ final class CatalogueActions {
                 actionsMenu.get(id));
     }
 
-    /** Les intentions du menu : les actions de l'atelier au curseur. */
+    /** Les intentions du menu : les actions de l'atelier au
+     *  curseur — le libellé lu par la voie courte. */
     List<IntentionsMenuView.Item> intentions() {
         return List.of(
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_lint),
+                new IntentionsMenuView.Item(libelle(R.string.action_lint),
                         lint::analyser),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_apercu),
+                new IntentionsMenuView.Item(libelle(R.string.action_apercu),
                         () -> popups.docAncre().apercu(
                                 plan.get(), lignes.get())),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_usages),
+                new IntentionsMenuView.Item(libelle(R.string.action_usages),
                         popups::ouvrirUsages),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_type_info),
+                new IntentionsMenuView.Item(libelle(R.string.action_type_info),
                         popups::ouvrirTypeInfo),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_hierarchie),
+                new IntentionsMenuView.Item(libelle(R.string.action_hierarchie),
                         popups::ouvrirHierarchie),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_doc),
+                new IntentionsMenuView.Item(libelle(R.string.action_doc),
                         popups::ouvrirDocExterne),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_generer),
+                new IntentionsMenuView.Item(libelle(R.string.action_generer),
                         popups::ouvrirGabarits),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_supprimer_sur),
+                new IntentionsMenuView.Item(libelle(R.string.action_supprimer_sur),
                         popups::ouvrirSuppressionSure),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_deplacer_dans),
+                new IntentionsMenuView.Item(libelle(R.string.action_deplacer_dans),
                         popups::ouvrirDeplacement),
                 new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_masquer_inspection),
+                        libelle(R.string.action_masquer_inspection),
                         popups::ouvrirSuppressionInspection),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_diff),
+                new IntentionsMenuView.Item(libelle(R.string.action_executer),
+                        popups::executerFichier),
+                new IntentionsMenuView.Item(libelle(R.string.action_diff),
                         diff::ouvrir),
                 new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_apercu_correctif),
+                        libelle(R.string.action_apercu_correctif),
                         correctif::ouvrir),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_agent),
+                new IntentionsMenuView.Item(libelle(R.string.action_agent),
                         agent::ouvrir),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_ia_fantome),
+                new IntentionsMenuView.Item(libelle(R.string.action_ia_fantome),
                         () -> ia.demanderFantome()),
                 new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_ia_prediction),
+                        libelle(R.string.action_ia_prediction),
                         () -> ia.demanderPrediction()));
+    }
+
+    /** Le libellé de la chaîne — la voie courte des intentions. */
+    private String libelle(int ressource) {
+        return activite.getString(ressource);
     }
 }
