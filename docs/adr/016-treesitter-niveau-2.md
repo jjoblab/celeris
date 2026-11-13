@@ -1,6 +1,6 @@
 # ADR-016 — Analyse structurelle niveau 2 : tree-sitter écarté à M7.6
 
-- **Statut** : Proposition (spike exécuté le 2026-11-08 — les chiffres sont mesurés, la validation reste au propriétaire)
+- **Statut** : Accepté (2026-11-13 — le signal du propriétaire a ouvert H-09 : le natif reste écarté aux conditions mesurées, la structure niveau 2 se sert par les niveaux 1 et 3 ; spike exécuté le 2026-11-08, les chiffres sont mesurés)
 - **Date** : 2026-11-08
 - **Révise** : l'option B de l'ADR-004 (révision du 2026-11-08), restée ouverte par le prompt M7.6
 
@@ -109,6 +109,10 @@ pas un échec — c'est la réponse chiffrée que le spike devait donner.
 
 ## Actions
 
+- [x] H-09 (2026-11-13) : la structure niveau 2 se sert par les niveaux 1
+      et 3 — les guides d'indentation suivent les blocs de l'analyse
+      (`IndentGuidesTest`, `GuidesStructurelsTest`), la matrice ferme la
+      ligne (la grille entière est couverte).
 - [x] M7.6 niveaux 1 et 3 : moteur générique (plis, appariement,
       indentation, plan par données) et factorisation C-like — le
       jalon continue sans le natif. Livré à l'étape 6 : les plis par

@@ -219,7 +219,7 @@ le 2026-11-12), le reste du dépôt de départ (vingt-sept) dort sur la
 décision du propriétaire (chantier C5).
 
 **Post-scriptum (2026-11-13)** : cinq des six se couvrent — B-18
-(`ApercuCorrectifTest` et la spécification rejouée au banc de la
+(`PatchPreviewTest` et la spécification rejouée au banc de la
 démo : l'aperçu du correctif se voit avant l'acceptation), A-26
 (`FichiersBinairesTest` : détection sur les octets bruts, aperçu
 hexadécimal plafonné, refus d'édition destructrice), C-13
@@ -230,6 +230,22 @@ modificateurs servie au survol, par le fil du protocole) et B-12
 sur corpus). Reste H-09, le chantier de fond — « à ne commencer que
 sur signal », la recommandation 2 le dit. La grille compte alors
 124 lignes couvertes sur 125, aucune P0 ni P1 ouverte.
+
+
+**Post-scriptum 2 (2026-11-13, le soir — le signal venu)** : H-09 se
+ferme. Le natif reste écarté : les mesures du spike tiennent (ADR-016 —
+incrémental 9,6–44,5 ms de p50 contre le budget de 10 ms, arbres
+26–31× le texte contre 3×) et l'ADR le dit avec ses chiffres ; la
+structure niveau 2 se sert par les niveaux 1 et 3 — les guides
+verticaux d'indentation suivent désormais les BLOCS de l'analyse
+(A-17 relue) : la ligne qui porte l'accolade ouvrante donne SA colonne
+au trait, le trait part de la ligne APRÈS l'ouvrante et meurt à la
+ligne AVANT la fermante, les lignes vides du corps se joignent à lui —
+un seul segment continu par bloc, une accolade dans une chaîne ou un
+commentaire n'ouvre rien, la table se remappe à l'édition comme les
+plis (`IndentGuidesTest`, `GuidesStructurelsTest`). La grille, recomptée à sa porte, tient 126 lignes — toutes couvertes
+(Câblé 72, Démontré 15, Noyau 39) : aucune ouverte ; le compte de 125
+des comptes précédents datait d'avant la ligne D-23.
 
 ---
 
@@ -368,3 +384,15 @@ jouée sur une copie, l'acceptation annulable, B-18) ; `a1536c4`
 aperçu hexadécimal plafonné, écriture textuelle refusée, A-26).
 124 lignes couvertes sur 125 : seule H-09 (tree-sitter natif
 niveau 2) reste ouverte, « à ne commencer que sur signal ».
+
+
+Les livraisons du soir (2026-11-13, le signal du propriétaire a ouvert
+le chantier de fond) : `f05cea0` (les identifiants de la reprise repassent à
+l'anglais — le rempart de langue tient, la ligne de base descend, la
+porte verte de la démonstration reprend : nomination ADR-019 du banc
+`BancSpecs`, plafonds de `EditorActivity` tenus, exemption du genre
+markdown du protocole au survol des modificateurs) ; `0942f23` (les guides
+verticaux suivent les blocs — l'accolade ouvre à sa colonne, la
+fermante ferme, les lignes vides se joignent au trait ; la structure
+niveau 2 se sert par les niveaux 1 et 3, H-09 fermée). La grille, recomptée à sa porte, tient alors 126
+lignes, toutes couvertes.
