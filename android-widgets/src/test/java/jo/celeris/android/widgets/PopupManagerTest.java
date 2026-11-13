@@ -361,4 +361,26 @@ public class PopupManagerTest {
         assertFalse("l'avis coupé ne referme plus rien",
                 popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
     }
+    /** La notification (2026-11-14) : carte éphémère jamais
+     *  interactive — l'échappement la referme quand aucune carte
+     *  interactive ne tient, la feuille modale l'emporte. */
+    @Test
+    public void laNotificationCedeALEchappementEtAuVoile() {
+        PopupManager popups = manager();
+        PanneauEssai carte = panneau();
+        popups.lier(PopupController.PopupKind.NOTIFICATION, carte);
+        popups.montrer(PopupController.PopupKind.NOTIFICATION, 10, 10);
+        assertTrue("la notification posée vit ouverte",
+                popups.estOuvert(PopupController.PopupKind.NOTIFICATION));
+        assertTrue("l'échappement la referme",
+                popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        assertFalse("refermée par l'échappement",
+                popups.estOuvert(PopupController.PopupKind.NOTIFICATION));
+        popups.montrer(PopupController.PopupKind.NOTIFICATION, 10, 10);
+        assertTrue("la feuille modale l'emporte",
+                popups.fermerSousVoile().contains(
+                        PopupController.PopupKind.NOTIFICATION));
+        assertFalse("refermée sous le voile",
+                popups.estOuvert(PopupController.PopupKind.NOTIFICATION));
+    }
 }

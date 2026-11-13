@@ -86,6 +86,7 @@ public final class PopupsEditeur {
     private final SelecteurCouleur selecteurCouleur;
     /** Le fil d'Ariane — le chemin du plan qui englobe le curseur. */
     private final FilAriane filAriane;
+    private final Notifications notifications;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -159,6 +160,7 @@ public final class PopupsEditeur {
         selecteurCouleur = new SelecteurCouleur(editeur, session, popups,
                 margePx, palette);
         filAriane = new FilAriane(popups, session, margePx, palette);
+        notifications = new Notifications(popups, margePx, palette);
         docAncre = new DocAncre(couche.getContext(), popups, editeur,
                 session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx,
@@ -197,6 +199,7 @@ public final class PopupsEditeur {
         barreSelection.setPalette(palette);
         selecteurCouleur.surPalette(palette);
         filAriane.surPalette(palette);
+        notifications.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -564,6 +567,12 @@ public final class PopupsEditeur {
         }
     }
 
+    /** Publie une notification au coin bas-droit — l'horloge la referme
+     *  seule (4 000 ms) ; ce qui ne touche pas le texte s'y montre. */
+    public void notifier(String titre, String message) {
+        notifications.notifier(titre, message);
+    }
+
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors
      *  cartes se coupe, les liens se dissolvent — la scène peut recycler. */
     public void detacher() {
@@ -587,10 +596,5 @@ public final class PopupsEditeur {
     private int caret() {
         List<SelRange> plages = session.selection().ranges();
         return plages.isEmpty() ? 0 : plages.get(0).caret();
-    }
-
-    /** La machine à états courante — les bancs de l'hôte y lisent. */
-    public PopupController controleur() {
-        return popups.controleur();
     }
 }

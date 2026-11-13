@@ -249,4 +249,30 @@ class PopupControllerTest {
         assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_DOC),
                 "la documentation suit sa liste, pas le doigt");
     }
+    /** La notification (2026-11-14) : carte éphémère du coin
+     *  bas-droit — ni la frappe ni le défilement ne la ferment (le
+     *  texte ne la regarde pas), le tap hors cartes la chasse, le
+     *  décollage d'une feuille modale l'emporte. */
+    @Test
+    void notificationSparesTypingAndScrollButYieldsToTapAndVeil() {
+        PopupController controleur = new PopupController();
+        assertTrue(controleur.open(PopupController.PopupKind.NOTIFICATION),
+                "l'hôte publie sa notification");
+        assertFalse(controleur.onKeystroke().contains(
+                        PopupController.PopupKind.NOTIFICATION),
+                "la frappe ne la referme pas");
+        assertFalse(controleur.onScroll().contains(
+                        PopupController.PopupKind.NOTIFICATION),
+                "le défilement ne la referme pas");
+        assertTrue(controleur.surToucheHorsCartes().contains(
+                        PopupController.PopupKind.NOTIFICATION),
+                "le geste extérieur la chasse");
+        assertFalse(controleur.isOpen(
+                PopupController.PopupKind.NOTIFICATION));
+        assertTrue(controleur.open(PopupController.PopupKind.NOTIFICATION),
+                "l'hôte republie");
+        assertTrue(controleur.closeAll().contains(
+                        PopupController.PopupKind.NOTIFICATION),
+                "la feuille modale qui s'ouvre l'emporte");
+    }
 }

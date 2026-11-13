@@ -117,6 +117,29 @@ public final class PopupAnchor {
     }
 
     /**
+     * Le coin bas-droit de la couche — l'ancre de la notification
+     * (2026-11-14) : la carte éphémère s'y pose comme un avis de la
+     * scène, jamais au-dessus du texte, bornée aux murs.
+     *
+     * @param popup    la taille du popup
+     * @param layerWidth  la largeur de la couche
+     * @param layerHeight la hauteur de la couche
+     * @param margin   la respiration aux bords, en pixels
+     * @return le cadre borné du popup
+     */
+    public static PopupPlacer.Cadre bottomRightCorner(PopupPlacer.Cadre popup,
+            int layerWidth, int layerHeight, int margin) {
+        // la taille se borne AUX MURS d'abord, la position suit — la
+        // carte trop grande ne dépasse jamais le bas ni la droite
+        int largeur = Math.min(popup.largeur(), layerWidth - 2 * margin);
+        int hauteur = Math.min(popup.hauteur(), layerHeight - 2 * margin);
+        return new PopupPlacer.Cadre(
+                Math.max(margin, layerWidth - largeur - margin),
+                Math.max(margin, layerHeight - hauteur - margin),
+                largeur, hauteur);
+    }
+
+    /**
      * Centrée au-dessus de la sélection, sous elle si la place
      * manque — l'ancre de la barre de sélection.
      *

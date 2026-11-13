@@ -155,7 +155,7 @@ tous [1] : purs, testés, sans vue.
 | Barre de sélection | `SelectionBarView` + `MenuDebordement` | pilule + carte | implémenté |
 | Color Picker | `ColorPickerView` | popup flottante | implémenté |
 | Rendu `@Preview` | `DocAncre.renduPreview` | carte au coin gouttière | implémenté |
-| Notifications | — | — | manquant |
+| Notifications | `NotificationView` + genre `NOTIFICATION` | carte éphémère au coin bas-droit | implémenté (2026-11-14) |
 | Loupe | `Loupe` | bulle in-canvas | implémenté (hors couche) |
 | Fantôme IA | `FantomeEditeur` | inlay éphémère in-canvas | implémenté (hors couche) |
 | Minimap / Fast scroll / Bande d'erreurs | `MinimapView`/`FastScrollerView`/`ErrorBandView` | chrome bord droit | implémenté (chrome, pas cartes) |
@@ -173,8 +173,9 @@ tous [1] : purs, testés, sans vue.
   correctifs + IA/agent + `@Preview`.
 - Manquants prioritaires (au sens « la donnée existe, la surface manque ») :
   navigation clavier des popups ; fermeture au clic extérieur ;
-  usages/references ; hiérarchies ; valeurs de débogage ; notifications ;
-  recherche de symbole/fichier.
+  usages/references ; hiérarchies ; valeurs de débogage ;
+  recherche de symbole/fichier — la notification vit depuis le
+  2026-11-14.
 - Aucun doublon de MOTEUR réel : les trois voies de complétion
   (`CompletionMots`, `PopupCoach.completionFor`, capacité `Completion` de
   `core-language`) vivent à des étages différents (production, repli de

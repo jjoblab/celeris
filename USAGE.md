@@ -496,7 +496,10 @@ popups.detacher();
   déclenchements à brancher; le survol au « i » et l'ouverture du
   menu d'intentions passent par les actions de la barre et du menu.
 
-L'orchestrateur expose aussi `popups.docAncre()` (l'aperçu de
+L'orchestrateur publie aussi `popups.notifier(titre, message)`
+(la carte éphémère du coin bas-droit — l'horloge la referme seule,
+4 000 ms, jamais à la frappe ni au défilement : ce qui ne touche pas
+le texte s'y montre), et expose `popups.docAncre()` (l'aperçu de
 définition et le rendu `@Preview`), `popups.ouvrirRecherche()` /
 `fermerRecherche()` (l'état de la barre — le champ reste chez l'hôte),
 `popups.fermerSousVoile()` (l'ouverture d'une feuille coupe
@@ -583,8 +586,8 @@ le plan, les rappels contextuels compris, construites avec votre
 `PopupPalette` ; la démonstration dérive la sienne du thème et de la
 taille de texte.
 
-Les genres du contrôleur (`PopupKind`) — seize depuis le chantier
-d'unification — couvrent les surfaces de l'éditeur : complétion et
+Les genres du contrôleur (`PopupKind`) — dix-sept depuis la
+notification (2026-11-14) — couvrent les surfaces de l'éditeur : complétion et
 sa documentation, menu d'intentions, aide aux paramètres, survol,
 info-bulle de diagnostic, fil d'Ariane, recherche, barre de
 sélection et son débordement, bande d'erreurs, minimap, pouce de

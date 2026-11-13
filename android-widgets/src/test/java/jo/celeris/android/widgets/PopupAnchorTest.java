@@ -102,4 +102,23 @@ class PopupAnchorTest {
         assertTrue(haut.y() >= MARGE && haut.y() + haut.hauteur() <= HAUTEUR,
                 "jamais hors couche, même en haut");
     }
+    /** Le coin bas-droit — l'ancre de la notification (2026-11-14) :
+     *  posée en bas à droite, respirée, bornée aux murs si trop grande. */
+    @Test
+    void notificationHoldsTheBottomRightCorner() {
+        PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 300, 120);
+        PopupPlacer.Cadre coin = PopupAnchor.bottomRightCorner(
+                popup, LARGEUR, HAUTEUR, MARGE);
+        assertEquals(LARGEUR - MARGE - 300, coin.x(), "posée à droite");
+        assertEquals(HAUTEUR - MARGE - 120, coin.y(), "posée en bas");
+        PopupPlacer.Cadre grande = new PopupPlacer.Cadre(0, 0, 2000, 2000);
+        PopupPlacer.Cadre borne = PopupAnchor.bottomRightCorner(
+                grande, LARGEUR, HAUTEUR, MARGE);
+        assertEquals(MARGE, borne.x(), "trop grande : au mur gauche");
+        assertEquals(MARGE, borne.y(), "trop grande : au mur haut");
+        assertEquals(LARGEUR - 2 * MARGE, borne.largeur(),
+                "la largeur bornée aux murs");
+        assertEquals(HAUTEUR - 2 * MARGE, borne.hauteur(),
+                "la hauteur bornée aux murs");
+    }
 }

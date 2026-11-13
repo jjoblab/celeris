@@ -59,15 +59,18 @@ public final class PopupManager {
             PopupController.PopupKind.INTENTIONS_MENU,
             PopupController.PopupKind.TOOLBAR_OVERFLOW,
             PopupController.PopupKind.SELECTION_OVERFLOW,
-            PopupController.PopupKind.SELECTION_BAR};
+            PopupController.PopupKind.SELECTION_BAR,
+            PopupController.PopupKind.NOTIFICATION};
 
     /** Ce que l'échappement referme quand aucune carte interactive ne
-     *  tient — les bulles qui suivent le contexte, pas le chrome. */
+     *  tient — les bulles qui suivent le contexte et la notification
+     *  éphémère, pas le chrome. */
     private static final PopupController.PopupKind[] EPHEMERES = {
             PopupController.PopupKind.SIGNATURE_HELP,
             PopupController.PopupKind.HOVER,
             PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
-            PopupController.PopupKind.COLOR_PICKER};
+            PopupController.PopupKind.COLOR_PICKER,
+            PopupController.PopupKind.NOTIFICATION};
 
     private final PopupController controleur;
     private final PopupLayer couche;

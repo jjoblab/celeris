@@ -14,7 +14,7 @@ chrome (minimap, fil d'Ariane, bande d'erreurs, défilement rapide).
 | Coordonnées | `jo.celeris:android-widgets:1.1.0` (AAR de la variante release, sources, Javadoc, SBOM, sommes — depuis le 2026-11-11) |
 | Manifeste d'API | pas de manifeste (ADR-009 couvre les modules purs) — l'API publique vit dans `src/main/java` |
 | Dépendances | `core-intelligence` |
-| Bancs | 30 bancs, 187 méthodes `@Test` (relevé du 2026-11-14) — Robolectric sur JVM (ADR-013) |
+| Bancs | 31 bancs, 193 méthodes `@Test` (relevé du 2026-11-14) — Robolectric sur JVM (ADR-013) |
 
 ## Ce qu'il porte
 
@@ -28,7 +28,9 @@ chrome (minimap, fil d'Ariane, bande d'erreurs, défilement rapide).
   aide aux paramètres riche (`SignatureHelpView`, `SignatureAideModel`
   — stepper, fenêtre ±1, peek, chantier C7), diagnostic
   (`DiagnosticTooltipView`), intentions (`IntentionsMenuView`), aperçu
-  de définition (`ApercuDefinition`).
+  de définition (`ApercuDefinition`), notification
+  (`NotificationView` : carte éphémère du coin bas-droit, horloge
+  4 000 ms, `PopupAnchor.bottomRightCorner`).
 - **Les barres** — recherche (`SearchBarModel`), plan
   (`OutlineView`, `OutlineModel`, `OutlinePainter`), fil d'Ariane
   (`BreadcrumbModel`, `BreadcrumbView`), sélection

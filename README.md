@@ -116,6 +116,7 @@ voile : le manager tient l'état ET les cartes d'un seul tenant).
 | Pouce de défilement rapide | `FAST_SCROLLER` | le doigt au bord droit | fenêtre du document |
 | Barre de touches de code | `TOUCH_BAR` | posée par l'hôte | hôte |
 | Sélecteur de couleur | `COLOR_PICKER` | double-tap d'un littéral | littéral survolé |
+| Notification | `NOTIFICATION` | demande de l'hôte, horloge 4 s | hôte |
 | Débordement de la barre d'application | `TOOLBAR_OVERFLOW` | puce de la toolbar | hôte |
 
 Les surfaces denses — recherche, plan, réglages, diff, correctifs,

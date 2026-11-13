@@ -14,7 +14,7 @@ import java.util.Set;
  * ferment à la frappe et au défilement ; la complétion FILTRE
  * localement à la frappe — elle reste ouverte, la requête ne repart
  * pas ; la barre de recherche ne se ferme que sur demande. Les genres
- * (M7.5, reprise — seize depuis le chantier d'unification) : la
+ * (M7.5, reprise — dix-sept depuis la notification, 2026-11-14) : la
  * documentation de complétion n'existe pas sans sa liste — fermer la
  * liste ferme la documentation ; la barre de sélection cède à la frappe
  * (la frappe remplace la sélection) mais survit au défilement, et son
@@ -99,7 +99,15 @@ public final class PopupController {
          *  complétion et le menu du caret, eux la ferment), la frappe la
          *  ferme, le défilement l'épargne — l'ancre ne suit pas le
          *  texte, le tap hors cartes la referme. */
-        TOOLBAR_OVERFLOW
+        TOOLBAR_OVERFLOW,
+
+        /** La notification de l'hôte (le 2026-11-14) : une carte
+         *  éphémère au coin bas-droit de la scène — l'hôte y publie ce
+         *  qui ne touche pas le texte (sauvegarde, serveur, agent).
+         *  Ni la frappe ni le défilement ne la ferment (le texte ne la
+         *  regarde pas), le tap hors cartes la chasse, l'horloge
+         *  (4 000 ms) la referme seule, la feuille modale l'emporte. */
+        NOTIFICATION
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -254,7 +262,8 @@ public final class PopupController {
      * Le tap HORS CARTES (le chantier d'unification, phase 5 de la
      * mission) : les cartes d'actions et les bulles éphémères cèdent —
      * le survol, l'info-bulle, le sélecteur de couleur, le menu
-     * d'intentions et les débordements ; la complétion, la signature,
+     * d'intentions, les débordements et la notification (l'utilisateur
+     * la chasse d'un geste) ; la complétion, la signature,
      * le fil d'Ariane et le chrome suivent le curseur ou le document,
      * ils ne cèdent pas au geste qui déplace le curseur.
      *
@@ -263,7 +272,8 @@ public final class PopupController {
     public Set<PopupKind> surToucheHorsCartes() {
         return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.COLOR_PICKER, PopupKind.INTENTIONS_MENU,
-                PopupKind.SELECTION_OVERFLOW, PopupKind.TOOLBAR_OVERFLOW);
+                PopupKind.SELECTION_OVERFLOW, PopupKind.TOOLBAR_OVERFLOW,
+                PopupKind.NOTIFICATION);
     }
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se
