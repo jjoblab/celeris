@@ -56,7 +56,7 @@ tranchés à l'analyse (§4), jamais à la suppression.
 | `laPageEtendueSertLaCompletion` | PAGE_UP/PAGE_DOWN sautent la surbrillance d'une page de huit candidats (bornée aux murs de la liste) ; le menu décline, la touche retourne à l'éditeur — le pas étendu du signal |
 | `leClavierDelegueSertLesUsages` | la carte des usages reçoit la délégation (flèches, Enter — la page décline) ; son ouverture chasse le menu du caret, sa carte quitte la couche |
 
-### 2.2 `PopupControllerTest` — la machine (22 — dont 3 nés à `b6fa94b`, 5 à `38d315c`, 5 au signal du 2026-11-13 et 7 au feu vert du soir du 2026-11-13)
+### 2.2 `PopupControllerTest` — la machine (24 — les 19 des passes précédentes et 5 au feu vert du soir du 2026-11-13)
 
 Les 5 historiques (exclusions, cascades, régimes) restent VERTS sans
 modification de leurs attentes ; les bancs nouveaux couvrent : les rendus
