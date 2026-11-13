@@ -23,7 +23,10 @@ import org.jspecify.annotations.Nullable;
  * retour à la ligne — chaque ligne garde une rangée entière.</p>
  *
  * <p>La projection lit le modèle de plis en direct : plier ou déplier
- * prend effet à la conversion suivante, sans reconstruction. Les
+ * prend effet à la conversion suivante, sans reconstruction. Les plis
+ * IMBRIQUÉS se lisent FONDUS (le modèle sert l'union de ses plages —
+ * une ligne cachée par un parent et son enfant ne se compte qu'une
+ * fois, le dépliage du parent rend l'en-tête de l'enfant). Les
  * conversions n'allouent rien (PIEGE-15) : elles vivent dans la boucle
  * de dessin. Les sommes préfixées de rangées par ligne se bâtissent à la
  * construction — hors du chemin de dessin, en un passage sur les
@@ -79,8 +82,9 @@ public final class VisualProjection {
     /** Le nombre de rangées visibles : rangées des lignes moins celles des cachées. */
     public int rowCount() {
         int cachees = 0;
-        for (FoldModel.Pli pli : plis.plis()) {
-            cachees += rangneesCachees(pli);
+        int[] f = plis.plisFondus();
+        for (int i = 0; i < f.length; i += 2) {
+            cachees += rangneesCachees(f[i], f[i + 1]);
         }
         return rangneesAvantLigne[lineCount] - cachees;
     }
@@ -119,9 +123,10 @@ public final class VisualProjection {
      */
     public int rowOfLine(int line) {
         int cible = borneLigne(line);
-        for (FoldModel.Pli pli : plis.plis()) {
-            if (cible > pli.debut() && cible <= pli.fin()) {
-                cible = pli.debut();
+        int[] f = plis.plisFondus();
+        for (int i = 0; i < f.length; i += 2) {
+            if (cible > f[i] && cible <= f[i + 1]) {
+                cible = f[i];
                 break;
             }
         }
@@ -138,19 +143,22 @@ public final class VisualProjection {
         int borne = borneRangee(row);
         int cachees = 0;
         int debutRegion = 0;
-        for (FoldModel.Pli pli : plis.plis()) {
-            if (pli.debut() >= lineCount) {
+        int[] f = plis.plisFondus();
+        for (int i = 0; i < f.length; i += 2) {
+            int debut = f[i];
+            int fin = f[i + 1];
+            if (debut >= lineCount) {
                 break;
             }
-            int finBornee = Math.min(pli.fin(), lineCount - 1);
-            int rangeeEnTete = rangneesAvantLigne[pli.debut()] - cachees;
+            int finBornee = Math.min(fin, lineCount - 1);
+            int rangeeEnTete = rangneesAvantLigne[debut] - cachees;
             if (borne < rangeeEnTete) {
-                return chercheLigne(borne + cachees, debutRegion, pli.debut());
+                return chercheLigne(borne + cachees, debutRegion, debut);
             }
-            if (borne < rangeeEnTete + rangneesDeLigne(pli.debut())) {
-                return pli.debut();
+            if (borne < rangeeEnTete + rangneesDeLigne(debut)) {
+                return debut;
             }
-            cachees += rangneesCachees(pli);
+            cachees += rangneesCachees(debut, fin);
             debutRegion = finBornee + 1;
         }
         return chercheLigne(borne + cachees, debutRegion, lineCount);
@@ -166,18 +174,21 @@ public final class VisualProjection {
     public int lastLineOfRow(int row) {
         int borne = borneRangee(row);
         int cachees = 0;
-        for (FoldModel.Pli pli : plis.plis()) {
-            if (pli.debut() >= lineCount) {
+        int[] f = plis.plisFondus();
+        for (int i = 0; i < f.length; i += 2) {
+            int debut = f[i];
+            int fin = f[i + 1];
+            if (debut >= lineCount) {
                 break;
             }
-            int rangeeEnTete = rangneesAvantLigne[pli.debut()] - cachees;
-            if (borne < rangeeEnTete + rangneesDeLigne(pli.debut())) {
+            int rangeeEnTete = rangneesAvantLigne[debut] - cachees;
+            if (borne < rangeeEnTete + rangneesDeLigne(debut)) {
                 if (borne >= rangeeEnTete) {
-                    return Math.min(pli.fin(), lineCount - 1);
+                    return Math.min(fin, lineCount - 1);
                 }
-                return chercheLigne(borne + cachees, 0, pli.debut());
+                return chercheLigne(borne + cachees, 0, debut);
             }
-            cachees += rangneesCachees(pli);
+            cachees += rangneesCachees(debut, fin);
         }
         return chercheLigne(borne + cachees, 0, lineCount);
     }
@@ -241,24 +252,25 @@ public final class VisualProjection {
         return rangneesAvantLigne[line + 1] - rangneesAvantLigne[line];
     }
 
-    private int rangneesCachees(FoldModel.Pli pli) {
-        int finBornee = Math.min(pli.fin(), lineCount - 1);
-        if (finBornee <= pli.debut()) {
+    private int rangneesCachees(int debut, int fin) {
+        int finBornee = Math.min(fin, lineCount - 1);
+        if (finBornee <= debut) {
             return 0;
         }
         return rangneesAvantLigne[finBornee + 1]
-                - rangneesAvantLigne[pli.debut() + 1];
+                - rangneesAvantLigne[debut + 1];
     }
 
     private int rangneesCacheesAvant(int line) {
         int total = 0;
-        for (FoldModel.Pli pli : plis.plis()) {
-            int finBornee = Math.min(pli.fin(), lineCount - 1);
+        int[] f = plis.plisFondus();
+        for (int i = 0; i < f.length; i += 2) {
+            int finBornee = Math.min(f[i + 1], lineCount - 1);
             if (line > finBornee) {
-                total += rangneesCachees(pli);
-            } else if (line > pli.debut()) {
+                total += rangneesCachees(f[i], f[i + 1]);
+            } else if (line > f[i]) {
                 total += rangneesAvantLigne[line]
-                        - rangneesAvantLigne[pli.debut() + 1];
+                        - rangneesAvantLigne[f[i] + 1];
             }
         }
         return total;

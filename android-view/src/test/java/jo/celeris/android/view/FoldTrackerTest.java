@@ -206,4 +206,40 @@ class FoldTrackerTest {
         assertEquals(7, pli(suivi, 7).debut());
         assertEquals(9, pli(suivi, 7).fin(), "le pli au-dessous se décale de deux");
     }
+
+    /**
+     * Le redressement du 2026-11-13 : les plis IMBRIQUÉS survivent
+     * ensemble à l'édition — le parent et l'enfant se décalent du même
+     * différentiel, l'imbrication se garde au remappage.
+     */
+    @Test
+    void plisImbriquesSurviventALedition() {
+        FoldTracker suivi = new FoldTracker();
+        suivi.fold(1, 8);
+        suivi.fold(3, 5);
+        Document avant = Document.of("l0\nl1\nl2\nl3\nl4\nl5\nl6\nl7\nl8\nl9\nl10");
+        // insère une ligne avant le pli parent : tout se décale d'un
+        edite(suivi, avant, 3, 3, "", "nouvelle\n");
+        assertEquals(2, pli(suivi, 2).debut());
+        assertEquals(9, pli(suivi, 2).fin(), "le parent se décale d'un");
+        assertEquals(4, pli(suivi, 4).debut());
+        assertEquals(6, pli(suivi, 4).fin(), "l'enfant suit le parent, imbriqué");
+    }
+
+    /** L'édition DANS le corps de l'enfant épaissit l'enfant, le
+     *  parent suit la même épaisseur — l'imbrication se garde. */
+    @Test
+    void plisImbriquesEpaisEditionDansLenfant() {
+        FoldTracker suivi = new FoldTracker();
+        suivi.fold(1, 8);
+        suivi.fold(3, 5);
+        Document avant = Document.of("l0\nl1\nl2\nl3\nl4\nl5\nl6\nl7\nl8");
+        // deux lignes nouvelles dans le corps de l'enfant (ligne 4)
+        int debut = avant.lineStart(4);
+        edite(suivi, avant, debut + 1, debut + 1, "", "a\nb\n");
+        assertEquals(1, pli(suivi, 1).debut());
+        assertEquals(10, pli(suivi, 1).fin(), "le parent épaisse de deux");
+        assertEquals(3, pli(suivi, 3).debut());
+        assertEquals(7, pli(suivi, 3).fin(), "l'enfant épaisse de deux, imbriqué");
+    }
 }

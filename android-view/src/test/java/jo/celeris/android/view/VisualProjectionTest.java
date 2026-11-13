@@ -107,4 +107,42 @@ class VisualProjectionTest {
         assertEquals(10, projection.rowCount());
         assertEquals(9, projection.rowOfLine(9));
     }
+
+    /**
+     * Le redressement du 2026-11-13 : le parent replié par-dessus son
+     * enfant déjà replié — la ligne cachée par les DEUX ne se compte
+     * qu'une fois (la fonte du modèle sert l'union), le dépliage du
+     * parent rend l'enfant replié.
+     */
+    @Test
+    void pliParentImbriqueSurEnfantReplie() {
+        FoldModel plis = new FoldModel();
+        plis.fold(3, 5);
+        // l'enfant seul : 10 lignes - 2 cachées (4 et 5) = 8 rangées
+        VisualProjection projection = new VisualProjection(10, plis);
+        assertEquals(8, projection.rowCount());
+
+        // le parent par-dessus : 1..8 cache 2..8 tout entières —
+        // l'enfant est DANS cette plage, rien ne se compte double
+        plis.fold(1, 8);
+        assertEquals(3, projection.rowCount(),
+                "le parent absorbe la plage entière sans double compte");
+        assertEquals(1, projection.rowOfLine(2));
+        assertEquals(1, projection.rowOfLine(8));
+        assertEquals(1, projection.firstLineOfRow(1));
+        assertEquals(8, projection.lastLineOfRow(1));
+        assertEquals(9, projection.firstLineOfRow(2),
+                "la rangée 2 porte la ligne 9, dernière visible");
+        assertEquals(9, projection.lastLineOfRow(2));
+        assertEquals(2, projection.rowOfLine(9));
+
+        // le dépliage du parent rend l'enfant replié : 4 et 5 cachées
+        plis.unfold(1);
+        assertEquals(8, projection.rowCount(),
+                "l'enfant reparaît replié après le dépliage du parent");
+        assertEquals(2, projection.rowOfLine(2));
+        assertEquals(3, projection.rowOfLine(4));
+        assertEquals(3, projection.rowOfLine(5));
+        assertEquals(4, projection.rowOfLine(6));
+    }
 }

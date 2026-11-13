@@ -122,15 +122,20 @@ public final class FoldTracker {
 
     /**
      * Vrai quand la plage remappée se replie : croissante et sans
-     * chevauchement avec un pli déjà remappé — le monotonie du
-     * remappage le garantit d'ordinaire, la garde reste défensive.
+     * chevauchement CROISÉ avec un pli déjà remappé — l'imbrication
+     * s'y garde (le pli parent remappé contient l'enfant qui suit),
+     * la monotonie du remappage ordonne les réinscriptions, la garde
+     * reste défensive.
      */
     private boolean repliable(int debut, int fin) {
         if (fin <= debut) {
             return false;
         }
         for (FoldModel.Pli pli : modele.plis()) {
-            if (debut <= pli.fin() && pli.debut() <= fin) {
+            boolean chevauche = debut <= pli.fin() && pli.debut() <= fin;
+            boolean contient = pli.debut() <= debut && fin <= pli.fin();
+            boolean contenu = debut <= pli.debut() && pli.fin() <= fin;
+            if (chevauche && !contient && !contenu) {
                 return false;
             }
         }

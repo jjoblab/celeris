@@ -423,8 +423,10 @@ public final class EditorSyntax {
     /**
      * Bascule le pli porté par la ligne d'en-tête donnée : repliée, elle
      * se déplie ; pliable, elle se replie sur l'étendue de sa région —
-     * un pli voisin qui chevauche déjà bloque le repli, l'appui se
-     * consomme sans effet.
+     * le pli IMBRIQUÉ s'y garde (le parent d'un bloc déjà replié se
+     * replie PAR-DESSUS, l'enfant survit replié sous lui, le
+     * redressement du 2026-11-13) ; seul un pli voisin qui CROISE la
+     * région bloque le repli, l'appui se consomme sans effet.
      *
      * @param ligne la ligne d'en-tête visée
      * @return vrai quand la ligne porte une région pliable
@@ -440,7 +442,7 @@ public final class EditorSyntax {
         for (FoldSpan region : regionsPliables) {
             if (region.startLine() == ligne) {
                 if (region.endLine() > ligne
-                        && !chevaucheUnPli(ligne, region.endLine())) {
+                        && !croiseUnPli(ligne, region.endLine())) {
                     suiviPlis.fold(ligne, region.endLine());
                 }
                 return true;
@@ -449,10 +451,17 @@ public final class EditorSyntax {
         return true;
     }
 
-    /** Vrai quand la plage donnée chevauche un pli déjà replié. */
-    private boolean chevaucheUnPli(int debut, int fin) {
+    /**
+     * Vrai quand la plage donnée CROISE un pli déjà replié — elle le
+     * chevauche sans le contenir ni s'y contenir : l'imbrication passe,
+     * la traversée seule se refuse.
+     */
+    private boolean croiseUnPli(int debut, int fin) {
         for (FoldModel.Pli pli : plis.plis()) {
-            if (debut <= pli.fin() && pli.debut() <= fin) {
+            boolean chevauche = debut <= pli.fin() && pli.debut() <= fin;
+            boolean contient = pli.debut() <= debut && fin <= pli.fin();
+            boolean contenu = debut <= pli.debut() && pli.fin() <= fin;
+            if (chevauche && !contient && !contenu) {
                 return true;
             }
         }

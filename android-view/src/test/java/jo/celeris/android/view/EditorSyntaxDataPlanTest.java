@@ -1,6 +1,7 @@
 package jo.celeris.android.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -199,6 +200,43 @@ class EditorSyntaxDataPlanTest {
         assertTrue(syntaxe.basculerPli(4), "l'appui dans la coulisse consomme");
         assertTrue(plis.plis().stream().anyMatch(p -> p.debut() == 4 && p.fin() == 7),
                 "le bloc replié couvre les lignes 4-7 : " + plis.plis());
+        syntaxe.fermer();
+    }
+
+    /**
+     * Le redressement du 2026-11-13 (« si je plie le {} imbriqué, le {}
+     * parent ne veut pas plier ») : le bloc INTIME replié, le bloc
+     * PARENT se replie PAR-DESSUS — l'appui sur l'icône du parent
+     * consomme et replie, l'enfant survit replié sous lui, il
+     * reparaît replié au dépliage du parent.
+     */
+    @Test
+    void pliParentApresPliImbrique() {
+        FoldModel plis = new FoldModel();
+        EditorSyntax syntaxe = new EditorSyntax(plis, DIRECT);
+        TextSession session = TextSession.of(SOURCE, () -> 0L);
+        syntaxe.attacher(session);
+        syntaxe.setLanguage(supportEssai());
+
+        syntaxe.habiller(SOURCE_MUETTE, session.document());
+
+        // le bloc intime : le « if » de la définition, lignes 5-6
+        assertTrue(syntaxe.basculerPli(5), "l'appui du bloc intime consomme");
+        assertTrue(plis.plis().stream().anyMatch(p -> p.debut() == 5 && p.fin() == 6),
+                "le bloc intime replié : " + plis.plis());
+
+        // le parent par-dessus : AVANT le redressement, le garde
+        // chevaucheUnPli rejetait le repli du parent (l'appui se
+        // consommait sans effet) — le parent se replie maintenant
+        assertTrue(syntaxe.basculerPli(4), "l'appui du parent consomme");
+        assertTrue(plis.plis().stream().anyMatch(p -> p.debut() == 4 && p.fin() == 7),
+                "le parent replié par-dessus son enfant : " + plis.plis());
+        assertTrue(plis.isFolded(5), "l'enfant survit replié sous le parent");
+
+        // le dépliage du parent rend l'enfant replié
+        syntaxe.basculerPli(4);
+        assertFalse(plis.isFolded(4), "le parent se déplie");
+        assertTrue(plis.isFolded(5), "l'enfant reparaît replié");
         syntaxe.fermer();
     }
 }
