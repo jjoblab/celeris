@@ -74,6 +74,27 @@ public final class AnalyseurLint {
     }
 
     /**
+     * Le diagnostic du fichier donné porté par la ligne (à partir de
+     * un) — la matière de l'info-bulle au caret ; null quand aucun ne
+     * s'y porte.
+     *
+     * @param diagnostiques les diagnostics courants de l'hôte
+     * @param nomFichier    le nom du fichier ouvert
+     * @param ligne         la ligne cherchée, à partir de un
+     * @return le diagnostic porté, null sinon
+     */
+    public static @Nullable DiagnosticHote aLaLigne(
+            List<DiagnosticHote> diagnostiques, String nomFichier, int ligne) {
+        for (DiagnosticHote diagnostic : diagnostiques) {
+            if (diagnostic.ligne() == ligne
+                    && diagnostic.chemin().nom().equals(nomFichier)) {
+                return diagnostic;
+            }
+        }
+        return null;
+    }
+
+    /**
      * L'identifiant de règle porté par un message de lint, entre
      * crochets — « texte [IdRegle] » rend « IdRegle » ; sans crochets,
      * vide.

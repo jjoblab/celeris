@@ -474,4 +474,80 @@ class PopupControllerTest {
                 controleur.surToucheHorsCartes(),
                 "le geste extérieur referme la carte d'actions");
     }
+
+    /** La carte des usages qui barrent (catégorie D de l'inventaire —
+     *  le moteur B-23 servait les verdicts, la surface dormait) vit
+     *  les régimes de la carte des usages : famille des surfaces
+     *  d'actions (elle ferme les menus et la hiérarchie, eux la
+     *  ferment — la cible du déménagement comprise, une surface
+     *  d'actions à la fois), la frappe la ferme (la saisie remplace
+     *  son objet), le défilement la ferme (son ancre vit au
+     *  curseur), le tap hors cartes la referme — elle cohabite avec
+     *  la complétion (elle décrit, la saisie la chassera). */
+    @Test
+    void safeDeleteVitLesRegimesDeLaCarteDesUsages() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        controleur.open(PopupController.PopupKind.HIERARCHY);
+        assertTrue(controleur.open(PopupController.PopupKind.SAFE_DELETE),
+                "la carte des usages qui barrent ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.HIERARCHY),
+                "…et ferme la hiérarchie — une surface d'actions à la fois");
+        controleur.open(PopupController.PopupKind.SAFE_MOVE);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_DELETE),
+                "la carte des cibles ferme la carte des usages qui barrent");
+        controleur.open(PopupController.PopupKind.SAFE_DELETE);
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.isOpen(PopupController.PopupKind.SAFE_DELETE),
+                "la complétion cohabite : la carte décrit, la saisie chassera");
+        controleur.onKeystroke();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_DELETE),
+                "la saisie remplace l'objet décrit");
+        controleur.open(PopupController.PopupKind.SAFE_DELETE);
+        controleur.onScroll();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_DELETE),
+                "l'ancre vit au curseur, le défilement la chasse");
+        controleur.open(PopupController.PopupKind.SAFE_DELETE);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.SAFE_DELETE),
+                controleur.surToucheHorsCartes(),
+                "la carte d'actions cède au geste extérieur");
+    }
+
+    /** La carte des cibles du déménagement (catégorie D de
+     *  l'inventaire — le moteur B-23 servait les plans, la surface
+     *  dormait) vit les régimes du menu du caret : la complétion la
+     *  chasse (un menu ne survit pas à la liste), la frappe seule et
+     *  le défilement l'épargnent (elle se repositionne), le tap hors
+     *  cartes la referme — la famille des surfaces d'actions se
+     *  referme sur elle. */
+    @Test
+    void safeMoveVitLesRegimesDuMenuDuCaret() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        assertTrue(controleur.open(PopupController.PopupKind.SAFE_MOVE),
+                "la carte des cibles ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        controleur.open(PopupController.PopupKind.GABARITS);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_MOVE),
+                "la carte de gabarits ferme la carte des cibles");
+        controleur.open(PopupController.PopupKind.SAFE_MOVE);
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_MOVE),
+                "la complétion chasse le menu — la saisie prend le relais");
+        controleur.open(PopupController.PopupKind.SAFE_MOVE);
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.SAFE_MOVE),
+                "la frappe seule ne referme pas le menu du caret");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.SAFE_MOVE),
+                "le défilement le repositionne, il ne le ferme pas");
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.SAFE_MOVE),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la carte d'actions");
+    }
 }

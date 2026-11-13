@@ -51,6 +51,15 @@
     <string name="gabarits_equality">equals, hashCode and toString of %1$s</string>
     <string name="gabarits_entourer_try">Surround with try/catch</string>
     <string name="gabarits_entourer_if">Surround with if</string>
+    <string name="action_supprimer_sur">Safe delete declaration</string>
+    <string name="action_deplacer_dans">Move method into a class</string>
+    <string name="titre_suppression">%1$d usages block the deletion of « %2$s »</string>
+    <string name="suppression_aucune_declaration">Safe delete: no declaration at the caret</string>
+    <string name="suppression_effectuee">Deleted — one gesture undoes it</string>
+    <string name="section_deplacement">Move into</string>
+    <string name="deplacement_aucune_cible">Move: no target class in this file</string>
+    <string name="deplacement_refuse">Move refused — the safety conditions do not hold</string>
+    <string name="deplacement_effectue">Moved into « %1$s » — one gesture undoes it</string>
     <string name="titre_correctif_import">Import %1$s</string>
     <string name="titre_usages">%1$d usages of « %2$s »</string>
     <string name="barre_couper">Cut</string>

@@ -4,6 +4,7 @@ import android.graphics.Rect;
 
 import java.util.List;
 
+import jo.celeris.android.host.spi.AnalyseurLint;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.GraviteDiagnostic;
 import jo.celeris.android.view.EditorTheme;
@@ -87,6 +88,9 @@ final class AtelierPopups {
      *  génération de code au caret (catégorie D, les moteurs se
      *  réveillent). */
     private final AtelierGabarits atelierGabarits;
+    /** L'atelier de sûreté — la suppression sûre et le déplacement
+     *  d'une méthode (catégorie D, les moteurs B-23 se réveillent). */
+    private final AtelierSurete atelierSurete;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -179,6 +183,8 @@ final class AtelierPopups {
         atelierGabarits = new AtelierGabarits(editeur, session, popups,
                 margePx, palette, () -> plan, () -> nomDuFichier,
                 gabaritMethode);
+        atelierSurete = new AtelierSurete(editeur, session, popups, margePx,
+                palette, () -> plan, () -> nomDuFichier, this::annoncer);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette);
         bordDroit = new AtelierBordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
         repositionnements = tableDesRepositionnements();
@@ -197,6 +203,8 @@ final class AtelierPopups {
                         atelierDocExterne::repositionner),
                 new Repositionnement(PopupController.PopupKind.GABARITS,
                         atelierGabarits::repositionner),
+                new Repositionnement(PopupController.PopupKind.SAFE_MOVE,
+                        atelierSurete::repositionner),
                 new Repositionnement(PopupController.PopupKind.BREADCRUMB,
                         this::rafraichirFilAriane),
                 new Repositionnement(PopupController.PopupKind.ERROR_BAND,
@@ -250,6 +258,7 @@ final class AtelierPopups {
         atelierNotifications.surPalette(palette);
         atelierDocExterne.surPalette(palette);
         atelierGabarits.surPalette(palette);
+        atelierSurete.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -350,6 +359,20 @@ final class AtelierPopups {
      *  génération s'éveillent). */
     void ouvrirGabarits() {
         atelierGabarits.ouvrir();
+    }
+
+    /** La suppression sûre de la déclaration au curseur — le verdict
+     *  du moteur décide : les usages barrent s'affichent, la voie
+     *  libre efface (catégorie D, le moteur B-23 se réveille). */
+    void ouvrirSuppressionSure() {
+        atelierSurete.supprimerSur();
+    }
+
+    /** Le déplacement sûr de la méthode au curseur — les types
+     *  candidats se proposent, les conditions de sûreté décident
+     *  (catégorie D, le moteur B-23 se réveille). */
+    void ouvrirDeplacement() {
+        atelierSurete.deplacerDans();
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */
@@ -597,25 +620,23 @@ final class AtelierPopups {
             return;
         }
         int ligne = session.document().lineForOffset(plages.get(0).caret());
-        for (DiagnosticHote diagnostic : diagnostics) {
-            if (diagnostic.ligne() == ligne + 1
-                    && diagnostic.chemin().nom().equals(nomDuFichier)) {
-                popups.controleur().open(
-                        PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
-                infoBulle.setMessage(diagnostic.message(),
-                        diagnostic.gravite() == GraviteDiagnostic.ERREUR
-                                ? DiagnosticTooltipView.Severity.ERROR
-                                : DiagnosticTooltipView.Severity.WARNING);
-                Rect curseur = editeur.caretBounds();
-                PopupPlacer.Cadre placee = PopupAnchor.atPoint(
-                        curseur.left, curseur.top,
-                        popups.taille(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP),
-                        largeurCouche(), hauteurCouche(), margePx);
-                popups.montrer(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
-                        placee.x(), placee.y());
-                return;
-            }
+        DiagnosticHote diagnostic = AnalyseurLint.aLaLigne(diagnostics,
+                nomDuFichier, ligne + 1);
+        if (diagnostic == null) {
+            return;
         }
+        popups.controleur().open(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
+        infoBulle.setMessage(diagnostic.message(),
+                diagnostic.gravite() == GraviteDiagnostic.ERREUR
+                        ? DiagnosticTooltipView.Severity.ERROR
+                        : DiagnosticTooltipView.Severity.WARNING);
+        Rect curseur = editeur.caretBounds();
+        PopupPlacer.Cadre placee = PopupAnchor.atPoint(
+                curseur.left, curseur.top,
+                popups.taille(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP),
+                largeurCouche(), hauteurCouche(), margePx);
+        popups.montrer(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
+                placee.x(), placee.y());
     }
 
     private void placerCompletion() {

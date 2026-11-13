@@ -104,6 +104,8 @@ final class CatalogueActions {
         actionsMenu.put(R.id.action_aller, activite::basculerAller);
         actionsMenu.put(R.id.action_doc, popups::ouvrirDocExterne);
         actionsMenu.put(R.id.action_generer, popups::ouvrirGabarits);
+        actionsMenu.put(R.id.action_supprimer_sur, popups::ouvrirSuppressionSure);
+        actionsMenu.put(R.id.action_deplacer_dans, popups::ouvrirDeplacement);
         actionsMenu.put(R.id.action_plan, activite::basculerPlan);
         actionsMenu.put(R.id.action_debogage, () -> {
             activite.etatDebogage.basculerPause();
@@ -163,6 +165,8 @@ final class CatalogueActions {
                 itemMenu(R.string.action_aller, R.id.action_aller),
                 itemMenu(R.string.action_doc, R.id.action_doc),
                 itemMenu(R.string.action_generer, R.id.action_generer),
+                itemMenu(R.string.action_supprimer_sur, R.id.action_supprimer_sur),
+                itemMenu(R.string.action_deplacer_dans, R.id.action_deplacer_dans),
                 itemMenu(R.string.action_lint, R.id.action_lint),
                 itemMenu(R.string.action_gabarit, R.id.action_gabarit),
                 itemMenu(R.string.action_formater, R.id.action_formater),
@@ -212,6 +216,12 @@ final class CatalogueActions {
                 new IntentionsMenuView.Item(
                         activite.getString(R.string.action_generer),
                         popups::ouvrirGabarits),
+                new IntentionsMenuView.Item(
+                        activite.getString(R.string.action_supprimer_sur),
+                        popups::ouvrirSuppressionSure),
+                new IntentionsMenuView.Item(
+                        activite.getString(R.string.action_deplacer_dans),
+                        popups::ouvrirDeplacement),
                 new IntentionsMenuView.Item(
                         activite.getString(R.string.action_diff),
                         diff::ouvrir),
