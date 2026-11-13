@@ -134,6 +134,7 @@ final class AtelierPopups {
         barreSelection.setOnOverflow(
                 () -> menuDebordement.ouvrir(barreSelection,
                         debordementSelection));
+        barreSelection.setOnDocs(this::ouvrirSurvol);
         session.addEditListener((debut, fin, retire, insere) -> surEdition());
         session.addSelectionListener(this::surSelection);
         editeur.setSurViewportChange(this::surFenetre);

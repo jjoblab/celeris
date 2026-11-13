@@ -119,7 +119,7 @@ abstract class PopupPanel extends View {
     protected final void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         coins.set(0f, 0f, getWidth(), getHeight());
-        float rayon = rayonPx();
+        float rayon = rayonCartePx();
         cheminCarte.reset();
         cheminCarte.addRoundRect(coins, rayon, rayon, Path.Direction.CW);
         canvas.drawPath(cheminCarte, pinceauFond);
@@ -143,15 +143,20 @@ abstract class PopupPanel extends View {
     /** La hauteur de contenu mesurée, respirations EXCLUES. */
     abstract int contentHeight();
 
+    /**
+     * Le rayon de la carte — la valeur du kit par défaut, la capsule
+     * pour la barre de sélection (le dépôt de départ : la pilule prend
+     * le rayon de sa hauteur).
+     */
+    float rayonCartePx() {
+        return PopupTokens.RAYON_CARTE_DP * densite;
+    }
+
     @Override
     protected final void onMeasure(int widthSpec, int heightSpec) {
         int largeur = contentWidth() + 2 * paddingPx;
         int hauteur = contentHeight() + 2 * paddingYPx;
         setMeasuredDimension(resolveSize(largeur, widthSpec),
                 resolveSize(hauteur, heightSpec));
-    }
-
-    private float rayonPx() {
-        return PopupTokens.RAYON_CARTE_DP * densite;
     }
 }

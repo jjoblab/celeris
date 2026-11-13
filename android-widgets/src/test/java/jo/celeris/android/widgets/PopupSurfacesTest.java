@@ -66,7 +66,9 @@ public class PopupSurfacesTest {
                 vue.getMeasuredHeight() > 2 * vue.paddingYPx);
     }
 
-    /** La barre de sélection : l'appui sur une pastille l'exécute. */
+    /** La barre de sélection : l'appui sur une pastille l'exécute —
+     *  chaque libellé respire de 12 dp, 2 dp les séparent (le design
+     *  du dépôt de départ). */
     @Test
     public void selectionBarRunsTheChosenChip() {
         SelectionBarView vue = new SelectionBarView(contexte,
@@ -79,8 +81,10 @@ public class PopupSurfacesTest {
                 List.of());
         mesurer(vue);
         assertTrue("la barre se mesure", vue.getMeasuredWidth() > 0);
-        float xDeuxieme = vue.paddingPx
-                + vue.textPaint().measureText("Couper") + 5f;
+        // le cœur de la DEUXIÈME pastille : sa respiration comprise
+        float xDeuxieme = vue.paddingPx + 12f
+                + vue.textPaint().measureText("Couper") + 12f + 2f + 12f
+                + vue.textPaint().measureText("Copier") / 2f;
         float y = vue.centerY();
         vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
                 xDeuxieme, y, 0));
@@ -130,6 +134,46 @@ public class PopupSurfacesTest {
         vue.setActions(List.of(new SelectionBarView.Item("Couper", () -> { })),
                 List.of());
         return vue.aDebordement();
+    }
+
+    /** Le « i » de documentation du dépôt de départ : l'appui prévient
+     *  l'hôte — l'icône vit à droite du filet, au groupe icônes. */
+    @Test
+    public void selectionBarDocsIconServesTheHost() {
+        SelectionBarView vue = new SelectionBarView(contexte,
+                PopupPalette.dark());
+        AtomicInteger ouvert = new AtomicInteger(0);
+        vue.setActions(
+                List.of(new SelectionBarView.Item("Copier", () -> { })),
+                List.of());
+        vue.setOnDocs(ouvert::incrementAndGet);
+        mesurer(vue);
+        // le cœur de l'icône : 16 dp du bord droit du contenu (icône de 32 dp)
+        float x = vue.getMeasuredWidth() - vue.paddingPx - 16f;
+        float y = vue.centerY();
+        vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
+                x, y, 0));
+        assertTrue("l'appui sur le « i » se prend",
+                vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
+                        MotionEvent.ACTION_UP, x, y, 0)));
+        assertEquals("l'hôte sert sa documentation une fois", 1, ouvert.get());
+    }
+
+    /** La pilule du dépôt de départ : contenu de 30 dp (14 dp de texte,
+     *  2 × 8 dp de respiration), capsule au rayon de sa hauteur. */
+    @Test
+    public void selectionBarPorteLaPiluleDuDepot() {
+        SelectionBarView vue = new SelectionBarView(contexte,
+                PopupPalette.dark());
+        vue.setActions(
+                List.of(new SelectionBarView.Item("Copier", () -> { })),
+                List.of());
+        mesurer(vue);
+        assertEquals("le contenu respire la pilule : 30 dp",
+                30, vue.getMeasuredHeight() - 2 * vue.paddingYPx);
+        vue.layout(0, 0, vue.getMeasuredWidth(), vue.getMeasuredHeight());
+        assertEquals("la capsule prend le rayon de sa hauteur",
+                vue.getHeight() / 2f, vue.rayonCartePx(), 0.5f);
     }
 
     /** La bande d'erreurs : marque au cran, appui → saut à l'offset. */

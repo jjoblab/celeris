@@ -328,15 +328,15 @@ public final class EditorActivity extends AppCompatActivity {
         atelierPopups.configurerActionsSelection(
                 atelierSelection.principales(getString(R.string.barre_couper),
                         getString(R.string.barre_copier),
-                        getString(R.string.barre_coller)),
+                        getString(R.string.barre_coller),
+                        getString(R.string.barre_tout)),
                 atelierSelection.debordement(
-                        getString(R.string.barre_tout)));
+                        getString(R.string.barre_dupliquer)));
         atelierRecherche = new AtelierRecherche(this, editeur, session,
                 this::paletteFeuilles, atelierPopups::ouvrirRecherche,
                 atelierPopups::fermerRecherche);
         atelierRecherche.brancher();
-        // Le moment juste du survol (M7.6) : l'appui long sélectionne le
-        // mot, la documentation du serveur déclaré s'y offre.
+        // Le moment juste du survol (M7.6) : l'appui long offre la documentation.
         editeur.setSurAppuiLong(offset -> atelierPopups.ouvrirSurvol());
         // Le double-tap d'un littéral de couleur ouvre le sélecteur.
         editeur.setSurDoubleTap(atelierPopups::ouvrirColorPicker);
