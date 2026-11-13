@@ -29,9 +29,11 @@ peindre et écouter (ADR-002, ADR-006).
   `ColumnSelection`), pincement (`PinchZoom`), glisser-déposer
   (`GlisserDeposer`, D-20), clavier (`KeyBinding`, `KeyBindings`),
   IME par niveau d'API (`SurroundingTexts`, `CompositionState`),
-  loupe (`MagnifierGeometry`), appui long (`setSurAppuiLong` : la
-  sélection du mot posée, l'offset notifié à l'hôte — le moment juste
-  de la documentation au survol, M7.6).
+  loupe du dragage (`Loupe` et sa géométrie `MagnifierGeometry`,
+  D-16 : la bulle du dépôt de départ, la frame photographiée), appui
+  long (la sélection du mot posée, sans survol — le redressement du
+  2026-11-13 : la documentation ne vit plus qu'au double-clic et au
+  « i » de la barre de sélection).
 - **Les ornements du canvas** — gouttière (`GutterPainter`,
   `GutterLanes`, `GutterNumbers`, `GutterMarks`), guides
   d'indentation (`IndentGuides`, A-17), caractères invisibles,
