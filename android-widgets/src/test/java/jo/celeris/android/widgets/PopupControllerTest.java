@@ -249,4 +249,56 @@ class PopupControllerTest {
         assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_DOC),
                 "la documentation suit sa liste, pas le doigt");
     }
+
+    /** La carte des usages (le signal du propriétaire du 2026-11-13,
+     *  la première surface réveillée) vit les régimes des surfaces
+     *  d'actions : deux surfaces ne tiennent jamais — elle ferme le
+     *  menu du caret et le débordement de la toolbar, eux la ferment ;
+     *  la complétion cohabite (elle suit le curseur, l'usage décrit
+     *  le symbole, la saisie la chassera). */
+    @Test
+    void referencesExcludeTheMenusAndReciprocally() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        assertTrue(controleur.open(PopupController.PopupKind.REFERENCES),
+                "la carte des usages ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        controleur.open(PopupController.PopupKind.TOOLBAR_OVERFLOW);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "le débordement de la toolbar ferme les usages");
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.TOOLBAR_OVERFLOW),
+                "la complétion ferme le débordement");
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertTrue(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "les usages cohabitent avec la complétion");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion survit : la carte décrit, la saisie chassera");
+    }
+
+    /** La carte des usages cède à la frappe (la saisie remplace son
+     *  objet), au défilement (son ancre vit au curseur) et au tap
+     *  hors cartes (la carte d'actions cède au geste extérieur) — le
+     *  chrome survit. */
+    @Test
+    void referencesYieldToKeystrokeScrollAndOutsideTap() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        controleur.open(PopupController.PopupKind.MINIMAP);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.REFERENCES),
+                controleur.onKeystroke(), "la saisie remplace l'objet décrit");
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.REFERENCES),
+                controleur.onScroll(), "l'ancre vit au curseur, le défilement la chasse");
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.REFERENCES),
+                controleur.surToucheHorsCartes(),
+                "la carte d'actions cède au geste extérieur");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.MINIMAP),
+                "le chrome survit aux trois régimes");
+    }
 }

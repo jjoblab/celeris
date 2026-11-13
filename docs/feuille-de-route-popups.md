@@ -5,7 +5,7 @@
 > phases du mandat, le journal des clôtures, ce qui reste. L'état est
 > vérifié au 2026-11-13 (la phase 9 fermée au commit `7c05767` ; le signal
 > du propriétaire du même jour — « lancé 90 % du chantier » — ouvre la
-> SUITE : les surfaces qui dormaient se réveillent une à une, le journal
+> SUITE : les surfaces qui dormaient se réveillent une à une, le journal
 > tient les livraisons). Les documents de la mission vivent tous dans
 > `docs/` : l'audit ([`POPUP_SYSTEM_AUDIT.md`](POPUP_SYSTEM_AUDIT.md)),
 > l'inventaire ([`POPUP_INVENTORY.md`](POPUP_INVENTORY.md)),
@@ -41,19 +41,19 @@
 | 2026-11-13 | `38d315c` | Le cœur du chantier : `PopupManager` (l'unique écrivain de l'état ET des vues), le contrat `PopupClavier`, le genre propre `TOOLBAR_OVERFLOW`, le tap hors cartes, le crochet public `EditorView.setSurTouchePopup` (la délégation clavier, PIEGE-27 préservé), la démo migre (le manager règne, les cartes partagées meurent). Bancs : `PopupManagerTest` (13), `TouchePopupVueTest` (2), `PopupControllerTest` +5 (13 tests). Les trois documents d'audit, d'architecture et d'inventaire se committent. |
 | 2026-11-13 | `c400665` | La phase 8 ferme : la spécification D-10 de `BancSpecs` rejouée par le banc (le clavier de bout en bout — frappe, flèches, Enter, Escape), l'USAGE §9 réécrit au montage en trois temps, la typographie des trois documents réparée. |
 | 2026-11-13 | présent commit | La phase 9 ferme : les documents de la mission s'achèvent et se rangent dans `docs/` — la feuille de route (la présente), le rapport de migration, le rapport de tests, le guide du développeur ; la feuille de route restante du projet et le changelog suivent. |
-| 2026-11-13 (le signal ouvre la suite) | présent 
+| 2026-11-13 (le signal ouvre la suite) | `22b386a` | **Le pas étendu PAGE_UP/PAGE_DOWN** — le premier reste réveillé : le contrat `PopupClavier` gagne `surPage(pas)` (une page par unité), la complétion saute sa surbrillance d'une page de huit candidats (son plafond visible, bornée aux murs de la liste), le menu d'intentions décline (la touche retourne à l'éditeur — le document y défile), le manager route les deux codes dans le même ordre de délégation. Banc : `PopupManagerTest.laPageEtendueSertLaCompletion` (+1, 14 tests). |
+| 2026-11-13 (la suite continue) | présent commit | **La carte des usages du symbole — la première surface réveillée** : le genre 17e `REFERENCES` et la carte `ReferencesView` (patron `TextRowsPopup`, en-tête qui compte, rangées cliquables, saut au choix), les régimes (deux surfaces d'actions ne tiennent jamais — elle chasse et est chassée par les menus ; frappe, défilement, tap hors cartes la referment ; le voile la coupe), le routage clavier la sert en dernier (flèches, Enter — la page décline). La démo gagne `AtelierUsages` (le serveur sert les lieux par le fil `references`, l'atelier transpose — le lieu devient occurrence, le début de plage devient l'offset du saut ; le lieu étranger au document ne se devine jamais) et l'action au menu d'intentions, à la puce de débordement et à la carte (`action_usages`) ; `AtelierPopups` se nomme au plafond relevé (612 lignes, ADR-019 — la décision du propriétaire). Bancs : `PopupControllerTest` +2 (exclusions réciproques, trois régimes), `PopupManagerTest.leClavierDelegueSertLesUsages` (+1, 15 tests), `ReferencesViewTest` (3), `UsagesReferencesTest` (démo — les lieux servis par le fil, la transpose du saut). |
 
 ## 3. Ce qui reste de la mission — le signal reçu, les surfaces se réveillent
 
 Le signal du propriétaire du 2026-11-13 (« lancé 90 % du chantier »)
 réveille la suite : les surfaces manquantes de l'inventaire (§3 de
-`POPUP_INVENTORY.md`) ; la première — le pas étendu PAGE_UP/PAGE_DOWN — est livrée au
-journal §2, celle des usages suit, chacune reprend le socle commun sans y
-rien ajouter :
+`POPUP_INVENTORY.md`) ; les deux premières — le pas étendu PAGE_UP/PAGE_DOWN, la carte
+des usages du symbole — sont livrées au journal §2, chacune
+reprend le socle commun sans y rien ajouter :
 
 | Reste | Nature | Ce qui existe déjà |
 | --- | --- | --- |
-| Usages / références | surface (catégorie C) | les données sont servies (`LanguageSession.references`) ; la carte à rangées (`TextRowsPopup`) attend |
 | Hiérarchies de types et d'appels | surface (catégorie C) | les moteurs vivent (`Hierarchies`, core-intelligence) |
 | Valeurs de débogage en ligne | surface (catégorie E) | la SPI est servie (`ValeurEnLigne`, `FauxDebogueur` de la démo) |
 | Notifications | surface (catégorie G) | rien — la forme reste à décider (bulle éphémère, vraisemblablement) |

@@ -27,6 +27,8 @@
     <string name="action_completion">Compléter le mot</string>
     <string name="action_intentions">Intentions au curseur</string>
     <string name="action_survol">Survoler le symbole</string>
+    <string name="action_usages">Rechercher les usages</string>
+    <string name="titre_usages">%1$d usages de « %2$s »</string>
     <string name="barre_couper">Couper</string>
     <string name="barre_copier">Copier</string>
     <string name="barre_coller">Coller</string>

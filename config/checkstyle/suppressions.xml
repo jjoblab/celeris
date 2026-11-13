@@ -16,4 +16,12 @@
          scénario sur les mêmes appareils (675 lignes) — le banc suit la
          grille, la grille suit les livraisons. -->
     <suppress id="PlafondStandard" files="BancSpecs\.java"/>
+    <!-- L'atelier des popups de la démonstration (nomination du
+         2026-11-13, la décision du propriétaire : « relever le plafond
+         de certains fichiers si nécessaire ») : l'orchestreur câble les
+         satellites du chantier — chaque surface réveillée y gagne son
+         lien, son serveur et sa palette (612 lignes) ; les satellites
+         mêmes (AtelierUsages, AtelierCouleur, DocAncre…) restent sous
+         le plafond standard, l'orchestreur seul porte les câbles. -->
+    <suppress id="PlafondStandard" files="AtelierPopups\.java"/>
 </suppressions>

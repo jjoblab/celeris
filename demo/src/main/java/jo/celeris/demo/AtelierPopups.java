@@ -68,6 +68,9 @@ final class AtelierPopups {
     private final MenuDebordement menuDebordement;
     /** L'atelier des couleurs — le sélecteur au double-tap d'un littéral. */
     private final AtelierCouleur atelierCouleur;
+    /** L'atelier des usages — la carte des références du symbole au
+     *  curseur (le signal du propriétaire du 2026-11-13). */
+    private final AtelierUsages atelierUsages;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -139,6 +142,8 @@ final class AtelierPopups {
                 couche.getContext().getString(R.string.menu_plus));
         atelierCouleur = new AtelierCouleur(editeur, session, popups,
                 margePx, palette);
+        atelierUsages = new AtelierUsages(editeur, session, popups,
+                margePx, palette);
         docAncre = new DocAncre(couche.getContext(), popups, editeur,
                 session, margePx, palette);
         bordDroit = new AtelierBordDroit(popups, editeur, session, margePx,
@@ -177,6 +182,7 @@ final class AtelierPopups {
         bordDroit.surPalette(palette);
         barreSelection.setPalette(palette);
         atelierCouleur.surPalette(palette);
+        atelierUsages.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -212,6 +218,7 @@ final class AtelierPopups {
         this.serveur = sessionLangage;
         this.uriDocument = uri;
         docAncre.brancherServeur(sessionLangage, uri);
+        atelierUsages.brancherServeur(sessionLangage, uri);
         LanguageSupport langue = LangagesDemo.langageDe(nomDuFichier,
                 null, session.document().text());
         sessionLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
@@ -233,6 +240,13 @@ final class AtelierPopups {
      *  verdict dit si le geste est consommé. */
     boolean ouvrirColorPicker(int offset) {
         return atelierCouleur.ouvrirAuDoubleTap(offset);
+    }
+
+    /** Ouvre la carte des usages du symbole au curseur — les
+     *  références servies par le serveur de langage (le signal du
+     *  propriétaire du 2026-11-13, la première surface réveillée). */
+    void ouvrirUsages() {
+        atelierUsages.ouvrir();
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */

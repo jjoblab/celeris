@@ -343,6 +343,47 @@ public class PopupManagerTest {
                 popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
     }
 
+    /** Le clavier DÉLÉGUÉ sert la carte des usages (le signal du
+     *  propriétaire du 2026-11-13) : l'ouverture chasse le menu du
+     *  caret (deux surfaces d'actions ne tiennent jamais — sa carte
+     *  quitte la couche), les flèches déplacent la surbrillance
+     *  d'occurrence, Enter exécute le saut, la page décline — la
+     *  touche retourne à l'éditeur, l'échappement referme. */
+    @Test
+    public void leClavierDelegueSertLesUsages() {
+        PopupLayer couche = couche();
+        PopupManager popups = new PopupManager(new PopupController(), couche);
+        ReferencesView carte = new ReferencesView(couche.getContext(),
+                PopupPalette.dark());
+        popups.lier(PopupController.PopupKind.REFERENCES, carte);
+        popups.lier(PopupController.PopupKind.INTENTIONS_MENU, panneau());
+        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        assertNotNull("la carte du menu se montre d'abord",
+                popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
+        int[] saute = { -1 };
+        carte.setOccurrences(List.of(
+                new ReferencesView.Occurrence("L3 · int a", () -> saute[0] = 3),
+                new ReferencesView.Occurrence("L7 · int a", () -> saute[0] = 7)));
+        popups.montrer(PopupController.PopupKind.REFERENCES, 10, 80);
+        assertFalse("l'ouverture chasse le menu du caret",
+                popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
+        assertNull("la carte du menu quitte la couche",
+                popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertEquals("la flèche surligne la première occurrence", 0,
+                carte.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertEquals("la flèche descend", 1, carte.surbrillance());
+        assertFalse("la page décline — la touche retourne à l'éditeur",
+                popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ENTER));
+        assertEquals("Enter exécute le saut de l'occurrence surlignée", 7,
+                saute[0]);
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        assertFalse("l'échappement referme la carte des usages",
+                popups.estOuvert(PopupController.PopupKind.REFERENCES));
+    }
+
     /** L'échappement sans carte interactive referme les bulles
      *  éphémères — le chrome demeure. */
     @Test

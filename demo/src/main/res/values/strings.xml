@@ -27,6 +27,8 @@
     <string name="action_completion">Complete word</string>
     <string name="action_intentions">Intentions at caret</string>
     <string name="action_survol">Hover symbol doc</string>
+    <string name="action_usages">Find usages</string>
+    <string name="titre_usages">%1$d usages of « %2$s »</string>
     <string name="barre_couper">Cut</string>
     <string name="barre_copier">Copy</string>
     <string name="barre_coller">Paste</string>

@@ -38,13 +38,16 @@ public final class PopupManager {
     /**
      * L'ordre du routage clavier : la complétion d'abord (elle reçoit la
      * frappe de saisie), les menus ensuite — ils ne tiennent jamais
-     * ensemble, l'ordre ne départage que les débordements.
+     * ensemble, l'ordre ne départage que les débordements —, la carte
+     * des usages en dernier (elle ne tient jamais avec les menus, le
+     * routage ne la sert que seule).
      */
     private static final PopupController.PopupKind[] ORDRE_CLAVIER = {
             PopupController.PopupKind.COMPLETION_LIST,
             PopupController.PopupKind.INTENTIONS_MENU,
             PopupController.PopupKind.TOOLBAR_OVERFLOW,
-            PopupController.PopupKind.SELECTION_OVERFLOW};
+            PopupController.PopupKind.SELECTION_OVERFLOW,
+            PopupController.PopupKind.REFERENCES};
 
     /** Ce qu'une feuille modale coupe : l'intelligence et les actions
      *  cèdent au voile — le fil d'Ariane et le chrome (bande, minimap,
@@ -59,7 +62,8 @@ public final class PopupManager {
             PopupController.PopupKind.INTENTIONS_MENU,
             PopupController.PopupKind.TOOLBAR_OVERFLOW,
             PopupController.PopupKind.SELECTION_OVERFLOW,
-            PopupController.PopupKind.SELECTION_BAR};
+            PopupController.PopupKind.SELECTION_BAR,
+            PopupController.PopupKind.REFERENCES};
 
     /** Ce que l'échappement referme quand aucune carte interactive ne
      *  tient — les bulles qui suivent le contexte, pas le chrome. */

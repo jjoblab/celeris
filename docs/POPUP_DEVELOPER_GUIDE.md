@@ -191,7 +191,8 @@ public final class TypeInfoView extends TextRowsPopup implements PopupClavier {
 }
 ```
 
-UP/DOWN déplacent, Enter/Tab valident, Escape referme — vous ne
+UP/DOWN déplacent, PAGE_UP/PAGE_DOWN sautent d'une page (si la
+carte pagine), Enter/Tab valident, Escape referme — vous ne
 touchez AUCUNE table de touches, aucun listener de clavier : le crochet
 public `editeur.setSurTouchePopup(popups::surTouche)` fait déjà le
 voyage (la composition IME en cours neutralise la délégation, une
@@ -276,14 +277,14 @@ cèdent, le chrome survit.
 
 Chaque surface réelle du dépôt — nom, fonction, déclencheur, service,
 état, dépendances — vit dans [`POPUP_INVENTORY.md`]\
-(POPUP_INVENTORY.md) : l'infrastructure (§1.1), les douze cartes de la
+(POPUP_INVENTORY.md) : l'infrastructure (§1.1), les treize cartes de la
 couche (§1.2), les feuilles (§1.3), les surfaces in-canvas assumées
 (§1.4), l'orchestration de la démo (§1.6), et la classification
 catégorie par catégorie (§2). L'API publique du kit se lit dans
 l'USAGE §9 ; les signatures exactes dans `android-widgets` —
 `PopupManager`, `PopupController`, `PopupLayer`, `PopupAnchor`,
 `PopupPlacer`, `PopupPanel`, `TextRowsPopup`, `PopupClavier`,
-`PopupPalette`, `PopupTokens`.
+`ReferencesView`, `PopupPalette`, `PopupTokens`.
 
 ## 8. Faire évoluer le socle — le guide de maintenance
 

@@ -508,11 +508,11 @@ editeur.setSurTouchePopup(popups::surTouche);
 ```
 
 UP et DOWN déplacent la surbrillance de la première carte
-interactive ouverte, PAGE_UP et PAGE_DOWN sautent d'une PAGE (le pas étendu — huit rangées à la complétion, son plafond visible ; la carte sans pages décline, la touche retourne à l'éditeur et le document y défile), Enter et Tab valident, Escape referme (la
+interactive ouverte, PAGE_UP et PAGE_DOWN sautent d'une PAGE (le pas étendu — huit rangées à la complétion, son plafond visible ; la carte sans pages décline, la touche retourne à l'éditeur et le document y défile), Enter et Tab valident, Escape referme (la
 complétion emporte sa documentation) ; la touche inconnue retourne à
 l'éditeur — la table de raccourcis décide sa vie normale. Les cartes
 interactives du kit (complétion, menus d'intentions et de
-débordement) reçoivent par le contrat `PopupClavier` (`surFleche`,
+débordement, usages) reçoivent par le contrat `PopupClavier` (`surFleche`,
 `surPage`, `surValidation`) — les vôtres y gagnent la même délégation. Le doigt
 qui tombe HORS de toute carte referme les genres qui cèdent (les
 menus, les bulles — la complétion suit le curseur, le chrome vit
@@ -525,13 +525,13 @@ le plan, les rappels contextuels compris, construites avec votre
 `PopupPalette` ; la démonstration dérive la sienne du thème et de la
 taille de texte.
 
-Les genres du contrôleur (`PopupKind`) — seize depuis le chantier
-d'unification — couvrent les surfaces de l'éditeur : complétion et
+Les genres du contrôleur (`PopupKind`) — dix-sept depuis le signal
+du propriétaire — couvrent les surfaces de l'éditeur : complétion et
 sa documentation, menu d'intentions, aide aux paramètres, survol,
 info-bulle de diagnostic, fil d'Ariane, recherche, barre de
 sélection et son débordement, bande d'erreurs, minimap, pouce de
 défilement, barre de touches, sélecteur de couleur, débordement de
-la barre d'application ; vos surfaces propres vivent dans les
+la barre d'application, carte des usages ; vos surfaces propres vivent dans les
 feuilles. Le kit est thémé et accessible par construction
 (ADR-008) : poignée de glissement, bouton de fermeture, voile,
 fermeture au retour.

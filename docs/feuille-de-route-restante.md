@@ -163,10 +163,11 @@ aucune dépendance nouvelle ; la passe de référence reste verte
 restes, décisions du propriétaire — dont le plafond relevable à
 1 200 lignes, par nomination, le jour où un fichier du chantier bute).
 
-**Blocage** : aucun — les surfaces manquantes (usages et références,
-hiérarchies, valeurs de débogage, notifications, recherche de
-symbole) dorment sur le signal du propriétaire, chacune reprendra le
-socle par la recette du guide.
+**Blocage** : aucun — le signal du 2026-11-13 (« lancé 90 % du chantier ») a réveillé
+la première vague (le pas étendu PAGE_UP/PAGE_DOWN, la carte des
+usages du symbole ; voir [`feuille-de-route-popups.md`](feuille-de-route-popups.md)) ; les suivantes (hiérarchies, valeurs de débogage, notifications,
+recherche de symbole) dorment sur le prochain signal, chacune
+reprendra le socle par la recette du guide.
 
 **Source** : le mandat du propriétaire ;
 [`POPUP_SYSTEM_AUDIT.md`](POPUP_SYSTEM_AUDIT.md) ;

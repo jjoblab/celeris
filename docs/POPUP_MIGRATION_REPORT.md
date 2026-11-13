@@ -114,6 +114,24 @@ stationnaire déjà retirée avant la mission) est bancé ou documenté.
 migration n'a ajouté que du code du kit et de la démo, aucun artefact
 externe (le mandat §11-4 : « ne crée pas de dépendances inutiles »).
 
+**La suite du signal du 2026-11-13 — les fichiers des deux premières surfaces réveillées** (le pas étendu PAGE_UP/PAGE_DOWN, la carte des usages : voir `feuille-de-route-popups.md` §2, le journal) :
+
+*Créés*
+- `android-widgets/src/main/java/jo/celeris/android/widgets/ReferencesView.java`
+- `demo/src/main/java/jo/celeris/demo/AtelierUsages.java`
+- `android-widgets/src/test/java/jo/celeris/android/widgets/ReferencesViewTest.java`
+- `demo/src/test/java/jo/celeris/demo/UsagesReferencesTest.java`
+
+*Modifiés* : `PopupController` (le genre 17e `REFERENCES` et ses régimes — le manager route ses pages et son ordre), `PopupManager`,
+`PopupClavier` (`surPage`), `CompletionListView`, `IntentionsMenuView` (android-widgets) ; `AtelierPopups` (câblage du satellite — nominé au plafond relevé
+par la décision du propriétaire, justification au `config/checkstyle/suppressions.xml`),
+`CatalogueActions` (l'action `action_usages` aux trois peaux), les ressources de la démo
+(`values/strings.xml`, `values-fr/strings.xml` — parité vérifiée, `values/ids.xml`, `menu/menu_editeur.xml`) ; les bancs
+`PopupManagerTest`, `PopupControllerTest` ; les documents vivants (`USAGE.md` §9, `CHANGELOG.md`, `POPUP_INVENTORY.md`,
+`POPUP_SYSTEM_ARCHITECTURE.md`, `POPUP_TEST_REPORT.md`, `POPUP_DEVELOPER_GUIDE.md`, les deux feuilles de route).
+
+*Supprimés* : aucun. *Dépendances nouvelles* : aucune — la règle du chantier tient encore.
+
 ## 5. Fonctionnalités terminées / manquantes
 
 **Terminées par le chantier** (le socle, au-delà de l'existant) :

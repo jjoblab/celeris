@@ -39,6 +39,9 @@
 | S-10 | `ErrorBandView` (+`ErrorBandModel`) | `ERROR_BAND` | Bande d'erreurs au bord droit (tirets de gravité, saut tactile). | Diagnostics de l'hôte. | `DiagnosticHote`. | Ad hoc `AtelierBordDroit.bordDroit()`. | Sans diagnostics. | [2] — positionnement ad hoc hors `PopupAnchor`. |
 | S-11 | `MinimapView` (+`MinimapModel`) | `MINIMAP` | Silhouette colorée + cartouche de fenêtre. | Édition/défilement. | Document + arbre syntaxique. | Ad hoc `bordDroit()`. | Jamais. | [2] — idem ; palette locale. |
 | S-12 | `FastScrollerView` | `FAST_SCROLLER` | Pouce de défilement rapide qui grossit sous le doigt. | Défilement/doigt. | Fenêtre du document. | Ad hoc `bordDroit()`. | Jamais. | [2] — idem. |
+| S-13 | `ReferencesView` | `REFERENCES` | Les usages du symbole au curseur : rangées cliquables « L12 · extrait », en-tête qui compte, saut au choix. | Action de menu, menu d'intentions, puce de débordement. | LSP `LanguageSession.references` (le lieu du document ouvert). | `PopupAnchor.belowOrAboveCaret`. | Choix d'une occurrence (saut), frappe, défilement, tap hors cartes. | [1] — le signal du propriétaire du 2026-11-13. |
+| S-13 | `ReferencesView` | `REFERENCES` | Les usages du symbole au curseur : rangées cliquables « L12 · extrait », en-tête qui compte, saut au choix. | Action de menu, menu d'intentions, puce de débordement. | LSP `LanguageSession.references` (le lieu du document ouvert). | `PopupAnchor.belowOrAboveCaret`. | Choix d'une occurrence (saut), frappe, défilement, tap hors cartes. | [1] — le signal du propriétaire du 2026-11-13. |
+| S-13 | `ReferencesView` | `REFERENCES` | Les usages du symbole au curseur : rangées cliquables « L12 · extrait », en-tête qui compte, saut au choix. | Action de menu, menu d'intentions, puce de débordement. | LSP `LanguageSession.references` (le lieu du document ouvert). | `PopupAnchor.belowOrAboveCaret`. | Choix d'une occurrence (saut), frappe, défilement, tap hors cartes. | [1] — le signal du propriétaire du 2026-11-13. |
 
 ### 1.3 Feuilles modales (ADR-018) — android-widgets + demo
 
@@ -112,7 +115,7 @@ tous [1] : purs, testés, sans vue.
 | Breadcrumb | `BreadcrumbView` | bandeau coin haut-gauche | implémenté |
 | Search (fichier) | `AtelierRecherche` | feuille basse + état `SEARCH_BAR` | implémenté |
 | Go to Definition | peek `DocAncre.apercu` | popup flottante | implémenté (plan local) |
-| Find Usages / References | `LanguageSession.references` (données servies) | — | données prêtes, surface manquante |
+| Find Usages / References | `ReferencesView` | carte ancrée au curseur | implémenté (serveur de langage par le fil) |
 | Go to File / Class / Symbol / Recent | — | — | manquant |
 | Related Symbols | `Hierarchies` (core-intelligence, données) | — | données prêtes, surface manquante |
 
@@ -159,7 +162,7 @@ tous [1] : purs, testés, sans vue.
 
 ## 3. Bilan chiffré
 
-- 15 genres d'état au contrôleur ; 12 surfaces portées par la couche ;
+- 17 genres d'état au contrôleur ; 13 surfaces portées par la couche ;
   3 feuilles modales (+ 9 ateliers de feuilles en démo) ; 3 surfaces
   in-canvas assumées (loupe, fantôme, HUD) ; 2 surfaces interactives
   hors couche (gouttière, poignées).
@@ -169,9 +172,8 @@ tous [1] : purs, testés, sans vue.
   minimap + pouce + plan + recherche + réglages + renommage + diff +
   correctifs + IA/agent + `@Preview`.
 - Manquants prioritaires (au sens « la donnée existe, la surface manque ») :
-  navigation clavier des popups ; fermeture au clic extérieur ;
-  usages/references ; hiérarchies ; valeurs de débogage ; notifications ;
-  recherche de symbole/fichier.
+  hiérarchies ; valeurs de débogage ; notifications ;
+  recherche de symbole/fichier. (La navigation clavier, la fermeture au clic extérieur et les usages sont livrés — le signal du 2026-11-13.)
 - Aucun doublon de MOTEUR réel : les trois voies de complétion
   (`CompletionMots`, `PopupCoach.completionFor`, capacité `Completion` de
   `core-language`) vivent à des étages différents (production, repli de
@@ -189,4 +191,4 @@ color picker, repositionne le reste ; bande/minimap/pouce/touchbar ne
 ferment jamais. La barre de recherche ferme sur demande seule. Les feuilles
 ignorent le contrôleur (P8). Aucune priorité explicite entre
 `INTENTIONS_MENU` caret et débordement toolbar : même genre, même carte —
-conflit silencieux (P1).
+conflit silencieux (P1). La carte des usages (signal du 2026-11-13) rejoint les surfaces d'actions : elle chasse et est chassée par le menu du caret et le débordement de la toolbar, la frappe et le défilement la referment, le tap hors cartes aussi. La carte des usages (signal du 2026-11-13) rejoint les surfaces d'actions : elle chasse et est chassée par le menu du caret et le débordement de la toolbar, la frappe et le défilement la referment, le tap hors cartes aussi. La carte des usages (signal du 2026-11-13) rejoint les surfaces d'actions : elle chasse et est chassée par le menu du caret et le débordement de la toolbar, la frappe et le défilement la referment, le tap hors cartes aussi.

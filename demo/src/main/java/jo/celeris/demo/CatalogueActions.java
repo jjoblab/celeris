@@ -98,6 +98,7 @@ final class CatalogueActions {
                 popups::basculerCompletion);
         actionsMenu.put(R.id.action_intentions, popups::ouvrirIntentions);
         actionsMenu.put(R.id.action_survol, popups::ouvrirSurvol);
+        actionsMenu.put(R.id.action_usages, popups::ouvrirUsages);
         actionsMenu.put(R.id.action_plan, activite::basculerPlan);
         actionsMenu.put(R.id.action_debogage, () -> {
             activite.etatDebogage.basculerPause();
@@ -151,6 +152,7 @@ final class CatalogueActions {
                 itemMenu(R.string.action_completion, R.id.action_completion),
                 itemMenu(R.string.action_intentions, R.id.action_intentions),
                 itemMenu(R.string.action_survol, R.id.action_survol),
+                itemMenu(R.string.action_usages, R.id.action_usages),
                 itemMenu(R.string.action_lint, R.id.action_lint),
                 itemMenu(R.string.action_gabarit, R.id.action_gabarit),
                 itemMenu(R.string.action_formater, R.id.action_formater),
@@ -185,6 +187,9 @@ final class CatalogueActions {
                         activite.getString(R.string.action_apercu),
                         () -> popups.docAncre().apercu(
                                 plan.get(), lignes.get())),
+                new IntentionsMenuView.Item(
+                        activite.getString(R.string.action_usages),
+                        popups::ouvrirUsages),
                 new IntentionsMenuView.Item(
                         activite.getString(R.string.action_diff),
                         diff::ouvrir),

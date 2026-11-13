@@ -3,7 +3,7 @@
 > La phase 8 de la mission — « tests et validation » — se rapporte ici :
 > les bancs du chantier, la non-régression, le journal des échecs
 > tranchés, le verdict de la passe de référence. État vérifié au
-> 2026-11-13. Le mandat est formel : ne pas masquer un échec, ne pas
+> 2026-11-13 — la passe se rafraîchit AU SIGNAL du propriétaire du même jour (2 393 tests : le pas étendu, la carte des usages). Le mandat est formel : ne pas masquer un échec, ne pas
 > désactiver un banc pour verdir — les quatre échecs rencontrés en route
 > se tranchent ci-dessous, banc après banc, au verdict près.
 
@@ -19,7 +19,7 @@ modules compris) :
 
 | Mesure | Verdict |
 | --- | --- |
-| Tests exécutés (14 modules) | **2 384 — 0 échec, 0 écart** (3 ignorés : les bancs natifs qui sautent sans la bibliothèque JNI construite, ADR-020 — hors de la mission popups) |
+| Tests exécutés (14 modules) | **2 393 — 0 échec, 0 écart** (3 ignorés : les bancs natifs qui sautent sans la bibliothèque JNI construite, ADR-020 — hors de la mission popups) |
 | Compilation (sources principales et bancs, 14 modules) | verte |
 | Politique de langue (identifiants ASCII, typographie française des Markdown, Javadoc des classes publiques, parité des chaînes) | verte |
 | Checkstyle (plafonds 600/800 lignes, 50 par méthode, 120 colonnes) | vert |
@@ -36,7 +36,7 @@ tranchés à l'analyse (§4), jamais à la suppression.
 
 ## 2. Les bancs du chantier
 
-### 2.1 `PopupManagerTest` — le coordinateur (Robolectric, 13)
+### 2.1 `PopupManagerTest` — le coordinateur (Robolectric, 15 — dont 2 nés au signal du 2026-11-13)
 
 | Banc | Ce qu'il prouve |
 | --- | --- |
@@ -53,8 +53,10 @@ tranchés à l'analyse (§4), jamais à la suppression.
 | `leDetachementCoupeTout` | la fin de vie ferme tout et coupe l'avis du tap (P6) |
 | `fermerLaListeEmporteSaDocumentation` | la cascade se joue d'un seul appel : fermer la liste retire AUSSI la carte de sa documentation — l'état et la couche isochrones |
 | `louvertureQuiExclutRetireLaCarteDeLexclu` | ouvrir un menu retire la carte de l'exclu AVANT la pose — les exclusions ne se codent plus deux fois |
+| `laPageEtendueSertLaCompletion` | PAGE_UP/PAGE_DOWN sautent la surbrillance d'une page de huit candidats (bornée aux murs de la liste) ; le menu décline, la touche retourne à l'éditeur — le pas étendu du signal |
+| `leClavierDelegueSertLesUsages` | la carte des usages reçoit la délégation (flèches, Enter — la page décline) ; son ouverture chasse le menu du caret, sa carte quitte la couche |
 
-### 2.2 `PopupControllerTest` — la machine (13, dont 3 nés à `b6fa94b` et 5 à `38d315c`)
+### 2.2 `PopupControllerTest` — la machine (15 — dont 3 nés à `b6fa94b`, 5 à `38d315c` et 2 au signal du 2026-11-13)
 
 Les 5 historiques (exclusions, cascades, régimes) restent VERTS sans
 modification de leurs attentes ; les bancs nouveaux couvrent : les rendus
@@ -64,7 +66,8 @@ genre `TOOLBAR_OVERFLOW` (`toolbarOverflowExcludesTheMenus`,
 `toolbarOverflowYieldsToKeystrokeNotToScroll`), les rendus
 d'ouvertures/fermetures (`openRendusCarryTheExcludedGenres`,
 `closeRendusCarryTheCascadedGenres`) et le régime du tap hors cartes
-(`tapOutsideClosesActionCardsAndBubblesOnly`).
+(`tapOutsideClosesActionCardsAndBubblesOnly`). Le signal du 2026-11-13 ajoute les régimes de la carte des usages (`referencesExcludeTheMenusAndReciprocally` — deux surfaces d'actions ne tiennent jamais, exclusions réciproques avec les menus ;
+`referencesYieldToKeystrokeScrollAndOutsideTap` — frappe, défilement, tap hors cartes).
 
 ### 2.3 Les autres bancs nés du chantier
 
@@ -72,6 +75,8 @@ d'ouvertures/fermetures (`openRendusCarryTheExcludedGenres`,
 | --- | --- |
 | `PopupLayerReposeTest` (2) | le re-pose de la même vue ne la tue pas (la course du retrait différé corrigée, P6) ; l'invariant une-vue-un-genre de la couche |
 | `TouchePopupVueTest` (android-view, 2) | le verdict consommé sert le popup SANS bouger le curseur ; le verdict décliné laisse la flèche à sa vie normale — la délégation de tête de `onKeyDown` |
+| `ReferencesViewTest` (3 — le signal du 2026-11-13) | la carte des usages : l'en-tête annonce et ne se prend jamais, l'occurrence se prend au doigt (le relâchement choisit), la flèche se borne aux occurrences, la validation exécute le saut, la page décline, la carte vide décline tout |
+| `UsagesReferencesTest` (demo, 2 — le signal du 2026-11-13) | les lieux du MOT ENTIER servis par le fil (`references`) ; la transpose de l'atelier — le début de plage devient l'offset du saut, le curseur porte au point d'usage |
 | `BancSpecsTest` (demo) — spécification D-10 | le clavier de BOUT EN BOUT : la frappe ouvre (le prédicat du coach, les mots du code), la liste survit à la frappe suivante (elle filtre — le régime rend la liste vivante), les flèches déplacent, Enter accepte (le candidat remplace le mot au curseur, sa documentation suit), Escape referme (la cascade comprise) |
 
 ### 2.4 La non-régression
@@ -90,14 +95,12 @@ sur vitre — l'atelier migré n'y change rien de visible.
 
 ## 3. Ce que les bancs ne couvrent pas (encore) — assumé
 
-1. PAGE_UP/PAGE_DOWN : la pagination clavier de la complétion n'existe
-   pas (plafond de huit candidats visibles) — rien à bancer.
-2. Le changement de fichier : la démonstration vit une activité = un
+1. Le changement de fichier : la démonstration vit une activité = un
    document ; `fermerTout` se banc, la scène ne le démontre pas.
-3. Le jeton de génération des réponses concurrentes : mécanisme d'hôte
+2. Le jeton de génération des réponses concurrentes : mécanisme d'hôte
    (limitation consignée au rapport de migration §7) — la démo pose la
    dernière réponse sur le fil UI.
-4. La vitre elle-même : le banc d'appareil couvre la complétion et le
+3. La vitre elle-même : le banc d'appareil couvre la complétion et le
    focus (PIEGE-27 sur matériel) ; la navigation clavier déléguée n'a
    pas encore son banc d'appareil — le clavier matériel se prouve au
    JVM (`TouchePopupVueTest`), l'appareil suivra au fil du second étage.
