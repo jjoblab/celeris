@@ -15,7 +15,7 @@
 
 | # | Classe | Fiche | État |
 | --- | --- | --- | --- |
-| I-1 | `PopupController` | Machine à états pure, 21 genres, exclusions (complétion ⇄ intentions ⇄ hiérarchie), cascades (doc suit la liste, débordement suit la barre), régimes frappe/défilement/`closeAll`. Aucune vue. | [1] |
+| I-1 | `PopupController` | Machine à états pure, 26 genres, table exhaustive `FAMILLE_ACTIONS` des exclusions de la famille des surfaces d’actions, cascades (doc suit la liste, débordement suit la barre), régimes frappe/défilement/`closeAll`. Aucune vue. | [1] |
 | I-2 | `PopupLayer` | ViewGroup porteur, PIEGE-27, voile naissance/mort avec retrait différé, `show`/`reposition`/`remonter`/`dismiss`, invariant une-vue-un-genre. | [2] — `show` ne borne pas les coordonnées ; course du retrait différé (voir audit P6). |
 | I-3 | `PopupPanel` (abstraite) | Carte de base : verre, liseré hairline, coins arrondis, clip, animations 120/100 ms, palette. | [1] |
 | I-4 | `TextRowsPopup` (abstraite) | Carte à rangées typées + surbrillance + rappel tactile `setOnPick`. | [1] |
@@ -40,8 +40,10 @@
 | S-11 | `MinimapView` (+`MinimapModel`) | `MINIMAP` | Silhouette colorée + cartouche de fenêtre. | Édition/défilement. | Document + arbre syntaxique. | Ad hoc `bordDroit()`. | Jamais. | [2] — idem ; palette locale. |
 | S-12 | `FastScrollerView` | `FAST_SCROLLER` | Pouce de défilement rapide qui grossit sous le doigt. | Défilement/doigt. | Fenêtre du document. | Ad hoc `bordDroit()`. | Jamais. | [2] — idem. |
 | S-13 | `ReferencesView` | `REFERENCES` | Les usages du symbole au curseur : rangées cliquables « L12 · extrait », en-tête qui compte, saut au choix. | Action de menu, menu d'intentions, puce de débordement. | LSP `LanguageSession.references` (le lieu du document ouvert). | `PopupAnchor.belowOrAboveCaret`. | Choix d'une occurrence (saut), frappe, défilement, tap hors cartes. | [1] — le signal du propriétaire du 2026-11-13. |
-| S-13 | `ReferencesView` | `REFERENCES` | Les usages du symbole au curseur : rangées cliquables « L12 · extrait », en-tête qui compte, saut au choix. | Action de menu, menu d'intentions, puce de débordement. | LSP `LanguageSession.references` (le lieu du document ouvert). | `PopupAnchor.belowOrAboveCaret`. | Choix d'une occurrence (saut), frappe, défilement, tap hors cartes. | [1] — le signal du propriétaire du 2026-11-13. |
-| S-13 | `ReferencesView` | `REFERENCES` | Les usages du symbole au curseur : rangées cliquables « L12 · extrait », en-tête qui compte, saut au choix. | Action de menu, menu d'intentions, puce de débordement. | LSP `LanguageSession.references` (le lieu du document ouvert). | `PopupAnchor.belowOrAboveCaret`. | Choix d'une occurrence (saut), frappe, défilement, tap hors cartes. | [1] — le signal du propriétaire du 2026-11-13. |
+| S-14 | `TypeInfoView` | `TYPE_INFO` | Le nom du type du symbole au curseur — une rangée titre, la carte passive ne règne pas sur le clavier. | Action de menu, menu d'intentions, puce de débordement. | `LecteurTypes` (lecture locale de déclaration, jamais deviné). | `PopupAnchor.belowOrAboveCaret`. | Frappe, défilement, tap hors cartes. | [1] — le fil rouge du guide. |
+| S-15 | `HierarchiesView` | `HIERARCHY` | L'arbre de types ou d'appels du symbole au curseur — rangées indentées par PROFONDEUR, le sommet connu saute. | Action de menu, menu d'intentions, puce de débordement. | `Hierarchies` (core-intelligence, projet embarqué). | `PopupAnchor.belowOrAboveCaret`. | Choix d'un sommet (saut), frappe, défilement, tap hors cartes. | [1] |
+| S-16 | `NotificationView` | `NOTIFICATION` | La bulle éphémère du coin bas-droit — l'annonce vit son quart, l'horloge la referme. | L'hôte (correctifs appliqués, pause de débogage, exécution). | L'activité. | `PopupAnchor.bottomRightCorner`. | Son heure (4 s) ou le tap qui la prend. | [1] |
+| S-17 | `ExceptionView` | `EXCEPTION_DETAILS` | Les détails d'exception — le type à l'encre d'erreur, le message, la pile en cadres cliquables (l'étranger vit muet). | Action d'exécution (menu, intentions, puce). | `TraceExecution` (trace du document réel, l'analyseur de piles E-06 la relit). | `PopupAnchor.belowOrAboveCaret`. | Tap hors cartes, échappement — la consultation. | [1] — la passe du 2026-11-14. |
 
 ### 1.3 Feuilles modales (ADR-018) — android-widgets + demo
 
@@ -106,7 +108,7 @@ tous [1] : purs, testés, sans vue.
 | Intention Actions | `IntentionsMenuView` | menu au caret | implémenté |
 | Error/Warning Details | `DiagnosticTooltipView` + `ErrorBandView` | infobulle + bande | implémenté |
 | Import Resolution | `CorrectifImport` + feuille d'aperçu `AtelierCorrectif` | feuille haute | implémenté (classpath du terrain, repli local) |
-| Suppress Inspection | — | — | manquant |
+| Suppress Inspection | `SuppressionInspection` + `AtelierSuppression` (carte du kit) | carte ancrée au curseur | implémenté (la marque « noinspection » en fin de ligne, le lint l'honore à sa relance — la passe du 2026-11-14) |
 
 ### CATÉGORIE C — Navigation
 
@@ -126,9 +128,9 @@ tous [1] : purs, testés, sans vue.
 | --- | --- | --- | --- |
 | Rename | `AtelierRefactor` (feuille) + `preparationRennomage`/`rennomage` LSP | feuille basse | implémenté |
 | Diff de renommage | `AtelierDiff` + `DiffBlocs`/`RevueDiff` | feuille haute | implémenté |
-| Safe Delete / Move | `SafeDelete`/`SafeMove` (core-intelligence) | — | données prêtes, surface manquante |
-| Generate Code / Gabarits | `Gabarits`/`SquelettesMethode` | — | données prêtes, surface manquante |
-| Surround With / Live Templates | — | — | manquant |
+| Safe Delete / Move | `AtelierSurete` (cartes du kit) + `SafeDelete`/`SafeMove` | cartes ancrées au curseur | implémenté (les usages qui barrent s'affichent, les cibles se proposent — le verdict du moteur décide, la passe du 2026-11-14) |
+| Generate Code / Gabarits | `AtelierGabarits` (carte du kit) + `Generateurs`/`Gabarits` | carte ancrée au curseur | implémenté (champs réels de la classe englobante B-24, le gabarit à trous A-22 — la passe du 2026-11-14) |
+| Surround With / Live Templates | `Entourer` + la carte de génération | carte ancrée au curseur | implémenté (try/catch, if — le bloc ceint s'indente d'un cran, la passe du 2026-11-14) |
 
 ### CATÉGORIE E — Débogage
 
@@ -136,7 +138,7 @@ tous [1] : purs, testés, sans vue.
 | --- | --- | --- | --- |
 | Valeurs en ligne | `ValeursPainter` + `setValeursEnLigne` (SPI `ValeurEnLigne` servie) | inlay in-canvas | implémenté (fin de ligne utile, pause/reprise) |
 | Points d'arrêt (pose) | `EtatArret` + gouttière (appui long) | marque inline | implémenté |
-| Exception Details | — | — | manquant |
+| Exception Details | `AtelierException` + `TraceExecution` (carte du kit `ExceptionView`) | carte ancrée au curseur | implémenté (l'exécution simulée E-04 porte la trace du document réel, l'analyseur de piles E-06 la relit — la passe du 2026-11-14) |
 
 ### CATÉGORIE F — Projet et environnement
 

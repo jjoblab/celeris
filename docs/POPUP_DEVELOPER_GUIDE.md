@@ -87,8 +87,9 @@ TYPE_INFO,
 Les régimes sont des LISTES EXPLICITES dans la machine — le genre
 nouveau qui doit céder à la frappe s'y inscrit (`fermer(...)` dans
 `onKeystroke()`, `onScroll()`, `surToucheHorsCartes()`), celui qui
-doit exclure s'y déclare (`fermerParExclusion` dans
-`ouvrirRendus()`). CHAQUE inscription se prouve au banc
+doit exclure s'y déclare (la table exhaustive `FAMILLE_ACTIONS` —
+la famille des surfaces d'actions, une à la fois : les menus cèdent
+à la complétion, les cartes qui décrivent cohabitent avec elle). CHAQUE inscription se prouve au banc
 (`PopupControllerTest`) ; le manager ne sait rien des règles, il les
 exécute. Si votre surface n'a AUCUNE règle nouvelle : une feuille
 (`FeuilleBas`/`FeuilleHaut`) ou le chrome de l'hôte — pas de genre du

@@ -29,7 +29,7 @@
 | 5 | Positionnement et comportement | couche + clavier délégué | **clos le 2026-11-13** — bornage défensif des poses, ancres bornées, navigation clavier par délégation (PIEGE-27 préservé) ; le pas étendu PAGE_UP/PAGE_DOWN, resté à venir, se livre au signal du propriétaire (journal §2) |
 | 6 | Intégration des moteurs | contrats vérifiés | **clos par constat** — aucune fausse intégration : les popups ne demandent que ce que les moteurs servent réellement (audit §5) |
 | 7 | Migration des popups existants | rapport de migration | **clos le 2026-11-13** — aucun composant réécrit, aucune classe supprimée ; le manager absorbe les duplications, les satellites rétrécissent |
-| 8 | Tests et validation | rapport de tests | **clos le 2026-11-13** — bancs dédiés au kit, à la vue et à la démo ; la passe de référence se rafraîchit — 2 420 tests, 0 échec, 14 modules (la passe des six surfaces du 2026-11-13) |
+| 8 | Tests et validation | rapport de tests | **clos le 2026-11-13** — bancs dédiés au kit, à la vue et à la démo ; la passe de référence se rafraîchit — 2 442 tests, 0 échec, 14 modules (le feu vert du 2026-11-14 a livré les cinq dernières) |
 | 9 | Documentation | guide + rapports + la présente | **clos au présent commit** — le guide du développeur (ajouter un popup sans toucher au manager), les deux rapports, la présente feuille de route |
 
 ## 2. Journal des clôtures
@@ -49,8 +49,13 @@
 | 2026-11-13 (la passe — les valeurs de débogage) | `f50d029` | **La SPI servie trouvait sa surface** : la couche `ValeursPainter` (android-view) rend les valeurs en fin de ligne UTILE (les blancs de queue ne comptent pas, encre de gouttière, ligne de base du code — PIEGE-11), le crochet public `EditorView.setValeursEnLigne` les pose, la pause simulée y lit les affectations écrites de sa ligne (déterministe, jamais deviné) — la SPI efface les valeurs d'une pause d'avant. Bancs : `ValeursPainterTest` (2), `FauxDebogueurTest` (+1), `ValeursPauseTest` (2). |
 | 2026-11-13 (la passe — l'aller à) | `0086567` | **Le modèle du plan sert la recherche** : la feuille `FeuilleAller` (feuille du bas, ADR-018) tape quelques lettres, la recherche floue B-13 répond — le modèle pur `ResultatsAller` mélange les fichiers du catalogue et les symboles du plan par score (fichiers d'abord à égalité), le choix SAUTE au symbole ou ouvre le fichier, la requête muette sert le catalogue en raccourci. Bancs : `ResultatsAllerTest` (2). |
 | 2026-11-13 (la passe — documentation externe et import) | `4e5fc4d` | **La consultation et la résolution** : le genre 21e `EXTERNAL_DOC` vit le régime de la CONSULTATION (la frappe ne la chasse pas, le défilement la REPOSITIONNE, le geste extérieur la referme), l'atelier `AtelierDocExterne` dérive la carte de documentation hors complétion (instance propre, même chemin de données que le survol) ; le correctif d'import local (catégorie B) rejoint la feuille d'aperçu : `CorrectifImport` résout l'identifiant par le classpath du terrain, l'édition s'y prévoit (B-18, B-17). Bancs : `PopupControllerTest.documentationExterneSeConsulteSansCederALaFrappe` (+1), `CorrectifImportTest` (2). |
+| 2026-11-14 (la passe des cinq — le feu vert du propriétaire) | `c371acd` | **La génération se réveille** : le genre 22e `GABARITS` sert les actions au caret — constructeur, accesseurs, equals/hashCode/toString lus des CHAMPS RÉELS de la classe englobante (B-24), l'entourage de la sélection (le moteur pur `Entourer` ceint, indente d'un cran, sélectionne le bloc), le gabarit de méthode à trous liés (A-22 — le canal unique de la refactorisation, la carte n'est qu'une peau de plus). Bancs : `PopupControllerTest` +1, `PopupManagerTest` +1, `EntourerTest` (3), `AtelierGabaritsTest` (2). |
+| 2026-11-14 (la passe — la sûreté) | `a2a94bd` | **Les verdicts et les plans se réveillent** : les genres 23e `SAFE_DELETE` et 24e `SAFE_MOVE` servent le moteur B-23 — les usages qui barrent s'affichent en carte d'usages (chacun saute, la suppression attend), la voie libre efface en transaction annulable et l'annonce ; les types candidats au déménagement se proposent, les conditions de sûreté seules décident, le refus s'annonce sans raison inventée. Les exclusions deviennent la table exhaustive `FAMILLE_ACTIONS`. Bancs : `PopupControllerTest` +2, `AtelierSureteTest` (2). |
+| 2026-11-14 (la passe — le masquage d'inspection) | `602fee8` | **La marque naît, le lint l'honore** : le genre 25e `SUPPRESS_INSPECTION` vit le régime du menu du caret — les diagnostics réglés de la ligne du caret (l'identifiant entre crochets, jamais une règle devinée) se proposent, le choix pose le commentaire « noinspection » en fin de ligne (le moteur pur `SuppressionInspection`, transaction annulable), l'analyse se relance : la règle masquée ne se rapporte plus, les autres demeurent. Bancs : `PopupControllerTest` +1, `SuppressionInspectionTest` (3 — la boucle complète), `FauxLintTest` +1. |
+| 2026-11-14 (la passe — les détails d'exception) | `4b96a53` | **L'exécution et la trace se réveillent** : le genre 26e `EXCEPTION_DETAILS` vit le régime de la consultation — l'exécution simulée passe par la fausse exécution de référence (E-04), l'échec porte la trace du document réel (le type englobant du caret porte la classe, la méthode englobante porte le sommet à la ligne du caret — jamais deviné), la trace se relit par l'analyseur de piles (E-06 se réveille) ; la carte `ExceptionView` du kit rend le type à l'encre d'erreur, le message, la pile — le cadre du fichier ouvert saute, l'étranger vit muet ; le fichier sans méthode ne peut échouer. Bancs : `PopupControllerTest` +1, `ExceptionViewTest` (2), `TraceExecutionTest` (3). |
+| 2026-11-14 (la passe — les documents suivent) | présent commit | **La passe se consigne** : l'inventaire marque les cinq surfaces livrées (plus de manquant — les catégories A–E closes, la S-13 triplée meurt), le journal tient les quatre livraisons, le rapport de tests se rafraîchit (2 442 tests, les bancs du feu vert, les cinq échecs tranchés), le changelog et l'USAGE suivent (vingt-six genres), le guide dit la table des exclusions — la nomination du banc de la machine se consigne. |
 
-## 3. Ce qui reste de la mission — le signal reçu, les surfaces se réveillent
+## 3. Ce qui restait de la mission — le second signal, les cinq dernières se réveillent
 
 Le signal du propriétaire du 2026-11-13 (« lancé 90 % du chantier »)
 réveille la suite : les surfaces manquantes de l'inventaire (§3 de
@@ -58,14 +63,18 @@ réveille la suite : les surfaces manquantes de l'inventaire (§3 de
 des usages du symbole — sont livrées au journal §2, chacune
 reprend le socle commun sans y rien ajouter :
 
-| Reste | Nature | Ce qui existe déjà |
-| --- | --- | --- |
-| Hiérarchies de types et d'appels | surface (catégorie C) | les moteurs vivent (`Hierarchies`, core-intelligence) |
-| Valeurs de débogage en ligne | surface (catégorie E) | la SPI est servie (`ValeurEnLigne`, `FauxDebogueur` de la démo) |
-| Notifications | surface (catégorie G) | rien — la forme reste à décider (bulle éphémère, vraisemblablement) |
-| Recherche de symbole / fichier / classe | surface (catégorie C) | le plan (`FeuillePlan`) sert de modèle à la feuille de recherche |
-| Documentation externe, info de type | surface (catégorie A) | la carte de documentation (`CompletionDocView`) se dérive |
-| Import resolution, suppress inspection | surface (catégorie B) | les correctifs LSP vivent en feuille (`AtelierCorrectif`) |
+| LIVRÉ au signal du 2026-11-13 | | |
+| Hiérarchies de types et d'appels | surface (catégorie C) | le genre 19e et `HierarchiesView` — journal §2 |
+| Valeurs de débogage en ligne | surface (catégorie E) | `ValeursPainter` + `setValeursEnLigne` — journal §2 |
+| Notifications | surface (catégorie G) | le genre 20e et `NotificationView` — journal §2 |
+| Recherche de symbole / fichier / classe | surface (catégorie C) | `FeuilleAller` + `ResultatsAller` — journal §2 |
+| Documentation externe, info de type | surface (catégorie A) | les genres 18e et 21e — journal §2 |
+| Import resolution | surface (catégorie B) | `CorrectifImport` + la feuille d'aperçu — journal §2 |
+| LIVRÉ au feu vert du 2026-11-14 | | |
+| Generate Code / Gabarits, Surround With | surface (catégorie D) | le genre 22e `GABARITS` + `AtelierGabarits` + le moteur `Entourer` — journal §2 |
+| Safe Delete / Move | surface (catégorie D) | les genres 23e/24e + `AtelierSurete` — journal §2 |
+| Suppress Inspection | surface (catégorie B) | le genre 25e + `SuppressionInspection`, le lint honore la marque — journal §2 |
+| Exception Details | surface (catégorie E) | le genre 26e + `TraceExecution` (E-04, E-06 réveillés) — journal §2 |
 
 Deux fins de non-recevoir assumées : les surfaces Git/Gradle/exécution
 (catégorie F) ressortent de l'hôte — la SPI existe, l'éditeur n'intègre
@@ -100,7 +109,7 @@ pas des doublons.
 | Critère (mission §14) | Verdict | Preuve |
 | --- | --- | --- |
 | Une infrastructure de popups unifiée | tenu | `PopupManager` — l'unique écrivain de l'état et des vues (`USAGE.md` §9) |
-| Les popups existants intégrés sans perte | tenu | non-régression verte : 2 420 tests, 0 échec ; les bancs du kit inchangés dans leurs attentes (seules les tables EXHAUSTIVES des régimes gagnent les genres nouveaux, et les attentes du partage de cartes, remplacées par DEUX cartes distinctes) |
+| Les popups existants intégrés sans perte | tenu | non-régression verte : 2 442 tests, 0 échec ; les bancs du kit inchangés dans leurs attentes (seules les tables EXHAUSTIVES des régimes gagnent les genres nouveaux, et les attentes du partage de cartes, remplacées par DEUX cartes distinctes) |
 | Les responsabilités clairement séparées | tenu | machine (contrôleur), portage (couche), coordination (manager), rendu (panel/palette), positionnement (placer/anchor) — l'architecture §2 |
 | Les conflits correctement gérés | tenu | exclusions binaires, cascades, ordre de routage, voile — bancs `PopupControllerTest` |
 | Le positionnement intelligent | tenu | ancres bornées + bornage défensif aux murs — `PopupManagerTest.laPoseSeBorneAuxMurs` |
@@ -108,7 +117,7 @@ pas des doublons.
 | Les opérations asynchrones maîtrisées | tenu avec réserve | la course du retrait différé est corrigée, le re-pose ne re-naît pas ; le jeton de génération des réponses concurrentes reste un mécanisme d'hôte (limitation consignée au rapport de migration §7) |
 | Le système testable et extensible | tenu | un banc Robolectric par invariant ; le guide du développeur pose la recette de l'extension |
 | Ajouter des popups sans toucher à l'architecture | tenu | la recette du guide : lier, déclencher, déléguer — aucun changement au manager pour un genre nouveau |
-| Le projet compile et les tests passent | tenu | la passe de référence du 2026-11-13 (`POPUP_TEST_REPORT.md`) — 2 420 tests, 0 échec |
+| Le projet compile et les tests passent | tenu | la passe de référence du 2026-11-14 (`POPUP_TEST_REPORT.md`) — 2 442 tests, 0 échec |
 
 La mission se referme ici : l'infrastructure est livrée, testée et
 documentée ; les surfaces nouvelles reprendront le socle au fil des

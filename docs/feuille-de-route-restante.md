@@ -24,7 +24,7 @@
 | 4 | Second étage appareil de vérification (C11) | Livré et passé vert le 2026-11-12 | la CI exécute au nocturne — la recette manuelle du propriétaire reste |
 | 5 | Archivage du dépôt de départ (C14) | Bloqué | décision du propriétaire ; poussée hors de ce bac à sable |
 | 6 | Entretien continu (dependabot, montées de version) | Permanent | rien — veille hebdomadaire |
-| 7 | Mission popups : audit, restructuration, unification | Clos le 2026-11-13 — les neuf phases, les six livrables dans `docs/` | les surfaces manquantes dorment sur signal (feuille-de-route-popups §3) |
+| 7 | Mission popups : audit, restructuration, unification | Clos le 2026-11-14 — les neuf phases, les six livrables, l'inventaire sans manquant | — |
 
 ## 1 — Publication distante des onze artefacts (C1)
 
@@ -158,20 +158,20 @@ développeur.
 **Avancement** : clos le 2026-11-13 — les neuf phases se referment au
 commit de la phase 9 ; aucune classe réécrite, aucune supprimée,
 aucune dépendance nouvelle ; la passe de référence reste verte
-(2 384 tests, 0 échec, 14 modules) ; le suivi vit dans
+(2 442 tests, 0 échec, 14 modules) ; le suivi vit dans
 [`feuille-de-route-popups.md`](feuille-de-route-popups.md) (journal,
 restes, décisions du propriétaire — dont le plafond relevable à
 1 200 lignes, par nomination, le jour où un fichier du chantier bute).
 
-**Blocage** : aucun — le signal du 2026-11-13 (« lancé 90 % du chantier ») est
-ÉPUISÉ : la passe des six surfaces du même jour a livré son reste
-(l'info de type, la hiérarchie de types et d'appels, la notification,
-les valeurs de débogage en ligne, l'aller à fichier/symbole, la
-documentation externe et la résolution d'import local — le journal vit
-à [`feuille-de-route-popups.md`](feuille-de-route-popups.md), 2 420
-tests, 0 échec) ; les suivantes (suppress inspection, catégorie D,
-exception details) dorment sur le prochain signal, chacune reprendra le
-socle par la recette du guide.
+**Blocage** : aucun — le second signal du 2026-11-14 (« tu as le feu
+vert pour terminer tout ce qui reste ») est ÉPUISÉ : la passe des
+CINQ surfaces l'a livré (la génération et l'entourage, la suppression
+sûre et le déplacement, le masquage d'inspection, les détails
+d'exception — le journal vit à
+[`feuille-de-route-popups.md`](feuille-de-route-popups.md), 2 442
+tests, 0 échec) ; l'inventaire ne compte plus de manquant (les
+catégories A à E closes — la catégorie F, Git/Gradle/configs
+d'exécution, reste la fin de non-recevoir assumée de l'hôte).
 
 **Source** : le mandat du propriétaire ;
 [`POPUP_SYSTEM_AUDIT.md`](POPUP_SYSTEM_AUDIT.md) ;
