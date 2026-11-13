@@ -26,12 +26,12 @@ ligne de flottaison ; la vue n'est qu'une des consommatrices du cœur.
                       │ API publique (ADR-009)    │ SPI (VCS, débogueur…)
               ┌───────▼───────────┐       ┌───────▼───────────┐
               │   android-view    │       │   android-host    │
-              │  vue, rendu, IME, │       │ adaptateurs hôte  │
+              │  vue, rendu, IME, │       │ SPI hôte + popups │
               │  gestes, a11y     │       └───────┬───────────┘
               └───────┬───────────┘               │
               ┌───────▼───────────┐       ┌───────▼───────────┐
               │ android-widgets   │       │      demo         │
-              │ popups, gouttière │       │  (application)    │
+              │ popups, gouttière │       │ (test des modules)│
               └───────┬───────────┘       └───────────────────┘
                       │        ┌──────────────────────────────┐
               ┌───────▼────────▼──────────┐                   │
@@ -55,6 +55,14 @@ ligne de flottaison ; la vue n'est qu'une des consommatrices du cœur.
 Les dépendances ne vont que vers le bas. Des tests d'architecture
 (ArchUnit) figent la règle en CI dès M1 (ADR-002) : plus aucun scellé
 `@RestrictTo` de partage interne — les frontières sont celles du compilateur.
+
+Depuis le déménagement des popups du 2026-11-14 (décision du
+propriétaire : les fonctionnalités vivent dans les modules de
+l'éditeur, la démonstration ne teste plus qu'elle-même),
+`android-host` compose au-dessus d'`android-view`, `android-widgets`
+et `core-lsp` : il porte l'orchestration des popups
+(`PopupsEditeur`, paquet `jo.celeris.android.host.popups`) — la
+démonstration n'est plus qu'un terrain d'essai.
 
 ## 2. Les quatre chaînes
 

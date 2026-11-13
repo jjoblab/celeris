@@ -66,18 +66,21 @@ badges), `OutlineModel`/`OutlineView`/`OutlinePainter`/`OutlineSurface`
 (plan), `DiffBlocs`/`RevueDiff`/`PatchPreview` (diffs et correctifs) —
 tous [1] : purs, testés, sans vue.
 
-### 1.6 Orchestration (demo)
+### 1.6 Orchestration (android-host, le déménagement du 2026-11-14)
 
 | # | Classe | Rôle | État |
 | --- | --- | --- | --- |
-| O-1 | `AtelierPopups` (598 l.) | Chef d'orchestre de facto : possède contrôleur + vues, branche session/vue, délègue aux satellites. | [2] — au plafond ADR-002 ; six copies de mesure ; cascades en double. |
-| O-2 | `DocAncre` | Survol/peek/`@Preview` sur la carte partagée. | [4]-risque (vue partagée). |
-| O-3 | `MenuDebordement` | Débordement de la barre sur la carte partagée. | [4]-risque. |
-| O-4 | `AtelierCouleur` | Color picker au double-tap. | [2]. |
-| O-5 | `AtelierBordDroit` | Bande/minimap/pouce, positionnement ad hoc. | [2]. |
-| O-6 | `AtelierBarreToolbar` | Carte de débordement toolbar (genre `INTENTIONS_MENU` !) + touchbar. | [4]-risque + fuite listener. |
-| O-7 | `PopupCoach` | Décisions de contenu pur : candidats, tables de repli, `doitOuvrirALaFrappe`, path, issues. | [1] |
-| O-8 | `CatalogueActions` | Table unique des actions, trois peaux (menu, carte, intentions). | [1] |
+| O-1 | `PopupsEditeur` (596 l.) | L'orchestrateur officiel : possède manager + vues, branche session/vue, délègue aux satellites — le montage complet de l'hôte tient en sa construction. | [1] — vit dans `jo.celeris.android.host.popups`. |
+| O-2 | `DocAncre` | Survol/peek/`@Preview` sur la carte du genre survol. | [1] — déménagé. |
+| O-3 | `MenuDebordement` | Débordement de la barre de sélection (carte du kit). | [1] — déménagé dans `android-widgets`. |
+| O-4 | `SelecteurCouleur` | Color picker au double-tap. | [1] — déménagé. |
+| O-5 | `BordDroit` | Bande/minimap/pouce, positionnement ad hoc. | [1] — déménagé. |
+| O-6 | `BarreToolbar` | Carte de débordement toolbar (genre propre) + touchbar. | [1] — déménagé dans `android-widgets`. |
+| O-7 | `FilAriane` | Le chemin du plan qui englobe le curseur. | [1] — né de l'extraction du plafond ADR-002. |
+| O-8 | `ContenuPopups` / `CoachPopups` | Les algorithmes de contenu purs / l'interface des tables de l'hôte (le coach MUET par défaut). | [1] — déménagés. |
+| O-9 | `LanguageSession` | La surface commune des serveurs de langage (modèles convertis). | [1] — déménagée. |
+| O-10 | `CatalogueActions` (demo) | Table unique des actions, trois peaux (menu, carte, intentions). | [1] — reste au terrain. |
+| O-11 | `CoachDemo` / `PopupCoach` (demo) | Les tables du terrain de test (mots Java, signatures, documentation factices). | [1] — reste au terrain. |
 
 ## 2. Classification par catégorie fonctionnelle (phase 3 de la mission)
 

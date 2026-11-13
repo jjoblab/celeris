@@ -14,7 +14,7 @@ chrome (minimap, fil d'Ariane, bande d'erreurs, défilement rapide).
 | Coordonnées | `jo.celeris:android-widgets:1.1.0` (AAR de la variante release, sources, Javadoc, SBOM, sommes — depuis le 2026-11-11) |
 | Manifeste d'API | pas de manifeste (ADR-009 couvre les modules purs) — l'API publique vit dans `src/main/java` |
 | Dépendances | `core-intelligence` |
-| Bancs | 23 bancs, 134 méthodes `@Test` (relevé du 2026-11-12) — Robolectric sur JVM (ADR-013) |
+| Bancs | 30 bancs, 187 méthodes `@Test` (relevé du 2026-11-14) — Robolectric sur JVM (ADR-013) |
 
 ## Ce qu'il porte
 
@@ -35,7 +35,11 @@ chrome (minimap, fil d'Ariane, bande d'erreurs, défilement rapide).
   (`SelectionBarView`), bande d'erreurs (`ErrorBandView`,
   `ErrorBandModel`), barre de touches de code (`TouchBarView` : Tab,
   commentaire, déplacements, duplication — au-dessus du clavier, les
-  états vivants suivent le caret).
+  états vivants suivent le caret). Le **débordement de la barre de
+  sélection** (`MenuDebordement`, déménagé de la démo au kit le
+  2026-11-14) et la **barre d'application** (`BarreToolbar` : la carte
+  de débordement pendue sous la puce, la barre de touches au bas de
+  la scène) y vivent prêts à brancher.
 - **Les ornements (chantier C9)** — minimap (`MinimapModel`,
   `MinimapView`) et défilement rapide (`FastScrollerView`) ; la revue
   par blocs de l'agent (`RevueDiff`, `DiffBlocs`, ADR-012). La
@@ -70,4 +74,6 @@ baseline.
 - [ADR-018](../docs/adr/018-interface-tout-en-popups.md) — l'interface
   tout en popups ; maquettes réactives
   ([`docs/maquettes/popups.html`](../docs/maquettes/popups.html)).
-- [USAGE.md](../USAGE.md) — les popups et feuilles chez l'hôte (§ 6).
+- [USAGE.md](../USAGE.md) — les popups et feuilles chez l'hôte (§ 9) :
+  l'orchestrateur prêt à l'emploi (`PopupsEditeur`, android-host) puis
+  la composition à la main par le manager.

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Les libellés français des popups de l'éditeur (ADR-008 : la
+     parité des chaînes affichées, valeurs/ ↔ values-fr/). -->
+<resources>
+    <string name="menu_plus">PLUS</string>
+    <string name="titre_apercu">Définition de %1$s</string>
+    <string name="titre_rendu_preview">Rendu @Preview</string>
+    <string name="message_rendu_preview">L\'hôte rend le composable « %1$s » (ligne %2$d) — le rendu est délégué, l\'éditeur ne porte que le marqueur.</string>
+</resources>

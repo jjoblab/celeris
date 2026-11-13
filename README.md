@@ -51,6 +51,79 @@ et les sommes correspondent octet pour octet. Coordonnées et déclaration
 des dépendances :
 [`USAGE.md`](USAGE.md) (§ 2, § 3).
 
+## Les popups de l'éditeur
+
+**Règle absolue (ADR-018)** : toute surface fonctionnelle est une popup —
+jamais de dialogue système, jamais d'écran plein cadre. **PIEGE-27** : le
+clavier n'est jamais volé — l'éditeur garde le focus et DÉLÈGUE flèches,
+Entrée et Échap aux cartes ouvertes.
+
+Les popups vivent dans les modules de l'éditeur : `android-widgets` porte
+le kit (cartes, manager, machine à états, feuilles), `android-host`
+porte l'orchestrateur **`PopupsEditeur`** — l'application hôte n'a
+presque rien à écrire (déménagement du 2026-11-14 : la démonstration ne
+teste plus qu'elle-même, elle ne porte plus les fonctionnalités).
+
+```java
+import jo.celeris.android.host.popups.CoachPopups;
+import jo.celeris.android.host.popups.PopupsEditeur;
+
+// la scène : l'éditeur, sa session, la couche posée dessus (USAGE.md § 4.1)
+PopupsEditeur popups = new PopupsEditeur(editeur, session, couche,
+        theme, tailleTexteSp, CoachPopups.muet());
+
+// le contenu : un serveur de langage (optionnel) et les tables de l'hôte
+popups.brancherServeur(serveur, "file:///Main.java", langage);
+popups.configurerIntentions(intentions);
+popups.configurerActionsSelection(principales, debordement);
+popups.setPlan(entreesDuFichier);
+popups.setDiagnostics(diagnosticsDeLhote);
+
+// les déclenchements maison : le double-tap et le clavier délégué —
+// tout le reste (frappe, sélection, défilement) vit déjà dans la vue
+editeur.setSurDoubleTap(offset ->
+        popups.ouvrirColorPicker(offset)
+                || popups.ouvrirSurvolAuDoubleTap(offset));
+editeur.setSurTouchePopup(popups::surTouche);
+```
+
+Sans serveur, la complétion des mots du document vit déjà (le coach
+muet suffit) ; le coach de l'hôte enrichit : mots réservés du langage,
+signatures connues, documentation — `CoachPopups` en porte les tables.
+La complétion se propose à la frappe, l'aide aux paramètres suit l'appel
+ouvert, le fil d'Ariane descend le plan, la barre de sélection suit la
+sélection, la bande d'erreurs vit avec les diagnostics — l'orchestrateur
+branche les écouteurs, l'hôte ne code aucune cascade (frappe, exclusion,
+voile : le manager tient l'état ET les cartes d'un seul tenant).
+
+### Les différentes popups
+
+| Popup | Genre (`PopupKind`) | Déclencheur | Données |
+| --- | --- | --- | --- |
+| Liste de complétion | `COMPLETION_LIST` | la frappe propose, filtre ensuite | serveur LSP ou mots du document |
+| Documentation de complétion | `COMPLETION_DOC` | suit sa liste | serveur LSP / coach |
+| Aide aux paramètres | `SIGNATURE_HELP` | édition dans un appel ouvert | serveur / coach |
+| Survol de symbole | `HOVER` | double-tap, « i » de la barre | serveur / coach |
+| Aperçu de définition (peek) | carte `HOVER` | menu, intentions | plan local du fichier |
+| Menu d'intentions | `INTENTIONS_MENU` | action de menu au curseur | hôte |
+| Info-bulle de diagnostic | `DIAGNOSTIC_TOOLTIP` | sélection sur ligne marquée | SPI `DiagnosticHote` |
+| Fil d'Ariane | `BREADCRUMB` | suit le curseur | plan |
+| Barre de sélection | `SELECTION_BAR` | sélection non vide | hôte |
+| Débordement de la barre | `SELECTION_OVERFLOW` | puce « ⋯ » de la barre | hôte |
+| Barre de recherche | `SEARCH_BAR` | demande seule | hôte |
+| Bande d'erreurs | `ERROR_BAND` | vit avec les diagnostics | SPI `DiagnosticHote` |
+| Minimap | `MINIMAP` | vit avec le document | document |
+| Pouce de défilement rapide | `FAST_SCROLLER` | le doigt au bord droit | fenêtre du document |
+| Barre de touches de code | `TOUCH_BAR` | posée par l'hôte | hôte |
+| Sélecteur de couleur | `COLOR_PICKER` | double-tap d'un littéral | littéral survolé |
+| Débordement de la barre d'application | `TOOLBAR_OVERFLOW` | puce de la toolbar | hôte |
+
+Les surfaces denses — recherche, plan, réglages, diff, correctifs,
+révocations IA — vivent en **feuilles** modales (`FeuilleBas`,
+`FeuilleHaut`). Le guide complet (clavier délégué, régimes, composition à
+la main) vit dans [`USAGE.md`](USAGE.md) § 9 ; l'inventaire exhaustif,
+fiche par fiche, dans [`POPUP_INVENTORY.md`](POPUP_INVENTORY.md).
+
 ## Vie privée
 
 Aucun paquet celeris n'embarque de télémétrie — ni collecte, ni
@@ -116,7 +189,7 @@ portes) :
 | [`core-ai`](core-ai/README.md) | JVM pure | contrats IA et API d'outils pour agents |
 | [`android-view`](android-view/README.md) | bibliothèque Android | vue Canvas, rendu, entrées, IME, accessibilité, gouttière |
 | [`android-widgets`](android-widgets/README.md) | bibliothèque Android | kit de popups (ADR-018), complétion, recherche, plan, minimap, défilement rapide |
-| [`android-host`](android-host/README.md) | bibliothèque Android | adaptateurs hôte (SPI) : fichiers, VCS, exécution, débogueur, historique local |
+| [`android-host`](android-host/README.md) | bibliothèque Android | adaptateurs hôte (SPI) : fichiers, VCS, exécution, débogueur, historique local — et l'orchestration des popups (`PopupsEditeur`, déménagement du 2026-11-14) |
 | [`cli`](cli/README.md) | application JVM | exécutable sans Android (diagnostiquer, formater, refactorer) |
 | [`demo`](demo/README.md) | application Android | terrain de démonstration complet |
 

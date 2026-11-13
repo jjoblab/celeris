@@ -448,7 +448,65 @@ d'écran plein cadre, jamais de dialogue système : **l'hôte reste
 maître de son écran et de sa navigation**. La bibliothèque rend des
 surfaces, elle n'impose pas d'écran.
 
-Le montage tient en trois temps — **lier, déclenquer, déléguer :
+### 9.1 L'orchestrateur prêt à l'emploi — `PopupsEditeur`
+
+Les fonctionnalités popups vivent dans les modules de l'éditeur
+(déménagement du 2026-11-14) : le kit des cartes vit dans
+`android-widgets`, l'orchestration vit dans `android-host`. La voie
+royale de l'hôte tient en UNE classe — elle branche les écouteurs
+(frappe, sélection, défilement, thème), crée et lie les cartes, tient
+les cascades; l'hôte ne fournit que le CONTENU :
+
+```java
+import jo.celeris.android.host.popups.CoachPopups;
+import jo.celeris.android.host.popups.PopupsEditeur;
+
+// la scène : l'éditeur, sa session, la couche posée dessus (§ 4.1)
+PopupsEditeur popups = new PopupsEditeur(editeur, session, couche,
+        theme, tailleTexteSp, CoachPopups.muet());
+
+// le contenu (tout est optionnel, la complétion des mots vit déjà)
+popups.brancherServeur(serveur, "file:///Main.java", langage);
+popups.configurerIntentions(intentions);
+popups.configurerActionsSelection(principales, debordement);
+popups.setPlan(entreesDuFichier);
+popups.setDiagnostics(diagnosticsDeLhote);
+
+// les déclenchements maison : double-tap et clavier délégué
+editeur.setSurDoubleTap(offset ->
+        popups.ouvrirColorPicker(offset)
+                || popups.ouvrirSurvolAuDoubleTap(offset));
+editeur.setSurTouchePopup(popups::surTouche);
+
+// la fin de vie : tout se ferme, les liens se dissolvent
+popups.detacher();
+```
+
+- **le coach** — `CoachPopups` porte les tables de l'hôte : mots
+  réservés du langage, badges des candidats bruts, documentation et
+  signatures connues en repli sans serveur. `CoachPopups.muet()` suffit
+  à la complétion des mots du document; l'hôte qui connaît son terrain
+  implémente l'interface (la démonstration en montre une complète,
+  `CoachDemo`);
+- **le serveur** — `LanguageSession` (même module) est la surface
+  commune des serveurs de langage : les modèles du kit y arrivent déjà
+  convertis, l'orchestrateur n'attrape jamais le protocole (§ 8);
+- **la vue** — `editeur.setSurDoubleTap` et
+  `editeur.setSurTouchePopup` (PIEGE-27) restent les deux seuls
+  déclenchements à brancher; le survol au « i » et l'ouverture du
+  menu d'intentions passent par les actions de la barre et du menu.
+
+L'orchestrateur expose aussi `popups.docAncre()` (l'aperçu de
+définition et le rendu `@Preview`), `popups.ouvrirRecherche()` /
+`fermerRecherche()` (l'état de la barre — le champ reste chez l'hôte),
+`popups.fermerSousVoile()` (l'ouverture d'une feuille coupe
+l'intelligence) et `popups.manager()` (la barre d'application, la
+toolbar et sa barre de touches — `BarreToolbar` du kit).
+
+### 9.2 Composons à la main — le manager
+
+Qui compose ses propres surfaces garde le montage en trois temps —
+**lier, déclenquer, déléguer** :
 
 1. **la couche** — `PopupLayer` posée sur la vue dans votre gabarit
    (§ 4.1) ; elle porte les popups en coordonnées de scène et se
@@ -540,6 +598,9 @@ fermeture au retour.
 
 Le module `android-host` expose les contrats que **vous implémentez**
 pour brancher votre monde — l'éditeur les consomme, jamais l'inverse.
+Depuis le déménagement du 2026-11-14, il porte AUSSI l'orchestration
+des popups (§ 9.1) : la composition `android-view` + `android-widgets`
++ `core-lsp` — `PopupsEditeur` et ses satellites y vivent.
 
 | Interface | Méthodes | Ce que l'éditeur en tire |
 | --- | --- | --- |
