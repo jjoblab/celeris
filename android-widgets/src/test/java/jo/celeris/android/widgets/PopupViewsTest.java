@@ -239,6 +239,49 @@ public class PopupViewsTest {
         assertEquals("la deuxième action court", 1, execute.get());
     }
 
+    /** Le menu de débordement (le motif NavMenu du dépôt de départ) :
+     *  la SECTION en petites capitales annonce les rangées, ne se prend
+     *  jamais — les actions qui la suivent courent au rang décalé. */
+    @Test
+    public void overflowSectionAnnouncesButNeverPicks() {
+        IntentionsMenuView vue = new IntentionsMenuView(contexte,
+                PopupPalette.dark());
+        AtomicInteger execute = new AtomicInteger(-1);
+        vue.setSection("more");
+        vue.setActions(List.of(
+                new IntentionsMenuView.Item("dupliquer", () -> execute.set(0)),
+                new IntentionsMenuView.Item("partager", () -> execute.set(1))));
+        mesurer(vue);
+        // l'en-tête vit en rangée 0, ne se prend JAMAIS
+        float tete = vue.rowCenterY(0);
+        vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
+                10f, tete, 0));
+        assertFalse("l'en-tête de section ne se prend jamais",
+                vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
+                        MotionEvent.ACTION_UP, 10f, tete, 0)));
+        assertEquals("rien ne court sur l'en-tête", -1, execute.get());
+        // la première ACTION vit en rangée 1 — le décalage compte la section
+        float premiere = vue.rowCenterY(1);
+        vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
+                10f, premiere, 0));
+        assertTrue(vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
+                MotionEvent.ACTION_UP, 10f, premiere, 0)));
+        assertEquals("la première action court malgré la section",
+                0, execute.get());
+        // la section retirée : les rangées redeviennent 1 pour 1
+        vue.setSection(null);
+        vue.setActions(List.of(
+                new IntentionsMenuView.Item("dupliquer", () -> execute.set(0))));
+        mesurer(vue);
+        float seule = vue.rowCenterY(0);
+        vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
+                10f, seule, 0));
+        assertTrue(vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
+                MotionEvent.ACTION_UP, 10f, seule, 0)));
+        assertEquals("sans section, la première rangée court",
+                0, execute.get());
+    }
+
     /** L'info-bulle : le message se pose, vide elle ne mesure rien. */
     @Test
     public void tooltipCarriesTheMessage() {

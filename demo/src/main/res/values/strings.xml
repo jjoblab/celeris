@@ -31,6 +31,7 @@
     <string name="barre_copier">Copy</string>
     <string name="barre_coller">Paste</string>
     <string name="barre_dupliquer">Duplicate</string>
+    <string name="menu_plus">MORE</string>
     <string name="barre_tout">Select all</string>
     <string name="action_plan">Outline</string>
     <string name="titre_feuille_plan">File outline</string>

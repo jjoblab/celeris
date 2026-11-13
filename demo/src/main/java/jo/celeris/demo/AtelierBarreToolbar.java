@@ -37,6 +37,8 @@ final class AtelierBarreToolbar {
     private final PopupController controleur;
     private final PopupLayer couche;
     private final IntentionsMenuView carte;
+    /** Le titre de la section du débordement — l'état NavMenu de la carte. */
+    private final String section;
     private final TouchBarView barreTouches;
     private final int margePx;
 
@@ -49,10 +51,11 @@ final class AtelierBarreToolbar {
      * @param palette    la palette dérivée du thème courant
      */
     AtelierBarreToolbar(PopupController controleur, PopupLayer couche,
-            IntentionsMenuView carte, PopupPalette palette) {
+            IntentionsMenuView carte, PopupPalette palette, String section) {
         this.controleur = controleur;
         this.couche = couche;
         this.carte = carte;
+        this.section = section;
         this.barreTouches = new TouchBarView(couche.getContext(), palette);
         this.margePx = Math.round(MARGE_DP
                 * couche.getResources().getDisplayMetrics().density);
@@ -75,6 +78,8 @@ final class AtelierBarreToolbar {
             return;
         }
         controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        // la carte prend son état NavMenu : la section du débordement
+        carte.setSection(section);
         carte.setActions(items(actions));
         PopupPlacer.Cadre taille = tailleMesuree(carte);
         // la carte pend sous la puce : le long du bord DROIT, en tête

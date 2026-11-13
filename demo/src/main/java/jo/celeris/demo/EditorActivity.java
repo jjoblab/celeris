@@ -360,7 +360,8 @@ public final class EditorActivity extends AppCompatActivity {
      *  duplication). */
     private void brancherToolbar() {
         atelierBarreToolbar = new AtelierBarreToolbar(atelierPopups.controleur(), couche(),
-                atelierPopups.carteMenus(), paletteFeuilles());
+                atelierPopups.carteMenus(), paletteFeuilles(),
+                getString(R.string.menu_plus));
         atelierBarreToolbar.poserBarreTouches(
                 new AtelierTouchesCode(this, editeur, session,
                         this::langueOuverte).touches());

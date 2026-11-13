@@ -121,8 +121,11 @@ final class AtelierPopups {
         infoBulle = new DiagnosticTooltipView(couche.getContext(), palette);
         filAriane = new BreadcrumbView(couche.getContext(), palette);
         barreSelection = new SelectionBarView(couche.getContext(), palette);
+        // la section du débordement : le « MORE » du dépôt de départ,
+        // traduit par la démonstration
         menuDebordement = new MenuDebordement(controleur, menuIntentions,
-                couche, margePx);
+                couche, margePx,
+                couche.getContext().getString(R.string.menu_plus));
         atelierCouleur = new AtelierCouleur(editeur, session, controleur,
                 couche, margePx, palette);
         docAncre = new DocAncre(editeur.getContext(), controleur,
@@ -295,6 +298,9 @@ final class AtelierPopups {
             return;
         }
         controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        // le menu d'intentions du caret ne porte AUCUNE section — la
+        // carte partagée la laisse au débordement des barres
+        menuIntentions.setSection(null);
         menuIntentions.setActions(intentions);
         Rect curseur = editeur.caretBounds();
         ancrer(PopupController.PopupKind.INTENTIONS_MENU, menuIntentions,

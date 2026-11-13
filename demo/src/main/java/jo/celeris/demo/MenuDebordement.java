@@ -12,11 +12,13 @@ import jo.celeris.android.widgets.SelectionBarView;
 
 /**
  * Le menu de débordement de la barre de sélection (M8.6 — le design du
- * kit du dépôt de départ, le motif de la plateforme) : les actions
- * repliées derrière la puce y courent en rangées cliquables — la même
- * carte que le menu d'intentions, le même design. Le menu ne survit
- * jamais à sa barre (la machine à états l'emporte avec elle) ; le
- * choix d'une action la referme AVANT de l'exécuter.
+ * kit du dépôt de départ, le motif de la plateforme) : le tap sur la
+ * puce « ⋯ » ouvre la CARTE du kit en son état NavMenu — une SECTION
+ * en petites capitales muettes (« MORE » au dépôt de départ) annonce
+ * les actions repliées, rangées cliquables du même verre que le menu
+ * d'intentions. Le menu ne survit jamais à sa barre (la machine à
+ * états l'emporte avec elle) ; le choix d'une action la referme AVANT
+ * de l'exécuter, l'en-tête de section ne se prend jamais.
  */
 final class MenuDebordement {
 
@@ -32,14 +34,20 @@ final class MenuDebordement {
      * @param menu       la carte partagée du kit — le menu d'intentions
      * @param couche     la couche porte-popups posée sur l'éditeur
      * @param margePx    la respiration des ancres aux bords de la couche
+     * @param section    le titre de section du débordement (« MORE » au
+     *                   dépôt de départ) — l'état NavMenu de la carte
      */
     MenuDebordement(PopupController controleur, IntentionsMenuView menu,
-            PopupLayer couche, int margePx) {
+            PopupLayer couche, int margePx, String section) {
         this.controleur = controleur;
         this.menu = menu;
         this.couche = couche;
         this.margePx = margePx;
+        this.section = section;
     }
+
+    /** Le titre de la section du débordement — l'état NavMenu. */
+    private final String section;
 
     /**
      * Ouvre (ou ré-ancre) le menu sous la puce de la barre : les
@@ -53,6 +61,9 @@ final class MenuDebordement {
             return;
         }
         controleur.open(PopupController.PopupKind.SELECTION_OVERFLOW);
+        // la section d'abord (l'état NavMenu de la carte), les actions
+        // ensuite — la carte partagée s'y re-pose entière
+        menu.setSection(section);
         menu.setActions(items(actions));
         int x = barre.getLeft() + barre.ancrePuceDebordementX();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(x,
