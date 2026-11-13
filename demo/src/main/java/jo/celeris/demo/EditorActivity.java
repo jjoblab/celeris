@@ -17,11 +17,14 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.EtatLignesVcs;
+import jo.celeris.android.host.spi.LigneArret;
+import jo.celeris.android.host.spi.ValeurEnLigne;
 import jo.celeris.android.view.ClasseLargeur;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.FontSpec;
@@ -29,6 +32,7 @@ import jo.celeris.android.view.MarquesIntegration;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
+import jo.celeris.android.view.ValeurLigne;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.core.language.model.LanguageSupport;
@@ -588,14 +592,32 @@ public final class EditorActivity extends AppCompatActivity {
                 etatDebogage.debogueur().ligneCourante(), etatDebogage.debogueur().pileCourante());
         editeur.marquesGouttiere().setIntegration(marques);
         annoncerPauseSiPausee();
+        majValeursEnLigne();
         editeur.invalidate();
+    }
+
+    /** Les valeurs de débogage en ligne (E-03) : la pause les pose en
+     *  fin de ligne — le rendu de la vue (expression = valeur), la
+     *  reprise les retire. La vue ne connaît pas le débogueur :
+     *  l'activité transpose. */
+    private void majValeursEnLigne() {
+        LigneArret pause = etatDebogage.debogueur().ligneCourante();
+        List<ValeurLigne> posees = new ArrayList<>();
+        if (pause != null) {
+            List<ValeurEnLigne> valeurs = etatDebogage.debogueur()
+                    .valeursEnLigne(pause.ligne());
+            for (ValeurEnLigne valeur : valeurs) {
+                posees.add(new ValeurLigne(valeur.ligne(),
+                        valeur.expression() + " = " + valeur.valeur()));
+            }
+        }
+        editeur.setValeursEnLigne(posees);
     }
 
     /** La pause de débogage s'annonce — la reprise aussi : la bulle du
      *  coin bas-droit porte l'événement réel, l'horloge la referme. */
     private void annoncerPauseSiPausee() {
-        jo.celeris.android.host.spi.LigneArret pause =
-                etatDebogage.debogueur().ligneCourante();
+        LigneArret pause = etatDebogage.debogueur().ligneCourante();
         if (pause != null) {
             atelierPopups.annoncer(getString(R.string.titre_notification),
                     getString(R.string.etat_pause, pause.ligne()));

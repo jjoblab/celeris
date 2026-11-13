@@ -6,11 +6,14 @@ import android.widget.TextView;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import jo.celeris.android.host.spi.Arret;
 import jo.celeris.android.host.spi.CadrePile;
 import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.FauxDebogueur;
+import jo.celeris.android.host.spi.ValeurEnLigne;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.core.text.TextSession;
 
@@ -54,7 +57,10 @@ final class EtatDebogage {
     /**
      * Bascule la pause simulée (D-05) : sans pause, l'exécution s'arrête
      * au premier arrêt actif du fichier — à la cinquième ligne sinon —
-     * avec une pile de deux cadres ; en pause, l'exécution reprend.
+     * avec une pile de deux cadres ; en pause, l'exécution reprend. La
+     * pause fraîche y sert ses valeurs en ligne : les affectations
+     * littérales de SA ligne se lisent (E-03) — déterministe, jamais
+     * deviné.
      */
     void basculerPause() {
         if (debogueur.ligneCourante() != null) {
@@ -70,8 +76,29 @@ final class EtatDebogage {
                     new CadrePile("Exemple", "corps", chemin.nom(), ligne),
                     new CadrePile("Exemple", "appelant", chemin.nom(),
                             Math.max(1, ligne - 2))));
+            for (ValeurEnLigne valeur : valeursDePause(ligne,
+                    session.document().lineText(ligne - 1))) {
+                debogueur.enregistrerValeurEnLigne(valeur.ligne(),
+                        valeur.expression(), valeur.valeur());
+            }
         }
         majEtat();
+    }
+
+    /** Les valeurs de pause de la ligne : les affectations écrites
+     *  « ident = valeur » s'y lisent — déterministe, jamais deviné
+     *  (la pause ne devine pas ce que la ligne ne dit pas). */
+    static List<ValeurEnLigne> valeursDePause(int ligne, String texte) {
+        Pattern affectation = Pattern.compile(
+                "([\\w$]+)\\s*=\\s*([\\w.\\-\"]+)");
+        Matcher corps = affectation.matcher(texte);
+        java.util.ArrayList<ValeurEnLigne> valeurs =
+                new java.util.ArrayList<>();
+        while (corps.find() && valeurs.size() < 3) {
+            valeurs.add(new ValeurEnLigne(ligne, corps.group(1),
+                    corps.group(2)));
+        }
+        return List.copyOf(valeurs);
     }
 
     /** Le débogueur simulé — les marques d'intégration y lisent. */
