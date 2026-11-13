@@ -457,14 +457,32 @@ Le montage se fait en trois temps :
 
 ```java
 import jo.celeris.android.widgets.PopupController;
+import jo.celeris.android.widgets.PopupLayer;
 
 PopupController popups = new PopupController();
 popups.open(PopupController.PopupKind.COMPLETION_LIST);
 popups.close(PopupController.PopupKind.SIGNATURE_HELP);
-popups.onKeystroke();   // la frappe fait vivre les listes filtrées
-popups.onScroll();      // le défilement referme ce qui doit refermer
-popups.closeAll();
+// la frappe fait vivre les listes filtrées — les genres fermés se
+// rendent : la couche les retire, jamais une vue ne survit à son état
+for (PopupController.PopupKind ferme : popups.onKeystroke()) {
+    couche.dismiss(ferme);
+}
+// le défilement referme ce qui doit refermer — même rendu, même retrait
+for (PopupController.PopupKind ferme : popups.onScroll()) {
+    couche.dismiss(ferme);
+}
+for (PopupController.PopupKind ferme : popups.closeAll()) {
+    couche.dismiss(ferme);
+}
 ```
+
+La règle qui porte ce rendu : **la vue ne survit jamais à son état**.
+`onKeystroke`, `onScroll` et `closeAll` rendent les genres qu'ils
+fermaient — l'hôte les retire de sa `PopupLayer`, sinon la vue y
+restait en zombie. Le re-pose de la MÊME vue sous son genre (le filtre
+de complétion, à chaque frappe) ne la re-naît pas : elle se re-mesure
+et se re-place ; une même vue changée de genre quitte l'ancien — une
+vue ne vit jamais sous deux genres.
 
 3. **les feuilles** — `FeuilleBas` et `FeuilleHaut` (`android-widgets`)
    pour les surfaces denses (recherche, réglages, plan) et les rappels
