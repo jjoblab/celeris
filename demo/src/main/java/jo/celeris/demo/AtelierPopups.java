@@ -6,7 +6,6 @@ import java.util.List;
 
 import jo.celeris.android.host.spi.AnalyseurLint;
 import jo.celeris.android.host.spi.DiagnosticHote;
-import jo.celeris.android.host.spi.GraviteDiagnostic;
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.BreadcrumbView;
@@ -91,6 +90,9 @@ final class AtelierPopups {
     /** L'atelier de sûreté — la suppression sûre et le déplacement
      *  d'une méthode (catégorie D, les moteurs B-23 se réveillent). */
     private final AtelierSurete atelierSurete;
+    /** L'atelier de masquage d'inspection — la règle de la ligne se
+     *  masque, le lint l'honore (catégorie B, la marque naît). */
+    private final AtelierSuppression atelierSuppression;
 
     /** Le thème courant — la palette des popups en dérive, le
      *  rafraîchissement la suit. */
@@ -140,9 +142,12 @@ final class AtelierPopups {
      * @param gabaritMethode le geste du gabarit de méthode — le canal
      *                       unique de la refactorisation (A-22), la carte
      *                       de génération n'est qu'une peau de plus
+     * @param relancerLint   la relance de l'analyse lint — le masquage
+     *                       d'inspection ne vaut qu'appliqué
      */
     AtelierPopups(EditorView editeur, TextSession session, PopupLayer couche,
-            EditorTheme theme, float tailleTexteSp, Runnable gabaritMethode) {
+            EditorTheme theme, float tailleTexteSp, Runnable gabaritMethode,
+            Runnable relancerLint) {
         this.editeur = editeur;
         this.session = session;
         this.couche = couche;
@@ -180,11 +185,13 @@ final class AtelierPopups {
         atelierHierarchies = new AtelierHierarchies(editeur, session, popups,
                 margePx, palette, () -> plan, () -> nomDuFichier);
         atelierNotifications = new AtelierNotifications(popups, margePx, palette);
-        atelierGabarits = new AtelierGabarits(editeur, session, popups,
-                margePx, palette, () -> plan, () -> nomDuFichier,
-                gabaritMethode);
+        atelierGabarits = new AtelierGabarits(editeur, session, popups, margePx,
+                palette, () -> plan, () -> nomDuFichier, gabaritMethode);
         atelierSurete = new AtelierSurete(editeur, session, popups, margePx,
                 palette, () -> plan, () -> nomDuFichier, this::annoncer);
+        atelierSuppression = new AtelierSuppression(editeur, session, popups,
+                margePx, palette, () -> diagnostics, () -> nomDuFichier,
+                relancerLint, this::annoncer);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette);
         bordDroit = new AtelierBordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
         repositionnements = tableDesRepositionnements();
@@ -205,12 +212,14 @@ final class AtelierPopups {
                         atelierGabarits::repositionner),
                 new Repositionnement(PopupController.PopupKind.SAFE_MOVE,
                         atelierSurete::repositionner),
+                new Repositionnement(PopupController.PopupKind.SUPPRESS_INSPECTION,
+                        atelierSuppression::repositionner),
                 new Repositionnement(PopupController.PopupKind.BREADCRUMB,
                         this::rafraichirFilAriane),
                 new Repositionnement(PopupController.PopupKind.ERROR_BAND,
                         this::rafraichirBandeDErreurs),
                 new Repositionnement(PopupController.PopupKind.SELECTION_BAR,
-                        () -> rafraichirBarreSelection(session.selection())),
+                        this::rafraichirBarreSelection),
                 new Repositionnement(PopupController.PopupKind.INTENTIONS_MENU,
                         this::ouvrirIntentions));
     }
@@ -259,6 +268,7 @@ final class AtelierPopups {
         atelierDocExterne.surPalette(palette);
         atelierGabarits.surPalette(palette);
         atelierSurete.surPalette(palette);
+        atelierSuppression.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -373,6 +383,13 @@ final class AtelierPopups {
      *  (catégorie D, le moteur B-23 se réveille). */
     void ouvrirDeplacement() {
         atelierSurete.deplacerDans();
+    }
+
+    /** Le masquage d'inspection de la ligne du caret — les règles
+     *  portées s'y proposent, le lint honore la marque posée
+     *  (catégorie B, la marque naît). */
+    void ouvrirSuppressionInspection() {
+        atelierSuppression.ouvrir();
     }
 
     /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */
@@ -558,7 +575,7 @@ final class AtelierPopups {
     private void surSelection(MultiSelection selection) {
         boolean apresFrappe = frappeEnCours;
         frappeEnCours = false;
-        rafraichirBarreSelection(selection);
+        rafraichirBarreSelection();
         rafraichirFilAriane();
         if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {
             basculerCompletion();
@@ -576,7 +593,8 @@ final class AtelierPopups {
         repositionnerTout();
     }
 
-    private void rafraichirBarreSelection(MultiSelection selection) {
+    private void rafraichirBarreSelection() {
+        MultiSelection selection = session.selection();
         List<SelRange> plages = selection.ranges();
         boolean visible = plages.size() == 1 && !plages.get(0).isEmpty();
         if (!visible) {
@@ -627,9 +645,7 @@ final class AtelierPopups {
         }
         popups.controleur().open(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
         infoBulle.setMessage(diagnostic.message(),
-                diagnostic.gravite() == GraviteDiagnostic.ERREUR
-                        ? DiagnosticTooltipView.Severity.ERROR
-                        : DiagnosticTooltipView.Severity.WARNING);
+                EtatDiagnostics.severite(diagnostic.gravite()));
         Rect curseur = editeur.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.atPoint(
                 curseur.left, curseur.top,

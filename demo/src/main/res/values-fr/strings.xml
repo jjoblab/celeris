@@ -60,6 +60,11 @@
     <string name="deplacement_aucune_cible">Déplacement : aucune classe cible dans le fichier</string>
     <string name="deplacement_refuse">Déplacement refusé — les conditions de sûreté ne tiennent pas</string>
     <string name="deplacement_effectue">Déplacée dans « %1$s » — un geste la défait</string>
+    <string name="action_masquer_inspection">Masquer l\'inspection de la ligne</string>
+    <string name="section_suppression">Masquer</string>
+    <string name="suppression_item">Masquer %1$s</string>
+    <string name="suppression_aucune_inspection">Aucune inspection réglée à cette ligne</string>
+    <string name="suppression_inspection_effectuee">%1$s masquée — le lint se relance</string>
     <string name="titre_correctif_import">Importer %1$s</string>
     <string name="titre_usages">%1$d usages de « %2$s »</string>
     <string name="barre_couper">Couper</string>

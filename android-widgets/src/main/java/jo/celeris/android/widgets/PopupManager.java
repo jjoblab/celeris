@@ -44,7 +44,8 @@ public final class PopupManager {
      * tiennent jamais ensemble non plus, l'ordre ne départage pas). La
      * carte de gabarits vit avec les menus du caret ; la carte des
      * usages qui barrent et celle des cibles du déménagement ferment
-     * la file — elles ne tiennent jamais avec les précédentes.
+     * la file — elles ne tiennent jamais avec les précédentes ; la
+     * carte de masquage d'inspection vit avec les menus du caret.
      */
     private static final PopupController.PopupKind[] ORDRE_CLAVIER = {
             PopupController.PopupKind.COMPLETION_LIST,
@@ -55,7 +56,8 @@ public final class PopupManager {
             PopupController.PopupKind.REFERENCES,
             PopupController.PopupKind.HIERARCHY,
             PopupController.PopupKind.SAFE_DELETE,
-            PopupController.PopupKind.SAFE_MOVE};
+            PopupController.PopupKind.SAFE_MOVE,
+            PopupController.PopupKind.SUPPRESS_INSPECTION};
 
     /** Ce qu'une feuille modale coupe : l'intelligence et les actions
      *  cèdent au voile — le fil d'Ariane et le chrome (bande, minimap,
@@ -78,7 +80,8 @@ public final class PopupManager {
             PopupController.PopupKind.EXTERNAL_DOC,
             PopupController.PopupKind.GABARITS,
             PopupController.PopupKind.SAFE_DELETE,
-            PopupController.PopupKind.SAFE_MOVE};
+            PopupController.PopupKind.SAFE_MOVE,
+            PopupController.PopupKind.SUPPRESS_INSPECTION};
 
     /** Ce que l'échappement referme quand aucune carte interactive ne
      *  tient — les bulles qui suivent le contexte, pas le chrome. */

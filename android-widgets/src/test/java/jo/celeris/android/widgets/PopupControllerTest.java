@@ -550,4 +550,45 @@ class PopupControllerTest {
                 controleur.surToucheHorsCartes(),
                 "le geste extérieur referme la carte d'actions");
     }
+
+    /** La carte de masquage d'inspection (catégorie B de l'inventaire —
+     *  « Suppress Inspection », le geste dormait, la marque naît) vit
+     *  les régimes du menu du caret : la complétion la chasse (un
+     *  menu ne survit pas à la liste), la frappe seule et le
+     *  défilement l'épargnent (elle se repositionne), le tap hors
+     *  cartes la referme — la famille des surfaces d'actions se
+     *  referme sur elle. */
+    @Test
+    void suppressInspectionVitLesRegimesDuMenuDuCaret() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        assertTrue(controleur.open(
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "la carte de masquage ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        controleur.open(PopupController.PopupKind.SAFE_DELETE);
+        assertFalse(controleur.isOpen(
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "la carte des usages qui barrent ferme la carte de masquage");
+        controleur.open(PopupController.PopupKind.SUPPRESS_INSPECTION);
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertFalse(controleur.isOpen(
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "la complétion chasse le menu — la saisie prend le relais");
+        controleur.open(PopupController.PopupKind.SUPPRESS_INSPECTION);
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "la frappe seule ne referme pas le menu du caret");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "le défilement le repositionne, il ne le ferme pas");
+        assertEquals(
+                java.util.EnumSet.of(
+                        PopupController.PopupKind.SUPPRESS_INSPECTION),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la carte d'actions");
+    }
 }

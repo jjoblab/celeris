@@ -15,8 +15,8 @@ import java.util.Set;
  * ferment à la frappe et au défilement ; la complétion FILTRE
  * localement à la frappe — elle reste ouverte, la requête ne repart
  * pas ; la barre de recherche ne se ferme que sur demande. Les genres
- * (M7.5, reprise — vingt-quatre depuis la carte des cibles du
- * déménagement, la huitième surface réveillée du signal « terminez le
+ * (M7.5, reprise — vingt-cinq depuis la carte de masquage
+ * d'inspection, la neuvième surface réveillée du signal « terminez le
  * reste ») : la documentation de complétion n'existe pas sans sa liste — fermer la
  * liste ferme la documentation ; la barre de sélection cède à la frappe
  * (la frappe remplace la sélection) mais survit au défilement, et son
@@ -193,7 +193,20 @@ public final class PopupController {
          *  d'actions, la complétion la chasse, la frappe seule et le
          *  défilement l'épargnent (elle se repositionne), le tap
          *  hors cartes la referme. */
-        SAFE_MOVE
+        SAFE_MOVE,
+
+        /** La carte de masquage d'inspection — la règle portée par
+         *  l'avertissement de la ligne se masque en ligne (catégorie B
+         *  de l'inventaire, « Suppress Inspection », le geste dormait
+         *  : la marque naît, le lint l'honore à sa relance) : les
+         *  diagnostics réglés de la ligne du caret s'y proposent, le
+         *  choix pose le commentaire, l'analyse se relance — la règle
+         *  masquée ne se rapporte plus, les autres demeurent. Elle vit
+         *  les régimes du menu du caret : famille des surfaces
+         *  d'actions, la complétion la chasse, la frappe seule et le
+         *  défilement l'épargnent (elle se repositionne), le tap hors
+         *  cartes la referme. */
+        SUPPRESS_INSPECTION
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -206,50 +219,90 @@ public final class PopupController {
      *  usages qui barrent) cohabitent avec elle. */
     private static final Map<PopupKind, PopupKind[]> FAMILLE_ACTIONS =
             Map.of(
-                    PopupKind.COMPLETION_LIST, new PopupKind[] {
-                            PopupKind.INTENTIONS_MENU,
-                            PopupKind.TOOLBAR_OVERFLOW, PopupKind.GABARITS,
-                            PopupKind.SAFE_MOVE},
-                    PopupKind.INTENTIONS_MENU, new PopupKind[] {
-                            PopupKind.COMPLETION_LIST,
-                            PopupKind.TOOLBAR_OVERFLOW,
-                            PopupKind.REFERENCES, PopupKind.HIERARCHY,
-                            PopupKind.GABARITS, PopupKind.SAFE_DELETE,
-                            PopupKind.SAFE_MOVE},
-                    PopupKind.TOOLBAR_OVERFLOW, new PopupKind[] {
-                            PopupKind.COMPLETION_LIST,
-                            PopupKind.INTENTIONS_MENU,
-                            PopupKind.REFERENCES, PopupKind.HIERARCHY,
-                            PopupKind.GABARITS, PopupKind.SAFE_DELETE,
-                            PopupKind.SAFE_MOVE},
-                    PopupKind.REFERENCES, new PopupKind[] {
+                    PopupKind.COMPLETION_LIST,
+                    new PopupKind[] {
                             PopupKind.INTENTIONS_MENU,
                             PopupKind.TOOLBAR_OVERFLOW,
-                            PopupKind.HIERARCHY, PopupKind.GABARITS,
-                            PopupKind.SAFE_DELETE, PopupKind.SAFE_MOVE},
-                    PopupKind.HIERARCHY, new PopupKind[] {
-                            PopupKind.INTENTIONS_MENU,
-                            PopupKind.TOOLBAR_OVERFLOW,
-                            PopupKind.REFERENCES, PopupKind.GABARITS,
-                            PopupKind.SAFE_DELETE, PopupKind.SAFE_MOVE},
-                    PopupKind.GABARITS, new PopupKind[] {
-                            PopupKind.COMPLETION_LIST,
-                            PopupKind.INTENTIONS_MENU,
-                            PopupKind.TOOLBAR_OVERFLOW,
-                            PopupKind.REFERENCES, PopupKind.HIERARCHY,
-                            PopupKind.SAFE_DELETE, PopupKind.SAFE_MOVE},
-                    PopupKind.SAFE_DELETE, new PopupKind[] {
-                            PopupKind.INTENTIONS_MENU,
-                            PopupKind.TOOLBAR_OVERFLOW,
-                            PopupKind.REFERENCES, PopupKind.HIERARCHY,
-                            PopupKind.GABARITS, PopupKind.SAFE_MOVE},
-                    PopupKind.SAFE_MOVE, new PopupKind[] {
-                            PopupKind.COMPLETION_LIST,
-                            PopupKind.INTENTIONS_MENU,
-                            PopupKind.TOOLBAR_OVERFLOW,
-                            PopupKind.REFERENCES, PopupKind.HIERARCHY,
                             PopupKind.GABARITS,
-                            PopupKind.SAFE_DELETE});
+                            PopupKind.SAFE_MOVE,
+                            PopupKind.SUPPRESS_INSPECTION},
+                    PopupKind.INTENTIONS_MENU,
+                    new PopupKind[] {
+                            PopupKind.COMPLETION_LIST,
+                            PopupKind.TOOLBAR_OVERFLOW,
+                            PopupKind.GABARITS,
+                            PopupKind.SAFE_MOVE,
+                            PopupKind.SUPPRESS_INSPECTION,
+                            PopupKind.REFERENCES,
+                            PopupKind.HIERARCHY,
+                            PopupKind.SAFE_DELETE},
+                    PopupKind.TOOLBAR_OVERFLOW,
+                    new PopupKind[] {
+                            PopupKind.COMPLETION_LIST,
+                            PopupKind.INTENTIONS_MENU,
+                            PopupKind.GABARITS,
+                            PopupKind.SAFE_MOVE,
+                            PopupKind.SUPPRESS_INSPECTION,
+                            PopupKind.REFERENCES,
+                            PopupKind.HIERARCHY,
+                            PopupKind.SAFE_DELETE},
+                    PopupKind.GABARITS,
+                    new PopupKind[] {
+                            PopupKind.COMPLETION_LIST,
+                            PopupKind.INTENTIONS_MENU,
+                            PopupKind.TOOLBAR_OVERFLOW,
+                            PopupKind.SAFE_MOVE,
+                            PopupKind.SUPPRESS_INSPECTION,
+                            PopupKind.REFERENCES,
+                            PopupKind.HIERARCHY,
+                            PopupKind.SAFE_DELETE},
+                    PopupKind.SAFE_MOVE,
+                    new PopupKind[] {
+                            PopupKind.COMPLETION_LIST,
+                            PopupKind.INTENTIONS_MENU,
+                            PopupKind.TOOLBAR_OVERFLOW,
+                            PopupKind.GABARITS,
+                            PopupKind.SUPPRESS_INSPECTION,
+                            PopupKind.REFERENCES,
+                            PopupKind.HIERARCHY,
+                            PopupKind.SAFE_DELETE},
+                    PopupKind.SUPPRESS_INSPECTION,
+                    new PopupKind[] {
+                            PopupKind.COMPLETION_LIST,
+                            PopupKind.INTENTIONS_MENU,
+                            PopupKind.TOOLBAR_OVERFLOW,
+                            PopupKind.GABARITS,
+                            PopupKind.SAFE_MOVE,
+                            PopupKind.REFERENCES,
+                            PopupKind.HIERARCHY,
+                            PopupKind.SAFE_DELETE},
+                    PopupKind.REFERENCES,
+                    new PopupKind[] {
+                            PopupKind.INTENTIONS_MENU,
+                            PopupKind.TOOLBAR_OVERFLOW,
+                            PopupKind.GABARITS,
+                            PopupKind.SAFE_MOVE,
+                            PopupKind.SUPPRESS_INSPECTION,
+                            PopupKind.HIERARCHY,
+                            PopupKind.SAFE_DELETE},
+                    PopupKind.HIERARCHY,
+                    new PopupKind[] {
+                            PopupKind.INTENTIONS_MENU,
+                            PopupKind.TOOLBAR_OVERFLOW,
+                            PopupKind.GABARITS,
+                            PopupKind.SAFE_MOVE,
+                            PopupKind.SUPPRESS_INSPECTION,
+                            PopupKind.REFERENCES,
+                            PopupKind.SAFE_DELETE},
+                    PopupKind.SAFE_DELETE,
+                    new PopupKind[] {
+                            PopupKind.INTENTIONS_MENU,
+                            PopupKind.TOOLBAR_OVERFLOW,
+                            PopupKind.GABARITS,
+                            PopupKind.SAFE_MOVE,
+                            PopupKind.SUPPRESS_INSPECTION,
+                            PopupKind.REFERENCES,
+                            PopupKind.HIERARCHY});
 
     /**
      * Ouvre le popup donné : les exclusions s'appliquent — la
@@ -416,7 +469,7 @@ public final class PopupController {
                 PopupKind.REFERENCES, PopupKind.TYPE_INFO,
                 PopupKind.HIERARCHY, PopupKind.EXTERNAL_DOC,
                 PopupKind.GABARITS, PopupKind.SAFE_DELETE,
-                PopupKind.SAFE_MOVE);
+                PopupKind.SAFE_MOVE, PopupKind.SUPPRESS_INSPECTION);
     }
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se

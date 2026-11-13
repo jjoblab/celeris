@@ -93,6 +93,13 @@ final class CatalogueActions {
         barre.setTitle(nomFichier);
         barre.setNavigationOnClickListener(vue -> activite.finish());
         barre.setOnMenuItemClickListener(this::surMenu);
+        brancherActions();
+    }
+
+    /** La table des actions — chaque identifiant y trouve son geste
+     *  (le menu système, la carte de débordement et le menu d'intentions
+     *  y lisent, jamais de doublon de logique). */
+    private void brancherActions() {
         actionsMenu.put(R.id.action_recherche, recherche::ouvrir);
         actionsMenu.put(R.id.action_completion,
                 popups::basculerCompletion);
@@ -106,6 +113,8 @@ final class CatalogueActions {
         actionsMenu.put(R.id.action_generer, popups::ouvrirGabarits);
         actionsMenu.put(R.id.action_supprimer_sur, popups::ouvrirSuppressionSure);
         actionsMenu.put(R.id.action_deplacer_dans, popups::ouvrirDeplacement);
+        actionsMenu.put(R.id.action_masquer_inspection,
+                popups::ouvrirSuppressionInspection);
         actionsMenu.put(R.id.action_plan, activite::basculerPlan);
         actionsMenu.put(R.id.action_debogage, () -> {
             activite.etatDebogage.basculerPause();
@@ -167,6 +176,8 @@ final class CatalogueActions {
                 itemMenu(R.string.action_generer, R.id.action_generer),
                 itemMenu(R.string.action_supprimer_sur, R.id.action_supprimer_sur),
                 itemMenu(R.string.action_deplacer_dans, R.id.action_deplacer_dans),
+                itemMenu(R.string.action_masquer_inspection,
+                        R.id.action_masquer_inspection),
                 itemMenu(R.string.action_lint, R.id.action_lint),
                 itemMenu(R.string.action_gabarit, R.id.action_gabarit),
                 itemMenu(R.string.action_formater, R.id.action_formater),
@@ -222,6 +233,9 @@ final class CatalogueActions {
                 new IntentionsMenuView.Item(
                         activite.getString(R.string.action_deplacer_dans),
                         popups::ouvrirDeplacement),
+                new IntentionsMenuView.Item(
+                        activite.getString(R.string.action_masquer_inspection),
+                        popups::ouvrirSuppressionInspection),
                 new IntentionsMenuView.Item(
                         activite.getString(R.string.action_diff),
                         diff::ouvrir),

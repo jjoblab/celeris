@@ -321,7 +321,7 @@ public final class EditorActivity extends AppCompatActivity {
         atelierPopups = new AtelierPopups(editeur, session, couche,
                 basculeTheme.themeCourant(),
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT),
-                atelierRefactor::insererGabarit);
+                atelierRefactor::insererGabarit, atelierLint::analyser);
         // le verre des popups se dérive du fond de l'éditeur (le dépôt
         // de départ) — la barre de touches y suit la même source.
         basculeTheme.setSurChangement(theme -> {

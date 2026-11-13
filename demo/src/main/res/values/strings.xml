@@ -60,6 +60,11 @@
     <string name="deplacement_aucune_cible">Move: no target class in this file</string>
     <string name="deplacement_refuse">Move refused — the safety conditions do not hold</string>
     <string name="deplacement_effectue">Moved into « %1$s » — one gesture undoes it</string>
+    <string name="action_masquer_inspection">Suppress inspection on this line</string>
+    <string name="section_suppression">Suppress</string>
+    <string name="suppression_item">Suppress %1$s</string>
+    <string name="suppression_aucune_inspection">No inspection with a rule at this line</string>
+    <string name="suppression_inspection_effectuee">%1$s hidden — the lint reruns</string>
     <string name="titre_correctif_import">Import %1$s</string>
     <string name="titre_usages">%1$d usages of « %2$s »</string>
     <string name="barre_couper">Cut</string>

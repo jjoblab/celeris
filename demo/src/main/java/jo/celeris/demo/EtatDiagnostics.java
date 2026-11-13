@@ -12,6 +12,7 @@ import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.GraviteDiagnostic;
 import jo.celeris.android.view.EditorView;
+import jo.celeris.android.widgets.DiagnosticTooltipView;
 import jo.celeris.core.lsp.types.DiagnosticLsp;
 
 
@@ -65,6 +66,21 @@ final class EtatDiagnostics {
      */
     void surServeur(String uri, List<DiagnosticLsp> diagnostics) {
         activite.runOnUiThread(() -> appliquer(diagnostics));
+    }
+
+    /** La sévérité de l'info-bulle d'une gravité de l'hôte — l'erreur à
+     *  l'encre d'erreur, le reste à l'encre d'avertissement (la
+     *  conversion du domaine : l'hôte parle gravité, la carte parle
+     *  sévérité).
+     *
+     * @param gravite la gravité du diagnostic
+     * @return la sévérité de la carte
+     */
+    static DiagnosticTooltipView.Severity severite(
+            GraviteDiagnostic gravite) {
+        return gravite == GraviteDiagnostic.ERREUR
+                ? DiagnosticTooltipView.Severity.ERROR
+                : DiagnosticTooltipView.Severity.WARNING;
     }
 
     /** L'application des diagnostics du serveur : conversion et scène. */
