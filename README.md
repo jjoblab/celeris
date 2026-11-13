@@ -163,8 +163,8 @@ ferme même au-delà des seuils.
 
 ## Bancs et cliquets
 
-341 bancs JVM et 2 161 méthodes `@Test`, plus les quatre bancs
-d'appareil (relevé du 2026-11-12, les quatorze modules compris). Le volume n'est pas un but en soi (décision du
+331 bancs JVM et 2 331 méthodes `@Test`, plus les quatre bancs
+d'appareil (relevé du 2026-11-14, les quatorze modules compris). Le volume n'est pas un but en soi (décision du
 propriétaire du 2026-11-11 : la parité de volume avec l'audit du dépôt
 de départ ne se poursuit pas) — les cliquets font foi : couverture
 JaCoCo ≥ 90 % de lignes sur les modules purs, score de mutation ≥ 80 %
