@@ -14,7 +14,8 @@ import android.graphics.Paint;
  * <p>Le design est celui du dépôt de départ : bulle circulaire de
  * 60 dp de rayon, zoom ×2 par défaut (réglable), au-dessus du doigt
  * quand la place y suffit — SINON sous le doigt, SINON bornée dans ce
- * qui reste de la vue : la bulle ne sort jamais de la fenêtre. La
+ * qui reste de la vue : la bulle ne sort jamais de la fenêtre (les
+ * bornes vivent dans {@link MagnifierGeometry}, LA source unique). La
  * position y est SNAPPÉE au centre de la rangée réglée (le contenu de
  * la bulle ne tremble JAMAIS verticalement, quel que soit le jitter du
  * capteur dans la rangée — changer de rangée fait un PAS net d'une
@@ -39,9 +40,6 @@ public final class Loupe {
 
     /** L'amortissement de x par image (α = 0,55, le dépôt de départ). */
     private static final float AMORTISSEMENT_X = 0.55f;
-
-    /** L'écart vertical de la bulle au doigt, en rayons. */
-    private static final float ECART_RAYONS = 1.8f;
 
     private boolean active;
     private float x;
@@ -195,36 +193,21 @@ public final class Loupe {
 
     /**
      * Le centre x de la bulle, borné dans la largeur de la vue : la
-     * bulle (rayon donné) ne sort JAMAIS des bords horizontaux — vue
-     * plus étroite que la bulle : son centre.
+     * bulle ne sort JAMAIS des bords horizontaux — la géométrie vit
+     * dans {@link MagnifierGeometry}, LA source unique.
      */
     public static float borneCx(float doigtX, float largeurVue, float rayon) {
-        if (largeurVue <= 2f * rayon) {
-            return largeurVue / 2f;
-        }
-        return Math.max(rayon, Math.min(doigtX, largeurVue - rayon));
+        return MagnifierGeometry.centerX(doigtX, largeurVue, 2f * rayon);
     }
 
     /**
-     * Le centre y de la bulle : AU-DESSUS du doigt si la place suffit
-     * (1,8 rayon), SINON sous le doigt si la place y suffit, SINON
-     * borné dans ce qui reste de la vue (vue plus petite que la bulle :
-     * son centre). La bulle reste entièrement visible quel que soit le
-     * bord approché.
+     * Le centre y de la bulle : AU-DESSUS du doigt si la place suffit,
+     * SINON sous le doigt, SINON borné dans ce qui reste de la vue —
+     * la géométrie vit dans {@link MagnifierGeometry}, LA source
+     * unique.
      */
     public static float resoudreCy(float doigtY, float hauteurVue, float rayon) {
-        if (hauteurVue <= 2f * rayon) {
-            return hauteurVue / 2f;
-        }
-        float auDessus = doigtY - rayon * ECART_RAYONS;
-        if (auDessus >= rayon) {
-            return auDessus;
-        }
-        float auDessous = doigtY + rayon * ECART_RAYONS;
-        if (auDessous <= hauteurVue - rayon) {
-            return auDessous;
-        }
-        return Math.min(hauteurVue - rayon, Math.max(rayon, doigtY));
+        return MagnifierGeometry.resoudreCy(doigtY, hauteurVue, rayon);
     }
 
     /** La couleur à l'alpha donné — l'anneau voilé de l'encre de gouttière. */

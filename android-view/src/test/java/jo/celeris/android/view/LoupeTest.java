@@ -20,12 +20,11 @@ import org.robolectric.Shadows;
 /**
  * La loupe du dragage (D-16 — le redressement du propriétaire
  * 2026-11-13 : « ajoute la fonctionnalité de magnifier, quand on fait
- * longclick et on commence à draguer ») : la géométrie du dépôt de
- * départ — la bulle ne sort JAMAIS de la fenêtre (au-dessus du doigt
- * si la place suffit, sinon sous le doigt, sinon bornée), l'ordonnée
- * snappée à la rangée réglée, l'abscisse amortie — et la conduite
- * réelle : l'appui long arme le dragage, la loupe naît AU PREMIER
- * DÉPLACEMENT du dragage, le geste levé la referme.
+ * longclick et on commence à draguer ») : le zoom, le suivi amorti et
+ * snappé, et la conduite réelle — l'appui long arme le dragage, la
+ * loupe naît AU PREMIER DÉPLACEMENT du dragage, le geste levé la
+ * referme. Les BORNES de la bulle vivent dans
+ * {@code MagnifierGeometryTest} (la source unique des bornes).
  *
  * <p>Banc réel (ADR-013) : de vrais {@link MotionEvent} à la vue posée,
  * l'horloge avance au looper principal, le rendu natif photographie la
