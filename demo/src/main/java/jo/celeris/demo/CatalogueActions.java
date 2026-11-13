@@ -101,6 +101,7 @@ final class CatalogueActions {
         actionsMenu.put(R.id.action_usages, popups::ouvrirUsages);
         actionsMenu.put(R.id.action_type_info, popups::ouvrirTypeInfo);
         actionsMenu.put(R.id.action_hierarchie, popups::ouvrirHierarchie);
+        actionsMenu.put(R.id.action_aller, activite::basculerAller);
         actionsMenu.put(R.id.action_plan, activite::basculerPlan);
         actionsMenu.put(R.id.action_debogage, () -> {
             activite.etatDebogage.basculerPause();
@@ -157,6 +158,7 @@ final class CatalogueActions {
                 itemMenu(R.string.action_usages, R.id.action_usages),
                 itemMenu(R.string.action_type_info, R.id.action_type_info),
                 itemMenu(R.string.action_hierarchie, R.id.action_hierarchie),
+                itemMenu(R.string.action_aller, R.id.action_aller),
                 itemMenu(R.string.action_lint, R.id.action_lint),
                 itemMenu(R.string.action_gabarit, R.id.action_gabarit),
                 itemMenu(R.string.action_formater, R.id.action_formater),

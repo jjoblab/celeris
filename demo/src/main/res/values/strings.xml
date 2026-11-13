@@ -38,6 +38,11 @@
     <string name="section_hors_projet">Out of project</string>
     <string name="legende_doute_hierarchie">Some call sites did not resolve — the doubt is shown, never guessed</string>
     <string name="titre_notification">Notice</string>
+    <string name="action_aller">Go to file or symbol</string>
+    <string name="titre_feuille_aller">Go to</string>
+    <string name="indication_aller">File or symbol name…</string>
+    <string name="genre_fichier_aller">File</string>
+    <string name="genre_symbole_aller">Symbol</string>
     <string name="titre_usages">%1$d usages of « %2$s »</string>
     <string name="barre_couper">Cut</string>
     <string name="barre_copier">Copy</string>

@@ -1,6 +1,7 @@
 package jo.celeris.demo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -80,6 +81,9 @@ public final class EditorActivity extends AppCompatActivity {
     private FeuilleReglages feuilleReglages;
     /** La feuille du plan (ADR-018 : « plan » vit en feuille du bas). */
     private FeuillePlan feuillePlan;
+    /** La feuille de l'aller à (ADR-018, catégorie C — « Go to File /
+     *  Class / Symbol ») : la recherche floue y répond, le choix saute. */
+    private FeuilleAller feuilleAller;
     private List<ReperesPreview.ReperePreview> reperes = List.of();
     /** L'état de débogage — arrêts, pause simulée, étiquette (D-04, D-05).
      *  Visible du paquet : le catalogue des actions y bascule la pause. */
@@ -220,6 +224,8 @@ public final class EditorActivity extends AppCompatActivity {
                 this::verdictRefactor, () -> feuilleReglages.montrer());
         brancherAteliers();
         // La feuille du plan vit après le thème : sa palette s'en dérive.
+        feuilleAller = new FeuilleAller(this, this::paletteFeuilles,
+                this::sauterAller, () -> entreesPlan, this::nomsDuCatalogue);
         feuillePlan = new FeuillePlan(this, this::paletteFeuilles, this::sautVersEntree);
         editeur.setSurPlan(entrees -> {
             entreesPlan = entrees;
@@ -444,6 +450,43 @@ public final class EditorActivity extends AppCompatActivity {
         feuillePlan.basculer();
     }
 
+    /** Bascule l'aller à en feuille du bas (ADR-018, catégorie C) :
+     *  la requête tape, la floue répond — le choix saute au symbole du
+     *  fichier ouvert, ou ouvre le fichier du catalogue. */
+    void basculerAller() {
+        feuilleAller.basculer();
+    }
+
+    /** Le saut de l'aller à : le symbole porte au plan ouvert, le
+     *  fichier ouvre SA page — l'activité relance l'édition. */
+    private void sauterAller(ResultatsAller.Resultat choix) {
+        if (ResultatsAller.GENRE_SYMBOLE.equals(choix.genre())) {
+            for (OutlineEntry entree : entreesPlan) {
+                if (entree.name().equals(choix.libelle())) {
+                    NavigationCommands.placeCaret(editeur,
+                            entree.startOffset());
+                    return;
+                }
+            }
+            return;
+        }
+        if (choix.libelle().equals(nomFichier)) {
+            return;
+        }
+        Intent ouverture = new Intent(this, EditorActivity.class);
+        ouverture.putExtra(EXTRA_FICHIER, choix.libelle());
+        startActivity(ouverture);
+    }
+
+    /** Les noms des fichiers du catalogue — l'aller à fichier y sert. */
+    private List<String> nomsDuCatalogue() {
+        List<String> noms = new ArrayList<>();
+        for (FichierExemple fichier : FichiersExemple.catalogue()) {
+            noms.add(fichier.nom());
+        }
+        return noms;
+    }
+
     /** La palette courante des feuilles — le verre suit le thème de
      *  l'éditeur et sa taille de texte. */
     private PopupPalette paletteFeuilles() {
@@ -471,6 +514,7 @@ public final class EditorActivity extends AppCompatActivity {
         return feuilleReglages.surRetour()
                 || atelierRecherche.surRetour()
                 || (feuillePlan != null && feuillePlan.surRetour())
+                || (feuilleAller != null && feuilleAller.surRetour())
                 || atelierRefactor.surRetour()
                 || atelierDiff.surRetour()
                 || atelierCorrectif.surRetour()
