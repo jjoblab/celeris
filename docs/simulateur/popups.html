@@ -1,0 +1,3759 @@
+<!doctype html>
+<!--
+  Simulateur interactif des popups de celeris — ADR-018.
+  Fichier autonome : aucune dépendance, aucun réseau, aucune construction.
+  Reproduit la machine à états réelle (PopupController : régimes frappe /
+  défilement / tap hors cartes / échappement, famille des surfaces
+  d'actions, cascades) et les sections exactes de chaque carte
+  (TextRowsPopup : rangées typées, filets, sections en petites capitales,
+  encres de la palette verre). Les 26 genres vivent ici, plus les
+  feuilles modales du bas et du haut. 2026-11-14.
+-->
+<html lang="fr" data-theme="sombre">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulateur — les popups de celeris (ADR-018)</title>
+<style>
+  /* ===== Palettes — la palette verre du kit (PopupPalette) ===== */
+  :root[data-theme="sombre"] {
+    --fond: #14171c; --surface: #1d2128; --surface-2: #262b34;
+    --texte: #e7eaef; --texte-2: #9aa3b0; --bord: #3a414d;
+    --page-accent: #7fa5f5;
+    /* l'éditeur (VS Code sombre, comme le produit) */
+    --ed-fond: #1e1e1e; --ed-texte: #d4d4d4; --ed-gouttiere: #858585;
+    --ed-motcle: #569cd6; --ed-chaine: #ce9178; --ed-commentaire: #6a9955;
+    --ed-nombre: #b5cea8; --ed-type: #4ec9b0; --ed-methode: #dcdcaa;
+    /* la palette verre des popups (PopupPalette.dark()) */
+    --pp-fond: rgb(30 30 30 / 86%);        /* #1E1E1E à alpha 0xDB */
+    --pp-bord: rgb(255 255 255 / 10%);     /* liseré hairline 1 px */
+    --pp-texte: #d4d4d4; --pp-muet: #858585;
+    --pp-selection: #264f78; --pp-accent: #dcdcaa; --pp-motcle: #569cd6;
+    --pp-erreur: #f44747; --pp-avert: #cca700;
+    --voile: rgb(0 0 0 / 52%);             /* voile modal sombre 0x85 */
+    --ombre: 0 10px 32px rgb(0 0 0 / 32%);
+  }
+  :root[data-theme="clair"] {
+    --fond: #f4f5f7; --surface: #ffffff; --surface-2: #eceef2;
+    --texte: #1d232b; --texte-2: #57606d; --bord: #c9ced6;
+    --page-accent: #2f54c9;
+    --ed-fond: #ffffff; --ed-texte: #000000; --ed-gouttiere: #808080;
+    --ed-motcle: #0000ff; --ed-chaine: #a31515; --ed-commentaire: #008000;
+    --ed-nombre: #098658; --ed-type: #267f99; --ed-methode: #795e26;
+    --pp-fond: rgb(255 255 255 / 88%);     /* #FFFFFF à alpha 0xE0 */
+    --pp-bord: rgb(0 0 0 / 8%);
+    --pp-texte: #000000; --pp-muet: #808080;
+    --pp-selection: #add6ff; --pp-accent: #795e26; --pp-motcle: #0000ff;
+    --pp-erreur: #ff0000; --pp-avert: #cc7800;
+    --voile: rgb(15 18 24 / 46%);          /* voile clair 0x75 */
+    --ombre: 0 10px 32px rgb(15 18 24 / 18%);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte);
+         font: 15px/1.55 system-ui, "Segoe UI", Roboto, sans-serif; }
+  code, kbd, .mono { font-family: ui-monospace, "Cascadia Code",
+      "Source Code Pro", Menlo, Consolas, monospace; }
+  button { font: inherit; color: inherit; }
+
+  /* ===== En-tête ===== */
+  .entete { max-width: 1440px; margin: 0 auto; padding: 26px 20px 6px; }
+  .entete h1 { font-size: 23px; margin: 0 0 6px; }
+  .entete h1 small { color: var(--texte-2); font-weight: 400; font-size: 14px; }
+  .entete p { color: var(--texte-2); margin: 0 0 12px; max-width: 90ch; }
+  .barre-choix { display: flex; flex-wrap: wrap; gap: 14px; margin: 6px 0 0; }
+  .groupe-choix { display: flex; gap: 6px; align-items: center; }
+  .groupe-choix span { font-size: 13px; color: var(--texte-2); }
+  .choix { min-height: 38px; padding: 7px 14px; border-radius: 999px;
+    border: 1px solid var(--bord); background: var(--surface);
+    color: var(--texte); font-size: 13.5px; cursor: pointer; }
+  .choix[aria-pressed="true"] { background: var(--page-accent);
+    color: #fff; border-color: var(--page-accent); font-weight: 600; }
+  :root[data-theme="clair"] .choix[aria-pressed="true"] { color: #fff; }
+
+  /* ===== Trois colonnes : catalogue / scène / fiche ===== */
+  .simulateur { max-width: 1440px; margin: 0 auto; padding: 8px 20px 10px;
+    display: grid; grid-template-columns: 248px minmax(0, 1fr) 342px;
+    gap: 16px; align-items: start; }
+  @media (max-width: 1180px) {
+    .simulateur { grid-template-columns: 232px minmax(0, 1fr); }
+    .fiche { grid-column: 1 / -1; }
+  }
+  @media (max-width: 820px) {
+    .simulateur { grid-template-columns: 1fr; }
+    .catalogue, .fiche { grid-column: auto; }
+  }
+
+  /* ===== Le catalogue des genres ===== */
+  .catalogue { display: flex; flex-direction: column; gap: 12px;
+    max-height: 700px; overflow: auto; padding-right: 2px; }
+  .groupe-catalogue > h2 { font-size: 12px; margin: 0 0 6px;
+    font-weight: 700; color: var(--texte-2); text-transform: uppercase;
+    letter-spacing: .06em; }
+  .groupe-catalogue { display: flex; flex-direction: column; gap: 4px; }
+  .entree-catalogue { display: flex; flex-direction: column; gap: 1px;
+    text-align: left; padding: 7px 11px; border-radius: 10px;
+    border: 1px solid transparent; background: var(--surface);
+    cursor: pointer; min-height: 40px; }
+  .entree-catalogue:hover { border-color: var(--page-accent); }
+  .entree-catalogue.actif { border-color: var(--page-accent);
+    background: color-mix(in srgb, var(--page-accent) 12%, var(--surface)); }
+  .entree-catalogue b { font-size: 13.5px; font-weight: 600; }
+  .entree-catalogue small { font-size: 11px; color: var(--texte-2);
+    font-family: ui-monospace, Menlo, Consolas, monospace; }
+
+  /* ===== La scène ===== */
+  .cadre-scene { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .scene { position: relative; margin: 0 auto; height: 580px; width: 100%;
+    max-width: 100%; overflow: hidden; border-radius: 14px;
+    border: 1px solid var(--bord); background: var(--ed-fond);
+    box-shadow: var(--ombre); outline: none; }
+  .scene[data-viewport="telephone"] { max-width: 390px; }
+  .scene[data-viewport="tablette"] { max-width: 760px; }
+  .scene[data-viewport="bureau"] { max-width: 1060px; }
+  .etiquette-viewport { text-align: center; color: var(--texte-2);
+    font-size: 12.5px; }
+
+  /* --- l'éditeur factice --- */
+  .editeur { position: absolute; inset: 0; overflow: hidden; cursor: text;
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; }
+  .gouttiere { position: absolute; top: 0; bottom: 0; left: 0; width: 52px;
+    background: var(--ed-fond); color: var(--ed-gouttiere);
+    font-size: 12.5px; line-height: 1.72; text-align: right;
+    padding: 10px 10px 0 0; user-select: none; z-index: 1; }
+  .code { position: absolute; top: 0; left: 52px; right: 0; bottom: 0;
+    padding: 10px 14px 0 8px; font-size: 13px; line-height: 1.72;
+    white-space: pre; color: var(--ed-texte); z-index: 1; }
+  .ligne-code { height: 22.4px; }
+  .c-motcle { color: var(--ed-motcle); }
+  .c-chaine { color: var(--ed-chaine); }
+  .c-commentaire { color: var(--ed-commentaire); font-style: italic; }
+  .c-nombre { color: var(--ed-nombre); }
+  .c-type { color: var(--ed-type); }
+  .c-methode { color: var(--ed-methode); }
+  .curseur-vif { display: inline-block; width: 2px; height: 1.25em;
+    background: var(--page-accent); vertical-align: text-bottom;
+    animation: clignote 1.1s steps(1) infinite; }
+  @keyframes clignote { 50% { opacity: 0; } }
+  .mot-diagnostic { text-decoration: underline wavy var(--pp-avert);
+    text-underline-offset: 3px; cursor: help; }
+  .mot-erreur { text-decoration: underline wavy var(--pp-erreur);
+    text-underline-offset: 3px; cursor: help; }
+  .mot-symbole { cursor: pointer; }
+  .surbrillance-occurrence { background: color-mix(in srgb, var(--ed-motcle) 26%, transparent);
+    border-radius: 2px; }
+
+  /* la sélection (glissée) */
+  .calque-selection { position: absolute; background: color-mix(in srgb,
+    var(--page-accent) 30%, transparent); z-index: 2; pointer-events: none;
+    border-radius: 2px; }
+
+  /* --- le chrome du bord droit : minimap, pouce, bande d'erreurs --- */
+  .minimap { position: absolute; top: 8px; right: 14px; bottom: 52px;
+    width: 54px; overflow: hidden; border-radius: 4px; z-index: 1;
+    background: color-mix(in srgb, var(--ed-fond) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ed-gouttiere) 22%, transparent);
+    cursor: pointer; }
+  .minimap-code { transform-origin: top left; white-space: pre;
+    font: 2.4px/3.1px ui-monospace, Menlo, monospace; pointer-events: none; }
+  .minimap-fenetre { position: absolute; left: 0; right: 0;
+    background: color-mix(in srgb, var(--page-accent) 22%, transparent);
+    border: 1px solid color-mix(in srgb, var(--page-accent) 55%, transparent);
+    pointer-events: none; }
+  .pouce { position: absolute; right: 0; width: 20px; z-index: 3;
+    border-radius: 999px 0 0 999px; cursor: grab;
+    background: color-mix(in srgb, var(--ed-gouttiere) 38%, transparent);
+    transition: width .15s ease; }
+  .pouce.chaud { width: 34px; background:
+    color-mix(in srgb, var(--ed-gouttiere) 60%, transparent); }
+  .bande-erreurs { position: absolute; top: 8px; right: 2px; bottom: 52px;
+    width: 10px; z-index: 2; cursor: pointer; }
+  .marque { position: absolute; right: 0; width: 4px; border-radius: 1px; }
+
+  /* la barre de touches (TOUCH_BAR, posée par l'hôte au bas) */
+  .barre-touches { position: absolute; bottom: 8px; left: 50%;
+    transform: translateX(-50%); display: flex; gap: 6px; z-index: 4; }
+  .touche { min-height: 34px; min-width: 34px; padding: 5px 13px;
+    border-radius: 8px; border: 1px solid var(--pp-bord);
+    background: color-mix(in srgb, var(--pp-muet) 35%, transparent);
+    color: var(--pp-texte); font-size: 12.6px; cursor: pointer; }
+  .touche:active { background: var(--pp-selection); }
+  .touche.inactive { color: var(--pp-muet); cursor: default; opacity: .55; }
+
+  /* la puce de débordement de la toolbar (coin haut-droit) */
+  .puce-toolbar { position: absolute; top: 8px; right: 76px; z-index: 4;
+    width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--pp-bord);
+    background: color-mix(in srgb, var(--pp-muet) 22%, transparent);
+    color: var(--pp-texte); font-size: 15px; line-height: 1;
+    display: grid; place-items: center; letter-spacing: 1px; }
+  .puce-toolbar:hover { background: var(--pp-selection); }
+  .scene[data-viewport="telephone"] .puce-toolbar { right: 70px; }
+  .scene[data-viewport="telephone"] .minimap,
+  .scene[data-viewport="telephone"] .pouce,
+  .scene[data-viewport="telephone"] .bande-erreurs { display: none; }
+  .scene[data-viewport="tablette"] .minimap { width: 40px; }
+
+  /* ===== Les cartes (PopupPanel / TextRowsPopup) ===== */
+  .carte { position: absolute; background: var(--pp-fond);
+    border: 1px solid var(--pp-bord); border-radius: 14px;
+    box-shadow: var(--ombre); padding: 8px 12px; z-index: 10;
+    font-size: 15px; color: var(--pp-texte); max-width: 92%;
+    opacity: 0; transform: translateY(6px); visibility: hidden;
+    transition: opacity .12s ease, transform .12s ease, visibility .12s; }
+  .carte.ouverte { opacity: 1; transform: translateY(0); visibility: visible; }
+  .carte:focus { outline: none; }
+
+  /* les rangées typées — le patron TextRowsPopup */
+  .rg { position: relative; padding: 2px 0; }
+  .rg + .rg { margin-top: 5px; }
+  .rg.t-titre { font-size: .90em; }
+  .rg.t-corps { font-size: .85em; }
+  .rg.t-meta  { font-size: .75em; }
+  .rg.t-micro { font-size: .70em; }
+  .rg .en-texte { color: var(--pp-texte); }
+  .rg .en-muet { color: var(--pp-muet); }
+  .rg .en-accent { color: var(--pp-accent); }
+  .rg .en-erreur { color: var(--pp-erreur); }
+  .rg .en-avert { color: var(--pp-avert); }
+  .rg .en-motcle { color: var(--pp-motcle); }
+  .rg.prenable { cursor: pointer; border-radius: 6px; }
+  .rg.prenable:hover { background: color-mix(in srgb, var(--pp-selection) 55%, transparent); }
+  .rg.surlignee { background: var(--pp-selection); }
+  .rg.surlignee::before, .rg.teintee::before {
+    content: ""; position: absolute; left: -11px; right: -11px; top: -1px;
+    bottom: -1px; background: var(--pp-selection); z-index: -1;
+    border-radius: 2px; }
+  .rg.teintee::before { background:
+    color-mix(in srgb, var(--pp-selection) 72%, transparent); }
+  .rg > span { position: relative; z-index: 1; }
+  .rg.apres-filet { border-top: 1px solid var(--pp-bord);
+    margin-top: 6px; padding-top: 7px; }
+  .rg.section { text-transform: uppercase; letter-spacing: .05em;
+    color: var(--pp-muet); font-weight: 600; }
+  .rg.section + .rg.section { margin-top: 0; }
+
+  /* la liste de complétion (rangées deux lignes à badge) */
+  .carte-completion { padding: 6px; min-width: 248px; max-width: 288px; }
+  .cand { display: grid; grid-template-columns: 22px 1fr; gap: 8px;
+    height: 40px; align-items: center; padding: 0 6px; border-radius: 6px;
+    cursor: pointer; position: relative; }
+  .cand + .cand { margin-top: 0; }
+  .cand.surlignee { background: var(--pp-selection); }
+  .badge { width: 20px; height: 20px; border-radius: 6px;
+    display: grid; place-items: center; font-size: 11.5px; font-weight: 600; }
+  .cand-libelle { font-size: .90em; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cand-libelle .prefixe { color: var(--pp-accent); font-weight: 700; }
+  .cand-libelle .reste { color: var(--pp-motcle); }
+  .cand-detail { font-size: .75em; color: var(--pp-muet); line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* la barre de sélection (pilule) */
+  .barre-selection { position: absolute; z-index: 10; display: flex;
+    align-items: center; gap: 2px; padding: 0 4px; height: 38px;
+    background: var(--pp-fond); border: 1px solid var(--pp-bord);
+    border-radius: 999px; box-shadow: var(--ombre);
+    opacity: 0; visibility: hidden; transition: opacity .16s ease, visibility .16s; }
+  .barre-selection.ouverte { opacity: 1; visibility: visible; }
+  .pastille { min-height: 30px; padding: 4px 12px; border-radius: 8px;
+    background: none; border: none; color: var(--pp-texte);
+    font-size: .85em; cursor: pointer; }
+  .pastille:active { background:
+    color-mix(in srgb, var(--pp-accent) 30%, transparent); }
+  .filet-vertical { width: 1px; height: 22px; margin: 0 4px;
+    background: var(--pp-bord); }
+  .rond-i { width: 26px; height: 26px; border-radius: 999px;
+    border: 1.2px solid var(--pp-texte); display: grid; place-items: center;
+    font-size: 11px; font-style: italic; cursor: pointer;
+    color: var(--pp-texte); }
+  .puce-points { width: 26px; height: 26px; display: grid; place-items: center;
+    cursor: pointer; letter-spacing: 1.5px; font-size: 15px;
+    color: var(--pp-texte); }
+  .puce-points:hover, .rond-i:hover { background: var(--pp-selection); }
+
+  /* l'aide aux paramètres (signature) */
+  .carte-signature { min-width: 300px; max-width: 460px; }
+  .sig-active { font-size: .85em; margin: 4px 0; }
+  .sig-active .param-actif { color: var(--pp-accent); font-weight: 700;
+    background: color-mix(in srgb, var(--pp-selection) 55%, transparent);
+    border-radius: 3px; padding: 0 2px; }
+  .sig-active .param-avant { color: var(--pp-accent); }
+  .sig-active .param-apres, .sig-active .structure-apres { color: var(--pp-muet); }
+  .sig-voisine { font-size: .75em; color: var(--pp-muet); }
+  .sig-stepper { display: flex; justify-content: center; gap: 8px;
+    font-size: .70em; margin-top: 6px; user-select: none; }
+  .sig-stepper .chevron { color: var(--pp-muet); cursor: pointer;
+    padding: 0 4px; }
+  .sig-stepper .compte { color: var(--pp-texte); }
+  .sig-peek { border-top: 1px solid var(--pp-bord); margin-top: 6px;
+    padding-top: 7px; font-size: .75em; color: var(--pp-muet); }
+
+  /* le sélecteur de couleur */
+  .carte-couleur { width: 236px; }
+  .couleur-entete { display: flex; justify-content: space-between;
+    align-items: center; height: 30px; margin-bottom: 8px; }
+  .couleur-cote { display: flex; align-items: center; gap: 6px;
+    font-size: .75em; font-family: ui-monospace, Menlo, monospace; }
+  .couleur-pastille { width: 22px; height: 22px; border-radius: 4px;
+    border: 1px solid var(--pp-bord); }
+  .sv-champ { position: relative; height: 112px; border-radius: 4px;
+    border: 1px solid var(--pp-bord); cursor: crosshair;
+    background: linear-gradient(to top, #000, transparent),
+      linear-gradient(to right, #fff, var(--teinte, #f00)); }
+  .sv-marqueur { position: absolute; width: 12px; height: 12px;
+    border-radius: 999px; border: 2px solid #1f1f1f; outline: 1.5px solid #fff;
+    transform: translate(-6px, -6px); pointer-events: none; }
+  .bande-teinte { position: relative; height: 18px; margin-top: 8px;
+    border-radius: 4px; cursor: crosshair;
+    background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+  .curseur-teinte { position: absolute; top: -2px; bottom: -2px; width: 2px;
+    background: #1f1f1f; outline: 1px solid #fff; pointer-events: none; }
+  .palette-material { display: grid; grid-template-columns: repeat(8, 1fr);
+    gap: 6px; margin-top: 8px; }
+  .cellule-material { height: 22px; border-radius: 4px; cursor: pointer;
+    border: 1px solid var(--pp-bord); }
+  .cellule-material.courante { border: 2px solid var(--pp-accent); }
+
+  /* la notification */
+  .carte-notification { max-width: 320px; }
+
+  /* ===== Les feuilles modales (FeuilleBas / FeuilleHaut) ===== */
+  .voile-modal { position: absolute; inset: 0; background: var(--voile);
+    opacity: 0; pointer-events: none; transition: opacity .18s ease; z-index: 20; }
+  .voile-modal.visiblee { opacity: 1; pointer-events: auto; }
+  .feuille { position: absolute; left: 0; right: 0; margin: 0 auto;
+    background: var(--pp-fond); border: 1px solid var(--pp-bord);
+    box-shadow: var(--ombre); display: flex; flex-direction: column;
+    z-index: 21; max-height: 76%;
+    opacity: 0; visibility: hidden; transition: opacity .18s ease,
+      transform .18s ease, visibility .18s; }
+  .feuille.ouverte { opacity: 1; visibility: visible; }
+  .feuille--bas { bottom: 0; width: min(100%, 660px);
+    border-radius: 18px 18px 0 0; border-bottom: none;
+    transform: translateY(26px); }
+  .feuille--bas.ouverte { transform: translateY(0); }
+  .feuille--haut { top: 0; width: min(100%, 760px);
+    border-radius: 0 0 18px 18px; border-top: none;
+    transform: translateY(-26px); }
+  .feuille--haut.ouverte { transform: translateY(0); }
+  .poignee { flex: 0 0 auto; padding: 8px 0 2px; display: grid;
+    place-items: center; cursor: grab; touch-action: none; }
+  .poignee::before { content: ""; width: 44px; height: 5px;
+    border-radius: 999px; background: var(--pp-bord); }
+  .feuille-titre { display: flex; align-items: center; gap: 10px;
+    padding: 4px 14px 8px; margin: 0; }
+  .feuille-titre h3 { font-size: .95em; margin: 0; flex: 1; }
+  .fermer-feuille { min-width: 34px; min-height: 34px; border-radius: 8px;
+    border: 1px solid var(--pp-bord); background: var(--surface-2);
+    color: var(--pp-texte); font-size: 15px; cursor: pointer; }
+  .feuille-corps { padding: 2px 14px 14px; overflow: auto;
+    font-size: .9em; }
+  .feuille-corps .mono { font-size: .92em; }
+
+  /* les pièces des feuilles */
+  .champ { width: 100%; min-height: 40px; padding: 8px 12px;
+    border-radius: 10px; border: 1px solid var(--pp-bord);
+    background: var(--surface-2); color: var(--texte); font: inherit; }
+  .champ::placeholder { color: var(--texte-2); }
+  .rangée-boutons { display: flex; justify-content: flex-end; gap: 8px;
+    margin-top: 12px; flex-wrap: wrap; }
+  .rangée-boutons.egaux { justify-content: stretch; }
+  .rangée-boutons.egaux > button { flex: 1; }
+  .petit-bouton { min-height: 38px; padding: 8px 14px; border-radius: 10px;
+    border: 1px solid var(--pp-bord); background: var(--surface-2);
+    color: var(--texte); font-size: .92em; cursor: pointer; }
+  .petit-bouton.primaire { background: var(--page-accent); color: #fff;
+    border-color: var(--page-accent); font-weight: 600; }
+  .compteur { min-width: 64px; text-align: center; color: var(--texte-2);
+    font-size: .85em; }
+  .rangée-recherche { display: flex; gap: 8px; align-items: center; }
+  .rangée-recherche .champ { flex: 1; }
+  .chevron-bouton { min-width: 38px; min-height: 38px; border-radius: 10px;
+    border: 1px solid var(--pp-bord); background: var(--surface-2);
+    cursor: pointer; font-size: 14px; }
+  .resultat { display: flex; gap: 8px; align-items: baseline; min-height: 40px;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+  .resultat:hover { background: var(--pp-selection); }
+  .resultat small { color: var(--texte-2); font-size: .78em; }
+  .entree-plan { padding: 7px 10px; border-radius: 8px; cursor: pointer;
+    display: flex; gap: 10px; align-items: baseline; }
+  .entree-plan:hover { background: var(--pp-selection); }
+  .entree-plan small { color: var(--texte-2); font-size: .78em; }
+  .ligne-diff { font-family: ui-monospace, Menlo, monospace;
+    font-size: .85em; white-space: pre-wrap; margin: 2px 0; }
+  .ligne-diff.retiree { color: var(--pp-erreur); }
+  .ligne-diff.ajoutee { color: #4ec9b0; }
+  :root[data-theme="clair"] .ligne-diff.ajoutee { color: #098658; }
+  .legende-feuille { color: var(--texte-2); font-size: .82em; margin: 8px 0 0; }
+  .carte-reglage { border: 1px solid var(--pp-bord); border-radius: 12px;
+    padding: 4px 12px; margin-bottom: 10px; background:
+    color-mix(in srgb, var(--surface) 55%, transparent); }
+  .carte-reglage > h4 { margin: 8px 0 4px; font-size: .95em; }
+  .reglage { display: flex; align-items: center; gap: 12px; min-height: 44px;
+    border-bottom: 1px solid var(--pp-bord); padding: 4px 0; }
+  .reglage:last-child { border-bottom: none; }
+  .reglage label { flex: 1; font-size: .92em; cursor: pointer; }
+  .reglage label small { display: block; color: var(--texte-2);
+    font-size: .8em; line-height: 1.4; }
+  .reglage input[type="checkbox"] { width: 20px; height: 20px;
+    accent-color: var(--page-accent); }
+  .reglage input[type="range"] { width: 130px;
+    accent-color: var(--page-accent); }
+  .interrupteur { position: relative; width: 44px; height: 24px;
+    flex: 0 0 auto; }
+  .interrupteur input { opacity: 0; width: 100%; height: 100%; margin: 0;
+    cursor: pointer; position: absolute; z-index: 1; }
+  .interrupteur span { position: absolute; inset: 0; border-radius: 999px;
+    background: var(--pp-bord); transition: background .15s ease; }
+  .interrupteur span::after { content: ""; position: absolute; top: 3px;
+    left: 3px; width: 18px; height: 18px; border-radius: 999px;
+    background: var(--surface); transition: left .15s ease; }
+  .interrupteur input:checked + span { background: var(--page-accent); }
+  .interrupteur input:checked + span::after { left: 23px; }
+  .valeur-monospace { min-width: 56px; text-align: right;
+    font-family: ui-monospace, Menlo, monospace; font-size: .85em;
+    color: var(--texte-2); }
+
+  /* ===== Les commandes de régime (la machine à états jouable) ===== */
+  .commandes-regimes { display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center; }
+  .commande-regime { min-height: 36px; padding: 6px 13px; border-radius: 9px;
+    border: 1px solid var(--bord); background: var(--surface);
+    font-size: 13px; cursor: pointer; }
+  .commande-regime:hover { border-color: var(--page-accent); }
+  .commande-regime b { font-weight: 600; }
+  .etats-ouverts { text-align: center; font-size: 12.5px;
+    color: var(--texte-2); min-height: 20px; }
+  .etats-ouverts code { background: var(--surface-2); border-radius: 5px;
+    padding: 1px 6px; margin: 0 1px; font-size: 11px; }
+
+  /* ===== La fiche d'utilisation ===== */
+  .fiche { background: var(--surface); border: 1px solid var(--bord);
+    border-radius: 14px; padding: 16px 18px; position: sticky; top: 10px;
+    max-height: 720px; overflow: auto; }
+  .fiche h2 { margin: 0 0 2px; font-size: 18px; }
+  .fiche .genre-tag { display: inline-block; font-size: 11px;
+    font-family: ui-monospace, Menlo, monospace; background: var(--surface-2);
+    border-radius: 6px; padding: 2px 8px; color: var(--texte-2); }
+  .fiche .fiche-cat { color: var(--texte-2); font-size: 12.5px;
+    margin: 6px 0 10px; }
+  .fiche h3 { font-size: 12px; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--texte-2); margin: 14px 0 4px; }
+  .fiche p, .fiche li { font-size: 13.8px; margin: 4px 0; }
+  .fiche ul { margin: 4px 0; padding-left: 18px; }
+  .fiche code { background: var(--surface-2); border-radius: 5px;
+    padding: 1px 5px; font-size: 12.3px; }
+  .fiche .api-bloc { background: var(--surface-2); border: 1px solid var(--bord);
+    border-radius: 10px; padding: 8px 10px; font-size: 12.3px;
+    font-family: ui-monospace, Menlo, monospace; overflow: auto; }
+  .table-regimes { border-collapse: collapse; width: 100%; font-size: 12.8px; }
+  .table-regimes th, .table-regimes td { text-align: left; padding: 5px 8px;
+    border: 1px solid var(--bord); vertical-align: top; }
+  .table-regimes th { background: var(--surface-2); font-weight: 600;
+    width: 34%; }
+  .table-regimes td em { color: var(--texte-2); font-style: normal; }
+
+  .notes { max-width: 1440px; margin: 4px auto 0; padding: 0 20px 8px; }
+  .notes ul { list-style: none; padding: 0; display: grid; gap: 8px;
+    margin: 0; }
+  .notes li { padding: 10px 14px; border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--bord);
+    font-size: 13.8px; }
+  .notes li b { color: var(--page-accent); }
+  .pied { max-width: 1440px; margin: 0 auto; padding: 8px 20px 34px;
+    color: var(--texte-2); font-size: 12.5px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="entete">
+  <h1>Simulateur interactif — les popups de celeris
+    <small>ADR-018 · 26 genres · feuilles modales</small></h1>
+  <p>Chaque popup de l'éditeur, <b>exactement comme le code la pose</b> :
+     mêmes sections, mêmes encres, mêmes régimes (frappe, défilement, tap
+     hors cartes, échappement) — la machine à états réelle
+     (<code>PopupController</code>) tourne ici en JavaScript. Cliquez une
+     entrée du catalogue pour ouvrir la carte, bougez le curseur dans
+     l'éditeur, jouez les commandes de régime&nbsp;; la fiche de droite
+     détaille l'utilisation de chaque surface.</p>
+  <div class="barre-choix">
+    <div class="groupe-choix" role="group" aria-label="Thème">
+      <span>Thème</span>
+      <button class="choix" data-theme="sombre" aria-pressed="true">Sombre</button>
+      <button class="choix" data-theme="clair">Clair</button>
+    </div>
+    <div class="groupe-choix" role="group" aria-label="Gabarit">
+      <span>Gabarit</span>
+      <button class="choix" data-viewport="telephone">Téléphone</button>
+      <button class="choix" data-viewport="tablette">Tablette</button>
+      <button class="choix" data-viewport="bureau" aria-pressed="true">Bureau</button>
+    </div>
+  </div>
+</header>
+
+<main class="simulateur">
+  <nav class="catalogue" id="catalogue" aria-label="Catalogue des popups"></nav>
+
+  <section class="cadre-scene">
+    <div class="scene" id="scene" data-viewport="bureau" tabindex="0"
+         aria-label="Éditeur de démonstration (clavier délégué aux cartes)">
+      <div class="editeur" id="editeur">
+        <div class="gouttiere" id="gouttiere"></div>
+        <div class="code" id="code"></div>
+        <div class="calque-selection" id="calque-selection" hidden></div>
+      </div>
+
+      <div class="minimap" id="minimap" title="Minimap — le cartouche suit la fenêtre">
+        <div class="minimap-code" id="minimap-code"></div>
+        <div class="minimap-fenetre" id="minimap-fenetre"></div>
+      </div>
+      <div class="bande-erreurs" id="bande-erreurs"
+           title="Bande d'erreurs — tirets de gravité, le tap saute"></div>
+      <div class="pouce" id="pouce" title="Défilement rapide — le pouce grossit sous le doigt"></div>
+
+      <button class="puce-toolbar" id="puce-toolbar" title="Débordement de la barre d'application"
+              aria-label="Débordement de la barre d'application">⋯</button>
+
+      <div class="barre-touches" id="barre-touches"></div>
+
+      <!-- les cartes se posent ici (couche) -->
+      <div id="couche-popups"></div>
+
+      <!-- le voile modal et les feuilles -->
+      <div class="voile-modal" id="voile-modal"></div>
+      <div id="couche-feuilles"></div>
+    </div>
+    <div class="etats-ouverts" id="etats-ouverts"></div>
+    <div class="commandes-regimes" role="group"
+         aria-label="Commandes de régime de la machine à états">
+      <button class="commande-regime" data-regime="frappe"><b>Frappe</b> «&nbsp;e&nbsp;»</button>
+      <button class="commande-regime" data-regime="defilement"><b>Défilement</b> ↓</button>
+      <button class="commande-regime" data-regime="tap"><b>Tap</b> hors cartes</button>
+      <button class="commande-regime" data-regime="echap"><b>Échap</b></button>
+      <button class="commande-regime" data-regime="annuler"><b>Annuler</b> la dernière écriture</button>
+    </div>
+    <p class="etiquette-viewport">Clavier vivant quand la scène a le focus :
+       flèches, Entrée, Échap — l'éditeur délègue aux cartes
+       (PIEGE-27). Le double-clic survole le symbole&nbsp;; le glissement
+       sélectionne.</p>
+  </section>
+
+  <aside class="fiche" id="fiche" aria-label="Fiche d'utilisation"></aside>
+</main>
+
+<section class="notes" aria-label="Les règles du jeu">
+  <ul>
+    <li><b>PIEGE-27</b> — aucune carte ne prend le focus&nbsp;: l'éditeur le
+        garde et <b>délègue</b> flèches, Entrée et Échap aux cartes ouvertes.
+        Les feuilles modales, elles, prennent le focus (choix assumé,
+        hors PIEGE-27).</li>
+    <li><b>ADR-018</b> — toute surface fonctionnelle est une popup&nbsp;:
+        carte ancrée au curseur, feuille du bas ou feuille du haut&nbsp;;
+        jamais de dialogue système, jamais d'écran plein cadre.</li>
+    <li><b>La famille des surfaces d'actions</b> — une surface d'actions à
+        la fois&nbsp;: le menu d'intentions, le débordement de la toolbar,
+        les gabarits, les cibles du déménagement et le masquage se chassent
+        mutuellement&nbsp;; les cartes qui <em>décrivent</em> (usages,
+        hiérarchie, usages qui barrent) cohabitent avec la complétion.</li>
+    <li><b>Le montage hôte</b> tient en trois gestes&nbsp;:
+        <code>new PopupsEditeur(editeur, session, couche, theme, tailleSp,
+        coach)</code>, <code>brancherServeur(...)</code>, puis les
+        déclenchements maison — tout le reste vit déjà chez
+        l'orchestrateur.</li>
+  </ul>
+</section>
+
+<footer class="pied">
+  Simulateur autonome du dépôt celeris — les sources de vérité&nbsp;:
+  <code>PopupController</code> (machine à états), <code>TextRowsPopup</code>
+  (le patron des rangées), <code>PopupsEditeur</code> (l'orchestrateur),
+  <code>docs/POPUP_INVENTORY.md</code> (l'inventaire exhaustif) et
+  <code>USAGE.md</code> §&nbsp;9 (le guide). Généré le 2026-11-14.
+</footer>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   1. LE SCÉNARIO — ServiceUtilisateur.java, la matière des cartes
+   (les tables factices reprennent celles de la démonstration)
+   ===================================================================== */
+const FICHIER = [
+  "/** Le registre des adhérents — suivi... et reliquat -- voir la convention. */",
+  "public class ServiceUtilisateur {",
+  "",
+  "    private final List<String> noms = new ArrayList<>();",
+  "    private final Map<String, Integer> inscriptions = new HashMap<>();",
+  "    private static int ancien = 0;",
+  "",
+  "    // teinte d'accent de la maquette : #03DAC6",
+  "    public void inscrire(String nom) {",
+  "        if (nom == null || nom.isEmpty()) {",
+  "            throw new IllegalArgumentException(\"nom requis\");",
+  "        }",
+  "        noms.add(nom);",
+  "        inscriptions.put(nom, ancien);",
+  "    }",
+  "",
+  "    public int inscrits() {",
+  "        return noms.size();",
+  "    }",
+  "",
+  "    public Map<String, Integer> inscriptions() {",
+  "        return inscriptions;",
+  "    }",
+  "",
+  "    public String mesurer(String unite, float valeur, boolean arrondir) {",
+  "        return String.format(Locale.ROOT, \"%.1f %s\", valeur, unite);",
+  "    }",
+  "",
+  "    public int ajouter(int a, int b) {",
+  "        return a + b;",
+  "    }",
+  "",
+  "    public int ajouter(int a, int b, int retenue) {",
+  "        return a + b + retenue;",
+  "    }",
+  "}",
+  "",
+  "class ServiceHistorique {",
+  "    void archiver(ServiceUtilisateur service) {",
+  "        service.inscrire(\"Ada\");",
+  "        int total = service.ajouter(2, 3);",
+  "        int sommet = service.ajouter(2, 3, 0);",
+  "    }",
+  "}",
+  "",
+  "class ServiceUtilisateurPremium extends ServiceUtilisateur {",
+  "    private int bonus = 0;",
+  "}",
+  ""];
+/* la référence de la revue de diff : le fichier sans la ligne de teinte */
+const ORIGINE_DIFF = FICHIER.toSpliced(7, 1);
+
+/* les tables du coach (celles de la démonstration, plus le scénario) */
+const DOCS = {
+  "inscrire": "Ajoute une adhérente au registre.\n\n@param nom le nom à inscrire — jamais null",
+  "mesurer": "Mesure une valeur dans son unité.\n\n@param unite l'unité de mesure\n@param valeur la valeur mesurée\n@param arrondir vrai pour arrondir au cran",
+  "ajouter": "Additionne des entiers et rend la somme.\n\n@param a le premier terme\n@param b le second terme\n@param retenue la retenue éventuelle",
+  "inscrits": "Rend le nombre d'adhérentes inscrites.",
+  "noms": "La liste des noms inscrits — jamais null.",
+  "inscriptions": "La table des inscriptions, par nom.",
+  "archiver": "Archive l'état du service dans l'historique.",
+  "ServiceUtilisateur": "Le registre des adhérentes, en mémoire — catégorie C de l'inventaire."
+};
+const TYPES = {
+  "noms": "List<String>", "inscriptions": "Map<String, Integer>",
+  "ancien": "int", "bonus": "int", "nom": "String", "unite": "String",
+  "valeur": "float", "arrondir": "boolean", "a": "int", "b": "int",
+  "retenue": "int", "service": "ServiceUtilisateur", "total": "int",
+  "sommet": "int", "inscrire": "void", "inscrits": "int",
+  "mesurer": "String", "ajouter": "int", "archiver": "void",
+  "ServiceUtilisateur": "class", "ServiceHistorique": "class",
+  "ServiceUtilisateurPremium": "class"
+};
+/* les signatures connues du coach (l'aide aux paramètres) */
+const SIGNATURES = {
+  "ajouter": [
+    { libelle: "ajouter(int a, int b)", params: ["a", "b"],
+      doc: "Additionne deux entiers et rend la somme." },
+    { libelle: "ajouter(int a, int b, int retenue)", params: ["a", "b", "retenue"],
+      doc: "Additionne deux entiers avec retenue et rend la somme." }
+  ],
+  "mesurer": [
+    { libelle: "mesurer(String unite, float valeur, boolean arrondir)",
+      params: ["unite", "valeur", "arrondir"],
+      doc: "Mesure une valeur dans son unité." }
+  ],
+  "inscrire": [
+    { libelle: "inscrire(String nom)", params: ["nom"],
+      doc: "Ajoute une adhérente au registre." }
+  ]
+};
+const MOTS_RESERVES = ["boolean", "final", "float", "int", "public",
+  "private", "return", "static", "String", "void"];
+const NOMS_METHODES = ["inscrire", "inscrits", "inscriptions", "mesurer",
+  "ajouter", "archiver", "size", "add", "put", "isEmpty", "format"];
+/* les badges de la complétion (BadgeGenre — glyphes et encres du kit) */
+const BADGES = {
+  "MOT_CLE":   { glyphe: "K", sombre: "#cd7ee0" },
+  "METHODE":   { glyphe: "M", sombre: "#dcdcaa" },
+  "CHAMP":     { glyphe: "F", sombre: "#61afef" },
+  "VARIABLE":  { glyphe: "v", sombre: "#5ccfe6" },
+  "CLASSE":    { glyphe: "C", sombre: "#e6c178" },
+  "INTERFACE": { glyphe: "I", sombre: "#57b6c2" },
+  "ENUM":      { glyphe: "E", sombre: "#d9a066" },
+  "PAQUET":    { glyphe: "p", sombre: "#a0a1aa" },
+  "EXTRAIT":   { glyphe: "{}", sombre: "#98c97a" },
+  "ANNOTATION":{ glyphe: "@", sombre: "#e6c178" }
+};
+const PALETTE_MATERIAL = ["#f44336", "#e91e63", "#9c27b0", "#673ab7",
+  "#3f51b5", "#2196f3", "#009688", "#4caf50", "#ffeb3b", "#ffc107",
+  "#ff9800", "#795548", "#9e9e9e", "#607d8b", "#000000", "#ffffff"];
+/* le catalogue de fichiers de l'aller à (la démonstration) */
+const CATALOGUE_FICHIERS = [
+  ["Conversions.kt", "kt"], ["ServiceUtilisateur.java", "java"],
+  ["strings.xml", "xml"], ["build.gradle.kts", "kts"],
+  ["libs.versions.toml", "toml"], ["catalogue.json", "json"],
+  ["README.md", "md"], ["outils.py", "py"]];
+
+/* =====================================================================
+   2. L'ÉTAT — lignes, curseur, sélection, défilement, popups ouvertes
+   ===================================================================== */
+let lignes = FICHIER.slice();
+let caret = { l: 41, c: 38 };   /* dans archiver, après « ajouter(2, 3, » */
+let selection = null;           /* {l1,c1,l2,c2} ordonnée */
+let pressePapiers = "";
+const pileAnnulation = [];
+const OUVERTS = new Set();
+const vues = new Map();         /* genre -> {el, ancre, ...} */
+let feuilleActive = null;
+let frappeEnCours = false;      /* l'info-bulle ne se pose jamais après une frappe */
+let horlogeNotification = null;
+
+/* =====================================================================
+   3. LE PLAN (OutlineEntry) — recalculé après chaque écriture
+   ===================================================================== */
+function calculerPlan(ls) {
+  const profondeurs = []; let p = 0;
+  ls.forEach(l => {
+    profondeurs.push(p);
+    p += (l.match(/\{/g) || []).length - (l.match(/\}/g) || []).length;
+  });
+  const entrees = []; let typeCourant = null;
+  ls.forEach((l, i) => {
+    const mT = l.match(/\b(?:class|interface|enum)\s+(\w+)/);
+    if (mT && profondeurs[i] === 0) {
+      typeCourant = mT[1];
+      entrees.push({ cat: "TYPE", nom: mT[1], debut: i,
+        superclasse: (l.match(/\bextends\s+(\w+)/) || [])[1] || null });
+      return;
+    }
+    if (profondeurs[i] === 1 && typeCourant) {
+      const mM = l.match(/(\w+)\s*\([^)]*\)\s*\{\s*$/);
+      if (mM && !/^(if|for|while|switch|catch|return)$/.test(mM[1])) {
+        entrees.push({ cat: "FUNC", nom: mM[1], debut: i, classe: typeCourant });
+        return;
+      }
+      const mF = l.match(
+        /(?:private|public|protected)\s+(?:static\s+|final\s+)*[\w<>,\s]+\s+(\w+)\s*(?:=|;)/);
+      if (mF) entrees.push({ cat: "CHAMP", nom: mF[1], debut: i, classe: typeCourant });
+    }
+  });
+  entrees.forEach(e => {
+    const d = profondeurs[e.debut]; e.fin = e.debut;
+    for (let i = e.debut + 1; i < ls.length; i++) {
+      if (profondeurs[i] <= d) { e.fin = i - 1; break; }
+      e.fin = i;
+    }
+  });
+  return entrees;
+}
+let plan = calculerPlan(lignes);
+
+const entreeContenant = l =>
+  plan.filter(e => e.debut <= l && l <= e.fin && e.cat !== "CHAMP")
+      .sort((a, b) => (b.fin - b.debut) - (a.fin - a.debut));
+const typeContenant = l =>
+  plan.find(e => e.cat === "TYPE" && e.debut <= l && l <= e.fin) || null;
+const methodeContenant = l =>
+  plan.find(e => e.cat === "FUNC" && e.debut <= l && l <= e.fin) || null;
+const tousTypes = () => plan.filter(e => e.cat === "TYPE");
+const toutesMethodes = () => plan.filter(e => e.cat === "FUNC");
+const champsDe = classe =>
+  plan.filter(e => e.cat === "CHAMP" && e.classe === classe);
+
+/* =====================================================================
+   4. LE LINT (le faux build de la démonstration : ... et --)
+   ===================================================================== */
+function regleLigne(l) {
+  const masquees = new Set();
+  const m = l.match(/noinspection\s+(\w+)/g);
+  (m || []).forEach(x => masquees.add(x.replace(/noinspection\s+/, "")));
+  const regles = [];
+  if (l.includes("...") && !masquees.has("TypographyEllipsis"))
+    regles.push({ regle: "TypographyEllipsis", gravite: "WARNING",
+      message: "Replace \"...\" with ellipsis character [TypographyEllipsis]" });
+  if (l.includes("--") && !masquees.has("TypographyDashes"))
+    regles.push({ regle: "TypographyDashes", gravite: "WARNING",
+      message: "Use an em-dash instead of two hyphens [TypographyDashes]" });
+  return regles;
+}
+function diagnostics() {
+  const diags = [];
+  lignes.forEach((l, i) => regleLigne(l).forEach(r =>
+    diags.push({ ligne: i, gravite: r.gravite, message: r.message,
+      regle: r.regle })));
+  /* l'erreur de l'hôte : List non résolu (SPI DiagnosticHote) —
+     l'import posé par le correctif la résout */
+  const iList = lignes.findIndex(l => /List<String>/.test(l));
+  if (iList >= 0 && !lignes.some(l => /^import java\.util\.List;/.test(l)))
+    diags.push({ ligne: iList, gravite: "ERROR",
+      message: "Impossible de résoudre « List »", regle: null });
+  return diags;
+}
+
+/* =====================================================================
+   5. LA COLORATION (l'éditeur factice)
+   ===================================================================== */
+const MOTS_JAVA = ["public", "private", "protected", "static", "final",
+  "class", "void", "int", "float", "boolean", "new", "return", "if",
+  "throw", "extends", "import"];
+function surligner(texte) {
+  let hors = "";
+  const morceaux = [];
+  const rx = /(\/\*[\s\S]*?\*\/|\/\/.*$|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b\d+(?:\.\d+)?[fF]?\b|[A-Za-z_]\w*)/gm;
+  let dernier = 0, m;
+  while ((m = rx.exec(texte)) !== null) {
+    if (m.index > dernier) morceaux.push({ t: texte.slice(dernier, m.index), k: null });
+    const t = m[0]; let k = null;
+    if (t.startsWith("/") ) k = "c-commentaire";
+    else if (t.startsWith("\"")) k = "c-chaine";
+    else if (t.startsWith("'")) k = "c-chaine";
+    else if (/^\d/.test(t)) k = "c-nombre";
+    else if (MOTS_JAVA.includes(t)) k = "c-motcle";
+    else if (/^[A-Z]/.test(t)) k = "c-type";
+    morceaux.push({ t, k });
+    if (texte[rx.lastIndex] === "(" && k === null) morceaux[morceaux.length - 1].k = "c-methode";
+    dernier = rx.lastIndex;
+  }
+  if (dernier < texte.length) morceaux.push({ t: texte.slice(dernier), k: null });
+  let html = "";
+  morceaux.forEach(p => {
+    const echappe = p.t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    html += p.k ? `<span class="${p.k}">${echappe}</span>` : echappe;
+  });
+  return html;
+}
+/* les soulignements des diagnostics, posés par-dessus la coloration */
+function habillerLigne(html, ligneBrute, indexLigne) {
+  let sortie = html;
+  for (const d of diagnostics()) {
+    if (d.ligne !== indexLigne) continue;
+    const jeton = d.regle === "TypographyEllipsis" ? "..."
+      : d.regle === "TypographyDashes" ? "--"
+      : d.gravite === "ERROR" ? "List" : null;
+    if (jeton && sortie.includes(jeton)) {
+      const classe = d.gravite === "ERROR" ? "mot-erreur" : "mot-diagnostic";
+      sortie = sortie.replace(jeton,
+        `<span class="${classe}">${jeton}</span>`);
+    }
+  }
+  return sortie;
+}
+
+/* =====================================================================
+   6. LE RENDU DE L'ÉDITEUR (gouttière, code, curseur, chrome du bord)
+   ===================================================================== */
+const scene = document.getElementById("scene");
+const elCode = document.getElementById("code");
+const elGouttiere = document.getElementById("gouttiere");
+const elMinimapCode = document.getElementById("minimap-code");
+const elMinimapFenetre = document.getElementById("minimap-fenetre");
+const elBande = document.getElementById("bande-erreurs");
+const elPouce = document.getElementById("pouce");
+const elBarreTouches = document.getElementById("barre-touches");
+const elCouche = document.getElementById("couche-popups");
+const elEtats = document.getElementById("etats-ouverts");
+let LH = 22.4;          /* hauteur de ligne — suit la taille de police */
+let policeEditeur = 13;
+let CH = 7.8;             /* largeur de caractère — mesurée à l'init */
+let defilement = 0;
+
+function mesurer() {
+  const sonde = document.createElement("span");
+  sonde.textContent = "MMMMMMMMMM";
+  sonde.style.cssText = "position:absolute;visibility:hidden;white-space:pre";
+  elCode.appendChild(sonde);
+  CH = sonde.getBoundingClientRect().width / 10;
+  sonde.remove();
+}
+const lignesVisibles = () => Math.floor((scene.clientHeight - 20) / LH);
+
+function renderCode() {
+  const frag = [];
+  lignes.forEach((l, i) => {
+    let contenu = habillerLigne(surligner(l), l, i);
+    if (caret.l === i) {
+      contenu = glisserCurseur(contenu, caret.c);
+      if (fantome) contenu = contenu.replace('<span class="curseur-vif"></span>',
+        '<span class="curseur-vif"></span><span class="fantome-ia">' +
+        echappe(fantome) + "</span>");
+    }
+    frag.push(`<div class="ligne-code" data-l="${i}">${contenu || " "}</div>`);
+  });
+  elCode.innerHTML = frag.join("");
+  elCode.style.transform = `translateY(${-defilement * LH}px)`;
+  elGouttiere.innerHTML = lignes.map((_, i) =>
+    `<div class="ligne-code">${i + 1}</div>`).join("");
+  elGouttiere.style.transform = `translateY(${-defilement * LH}px)`;
+  renderSelection();
+  renderMinimap();
+  renderBandeErreurs();
+  renderBarreTouches();
+}
+/* glisse le curseur vivant à la colonne c dans le HTML déjà coloré */
+function glisserCurseur(html, c) {
+  let vu = 0, i = 0;
+  while (i < html.length) {
+    if (html[i] === "<") { i = html.indexOf(">", i) + 1; continue; }
+    if (html[i] === "&") { const j = html.indexOf(";", i);
+      vu += (html.slice(i, j + 1) === "&amp;" || html.slice(i, j + 1) === "&lt;") ? 1 : 0;
+      i = j + 1; continue; }
+    if (vu === c) return html.slice(0, i) + '<span class="curseur-vif"></span>' + html.slice(i);
+    vu++; i++;
+  }
+  return html + '<span class="curseur-vif"></span>';
+}
+
+function renderSelection() {
+  const calque = document.getElementById("calque-selection");
+  if (!selection || (selection.l1 === selection.l2 && selection.c1 === selection.c2)) {
+    calque.hidden = true; return;
+  }
+  calque.hidden = false;
+  const { l1, c1, l2, c2 } = selection;
+  calque.innerHTML = "";
+  if (l1 === l2) {
+    const r = document.createElement("div");
+    r.style.cssText = `position:absolute;left:${52 + 8 + c1 * CH}px;top:${10 + l1 * LH - defilement * LH}px;width:${(c2 - c1) * CH}px;height:${LH}px`;
+    calque.appendChild(r);
+  } else {
+    const premiere = document.createElement("div");
+    premiere.style.cssText = `position:absolute;left:${52 + 8 + c1 * CH}px;top:${10 + l1 * LH - defilement * LH}px;right:${60}px;height:${LH}px`;
+    calque.appendChild(premiere);
+    if (l2 - l1 > 1) {
+      const milieu = document.createElement("div");
+      milieu.style.cssText = `position:absolute;left:${52 + 8}px;top:${10 + (l1 + 1) * LH - defilement * LH}px;right:${60}px;height:${(l2 - l1 - 1) * LH}px`;
+      calque.appendChild(milieu);
+    }
+    const derniere = document.createElement("div");
+    derniere.style.cssText = `position:absolute;left:${52 + 8}px;top:${10 + l2 * LH - defilement * LH}px;width:${c2 * CH}px;height:${LH}px`;
+    calque.appendChild(derniere);
+  }
+}
+
+function renderMinimap() {
+  /* le document court garde ses rangées, une par ligne (MinimapModel) */
+  const hauteurTotale = lignes.length * 3.1;
+  const contenance = elMinimapCode.parentElement.clientHeight;
+  const rapport = Math.min(1, contenance / Math.max(1, hauteurTotale));
+  elMinimapCode.innerHTML = lignes.map(l => surligner(l) || "&nbsp;").join("\n");
+  elMinimapCode.style.transform = `scale(${rapport}) translateY(${-defilement * 3.1}px)`;
+  elMinimapFenetre.style.top = `${defilement * 3.1}px`;
+  elMinimapFenetre.style.height =
+    `${Math.max(10, lignesVisibles() * 3.1)}px`;
+  /* le pouce du défilement rapide grossit sous le doigt */
+  const piste = scene.clientHeight - 108;
+  const total = lignes.length * LH;
+  const part = Math.min(1, lignesVisibles() * LH / total);
+  const defilementMax = Math.max(1, total - lignesVisibles() * LH);
+  elPouce.style.top =
+    `${8 + (defilement * LH / defilementMax) * piste * (1 - part) + 8}px`;
+  elPouce.style.height = `${Math.max(26, part * piste)}px`;
+}
+
+function renderBandeErreurs() {
+  const diags = diagnostics();
+  elBande.innerHTML = "";
+  const hauteur = elBande.clientHeight;
+  diags.forEach(d => {
+    const marque = document.createElement("div");
+    marque.className = "marque";
+    marque.style.top = `${Math.min(hauteur - 4, Math.max(0, (d.ligne / Math.max(1, lignes.length - 1)) * hauteur))}px`;
+    marque.style.height = "4px";
+    marque.style.background = d.gravite === "ERROR"
+      ? "var(--pp-erreur)" : "var(--pp-avert)";
+    marque.title = `L${d.ligne + 1} — ${d.message}`;
+    elBande.appendChild(marque);
+  });
+  elBande.style.display = diags.length ? "block" : "none";
+}
+
+function renderBarreTouches() {
+  const actions = [
+    { libelle: "Tab", actif: true, geste: () => insererTexte("\t") },
+    { libelle: "Commenter", actif: true, geste: () => commenterLigne() },
+    { libelle: "Ligne haut", actif: caret.l > 0, geste: () => { deplacerCaret(caret.l - 1, 0); } },
+    { libelle: "Ligne bas", actif: caret.l < lignes.length - 1, geste: () => { deplacerCaret(caret.l + 1, 0); } },
+    { libelle: "Dupliquer", actif: true, geste: () => dupliquerLigne() }
+  ];
+  elBarreTouches.innerHTML = "";
+  actions.forEach(a => {
+    const b = document.createElement("button");
+    b.className = "touche" + (a.actif ? "" : " inactive");
+    b.textContent = a.libelle;
+    b.title = a.actif ? "" : "La touche muette rejette le doigt et le lecteur d'écran";
+    if (a.actif) b.addEventListener("click", ev => { ev.stopPropagation(); a.geste(); });
+    elBarreTouches.appendChild(b);
+  });
+}
+
+function rafraichirTout() { renderCode(); etatsOuverts(); }
+
+/* la géométrie du caret, en coordonnées de scène */
+function geoCaret() {
+  return { x: 52 + 8 + caret.c * CH,
+    haut: 10 + caret.l * LH - defilement * LH,
+    bas: 10 + (caret.l + 1) * LH - defilement * LH };
+}
+function borneScroll(l) {
+  const visibles = lignesVisibles();
+  if (l < defilement) defilement = Math.max(0, l);
+  else if (l >= defilement + visibles) defilement = Math.min(
+    Math.max(0, lignes.length - visibles), l - visibles + 1);
+}
+function deplacerCaret(l, c, options) {
+  l = Math.max(0, Math.min(lignes.length - 1, l));
+  c = Math.max(0, Math.min(lignes[l].length, c));
+  caret = { l, c };
+  selection = null;
+  borneScroll(l);
+  rafraichirTout();
+  repositionnerOuvertes();
+  rafraichirFilAriane();
+  if (!(options && options.silent)) {
+    /* la sélection change (hors frappe) : l'info-bulle se propose */
+    if (!frappeEnCours) proposerInfoBulle();
+    frappeEnCours = false;
+    proposerSignature();
+  }
+}
+function motAuCaret() {
+  const l = lignes[caret.l] || "";
+  let a = caret.c, b = caret.c;
+  while (a > 0 && /[\w]/.test(l[a - 1])) a--;
+  while (b < l.length && /[\w]/.test(l[b])) b++;
+  return a === b ? null : { mot: l.slice(a, b), debut: a, fin: b };
+}
+function deplacerCaretSurMot(mot) {
+  const cible = lignes.findIndex(l =>
+    new RegExp(`\\b${mot}\\b`).test(l));
+  if (cible >= 0) {
+    const c = lignes[cible].search(new RegExp(`\\b${mot}\\b`));
+    deplacerCaret(cible, c);
+  }
+}
+/* =====================================================================
+   7. LA MACHINE À ÉTATS — PopupController, mot pour mot
+   ===================================================================== */
+const FERME_FRAPPE = ["HOVER", "DIAGNOSTIC_TOOLTIP", "SELECTION_BAR",
+  "SELECTION_OVERFLOW", "COLOR_PICKER", "TOOLBAR_OVERFLOW", "REFERENCES",
+  "TYPE_INFO", "HIERARCHY", "SAFE_DELETE"];
+const FERME_DEFILEMENT = ["HOVER", "DIAGNOSTIC_TOOLTIP", "COLOR_PICKER",
+  "REFERENCES", "TYPE_INFO", "HIERARCHY", "SAFE_DELETE"];
+const FERME_TAP = ["HOVER", "DIAGNOSTIC_TOOLTIP", "COLOR_PICKER",
+  "INTENTIONS_MENU", "SELECTION_OVERFLOW", "TOOLBAR_OVERFLOW",
+  "REFERENCES", "TYPE_INFO", "HIERARCHY", "EXTERNAL_DOC", "GABARITS",
+  "SAFE_DELETE", "SAFE_MOVE", "SUPPRESS_INSPECTION", "EXCEPTION_DETAILS"];
+const ORDRE_CLAVIER = ["COMPLETION_LIST", "INTENTIONS_MENU", "GABARITS",
+  "TOOLBAR_OVERFLOW", "SELECTION_OVERFLOW", "REFERENCES", "HIERARCHY",
+  "SAFE_DELETE", "SAFE_MOVE", "SUPPRESS_INSPECTION", "EXCEPTION_DETAILS"];
+const EPHEMERES = ["SIGNATURE_HELP", "HOVER", "DIAGNOSTIC_TOOLTIP",
+  "COLOR_PICKER", "TYPE_INFO", "EXTERNAL_DOC", "EXCEPTION_DETAILS"];
+const CHROME = ["BREADCRUMB", "ERROR_BAND", "MINIMAP", "FAST_SCROLLER",
+  "TOUCH_BAR", "SEARCH_BAR"];
+/* la famille des surfaces d'actions — une surface d'actions à la fois */
+const FAMILLE = {
+  "COMPLETION_LIST": ["INTENTIONS_MENU", "TOOLBAR_OVERFLOW", "GABARITS",
+    "SAFE_MOVE", "SUPPRESS_INSPECTION"],
+  "INTENTIONS_MENU": ["COMPLETION_LIST", "TOOLBAR_OVERFLOW", "GABARITS",
+    "SAFE_MOVE", "SUPPRESS_INSPECTION", "REFERENCES", "HIERARCHY", "SAFE_DELETE"],
+  "TOOLBAR_OVERFLOW": ["COMPLETION_LIST", "INTENTIONS_MENU", "GABARITS",
+    "SAFE_MOVE", "SUPPRESS_INSPECTION", "REFERENCES", "HIERARCHY", "SAFE_DELETE"],
+  "GABARITS": ["COMPLETION_LIST", "INTENTIONS_MENU", "TOOLBAR_OVERFLOW",
+    "SAFE_MOVE", "SUPPRESS_INSPECTION", "REFERENCES", "HIERARCHY", "SAFE_DELETE"],
+  "SAFE_MOVE": ["COMPLETION_LIST", "INTENTIONS_MENU", "TOOLBAR_OVERFLOW",
+    "GABARITS", "SUPPRESS_INSPECTION", "REFERENCES", "HIERARCHY", "SAFE_DELETE"],
+  "SUPPRESS_INSPECTION": ["COMPLETION_LIST", "INTENTIONS_MENU",
+    "TOOLBAR_OVERFLOW", "GABARITS", "SAFE_MOVE", "REFERENCES", "HIERARCHY",
+    "SAFE_DELETE"],
+  "REFERENCES": ["INTENTIONS_MENU", "TOOLBAR_OVERFLOW", "GABARITS",
+    "SAFE_MOVE", "SUPPRESS_INSPECTION", "HIERARCHY", "SAFE_DELETE"],
+  "HIERARCHY": ["INTENTIONS_MENU", "TOOLBAR_OVERFLOW", "GABARITS",
+    "SAFE_MOVE", "SUPPRESS_INSPECTION", "REFERENCES", "SAFE_DELETE"],
+  "SAFE_DELETE": ["INTENTIONS_MENU", "TOOLBAR_OVERFLOW", "GABARITS",
+    "SAFE_MOVE", "SUPPRESS_INSPECTION", "REFERENCES", "HIERARCHY"]
+};
+
+function etatsOuverts() {
+  const codes = [...OUVERTS].map(g => `<code>${g}</code>`);
+  elEtats.innerHTML = codes.length
+    ? "Ouvertes&nbsp;: " + codes.join(" ")
+    : "Aucune carte ouverte — l'éditeur règne.";
+}
+function fermer(genre) {
+  const vue = vues.get(genre);
+  if (!vue) return;
+  vue.el.remove();
+  vues.delete(genre);
+  OUVERTS.delete(genre);
+  /* les cascades : la doc meurt avec sa liste, le débordement avec sa barre */
+  if (genre === "COMPLETION_LIST") fermer("COMPLETION_DOC");
+  if (genre === "SELECTION_BAR") fermer("SELECTION_OVERFLOW");
+  if (genre === "NOTIFICATION" && horlogeNotification) {
+    clearTimeout(horlogeNotification); horlogeNotification = null;
+  }
+  etatsOuverts();
+}
+function fermerTout() { [...OUVERTS].forEach(fermer); }
+function fermerSousVoile() {
+  [...OUVERTS].filter(g => !CHROME.includes(g)).forEach(fermer);
+}
+
+/* =====================================================================
+   8. LES ANCRES — PopupAnchor, bornées, marge 8
+   ===================================================================== */
+const MARGE = 8;
+function borneGauche(x, w) {
+  return Math.max(MARGE, Math.min(x, scene.clientWidth - MARGE - w));
+}
+const Ancres = {
+  belowOrAboveCaret: (w, h) => {
+    const g = geoCaret();
+    if (g.bas + h <= scene.clientHeight - MARGE)
+      return { left: borneGauche(g.x, w), top: g.bas + MARGE };
+    return { left: borneGauche(g.x, w), top: Math.max(MARGE, g.haut - MARGE - h) };
+  },
+  atPoint: (w, h) => {
+    const g = geoCaret();
+    const gauche = borneGauche(g.x - w / 2, w);
+    if (g.haut - MARGE - h >= MARGE) return { left: gauche, top: g.haut - MARGE - h };
+    return { left: gauche, top: Math.min(scene.clientHeight - MARGE - h, g.bas + MARGE) };
+  },
+  topLeftCorner: (w, h) => ({ left: MARGE, top: MARGE }),
+  bottomRightCorner: (w, h) => ({
+    left: Math.max(MARGE, scene.clientWidth - MARGE - w),
+    top: Math.max(MARGE, scene.clientHeight - MARGE - h) }),
+  centeredAboveSelection: (w, h) => {
+    const s = selection || { l1: caret.l, c1: caret.c, l2: caret.l, c2: caret.c };
+    const centre = 52 + 8 + ((s.c1 + s.c2) / 2) * CH;
+    const haut = 10 + s.l1 * LH - defilement * LH;
+    return { left: borneGauche(centre - w / 2, w),
+      top: Math.max(MARGE, haut - MARGE - h) };
+  },
+  /* la complétion sous le curseur si ça tient, au-dessus sinon (PopupPlacer) */
+  sousLeCurseur: (w, h) => {
+    const g = geoCaret();
+    if (g.bas + h <= scene.clientHeight - 60)
+      return { left: borneGauche(g.x - 10, w), top: g.bas + MARGE };
+    return { left: borneGauche(g.x - 10, w),
+      top: Math.max(MARGE, g.haut - MARGE - h) };
+  },
+  /* la documentation au flanc droit de la liste */
+  flancDeListe: (w, h) => {
+    const liste = vues.get("COMPLETION_LIST");
+    const g = geoCaret();
+    if (liste) {
+      const l = liste.el.offsetLeft + liste.el.offsetWidth + 6;
+      if (l + w <= scene.clientWidth - MARGE)
+        return { left: l, top: liste.el.offsetTop };
+    }
+    return { left: borneGauche(g.x + 40, w), top: Math.max(MARGE, g.haut - MARGE - h) };
+  },
+  /* la signature du côté opposé du curseur, au-dessus de la ligne */
+  coteOppose: (w, h) => {
+    const g = geoCaret();
+    return { left: borneGauche(g.x + 60, w),
+      top: Math.max(MARGE, g.haut - MARGE - h) };
+  },
+  /* le débordement de la toolbar : pendue sous la puce, tête de scène */
+  sousPuceToolbar: (w, h) => ({
+    left: Math.max(MARGE, scene.clientWidth - 76 - MARGE - w), top: MARGE }),
+  /* le débordement de la barre : pendue sous la puce « ⋯ » */
+  sousPuceBarre: (w, h) => {
+    const barre = vues.get("SELECTION_BAR");
+    if (barre) {
+      const x = barre.el.offsetLeft + barre.el.offsetWidth - 30;
+      return { left: borneGauche(x, w),
+        top: Math.min(scene.clientHeight - MARGE - h, barre.el.offsetTop + barre.el.offsetHeight + 4) };
+    }
+    return Ancres.belowOrAboveCaret(w, h);
+  }
+};
+
+/* =====================================================================
+   9. LE MOTEUR DE CARTES — le patron TextRowsPopup en DOM
+   ===================================================================== */
+function echappe(t) {
+  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+}
+function rangeeDOM(r) {
+  const div = document.createElement("div");
+  div.className = "rg t-" + (r.tier || "corps")
+    + (r.section ? " section" : "")
+    + (r.filet ? " apres-filet" : "")
+    + (r.teintee ? " teintee" : "")
+    + (r.prenable ? " prenable" : "");
+  if (r.retrait) div.style.paddingLeft = r.retrait * 8 + "px";
+  div.innerHTML = `<span class="en-${r.encre || "texte"}">${echappe(r.texte)}</span>`;
+  if (r.prenable && r.action) {
+    div.addEventListener("click", ev => { ev.stopPropagation(); r.action(); });
+    div.addEventListener("mouseenter", () => {
+      const vue = vues.get(r.genre);
+      if (vue) marquerSurlignage(vue, vue.prenables.indexOf(div));
+    });
+  }
+  return div;
+}
+function rangeesDOM(rangees, genre) {
+  const frag = document.createDocumentFragment();
+  rangees.forEach(r => { r.genre = genre; frag.appendChild(rangeeDOM(r)); });
+  return frag;
+}
+function marquerSurlignage(vue, index) {
+  vue.prenables.forEach((el, i) =>
+    el.classList.toggle("surlignee", i === index));
+  vue.index = index;
+}
+function poserCarte(genre, options) {
+  fermer(genre);
+  (FAMILLE[genre] || []).forEach(g => fermer(g));
+  const el = document.createElement("div");
+  el.className = "carte " + (options.classe || "");
+  if (options.rangees) el.appendChild(rangeesDOM(options.rangees, genre));
+  if (options.construire) options.construire(el);
+  elCouche.appendChild(el);
+  const pos = options.ancre(el.offsetWidth, el.offsetHeight);
+  el.style.left = pos.left + "px";
+  el.style.top = pos.top + "px";
+  const vue = { el, ancre: options.ancre,
+    prenables: [...el.querySelectorAll(".rg.prenable")], index: 0, genre };
+  vues.set(genre, vue);
+  OUVERTS.add(genre);
+  if (vue.prenables.length) marquerSurlignage(vue, 0);
+  requestAnimationFrame(() => el.classList.add("ouverte"));
+  etatsOuverts();
+  if (options.fiche) selectionnerFiche(options.fiche);
+  return vue;
+}
+function repositionnerOuvertes() {
+  vues.forEach(vue => {
+    const p = vue.ancre(vue.el.offsetWidth, vue.el.offsetHeight);
+    vue.el.style.left = p.left + "px";
+    vue.el.style.top = p.top + "px";
+  });
+}
+function carteInteractiveOuverte() {
+  for (const g of ORDRE_CLAVIER)
+    if (OUVERTS.has(g) && vues.get(g) && vues.get(g).prenables.length)
+      return vues.get(g);
+  return null;
+}
+function bougerSurlignage(vue, pas) {
+  if (!vue.prenables.length) return;
+  marquerSurlignage(vue,
+    Math.max(0, Math.min(vue.prenables.length - 1, vue.index + pas)));
+}
+function validerCarte(vue) {
+  if (!vue.prenables.length) return;
+  vue.prenables[vue.index].click();
+}
+/* la délégation clavier — PIEGE-27 : l'éditeur garde le focus */
+function surTouche(e) {
+  if (feuilleActive) {
+    if (e.key === "Escape") { fermerFeuille(); e.preventDefault(); }
+    return;
+  }
+  if (e.key === "Escape") {
+    if (surEchappement()) { e.preventDefault(); return; }
+  }
+  const carte = carteInteractiveOuverte();
+  if (carte) {
+    if (e.key === "ArrowUp") { bougerSurlignage(carte, -1); e.preventDefault(); }
+    else if (e.key === "ArrowDown") { bougerSurlignage(carte, 1); e.preventDefault(); }
+    else if (e.key === "Enter" || e.key === "Tab") {
+      validerCarte(carte); e.preventDefault();
+    } else if (e.key === "PageUp" || e.key === "PageDown") {
+      /* les pages déclinent sur les cartes à rangées (sauf la complétion ×8) */
+      if (carte.genre === "COMPLETION_LIST") {
+        bougerSurlignage(carte, (e.key === "PageUp" ? -1 : 1) * 8);
+        e.preventDefault();
+      }
+    }
+    return;
+  }
+  /* pas de carte interactive : l'éditeur suit sa vie */
+  if (e.key === "ArrowLeft") { deplacerCaret(caret.l, Math.max(0, caret.c - 1)); e.preventDefault(); }
+  else if (e.key === "ArrowRight") { deplacerCaret(caret.l, caret.c + 1); e.preventDefault(); }
+  else if (e.key === "ArrowUp") { deplacerCaret(Math.max(0, caret.l - 1), caret.c); e.preventDefault(); }
+  else if (e.key === "ArrowDown") { deplacerCaret(caret.l + 1, caret.c); e.preventDefault(); }
+}
+function surEchappement() {
+  const carte = carteInteractiveOuverte();
+  if (carte) { fermer(carte.genre); return true; }
+  for (const g of EPHEMERES) if (OUVERTS.has(g)) { fermer(g); return true; }
+  return false;
+}
+
+/* =====================================================================
+   10. LES RÉGIMES JOUABLES — les commandes sous la scène
+   ===================================================================== */
+function surFrappe() {
+  FERME_FRAPPE.forEach(fermer);
+  frappeEnCours = true;
+  if (OUVERTS.has("COMPLETION_LIST")) refiltrerCompletion();
+  else if (doitOuvrirALaFrappe()) ouvrirCompletion();
+  proposerSignature();
+  rafraichirFilAriane();
+  rafraichirTout();
+}
+function surDefilement() {
+  FERME_DEFILEMENT.forEach(fermer);
+  repositionnerOuvertes();
+  rafraichirFilAriane();
+}
+function tapHorsCartes() { FERME_TAP.forEach(fermer); }
+
+/* =====================================================================
+   11. LA NOTIFICATION — le régime unique, l'horloge la referme
+   ===================================================================== */
+function notifier(titre, message, actions) {
+  fermer("NOTIFICATION");
+  const rangees = [{ texte: titre, tier: "titre" }];
+  String(message).split("\n").forEach(l => rangees.push({ texte: l, tier: "corps" }));
+  if (actions && actions.length) actions.forEach((a, i) =>
+    rangees.push({ texte: a.libelle, tier: "corps", encre: "accent",
+      filet: i === 0, prenable: true,
+      action: () => { fermer("NOTIFICATION"); a.geste && a.geste(); } }));
+  poserCarte("NOTIFICATION", { classe: "carte-notification", rangees,
+    ancre: Ancres.bottomRightCorner, fiche: "notification" });
+  const vue = vues.get("NOTIFICATION");
+  if (vue) vue.el.addEventListener("click", () => fermer("NOTIFICATION"));
+  horlogeNotification = setTimeout(() => fermer("NOTIFICATION"), 4000);
+}
+
+/* =====================================================================
+   12. LA COMPLÉTION — la liste deux lignes à badges (CompletionListView)
+   ===================================================================== */
+function doitOuvrirALaFrappe() {
+  const l = lignes[caret.l] || "";
+  return caret.c > 0 && /[\w]/.test(l[caret.c - 1] || "");
+}
+function prefixeCourant() {
+  const l = lignes[caret.l] || "";
+  let a = caret.c;
+  while (a > 0 && /[\w]/.test(l[a - 1])) a--;
+  return l.slice(a, caret.c);
+}
+function candidatsCompletion(prefixe) {
+  const mots = new Map();
+  lignes.forEach(l => (l.match(/[A-Za-z_]\w*/g) || []).forEach(m => mots.set(m, true)));
+  MOTS_RESERVES.forEach(m => mots.set(m, true));
+  NOMS_METHODES.forEach(m => mots.set(m, true));
+  const filtrés = [...mots.keys()].filter(m =>
+    m !== prefixe && m.toLowerCase().startsWith(prefixe.toLowerCase()));
+  filtrés.sort((a, b) => {
+    const A = a.toLowerCase(), B = b.toLowerCase();
+    return A < B ? -1 : A > B ? 1 : (a < b ? -1 : a > b ? 1 : 0);
+  });
+  return filtrés.slice(0, 8);
+}
+function badgeDe(mot) {
+  if (MOTS_RESERVES.includes(mot)) return "MOT_CLE";
+  if (SIGNATURES[mot] || NOMS_METHODES.includes(mot)) return "METHODE";
+  if (/^[A-Z]/.test(mot)) return "CLASSE";
+  const champs = plan.filter(e => e.cat === "CHAMP").map(e => e.nom);
+  if (champs.includes(mot)) return "CHAMP";
+  return "VARIABLE";
+}
+function detailDe(mot) {
+  if (SIGNATURES[mot]) return SIGNATURES[mot][0].libelle;
+  if (NOMS_METHODES.includes(mot)) return "méthode du scénario";
+  if (MOTS_RESERVES.includes(mot)) return "mot réservé du langage";
+  if (/^[A-Z]/.test(mot)) return "déclarée dans ce fichier";
+  return "";
+}
+/* les runs du préfixe surlignés à l'accent, le reste au mot-clé */
+function libelleAvecPrefixe(mot, prefixe) {
+  let html = "", restant = prefixe.toLowerCase();
+  for (const ch of mot) {
+    if (restant && ch.toLowerCase() === restant[0]) {
+      html += `<span class="prefixe">${echappe(ch)}</span>`;
+      restant = restant.slice(1);
+    } else html += `<span class="reste">${echappe(ch)}</span>`;
+  }
+  return html;
+}
+function ouvrirCompletion() {
+  const prefixe = prefixeCourant();
+  const cands = candidatsCompletion(prefixe);
+  if (!cands.length) { fermer("COMPLETION_LIST"); fermer("COMPLETION_DOC"); return; }
+  const construire = el => {
+    el.classList.add("carte-completion");
+    cands.forEach((mot, i) => {
+      const div = document.createElement("div");
+      const genre = badgeDe(mot);
+      const badge = BADGES[genre];
+      const encree = document.documentElement.dataset.theme === "clair"
+        ? assombrir(badge.sombre) : badge.sombre;
+      div.className = "cand";
+      div.innerHTML =
+        `<span class="badge" style="color:${encree};background:${encree}33">${badge.glyphe}</span>` +
+        `<span><div class="cand-libelle">${libelleAvecPrefixe(mot, prefixe)}</div>` +
+        `<div class="cand-detail">${echappe(detailDe(mot))}</div></span>`;
+      div.dataset.mot = mot;
+      div.addEventListener("click", ev => { ev.stopPropagation(); accepterCandidat(mot); });
+      div.addEventListener("mouseenter", () => {
+        const vue = vues.get("COMPLETION_LIST");
+        if (vue) { marquerSurlignage(vue, vue.prenables.indexOf(div)); majDocCompletion(); }
+      });
+      el.appendChild(div);
+    });
+  };
+  poserCarte("COMPLETION_LIST", { construire, ancre: Ancres.sousLeCurseur,
+    fiche: "completion" });
+  const vue = vues.get("COMPLETION_LIST");
+  vue.prenables = [...vue.el.querySelectorAll(".cand")];
+  marquerSurlignage(vue, 0);
+  majDocCompletion();
+}
+function refiltrerCompletion() {
+  if (!OUVERTS.has("COMPLETION_LIST")) return;
+  ouvrirCompletion();
+}
+function accepterCandidat(mot) {
+  const l = lignes[caret.l];
+  /* l'acceptation remplace le mot ENTIER (debutMot → fin du mot) */
+  let a = caret.c, b = caret.c;
+  while (a > 0 && /[\w]/.test(l[a - 1])) a--;
+  while (b < l.length && /[\w]/.test(l[b])) b++;
+  pousserAnnulation();
+  lignes[caret.l] = l.slice(0, a) + mot + l.slice(b);
+  caret = { l: caret.l, c: a + mot.length };
+  fermer("COMPLETION_LIST");
+  plan = calculerPlan(lignes);
+  rafraichirTout();
+  rafraichirFilAriane();
+}
+function majDocCompletion() {
+  const vue = vues.get("COMPLETION_LIST");
+  if (!vue) { fermer("COMPLETION_DOC"); return; }
+  const mot = vue.prenables[vue.index]?.dataset.mot;
+  const doc = mot && (DOCS[mot] || (SIGNATURES[mot] && SIGNATURES[mot][0].doc));
+  if (!doc) { fermer("COMPLETION_DOC"); return; }
+  const detail = detailDe(mot);
+  poserCarteDoc("COMPLETION_DOC", mot, doc, Ancres.flancDeListe, "completion_doc");
+}
+/* la carte de documentation — le modèle CompletionDocModel rendu en rangées */
+function rangeesDoc(titre, markdown) {
+  const rangees = [{ texte: titre, tier: "titre", encre: "accent", teintee: true }];
+  let premierLibre = true;
+  String(markdown).split("\n").forEach(l => {
+    if (l.trim() === "") return;
+    if (l.startsWith("@param"))
+      rangees.push({ texte: l, tier: "meta", encre: "motcle", retrait: 1 });
+    else if (l.startsWith("@return"))
+      rangees.push({ texte: l, tier: "meta", encre: "muet", retrait: 1 });
+    else {
+      rangees.push({ texte: l, tier: "corps", filet: premierLibre });
+      premierLibre = false;
+    }
+  });
+  return rangees;
+}
+function poserCarteDoc(genre, titre, markdown, ancre, fiche) {
+  poserCarte(genre, { rangees: rangeesDoc(titre, markdown), ancre, fiche });
+}
+
+/* =====================================================================
+   13. L'AIDE AUX PARAMÈTRES — SignatureHelpView (voisines, stepper, peek)
+   ===================================================================== */
+function appelOuvert() {
+  const l = lignes[caret.l] || "";
+  /* la parenthèse ouvrante non fermée la plus proche avant le caret
+     (la résolution du coach : depth en remontant) */
+  let profondeur = 0, idx = -1;
+  for (let i = caret.c - 1; i >= 0; i--) {
+    if (l[i] === ")") profondeur++;
+    else if (l[i] === "(") {
+      if (profondeur === 0) { idx = i; break; }
+      profondeur--;
+    }
+  }
+  if (idx < 0) return null;
+  const m = l.slice(0, idx).match(/(\w+)\s*$/);
+  if (!m) return null;
+  const virgules = (l.slice(idx + 1, caret.c).match(/,/g) || []).length;
+  return { methode: m[1], parametre: virgules };
+}
+let signatureEtat = { actif: 0, peek: false };
+function proposerSignature() {
+  const appel = appelOuvert();
+  const entrees = appel && SIGNATURES[appel.methode];
+  if (!entrees || !entrees.length) { fermer("SIGNATURE_HELP"); return; }
+  ouvrirSignature(appel.methode, entrees, appel.parametre);
+}
+function ouvrirSignature(methode, entrees, parametre) {
+  signatureEtat = { actif: Math.min(signatureEtat.actif, entrees.length - 1),
+    peek: signatureEtat.peek };
+  const construire = el => {
+    el.classList.add("carte-signature");
+    const dessine = () => {
+      el.innerHTML = "";
+      const fenetre = entrees
+        .map((e, i) => ({ e, i }))
+        .filter(x => Math.abs(x.i - signatureEtat.actif) <= 1);
+      fenetre.forEach(({ e, i }) => {
+        if (i === signatureEtat.actif) el.appendChild(signatureActive(e, parametre));
+        else el.appendChild(rangeeDOM({ texte: e.libelle, tier: "meta", encre: "muet" }));
+      });
+      if (entrees.length > 1) {
+        const st = document.createElement("div");
+        st.className = "sig-stepper";
+        st.innerHTML =
+          `<span class="chevron" data-sens="-1">&lt;</span>` +
+          `<span class="compte">${signatureEtat.actif + 1}/${entrees.length}</span>` +
+          `<span class="chevron" data-sens="1">&gt;</span>`;
+        st.querySelectorAll(".chevron").forEach(ch =>
+          ch.addEventListener("click", ev => {
+            ev.stopPropagation();
+            signatureEtat.actif = (signatureEtat.actif + Number(ch.dataset.sens)
+              + entrees.length) % entrees.length;
+            dessine();
+          }));
+        el.appendChild(st);
+      }
+      if (signatureEtat.peek) {
+        const pk = document.createElement("div");
+        pk.className = "sig-peek";
+        pk.textContent = entrees[signatureEtat.actif].doc;
+        el.appendChild(pk);
+      }
+    };
+    dessine();
+    /* l'appui long (500 ms) bascule le peek */
+    let minuteur = null;
+    el.addEventListener("pointerdown", () => {
+      minuteur = setTimeout(() => {
+        signatureEtat.peek = !signatureEtat.peek;
+        dessine();
+      }, 500);
+    });
+    el.addEventListener("pointerup", () => clearTimeout(minuteur));
+    el.addEventListener("pointerleave", () => clearTimeout(minuteur));
+  };
+  poserCarte("SIGNATURE_HELP", { construire, ancre: Ancres.coteOppose,
+    fiche: "signature" });
+}
+/* la signature active : les plages du libellé ENTIER, le paramètre courant en gras */
+function signatureActive(entree, parametre) {
+  const div = document.createElement("div");
+  div.className = "rg sig-active";
+  const m = entree.libelle.match(/^(\w+)\((.*)\)$/);
+  if (!m) { div.innerHTML = `<span class="en-texte">${echappe(entree.libelle)}</span>`; return div; }
+  const segments = m[2] === "" ? [] : m[2].split(", ");
+  const borne = Math.max(0, Math.min(parametre, segments.length - 1));
+  let html = `<span class="en-texte">${echappe(m[1])}(</span>`;
+  segments.forEach((s, i) => {
+    if (i > 0) html += `<span class="${i <= borne ? "en-texte" : "structure-apres"}">, </span>`;
+    if (i < borne) html += `<span class="param-avant">${echappe(s)}</span>`;
+    else if (i === borne) html += `<span class="param-actif">${echappe(s)}</span>`;
+    else html += `<span class="param-apres">${echappe(s)}</span>`;
+  });
+  html += `<span class="${borne >= segments.length - 1 ? "en-texte" : "structure-apres"}">)</span>`;
+  div.innerHTML = html;
+  return div;
+}
+
+/* =====================================================================
+   14. LE SURVOL, LE PEEK, LA DOCUMENTATION EXTERNE (DocAncre)
+   ===================================================================== */
+function ouvrirSurvol() {
+  const m = motAuCaret();
+  const doc = m && DOCS[m.mot];
+  if (!doc) return false;
+  poserCarteDoc("HOVER", m.mot, doc, Ancres.atPoint, "survol");
+  return true;
+}
+function ouvrirSurvolAuDoubleTap() { return ouvrirSurvol(); }
+function ouvrirApercu() {
+  const m = motAuCaret();
+  if (!m) return;
+  const decl = plan.find(e => e.nom === m.mot);
+  if (!decl) return;
+  const extrait = lignes.slice(decl.debut, Math.min(decl.debut + 12, decl.fin + 1));
+  poserCarteDoc("HOVER", `Définition de ${m.mot}`, extrait.join("\n"),
+    Ancres.belowOrAboveCaret, "apercu");
+}
+function ouvrirDocExterne() {
+  const m = motAuCaret();
+  const doc = m && (DOCS[m.mot] || (SIGNATURES[m.mot] && SIGNATURES[m.mot][0].doc));
+  if (!doc) return;
+  poserCarteDoc("EXTERNAL_DOC", m.mot, doc, Ancres.belowOrAboveCaret,
+    "doc_externe");
+}
+function ouvrirTypeInfo() {
+  const m = motAuCaret();
+  const type = m && TYPES[m.mot];
+  if (!type) return;   /* aucune fausse oracle : sans type lisible, rien ne se pose */
+  poserCarte("TYPE_INFO", {
+    rangees: [{ texte: type, tier: "titre" }],
+    ancre: Ancres.belowOrAboveCaret, fiche: "type_info" });
+}
+
+/* =====================================================================
+   15. L'INFO-BULLE DE DIAGNOSTIC — la fiche qui empile les problèmes
+   ===================================================================== */
+function proposerInfoBulle() {
+  const problemes = diagnostics().filter(d => d.ligne === caret.l);
+  if (!problemes.length) { fermer("DIAGNOSTIC_TOOLTIP"); return; }
+  const rangees = [];
+  problemes.forEach((p, i) => {
+    rangees.push({ texte: p.gravite === "ERROR" ? "×" : "!", tier: "titre",
+      encre: p.gravite === "ERROR" ? "erreur" : "avert", filet: i > 0 });
+    p.message.split("\n").forEach(l =>
+      rangees.push({ texte: l, tier: "corps" }));
+  });
+  /* l'indice d'actions clôt — l'IDE ne promet pas de correctifs sans correctifs */
+  rangees.push({ texte: "Plus d'actions · menu d'intentions", tier: "meta",
+    encre: "muet", filet: true });
+  poserCarte("DIAGNOSTIC_TOOLTIP", { rangees, ancre: Ancres.atPoint,
+    fiche: "diagnostic" });
+}
+
+/* =====================================================================
+   16. LE FIL D'ARIANE — le bandeau du coin haut-gauche
+   ===================================================================== */
+function rafraichirFilAriane() {
+  const chemin = entreeContenant(caret.l).map(e => e.nom);
+  if (!chemin.length) { fermer("BREADCRUMB"); return; }
+  const texte = chemin.join(" › ");
+  const existante = vues.get("BREADCRUMB");
+  if (existante) {
+    const porteur = existante.el.querySelector(".rg span");
+    if (porteur) porteur.textContent = texte;
+    return;
+  }
+  poserCarte("BREADCRUMB", {
+    rangees: [{ texte, tier: "meta", encre: "muet" }],
+    ancre: Ancres.topLeftCorner });
+}
+
+/* =====================================================================
+   17. LES USAGES — la carte qui compte, l'étrangère muette
+   ===================================================================== */
+function occurrencesDe(mot) {
+  const rx = new RegExp(`\\b${mot}\\b`, "g");
+  const lieux = [];
+  lignes.forEach((l, i) => {
+    let m; rx.lastIndex = 0;
+    while ((m = rx.exec(l)) !== null)
+      lieux.push({ ligne: i, colon: m.index, texte: l });
+  });
+  return lieux;
+}
+function rogne(extrait) {
+  const t = extrait.trim();
+  return t.length > 48 ? t.slice(0, 48) + "…" : t;
+}
+function ouvrirUsages() {
+  const m = motAuCaret();
+  if (!m) return;
+  const lieux = occurrencesDe(m.mot);
+  if (!lieux.length) return;
+  const rangees = [{ texte: `${lieux.length} usages de « ${m.mot} »`,
+    tier: "micro", section: true }];
+  lieux.forEach(l => rangees.push({
+    texte: `L${l.ligne + 1} · ${rogne(l.texte)}`, tier: "corps",
+    prenable: true,
+    action: () => { fermer("REFERENCES"); deplacerCaret(l.ligne, l.colon); } }));
+  poserCarte("REFERENCES", { rangees, ancre: Ancres.belowOrAboveCaret,
+    fiche: "usages" });
+}
+
+/* =====================================================================
+   18. LA HIÉRARCHIE — la racine vit à l'en-tête, jamais deux fois
+   ===================================================================== */
+function ouvrirHierarchie() {
+  const m = motAuCaret();
+  if (!m) return;
+  const estType = plan.some(e => e.cat === "TYPE" && e.nom === m.mot);
+  const estMethode = plan.some(e => e.cat === "FUNC" && e.nom === m.mot);
+  if (estType) return hierarchieTypes(m.mot);
+  if (estMethode) return hierarchieAppels(m.mot);
+}
+function hierarchieTypes(nom) {
+  const connus = new Set(plan.map(e => e.nom));
+  const superclasseDe = plan.find(e => e.cat === "TYPE" && e.nom === nom)?.superclasse;
+  const introuvables = [];
+  let superType = superclasseDe;
+  if (!superType) superType = "Object";   /* l'implicite du compilateur */
+  if (!connus.has(superType)) introuvables.push({ nom: superType, profondeur: 0 });
+  const sousTypes = [];
+  const descendre = (parent, profondeur) => {
+    plan.filter(e => e.cat === "TYPE" && e.superclasse === parent)
+      .forEach(e => {
+        sousTypes.push({ nom: e.nom, profondeur, sautable: true });
+        descendre(e.nom, profondeur + 1);
+      });
+  };
+  descendre(nom, 1);
+  if (!introuvables.length && !sousTypes.length) return; /* racine seule : rien */
+  const rangees = [{ texte: `Hiérarchie de types de « ${nom} »`,
+    tier: "micro", section: true }];
+  if (sousTypes.length) {
+    rangees.push({ texte: "Sous-types", tier: "micro", section: true, filet: true });
+    sousTypes.forEach(s => rangees.push({
+      texte: s.nom, tier: "corps", retrait: s.profondeur, prenable: true,
+      action: () => { fermer("HIERARCHY"); deplacerCaretSurMot(s.nom); } }));
+  }
+  if (introuvables.length) {
+    rangees.push({ texte: "Hors projet", tier: "micro", section: true, filet: true });
+    introuvables.forEach(s => rangees.push({
+      texte: s.nom, tier: "meta", encre: "muet", retrait: s.profondeur }));
+  }
+  poserCarte("HIERARCHY", { rangees, ancre: Ancres.belowOrAboveCaret,
+    fiche: "hierarchie" });
+}
+function hierarchieAppels(nom) {
+  const appelants = [];
+  toutesMethodes().forEach(e => {
+    const corps = lignes.slice(e.debut, e.fin + 1).join("\n");
+    if (new RegExp(`\\b${nom}\\s*\\(`).test(corps) && e.nom !== nom)
+      appelants.push({ nom: e.nom, profondeur: 1, sautable: true });
+  });
+  if (!appelants.length) return; /* racine seule sans doute : rien à montrer */
+  const rangees = [{ texte: `Hiérarchie d'appels de « ${nom} »`,
+    tier: "micro", section: true }];
+  rangees.push({ texte: "Appelants", tier: "micro", section: true, filet: true });
+  appelants.forEach(a => rangees.push({
+    texte: a.nom, tier: "corps", retrait: a.profondeur, prenable: true,
+    action: () => { fermer("HIERARCHY"); deplacerCaretSurMot(a.nom); } }));
+  poserCarte("HIERARCHY", { rangees, ancre: Ancres.belowOrAboveCaret,
+    fiche: "hierarchie" });
+}
+
+/* =====================================================================
+   19. L'ANNULATION — les transactions annulables d'un geste
+   ===================================================================== */
+const pileRetablir = [];
+function pousserAnnulation() {
+  pileAnnulation.push({ lignes: lignes.slice(), caret: { ...caret },
+    selection: selection && { ...selection } });
+  if (pileAnnulation.length > 40) pileAnnulation.shift();
+}
+function annuler() {
+  if (!pileAnnulation.length) return;
+  pileRetablir.push({ lignes: lignes.slice(), caret: { ...caret },
+    selection: selection && { ...selection } });
+  const etat = pileAnnulation.pop();
+  lignes = etat.lignes; caret = etat.caret; selection = etat.selection;
+  plan = calculerPlan(lignes);
+  fermerTout();
+  rafraichirTout();
+  rafraichirFilAriane();
+}
+function retablir() {
+  if (!pileRetablir.length) return;
+  pousserAnnulation();
+  const etat = pileRetablir.pop();
+  lignes = etat.lignes; caret = etat.caret; selection = etat.selection;
+  plan = calculerPlan(lignes);
+  fermerTout();
+  rafraichirTout();
+  rafraichirFilAriane();
+}
+/* les écritures élémentaires de l'éditeur */
+function insererTexte(t) {
+  pousserAnnulation();
+  const l = lignes[caret.l];
+  lignes[caret.l] = l.slice(0, caret.c) + t + l.slice(caret.c);
+  caret = { l: caret.l, c: caret.c + t.length };
+  plan = calculerPlan(lignes);
+  rafraichirTout();
+  rafraichirFilAriane();
+}
+function commenterLigne() {
+  pousserAnnulation();
+  const l = lignes[caret.l];
+  const t = l.trimStart();
+  if (t.startsWith("//")) lignes[caret.l] = l.replace("//", "");
+  else lignes[caret.l] = "    // " + t;
+  plan = calculerPlan(lignes);
+  rafraichirTout();
+}
+function dupliquerLigne() {
+  pousserAnnulation();
+  lignes.splice(caret.l + 1, 0, lignes[caret.l]);
+  plan = calculerPlan(lignes);
+  rafraichirTout();
+}
+function insererCaractere(ch) {
+  pousserAnnulation();
+  const l = lignes[caret.l];
+  lignes[caret.l] = l.slice(0, caret.c) + ch + l.slice(caret.c);
+  caret = { l: caret.l, c: caret.c + 1 };
+  surFrappe();
+}
+function effacerCaractere() {
+  if (caret.c === 0) return;
+  pousserAnnulation();
+  const l = lignes[caret.l];
+  lignes[caret.l] = l.slice(0, caret.c - 1) + l.slice(caret.c);
+  caret = { l: caret.l, c: caret.c - 1 };
+  surFrappe();
+}
+
+/* =====================================================================
+   20. LES GABARITS — la carte de génération (GABARITS)
+   ===================================================================== */
+function ouvrirGabarits() {
+  const classe = typeContenant(caret.l);
+  const champs = classe ? champsDe(classe.nom) : [];
+  const rangees = [{ texte: "Génération & gabarits", tier: "micro", section: true }];
+  let actions = 0;
+  if (classe) {
+    rangees.push({ texte: `Constructeur de ${classe.nom}`, tier: "titre",
+      prenable: true, action: () => genererConstructeur(classe) });
+    actions++;
+    if (champs.length) {
+      rangees.push({ texte: `Accesseurs de ${classe.nom}`, tier: "titre",
+        prenable: true, action: () => genererAccesseurs(classe) });
+      actions++;
+    }
+    rangees.push({ texte: `equals, hashCode et toString de ${classe.nom}`,
+      tier: "titre", prenable: true, action: () => genererEgalite(classe) });
+    actions++;
+  }
+  if (selection && (selection.l1 !== selection.l2 || selection.c1 !== selection.c2)) {
+    rangees.push({ texte: "Entourer de try/catch", tier: "titre",
+      prenable: true, action: () => entourerSelection("try") });
+    rangees.push({ texte: "Entourer de if", tier: "titre",
+      prenable: true, action: () => entourerSelection("if") });
+    actions += 2;
+  }
+  rangees.push({ texte: "Insérer le gabarit de méthode", tier: "titre",
+    prenable: true, action: () => insererGabaritMethode() });
+  actions++;
+  if (!actions) return;   /* aucune action servie : la carte ne se pose pas */
+  poserCarte("GABARITS", { rangees, ancre: Ancres.belowOrAboveCaret,
+    fiche: "gabarits" });
+}
+function insererAvantAccoladeFermante(classe, bloc) {
+  pousserAnnulation();
+  const fin = classe.fin;
+  const retrait = "    ";
+  bloc = bloc.map(l => l ? retrait + l : l);
+  lignes.splice(fin, 0, ...bloc, "");
+  plan = calculerPlan(lignes);
+  caret = { l: fin, c: (bloc[0] || "").length };
+  fermer("GABARITS");
+  rafraichirTout();
+  rafraichirFilAriane();
+}
+function genererConstructeur(classe) {
+  const champs = champsDe(classe.nom);
+  const params = champs.map(c =>
+    `${TYPES[c.nom] || "Object"} ${c.nom}`).join(", ");
+  const bloc = [
+    `public ${classe.nom}(${params}) {`,
+    ...champs.map(c => `    this.${c.nom} = ${c.nom};`),
+    `}`];
+  insererAvantAccoladeFermante(classe, bloc);
+}
+function genererAccesseurs(classe) {
+  const champs = champsDe(classe.nom);
+  const bloc = [];
+  champs.forEach(c => {
+    const T = TYPES[c.nom] || "Object";
+    const maj = c.nom[0].toUpperCase() + c.nom.slice(1);
+    bloc.push(`public ${T} ${c.nom}() {`, `    return ${c.nom};`, `}`);
+    if (!/final/.test(lignes[c.debut])) {
+      bloc.push(`public void set${maj}(${T} ${c.nom}) {`,
+        `    this.${c.nom} = ${c.nom};`, `}`);
+    }
+  });
+  insererAvantAccoladeFermante(classe, bloc);
+}
+function genererEgalite(classe) {
+  const champs = champsDe(classe.nom).map(c => c.nom);
+  const bloc = [
+    `@Override`,
+    `public boolean equals(Object autre) {`,
+    `    if (this == autre) return true;`,
+    `    if (!(autre instanceof ${classe.nom})) return false;`,
+    `    ${classe.nom} autreService = (${classe.nom}) autre;`,
+    ...champs.map(c => `    if (!Objects.equals(${c}, autreService.${c})) return false;`),
+    `    return true;`,
+    `}`,
+    ``,
+    `@Override`,
+    `public int hashCode() {`,
+    `    return Objects.hash(${champs.join(", ")});`,
+    `}`,
+    ``,
+    `@Override`,
+    `public String toString() {`,
+    `    return "${classe.nom}{" + ${champs.map(c => `"${c}=" + ` + c).join(` + ", " + `)} + "}";`,
+    `}`];
+  insererAvantAccoladeFermante(classe, bloc);
+}
+function entourerSelection(mode) {
+  if (!selection) return;
+  pousserAnnulation();
+  const { l1, c1, l2, c2 } = selection;
+  let bloc = lignes.slice(l1, l2 + 1).map(l => "    " + l);
+  let couronne;
+  if (mode === "try") {
+    couronne = ["try {", ...bloc,
+      "} catch (Exception e) {", "    throw e;", "}"];
+  } else {
+    couronne = ["if (condition) {", ...bloc, "}"];
+  }
+  lignes.splice(l1, l2 - l1 + 1, ...couronne);
+  selection = null;
+  plan = calculerPlan(lignes);
+  fermer("GABARITS");
+  rafraichirTout();
+  rafraichirFilAriane();
+}
+function insererGabaritMethode() {
+  const classe = typeContenant(caret.l) || { fin: lignes.length - 2, nom: "Fichier" };
+  insererAvantAccoladeFermante(classe, [
+    `// ${classe.nom} — posée par le gabarit de la démonstration`,
+    `private \${genre|void,int|} \${nom:nouvelleMethode}() {`,
+    `    \${corps:}`,
+    `}`]);
+}
+
+/* =====================================================================
+   21. LA SÛRETÉ — SAFE_DELETE et SAFE_MOVE (les deux cartes d'un coup)
+   ===================================================================== */
+function supprimerSur() {
+  const m = motAuCaret();
+  if (!m) {
+    notifier("Avis", "Suppression sûre : aucune déclaration au curseur");
+    return;
+  }
+  const decl = plan.find(e => e.nom === m.mot &&
+    e.debut <= caret.l && caret.l <= e.fin);
+  if (!decl) {
+    notifier("Avis", "Suppression sûre : aucune déclaration au curseur");
+    return;
+  }
+  const usages = occurrencesDe(m.mot)
+    .filter(o => !(o.ligne >= decl.debut && o.ligne <= decl.fin));
+  if (usages.length) {
+    const rangees = [{
+      texte: `${usages.length} usages empêchent la suppression de « ${m.mot} »`,
+      tier: "micro", section: true }];
+    usages.forEach(u => rangees.push({
+      texte: `L${u.ligne + 1} · ${rogne(u.texte)}`, tier: "corps",
+      prenable: true,
+      action: () => { fermer("SAFE_DELETE"); deplacerCaret(u.ligne, u.colon); } }));
+    poserCarte("SAFE_DELETE", { rangees, ancre: Ancres.belowOrAboveCaret,
+      fiche: "safe_delete" });
+    return;
+  }
+  /* la voie libre : la suppression s'exécute, transaction annulable */
+  pousserAnnulation();
+  if (decl.cat === "CHAMP") lignes.splice(decl.debut, 1);
+  else lignes.splice(decl.debut, decl.fin - decl.debut + 1);
+  plan = calculerPlan(lignes);
+  caret = { l: Math.min(decl.debut, lignes.length - 1), c: 0 };
+  selection = null;
+  rafraichirTout();
+  rafraichirFilAriane();
+  notifier("Avis", "Supprimée — un geste la défait",
+    [{ libelle: "Annuler la suppression", geste: annuler }]);
+}
+function deplacerDans() {
+  const methode = methodeContenant(caret.l);
+  const cibles = tousTypes().filter(t =>
+    !(t.debut <= caret.l && caret.l <= t.fin));
+  if (!cibles.length) {
+    notifier("Avis", "Déplacement : aucune classe cible dans le fichier");
+    return;
+  }
+  const rangees = [{ texte: "Déplacer dans", tier: "micro", section: true }];
+  cibles.forEach(t => rangees.push({
+    texte: t.nom, tier: "titre", prenable: true,
+    action: () => tenterDeplacement(methode, t) }));
+  poserCarte("SAFE_MOVE", { rangees, ancre: Ancres.belowOrAboveCaret,
+    fiche: "safe_move" });
+}
+function tenterDeplacement(methode, cible) {
+  fermer("SAFE_MOVE");
+  if (!methode) return;
+  /* les conditions de sûreté seules décident : le corps touche-t-il un champ ? */
+  const champs = champsDe(methode.classe).map(c => c.nom);
+  const corps = lignes.slice(methode.debut, methode.fin + 1).join("\n");
+  const touche = champs.some(c => new RegExp(`\\b${c}\\b`).test(corps));
+  if (touche) {
+    notifier("Avis", "Déplacement refusé — les conditions de sûreté ne tiennent pas");
+    return;
+  }
+  pousserAnnulation();
+  const bloc = lignes.splice(methode.debut, methode.fin - methode.debut + 1);
+  const cibleFraiche = tousTypes().find(t => t.nom === cible.nom);
+  lignes.splice(cibleFraiche.fin, 0, ...bloc);
+  plan = calculerPlan(lignes);
+  caret = { l: Math.max(0, cibleFraiche.fin - 1), c: 0 };
+  selection = null;
+  rafraichirTout();
+  rafraichirFilAriane();
+  notifier("Avis", `Déplacée dans « ${cible.nom} » — un geste la défait`,
+    [{ libelle: "Annuler le déplacement", geste: annuler }]);
+}
+
+/* =====================================================================
+   22. LE MASQUAGE D'INSPECTION — la boucle complète (SUPPRESS_INSPECTION)
+   ===================================================================== */
+function masquerInspection() {
+  const regles = regleLigne(lignes[caret.l] || "");
+  if (!regles.length) {
+    notifier("Avis", "Aucune inspection réglée à cette ligne");
+    return;
+  }
+  const rangees = [{ texte: "Masquer", tier: "micro", section: true }];
+  regles.forEach(r => rangees.push({
+    texte: `Masquer ${r.regle}`, tier: "titre", prenable: true,
+    action: () => masquerRegle(r.regle) }));
+  poserCarte("SUPPRESS_INSPECTION", { rangees, ancre: Ancres.belowOrAboveCaret,
+    fiche: "masquage" });
+}
+function masquerRegle(regle) {
+  pousserAnnulation();
+  const l = lignes[caret.l];
+  const existant = l.match(/\/\/\s*noinspection\s+([\w,]+)/);
+  if (existant) {
+    const regles = new Set(existant[1].split(","));
+    regles.add(regle);
+    lignes[caret.l] = l.replace(/\/\/\s*noinspection\s+[\w,]+/,
+      `// noinspection ${[...regles].join(",")}`);
+  } else {
+    lignes[caret.l] = l.replace(/\s*$/, "") + ` // noinspection ${regle}`;
+  }
+  fermer("SUPPRESS_INSPECTION");
+  plan = calculerPlan(lignes);
+  rafraichirTout();
+  /* le lint se relance : la règle masquée ne se rapporte plus */
+  notifier("Avis", `${regle} masquée — le lint se relance`);
+}
+
+/* =====================================================================
+   23. L'EXCEPTION — la trace du document réel (EXCEPTION_DETAILS)
+   ===================================================================== */
+function executerFichier() {
+  const classe = typeContenant(caret.l);
+  const sommet = methodeContenant(caret.l);
+  const methodes = toutesMethodes();
+  if (!classe || !methodes.length) {
+    notifier("Avis",
+      "Exécution terminée — le fichier ne porte aucune méthode, rien à faire échouer");
+    return;
+  }
+  notifier("Avis", "L'exécution a échoué — les détails de l'exception suivent");
+  const rangees = [
+    { texte: "× java.lang.Exception", tier: "titre", encre: "erreur" },
+    { texte: "L'exécution simulée échoue — la trace suit le plan du fichier",
+      tier: "corps" }];
+  if (sommet) rangees.push({
+    texte: `L${caret.l + 1} · ${sommet.classe}.${sommet.nom}`,
+    tier: "corps", filet: true, prenable: true,
+    action: () => { fermer("EXCEPTION_DETAILS"); deplacerCaret(caret.l, 0); } });
+  methodes.filter(e => e !== sommet).forEach(e => rangees.push({
+    texte: `L${e.debut + 1} · ${e.classe}.${e.nom}`, tier: "corps",
+    prenable: true,
+    action: () => { fermer("EXCEPTION_DETAILS"); deplacerCaret(e.debut, 0); } }));
+  poserCarte("EXCEPTION_DETAILS", { rangees, ancre: Ancres.belowOrAboveCaret,
+    fiche: "exception" });
+}
+
+/* =====================================================================
+   24. LE SÉLECTEUR DE COULEUR — le pick implicite (COLOR_PICKER)
+   ===================================================================== */
+function littéralCouleurALigne() {
+  const l = lignes[caret.l] || "";
+  const m = l.match(/#([0-9a-fA-F]{3,8})/);
+  return m ? { jeton: m[0], index: m.index, chiffres: m[1].length } : null;
+}
+function rgbDeHex(jeton) {
+  const h = jeton.slice(1);
+  if (h.length === 3) return { r: parseInt(h[0] + h[0], 16),
+    g: parseInt(h[1] + h[1], 16), b: parseInt(h[2] + h[2], 16) };
+  if (h.length === 4) return { r: parseInt(h[1] + h[1], 16),
+    g: parseInt(h[2] + h[2], 16), b: parseInt(h[3] + h[3], 16) };
+  if (h.length === 6) return { r: parseInt(h.slice(0, 2), 16),
+    g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
+  return { r: parseInt(h.slice(2, 4), 16), g: parseInt(h.slice(4, 6), 16),
+    b: parseInt(h.slice(6, 8), 16) };
+}
+function hexDeRgb(r, g, b) {
+  return "#" + [r, g, b].map(v =>
+    Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+}
+function teinteDe(r, g, b) {
+  const max = Math.max(r, g, b) / 255, min = Math.min(r, g, b) / 255;
+  if (max === min) return 0;
+  const d = max - min;
+  const rn = r / 255, gn = g / 255, bn = b / 255;
+  let h;
+  if (max === rn) h = ((gn - bn) / d) % 6;
+  else if (max === gn) h = (bn - rn) / d + 2;
+  else h = (rn - gn) / d + 4;
+  return ((h * 60) + 360) % 360;
+}
+function rgbDeTeinte(h) {
+  const c = 1, x = 1 - Math.abs((h / 60) % 2 - 1);
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; } else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+  return { r: r * 255, g: g * 255, b: b * 255 };
+}
+function ouvrirColorPicker() {
+  const lit = littéralCouleurALigne();
+  if (!lit) return false;
+  const rgb = rgbDeHex(lit.jeton);
+  const etat = { teinte: teinteDe(rgb.r, rgb.g, rgb.b),
+    saturation: 0.8, valeur: 0.9, originale: lit.jeton, chiffres: lit.chiffres };
+  const construire = el => {
+    el.classList.add("carte-couleur");
+    const dessine = () => {
+      const t = rgbDeTeinte(etat.teinte);
+      const courant = {
+        r: t.r * etat.saturation + 255 * (1 - etat.saturation),
+        g: t.g * etat.saturation + 255 * (1 - etat.saturation),
+        b: t.b * etat.saturation + 255 * (1 - etat.saturation) };
+      courant.r *= etat.valeur; courant.g *= etat.valeur; courant.b *= etat.valeur;
+      const hexCourant = hexDeRgb(courant.r, courant.g, courant.b);
+      el.innerHTML = "";
+      const entete = document.createElement("div");
+      entete.className = "couleur-entete";
+      entete.innerHTML =
+        `<span class="couleur-cote"><span class="couleur-pastille" style="background:${etat.originale}"></span>${etat.originale}</span>` +
+        `<span class="couleur-cote"><span class="couleur-pastille" style="background:${hexCourant}"></span>${hexCourant}</span>`;
+      el.appendChild(entete);
+      const sv = document.createElement("div");
+      sv.className = "sv-champ";
+      sv.style.setProperty("--teinte", hexDeRgb(t.r, t.g, t.b));
+      const marqueur = document.createElement("div");
+      marqueur.className = "sv-marqueur";
+      marqueur.style.left = `${etat.saturation * 100}%`;
+      marqueur.style.top = `${(1 - etat.valeur) * 100}%`;
+      sv.appendChild(marqueur);
+      el.appendChild(sv);
+      const bande = document.createElement("div");
+      bande.className = "bande-teinte";
+      const curseur = document.createElement("div");
+      curseur.className = "curseur-teinte";
+      curseur.style.left = `${etat.teinte / 360 * 100}%`;
+      bande.appendChild(curseur);
+      el.appendChild(bande);
+      const palette = document.createElement("div");
+      palette.className = "palette-material";
+      PALETTE_MATERIAL.forEach(hex => {
+        const cellule = document.createElement("div");
+        cellule.className = "cellule-material" +
+          (hex === hexCourant ? " courante" : "");
+        cellule.style.background = hex;
+        /* le tap d'une cellule APPLIQUE implicite */
+        cellule.addEventListener("click", ev => {
+          ev.stopPropagation();
+          appliquerCouleur(hex);
+        });
+        palette.appendChild(cellule);
+      });
+      el.appendChild(palette);
+      /* les drags du champ et de la bande */
+      const glisserSV = ev => {
+        const r = sv.getBoundingClientRect();
+        etat.saturation = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width));
+        etat.valeur = 1 - Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height));
+        dessine();
+      };
+      sv.addEventListener("pointerdown", ev => {
+        glisserSV(ev);
+        const bouge = e2 => glisserSV(e2);
+        const fin = () => { window.removeEventListener("pointermove", bouge);
+          window.removeEventListener("pointerup", fin); };
+        window.addEventListener("pointermove", bouge);
+        window.addEventListener("pointerup", fin);
+      });
+      const glisserBande = ev => {
+        const r = bande.getBoundingClientRect();
+        etat.teinte = Math.max(0, Math.min(360,
+          (ev.clientX - r.left) / r.width * 360));
+        dessine();
+      };
+      bande.addEventListener("pointerdown", ev => {
+        glisserBande(ev);
+        const bouge = e2 => glisserBande(e2);
+        const fin = () => { window.removeEventListener("pointermove", bouge);
+          window.removeEventListener("pointerup", fin); };
+        window.addEventListener("pointermove", bouge);
+        window.addEventListener("pointerup", fin);
+      });
+    };
+    dessine();
+  };
+  poserCarte("COLOR_PICKER", { construire, ancre: Ancres.belowOrAboveCaret,
+    fiche: "couleur" });
+  return true;
+}
+function appliquerCouleur(hex) {
+  const lit = littéralCouleurALigne();
+  if (!lit) { fermer("COLOR_PICKER"); return; }
+  pousserAnnulation();
+  const l = lignes[caret.l];
+  const nouveau = hex;
+  lignes[caret.l] = l.slice(0, lit.index) + nouveau + l.slice(lit.index + lit.jeton.length);
+  fermer("COLOR_PICKER");
+  rafraichirTout();
+}
+
+/* =====================================================================
+   25. LA BARRE DE SÉLECTION ET SON DÉBORDEMENT (SELECTION_BAR)
+   ===================================================================== */
+function poserBarreSelection() {
+  if (!selection || (selection.l1 === selection.l2 && selection.c1 === selection.c2)) {
+    fermer("SELECTION_BAR"); return;
+  }
+  fermer("SELECTION_BAR");
+  const el = document.createElement("div");
+  el.className = "carte barre-selection";
+  el.style.padding = "0 4px";
+  const pastille = (libelle, geste) => {
+    const b = document.createElement("button");
+    b.className = "pastille"; b.textContent = libelle;
+    b.addEventListener("click", ev => { ev.stopPropagation(); geste(); });
+    return b;
+  };
+  el.appendChild(pastille("Couper", () => {
+    const t = texteSelection();
+    pressePapiers = t;
+    effacerSelection();
+  }));
+  el.appendChild(pastille("Copier", () => { pressePapiers = texteSelection(); }));
+  el.appendChild(pastille("Coller", () => {
+    if (pressePapiers) { effacerSelection(); insererTexte(pressePapiers); }
+  }));
+  const filet = document.createElement("div");
+  filet.className = "filet-vertical";
+  el.appendChild(filet);
+  const rondI = document.createElement("button");
+  rondI.className = "rond-i"; rondI.textContent = "i";
+  rondI.title = "Survoler la documentation du symbole";
+  rondI.addEventListener("click", ev => { ev.stopPropagation(); ouvrirSurvol(); });
+  el.appendChild(rondI);
+  const points = document.createElement("button");
+  points.className = "puce-points"; points.textContent = "⋯";
+  points.title = "Débordement de la barre";
+  points.addEventListener("click", ev => { ev.stopPropagation(); ouvrirDebordementBarre(); });
+  el.appendChild(points);
+  elCouche.appendChild(el);
+  const pos = Ancres.centeredAboveSelection(el.offsetWidth, el.offsetHeight);
+  el.style.left = pos.left + "px";
+  el.style.top = pos.top + "px";
+  const vue = { el, ancre: Ancres.centeredAboveSelection, prenables: [],
+    index: 0, genre: "SELECTION_BAR" };
+  vues.set("SELECTION_BAR", vue);
+  OUVERTS.add("SELECTION_BAR");
+  requestAnimationFrame(() => el.classList.add("ouverte"));
+  etatsOuverts();
+  selectionnerFiche("barre_selection");
+}
+function texteSelection() {
+  if (!selection) return "";
+  const { l1, c1, l2, c2 } = selection;
+  if (l1 === l2) return lignes[l1].slice(c1, c2);
+  return [lignes[l1].slice(c1), ...lignes.slice(l1 + 1, l2),
+    lignes[l2].slice(0, c2)].join("\n");
+}
+function effacerSelection() {
+  if (!selection) return;
+  pousserAnnulation();
+  const { l1, c1, l2, c2 } = selection;
+  if (l1 === l2) {
+    lignes[l1] = lignes[l1].slice(0, c1) + lignes[l1].slice(c2);
+  } else {
+    lignes[l1] = lignes[l1].slice(0, c1) + lignes[l2].slice(c2);
+    lignes.splice(l1 + 1, l2 - l1);
+  }
+  caret = { l: l1, c: c1 };
+  selection = null;
+  fermer("SELECTION_BAR");
+  plan = calculerPlan(lignes);
+  rafraichirTout();
+  rafraichirFilAriane();
+}
+function ouvrirDebordementBarre() {
+  const rangees = [{ texte: "PLUS", tier: "micro", section: true },
+    { texte: "Dupliquer", tier: "titre", prenable: true,
+      action: () => { fermer("SELECTION_OVERFLOW"); dupliquerLigne(); } },
+    { texte: "Tout sélectionner", tier: "titre", prenable: true,
+      action: () => {
+        fermer("SELECTION_OVERFLOW");
+        selection = { l1: 0, c1: 0, l2: lignes.length - 1,
+          c2: lignes[lignes.length - 1].length };
+        renderSelection(); poserBarreSelection();
+      } }];
+  poserCarte("SELECTION_OVERFLOW", { rangees, ancre: Ancres.sousPuceBarre,
+    fiche: "debordement_barre" });
+}
+
+/* =====================================================================
+   26. LES MENUS — intentions au caret et débordement de la toolbar
+   ===================================================================== */
+function ouvrirIntentions() {
+  const rangees = [
+    { texte: "Analyser (lint)", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU");
+        notifier("Avis", `Lint : ${diagnostics().length} problème(s)`); } },
+    { texte: "Aperçu de définition", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirApercu(); } },
+    { texte: "Rechercher les usages", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirUsages(); } },
+    { texte: "Info de type au curseur", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirTypeInfo(); } },
+    { texte: "Hiérarchie de types ou d'appels", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirHierarchie(); } },
+    { texte: "Documentation externe", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirDocExterne(); } },
+    { texte: "Générer du code", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirGabarits(); } },
+    { texte: "Suppression sûre de la déclaration", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); supprimerSur(); } },
+    { texte: "Déplacer la méthode dans une classe", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); deplacerDans(); } },
+    { texte: "Masquer l'inspection de la ligne", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); masquerInspection(); } },
+    { texte: "Exécuter le fichier (simulé)", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); executerFichier(); } },
+    { texte: "Revue du diff", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirFeuilleDiff(); } },
+    { texte: "Aperçu du correctif", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirFeuilleCorrectif(); } },
+    { texte: "Revue des modifications d'agent", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirFeuilleAgent(); } },
+    { texte: "IA : suggérer une complétion", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); demanderFantome(); } },
+    { texte: "IA : prédire la prochaine édition", tier: "titre", prenable: true,
+      action: () => { fermer("INTENTIONS_MENU"); ouvrirFeuillePrediction(); } }
+  ];
+  poserCarte("INTENTIONS_MENU", { rangees, ancre: Ancres.belowOrAboveCaret,
+    fiche: "intentions" });
+}
+function ouvrirDebordementToolbar() {
+  const items = [
+    ["Compléter le mot", () => ouvrirCompletion()],
+    ["Intentions au curseur", () => ouvrirIntentions()],
+    ["Survoler le symbole", () => ouvrirSurvol()],
+    ["Rechercher les usages", () => ouvrirUsages()],
+    ["Info de type au curseur", () => ouvrirTypeInfo()],
+    ["Hiérarchie de types ou d'appels", () => ouvrirHierarchie()],
+    ["Aller à un fichier ou symbole", () => ouvrirFeuilleAller()],
+    ["Documentation externe", () => ouvrirDocExterne()],
+    ["Générer du code", () => ouvrirGabarits()],
+    ["Suppression sûre de la déclaration", () => supprimerSur()],
+    ["Déplacer la méthode dans une classe", () => deplacerDans()],
+    ["Masquer l'inspection de la ligne", () => masquerInspection()],
+    ["Exécuter le fichier (simulé)", () => executerFichier()],
+    ["Analyser (lint)", () => notifier("Avis", `Lint : ${diagnostics().length} problème(s)`)],
+    ["Insérer le gabarit de méthode", () => insererGabaritMethode()],
+    ["Formater le document", () => notifier("Avis", "Format : déjà en forme")],
+    ["Renommer le symbole", () => ouvrirFeuilleRenommer()],
+    ["IA : prédire la prochaine édition", () => ouvrirFeuillePrediction()],
+    ["Annuler", () => annuler()],
+    ["Rétablir", () => retablir()],
+    [`Thème : ${document.documentElement.dataset.theme === "sombre" ? "Sombre" : "Clair"}`,
+      () => basculerTheme()],
+    ["Réduire le texte", () => zoomerPolice(-2)],
+    ["Agrandir le texte", () => zoomerPolice(2)],
+    ["Réglages", () => ouvrirFeuilleReglages()]
+  ];
+  const rangees = [{ texte: "PLUS", tier: "micro", section: true }];
+  items.forEach(([libelle, geste]) => rangees.push({
+    texte: libelle, tier: "titre", prenable: true,
+    action: () => { fermer("TOOLBAR_OVERFLOW"); geste(); } }));
+  poserCarte("TOOLBAR_OVERFLOW", { rangees, ancre: Ancres.sousPuceToolbar,
+    fiche: "toolbar" });
+}
+function basculerTheme() {
+  appliquerTheme(document.documentElement.dataset.theme === "sombre"
+    ? "clair" : "sombre");
+}
+function zoomerPolice(delta) {
+  policeEditeur = Math.max(9, Math.min(24, policeEditeur + delta));
+  elCode.style.fontSize = policeEditeur + "px";
+  LH = policeEditeur * 1.723;
+  mesurer();
+  renderCode();
+  repositionnerOuvertes();
+}
+
+/* =====================================================================
+   27. LE TEXTE FANTÔME — l'IA locale, coupée par défaut
+   ===================================================================== */
+let fantome = null;
+let consentementIA = false;
+function demanderFantome() {
+  if (!consentementIA) { ouvrirFeuilleConsentement(); return; }
+  const l = lignes[caret.l] || "";
+  const avant = l[caret.c - 1] || "";
+  fantome = avant === "." ? "taille()" : avant === "(" ? '")"' : "suite()";
+  renderCode();
+}
+function accepterFantome() {
+  if (!fantome) return false;
+  insererTexte(fantome);
+  fantome = null;
+  renderCode();
+  return true;
+}
+
+/* =====================================================================
+   28. LES FEUILLES MODALES — FeuilleBas / FeuilleHaut et leurs ateliers
+   ===================================================================== */
+const elVoileModal = document.getElementById("voile-modal");
+const elCoucheFeuilles = document.getElementById("couche-feuilles");
+function ouvrirFeuille(id, cote, titre, construireCorps, fiche) {
+  fermerFeuille();
+  fermerSousVoile();
+  feuilleActive = id;
+  if (id === "recherche") { OUVERTS.add("SEARCH_BAR"); etatsOuverts(); }
+  elVoileModal.classList.add("visiblee");
+  const feuille = document.createElement("section");
+  feuille.className = "feuille " + (cote === "haut" ? "feuille--haut" : "feuille--bas");
+  feuille.setAttribute("role", "dialog");
+  feuille.setAttribute("aria-modal", "true");
+  const poignee = document.createElement("div");
+  poignee.className = "poignee";
+  poignee.setAttribute("aria-hidden", "true");
+  feuille.appendChild(poignee);
+  const rangeeTitre = document.createElement("div");
+  rangeeTitre.className = "feuille-titre";
+  rangeeTitre.innerHTML = `<h3>${echappe(titre)}</h3>`;
+  const fermerB = document.createElement("button");
+  fermerB.className = "fermer-feuille";
+  fermerB.setAttribute("aria-label", "Fermer");
+  fermerB.textContent = "✕";
+  fermerB.addEventListener("click", ev => { ev.stopPropagation(); fermerFeuille(); });
+  rangeeTitre.appendChild(fermerB);
+  feuille.appendChild(rangeeTitre);
+  const corps = document.createElement("div");
+  corps.className = "feuille-corps";
+  construireCorps(corps);
+  feuille.appendChild(corps);
+  elCoucheFeuilles.appendChild(feuille);
+  requestAnimationFrame(() => feuille.classList.add("ouverte"));
+  /* le glissement de poignée au-delà de 120 referme la feuille */
+  let departY = null;
+  poignee.addEventListener("pointerdown", ev => {
+    departY = ev.clientY;
+    const bouge = e2 => {
+      const dy = e2.clientY - departY;
+      const sens = cote === "haut" ? -1 : 1;
+      if (dy * sens > 0) feuille.style.transform = `translateY(${dy}px)`;
+    };
+    const fin = e2 => {
+      window.removeEventListener("pointermove", bouge);
+      window.removeEventListener("pointerup", fin);
+      const dy = e2.clientY - departY;
+      const sens = cote === "haut" ? -1 : 1;
+      if (dy * sens > 120) fermerFeuille();
+      else feuille.style.transform = "";
+    };
+    window.addEventListener("pointermove", bouge);
+    window.addEventListener("pointerup", fin);
+  });
+  if (fiche) selectionnerFiche(fiche);
+}
+function fermerFeuille() {
+  if (!feuilleActive) return;
+  if (feuilleActive === "recherche") { OUVERTS.delete("SEARCH_BAR"); etatsOuverts(); }
+  feuilleActive = null;
+  elVoileModal.classList.remove("visiblee");
+  elCoucheFeuilles.innerHTML = "";
+}
+elVoileModal.addEventListener("click", () => fermerFeuille());
+
+/* --- la recherche et remplacement (AtelierRecherche) --- */
+function ouvrirFeuilleRecherche() {
+  ouvrirFeuille("recherche", "bas", "Rechercher", corps => {
+    let occurrences = [];
+    let index = 0;
+    const rangee = document.createElement("div");
+    rangee.className = "rangée-recherche";
+    const champ = document.createElement("input");
+    champ.className = "champ";
+    champ.type = "text";
+    champ.placeholder = "Chercher dans le fichier";
+    const compteur = document.createElement("span");
+    compteur.className = "compteur";
+    compteur.textContent = "0 / 0";
+    const haut = document.createElement("button");
+    haut.className = "chevron-bouton";
+    haut.textContent = "↑";
+    haut.setAttribute("aria-label", "Occurrence précédente");
+    const bas = document.createElement("button");
+    bas.className = "chevron-bouton";
+    bas.textContent = "↓";
+    bas.setAttribute("aria-label", "Occurrence suivante");
+    rangee.append(champ, compteur, haut, bas);
+    corps.appendChild(rangee);
+    const chercher = () => {
+      const q = champ.value;
+      occurrences = [];
+      if (q) lignes.forEach((l, i) => {
+        let j = l.indexOf(q);
+        while (j >= 0) { occurrences.push({ l: i, c: j }); j = l.indexOf(q, j + q.length); }
+      });
+      index = 0;
+      dessineCompteur();
+    };
+    const dessineCompteur = () => {
+      compteur.textContent = occurrences.length
+        ? `${index + 1} / ${occurrences.length}` : "Aucun résultat";
+    };
+    const sauter = pas => {
+      if (!occurrences.length) return;
+      index = (index + pas + occurrences.length) % occurrences.length;
+      const o = occurrences[index];
+      selection = { l1: o.l, c1: o.c, l2: o.l, c2: o.c + champ.value.length };
+      caret = { l: o.l, c: o.c };
+      borneScroll(o.l);
+      dessineCompteur();
+      renderSelection();
+      rafraichirFilAriane();
+    };
+    champ.addEventListener("input", chercher);
+    champ.addEventListener("keydown", e => {
+      if (e.key === "Enter") { sauter(1); e.preventDefault(); }
+    });
+    haut.addEventListener("click", () => sauter(-1));
+    bas.addEventListener("click", () => sauter(1));
+    champ.value = "nom";
+    chercher();
+  }, "recherche");
+}
+
+/* --- le plan du fichier (FeuillePlan + OutlineView) --- */
+function ouvrirFeuillePlan() {
+  ouvrirFeuille("plan", "bas", "Plan du fichier", corps => {
+    plan.forEach(e => {
+      const div = document.createElement("div");
+      div.className = "entree-plan";
+      const etiquette = e.cat === "TYPE" ? "classe"
+        : e.cat === "FUNC" ? "méthode" : "champ";
+      div.style.paddingLeft = (e.cat === "TYPE" ? 10 : 34) + "px";
+      div.innerHTML = `<span>${echappe(e.nom)}</span>` +
+        `<small>${etiquette} · L${e.debut + 1}</small>`;
+      div.addEventListener("click", () => {
+        fermerFeuille();
+        deplacerCaret(e.debut, e.nom.length ? lignes[e.debut].indexOf(e.nom) : 0);
+      });
+      corps.appendChild(div);
+    });
+  }, "plan");
+}
+
+/* --- l'aller à (FeuilleAller + ResultatsAller, recherche floue) --- */
+function ouvrirFeuilleAller() {
+  ouvrirFeuille("aller", "bas", "Aller à", corps => {
+    const champ = document.createElement("input");
+    champ.className = "champ";
+    champ.type = "text";
+    champ.placeholder = "Nom de fichier ou symbole…";
+    const liste = document.createElement("div");
+    corps.append(champ, liste);
+    const dessine = () => {
+      const q = champ.value.trim().toLowerCase();
+      let resultats = [];
+      if (!q) {
+        resultats = CATALOGUE_FICHIERS.map(([nom, ext]) =>
+          ({ genre: "Fichier", libelle: nom, detail: ext }));
+      } else {
+        const fichiers = CATALOGUE_FICHIERS
+          .filter(([nom]) => nom.toLowerCase().includes(q))
+          .map(([nom, ext]) => ({ genre: "Fichier", libelle: nom, detail: ext }));
+        const symboles = plan
+          .filter(e => e.nom.toLowerCase().includes(q))
+          .map(e => ({ genre: "Symbole", libelle: e.nom,
+            detail: `L${e.debut + 1}`, entree: e }));
+        resultats = [...fichiers, ...symboles].slice(0, 8);
+      }
+      liste.innerHTML = "";
+      if (!resultats.length) {
+        liste.innerHTML = `<div class="legende-feuille">Aucun résultat</div>`;
+        return;
+      }
+      resultats.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "resultat";
+        div.innerHTML = `<span>${echappe(r.genre)}</span><b>${echappe(r.libelle)}</b>` +
+          `<small>· ${echappe(r.detail)}</small>`;
+        div.addEventListener("click", () => {
+          fermerFeuille();
+          if (r.entree) deplacerCaret(r.entree.debut,
+            lignes[r.entree.debut].indexOf(r.entree.nom));
+          else notifier("Avis",
+            `${r.libelle} s'ouvre chez l'hôte — l'éditeur embarqué n'ouvre qu'un document`);
+        });
+        liste.appendChild(div);
+      });
+    };
+    champ.addEventListener("input", dessine);
+    dessine();
+    champ.focus();
+  }, "aller");
+}
+
+/* --- le renommage (AtelierRefactor) --- */
+function ouvrirFeuilleRenommer() {
+  const m = motAuCaret();
+  if (!m) { notifier("Avis", "Aucun symbole au curseur"); return; }
+  ouvrirFeuille("renommer", "bas", `Renommer ${m.mot}`, corps => {
+    const champ = document.createElement("input");
+    champ.className = "champ";
+    champ.type = "text";
+    champ.value = m.mot;
+    champ.setAttribute("aria-label", "Nouveau nom");
+    const boutons = document.createElement("div");
+    boutons.className = "rangée-boutons";
+    const annuler = document.createElement("button");
+    annuler.className = "petit-bouton";
+    annuler.textContent = "Annuler";
+    annuler.addEventListener("click", () => fermerFeuille());
+    const appliquer = document.createElement("button");
+    appliquer.className = "petit-bouton primaire";
+    appliquer.textContent = "Renommer";
+    appliquer.addEventListener("click", () => {
+      const nouveau = champ.value.trim();
+      fermerFeuille();
+      if (!nouveau || nouveau === m.mot) return;
+      if (plan.some(e => e.nom === nouveau)) {
+        notifier("Avis", `Renommage refusé : conflit avec ${nouveau}`);
+        return;
+      }
+      pousserAnnulation();
+      const rx = new RegExp(`\\b${m.mot}\\b`, "g");
+      lignes = lignes.map(l => l.replace(rx, nouveau));
+      plan = calculerPlan(lignes);
+      rafraichirTout();
+      rafraichirFilAriane();
+      notifier("Avis", `Renommage appliqué — ${nouveau}, un geste le défait`);
+    });
+    boutons.append(annuler, appliquer);
+    corps.append(champ, boutons);
+    champ.focus();
+    champ.select();
+  }, "renommer");
+}
+
+/* --- les réglages (FeuilleReglages) --- */
+function ouvrirFeuilleReglages() {
+  ouvrirFeuille("reglages", "bas", "Réglages", corps => {
+    const carte = (titre) => {
+      const c = document.createElement("div");
+      c.className = "carte-reglage";
+      c.innerHTML = `<h4>${titre}</h4>`;
+      corps.appendChild(c);
+      return c;
+    };
+    const reglage = (parent, libelle, description, valeur, geste) => {
+      const r = document.createElement("div");
+      r.className = "reglage";
+      const id = "r" + Math.random().toString(36).slice(2, 8);
+      r.innerHTML = `<label for="${id}">${libelle}<small>${description}</small></label>`;
+      const interrupteur = document.createElement("span");
+      interrupteur.className = "interrupteur";
+      interrupteur.innerHTML = `<input type="checkbox" id="${id}"` +
+        (valeur ? " checked" : "") + `><span></span>`;
+      interrupteur.querySelector("input").addEventListener("change", e => {
+        geste(e.target.checked);
+      });
+      r.appendChild(interrupteur);
+      parent.appendChild(r);
+    };
+    const cEditeur = carte("Éditeur");
+    reglage(cEditeur, "Numéros de ligne",
+      "Afficher les numéros dans la gouttière", true, v => {
+        elGouttiere.style.display = v ? "" : "none";
+      });
+    reglage(cEditeur, "Retour à la ligne souple",
+      "Replier les lignes longues au bord de la vue", false, () => {});
+    reglage(cEditeur, "Ligatures",
+      "Ligatures de police (Fira Code)", false, () => {});
+    reglage(cEditeur, "Thème d'éditeur sombre",
+      "Basculer la palette entre clair et sombre",
+      document.documentElement.dataset.theme === "sombre",
+      v => appliquerTheme(v ? "sombre" : "clair"));
+    const cIA = carte("IA");
+    reglage(cIA, "Modèles IA",
+      "Coupé par défaut (F-10) : aucune requête ne quitte l'éditeur sans cette activation explicite. Le modèle de la démonstration est local et hors ligne — les exclusions gardent les secrets pareil.",
+      consentementIA, v => { consentementIA = v; });
+    const cRendu = carte("Rendu");
+    const ligneLenteur = document.createElement("div");
+    ligneLenteur.className = "reglage";
+    ligneLenteur.innerHTML =
+      `<label>Lenteur d'analyse<small>Délai avant que la coloration ne se republie après la frappe</small></label>`;
+    const valeurMs = document.createElement("span");
+    valeurMs.className = "valeur-monospace";
+    valeurMs.textContent = "150 ms";
+    const plage = document.createElement("input");
+    plage.type = "range";
+    plage.min = "0"; plage.max = "600"; plage.step = "50"; plage.value = "150";
+    plage.addEventListener("input", () =>
+      valeurMs.textContent = plage.value + " ms");
+    ligneLenteur.append(plage, valeurMs);
+    cRendu.appendChild(ligneLenteur);
+    reglage(cRendu, "Surimpression de diagnostic",
+      "Afficher taille de police, largeur de gouttière et images décolorées sur la scène",
+      false, () => {});
+    const cPaquet = carte("Paquet de langage jouet");
+    reglage(cPaquet, "Paquet de langage jouet",
+      "Copier le paquet jouet Logo au stockage — l'éditeur gagne un langage sans recompiler (H-04)",
+      false, () => {});
+  }, "reglages");
+}
+
+/* --- la revue du diff (AtelierDiff) --- */
+function blocsDiff(reference, courantes) {
+  let debut = 0;
+  while (debut < reference.length && debut < courantes.length &&
+    reference[debut] === courantes[debut]) debut++;
+  let finR = reference.length, finC = courantes.length;
+  while (finR > debut && finC > debut &&
+    reference[finR - 1] === courantes[finC - 1]) { finR--; finC--; }
+  if (debut === finR && debut === finC) return null;
+  return { debut, retires: reference.slice(debut, finR),
+    ajoutees: courantes.slice(debut, finC) };
+}
+function ouvrirFeuilleDiff() {
+  const bloc = blocsDiff(ORIGINE_DIFF, lignes);
+  if (!bloc) { notifier("Avis", "Diff : le document n'a pas bougé depuis l'ouverture"); return; }
+  ouvrirFeuille("diff", "haut", "Revue du diff — bloc 1", corps => {
+    bloc.retires.forEach(l => {
+      const d = document.createElement("div");
+      d.className = "ligne-diff retiree";
+      d.textContent = "- " + (l || "");
+      corps.appendChild(d);
+    });
+    bloc.ajoutees.forEach(l => {
+      const d = document.createElement("div");
+      d.className = "ligne-diff ajoutee";
+      d.textContent = "+ " + (l || "");
+      corps.appendChild(d);
+    });
+    const boutons = document.createElement("div");
+    boutons.className = "rangée-boutons egaux";
+    const refuser = document.createElement("button");
+    refuser.className = "petit-bouton";
+    refuser.textContent = "Refuser le bloc";
+    refuser.addEventListener("click", () => {
+      pousserAnnulation();
+      lignes.splice(bloc.debut, bloc.ajoutees.length, ...bloc.retires);
+      plan = calculerPlan(lignes);
+      fermerFeuille();
+      rafraichirTout();
+      rafraichirFilAriane();
+    });
+    const accepter = document.createElement("button");
+    accepter.className = "petit-bouton primaire";
+    accepter.textContent = "Accepter le bloc";
+    accepter.addEventListener("click", () => fermerFeuille());
+    boutons.append(refuser, accepter);
+    corps.appendChild(boutons);
+  }, "diff");
+}
+
+/* --- l'aperçu du correctif (AtelierCorrectif) --- */
+function ouvrirFeuilleCorrectif() {
+  if (lignes.some(l => /^import java\.util\.List;/.test(l))) {
+    notifier("Avis", "Import déjà présent");
+    return;
+  }
+  ouvrirFeuille("correctif", "haut",
+    "Aperçu du correctif — Importer java.util.List", corps => {
+      const d = document.createElement("div");
+      d.className = "ligne-diff ajoutee";
+      d.textContent = "+ import java.util.List;";
+      corps.appendChild(d);
+      const boutons = document.createElement("div");
+      boutons.className = "rangée-boutons egaux";
+      const refuser = document.createElement("button");
+      refuser.className = "petit-bouton";
+      refuser.textContent = "Refuser le bloc";
+      refuser.addEventListener("click", () => fermerFeuille());
+      const accepter = document.createElement("button");
+      accepter.className = "petit-bouton primaire";
+      accepter.textContent = "Accepter le bloc";
+      accepter.addEventListener("click", () => {
+        pousserAnnulation();
+        lignes.splice(0, 0, "import java.util.List;");
+        plan = calculerPlan(lignes);
+        fermerFeuille();
+        rafraichirTout();
+        notifier("Avis", "Correctif appliqué — un geste le défait");
+      });
+      boutons.append(refuser, accepter);
+      corps.appendChild(boutons);
+    }, "correctif");
+}
+
+/* --- la revue d'agent (AtelierAgent) --- */
+function ouvrirFeuilleAgent() {
+  const propositions = [
+    { texte: "// Proposition de l'agent (tête)", ligne: 0 },
+    { texte: "// Proposition de l'agent (milieu)", ligne: Math.floor(lignes.length / 2) },
+    { texte: "// Proposition de l'agent (pied)", ligne: lignes.length }];
+  const decisions = [null, null, null];
+  let courant = 0;
+  const dessiner = () => {
+    if (courant >= propositions.length) {
+      pousserAnnulation();
+      propositions.forEach((p, i) => {
+        if (decisions[i]) lignes.splice(p.ligne + i, 0, p.texte);
+      });
+      plan = calculerPlan(lignes);
+      fermerFeuille();
+      rafraichirTout();
+      rafraichirFilAriane();
+      notifier("Avis", "Revue appliquée — un geste la défait");
+      return;
+    }
+    ouvrirFeuille("agent", "haut",
+      `Modification d'agent — bloc ${courant + 1}`, corps => {
+        const intention = document.createElement("p");
+        intention.style.fontStyle = "italic";
+        intention.textContent = "agent-factice — « Documenter la tête, le milieu et le pied »";
+        corps.appendChild(intention);
+        const ligne = document.createElement("div");
+        ligne.className = "ligne-diff ajoutee";
+        ligne.textContent = "+ " + propositions[courant].texte;
+        corps.appendChild(ligne);
+        const legende = document.createElement("p");
+        legende.className = "legende-feuille";
+        legende.textContent =
+          "Chaque bloc s'accepte ou se refuse un à un — l'agent ne touche jamais le document sans votre validation.";
+        corps.appendChild(legende);
+        const boutons = document.createElement("div");
+        boutons.className = "rangée-boutons egaux";
+        const accepter = document.createElement("button");
+        accepter.className = "petit-bouton primaire";
+        accepter.textContent = "Accepter le bloc";
+        accepter.addEventListener("click", () => {
+          decisions[courant] = true; courant++; dessiner();
+        });
+        const refuser = document.createElement("button");
+        refuser.className = "petit-bouton";
+        refuser.textContent = "Refuser le bloc";
+        refuser.addEventListener("click", () => {
+          decisions[courant] = false; courant++; dessiner();
+        });
+        const revenir = document.createElement("button");
+        revenir.className = "petit-bouton";
+        revenir.textContent = "Revenir au point de contrôle";
+        revenir.addEventListener("click", () => {
+          decisions.fill(null); courant = 0; dessiner();
+        });
+        boutons.append(accepter, refuser, revenir);
+        corps.appendChild(boutons);
+      }, "agent");
+  };
+  dessiner();
+}
+
+/* --- la prédiction IA (AtelierIA) --- */
+function ouvrirFeuillePrediction() {
+  if (!consentementIA) { ouvrirFeuilleConsentement(); return; }
+  ouvrirFeuille("prediction", "haut", "Édition prédite", corps => {
+    const description = document.createElement("p");
+    description.textContent =
+      "Ajouter une ligne de journal à la fin du fichier";
+    corps.appendChild(description);
+    const question = document.createElement("p");
+    question.className = "legende-feuille";
+    question.textContent =
+      "Appliquer cette édition comme une transaction ordinaire, annulable ?";
+    corps.appendChild(question);
+    const boutons = document.createElement("div");
+    boutons.className = "rangée-boutons";
+    const annuler = document.createElement("button");
+    annuler.className = "petit-bouton";
+    annuler.textContent = "Annuler";
+    annuler.addEventListener("click", () => fermerFeuille());
+    const appliquer = document.createElement("button");
+    appliquer.className = "petit-bouton primaire";
+    appliquer.textContent = "Appliquer";
+    appliquer.addEventListener("click", () => {
+      fermerFeuille();
+      pousserAnnulation();
+      lignes.push("// ligne prédite par le modèle local");
+      plan = calculerPlan(lignes);
+      rafraichirTout();
+      notifier("Avis", "Prédiction appliquée — annulable d'un geste.");
+    });
+    boutons.append(annuler, appliquer);
+    corps.appendChild(boutons);
+  }, "prediction");
+}
+
+/* --- le consentement IA (F-10) --- */
+function ouvrirFeuilleConsentement() {
+  ouvrirFeuille("consentement", "haut", "L'IA est coupée par défaut", corps => {
+    const message = document.createElement("p");
+    message.textContent =
+      "Rien ne quitte l'éditeur sans votre accord explicite — aucun modèle ne reçoit le moindre texte, pas même le modèle local. L'interrupteur vit dans l'écran des réglages.";
+    corps.appendChild(message);
+    const boutons = document.createElement("div");
+    boutons.className = "rangée-boutons";
+    const annuler = document.createElement("button");
+    annuler.className = "petit-bouton";
+    annuler.textContent = "Annuler";
+    annuler.addEventListener("click", () => fermerFeuille());
+    const reglages = document.createElement("button");
+    reglages.className = "petit-bouton primaire";
+    reglages.textContent = "Ouvrir les réglages";
+    reglages.addEventListener("click", () => ouvrirFeuilleReglages());
+    boutons.append(annuler, reglages);
+    corps.appendChild(boutons);
+  }, "consentement");
+}
+
+/* =====================================================================
+   29. LES FICHES D'UTILISATION — chaque popup, son mode d'emploi
+   ===================================================================== */
+function assombrir(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = v => Math.round(v * 0.62);
+  return "#" + [c(n >> 16 & 255), c(n >> 8 & 255), c(n & 255)]
+    .map(v => v.toString(16).padStart(2, "0")).join("");
+}
+function appliquerTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  document.querySelectorAll(".choix[data-theme]").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.theme === theme)));
+  renderCode();
+  if (OUVERTS.has("COMPLETION_LIST")) refiltrerCompletion();
+}
+const FICHES = {
+  "guide": {
+    titre: "Comment utiliser les popups", genre: "ADR-018",
+    cat: "Le mode d'emploi de la couche",
+    quand: "Toute surface fonctionnelle de l'éditeur vit en popup : carte ancrée au curseur, feuille du bas ou feuille du haut — jamais de dialogue système, jamais d'écran plein cadre.",
+    comment: ["Posez le curseur dans l'éditeur (un clic) — le fil d'Ariane et l'horloge des surfaces suivent.",
+      "Ouvrez une surface : le catalogue à gauche, le menu d'intentions, la puce ⋯ de la toolbar, ou le geste naturel (frappe, double-tap, sélection).",
+      "Jouez les régimes sous la scène : frappe, défilement, tap hors cartes, Échap — la machine à états réelle décide qui ferme et qui survit.",
+      "Le clavier reste à l'éditeur : flèches, Entrée et Échap sont DÉLÉGUÉS à la première carte interactive ouverte."],
+    sections: null,
+    regimes: null,
+    api: "PopupsEditeur popups = new PopupsEditeur(\n        editeur, session, couche, theme, tailleSp,\n        CoachPopups.muet());",
+    note: "Trois formes seulement : la carte ancrée (surface ponctuelle), la feuille du bas (surface dense : recherche, plan, réglages), la feuille du haut (revues : diff, correctifs, agent, IA)."
+  },
+  "completion": {
+    titre: "Liste de complétion", genre: "COMPLETION_LIST",
+    cat: "A — Intelligence du code · carte ancrée sous le curseur",
+    quand: "La frappe propose : dès qu'un identifiant commence sous le caret (le caractère avant le caret est une lettre). La saisie FILTRE ensuite — la liste reste ouverte, la requête ne repart pas.",
+    comment: ["Tapez des lettres dans l'éditeur (la scène a le focus) : la liste suit le préfixe.",
+      "Flèches ↑ ↓ pour parcourir, Entrée ou Tab pour accepter (le mot entier se remplace), Page ↑ ↓ saute de 8.",
+      "Le badge à gauche porte le genre : K mot-clé, M méthode, C classe, v variable — le préfixe tapé s'affiche à l'encre d'accent."],
+    sections: ["Rangées deux lignes : badge de genre + libellé (préfixe accentué) + identité qualifiée en meta muette.",
+      "Le candidat courant porte la bande de sélection pleine largeur ; 8 candidats au plus."],
+    regimes: { "Frappe": "reste ouverte et filtre", "Défilement": "se repositionne",
+      "Tap hors cartes": "épargnée", "Échap": "referme (première interactive)" },
+    api: "popups.basculerCompletion();\n// ou la frappe : ContenuPopups.doitOuvrirALaFrappe décide",
+    note: "Serveur LSP branché : candidats typés du protocole. Sans serveur : les mots du document + les tables du coach suffisent (mots réservés, signatures connues)."
+  },
+  "completion_doc": {
+    titre: "Documentation de complétion", genre: "COMPLETION_DOC",
+    cat: "A — Intelligence du code · carte au flanc de la liste",
+    quand: "Elle naît avec sa liste, sur le candidat courant ; elle suit la navigation (flèches ou survol).",
+    comment: ["Ouvrez la complétion puis parcourez les candidats : la documentation suit le candidat surligné.",
+      "Elle meurt avec sa liste — fermer la liste ferme la documentation (cascade)."],
+    sections: ["La bande de signature teintée : le titre du symbole à l'encre d'accent sur la teinte de sélection.",
+      "Le corps : les lignes @param indentées à l'encre de mot-clé, le texte libre derrière un filet."],
+    regimes: { "Frappe": "suit sa liste", "Défilement": "suit sa liste",
+      "Tap hors cartes": "épargnée", "Échap": "meurt avec sa liste" },
+    api: "// aucune méthode : la documentation suit la liste (PopupsEditeur.basculerCompletion)",
+    note: "La documentation n'existe pas sans sa liste — c'est la cascade du contrôleur, jamais un recodage de l'hôte."
+  },
+  "signature": {
+    titre: "Aide aux paramètres", genre: "SIGNATURE_HELP",
+    cat: "A — Intelligence du code · carte au côté opposé du curseur",
+    quand: "Chaque édition dans un appel ouvert : le caret entre les parenthèses d'un appel dont la signature est connue (serveur ou coach).",
+    comment: ["Placez le caret dans un appel — ici service.ajouter(2, 3, | — la carte se pose.",
+      "La surcharge se choisit au stepper ‹ 1/2 › (les voisines ±1 vivent muettes au-dessus et au-dessous).",
+      "L'appui long (500 ms) bascule le peek : la documentation de la signature active apparaît derrière un filet."],
+    sections: ["La signature active : les paramètres déjà saisis à l'encre d'accent, le paramètre courant en gras sur bande, les suivants muets — la ligne devient sa propre barre de progression.",
+      "Les surcharges voisines ±1 en meta muette ; le stepper centré si plusieurs signatures ; le peek en clôture."],
+    regimes: { "Frappe": "se rafraîchit (suit l'arité)", "Défilement": "se repositionne",
+      "Tap hors cartes": "épargnée", "Échap": "referme (éphémère)" },
+    api: "popups.rafraichirSignature();",
+    note: "Le paramètre courant se borne à l'arité — jamais hors bornes ; les surcharges cyclent (première ↔ dernière)."
+  },
+  "survol": {
+    titre: "Survol de symbole", genre: "HOVER",
+    cat: "A — Intelligence du code · infobulle au point",
+    quand: "Le double-tap sur un symbole, ou la puce « i » de la barre de sélection.",
+    comment: ["Double-cliquez un symbole documenté (inscrire, mesurer, ajouter…) : la bulle se pose AU-POINT, elle ne recouvre jamais le doigt.",
+      "La frappe ou le défilement la referment — c'est une bulle éphémère."],
+    sections: ["La bande de signature teintée : le nom du symbole à l'encre d'accent.",
+      "Le corps : le texte libre derrière un filet, les @param indentés à l'encre de mot-clé."],
+    regimes: { "Frappe": "referme", "Défilement": "referme",
+      "Tap hors cartes": "referme", "Échap": "referme (éphémère)" },
+    api: "editeur.setSurDoubleTap(offset ->\n        popups.ouvrirSurvolAuDoubleTap(offset));",
+    note: "La même carte sert le survol, l'aperçu de définition et le rendu @Preview — trois usages du modèle de documentation, un seul rendu."
+  },
+  "apercu": {
+    titre: "Aperçu de définition (peek)", genre: "HOVER (carte dérivée)",
+    cat: "C — Navigation · carte ancrée au curseur",
+    quand: "L'action « Aperçu de définition » (menu d'intentions, palette) ; le plan local du fichier sert l'extrait.",
+    comment: ["Placez le caret sur un symbole déclaré dans le fichier (inscrire, ServiceUtilisateur…).",
+      "Ouvrez le menu d'intentions puis « Aperçu de définition » : l'extrait de la déclaration (12 lignes au plus) se lit SANS quitter le document."],
+    sections: ["Le titre « Définition de X » sur la bande teintée ; l'extrait du plan en corps."],
+    regimes: { "Frappe": "referme", "Défilement": "referme",
+      "Tap hors cartes": "referme", "Échap": "referme (éphémère)" },
+    api: "popups.docAncre().apercu(plan, lignes);",
+    note: "Le peek ne devine jamais : sans entrée de plan, la carte ne se pose pas."
+  },
+  "doc_externe": {
+    titre: "Documentation externe", genre: "EXTERNAL_DOC",
+    cat: "A — Intelligence du code · carte dérivée, régime de la consultation",
+    quand: "L'action « Documentation externe » : la documentation du symbole hors contexte de complétion.",
+    comment: ["Placez le caret sur un symbole documenté, ouvrez le menu d'intentions (ou la toolbar), choisissez « Documentation externe ».",
+      "Tapez à côté : la consultation RESTE — on lit sa documentation en tapant ailleurs.",
+      "Défilez : la carte se REPOSITIONNE, elle suit le curseur sans se refermer."],
+    sections: ["Même rendu que la documentation de complétion : bande de signature teintée + corps typé (une instance DÉRIVÉE, jamais celle du survol)."],
+    regimes: { "Frappe": "épargne la carte", "Défilement": "REPOSITIONNE",
+      "Tap hors cartes": "referme", "Échap": "referme (éphémère)" },
+    api: "popups.ouvrirDocExterne();",
+    note: "Régime de la consultation : une documentation ne chasse personne, aucune exclusion."
+  },
+  "type_info": {
+    titre: "Info de type", genre: "TYPE_INFO",
+    cat: "A — Intelligence du code · carte sous le curseur",
+    quand: "L'action « Info de type au curseur » (menu, intentions, toolbar) — l'équivalent de l'info de type de l'IDE de référence.",
+    comment: ["Placez le caret sur un symbole (noms, mesurer, archiver…).",
+      "Ouvrez la surface : le type lu À LA DÉCLARATION s'affiche — une seule rangée TITRE, la carte ne règne pas sur le clavier."],
+    sections: ["UNE rangée : le nom du type (List<String>, void, String…), au palier titre, à l'encre du panneau. Rien d'autre."],
+    regimes: { "Frappe": "referme", "Défilement": "referme",
+      "Tap hors cartes": "referme", "Échap": "referme (éphémère)" },
+    api: "popups.ouvrirTypeInfo();",
+    note: "Sans type lisible, la carte ne se pose JAMAIS — aucune fausse oracle (LecteurTypes lit la déclaration, il ne devine pas)."
+  },
+  "diagnostic": {
+    titre: "Info-bulle de diagnostic", genre: "DIAGNOSTIC_TOOLTIP",
+    cat: "B — Diagnostics et corrections · infobulle au point",
+    quand: "La sélection (hors frappe) sur une ligne marquée — ici la ligne 1 du scénario porte deux avertissements (… et --), la ligne 4 une erreur.",
+    comment: ["Cliquez ou double-cliquez sur la ligne diagnostiquée : la fiche se pose au point.",
+      "Chaque problème garde son marqueur : « × » à l'encre d'erreur, « ! » à l'encre d'avertissement — un filet les sépare.",
+      "L'indice « Plus d'actions · menu d'intentions » clôt la fiche (il ne se pose que si des intentions existent)."],
+    sections: ["Un marqueur par problème (× / !) + son message ; les problèmes du LIEU s'empilent, séparés par des filets ; l'indice d'actions en clôture."],
+    regimes: { "Frappe": "referme", "Défilement": "referme",
+      "Tap hors cartes": "referme", "Échap": "referme (éphémère)" },
+    api: "popups.setDiagnostics(diagnosticsDeLhote);\n// la fiche vit chez l'orchestrateur (InfoBulle)",
+    note: "L'IDE de référence ne sert jamais une bulle par diagnostic : la fiche EMPILE les problèmes du lieu."
+  },
+  "fil_ariane": {
+    titre: "Fil d'Ariane", genre: "BREADCRUMB",
+    cat: "C — Navigation · bandeau du coin haut-gauche",
+    quand: "Toujours vivant dès que le caret vit dans une structure : il suit le curseur à chaque édition, sélection et défilement.",
+    comment: ["Bougez le caret : le chemin des structures englobantes se met à jour (ServiceUtilisateur › inscrire).",
+      "La tête s'élague en « … » quand le chemin déborde — la profondeur récente gagne."],
+    sections: ["UNE rangée meta muette : les niveaux du dehors au dedans, joints par « › »."],
+    regimes: { "Frappe": "suit le curseur", "Défilement": "se repose",
+      "Tap hors cartes": "épargné", "Échap": "épargné (chrome)" },
+    api: "popups.setPlan(entreesDuFichier);",
+    note: "Le fil d'Ariane survit au voile modal — c'est du chrome, pas une surface interactive."
+  },
+  "usages": {
+    titre: "Carte des usages", genre: "REFERENCES",
+    cat: "C — Navigation · carte ancrée au curseur",
+    quand: "L'action « Rechercher les usages » (menu, intentions, toolbar) sur un symbole — l'équivalent de Find Usages.",
+    comment: ["Placez le caret sur un symbole (noms, inscrire…) et ouvrez la carte.",
+      "L'en-tête porte le COMPTE des usages ; chaque rangée « L12 · extrait » saute à son lieu au choix (clic ou Entrée).",
+      "L'occurrence ÉTRANGÈRE (autre fichier du serveur) vit muette : son nom se lit, son lieu ne se visite pas — jamais deviné."],
+    sections: ["L'en-tête « N usages de « X » » en petites capitales muettes, imprenable.",
+      "Une rangée par occurrence : « L(n) · extrait rogné à 48 caractères », cliquable, l'étrangère muette."],
+    regimes: { "Frappe": "referme", "Défilement": "referme (ancre au curseur)",
+      "Tap hors cartes": "referme", "Échap": "referme" },
+    api: "popups.ouvrirUsages();",
+    note: "Famille des surfaces d'actions : elle chasse les menus, eux la chassent — mais elle COHABITE avec la complétion (elle décrit, elle ne choisit pas)."
+  },
+  "hierarchie": {
+    titre: "Hiérarchie de types ou d'appels", genre: "HIERARCHY",
+    cat: "C — Navigation · carte ancrée au curseur",
+    quand: "L'action « Hiérarchie… » sur un type (hiérarchie de types) ou une méthode (hiérarchie d'appels) — le plan décide de la forme.",
+    comment: ["Caret sur ServiceUtilisateur : l'arbre des types — la RACINE vit UNE fois, à l'en-tête ; les sections Supertypes / Sous-types portent leurs sommets indentés par PROFONDEUR (8 dp par niveau).",
+      "Caret sur inscrire : l'arbre des appelants — la section Appelants porte les méthodes qui appellent.",
+      "Le sommet introuvable vit MUET à la frontière « Hors projet » — jamais deux fois, jamais deviné. Le sommet connu saute au choix."],
+    sections: ["L'en-tête « Hiérarchie de types de « X » » / « Hiérarchie d'appels de « X » ».",
+      "Les sections (Supertypes / Sous-types / Appelants / Hors projet) en petites capitales derrière un filet ; les sommets indentés par profondeur, prenable s'ils sautent, muet sinon.",
+      "La légende du doute en clôture : « Des sites d'appels ne se résolvent pas — le doute se montre, jamais ne se tranche »."],
+    regimes: { "Frappe": "referme", "Défilement": "referme",
+      "Tap hors cartes": "referme", "Échap": "referme" },
+    api: "popups.ouvrirHierarchie();",
+    note: "Les flèches déléguées sautent les sommets introuvables — jamais la surbrillance ne s'arrête sur un muet."
+  },
+  "gabarits": {
+    titre: "Carte de génération et gabarits", genre: "GABARITS",
+    cat: "D — Refactoring et génération · carte au caret",
+    quand: "L'action « Générer du code » au caret d'une classe — les champs réels de la classe englobante se lisent, l'entourage attend une sélection.",
+    comment: ["Caret dans une classe : Constructeur, Accesseurs (si champs), equals/hashCode/toString se proposent — chaque geste INSÈRE le code généré avant l'accolade fermante, en transaction annulable.",
+      "Sélection non vide : « Entourer de try/catch » et « Entourer de if » ceignent la sélection (le bloc s'indente d'un cran).",
+      "« Insérer le gabarit de méthode » pose le gabarit à trous du canal A-22 (configurerGabaritMethode)."],
+    sections: ["La section « Génération & gabarits » en petites capitales ; les actions en rangées TITRE cliquables."],
+    regimes: { "Frappe": "épargnée — mais la complétion la chasse", "Défilement": "REPOSITIONNE",
+      "Tap hors cartes": "referme", "Échap": "referme" },
+    api: "popups.ouvrirGabarits();\npopups.configurerGabaritMethode(geste);",
+    note: "Les régimes du menu du caret : la saisie ouvrant la complétion la chasse (un menu ne survit pas à la liste)."
+  },
+  "safe_delete": {
+    titre: "Suppression sûre", genre: "SAFE_DELETE",
+    cat: "D — Refactoring et génération · carte des usages qui barrent",
+    quand: "L'action « Suppression sûre de la déclaration » sur une déclaration (champ, méthode, classe).",
+    comment: ["Les usages se lisent AVANT de trancher : caret sur noms → la carte montre chaque usage qui barre, chacun saute à son lieu, la suppression attend.",
+      "La voie libre efface d'un geste : caret sur ancien ou bonus (aucun usage) → la déclaration part, transaction annulable, l'annonce le dit.",
+      "Aucune déclaration au caret : l'annonce « aucune déclaration » — jamais de suppression devinée."],
+    sections: ["L'en-tête « N usages empêchent la suppression de « X » » ; les rangées d'usages « L12 · extrait », cliquables."],
+    regimes: { "Frappe": "referme", "Défilement": "referme",
+      "Tap hors cartes": "referme", "Échap": "referme" },
+    api: "popups.supprimerSur();",
+    note: "Le verdict du moteur seul décide ; la carte ne supprime rien d'elle-même."
+  },
+  "safe_move": {
+    titre: "Déplacement sûr", genre: "SAFE_MOVE",
+    cat: "D — Refactoring et génération · carte des cibles",
+    quand: "L'action « Déplacer la méthode dans une classe » au caret d'une méthode.",
+    comment: ["Les types du fichier HORS la classe englobante se proposent (ici : les autres classes du scénario).",
+      "Le choix tente le plan : les conditions de sûreté seules décident — le refus s'annonce SANS raison inventée (« Déplacement refusé — les conditions de sûreté ne tiennent pas »).",
+      "Une méthode qui ne touche aucun champ de sa classe déménage réellement — transaction annulable."],
+    sections: ["La section « Déplacer dans » ; une action par classe cible (rangées TITRE)."],
+    regimes: { "Frappe": "épargnée — la complétion la chasse", "Défilement": "REPOSITIONNE",
+      "Tap hors cartes": "referme", "Échap": "referme" },
+    api: "popups.deplacerDans();",
+    note: "Régimes du menu du caret : frappe épargnée, défilement qui repositionne."
+  },
+  "masquage": {
+    titre: "Masquage d'inspection", genre: "SUPPRESS_INSPECTION",
+    cat: "B — Diagnostics et corrections · carte au caret",
+    quand: "L'action « Masquer l'inspection de la ligne » sur une ligne que le lint a réglée.",
+    comment: ["Caret sur la ligne 1 (les points de suspension et les tirets doubles) : chaque règle réglée se propose (« Masquer TypographyEllipsis »).",
+      "Le choix pose le commentaire noinspection EN FIN DE LIGNE, la carte se referme, l'analyse se relance : la règle masquée ne se rapporte plus, les autres demeurent.",
+      "L'erreur « Impossible de résoudre « List » » ne porte aucune règle : « Aucune inspection réglée à cette ligne » — rien ne se touche."],
+    sections: ["La section « Masquer » ; une action « Masquer Règle » par diagnostic réglé de la ligne."],
+    regimes: { "Frappe": "épargnée — la complétion la chasse", "Défilement": "REPOSITIONNE",
+      "Tap hors cartes": "referme", "Échap": "referme" },
+    api: "popups.masquerInspection();\npopups.configurerRelanceLint(relance);",
+    note: "La boucle complète : la marque naît, le faux build de lint l'honore à sa relance (configurerRelanceLint pose le geste de l'hôte)."
+  },
+  "exception": {
+    titre: "Détails d'exception", genre: "EXCEPTION_DETAILS",
+    cat: "E — Débogage · carte de l'échec, régime de la consultation",
+    quand: "L'action « Exécuter le fichier (simulé) » — l'échec simulé porte la trace du document RÉEL.",
+    comment: ["L'annonce d'abord (notification coin bas-droit) : « L'exécution a échoué — les détails de l'exception suivent ».",
+      "La carte : le type à l'encre d'erreur (« × java.lang.Exception »), le message, la PILE — le sommet vit à la ligne du caret, les autres méthodes à leur ligne de déclaration.",
+      "Le cadre du fichier ouvert se prend (clic → saut au début de ligne) ; l'étranger vit muet.",
+      "Un fichier sans méthode : « Exécution terminée — rien à faire échouer », jamais de fausse trace."],
+    sections: ["« × type » à l'encre d'erreur (rangée TITRE) ; le message en corps ; la pile derrière un filet : « L12 · Classe.methode », prenable si connue."],
+    regimes: { "Frappe": "épargne la carte", "Défilement": "REPOSITIONNE",
+      "Tap hors cartes": "referme", "Échap": "referme (éphémère)" },
+    api: "popups.executerFichier();",
+    note: "La trace se rend au format des piles puis se relit par l'analyseur E-06 — la boucle prouvée, jamais une pile inventée."
+  },
+  "couleur": {
+    titre: "Sélecteur de couleur", genre: "COLOR_PICKER",
+    cat: "Surface du signal du propriétaire · carte au double-tap d'un littéral",
+    quand: "Le double-tap sur un littéral de couleur — ici le #03DAC6 de la ligne de teinte.",
+    comment: ["Double-cliquez le littéral : la carte se pose au caret.",
+      "L'en-tête vit l'avant/après : la pastille ORIGINALE et la COURANTE, chacune son littéral.",
+      "Le drag du champ saturation-valeur et de la bande de teinte suit le doigt ; le tap d'une cellule Material APPLIQUE implicite — le littéral se réécrit EN PLACE, À SA LARGEUR, la carte ne survit pas au geste."],
+    sections: ["L'en-tête avant/après ; le champ SV (112 dp) au marqueur double cercle ; la bande de teinte ; la palette Material de 16 teintes (2 rangées de 8)."],
+    regimes: { "Frappe": "referme", "Défilement": "referme",
+      "Tap hors cartes": "referme (l'annulation tenue)", "Échap": "referme (éphémère)" },
+    api: "editeur.setSurDoubleTap(offset ->\n        popups.ouvrirColorPicker(offset));",
+    note: "Aucun bouton : l'application est IMPLICITE — comme le survol, la carte ne survit pas au geste qui la quitte."
+  },
+  "barre_selection": {
+    titre: "Barre de sélection", genre: "SELECTION_BAR",
+    cat: "Édition · pilule au-dessus de la sélection",
+    quand: "La sélection non vide — le glissement dans l'éditeur ou le double-clic d'un mot la fait naître.",
+    comment: ["Glissez dans l'éditeur : la pilule se pose AU-DESSUS de la sélection, centrée.",
+      "Les pastilles (Couper, Copier, Coller), le « i » cerclé (survol de la documentation du mot), la puce « ⋯ » (débordement).",
+      "La frappe la referme (la frappe remplace la sélection) ; elle survit au défilement en se repositionnant."],
+    sections: ["La pilule : pastilles texte + filet vertical + « i » + « ⋯ » ; la cascade d'entrée anime les pastilles."],
+    regimes: { "Frappe": "referme", "Défilement": "se repositionne",
+      "Tap hors cartes": "épargnée", "Échap": "épargnée" },
+    api: "popups.configurerActionsSelection(principales, debordement);",
+    note: "Son menu de débordement ne survit JAMAIS à sa barre — la barre fermée l'emporte (cascade)."
+  },
+  "debordement_barre": {
+    titre: "Débordement de la barre", genre: "SELECTION_OVERFLOW",
+    cat: "Édition · carte pendue sous la puce « ⋯ »",
+    quand: "La puce « ⋯ » de la barre de sélection.",
+    comment: ["La carte pend SOUS la puce, jamais au texte ; chaque action court APRÈS la fermeture du menu."],
+    sections: ["La section « PLUS » ; les actions repliées de l'hôte (Dupliquer, Tout sélectionner…)."],
+    regimes: { "Frappe": "suit sa barre", "Défilement": "suit sa barre",
+      "Tap hors cartes": "referme", "Échap": "referme" },
+    api: "popups.configurerActionsSelection(principales, debordement);",
+    note: "N'existe pas sans sa barre — l'invariant du contrôleur."
+  },
+  "intentions": {
+    titre: "Menu d'intentions", genre: "INTENTIONS_MENU",
+    cat: "Hub des actions · carte au caret, SANS section",
+    quand: "L'action de menu « Intentions au curseur » — la table des actions de l'hôte.",
+    comment: ["La carte se pose au caret, sans en-tête ni section (la section « PLUS » reste aux débordements des barres).",
+      "Chaque action court APRÈS la fermeture du menu ; les flèches et Entrée y vivent (PIEGE-27).",
+      "C'est la tête de la famille des surfaces d'actions : une surface d'actions à la fois."],
+    sections: ["Les actions en rangées TITRE cliquables, l'ordre de la table de l'hôte (16 intentions dans la démonstration)."],
+    regimes: { "Frappe": "épargné — la complétion le chasse", "Défilement": "se repose",
+      "Tap hors cartes": "referme", "Échap": "referme" },
+    api: "popups.configurerIntentions(items);\npopups.ouvrirIntentions();",
+    note: "Le clavier délégué y arrive en second, juste après la complétion (l'ordre du routeur)."
+  },
+  "toolbar": {
+    titre: "Débordement de la toolbar", genre: "TOOLBAR_OVERFLOW",
+    cat: "Chrome de l'activité · carte pendue au bord droit, tête de scène",
+    quand: "La puce « ⋯ » de la barre d'application — l'ancre ne suit pas le texte.",
+    comment: ["La carte pend sous la puce au bord droit, en tête de scène (y = 8).",
+      "Deux menus ne tiennent jamais : elle ferme la complétion et le menu du caret, eux la ferment.",
+      "Le défilement l'épargne — elle n'ancre pas au texte ; la frappe la ferme."],
+    sections: ["La section « PLUS » ; les actions de l'hôte (24 dans la démonstration : complétion, intentions, usages, hiérarchie, générations, sûreté, masquage, exécution, lint, renommage, IA, thème, texte, réglages…)."],
+    regimes: { "Frappe": "referme", "Défilement": "l'épargne",
+      "Tap hors cartes": "referme", "Échap": "referme" },
+    api: "barreToolbar.ouvrirDebordement(items);",
+    note: "Genre PROPRE depuis le chantier d'unification — elle détournait le menu d'intentions avant lui."
+  },
+  "notification": {
+    titre: "Notification", genre: "NOTIFICATION",
+    cat: "G — Annonces · bulle du coin bas-droit",
+    quand: "La demande de l'hôte : correctifs appliqués, suppression effectuée, pause de débogage, exécution…",
+    comment: ["L'annonce vit son quart : l'HORLOGE la referme à 4 000 ms — la re-pose réarme sans cumuler.",
+      "Le tap qui la PREND la referme ; la prise d'un LIEN referme la bulle D'ABORD puis fait courir l'action (une action qui re-pose n'est jamais tuée par sa propre fermeture).",
+      "Frappe, défilement, tap hors cartes : l'épargnent — l'annonce ne s'interrompt pas."],
+    sections: ["Le titre (rangée TITRE), le message (corps, une rangée par ligne), les actions-liens à l'encre d'ACCENT derrière un filet."],
+    regimes: { "Frappe": "l'épargne", "Défilement": "l'épargne",
+      "Tap hors cartes": "l'épargne", "Échap": "épargnée" },
+    api: "popups.notifier(titre, message);\npopups.notifier(titre, message, actions);",
+    note: "Régime UNIQUE — seule son heure (ou la prise) la conclut ; le voile modal la coupe, la feuille la recouvre."
+  },
+  "recherche": {
+    titre: "Barre de recherche", genre: "SEARCH_BAR",
+    cat: "C — Navigation · feuille du bas (état SEARCH_BAR)",
+    quand: "L'action « Rechercher » — l'état vit dans le contrôleur, le champ vit dans la feuille et PREND le focus (surface modale, hors PIEGE-27).",
+    comment: ["La requête compte à chaque frappe (« 1 / 4 ») ; les chevrons sautent d'occurrence en occurrence (la sélection suit).",
+      "Fermeture sur demande seule : bouton, voile, glissement de poignée, retour."],
+    sections: ["Le champ, le compteur monospace, les chevrons précédent/suivant."],
+    regimes: { "Frappe": "filtrage (focus au champ)", "Défilement": "sans effet",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme la feuille" },
+    api: "popups.ouvrirRecherche();",
+    note: "Le genre SEARCH_BAR ne se ferme que sur demande — l'invariant du contrôleur."
+  },
+  "plan": {
+    titre: "Plan du fichier", genre: "feuille du bas",
+    cat: "C — Navigation · FeuillePlan + OutlineView",
+    quand: "L'action « Plan » — l'arbre des déclarations du fichier, rafraîchi en direct de l'analyse.",
+    comment: ["Chaque entrée saute au début de sa déclaration au choix (classe, méthode, champ — la ligne se lit dans la rangée)."],
+    sections: ["L'arbre indenté : les types au premier cran, les membres au second ; l'étiquette et la ligne en meta."],
+    regimes: { "Frappe": "sans effet (feuille modale)", "Défilement": "sans effet",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme" },
+    api: "popups.setPlan(entreesDuFichier);\n// la feuille vit chez l'activité (basculerPlan)",
+    note: "Le plan abreuve AUSSI le fil d'Ariane, les hiérarchies, les gabarits et la sûreté — un seul moteur, plusieurs surfaces."
+  },
+  "aller": {
+    titre: "Aller à un fichier ou symbole", genre: "feuille du bas",
+    cat: "C — Navigation · FeuilleAller + ResultatsAller",
+    quand: "L'action « Aller à » — la recherche floue B-13, fichiers et symboles.",
+    comment: ["La requête muette sert le catalogue des fichiers (raccourci) ; la requête vive filre fichiers et symboles du plan, plafond 8.",
+      "Le symbole saute dans le document ; le fichier s'ouvre chez l'hôte — l'éditeur embarqué n'ouvre qu'un document."],
+    sections: ["Le champ puis les résultats « genre · libellé · détail » (Fichier/Symbole, la ligne pour les symboles)."],
+    regimes: { "Frappe": "filtrage (focus au champ)", "Défilement": "sans effet",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme" },
+    api: "// la feuille vit chez l'activité (basculerAller) ;\n// ResultatsAller.recherche vit dans core-intelligence",
+    note: "Les fichiers d'abord à égalité de score ; le tri décroît au score flou."
+  },
+  "renommer": {
+    titre: "Renommer le symbole", genre: "feuille du bas",
+    cat: "D — Refactoring · AtelierRefactor",
+    quand: "L'action « Renommer le symbole » — le symbole au curseur pré-remplit le champ.",
+    comment: ["Le renommage couvre les usages ENTIERS du fichier, jamais dans les chaînes — une transaction annulable.",
+      "Le conflit se refuse : « Renommage refusé : conflit avec X » ; sans symbole, la feuille ne se pose pas."],
+    sections: ["Le champ « Nouveau nom » pré-rempli et sélectionné ; Annuler / Renommer."],
+    regimes: { "Frappe": "au champ", "Défilement": "sans effet",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme" },
+    api: "// préparation LSP : session.preparerRennomage(...) puis rennomage(...)",
+    note: "Le diff du renommage se révise dans la feuille de diff (AtelierDiff)."
+  },
+  "reglages": {
+    titre: "Réglages", genre: "feuille du bas",
+    cat: "Surface dense · FeuilleReglages",
+    quand: "Le menu « Réglages » — les états se RELISENT à chaque ouverture, chaque bascule persiste aussitôt.",
+    comment: ["Quatre cartes : éditeur (gouttière, retour souple, ligatures, thème), IA (le consentement), rendu (lenteur d'analyse, surimpression), paquet jouet.",
+      "La fermeture réapplique chez l'hôte — ici, le thème bascule réellement la palette."],
+    sections: ["Les cartes Material à interrupteurs ; la lenteur d'analyse en curseur 0–600 ms."],
+    regimes: { "Frappe": "aux champs", "Défilement": "le corps défile",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme" },
+    api: "// la feuille vit chez l'activité ; l'éditeur écoute surTheme/surTailleTexte",
+    note: "L'IA y est COUPÉE par défaut — l'interrupteur du consentement (F-10)."
+  },
+  "diff": {
+    titre: "Revue du diff", genre: "feuille du haut",
+    cat: "Revues · AtelierDiff + DiffBlocs",
+    quand: "L'action « Revue du diff » — le texte courant contre le contenu D'ORIGINE du fichier.",
+    comment: ["Chaque bloc se décide un à un sur la même feuille rétitrée (« Revue du diff — bloc 1 ») : Accepter garde les lignes nouvelles, Refuser garde les anciennes.",
+      "La fin des blocs applique la fusion en une transaction de remplacement annulable.",
+      "Ici, le scénario porte un bloc prêt : la ligne de teinte posée depuis l'ouverture."],
+    sections: ["Les lignes du bloc en monospace : « - » pour les retirées, « + » pour les ajoutées ; Accepter / Refuser."],
+    regimes: { "Frappe": "sans effet", "Défilement": "sans effet",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme" },
+    api: "// AtelierDiff.ouvrir() — DiffBlocs découpe, RevueDiff applique",
+    note: "La référence d'origine se capture à l'ouverture du fichier — jamais après."
+  },
+  "correctif": {
+    titre: "Aperçu du correctif", genre: "feuille du haut",
+    cat: "B — Diagnostics et corrections · AtelierCorrectif",
+    quand: "L'intention « Aperçu du correctif » — le repli local importe l'identifiant au classpath (ici java.util.List), le serveur sert ses propres correctifs.",
+    comment: ["L'aperçu se prouve sur une copie : les lignes +/- se lisent AVANT d'engager quoi que ce soit.",
+      "Accepter applique la transaction annulable — l'erreur de la ligne 4 disparaît ; Refuser ne touche rien.",
+      "L'import déjà présent : « Import déjà présent » — jamais deux fois."],
+    sections: ["Les lignes du patch (+ import java.util.List;) ; Accepter / Refuser."],
+    regimes: { "Frappe": "sans effet", "Défilement": "sans effet",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme" },
+    api: "// CorrectifImport résout au classpath ; PatchPreview rend l'aperçu",
+    note: "La première candidate gagne (CorrectifImport) — le serveur de référence sinon."
+  },
+  "agent": {
+    titre: "Revue des modifications d'agent", genre: "feuille du haut",
+    cat: "IA et agents · AtelierAgent",
+    quand: "L'action « Revue des modifications d'agent » — l'agent propose, l'humain tranche bloc par bloc.",
+    comment: ["L'intention déclarée se lit en tête (« agent-factice — Documenter la tête, le milieu et le pied »), chaque bloc suit.",
+      "« Revenir au point de contrôle » réinitialise toutes les décisions — tout recommence.",
+      "L'agent ne touche JAMAIS le document sans validation : la fin applique les blocs acceptés en transaction annulable."],
+    sections: ["L'intention en italique ; la ligne du bloc (+ …) ; la légende ; Accepter / Refuser / Revenir."],
+    regimes: { "Frappe": "sans effet", "Défilement": "sans effet",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme" },
+    api: "// GardeContexte (ADR-012) : rien ne part sans consentement explicite",
+    note: "Trois insertions déterministes dans la démonstration : tête, milieu, pied."
+  },
+  "prediction": {
+    titre: "IA : prédire la prochaine édition", genre: "feuille du haut",
+    cat: "IA et agents · AtelierIA",
+    quand: "L'action « IA : prédire la prochaine édition » — SANS consentement, la feuille de consentement s'ouvre d'abord (F-10).",
+    comment: ["La description se lit, la question suit : « Appliquer cette édition comme une transaction ordinaire, annulable ? ».",
+      "Appliquer insère la ligne prédite — le document bougé depuis sa lecture se REFUSE (rien ne change)."],
+    sections: ["La description ; la question ; Annuler / Appliquer."],
+    regimes: { "Frappe": "sans effet", "Défilement": "sans effet",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme" },
+    api: "// le modèle se branche par l'hôte (ADR-012) — coupé par défaut",
+    note: "Le texte fantôme (l'autre surface IA) vit in-canvas : Tab l'accepte, la frappe suivante le refuse."
+  },
+  "consentement": {
+    titre: "Le consentement IA", genre: "feuille du haut",
+    cat: "IA et agents · F-10",
+    quand: "Toute action IA sans consentement — l'interrupteur vit dans les réglages.",
+    comment: ["« Rien ne quitte l'éditeur sans votre accord explicite — aucun modèle ne reçoit le moindre texte. »",
+      "Ouvrir les réglages mène à l'interrupteur ; Annuler referme sans rien activer."],
+    sections: ["Le message ; Annuler / Ouvrir les réglages."],
+    regimes: { "Frappe": "sans effet", "Défilement": "sans effet",
+      "Tap hors cartes": "le voile prend", "Échap": "ferme" },
+    api: "// aucune API : le consentement précède toute API",
+    note: "Le modèle de la démonstration est local et hors ligne — et coupé quand même."
+  },
+  "bande_erreurs": {
+    titre: "Bande d'erreurs", genre: "ERROR_BAND",
+    cat: "Chrome de l'éditeur · bord droit",
+    quand: "Elle vit avec les diagnostics — ni la frappe ni le défilement ne la ferment.",
+    comment: ["Chaque marque porte sa gravité : l'erreur à l'encre d'erreur, l'avertissement à l'encre d'avertissement ; au plus une marque par cran (200 crans).",
+      "Le tap saute au diagnostic du cran marqué le plus proche."],
+    sections: ["Les tirets de gravité au bord droit, pleine hauteur respirée."],
+    regimes: { "Frappe": "épargnée", "Défilement": "épargnée",
+      "Tap hors cartes": "muette (chrome)", "Échap": "épargnée" },
+    api: "popups.setDiagnostics(diagnosticsDeLhote);",
+    note: "Le chrome survit au voile modal — la bande reste sous la feuille."
+  },
+  "minimap": {
+    titre: "Minimap", genre: "MINIMAP",
+    cat: "Chrome de l'éditeur · bord droit",
+    quand: "Elle vit avec le document — la silhouette COLORÉE suit l'analyse, le cartouche suit la fenêtre.",
+    comment: ["L'appui ou le glissement déplace la fenêtre (scrollToFractionY) ; le document court garde ses rangées, une par ligne.",
+      "Elle vit À GAUCHE du pouce, le pouce à gauche de la bande d'erreurs."],
+    sections: ["La silhouette colorée du document ; le cartouche de la fenêtre visible à l'encre d'accent."],
+    regimes: { "Frappe": "épargnée", "Défilement": "le cartouche suit",
+      "Tap hors cartes": "le doigt déplace la fenêtre", "Échap": "épargnée" },
+    api: "// ornement du bord droit (chantier C9) — BordDroit la repose",
+    note: "Le long document plafonne à 200 rangées — la densité, pas la longueur."
+  },
+  "pouce": {
+    titre: "Défilement rapide", genre: "FAST_SCROLLER",
+    cat: "Chrome de l'éditeur · bord droit",
+    quand: "Le doigt au bord droit — le pouce GROSSIT sous le doigt, le glissement l'emporte.",
+    comment: ["Survolez-le : il grossit ; glissez-le : la fenêtre suit la fraction."],
+    sections: ["Le pouce au bord droit, sa part visible proportionnelle à la fenêtre."],
+    regimes: { "Frappe": "épargné", "Défilement": "il suit",
+      "Tap hors cartes": "le doigt déplace la fenêtre", "Échap": "épargné" },
+    api: "// ornement du bord droit (chantier C9)",
+    note: "Le pouce vit entre la minimap et la bande d'erreurs."
+  },
+  "barre_touches": {
+    titre: "Barre de touches de code", genre: "TOUCH_BAR",
+    cat: "Chrome de l'éditeur · au-dessus du clavier",
+    quand: "Posée par l'hôte au bas de la scène — jamais par la bibliothèque ; l'IME la remonte avec le clavier.",
+    comment: ["Les touches-pilules (Tab, Commenter, Ligne haut, Ligne bas, Dupliquer) — la touche muette REJETTE le doigt ET le lecteur d'écran (Ligne haut en première ligne, Ligne bas en dernière).",
+      "Ni la frappe ni le défilement ne la ferment — elle vit avec le document."],
+    sections: ["La rangée de pilules 44 dp, posée au bas centré, reposée à chaque layout global."],
+    regimes: { "Frappe": "épargnée", "Défilement": "épargnée",
+      "Tap hors cartes": "muette (chrome)", "Échap": "épargnée" },
+    api: "barreToolbar.poserBarreTouches(touches);",
+    note: "Le dépôt de départ la posait dès 4.5.0 — l'hôte seul décide."
+  }
+};
+
+const elFiche = document.getElementById("fiche");
+function selectionnerFiche(id) {
+  const f = FICHES[id];
+  if (!f) return;
+  let html = `<h2>${echappe(f.titre)}</h2>` +
+    `<span class="genre-tag">${echappe(f.genre)}</span>` +
+    `<p class="fiche-cat">${echappe(f.cat)}</p>`;
+  html += `<h3>Quand ?</h3><p>${echappe(f.quand)}</p>`;
+  if (f.comment) {
+    html += `<h3>Comment l'utiliser</h3><ul>` +
+      f.comment.map(c => `<li>${echappe(c)}</li>`).join("") + `</ul>`;
+  }
+  if (f.sections) {
+    html += `<h3>Ce qu'elle affiche</h3><ul>` +
+      f.sections.map(s => `<li>${echappe(s)}</li>`).join("") + `</ul>`;
+  }
+  if (f.regimes) {
+    html += `<h3>Régimes (la machine à états)</h3><table class="table-regimes">` +
+      Object.entries(f.regimes).map(([k, v]) =>
+        `<tr><th>${echappe(k)}</th><td>${echappe(v)}</td></tr>`).join("") +
+      `</table>`;
+  }
+  if (f.api) {
+    html += `<h3>Chez l'hôte</h3><div class="api-bloc">${echappe(f.api)}</div>`;
+  }
+  if (f.note) html += `<h3>À retenir</h3><p>${echappe(f.note)}</p>`;
+  elFiche.innerHTML = html;
+  elFiche.scrollTop = 0;
+  document.querySelectorAll(".entree-catalogue.actif")
+    .forEach(el => el.classList.remove("actif"));
+  const entree = document.querySelector(`[data-fiche-id="${id}"]`);
+  if (entree) entree.classList.add("actif");
+}
+
+/* =====================================================================
+   30. LE CATALOGUE — les groupes de surfaces
+   ===================================================================== */
+const CATALOGUE = [
+  { titre: "Intelligence du code", entrees: [
+    { libelle: "Liste de complétion", genre: "COMPLETION_LIST", fiche: "completion",
+      geste: () => { deplacerCaret(8, 20, { silent: true }); ouvrirCompletion(); } },
+    { libelle: "Documentation de complétion", genre: "COMPLETION_DOC", fiche: "completion_doc",
+      geste: () => { deplacerCaret(8, 20, { silent: true }); ouvrirCompletion(); } },
+    { libelle: "Aide aux paramètres", genre: "SIGNATURE_HELP", fiche: "signature",
+      geste: () => { deplacerCaret(41, 38); } },
+    { libelle: "Survol de symbole", genre: "HOVER", fiche: "survol",
+      geste: () => { deplacerCaret(32, 15, { silent: true }); ouvrirSurvol(); } },
+    { libelle: "Aperçu de définition", genre: "HOVER (peek)", fiche: "apercu",
+      geste: () => { deplacerCaret(8, 20, { silent: true }); ouvrirApercu(); } },
+    { libelle: "Documentation externe", genre: "EXTERNAL_DOC", fiche: "doc_externe",
+      geste: () => { deplacerCaret(24, 20, { silent: true }); ouvrirDocExterne(); } },
+    { libelle: "Info de type", genre: "TYPE_INFO", fiche: "type_info",
+      geste: () => { deplacerCaret(24, 20, { silent: true }); ouvrirTypeInfo(); } }
+  ] },
+  { titre: "Diagnostics et corrections", entrees: [
+    { libelle: "Info-bulle de diagnostic", genre: "DIAGNOSTIC_TOOLTIP", fiche: "diagnostic",
+      geste: () => { deplacerCaret(0, 30); } },
+    { libelle: "Masquage d'inspection", genre: "SUPPRESS_INSPECTION", fiche: "masquage",
+      geste: () => { deplacerCaret(0, 4, { silent: true }); masquerInspection(); } }
+  ] },
+  { titre: "Navigation", entrees: [
+    { libelle: "Fil d'Ariane", genre: "BREADCRUMB", fiche: "fil_ariane",
+      geste: () => { rafraichirFilAriane(); selectionnerFiche("fil_ariane"); } },
+    { libelle: "Carte des usages", genre: "REFERENCES", fiche: "usages",
+      geste: () => { deplacerCaret(12, 12, { silent: true }); ouvrirUsages(); } },
+    { libelle: "Hiérarchie de types ou d'appels", genre: "HIERARCHY", fiche: "hierarchie",
+      geste: () => { deplacerCaret(1, 17, { silent: true }); ouvrirHierarchie(); } },
+    { libelle: "Recherche dans le fichier", genre: "SEARCH_BAR", fiche: "recherche",
+      geste: () => ouvrirFeuilleRecherche() }
+  ] },
+  { titre: "Édition et menus", entrees: [
+    { libelle: "Barre de sélection", genre: "SELECTION_BAR", fiche: "barre_selection",
+      geste: () => {
+        deplacerCaret(12, 12, { silent: true });
+        selection = { l1: 12, c1: 8, l2: 12, c2: 12 };
+        renderSelection();
+        poserBarreSelection();
+      } },
+    { libelle: "Débordement de la barre", genre: "SELECTION_OVERFLOW", fiche: "debordement_barre",
+      geste: () => {
+        deplacerCaret(12, 12, { silent: true });
+        selection = { l1: 12, c1: 8, l2: 12, c2: 12 };
+        renderSelection();
+        poserBarreSelection();
+        ouvrirDebordementBarre();
+      } },
+    { libelle: "Menu d'intentions", genre: "INTENTIONS_MENU", fiche: "intentions",
+      geste: () => ouvrirIntentions() },
+    { libelle: "Débordement de la toolbar", genre: "TOOLBAR_OVERFLOW", fiche: "toolbar",
+      geste: () => ouvrirDebordementToolbar() }
+  ] },
+  { titre: "Génération et refactoring", entrees: [
+    { libelle: "Génération et gabarits", genre: "GABARITS", fiche: "gabarits",
+      geste: () => { deplacerCaret(9, 8, { silent: true }); ouvrirGabarits(); } },
+    { libelle: "Suppression sûre", genre: "SAFE_DELETE", fiche: "safe_delete",
+      geste: () => { deplacerCaret(3, 34, { silent: true }); supprimerSur(); } },
+    { libelle: "Déplacement sûr", genre: "SAFE_MOVE", fiche: "safe_move",
+      geste: () => { deplacerCaret(38, 30, { silent: true }); deplacerDans(); } }
+  ] },
+  { titre: "Exécution et annonces", entrees: [
+    { libelle: "Notification", genre: "NOTIFICATION", fiche: "notification",
+      geste: () => notifier("Avis", `Lint : ${diagnostics().length} problème(s)`,
+        [{ libelle: "Corriger les problèmes", geste: () => notifier("Avis", "2 corrigés") }]) },
+    { libelle: "Détails d'exception", genre: "EXCEPTION_DETAILS", fiche: "exception",
+      geste: () => executerFichier() },
+    { libelle: "Sélecteur de couleur", genre: "COLOR_PICKER", fiche: "couleur",
+      geste: () => { deplacerCaret(7, 38, { silent: true }); ouvrirColorPicker(); } }
+  ] },
+  { titre: "Chrome de l'éditeur", entrees: [
+    { libelle: "Bande d'erreurs", genre: "ERROR_BAND", fiche: "bande_erreurs",
+      geste: () => selectionnerFiche("bande_erreurs") },
+    { libelle: "Minimap", genre: "MINIMAP", fiche: "minimap",
+      geste: () => selectionnerFiche("minimap") },
+    { libelle: "Pouce de défilement", genre: "FAST_SCROLLER", fiche: "pouce",
+      geste: () => selectionnerFiche("pouce") },
+    { libelle: "Barre de touches", genre: "TOUCH_BAR", fiche: "barre_touches",
+      geste: () => selectionnerFiche("barre_touches") }
+  ] },
+  { titre: "Feuilles du bas (surfaces denses)", entrees: [
+    { libelle: "Recherche et remplacement", genre: "SEARCH_BAR", fiche: "recherche",
+      geste: () => ouvrirFeuilleRecherche() },
+    { libelle: "Plan du fichier", genre: "feuille", fiche: "plan",
+      geste: () => ouvrirFeuillePlan() },
+    { libelle: "Aller à un fichier ou symbole", genre: "feuille", fiche: "aller",
+      geste: () => ouvrirFeuilleAller() },
+    { libelle: "Renommer le symbole", genre: "feuille", fiche: "renommer",
+      geste: () => { deplacerCaret(9, 20, { silent: true }); ouvrirFeuilleRenommer(); } },
+    { libelle: "Réglages", genre: "feuille", fiche: "reglages",
+      geste: () => ouvrirFeuilleReglages() }
+  ] },
+  { titre: "Feuilles du haut (revues)", entrees: [
+    { libelle: "Revue du diff", genre: "feuille", fiche: "diff",
+      geste: () => ouvrirFeuilleDiff() },
+    { libelle: "Aperçu du correctif", genre: "feuille", fiche: "correctif",
+      geste: () => ouvrirFeuilleCorrectif() },
+    { libelle: "Revue des modifications d'agent", genre: "feuille", fiche: "agent",
+      geste: () => ouvrirFeuilleAgent() },
+    { libelle: "IA : prédire la prochaine édition", genre: "feuille", fiche: "prediction",
+      geste: () => ouvrirFeuillePrediction() },
+    { libelle: "Consentement IA", genre: "feuille", fiche: "consentement",
+      geste: () => ouvrirFeuilleConsentement() }
+  ] }
+];
+function construireCatalogue() {
+  const nav = document.getElementById("catalogue");
+  CATALOGUE.forEach(groupe => {
+    const g = document.createElement("div");
+    g.className = "groupe-catalogue";
+    g.innerHTML = `<h2>${echappe(groupe.titre)}</h2>`;
+    groupe.entrees.forEach(e => {
+      const b = document.createElement("button");
+      b.className = "entree-catalogue";
+      b.dataset.ficheId = e.fiche;
+      b.innerHTML = `<b>${echappe(e.libelle)}</b><small>${echappe(e.genre)}</small>`;
+      b.addEventListener("click", () => { e.geste(); });
+      g.appendChild(b);
+    });
+    nav.appendChild(g);
+  });
+}
+
+/* =====================================================================
+   31. LE CÂBLAGE — les gestes de l'éditeur et les commandes
+   ===================================================================== */
+const elEditeur = document.getElementById("editeur");
+function positionVersCaret(ev) {
+  const rect = elEditeur.getBoundingClientRect();
+  const l = Math.max(0, Math.min(lignes.length - 1,
+    Math.floor((ev.clientY - rect.top - 10) / LH) + defilement));
+  const c = Math.max(0, Math.min((lignes[l] || "").length,
+    Math.round((ev.clientX - rect.left - 60) / CH)));
+  return { l, c };
+}
+let dragDebut = null;
+elEditeur.addEventListener("pointerdown", ev => {
+  const p = positionVersCaret(ev);
+  dragDebut = p;
+  deplacerCaret(p.l, p.c);
+});
+elEditeur.addEventListener("pointermove", ev => {
+  if (!dragDebut || !(ev.buttons & 1)) return;
+  const p = positionVersCaret(ev);
+  if (p.l === dragDebut.l && p.c === dragDebut.c) return;
+  const debut = dragDebut, fin = p;
+  const ordre = (debut.l < fin.l) || (debut.l === fin.l && debut.c <= fin.c);
+  selection = ordre
+    ? { l1: debut.l, c1: debut.c, l2: fin.l, c2: fin.c }
+    : { l1: fin.l, c1: fin.c, l2: debut.l, c2: debut.c };
+  renderSelection();
+});
+window.addEventListener("pointerup", () => {
+  if (dragDebut && selection &&
+      (selection.l1 !== selection.l2 || selection.c1 !== selection.c2)) {
+    poserBarreSelection();
+  }
+  dragDebut = null;
+});
+elEditeur.addEventListener("dblclick", ev => {
+  const p = positionVersCaret(ev);
+  const l = lignes[p.l] || "";
+  /* le littéral de couleur d'abord : le pick précède le survol */
+  const lit = l.match(/#[0-9a-fA-F]{3,8}/);
+  if (lit && p.c > lit.index && p.c <= lit.index + lit[0].length + 1) {
+    caret = { l: p.l, c: lit.index + 1 };
+    if (ouvrirColorPicker()) return;
+  }
+  let a = p.c, b = p.c;
+  while (a > 0 && /[\w]/.test(l[a - 1])) a--;
+  while (b < l.length && /[\w]/.test(l[b])) b++;
+  if (a === b) return;
+  selection = { l1: p.l, c1: a, l2: p.l, c2: b };
+  caret = { l: p.l, c: b };
+  rafraichirTout();
+  poserBarreSelection();
+  ouvrirSurvolAuDoubleTap();
+});
+scene.addEventListener("click", ev => {
+  if (ev.target.closest(".carte, .feuille, .voile-modal, .barre-touches, " +
+      ".puce-toolbar, .minimap, .pouce, .bande-erreurs")) return;
+  tapHorsCartes();
+});
+scene.addEventListener("wheel", ev => {
+  ev.preventDefault();
+  const max = Math.max(0, lignes.length - lignesVisibles());
+  defilement = Math.max(0, Math.min(max, defilement + Math.sign(ev.deltaY)));
+  surDefilement();
+  renderCode();
+}, { passive: false });
+document.getElementById("puce-toolbar")
+  .addEventListener("click", ev => { ev.stopPropagation(); ouvrirDebordementToolbar(); });
+
+/* la minimap : l'appui déplace la fenêtre */
+const elMinimap = document.getElementById("minimap");
+const deplacerFenetre = ev => {
+  const rect = elMinimap.getBoundingClientRect();
+  const fraction = Math.max(0, Math.min(1,
+    (ev.clientY - rect.top) / rect.height - 0.1));
+  const max = Math.max(0, lignes.length - lignesVisibles());
+  defilement = Math.round(fraction * max);
+  surDefilement();
+  renderCode();
+};
+elMinimap.addEventListener("pointerdown", ev => {
+  ev.stopPropagation();
+  deplacerFenetre(ev);
+  const bouge = e2 => deplacerFenetre(e2);
+  const fin = () => { window.removeEventListener("pointermove", bouge);
+    window.removeEventListener("pointerup", fin); };
+  window.addEventListener("pointermove", bouge);
+  window.addEventListener("pointerup", fin);
+});
+elPouce.addEventListener("pointerenter", () => elPouce.classList.add("chaud"));
+elPouce.addEventListener("pointerleave", () => elPouce.classList.remove("chaud"));
+elPouce.addEventListener("pointerdown", ev => {
+  ev.stopPropagation();
+  elPouce.classList.add("chaud");
+  const departY = ev.clientY;
+  const departDefilement = defilement;
+  const max = Math.max(0, lignes.length - lignesVisibles());
+  const bouge = e2 => {
+    defilement = Math.max(0, Math.min(max,
+      departDefilement + Math.round((e2.clientY - departY) / LH)));
+    surDefilement();
+    renderCode();
+  };
+  const fin = () => { elPouce.classList.remove("chaud");
+    window.removeEventListener("pointermove", bouge);
+    window.removeEventListener("pointerup", fin); };
+  window.addEventListener("pointermove", bouge);
+  window.addEventListener("pointerup", fin);
+});
+elBande.addEventListener("click", ev => {
+  ev.stopPropagation();
+  const rect = elBande.getBoundingClientRect();
+  const fraction = (ev.clientY - rect.top) / rect.height;
+  const ligne = Math.round(fraction * (lignes.length - 1));
+  const diags = diagnostics();
+  if (!diags.length) return;
+  const plusProche = diags.reduce((a, b) =>
+    Math.abs(a.ligne - ligne) < Math.abs(b.ligne - ligne) ? a : b);
+  deplacerCaret(plusProche.ligne, 0);
+});
+
+/* le clavier : l'éditeur délègue aux cartes (PIEGE-27) */
+scene.addEventListener("keydown", ev => {
+  if (ev.target.closest("input, textarea, select, .feuille")) return;
+  if (ev.key.length === 1 && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+    ev.preventDefault();
+    if (ev.key === " " && fantome) { accepterFantome(); return; }
+    insererCaractere(ev.key);
+  } else if (ev.key === "Backspace") {
+    ev.preventDefault();
+    effacerCaractere();
+  } else if (ev.key === "Tab" && fantome) {
+    ev.preventDefault();
+    accepterFantome();
+  } else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z") {
+    ev.preventDefault();
+    annuler();
+  } else {
+    surTouche(ev);
+  }
+});
+
+/* les commandes de régime */
+document.querySelectorAll(".commande-regime").forEach(b => {
+  b.addEventListener("click", () => {
+    const r = b.dataset.regime;
+    if (r === "frappe") insererCaractere("e");
+    else if (r === "defilement") {
+      const max = Math.max(0, lignes.length - lignesVisibles());
+      defilement = Math.max(0, Math.min(max, defilement + 2));
+      surDefilement();
+      renderCode();
+    } else if (r === "tap") tapHorsCartes();
+    else if (r === "echap") {
+      if (feuilleActive) fermerFeuille();
+      else surEchappement();
+    } else if (r === "annuler") annuler();
+  });
+});
+/* le thème et le gabarit */
+document.querySelectorAll(".choix[data-theme]").forEach(b =>
+  b.addEventListener("click", () => appliquerTheme(b.dataset.theme)));
+document.querySelectorAll(".choix[data-viewport]").forEach(b =>
+  b.addEventListener("click", () => {
+    scene.dataset.viewport = b.dataset.viewport;
+    document.querySelectorAll(".choix[data-viewport]").forEach(x =>
+      x.setAttribute("aria-pressed", String(x === b)));
+    renderCode();
+    repositionnerOuvertes();
+  }));
+
+/* =====================================================================
+   32. L'INITIALISATION
+   ===================================================================== */
+document.head.insertAdjacentHTML("beforeend",
+  `<style>.fantome-ia { color: var(--ed-commentaire); opacity: .85; }</style>`);
+mesurer();
+construireCatalogue();
+selectionnerFiche("guide");
+borneScroll(caret.l);
+renderCode();
+rafraichirFilAriane();
+etatsOuverts();
+scene.focus();
+
+</script>
+</body>
+</html>

@@ -73,6 +73,19 @@ chaque carte sur l’IDE de référence ; deux gestes de l’hôte se posent
 par configuration : `configurerGabaritMethode` et
 `configurerRelanceLint`).
 
+**Le simulateur interactif**
+([`docs/simulateur/popups.html`](docs/simulateur/popups.html)) fait vivre
+la couche entière dans un navigateur, sans dépendance ni réseau : les
+26 genres avec leurs sections exactes, la machine à états réelle jouable
+(frappe, défilement, tap hors cartes, échappement, exclusions), les
+feuilles modales et leurs ateliers. Chaque surface y détaille son
+utilisation — quand l'ouvrir, comment, ce qu'elle affiche, ses régimes,
+l'API hôte ; les boucles complètes tournent sur le scénario de la
+démonstration (masquage d'inspection avec relance du lint, suppression
+sûre, exception relue du document réel, annulation de chaque écriture).
+Les maquettes statiques d'origine restent dans
+[`docs/maquettes/popups.html`](docs/maquettes/popups.html).
+
 ```java
 import jo.celeris.android.host.popups.CoachPopups;
 import jo.celeris.android.host.popups.PopupsEditeur;
