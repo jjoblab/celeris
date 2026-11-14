@@ -30,8 +30,17 @@ import org.jspecify.annotations.Nullable;
  */
 public final class SelectionBarView extends PopupPanel {
 
-    /** Une action de la barre : son libellé et ce qu'elle fait. */
-    public record Item(String label, Runnable action) {
+    /** Une action de la barre : son libellé, son pictogramme propre
+     *  (null : la pastille sans glyphe) et ce qu'elle fait — l'audit
+     *  du propriétaire du 2026-11-14 : chaque action porte SON icône,
+     *  jamais la même pour toutes. */
+    public record Item(String label, IconeAction picto, Runnable action) {
+
+        /** L'action sans glyphe — les hôtes qui ne posent pas
+         *  d'icône gardent leur pastille telle quelle. */
+        public Item(String label, Runnable action) {
+            this(label, null, action);
+        }
     }
 
     /** La hauteur du contenu de la pilule, en dp (14 dp de texte,
@@ -49,6 +58,13 @@ public final class SelectionBarView extends PopupPanel {
 
     /** La largeur d'une icône, en dp (16 dp de glyphe, 2 × 8 dp). */
     private static final float ICONE_DP = 32f;
+
+    /** La largeur du pictogramme d'une pastille, en dp (le glyphe de
+     *  l'action — ciseaux, pages, presse-papiers, cadre). */
+    private static final float PICTO_PASTILLE_DP = 14f;
+
+    /** La respiration entre le pictogramme et le libellé, en dp. */
+    private static final float ECART_PICTO_DP = 4f;
 
     /** L'index virtuel de l'icône documentation chez le toucher. */
     private static final int ICONE_DOCS = -2;
@@ -78,6 +94,8 @@ public final class SelectionBarView extends PopupPanel {
     private final float ecartPx;
     private final float filetPx;
     private final float iconePx;
+    private final float pictoPastillePx;
+    private final float ecartPictoPx;
     private final float monteePx;
     private final PathInterpolator adoucissement = new PathInterpolator(0.215f,
             0.61f, 0.355f, 1f);
@@ -99,6 +117,8 @@ public final class SelectionBarView extends PopupPanel {
         this.ecartPx = ECART_DP * densite;
         this.filetPx = FILET_DP * densite;
         this.iconePx = ICONE_DP * densite;
+        this.pictoPastillePx = PICTO_PASTILLE_DP * densite;
+        this.ecartPictoPx = ECART_PICTO_DP * densite;
         this.monteePx = MONTEE_DP * densite;
     }
 
@@ -134,16 +154,25 @@ public final class SelectionBarView extends PopupPanel {
         entreeDepart = -1L;
     }
 
-    /** Mesure les bornes des pastilles texte, respirations comprises. */
+    /** Mesure les bornes des pastilles texte, respirations comprises —
+     *  le pictogramme de l'action précède le libellé, l'emprise y
+     *  compte. */
     private void mesurerPastilles() {
         bornes.clear();
         textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_TITRE));
         float curseur = 0f;
         for (Item item : actions) {
-            float largeur = 2 * padX + textPaint().measureText(item.label());
+            float largeur = 2 * padX + emprisePicto(item)
+                    + textPaint().measureText(item.label());
             bornes.add(new float[] {curseur, curseur + largeur});
             curseur += largeur + ecartPx;
         }
+    }
+
+    /** L'emprise du pictogramme de la pastille — glyphe et
+     *  respiration, zéro sans glyphe. */
+    private float emprisePicto(Item item) {
+        return item.picto() == null ? 0f : pictoPastillePx + ecartPictoPx;
     }
 
     /** Vrai quand la puce de débordement se montre — l'hôte y branche. */
@@ -271,17 +300,28 @@ public final class SelectionBarView extends PopupPanel {
         return Math.max(0f, Math.min(1f, ecoule / (float) DUREE_ITEM_MS));
     }
 
-    /** Une pastille texte : sa bande pressée, son libellé, sa cascade. */
+    /** Une pastille texte : sa bande pressée, SON pictogramme, son
+     *  libellé, sa cascade — le glyphe et le texte se centrent
+     *  ensemble. */
     private void dessinerPastille(Canvas canvas, int index, float avancee) {
         float[] borne = bornes.get(index);
-        String label = actions.get(index).label();
+        Item item = actions.get(index);
+        String label = item.label();
         float dy = (1f - avancee) * monteePx;
         if (pressee == index) {
             dessinerBandePressee(canvas, borne[0], borne[1], dy);
         }
         textPaint().setColor(enAlpha(palette.text(), avancee));
-        canvas.drawText(label, (borne[0] + borne[1]) / 2f
-                - textPaint().measureText(label) / 2f,
+        float contenu = emprisePicto(item)
+                + textPaint().measureText(label);
+        float debut = (borne[0] + borne[1]) / 2f - contenu / 2f;
+        if (item.picto() != null) {
+            IconeAction.dessiner(item.picto(), canvas, linePaint(),
+                    textPaint(), debut + pictoPastillePx / 2f,
+                    hauteurPx / 2f + dy, pictoPastillePx / 2f,
+                    enAlpha(palette.text(), avancee));
+        }
+        canvas.drawText(label, debut + emprisePicto(item),
                 baseline() + dy, textPaint());
     }
 
@@ -342,22 +382,23 @@ public final class SelectionBarView extends PopupPanel {
     @Override
     int contentWidth() {
         if (bornes.isEmpty()) {
-            float largeur = (docsVisible() ? iconePx : 0f)
-                    + (aDebordement()
-                            ? (docsVisible() ? ecartPx : 0f) + iconePx : 0f);
-            return Math.round(largeur);
+            return Math.round(largeurIcones());
         }
         float largeur = bornes.get(bornes.size() - 1)[1];
         if (docsVisible() || aDebordement()) {
-            largeur += ecartPx + filetPx;
-            if (docsVisible()) {
-                largeur += iconePx;
-            }
-            if (aDebordement()) {
-                largeur += (docsVisible() ? ecartPx : 0f) + iconePx;
-            }
+            largeur += ecartPx + filetPx + largeurIcones();
         }
         return Math.round(largeur);
+    }
+
+    /** La largeur du groupe d'icônes de la pilule — le « i » de
+     *  documentation, la puce de débordement, leur écart. */
+    private float largeurIcones() {
+        float largeur = docsVisible() ? iconePx : 0f;
+        if (aDebordement()) {
+            largeur += (docsVisible() ? ecartPx : 0f) + iconePx;
+        }
+        return largeur;
     }
 
     @Override

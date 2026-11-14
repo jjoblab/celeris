@@ -47,7 +47,9 @@ export interface MachinePopups {
   annonce: Annonce | null;
   resteMs: number;
   variantSurvol: 'doc' | 'peek';
-  chrome: { bande: boolean; minimap: boolean; pouce: boolean; touches: boolean; ampoule: boolean; hints: boolean };
+  /** Le presse-papiers de la scène — null : Coller ne se propose pas. */
+  pressePapiers: string | null;
+  chrome: { bande: boolean; minimap: boolean; pouce: boolean; touches: boolean };
   indexClavier: number;
   ouvrirGenre: (g: GenreId, note?: string) => void;
   fermerGenre: (g: GenreId) => void;
@@ -60,7 +62,12 @@ export interface MachinePopups {
   fermerTout: () => void;
   sauter: (l: number) => void;
   poserCaret: (l: number) => void;
-  basculerChrome: (k: 'bande' | 'minimap' | 'pouce' | 'touches' | 'ampoule' | 'hints') => void;
+  couperSelection: () => void;
+  copierSelection: () => void;
+  collerSelection: () => void;
+  toutSelectionner: () => void;
+  viderPressePapiers: () => void;
+  basculerChrome: (k: 'bande' | 'minimap' | 'pouce' | 'touches') => void;
   poserAnnonce: (a: Annonce) => void;
   cloreAnnonce: (raison: string) => void;
   prendreAnnonce: () => void;
@@ -86,9 +93,10 @@ export function useMachinePopups(): MachinePopups {
   const [langue, setLangue] = useState<'fr' | 'en'>('fr');
   const [voile, setVoile] = useState(false);
   const [annonce, setAnnonce] = useState<Annonce | null>(null);
+  const [pressePapiers, setPressePapiers] = useState<string | null>(null);
   const [reste, setReste] = useState(4000);
   const [variantSurvol, setVariantSurvol] = useState<'doc' | 'peek'>('doc');
-  const [chrome, setChrome] = useState({ bande: true, minimap: true, pouce: true, touches: true, ampoule: true, hints: true });
+  const [chrome, setChrome] = useState({ bande: true, minimap: true, pouce: true, touches: true });
   const [indexClavier, setIndexClavier] = useState(0);
   const compteur = useRef(0);
 
@@ -275,7 +283,7 @@ export function useMachinePopups(): MachinePopups {
     [ouverts, noter],
   );
 
-  const basculerChrome = useCallback((k: 'bande' | 'minimap' | 'pouce' | 'touches' | 'ampoule' | 'hints') => {
+  const basculerChrome = useCallback((k: 'bande' | 'minimap' | 'pouce' | 'touches') => {
     setChrome((c) => ({ ...c, [k]: !c[k] }));
   }, []);
 
@@ -325,6 +333,40 @@ export function useMachinePopups(): MachinePopups {
     setLangue((l) => (l === 'fr' ? 'en' : 'fr'));
   }, []);
 
+  /* — Le presse-papiers de la scène — la barre de sélection s'y rend
+   * intelligente : Coller ne se propose que lorsqu'il est plein (le
+   * mot du double-tap s'y coupe/copie, jamais il ne s'y devine). */
+  const couperSelection = useCallback(() => {
+    setPressePapiers(MOT_SELECTION);
+    noter('action', `le presse-papiers se remplit (« ${MOT_SELECTION} » coupé) — Coller se propose à la barre`);
+  }, [noter]);
+
+  const copierSelection = useCallback(() => {
+    setPressePapiers(MOT_SELECTION);
+    noter('action', `le presse-papiers se remplit (« ${MOT_SELECTION} » copié) — Coller se propose à la barre`);
+  }, [noter]);
+
+  const collerSelection = useCallback(() => {
+    if (pressePapiers == null) {
+      noter('info', 'le presse-papiers est vide — Coller ne s’est jamais proposé');
+      return;
+    }
+    noter('action', `« ${pressePapiers} » se colle — un geste le défait, le presse-papiers demeure`);
+  }, [pressePapiers, noter]);
+
+  const toutSelectionner = useCallback(() => {
+    noter('action', 'tout se sélectionne — du premier caractère au dernier, la barre demeure');
+  }, [noter]);
+
+  const viderPressePapiers = useCallback(() => {
+    if (pressePapiers == null) {
+      noter('info', 'le presse-papiers est déjà vide — Coller s’est déjà retiré');
+      return;
+    }
+    setPressePapiers(null);
+    noter('action', 'le presse-papiers se vide — Coller se retire de la barre');
+  }, [pressePapiers, noter]);
+
   const poserVariantSurvol = useCallback(
     (v: 'doc' | 'peek') => {
       setVariantSurvol(v);
@@ -361,6 +403,7 @@ export function useMachinePopups(): MachinePopups {
     langue,
     voile,
     annonce,
+    pressePapiers,
     resteMs: ouverts.has('NOTIFICATION') ? reste : 4000,
     variantSurvol,
     chrome,
@@ -376,6 +419,11 @@ export function useMachinePopups(): MachinePopups {
     fermerTout: fermerToutCb,
     sauter,
     poserCaret,
+    couperSelection,
+    copierSelection,
+    collerSelection,
+    toutSelectionner,
+    viderPressePapiers,
     basculerChrome,
     poserAnnonce,
     cloreAnnonce,
@@ -401,7 +449,7 @@ export const FICHIER: string[] = [
   '    }',
   '',
   '    public int consulter() {',
-  '        var resultat = 0;',
+  '        int resultat = solde;',
   '        return solde;',
   '    }',
   '',
@@ -427,12 +475,9 @@ export function LIGNE(i: number): string {
   return FICHIER[i] ?? '';
 }
 
-/** Les inlay hints du terrain simulé — le type d’un « var » se lit en
- *  fin de ligne utile, à l’encre muette italique (comme l’IDE de
- *  référence : jamais dans le flux, le texte ne se décale pas). */
-export const INLAY_HINTS: { ligne: number; texte: string }[] = [
-  { ligne: 12, texte: ': int' },
-];
+/** Le mot du double-tap — la sélection courante du scénario : la
+ *  barre s’y pose, le presse-papiers s’y remplit. */
+export const MOT_SELECTION = 'solde';
 
 /** Les diagnostics du terrain simulé — id entre crochets, jamais deviné. */
 export const DIAGNOSTICS: { ligne: number; gravite: 'erreur' | 'avertissement'; marqueur: string; message: string; regle: string }[] = [
@@ -459,7 +504,7 @@ export const USAGES = {
   locaux: [
     { ligne: 2, extrait: '    private int solde;' },
     { ligne: 8, extrait: '        this.solde = soldeInitial;' },
-    { ligne: 12, extrait: '        var resultat = 0;' },
+    { ligne: 12, extrait: '        int resultat = solde;' },
     { ligne: 20, extrait: '        this.solde -= montant;' },
     { ligne: 24, extrait: '        this.solde += montant;' },
     { ligne: 29, extrait: '        return titulaire + " · " + solde;' },

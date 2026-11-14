@@ -340,13 +340,23 @@ public final class EditorActivity extends AppCompatActivity {
         popups.setNomFichier(nomFichier);
         popups.brancherServeur(serveurLangage, "file:///" + nomFichier,
                 langueOuverte());
-        atelierSelection = new AtelierSelection(editeur, session);
-        popups.configurerActionsSelection(
-                atelierSelection.principales(getString(R.string.barre_couper),
+        atelierSelection = new AtelierSelection(editeur, session,
+                this::langueOuverte, popups::rafraichirBarreSelection);
+        // les actions VIVES : Coller ne se pose que lorsque le
+        // presse-papiers est plein, le débordement porte commenter,
+        // casse, indentation et duplication — chaque action SON
+        // pictogramme (l'audit du 2026-11-14)
+        popups.configurerActionsSelectionVives(
+                atelierSelection.principalesVives(
+                        getString(R.string.barre_couper),
                         getString(R.string.barre_copier),
                         getString(R.string.barre_coller),
                         getString(R.string.barre_tout)),
-                atelierSelection.debordement(
+                atelierSelection.debordementVives(
+                        getString(R.string.barre_commenter),
+                        getString(R.string.barre_majuscules),
+                        getString(R.string.barre_minuscules),
+                        getString(R.string.barre_indenter),
                         getString(R.string.barre_dupliquer)));
         atelierRecherche = new AtelierRecherche(this, editeur, session,
                 this::paletteFeuilles, popups::ouvrirRecherche,

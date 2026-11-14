@@ -12,21 +12,29 @@ import {
   ArrowDown,
   Bell,
   BookOpen,
+  CaseLower,
+  CaseUpper,
+  ClipboardPaste,
+  ClipboardX,
+  Copy,
+  CopyPlus,
   CornerDownLeft,
   Eye,
   EyeOff,
   FileCode,
   GitBranch,
+  IndentIncrease,
   Info,
   Keyboard,
   Layers,
-  Lightbulb,
   Move,
   MousePointerClick,
   Palette,
   Play,
+  Scissors,
   Search,
   Square,
+  SquareSlash,
   TextCursorInput,
   TextSelect,
   Trash2,
@@ -36,7 +44,7 @@ import {
 } from 'lucide-react';
 import type { GenreId } from '@/lib/popups';
 import { POPUP_PAR_ID } from '@/lib/popups';
-import { DIAGNOSTICS, FICHIER, GOUTTIERE, INLAY_HINTS } from '@/lib/machine';
+import { DIAGNOSTICS, FICHIER, GOUTTIERE } from '@/lib/machine';
 import type { MachinePopups } from '@/lib/machine';
 import { HAUT_LIGNE, LIGNES, LIGNES_VISIBLES } from '@/lib/machine';
 import { ContenuCarte } from '@/components/popup/cartes';
@@ -132,6 +140,25 @@ function Pilule({ onClick, children, actif }: { onClick: () => void; children: R
         actif
           ? 'border-[#E6C178]/60 bg-[#E6C178]/15 text-[#E6C178]'
           : 'border-white/10 bg-white/[0.04] text-white/75 hover:border-white/25 hover:bg-white/10',
+      ].join(' ')}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* — Une pastille de la barre de sélection : son ICÔNE PROPRE, son
+   libellé — jamais la même icône pour toutes (l'audit du 2026-11-14). */
+function Pastille({ onClick, children, pressee }: { onClick: () => void; children: React.ReactNode; pressee?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] transition-colors',
+        pressee
+          ? 'bg-[#E6C178]/20 text-[#E6C178]'
+          : 'text-white/75 hover:bg-white/10 hover:text-white',
       ].join(' ')}
     >
       {children}
@@ -245,25 +272,11 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
                     style={{ height: HAUT_LIGNE }}
                   >
                     <div className="flex w-11 shrink-0 items-center justify-end gap-1 pr-1.5 text-right text-[9px] text-white/30">
-                      {machine.chrome.ampoule && diags.length > 0 && n === machine.caretLigne ? (
-                        <button
-                          type="button"
-                          aria-label="Ampoule d’intentions — le menu s’ouvre"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            machine.ouvrirGenre('INTENTIONS_MENU', "l’ampoule de la gouttière l’ouvre — les intentions de la ligne du caret");
-                          }}
-                          className="rounded px-0.5 hover:bg-white/10"
-                        >
-                          <Lightbulb className="h-3 w-3" style={{ color: '#FFCB6B' }} aria-hidden />
-                        </button>
-                      ) : (
-                        diags.map((d) => (
-                          <span key={d.regle} style={{ color: d.gravite === 'erreur' ? '#F44747' : '#CCA700' }}>
-                            {d.marqueur}
-                          </span>
-                        ))
-                      )}
+                      {diags.map((d) => (
+                        <span key={d.regle} style={{ color: d.gravite === 'erreur' ? '#F44747' : '#CCA700' }}>
+                          {d.marqueur}
+                        </span>
+                      ))}
                       {n === 20 && <span className="h-1.5 w-1.5 rounded-full bg-[#E6C178]" aria-label="point d’arrêt" />}
                       <span>{n + 1}</span>
                     </div>
@@ -280,18 +293,6 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
                           {p.t}
                         </span>
                       ))}
-                      {machine.chrome.hints && (() => {
-                        const hint = INLAY_HINTS.find((h) => h.ligne === n);
-                        return hint ? (
-                          <span
-                            className="ml-2 select-none italic"
-                            style={{ color: 'rgba(255,255,255,0.42)' }}
-                            aria-label="inlay hint — le type du var"
-                          >
-                            {hint.texte}
-                          </span>
-                        ) : null;
-                      })()}
                       {texte === '' ? '\u00A0' : ''}
                     </div>
                   </div>
@@ -373,7 +374,11 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
                 return <CarteFlottante key={g} genre={g} machine={machine} resteMs={machine.resteMs} />;
               })}
 
-              {/* La barre de sélection — pilule au-dessus de la sélection */}
+              {/* La barre de sélection — pilule au-dessus de la sélection :
+                  les pastilles portent chacune LEUR icône (ciseaux, pages,
+                  presse-papiers, cadre) et COLLER ne se pose que quand le
+                  presse-papiers est plein — l'option inutile ne se
+                  promène jamais sur la barre. */}
               {machine.ouverts.has('SELECTION_BAR') && (
                 <div
                   style={{
@@ -384,10 +389,20 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
                   }}
                   className="animate-in fade-in slide-in-from-bottom-1 pointer-events-auto absolute z-30 flex items-center gap-1 rounded-full border border-white/10 bg-[#14161c]/95 px-2 py-1 backdrop-blur-md duration-150"
                 >
-                  <span className="rounded-full px-2 py-0.5 text-[10px] text-white/75 hover:bg-white/10">Couper</span>
-                  <span className="rounded-full px-2 py-0.5 text-[10px] text-white/75 hover:bg-white/10">Copier</span>
-                  <span className="rounded-full px-2 py-0.5 text-[10px] text-white/75 hover:bg-white/10">Coller</span>
-                  <span className="rounded-full px-2 py-0.5 text-[10px] text-white/75 hover:bg-white/10">Tout</span>
+                  <Pastille onClick={machine.couperSelection}>
+                    <Scissors className="h-3 w-3 text-[#E6C178]" aria-hidden /> Couper
+                  </Pastille>
+                  <Pastille onClick={machine.copierSelection}>
+                    <Copy className="h-3 w-3 text-[#5CCFE6]" aria-hidden /> Copier
+                  </Pastille>
+                  {machine.pressePapiers != null && (
+                    <Pastille onClick={machine.collerSelection}>
+                      <ClipboardPaste className="h-3 w-3 text-[#98C97A]" aria-hidden /> Coller
+                    </Pastille>
+                  )}
+                  <Pastille onClick={machine.toutSelectionner}>
+                    <TextSelect className="h-3 w-3 text-[#CD7EE0]" aria-hidden /> Tout
+                  </Pastille>
                   <span className="h-3 w-px bg-white/15" />
                   <button
                     type="button"
@@ -409,31 +424,69 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
                 </div>
               )}
 
-              {/* Le débordement de la barre de sélection — sous sa barre */}
+              {/* Le débordement de la barre de sélection — sous la ligne
+                  du caret, JAMAIS SUR LUI : le menu ne marche pas sur le
+                  curseur (l'audit du 2026-11-14) ; chaque rangée porte son
+                  icône propre — commenter, casse, indentation, duplication. */}
               {machine.ouverts.has('SELECTION_OVERFLOW') && (
                 <div
                   style={{
-                    top: visuel * HAUT_LIGNE + 16,
+                    top: visuel >= LIGNES_VISIBLES - 2
+                      ? visuel * HAUT_LIGNE - 6 - 148
+                      : (visuel + 1) * HAUT_LIGNE + 6,
                     left: '50%',
                     transform: 'translateX(-50%)',
                     boxShadow: '0 18px 50px rgba(0,0,0,0.55)',
                   }}
                   className="animate-in fade-in pointer-events-auto absolute z-30 rounded-xl border border-white/10 bg-[#14161c]/95 px-2.5 py-2 backdrop-blur-md duration-150"
                 >
-                  <div className="w-[168px]">
+                  <div className="w-[188px]">
                     <div className="mt-0 select-none text-[9px] font-semibold uppercase tracking-[0.14em] text-white/40">Plus</div>
-                    <div
-                      role="button"
-                      onClick={() => {
-                        machine.fermerGenre('SELECTION_OVERFLOW');
-                        machine.poserAnnonce({ message: 'La ligne se duplique — un geste la défait', action: 'Défaire' });
-                      }}
-                      className="cursor-pointer rounded-md px-1.5 py-1 text-[12px] font-medium hover:bg-white/10"
-                    >
-                      Dupliquer la ligne
-                    </div>
+                    {[
+                      {
+                        icone: <SquareSlash className="h-3.5 w-3.5 text-[#E6C178]" aria-hidden />,
+                        libelle: 'Commenter la sélection',
+                        geste: () => machine.poserAnnonce({ message: 'Le bloc touché se commente ou se décommente — les règles du langage', action: 'Défaire' }),
+                      },
+                      {
+                        icone: <CaseUpper className="h-3.5 w-3.5 text-[#5CCFE6]" aria-hidden />,
+                        libelle: 'Tout en majuscules',
+                        geste: () => machine.poserAnnonce({ message: 'La sélection passe en MAJUSCULES', action: 'Défaire' }),
+                      },
+                      {
+                        icone: <CaseLower className="h-3.5 w-3.5 text-[#98C97A]" aria-hidden />,
+                        libelle: 'Tout en minuscules',
+                        geste: () => machine.poserAnnonce({ message: 'La sélection passe en minuscules', action: 'Défaire' }),
+                      },
+                      {
+                        icone: <IndentIncrease className="h-3.5 w-3.5 text-[#CD7EE0]" aria-hidden />,
+                        libelle: 'Indenter d’un cran',
+                        geste: () => machine.poserAnnonce({ message: 'Le bloc touché gagne un cran — le style du langage', action: 'Défaire' }),
+                      },
+                      {
+                        icone: <CopyPlus className="h-3.5 w-3.5 text-[#D9A066]" aria-hidden />,
+                        libelle: 'Dupliquer la ligne',
+                        geste: () => {
+                          machine.fermerGenre('SELECTION_OVERFLOW');
+                          machine.poserAnnonce({ message: 'La ligne se duplique — un geste la défait', action: 'Défaire' });
+                        },
+                      },
+                    ].map((option) => (
+                      <button
+                        key={option.libelle}
+                        type="button"
+                        onClick={() => {
+                          machine.fermerGenre('SELECTION_OVERFLOW');
+                          option.geste();
+                        }}
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 text-left text-[12px] font-medium text-white/85 hover:bg-white/10"
+                      >
+                        {option.icone}
+                        {option.libelle}
+                      </button>
+                    ))}
                     <div className="mt-1 border-t border-white/10 pt-1 text-[10px] leading-relaxed text-white/45">
-                      le menu ne survit jamais à sa barre — cascade
+                      le menu ne survit jamais à sa barre — cascade ; il ne marche jamais sur le caret
                     </div>
                   </div>
                 </div>
@@ -579,6 +632,9 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
           <Pilule onClick={() => machine.ouvrirGenre('SELECTION_BAR')}>
             <TextSelect className="h-3 w-3" aria-hidden /> Sélection d&apos;un mot
           </Pilule>
+          <Pilule onClick={() => machine.viderPressePapiers()}>
+            <ClipboardX className="h-3 w-3" aria-hidden /> Vider le presse-papiers
+          </Pilule>
           <Pilule onClick={() => machine.ouvrirGenre('SIGNATURE_HELP')}>
             <CornerDownLeft className="h-3 w-3" aria-hidden /> Aide aux paramètres
           </Pilule>
@@ -614,10 +670,6 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
           <Pilule actif={machine.chrome.minimap} onClick={() => machine.basculerChrome('minimap')}>Minimap</Pilule>
           <Pilule actif={machine.chrome.pouce} onClick={() => machine.basculerChrome('pouce')}>Pouce</Pilule>
           <Pilule actif={machine.chrome.touches} onClick={() => machine.basculerChrome('touches')}>Barre de touches</Pilule>
-          <Pilule actif={machine.chrome.ampoule} onClick={() => machine.basculerChrome('ampoule')}>
-            <Lightbulb className="h-3 w-3" aria-hidden /> Ampoule d&apos;intentions
-          </Pilule>
-          <Pilule actif={machine.chrome.hints} onClick={() => machine.basculerChrome('hints')}>Inlay hints</Pilule>
           <Pilule actif onClick={() => machine.basculerLangue()}>{machine.langue === 'fr' ? 'FR → EN' : 'EN → FR'}</Pilule>
         </Groupe>
 
@@ -625,10 +677,7 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
           Cliquez une ligne du code : le caret s&apos;y pose et le tap hors cartes referme ce qui cède.
           Double-tapez : la ligne 5 ouvre le sélecteur de couleur, les autres la pilule de sélection.
           Le cadre prend le focus (Tab) — les flèches délèguent aux cartes clavier, Enter prend la
-          rangée, Échap referme. L&apos;AMPOULE JAUNE vit dans la gouttière à la ligne du caret qui porte
-          un diagnostic — comme dans l&apos;IDE de référence, elle remplace le marqueur et son tap ouvre
-          le menu d&apos;intentions. Les INLAY HINTS se lisent en fin de ligne utile, à l&apos;encre muette
-          italique — le type du « var », jamais dans le flux : le texte ne se décale pas.
+          rangée, Échap referme.
         </p>
 
         {/* Le journal des régimes */}

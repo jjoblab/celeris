@@ -141,6 +141,33 @@ public final class PopupAnchor {
     }
 
     /**
+     * Sous la sélection si la place y tient, au-dessus de la barre
+     * sinon — l'ancre du menu de débordement de la barre de
+     * sélection (l'audit du propriétaire du 2026-11-14 : le menu ne
+     * marche JAMAIS sur le caret — la bande de la sélection, barre
+     * comprise, demeure à découvert entre les deux poses).
+     *
+     * @param puceX      l'abscisse du centre de la puce de débordement
+     * @param selBottom  le bas du rectangle de la sélection
+     * @param barTop     le haut de la barre de sélection posée
+     * @param popup      la taille du popup
+     * @param layerWidth la largeur de la couche
+     * @param layerHeight la hauteur de la couche
+     * @param margin     la respiration aux bords, en pixels
+     * @return le cadre borné du popup
+     */
+    public static PopupPlacer.Cadre belowSelectionOrAboveBar(int puceX,
+            int selBottom, int barTop, PopupPlacer.Cadre popup,
+            int layerWidth, int layerHeight, int margin) {
+        int x = borneX(puceX - popup.largeur() / 2, popup, layerWidth,
+                margin);
+        boolean dessous = selBottom + popup.hauteur() <= layerHeight - margin;
+        int y = dessous ? selBottom
+                : Math.max(margin, barTop - popup.hauteur());
+        return new PopupPlacer.Cadre(x, y, popup.largeur(), popup.hauteur());
+    }
+
+    /**
      * Centrée au-dessus de la sélection, sous elle si la place
      * manque — l'ancre de la barre de sélection.
      *

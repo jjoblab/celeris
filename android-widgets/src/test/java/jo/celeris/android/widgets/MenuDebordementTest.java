@@ -62,7 +62,7 @@ public class MenuDebordementTest {
                 PopupPalette.dark(), 8, "MORE");
         SelectionBarView barre = new SelectionBarView(contexte,
                 PopupPalette.dark());
-        menu.ouvrir(barre, List.of());
+        menu.ouvrir(barre, 120, List.of());
         assertFalse("sans action, la carte ne se pose pas",
                 popups.estOuvert(
                         PopupController.PopupKind.SELECTION_OVERFLOW));
@@ -79,15 +79,20 @@ public class MenuDebordementTest {
         SelectionBarView barre = new SelectionBarView(contexte,
                 PopupPalette.dark());
         // en production, la puce vit sur une barre DÉJÀ posée — la
-        // machine n'ouvre le débordement que sur sa barre ouverte
+        // machine n'ouvre le débordement que sur sa barre ouverte ;
+        // le menu se pose SOUS LA SÉLECTION (bas 96), jamais sur le
+        // caret (l'audit du propriétaire du 2026-11-14)
         popups.controleur().open(PopupController.PopupKind.SELECTION_BAR);
-        menu.ouvrir(barre, List.of(new SelectionBarView.Item("Dupliquer",
+        menu.ouvrir(barre, 96, List.of(new SelectionBarView.Item("Dupliquer",
+                jo.celeris.android.widgets.IconeAction.DUPLIQUER,
                 passe::incrementAndGet)));
         assertTrue("l'ouverture pose la carte sous la puce",
                 popups.estOuvert(
                         PopupController.PopupKind.SELECTION_OVERFLOW));
         IntentionsMenuView carte = (IntentionsMenuView) popups.vue(
                 PopupController.PopupKind.SELECTION_OVERFLOW);
+        assertTrue("le menu vit SOUS le bas de la sélection — le caret demeure à découvert",
+                carte.getTop() >= 96);
         // la rangée 1 : la première action, après l'en-tête de section
         float yRangee = carte.rowCenterY(1);
         carte.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,

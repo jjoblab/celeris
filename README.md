@@ -124,7 +124,7 @@ PopupsEditeur popups = new PopupsEditeur(editeur, session, couche,
 // le contenu : un serveur de langage (optionnel) et les tables de l'hôte
 popups.brancherServeur(serveur, "file:///Main.java", langage);
 popups.configurerIntentions(intentions);
-popups.configurerActionsSelection(principales, debordement);
+popups.configurerActionsSelectionVives(principalesVives, debordementVives);
 popups.setPlan(entreesDuFichier);
 popups.setDiagnostics(diagnosticsDeLhote);
 

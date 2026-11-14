@@ -121,4 +121,35 @@ class PopupAnchorTest {
         assertEquals(HAUTEUR - 2 * MARGE, borne.hauteur(),
                 "la hauteur bornée aux murs");
     }
+
+    /** Le débordement de la barre se pose SOUS la sélection — la
+     *  bande de la sélection, caret compris, demeure à découvert
+     *  (l'audit du propriétaire du 2026-11-14 : le menu ne marche
+     *  jamais sur le caret). */
+    @Test
+    void selectionOverflowSitsBelowTheSelection() {
+        PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 320, 240);
+        PopupPlacer.Cadre posee = PopupAnchor.belowSelectionOrAboveBar(
+                200, 170, 140, popup, LARGEUR, HAUTEUR, MARGE);
+        assertEquals(170, posee.y(),
+                "posée sous le bas de la sélection, jamais sur elle");
+        assertEquals(40, posee.x(), "centrée sous la puce");
+        assertTrue(posee.y() >= 170,
+                "la sélection vit au-dessus du menu, à découvert");
+    }
+
+    /** La place manque au dessous : le débordement se retire
+     *  AU-DESSUS DE LA BARRE — la bande de la sélection demeure à
+     *  découvert dans les deux poses, jamais le caret ne se marche
+     *  dessus. */
+    @Test
+    void selectionOverflowRetreatsAboveTheBar() {
+        PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 320, 240);
+        PopupPlacer.Cadre posee = PopupAnchor.belowSelectionOrAboveBar(
+                200, 1750, 1720, popup, LARGEUR, HAUTEUR, MARGE);
+        assertEquals(1480, posee.y(),
+                "retirée au-dessus de la barre, marge comprise");
+        assertTrue(posee.y() + posee.hauteur() <= 1720,
+                "la barre demeure à découvert sous le menu");
+    }
 }

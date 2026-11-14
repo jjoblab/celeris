@@ -47,6 +47,10 @@
     <string name="barre_copier">Copier</string>
     <string name="barre_coller">Coller</string>
     <string name="barre_dupliquer">Dupliquer</string>
+    <string name="barre_commenter">Commenter</string>
+    <string name="barre_majuscules">Majuscules</string>
+    <string name="barre_minuscules">Minuscules</string>
+    <string name="barre_indenter">Indenter</string>
     <string name="menu_plus">PLUS</string>
     <string name="barre_tout">Tout sélectionner</string>
     <string name="action_plan">Plan</string>

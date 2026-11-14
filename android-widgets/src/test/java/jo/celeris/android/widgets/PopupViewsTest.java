@@ -240,21 +240,28 @@ public class PopupViewsTest {
         assertEquals("la deuxième action court", 1, execute.get());
     }
 
-    /** L'icône des intentions (l'audit Android Studio : le menu de
-     *  l'IDE iconise ses rangées) : l'AMPOULE précède chaque action —
-     *  le glyphe élargit la carte, la section reste nue. */
+    /** Les pictogrammes propres des intentions (l'audit du propriétaire
+     *  du 2026-11-14 : « tu as utilisé la même icône pour tout ») :
+     *  chaque action porte SON glyphe — le lint l'insecte, l'aperçu
+     *  l'œil — jamais la même ampoule sur toutes les rangées ; la
+     *  section reste nue, le glyphe élargit la carte. */
     @Test
-    public void intentionsCarryTheBulbIcon() {
+    public void intentionsCarryTheirOwnIcons() {
         IntentionsMenuView vue = new IntentionsMenuView(contexte,
                 PopupPalette.dark());
         vue.setActions(List.of(
-                new IntentionsMenuView.Item("corriger", () -> { })));
-        assertEquals("l'action porte l'ampoule", IconeCarte.AMP,
-                vue.iconeDe(0));
+                new IntentionsMenuView.Item("corriger", IconeAction.LINT,
+                        () -> { }),
+                new IntentionsMenuView.Item("apercevoir", IconeAction.APERCU,
+                        () -> { })));
+        assertEquals("le lint porte SON insecte", IconeAction.LINT,
+                vue.pictoDe(0));
+        assertEquals("l'aperçu porte SON cadre — jamais la même icône",
+                IconeAction.APERCU, vue.pictoDe(1));
         vue.setSection("more");
-        assertNull("la section reste nue", vue.iconeDe(0));
-        assertEquals("l'action décalée porte l'ampoule", IconeCarte.AMP,
-                vue.iconeDe(1));
+        assertNull("la section reste nue", vue.pictoDe(0));
+        assertEquals("le lint décalé garde SON insecte", IconeAction.LINT,
+                vue.pictoDe(1));
         vue.setSection(null);
         // le glyphe élargit la rangée : la cellule respire avant le texte
         TextRowsPopup nue = new TextRowsPopup(contexte,
@@ -267,10 +274,9 @@ public class PopupViewsTest {
                 PopupPalette.dark()) {
         };
         iconisee.setRows(List.of(
-                TextRowsPopup.Row.icone(IconeCarte.AMP, "corriger", -1,
-                        TextRowsPopup.Tier.TITRE)));
+                TextRowsPopup.Row.action("corriger", -1, IconeAction.LINT)));
         mesurer(iconisee);
-        assertTrue("l'ampoule élargit la carte",
+        assertTrue("le pictogramme élargit la carte",
                 iconisee.getMeasuredWidth() > nue.getMeasuredWidth());
     }
 

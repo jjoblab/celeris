@@ -8,7 +8,36 @@
  */
 
 import { useState } from 'react';
-import { Lightbulb } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import {
+  BookOpen,
+  Bot,
+  Brain,
+  Braces,
+  FileDiff,
+  FilePlus,
+  FileSearch,
+  GitBranch,
+  GitFork,
+  Hammer,
+  Info,
+  KeyRound,
+  Lightbulb,
+  ListTree,
+  LocateFixed,
+  Move,
+  PenLine,
+  Play,
+  Scale,
+  Search,
+  Settings,
+  Sparkles,
+  Trash2,
+  Eye,
+  EyeOff,
+  Wand2,
+  Wrench,
+} from 'lucide-react';
 import type { GenreId } from '@/lib/popups';
 import type { MachinePopups } from '@/lib/machine';
 import { DIAGNOSTICS, USAGES } from '@/lib/machine';
@@ -149,34 +178,34 @@ const CANDIDATS: { libelle: string; badge: keyof typeof BADGES; identite: string
   { libelle: 'couleurs', badge: 'paquet', identite: 'java.awt' },
 ];
 
-const INTENTIONS: { libelle: string; action: (m: MachinePopups) => void }[] = [
-  { libelle: 'Lint — correctifs de la ligne', action: (m) => m.poserAnnonce({ message: '3 correctifs proposés par le lint de la ligne', action: 'Corriger' }) },
-  { libelle: 'Aperçu de définition', action: (m) => m.poserVariantSurvol('peek') },
-  { libelle: 'Rechercher les usages', action: (m) => m.ouvrirGenre('REFERENCES') },
-  { libelle: 'Info de type au curseur', action: (m) => m.ouvrirGenre('TYPE_INFO') },
-  { libelle: "Hiérarchie de types ou d’appels", action: (m) => m.ouvrirGenre('HIERARCHY') },
-  { libelle: 'Documentation externe', action: (m) => m.ouvrirGenre('EXTERNAL_DOC') },
-  { libelle: 'Générer du code', action: (m) => m.ouvrirGenre('GABARITS') },
-  { libelle: 'Suppression sûre de la déclaration', action: (m) => m.ouvrirGenre('SAFE_DELETE') },
-  { libelle: 'Déplacer la méthode dans une classe', action: (m) => { m.sauter(23); m.ouvrirGenre('SAFE_MOVE'); } },
-  { libelle: "Masquer l’inspection de la ligne", action: (m) => { m.sauter(12); m.ouvrirGenre('SUPPRESS_INSPECTION'); } },
-  { libelle: 'Exécuter le fichier (simulé)', action: (m) => m.ouvrirGenre('EXCEPTION_DETAILS') },
-  { libelle: 'Diff du renommage', action: (m) => m.ouvrirVoile() },
-  { libelle: 'Aperçu du correctif LSP', action: (m) => m.poserAnnonce({ message: 'Le correctif importe la classe — l\'aperçu se consulte', action: 'Apercevoir' }) },
-  { libelle: 'Agent — révocations', action: (m) => m.poserAnnonce({ message: "La feuille de l’agent s’ouvre (ADR-018)", action: 'Ouvrir' }) },
-  { libelle: 'IA fantôme', action: (m) => m.poserAnnonce({ message: 'La suggestion fantôme se peint dans la trame — Tab l\'accepte', action: 'Voir' }) },
-  { libelle: 'IA prédiction', action: (m) => m.poserAnnonce({ message: 'La prédiction se prépare (core-ai)', action: 'Voir' }) },
+const INTENTIONS: { libelle: string; icone: LucideIcon; action: (m: MachinePopups) => void }[] = [
+  { libelle: 'Lint — correctifs de la ligne', icone: Lightbulb, action: (m) => m.poserAnnonce({ message: '3 correctifs proposés par le lint de la ligne', action: 'Corriger' }) },
+  { libelle: 'Aperçu de définition', icone: Eye, action: (m) => m.poserVariantSurvol('peek') },
+  { libelle: 'Rechercher les usages', icone: FileSearch, action: (m) => m.ouvrirGenre('REFERENCES') },
+  { libelle: 'Info de type au curseur', icone: Info, action: (m) => m.ouvrirGenre('TYPE_INFO') },
+  { libelle: 'Hiérarchie de types ou d’appels', icone: GitBranch, action: (m) => m.ouvrirGenre('HIERARCHY') },
+  { libelle: 'Documentation externe', icone: BookOpen, action: (m) => m.ouvrirGenre('EXTERNAL_DOC') },
+  { libelle: 'Générer du code', icone: Wand2, action: (m) => m.ouvrirGenre('GABARITS') },
+  { libelle: 'Suppression sûre de la déclaration', icone: Trash2, action: (m) => m.ouvrirGenre('SAFE_DELETE') },
+  { libelle: 'Déplacer la méthode dans une classe', icone: Move, action: (m) => { m.sauter(23); m.ouvrirGenre('SAFE_MOVE'); } },
+  { libelle: 'Masquer l’inspection de la ligne', icone: EyeOff, action: (m) => { m.sauter(12); m.ouvrirGenre('SUPPRESS_INSPECTION'); } },
+  { libelle: 'Exécuter le fichier (simulé)', icone: Play, action: (m) => m.ouvrirGenre('EXCEPTION_DETAILS') },
+  { libelle: 'Diff du renommage', icone: FileDiff, action: (m) => m.ouvrirVoile() },
+  { libelle: 'Aperçu du correctif LSP', icone: Wrench, action: (m) => m.poserAnnonce({ message: 'Le correctif importe la classe — l\'aperçu se consulte', action: 'Apercevoir' }) },
+  { libelle: 'Agent — révocations', icone: Bot, action: (m) => m.poserAnnonce({ message: "La feuille de l’agent s’ouvre (ADR-018)", action: 'Ouvrir' }) },
+  { libelle: 'IA fantôme', icone: Sparkles, action: (m) => m.poserAnnonce({ message: 'La suggestion fantôme se peint dans la trame — Tab l\'accepte', action: 'Voir' }) },
+  { libelle: 'IA prédiction', icone: Brain, action: (m) => m.poserAnnonce({ message: 'La prédiction se prépare (core-ai)', action: 'Voir' }) },
 ];
 
-const DEBORDEMENTS: { libelle: string; action: (m: MachinePopups) => void }[] = [
-  { libelle: 'Rechercher dans le fichier', action: (m) => m.ouvrirVoile() },
-  { libelle: 'Plan du fichier', action: (m) => m.poserAnnonce({ message: "La feuille du plan s’ouvre (feuille du bas)", action: 'Ouvrir' }) },
-  { libelle: 'Aller à — fichier ou symbole', action: (m) => m.poserAnnonce({ message: "La feuille de l’aller-à s’ouvre (B-13, floue)", action: 'Ouvrir' }) },
-  { libelle: 'Renommage', action: (m) => m.poserAnnonce({ message: 'Le renommage prépare son diff (LSP)', action: 'Ouvrir' }) },
-  { libelle: 'Réglages', action: (m) => m.poserAnnonce({ message: "La feuille des réglages s’ouvre", action: 'Ouvrir' }) },
-  { libelle: 'Diff du renommage', action: (m) => m.ouvrirVoile() },
-  { libelle: 'Correctifs LSP', action: (m) => m.poserAnnonce({ message: "La feuille des correctifs s’ouvre (codeAction)", action: 'Ouvrir' }) },
-  { libelle: 'IA — révocations', action: (m) => m.poserAnnonce({ message: "La feuille IA s’ouvre", action: 'Ouvrir' }) },
+const DEBORDEMENTS: { libelle: string; icone: LucideIcon; action: (m: MachinePopups) => void }[] = [
+  { libelle: 'Rechercher dans le fichier', icone: Search, action: (m) => m.ouvrirVoile() },
+  { libelle: 'Plan du fichier', icone: ListTree, action: (m) => m.poserAnnonce({ message: "La feuille du plan s’ouvre (feuille du bas)", action: 'Ouvrir' }) },
+  { libelle: 'Aller à — fichier ou symbole', icone: LocateFixed, action: (m) => m.poserAnnonce({ message: "La feuille de l’aller-à s’ouvre (B-13, floue)", action: 'Ouvrir' }) },
+  { libelle: 'Renommage', icone: PenLine, action: (m) => m.poserAnnonce({ message: 'Le renommage prépare son diff (LSP)', action: 'Ouvrir' }) },
+  { libelle: 'Réglages', icone: Settings, action: (m) => m.poserAnnonce({ message: "La feuille des réglages s’ouvre", action: 'Ouvrir' }) },
+  { libelle: 'Diff du renommage', icone: FileDiff, action: (m) => m.ouvrirVoile() },
+  { libelle: 'Correctifs LSP', icone: Wrench, action: (m) => m.poserAnnonce({ message: "La feuille des correctifs s’ouvre (codeAction)", action: 'Ouvrir' }) },
+  { libelle: 'IA — révocations', icone: Bot, action: (m) => m.poserAnnonce({ message: "La feuille IA s’ouvre", action: 'Ouvrir' }) },
 ];
 
 function sautEtFerme(m: MachinePopups, genre: GenreId, l: number) {
@@ -439,14 +468,16 @@ function CarteDocExterne() {
   );
 }
 
-/* — Les gabarits — */
-const GABARITS: { libelle: string }[] = [
-  { libelle: 'Constructeur de Compte' },
-  { libelle: 'Accesseurs de solde' },
-  { libelle: 'equals, hashCode et toString de Compte' },
-  { libelle: 'Entourer de try/catch' },
-  { libelle: 'Entourer de if' },
-  { libelle: 'Insérer le gabarit de méthode' },
+/* — Les gabarits — chaque gabarit porte SON pictogramme (le marteau
+   du constructeur, la clé des accesseurs, la balance des égaux) —
+   jamais la même icône pour toutes. */
+const GABARITS: { libelle: string; icone: LucideIcon }[] = [
+  { libelle: 'Constructeur de Compte', icone: Hammer },
+  { libelle: 'Accesseurs de solde', icone: KeyRound },
+  { libelle: 'equals, hashCode et toString de Compte', icone: Scale },
+  { libelle: 'Entourer de try/catch', icone: Braces },
+  { libelle: 'Entourer de if', icone: GitFork },
+  { libelle: 'Insérer le gabarit de méthode', icone: FilePlus },
 ];
 
 function CarteGabarits({ machine }: PropsCarte) {
@@ -462,6 +493,7 @@ function CarteGabarits({ machine }: PropsCarte) {
             machine.poserAnnonce({ message: `${g.libelle} — la transaction annulable se pose`, action: 'Défaire' });
           }}
         >
+          <g.icone className="h-3.5 w-3.5 shrink-0 text-white/45" aria-hidden />
           {g.libelle}
         </Rangee>
       ))}
@@ -570,7 +602,10 @@ function CarteException({ machine, genre }: PropsCarte) {
   );
 }
 
-/* — Le menu d’intentions — */
+/* — Le menu d’intentions — chaque intention porte SON pictogramme :
+   l’ampoule du correctif rapide (l’IDE de référence), l’œil de
+   l’aperçu, la loupe-fichier des usages, la baguette de la
+   génération — jamais la même icône pour toutes. */
 function CarteIntentions({ machine }: PropsCarte) {
   return (
     <div className="max-h-[286px] w-[228px] overflow-y-auto pr-1">
@@ -583,10 +618,7 @@ function CarteIntentions({ machine }: PropsCarte) {
             i.action(machine);
           }}
         >
-          {/* l'icône d'ampoule de chaque intention (IconeCarte.AMP — le
-              menu Alt+Enter de l'IDE iconise ses rangées, à l'encre
-              d'avertissement comme la carte réelle) */}
-          <Lightbulb className="h-3 w-3 shrink-0" style={{ color: ENCRE.avertissement }} aria-hidden />
+          <i.icone className="h-3.5 w-3.5 shrink-0 text-white/45" aria-hidden />
           {i.libelle}
         </Rangee>
       ))}
@@ -596,7 +628,9 @@ function CarteIntentions({ machine }: PropsCarte) {
   );
 }
 
-/* — Le débordement de la toolbar — */
+/* — Le débordement de la toolbar — chaque action repliée porte SON
+   pictogramme (la loupe de la recherche, l’arbre du plan, la rose des
+   réglages) — jamais la même icône pour toutes. */
 function CarteDebordementToolbar({ machine }: PropsCarte) {
   return (
     <div className="max-h-[286px] w-[212px] overflow-y-auto pr-1">
@@ -610,6 +644,7 @@ function CarteDebordementToolbar({ machine }: PropsCarte) {
             d.action(machine);
           }}
         >
+          <d.icone className="h-3.5 w-3.5 shrink-0 text-white/45" aria-hidden />
           {d.libelle}
         </Rangee>
       ))}

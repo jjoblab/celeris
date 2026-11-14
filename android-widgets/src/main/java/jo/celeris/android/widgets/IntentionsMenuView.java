@@ -23,8 +23,17 @@ import org.jspecify.annotations.Nullable;
  */
 public final class IntentionsMenuView extends TextRowsPopup implements PopupClavier {
 
-    /** Une action du menu : son libellé et ce qu'elle fait. */
-    public record Item(String label, Runnable action) {
+    /** Une action du menu : son libellé, son pictogramme propre
+     *  (null : l'action sans glyphe) et ce qu'elle fait — l'audit du
+     *  propriétaire du 2026-11-14 : chaque action porte SON icône,
+     *  jamais la même pour toutes. */
+    public record Item(String label, IconeAction picto, Runnable action) {
+
+        /** L'action sans glyphe — les hôtes qui ne posent pas
+         *  d'icône gardent leur rangée telle quelle. */
+        public Item(String label, Runnable action) {
+            this(label, null, action);
+        }
     }
 
     private List<Item> actions = List.of();
@@ -63,18 +72,15 @@ public final class IntentionsMenuView extends TextRowsPopup implements PopupClav
         rebatirRangees();
     }
 
-    /** Rebâtit les rangées : la section d'abord, les actions ensuite —
-     *  chaque action porte son ICÔNE (l'audit Android Studio : le menu
-     *  de l'IDE de référence iconise ses rangées, l'ampoule des
-     *  intentions la première — le glyphe jaune précède le libellé). */
+    /** Rebâtit les rangées : la section d'abord, les actions
+     *  ensuite — chacune son pictogramme quand l'hôte l'a posé. */
     private void rebatirRangees() {
         List<Row> rangees = new ArrayList<>(actions.size() + 1);
         if (section != null && !section.isEmpty()) {
             rangees.add(Row.section(section));
         }
         for (Item item : actions) {
-            rangees.add(Row.icone(IconeCarte.AMP, item.label(), -1,
-                    Tier.TITRE));
+            rangees.add(Row.action(item.label(), -1, item.picto()));
         }
         setRows(rangees);
     }

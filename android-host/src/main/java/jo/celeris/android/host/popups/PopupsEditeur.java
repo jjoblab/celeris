@@ -3,6 +3,7 @@ package jo.celeris.android.host.popups;
 import android.graphics.Rect;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import jo.celeris.android.host.R;
 import jo.celeris.android.host.spi.DiagnosticHote;
@@ -12,9 +13,7 @@ import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
 import jo.celeris.android.widgets.CompletionListView;
 import jo.celeris.android.widgets.IntentionsMenuView;
-import jo.celeris.android.widgets.MenuDebordement;
 import jo.celeris.android.widgets.NotificationView;
-import jo.celeris.android.widgets.PopupAnchor;
 import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupManager;
@@ -84,13 +83,13 @@ public final class PopupsEditeur {
     /** La fiche de diagnostic du lieu — le satellite la pose
      *  (l'audit Android Studio : les problèmes s'empilent). */
     private final InfoBulle infoBulle;
-    private final SelectionBarView barreSelection;
+    /** La barre de sélection et son débordement — le satellite les
+     *  pose (les actions y vivent vives, le menu y épargne le
+     *  caret, l'audit du propriétaire du 2026-11-14). */
+    private final BarreSelection barreSelection;
     /** Le bord droit de la couche — bande d'erreurs, minimap, pouce
      *  (le chrome y vit seul). */
     private final BordDroit bordDroit;
-    /** Le menu de débordement de la barre — sa carte propre sous la
-     *  puce. */
-    private final MenuDebordement menuDebordement;
     /** Le sélecteur de couleur — au double-tap d'un littéral. */
     private final SelecteurCouleur selecteurCouleur;
     /** Le fil d'Ariane — le chemin du plan qui englobe le curseur. */
@@ -138,9 +137,6 @@ public final class PopupsEditeur {
     /** Le plan du fichier ouvert — la hiérarchie y lit sa forme. */
     private List<OutlineEntry> plan = List.of();
     private List<IntentionsMenuView.Item> intentions = List.of();
-    private List<SelectionBarView.Item> actionsSelection = List.of();
-    /** Les actions repliées derrière la puce de débordement. */
-    private List<SelectionBarView.Item> debordementSelection = List.of();
     /** Le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     private String nomDuFichier = "";
     /** La session de langage branchée — null retombe sur le coach. */
@@ -193,15 +189,14 @@ public final class PopupsEditeur {
         carteIntentions = new CarteIntentions(editeur, popups, margePx, palette, () -> intentions);
         infoBulle = new InfoBulle(editeur, session, popups, margePx,
                 palette, this::diagnostics, this::nomVif, () -> intentions);
-        barreSelection = new SelectionBarView(couche.getContext(), palette);
+        barreSelection = new BarreSelection(editeur, session, popups,
+                palette, margePx,
+                couche.getContext().getString(R.string.menu_plus),
+                this::ouvrirSurvol);
         // le lien des genres : une carte par genre — le manager l'exige
         popups.lier(PopupController.PopupKind.COMPLETION_LIST, listeCompletion);
         popups.lier(PopupController.PopupKind.COMPLETION_DOC, docCompletion);
         popups.lier(PopupController.PopupKind.SIGNATURE_HELP, aideSignature);
-        popups.lier(PopupController.PopupKind.SELECTION_BAR, barreSelection);
-        // la section du débordement : le « MORE » du dépôt de départ
-        menuDebordement = new MenuDebordement(popups, palette, margePx,
-                couche.getContext().getString(R.string.menu_plus));
         selecteurCouleur = new SelecteurCouleur(editeur, session, popups, margePx, palette);
         filAriane = new FilAriane(popups, session, margePx, palette);
         notifications = new Notifications(popups, margePx, palette);
@@ -232,10 +227,6 @@ public final class PopupsEditeur {
      *  déleste, la lecture y reste d'un tenant. */
     private void brancherEcouteurs() {
         listeCompletion.setOnPick(this::choisirCompletion);
-        barreSelection.setOnOverflow(
-                () -> menuDebordement.ouvrir(barreSelection,
-                        debordementSelection));
-        barreSelection.setOnDocs(this::ouvrirSurvol);
         session.addEditListener((debut, fin, retire, insere) -> surEdition());
         session.addSelectionListener(this::surSelection);
         editeur.setSurViewportChange(this::surFenetre);
@@ -262,7 +253,7 @@ public final class PopupsEditeur {
         carteIntentions.surPalette(palette);
         infoBulle.surPalette(palette);
         bordDroit.surPalette(palette);
-        barreSelection.setPalette(palette);
+        barreSelection.surPalette(palette);
         selecteurCouleur.surPalette(palette);
         filAriane.surPalette(palette);
         notifications.surPalette(palette);
@@ -274,7 +265,6 @@ public final class PopupsEditeur {
         surete.surPalette(palette);
         masquage.surPalette(palette);
         exception.surPalette(palette);
-        menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
 
@@ -320,8 +310,28 @@ public final class PopupsEditeur {
     public void configurerActionsSelection(
             List<SelectionBarView.Item> principales,
             List<SelectionBarView.Item> debordement) {
-        actionsSelection = List.copyOf(principales);
-        debordementSelection = List.copyOf(debordement);
+        barreSelection.configurerActions(principales, debordement);
+    }
+
+    /** Les actions VIVES de la barre — relues à CHAQUE pose : Coller
+     * ne se propose que lorsque le presse-papiers est plein, l'option
+     * inutile ne se promène jamais sur la pilule (l'audit du
+     * 2026-11-14).
+     *
+     * @param principales le fournisseur des actions visibles
+     * @param debordement le fournisseur des actions repliées */
+    public void configurerActionsSelectionVives(
+            Supplier<List<SelectionBarView.Item>> principales,
+            Supplier<List<SelectionBarView.Item>> debordement) {
+        barreSelection.configurerActionsVives(principales, debordement);
+    }
+
+    /** Re-pose la barre ouverte — les actions vives se relisent : le
+     *  presse-papiers a changé, Coller se propose ou se retire. */
+    public void rafraichirBarreSelection() {
+        if (popups.estOuvert(PopupController.PopupKind.SELECTION_BAR)) {
+            barreSelection.rafraichir();
+        }
     }
 
     /** Ouvre le sélecteur de couleur au double-tap d'un littéral. */
@@ -513,7 +523,7 @@ public final class PopupsEditeur {
         // l'ampoule d'intentions suit le caret — la ligne courante
         // seule peut porter le petit icône de l'IDE de référence
         ampouleIntentions.surSelection(session, selection);
-        rafraichirBarreSelection(selection);
+        barreSelection.poser(selection);
         filAriane.rafraichir();
         if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {
             basculerCompletion();
@@ -529,27 +539,6 @@ public final class PopupsEditeur {
     private void surFenetre() {
         popups.surDefilement();
         repositionnerTout();
-    }
-
-    private void rafraichirBarreSelection(MultiSelection selection) {
-        List<SelRange> plages = selection.ranges();
-        boolean visible = plages.size() == 1 && !plages.get(0).isEmpty();
-        if (!visible) {
-            popups.fermer(PopupController.PopupKind.SELECTION_BAR);
-            return;
-        }
-        popups.controleur().open(PopupController.PopupKind.SELECTION_BAR);
-        barreSelection.setActions(actionsSelection, debordementSelection);
-        Rect sel = editeur.selectionBounds();
-        PopupPlacer.Cadre placee = PopupAnchor.centeredAboveSelection(
-                sel.left, sel.right, sel.top,
-                popups.taille(PopupController.PopupKind.SELECTION_BAR),
-                largeurCouche(), hauteurCouche(), margePx);
-        popups.montrer(PopupController.PopupKind.SELECTION_BAR,
-                placee.x(), placee.y());
-        if (popups.estOuvert(PopupController.PopupKind.SELECTION_OVERFLOW)) {
-            menuDebordement.ouvrir(barreSelection, debordementSelection);
-        }
     }
 
     private void placerCompletion() {
@@ -610,7 +599,7 @@ public final class PopupsEditeur {
         }
         bordDroit.rafraichir(largeurCouche(), hauteurCouche());
         if (popups.estOuvert(PopupController.PopupKind.SELECTION_BAR)) {
-            rafraichirBarreSelection(session.selection());
+            barreSelection.rafraichir();
         }
         if (popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU)) {
             carteIntentions.ouvrir();

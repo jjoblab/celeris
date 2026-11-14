@@ -104,11 +104,23 @@ final class AtelierTouchesCode {
     }
 
     /** Tab : le bloc touché gagne un cran — les lignes de la
-     *  sélection, le style du langage ouvert. */
+     *  sélection, le style du langage ouvert. Le plan se calcule à
+     *  l'atelier d'indentation — la touche et le débordement de la
+     *  barre de sélection y partagent le même moteur (jamais de
+     *  doublon de logique). */
     private void indenterBloc() {
-        Document doc = session.document();
-        MultiSelection selection = session.selection();
-        IndentStyle style = styleMaison();
+        appliquer(planIndentation(session.document(), session.selection(),
+                langue));
+    }
+
+    /** Le plan d'indentation du bloc touché — chaque ligne de la
+     *  sélection gagne un cran du style du langage ouvert, le
+     *  canonique quatre espaces tient sans langage. La touche Tab et
+     *  le débordement de la barre de sélection y lisent le même
+     *  calcul (l'atelier le partage, le geste seul diffère). */
+    static EditPlan planIndentation(Document doc,
+            MultiSelection selection, Supplier<LanguageSupport> langue) {
+        IndentStyle style = styleMaison(langue);
         String cran = style.indent(1);
         List<TextEdit> editions = new ArrayList<>();
         List<SelRange> apres = new ArrayList<>();
@@ -126,13 +138,14 @@ final class AtelierTouchesCode {
                     - (derniere - premiere + 1) * cran.length(),
                     plage.end() + delta));
         }
-        appliquer(new EditPlan(Transaction.of(editions),
-                MultiSelection.of(apres)));
+        return new EditPlan(Transaction.of(editions),
+                MultiSelection.of(apres));
     }
 
     /** Le style d'indentation du langage ouvert — la configuration y
      *  décide, le canonique quatre espaces tient sans langage. */
-    private IndentStyle styleMaison() {
+    private static IndentStyle styleMaison(
+            Supplier<LanguageSupport> langue) {
         LanguageSupport langueOuverte = langue.get();
         if (langueOuverte == null) {
             return IndentStyle.spaces(4);

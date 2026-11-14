@@ -54,13 +54,20 @@ public final class MenuDebordement {
     }
 
     /**
-     * Ouvre (ou ré-ancre) le menu sous la puce de la barre : les
-     * actions repliées y courent, le menu se referme sur le choix.
+     * Ouvre (ou ré-ancre) le menu sous la SÉLECTION, jamais sur elle
+     * — l'audit du propriétaire du 2026-11-14 : le menu ne marche pas
+     * sur le caret. La place manque au dessous ? le menu se repose
+     * AU-DESSUS DE LA BARRE — la bande de la sélection demeure à
+     * découvert dans les deux poses, les actions repliées y courent
+     * en rangées cliquables, le menu se referme sur le choix.
      *
-     * @param barre   la barre de sélection porteuse, déjà posée
-     * @param actions les actions repliées derrière la puce
+     * @param barre       la barre de sélection porteuse, déjà posée
+     * @param basSelection le bas du rectangle de la sélection, en
+     *                    pixels de couche — la pose du menu y épargne
+     *                    le caret
+     * @param actions     les actions repliées derrière la puce
      */
-    public void ouvrir(SelectionBarView barre,
+    public void ouvrir(SelectionBarView barre, int basSelection,
             List<SelectionBarView.Item> actions) {
         if (actions.isEmpty()) {
             return;
@@ -70,19 +77,21 @@ public final class MenuDebordement {
         carte.setSection(section);
         carte.setActions(items(actions));
         int x = barre.getLeft() + barre.ancrePuceDebordementX();
-        PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(x,
-                barre.getBottom(), taille(), coucheLargeur(),
+        PopupPlacer.Cadre placee = PopupAnchor.belowSelectionOrAboveBar(x,
+                basSelection, barre.getTop(), taille(), coucheLargeur(),
                 coucheHauteur(), margePx);
         popups.montrer(PopupController.PopupKind.SELECTION_OVERFLOW,
                 placee.x(), placee.y());
     }
 
-    /** Les items du menu : chaque action court APRÈS la fermeture du menu. */
+    /** Les items du menu : chaque action court APRÈS la fermeture du menu —
+     *  le pictogramme de l'action suit sa rangée. */
     private List<IntentionsMenuView.Item> items(
             List<SelectionBarView.Item> actions) {
         List<IntentionsMenuView.Item> items = new ArrayList<>(actions.size());
         for (SelectionBarView.Item item : actions) {
-            items.add(new IntentionsMenuView.Item(item.label(), () -> {
+            items.add(new IntentionsMenuView.Item(item.label(),
+                    item.picto(), () -> {
                 fermer();
                 item.action().run();
             }));

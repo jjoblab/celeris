@@ -2,6 +2,7 @@ package jo.celeris.demo;
 
 import android.view.MenuItem;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 import jo.celeris.android.host.popups.PopupsEditeur;
 import jo.celeris.android.widgets.BarreToolbar;
+import jo.celeris.android.widgets.IconeAction;
 import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 
@@ -166,86 +168,132 @@ final class CatalogueActions {
     }
 
     /** Les items du menu de débordement de la toolbar — les actions
-     *  repliées, dans l'ordre du menu d'avant redressement. */
+     *  repliées, dans l'ordre du menu d'avant redressement, chacune
+     *  portant SON pictogramme (l'audit du 2026-11-14 : jamais la
+     *  même icône pour toutes) : la moitié ÉDITION d'abord, la moitié
+     *  APPARENCE ensuite. */
     List<IntentionsMenuView.Item> itemsDebordement() {
+        List<IntentionsMenuView.Item> items = new ArrayList<>(edition());
+        items.addAll(apparence());
+        return items;
+    }
+
+    /** La moitié ÉDITION du débordement — complétion, intentions,
+     *  survol, usages, type, hiérarchie, aller à, documentation,
+     *  génération, suppression, déplacement, masquage, exécution,
+     *  lint, gabarit, formatage, renommage, prédiction. */
+    private List<IntentionsMenuView.Item> edition() {
         return List.of(
-                itemMenu(R.string.action_completion, R.id.action_completion),
-                itemMenu(R.string.action_intentions, R.id.action_intentions),
-                itemMenu(R.string.action_survol, R.id.action_survol),
-                itemMenu(R.string.action_usages, R.id.action_usages),
-                itemMenu(R.string.action_type_info, R.id.action_type_info),
-                itemMenu(R.string.action_hierarchie, R.id.action_hierarchie),
-                itemMenu(R.string.action_aller, R.id.action_aller),
-                itemMenu(R.string.action_doc, R.id.action_doc),
-                itemMenu(R.string.action_generer, R.id.action_generer),
-                itemMenu(R.string.action_supprimer_sur, R.id.action_supprimer_sur),
-                itemMenu(R.string.action_deplacer_dans, R.id.action_deplacer_dans),
+                itemMenu(R.string.action_completion, R.id.action_completion,
+                        IconeAction.COMPLETER),
+                itemMenu(R.string.action_intentions, R.id.action_intentions,
+                        IconeAction.INTENTIONS),
+                itemMenu(R.string.action_survol, R.id.action_survol,
+                        IconeAction.SURVOL),
+                itemMenu(R.string.action_usages, R.id.action_usages,
+                        IconeAction.USAGES),
+                itemMenu(R.string.action_type_info, R.id.action_type_info,
+                        IconeAction.TYPE_INFO),
+                itemMenu(R.string.action_hierarchie, R.id.action_hierarchie,
+                        IconeAction.HIERARCHIE),
+                itemMenu(R.string.action_aller, R.id.action_aller,
+                        IconeAction.ALLER_A),
+                itemMenu(R.string.action_doc, R.id.action_doc,
+                        IconeAction.DOC_EXTERNE),
+                itemMenu(R.string.action_generer, R.id.action_generer,
+                        IconeAction.GENERER),
+                itemMenu(R.string.action_supprimer_sur, R.id.action_supprimer_sur,
+                        IconeAction.SUPPRIMER),
+                itemMenu(R.string.action_deplacer_dans, R.id.action_deplacer_dans,
+                        IconeAction.DEPLACER),
                 itemMenu(R.string.action_masquer_inspection,
-                        R.id.action_masquer_inspection),
-                itemMenu(R.string.action_executer, R.id.action_executer),
-                itemMenu(R.string.action_lint, R.id.action_lint),
-                itemMenu(R.string.action_gabarit, R.id.action_gabarit),
-                itemMenu(R.string.action_formater, R.id.action_formater),
-                itemMenu(R.string.action_renommer, R.id.action_renommer),
+                        R.id.action_masquer_inspection, IconeAction.MASQUER),
+                itemMenu(R.string.action_executer, R.id.action_executer,
+                        IconeAction.EXECUTER),
+                itemMenu(R.string.action_lint, R.id.action_lint,
+                        IconeAction.LINT),
+                itemMenu(R.string.action_gabarit, R.id.action_gabarit,
+                        IconeAction.GABARIT),
+                itemMenu(R.string.action_formater, R.id.action_formater,
+                        IconeAction.FORMATER),
+                itemMenu(R.string.action_renommer, R.id.action_renommer,
+                        IconeAction.RENOMMER),
                 itemMenu(R.string.action_ia_prediction,
-                        R.id.action_ia_prediction),
-                itemMenu(R.string.action_annuler, R.id.action_annuler),
-                itemMenu(R.string.action_retablir, R.id.action_retablir),
+                        R.id.action_ia_prediction, IconeAction.IA_PREDICTION));
+    }
+
+    /** La moitié APPARENCE du débordement — annulation, rétablissement,
+     *  thème, taille du texte, réglages. */
+    private List<IntentionsMenuView.Item> apparence() {
+        return List.of(
+                itemMenu(R.string.action_annuler, R.id.action_annuler,
+                        IconeAction.ANNULER),
+                itemMenu(R.string.action_retablir, R.id.action_retablir,
+                        IconeAction.RETABLIR),
                 new IntentionsMenuView.Item(
                         activite.getString(R.string.choix_theme,
                                 basculeTheme.nomCourant()),
+                        IconeAction.THEME,
                         actionsMenu.get(R.id.action_theme)),
-                itemMenu(R.string.action_diminuer, R.id.action_diminuer),
-                itemMenu(R.string.action_agrandir, R.id.action_agrandir),
-                itemMenu(R.string.action_reglages, R.id.action_reglages));
+                itemMenu(R.string.action_diminuer, R.id.action_diminuer,
+                        IconeAction.DIMINUER),
+                itemMenu(R.string.action_agrandir, R.id.action_agrandir,
+                        IconeAction.AGRANDIR),
+                itemMenu(R.string.action_reglages, R.id.action_reglages,
+                        IconeAction.REGLAGES));
     }
 
     /** Un item de la carte : le libellé de la chaîne, l'action du menu
-     *  déjà branchée — le même canal, la carte seule change de peau. */
-    private IntentionsMenuView.Item itemMenu(int libelle, int id) {
-        return new IntentionsMenuView.Item(activite.getString(libelle),
+     *  déjà branchée, SON pictogramme — le même canal, la carte seule
+     *  change de peau. */
+    private IntentionsMenuView.Item itemMenu(int libelle, int id,
+            IconeAction picto) {
+        return new IntentionsMenuView.Item(activite.getString(libelle), picto,
                 actionsMenu.get(id));
     }
 
     /** Les intentions du menu : les actions de l'atelier au
-     *  curseur — le libellé lu par la voie courte. */
+     *  curseur — le libellé lu par la voie courte, chacune SON
+     *  pictogramme (l'ampoule vit à l'entrée du menu SEULEMENT,
+     *  l'icône de l'IDE de référence — jamais la même pour toutes). */
     List<IntentionsMenuView.Item> intentions() {
         return List.of(
                 new IntentionsMenuView.Item(libelle(R.string.action_lint),
-                        lint::analyser),
+                        IconeAction.LINT, lint::analyser),
                 new IntentionsMenuView.Item(libelle(R.string.action_apercu),
-                        () -> popups.docAncre().apercu(
+                        IconeAction.APERCU, () -> popups.docAncre().apercu(
                                 plan.get(), lignes.get())),
                 new IntentionsMenuView.Item(libelle(R.string.action_usages),
-                        popups::ouvrirUsages),
+                        IconeAction.USAGES, popups::ouvrirUsages),
                 new IntentionsMenuView.Item(libelle(R.string.action_type_info),
-                        popups::ouvrirTypeInfo),
+                        IconeAction.TYPE_INFO, popups::ouvrirTypeInfo),
                 new IntentionsMenuView.Item(libelle(R.string.action_hierarchie),
-                        popups::ouvrirHierarchie),
+                        IconeAction.HIERARCHIE, popups::ouvrirHierarchie),
                 new IntentionsMenuView.Item(libelle(R.string.action_doc),
-                        popups::ouvrirDocExterne),
+                        IconeAction.DOC_EXTERNE, popups::ouvrirDocExterne),
                 new IntentionsMenuView.Item(libelle(R.string.action_generer),
-                        popups::ouvrirGabarits),
+                        IconeAction.GENERER, popups::ouvrirGabarits),
                 new IntentionsMenuView.Item(libelle(R.string.action_supprimer_sur),
-                        popups::supprimerSur),
+                        IconeAction.SUPPRIMER, popups::supprimerSur),
                 new IntentionsMenuView.Item(libelle(R.string.action_deplacer_dans),
-                        popups::deplacerDans),
+                        IconeAction.DEPLACER, popups::deplacerDans),
                 new IntentionsMenuView.Item(
                         libelle(R.string.action_masquer_inspection),
-                        popups::masquerInspection),
+                        IconeAction.MASQUER, popups::masquerInspection),
                 new IntentionsMenuView.Item(libelle(R.string.action_executer),
-                        popups::executerFichier),
+                        IconeAction.EXECUTER, popups::executerFichier),
                 new IntentionsMenuView.Item(libelle(R.string.action_diff),
-                        diff::ouvrir),
+                        IconeAction.DIFF, diff::ouvrir),
                 new IntentionsMenuView.Item(
                         libelle(R.string.action_apercu_correctif),
-                        correctif::ouvrir),
+                        IconeAction.CORRECTIF, correctif::ouvrir),
                 new IntentionsMenuView.Item(libelle(R.string.action_agent),
-                        agent::ouvrir),
+                        IconeAction.AGENT, agent::ouvrir),
                 new IntentionsMenuView.Item(libelle(R.string.action_ia_fantome),
-                        () -> ia.demanderFantome()),
+                        IconeAction.IA_FANTOME, () -> ia.demanderFantome()),
                 new IntentionsMenuView.Item(
                         libelle(R.string.action_ia_prediction),
+                        IconeAction.IA_PREDICTION,
                         () -> ia.demanderPrediction()));
     }
 

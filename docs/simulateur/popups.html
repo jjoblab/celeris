@@ -186,6 +186,16 @@
     height: 13px; margin-right: 6px; vertical-align: -0.1em; }
   .rg-icone svg { display: block; }
 
+  /* le pictogramme PROPRE d'une action — chaque action SON glyphe,
+     jamais la même pour toutes (l'audit du 2026-11-14) */
+  .icone { display: inline-flex; width: 14px; height: 14px;
+    margin-right: 6px; flex: none; vertical-align: -2px;
+    color: var(--pp-texte); opacity: .75; }
+  .icone svg { width: 100%; height: 100%; }
+  .icone .glyphe { font-size: 11px; font-weight: 700;
+    line-height: 14px; letter-spacing: -0.5px; }
+  .pastille { display: inline-flex; align-items: center; gap: 5px; }
+
   /* la sélection (glissée) */
   .calque-selection { position: absolute; background: color-mix(in srgb,
     var(--page-accent) 30%, transparent); z-index: 2; pointer-events: none;
@@ -941,6 +951,72 @@ const GLYPHE_AMPOULE =
   '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.3 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/>' +
   '<path d="M9 18h6"/><path d="M10 22h4"/></svg>';
 
+const SVG = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICONES = {
+  couper: SVG(`<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 7.9 20 20M8.1 16.1 20 4"/>`),
+  copier: SVG(`<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>`),
+  coller: SVG(`<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/>`),
+  tout: SVG(`<path d="M3 8V5a2 2 0 0 1 2-2h3M3 16v3a2 2 0 0 0 2 2h3M21 8V5a2 2 0 0 0-2-2h-3M21 16v3a2 2 0 0 1-2 2h-3"/>`),
+  dupliquer: SVG(`<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/><path d="M15 16v4M13 18h4"/>`),
+  commenter: `<span class="glyphe">//</span>`,
+  majuscules: `<span class="glyphe">AA</span>`,
+  minuscules: `<span class="glyphe">aa</span>`,
+  indenter: SVG(`<path d="m3 8 4 4-4 4M10 8h11M10 16h11"/>`),
+  completer: SVG(`<path d="M12 4v16M8 4h8M8 20h8M16 9h5M16 15h5"/>`),
+  intentions: SVG(`<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6.8 6.8 0 0 0 4 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/>`),
+  survol: SVG(`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>`),
+  apercu: SVG(`<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><path d="M9 15l6-6M11 9h4v4"/>`),
+  usages: SVG(`<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="1"/>`),
+  type: SVG(`<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>`),
+  hierarchie: SVG(`<circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><path d="M6 8v8M18 8v2a4 4 0 0 1-4 4H6"/>`),
+  aller: SVG(`<path d="M9 10 4 15l5 5M20 4v7a4 4 0 0 1-4 4H4"/>`),
+  doc: SVG(`<path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/>`),
+  generer: SVG(`<path d="m3 21 18-18M9 6l2 2M15 3l1 4M18 6l4 1"/>`),
+  supprimer: SVG(`<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/>`),
+  deplacer: SVG(`<path d="M12 2v20M2 12h20M12 2 9 5M12 2l3 3M12 22l-3-3M12 22l3-3M2 12l3-3M2 12l3 3M22 12l-3-3M22 12l-3 3"/>`),
+  masquer: SVG(`<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><path d="m2 2 20 20"/><circle cx="12" cy="12" r="3"/>`),
+  executer: SVG(`<path d="M6 4l14 8-14 8z"/>`),
+  lint: SVG(`<circle cx="12" cy="13" r="5"/><path d="M12 8V5M9 8 7 5M15 8l2-3M5 13H2M22 13h-3M5 18l-3 2M19 18l3 2"/>`),
+  gabarit: SVG(`<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M12 13v6M9 16h6"/>`),
+  formater: SVG(`<path d="M3 6h18M3 12h12M3 18h18"/>`),
+  renommer: SVG(`<path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>`),
+  prediction: SVG(`<path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>`),
+  annuler: SVG(`<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>`),
+  retablir: SVG(`<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/>`),
+  theme: SVG(`<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>`),
+  diminuer: `<span class="glyphe">A-</span>`,
+  agrandir: `<span class="glyphe">A+</span>`,
+  reglages: SVG(`<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>`),
+  diff: SVG(`<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/><path d="M11 12h2"/>`),
+  correctif: SVG(`<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>`),
+  agent: SVG(`<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/>`),
+  fantome: SVG(`<path d="M12 3l1.9 5.8L19.7 10.7 13.9 12.6 12 18.4 10.1 12.6 4.3 10.7 10.1 8.8z"/>`),
+  importer: SVG(`<path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7l8.7 5 8.7-5M12 22V12"/>`),
+  recherche: SVG(`<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>`),
+  /* les pictogrammes propres des gabarits — marteau, clé, balance,
+     accolades, fourche (chaque gabarit SON glyphe) */
+  constructeur: SVG(`<path d="m14 4 6 6-2 2-6-6zM4 20l1-5L15.5 4.5a2.1 2.1 0 0 1 3 3L8 18.5zM6 18l2 2"/>`),
+  accesseurs: SVG(`<circle cx="7.5" cy="15.5" r="4"/><path d="m10.3 12.7 9-9M15 8l2 2M18 5l2 2"/>`),
+  egalite: SVG(`<path d="M12 3v18M5 7h14M5 12h9M5 17h14"/>`),
+  entourerTry: SVG(`<path d="M8 3H7a2 2 0 0 0-2 2v5c0 1-1 2-2 2 1 0 2 1 2 2v5a2 2 0 0 0 2 2h1M16 3h1a2 2 0 0 1 2 2v5c0 1 1 2 2 2-1 0-2 1-2 2v5a2 2 0 0 1-2 2h-1"/>`),
+  entourerSi: SVG(`<circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9"/>`)
+};
+
+
+/* le DOM du pictogramme d'une rangée ou d'une pastille. */
+function iconeDOM(nom) {
+  if (!nom || !ICONES[nom]) return null;
+  const span = document.createElement("span");
+  span.className = "icone";
+  span.innerHTML = ICONES[nom];
+  return span;
+}
+
+/* l'HTML du pictogramme d'une rangée — à l'encre du texte, respiré. */
+function iconeRangee(nom) {
+  if (!nom || !ICONES[nom]) return "";
+  return `<span class="icone">${ICONES[nom]}</span>`;
+}
 /* la gouttière d'une ligne — les marqueurs de diagnostic (« × » erreur,
    « ! » avertissement) et l'AMPOULE d'intentions qui PRIME sur le point
    d'erreur de la ligne du caret (le comportement de l'IDE de
@@ -1305,13 +1381,20 @@ const Ancres = {
   /* le débordement de la toolbar : pendue sous la puce, tête de scène */
   sousPuceToolbar: (w, h) => ({
     left: Math.max(MARGE, scene.clientWidth - 76 - MARGE - w), top: MARGE }),
-  /* le débordement de la barre : pendue sous la puce « ⋯ » */
+  /* le débordement de la barre : sous la SÉLECTION si la place y
+     tient, AU-DESSUS de la barre sinon — le menu ne marche jamais
+     sur le caret (l'audit du propriétaire du 2026-11-14) */
   sousPuceBarre: (w, h) => {
     const barre = vues.get("SELECTION_BAR");
     if (barre) {
       const x = barre.el.offsetLeft + barre.el.offsetWidth - 30;
+      const s = selection || { l1: caret.l, c1: caret.c, l2: caret.l, c2: caret.c };
+      const bas = 10 + (s.l2 + 1) * LH - defilement * LH;
+      if (bas + h <= scene.clientHeight - MARGE) {
+        return { left: borneGauche(x, w), top: bas };
+      }
       return { left: borneGauche(x, w),
-        top: Math.min(scene.clientHeight - MARGE - h, barre.el.offsetTop + barre.el.offsetHeight + 4) };
+        top: Math.max(MARGE, barre.el.offsetTop - MARGE - h) };
     }
     return Ancres.belowOrAboveCaret(w, h);
   }
@@ -1331,12 +1414,11 @@ function rangeeDOM(r) {
     + (r.teintee ? " teintee" : "")
     + (r.prenable ? " prenable" : "");
   if (r.retrait) div.style.paddingLeft = r.retrait * 8 + "px";
-  /* l'icône de rangée (IconeCarte) — le glyphe vectoriel précède le
-     texte, à son encre sémantique (l'ampoule des intentions y vit à
-     l'encre d'avertissement, comme le menu Alt+Enter de l'IDE) */
-  const glyphe = r.icone === "amp"
-    ? `<span class="rg-icone" style="color: var(--pp-avert)">${GLYPHE_AMPOULE}</span>`
-    : "";
+  /* le pictogramme PROPRE de la rangée (l'audit du propriétaire du
+     2026-11-14 : « tu as utilisé la même icône pour tout ») — chaque
+     action SON glyphe, jamais la même pour toutes ; l'ampoule vit à
+     l'entrée du menu SEULEMENT, l'icône de l'IDE de référence */
+  const glyphe = r.icone ? iconeRangee(r.icone) : "";
   div.innerHTML = `${glyphe}<span class="en-${r.encre || "texte"}">${echappe(r.texte)}</span>`;
   if (r.prenable && r.action) {
     div.addEventListener("click", ev => { ev.stopPropagation(); r.action(); });
@@ -2403,20 +2485,35 @@ function poserBarreSelection() {
   const el = document.createElement("div");
   el.className = "carte barre-selection";
   el.style.padding = "0 4px";
-  const pastille = (libelle, geste) => {
+  /* chaque pastille porte SON pictogramme (l'audit du 2026-11-14) et
+     COLLER ne se pose que lorsque le presse-papiers est plein —
+     l'option inutile ne se promène jamais sur la pilule */
+  const pastille = (libelle, icone, geste) => {
     const b = document.createElement("button");
-    b.className = "pastille"; b.textContent = libelle;
+    b.className = "pastille";
+    const p = iconeDOM(icone);
+    if (p) b.appendChild(p);
+    b.appendChild(document.createTextNode(libelle));
     b.addEventListener("click", ev => { ev.stopPropagation(); geste(); });
     return b;
   };
-  el.appendChild(pastille("Couper", () => {
-    const t = texteSelection();
-    pressePapiers = t;
+  el.appendChild(pastille("Couper", "couper", () => {
+    pressePapiers = texteSelection();
     effacerSelection();
   }));
-  el.appendChild(pastille("Copier", () => { pressePapiers = texteSelection(); }));
-  el.appendChild(pastille("Coller", () => {
-    if (pressePapiers) { effacerSelection(); insererTexte(pressePapiers); }
+  el.appendChild(pastille("Copier", "copier", () => {
+    pressePapiers = texteSelection();
+    poserBarreSelection();
+  }));
+  if (pressePapiers) {
+    el.appendChild(pastille("Coller", "coller", () => {
+      if (pressePapiers) { effacerSelection(); insererTexte(pressePapiers); }
+    }));
+  }
+  el.appendChild(pastille("Tout", "tout", () => {
+    selection = { l1: 0, c1: 0, l2: lignes.length - 1,
+      c2: lignes[lignes.length - 1].length };
+    renderSelection(); poserBarreSelection();
   }));
   const filet = document.createElement("div");
   filet.className = "filet-vertical";
@@ -2468,10 +2565,26 @@ function effacerSelection() {
   rafraichirFilAriane();
 }
 function ouvrirDebordementBarre() {
+  /* le débordement enrichi (l'audit du 2026-11-14) : commenter, casse,
+     indentation, duplication — chaque rangée SON pictogramme, jamais
+     la même pour toutes */
   const rangees = [{ texte: "PLUS", tier: "micro", section: true },
-    { texte: "Dupliquer", tier: "titre", prenable: true,
+    { texte: "Commenter", icone: "commenter", tier: "titre",
+      prenable: true,
+      action: () => { fermer("SELECTION_OVERFLOW"); commenterLigne(); } },
+    { texte: "Majuscules", icone: "majuscules", tier: "titre",
+      prenable: true,
+      action: () => { fermer("SELECTION_OVERFLOW"); casserSelection(true); } },
+    { texte: "Minuscules", icone: "minuscules", tier: "titre",
+      prenable: true,
+      action: () => { fermer("SELECTION_OVERFLOW"); casserSelection(false); } },
+    { texte: "Indenter", icone: "indenter", tier: "titre",
+      prenable: true,
+      action: () => { fermer("SELECTION_OVERFLOW"); indenterSelection(); } },
+    { texte: "Dupliquer", icone: "dupliquer", tier: "titre", prenable: true,
       action: () => { fermer("SELECTION_OVERFLOW"); dupliquerLigne(); } },
-    { texte: "Tout sélectionner", tier: "titre", prenable: true,
+    { texte: "Tout sélectionner", icone: "tout", tier: "titre",
+      prenable: true,
       action: () => {
         fermer("SELECTION_OVERFLOW");
         selection = { l1: 0, c1: 0, l2: lignes.length - 1,
@@ -2482,82 +2595,101 @@ function ouvrirDebordementBarre() {
     fiche: "debordement_barre" });
 }
 
+/* la casse des lignes de la sélection — un geste la défait. */
+function casserSelection(haut) {
+  if (!selection) return;
+  pousserAnnulation();
+  for (let l = selection.l1; l <= selection.l2; l++) {
+    lignes[l] = haut ? lignes[l].toUpperCase() : lignes[l].toLowerCase();
+  }
+  rafraichirTout();
+}
+
+/* l'indentation des lignes de la sélection — le cran canonique. */
+function indenterSelection() {
+  if (!selection) return;
+  pousserAnnulation();
+  for (let l = selection.l1; l <= selection.l2; l++) {
+    lignes[l] = "    " + lignes[l];
+  }
+  rafraichirTout();
+}
+
 /* =====================================================================
    26. LES MENUS — intentions au caret et débordement de la toolbar
    ===================================================================== */
 function ouvrirIntentions() {
   const rangees = [
-    { texte: "Analyser (lint)", tier: "titre", prenable: true,
+    { texte: "Analyser (lint)", icone: "lint", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU");
         notifier("Avis", `Lint : ${diagnostics().length} problème(s)`); } },
-    { texte: "Aperçu de définition", tier: "titre", prenable: true,
+    { texte: "Aperçu de définition", icone: "apercu", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirApercu(); } },
-    { texte: "Rechercher les usages", tier: "titre", prenable: true,
+    { texte: "Rechercher les usages", icone: "usages", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirUsages(); } },
-    { texte: "Info de type au curseur", tier: "titre", prenable: true,
+    { texte: "Info de type au curseur", icone: "type", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirTypeInfo(); } },
-    { texte: "Hiérarchie de types ou d'appels", tier: "titre", prenable: true,
+    { texte: "Hiérarchie de types ou d'appels", icone: "hierarchie", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirHierarchie(); } },
-    { texte: "Documentation externe", tier: "titre", prenable: true,
+    { texte: "Documentation externe", icone: "doc", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirDocExterne(); } },
-    { texte: "Générer du code", tier: "titre", prenable: true,
+    { texte: "Générer du code", icone: "generer", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirGabarits(); } },
-    { texte: "Suppression sûre de la déclaration", tier: "titre", prenable: true,
+    { texte: "Suppression sûre de la déclaration", icone: "supprimer", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); supprimerSur(); } },
-    { texte: "Déplacer la méthode dans une classe", tier: "titre", prenable: true,
+    { texte: "Déplacer la méthode dans une classe", icone: "deplacer", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); deplacerDans(); } },
-    { texte: "Masquer l'inspection de la ligne", tier: "titre", prenable: true,
+    { texte: "Masquer l'inspection de la ligne", icone: "masquer", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); masquerInspection(); } },
-    { texte: "Exécuter le fichier (simulé)", tier: "titre", prenable: true,
+    { texte: "Exécuter le fichier (simulé)", icone: "executer", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); executerFichier(); } },
-    { texte: "Revue du diff", tier: "titre", prenable: true,
+    { texte: "Revue du diff", icone: "diff", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirFeuilleDiff(); } },
-    { texte: "Aperçu du correctif", tier: "titre", prenable: true,
+    { texte: "Aperçu du correctif", icone: "correctif", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirFeuilleCorrectif(); } },
-    { texte: "Revue des modifications d'agent", tier: "titre", prenable: true,
+    { texte: "Revue des modifications d'agent", icone: "agent", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirFeuilleAgent(); } },
-    { texte: "IA : suggérer une complétion", tier: "titre", prenable: true,
+    { texte: "IA : suggérer une complétion", icone: "fantome", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); demanderFantome(); } },
-    { texte: "IA : prédire la prochaine édition", tier: "titre", prenable: true,
+    { texte: "IA : prédire la prochaine édition", icone: "prediction", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirFeuillePrediction(); } }
   ];
-  /* chaque intention porte son icône d'ampoule (IconeCarte.AMP — le
-     menu Alt+Enter de l'IDE iconise ses rangées) */
-  rangees.forEach(r => { r.icone = "amp"; });
   poserCarte("INTENTIONS_MENU", { rangees, ancre: Ancres.belowOrAboveCaret,
     fiche: "intentions" });
 }
 function ouvrirDebordementToolbar() {
   const items = [
-    ["Compléter le mot", () => ouvrirCompletion()],
-    ["Intentions au curseur", () => ouvrirIntentions()],
-    ["Survoler le symbole", () => ouvrirSurvol()],
-    ["Rechercher les usages", () => ouvrirUsages()],
-    ["Info de type au curseur", () => ouvrirTypeInfo()],
-    ["Hiérarchie de types ou d'appels", () => ouvrirHierarchie()],
-    ["Aller à un fichier ou symbole", () => ouvrirFeuilleAller()],
-    ["Documentation externe", () => ouvrirDocExterne()],
-    ["Générer du code", () => ouvrirGabarits()],
-    ["Suppression sûre de la déclaration", () => supprimerSur()],
-    ["Déplacer la méthode dans une classe", () => deplacerDans()],
-    ["Masquer l'inspection de la ligne", () => masquerInspection()],
-    ["Exécuter le fichier (simulé)", () => executerFichier()],
-    ["Analyser (lint)", () => notifier("Avis", `Lint : ${diagnostics().length} problème(s)`)],
-    ["Insérer le gabarit de méthode", () => insererGabaritMethode()],
-    ["Formater le document", () => notifier("Avis", "Format : déjà en forme")],
-    ["Renommer le symbole", () => ouvrirFeuilleRenommer()],
-    ["IA : prédire la prochaine édition", () => ouvrirFeuillePrediction()],
-    ["Annuler", () => annuler()],
-    ["Rétablir", () => retablir()],
+    ["Compléter le mot", "completer", () => ouvrirCompletion()],
+    ["Intentions au curseur", "intentions", () => ouvrirIntentions()],
+    ["Survoler le symbole", "survol", () => ouvrirSurvol()],
+    ["Rechercher les usages", "usages", () => ouvrirUsages()],
+    ["Info de type au curseur", "type", () => ouvrirTypeInfo()],
+    ["Hiérarchie de types ou d'appels", "hierarchie", () => ouvrirHierarchie()],
+    ["Aller à un fichier ou symbole", "aller", () => ouvrirFeuilleAller()],
+    ["Documentation externe", "doc", () => ouvrirDocExterne()],
+    ["Générer du code", "generer", () => ouvrirGabarits()],
+    ["Suppression sûre de la déclaration", "supprimer", () => supprimerSur()],
+    ["Déplacer la méthode dans une classe", "deplacer", () => deplacerDans()],
+    ["Masquer l'inspection de la ligne", "masquer", () => masquerInspection()],
+    ["Exécuter le fichier (simulé)", "executer", () => executerFichier()],
+    ["Analyser (lint)", "lint", () => notifier("Avis", `Lint : ${diagnostics().length} problème(s)`)],
+    ["Insérer le gabarit de méthode", "gabarit", () => insererGabaritMethode()],
+    ["Formater le document", "formater", () => notifier("Avis", "Format : déjà en forme")],
+    ["Renommer le symbole", "renommer", () => ouvrirFeuilleRenommer()],
+    ["IA : prédire la prochaine édition", "prediction", () => ouvrirFeuillePrediction()],
+    ["Annuler", "annuler", () => annuler()],
+    ["Rétablir", "retablir", () => retablir()],
     [`Thème : ${document.documentElement.dataset.theme === "sombre" ? "Sombre" : "Clair"}`,
-      () => basculerTheme()],
-    ["Réduire le texte", () => zoomerPolice(-2)],
-    ["Agrandir le texte", () => zoomerPolice(2)],
-    ["Réglages", () => ouvrirFeuilleReglages()]
+      "theme", () => basculerTheme()],
+    ["Réduire le texte", "diminuer", () => zoomerPolice(-2)],
+    ["Agrandir le texte", "agrandir", () => zoomerPolice(2)],
+    ["Réglages", "reglages", () => ouvrirFeuilleReglages()]
   ];
+  /* chaque action repliée porte SON pictogramme — jamais la même
+     pour toutes (l'audit du 2026-11-14) */
   const rangees = [{ texte: "PLUS", tier: "micro", section: true }];
-  items.forEach(([libelle, geste]) => rangees.push({
-    texte: libelle, tier: "titre", prenable: true,
+  items.forEach(([libelle, icone, geste]) => rangees.push({
+    texte: libelle, icone, tier: "titre", prenable: true,
     action: () => { fermer("TOOLBAR_OVERFLOW"); geste(); } }));
   poserCarte("TOOLBAR_OVERFLOW", { rangees, ancre: Ancres.sousPuceToolbar,
     fiche: "toolbar" });
@@ -3370,23 +3502,23 @@ const FICHES = {
     cat: "Édition · pilule au-dessus de la sélection",
     quand: "La sélection non vide — le glissement dans l'éditeur ou le double-clic d'un mot la fait naître.",
     comment: ["Glissez dans l'éditeur : la pilule se pose AU-DESSUS de la sélection, centrée.",
-      "Les pastilles (Couper, Copier, Coller), le « i » cerclé (survol de la documentation du mot), la puce « ⋯ » (débordement).",
-      "La frappe la referme (la frappe remplace la sélection) ; elle survit au défilement en se repositionnant."],
-    sections: ["La pilule : pastilles texte + filet vertical + « i » + « ⋯ » ; la cascade d'entrée anime les pastilles."],
+      "Les pastilles portent CHACUNE son pictogramme (ciseaux, pages, presse-papiers, cadre) — COLLER ne se pose que lorsque le presse-papiers est PLEIN : l'option inutile ne se promène jamais sur la pilule (l'audit du 2026-11-14) ; le « i » cerclé survole la documentation, la puce « ⋯ » sert le débordement.",
+      "La frappe la referme (la frappe remplace la sélection) ; elle survit au défilement en se repositionnant ; Copier la RE-POSE — Coller vient de se proposer."],
+    sections: ["La pilule : pastilles iconées + filet vertical + « i » + « ⋯ » ; la cascade d'entrée anime les pastilles."],
     regimes: { "Frappe": "referme", "Défilement": "se repositionne",
       "Tap hors cartes": "épargnée", "Échap": "épargnée" },
-    api: "popups.configurerActionsSelection(principales, debordement);",
+    api: "popups.configurerActionsSelectionVives(principalesVives, debordementVives);",
     note: "Son menu de débordement ne survit JAMAIS à sa barre — la barre fermée l'emporte (cascade)."
   },
   "debordement_barre": {
     titre: "Débordement de la barre", genre: "SELECTION_OVERFLOW",
-    cat: "Édition · carte pendue sous la puce « ⋯ »",
+    cat: "Édition · carte sous la sélection, au-dessus de la barre si la place manque",
     quand: "La puce « ⋯ » de la barre de sélection.",
-    comment: ["La carte pend SOUS la puce, jamais au texte ; chaque action court APRÈS la fermeture du menu."],
-    sections: ["La section « PLUS » ; les actions repliées de l'hôte (Dupliquer, Tout sélectionner…)."],
+    comment: ["Le menu se pose SOUS LA SÉLECTION — jamais sur le caret ; la place manque ? il se retire AU-DESSUS de la barre (l'audit du 2026-11-14) ; chaque action court APRÈS la fermeture du menu."],
+    sections: ["La section « PLUS » ; le débordement enrichi : Commenter, Majuscules, Minuscules, Indenter, Dupliquer, Tout sélectionner — chaque rangée SON pictogramme."],
     regimes: { "Frappe": "suit sa barre", "Défilement": "suit sa barre",
       "Tap hors cartes": "referme", "Échap": "referme" },
-    api: "popups.configurerActionsSelection(principales, debordement);",
+    api: "popups.configurerActionsSelectionVives(principalesVives, debordementVives);",
     note: "N'existe pas sans sa barre — l'invariant du contrôleur."
   },
   "intentions": {
