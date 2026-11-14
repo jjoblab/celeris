@@ -118,12 +118,22 @@ voile : le manager tient l'état ET les cartes d'un seul tenant).
 | Sélecteur de couleur | `COLOR_PICKER` | double-tap d'un littéral | littéral survolé |
 | Notification | `NOTIFICATION` | demande de l'hôte, horloge 4 s | hôte |
 | Débordement de la barre d'application | `TOOLBAR_OVERFLOW` | puce de la toolbar | hôte |
+| Carte des usages | `REFERENCES` | action au curseur | usages du symbole, saut au point |
+| Info de type | `TYPE_INFO` | survol du symbole | type lu à la déclaration |
+| Hiérarchie | `HIERARCHY` | action au curseur | moteurs de types et d'appels |
+| Documentation externe | `EXTERNAL_DOC` | action au curseur | documentation du symbole hors complétion |
+| Carte de génération | `GABARITS` | action au caret | champs réels de la classe englobante |
+| Suppression sûre | `SAFE_DELETE` | action au curseur | verdicts du moteur de sûreté |
+| Déplacement sûr | `SAFE_MOVE` | action au curseur | types candidats au déménagement |
+| Masquage d'inspection | `SUPPRESS_INSPECTION` | action au caret | diagnostics réglés de la ligne |
+| Détails d'exception | `EXCEPTION_DETAILS` | l'échec d'exécution | trace réelle du document |
 
 Les surfaces denses — recherche, plan, réglages, diff, correctifs,
-révocations IA — vivent en **feuilles** modales (`FeuilleBas`,
+révocations IA, aller à fichier/symbole (`FeuilleAller`, recherche
+floue) — vivent en **feuilles** modales (`FeuilleBas`,
 `FeuilleHaut`). Le guide complet (clavier délégué, régimes, composition à
 la main) vit dans [`USAGE.md`](USAGE.md) § 9 ; l'inventaire exhaustif,
-fiche par fiche, dans [`POPUP_INVENTORY.md`](POPUP_INVENTORY.md).
+fiche par fiche, dans [`docs/POPUP_INVENTORY.md`](docs/POPUP_INVENTORY.md).
 
 ## Vie privée
 
