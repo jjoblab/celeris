@@ -20,7 +20,6 @@ import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
-import jo.celeris.android.widgets.PopupTokens;
 import jo.celeris.android.widgets.SelectionBarView;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.android.widgets.SignatureHelpView;
@@ -120,6 +119,8 @@ public final class PopupsEditeur {
     private final ExceptionCarte exception;
     /** La carte des réglages — la table centrale s'y bascule. */
     private final Reglages reglages;
+    /** Le repositionneur des surfaces ouvertes — l'avis de fenêtre. */
+    private final Repositionneur repositionneur;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -203,16 +204,29 @@ public final class PopupsEditeur {
         masquage = new Masquage(editeur, session, popups, margePx, palette,
                 this::diagnostics, this::nomVif, () -> relanceLint,
                 notifications::notifier);
-        exception = new ExceptionCarte(editeur, session, popups, margePx,
-                palette, this::planVif, this::nomVif, notifications::notifier);
         reglages = new Reglages(editeur, popups, margePx, palette);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
         ampouleIntentions = new AmpouleIntentions(editeur, carteIntentions, this::diagnostics);
         indicesInlay = new IndicesInlay(editeur, session.document());
+        exception = new ExceptionCarte(editeur, session, popups, margePx,
+                palette, this::planVif, this::nomVif, notifications::notifier);
+        repositionneur = monterRepositionneur();
         brancherEcouteurs();
     }
 
+
+    /** Monte le repositionneur de l'avis de fenêtre — les surfaces
+     *  ouvertes s'y re-posent, la consultation y suit toujours. */
+    private Repositionneur monterRepositionneur() {
+        return new Repositionneur(popups, this::placerCompletion,
+                filAriane::rafraichir, () -> bordDroit.rafraichirBande(
+                        diagnostics, nomDuFichier, largeurCouche(),
+                        hauteurCouche()), barreSelection::rafraichir,
+                carteIntentions::ouvrir, List.of(docExterne::repositionner,
+                        gabarits::repositionner, surete::repositionner,
+                        masquage::repositionner, exception::repositionner));
+    }
 
     /** Les écouteurs de la scène : les vues y préviennent, la session
      *  et l'éditeur y répondent — le montage du constructeur s'y
@@ -382,7 +396,7 @@ public final class PopupsEditeur {
      *  le premier (sa réponse devient les candidats typés), sinon les
      *  mots du code et le coach — sans candidat, la liste se ferme. */
     public void basculerCompletion() {
-        if (serveur != null && serveur.sertCompletion()) {
+        if (ContenuPopups.leServeurPassePremier(serveur)) {
             serveur.completion(uriDocument, session.document(), caret())
                     .whenComplete((reponse, echec) -> editeur.post(
                             () -> poserCompletion(
@@ -390,6 +404,12 @@ public final class PopupsEditeur {
                                     ContenuPopups.docDe(reponse, 0))));
             return;
         }
+        poserRepliLocal();
+    }
+
+    /** Le repli local de la complétion : les mots du code et les
+     *  tables du coach — sans candidat, la liste se referme. */
+    private void poserRepliLocal() {
         List<String> bruts = editeur.intelligence()
                 .completionCandidates(coach.motsReserves());
         if (bruts.isEmpty()) {
@@ -488,19 +508,15 @@ public final class PopupsEditeur {
         if (serveur != null) {
             serveur.synchroniser(uriDocument, session.document().text());
         }
-        if (acceptationEnCours) {
-            // l'édition de l'acceptation ne rouvre pas la liste : le
-            // candidat retenu ne se repropose pas
-            acceptationEnCours = false;
-        } else if (editeur.reglages().ouverte(
-                ReglagesEditeur.Porte.COMPLETION_AUTO)
-                && ContenuPopups.doitOuvrirALaFrappe(session.document(),
-                        caret())) {
-            // la complétion se propose à la FRAPPE, comme tout éditeur ;
-            // déjà ouverte, la même voie filtre sans refermer — la
-            // PORTE des réglages peut la rendre silencieuse (l'audit du
-            // 2026-11-14 : « activer, désactiver certaines
-            // fonctionnalités »)
+        boolean acceptation = acceptationEnCours;
+        acceptationEnCours = false;
+        // la décision vit en pur chez ContenuPopups : la PORTE des
+        // réglages peut rendre la complétion silencieuse, l'acceptation
+        // ne repropose rien, la frappe propose comme tout éditeur
+        if (ContenuPopups.doitProposerApresEdition(
+                editeur.reglages().ouverte(
+                        ReglagesEditeur.Porte.COMPLETION_AUTO),
+                acceptation, session.document(), caret())) {
             basculerCompletion();
         } else {
             // le blanc et la ponctuation referment la liste — fermer
@@ -516,19 +532,10 @@ public final class PopupsEditeur {
     private void surSelection(MultiSelection selection) {
         boolean apresFrappe = frappeEnCours;
         frappeEnCours = false;
-        // l'ampoule d'intentions suit le caret — la ligne courante
-        // seule peut porter le petit icône de l'IDE de référence ; la
-        // PORTE des réglations peut l'éteindre
-        if (editeur.reglages().ouverte(
-                ReglagesEditeur.Porte.AMPOULE_INTENTIONS)) {
-            ampouleIntentions.surSelection(session, selection);
-        }
-        // la barre de sélection vit derrière sa porte — fermée, la
-        // sélection vit à découvert
-        if (editeur.reglages().ouverte(
-                ReglagesEditeur.Porte.BARRE_SELECTION)) {
-            barreSelection.poser(selection);
-        }
+        // l'ampoule et la barre suivent le caret — leurs satellites
+        // relisent leurs PORTES des réglages (la table centrale décide)
+        ampouleIntentions.surSelection(session, selection);
+        barreSelection.poser(selection);
         filAriane.rafraichir();
         if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {
             basculerCompletion();
@@ -548,23 +555,13 @@ public final class PopupsEditeur {
 
     private void placerCompletion() {
         Rect curseur = editeur.caretBounds();
-        // le CAP de la liste suit la PLACE DISPONIBLE sous le caret —
-        // l'audit du propriétaire du 2026-11-14 : la complétion ne
-        // marche jamais sur la frappe, elle se ramasse au lieu de
-        // chasser la ligne tapée (la liste se rabat AU-DESSUS du caret
-        // quand la place manque, le cap y tient le geste)
-        int placeSous = hauteurCouche() - margePx - curseur.bottom;
-        int hauteurRangee = Math.round(PopupTokens.HAUTEUR_RANGEE_LISTE_DP
-                * couche.getResources().getDisplayMetrics().density);
-        int cap = hauteurRangee > 0
-                ? placeSous / hauteurRangee : CompletionListView.MAX_MONTRES;
-        if (cap < CompletionListView.MAX_MONTRES) {
-            // la place manque au-dessus aussi ? le plafond se referme
-            int placeDessus = curseur.top - 2 * margePx;
-            cap = Math.max(cap, Math.min(CompletionListView.MAX_MONTRES,
-                    placeDessus / hauteurRangee));
-        }
-        listeCompletion.setCap(cap);
+        // le CAP suit la PLACE DISPONIBLE (l'audit du 2026-11-14 : la
+        // complétion ne marche jamais sur la frappe) — le calcul vit
+        // chez CapCompletion, pur et testé
+        listeCompletion.setCap(CapCompletion.de(curseur.top,
+                curseur.bottom, hauteurCouche(), margePx,
+                Math.round(CapCompletion.hauteurRangee(
+                        couche.getResources().getDisplayMetrics().density))));
         PopupPlacer.Placement placee = PopupPlacer.placer(
                 new PopupPlacer.Cadre(curseur.left, curseur.top, 0,
                         curseur.height()),
@@ -609,30 +606,7 @@ public final class PopupsEditeur {
     }
 
     private void repositionnerTout() {
-        if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {
-            placerCompletion();
-        }
-        if (popups.estOuvert(PopupController.PopupKind.BREADCRUMB)) {
-            filAriane.rafraichir();
-        }
-        if (popups.estOuvert(PopupController.PopupKind.ERROR_BAND)) {
-            bordDroit.rafraichirBande(diagnostics, nomDuFichier,
-                    largeurCouche(), hauteurCouche());
-        }
-        bordDroit.rafraichir(largeurCouche(), hauteurCouche());
-        if (popups.estOuvert(PopupController.PopupKind.SELECTION_BAR)) {
-            barreSelection.rafraichir();
-        }
-        if (popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU)) {
-            carteIntentions.ouvrir();
-        }
-        // la consultation se REPOSITIONNE au défilement (le régime du
-        // genre — le câblage manquait au pont, l'orchestrateur le porte)
-        docExterne.repositionner();
-        gabarits.repositionner();
-        surete.repositionner();
-        masquage.repositionner();
-        exception.repositionner();
+        repositionneur.tout();
     }
 
     /** Publie une notification au coin bas-droit — l'horloge la referme

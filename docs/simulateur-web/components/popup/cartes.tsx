@@ -202,7 +202,7 @@ const DEBORDEMENTS: { libelle: string; icone: LucideIcon; action: (m: MachinePop
   { libelle: 'Plan du fichier', icone: ListTree, action: (m) => m.poserAnnonce({ message: "La feuille du plan s’ouvre (feuille du bas)", action: 'Ouvrir' }) },
   { libelle: 'Aller à — fichier ou symbole', icone: LocateFixed, action: (m) => m.poserAnnonce({ message: "La feuille de l’aller-à s’ouvre (B-13, floue)", action: 'Ouvrir' }) },
   { libelle: 'Renommage', icone: PenLine, action: (m) => m.poserAnnonce({ message: 'Le renommage prépare son diff (LSP)', action: 'Ouvrir' }) },
-  { libelle: 'Réglages', icone: Settings, action: (m) => m.poserAnnonce({ message: "La feuille des réglages s’ouvre", action: 'Ouvrir' }) },
+  { libelle: 'Réglages', icone: Settings, action: (m) => { m.fermerGenre('TOOLBAR_OVERFLOW'); m.ouvrirGenre('SETTINGS_MENU'); } },
   { libelle: 'Diff du renommage', icone: FileDiff, action: (m) => m.ouvrirVoile() },
   { libelle: 'Correctifs LSP', icone: Wrench, action: (m) => m.poserAnnonce({ message: "La feuille des correctifs s’ouvre (codeAction)", action: 'Ouvrir' }) },
   { libelle: 'IA — révocations', icone: Bot, action: (m) => m.poserAnnonce({ message: "La feuille IA s’ouvre", action: 'Ouvrir' }) },

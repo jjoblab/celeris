@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import jo.celeris.android.view.EditorView;
+import jo.celeris.android.view.ReglagesEditeur;
 import jo.celeris.android.widgets.MenuDebordement;
 import jo.celeris.android.widgets.MenuEtages;
 import jo.celeris.android.widgets.PopupAnchor;
@@ -121,8 +122,14 @@ final class BarreSelection {
     }
 
     /** La sélection a changé : la barre se pose au-dessus d'elle, ou
-     *  se referme sans sélection unique à tenir. */
+     *  se referme sans sélection unique à tenir — la PORTE des
+     *  réglages peut la retirer (la table centrale décide). */
     void poser(MultiSelection selection) {
+        if (!editeur.reglages().ouverte(
+                ReglagesEditeur.Porte.BARRE_SELECTION)) {
+            popups.fermer(PopupController.PopupKind.SELECTION_BAR);
+            return;
+        }
         List<SelRange> plages = selection.ranges();
         boolean visible = plages.size() == 1 && !plages.get(0).isEmpty();
         if (!visible) {

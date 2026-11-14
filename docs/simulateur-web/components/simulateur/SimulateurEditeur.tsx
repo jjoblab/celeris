@@ -424,10 +424,12 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
                 </div>
               )}
 
-              {/* Le débordement de la barre de sélection — sous la ligne
-                  du caret, JAMAIS SUR LUI : le menu ne marche pas sur le
-                  curseur (l'audit du 2026-11-14) ; chaque rangée porte son
-                  icône propre — commenter, casse, indentation, duplication. */}
+              {/* Le débordement de la barre de sélection — en ÉTAGES
+                  CONTEXTUELS (l’audit du 2026-11-14 : « séparé en étages
+                  ou colonnes qui deviennent visibles contextuellement
+                  comme les go to, usages, rename ») : l’étage ALLER À ne
+                  se montre que sur un symbole au caret, l’étage ÉDITION
+                  vit toujours — sous la ligne du caret, JAMAIS SUR LUI. */}
               {machine.ouverts.has('SELECTION_OVERFLOW') && (
                 <div
                   style={{
@@ -443,48 +445,53 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
                   <div className="w-[188px]">
                     <div className="mt-0 select-none text-[9px] font-semibold uppercase tracking-[0.14em] text-white/40">Plus</div>
                     {[
+                      { section: 'Édition' },
                       {
-                        icone: <SquareSlash className="h-3.5 w-3.5 text-[#E6C178]" aria-hidden />,
+                        icone: <SquareSlash className="h-3 w-3 text-[#E6C178]/70" aria-hidden />,
                         libelle: 'Commenter la sélection',
                         geste: () => machine.poserAnnonce({ message: 'Le bloc touché se commente ou se décommente — les règles du langage', action: 'Défaire' }),
                       },
                       {
-                        icone: <CaseUpper className="h-3.5 w-3.5 text-[#5CCFE6]" aria-hidden />,
+                        icone: <CaseUpper className="h-3 w-3 text-[#5CCFE6]/70" aria-hidden />,
                         libelle: 'Tout en majuscules',
                         geste: () => machine.poserAnnonce({ message: 'La sélection passe en MAJUSCULES', action: 'Défaire' }),
                       },
                       {
-                        icone: <CaseLower className="h-3.5 w-3.5 text-[#98C97A]" aria-hidden />,
+                        icone: <CaseLower className="h-3 w-3 text-[#98C97A]/70" aria-hidden />,
                         libelle: 'Tout en minuscules',
                         geste: () => machine.poserAnnonce({ message: 'La sélection passe en minuscules', action: 'Défaire' }),
                       },
                       {
-                        icone: <IndentIncrease className="h-3.5 w-3.5 text-[#CD7EE0]" aria-hidden />,
+                        icone: <IndentIncrease className="h-3 w-3 text-[#CD7EE0]/70" aria-hidden />,
                         libelle: 'Indenter d’un cran',
                         geste: () => machine.poserAnnonce({ message: 'Le bloc touché gagne un cran — le style du langage', action: 'Défaire' }),
                       },
                       {
-                        icone: <CopyPlus className="h-3.5 w-3.5 text-[#D9A066]" aria-hidden />,
+                        icone: <CopyPlus className="h-3 w-3 text-[#D9A066]/70" aria-hidden />,
                         libelle: 'Dupliquer la ligne',
                         geste: () => {
                           machine.fermerGenre('SELECTION_OVERFLOW');
                           machine.poserAnnonce({ message: 'La ligne se duplique — un geste la défait', action: 'Défaire' });
                         },
                       },
-                    ].map((option) => (
-                      <button
-                        key={option.libelle}
-                        type="button"
-                        onClick={() => {
-                          machine.fermerGenre('SELECTION_OVERFLOW');
-                          option.geste();
-                        }}
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 text-left text-[12px] font-medium text-white/85 hover:bg-white/10"
-                      >
-                        {option.icone}
-                        {option.libelle}
-                      </button>
-                    ))}
+                    ].map((option) => 'section' in option ? (
+                        <div key={option.section} className="mt-1.5 border-t border-white/10 pt-1 select-none text-[9px] font-semibold uppercase tracking-[0.14em] text-white/40">
+                          {option.section}
+                        </div>
+                      ) : (
+                        <button
+                          key={option.libelle}
+                          type="button"
+                          onClick={() => {
+                            machine.fermerGenre('SELECTION_OVERFLOW');
+                            option.geste();
+                          }}
+                          className="flex w-full cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 text-left text-[12px] font-medium text-white/85 hover:bg-white/10"
+                        >
+                          {option.icone}
+                          {option.libelle}
+                        </button>
+                      ))}
                     <div className="mt-1 border-t border-white/10 pt-1 text-[10px] leading-relaxed text-white/45">
                       le menu ne survit jamais à sa barre — cascade ; il ne marche jamais sur le caret
                     </div>
@@ -499,6 +506,47 @@ export function SimulateurEditeur({ machine }: { machine: MachinePopups }) {
                   className="animate-in fade-in pointer-events-auto absolute z-30 rounded-xl border border-white/10 bg-[#14161c]/95 px-2.5 py-2 backdrop-blur-md duration-150"
                 >
                   <ContenuCarte genre="TOOLBAR_OVERFLOW" machine={machine} resteMs={machine.resteMs} />
+                </div>
+              )}
+
+              {/* La carte des réglages — coin bas-droit, les
+                  commutateurs de la table centrale s’y basculent
+                  (l’audit du 2026-11-14 : « un système central editor
+                  settings ») ; la notification vit son quart libre. */}
+              {machine.ouverts.has('SETTINGS_MENU') && (
+                <div
+                  style={{ bottom: 8, right: 8, boxShadow: '0 18px 50px rgba(0,0,0,0.55)' }}
+                  className="animate-in fade-in slide-in-from-bottom-1 pointer-events-auto absolute z-40 rounded-xl border border-white/10 bg-[#14161c]/95 px-2.5 py-2 backdrop-blur-md duration-150"
+                >
+                  <div className="w-[196px]">
+                    <div className="select-none text-[9px] font-semibold uppercase tracking-[0.14em] text-white/40">Réglages de l’éditeur</div>
+                    {[
+                      { libelle: 'Indices en ligne', ouvert: true, icone: <Info className="h-3 w-3 text-[#5CCFE6]/70" aria-hidden /> },
+                      { libelle: 'Barre de sélection', ouvert: true, icone: <TextSelect className="h-3 w-3 text-[#98C97A]/70" aria-hidden /> },
+                      { libelle: 'Ampoule d’intentions', ouvert: true, icone: <Bell className="h-3 w-3 text-[#E6C178]/70" aria-hidden /> },
+                      { libelle: 'Complétion automatique', ouvert: true, icone: <Square className="h-3 w-3 text-[#CD7EE0]/70" aria-hidden /> },
+                      { libelle: 'Valeurs de pause', ouvert: true, icone: <Eye className="h-3 w-3 text-[#98C97A]/70" aria-hidden /> },
+                      { libelle: 'Texte fantôme IA', ouvert: false, icone: <CornerDownLeft className="h-3 w-3 text-[#D9A066]/70" aria-hidden /> },
+                      { libelle: 'Minimap', ouvert: true, icone: <Layers className="h-3 w-3 text-[#5CCFE6]/70" aria-hidden /> },
+                      { libelle: 'Numéros de lignes', ouvert: true, icone: <TextSelect className="h-3 w-3 text-[#E6C178]/70" aria-hidden /> },
+                    ].map((porte) => (
+                      <button
+                        key={porte.libelle}
+                        type="button"
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 text-left text-[12px] font-medium text-white/85 hover:bg-white/10"
+                      >
+                        {porte.icone}
+                        <span className="flex-1">{porte.libelle}</span>
+                        {/* l’interrupteur dessiné : la glissière et son pouce */}
+                        <span className={`relative h-[14px] w-[26px] rounded-full transition-colors ${porte.ouvert ? 'bg-[#5CCFE6]/60' : 'bg-white/15'}`}>
+                          <span className={`absolute top-[3px] h-2 w-2 rounded-full bg-white transition-all ${porte.ouvert ? 'left-[14px]' : 'left-[3px]'}`} />
+                        </span>
+                      </button>
+                    ))}
+                    <div className="mt-1 border-t border-white/10 pt-1 text-[10px] leading-relaxed text-white/45">
+                      chaque interrupteur bascule SA porte — la table reste l’unique point de vérité
+                    </div>
+                  </div>
                 </div>
               )}
 

@@ -293,6 +293,54 @@ indentées par PROFONDEUR — `Row.arbre`), `PopupClavier`,
 `ReferencesView`, `TypeInfoView`, `HierarchiesView`,
 `NotificationView`, `PopupPalette`, `PopupTokens`.
 
+## 7bis. Les étages contextuels et la table des réglages (l'audit du 2026-11-14)
+
+**Le menu à étages** (`MenuEtages`) : le débordement de la barre de
+sélection vit en ÉTAGES — l'en-tête en petites capitales annonce son
+étage, l'étage VIDE ne se montre jamais. La visibilité contextuelle
+naît de la DONNÉE, jamais d'un drapeau codé en dur :
+
+```java
+// l'étage de navigation ne vit que sur un symbole au caret
+Supplier<List<MenuEtages.Etage>> etages = () -> {
+    List<MenuEtages.Etage> vivants = new ArrayList<>(2);
+    if (symboleAuCaret() != null) {
+        vivants.add(MenuEtages.Etage.depuis("ALLER À", navigation));
+    }
+    vivants.add(MenuEtages.Etage.depuis("ÉDITION", edition));
+    return vivants;
+};
+popups.configurerActionsSelectionVives(principales, etages);
+```
+
+La flèche déléguée SAUTE les en-têtes (jamais d'arrêt sur une
+section), le choix referme la carte AVANT d'exécuter.
+
+**La table centrale des réglages** (`ReglagesEditeur`, android-view) :
+UNE table de portes stables (`editeur.inlays`, `editeur.barreSelection`,
+`editeur.completionAuto`…), UN point de vérité — la vue, l'orchestrateur
+et l'hôte y lisent les mêmes portes. La carte (`ReglagesView`) dessine
+l'interrupteur (glissière + pouce à l'accent), le satellite `Reglages`
+la pose au coin bas-droit :
+
+```java
+// la vue ferme sa porte d'elle-même — l'hôte peut continuer à poser
+editeur.setIndicesInlay(indices);   // porte fermée : la couche ignore
+
+// la bascule avertit, l'hôte applique et persiste
+editeur.reglages().setSurBascule(porte -> {
+    prefs.edit().putBoolean(porte.cle(), editeur.reglages().ouverte(porte)).apply();
+});
+```
+
+**La compacité et l'animation de l'IDE de référence** : les jetons
+resserrés (`PopupTokens` — respiration X 10 dp, pilule 26 dp), les
+pictogrammes qui suivent le texte (`FACTEUR_PICTO` 0.76, encre allégée
+`IconeAction.encreAllgeee`), la naissance RESSORT de la carte (échelle
+0.96 → 1 depuis le centre, 160 ms, la courbe qui freine tard), la mort
+brève (90 ms), et la complétion qui se RAMASSE au lieu de marcher sur
+la ligne tapée (`CapCompletion` — le cap suit la place disponible).
+
 ## 8. Faire évoluer le socle — le guide de maintenance
 
 - **Une règle de coexistence nouvelle** : elle vit au contrôleur

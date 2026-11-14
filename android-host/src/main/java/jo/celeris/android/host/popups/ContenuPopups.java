@@ -96,6 +96,38 @@ public final class ContenuPopups {
     }
 
     /**
+     * Le serveur passe-t-il PREMIER pour la complétion ? Vrai quand il
+     * vit ET la sert — sa réponse brute deviendra les candidats typés ;
+     * sinon le repli local (les mots du code, le coach) propose.
+     *
+     * @param serveur la session de langage branchée, null pour aucune
+     * @return vrai quand la complétion passe par le serveur
+     */
+    public static boolean leServeurPassePremier(@Nullable LanguageSession serveur) {
+        return serveur != null && serveur.sertCompletion();
+    }
+
+    /**
+     * La complétion se rouvre-t-elle APRÈS une édition ? La PORTE des
+     * réglages peut la rendre silencieuse (l'audit du propriétaire du
+     * 2026-11-14 : « activer, désactiver certaines fonctionnalités »)
+     * et l'acceptation d'un candidat ne repropose rien — le candidat
+     * retenu ne se repropose pas ; sinon la frappe propose comme tout
+     * éditeur.
+     *
+     * @param completionAuto la porte des réglages, ouverte ou fermée
+     * @param acceptation    vrai quand l'édition accepte un candidat
+     * @param document       le document ouvert
+     * @param caret          la position du curseur
+     * @return vrai quand la liste se propose
+     */
+    public static boolean doitProposerApresEdition(boolean completionAuto,
+            boolean acceptation, Document document, int caret) {
+        return completionAuto && !acceptation
+                && doitOuvrirALaFrappe(document, caret);
+    }
+
+    /**
      * La complétion s'ouvre-t-elle à la frappe ? OUI dès que le
      * curseur termine un identifiant d'au moins un caractère — comme
      * tout éditeur, le premier caractère tapé propose ; le blanc, la

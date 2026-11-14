@@ -325,11 +325,8 @@ class GutterPainterTest {
         assertEquals("1", surface.textes().get(0).texte());
     }
 
-    /**
-     * D-07 — l'en-tête replié porte son chevron : TRIANGLE PLEIN à
-     * pointe à droite, dans la BANDE DE PLIS au bord droit de la
-     * gouttière, contre le code qu'il replie.
-     */
+    /** D-07 — l'en-tête replié porte son chevron EN TRAITS, pointe à
+     *  droite, dans la bande de plis (l'audit du 2026-11-14). */
     @Test
     void enTeteRepliePorteSonChevron() {
         SurfaceMarques surface = new SurfaceMarques();
@@ -364,11 +361,8 @@ class GutterPainterTest {
         assertEquals(3, surface.textes().size());
     }
 
-    /**
-     * D-07 — l'en-tête pliable non replié porte son chevron EN
-     * TRAITS, pointe vers le bas : le contenu se déplie dessous (le
-     * redressement de l'audit du 2026-11-14 : plus de triangle plein).
-     */
+    /** D-07 — l'en-tête pliable porte son chevron EN TRAITS, pointe
+     *  en bas (l'audit du 2026-11-14 : plus de triangle plein). */
     @Test
     void enTetePliablePointeVersLeBas() {
         SurfaceMarques surface = new SurfaceMarques();
@@ -391,11 +385,15 @@ class GutterPainterTest {
         assertEquals(2, surface.traits().size(),
                 "le chevron pliable vit en deux traits joints");
         TraitTrace trait = surface.traits().get(0);
-        // pointe en bas : le trait descend vers le centre
+        // pointe en bas ⌄ : les deux traits DESCENDENT vers le centre
         assertTrue(trait.y2() > trait.y1(),
                 "la pointe du chevron déplié regarde vers le bas");
-        assertEquals(26f, (trait.x1() + trait.x2()) / 2f, 0.5f,
-                "le chevron vit dans la bande de plis");
+        // le second trait joint le centre à droite — le JOINT vit à cx
+        TraitTrace second = surface.traits().get(1);
+        assertEquals(trait.x2(), second.x2(), 1e-6f,
+                "les deux traits se joignent au sommet, au centre de la bande");
+        assertEquals(26f, second.x2(), 1e-6f,
+                "le chevron vit dans la bande de plis, contre le code");
     }
 
     /**
@@ -427,12 +425,8 @@ class GutterPainterTest {
         assertEquals(THEME.syntaxe().couleur(TokenKind.ERROR), marque.couleur());
     }
 
-    /**
-     * L'ampoule d'intentions (l'audit Android Studio du 2026-11-14) :
-     * le petit icône JAUNE de l'IDE de référence — le disque du verre
-     * et son culot — PRIME sur le point d'erreur de la même ligne (au
-     * caret qui porte un diagnostic, l'ampoule remplace le marqueur).
-     */
+    /** L'ampoule d'intentions (l'audit du 2026-11-14) : le petit
+     *  icône JAUNE PRIME sur le point d'erreur de la même ligne. */
     @Test
     void lampouleDIntentionsPrimeSurLePointDerreur() {
         SurfaceMarques surface = new SurfaceMarques();
@@ -518,7 +512,7 @@ class GutterPainterTest {
         image.drawFrame(surface, etat);
 
         assertEquals(0, surface.textes().size(), "aucun numéro tracé");
-        assertEquals(1, surface.triangles().size(), "le chevron de pli reste");
+        assertEquals(2, surface.traits().size(), "le chevron de pli reste");
         assertEquals(1, surface.cercles().size(), "la marque d'erreur reste");
     }
 
@@ -654,12 +648,8 @@ class GutterPainterTest {
                 "un thème sans voile ne trace aucun fond de gouttière");
     }
 
-    /**
-     * M7.5, redressement — le chevron vit dans sa CELLULE : bras au
-     * tiers du côté (bande 8 × hauteur 20 → cellule 8), centre au
-     * MILIEU de la rangée et au centre de la bande — un triangle qui
-     * se voit et se vise.
-     */
+    /** M7.5, redressement — le chevron vit dans sa CELLULE : bras du
+     *  bord au sommet, centre au MILIEU de la rangée. */
     @Test
     void chevronVitDansSaCelluleEpaisEtCentre() {
         SurfaceMarques surface = new SurfaceMarques();
@@ -677,25 +667,23 @@ class GutterPainterTest {
                 0, 2, 30f, 0f, 0f);
         image.drawFrame(surface, etat);
 
-        assertEquals(1, surface.triangles().size(),
-                "le chevron pliable vit en un triangle plein");
-        TriangleTrace chevron = surface.triangles().get(0);
-        // la cellule est min(8, 20) = 8 — le triangle en vaut deux cinquièmes
-        assertEquals(8f * 0.4f, chevron.rayon(), 1e-6f,
-                "le triangle prend sa cellule");
-        // le centre : au MILIEU de la rangée — la rangée 0 couvre 0 à 20,
-        // le centre vit à 10 — et au centre de la bande (26)
-        assertEquals(10f, chevron.cy(), 1e-6f,
+        assertEquals(2, surface.traits().size(),
+                "le chevron pliable vit en deux traits joints");
+        // la cellule est min(8, 20) = 8 — le bras s'étend du bord au
+        // sommet : sa largeur EST le demi (cellule * 0.22)
+        TraitTrace bras = surface.traits().get(0);
+        assertEquals(8f * 0.22f, bras.x2() - bras.x1(), 1e-6f,
+                "le bras prend sa cellule");
+        // le sommet : au MILIEU de la rangée — la rangée 0 couvre 0 à
+        // 20, le centre vit à 10 — et au centre de la bande (26)
+        assertEquals(10f, (bras.y1() + bras.y2()) / 2f, 1e-6f,
                 "le chevron vit au milieu de la rangée");
-        assertEquals(26f, chevron.cx(), 1e-6f,
+        assertEquals(26f, bras.x2(), 1e-6f,
                 "le chevron vit au centre de la bande de plis");
     }
 
-    /**
-     * La reprise du design — le numéro de la ligne COURANTE se graisse
-     * à l'encre du texte de base ; les autres restent à l'encre de
-     * gouttière, maigres.
-     */
+    /** Le numéro de la ligne COURANTE se graisse ; les autres restent
+     *  à l'encre de gouttière, maigres. */
     @Test
     void leNumeroCourantSeGraisse() {
         SurfaceMarques surface = new SurfaceMarques();

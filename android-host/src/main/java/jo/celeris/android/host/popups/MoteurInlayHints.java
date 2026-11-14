@@ -73,12 +73,19 @@ final class MoteurInlayHints {
             if (parenthese <= 0 || !corps.contains(")")) {
                 continue;
             }
+            // le NOM vit en QUEUE de l'en-tête : « private void verser »
+            // garde « verser » — le type de retour et la visibilité ne
+            // sont pas le nom
             String nom = corps.substring(0, parenthese).strip();
             int dernierPoint = nom.lastIndexOf('.');
             if (dernierPoint >= 0) {
                 nom = nom.substring(dernierPoint + 1);
             }
-            if (nom.isEmpty() || !estIdentifiant(nom)) {
+            int derniereEspace = nom.lastIndexOf(' ');
+            if (derniereEspace >= 0) {
+                nom = nom.substring(derniereEspace + 1);
+            }
+            if (nom.isEmpty() || !TypesLitteraux.estIdentifiant(nom)) {
                 continue;
             }
             List<String> parametres = nomsDesParametres(
@@ -110,7 +117,7 @@ final class MoteurInlayHints {
         List<String> noms = new ArrayList<>();
         for (String parametre : entreParentheses.split(",")) {
             String[] parties = parametre.strip().split("\\s+");
-            if (parties.length == 2 && estIdentifiant(parties[1])) {
+            if (parties.length == 2 && TypesLitteraux.estIdentifiant(parties[1])) {
                 noms.add(parties[1]);
             } else {
                 // un paramètre qui ne se parse pas rompt l'ordre —
@@ -160,7 +167,7 @@ final class MoteurInlayHints {
                     // littéral — l'IDE de référence n'insiste pas sur
                     // les expressions
                     if (!argument.contains(":")
-                            && typeDuLitteral(argument) != null) {
+                            && TypesLitteraux.duLitteral(argument) != null) {
                         indices.add(new IndiceInlay(ligne + 1,
                                 indentation + curseur,
                                 parametres.get(rang) + ":"));
@@ -183,7 +190,7 @@ final class MoteurInlayHints {
     private static String nomDAppel(String ligne, int parenthese) {
         int fin = parenthese;
         int debut = fin;
-        while (debut > 0 && estIdentifiant(ligne.charAt(debut - 1))) {
+        while (debut > 0 && TypesLitteraux.estIdentifiant(ligne.charAt(debut - 1))) {
             debut--;
         }
         return debut == fin ? "" : ligne.substring(debut, fin);
@@ -239,7 +246,7 @@ final class MoteurInlayHints {
             return null;
         }
         String nom = corps.substring(0, egale).stripTrailing();
-        if (!estIdentifiant(nom)) {
+        if (!TypesLitteraux.estIdentifiant(nom)) {
             return null;
         }
         String valeur = corps.substring(egale + 1).strip();
@@ -249,109 +256,7 @@ final class MoteurInlayHints {
         if (valeur.isEmpty()) {
             return null;
         }
-        return typeDuLitteral(valeur);
+        return TypesLitteraux.duLitteral(valeur);
     }
 
-    /** Vrai si le texte est un identifiant Java bien formé. */
-    private static boolean estIdentifiant(String texte) {
-        if (texte.isEmpty()
-                || !Character.isJavaIdentifierStart(texte.charAt(0))) {
-            return false;
-        }
-        for (int i = 1; i < texte.length(); i++) {
-            if (!Character.isJavaIdentifierPart(texte.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /** Vrai si le caractère peut vivre dans un identifiant. */
-    private static boolean estIdentifiant(char c) {
-        return c == '_' || c == '$' || Character.isLetterOrDigit(c);
-    }
-
-    /** Le type du LITTÉRAL — null quand il ne se tranchera pas. */
-    private static String typeDuLitteral(String valeur) {
-        if (valeur.equals("true") || valeur.equals("false")) {
-            return ": boolean";
-        }
-        if (valeur.equals("null")) {
-            // l'IDE de référence ne devine pas le néant
-            return null;
-        }
-        if (estChaine(valeur)) {
-            return ": String";
-        }
-        if (estCaractere(valeur)) {
-            return ": char";
-        }
-        if (estTableau(valeur)) {
-            return typeTableau(valeur);
-        }
-        return typeNumerique(valeur);
-    }
-
-    /** Vrai si la valeur est une chaîne entre guillemets. */
-    private static boolean estChaine(String valeur) {
-        return valeur.length() >= 2 && valeur.startsWith("\"")
-                && valeur.endsWith("\"");
-    }
-
-    /** Vrai si la valeur est un caractère entre quotes. */
-    private static boolean estCaractere(String valeur) {
-        return valeur.length() >= 3 && valeur.startsWith("'")
-                && valeur.endsWith("'");
-    }
-
-    /** Vrai si la valeur est un initialiseur de tableau. */
-    private static boolean estTableau(String valeur) {
-        return valeur.startsWith("{") && valeur.endsWith("}");
-    }
-
-    /** Le type d'un initialiseur de tableau : le type de son PREMIER
-     *  élément porté en tableau — « {1, 2} » lit « : int[] », vide ou
-     *  hétérogène ne se devine pas. */
-    private static String typeTableau(String valeur) {
-        String corps = valeur.substring(1, valeur.length() - 1).strip();
-        if (corps.isEmpty()) {
-            return null;
-        }
-        String premier = corps.split(",")[0].strip();
-        String type = typeDuLitteral(premier);
-        return type == null ? null : type + "[]";
-    }
-
-    /**
-     * Le type du littéral NUMÉRIQUE — int, long, float, double selon
-     * la forme et le suffixe ; null quand la valeur n'est pas littérale
-     * (identifiant, appel, hexadécimal — jamais deviné).
-     */
-    private static String typeNumerique(String valeur) {
-        char dernier = valeur.charAt(valeur.length() - 1);
-        String sansSuffix = valeur;
-        if ("fFdDlL".indexOf(dernier) >= 0) {
-            sansSuffix = valeur.substring(0, valeur.length() - 1);
-        }
-        boolean entier = sansSuffix.matches("\\d+");
-        boolean decimal = sansSuffix.matches("\\d*\\.\\d+");
-        if (!entier && !decimal) {
-            // identifiant, appel, expression — jamais deviné
-            return null;
-        }
-        if (decimal) {
-            return (dernier == 'f' || dernier == 'F') ? ": float"
-                    : ": double";
-        }
-        if (dernier == 'f' || dernier == 'F') {
-            return ": float";
-        }
-        if (dernier == 'd' || dernier == 'D') {
-            return ": double";
-        }
-        if (dernier == 'l' || dernier == 'L') {
-            return ": long";
-        }
-        return ": int";
-    }
 }

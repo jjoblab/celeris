@@ -348,10 +348,12 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
         if (rangees.isEmpty()) {
             return false;
         }
-        // la flèche part de la tête quand la surbrillance n'existe pas,
-        // elle SAUTE les en-têtes — jamais d'arrêt sur une section
+        // la flèche part de la tête quand la surbrillance n'existe pas :
+        // la PREMIÈRE flèche PREND la première action, elle ne la
+        // saute pas ; les suivantes avancent d'autant, en SAUTANT les
+        // en-têtes — jamais d'arrêt sur une section
         int cible = surligne < 0 ? premiereAction() : surligne;
-        int pasRestant = Math.abs(pas);
+        int pasRestant = surligne < 0 ? Math.abs(pas) - 1 : Math.abs(pas);
         int direction = pas >= 0 ? 1 : -1;
         while (pasRestant > 0) {
             cible += direction;

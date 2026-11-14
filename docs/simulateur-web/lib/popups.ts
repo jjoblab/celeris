@@ -34,7 +34,8 @@ export type GenreId =
   | 'SAFE_DELETE'
   | 'SAFE_MOVE'
   | 'SUPPRESS_INSPECTION'
-  | 'EXCEPTION_DETAILS';
+  | 'EXCEPTION_DETAILS'
+  | 'SETTINGS_MENU';
 
 export type Categorie = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 
@@ -356,6 +357,29 @@ export const POPUPS: PopupSpec[] = [
     strings: [{ fr: 'PLUS', en: 'MORE' }],
   },
   {
+    id: 'SETTINGS_MENU',
+    constName: 'SETTINGS_MENU',
+    nomFr: 'Carte des réglages',
+    categorie: 'G',
+    vue: 'ReglagesView (interrupteurs dessinés)',
+    satellite: 'Reglages — le coin bas-droit de la couche',
+    donnees: 'La table centrale ReglagesEditeur — dix portes stables',
+    ancre: 'Coin bas-droit, bornée aux murs',
+    clavier: false,
+    frappe: 'ferme',
+    defilement: 'repositionne',
+    tapHorsCartes: true,
+    echap: true,
+    voile: true,
+    description:
+      "La carte des réglages de l’éditeur — la table centrale des commutateurs (l’audit du 2026-11-14 : « un système central editor settings ») : chaque interrupteur bascule SA porte, l’état se relit à chaque pose. Les icônes allégées servent les rangées, la glissière et son pouce se dessinent au kit.",
+    sections: [
+      { titre: 'Les portes', lignes: ['Indices en ligne — inlay hints', 'Barre de sélection', 'Ampoule d’intentions', 'Complétion automatique', 'Valeurs de pause', 'Texte fantôme IA', 'Minimap · Défilement rapide', 'Numéros de lignes · Retour à la ligne'] },
+    ],
+    declencheurs: ['Le menu Réglages de l’hôte', 'La puce de la toolbar'],
+    fermeture: 'La frappe ; le tap hors cartes ; Échap.',
+  },
+  {
     id: 'ERROR_BAND',
     constName: 'ERROR_BAND',
     nomFr: "Bande d’erreurs",
@@ -497,6 +521,29 @@ export const POPUPS: PopupSpec[] = [
     declencheurs: ['La puce de débordement de la barre d’application'],
     fermeture: 'La frappe, le tap hors cartes, Échap. Le défilement l’épargne.',
     strings: [{ fr: 'PLUS', en: 'MORE' }],
+  },
+  {
+    id: 'SETTINGS_MENU',
+    constName: 'SETTINGS_MENU',
+    nomFr: 'Carte des réglages',
+    categorie: 'G',
+    vue: 'ReglagesView (interrupteurs dessinés)',
+    satellite: 'Reglages — le coin bas-droit de la couche',
+    donnees: 'La table centrale ReglagesEditeur — dix portes stables',
+    ancre: 'Coin bas-droit, bornée aux murs',
+    clavier: false,
+    frappe: 'ferme',
+    defilement: 'repositionne',
+    tapHorsCartes: true,
+    echap: true,
+    voile: true,
+    description:
+      "La carte des réglages de l’éditeur — la table centrale des commutateurs (l’audit du 2026-11-14 : « un système central editor settings ») : chaque interrupteur bascule SA porte, l’état se relit à chaque pose. Les icônes allégées servent les rangées, la glissière et son pouce se dessinent au kit.",
+    sections: [
+      { titre: 'Les portes', lignes: ['Indices en ligne — inlay hints', 'Barre de sélection', 'Ampoule d’intentions', 'Complétion automatique', 'Valeurs de pause', 'Texte fantôme IA', 'Minimap · Défilement rapide', 'Numéros de lignes · Retour à la ligne'] },
+    ],
+    declencheurs: ['Le menu Réglages de l’hôte', 'La puce de la toolbar'],
+    fermeture: 'La frappe ; le tap hors cartes ; Échap.',
   },
   {
     id: 'REFERENCES',
@@ -804,13 +851,14 @@ export const FAMILLE_ACTIONS: Partial<Record<GenreId, GenreId[]>> = {
   REFERENCES: ['INTENTIONS_MENU', 'TOOLBAR_OVERFLOW', 'GABARITS', 'SAFE_MOVE', 'SUPPRESS_INSPECTION', 'HIERARCHY', 'SAFE_DELETE'],
   HIERARCHY: ['INTENTIONS_MENU', 'TOOLBAR_OVERFLOW', 'GABARITS', 'SAFE_MOVE', 'SUPPRESS_INSPECTION', 'REFERENCES', 'SAFE_DELETE'],
   SAFE_DELETE: ['INTENTIONS_MENU', 'TOOLBAR_OVERFLOW', 'GABARITS', 'SAFE_MOVE', 'SUPPRESS_INSPECTION', 'REFERENCES', 'HIERARCHY'],
+  SETTINGS_MENU: ['INTENTIONS_MENU', 'TOOLBAR_OVERFLOW', 'GABARITS', 'SAFE_MOVE', 'SUPPRESS_INSPECTION', 'REFERENCES', 'HIERARCHY', 'SAFE_DELETE'],
 };
 
 /** Ce que la frappe ferme (onKeystroke — la complétion reste, elle filtre). */
 export const FRAPPE_FERME: GenreId[] = [
   'HOVER', 'DIAGNOSTIC_TOOLTIP', 'SELECTION_BAR', 'SELECTION_OVERFLOW',
   'COLOR_PICKER', 'TOOLBAR_OVERFLOW', 'REFERENCES', 'TYPE_INFO',
-  'HIERARCHY', 'SAFE_DELETE',
+  'HIERARCHY', 'SAFE_DELETE', 'SETTINGS_MENU',
 ];
 
 /** Ce que le défilement ferme (onScroll — ancre au curseur). */
@@ -825,6 +873,7 @@ export const TAP_HORS_CARTES_FERME: GenreId[] = [
   'SELECTION_OVERFLOW', 'TOOLBAR_OVERFLOW', 'REFERENCES', 'TYPE_INFO',
   'HIERARCHY', 'EXTERNAL_DOC', 'GABARITS', 'SAFE_DELETE',
   'SAFE_MOVE', 'SUPPRESS_INSPECTION', 'EXCEPTION_DETAILS',
+  'SETTINGS_MENU',
 ];
 
 /** Ce qu’une feuille modale coupe (SOUS_VOILE — le chrome vit avec le document). */
@@ -833,7 +882,7 @@ export const SOUS_VOILE: GenreId[] = [
   'DIAGNOSTIC_TOOLTIP', 'COLOR_PICKER', 'INTENTIONS_MENU', 'TOOLBAR_OVERFLOW',
   'SELECTION_OVERFLOW', 'SELECTION_BAR', 'REFERENCES', 'TYPE_INFO',
   'HIERARCHY', 'NOTIFICATION', 'EXTERNAL_DOC', 'GABARITS',
-  'SAFE_DELETE', 'SAFE_MOVE', 'SUPPRESS_INSPECTION',
+  'SAFE_DELETE', 'SAFE_MOVE', 'SUPPRESS_INSPECTION', 'SETTINGS_MENU',
 ];
 
 /** L’ordre de l’échappement — la première carte interactive ouverte. */

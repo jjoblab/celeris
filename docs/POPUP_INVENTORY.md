@@ -30,7 +30,7 @@
 | S-1 | `CompletionListView` | `COMPLETION_LIST` | Liste de complétion deux lignes, badge de genre, runs du préfixe. | Frappe (démo), sélection si ouverte, action de menu. | LSP `LanguageSession.completion` ou repli `IntelligenceHub` + `PopupCoach`. | `PopupPlacer` sous le curseur. | Frappe sur blanc/ponctuation, acceptation, action menu. | [2] — aucun clavier (flèches/Enter/Escape). |
 | S-2 | `CompletionDocView` (+`CompletionDocModel`) | `COMPLETION_DOC` ET `HOVER` | Documentation flottante de complétion ET survol/peek/`@Preview` — MÊME instance. | Ouverture avec la liste ; double-tap ; « i » de la barre ; peek (menu) ; clic repère gouttière. | LSP `survol` ou table `PopupCoach` ; `ApercuDefinition` (plan local). | `PopupPlacer` (flanc) ou `PopupAnchor.atPoint`/`topLeftCorner`. | Suit la liste ; frappe/défilement ferment le `HOVER`. | [4]-risque — l'instance partagée entre deux genres fait mentir l'état (audit P1). |
 | S-3 | `SignatureHelpView` (+`SignatureAideModel`) | `SIGNATURE_HELP` | Aide aux paramètres : surcharges ±1, paramètre actif à l'accent, stepper tactile, peek appui long. | Chaque édition/sélection. | LSP `signature` ou `PopupCoach.signatureFor`. | `PopupPlacer` (côté opposé). | Modèle null. | [2] — `Handler` sans nettoyage au détachement. |
-| S-4 | `IntentionsMenuView` | `INTENTIONS_MENU` ET `SELECTION_OVERFLOW` | Menu d'actions au curseur ET carte de débordement — MÊME instance. | Action menu ; puce « ⋯ » barre ; puce toolbar. | `CatalogueActions` (activité). | `PopupAnchor.belowOrAboveCaret` / ad hoc coin haut-droit (toolbar). | Choix d'une action avant exécution ; exclusions. | [4]-risque — trois usages, deux genres, deux positionnements concurrents (audit P1). |
+| S-4 | `IntentionsMenuView` | `INTENTIONS_MENU` | Menu d'actions au curseur — le débordement vit désormais SA carte à étages (`MenuEtages`, genre propre). | Action menu ; puce toolbar. | `CatalogueActions` (activité). | `PopupAnchor.belowOrAboveCaret` / ad hoc coin haut-droit (toolbar). | Choix d'une action avant exécution ; exclusions. | [1] — le partage d'instance du débordement est mort (audit P1 refermé). |
 | S-5 | `DiagnosticTooltipView` | `DIAGNOSTIC_TOOLTIP` | Info-bulle de diagnostic (×/!, message). | Sélection (hors frappe) sur ligne diagnostiquée. | `DiagnosticHote` (SPI). | `PopupAnchor.atPoint` au caret. | Frappe, défilement. | [1] |
 | S-6 | `BreadcrumbView` (+`BreadcrumbModel`) | `BREADCRUMB` | Fil d'Ariane (chemin du plan englobant). | Chaque édition/sélection. | `OutlineEntry` (plan). | `PopupAnchor.topLeftCorner`. | Chemin vide. | [1] |
 | S-7 | `SelectionBarView` | `SELECTION_BAR` | Pilule d'actions de la sélection + « i » + « ⋯ ». | Sélection non vide ; dragage la déplace (`remonter`). | Actions de l'activité. | `PopupAnchor.centeredAboveSelection`. | Frappe, sélection vide. | [1] |
@@ -78,7 +78,7 @@ tous [1] : purs, testés, sans vue.
 | --- | --- | --- | --- |
 | O-1 | `PopupsEditeur` (596 l.) | L'orchestrateur officiel : possède manager + vues, branche session/vue, délègue aux satellites — le montage complet de l'hôte tient en sa construction. | [1] — vit dans `jo.celeris.android.host.popups`. |
 | O-2 | `DocAncre` | Survol/peek/`@Preview` sur la carte du genre survol. | [1] — déménagé. |
-| O-3 | `MenuDebordement` | Débordement de la barre de sélection (carte du kit). | [1] — déménagé dans `android-widgets`. |
+| O-3 | `MenuDebordement` + `MenuEtages` | Débordement de la barre de sélection — la carte À ÉTAGES du kit : l'étage VIDE ne se montre jamais, l'étage de navigation ne vit que sur un symbole au caret (l'audit de compacité du 2026-11-14). | [1] — déménagés dans `android-widgets`. |
 | O-4 | `SelecteurCouleur` | Color picker au double-tap. | [1] — déménagé. |
 | O-5 | `BordDroit` | Bande/minimap/pouce, positionnement ad hoc. | [1] — déménagé. |
 | O-6 | `BarreToolbar` | Carte de débordement toolbar (genre propre) + touchbar. | [1] — déménagé dans `android-widgets`. |
@@ -87,6 +87,8 @@ tous [1] : purs, testés, sans vue.
 | O-9 | `LanguageSession` | La surface commune des serveurs de langage (modèles convertis). | [1] — déménagée. |
 | O-10 | `CatalogueActions` (demo) | Table unique des actions, trois peaux (menu, carte, intentions). | [1] — reste au terrain. |
 | O-11 | `CoachDemo` / `PopupCoach` (demo) | Les tables du terrain de test (mots Java, signatures, documentation factices). | [1] — reste au terrain. |
+| O-12 | `Reglages` + `ReglagesView` | La carte des réglages — la table centrale `ReglagesEditeur` (android-view) s'y bascule, dix portes stables, coin bas-droit (l'audit du 2026-11-14 : « un système central editor settings »). | [1] — né du chantier des réglages. |
+| O-13 | `TypesLitteraux` / `CapCompletion` / `Repositionneur` | Les pures extraites de l'orchestrateur : le type des littéraux des inlays, le cap de la complétion selon la place, le repositionnement des surfaces ouvertes. | [1] — nés du plafond de complexité. |
 
 ## 2. Classification par catégorie fonctionnelle (phase 3 de la mission)
 

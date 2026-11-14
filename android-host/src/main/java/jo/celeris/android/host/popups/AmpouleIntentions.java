@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.view.EditorView;
+import jo.celeris.android.view.ReglagesEditeur;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
@@ -62,6 +63,12 @@ final class AmpouleIntentions {
      * @param selection la sélection courante
      */
     void surSelection(TextSession session, MultiSelection selection) {
+        // la PORTE des réglages peut éteindre l'ampoule — la table
+        // centrale reste le point de vérité (l'audit du 2026-11-14)
+        if (!editeur.reglages().ouverte(
+                ReglagesEditeur.Porte.AMPOULE_INTENTIONS)) {
+            return;
+        }
         List<SelRange> plages = selection.ranges();
         int caret = plages.isEmpty() ? 0 : plages.get(0).caret();
         surCaret(session.document().lineForOffset(caret) + 1);

@@ -188,12 +188,12 @@
 
   /* le pictogramme PROPRE d'une action — chaque action SON glyphe,
      jamais la même pour toutes (l'audit du 2026-11-14) */
-  .icone { display: inline-flex; width: 14px; height: 14px;
-    margin-right: 6px; flex: none; vertical-align: -2px;
-    color: var(--pp-texte); opacity: .75; }
+  .icone { display: inline-flex; width: 11px; height: 11px;
+    margin-right: 5px; flex: none; vertical-align: -1px;
+    color: var(--pp-texte); opacity: .55; }
   .icone svg { width: 100%; height: 100%; }
-  .icone .glyphe { font-size: 11px; font-weight: 700;
-    line-height: 14px; letter-spacing: -0.5px; }
+  .icone .glyphe { font-size: 9px; font-weight: 700;
+    line-height: 11px; letter-spacing: -0.5px; }
   .pastille { display: inline-flex; align-items: center; gap: 5px; }
 
   /* la sélection (glissée) */
@@ -248,21 +248,27 @@
   .scene[data-viewport="tablette"] .minimap { width: 40px; }
 
   /* ===== Les cartes (PopupPanel / TextRowsPopup) ===== */
+  /* l'entrée RESSORT de l'IDE de référence (l'audit du 2026-11-14) :
+     la carte naît presque en place — échelle 0.96 → 1 depuis son
+     centre, montée 5 px, 160 ms, la courbe qui freine tard */
   .carte { position: absolute; background: var(--pp-fond);
-    border: 1px solid var(--pp-bord); border-radius: 14px;
-    box-shadow: var(--ombre); padding: 8px 12px; z-index: 10;
+    border: 1px solid var(--pp-bord); border-radius: 12px;
+    box-shadow: var(--ombre); padding: 6px 10px; z-index: 10;
     font-size: 15px; color: var(--pp-texte); max-width: 92%;
-    opacity: 0; transform: translateY(6px); visibility: hidden;
-    transition: opacity .12s ease, transform .12s ease, visibility .12s; }
-  .carte.ouverte { opacity: 1; transform: translateY(0); visibility: visible; }
+    opacity: 0; transform: translateY(5px) scale(.96);
+    visibility: hidden; transform-origin: 50% 50%;
+    transition: opacity .16s cubic-bezier(.32, .72, 0, 1),
+      transform .16s cubic-bezier(.32, .72, 0, 1), visibility .16s; }
+  .carte.ouverte { opacity: 1; transform: translateY(0) scale(1);
+    visibility: visible; }
   .carte:focus { outline: none; }
 
   /* les rangées typées — le patron TextRowsPopup */
   .rg { position: relative; padding: 2px 0; }
-  .rg + .rg { margin-top: 5px; }
-  .rg.t-titre { font-size: .90em; }
-  .rg.t-corps { font-size: .85em; }
-  .rg.t-meta  { font-size: .75em; }
+  .rg + .rg { margin-top: 4px; }
+  .rg.t-titre { font-size: .85em; }
+  .rg.t-corps { font-size: .80em; }
+  .rg.t-meta  { font-size: .72em; }
   .rg.t-micro { font-size: .70em; }
   .rg .en-texte { color: var(--pp-texte); }
   .rg .en-muet { color: var(--pp-muet); }
@@ -984,6 +990,7 @@ const ICONES = {
   annuler: SVG(`<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>`),
   retablir: SVG(`<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/>`),
   theme: SVG(`<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>`),
+  retour_ligne: SVG(`<path d="M4 7h13a3 3 0 0 1 3 3v4"/><path d="M17 10l3 4-3 4"/>`),
   diminuer: `<span class="glyphe">A-</span>`,
   agrandir: `<span class="glyphe">A+</span>`,
   reglages: SVG(`<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>`),
@@ -1255,13 +1262,14 @@ function deplacerCaretSurMot(mot) {
    ===================================================================== */
 const FERME_FRAPPE = ["HOVER", "DIAGNOSTIC_TOOLTIP", "SELECTION_BAR",
   "SELECTION_OVERFLOW", "COLOR_PICKER", "TOOLBAR_OVERFLOW", "REFERENCES",
-  "TYPE_INFO", "HIERARCHY", "SAFE_DELETE"];
+  "TYPE_INFO", "HIERARCHY", "SAFE_DELETE", "SETTINGS_MENU"];
 const FERME_DEFILEMENT = ["HOVER", "DIAGNOSTIC_TOOLTIP", "COLOR_PICKER",
   "REFERENCES", "TYPE_INFO", "HIERARCHY", "SAFE_DELETE"];
 const FERME_TAP = ["HOVER", "DIAGNOSTIC_TOOLTIP", "COLOR_PICKER",
   "INTENTIONS_MENU", "SELECTION_OVERFLOW", "TOOLBAR_OVERFLOW",
   "REFERENCES", "TYPE_INFO", "HIERARCHY", "EXTERNAL_DOC", "GABARITS",
-  "SAFE_DELETE", "SAFE_MOVE", "SUPPRESS_INSPECTION", "EXCEPTION_DETAILS"];
+  "SAFE_DELETE", "SAFE_MOVE", "SUPPRESS_INSPECTION", "EXCEPTION_DETAILS",
+  "SETTINGS_MENU"];
 const ORDRE_CLAVIER = ["COMPLETION_LIST", "INTENTIONS_MENU", "GABARITS",
   "TOOLBAR_OVERFLOW", "SELECTION_OVERFLOW", "REFERENCES", "HIERARCHY",
   "SAFE_DELETE", "SAFE_MOVE", "SUPPRESS_INSPECTION", "EXCEPTION_DETAILS"];
@@ -2564,11 +2572,34 @@ function effacerSelection() {
   rafraichirTout();
   rafraichirFilAriane();
 }
+function symboleAuCaret() {
+  /* l'étage de navigation ne vit que sur un symbole au caret — la
+     visibilité contextuelle naît de la donnée (l'audit du 2026-11-14) */
+  if (!caret) return null;
+  const texte = lignes[caret.l] || "";
+  let d = caret.c, f = caret.c;
+  while (d > 0 && /[\w$]/.test(texte[d - 1])) d--;
+  while (f < texte.length && /[\w$]/.test(texte[f])) f++;
+  return d === f ? null : texte.slice(d, f);
+}
 function ouvrirDebordementBarre() {
-  /* le débordement enrichi (l'audit du 2026-11-14) : commenter, casse,
-     indentation, duplication — chaque rangée SON pictogramme, jamais
-     la même pour toutes */
-  const rangees = [{ texte: "PLUS", tier: "micro", section: true },
+  /* le débordement vit en ÉTAGES CONTEXTUELS (l'audit du
+     2026-11-14 : « séparé en étages ou colonnes qui deviennent
+     visibles contextuellement comme les go to, usages, rename ») :
+     l'étage de NAVIGATION ne se montre que sur un symbole au caret,
+     l'étage d'ÉDITION vit toujours — chaque rangée SON pictogramme */
+  const rangees = [];
+  if (symboleAuCaret()) {
+    rangees.push({ texte: "ALLER À", tier: "micro", section: true },
+      { texte: "Documentation", icone: "survol", tier: "titre",
+        prenable: true,
+        action: () => { fermer("SELECTION_OVERFLOW"); ouvrirSurvol(); } },
+      { texte: "Usages", icone: "usages", tier: "titre", prenable: true,
+        action: () => { fermer("SELECTION_OVERFLOW"); ouvrirUsages(); } },
+      { texte: "Renommer", icone: "renommer", tier: "titre", prenable: true,
+        action: () => { fermer("SELECTION_OVERFLOW"); ouvrirFeuilleRenommer(); } });
+  }
+  rangees.push({ texte: "ÉDITION", tier: "micro", section: true },
     { texte: "Commenter", icone: "commenter", tier: "titre",
       prenable: true,
       action: () => { fermer("SELECTION_OVERFLOW"); commenterLigne(); } },
@@ -2590,7 +2621,7 @@ function ouvrirDebordementBarre() {
         selection = { l1: 0, c1: 0, l2: lignes.length - 1,
           c2: lignes[lignes.length - 1].length };
         renderSelection(); poserBarreSelection();
-      } }];
+      } });
   poserCarte("SELECTION_OVERFLOW", { rangees, ancre: Ancres.sousPuceBarre,
     fiche: "debordement_barre" });
 }
@@ -2683,7 +2714,7 @@ function ouvrirDebordementToolbar() {
       "theme", () => basculerTheme()],
     ["Réduire le texte", "diminuer", () => zoomerPolice(-2)],
     ["Agrandir le texte", "agrandir", () => zoomerPolice(2)],
-    ["Réglages", "reglages", () => ouvrirFeuilleReglages()]
+    ["Réglages", "reglages", () => basculerCarteReglages()]
   ];
   /* chaque action repliée porte SON pictogramme — jamais la même
      pour toutes (l'audit du 2026-11-14) */
@@ -3037,6 +3068,35 @@ function ouvrirFeuilleReglages() {
       "Copier le paquet jouet Logo au stockage — l'éditeur gagne un langage sans recompiler (H-04)",
       false, () => {});
   }, "reglages");
+}
+
+
+/* --- la carte des réglages de l'éditeur (SETTINGS_MENU — l'audit du
+   2026-11-14 : « un système central editor settings ») : les
+   commutateurs se posent au coin bas-droit, la table de vérité vit
+   dans les mêmes variables que la feuille --- */
+function basculerCarteReglages() {
+  if (OUVERTS.has("SETTINGS_MENU")) { fermer("SETTINGS_MENU"); return; }
+  const interrupteur = (libelle, icone, valeur, geste) => ({
+    texte: libelle, icone, tier: "titre", prenable: true,
+    action: () => { geste(!valeur()); basculerCarteReglages();
+      basculerCarteReglages(); } });
+  const rangees = [interrupteur("Indices en ligne", "survol",
+    () => inlayActifs, v => { inlayActifs = v; renderCode(); }),
+    interrupteur("Ampoule d'intentions", "intentions",
+      () => ampouleActive, v => { ampouleActive = v; renderCode(); }),
+    interrupteur("Numéros de lignes", "tout",
+      () => elGouttiere.style.display !== "none",
+      v => { elGouttiere.style.display = v ? "" : "none"; }),
+    interrupteur("Retour à la ligne souple", "retour_ligne",
+      () => false, () => {}),
+    interrupteur("Thème sombre", "theme",
+      () => document.documentElement.dataset.theme === "sombre",
+      v => appliquerTheme(v ? "sombre" : "clair"))];
+  poserCarte("SETTINGS_MENU", { rangees,
+    ancre: (l, h) => ({ left: elCouche.clientWidth - l - 8,
+      top: elCouche.clientHeight - h - 8 }),
+    fiche: "reglages_carte" });
 }
 
 /* --- la revue du diff (AtelierDiff) --- */
