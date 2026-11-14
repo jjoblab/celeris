@@ -9,6 +9,16 @@
     <item name="action_completion" type="id" />
     <item name="action_intentions" type="id" />
     <item name="action_survol" type="id" />
+    <item name="action_usages" type="id" />
+    <item name="action_type_info" type="id" />
+    <item name="action_hierarchie" type="id" />
+    <item name="action_aller" type="id" />
+    <item name="action_doc" type="id" />
+    <item name="action_generer" type="id" />
+    <item name="action_executer" type="id" />
+    <item name="action_supprimer_sur" type="id" />
+    <item name="action_deplacer_dans" type="id" />
+    <item name="action_masquer_inspection" type="id" />
     <item name="action_lint" type="id" />
     <item name="action_corriger" type="id" />
     <item name="action_gabarit" type="id" />

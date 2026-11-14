@@ -38,13 +38,27 @@ public final class PopupManager {
     /**
      * L'ordre du routage clavier : la complétion d'abord (elle reçoit la
      * frappe de saisie), les menus ensuite — ils ne tiennent jamais
-     * ensemble, l'ordre ne départage que les débordements.
+     * ensemble, l'ordre ne départage que les débordements —, la carte
+     * des usages et la hiérarchie en dernier (elles ne tiennent jamais
+     * avec les menus, le routage ne les sert que seules — elles ne
+     * tiennent jamais ensemble non plus, l'ordre ne départage pas). La
+     * carte de gabarits vit avec les menus du caret ; la carte des
+     * usages qui barrent et celle des cibles du déménagement ferment
+     * la file — elles ne tiennent jamais avec les précédentes ; la
+     * carte de masquage d'inspection vit avec les menus du caret.
      */
     private static final PopupController.PopupKind[] ORDRE_CLAVIER = {
             PopupController.PopupKind.COMPLETION_LIST,
             PopupController.PopupKind.INTENTIONS_MENU,
+            PopupController.PopupKind.GABARITS,
             PopupController.PopupKind.TOOLBAR_OVERFLOW,
-            PopupController.PopupKind.SELECTION_OVERFLOW};
+            PopupController.PopupKind.SELECTION_OVERFLOW,
+            PopupController.PopupKind.REFERENCES,
+            PopupController.PopupKind.HIERARCHY,
+            PopupController.PopupKind.SAFE_DELETE,
+            PopupController.PopupKind.SAFE_MOVE,
+            PopupController.PopupKind.SUPPRESS_INSPECTION,
+            PopupController.PopupKind.EXCEPTION_DETAILS};
 
     /** Ce qu'une feuille modale coupe : l'intelligence et les actions
      *  cèdent au voile — le fil d'Ariane et le chrome (bande, minimap,
@@ -60,17 +74,28 @@ public final class PopupManager {
             PopupController.PopupKind.TOOLBAR_OVERFLOW,
             PopupController.PopupKind.SELECTION_OVERFLOW,
             PopupController.PopupKind.SELECTION_BAR,
-            PopupController.PopupKind.NOTIFICATION};
+            PopupController.PopupKind.REFERENCES,
+            PopupController.PopupKind.TYPE_INFO,
+            PopupController.PopupKind.HIERARCHY,
+            PopupController.PopupKind.NOTIFICATION,
+            PopupController.PopupKind.EXTERNAL_DOC,
+            PopupController.PopupKind.GABARITS,
+            PopupController.PopupKind.SAFE_DELETE,
+            PopupController.PopupKind.SAFE_MOVE,
+            PopupController.PopupKind.SUPPRESS_INSPECTION};
 
     /** Ce que l'échappement referme quand aucune carte interactive ne
-     *  tient — les bulles qui suivent le contexte et la notification
-     *  éphémère, pas le chrome. */
+     *  tient — les bulles qui suivent le contexte et les cartes de
+     *  consultation qui décrivent sans choisir, pas le chrome (l'annonce
+     *  éphémère vit son quart, seule son heure la conclut). */
     private static final PopupController.PopupKind[] EPHEMERES = {
             PopupController.PopupKind.SIGNATURE_HELP,
             PopupController.PopupKind.HOVER,
             PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
             PopupController.PopupKind.COLOR_PICKER,
-            PopupController.PopupKind.NOTIFICATION};
+            PopupController.PopupKind.TYPE_INFO,
+            PopupController.PopupKind.EXTERNAL_DOC,
+            PopupController.PopupKind.EXCEPTION_DETAILS};
 
     private final PopupController controleur;
     private final PopupLayer couche;
@@ -255,11 +280,13 @@ public final class PopupManager {
     /**
      * La touche matérielle déléguée par l'éditeur (PIEGE-27 : il garde
      * le focus, il rend le verdict des touches aux popups) : la
-     * première carte interactive ouverte reçoit les flèches et la
-     * validation (Enter, Tab — la complétion ouverte précède le fantôme
-     * IA) ; l'échappement referme la première carte interactive, sinon
-     * les bulles éphémères. Toute autre touche retourne faux — l'éditeur
-     * suit sa vie normale.
+     * première carte interactive ouverte reçoit les flèches, les pages
+     * (PAGE_UP, PAGE_DOWN — le pas étendu, une page par unité : la
+     * carte qui ne pagine pas décline) et la validation (Enter, Tab —
+     * la complétion ouverte précède le fantôme IA) ; l'échappement
+     * referme la première carte interactive, sinon les bulles
+     * éphémères. Toute autre touche retourne faux — l'éditeur suit sa
+     * vie normale.
      *
      * @param keyCode le code de la touche déléguée
      * @return vrai si la touche a servi un popup
@@ -309,6 +336,12 @@ public final class PopupManager {
         View vue = vues.get(genre);
         if (!(vue instanceof PopupClavier carte)) {
             return false;
+        }
+        if (keyCode == KeyEvent.KEYCODE_PAGE_UP) {
+            return carte.surPage(-1);
+        }
+        if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) {
+            return carte.surPage(1);
         }
         if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
             return carte.surFleche(-1);

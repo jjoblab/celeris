@@ -34,6 +34,9 @@ final class CatalogueActions {
     private final AtelierAgent agent;
     private final AtelierIA ia;
     private final PopupsEditeur popups;
+    /** Le pont provisoire des surfaces réveillées — les ouvertures des
+     *  cartes qui vivent encore dans la démonstration. */
+    private final PontSurfaces surfaces;
     private final AtelierRefactor refactor;
     private final AtelierRecherche recherche;
     private final BasculeTheme basculeTheme;
@@ -54,6 +57,9 @@ final class CatalogueActions {
      * @param agent          l'atelier de l'agent
      * @param ia             l'atelier IA (fantôme, prédiction)
      * @param popups         l'orchestrateur des popups (complétion, survol)
+     * @param surfaces       le pont des surfaces réveillées (usages,
+     *                       type, hiérarchie… — provisoire, la
+     *                       démonstration les teste)
      * @param refactor       l'atelier de refactorisation
      * @param recherche      l'atelier de recherche
      * @param basculeTheme   la bascule de thème
@@ -65,7 +71,8 @@ final class CatalogueActions {
     CatalogueActions(EditorActivity activite, String nomFichier,
             AtelierLint lint, AtelierDiff diff, AtelierCorrectif correctif,
             AtelierAgent agent,
-            AtelierIA ia, PopupsEditeur popups, AtelierRefactor refactor,
+            AtelierIA ia, PopupsEditeur popups, PontSurfaces surfaces,
+            AtelierRefactor refactor,
             AtelierRecherche recherche, BasculeTheme basculeTheme,
             FeuilleReglages feuilleReglages,
             Supplier<List<OutlineEntry>> plan,
@@ -79,6 +86,7 @@ final class CatalogueActions {
         this.agent = agent;
         this.ia = ia;
         this.popups = popups;
+        this.surfaces = surfaces;
         this.refactor = refactor;
         this.recherche = recherche;
         this.basculeTheme = basculeTheme;
@@ -95,11 +103,29 @@ final class CatalogueActions {
         barre.setTitle(nomFichier);
         barre.setNavigationOnClickListener(vue -> activite.finish());
         barre.setOnMenuItemClickListener(this::surMenu);
+        brancherActions();
+    }
+
+    /** La table des actions — chaque identifiant y trouve son geste
+     *  (le menu système, la carte de débordement et le menu d'intentions
+     *  y lisent, jamais de doublon de logique). */
+    private void brancherActions() {
         actionsMenu.put(R.id.action_recherche, recherche::ouvrir);
         actionsMenu.put(R.id.action_completion,
                 popups::basculerCompletion);
         actionsMenu.put(R.id.action_intentions, popups::ouvrirIntentions);
         actionsMenu.put(R.id.action_survol, popups::ouvrirSurvol);
+        actionsMenu.put(R.id.action_usages, surfaces::ouvrirUsages);
+        actionsMenu.put(R.id.action_type_info, surfaces::ouvrirTypeInfo);
+        actionsMenu.put(R.id.action_hierarchie, surfaces::ouvrirHierarchie);
+        actionsMenu.put(R.id.action_aller, activite::basculerAller);
+        actionsMenu.put(R.id.action_doc, surfaces::ouvrirDocExterne);
+        actionsMenu.put(R.id.action_generer, surfaces::ouvrirGabarits);
+        actionsMenu.put(R.id.action_supprimer_sur, surfaces::ouvrirSuppressionSure);
+        actionsMenu.put(R.id.action_deplacer_dans, surfaces::ouvrirDeplacement);
+        actionsMenu.put(R.id.action_masquer_inspection,
+                surfaces::ouvrirSuppressionInspection);
+        actionsMenu.put(R.id.action_executer, surfaces::executerFichier);
         actionsMenu.put(R.id.action_plan, activite::basculerPlan);
         actionsMenu.put(R.id.action_debogage, () -> {
             activite.etatDebogage.basculerPause();
@@ -153,6 +179,17 @@ final class CatalogueActions {
                 itemMenu(R.string.action_completion, R.id.action_completion),
                 itemMenu(R.string.action_intentions, R.id.action_intentions),
                 itemMenu(R.string.action_survol, R.id.action_survol),
+                itemMenu(R.string.action_usages, R.id.action_usages),
+                itemMenu(R.string.action_type_info, R.id.action_type_info),
+                itemMenu(R.string.action_hierarchie, R.id.action_hierarchie),
+                itemMenu(R.string.action_aller, R.id.action_aller),
+                itemMenu(R.string.action_doc, R.id.action_doc),
+                itemMenu(R.string.action_generer, R.id.action_generer),
+                itemMenu(R.string.action_supprimer_sur, R.id.action_supprimer_sur),
+                itemMenu(R.string.action_deplacer_dans, R.id.action_deplacer_dans),
+                itemMenu(R.string.action_masquer_inspection,
+                        R.id.action_masquer_inspection),
+                itemMenu(R.string.action_executer, R.id.action_executer),
                 itemMenu(R.string.action_lint, R.id.action_lint),
                 itemMenu(R.string.action_gabarit, R.id.action_gabarit),
                 itemMenu(R.string.action_formater, R.id.action_formater),
@@ -177,30 +214,50 @@ final class CatalogueActions {
                 actionsMenu.get(id));
     }
 
-    /** Les intentions du menu : les actions de l'atelier au curseur. */
+    /** Les intentions du menu : les actions de l'atelier au
+     *  curseur — le libellé lu par la voie courte. */
     List<IntentionsMenuView.Item> intentions() {
         return List.of(
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_lint),
+                new IntentionsMenuView.Item(libelle(R.string.action_lint),
                         lint::analyser),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_apercu),
+                new IntentionsMenuView.Item(libelle(R.string.action_apercu),
                         () -> popups.docAncre().apercu(
                                 plan.get(), lignes.get())),
+                new IntentionsMenuView.Item(libelle(R.string.action_usages),
+                        surfaces::ouvrirUsages),
+                new IntentionsMenuView.Item(libelle(R.string.action_type_info),
+                        surfaces::ouvrirTypeInfo),
+                new IntentionsMenuView.Item(libelle(R.string.action_hierarchie),
+                        surfaces::ouvrirHierarchie),
+                new IntentionsMenuView.Item(libelle(R.string.action_doc),
+                        surfaces::ouvrirDocExterne),
+                new IntentionsMenuView.Item(libelle(R.string.action_generer),
+                        surfaces::ouvrirGabarits),
+                new IntentionsMenuView.Item(libelle(R.string.action_supprimer_sur),
+                        surfaces::ouvrirSuppressionSure),
+                new IntentionsMenuView.Item(libelle(R.string.action_deplacer_dans),
+                        surfaces::ouvrirDeplacement),
                 new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_diff),
+                        libelle(R.string.action_masquer_inspection),
+                        surfaces::ouvrirSuppressionInspection),
+                new IntentionsMenuView.Item(libelle(R.string.action_executer),
+                        surfaces::executerFichier),
+                new IntentionsMenuView.Item(libelle(R.string.action_diff),
                         diff::ouvrir),
                 new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_apercu_correctif),
+                        libelle(R.string.action_apercu_correctif),
                         correctif::ouvrir),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_agent),
+                new IntentionsMenuView.Item(libelle(R.string.action_agent),
                         agent::ouvrir),
-                new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_ia_fantome),
+                new IntentionsMenuView.Item(libelle(R.string.action_ia_fantome),
                         () -> ia.demanderFantome()),
                 new IntentionsMenuView.Item(
-                        activite.getString(R.string.action_ia_prediction),
+                        libelle(R.string.action_ia_prediction),
                         () -> ia.demanderPrediction()));
+    }
+
+    /** Le libellé de la chaîne — la voie courte des intentions. */
+    private String libelle(int ressource) {
+        return activite.getString(ressource);
     }
 }

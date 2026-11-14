@@ -4,7 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
-import android.os.Looper;
+import android.view.MotionEvent;
+import android.view.View;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,13 +14,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.Shadows;
+import org.robolectric.shadows.ShadowLooper;
 
 /**
- * La notification de l'éditeur (2026-11-14) : la carte porte son
- * titre et son message, l'horloge (4 000 ms) referme seule — la
- * RÉ-POSE ré-arme sans mourir du retard de l'ancienne (la course du
- * retrait ne se paie jamais), le désarmement retire l'horloge en vol.
+ * La carte de notification (catégorie G de l'inventaire — la forme
+ * restait à décider, la bulle éphémère l'emporte) : l'annonce se pose
+ * en TITRE et CORPS, le tap LA PREND la referme (le Runnable de
+ * l'hôte seul décide), l'HORLOGE la referme à son heure — la re-pose
+ * réarme l'horloge, jamais deux courses (la queue du fil ne sert que
+ * la dernière annonce).
  */
 @RunWith(RobolectricTestRunner.class)
 public class NotificationViewTest {
@@ -31,54 +34,70 @@ public class NotificationViewTest {
         contexte = RuntimeEnvironment.getApplication();
     }
 
-    private void mesurer(NotificationView vue) {
-        vue.measure(android.view.View.MeasureSpec.makeMeasureSpec(0,
-                        android.view.View.MeasureSpec.UNSPECIFIED),
-                android.view.View.MeasureSpec.makeMeasureSpec(0,
-                        android.view.View.MeasureSpec.UNSPECIFIED));
+    private void mesurer(View vue) {
+        vue.measure(View.MeasureSpec.makeMeasureSpec(0,
+                        View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0,
+                        View.MeasureSpec.UNSPECIFIED));
     }
 
-    /** La carte se mesure et l'horloge la referme seule — quatre
-     *  secondes, l'expiration court une fois. */
+    /** L'annonce se pose : le titre au palier titre, le message au
+     *  corps — la carte se mesure à son contenu. */
     @Test
-    public void laCarteVitQuatreSecondesPuisExpire() {
+    public void lannonceSePoseTitreEtMessage() {
         NotificationView vue = new NotificationView(contexte,
                 PopupPalette.dark());
-        AtomicInteger expire = new AtomicInteger();
-        vue.setMessage("Serveur de langage",
-                "Le mini serveur Java a démarré.", expire::incrementAndGet);
+        vue.setAnnonce("Lint", "3 fixed");
         mesurer(vue);
-        assertTrue("la carte se mesure",
-                vue.getMeasuredWidth() > 0 && vue.getMeasuredHeight() > 0);
-        Shadows.shadowOf(Looper.getMainLooper()).runToEndOfTasks();
-        assertEquals("l'expiration court une fois", 1, expire.get());
+        assertEquals("le titre et le message", 2, vue.rowCount());
+        assertEquals("Lint", vue.titre());
+        assertTrue("la carte tient ses rangées", vue.getMeasuredHeight() > 0);
+        // la pose suivante remplace : jamais quatre rangées
+        vue.setAnnonce("Debug", "Paused at line 5");
+        assertEquals("Debug", vue.titre());
+        assertEquals("la pose suivante remplace", 2, vue.rowCount());
     }
 
-    /** La ré-pose ré-arme : l'ancienne horloge se retire AVANT que la
-     *  neuve ne parte — jamais le retard de la morte ne referme la
-     *  neuve (la course du retrait ne se paie jamais deux fois). */
+    /** Le tap LA PREND la referme : le relâchement sur la bulle
+     *  prévient l'hôte — l'annonce ne survit pas au geste qui la lit. */
     @Test
-    public void laRePoseReArmeSansMourirDuRetard() {
+    public void leTapLaPrendLaReferme() {
+        AtomicInteger prises = new AtomicInteger(0);
         NotificationView vue = new NotificationView(contexte,
                 PopupPalette.dark());
-        AtomicInteger expire = new AtomicInteger();
-        vue.setMessage("Sauvegarde", "Fichier écrit.", expire::incrementAndGet);
-        vue.setMessage("Serveur", "Diagnostics publiés.",
-                expire::incrementAndGet);
-        Shadows.shadowOf(Looper.getMainLooper()).runToEndOfTasks();
-        assertEquals("seule la DERNIÈRE expiration court", 1, expire.get());
+        vue.setAnnonce("Lint", "3 fixed");
+        vue.setSurPrise(() -> prises.incrementAndGet());
+        mesurer(vue);
+        long t = android.os.SystemClock.uptimeMillis();
+        float centre = vue.rowCenterY(0) + vue.paddingYPx;
+        vue.onTouchEvent(MotionEvent.obtain(t, t, MotionEvent.ACTION_DOWN,
+                10f, centre, 0));
+        vue.onTouchEvent(MotionEvent.obtain(t, t + 16L, MotionEvent.ACTION_UP,
+                10f, centre, 0));
+        assertEquals("le relâchement sur la bulle la prend", 1, prises.get());
     }
 
-    /** Le désarmement retire l'horloge en vol — la carte fermée
-     *  (tap hors cartes, voile, échappement) ne referme rien de retard. */
+    /** L'horloge la referme à son heure : la course part à l'armement,
+     *  la re-pose la réarme — jamais deux courses, la queue du fil ne
+     *  sert que la dernière annonce. */
     @Test
-    public void desarmerRetireLhorlogeEnVol() {
+    public void lhorlogeLaRefermeEtSeRearme() {
+        AtomicInteger courses = new AtomicInteger(0);
         NotificationView vue = new NotificationView(contexte,
                 PopupPalette.dark());
-        AtomicInteger expire = new AtomicInteger();
-        vue.setMessage("Agent", "Revue terminée.", expire::incrementAndGet);
+        vue.setAnnonce("Lint", "3 fixed");
+        vue.armer(1000L, courses::incrementAndGet);
+        // la re-pose réarme : la première course se dissout
+        vue.setAnnonce("Debug", "Paused at line 5");
+        vue.armer(1000L, courses::incrementAndGet);
+        ShadowLooper shadow = ShadowLooper.shadowMainLooper();
+        shadow.runToEndOfTasks();
+        assertEquals("l'horloge ne sert que la dernière annonce", 1,
+                courses.get());
+        // le désarmement coupe l'horloge : la course ne part jamais
+        vue.armer(1000L, courses::incrementAndGet);
         vue.desarmer();
-        Shadows.shadowOf(Looper.getMainLooper()).runToEndOfTasks();
-        assertEquals("aucune expiration ne court", 0, expire.get());
+        shadow.runToEndOfTasks();
+        assertEquals("l'horloge désarmée ne court plus", 1, courses.get());
     }
 }

@@ -1,6 +1,7 @@
 package jo.celeris.demo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jo.celeris.android.host.popups.LanguageSession;
@@ -25,6 +27,8 @@ import jo.celeris.android.host.popups.PopupsEditeur;
 import jo.celeris.android.host.spi.CheminDoc;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.host.spi.EtatLignesVcs;
+import jo.celeris.android.host.spi.LigneArret;
+import jo.celeris.android.host.spi.ValeurEnLigne;
 import jo.celeris.android.view.ClasseLargeur;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.FontSpec;
@@ -32,6 +36,7 @@ import jo.celeris.android.view.MarquesIntegration;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
+import jo.celeris.android.view.ValeurLigne;
 import jo.celeris.android.widgets.BarreToolbar;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupPalette;
@@ -80,6 +85,9 @@ public final class EditorActivity extends AppCompatActivity {
     private FeuilleReglages feuilleReglages;
     /** La feuille du plan (ADR-018 : « plan » vit en feuille du bas). */
     private FeuillePlan feuillePlan;
+    /** La feuille de l'aller à (ADR-018, catégorie C — « Go to File /
+     *  Class / Symbol ») : la recherche floue y répond, le choix saute. */
+    private FeuilleAller feuilleAller;
     private List<ReperesPreview.ReperePreview> reperes = List.of();
     /** L'état de débogage — arrêts, pause simulée, étiquette (D-04, D-05).
      *  Visible du paquet : le catalogue des actions y bascule la pause. */
@@ -91,6 +99,10 @@ public final class EditorActivity extends AppCompatActivity {
     private AtelierAgent atelierAgent;
     private AtelierIA atelierIA;
     private PopupsEditeur popups;
+    /** Le pont provisoire des surfaces réveillées — la démonstration
+     *  teste les cartes du kit sur le manager de l'éditeur, le temps
+     *  du déménagement chez l'orchestrateur. */
+    private PontSurfaces pontSurfaces;
     private AtelierRefactor atelierRefactor;
     private AtelierRecherche atelierRecherche;
     private AtelierSelection atelierSelection;
@@ -156,7 +168,7 @@ public final class EditorActivity extends AppCompatActivity {
         // trouvent montés — le menu, la carte et les intentions y lisent.
         catalogue = new CatalogueActions(this, nomFichier, atelierLint,
                 atelierDiff, atelierCorrectif, atelierAgent, atelierIA, popups,
-                atelierRefactor, atelierRecherche, basculeTheme,
+                pontSurfaces, atelierRefactor, atelierRecherche, basculeTheme,
                 feuilleReglages, () -> entreesPlan, this::lignesCourantes, barreToolbar);
         catalogue.brancher();
         popups.configurerIntentions(catalogue.intentions());
@@ -220,6 +232,8 @@ public final class EditorActivity extends AppCompatActivity {
                 this::verdictRefactor, () -> feuilleReglages.montrer());
         brancherAteliers();
         // La feuille du plan vit après le thème : sa palette s'en dérive.
+        feuilleAller = new FeuilleAller(this, this::paletteFeuilles,
+                this::sauterAller, () -> entreesPlan, this::nomsDuCatalogue);
         feuillePlan = new FeuillePlan(this, this::paletteFeuilles, this::sautVersEntree);
         editeur.setSurPlan(entrees -> {
             entreesPlan = entrees;
@@ -314,10 +328,12 @@ public final class EditorActivity extends AppCompatActivity {
         popups = new PopupsEditeur(editeur, session, couche,
                 basculeTheme.themeCourant(),
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT), new CoachDemo());
+        brancherPont();
         // le verre des popups se dérive du fond de l'éditeur — la barre
         // de touches suit la même source.
         basculeTheme.setSurChangement(theme -> {
             popups.surTheme(theme);
+            rafraichirPont();
             if (barreToolbar != null) {
                 barreToolbar.surPalette(paletteFeuilles());
             }
@@ -325,6 +341,8 @@ public final class EditorActivity extends AppCompatActivity {
         popups.setNomFichier(nomFichier);
         popups.brancherServeur(serveurLangage, "file:///" + nomFichier,
                 langueOuverte());
+        pontSurfaces.brancherServeur(serveurLangage,
+                "file:///" + nomFichier);
         atelierSelection = new AtelierSelection(editeur, session);
         popups.configurerActionsSelection(
                 atelierSelection.principales(getString(R.string.barre_couper),
@@ -341,6 +359,22 @@ public final class EditorActivity extends AppCompatActivity {
         brancherToolbar();
     }
 
+    /** Le pont provisoire des surfaces réveillées : la démonstration
+     *  teste les cartes du kit sur le manager de l'éditeur — chaque
+     *  surface portée chez l'hôte retirera sa ligne. */
+    private void brancherPont() {
+        PopupLayer couche = findViewById(R.id.couche_popups);
+        pontSurfaces = new PontSurfaces(editeur, session, popups.manager(),
+                Math.round(8f * couche.getResources()
+                        .getDisplayMetrics().density),
+                PalettesPopups.de(basculeTheme.themeCourant(),
+                        prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)),
+                () -> entreesPlan, () -> nomFichier,
+                popups::diagnostics,
+                atelierRefactor::insererGabarit, atelierLint::analyser,
+                popups::notifier);
+    }
+
     /** Le survol se sert AU DOUBLE-TAP et au « i » de la barre (le
      *  redressement du 2026-11-13) : le color picker d'abord. */
     private void brancherSurvolDoubleTap() {
@@ -350,6 +384,16 @@ public final class EditorActivity extends AppCompatActivity {
         // la délégation clavier (chantier d'unification) : les touches
         // matérielles remontent aux popups AVANT la table de raccourcis
         editeur.setSurTouchePopup(popups::surTouche);
+    }
+
+    /** Le pont suit le thème et la taille — ses cartes se re-vêtent
+     *  de la palette fraîche de l'éditeur. */
+    private void rafraichirPont() {
+        if (pontSurfaces != null) {
+            pontSurfaces.surPalette(PalettesPopups.de(
+                    basculeTheme.themeCourant(),
+                    prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)));
+        }
     }
 
     /** Le dépôt de départ : le débordement de la toolbar vit dans la
@@ -404,6 +448,7 @@ public final class EditorActivity extends AppCompatActivity {
             popups.surTailleTexte(
                     prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
         }
+        rafraichirPont();
         // M7.5, §9 — la retenue d'analyse et la surimpression de
         // diagnostic, depuis les préférences.
         sceneReglages.appliquer(prefs);
@@ -423,6 +468,7 @@ public final class EditorActivity extends AppCompatActivity {
         if (popups != null) {
             popups.surTailleTexte(bornee);
         }
+        rafraichirPont();
     }
 
     void rejouer(boolean enAvant) {
@@ -442,6 +488,43 @@ public final class EditorActivity extends AppCompatActivity {
      */
     void basculerPlan() {
         feuillePlan.basculer();
+    }
+
+    /** Bascule l'aller à en feuille du bas (ADR-018, catégorie C) :
+     *  la requête tape, la floue répond — le choix saute au symbole du
+     *  fichier ouvert, ou ouvre le fichier du catalogue. */
+    void basculerAller() {
+        feuilleAller.basculer();
+    }
+
+    /** Le saut de l'aller à : le symbole porte au plan ouvert, le
+     *  fichier ouvre SA page — l'activité relance l'édition. */
+    private void sauterAller(ResultatsAller.Resultat choix) {
+        if (ResultatsAller.GENRE_SYMBOLE.equals(choix.genre())) {
+            for (OutlineEntry entree : entreesPlan) {
+                if (entree.name().equals(choix.libelle())) {
+                    NavigationCommands.placeCaret(editeur,
+                            entree.startOffset());
+                    return;
+                }
+            }
+            return;
+        }
+        if (choix.libelle().equals(nomFichier)) {
+            return;
+        }
+        Intent ouverture = new Intent(this, EditorActivity.class);
+        ouverture.putExtra(EXTRA_FICHIER, choix.libelle());
+        startActivity(ouverture);
+    }
+
+    /** Les noms des fichiers du catalogue — l'aller à fichier y sert. */
+    private List<String> nomsDuCatalogue() {
+        List<String> noms = new ArrayList<>();
+        for (FichierExemple fichier : FichiersExemple.catalogue()) {
+            noms.add(fichier.nom());
+        }
+        return noms;
     }
 
     /** La palette courante des feuilles — le verre suit le thème de
@@ -471,6 +554,7 @@ public final class EditorActivity extends AppCompatActivity {
         return feuilleReglages.surRetour()
                 || atelierRecherche.surRetour()
                 || (feuillePlan != null && feuillePlan.surRetour())
+                || (feuilleAller != null && feuilleAller.surRetour())
                 || atelierRefactor.surRetour()
                 || atelierDiff.surRetour()
                 || atelierCorrectif.surRetour()
@@ -526,8 +610,14 @@ public final class EditorActivity extends AppCompatActivity {
         int corriges = atelierLint.corriger();
         if (corriges > 0) {
             etiquetteArrets.setText(getString(R.string.lint_correctifs, corriges));
+            popups.notifier(
+                    getString(R.string.titre_notification),
+                    getString(R.string.lint_correctifs, corriges));
         } else {
             etiquetteArrets.setText(R.string.lint_propre);
+            popups.notifier(
+                    getString(R.string.titre_notification),
+                    getString(R.string.lint_propre));
         }
         etiquetteArrets.setVisibility(View.VISIBLE);
         editeur.invalidate();
@@ -585,7 +675,37 @@ public final class EditorActivity extends AppCompatActivity {
                 etatDebogage.debogueur().arrets(), chemin,
                 etatDebogage.debogueur().ligneCourante(), etatDebogage.debogueur().pileCourante());
         editeur.marquesGouttiere().setIntegration(marques);
+        annoncerPauseSiPausee();
+        majValeursEnLigne();
         editeur.invalidate();
+    }
+
+    /** Les valeurs de débogage en ligne (E-03) : la pause les pose en
+     *  fin de ligne — le rendu de la vue (expression = valeur), la
+     *  reprise les retire. La vue ne connaît pas le débogueur :
+     *  l'activité transpose. */
+    private void majValeursEnLigne() {
+        LigneArret pause = etatDebogage.debogueur().ligneCourante();
+        List<ValeurLigne> posees = new ArrayList<>();
+        if (pause != null) {
+            List<ValeurEnLigne> valeurs = etatDebogage.debogueur()
+                    .valeursEnLigne(pause.ligne());
+            for (ValeurEnLigne valeur : valeurs) {
+                posees.add(new ValeurLigne(valeur.ligne(),
+                        valeur.expression() + " = " + valeur.valeur()));
+            }
+        }
+        editeur.setValeursEnLigne(posees);
+    }
+
+    /** La pause de débogage s'annonce — la reprise aussi : la bulle du
+     *  coin bas-droit porte l'événement réel, l'horloge la referme. */
+    private void annoncerPauseSiPausee() {
+        LigneArret pause = etatDebogage.debogueur().ligneCourante();
+        if (pause != null) {
+            popups.notifier(getString(R.string.titre_notification),
+                    getString(R.string.etat_pause, pause.ligne()));
+        }
     }
 
     private void majPosition() {

@@ -42,35 +42,44 @@ abstract class TextRowsPopup extends PopupPanel {
 
     /**
      * Une rangée : son texte, son encre (—1 pour l'encre du panneau),
-     * son palier, sa bande teintée, son filet de tête, son indentation
-     * éventuelle et son état d'EN-TÊTE DE SECTION (le motif NavMenu du
+     * son palier, sa bande teintée, son filet de tête, son niveau
+     * d'indentation (le motif PARAM du dépôt de départ — une
+     * respiration par niveau, l'arbre des hiérarchies y creuse ses
+     * branches) et son état d'EN-TÊTE DE SECTION (le motif NavMenu du
      * dépôt de départ : une section en petites capitales muettes ne se
      * prend pas — elle sert les rangées qui la suivent).
      */
     protected record Row(String text, int ink, Tier tier, boolean teintee,
-            boolean filetAvant, boolean indentee, boolean enTete) {
+            boolean filetAvant, int retrait, boolean enTete) {
 
         static Row of(String text) {
-            return new Row(text, -1, Tier.CORPS, false, false, false, false);
+            return new Row(text, -1, Tier.CORPS, false, false, 0, false);
         }
 
         static Row of(String text, int ink) {
-            return new Row(text, ink, Tier.CORPS, false, false, false, false);
+            return new Row(text, ink, Tier.CORPS, false, false, 0, false);
         }
 
         /** Une rangée à palier explicite. */
         static Row tier(String text, int ink, Tier tier) {
-            return new Row(text, ink, tier, false, false, false, false);
+            return new Row(text, ink, tier, false, false, 0, false);
         }
 
         /** Une rangée sur bande teintée douce (le motif signature). */
         static Row teintee(String text, int ink, Tier tier) {
-            return new Row(text, ink, tier, true, false, false, false);
+            return new Row(text, ink, tier, true, false, 0, false);
         }
 
         /** Une rangée indentée (le motif PARAM du dépôt de départ). */
         static Row indentee(String text, int ink, Tier tier) {
-            return new Row(text, ink, tier, false, false, true, false);
+            return new Row(text, ink, tier, false, false, 1, false);
+        }
+
+        /** Une rangée d'arbre — une respiration par PROFONDEUR : la
+         *  branche s'y creuse, le sommet racine vit à découvert. */
+        static Row arbre(String text, int ink, Tier tier, int profondeur) {
+            return new Row(text, ink, tier, false, false,
+                    Math.max(0, profondeur), false);
         }
 
         /**
@@ -79,13 +88,13 @@ abstract class TextRowsPopup extends PopupPanel {
          * les rangées qui la suivent.
          */
         static Row section(String texte) {
-            return new Row(texte, -2, Tier.MICRO, false, false, false, true);
+            return new Row(texte, -2, Tier.MICRO, false, false, 0, true);
         }
 
         /** La même rangée, précédée d'un filet de séparation. */
         static Row apresFilet(Row rangee) {
             return new Row(rangee.text(), rangee.ink(), rangee.tier(),
-                    rangee.teintee(), true, rangee.indentee(), rangee.enTete());
+                    rangee.teintee(), true, rangee.retrait(), rangee.enTete());
         }
     }
 
@@ -180,7 +189,7 @@ abstract class TextRowsPopup extends PopupPanel {
                     ? rangee.text().toUpperCase() : rangee.text();
             Paint.FontMetrics metriques = textPaint().getFontMetrics();
             float ligne = y - metriques.top;
-            float x = rangee.indentee() ? indentPx : 0f;
+            float x = rangee.retrait() * indentPx;
             canvas.drawText(texte, x, ligne, textPaint());
             y += hauteur;
         }
@@ -205,7 +214,7 @@ abstract class TextRowsPopup extends PopupPanel {
             String texte = rangee.enTete()
                     ? rangee.text().toUpperCase() : rangee.text();
             largeur = Math.max(largeur,
-                    (rangee.indentee() ? indentPx : 0f)
+                    rangee.retrait() * indentPx
                             + textPaint().measureText(texte));
         }
         return Math.round(largeur);

@@ -4,77 +4,96 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
 /**
- * La notification de l'éditeur (2026-11-14) : une carte éphémère au
- * coin bas-droit de la scène — le TITRE au palier titre, le MESSAGE à
- * l'encre du texte. Ni la frappe ni le défilement ne la ferment (le
- * texte ne la regarde pas), le tap hors cartes la chasse, l'horloge la
- * referme seule : {@link #setMessage} ARME l'expiration (4 000 ms) et
- * la ré-arme — la carte re-posée ne meurt jamais du retard de
- * l'ancienne ({@link #desarmer} retire l'horloge en vol, jamais la
- * course du retrait ne se paie). L'ancre vit chez
- * {@link PopupAnchor#bottomRightCorner}.
+ * La carte de notification (catégorie G de l'inventaire — la forme
+ * restait à décider, la bulle éphémère l'emporte) : l'annonce se pose
+ * en titre et message, l'HORLOGE la referme à son heure ({@link #armer}
+ * — la queue du FIL UI la porte, jamais l'éditeur), le tap LA PREND la
+ * referme ({@link #setSurPrise} — le Runnable de l'hôte seul décide).
+ * PIEGE-27 : jamais de focus — l'annonce s'affiche, elle ne règne pas ;
+ * les régimes l'épargnent (frappe, défilement, geste extérieur — elle
+ * annonce, elle ne décrit pas le texte), seule son heure la conclut.
+ *
+ * <p>La re-pose réarme l'horloge : {@link #armer} dissout la course
+ * d'avant — la queue du fil ne sert que la DERNIÈRE annonce, jamais
+ * deux courses ne se cumulent. La carte ne connaît NI l'éditeur, NI le
+ * coordinateur : l'expiration rend à l'hôte, qui referme le genre.</p>
  */
 public final class NotificationView extends TextRowsPopup {
 
-    /** La durée de vie d'une notification, en millisecondes. */
-    public static final long DUREE_MS = 4000L;
+    /** Le titre de l'annonce — vide avant la première pose. */
+    private String titre = "";
+    /** L'horloge de l'annonce — la queue du fil UI la porte. */
+    private final Handler horloge = new Handler(Looper.getMainLooper());
+    /** La course en cours — null quand l'horloge ne court pas. */
+    private @Nullable Runnable course;
 
-    /** L'horloge du fil de scène — l'expiration y vole en retard. */
-    private final Handler horloge;
-    /** L'expiration armée — null quand aucune horloge ne vole. */
-    private @Nullable Runnable expiration;
-
+    /**
+     * Construit la carte sur la palette du thème courant.
+     *
+     * @param context le contexte de la couche
+     * @param palette la palette courante des popups
+     */
     public NotificationView(Context context, PopupPalette palette) {
         super(context, palette);
-        horloge = new Handler(Looper.getMainLooper());
     }
 
     /**
-     * Pose le titre et le message, ARME l'expiration : la carte vit
-     * quatre secondes, l'ancienne horloge se retire AVANT que la
-     * neuve ne parte (la ré-pose ne meurt jamais du retard de la
-     * morte).
+     * Pose l'annonce : le titre au palier titre, le message au corps.
      *
-     * @param titre     le titre de l'avis, au palier titre
-     * @param message   le message de l'avis, à l'encre du texte
-     * @param expirer   la course de l'expiration — la fermeture y vit
+     * @param titre   le titre de l'annonce, jamais null ni blanc
+     * @param message le message de l'annonce
      */
-    public void setMessage(String titre, String message, Runnable expirer) {
-        List<Row> rangees = new ArrayList<>();
-        rangees.add(Row.tier(titre, -1, Tier.TITRE));
-        for (String ligne : message.split("\n", -1)) {
-            rangees.add(Row.of(ligne));
-        }
-        setRows(rangees);
-        desarmer();
-        expiration = expirer;
-        horloge.postDelayed(expirer, DUREE_MS);
+    public final void setAnnonce(String titre, String message) {
+        this.titre = titre;
+        setRows(List.of(
+                Row.tier(titre, -1, Tier.TITRE),
+                Row.of(message)));
+    }
+
+    /** Le titre de l'annonce posée. */
+    public final String titre() {
+        return titre;
     }
 
     /**
-     * L'horloge se désarme : l'expiration en vol se retire — la carte
-     * fermée (tap hors cartes, voile, échappement) ne referme rien de
-     * retard, la carte re-posée vit SA durée.
+     * Le rappel du tap qui PREND la bulle — l'annonce ne survit pas au
+     * geste qui la lit ; l'hôte y referme le genre.
+     *
+     * @param surPrise le rappel de la prise, null pour couper
      */
-    public void desarmer() {
-        if (expiration != null) {
-            horloge.removeCallbacks(expiration);
-            expiration = null;
-        }
+    public final void setSurPrise(@Nullable Runnable surPrise) {
+        setOnPick(surPrise == null ? null : rang -> {
+            desarmer();
+            surPrise.run();
+        });
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
-        // la carte quitte la scène : l'horloge en vol se retire — le
-        // peek retardé n'arme plus sur une carte fermée (P6, la course
-        // du retrait différé ne se paie jamais deux fois)
+    /**
+     * Arme l'horloge de l'annonce : à son heure, l'expiration court —
+     * la course d'avant se DISSOUT d'abord (la queue du fil ne sert
+     * que la dernière annonce).
+     *
+     * @param dureeMs     la durée de vie de l'annonce, en millisecondes
+     * @param expiration  la course de fin — l'hôte y referme le genre
+     */
+    public final void armer(long dureeMs, Runnable expiration) {
         desarmer();
-        super.onDetachedFromWindow();
+        course = expiration;
+        horloge.postDelayed(expiration, dureeMs);
+    }
+
+    /** Désarme l'horloge : la course en cours se dissout, jamais elle
+     *  ne part — la fermeture venue d'ailleurs coupe l'annonce. */
+    public final void desarmer() {
+        Runnable courante = course;
+        if (courante != null) {
+            horloge.removeCallbacks(courante);
+        }
+        course = null;
     }
 }

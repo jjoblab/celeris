@@ -140,6 +140,25 @@ final class PopupCoach {
     }
 
     /**
+     * Le symbole à l'offset — l'identifiant qui le porte, null au
+     * vide entre deux mots.
+     *
+     * @param document le document ouvert
+     * @param offset   la position visitée
+     * @return l'identifiant complet, null si aucun
+     */
+    static String symboleA(Document document, int offset) {
+        String texte = document.text();
+        int borne = Math.min(offset, texte.length());
+        int debut = debutIdentifiant(texte, borne);
+        int fin = borne;
+        while (fin < texte.length() && estIdentifiant(texte.charAt(fin))) {
+            fin++;
+        }
+        return debut == fin ? null : texte.substring(debut, fin);
+    }
+
+    /**
      * La signature de l'appel ouvert sous le curseur : la fonction
      * connue la plus proche, l'index du paramètre courant compté à
      * plat — null hors de tout appel connu.

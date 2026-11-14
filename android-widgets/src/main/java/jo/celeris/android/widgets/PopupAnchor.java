@@ -117,9 +117,10 @@ public final class PopupAnchor {
     }
 
     /**
-     * Le coin bas-droit de la couche — l'ancre de la notification
-     * (2026-11-14) : la carte éphémère s'y pose comme un avis de la
-     * scène, jamais au-dessus du texte, bornée aux murs.
+     * Le coin bas-droit de la couche — l'ancre de la notification :
+     * l'annonce se pose au mur du bas, collée au bord droit, la
+     * respiration la sépare des murs (elle ne chevauche jamais le fil
+     * d'Ariane, qui vit au coin opposé), bornée aux murs.
      *
      * @param popup    la taille du popup
      * @param layerWidth  la largeur de la couche

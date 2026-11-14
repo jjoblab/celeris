@@ -8,10 +8,12 @@ import java.util.List;
  * ouvert comme le ferait l'outils — chaque ligne porteuse de trois
  * points rapporte l'avertissement d'ellipse typographique, chaque
  * ligne porteuse d'un double tiret rapporte celui du tiret cadratin —
- * et rend la sortie texte au format exact d'Android Lint. Le vrai
- * travail reste celui de l'éditeur : la sortie se parse
- * ({@code AnalyseurLint}), les diagnostics se peignent, les correctifs
- * s'appliquent en transactions annulables.
+ * et rend la sortie texte au format exact d'Android Lint. La marque
+ * « noinspection » (SuppressionInspection, catégorie B) s'y honore
+ * : la règle masquée en la ligne ne se rapporte plus, les autres
+ * demeurent. Le vrai travail reste celui de l'éditeur : la sortie se
+ * parse ({@code AnalyseurLint}), les diagnostics se peignent, les
+ * correctifs s'appliquent en transactions annulables.
  */
 final class FauxLint {
 
@@ -19,7 +21,9 @@ final class FauxLint {
     }
 
     /**
-     * La sortie de lint du fichier donné.
+     * La sortie de lint du fichier donné — la marque « noinspection »
+     * d'une règle masque SON avertissement en la ligne, jamais les
+     * autres.
      *
      * @param nomFichier le nom du fichier analysé
      * @param lignes     les lignes du texte ouvert
@@ -29,18 +33,24 @@ final class FauxLint {
         StringBuilder rapport = new StringBuilder();
         for (int i = 0; i < lignes.size(); i++) {
             String ligne = lignes.get(i);
-            if (ligne.contains("...")) {
+            if (ligne.contains("...")
+                    && !masquee(ligne, "TypographyEllipsis")) {
                 rapport.append(nomFichier).append(':').append(i + 1)
                         .append(": Warning: Replace \"...\" with ellipsis character")
                         .append(" [TypographyEllipsis]\n");
             }
-            if (ligne.contains("--")) {
+            if (ligne.contains("--") && !masquee(ligne, "TypographyDashes")) {
                 rapport.append(nomFichier).append(':').append(i + 1)
                         .append(": Warning: Use an em-dash instead of two hyphens")
                         .append(" [TypographyDashes]\n");
             }
         }
         return rapport.toString();
+    }
+
+    /** Vrai quand la ligne porte la marque de masquage de la règle. */
+    private static boolean masquee(String ligne, String regle) {
+        return ligne.contains(SuppressionInspection.MARQUE + regle);
     }
 
     /**

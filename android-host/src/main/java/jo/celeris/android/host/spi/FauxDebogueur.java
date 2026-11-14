@@ -83,7 +83,9 @@ public final class FauxDebogueur implements IntegrationDebogueur {
     }
 
     /**
-     * Simule la pause de l'exécution au lieu donné, avec sa pile.
+     * Simule la pause de l'exécution au lieu donné, avec sa pile : les
+     * valeurs en ligne d'une pause d'avant se retirent — chaque pause
+     * recommence à zéro, l'hôte y re-sert ses valeurs fraîches.
      *
      * @param fichier le fichier de la pause
      * @param ligne   la ligne de la pause
@@ -92,6 +94,7 @@ public final class FauxDebogueur implements IntegrationDebogueur {
     public void simulerPause(CheminDoc fichier, int ligne, List<CadrePile> pile) {
         this.pause = new LigneArret(fichier, ligne);
         this.pile = List.copyOf(pile);
+        valeursEnLigne.clear();
     }
 
     /** Simule la reprise : plus de ligne courante ni de pile. */

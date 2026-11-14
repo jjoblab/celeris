@@ -15,7 +15,7 @@
 
 | # | Classe | Fiche | État |
 | --- | --- | --- | --- |
-| I-1 | `PopupController` | Machine à états pure, 15 genres, exclusions (complétion ⇄ intentions), cascades (doc suit la liste, débordement suit la barre), régimes frappe/défilement/`closeAll`. Aucune vue. | [1] |
+| I-1 | `PopupController` | Machine à états pure, 26 genres, table exhaustive `FAMILLE_ACTIONS` des exclusions de la famille des surfaces d’actions, cascades (doc suit la liste, débordement suit la barre), régimes frappe/défilement/`closeAll`. Aucune vue. | [1] |
 | I-2 | `PopupLayer` | ViewGroup porteur, PIEGE-27, voile naissance/mort avec retrait différé, `show`/`reposition`/`remonter`/`dismiss`, invariant une-vue-un-genre. | [2] — `show` ne borne pas les coordonnées ; course du retrait différé (voir audit P6). |
 | I-3 | `PopupPanel` (abstraite) | Carte de base : verre, liseré hairline, coins arrondis, clip, animations 120/100 ms, palette. | [1] |
 | I-4 | `TextRowsPopup` (abstraite) | Carte à rangées typées + surbrillance + rappel tactile `setOnPick`. | [1] |
@@ -39,6 +39,11 @@
 | S-10 | `ErrorBandView` (+`ErrorBandModel`) | `ERROR_BAND` | Bande d'erreurs au bord droit (tirets de gravité, saut tactile). | Diagnostics de l'hôte. | `DiagnosticHote`. | Ad hoc `AtelierBordDroit.bordDroit()`. | Sans diagnostics. | [2] — positionnement ad hoc hors `PopupAnchor`. |
 | S-11 | `MinimapView` (+`MinimapModel`) | `MINIMAP` | Silhouette colorée + cartouche de fenêtre. | Édition/défilement. | Document + arbre syntaxique. | Ad hoc `bordDroit()`. | Jamais. | [2] — idem ; palette locale. |
 | S-12 | `FastScrollerView` | `FAST_SCROLLER` | Pouce de défilement rapide qui grossit sous le doigt. | Défilement/doigt. | Fenêtre du document. | Ad hoc `bordDroit()`. | Jamais. | [2] — idem. |
+| S-13 | `ReferencesView` | `REFERENCES` | Les usages du symbole au curseur : rangées cliquables « L12 · extrait », en-tête qui compte, saut au choix. | Action de menu, menu d'intentions, puce de débordement. | LSP `LanguageSession.references` (le lieu du document ouvert). | `PopupAnchor.belowOrAboveCaret`. | Choix d'une occurrence (saut), frappe, défilement, tap hors cartes. | [1] — le signal du propriétaire du 2026-11-13. |
+| S-14 | `TypeInfoView` | `TYPE_INFO` | Le nom du type du symbole au curseur — une rangée titre, la carte passive ne règne pas sur le clavier. | Action de menu, menu d'intentions, puce de débordement. | `LecteurTypes` (lecture locale de déclaration, jamais deviné). | `PopupAnchor.belowOrAboveCaret`. | Frappe, défilement, tap hors cartes. | [1] — le fil rouge du guide. |
+| S-15 | `HierarchiesView` | `HIERARCHY` | L'arbre de types ou d'appels du symbole au curseur — rangées indentées par PROFONDEUR, le sommet connu saute. | Action de menu, menu d'intentions, puce de débordement. | `Hierarchies` (core-intelligence, projet embarqué). | `PopupAnchor.belowOrAboveCaret`. | Choix d'un sommet (saut), frappe, défilement, tap hors cartes. | [1] |
+| S-16 | `NotificationView` | `NOTIFICATION` | La bulle éphémère du coin bas-droit — l'annonce vit son quart, l'horloge la referme. | L'hôte (correctifs appliqués, pause de débogage, exécution). | L'activité. | `PopupAnchor.bottomRightCorner`. | Son heure (4 s) ou le tap qui la prend. | [1] |
+| S-17 | `ExceptionView` | `EXCEPTION_DETAILS` | Les détails d'exception — le type à l'encre d'erreur, le message, la pile en cadres cliquables (l'étranger vit muet). | Action d'exécution (menu, intentions, puce). | `TraceExecution` (trace du document réel, l'analyseur de piles E-06 la relit). | `PopupAnchor.belowOrAboveCaret`. | Tap hors cartes, échappement — la consultation. | [1] — la passe du 2026-11-13. |
 
 ### 1.3 Feuilles modales (ADR-018) — android-widgets + demo
 
@@ -56,6 +61,7 @@
 | H-2 | `FantomePainter`/`FantomeEditeur`/`GesteFantome` | Texte fantôme IA in-canvas, acceptation Tab. | [1] |
 | H-3 | `DiagnosticOverlay` (demo) + `surimpression` | HUD de diagnostic (TextView sur la scène). | [1] — hors périmètre carte. |
 | H-4 | `PointerGestures.bulleVisible` | Info-bulle de survol stationnaire — PLUS AUCUN APPELANT en production (survol par appui long retiré le 2026-11-13). | [5] — code mort couvert par un banc. |
+| H-5 | `ValeursPainter` + `ValeurLigne` | Valeurs de débogage en ligne (E-03) : le rendu en fin de ligne utile, encre de gouttière, crochet `setValeursEnLigne`. | [1] — la pause les pose, la reprise les retire. |
 
 ### 1.5 Modèles de support (android-widgets)
 
@@ -92,9 +98,9 @@ tous [1] : purs, testés, sans vue.
 | Quick Documentation (dans complétion) | `CompletionDocView` | popup flottante au flanc | implémenté |
 | Hover Information | `CompletionDocView` sous genre `HOVER` | infobulle au point | implémenté (double-tap / « i ») |
 | Parameter Info / Signature Help | `SignatureHelpView` | popup flottante | implémenté (serveur ou repli) |
-| Type Information | — | — | manquant |
+| Type Information | `TypeInfoView` | carte ancrée au curseur | implémenté (lecteur local de déclaration) |
 | Quick Definition (peek) | `DocAncre.apercu` + `ApercuDefinition` | popup flottante | implémenté (plan local) |
-| External Documentation | — | — | manquant |
+| External Documentation | `CompletionDocView` sous genre `EXTERNAL_DOC` (`AtelierDocExterne`) | popup flottante | implémenté (régime de la consultation) |
 | Code Inspection Description | `DiagnosticTooltipView` | infobulle | implémenté |
 
 ### CATÉGORIE B — Diagnostics et corrections
@@ -104,8 +110,8 @@ tous [1] : purs, testés, sans vue.
 | Quick Fix / Correctifs | `AtelierCorrectif` | feuille haute | implémenté (codeAction du serveur de référence uniquement) |
 | Intention Actions | `IntentionsMenuView` | menu au caret | implémenté |
 | Error/Warning Details | `DiagnosticTooltipView` + `ErrorBandView` | infobulle + bande | implémenté |
-| Import Resolution | — | — | manquant |
-| Suppress Inspection | — | — | manquant |
+| Import Resolution | `CorrectifImport` + feuille d'aperçu `AtelierCorrectif` | feuille haute | implémenté (classpath du terrain, repli local) |
+| Suppress Inspection | `SuppressionInspection` + `AtelierSuppression` (carte du kit) | carte ancrée au curseur | implémenté (la marque « noinspection » en fin de ligne, le lint l'honore à sa relance — la passe du 2026-11-13) |
 
 ### CATÉGORIE C — Navigation
 
@@ -115,9 +121,9 @@ tous [1] : purs, testés, sans vue.
 | Breadcrumb | `BreadcrumbView` | bandeau coin haut-gauche | implémenté |
 | Search (fichier) | `AtelierRecherche` | feuille basse + état `SEARCH_BAR` | implémenté |
 | Go to Definition | peek `DocAncre.apercu` | popup flottante | implémenté (plan local) |
-| Find Usages / References | `LanguageSession.references` (données servies) | — | données prêtes, surface manquante |
-| Go to File / Class / Symbol / Recent | — | — | manquant |
-| Related Symbols | `Hierarchies` (core-intelligence, données) | — | données prêtes, surface manquante |
+| Find Usages / References | `ReferencesView` | carte ancrée au curseur | implémenté (serveur de langage par le fil) |
+| Go to File / Class / Symbol | `FeuilleAller` + `ResultatsAller` | feuille basse | implémenté (recherche floue B-13, fichiers et plan) |
+| Related Symbols / Hiérarchies | `HierarchiesView` + `AtelierHierarchies` | carte ancrée au curseur | implémenté (types et appels, projet embarqué) |
 
 ### CATÉGORIE D — Refactoring et génération
 
@@ -125,17 +131,17 @@ tous [1] : purs, testés, sans vue.
 | --- | --- | --- | --- |
 | Rename | `AtelierRefactor` (feuille) + `preparationRennomage`/`rennomage` LSP | feuille basse | implémenté |
 | Diff de renommage | `AtelierDiff` + `DiffBlocs`/`RevueDiff` | feuille haute | implémenté |
-| Safe Delete / Move | `SafeDelete`/`SafeMove` (core-intelligence) | — | données prêtes, surface manquante |
-| Generate Code / Gabarits | `Gabarits`/`SquelettesMethode` | — | données prêtes, surface manquante |
-| Surround With / Live Templates | — | — | manquant |
+| Safe Delete / Move | `AtelierSurete` (cartes du kit) + `SafeDelete`/`SafeMove` | cartes ancrées au curseur | implémenté (les usages qui barrent s'affichent, les cibles se proposent — le verdict du moteur décide, la passe du 2026-11-13) |
+| Generate Code / Gabarits | `AtelierGabarits` (carte du kit) + `Generateurs`/`Gabarits` | carte ancrée au curseur | implémenté (champs réels de la classe englobante B-24, le gabarit à trous A-22 — la passe du 2026-11-13) |
+| Surround With / Live Templates | `Entourer` + la carte de génération | carte ancrée au curseur | implémenté (try/catch, if — le bloc ceint s'indente d'un cran, la passe du 2026-11-13) |
 
 ### CATÉGORIE E — Débogage
 
 | Fonction | Composant | Forme | État |
 | --- | --- | --- | --- |
-| Valeurs en ligne | `ValeurEnLigne` (SPI servie, `FauxDebogueur`) | — | données prêtes, surface manquante |
+| Valeurs en ligne | `ValeursPainter` + `setValeursEnLigne` (SPI `ValeurEnLigne` servie) | inlay in-canvas | implémenté (fin de ligne utile, pause/reprise) |
 | Points d'arrêt (pose) | `EtatArret` + gouttière (appui long) | marque inline | implémenté |
-| Exception Details | — | — | manquant |
+| Exception Details | `AtelierException` + `TraceExecution` (carte du kit `ExceptionView`) | carte ancrée au curseur | implémenté (l'exécution simulée du terrain porte la trace du document réel, l'analyseur de piles E-06 la relit — la passe du 2026-11-13) |
 
 ### CATÉGORIE F — Projet et environnement
 
@@ -155,14 +161,14 @@ tous [1] : purs, testés, sans vue.
 | Barre de sélection | `SelectionBarView` + `MenuDebordement` | pilule + carte | implémenté |
 | Color Picker | `ColorPickerView` | popup flottante | implémenté |
 | Rendu `@Preview` | `DocAncre.renduPreview` | carte au coin gouttière | implémenté |
-| Notifications | `NotificationView` + genre `NOTIFICATION` | carte éphémère au coin bas-droit | implémenté (2026-11-14) |
+| Notifications | `NotificationView` + genre `NOTIFICATION` | bulle éphémère coin bas-droit | implémenté (horloge 4 s, tap la prend, l'orchestrateur la publie) |
 | Loupe | `Loupe` | bulle in-canvas | implémenté (hors couche) |
 | Fantôme IA | `FantomeEditeur` | inlay éphémère in-canvas | implémenté (hors couche) |
 | Minimap / Fast scroll / Bande d'erreurs | `MinimapView`/`FastScrollerView`/`ErrorBandView` | chrome bord droit | implémenté (chrome, pas cartes) |
 
 ## 3. Bilan chiffré
 
-- 15 genres d'état au contrôleur ; 12 surfaces portées par la couche ;
+- 17 genres d'état au contrôleur ; 13 surfaces portées par la couche ;
   3 feuilles modales (+ 9 ateliers de feuilles en démo) ; 3 surfaces
   in-canvas assumées (loupe, fantôme, HUD) ; 2 surfaces interactives
   hors couche (gouttière, poignées).
@@ -172,10 +178,10 @@ tous [1] : purs, testés, sans vue.
   minimap + pouce + plan + recherche + réglages + renommage + diff +
   correctifs + IA/agent + `@Preview`.
 - Manquants prioritaires (au sens « la donnée existe, la surface manque ») :
-  navigation clavier des popups ; fermeture au clic extérieur ;
-  usages/references ; hiérarchies ; valeurs de débogage ;
-  recherche de symbole/fichier — la notification vit depuis le
-  2026-11-14.
+  aucun — les catégories A–E closes (vingt-six genres, la passe du
+  feu vert) : la navigation clavier, la fermeture au clic extérieur,
+  les usages, les hiérarchies, les valeurs de débogage, les
+  notifications et l'aller à fichier/symbole sont livrés.
 - Aucun doublon de MOTEUR réel : les trois voies de complétion
   (`CompletionMots`, `PopupCoach.completionFor`, capacité `Completion` de
   `core-language`) vivent à des étages différents (production, repli de
@@ -185,12 +191,22 @@ tous [1] : purs, testés, sans vue.
 
 ## 4. Règles de coexistence constatées (aujourd'hui)
 
-Écrites dans `PopupController` : complétion ⇄ intentions s'excluent ;
+Écrites dans `PopupController` : complétion ⇄ intentions s'excluent ;
 `COMPLETION_DOC` exige la liste, fermé avec elle ; `SELECTION_OVERFLOW`
-exige la barre, fermé avec elle ; frappe ferme survol + info-bulle +
-barre + débordement + color picker ; défilement ferme survol + info-bulle +
-color picker, repositionne le reste ; bande/minimap/pouce/touchbar ne
-ferment jamais. La barre de recherche ferme sur demande seule. Les feuilles
-ignorent le contrôleur (P8). Aucune priorité explicite entre
-`INTENTIONS_MENU` caret et débordement toolbar : même genre, même carte —
-conflit silencieux (P1).
+exige la barre, fermé avec elle ; la frappe ferme survol, info-bulle,
+barre de sélection, débordements, color picker, usages, info de type et
+hiérarchie ; le défilement ferme survol, info-bulle, color picker,
+usages, info de type et hiérarchie — il repositionne le reste ; le tap
+hors cartes referme les cartes d'actions et les bulles (usages,
+hiérarchie, info de type et documentation externe comprises) ;
+bande/minimap/pouce/touchbar ne ferment jamais ; la notification vit
+son quart — frappe, défilement et geste extérieur l'épargnent, seule
+son heure la conclut ; la documentation externe vit le régime de la
+consultation — la frappe ne la chasse pas, le défilement la
+repositionne. La barre de recherche ferme sur demande seule. Les
+feuilles ignorent le contrôleur (P8) ; le menu d'intentions, le
+débordement de la toolbar, la carte des usages et la hiérarchie ne
+tiennent JAMAIS ensemble (une surface d'actions à la fois) ; la
+complétion cohabite avec usages, hiérarchie, info de type et
+documentation externe (elles décrivent, la saisie les chasse).
+

@@ -24,6 +24,7 @@
 | 4 | Second étage appareil de vérification (C11) | Livré et passé vert le 2026-11-12 | la CI exécute au nocturne — la recette manuelle du propriétaire reste |
 | 5 | Archivage du dépôt de départ (C14) | Bloqué | décision du propriétaire ; poussée hors de ce bac à sable |
 | 6 | Entretien continu (dependabot, montées de version) | Permanent | rien — veille hebdomadaire |
+| 7 | Mission popups : audit, restructuration, unification | Clos le 2026-11-13 — les neuf phases, les six livrables, l'inventaire sans manquant | — |
 
 ## 1 — Publication distante des onze artefacts (C1)
 
@@ -137,6 +138,46 @@ courriel ([`SECURITY.md`](../SECURITY.md)), jamais d'issue publique.
 montée.
 
 **Source** : ADR-011 ; dependabot depuis le 2026-11-10.
+
+## 7 — Mission popups : audit, restructuration et unification
+
+**Périmètre** : le mandat du propriétaire reçu le 2026-11-13 — auditer,
+restructurer et unifier le popup system de Celeris en s'appuyant sur
+l'existant : neuf phases (audit, architecture, classification,
+priorités, positionnement et comportement, intégration des moteurs,
+migration, tests, documentation), quinze contraintes strictes, six
+livrables obligatoires.
+
+**Sortie** : l'infrastructure unifiée — `PopupManager` (l'unique
+écrivain de l'état ET des vues), le clavier délégué (`PopupClavier`,
+PIEGE-27 préservé), le tap hors cartes, le bornage défensif — et les
+six livrables dans `docs/` : l'audit, l'inventaire, l'architecture,
+le rapport de migration, le rapport de tests et le guide du
+développeur.
+
+**Avancement** : clos le 2026-11-13 — les neuf phases se referment au
+commit de la phase 9 ; aucune classe réécrite, aucune supprimée,
+aucune dépendance nouvelle ; la passe de référence reste verte
+(2 442 tests, 0 échec, 14 modules) ; le suivi vit dans
+[`feuille-de-route-popups.md`](feuille-de-route-popups.md) (journal,
+restes, décisions du propriétaire — dont le plafond relevable à
+1 200 lignes, par nomination, le jour où un fichier du chantier bute).
+
+**Blocage** : aucun — le second signal du 2026-11-13 (« tu as le feu
+vert pour terminer tout ce qui reste ») est ÉPUISÉ : la passe des
+CINQ surfaces l'a livré (la génération et l'entourage, la suppression
+sûre et le déplacement, le masquage d'inspection, les détails
+d'exception — le journal vit à
+[`feuille-de-route-popups.md`](feuille-de-route-popups.md), 2 442
+tests, 0 échec) ; l'inventaire ne compte plus de manquant (les
+catégories A à E closes — la catégorie F, Git/Gradle/configs
+d'exécution, reste la fin de non-recevoir assumée de l'hôte).
+
+**Source** : le mandat du propriétaire ;
+[`POPUP_SYSTEM_AUDIT.md`](POPUP_SYSTEM_AUDIT.md) ;
+[`POPUP_MIGRATION_REPORT.md`](POPUP_MIGRATION_REPORT.md) ;
+[`POPUP_TEST_REPORT.md`](POPUP_TEST_REPORT.md) ;
+[`POPUP_DEVELOPER_GUIDE.md`](POPUP_DEVELOPER_GUIDE.md).
 
 ## Ce qui ne reste pas (clos, pour mémoire)
 

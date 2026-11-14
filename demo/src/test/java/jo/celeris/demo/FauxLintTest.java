@@ -53,4 +53,16 @@ class FauxLintTest {
         List<String> lignes = FauxLint.lignes("un\ndeux\n\nquatre");
         assertEquals(List.of("un", "deux", "", "quatre"), lignes);
     }
+
+    /** La marque « noinspection » (SuppressionInspection, catégorie B)
+     *  masque SA règle en la ligne — jamais les autres. */
+    @Test
+    void laMarqueNoinspectionMasqueSaRegleSeule() {
+        String sortie = FauxLint.sortie("App.kt", List.of(
+                "Attendez... // noinspection TypographyEllipsis",
+                "tiret -- cadratin"));
+        assertEquals("""
+                App.kt:2: Warning: Use an em-dash instead of two hyphens [TypographyDashes]
+                """, sortie, "la règle masquée ne se rapporte plus, l'autre demeure");
+    }
 }

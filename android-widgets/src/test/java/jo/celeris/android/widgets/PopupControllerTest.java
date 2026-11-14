@@ -91,13 +91,17 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.SELECTION_BAR);
         controleur.open(PopupController.PopupKind.SELECTION_OVERFLOW);
         controleur.open(PopupController.PopupKind.COLOR_PICKER);
+        controleur.open(PopupController.PopupKind.TYPE_INFO);
+        controleur.open(PopupController.PopupKind.HIERARCHY);
         controleur.open(PopupController.PopupKind.COMPLETION_LIST);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.HOVER,
                         PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
                         PopupController.PopupKind.SELECTION_BAR,
                         PopupController.PopupKind.SELECTION_OVERFLOW,
-                        PopupController.PopupKind.COLOR_PICKER),
+                        PopupController.PopupKind.COLOR_PICKER,
+                        PopupController.PopupKind.TYPE_INFO,
+                        PopupController.PopupKind.HIERARCHY),
                 controleur.onKeystroke());
         assertEquals(java.util.EnumSet.noneOf(PopupController.PopupKind.class),
                 controleur.onKeystroke(), "la fermeture est idempotente");
@@ -111,11 +115,15 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.HOVER);
         controleur.open(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
         controleur.open(PopupController.PopupKind.COLOR_PICKER);
+        controleur.open(PopupController.PopupKind.TYPE_INFO);
+        controleur.open(PopupController.PopupKind.HIERARCHY);
         controleur.open(PopupController.PopupKind.MINIMAP);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.HOVER,
                         PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
-                        PopupController.PopupKind.COLOR_PICKER),
+                        PopupController.PopupKind.COLOR_PICKER,
+                        PopupController.PopupKind.TYPE_INFO,
+                        PopupController.PopupKind.HIERARCHY),
                 controleur.onScroll());
         assertTrue(controleur.isOpen(PopupController.PopupKind.MINIMAP),
                 "l'ornement ne cède pas au défilement");
@@ -249,30 +257,370 @@ class PopupControllerTest {
         assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_DOC),
                 "la documentation suit sa liste, pas le doigt");
     }
-    /** La notification (2026-11-14) : carte éphémère du coin
-     *  bas-droit — ni la frappe ni le défilement ne la ferment (le
-     *  texte ne la regarde pas), le tap hors cartes la chasse, le
-     *  décollage d'une feuille modale l'emporte. */
+
+    /** La carte des usages (le signal du propriétaire du 2026-11-13,
+     *  la première surface réveillée) vit les régimes des surfaces
+     *  d'actions : deux surfaces ne tiennent jamais — elle ferme le
+     *  menu du caret et le débordement de la toolbar, eux la ferment ;
+     *  la complétion cohabite (elle suit le curseur, l'usage décrit
+     *  le symbole, la saisie la chassera). */
     @Test
-    void notificationSparesTypingAndScrollButYieldsToTapAndVeil() {
+    void referencesExcludeTheMenusAndReciprocally() {
         PopupController controleur = new PopupController();
-        assertTrue(controleur.open(PopupController.PopupKind.NOTIFICATION),
-                "l'hôte publie sa notification");
-        assertFalse(controleur.onKeystroke().contains(
-                        PopupController.PopupKind.NOTIFICATION),
-                "la frappe ne la referme pas");
-        assertFalse(controleur.onScroll().contains(
-                        PopupController.PopupKind.NOTIFICATION),
-                "le défilement ne la referme pas");
-        assertTrue(controleur.surToucheHorsCartes().contains(
-                        PopupController.PopupKind.NOTIFICATION),
-                "le geste extérieur la chasse");
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        assertTrue(controleur.open(PopupController.PopupKind.REFERENCES),
+                "la carte des usages ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        controleur.open(PopupController.PopupKind.TOOLBAR_OVERFLOW);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "le débordement de la toolbar ferme les usages");
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.TOOLBAR_OVERFLOW),
+                "la complétion ferme le débordement");
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertTrue(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "les usages cohabitent avec la complétion");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion survit : la carte décrit, la saisie chassera");
+    }
+
+    /** La carte des usages cède à la frappe (la saisie remplace son
+     *  objet), au défilement (son ancre vit au curseur) et au tap
+     *  hors cartes (la carte d'actions cède au geste extérieur) — le
+     *  chrome survit. */
+    @Test
+    void referencesYieldToKeystrokeScrollAndOutsideTap() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        controleur.open(PopupController.PopupKind.MINIMAP);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.REFERENCES),
+                controleur.onKeystroke(), "la saisie remplace l'objet décrit");
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.REFERENCES),
+                controleur.onScroll(), "l'ancre vit au curseur, le défilement la chasse");
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.REFERENCES),
+                controleur.surToucheHorsCartes(),
+                "la carte d'actions cède au geste extérieur");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.MINIMAP),
+                "le chrome survit aux trois régimes");
+        controleur.open(PopupController.PopupKind.HIERARCHY);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.HIERARCHY),
+                controleur.surToucheHorsCartes(),
+                "la hiérarchie, carte d'actions, cède au geste extérieur");
+    }
+
+    /** La hiérarchie (catégorie C de l'inventaire — les moteurs
+     *  vivaient, la surface dormait) joint la famille des surfaces
+     *  d'actions : elle ferme le menu du caret, le débordement de la
+     *  toolbar ET la carte des usages — eux la ferment ; la
+     *  complétion cohabite (la saisie la chassera à la frappe). */
+    @Test
+    void hierarchyExcludesTheActionSurfacesAndReciprocally() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertTrue(controleur.open(PopupController.PopupKind.HIERARCHY),
+                "la hiérarchie ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "…et ferme la carte des usages — une surface d'actions à la fois");
+        controleur.open(PopupController.PopupKind.TOOLBAR_OVERFLOW);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.HIERARCHY),
+                "le débordement de la toolbar ferme la hiérarchie");
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.TOOLBAR_OVERFLOW),
+                "la carte des usages ferme le débordement");
+        controleur.open(PopupController.PopupKind.HIERARCHY);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "la hiérarchie ferme la carte des usages");
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.isOpen(PopupController.PopupKind.HIERARCHY),
+                "la hiérarchie cohabite avec la complétion — elle décrit le"
+                        + " symbole, la saisie la chassera");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion survit : la carte décrit, la saisie chassera");
+    }
+
+    /** La documentation externe (catégorie A de l'inventaire — la carte
+     *  de documentation se dérive) vit le régime de la CONSULTATION :
+     *  ouverte, elle se lit — la frappe ne la chasse pas (on tape à
+     *  côté), le défilement ne la ferme pas non plus (elle se
+     *  repositionne chez l'hôte), le tap hors cartes la referme (la
+     *  consultation cède au geste qui déplace le curseur) ; elle
+     *  cohabite avec tout : une documentation ne chasse personne. */
+    @Test
+    void documentationExterneSeConsulteSansCederALaFrappe() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.open(PopupController.PopupKind.EXTERNAL_DOC),
+                "la documentation ouvre sur la complétion ouverte");
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.EXTERNAL_DOC),
+                "la frappe ne chasse pas la consultation");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.EXTERNAL_DOC),
+                "le défilement la repositionne, il ne la ferme pas");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion poursuit sa vie");
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.EXTERNAL_DOC),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la consultation");
+        controleur.open(PopupController.PopupKind.EXTERNAL_DOC);
+        controleur.close(PopupController.PopupKind.EXTERNAL_DOC);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.EXTERNAL_DOC),
+                "la fermeture sur demande reste franche");
+    }
+
+    /** La notification (catégorie G de l'inventaire — la forme restait
+     *  à décider, la bulle éphémère l'emporte) vit le régime UNIQUE :
+     *  elle annonce, elle ne décrit pas le texte — la frappe et le
+     *  défilement l'épargnent, le tap hors cartes l'épargne aussi
+     *  (l'annonce vit son quart, le geste ne l'interrompt pas, la
+     *  queue du fil la referme) ; le voile modal la coupe — la feuille
+     *  la recouvre ; aucune exclusion : elle cohabite avec tout. */
+    @Test
+    void notificationVitLeRegimeUniqueDeLannonce() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        controleur.open(PopupController.PopupKind.NOTIFICATION);
+        controleur.onKeystroke();
+        controleur.onScroll();
+        controleur.surToucheHorsCartes();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.NOTIFICATION),
+                "l'annonce vit son quart — frappe, défilement et geste"
+                        + " extérieur ne l'interrompent pas");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la saisie poursuit sa vie, l'annonce ne chasse personne");
+        controleur.closeAll();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.NOTIFICATION),
+                "la queue du fil la referme, la couche suit");
+    }
+
+    /** L'info de type (catégorie A de l'inventaire — le fil rouge du
+     *  guide du développeur, la seconde surface réveillée) vit les
+     *  régimes du survol : elle décrit, elle ne choisit pas — la
+     *  frappe et le défilement la referment (la saisie remplace son
+     *  objet, son ancre vit au curseur), le tap hors cartes aussi —
+     *  elle cohabite avec tout (aucune exclusion : une bulle qui
+     *  décrit ne chasse personne). */
+    @Test
+    void typeInfoVitLesRegimesDuSurvol() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.open(PopupController.PopupKind.TYPE_INFO),
+                "l'info de type ouvre sur la complétion ouverte");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la bulle qui décrit ne chasse pas la saisie");
+        controleur.onKeystroke();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.TYPE_INFO),
+                "la saisie remplace l'objet décrit");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion filtre, elle reste");
+        controleur.open(PopupController.PopupKind.TYPE_INFO);
+        controleur.onScroll();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.TYPE_INFO),
+                "l'ancre vit au curseur, le défilement la chasse");
+        controleur.open(PopupController.PopupKind.TYPE_INFO);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.TYPE_INFO),
+                controleur.surToucheHorsCartes(),
+                "la bulle cède au geste extérieur");
+    }
+
+    /** La carte de gabarits (catégorie D de l'inventaire — les moteurs
+     *  de génération vivaient, la surface dormait) joint la famille des
+     *  surfaces d'actions : elle ferme le menu du caret, le
+     *  débordement de la toolbar, la carte des usages ET la hiérarchie
+     *  — eux la ferment ; la saisie la chasse quand la complétion
+     *  s'ouvre (un menu ne survit pas à la liste) ; elle vit les
+     *  régimes du menu du caret — la frappe seule et le défilement
+     *  l'épargnent (elle se repositionne), le tap hors cartes la
+     *  referme. */
+    @Test
+    void gabaritsExcludeTheActionSurfacesAndReciprocally() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        controleur.open(PopupController.PopupKind.REFERENCES);
+        assertTrue(controleur.open(PopupController.PopupKind.GABARITS),
+                "la carte de gabarits ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.REFERENCES),
+                "…et ferme la carte des usages — une surface d'actions à la fois");
+        controleur.open(PopupController.PopupKind.TOOLBAR_OVERFLOW);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.GABARITS),
+                "le débordement de la toolbar ferme les gabarits");
+        controleur.open(PopupController.PopupKind.GABARITS);
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.GABARITS),
+                "la complétion chasse le menu — la saisie prend le relais");
+        controleur.open(PopupController.PopupKind.GABARITS);
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.GABARITS),
+                "la frappe seule ne referme pas le menu du caret");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.GABARITS),
+                "le défilement le repositionne, il ne le ferme pas");
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.GABARITS),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la carte d'actions");
+    }
+
+    /** La carte des usages qui barrent (catégorie D de l'inventaire —
+     *  le moteur B-23 servait les verdicts, la surface dormait) vit
+     *  les régimes de la carte des usages : famille des surfaces
+     *  d'actions (elle ferme les menus et la hiérarchie, eux la
+     *  ferment — la cible du déménagement comprise, une surface
+     *  d'actions à la fois), la frappe la ferme (la saisie remplace
+     *  son objet), le défilement la ferme (son ancre vit au
+     *  curseur), le tap hors cartes la referme — elle cohabite avec
+     *  la complétion (elle décrit, la saisie la chassera). */
+    @Test
+    void safeDeleteVitLesRegimesDeLaCarteDesUsages() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        controleur.open(PopupController.PopupKind.HIERARCHY);
+        assertTrue(controleur.open(PopupController.PopupKind.SAFE_DELETE),
+                "la carte des usages qui barrent ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.HIERARCHY),
+                "…et ferme la hiérarchie — une surface d'actions à la fois");
+        controleur.open(PopupController.PopupKind.SAFE_MOVE);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_DELETE),
+                "la carte des cibles ferme la carte des usages qui barrent");
+        controleur.open(PopupController.PopupKind.SAFE_DELETE);
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.isOpen(PopupController.PopupKind.SAFE_DELETE),
+                "la complétion cohabite : la carte décrit, la saisie chassera");
+        controleur.onKeystroke();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_DELETE),
+                "la saisie remplace l'objet décrit");
+        controleur.open(PopupController.PopupKind.SAFE_DELETE);
+        controleur.onScroll();
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_DELETE),
+                "l'ancre vit au curseur, le défilement la chasse");
+        controleur.open(PopupController.PopupKind.SAFE_DELETE);
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.SAFE_DELETE),
+                controleur.surToucheHorsCartes(),
+                "la carte d'actions cède au geste extérieur");
+    }
+
+    /** La carte des cibles du déménagement (catégorie D de
+     *  l'inventaire — le moteur B-23 servait les plans, la surface
+     *  dormait) vit les régimes du menu du caret : la complétion la
+     *  chasse (un menu ne survit pas à la liste), la frappe seule et
+     *  le défilement l'épargnent (elle se repositionne), le tap hors
+     *  cartes la referme — la famille des surfaces d'actions se
+     *  referme sur elle. */
+    @Test
+    void safeMoveVitLesRegimesDuMenuDuCaret() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        assertTrue(controleur.open(PopupController.PopupKind.SAFE_MOVE),
+                "la carte des cibles ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        controleur.open(PopupController.PopupKind.GABARITS);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_MOVE),
+                "la carte de gabarits ferme la carte des cibles");
+        controleur.open(PopupController.PopupKind.SAFE_MOVE);
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertFalse(controleur.isOpen(PopupController.PopupKind.SAFE_MOVE),
+                "la complétion chasse le menu — la saisie prend le relais");
+        controleur.open(PopupController.PopupKind.SAFE_MOVE);
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.SAFE_MOVE),
+                "la frappe seule ne referme pas le menu du caret");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.SAFE_MOVE),
+                "le défilement le repositionne, il ne le ferme pas");
+        assertEquals(
+                java.util.EnumSet.of(PopupController.PopupKind.SAFE_MOVE),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la carte d'actions");
+    }
+
+    /** La carte de masquage d'inspection (catégorie B de l'inventaire —
+     *  « Suppress Inspection », le geste dormait, la marque naît) vit
+     *  les régimes du menu du caret : la complétion la chasse (un
+     *  menu ne survit pas à la liste), la frappe seule et le
+     *  défilement l'épargnent (elle se repositionne), le tap hors
+     *  cartes la referme — la famille des surfaces d'actions se
+     *  referme sur elle. */
+    @Test
+    void suppressInspectionVitLesRegimesDuMenuDuCaret() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.INTENTIONS_MENU);
+        assertTrue(controleur.open(
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "la carte de masquage ouvre…");
+        assertFalse(controleur.isOpen(PopupController.PopupKind.INTENTIONS_MENU),
+                "…et ferme le menu du caret");
+        controleur.open(PopupController.PopupKind.SAFE_DELETE);
         assertFalse(controleur.isOpen(
-                PopupController.PopupKind.NOTIFICATION));
-        assertTrue(controleur.open(PopupController.PopupKind.NOTIFICATION),
-                "l'hôte republie");
-        assertTrue(controleur.closeAll().contains(
-                        PopupController.PopupKind.NOTIFICATION),
-                "la feuille modale qui s'ouvre l'emporte");
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "la carte des usages qui barrent ferme la carte de masquage");
+        controleur.open(PopupController.PopupKind.SUPPRESS_INSPECTION);
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertFalse(controleur.isOpen(
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "la complétion chasse le menu — la saisie prend le relais");
+        controleur.open(PopupController.PopupKind.SUPPRESS_INSPECTION);
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "la frappe seule ne referme pas le menu du caret");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(
+                PopupController.PopupKind.SUPPRESS_INSPECTION),
+                "le défilement le repositionne, il ne le ferme pas");
+        assertEquals(
+                java.util.EnumSet.of(
+                        PopupController.PopupKind.SUPPRESS_INSPECTION),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la carte d'actions");
+    }
+
+    /** Les détails d'exception (catégorie E de l'inventaire — la
+     *  surface dormait, la trace se réveille) vivent le régime de la
+     *  CONSULTATION : la frappe ne la chasse pas, le défilement la
+     *  REPOSITIONNE chez l'hôte, le tap hors cartes la referme,
+     *  l'échappement aussi — aucune exclusion : une trace ne chasse
+     *  personne. */
+    @Test
+    void exceptionDetailsSeConsultentSansCederALaFrappe() {
+        PopupController controleur = new PopupController();
+        controleur.open(PopupController.PopupKind.COMPLETION_LIST);
+        assertTrue(controleur.open(PopupController.PopupKind.EXCEPTION_DETAILS),
+                "la carte des détails ouvre sur la complétion ouverte");
+        controleur.onKeystroke();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.EXCEPTION_DETAILS),
+                "la frappe ne chasse pas la consultation de la trace");
+        controleur.onScroll();
+        assertTrue(controleur.isOpen(PopupController.PopupKind.EXCEPTION_DETAILS),
+                "le défilement la repositionne, il ne la ferme pas");
+        assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
+                "la complétion poursuit sa vie");
+        assertEquals(
+                java.util.EnumSet.of(
+                        PopupController.PopupKind.EXCEPTION_DETAILS),
+                controleur.surToucheHorsCartes(),
+                "le geste extérieur referme la consultation");
+        controleur.open(PopupController.PopupKind.EXCEPTION_DETAILS);
+        controleur.close(PopupController.PopupKind.EXCEPTION_DETAILS);
+        assertFalse(controleur.isOpen(
+                        PopupController.PopupKind.EXCEPTION_DETAILS),
+                "la fermeture sur demande reste franche");
     }
 }

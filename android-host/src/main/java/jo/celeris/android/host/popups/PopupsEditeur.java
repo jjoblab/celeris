@@ -88,8 +88,7 @@ public final class PopupsEditeur {
     private final FilAriane filAriane;
     private final Notifications notifications;
 
-    /** Le thème courant — la palette des popups en dérive, le
-     *  rafraîchissement la suit. */
+    /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
     /** La taille de texte de l'éditeur, en sp — la typographie des popups s'y accorde. */
     private float tailleTexteSp;
@@ -105,11 +104,9 @@ public final class PopupsEditeur {
     private @Nullable LanguageSession serveur;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
-    /** La frappe en cours : la sélection qui la suit ne rouvre pas
-     *  l'info-bulle — le contrôleur vient de la fermer. */
+    /** La frappe en cours : la sélection qui suit ne rouvre pas l'info-bulle. */
     private boolean frappeEnCours;
-    /** L'acceptation d'un candidat vient d'avoir lieu : l'édition qui
-     *  l'accompagne ne rouvre pas la liste. */
+    /** L'acceptation d'un candidat vient d'avoir lieu : l'édition ne rouvre pas la liste. */
     private boolean acceptationEnCours;
 
     /**
@@ -123,7 +120,6 @@ public final class PopupsEditeur {
      * @param theme        le thème d'éditeur courant
      * @param tailleTexteSp la taille de texte de l'éditeur, en sp
      * @param coach        le coach de l'hôte — {@link CoachPopups#muet()}
-     *                     suffit aux mots du document seuls
      */
     public PopupsEditeur(EditorView editeur, TextSession session,
             PopupLayer couche, EditorTheme theme, float tailleTexteSp,
@@ -246,8 +242,7 @@ public final class PopupsEditeur {
         debordementSelection = List.copyOf(debordement);
     }
 
-    /** Ouvre le sélecteur de couleur au double-tap d'un littéral — le
-     *  verdict dit si le geste est consommé. */
+    /** Ouvre le sélecteur de couleur au double-tap d'un littéral. */
     public boolean ouvrirColorPicker(int offset) {
         return selecteurCouleur.ouvrirAuDoubleTap(offset);
     }
@@ -263,6 +258,11 @@ public final class PopupsEditeur {
         diagnostics = List.copyOf(nouveaux);
         bordDroit.rafraichirBande(diagnostics, nomDuFichier,
                 largeurCouche(), hauteurCouche());
+    }
+
+    /** Les diagnostics publiés — copie vive, l'hôte y superpose sa vue. */
+    public List<DiagnosticHote> diagnostics() {
+        return diagnostics;
     }
 
     /** La barre de recherche s'ouvre — l'état suit, le champ reste à l'hôte. */

@@ -1,6 +1,6 @@
-android-host 27
+android-host 31
 android-view 64
-android-widgets 37
+android-widgets 28
 core-ai 49
 core-syntax 91
-demo 85
+demo 81

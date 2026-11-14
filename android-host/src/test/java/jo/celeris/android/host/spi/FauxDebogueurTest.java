@@ -125,4 +125,21 @@ final class FauxDebogueurTest {
         assertEquals("3", valeurs.get(0).valeur());
         assertEquals(0, debogueur.valeursEnLigne(4).size());
     }
+
+    /** La pause d'après retire les valeurs d'avant : chaque pause
+     *  recommence à zéro, l'hôte y re-sert ses valeurs fraîches. */
+    @Test
+    void laPauseRecommenceLesValeursAZero() {
+        FauxDebogueur debogueur = new FauxDebogueur();
+        CheminDoc fichier = CheminDoc.de("/src/Main.java");
+        debogueur.simulerPause(fichier, 18, List.of());
+        debogueur.enregistrerValeurEnLigne(18, "compteur", "3");
+        assertEquals(1, debogueur.valeursEnLigne(18).size());
+
+        debogueur.simulerPause(fichier, 22, List.of());
+        assertEquals(0, debogueur.valeursEnLigne(18).size(),
+                "les valeurs de la pause d'avant se retirent");
+        assertEquals(0, debogueur.valeursEnLigne(22).size(),
+                "la pause fraîche ne sert rien tant que l'hôte n'y pose");
+    }
 }

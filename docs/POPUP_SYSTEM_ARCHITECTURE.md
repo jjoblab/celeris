@@ -26,7 +26,7 @@
 │  • mesure unique (taille du genre)                  │
 ├───────────────┬─────────────────────────────────────┤
 │ PopupController│ PopupLayer        (EXISTANTS)      │
-│ état pur 15+1  │ portage, voile, PIEGE-27           │
+│ état pur 15+2  │ portage, voile, PIEGE-27           │
 │ genres, régimes│ + bornage des poses (RENFORCÉ)     │
 │ + rendus       │ + avis « tap hors cartes » (NEW)  │
 │ d'ouvertures/  │ + course du retrait différé        │
@@ -80,19 +80,27 @@ l'audit a constaté le déficit :
    cascadés), pour que le manager synchronise couche et état d'un seul
    tenant ; `open`/`close` historiques conservés (compatibilité binaire).
 3. **Navigation clavier des cartes** — le contrat `PopupClavier`
-   (`surFleche(pas)`, `surValidation()`) que les cartes interactives
-   implémentent (complétion, menu d'intentions) ; le manager route les
-   touches déléguées.
-4. **Politique du clic extérieur** — `surToucheHorsCartes()` du contrôleur :
-   les genres qui cèdent au tap hors cartes (survol, info-bulle, sélecteur
-   de couleur, menus d'actions), distincts de ceux qui suivent le curseur
-   (complétion, signature, fil d'Ariane) et du chrome (bande, minimap,
+   (`surFleche(pas)`, `surPage(pas)`, `surValidation()`) que les
+   cartes interactives implémentent (complétion, menu d'intentions,
+   usages) ; le manager route les touches déléguées — flèches,
+   pages (le pas étendu du signal du 2026-11-13 : une page par unité,
+   la carte qui ne pagine pas décline), validation.
+4. **Politique du clic extérieur** — `surToucheHorsCartes()` du contrôleur :
+   les genres qui cèdent au tap hors cartes (survol, info-bulle, sélecteur de
+   couleur, menus d'actions), distincts de ceux qui suivent le curseur (complétion, signature, fil d'Ariane) et du chrome (bande, minimap,
    pouce, touchbar).
+5. **Le signal du propriétaire du 2026-11-13 — « lancé 90 % du chantier »
+   ouvre la suite** : le genre 17e `REFERENCES` (la carte des usages
+   du symbole au curseur, catégorie C de l'inventaire — les données étaient
+   servies par `references`, la surface manquait) ; deux surfaces
+   d'actions ne tiennent jamais (elle chasse et est chassée par les menus),
+   la frappe et le défilement la referment, le tap hors cartes aussi — le
+   routage clavier la sert en dernier.
 
 Le « niveau de priorité » de la mission se lit : exclusions binaires du
 contrôleur (complétion ⇄ intentions ⇄ débordement toolbar ; doc sans liste
 interdite ; débordement sans barre interdit) + l'ORDRE de routage clavier du
-manager (complétion > intentions > débordements). Les groupes de la
+manager (complétion > intentions > débordements > usages). Les groupes de la
 mission (EDITOR_INTELLIGENCE / EDITOR_INFORMATION / EDITOR_ACTIONS /
 NAVIGATION / DEBUGGING / PROJECT / GLOBAL) sont la GRILLE DE CLASSIFICATION
 documentée (POPUP_INVENTORY §2), pas une couche de code supplémentaire :
@@ -173,8 +181,10 @@ UP/DOWN déplacent la surbrillance ; ENTER et TAB valident (la complétion
 ouverte PRÉCÈDE le fantôme IA sur Tab — la carte visible gagne) ; ESCAPE
 referme (la complétion emporte sa documentation) ; LEFT/RIGHT et toute
 autre touche retombent dans la vie normale de l'éditeur ; la composition
-IME en cours neutralise la délégation. PAGE_UP/PAGE_DOWN restent tactiles
-et à venir (plafond de 8 candidats visibles). La signature aide reste
+IME en cours neutralise la délégation. PAGE_UP/PAGE_DOWN sautent la
+surbrillance d'une PAGE (livrés au signal du 2026-11-13 : huit rangées à la complétion, son plafond visible ; la carte qui
+ne pagine pas décline — la touche retourne à l'éditeur, le document y
+défile). La signature aide reste
 passive (elle suit le curseur, elle ne prend pas les flèches — le stepper
 tactile y sert).
 
@@ -186,7 +196,7 @@ Aucune classe réécrite ; les modifications sont chirurgical :
 | --- | --- |
 | `PopupController` | + `TOOLBAR_OVERFLOW`, + `ouvrirRendus`/`closeRendus`, + régime « hors cartes » ; `open`/`close` inchangés (compatibilité) |
 | `PopupLayer` | bornage, avis hors-cartes, course corrigée |
-| `PopupClavier` | nouveau contrat (2 méthodes) |
+| `PopupClavier` | nouveau contrat (3 méthodes — `surFleche`, `surPage`, `surValidation`) |
 | `CompletionListView`, `IntentionsMenuView` | implémentent `PopupClavier` (surbrillance + validation par le clavier) |
 | `PopupManager` | nouveau (kit) + banc Robolectric dédié |
 | `EditorView` + `RappelsHote` | crochet public `setSurTouchePopup` consulté en tête de `onKeyDown` |
@@ -214,6 +224,10 @@ duplications, pas parce qu'on leur a coupé des responsabilités utiles.
   bancs démo doivent rester verts SANS modification de leurs attentes
   (sauf ceux qui figent le partage de cartes — remplacés par l'attente
   nouvelle : DEUX cartes distinctes).
+- Post-mission, le signal du 2026-11-13 : `PopupManagerTest.laPageEtendueSertLaCompletion`,
+  `PopupManagerTest.leClavierDelegueSertLesUsages`, `PopupControllerTest` (+`references*`),
+  `ReferencesViewTest`, `UsagesReferencesTest` (démo — les lieux servis par le fil,
+  la transpose du saut).
 
 ## 9. Décisions EXPLICITEMENT rejetées (contrainte 15)
 

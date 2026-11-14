@@ -155,6 +155,10 @@ public final class EditorView extends View {
     final GlisserDeposer depot = new GlisserDeposer(this);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
     final FantomeEditeur fantome;
+    /** La couche des valeurs de débogage en ligne (E-03) : le rendu
+     *  en fin de ligne pendant la pause — l'hôte pose, la couche
+     *  trace. */
+    private final ValeursPainter valeursPeintre;
     /** Le collaborateur de diagnostic de scène (M7.5, §9) : retenue
      *  d'analyse, compteur d'images décolorées, lectures de vérité. */
     final SceneDiagnostics diagnostics;
@@ -200,6 +204,11 @@ public final class EditorView extends View {
         gouttiere = GutterPainter.monter(pinceaux, this);
         trace = ScrollFrame.assemble(gouttiere, pinceaux, () -> syntaxe.guides,
                 sourceLiee::pieceDuPli, densite(), composition, cache, sourceLiee, fantome.peintre());
+        // Les valeurs de débogage en ligne (E-03) se tracent APRÈS le
+        // texte et le fantôme : la valeur se lit par-dessus la ligne
+        // utile, à l'encre de gouttière.
+        valeursPeintre = new ValeursPainter(pinceaux);
+        trace.addLayer(valeursPeintre);
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
         // logique (sp) se convertit une fois pour toutes (PIEGE-23).
@@ -469,6 +478,14 @@ public final class EditorView extends View {
      *  texte, à l'encre fanée. */
     public void setFantome(@Nullable SuggestionFantome suggestion) {
         fantome.setSuggestion(suggestion);
+    }
+
+    /** Dépose (ou retire) les valeurs de débogage en ligne (E-03) : la
+     *  pause les pose en fin de ligne utile, la reprise les retire —
+     *  l'hôte transpose, la vue ne connaît pas le débogueur. */
+    public void setValeursEnLigne(@Nullable List<ValeurLigne> valeurs) {
+        valeursPeintre.setValeurs(valeurs);
+        invalidate();
     }
 
     /** Le rappel des gestes du fantôme (F-01) : Tab et l'appui sur le

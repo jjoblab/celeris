@@ -111,6 +111,13 @@ public final class IntentionsMenuView extends TextRowsPopup implements PopupClav
     }
 
     @Override
+    public boolean surPage(int pas) {
+        // le menu décline les pages : ses actions tiennent en peu de
+        // rangées — la touche retourne à l'éditeur, le document y défile
+        return false;
+    }
+
+    @Override
     public boolean surValidation() {
         if (surligne < 0 || surligne >= actions.size()) {
             return false;

@@ -14,6 +14,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
@@ -295,6 +296,131 @@ public class PopupManagerTest {
         assertFalse(popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
     }
 
+    /** La page DÉLÉGUÉE sert la complétion (le pas étendu, premier
+     *  reste du signal du propriétaire du 2026-11-13) : PAGE_DOWN
+     *  saute la surbrillance d'une PAGE de candidats visibles — huit,
+     *  le plafond de la liste —, PAGE_UP remonte d'autant, le saut se
+     *  borne aux murs de la liste ; la carte sans pages DÉCLINE, la
+     *  touche retourne à la vie normale de l'éditeur. */
+    @Test
+    public void laPageEtendueSertLaCompletion() {
+        PopupLayer couche = couche();
+        PopupManager popups = new PopupManager(new PopupController(), couche);
+        CompletionListView liste = new CompletionListView(
+                couche.getContext(), PopupPalette.dark());
+        popups.lier(PopupController.PopupKind.COMPLETION_LIST, liste);
+        List<CompletionListView.Candidat> candidats = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            candidats.add(new CompletionListView.Candidat("c" + i, "",
+                    BadgeGenre.Genre.MOT_CLE));
+        }
+        liste.setItems(candidats);
+        popups.montrer(PopupController.PopupKind.COMPLETION_LIST, 10, 10);
+        assertEquals("la surbrillance naît à la tête", 0, liste.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertEquals("la page descend de huit rangées", 8,
+                liste.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertEquals("la page se borne au bas de la liste", 11,
+                liste.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_UP));
+        assertEquals("la page remonte de huit", 3, liste.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_UP));
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_UP));
+        assertEquals("la page se borne à la tête", 0, liste.surbrillance());
+        popups.fermer(PopupController.PopupKind.COMPLETION_LIST);
+        IntentionsMenuView menu = new IntentionsMenuView(
+                couche.getContext(), PopupPalette.dark());
+        popups.lier(PopupController.PopupKind.INTENTIONS_MENU, menu);
+        int[] execute = { 0 };
+        menu.setActions(List.of(
+                new IntentionsMenuView.Item("premier", () -> execute[0] = 1),
+                new IntentionsMenuView.Item("second", () -> execute[0] = 2)));
+        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        assertFalse("le menu décline les pages — la touche retourne à "
+                + "l'éditeur", popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertTrue("le menu vit, la page déclinée ne l'a pas servie",
+                popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
+    }
+
+    /** Le clavier DÉLÉGUÉ sert la carte des usages (le signal du
+     *  propriétaire du 2026-11-13) : l'ouverture chasse le menu du
+     *  caret (deux surfaces d'actions ne tiennent jamais — sa carte
+     *  quitte la couche), les flèches déplacent la surbrillance
+     *  d'occurrence, Enter exécute le saut, la page décline — la
+     *  touche retourne à l'éditeur, l'échappement referme. */
+    @Test
+    public void leClavierDelegueSertLesUsages() {
+        PopupLayer couche = couche();
+        PopupManager popups = new PopupManager(new PopupController(), couche);
+        ReferencesView carte = new ReferencesView(couche.getContext(),
+                PopupPalette.dark());
+        popups.lier(PopupController.PopupKind.REFERENCES, carte);
+        popups.lier(PopupController.PopupKind.INTENTIONS_MENU, panneau());
+        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        assertNotNull("la carte du menu se montre d'abord",
+                popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
+        int[] saute = { -1 };
+        carte.setOccurrences(List.of(
+                new ReferencesView.Occurrence("L3 · int a", () -> saute[0] = 3),
+                new ReferencesView.Occurrence("L7 · int a", () -> saute[0] = 7)));
+        popups.montrer(PopupController.PopupKind.REFERENCES, 10, 80);
+        assertFalse("l'ouverture chasse le menu du caret",
+                popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
+        assertNull("la carte du menu quitte la couche",
+                popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertEquals("la flèche surligne la première occurrence", 0,
+                carte.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertEquals("la flèche descend", 1, carte.surbrillance());
+        assertFalse("la page décline — la touche retourne à l'éditeur",
+                popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ENTER));
+        assertEquals("Enter exécute le saut de l'occurrence surlignée", 7,
+                saute[0]);
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        assertFalse("l'échappement referme la carte des usages",
+                popups.estOuvert(PopupController.PopupKind.REFERENCES));
+    }
+
+    /** La carte de gabarits (catégorie D de l'inventaire — les moteurs
+     *  de génération vivaient, la surface dormait) reçoit le clavier
+     *  délégué : l'ouverture chasse le menu du caret (une surface
+     *  d'actions à la fois), les flèches y surlignent, Enter exécute
+     *  l'action choisie, l'échappement la referme. */
+    @Test
+    public void leClavierDelegueSertLesGabarits() {
+        PopupLayer couche = couche();
+        PopupManager popups = new PopupManager(new PopupController(), couche);
+        IntentionsMenuView carte = new IntentionsMenuView(couche.getContext(),
+                PopupPalette.dark());
+        popups.lier(PopupController.PopupKind.GABARITS, carte);
+        popups.lier(PopupController.PopupKind.INTENTIONS_MENU, panneau());
+        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        assertNotNull("la carte du menu se montre d'abord",
+                popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
+        boolean[] pris = { false };
+        carte.setActions(List.of(
+                new IntentionsMenuView.Item("Constructeur",
+                        () -> pris[0] = true),
+                new IntentionsMenuView.Item("equals et hashCode",
+                        () -> pris[0] = true)));
+        popups.montrer(PopupController.PopupKind.GABARITS, 10, 80);
+        assertFalse("l'ouverture chasse le menu du caret",
+                popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
+        assertNull("la carte du menu quitte la couche",
+                popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertEquals("la flèche surligne la première action", 0,
+                carte.surbrillance());
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ENTER));
+        assertTrue("Enter exécute l'action surlignée", pris[0]);
+        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        assertFalse("l'échappement referme la carte des gabarits",
+                popups.estOuvert(PopupController.PopupKind.GABARITS));
+    }
+
     /** L'échappement sans carte interactive referme les bulles
      *  éphémères — le chrome demeure. */
     @Test
@@ -362,21 +488,21 @@ public class PopupManagerTest {
                 popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
     }
     /** La notification (2026-11-14) : carte éphémère jamais
-     *  interactive — l'échappement la referme quand aucune carte
-     *  interactive ne tient, la feuille modale l'emporte. */
+     *  interactive — l'annonce vit son quart : l'échappement
+     *  l'épargne (seule son heure la conclut, ou le doigt qui la
+     *  prend), la feuille modale seule l'emporte. */
     @Test
-    public void laNotificationCedeALEchappementEtAuVoile() {
+    public void laNotificationEpargneLEchappementMaisCedeAuVoile() {
         PopupManager popups = manager();
         PanneauEssai carte = panneau();
         popups.lier(PopupController.PopupKind.NOTIFICATION, carte);
         popups.montrer(PopupController.PopupKind.NOTIFICATION, 10, 10);
         assertTrue("la notification posée vit ouverte",
                 popups.estOuvert(PopupController.PopupKind.NOTIFICATION));
-        assertTrue("l'échappement la referme",
+        assertFalse("l'échappement l'épargne — seule son heure la conclut",
                 popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
-        assertFalse("refermée par l'échappement",
+        assertTrue("l'annonce vit son quart",
                 popups.estOuvert(PopupController.PopupKind.NOTIFICATION));
-        popups.montrer(PopupController.PopupKind.NOTIFICATION, 10, 10);
         assertTrue("la feuille modale l'emporte",
                 popups.fermerSousVoile().contains(
                         PopupController.PopupKind.NOTIFICATION));
