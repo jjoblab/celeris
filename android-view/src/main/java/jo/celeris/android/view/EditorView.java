@@ -159,6 +159,10 @@ public final class EditorView extends View {
      *  en fin de ligne pendant la pause — l'hôte pose, la couche
      *  trace. */
     private final ValeursPainter valeursPeintre;
+    /** La couche des indices en ligne (inlay hints — l'audit Android
+     *  Studio du 2026-11-14) : le type du « var » se lit en fin de
+     *  ligne utile — l'hôte pose, la couche trace. */
+    private final InlayHintsPainter indicesPeintre;
     /** Le collaborateur de diagnostic de scène (M7.5, §9) : retenue
      *  d'analyse, compteur d'images décolorées, lectures de vérité. */
     final SceneDiagnostics diagnostics;
@@ -209,6 +213,11 @@ public final class EditorView extends View {
         // utile, à l'encre de gouttière.
         valeursPeintre = new ValeursPainter(pinceaux);
         trace.addLayer(valeursPeintre);
+        // Les indices en ligne (inlay hints) suivent : le type du « var »
+        // se lit en fin de ligne utile, à l'encre muette italique —
+        // jamais dans le flux, le texte ne se décale pas.
+        indicesPeintre = new InlayHintsPainter(pinceaux);
+        trace.addLayer(indicesPeintre);
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
         // logique (sp) se convertit une fois pour toutes (PIEGE-23).
@@ -485,6 +494,22 @@ public final class EditorView extends View {
      *  l'hôte transpose, la vue ne connaît pas le débogueur. */
     public void setValeursEnLigne(@Nullable List<ValeurLigne> valeurs) {
         valeursPeintre.setValeurs(valeurs);
+        invalidate();
+    }
+
+    /**
+     * Dépose (ou retire) les indices en ligne (inlay hints — l'audit
+     * Android Studio du 2026-11-14) : le type du « var » se lit en
+     * fin de ligne utile, à l'encre muette italique — jamais dans le
+     * flux, le texte ne se décale pas. L'hôte transpose (l'analyse
+     * locale des « var », la réponse inlayHint du serveur), la couche
+     * trace.
+     *
+     * @param indices les indices par ligne, ou {@code null} pour
+     *                retirer
+     */
+    public void setIndicesInlay(@Nullable List<IndiceInlay> indices) {
+        indicesPeintre.setIndices(indices);
         invalidate();
     }
 

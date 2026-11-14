@@ -394,6 +394,12 @@ final class TouchesEditeur {
             vue.invalidate();
             return;
         }
+        // l'ampoule d'intentions PRIME dans la coulisse — son tap rend
+        // la ligne à l'hôte, qui y ouvre le menu des intentions
+        if (vue.marquesGouttiere.surAppuiAmpoule(x, y, coulisse,
+                vue.scrollY, vue.metrics.lineHeight(), vue.projection)) {
+            return;
+        }
         if (vue.marquesGouttiere.surAppuiRepere(x, y, coulisse,
                 vue.scrollY, vue.metrics.lineHeight(), vue.projection)) {
             return;

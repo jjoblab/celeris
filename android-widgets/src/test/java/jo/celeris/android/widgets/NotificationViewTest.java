@@ -141,4 +141,49 @@ public class NotificationViewTest {
         assertEquals("la prise du titre referme seule",
                 List.of("prise"), trace);
     }
+
+    /** La parité au simulateur : la JAUGE coule — armée à 1, épuisée à
+     *  0, la carte compte la zone de la jauge et sa légende. */
+    @Test
+    public void laJaugeCouleDeUnAZero() {
+        NotificationView vue = new NotificationView(contexte,
+                PopupPalette.dark());
+        vue.setAnnonce("Lint", "3 fixed");
+        mesurer(vue);
+        int hauteurSansHorloge = vue.getMeasuredHeight();
+        assertEquals("désarmée, la jauge ne promet rien", 1f,
+                vue.progression(), 0f);
+        vue.armer(1000L, () -> { });
+        mesurer(vue);
+        assertTrue("armée, la carte compte la jauge et sa légende",
+                vue.getMeasuredHeight() > hauteurSansHorloge);
+        assertEquals("armée, la jauge part pleine", 1f,
+                vue.progression(), 0.0001f);
+        ShadowLooper shadow = ShadowLooper.shadowMainLooper();
+        shadow.runToEndOfTasks();
+        assertEquals("épuisée, la jauge tombe à zéro", 0f,
+                vue.progression(), 0.0001f);
+        assertEquals("le reste échu", 0L, vue.resteMs());
+        // le désarmement coupe la promesse : la jauge ne se trace plus
+        vue.desarmer();
+        assertEquals("désarmée, la jauge ne promet plus rien", 1f,
+                vue.progression(), 0f);
+    }
+
+    /** La légende du compte à rebours — pure : au dixième près, la
+     *  virgule du terrain, jamais de négatif. */
+    @Test
+    public void laLegendeDuReboursAuDixieme() {
+        assertEquals("l'horloge la referme — 4,0 s",
+                NotificationView.phraseRebours(4000L));
+        assertEquals("l'horloge la referme — 1,2 s",
+                NotificationView.phraseRebours(1234L));
+        assertEquals("l'horloge la referme — 0,1 s",
+                NotificationView.phraseRebours(99L));
+        assertEquals("l'horloge la referme — 0,0 s",
+                NotificationView.phraseRebours(0L));
+        assertEquals("jamais de négatif",
+                "l'horloge la referme — 0,0 s",
+                NotificationView.phraseRebours(-500L));
+    }
 }

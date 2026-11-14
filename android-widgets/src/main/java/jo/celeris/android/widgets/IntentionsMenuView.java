@@ -63,14 +63,18 @@ public final class IntentionsMenuView extends TextRowsPopup implements PopupClav
         rebatirRangees();
     }
 
-    /** Rebâtit les rangées : la section d'abord, les actions ensuite. */
+    /** Rebâtit les rangées : la section d'abord, les actions ensuite —
+     *  chaque action porte son ICÔNE (l'audit Android Studio : le menu
+     *  de l'IDE de référence iconise ses rangées, l'ampoule des
+     *  intentions la première — le glyphe jaune précède le libellé). */
     private void rebatirRangees() {
         List<Row> rangees = new ArrayList<>(actions.size() + 1);
         if (section != null && !section.isEmpty()) {
             rangees.add(Row.section(section));
         }
         for (Item item : actions) {
-            rangees.add(Row.tier(item.label(), -1, Tier.TITRE));
+            rangees.add(Row.icone(IconeCarte.AMP, item.label(), -1,
+                    Tier.TITRE));
         }
         setRows(rangees);
     }

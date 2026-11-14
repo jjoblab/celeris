@@ -420,6 +420,40 @@ class GutterPainterTest {
         assertEquals(THEME.syntaxe().couleur(TokenKind.ERROR), marque.couleur());
     }
 
+    /**
+     * L'ampoule d'intentions (l'audit Android Studio du 2026-11-14) :
+     * le petit icône JAUNE de l'IDE de référence — le disque du verre
+     * et son culot — PRIME sur le point d'erreur de la même ligne (au
+     * caret qui porte un diagnostic, l'ampoule remplace le marqueur).
+     */
+    @Test
+    void lampouleDIntentionsPrimeSurLePointDerreur() {
+        SurfaceMarques surface = new SurfaceMarques();
+        ScrollFrame image = new ScrollFrame();
+        GutterMarks marques = GutterMarks.of(List.of(), new FoldModel(),
+                new int[] {0});
+        GutterPainter couche = new GutterPainter(() -> new PinceauMutable(),
+                4f, () -> marques, () -> 12f);
+        couche.brancherAmpoules(ligne -> ligne == 0);
+        image.addLayer(couche);
+        Document document = Document.of("a\nb");
+        EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f),
+                new RegleFixe());
+        FrameState etat = new FrameState();
+        etat.beginFrame(document, MultiSelection.empty(),
+                new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
+                0, 2, 30f, 0f, 0f);
+        image.drawFrame(surface, etat);
+
+        assertEquals(1, surface.cercles().size(),
+                "l'ampoule remplace le point d'erreur de sa ligne");
+        assertEquals(0xFFFFCB6B, surface.cercles().get(0).couleur(),
+                "le jaune de l'ampoule de l'IDE de référence");
+        assertEquals(1, surface.rectangles().size(),
+                "l'ampoule trace son culot sous le verre");
+        assertEquals(0xFFFFCB6B, surface.rectangles().get(0).couleur());
+    }
+
     /** Sans marques, la gouttière ne trace ni trait ni figure : le
      *  chemin reste muet. */
     @Test

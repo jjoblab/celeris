@@ -86,6 +86,26 @@ sûre, exception relue du document réel, annulation de chaque écriture).
 Les maquettes statiques d'origine restent dans
 [`docs/maquettes/popups.html`](docs/maquettes/popups.html).
 
+**Le simulateur web de RÉFÉRENCE**
+([`docs/simulateur-web/`](docs/simulateur-web/)) — l'application Next.js
+validée par le propriétaire — fait foi pour le DESIGN : chaque carte de
+l'éditeur doit rendre exactement ce que sa carte du simulateur rend
+(sections, encres, paliers, barre de progression de la notification).
+`npm install && npm run dev` dans le dossier, aucune base, aucun réseau
+au fonctionnement ; le readme du dossier dit l'installation et la table
+de correspondance simulateur → éditeur Android.
+
+**L'ampoule d'intentions et les indices en ligne** (l'audit Android
+Studio du 2026-11-14) : le petit icône AMPOULE JAUNE de l'IDE de
+référence vit dans la gouttière — à la ligne du caret qui porte un
+diagnostic, il remplace le marqueur et son tap ouvre le menu
+d'intentions (`GutterPainter` trace, le satellite `AmpouleIntentions`
+décide, l'orchestrateur câble). Les INLAY HINTS se lisent en fin de
+ligne utile, à l'encre muette italique — le type du `var` littéral
+(`var capacite = 100;` porte `: int`) ; jamais dans le flux : le texte
+ne se décale pas (`InlayHintsPainter` trace, le moteur `MoteurInlayHints`
+décide — JAMAIS il ne devine une main-d'œuvre inconnue).
+
 ```java
 import jo.celeris.android.host.popups.CoachPopups;
 import jo.celeris.android.host.popups.PopupsEditeur;

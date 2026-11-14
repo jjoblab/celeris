@@ -11,17 +11,27 @@ import org.jspecify.annotations.Nullable;
  * Le point d'entrée des intégrations dans la gouttière (D-03, D-04,
  * D-05, C-05, C-11, C-12) : la vue y dépose ses marques d'intégration,
  * ses lignes de diagnostics importés, ses pastilles de couleur, ses
- * repères {@code @Preview} et son écouteur de clic — la coulisse
- * s'élargit quand les intégrations parlent, le clic dans le champ des
- * numéros rend la ligne visée, le clic sur un repère délègue le rendu
- * à l'hôte.
+ * repères {@code @Preview}, ses lignes d'AMPOULE d'intentions et son
+ * écouteur de clic — la coulisse s'élargit quand les intégrations
+ * parlent, le clic dans le champ des numéros rend la ligne visée, le
+ * clic sur un repère délègue le rendu à l'hôte.
+ *
+ * <p>L'AMPOULE D'INTENTIONS (l'audit Android Studio du 2026-11-14 :
+ * le propriétaire — « le petit icône ampoule jaune comme dans Android
+ * Studio, je ne l'ai pas vue dans notre éditeur ») suit le patron du
+ * repère {@code @Preview} : les lignes porteuses se déposent, le clic
+ * dans la coulisse rend la ligne visée à l'hôte — qui y ouvre le menu
+ * d'intentions. L'ampoule vit à la ligne du CARET quand elle porte un
+ * diagnostic (le comportement de l'IDE de référence) : c'est l'hôte
+ * qui décide, la vue ne devine rien.</p>
  *
  * <p>La vue reste propriétaire : ce collaborateur ne fait que fondre
  * les marques de la syntaxe avec les intégrations et les diagnostics
  * importés, et convertir le point touché en ligne. Après un appel à
  * {@link #setIntegration}, {@link #setErreursImportees},
- * {@link #setPastilles} ou {@link #setReperesPreview}, l'hôte invalide
- * la vue — le rafraîchissement reste son geste.</p>
+ * {@link #setPastilles}, {@link #setReperesPreview} ou
+ * {@link #setAmpoules}, l'hôte invalide la vue — le rafraîchissement
+ * reste son geste.</p>
  */
 public final class MarquesGouttiere {
 
@@ -32,6 +42,10 @@ public final class MarquesGouttiere {
     private Map<Integer, Integer> pastilles = Map.of();
 
     private int[] reperesPreview = new int[0];
+
+    /** Les lignes porteuses de l'ampoule d'intentions — la ligne du
+     *  caret qui porte un diagnostic, jamais devinée. */
+    private int[] ampoules = new int[0];
 
     private boolean coulisseIntegration;
 
@@ -48,6 +62,10 @@ public final class MarquesGouttiere {
     private @Nullable IntConsumer surClicLigne;
 
     private @Nullable IntConsumer surRenduPreview;
+
+    /** L'écouteur du clic sur l'ampoule d'intentions : la ligne visée
+     *  s'y rend — l'hôte y ouvre son menu. */
+    private @Nullable IntConsumer surAmpoule;
 
     /**
      * Dépose les marques d'intégration courantes.
@@ -103,6 +121,43 @@ public final class MarquesGouttiere {
      */
     public void setReperesPreview(int[] lignes) {
         reperesPreview = lignes.clone();
+    }
+
+    /**
+     * Dépose les lignes porteuses de l'AMPOULE d'intentions (l'audit
+     * Android Studio : la ligne du caret qui porte un diagnostic —
+     * jamais devinée, l'hôte seul décide) — tableau vide pour retirer.
+     *
+     * @param lignes les lignes de l'ampoule, numérotées à partir de zéro
+     */
+    public void setAmpoules(int[] lignes) {
+        ampoules = lignes.clone();
+    }
+
+    /**
+     * Vrai si la ligne porte l'ampoule d'intentions.
+     *
+     * @param ligne la ligne, numérotée à partir de zéro
+     * @return vrai si la ligne porte l'ampoule
+     */
+    public boolean ampoule(int ligne) {
+        for (int ampoule : ampoules) {
+            if (ampoule == ligne) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * L'écouteur du clic sur l'ampoule d'intentions : la ligne visée
+     * s'y rend — l'hôte y ouvre le menu d'intentions. Null retire
+     * l'écouteur.
+     *
+     * @param surAmpoule l'écouteur, ou null
+     */
+    public void setSurAmpoule(@Nullable IntConsumer surAmpoule) {
+        this.surAmpoule = surAmpoule;
     }
 
     /**
@@ -258,6 +313,34 @@ public final class MarquesGouttiere {
             return false;
         }
         surRenduPreview.accept(ligne);
+        return true;
+    }
+
+    /**
+     * Le clic sur l'AMPOULE d'intentions de la coulisse : la ligne
+     * visée se rend à l'hôte — qui y ouvre le menu d'intentions —, le
+     * clic se consomme. Le clic hors ampoule ne se consomme pas : les
+     * plis, les numéros et les autres marques gardent leur priorité.
+     *
+     * @param x            l'abscisse touchée, en pixels
+     * @param y            l'ordonnée touchée, en pixels
+     * @param coulisse     la largeur courante de la coulisse
+     * @param scrollY      le défilement vertical courant
+     * @param hauteurLigne la hauteur d'une ligne, en pixels
+     * @param projection   la projection courante (rangée vers ligne)
+     * @return vrai quand le clic s'est consommé sur l'ampoule
+     */
+    public boolean surAppuiAmpoule(float x, float y, float coulisse,
+            float scrollY, float hauteurLigne, VisualProjection projection) {
+        if (surAmpoule == null || x > coulisse) {
+            return false;
+        }
+        int rangee = ScrollGeometry.firstRow(scrollY + y, hauteurLigne);
+        int ligne = projection.firstLineOfRow(rangee);
+        if (!ampoule(ligne)) {
+            return false;
+        }
+        surAmpoule.accept(ligne);
         return true;
     }
 }

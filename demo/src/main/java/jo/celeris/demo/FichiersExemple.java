@@ -80,6 +80,16 @@ public final class FichiersExemple {
                 public int inscriptions() {
                     return inscriptions;
                 }
+
+                /** Le rapport lisible du registre — les « var » littéraux
+                 *  y portent leurs indices de type en ligne (inlay
+                 *  hints) : la capacité et l'unité se lisent sans se
+                 *  confondre avec le code. */
+                public String rapport() {
+                    var capacite = 100;
+                    var unite = "inscrits";
+                    return inscriptions + " " + unite + " sur " + capacite;
+                }
             }
             """;
 

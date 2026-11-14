@@ -46,7 +46,7 @@ se coupe dans le groupe « Le chrome et la langue ».
 
 **Les inlay hints.** Le type d'un `var` se lit en fin de ligne utile, à
 l'encre muette italique — jamais dans le flux : le texte ne se décale pas
-(`var resultat = solde;` porte `: int`). L'éditeur Android suit le même
+(`var resultat = 0;` porte `: int`). L'éditeur Android suit le même
 dessin (`InlayHintsPainter` d'android-view). Ils se coupent aussi dans le
 groupe du chrome.
 

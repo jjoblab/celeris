@@ -68,6 +68,12 @@ public final class PopupsEditeur {
     private final CoachPopups coach;
     /** Le poseur de documents ancrés — survol, aperçu, rendu @Preview. */
     private final DocAncre docAncre;
+    /** L'ampoule d'intentions de la gouttière — le tap ouvre le menu
+     *  (l'audit Android Studio du 2026-11-14). */
+    private final AmpouleIntentions ampouleIntentions;
+    /** Les indices en ligne (inlay hints) — le type du « var » se lit
+     *  en fin de ligne utile (l'audit du même jour). */
+    private final IndicesInlay indicesInlay;
 
     private final CompletionListView listeCompletion;
     private final CompletionDocView docCompletion;
@@ -184,8 +190,7 @@ public final class PopupsEditeur {
         listeCompletion = new CompletionListView(couche.getContext(), palette);
         docCompletion = new CompletionDocView(couche.getContext(), palette);
         aideSignature = new SignatureHelpView(couche.getContext(), palette);
-        carteIntentions = new CarteIntentions(editeur, popups, margePx,
-                palette, () -> intentions);
+        carteIntentions = new CarteIntentions(editeur, popups, margePx, palette, () -> intentions);
         infoBulle = new InfoBulle(editeur, session, popups, margePx,
                 palette, this::diagnostics, this::nomVif, () -> intentions);
         barreSelection = new SelectionBarView(couche.getContext(), palette);
@@ -194,8 +199,7 @@ public final class PopupsEditeur {
         popups.lier(PopupController.PopupKind.COMPLETION_DOC, docCompletion);
         popups.lier(PopupController.PopupKind.SIGNATURE_HELP, aideSignature);
         popups.lier(PopupController.PopupKind.SELECTION_BAR, barreSelection);
-        // la section du débordement : le « MORE » du dépôt de départ,
-        // l'hôte la surcharge à sa langue
+        // la section du débordement : le « MORE » du dépôt de départ
         menuDebordement = new MenuDebordement(popups, palette, margePx,
                 couche.getContext().getString(R.string.menu_plus));
         selecteurCouleur = new SelecteurCouleur(editeur, session, popups, margePx, palette);
@@ -217,8 +221,11 @@ public final class PopupsEditeur {
                 palette, this::planVif, this::nomVif, notifications::notifier);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
+        ampouleIntentions = new AmpouleIntentions(editeur, carteIntentions, this::diagnostics);
+        indicesInlay = new IndicesInlay(editeur, session.document());
         brancherEcouteurs();
     }
+
 
     /** Les écouteurs de la scène : les vues y préviennent, la session
      *  et l'éditeur y répondent — le montage du constructeur s'y
@@ -335,6 +342,7 @@ public final class PopupsEditeur {
         diagnostics = List.copyOf(nouveaux);
         bordDroit.rafraichirBande(diagnostics, nomDuFichier,
                 largeurCouche(), hauteurCouche());
+        ampouleIntentions.rafraichir();
     }
 
     /** Les diagnostics publiés — copie vive, l'hôte y superpose sa vue. */
@@ -496,11 +504,15 @@ public final class PopupsEditeur {
         rafraichirSignature();
         filAriane.rafraichir();
         bordDroit.rafraichir(largeurCouche(), hauteurCouche());
+        indicesInlay.rafraichir(session.document());
     }
 
     private void surSelection(MultiSelection selection) {
         boolean apresFrappe = frappeEnCours;
         frappeEnCours = false;
+        // l'ampoule d'intentions suit le caret — la ligne courante
+        // seule peut porter le petit icône de l'IDE de référence
+        ampouleIntentions.surSelection(session, selection);
         rafraichirBarreSelection(selection);
         filAriane.rafraichir();
         if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {

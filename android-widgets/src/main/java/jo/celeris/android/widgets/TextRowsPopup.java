@@ -50,36 +50,46 @@ abstract class TextRowsPopup extends PopupPanel {
      * prend pas — elle sert les rangées qui la suivent).
      */
     protected record Row(String text, int ink, Tier tier, boolean teintee,
-            boolean filetAvant, int retrait, boolean enTete) {
+            boolean filetAvant, int retrait, boolean enTete,
+            @Nullable IconeCarte icone) {
 
         static Row of(String text) {
-            return new Row(text, -1, Tier.CORPS, false, false, 0, false);
+            return new Row(text, -1, Tier.CORPS, false, false, 0, false,
+                    null);
         }
 
         static Row of(String text, int ink) {
-            return new Row(text, ink, Tier.CORPS, false, false, 0, false);
+            return new Row(text, ink, Tier.CORPS, false, false, 0, false,
+                    null);
         }
 
         /** Une rangée à palier explicite. */
         static Row tier(String text, int ink, Tier tier) {
-            return new Row(text, ink, tier, false, false, 0, false);
+            return new Row(text, ink, tier, false, false, 0, false, null);
         }
 
         /** Une rangée sur bande teintée douce (le motif signature). */
         static Row teintee(String text, int ink, Tier tier) {
-            return new Row(text, ink, tier, true, false, 0, false);
+            return new Row(text, ink, tier, true, false, 0, false, null);
         }
 
         /** Une rangée indentée (le motif PARAM du dépôt de départ). */
         static Row indentee(String text, int ink, Tier tier) {
-            return new Row(text, ink, tier, false, false, 1, false);
+            return new Row(text, ink, tier, false, false, 1, false, null);
         }
 
         /** Une rangée d'arbre — une respiration par PROFONDEUR : la
          *  branche s'y creuse, le sommet racine vit à découvert. */
         static Row arbre(String text, int ink, Tier tier, int profondeur) {
             return new Row(text, ink, tier, false, false,
-                    Math.max(0, profondeur), false);
+                    Math.max(0, profondeur), false, null);
+        }
+
+        /** Une rangée ICONISÉE — le glyphe vectoriel précède le texte
+         *  (l'ampoule des intentions, le menu de l'IDE de référence). */
+        static Row icone(IconeCarte glyphe, String text, int ink,
+                Tier tier) {
+            return new Row(text, ink, tier, false, false, 0, false, glyphe);
         }
 
         /**
@@ -88,13 +98,15 @@ abstract class TextRowsPopup extends PopupPanel {
          * les rangées qui la suivent.
          */
         static Row section(String texte) {
-            return new Row(texte, -2, Tier.MICRO, false, false, 0, true);
+            return new Row(texte, -2, Tier.MICRO, false, false, 0, true,
+                    null);
         }
 
         /** La même rangée, précédée d'un filet de séparation. */
         static Row apresFilet(Row rangee) {
             return new Row(rangee.text(), rangee.ink(), rangee.tier(),
-                    rangee.teintee(), true, rangee.retrait(), rangee.enTete());
+                    rangee.teintee(), true, rangee.retrait(),
+                    rangee.enTete(), rangee.icone());
         }
     }
 
@@ -105,6 +117,8 @@ abstract class TextRowsPopup extends PopupPanel {
     private final int ecartPx;
     /** L'indentation des rangées PARAM, en pixels. */
     private final int indentPx;
+    /** La respiration entre l'icône et le texte, en pixels. */
+    private final int ecartIconePx;
     /** La rangée surlignée (bande de teinte de sélection) — —1 pour aucune. */
     private int highlighted = -1;
     private @Nullable IntConsumer onPick;
@@ -114,6 +128,7 @@ abstract class TextRowsPopup extends PopupPanel {
         float densite = getResources().getDisplayMetrics().density;
         this.ecartPx = Math.round(PopupTokens.ECART_DP * densite);
         this.indentPx = Math.round(INDENT_DP * densite);
+        this.ecartIconePx = Math.round(4f * densite);
     }
 
     /** Pose les rangées — le panneau se redimensionne et se redessine. */
@@ -192,9 +207,44 @@ abstract class TextRowsPopup extends PopupPanel {
             Paint.FontMetrics metriques = textPaint().getFontMetrics();
             float ligne = y - metriques.top;
             float x = rangee.retrait() * indentPx;
+            // l'icône précède le texte — le glyphe vectoriel à son
+            // encre sémantique, le texte respire après sa cellule
+            if (rangee.icone() != null) {
+                dessinerIcone(canvas, rangee.icone(), x, y, hauteur);
+                x += largeurIconePx(hauteur) + ecartIconePx;
+            }
             canvas.drawText(texte, x, ligne, textPaint());
             y += hauteur;
         }
+    }
+
+    /**
+     * L'icône d'une rangée — le glyphe vectoriel dans sa cellule
+     * carrée (le côté de la hauteur utile, centré au milieu visuel
+     * de la rangée) : l'AMPOULE vit à l'encre d'avertissement — le
+     * disque du verre, le culot dessous, le glyphe de l'IDE de
+     * référence.
+     */
+    private void dessinerIcone(Canvas canvas, IconeCarte icone, float x,
+            float y, int hauteur) {
+        float cellule = Math.max(0, hauteur - ecartPx);
+        float centreX = x + cellule / 2f;
+        float centreY = y + cellule / 2f;
+        float rayon = cellule * 0.3f;
+        bandPaint().setColor(icone.encre(palette));
+        // le verre de l'ampoule : un disque plein
+        canvas.drawCircle(centreX, centreY - rayon * 0.15f, rayon,
+                bandPaint());
+        // le culot : le petit rectangulaire sous le verre
+        float demiCulot = rayon * 0.45f;
+        canvas.drawRect(centreX - demiCulot, centreY + rayon * 0.7f,
+                centreX + demiCulot, centreY + rayon * 1.2f, bandPaint());
+    }
+
+    /** La largeur de la cellule d'icône — le côté de la cellule
+     *  carrée de la rangée. */
+    private float largeurIconePx(int hauteur) {
+        return Math.max(0, hauteur - ecartPx);
     }
 
     /**
@@ -211,12 +261,15 @@ abstract class TextRowsPopup extends PopupPanel {
     @Override
     int contentWidth() {
         float largeur = 0f;
-        for (Row rangee : rows) {
+        for (int i = 0; i < rows.size(); i++) {
+            Row rangee = rows.get(i);
             textPaint().setTextSize(tailleTexte(facteurDe(rangee.tier())));
             String texte = rangee.enTete()
                     ? rangee.text().toUpperCase() : rangee.text();
+            float cellule = rangee.icone() == null ? 0f
+                    : largeurIconePx(hauteurs.get(i)) + ecartIconePx;
             largeur = Math.max(largeur,
-                    rangee.retrait() * indentPx
+                    rangee.retrait() * indentPx + cellule
                             + textPaint().measureText(texte));
         }
         return Math.round(largeur);
@@ -240,6 +293,16 @@ abstract class TextRowsPopup extends PopupPanel {
     /** Le nombre de rangées courantes — lisibilité des sous-classes. */
     protected final int rowCount() {
         return rows.size();
+    }
+
+    /** L'icône de la rangée d'index donné — null si elle n'en porte
+     *  pas ; les bancs y vérifient l'iconisation sans passer par le
+     *  rendu. */
+    protected final @Nullable IconeCarte iconeDe(int index) {
+        if (index < 0 || index >= rows.size()) {
+            return null;
+        }
+        return rows.get(index).icone();
     }
 
     /**

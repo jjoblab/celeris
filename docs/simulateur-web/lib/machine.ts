@@ -401,7 +401,7 @@ export const FICHIER: string[] = [
   '    }',
   '',
   '    public int consulter() {',
-  '        var resultat = solde;',
+  '        var resultat = 0;',
   '        return solde;',
   '    }',
   '',
@@ -459,7 +459,7 @@ export const USAGES = {
   locaux: [
     { ligne: 2, extrait: '    private int solde;' },
     { ligne: 8, extrait: '        this.solde = soldeInitial;' },
-    { ligne: 12, extrait: '        var resultat = solde;' },
+    { ligne: 12, extrait: '        var resultat = 0;' },
     { ligne: 20, extrait: '        this.solde -= montant;' },
     { ligne: 24, extrait: '        this.solde += montant;' },
     { ligne: 29, extrait: '        return titulaire + " · " + solde;' },

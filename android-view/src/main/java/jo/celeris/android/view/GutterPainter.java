@@ -93,6 +93,25 @@ public final class GutterPainter extends PainterLayer {
         boolean repere(int ligne);
     }
 
+    /** L'ampoule d'intentions d'une ligne, servie à chaque image
+     *  (l'audit Android Studio du 2026-11-14). */
+    @FunctionalInterface
+    public interface AmpouleSource {
+
+        /**
+         * Vrai si la ligne porte l'ampoule d'intentions.
+         *
+         * @param ligne la ligne, numérotée à partir de zéro
+         * @return vrai si la ligne porte l'ampoule
+         */
+        boolean ampoule(int ligne);
+    }
+
+    /** Le jaune de l'ampoule de l'IDE de référence — la couleur de
+     *  l'ICÔNE, pas du thème : l'ampoule reste jaune sur tout thème,
+     *  comme dans l'IDE (le simulateur de référence porte #FFCB6B). */
+    private static final int ENCRE_AMPOULE = 0xFFFFCB6B;
+
     private static final LaneSource SANS_PLIS = () -> 0f;
 
     private final GutterNumbers numeros = new GutterNumbers();
@@ -103,6 +122,8 @@ public final class GutterPainter extends PainterLayer {
     private final LaneSource bandePli;
     private final PastilleSource pastilles;
     private final RepereSource reperes;
+    /** L'ampoule d'intentions de chaque ligne — muette sans branchement. */
+    private AmpouleSource ampoules = ligne -> false;
     private boolean numerosVisibles = true;
 
     /**
@@ -198,12 +219,26 @@ public final class GutterPainter extends PainterLayer {
      * @return la couche montée, branchée sur l'état de la vue
      */
     static GutterPainter monter(BrushFactory brushes, EditorView vue) {
-        return new GutterPainter(brushes, vue.gouttiereEtat.margePx(),
+        GutterPainter couche = new GutterPainter(brushes,
+                vue.gouttiereEtat.margePx(),
                 () -> vue.marquesGouttiere.marques(vue.syntaxe.marques()),
                 vue.gouttiereEtat::coulisseCourante,
                 vue.gouttiereEtat::bandePliCourante,
                 vue.marquesGouttiere::pastille,
                 vue.marquesGouttiere::reperePreview);
+        couche.brancherAmpoules(vue.marquesGouttiere::ampoule);
+        return couche;
+    }
+
+    /**
+     * Branche la source des ampoules d'intentions — le montage vivant
+     * chez l'{@link EditorView} y câble la coulisse de l'hôte ; la
+     * source muette ne trace rien (jamais d'ampoule devinée).
+     *
+     * @param source la source des lignes porteuses de l'ampoule
+     */
+    public void brancherAmpoules(AmpouleSource source) {
+        ampoules = source == null ? ligne -> false : source;
     }
 
     @Override
@@ -383,7 +418,13 @@ public final class GutterPainter extends PainterLayer {
         // le MILIEU VISUEL de la rangée : la rangée couvre
         // [y - ascent, y + descent], le centre vit à y - ascent + h/2
         float centreY = y - frame.metrics().ascent() + hauteur / 2f;
-        if (marques.erreur(ligne)) {
+        // l'AMPOULE d'intentions PRIME sur le point d'erreur (le
+        // comportement de l'IDE de référence : au caret qui porte un
+        // diagnostic, l'ampoule remplace le marqueur — son tap ouvre
+        // le menu des intentions)
+        if (ampoules.ampoule(ligne)) {
+            dessinerAmpoule(surface, centreX, centreY, cellule);
+        } else if (marques.erreur(ligne)) {
             // le point d'erreur : un disque plein à l'encre d'erreur —
             // la marque se voit, elle ne se devine plus
             brush().setColor(frame.theme().syntaxe().couleur(TokenKind.ERROR));
@@ -392,6 +433,24 @@ public final class GutterPainter extends PainterLayer {
         tracerIntegration(surface, marques, ligne, centreX, centreY, cellule,
                 frame);
         tracerRepere(surface, ligne, centreX, centreY, cellule, frame);
+    }
+
+    /**
+     * L'ampoule d'intentions (l'audit Android Studio : le petit icône
+     * jaune de l'IDE de référence) : le DISQUE du verre et son CULOT
+     * dessous, dans la cellule cohérente — le glyphe iconique, à
+     * l'encre de l'icône (jaune sur tout thème, comme dans l'IDE).
+     */
+    private void dessinerAmpoule(DrawSurface surface, float centreX,
+            float centreY, float cellule) {
+        brush().setColor(ENCRE_AMPOULE);
+        float rayon = cellule * 0.28f;
+        // le verre de l'ampoule : un disque plein, légèrement haut
+        surface.drawCircle(centreX, centreY - rayon * 0.2f, rayon, true,
+                brush());
+        // le culot : le petit rectangulaire sous le verre
+        surface.drawRect(centreX - rayon * 0.4f, centreY + rayon * 0.55f,
+                centreX + rayon * 0.4f, centreY + rayon * 1.05f, brush());
     }
 
     /**

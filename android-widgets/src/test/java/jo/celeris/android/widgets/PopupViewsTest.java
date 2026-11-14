@@ -3,6 +3,7 @@ package jo.celeris.android.widgets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
@@ -237,6 +238,40 @@ public class PopupViewsTest {
         assertTrue(vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
                 MotionEvent.ACTION_UP, 10f, deuxiemeRangee, 0)));
         assertEquals("la deuxième action court", 1, execute.get());
+    }
+
+    /** L'icône des intentions (l'audit Android Studio : le menu de
+     *  l'IDE iconise ses rangées) : l'AMPOULE précède chaque action —
+     *  le glyphe élargit la carte, la section reste nue. */
+    @Test
+    public void intentionsCarryTheBulbIcon() {
+        IntentionsMenuView vue = new IntentionsMenuView(contexte,
+                PopupPalette.dark());
+        vue.setActions(List.of(
+                new IntentionsMenuView.Item("corriger", () -> { })));
+        assertEquals("l'action porte l'ampoule", IconeCarte.AMP,
+                vue.iconeDe(0));
+        vue.setSection("more");
+        assertNull("la section reste nue", vue.iconeDe(0));
+        assertEquals("l'action décalée porte l'ampoule", IconeCarte.AMP,
+                vue.iconeDe(1));
+        vue.setSection(null);
+        // le glyphe élargit la rangée : la cellule respire avant le texte
+        TextRowsPopup nue = new TextRowsPopup(contexte,
+                PopupPalette.dark()) {
+        };
+        nue.setRows(List.of(TextRowsPopup.Row.tier("corriger", -1,
+                TextRowsPopup.Tier.TITRE)));
+        mesurer(nue);
+        TextRowsPopup iconisee = new TextRowsPopup(contexte,
+                PopupPalette.dark()) {
+        };
+        iconisee.setRows(List.of(
+                TextRowsPopup.Row.icone(IconeCarte.AMP, "corriger", -1,
+                        TextRowsPopup.Tier.TITRE)));
+        mesurer(iconisee);
+        assertTrue("l'ampoule élargit la carte",
+                iconisee.getMeasuredWidth() > nue.getMeasuredWidth());
     }
 
     /** Le menu de débordement (le motif NavMenu du dépôt de départ) :
