@@ -108,6 +108,10 @@ public final class PopupsEditeur {
      *  surface portée : le geste de gabarit s'y configure (A-22, un
      *  seul canal). */
     private final Gabarits gabarits;
+    /** La sûreté de la suppression et du déplacement — la sixième
+     *  surface portée : les usages qui barrent, les cibles du
+     *  déménagement. */
+    private final Surete surete;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -186,16 +190,16 @@ public final class PopupsEditeur {
                 margePx, palette);
         filAriane = new FilAriane(popups, session, margePx, palette);
         notifications = new Notifications(popups, margePx, palette);
-        typeInfo = new TypeInfo(editeur, session, popups, margePx,
-                palette);
+        typeInfo = new TypeInfo(editeur, session, popups, margePx, palette);
         usages = new Usages(editeur, session, popups, margePx, palette);
-        docExterne = new DocExterne(editeur, session, popups, margePx,
-                palette, coach);
+        docExterne = new DocExterne(editeur, session, popups, margePx, palette, coach);
         hierarchies = new CarteHierarchies(editeur, session, popups,
                 margePx, palette, this::planVif, this::nomVif,
                 () -> langue);
         gabarits = new Gabarits(editeur, session, popups, margePx, palette,
                 this::planVif, () -> langue, () -> gesteGabaritMethode);
+        surete = new Surete(editeur, session, popups, margePx, palette,
+                this::planVif, () -> langue, notifications::notifier);
         docAncre = new DocAncre(couche.getContext(), popups, editeur,
                 session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx,
@@ -247,6 +251,7 @@ public final class PopupsEditeur {
         docExterne.surPalette(palette);
         hierarchies.surPalette(palette);
         gabarits.surPalette(palette);
+        surete.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -607,6 +612,7 @@ public final class PopupsEditeur {
         // genre — le câblage manquait au pont, l'orchestrateur le porte)
         docExterne.repositionner();
         gabarits.repositionner();
+        surete.repositionner();
     }
 
     /** Publie une notification au coin bas-droit — l'horloge la referme
@@ -670,6 +676,21 @@ public final class PopupsEditeur {
      */
     public void configurerGabaritMethode(@Nullable Runnable geste) {
         gesteGabaritMethode = geste;
+    }
+
+    /** La suppression sûre de la désignation au curseur — le verdict
+     *  du moteur décide : les usages qui barrent s'affichent en
+     *  carte (chacun saute), la voie libre efface en transaction
+     *  annulable. */
+    public void supprimerSur() {
+        surete.supprimerSur();
+    }
+
+    /** Le déplacement sûr de la méthode au curseur — les types
+     *  candidats du fichier se proposent, les conditions de sûreté
+     *  seules décident. */
+    public void deplacerDans() {
+        surete.deplacerDans();
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors

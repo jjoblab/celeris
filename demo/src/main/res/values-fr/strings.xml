@@ -40,13 +40,6 @@
     <string name="action_generer">Générer du code</string>
     <string name="action_supprimer_sur">Suppression sûre de la déclaration</string>
     <string name="action_deplacer_dans">Déplacer la méthode dans une classe</string>
-    <string name="titre_suppression">%1$d usages empêchent la suppression de « %2$s »</string>
-    <string name="suppression_aucune_declaration">Suppression sûre : aucune déclaration au curseur</string>
-    <string name="suppression_effectuee">Supprimée — un geste la défait</string>
-    <string name="section_deplacement">Déplacer dans</string>
-    <string name="deplacement_aucune_cible">Déplacement : aucune classe cible dans le fichier</string>
-    <string name="deplacement_refuse">Déplacement refusé — les conditions de sûreté ne tiennent pas</string>
-    <string name="deplacement_effectue">Déplacée dans « %1$s » — un geste la défait</string>
     <string name="action_masquer_inspection">Masquer l\'inspection de la ligne</string>
     <string name="section_suppression">Masquer</string>
     <string name="suppression_item">Masquer %1$s</string>

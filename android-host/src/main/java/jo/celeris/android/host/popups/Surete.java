@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import jo.celeris.android.host.R;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.android.widgets.PopupAnchor;
@@ -17,6 +18,7 @@ import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.ReferencesView;
+
 import jo.celeris.core.intelligence.SafeDelete;
 import jo.celeris.core.intelligence.SafeMove;
 import jo.celeris.core.language.model.LanguageSupport;
@@ -33,22 +35,22 @@ import jo.celeris.core.text.Transaction;
 import org.jspecify.annotations.Nullable;
 
 /**
- * L'atelier de sûreté de la démonstration (catégorie D de l'inventaire
- * — « Safe Delete / Move », les moteurs B-23 servaient verdicts et
- * plans, les surfaces dormaient) : la suppression sûre demande son
- * verdict — les usages barrent s'affichent en carte (chacun saute à
- * son lieu, la suppression attend), la voie libre efface en
- * transaction annulable ; le déplacement sûr propose ses cibles — les
- * autres types du fichier —, les conditions de sûreté seules
- * décident, le refus s'annonce sans raison inventée. Le lu décide,
- * jamais le deviné.
+ * La sûreté de la suppression et du déplacement (la sixième surface
+ * portée de la démonstration à l'orchestrateur, 2026-11-14 — catégorie
+ * D de l'inventaire, « Safe Delete / Move », les moteurs B-23 servaient
+ * verdicts et plans) : la suppression sûre demande son verdict — les
+ * usages barrent s'affichent en carte (chacun saute à son lieu, la
+ * suppression attend), la voie libre efface en transaction annulable ;
+ * le déplacement sûr propose ses cibles — les autres types du fichier
+ * —, les conditions de sûreté seules décident, le refus s'annonce sans
+ * raison inventée. Le lu décide, jamais le deviné.
  *
  * <p>La frontière tient : les cartes ne connaissent NI les moteurs,
- * NI l'éditeur — l'atelier transpose les verdicts du moteur en
+ * NI l'éditeur — le satellite transpose les verdicts du moteur en
  * rangées ; hors déclaration, le geste s'annonce et ne touche
  * rien.</p>
  */
-final class AtelierSurete {
+final class Surete {
 
     /** L'extrait d'un usage se rogne à cette longueur — la carte
      *  reste lisible, jamais une rangée qui mange la couche. */
@@ -64,40 +66,41 @@ final class AtelierSurete {
     private final IntentionsMenuView carteCibles;
     /** Le plan du fichier ouvert — la classe englobante s'y lit. */
     private final Supplier<List<OutlineEntry>> plan;
-    /** Le nom du fichier ouvert — la langue s'en déduit. */
-    private final Supplier<String> nomFichier;
+    /** Le langage du fichier ouvert — l'analyse s'y lit. */
+    private final Supplier<@Nullable LanguageSupport> langue;
     /** Le canal des annonces — la bulle éphémère du coin bas-droit. */
     private final BiConsumer<String, String> annonces;
 
     /**
-     * Construit l'atelier de sûreté sur le coordinateur des popups :
-     * les cartes naissent liées à leurs genres, le patron des trois
-     * temps (lier, déclencher, déléguer — USAGE §9).
+     * Construit la sûreté sur le coordinateur des popups : les cartes
+     * naissent liées à leurs genres, le patron des trois temps (lier,
+     * déclencher, déléguer — USAGE §9).
      *
-     * @param editeur    la vue d'éditeur ouverte
-     * @param session    la session d'édition courante
-     * @param popups     le coordinateur des popups de la scène
-     * @param margePx    la respiration des ancres aux bords, en pixels
-     * @param palette    la palette courante des popups
-     * @param plan       le plan courant du fichier ouvert
-     * @param nomFichier le nom du fichier ouvert
-     * @param annonces   le canal des annonces (titre, message)
+     * @param editeur  la vue d'éditeur ouverte
+     * @param session  la session d'édition courante
+     * @param popups   le coordinateur des popups de la scène
+     * @param margePx  la respiration des ancres aux bords, en pixels
+     * @param palette  la palette courante des popups
+     * @param plan     le plan courant du fichier ouvert
+     * @param langue   le langage du fichier ouvert, null sans
+     * @param annonces le canal des annonces (titre, message)
      */
-    AtelierSurete(EditorView editeur, TextSession session,
-            PopupManager popups, int margePx, PopupPalette palette,
-            Supplier<List<OutlineEntry>> plan, Supplier<String> nomFichier,
+    Surete(EditorView editeur, TextSession session, PopupManager popups,
+            int margePx, PopupPalette palette,
+            Supplier<List<OutlineEntry>> plan,
+            Supplier<@Nullable LanguageSupport> langue,
             BiConsumer<String, String> annonces) {
         this.editeur = editeur;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
         this.plan = plan;
-        this.nomFichier = nomFichier;
+        this.langue = langue;
         this.annonces = annonces;
         this.carteUsages = new ReferencesView(popups.couche().getContext(),
                 palette);
-        this.carteCibles = new IntentionsMenuView(popups.couche().getContext(),
-                palette);
+        this.carteCibles = new IntentionsMenuView(
+                popups.couche().getContext(), palette);
         popups.lier(PopupController.PopupKind.SAFE_DELETE, carteUsages);
         popups.lier(PopupController.PopupKind.SAFE_MOVE, carteCibles);
     }
@@ -190,7 +193,7 @@ final class AtelierSurete {
     /**
      * Les occurrences des usages qui barrent — le libellé lu du
      * document (« L12 · l'extrait rogné »), le saut vers l'offset ;
-     * l'atelier y branche sa fermeture et son curseur.
+     * le satellite y branche sa fermeture et son curseur.
      *
      * @param document le document porteur, jamais muté
      * @param usages   les usages barants du verdict
@@ -289,8 +292,7 @@ final class AtelierSurete {
     /** Le calcul mené sur une analyse FRAÎCHE — coordinateur ponctuel,
      *  fermé d'entrée ; null quand la langue ne s'analyse pas. */
     private <T> @Nullable T surAnalyse(Function<Analysis, T> calcul) {
-        LanguageSupport support = LangagesDemo.langageDe(nomFichier.get(),
-                null, session.document().text());
+        LanguageSupport support = langue.get();
         if (support == null || support.syntax() == null) {
             return null;
         }

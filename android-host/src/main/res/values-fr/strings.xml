@@ -2,6 +2,14 @@
 <!-- Les libellés français des popups de l'éditeur (ADR-008 : la
      parité des chaînes affichées, valeurs/ ↔ values-fr/). -->
 <resources>
+    <string name="titre_notification">Annonce</string>
+    <string name="titre_suppression">%1$d usages empêchent la suppression de « %2$s »</string>
+    <string name="suppression_aucune_declaration">Suppression sûre : aucune déclaration au curseur</string>
+    <string name="suppression_effectuee">Supprimée — un geste la défait</string>
+    <string name="deplacement_effectue">Déplacée dans « %1$s » — un geste la défait</string>
+    <string name="section_deplacement">Déplacer dans</string>
+    <string name="deplacement_aucune_cible">Déplacement : aucune classe cible dans le fichier</string>
+    <string name="deplacement_refuse">Déplacement refusé — les conditions de sûreté ne tiennent pas</string>
     <string name="section_gabarits">Génération &amp; gabarits</string>
     <string name="gabarits_constructeur">Constructeur de %1$s</string>
     <string name="gabarits_accesseurs">Accesseurs de %1$s</string>

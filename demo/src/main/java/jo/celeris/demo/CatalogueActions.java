@@ -121,8 +121,8 @@ final class CatalogueActions {
         actionsMenu.put(R.id.action_aller, activite::basculerAller);
         actionsMenu.put(R.id.action_doc, popups::ouvrirDocExterne);
         actionsMenu.put(R.id.action_generer, popups::ouvrirGabarits);
-        actionsMenu.put(R.id.action_supprimer_sur, surfaces::ouvrirSuppressionSure);
-        actionsMenu.put(R.id.action_deplacer_dans, surfaces::ouvrirDeplacement);
+        actionsMenu.put(R.id.action_supprimer_sur, popups::supprimerSur);
+        actionsMenu.put(R.id.action_deplacer_dans, popups::deplacerDans);
         actionsMenu.put(R.id.action_masquer_inspection,
                 surfaces::ouvrirSuppressionInspection);
         actionsMenu.put(R.id.action_executer, surfaces::executerFichier);
@@ -234,9 +234,9 @@ final class CatalogueActions {
                 new IntentionsMenuView.Item(libelle(R.string.action_generer),
                         popups::ouvrirGabarits),
                 new IntentionsMenuView.Item(libelle(R.string.action_supprimer_sur),
-                        surfaces::ouvrirSuppressionSure),
+                        popups::supprimerSur),
                 new IntentionsMenuView.Item(libelle(R.string.action_deplacer_dans),
-                        surfaces::ouvrirDeplacement),
+                        popups::deplacerDans),
                 new IntentionsMenuView.Item(
                         libelle(R.string.action_masquer_inspection),
                         surfaces::ouvrirSuppressionInspection),

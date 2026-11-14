@@ -23,11 +23,11 @@ import jo.celeris.core.text.TextSession;
  * exact ; le pont meurt pièce par pièce — chaque surface portée chez
  * l'hôte (moteur en core, câblage dans l'orchestrateur) retire sa
  * ligne et son atelier : l'info de type, les usages, la
- * documentation externe, les hiérarchies et les gabarits y vivent déjà.
+ * documentation externe, les hiérarchies, les gabarits et la sûreté y
+vivent déjà.
  */
 final class PontSurfaces {
 
-    private final AtelierSurete surete;
     private final AtelierSuppression masquage;
     private final AtelierException exception;
 
@@ -53,8 +53,6 @@ final class PontSurfaces {
             Supplier<List<DiagnosticHote>> diagnostics,
             Runnable relancerLint,
             BiConsumer<String, String> annoncer) {
-        surete = new AtelierSurete(editeur, session, popups, margePx,
-                palette, plan, nomDuFichier, annoncer);
         masquage = new AtelierSuppression(editeur, session, popups,
                 margePx, palette, diagnostics, nomDuFichier,
                 relancerLint, annoncer);
@@ -64,19 +62,8 @@ final class PontSurfaces {
 
     /** La palette tourne : les cartes du pont la suivent. */
     void surPalette(PopupPalette palette) {
-        surete.surPalette(palette);
         masquage.surPalette(palette);
         exception.surPalette(palette);
-    }
-
-    /** La suppression sûre de la déclaration au curseur. */
-    void ouvrirSuppressionSure() {
-        surete.supprimerSur();
-    }
-
-    /** Le déplacement sûr de la méthode au curseur. */
-    void ouvrirDeplacement() {
-        surete.deplacerDans();
     }
 
     /** Le masquage d'inspection de la ligne du caret. */

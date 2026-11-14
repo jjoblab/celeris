@@ -40,13 +40,6 @@
     <string name="action_generer">Generate code</string>
     <string name="action_supprimer_sur">Safe delete declaration</string>
     <string name="action_deplacer_dans">Move method into a class</string>
-    <string name="titre_suppression">%1$d usages block the deletion of « %2$s »</string>
-    <string name="suppression_aucune_declaration">Safe delete: no declaration at the caret</string>
-    <string name="suppression_effectuee">Deleted — one gesture undoes it</string>
-    <string name="section_deplacement">Move into</string>
-    <string name="deplacement_aucune_cible">Move: no target class in this file</string>
-    <string name="deplacement_refuse">Move refused — the safety conditions do not hold</string>
-    <string name="deplacement_effectue">Moved into « %1$s » — one gesture undoes it</string>
     <string name="action_masquer_inspection">Suppress inspection on this line</string>
     <string name="section_suppression">Suppress</string>
     <string name="suppression_item">Suppress %1$s</string>

@@ -3,6 +3,14 @@
      surcharge à sa langue — la carte de survol et l'aperçu de
      définition restent muets sans eux. -->
 <resources>
+    <string name="titre_notification">Notice</string>
+    <string name="titre_suppression">%1$d usages block the deletion of « %2$s »</string>
+    <string name="suppression_aucune_declaration">Safe delete: no declaration at the caret</string>
+    <string name="suppression_effectuee">Deleted — one gesture undoes it</string>
+    <string name="deplacement_effectue">Moved into « %1$s » — one gesture undoes it</string>
+    <string name="section_deplacement">Move into</string>
+    <string name="deplacement_aucune_cible">Move: no target class in this file</string>
+    <string name="deplacement_refuse">Move refused — the safety conditions do not hold</string>
     <string name="section_gabarits">Generate &amp; templates</string>
     <string name="gabarits_constructeur">Constructor of %1$s</string>
     <string name="gabarits_accesseurs">Getters and setters of %1$s</string>
