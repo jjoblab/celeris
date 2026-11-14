@@ -1,8 +1,5 @@
-package jo.celeris.demo;
+package jo.celeris.core.intelligence;
 
-import jo.celeris.core.intelligence.ClasspathImports;
-import jo.celeris.core.intelligence.ClasspathIndex;
-import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.Transaction;
 
@@ -17,12 +14,12 @@ import org.jspecify.annotations.Nullable;
  * correctif y ajoute la feuille d'aperçu (B-18) — la transaction
  * reste annulable d'un geste (B-17).
  */
-final class CorrectifImport {
+public final class CorrectifImport {
 
     /** Un correctif local : son nom qualifié et son édition — l'aperçu
      *  se prévoit sur une copie, l'acceptation appartient à la
      *  session. */
-    record Candidat(String fqn, Transaction edition) {
+    public record Candidat(String fqn, Transaction edition) {
     }
 
     private CorrectifImport() {
@@ -38,7 +35,7 @@ final class CorrectifImport {
      * @param classpath l'index de classpath du terrain
      * @return le candidat local, null sans résolution
      */
-    static @Nullable Candidat local(Document document, int caret,
+    public static @Nullable Candidat local(Document document, int caret,
             ClasspathIndex classpath) {
         java.util.List<String> candidats = ClasspathImports.candidats(
                 document, caret, classpath);

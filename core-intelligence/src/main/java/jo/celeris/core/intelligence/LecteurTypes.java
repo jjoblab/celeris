@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.core.intelligence;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
  * la carte d'info de type ne se pose pas sans type (aucune fausse
  * oracle).
  */
-final class LecteurTypes {
+public final class LecteurTypes {
 
     /** Les mots de conduite — jamais pris pour un type : « return
      *  total » ne déclare rien. */
@@ -43,8 +43,8 @@ final class LecteurTypes {
      * @param offset   la position visitée
      * @return le type déclaré, null si le document ne déclare pas
      */
-    static @Nullable String typeDe(Document document, int offset) {
-        String symbole = PopupCoach.symboleA(document, offset);
+    public static @Nullable String typeDe(Document document, int offset) {
+        String symbole = symboleA(document, offset);
         if (symbole == null) {
             return null;
         }
@@ -62,5 +62,33 @@ final class LecteurTypes {
             }
         }
         return null;
+    }
+
+    /**
+     * Le symbole à l'offset — l'identifiant qui le porte, null au
+     * vide entre deux mots. Pur : le lecteur vit dans le cœur, il
+     * ne connaît plus le coach de la démonstration.
+     *
+     * @param document le document ouvert
+     * @param offset   la position visitée
+     * @return l'identifiant complet, null si aucun
+     */
+    private static @Nullable String symboleA(Document document, int offset) {
+        String texte = document.text();
+        int borne = Math.min(offset, texte.length());
+        int debut = borne;
+        while (debut > 0 && estIdentifiant(texte.charAt(debut - 1))) {
+            debut--;
+        }
+        int fin = borne;
+        while (fin < texte.length() && estIdentifiant(texte.charAt(fin))) {
+            fin++;
+        }
+        return debut == fin ? null : texte.substring(debut, fin);
+    }
+
+    /** Les caractères d'identifiant — lettres, chiffres, souligné. */
+    private static boolean estIdentifiant(char c) {
+        return Character.isLetterOrDigit(c) || c == '_';
     }
 }

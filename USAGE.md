@@ -45,7 +45,7 @@ des bibliothèques Android ; l'hôte assemble.
 | `core-syntax` | JVM pure | l'analyse syntaxique incrémentale, les plis, le plan, les crochets |
 | `core-syntax-grammars` | JVM pure | la voie de grammaires TextMate — la longue traîne des langages en données |
 | `core-language` | JVM pure | les contrats de langage, les paquets de données, le registre |
-| `core-intelligence` | JVM pure | l'index de symboles, la complétion, les refactorings, le formatage |
+| `core-intelligence` | JVM pure | l'index de symboles, la complétion, les refactorings, le formatage, les moteurs des surfaces réveillées (types à la déclaration, entourage de sélection, masquage d'inspection, correctif d'import, résultats de l'aller à) |
 | `core-lsp` | JVM pure | le domaine LSP : types immuables, ordonnancement, UTF-16 (ADR-015) |
 | `lsp-protocole` | JVM pure | la frontière protocolaire du LSP : session et montages embarqués |
 | `core-ai` | JVM pure | les contrats IA, le texte fantôme, les outils d'agent (ADR-012) |

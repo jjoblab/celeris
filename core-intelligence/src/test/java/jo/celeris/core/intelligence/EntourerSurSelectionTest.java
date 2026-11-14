@@ -1,10 +1,10 @@
-package jo.celeris.demo;
+package jo.celeris.core.intelligence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
  * vides), la sélection se reporte sur le bloc ceint — une transaction
  * annulable d'un geste. Pur, sans appareil.
  */
-class EntourerTest {
+class EntourerSurSelectionTest {
 
     /** La sélection à entourer : deux lignes porteuses et une vide. */
     private static final String DOCUMENT = "x\nune\n\ndeux\ny\n";
@@ -30,6 +30,7 @@ class EntourerTest {
         session.setSelection(MultiSelection.of(new SelRange(2, 11)));
         EditPlan plan = Entourer.entourer(session.document(),
                 session.selection(), "if (condition) {", "}");
+        assertNotNull(plan, "la sélection non vide a son plan");
         assertTrue(session.apply(plan.transaction(), plan.selection()),
                 "la transaction s'applique");
         assertEquals("""

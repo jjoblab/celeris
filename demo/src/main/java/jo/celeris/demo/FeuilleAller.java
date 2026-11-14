@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 import jo.celeris.android.widgets.FeuilleBas;
 import jo.celeris.android.widgets.PopupPalette;
+import jo.celeris.core.intelligence.ResultatsAller;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 
 /**

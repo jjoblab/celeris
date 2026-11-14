@@ -15,6 +15,7 @@ import jo.celeris.android.host.popups.LanguageSession;
 import jo.celeris.android.widgets.PatchPreview;
 import jo.celeris.android.widgets.FeuilleHaut;
 import jo.celeris.android.widgets.PopupPalette;
+import jo.celeris.core.intelligence.CorrectifImport;
 import jo.celeris.core.lsp.EditsEspaceLsp;
 import jo.celeris.core.lsp.PositionsLsp;
 import jo.celeris.core.lsp.types.CorrectifLsp;

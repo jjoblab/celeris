@@ -16,6 +16,7 @@ import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.core.intelligence.EditPlan;
+import jo.celeris.core.intelligence.Entourer;
 import jo.celeris.core.intelligence.Generateurs;
 import jo.celeris.core.intelligence.Symbole;
 import jo.celeris.core.language.model.LanguageSupport;

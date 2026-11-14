@@ -3,6 +3,7 @@ package jo.celeris.demo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import jo.celeris.core.intelligence.LecteurTypes;
 import jo.celeris.core.text.Document;
 
 import org.junit.jupiter.api.Test;

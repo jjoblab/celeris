@@ -11,6 +11,7 @@ import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.TypeInfoView;
+import jo.celeris.core.intelligence.LecteurTypes;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;

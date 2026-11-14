@@ -1,10 +1,9 @@
-package jo.celeris.demo;
+package jo.celeris.core.intelligence;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import jo.celeris.core.intelligence.RechercheFloue;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 
 /**
@@ -16,19 +15,19 @@ import jo.celeris.core.syntax.structure.OutlineEntry;
  * catalogue en raccourci, comme tout éditeur). Pur et testé sans
  * appareil : la feuille n'y ajoute que les vues et le saut.
  */
-final class ResultatsAller {
+public final class ResultatsAller {
 
     /** Un résultat de l'aller à : son genre (fichier ou symbole), son
      *  libellé et son détail — le genre est une CLÉ, la feuille la
      *  localise. */
-    record Resultat(String genre, String libelle, String detail) {
+    public record Resultat(String genre, String libelle, String detail) {
     }
 
     /** La clé du genre fichier — la feuille la localise. */
-    static final String GENRE_FICHIER = "fichier";
+    public static final String GENRE_FICHIER = "fichier";
 
     /** La clé du genre symbole — la feuille la localise. */
-    static final String GENRE_SYMBOLE = "symbole";
+    public static final String GENRE_SYMBOLE = "symbole";
 
     private ResultatsAller() {
     }
@@ -45,7 +44,7 @@ final class ResultatsAller {
      * @param plafond  le nombre maximal de résultats
      * @return les résultats, par score décroissant, le plafond compris
      */
-    static List<Resultat> recherche(String requete, List<String> fichiers,
+    public static List<Resultat> recherche(String requete, List<String> fichiers,
             List<OutlineEntry> plan, int plafond) {
         List<Resultat> candidats = new ArrayList<>();
         if (requete == null || requete.isBlank()) {

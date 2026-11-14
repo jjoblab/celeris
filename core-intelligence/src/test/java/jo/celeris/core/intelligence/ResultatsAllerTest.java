@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.core.intelligence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

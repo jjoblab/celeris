@@ -156,6 +156,23 @@ public final class jo.celeris.core.intelligence.ContextualCompletion {
   public static jo.celeris.core.intelligence.ContextualCompletion$Context context(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
 }
 
+### jo.celeris.core.intelligence.CorrectifImport$Candidat
+Compiled from "CorrectifImport.java"
+public final class jo.celeris.core.intelligence.CorrectifImport$Candidat extends java.lang.Record {
+  public jo.celeris.core.intelligence.CorrectifImport$Candidat(java.lang.String, jo.celeris.core.text.Transaction);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String fqn();
+  public jo.celeris.core.text.Transaction edition();
+}
+
+### jo.celeris.core.intelligence.CorrectifImport
+Compiled from "CorrectifImport.java"
+public final class jo.celeris.core.intelligence.CorrectifImport {
+  public static jo.celeris.core.intelligence.CorrectifImport$Candidat local(jo.celeris.core.text.Document, int, jo.celeris.core.intelligence.ClasspathIndex);
+}
+
 ### jo.celeris.core.intelligence.EditPlan
 Compiled from "EditPlan.java"
 public final class jo.celeris.core.intelligence.EditPlan extends java.lang.Record {
@@ -196,6 +213,12 @@ public final class jo.celeris.core.intelligence.EditorConfig {
   public static jo.celeris.core.intelligence.EditorConfig analyser(java.lang.String);
   public jo.celeris.core.intelligence.EditorConfig$Regles pour(java.lang.String);
   public static java.lang.String appliquerFins(java.lang.String, jo.celeris.core.intelligence.EditorConfig$Regles);
+}
+
+### jo.celeris.core.intelligence.Entourer
+Compiled from "Entourer.java"
+public final class jo.celeris.core.intelligence.Entourer {
+  public static jo.celeris.core.intelligence.EditPlan entourer(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, java.lang.String, java.lang.String);
 }
 
 ### jo.celeris.core.intelligence.ExpressionTypes$MixState
@@ -574,6 +597,12 @@ public final class jo.celeris.core.intelligence.JavaSmartTyping {
   public static jo.celeris.core.intelligence.EditPlan enter(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
 }
 
+### jo.celeris.core.intelligence.LecteurTypes
+Compiled from "LecteurTypes.java"
+public final class jo.celeris.core.intelligence.LecteurTypes {
+  public static java.lang.String typeDe(jo.celeris.core.text.Document, int);
+}
+
 ### jo.celeris.core.intelligence.LineActions$Bloc
 Compiled from "LineActions.java"
 final class jo.celeris.core.intelligence.LineActions$Bloc {
@@ -744,6 +773,26 @@ public final class jo.celeris.core.intelligence.Renommage {
   public static jo.celeris.core.intelligence.Renommage$PlanRenommage plan(jo.celeris.core.intelligence.IndexSymboles, java.lang.String, java.lang.String);
 }
 
+### jo.celeris.core.intelligence.ResultatsAller$Resultat
+Compiled from "ResultatsAller.java"
+public final class jo.celeris.core.intelligence.ResultatsAller$Resultat extends java.lang.Record {
+  public jo.celeris.core.intelligence.ResultatsAller$Resultat(java.lang.String, java.lang.String, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String genre();
+  public java.lang.String libelle();
+  public java.lang.String detail();
+}
+
+### jo.celeris.core.intelligence.ResultatsAller
+Compiled from "ResultatsAller.java"
+public final class jo.celeris.core.intelligence.ResultatsAller {
+  public static final java.lang.String GENRE_FICHIER;
+  public static final java.lang.String GENRE_SYMBOLE;
+  public static java.util.List<jo.celeris.core.intelligence.ResultatsAller$Resultat> recherche(java.lang.String, java.util.List<java.lang.String>, java.util.List<jo.celeris.core.syntax.structure.OutlineEntry>, int);
+}
+
 ### jo.celeris.core.intelligence.SafeDelete$Usage
 Compiled from "SafeDelete.java"
 public final class jo.celeris.core.intelligence.SafeDelete$Usage extends java.lang.Record {
@@ -867,6 +916,13 @@ public final class jo.celeris.core.intelligence.SmartTyping {
 Compiled from "SquelettesMethode.java"
 public final class jo.celeris.core.intelligence.SquelettesMethode {
   public static java.lang.String squelette(java.lang.String, java.util.List<java.lang.String>, java.lang.String);
+}
+
+### jo.celeris.core.intelligence.SuppressionInspection
+Compiled from "SuppressionInspection.java"
+public final class jo.celeris.core.intelligence.SuppressionInspection {
+  public static final java.lang.String MARQUE;
+  public static jo.celeris.core.intelligence.EditPlan masquer(jo.celeris.core.text.Document, int, java.lang.String);
 }
 
 ### jo.celeris.core.intelligence.Symbole

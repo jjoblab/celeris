@@ -1,6 +1,5 @@
-package jo.celeris.demo;
+package jo.celeris.core.intelligence;
 
-import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.TextEdit;
@@ -17,11 +16,11 @@ import org.jspecify.annotations.Nullable;
  * demeurent). Une transaction annulable d'un geste, la voie unique
  * (ADR-003) — jamais le document muté avant l'application.
  */
-final class SuppressionInspection {
+public final class SuppressionInspection {
 
     /** La marque du masquage — la convention du terrain, lue par le
      *  faux build de lint à sa relance. */
-    static final String MARQUE = "// noinspection ";
+    public static final String MARQUE = "// noinspection ";
 
     private SuppressionInspection() {
     }
@@ -37,7 +36,7 @@ final class SuppressionInspection {
      * @param regle     l'identifiant de règle à masquer, jamais vide
      * @return le plan du geste, null si la ligne porte déjà la marque
      */
-    static @Nullable EditPlan masquer(Document doc, int ligne, String regle) {
+    public static @Nullable EditPlan masquer(Document doc, int ligne, String regle) {
         if (ligne < 1 || ligne > doc.lineCount()) {
             return null;
         }

@@ -17,6 +17,7 @@ import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.core.intelligence.EditPlan;
+import jo.celeris.core.intelligence.SuppressionInspection;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 

@@ -1,12 +1,10 @@
-package jo.celeris.demo;
+package jo.celeris.core.intelligence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jo.celeris.android.host.spi.AnalyseurLint;
-import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.text.TextSession;
 
 import org.junit.jupiter.api.Test;
@@ -15,9 +13,9 @@ import org.junit.jupiter.api.Test;
  * La suppression d'inspection (catégorie B de l'inventaire — « Suppress
  * Inspection », le geste dormait, la marque naît) : le commentaire
  * « noinspection » se pose en fin de ligne, la transaction s'applique et
- * se défait d'un geste ; le faux build de lint HONORE la marque à sa
- * relance — la règle masquée ne se rapporte plus, les autres demeurent.
- * Pur, sans appareil.
+ * se défait d'un geste. Pur, sans appareil — la boucle complète avec
+ * le faux build de lint (la relance honore la marque) se prouve chez
+ * la démonstration, son harnais de test.
  */
 class SuppressionInspectionTest {
 
@@ -50,20 +48,4 @@ class SuppressionInspectionTest {
                 "la ligne hors document ne se masque pas");
     }
 
-    @Test
-    void laBoucleCompleteMasquePuisRelance() {
-        TextSession session = TextSession.of(
-                "Attendez... puis -- repartez\n", () -> 0L);
-        assertEquals(2, AnalyseurLint.parser(FauxLint.sortie("l.txt",
-                FauxLint.lignes(session.document().text()))).size(),
-                "l'avant masquage rapporte les deux règles");
-        EditPlan plan = SuppressionInspection.masquer(
-                session.document(), 1, "TypographyEllipsis");
-        assertTrue(session.apply(plan.transaction(), plan.selection()));
-        assertEquals("""
-                l.txt:1: Warning: Use an em-dash instead of two hyphens [TypographyDashes]
-                """, FauxLint.sortie("l.txt",
-                        FauxLint.lignes(session.document().text())),
-                "la règle masquée ne se rapporte plus — l'autre demeure");
-    }
 }

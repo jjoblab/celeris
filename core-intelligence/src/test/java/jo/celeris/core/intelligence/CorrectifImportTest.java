@@ -1,8 +1,10 @@
-package jo.celeris.demo;
+package jo.celeris.core.intelligence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.util.List;
 
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
@@ -19,6 +21,16 @@ import org.junit.jupiter.api.Test;
  */
 class CorrectifImportTest {
 
+    /** Le classpath du banc — la même table que le terrain de la
+     *  démonstration, l'ordre de préférence y décide : List a deux
+     *  candidates, l'ordre les départage. */
+    private static final ClasspathIndex CLASSPATH = ClasspathIndex.of(
+            java.util.Map.of(
+                    "List", List.of("java.util.List", "java.awt.List"),
+                    "Map", List.of("java.util.Map"),
+                    "Set", List.of("java.util.Set"),
+                    "Optional", List.of("java.util.Optional")));
+
     /** La résolution sert la première candidate : l'ordre de préférence
      *  du terrain décide — l'édition s'applique, la ligne d'import se
      *  pose en tête du bloc. */
@@ -27,7 +39,7 @@ class CorrectifImportTest {
         Document document = Document.of("package zoo;\n\nList noms;\n");
         CorrectifImport.Candidat candidat = CorrectifImport.local(document,
                 document.text().indexOf("List") + 1,
-                AtelierRefactor.CLASSPATH);
+                CLASSPATH);
         assertNotNull(candidat, "le classpath connaît List");
         assertEquals("java.util.List", candidat.fqn(),
                 "la première candidate gagne, jamais l'aléa");
@@ -44,10 +56,10 @@ class CorrectifImportTest {
     void sansResolutionRienNeSePropose() {
         Document inconnu = Document.of("Inconnu nom;\n");
         assertNull(CorrectifImport.local(inconnu, 1,
-                AtelierRefactor.CLASSPATH), "le classpath ne devine pas");
+                CLASSPATH), "le classpath ne devine pas");
         Document sansMot = Document.of("  \n");
         assertNull(CorrectifImport.local(sansMot, 1,
-                AtelierRefactor.CLASSPATH), "sans identifiant, aucun candidat");
+                CLASSPATH), "sans identifiant, aucun candidat");
         Document dejaImporte = Document.of(
                 "package zoo;\n\nimport java.util.List;\nList noms;\n");
         // l'import DÉJÀ PRÉSENT ne se re-propose pas — les autres
@@ -55,7 +67,7 @@ class CorrectifImportTest {
         // l'utilisateur (la sémantique du moteur, documentée)
         CorrectifImport.Candidat reste = CorrectifImport.local(dejaImporte,
                 dejaImporte.text().lastIndexOf("List") + 1,
-                AtelierRefactor.CLASSPATH);
+                CLASSPATH);
         assertNotNull(reste, "l'autre candidate du même nom reste proposée");
         assertEquals("java.awt.List", reste.fqn(),
                 "jamais la candidate déjà importée");

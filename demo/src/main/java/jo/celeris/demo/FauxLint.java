@@ -2,6 +2,7 @@ package jo.celeris.demo;
 
 import java.util.ArrayList;
 import java.util.List;
+import jo.celeris.core.intelligence.SuppressionInspection;
 
 /**
  * Le faux build de lint de la démonstration (C-12) : il lit le texte

@@ -193,7 +193,7 @@ portes) :
 | [`core-syntax`](core-syntax/README.md) | JVM pure | analyse syntaxique incrémentale, structure (plis, plan, crochets) |
 | [`core-syntax-grammars`](core-syntax-grammars/README.md) | JVM pure | voie de grammaires TextMate, longue traîne (ADR-014) |
 | [`core-language`](core-language/README.md) | JVM pure | plateforme de langages : contrats, paquets de données, registre (ADR-017) |
-| [`core-intelligence`](core-intelligence/README.md) | JVM pure | index de symboles, complétion, refactorings, formatage |
+| [`core-intelligence`](core-intelligence/README.md) | JVM pure | index de symboles, complétion, refactorings, formatage, moteurs des surfaces réveillées |
 | [`core-lsp`](core-lsp/README.md) | JVM pure | domaine LSP : types immuables, ordonnancement, UTF-16 (ADR-015) |
 | [`lsp-protocole`](lsp-protocole/README.md) | JVM pure | frontière protocolaire du LSP : session, montages embarqués (ADR-015) |
 | [`serveur-lsp-java`](serveur-lsp-java/README.md) | JVM pure | mini serveur de langage Java : compagnon de banc de l'éditeur (ADR-015) |

@@ -40,6 +40,7 @@ import jo.celeris.android.view.ValeurLigne;
 import jo.celeris.android.widgets.BarreToolbar;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupPalette;
+import jo.celeris.core.intelligence.ResultatsAller;
 import jo.celeris.core.language.model.LanguageSupport;
 
 import jo.celeris.core.syntax.structure.OutlineEntry;
