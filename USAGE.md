@@ -609,6 +609,17 @@ manquant. Le kit est thémé et accessible par construction
 (ADR-008) : poignée de glissement, bouton de fermeture, voile,
 fermeture au retour.
 
+La documentation (complétion, survol, documentation externe) suit la
+convention des serveurs LSP — l'audit de conformité Android Studio du
+2026-11-14 la referme : les clôtures typées (« ```signature ») du
+dépôt de départ ET les en-têtes Markdown standard (« ```java », « **
+Parameters:** », « **Returns:** », « **Throws:** », « # Titre »)
+deviennent des sections au filet, leurs listes à tirets (« - nom —
+description ») s'encrent comme les `@param` — la doc rapide
+d'Android Studio y affiche ses sections « Parameters », « Returns »,
+« Throws » de la même façon ; l'info de paramètres y met le point
+courant en gras, la nôtre aussi.
+
 ## 10. Le SPI hôte — VCS, exécution, débogueur, fichiers
 
 Le module `android-host` expose les contrats que **vous implémentez**

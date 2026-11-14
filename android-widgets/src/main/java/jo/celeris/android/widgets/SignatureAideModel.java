@@ -7,14 +7,15 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Le modèle d'aide aux paramètres (B-07) : la signature active montre
- * le paramètre courant SOULIGNÉ — la plage de caractères du paramètre
- * dans le libellé, cherchée DANS LA ZONE DES PARAMÈTRES (entre les
- * parenthèses), dans l'ordre : les doublons tombent sur le bon, le nom
- * de la méthode jamais confondu avec un paramètre. L'index reçu est
- * BORNÉ à l'arité — le serveur généreux au-delà ne casse pas le
- * surlignage. Pur et testable sans SDK : la popup le lit, le peintre
- * souligne ; le placement au-dessus du curseur vit chez PopupPlacer
- * (D-10, livré M5).
+ * le paramètre courant EN GRAS (la convention d'Android Studio —
+ * l'info de paramètres y met le point courant en gras) — la plage de
+ * caractères du paramètre dans le libellé, cherchée DANS LA ZONE DES
+ * PARAMÈTRES (entre les parenthèses), dans l'ordre : les doublons
+ * tombent sur le bon, le nom de la méthode jamais confondu avec un
+ * paramètre. L'index reçu est BORNÉ à l'arité — le serveur généreux
+ * au-delà ne casse pas le gras. Pur et testable sans SDK : la popup
+ * le lit, le peintre l'encre en gras ; le placement au-dessus du
+ * curseur vit chez PopupPlacer (D-10, livré M5).
  *
  * <p>Le modèle riche (chantier C7) porte les surcharges : les
  * signatures candidates vivent au modèle, le stepper navigue —
@@ -117,7 +118,7 @@ public final class SignatureAideModel {
 
     /**
      * La plage du paramètre courant dans le libellé — ce que le peintre
-     * souligne. La recherche vit ENTRE LES PARENTHÈSES (le nom de la
+     * met en gras. La recherche vit ENTRE LES PARENTHÈSES (le nom de la
      * méthode n'est jamais un paramètre), séquentielle : chaque
      * paramètre se cherche après la fin du précédent, les doublons
      * tombent sur le bon. Le paramètre introuvable ne donne aucune

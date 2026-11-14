@@ -107,4 +107,62 @@ class CompletionDocModelTest {
         assertTrue(modele.sections().isEmpty());
         assertEquals("", modele.texteLibre());
     }
+
+    /** La convention des serveurs LSP (audit Android Studio du
+     *  2026-11-14) : « ```java », « **Parameters:** », « **Returns:** »
+     *  et les listes à tirets — la doc rapide y affiche ses sections
+     *  « Parameters », « Returns », « Throws » ; le modèle en fait des
+     *  sections au même rang que les clôtures typées, les tirets
+     *  restent au corps de leur section. */
+    @Test
+    void lesEnTetesMarkdownStandardOuvrentLesSections() {
+        String doc = "Returns a string that is a substring.\n"
+                + "```java\n"
+                + "java.lang.String substring(int beginIndex)\n"
+                + "```\n"
+                + "**Parameters:**\n"
+                + "- beginIndex — the beginning index\n"
+                + "- endIndex — the ending index\n"
+                + "**Returns:**\n"
+                + "the substring";
+        CompletionDocModel modele = CompletionDocModel.of("substring", doc);
+        assertEquals("substring", modele.titre());
+        assertEquals("Returns a string that is a substring.",
+                modele.texteLibre());
+        assertEquals(3, modele.sections().size());
+        assertEquals("java", modele.sections().get(0).genre());
+        assertEquals("java.lang.String substring(int beginIndex)",
+                modele.sections().get(0).texte());
+        assertEquals("Parameters:", modele.sections().get(1).genre());
+        assertEquals("- beginIndex — the beginning index\n"
+                        + "- endIndex — the ending index",
+                modele.sections().get(1).texte());
+        assertEquals("Returns:", modele.sections().get(2).genre());
+        assertEquals("the substring", modele.sections().get(2).texte());
+    }
+
+    /** Les titres Markdown (« # Titre ») ouvrent aussi la section —
+     *  le corps vit jusqu'au titre ou à la clôture suivante. */
+    @Test
+    void lesTitresMarkdownOuvrentLesSections() {
+        String doc = "intro\n# Details\nla description\n# See Also\nrien";
+        CompletionDocModel modele = CompletionDocModel.of("x", doc);
+        assertEquals("intro", modele.texteLibre());
+        assertEquals(2, modele.sections().size());
+        assertEquals("Details", modele.sections().get(0).genre());
+        assertEquals("la description", modele.sections().get(0).texte());
+        assertEquals("See Also", modele.sections().get(1).genre());
+        assertEquals("rien", modele.sections().get(1).texte());
+    }
+
+    /** Le gras EN LIGNE n'ouvre RIEN : seule la ligne PORTÉE par le
+     *  gras entier ouvre une section — la phrase qui porte un mot en
+     *  gras reste au texte libre, marqueurs compris. */
+    @Test
+    void leGrasEnLigneResteAuCorps() {
+        String doc = "le mot **important** reste au corps";
+        CompletionDocModel modele = CompletionDocModel.of("y", doc);
+        assertTrue(modele.sections().isEmpty());
+        assertEquals(doc, modele.texteLibre());
+    }
 }

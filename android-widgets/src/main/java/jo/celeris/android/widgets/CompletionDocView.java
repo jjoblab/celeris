@@ -38,35 +38,44 @@ public final class CompletionDocView extends TextRowsPopup {
         for (CompletionDocModel.Section section : model.sections()) {
             rangees.add(Row.apresFilet(Row.tier(section.genre(),
                     palette.muted(), Tier.MICRO)));
-            for (String ligne : section.texte().split("\n", -1)) {
-                rangees.add(Row.of(ligne));
-            }
+            poserCorps(rangees, section.texte());
         }
         if (!model.texteLibre().isEmpty()) {
-            poserTexteLibre(rangees, model.texteLibre());
+            List<Row> bloc = new ArrayList<>();
+            poserCorps(bloc, model.texteLibre());
+            if (!bloc.isEmpty()) {
+                bloc.set(0, Row.apresFilet(bloc.get(0)));
+                rangees.addAll(bloc);
+            }
         }
         setRows(rangees);
     }
 
     /**
-     * Le texte libre du serveur : les lignes PARAM s'indentent à
-     * l'encre des mots-clés, RETOUR passe au gras atténué, le reste
-     * vit en corps — un filet ouvre le bloc.
+     * Le corps d'un bloc — section typée ou texte libre : les lignes
+     * PARAM s'indentent à l'encre des mots-clés, RETOUR passe au
+     * gras atténué, les listes à tirets des serveurs LSP (« - nom —
+     * description ») s'indentent de la même encre — la doc rapide
+     * d'Android Studio y rend ses paramètres de la même façon, le
+     * reste vit en corps.
      */
-    private void poserTexteLibre(List<Row> rangees, String texteLibre) {
-        List<Row> bloc = new ArrayList<>();
-        for (String ligne : texteLibre.split("\n", -1)) {
+    private void poserCorps(List<Row> rangees, String corps) {
+        for (String ligne : corps.split("\n", -1)) {
             if (ligne.startsWith("@param")) {
-                bloc.add(Row.indentee(ligne, palette.keyword(), Tier.META));
+                rangees.add(Row.indentee(ligne, palette.keyword(), Tier.META));
             } else if (ligne.startsWith("@return")) {
-                bloc.add(Row.indentee(ligne, palette.muted(), Tier.META));
+                rangees.add(Row.indentee(ligne, palette.muted(), Tier.META));
+            } else if (estTiret(ligne)) {
+                rangees.add(Row.indentee(ligne, palette.keyword(), Tier.META));
             } else {
-                bloc.add(Row.of(ligne));
+                rangees.add(Row.of(ligne));
             }
         }
-        if (!bloc.isEmpty()) {
-            bloc.set(0, Row.apresFilet(bloc.get(0)));
-            rangees.addAll(bloc);
-        }
+    }
+
+    /** La ligne de liste — « - » ou « * » ouvre l'item du serveur. */
+    private static boolean estTiret(String ligne) {
+        String epuree = ligne.strip();
+        return epuree.startsWith("- ") || epuree.startsWith("* ");
     }
 }
