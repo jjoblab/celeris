@@ -345,41 +345,16 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
 
     @Override
     public boolean surFleche(int pas) {
-        if (rangees.isEmpty()) {
-            return false;
-        }
-        // la flèche part de la tête quand la surbrillance n'existe pas :
-        // la PREMIÈRE flèche PREND la première action, elle ne la
-        // saute pas ; les suivantes avancent d'autant, en SAUTANT les
-        // en-têtes — jamais d'arrêt sur une section
-        int cible = surligne < 0 ? premiereAction() : surligne;
-        int pasRestant = surligne < 0 ? Math.abs(pas) - 1 : Math.abs(pas);
-        int direction = pas >= 0 ? 1 : -1;
-        while (pasRestant > 0) {
-            cible += direction;
-            if (cible < 0 || cible >= rangees.size()) {
-                break;
-            }
-            if (rangees.get(cible) != null) {
-                pasRestant--;
-            }
-        }
-        if (cible < 0 || cible >= rangees.size() || entetes.get(cible)) {
+        // la navigation SAUTE les en-têtes — jamais d'arrêt sur une
+        // section : le saut vit en pur chez NavigationEtages, testé
+        int cible = NavigationEtages.saut(rangees.size(), surligne, pas,
+                entetes::get);
+        if (cible < 0) {
             return false;
         }
         surligne = cible;
         invalidate();
         return true;
-    }
-
-    /** La première rangée d'ACTION du menu — la navigation y part. */
-    private int premiereAction() {
-        for (int i = 0; i < rangees.size(); i++) {
-            if (!entetes.get(i)) {
-                return i;
-            }
-        }
-        return 0;
     }
 
     @Override

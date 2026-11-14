@@ -346,10 +346,22 @@ public final class EditorActivity extends AppCompatActivity {
                 langueOuverte());
         atelierSelection = new AtelierSelection(editeur, session,
                 this::langueOuverte, popups::rafraichirBarreSelection);
-        // l'étage de NAVIGATION du débordement ne vit que sur un symbole
-        // au caret (l'audit du propriétaire : « les go to, l'option
-        // usages, rename ») — les gestes de l'hôte s'y posent, la
-        // visibilité contextuelle naît de la donnée
+        brancherBarreSelection();
+        atelierRecherche = new AtelierRecherche(this, editeur, session,
+                this::paletteFeuilles, popups::ouvrirRecherche,
+                popups::fermerRecherche);
+        atelierRecherche.brancher();
+        brancherSurvolDoubleTap();
+        brancherToolbar();
+    }
+
+    /** La barre de sélection vit en étages contextuels (l'audit du
+     *  propriétaire du 2026-11-14 : « les go to, l'option usages,
+     *  rename ») : l'étage de NAVIGATION ne se montre que sur un
+     *  symbole au caret, l'étage d'ÉDITION vit toujours ; Coller ne
+     *  se pose que presse-papiers plein — la visibilité naît de la
+     *  donnée. */
+    private void brancherBarreSelection() {
         atelierSelection.poserGesteNavigation(new SelectionBarView.Item(
                 getString(R.string.deborder_aller_a),
                 IconeAction.ALLER_A, () -> popups.ouvrirSurvol()));
@@ -359,10 +371,6 @@ public final class EditorActivity extends AppCompatActivity {
         atelierSelection.poserGesteNavigation(new SelectionBarView.Item(
                 getString(R.string.deborder_renommer),
                 IconeAction.RENOMMER, () -> atelierRefactor.renommerSymbole()));
-        // les actions VIVES : Coller ne se pose que lorsque le
-        // presse-papiers est plein, le débordement vit EN ÉTAGES —
-        // navigation contextuelle, édition permanente (l'audit du
-        // 2026-11-14)
         popups.configurerActionsSelectionVives(
                 atelierSelection.principalesVives(
                         getString(R.string.barre_couper),
@@ -377,12 +385,6 @@ public final class EditorActivity extends AppCompatActivity {
                         getString(R.string.barre_minuscules),
                         getString(R.string.barre_indenter),
                         getString(R.string.barre_dupliquer)));
-        atelierRecherche = new AtelierRecherche(this, editeur, session,
-                this::paletteFeuilles, popups::ouvrirRecherche,
-                popups::fermerRecherche);
-        atelierRecherche.brancher();
-        brancherSurvolDoubleTap();
-        brancherToolbar();
     }
 
     /** Les gestes de l'hôte se posent chez l'orchestrateur — le pont

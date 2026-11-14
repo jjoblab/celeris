@@ -158,12 +158,11 @@
     <string name="deborder_renommer">Renommer</string>
     <string name="reglage_inlays">Indices en ligne</string>
     <string name="reglage_barre">Barre de sélection</string>
-    <string name="reglage_ampoule">Ampoule d'intentions</string>
+    <string name="reglage_ampoule">Ampoule d\'intentions</string>
     <string name="reglage_completion">Complétion automatique</string>
     <string name="reglage_valeurs">Valeurs de débogage</string>
     <string name="reglage_fantome">Texte fantôme IA</string>
     <string name="reglage_minimap">Minimap</string>
     <string name="reglage_defilement">Défilement rapide</string>
-    <string name="reglage_numeros">Numéros de lignes</string>
     <string name="reglage_retour_ligne">Retour à la ligne</string>
 </resources>

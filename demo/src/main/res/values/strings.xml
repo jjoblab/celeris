@@ -164,6 +164,5 @@
     <string name="reglage_fantome">AI ghost text</string>
     <string name="reglage_minimap">Minimap</string>
     <string name="reglage_defilement">Fast scroller</string>
-    <string name="reglage_numeros">Line numbers</string>
     <string name="reglage_retour_ligne">Soft wrap</string>
 </resources>

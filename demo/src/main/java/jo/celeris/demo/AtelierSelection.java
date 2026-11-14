@@ -46,7 +46,7 @@ final class AtelierSelection {
     /** Les gestes de navigation de l'hôte — l'étage ne vit que si le
      *  geste existe (aller à, usages, renommage : chacun SA condition
      *  de pertinence, jamais une action morte). */
-    private final List<SelectionBarView.Item> navigation = new ArrayList<>();
+    private final List<MenuEtages.Item> navigation = new ArrayList<>();
     /** Le presse-papiers local — jamais le système. */
     private String pressePapiers;
 
@@ -74,7 +74,10 @@ final class AtelierSelection {
      * @param geste l'action de navigation (aller à, usages, renommer)
      */
     void poserGesteNavigation(SelectionBarView.Item geste) {
-        navigation.add(geste);
+        // la conversion vit ici : l'atelier parle en items de barre, les
+        // étages mangent leurs propres items — jamais l'hôte ne transpose
+        navigation.add(new MenuEtages.Item(geste.label(), geste.picto(),
+                geste.action()));
     }
 
     /**
@@ -136,15 +139,15 @@ final class AtelierSelection {
                 etages.add(new MenuEtages.Etage(titreNav, navigation));
             }
             etages.add(new MenuEtages.Etage(titreEdit, List.of(
-                    new SelectionBarView.Item(commenter,
+                    new MenuEtages.Item(commenter,
                             IconeAction.COMMENTER, this::commenter),
-                    new SelectionBarView.Item(majuscules,
+                    new MenuEtages.Item(majuscules,
                             IconeAction.MAJUSCULES, this::majuscules),
-                    new SelectionBarView.Item(minuscules,
+                    new MenuEtages.Item(minuscules,
                             IconeAction.MINUSCULES, this::minuscules),
-                    new SelectionBarView.Item(indenter,
+                    new MenuEtages.Item(indenter,
                             IconeAction.INDENTER, this::indenter),
-                    new SelectionBarView.Item(dupliquer,
+                    new MenuEtages.Item(dupliquer,
                             IconeAction.DUPLIQUER, this::dupliquer))));
             return etages;
         };
