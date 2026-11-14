@@ -87,6 +87,9 @@ public final class PopupsEditeur {
     /** Le fil d'Ariane — le chemin du plan qui englobe le curseur. */
     private final FilAriane filAriane;
     private final Notifications notifications;
+    /** L'info de type du symbole au curseur — le moteur du cœur la
+     *  sert, la première surface portée chez l'orchestrateur. */
+    private final TypeInfo typeInfo;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -157,6 +160,8 @@ public final class PopupsEditeur {
                 margePx, palette);
         filAriane = new FilAriane(popups, session, margePx, palette);
         notifications = new Notifications(popups, margePx, palette);
+        typeInfo = new TypeInfo(editeur, session, popups, margePx,
+                palette);
         docAncre = new DocAncre(couche.getContext(), popups, editeur,
                 session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx,
@@ -196,6 +201,7 @@ public final class PopupsEditeur {
         selecteurCouleur.surPalette(palette);
         filAriane.surPalette(palette);
         notifications.surPalette(palette);
+        typeInfo.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -571,6 +577,13 @@ public final class PopupsEditeur {
      *  seule (4 000 ms) ; ce qui ne touche pas le texte s'y montre. */
     public void notifier(String titre, String message) {
         notifications.notifier(titre, message);
+    }
+
+    /** Ouvre la carte d'info de type du symbole au curseur — le type
+     *  lu à la déclaration par le moteur du cœur, la carte sous le
+     *  curseur, bornée. */
+    public void ouvrirTypeInfo() {
+        typeInfo.ouvrir();
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors

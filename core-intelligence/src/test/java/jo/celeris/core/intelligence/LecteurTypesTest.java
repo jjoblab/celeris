@@ -1,9 +1,8 @@
-package jo.celeris.demo;
+package jo.celeris.core.intelligence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import jo.celeris.core.intelligence.LecteurTypes;
 import jo.celeris.core.text.Document;
 
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,7 @@ import org.junit.jupiter.api.Test;
  * mots réservés — la déclaration introuvable rend null, jamais un type
  * deviné (la carte ne se pose pas sans type : aucune fausse oracle).
  */
-class TypeInfoTest {
+class LecteurTypesTest {
 
     /** La déclaration se lit sur la ligne du caret : le mot précédent
      *  le symbole porte le type. */
@@ -35,10 +34,11 @@ class TypeInfoTest {
      *  mot de type, la déclaration qualifiée reste entière. */
     @Test
     void lesFormesRichesSeLisent() {
-        Document document = Document.of(
-                "List<String> noms = new ArrayList<>();\n"
-                + "final String salut = \"bon\";\n"
-                + "int[] compteurs = null;\n");
+        Document document = Document.of("""
+                List<String> noms = new ArrayList<>();
+                final String salut = "bon";
+                int[] compteurs = null;
+                """);
         assertEquals("List<String>",
                 LecteurTypes.typeDe(document, document.text().indexOf("noms") + 1));
         assertEquals("String",

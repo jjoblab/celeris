@@ -29,7 +29,6 @@ final class PontSurfaces {
 
     private final AtelierDocExterne docExterne;
     private final AtelierUsages usages;
-    private final AtelierTypeInfo typeInfo;
     private final AtelierHierarchies hierarchies;
     private final AtelierGabarits gabarits;
     private final AtelierSurete surete;
@@ -63,8 +62,6 @@ final class PontSurfaces {
                 margePx, palette);
         usages = new AtelierUsages(editeur, session, popups, margePx,
                 palette);
-        typeInfo = new AtelierTypeInfo(editeur, session, popups, margePx,
-                palette);
         hierarchies = new AtelierHierarchies(editeur, session, popups,
                 margePx, palette, plan, nomDuFichier);
         gabarits = new AtelierGabarits(editeur, session, popups, margePx,
@@ -82,7 +79,6 @@ final class PontSurfaces {
     void surPalette(PopupPalette palette) {
         docExterne.surPalette(palette);
         usages.surPalette(palette);
-        typeInfo.surPalette(palette);
         hierarchies.surPalette(palette);
         gabarits.surPalette(palette);
         surete.surPalette(palette);
@@ -100,11 +96,6 @@ final class PontSurfaces {
     /** Ouvre la carte des usages du symbole au curseur. */
     void ouvrirUsages() {
         usages.ouvrir();
-    }
-
-    /** Ouvre la carte d'info de type du symbole au curseur. */
-    void ouvrirTypeInfo() {
-        typeInfo.ouvrir();
     }
 
     /** Ouvre la hiérarchie du symbole au curseur. */

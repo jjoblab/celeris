@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
@@ -11,28 +11,26 @@ import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.TypeInfoView;
+
 import jo.celeris.core.intelligence.LecteurTypes;
+
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
 /**
- * L'atelier d'info de type de la démonstration (catégorie A de
- * l'inventaire — le fil rouge du guide du développeur, la seconde
- * surface réveillée du signal du propriétaire) : la carte du type du
- * symbole au curseur. Le lecteur local lit la DÉCLARATION dans le
- * document — « Type symbole », hors mots de conduite — la carte se
- * pose sous le curseur, bornée ; sans symbole ou sans type lisible,
- * la carte ne se pose pas (aucune fausse oracle). Les régimes suivent
- * seuls (frappe, défilement, tap hors cartes, échappement, voile — le
- * manager tient tout, l'atelier déclenche).
- *
- * <p>La frontière tient : la carte ne connaît NI le lecteur, NI
- * l'éditeur — l'atelier sert d'intermédiaire, le type arrive par
- * {@code setType(...)}, le Runnable du saut n'existe pas (la carte
- * décrit, elle ne choisit pas).</p>
+ * L'info de type (le fil rouge du guide du développeur — la première
+ * surface portée de la démonstration à l'orchestrateur,
+ * 2026-11-14) : le type du symbole au curseur se lit à la
+ * DÉCLARATION par le moteur du cœur ({@link LecteurTypes}) —
+ * « Type symbole », hors mots de conduite, JAMAIS un type deviné :
+ * sans type lisible, la carte ne se pose pas (aucune fausse
+ * oracle). La carte naît liée à son genre, se pose sous le curseur,
+ * bornée ; les régimes suivent seuls (frappe, défilement, tap hors
+ * cartes, échappement, voile — le manager tient tout, le satellite
+ * déclenche).
  */
-final class AtelierTypeInfo {
+final class TypeInfo {
 
     private final EditorView editeur;
     private final TextSession session;
@@ -41,9 +39,9 @@ final class AtelierTypeInfo {
     private final TypeInfoView carte;
 
     /**
-     * Construit l'atelier d'info de type sur le coordinateur des
-     * popups : la carte naît liée à son genre, le patron des trois
-     * temps (lier, déclencher, déléguer — USAGE §9).
+     * Construit l'info de type sur le coordinateur des popups : la
+     * carte naît liée à son genre, le patron des trois temps (lier,
+     * déclencher, déléguer — USAGE §9).
      *
      * @param editeur la vue d'éditeur ouverte
      * @param session la session d'édition courante
@@ -51,8 +49,8 @@ final class AtelierTypeInfo {
      * @param margePx la respiration des ancres aux bords, en pixels
      * @param palette la palette courante des popups
      */
-    AtelierTypeInfo(EditorView editeur, TextSession session,
-            PopupManager popups, int margePx, PopupPalette palette) {
+    TypeInfo(EditorView editeur, TextSession session, PopupManager popups,
+            int margePx, PopupPalette palette) {
         this.editeur = editeur;
         this.session = session;
         this.popups = popups;
@@ -68,17 +66,17 @@ final class AtelierTypeInfo {
     }
 
     /**
-     * Ouvre la carte d'info de type du symbole au curseur : le lecteur
-     * lit la déclaration, la carte se pose sous le curseur, bornée.
-     * Sans symbole au curseur ou sans type lisible, la carte ne se
-     * pose pas.
+     * Ouvre la carte d'info de type du symbole au curseur : le moteur
+     * du cœur lit la déclaration, la carte se pose sous le curseur,
+     * bornée. Sans symbole au curseur ou sans type lisible, la carte
+     * ne se pose pas.
      */
     void ouvrir() {
         Document document = session.document();
-        String symbole = PopupCoach.symboleA(document, caret());
+        String symbole = ContenuPopups.symboleA(document, caret());
         String type = symbole == null ? null
                 : LecteurTypes.typeDe(document, caret());
-        if (symbole == null || type == null) {
+        if (type == null) {
             return;
         }
         carte.setType(type);
