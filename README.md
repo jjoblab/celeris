@@ -61,15 +61,17 @@ Entrée et Échap aux cartes ouvertes.
 Les popups vivent dans les modules de l'éditeur : `android-widgets` porte
 le kit (cartes, manager, machine à états, feuilles), `android-host`
 porte l'orchestrateur **`PopupsEditeur`** — l'application hôte n'a
-presque rien à écrire (déménagement du 2026-11-14 : la démonstration ne
-teste plus qu'elle-même, elle ne porte plus les fonctionnalités — les
-surfaces réveillées du feu vert y passent pour une seule d’entre elles
-par son pont de test, le port chez l’orchestrateur est ENGAGÉ : l’info
-de type, les usages, la documentation externe, les hiérarchies, les
-gabarits, la sûreté et le masquage d’inspection y vivent déjà (les
-satellites `TypeInfo`, `Usages`, `DocExterne`, `CarteHierarchies`,
-`Gabarits`, `Surete` et `Masquage`), la dernière suivra le même
-patron).
+presque rien à écrire (déménagement du 2026-11-14, PORT ACHEVÉ : la
+démonstration ne teste plus qu’elle-même — les HUIT surfaces réveillées
+du feu vert vivent chez l’orchestrateur par leurs satellites : l’info
+de type (`TypeInfo`), les usages (`Usages`), la documentation externe
+(`DocExterne`), les hiérarchies (`CarteHierarchies`), les gabarits
+(`Gabarits`), la sûreté (`Surete`), le masquage d’inspection
+(`Masquage`) et les détails d’exception (`ExceptionCarte`) — le pont
+de test est mort, l’audit Android Studio du propriétaire y a aligné
+chaque carte sur l’IDE de référence ; deux gestes de l’hôte se posent
+par configuration : `configurerGabaritMethode` et
+`configurerRelanceLint`).
 
 ```java
 import jo.celeris.android.host.popups.CoachPopups;
