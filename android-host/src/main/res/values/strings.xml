@@ -3,6 +3,7 @@
      surcharge à sa langue — la carte de survol et l'aperçu de
      définition restent muets sans eux. -->
 <resources>
+    <string name="titre_usages">%1$d usages of « %2$s »</string>
     <string name="indice_actions">More actions · intentions menu</string>
     <string name="menu_plus">MORE</string>
     <string name="titre_apercu">Definition of %1$s</string>

@@ -70,7 +70,6 @@
     <string name="execution_echouee">Run failed — the exception details follow</string>
     <string name="execution_terminee">Run finished — the file carries no method, nothing to fail</string>
     <string name="titre_correctif_import">Import %1$s</string>
-    <string name="titre_usages">%1$d usages of « %2$s »</string>
     <string name="barre_couper">Cut</string>
     <string name="barre_copier">Copy</string>
     <string name="barre_coller">Paste</string>

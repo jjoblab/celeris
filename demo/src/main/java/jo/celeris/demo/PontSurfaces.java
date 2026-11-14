@@ -28,7 +28,6 @@ import jo.celeris.core.text.TextSession;
 final class PontSurfaces {
 
     private final AtelierDocExterne docExterne;
-    private final AtelierUsages usages;
     private final AtelierHierarchies hierarchies;
     private final AtelierGabarits gabarits;
     private final AtelierSurete surete;
@@ -60,8 +59,6 @@ final class PontSurfaces {
             BiConsumer<String, String> annoncer) {
         docExterne = new AtelierDocExterne(editeur, session, popups,
                 margePx, palette);
-        usages = new AtelierUsages(editeur, session, popups, margePx,
-                palette);
         hierarchies = new AtelierHierarchies(editeur, session, popups,
                 margePx, palette, plan, nomDuFichier);
         gabarits = new AtelierGabarits(editeur, session, popups, margePx,
@@ -78,7 +75,6 @@ final class PontSurfaces {
     /** La palette tourne : les cartes du pont la suivent. */
     void surPalette(PopupPalette palette) {
         docExterne.surPalette(palette);
-        usages.surPalette(palette);
         hierarchies.surPalette(palette);
         gabarits.surPalette(palette);
         surete.surPalette(palette);
@@ -87,15 +83,10 @@ final class PontSurfaces {
     }
 
     /** Branche la session de langage : les ateliers qui écoutent le
-     *  serveur (usages, documentation externe) y répondent. */
+     *  serveur (documentation externe) y répondent — les usages
+     *  vivent désormais chez l'orchestrateur. */
     void brancherServeur(LanguageSession serveur, String uri) {
-        usages.brancherServeur(serveur, uri);
         docExterne.brancherServeur(serveur, uri);
-    }
-
-    /** Ouvre la carte des usages du symbole au curseur. */
-    void ouvrirUsages() {
-        usages.ouvrir();
     }
 
     /** Ouvre la hiérarchie du symbole au curseur. */

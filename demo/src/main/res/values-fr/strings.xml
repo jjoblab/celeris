@@ -70,7 +70,6 @@
     <string name="execution_echouee">L\'exécution a échoué — les détails de l\'exception suivent</string>
     <string name="execution_terminee">Exécution terminée — le fichier ne porte aucune méthode, rien à faire échouer</string>
     <string name="titre_correctif_import">Importer %1$s</string>
-    <string name="titre_usages">%1$d usages de « %2$s »</string>
     <string name="barre_couper">Couper</string>
     <string name="barre_copier">Copier</string>
     <string name="barre_coller">Coller</string>

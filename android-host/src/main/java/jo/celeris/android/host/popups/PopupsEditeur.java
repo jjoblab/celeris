@@ -92,6 +92,11 @@ public final class PopupsEditeur {
     /** L'info de type du symbole au curseur — le moteur du cœur la
      *  sert, la première surface portée chez l'orchestrateur. */
     private final TypeInfo typeInfo;
+    /** Les usages du symbole au curseur — la seconde surface portée
+     *  : le serveur les sert, l'étrangère vit muette (l'audit Android
+     *  Studio compte comme l'IDE : le compte du serveur, tous
+     *  fichiers). */
+    private final Usages usages;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -164,11 +169,18 @@ public final class PopupsEditeur {
         notifications = new Notifications(popups, margePx, palette);
         typeInfo = new TypeInfo(editeur, session, popups, margePx,
                 palette);
+        usages = new Usages(editeur, session, popups, margePx, palette);
         docAncre = new DocAncre(couche.getContext(), popups, editeur,
                 session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx,
                 palette, this::sauterDiagnostic);
+        brancherEcouteurs();
+    }
 
+    /** Les écouteurs de la scène : les vues y préviennent, la session
+     *  et l'éditeur y répondent — le montage du constructeur s'y
+     *  déleste, la lecture y reste d'un tenant. */
+    private void brancherEcouteurs() {
         listeCompletion.setOnPick(this::choisirCompletion);
         barreSelection.setOnOverflow(
                 () -> menuDebordement.ouvrir(barreSelection,
@@ -178,6 +190,7 @@ public final class PopupsEditeur {
         session.addSelectionListener(this::surSelection);
         editeur.setSurViewportChange(this::surFenetre);
     }
+
 
     /** Le thème tourne : la palette se redérive — le verre suit. */
     public void surTheme(EditorTheme nouveau) {
@@ -204,6 +217,7 @@ public final class PopupsEditeur {
         filAriane.surPalette(palette);
         notifications.surPalette(palette);
         typeInfo.surPalette(palette);
+        usages.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -234,6 +248,7 @@ public final class PopupsEditeur {
         this.serveur = sessionLangage;
         this.uriDocument = uri;
         docAncre.brancherServeur(sessionLangage, uri);
+        usages.brancherServeur(sessionLangage, uri);
         sessionLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
                 session.document().text());
     }
@@ -610,6 +625,14 @@ public final class PopupsEditeur {
      *  curseur, bornée. */
     public void ouvrirTypeInfo() {
         typeInfo.ouvrir();
+    }
+
+    /** Ouvre la carte des usages du symbole au curseur — le serveur de
+     *  langage sert les lieux, l'occurrence ouverte saute, l'étrangère
+     *  vit muette (l'audit Android Studio : le compte du serveur, tous
+     *  fichiers ; sans serveur ni symbole, la carte ne se pose pas). */
+    public void ouvrirUsages() {
+        usages.ouvrir();
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors

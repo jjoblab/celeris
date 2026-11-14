@@ -2,6 +2,7 @@
 <!-- Les libellés français des popups de l'éditeur (ADR-008 : la
      parité des chaînes affichées, valeurs/ ↔ values-fr/). -->
 <resources>
+    <string name="titre_usages">%1$d usages de « %2$s »</string>
     <string name="indice_actions">Plus d\'actions · menu d\'intentions</string>
     <string name="menu_plus">PLUS</string>
     <string name="titre_apercu">Définition de %1$s</string>

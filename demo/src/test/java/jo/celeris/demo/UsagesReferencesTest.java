@@ -21,9 +21,11 @@ import org.junit.jupiter.api.Test;
  * première surface réveillée) : le serveur de référence rend les lieux
  * de chaque occurrence du mot entier, dans l'ordre du document — la
  * carte des usages ({@code ReferencesView}) les pose en occurrences
- * cliquables, l'atelier transpose le début de plage en offset de
- * saut (la colonne compte les unités UTF-16 du protocole, la ligne
- * part de zéro), le curseur porte au point d'usage. Pur, sans
+ * cliquables, le satellite de l'orchestrateur transpose le début de
+ * plage en offset de saut (la colonne compte les unités UTF-16 du
+ * protocole, la ligne part de zéro), le curseur porte au point
+ * d'usage — la transpose vit au banc de l'hôte
+ * ({@code UsagesTransposeTest}). Pur, sans
  * appareil — le transport mémoire livre sans fil ; les régimes de la
  * carte vivent au banc du kit ({@code PopupControllerTest},
  * {@code ReferencesViewTest}).

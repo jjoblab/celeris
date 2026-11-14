@@ -1,11 +1,11 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import jo.celeris.android.host.popups.LanguageSession;
+import jo.celeris.android.host.R;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.PopupAnchor;
 import jo.celeris.android.widgets.PopupController;
@@ -13,6 +13,7 @@ import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.ReferencesView;
+
 import jo.celeris.core.lsp.types.LieuLsp;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
@@ -22,23 +23,25 @@ import jo.celeris.core.text.TextSession;
 import org.jspecify.annotations.Nullable;
 
 /**
- * L'atelier des usages de la démonstration (le signal du propriétaire
- * du 2026-11-13 : « lancé 90 % du chantier popups ») : la carte des
- * références du symbole au curseur — catégorie C de l'inventaire, la
- * première surface réveillée du reste. Le serveur de langage sert les
- * lieux par le fil du protocole ({@code references}), l'atelier les
- * transpose en occurrences cliquables : le lieu se lit (sa ligne, son
- * extrait rogné), le choix SAUTE — la carte se referme, le curseur
- * porte au lieu de l'usage. L'ancre vit sous le curseur, bornée ; les
- * régimes suivent seuls (frappe, défilement, tap hors cartes,
- * exclusions des menus — le manager tient tout, l'atelier déclenche).
+ * Les usages du symbole au curseur (la seconde surface portée de la
+ * démonstration à l'orchestrateur, 2026-11-14) : le serveur de langage
+ * sert les lieux par le fil du protocole ({@code references}), le
+ * satellite les transpose en occurrences cliquables — l'audit Android
+ * Studio y compte comme l'IDE de référence : l'en-tête porte le compte
+ * du SERVEUR (les usages de tous les fichiers), l'occurrence du
+ * document ouvert se prend et SAUTE, l'ÉTRANGÈRE vit muette (le nom
+ * de son fichier se lit, le lieu ne se visite pas, jamais il ne se
+ * devine — l'éditeur embarqué n'ouvre qu'un document). La carte se
+ * pose sous le curseur, bornée ; les régimes suivent seuls (frappe,
+ * défilement, tap hors cartes, exclusions des menus — le manager tient
+ * tout, le satellite déclenche).
  *
  * <p>La frontière tient : la carte ne connaît NI le serveur, NI
- * l'éditeur — l'atelier sert d'intermédiaire, le lieu étranger au
- * document ouvert ne se devine jamais (il ne saute pas, il ne se
- * montre pas : la démonstration n'ouvre qu'un document).</p>
+ * l'éditeur — le satellite sert d'intermédiaire ; sans symbole au
+ * curseur ou sans serveur branché, la carte ne se pose pas (aucune
+ * fausse intégration).</p>
  */
-final class AtelierUsages {
+final class Usages {
 
     /** L'extrait d'une occurrence se rogne à cette longueur — la carte
      *  reste lisible, jamais une rangée qui mange la couche. */
@@ -55,8 +58,8 @@ final class AtelierUsages {
     private String uriDocument = "";
 
     /**
-     * Construit l'atelier des usages sur le coordinateur des popups :
-     * la carte naît liée à son genre, le patron des trois temps (lier,
+     * Construit les usages sur le coordinateur des popups : la carte
+     * naît liée à son genre, le patron des trois temps (lier,
      * déclencher, déléguer — USAGE §9).
      *
      * @param editeur la vue d'éditeur ouverte
@@ -65,8 +68,8 @@ final class AtelierUsages {
      * @param margePx la respiration des ancres aux bords, en pixels
      * @param palette la palette courante des popups
      */
-    AtelierUsages(EditorView editeur, TextSession session,
-            PopupManager popups, int margePx, PopupPalette palette) {
+    Usages(EditorView editeur, TextSession session, PopupManager popups,
+            int margePx, PopupPalette palette) {
         this.editeur = editeur;
         this.session = session;
         this.popups = popups;
@@ -101,7 +104,7 @@ final class AtelierUsages {
      */
     void ouvrir() {
         if (serveur == null
-                || PopupCoach.symboleA(session.document(), caret()) == null) {
+                || ContenuPopups.symboleA(session.document(), caret()) == null) {
             return;
         }
         serveur.references(uriDocument, session.document(), caret())
@@ -111,8 +114,10 @@ final class AtelierUsages {
 
     /**
      * Pose la carte des usages : les lieux du document ouvert
-     * deviennent des occurrences cliquables — l'en-tête compte, le
-     * choix saute. La réponse vide ou échue ne pose rien.
+     * deviennent des occurrences cliquables, les étrangères muettes —
+     * l'en-tête porte le compte du serveur (l'audit Android Studio :
+     * l'IDE de référence compte TOUS les usages, jamais le seul
+     * document ouvert). La réponse vide ou échue ne pose rien.
      *
      * @param lieux les lieux servis par le serveur
      */
@@ -124,18 +129,18 @@ final class AtelierUsages {
         List<ReferencesView.Occurrence> occurrences =
                 new ArrayList<>(lieux.size());
         for (LieuLsp lieu : lieux) {
-            int offset = offsetDe(lieu, document);
+            int offset = offsetDe(lieu, uriDocument, document);
             if (offset >= 0) {
                 occurrences.add(new ReferencesView.Occurrence(
                         libelleDe(document, offset), () -> sauter(offset)));
+            } else {
+                occurrences.add(new ReferencesView.Occurrence(
+                        libelleEtrangere(lieu), null));
             }
         }
-        if (occurrences.isEmpty()) {
-            return;
-        }
         carte.setTitre(popups.couche().getContext().getString(
-                R.string.titre_usages, occurrences.size(),
-                PopupCoach.symboleA(document, caret())));
+                R.string.titre_usages, lieux.size(),
+                ContenuPopups.symboleA(document, caret())));
         carte.setOccurrences(occurrences);
         Rect curseur = editeur.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
@@ -156,9 +161,15 @@ final class AtelierUsages {
     /**
      * L'offset du lieu dans le document ouvert — le début de sa plage
      * y vient (la ligne du document, la colonne de la ligne) ; le lieu
-     * étranger au document ou sans plage rend —1, jamais deviné.
+     * étranger au document (l'uri ne répond pas) ou sans plage rend
+     * —1, jamais deviné.
+     *
+     * @param lieu         le lieu servi par le serveur
+     * @param uriDocument  l'uri du document ouvert
+     * @param document     le document ouvert
+     * @return l'offset du début de plage, —1 pour l'étranger
      */
-    private int offsetDe(LieuLsp lieu, Document document) {
+    static int offsetDe(LieuLsp lieu, String uriDocument, Document document) {
         if (lieu.plage() == null || !uriDocument.equals(lieu.uri())) {
             return -1;
         }
@@ -171,15 +182,29 @@ final class AtelierUsages {
         return Math.min(offset, document.length());
     }
 
-    /** Le libellé de l'occurrence : « L12 · l'extrait de la ligne,
-     *  rogné » — le lieu se lit sans quitter la carte. */
-    private static String libelleDe(Document document, int offset) {
+    /** Le libellé de l'occurrence ouverte : « L12 · l'extrait de la
+     *  ligne, rogné » — le lieu se lit sans quitter la carte. */
+    static String libelleDe(Document document, int offset) {
         int ligne = document.lineForOffset(offset);
         String extrait = document.lineText(ligne).strip();
         if (extrait.length() > EXTRAIT_MAX) {
             extrait = extrait.substring(0, EXTRAIT_MAX) + "…";
         }
         return "L" + (ligne + 1) + " · " + extrait;
+    }
+
+    /** Le libellé de l'occurrence ÉTRANGÈRE (l'audit Android Studio :
+     *  l'IDE de référence montre les usages de tous les fichiers) — le
+     *  nom court du fichier du serveur et la ligne se lisent, le lieu
+     *  ne se visite pas. */
+    static String libelleEtrangere(LieuLsp lieu) {
+        String nom = lieu.uri();
+        int barre = nom.lastIndexOf('/');
+        if (barre >= 0) {
+            nom = nom.substring(barre + 1);
+        }
+        return lieu.plage() == null ? nom
+                : nom + " · L" + (lieu.plage().debut().ligne() + 1);
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
