@@ -36,10 +36,14 @@ import jo.celeris.android.view.MarquesIntegration;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.view.PastillesCouleur;
 import jo.celeris.android.view.ReperesPreview;
+import jo.celeris.android.view.ReglagesEditeur;
 import jo.celeris.android.view.ValeurLigne;
 import jo.celeris.android.widgets.BarreToolbar;
+import jo.celeris.android.widgets.IconeAction;
+import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupPalette;
+import jo.celeris.android.widgets.SelectionBarView;
 import jo.celeris.core.intelligence.ResultatsAller;
 import jo.celeris.core.language.model.LanguageSupport;
 
@@ -169,7 +173,7 @@ public final class EditorActivity extends AppCompatActivity {
         catalogue = new CatalogueActions(this, nomFichier, atelierLint,
                 atelierDiff, atelierCorrectif, atelierAgent, atelierIA, popups,
                 atelierRefactor, atelierRecherche, basculeTheme,
-                feuilleReglages, () -> entreesPlan, this::lignesCourantes, barreToolbar);
+                () -> entreesPlan, this::lignesCourantes, barreToolbar);
         catalogue.brancher();
         popups.configurerIntentions(catalogue.intentions());
         appliquerPreferences();
@@ -342,10 +346,23 @@ public final class EditorActivity extends AppCompatActivity {
                 langueOuverte());
         atelierSelection = new AtelierSelection(editeur, session,
                 this::langueOuverte, popups::rafraichirBarreSelection);
+        // l'étage de NAVIGATION du débordement ne vit que sur un symbole
+        // au caret (l'audit du propriétaire : « les go to, l'option
+        // usages, rename ») — les gestes de l'hôte s'y posent, la
+        // visibilité contextuelle naît de la donnée
+        atelierSelection.poserGesteNavigation(new SelectionBarView.Item(
+                getString(R.string.deborder_aller_a),
+                IconeAction.ALLER_A, () -> popups.ouvrirSurvol()));
+        atelierSelection.poserGesteNavigation(new SelectionBarView.Item(
+                getString(R.string.deborder_usages),
+                IconeAction.USAGES, () -> popups.ouvrirUsages()));
+        atelierSelection.poserGesteNavigation(new SelectionBarView.Item(
+                getString(R.string.deborder_renommer),
+                IconeAction.RENOMMER, () -> atelierRefactor.renommerSymbole()));
         // les actions VIVES : Coller ne se pose que lorsque le
-        // presse-papiers est plein, le débordement porte commenter,
-        // casse, indentation et duplication — chaque action SON
-        // pictogramme (l'audit du 2026-11-14)
+        // presse-papiers est plein, le débordement vit EN ÉTAGES —
+        // navigation contextuelle, édition permanente (l'audit du
+        // 2026-11-14)
         popups.configurerActionsSelectionVives(
                 atelierSelection.principalesVives(
                         getString(R.string.barre_couper),
@@ -353,6 +370,8 @@ public final class EditorActivity extends AppCompatActivity {
                         getString(R.string.barre_coller),
                         getString(R.string.barre_tout)),
                 atelierSelection.debordementVives(
+                        getString(R.string.deborder_navigation),
+                        getString(R.string.deborder_edition),
                         getString(R.string.barre_commenter),
                         getString(R.string.barre_majuscules),
                         getString(R.string.barre_minuscules),
@@ -455,6 +474,68 @@ public final class EditorActivity extends AppCompatActivity {
         editeur.setFont(new FontSpec("mono", bornee));
         if (popups != null) {
             popups.surTailleTexte(bornee);
+        }
+    }
+
+    /**
+     * Ouvre (ou referme) la CARTE DES RÉGLAGES de l'éditeur — la table
+     * centrale y vit (l'audit du propriétaire du 2026-11-14 : « un
+     * système central editor settings ») : les interrupteurs se
+     * relisent de la table, chaque bascule s'y applique ET se persiste
+     * — la fermeture de la feuille d'avant garde son canal (elle vit
+     * sa vie de feuille modale, la carte vit sa vie de popup).
+     */
+    void ouvrirReglages() {
+        popups.ouvrirReglages(libellesReglages());
+        editeur.reglages().setSurBascule(porte -> {
+            boolean ouverte = editeur.reglages().ouverte(porte);
+            prefs.edit().putBoolean(porte.cle(), ouverte).apply();
+            appliquerPorte(porte);
+            popups.rafraichirReglages(libellesReglages());
+        });
+    }
+
+    /** Les libellés des portes de la table — l'ordre des portes suit
+     *  la table centrale, jamais la carte ne devine. */
+    private List<String> libellesReglages() {
+        return List.of(
+                getString(R.string.reglage_inlays),
+                getString(R.string.reglage_barre),
+                getString(R.string.reglage_ampoule),
+                getString(R.string.reglage_completion),
+                getString(R.string.reglage_valeurs),
+                getString(R.string.reglage_fantome),
+                getString(R.string.reglage_minimap),
+                getString(R.string.reglage_defilement),
+                getString(R.string.reglage_numeros),
+                getString(R.string.reglage_retour_ligne));
+    }
+
+    /** Applique une porte basculée — chaque fonctionnalité y suit SA
+     *  voie : la vue, l'orchestrateur ou le chrome de la scène. */
+    private void appliquerPorte(ReglagesEditeur.Porte porte) {
+        boolean ouverte = editeur.reglages().ouverte(porte);
+        switch (porte) {
+            case NUMEROS_LIGNES -> editeur.setNumerosVisibles(ouverte);
+            case RETOUR_LIGNE -> editeur.setSoftWrap(ouverte);
+            case INDICES_EN_LIGNE -> popups.indicesInlay().rafraichir(
+                    session.document());
+            case FANTOME_IA -> {
+                if (!ouverte) {
+                    editeur.setFantome(null);
+                }
+            }
+            case BARRE_SELECTION -> {
+                if (!ouverte) {
+                    popups.manager().fermer(
+                            PopupController.PopupKind.SELECTION_BAR);
+                }
+            }
+            default -> {
+                // les autres portes se lisent à leur prochain geste —
+                // la table reste le point de vérité, l'orchestrateur y
+                // consulte (ampoule, complétion) et le chrome suit
+            }
         }
     }
 

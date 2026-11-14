@@ -432,6 +432,22 @@ public enum IconeAction {
             c.drawLine(cx - r * 0.3f, cy + r * 0.5f, cx, cy + r * 0.8f, trait);
             c.drawLine(cx + r * 0.3f, cy + r * 0.5f, cx, cy + r * 0.8f, trait);
         }
+    },
+
+    /** La flèche qui revient à la marge — le retour à la ligne
+     *  souple (A-18). */
+    RETOUR_LIGNE {
+        @Override
+        void tracer(Canvas c, Paint trait, Paint texte, float cx, float cy, float r) {
+            c.drawLine(cx + r * 0.8f, cy - r * 0.6f, cx + r * 0.8f,
+                    cy + r * 0.4f, trait);
+            c.drawLine(cx + r * 0.8f, cy + r * 0.4f, cx - r * 0.4f,
+                    cy + r * 0.4f, trait);
+            c.drawLine(cx - r * 0.05f, cy + r * 0.05f, cx - r * 0.4f,
+                    cy + r * 0.4f, trait);
+            c.drawLine(cx - r * 0.05f, cy + r * 0.75f, cx - r * 0.4f,
+                    cy + r * 0.4f, trait);
+        }
     };
 
     /**
@@ -466,6 +482,34 @@ public enum IconeAction {
         picto.tracer(c, trait, texte, cx, cy, r);
         trait.setStrokeWidth(graisse);
         texte.setTextSize(taille);
+    }
+
+    /**
+     * L'encre ALLÉGÉE d'un pictogramme — l'audit du propriétaire du
+     * 2026-11-14 (« il est trop foncé, améliore-la ») : le glyphe se
+     * mêle à l'atténuée de la palette aux deux tiers du texte, il se
+     * lit sans crier ; l'ampoule d'intentions et les encres de
+     * sévérité restent telles quelles — leur couleur EST leur sens.
+     *
+     * @param muet  l'encre atténuée de la palette
+     * @param texte l'encre du texte de la palette
+     * @return le mélange aux deux tiers vers l'atténuée
+     */
+    public static int encreAllgeee(int muet, int texte) {
+        return melanger(muet, texte, 2f / 3f);
+    }
+
+    /** Le mélange linéaire de deux encres ARGB — la part du premier. */
+    private static int melanger(int premier, int second, float part) {
+        int a = Math.round(((premier >>> 24) & 0xFF) * part
+                + ((second >>> 24) & 0xFF) * (1f - part));
+        int r = Math.round(((premier >>> 16) & 0xFF) * part
+                + ((second >>> 16) & 0xFF) * (1f - part));
+        int g = Math.round((premier & 0xFF00) / 256f * part
+                + (second & 0xFF00) / 256f * (1f - part));
+        int b = Math.round((premier & 0xFF) * part
+                + (second & 0xFF) * (1f - part));
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     /** Les quatre coins — le cadre de tout sélectionner. */

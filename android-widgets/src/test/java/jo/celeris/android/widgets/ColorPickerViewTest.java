@@ -42,16 +42,17 @@ public class ColorPickerViewTest {
                         View.MeasureSpec.UNSPECIFIED));
     }
 
-    /** La carte porte les blocs du dépôt de départ : 242 dp de large
-     *  (huit cellules et leurs écarts, respirations comprises), la
-     *  hauteur de ses quatre blocs. */
+    /** La carte porte les blocs du dépôt de départ : 238 dp de large
+     *  (huit cellules et leurs écarts, respirations RESSERRÉES
+     *  comprises — l'audit de compacité du 2026-11-14), la hauteur de
+     *  ses quatre blocs. */
     @Test
     public void laCartePorteLesBlocsDuDepot() {
         ColorPickerView vue = new ColorPickerView(contexte, PopupPalette.dark());
         vue.ouvrir(0xFFFF5722, 6);
         mesurer(vue);
-        assertEquals(242, vue.getMeasuredWidth());
-        assertEquals(238 + 16, vue.getMeasuredHeight());
+        assertEquals(238, vue.getMeasuredWidth());
+        assertEquals(238 + 12, vue.getMeasuredHeight());
     }
 
     /** Le tap d'une cellule de palette APPLIQUE sa teinte —

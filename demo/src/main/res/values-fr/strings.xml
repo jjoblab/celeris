@@ -151,4 +151,19 @@
     <string name="reglage_surimpression">Surimpression de diagnostic</string>
     <string name="desc_surimpression">Afficher taille de police, largeur de gouttière et images décolorées sur la scène</string>
     <string name="unite_ms">%1$d ms</string>
+    <string name="deborder_navigation">Aller à</string>
+    <string name="deborder_edition">Édition</string>
+    <string name="deborder_aller_a">Documentation</string>
+    <string name="deborder_usages">Usages</string>
+    <string name="deborder_renommer">Renommer</string>
+    <string name="reglage_inlays">Indices en ligne</string>
+    <string name="reglage_barre">Barre de sélection</string>
+    <string name="reglage_ampoule">Ampoule d'intentions</string>
+    <string name="reglage_completion">Complétion automatique</string>
+    <string name="reglage_valeurs">Valeurs de débogage</string>
+    <string name="reglage_fantome">Texte fantôme IA</string>
+    <string name="reglage_minimap">Minimap</string>
+    <string name="reglage_defilement">Défilement rapide</string>
+    <string name="reglage_numeros">Numéros de lignes</string>
+    <string name="reglage_retour_ligne">Retour à la ligne</string>
 </resources>

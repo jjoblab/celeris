@@ -9,13 +9,14 @@ import jo.celeris.core.text.Document;
 
 /**
  * Les indices en ligne (inlay hints) de l'éditeur : le satellite
- * transpose le document en indices — le type du « var » littéral se
- * lit en fin de ligne utile, à l'encre muette italique, jamais dans
- * le flux (le simulateur de référence porte le même dessin). La vue
- * ne connaît ni langage ni serveur : le moteur décide, la couche
- * trace ; l'édition relance la pose, la couche suit.
+ * transpose le document en indices — le type du « var » et le nom des
+ * paramètres muets se lisent en fin de ligne utile ou devant leur
+ * argument, à l'encre muette italique, jamais dans le flux (le
+ * simulateur de référence porte le même dessin). La vue ne connaît
+ * ni langage ni serveur : le moteur décide, la couche trace ; l'édition
+ * relance la pose, la couche suit.
  */
-final class IndicesInlay {
+public final class IndicesInlay {
 
     /** La vue dont la couche d'indices se pose. */
     private final EditorView editeur;
@@ -28,18 +29,20 @@ final class IndicesInlay {
      * @param editeur  la vue dont la couche d'indices se pose
      * @param document le document ouvert
      */
-    IndicesInlay(EditorView editeur, Document document) {
+    public IndicesInlay(EditorView editeur, Document document) {
         this.editeur = editeur;
         rafraichir(document);
     }
 
     /**
      * Repose les indices du document — l'édition y relance la pose,
-     * le contenu neuf efface les indices d'avant.
+     * le contenu neuf efface les indices d'avant ; la bascule des
+     * réglages y relit la porte (fermée, la vue retire les indices
+     * d'elle-même).
      *
      * @param document le document ouvert
      */
-    void rafraichir(Document document) {
+    public void rafraichir(Document document) {
         List<IndiceInlay> indices = MoteurInlayHints.indices(document);
         editeur.setIndicesInlay(indices);
     }

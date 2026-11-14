@@ -218,7 +218,19 @@ public final class PopupController {
          *  défilement la REPOSITIONNE chez l'hôte, le tap hors cartes
          *  la referme, l'échappement aussi ; aucune exclusion : la
          *  trace ne chasse personne. */
-        EXCEPTION_DETAILS
+        EXCEPTION_DETAILS,
+
+        /** La carte des réglages de l'éditeur (l'audit du propriétaire
+         *  du 2026-11-14 : « un système central editor settings ») :
+         *  les commutateurs des fonctionnalités s'y basculent — la
+         *  carte ne connaît aucune porte, l'hôte pose et bascule. Elle
+         *  vit le régime du menu du caret : la famille des surfaces
+         *  d'actions (elle ferme les menus, eux la ferment), la
+         *  frappe la ferme, le défilement l'épargne (elle se
+         *  repositionne), le tap hors cartes la referme — les
+         *  réglages ne se marchent pas sur le texte.
+         */
+        SETTINGS_MENU
     }
 
     private final Set<PopupKind> ouverts = EnumSet.noneOf(PopupKind.class);
@@ -314,7 +326,17 @@ public final class PopupController {
                             PopupKind.SAFE_MOVE,
                             PopupKind.SUPPRESS_INSPECTION,
                             PopupKind.REFERENCES,
-                            PopupKind.HIERARCHY});
+                            PopupKind.HIERARCHY},
+            PopupKind.SETTINGS_MENU,
+            new PopupKind[] {
+                    PopupKind.INTENTIONS_MENU,
+                    PopupKind.TOOLBAR_OVERFLOW,
+                    PopupKind.GABARITS,
+                    PopupKind.SAFE_MOVE,
+                    PopupKind.SUPPRESS_INSPECTION,
+                    PopupKind.REFERENCES,
+                    PopupKind.HIERARCHY,
+                    PopupKind.SAFE_DELETE});
 
     /**
      * Ouvre le popup donné : les exclusions s'appliquent — la
@@ -445,7 +467,8 @@ public final class PopupController {
                 PopupKind.SELECTION_BAR, PopupKind.SELECTION_OVERFLOW,
                 PopupKind.COLOR_PICKER, PopupKind.TOOLBAR_OVERFLOW,
                 PopupKind.REFERENCES, PopupKind.TYPE_INFO,
-                PopupKind.HIERARCHY, PopupKind.SAFE_DELETE);
+                PopupKind.HIERARCHY, PopupKind.SAFE_DELETE,
+                PopupKind.SETTINGS_MENU);
     }
 
     /**
@@ -482,7 +505,7 @@ public final class PopupController {
                 PopupKind.HIERARCHY, PopupKind.EXTERNAL_DOC,
                 PopupKind.GABARITS, PopupKind.SAFE_DELETE,
                 PopupKind.SAFE_MOVE, PopupKind.SUPPRESS_INSPECTION,
-                PopupKind.EXCEPTION_DETAILS);
+                PopupKind.EXCEPTION_DETAILS, PopupKind.SETTINGS_MENU);
     }
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se

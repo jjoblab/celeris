@@ -39,7 +39,6 @@ final class CatalogueActions {
     private final AtelierRefactor refactor;
     private final AtelierRecherche recherche;
     private final BasculeTheme basculeTheme;
-    private final FeuilleReglages feuilleReglages;
     private final Supplier<List<OutlineEntry>> plan;
     private final Supplier<List<String>> lignes;
     private final BarreToolbar barreToolbar;
@@ -59,7 +58,6 @@ final class CatalogueActions {
      * @param refactor       l'atelier de refactorisation
      * @param recherche      l'atelier de recherche
      * @param basculeTheme   la bascule de thème
-     * @param feuilleReglages la feuille des réglages
      * @param plan           le plan courant du fichier, vif au document
      * @param lignes         les lignes courantes du document, vives
      * @param barreToolbar   la barre du kit (carte de débordement)
@@ -70,7 +68,6 @@ final class CatalogueActions {
             AtelierIA ia, PopupsEditeur popups,
             AtelierRefactor refactor,
             AtelierRecherche recherche, BasculeTheme basculeTheme,
-            FeuilleReglages feuilleReglages,
             Supplier<List<OutlineEntry>> plan,
             Supplier<List<String>> lignes,
             BarreToolbar barreToolbar) {
@@ -85,7 +82,6 @@ final class CatalogueActions {
         this.refactor = refactor;
         this.recherche = recherche;
         this.basculeTheme = basculeTheme;
-        this.feuilleReglages = feuilleReglages;
         this.plan = plan;
         this.lignes = lignes;
         this.barreToolbar = barreToolbar;
@@ -148,7 +144,7 @@ final class CatalogueActions {
                 () -> activite.zoomerPolice(-EditorActivity.PAS_TAILLE));
         actionsMenu.put(R.id.action_agrandir,
                 () -> activite.zoomerPolice(EditorActivity.PAS_TAILLE));
-        actionsMenu.put(R.id.action_reglages, feuilleReglages::montrer);
+        actionsMenu.put(R.id.action_reglages, activite::ouvrirReglages);
         actionsMenu.put(R.id.action_debordement,
                 () -> barreToolbar.ouvrirDebordement(itemsDebordement()));
     }

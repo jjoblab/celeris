@@ -19,10 +19,11 @@ import org.robolectric.RuntimeEnvironment;
 /**
  * Le menu de débordement de la barre de sélection (déménagé du
  * terrain de démonstration au kit, décision du propriétaire du
- * 2026-11-14) : la carte naît liée à SON genre, les actions vides ne
- * posent rien, l'ouverture pose la carte sous la puce — et le CHOIX
- * la referme AVANT d'exécuter l'action (le débordement ne survit
- * jamais au choix, l'en-tête de section ne se prend jamais).
+ * 2026-11-14) : la carte À ÉTAGES naît liée à SON genre, les étages
+ * VIDES ne posent rien (la visibilité contextuelle naît de la
+ * donnée), l'ouverture pose la carte sous la puce — et le CHOIX la
+ * referme AVANT d'exécuter l'action (le débordement ne survit jamais
+ * au choix, l'en-tête d'étage ne se prend jamais).
  */
 @RunWith(RobolectricTestRunner.class)
 public class MenuDebordementTest {
@@ -45,36 +46,68 @@ public class MenuDebordementTest {
     @Test
     public void laCarteVitLieeASonGenre() {
         PopupManager popups = manager();
-        new MenuDebordement(popups, PopupPalette.dark(), 8, "MORE");
+        new MenuDebordement(popups, PopupPalette.dark(), 8);
         assertTrue("la carte du genre vit liée au débordement",
                 popups.vue(PopupController.PopupKind.SELECTION_OVERFLOW)
-                        instanceof IntentionsMenuView);
+                        instanceof MenuEtages);
         assertFalse("liée ne veut pas dire ouverte",
                 popups.estOuvert(
                         PopupController.PopupKind.SELECTION_OVERFLOW));
     }
 
-    /** Sans action repliée, le menu ne se pose pas. */
+    /** Sans étage vivant, le menu ne se pose pas. */
     @Test
     public void ouvrirVideNePoseRien() {
         PopupManager popups = manager();
         MenuDebordement menu = new MenuDebordement(popups,
-                PopupPalette.dark(), 8, "MORE");
+                PopupPalette.dark(), 8);
         SelectionBarView barre = new SelectionBarView(contexte,
                 PopupPalette.dark());
         menu.ouvrir(barre, 120, List.of());
-        assertFalse("sans action, la carte ne se pose pas",
+        assertFalse("sans étage, la carte ne se pose pas",
                 popups.estOuvert(
                         PopupController.PopupKind.SELECTION_OVERFLOW));
     }
 
-    /** Le CHOIX referme la carte AVANT d'exécuter l'action — la
-     *  section ne se prend jamais, l'action court après la fermeture. */
+    /** L'étage VIDE ne se montre jamais — la visibilité contextuelle
+     *  naît de la donnée (l'audit du propriétaire du 2026-11-14 : «
+     *  séparé en étages ou colonnes qui deviennent visibles
+     *  contextuellement »). */
+    @Test
+    public void letageVideNeSeMontreJamais() {
+        PopupManager popups = manager();
+        MenuDebordement menu = new MenuDebordement(popups,
+                PopupPalette.dark(), 8);
+        SelectionBarView barre = new SelectionBarView(contexte,
+                PopupPalette.dark());
+        popups.controleur().open(PopupController.PopupKind.SELECTION_BAR);
+        // l'étage de navigation VIDE vit avec l'étage d'édition PLEIN —
+        // seul l'étage plein se montre
+        menu.ouvrir(barre, 96, List.of(
+                MenuEtages.Etage.depuis("GO TO", List.of()),
+                MenuEtages.Etage.depuis("EDIT", List.of(
+                        new SelectionBarView.Item("Dupliquer",
+                                IconeAction.DUPLIQUER, () -> { })))));
+        assertTrue("la carte se pose sur l'étage plein",
+                popups.estOuvert(
+                        PopupController.PopupKind.SELECTION_OVERFLOW));
+        MenuEtages carte = (MenuEtages) popups.vue(
+                PopupController.PopupKind.SELECTION_OVERFLOW);
+        // l'en-tête de l'étage VIDE ne vit pas : la première rangée est
+        // l'en-tête d'EDIT, la seconde l'action
+        assertTrue("l'en-tête de l'étage vivant ne se prend jamais",
+                carte.itemAt(0) == null);
+        assertTrue("l'action de l'étage plein se prend",
+                carte.itemAt(1) != null);
+    }
+
+    /** Le CHOIX referme la carte AVANT d'exécuter l'action — l'étage
+     *  ne se prend jamais, l'action court après la fermeture. */
     @Test
     public void leChoixRefermeAvantDexecuter() {
         PopupManager popups = manager();
         MenuDebordement menu = new MenuDebordement(popups,
-                PopupPalette.dark(), 8, "MORE");
+                PopupPalette.dark(), 8);
         AtomicInteger passe = new AtomicInteger();
         SelectionBarView barre = new SelectionBarView(contexte,
                 PopupPalette.dark());
@@ -83,17 +116,18 @@ public class MenuDebordementTest {
         // le menu se pose SOUS LA SÉLECTION (bas 96), jamais sur le
         // caret (l'audit du propriétaire du 2026-11-14)
         popups.controleur().open(PopupController.PopupKind.SELECTION_BAR);
-        menu.ouvrir(barre, 96, List.of(new SelectionBarView.Item("Dupliquer",
-                jo.celeris.android.widgets.IconeAction.DUPLIQUER,
-                passe::incrementAndGet)));
+        menu.ouvrir(barre, 96, List.of(MenuEtages.Etage.depuis("EDIT",
+                List.of(new SelectionBarView.Item("Dupliquer",
+                        IconeAction.DUPLIQUER,
+                        passe::incrementAndGet)))));
         assertTrue("l'ouverture pose la carte sous la puce",
                 popups.estOuvert(
                         PopupController.PopupKind.SELECTION_OVERFLOW));
-        IntentionsMenuView carte = (IntentionsMenuView) popups.vue(
+        MenuEtages carte = (MenuEtages) popups.vue(
                 PopupController.PopupKind.SELECTION_OVERFLOW);
         assertTrue("le menu vit SOUS le bas de la sélection — le caret demeure à découvert",
                 carte.getTop() >= 96);
-        // la rangée 1 : la première action, après l'en-tête de section
+        // la rangée 1 : la première action, après l'en-tête d'étage
         float yRangee = carte.rowCenterY(1);
         carte.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
                 10f, yRangee, 0));

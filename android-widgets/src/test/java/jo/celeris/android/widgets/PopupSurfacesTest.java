@@ -159,8 +159,9 @@ public class PopupSurfacesTest {
         assertEquals("l'hôte sert sa documentation une fois", 1, ouvert.get());
     }
 
-    /** La pilule du dépôt de départ : contenu de 30 dp (14 dp de texte,
-     *  2 × 8 dp de respiration), capsule au rayon de sa hauteur. */
+    /** La pilule resserrée (l'audit de compacité du propriétaire du
+     *  2026-11-14) : contenu de 26 dp (14 dp de texte, 2 × 6 dp de
+     *  respiration), capsule au rayon de sa hauteur. */
     @Test
     public void selectionBarPorteLaPiluleDuDepot() {
         SelectionBarView vue = new SelectionBarView(contexte,
@@ -169,8 +170,8 @@ public class PopupSurfacesTest {
                 List.of(new SelectionBarView.Item("Copier", () -> { })),
                 List.of());
         mesurer(vue);
-        assertEquals("le contenu respire la pilule : 30 dp",
-                30, vue.getMeasuredHeight() - 2 * vue.paddingYPx);
+        assertEquals("le contenu respire la pilule : 26 dp",
+                26, vue.getMeasuredHeight() - 2 * vue.paddingYPx);
         vue.layout(0, 0, vue.getMeasuredWidth(), vue.getMeasuredHeight());
         assertEquals("la capsule prend le rayon de sa hauteur",
                 vue.getHeight() / 2f, vue.rayonCartePx(), 0.5f);

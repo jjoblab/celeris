@@ -151,4 +151,19 @@
     <string name="reglage_surimpression">Diagnostic overlay</string>
     <string name="desc_surimpression">Show font size, gutter width and discolored frames over the scene</string>
     <string name="unite_ms">%1$d ms</string>
+    <string name="deborder_navigation">Go to</string>
+    <string name="deborder_edition">Edit</string>
+    <string name="deborder_aller_a">Documentation</string>
+    <string name="deborder_usages">Usages</string>
+    <string name="deborder_renommer">Rename</string>
+    <string name="reglage_inlays">Inlay hints</string>
+    <string name="reglage_barre">Selection bar</string>
+    <string name="reglage_ampoule">Intentions bulb</string>
+    <string name="reglage_completion">Auto-completion</string>
+    <string name="reglage_valeurs">Debug values</string>
+    <string name="reglage_fantome">AI ghost text</string>
+    <string name="reglage_minimap">Minimap</string>
+    <string name="reglage_defilement">Fast scroller</string>
+    <string name="reglage_numeros">Line numbers</string>
+    <string name="reglage_retour_ligne">Soft wrap</string>
 </resources>

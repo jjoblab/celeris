@@ -19,7 +19,7 @@ public final class PopupTokens {
     // ── Rayons (dp) ────────────────────────────────────────────────
 
     /** Rayon d'une carte de popup flottante (complétion, signature…). */
-    public static final float RAYON_CARTE_DP = 14f;
+    public static final float RAYON_CARTE_DP = 12f;
 
     /** Rayon d'un fond de rangée sélectionnée / d'une zone pressée. */
     public static final float RAYON_RANGEE_DP = 8f;
@@ -29,28 +29,45 @@ public final class PopupTokens {
 
     // ── Respirations (dp) ──────────────────────────────────────────
 
-    /** La marge horizontale intérieure d'une carte. */
-    public static final float RESPIRATION_X_DP = 12f;
+    /** La marge horizontale intérieure d'une carte — resserrée (l'audit
+     *  de compacité du propriétaire du 2026-11-14 : les cartes trop
+     *  respirées mangent la scène). */
+    public static final float RESPIRATION_X_DP = 10f;
 
     /** La marge verticale intérieure d'une section. */
-    public static final float RESPIRATION_Y_DP = 8f;
+    public static final float RESPIRATION_Y_DP = 6f;
 
     /** L'écart visuel entre deux blocs voisins (filet compris). */
-    public static final float ECART_DP = 6f;
+    public static final float ECART_DP = 5f;
 
-    // ── Échelle typographique (× taille de texte de base) ──────────
+    // ── Échelle typographique (× taille de texte de base) ─────────
 
     /** Titre de carte / libellé de rangée principal. */
-    public static final float TEXTE_TITRE = 0.90f;
+    public static final float TEXTE_TITRE = 0.85f;
 
     /** Corps de texte (message, libellé de section). */
-    public static final float TEXTE_CORPS = 0.85f;
+    public static final float TEXTE_CORPS = 0.80f;
 
     /** Méta (le détail d'un candidat, un conteneur). */
-    public static final float TEXTE_META = 0.75f;
+    public static final float TEXTE_META = 0.72f;
 
     /** Micro-typographie (compteur, badge, légende de filet). */
-    public static final float TEXTE_MICRO = 0.70f;
+    public static final float TEXTE_MICRO = 0.68f;
+
+    /** Le demi-rayon d'un pictogramme, en part de la taille de texte
+     *  de sa rangée (l'audit du propriétaire du 2026-11-14 : « les
+     *  icônes sont un peu trop grosses » — le glyphe suit le texte,
+     *  il ne le domine plus). */
+    public static final float FACTEUR_PICTO = 0.76f;
+
+    /** La hauteur au plus d'un menu d'actions (étages compris) — la
+     *  carte ne mange jamais la couche, l'ancre borne sa pose. */
+    public static final float HAUTEUR_MENU_MAX_DP = 280f;
+
+    /** La hauteur au plus d'une liste de complétion quand la place
+     *  manque sous le caret — la liste se ramasse au lieu de marcher
+     *  sur le texte (l'audit : les popups ne cachent pas la frappe). */
+    public static final float HAUTEUR_COMPLETION_MIN_DP = 72f;
 
     /** Le plafond de largeur d'une carte de complétion (le dépôt de
      *  départ fixait la largeur de la liste à 280 dp). */

@@ -62,19 +62,27 @@ public class PopupDesignTest {
                 14f, PopupPalette.dark().textBaseSp(), 0f);
     }
 
-    /** Les jetons du kit gardent les valeurs du dépôt de départ. */
+    /** Les jetons du kit — resserrés par l'audit de compacité du
+     *  propriétaire du 2026-11-14 : les cartes respirent moins, le
+     *  texte se resserre, le pictogramme suit le texte. */
     @Test
     public void lesJetonsGardentLeursValeurs() {
-        assertEquals(14f, PopupTokens.RAYON_CARTE_DP, 0f);
+        assertEquals(12f, PopupTokens.RAYON_CARTE_DP, 0f);
         assertEquals(8f, PopupTokens.RAYON_RANGEE_DP, 0f);
         assertEquals(6f, PopupTokens.RAYON_PUCE_DP, 0f);
-        assertEquals(12f, PopupTokens.RESPIRATION_X_DP, 0f);
-        assertEquals(8f, PopupTokens.RESPIRATION_Y_DP, 0f);
-        assertEquals(6f, PopupTokens.ECART_DP, 0f);
-        assertEquals(0.90f, PopupTokens.TEXTE_TITRE, 0f);
-        assertEquals(0.85f, PopupTokens.TEXTE_CORPS, 0f);
-        assertEquals(0.75f, PopupTokens.TEXTE_META, 0f);
-        assertEquals(0.70f, PopupTokens.TEXTE_MICRO, 0f);
+        assertEquals(10f, PopupTokens.RESPIRATION_X_DP, 0f);
+        assertEquals(6f, PopupTokens.RESPIRATION_Y_DP, 0f);
+        assertEquals(5f, PopupTokens.ECART_DP, 0f);
+        assertEquals(0.85f, PopupTokens.TEXTE_TITRE, 0f);
+        assertEquals(0.80f, PopupTokens.TEXTE_CORPS, 0f);
+        assertEquals(0.72f, PopupTokens.TEXTE_META, 0f);
+        assertEquals(0.68f, PopupTokens.TEXTE_MICRO, 0f);
+        assertEquals("le pictogramme suit le texte, il ne le domine plus",
+                0.76f, PopupTokens.FACTEUR_PICTO, 0f);
+        assertEquals("le plafond de la carte d'actions tient la compacité",
+                280f, PopupTokens.HAUTEUR_MENU_MAX_DP, 0f);
+        assertEquals("la complétion ramassée ne cache jamais la frappe",
+                72f, PopupTokens.HAUTEUR_COMPLETION_MIN_DP, 0f);
         assertEquals(280f, PopupTokens.LARGEUR_MAX_LISTE_DP, 0f);
         assertEquals("le plancher de la complétion tient la carte raisonnable",
                 240f, PopupTokens.LARGEUR_MIN_LISTE_DP, 0f);

@@ -44,7 +44,7 @@ abstract class TextRowsPopup extends PopupPanel {
      *  actions des menus portent leur glyphe, le libellé respire
      *  après lui (l'audit du 2026-11-14 : jamais la même icône pour
      *  toutes). */
-    private static final float ECART_PICTO_DP = 6f;
+    private static final float ECART_PICTO_DP = 5f;
 
     /**
      * Une rangée : son texte, son encre (—1 pour l'encre du panneau),
@@ -224,20 +224,25 @@ abstract class TextRowsPopup extends PopupPanel {
     }
 
     /** Le pictogramme de la rangée — tracé au centre vertical du
-     *  texte, au demi-rayon de sa taille. */
+     *  texte, au demi-rayon de sa taille : le glyphe suit le texte
+     *  (FACTEUR_PICTO), il ne le domine plus (l'audit du
+     *  propriétaire du 2026-11-14 : « les icônes sont un peu trop
+     *  grosses ») ; l'encre ALLÉGÉE le sert — l'ampoule seule garde
+     *  sa couleur (« il est trop foncé »). */
     private void dessinerPicto(Row rangee, Canvas canvas, float x,
             float ligne) {
         float taille = textPaint().getTextSize();
-        float rayon = taille * 0.5f;
+        float rayon = taille * PopupTokens.FACTEUR_PICTO;
         IconeAction.dessiner(rangee.picto(), canvas, linePaint(),
                 textPaint(), x + rayon, ligne - taille * 0.35f, rayon,
-                encreDe(rangee.ink()));
+                IconeAction.encreAllgeee(palette.muted(), encreDe(rangee.ink())));
     }
 
     /** L'emprise horizontale du pictogramme au palier donné — le
      *  glyphe et sa respiration, la mesure y compte le libellé. */
     private float emprisePicto(Tier tier) {
-        return tailleTexte(facteurDe(tier)) + ecartPictoPx;
+        return tailleTexte(facteurDe(tier)) * PopupTokens.FACTEUR_PICTO
+                + ecartPictoPx;
     }
 
     /**

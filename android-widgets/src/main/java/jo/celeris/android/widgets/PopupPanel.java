@@ -6,6 +6,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.view.View;
+import android.view.animation.Interpolator;
+import android.view.animation.PathInterpolator;
 
 import org.jspecify.annotations.Nullable;
 
@@ -24,23 +26,37 @@ import org.jspecify.annotations.Nullable;
  * une fois, à la densité et à l'échelle de police de l'appareil.</p>
  *
  * <p>La fluidité du propriétaire (2026-11-13 : « ajoute une petite
- * animation pour les popups pour qu'il soit plus fluide ») : la carte
- * NAÎT — voile qui monte, 120 ms, l'horloge du dessin la pilote, la
- * couche l'arme à sa pose — et MEURT — voile qui descend, 100 ms,
- * refermée par la couche AVANT son retrait. Le banc fige la naissance
- * ({@link #finirEntree()}) : le panneau dessiné hors couche reste
- * STEADY, jamais un banc ne rend un voile à demi.</p>
+ * animation pour les popups pour qu'il soit plus fluide », redressée
+ * le 2026-11-14 : « l'animation n'est pas bonne ») : la carte NAÎT —
+ * l'ENTRÉE RESSORT de l'IDE de référence, échelle 0,96 → 1 et montée
+ * de 5 dp sur 160 ms, l'adoucissement qui freine tard — et MEURT —
+ * voile qui descend, 90 ms, refermée par la couche AVANT son retrait
+ * (la référence referme court : la sortie ne se paie pas en attention).
+ * Le banc fige la naissance ({@link #finirEntree()}) : le panneau
+ * dessiné hors couche reste STEADY, jamais un banc ne rend un voile à
+ * demi.</p>
  */
 abstract class PopupPanel extends View {
 
-    /** La durée de la naissance de la carte, en millisecondes. */
-    private static final long DUREE_NAISSANCE_MS = 120L;
+    /** La durée de la naissance de la carte, en millisecondes (le
+     *  tempo de l'IDE de référence — le pop resserré). */
+    private static final long DUREE_NAISSANCE_MS = 160L;
 
-    /** La durée de la mort de la carte, en millisecondes. */
-    private static final long DUREE_MORT_MS = 100L;
+    /** La durée de la mort de la carte, en millisecondes — la sortie
+     *  referme court, l'œil n'attend pas. */
+    private static final long DUREE_MORT_MS = 90L;
 
-    /** La montée de la naissance, en dp (le geste du dépôt de départ). */
-    private static final float MONTEE_DP = 6f;
+    /** La montée de la naissance, en dp (le geste de l'IDE de référence). */
+    private static final float MONTEE_DP = 5f;
+
+    /** L'échelle de départ de la naissance — la carte naît presque
+     *  en place, le ressort la pose. */
+    private static final float ECHELLE_NAISSANCE = 0.96f;
+
+    /** L'adoucissement de la naissance — la courbe qui freine tard
+     *  (le ressort calme de l'IDE de référence). */
+    private static final Interpolator ADOUCISSEMENT =
+            new PathInterpolator(0.32f, 0.72f, 0f, 1f);
 
     /** La palette posée — l'hôte la dérive de son thème, le rafraîchissement la remplace. */
     PopupPalette palette;
@@ -153,6 +169,10 @@ abstract class PopupPanel extends View {
     /** La montée courante de la naissance, en pixels. */
     private float monteeVoile;
 
+    /** L'échelle courante de la naissance — 1 en steady, elle naît
+     *  presque en place (0,96), le ressort la pose. */
+    private float echelleVoile = 1f;
+
     /**
      * Arme la naissance de la carte — la couche y appelle à sa pose :
      * la prochaine image ouvre l'horloge, la carte monte en voile.
@@ -208,13 +228,20 @@ abstract class PopupPanel extends View {
     @Override
     protected final void onDraw(Canvas canvas) {
         avancerVoile();
-        boolean anime = alphaVoile < 1f || monteeVoile > 0f;
+        boolean anime = alphaVoile < 1f || monteeVoile > 0f || echelleVoile < 1f;
         int sauve = -1;
         if (anime) {
             voileAnime.setAlpha(Math.round(alphaVoile * 255f));
             sauve = canvas.saveLayer(0f, 0f, getWidth(), getHeight(),
                     voileAnime);
-            canvas.translate(0f, -monteeVoile);
+            // le RESSORT de l'IDE de référence : la carte naît presque en
+            // place, échelle 0,96 → 1 DEPUIS SON CENTRE, montée de 5 dp —
+            // jamais un zoom qui part du coin
+            float centreX = getWidth() / 2f;
+            float centreY = getHeight() / 2f;
+            canvas.translate(centreX, centreY - monteeVoile);
+            canvas.scale(echelleVoile, echelleVoile);
+            canvas.translate(-centreX, -centreY);
         }
         dessinerCarte(canvas);
         if (anime) {
@@ -224,13 +251,15 @@ abstract class PopupPanel extends View {
 
     /**
      * Le voile avance d'une image : la naissance armée ouvre son
-     * horloge (120 ms de montée), la mort armée conclut la sienne
-     * (100 ms de descente, puis le retrait différé part) — les champs
-     * portent l'alpha et la montée que le tracé sert.
+     * horloge (160 ms de ressort — échelle et montée suivent la courbe
+     * qui freine tard), la mort armée conclut la sienne (90 ms de
+     * descente, puis le retrait différé part) — les champs portent
+     * l'alpha, la montée et l'échelle que le tracé sert.
      */
     private void avancerVoile() {
         alphaVoile = 1f;
         monteeVoile = 0f;
+        echelleVoile = 1f;
         if (naissanceArmee) {
             naissanceA = getDrawingTime();
             naissanceArmee = false;
@@ -240,10 +269,15 @@ abstract class PopupPanel extends View {
             if (ecoule >= DUREE_NAISSANCE_MS) {
                 naissanceA = -1L;
             } else {
-                // la carte naît d'en haut, adoucie (le dépôt de départ)
-                alphaVoile = Math.max(0f, Math.min(1f,
+                // la carte naît d'en haut, presque en place, adoucie —
+                // l'entrée ressort de l'IDE de référence
+                float avancee = Math.max(0f, Math.min(1f,
                         ecoule / (float) DUREE_NAISSANCE_MS));
-                monteeVoile = (1f - alphaVoile) * MONTEE_DP * densite;
+                float crue = ADOUCISSEMENT.getInterpolation(avancee);
+                alphaVoile = avancee;
+                echelleVoile = ECHELLE_NAISSANCE
+                        + (1f - ECHELLE_NAISSANCE) * crue;
+                monteeVoile = (1f - crue) * MONTEE_DP * densite;
                 postInvalidateOnAnimation();
             }
         }

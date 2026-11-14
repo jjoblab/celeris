@@ -5,20 +5,22 @@ import android.graphics.Rect;
 import java.util.List;
 import java.util.function.Supplier;
 
-import jo.celeris.android.host.R;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorView;
+import jo.celeris.android.view.ReglagesEditeur;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
 import jo.celeris.android.widgets.CompletionListView;
 import jo.celeris.android.widgets.IntentionsMenuView;
+import jo.celeris.android.widgets.MenuEtages;
 import jo.celeris.android.widgets.NotificationView;
 import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
+import jo.celeris.android.widgets.PopupTokens;
 import jo.celeris.android.widgets.SelectionBarView;
 import jo.celeris.android.widgets.SignatureAideModel;
 import jo.celeris.android.widgets.SignatureHelpView;
@@ -34,24 +36,13 @@ import jo.celeris.core.text.TextSession;
 import org.jspecify.annotations.Nullable;
 
 /**
- * L'orchestrateur des popups de l'éditeur (le déménagement du
- * 2026-11-14, décision du propriétaire : les fonctionnalités vivent
- * dans les modules de l'éditeur, l'application hôte n'a presque rien
- * à faire) : les genres vivant dans la couche posée sur l'éditeur, le
- * MANAGER du kit tient la boucle état→vues d'un seul tenant —
- * l'orchestrateur déclenche, la machine décide, la couche porte.
- * PIEGE-27 : aucun popup ne prend le focus, les touches matérielles
- * lui sont DÉLÉGUÉES ({@link #surTouche}) ; la barre de recherche
- * reste l'affaire de l'activité — son champ doit tenir le focus, la
- * couche l'interdit — l'orchestrateur n'en coordonne que l'ÉTAT.
+ * L'orchestrateur des popups de l'éditeur : LE point d'entrée de
+ * l'hôte — il possède le manager du kit, les vues des genres et les
+ * satellites de pose ; les gestes de contenu (gabarit, relance lint)
+ * s'y posent par configuration, jamais devinés (la directive du
+ * propriétaire du 2026-11-14 : les fonctionnalités vivent dans les
+ * modules de l'éditeur).
  *
- * <p>Le montage tient en trois temps : construire sur (vue, session,
- * couche, thème, taille de texte) — le coach MUET suffit, branche le
- * contenu par {@link #brancherServeur} et
- * {@link #configurerIntentions} / {@link #configurerActionsSelection},
- * puis délègue : le survol au double-tap, la frappe, la sélection —
- * tout vit déjà dans la vue. Les TABLES de l'hôte (mots réservés,
- * documentation, signatures) passent par son {@link CoachPopups}.</p>
  */
 public final class PopupsEditeur {
 
@@ -127,6 +118,8 @@ public final class PopupsEditeur {
      *  surface portée : l'échec simulé porte la trace du document
      *  réel (le pont meurt avec elle). */
     private final ExceptionCarte exception;
+    /** La carte des réglages — la table centrale s'y bascule. */
+    private final Reglages reglages;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -190,9 +183,7 @@ public final class PopupsEditeur {
         infoBulle = new InfoBulle(editeur, session, popups, margePx,
                 palette, this::diagnostics, this::nomVif, () -> intentions);
         barreSelection = new BarreSelection(editeur, session, popups,
-                palette, margePx,
-                couche.getContext().getString(R.string.menu_plus),
-                this::ouvrirSurvol);
+                palette, margePx, this::ouvrirSurvol);
         // le lien des genres : une carte par genre — le manager l'exige
         popups.lier(PopupController.PopupKind.COMPLETION_LIST, listeCompletion);
         popups.lier(PopupController.PopupKind.COMPLETION_DOC, docCompletion);
@@ -214,6 +205,7 @@ public final class PopupsEditeur {
                 notifications::notifier);
         exception = new ExceptionCarte(editeur, session, popups, margePx,
                 palette, this::planVif, this::nomVif, notifications::notifier);
+        reglages = new Reglages(editeur, popups, margePx, palette);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
         ampouleIntentions = new AmpouleIntentions(editeur, carteIntentions, this::diagnostics);
@@ -265,6 +257,7 @@ public final class PopupsEditeur {
         surete.surPalette(palette);
         masquage.surPalette(palette);
         exception.surPalette(palette);
+        reglages.surPalette(palette);
         docAncre.surPalette(palette);
     }
 
@@ -279,15 +272,13 @@ public final class PopupsEditeur {
         intentions = List.copyOf(items);
     }
 
-    /**
-     * Branche la session de langage : l'aide aux paramètres, le survol
-     * et — quand le serveur les sert — les complétions passent par le
-     * fil du protocole ; la langue se lit du fichier ouvert — null
-     * retombe sur « text ».
+    /** Branche la session de langage : complétions, survol et aide
+     *  passent par le fil du protocole ; la langue se lit du fichier
+     *  ouvert, null retombe sur « text ».
      *
      * @param sessionLangage la session de langage démarrée
      * @param uri            l'uri du document ouvert
-     * @param langue        le support du langage du document, null pour « text »
+     * @param langue        le support du langage, null pour « text »
      */
     public void brancherServeur(LanguageSession sessionLangage, String uri,
             @Nullable LanguageSupport langueParam) {
@@ -302,27 +293,27 @@ public final class PopupsEditeur {
                 session.document().text());
     }
 
-    /** Les actions de la barre de sélection — l'hôte les fournit :
-     * les principales en pastilles, le débordement derrière la puce.
+    /** Pose les actions de la barre — principales en pastilles,
+     *  étages repliés derrière la puce.
      *
      * @param principales les actions visibles de la barre
-     * @param debordement les actions repliées, servies par le menu */
+     * @param debordement les étages repliés, servis par le menu */
     public void configurerActionsSelection(
             List<SelectionBarView.Item> principales,
-            List<SelectionBarView.Item> debordement) {
+            List<MenuEtages.Etage> debordement) {
         barreSelection.configurerActions(principales, debordement);
     }
 
     /** Les actions VIVES de la barre — relues à CHAQUE pose : Coller
-     * ne se propose que lorsque le presse-papiers est plein, l'option
-     * inutile ne se promène jamais sur la pilule (l'audit du
-     * 2026-11-14).
+     * ne se propose que lorsque le presse-papiers est plein, l'étage
+     * de navigation ne se montre que sur un symbole au caret (l'audit
+     * du 2026-11-14 : la visibilité contextuelle naît de la donnée).
      *
      * @param principales le fournisseur des actions visibles
-     * @param debordement le fournisseur des actions repliées */
+     * @param debordement le fournisseur des étages repliés */
     public void configurerActionsSelectionVives(
             Supplier<List<SelectionBarView.Item>> principales,
-            Supplier<List<SelectionBarView.Item>> debordement) {
+            Supplier<List<MenuEtages.Etage>> debordement) {
         barreSelection.configurerActionsVives(principales, debordement);
     }
 
@@ -370,11 +361,9 @@ public final class PopupsEditeur {
         popups.controleur().close(PopupController.PopupKind.SEARCH_BAR);
     }
 
-    /**
-     * La touche matérielle DÉLÉGUÉE par l'éditeur (PIEGE-27 : il garde
-     * le focus) : la carte interactive ouverte reçoit flèches, validation
-     * et échappement — le manager route, la touche déclinée retourne à
-     * l'éditeur.
+    /** La touche matérielle DÉLÉGUÉE par l'éditeur (PIEGE-27) : la
+     *  carte interactive ouverte reçoit flèches, validation et
+     *  échappement — la déclinée retourne à l'éditeur.
      *
      * @param keyCode le code de la touche déléguée
      * @return vrai quand la touche a servi un popup
@@ -389,13 +378,9 @@ public final class PopupsEditeur {
         popups.fermerSousVoile();
     }
 
-    /**
-     * Ouvre ou filtre la complétion au curseur : le serveur de langage
-     * qui SERT la complétion passe le premier — sa réponse brute
-     * devient les candidats typés du kit et leur documentation ; sinon
-     * les mots du code et les tables du coach — sans candidat, la
-     * liste se ferme.
-     */
+    /** Ouvre ou filtre la complétion : le serveur qui la SERT passe
+     *  le premier (sa réponse devient les candidats typés), sinon les
+     *  mots du code et le coach — sans candidat, la liste se ferme. */
     public void basculerCompletion() {
         if (serveur != null && serveur.sertCompletion()) {
             serveur.completion(uriDocument, session.document(), caret())
@@ -461,6 +446,12 @@ public final class PopupsEditeur {
         return docAncre;
     }
 
+    /** Le satellite des indices en ligne — la bascule des réglages
+     *  y relit la pose (porte fermée : retirés, ouverte : reposés). */
+    public IndicesInlay indicesInlay() {
+        return indicesInlay;
+    }
+
     /**
      * Ouvre l'aide aux paramètres de l'appel ouvert sous le curseur —
      * le serveur de langage par le fil du protocole, le coach en
@@ -501,10 +492,15 @@ public final class PopupsEditeur {
             // l'édition de l'acceptation ne rouvre pas la liste : le
             // candidat retenu ne se repropose pas
             acceptationEnCours = false;
-        } else if (ContenuPopups.doitOuvrirALaFrappe(session.document(),
-                caret())) {
+        } else if (editeur.reglages().ouverte(
+                ReglagesEditeur.Porte.COMPLETION_AUTO)
+                && ContenuPopups.doitOuvrirALaFrappe(session.document(),
+                        caret())) {
             // la complétion se propose à la FRAPPE, comme tout éditeur ;
-            // déjà ouverte, la même voie filtre sans refermer
+            // déjà ouverte, la même voie filtre sans refermer — la
+            // PORTE des réglages peut la rendre silencieuse (l'audit du
+            // 2026-11-14 : « activer, désactiver certaines
+            // fonctionnalités »)
             basculerCompletion();
         } else {
             // le blanc et la ponctuation referment la liste — fermer
@@ -521,9 +517,18 @@ public final class PopupsEditeur {
         boolean apresFrappe = frappeEnCours;
         frappeEnCours = false;
         // l'ampoule d'intentions suit le caret — la ligne courante
-        // seule peut porter le petit icône de l'IDE de référence
-        ampouleIntentions.surSelection(session, selection);
-        barreSelection.poser(selection);
+        // seule peut porter le petit icône de l'IDE de référence ; la
+        // PORTE des réglations peut l'éteindre
+        if (editeur.reglages().ouverte(
+                ReglagesEditeur.Porte.AMPOULE_INTENTIONS)) {
+            ampouleIntentions.surSelection(session, selection);
+        }
+        // la barre de sélection vit derrière sa porte — fermée, la
+        // sélection vit à découvert
+        if (editeur.reglages().ouverte(
+                ReglagesEditeur.Porte.BARRE_SELECTION)) {
+            barreSelection.poser(selection);
+        }
         filAriane.rafraichir();
         if (popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST)) {
             basculerCompletion();
@@ -543,6 +548,23 @@ public final class PopupsEditeur {
 
     private void placerCompletion() {
         Rect curseur = editeur.caretBounds();
+        // le CAP de la liste suit la PLACE DISPONIBLE sous le caret —
+        // l'audit du propriétaire du 2026-11-14 : la complétion ne
+        // marche jamais sur la frappe, elle se ramasse au lieu de
+        // chasser la ligne tapée (la liste se rabat AU-DESSUS du caret
+        // quand la place manque, le cap y tient le geste)
+        int placeSous = hauteurCouche() - margePx - curseur.bottom;
+        int hauteurRangee = Math.round(PopupTokens.HAUTEUR_RANGEE_LISTE_DP
+                * couche.getResources().getDisplayMetrics().density);
+        int cap = hauteurRangee > 0
+                ? placeSous / hauteurRangee : CompletionListView.MAX_MONTRES;
+        if (cap < CompletionListView.MAX_MONTRES) {
+            // la place manque au-dessus aussi ? le plafond se referme
+            int placeDessus = curseur.top - 2 * margePx;
+            cap = Math.max(cap, Math.min(CompletionListView.MAX_MONTRES,
+                    placeDessus / hauteurRangee));
+        }
+        listeCompletion.setCap(cap);
         PopupPlacer.Placement placee = PopupPlacer.placer(
                 new PopupPlacer.Cadre(curseur.left, curseur.top, 0,
                         curseur.height()),
@@ -716,6 +738,26 @@ public final class PopupsEditeur {
      *  terminée. */
     public void executerFichier() {
         exception.executer();
+    }
+
+    /** Ouvre (ou referme) la carte des réglages — la table centrale
+     *  y vit (l'audit du 2026-11-14) : chaque interrupteur bascule
+     *  SA porte, la vue et l'orchestrateur suivent.
+     *
+     * @param libelles les libellés des portes, dans l'ordre de la table */
+    public void ouvrirReglages(List<String> libelles) {
+        if (popups.estOuvert(PopupController.PopupKind.SETTINGS_MENU)) {
+            reglages.fermer();
+            return;
+        }
+        reglages.ouvrir(libelles);
+    }
+
+    /** Re-pose la carte ouverte — la bascule changée s'y voit.
+     *
+     * @param libelles les libellés des portes, dans l'ordre de la table */
+    public void rafraichirReglages(List<String> libelles) {
+        reglages.rafraichir(libelles);
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors

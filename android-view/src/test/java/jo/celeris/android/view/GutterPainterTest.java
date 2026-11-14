@@ -349,22 +349,25 @@ class GutterPainterTest {
                 THEME, 0, projection.rowCount(), 30f, 0f, 0f);
         image.drawFrame(surface, etat);
 
-        assertEquals(1, surface.triangles().size(),
-                "le chevron replié vit en un triangle plein");
-        TriangleTrace chevron = surface.triangles().get(0);
-        // la bande de plis vit au bord droit : huit pixels, centre à 26
-        assertEquals(26f, chevron.cx(), 0.5f,
+        // l'audit du propriétaire du 2026-11-14 (« l'icône pli/dépli…
+        //  trop foncé, améliore-la ») : le chevron vit en DEUX TRAITS
+        //  PLEINS — jamais un triangle plein — à l'encre allégée
+        assertEquals(0, surface.triangles().size(),
+                "le chevron ne vit plus en triangle plein");
+        assertEquals(2, surface.traits().size(),
+                "le chevron replié vit en deux traits joints");
+        TraitTrace sommet = surface.traits().get(0);
+        assertEquals(26f, (sommet.x1() + sommet.x2()) / 2f, 0.5f,
                 "le chevron vit dans la bande de plis, contre le code");
-        assertFalse(chevron.pointeEnBas(),
-                "la pointe du chevron replié regarde à droite");
-        assertEquals(attenuer(THEME.gutterTextColor(), 0.8f), chevron.couleur());
+        assertEquals(attenuer(THEME.gutterTextColor(), 0.6f), sommet.couleur());
         // les numéros restent : lignes 1, 2 et 5 visibles
         assertEquals(3, surface.textes().size());
     }
 
     /**
-     * D-07 — l'en-tête pliable non replié porte un chevron TRIANGLE
-     * PLEIN pointant vers le bas : le contenu se déplie dessous.
+     * D-07 — l'en-tête pliable non replié porte son chevron EN
+     * TRAITS, pointe vers le bas : le contenu se déplie dessous (le
+     * redressement de l'audit du 2026-11-14 : plus de triangle plein).
      */
     @Test
     void enTetePliablePointeVersLeBas() {
@@ -383,11 +386,15 @@ class GutterPainterTest {
                 0, 5, 30f, 0f, 0f);
         image.drawFrame(surface, etat);
 
-        assertEquals(1, surface.triangles().size());
-        TriangleTrace chevron = surface.triangles().get(0);
-        assertTrue(chevron.pointeEnBas(),
+        assertEquals(0, surface.triangles().size(),
+                "le chevron ne vit plus en triangle plein");
+        assertEquals(2, surface.traits().size(),
+                "le chevron pliable vit en deux traits joints");
+        TraitTrace trait = surface.traits().get(0);
+        // pointe en bas : le trait descend vers le centre
+        assertTrue(trait.y2() > trait.y1(),
                 "la pointe du chevron déplié regarde vers le bas");
-        assertEquals(26f, chevron.cx(), 0.5f,
+        assertEquals(26f, (trait.x1() + trait.x2()) / 2f, 0.5f,
                 "le chevron vit dans la bande de plis");
     }
 

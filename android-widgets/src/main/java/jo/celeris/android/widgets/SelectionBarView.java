@@ -3,7 +3,6 @@ package jo.celeris.android.widgets;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.view.MotionEvent;
-import android.view.animation.PathInterpolator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,24 +43,25 @@ public final class SelectionBarView extends PopupPanel {
     }
 
     /** La hauteur du contenu de la pilule, en dp (14 dp de texte,
-     *  2 × 8 dp de respiration — la pilule du dépôt de départ). */
-    private static final float HAUTEUR_DP = 30f;
+     *  2 × 6 dp de respiration — resserrée par l'audit de compacité). */
+    private static final float HAUTEUR_DP = 26f;
 
     /** La respiration horizontale d'un libellé, en dp. */
-    private static final float PAD_X_DP = 12f;
+    private static final float PAD_X_DP = 10f;
 
     /** L'écart entre deux pastilles, en dp. */
     private static final float ECART_DP = 2f;
 
     /** Le budget du filet séparateur, en dp. */
-    private static final float FILET_DP = 6f;
+    private static final float FILET_DP = 5f;
 
-    /** La largeur d'une icône, en dp (16 dp de glyphe, 2 × 8 dp). */
-    private static final float ICONE_DP = 32f;
+    /** La largeur d'une icône, en dp (12 dp de glyphe, 2 × 5 dp). */
+    private static final float ICONE_DP = 22f;
 
-    /** La largeur du pictogramme d'une pastille, en dp (le glyphe de
-     *  l'action — ciseaux, pages, presse-papiers, cadre). */
-    private static final float PICTO_PASTILLE_DP = 14f;
+    /** La largeur du pictogramme d'une pastille, en dp (l'audit du
+     *  propriétaire du 2026-11-14 : « les icônes sont un peu trop
+     *  grosses » — le glyphe se resserre sous le libellé). */
+    private static final float PICTO_PASTILLE_DP = 11f;
 
     /** La respiration entre le pictogramme et le libellé, en dp. */
     private static final float ECART_PICTO_DP = 4f;
@@ -71,18 +71,6 @@ public final class SelectionBarView extends PopupPanel {
 
     /** L'index virtuel de la puce de débordement chez le toucher. */
     private static final int PUCE_DEBORDEMENT = -3;
-
-    /** La durée du pop d'entrée, en millisecondes. */
-    private static final long DUREE_POP_MS = 160L;
-
-    /** La durée de la cascade d'un item, en millisecondes. */
-    private static final long DUREE_ITEM_MS = 120L;
-
-    /** Le décalage de la cascade entre deux items, en millisecondes. */
-    private static final long DECAL_ITEM_MS = 24L;
-
-    /** La montée de la cascade, en dp. */
-    private static final float MONTEE_DP = 5f;
 
     private final List<Item> actions = new ArrayList<>();
     /** Les bornes [début, fin] de chaque pastille texte, en contenu. */
@@ -96,9 +84,6 @@ public final class SelectionBarView extends PopupPanel {
     private final float iconePx;
     private final float pictoPastillePx;
     private final float ecartPictoPx;
-    private final float monteePx;
-    private final PathInterpolator adoucissement = new PathInterpolator(0.215f,
-            0.61f, 0.355f, 1f);
     /** La pastille sous le doigt, —1 hors appui, ICONE_DOCS ou
      *  PUCE_DEBORDEMENT quand le doigt pose une icône. */
     private int pressee = -1;
@@ -106,8 +91,6 @@ public final class SelectionBarView extends PopupPanel {
     private @Nullable Runnable onDocs;
     /** Le rappel de l'appui sur la puce de débordement. */
     private @Nullable Runnable onOverflow;
-    /** L'instant de départ de l'entrée, —1 entrée close. */
-    private long entreeDepart = -1L;
 
     public SelectionBarView(Context context, PopupPalette palette) {
         super(context, palette);
@@ -119,7 +102,6 @@ public final class SelectionBarView extends PopupPanel {
         this.iconePx = ICONE_DP * densite;
         this.pictoPastillePx = PICTO_PASTILLE_DP * densite;
         this.ecartPictoPx = ECART_PICTO_DP * densite;
-        this.monteePx = MONTEE_DP * densite;
     }
 
     /**
@@ -141,17 +123,8 @@ public final class SelectionBarView extends PopupPanel {
         actions.addAll(nouveaux);
         this.debordement = repliees;
         mesurerPastilles();
-        entreeDepart = getDrawingTime();
         requestLayout();
         invalidate();
-    }
-
-    /** Clôt l'entrée d'un geste — les bancs y figent la cascade ET la
-     *  naissance de la carte (le voile du panneau). */
-    @Override
-    void finirEntree() {
-        super.finirEntree();
-        entreeDepart = -1L;
     }
 
     /** Mesure les bornes des pastilles texte, respirations comprises —
@@ -237,138 +210,89 @@ public final class SelectionBarView extends PopupPanel {
 
     @Override
     void drawContent(Canvas canvas) {
-        if (entreeDepart < 0L) {
-            dessinerItems(canvas, 1f, 1f);
-            return;
-        }
-        long ecoule = getDrawingTime() - entreeDepart;
-        if (ecoule < 0L || ecoule > dureeTotale()) {
-            entreeDepart = -1L;
-            dessinerItems(canvas, 1f, 1f);
-            return;
-        }
-        float pop = Math.min(1f, ecoule / (float) DUREE_POP_MS);
-        float echelle = 0.96f + 0.04f * adoucissement.getInterpolation(pop);
-        dessinerItems(canvas, echelle, Math.min(1f,
-                ecoule / (float) DUREE_POP_MS * 1.4f));
-        postInvalidateOnAnimation();
-    }
-
-    /** La durée totale de l'entrée : le pop, puis la cascade entière. */
-    private long dureeTotale() {
-        int nombre = actions.size() + (docsVisible() ? 1 : 0)
-                + (aDebordement() ? 1 : 0);
-        return DUREE_POP_MS + nombre * DECAL_ITEM_MS + DUREE_ITEM_MS;
-    }
-
-    /**
-     * Dessine les items autour du centre à l'échelle du pop — chaque
-     * pastille y suit sa cascade : montée de 5 dp, alpha à son crû.
-     */
-    private void dessinerItems(Canvas canvas, float echelle, float alpha) {
-        float centreX = contentWidth() / 2f;
-        float centreY = hauteurPx / 2f;
-        canvas.save();
-        canvas.translate(centreX, centreY);
-        canvas.scale(echelle, echelle);
-        canvas.translate(-centreX, -centreY);
+        // l'entrée tient toute entière dans la naissance du panneau — le
+        // ressort unique de la carte (l'IDE de référence n'égrène pas ses
+        // pastilles : la pilule se pose d'un tenant)
         for (int i = 0; i < actions.size(); i++) {
-            dessinerPastille(canvas, i, alpha * cascadeDe(i));
+            dessinerPastille(canvas, i);
         }
         float xIcones = debutIcones();
         if (docsVisible()) {
-            dessinerIconeDocs(canvas, xIcones,
-                    alpha * cascadeDe(actions.size()));
+            dessinerIconeDocs(canvas, xIcones);
         }
         if (aDebordement()) {
             dessinerPuce(canvas, xIcones + (docsVisible()
-                    ? iconePx + ecartPx : 0f),
-                    alpha * cascadeDe(actions.size() + (docsVisible() ? 1 : 0)));
+                    ? iconePx + ecartPx : 0f));
         }
         if (!actions.isEmpty() && (docsVisible() || aDebordement())) {
             dessinerFilet(canvas);
         }
-        canvas.restore();
     }
 
-    /** L'avancement de la cascade de l'item donné, dans [0, 1]. */
-    private float cascadeDe(int index) {
-        if (entreeDepart < 0L) {
-            return 1f;
-        }
-        float ecoule = getDrawingTime() - entreeDepart - index * DECAL_ITEM_MS;
-        return Math.max(0f, Math.min(1f, ecoule / (float) DUREE_ITEM_MS));
-    }
-
-    /** Une pastille texte : sa bande pressée, SON pictogramme, son
-     *  libellé, sa cascade — le glyphe et le texte se centrent
-     *  ensemble. */
-    private void dessinerPastille(Canvas canvas, int index, float avancee) {
+    /** Une pastille texte : sa bande pressée, SON pictogramme à l'encre
+     *  ALLÉGÉE (l'audit du propriétaire : « il est trop foncé » — le
+     *  glyphe se lit, il ne crie pas), son libellé. */
+    private void dessinerPastille(Canvas canvas, int index) {
         float[] borne = bornes.get(index);
         Item item = actions.get(index);
         String label = item.label();
-        float dy = (1f - avancee) * monteePx;
         if (pressee == index) {
-            dessinerBandePressee(canvas, borne[0], borne[1], dy);
+            dessinerBandePressee(canvas, borne[0], borne[1]);
         }
-        textPaint().setColor(enAlpha(palette.text(), avancee));
+        textPaint().setColor(palette.text());
         float contenu = emprisePicto(item)
                 + textPaint().measureText(label);
         float debut = (borne[0] + borne[1]) / 2f - contenu / 2f;
         if (item.picto() != null) {
             IconeAction.dessiner(item.picto(), canvas, linePaint(),
                     textPaint(), debut + pictoPastillePx / 2f,
-                    hauteurPx / 2f + dy, pictoPastillePx / 2f,
-                    enAlpha(palette.text(), avancee));
+                    hauteurPx / 2f, pictoPastillePx / 2f,
+                    IconeAction.encreAllgeee(palette.muted(), palette.text()));
         }
-        canvas.drawText(label, debut + emprisePicto(item),
-                baseline() + dy, textPaint());
+        canvas.drawText(label, debut + emprisePicto(item), baseline(),
+                textPaint());
     }
 
     /** Le « i » de documentation : cercle cerclé, lettre au centre. */
-    private void dessinerIconeDocs(Canvas canvas, float gauche, float avancee) {
-        float dy = (1f - avancee) * monteePx;
+    private void dessinerIconeDocs(Canvas canvas, float gauche) {
         if (pressee == ICONE_DOCS) {
-            dessinerBandePressee(canvas, gauche, gauche + iconePx, dy);
+            dessinerBandePressee(canvas, gauche, gauche + iconePx);
         }
         float cx = gauche + iconePx / 2f;
-        float cy = hauteurPx / 2f + dy;
+        float cy = hauteurPx / 2f;
         float densite = getResources().getDisplayMetrics().density;
-        linePaint().setColor(enAlpha(palette.text(), avancee));
-        linePaint().setStrokeWidth(1.2f * densite);
-        canvas.drawCircle(cx, cy, 7f * densite, linePaint());
-        textPaint().setColor(enAlpha(palette.text(), avancee));
+        linePaint().setColor(palette.muted());
+        linePaint().setStrokeWidth(1.1f * densite);
+        canvas.drawCircle(cx, cy, 5.5f * densite, linePaint());
+        textPaint().setColor(palette.muted());
         float taille = textPaint().getTextSize();
-        textPaint().setTextSize(11f * densite);
+        textPaint().setTextSize(9.5f * densite);
         canvas.drawText("i", cx - textPaint().measureText("i") / 2f,
                 cy + textPaint().measureText("A") * 0.35f, textPaint());
         textPaint().setTextSize(taille);
     }
 
-    /** La puce de débordement : trois points à l'encre du texte. */
-    private void dessinerPuce(Canvas canvas, float gauche, float avancee) {
-        float dy = (1f - avancee) * monteePx;
+    /** La puce de débordement : trois points à l'encre atténuée. */
+    private void dessinerPuce(Canvas canvas, float gauche) {
         if (pressee == PUCE_DEBORDEMENT) {
-            dessinerBandePressee(canvas, gauche, gauche + iconePx, dy);
+            dessinerBandePressee(canvas, gauche, gauche + iconePx);
         }
-        bandPaint().setColor(enAlpha(palette.text(), avancee));
+        bandPaint().setColor(palette.muted());
         float densite = getResources().getDisplayMetrics().density;
         float cx = gauche + iconePx / 2f;
         for (int i = 0; i < 3; i++) {
-            float cy = hauteurPx / 2f + dy
-                    + (i - 1) * 3.5f * densite;
-            canvas.drawCircle(cx, cy, 1.2f * densite, bandPaint());
+            float cy = hauteurPx / 2f + (i - 1) * 3f * densite;
+            canvas.drawCircle(cx, cy, 1.1f * densite, bandPaint());
         }
     }
 
     /** La bande de la pastille pressée — l'accent au voile doux. */
-    private void dessinerBandePressee(Canvas canvas, float gauche, float fin,
-            float dy) {
+    private void dessinerBandePressee(Canvas canvas, float gauche, float fin) {
         float densite = getResources().getDisplayMetrics().density;
         float rayon = PopupTokens.RAYON_RANGEE_DP * densite;
         bandPaint().setColor((palette.accent() & 0x00FFFFFF) | 0x38000000);
-        canvas.drawRoundRect(gauche, dy + 2f * densite, fin,
-                hauteurPx + dy - 2f * densite, rayon, rayon, bandPaint());
+        canvas.drawRoundRect(gauche, 2f * densite, fin,
+                hauteurPx - 2f * densite, rayon, rayon, bandPaint());
     }
 
     /** Le filet séparateur du groupe texte et du groupe icônes. */
@@ -471,11 +395,5 @@ public final class SelectionBarView extends PopupPanel {
     /** La ligne de base du texte, centré verticalement. */
     private float baseline() {
         return hauteurPx / 2f + textPaint().measureText("A") * 0.35f;
-    }
-
-    /** La couleur à l'avancée donnée — son alpha y prend sa part. */
-    private static int enAlpha(int couleur, float avancee) {
-        int alpha = Math.round((couleur >>> 24) * Math.max(0f, avancee));
-        return (couleur & 0x00FFFFFF) | (alpha << 24);
     }
 }

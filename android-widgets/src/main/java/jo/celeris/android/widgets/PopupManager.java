@@ -82,7 +82,8 @@ public final class PopupManager {
             PopupController.PopupKind.GABARITS,
             PopupController.PopupKind.SAFE_DELETE,
             PopupController.PopupKind.SAFE_MOVE,
-            PopupController.PopupKind.SUPPRESS_INSPECTION};
+            PopupController.PopupKind.SUPPRESS_INSPECTION,
+            PopupController.PopupKind.SETTINGS_MENU};
 
     /** Ce que l'échappement referme quand aucune carte interactive ne
      *  tient — les bulles qui suivent le contexte et les cartes de

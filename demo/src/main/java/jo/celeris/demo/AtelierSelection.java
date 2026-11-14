@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.IconeAction;
+import jo.celeris.android.widgets.MenuEtages;
 import jo.celeris.android.widgets.SelectionBarView;
 import jo.celeris.core.intelligence.CommentRules;
 import jo.celeris.core.intelligence.Commenter;
@@ -20,15 +21,17 @@ import jo.celeris.core.text.TextSession;
 /**
  * L'atelier de sélection de la démonstration (M7.5, §7, reprise) : les
  * actions de la barre de sélection en transactions de session, un
- * presse-papiers LOCAL qui ne touche pas au système (les gestes de la
- * recette restent déterministes, l'atelier n'emporte rien au-dehors).
+ * presse-papiers LOCAL qui ne touche pas au système (les gestes de
+ * la recette restent déterministes, l'atelier n'emporte rien au-dehors).
  * Les PRINCIPALES tiennent la pilule — couper, copier, tout
  * sélectionner, et COLLER SEULEMENT QUAND LE PRESSE-PAPIERS EST PLEIN
  * (l'audit du propriétaire du 2026-11-14 : l'option inutile ne se
  * promène jamais sur la pilule) ; le DÉBORDEMENT vit derrière les
- * trois points — commenter, casse, indentation, duplication (le
- * débordement enrichi du même audit), chaque action portant SON
- * pictogramme — jamais la même icône pour toutes.
+ * trois points EN ÉTAGES CONTEXTUELS (le même audit : « séparé en
+ * étages ou colonnes qui deviennent visibles contextuellement comme
+ * les go to, l'option usages, rename ») — l'étage de NAVIGATION ne se
+ * montre que sur un symbole au caret, l'étage d'ÉDITION vit toujours,
+ * l'étage vide ne se montre jamais : la visibilité naît de la donnée.
  */
 final class AtelierSelection {
 
@@ -40,6 +43,10 @@ final class AtelierSelection {
     /** Le rappel de re-pose de la barre — le presse-papiers changé y
      *  réveille les actions vives (Coller se propose ou se retire). */
     private final Runnable reposerBarre;
+    /** Les gestes de navigation de l'hôte — l'étage ne vit que si le
+     *  geste existe (aller à, usages, renommage : chacun SA condition
+     *  de pertinence, jamais une action morte). */
+    private final List<SelectionBarView.Item> navigation = new ArrayList<>();
     /** Le presse-papiers local — jamais le système. */
     private String pressePapiers;
 
@@ -57,6 +64,17 @@ final class AtelierSelection {
         this.session = session;
         this.langue = langue;
         this.reposerBarre = reposerBarre;
+    }
+
+    /**
+     * Pose un geste de NAVIGATION au débordement — l'étage ne se
+     * montre que si AU MOINS un geste vit (la visibilité contextuelle
+     * naît de la donnée, jamais d'un drapeau codé en dur).
+     *
+     * @param geste l'action de navigation (aller à, usages, renommer)
+     */
+    void poserGesteNavigation(SelectionBarView.Item geste) {
+        navigation.add(geste);
     }
 
     /**
@@ -92,33 +110,72 @@ final class AtelierSelection {
     }
 
     /**
-     * Les actions de débordement VIVES — servies par le menu des trois
-     * points : commenter (les règles du langage), majuscules,
-     * minuscules, indentation d'un cran, duplication — chaque rangée
-     * portant SON pictogramme (le débordement enrichi de l'audit du
-     * 2026-11-14).
+     * Les étages de débordement VIFS — servis par le menu des trois
+     * points : l'étage de NAVIGATION ne vit que sur un SYMBOLE au
+     * caret (l'audit du propriétaire du 2026-11-14 : « les go to,
+     * l'option usages, rename » — la visibilité contextuelle naît de
+     * la donnée), l'étage d'ÉDITION vit toujours (commenter, casse,
+     * indentation, duplication), l'étage VIDE ne se montre jamais —
+     * chaque rangée portant SON pictogramme.
      *
-     * @param commenter  le libellé de commentaire
-     * @param majuscules le libellé de mise en majuscules
-     * @param minuscules le libellé de mise en minuscules
-     * @param indenter   le libellé d'indentation
-     * @param dupliquer  le libellé de duplication
-     * @return le fournisseur des items repliés derrière la puce
+     * @param titreNav    le titre de l'étage de navigation (« GO TO »)
+     * @param titreEdit   le titre de l'étage d'édition (« EDIT »)
+     * @param commenter   le libellé de commentaire
+     * @param majuscules  le libellé de mise en majuscules
+     * @param minuscules  le libellé de mise en minuscules
+     * @param indenter    le libellé d'indentation
+     * @param dupliquer   le libellé de duplication
+     * @return le fournisseur des étages repliés derrière la puce
      */
-    Supplier<List<SelectionBarView.Item>> debordementVives(String commenter,
-            String majuscules, String minuscules, String indenter,
-            String dupliquer) {
-        return () -> List.of(
-                new SelectionBarView.Item(commenter,
-                        IconeAction.COMMENTER, this::commenter),
-                new SelectionBarView.Item(majuscules,
-                        IconeAction.MAJUSCULES, this::majuscules),
-                new SelectionBarView.Item(minuscules,
-                        IconeAction.MINUSCULES, this::minuscules),
-                new SelectionBarView.Item(indenter,
-                        IconeAction.INDENTER, this::indenter),
-                new SelectionBarView.Item(dupliquer,
-                        IconeAction.DUPLIQUER, this::dupliquer));
+    Supplier<List<MenuEtages.Etage>> debordementVives(String titreNav,
+            String titreEdit, String commenter, String majuscules,
+            String minuscules, String indenter, String dupliquer) {
+        return () -> {
+            List<MenuEtages.Etage> etages = new ArrayList<>(2);
+            if (symboleAuCaret() != null) {
+                etages.add(new MenuEtages.Etage(titreNav, navigation));
+            }
+            etages.add(new MenuEtages.Etage(titreEdit, List.of(
+                    new SelectionBarView.Item(commenter,
+                            IconeAction.COMMENTER, this::commenter),
+                    new SelectionBarView.Item(majuscules,
+                            IconeAction.MAJUSCULES, this::majuscules),
+                    new SelectionBarView.Item(minuscules,
+                            IconeAction.MINUSCULES, this::minuscules),
+                    new SelectionBarView.Item(indenter,
+                            IconeAction.INDENTER, this::indenter),
+                    new SelectionBarView.Item(dupliquer,
+                            IconeAction.DUPLIQUER, this::dupliquer))));
+            return etages;
+        };
+    }
+
+    /** Le symbole au caret — null au vide entre deux mots : l'étage de
+     *  navigation ne vit que sur lui. */
+    private String symboleAuCaret() {
+        List<SelRange> plages = session.selection().ranges();
+        if (plages.isEmpty()) {
+            return null;
+        }
+        int caret = plages.get(0).caret();
+        String texte = session.document().text();
+        if (caret <= 0 || caret > texte.length()) {
+            return null;
+        }
+        int debut = caret;
+        while (debut > 0 && estLettre(texte.charAt(debut - 1))) {
+            debut--;
+        }
+        int fin = caret;
+        while (fin < texte.length() && estLettre(texte.charAt(fin))) {
+            fin++;
+        }
+        return debut == fin ? null : texte.substring(debut, fin);
+    }
+
+    /** Vrai si le caractère vit dans un identifiant. */
+    private static boolean estLettre(char c) {
+        return c == '_' || Character.isLetterOrDigit(c);
     }
 
     /**

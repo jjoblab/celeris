@@ -168,6 +168,12 @@ public final class EditorView extends View {
     final SceneDiagnostics diagnostics;
     /** Le collaborateur des ancres de popups (M7.5, §7). */
     final CaretAnchors ancres = new CaretAnchors(this);
+    /** Les réglages de l'éditeur (l'audit du propriétaire du
+     *  2026-11-14 : « un système central editor settings ») — UNE
+     *  table, un point de vérité : la vue y lit ses portes (numéros,
+     *  retour de ligne, fantôme IA, indices en ligne), l'orchestrateur
+     *  des popups et l'hôte lisent les mêmes. */
+    final ReglagesEditeur reglages = new ReglagesEditeur();
     // — la règle porte la table des familles : la mesure et le tracé la
     // lisent ensemble (D-14, PIEGE-22)
     final AndroidFontRuler reglePolices = new AndroidFontRuler();
@@ -312,6 +318,9 @@ public final class EditorView extends View {
      * le budget de colonnes redérive, le défilement horizontal se
      * rabat. */
     public void setSoftWrap(boolean actif) {
+        // la porte des réglages se souvient : l'hôte qui reçoit la
+        // bascule y relit l'état, jamais deux vérités
+        reglages.poser(ReglagesEditeur.Porte.RETOUR_LIGNE, actif);
         retourALaLigne = actif;
         scrollX = 0f;
         invalidate();
@@ -408,6 +417,8 @@ public final class EditorView extends View {
     /** Affiche ou masque les numéros de lignes (D-01) : masqués, la gouttière
      *  se réduit à la coulisse des marqueurs (plis D-07, erreurs D-02). */
     public void setNumerosVisibles(boolean visibles) {
+        // la porte des réglages se souvient : la bascule y vit
+        reglages.poser(ReglagesEditeur.Porte.NUMEROS_LIGNES, visibles);
         numerosVisibles = visibles;
         gouttiere.setNumerosVisibles(visibles);
         invalidate();
@@ -486,14 +497,20 @@ public final class EditorView extends View {
      *  première ligne à l'ancre, les suivantes au bord gauche du
      *  texte, à l'encre fanée. */
     public void setFantome(@Nullable SuggestionFantome suggestion) {
-        fantome.setSuggestion(suggestion);
+        // la porte des réglages ferme le fantôme : la suggestion d'une
+        // porte fermée ne se trace jamais
+        fantome.setSuggestion(reglages.ouverte(
+                ReglagesEditeur.Porte.FANTOME_IA) ? suggestion : null);
     }
 
     /** Dépose (ou retire) les valeurs de débogage en ligne (E-03) : la
      *  pause les pose en fin de ligne utile, la reprise les retire —
      *  l'hôte transpose, la vue ne connaît pas le débogueur. */
     public void setValeursEnLigne(@Nullable List<ValeurLigne> valeurs) {
-        valeursPeintre.setValeurs(valeurs);
+        // la porte des réglages ferme la couche : les valeurs d'une
+        // porte fermée ne se tracent pas
+        valeursPeintre.setValeurs(reglages.ouverte(
+                ReglagesEditeur.Porte.VALEURS_PAUSE) ? valeurs : null);
         invalidate();
     }
 
@@ -509,8 +526,23 @@ public final class EditorView extends View {
      *                retirer
      */
     public void setIndicesInlay(@Nullable List<IndiceInlay> indices) {
-        indicesPeintre.setIndices(indices);
+        // la porte des réglages ferme la couche : l'hôte peut poser, la
+        // vue n'arme pas la lecture assistée d'une porte fermée
+        indicesPeintre.setIndices(reglages.ouverte(
+                ReglagesEditeur.Porte.INDICES_EN_LIGNE) ? indices : null);
         invalidate();
+    }
+
+    /**
+     * Les réglages de l'éditeur — la table centrale des commutateurs
+     * (l'audit du propriétaire du 2026-11-14 : « un système central
+     * editor settings ») : la vue, l'orchestrateur des popups et
+     * l'hôte y lisent les mêmes portes.
+     *
+     * @return la table des portes, vivante
+     */
+    public ReglagesEditeur reglages() {
+        return reglages;
     }
 
     /** Le rappel des gestes du fantôme (F-01) : Tab et l'appui sur le

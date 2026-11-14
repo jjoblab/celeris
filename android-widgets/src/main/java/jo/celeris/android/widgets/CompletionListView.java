@@ -25,8 +25,14 @@ import org.jspecify.annotations.Nullable;
  */
 public final class CompletionListView extends PopupPanel implements PopupClavier {
 
-    /** Le nombre maximal de candidats montrés — l'hôte tronque sa fenêtre. */
+    /** Le nombre maximal de candidats montrés quand la place abonde. */
     public static final int MAX_MONTRES = 8;
+
+    /** Le plancher de candidats quand la place manque sous le caret —
+     *  la liste se RAMASSE au lieu de marcher sur le texte (l'audit
+     *  du propriétaire du 2026-11-14 : les popups ne cachent pas la
+     *  frappe). */
+    public static final int MIN_MONTRES = 2;
 
     /** Un candidat de complétion : son libellé, son identité qualifiée, son genre. */
     public record Candidat(String libelle, String detail, BadgeGenre.Genre genre) {
@@ -37,6 +43,10 @@ public final class CompletionListView extends PopupPanel implements PopupClavier
     private String prefix = "";
     /** L'index du candidat courant, —1 si vide. */
     private int highlighted = -1;
+    /** Le nombre de candidats montrés — le cap se resserre quand la
+     *  place manque sous le caret, l'hôte y pose la mesure du
+     *  terrain. */
+    private int montres = MAX_MONTRES;
     private final float densite;
     private final float rangeePx;
     private final float largeurMaxPx;
@@ -77,6 +87,21 @@ public final class CompletionListView extends PopupPanel implements PopupClavier
         invalidate();
     }
 
+    /**
+     * Pose le CAP de candidats montrés — la hauteur de la liste se
+     * resserre à la place disponible sous le caret (l'audit du
+     * propriétaire du 2026-11-14 : la complétion ne marche jamais sur
+     * la frappe, elle se ramasse).
+     *
+     * @param cap le nombre de rangées à montrer, au moins
+     *            {@link #MIN_MONTRES}, au plus les candidats posés
+     */
+    public void setCap(int cap) {
+        this.montres = Math.max(MIN_MONTRES, Math.min(cap, MAX_MONTRES));
+        requestLayout();
+        invalidate();
+    }
+
     /** Le candidat d'index donné, null s'il n'existe pas. */
     public Candidat candidatAt(int index) {
         return index >= 0 && index < candidats.size()
@@ -102,7 +127,8 @@ public final class CompletionListView extends PopupPanel implements PopupClavier
 
     @Override
     void drawContent(Canvas canvas) {
-        for (int i = 0; i < candidats.size(); i++) {
+        int visibles = Math.min(candidats.size(), montres);
+        for (int i = 0; i < visibles; i++) {
             float haut = i * rangeePx;
             if (i == highlighted) {
                 bandPaint().setColor(palette.selection());
@@ -258,7 +284,7 @@ public final class CompletionListView extends PopupPanel implements PopupClavier
 
     @Override
     int contentHeight() {
-        return Math.round(candidats.size() * rangeePx);
+        return Math.round(Math.min(candidats.size(), montres) * rangeePx);
     }
 
     /**
@@ -275,7 +301,10 @@ public final class CompletionListView extends PopupPanel implements PopupClavier
             return event.getActionMasked() == MotionEvent.ACTION_DOWN;
         }
         int index = (int) (event.getY() / rangeePx);
-        if (index >= 0 && index < candidats.size()) {
+        // le toucher ne sert que les rangées MONTRÉES — le cap
+        // resserre la fenêtre, jamais la liste ne promet un candidat
+        // qu'elle ne montre pas
+        if (index >= 0 && index < Math.min(candidats.size(), montres)) {
             onPick.accept(index);
             performClick();
             return true;

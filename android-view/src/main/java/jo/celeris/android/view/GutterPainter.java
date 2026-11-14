@@ -455,10 +455,13 @@ public final class GutterPainter extends PainterLayer {
 
     /**
      * Le chevron de pli (D-07) dans la BANDE DE PLIS au bord droit de
-     * la gouttière, contre le code qu'il replie : TRIANGLE PLEIN à
-     * l'encre du texte de gouttière atténuée de deux dixièmes — replié,
-     * la pointe regarde à droite ; pliable, elle regarde en bas. Le
-     * triangle prend sa cellule, la cible du doigt comprise.
+     * la gouttière, contre le code qu'il replie : DEUX TRAITS PLEINS
+     * en chevron — l'audit du propriétaire du 2026-11-14 : « l'icône
+     * pli/dépli… il est trop foncé, améliore-la » — le triangle plein
+     * de la reprise se voit trop ; le chevron en trait fin se lit
+     * sans crier. Replié, la pointe regarde à droite ; pliable, elle
+     * regarde en bas. Le glyphe prend sa cellule, la cible du doigt
+     * comprise.
      */
     private void tracerChevron(DrawSurface surface, GutterMarks marques, int ligne,
             float y, float hauteur, float largeurGouttiere, float bandePli,
@@ -471,10 +474,24 @@ public final class GutterPainter extends PainterLayer {
         // chiffre — le pli se lit contre le code qu'il replie
         float centreX = largeurGouttiere - bandePli / 2f;
         float centreY = y - frame.metrics().ascent() + hauteur / 2f;
-        brush().setColor(attenuer(frame.theme().gutterTextColor(), 0.8f));
-        // replié ▸, pliable ▾ — la pointe raconte l'état
-        surface.drawTriangle(centreX, centreY, cellule * 0.4f,
-                !marques.replie(ligne), brush());
+        brush().setColor(attenuer(frame.theme().gutterTextColor(), 0.6f));
+        // le trait FIN du chevron — l'épaisseur d'un filet, jamais la
+        // graisse d'un triangle plein
+        brush().setStrokeWidth(Math.max(1.25f, cellule / 14f));
+        float demi = cellule * 0.22f;
+        // replié : la pointe regarde à droite › ; pliable : en bas ⌄ —
+        // deux traits joints au sommet racontent l'état
+        if (marques.replie(ligne)) {
+            surface.drawLine(centreX - demi, centreY - demi, centreX + demi,
+                    centreY, brush());
+            surface.drawLine(centreX - demi, centreY + demi, centreX + demi,
+                    centreY, brush());
+        } else {
+            surface.drawLine(centreX - demi, centreY - demi, centreX,
+                    centreY + demi, brush());
+            surface.drawLine(centreX + demi, centreY - demi, centreX,
+                    centreY + demi, brush());
+        }
     }
 
     /**
