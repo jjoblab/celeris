@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import type { GenreId } from '@/lib/popups';
 import type { MachinePopups } from '@/lib/machine';
 import { DIAGNOSTICS, USAGES } from '@/lib/machine';
@@ -412,7 +413,7 @@ function CarteNotification({ machine, resteMs }: PropsCarte) {
       <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded bg-white/10">
         <div className="h-full transition-[width] duration-100" style={{ width: `${(reste / 4000) * 100}%`, backgroundColor: ENCRE.accent }} />
       </div>
-      <Meta>l&apos;horloge la referme — {(reste / 1000).toFixed(1)} s</Meta>
+      <Meta>l&apos;horloge la referme — {(reste / 1000).toFixed(1).replace('.', ',')} s</Meta>
     </div>
   );
 }
@@ -582,6 +583,10 @@ function CarteIntentions({ machine }: PropsCarte) {
             i.action(machine);
           }}
         >
+          {/* l'icône d'ampoule de chaque intention (IconeCarte.AMP — le
+              menu Alt+Enter de l'IDE iconise ses rangées, à l'encre
+              d'avertissement comme la carte réelle) */}
+          <Lightbulb className="h-3 w-3 shrink-0" style={{ color: ENCRE.avertissement }} aria-hidden />
           {i.libelle}
         </Rangee>
       ))}

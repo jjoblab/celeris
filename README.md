@@ -84,7 +84,14 @@ l'API hôte ; les boucles complètes tournent sur le scénario de la
 démonstration (masquage d'inspection avec relance du lint, suppression
 sûre, exception relue du document réel, annulation de chaque écriture).
 Les maquettes statiques d'origine restent dans
-[`docs/maquettes/popups.html`](docs/maquettes/popups.html).
+[`docs/maquettes/popups.html`](docs/maquettes/popups.html). La PARITÉ au
+simulateur web de référence y vit (2026-11-14) : la jauge de l'annonce
+(piste muette pleine largeur, remplissage à l'encre d'accent au prorata
+du reste, légende du rebours), l'ampoule d'intentions de la gouttière
+(elle remplace le marqueur à la ligne du caret qui porte un diagnostic,
+son tap ouvre le menu iconisé), les indices de type en ligne (le type
+des « var » littéraux en fin de ligne, à l'encre muette italique) et
+les icônes des rangées du menu d'intentions.
 
 **Le simulateur web de RÉFÉRENCE**
 ([`docs/simulateur-web/`](docs/simulateur-web/)) — l'application Next.js

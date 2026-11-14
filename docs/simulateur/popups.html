@@ -7,7 +7,12 @@
   d'actions, cascades) et les sections exactes de chaque carte
   (TextRowsPopup : rangées typées, filets, sections en petites capitales,
   encres de la palette verre). Les 26 genres vivent ici, plus les
-  feuilles modales du bas et du haut. 2026-11-14.
+  feuilles modales du bas et du haut. La parité au simulateur web de
+  RÉFÉRENCE (docs/simulateur-web — une divergence entre une carte
+  réelle et sa carte du simulateur est un défaut à corriger) y vit :
+  la jauge de l'annonce, l'ampoule d'intentions de la gouttière, les
+  indices de type en ligne (inlay hints), les icônes des rangées.
+  2026-11-14.
 -->
 <html lang="fr" data-theme="sombre">
 <head>
@@ -24,6 +29,7 @@
     --ed-fond: #1e1e1e; --ed-texte: #d4d4d4; --ed-gouttiere: #858585;
     --ed-motcle: #569cd6; --ed-chaine: #ce9178; --ed-commentaire: #6a9955;
     --ed-nombre: #b5cea8; --ed-type: #4ec9b0; --ed-methode: #dcdcaa;
+    --ed-inlay: rgb(255 255 255 / 42%);
     /* la palette verre des popups (PopupPalette.dark()) */
     --pp-fond: rgb(30 30 30 / 86%);        /* #1E1E1E à alpha 0xDB */
     --pp-bord: rgb(255 255 255 / 10%);     /* liseré hairline 1 px */
@@ -40,6 +46,7 @@
     --ed-fond: #ffffff; --ed-texte: #000000; --ed-gouttiere: #808080;
     --ed-motcle: #0000ff; --ed-chaine: #a31515; --ed-commentaire: #008000;
     --ed-nombre: #098658; --ed-type: #267f99; --ed-methode: #795e26;
+    --ed-inlay: rgb(0 0 0 / 45%);
     --pp-fond: rgb(255 255 255 / 88%);     /* #FFFFFF à alpha 0xE0 */
     --pp-bord: rgb(0 0 0 / 8%);
     --pp-texte: #000000; --pp-muet: #808080;
@@ -142,6 +149,42 @@
   .mot-symbole { cursor: pointer; }
   .surbrillance-occurrence { background: color-mix(in srgb, var(--ed-motcle) 26%, transparent);
     border-radius: 2px; }
+
+  /* la gouttière : marqueurs de diagnostic et ampoule d'intentions
+     (la parité au simulateur de référence — l'ampoule PRIME sur le
+     point d'erreur de la ligne du caret, le comportement de l'IDE) */
+  .gout-ligne { display: flex; align-items: center;
+    justify-content: flex-end; gap: 4px; }
+  .gout-marque { font-size: 11px; line-height: 1; font-weight: 700; }
+  .gout-ampoule { display: grid; place-items: center; width: 17px;
+    height: 17px; border: none; background: none; padding: 0;
+    border-radius: 4px; cursor: pointer; color: #FFCB6B; }
+  .gout-ampoule:hover { background:
+    color-mix(in srgb, currentColor 16%, transparent); }
+  .gout-ampoule svg { display: block; }
+
+  /* l'indice de type en ligne (inlay hint) — fin de ligne utile, encre
+     muette italique, JAMAIS dans le flux (le texte ne se décale pas) */
+  .inlay-hint { margin-left: 8px; font-style: italic;
+    color: var(--ed-inlay); user-select: none; }
+
+  /* la jauge de l'annonce (notification) — l'horloge qui coule se voit :
+     piste muette pleine largeur, remplissage à l'encre d'accent au
+     prorata du reste (le design du simulateur de référence) */
+  .jauge-annonce { margin-top: 6px; height: 2px; width: 100%;
+    border-radius: 999px; overflow: hidden;
+    background: color-mix(in srgb, var(--pp-texte) 10%, transparent); }
+  .jauge-annonce > div { height: 100%; border-radius: 999px;
+    background: var(--pp-accent); transition: width .1s linear; }
+  .legende-rebours { font-size: .70em; color: var(--pp-muet);
+    margin-top: 4px; }
+
+  /* l'icône d'une rangée (IconeCarte) — le glyphe vectoriel précède
+     le texte, à son encre sémantique (l'ampoule y vit à l'encre
+     d'avertissement, comme le menu Alt+Enter de l'IDE) */
+  .rg-icone { display: inline-grid; place-items: center; width: 13px;
+    height: 13px; margin-right: 6px; vertical-align: -0.1em; }
+  .rg-icone svg { display: block; }
 
   /* la sélection (glissée) */
   .calque-selection { position: absolute; background: color-mix(in srgb,
@@ -619,6 +662,14 @@ const FICHIER = [
   "    public int ajouter(int a, int b, int retenue) {",
   "        return a + b + retenue;",
   "    }",
+  "",
+  "    /** Le rapport lisible du registre — les « var » littéraux y",
+  "     * portent leurs indices de type en ligne (inlay hints). */",
+  "    public String rapport() {",
+  "        var capacite = 100;",
+  "        var unite = \"inscrits\";",
+  "        return inscriptions + \" \" + unite + \" sur \" + capacite;",
+  "    }",
   "}",
   "",
   "class ServiceHistorique {",
@@ -706,7 +757,12 @@ const CATALOGUE_FICHIERS = [
    2. L'ÉTAT — lignes, curseur, sélection, défilement, popups ouvertes
    ===================================================================== */
 let lignes = FICHIER.slice();
-let caret = { l: 41, c: 38 };   /* dans archiver, après « ajouter(2, 3, » */
+let caret = { l: 49, c: 38 };   /* dans archiver, après « ajouter(2, 3, » */
+/* le chrome de la parité au simulateur de référence : l'ampoule
+   d'intentions prime sur le point d'erreur de la ligne du caret, les
+   indices de type en ligne se lisent en fin de ligne utile */
+let ampouleActive = true;
+let inlayActifs = true;
 let selection = null;           /* {l1,c1,l2,c2} ordonnée */
 let pressePapiers = "";
 const pileAnnulation = [];
@@ -715,6 +771,7 @@ const vues = new Map();         /* genre -> {el, ancre, ...} */
 let feuilleActive = null;
 let frappeEnCours = false;      /* l'info-bulle ne se pose jamais après une frappe */
 let horlogeNotification = null;
+let tickNotification = null;   /* le tic de la jauge — le même fil que l'horloge */
 
 /* =====================================================================
    3. LE PLAN (OutlineEntry) — recalculé après chaque écriture
@@ -875,6 +932,80 @@ function mesurer() {
 }
 const lignesVisibles = () => Math.floor((scene.clientHeight - 20) / LH);
 
+/* le glyphe de l'ampoule — celui du simulateur de référence (le petit
+   icône #FFCB6B de l'IDE : le disque du verre et son culot) */
+const GLYPHE_AMPOULE =
+  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" ' +
+  'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+  'stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.3 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/>' +
+  '<path d="M9 18h6"/><path d="M10 22h4"/></svg>';
+
+/* la gouttière d'une ligne — les marqueurs de diagnostic (« × » erreur,
+   « ! » avertissement) et l'AMPOULE d'intentions qui PRIME sur le point
+   d'erreur de la ligne du caret (le comportement de l'IDE de
+   référence : son tap ouvre le menu d'intentions) */
+function gouttiereLigne(i) {
+  const diags = diagnostics().filter(d => d.ligne === i);
+  if (ampouleActive && diags.length && i === caret.l) {
+    return `<button type="button" class="gout-ampoule" data-l="${i}" ` +
+      `title="Ampoule d'intentions — le menu s'ouvre">${GLYPHE_AMPOULE}</button>` +
+      `<span>${i + 1}</span>`;
+  }
+  return diags.map(d => `<span class="gout-marque" style="color: ` +
+    `var(--pp-${d.gravite === "ERROR" ? "erreur" : "avert"})">` +
+    `${d.gravite === "ERROR" ? "×" : "!"}</span>`).join("") +
+    `<span>${i + 1}</span>`;
+}
+
+/* l'indice de type en ligne (inlay hint) — le port exact du moteur réel
+   (MoteurInlayHints) : le type d'un « var » à main-d'œuvre LITTÉRALE se
+   tranche (entier, décimal, suffixes L/f/d, booléen, chaîne, caractère) —
+   une main-d'œuvre inconnue ne se devine JAMAIS, l'IDE non plus */
+function indiceInlay(ligneBrute) {
+  const l = ligneBrute.trim();
+  if (!/^var\s/.test(l)) return null;
+  const corps = l.slice(4).replace(/^\s+/, "");
+  const egale = corps.indexOf("=");
+  if (egale <= 0) return null;
+  const nom = corps.slice(0, egale).trimEnd();
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(nom)) return null;
+  let valeur = corps.slice(egale + 1).trim();
+  if (valeur.endsWith(";")) valeur = valeur.slice(0, -1).trimEnd();
+  if (!valeur) return null;
+  return typeDuLitteral(valeur);
+}
+function typeDuLitteral(valeur) {
+  if (valeur === "true" || valeur === "false") return ": boolean";
+  if (valeur === "null") return null;
+  if (valeur.length >= 2 && valeur.startsWith('"') && valeur.endsWith('"'))
+    return ": String";
+  if (valeur.length >= 3 && valeur.startsWith("'") && valeur.endsWith("'"))
+    return ": char";
+  const dernier = valeur.charAt(valeur.length - 1);
+  let sansSuffix = valeur;
+  if ("fFdDlL".includes(dernier)) sansSuffix = valeur.slice(0, -1);
+  const entier = /^\d+$/.test(sansSuffix);
+  const decimal = /^\d*\.\d+$/.test(sansSuffix);
+  if (!entier && !decimal) return null;
+  if (decimal)
+    return (dernier === "f" || dernier === "F") ? ": float" : ": double";
+  if (dernier === "f" || dernier === "F") return ": float";
+  if (dernier === "d" || dernier === "D") return ": double";
+  if (dernier === "l" || dernier === "L") return ": long";
+  return ": int";
+}
+
+/* la légende du compte à rebours — « l'horloge la referme — X,X s »,
+   au dixième près, la virgule du terrain (le port exact de la phrase
+   réelle NotificationView.phraseRebours) */
+function phraseRebours(resteMs) {
+  const borne = Math.max(0, resteMs);
+  const dixiemes = Math.floor((borne + 50) / 100);
+  return "l'horloge la referme — " + Math.floor(dixiemes / 10)
+    + "," + (dixiemes % 10) + " s";
+}
+
 function renderCode() {
   const frag = [];
   lignes.forEach((l, i) => {
@@ -885,12 +1016,16 @@ function renderCode() {
         '<span class="curseur-vif"></span><span class="fantome-ia">' +
         echappe(fantome) + "</span>");
     }
+    if (inlayActifs) {
+      const indice = indiceInlay(l);
+      if (indice) contenu += `<span class="inlay-hint">${echappe(indice)}</span>`;
+    }
     frag.push(`<div class="ligne-code" data-l="${i}">${contenu || " "}</div>`);
   });
   elCode.innerHTML = frag.join("");
   elCode.style.transform = `translateY(${-defilement * LH}px)`;
   elGouttiere.innerHTML = lignes.map((_, i) =>
-    `<div class="ligne-code">${i + 1}</div>`).join("");
+    `<div class="ligne-code gout-ligne">${gouttiereLigne(i)}</div>`).join("");
   elGouttiere.style.transform = `translateY(${-defilement * LH}px)`;
   renderSelection();
   renderMinimap();
@@ -1096,8 +1231,13 @@ function fermer(genre) {
   /* les cascades : la doc meurt avec sa liste, le débordement avec sa barre */
   if (genre === "COMPLETION_LIST") fermer("COMPLETION_DOC");
   if (genre === "SELECTION_BAR") fermer("SELECTION_OVERFLOW");
-  if (genre === "NOTIFICATION" && horlogeNotification) {
-    clearTimeout(horlogeNotification); horlogeNotification = null;
+  if (genre === "NOTIFICATION") {
+    if (horlogeNotification) {
+      clearTimeout(horlogeNotification); horlogeNotification = null;
+    }
+    if (tickNotification) {
+      clearInterval(tickNotification); tickNotification = null;
+    }
   }
   etatsOuverts();
 }
@@ -1191,7 +1331,13 @@ function rangeeDOM(r) {
     + (r.teintee ? " teintee" : "")
     + (r.prenable ? " prenable" : "");
   if (r.retrait) div.style.paddingLeft = r.retrait * 8 + "px";
-  div.innerHTML = `<span class="en-${r.encre || "texte"}">${echappe(r.texte)}</span>`;
+  /* l'icône de rangée (IconeCarte) — le glyphe vectoriel précède le
+     texte, à son encre sémantique (l'ampoule des intentions y vit à
+     l'encre d'avertissement, comme le menu Alt+Enter de l'IDE) */
+  const glyphe = r.icone === "amp"
+    ? `<span class="rg-icone" style="color: var(--pp-avert)">${GLYPHE_AMPOULE}</span>`
+    : "";
+  div.innerHTML = `${glyphe}<span class="en-${r.encre || "texte"}">${echappe(r.texte)}</span>`;
   if (r.prenable && r.action) {
     div.addEventListener("click", ev => { ev.stopPropagation(); r.action(); });
     div.addEventListener("mouseenter", () => {
@@ -1321,11 +1467,40 @@ function notifier(titre, message, actions) {
     rangees.push({ texte: a.libelle, tier: "corps", encre: "accent",
       filet: i === 0, prenable: true,
       action: () => { fermer("NOTIFICATION"); a.geste && a.geste(); } }));
+  /* la jauge de l'annonce (la parité au simulateur de référence) :
+     l'horloge qui coule se VOIT — piste muette pleine largeur,
+     remplissage à l'encre d'accent au prorata du reste, la légende
+     « l'horloge la referme — X,X s » compte le rebours ; le TIC
+     (100 ms) vit sur le MÊME fil que l'expiration — armer arme les
+     deux, la fermeture coupe les deux, la re-pose réarme sans cumul */
+  let remplissage = null, legende = null;
   poserCarte("NOTIFICATION", { classe: "carte-notification", rangees,
-    ancre: Ancres.bottomRightCorner, fiche: "notification" });
+    ancre: Ancres.bottomRightCorner, fiche: "notification",
+    construire: el => {
+      const jauge = document.createElement("div");
+      jauge.className = "jauge-annonce";
+      remplissage = document.createElement("div");
+      jauge.appendChild(remplissage);
+      legende = document.createElement("div");
+      legende.className = "legende-rebours";
+      el.append(jauge, legende);
+    } });
   const vue = vues.get("NOTIFICATION");
   if (vue) vue.el.addEventListener("click", () => fermer("NOTIFICATION"));
-  horlogeNotification = setTimeout(() => fermer("NOTIFICATION"), 4000);
+  const depart = Date.now();
+  const DUREE = 4000;
+  const tic = () => {
+    const reste = Math.max(0, DUREE - (Date.now() - depart));
+    remplissage.style.width = (reste / DUREE * 100) + "%";
+    legende.textContent = phraseRebours(reste);
+    if (reste <= 0 && tickNotification) {
+      clearInterval(tickNotification); tickNotification = null;
+    }
+  };
+  clearInterval(tickNotification);
+  tickNotification = setInterval(tic, 100);
+  tic();
+  horlogeNotification = setTimeout(() => fermer("NOTIFICATION"), DUREE);
 }
 
 /* =====================================================================
@@ -1657,12 +1832,20 @@ function ouvrirUsages() {
   if (!m) return;
   const lieux = occurrencesDe(m.mot);
   if (!lieux.length) return;
-  const rangees = [{ texte: `${lieux.length} usages de « ${m.mot} »`,
-    tier: "micro", section: true }];
+  /* le compte du serveur, TOUS fichiers (l'étrangère compte) — et
+     l'occurrence ÉTRANGÈRE vit muette en fin de carte : son nom de
+     fichier se lit, son lieu ne se visite pas (l'éditeur embarqué
+     n'ouvre qu'un document — jamais le lieu ne se devine) */
+  const rangees = [
+    { texte: `${lieux.length + 1} usages de « ${m.mot} »`,
+      tier: "micro", section: true },
+    { texte: "le compte du serveur — tous fichiers", tier: "micro" }];
   lieux.forEach(l => rangees.push({
     texte: `L${l.ligne + 1} · ${rogne(l.texte)}`, tier: "corps",
     prenable: true,
     action: () => { fermer("REFERENCES"); deplacerCaret(l.ligne, l.colon); } }));
+  rangees.push({ texte: "L8 · Main.java — l'occurrence étrangère vit muette",
+    tier: "corps", encre: "muet" });
   poserCarte("REFERENCES", { rangees, ancre: Ancres.belowOrAboveCaret,
     fiche: "usages" });
 }
@@ -2338,6 +2521,9 @@ function ouvrirIntentions() {
     { texte: "IA : prédire la prochaine édition", tier: "titre", prenable: true,
       action: () => { fermer("INTENTIONS_MENU"); ouvrirFeuillePrediction(); } }
   ];
+  /* chaque intention porte son icône d'ampoule (IconeCarte.AMP — le
+     menu Alt+Enter de l'IDE iconise ses rangées) */
+  rangees.forEach(r => { r.icone = "amp"; });
   poserCarte("INTENTIONS_MENU", { rangees, ancre: Ancres.belowOrAboveCaret,
     fiche: "intentions" });
 }
@@ -2678,6 +2864,12 @@ function ouvrirFeuilleReglages() {
       "Afficher les numéros dans la gouttière", true, v => {
         elGouttiere.style.display = v ? "" : "none";
       });
+    reglage(cEditeur, "Ampoule d'intentions",
+      "À la ligne du caret qui porte un diagnostic, l'ampoule jaune remplace le marqueur — son tap ouvre le menu d'intentions",
+      ampouleActive, v => { ampouleActive = v; renderCode(); });
+    reglage(cEditeur, "Indices de type en ligne",
+      "Le type des « var » littéraux se lit en fin de ligne, à l'encre muette italique — jamais dans le flux, le texte ne se décale pas",
+      inlayActifs, v => { inlayActifs = v; renderCode(); });
     reglage(cEditeur, "Retour à la ligne souple",
       "Replier les lignes longues au bord de la vue", false, () => {});
     reglage(cEditeur, "Ligatures",
@@ -3070,7 +3262,7 @@ const FICHES = {
     cat: "C — Navigation · carte ancrée au curseur",
     quand: "L'action « Rechercher les usages » (menu, intentions, toolbar) sur un symbole — l'équivalent de Find Usages.",
     comment: ["Placez le caret sur un symbole (noms, inscrire…) et ouvrez la carte.",
-      "L'en-tête porte le COMPTE des usages ; chaque rangée « L12 · extrait » saute à son lieu au choix (clic ou Entrée).",
+      "L'en-tête porte le COMPTE DU SERVEUR (tous fichiers — l'étrangère compte) ; chaque rangée « L12 · extrait » saute à son lieu au choix (clic ou Entrée).",
       "L'occurrence ÉTRANGÈRE (autre fichier du serveur) vit muette : son nom se lit, son lieu ne se visite pas — jamais deviné."],
     sections: ["L'en-tête « N usages de « X » » en petites capitales muettes, imprenable.",
       "Une rangée par occurrence : « L(n) · extrait rogné à 48 caractères », cliquable, l'étrangère muette."],
@@ -3202,6 +3394,7 @@ const FICHES = {
     cat: "Hub des actions · carte au caret, SANS section",
     quand: "L'action de menu « Intentions au curseur » — la table des actions de l'hôte.",
     comment: ["La carte se pose au caret, sans en-tête ni section (la section « PLUS » reste aux débordements des barres).",
+      "L'AMPOULE de la gouttière l'ouvre aussi (la parité au simulateur de référence) : à la ligne du caret qui porte un diagnostic, l'ampoule jaune (#FFCB6B) remplace le marqueur — le comportement de l'IDE — et chaque rangée porte son ICÔNE d'ampoule à l'encre d'avertissement (le menu Alt+Enter de l'IDE iconise ses rangées).",
       "Chaque action court APRÈS la fermeture du menu ; les flèches et Entrée y vivent (PIEGE-27).",
       "C'est la tête de la famille des surfaces d'actions : une surface d'actions à la fois."],
     sections: ["Les actions en rangées TITRE cliquables, l'ordre de la table de l'hôte (16 intentions dans la démonstration)."],
@@ -3228,9 +3421,10 @@ const FICHES = {
     cat: "G — Annonces · bulle du coin bas-droit",
     quand: "La demande de l'hôte : correctifs appliqués, suppression effectuée, pause de débogage, exécution…",
     comment: ["L'annonce vit son quart : l'HORLOGE la referme à 4 000 ms — la re-pose réarme sans cumuler.",
+      "L'horloge qui coule se VOIT (la parité au simulateur de référence) : la JAUGE — piste muette pleine largeur, remplissage à l'encre d'accent au prorata du reste, tic de 100 ms sur le même fil que l'expiration — et la légende « l'horloge la referme — X,X s » compte le rebours au dixième près.",
       "Le tap qui la PREND la referme ; la prise d'un LIEN referme la bulle D'ABORD puis fait courir l'action (une action qui re-pose n'est jamais tuée par sa propre fermeture).",
       "Frappe, défilement, tap hors cartes : l'épargnent — l'annonce ne s'interrompt pas."],
-    sections: ["Le titre (rangée TITRE), le message (corps, une rangée par ligne), les actions-liens à l'encre d'ACCENT derrière un filet."],
+    sections: ["Le titre (rangée TITRE), le message (corps, une rangée par ligne), les actions-liens à l'encre d'ACCENT derrière un filet, la JAUGE de l'horloge et sa légende sous le message."],
     regimes: { "Frappe": "l'épargne", "Défilement": "l'épargne",
       "Tap hors cartes": "l'épargne", "Échap": "épargnée" },
     api: "popups.notifier(titre, message);\npopups.notifier(titre, message, actions);",
@@ -3637,6 +3831,20 @@ scene.addEventListener("wheel", ev => {
 }, { passive: false });
 document.getElementById("puce-toolbar")
   .addEventListener("click", ev => { ev.stopPropagation(); ouvrirDebordementToolbar(); });
+/* l'ampoule de la gouttière ouvre le menu d'intentions (le tap ne
+   déborde pas sur la scène — le menu ne meurt pas de sa propre main ;
+   le pointerdown s'arrête à la gouttière : le caret tient sa ligne —
+   l'ampoule ne vit que sur elle — et le nœud survit jusqu'au clic,
+   sans quoi le re-rendu du caret le tuerait avant la prise) */
+elGouttiere.addEventListener("pointerdown", ev => {
+  if (ev.target.closest(".gout-ampoule")) ev.stopPropagation();
+});
+elGouttiere.addEventListener("click", ev => {
+  const ampoule = ev.target.closest(".gout-ampoule");
+  if (!ampoule) return;
+  ev.stopPropagation();
+  ouvrirIntentions();
+});
 
 /* la minimap : l'appui déplace la fenêtre */
 const elMinimap = document.getElementById("minimap");
