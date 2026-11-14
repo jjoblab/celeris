@@ -369,10 +369,9 @@ public final class EditorActivity extends AppCompatActivity {
                 PalettesPopups.de(basculeTheme.themeCourant(),
                         prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)),
                 () -> entreesPlan, () -> nomFichier,
-                popups::diagnostics,
-                atelierLint::analyser,
                 popups::notifier);
         popups.configurerGabaritMethode(atelierRefactor::insererGabarit);
+        popups.configurerRelanceLint(atelierLint::analyser);
     }
 
     /** Le survol se sert AU DOUBLE-TAP et au « i » de la barre (le

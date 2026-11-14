@@ -124,7 +124,7 @@ final class CatalogueActions {
         actionsMenu.put(R.id.action_supprimer_sur, popups::supprimerSur);
         actionsMenu.put(R.id.action_deplacer_dans, popups::deplacerDans);
         actionsMenu.put(R.id.action_masquer_inspection,
-                surfaces::ouvrirSuppressionInspection);
+                popups::masquerInspection);
         actionsMenu.put(R.id.action_executer, surfaces::executerFichier);
         actionsMenu.put(R.id.action_plan, activite::basculerPlan);
         actionsMenu.put(R.id.action_debogage, () -> {
@@ -239,7 +239,7 @@ final class CatalogueActions {
                         popups::deplacerDans),
                 new IntentionsMenuView.Item(
                         libelle(R.string.action_masquer_inspection),
-                        surfaces::ouvrirSuppressionInspection),
+                        popups::masquerInspection),
                 new IntentionsMenuView.Item(libelle(R.string.action_executer),
                         surfaces::executerFichier),
                 new IntentionsMenuView.Item(libelle(R.string.action_diff),

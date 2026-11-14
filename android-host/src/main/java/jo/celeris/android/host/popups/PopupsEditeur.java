@@ -112,6 +112,10 @@ public final class PopupsEditeur {
      *  surface portée : les usages qui barrent, les cibles du
      *  déménagement. */
     private final Surete surete;
+    /** Le masquage d'inspection de la ligne du caret — la septième
+     *  surface portée : la marque naît, le lint l'honore à sa
+     *  relance (le geste de relance s'y configure). */
+    private final Masquage masquage;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -135,6 +139,9 @@ public final class PopupsEditeur {
     /** Le geste du gabarit de méthode (A-22) — l'hôte le pose par
      *  configuration, null sans geste. */
     private @Nullable Runnable gesteGabaritMethode;
+    /** La relance de l'analyse lint — l'hôte la pose par
+     *  configuration, le masquage ne vaut qu'appliqué. */
+    private @Nullable Runnable relanceLint;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
     /** La frappe en cours : la sélection qui suit ne rouvre pas l'info-bulle. */
@@ -186,24 +193,23 @@ public final class PopupsEditeur {
         // l'hôte la surcharge à sa langue
         menuDebordement = new MenuDebordement(popups, palette, margePx,
                 couche.getContext().getString(R.string.menu_plus));
-        selecteurCouleur = new SelecteurCouleur(editeur, session, popups,
-                margePx, palette);
+        selecteurCouleur = new SelecteurCouleur(editeur, session, popups, margePx, palette);
         filAriane = new FilAriane(popups, session, margePx, palette);
         notifications = new Notifications(popups, margePx, palette);
         typeInfo = new TypeInfo(editeur, session, popups, margePx, palette);
         usages = new Usages(editeur, session, popups, margePx, palette);
         docExterne = new DocExterne(editeur, session, popups, margePx, palette, coach);
         hierarchies = new CarteHierarchies(editeur, session, popups,
-                margePx, palette, this::planVif, this::nomVif,
-                () -> langue);
-        gabarits = new Gabarits(editeur, session, popups, margePx, palette,
-                this::planVif, () -> langue, () -> gesteGabaritMethode);
+                margePx, palette, this::planVif, this::nomVif, () -> langue);
+        gabarits = new Gabarits(editeur, session, popups, margePx,
+                palette, this::planVif, () -> langue, () -> gesteGabaritMethode);
         surete = new Surete(editeur, session, popups, margePx, palette,
                 this::planVif, () -> langue, notifications::notifier);
-        docAncre = new DocAncre(couche.getContext(), popups, editeur,
-                session, margePx, palette, coach);
-        bordDroit = new BordDroit(popups, editeur, session, margePx,
-                palette, this::sauterDiagnostic);
+        masquage = new Masquage(editeur, session, popups, margePx,
+                palette, this::diagnostics, this::nomVif,
+                () -> relanceLint, notifications::notifier);
+        docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette, coach);
+        bordDroit = new BordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
         brancherEcouteurs();
     }
 
@@ -252,6 +258,7 @@ public final class PopupsEditeur {
         hierarchies.surPalette(palette);
         gabarits.surPalette(palette);
         surete.surPalette(palette);
+        masquage.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -504,7 +511,7 @@ public final class PopupsEditeur {
             basculerCompletion();
         }
         if (!apresFrappe) {
-            rafraichirInfoBulle(selection);
+            infoBulle.rafraichir(selection);
         }
         if (popups.estOuvert(PopupController.PopupKind.SIGNATURE_HELP)) {
             rafraichirSignature();
@@ -535,14 +542,6 @@ public final class PopupsEditeur {
         if (popups.estOuvert(PopupController.PopupKind.SELECTION_OVERFLOW)) {
             menuDebordement.ouvrir(barreSelection, debordementSelection);
         }
-    }
-
-    private void rafraichirInfoBulle(MultiSelection selection) {
-        List<SelRange> plages = selection.ranges();
-        if (plages.size() != 1) {
-            return;
-        }
-        infoBulle.rafraichir(plages.get(0).caret());
     }
 
     private void placerCompletion() {
@@ -613,6 +612,7 @@ public final class PopupsEditeur {
         docExterne.repositionner();
         gabarits.repositionner();
         surete.repositionner();
+        masquage.repositionner();
     }
 
     /** Publie une notification au coin bas-droit — l'horloge la referme
@@ -691,6 +691,24 @@ public final class PopupsEditeur {
      *  seules décident. */
     public void deplacerDans() {
         surete.deplacerDans();
+    }
+
+    /** Le masquage d'inspection de la ligne du caret — les
+     *  diagnostics réglés se proposent, le choix pose le commentaire
+     *  « noinspection », l'analyse se relance (le geste posé par
+     *  {@link #configurerRelanceLint}). */
+    public void masquerInspection() {
+        masquage.ouvrir();
+    }
+
+    /** Pose la relance de l'analyse lint — le masquage ne vaut
+     *  qu'appliqué : la règle masquée ne se rapporte plus à la
+     *  relance.
+     *
+     * @param relance la relance de l'analyse, null pour rien
+     */
+    public void configurerRelanceLint(@Nullable Runnable relance) {
+        relanceLint = relance;
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors

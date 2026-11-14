@@ -3,6 +3,10 @@
      parité des chaînes affichées, valeurs/ ↔ values-fr/). -->
 <resources>
     <string name="titre_notification">Annonce</string>
+    <string name="section_suppression">Masquer</string>
+    <string name="suppression_item">Masquer %1$s</string>
+    <string name="suppression_aucune_inspection">Aucune inspection réglée à cette ligne</string>
+    <string name="suppression_inspection_effectuee">%1$s masquée — le lint se relance</string>
     <string name="titre_suppression">%1$d usages empêchent la suppression de « %2$s »</string>
     <string name="suppression_aucune_declaration">Suppression sûre : aucune déclaration au curseur</string>
     <string name="suppression_effectuee">Supprimée — un geste la défait</string>

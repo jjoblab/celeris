@@ -4,6 +4,10 @@
      définition restent muets sans eux. -->
 <resources>
     <string name="titre_notification">Notice</string>
+    <string name="section_suppression">Suppress</string>
+    <string name="suppression_item">Suppress %1$s</string>
+    <string name="suppression_aucune_inspection">No inspection with a rule at this line</string>
+    <string name="suppression_inspection_effectuee">%1$s hidden — the lint reruns</string>
     <string name="titre_suppression">%1$d usages block the deletion of « %2$s »</string>
     <string name="suppression_aucune_declaration">Safe delete: no declaration at the caret</string>
     <string name="suppression_effectuee">Deleted — one gesture undoes it</string>

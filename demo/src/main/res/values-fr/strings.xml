@@ -41,10 +41,6 @@
     <string name="action_supprimer_sur">Suppression sûre de la déclaration</string>
     <string name="action_deplacer_dans">Déplacer la méthode dans une classe</string>
     <string name="action_masquer_inspection">Masquer l\'inspection de la ligne</string>
-    <string name="section_suppression">Masquer</string>
-    <string name="suppression_item">Masquer %1$s</string>
-    <string name="suppression_aucune_inspection">Aucune inspection réglée à cette ligne</string>
-    <string name="suppression_inspection_effectuee">%1$s masquée — le lint se relance</string>
     <string name="action_executer">Exécuter le fichier (simulé)</string>
     <string name="execution_echec_message">L\'exécution simulée échoue — la trace suit le plan du fichier</string>
     <string name="execution_echouee">L\'exécution a échoué — les détails de l\'exception suivent</string>

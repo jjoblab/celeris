@@ -16,6 +16,8 @@ import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 
+import jo.celeris.core.text.MultiSelection;
+import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
 import org.jspecify.annotations.Nullable;
@@ -90,10 +92,14 @@ final class InfoBulle {
      * quand des intentions existent. Sans problème au lieu, la fiche
      * ne se pose pas.
      *
-     * @param caret la position du curseur
+     * @param selection la sélection courante
      */
-    void rafraichir(int caret) {
-        int ligne = session.document().lineForOffset(caret);
+    void rafraichir(MultiSelection selection) {
+        List<SelRange> plages = selection.ranges();
+        if (plages.size() != 1) {
+            return;
+        }
+        int ligne = session.document().lineForOffset(plages.get(0).caret());
         List<DiagnosticTooltipView.Probleme> problemes =
                 ContenuPopups.problemesDe(diagnostics.get(),
                         nomFichier.get(), ligne);

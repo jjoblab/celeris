@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import jo.celeris.android.host.R;
 import jo.celeris.android.host.spi.AnalyseurLint;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.view.EditorView;
@@ -24,7 +25,8 @@ import jo.celeris.core.text.TextSession;
 import org.jspecify.annotations.Nullable;
 
 /**
- * L'atelier de masquage d'inspection de la démonstration (catégorie B
+ * Le masquage d'inspection (la septième surface portée de la
+ * démonstration à l'orchestrateur, 2026-11-14 — catégorie B
  * de l'inventaire — « Suppress Inspection », le geste dormait) : les
  * diagnostics de la ligne du caret qui portent une RÈGLE (l'identifiant
  * entre crochets du lint) se proposent en carte — le choix pose le
@@ -38,7 +40,7 @@ import org.jspecify.annotations.Nullable;
  * actions ; sans diagnostic réglé à la ligne, le geste s'annonce et ne
  * touche rien.</p>
  */
-final class AtelierSuppression {
+final class Masquage {
 
     private final EditorView editeur;
     private final TextSession session;
@@ -49,13 +51,14 @@ final class AtelierSuppression {
     private final Supplier<List<DiagnosticHote>> diagnostics;
     /** Le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     private final Supplier<String> nomFichier;
-    /** La relance de l'analyse lint — le masquage ne vaut qu'appliqué. */
-    private final Runnable relancerLint;
+    /** La relance de l'analyse lint — le masquage ne vaut
+     *  qu'appliqué ; null : le geste s'abrège. */
+    private final Supplier<Runnable> relancerLint;
     /** Le canal des annonces — la bulle éphémère du coin bas-droit. */
     private final BiConsumer<String, String> annonces;
 
     /**
-     * Construit l'atelier de masquage sur le coordinateur des popups :
+     * Construit le masquage sur le coordinateur des popups :
      * la carte naît liée à son genre, le patron des trois temps
      * (lier, déclencher, déléguer — USAGE §9).
      *
@@ -66,13 +69,14 @@ final class AtelierSuppression {
      * @param palette      la palette courante des popups
      * @param diagnostics  les diagnostics courants, vifs à l'hôte
      * @param nomFichier   le nom du fichier ouvert
-     * @param relancerLint la relance de l'analyse après le masquage
+     * @param relancerLint la relance de l'analyse après le masquage,
+     *                     null abrège le geste
      * @param annonces     le canal des annonces (titre, message)
      */
-    AtelierSuppression(EditorView editeur, TextSession session,
+    Masquage(EditorView editeur, TextSession session,
             PopupManager popups, int margePx, PopupPalette palette,
             Supplier<List<DiagnosticHote>> diagnostics,
-            Supplier<String> nomFichier, Runnable relancerLint,
+            Supplier<String> nomFichier, Supplier<Runnable> relancerLint,
             BiConsumer<String, String> annonces) {
         this.editeur = editeur;
         this.session = session;
@@ -82,8 +86,8 @@ final class AtelierSuppression {
         this.nomFichier = nomFichier;
         this.relancerLint = relancerLint;
         this.annonces = annonces;
-        this.carte = new IntentionsMenuView(popups.couche().getContext(),
-                palette);
+        this.carte = new IntentionsMenuView(
+                popups.couche().getContext(), palette);
         popups.lier(PopupController.PopupKind.SUPPRESS_INSPECTION, carte);
     }
 
@@ -151,7 +155,10 @@ final class AtelierSuppression {
         popups.fermer(PopupController.PopupKind.SUPPRESS_INSPECTION);
         if (session.apply(plan.transaction(), plan.selection())) {
             editeur.invalidate();
-            relancerLint.run();
+            Runnable relance = relancerLint.get();
+            if (relance != null) {
+                relance.run();
+            }
             annoncer(R.string.suppression_inspection_effectuee, regle);
         }
     }

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
@@ -23,12 +22,11 @@ import jo.celeris.core.text.TextSession;
  * exact ; le pont meurt pièce par pièce — chaque surface portée chez
  * l'hôte (moteur en core, câblage dans l'orchestrateur) retire sa
  * ligne et son atelier : l'info de type, les usages, la
- * documentation externe, les hiérarchies, les gabarits et la sûreté y
-vivent déjà.
+ * documentation externe, les hiérarchies, les gabarits, la sûreté et le
+masquage d'inspection y vivent déjà.
  */
 final class PontSurfaces {
 
-    private final AtelierSuppression masquage;
     private final AtelierException exception;
 
     /**
@@ -42,33 +40,20 @@ final class PontSurfaces {
      * @param palette       la palette courante des popups
      * @param plan          le plan du fichier ouvert, vif au document
      * @param nomDuFichier  le nom du fichier ouvert, vif
-     * @param diagnostics   les diagnostics courants, vifs
-     * @param relancerLint  la relance de l'analyse lint
      * @param annoncer      la voix des annonces de l'éditeur
      */
     PontSurfaces(EditorView editeur, TextSession session,
             PopupManager popups, int margePx, PopupPalette palette,
             Supplier<List<OutlineEntry>> plan,
             Supplier<String> nomDuFichier,
-            Supplier<List<DiagnosticHote>> diagnostics,
-            Runnable relancerLint,
             BiConsumer<String, String> annoncer) {
-        masquage = new AtelierSuppression(editeur, session, popups,
-                margePx, palette, diagnostics, nomDuFichier,
-                relancerLint, annoncer);
         exception = new AtelierException(editeur, session, popups,
                 margePx, palette, plan, nomDuFichier, annoncer);
     }
 
     /** La palette tourne : les cartes du pont la suivent. */
     void surPalette(PopupPalette palette) {
-        masquage.surPalette(palette);
         exception.surPalette(palette);
-    }
-
-    /** Le masquage d'inspection de la ligne du caret. */
-    void ouvrirSuppressionInspection() {
-        masquage.ouvrir();
     }
 
     /** Exécute le fichier ouvert — l'échec simulé porte la trace
