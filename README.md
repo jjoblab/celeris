@@ -63,11 +63,11 @@ le kit (cartes, manager, machine à états, feuilles), `android-host`
 porte l'orchestrateur **`PopupsEditeur`** — l'application hôte n'a
 presque rien à écrire (déménagement du 2026-11-14 : la démonstration ne
 teste plus qu'elle-même, elle ne porte plus les fonctionnalités — les
-surfaces réveillées du feu vert y passent pour six d’entre elles par
+surfaces réveillées du feu vert y passent pour cinq d’entre elles par
 son pont de test, le port chez l’orchestrateur est ENGAGÉ : l’info de
-type et les usages y vivent déjà (les satellites `TypeInfo` et `Usages`,
-les moteurs `LecteurTypes` et le fil `references` du serveur), les
-suivantes suivent le même patron).
+type, les usages et la documentation externe y vivent déjà (les
+satellites `TypeInfo`, `Usages` et `DocExterne`), les suivantes suivent
+le même patron).
 
 ```java
 import jo.celeris.android.host.popups.CoachPopups;

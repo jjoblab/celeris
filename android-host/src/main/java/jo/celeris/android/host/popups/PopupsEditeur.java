@@ -97,6 +97,10 @@ public final class PopupsEditeur {
      *  Studio compte comme l'IDE : le compte du serveur, tous
      *  fichiers). */
     private final Usages usages;
+    /** La documentation externe du symbole au curseur — la troisième
+     *  surface portée : la consultation vit le régime qui se
+     *  REPOSITIONNE au défilement. */
+    private final DocExterne docExterne;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -170,6 +174,8 @@ public final class PopupsEditeur {
         typeInfo = new TypeInfo(editeur, session, popups, margePx,
                 palette);
         usages = new Usages(editeur, session, popups, margePx, palette);
+        docExterne = new DocExterne(editeur, session, popups, margePx,
+                palette, coach);
         docAncre = new DocAncre(couche.getContext(), popups, editeur,
                 session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx,
@@ -218,6 +224,7 @@ public final class PopupsEditeur {
         notifications.surPalette(palette);
         typeInfo.surPalette(palette);
         usages.surPalette(palette);
+        docExterne.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -249,6 +256,7 @@ public final class PopupsEditeur {
         this.uriDocument = uri;
         docAncre.brancherServeur(sessionLangage, uri);
         usages.brancherServeur(sessionLangage, uri);
+        docExterne.brancherServeur(sessionLangage, uri);
         sessionLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
                 session.document().text());
     }
@@ -604,6 +612,9 @@ public final class PopupsEditeur {
         if (popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU)) {
             ouvrirIntentions();
         }
+        // la consultation se REPOSITIONNE au défilement (le régime du
+        // genre — le câblage manquait au pont, l'orchestrateur le porte)
+        docExterne.repositionner();
     }
 
     /** Publie une notification au coin bas-droit — l'horloge la referme
@@ -633,6 +644,14 @@ public final class PopupsEditeur {
      *  fichiers ; sans serveur ni symbole, la carte ne se pose pas). */
     public void ouvrirUsages() {
         usages.ouvrir();
+    }
+
+    /** Ouvre la documentation externe du symbole au curseur — le
+     *  serveur de langage par le fil du protocole, la table du coach
+     *  en repli ; la consultation survit au défilement (elle se
+     *  repositionne au curseur). */
+    public void ouvrirDocExterne() {
+        docExterne.ouvrir();
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors

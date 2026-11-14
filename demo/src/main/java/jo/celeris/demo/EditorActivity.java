@@ -342,8 +342,6 @@ public final class EditorActivity extends AppCompatActivity {
         popups.setNomFichier(nomFichier);
         popups.brancherServeur(serveurLangage, "file:///" + nomFichier,
                 langueOuverte());
-        pontSurfaces.brancherServeur(serveurLangage,
-                "file:///" + nomFichier);
         atelierSelection = new AtelierSelection(editeur, session);
         popups.configurerActionsSelection(
                 atelierSelection.principales(getString(R.string.barre_couper),

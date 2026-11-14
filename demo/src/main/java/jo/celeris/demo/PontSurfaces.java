@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import jo.celeris.android.host.popups.LanguageSession;
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.PopupManager;
@@ -23,11 +22,11 @@ import jo.celeris.core.text.TextSession;
  * démonstration n'y fait que TESTER les cartes du kit, son rôle
  * exact ; le pont meurt pièce par pièce — chaque surface portée chez
  * l'hôte (moteur en core, câblage dans l'orchestrateur) retire sa
- * ligne et son atelier.
+ * ligne et son atelier : l'info de type, les usages et la
+ * documentation externe y vivent déjà.
  */
 final class PontSurfaces {
 
-    private final AtelierDocExterne docExterne;
     private final AtelierHierarchies hierarchies;
     private final AtelierGabarits gabarits;
     private final AtelierSurete surete;
@@ -57,8 +56,6 @@ final class PontSurfaces {
             Supplier<List<DiagnosticHote>> diagnostics,
             Runnable gabaritMethode, Runnable relancerLint,
             BiConsumer<String, String> annoncer) {
-        docExterne = new AtelierDocExterne(editeur, session, popups,
-                margePx, palette);
         hierarchies = new AtelierHierarchies(editeur, session, popups,
                 margePx, palette, plan, nomDuFichier);
         gabarits = new AtelierGabarits(editeur, session, popups, margePx,
@@ -74,7 +71,6 @@ final class PontSurfaces {
 
     /** La palette tourne : les cartes du pont la suivent. */
     void surPalette(PopupPalette palette) {
-        docExterne.surPalette(palette);
         hierarchies.surPalette(palette);
         gabarits.surPalette(palette);
         surete.surPalette(palette);
@@ -82,21 +78,9 @@ final class PontSurfaces {
         exception.surPalette(palette);
     }
 
-    /** Branche la session de langage : les ateliers qui écoutent le
-     *  serveur (documentation externe) y répondent — les usages
-     *  vivent désormais chez l'orchestrateur. */
-    void brancherServeur(LanguageSession serveur, String uri) {
-        docExterne.brancherServeur(serveur, uri);
-    }
-
     /** Ouvre la hiérarchie du symbole au curseur. */
     void ouvrirHierarchie() {
         hierarchies.ouvrir();
-    }
-
-    /** Ouvre la documentation du symbole au curseur. */
-    void ouvrirDocExterne() {
-        docExterne.ouvrir();
     }
 
     /** Ouvre la carte de génération et de gabarits au caret. */

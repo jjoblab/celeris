@@ -1,10 +1,9 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
 import java.util.List;
 
-import jo.celeris.android.host.popups.LanguageSession;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
@@ -13,41 +12,44 @@ import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
+
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
 import org.jspecify.annotations.Nullable;
 
 /**
- * L'atelier de documentation externe de la démonstration (catégorie A
- * de l'inventaire — « External Documentation », la carte de
- * documentation se dérive) : la documentation du symbole au curseur,
- * hors contexte de complétion — le serveur de langage par le fil du
- * protocole, la table du coach en repli, le MÊME chemin de données
- * que le survol. La carte vit le régime de la CONSULTATION : ouverte,
- * elle se lit — la frappe ne la chasse pas, le défilement la
- * REPOSITIONNE (l'orchestreur la re-pose au curseur), le tap hors
- * cartes la referme, l'échappement aussi.
+ * La documentation externe (la troisième surface portée de la
+ * démonstration à l'orchestrateur, 2026-11-14) : la documentation du
+ * symbole au curseur, hors contexte de complétion — le serveur de
+ * langage par le fil du protocole, la table du coach en repli, le
+ * MÊME chemin de données que le survol. La carte vit le régime de la
+ * CONSULTATION : ouverte, elle se lit — la frappe ne la chasse pas, le
+ * défilement la REPOSITIONNE ({@link #repositionner} — la consultation
+ * suit le curseur), le tap hors cartes la referme, l'échappement
+ * aussi.
  *
- * <p>La frontière tient : la carte dérivée ne connaît NI le serveur,
- * NI l'éditeur — l'atelier sert d'intermédiaire ; SANS symbole au
+ * <p>La frontière tient : la carte DÉRIVÉE ne connaît NI le serveur,
+ * NI l'éditeur — le satellite sert d'intermédiaire ; SANS symbole au
  * curseur, la carte ne se pose pas.</p>
  */
-final class AtelierDocExterne {
+final class DocExterne {
 
     private final EditorView editeur;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
     private final CompletionDocView carte;
+    /** Le coach de l'hôte — la table du repli sans serveur. */
+    private final CoachPopups coach;
     /** La session de langage branchée — la documentation y passe. */
     private @Nullable LanguageSession serveur;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
 
     /**
-     * Construit l'atelier de documentation externe sur le coordinateur
-     * des popups : la carte DÉRIVÉE naît liée à son genre — sa propre
+     * Construit la documentation externe sur le coordinateur des
+     * popups : la carte DÉRIVÉE naît liée à son genre — sa propre
      * instance, jamais la carte du survol (une carte par genre).
      *
      * @param editeur la vue d'éditeur ouverte
@@ -55,13 +57,15 @@ final class AtelierDocExterne {
      * @param popups  le coordinateur des popups de la scène
      * @param margePx la respiration des ancres aux bords, en pixels
      * @param palette la palette courante des popups
+     * @param coach   le coach de l'hôte — le repli sans serveur
      */
-    AtelierDocExterne(EditorView editeur, TextSession session,
-            PopupManager popups, int margePx, PopupPalette palette) {
+    DocExterne(EditorView editeur, TextSession session, PopupManager popups,
+            int margePx, PopupPalette palette, CoachPopups coach) {
         this.editeur = editeur;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
+        this.coach = coach;
         this.carte = new CompletionDocView(popups.couche().getContext(),
                 palette);
         popups.lier(PopupController.PopupKind.EXTERNAL_DOC, carte);
@@ -90,7 +94,7 @@ final class AtelierDocExterne {
      * symbole au curseur, la carte ne se pose pas.
      */
     void ouvrir() {
-        String symbole = PopupCoach.symboleA(session.document(), caret());
+        String symbole = ContenuPopups.symboleA(session.document(), caret());
         if (symbole == null) {
             return;
         }
@@ -100,7 +104,7 @@ final class AtelierDocExterne {
                             () -> poser(doc)));
             return;
         }
-        poser(PopupCoach.docFor(symbole));
+        poser(coach.docDe(symbole));
     }
 
     /** Le défilement a déplacé le curseur : la consultation se
