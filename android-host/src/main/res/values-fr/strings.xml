@@ -2,6 +2,13 @@
 <!-- Les libellés français des popups de l'éditeur (ADR-008 : la
      parité des chaînes affichées, valeurs/ ↔ values-fr/). -->
 <resources>
+    <string name="section_gabarits">Génération &amp; gabarits</string>
+    <string name="gabarits_constructeur">Constructeur de %1$s</string>
+    <string name="gabarits_accesseurs">Accesseurs de %1$s</string>
+    <string name="gabarits_equality">equals, hashCode et toString de %1$s</string>
+    <string name="gabarits_entourer_try">Entourer de try/catch</string>
+    <string name="gabarits_entourer_if">Entourer de if</string>
+    <string name="gabarits_methode">Insérer le gabarit de méthode</string>
     <string name="titre_hierarchie_types">Hiérarchie de types de « %1$s »</string>
     <string name="titre_hierarchie_appels">Hiérarchie d\'appels de « %1$s »</string>
     <string name="section_supertypes">Supertypes</string>

@@ -120,7 +120,7 @@ final class CatalogueActions {
         actionsMenu.put(R.id.action_hierarchie, popups::ouvrirHierarchie);
         actionsMenu.put(R.id.action_aller, activite::basculerAller);
         actionsMenu.put(R.id.action_doc, popups::ouvrirDocExterne);
-        actionsMenu.put(R.id.action_generer, surfaces::ouvrirGabarits);
+        actionsMenu.put(R.id.action_generer, popups::ouvrirGabarits);
         actionsMenu.put(R.id.action_supprimer_sur, surfaces::ouvrirSuppressionSure);
         actionsMenu.put(R.id.action_deplacer_dans, surfaces::ouvrirDeplacement);
         actionsMenu.put(R.id.action_masquer_inspection,
@@ -232,7 +232,7 @@ final class CatalogueActions {
                 new IntentionsMenuView.Item(libelle(R.string.action_doc),
                         popups::ouvrirDocExterne),
                 new IntentionsMenuView.Item(libelle(R.string.action_generer),
-                        surfaces::ouvrirGabarits),
+                        popups::ouvrirGabarits),
                 new IntentionsMenuView.Item(libelle(R.string.action_supprimer_sur),
                         surfaces::ouvrirSuppressionSure),
                 new IntentionsMenuView.Item(libelle(R.string.action_deplacer_dans),

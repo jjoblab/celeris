@@ -1,9 +1,13 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.function.Function;
+
+import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.syntax.Analysis;
@@ -11,17 +15,15 @@ import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.text.TextSession;
 
-import org.junit.jupiter.api.Test;
-
 /**
- * L'atelier de gabarits de la démonstration (catégorie D de
- * l'inventaire — « Generate Code », les moteurs de génération se
- * réveillent) : le plan d'insertion du code généré se pose avant
- * l'accolade fermante de la classe, le texte gagne son cran de membre,
- * le caret se porte à sa suite — la classe inconnue ne propose rien.
- * Pur, sans appareil.
+ * Le plan de génération chez l'orchestrateur (le déménagement du
+ * 2026-11-14, la cinquième surface portée — reprise de
+ * {@code AtelierGabaritsTest} de la démonstration) : le plan
+ * d'insertion du code généré se pose avant l'accolade fermante de la
+ * classe, le texte gagne son cran de membre, le caret se porte à sa
+ * suite — la classe inconnue ne propose rien. Pur, sans appareil.
  */
-class AtelierGabaritsTest {
+final class GabaritsPlanTest {
 
     private static final String CLASSE = """
             class Exemple {
@@ -32,7 +34,7 @@ class AtelierGabaritsTest {
     @Test
     void lePlanGenereSinsereAvantLaFermante() {
         TextSession session = TextSession.of(CLASSE, () -> 0L);
-        EditPlan plan = surAnalyse(session, analyse -> AtelierGabarits.planGenere(
+        EditPlan plan = surAnalyse(session, analyse -> Gabarits.planGenere(
                 session.document(), analyse, "Exemple",
                 "public Exemple() {\n}"));
         assertNotNull(plan, "la classe connue a son plan");
@@ -56,10 +58,10 @@ class AtelierGabaritsTest {
     void laClasseInconnueNeGenereRien() {
         TextSession session = TextSession.of(CLASSE, () -> 0L);
         surAnalyse(session, analyse -> {
-            assertNull(AtelierGabarits.planGenere(session.document(), analyse,
+            assertNull(Gabarits.planGenere(session.document(), analyse,
                             "Inconnue", "public Inconnue() {\n}"),
                     "le généré ne se devine jamais sur une classe absente");
-            assertNull(AtelierGabarits.planGenere(session.document(), analyse,
+            assertNull(Gabarits.planGenere(session.document(), analyse,
                             null, "rien"),
                     "sans classe englobante, rien ne se génère");
             return null;
@@ -71,7 +73,7 @@ class AtelierGabaritsTest {
     /** Le calcul mené sur une analyse fraîche — coordinateur ponctuel,
      *  fermé d'entrée. */
     private <T> T surAnalyse(TextSession session,
-            java.util.function.Function<Analysis, T> calcul) {
+            Function<Analysis, T> calcul) {
         SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session,
                 JavaSyntax.INSTANCE);
         try {

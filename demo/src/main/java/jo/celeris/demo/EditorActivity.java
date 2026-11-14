@@ -370,8 +370,9 @@ public final class EditorActivity extends AppCompatActivity {
                         prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)),
                 () -> entreesPlan, () -> nomFichier,
                 popups::diagnostics,
-                atelierRefactor::insererGabarit, atelierLint::analyser,
+                atelierLint::analyser,
                 popups::notifier);
+        popups.configurerGabaritMethode(atelierRefactor::insererGabarit);
     }
 
     /** Le survol se sert AU DOUBLE-TAP et au « i » de la barre (le

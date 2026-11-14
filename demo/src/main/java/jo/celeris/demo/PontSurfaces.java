@@ -23,11 +23,10 @@ import jo.celeris.core.text.TextSession;
  * exact ; le pont meurt pièce par pièce — chaque surface portée chez
  * l'hôte (moteur en core, câblage dans l'orchestrateur) retire sa
  * ligne et son atelier : l'info de type, les usages, la
- * documentation externe et les hiérarchies y vivent déjà.
+ * documentation externe, les hiérarchies et les gabarits y vivent déjà.
  */
 final class PontSurfaces {
 
-    private final AtelierGabarits gabarits;
     private final AtelierSurete surete;
     private final AtelierSuppression masquage;
     private final AtelierException exception;
@@ -44,7 +43,6 @@ final class PontSurfaces {
      * @param plan          le plan du fichier ouvert, vif au document
      * @param nomDuFichier  le nom du fichier ouvert, vif
      * @param diagnostics   les diagnostics courants, vifs
-     * @param gabaritMethode le geste du gabarit de méthode (A-22)
      * @param relancerLint  la relance de l'analyse lint
      * @param annoncer      la voix des annonces de l'éditeur
      */
@@ -53,10 +51,8 @@ final class PontSurfaces {
             Supplier<List<OutlineEntry>> plan,
             Supplier<String> nomDuFichier,
             Supplier<List<DiagnosticHote>> diagnostics,
-            Runnable gabaritMethode, Runnable relancerLint,
+            Runnable relancerLint,
             BiConsumer<String, String> annoncer) {
-        gabarits = new AtelierGabarits(editeur, session, popups, margePx,
-                palette, plan, nomDuFichier, gabaritMethode);
         surete = new AtelierSurete(editeur, session, popups, margePx,
                 palette, plan, nomDuFichier, annoncer);
         masquage = new AtelierSuppression(editeur, session, popups,
@@ -68,15 +64,9 @@ final class PontSurfaces {
 
     /** La palette tourne : les cartes du pont la suivent. */
     void surPalette(PopupPalette palette) {
-        gabarits.surPalette(palette);
         surete.surPalette(palette);
         masquage.surPalette(palette);
         exception.surPalette(palette);
-    }
-
-    /** Ouvre la carte de génération et de gabarits au caret. */
-    void ouvrirGabarits() {
-        gabarits.ouvrir();
     }
 
     /** La suppression sûre de la déclaration au curseur. */

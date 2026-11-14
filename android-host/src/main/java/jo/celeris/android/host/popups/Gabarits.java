@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import jo.celeris.android.host.R;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.widgets.IntentionsMenuView;
@@ -15,6 +16,7 @@ import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
+
 import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.intelligence.Entourer;
 import jo.celeris.core.intelligence.Generateurs;
@@ -34,23 +36,24 @@ import jo.celeris.core.text.Transaction;
 import org.jspecify.annotations.Nullable;
 
 /**
- * L'atelier de génération et de gabarits de la démonstration (catégorie
- * D de l'inventaire — « Generate Code / Gabarits » et « Surround With /
- * Live Templates », les moteurs vivaient, la surface dormait) : la
- * carte des actions de génération au caret — constructeur, accesseurs,
- * equals/hashCode/toString lus des CHAMPS RÉELS de la classe englobante
- * (B-24), l'entourage de la sélection (try/catch, if), le gabarit de
- * méthode à trous liés (A-22, le geste de la refactorisation — un seul
- * canal, la carte est une peau de plus). Le choix génère et applique en
- * transaction annulable ; la classe inconnue ne propose que ce qui ne
- * la demande pas (l'entourage et le gabarit).
+ * La carte de génération et de gabarits (la cinquième surface portée
+ * de la démonstration à l'orchestrateur, 2026-11-14 — catégorie D de
+ * l'inventaire, « Generate Code / Gabarits » et « Surround With ») :
+ * les actions de génération au caret — constructeur, accesseurs,
+ * equals/hashCode/toString lus des CHAMPS RÉELS de la classe
+ * englobante (B-24), l'entourage de la sélection (try/catch, if) et
+ * le gabarit de méthode à trous liés (A-22 — le geste de l'hôte par
+ * {@link PopupsEditeur#configurerGabaritMethode}, un seul canal, la
+ * carte est une peau de plus). Le choix génère et applique en
+ * transaction annulable ; la classe inconnue ne propose que ce qui
+ * ne la demande pas (l'entourage et le gabarit).
  *
  * <p>La frontière tient : la carte ne connaît NI les moteurs, NI
- * l'éditeur — l'atelier transpose le plan des déclarations du fichier
- * ouvert en actions ; la sélection vide ne propose pas d'entourage
- * (rien à entourer ne se devine jamais).</p>
+ * l'éditeur — le satellite transpose le plan des déclarations du
+ * fichier ouvert en actions ; la sélection vide ne propose pas
+ * d'entourage (rien à entourer ne se devine jamais).</p>
  */
-final class AtelierGabarits {
+final class Gabarits {
 
     private final EditorView editeur;
     private final TextSession session;
@@ -59,39 +62,40 @@ final class AtelierGabarits {
     private final IntentionsMenuView carte;
     /** Le plan du fichier ouvert — la classe englobante s'y lit. */
     private final Supplier<List<OutlineEntry>> plan;
-    /** Le nom du fichier ouvert — la langue s'en déduit. */
-    private final Supplier<String> nomFichier;
+    /** Le langage du fichier ouvert — l'analyse s'y lit. */
+    private final Supplier<@Nullable LanguageSupport> langue;
     /** Le geste du gabarit de méthode — le canal unique de la
-     *  refactorisation (A-22), la carte n'est qu'une peau de plus. */
-    private final Runnable gesteGabaritMethode;
+     *  refactorisation (A-22), l'hôte le pose par configuration. */
+    private final Supplier<Runnable> gesteGabaritMethode;
 
     /**
-     * Construit l'atelier de gabarits sur le coordinateur des popups :
-     * la carte naît liée à son genre, le patron des trois temps (lier,
+     * Construit les gabarits sur le coordinateur des popups : la carte
+     * naît liée à son genre, le patron des trois temps (lier,
      * déclencher, déléguer — USAGE §9).
      *
-     * @param editeur        la vue d'éditeur ouverte
-     * @param session        la session d'édition courante
-     * @param popups         le coordinateur des popups de la scène
-     * @param margePx        la respiration des ancres aux bords, en pixels
-     * @param palette        la palette courante des popups
-     * @param plan           le plan courant du fichier ouvert
-     * @param nomFichier     le nom du fichier ouvert
+     * @param editeur            la vue d'éditeur ouverte
+     * @param session            la session d'édition courante
+     * @param popups             le coordinateur des popups de la scène
+     * @param margePx            la respiration des ancres aux bords, en pixels
+     * @param palette            la palette courante des popups
+     * @param plan               le plan courant du fichier ouvert
+     * @param langue             le langage du fichier ouvert, null sans
      * @param gesteGabaritMethode le geste d'insertion du gabarit de
-     *                            méthode (A-22) — le canal unique de la
-     *                            refactorisation, la carte n'est qu'une
-     *                            peau de plus
+     *                           méthode (A-22) — le canal unique de la
+     *                           refactorisation, la carte n'est qu'une
+     *                           peau de plus
      */
-    AtelierGabarits(EditorView editeur, TextSession session,
-            PopupManager popups, int margePx, PopupPalette palette,
-            Supplier<List<OutlineEntry>> plan, Supplier<String> nomFichier,
-            Runnable gesteGabaritMethode) {
+    Gabarits(EditorView editeur, TextSession session, PopupManager popups,
+            int margePx, PopupPalette palette,
+            Supplier<List<OutlineEntry>> plan,
+            Supplier<@Nullable LanguageSupport> langue,
+            Supplier<Runnable> gesteGabaritMethode) {
         this.editeur = editeur;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
         this.plan = plan;
-        this.nomFichier = nomFichier;
+        this.langue = langue;
         this.gesteGabaritMethode = gesteGabaritMethode;
         this.carte = new IntentionsMenuView(popups.couche().getContext(),
                 palette);
@@ -186,10 +190,11 @@ final class AtelierGabarits {
      *  peau de plus : la carte ne duplique jamais la logique. */
     private void ajouterGabaritMethode(List<IntentionsMenuView.Item> items) {
         items.add(new IntentionsMenuView.Item(
-                popups.couche().getContext().getString(R.string.action_gabarit),
+                popups.couche().getContext().getString(
+                        R.string.gabarits_methode),
                 () -> {
                     popups.fermer(PopupController.PopupKind.GABARITS);
-                    gesteGabaritMethode.run();
+                    gesteGabaritMethode.get().run();
                 }));
     }
 
@@ -317,8 +322,7 @@ final class AtelierGabarits {
     /** Le calcul mené sur une analyse FRAÎCHE — coordinateur ponctuel,
      *  fermé d'entrée ; null quand la langue ne s'analyse pas. */
     private <T> @Nullable T surAnalyse(Function<Analysis, T> calcul) {
-        LanguageSupport support = LangagesDemo.langageDe(nomFichier.get(),
-                null, session.document().text());
+        LanguageSupport support = langue.get();
         if (support == null || support.syntax() == null) {
             return null;
         }

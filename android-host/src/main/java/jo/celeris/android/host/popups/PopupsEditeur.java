@@ -11,7 +11,6 @@ import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
 import jo.celeris.android.widgets.CompletionListView;
-import jo.celeris.android.widgets.DiagnosticTooltipView;
 import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.android.widgets.MenuDebordement;
 import jo.celeris.android.widgets.NotificationView;
@@ -74,7 +73,9 @@ public final class PopupsEditeur {
     private final CompletionDocView docCompletion;
     private final SignatureHelpView aideSignature;
     private final IntentionsMenuView menuIntentions;
-    private final DiagnosticTooltipView infoBulle;
+    /** La fiche de diagnostic du lieu — le satellite la pose
+     *  (l'audit Android Studio : les problèmes s'empilent). */
+    private final InfoBulle infoBulle;
     private final SelectionBarView barreSelection;
     /** Le bord droit de la couche — bande d'erreurs, minimap, pouce
      *  (le chrome y vit seul). */
@@ -103,6 +104,10 @@ public final class PopupsEditeur {
      *  la quatrième surface portée : l'arbre de l'IDE de référence,
      *  la racine vit à l'en-tête (l'audit Android Studio). */
     private final CarteHierarchies hierarchies;
+    /** La carte de génération et de gabarits au caret — la cinquième
+     *  surface portée : le geste de gabarit s'y configure (A-22, un
+     *  seul canal). */
+    private final Gabarits gabarits;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -123,6 +128,9 @@ public final class PopupsEditeur {
     /** Le langage du fichier ouvert — la syntaxe des hiérarchies s'y
      *  lit, null sans langage. */
     private @Nullable LanguageSupport langue;
+    /** Le geste du gabarit de méthode (A-22) — l'hôte le pose par
+     *  configuration, null sans geste. */
+    private @Nullable Runnable gesteGabaritMethode;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
     /** La frappe en cours : la sélection qui suit ne rouvre pas l'info-bulle. */
@@ -160,7 +168,8 @@ public final class PopupsEditeur {
         docCompletion = new CompletionDocView(couche.getContext(), palette);
         aideSignature = new SignatureHelpView(couche.getContext(), palette);
         menuIntentions = new IntentionsMenuView(couche.getContext(), palette);
-        infoBulle = new DiagnosticTooltipView(couche.getContext(), palette);
+        infoBulle = new InfoBulle(editeur, session, popups, margePx,
+                palette, this::diagnostics, this::nomVif, () -> intentions);
         barreSelection = new SelectionBarView(couche.getContext(), palette);
         // le lien des genres : une carte par genre, un genre par carte
         // — le manager l'exige, le zombie d'état ne revient plus
@@ -168,7 +177,6 @@ public final class PopupsEditeur {
         popups.lier(PopupController.PopupKind.COMPLETION_DOC, docCompletion);
         popups.lier(PopupController.PopupKind.SIGNATURE_HELP, aideSignature);
         popups.lier(PopupController.PopupKind.INTENTIONS_MENU, menuIntentions);
-        popups.lier(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP, infoBulle);
         popups.lier(PopupController.PopupKind.SELECTION_BAR, barreSelection);
         // la section du débordement : le « MORE » du dépôt de départ,
         // l'hôte la surcharge à sa langue
@@ -186,6 +194,8 @@ public final class PopupsEditeur {
         hierarchies = new CarteHierarchies(editeur, session, popups,
                 margePx, palette, this::planVif, this::nomVif,
                 () -> langue);
+        gabarits = new Gabarits(editeur, session, popups, margePx, palette,
+                this::planVif, () -> langue, () -> gesteGabaritMethode);
         docAncre = new DocAncre(couche.getContext(), popups, editeur,
                 session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx,
@@ -226,7 +236,7 @@ public final class PopupsEditeur {
         docCompletion.setPalette(palette);
         aideSignature.setPalette(palette);
         menuIntentions.setPalette(palette);
-        infoBulle.setPalette(palette);
+        infoBulle.surPalette(palette);
         bordDroit.surPalette(palette);
         barreSelection.setPalette(palette);
         selecteurCouleur.surPalette(palette);
@@ -236,6 +246,7 @@ public final class PopupsEditeur {
         usages.surPalette(palette);
         docExterne.surPalette(palette);
         hierarchies.surPalette(palette);
+        gabarits.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -526,33 +537,7 @@ public final class PopupsEditeur {
         if (plages.size() != 1) {
             return;
         }
-        int ligne = session.document().lineForOffset(plages.get(0).caret());
-        // l'audit Android Studio : la fiche empile TOUS les problèmes
-        // du lieu — la décision pure vit chez ContenuPopups
-        List<DiagnosticTooltipView.Probleme> problemes =
-                ContenuPopups.problemesDe(diagnostics, nomDuFichier, ligne);
-        if (problemes.isEmpty()) {
-            return;
-        }
-        popups.controleur().open(
-                PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
-        infoBulle.setProblemes(problemes, indiceDActions());
-        Rect curseur = editeur.caretBounds();
-        PopupPlacer.Cadre placee = PopupAnchor.atPoint(
-                curseur.left, curseur.top,
-                popups.taille(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP),
-                largeurCouche(), hauteurCouche(), margePx);
-        popups.montrer(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
-                placee.x(), placee.y());
-    }
-
-    /** L'indice d'actions qui clôt la fiche — le lien du bas de
-     *  l'IDE de référence (« More actions… ») : il ne se pose que
-     *  quand des intentions existent au caret (l'IDE ne promet pas
-     *  de correctifs sans correctifs). */
-    private @Nullable String indiceDActions() {
-        return intentions.isEmpty() ? null
-                : couche.getContext().getString(R.string.indice_actions);
+        infoBulle.rafraichir(plages.get(0).caret());
     }
 
     private void placerCompletion() {
@@ -621,6 +606,7 @@ public final class PopupsEditeur {
         // la consultation se REPOSITIONNE au défilement (le régime du
         // genre — le câblage manquait au pont, l'orchestrateur le porte)
         docExterne.repositionner();
+        gabarits.repositionner();
     }
 
     /** Publie une notification au coin bas-droit — l'horloge la referme
@@ -666,6 +652,24 @@ public final class PopupsEditeur {
      *  l'en-tête, l'introuvable à la frontière. */
     public void ouvrirHierarchie() {
         hierarchies.ouvrir();
+    }
+
+    /** Ouvre la carte de génération et de gabarits au caret —
+     *  constructeur, accesseurs, equals/hashCode/toString, entourage
+     *  de la sélection, gabarit de méthode (le geste posé par
+     *  {@link #configurerGabaritMethode}). */
+    public void ouvrirGabarits() {
+        gabarits.ouvrir();
+    }
+
+    /** Pose le geste du gabarit de méthode (A-22) — le canal unique de
+     *  la refactorisation : la carte de gabarits n'est qu'une peau de
+     *  plus, elle ne duplique jamais la logique.
+     *
+     * @param geste l'insertion du gabarit de méthode, null pour rien
+     */
+    public void configurerGabaritMethode(@Nullable Runnable geste) {
+        gesteGabaritMethode = geste;
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors

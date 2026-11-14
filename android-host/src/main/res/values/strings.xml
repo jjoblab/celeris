@@ -3,6 +3,13 @@
      surcharge à sa langue — la carte de survol et l'aperçu de
      définition restent muets sans eux. -->
 <resources>
+    <string name="section_gabarits">Generate &amp; templates</string>
+    <string name="gabarits_constructeur">Constructor of %1$s</string>
+    <string name="gabarits_accesseurs">Getters and setters of %1$s</string>
+    <string name="gabarits_equality">equals, hashCode and toString of %1$s</string>
+    <string name="gabarits_entourer_try">Surround with try/catch</string>
+    <string name="gabarits_entourer_if">Surround with if</string>
+    <string name="gabarits_methode">Insert method template</string>
     <string name="titre_hierarchie_types">Type hierarchy of « %1$s »</string>
     <string name="titre_hierarchie_appels">Call hierarchy of « %1$s »</string>
     <string name="section_supertypes">Supertypes</string>
