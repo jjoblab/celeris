@@ -1,0 +1,27 @@
+{
+  "name": "celeris-simulateur-popups",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Le simulateur web de l'éditeur Celeris — la référence visuelle des popups : chaque genre y rend ses sections exactes, la machine à états du PopupController y tourne mot pour mot, l'ampoule d'intentions et les inlay hints y vivent.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lucide-react": "^0.525.0",
+    "next": "^16.1.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "tw-animate-css": "^1.3.5",
+    "typescript": "^5"
+  }
+}
