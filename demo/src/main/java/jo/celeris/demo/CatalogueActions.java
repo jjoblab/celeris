@@ -34,9 +34,6 @@ final class CatalogueActions {
     private final AtelierAgent agent;
     private final AtelierIA ia;
     private final PopupsEditeur popups;
-    /** Le pont provisoire des surfaces réveillées — les ouvertures des
-     *  cartes qui vivent encore dans la démonstration. */
-    private final PontSurfaces surfaces;
     private final AtelierRefactor refactor;
     private final AtelierRecherche recherche;
     private final BasculeTheme basculeTheme;
@@ -57,9 +54,6 @@ final class CatalogueActions {
      * @param agent          l'atelier de l'agent
      * @param ia             l'atelier IA (fantôme, prédiction)
      * @param popups         l'orchestrateur des popups (complétion, survol)
-     * @param surfaces       le pont des surfaces réveillées (usages,
-     *                       type, hiérarchie… — provisoire, la
-     *                       démonstration les teste)
      * @param refactor       l'atelier de refactorisation
      * @param recherche      l'atelier de recherche
      * @param basculeTheme   la bascule de thème
@@ -71,7 +65,7 @@ final class CatalogueActions {
     CatalogueActions(EditorActivity activite, String nomFichier,
             AtelierLint lint, AtelierDiff diff, AtelierCorrectif correctif,
             AtelierAgent agent,
-            AtelierIA ia, PopupsEditeur popups, PontSurfaces surfaces,
+            AtelierIA ia, PopupsEditeur popups,
             AtelierRefactor refactor,
             AtelierRecherche recherche, BasculeTheme basculeTheme,
             FeuilleReglages feuilleReglages,
@@ -86,7 +80,6 @@ final class CatalogueActions {
         this.agent = agent;
         this.ia = ia;
         this.popups = popups;
-        this.surfaces = surfaces;
         this.refactor = refactor;
         this.recherche = recherche;
         this.basculeTheme = basculeTheme;
@@ -125,7 +118,7 @@ final class CatalogueActions {
         actionsMenu.put(R.id.action_deplacer_dans, popups::deplacerDans);
         actionsMenu.put(R.id.action_masquer_inspection,
                 popups::masquerInspection);
-        actionsMenu.put(R.id.action_executer, surfaces::executerFichier);
+        actionsMenu.put(R.id.action_executer, popups::executerFichier);
         actionsMenu.put(R.id.action_plan, activite::basculerPlan);
         actionsMenu.put(R.id.action_debogage, () -> {
             activite.etatDebogage.basculerPause();
@@ -241,7 +234,7 @@ final class CatalogueActions {
                         libelle(R.string.action_masquer_inspection),
                         popups::masquerInspection),
                 new IntentionsMenuView.Item(libelle(R.string.action_executer),
-                        surfaces::executerFichier),
+                        popups::executerFichier),
                 new IntentionsMenuView.Item(libelle(R.string.action_diff),
                         diff::ouvrir),
                 new IntentionsMenuView.Item(

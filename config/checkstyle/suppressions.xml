@@ -22,8 +22,9 @@
          renommage du 2026-11-14, l'orchestrateur absorbe l'atelier de
          la démonstration) : il câble les satellites du chantier —
          chaque surface portée y gagne son lien, son serveur et sa
-         palette (639 lignes — l'audit Android Studio du 2026-11-14
-         y empile la fiche et pose l'indice d'actions) ; les satellites mêmes (TypeInfo,
+         palette (755 lignes — le port achevé du 2026-11-14 y câble les douze
+         satellites : les huit surfaces du feu vert, l'info-bulle et le
+         menu d'intentions en satellites, les fournisseurs vivants) ; les satellites mêmes (TypeInfo,
          DocAncre, SelecteurCouleur…) restent sous le plafond
          standard, l'orchestrateur seul porte les câbles. -->
     <suppress id="PlafondStandard" files="PopupsEditeur\.java"/>

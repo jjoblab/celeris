@@ -103,7 +103,6 @@ public final class EditorActivity extends AppCompatActivity {
     /** Le pont provisoire des surfaces réveillées — la démonstration
      *  teste les cartes du kit sur le manager de l'éditeur, le temps
      *  du déménagement chez l'orchestrateur. */
-    private PontSurfaces pontSurfaces;
     private AtelierRefactor atelierRefactor;
     private AtelierRecherche atelierRecherche;
     private AtelierSelection atelierSelection;
@@ -169,7 +168,7 @@ public final class EditorActivity extends AppCompatActivity {
         // trouvent montés — le menu, la carte et les intentions y lisent.
         catalogue = new CatalogueActions(this, nomFichier, atelierLint,
                 atelierDiff, atelierCorrectif, atelierAgent, atelierIA, popups,
-                pontSurfaces, atelierRefactor, atelierRecherche, basculeTheme,
+                atelierRefactor, atelierRecherche, basculeTheme,
                 feuilleReglages, () -> entreesPlan, this::lignesCourantes, barreToolbar);
         catalogue.brancher();
         popups.configurerIntentions(catalogue.intentions());
@@ -329,12 +328,11 @@ public final class EditorActivity extends AppCompatActivity {
         popups = new PopupsEditeur(editeur, session, couche,
                 basculeTheme.themeCourant(),
                 prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT), new CoachDemo());
-        brancherPont();
+        brancherGestesEditeur();
         // le verre des popups se dérive du fond de l'éditeur — la barre
         // de touches suit la même source.
         basculeTheme.setSurChangement(theme -> {
             popups.surTheme(theme);
-            rafraichirPont();
             if (barreToolbar != null) {
                 barreToolbar.surPalette(paletteFeuilles());
             }
@@ -358,18 +356,10 @@ public final class EditorActivity extends AppCompatActivity {
         brancherToolbar();
     }
 
-    /** Le pont provisoire des surfaces réveillées : la démonstration
-     *  teste les cartes du kit sur le manager de l'éditeur — chaque
-     *  surface portée chez l'hôte retirera sa ligne. */
-    private void brancherPont() {
-        PopupLayer couche = findViewById(R.id.couche_popups);
-        pontSurfaces = new PontSurfaces(editeur, session, popups.manager(),
-                Math.round(8f * couche.getResources()
-                        .getDisplayMetrics().density),
-                PalettesPopups.de(basculeTheme.themeCourant(),
-                        prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)),
-                () -> entreesPlan, () -> nomFichier,
-                popups::notifier);
+    /** Les gestes de l'hôte se posent chez l'orchestrateur — le pont
+     *  est mort : toutes les surfaces réveillées vivent chez
+     *  l'éditeur, la démonstration ne teste plus qu'elle-même. */
+    private void brancherGestesEditeur() {
         popups.configurerGabaritMethode(atelierRefactor::insererGabarit);
         popups.configurerRelanceLint(atelierLint::analyser);
     }
@@ -383,16 +373,6 @@ public final class EditorActivity extends AppCompatActivity {
         // la délégation clavier (chantier d'unification) : les touches
         // matérielles remontent aux popups AVANT la table de raccourcis
         editeur.setSurTouchePopup(popups::surTouche);
-    }
-
-    /** Le pont suit le thème et la taille — ses cartes se re-vêtent
-     *  de la palette fraîche de l'éditeur. */
-    private void rafraichirPont() {
-        if (pontSurfaces != null) {
-            pontSurfaces.surPalette(PalettesPopups.de(
-                    basculeTheme.themeCourant(),
-                    prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT)));
-        }
     }
 
     /** Le dépôt de départ : le débordement de la toolbar vit dans la
@@ -447,7 +427,6 @@ public final class EditorActivity extends AppCompatActivity {
             popups.surTailleTexte(
                     prefs.getFloat(CLE_TAILLE, TAILLE_DEFAUT));
         }
-        rafraichirPont();
         // M7.5, §9 — la retenue d'analyse et la surimpression de
         // diagnostic, depuis les préférences.
         sceneReglages.appliquer(prefs);
@@ -467,7 +446,6 @@ public final class EditorActivity extends AppCompatActivity {
         if (popups != null) {
             popups.surTailleTexte(bornee);
         }
-        rafraichirPont();
     }
 
     void rejouer(boolean enAvant) {

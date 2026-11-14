@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import jo.celeris.android.host.R;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.widgets.ExceptionView;
@@ -20,8 +21,9 @@ import jo.celeris.core.text.TextSession;
 
 
 /**
- * L'atelier d'exécution et d'exception de la démonstration (catégorie
- * E de l'inventaire — « Exception Details », la surface dormait) : le
+ * L'exécution et l'exception (la huitième surface portée de la
+ * démonstration à l'orchestrateur, 2026-11-14 — catégorie E de
+ * l'inventaire) : le
  * lancement passe par la fausse exécution de référence (E-04 — les
  * lancements vivent, les fins se simulent), l'échec SIMULÉ porte la
  * trace du document réel (le type englobant du caret, la méthode
@@ -36,7 +38,7 @@ import jo.celeris.core.text.TextSession;
  * l'éditeur — l'atelier transpose la trace en cadres ; le fichier
  * sans méthode ne peut échouer — l'exécution s'annonce terminée.</p>
  */
-final class AtelierException {
+final class ExceptionCarte {
 
     private final EditorView editeur;
     private final TextSession session;
@@ -51,7 +53,7 @@ final class AtelierException {
     private final BiConsumer<String, String> annonces;
 
     /**
-     * Construit l'atelier d'exception sur le coordinateur des popups :
+     * Construit l'exception sur le coordinateur des popups :
      * la carte naît liée à son genre, le patron des trois temps
      * (lier, déclencher, déléguer — USAGE §9).
      *
@@ -64,7 +66,7 @@ final class AtelierException {
      * @param nomFichier le nom du fichier ouvert
      * @param annonces   le canal des annonces (titre, message)
      */
-    AtelierException(EditorView editeur, TextSession session,
+    ExceptionCarte(EditorView editeur, TextSession session,
             PopupManager popups, int margePx, PopupPalette palette,
             Supplier<List<OutlineEntry>> plan, Supplier<String> nomFichier,
             BiConsumer<String, String> annonces) {

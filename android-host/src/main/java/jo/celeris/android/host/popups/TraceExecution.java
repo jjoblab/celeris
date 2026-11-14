@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +14,9 @@ import jo.celeris.core.text.Document;
 import org.jspecify.annotations.Nullable;
 
 /**
- * La trace d'exécution de la démonstration (catégorie E de
- * l'inventaire — « Exception Details », la surface dormait) : l'échec
+ * La trace d'exécution simulée (le déménagement du 2026-11-14,
+ * la huitième surface portée — catégorie E de l'inventaire, «
+ * Exception Details ») : l'échec
  * SIMULÉ naît du document réel — le type englobant du caret porte la
  * classe, la méthode englobante porte le sommet À LA LIGNE DU CARET
  * (jamais deviné : le plan seul sait), les cadres suivants descendent

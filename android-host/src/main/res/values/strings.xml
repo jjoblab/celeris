@@ -4,6 +4,9 @@
      définition restent muets sans eux. -->
 <resources>
     <string name="titre_notification">Notice</string>
+    <string name="execution_echec_message">The simulated run fails — the trace follows the outline of the file</string>
+    <string name="execution_echouee">Run failed — the exception details follow</string>
+    <string name="execution_terminee">Run finished — the file carries no method, nothing to fail</string>
     <string name="section_suppression">Suppress</string>
     <string name="suppression_item">Suppress %1$s</string>
     <string name="suppression_aucune_inspection">No inspection with a rule at this line</string>

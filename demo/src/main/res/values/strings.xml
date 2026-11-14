@@ -42,9 +42,6 @@
     <string name="action_deplacer_dans">Move method into a class</string>
     <string name="action_masquer_inspection">Suppress inspection on this line</string>
     <string name="action_executer">Run file (simulated)</string>
-    <string name="execution_echec_message">The simulated run fails — the trace follows the outline of the file</string>
-    <string name="execution_echouee">Run failed — the exception details follow</string>
-    <string name="execution_terminee">Run finished — the file carries no method, nothing to fail</string>
     <string name="titre_correctif_import">Import %1$s</string>
     <string name="barre_couper">Cut</string>
     <string name="barre_copier">Copy</string>

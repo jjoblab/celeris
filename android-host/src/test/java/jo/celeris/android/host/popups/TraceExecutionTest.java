@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -17,7 +17,8 @@ import jo.celeris.core.text.TextSession;
 import org.junit.jupiter.api.Test;
 
 /**
- * La trace d'exécution de la démonstration (catégorie E de
+ * La trace d'exécution chez l'orchestrateur (le déménagement du
+ * 2026-11-14 — reprise de la démonstration, catégorie E de
  * l'inventaire — « Exception Details », la surface dormait) : l'échec
  * SIMULÉ naît du document réel — le type englobant porte la classe,
  * la méthode englobante porte le sommet À LA LIGNE DU CARET, les

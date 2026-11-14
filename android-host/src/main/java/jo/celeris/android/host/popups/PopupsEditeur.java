@@ -72,7 +72,9 @@ public final class PopupsEditeur {
     private final CompletionListView listeCompletion;
     private final CompletionDocView docCompletion;
     private final SignatureHelpView aideSignature;
-    private final IntentionsMenuView menuIntentions;
+    /** Le menu d'intentions au curseur — son satellite porte la
+     *  pose (l'hôte pose les actions, la carte les sert). */
+    private final CarteIntentions carteIntentions;
     /** La fiche de diagnostic du lieu — le satellite la pose
      *  (l'audit Android Studio : les problèmes s'empilent). */
     private final InfoBulle infoBulle;
@@ -116,6 +118,10 @@ public final class PopupsEditeur {
      *  surface portée : la marque naît, le lint l'honore à sa
      *  relance (le geste de relance s'y configure). */
     private final Masquage masquage;
+    /** Les détails d'exception de l'exécution — la huitième
+     *  surface portée : l'échec simulé porte la trace du document
+     *  réel (le pont meurt avec elle). */
+    private final ExceptionCarte exception;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -178,16 +184,15 @@ public final class PopupsEditeur {
         listeCompletion = new CompletionListView(couche.getContext(), palette);
         docCompletion = new CompletionDocView(couche.getContext(), palette);
         aideSignature = new SignatureHelpView(couche.getContext(), palette);
-        menuIntentions = new IntentionsMenuView(couche.getContext(), palette);
+        carteIntentions = new CarteIntentions(editeur, popups, margePx,
+                palette, () -> intentions);
         infoBulle = new InfoBulle(editeur, session, popups, margePx,
                 palette, this::diagnostics, this::nomVif, () -> intentions);
         barreSelection = new SelectionBarView(couche.getContext(), palette);
-        // le lien des genres : une carte par genre, un genre par carte
-        // — le manager l'exige, le zombie d'état ne revient plus
+        // le lien des genres : une carte par genre — le manager l'exige
         popups.lier(PopupController.PopupKind.COMPLETION_LIST, listeCompletion);
         popups.lier(PopupController.PopupKind.COMPLETION_DOC, docCompletion);
         popups.lier(PopupController.PopupKind.SIGNATURE_HELP, aideSignature);
-        popups.lier(PopupController.PopupKind.INTENTIONS_MENU, menuIntentions);
         popups.lier(PopupController.PopupKind.SELECTION_BAR, barreSelection);
         // la section du débordement : le « MORE » du dépôt de départ,
         // l'hôte la surcharge à sa langue
@@ -205,9 +210,11 @@ public final class PopupsEditeur {
                 palette, this::planVif, () -> langue, () -> gesteGabaritMethode);
         surete = new Surete(editeur, session, popups, margePx, palette,
                 this::planVif, () -> langue, notifications::notifier);
-        masquage = new Masquage(editeur, session, popups, margePx,
-                palette, this::diagnostics, this::nomVif,
-                () -> relanceLint, notifications::notifier);
+        masquage = new Masquage(editeur, session, popups, margePx, palette,
+                this::diagnostics, this::nomVif, () -> relanceLint,
+                notifications::notifier);
+        exception = new ExceptionCarte(editeur, session, popups, margePx,
+                palette, this::planVif, this::nomVif, notifications::notifier);
         docAncre = new DocAncre(couche.getContext(), popups, editeur, session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx, palette, this::sauterDiagnostic);
         brancherEcouteurs();
@@ -245,7 +252,7 @@ public final class PopupsEditeur {
         listeCompletion.setPalette(palette);
         docCompletion.setPalette(palette);
         aideSignature.setPalette(palette);
-        menuIntentions.setPalette(palette);
+        carteIntentions.surPalette(palette);
         infoBulle.surPalette(palette);
         bordDroit.surPalette(palette);
         barreSelection.setPalette(palette);
@@ -259,6 +266,7 @@ public final class PopupsEditeur {
         gabarits.surPalette(palette);
         surete.surPalette(palette);
         masquage.surPalette(palette);
+        exception.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -412,22 +420,10 @@ public final class PopupsEditeur {
         }
     }
 
-    /** Ouvre le menu d'intentions au curseur — les actions de l'hôte. */
+    /** Ouvre le menu d'intentions au curseur — les actions de l'hôte
+     *  ({@link #configurerIntentions}), sans section. */
     public void ouvrirIntentions() {
-        if (intentions.isEmpty()) {
-            return;
-        }
-        // le menu d'intentions du caret ne porte AUCUNE section — la
-        // carte la laisse au débordement des barres
-        menuIntentions.setSection(null);
-        menuIntentions.setActions(intentions);
-        Rect curseur = editeur.caretBounds();
-        PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom,
-                popups.taille(PopupController.PopupKind.INTENTIONS_MENU),
-                largeurCouche(), hauteurCouche(), margePx);
-        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU,
-                placee.x(), placee.y());
+        carteIntentions.ouvrir();
     }
 
     /** Ouvre le survol du symbole au curseur — le « i » de la barre
@@ -605,7 +601,7 @@ public final class PopupsEditeur {
             rafraichirBarreSelection(session.selection());
         }
         if (popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU)) {
-            ouvrirIntentions();
+            carteIntentions.ouvrir();
         }
         // la consultation se REPOSITIONNE au défilement (le régime du
         // genre — le câblage manquait au pont, l'orchestrateur le porte)
@@ -613,6 +609,7 @@ public final class PopupsEditeur {
         gabarits.repositionner();
         surete.repositionner();
         masquage.repositionner();
+        exception.repositionner();
     }
 
     /** Publie une notification au coin bas-droit — l'horloge la referme
@@ -709,6 +706,15 @@ public final class PopupsEditeur {
      */
     public void configurerRelanceLint(@Nullable Runnable relance) {
         relanceLint = relance;
+    }
+
+    /** Exécute le fichier ouvert — l'échec simulé porte la trace du
+     *  document réel, la carte des détails se pose (régime de la
+     *  consultation : frappe épargnée, défilement repositionné) ; le
+     *  fichier sans méthode ne peut échouer — l'exécution s'annonce
+     *  terminée. */
+    public void executerFichier() {
+        exception.executer();
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors
