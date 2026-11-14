@@ -10,6 +10,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import jo.celeris.android.host.spi.CheminDoc;
+import jo.celeris.android.host.spi.DiagnosticHote;
+import jo.celeris.android.host.spi.GraviteDiagnostic;
+import jo.celeris.android.widgets.DiagnosticTooltipView;
 import jo.celeris.core.lsp.types.ElementCompletion;
 import jo.celeris.core.lsp.types.ListeCompletion;
 import jo.celeris.core.syntax.NodeCategory;
@@ -141,5 +145,42 @@ final class ContenuPopupsTest {
                 "l'élément documenté sert sa documentation");
         assertNull(ContenuPopups.docDe(reponse, 0),
                 "l'élément sans documentation n'en invente pas");
+    }
+
+    /** Les problèmes du LIEU (l'audit Android Studio : la fiche de
+     *  l'IDE de référence empile TOUTES les signatures de la
+     *  position — jamais une bulle par diagnostic) : les diagnostics
+     *  de la ligne s'empilent, l'étranger au fichier ne s'y glisse
+     *  pas, la ligne voisine non plus. */
+    @Test
+    void lesProblemesDuLieuSempilent() {
+        List<DiagnosticHote> diagnostics = List.of(
+                new DiagnosticHote(CheminDoc.de("/app/Exemple.java"), 4, 3,
+                        GraviteDiagnostic.ERREUR,
+                        "Point-virgule absent"),
+                new DiagnosticHote(CheminDoc.de("/app/Exemple.java"), 4, 8,
+                        GraviteDiagnostic.AVERTISSEMENT,
+                        "Variable jamais lue"),
+                new DiagnosticHote(CheminDoc.de("/app/Exemple.java"), 6, 1,
+                        GraviteDiagnostic.ERREUR,
+                        "Autre ligne, autre lieu"),
+                new DiagnosticHote(CheminDoc.de("/app/Autre.kt"), 4, 1,
+                        GraviteDiagnostic.ERREUR,
+                        "Autre fichier, autre lieu"));
+        List<DiagnosticTooltipView.Probleme> problemes =
+                ContenuPopups.problemesDe(diagnostics, "Exemple.java", 3);
+        assertEquals(2, problemes.size(),
+                "la fiche empile les deux problèmes de la ligne");
+        assertEquals("Point-virgule absent",
+                problemes.get(0).message());
+        assertEquals(DiagnosticTooltipView.Severity.ERROR,
+                problemes.get(0).severity());
+        assertEquals("Variable jamais lue", problemes.get(1).message());
+        assertEquals(DiagnosticTooltipView.Severity.WARNING,
+                problemes.get(1).severity());
+        assertTrue(ContenuPopups.problemesDe(diagnostics, "Exemple.java", 9)
+                .isEmpty(), "la ligne sans diagnostic ne pose rien");
+        assertTrue(ContenuPopups.problemesDe(diagnostics, "Absent.kt", 3)
+                .isEmpty(), "le fichier étranger ne se mélange jamais");
     }
 }

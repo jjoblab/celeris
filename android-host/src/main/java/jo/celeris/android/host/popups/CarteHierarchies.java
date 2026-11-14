@@ -1,4 +1,4 @@
-package jo.celeris.demo;
+package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
+import jo.celeris.android.host.R;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.NavigationCommands;
 import jo.celeris.android.widgets.HierarchiesView;
@@ -17,6 +19,7 @@ import jo.celeris.android.widgets.PopupController;
 import jo.celeris.android.widgets.PopupManager;
 import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
+
 import jo.celeris.core.intelligence.Hierarchies;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.NodeCategory;
@@ -26,25 +29,27 @@ import jo.celeris.core.text.Document;
 import jo.celeris.core.text.SelRange;
 import jo.celeris.core.text.TextSession;
 
+import org.jspecify.annotations.Nullable;
 
 /**
- * L'atelier des hiérarchies de la démonstration (catégorie C de
- * l'inventaire — les moteurs vivaient dans core-intelligence, la
- * surface dormait) : la hiérarchie de TYPES du symbole au curseur
- * quand il nomme un type, la hiérarchie d'APPELS quand il nomme une
- * méthode — le plan local décide la forme, le moteur sert l'arbre sur
- * le projet embarqué (le document ouvert), l'atelier transpose : le
- * sommet déclaré se prend et SAUTE à sa déclaration, l'introuvable
- * (hors projet) se lit muet, le doute se porte en légende. La carte
- * se pose sous le curseur, bornée ; les régimes suivrent seuls
- * (frappe, défilement, tap hors cartes, exclusions des surfaces
- * d'actions — le manager tient tout, l'atelier déclenche).
+ * Les hiérarchies de types et d'appels (la quatrième surface portée de
+ * la démonstration à l'orchestrateur, 2026-11-14) : la hiérarchie de
+ * TYPES du symbole au curseur quand il nomme un type, la hiérarchie
+ * d'APPELS quand il nomme une méthode — le plan local décide la forme,
+ * le moteur du cœur sert l'arbre sur le projet embarqué, le satellite
+ * transpose. L'audit Android Studio du 2026-11-14 y aligne l'arbre sur
+ * l'IDE de référence : la racine y vit UNE fois — l'EN-TÊTE la nomme
+ * (l'arbre de l'IDE porte le type interrogé à sa racine, jamais il ne
+ * se répète dans les sections), l'introuvable vit à la FRONTIÈRE
+ * seule (jamais deux fois muet). Le sommet déclaré se prend et SAUTE
+ * à sa déclaration, l'introuvable se lit muet, le doute se porte en
+ * légende.
  *
  * <p>La frontière tient : la carte ne connaît NI le moteur, NI
- * l'éditeur — l'atelier sert d'intermédiaire, la transpose vit en
- * pur ({@link Transpose}) et se prouve au banc.</p>
+ * l'éditeur — le satellite transpose via la classe pure
+ * {@link Transpose}, prouvée au banc.</p>
  */
-final class AtelierHierarchies {
+final class CarteHierarchies {
 
     private final EditorView editeur;
     private final TextSession session;
@@ -52,15 +57,16 @@ final class AtelierHierarchies {
     private final int margePx;
     private final HierarchiesView carte;
     /** Le plan courant du fichier — la forme de l'arbre s'y décide. */
-    private final java.util.function.Supplier<List<OutlineEntry>> plan;
-    /** Le nom du fichier ouvert — la clé du projet embarqué, lue au
-     *  déclenchement (il se pose après la construction). */
-    private final java.util.function.Supplier<String> nomFichier;
+    private final Supplier<List<OutlineEntry>> plan;
+    /** Le nom du fichier ouvert — la clé du projet embarqué. */
+    private final Supplier<String> nomFichier;
+    /** Le langage du fichier ouvert — la syntaxe s'y lit. */
+    private final Supplier<@Nullable LanguageSupport> langue;
 
     /**
-     * Construit l'atelier des hiérarchies sur le coordinateur des
-     * popups : la carte naît liée à son genre, le patron des trois
-     * temps (lier, déclencher, déléguer — USAGE §9).
+     * Construit les hiérarchies sur le coordinateur des popups : la
+     * carte naît liée à son genre, le patron des trois temps (lier,
+     * déclencher, déléguer — USAGE §9).
      *
      * @param editeur    la vue d'éditeur ouverte
      * @param session    la session d'édition courante
@@ -69,17 +75,20 @@ final class AtelierHierarchies {
      * @param palette    la palette courante des popups
      * @param plan       le plan courant du fichier ouvert
      * @param nomFichier le nom du fichier ouvert, lu au déclenchement
+     * @param langue     le langage du fichier ouvert, null sans syntaxe
      */
-    AtelierHierarchies(EditorView editeur, TextSession session,
+    CarteHierarchies(EditorView editeur, TextSession session,
             PopupManager popups, int margePx, PopupPalette palette,
-            java.util.function.Supplier<List<OutlineEntry>> plan,
-            java.util.function.Supplier<String> nomFichier) {
+            Supplier<List<OutlineEntry>> plan,
+            Supplier<String> nomFichier,
+            Supplier<@Nullable LanguageSupport> langue) {
         this.editeur = editeur;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
         this.plan = plan;
         this.nomFichier = nomFichier;
+        this.langue = langue;
         this.carte = new HierarchiesView(popups.couche().getContext(),
                 palette);
         popups.lier(PopupController.PopupKind.HIERARCHY, carte);
@@ -99,12 +108,11 @@ final class AtelierHierarchies {
      */
     void ouvrir() {
         Document document = session.document();
-        String symbole = PopupCoach.symboleA(document, caret());
+        String symbole = ContenuPopups.symboleA(document, caret());
         if (symbole == null) {
             return;
         }
-        LanguageSupport support = LangagesDemo.langageDe(nomFichier.get(),
-                null, document.text());
+        LanguageSupport support = langue.get();
         if (support == null || support.syntax() == null) {
             return;
         }
@@ -117,7 +125,8 @@ final class AtelierHierarchies {
         }
     }
 
-    /** Pose la hiérarchie de types du nom — les sections suivent, la
+    /** Pose la hiérarchie de types du nom — les sections suivent (la
+     *  racine vit à l'en-tête, l'introuvable à la frontière), la
      *  carte se montre sous le curseur. */
     private void poserTypes(String symbole, Document document,
             SyntaxService syntaxe, List<OutlineEntry> entrees) {
@@ -138,8 +147,9 @@ final class AtelierHierarchies {
         montrer();
     }
 
-    /** Pose la hiérarchie d'appels du nom — les appelants suivent, le
-     *  doute se porte en légende, la carte se montre sous le curseur. */
+    /** Pose la hiérarchie d'appels du nom — les appelants suivent (la
+     *  racine vit à l'en-tête), le doute se porte en légende, la
+     *  carte se montre sous le curseur. */
     private void poserAppels(String symbole, Document document,
             SyntaxService syntaxe, List<OutlineEntry> entrees) {
         Hierarchies.HierarchieAppels arbre = Hierarchies.appelants(symbole,
@@ -185,8 +195,8 @@ final class AtelierHierarchies {
         }
     }
 
-    /** Les noms déclarés du plan — les sommets prenants se y lisent. */
-    private Set<String> connusDe(List<OutlineEntry> entrees) {
+    /** Les noms déclarés du plan — les sommets prenants s'y lisent. */
+    private static Set<String> connusDe(List<OutlineEntry> entrees) {
         Set<String> connus = new HashSet<>();
         for (OutlineEntry entree : entrees) {
             connus.add(entree.name());
@@ -228,11 +238,13 @@ final class AtelierHierarchies {
     }
 
     /**
-     * La transpose du moteur à la carte — pure et prouvée au banc :
-     * le sommet CONNU se prend (le sauteur de l'atelier y court, le
-     * banc y enregistre ses courses), l'introuvable vit muet, la
-     * racine d'abord — les libellés arrivent localisés, la carte
-     * reste pure.
+     * La transpose du moteur à la carte — pure et prouvée au banc
+     * (l'audit Android Studio du 2026-11-14 y aligne l'arbre sur
+     * l'IDE de référence) : la RACINE vit UNE fois — l'en-tête de la
+     * carte la nomme (l'arbre de l'IDE porte le type interrogé à sa
+     * racine, jamais il ne se répète dans les sections) ; le sommet
+     * CONNU se prend (le sauteur y court), l'INTROUVABLE vit muet à
+     * la frontière SEULE (jamais deux fois muet).
      */
     static final class Transpose {
 
@@ -242,14 +254,15 @@ final class AtelierHierarchies {
         /**
          * Les sections de la hiérarchie de types : les SUPERTYPES par
          * générations, les SOUS-TYPES en profondeur, la FRONTIÈRE hors
-         * projet en introuvables muets.
+         * projet en introuvables muets — la racine et les introuvables
+         * des sections en ligne n'y vivent pas.
          *
-         * @param arbre       la hiérarchie servie par le moteur
-         * @param connus      les noms déclarés du plan — seuls ils se prennent
-         * @param sauteur     le saut du sommet choisi (l'atelier l'exécute)
-         * @param libelleSuper  le libellé de section des supertypes
-         * @param libelleSous   le libellé de section des sous-types
-         * @param libelleHors   le libellé de section de la frontière
+         * @param arbre        la hiérarchie servie par le moteur
+         * @param connus       les noms déclarés du plan — seuls ils se prennent
+         * @param sauteur      le saut du sommet choisi (le satellite l'exécute)
+         * @param libelleSuper le libellé de section des supertypes
+         * @param libelleSous  le libellé de section des sous-types
+         * @param libelleHors  le libellé de section de la frontière
          * @return les sections, dans l'ordre du rendu
          */
         static List<HierarchiesView.Section> deTypes(
@@ -257,10 +270,18 @@ final class AtelierHierarchies {
                 Consumer<String> sauteur, String libelleSuper,
                 String libelleSous, String libelleHors) {
             List<HierarchiesView.Section> sections = new ArrayList<>();
-            sections.add(new HierarchiesView.Section(libelleSuper,
-                    sommetsDe(arbre.ancetres(), connus, sauteur)));
-            sections.add(new HierarchiesView.Section(libelleSous,
-                    sommetsDe(arbre.descendants(), connus, sauteur)));
+            List<HierarchiesView.Sommet> supertypes = sommetsDe(
+                    arbre.ancetres(), arbre.introuvables(), connus, sauteur);
+            if (!supertypes.isEmpty()) {
+                sections.add(new HierarchiesView.Section(libelleSuper,
+                        supertypes));
+            }
+            List<HierarchiesView.Sommet> soustypes = sommetsDe(
+                    arbre.descendants(), List.of(), connus, sauteur);
+            if (!soustypes.isEmpty()) {
+                sections.add(new HierarchiesView.Section(libelleSous,
+                        soustypes));
+            }
             if (!arbre.introuvables().isEmpty()) {
                 List<HierarchiesView.Sommet> frontiere = new ArrayList<>();
                 for (String introuvable : arbre.introuvables()) {
@@ -275,11 +296,12 @@ final class AtelierHierarchies {
 
         /**
          * Les sections de la hiérarchie d'appels : les APPELANTS en
-         * arbre, la racine d'abord — chaque sommet porte sa profondeur.
+         * arbre, la racine vit à l'en-tête — chaque sommet porte sa
+         * profondeur.
          *
-         * @param arbre         la hiérarchie servie par le moteur
-         * @param connus        les noms déclarés du plan — seuls ils se prennent
-         * @param sauteur       le saut du sommet choisi (l'atelier l'exécute)
+         * @param arbre            la hiérarchie servie par le moteur
+         * @param connus           les noms déclarés du plan — seuls ils se prennent
+         * @param sauteur          le saut du sommet choisi (le satellite l'exécute)
          * @param libelleAppelants le libellé de section des appelants
          * @return la section unique des appelants
          */
@@ -287,16 +309,23 @@ final class AtelierHierarchies {
                 Hierarchies.HierarchieAppels arbre, Set<String> connus,
                 Consumer<String> sauteur, String libelleAppelants) {
             return List.of(new HierarchiesView.Section(libelleAppelants,
-                    sommetsDe(arbre.appelants(), connus, sauteur)));
+                    sommetsDe(arbre.appelants(), List.of(),
+                            connus, sauteur)));
         }
 
         /** Les sommets de l'arbre — le connu se prend (le sauteur y
-         *  court), le hors projet vit muet (null au saut). */
+         *  court) ; la RACINE (profondeur zéro) vit à l'en-tête, le
+         *  HORS PROJET vit muet à la frontière : ni l'un ni l'autre
+         *  ne se répète en ligne. */
         private static List<HierarchiesView.Sommet> sommetsDe(
-                List<Hierarchies.Sommet> arbre, Set<String> connus,
-                Consumer<String> sauteur) {
+                List<Hierarchies.Sommet> arbre, List<String> introuvables,
+                Set<String> connus, Consumer<String> sauteur) {
             List<HierarchiesView.Sommet> sommets = new ArrayList<>();
             for (Hierarchies.Sommet sommet : arbre) {
+                if (sommet.profondeur() == 0
+                        || introuvables.contains(sommet.nom())) {
+                    continue;
+                }
                 sommets.add(new HierarchiesView.Sommet(sommet.nom(),
                         sommet.profondeur(), connus.contains(sommet.nom())
                                 ? () -> sauteur.accept(sommet.nom()) : null));

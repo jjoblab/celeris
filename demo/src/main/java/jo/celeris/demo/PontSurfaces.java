@@ -22,12 +22,11 @@ import jo.celeris.core.text.TextSession;
  * démonstration n'y fait que TESTER les cartes du kit, son rôle
  * exact ; le pont meurt pièce par pièce — chaque surface portée chez
  * l'hôte (moteur en core, câblage dans l'orchestrateur) retire sa
- * ligne et son atelier : l'info de type, les usages et la
- * documentation externe y vivent déjà.
+ * ligne et son atelier : l'info de type, les usages, la
+ * documentation externe et les hiérarchies y vivent déjà.
  */
 final class PontSurfaces {
 
-    private final AtelierHierarchies hierarchies;
     private final AtelierGabarits gabarits;
     private final AtelierSurete surete;
     private final AtelierSuppression masquage;
@@ -56,8 +55,6 @@ final class PontSurfaces {
             Supplier<List<DiagnosticHote>> diagnostics,
             Runnable gabaritMethode, Runnable relancerLint,
             BiConsumer<String, String> annoncer) {
-        hierarchies = new AtelierHierarchies(editeur, session, popups,
-                margePx, palette, plan, nomDuFichier);
         gabarits = new AtelierGabarits(editeur, session, popups, margePx,
                 palette, plan, nomDuFichier, gabaritMethode);
         surete = new AtelierSurete(editeur, session, popups, margePx,
@@ -71,16 +68,10 @@ final class PontSurfaces {
 
     /** La palette tourne : les cartes du pont la suivent. */
     void surPalette(PopupPalette palette) {
-        hierarchies.surPalette(palette);
         gabarits.surPalette(palette);
         surete.surPalette(palette);
         masquage.surPalette(palette);
         exception.surPalette(palette);
-    }
-
-    /** Ouvre la hiérarchie du symbole au curseur. */
-    void ouvrirHierarchie() {
-        hierarchies.ouvrir();
     }
 
     /** Ouvre la carte de génération et de gabarits au caret. */

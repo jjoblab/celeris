@@ -2,12 +2,10 @@ package jo.celeris.android.host.popups;
 
 import android.graphics.Rect;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import jo.celeris.android.host.R;
 import jo.celeris.android.host.spi.DiagnosticHote;
-import jo.celeris.android.host.spi.GraviteDiagnostic;
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.CompletionDocModel;
@@ -101,6 +99,10 @@ public final class PopupsEditeur {
      *  surface portée : la consultation vit le régime qui se
      *  REPOSITIONNE au défilement. */
     private final DocExterne docExterne;
+    /** Les hiérarchies de types et d'appels du symbole au curseur —
+     *  la quatrième surface portée : l'arbre de l'IDE de référence,
+     *  la racine vit à l'en-tête (l'audit Android Studio). */
+    private final CarteHierarchies hierarchies;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -108,6 +110,8 @@ public final class PopupsEditeur {
     private float tailleTexteSp;
 
     private List<DiagnosticHote> diagnostics = List.of();
+    /** Le plan du fichier ouvert — la hiérarchie y lit sa forme. */
+    private List<OutlineEntry> plan = List.of();
     private List<IntentionsMenuView.Item> intentions = List.of();
     private List<SelectionBarView.Item> actionsSelection = List.of();
     /** Les actions repliées derrière la puce de débordement. */
@@ -116,6 +120,9 @@ public final class PopupsEditeur {
     private String nomDuFichier = "";
     /** La session de langage branchée — null retombe sur le coach. */
     private @Nullable LanguageSession serveur;
+    /** Le langage du fichier ouvert — la syntaxe des hiérarchies s'y
+     *  lit, null sans langage. */
+    private @Nullable LanguageSupport langue;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
     /** La frappe en cours : la sélection qui suit ne rouvre pas l'info-bulle. */
@@ -176,6 +183,9 @@ public final class PopupsEditeur {
         usages = new Usages(editeur, session, popups, margePx, palette);
         docExterne = new DocExterne(editeur, session, popups, margePx,
                 palette, coach);
+        hierarchies = new CarteHierarchies(editeur, session, popups,
+                margePx, palette, this::planVif, this::nomVif,
+                () -> langue);
         docAncre = new DocAncre(couche.getContext(), popups, editeur,
                 session, margePx, palette, coach);
         bordDroit = new BordDroit(popups, editeur, session, margePx,
@@ -225,6 +235,7 @@ public final class PopupsEditeur {
         typeInfo.surPalette(palette);
         usages.surPalette(palette);
         docExterne.surPalette(palette);
+        hierarchies.surPalette(palette);
         menuDebordement.surPalette(palette);
         docAncre.surPalette(palette);
     }
@@ -251,13 +262,15 @@ public final class PopupsEditeur {
      * @param langue        le support du langage du document, null pour « text »
      */
     public void brancherServeur(LanguageSession sessionLangage, String uri,
-            @Nullable LanguageSupport langue) {
+            @Nullable LanguageSupport langueParam) {
         this.serveur = sessionLangage;
         this.uriDocument = uri;
+        this.langue = langueParam;
         docAncre.brancherServeur(sessionLangage, uri);
         usages.brancherServeur(sessionLangage, uri);
         docExterne.brancherServeur(sessionLangage, uri);
-        sessionLangage.ouvrir(uri, langue == null ? "text" : langue.id(),
+        sessionLangage.ouvrir(uri,
+                langueParam == null ? "text" : langueParam.id(),
                 session.document().text());
     }
 
@@ -278,8 +291,10 @@ public final class PopupsEditeur {
         return selecteurCouleur.ouvrirAuDoubleTap(offset);
     }
 
-    /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement. */
+    /** Le plan du fichier ouvert — le fil d'Ariane s'y abreuvement,
+     *  les hiérarchies y lisent la forme de l'arbre. */
     public void setPlan(List<OutlineEntry> entrees) {
+        plan = List.copyOf(entrees);
         filAriane.setPlan(entrees);
         filAriane.rafraichir();
     }
@@ -513,18 +528,9 @@ public final class PopupsEditeur {
         }
         int ligne = session.document().lineForOffset(plages.get(0).caret());
         // l'audit Android Studio : la fiche empile TOUS les problèmes
-        // du lieu — jamais une bulle par diagnostic
-        List<DiagnosticTooltipView.Probleme> problemes = new ArrayList<>();
-        for (DiagnosticHote diagnostic : diagnostics) {
-            if (diagnostic.ligne() == ligne + 1
-                    && diagnostic.chemin().nom().equals(nomDuFichier)) {
-                problemes.add(new DiagnosticTooltipView.Probleme(
-                        diagnostic.message(),
-                        diagnostic.gravite() == GraviteDiagnostic.ERREUR
-                                ? DiagnosticTooltipView.Severity.ERROR
-                                : DiagnosticTooltipView.Severity.WARNING));
-            }
-        }
+        // du lieu — la décision pure vit chez ContenuPopups
+        List<DiagnosticTooltipView.Probleme> problemes =
+                ContenuPopups.problemesDe(diagnostics, nomDuFichier, ligne);
         if (problemes.isEmpty()) {
             return;
         }
@@ -654,6 +660,14 @@ public final class PopupsEditeur {
         docExterne.ouvrir();
     }
 
+    /** Ouvre la hiérarchie du symbole au curseur — de TYPES quand il
+     *  nomme un type, d'APPELS quand il nomme une méthode (le plan
+     *  décide) ; l'arbre de l'IDE de référence : la racine vit à
+     *  l'en-tête, l'introuvable à la frontière. */
+    public void ouvrirHierarchie() {
+        hierarchies.ouvrir();
+    }
+
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors
      *  cartes se coupe, les liens se dissolvent — la scène peut recycler. */
     public void detacher() {
@@ -663,6 +677,17 @@ public final class PopupsEditeur {
     /** Pose le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     public void setNomFichier(String nom) {
         nomDuFichier = nom;
+    }
+
+    /** Le plan VIF du fichier ouvert — les hiérarchies y lisent la
+     *  forme de l'arbre au déclenchement. */
+    private List<OutlineEntry> planVif() {
+        return plan;
+    }
+
+    /** Le nom VIF du fichier ouvert — la clé du projet embarqué. */
+    private String nomVif() {
+        return nomDuFichier;
     }
 
     private int largeurCouche() {

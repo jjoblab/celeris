@@ -2,6 +2,13 @@
 <!-- Les libellés français des popups de l'éditeur (ADR-008 : la
      parité des chaînes affichées, valeurs/ ↔ values-fr/). -->
 <resources>
+    <string name="titre_hierarchie_types">Hiérarchie de types de « %1$s »</string>
+    <string name="titre_hierarchie_appels">Hiérarchie d\'appels de « %1$s »</string>
+    <string name="section_supertypes">Supertypes</string>
+    <string name="section_soustypes">Sous-types</string>
+    <string name="section_appelants">Appelants</string>
+    <string name="section_hors_projet">Hors projet</string>
+    <string name="legende_doute_hierarchie">Des sites d\'appels ne se résolvent pas — le doute se montre, jamais ne se tranche</string>
     <string name="titre_usages">%1$d usages de « %2$s »</string>
     <string name="indice_actions">Plus d\'actions · menu d\'intentions</string>
     <string name="menu_plus">PLUS</string>

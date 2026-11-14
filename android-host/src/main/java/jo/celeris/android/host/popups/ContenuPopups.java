@@ -11,6 +11,7 @@ import jo.celeris.android.host.spi.GraviteDiagnostic;
 import jo.celeris.android.widgets.BadgeGenre;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionListView;
+import jo.celeris.android.widgets.DiagnosticTooltipView;
 import jo.celeris.android.widgets.ErrorBandModel;
 import jo.celeris.core.lsp.types.ElementCompletion;
 import jo.celeris.core.lsp.types.ListeCompletion;
@@ -240,6 +241,34 @@ public final class ContenuPopups {
      * @param document    le document ouvert (offsets de ligne)
      * @return les issues, dans l'ordre des diagnostics
      */
+    /**
+     * Les problèmes du LIEU (l'audit Android Studio du 2026-11-14 :
+     * la fiche de l'IDE de référence empile TOUTES les signatures de
+     * la position — jamais une bulle par diagnostic) : les diagnostics
+     * du fichier ouvert portés par la ligne, chacun son message et sa
+     * sévérité.
+     *
+     * @param diagnostics les diagnostics de l'hôte
+     * @param nomFichier  le nom du fichier ouvert — le filtre s'y fait
+     * @param ligne       la ligne visitée, à partir de zéro
+     * @return les problèmes de la ligne, vides sans diagnostic
+     */
+    public static List<DiagnosticTooltipView.Probleme> problemesDe(
+            List<DiagnosticHote> diagnostics, String nomFichier, int ligne) {
+        List<DiagnosticTooltipView.Probleme> problemes = new ArrayList<>();
+        for (DiagnosticHote diagnostic : diagnostics) {
+            if (diagnostic.ligne() == ligne + 1
+                    && diagnostic.chemin().nom().equals(nomFichier)) {
+                problemes.add(new DiagnosticTooltipView.Probleme(
+                        diagnostic.message(),
+                        diagnostic.gravite() == GraviteDiagnostic.ERREUR
+                                ? DiagnosticTooltipView.Severity.ERROR
+                                : DiagnosticTooltipView.Severity.WARNING));
+            }
+        }
+        return problemes;
+    }
+
     public static List<SyntaxIssue> issues(List<DiagnosticHote> diagnostics,
             String nomFichier, Document document) {
         List<SyntaxIssue> issues = new ArrayList<>();
