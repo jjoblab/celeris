@@ -5,7 +5,7 @@
 [versions]
 # Chaîne de build (ADR-001) — Gradle est épinglé par le wrapper (somme de
 # contrôle dans gradle/wrapper/gradle-wrapper.properties).
-agp = "9.5.0"
+agp = "9.5.1"
 # Qualité (ADR-002 : plafonds ; ADR-009 : nullité ; ADR-010 : mutation).
 # JDK 17 seul (ADR-001, révision du 2026-11-17) : Error Prone 2.43.0 et
 # Checkstyle 13.0.0 sont compilés pour Java 21 (classe majeure 65) — 2.42.0
@@ -15,7 +15,7 @@ agp = "9.5.0"
 # déjà en bytecode Java 17 ou moins.
 checkstyle = "12.3.1"
 pmd = "7.29.0"
-errorprone = "2.42.0"
+errorprone = "2.52.0"
 errorpronePlugin = "5.2.0"
 nullaway = "0.14.3"
 jspecify = "1.0.1"
@@ -24,14 +24,14 @@ archunit = "1.5.1"
 # Tests (ADR-010)
 junitJupiter = "6.1.3"
 jqwik = "1.10.2"
-pitest = "1.30.1"
+pitest = "1.30.2"
 pitestJunit5 = "1.2.3"
 # Tests de vue sur JVM (ADR-013 — vérifiées sur Maven Central le
 # 2026-11-08) : Robolectric se pilote par son lanceur JUnit 4, porté
 # sur la plateforme Jupiter par le moteur vintage (même version que
 # Jupiter, alignement du train de tests).
 junit4 = "4.13.2"
-robolectric = "4.15.1"
+robolectric = "4.18"
 # Étage SDK des tests de vue (ADR-013) : Robolectric télécharge le jar
 # android-all au premier démarrage du test, par HTTP direct et sans
 # reprise — un bridage transitoire de Maven Central (429 observé le
@@ -49,7 +49,7 @@ robolectricAndroidAll = "15-robolectric-12650502-i7"
 # tape et capture sur la vraie vitre.
 androidxTestRunner = "1.6.2"
 androidxTestExtJunit = "1.2.1"
-androidxTestUiAutomator = "2.3.0"
+androidxTestUiAutomator = "2.4.1"
 # Publication (ADR-011 : SBOM)
 cyclonedx = "3.5.1"
 # Version de l'application de démonstration (non publiée) — toute
@@ -60,7 +60,7 @@ demo = "1.0.0"
 # 2026-11-06, compatibles compileSdk 36)
 androidxActivity = "1.12.0"
 androidxAppcompat = "1.8.0"
-androidxCore = "1.18.0"
+androidxCore = "1.19.1"
 androidxRecyclerview = "1.4.0"
 material = "1.14.0"
 # Désucrage des bibliothèques du cœur (M8.6) : la frontière
@@ -70,8 +70,8 @@ desugarJdkLibs = "2.1.5"
 # Moteur d'expressions rationnelles des grammaires TextMate (M7.6,
 # ADR-014) : portage Java d'Oniguruma, sémantique de référence du
 # format — vérifiées sur Maven Central le 2026-11-09 (POM MIT lus).
-joni = "2.2.9"
-jcodings = "1.0.64"
+joni = "2.2.10"
+jcodings = "1.0.65"
 # Client LSP sur bibliothèque (M7.6, ADR-015) : le protocole et le
 # JSON-RPC viennent de la bibliothèque derrière la frontière
 # lsp-protocole — licence EPL-2.0 OU BSD-3-Clause (consommable sous
@@ -81,7 +81,7 @@ lsp4j = "1.0.0"
 # La copie unique de Gson (ADR-015, décision 3) : une version dans
 # l'intervalle exigé par la bibliothèque, épinglée pour maîtriser
 # l'octet du runtime — vérifiée sur Maven Central le 2026-11-09.
-gson = "2.10.1"
+gson = "2.15.0"
 
 [libraries]
 # Dépendances de test (modules purs et Android)
