@@ -6,10 +6,16 @@
 # Chaîne de build (ADR-001) — Gradle est épinglé par le wrapper (somme de
 # contrôle dans gradle/wrapper/gradle-wrapper.properties).
 agp = "9.5.0"
-# Qualité (ADR-002 : plafonds ; ADR-009 : nullité ; ADR-010 : mutation)
-checkstyle = "14.4.0"
+# Qualité (ADR-002 : plafonds ; ADR-009 : nullité ; ADR-010 : mutation).
+# JDK 17 seul (ADR-001, révision du 2026-11-17) : Error Prone 2.43.0 et
+# Checkstyle 13.0.0 sont compilés pour Java 21 (classe majeure 65) — 2.42.0
+# et 12.3.1 sont leurs dernières versions tenables sur JDK 17, vérifiées
+# jar par jar sur Maven Central le 2026-11-17. NullAway (0.14.3), PMD,
+# JaCoCo, PIT, JUnit, Robolectric et le plugin Error Prone 5.2.0 tiennent
+# déjà en bytecode Java 17 ou moins.
+checkstyle = "12.3.1"
 pmd = "7.29.0"
-errorprone = "2.52.0"
+errorprone = "2.42.0"
 errorpronePlugin = "5.2.0"
 nullaway = "0.14.3"
 jspecify = "1.0.1"

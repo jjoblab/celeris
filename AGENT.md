@@ -9,7 +9,7 @@ le propriétaire le 2026-11-04 ; le point d'entrée du cadrage est
 ## Vue d'ensemble
 
 Réécriture complète de l'éditeur de code embarquable : **Java 17**
-(artefacts) construit sur **JDK 21**, rendu Canvas, douze modules plus la
+partout — artefacts et construction sur **JDK 17**, rendu Canvas, douze modules plus la
 démonstration (ADR-002, la voie de grammaires s'y ajoute à M4,
 la frontière protocolaire du LSP à M7.6) :
 
@@ -32,7 +32,7 @@ la frontière protocolaire du LSP à M7.6) :
 ## Commandes (vérifiées)
 
 ```bash
-export JAVA_HOME=<jdk-21>            # javac exigé
+export JAVA_HOME=<jdk-17>            # javac exigé
 ./gradlew check                      # politique + qualité de chaque module
 ./gradlew :core-text:check           # un module pur
 ./gradlew :core-text:mutationThreshold   # mutation (seuil 80 %)

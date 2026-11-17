@@ -54,7 +54,7 @@ des bibliothèques Android ; l'hôte assemble.
 | `android-host` | Android | les adaptateurs hôte : SPI VCS/exécution/débogueur, fichiers |
 | `cli` | application JVM | l'exécutable sans Android — voir § 15 |
 
-Exigences vérifiées : artefacts **Java 17** construits sur JDK 21,
+Exigences vérifiées : artefacts **Java 17** construits sur JDK 17,
 `minSdk 26`, `compileSdk 36`, licence Apache-2.0, aucune dépendance au
 runtime Kotlin. Le seul module qui expose la bibliothèque LSP4J est
 `lsp-protocole` — votre code hôte n'en voit jamais le nom (ADR-015) ;

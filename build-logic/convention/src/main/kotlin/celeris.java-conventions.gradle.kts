@@ -23,8 +23,9 @@ plugins {
 
 val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
-// JDK 21 en construction, artefacts de niveau 17, avertissements bloquants
-// (ADR-001) ; Javadoc et plateforme de test communes.
+// JDK 17 en construction et en artefacts, avertissements bloquants
+// (ADR-001, révisé le 2026-11-17 : JDK 17 seul) ; Javadoc et plateforme
+// de test communes.
 configurePureJavac()
 configureJavadoc()
 configureTestPlatform()

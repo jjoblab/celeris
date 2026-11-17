@@ -1,6 +1,6 @@
 # ADR-001 — Langage et chaîne d'outils
 
-- **Statut** : Acceptée (validée par le propriétaire le 2026-11-04)
+- **Statut** : Acceptée (validée par le propriétaire le 2026-11-04) ; révisée le 2026-11-17 — la chaîne vit à JDK 17 seul (décision du propriétaire)
 - **Date** : 2026-11-04
 
 ## Contexte
@@ -22,13 +22,14 @@ la plateforme et du système de build, agrégateurs de distribution) :
 | Gradle | 9.8.2 (octobre 2026) | site officiel des versions |
 | `compileSdk` | 36 (Android 16 stable ; le niveau 37 est en bêta) | documentation plateforme |
 | `targetSdk` | 36 — imposé par le magasin pour les mises à jour depuis août 2026 | politique de publication |
-| JDK | 21 LTS utilisé pour construire ; artefacts de niveau 17 | — |
+| JDK | 17 LTS pour construire ; artefacts de niveau 17 (révision du 2026-11-17) | — |
 
 ## Décision proposée
 
 1. **Java uniquement** pour tout code versionné (bibliothèques, démo, cli,
    tests), niveau de langage **17** pour les artefacts publiés ; construction
-   et CI sur JDK 21 LTS. Le niveau 17 maximise la compatibilité des
+   et CI sur JDK 17 LTS (révision du 2026-11-17 : le propriétaire impose
+   Java 17 seul). Le niveau 17 maximise la compatibilité des
    consommateurs ; l'absence de Kotlin tient le cœur exempt de runtime tiers.
 2. **Groovy est écarté** ; les scripts de build utilisent le DSL Kotlin, à
    raison : le DSL Kotlin reste confiné aux fichiers de build et à
@@ -58,9 +59,12 @@ la plateforme et du système de build, agrégateurs de distribution) :
 - Maintenir deux grammaires de build (Kotlin DSL pour décrire du Java) est un
   coût d'apprentissage mineur, payé une fois, contre la sûreté de typage des
   plugins de convention.
-- Le niveau 17 renonce aux API JDK 21 dans le code publié ; les gains
-  éventuels (séquences virtualisées, etc.) sont différés jusqu'à ce qu'un ADR
-  relève le plancher.
+- Le niveau 17 renonce aux API JDK 21 partout — construction comprise
+  (révision du 2026-11-17) ; les gains éventuels (séquences virtualisées,
+  etc.) sont différés jusqu'à ce qu'un ADR relève le plancher.
+- La construction à JDK 17 seul épingle Error Prone (2.42.0) et Checkstyle
+  (12.3.1) : leurs versions suivantes vivent en bytecode Java 21 — la
+  montée des outils suivra la même révision quand le plancher remontera.
 
 ## Conséquences
 

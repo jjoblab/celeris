@@ -28,12 +28,13 @@ fun Project.catalogVersion(alias: String): String =
         .named("libs").findVersion(alias).get().toString()
 
 /**
- * Réglages javac des modules purs : construction sur JDK 21 (toolchain),
- * artefacts de niveau 17 (ADR-001), avertissements bloquants.
+ * Réglages javac des modules purs : construction et artefacts sur JDK 17
+ * (toolchain et niveau de sortie — ADR-001, révisé le 2026-11-17 :
+ * JDK 17 seul), avertissements bloquants.
  */
 fun Project.configurePureJavac() {
     extensions.findByType(JavaPluginExtension::class.java)?.let { java ->
-        java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+        java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
     }
     tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
         options.encoding = "UTF-8"

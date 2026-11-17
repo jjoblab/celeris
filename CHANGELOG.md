@@ -7,6 +7,10 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [1.2.0] — en cours
 
+### Chaîne — Java 17 seul, du code aux outils (2026-11-17)
+- **La construction quitte JDK 21** : la toolchain des modules purs devient 17 (les artefacts étaient déjà de niveau 17) ; la CI installe Temurin 17 — plus aucun poste du dépôt n'exige Java 21.
+- **Les outils compilés pour Java 21 reviennent à leurs dernières versions compatibles JDK 17** : Error Prone descend de 2.52.0 à 2.42.0 et Checkstyle de 14.4.0 à 12.3.1 (leurs versions suivantes vivent en bytecode Java 21) ; NullAway, PMD, JaCoCo, PIT, JUnit, Robolectric, le plugin Error Prone et AGP 9.5.0 tenaient déjà en bytecode Java 17 ou moins — vérifiés jar par jar sur Maven Central. ADR-001 révisé.
+
 ### Popups — icônes propres, barre intelligente, débordement enrichi, caret épargné (2026-11-14)
 - **Chaque action porte SON pictogramme** (l'audit du propriétaire du 2026-11-14 « tu as utilisé la même icône pour tout ») : `IconeAction` naît dans `android-widgets` — trente-neuf glyphes au trait (les ciseaux de la coupe, les pages de la copie, le presse-papiers du collage, les coins du tout-sélectionner, les doubles barres du commentaire, l'ampoule de l'INTENTION SEULEMENT — l'icône de l'IDE de référence, jamais elle ne marque toutes les rangées) ; l'`IconeCarte` de l'ampoule unique s'efface, la rangée du patron `TextRowsPopup` gagne son pictogramme propre (`Row.action`), l'`Item` des menus d'intentions et l'`Item` de la barre de sélection suivent — la barre, le débordement de la barre, le menu d'intentions et le débordement de la toolbar rendent chacun LEUR glyphe.
 - **La barre de sélection devient INTELLIGENTE** (« surtout coller ne doit être visible que quand il est nécessaire ») : `configurerActionsSelectionVives` publie — les actions se relisent à CHAQUE pose, COLLER ne se propose que lorsque le presse-papiers de l'hôte est PLEIN, l'option inutile ne se promène jamais sur la pilule. La copie RE-POSE la barre (`PopupsEditeur.rafraichirBarreSelection`) — Coller vient de se proposer. Bancs : `AtelierSelectionTest` (démo, 4), `PopupViewsTest` réécrit (les pictogrammes propres, jamais l'ampoule unique).
