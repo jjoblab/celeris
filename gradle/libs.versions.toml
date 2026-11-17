@@ -18,7 +18,7 @@ agp = "9.5.1"
 # jar : toutes tiennent en bytecode 17 ou moins.
 checkstyle = "12.3.1"
 pmd = "7.29.0"
-errorprone = "2.42.0"
+errorprone = "2.52.0"
 errorpronePlugin = "5.2.0"
 nullaway = "0.14.3"
 jspecify = "1.0.1"
