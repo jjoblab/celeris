@@ -202,7 +202,10 @@ public final class SessionLspAdaptee implements LanguageSession {
         try {
             session.close();
         } catch (Exception e) {
-            // la fermeture d'une session morte ne crie jamais
+            // la fermeture d'une session morte ne crie jamais — le
+            // logcat seul l'entend
+            android.util.Log.w("celeris-lsp",
+                    "fermeture de session : " + e.getMessage());
         }
     }
 

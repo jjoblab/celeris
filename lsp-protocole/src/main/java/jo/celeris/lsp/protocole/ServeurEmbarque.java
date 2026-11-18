@@ -375,14 +375,15 @@ public final class ServeurEmbarque implements AutoCloseable {
         TubesMemoire.Direction versServeur = TubesMemoire.creer();
         TubesMemoire.Direction duServeur = TubesMemoire.creer();
         ExecutorService executeur = executeur();
+        ServeurDocuments serveur = new ServeurDocuments(service);
         Launcher<LanguageClient> lanceur = LSPLauncher.createServerLauncher(
-                new ServeurDocuments(service), versServeur.entree(),
+                serveur, versServeur.entree(),
                 duServeur.sortie(), executeur, Function.identity());
-        // Le proxy client au serveur de documents (le retour terrain
+        // Le proxy client au SERVEUR de documents (le retour terrain
         // du 2026-11-19 : le serveur factice de l'exemple PUBLIE ses
-        // diagnostics par le protocole) — la convention setClient des
-        // serveurs embarqués.
-        injecterClient(service, lanceur.getRemoteProxy());
+        // diagnostics par le protocole) — c'est lui qui publie, le
+        // proxy se pose par sa convention setClient, AVANT l'écoute.
+        serveur.setClient(lanceur.getRemoteProxy());
         lanceur.startListening();
         return achever(versServeur, duServeur, executeur, nomClient);
     }

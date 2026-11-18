@@ -96,36 +96,59 @@ final class CompletionJava {
      *  String, sinon les mots réservés et les déclarations du
      *  document. */
     static ListeCompletion completion(String texte, int caret) {
+        int debutMot = debutDuMot(texte, caret);
+        String prefixe = texte.substring(debutMot, caret);
+        ListeCompletion membres = membresDuReceveur(texte, debutMot, prefixe);
+        if (membres != null) {
+            return membres;
+        }
+        return baseDuDocument(texte, prefixe);
+    }
+
+    /** L'offset du début du mot tapé, en remontant aux bornes de
+     *  l'identifiant. */
+    private static int debutDuMot(String texte, int caret) {
         int debutMot = caret;
         while (debutMot > 0
                 && Character.isJavaIdentifierPart(texte.charAt(debutMot - 1))) {
             debutMot--;
         }
-        String prefixe = texte.substring(debutMot, caret);
+        return debutMot;
+    }
+
+    /** Les membres de String derrière un point — le récepteur lu du
+     *  mot avant le point ; null quand la complétion de base se sert. */
+    private static @org.jspecify.annotations.Nullable ListeCompletion
+            membresDuReceveur(String texte, int debutMot, String prefixe) {
         boolean apresPoint = debutMot > 0 && texte.charAt(debutMot - 1) == '.';
+        if (!apresPoint) {
+            return null;
+        }
+        int finReceveur = debutMot - 1;
+        int debutReceveur = finReceveur;
+        while (debutReceveur > 0 && texte.charAt(debutReceveur - 1) != '"'
+                && Character.isJavaIdentifierPart(
+                        texte.charAt(debutReceveur - 1))) {
+            debutReceveur--;
+        }
+        String receveur = texte.substring(debutReceveur, finReceveur);
+        boolean chaine = debutReceveur > 0
+                && texte.charAt(debutReceveur - 1) == '"';
+        if (!chaine && !"nom".equals(receveur) && !"texte".equals(receveur)) {
+            return null;
+        }
         List<ElementCompletion> elements = new ArrayList<>();
-        if (apresPoint) {
-            // le récepteur : un littéral de chaîne remonte-t-il au
-            // mot précédent le point ?
-            int finReceveur = debutMot - 1;
-            int debutReceveur = finReceveur;
-            while (debutReceveur > 0 && texte.charAt(debutReceveur - 1) != '"'
-                    && Character.isJavaIdentifierPart(
-                            texte.charAt(debutReceveur - 1))) {
-                debutReceveur--;
-            }
-            String receveur = texte.substring(debutReceveur, finReceveur);
-            boolean chaine = debutReceveur > 0
-                    && texte.charAt(debutReceveur - 1) == '"';
-            if (chaine || "nom".equals(receveur) || "texte".equals(receveur)) {
-                for (ElementCompletion membre : MEMBRES_STRING) {
-                    if (membre.libelle().startsWith(prefixe)) {
-                        elements.add(membre);
-                    }
-                }
-                return ListeCompletion.de(false, elements);
+        for (ElementCompletion membre : MEMBRES_STRING) {
+            if (membre.libelle().startsWith(prefixe)) {
+                elements.add(membre);
             }
         }
+        return ListeCompletion.de(false, elements);
+    }
+
+    /** La base du document : mots réservés et déclarations du fichier. */
+    private static ListeCompletion baseDuDocument(String texte, String prefixe) {
+        List<ElementCompletion> elements = new ArrayList<>();
         for (String reserve : MOTS_RESERVES) {
             if (reserve.startsWith(prefixe)) {
                 elements.add(new ElementCompletion(reserve, 14,
