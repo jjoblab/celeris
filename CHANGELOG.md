@@ -7,6 +7,9 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [1.2.0] — en cours
 
+### Build — les modules Android toujours construits (2026-11-17)
+- **La détection du SDK disparaît de `settings.gradle.kts`** (ADR-0021, décision du propriétaire) : `:android-view`, `:android-widgets` et `:android-host` sont inclus sans condition, `CELERIS_SKIP_ANDROID` et la lecture de `local.properties` s'effacent — un build sans SDK ne publie plus 8 artefacts sur 11 en silence (le piège JitPack) ; il échoue explicitement. La pureté du cœur, cherchée par le critère M1, est désormais garantie au niveau du code : les dix tests ArchUnit « aucune dépendance Android » des modules purs tournent à chaque `check` ; la CI installe le SDK dans tous ses travaux.
+
 ### Chaîne — Java 17 seul, du code aux outils (2026-11-17)
 - **La construction quitte JDK 21** : la toolchain des modules purs devient 17 (les artefacts étaient déjà de niveau 17) ; la CI installe Temurin 17 — plus aucun poste du dépôt n'exige Java 21.
 - **Les outils compilés pour Java 21 reviennent à leurs dernières versions compatibles JDK 17** : Error Prone descend de 2.52.0 à 2.42.0 et Checkstyle de 14.4.0 à 12.3.1 (leurs versions suivantes vivent en bytecode Java 21) ; NullAway, PMD, JaCoCo, PIT, JUnit, Robolectric, le plugin Error Prone et AGP 9.5.0 tenaient déjà en bytecode Java 17 ou moins — vérifiés jar par jar sur Maven Central. ADR-001 révisé.

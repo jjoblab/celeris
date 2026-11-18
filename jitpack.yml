@@ -1,0 +1,38 @@
+# Environnement de build JitPack pour celeris (chantier A1, revue du
+# 2026-11-17). Hypothèses à valider par le journal du premier build réel :
+# JDK 17 (la toolchain des conventions l'impose), SDK Android 36 présent
+# (sinon l'installer ci-dessous), mémoire suffisante (-Xmx3g).
+jdk:
+  - openjdk17
+
+before_install:
+  # JitPack 2024+ sur Linux : propriété du clone (« dubious ownership »).
+  - git config --global --add safe.directory /build
+  # SDK Android : JitPack en préinstalle un, mais les composants exigés
+  # (platforms;android-36, build-tools;36.0.0) peuvent manquer —
+  # sdkmanager --install est idempotent, il ne fait rien si tout y est.
+  # ANDROID_HOME se devine : répertoire platforms/ du SDK trouvé.
+  - export ANDROID_HOME=${ANDROID_HOME:-$HOME/android-sdk}
+  - |
+    if [ -z "$(ls -d ${ANDROID_HOME}/platforms 2>/dev/null)" ]; then
+      echo "AVERTISSEMENT celeris : SDK Android introuvable sous ${ANDROID_HOME} — le build échouera explicitement (ADR-0021)."
+    fi
+  - |
+    SDKMANAGER="$(command -v sdkmanager || true)"
+    if [ -z "$SDKMANAGER" ] && [ -x "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" ]; then
+      SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+    fi
+    if [ -n "$SDKMANAGER" ]; then
+      yes | "$SDKMANAGER" --licenses > /dev/null || true
+      "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null || true
+    else
+      echo "AVERTISSEMENT celeris : sdkmanager introuvable — le build s'appuie sur le SDK préinstallé."
+    fi
+
+install:
+  # Publication locale : c'est la commande que JitPack consomme. Le build
+  # complet par défaut déclencherait Error Prone, Checkstyle, PMD, lint
+  # bloquant, Robolectric — trop lourd et trop long pour l'infra JitPack.
+  # Le cache de configuration (gradle.properties) a déjà fait échouer des
+  # builds --no-daemon sur JitPack : il est coupé ici.
+  - ./gradlew publishToMavenLocal --no-daemon -x test -x lint -x check -Dorg.gradle.configuration-cache=false
