@@ -72,7 +72,6 @@ CycloneDX et sa somme SHA-256 (§ 16) — les neuf modules purs :
 `jo.celeris:core-syntax-grammars:1.1.0` · `jo.celeris:core-language:1.1.0` ·
 `jo.celeris:core-intelligence:1.1.0` · `jo.celeris:core-lsp:1.1.0` ·
 `jo.celeris:core-ai:1.1.0` · `jo.celeris:lsp-protocole:1.1.0` ·
-`jo.celeris:serveur-lsp-java:1.1.0`
 
 et, depuis le 2026-11-11 (décision du propriétaire), les trois
 bibliothèques Android en AAR :

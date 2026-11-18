@@ -36,14 +36,10 @@ install:
   # Le cache de configuration (gradle.properties) a déjà fait échouer des
   # builds --no-daemon sur JitPack : il est coupé ici.
   # Seuls les modules PUBLIÉS de l'éditeur sont ciblés (directive du
-  # propriétaire, 2026-11-18) : serveur-lsp-java et demo sont des
-  # compagnons de banc, hors périmètre (§ 0.1 du mandat), voués à
-  # disparaître — rien d'eux ne doit paraître sur JitPack. demo n'a de
-  # toute façon pas la convention de publication ; serveur-lsp-java,
-  # lui, l'a, d'où le ciblage explicite. Ils restent dans le build
-  # (settings.gradle.kts) : la commande les sélectionne, elle ne
-  # retire rien du graphe.
-  # Chantier B1 (2026-11-18) : la BOM (celeris-bom) et l'agrégateur
-  # (celeris) s'y ajoutent — treize artefacts publiés, l'hôte écrit
-  # UNE dépendance (celeris) ou une plateforme (celeris-bom).
+  # propriétaire, 2026-11-18). La démonstration et le serveur LSP de
+  # banc ont quitté le dépôt (ADR-0024, F.7) : plus rien d'eux ne
+  # peut paraître sur JitPack — la commande cible les onze modules
+  # publiés, la BOM (celeris-bom) et l'agrégateur (celeris) de B1 :
+  # treize artefacts, l'hôte écrit UNE dépendance (celeris) ou une
+  # plateforme (celeris-bom).
   - ./gradlew :core-text:publishToMavenLocal :core-syntax:publishToMavenLocal :core-syntax-grammars:publishToMavenLocal :core-language:publishToMavenLocal :core-intelligence:publishToMavenLocal :core-lsp:publishToMavenLocal :core-ai:publishToMavenLocal :lsp-protocole:publishToMavenLocal :android-view:publishToMavenLocal :android-widgets:publishToMavenLocal :android-host:publishToMavenLocal :celeris:publishToMavenLocal :celeris-bom:publishToMavenLocal --no-daemon -x test -x lint -x check -Dorg.gradle.configuration-cache=false

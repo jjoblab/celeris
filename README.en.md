@@ -10,7 +10,7 @@ and frugal with memory and battery.
 The engine core has **no Android dependency**: the guarantee is
 enforced in code — every pure module carries an architecture test
 that forbids any `android.*` dependency. The same core powers the
-Android Canvas view, the demo app and a command-line executable.
+Android Canvas view and a command-line executable.
 
 > 🇫🇷 The full documentation lives in French in
 > [README.md](README.md) and [USAGE.md](USAGE.md). This page carries

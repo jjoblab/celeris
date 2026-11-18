@@ -4,8 +4,8 @@
 // implementation(platform("jo.celeris:celeris-bom:<version>")) puis
 // déclare les modules SANS version — la BOM porte les contraintes, le
 // module d'agrégation `celeris` porte les dépendances. Les compagnons
-// de banc (serveur-lsp-java, demo) n'y vivent pas : directive du
-// propriétaire du 2026-11-18, rien d'eux ne paraît sur JitPack.
+// de banc ont quitté le dépôt (ADR-0024, F.7 du 2026-11-18) :
+// rien d'eux ne paraît sur JitPack.
 // Coordonnées et version portées par le build racine (subprojects).
 plugins {
     `java-platform`

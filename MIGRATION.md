@@ -120,7 +120,7 @@ encore.
 | `cel-lsp` (client LSP) | `core-lsp` + `lsp-protocole` | client réécrit : domaine immuable d'un côté (ADR-005), frontière protocolaire de l'autre (ADR-015, LSP4J derrière) |
 | `cel-lsp-api` (SPI langage) | `core-language` | contrats portés, enrichis (plateforme de langages, ADR-017) |
 | `cel-textmate` (grammaires) | `core-syntax-grammars` | moteur conservé, réellement TextMate (joni, ADR-014) ; les grammaires deviennent des données JSON de paquets, plus d'archive binaire versionnée |
-| `demo` (démo) | `demo` | réécrite sur l'API publique uniquement |
+| `demo` (démo) | — | sortie du dépôt (ADR-0024, F.7) : une démonstration repensée vivra dans un module neuf |
 
 ## 2. Changements majeurs à prévoir
 

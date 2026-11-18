@@ -142,13 +142,13 @@ comparative courante dans
 
 ## Publication
 
-Douze artefacts Maven, groupe `jo.celeris`, version 1.1.0 — chacun avec son
+Treize artefacts Maven publiés, groupe `jo.celeris` — chacun avec son
 jar (ou son AAR pour les bibliothèques Android, depuis le 2026-11-11), ses
 sources, sa Javadoc, son SBOM CycloneDX et sa somme SHA-256 (ADR-011) :
-`core-text`, `core-syntax`, `core-syntax-grammars`, `core-language`,
-`core-intelligence`, `core-lsp`, `core-ai`, `lsp-protocole`,
-`serveur-lsp-java` (JVM pure) ;
-`android-view`, `android-widgets`, `android-host` (AAR). La publication
+les onze modules `core-text`, `core-syntax`, `core-syntax-grammars`,
+`core-language`, `core-intelligence`, `core-lsp`, `core-ai`, `lsp-protocole`,
+`android-view`, `android-widgets`, `android-host` (AAR pour les trois
+derniers), plus la BOM (`celeris-bom`) et l'agrégateur (`celeris`) de B1. La publication
 distante est close (chantier C1, 2026-11-12) : les douze artefacts
 paraissent au registre de paquets de l'hébergeur
 (`maven.pkg.github.com/jjoblab/celeris`), un projet vierge les consomme
@@ -328,7 +328,8 @@ ferme même au-delà des seuils.
 ## Bancs et cliquets
 
 331 bancs JVM et 2 331 méthodes `@Test`, plus les quatre bancs
-d'appareil (relevé du 2026-11-14, les quatorze modules compris). Le volume n'est pas un but en soi (décision du
+d'appareil (relevé du 2026-11-14, avant les sorties de la démonstration
+et du serveur de banc, ADR-0024). Le volume n'est pas un but en soi (décision du
 propriétaire du 2026-11-11 : la parité de volume avec l'audit du dépôt
 de départ ne se poursuit pas) — les cliquets font foi : couverture
 JaCoCo ≥ 90 % de lignes sur les modules purs, score de mutation ≥ 80 %
@@ -350,15 +351,13 @@ portes) :
 | [`core-intelligence`](core-intelligence/README.md) | JVM pure | index de symboles, complétion, refactorings, formatage, moteurs des surfaces réveillées |
 | [`core-lsp`](core-lsp/README.md) | JVM pure | domaine LSP : types immuables, ordonnancement, UTF-16 (ADR-015) |
 | [`lsp-protocole`](lsp-protocole/README.md) | JVM pure | frontière protocolaire du LSP : session, montages embarqués (ADR-015) |
-| [`serveur-lsp-java`](serveur-lsp-java/README.md) | JVM pure | mini serveur de langage Java : compagnon de banc de l'éditeur (ADR-015) |
 | [`core-ai`](core-ai/README.md) | JVM pure | contrats IA et API d'outils pour agents |
 | [`android-view`](android-view/README.md) | bibliothèque Android | vue Canvas, rendu, entrées, IME, accessibilité, gouttière |
 | [`android-widgets`](android-widgets/README.md) | bibliothèque Android | kit de popups (ADR-018), complétion, recherche, plan, minimap, défilement rapide |
 | [`android-host`](android-host/README.md) | bibliothèque Android | adaptateurs hôte (SPI) : fichiers, VCS, exécution, débogueur, historique local — et l'orchestration des popups (`PopupsEditeur`, déménagement du 2026-11-14) |
 | [`cli`](cli/README.md) | application JVM | exécutable sans Android (diagnostiquer, formater, refactorer) |
-| [`demo`](demo/README.md) | application Android | terrain de démonstration complet |
 
-Douze des quatorze modules se publient en artefacts Maven
+Onze des modules se publient en artefacts Maven
 (`jo.celeris:*`, section « Publication ») ; la cli et la démo sont des
 applications, jamais publiées.
 

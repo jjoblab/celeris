@@ -21,7 +21,7 @@ ligne de flottaison ; la vue n'est qu'une des consommatrices du cœur.
 ```
               ┌────────────────────────────────────────────────┐
               │              applications hôtes                │
-              │   (démo, application IDE hôte, cli, agents)    │
+              │  (cli, application IDE hôte, agents, exemple)  │
               └───────┬───────────────────────────┬────────────┘
                       │ API publique (ADR-009)    │ SPI (VCS, débogueur…)
               ┌───────▼───────────┐       ┌───────▼───────────┐
@@ -29,10 +29,10 @@ ligne de flottaison ; la vue n'est qu'une des consommatrices du cœur.
               │  vue, rendu, IME, │       │ SPI hôte + popups │
               │  gestes, a11y     │       └───────┬───────────┘
               └───────┬───────────┘               │
-              ┌───────▼───────────┐       ┌───────▼───────────┐
-              │ android-widgets   │       │      demo         │
-              │ popups, gouttière │       │ (test des modules)│
-              └───────┬───────────┘       └───────────────────┘
+              ┌───────▼───────────┐
+              │ android-widgets   │
+              │ popups, gouttière │
+              └───────┬───────────┘
                       │        ┌──────────────────────────────┐
               ┌───────▼────────▼──────────┐                   │
               │ core-intelligence         │  core-lsp         │

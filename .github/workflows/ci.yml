@@ -82,24 +82,10 @@ jobs:
         run: ./gradlew check
       - name: Publication locale (treize artefacts — onze modules + BOM + agrégateur, SBOM, sommes)
         run: ./gradlew publishToMavenLocal publicationChecksums
-      - name: Démonstration (APK debug)
-        run: ./gradlew :demo:assembleDebug
-      - name: APK de démonstration signé (porte)
-        run: |
-          APK=$(ls demo/build/outputs/apk/debug/*.apk)
-          echo "APK examiné : $APK"
-          test -s "$APK"
-          # Le type debug signe par le magasin de clés de débogage du
-          # runner : apksigner doit vérifier la signature, sinon la porte
-          # échoue — un APK non signé ne traverse pas la CI.
-          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
-          "$APKSIGNER" verify --print-certs "$APK"
-      - name: APK de démonstration (artefact)
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: demo-debug-apk
-          path: demo/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+      # La démonstration a quitté le dépôt (ADR-0024, F.7) : la
+      # vérification APK signée repartira avec le futur module de
+      # démonstration repensé ; l'exemple consommateur « vierge »
+      # (B5, ci-dessous) reste la porte d'intégration.
 
   # Chantier B5 (revue du 2026-11-17) : l'exemple consommateur « vierge
   # » — la preuve d'intégration comme un hôte réel la vit. Onze

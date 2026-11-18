@@ -43,6 +43,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-0021](0021-modules-android-toujours-construits.md) | Les modules Android toujours construits (révision du critère M1) | Acceptée (décision du propriétaire, 2026-11-17) |
 | [ADR-0022](0022-couche-integration.md) | La couche d'intégration : façade d'abord, consolidation ensuite (chantier B0) | Acceptée (mandat du propriétaire, 2026-11-17) |
 | [ADR-0023](0023-nommage-api-publique.md) | Nommage de l'API publique — brouillon de préparation (chantier E) | Brouillon (décision attendue du propriétaire) |
+| [ADR-0024](0024-deux-voies-syntaxe-separees.md) | Deux voies de coloration séparées et choisissables (F.4) + suppression de la démo et du serveur LSP (F.7) | Acceptée (décision du propriétaire, 2026-11-18) |
 
 ## Règles
 

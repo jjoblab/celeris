@@ -33,19 +33,13 @@ include(":core-ai")
 // fonction, jamais sa marque (règle de nommage du propriétaire,
 // 2026-11-09), comme core-syntax-grammars ne dit pas son moteur.
 include(":lsp-protocole")
-// Le mini serveur de langage Java (JVM pure) : le compagnon de banc de
-// l'éditeur — montable en processus par la frontière protocolaire ou
-// exécutable seul sur l'entrée-sortie standard.
-include(":serveur-lsp-java")
 include(":cli")
 
 
 // Chantier B1 (revue du 2026-11-17) : la BOM et l'agrégateur — deux
 // modules PUBLIÉS qui ne portent presque rien. celeris-bom aligne les
 // versions des onze modules (plateforme Java) ; celeris agrège les
-// quatre du cas courant en une dépendance. Les compagnons de banc
-// (serveur-lsp-java, demo) n'y vivent pas — directive du propriétaire
-// du 2026-11-18.
+// quatre du cas courant en une dépendance.
 include(":celeris-bom")
 include(":celeris")
 
@@ -56,7 +50,8 @@ include(":celeris")
 // ANDROID_SDK_ROOT ou local.properties) ; sans SDK, la configuration
 // échoue avec un message explicite plutôt que de publier 8 artefacts
 // sur 11 en silence (le piège JitPack relevé par la revue du 2026-11-17).
+// La démonstration a quitté le dépôt (ADR-0024, F.7 du 2026-11-18) :
+// une démonstration repensée vivra dans un module neuf.
 include(":android-view")
 include(":android-widgets")
 include(":android-host")
-include(":demo")
