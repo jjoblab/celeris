@@ -46,7 +46,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Le montage du serveur EMBARQUÉ derrière la frontière (ADR-015) : un
  * serveur de langage lancé EN PROCESSUS, rejoint par une session sur
- * des tubes à file — le banc de la démonstration y monte son serveur
+ * des tubes à file — le banc du dépôt de départ y monte son serveur
  * de référence, sans que la bibliothèque paraisse dans son code :
  * l'objet serveur et l'interface cliente se donnent opaques, la
  * session rend les types du domaine.
@@ -334,7 +334,7 @@ public final class ServeurEmbarque implements AutoCloseable {
     /**
      * Monte un serveur de référence sur le service de documents du
      * domaine : le survol et l'aide aux paramètres du terrain, servis
-     * par le protocole — la voie de la démonstration (M7.5, §8), sans
+     * par le protocole — la voie du dépôt de départ (M7.5, §8), sans
      * qu'aucun type de la bibliothèque paraisse côté terrain.
      *
      * @param service   le service de documents du domaine
@@ -359,7 +359,7 @@ public final class ServeurEmbarque implements AutoCloseable {
      * DÉCLARATIONS (serveurs des paquets, H-13) : l'appelant ne
      * connaît aucune classe de la bibliothèque ni du serveur, le
      * montage instancie par son constructeur vide et injecte le proxy
-     * selon la convention. Le serveur réel de la démonstration y
+     * selon la convention. Le serveur réel du dépôt de départ y
      * monte ainsi, sans qu'un seul type du serveur ou de la
      * bibliothèque paraisse dans son code.
      *

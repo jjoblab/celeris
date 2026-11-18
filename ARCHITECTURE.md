@@ -58,11 +58,11 @@ Les dépendances ne vont que vers le bas. Des tests d'architecture
 
 Depuis le déménagement des popups du 2026-11-14 (décision du
 propriétaire : les fonctionnalités vivent dans les modules de
-l'éditeur, la démonstration ne teste plus qu'elle-même),
+l'éditeur, jamais chez l'hôte),
 `android-host` compose au-dessus d'`android-view`, `android-widgets`
 et `core-lsp` : il porte l'orchestration des popups
 (`PopupsEditeur`, paquet `jo.celeris.android.host.popups`) — la
-démonstration n'est plus qu'un terrain d'essai.
+l'orchestration vit là, l'hôte reste mince.
 
 ## 2. Les quatre chaînes
 
@@ -121,4 +121,5 @@ isolés.
 L'éditeur ne compile pas, n'exécute pas, ne débogue pas : il expose les
 interfaces où l'hôte se branche (points d'arrêt, repères d'exécution,
 diagnostics de build, traces liées). Cette frontière est la garantie que le
-composant reste embarquable et que la démo suffit à prouver l'API.
+composant reste embarquable et que l'exemple consommateur suffit
+à prouver l'API.

@@ -29,14 +29,14 @@ déléguer) vivent à l'USAGE §9.
 
 | Problème (audit) | Traitement | Banc qui le prouve | Commit |
 | --- | --- | --- | --- |
-| P1 — vues partagées entre genres (l'état ment) | `lier` refuse qu'une carte serve deux genres DÈS le câblage ; la démo possède DEUX cartes de documentation (la complétion et le survol), le débordement de toolbar vit son genre propre | `PopupManagerTest.laCartePartageeSeRefuse`, `PopupLayerReposeTest.laMemeVueNeVitJamaisSousDeuxGenres` | `38d315c` |
+| P1 — vues partagées entre genres (l'état ment) | `lier` refuse qu'une carte serve deux genres DÈS le câblage ; l'exemple possède DEUX cartes de documentation (la complétion et le survol), le débordement de toolbar vit son genre propre | `PopupManagerTest.laCartePartageeSeRefuse`, `PopupLayerReposeTest.laMemeVueNeVitJamaisSousDeuxGenres` | `38d315c` |
 | P2 — deux sources de vérité synchronisées à la main | le manager tient l'état et la couche d'un seul tenant : `ouvrirRendus`/`closeRendus` rendent l'ensemble des affectés, les exclus et les cascadés quittent la couche d'un seul appel | `PopupControllerTest.openRendusCarryTheExcludedGenres`, `closeRendusCarryTheCascadedGenres` ; `PopupManagerTest` (cascades isochrones) | `b6fa94b`, `38d315c` |
 | P3 — positionnement en trois systèmes, `rightEdge` mort | le débordement de toolbar quitte le ad hoc : genre `TOOLBAR_OVERFLOW`, carte liée, posée par la couche ; la couche BORNE désormais toute pose aux murs (défense en profondeur). `rightEdge` CONSERVÉ : ancre publique du kit, bancée (`PopupAnchorTest`), servie aux hôtes tiers — l'écart « aucune production ne l'appelle » reste documenté à l'inventaire | `PopupManagerTest.laPoseSeBorneAuxMurs` | `38d315c` |
-| P4 — six copies de l'utilitaire de mesure | `taille(genre)` : LA mesure unique, les ancres de l'hôte y anticipent la pose ; les six `taille()` privés de la démo meurent | `PopupManagerTest.laMesureDuGenreSeRend` (la carte ENTIÈRE, respirations comprises) | `38d315c` |
+| P4 — six copies de l'utilitaire de mesure | `taille(genre)` : LA mesure unique, les ancres de l'hôte y anticipent la pose ; les six `taille()` privés du dépôt de départ meurent | `PopupManagerTest.laMesureDuGenreSeRend` (la carte ENTIÈRE, respirations comprises) | `38d315c` |
 | P5 — aucune navigation clavier | la DÉLÉGATION : crochet public `EditorView.setSurTouchePopup` consulté en tête de `onKeyDown`, contrat `PopupClavier` (`surFleche`, `surValidation`) que les cartes interactives implémentent, le manager route (complétion → intentions → débordements) — PIEGE-27 préservé : le focus ne quitte JAMAIS l'éditeur | `TouchePopupVueTest` (2), `PopupManagerTest.leClavierDelegueSertLaCompletion`, `.leClavierDelegueSertLeMenu`, `.lechappementRefermeLesBulles` ; la spécification D-10 rejouée par `BancSpecsTest` | `38d315c`, `c400665` |
 | P6 — listeners jamais retirés, course du retrait différé | `detacher()` du manager au cycle de l'activité ; le listener global de la toolbar devient retirable (`removeOnGlobalLayoutListener`) ; la course corrigée : une carte re-prise ne se retire jamais d'elle-même | `PopupLayerReposeTest.reposerLaMemeVueNeLaTuePas`, `PopupManagerTest.leDetachementCoupeTout` | `b6fa94b`, `38d315c` |
 | P7 — écarts documentation / implémentation | la javadoc et l'USAGE disent SEIZE genres (le « dix popups » mentait) ; le color picker ferme ENFIN au tap hors cartes (l'annulation promise tenue) | `PopupControllerTest.tapOutsideClosesActionCardsAndBubblesOnly`, `PopupManagerTest.leTapHorsCartesRefermeLesGenresQuiCedent` | `38d315c` |
-| P8 — feuilles non coordonnées à la couche | `fermerSousVoile` : ce qu'une feuille modale coupe (l'intelligence et les actions) se ferme d'un appel, le chrome survit ; la démo y branche toute action de menu | `PopupManagerTest.laFeuilleCoupeLintelligencePasLeChrome` | `38d315c` |
+| P8 — feuilles non coordonnées à la couche | `fermerSousVoile` : ce qu'une feuille modale coupe (l'intelligence et les actions) se ferme d'un appel, le chrome survit ; l'exemple y branche toute action de menu | `PopupManagerTest.laFeuilleCoupeLintelligencePasLeChrome` | `38d315c` |
 | P9 — tracé « verre » dupliqué cartes/feuilles | conservé — assumé : deux mondes de surfaces (cartes éphémères de la couche, feuilles modales posées sur la scène), l'unification visait les CARTES ; l'écart mineur vit à l'inventaire | — (choix documenté) | — |
 | P10 — vocabulaire d'ancres croisé entre modules | conservé — la séparation rects (android-view) / stratégies (android-widgets) est assumée et documentée des deux côtés ; l'USAGE §9 la dit à l'intégrateur | — (choix documenté) | — |
 
@@ -62,7 +62,7 @@ déléguer) vivent à l'USAGE §9.
 | `RappelsHote` | + le porteur du verdict (`poserTouchePopup`/`consommerTouche`) — porteur mince, les états d'exécution restent à l'hôte |
 | Bancs | + `TouchePopupVueTest` (2) : le verdict consommé sert le popup sans bouger le curseur ; le verdict décliné laisse la flèche à sa vie normale |
 
-### 3.3 La démonstration (`demo`)
+### 3.3 Le dépôt de départ (l'orchestration)
 
 | Composant | Ce qui a changé |
 | --- | --- |
@@ -96,12 +96,12 @@ route de la mission). L'USAGE §9 se réécrit au montage en trois temps.
 `EditorView`, `RappelsHote` (android-view) ; `AtelierPopups`,
 `AtelierBarreToolbar`, `AtelierBordDroit`, `AtelierCouleur`,
 `CatalogueActions`, `DocAncre`, `EditorActivity`, `MenuDebordement`,
-`BancSpecs`, `ScenarioCatalog` (demo). **Modifiés** — les documents :
+`BancSpecs`, `ScenarioCatalog` (banc). **Modifiés** — les documents :
 `USAGE.md` (§9), `CHANGELOG.md`, `docs/parite/MATRICE-PARITE.md` (D-10
 relue), `docs/feuille-de-route-restante.md` (l'étape de la mission).
 
 **Supprimés** — AUCUN fichier. Les seules morts sont des MÉTHODES
-privées de la démo (les `fermer`/`retirer`/`taille` locaux, les doubles
+privées du dépôt de départ (les `fermer`/`retirer`/`taille` locaux, les doubles
 cascades) : leurs responsabilités n'ont pas disparu, elles ont changé
 d'étage. Le mandat l'exigeait (« ne supprime jamais une classe
 simplement parce qu'elle ne correspond pas à l'architecture ») et la
@@ -111,21 +111,21 @@ stationnaire déjà retirée avant la mission) est bancé ou documenté.
 
 **Dépendances nouvelles** — AUCUNE. Aucune version ne bouge dans
 `gradle/libs.versions.toml` entre l'état audité et l'état livré : la
-migration n'a ajouté que du code du kit et de la démo, aucun artefact
+migration n'a ajouté que du code du kit et du dépôt de départ, aucun artefact
 externe (le mandat §11-4 : « ne crée pas de dépendances inutiles »).
 
 **La suite du signal du 2026-11-13 — les fichiers des deux premières surfaces réveillées** (le pas étendu PAGE_UP/PAGE_DOWN, la carte des usages : voir `feuille-de-route-popups.md` §2, le journal) :
 
 *Créés*
 - `android-widgets/src/main/java/jo/celeris/android/widgets/ReferencesView.java`
-- `demo/src/main/java/jo/celeris/demo/AtelierUsages.java`
+- l'atelier des usages du dépôt de départ
 - `android-widgets/src/test/java/jo/celeris/android/widgets/ReferencesViewTest.java`
-- `demo/src/test/java/jo/celeris/demo/UsagesReferencesTest.java`
+- le banc des usages du dépôt de départ
 
 *Modifiés* : `PopupController` (le genre 17e `REFERENCES` et ses régimes — le manager route ses pages et son ordre), `PopupManager`,
 `PopupClavier` (`surPage`), `CompletionListView`, `IntentionsMenuView` (android-widgets) ; `AtelierPopups` (câblage du satellite — nominé au plafond relevé
 par la décision du propriétaire, justification au `config/checkstyle/suppressions.xml`),
-`CatalogueActions` (l'action `action_usages` aux trois peaux), les ressources de la démo
+`CatalogueActions` (l'action `action_usages` aux trois peaux), les ressources du dépôt de départ
 (`values/strings.xml`, `values-fr/strings.xml` — parité vérifiée, `values/ids.xml`, `menu/menu_editeur.xml`) ; les bancs
 `PopupManagerTest`, `PopupControllerTest` ; les documents vivants (`USAGE.md` §9, `CHANGELOG.md`, `POPUP_INVENTORY.md`,
 `POPUP_SYSTEM_ARCHITECTURE.md`, `POPUP_TEST_REPORT.md`, `POPUP_DEVELOPER_GUIDE.md`, les deux feuilles de route).
@@ -190,17 +190,17 @@ d'extensibilité du mandat, tenu par construction).
 2. PAGE_UP/PAGE_DOWN restent à venir (plafond de huit candidats
    visibles dans la liste) ; la signature aide reste passive (le
    stepper tactile y sert) — choix tactile assumé.
-3. Une activité = un document dans la démonstration : le changement de
+3. Une activité = un document dans le dépôt de départ : le changement de
    fichier n'y est pas démontré (le `closeAll`/`fermerTout` existe et
-   se banc, la démo ne change simplement jamais de fichier).
+   se banc, l'exemple ne change simplement jamais de fichier).
 4. Le peek de définition vit sur le plan local (`ApercuDefinition`) :
    le serveur Java réel ne sert pas `definition` (audit §5) — aucune
    fausse intégration déclarée.
-5. Les correctifs vivent sur le serveur de référence de la démo — même
+5. Les correctifs vivent sur le serveur de référence du dépôt de départ — même
    clause d'honnêteté.
 6. La protection contre les réponses asynchrones concurrentes au sens
    strict (jeton de génération : deux réponses LSP qui reviennent en
    désordre) demeure un mécanisme D'HÔTE : le kit garantit la vue ne
    survit jamais à son état et la re-pose idempotente ; l'hôte qui
-   veut trier les réponses garde son jeton chez lui (la démo pose la
+   veut trier les réponses garde son jeton chez lui (l'exemple pose la
    dernière réponse reçue sur le fil UI — `whenComplete` + `post`).

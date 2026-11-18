@@ -252,21 +252,25 @@ def main():
 
     interactifs = 0
     etiquettes = 0
-    layouts = os.path.join(racine, "demo", "src", "main", "res", "layout")
-    if os.path.isdir(layouts):
+    # L'application d'exemple a quitté le dépôt (ADR-0024) : les
+    # ressources interactives se contrôlent dans les modules Android.
+    for module in ("android-view", "android-widgets", "android-host"):
+        layouts = os.path.join(racine, module, "src", "main", "res", "layout")
+        if not os.path.isdir(layouts):
+            continue
         for base, _dossiers, noms in os.walk(layouts):
             for nom in sorted(noms):
                 if nom.endswith(".xml"):
                     i, e = auditer_layout(os.path.join(base, nom), problemes)
                     interactifs += i
                     etiquettes += e
-    elif os.path.isdir(os.path.join(racine, "demo")):
-        problemes.append("demo/src/main/res/layout : introuvable")
 
     items = 0
     titres = 0
-    menus = os.path.join(racine, "demo", "src", "main", "res", "menu")
-    if os.path.isdir(menus):
+    for module in ("android-view", "android-widgets", "android-host"):
+        menus = os.path.join(racine, module, "src", "main", "res", "menu")
+        if not os.path.isdir(menus):
+            continue
         for base, _dossiers, noms in os.walk(menus):
             for nom in sorted(noms):
                 if nom.endswith(".xml"):

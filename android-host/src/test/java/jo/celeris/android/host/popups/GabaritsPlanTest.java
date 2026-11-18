@@ -18,7 +18,7 @@ import jo.celeris.core.text.TextSession;
 /**
  * Le plan de génération chez l'orchestrateur (le déménagement du
  * 2026-11-14, la cinquième surface portée — reprise de
- * {@code AtelierGabaritsTest} de la démonstration) : le plan
+ * {@code AtelierGabaritsTest} du dépôt de départ) : le plan
  * d'insertion du code généré se pose avant l'accolade fermante de la
  * classe, le texte gagne son cran de membre, le caret se porte à sa
  * suite — la classe inconnue ne propose rien. Pur, sans appareil.

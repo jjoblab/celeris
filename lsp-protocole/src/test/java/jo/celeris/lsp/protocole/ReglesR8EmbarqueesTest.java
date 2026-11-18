@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
  * fichier à la main (le point 11 de la revue). Le banc lit le JAR
  * compilé du module (le même que la publication emballe) et prouve :
  * l'entrée existe, son contenu est l'octet près celui de la source
- * unique à la racine du module (la démonstration, hors périmètre,
+ * unique à la racine du module (l'exemplenstration, hors périmètre,
  * l'y lit encore), et la règle garde bien le fil réflexif de l'ADR-015.
  */
 final class ReglesR8EmbarqueesTest {

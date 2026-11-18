@@ -1,6 +1,6 @@
 # Résumé M8.5 — jalon de redressement (2026-11-08)
 
-> **Déclenchement** : le constat du propriétaire dans la démonstration —
+> **Déclenchement** : le constat du propriétaire dans le dépôt de départ —
 > « le design des popups est affreux, tu dois utiliser les mêmes du
 > dépôt de départ, toutes » et « je ne peux pas défiler horizontal et
 > vertical sans que le clavier ne devienne visible ». Périmètre : le
@@ -80,7 +80,7 @@ portée telle quelle, pas réinterprétée.
   de sélection (rayon rangée), les séparateurs restent des filets
   hairline.
 
-La démonstration suit : l'atelier dérive sa palette du thème d'éditeur
+La exemple consommateur suit : l'atelier dérive sa palette du thème d'éditeur
 COURANT (`PopupPalette.verre(theme...)` — fond, encres, teinte de
 sélection, curseur pour l'accent, mot-clé de la palette syntaxique),
 le verre suit la rotation des thèmes (rappel de changement chez

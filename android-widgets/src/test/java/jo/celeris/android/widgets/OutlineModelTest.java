@@ -28,7 +28,7 @@ import jo.celeris.core.text.Document;
 class OutlineModelTest {
 
     private static final String SOURCE = """
-            package demo;
+            package exemple;
 
             class Premiere {
                 int champ;

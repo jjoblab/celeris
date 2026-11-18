@@ -28,7 +28,7 @@ import org.robolectric.RuntimeEnvironment;
  *
  * <p>La garde du pli vit pour l'analyse, qu'elle soit servie par le
  * coordinateur synchrone OU par le moteur hors fil (le banc embarque
- * le moteur — la voie de production de la démonstration) : l'ancienne
+ * le moteur — la voie de production du dépôt de départ) : l'ancienne
  * garde {@code coordinateur == null} y tuait l'appui avant même le
  * test d'appartenance à la coulisse.</p>
  */

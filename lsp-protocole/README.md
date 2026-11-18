@@ -33,9 +33,9 @@ hôte n'en voit jamais le nom (ADR-015).
 
 ```java
 // Le montage PAR DÉSIGNATION : les noms viennent de la donnée
-// (servers.json), jamais du code — la voie de la démo et de l'hôte.
+// (servers.json), jamais du code — la voie du dépôt de départ et de l'hôte.
 try (ServeurEmbarque monte = ServeurEmbarque.monter(
-        "jo.celeris.serveur.java.JavaLanguageServer",
+        "exemple.serveurs.MonServeurJava",
         "org.eclipse.lsp4j.services.LanguageClient",
         "mon-hote")) {
     LspSession session = monte.session();

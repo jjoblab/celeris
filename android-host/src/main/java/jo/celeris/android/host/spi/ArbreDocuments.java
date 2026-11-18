@@ -8,7 +8,7 @@ import java.util.List;
  * demander à l'hôte — les enfants d'un dossier, la lecture, l'écriture
  * et la création. L'implémentation {@link ArbreDocumentsSaf} traduit
  * ces appels en requêtes {@code DocumentsContract} ; les tests et la
- * démonstration parlent à un arbre en mémoire — le contrat est le
+ * exemple d'intégration parlent à un arbre en mémoire — le contrat est le
  * même.
  *
  * <p>Les identifiants de document sont opaques : ils appartiennent au

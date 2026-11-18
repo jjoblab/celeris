@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Les hiérarchies de types et d'appels (la quatrième surface portée de
- * la démonstration à l'orchestrateur, 2026-11-14) : la hiérarchie de
+ * la exemple d'intégration à l'orchestrateur, 2026-11-14) : la hiérarchie de
  * TYPES du symbole au curseur quand il nomme un type, la hiérarchie
  * d'APPELS quand il nomme une méthode — le plan local décide la forme,
  * le moteur du cœur sert l'arbre sur le projet embarqué, le satellite

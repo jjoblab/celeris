@@ -493,7 +493,7 @@
   préfixe et le suffixe intacts se copient de masse
   (`System.arraycopy`), différentiel nul ou pas (plancher de tous les
   langages abaissé, 0,19 à 1,18 ms mesurés).
-- **Scénario C-07 au catalogue** de la démonstration, avec son test de
+- **Scénario C-07 au catalogue** du dépôt de départ, avec son test de
   fumée (dix-neuf scénarios au total).
 
 ### Vérifié localement
@@ -503,7 +503,7 @@
   Java 0,19 ms, Kotlin 0,72 ms, XML 1,04 ms, JSON 0,43 ms, Gradle KTS
   1,18 ms, Gradle Groovy 0,48 ms (budget 10 ms) ;
 - mutation core-text 85,2 % détectées (seuil 80) ; publication locale,
-  sommes de contrôle et fumée de la cli verts ; APK démonstration
+  sommes de contrôle et fumée de la cli verts ; APK exemple consommateur
   assemblé ; manifeste d'API régénéré : additions seulement, aucune
   rupture (ADR-009).
 
@@ -536,7 +536,7 @@
   par niveau, sans allocation dans la boucle de dessin (PIEGE-15) ;
   la vue (`OutlineView`) est fine : modèle, peintre et adaptateur
   canvas, l'appui part au consommateur déclaré.
-- **Scénario B-16 au catalogue** de la démonstration (vingt
+- **Scénario B-16 au catalogue** du dépôt de départ (vingt
   scénarios).
 
 ### Vérifié localement
@@ -643,7 +643,7 @@
 | --- | --- |
 | Ré-analyse ≤ 10 ms sur 50 000 lignes par langage | tenu — six analyseurs dédiés de 0,19 à 1,18 ms (tranche 7), six langages à grammaires de 0,47 à 2,59 ms (tranche 9), minimum de trois tours |
 | Corpus embarqués | par langage : Java, Kotlin, XML, JSON, Gradle KTS, Gradle Groovy (core-syntax) ; TOML, YAML, properties, Markdown, Python, Shell (core-syntax-grammars) |
-| Scénarios B-01, B-16, A-15, C-01, C-07, C-14 à C-16, G-01 | au catalogue de la démonstration, vingt-deux scénarios, ordre de la matrice |
+| Scénarios B-01, B-16, A-15, C-01, C-07, C-14 à C-16, G-01 | au catalogue du dépôt de départ, vingt-deux scénarios, ordre de la matrice |
 | Test de cascade de commentaires borné | couvert dès la tranche 1 (PIEGE-19), repris par la voie de grammaires (PIEGE-21) |
 | Ouverture progressive de très gros fichiers | livré en tranche 6 (G-01 — fenêtre d'abord, complétion par lots) |
 
@@ -653,4 +653,4 @@ modules purs ; Checkstyle et PMD verts partout ; manifestes d'API à
 jour (additions seulement, `api/core-syntax-grammars.api` posé) ;
 mutation core-text au seuil (85,2 % détectées, seuil 80) ; publication
 locale et sommes de contrôle vertes ; fumée de la cli verte (sept
-modules du cœur annoncés) ; APK de démonstration assemblé.
+modules du cœur annoncés) ; APK de exemple consommateur assemblé.

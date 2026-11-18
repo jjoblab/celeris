@@ -20,7 +20,7 @@ class ImportAutoTest {
     /** L'insertion après le paquet : une seule édition, à la position exacte. */
     @Test
     void linsertionApresLePaquet() {
-        String texte = "package demo;\n\nclass A {}\n";
+        String texte = "package exemple;\n\nclass A {}\n";
         Document doc = Document.of(texte);
         EditPlan plan = ImportAuto.importer(doc, "import java.util.List;\n");
         assertNotNull(plan);
@@ -50,7 +50,7 @@ class ImportAutoTest {
     /** Avec des imports existants : l'insertion en tête du bloc, avant le premier. */
     @Test
     void linsertionEnTeteDuBloc() {
-        String texte = "package demo;\n\nimport java.util.Map;\n\nimport java.util.Set;\n\nclass A {}\n";
+        String texte = "package exemple;\n\nimport java.util.Map;\n\nimport java.util.Set;\n\nclass A {}\n";
         Document doc = Document.of(texte);
         EditPlan plan = ImportAuto.importer(doc, "import java.util.List;\n");
         assertNotNull(plan);
@@ -64,7 +64,7 @@ class ImportAutoTest {
     /** L'import déjà présent : rien à faire — null, jamais de doublon. */
     @Test
     void limportDejaPresent() {
-        String texte = "package demo;\n\nimport java.util.List;\n\nclass A {}\n";
+        String texte = "package exemple;\n\nimport java.util.List;\n\nclass A {}\n";
         Document doc = Document.of(texte);
         assertNull(ImportAuto.importer(doc, "import java.util.List;\n"));
     }
@@ -73,7 +73,7 @@ class ImportAutoTest {
     @Test
     void laPresenceSeVerifieALaLigneEntiere() {
         String texte = """
-                package demo;
+                package exemple;
 
                 import java.util.List;
 

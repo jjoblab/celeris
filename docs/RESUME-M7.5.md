@@ -1,6 +1,6 @@
 # Résumé M7.5 — jalon de redressement (2026-11-07)
 
-> **Déclenchement** : le constat du propriétaire dans la démonstration —
+> **Déclenchement** : le constat du propriétaire dans le dépôt de départ —
 > quatre défauts visibles (pincement muet, gouttière instable,
 > scintillement de coloration, popups absents) — et l'injonction du
 > prompt de redressement : « c'est ce qu'on voit et manipule sur
@@ -11,7 +11,7 @@
 > **État** : les trois défauts de rendu sont CORRIGÉS, prouvés par des
 > tests de vue rouges puis verts (Robolectric, ADR-013) ; la couche
 > porte-popups est posée (contrôleur pur + superposition sans focus) ;
-> les dix popups, le branchement de l'intelligence et la démo qui
+> les dix popups, le branchement de l'intelligence et l'exemple qui
 > démontre NE SONT PAS livrés — l'audit mécanique de la matrice le
 > dit sans détour. La vérification appareil n'a pas pu s'exécuter
 > (aucun émulateur dans l'environnement) : le plan exact vit dans
@@ -191,7 +191,7 @@ diagnostic du cran le plus proche), SelectionBarView — PIEGE-27 prouvé
 le même état (ViewportWatch, le clignotement ne notifie pas). La
 session notifie chaque changement effectif de sélection
 (`SelectionListener`, toute source comprise — pose, projection,
-annulation, refaire : `SelectionListenerTest`). La démonstration
+annulation, refaire : `SelectionListenerTest`). La exemple consommateur
 branche les dix : `PopupCoach` décide (pur, testé), `AtelierPopups`
 câble, la barre de recherche coordonne son ÉTAT — son champ garde le
 focus, la couche l'interdit (PIEGE-27 assumé et consigné).
@@ -227,8 +227,8 @@ désormais LIÉ, elle était muette, défaut réel de la vue — porte
 l'indentation de `IndentEngine` (A-06) ; le retour arrière connaît
 les paires vides et les crans (A-07) ; le collage multiligne s'aligne
 par `PasteReindenter` (A-09). Tout passe par la voie de transaction
-unique avec sélection d'après explicite (A-13). La démonstration
-branche son fournisseur : `DemoIntelligence` sert la complétion par
+unique avec sélection d'après explicite (A-13). La exemple consommateur
+branche son fournisseur : `ExempleIntelligence` sert la complétion par
 les mots du CODE (`CompletionMots` sur l'analyse publiée — jamais les
 chaînes, B-03), le coach ne garde que le repli. L'atelier de
 refactorisation porte les gestes au menu — gabarit au premier trou
@@ -241,19 +241,19 @@ aux paramètres et le survol arrivent PAR LE FIL du protocole
 au remplacement tient les frappes rapides (PIEGE-18), le coach ne
 reste qu'en repli. Preuves : `SmartTypingViewTest` (10 tests de vue
 ROUGES puis VERTS, vraie connexion d'entrée et vrai clavier),
-`DemoIntelligenceTest` (3), `AtelierRefactorTest` (5),
+`ExempleIntelligenceTest` (3), `AtelierRefactorTest` (5),
 `ServeurLangageTest` (5, le fil entier rejoué), 330+ tests verts sur
-android-view, 61 sur la démo.
-## La démo qui démontre (§9) : LIVRÉE EN PARTIE (la reprise)
+android-view, 61 sur le banc.
+## La preuve par l'exemple (§9) : LIVRÉE EN PARTIE (la reprise)
 
 Le catalogue cesse d'être décoratif : `ScenarioSpec` porte la
 vérification automatique d'un scénario, `BancSpecs` en rejoue DOUZE
-par le fil réel de la démonstration — les moteurs branchés, le
+par le fil réel du dépôt de départ — les moteurs branchés, le
 serveur en processus, jamais des figures. L'accueil gagne son
 troisième compteur « Vérifiés » (12/12) : l'appui liste les verdicts
 ligne à ligne, EN et FR ; le premier écart s'y verrait. Douze lignes
 de la matrice montent à « Démontré » (A-05 à A-09, A-22, B-03, B-07,
-B-09, B-19, B-25, B-27) — le geste se joue dans la démo ET se
+B-09, B-19, B-25, B-27) — le geste se joue dans le dépôt de départ ET se
 vérifie au banc. La recette s'enrichit des étapes 12 à 27 : les dix
 popups, la frappe intelligente, les gestes de refactorisation, le
 compteur des vérifiés. Les deux restes du §9 — la surimpression de
@@ -274,13 +274,13 @@ redressement du 2026-11-08 (section ci-dessous).
   (D-15, D-01, B-01) sont Câblé ; la catégorie F tombe à 9
   Noyau + 1 Câblé. La reprise du branchement (§8) fait monter
   A-05 à A-09, A-22, B-03, B-07, B-09, B-19, B-25 et B-27 à
-  « Démontré » — le geste se joue dans la démo ET se vérifie
+  « Démontré » — le geste se joue dans le dépôt de départ ET se vérifie
   au banc (`BancSpecsTest`).
 - **Cinq contrôles bloquants** passent dans `./gradlew check` :
   `check-parity-matrix` (statuts valides, tests cités existants,
   scénarios cités connus, « Noyau » sans test de vue cité interdit),
   `check-pieges` (chaque test cité au registre existe — PIEGE-23
-  cite des tests réels à présent), `check-demo-coverage`,
+  cite des tests réels à présent), `check-catalog-coverage`,
   `check-language-baseline` (le rempart : 408 identifiants français
   figés, module par module — la ligne ne monte jamais), et
   `check-docs-dates` (aucun document daté au-delà du dernier commit —
@@ -295,7 +295,7 @@ redressement du 2026-11-08 (section ci-dessous).
 
 ## Le redressement du 2026-11-08 (retour du propriétaire) : quatre défauts d'usage et le §9 complet
 
-Le propriétaire a rejoué la démonstration ; quatre défauts d'usage
+Le propriétaire a rejoué l'exemplenstration ; quatre défauts d'usage
 sont remontés, corrigés par la boucle test-rouge → correctif →
 test-vert, et les deux restes du §9 se livrent :
 
@@ -370,11 +370,11 @@ test-vert, et les deux restes du §9 se livrent :
       appareil ; PIEGE-25 couvert.
 - [x] 200 frappes sans AUCUNE image décolorée, clavier et composition
       IME, au banc ; PIEGE-26 couvert. (Pas de crochet de lenteur à
-      300 ms dans la démo : la retenue de la publication par
+      300 ms dans le dépôt de départ : la retenue de la publication par
       l'exécuteur manuel du banc joue ce rôle dans la preuve.)
-- [x] Les dix popups s'ouvrent dans la démo : OUI — les dix vues vivent
+- [x] Les dix popups s'ouvrent dans le dépôt de départ : OUI — les dix vues vivent
       sur la couche (`PopupViewsTest`, `PopupSurfacesTest`,
-      `PopupRegimesTest`, `PopupAnchorTest`), la démonstration branche
+      `PopupRegimesTest`, `PopupAnchorTest`), l'exemplenstration branche
       les dix (`AtelierPopups`), la recette les rejoue (étapes 12 à 20).
 - [x] Copier/couper/coller et la barre de sélection : OUI — la barre
       naît de la sélection, les quatre actions vivent en transactions
@@ -393,7 +393,7 @@ test-vert, et les deux restes du §9 se livrent :
 - [x] Le rempart de langue est actif (408 figés, ratchet bloquant) ;
       le renommage est planifié avec sa mesure, non exécuté.
 - [ ] `./gradlew check`, mutation, `publishToMavenLocal`,
-      `publicationChecksums`, `:demo:assembleDebug` : check complet
+      `publicationChecksums`, la construction des modules : check complet
       et APK exécutés dans cette fenêtre (voir « Preuves finales ») ;
       la mutation et la publication locale n'ont PAS été relancées
       dans cette fenêtre (aucune ligne des modules purs n'a changé).
@@ -412,22 +412,22 @@ test-vert, et les deux restes du §9 se livrent :
 - `:android-view:testDebugUnitTest` — 330 tests verts (Robolectric
   compris, `SmartTypingViewTest` en tête) ;
   `:android-widgets:testDebugUnitTest` — 57 verts ;
-  `:demo:check` complet vert — 61 tests dont
-  `DemoIntelligenceTest`, `AtelierRefactorTest`,
+  le module d'exemple :check` complet vert — 61 tests dont
+  `ExempleIntelligenceTest`, `AtelierRefactorTest`,
   `ServeurLangageTest`, `BancSpecsTest`. Checkstyle/PMD verts
   sur tous les modules touchés.
 - Les contrôles de politique : matrice (110 lignes : 36 Câblé,
   45 Noyau, 17 Non démarré, 12 Démontré), pièges (25 couverts,
   3 à écrire — les ellipses M5 PIEGE-09/10/12, plus le nouveau),
-  démo (cohérente),
+  l'exemple (cohérent),
   langue (408 figés), dates (aucune future) — tous verts.
-- Le `./gradlew check` complet et `:demo:assembleDebug` : exécutés en
+- Le `./gradlew check` complet et la construction des modules : exécutés en
   fin de jalon (commit de clôture) — sortie consignée au commit.
 
 ## Risques restants
 
 1. **Aucune preuve appareil** : tout ce qui précède se prouve au
-   banc (JVM) et dans la démonstration — le premier appareil dira
+   banc (JVM) et dans le dépôt de départ — le premier appareil dira
    le reste (plan dans VERIFICATION-APPAREIL).
 2. **Le rattrapage approximatif aux découpes** : la ligne qui suit
    un saut de ligne inséré se relit depuis l'état de la ligne QUI LA

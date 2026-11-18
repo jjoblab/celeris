@@ -223,7 +223,7 @@ reste un trou libre — jamais d'invention ; les miroirs étaient livrés
 (M5, `Gabarits.miroirs`). Bancs : `SignatureAideModelTest` (riche),
 `PopupViewsTest` (stepper au toucher, peek à l'appui long),
 `GabaritTest` (choix, cycle, macros), `AtelierRefactorTest` (le
-gabarit de la démo rend sa macro et son choix). Matrice B-07 et A-22
+gabarit du dépôt de départ rend sa macro et son choix). Matrice B-07 et A-22
 à jour.
 
 **Source** : audit § 6, gap 7.
@@ -246,13 +246,13 @@ dans un littéral ferme la chaîne, pose la concaténation et la rouvre à
 la ligne un cran sous la sienne — blocs de texte, échappée pendante et
 chaîne non fermée refusent) et pose le cran des labels de cas (le mot
 de tête `case`/`default` aux trois formes, ternaire et commentaire
-épargnés — `JavaSmartTypingTest`), câblée dans la démo par la langue du
+épargnés — `JavaSmartTypingTest`), câblée dans le dépôt de départ par la langue du
 fichier ; l'auto-import classpath livré : `ClasspathIndex`
 porte l'index de l'hôte, `ClasspathImports` propose les noms qualifiés
 du nom simple sous le curseur dans l'ordre de l'index, l'import déjà
 présent ne se re-propose pas, l'insertion reste chez `ImportAuto`
-(`ClasspathImportsTest`, `DemoIntelligenceTest`), câblé dans l'atelier
-de la démo. Les quatre surfaces vivent au moteur, la matrice A-06 et
+(`ClasspathImportsTest`, `ExempleIntelligenceTest`), câblé dans l'atelier
+du dépôt de départ. Les quatre surfaces vivent au moteur, la matrice A-06 et
 B-05 passent à jour.
 
 **Source** : audit § 6, gap 8.
@@ -283,7 +283,7 @@ sous le doigt ; tout tient : le pouce se tait. `EditorView` gagne la
 voie publique — `scrollFractionY`, `visibleFractionY`,
 `scrollToFractionY`, `premiereLigneVisible`, `lignesVisibles` — le
 corps vit chez `ViewportFractions`, le défilement se borne à l'image
-suivante, l'avis de fenêtre y part. Câblés dans la démo au bord droit
+suivante, l'avis de fenêtre y part. Câblés dans le dépôt de départ au bord droit
 (minimap à gauche du pouce et de la bande d'erreurs). Bancs :
 `MinimapModelTest`, `PopupSurfacesTest` (saut au toucher, glissement),
 `ScrollFractionTest` (fraction lue, défilement borné, document qui
@@ -338,7 +338,7 @@ fournit l'émulateur.
 migrées, inventaire consigné).
 
 **Périmètre** : inventorier les surfaces fonctionnelles existantes — la
-démonstration en tête (écran de réglages, catalogue de scénarios), puis
+exemple consommateur en tête (écran de réglages, catalogue de scénarios), puis
 les popups et barres livrées ; statuer surface par surface ; ramener
 les non-conformes aux trois formes de l'ADR-018 ; livrer la feuille du
 haut à son premier besoin si aucun chantier ne l'a encore fait naître.
@@ -348,7 +348,7 @@ Maquettes de référence : [`docs/maquettes/popups.html`](maquettes/popups.html
 ([`docs/audit/INVENTAIRE-SURFACES.md`](audit/INVENTAIRE-SURFACES.md)) ;
 les surfaces non conformes sont migrées — l'écran de réglages, le plan
 latéral, la barre de recherche, six dialogues système et trois verdicts ;
-aucune surface fonctionnelle plein cadre ne reste dans la démonstration.
+aucune surface fonctionnelle plein cadre ne reste dans le dépôt de départ.
 La feuille du haut vit sa première vie (revues par blocs, consentement,
 prédiction) et la feuille du bas sa première famille (réglages, plan,
 recherche, renommage, verdicts du banc).
@@ -409,7 +409,7 @@ vide refuse, la lecture seule refuse (`GlisserDeposerTest`, la vue vit
 dans la fenêtre d’une activité — le vrai dispatch) ; D-14 clos —
 `setLigatures` (« liga » ouvre, « -liga » ferme, fermées par défaut)
 et `poserPolice` (la table des familles de la règle, mesure et tracé
-ensemble, PIEGE-22) ; la démo embarque Fira Code 6.2 (OFL, attribuée
+ensemble, PIEGE-22) ; l'hôte embarque Fira Code 6.2 (OFL, attribuée
 au `NOTICE`) derrière l’interrupteur « Ligatures » (`LigaturesTest`,
 test de capture). Le volume de tests — première traîne le 2026-11-11 :
 six collaborateurs vivaient sans aucun banc (`EditorGutter`,
@@ -470,10 +470,10 @@ dépôt de départ, hors de ce bac à sable.
 | 2026-11-10 | C10 — charge et limites | banc `Charge480kLignesTest` (480 000 lignes, tas dédié 1 Go), mode gros fichiers tri-état (`LargeFileMode` + `LargeFileModeTest`), limites au README (« Charge et limites ») ; G-01 étendu à la matrice |
 | 2026-11-11 | C6 — raffinements de complétion | `CompletionMatcher` (six paliers), `AcceptanceHistory` (apprentissage), `ContextualCompletion` (contextes enum/annotation), `FusedFloor` (plancher fusionné) ; `RaffinementsCompletionTest` (commit 8d934c3) |
 | 2026-11-11 | C4 — USAGE.md : guide d'intégration hôte | `USAGE.md` à la racine (719 lignes, commit 023ad2d) ; coordonnées d'artefacts et noms d'API vérifiés contre les manifestes `api/` |
-| 2026-11-11 | C8 — frappe fine | `JavaSmartTyping` (découpage de chaînes, cran des labels de cas) et `ClasspathIndex` + `ClasspathImports` (auto-import classpath) ; bancs `JavaSmartTypingTest`, `ClasspathImportsTest`, `DemoIntelligenceTest` ; câblés dans la démo (gestes dédiés Java, atelier d'import) |
-| 2026-11-11 | C7 — signature riche et snippets riches | `SignatureAideModel` surchargé (stepper, fenêtre ±1, peek) + `SignatureHelpView` riche (voisines, stepper ‹ i/n ›, peek à l'appui long, repli local sur réponse vide) ; trous à choix et macros au gabarit (`Trou.choix`, `Gabarit.of(corps, macros)`) ; bancs `SignatureAideModelTest`, `PopupViewsTest`, `GabaritTest`, `AtelierRefactorTest` ; câblés dans la démo (conversion entière, coach en repli, gabarit de méthode enrichi) |
+| 2026-11-11 | C8 — frappe fine | `JavaSmartTyping` (découpage de chaînes, cran des labels de cas) et `ClasspathIndex` + `ClasspathImports` (auto-import classpath) ; bancs `JavaSmartTypingTest`, `ClasspathImportsTest`, `ExempleIntelligenceTest` ; câblés dans le dépôt de départ (gestes dédiés Java, atelier d'import) |
+| 2026-11-11 | C7 — signature riche et snippets riches | `SignatureAideModel` surchargé (stepper, fenêtre ±1, peek) + `SignatureHelpView` riche (voisines, stepper ‹ i/n ›, peek à l'appui long, repli local sur réponse vide) ; trous à choix et macros au gabarit (`Trou.choix`, `Gabarit.of(corps, macros)`) ; bancs `SignatureAideModelTest`, `PopupViewsTest`, `GabaritTest`, `AtelierRefactorTest` ; câblés dans le dépôt de départ (conversion entière, coach en repli, gabarit de méthode enrichi) |
 | 2026-11-11 | C13 — deuxième vague : refactorings, ornement, CLI | A-04 (`CamelWord`, `CaretsMotion`), B-20 à B-23 (`Extraction`, `Inline`, `SignatureChange`, `SafeDelete`/`SafeMove`), A-14 (`HistoriqueLocal`), A-17 (`IndentGuides`), D-14 (`setLigatures`), D-20 (`GlisserDeposer`), A-23 (`PostfixCompletion`), A-21 (`RechercheProjet`), G-03 (cli : diagnostiquer, formater, refactorer) ; volume de tests clos par décision (2 048 méthodes `@Test`, pas de quota — détail ci-dessus) |
-| 2026-11-11 | C9 — chrome de l'éditeur | `MinimapModel` + `MinimapView` (silhouette, fenêtre visible, saut au toucher et au glissement) et `FastScrollerView` (pouce, glissement, tout tient : le pouce se tait) ; `EditorView` gagne la voie publique du défilement par fraction (`ViewportFractions`) ; bancs `MinimapModelTest`, `PopupSurfacesTest`, `ScrollFractionTest` ; câblés dans la démo au bord droit |
+| 2026-11-11 | C9 — chrome de l'éditeur | `MinimapModel` + `MinimapView` (silhouette, fenêtre visible, saut au toucher et au glissement) et `FastScrollerView` (pouce, glissement, tout tient : le pouce se tait) ; `EditorView` gagne la voie publique du défilement par fraction (`ViewportFractions`) ; bancs `MinimapModelTest`, `PopupSurfacesTest`, `ScrollFractionTest` ; câblés dans le dépôt de départ au bord droit |
 
 ## Historique — jalons M0 à M9 (bouclés, 1.0.0 publiée le 2026-11-10)
 
@@ -508,7 +508,7 @@ Dépôt neuf exécuté : `build-logic` (conventions publication/lint/javac),
 catalogue unique, squelette des dix modules, workflows CI (actions épinglées
 par SHA, wrapper validé), Checkstyle/PMD/Error Prone + NullAway, ArchUnit,
 validateur d'API, jqwik/PIT/couverture branchés, scripts de politique de
-langue et de références externes **bloquants**, squelette de la démo
+langue et de références externes **bloquants**, squelette du dépôt de départ
 (catalogue de scénarios vide, écran de réglages en direct), premiers
 `package-info.java`.
 Sortie : CI verte sur le squelette ; `./gradlew check` sans SDK Android sur
@@ -521,7 +521,7 @@ Portage rope + index + undo coalescente (registre) ; instantanés immuables 
 recherche/remplacement ; UAX #29/#9 ; encodages et BOM. PIEGE-07, PIEGE-08,
 PIEGE-13 écrits **avant** le code. Fuzz jqwik à oracle `StringBuilder`.
 Sortie : fuzz et oracle verts ; JMH ≤ 1 ms/édition sur 50 000 lignes ;
-mutation ≥ 80 % ; pièges liés au texte couverts ; scénarios de démo A-13,
+mutation ≥ 80 % ; pièges liés au texte couverts ; scénarios d'exemple A-13,
 A-18, A-20, A-24, A-25.
 
 #### M3 — Vue minimale (30–40 j-h)
@@ -582,7 +582,7 @@ latence tenus ; test « aucune requête sans consentement » vert.
 
 Audit d'accessibilité complet ; revue de sécurité ; performance finale
 (cliquet resserré) ; documentation exhaustive ; `MIGRATION.md` final du
-dépôt de départ vers celeris ; démonstration complète ; publication 1.0.0
+dépôt de départ vers celeris ; exemple consommateur complète ; publication 1.0.0
 sur la cible validée. Sortie : tous budgets et portes verts ; aucun P0
 ouvert ; guide de migration relu.
 

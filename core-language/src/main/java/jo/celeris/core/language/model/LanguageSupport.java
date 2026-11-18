@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * L'agrégat immuable d'un langage (M7.6) : descripteur, configuration,
  * source syntaxique, capacités et incorporations. C'est le seul objet
- * que la vue, l'intelligence, la démo et le cli reçoivent — personne
+ * que la vue, l'intelligence, l'exemple et le cli reçoivent — personne
  * en aval ne sait quel langage a répondu.
  *
  * <p>La résolution d'une capacité remonte la chaîne : le fournisseur

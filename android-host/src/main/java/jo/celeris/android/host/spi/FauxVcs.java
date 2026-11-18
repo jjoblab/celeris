@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * Le faux VCS de référence (E-02) : sert les données qu'on lui donne,
- * déterministe, pour les tests et la démonstration. Aucun calcul de
+ * déterministe, pour les tests et les exemples d'intégration. Aucun calcul de
  * diff — les marques sont déclarées à la construction, les mêmes pour
  * tout fichier interrogé (les tests visent le contrat, pas un dépôt
  * réel).

@@ -97,8 +97,8 @@ class ControleEnregistrementTest(unittest.TestCase):
 
     def testLeCommentaireFrancaisNeComptePas(self):
         self.depot.ecrire(
-            "demo/src/main/java/jo/celeris/demo/Activite.java",
-            'package jo.celeris.demo;\n'
+            "exemple/src/main/java/jo/celeris/exemple/Activite.java",
+            'package jo.celeris.exemple;\n'
             '/** La Javadoc cite le langage essai librement. */\n'
             'final class Activite { int x() { return 2; } }\n')
         resultat = lancer(self.racine)

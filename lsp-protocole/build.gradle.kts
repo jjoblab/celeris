@@ -29,7 +29,7 @@ dependencies {
 // publient DANS le jar — R8 lit META-INF/proguard/ des jars de
 // dépendances, l'hôte n'a plus à copier le fichier à la main. La
 // source unique reste regles-conservation.pro à la racine (la
-// démonstration, hors périmètre, l'y lit) ; cette tâche la recopie
+// exemple consommateur, hors périmètre, l'y lit) ; cette tâche la recopie
 // vers les ressources générées — jamais deux fois le même texte à
 // maintenir.
 val reglesEmbarquees = tasks.register<Sync>("embarquerReglesR8") {

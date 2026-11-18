@@ -560,7 +560,7 @@
 
   <section class="cadre-scene">
     <div class="scene" id="scene" data-viewport="bureau" tabindex="0"
-         aria-label="Éditeur de démonstration (clavier délégué aux cartes)">
+         aria-label="Éditeur de exemple consommateur (clavier délégué aux cartes)">
       <div class="editeur" id="editeur">
         <div class="gouttiere" id="gouttiere"></div>
         <div class="code" id="code"></div>
@@ -640,7 +640,7 @@
 
 /* =====================================================================
    1. LE SCÉNARIO — ServiceUtilisateur.java, la matière des cartes
-   (les tables factices reprennent celles de la démonstration)
+   (les tables factices reprennent celles du dépôt de départ)
    ===================================================================== */
 const FICHIER = [
   "/** Le registre des adhérents — suivi... et reliquat -- voir la convention. */",
@@ -703,7 +703,7 @@ const FICHIER = [
 /* la référence de la revue de diff : le fichier sans la ligne de teinte */
 const ORIGINE_DIFF = FICHIER.toSpliced(7, 1);
 
-/* les tables du coach (celles de la démonstration, plus le scénario) */
+/* les tables du coach (celles du dépôt de départ, plus le scénario) */
 const DOCS = {
   "inscrire": "Ajoute une adhérente au registre.\n\n@param nom le nom à inscrire — jamais null",
   "mesurer": "Mesure une valeur dans son unité.\n\n@param unite l'unité de mesure\n@param valeur la valeur mesurée\n@param arrondir vrai pour arrondir au cran",
@@ -762,7 +762,7 @@ const BADGES = {
 const PALETTE_MATERIAL = ["#f44336", "#e91e63", "#9c27b0", "#673ab7",
   "#3f51b5", "#2196f3", "#009688", "#4caf50", "#ffeb3b", "#ffc107",
   "#ff9800", "#795548", "#9e9e9e", "#607d8b", "#000000", "#ffffff"];
-/* le catalogue de fichiers de l'aller à (la démonstration) */
+/* le catalogue de fichiers de l'aller à (l'exemplenstration) */
 const CATALOGUE_FICHIERS = [
   ["Conversions.kt", "kt"], ["ServiceUtilisateur.java", "java"],
   ["strings.xml", "xml"], ["build.gradle.kts", "kts"],
@@ -842,7 +842,7 @@ const champsDe = classe =>
   plan.filter(e => e.cat === "CHAMP" && e.classe === classe);
 
 /* =====================================================================
-   4. LE LINT (le faux build de la démonstration : ... et --)
+   4. LE LINT (le faux build du dépôt de départ : ... et --)
    ===================================================================== */
 function regleLigne(l) {
   const masquees = new Set();
@@ -2189,7 +2189,7 @@ function entourerSelection(mode) {
 function insererGabaritMethode() {
   const classe = typeContenant(caret.l) || { fin: lignes.length - 2, nom: "Fichier" };
   insererAvantAccoladeFermante(classe, [
-    `// ${classe.nom} — posée par le gabarit de la démonstration`,
+    `// ${classe.nom} — posée par le gabarit du dépôt de départ`,
     `private \${genre|void,int|} \${nom:nouvelleMethode}() {`,
     `    \${corps:}`,
     `}`]);
@@ -3043,7 +3043,7 @@ function ouvrirFeuilleReglages() {
       v => appliquerTheme(v ? "sombre" : "clair"));
     const cIA = carte("IA");
     reglage(cIA, "Modèles IA",
-      "Coupé par défaut (F-10) : aucune requête ne quitte l'éditeur sans cette activation explicite. Le modèle de la démonstration est local et hors ligne — les exclusions gardent les secrets pareil.",
+      "Coupé par défaut (F-10) : aucune requête ne quitte l'éditeur sans cette activation explicite. Le modèle du dépôt de départ est local et hors ligne — les exclusions gardent les secrets pareil.",
       consentementIA, v => { consentementIA = v; });
     const cRendu = carte("Rendu");
     const ligneLenteur = document.createElement("div");
@@ -3589,7 +3589,7 @@ const FICHES = {
       "L'AMPOULE de la gouttière l'ouvre aussi (la parité au simulateur de référence) : à la ligne du caret qui porte un diagnostic, l'ampoule jaune (#FFCB6B) remplace le marqueur — le comportement de l'IDE — et chaque rangée porte son ICÔNE d'ampoule à l'encre d'avertissement (le menu Alt+Enter de l'IDE iconise ses rangées).",
       "Chaque action court APRÈS la fermeture du menu ; les flèches et Entrée y vivent (PIEGE-27).",
       "C'est la tête de la famille des surfaces d'actions : une surface d'actions à la fois."],
-    sections: ["Les actions en rangées TITRE cliquables, l'ordre de la table de l'hôte (16 intentions dans la démonstration)."],
+    sections: ["Les actions en rangées TITRE cliquables, l'ordre de la table de l'hôte (16 intentions dans le dépôt de départ)."],
     regimes: { "Frappe": "épargné — la complétion le chasse", "Défilement": "se repose",
       "Tap hors cartes": "referme", "Échap": "referme" },
     api: "popups.configurerIntentions(items);\npopups.ouvrirIntentions();",
@@ -3602,7 +3602,7 @@ const FICHES = {
     comment: ["La carte pend sous la puce au bord droit, en tête de scène (y = 8).",
       "Deux menus ne tiennent jamais : elle ferme la complétion et le menu du caret, eux la ferment.",
       "Le défilement l'épargne — elle n'ancre pas au texte ; la frappe la ferme."],
-    sections: ["La section « PLUS » ; les actions de l'hôte (24 dans la démonstration : complétion, intentions, usages, hiérarchie, générations, sûreté, masquage, exécution, lint, renommage, IA, thème, texte, réglages…)."],
+    sections: ["La section « PLUS » ; les actions de l'hôte (24 dans le dépôt de départ : complétion, intentions, usages, hiérarchie, générations, sûreté, masquage, exécution, lint, renommage, IA, thème, texte, réglages…)."],
     regimes: { "Frappe": "referme", "Défilement": "l'épargne",
       "Tap hors cartes": "referme", "Échap": "referme" },
     api: "barreToolbar.ouvrirDebordement(items);",
@@ -3718,7 +3718,7 @@ const FICHES = {
     regimes: { "Frappe": "sans effet", "Défilement": "sans effet",
       "Tap hors cartes": "le voile prend", "Échap": "ferme" },
     api: "// GardeContexte (ADR-012) : rien ne part sans consentement explicite",
-    note: "Trois insertions déterministes dans la démonstration : tête, milieu, pied."
+    note: "Trois insertions déterministes dans le dépôt de départ : tête, milieu, pied."
   },
   "prediction": {
     titre: "IA : prédire la prochaine édition", genre: "feuille du haut",
@@ -3742,7 +3742,7 @@ const FICHES = {
     regimes: { "Frappe": "sans effet", "Défilement": "sans effet",
       "Tap hors cartes": "le voile prend", "Échap": "ferme" },
     api: "// aucune API : le consentement précède toute API",
-    note: "Le modèle de la démonstration est local et hors ligne — et coupé quand même."
+    note: "Le modèle du dépôt de départ est local et hors ligne — et coupé quand même."
   },
   "bande_erreurs": {
     titre: "Bande d'erreurs", genre: "ERROR_BAND",

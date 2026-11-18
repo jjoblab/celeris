@@ -56,7 +56,7 @@ final class ScopeSelectorTest {
         assertNotNull(ScopeSelector.parse("keyword, entity.name.function")
                 .score(PILE));
         assertNotNull(ScopeSelector.parse("string.quoted, comment")
-                .score(List.of("source.demo", "string.quoted.double")));
+                .score(List.of("source.exemple", "string.quoted.double")));
     }
 
     @Test

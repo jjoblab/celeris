@@ -2,7 +2,7 @@
 
 > **Consigné le 2026-11-10** (chantier C12 de la feuille de route,
 > décision ADR-018 du propriétaire). Toute surface fonctionnelle de la
-> démonstration et du kit se statue ici : sa forme d'avant, son
+> exemple consommateur et du kit se statue ici : sa forme d'avant, son
 > verdict, sa forme d'après. La règle : trois formes permises — feuille
 > du bas, feuille du haut, popup ancrée — jamais d'écran plein cadre
 > ni de dialogue système pour une fonctionnalité. L'hôte reste maître
@@ -35,7 +35,7 @@ Maquettes de référence : [`docs/maquettes/popups.html`](../maquettes/popups.h
 | # | Surface | Avant | Verdict | Après |
 | --- | --- | --- | --- | --- |
 | 1 | Réglages (six interrupteurs, curseur, paquet jouet H-04) | activité plein cadre (`SettingsActivity`) | non conforme — ADR-018 cite « paramètres » pour la feuille du bas | `FeuilleReglages` : feuille du bas, depuis l'accueil et l'éditeur ; l'écran disparaît du manifeste |
-| 2 | Verdicts du banc de la démonstration | dialogue système (`MaterialAlertDialogBuilder`) | non conforme — proscrit | feuille du bas, lignes en chasse fixe |
+| 2 | Verdicts du banc du dépôt de départ | dialogue système (`MaterialAlertDialogBuilder`) | non conforme — proscrit | feuille du bas, lignes en chasse fixe |
 | 3 | Recherche (A-20, facette barre) | barre dépliable dans le layout de l'activité | non conforme — ADR-018 cite « recherche/remplacement » pour la feuille du bas | `AtelierRecherche` : feuille du bas, le champ tient le focus ; l'état reste coordonné chez l'atelier des popups (M7.5, §7) |
 | 4 | Plan du fichier | panneau latéral inline (`OutlineView` à 45 %) | non conforme — ADR-018 cite « plan » pour la feuille du bas | `FeuillePlan` : feuille du bas, l'entrée choisie y saute et la referme |
 | 5 | Renommage de symbole (B-19, B-11) | dialogue système à champ | non conforme — le champ doit tenir le focus, la feuille le porte hors de la couche | feuille du bas dans `AtelierRefactor` |
@@ -51,7 +51,7 @@ Maquettes de référence : [`docs/maquettes/popups.html`](../maquettes/popups.h
 
 | Surface | Forme | Verdict |
 | --- | --- | --- |
-| Accueil de la démonstration (`MainActivity`, cartes de fichiers) | activité hôte | conforme — le conteneur Android l'exige (ADR-018 : « La démonstration garde son activité hôte ») ; les cartes choisissent le fichier, c'est la navigation de l'hôte (ADR-009) ; le catalogue de scénarios proprement dit est une donnée (`ScenarioCatalog`), lue par le compteur d'accueil |
+| Accueil du dépôt de départ (`MainActivity`, cartes de fichiers) | activité hôte | conforme — le conteneur Android l'exige (ADR-018 : « La exemple consommateur garde son activité hôte ») ; les cartes choisissent le fichier, c'est la navigation de l'hôte (ADR-009) ; le catalogue de scénarios proprement dit est une donnée (`ScenarioCatalog`), lue par le compteur d'accueil |
 | Atelier d'édition (`EditorActivity`) | activité hôte de l'éditeur | conforme — le conteneur embarque la vue (`EditorView`), c'est le mandat d'embarquable |
 | Barres d'application et menus | chrome de l'hôte | conforme — l'hôte possède sa navigation ; le voile d'une feuille couvre le menu, aucune surface ne s'ouvre sous une feuille |
 | Les dix popups de la couche (M7.5, §7) | popups ancrées | conforme — complétion, documentation, signature, intentions, survol, info-bulle, fil d'Ariane, recherche (état), barre de sélection, menu de débordement |
@@ -68,4 +68,4 @@ Maquettes de référence : [`docs/maquettes/popups.html`](../maquettes/popups.h
   des feuilles, la lin Android (bloquante, zéro ligne de base),
   Checkstyle (plafonds 600/50), PMD et la ligne de base de langue
   comprises.
-- `:demo:assembleDebug` livre l'APK de la démonstration migrée.
+- la construction des modules livre l'APK du dépôt de départ migrée.

@@ -1,7 +1,7 @@
-# Recette manuelle M7.5 — ce que le propriétaire rejoue dans la démo
+# Recette manuelle M7.5 — ce que le propriétaire rejoue dans le dépôt de départ
 
 > Cinq minutes sur un appareil (ou l'émulateur de son choix), avec
-> l'APK debug produit par la CI (artefact `demo-debug-apk`). Chaque
+> l'application d'exemple produite par la CI. Chaque
 > étape dit ce qu'on fait et ce qu'on doit VOIR — un écart se signale
 > avec le numéro de l'étape.
 >
@@ -12,7 +12,7 @@
 
 ## 1. La gouttière ne bouge plus
 
-1. Ouvrir la démonstration, puis un fichier Java de taille moyenne
+1. Ouvrir l'exemplenstration, puis un fichier Java de taille moyenne
    (par exemple l'exemple `exemple.java` d'une carte).
    **Vu** : le champ de numéros occupe au moins trois chiffres de
    large, le texte démarre à sa droite.
@@ -97,7 +97,7 @@
 20. Défiler pendant que la complétion et le fil d'Ariane sont
     ouverts : les popups se REPOSITIONNENT sans se fermer.
 
-## 6. La frappe intelligente vit dans la démo (le branchement)
+## 6. La frappe intelligente vit dans le dépôt de départ (le branchement)
 
 21. Dans un fichier Java, taper `(` au clavier (logiciel ou
     matériel) : la PAIRE se pose, le curseur vit AU MILIEU.
@@ -118,12 +118,12 @@
     se disent), « Ajouter l'import List » (la ligne se pose sous le
     paquet, le doublon se refuse).
 
-## 7. La démonstration vérifie ses scénarios
+## 7. La exemple consommateur vérifie ses scénarios
 
 27. Écran d'accueil : le troisième compteur « Vérifiés » lit
     `12/12`. L'appui liste les verdicts ligne à ligne — chaque
     scénario vérifié rejoue ses gestes par le fil réel de la
-    démonstration, un écart s'y verrait.
+    exemple consommateur, un écart s'y verrait.
 
 ## 8. Le redressement du 2026-11-08 : quatre défauts d'usage corrigés
 
@@ -163,5 +163,5 @@
 ## 9. Ce qui reste ouvert (le propriétaire le verra)
 
 - Aucune preuve APPAREIL : tous les statuts « Démontré » de la
-  matrice se prouvent au banc (JVM) et dans la démo — le premier
+  matrice se prouvent au banc (JVM) et dans le dépôt de départ — le premier
   appareil dira le reste (voir VERIFICATION-APPAREIL).

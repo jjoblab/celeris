@@ -105,7 +105,7 @@ B0 : demander la liste, ne pas la deviner) :
 La dépréciation `@Deprecated` de ces symboles suivra le feu vert du
 propriétaire sur ce recensement : le dépôt compile en
 `-Xlint:all -Werror`, une dépréciation posée avant l'accord casserait
-la démonstration (intouchable, § 0.1 du mandat) qui les appelle
+les bancs qui les appellent
 encore.
 
 ---
@@ -120,7 +120,6 @@ encore.
 | `cel-lsp` (client LSP) | `core-lsp` + `lsp-protocole` | client réécrit : domaine immuable d'un côté (ADR-005), frontière protocolaire de l'autre (ADR-015, LSP4J derrière) |
 | `cel-lsp-api` (SPI langage) | `core-language` | contrats portés, enrichis (plateforme de langages, ADR-017) |
 | `cel-textmate` (grammaires) | `core-syntax-grammars` | moteur conservé, réellement TextMate (joni, ADR-014) ; les grammaires deviennent des données JSON de paquets, plus d'archive binaire versionnée |
-| `demo` (démo) | — | sortie du dépôt (ADR-0024, F.7) : une démonstration repensée vivra dans un module neuf |
 
 ## 2. Changements majeurs à prévoir
 
@@ -186,7 +185,7 @@ VS Code (`TokenColorsTheme`, `core-language`) : un fichier JSON portant
 `name`, `colors` (`editor.background`, `editor.foreground`) et
 `tokenColors` (sélecteurs de portées TextMate — `scope`, éventuellement
 une liste — et `settings.foreground`, `settings.fontStyle`). La palette
-dérive du fichier seul : exemple vivant dans la démonstration
+dérive du fichier seul : format vivant dans les thèmes intégrés
 (`themes/atelier.json`, le quatrième thème « Atelier », M7.6 H-07).
 Les réglages d'encre par sorte de jeton migrent vers des règles de
 portées ; les trois thèmes livrés (`ScopeThemes`) servent de gabarit

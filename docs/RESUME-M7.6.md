@@ -12,7 +12,7 @@
 > **État** : les neuf étapes du jalon sont livrées, y compris les
 > ajouts de la relecture du 2026-11-08. `./gradlew check` vert sur
 > l'ensemble (politique comprise, 1 814 tests, 0 échec), APK de
-> démonstration assemblé (debug et release réduite par R8),
+> exemple consommateur assemblé (debug et release réduite par R8),
 > publication locale et sommes vertes. Poussée sur `main` à chaque
 > étape (décision du propriétaire), branches de travail fusionnées
 > puis supprimées.
@@ -50,7 +50,7 @@ premier commit (`git ls-files` ne le voyait pas) — corrigé dans
 parent, badge), `LanguageConfiguration` (le sous-ensemble du
 `language-configuration.json` de VS Code, `CommentRules` et
 `TypingRules` devenus consommateurs), `LanguageSupport` (l'agrégat
-que la vue, l'intelligence, la démo et le cli reçoivent), registre de
+que la vue, l'intelligence, l'exemple et le cli reçoivent), registre de
 capacités avec famille et repli générique, détection à précédence
 complète (réglage, nom exact, motif, extension composée, première
 ligne, contenu). Les SEIZE langages vivent en paquets de données
@@ -70,7 +70,7 @@ la matrice du propriétaire en exige seize (H-03) — seize livrés ; le
 paquet jouet de l'utilisateur (H-04) est livré au noyau (chargeur de
 dossiers et d'archives, sécurité zip-slip, liens symboliques, tailles,
 profondeur — `PackLoaderTest`), pas encore jouable dans la
-démonstration.
+exemple consommateur.
 
 ### 3. Le moteur de grammaires réellement TextMate (étapes 5 et 8 — H-05, H-07)
 
@@ -105,7 +105,7 @@ matchent (l'encre de la meilleure, les attributs cumulés) et garde le
 résultat en cache par pile — le tracé n'alloue rien par image. Les
 thèmes clair, sombre et contraste élevé sont écrits ici (mêmes teintes
 que les palettes, banc WCAG `ScopeThemeContrastTest`) ; l'importeur
-`TokenColorsTheme` lit le format VS Code et la démonstration y bâtit
+`TokenColorsTheme` lit le format VS Code et l'exemplenstration y bâtit
 son quatrième thème « Atelier », sa palette dérivée du fichier seul.
 
 **Commits** : `3cc5501`, `aae41bc`, `a04120e`, `dfa8319`. **Tests** :
@@ -146,11 +146,11 @@ pour octet (`ClikeSnapshotsTest`), budgets de l'ADR-004 tenus.
 ### 5. LSP sur LSP4J derrière la frontière (étapes 7 et 8 — H-11, H-12)
 
 **Fait.** Le module `lsp-protocole` porte le protocole : `LspSession`
-sur des flux (tubes à file en mémoire pour la démo, jamais les tubes
+sur des flux (tubes à file en mémoire pour l'exemple, jamais les tubes
 du JDK dont la lecture couplait à la vivacité du fil écrivain),
 correspondance vers les types immuables de `core-lsp`, montage
 embarqué par désignation (`ServeurEmbarque.monter`), règles R8
-consommatrices. La parité est prononcée : les bancs de la démonstration passent SANS MODIFICATION par la frontière ; le code maison (40 des 47 classes) est supprimé le même jour, le corpus de traces lit par le Gson de la bibliothèque ; la démo réduite par R8 est prouvée (assembleRelease vert, le dex vérifié porte la bibliothèque et sa copie unique de Gson).
+consommatrices. La parité est prononcée : les bancs du dépôt de départ passent SANS MODIFICATION par la frontière ; le code maison (40 des 47 classes) est supprimé le même jour, le corpus de traces lit par le Gson de la bibliothèque ; le banc réduit par R8 est prouvée (assembleRelease vert, le dex vérifié porte la bibliothèque et sa copie unique de Gson).
 La couverture nouvelle (H-12) raccorde TREIZE méthodes du protocole,
 chacune à une interface : `references`, `documentSymbol`,
 `documentHighlight`, `prepareRename`, `rename`, `codeAction`,
@@ -164,7 +164,7 @@ d'initialisation — de la donnée pure lue du `servers.json` du paquet
 ou du fichier de l'hôte qui assemble. Les seize paquets intégrés
 n'en déclarent AUCUN : l'éditeur ne connaît pas les serveurs de ses
 hôtes (règle du propriétaire), il porte la déclaration jusqu'à eux.
-La démonstration porte ses déclarations (`serveurs/servers.json`), l'aiguillage `instanceof` de `EditorActivity` disparaît, la session générique
+La exemple consommateur porte ses déclarations (`serveurs/servers.json`), l'aiguillage `instanceof` de `EditorActivity` disparaît, la session générique
 `DeclaredServerSession` ne demande que ce que la négociation annonce.
 
 **Commits** : `c380e91`, `5f99a75`, `7c52f02`, `0d5fb87`, `21cb6c9`,
@@ -184,14 +184,14 @@ La démonstration porte ses déclarations (`serveurs/servers.json`), l'aiguillag
 ## L'état sur appareil
 
 **Non exécuté** — l'environnement de travail n'offre ni émulateur ni
-appareil. La preuve disponible : l'APK de démonstration s'assemble
+appareil. La preuve disponible : l'APK de exemple consommateur s'assemble
 (debug et release réduite par R8, `assembleRelease` vert), les bancs JVM exécutent les serveurs de bout en bout, la réduction est vérifiée au dex. La vérification sur appareil reste au plan du
 propriétaire (`docs/qualite/VERIFICATION-APPAREIL.md`).
 
 ## Écarts avec les constats du prompt
 
 - **Une seule copie de lsp4j et Gson** : le chemin de classes fournit les deux bouts, la version de Gson épinglée au catalogue (étape 7).
-- **L'APK de démo ne contient qu'une copie** : prouvé au dex.
+- **L'application d'exemple ne contient qu'une copie** : prouvé au dex.
 - **`[EXT-1]`** : la matrice voyait l'IDE de référence, le RESUME-M8.5
   le dépôt de départ — la règle nouvelle tranche : la parité se
   formule contre Android Studio en toutes lettres, le portage du kit
@@ -214,14 +214,14 @@ propriétaire (`docs/qualite/VERIFICATION-APPAREIL.md`).
 
 La catégorie H (treize lignes) naît : H-01 à H-03, H-05, H-07, H-08,
 H-10, H-12, H-13 câblées ; H-04, H-06, H-11 au noyau ; H-09 écartée
-(ADR-016). `scripts/check-parity-matrix` et `scripts/check-demo-coverage`
+(ADR-016). `scripts/check-parity-matrix` et `scripts/check-catalog-coverage`
 couvrent la catégorie H sans exception.
 
 ## Ce qui n'est pas fait, et les risques restants
 
 - **H-04 au noyau** : le paquet jouet de l'utilisateur ne se charge
-  pas encore à chaud DEPUIS LA DÉMONSTRATION (le chargeur de dossiers
-  et d'archives vit avec sa sécurité, testée) — le scénario de démo
+  pas encore à chaud depuis l'application d'exemple (le chargeur de dossiers
+  et d'archives vit avec sa sécurité, testée) — le scénario d'exemple
   attend un écran hôte.
 - **H-06 au noyau** : les langages incorporés (script dans HTML, code
   dans Markdown) — le mécanisme existe (inclusions externes par
@@ -248,7 +248,7 @@ du commerce chargent sans modification (ONZE, banc à seuils) ; les
 thèmes s'appliquent par portées et un `tokenColors` s'importe ; Java,
 Kotlin, KTS et Groovy tiennent en spécialisations bornées à 150
 lignes ; le spike tree-sitter a son ADR chiffré (écarté) ; le client
-LSP passe par la bibliothèque derrière la frontière, la démo réduite
+LSP passe par la bibliothèque derrière la frontière, le banc réduit
 par R8 passe son auto-vérification, treize méthodes nouvelles sont
 raccordées, aucune connexion sortante sans consentement ; la catégorie
 H existe, les deux scripts de contrôle passent ; `check`, la

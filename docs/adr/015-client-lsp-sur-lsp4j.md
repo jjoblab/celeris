@@ -13,7 +13,7 @@ maison couvre 17 méthodes en 3 442 lignes ; un éditeur ambitieux en
 demande cinquante ou plus. L'argument historique du refus (ADR-005 : la
 rupture 0.22.0 → 1.0.0 sur les édits de gabarit) décrit un mauvais
 usage — une liaison sans couche d'isolation — et la 1.0.0 modélise
-désormais ces édits (`SnippetTextEdit`). Depuis M8.6, la démonstration exécute des serveurs de langage en processus : la question de la copie unique des rouages du protocole se pose dès ce jalon.
+désormais ces édits (`SnippetTextEdit`). Depuis M8.6, l'exemple consommateurnstration exécute des serveurs de langage en processus : la question de la copie unique des rouages du protocole se pose dès ce jalon.
 
 Faits vérifiés en ligne le 2026-11-08 (dépôt, POM, releases) et par le spike du jalon (compte rendu dans `docs/audit/SPIKES.md`) :
 
@@ -43,7 +43,7 @@ Faits vérifiés en ligne le 2026-11-08 (dépôt, POM, releases) et par le spike
    client minimal du spike les couvre déjà par les méthodes par défaut.
 3. **Copie unique** : la version de Gson est épinglée STRICTEMENT au catalogue ; le chemin de classes fournit la même version aux deux bouts — jamais deux exemplaires dans l'application.
 4. **Transport** : écrit ici sur des flux (prise TCP, tube à file pour
-   la démo et les tests, entrée-sortie standard pour le cli sur JVM) —
+   l'exemple consommateur et les tests, entrée-sortie standard pour le cli sur JVM) —
    le paquet websocket de la bibliothèque a disparu en 1.0.0 et aucune
    connexion sortante ne part sans consentement (F-10, vérifié en CI).
 5. **`exit()` n'est jamais appelé** : l'implémentation du serveur y
@@ -75,9 +75,9 @@ Faits vérifiés en ligne le 2026-11-08 (dépôt, POM, releases) et par le spike
   obéit au rempart de langue (M7.5) : « Session » y est un radical
   français figé, les nouveaux identifiants sont anglais et le décompte
   ne peut que descendre.
-- **L'éditeur prime sur la démo (directive du propriétaire).** Le module
+- **L'éditeur prime sur l'exemple consommateur (directive du propriétaire).** Le module
   sert d'abord la pile de l'éditeur — cli, hôte Android, vue ; la
-  démonstration n'est que le banc de validation de l'éditeur, jamais sa
+  exemple consommateur n'est que le banc de validation de l'éditeur, jamais sa
   finalité. La parité des sept tests reste le critère d'entrée, mais
   l'ordonnancement (priorités, annulation, fusion) et la transposition
   UTF-16 de `core-lsp` continuent de servir l'éditeur d'abord.
@@ -103,7 +103,7 @@ Faits vérifiés en ligne le 2026-11-08 (dépôt, POM, releases) et par le spike
 1. **R8 — fait le 2026-11-10.** Les règles de conservation vivent en
    deux fichiers : `lsp-protocole/regles-conservation.pro` (règles
    CONSOMMATEUR du module — le rouage JSON réflexif, les proxys du
-   cadre, les TypeToken) et `demo/regles-r8.pro` (les serveurs embarqués montés par désignation). `assembleRelease` est vert ; le dex vérifié porte la bibliothèque (568 classes) et Gson (217, la copie unique) à leurs noms d'origine, les services ServiceLoader rendus. Le rejeu des scénarios sur le binaire réduit (R8 en mode
+   cadre, les TypeToken) et `exemple/regles-r8.pro` (les serveurs embarqués montés par désignation). `assembleRelease` est vert ; le dex vérifié porte la bibliothèque (568 classes) et Gson (217, la copie unique) à leurs noms d'origine, les services ServiceLoader rendus. Le rejeu des scénarios sur le binaire réduit (R8 en mode
    classfile, mêmes règles, hôte de bureau — le bac n'a pas
    d'appareil) passe la poignée de main, la complétion documentée,
    les diagnostics de validation et l'édition d'espace — cinq
@@ -114,11 +114,11 @@ Faits vérifiés en ligne le 2026-11-08 (dépôt, POM, releases) et par le spike
    des deux côtés depuis toujours.
 2. **Appareil** : comportement au niveau d'API 26 et au niveau courant
    (le bac n'a pas d'appareil ; plan dans VERIFICATION-APPAREIL).
-3. **Fait le 2026-11-10** : **la parité est prononcée** — les bancs de la démonstration repassent SANS MODIFICATION par la frontière (7/7 verts, bancs non modifiés).
+3. **Fait le 2026-11-10** : **la parité est prononcée** — les bancsnstration repassent SANS MODIFICATION par la frontière (7/7 verts, bancs non modifiés).
 
 ## Actions
 
-- [x] M7.6 (étape 7 du jalon) : module `lsp-protocole` monté, parité prononcée le 2026-11-10 (les bancs de la démonstration 7/7 verts, non modifiés, serveurs en processus sur tubes mémoire).
+- [x] M7.6 (étape 7 du jalon) : module `lsp-protocole` monté, parité prononcée le 2026-11-10 (les bancsnstration 7/7 verts, non modifiés, serveurs en processus sur tubes mémoire).
 - [x] M7.6 : suppression du code maison (décodages JSON, cadrage RPC,
       `ClientLsp`, transports maison) — faite le 2026-11-10 : la parité
       prononcée, le corpus de traces migre derrière la frontière (le
@@ -127,7 +127,7 @@ Faits vérifiés en ligne le 2026-11-08 (dépôt, POM, releases) et par le spike
       `Either.forLeft`, l'`Either` de deux listes étant ambigu sans le
       résolveur de requêtes), la couverture du domaine se reconstruit
       par construction directe, `check` reste vert.
-- [x] M7.6 : règles R8 consommateur + démo réduite (le 2026-11-10,
+- [x] M7.6 : règles R8 consommateur + banc réduit (le 2026-11-10,
       voir les preuves d'intégration) ; le SBOM CycloneDX de
       publication et les empreintes suivent la porte de publication
       (ADR-011), la règle 5 tient (catalogue et NOTICE à jour).

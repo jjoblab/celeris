@@ -27,7 +27,7 @@ class ExtractionTest {
     private final SyntaxService java = SyntaxService.of(JavaSyntax.INSTANCE);
 
     private static final String SOURCE = """
-            package demo;
+            package exemple;
 
             public class Calcul {
                 private int base = 40;

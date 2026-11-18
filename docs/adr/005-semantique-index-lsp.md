@@ -89,7 +89,7 @@ déjà 3 442 lignes pour 17 méthodes quand un éditeur ambitieux en
 demande cinquante ou plus. Le jalon M7.6 adopte LSP4J **derrière une
 frontière** : `core-lsp` garde l'API du domaine en Java pur (types
 immuables, ordonnancement, annulation, UTF-16), un module `lsp-protocole`
-porte seul la dépendance et la correspondance des types. Le banc de la frontière les exécute ; restent à prouver le comportement sous R8 et sur appareil, objet du spike et de l'ADR du jalon (**ADR-015, spike exécuté le 2026-11-08 : la voie 1.0.0 est prouvée, compatibilité et mesures consignées**) qui remplace la décision 1 et le tableau d'options ci-dessus. Les bancs de la démonstration servent de critère de parité : ils doivent passer sans modification sur la voie LSP4J.
+porte seul la dépendance et la correspondance des types. Le banc de la frontière les exécute ; restent à prouver le comportement sous R8 et sur appareil, objet du spike et de l'ADR du jalon (**ADR-015, spike exécuté le 2026-11-08 : la voie 1.0.0 est prouvée, compatibilité et mesures consignées**) qui remplace la décision 1 et le tableau d'options ci-dessus. Les bancs d'intégration servent de critère de parité : ils doivent passer sans modification sur la voie LSP4J.
 
 ## Actions
 

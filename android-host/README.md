@@ -4,10 +4,10 @@ Les coutures entre l'éditeur et son hôte : système de fichiers virtuel,
 intégration VCS, exécution, débogueur, analyseurs de problèmes, de pile
 et de lint, historique local. L'éditeur ne connaît que les interfaces —
 l'hôte fournit les implémentations, le module en porte des références
-pures (mémoire, faux) pour la démonstration et les bancs.
+pures (mémoire, faux) pour les bancs.
 
 Depuis le déménagement du 2026-11-14 (décision du propriétaire : les
-fonctionnalités vivent dans les modules de l'éditeur, la démonstration
+fonctionnalités vivent dans les modules de l'éditeur, l'hôte d'intégration
 ne teste plus qu'elle-même), le module porte aussi **l'orchestration
 des popups** : `PopupsEditeur` — la classe unique qui branche la vue,
 la session et le kit, pour un hôte qui n'a presque rien à écrire.
@@ -42,7 +42,7 @@ la session et le kit, pour un hôte qui n'a presque rien à écrire.
 - **Les références pures** — `MemoireSystemeFichiers`,
   `FauxVcs`, `FauxExecution`, `FauxDebogueur`,
   `RevisionLocale` : des implémentations de référence complètes, sans
-  appareil — la démonstration et les bancs tournent dessus.
+  appareil — les bancs tournent dessus.
 - **L'orchestration des popups (déménagement du 2026-11-14)** — le
   paquet `jo.celeris.android.host.popups` :
   `PopupsEditeur` (l'orchestrateur : écouteurs, cartes, cascades — le

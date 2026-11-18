@@ -1,4 +1,4 @@
-// Convention de l'application de démonstration (demo) : mêmes portes
+// Convention de l'application de exemple consommateur (banc) : mêmes portes
 // qualité que les bibliothèques Android ; non publiée (terrain de jeu).
 
 import com.android.build.api.dsl.ApplicationExtension

@@ -18,7 +18,7 @@
 
 | # | Étape | Statut | Ce qui bloque |
 | --- | --- | --- | --- |
-| 1 | Publication distante des douze artefacts (C1) | Clos le 2026-11-12 | douze artefacts publiés (les onze + `serveur-lsp-java`) — projet vierge vérifié, sommes conformes |
+| 1 | Publication distante des douze artefacts (C1) | Clos le 2026-11-12 | artefacts publiés — projet vierge vérifié, sommes conformes |
 | 2 | Clôture de la 1.1.0 et tag `v1.1.0` | Clos le 2026-11-12 | — |
 | 3 | Langages suivants : Go, Rust… (C5) | Clos le 2026-11-18 — trente-deux langages intégrés, le tour des vingt-neuf du dépôt de départ complet | — |
 | 4 | Second étage appareil de vérification (C11) | Livré et passé vert le 2026-11-12 | la CI exécute au nocturne — la recette manuelle du propriétaire reste |
@@ -90,7 +90,7 @@ matrice est à zéro sur 125 lignes.
 **Sortie** : rapport d'exécution consigné au document de vérification.
 
 **Avancement** : livré et PASSÉ VERT le 2026-11-12 — les quatre bancs
-d'instrumentation vivent dans `demo/src/androidTest`
+d'instrumentation vivent dans `le second étage d'instrumentation`
 (`PinchZoomOnDeviceTest`, `GutterStabilityOnDeviceTest`,
 `FlickerOnDeviceTest`, `CompletionPopupOnDeviceTest`), l'appareil géré
 `pixel2api34` (image ATD) les exécute, le travail CI `appareil.yml`

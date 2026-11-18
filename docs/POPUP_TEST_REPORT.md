@@ -76,24 +76,24 @@ d'ouvertures/fermetures (`openRendusCarryTheExcludedGenres`,
 | `PopupLayerReposeTest` (2) | le re-pose de la même vue ne la tue pas (la course du retrait différé corrigée, P6) ; l'invariant une-vue-un-genre de la couche |
 | `TouchePopupVueTest` (android-view, 2) | le verdict consommé sert le popup SANS bouger le curseur ; le verdict décliné laisse la flèche à sa vie normale — la délégation de tête de `onKeyDown` |
 | `ReferencesViewTest` (3 — le signal du 2026-11-13) | la carte des usages : l'en-tête annonce et ne se prend jamais, l'occurrence se prend au doigt (le relâchement choisit), la flèche se borne aux occurrences, la validation exécute le saut, la page décline, la carte vide décline tout |
-| `UsagesReferencesTest` (demo, 2 — le signal du 2026-11-13) | les lieux du MOT ENTIER servis par le fil (`references`) ; la transpose de l'atelier — le début de plage devient l'offset du saut, le curseur porte au point d'usage |
-| `BancSpecsTest` (demo) — spécification D-10 | le clavier de BOUT EN BOUT : la frappe ouvre (le prédicat du coach, les mots du code), la liste survit à la frappe suivante (elle filtre — le régime rend la liste vivante), les flèches déplacent, Enter accepte (le candidat remplace le mot au curseur, sa documentation suit), Escape referme (la cascade comprise) |
+| `UsagesReferencesTest` (banc, 2 — le signal du 2026-11-13) | les lieux du MOT ENTIER servis par le fil (`references`) ; la transpose de l'atelier — le début de plage devient l'offset du saut, le curseur porte au point d'usage |
+| `BancSpecsTest` (banc) — spécification D-10 | le clavier de BOUT EN BOUT : la frappe ouvre (le prédicat du coach, les mots du code), la liste survit à la frappe suivante (elle filtre — le régime rend la liste vivante), les flèches déplacent, Enter accepte (le candidat remplace le mot au curseur, sa documentation suit), Escape referme (la cascade comprise) |
 
 ### 2.3bis Les bancs de la passe des six surfaces (2026-11-13)
 
 | Banc | Ce qu'il prouve |
 | --- | --- |
 | `TypeInfoViewTest` (2) | la carte d'info de type : une rangée titre, la carte passive ne réalise pas `PopupClavier` (la flèche déléguée la saute) |
-| `TypeInfoTest` (demo, 3) | le lecteur de types : la déclaration se lit sur la ligne, les formes riches (génériques, tableaux), le mot de conduite ne se prend jamais pour un type — jamais deviné |
+| `TypeInfoTest` (banc, 3) | le lecteur de types : la déclaration se lit sur la ligne, les formes riches (génériques, tableaux), le mot de conduite ne se prend jamais pour un type — jamais deviné |
 | `HierarchiesViewTest` (3) | la carte des hiérarchies : l'arbre se rend en sections indentées par profondeur, le choix saute (pas la section), la flèche se borne aux sommets PRENANTS, la page décline |
-| `HierarchiesTransposeTest` (demo, 2) | la transpose des moteurs : le sommet connu se prend et son saut court, l'introuvable vit muet — sur le moteur RÉEL (`Hierarchies.types`/`appelants`) |
+| `HierarchiesTransposeTest` (banc, 2) | la transpose des moteurs : le sommet connu se prend et son saut court, l'introuvable vit muet — sur le moteur RÉEL (`Hierarchies.types`/`appelants`) |
 | `NotificationViewTest` (3) | la bulle éphémère : l'annonce se pose (titre + message), le tap LA PREND, l'horloge la referme et se réarme — jamais deux courses, le désarmement coupe |
 | `PopupAnchorTest` (+1) | l'ancre du coin bas-droit : collée aux murs, respiration comprise, bornée même trop large |
 | `ValeursPainterTest` (android-view, 2) | les valeurs de débogage : en fin de ligne UTILE (blancs de queue exclus), ligne de base du code (PIEGE-11), encre de gouttière — la ligne hors document ne se trace pas |
 | `FauxDebogueurTest` (+1, android-host) | la pause d'après retire les valeurs d'avant — chaque pause recommence à zéro |
-| `ValeursPauseTest` (demo, 2) | la pause simulée lit les affectations ÉCRITES de sa ligne — déterministe, jamais deviné |
-| `ResultatsAllerTest` (demo, 2) | l'aller à : la requête muette sert le catalogue en raccourci, la floue répond par score (fichiers d'abord à égalité, le symbole porte SA ligne) |
-| `CorrectifImportTest` (demo, 2) | la résolution d'import : la première candidate du classpath gagne (l'ordre de préférence, jamais l'aléa), l'édition s'applique — sans résolution, rien ne se propose |
+| `ValeursPauseTest` (banc, 2) | la pause simulée lit les affectations ÉCRITES de sa ligne — déterministe, jamais deviné |
+| `ResultatsAllerTest` (banc, 2) | l'aller à : la requête muette sert le catalogue en raccourci, la floue répond par score (fichiers d'abord à égalité, le symbole porte SA ligne) |
+| `CorrectifImportTest` (banc, 2) | la résolution d'import : la première candidate du classpath gagne (l'ordre de préférence, jamais l'aléa), l'édition s'applique — sans résolution, rien ne se propose |
 | `PopupControllerTest` (+5) | les régimes des cinq genres nouveaux : `typeInfoVitLesRegimesDuSurvol`, `hierarchyExcludesTheActionSurfacesAndReciprocally`, `notificationVitLeRegimeUniqueDeLannonce`, `documentationExterneSeConsulteSansCederALaFrappe` — et les tables exhaustives des régimes gagnent les genres |
 
 
@@ -101,34 +101,34 @@ d'ouvertures/fermetures (`openRendusCarryTheExcludedGenres`,
 
 | Banc | Ce qu'il prouve |
 | --- | --- |
-| `EntourerTest` (demo, 3) | l'entourage : le bloc ceint s'indente d'un cran par ligne portante (les vides restent vides), la sélection se reporte sur le bloc ceint — un geste défait l'entourage ; la sélection vide ou multiple ne s'entoure pas |
-| `AtelierGabaritsTest` (demo, 2) | le plan de génération : le généré se pose avant la fermante de la classe, à son cran de membre, le caret à sa suite — la classe inconnue ne génère rien |
-| `AtelierSureteTest` (demo, 2) | la transpose de sûreté : les types candidats excluent la classe englobante, les usages qui barrent deviennent des occurrences cliquables (le libellé lu du document, le saut à l'offset exact) |
-| `SuppressionInspectionTest` (demo, 3) | le masquage : la marque se pose en fin de ligne (les suivantes ne bougent pas) et se défait d'un geste, la ligne déjà masquée se refuse, LA BOUCLE COMPLÈTE — masquer puis relancer : la règle masquée ne se rapporte plus, l'autre demeure |
+| `EntourerTest` (banc, 3) | l'entourage : le bloc ceint s'indente d'un cran par ligne portante (les vides restent vides), la sélection se reporte sur le bloc ceint — un geste défait l'entourage ; la sélection vide ou multiple ne s'entoure pas |
+| `AtelierGabaritsTest` (banc, 2) | le plan de génération : le généré se pose avant la fermante de la classe, à son cran de membre, le caret à sa suite — la classe inconnue ne génère rien |
+| `AtelierSureteTest` (banc, 2) | la transpose de sûreté : les types candidats excluent la classe englobante, les usages qui barrent deviennent des occurrences cliquables (le libellé lu du document, le saut à l'offset exact) |
+| `SuppressionInspectionTest` (banc, 3) | le masquage : la marque se pose en fin de ligne (les suivantes ne bougent pas) et se défait d'un geste, la ligne déjà masquée se refuse, LA BOUCLE COMPLÈTE — masquer puis relancer : la règle masquée ne se rapporte plus, l'autre demeure |
 | `FauxLintTest` (+1) | la marque « noinspection » masque SA règle en la ligne — jamais les autres |
-| `TraceExecutionTest` (demo, 3) | la trace : le sommet vit à la LIGNE DU CARET dans sa méthode (jamais deviné), les cadres suivent à leurs lignes de déclaration — relus par l'analyseur de piles ; la transpose saute au fichier ouvert seul, le fichier sans méthode ne peut échouer |
+| `TraceExecutionTest` (banc, 3) | la trace : le sommet vit à la LIGNE DU CARET dans sa méthode (jamais deviné), les cadres suivent à leurs lignes de déclaration — relus par l'analyseur de piles ; la transpose saute au fichier ouvert seul, le fichier sans méthode ne peut échouer |
 | `ExceptionViewTest` (2) | la carte des détails : le type et le message ne se prennent jamais, le cadre CONNU se prend au doigt et saute, le cadre étranger vit muet |
 
 ### 2.4 La non-régression
 
 Les bancs du kit existants (27 classes de banc à l'état audité — 28
 aujourd'hui, `PopupManagerTest` naît) et les bancs de la vue et de la
-démonstration restent verts SANS modification de leurs attentes : les
+exemple consommateur restent verts SANS modification de leurs attentes : les
 28 surfaces fonctionnelles de l'inventaire §3 (complétion, doc,
 signature, intentions, survol, peek, info-bulle, fil d'Ariane, barre de
 sélection, débordements, color picker, touchbar, bande, minimap, pouce,
 plan, recherche, réglages, renommage, diff, correctifs, IA/agent,
 `@Preview`) ne perdent rien. Le banc d'appareil
 `CompletionPopupOnDeviceTest` (second étage de l'appareil de
-vérification, `demo/src/androidTest`) continue de prouver la complétion
+vérification, `le second étage d'instrumentation`) continue de prouver la complétion
 sur vitre — l'atelier migré n'y change rien de visible.
 
 ## 3. Ce que les bancs ne couvrent pas (encore) — assumé
 
-1. Le changement de fichier : la démonstration vit une activité = un
+1. Le changement de fichier : l'exemplenstration vit une activité = un
    document ; `fermerTout` se banc, la scène ne le démontre pas.
 2. Le jeton de génération des réponses concurrentes : mécanisme d'hôte
-   (limitation consignée au rapport de migration §7) — la démo pose la
+   (limitation consignée au rapport de migration §7) — l'exemple pose la
    dernière réponse sur le fil UI.
 3. La vitre elle-même : le banc d'appareil couvre la complétion et le
    focus (PIEGE-27 sur matériel) ; la navigation clavier déléguée n'a
@@ -183,7 +183,7 @@ après ») est tenu dans les deux sens.
   bloquante).
 - Robolectric pour tout ce qui touche la vue (`ADR-013` : banc de vue
   JVM) ; les assertions d'état pur (`PopupControllerTest`) sans SDK.
-- Le banc de spécification de la démo (`BancSpecs`/`BancSpecsTest`)
+- Le banc de spécification du dépôt de départ (`BancSpecs`/`BancSpecsTest`)
   rejoue chaque chantier livré sur les mêmes appareils — la
   spécification D-10 y vit.
 - Les cliquets restent intacts : couverture ≥ 90 % (modules purs),

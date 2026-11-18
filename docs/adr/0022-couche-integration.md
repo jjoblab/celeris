@@ -19,7 +19,7 @@ révélées inexactes, voir plus bas) :
 | 4 | Thème et taille déclarés deux fois (vue ET orchestrateur), resynchronisés à la main | `PopupsEditeur.java` ~178, `surTheme`/`surTailleTexte` ~256/~262 |
 | 5 | Deux déclencheurs à brancher à la main (`setSurDoubleTap`, `setSurTouchePopup`) | `EditorView.java` ~476, ~490 ; branchés par `PopupsEditeur.java` ~251-253 |
 | 6 | Cycle de vie manuel : `popups.detacher()` à appeler ; la vue sans libération — **corrigé depuis** (C1 : `EditorView.release()`, commit `1204c9d` ; `PopupsEditeur.detacher()` retire ses écouteurs, commit `2759bb6`) | `USAGE.md` § 19.10 |
-| 7 | Résolution de langue en cinq temps, registre à assembler hors fil UI, aucun « langue de ce fichier » | `USAGE.md` § 6 ; `demo/.../LangagesDemo.java` (l'hôte écrit son propre chargeur) |
+| 7 | Résolution de langue en cinq temps, registre à assembler hors fil UI, aucun « langue de ce fichier » | `USAGE.md` § 6 ; `exemple/.../LangagesExemple.java` (l'hôte écrit son propre chargeur) |
 | 8 | Horloge obligatoire : `TextSession.of(contenu, System::nanoTime)` | `TextSession.java` ~64, ~75 |
 | 9 | Argument opaque : `CoachPopups.muet()` au constructeur de l'orchestrateur | `PopupsEditeur.java` ~178 |
 | 10 | ~10 dépendances Maven sans BOM ni agrégateur | `USAGE.md` § 3.1 (traité par B1, hors ADR) |
@@ -135,9 +135,8 @@ deux fois — c'est une compensation, pas une correction. D'où la phase
 - `MIGRATION.md` « 1.x → 2.0 » : chaque appel retiré ou changé y
   figure avec son avant/après.
 - Recensement de l'impact sur les applications hôtes connues à
-  présenter au propriétaire AVANT tout retrait de symbole.
-- `demo` et `serveur-lsp-java` intouchables ; si la phase 2 casse
-  leur compilation, le signaler au lieu de réparer.
+  présenter au propriétaire AVANT tout retrait de symbole — validé
+  vide le 2026-11-18.
 
 ## Plan de migration
 

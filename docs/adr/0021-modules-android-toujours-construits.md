@@ -8,7 +8,7 @@
 ## Contexte
 
 Depuis M1, `settings.gradle.kts` n'inclut `:android-view`, `:android-widgets`
-et `:android-host` (et `:demo`) que si un SDK Android est détecté
+et `:android-host` que si un SDK Android est détecté
 (`ANDROID_HOME`, `ANDROID_SDK_ROOT` ou `local.properties`) et si
 `CELERIS_SKIP_ANDROID` ne vaut pas `1`. Le critère de sortie M1 exigeait que
 les modules purs se construisent et se testent sans SDK.
@@ -26,15 +26,15 @@ revue).
 ## Décision
 
 1. `settings.gradle.kts` inclut **sans condition** `:android-view`,
-   `:android-widgets`, `:android-host` et `:demo` ; la variable
+   `:android-widgets` et `:android-host` ; la variable
    `CELERIS_SKIP_ANDROID`, la détection de SDK et la lecture de
    `local.properties` disparaissent du fichier.
 2. **Tout build du dépôt exige désormais un SDK Android** — y compris pour
    construire ou tester les modules purs. L'exigence est assumée et
    documentée (AGENT.md, USAGE.md § 19.9, README).
 3. La pureté du cœur — la garantie que M1 cherchait — reste assurée **au
-   niveau du code** : chaque module pur (`core-*`, `lsp-protocole`, `cli`,
-   `serveur-lsp-java`) porte déjà un test ArchUnit « aucune dépendance
+   niveau du code** : chaque module pur (`core-*`, `lsp-protocole`, `cli`)
+   porte déjà un test ArchUnit « aucune dépendance
    Android » (`noClasses().should().dependOnClassesThat()
    .resideInAPackage("android..")`) qui échoue au premier `import android.*`.
    Le garde-fou existe donc déjà dans les dix modules ; il n'y a rien à

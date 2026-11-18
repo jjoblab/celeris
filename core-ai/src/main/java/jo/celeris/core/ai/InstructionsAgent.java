@@ -4,7 +4,7 @@ package jo.celeris.core.ai;
  * Le fichier d'instructions d'agent du dépôt (F-07, ADR-012) : le
  * texte que les outils exposés servent aux agents — conventions du
  * projet, règles du propriétaire. Le fichier se lit tel quel, la
- * démonstration honore le sien par la voie des outils
+ * exemple consommateur honore le sien par la voie des outils
  * ({@code celeris.instructions}).
  *
  * <p>Une instance vide ({@link #AUCUNE}) sert les dépôts sans

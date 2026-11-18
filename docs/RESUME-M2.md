@@ -28,7 +28,7 @@
   environ 10 300 séquences aléatoires par exécution, couvrant l'objectif
   ADR-003 (10 000) pour la rope — séquences d'éditions complètes,
   `charAt` au fil des insertions, sous-plages quelconques, immuabilité,
-  survie des paires de substituts. Le harnais de démonstration M1 est
+  survie des paires de substituts. Le harnais de exemple consommateur M1 est
   retiré, remplacé par ces propriétés réelles.
 - **Correctif de construction** : `apiCheck` capturait le nom de projet à
   l'exécution — toute divergence de manifeste échouait en erreur de cache
@@ -516,7 +516,7 @@
   des frontières UTF-8, le refus des survols et hors-plage un cran avant
   ou après la borne, les allers-retours au-delà du plan multilingue de
   base et la fenêtre croissante de la suppression sont désormais testés.
-- **Scénarios de démo M2 au catalogue** (`demo`) : A-13, A-18 (facette
+- **Scénarios d'exemple M2 au catalogue** : A-13, A-18 (facette
   cœur), A-20, A-24 et A-25 (facette modèle) dans `ScenarioCatalog`, avec
   test de fumée `ScenarioCatalogTest` (présence, ordre de la matrice,
   format, unicité, complétude des critères) — compilé et exécuté par la
@@ -567,7 +567,7 @@ Critères de sortie de la feuille de route, vérifiés :
 - **mutation ≥ 80 %** : 85,1 % (1513/1777) après renforcement ciblé ;
 - **pièges liés au texte couverts** : PIEGE-07, PIEGE-08 et PIEGE-13
   écrits avant le code (tranche 2) et couverts depuis ;
-- **scénarios de démo A-13, A-18, A-20, A-24, A-25** : au catalogue avec
+- **scénarios d'exemple A-13, A-18, A-20, A-24, A-25** : au catalogue avec
   test de fumée.
 
 Le jalon M2 est clos ; la suite est M3 (vue minimale) — PIEGE-01 à

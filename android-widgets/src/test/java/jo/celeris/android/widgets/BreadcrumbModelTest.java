@@ -43,7 +43,7 @@ class BreadcrumbModelTest {
     /** Hors de tout symbole, le chemin est vide. */
     @Test
     void horsSymboleCheminVide() {
-        String texte = "package demo;\n\nclass A {\n}\n";
+        String texte = "package exemple;\n\nclass A {\n}\n";
         Document doc = Document.of(texte);
         Analysis analyse = SyntaxService.of(JavaSyntax.INSTANCE).analyseFull(doc);
         // le curseur sur « package »

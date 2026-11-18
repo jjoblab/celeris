@@ -20,7 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * La documentation externe (la troisième surface portée de la
- * démonstration à l'orchestrateur, 2026-11-14) : la documentation du
+ * exemple d'intégration à l'orchestrateur, 2026-11-14) : la documentation du
  * symbole au curseur, hors contexte de complétion — le serveur de
  * langage par le fil du protocole, la table du coach en repli, le
  * MÊME chemin de données que le survol. La carte vit le régime de la

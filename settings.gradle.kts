@@ -53,8 +53,8 @@ include(":celeris")
 // ANDROID_SDK_ROOT ou local.properties) ; sans SDK, la configuration
 // échoue avec un message explicite plutôt que de publier 8 artefacts
 // sur 11 en silence (le piège JitPack relevé par la revue du 2026-11-17).
-// La démonstration a quitté le dépôt (ADR-0024, F.7 du 2026-11-18) :
-// une démonstration repensée vivra dans un module neuf.
+// La exemple consommateur a quitté le dépôt (ADR-0024, F.7 du 2026-11-18) :
+// une exemple consommateur repensée vivra dans un module neuf.
 include(":android-view")
 include(":android-widgets")
 include(":android-host")

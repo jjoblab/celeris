@@ -9,8 +9,7 @@ le propriétaire le 2026-11-04 ; le point d'entrée du cadrage est
 ## Vue d'ensemble
 
 Réécriture complète de l'éditeur de code embarquable : **Java 17**
-partout — artefacts et construction sur **JDK 17**, rendu Canvas, douze modules plus la
-démonstration (ADR-002, la voie de grammaires s'y ajoute à M4,
+partout — artefacts et construction sur **JDK 17**, rendu Canvas, treize modules (ADR-002, la voie de grammaires s'y ajoute à M4,
 la frontière protocolaire du LSP à M7.6) :
 
 | Module | Nature | Rôle |
@@ -27,7 +26,6 @@ la frontière protocolaire du LSP à M7.6) :
 | `android-widgets` | Android | popups, gouttière, barres |
 | `android-host` | Android | adaptateurs hôte (SPI) |
 | `cli` | application JVM | exécutable sans Android |
-| `demo` | application Android | terrain de démonstration (non publiée) |
 
 ## Commandes (vérifiées)
 
@@ -99,7 +97,8 @@ modules purs), manifeste d'API (`api/<module>.api`, régénérer par
   (`--mutableCodePaths` du source set principal) : le filtre d'exclusion
   par nom ne rattrape ni les classes internes de test ni les utilitaires
   de test.
-- La réduction R8 de la démo (M7.6, ADR-015) a révélé qu'un module
+- La réduction R8 d'une application hôte de vérification (M7.6,
+  ADR-015) a révélé qu'un module
   pur peut journaliser par une API absente de la plateforme avant le
   niveau 33 (`System.Logger`) : dans un module pur, la journalisation
   passe par l'API du JDK présente des deux côtés (`java.util.logging`)

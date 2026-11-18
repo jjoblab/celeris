@@ -87,7 +87,7 @@ NullAway, couverture ≥ 90 % compris), mutation 86,4 % (76/88, seuil
 d'API régénéré — onze types publics ajoutés, aucun retrait (SemVer
 mineure, ADR-009). `./gradlew check` vert sur l'ensemble (SDK présent).
 Les lignes F-01, F-02, F-08 et F-09 de la matrice passent à partiel
-(noyau livré, interface et scénarios de démonstration à venir).
+(noyau livré, interface et scénarios d'exemplenstration à venir).
 
 ## Tranche 2 — la revue des modifications d'agent (2026-11-07)
 
@@ -111,7 +111,7 @@ Les lignes F-01, F-02, F-08 et F-09 de la matrice passent à partiel
   éditions acceptées deviennent une seule transaction, une étape
   d'annulation — et le document qui a bougé depuis la proposition refuse
   le transfert, explicitement (jamais de fusion silencieuse).
-- **La démonstration** : l'agent factice (`FauxAgent`, déterministe,
+- **La exemple consommateur** : l'agent factice (`FauxAgent`, déterministe,
   trois insertions éparses — tête, milieu, pied) propose sur le
   document ouvert ; l'atelier (`AtelierAgent`) montre l'intention
   déclarée et les lignes du bloc, décide bloc par bloc, revient au
@@ -126,7 +126,7 @@ Les lignes F-01, F-02, F-08 et F-09 de la matrice passent à partiel
 NullAway, couverture ≥ 90 % compris), mutation 83,1 % (118/142, seuil
 80). Manifeste d'API régénéré — `EtiquetteAgent`, `PropositionAgent`,
 `RevueAgent` ajoutés, aucun retrait (SemVer mineure, ADR-009).
-`:demo:check` vert, la ligne F-04 de la matrice passe à livrée.
+le module d'exemple :check` vert, la ligne F-04 de la matrice passe à livrée.
 
 ## Tranche 3 — l'API d'outils pour agents (2026-11-07)
 
@@ -212,7 +212,7 @@ livrée.
   le premier mot — l'hôte exécute, la vue ne touche à aucune session
   de modèle ; `GesteFantome` porte aussi la ligne, le bloc et le
   refus.
-- **F-01, la démonstration — `PiloteFantome` et `AtelierIA`** : le
+- **F-01, l'exemplenstration — `PiloteFantome` et `AtelierIA`** : le
   pilote, pur et testé, applique le fragment accepté à l'ancre décalée
   — chaque fragment accepté avance l'ancre du suivant — et ré-ancre le
   reste à la révision courante pour l'affichage ; la frappe suivante
@@ -229,7 +229,7 @@ livrée.
 ### Preuve
 
 `:android-view:check` vert — `FantomePainterTest` compris (PIEGE-11
-couvert, le registre suit) ; `:demo:check` vert — `PiloteFantomeTest`
+couvert, le registre suit) ; le module d'exemple :check` vert — `PiloteFantomeTest`
 (la boucle complète sans appareil). `EditorView` reste sous le plafond
 de 600 lignes. Les lignes F-01, F-02 et F-03 de la matrice passent à
 livrées.
@@ -243,11 +243,11 @@ livrées.
   construction. Sans consentement, la requête reste au sol, fantôme et
   prédiction compris : pas de requête, donc pas de réponse, le
   journal du faux modèle en témoigne. L'interrupteur des réglages de
-  la démonstration (`ia.consentement`, coupé par défaut) l'alimente ;
+  l'exemplenstration (`ia.consentement`, coupé par défaut) l'alimente ;
   l'atelier IA refuse poliment sans lui et propose les réglages.
 - **F-10, la neutralité structurelle** : le manifeste de la
-  démonstration ne déclare AUCUNE permission — pas même INTERNET. Le
-  test CI `DemoNeutreTest` le vérifie (la preuve structurelle : un
+  exemple consommateur ne déclare AUCUNE permission — pas même INTERNET. Le
+  test CI `ExempleNeutreTest` le vérifie (la preuve structurelle : un
   paquet sans prise ne peut pas en ouvrir) et le scénario d'exclusions
   y passe (le chemin exclu ne part jamais, même consentant).
 - **F-01 — le budget de latence d'affichage consigné** :
@@ -259,7 +259,7 @@ livrées.
   n'embarque de télémétrie — l'option reste à l'hôte, derrière un
   consentement explicite, documentée au README (section « Vie
   privée »).
-- **Les scénarios de démonstration** : la catégorie F complète entre
+- **Les scénarios d'exemplenstration** : la catégorie F complète entre
   au catalogue — F-01 à F-10, chacun citant sa ligne de matrice ;
   l'atelier IA branche le faux local derrière le garde du contexte
   (consentement relu, exclusions embarquées).
@@ -267,8 +267,8 @@ livrées.
 ### Preuve
 
 `:core-ai:check` vert — 67 tests, mutation 80,5 % (190/236, seuil 80).
-`:android-view:check` et `:demo:check` verts (`DemoNeutreTest` et
-`PiloteFantomeTest` compris), `:demo:assembleDebug` assemblé (7,3 Mo).
+`:android-view:check` et le module d'exemple :check` verts (`ExempleNeutreTest` et
+`PiloteFantomeTest` compris), la construction des modules assemblé (7,3 Mo).
 `./gradlew check` vert sur l'ensemble (SDK présent). Les lignes F-08,
 F-09 et F-10 de la matrice passent à livrées.
 
@@ -279,8 +279,8 @@ Critères de sortie du jalon couverts : catégorie F P0 couverte
 F-06, F-07, F-08) ; budgets de latence tenus (la frappe ne bloque
 jamais — mille demandes au modèle aveugle ; l'affichage sous le
 budget d'une image, minimum de trois tours) ; test « aucune
-requête sans consentement » vert en CI (`DemoNeutreTest`, la preuve
-structurelle en tête : le manifeste de la démonstration ne déclare
+requête sans consentement » vert en CI (`ExempleNeutreTest`, la preuve
+structurelle en tête : le manifeste du dépôt de départ ne déclare
 aucune prise réseau). Matrice de parité mise à jour — la catégorie F
 entière passe à livrée. PIEGE-11 et PIEGE-23 couverts au registre en
 cours de jalon. `git status` propre, poussée sur `main`.

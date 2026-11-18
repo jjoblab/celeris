@@ -35,6 +35,6 @@ empaqueter() {
 
 nettoyer
 compiler core-text --no-daemon
-compiler demo --no-daemon
+compiler exemple --no-daemon
 empaqueter
 log "termine en ${SECONDS}s"

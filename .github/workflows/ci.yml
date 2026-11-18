@@ -4,7 +4,7 @@
 #
 # Trois travaux, tous avec SDK Android installé : les modules purs (le
 # cœur reste pur par les tests ArchUnit, ADR-0021), l'ensemble avec SDK
-# (modules Android + démonstration) et les tests de vue.
+# (modules Android + exemple consommateur) et les tests de vue.
 name: ci
 
 on:
@@ -52,7 +52,7 @@ jobs:
         run: ./gradlew :cli:run
 
   android:
-    name: Modules Android et démonstration
+    name: Modules Android et exemple consommateur
     runs-on: ubuntu-latest
     env:
       CELERIS_FORBIDDEN_REFS: ${{ secrets.CELERIS_FORBIDDEN_REFS }}
@@ -82,9 +82,9 @@ jobs:
         run: ./gradlew check
       - name: Publication locale (quatorze artefacts — douze modules + BOM + agrégateur, SBOM, sommes)
         run: ./gradlew publishToMavenLocal publicationChecksums
-      # La démonstration a quitté le dépôt (ADR-0024, F.7) : la
+      # La exemple consommateur a quitté le dépôt (ADR-0024, F.7) : la
       # vérification APK signée repartira avec le futur module de
-      # démonstration repensé ; l'exemple consommateur « vierge »
+      # exemple consommateur repensé ; l'exemple consommateur « vierge »
       # (B5, ci-dessous) reste la porte d'intégration.
 
   # Chantier B5 (revue du 2026-11-17) : l'exemple consommateur « vierge

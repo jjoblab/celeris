@@ -5,7 +5,7 @@
 
 -dontwarn org.slf4j.**
 
--keep public class com.celeris.demo.MainActivity {
+-keep public class com.celeris.exemple.MainActivity {
     public static *** main(java.lang.String[]);
 }
 

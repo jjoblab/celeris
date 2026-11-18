@@ -39,13 +39,13 @@ class Fixture:
     def __enter__(self):
         self.dossier = tempfile.mkdtemp(prefix="celeris-a11y-")
         self.layouts = os.path.join(
-            self.dossier, "demo", "src", "main", "res", "layout")
+            self.dossier, "exemple", "src", "main", "res", "layout")
         self.menus = os.path.join(
-            self.dossier, "demo", "src", "main", "res", "menu")
+            self.dossier, "exemple", "src", "main", "res", "menu")
         self.valeurs = os.path.join(
-            self.dossier, "demo", "src", "main", "res", "values")
+            self.dossier, "exemple", "src", "main", "res", "values")
         self.valeurs_fr = os.path.join(
-            self.dossier, "demo", "src", "main", "res", "values-fr")
+            self.dossier, "exemple", "src", "main", "res", "values-fr")
         self.vue = os.path.join(
             self.dossier, "android-view", "src", "main", "java", "vue")
         for dossier in (self.layouts, self.menus, self.valeurs,

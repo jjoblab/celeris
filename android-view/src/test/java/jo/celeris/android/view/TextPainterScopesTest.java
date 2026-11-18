@@ -143,7 +143,7 @@ class TextPainterScopesTest {
     @Test
     void laPlageAPeintSePeintALaCouleurDuTheme() {
         int pileMotCle = ScopeStacks.push(
-                ScopeStacks.root("source.demo"), "keyword.other");
+                ScopeStacks.root("source.exemple"), "keyword.other");
         String texte = "import os";
         List<ColoredSpan> plages = List.of(
                 new ColoredSpan(TokenKind.KEYWORD, 0, 6, pileMotCle),
@@ -177,7 +177,7 @@ class TextPainterScopesTest {
                 0xFFD3E3FD, 0xFF1A73E8, 0xFF5F6368, 0x14202124,
                 THEME.syntaxe(), theme);
         int pileFonction = ScopeStacks.push(
-                ScopeStacks.root("source.demo"), "entity.name.function");
+                ScopeStacks.root("source.exemple"), "entity.name.function");
         String texte = "def un";
         List<ColoredSpan> plages = List.of(
                 new ColoredSpan(TokenKind.IDENTIFIER, 0, 3, pileFonction),
@@ -204,7 +204,7 @@ class TextPainterScopesTest {
 
     @Test
     void leThemeVideRendLaPalettePartout() {
-        int pile = ScopeStacks.push(ScopeStacks.root("source.demo"),
+        int pile = ScopeStacks.push(ScopeStacks.root("source.exemple"),
                 "keyword.other");
         String texte = "if x";
         List<ColoredSpan> plages = List.of(

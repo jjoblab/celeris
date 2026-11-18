@@ -56,11 +56,10 @@ androidxTestExtJunit = "1.2.1"
 androidxTestUiAutomator = "2.4.1"
 # Publication (ADR-011 : SBOM)
 cyclonedx = "3.5.1"
-# Version de l'application de démonstration (non publiée) — toute
+# Version de l'application de exemple consommateur (non publiée) — toute
 # version vit au catalogue ; l'APK doit porter versionCode et
 # versionName, sinon certains installateurs refusent le paquet.
-demo = "1.0.0"
-# Interface de la démonstration (M3 — vérifiées sur Google Maven le
+# Interface du dépôt de départ (M3 — vérifiées sur Google Maven le
 # 2026-11-06, compatibles compileSdk 36). REFUS délibéré du 2026-11-18 :
 # la montée androidxCore 1.19.1 (PR dependabot « correctifs-et-mineures »)
 # exige compileSdk 37 — le dépôt épingle le 36 (ADR-001 : dernier niveau
@@ -122,8 +121,8 @@ nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 # (l'artefact de ligne de commande entraîne le cœur de PIT).
 pitest-cli = { module = "org.pitest:pitest-command-line", version.ref = "pitest" }
 pitest-junit5 = { module = "org.pitest:pitest-junit5-plugin", version.ref = "pitestJunit5" }
-# Interface de la démonstration — la seule dépendance externe du dépôt
-# hors chaîne de build et de test ; la démo n'est pas publiée (ADR-011).
+# Interface du dépôt de départ — la seule dépendance externe du dépôt
+# hors chaîne de build et de test ; l'exemple n'est pas publiée (ADR-011).
 androidx-activity = { module = "androidx.activity:activity", version.ref = "androidxActivity" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
 androidx-core = { module = "androidx.core:core", version.ref = "androidxCore" }

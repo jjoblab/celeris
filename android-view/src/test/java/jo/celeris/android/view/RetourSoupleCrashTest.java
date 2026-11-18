@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Reproduction du plantage signalé : l'activation du retour à la ligne
  * souple fait fermer l'application. Le chemin exact de la vue est
- * rejoué sur les vrais contenus de la démonstration — analyse, plis,
+ * rejoué sur les vrais contenus du dépôt de départ — analyse, plis,
  * gouttière, sélection, visée — image après image, à travers les
  * couches du pipeline.
  */
@@ -246,7 +246,7 @@ class RetourSoupleCrashTest {
     }
 
     /**
-     * Le retour souple s'active sur chaque langage de la démonstration
+     * Le retour souple s'active sur chaque langage du dépôt de départ
      * sans lever d'exception — le plantage signalé.
      */
     @Test

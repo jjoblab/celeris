@@ -14,7 +14,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 /**
- * Les défauts de gouttière constatés dans la démonstration (M7.5, §5) :
+ * Les défauts de gouttière constatés dans le dépôt de départ (M7.5, §5) :
  * sa largeur dépend de grandeurs qui bougent sans rapport avec le
  * nombre de lignes — les RANGÉES visuelles au lieu des lignes (retour
  * à la ligne, plis), l'arrivée d'un résultat d'intégration, le dixième

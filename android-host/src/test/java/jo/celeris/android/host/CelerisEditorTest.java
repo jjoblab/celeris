@@ -245,7 +245,7 @@ public class CelerisEditorTest {
 
     /** T4 (ADR-0022, phase 2) : les déclencheurs popups sont branchés
      *  PAR LE KIT — l'hôte n'écrit plus setSurTouchePopup ni
-     *  setSurDoubleTap (le geste de la démo d'avant). La preuve par
+     *  setSurDoubleTap (le geste de l'application d'avant). La preuve par
      *  la délégation clavier (PIEGE-27) : la carte des réglages
      *  ouverte par la voie publique, ÉCHAP remonte au kit AVANT la
      *  table de raccourcis — la carte se referme et le curseur ne

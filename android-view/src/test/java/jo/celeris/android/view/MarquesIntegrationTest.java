@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
  * <p>Les lignes de la vue sont numérotées à partir de zéro (convention
  * de la vue et de l'arbre) ; la conversion depuis les contrats de
  * l'hôte, numérotés à partir de un, vit dans l'adaptateur de la
- * démonstration.</p>
+ * exemple consommateur.</p>
  */
 final class MarquesIntegrationTest {
 

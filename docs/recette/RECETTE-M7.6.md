@@ -1,7 +1,7 @@
 # Recette M7.6 — la plateforme de langages pas à pas
 
 > Recette manuelle pour le propriétaire : chaque étape se joue dans la
-> démonstration (`:demo:assembleDebug`, installer l'APK) et dit son
+> exemple consommateur (la construction des modules, installer l'APK) et dit son
 > résultat attendu. Ce qui ne se joue pas encore est nommé avec sa
 > raison. Durée : quinze minutes.
 
@@ -65,7 +65,7 @@
 
 Le chargeur de dossiers et d'archives vit au noyau avec sa sécurité
 (zip-slip, liens symboliques, tailles, profondeur — `PackLoaderTest`),
-mais la démonstration n'offre pas encore d'écran pour copier un paquet
+mais l'exemplenstration n'offre pas encore d'écran pour copier un paquet
 au stockage et le charger à chaud : l'étape ne se joue pas. Vérification
 de substitution : `./gradlew :core-language:test --tests PackLoaderTest`.
 

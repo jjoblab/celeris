@@ -11,7 +11,7 @@ import org.jspecify.annotations.Nullable;
  * ({@link CheminDoc}) : la traversée ne passe pas.
  *
  * <p>L'implémentation de référence, en mémoire, sert les tests et les
- * faux de démonstration ; l'adaptateur de production s'appuie sur le
+ * faux d'exemple ; l'adaptateur de production s'appuie sur le
  * framework d'accès au stockage de l'hôte.</p>
  *
  * <p>Les fichiers BINAIRES (A-26) : la détection se demande

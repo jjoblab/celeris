@@ -60,7 +60,7 @@
 1. **Checkstyle et PMD ne se matérialisent pas sur les modules AGP** :
    les conventions appliquent bien les plugins, mais aucune tâche
    `checkstyle*`/`pmd*` n'existe sous AGP — constat préexistant depuis
-   M1 (le module `demo` est dans le même cas), les plafonds 600/50/15 y
+   M1 (l'exemple consommateur est dans le même cas), les plafonds 600/50/15 y
    sont donc tenus par discipline et non par porte. Le câblage explicite
    de ces tâches sur les variantes AGP demande une décision du
    propriétaire (build-logic, tous les modules Android) — à trancher
@@ -402,7 +402,7 @@
   passage réel : deux violations corrigées (`CaretsMotion.caretVise`
   scindée, `KeyActions` extrait, `ScenarioCatalog` scindé par
   catégorie).
-- **Scénarios et ressources** (demo) : quatorze scénarios au
+- **Scénarios et ressources** (banc) : quatorze scénarios au
   catalogue — A-01, A-13, A-18, A-20, A-24, A-25, D-01, D-13, D-15,
   D-16, D-17, G-01, G-02, G-05, facettes livrées seules ; ressources
   `en`/`fr` complètes (ADR-008) : les deux écrans migrent leurs
@@ -414,9 +414,9 @@
 - `./gradlew check` vert — politique de langue et neutralité comprises,
   Checkstyle/PMD bloquants sur TOUS les modules (purs et Android) ;
 - 562 tests verts au total — 141 `android-view`, 418 `core-text`,
-  3 `demo` — zéro échec ;
-- `:android-view:lintDebug`, `:demo:lintDebug` : aucun problème ;
-- `:demo:assembleDebug` : l'APK se construit ;
+  trois modules — zéro échec ;
+- `:android-view:lintDebug`, le module d'exemple :lintDebug` : aucun problème ;
+- la construction des modules : l'APK se construit ;
 - mutation `core-text` rejouée à la clôture : **84,9 %** détectées
   (1527/1799 — KILLED 1494, TIMED_OUT 33 ; seuil 80 % vert), six
   mutants morts par erreur mémoire du bac à sable, sans effet sur le

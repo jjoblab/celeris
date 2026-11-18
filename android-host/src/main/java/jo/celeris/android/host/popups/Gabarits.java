@@ -37,7 +37,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * La carte de génération et de gabarits (la cinquième surface portée
- * de la démonstration à l'orchestrateur, 2026-11-14 — catégorie D de
+ * de la exemple d'intégration à l'orchestrateur, 2026-11-14 — catégorie D de
  * l'inventaire, « Generate Code / Gabarits » et « Surround With ») :
  * les actions de génération au caret — constructeur, accesseurs,
  * equals/hashCode/toString lus des CHAMPS RÉELS de la classe

@@ -36,7 +36,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * La sûreté de la suppression et du déplacement (la sixième surface
- * portée de la démonstration à l'orchestrateur, 2026-11-14 — catégorie
+ * portée de la exemple d'intégration à l'orchestrateur, 2026-11-14 — catégorie
  * D de l'inventaire, « Safe Delete / Move », les moteurs B-23 servaient
  * verdicts et plans) : la suppression sûre demande son verdict — les
  * usages barrent s'affichent en carte (chacun saute à son lieu, la

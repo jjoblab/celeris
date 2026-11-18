@@ -27,9 +27,9 @@
 
 ## Livré
 
-- **Squelette exécuté des dix modules et de la démonstration** (ADR-002)
+- **Squelette exécuté des dix modules et du dépôt de départ** (ADR-002)
   : six modules purs JVM, trois modules Android, la cli (exécutable,
-  testée) et la démo (catalogue de scénarios vide, écran de réglages en
+  testée) et l'exemple (catalogue de scénarios vide, écran de réglages en
   direct persistés).
 - **`build-logic` à plugins de convention** : publication, lint, options
   javac (`-Xlint:all -Werror`, JDK 21 en construction, artefacts de
@@ -63,7 +63,7 @@
   (checkout v7.0.1, setup-java v6.1.0, setup-gradle v6.4.1 avec
   validation du wrapper), deux travaux — modules purs **sans SDK
   Android** (critère de sortie M1) et ensemble avec SDK (modules
-  Android, démonstration, APK).
+  Android, exemple consommateur, APK).
 - **`AGENT.md`** (contrats d'agent : commandes vérifiées, conventions,
   portes, définition de « terminé ») et **`NOTICE`** consignant
   l'outillage et ses licences.
@@ -79,7 +79,7 @@
 
 ## Écarts et limites
 
-1. **Modules Android et démonstration non compilés localement** : aucun
+1. **Modules Android et exemple consommateur non compilés localement** : aucun
    SDK Android dans l'environnement d'exécution ; leur compilation
    relève de la CI (composants installés par le workflow). Le premier
    passage CI peut exiger un ajustement de composants (notamment la

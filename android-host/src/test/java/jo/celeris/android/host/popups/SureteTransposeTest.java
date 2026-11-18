@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 /**
  * La transpose de sûreté chez l'orchestrateur (le déménagement du
  * 2026-11-14, la sixième surface portée — reprise de
- * {@code AtelierSureteTest} de la démonstration) : les types candidats
+ * {@code AtelierSureteTest} du dépôt de départ) : les types candidats
  * au déménagement s'y lisent du plan (HORS la classe qui enclot le
  * caret — les conditions de sûreté du moteur refuseront ce qui pend,
  * jamais la carte ne préjuge), les usages qui barrent y deviennent des

@@ -663,7 +663,7 @@ export const POPUPS: PopupSpec[] = [
     declencheurs: ["L’hôte — les événements réels (lint, pause, exécution, sûreté, masquage)"],
     fermeture: 'Son heure (4000 ms) ou le tap qui la prend. Le voile modal la coupe.',
     strings: [
-      { fr: 'Annonce (host) / Avis (demo)', en: 'Notice' },
+      { fr: 'Annonce (host) / Avis (banc)', en: 'Notice' },
     ],
   },
   {

@@ -23,7 +23,7 @@ reste.
 **Le montage réflexif par déclaration de PAQUET.** La voie des
 déclarations (H-13, `servers.json`) fusionne les déclarations des
 paquets et celles de l'hôte (`LanguagePlatform.serveursDe` :
-`core-language/.../LanguagePlatform.java`) ; la démonstration
+`core-language/.../LanguagePlatform.java`) ; l'exemplenstration
 montait la première déclaration EMBEDDED DISPONIBLE — quelle que
 soit sa SOURCE (`DeclaredServers.open`). Le montage s'exécute par
 réflexion : `Class.forName(...).getDeclaredConstructor().newInstance()`
@@ -83,8 +83,8 @@ refusé avec son message ; `GrammairesBudgetTest`,
 - **Les exclusions** (`ExclusionsContexte`) : chemin exact, dossier,
   joker — le chemin exclu ne produit AUCUN départ (pas de requête,
   pas de réponse), le journal du faux modèle en témoigne.
-- **La neutralité structurelle** : le manifeste de la démonstration
-  ne déclare AUCUNE permission — pas même INTERNET (`DemoNeutreTest`
+- **La neutralité structurelle** : le manifeste du dépôt de départ
+  ne déclare AUCUNE permission — pas même INTERNET (`ExempleNeutreTest`
   le lit et l'exige) ; un paquet sans prise ne peut pas en ouvrir.
 - **Aucune télémétrie** embarquée dans les paquets celeris (README,
   « Vie privée ») — l'option reste à l'hôte, derrière consentement.
@@ -95,7 +95,7 @@ La revue relève que le manifeste ne disait rien de la sauvegarde
 nuage : `allowBackup` vaut VRAI par défaut — préférences et fichiers
 de l'application partiraient au transport Android. Corrigé :
 `android:allowBackup="false"`, exigé désormais par
-`DemoNeutreTest.leManifesteInterditLaSauvegardeNuage`. Les trois
+`ExempleNeutreTest.leManifesteInterditLaSauvegardeNuage`. Les trois
 activités ne s'exportent pas (hors le lanceur), aucune permission,
 aucun fournisseur de contenu, aucun récepteur.
 
@@ -149,7 +149,7 @@ et ne s'applique plus qu'aux déclarations de l'hôte.
 Balayage du dépôt versionné : aucun jeton, aucune clef, aucun mot de
 passe. Les trois correspondances du motif sont des faux positifs
 vérifiés : deux chaînes de banc de test (du TEXTE de code factice
-dans `DemoIntelligenceTest` et `BancSpecs` — le banc des exclusions
+dans `ExempleIntelligenceTest` et `BancSpecs` — le banc des exclusions
 DOIT écrire le mot « secret » dans du texte d'essai) et le
 `REGISTRY_TOKEN` des conventions de publication, lu de
 l'ENVIRONNEMENT (`System.getenv`), jamais en dur. `local.properties`

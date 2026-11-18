@@ -316,7 +316,7 @@ défilement.
 
 `CelerisEditor` (ADR-0022) compose tout : session, langue détectée,
 popups, frappe intelligente, réglages à source unique, libération.
-Le chargeur de langues se monte une fois (fil démon partagé) et sert
+Le chargeur de langues se monte une fois (un fil partagé) et sert
 tous les éditeurs du processus.
 
 ```java
@@ -553,7 +553,7 @@ l'hôte seul décide de le monter. Le format :
     {
       "language": "java",
       "transport": "embedded",
-      "serverClass": "jo.celeris.serveur.java.JavaLanguageServer",
+      "serverClass": "exemple.serveurs.MonServeurJava",
       "clientInterface": "org.eclipse.lsp4j.services.LanguageClient",
       "clientName": "mon-hote"
     }
@@ -641,8 +641,8 @@ popups.detacher();
   réservés du langage, badges des candidats bruts, documentation et
   signatures connues en repli sans serveur. `CoachPopups.muet()` suffit
   à la complétion des mots du document; l'hôte qui connaît son terrain
-  implémente l'interface (la démonstration en montre une complète,
-  `CoachDemo`);
+  implémente l'interface (un hôte complet en montre une,
+  `CoachExemple`);
 - **le serveur** — `LanguageSession` (même module) est la surface
   commune des serveurs de langage : les modèles du kit y arrivent déjà
   convertis, l'orchestrateur n'attrape jamais le protocole (§ 8);
@@ -739,7 +739,7 @@ le geste poursuit sa vie vers l'éditeur.
 Les surfaces denses vivent dans les feuilles — `FeuilleBas` et
 `FeuilleHaut` (`android-widgets`) pour la recherche, les réglages et
 le plan, les rappels contextuels compris, construites avec votre
-`PopupPalette` ; la démonstration dérive la sienne du thème et de la
+`PopupPalette` ; l'hôte dérive la sienne du thème et de la
 taille de texte.
 
 Les genres du contrôleur (`PopupKind`) — vingt-six depuis le feu vert
@@ -863,7 +863,7 @@ sessionFantome.refuser();
   vivante ; `ConnecteurMcp` déclare les outils vers l'extérieur,
   `RevueAgent` garde la revue humaine des propositions (F-04) ;
 - `FauxModeleLocal` et `FauxModeleDistant` sont des modèles
-  déterministes pour vos tests — la démonstration n'a jamais branché
+  déterministes pour vos tests — l'éditeur n'a jamais branché
   de réseau.
 
 ## 12. Thèmes et couleurs
@@ -878,7 +878,7 @@ La couleur syntaxique se résout par **pile de portées** TextMate
 par `TokenColorsTheme` (`core-language`) — un JSON portant `name`,
 `colors` (`editor.background`, `editor.foreground`) et `tokenColors`
 (sélecteur `scope`, `settings.foreground`, `settings.fontStyle`) ; la
-démonstration en montre un vivant (`themes/atelier.json`). Les
+thème intégré en montre un vivant (le « Atelier »). Les
 popups se règlent par votre `PopupPalette`, dérivée du thème et de la
 taille de texte.
 
@@ -971,7 +971,7 @@ sha256sum core-text-1.1.0.jar
 ## 17. Vie privée et sécurité
 
 - **Zéro télémétrie** dans les paquets celeris — ni collecte, ni
-  déclaration d'usage ; la démonstration ne déclare aucune permission
+  déclaration d'usage ; l'éditeur n'ouvre aucune connexion, ne déclare aucune permission
   réseau, sa neutralité est structurelle et vérifiée en CI.
 - **Zéro transport IA** dans le cœur (§ 11) — votre politique de
   consentement commande, la garde exécute.
@@ -1001,18 +1001,18 @@ sha256sum core-text-1.1.0.jar
    l'arbre — ne calculez pas de « ligne affichée » vous-même.
 4. **Le registre s'assemble hors fil UI** (ADR-007) : au premier
    dégelui, la lecture des paquets et la compilation des grammaires
-   paient — préchargez comme la démonstration.
+   paient — préchargez avant le premier montage.
 5. **Un serveur embarqué lance en processus** : il partage le tas de
    votre application — surveillez sa mémoire, et sous R8 gardez les
    règles de conservation du protocole
-   (`lsp-protocole/regles-conservation.pro`, cf. la démonstration) ;
+   (`lsp-protocole/regles-conservation.pro`) ;
    le désucrage se règle côté hôte pour les bibliothèques Java 11.
 6. **Fermez ce que vous montez** : `LspSession`,
    `ServeurEmbarque`, `TubesMemoire.Direction` sont `AutoCloseable` —
    la fuite d'un serveur en processus se paie en tas.
 7. **Le consentement se relit à chaque départ** (F-10) : un
    `BooleanSupplier` capturé une fois pour toutes est un bug de
-   politique — la démonstration relit sa préférence à chaque demande.
+   politique — l'hôte relit sa préférence à chaque demande.
 8. **Aucune version en dur** côté dépendances de celeris si vous
    reprenez les sources : le catalogue `gradle/libs.versions.toml`
    du dépôt est la référence (ADR-011).

@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Le faux débogueur de référence (E-03) : les arrêts vivent en mémoire,
  * la pause et la pile se simulent explicitement — déterministe, pour
- * les tests et la démonstration.
+ * les tests et les exemples d'intégration.
  */
 public final class FauxDebogueur implements IntegrationDebogueur {
 

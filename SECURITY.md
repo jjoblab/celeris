@@ -37,8 +37,7 @@ Merci d'inclure :
 
 ## Périmètre
 
-Les onze artefacts publiés `jo.celeris:*` et l'application de
-démonstration. Les failles des dépendances (LSP4J, joni…) se
+Les artefacts publiés `jo.celeris:*`. Les failles des dépendances (LSP4J, joni…) se
 rapportent à leurs projets respectifs — signalez-les là-bas ;
 signalez ici seulement l'absence de mise à jour de notre part.
 

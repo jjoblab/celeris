@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
  * « noinspection » se pose en fin de ligne, la transaction s'applique et
  * se défait d'un geste. Pur, sans appareil — la boucle complète avec
  * le faux build de lint (la relance honore la marque) se prouve chez
- * la démonstration, son harnais de test.
+ * l'exemplenstration, son harnais de test.
  */
 class SuppressionInspectionTest {
 

@@ -20,10 +20,10 @@ class ValidationReglesTest {
     @Test
     void leFichierSainNeProduitRien() {
         Document doc = Document.of("""
-                # les règles de la démonstration
+                # les règles du dépôt de départ
                 -verbose
 
-                -keep public class com.celeris.demo.MainActivity {
+                -keep public class com.celeris.exemple.MainActivity {
                     public static *** main(java.lang.String[]);
                 }
 

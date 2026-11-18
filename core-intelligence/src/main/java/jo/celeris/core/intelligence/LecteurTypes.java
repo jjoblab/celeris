@@ -9,7 +9,7 @@ import jo.celeris.core.text.Document;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Le lecteur de types du terrain de démonstration (catégorie A de
+ * Le lecteur de types du terrain d'intégration (catégorie A de
  * l'inventaire — le fil rouge du guide du développeur, la seconde
  * surface réveillée du signal du propriétaire) : le type d'un symbole
  * se lit à sa DÉCLARATION dans le document — « Type symbole », le mot
@@ -67,7 +67,7 @@ public final class LecteurTypes {
     /**
      * Le symbole à l'offset — l'identifiant qui le porte, null au
      * vide entre deux mots. Pur : le lecteur vit dans le cœur, il
-     * ne connaît plus le coach de la démonstration.
+     * ne connaît plus le coach du dépôt de départ.
      *
      * @param document le document ouvert
      * @param offset   la position visitée

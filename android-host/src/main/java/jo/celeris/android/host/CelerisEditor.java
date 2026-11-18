@@ -235,8 +235,8 @@ public final class CelerisEditor {
                     settings.theme(), settings.fontSizeSp());
             // T4 : les déclencheurs du kit — la délégation clavier des
             // popups (PIEGE-27) et le survol au double appui (le color
-            // picker d'abord). L'hôte n'écrit plus rien : ce que la
-            // démo branchait à la main vit dans le montage.
+            // picker d'abord). L'hôte n'écrit plus rien : ce que
+            // l'intégration branchait à la main vit dans le montage.
             vue.addPopupKeyListener(verdictTouche);
             vue.addDoubleTapListener(verdictDoubleTap);
         }

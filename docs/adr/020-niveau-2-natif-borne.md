@@ -50,7 +50,7 @@ optionnelle du socle — la case déclarée de M7.6 se remplit.**
    (le régime mesuré du spike : 0,5 ms incrémental à 190 Ko, ~6 Mo
    résidents pour un fichier à la borne — le budget PROPRE à la voie,
    documenté ici).
-4. **L'enregistrement** : la démonstration déclare les sources natives
+4. **L'enregistrement** : l'exemple consommateurnstration déclare les sources natives
    dans la case du niveau 2 (`TreeSitterLanguages`) ; les paquets json,
    python et javascript portent `preferred: tree-sitter` avec leur
    repli d'origine. La bibliothèque absente ne change RIEN : le repli
@@ -97,7 +97,7 @@ optionnelle du socle — la case déclarée de M7.6 se remplit.**
 - [x] La liaison, le moteur, la matérialisation et le banc
       (`NatifBancTest` : jetons exacts, pli exact, incrémental, saut
       sans bibliothèque).
-- [x] L'enregistrement de la démonstration et la préférence des
+- [x] L'enregistrement de l'exemple consommateurnstration et la préférence des
       paquets (json, python, javascript) avec leur repli.
 - [ ] La mesure sur l'appareil de référence (plan VERIFICATION-APPAREIL)
       — la condition (a) de l'ADR-016 reste ouverte.

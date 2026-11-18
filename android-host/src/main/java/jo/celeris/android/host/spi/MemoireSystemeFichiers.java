@@ -8,7 +8,7 @@ import java.util.TreeMap;
 /**
  * L'implémentation de référence du système de fichiers virtuel (E-01) :
  * tout en mémoire, déterministe, pour les tests et les faux de
- * démonstration. L'ordre de listage est l'ordre lexicographique des
+ * exemple d'intégration. L'ordre de listage est l'ordre lexicographique des
  * écritures — stable par construction.
  */
 public final class MemoireSystemeFichiers implements SystemeFichiersVirtuel {

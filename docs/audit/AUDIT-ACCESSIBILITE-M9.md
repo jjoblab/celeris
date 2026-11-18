@@ -91,7 +91,7 @@ l'accessibilité comprise (`TaillesSp`, PIEGE-23).
 ## Les deux défauts trouvés — et corrigés
 
 L'auditeur naissant a fait tomber DEUX défauts réels dans les réglages
-de la démonstration (`activity_settings.xml`), rouges au premier
+du dépôt de départ (`activity_settings.xml`), rouges au premier
 passage, verts après correctif :
 
 1. **Les CINQ interrupteurs MaterialSwitch sans nom** : les

@@ -21,7 +21,7 @@ import jo.celeris.core.syntax.JetonAnnulation;
  *
  * <p>Modèle d'exécution (ADR-007) : l'exécuteur est fourni par l'hôte —
  * le cœur n'en crée aucun. Les tests y mettent une pompe manuelle, le
- * temps devient déterministe ; la démonstration y met un fil différé,
+ * temps devient déterministe ; l'exemplenstration y met un fil différé,
  * le voyage devient visible.</p>
  */
 public final class FauxModeleDistant implements ModeleTexteFantome, ModelePrediction {

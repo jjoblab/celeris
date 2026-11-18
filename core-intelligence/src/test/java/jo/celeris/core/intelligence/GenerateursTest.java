@@ -23,7 +23,7 @@ class GenerateursTest {
     private final SyntaxService java = SyntaxService.of(JavaSyntax.INSTANCE);
 
     private static final String SOURCE = """
-            package demo;
+            package exemple;
 
             public class Personne {
                 private final String nom;

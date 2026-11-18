@@ -27,7 +27,7 @@
 
 | # | Classe | Genre | Fonction | Déclencheur | Données | Positionnement | Fermeture | État |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S-1 | `CompletionListView` | `COMPLETION_LIST` | Liste de complétion deux lignes, badge de genre, runs du préfixe. | Frappe (démo), sélection si ouverte, action de menu. | LSP `LanguageSession.completion` ou repli `IntelligenceHub` + `PopupCoach`. | `PopupPlacer` sous le curseur. | Frappe sur blanc/ponctuation, acceptation, action menu. | [2] — aucun clavier (flèches/Enter/Escape). |
+| S-1 | `CompletionListView` | `COMPLETION_LIST` | Liste de complétion deux lignes, badge de genre, runs du préfixe. | Frappe (exemple), sélection si ouverte, action de menu. | LSP `LanguageSession.completion` ou repli `IntelligenceHub` + `PopupCoach`. | `PopupPlacer` sous le curseur. | Frappe sur blanc/ponctuation, acceptation, action menu. | [2] — aucun clavier (flèches/Enter/Escape). |
 | S-2 | `CompletionDocView` (+`CompletionDocModel`) | `COMPLETION_DOC` ET `HOVER` | Documentation flottante de complétion ET survol/peek/`@Preview` — MÊME instance. | Ouverture avec la liste ; double-tap ; « i » de la barre ; peek (menu) ; clic repère gouttière. | LSP `survol` ou table `PopupCoach` ; `ApercuDefinition` (plan local). | `PopupPlacer` (flanc) ou `PopupAnchor.atPoint`/`topLeftCorner`. | Suit la liste ; frappe/défilement ferment le `HOVER`. | [4]-risque — l'instance partagée entre deux genres fait mentir l'état (audit P1). |
 | S-3 | `SignatureHelpView` (+`SignatureAideModel`) | `SIGNATURE_HELP` | Aide aux paramètres : surcharges ±1, paramètre actif à l'accent, stepper tactile, peek appui long. | Chaque édition/sélection. | LSP `signature` ou `PopupCoach.signatureFor`. | `PopupPlacer` (côté opposé). | Modèle null. | [2] — `Handler` sans nettoyage au détachement. |
 | S-4 | `IntentionsMenuView` | `INTENTIONS_MENU` | Menu d'actions au curseur — le débordement vit désormais SA carte à étages (`MenuEtages`, genre propre). | Action menu ; puce toolbar. | `CatalogueActions` (activité). | `PopupAnchor.belowOrAboveCaret` / ad hoc coin haut-droit (toolbar). | Choix d'une action avant exécution ; exclusions. | [1] — le partage d'instance du débordement est mort (audit P1 refermé). |
@@ -45,7 +45,7 @@
 | S-16 | `NotificationView` | `NOTIFICATION` | La bulle éphémère du coin bas-droit — l'annonce vit son quart, l'horloge la referme. | L'hôte (correctifs appliqués, pause de débogage, exécution). | L'activité. | `PopupAnchor.bottomRightCorner`. | Son heure (4 s) ou le tap qui la prend. | [1] |
 | S-17 | `ExceptionView` | `EXCEPTION_DETAILS` | Les détails d'exception — le type à l'encre d'erreur, le message, la pile en cadres cliquables (l'étranger vit muet). | Action d'exécution (menu, intentions, puce). | `TraceExecution` (trace du document réel, l'analyseur de piles E-06 la relit). | `PopupAnchor.belowOrAboveCaret`. | Tap hors cartes, échappement — la consultation. | [1] — la passe du 2026-11-13. |
 
-### 1.3 Feuilles modales (ADR-018) — android-widgets + demo
+### 1.3 Feuilles modales (ADR-018) — android-widgets
 
 | # | Classe | Fonction | Focus | État |
 | --- | --- | --- | --- | --- |
@@ -53,13 +53,13 @@
 | F-2 | `FeuilleBas` | Réglages (`FeuilleReglages`), plan (`FeuillePlan`), recherche (`AtelierRecherche`), renommage (`AtelierRefactor`). | Idem. | [2] |
 | F-3 | `FeuilleHaut` | Revues de diff (`AtelierDiff`), correctifs LSP (`AtelierCorrectif`), IA (`AtelierIA`), agent (`AtelierAgent`). | Idem. | [2] |
 
-### 1.4 Hors kit — surfaces contextuelles de `android-view` et `demo`
+### 1.4 Hors kit — surfaces contextuelles d'`android-view`
 
 | # | Classe | Nature | État |
 | --- | --- | --- | --- |
 | H-1 | `Loupe` + `MagnifierGeometry` | Bulle d'agrandissement in-canvas pendant le dragage. | [1] — choix assumé (photographie de frame). |
 | H-2 | `FantomePainter`/`FantomeEditeur`/`GesteFantome` | Texte fantôme IA in-canvas, acceptation Tab. | [1] |
-| H-3 | `DiagnosticOverlay` (demo) + `surimpression` | HUD de diagnostic (TextView sur la scène). | [1] — hors périmètre carte. |
+| H-3 | `DiagnosticOverlay` (banc) + `surimpression` | HUD de diagnostic (TextView sur la scène). | [1] — hors périmètre carte. |
 | H-4 | `PointerGestures.bulleVisible` | Info-bulle de survol stationnaire — PLUS AUCUN APPELANT en production (survol par appui long retiré le 2026-11-13). | [5] — code mort couvert par un banc. |
 | H-5 | `ValeursPainter` + `ValeurLigne` | Valeurs de débogage en ligne (E-03) : le rendu en fin de ligne utile, encre de gouttière, crochet `setValeursEnLigne`. | [1] — la pause les pose, la reprise les retire. |
 
@@ -85,8 +85,8 @@ tous [1] : purs, testés, sans vue.
 | O-7 | `FilAriane` | Le chemin du plan qui englobe le curseur. | [1] — né de l'extraction du plafond ADR-002. |
 | O-8 | `ContenuPopups` / `CoachPopups` | Les algorithmes de contenu purs / l'interface des tables de l'hôte (le coach MUET par défaut). | [1] — déménagés. |
 | O-9 | `LanguageSession` | La surface commune des serveurs de langage (modèles convertis). | [1] — déménagée. |
-| O-10 | `CatalogueActions` (demo) | Table unique des actions, trois peaux (menu, carte, intentions). | [1] — reste au terrain. |
-| O-11 | `CoachDemo` / `PopupCoach` (demo) | Les tables du terrain de test (mots Java, signatures, documentation factices). | [1] — reste au terrain. |
+| O-10 | `CatalogueActions` (banc) | Table unique des actions, trois peaux (menu, carte, intentions). | [1] — reste au terrain. |
+| O-11 | `CoachExemple` / `PopupCoach` (banc) | Les tables du terrain de test (mots Java, signatures, documentation factices). | [1] — reste au terrain. |
 | O-12 | `Reglages` + `ReglagesView` | La carte des réglages — la table centrale `ReglagesEditeur` (android-view) s'y bascule, dix portes stables, coin bas-droit (l'audit du 2026-11-14 : « un système central editor settings »). | [1] — né du chantier des réglages. |
 | O-13 | `TypesLitteraux` / `CapCompletion` / `Repositionneur` | Les pures extraites de l'orchestrateur : le type des littéraux des inlays, le cap de la complétion selon la place, le repositionnement des surfaces ouvertes. | [1] — nés du plafond de complexité. |
 
@@ -171,7 +171,7 @@ tous [1] : purs, testés, sans vue.
 ## 3. Bilan chiffré
 
 - 17 genres d'état au contrôleur ; 13 surfaces portées par la couche ;
-  3 feuilles modales (+ 9 ateliers de feuilles en démo) ; 3 surfaces
+  3 feuilles modales (+ 9 ateliers de feuilles en exemple) ; 3 surfaces
   in-canvas assumées (loupe, fantôme, HUD) ; 2 surfaces interactives
   hors couche (gouttière, poignées).
 - Fonctionnalités réellement opérationnelles (tactile) : complétion + doc
@@ -188,7 +188,7 @@ tous [1] : purs, testés, sans vue.
   (`CompletionMots`, `PopupCoach.completionFor`, capacité `Completion` de
   `core-language`) vivent à des étages différents (production, repli de
   repli, contrat non branché) — la capacité `Completion` enregistrée par
-  `LangagesDemo` n'est LUE nulle part en production : [5] à décider en
+  `LangagesExemple` n'est LUE nulle part en production : [5] à décider en
   phase architecture.
 
 ## 4. Règles de coexistence constatées (aujourd'hui)

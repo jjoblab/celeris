@@ -31,7 +31,7 @@ class OptimiseurImportsTest {
     @Test
     void lutiliseEtLinutilise() {
         List<OptimiseurImports.RapportImport> rapports = analyser("""
-                package demo;
+                package exemple;
 
                 import java.util.List;
                 import java.util.Map;

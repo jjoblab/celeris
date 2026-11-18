@@ -123,7 +123,7 @@ public final class TypeInfoView extends TextRowsPopup {
 Le rendu commun vient avec la base : verre, liseré hairline, coins
 arrondis, clip, voile de naissance et de mort — vous ne peignez pas la
 carte, vous peignez DANS la carte. Le thème se tourne par
-`setPalette(...)` (`PopupPanel`), la démo le fait à chaque changement
+`setPalette(...)` (`PopupPanel`), l'exemple le fait à chaque changement
 (`AtelierPopups.surPalette`).
 
 ### Pas 3 — le lien
@@ -138,7 +138,7 @@ popups.lier(PopupController.PopupKind.TYPE_INFO, typeInfo);
 ### Pas 4 — le déclenchement et les données (l'exemple complet réel)
 
 L'exemple COMPLET le plus court du dépôt : l'atelier du sélecteur de
-couleur (`demo/src/main/java/jo/celeris/demo/AtelierCouleur.java`,
+couleur (l'atelier de couleur du dépôt de départ,
 129 lignes du constructeur au pick) — lier au montage, servir la carte
 au geste, ancrer avec LA mesure, montrer, fermer, appliquer :
 
@@ -207,7 +207,7 @@ frappe composée ne sert jamais une carte).
 Frappe, défilement, exclusions, cascades, voile, tap hors cartes,
 détachement : TOUT est déjà servi par le manager et les régimes du
 contrôleur. Votre atelier appelle `popups.surFrappe()` sur l'édition,
-`popups.surDefilement()` au scroll (la démo le fait dans
+`popups.surDefilement()` au scroll (l'exemple le fait dans
 `AtelierPopups`), `popups.detacher()` à la destruction — le reste suit.
 
 ### Pas 8 — le banc
@@ -232,7 +232,7 @@ trois étages de données du dépôt (l'audit §5 les a vérifiés) :
 | Moteurs hors ligne | `core-intelligence` : `CompletionMots`/`CompletionMatcher`, `IndexSymboles`, `Renommage`, `SafeDelete`, `Hierarchies`, `Gabarits`, `RechercheFloue`… | même chemin — l'atelier sert d'intermédiaire, la carte reste pure consommatrice |
 | SPI hôte | `android-host` : `DiagnosticHote`, `CorrectifsLint`, `ValeurEnLigne`… | l'hôte implémente, l'atelier transpose sur la carte |
 
-Le patron d'asynchrone de la démo : la réponse future revient par
+Le patron d'asynchrone du dépôt de départ : la réponse future revient par
 `whenComplete` puis `editeur.post(...)` — la pose se joue sur le fil
 UI. Si vos requêtes peuvent se devancer (deux frappes, deux requêtes),
 gardez un JETON DE GÉNÉRATION chez l'hôte et ne posez que la dernière :
@@ -247,7 +247,7 @@ La règle ADR-018 : les surfaces denses vivent dans les feuilles —
 avec voile cliquable, poignée de glissement, retour système. Elles
 PRENNENT le focus par conception (elles sont modales) ; la carte qui
 reste ouverte dessous n'existe pas : l'atelier appelle
-`popups.fermerSousVoile()` AVANT d'ouvrir la feuille (la démo le fait
+`popups.fermerSousVoile()` AVANT d'ouvrir la feuille (l'exemple le fait
 dans `CatalogueActions`, ligne 142) — l'intelligence et les actions
 cèdent, le chrome survit.
 
@@ -283,7 +283,7 @@ Chaque surface réelle du dépôt — nom, fonction, déclencheur, service,
 état, dépendances — vit dans [`POPUP_INVENTORY.md`]\
 (POPUP_INVENTORY.md) : l'infrastructure (§1.1), les treize cartes de la
 couche (§1.2), les feuilles (§1.3), les surfaces in-canvas assumées
-(§1.4), l'orchestration de la démo (§1.6), et la classification
+(§1.4), l'orchestration du dépôt de départ (§1.6), et la classification
 catégorie par catégorie (§2). L'API publique du kit se lit dans
 l'USAGE §9 ; les signatures exactes dans `android-widgets` —
 `PopupManager`, `PopupController`, `PopupLayer`, `PopupAnchor`

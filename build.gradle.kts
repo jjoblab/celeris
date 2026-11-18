@@ -100,7 +100,7 @@ tasks.register<Exec>("policyAccessibilitySelfTest") {
 
 tasks.register("policyCheck") {
     group = "verification"
-    description = "Contrôles de politique (langue, références interdites, provenance, enregistrement des langages, accessibilité, rempart, matrice, pièges, démo, dates)."
+    description = "Contrôles de politique (langue, références interdites, provenance, enregistrement des langages, accessibilité, rempart, matrice, pièges, catalogue, dates)."
     dependsOn("policyLanguageCheck", "policyForbiddenRefsCheck", "policyForbiddenRefsSelfTest",
             "policyDependencyProvenanceCheck", "policyDependencyProvenanceSelfTest",
             "policyLanguageRegistrationCheck", "policyLanguageRegistrationSelfTest",
@@ -130,12 +130,12 @@ tasks.register<Exec>("policyPiegesCheck") {
     commandLine("python3", "scripts/check-pieges")
 }
 
-// Couverture de la démonstration (M7.5, §9/§11) : une ligne démontrée
+// Couverture de l'exemplenstration (M7.5, §9/§11) : une ligne démontrée
 // cite son scénario, un scénario cite une ligne connue.
-tasks.register<Exec>("policyDemoCoverageCheck") {
+tasks.register<Exec>("policyExempleCoverageCheck") {
     group = "verification"
-    description = "Couverture de la démo (scripts/check-demo-coverage)."
-    commandLine("python3", "scripts/check-demo-coverage")
+    description = "Couverture de l'exemple (scripts/check-catalog-coverage)."
+    commandLine("python3", "scripts/check-catalog-coverage")
 }
 
 // Dates des documents (M7.5, §11) : aucun résumé ne se date au-delà
@@ -153,7 +153,7 @@ tasks.register("check") {
     description = "Tous les contrôles : politique du dépôt + qualité de chaque module."
     dependsOn("policyCheck", "policyLanguageBaselineCheck",
             "policyParityMatrixCheck", "policyPiegesCheck",
-            "policyDemoCoverageCheck", "policyDocsDatesCheck")
+            "policyExempleCoverageCheck", "policyDocsDatesCheck")
     subprojects.forEach { sousProjet ->
         dependsOn("${sousProjet.path}:check")
     }

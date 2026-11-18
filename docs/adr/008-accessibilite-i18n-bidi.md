@@ -63,9 +63,9 @@ l'impose « dès la première version ».
 
 ## Conséquences
 
-- La démo expose un scénario « lecture par lecteur d'écran » par catégorie
+- Un banc expose un scénario « lecture par lecteur d'écran » par catégorie
   de matrice, avec test instrumenté de fumée.
-- Le corpus de tests Unicode est embarqué dans la démo (jeux d'essai du
+- Le corpus de tests Unicode est embarqué dans l'exemple consommateur (jeux d'essai du
   mandat) et partagé avec les tests JVM.
 - La conformité sera auditée avant 1.0 (jalon M9) avec un auditeur
   automatique sur chaque scénario.

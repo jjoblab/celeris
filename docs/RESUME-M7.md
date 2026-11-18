@@ -13,15 +13,15 @@
 > corrections hors tranche sont consignées ci-dessous, critères de
 > sortie couverts (catégories C et E P0, SPI de référence, cli en
 > CI). Les tranches 1 à 3 ont répondu à la reprise après
-> interruption et à l'amélioration de la démonstration ; les tranches 4 et 5 livrent le bloc XML/manifeste/catalogues
-> et la peinture de gouttière des intégrations — la démonstration
+> interruption et à l'amélioration du dépôt de départ ; les tranches 4 et 5 livrent le bloc XML/manifeste/catalogues
+> et la peinture de gouttière des intégrations — l'exemplenstration
 > devient terrain de débogage.
 
-## Tranche 1 — la démonstration devient terrain d'essai (2026-11-06)
+## Tranche 1 — l'exemplenstration devient terrain d'essai (2026-11-06)
 
 ### Livré
 
-- **L'écran d'éditeur complet** (`demo/EditorActivity`) : la vue
+- **L'écran d'éditeur complet** (l'écran d'éditeur du dépôt de départ) : la vue
   Canvas pleine — barre d'outils (plan, recherche, réglages), barre
   de recherche vivante (occurrences, préc./suiv., saut avec la plage
   sélectionnée), panneau de plan cliquable (saut à la déclaration par
@@ -31,7 +31,7 @@
   enfin câblés au moteur : numéros masquables (D-01 — la gouttière
   réduite à la coulisse des marques), retour souple (A-18), thème
   sombre ; ils se réappliquent au retour de l'écran de réglages.
-- **Huit fichiers d'exemple** (`demo/FichiersExemple`) : un par
+- **Huit fichiers d'exemple** (les fichiers d'exemple du dépôt de départ) : un par
   langage P0 — Kotlin, Java, XML, KTS, TOML, JSON, Markdown, Python
   (C-14 à C-16) — réalistes, avec l'analyseur dédié ou la grammaire
   déclarative associée à chaque extension.
@@ -51,7 +51,7 @@
 
 ### Preuve
 
-`./gradlew check` vert sur l'ensemble (SDK présent), `:demo:assembleDebug`
+`./gradlew check` vert sur l'ensemble (SDK présent), la construction des modules
 assemblé (1,2 Mo), trois activités déclarées, badging vérifié.
 
 ## Tranche 2 — les contrats SPI de l'hôte, E-01 à E-06 (2026-11-06)
@@ -86,7 +86,7 @@ assemblé (1,2 Mo), trois activités déclarées, badging vérifié.
 
 `:android-host:check` vert — 36 tests (Checkstyle, PMD, Error Prone,
 NullAway, lint compris). Six scénarios E-01 à E-06 au catalogue de la
-démonstration (soixante-cinq au total).
+exemple consommateur (soixante-cinq au total).
 
 ## Tranche 3 — l'éditeur en ligne de commande (2026-11-06)
 
@@ -150,7 +150,7 @@ sur Java (plan complet) et TOML (grammaires).
 `:core-syntax:check` et `:core-intelligence:check` verts (couverture
 ≥ 90 %, Checkstyle, PMD, Error Prone, NullAway compris) ; manifestes
 d'API régénérés — soixante-dix-huit ajouts, aucun retrait (SemVer
-mineure, ADR-009). Cinq scénarios C au catalogue de la démonstration
+mineure, ADR-009). Cinq scénarios C au catalogue du dépôt de départ
 (soixante-treize au total).
 
 ## Tranche 5 — la peinture de gouttière des intégrations (2026-11-06)
@@ -170,13 +170,13 @@ mineure, ADR-009). Cinq scénarios C au catalogue de la démonstration
   curseur, chevron discret des lignes de pile (D-05). La coulisse
   s'élargit de deux caractères quand les intégrations parlent
   (`MarquesGouttiere`).
-- **Le terrain de débogage** (`demo/EditorActivity`) : le clic dans
+- **Le terrain de débogage** (l'écran d'éditeur du dépôt de départ) : le clic dans
   le champ des numéros pose et retire les points d'arrêt (D-04) ; le
   bouton de débogage simule la pause au premier arrêt actif — à la
   cinquième ligne sinon — avec une pile de deux cadres, puis la
   reprise (D-05) ; le diff ligne à ligne face au contenu d'origine
   (`DiffLignes`) rafraîchit les marques VCS à la frappe (D-03).
-- **L'adaptateur** (`demo/AdaptateurMarques`) : l'état des contrats
+- **L'adaptateur** (l'adaptateur de marques du dépôt de départ) : l'état des contrats
   de l'hôte — lignes à partir de un — devient les marques de la vue
   — lignes à partir de zéro —, arrêts et pile filtrés au fichier
   ouvert. `EtatLignesVcs.marques()` énumère désormais les lignes
@@ -187,14 +187,14 @@ mineure, ADR-009). Cinq scénarios C au catalogue de la démonstration
 
 ### Preuve
 
-`./gradlew check` vert sur l'ensemble (SDK présent), `:demo:assembleDebug`
+`./gradlew check` vert sur l'ensemble (SDK présent), la construction des modules
 assemblé (1,27 Mo). Trois scénarios D au catalogue de la
-démonstration, les lignes E-02/E-03/E-04 de la matrice passent à
+exemple consommateur, les lignes E-02/E-03/E-04 de la matrice passent à
 couvert.
 
-## Hors tranche — la démonstration devient application (2026-11-06)
+## Hors tranche — l'exemplenstration devient application (2026-11-06)
 
-Sur demande du propriétaire, l'interface de la démonstration passe du
+Sur demande du propriétaire, l'interface du dépôt de départ passe du
 code programmatique nu à de vrais layouts Material 3 : identité visuelle
 sombre coordonnée à la palette de l'éditeur (marque «&#160;</>&#160;» en
 icône adaptative, dix-neuf icônes vectorielles, écran de démarrage),
@@ -209,8 +209,8 @@ n'était pas branchée sur la vue.
 
 ### Preuve
 
-`:demo:check` vert (lint zéro erreur, Checkstyle, PMD, tests Jupiter —
-`CarteFichierTest` compris), `:demo:assembleDebug` assemblé.
+le module d'exemple :check` vert (lint zéro erreur, Checkstyle, PMD, tests Jupiter —
+`CarteFichierTest` compris), la construction des modules assemblé.
 
 ## Hors tranche — l'atelier corrigé sur rapport d'appareil (2026-11-07)
 
@@ -222,7 +222,7 @@ Cinq défauts signalés sur l'appareil, cinq racines trouvées et closes
    sous la dernière ligne projetaient des tranches hors document
    (`IndexOutOfBoundsException` à l'image sous coupure). L'état
    d'image borne sa fenêtre (`ScrollGeometry.borneesAuContenu`),
-   reproduction testée sur les huit contenus de la démonstration,
+   reproduction testée sur les huit contenus du dépôt de départ,
    plis compris, budget d'une colonne compris (PIEGE-08).
 2. **Le contenu s'affichait éparpillé** — deux causes cumulées : la
    dernière ligne se répétait sous la fenêtre (même racine que le
@@ -251,7 +251,7 @@ mince et sous le plafond de 600 lignes.
 ### Preuve
 
 `./gradlew check` vert sur l'ensemble (1 297 tests, politique de
-langue comprise), `:demo:assembleDebug` assemblé et vérifié (apksigner).
+langue comprise), la construction des modules assemblé et vérifié (apksigner).
 
 ## Tranche 6 — l'adaptateur de stockage et le lint importé (2026-11-07)
 
@@ -274,13 +274,13 @@ langue comprise), `:demo:assembleDebug` assemblé et vérifié (apksigner).
   `MarquesGouttiere.setErreursImportees`). Les correctifs mécaniques —
   l'ellipse typographique, le tiret cadratin — s'appliquent en
   transactions de remplacement annulables ; le catalogue est fermé et
-  honnête, le mécanisme est le livrable. La démonstration analyse et
+  honnête, le mécanisme est le livrable. La exemple consommateur analyse et
   corrige d'un geste (`FauxLint`, `AtelierLint`).
 
 ### Preuve
 
-`:android-host:check` et `:demo:check` verts (lint zéro erreur),
-`:demo:assembleDebug` assemblé. La ligne E-01 de la matrice passe à
+`:android-host:check` et le module d'exemple :check` verts (lint zéro erreur),
+la construction des modules assemblé. La ligne E-01 de la matrice passe à
 livrée — le P0 de la catégorie E est couvert.
 
 ## Tranche 7 — SQL, C, C++ et le garde-fou R8 (2026-11-07)
@@ -291,14 +291,14 @@ livrée — le P0 de la catégorie E est couvert.
   grammaires — SQL (mots réservés insensibles à la casse, types,
   blocs repliés), C (préprocesseur, types natifs, corps repliés) et
   C++ (classes, espaces de noms, gabarits, `::`). Registre, cli et
-  catalogue de la démonstration suivent ; les budgets de ré-analyse de
+  catalogue du dépôt de départ suivent ; les budgets de ré-analyse de
   50 000 lignes tiennent pour les trois.
 - **C-09** : la grammaire ProGuard colore règles, jokers et blocs de
   membres repliés ; `ValidationRegles` garde le fichier — règles
   inconnues hors catalogue, accolades fermantes orphelines, membres
   sans point-virgule dans les blocs — à la plage exacte, sans faux
   positif sur le corpus sain. `proguard-rules.pro` entre au catalogue
-  de la démonstration.
+  du dépôt de départ.
 
 ### Preuve
 
@@ -319,13 +319,13 @@ ADR-009).
   repère à sa ligne, le nom du composable se lit sur la ligne même ou
   sur les deux suivantes ; le losange se trace dans la coulisse, le
   clic sur le repère délègue le rendu à l'hôte
-  (`setSurRenduPreview`) — jamais embarqué. La démonstration répond
+  (`setSurRenduPreview`) — jamais embarqué. La exemple consommateur répond
   par sa propre scène.
 
 ### Preuve
 
-`:android-view:check` et `:demo:check` verts ; `couleurs.xml` et
-`Apercus.kt` entrent au catalogue de la démonstration.
+`:android-view:check` et le module d'exemple :check` verts ; `couleurs.xml` et
+`Apercus.kt` entrent au catalogue du dépôt de départ.
 
 ## Tranche 9 — l'aperçu de définition, la revue de diff et les grands écrans (2026-11-07)
 
@@ -344,7 +344,7 @@ ADR-009).
   revue décide bloc par bloc — accepté, refusé, en attente —, le
   refus réaligne les suivants, les points de contrôle reviennent en
   arrière : la matière de la revue d'agent de M8 (F-04). La
-  démonstration relit son diff face au contenu d'origine et applique
+  exemple consommateur relit son diff face au contenu d'origine et applique
   la fusion en une transaction annulable (`AtelierDiff`).
 - **D-19 — `ClasseLargeur`** : les seuils des classes de taille
   Material — compact sous 600 dp, étendu au-delà de 840 dp — décident
@@ -354,7 +354,7 @@ ADR-009).
 
 ### Preuve
 
-`./gradlew check` vert sur l'ensemble, `:demo:assembleDebug` assemblé.
+`./gradlew check` vert sur l'ensemble, la construction des modules assemblé.
 Au menu de l'atelier : aperçu de définition et revue du diff.
 
 ## Clôture (2026-11-07)

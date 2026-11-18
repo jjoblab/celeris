@@ -30,7 +30,7 @@ import jo.celeris.core.text.TextSession;
 class EditorSyntaxAsyncTest {
 
     private static final String SOURCE = """
-            package demo;
+            package exemple;
 
             class Premiere {
                 void methode() {

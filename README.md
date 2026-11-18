@@ -112,7 +112,7 @@ recherche/remplacement, complétion, refactorings, texte fantôme — pensée
 Le cœur du moteur ne dépend **pas d'Android** : la garantie est posée
 au niveau du code — chaque module pur porte un test d'architecture qui
 interdit toute dépendance `android.*` (ADR-0021). Le même cœur alimente la
-vue Canvas Android, l'application de démonstration et un exécutable en
+vue Canvas Android et un exécutable en
 ligne de commande ; tout build du dépôt exige un SDK Android installé
 (`ANDROID_HOME`, `ANDROID_SDK_ROOT` ou `local.properties`).
 
@@ -167,7 +167,7 @@ Les popups vivent dans les modules de l'éditeur : `android-widgets` porte
 le kit (cartes, manager, machine à états, feuilles), `android-host`
 porte l'orchestrateur **`PopupsEditeur`** — l'application hôte n'a
 presque rien à écrire (déménagement du 2026-11-14, PORT ACHEVÉ : la
-démonstration ne teste plus qu’elle-même — les HUIT surfaces réveillées
+presque rien — les HUIT surfaces réveillées
 du feu vert vivent chez l’orchestrateur par leurs satellites : l’info
 de type (`TypeInfo`), les usages (`Usages`), la documentation externe
 (`DocExterne`), les hiérarchies (`CarteHierarchies`), les gabarits
@@ -186,7 +186,7 @@ la couche entière dans un navigateur, sans dépendance ni réseau : les
 feuilles modales et leurs ateliers. Chaque surface y détaille son
 utilisation — quand l'ouvrir, comment, ce qu'elle affiche, ses régimes,
 l'API hôte ; les boucles complètes tournent sur le scénario de la
-démonstration (masquage d'inspection avec relance du lint, suppression
+banc d'intégration (masquage d'inspection avec relance du lint, suppression
 sûre, exception relue du document réel, annulation de chaque écriture).
 Les maquettes statiques d'origine restent dans
 [`docs/maquettes/popups.html`](docs/maquettes/popups.html). La PARITÉ au
@@ -298,8 +298,8 @@ le consentement explicite de l'utilisateur (`GardeContexte`,
 [`docs/adr/012-contrats-ia-agents.md`](docs/adr/012-contrats-ia-agents.md)).
 L'hôte qui veut une télémétrie l'ajoute derrière son propre
 consentement, anonyme et documentée — jamais dans le cœur. La
-démonstration ne déclare d'ailleurs aucune permission réseau : sa
-neutralité par défaut est structurelle, vérifiée en CI.
+neutralité réseau est structurelle : l'éditeur n'ouvre aucune
+connexion par défaut, vérifié en CI.
 
 ## Charge et limites
 
@@ -328,8 +328,8 @@ ferme même au-delà des seuils.
 ## Bancs et cliquets
 
 331 bancs JVM et 2 331 méthodes `@Test`, plus les quatre bancs
-d'appareil (relevé du 2026-11-14, avant les sorties de la démonstration
-et du serveur de banc, ADR-0024). Le volume n'est pas un but en soi (décision du
+d'appareil (relevés périodiques, modules du dépôt compris)
+. Le volume n'est pas un but en soi (décision du
 propriétaire du 2026-11-11 : la parité de volume avec l'audit du dépôt
 de départ ne se poursuit pas) — les cliquets font foi : couverture
 JaCoCo ≥ 90 % de lignes sur les modules purs, score de mutation ≥ 80 %
@@ -359,7 +359,7 @@ portes) :
 | [`cli`](cli/README.md) | application JVM | exécutable sans Android (diagnostiquer, formater, refactorer) |
 
 Onze des modules se publient en artefacts Maven
-(`jo.celeris:*`, section « Publication ») ; la cli et la démo sont des
+(`jo.celeris:*`, section « Publication ») ; la cli est une
 applications, jamais publiées.
 
 ## Documentation

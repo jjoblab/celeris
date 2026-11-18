@@ -148,7 +148,7 @@ impossibles) :
   menus, barre), le chrome survit (fil d'Ariane, bande, minimap, pouce,
   touchbar).
 
-L'hôte (démo ou tiers) netouche plus JAMAIS `couche.dismiss` ni les
+L'hôte (exemple ou tiers) netouche plus JAMAIS `couche.dismiss` ni les
 doubles cascades : le montage complet tient en trois temps (USAGE §9) —
 lier les genres, déclencher, déléguer le clavier.
 
@@ -200,7 +200,7 @@ Aucune classe réécrite ; les modifications sont chirurgical :
 | `CompletionListView`, `IntentionsMenuView` | implémentent `PopupClavier` (surbrillance + validation par le clavier) |
 | `PopupManager` | nouveau (kit) + banc Robolectric dédié |
 | `EditorView` + `RappelsHote` | crochet public `setSurTouchePopup` consulté en tête de `onKeyDown` |
-| démo `AtelierPopups` | construit/possède le manager ; les `fermer`/`retirer`/`taille` privés meurent (régression de volume) ; une DEUXIÈME `CompletionDocView` pour le survol (plus de carte partagée) ; `detacher()` au cycle |
+| le dépôt de départ `AtelierPopups` | construit/possède le manager ; les `fermer`/`retirer`/`taille` privés meurent (régression de volume) ; une DEUXIÈME `CompletionDocView` pour le survol (plus de carte partagée) ; `detacher()` au cycle |
 | `DocAncre`, `MenuDebordement`, `AtelierCouleur`, `AtelierBarreToolbar` | vue PROPRE par genre, câblage par le manager ; genre `TOOLBAR_OVERFLOW` pour la carte toolbar ; listener du layout global retirable |
 | `EditorActivity`, `CatalogueActions` | délégation clavier branchée ; toute action de menu referme l'intelligence sous voile |
 | `AtelierBordDroit` | chrome conservé tel quel (assumé) |
@@ -218,15 +218,15 @@ duplications, pas parce qu'on leur a coupé des responsabilités utiles.
   Escape/Tab), course du retrait différé, bornage.
 - `PopupControllerTest` étendu : `TOOLBAR_OVERFLOW`, rendus d'ouvertures/
   fermetures, cohérence `open`/`ouvrirRendus`.
-- `BancSpecs` (banc de spécification de la démo) : scénario clavier de bout
+- `BancSpecs` (banc de spécification du dépôt de départ) : scénario clavier de bout
   en bout — frappe ouvre, flèches déplacent, Enter accepte, Escape referme.
 - Non-régression : les 28 bancs widgets existants + les bancs vue + les
-  bancs démo doivent rester verts SANS modification de leurs attentes
+  bancs d'exemple doivent rester verts SANS modification de leurs attentes
   (sauf ceux qui figent le partage de cartes — remplacés par l'attente
   nouvelle : DEUX cartes distinctes).
 - Post-mission, le signal du 2026-11-13 : `PopupManagerTest.laPageEtendueSertLaCompletion`,
   `PopupManagerTest.leClavierDelegueSertLesUsages`, `PopupControllerTest` (+`references*`),
-  `ReferencesViewTest`, `UsagesReferencesTest` (démo — les lieux servis par le fil,
+  `ReferencesViewTest`, `UsagesReferencesTest` (exemple — les lieux servis par le fil,
   la transpose du saut).
 
 ## 9. Décisions EXPLICITEMENT rejetées (contrainte 15)

@@ -76,7 +76,7 @@ la référence sans qu'aucun échec ne le signale. La fidélité réelle tombe �
 - jcodings porte une famille d'encodages dont un seul sert (UTF-8) : le dex
   mesure 615 Ko avant réduction — R8 élaguera les encodages inutilisés si
   les règles de conservation le permettent, sinon l'excès est documenté et
-  assumé (moins de 1 % de l'APK de démonstration).
+  assumé (moins de 1 % de l'APK de exemple consommateur).
 - Le rapport de vitesse défavorable sur certaines grammaires (yaml 2,56×)
   se paie en temps d'analyse : le moteur limite les règles actives par
   position et l'incrémental borne la replanification — le budget ADR-004

@@ -25,10 +25,10 @@ class IndexSymbolesTest {
     private final SyntaxService java = SyntaxService.of(JavaSyntax.INSTANCE);
     private final SyntaxService xml = SyntaxService.of(XmlSyntax.INSTANCE);
 
-    /** Un fichier Java de démonstration : une classe, un champ, deux méthodes. */
+    /** Un fichier Java de exemple consommateur : une classe, un champ, deux méthodes. */
     private static String sourceClient() {
         return """
-                package demo;
+                package exemple;
 
                 class Client {
                     private String nom;
@@ -42,7 +42,7 @@ class IndexSymbolesTest {
     /** Un second fichier : il utilise le premier. */
     private static String sourceUtilisateur() {
         return """
-                package demo;
+                package exemple;
 
                 class Utilisateur {
                     Client client;
@@ -88,7 +88,7 @@ class IndexSymbolesTest {
         assertEquals(4, index.symboles().size());
         // le fichier change : une méthode disparaît, une autre naît
         String nouvelle = """
-                package demo;
+                package exemple;
 
                 class Client {
                     String nomComplet() { return ""; }

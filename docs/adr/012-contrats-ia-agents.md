@@ -44,12 +44,12 @@ n'appelle jamais un réseau ; l'hôte fournit les implémentations.
      fusion silencieuse).
 5. **Exclusions de contexte** : un fichier d'exclusion déclare les
    chemins jamais envoyés à un modèle (secrets, clés, données du
-   propriétaire) ; le contrôle en CI vérifie qu'un scénario de la démo le
+   propriétaire) ; le contrôle en CI vérifie qu'un scénario de l'exemple consommateur le
    respecte. Le fichier d'instructions d'agent du dépôt est honoré par les
    outils exposés.
 6. **Consentement et télémétrie** : aucun trafic sortant sans activation
    explicite de l'utilisateur ; la télémétrie est en option, anonyme,
-   documentée ; la démo n'active rien par défaut et le prouve par un test
+   documentée ; l'exemple consommateur n'active rien par défaut et le prouve par un test
    (aucune prise réseau en mode par défaut).
 7. Les contrats IA sont **testables sans modèle** : implémentations de
    référence déterministes (faux modèle scripté) en JVM pure.
@@ -64,7 +64,7 @@ n'appelle jamais un réseau ; l'hôte fournit les implémentations.
 
 ## Compromis
 
-- L'hôte écrit plus de code d'intégration (fourniture du modèle) : la démo
+- L'hôte écrit plus de code d'intégration (fourniture du modèle) : l'exemple consommateur
   embarque une implémentation locale de référence qui prouve la
   suffisance du contrat.
 - La détection de conflit peut refuser des éditions d'agent valides en cas
@@ -75,7 +75,7 @@ n'appelle jamais un réseau ; l'hôte fournit les implémentations.
 
 - `core-ai` n'a aucune dépendance transport : pas de client réseau dans
   le cœur, seulement des interfaces et des modèles de données.
-- Le scénario de démo « agent modifie le fichier » exerce la revue par
+- Le scénario de banc « agent modifie le fichier » exerce la revue par
   blocs et les points de contrôle, avec test instrumenté de fumée.
 - Les budgets de latence IA sont mesurés sur le faux modèle (chemin de
   code identique, transport substitué) et calibrés sur modèle réel par

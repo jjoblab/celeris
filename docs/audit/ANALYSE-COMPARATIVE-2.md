@@ -117,7 +117,7 @@ actions restent déclarés en ressources (`ids.xml`), la parité
 fr/ défaut se vérifie en CI.
 
 **Preuve** : `TouchBarViewTest` (android-widgets, **4 tests**) ; le
-scénario H-13 du banc de la démo traverse la carte ; la politique de
+scénario H-13 du banc du dépôt de départ traverse la carte ; la politique de
 langue de la CI vérifie la parité des chaînes (relevée par la
 présente reprise : le contrôle s'est raffiné aux noms).
 
@@ -156,7 +156,7 @@ l'appui long de la vue notifie l'hôte (`setSurAppuiLong`), la sélection
 déjà posée.
 
 **Preuve** (48 tests au total) : `JavaSignatureTest` (**8**),
-`JavaHoverTest` (**5**), `ServeurDeclareMomentsTest` (démo, **4** —
+`JavaHoverTest` (**5**), `ServeurDeclareMomentsTest` (exemple, **4** —
 la signature naît dans l'appel et meurt à la sortie ; le survol vit
 au mot, meurt au blanc et au signe ; les diagnostics se poussent à
 l'ouverture puis au changement ; la complétion répond au préfixe,
@@ -220,7 +220,7 @@ décision du propriétaire (chantier C5).
 
 **Post-scriptum (2026-11-13)** : cinq des six se couvrent — B-18
 (`PatchPreviewTest` et la spécification rejouée au banc de la
-démo : l'aperçu du correctif se voit avant l'acceptation), A-26
+l'exemple : l'aperçu du correctif se voit avant l'acceptation), A-26
 (`FichiersBinairesTest` : détection sur les octets bruts, aperçu
 hexadécimal plafonné, refus d'édition destructrice), C-13
 (`ExtractionRessourceTest` : la chaîne devient ressource, annulable
@@ -257,7 +257,7 @@ Une comparaison honnête avec Android Studio doit distinguer ce qui
 - **Un IDE contre un composant**. Android Studio compile, exécute,
   débogue pour de vrai, indexe le projet entier ; celeris est un
   éditeur embarquable — l'hôte apporte l'exécution, le débogage et
-  les fichiers par le SPI (`android-host`), la démonstration les
+  les fichiers par le SPI (`android-host`), l'exemplenstration les
   prouve sur des références pures. Comparer le moteur d'éditeur à
   l'IDE entière serait un duel d'appareils de poids différents : la
   matrice compare les **capacités d'éditeur**, et c'est là que la
@@ -389,7 +389,7 @@ niveau 2) reste ouverte, « à ne commencer que sur signal ».
 Les livraisons du soir (2026-11-13, le signal du propriétaire a ouvert
 le chantier de fond) : `f05cea0` (les identifiants de la reprise repassent à
 l'anglais — le rempart de langue tient, la ligne de base descend, la
-porte verte de la démonstration reprend : nomination ADR-019 du banc
+porte verte du dépôt de départ reprend : nomination ADR-019 du banc
 `BancSpecs`, plafonds de `EditorActivity` tenus, exemption du genre
 markdown du protocole au survol des modificateurs) ; `0942f23` (les guides
 verticaux suivent les blocs — l'accolade ouvre à sa colonne, la

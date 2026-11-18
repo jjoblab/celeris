@@ -10,7 +10,7 @@ bibliothèque fournit des surfaces d'édition. Depuis M5, le module
 `android-widgets` livre popups et barres unifiées — thémées,
 accessibles selon l'ADR-008, testées par les tests de vue de la CI.
 Mais aucune règle n'interdisait jusqu'ici à une fonctionnalité d'ouvrir
-un écran plein cadre ou un dialogue système, et la démonstration porte
+un écran plein cadre ou un dialogue système, et l'exemple consommateurnstration porte
 des surfaces plein cadre (écran de réglages, catalogue de scénarios).
 
 Le propriétaire arrête le principe le 2026-11-10 : pour les
@@ -35,7 +35,7 @@ Sont proscrits pour une fonctionnalité : activité ou fragment plein
 cadre, dialogues système (`AlertDialog` et semblables), tiroirs de
 navigation fonctionnels. L'hôte reste maître de sa navigation
 (ADR-009) ; la bibliothèque rend des surfaces, elle n'impose pas
-d'écran. La démonstration garde son activité hôte — le conteneur
+d'écran. La exemple consommateur garde son activité hôte — le conteneur
 Android l'exige — mais ses surfaces fonctionnelles migrent en feuilles.
 
 ## Options
@@ -53,7 +53,7 @@ Android l'exige — mais ses surfaces fonctionnelles migrent en feuilles.
   feuilles enchaînées — jamais en écran.
 - La feuille du haut n'a pas encore d'implémentation : elle naîtra à
   son premier besoin, dans le kit unifié, avec ses tests de vue.
-- Les surfaces plein cadre existantes de la démonstration doivent
+- Les surfaces plein cadre existantes de l'exemple consommateurnstration doivent
   migrer : un chantier dédié de la feuille de route les inventorie et
   les ramène à la conformité.
 
@@ -72,7 +72,7 @@ Android l'exige — mais ses surfaces fonctionnelles migrent en feuilles.
       `docs/maquettes/popups.html` (réactives, autonomes, sans
       dépendance).
 - [x] Inventorier les surfaces fonctionnelles existantes (la
-      démonstration en tête) et migrer les non-conformes — chantier
+      exemple consommateur en tête) et migrer les non-conformes — chantier
       C12, clos le 2026-11-10 (l'inventaire vit dans
       [`docs/audit/INVENTAIRE-SURFACES.md`](../audit/INVENTAIRE-SURFACES.md)).
 - [x] Livrer la feuille du haut à son premier besoin, avec ses tests

@@ -3,14 +3,14 @@
 > **Déclenchement** : clôture du jalon M8.6 (2026-11-08) puis de M7.6
 > (2026-11-10). Périmètre (feuille de route) : audit d'accessibilité
 > complet ; revue de sécurité ; performance finale (cliquet resserré) ;
-> documentation exhaustive ; `MIGRATION.md` final ; démonstration
+> documentation exhaustive ; `MIGRATION.md` final ; exemple consommateur
 > complète ; publication 1.0.0. Sortie visée : tous budgets et portes
 > verts ; aucun P0 ouvert ; guide de migration relu.
 >
 > **État** : le jalon est clos — les six livrables ci-dessous,
 > `./gradlew check` vert (1 819 tests, 0 échec, politique comprise),
 > publication locale `jo.celeris:*:1.0.0` verte (SBOM et sommes de
-> contrôle), mutation 85,0 % (seuil 80), APK de démonstration assemblé
+> contrôle), mutation 85,0 % (seuil 80), APK de exemple consommateur assemblé
 > (debug et release réduite par R8). Poussée sur `main` à chaque
 > livrable (décision du propriétaire).
 
@@ -29,7 +29,7 @@ chaque item de menu, parité des clés en/fr, câblage vivant de
 l'arbre virtuel), dix auto-tests, câblé bloquant à `check`.
 
 L'auditeur naissant a fait tomber DEUX défauts réels dans les
-réglages de la démonstration : les CINQ interrupteurs `MaterialSwitch`
+réglages du dépôt de départ : les CINQ interrupteurs `MaterialSwitch`
 et le curseur de lenteur étaient nus au lecteur d'écran — chaque
 libellé porte désormais `android:labelFor`. 9 widgets interactifs, 9
 nommés. Limites honnêtes : aucun test sur appareil réel (plan du
@@ -41,13 +41,13 @@ bancs JVM).
 **Fait.** Dix surfaces passées en revue
 (`docs/audit/REVUE-SECURITE-M9.md`). **Une faille réelle fermée,
 rouge puis vert** : la voie des déclarations (H-13) fusionnait les
-serveurs des paquets et de l'hôte, et la démonstration montait la
+serveurs des paquets et de l'hôte, et l'exemplenstration montait la
 première déclaration embarquée disponible — `Class.forName` +
 constructeur vide : un paquet copié par l'utilisateur pouvait faire
 exécuter une classe arbitraire du chemin de classes. L'hôte ne monte
 désormais que SES déclarations (`DeclaredServers`, test
 `uneDeclarationDePaquetNeMonteJamaisSansLhote`). Durcissement du
-manifeste : `allowBackup="false"`, exigé par `DemoNeutreTest`. Le
+manifeste : `allowBackup="false"`, exigé par `ExempleNeutreTest`. Le
 chargeur de paquets (zip-slip, liens symboliques, tailles,
 profondeur, schéma), la frontière IA (consentement, exclusions,
 neutralité structurelle), la provenance et les références interdites
@@ -88,14 +88,14 @@ rattrape l'état : treize modules (`core-syntax-grammars` et
 `lsp-protocole` compris), ADR 001 à 017, catégories A à H,
 `MIGRATION.md`, `REFERENCES.md` et les audits M9.
 
-## 5. La démonstration complète (commit `c3e8feb`)
+## 5. La exemple consommateur complète (commit `c3e8feb`)
 
 **Fait.** Le dernier écart du dépôt se ferme : **H-04 jouable**. Le
 paquet jouet — un langage ENTIER en données seules (le Logo de la
 tortue : `pack.json`, `language.json`, `grammar.json` TextMate réel,
 `outline.json`, `snippets.json`) — se copie au stockage par les
 réglages (sixième carte), le registre se RECHARGE à chaud
-(`LangagesDemo.recharger`, dossier des paquets par
+(`LangagesExemple.recharger`, dossier des paquets par
 `Packs.folder`), la carte `tortue.lgo` entre et sort de l'accueil,
 son badge porte le « Lg » du langage détecté. Preuves :
 `PaquetJouetTest` (détecté, coloré, plié, commenté, plan, gabarits ;
@@ -113,7 +113,7 @@ auto-vérifié, « Vérifié appareil » reste au plan du propriétaire).
 `core-language`, `core-intelligence`, `core-lsp`, `lsp-protocole`,
 `core-ai`, `cli`) : publication locale verte (jar, sources,
 Javadoc, module, POM), SBOM CycloneDX, sommes de contrôle SHA-256 ;
-la démonstration porte `versionName` 1.0.0. `CHANGELOG.md` : entrée
+l'exemplenstration porte `versionName` 1.0.0. `CHANGELOG.md` : entrée
 1.0.0, court par construction. Mutation `core-text` : 85,0 %
 (seuil 80).
 
@@ -122,7 +122,7 @@ la démonstration porte `versionName` 1.0.0. `CHANGELOG.md` : entrée
 - **Tous budgets et portes verts** : `./gradlew check` (1 819
   tests, 0 échec, politique comprise — langue, références
   interdites, provenance, enregistrement des langages,
-  **accessibilité**, rempart, matrice, pièges, démo, dates),
+  **accessibilité**, rempart, matrice, pièges, catalogue, dates),
   publication locale et sommes vertes, mutation verte, APK debug et
   release réduite assemblés.
 - **Aucun P0 ouvert** : les P0 de la matrice sont Câblés ou

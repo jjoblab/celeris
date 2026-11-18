@@ -8,7 +8,7 @@ Vérifie sur docs/parite/MATRICE-PARITE.md :
   2. les statuts Câblé, Démontré et Vérifié appareil citent un test de
      vue EXISTANT (fichier src/test du module cité) ;
   3. les statuts Démontré et Vérifié appareil citent un scénario de la
-     démo qui EXISTE (identifiant de ligne cité par demo/src/main) ;
+     exemple qui EXISTE (identifiant de ligne cité par les sources) ;
   4. « livré » ne s'écrit plus dans la colonne de statut — le cadre
      M7.5 l'a remplacé.
 
@@ -40,7 +40,7 @@ def classes_test():
 
 def lignes_scenarios():
     resultat = set()
-    base = os.path.join(RACINE, 'demo', 'src', 'main')
+    base = os.path.join(RACINE, 'core-language', 'src', 'main')
     for racine, _, noms in os.walk(base):
         for nom in noms:
             if not nom.endswith('.java'):
@@ -80,7 +80,7 @@ def main():
         if statut in ('Démontré', 'Vérifié appareil'):
             if scenario != 'oui' or identifiant not in scenarios:
                 problemes.append(
-                    '%s : statut %s sans scénario de démo le citant'
+                    "%s : statut %s sans scénario d'exemple le citant"
                     % (identifiant, statut))
         if statut in ('Noyau', 'Non démarré') and test_vue != '—':
             problemes.append(

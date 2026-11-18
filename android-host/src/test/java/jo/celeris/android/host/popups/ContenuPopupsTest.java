@@ -24,7 +24,7 @@ import jo.celeris.core.text.TextSession;
 /**
  * Les décisions de contenu GÉNÉRIQUES des popups de l'éditeur (le
  * déménagement du 2026-11-14, reprises de {@code PopupCoachTest} de
- * la démonstration) : la complétion des mots filtre par le préfixe
+ * l'exemplenstration) : la complétion des mots filtre par le préfixe
  * tapé sans se proposer le mot sous le curseur, le régime de frappe
  * propose au premier caractère d'identifiant, le fil d'Ariane
  * descend le plan, les candidats du protocole gagnent leurs badges.

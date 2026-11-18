@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 class CorrectifImportTest {
 
     /** Le classpath du banc — la même table que le terrain de la
-     *  démonstration, l'ordre de préférence y décide : List a deux
+     *  exemple consommateur, l'ordre de préférence y décide : List a deux
      *  candidates, l'ordre les départage. */
     private static final ClasspathIndex CLASSPATH = ClasspathIndex.of(
             java.util.Map.of(

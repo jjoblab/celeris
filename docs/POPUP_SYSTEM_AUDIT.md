@@ -19,8 +19,8 @@ traite l'architecture.
 
 Modules (settings.gradle.kts) : `core-text`, `core-syntax`,
 `core-syntax-grammars`, `core-language`, `core-intelligence`, `core-lsp`,
-`core-ai`, `lsp-protocole`, `serveur-lsp-java`, `cli` (JVM pure) ;
-`android-view`, `android-widgets`, `android-host`, `demo` (Android).
+`core-ai`, `lsp-protocole`, `cli` (JVM pure) ;
+`android-view`, `android-widgets`, `android-host` (Android).
 Le cœur ne connaît pas Android (ARCHITECTURE.md) ; les dépendances ne vont
 que vers le bas, figées par des tests d'architecture ArchUnit.
 
@@ -30,8 +30,8 @@ Répartition réelle des responsabilités « popups » :
 | --- | --- |
 | `android-widgets` | le KIT : machine à états (`PopupController`), couche porteuse (`PopupLayer`), carte de base (`PopupPanel`, `TextRowsPopup`), placement (`PopupPlacer`, `PopupAnchor`), thème (`PopupPalette`, `PopupTokens`), vues spécialisées, feuilles modales (`Feuille`, `FeuilleBas`, `FeuilleHaut`). Publié `jo.celeris:android-widgets:1.1.0`. |
 | `android-view` | la GÉOMÉTRIE et les DÉCLENCHEURS : rects du caret (`PopupAnchors`, `CaretAnchors`), avis de fenêtre (`ViewportWatch` → `EditorView.setSurViewportChange`), loupe (`Loupe`, `MagnifierGeometry`), pastilles de couleur (`PastillesCouleur`), repères `@Preview` (`ReperesPreview`), concentrateur de complétion (`IntelligenceHub`). AUCUNE dépendance vers `android-widgets`. |
-| `demo` | l'ORCHESTRATION : `AtelierPopups` (~600 lignes) et ses satellites (`DocAncre`, `MenuDebordement`, `AtelierCouleur`, `AtelierBordDroit`, `AtelierBarreToolbar`, `AtelierRecherche`), la table d'actions (`CatalogueActions`), le contenu de repli (`PopupCoach`). |
-| `core-lsp`, `lsp-protocole`, `serveur-lsp-java` | les DONNÉES LSP : types immuables (`ListeCompletion`, `SurvolLsp`, `SignatureLsp`, `CorrectifLsp`, `LieuLsp`, `SymboleLsp`, `DiagnosticLsp`), la frontière protocolaire (`LspSession`), le serveur Java réel (`JavaLanguageServer`). |
+| le dépôt de départ | l'ORCHESTRATION : `AtelierPopups` (~600 lignes) et ses satellites (`DocAncre`, `MenuDebordement`, `AtelierCouleur`, `AtelierBordDroit`, `AtelierBarreToolbar`, `AtelierRecherche`), la table d'actions (`CatalogueActions`), le contenu de repli (`PopupCoach`). |
+| `core-lsp`, `lsp-protocole` | les DONNÉES LSP : types immuables (`ListeCompletion`, `SurvolLsp`, `SignatureLsp`, `CorrectifLsp`, `LieuLsp`, `SymboleLsp`, `DiagnosticLsp`), la frontière protocolaire (`LspSession`), le serveur Java de banc. |
 | `core-intelligence` | les MOTEURS hors ligne : `CompletionMots`, `CompletionMatcher`, `IndexSymboles`, `Renommage`, `SafeDelete`, `Gabarits`, `RechercheFloue`, etc. |
 | `android-host` | les SPI de l'hôte : `DiagnosticHote`, `GraviteDiagnostic`, `CorrectifsLint`, `ValeurEnLigne`. |
 
@@ -78,7 +78,7 @@ est la LIAISON entre eux (§6.1) et le clavier (§6.5).
   (photographie de frame), hors couche, correctement factorisée.
 - `FantomePainter` / `FantomeEditeur` (`android-view`) : texte fantôme IA
   in-canvas — inlay éphémère, pas une carte.
-- `DiagnosticOverlay` + `surimpression` (`demo`, `activity_editor.xml`) :
+- `DiagnosticOverlay` + `surimpression` (le dépôt de départ, `activity_editor.xml`) :
   HUD de diagnostic sur la scène — TextView hors couche, cyclique (400 ms).
 - Cartes « pseudo-popup » du kit non portées par `PopupPanel` :
   `ErrorBandView`, `MinimapView`, `FastScrollerView` (extends View brut,
@@ -97,7 +97,7 @@ hors du périmètre « carte éphémère ».
   `rennomage` (+ préparation), `correctifs`, `formatage` (+ plage),
   `plis`, `plagesSelection`, `jetons` (+ plage), `indices`,
   `diagnosticsDe`, auditeur de diagnostics.
-- **Serveur Java réel** (`serveur-lsp-java.JavaLanguageServer`) : sert
+- **Serveur Java réel** (le serveur de banc du dépôt de départ) : sert
   hover, signatureHelp, completion, documentSymbol, foldingRange,
   formatting, diagnostics poussés. NE sert PAS : codeAction, definition,
   references, rename, semanticTokens, inlayHints.
@@ -112,7 +112,7 @@ hors du périmètre « carte éphémère ».
 
 Attention (capacités réelles vérifiées) : la définition (peek) vit sur le
 plan `OutlineEntry` local (`ApercuDefinition`), les correctifs vivent sur
-le serveur de référence de la démo — le serveur Java déclaré ne les sert
+le serveur de référence du dépôt de départ — le serveur Java déclaré ne les sert
 pas. Aucune intégration « déclarée mais fausse » : les popups ne demandent
 que ce que les moteurs servent réellement.
 
@@ -123,7 +123,7 @@ exactes.
 
 ### P1 — Vues partagées entre genres : l'état ment (critique)
 
-`AtelierPopups` (demo) pose la MÊME instance de vue sous deux genres :
+`AtelierPopups` (banc) pose la MÊME instance de vue sous deux genres :
 
 - `CompletionDocView docCompletion` sert `COMPLETION_DOC` **et** `HOVER`
   (`AtelierPopups.java:131` → `DocAncre(..., docCompletion, ...)`,
@@ -153,7 +153,7 @@ son état » (`onKeystroke`/`onScroll`/`closeAll` rendent les genres fermés →
 l'hôte appelle `couche.dismiss`) est entièrement à la charge de l'hôte.
 Les cascades sont codées EN DOUBLE : dans `PopupController.close` (état)
 ET dans `AtelierPopups.fermer` (vues, lignes 528–537). Aucun coordinateur
-n'est fourni par le kit : `USAGE.md` §9 le dit explicitement, la démo le
+n'est fourni par le kit : `USAGE.md` §9 le dit explicitement, l'exemple le
 prouve par ~600 lignes de câblage (`AtelierPopups`) et six satellites qui
 possèdent chacun sa copie du pattern `controleur.open → vue.set… → mesure
 → ancre → couche.show` et de `fermer()`. Tout hôte tiers doit recâbler la
@@ -196,7 +196,7 @@ la voie est la DÉLÉGATION depuis l'éditeur qui garde le focus.
 
 ### P6 — Cycle de vie : listeners jamais retirés, closeAll orphelin (majeur)
 
-- `AtelierBarreToolbar` (demo, lignes 65–66) :
+- `AtelierBarreToolbar` (banc, lignes 65–66) :
   `couche.getViewTreeObserver().addOnGlobalLayoutListener(this::reposerBarre)`
   — référence de méthode impossible à retirer sans conservation de la
   référence ; fuite si l'atelier était reconstruit.
@@ -206,7 +206,7 @@ la voie est la DÉLÉGATION depuis l'éditeur qui garde le focus.
   l'activité, structurant pour un hôte tiers.
 - `PopupController.closeAll()` (« la session se détache, la couche se
   vide ») n'est appelé NULLE PART en production — uniquement en bancs. Aucun
-  changement de document n'est d'ailleurs géré par la démo (une activité =
+  changement de document n'est d'ailleurs géré par l'exemple (une activité =
   un document).
 - `SignatureHelpView` : `Handler` de l'appui long sans nettoyage au
   détachement (`postDelayed` peut armer le peek sur une carte fermée).

@@ -157,7 +157,7 @@ export default function Page() {
           </h2>
           <p className="mb-4 max-w-3xl text-[12px] text-white/45">
             Les fonctionnalités vivent dans les modules éditeur : PopupsEditeur (android-host)
-            délègue à ses satellites, le pont de test de la démo est mort. Chaque satellite porte
+            délègue à ses satellites, le pont de test du dépôt de départ est mort. Chaque satellite porte
             sa surface entière — données, carte, câbles.
           </p>
           <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">

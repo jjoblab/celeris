@@ -26,7 +26,7 @@ class RenommageTest {
 
     private static String sourceClient() {
         return """
-                package demo;
+                package exemple;
 
                 class Client {
                     String nomComplet() { return ""; }
@@ -36,7 +36,7 @@ class RenommageTest {
 
     private static String sourceUtilisateur() {
         return """
-                package demo;
+                package exemple;
 
                 class Utilisateur {
                     Client client;

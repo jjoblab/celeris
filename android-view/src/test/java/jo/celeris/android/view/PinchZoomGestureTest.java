@@ -8,7 +8,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 /**
- * Les défauts du pincement constatés dans la démonstration (M7.5, §4) :
+ * Les défauts du pincement constatés dans le dépôt de départ (M7.5, §4) :
  * le zoom ne fait RIEN — le facteur du détecteur est incrémental et le
  * choix par palier le lit comme cumulé (PIEGE-24) — et le changement de
  * police ne re-mesure pas un document jamais édité : la source de

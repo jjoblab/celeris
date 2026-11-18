@@ -7,7 +7,7 @@
 
 Le dépôt de départ n'a **aucun arbre syntaxique** : l'audit mesure dix-neuf
 tokéniseurs écrits à la main en production, la seule intelligence Java vivant
-dans la démo (22 fichiers, 9 301 lignes), et toute la structure (plis,
+dans le dépôt de départ (22 fichiers, 9 301 lignes), et toute la structure (plis,
 crochets, indentation, plan) recalculée par des voies séparées. Le mandat
 impose un arbre concret, sans perte, tolérant aux erreurs, incrémental,
 calculé hors fil UI et annulable, et demande un spike chiffré avant de

@@ -3,12 +3,12 @@
 Le nouveau cadre de statut (M7.5, §11) : **Non démarré** (rien dans
 le code), **Noyau** (modèle pur testé, aucune vue), **Câblé** (vue et
 événements en place, au moins un test de vue cité), **Démontré**
-(scénario de démo jouable avec auto-vérification — la surcharge de la
-démo n'existe pas encore, aucune ligne ne l'atteint), **Vérifié
+(scénario d'exemple jouable avec auto-vérification — la surcharge de la
+l'exemple n'existe pas encore, aucune ligne ne l'atteint), **Vérifié
 appareil** (test d'instrumentation vert — aucun n'existe encore).
 
 L'audit est MÉCANIQUE : le statut se déduit des citations vérifiables
-(test de vue citant la ligne, scénario de démo citant la ligne), pas
+(test de vue citant la ligne, scénario d'exemple citant la ligne), pas
 des affirmations des jalons précédents. La baisse de « livré » est le
 but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 
@@ -27,7 +27,7 @@ but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 
 ## Le détail, ligne à ligne
 
-| Ligne | Statut affirmé avant | Statut prouvé | Test cité | Scénario de démo |
+| Ligne | Statut affirmé avant | Statut prouvé | Test cité | Scénario d'exemple |
 | --- | --- | --- | --- | --- |
 | A-01 | absent (au départ ; celeris : pilule tactile livrée M3-t4 — … | Câblé | ChromePainterTest | oui |
 | A-02 | absent (celeris : livré M5-t3 — plage par rangée aux bornes … | Câblé | ColumnSelectionTest | oui |
@@ -51,7 +51,7 @@ but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 | A-20 | présent (celeris : moteur livré M2 ; barre — état, options, … | Câblé | SearchBarModelTest | oui |
 | A-21 | absent | Non démarré | — | non |
 | A-22 | présent, gabarits riches (celeris : livré M5-t2 — trous tabu… | Noyau | GabaritTest | oui |
-| A-23 | présent (bancs démo) | Non démarré | — | non |
+| A-23 | présent (bancs exemple) | Non démarré | — | non |
 | A-24 | partiel | Noyau | EncodingCodecTest | oui |
 | A-25 | partiel (première image JVM : 154 ms pour 100 000 lignes ; a… | Câblé | GrosFichiersTest | oui |
 | A-26 | absent | Non démarré | — | non |
@@ -71,14 +71,14 @@ but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 | B-14 | absent (celeris : livré M5-t4 — pile bornée, la visite coupe… | Câblé | NavigationHistoryTest | oui |
 | B-15 | absent (celeris : livré M5-t4 — bascule, sauts circulaires, … | Câblé | BookmarkModelTest | oui |
 | B-16 | absent (au départ ; celeris : livré M4-t8 — le pont session … | Câblé | EditorSyntaxPlanTest | oui |
-| B-17 | partiel (quick fixes) | Noyau | EditsEspaceDemoTest | oui |
+| B-17 | partiel (quick fixes) | Noyau | EditsEspaceExempleTest | oui |
 | B-18 | absent | Non démarré | — | non |
 | B-19 | absent | Noyau | RenommageTest | oui |
 | B-20 | absent | Non démarré | — | non |
 | B-21 | absent | Non démarré | — | non |
 | B-22 | absent | Non démarré | — | non |
 | B-23 | absent | Non démarré | — | non |
-| B-24 | présent (démo) | Noyau | GenerateursTest | oui |
+| B-24 | présent (exemple) | Noyau | GenerateursTest | oui |
 | B-25 | partiel | Noyau | FormateurTest | oui |
 | B-26 | absent | Noyau | EditorConfigTest | oui |
 | B-27 | présent | Noyau | OptimiseurImportsTest | oui |
@@ -95,7 +95,7 @@ but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 | C-11 | livré (celeris : M7-t8 — chaque annotation ancre son losange… | Câblé | GutterPainterTest | oui |
 | C-12 | livré (celeris : M7-t6 — la sortie texte de lint se converti… | Câblé | GutterMarksTest | oui |
 | C-13 | absent | Non démarré | — | non |
-| C-14 | Java partiel (démo) (au départ ; celeris : les trois analyse… | Noyau | FichiersExempleTest | oui |
+| C-14 | Java partiel (exemple) (au départ ; celeris : les trois analyse… | Noyau | FichiersExempleTest | oui |
 | C-15 | livré (Gradle KTS et Groovy tranches 4 et 7, JSON tranche 3 … | Noyau | FichiersExempleTest | oui |
 | C-16 | partiel (tokéniseurs au départ ; celeris : la voie de gramma… | Noyau | FichiersExempleTest | oui |
 | D-01 | présent | Câblé | GutterPainterTest | oui |
@@ -133,7 +133,7 @@ but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 | F-07 | livré (celeris : M8-t4 — ExclusionsContexte lit le fichier d… | Noyau | ExclusionsContexteTest | oui |
 | F-08 | livré (celeris : M8-t1 — FauxModeleLocal synchrone, FauxMode… | Noyau | FauxModelesTest | oui |
 | F-09 | livré (celeris : noyau M8-t1 — jeton annulé à la frappe suiv… | Noyau | LatenceFantomeTest | oui |
-| F-10 | livré (celeris : M8-t6 — le garde du contexte consulte le co… | Noyau | DemoNeutreTest | oui |
+| F-10 | livré (celeris : M8-t6 — le garde du contexte consulte le co… | Noyau | ExempleNeutreTest | oui |
 | G-01 | partiel (texte : 154 ms / 500 ms, 480 000 lignes ouvrables ;… | Câblé | GrosFichiersTest | oui |
 | G-02 | partiel | Noyau | ScenarioCatalogTest | oui |
 | G-03 | absent | Non démarré | — | non |
@@ -144,7 +144,7 @@ but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 
 - Les lignes « livrées » des jalons M2 à M8 retombent au statut que
   leurs PREUVES soutiennent : presque toutes « Noyau » ou « Câblé » —
-  la démonstration ne démontrait pas (catalogue décoratif, ateliers
+  l'exemplenstration ne démontrait pas (catalogue décoratif, ateliers
   sans auto-vérification, aucun test d'appareil).
 - Les correctifs de M7.5 (D-15 pincement, D-01 gouttière, B-01
   coloration stable) montent à « Câblé » : test de vue cité, test

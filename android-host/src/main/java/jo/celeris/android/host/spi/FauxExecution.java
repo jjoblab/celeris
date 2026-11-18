@@ -9,7 +9,7 @@ import java.util.Map;
  * La fausse exécution de référence (E-04) : les lancements vivent en
  * mémoire, les fins se simulent explicitement, chaque changement se
  * signale aux auditeurs — déterministe, pour les tests et la
- * démonstration.
+ * exemple d'intégration.
  */
 public final class FauxExecution implements IntegrationExecution {
 

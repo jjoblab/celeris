@@ -81,7 +81,6 @@ MODULES = [
     "editor/cel-lsp",
     "editor/cel-textmate",
     "editor/cel-ui",
-    "demo",
 ]
 
 
@@ -206,7 +205,7 @@ def measure(repo: str) -> dict:
     m["tokenizers"] = [
         f for f in files if "/src/main/" in f and "Tokenizer" in os.path.basename(f)
     ]
-    # Intelligence Java vivant dans la démo (hors bibliothèque).
+    # Intelligence Java vivant dans le dépôt de départ (hors bibliothèque).
     m["minijava_files"] = [f for f in files if "MiniJava" in f]
     m["minijava_lines"] = sum(count_lines(os.path.join(repo, f)) for f in m["minijava_files"])
 
@@ -385,7 +384,7 @@ def render(m: dict) -> str:
             "confirmé",
             f"{len(m['tokenizers'])} fichiers de tokéniseurs en production ; "
             f"l'intelligence Java ({len(m['minijava_files'])} fichiers, {fr(m['minijava_lines'])} "
-            "lignes) vit dans la démo, pas dans les bibliothèques",
+            "lignes) vit dans le dépôt de départ, pas dans les bibliothèques",
         ),
         (
             "5",

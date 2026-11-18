@@ -16,7 +16,7 @@ embarquées dans aucun artefact) :
 | Dépendance | Version | Licence | Usage |
 | --- | --- | --- | --- |
 | Gradle | 9.8.2 (wrapper, somme de contrôle épinglée) | Apache-2.0 | système de build |
-| Plugin Gradle Android | 9.5.0 | Apache-2.0 | modules Android et démonstration |
+| Plugin Gradle Android | 9.5.0 | Apache-2.0 | modules Android |
 | Error Prone | 2.52.0 | Apache-2.0 | analyse statique javac (ADR-009) |
 | NullAway | 0.14.3 | Apache-2.0 | vérification de nullité (ADR-009) |
 | JSpecify | 1.0.1 | Apache-2.0 | annotations de nullité (ADR-009) |
@@ -54,23 +54,6 @@ départ (code-editor, gel f310a39 : la grammaire Lua distribuée par
 sora-editor — MIT, Miao Xu et Microsoft Corporation, titulaires
 consignés au NOTICE du gel) ; reproduction inchangée, les sommes
 épinglées aux sections qui suivent.
-
-## Police à ligatures de la démonstration — Fira Code (chantier C13, D-14)
-
-La démonstration (`demo`, non publiée) embarque la police à ligatures
-Fira Code — Regular, version 6.2 — en ressource
-(`demo/src/main/res/font/fira_code_regular.ttf`) : posée sous sa
-famille « fira » par `EditorView.poserPolice`, elle démontre la bascule
-des ligatures (D-14, `setLigatures` — « liga » ouvre, « -liga » ferme,
-fermées par défaut). La police vit dans la démonstration seule, aucune
-artefact publié ne l'embarque. Source : le dépôt `tonsky/FiraCode`
-(ligne 6.2, `ttf/FiraCode-Regular.ttf`, licence SIL OFL 1.1 — le texte
-intégral de la licence vit au dépôt source `OFL.txt`) ; fichier repris
-sans modification.
-
-| Fichier | Source | Licence | Somme SHA-256 |
-| --- | --- | --- | --- |
-| `demo/src/main/res/font/fira_code_regular.ttf` | `tonsky/FiraCode` 6.2, `ttf/FiraCode-Regular.ttf` | SIL OFL 1.1 | `5992ab9640e2df491b2f609467b1de60e8bc39b2c28db184342a0592d98f6117` |
 
 ## Données tierces au runtime — les grammaires du commerce des paquets intégrés (chantier C5)
 
@@ -164,10 +147,7 @@ n'apparaît dans son API.
 Le module publié `lsp-protocole` porte la frontière protocolaire du
 LSP (ADR-015, acceptée le 2026-11-09) : le protocole et le JSON-RPC
 viennent de la bibliothèque, la correspondance rend au domaine —
-aucun type de la bibliothèque ne paraît dans son API. Le module
-publié `serveur-lsp-java` (mini serveur de langage Java, compagnon
-de banc de l'éditeur) parle la même bibliothèque côté serveur : la
-même dépendance, la même version épinglée, le même NOTICE. Licence
+aucun type de la bibliothèque ne paraît dans son API. Licence
 EPL-2.0 OU BSD-3-Clause (consommable sous BSD-3-Clause, compatible
 Apache-2.0) ; Gson Apache-2.0.
 

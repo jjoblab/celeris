@@ -55,7 +55,7 @@
    ci-dessus ; il référence `PIEGE-nn` dans sa Javadoc.
 2. Le test échoue d'abord (le comportement hérité n'est pas encore
    implémenté), puis passe.
-3. La matrice de parité et le scénario de démonstration associés citent
+3. La matrice de parité et le scénario d'exemplenstration associés citent
    l'identifiant `PIEGE-nn` quand le piège est visible par l'utilisateur.
 4. Un piège ne peut être retiré de ce registre que par décision explicite du
    propriétaire, consignée dans un ADR.

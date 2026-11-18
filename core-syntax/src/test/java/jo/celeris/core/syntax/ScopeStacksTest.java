@@ -20,12 +20,12 @@ final class ScopeStacksTest {
 
     @Test
     void unePileVitUneFoisEtSePartage() {
-        int racine = ScopeStacks.root("source.demo");
+        int racine = ScopeStacks.root("source.exemple");
         int premiere = ScopeStacks.push(racine, "meta.bloc");
         int seconde = ScopeStacks.push(racine, "meta.bloc");
         assertEquals(premiere, seconde,
                 "même pile, même entier — l'internement partage");
-        assertEquals(List.of("source.demo", "meta.bloc"),
+        assertEquals(List.of("source.exemple", "meta.bloc"),
                 ScopeStacks.scopesOf(premiere));
     }
 

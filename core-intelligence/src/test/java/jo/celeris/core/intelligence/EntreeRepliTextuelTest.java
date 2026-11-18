@@ -28,7 +28,7 @@ import jo.celeris.core.text.TextSession;
  */
 class EntreeRepliTextuelTest {
 
-    /** Le style canonique de la démonstration. */
+    /** Le style canonique du dépôt de départ. */
     private static final IndentStyle STYLE = IndentStyle.spaces(4);
 
     /**

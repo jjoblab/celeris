@@ -40,7 +40,7 @@ fichiers. Le script n'écrit rien dans le dépôt audité.
 | `cel-lsp` | 45 | 8 283 | 52 | 8 877 |
 | `cel-textmate` | 12 | 2 951 | 9 | 2 152 |
 | `cel-ui` | 111 | 39 794 | 179 | 35 376 |
-| `demo` | 26 | 13 311 | 29 | 5 400 |
+| application d'exemple | 26 | 13 311 | 29 | 5 400 |
 
 
 ### 2.2 Plus gros fichiers
@@ -49,25 +49,25 @@ fichiers. Le script n'écrit rien dans le dépôt audité.
 | --- | --- |
 | `editor/cel-ui/src/main/java/jo/codeeditor/view/EditorView.java` | 4 579 |
 | `editor/cel-core/src/main/java/jo/codeeditor/highlight/tokenizer/TokenizerTemplate.java` | 2 046 |
-| `demo/src/main/java/jo/codeeditor/demo/EditorActivity.java` | 1 842 |
+| l'écran d'éditeur du dépôt de départ (`EditorActivity.java`) | 1 842 |
 | `editor/cel-core/src/main/java/jo/codeeditor/session/EditorSession.java` | 1 694 |
 | `editor/cel-ui/src/main/java/jo/codeeditor/view/render/EditorAssistPopupPainter.java` | 1 659 |
 | `editor/cel-core/src/main/java/jo/codeeditor/highlight/tokenizer/GenericTokenizer.java` | 1 587 |
 | `editor/cel-ui/src/main/java/jo/codeeditor/view/input/EditorInputHandler.java` | 1 313 |
 | `editor/cel-ui/src/main/java/jo/codeeditor/view/popup/EditorCompletionPopup.java` | 1 241 |
 | `editor/cel-ui/src/main/java/jo/codeeditor/view/popup/EditorPopupAnchors.java` | 1 221 |
-| `demo/src/main/java/jo/codeeditor/demo/DemoSamples.java` | 1 198 |
+| les échantillons du dépôt de départ (`ExempleSamples.java`) | 1 198 |
 | `editor/cel-core/src/test/java/jo/codeeditor/highlight/tokenizer/GenericTokenizerTest.java` | 1 175 |
 | `editor/cel-ui/src/main/java/jo/codeeditor/view/render/EditorChromePainter.java` | 1 167 |
 
-Fichiers de plus de 1 000 lignes : **13** — `editor/cel-ui/src/main/java/jo/codeeditor/view/EditorView.java`, `editor/cel-core/src/main/java/jo/codeeditor/highlight/tokenizer/TokenizerTemplate.java`, `demo/src/main/java/jo/codeeditor/demo/EditorActivity.java`, `editor/cel-core/src/main/java/jo/codeeditor/session/EditorSession.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/render/EditorAssistPopupPainter.java`, `editor/cel-core/src/main/java/jo/codeeditor/highlight/tokenizer/GenericTokenizer.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/input/EditorInputHandler.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/popup/EditorCompletionPopup.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/popup/EditorPopupAnchors.java`, `demo/src/main/java/jo/codeeditor/demo/DemoSamples.java`, `editor/cel-core/src/test/java/jo/codeeditor/highlight/tokenizer/GenericTokenizerTest.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/render/EditorChromePainter.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/render/EditorRenderer.java`.
+Fichiers de plus de 1 000 lignes : **13** — `editor/cel-ui/src/main/java/jo/codeeditor/view/EditorView.java`, `editor/cel-core/src/main/java/jo/codeeditor/highlight/tokenizer/TokenizerTemplate.java`, l'écran d'éditeur du dépôt de départ (`EditorActivity.java`), `editor/cel-core/src/main/java/jo/codeeditor/session/EditorSession.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/render/EditorAssistPopupPainter.java`, `editor/cel-core/src/main/java/jo/codeeditor/highlight/tokenizer/GenericTokenizer.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/input/EditorInputHandler.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/popup/EditorCompletionPopup.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/popup/EditorPopupAnchors.java`, les échantillons du dépôt de départ (`ExempleSamples.java`), `editor/cel-core/src/test/java/jo/codeeditor/highlight/tokenizer/GenericTokenizerTest.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/render/EditorChromePainter.java`, `editor/cel-ui/src/main/java/jo/codeeditor/view/render/EditorRenderer.java`.
 
 
 ### 2.3 Baselines lint
 
 | Fichier | Entrées figées |
 | --- | --- |
-| `demo/lint-baseline.xml` | 23 |
+| `exemple/lint-baseline.xml` | 23 |
 | `editor/cel-core/lint-baseline.xml` | 8 |
 | `editor/cel-lsp-api/lint-baseline.xml` | 5 |
 | `editor/cel-lsp/lint-baseline.xml` | 6 |
@@ -95,7 +95,7 @@ unité par fichier.
 | 1 | Modules « purs » exigeant le SDK Android | **confirmé** | 5 modules `com.android.library`, aucun `java-library` : aucun test du moteur sans SDK |
 | 2 | Classe dieu `EditorView` | **confirmé** | 4 579 lignes, dont 494 déclarent un membre `public` ; 13 fichiers de plus de 1 000 lignes |
 | 3 | Frontières internes faibles | **confirmé** | 310 annotations `@RestrictTo` dans 56 fichiers de bibliothèque |
-| 4 | Aucun arbre syntaxique ; sémantique hors bibliothèque | **confirmé** | 19 fichiers de tokéniseurs en production ; l'intelligence Java (22 fichiers, 9 301 lignes) vit dans la démo, pas dans les bibliothèques |
+| 4 | Aucun arbre syntaxique ; sémantique hors bibliothèque | **confirmé** | 19 fichiers de tokéniseurs en production ; l'intelligence Java (22 fichiers, 9 301 lignes) vit dans le dépôt de départ, pas dans les bibliothèques |
 | 5 | Sélection mono-curseur | **confirmé** | `Selection` : deux champs `int` (`start`, `end`), aucun modèle multi-curseur |
 | 6 | Accessibilité absente de la vue principale | **confirmé** | `AccessibilityNodeInfo` : 0 fichier ; `contentDescription` : 2 fichiers (`BreadcrumbBar.java`, `EditorSearchBar.java`) — la vue principale n'expose rien au lecteur d'écran |
 | 7 | Tests non représentatifs de l'appareil | **confirmé** | 187 fichiers Robolectric ; 0 fichier(s) sous `src/androidTest/` |

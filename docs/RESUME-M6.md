@@ -322,9 +322,9 @@
   `p1..pN` aux paramètres (défauts `argN` posés au rendu), corps en
   dernier — curseurs aux trous dans l'ordre de tabulation, le moteur
   de gabarits du M5 fait le reste.
-- **La composition** (`EditsEspaceDemoTest` dans la démo) : le point
+- **La composition** (`EditsEspaceExempleTest` dans le dépôt de départ) : le point
   de composition voit le client LSP et le moteur de gabarits — les
-  modules purs restent latéraux (ADR-002), la démo gagne la
+  modules purs restent latéraux (ADR-002), l'exemple gagne la
   dépendance `core-lsp` à cet effet. Renommage appliqué et annulé,
   édit de gabarit inséré par la voie unique — défauts posés,
   premier trou sélectionné, annulation intégrale : **le bloqué
@@ -334,7 +334,7 @@
 
 - `./gradlew check` vert sur l'ensemble du dépôt avec SDK Android ;
 - **75 tests core-lsp** (6 neufs), **115 core-intelligence** (8
-  neufs), 5 à la démo (2 neufs de composition), zéro échec ;
+  neufs), 5 à l'exemple (2 neufs de composition), zéro échec ;
 - manifestes d'API `core-lsp` et `core-intelligence` régénérés.
 
 ### Écarts et limites
@@ -512,7 +512,7 @@
 - mutation `:core-text:mutationThreshold` : **85.2 %** (seuil 80)
   sur 1807 mutations ;
 - publication locale (`publishToMavenLocal`, sommes de contrôle) et
-  APK de démonstration assemblés ; fumée de la cli exécutée ;
+  APK de exemple consommateur assemblés ; fumée de la cli exécutée ;
 - manifestes d'API régénérés (`core-lsp` neuf et étendu,
   `core-intelligence` étendu).
 

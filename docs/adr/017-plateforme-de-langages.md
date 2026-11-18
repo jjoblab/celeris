@@ -8,7 +8,7 @@
 Le prompt M7.6 demande une plateforme de langages pilotée par des
 données : « un langage de plus doit pouvoir arriver sans recompiler,
 sous forme de données ». L'audit mesure la situation d'avant : table
-d'extensions dupliquée en quatre endroits au moins (le cli, la démo
+d'extensions dupliquée en quatre endroits au moins (le cli, l'exemple consommateur
 deux fois, le registre), `CommentRules` et `TypingRules` aiguillent
 par identifiant, le catalogue des grammaires vit dans
 `LangagesGrammaires` en deux listes tenues à la main, et le registre
@@ -42,12 +42,12 @@ n'a aucun consommateur de production.
    l'enregistrement Android reste explicite, seul le cli découvre.
 6. **L'enregistrement écrit se concentre** : `WrittenLanguages`
    (core-language, l'attache des six analyseurs dédiés) et
-   `LangagesDemo` (le choix du serveur de la démo) — les deux seuls
+   `LangagesDemo` (le choix du serveur de l'exemple consommateur) — les deux seuls
    fichiers hors paquets autorisés à nommer des identifiants de
    langage, avec les façades `*Syntax` de `core-syntax` qui déclarent
    l'identifiant de leur langage (le SPI l'exige) ; le contrôle
    `check-language-registration` l'impose en CI. La règle
-   `servers.json` des paquets remplacera la table de la démo au jalon
+   `servers.json` des paquets remplacera la table de l'exemple consommateur au jalon
    LSP.
 7. **La détection documente sa précédence** : réglage de
    l'utilisateur, nom exact, motif de nom, extension composée la plus
@@ -76,7 +76,7 @@ n'a aucun consommateur de production.
 - Les éléments reportés : conversion des extraits en gabarits vivants
   (avec la capacité), `servers.json` (avec le jalon LSP), la
   persistance du cache de paquets compilés côté stockage Android
-  (avec le scénario de paquet jouet de la démo). `outline.json` et
+  (avec le scénario de paquet jouet de l'exemple consommateur). `outline.json` et
   les plis par configuration sont arrivés avec le niveau 1 de
   l'analyse structurelle (étape 6, H-08) : les paquets portent leurs
   règles de plan, la configuration porte ses plis d'indentation.

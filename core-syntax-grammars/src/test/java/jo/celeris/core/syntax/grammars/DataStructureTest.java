@@ -144,7 +144,7 @@ final class DataStructureTest {
     @Test
     void sqlPlisEtPlanParLesDonnees() {
         String source = """
-                -- L'inventaire de la démonstration : le plan sort des règles.
+                -- L'inventaire du dépôt de départ : le plan sort des règles.
                 CREATE TABLE clients (
                     id INTEGER PRIMARY KEY,
                     nom TEXT NOT NULL,

@@ -32,7 +32,7 @@ class ExtractionRessourceTest {
     private final SyntaxService java = SyntaxService.of(JavaSyntax.INSTANCE);
 
     private static final String ACTIVITE = """
-            package demo;
+            package exemple;
 
             public class Accueil extends Activity {
                 public void onCreate(Bundle b) {
@@ -49,7 +49,7 @@ class ExtractionRessourceTest {
             </resources>
             """;
 
-    private static final String URI_JAVA = "src/demo/Accueil.java";
+    private static final String URI_JAVA = "src/exemple/Accueil.java";
     private static final String URI_VALEURS = "res/values/strings.xml";
 
     private Map<String, String> projet() {

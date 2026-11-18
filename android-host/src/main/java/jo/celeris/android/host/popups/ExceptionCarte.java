@@ -22,7 +22,7 @@ import jo.celeris.core.text.TextSession;
 
 /**
  * L'exécution et l'exception (la huitième surface portée de la
- * démonstration à l'orchestrateur, 2026-11-14 — catégorie E de
+ * exemple d'intégration à l'orchestrateur, 2026-11-14 — catégorie E de
  * l'inventaire) : le
  * lancement passe par la fausse exécution de référence (E-04 — les
  * lancements vivent, les fins se simulent), l'échec SIMULÉ porte la

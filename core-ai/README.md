@@ -26,7 +26,7 @@ rien ne part sans son consentement explicite (ADR-012).
 - **La garde** — `GardeContexte` exécute la politique de consentement
   (rien ne sort sans elle), `ExclusionsContexte` borne ce qui se lit.
 - **Les faux modèles** — `FauxModeleLocal` et `FauxModeleDistant`
-  déterministes : la démonstration et les bancs ne parlent jamais à un
+  déterministes : l'exemplenstration et les bancs ne parlent jamais à un
   vrai modèle.
 
 ## Exemple

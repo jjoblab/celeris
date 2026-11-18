@@ -30,7 +30,7 @@ test nommé avant le code (`docs/audit/PIEGES-HERITES.md`).
    avec mesure injectée) puis tests **instrumentés sur appareils gérés par
    Gradle** : IME à chaque niveau d'API supporté (26, 31, 33, 34, 36),
    gestes (poignées, loupe, pilule, pincement), clavier matériel,
-   accessibilité (auditeur automatique). Un scénario de la démo = un test
+   accessibilité (auditeur automatique). Un scénario de l'exemple consommateur = un test
    de fumée instrumenté (règle d'or du mandat).
 5. **Benchmarks à seuils en CI** : budgets de l'ADR-006 en cliquet
    (regression = échec) ; protocole « minimum de trois tours » hérité
@@ -50,7 +50,7 @@ test nommé avant le code (`docs/audit/PIEGES-HERITES.md`).
 | --- | --- | --- |
 | A. Cumulatif : JVM + propriétés + mutation + instrumenté + benchmarks (proposition) | **retenue** | seul cumul qui couvre les échecs mesurés du dépôt de départ (appareil jamais testé, chiffres dérivants) |
 | B. Doubler Robolectric | écartée | le constat n° 7 : 187 fichiers Robolectric n'ont jamais attrapé un bug d'IME |
-| C. Tests manuels à la démo | écartée | invérifiable ; contredit la définition du « terminé » |
+| C. Tests manuels à l'exemple consommateur | écartée | invérifiable ; contredit la définition du « terminé » |
 
 ## Compromis
 

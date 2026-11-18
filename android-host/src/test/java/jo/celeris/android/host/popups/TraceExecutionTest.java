@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * La trace d'exécution chez l'orchestrateur (le déménagement du
- * 2026-11-14 — reprise de la démonstration, catégorie E de
+ * 2026-11-14 — reprise du dépôt de départ, catégorie E de
  * l'inventaire — « Exception Details », la surface dormait) : l'échec
  * SIMULÉ naît du document réel — le type englobant porte la classe,
  * la méthode englobante porte le sommet À LA LIGNE DU CARET, les

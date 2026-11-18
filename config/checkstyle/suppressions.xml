@@ -11,7 +11,7 @@
          collaborateur partageant leurs appareils (602 lignes) — la
          traîne C13 du volume de tests continue d'y grossir. -->
     <suppress id="PlafondStandard" files="GutterPainterTest\.java"/>
-    <!-- Le banc de la spécification de la démonstration (ADR-019,
+    <!-- Le banc de la spécification de l'exemplenstration (ADR-019,
          nomination du 2026-11-13) : chaque chantier livré y rejoue son
          scénario sur les mêmes appareils (675 lignes) — le banc suit la
          grille, la grille suit les livraisons. -->
@@ -20,7 +20,7 @@
          2026-11-13, la décision du propriétaire : « relever le plafond
          de certains fichiers si nécessaire » — la nomination suit le
          renommage du 2026-11-14, l'orchestrateur absorbe l'atelier de
-         la démonstration) : il câble les satellites du chantier —
+         l'exemplenstration) : il câble les satellites du chantier —
          chaque surface portée y gagne son lien, son serveur et sa
          palette (755 lignes — le port achevé du 2026-11-14 y câble les douze
          satellites : les huit surfaces du feu vert, l'info-bulle et le
@@ -35,7 +35,7 @@
          câbleur seul croît, jamais hors de tout plafond. -->
     <suppress checks="FileLength" files="PopupsEditeur\.java"/>
     <suppress id="PlafondStandard" files="PopupsEditeur\.java"/>
-    <!-- L'activité d'édition de la démonstration (nomination du
+    <!-- L'activité d'édition de l'exemplenstration (nomination du
          2026-11-13, la même décision du propriétaire) : le hub câble
          les ateliers à la scène — les surfaces réveillées y gagnent
          leurs événements réels (les annonces de correctifs et de pause

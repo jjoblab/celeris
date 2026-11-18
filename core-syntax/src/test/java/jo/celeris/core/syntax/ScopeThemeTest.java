@@ -36,7 +36,7 @@ final class ScopeThemeTest {
         ScopeTheme theme = ScopeTheme.of(List.of(
                 new ScopeTheme.Rule("keyword", ScopeStyle.ink(0xFF123456))));
         ScopeStyle style = theme.styleFor(
-                pile("source.demo", "keyword.other"));
+                pile("source.exemple", "keyword.other"));
         assertNotNull(style);
         assertEquals(0xFF123456, style.foreground());
     }
@@ -49,7 +49,7 @@ final class ScopeThemeTest {
                 new ScopeTheme.Rule("keyword.operator",
                         ScopeStyle.ink(0xFF222222))));
         ScopeStyle style = theme.styleFor(
-                pile("source.demo", "keyword.operator.assignment"));
+                pile("source.exemple", "keyword.operator.assignment"));
         assertNotNull(style);
         assertEquals(0xFF222222, style.foreground(),
                 "le sélecteur le plus profond emporte l'encre");
@@ -63,7 +63,7 @@ final class ScopeThemeTest {
                 new ScopeTheme.Rule("entity.name",
                         new ScopeStyle(0xFF333333, false, true, false))));
         ScopeStyle style = theme.styleFor(
-                pile("source.demo", "entity.name.function.def"));
+                pile("source.exemple", "entity.name.function.def"));
         assertNotNull(style);
         assertTrue(style.bold() && style.italic(),
                 "la graisse d'une règle et l'italique de l'autre se cumulent");
@@ -75,16 +75,16 @@ final class ScopeThemeTest {
     void sansRegleQuiMatcheLeStyleEstAbsent() {
         ScopeTheme theme = ScopeTheme.of(List.of(
                 new ScopeTheme.Rule("keyword", ScopeStyle.ink(0xFF123456))));
-        assertNull(theme.styleFor(pile("source.demo", "string.quoted")));
+        assertNull(theme.styleFor(pile("source.exemple", "string.quoted")));
         assertNull(ScopeTheme.empty().styleFor(
-                pile("source.demo", "keyword.other")));
+                pile("source.exemple", "keyword.other")));
     }
 
     @Test
     void leResultatSeGardeEnCacheParPile() {
         ScopeTheme theme = ScopeTheme.of(List.of(
                 new ScopeTheme.Rule("keyword", ScopeStyle.ink(0xFF123456))));
-        int pile = pile("source.demo", "keyword.other");
+        int pile = pile("source.exemple", "keyword.other");
         ScopeStyle premier = theme.styleFor(pile);
         ScopeStyle second = theme.styleFor(pile);
         assertSame(premier, second,
@@ -106,14 +106,14 @@ final class ScopeThemeTest {
         for (ScopeTheme theme : List.of(ScopeThemes.light(),
                 ScopeThemes.dark(), ScopeThemes.highContrast())) {
             assertNotNull(theme.styleFor(
-                    pile("source.demo", "keyword.other")), "keyword résout");
+                    pile("source.exemple", "keyword.other")), "keyword résout");
             assertNotNull(theme.styleFor(
-                    pile("source.demo", "string.quoted")), "string résout");
-            assertNotNull(theme.styleFor(pile("source.demo", "comment.line")),
+                    pile("source.exemple", "string.quoted")), "string résout");
+            assertNotNull(theme.styleFor(pile("source.exemple", "comment.line")),
                     "comment résout");
-            assertNotNull(theme.styleFor(pile("source.demo",
+            assertNotNull(theme.styleFor(pile("source.exemple",
                     "constant.numeric.integer")), "number résout");
-            assertNotNull(theme.styleFor(pile("source.demo",
+            assertNotNull(theme.styleFor(pile("source.exemple",
                     "entity.name.type.class")), "type résout");
         }
     }
@@ -124,11 +124,11 @@ final class ScopeThemeTest {
         // le mécanisme change, pas l'encre — le banc WCAG de la vue
         // s'appuie dessus, le sien propre suit
         ScopeStyle keyword = ScopeThemes.light().styleFor(
-                pile("source.demo", "keyword.other"));
+                pile("source.exemple", "keyword.other"));
         assertNotNull(keyword);
         assertEquals(0xFF6A1B9A, keyword.foreground());
         ScopeStyle chaine = ScopeThemes.light().styleFor(
-                pile("source.demo", "string.quoted.double"));
+                pile("source.exemple", "string.quoted.double"));
         assertNotNull(chaine);
         assertEquals(0xFF2E7D32, chaine.foreground());
     }

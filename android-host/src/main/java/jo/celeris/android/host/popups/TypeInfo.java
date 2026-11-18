@@ -20,7 +20,7 @@ import jo.celeris.core.text.TextSession;
 
 /**
  * L'info de type (le fil rouge du guide du développeur — la première
- * surface portée de la démonstration à l'orchestrateur,
+ * surface portée de la exemple d'intégration à l'orchestrateur,
  * 2026-11-14) : le type du symbole au curseur se lit à la
  * DÉCLARATION par le moteur du cœur ({@link LecteurTypes}) —
  * « Type symbole », hors mots de conduite, JAMAIS un type deviné :

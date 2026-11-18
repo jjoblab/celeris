@@ -16,7 +16,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 /**
- * Le scintillement de coloration constaté dans la démonstration
+ * Le scintillement de coloration constaté dans le dépôt de départ
  * (M7.5, §6) : à chaque frappe, la ligne touchée perd TOUTE sa couleur
  * jusqu'à la publication suivante — deux états visibles par frappe,
  * les autres mots de la ligne clignotent (PIEGE-26).

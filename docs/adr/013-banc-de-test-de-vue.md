@@ -8,7 +8,7 @@
 ADR-010 annonçait les tests de vue « en deux temps » — captures de
 référence puis tests instrumentés — sans nommer l'outillage du premier
 étage. Six jalons plus tard, le constat de M7.5 est sec : les quatre
-défauts de la démonstration (pincement muet, gouttière instable,
+défauts de l'exemple consommateurnstration (pincement muet, gouttière instable,
 scintillement de coloration, popups absents) vivent tous dans la couture
 entre l'API Android et les modèles purs — exactement la couche qu'aucun
 test n'exerce. Les modules Android n'ont que des tests de calculs purs ;
@@ -19,7 +19,7 @@ cycle de l'image n'ont jamais été rejoués automatiquement.
 
 1. **Robolectric 4.15.1** (Maven Central, vérifiée le 2026-11-07) entre
    comme unique dépendance de test de vue des modules Android
-   (`android-view`, puis `android-widgets` et `demo`) : elle porte le
+   (`android-view`, puis `android-widgets`) : elle porte le
    cadre d'exécution, les jarres `android-all` instrumentées se résolvent
    par elle — aucune version supplémentaire au catalogue, la
    reproductibilité du build (ADR-011) tient.
@@ -36,7 +36,7 @@ cycle de l'image n'ont jamais été rejoués automatiquement.
    gestes multi-pointeurs et la vraie `InputConnection`. Les correctifs
    de M7.5 s'y servent tous.
 4. **Appareils gérés Gradle** (image ATD, API 34) portent le deuxième
-   étage dans `demo` : `androidTest` avec UiAutomator. La CI ouvre un
+   étage d'instrumentation : `androidTest` avec UiAutomator. La CI ouvre un
    travail `device-tests` (KVM des runners Ubuntu) ; il est nocturne et
    sur chaque fusion, hors du chemin critique. Là où l'environnement de
    développement n'a pas de virtualisation matérielle, les tests

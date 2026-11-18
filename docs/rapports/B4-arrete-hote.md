@@ -23,14 +23,14 @@ l'inverse).
   `resourcePrefix = "celeris_"` : AGP **bloque à la compilation**
   toute future ressource des trois bibliothèques qui oublierait le
   préfixe ;
-- la démonstration, qui redéfinissait `menu_plus` et
+- l'exemplenstration, qui redéfinissait `menu_plus` et
   `titre_notification` en doublon, lit désormais les ressources du
   kit par `jo.celeris.android.host.R` (référence qualifiée) et ses
   doublons sont retirés.
 
 `android-widgets` n'a aucune ressource. **Aucune ressource
 traverse l'API publique** : les identifiants `R.string.celeris_*`
-ne sortent pas du kit (la démo y accède par le `R` du kit, pas par
+ne sortent pas du kit (l'exemple y accède par le `R` du kit, pas par
 des constantes exportées).
 
 ## 2. Manifestes — vides, et le rester

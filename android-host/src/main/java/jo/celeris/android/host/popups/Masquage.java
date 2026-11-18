@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Le masquage d'inspection (la septième surface portée de la
- * démonstration à l'orchestrateur, 2026-11-14 — catégorie B
+ * exemple d'intégration à l'orchestrateur, 2026-11-14 — catégorie B
  * de l'inventaire — « Suppress Inspection », le geste dormait) : les
  * diagnostics de la ligne du caret qui portent une RÈGLE (l'identifiant
  * entre crochets du lint) se proposent en carte — le choix pose le

@@ -38,7 +38,7 @@ chrome (minimap, fil d'Ariane, bande d'erreurs, défilement rapide).
   `ErrorBandModel`), barre de touches de code (`TouchBarView` : Tab,
   commentaire, déplacements, duplication — au-dessus du clavier, les
   états vivants suivent le caret). Le **débordement de la barre de
-  sélection** (`MenuDebordement`, déménagé de la démo au kit le
+  sélection** (`MenuDebordement`, déménagé au kit le
   2026-11-14) et la **barre d'application** (`BarreToolbar` : la carte
   de débordement pendue sous la puce, la barre de touches au bas de
   la scène) y vivent prêts à brancher.

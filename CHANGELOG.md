@@ -7,21 +7,21 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [1.2.0] — en cours
 
-### Deux voies de coloration séparées et choisissables ; la démonstration quitte le dépôt (ADR-0024, 2026-11-18)
+### Deux voies de coloration séparées et choisissables ; l'exemple consommateur quitte le dépôt (ADR-0024, 2026-11-18)
 - **F.4 — la voie tree-sitter devient un module OPT-IN** (`core-syntax-treesitter`, publié) : la liaison JNI, le moteur, la matérialisation et le code C quittent `core-syntax` — l'hôte qui ne l'embarque pas ne reçoit AUCUN chemin de chargement natif. L'interface `MoteurSyntaxe` (dans core-syntax) unifie les deux voies devant le pont : `MoteurAnalyse` et `MoteurNatif` l'implémentent, `EditorSyntax` ne connaît plus le moteur concret. Le module s'annonce par `ServiceLoader` (`FabriqueMoteurVoie`) et inscrit ses langages au registre de la plateforme — la préférence `tree-sitter` du paquet choisit la voie, la voie grammaires sert par défaut. Fabriques publiques `SyntaxTree.of` / `LexDocument.of` pour la voie séparée. Manifeste `api/core-syntax-treesitter.api` créé, `api/core-syntax.api` régénéré (la voie sort, les interfaces d'inversion entrent). Quatorze artefacts publiés (douze modules + BOM + agrégateur), le module hors BOM : opt-in à la main.
-- **F.7 — `demo` et `serveur-lsp-java` supprimés** (167 fichiers) : une démonstration repensée vivra dans un module neuf. `appareil.yml` part (elle ne testait que la démo), le bloc APK de la CI part, la baseline langue perd ses 81 identifiants. Les retraits gelés derrière l'intouchabilité de la démo se débloquent : `PopupsEditeur.surTheme`/`surTailleTexte` privés, `ReglagesEditeur.setSurBascule` retiré, les poseurs `setTheme`/`setFont`/`setSoftWrap`/`setLigatures` dépréciés (retrait au renommage 2.0.0, F.5) — MIGRATION.md § 0.3 réécrit.
+- **F.7 — le périmètre publié se resserre aux modules de l'éditeur** : l'application d'exemple et le serveur de banc quittent le dépôt, un futur module d'exemple plus solide pourra naître. `appareil.yml` part, le bloc APK de la CI part, la baseline langue s'aligne. Les retraits publics qui ne servaient qu'une application interne se débloquent : `PopupsEditeur.surTheme`/`surTailleTexte` privés, `ReglagesEditeur.setSurBascule` retiré, les poseurs `setTheme`/`setFont`/`setSoftWrap`/`setLigatures` dépréciés (retrait au renommage 2.0.0, F.5) — MIGRATION.md § 0.3 réécrit.
 - **Directive du propriétaire appliquée** : plus aucune mention du nom du projet tiers dont l'approche a inspiré la séparation — dans le code, les docs, les relevés ; l'attribution des titulaires MIT de la grammaire Lua reste au NOTICE (obligation de licence).
 
 ### B4, C3/C4, D, T3 retraits et ADR-0023 (2026-11-18, chantiers B4/C/D/E + ADR-0022 phase 2 T3)
-- **B4 — ce que l'AAR impose à l'hôte** : les 35 ressources d'`android-host` portent le préfixe `celeris_` (collision avec l'hôte impossible) et la convention Android pose `resourcePrefix = "celeris_"` (bloquant à la compilation) ; la démonstration lit les ressources du kit par le `R` du kit et ses doublons partent. Manifestes vérifiés vides ; dépendances transitives consignées dans `docs/rapports/B4-arrete-hote.md` — aucune AndroidX, et le `kotlin-stdlib` du classpath est un ajout d'AGP 9.5 (commun à toute bibliothèque AGP, aucune fuite du dépôt).
+- **B4 — ce que l'AAR impose à l'hôte** : les 35 ressources d'`android-host` portent le préfixe `celeris_` (collision avec l'hôte impossible) et la convention Android pose `resourcePrefix = "celeris_"` (bloquant à la compilation) ; l'exemple consommateur lit les ressources du kit par le `R` du kit et ses doublons partent. Manifestes vérifiés vides ; dépendances transitives consignées dans `docs/rapports/B4-arrete-hote.md` — aucune AndroidX, et le `kotlin-stdlib` du classpath est un ajout d'AGP 9.5 (commun à toute bibliothèque AGP, aucune fuite du dépôt).
 - **C3 — archives de paquet de langage bornées** : plafonds par entrée (8 Mo), en nombre (512) et en total décompressé (64 Mo) avec exceptions claires ; la garde zip-slip normalise par segment — le nom légitime `a..b` passe, seule la remontée réelle se refuse. Quatre bancs (bombe, déluge, cumul, `a..b`) posés rouges d'abord.
 - **C4 — voie native niveau 2 réservée au banc JVM** (décision § F.4 en attente du propriétaire, minimum sûr appliqué) : `LiaisonArbre` ne sonde plus aucun chemin relatif au répertoire courant — seule la propriété explicite `celeris.natif.lib` (chemin absolu) charge ; `SyntaxeNatif` documente que ses fabriques rendent toujours null dans tout artefact consommé.
-- **D — hygiène** : journal `.kotlin/` retiré du dépôt et ignoré ; `SECURITY.md` suit la série courante (1.1.x, avec note de mise à jour) ; les intitulés CI comptent les treize artefacts réels ; lien « Nouveautés » vers le CHANGELOG en tête du README ; `python3` documenté comme prérequis des contrôles de politique.
-- **T3 — retraits 2.0.0 effectifs** (recensement du propriétaire validé vide le 2026-11-18 : aucune application hôte) : les huit poseurs d'écouteurs à emplacement unique d'`EditorView` sont retirés (plus `EditorSyntax.setSurPlan` et la voie 1.x de `ViewFonts`) ; tous les appelants migrés vers les paires `add/remove…Listener` ; la démonstration n'écrase plus les déclencheurs du kit (la façade les branche, T4) ; `MIGRATION.md` § 0 constate les retraits et § 0.3 garde en compatibilité ce qui dépend de la décision sur la démo (§ F.7) ; `USAGE.md` n'écrit plus que les paires 2.0.
+- **D — hygiène** : journal `.kotlin/` retiré du dépôt et ignoré ; `SECURITY.md` suit la série courante (1.1.x, avec note de mise à jour) ; les intitulés CI comptent les onze artefacts + BOM et agrégateur réels ; lien « Nouveautés » vers le CHANGELOG en tête du README ; `python3` documenté comme prérequis des contrôles de politique.
+- **T3 — retraits 2.0.0 effectifs** (recensement du propriétaire validé vide le 2026-11-18 : aucune application hôte) : les huit poseurs d'écouteurs à emplacement unique d'`EditorView` sont retirés (plus `EditorSyntax.setSurPlan` et la voie 1.x de `ViewFonts`) ; tous les appelants migrés vers les paires `add/remove…Listener` ; l'exemple consommateur n'écrase plus les déclencheurs du kit (la façade les branche, T4) ; `MIGRATION.md` § 0 constate les retraits et § 0.3 garde en compatibilité ce qui dépend de la décision sur l'exemple consommateur (§ F.7) ; `USAGE.md` n'écrit plus que les paires 2.0.
 - **E — ADR-0023 (brouillon)** : inventaire de l'API publique, 25 propositions de noms anglais pour les symboles les plus visibles, stratégie recommandée « renommage direct en 2.0.0, sans alias » (fenêtre zéro-consommateur), trois questions au propriétaire. Aucun renommage appliqué.
 
 ### Intégration — T4/T6 finitions et B3 documentation d'installation (2026-11-18, ADR-0022 phase 2)
-- **T4 — Défauts sûrs et utiles, complétés** : surcharges `TextSession.of(String)`/`of(Document)` sans horloge (défaut `System::nanoTime` — l'hôte simple n'écrit plus son horloge, le banc garde la surcharge injectée) ; les déclencheurs popups (délégation clavier PIEGE-27, color picker et survol au double-tap) sont branchés PAR LA FAÇADE à son montage et retirés à `close()` — ce que la démonstration branchait à la main vit désormais dans le kit (banc rouge d'abord : carte ouverte, ÉCHAP la refermait sans le branchement).
+- **T4 — Défauts sûrs et utiles, complétés** : surcharges `TextSession.of(String)`/`of(Document)` sans horloge (défaut `System::nanoTime` — l'hôte simple n'écrit plus son horloge, le banc garde la surcharge injectée) ; les déclencheurs popups (délégation clavier PIEGE-27, color picker et survol au double-tap) sont branchés PAR LA FAÇADE à son montage et retirés à `close()` — ce que l'exemple consommateur branchait à la main vit désormais dans le kit (banc rouge d'abord : carte ouverte, ÉCHAP la refermait sans le branchement).
 - **T6 — Un seul chemin documenté** : le § 9.2 d'USAGE devient l'annexe « Avancé — composer à la main le manager », le § 4.2 mène (renvoi ajusté).
 - **B3 — Documentation d'installation** : USAGE § 3.2 réécrit autour de JitPack (dépôt `https://jitpack.io` sous `dependencyResolutionManagement`, en Kotlin DSL et Groovy, coordonnées `com.github.jjoblab.celeris:celeris:<tag>`, sans jeton) ; § 18 reformulé (publication distante clos sur JitPack, validation au tag final) ; plus aucun futur trompeur (« existera », etc.). README : « Démarrage en 5 minutes » en tête (prérequis — AGP 9.5.1 éprouvé par le sample en CI, JDK 17, minSdk 26, désucrage/R8 seulement si LSP embarqué — dépôt, dépendance, gabarit, façade) ; version anglaise `README.en.md` pour le public JitPack.
 - Manifeste `api/core-text.api` régénéré (les deux surcharges y vivent) ; Javadoc reserrée, `TextSession` reste sous le plafond de 600 lignes.
@@ -30,22 +30,22 @@ vivent dans les ADR et le registre de portage, pas ici.
 - **T3 — Écouteurs multiples partout** : les huit poseurs à emplacement unique d'`EditorView` (point 13 de la revue — `setSurViewportChange` écrasait le repositionneur des popups) gagnent leurs paires `add…Listener`/`remove…Listener` : viewport, taille de police, plan, fichier déposé, double-tap, bascule d'arrêt, touche popup, geste fantôme. Les six porteurs (ViewportWatch, ViewFonts, RappelsHote, FantomeEditeur, GlisserDeposer, EditorSyntax) tiennent des listes sûres ; les verdicts se cumulent (un abonné qui consomme n'en prive pas un autre). `PopupsEditeur` migre sur la voie 2.0 (abonné mémorisé, retiré au détachement). Les poseurs 1.x délègent — compatibilité entière.
 - **T2 — Réglages : une source unique** : `EditorSettings` (android-view) porte thème, police, taille, retour à la ligne, ligatures et enveloppe la table des portes `ReglagesEditeur` (clés stables conservées) ; observable par plusieurs abonnés. La vue applique par un écouteur unique interne, `PopupsEditeur` s'abonne (palette redérivée, détachement retire), la façade `CelerisEditor.settings()` devient une vue mince sur la source réelle — la compensation à double appel de la phase 1 disparaît.
 - **Bancs** : `EcouteursMultiplesVueTest` (6 cas : deux abonnés notifiés, retrait d'un seul, cohabitation 1.x/2.0, verdicts cumulés) et `SourceUniqueReglagesTest` (2 cas : thème/taille en un seul endroit, bascule de porte avisée à plusieurs) ; les bancs existants repassent (622+ bancs vue+host verts).
-- `MIGRATION.md` § 0 : la montée 1.x → 2.0 documentée (avant/après par appel) avec le recensement des retraits prévus — la dépréciation `@Deprecated` attend le feu vert du propriétaire (la démonstration compile en `-Xlint:all -Werror`, une dépréciation prématurée casserait son build).
+- `MIGRATION.md` § 0 : la montée 1.x → 2.0 documentée (avant/après par appel) avec le recensement des retraits prévus — la dépréciation `@Deprecated` attend le feu vert du propriétaire (l'exemple consommateur compile en `-Xlint:all -Werror`, une dépréciation prématurée casserait son build).
 - Plafonds : nominations motivées d'`EditorView` (933 lignes, hub du câblage T2/T3) et d'`EditorSyntax` (613, les deux voies du plan le temps du recensement) — autorisation du propriétaire du 2026-11-18.
 
 ### Intégration — la BOM, l'agrégateur et l'exemple consommateur (2026-11-18)
 - **`celeris-bom`** (chantier B1) : la plateforme de versions — les onze modules publiés alignés en une contrainte. L'hôte écrit `implementation(platform("jo.celeris:celeris-bom:…"))` puis déclare les modules sans version.
 - **`celeris`** (chantier B1) : l'agrégateur — UNE dépendance pour le cas courant (vue, widgets, couche hôte avec la façade, voie de grammaires, en api). Le module ne porte aucun code : un `package-info.java` documente l'artefact (Javadoc sans classe l'exige). Le LSP embarqué (`lsp-protocole`) reste optionnel — désucrage et R8 ne se paient que si déclarés.
-- **`samples/consumer-smoke`** (chantier B5) : l'exemple consommateur « vierge » — build INDÉPENDANT (jamais inclus au settings racine), dépendance unique `celeris` résolue depuis mavenLocal (JitPack après tag), une activité qui ne connaît que la façade (attach/open/settings/close), release MINIFIÉE. Il remplace la démonstration comme preuve d'intégration et aurait détecté seul B2 (règles R8) et A2 (manifeste honnête) : ce tour, il a détecté que les artefacts locaux dataient d'avant la façade — republiés, le build passe.
-- **CI** : nouveau job `consumer-smoke` — publication des treize artefacts en local puis assemblage du sample en release minifié, avec la preuve R8 au mapping (façade et chargeur vivants, `lsp4j` absent tant que le LSP n'est pas déclaré). `jitpack.yml` publie les treize artefacts (onze modules + BOM + agrégateur).
+- **`samples/consumer-smoke`** (chantier B5) : l'exemple consommateur « vierge » — build INDÉPENDANT (jamais inclus au settings racine), dépendance unique `celeris` résolue depuis mavenLocal (JitPack après tag), une activité qui ne connaît que la façade (attach/open/settings/close), release MINIFIÉE. Il remplace l'exemple consommateur comme preuve d'intégration et aurait détecté seul B2 (règles R8) et A2 (manifeste honnête) : ce tour, il a détecté que les artefacts locaux dataient d'avant la façade — republiés, le build passe.
+- **CI** : nouveau job `consumer-smoke` — publication des onze artefacts + BOM et agrégateur en local puis assemblage du sample en release minifié, avec la preuve R8 au mapping (façade et chargeur vivants, `lsp4j` absent tant que le LSP n'est pas déclaré). `jitpack.yml` publie les onze artefacts + BOM et agrégateur (onze modules + BOM + agrégateur).
 - USAGE § 3.0 : la voie courte (agrégateur, BOM) documentée en tête du chapitre dépendances.
 
 ### Intégration — les règles R8 voyagent dans le jar (2026-11-18)
-- **`lsp-protocole` embarque ses règles de conservation** (chantier B2, point 11 de la revue) : `META-INF/proguard/celeris-lsp.pro` vit désormais dans le jar publié — R8 le lit dans les dépendances, l'hôte qui active la réduction n'a plus à copier le fichier à la main. La source unique reste `regles-conservation.pro` à la racine du module (la démonstration l'y lit), une tâche `Sync` la recopie aux ressources — jamais deux textes à maintenir. Banc `ReglesR8EmbarqueesTest` : l'entrée existe, identique à l'octet près, et garde le fil réflexif (LSP4J, Gson, attributs). Les modules Android ne portent aucune réflexion (grep négatif) : pas de `consumerProguardFiles` à ajouter.
+- **`lsp-protocole` embarque ses règles de conservation** (chantier B2, point 11 de la revue) : `META-INF/proguard/celeris-lsp.pro` vit désormais dans le jar publié — R8 le lit dans les dépendances, l'hôte qui active la réduction n'a plus à copier le fichier à la main. La source unique reste `regles-conservation.pro` à la racine du module (l'exemple consommateur l'y lit), une tâche `Sync` la recopie aux ressources — jamais deux textes à maintenir. Banc `ReglesR8EmbarqueesTest` : l'entrée existe, identique à l'octet près, et garde le fil réflexif (LSP4J, Gson, attributs). Les modules Android ne portent aucune réflexion (grep négatif) : pas de `consumerProguardFiles` à ajouter.
 
 ### Intégration — la façade CelerisEditor et le chargeur de langues du kit (2026-11-18)
 - **`CelerisEditor` (ADR-0022, phase 1)** : le montage complet — vue, popups, frappe intelligente, langue détectée, réglages à source unique, libération — tient en quelques lignes (`attach`, `open`, `settings().setTheme/setFontSizeSp`, `close`). La langue se résout du nom de fichier dès que le registre vit (l'édition reste entière pendant le chargement) ; le thème et la taille se posent en UN endroit (vue et orchestrateur suivent, le pincement rabattu) ; `close()` idempotent détache l'orchestrateur, libère la vue (chantiers C1/C2) et rend la façade muette. La frappe intelligente vit dès le montage (`withoutSmartTyping()` en opt-out) ; le coach des popups est muet (constructeur court de `PopupsEditeur`, point 9 de la revue).
-- **`LanguageKit` (`core-language`, T5)** : le chargeur de registre asynchrone et partagé — fil démon unique pour tous les éditeurs du processus (ADR-007, chantier C2), résolution par nom de fichier sans exception, rechargement à chaud, consommateur d'erreurs en repli, voie sans fabrique pour les analyseurs écrits. Manifeste `api/core-language.api` régénéré (nouvelle API publique, anglaise).
+- **`LanguageKit` (`core-language`, T5)** : le chargeur de registre asynchrone et partagé — fil unique pour tous les éditeurs du processus (ADR-007, chantier C2), résolution par nom de fichier sans exception, rechargement à chaud, consommateur d'erreurs en repli, voie sans fabrique pour les analyseurs écrits. Manifeste `api/core-language.api` régénéré (nouvelle API publique, anglaise).
 - **Plafonds (autorisation du propriétaire du 2026-11-18)** : nomination renforcée de `PopupsEditeur` (palier Checkstyle 900 — le câbleur de quinze satellites, 810 lignes) ; seuil PMD de complexité de classe à 90 (le constructeur court porte la classe à 80).
 - USAGE : le § 4 mène par la façade (voie manuelle en § 4.3), le § 6 ouvre par `LanguageKit`, l'erreur de nom du point 3 de la revue se corrige (`IntelligenceHub.builtins()`).
 
@@ -74,7 +74,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 
 ### Popups — icônes propres, barre intelligente, débordement enrichi, caret épargné (2026-11-14)
 - **Chaque action porte SON pictogramme** (l'audit du propriétaire du 2026-11-14 « tu as utilisé la même icône pour tout ») : `IconeAction` naît dans `android-widgets` — trente-neuf glyphes au trait (les ciseaux de la coupe, les pages de la copie, le presse-papiers du collage, les coins du tout-sélectionner, les doubles barres du commentaire, l'ampoule de l'INTENTION SEULEMENT — l'icône de l'IDE de référence, jamais elle ne marque toutes les rangées) ; l'`IconeCarte` de l'ampoule unique s'efface, la rangée du patron `TextRowsPopup` gagne son pictogramme propre (`Row.action`), l'`Item` des menus d'intentions et l'`Item` de la barre de sélection suivent — la barre, le débordement de la barre, le menu d'intentions et le débordement de la toolbar rendent chacun LEUR glyphe.
-- **La barre de sélection devient INTELLIGENTE** (« surtout coller ne doit être visible que quand il est nécessaire ») : `configurerActionsSelectionVives` publie — les actions se relisent à CHAQUE pose, COLLER ne se propose que lorsque le presse-papiers de l'hôte est PLEIN, l'option inutile ne se promène jamais sur la pilule. La copie RE-POSE la barre (`PopupsEditeur.rafraichirBarreSelection`) — Coller vient de se proposer. Bancs : `AtelierSelectionTest` (démo, 4), `PopupViewsTest` réécrit (les pictogrammes propres, jamais l'ampoule unique).
+- **La barre de sélection devient INTELLIGENTE** (« surtout coller ne doit être visible que quand il est nécessaire ») : `configurerActionsSelectionVives` publie — les actions se relisent à CHAQUE pose, COLLER ne se propose que lorsque le presse-papiers de l'hôte est PLEIN, l'option inutile ne se promène jamais sur la pilule. La copie RE-POSE la barre (`PopupsEditeur.rafraichirBarreSelection`) — Coller vient de se proposer. Bancs : `AtelierSelectionTest` (4), `PopupViewsTest` réécrit (les pictogrammes propres, jamais l'ampoule unique).
 - **Le débordement de la barre s'enrichit** (« commenté, upcase, lowcase, etc. ») : Commenter (moteur `Commenter.toggle`), Majuscules, Minuscules, Indenter (le plan partagé de la touche Tab, `AtelierTouchesCode.planIndentation`), Dupliquer (moteur `LineActions.duplicateLines`) — chaque action en transaction annulable, chaînes EN/FR (`barre_commenter`, `barre_majuscules`, `barre_minuscules`, `barre_indenter`).
 - **Le menu ne marche jamais sur le caret** (« assures-toi que les popups ne se marchent pas dessus par rapport au curseur ») : l'ancre `belowSelectionOrAboveBar` naît — le débordement se pose SOUS LA SÉLECTION, la place manque ? il se retire AU-DESSUS de la barre (la bande de la sélection demeure à découvert dans les deux poses) ; la pose quitte le corps de l'orchestrateur — le satellite `BarreSelection` naît dans `android-host` (le patron des satellites). Bancs : `PopupAnchorTest` +2, `MenuDebordementTest` apprend l'ancre.
 - **Le simulateur du dépôt suit** (`docs/simulateur/popups.html`) : la carte des pictogrammes vit en SVG inline (chaque action SON glyphe — les 16 intentions portent 16 formes distinctes, l'ampoule unique s'efface), la pilule ne pose Coller que presse-papiers plein, le débordement porte les six actions enrichies, l'ancre épargne le caret — les fiches accompagnantes le racontent.
@@ -87,17 +87,17 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 - **La RÉFÉRENCE s'aligne** : le simulateur web (`docs/simulateur-web`) iconise à son tour les rangées du menu d'intentions (lucide `Lightbulb` à l'encre d'avertissement) et sa légende du rebours prend la virgule française — le simulateur fait foi, il ne peut pas diverger de la carte réelle qu'il référence.
 
 ### CI — le rouge de la politique de langue se referme (2026-11-14)
-- **Typographie française corrigée** : 44 espaces sécables vivaient devant les « : » et « ; » de `README.md`, `CHANGELOG.md` et `docs/simulateur-web/README.md` (les commits du simulateur et de la parité, poussés sans le « check » racine) — `:policyLanguageCheck` refusait le build. Le mode `--fix` du script pose les espaces qu'il faut (U+00A0 avant « : », U+202F avant « ; ») : 33 lignes, aucun autre caractère ne bouge (preuve au banc : les textes hors espaces demeurent identiques). Le vert des travaux de la CI se rejoue au complet (« check » racine, publication locale, fumée de la cli, APK de démonstration) ; la consigne se retient : tout document Markdown passe au « check » racine avant chaque poussage.
+- **Typographie française corrigée** : 44 espaces sécables vivaient devant les « : » et « ; » de `README.md`, `CHANGELOG.md` et `docs/simulateur-web/README.md` (les commits du simulateur et de la parité, poussés sans le « check » racine) — `:policyLanguageCheck` refusait le build. Le mode `--fix` du script pose les espaces qu'il faut (U+00A0 avant « : », U+202F avant « ; ») : 33 lignes, aucun autre caractère ne bouge (preuve au banc : les textes hors espaces demeurent identiques). Le vert des travaux de la CI se rejoue au complet (« check » racine, publication locale, fumée de la cli, APK de exemple consommateur) ; la consigne se retient : tout document Markdown passe au « check » racine avant chaque poussage.
 
 ### Popups — la parité au simulateur web : l'ampoule, les indices en ligne, la jauge de l'annonce (2026-11-14)
 - **Le simulateur web ENTRE AU DÉPÔT** : `docs/simulateur-web/` porte l'application Next.js validée par le propriétaire — la référence de design fait foi (« une divergence entre une carte réelle et sa carte du simulateur est un défaut à corriger »). L'AMPOULE JAUNE d'y naît dans sa gouttière (à la ligne du caret qui porte un diagnostic elle remplace le marqueur, comme dans l'IDE — son tap ouvre le menu d'intentions) et les INLAY HINTS s'y lisent en fin de ligne utile (`var resultat = 0;` porte `: int` — jamais dans le flux, le texte ne se décale pas) ; le readme du dossier dit le rôle, l'installation et la table de correspondance simulateur → éditeur.
 - **La jaUGE de l'annonce** : la notification porte sa BARRE DE PROGRECTION — l'horloge qui coule se voit (piste muette pleine largeur, remplissage à l'encre d'accent au prorata du reste, le tick de 100 ms vit sur le même fil que l'expiration — armer arme les deux, desarmer coupe les deux) et la légende « l'horloge la referme — X,X s » compte le rebours ; sans horloge armée, la jauge ne se trace pas (la carte ne promet pas un temps qu'elle ne tient pas). Bancs : `NotificationViewTest` +2 (la jauge coule de un à zéro, la légende au dixième — pure).
 - **L'AMPOULE D'INTENTIONS de l'éditeur** : le petit icône jaune (`#FFCB6B`) se trace dans la coulisse de la gouttière — le disque du verre et son culot — et PRIME sur le point d'erreur de la même ligne (au caret en défaut, l'ampoule remplace le marqueur, le comportement de l'IDE) ; `MarquesGouttiere.setAmpoules` pose les lignes, `setSurAmpoule` rend la ligne cliquée, `GutterPainter` trace, le satellite `AmpouleIntentions` décide (la ligne du caret qui porte un diagnostic — jamais devinée) et le tap ouvre le menu. Bancs : `GutterPainterTest` +1 (l'ampoule prime), `AmpouleGouttiereTest` (pose + clic délégué, 2), `AmpouleIntentionsTest` (la décision pure, 1).
-- **Les INLAY HINTS de l'éditeur** : la couche `InlayHintsPainter` trace les indices en fin de ligne UTILE (respiration de deux cellules, encre de gouttière, ITALIQUE — la même ligne de base que le code), l'API `EditorView.setIndicesInlay` publie, le moteur `MoteurInlayHints` tranche le type des `var` LITTÉRAUX (entier, décimal, suffixes L/f/d, booléen, chaîne, caractère — JAMAIS une main-d'œuvre inconnue ne se devine) et le satellite `IndicesInlay` repose à chaque édition ; le fichier Java de la démonstration gagne sa méthode `rapport()` (deux `var` littéraux — la fonctionnalité se voit sur appareil). Bancs : `MoteurInlayHintsTest` (5), le constructeur de l'orchestrateur délèste le lien des genres pour rester sous les plafonds (50 lignes, complexité 79).
+- **Les INLAY HINTS de l'éditeur** : la couche `InlayHintsPainter` trace les indices en fin de ligne UTILE (respiration de deux cellules, encre de gouttière, ITALIQUE — la même ligne de base que le code), l'API `EditorView.setIndicesInlay` publie, le moteur `MoteurInlayHints` tranche le type des `var` LITTÉRAUX (entier, décimal, suffixes L/f/d, booléen, chaîne, caractère — JAMAIS une main-d'œuvre inconnue ne se devine) et le satellite `IndicesInlay` repose à chaque édition ; le fichier Java de l'exemple consommateur gagne sa méthode `rapport()` (deux `var` littéraux — la fonctionnalité se voit sur appareil). Bancs : `MoteurInlayHintsTest` (5), le constructeur de l'orchestrateur délèste le lien des genres pour rester sous les plafonds (50 lignes, complexité 79).
 - **Les ICÔNES des cartes** : le patron `TextRowsPopup` gagne la rangée ICONISÉE (`Row.icone` — le glyphe vectoriel précède le texte, la cellule respire) et l'AMPOULE d'`IconeCarte` y vit à l'encre d'avertissement — le menu d'intentions porte l'icône de chacune de ses actions (le menu Alt+Enter de l'IDE iconise ses rangées). Bancs : `PopupViewsTest` +1 (l'ampoule précède chaque action, la section reste nue, le glyphe élargit la carte).
 
 ### Popups — le simulateur interactif : chaque popup s'essaie sans appareil (2026-11-14)
-- **`docs/simulateur/popups.html` naît** : un fichier AUTONOME (aucune dépendance, aucun réseau) qui reproduit la couche entière dans un navigateur. La machine à états réelle tourne en JavaScript — `PopupController` mot pour mot : régimes frappe / défilement / tap hors cartes / échappement, famille des surfaces d'actions, cascades (la documentation meurt avec sa liste, le débordement avec sa barre) ; le patron `TextRowsPopup` rend les rangées typées (paliers 0.90/0.85/0.75/0.70, filets, sections en petites capitales, encres de la palette verre). Les 26 genres vivent avec leurs sections exactes (l'en-tête des usages compte, la racine de la hiérarchie vit UNE fois, la fiche de diagnostic empile, « × java.lang.Exception » à l'encre d'erreur) et les feuilles modales servent leurs ateliers (recherche vivante, plan, aller à, renommage, réglages, revue du diff, correctif d'import, revue d'agent bloc par bloc, prédiction et consentement IA). Chaque surface DÉTAILLE son utilisation dans la fiche accompagnante (quand, comment, sections affichées, régimes, API hôte) ; les boucles complètes tournent sur le scénario de la démonstration (le masquage pose le `noinspection` et le lint relaie, la suppression sûre barre puis efface, l'exception relit la trace du document réel, l'annulation défait chaque écriture).
+- **`docs/simulateur/popups.html` naît** : un fichier AUTONOME (aucune dépendance, aucun réseau) qui reproduit la couche entière dans un navigateur. La machine à états réelle tourne en JavaScript — `PopupController` mot pour mot : régimes frappe / défilement / tap hors cartes / échappement, famille des surfaces d'actions, cascades (la documentation meurt avec sa liste, le débordement avec sa barre) ; le patron `TextRowsPopup` rend les rangées typées (paliers 0.90/0.85/0.75/0.70, filets, sections en petites capitales, encres de la palette verre). Les 26 genres vivent avec leurs sections exactes (l'en-tête des usages compte, la racine de la hiérarchie vit UNE fois, la fiche de diagnostic empile, « × java.lang.Exception » à l'encre d'erreur) et les feuilles modales servent leurs ateliers (recherche vivante, plan, aller à, renommage, réglages, revue du diff, correctif d'import, revue d'agent bloc par bloc, prédiction et consentement IA). Chaque surface DÉTAILLE son utilisation dans la fiche accompagnante (quand, comment, sections affichées, régimes, API hôte) ; les boucles complètes tournent sur le scénario de l'exemple consommateur (le masquage pose le `noinspection` et le lint relaie, la suppression sûre barre puis efface, l'exception relit la trace du document réel, l'annulation défait chaque écriture).
 
 ### Popups — l'audit Android Studio s'étend au reste des cartes (2026-11-14)
 - **La fiche de diagnostic empile** : l'IDE de référence ne sert jamais une bulle par problème — la fiche porte TOUTES les signatures du lieu, chacune son marqueur « × » / « ! » à son encre, un filet les sépare ; l'INDICE D'ACTIONS clôt (« Plus d'actions · menu d'intentions » — l'équivalent du lien « More actions… » de l'IDE, posé seulement si des intentions existent : l'IDE ne promet pas de correctifs sans correctifs). Bancs : `PopupViewsTest` +2.
@@ -105,34 +105,34 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 - **L'ENCRE EXPLICITE se pose enfin** : les entiers négatifs des couleurs opaques étaient confondus avec les sentinelles de rangée — le marqueur d'erreur, l'introuvable muet de la hiérarchie et le cadre étranger de l'exception rendaient tous à l'encre du texte ; la résolution `encreDe` se lit au banc sans passer par le rendu. Banc : `PopupViewsTest.explicitInkRendersAsItself`.
 
 ### Popups — le port : les usages vivent chez l'orchestrateur (2026-11-14)
-- **La seconde surface portée suit le patron complet** : le satellite `Usages` naît dans `android-host` (le serveur de langage sert les lieux par le fil `references`, la transpose pure devient offset de saut — l'extrait se rogne), l'audit Android Studio y compte comme l'IDE : l'en-tête porte le COMPTE DU SERVEUR, tous fichiers ; l'occurrence ÉTRANGÈRE vit muette (le nom du fichier du serveur se lit, le lieu ne se visite pas, jamais il ne se devine — l'éditeur embarqué n'ouvre qu'un document), ni le doigt ni la flèche ne la prennent. `PopupsEditeur.ouvrirUsages` publie, le serveur se branche au satellite, l'atelier d'usages quitte la démonstration (le pont y perd sa ligne, le catalogue route à l'orchestrateur), la ressource `titre_usages` déménage (EN/FR, la parité ADR-008 suit). Banc : `UsagesTransposeTest` (android-host, 5).
+- **La seconde surface portée suit le patron complet** : le satellite `Usages` naît dans `android-host` (le serveur de langage sert les lieux par le fil `references`, la transpose pure devient offset de saut — l'extrait se rogne), l'audit Android Studio y compte comme l'IDE : l'en-tête porte le COMPTE DU SERVEUR, tous fichiers ; l'occurrence ÉTRANGÈRE vit muette (le nom du fichier du serveur se lit, le lieu ne se visite pas, jamais il ne se devine — l'éditeur embarqué n'ouvre qu'un document), ni le doigt ni la flèche ne la prennent. `PopupsEditeur.ouvrirUsages` publie, le serveur se branche au satellite, l'atelier d'usages quitte l'exemple consommateur (le pont y perd sa ligne, le catalogue route à l'orchestrateur), la ressource `titre_usages` déménage (EN/FR, la parité ADR-008 suit). Banc : `UsagesTransposeTest` (android-host, 5).
 
 ### Popups — le port : la documentation externe vit chez l'orchestrateur (2026-11-14)
-- **La troisième surface portée** : le satellite `DocExterne` naît dans `android-host` (la carte DÉRIVÉE, sa propre instance — jamais celle du survol ; le serveur par le fil `survol`, la table du coach en repli, le même chemin de données que le survol), `PopupsEditeur.ouvrirDocExterne` publie — et le câblage manquant au pont se répare : la consultation se REPOSITIONNE au défilement (l'orchestrateur porte le devoir du régime, les ateliers du pont ne l'avaient jamais câblé). L'atelier de documentation externe quitte la démonstration (le pont n'écoute plus le serveur, le catalogue route à l'orchestrateur).
+- **La troisième surface portée** : le satellite `DocExterne` naît dans `android-host` (la carte DÉRIVÉE, sa propre instance — jamais celle du survol ; le serveur par le fil `survol`, la table du coach en repli, le même chemin de données que le survol), `PopupsEditeur.ouvrirDocExterne` publie — et le câblage manquant au pont se répare : la consultation se REPOSITIONNE au défilement (l'orchestrateur porte le devoir du régime, les ateliers du pont ne l'avaient jamais câblé). L'atelier de documentation externe quitte l'exemple consommateur (le pont n'écoute plus le serveur, le catalogue route à l'orchestrateur).
 
 ### Popups — le port : les hiérarchies vivent chez l'orchestrateur, l'arbre s'aligne sur l'IDE (2026-11-14)
-- **La quatrième surface portée suit le patron complet** : le satellite `CarteHierarchies` naît dans `android-host` (le moteur `Hierarchies` du cœur sert l'arbre sur le projet embarqué, la transpose pure déménage avec lui), `PopupsEditeur.ouvrirHierarchie` publie — le langage du fichier se retient au branchement du serveur, le plan au `setPlan` vif. **L'audit Android Studio corrige l'arbre** : la RACINE vit UNE fois — l'en-tête de la carte la nomme (l'arbre de l'IDE porte le type interrogé à sa racine, jamais il ne se répète dans les sections supertypes ET sous-types comme avant) ; l'introuvable vit muet à la FRONTIÈRE seule (plus jamais deux fois) ; la section VIDE ne se pose pas (l'arbre de l'IDE ne montre que les nœuds qui existent). L'atelier quitte la démonstration (le pont y perd sa ligne, le catalogue route à l'orchestrateur), les sept ressources de hiérarchie déménagent (EN/FR, ADR-008). Banc : `HierarchiesTransposeTest` (android-host, 3 — le connu et la frontière, les appelants sans la racine, la section vide élidée).
+- **La quatrième surface portée suit le patron complet** : le satellite `CarteHierarchies` naît dans `android-host` (le moteur `Hierarchies` du cœur sert l'arbre sur le projet embarqué, la transpose pure déménage avec lui), `PopupsEditeur.ouvrirHierarchie` publie — le langage du fichier se retient au branchement du serveur, le plan au `setPlan` vif. **L'audit Android Studio corrige l'arbre** : la RACINE vit UNE fois — l'en-tête de la carte la nomme (l'arbre de l'IDE porte le type interrogé à sa racine, jamais il ne se répète dans les sections supertypes ET sous-types comme avant) ; l'introuvable vit muet à la FRONTIÈRE seule (plus jamais deux fois) ; la section VIDE ne se pose pas (l'arbre de l'IDE ne montre que les nœuds qui existent). L'atelier quitte l'exemple consommateur (le pont y perd sa ligne, le catalogue route à l'orchestrateur), les sept ressources de hiérarchie déménagent (EN/FR, ADR-008). Banc : `HierarchiesTransposeTest` (android-host, 3 — le connu et la frontière, les appelants sans la racine, la section vide élidée).
 
 ### Popups — le port : les gabarits vivent chez l'orchestrateur (2026-11-14)
-- **La cinquième surface portée** : le satellite `Gabarits` naît dans `android-host` (constructeur, accesseurs, equals/hashCode/toString des champs réels de la classe englobante, entourage de la sélection, gabarit de méthode — le plan d'insertion pur déménage avec lui), `PopupsEditeur.ouvrirGabarits` publie et `configurerGabaritMethode` pose le geste A-22 de l'hôte (un seul canal — la carte n'est qu'une peau de plus) ; la carte se REPOSITIONNE au défilement (le câblage manquant au pont se répare). La fiche de diagnostic gagne aussi son satellite `InfoBulle` — la pose quitte le corps de l'orchestrateur, la complexité de classe redescend sous le plafond. L'atelier quitte la démonstration (le pont y perd sa ligne et son paramètre, le catalogue route à l'orchestrateur), six ressources déménagent et `gabarits_methode` naît (EN/FR, ADR-008). Banc : `GabaritsPlanTest` (android-host, 2 — l'insertion avant la fermante, la classe inconnue ne génère rien).
+- **La cinquième surface portée** : le satellite `Gabarits` naît dans `android-host` (constructeur, accesseurs, equals/hashCode/toString des champs réels de la classe englobante, entourage de la sélection, gabarit de méthode — le plan d'insertion pur déménage avec lui), `PopupsEditeur.ouvrirGabarits` publie et `configurerGabaritMethode` pose le geste A-22 de l'hôte (un seul canal — la carte n'est qu'une peau de plus) ; la carte se REPOSITIONNE au défilement (le câblage manquant au pont se répare). La fiche de diagnostic gagne aussi son satellite `InfoBulle` — la pose quitte le corps de l'orchestrateur, la complexité de classe redescend sous le plafond. L'atelier quitte l'exemple consommateur (le pont y perd sa ligne et son paramètre, le catalogue route à l'orchestrateur), six ressources déménagent et `gabarits_methode` naît (EN/FR, ADR-008). Banc : `GabaritsPlanTest` (android-host, 2 — l'insertion avant la fermante, la classe inconnue ne génère rien).
 
 ### Popups — le port : la sûreté de la suppression et du déplacement vit chez l'orchestrateur (2026-11-14)
-- **La sixième surface portée (les deux cartes d'un coup)** : le satellite `Surete` naît dans `android-host` — la carte des usages qui barrent (`SAFE_DELETE` : le verdict du moteur s'affiche, chaque usage saute à son lieu, la suppression attend son heure, la voie libre efface en transaction annulable) et la carte des cibles du déménagement (`SAFE_MOVE` : les types du fichier hors la classe englobante se proposent, les conditions de sûreté du moteur seules décident, le refus s'annonce sans raison inventée). `PopupsEditeur.supprimerSur` et `deplacerDans` publient ; la carte des cibles se REPOSITIONNE au défilement (le câblage manquant au pont se répare). L'atelier quitte la démonstration (le pont y perd sa ligne, le catalogue route à l'orchestrateur), huit ressources déménagent (la copie de `titre_notification` suit, EN/FR, ADR-008). Banc : `SureteTransposeTest` (android-host, 2 — les cibles excluent la classe englobante, les usages barants deviennent des occurrences).
+- **La sixième surface portée (les deux cartes d'un coup)** : le satellite `Surete` naît dans `android-host` — la carte des usages qui barrent (`SAFE_DELETE` : le verdict du moteur s'affiche, chaque usage saute à son lieu, la suppression attend son heure, la voie libre efface en transaction annulable) et la carte des cibles du déménagement (`SAFE_MOVE` : les types du fichier hors la classe englobante se proposent, les conditions de sûreté du moteur seules décident, le refus s'annonce sans raison inventée). `PopupsEditeur.supprimerSur` et `deplacerDans` publient ; la carte des cibles se REPOSITIONNE au défilement (le câblage manquant au pont se répare). L'atelier quitte l'exemple consommateur (le pont y perd sa ligne, le catalogue route à l'orchestrateur), huit ressources déménagent (la copie de `titre_notification` suit, EN/FR, ADR-008). Banc : `SureteTransposeTest` (android-host, 2 — les cibles excluent la classe englobante, les usages barants deviennent des occurrences).
 
 ### Popups — le port : le masquage d'inspection vit chez l'orchestrateur (2026-11-14)
-- **La septième surface portée** : le satellite `Masquage` naît dans `android-host` — les diagnostics réglés de la ligne du caret (l'identifiant entre crochets du lint, jamais une règle devinée) se proposent, le choix pose le commentaire « noinspection » en fin de ligne (transaction annulable), l'analyse se relance : la règle masquée ne se rapporte plus, les autres demeurent. `PopupsEditeur.masquerInspection` publie et `configurerRelanceLint` pose le geste de relance de l'hôte (null abrège le geste — jamais de relance devinée) ; la carte se REPOSITIONNE au défilement. L'atelier quitte la démonstration (le pont n'y garde que l'exception), quatre ressources déménagent (EN/FR, ADR-008). La boucle complète du masquage reste prouvée chez la démonstration (`SuppressionInspectionBoucleTest` — le faux build de lint y est le harnais de test).
+- **La septième surface portée** : le satellite `Masquage` naît dans `android-host` — les diagnostics réglés de la ligne du caret (l'identifiant entre crochets du lint, jamais une règle devinée) se proposent, le choix pose le commentaire « noinspection » en fin de ligne (transaction annulable), l'analyse se relance : la règle masquée ne se rapporte plus, les autres demeurent. `PopupsEditeur.masquerInspection` publie et `configurerRelanceLint` pose le geste de relance de l'hôte (null abrège le geste — jamais de relance devinée) ; la carte se REPOSITIONNE au défilement. L'atelier quitte l'exemple consommateur (le pont n'y garde que l'exception), quatre ressources déménagent (EN/FR, ADR-008). La boucle complète du masquage reste prouvée chez l'exemple consommateur (`SuppressionInspectionBoucleTest` — le faux build de lint y est le harnais de test).
 
 ### Popups — le port s'achève : l'exception vit chez l'orchestrateur, le pont meurt (2026-11-14)
 - **La huitième surface portée — le port est ACHEVÉ** : le satellite `ExceptionCarte` naît dans `android-host` (l'échec simulé porte la trace du document réel — le type englobant du caret porte la classe, la méthode englobante porte le sommet à la ligne du caret, jamais deviné ; la trace se rend au format des piles puis se relit par l'analyseur E-06), `TraceExecution` déménage avec lui ainsi que son banc. `PopupsEditeur.executerFichier` publie ; la carte se REPOSITIONNE au défilement (régime de la consultation).
-- **Le pont de test `PontSurfaces` MEURT** : les huit surfaces du feu vert vivent désormais chez l'éditeur — la démonstration ne teste plus qu'elle-même, son rôle exact (la directive du propriétaire du 2026-11-14 s'achève : les fonctionnalités vivent dans les modules de l'éditeur, l'application hôte n'a presque rien à faire — deux gestes se posent par configuration : `configurerGabaritMethode`, `configurerRelanceLint`).
+- **Le pont de test `PontSurfaces` MEURT** : les huit surfaces du feu vert vivent désormais chez l'éditeur — l'orchestrateur porte tout, son rôle exact (la directive du propriétaire du 2026-11-14 s'achève : les fonctionnalités vivent dans les modules de l'éditeur, l'application hôte n'a presque rien à faire — deux gestes se posent par configuration : `configurerGabaritMethode`, `configurerRelanceLint`).
 - **Deux poses quittent le corps de l'orchestrateur** : l'info-bulle de diagnostic gagnait déjà son satellite `InfoBulle` ; le menu d'intentions gagne le sien (`CarteIntentions`) — la complexité de classe de l'orchestrateur redescend sous le plafond, chaque surface vit son satellite.
 
 ### Popups — la réconciliation des deux lignées du soir (2026-11-14)
-- **L'info de type vit chez l'orchestrateur — la première surface portée suit le patron complet** : le satellite `TypeInfo` naît dans `android-host` (le symbole se lit chez `ContenuPopups`, le type chez `LecteurTypes` du cœur, la carte se pose sous le curseur, bornée — sans type lisible elle ne se pose jamais), `PopupsEditeur.ouvrirTypeInfo` publie, l'atelier d'info de type quitte la démonstration (le pont y perd sa ligne, le catalogue route à l'orchestrateur), le banc du lecteur déménage renommé `LecteurTypesTest`, la nomination du plafond suit le renommage (`AtelierPopups` devient `PopupsEditeur` dans les suppressions — 613 lignes, l'orchestrateur seul porte les câbles), le module gagne `api(core-intelligence)`.
-- **Les deux lignées du 2026-11-13 se réconcilient** : la lignée poussée au soir (les vingt-six genres, la passe des six surfaces dormantes puis celle des cinq du feu vert) et la lignée locale du déménagement (l'orchestrateur `PopupsEditeur` dans `android-host`) vivent désormais ensemble — `AtelierPopups` s'absorbe dans l'orchestrateur par le renommage de Git, la carte de notification s'unifie sur le régime du quart (l'annonce vit son quart, seule son heure la conclut, le tap qui la prend la referme, le voile la coupe — les régimes éprouvés par la lignée distante l'emportent, les bancs contradictoires tranchés), la ligne de base de langue descend (353 → 344). Le pont provisoire `PontSurfaces` : la démonstration teste les surfaces réveillées sur le manager de l'éditeur — son rôle exact, le temps du port complet.
+- **L'info de type vit chez l'orchestrateur — la première surface portée suit le patron complet** : le satellite `TypeInfo` naît dans `android-host` (le symbole se lit chez `ContenuPopups`, le type chez `LecteurTypes` du cœur, la carte se pose sous le curseur, bornée — sans type lisible elle ne se pose jamais), `PopupsEditeur.ouvrirTypeInfo` publie, l'atelier d'info de type quitte l'exemple consommateur (le pont y perd sa ligne, le catalogue route à l'orchestrateur), le banc du lecteur déménage renommé `LecteurTypesTest`, la nomination du plafond suit le renommage (`AtelierPopups` devient `PopupsEditeur` dans les suppressions — 613 lignes, l'orchestrateur seul porte les câbles), le module gagne `api(core-intelligence)`.
+- **Les deux lignées du 2026-11-13 se réconcilient** : la lignée poussée au soir (les vingt-six genres, la passe des six surfaces dormantes puis celle des cinq du feu vert) et la lignée locale du déménagement (l'orchestrateur `PopupsEditeur` dans `android-host`) vivent désormais ensemble — `AtelierPopups` s'absorbe dans l'orchestrateur par le renommage de Git, la carte de notification s'unifie sur le régime du quart (l'annonce vit son quart, seule son heure la conclut, le tap qui la prend la referme, le voile la coupe — les régimes éprouvés par la lignée distante l'emportent, les bancs contradictoires tranchés), la ligne de base de langue descend (353 → 344). Le pont provisoire `PontSurfaces` : l'exemple consommateur teste les surfaces réveillées sur le manager de l'éditeur — son rôle exact, le temps du port complet.
 - **L'audit de conformité Android Studio (le message du propriétaire du 2026-11-14)** : la documentation des popups LSP y gagne les sections standard des serveurs — le modèle lit les en-têtes Markdown (« ```java », gras de ligne entière « **Parameters:** », « **Returns:** », « **Throws:** », titres « # ») comme les clôtures typées du dépôt de départ, chaque section au filet comme la doc rapide d'Android Studio ; les listes à tirets (« - nom — description ») s'encrent à l'encre des mots-clés comme les `@param`, le gras en ligne reste au corps. Bancs : `CompletionDocModelTest` +3 (sections standard, titres, épargne du gras en ligne). Le javadoc du modèle signature dit enfin « en gras » — le point courant de l'info de paramètres y est en gras, la convention d'Android Studio, le verbe « souligné » mentait.
 - **Le readme règne sur les vingt-sept popups** : la table des genres gagne les neuf surfaces du feu vert (usages, info de type, hiérarchie, documentation externe, génération, suppression sûre, déplacement sûr, masquage d'inspection, détails d'exception), les feuilles citent l'aller à, le lien de l'inventaire suit son déménagement vers `docs/`.
-- **Les moteurs purs des surfaces réveillées quittent la démo pour `core-intelligence`** : `LecteurTypes` (le type à la déclaration, autonome du coach — son symbole-à-l'offset s'inline), `Entourer` (l'entourage de sélection), `SuppressionInspection` (la marque « noinspection »), `CorrectifImport` (la résolution d'import au classpath) et `ResultatsAller` (la recherche floue de l'aller à) vivent désormais dans le cœur — l'intégrateur y lit ses moteurs sans la démonstration. L'API publique gagne dix-sept entrées (manifeste régénéré, croissance purement additive — ADR-009) ; le banc de la boucle complète du masquage reste chez la démo (`SuppressionInspectionBoucleTest` — le faux build de lint y est le harnais), le banc de l'entourage se nomme `EntourerSurSelectionTest` (le banc A-08 de `SmartTyping` garde son nom).
+- **Les moteurs purs des surfaces réveillées quittent l'exemple consommateur pour `core-intelligence`** : `LecteurTypes` (le type à la déclaration, autonome du coach — son symbole-à-l'offset s'inline), `Entourer` (l'entourage de sélection), `SuppressionInspection` (la marque « noinspection »), `CorrectifImport` (la résolution d'import au classpath) et `ResultatsAller` (la recherche floue de l'aller à) vivent désormais dans le cœur — l'intégrateur y lit ses moteurs sans l'exemple consommateur. L'API publique gagne dix-sept entrées (manifeste régénéré, croissance purement additive — ADR-009) ; le banc de la boucle complète du masquage reste chez l'exemple consommateur (`SuppressionInspectionBoucleTest` — le faux build de lint y est le harnais), le banc de l'entourage se nomme `EntourerSurSelectionTest` (le banc A-08 de `SmartTyping` garde son nom).
 
 ### Popups — la notification vit : la carte éphémère du coin bas-droit (2026-11-14)
 - **Le genre `NOTIFICATION` naît au contrôleur (dix-sept genres)** : une carte éphémère au coin bas-droit — ni la frappe ni le défilement ne la ferment (le texte ne la regarde pas), le tap hors cartes la chasse, la feuille modale l'emporte, l'échappement la referme. L'ancre `PopupAnchor.bottomRightCorner` borne la taille aux murs AVANT de positionner (la carte trop grande ne dépasse jamais le bas ni la droite). Bancs : `PopupControllerTest` +1 (régimes), `PopupAnchorTest` +1 (coin + murs), `PopupManagerTest` +1 (échappement, voile).
@@ -140,16 +140,16 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 - **`PopupsEditeur.notifier(titre, message)` publie** (android-host, satellite `Notifications`) : l'hôte y montre ce qui ne touche pas le texte — sauvegarde, serveur, agent. Le README (table des popups), l'USAGE §9.1 et `POPUP_INVENTORY` suivent.
 
 ### Popups — le déménagement : les fonctionnalités vivent chez l'éditeur (décision du propriétaire, 2026-11-14)
-- **L'orchestration des popups déménage de la démo vers `android-host`** : `PopupsEditeur` (ex-`AtelierPopups`) orchestre depuis le nouveau paquet `jo.celeris.android.host.popups` — `DocAncre` (survol, aperçu de définition, `@Preview`), `BordDroit` (bande, minimap, pouce), `SelecteurCouleur` (le double-tap d'un littéral), `FilAriane` (né de l'extraction au plafond ADR-002), `LanguageSession` (la surface commune des serveurs — les modèles du kit y arrivent déjà convertis), `ContenuPopups` (les algorithmes purs : préfixe, complétion des mots, badges du protocole, chemin du plan, issues de la bande), `CoachPopups` (l'interface des tables de l'hôte, MUET par défaut — la complétion des mots vit sans serveur) et `PalettesPopups` (le verre dérivé du thème). Le module gagne `api(android-view)`, `api(android-widgets)` et `api(core-lsp)` : l'étage de composition de l'hôte — l'application hôte n'a presque rien à écrire. Banc : `ContenuPopupsTest` (android-host, 5 — complétion filtrée par le préfixe, régime de frappe au premier caractère, symbole et préfixe au caret, chemin du fil d'Ariane externe vers interne, candidats et documentation du protocole).
-- **Le kit gagne le débordement et la barre (`android-widgets`)** : `MenuDebordement` (la carte du débordement de la barre de sélection — section NavMenu, le choix referme la carte AVANT d'exécuter l'action) et `BarreToolbar` (la carte de débordement de la toolbar pendue sous la puce + la barre de touches au-dessus du clavier, l'observateur de layout RETIRABLE) déménagent de la démo au kit, leurs dépendances nées avec eux. Banc : `MenuDebordementTest` (3 — genre lié, actions vides, le choix referme avant d'exécuter), `BarreToolbarTest` (3 — genres liés, la puce pose la carte, la touchbar vit posée).
-- **La démonstration ne teste plus qu'elle-même** : `AtelierPopups` et ses satellites quittent le terrain ; `PopupCoach` ne garde que les tables factices (mots réservés Java, signatures et documentation du serveur de référence) servies par `CoachDemo` à l'orchestrateur ; `ServeurLangage`, `DeclaredServerSession` et `TablesCouverture` consomment la `LanguageSession` déménagée ; les tests déménagés avec leur code. Le README racine gagne la section « Les popups de l'éditeur » (le montage, les seize popups, les feuilles), l'USAGE §9 gagne l'orchestrateur prêt à l'emploi AVANT la composition à la main, ARCHITECTURE consigne le déménagement sous son diagramme, `POPUP_INVENTORY` §1.6 réécrit son orchestration, et les README d'android-host et d'android-widgets suivent.
+- **L'orchestration des popups déménage de l'exemple consommateur vers `android-host`** : `PopupsEditeur` (ex-`AtelierPopups`) orchestre depuis le nouveau paquet `jo.celeris.android.host.popups` — `DocAncre` (survol, aperçu de définition, `@Preview`), `BordDroit` (bande, minimap, pouce), `SelecteurCouleur` (le double-tap d'un littéral), `FilAriane` (né de l'extraction au plafond ADR-002), `LanguageSession` (la surface commune des serveurs — les modèles du kit y arrivent déjà convertis), `ContenuPopups` (les algorithmes purs : préfixe, complétion des mots, badges du protocole, chemin du plan, issues de la bande), `CoachPopups` (l'interface des tables de l'hôte, MUET par défaut — la complétion des mots vit sans serveur) et `PalettesPopups` (le verre dérivé du thème). Le module gagne `api(android-view)`, `api(android-widgets)` et `api(core-lsp)` : l'étage de composition de l'hôte — l'application hôte n'a presque rien à écrire. Banc : `ContenuPopupsTest` (android-host, 5 — complétion filtrée par le préfixe, régime de frappe au premier caractère, symbole et préfixe au caret, chemin du fil d'Ariane externe vers interne, candidats et documentation du protocole).
+- **Le kit gagne le débordement et la barre (`android-widgets`)** : `MenuDebordement` (la carte du débordement de la barre de sélection — section NavMenu, le choix referme la carte AVANT d'exécuter l'action) et `BarreToolbar` (la carte de débordement de la toolbar pendue sous la puce + la barre de touches au-dessus du clavier, l'observateur de layout RETIRABLE) déménagent de l'exemple consommateur au kit, leurs dépendances nées avec eux. Banc : `MenuDebordementTest` (3 — genre lié, actions vides, le choix referme avant d'exécuter), `BarreToolbarTest` (3 — genres liés, la puce pose la carte, la touchbar vit posée).
+- **L'orchestrateur porte tout** : `AtelierPopups` et ses satellites quittent le terrain ; `PopupCoach` ne garde que les tables factices (mots réservés Java, signatures et documentation du serveur de référence) servies par `CoachBanc` à l'orchestrateur ; `ServeurLangage`, `DeclaredServerSession` et `TablesCouverture` consomment la `LanguageSession` déménagée ; les tests déménagés avec leur code. Le README racine gagne la section « Les popups de l'éditeur » (le montage, les seize popups, les feuilles), l'USAGE §9 gagne l'orchestrateur prêt à l'emploi AVANT la composition à la main, ARCHITECTURE consigne le déménagement sous son diagramme, `POPUP_INVENTORY` §1.6 réécrit son orchestration, et les README d'android-host et d'android-widgets suivent.
 
 ### Popups — le chantier d'unification ferme : le manager règne, le clavier se délègue (D-10)
-- **Le coordinateur des popups vit en `android-widgets` (`PopupManager`)** : l'UNIQUE écrivain de l'état ET des vues — `lier` (UNE vue par genre, le partage d'instances se refuse dès le câblage — l'audit P1), `montrer` (les exclus quittent la couche AVANT la pose, la carte se borne aux murs), `fermer` (les cascades n'y vivent qu'une fois : la documentation suit sa liste, le débordement suit sa barre), `surFrappe`, `surDefilement`, `fermerSousVoile`, `detacher` au cycle — l'état et la couche ne divergent JAMAIS, les zombies d'état deviennent impossibles ; les six copies de mesure (P4) meurent dans `taille`, LA mesure unique des ancres. La démonstration y migre : `AtelierPopups` construit et possède le manager, ses `fermer`/`retirer`/`taille` privés meurent (régression de volume), DEUX cartes de documentation (plus de carte partagée entre la complétion et le survol). Banc : `PopupManagerTest` (Robolectric, 13 — liaisons refusées, cascades isochrones, régimes, tap hors cartes, clavier, bornage, détachement).
+- **Le coordinateur des popups vit en `android-widgets` (`PopupManager`)** : l'UNIQUE écrivain de l'état ET des vues — `lier` (UNE vue par genre, le partage d'instances se refuse dès le câblage — l'audit P1), `montrer` (les exclus quittent la couche AVANT la pose, la carte se borne aux murs), `fermer` (les cascades n'y vivent qu'une fois : la documentation suit sa liste, le débordement suit sa barre), `surFrappe`, `surDefilement`, `fermerSousVoile`, `detacher` au cycle — l'état et la couche ne divergent JAMAIS, les zombies d'état deviennent impossibles ; les six copies de mesure (P4) meurent dans `taille`, LA mesure unique des ancres. La exemple consommateur y migre : `AtelierPopups` construit et possède le manager, ses `fermer`/`retirer`/`taille` privés meurent (régression de volume), DEUX cartes de documentation (plus de carte partagée entre la complétion et le survol). Banc : `PopupManagerTest` (Robolectric, 13 — liaisons refusées, cascades isochrones, régimes, tap hors cartes, clavier, bornage, détachement).
 - **Le clavier se délègue (PIEGE-27 préservé)** : l'éditeur garde le focus, le crochet public `EditorView.setSurTouchePopup` se consulte en tête de `onKeyDown` — le verdict consommé rend la main sans bouger le curseur ; UP/DOWN déplacent la surbrillance de la première carte interactive (contrat `PopupClavier`, deux méthodes — complétion et menus d'intentions l'implémentent), Enter et Tab valident, Escape referme (cascades comprises) ; la touche inconnue retourne à l'éditeur, la table de raccourcis décide sa vie normale. Banc : `TouchePopupVueTest` (android-view), `PopupManagerTest.leClavierDelegueSertLaCompletion`.
 - **Le tap hors cartes referme les genres qui cèdent** : la couche AVERTIT sans consommer (le geste poursuit sa vie vers l'éditeur, le caret bouge) — les menus et les bulles cèdent, la complétion suit le curseur, le chrome vit avec le document ; le refus de la carte partagée entre genres, la course du retrait différé corrigée (P6 : une carte re-prise ne se retire jamais d'elle-même) et `TOOLBAR_OVERFLOW` en genre propre (P3 : deux menus ne tiennent jamais — il détournait le menu d'intentions) complètent l'audit. Banc : `PopupLayerReposeTest`, `PopupManagerTest.leTapHorsCartesRefermeLesGenresQuiCedent`.
 - **Le pas étendu du clavier délégué (PAGE_UP/PAGE_DOWN, le signal du propriétaire du 2026-11-13)** : la complétion saute sa surbrillance d'une PAGE de candidats visibles — huit, son plafond —, le saut borné aux murs de la liste ; le contrat `PopupClavier` gagne `surPage(pas)` (une page par unité, la carte qui ne pagine pas DÉCLINE — la touche retourne à l'éditeur, le document y défile), le manager route les deux codes dans le même ordre de délégation. Le menu d'intentions décline (ses actions tiennent en peu de rangées). Banc : `PopupManagerTest.laPageEtendueSertLaCompletion` (+1, 14 tests).
-- **La carte des usages du symbole vit — le genre 17e `REFERENCES`, la première surface réveillée du signal du propriétaire** : `ReferencesView` (`android-widgets`, patron `TextRowsPopup` — l'en-tête compte « N usages de « symbole » », les rangées cliquables « L12 · extrait », le choix SAUTE et referme) ; deux surfaces d'actions ne tiennent jamais (elle chasse et est chassée par le menu d'intentions et le débordement de la toolbar), la frappe, le défilement et le tap hors cartes la referment, le voile la coupe, le routage clavier la sert en dernier (flèches, Enter — la page décline : les rangées vivent à découvert). La démonstration gagne `AtelierUsages` : le serveur de langage sert les lieux par le fil (`references`), l'atelier transpose (le début de plage devient l'offset du saut, le lieu étranger au document ne se devine jamais — limite consignée), l'action vit au menu d'intentions, à la puce de débordement et à la carte (`action_usages`, chaînes en deux langues) ; `AtelierPopups` (612 lignes) se nomme au plafond relevé — la première nomination du chantier par la décision du propriétaire du 2026-11-13 (ADR-019, justification au `config/checkstyle/suppressions.xml`). Bancs : `PopupControllerTest` +2 (exclusions réciproques, trois régimes), `PopupManagerTest.leClavierDelegueSertLesUsages`, `ReferencesViewTest` (3 — en-tête intouchable, pick, bornage des flèches, validation, carte vide), `UsagesReferencesTest` (démo — les lieux du mot entier par le fil, la transpose du saut).
+- **La carte des usages du symbole vit — le genre 17e `REFERENCES`, la première surface réveillée du signal du propriétaire** : `ReferencesView` (`android-widgets`, patron `TextRowsPopup` — l'en-tête compte « N usages de « symbole » », les rangées cliquables « L12 · extrait », le choix SAUTE et referme) ; deux surfaces d'actions ne tiennent jamais (elle chasse et est chassée par le menu d'intentions et le débordement de la toolbar), la frappe, le défilement et le tap hors cartes la referment, le voile la coupe, le routage clavier la sert en dernier (flèches, Enter — la page décline : les rangées vivent à découvert). L'atelier d'intégration gagne `AtelierUsages` : le serveur de langage sert les lieux par le fil (`references`), l'atelier transpose (le début de plage devient l'offset du saut, le lieu étranger au document ne se devine jamais — limite consignée), l'action vit au menu d'intentions, à la puce de débordement et à la carte (`action_usages`, chaînes en deux langues) ; `AtelierPopups` (612 lignes) se nomme au plafond relevé — la première nomination du chantier par la décision du propriétaire du 2026-11-13 (ADR-019, justification au `config/checkstyle/suppressions.xml`). Bancs : `PopupControllerTest` +2 (exclusions réciproques, trois régimes), `PopupManagerTest.leClavierDelegueSertLesUsages`, `ReferencesViewTest` (3 — en-tête intouchable, pick, bornage des flèches, validation, carte vide), `UsagesReferencesTest` (banc — les lieux du mot entier par le fil, la transpose du saut).
 - **La spécification D-10 de `BancSpecs` rejouée par `BancSpecsTest`** : la frappe ouvre (le prédicat du coach, les mots du code par le fournisseur), la liste survit à la frappe suivante (elle filtre — le régime rend la liste vivante), Enter accepte (le candidat remplace le mot au curseur, sa documentation suit à la fermeture), Escape referme (la cascade encore) — les flèches déplacent la surbrillance par la même délégation, prouvées au banc du kit. L'USAGE §9 suit : le montage tient en trois temps (lier, déclencher, déléguer) ; les trois documents du chantier (`POPUP_SYSTEM_AUDIT`, `POPUP_SYSTEM_ARCHITECTURE`, `POPUP_INVENTORY`) consignent l'audit, l'architecture cible et la grille de classification. La matrice relit D-10.
 - **La phase 9 de la mission ferme : les six livrables s'achèvent et se rangent dans `docs/`** : le rapport de migration (`docs/POPUP_MIGRATION_REPORT.md` — composant par composant, les dix problèmes de l'audit et leur traitement, les fichiers créés et modifiés, AUCUN supprimé, AUCUNE dépendance nouvelle, les limitations), le rapport de tests (`docs/POPUP_TEST_REPORT.md` — les bancs du chantier, la non-régression, le journal des quatre échecs tranchés, le verdict de la passe) et le guide du développeur (`docs/POPUP_DEVELOPER_GUIDE.md` — la recette des huit pas d'un genre nouveau sans toucher au manager, l'exemple complet de l'atelier du sélecteur, l'intégration aux moteurs) complètent l'audit, l'architecture et l'inventaire (déplacés à `docs/`) ; la feuille de route de la mission (`docs/feuille-de-route-popups.md`) tient le journal des neuf phases, les restes et les décisions du propriétaire — dont le plafond relevable à 1 200 lignes par nomination ; la feuille de route restante du projet gagne l'étape de la mission.
 
@@ -183,7 +183,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 
 ### Couleurs — le littéral s'encadre, le double-clic ouvre le sélecteur
 - **Chaque littéral de couleur de la fenêtre se rend ENCADRÉ de sa couleur** (`PastillesTexte`, `android-view`) : fond en voile au quart de l'alpha, trait plein d'un pixel, respiré de 2 dp horizontaux et 1 dp vertical — TOUS les littéraux d'une ligne, le cadre rogné à la tranche de sa rangée (PIEGE-04). `PastillesCouleur` gagne `tous()` et `formater()` (la largeur du littéral tient au remplacement). Banc : `PastillesTexteTest` (4), `PastillesCouleurTest` +2.
-- **Le sélecteur de couleur du dépôt de départ vit en `android-widgets`** (`ColorPickerView`) : en-tête des deux pastilles (l'originale et la courante, leurs littéraux hex vivants), champ saturation-valeur, bande de teinte spectrale, palette Material de seize teintes — l'application IMPLICITE (le tap de cellule ou le relâchement du drag), jamais de boutons. La démonstration y branche `AtelierCouleur` : l'alpha d'origine survit, le littéral reformaté remplace l'ancien EN PLACE. Banc : `ColorPickerViewTest` (5).
+- **Le sélecteur de couleur du dépôt de départ vit en `android-widgets`** (`ColorPickerView`) : en-tête des deux pastilles (l'originale et la courante, leurs littéraux hex vivants), champ saturation-valeur, bande de teinte spectrale, palette Material de seize teintes — l'application IMPLICITE (le tap de cellule ou le relâchement du drag), jamais de boutons. La exemple consommateur y branche `AtelierCouleur` : l'alpha d'origine survit, le littéral reformaté remplace l'ancien EN PLACE. Banc : `ColorPickerViewTest` (5).
 
 ### Structure — les guides verticaux suivent les blocs, le chantier de fond se ferme (H-09)
 - **Les guides d'indentation deviennent structurels en `android-view`** : `GuidesStructurels` (la table du pont de syntaxe) porte un guide par BLOC de l'analyse, jamais un trait par cran de blancs — les accolades appariées des jetons servent les langages à crochets (une accolade dans une chaîne ou un commentaire n'ouvre rien), les régions d'indentation servent les langages à décalage ; la ligne qui porte l'accolade ouvrante donne SA colonne au trait, le trait part de la ligne APRÈS l'ouvrante et meurt à la ligne AVANT la fermante — les lignes vides du corps se joignent à lui, un seul segment continu par bloc. La table vit en lignes du document (le pli replié se traverse, PIEGE-04), porte SA révision (jamais la structure d'une autre révision ne s'aligne sur les rangées, PIEGE-20) et se remappe à l'édition comme les plis (le guide survit au vol de publication, la ligne qui ouvre meurt, le guide meurt avec elle, PIEGE-26) ; la projection règle les rangées à l'image, une ouvrante coupée par le retour à la ligne descend le départ du trait sous la rangée qui porte le crochet. Le natif reste écarté — les mesures du spike tiennent (ADR-016 : incrémental 9,6–44,5 ms de p50 contre le budget de 10 ms, arbres 26–31× le texte contre 3×) : la structure niveau 2 se sert par les niveaux 1 et 3. Banc : `IndentGuidesTest` (10 tests — guide par bloc à la colonne ouvrante, bornes sous l'ouvrante et au-dessus de la fermante, lignes vides traversées, pli traversé, accolades de chaîne et de commentaire muettes, sans langage muet, tabulation au taquet, édition sans publication) et `GuidesStructurelsTest` (6 tests — table des accolades appariées, chaîne et commentaire muets, paires sans corps, régions d'indentation, remappage à l'édition, mort avec l'ouverture). La matrice ferme la ligne H-09 et relit A-17 : sa porte compte 126 lignes, toutes couvertes.
@@ -192,10 +192,10 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 - **Les fichiers binaires vivent en `android-host`** : `DetectionBinaire` décide sur les octets BRUTS, dans le préfixe borné (8 Kio) — l'octet nul et les contrôles hors texte refusent, jamais une extension de nom (elle ment), jamais un décodage (il détruirait ce qu'il lit : l'octet nul devenu remplacement, la perte se confondrait). `HexadecimalPreview` sert la lecture sûre — chaque ligne porte son décalage, seize octets en hexadécimal, la gouttière des imprimables ; PLAFOND de 256 lignes (4 Kio), drapeau de coupe : la mémoire de l'hôte ne porte jamais le binaire entier pour le montrer. L'arbre de documents gagne `lireOctets` (octets bruts, jamais l'aller-retour du décodage) ; le système de fichiers virtuel gagne `estBinaire` et `apercuBinaire` — défauts honnêtes : les systèmes à texte seul disent non. L'adaptateur de production REFUSE l'écriture par la voie texte sur un fichier binaire (`FichierBinaireException`) — jamais l'aller-retour destructeur ; la session qui montre l'aperçu se pose en lecture seule (la brique vit au cœur depuis M2). Banc : `FichiersBinairesTest`, 7 tests — octet nul, contrôles et blancs, préfixe borné (limite documentée), lignes de vidage exactes, plafond et drapeau, détection-aperçu-refus au système virtuel, mémoire de référence. La matrice gagne la ligne A-26 : 124 lignes couvertes sur 125, la dernière est le chantier de fond (H-09).
 
 ### Correctifs — l'aperçu se prévoit avant l'acceptation (B-18)
-- **L'aperçu d'un correctif vit en `android-widgets`** : `PatchPreview` porte la prévision — les lignes du document avant et après l'édition proposée se lisent en préfixe « - » et « + », chaque bloc changé encadré de contexte (deux par défaut, le contexte nul ne montre que les changées) ; les blocs proches partagent leurs lignes intactes, le hors-bloc ne se montre jamais, les textes identiques ne se prévisent pas — l'aperçu n'engage à rien. L'atelier de la démo sert la feuille du kit (ADR-018) : le correctif proposé sur la sélection arrive par le fil du protocole, l'édition se joue sur une COPIE pour se prévoir — jamais sur la session ouverte —, l'acceptation applique par la voie de transaction annulable d'un geste (B-17), le refus ne touche à rien ; le terrain du serveur de référence enveloppe la sélection d'accolades (la sélection vide n'engage à rien). Banc : `PatchPreviewTest` (10 tests — préfixes, contexte, hors-bloc, contexte nul, blocs proches, ajout pur ancré et de fin, suppression pure, identiques, refus d'entrée) et la spécification B-18 de `BancSpecs` rejouée par `BancSpecsTest` — le correctif se voit, s'applique, se défait. La matrice gagne la ligne B-18 : 123 lignes couvertes sur 125.
+- **L'aperçu d'un correctif vit en `android-widgets`** : `PatchPreview` porte la prévision — les lignes du document avant et après l'édition proposée se lisent en préfixe « - » et « + », chaque bloc changé encadré de contexte (deux par défaut, le contexte nul ne montre que les changées) ; les blocs proches partagent leurs lignes intactes, le hors-bloc ne se montre jamais, les textes identiques ne se prévisent pas — l'aperçu n'engage à rien. L'atelier de l'exemple consommateur sert la feuille du kit (ADR-018) : le correctif proposé sur la sélection arrive par le fil du protocole, l'édition se joue sur une COPIE pour se prévoir — jamais sur la session ouverte —, l'acceptation applique par la voie de transaction annulable d'un geste (B-17), le refus ne touche à rien ; le terrain du serveur de référence enveloppe la sélection d'accolades (la sélection vide n'engage à rien). Banc : `PatchPreviewTest` (10 tests — préfixes, contexte, hors-bloc, contexte nul, blocs proches, ajout pur ancré et de fin, suppression pure, identiques, refus d'entrée) et la spécification B-18 de `BancSpecs` rejouée par `BancSpecsTest` — le correctif se voit, s'applique, se défait. La matrice gagne la ligne B-18 : 123 lignes couvertes sur 125.
 
 ### Survols — la documentation des modificateurs se sert au fil (C-10)
-- **La documentation des modificateurs d'agencement vit en `core-lsp`** : `DocModificateurs` porte la table — padding, background, size, fillMaxWidth, weight, align, offset, clickable, alpha, border, clip, shadow, aspectRatio, wrapContentSize… et le récepteur `Modifier` lui-même, dix-neuf entrées, textes français, signature vivante en clôture Kotlin (PIEGE-16) ; le NOM connu seul décide (ADR-005) — l'identifiant qui porte le curseur se lit, la forme se vérifie au passage (le modificateur se nomme en position d'appel, blanc intercalé toléré, le récepteur se survole en toute position), les refus rendent un survol nul, jamais un texte faux ; la lecture est TEXTUELLE, jamais lexicale — limite documentée. Le serveur de référence de la démo sert la table au fil du protocole (B-09 inchangé par ailleurs), l'échantillon Kotlin gagne sa chaîne `Modifier.padding(16.dp)`. Banc : `DocModificateursTest` (8 tests — documentation servie, plage aux bornes, récepteur, forme d'appel, refus, bornes du curseur, lecture textuelle) et la spécification C-10 de `BancSpecs` rejouée par `BancSpecsTest` — l'appui long du doigt sélectionne le nom, la documentation s'ancre au curseur. La matrice gagne la ligne C-10 : 122 lignes couvertes sur 125.
+- **La documentation des modificateurs d'agencement vit en `core-lsp`** : `DocModificateurs` porte la table — padding, background, size, fillMaxWidth, weight, align, offset, clickable, alpha, border, clip, shadow, aspectRatio, wrapContentSize… et le récepteur `Modifier` lui-même, dix-neuf entrées, textes français, signature vivante en clôture Kotlin (PIEGE-16) ; le NOM connu seul décide (ADR-005) — l'identifiant qui porte le curseur se lit, la forme se vérifie au passage (le modificateur se nomme en position d'appel, blanc intercalé toléré, le récepteur se survole en toute position), les refus rendent un survol nul, jamais un texte faux ; la lecture est TEXTUELLE, jamais lexicale — limite documentée. Le serveur de référence de l'exemple consommateur sert la table au fil du protocole (B-09 inchangé par ailleurs), l'échantillon Kotlin gagne sa chaîne `Modifier.padding(16.dp)`. Banc : `DocModificateursTest` (8 tests — documentation servie, plage aux bornes, récepteur, forme d'appel, refus, bornes du curseur, lecture textuelle) et la spécification C-10 de `BancSpecs` rejouée par `BancSpecsTest` — l'appui long du doigt sélectionne le nom, la documentation s'ancre au curseur. La matrice gagne la ligne C-10 : 122 lignes couvertes sur 125.
 
 ### Hiérarchies — les types et les appels se parcourent en arbres (B-12)
 - **Les hiérarchies de types et d'appels vivent en `core-intelligence`** : `Hierarchies.types` rend les ancêtres par générations et les descendants en profondeur — les clauses `extends`/`implements` se lisent à l'en-tête, chevron de généricité porté à part (le `T extends Nombre` d'une borne n'est pas un parent), le nom qualifié prend son dernier segment ; `Hierarchies.appelants` rend les appelants en arbre — chaque site d'appel nu ou `this.nom(` compte, la signature de la méthode homonyme s'épargne, la récursion directe se montre une fois (profondeur un) ; le doute se signale SANS arête, jamais tranché (récepteur étranger `x.nom(`, référence de méthode `nom::`, appel hors méthode) ; les parents hors du projet embarqué se signalent introuvables, la frontière s'arrête là. L'index reste nominal (ADR-005) : les surcharges homonymes fusionnent, limite documentée. Banc : `HierarchiesTest`, 12 tests — profondeur trois d'ancêtres et quatre d'appels sur le corpus multi-fichiers, descendants en profondeur, bornes de généricité, nom qualifié, introuvables, doute (récepteur étranger, appel hors méthode), récursion, construction exclue, nom blanc. La matrice gagne la ligne B-12.
@@ -205,15 +205,15 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 
 ### Reprise du propriétaire — cinq écarts redressés, la revue ouverte
 - **La reprise du 2026-11-12 a couvert les cinq écarts de la revue comparative** : l'icône de pli répond au doigt (`PliAuTapTest`, PIEGE-02 tenu par vidage du cache) ; la minimap se rend COLORÉE (`MinimapModelTest` — segments encrés, code, chaînes, commentaires, nombres, mots-clés) ; la toolbar porte son débordement dans la CARTE du kit et sa barre de touches au-dessus du clavier (`TouchBarViewTest`, ADR-018) ; l'Entrée entre accolades rend le repli textuel (`EntreeRepliTextuelTest`) ; le serveur Java déclaré s'éprouve entier — la signature joint le survol au POINT D'USAGE, les diagnostics se poussent, les popups vivent aux bons moments (`JavaSignatureTest`, `JavaHoverTest`, `ServeurDeclareMomentsTest`, H-13). La revue comparative s'ouvre contre Android Studio :
-  [`ANALYSE-COMPARATIVE-2.md`](docs/audit/ANALYSE-COMPARATIVE-2.md) — 119 lignes de la matrice couvertes sur 125, AUCUNE P0 ouverte, six P2 restantes. La porte verte se referme au passage{NB}: parité des ressources mesurée aux noms (ADR-008), plafonds ADR-002 repris (le serveur, la minimap, la démo redescendent sous les plafonds), manifeste d'API du serveur committé (ajouts purs, SemVer tenu).
+  [`ANALYSE-COMPARATIVE-2.md`](docs/audit/ANALYSE-COMPARATIVE-2.md) — 119 lignes de la matrice couvertes sur 125, AUCUNE P0 ouverte, six P2 restantes. La porte verte se referme au passage{NB}: parité des ressources mesurée aux noms (ADR-008), plafonds ADR-002 repris (le serveur, la minimap, l'exemple consommateur redescendent sous les plafonds), manifeste d'API du serveur committé (ajouts purs, SemVer tenu).
 
 ### Langages par paquets — Go et Rust, la longue traîne reprend (C5)
 - **Go et Rust vivent en paquets intégrés** : la longue traîne reprend — `langages/go` et `langages/rust` reprennent les grammaires du dépôt VS Code SANS MODIFICATION (main vérifié le 2026-11-12 ; go convertie du projet worlpaker/go-syntax, rust du projet dustypomerleau/rust-syntax, l’amont consigné au cgmanifest du dépôt vscode) ; `PaquetGoIntegreTest` et `PaquetRustIntegreTest` verrouillent l’égalité octet pour octet, les acceptations (go 85,3 % ≥ 85 %, rust 100 % ≥ 98 %) et le rejeu déterministe des échantillons ; le banc du commerce compte quinze grammaires, la matrice compte vingt-quatre langages intégrés. Le reste de la traîne (vingt-sept du dépôt de départ) dort sur le signal du propriétaire.
 
-### Publication distante — les douze artefacts paraissent (C1)
+### Publication distante — les onze artefacts paraissent (C1)
 - **La publication distante vit enfin** (2026-11-12) : les DOUZE artefacts
   `jo.celeris:*` — les huit modules purs, les trois bibliothèques Android
-  en AAR, le nouveau `serveur-lsp-java` — paraissent au registre de
+  en AAR — paraissent au registre de
   paquets de l’hébergeur (`maven.pkg.github.com/jjoblab/celeris`, ADR-011) ;
   un projet vierge consomme `jo.celeris:core-text:1.1.0` (compile, exécute,
   édite) et l’AAR `android-view` s’y vérifie : les sommes SHA-256 des
@@ -224,7 +224,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 
 ### Étage appareil de vérification — le second étage passe vert (C11)
 
-- **Les quatre bancs d'instrumentation vivent dans `demo/src/androidTest`**
+- **Les quatre bancs d'instrumentation vivent au second étage de vérification**
   et PASSENT VERT sur l'appareil (premier passage vert le 2026-11-12,
   déclenchement manuel) : `PinchZoomOnDeviceTest` (les mêmes
   `MotionEvent` que le banc JVM, envergures calibrées au-dessus de
@@ -261,7 +261,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 
 ### Mini serveur de langage Java — le compagnon de banc de l'éditeur
 
-- **Le module `serveur-lsp-java` (JVM pure, douzième artefact publié)** :
+- **Un serveur de langage de banc vit au dépôt (JVM pure)** :
   un serveur LSP Java complet mais volontairement petit, déterministe,
   sans réseau ni système de fichiers — pour éprouver l'éditeur de bout
   en bout contre un serveur réel, sans archive tierce.
@@ -275,25 +275,25 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 - **Le montage** : la convention des serveurs embarqués (constructeur
   vide, `setClient`) — montable par objet, PAR DÉSIGNATION (la voie des
   déclarations `servers.json`), ou exécutable seul sur l'entrée-sortie
-  standard (`JavaLanguageServerMain`) pour les bancs et l'intégration
+  standard pour les bancs et l'intégration
   continue qui veulent un processus séparé. Il ne surveille jamais la
   mort d'un processus parent (le piège fatal aux hôtes embarqués,
   constat M8.6).
-- **La preuve** : `JavaLanguageServerTest` monte le serveur sur des
+- **La preuve** : le banc LSP monte le serveur sur des
   tubes à file et le rejoint par la session cliente de `lsp-protocole`
   — la poignée de main, les diagnostics poussés, la complétion
   documentée, le survol, les symboles, les plis et le formatage
   traversent les deux bouts de la même bibliothèque, et le montage par
-  désignation s'y éprouve comme la démo le vivra ; les analyses pures
+  désignation s'y éprouve comme l'exemple consommateur le vivra ; les analyses pures
   ont chacune leur banc (`JavaSourceTest`, `JavaDiagnosticsTest`,
   `JavaSymbolsTest`, `JavaFoldsTest`, `JavaCompletionTest`,
   `JavaHoverTest`, `JavaFormatterTest`) et l'architecture son
   `ArchitectureTest` (aucune dépendance montante, la bibliothèque
-  exceptée). La démonstration déclare le serveur en donnée
+  exceptée). La exemple consommateur déclare le serveur en donnée
   (`serveurs/servers.json`, langage Java) et le monte par la
   désignation : `DeclaredServersTest` le prouve.
 - **Ruptures pré-1.0 (ADR-009)** : aucune — module nouveau, manifeste
-  `api/serveur-lsp-java.api` commité.
+  son manifeste d'API commité.
 
 ### Chantier C2 — hygiène du dépôt
 
@@ -535,8 +535,8 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   pose sur le moteur générique plage par plage (multi-curseurs mêlés
   compris), la lecture des chaînes est textuelle — elle survit à l'arbre
   périmé d'une édition à peine frappée (`JavaSmartTypingTest`) ; câblé dans
-  la démo par la langue du fichier — les citations d'un attribut XML ne
-  se découpent jamais (`DemoIntelligenceTest`).
+  l'exemple consommateur par la langue du fichier — les citations d'un attribut XML ne
+  se découpent jamais (`BancIntelligenceTest`).
 
 - **L'auto-import adossé au classpath (C8)** : `ClasspathIndex` porte
   l'index de l'hôte — nom simple vers noms qualifiés, ordre de préférence
@@ -546,7 +546,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   se re-propose pas, les autres candidats du même nom restent proposés —
   le choix reste à l'utilisateur. L'insertion vit chez `ImportAuto` :
   une édition de position unique à la tête du bloc
-  (`ClasspathImportsTest`) ; câblé dans l'atelier de la démo sur le
+  (`ClasspathImportsTest`) ; câblé dans l'atelier de l'exemple consommateur sur le
   classpath du terrain — le geste d'import suit le symbole au curseur.
 
 - **La signature riche (C7)** : `SignatureAideModel` porte les surcharges —
@@ -560,7 +560,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   atténué) ; le pas au toucher prévient l'hôte par le rappel. La
   conversion du protocole porte TOUTES les entrées
   (`ServeurLangage.enModele`) ; le coach sert le repli local sur
-  réponse vide (`AtelierPopups`). Bancs : `SignatureAideModelTest`
+  réponse vide (banc d'intégration). Bancs : `SignatureAideModelTest`
   (stepper, fenêtre, peek, bornes), `PopupViewsTest` (le pas au toucher,
   le peek à l'appui long, une seule signature ne passe pas).
 
@@ -575,7 +575,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   reste `${NOM}`, les macros de l'ancien vivaient en MAJUSCULES
   (`$FILE$`, `$DATE$`, `$USER$`) — la table de l'hôte porte les valeurs.
   Les miroirs étaient livrés (M5, `Gabarits.miroirs`). Câblé dans la
-  démo : le gabarit de méthode gagne la macro FICHIER (résolue du
+  banc : le gabarit de méthode gagne la macro FICHIER (résolue du
   nom du fichier ouvert) et le trou à choix du genre du retour
   (`AtelierRefactorTest`).
 
@@ -588,7 +588,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   en un trait à sa charge, la fenêtre visible à l'encre d'accent :
   l'appui ET le glissement sautent, le doigt tient la carte ; aucune
   allocation par image, 200 crans au plus — le budget de rendu tient
-  (ADR-006). Câblée dans la démo au bord droit, à gauche du pouce et de
+  (ADR-006). Câblée dans l'exemple consommateur au bord droit, à gauche du pouce et de
   la bande d'erreurs (`MinimapModelTest`, `PopupSurfacesTest`).
 
 - **Le défilement rapide (C9)** : `FastScrollerView` — le pouce au bord
@@ -644,7 +644,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   la police libre vit sous son nom de famille dans la table de la
   règle : la mesure et le tracé la lisent ensemble (PIEGE-22), la
   famille active se redérive — métriques, viseur, cache. La
-  démonstration embarque Fira Code 6.2 (SIL OFL 1.1, attribuée au
+  exemple consommateur embarque Fira Code 6.2 (SIL OFL 1.1, attribuée au
   `NOTICE`, somme SHA-256 épinglée) : l’interrupteur « Ligatures »
   de la feuille des réglages l’ouvre, la famille suit. L’`EditorView`
   tient son plafond ADR-002 : le montage de la gouttière déménage
@@ -716,7 +716,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   convention de publication — AAR de la variante release, sources,
   Javadoc, POM, métadonnées Gradle, SBOM CycloneDX et sommes de
   contrôle SHA-256, aux mêmes coordonnées `jo.celeris:*` que les huit
-  modules purs. **Onze artefacts publiés** au total ; la démo et la cli
+  modules purs. **Onze artefacts publiés** au total ; l'exemple consommateur et la cli
   restent des applications, jamais publiées.
 - **La variante release se déclare une fois** dans la convention des
   bibliothèques Android (`singleVariant("release")`, sources et
@@ -742,7 +742,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   relevés au 2026-11-11) et portes propres ; les modules purs citent
   leur manifeste d'API, les modules Android en sont exempts (ADR-009 ne
   couvre que les modules purs) et déclarent leur AAR publié depuis le
-  2026-11-11 ; la cli et la démo se déclarent applications, jamais
+  2026-11-11 ; la cli et l'exemple consommateur se déclarent applications, jamais
   publiées.
 - **Le README racine dit l'état réel** : 1.0.0 livrée le 2026-11-10 en
   publication locale, 1.1.0 en chantier, dix chantiers clos, un qui
@@ -816,7 +816,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   des bancs dédiés : ils restent consignés au rapport d'audit pour
   traitement ultérieur, jamais corrigés en aveugle.
 
-### La démonstration vit sans serveur embarqué
+### La exemple consommateur vit sans serveur embarqué
 
 - **Le repli de référence reprend la main** : plus aucune dépendance
   tierce ne vit dans le dépôt — la déclaration de l'hôte se vide, le
@@ -862,10 +862,10 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   de correspondance API, reprise des thèmes et gabarits, extensions
   de langage, checklist de performances) ; le README rattrape l'état
   (treize modules, ADR 001-017, catégories A à H).
-- **Démonstration complète (M9-e)** : le paquet jouet de
+- **Preuve complète (M9-e)** : le paquet jouet de
   l'utilisateur se joue à chaud depuis les réglages (H-04) — un
   langage ENTIER en données seules (Logo), copié au stockage, chargé
-  sans recompiler ; la matrice passe la ligne à DÉMONTRÉ.
+  sans recompiler ; la matrice passe la ligne à PROUVÉ.
 - **Publication 1.0.0** : artefacts à `jo.celeris:*:1.0.0`, SBOM et
   sommes de contrôle vérifiés.
 
@@ -949,7 +949,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   core-language)** : nom, couleurs d'éditeur (`editor.background`,
   `editor.foreground`) et règles au sélecteur chaîne ou liste
   se lisent ; l'encre exige l'opacité, la première faute nomme sa
-  position. La démonstration s'en sert : le thème « Atelier »
+  position. La exemple consommateur s'en sert : le thème « Atelier »
   (écrit ici, au format du commerce) rejoint la rotation des thèmes
   — son chrome vient du fichier, sa palette par sorte se DÉRIVE des
   résolutions du thème : une seule table de couleurs vit dans le
@@ -977,8 +977,8 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   son langage — et les SEIZE paquets intégrés n'en déclarent AUCUN :
   l'éditeur ne connaît pas les serveurs de ses hôtes, il porte la
   déclaration jusqu'à eux (règle du propriétaire : le module de
-  démonstration n'est pas l'utilisateur final de l'éditeur).
-- **La démonstration déclare, le montage exécute** : la ressource `serveurs/servers.json` du module démo porte les déclarations de l'hôte ; `DeclaredServers` lit la donnée, vérifie la DISPONIBILITÉ (la classe vit au chemin de classes) et monte par la désignation de la frontière — l'aiguillage codé en dur de `EditorActivity` disparaît, l'exemption `LangagesDemo` du contrôle d'enregistrement se retire (plus aucun littéral à exempter). Indisponible, le serveur déclaré cède la place au
+  exemple consommateur n'est pas l'utilisateur final de l'éditeur).
+- **L'hôte déclare, le montage exécute** : la ressource `serveurs/servers.json` porte les déclarations de l'hôte ; `DeclaredServers` lit la donnée, vérifie la DISPONIBILITÉ (la classe vit au chemin de classes) et monte par la désignation de la frontière — l'aiguillage codé en dur disparaît (plus aucun littéral à exempter). Indisponible, le serveur déclaré cède la place au
   serveur de référence (M7.5, §8) — l'index répond vite et hors
   ligne, le serveur répond juste, la vue ne sait toujours pas qui a
   répondu (ADR-005).
@@ -993,11 +993,11 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   refus précis des trois transports, paquet qui déclare le langage
   d'un autre refusé, paquets intégrés sans serveur, plateforme
   assemble les déclarations du paquet ET de l'hôte) ;
-  `DeclaredServersTest` (la déclaration de la démo décrit le serveur
+  `DeclaredServersTest` (la déclaration de l'exemple consommateur décrit le serveur
   XML, le langage déclaré monte SON serveur, sans déclaration ni
   serveur indisponible le repli répond) ; les SEPT tests de parité et
   les HUIT de couverture rejoués INTACTS par le chemin de la
-  déclaration — aucun nom de serveur dans le code de la démo.
+  déclaration — aucun nom de serveur dans le code de l'exemple consommateur.
 
 ### M7.6 (étape 8) — la couverture LSP nouvelle : treize méthodes derrière la frontière, le monteur embarqué les sert (2026-11-10)
 
@@ -1012,7 +1012,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   (`SymboleLsp`, `PliLsp` fin EXCLUSIVE — la convention de l'arbre
   commun, `SurlignageLsp`, `OptionsFormatageLsp`,
   `PreparationRennomageLsp`) et `CapacitesServeur` porte ses quatre
-  capacités nouvelles. La porte de session de la démonstration
+  capacités nouvelles. La porte de session de l'exemple consommateur
   (`LanguageSession`) les déclare toutes : le serveur réel, le serveur
   de référence et le terrain muet y répondent — la vue ne voit que le
   domaine.
@@ -1039,15 +1039,15 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 - **Ruptures pré-1.0 (ADR-009)** : `CapacitesServeur.de` gagne quatre
   paramètres, `ServeurEmbarque.Documents` gagne trois replis
   (`formatagePlage`, `plagesSelection`, `jetonsPlage`), `LanguageSession`
-  de la démo gagne treize méthodes, `JetonSemantique`/`JetonsSemantiques`
+  de l'exemple consommateur gagne treize méthodes, `JetonSemantique`/`JetonsSemantiques`
   deviennent `SemanticTokenLsp`/`SemanticTokensLsp` (la règle de langue,
   la ligne de base de `core-lsp` descend à zéro) — manifestes
   régénérés.
 
-### M7.6 (étape 7) — le client LSP passe par la bibliothèque derrière la frontière, le code maison disparaît, la démo réduite par R8 est prouvée (2026-11-10)
+### M7.6 (étape 7) — le client LSP passe par la bibliothèque derrière la frontière, le code maison disparaît, l'exemple consommateur réduite par R8 est prouvée (2026-11-10)
 
 - **La frontière protocolaire `lsp-protocole` (ADR-015) porte désormais
-  le protocole SEULE** : la parité était prononcée — les bancs de la démonstration passaient SANS MODIFICATION par la frontière —, le code maison est coupé : décodages JSON, cadrage
+  le protocole SEULE** : la parité était prononcée — les bancs de l'exemple consommateur passaient SANS MODIFICATION par la frontière —, le code maison est coupé : décodages JSON, cadrage
   RPC, `ClientLsp`, transports — 334 lignes d'API publique rendues au
   manifeste, la couverture du domaine se reconstruit par construction
   directe (`CapacitesServeurTest`, `TypesDomaineLspTest`).
@@ -1060,9 +1060,9 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   type ») ; les traces indices et édition d'espace attendent la
   couverture nouvelle (H-12) — l'édit de gabarit `celeris/templateEdit`
   reste une forme nôtre que les types standard refusent.
-- **Les règles R8 consommateur sont prouvées sur la démo réduite**
+- **Les règles R8 consommateur sont prouvées sur l'exemple consommateur réduite**
   (ADR-015) : `lsp-protocole/regles-conservation.pro` garde le fil
-  réflexif (rouage JSON, proxys, TypeToken), `demo/regles-r8.pro`
+  réflexif (rouage JSON, proxys, TypeToken), les règles R8 consommateur
   garde le serveur embarqué monté par désignation et son archive
   découpée au octet près. `assembleRelease` vert : 6,3 Mo et
   6 383 classes contre 10,3 Mo et 14 005 au débogage (−39 % /
@@ -1090,9 +1090,9 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   `OutlineRule`/`RuleOutline` — la première règle qui matche nomme la
   ligne, l'entrée couvre sa région de pli) ; Python, YAML et SQL ont
   plis et plan sans une ligne de Java dédiée — la vue, le cli et la
-  démo les servent par la plateforme (`DataStructureTest`,
-  `DataStructureDemoTest`), deux fichiers d'exemple les rendent
-  visibles à la démonstration (`dependances.yml`, `inventaire.sql`).
+  les bancs les servent par la plateforme (`DataStructureTest`,
+  `DataStructureBancTest`), deux fichiers d'exemple les rendent
+  visibles à l'exemple consommateur (`dependances.yml`, `inventaire.sql`).
 - **Niveau 3 (H-10, ADR-016)** : Java, Kotlin, KTS et Groovy deviennent
   des spécialisations d'au plus 150 lignes (134, 123 et 147) du socle
   `CLikeLexer`/`CLikeParser` — les douze classes par langage disparaissent,
@@ -1170,7 +1170,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 
 ### M7.6 — le spike du client LSP prouve LSP4J 1.0.0 (2026-11-08)
 
-- **ADR-015 : LSP4J 1.0.0 derrière la frontière `lsp-lsp4j`**. Le spike lance un serveur de langage par le `LSPLauncher` de la 1.0.0 et rejoue poignée de main, diagnostics poussés, complétion documentée, survol et extinction — tout passe (identique sous 0.24.0 et 0.23.1). L'arbre des dépendances tient en gson seul (intervalle [2.9.1, 3.0) : **copie unique** épinglée au catalogue). Côté Android : 728 Ko de dex, 1 636 méthodes, zéro référence interne (d8 + dexdump). Restent à l'intégration : règles R8 sur la démo réduite, appareil API 26 — avant toute suppression du code maison, comme le prompt l'exige.
+- **ADR-015 : LSP4J 1.0.0 derrière la frontière `lsp-lsp4j`**. Le spike lance un serveur de langage par le `LSPLauncher` de la 1.0.0 et rejoue poignée de main, diagnostics poussés, complétion documentée, survol et extinction — tout passe (identique sous 0.24.0 et 0.23.1). L'arbre des dépendances tient en gson seul (intervalle [2.9.1, 3.0) : **copie unique** épinglée au catalogue). Côté Android : 728 Ko de dex, 1 636 méthodes, zéro référence interne (d8 + dexdump). Restent à l'intégration : règles R8 sur l'exemple consommateur réduite, appareil API 26 — avant toute suppression du code maison, comme le prompt l'exige.
 
 ### M7.6 — le spike du moteur d'expressions rationnelles tranche pour joni (2026-11-08)
 
@@ -1275,7 +1275,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   au bord droit (10 dp tactiles) et colore ses marques à la gravité
   (le modèle porte désormais la sienne) ; la barre de sélection
   surligne sa pastille pressée de la teinte de sélection. La
-  démonstration dérive la palette du thème d'éditeur courant — le
+  exemple consommateur dérive la palette du thème d'éditeur courant — le
   verre suit la rotation des thèmes et la taille de texte de l'éditeur
   (le coach sert les candidats typés : genre de badge, signature en
   identité qualifiée, préfixe de match).
@@ -1297,17 +1297,17 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   cesse d'être muette (A-06), le retour arrière mange les paires
   vides (A-07), le collage multiligne s'aligne à l'accueil (A-09) ;
   sans fournisseur la frappe passe telle quelle, l'Entrée reste un
-  saut nu. La complétion de la démonstration lit les mots du CODE par
+  saut nu. La complétion de l'exemple consommateur lit les mots du CODE par
   l'analyse publiée — jamais les chaînes (B-03) —, le coach ne garde
   que le repli. L'atelier de refactorisation porte gabarit (A-22),
   formatage (B-25), renommage des usages entiers (B-19) et import
   (B-27) au menu, chaque geste une transaction annulable. Le serveur
   de langage de référence vit EN PROCESSUS : l'aide aux paramètres
   (B-07) et le survol (B-09) arrivent par le fil du protocole,
-  l'ordonnanceur annule et remplace (PIEGE-18). La démonstration
+  l'ordonnanceur annule et remplace (PIEGE-18). La exemple consommateur
   vérifie ses scénarios : douze spécifications rejouées par le fil
   réel au banc de l'accueil, douze lignes de la matrice montent à
-  « Démontré ». La recette s'enrichit des étapes 12 à 27.
+  « Prouvé ». La recette s'enrichit des étapes 12 à 27.
 
 ### M7.5 — reprise : les dix popups (2026-11-07)
 
@@ -1323,7 +1323,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   changement de fenêtre (`setSurViewportChange` — un avis par état
   réel, jamais au clignotement) ; la session notifie chaque
   changement effectif de sélection (`SelectionListener`, toute source
-  comprise). La démonstration branche les dix : PopupCoach décide (le
+  comprise). La exemple consommateur branche les dix : PopupCoach décide (le
   filtrage par préfixe, la signature comptée à plat, la documentation
   du serveur factice), la barre de recherche coordonne son état — son
   champ garde le focus, la couche l'interdit.
@@ -1365,8 +1365,8 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   chaque commit.
 - La vérité des tableaux de bord : cadre de statut à cinq niveaux,
   audit mécanique de la matrice (63 « livrés » affirmés ; 39 Câblé,
-  54 Noyau, 17 Non démarré, 0 Démontré prouvés), cinq contrôles
-  bloquants dans check (matrice, pièges, démo, rempart de langue —
+  54 Noyau, 17 Non démarré, 0 Prouvé), cinq contrôles
+  bloquants dans check (matrice, pièges, rempart de langue —
   408 identifiants français figés —, dates contre l'historique git).
   RemapLignes se retire (remplacé par TokenCatchUp) ;
   MarquesGouttiere.coulisse(coulisseSyntaxe, charWidth) devient
@@ -1387,7 +1387,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   ramenait avant l'édition suivante — la source se réhabille à chaque
   publication (le cache de rangées suit), et pendant le vol, la
   publication périmée rattrape par remappage : les lignes épargnées par
-  l'édition gardent leurs couleurs (contenu démontré identique,
+  l'édition gardent leurs couleurs (contenu prouvé identique,
   `RemapLignes`), la seule ligne touchée attend son encre le temps du
   vol (PIEGE-20 : jamais une ligne au contenu non prouvé identique ne
   se colore, une rafale au-delà du plafond retombe sans couleur).
@@ -1398,7 +1398,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   l'image), répétée sous la fenêtre sans coupure (le contenu
   « éparpillé ») ; l'état d'image borne désormais sa fenêtre au contenu
   (ScrollGeometry.borneesAuContenu), test de reproduction sur les
-  contenus et langages réels de la démonstration, plis compris.
+  contenus et langages réels de l'exemple consommateur, plis compris.
 - Le texte de l'éditeur se traçait à la police par défaut de la
   plateforme pendant que les positions se calculaient à la police de
   l'éditeur : colonnes dérivées, plages décalées, glyphe hors métrique
@@ -1417,16 +1417,16 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   — pleine hauteur de rangée, clignotante tant que la vue tient le
   focus ; les poignées de sélection s'élargissent à la police.
 
-- La démonstration s'ouvrait en arrêt forcé sur l'appareil : les
+- La exemple consommateur s'ouvrait en arrêt forcé sur l'appareil : les
   barres d'application de l'accueil et des réglages ne portaient ni
   `layout_width` ni `layout_height` — l'inflation mourait au premier
   écran, et ni la compilation ni l'assemblage ne le disaient ; un
   test de cohérence des mises en page (chaque vue doit porter ses
   dimensions) ferme la porte.
-- L'accueil de la démonstration affichait une liste vide : le
+- L'accueil de l'exemple consommateur affichait une liste vide : le
   catalogue des cartes n'était jamais soumis à l'adaptateur — les
   fichiers d'exemple n'étaient pas ouvrables depuis l'accueil.
-- L'APK de la démonstration porte désormais un numéro de version
+- L'APK de l'exemple consommateur porte désormais un numéro de version
   (`versionCode` 1, `versionName` lu au catalogue) : le manifeste
   assemblé en était dépourvu, et certains installateurs refusent un
   paquet sans version.
@@ -1437,15 +1437,15 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   contexte consulte le consentement à chaque départ — sans lui, la
   requête reste au sol, fantôme et prédiction compris, le journal du
   faux modèle en témoigne ; l'interrupteur des réglages de la
-  démonstration reste coupé par défaut, l'atelier IA refuse poliment
+  exemple consommateur reste coupé par défaut, l'atelier IA refuse poliment
   sans lui. La neutralité est structurelle : le manifeste de la
-  démonstration ne déclare aucune permission — pas même INTERNET — et
-  le test CI DemoNeutreTest le vérifie ; le scénario d'exclusions y
+  exemple consommateur ne déclare aucune permission — pas même INTERNET — et
+  le test CI le test de neutralité le vérifie ; le scénario d'exclusions y
   passe (le chemin exclu ne part jamais, même consentant). Le budget
   de latence d'affichage du fantôme se consigne : mille tracés au
   minimum de trois tours, chaque tracé sous le budget d'une image à
   soixante hertz. La catégorie F complète entre au catalogue de la
-  démonstration ; aucun paquet celeris n'embarque de télémétrie,
+  exemple consommateur ; aucun paquet celeris n'embarque de télémétrie,
   l'option reste à l'hôte, documentée au README.
 - Tranche 5 (M8) — le rendu du fantôme et le menu d'intentions
   (F-01 interface, F-02, F-03) : la couche FantomePainter dessine la
@@ -1487,7 +1487,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   arrière, la lecture en ligne rend les retraits et insertions par bloc
   (« - » et « + ») ; l'application se prend en une transaction
   annulable et refuse explicitement le document qui a bougé (jamais de
-  fusion silencieuse). La démonstration révise son agent factice bloc
+  fusion silencieuse). La exemple consommateur révise son agent factice bloc
   par bloc, retour au point de contrôle compris.
 - Tranche 1 (M8) — les contrats IA (ADR-012) : le texte fantôme
   (F-01, noyau — suggestion multiligne datée par révision, jamais
@@ -1511,7 +1511,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   bloc avec réalignement et points de contrôle) ; les grands écrans
   (D-19 — ClasseLargeur suit les seuils des classes de taille, la
   gouttière resserre ou respire, le pliable déplié change de classe
-  d'un geste). La démonstration relit son diff bloc par bloc et
+  d'un geste). La exemple consommateur relit son diff bloc par bloc et
   applique la fusion en une transaction annulable.
 - Tranche 8 (M7) — les pastilles de couleur et les repères `@Preview`
   : les quatre formes de littéraux Android se résolvent (C-05 — la
@@ -1520,7 +1520,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   annotation `@Preview` ancre son losange dans la coulisse (C-11 — le
   nom du composable se lit sur place ou dessous, le clic délègue le
   rendu à l'hôte). couleurs.xml et Apercus.kt entrent au catalogue de
-  la démonstration.
+  l'exemple consommateur.
 - Tranche 7 (M7) — les langages P1 restants par la voie de grammaires
   (C-15) : SQL (mots insensibles à la casse, blocs repliés), C
   (préprocesseur, types natifs, corps repliés) et C++ (classes, espaces
@@ -1537,7 +1537,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   (C-12 — AnalyseurLint), les lignes porteuses se peignent dans la
   gouttière fondues aux erreurs de la syntaxe, les correctifs
   mécaniques (ellipse, cadratin) s'appliquent en transactions
-  annulables — AtelierLint et FauxLint servent la démonstration.
+  annulables — AtelierLint et FauxLint servent l'exemple consommateur.
 - La bascule du retour à la ligne souple entre dans la barre de
   l'atelier — icône directe, état dans le libellé, persistance
   partagée avec les réglages ; plus besoin de quitter l'éditeur pour
@@ -1546,7 +1546,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   (CurseurClavier) quittent la vue pour leurs collaborateurs — même
   famille qu'AccessibilityHost ; la vue reste sous le plafond de
   600 lignes.
-- L'interface de la démonstration devient application : vrais layouts
+- L'interface de l'exemple consommateur devient application : vrais layouts
   Material 3 (accueil en cartes à monogrammes de langage, atelier
   d'édition à barre d'application et menu, réglages décrits), identité
   sombre coordonnée à la palette de l'éditeur, marque en icône
@@ -1558,7 +1558,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   posé, creux désactivé), repère d'exécution par-dessus (D-05, flèche
   de ligne courante, chevrons de pile) ; la coulisse s'élargit de
   deux caractères, la fusion vit dans GutterMarks.avec, MarqueLigne /
-  EtatArret / MarquesIntegration purs et testés ; la démonstration
+  EtatArret / MarquesIntegration purs et testés ; l'exemple consommateur
   devient terrain de débogage — clic des numéros pour poser et
   retirer les arrêts, bouton de débogage (pause simulée au premier
   arrêt actif avec pile de deux cadres, reprise), diff ligne à ligne
@@ -1591,7 +1591,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   survol borné), exécution (lancements signalés, états visibles),
   analyseur de problèmes de build (plages exactes), analyseur de
   piles (fichier:ligne exact).
-- Tranche 1 (M7) — la démonstration devient terrain d'essai : écran
+- Tranche 1 (M7) — l'exemple consommateur devient terrain d'essai : écran
   d'éditeur complet (vue Canvas, barre de recherche vivante, panneau
   de plan cliquable, barre d'état, zoom de police, thèmes cyclés,
   annuler/rétablir), huit fichiers d'exemple — un par langage P0
@@ -1634,7 +1634,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   renommage multi-fichiers B-19 sur l'index hors ligne aux conflits
   signalés (ambiguïté, collision), correctifs B-17 par transaction,
   squelettes de méthode B-06 aux trous tabulables, composition
-  démontrée de bout en bout chez le consommateur (ADR-002 : les
+  prouvée de bout en bout chez le consommateur (ADR-002 : les
   modules purs restent latéraux) ; 16 tests neufs.
 - Tranche 5 (M6) — complétion de base B-03 (les mots du fichier au
   préfixe près, hors chaînes et commentaires, le mot tapé jamais
@@ -1685,7 +1685,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   D-08/D-09/D-10, chaque ligne de matrice M5 porte son scénario au
   catalogue — quarante-trois scénarios ; 146 tests neufs (990
   à la passe de clôture), mutation 85,2 % (seuil 80),
-  publication locale et APK de démonstration assemblés ; le
+  publication locale et APK de exemple consommateur assemblés ; le
   catalogue restructuré en sous-listes sous le plafond Checkstyle.
 - Tranche 6 (M5) — lignes collantes, caractères invisibles, stylet
   et plugins isolés (A-16, A-19, D-18, G-04) : StickyLines colle
@@ -1747,7 +1747,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   2,59 ms), corpus embarqués, scénarios B-01, B-16, A-15, C-01,
   C-07, C-14 à C-16 et G-01 au catalogue (vingt-deux scénarios) ;
   851 tests verts, manifestes d'API à jour (api/core-syntax-grammars
-  posé), publication locale et APK de démonstration assemblés.
+  posé), publication locale et APK de exemple consommateur assemblés.
 
 - Tranche 9 (M4) — la voie de grammaires pour la longue traîne
   (C-15/C-16) : nouveau module pur core-syntax-grammars — grammaires
@@ -1781,7 +1781,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   désormais son chunk — et l'assemblage du lexique copie de masse le
   préfixe et le suffixe intacts (plancher abaissé pour tous les
   langages, 0,19 à 1,18 ms mesurés sur 50 000 lignes) ; scénario
-  C-07 au catalogue de la démonstration ; 791 tests verts.
+  C-07 au catalogue de l'exemple consommateur ; 791 tests verts.
 
 - Tranche 6 (M4) — l'analyse quitte le fil d'appel : jeton d'annulation
   sous moniteur (ADR-007 — ni volatile ni atomique au cœur, règles
@@ -1938,7 +1938,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   fins de ligne dominantes (`Encoding`, `EncodingCodec`, `Utf8Codec`,
   `WideCodecs`) ; suppression arrière par clusters entiers, tous
   curseurs, plages fusionnées au toucher, par la voie unique
-  (PIEGE-07) ; scénarios de démo M2 au catalogue (A-13, A-18, A-20,
+  (PIEGE-07) ; scénarios de banc M2 au catalogue (A-13, A-18, A-20,
   A-24, A-25) avec test de fumée ; mutation 85,1 % (1513/1777, seuil
   80 %).
 - Tranche 2 — pièges du texte, tests écrits avant le code (PIEGE-07/08/13,
@@ -1978,7 +1978,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 
 ### Corrigé
 
-- la démonstration n'affichait jamais le contenu du fichier ouvert :
+- l'exemple consommateur n'affichait jamais le contenu du fichier ouvert :
   la session préparée n'était pas branchée sur EditorView, qui gardait
   sa session vide d'origine — le branchement se fait à la création de
   la scène.
@@ -2014,7 +2014,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
 - Propriétés jqwik à oracle `StringBuilder` (environ 10 300 séquences
   aléatoires par exécution — objectif ADR-003 atteint pour la rope) ;
   le fuzz Jupiter passe à graines fixes reproductibles (exigence de la
-  mutation) ; le harnais de démonstration M1 est retiré, remplacé
+  mutation) ; le harnais de exemple consommateur M1 est retiré, remplacé
   par les propriétés réelles.
 
 ### Corrigé
@@ -2042,7 +2042,7 @@ propriétaire arrive — d'autres projets l'utilisent encore, l'archivage n'est 
   dans le résumé M0 (question 5 — appareil de référence des budgets —
   ouverte).
 - Fondations M1 : `build-logic` à plugins de convention, catalogue unique,
-  squelette exécuté des dix modules et de la démonstration, cli, workflows
+  squelette exécuté des dix modules et de l'exemple consommateur, cli, workflows
   CI épinglés par somme SHA avec validation du wrapper.
 - Portes qualité bloquantes dès le premier commit : Checkstyle, PMD, Error
   Prone + NullAway (JSpecify), JaCoCo, ArchUnit, Jupiter/jqwik, mutation

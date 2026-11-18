@@ -28,7 +28,7 @@ import jo.celeris.core.text.TextSession;
 class EditorSyntaxPlanTest {
 
     private static final String SOURCE = """
-            package demo;
+            package exemple;
 
             class Exemple {
                 private int champ;

@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Les usages du symbole au curseur (la seconde surface portée de la
- * démonstration à l'orchestrateur, 2026-11-14) : le serveur de langage
+ * exemple d'intégration à l'orchestrateur, 2026-11-14) : le serveur de langage
  * sert les lieux par le fil du protocole ({@code references}), le
  * satellite les transpose en occurrences cliquables — l'audit Android
  * Studio y compte comme l'IDE de référence : l'en-tête porte le compte

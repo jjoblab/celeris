@@ -1,4 +1,4 @@
-package jo.celeris.demo.exemple;
+package jo.celeris.exemple.exemple;
 
 import java.util.List;
 import java.util.Map;

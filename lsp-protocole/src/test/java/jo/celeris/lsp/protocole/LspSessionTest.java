@@ -88,7 +88,7 @@ public final class LspSessionTest {
     }
 
     private static Banc demarrer() throws Exception {
-        // tube à file, le transport de la démo et des bancs (ADR-015) :
+        // tube à file, le transport du dépôt de départ et des bancs (ADR-015) :
         // les tubes du JDK couplent la lecture à la vivacité du fil
         // écrivain — les fils de piscine du serveur sont éphémères
         TubesMemoire.Direction versServeur = TubesMemoire.creer();

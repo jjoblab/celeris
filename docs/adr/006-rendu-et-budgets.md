@@ -31,7 +31,7 @@ n'a pas calibré (M1) — le mandat exige cette calibration avant M3.
 4. **Invalidation par plages de rangées** ; pré-calcul asynchrone des mises
    en page hors fil UI avec jeton d'annulation ; la vue dessine ce qui est
    prêt et retombe sur le contenu périmé le temps d'une image.
-5. **Instrumentation** : `FrameMetrics` par scénario de la démo, JankStats
+5. **Instrumentation** : `FrameMetrics` par scénario du banc, JankStats
    en régime de défilement, budgets consignés dans la matrice de parité.
 6. Budgets initiaux (calibrés sur l'appareil de référence à M1, cliquet en
    CI ensuite) :
@@ -61,7 +61,7 @@ n'a pas calibré (M1) — le mandat exige cette calibration avant M3.
   plafonds de classe (ADR-002) et les tests de capture.
 - Le pré-calcul asynchrone introduit une image de retard possible sur les
   lignes fraîchement éditées : borné par le budget de frappe, visible dans
-  la démo (scénario de mesure en direct).
+  l'exemple consommateur (scénario de mesure en direct).
 
 ## Conséquences
 
@@ -77,5 +77,5 @@ n'a pas calibré (M1) — le mandat exige cette calibration avant M3.
 ## Actions
 
 - [ ] M1 : désigner l'appareil de référence et calibrer les budgets.
-- [ ] M3 : harnais `FrameMetrics` + scénario de démo « mesures en direct ».
+- [ ] M3 : harnais `FrameMetrics` + scénario de banc « mesures en direct ».
 - [ ] M3 : test d'allocations par image branché en CI.

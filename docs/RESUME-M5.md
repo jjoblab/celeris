@@ -316,7 +316,7 @@
 1. **Les peintres des lignes collantes et des invisibles, le dessin
    de la gouttière des signets et le raccord des gestes au tactile**
    vivent à la clôture avec les scénarios : les modèles sont
-   livrés, le dessin suit le besoin réel de la démonstration.
+   livrés, le dessin suit le besoin réel du dépôt de départ.
 2. **La sélection à la souris** (cliquer-tirer) s'appuie sur le
   HitTest existant (M3) : la logique de geste livrée couvre le
    zoom et l'info-bulle, le glissement sélectionne déjà par la voie
@@ -354,7 +354,7 @@
 - mutation `:core-text:mutationThreshold` : **85,2 %**
   (seuil 80) sur 1 807 mutations ;
 - publication locale (`publishToMavenLocal`, sommes de contrôle) et
-  APK de démonstration assemblés ; fumée de la cli exécutée ;
+  APK de exemple consommateur assemblés ; fumée de la cli exécutée ;
 - manifestes d'API régénérés (`core-text` apply surchargé,
   `core-intelligence` posé, `core-syntax` TreeSelection).
 
@@ -363,7 +363,7 @@
 1. **Les peintres de bande d'erreurs, de fil d'Ariane, de popups, de
    lignes collantes et de caractères invisibles** : les modèles
    et leurs tests sont livrés, le raccord visuel au Canvas suit la
-   démonstration qui le demande — le M5 posait les consommateurs, le
+   exemple consommateur qui le demande — le M5 posait les consommateurs, le
    dessin vit avec l'intégration.
 2. **Le raccord clavier et pilule des actions de lignes** (A-10) :
    le cœur est livré et testé, les raccourcis rejoindront la table

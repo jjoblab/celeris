@@ -26,7 +26,7 @@ la plateforme et du système de build, agrégateurs de distribution) :
 
 ## Décision proposée
 
-1. **Java uniquement** pour tout code versionné (bibliothèques, démo, cli,
+1. **Java uniquement** pour tout code versionné (bibliothèques, cli,
    tests), niveau de langage **17** pour les artefacts publiés ; construction
    et CI sur JDK 17 LTS (révision du 2026-11-17 : le propriétaire impose
    Java 17 seul). Le niveau 17 maximise la compatibilité des

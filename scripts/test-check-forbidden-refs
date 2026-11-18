@@ -115,7 +115,7 @@ class ControleRefsTest(unittest.TestCase):
     def test_notice_exoneree(self):
         """NOTICE nomme les dépendances déclarées : exonéré."""
         with open(os.path.join(self.dossier, "NOTICE"), "w", encoding="utf-8") as fh:
-            fh.write("| zorblax | 1.0 | MIT | démonstration |\n")
+            fh.write("| zorblax | 1.0 | MIT | exemple consommateur |\n")
         resultat = lancer("zorblax")
         self.assertEqual(resultat.returncode, 0, resultat.stdout + resultat.stderr)
 

@@ -3,7 +3,7 @@
 > **État** : le second étage est POSÉ ET EXÉCUTÉ VERT (C11, livré et
 > passé le 2026-11-12 — premier passage vert au déclenchement manuel,
 > le nocturne le rejoue) — les quatre bancs d'instrumentation vivent
-> dans `demo/src/androidTest`, l'appareil géré Gradle les exécute dans
+> dans `le second étage d'instrumentation`, l'appareil géré Gradle les exécute dans
 > la CI ([`appareil.yml`](../../.github/workflows/appareil.yml)),
 > rapports en artefact. L'hôte de développement reste sans
 > virtualisation matérielle : l'exécution vit à la CI, jamais présumée
@@ -28,12 +28,12 @@ pointeurs, la vraie `InputConnection`, un vrai `Canvas` :
 
 1. **Dépendances** (catalogue) : `androidx.test:runner`,
    `androidx.test.ext:junit`, `androidx.test.uiautomator:uiautomator`
-   (2.3.0), dans le source set `androidTest` de `demo` — jamais dans
+   (2.3.0), au second étage d'instrumentation — jamais dans
    les artefacts publiés.
 2. **Appareil géré Gradle** : `pixel2api34` (image ATD, API 34,
    `localDevices` sous AGP 9).
 3. **Les bancs d'instrumentation**, un par défaut du jalon, dans
-   `demo/src/androidTest/java/jo/celeris/demo` — les voies réelles
+   le second étage d'instrumentation — les voies réelles
    quatorze passages d'émulateur ont éprouvées :
    - `PinchZoomOnDeviceTest` — les mêmes `MotionEvent` que le banc
      JVM (doigts verticaux, cadence de 16 ms, distribution à la vue),
@@ -58,7 +58,7 @@ pointeurs, la vraie `InputConnection`, un vrai `Canvas` :
 4. **La commande exacte** (l'hôte sans virtualisation matérielle la
    laisse à la CI — les runners Ubuntu portent `/dev/kvm`) :
    ```sh
-   ./gradlew :demo:pixel2api34DebugAndroidTest
+   ./gradlew pixel2api34DebugAndroidTest
    ```
 5. **Le travail CI** `appareil.yml` : nocturne (`schedule`), à chaque
    fusion (`pull_request`, types `closed`, fusion vérifiée), au
@@ -89,5 +89,5 @@ pointeurs, la vraie `InputConnection`, un vrai `Canvas` :
 
 La recette manuelle [`RECETTE-M7.5.md`](../recette/RECETTE-M7.5.md)
 couvre les quatre défauts sur un appareil branché : cinq minutes,
-l'APK debug de la CI en artefact (`demo-debug-apk`) suffit — la vitre
+la vérification d'intégration en CI suffit — la vitre
 de référence reste la main du propriétaire.

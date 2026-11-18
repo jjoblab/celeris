@@ -14,8 +14,7 @@ sept `build.gradle.kts` dupliqués. Les frontières y étaient conventionnelles
 
 ## Décision proposée
 
-Adopter la topologie imposée par le mandat, à dix modules plus la
-démonstration :
+Adopter la topologie imposée par le mandat, à dix modules :
 
 ```
 core-text          java-library        modèle de texte, instantanés, transactions,
@@ -31,7 +30,6 @@ android-view       com.android.library vue Canvas, rendu, entrées, IME, a11y
 android-widgets    com.android.library popups, gouttière, barres
 android-host       com.android.library adaptateurs hôte (FS virtuel, VCS, débogueur)
 cli                application JVM     exécutable sans Android
-demo               application Android terrain de démonstration (non publiée)
 ```
 
 Règles :
@@ -41,7 +39,7 @@ Règles :
    - frontières de modules Gradle (`java-library` contre `android.library`) ;
    - tests ArchUnit en CI sur chaque module pur : interdiction des imports
    `android.*` et des dépendances montantes ;
-   - le module `demo` ne voit que l'API publique.
+   - l'exemple consommateur ne voit que l'API publique.
 2. **Plus aucun `@RestrictTo` de partage** : les classes sont soit publiques
    (API, ADR-009), soit de visibilité paquet. L'outil de compatibilité
    binaire (ADR-009) est le seul garde-fou de l'API exposée.

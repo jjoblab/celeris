@@ -23,7 +23,7 @@ public final class CelerisTest {
     public void lesSeptModulesDuCoeurSontAnnonces() {
         List<String> modules = Celeris.modules();
         assertEquals(7, modules.size());
-        assertFalse(modules.contains("demo"));
+        assertFalse(modules.contains("outils"));
         assertTrue(modules.contains("core-syntax-grammars"),
                 "la voie de grammaires fait partie du cœur");
     }

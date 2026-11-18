@@ -66,7 +66,7 @@ voir ADR-001 — AGP 9.5.0, Gradle 9.8.2, `compileSdk`/`targetSdk` 36).
 | --- | --- | --- |
 | A. Convention + catalogue + registre de l'hébergeur (proposition) | **retenue** | publication privée immédiate, zéro infrastructure tierce à valider ; migration centrale possible ensuite |
 | B. Publication directe au registre central public | différée | exige la validation du domaine de l'espace de noms `jo.celeris` par le propriétaire ; inutilement bloquante avant 1.0 |
-| C. Publication locale (`mavenLocal`) | écartée | satisfaisante pour la démo, invisible pour les consommateurs réels |
+| C. Publication locale (`mavenLocal`) | écartée | satisfaisante pour l'exemple consommateur, invisible pour les consommateurs réels |
 
 ## Compromis
 

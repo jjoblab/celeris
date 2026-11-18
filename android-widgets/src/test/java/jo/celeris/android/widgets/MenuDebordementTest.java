@@ -18,7 +18,7 @@ import org.robolectric.RuntimeEnvironment;
 
 /**
  * Le menu de débordement de la barre de sélection (déménagé du
- * terrain de démonstration au kit, décision du propriétaire du
+ * terrain de exemple consommateur au kit, décision du propriétaire du
  * 2026-11-14) : la carte À ÉTAGES naît liée à SON genre, les étages
  * VIDES ne posent rien (la visibilité contextuelle naît de la
  * donnée), l'ouverture pose la carte sous la puce — et le CHOIX la

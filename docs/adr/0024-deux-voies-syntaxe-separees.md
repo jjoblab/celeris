@@ -11,10 +11,10 @@ Le dépôt porte deux moteurs de coloration :
 - la voie **grammaires** (TextMate, `core-syntax-grammars`) : pure
   JVM, embarquée, elle sert par défaut ;
 - la voie **native** (tree-sitter, ADR-016 révisée par l'ADR-020) :
-  liaison JNI + runtime C, aujourd'hui **dans `core-syntax`** — le
-  module publié porte des classes qui, sans bibliothèque partagée,
-  ne font rien (`SyntaxeNatif.json()` rend toujours null), et le pont
-  de la vue les importe directement (`MoteurNatif.de` dans
+  liaison JNI + runtime C, encore **dans `core-syntax`** — le module
+  publié porte des classes qui, sans bibliothèque partagée, ne font
+  rien (`SyntaxeNatif.json()` rend toujours null), et le pont de la
+  vue les importe directement (`MoteurNatif.de` dans
   `EditorSyntax.rattacher`).
 
 Le propriétaire décide le 2026-11-18 (F.4) : **séparer les deux voies
@@ -24,10 +24,12 @@ modèle est celui des éditeurs qui exposent le choix « moteur
 grammaires » contre « moteur tree-sitter » : deux artefacts, une
 préférence.
 
-Par ailleurs (F.7) : la démonstration et `serveur-lsp-java` quittent
-le dépôt — une démonstration repensée, sur une base plus solide,
-remplacera l'actuelle dans un module neuf. Les retraits 1.x qui
-étaient gelés derrière l'intouchabilité de la démo se débloquent.
+Le périmètre du dépôt se resserre en même temps (F.7) : la
+bibliothèque ne publie QUE les modules de l'éditeur — pas
+d'application d'exemple, pas de serveur de langage de banc.
+Un futur module d'exemple, neuf et plus solide, pourra naître
+sur cette base ; il vivra hors des artefacts publiés (jamais sur
+JitPack, directive du propriétaire du 2026-11-18).
 
 ## Décision
 
@@ -45,29 +47,31 @@ remplacera l'actuelle dans un module neuf. Les retraits 1.x qui
    `reanalyser()`, `fenetre(…)`, `ajouterAuditeur(…)`, `close()`.
    `MoteurAnalyse` et `MoteurNatif` l'implémentent. Le pont
    `EditorSyntax` ne connaît plus QUE cette interface : **la vue ne
-   dépend d'aucune voie** — le champ `moteurNatif` disparaît du pont,
-   un seul champ `MoteurSyntaxe` sert les deux.
+   dépend d'aucune voie** — un seul champ `MoteurSyntaxe` sert les
+   deux.
 3. **Le point de branchement de la voie native** : le registre
-   `TreeSitterLanguages` (core-language, vide depuis M7.6) est le
-   point d'inscription. Le module séparé y enregistre ses sources
+   `TreeSitterLanguages` (core-language) est le point d'inscription.
+   Le module séparé y enregistre ses sources
    (`TreeSitterLanguages.enregistrer`) quand l'hôte l'embarque ; la
    plateforme résout la préférence `tree-sitter` du paquet comme
-   aujourd'hui (préférence, puis repli) — **la préférence du paquet
+   toujours (préférence, puis repli) — **la préférence du paquet
    choisit la voie**. Sans le module : la case reste vide, le repli
    déclaré sert, rien ne se charge, rien ne change pour personne.
+   L'annonce se fait par `ServiceLoader` (`FabriqueMoteurVoie`) :
+   c'est la voie qui se déclare, jamais la vue qui sonde.
 4. **La vue reste agnostique** : `android-view` ne déclare pas la
    dépendance vers le nouveau module ; il reçoit l'interface et la
-   source que la plateforme a choisies. Le couplage au natif est
-   inversé — c'est la voie qui se déclare, jamais la vue qui sonde.
-5. **F.7** : `demo` et `serveur-lsp-java` sont supprimés (settings,
-   CI, manifeste d'API, baseline de langue, mentions documentaires).
-   Les retraits 1.x gelés derrière la démo deviennent possibles :
-   `PopupsEditeur.surTheme`/`surTailleTexte` (l'abonnement automatique
-   aux réglages les remplace), `ReglagesEditeur.setSurBascule`
+   source que la plateforme a choisies.
+5. **Le périmètre publié se resserre** (F.7) : le dépôt ne porte que
+   les modules de l'éditeur et l'exemple consommateur. Les symboles
+   publics qui ne servaient qu'une application hôte interne partent :
+   `PopupsEditeur.surTheme`/`surTailleTexte` deviennent privés
+   (l'abonnement automatique aux réglages les remplace),
+   `ReglagesEditeur.setSurBascule` est retiré
    (`EditorSettings.addListener` sert), et les poseurs
    `setTheme`/`setFont`/`setSoftWrap`/`setLigatures` d'`EditorView`
-   (la source unique `settings()` sert). MIGRATION.md § 0.3 se
-   réécrit en conséquence.
+   sont dépréciés puis retirés à la 2.0.0 (la source unique
+   `settings()` sert). MIGRATION.md § 0.3 se réécrit en conséquence.
 6. **Choix explicite dans le kit** : la façade (`CelerisEditor`) et
    `LanguageKit` ne changent pas de surface — la préférence du paquet
    (déclarée dans `pack.json`) reste LE sélecteur de voie ; l'hôte
@@ -87,8 +91,7 @@ remplacera l'actuelle dans un module neuf. Les retraits 1.x qui
 - ADR-0020 reste lue ainsi : la voie bornée (200 Ko, arbre éphémère)
   VIT, mais dans son module ; ce qui change est le toit, pas la
   discipline.
-- La suppression de la démo emporte son APK CI, la baseline langue
-  de ses 81 identifiants, et la responsabilité d'un exemple complet
-  revient au futur module de démonstration repensé (hors mission
-  présente) ; `samples/consumer-smoke` reste le consommateur de
-  référence tant qu'il vit.
+- Le futur module d'exemple, s'il naît, reste HORS des
+  artefacts publiés : jamais dans la BOM, jamais dans l'agrégateur,
+  jamais sur JitPack (directive du propriétaire) ;
+  `samples/consumer-smoke` reste le consommateur de référence.

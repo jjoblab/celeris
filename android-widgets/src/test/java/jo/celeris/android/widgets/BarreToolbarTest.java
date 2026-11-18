@@ -15,7 +15,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 /**
- * La barre d'application du kit (déménagée du terrain de démonstration,
+ * La barre d'application du kit (déménagée du terrain d'intégration,
  * décision du propriétaire du 2026-11-14) : la carte de débordement et
  * la barre de touches naissent liées à leurs genres, la puce pose la
  * carte au coin de scène — les actions vides n'en posent aucune —, la

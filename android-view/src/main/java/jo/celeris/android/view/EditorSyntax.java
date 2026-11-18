@@ -420,7 +420,7 @@ public final class EditorSyntax {
             VisualProjection projection) {
         // D-07 : la bande vit pour l'analyse, qu'elle soit servie par le
         // coordinateur synchrone OU par le moteur hors fil — la voie de
-        // production démo embarque TOUJOURS un moteur (SceneDiagnostics
+        // l'hôte d'intégration embarque TOUJOURS un moteur (SceneDiagnostics
         // fabrique l'exécuteur quand l'hôte n'en fournit pas), l'ancienne
         // garde y tuait l'appui avant même le test d'appartenance.
         if (!active()

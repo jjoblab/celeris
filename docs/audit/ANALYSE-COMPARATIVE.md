@@ -104,7 +104,7 @@ elle est spécifiée.
 | Versions au CHANGELOG | 103 historisées | 2 (0.0.1, 1.0.0) |
 | Langage produit | Java 100 % (zéro Kotlin) | Java 100 % (Kotlin cantonné au build, ADR-001) |
 | Rendu | Canvas, une seule vue | Canvas refondu en peintres |
-| Modules Gradle | 5 bibliothèques + démo | 13 modules (8 purs publiés, 3 Android, cli, démo) |
+| Modules Gradle | 5 bibliothèques + l'application d'exemple du dépôt de départ | 13 modules (8 purs publiés, 3 Android, cli, exemple) |
 | Fichiers produit / lignes | 323 / 87 665 | 465 / 52 263 |
 | Fichiers test / lignes | 376 / 73 307 | 256 / 39 445 |
 | Méthodes `@Test` | 3 130 (+5 répétées → 3 185 exécutées) | 1 761 (+21 propriétés jqwik ; check complet : 1 819 verts, politique comprise) |
@@ -138,7 +138,7 @@ cœur sans Android, un seul point de mutation — mais celeris va sensiblement
 plus loin :
 
 - **Topologie** : 13 modules à frontières nettes (8 modules purs JVM publiés,
-  3 modules Android, un exécutable `cli`, une démo) contre 5 bibliothèques.
+  3 modules Android, un exécutable `cli`, une exemple) contre 5 bibliothèques.
   Le moteur du dépôt de départ vivait dans une bibliothèque Android (`cel-core`) ;
   chez celeris, tout ce qui pense vit en JVM pure, publiable et testable
   sans SDK (le `check` des modules purs tourne en quelques secondes).
@@ -190,7 +190,7 @@ lui-même le constat — jamais livré.
 celeris a livré l'équivalent du plan (ADR-008, six décisions) :
 **arbre d'accessibilité virtuel** (rangées visibles en nœuds, navigation
 par caractère/mot/ligne/rangée, actions, annonces), **parité en/fr
-contrôlée en CI** (99/99 clés mesurées dans la démo), **UAX #9 et #29 au
+contrôlée en CI** (99/99 clés mesurées dans le dépôt de départ), **UAX #9 et #29 au
 cœur et au rendu**, **contraste WCAG ≥ 4,5:1** vérifié au banc pour les
 trois thèmes, **tailles en sp** et mesure de police injectée, et un
 **auditeur automatique en CI** (`scripts/check-accessibilite`, cinq règles,
@@ -221,11 +221,11 @@ supérieur en **profondeur** :
 | Architecture | budgets de classes (cliquet lignes/membres) | ArchUnit (9 modules) + plafonds Checkstyle/PMD |
 | Warnings | `-Xlint:all` sans `-Werror` | `-Xlint:all -Werror` + Error Prone |
 | Propriétés | fuzz `@RepeatedTest` | jqwik (21 propriétés, oracles naïfs) |
-| Chiffres documentés | README contrôlé ±5 % | 12 scripts de politique auto-testés (langue, références interdites, provenance, enregistrement des langages, accessibilité, matrice, pièges, démo, dates) |
+| Chiffres documentés | README contrôlé ±5 % | 12 scripts de politique auto-testés (langue, références interdites, provenance, enregistrement des langages, accessibilité, matrice, pièges, catalogue, dates) |
 
 ### 3.6 Sécurité outillée
 
-Les deux sont sérieux (zéro permission dans la démo, actions CI épinglées
+Les deux sont sérieux (zéro permission dans le dépôt de départ, actions CI épinglées
 par SHA, validation des wrappers, NOTICE). celeris ajoute des garanties que
 l'ancien n'a pas : **SBOM CycloneDX** et **sommes SHA-256** écrites à côté de
 chaque artefact publié, **provenance scriptée et bloquante**, APK release
@@ -266,7 +266,7 @@ commerce à 98,7 % mais pas encore livrée en paquet), text.
 
 Le mécanisme de celeris est néanmoins supérieur : un langage entier est un
 **paquet de six fichiers de données** (identité, descripteur, grammaire,
-plan, gabarits, serveurs), ajoutable **à chaud** (démontré en M9 : le paquet
+plan, gabarits, serveurs), ajoutable **à chaud** (exemplentré en M9 : le paquet
 jouet Logo se copie au stockage et le registre se RECHARGE, H-04) — chez
 l'ancien, « enregistrer un langage = une entrée de table » côté intégrés,
 mais la voie grammaires exigeait des archives binaires versionnées. Les 11
@@ -396,7 +396,7 @@ l'âge de celeris :
   renommage, correctifs, symboles, signature, plis, formatage, indices en
   ligne, surlignage. celeris y ajoute un **ordonnanceur** (fusion,
   annulation, priorités, resynchronisation) et prouve la frontière contre ses bancs de montage en processus, là où l'ancien se testait
-  contre son mini-serveur de démo. L'ancien garde l'avantage **opératoire**
+  contre son serveur de banc. L'ancien garde l'avantage **opératoire**
   (5 transports, multi-serveurs avec shutdown borné, debouncer, timeouts)
   que celeris délègue à LSP4J et à l'hôte.
 - **Performance du cœur** : les deux sont excellents. L'ancien : < 1 ms par
@@ -569,7 +569,7 @@ l'a déjà été pour la rope, l'annulation et le kit de popups.
 | `cel-lsp` | 45 | 8 283 | 238 |
 | `cel-textmate` | 12 | 2 951 | 96 |
 | `cel-ui` | 111 | 39 794 | 1 066 |
-| `demo` | 26 | 13 311 | 257 |
+| application d'exemple | 26 | 13 311 | 257 |
 | **Total** | **323** | **87 665** | **3 130** |
 
 ### celeris (Java, mesuré le 2026-11-10 sur `14a300f`)
@@ -588,7 +588,7 @@ l'a déjà été pour la rope, l'annulation et le kit de popups.
 | `android-view` | 102 | 11 748 | 366 | différé |
 | `android-widgets` | 31 | 3 827 | 92 | différé |
 | `android-host` | 36 | 1 716 | 54 | différé |
-| `demo` | 46 | 7 913 | 95 | non |
+| application d'exemple | 46 | 7 913 | 95 | non |
 | **Total** | **465** | **52 263** | **1 761** | **8 artefacts 1.0.0** |
 
 (En plus : 21 méthodes de propriété jqwik, 1 test paramétré, 12 scripts de

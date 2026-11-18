@@ -54,9 +54,9 @@ impose une API publique minimale et stable, vérifiée en CI dès la 0.1.
 
 ## Conséquences
 
-- La démo ne compile qu'avec l'API publique : c'est la preuve continue de
+- L'exemple consommateur ne compile qu'avec l'API publique : c'est la preuve continue de
   la suffisance de l'API (règle d'or du mandat, vérifiable en CI par un
-  test de dépendances de la démo).
+  test de dépendances de l'exemple consommateur).
 - Un consommateur peut suivre les versions par diff d'API publié à chaque
   version.
 - L'API publique est petite dès la 0.1 : mieux vaut agrandir (mineure)

@@ -10,7 +10,7 @@
 baseline `scripts/language-baseline.txt` recense pourtant **263
 identifiants français dans les modules publiés** (android-host 31,
 android-view 64, android-widgets 28, core-ai 49, core-syntax 91 —
-la démonstration, hors périmètre, en compte 81). La surface publique
+les bancs et l'exemple consommateur en suivent d'autres). La surface publique
 d'un hôte mêle ainsi deux langues : `setSoftWrap`, `setFont` à côté
 de `setNumerosVisibles`, `setRetenueAnalyseMs`, `PopupsEditeur`,
 `CoachPopups`, `detacher()`, `brancherServeur`.
@@ -23,7 +23,7 @@ Deux forces contraires :
   `setLineNumbers` ou `setNumerosVisibles` paie un coût réel à
   chaque premier contact ;
 - **coût de renommage** : chaque renommage cassant doit être migré
-  (démo intouchable, bancs, docs) et documenté (MIGRATION.md).
+  (bancs, docs) et documenté (MIGRATION.md).
 
 Le point de bascule : **le nombre de consommateurs**. Aujourd'hui le
 recensement du propriétaire (validé le 2026-11-18) est **vide —
@@ -79,7 +79,7 @@ d'usage attendue dans le code d'intégration :
 | `EditorView.setClasseLargeur(c)` / `ClasseLargeur` | `setWidthClass(c)` / `WidthClass` | android-view | basse |
 | `PopupManager.fermerTout()` | `closeAll()` | android-widgets | moyenne |
 | `PopupManager.montrer(...)` | `show(...)` | android-widgets | moyenne |
-| `BarreToolbar.poserBarreTouches(...)` | `setKeyRow(...)` | android-widgets | basse (démo) |
+| `BarreToolbar.poserBarreTouches(...)` | `setKeyRow(...)` | android-widgets | basse |
 
 `lsp-protocole` (artefact) : le nom reste — le module est le
 protocole LSP embarqué ; changer un identifiant d'artefact impose la
@@ -101,7 +101,7 @@ Il se décide avec le groupe Maven (§ F.6), pas ici.
 3. Les **nouveaux symboles restent anglais** sans exception (déjà
    la règle du mandat B0 — les paires add/remove de l'ADR-0022 en
    sont la preuve).
-4. La démo, intouchable, migre mécaniquement le jour du renommage
+4. Les bancs migrent mécaniquement le jour du renommage
    (le dépôt compile en `-Werror` : la dépréciation casserait son
    build — d'où l'option 1 sans alias, qui migre tout d'un tenant).
 
