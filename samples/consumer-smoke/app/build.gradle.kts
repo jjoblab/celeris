@@ -37,5 +37,5 @@ dependencies {
     // LA dépendance du cas courant (chantier B1) : l'agrégateur.
     // La version vient de la propriété du build racine (CI, JitPack)
     // avec repli sur la version publiée courante.
-    implementation("jo.celeris:celeris:${project.findProperty("celerisVersion") ?: "2.0.0"}")
+    implementation("jo.celeris:celeris:${project.findProperty("celerisVersion") ?: "2.1.0"}")
 }

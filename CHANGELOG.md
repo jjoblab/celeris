@@ -5,6 +5,35 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.1.0] — 2026-11-19
+
+La version qui fait tourner la machine : la CI, morte depuis le premier
+commit du mandat (YAML invalide — le run se créait puis mourait sans
+exécuter un job), est réparée et verte sur les quatre travaux ; le build
+JitPack du tag v2.0.0 avait hérité du même défaut (javadoc `ServiceLoader`
+non résolue), d'où cette version.
+
+- **La voie tree-sitter consomme la liaison Android par Maven**
+  (ADR-0025) : `com.itsaky.androidide.treesitter:android-tree-sitter:4.3.3`
+  (+ json, python) — la liaison JNI maison part, les offsets suivent le
+  modèle en caractères, javascript quitte le registre ; LGPL-2.1 consignée
+  (NOTICE, REFERENCES). Module OPT-IN, hors BOM.
+- **Le module `sample` naît** (ADR-0024, décision 6) : l'exemple
+  consommateur du chemin court de la façade — assemblé à chaque poussée,
+  APK debug publié en artefact CI (`sample-debug-apk`), jamais publié sur
+  JitPack.
+- **Les résidus du renommage 2.0.0 tombent** (ils n'avaient jamais été
+  buildés — la CI ne tournait pas) : fichier `ReceiverServeur.java`,
+  trois bancs `Faux*Test`, champ `EditorSyntax` qualifié, manifeste
+  `api/core-lsp.api`, citations des huit anciens bancs dans cinq
+  documents, jar wrapper de `consumer-smoke` committé, repli de version
+  du smoke à 2.0.0.
+- Le secret CI `CELERIS_FORBIDDEN_REFS` ne porte plus que les motifs
+  de l'éditeur inspireur, avec frontières de mot ; l'auditeur
+  d'accessibilité scanne tout module qui porte des ressources (liste
+  non figée) ; le workflow `appareil` (supprimé du dépôt) est
+  désactivé côté GitHub.
+
 ## La voie tree-sitter consomme la liaison Android par Maven (ADR-0025, 2026-11-18)
 
 - **Le module `core-syntax-treesitter` devient bibliothèque Android**
