@@ -132,6 +132,7 @@ final class jo.celeris.lsp.protocole.ServeurDocuments$ServiceDocuments implement
 ### jo.celeris.lsp.protocole.ServeurDocuments
 Compiled from "ServeurDocuments.java"
 final class jo.celeris.lsp.protocole.ServeurDocuments implements org.eclipse.lsp4j.services.LanguageServer {
+  public void setClient(org.eclipse.lsp4j.services.LanguageClient);
   public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.InitializeResult> initialize(org.eclipse.lsp4j.InitializeParams);
   public java.util.concurrent.CompletableFuture<java.lang.Object> shutdown();
   public void exit();
@@ -146,6 +147,7 @@ public interface jo.celeris.lsp.protocole.ServeurEmbarque$Documents {
   public default void changer(java.lang.String, int, java.lang.String);
   public default void fermer(java.lang.String);
   public default jo.celeris.core.lsp.types.SurvolLsp survol(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.DiagnosticLsp> diagnosticsDe(java.lang.String);
   public default jo.celeris.core.lsp.types.ListeCompletion completion(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
   public default jo.celeris.core.lsp.types.SignatureLsp signature(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
   public default java.util.List<jo.celeris.core.lsp.types.SymboleLsp> symboles(java.lang.String);
