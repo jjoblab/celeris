@@ -44,21 +44,8 @@ public class LangueTardiveFacadeTest {
     public void laLangueArriveEtVitSurLaVue() throws Exception {
         Application contexte = RuntimeEnvironment.getApplication();
         EditorView vue = new EditorView(contexte);
-        vue.setId(android.R.id.text1);
         PopupLayer couche = new PopupLayer(contexte);
-        couche.setId(android.R.id.text2);
-        FrameLayout scene = new FrameLayout(contexte);
-        scene.addView(vue, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        scene.addView(couche, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        android.view.WindowManager fenetre = (android.view.WindowManager)
-                contexte.getSystemService(android.content.Context.WINDOW_SERVICE);
-        fenetre.addView(scene, new android.view.WindowManager.LayoutParams(
-                android.view.WindowManager.LayoutParams.MATCH_PARENT,
-                android.view.WindowManager.LayoutParams.MATCH_PARENT));
+        poserALaFenetre(contexte, vue, couche);
         // Le kit du sample : assemblage sur VRAI fil démon.
         // Comme le sample : le consommateur d'erreurs reçoit les
         // paquets fautifs (les grammaires sans fabrique), l'assemblage
@@ -93,5 +80,25 @@ public class LangueTardiveFacadeTest {
         assertTrue("la langue du .java est le Java",
                 "java".equals(editeur.language().id()));
         editeur.close();
+    }
+
+    /** La scène vit à une fenêtre — comme l'écran réel (la posted
+     *  pose de langue s'y exécute). */
+    private static void poserALaFenetre(Application contexte,
+            EditorView vue, PopupLayer couche) {
+        vue.setId(android.R.id.text1);
+        couche.setId(android.R.id.text2);
+        FrameLayout scene = new FrameLayout(contexte);
+        scene.addView(vue, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        scene.addView(couche, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        android.view.WindowManager fenetre = (android.view.WindowManager)
+                contexte.getSystemService(android.content.Context.WINDOW_SERVICE);
+        fenetre.addView(scene, new android.view.WindowManager.LayoutParams(
+                android.view.WindowManager.LayoutParams.MATCH_PARENT,
+                android.view.WindowManager.LayoutParams.MATCH_PARENT));
     }
 }
