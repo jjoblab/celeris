@@ -166,8 +166,16 @@ public final class IndentGuides extends PainterLayer {
         if (immediate >= 0) {
             actifs.add(immediate);
         }
-        // L'accolade jumelle : le caret TOUCHE l'ouvrante ou la
-        // fermante d'un bloc — le guide de CE bloc s'illumine aussi.
+        ajouterJumelles(actifs, table, ligneCaret, colonneCaret);
+        return sortie;
+    }
+
+    /**
+     * Les accolades jumelles : les blocs dont le caret TOUCHE
+     * l'ouvrante ou la fermante — leurs guides s'illuminent aussi.
+     */
+    private static void ajouterJumelles(java.util.List<Integer> actifs,
+            GuidesStructurels table, int ligneCaret, int colonneCaret) {
         for (int i = 0; i < table.nombre(); i++) {
             GuidesStructurels.Guide guide = table.guide(i);
             boolean surOuvrante = ligneCaret == guide.ligneOuverture()
@@ -180,11 +188,6 @@ public final class IndentGuides extends PainterLayer {
                 actifs.add(i);
             }
         }
-        int[] sortie = new int[actifs.size()];
-        for (int i = 0; i < sortie.length; i++) {
-            sortie[i] = actifs.get(i);
-        }
-        return sortie;
     }
 
     /** Le tableau contient-il l'indice. */
