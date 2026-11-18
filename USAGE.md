@@ -99,7 +99,40 @@ bibliothèques Android en AAR :
 
 ## 3. Déclarer les dépendances
 
-### 3.1 Aujourd'hui — le dépôt local
+### 3.0 Le cas courant — une dépendance
+
+L'agrégateur `celeris` (chantier B1) porte tout l'éditeur du cas
+courant : la vue, les widgets, la couche hôte (façade
+`CelerisEditor`, popups) et la voie de grammaires. Le LSP embarqué
+(`lsp-protocole`) reste **optionnel** — il porte désucrage et règles
+R8, l'hôte qui n'en veut pas ne le paie pas.
+
+```kotlin
+dependencies {
+    // tout l'éditeur, une ligne (B1)
+    implementation("jo.celeris:celeris:1.1.0")
+    // uniquement si vous montez des serveurs de langage embarqués
+    implementation("jo.celeris:lsp-protocole:1.1.0")
+}
+```
+
+Qui préfère choisir module par module sans écrire de version prend la
+plateforme : la BOM `celeris-bom` aligne les onze modules publiés.
+
+```kotlin
+dependencies {
+    implementation(platform("jo.celeris:celeris-bom:1.1.0"))
+    implementation("jo.celeris:android-host")   // sans version
+    implementation("jo.celeris:core-syntax-grammars")
+}
+```
+
+L'exemple vivant de la voie courte vit dans
+[`samples/consumer-smoke/`](samples/consumer-smoke/README.md) — un
+build indépendant qui consomme l'agrégateur et ne connaît que la
+façade (§ 4.2).
+
+### 3.1 Les modules un par un — le dépôt local
 
 ```kotlin
 repositories {

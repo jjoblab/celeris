@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le gabarit d'USAGE § 4.1 : la vue, la couche posée dessus. -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scene_edition"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <jo.celeris.android.view.EditorView
+        android:id="@+id/editeur"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <jo.celeris.android.widgets.PopupLayer
+        android:id="@+id/couche_popups"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</FrameLayout>

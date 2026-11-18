@@ -39,6 +39,16 @@ include(":lsp-protocole")
 include(":serveur-lsp-java")
 include(":cli")
 
+
+// Chantier B1 (revue du 2026-11-17) : la BOM et l'agrégateur — deux
+// modules PUBLIÉS qui ne portent presque rien. celeris-bom aligne les
+// versions des onze modules (plateforme Java) ; celeris agrège les
+// quatre du cas courant en une dépendance. Les compagnons de banc
+// (serveur-lsp-java, demo) n'y vivent pas — directive du propriétaire
+// du 2026-11-18.
+include(":celeris-bom")
+include(":celeris")
+
 // Modules Android : toujours inclus (ADR-0021) — la pureté du cœur est
 // garantie au niveau du code par les tests ArchUnit de chaque module pur
 // (aucune dépendance android.*), pas par l'absence des modules Android du

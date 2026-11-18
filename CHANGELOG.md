@@ -7,6 +7,13 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [1.2.0] — en cours
 
+### Intégration — la BOM, l'agrégateur et l'exemple consommateur (2026-11-18)
+- **`celeris-bom`** (chantier B1) : la plateforme de versions — les onze modules publiés alignés en une contrainte. L'hôte écrit `implementation(platform("jo.celeris:celeris-bom:…"))` puis déclare les modules sans version.
+- **`celeris`** (chantier B1) : l'agrégateur — UNE dépendance pour le cas courant (vue, widgets, couche hôte avec la façade, voie de grammaires, en api). Le module ne porte aucun code : un `package-info.java` documente l'artefact (Javadoc sans classe l'exige). Le LSP embarqué (`lsp-protocole`) reste optionnel — désucrage et R8 ne se paient que si déclarés.
+- **`samples/consumer-smoke`** (chantier B5) : l'exemple consommateur « vierge » — build INDÉPENDANT (jamais inclus au settings racine), dépendance unique `celeris` résolue depuis mavenLocal (JitPack après tag), une activité qui ne connaît que la façade (attach/open/settings/close), release MINIFIÉE. Il remplace la démonstration comme preuve d'intégration et aurait détecté seul B2 (règles R8) et A2 (manifeste honnête) : ce tour, il a détecté que les artefacts locaux dataient d'avant la façade — republiés, le build passe.
+- **CI** : nouveau job `consumer-smoke` — publication des treize artefacts en local puis assemblage du sample en release minifié, avec la preuve R8 au mapping (façade et chargeur vivants, `lsp4j` absent tant que le LSP n'est pas déclaré). `jitpack.yml` publie les treize artefacts (onze modules + BOM + agrégateur).
+- USAGE § 3.0 : la voie courte (agrégateur, BOM) documentée en tête du chapitre dépendances.
+
 ### Intégration — les règles R8 voyagent dans le jar (2026-11-18)
 - **`lsp-protocole` embarque ses règles de conservation** (chantier B2, point 11 de la revue) : `META-INF/proguard/celeris-lsp.pro` vit désormais dans le jar publié — R8 le lit dans les dépendances, l'hôte qui active la réduction n'a plus à copier le fichier à la main. La source unique reste `regles-conservation.pro` à la racine du module (la démonstration l'y lit), une tâche `Sync` la recopie aux ressources — jamais deux textes à maintenir. Banc `ReglesR8EmbarqueesTest` : l'entrée existe, identique à l'octet près, et garde le fil réflexif (LSP4J, Gson, attributs). Les modules Android ne portent aucune réflexion (grep négatif) : pas de `consumerProguardFiles` à ajouter.
 

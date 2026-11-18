@@ -101,11 +101,70 @@ jobs:
           path: demo/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
+  # Chantier B5 (revue du 2026-11-17) : l'exemple consommateur « vierge
+  # » — la preuve d'intégration comme un hôte réel la vit. Onze
+  # artefacts + BOM + agrégateur publiés en local, puis le sample
+  # (build INDÉPENDANT, jamais inclus au settings racine) s'assemble en
+  # release MINIFIÉE contre mavenLocal() : R8 lit les règles embarquées
+  # (B2), le manifeste fusionné reste honnête (A2), la façade et le
+  # chargeur survivent à la réduction (mapping vérifié). Ce job aurait
+  # détecté seul B2 et A2 ; après un tag, le même build contre JitPack
+  # (jitpack.yml) remplace cette porte locale.
+  consumer-smoke:
+    name: Exemple consommateur (mavenLocal, release minifié)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: JDK 17 (Temurin)
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Gradle (validation du wrapper incluse)
+        uses: gradle/actions/setup-gradle@7296c772c13d12d9871528814b51fb2143c138ef # v6.4.1
+        with:
+          validate-wrappers: true
+      - name: Composants du SDK Android
+        run: |
+          if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ]; then
+            echo "SDK Android absent du runner : le sample ne s'assemblerait pas" 2>&1
+            exit 1
+          fi
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null
+      - name: Publication locale (onze artefacts + BOM + agrégateur)
+        run: |
+          ./gradlew :core-text:publishToMavenLocal :core-syntax:publishToMavenLocal :core-syntax-grammars:publishToMavenLocal :core-language:publishToMavenLocal :core-intelligence:publishToMavenLocal :core-lsp:publishToMavenLocal :core-ai:publishToMavenLocal :lsp-protocole:publishToMavenLocal :android-view:publishToMavenLocal :android-widgets:publishToMavenLocal :android-host:publishToMavenLocal :celeris:publishToMavenLocal :celeris-bom:publishToMavenLocal --no-daemon -x test -x lint -x check -Dorg.gradle.configuration-cache=false
+      - name: Sample (release minifié contre mavenLocal)
+        run: |
+          cd samples/consumer-smoke
+          ./gradlew :app:assembleRelease --no-daemon -Dorg.gradle.configuration-cache=false
+      - name: Preuve R8 (mapping : façade et chargeur vivants, lsp4j absent)
+        run: |
+          MAPPING="samples/consumer-smoke/app/build/outputs/mapping/release/mapping.txt"
+          test -s "$MAPPING"
+          grep -q "jo.celeris.android.host.CelerisEditor" "$MAPPING" \
+            || { echo "la façade n'a pas survécu à la réduction" >&2; exit 1; }
+          grep -q "jo.celeris.core.language.LanguageKit" "$MAPPING" \
+            || { echo "le chargeur de langues n'a pas survécu" >&2; exit 1; }
+          if grep -q "org.eclipse.lsp4j" "$MAPPING"; then
+            echo "lsp4j est entré dans l'APK sans dépendance LSP — l'optionnel ne reste pas optionnel" >&2
+            exit 1
+          fi
+          echo "mapping vérifié : façade et chargeur vivants, lsp4j absent."
+      - name: APK du sample (artefact)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: consumer-smoke-release-apk
+          path: samples/consumer-smoke/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
   # M7.5 (ADR-013) : les tests de vue (Robolectric) tournent à chaque
   # commit, vite — la couture Android↔modèles purs ne reste plus sans
   # preuve entre deux contrôles complets.
-  view-tests:
-    name: Tests de vue (Robolectric, JVM)
+  view-tests:    name: Tests de vue (Robolectric, JVM)
     runs-on: ubuntu-latest
     # Ce travail installe le SDK puis exécute les tests de vue
     # d'android-view et d'android-widgets — sélectifs et rapides, ils
