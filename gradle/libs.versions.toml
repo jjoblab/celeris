@@ -44,8 +44,9 @@ robolectric = "4.18"
 # configurées, cache partagé) et la tâche robolectricDeps oriente
 # Robolectric vers le jar du cache — plus aucun réseau au démarrage du
 # test. Littéral aligné sur robolectric.properties (sdk=35) et
-# Robolectric 4.15.1 — vérifié sur Maven Central le 2026-11-08.
-robolectricAndroidAll = "15-robolectric-12650502-i7"
+# Robolectric 4.18 (la montée dependabot du 2026-11-18 exige la build
+# instrumentée 14663667-2 du SDK 35 — vérifié sur Maven Central).
+robolectricAndroidAll = "15-robolectric-14663667-2-i7"
 # Étage appareil des tests d'instrumentation (C11 — vérifiées sur
 # Google Maven le 2026-11-12) : le coureur d'AndroidX et le couplage
 # ext:junit portent JUnit 4 sur l'appareil géré ; UiAutomator pince,
