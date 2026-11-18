@@ -1,0 +1,26 @@
+Le banc d'échantillon log : les niveaux du classifieur, l'ordre d'évaluation.
+Starting Gradle Daemon (build takes a few seconds)
+> Configure project :app
+> Task :app:compileJava
+w: file.kt:3:14 parameter is never used
+warning: deprecated API used
+e: file.kt:3 unresolved reference
+java.lang.Exception: boom at Banc.main(Banc.java:12)
+What went wrong:
+Execution failed for task ':app:compileJava'.
+BUILD FAILED in 3s
+[Tooling] corrigé
+[Sync] démarré
+[JVM-out] heap 512 Mo
+[warn] cache évicté
+BUILD SUCCESSFUL in 2s
+ UP-TO-DATE
+Task :app:compileKotlin UP-TO-DATE
+Sync successful in 4s
+succeeded
+Operation completed successfully
+[Tooling] terminé avec succès
+Sync prêt
+Rien à signaler ici — ligne ordinaire
+no-source
+error: something

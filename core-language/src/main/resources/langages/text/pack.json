@@ -1,0 +1,7 @@
+{
+  "id": "text",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "license": "Apache-2.0",
+  "provenance": "écrit ici — projet celeris (chantier C5, la longue traîne) ; le texte brut ne colore rien — l'oracle est le profil text/plaintext du dépôt de départ (code-editor, gel f310a39 : aucun commentaire, aucune span, le rendu texte brut), consigné au registre de portage"
+}

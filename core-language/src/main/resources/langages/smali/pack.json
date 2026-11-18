@@ -1,0 +1,7 @@
+{
+  "id": "smali",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "license": "Apache-2.0",
+  "provenance": "écrit ici — projet celeris (chantier C5, la longue traîne) ; l'oracle de comportement est le tokéniseur SmaliTokenizer du dépôt de départ (code-editor, gel f310a39 : directives, registres p/v, descripteurs L…;, opcodes à tiret et slash), consigné au registre de portage"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "lua",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "license": "MIT",
+  "provenance": "grammaire lua.tmLanguage.json reprise SANS MODIFICATION du dépôt de départ (code-editor, gel f310a39 : copie verbatim de la grammaire Lua distribuée par sora-editor — MIT, Miao Xu et Microsoft Corporation, titulaires consignés au NOTICE du gel), le banc du commerce l'épingle (H-05) — chantier C5, la longue traîne ; somme SHA-256 épinglée au NOTICE et au registre de portage"
+}

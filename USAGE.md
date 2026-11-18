@@ -333,10 +333,12 @@ LanguageSupport langue = detection instanceof LanguageDetection.Resolved r
 editeur.setLanguage(langue);
 ```
 
-Les vingt-quatre paquets intégrés (vingt-deux à la 1.0.0, Go et Rust depuis la 1.2.0) : `c`,
-`cpp`, `css`, `go`, `groovy`, `html`, `java`, `javascript`, `json`,
-`kotlin`, `kts`, `markdown`, `php`, `proguard`, `properties`,
-`python`, `ruby`, `rust`, `shell`, `sql`, `toml`, `typescript`, `xml`,
+Les trente-deux paquets intégrés (vingt-deux à la 1.0.0, Go et Rust à la
+1.2.0, Swift, Dart, Scala, C#, Lua, smali, log et text depuis la traîne du
+2026-11-18) : `c`, `cpp`, `css`, `csharp`, `dart`, `go`, `groovy`, `html`,
+`java`, `javascript`, `json`, `kotlin`, `kts`, `log`, `lua`, `markdown`,
+`php`, `proguard`, `properties`, `python`, `ruby`, `rust`, `scala`,
+`shell`, `smali`, `sql`, `swift`, `text`, `toml`, `typescript`, `xml`,
 `yaml`. Six langages P0 portent en plus un
 **analyseur écrit** (`JavaSyntax`, `KotlinSyntax`, `KtsSyntax`,
 `GroovySyntax`, `XmlSyntax`, `JsonSyntax` de `core-syntax`) — arbre

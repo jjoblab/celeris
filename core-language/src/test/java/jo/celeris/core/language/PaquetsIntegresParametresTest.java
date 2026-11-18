@@ -65,7 +65,8 @@ final class PaquetsIntegresParametresTest {
                 "groovy", "xml", "toml", "yaml", "properties", "markdown",
                 "python", "shell", "sql", "c", "cpp", "proguard", "html",
                 "css", "javascript", "typescript", "php", "ruby",
-                "go", "rust");
+                "go", "rust", "swift", "dart", "scala", "csharp",
+                "lua", "smali");
         if (attendusAvecCommentaire.contains(id)) {
             assertTrue(configuration.comments().commentable(),
                     id + " déclare ses commentaires");

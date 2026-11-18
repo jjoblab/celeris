@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Les tests de la plateforme de langages (M7.6, chantier C5) : l'assemblage des
- * paquets intégrés (les vingt-quatre langages, les analyseurs écrits attachés
+ * paquets intégrés (les trente-deux langages, les analyseurs écrits attachés
  * par préférence, la famille kts→kotlin liée), les contributeurs de
  * capacités, les fournisseurs génériques — et les refus précis : parent
  * inconnu, préférence sans source.
@@ -61,14 +61,15 @@ final class LanguagePlatformTest {
     }
 
     @Test
-    void lesVingtQuatreLangagesIntegresSAssemblent() {
+    void lesTrenteDeuxLangagesIntegresSAssemblent() {
         LanguageRegistry registre = registreIntegre();
-        assertEquals(24, registre.supports().size());
+        assertEquals(32, registre.supports().size());
         for (String id : new String[] {"java", "kotlin", "kts", "groovy",
                 "xml", "json", "toml", "yaml", "properties", "markdown",
                 "python", "shell", "sql", "c", "cpp", "proguard", "html",
                 "css", "javascript", "typescript", "php", "ruby",
-                "go", "rust"}) {
+                "go", "rust", "swift", "dart", "scala", "csharp",
+                "lua", "smali", "log", "text"}) {
             assertNotNull(registre.byId(id), id);
         }
     }

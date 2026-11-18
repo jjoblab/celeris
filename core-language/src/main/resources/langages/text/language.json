@@ -1,0 +1,53 @@
+{
+  "id": "text",
+  "name": "Plain Text",
+  "extensions": [
+    ".txt"
+  ],
+  "badge": "Txt",
+  "badgeColor": "#9E9E9E",
+  "syntax": {
+    "preferred": "grammar"
+  },
+  "brackets": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string"
+      ]
+    }
+  ],
+  "surroundingPairs": [
+    [
+      "\"",
+      "\""
+    ],
+    [
+      "'",
+      "'"
+    ]
+  ],
+  "indentSize": 4
+}

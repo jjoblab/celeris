@@ -1,0 +1,21 @@
+Le banc d'échantillon texte brut : rien ne se colore.
+
+Banc de la traîne (C5)
+=====================
+
+Le texte brut est le repli : aucune span, aucune couleur — le rendu
+texte fait foi. Les lignes qui suivent portent des formes diverses
+(ponctuation, chiffres, tirets) sans jamais sortir du gris.
+
+1. Une ligne numérotée.
+2. Une autre, avec "des guillemets" et 'des apostrophes'.
+   - une puce indentée
+   - une autre puce
+
+Un paragraphe qui court sur plusieurs mots, avec une ponctuation ; une
+virgule, deux points : et des majuscules Initiales. Rien de tout cela
+ne saurait colorer un jeton (le texte brut n'a pas de syntaxe).
+
+> Une citation entre chevrons — même elle reste grise.
+
+Fin de l'échantillon.

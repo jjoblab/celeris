@@ -1,0 +1,7 @@
+{
+  "id": "csharp",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "license": "MIT",
+  "provenance": "grammaire csharp.tmLanguage.json du dépôt microsoft/vscode (MIT, extensions/csharp/syntaxes, convertie du projet dotnet/csharp-tmLanguage — l'amont consigné au cgmanifest du dépôt vscode, main vérifié le 2026-11-18), reprise SANS MODIFICATION du banc du commerce (H-05) — chantier C5, la longue traîne ; somme SHA-256 épinglée au NOTICE et au registre de portage"
+}

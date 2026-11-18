@@ -36,18 +36,24 @@ compatible Apache-2.0 sauf validation explicite du propriétaire.
 
 ## Données de banc — grammaires du commerce (M7.6, H-05)
 
-Les QUINZE grammaires TextMate des extensions de VS Code (c, cpp, css,
-go, html, javascript, json, markdown, php, python, ruby, rust, shell,
-typescript, yaml) vivent aux ressources de TEST de
-`core-syntax-grammars` (`grammaires-commerce/`) : elles servent au banc
-de conformité du commerce (chargement sans modification, seuils
-d'acceptation par grammaire) et ne paraissent dans AUCUN artefact
-publié. Source : le dépôt `microsoft/vscode` (licence MIT, épinglé au
-main vérifié le 2026-11-08 pour onze d'entre elles, le 2026-11-12 pour
-go et rust — go convertie du projet worlpaker/go-syntax, rust du
-projet dustypomerleau/rust-syntax, l'amont consigné au cgmanifest du
-dépôt vscode — ; reproduction inchangée, les sommes épinglées aux
-sections qui suivent).
+Les VINGT grammaires TextMate du commerce (c, cpp, css, go, html,
+javascript, json, markdown, php, python, ruby, rust, shell,
+typescript, yaml, swift, dart, scala, csharp, lua) vivent aux
+ressources de TEST de `core-syntax-grammars` (`grammaires-commerce/`) :
+elles servent au banc de conformité du commerce (chargement sans
+modification, seuils d'acceptation par grammaire) et ne paraissent
+dans AUCUN artefact publié. Sources : le dépôt `microsoft/vscode`
+(licence MIT, épinglé au main vérifié le 2026-11-08 pour onze d'entre
+elles, le 2026-11-12 pour go et rust — go convertie du projet
+worlpaker/go-syntax, rust du projet dustypomerleau/rust-syntax, l'amont
+consigné au cgmanifest du dépôt vscode —) ; la traîne du
+2026-11-18 ajoute swift et csharp du dépôt `microsoft/vscode` (MIT),
+dart du dépôt `Dart-Code/Dart-Code` (MIT), scala du dépôt
+`scala/vscode-scala-syntax` (MIT) et lua reprise verbatim du dépôt de
+départ (code-editor, gel f310a39 : la grammaire Lua distribuée par
+sora-editor — MIT, Miao Xu et Microsoft Corporation, titulaires
+consignés au NOTICE du gel) ; reproduction inchangée, les sommes
+épinglées aux sections qui suivent.
 
 ## Police à ligatures de la démonstration — Fira Code (chantier C13, D-14)
 
@@ -72,25 +78,57 @@ Les paquets intégrés de `core-language` (`langages/`) embarquent les
 grammaires TextMate du commerce des extensions de VS Code — la voie
 des paquets de données de l'ADR-017, ouverte par le chantier C5 avec
 HTML, étendue à la famille web entière (CSS, JavaScript, TypeScript)
-puis à la longue traîne (PHP, Ruby, Go, Rust). Chaque grammaire est reprise SANS MODIFICATION de la
+puis à la longue traîne (PHP, Ruby, Go, Rust, et le 2026-11-18 :
+Swift, Dart, Scala, C#, Lua). Chaque grammaire est reprise SANS MODIFICATION de la
 copie épinglée du banc du commerce (H-05) : le banc de conformité du
 paquet verrouille l'égalité octet pour octet, l'acceptation au seuil
 du banc et le rejeu déterministe de l'échantillon — la dérive d'une
 montée de version crève l'égalité avant d'atteindre l'utilisateur.
 Source : le dépôt `microsoft/vscode` (licence MIT, main épinglé du
 2026-11-08 pour les six premières, vérifié le 2026-11-12 pour go et
-rust — l’amont converti consigné au cgmanifest du dépôt vscode).
+rust — l’amont converti consigné au cgmanifest du dépôt vscode)  ;
+la traîne du 2026-11-18 épingle swift et csharp au dépôt
+`microsoft/vscode` (MIT, main vérifié le 2026-11-18 — csharp
+convertie du projet dotnet/csharp-tmLanguage, l’amont consigné au
+cgmanifest du dépôt vscode), dart au dépôt `Dart-Code/Dart-Code`
+(MIT, syntaxes/dart.json, master vérifié le 2026-11-18), scala au
+dépôt `scala/vscode-scala-syntax` (MIT,
+syntaxes/Scala.tmLanguage.json, main vérifié le 2026-11-18) et lua
+à la copie verbatim du dépôt de départ (code-editor, gel f310a39 :
+grammaire Lua distribuée par sora-editor — MIT, Miao Xu et
+Microsoft Corporation, titulaires consignés au NOTICE du gel)..
 
-| Paquet | Fichier du dépôt `microsoft/vscode` | Somme SHA-256 épinglée de `langages/<id>/grammar.json` |
+| Paquet | Fichier du dépôt source | Somme SHA-256 épinglée de `langages/<id>/grammar.json` |
 | --- | --- | --- |
-| `html` | `extensions/html/syntaxes/html.tmLanguage.json` | `80dedf4fb27e88889ac8fb72763954a6d2660502c686f4415208d8c8d00352cd` |
-| `css` | `extensions/css/syntaxes/css.tmLanguage.json` | `55a3e184f702da6a5a64dc4d7ce82ab298a1bae8d35e2924483941eb223d54b1` |
-| `javascript` | `extensions/javascript/syntaxes/JavaScript.tmLanguage.json` | `db6f17f15bc4f5e860a3b8fa6055a69720a53df845c8d5121cdc4f128c16291f` |
-| `typescript` | `extensions/typescript-basics/syntaxes/TypeScript.tmLanguage.json` | `4e92e0d7de560217d6c8d3236d85e6e17a5d77825b15729a230c761743122661` |
-| `php` | `extensions/php/syntaxes/php.tmLanguage.json` | `dea92689034f878009c556d59abef08a16e0995ad423ac8ffe93fad78d065c1c` |
-| `ruby` | `extensions/ruby/syntaxes/ruby.tmLanguage.json` | `050632ddb85d98e2fa9db029951334575e26f6fcca2083675398f6a241605f98` |
-| `go` | `extensions/go/syntaxes/go.tmLanguage.json` | `de8f2fa64ff273ecd3bfd815164c460e2e406759fb7c8ffabf6cb3639a0efc5f` |
-| `rust` | `extensions/rust/syntaxes/rust.tmLanguage.json` | `015f28e49b5bd4f2b2bb9863cd62e5831a4b570d8b65fe24a7df9b25312da75f` |
+| `html` | `microsoft/vscode` : `extensions/html/syntaxes/html.tmLanguage.json` | `80dedf4fb27e88889ac8fb72763954a6d2660502c686f4415208d8c8d00352cd` |
+| `css` | `microsoft/vscode` : `extensions/css/syntaxes/css.tmLanguage.json` | `55a3e184f702da6a5a64dc4d7ce82ab298a1bae8d35e2924483941eb223d54b1` |
+| `javascript` | `microsoft/vscode` : `extensions/javascript/syntaxes/JavaScript.tmLanguage.json` | `db6f17f15bc4f5e860a3b8fa6055a69720a53df845c8d5121cdc4f128c16291f` |
+| `typescript` | `microsoft/vscode` : `extensions/typescript-basics/syntaxes/TypeScript.tmLanguage.json` | `4e92e0d7de560217d6c8d3236d85e6e17a5d77825b15729a230c761743122661` |
+| `php` | `microsoft/vscode` : `extensions/php/syntaxes/php.tmLanguage.json` | `dea92689034f878009c556d59abef08a16e0995ad423ac8ffe93fad78d065c1c` |
+| `ruby` | `microsoft/vscode` : `extensions/ruby/syntaxes/ruby.tmLanguage.json` | `050632ddb85d98e2fa9db029951334575e26f6fcca2083675398f6a241605f98` |
+| `go` | `microsoft/vscode` : `extensions/go/syntaxes/go.tmLanguage.json` | `de8f2fa64ff273ecd3bfd815164c460e2e406759fb7c8ffabf6cb3639a0efc5f` |
+| `rust` | `microsoft/vscode` : `extensions/rust/syntaxes/rust.tmLanguage.json` | `015f28e49b5bd4f2b2bb9863cd62e5831a4b570d8b65fe24a7df9b25312da75f` |
+| `swift` | `microsoft/vscode` : `extensions/swift/syntaxes/swift.tmLanguage.json` | `acd12f33c06092e1ccff5d44bee2b59f288d941bd94747e7178305d3a140e91b` |
+| `dart` | `Dart-Code/Dart-Code` : `syntaxes/dart.json` | `b73d2f4eb9ec42ae7973927c90c48f23d7596957128eba6dcb731868d78bf5e7` |
+| `scala` | `scala/vscode-scala-syntax` : `syntaxes/Scala.tmLanguage.json` | `14e61b6e6bcf483a22276dfc4af4593d2122d9cf38691908db2f601d19455eda` |
+| `csharp` | `microsoft/vscode` : `extensions/csharp/syntaxes/csharp.tmLanguage.json` | `5fb8e321eb9a961d6fe66178bf9b3d91f79eccf4aef81533bec6722f53c54910` |
+| `lua` | dépôt de départ (gel f310a39) : sora-editor, `lua.tmLanguage.json` | `9d2dcaae5b2ed29e0e3a1f38ad2e2b2769641b82696af4de704974b5dce8aebe` |
+
+## Grammaires écrites ici — la traîne maison (chantier C5, 2026-11-18)
+
+Trois paquets de la traîne portent des grammaires écrites dans ce
+projet (`langages/smali`, `langages/log`, `langages/text`), licence
+Apache-2.0, aucune attribution tierce  : le commerce n'en publie pas en
+format TextMate JSON. Leur oracle de comportement est le dépôt de
+départ (code-editor, gel f310a39)  : smali suit le tokéniseur
+`SmaliTokenizer` (directives, registres p/v, descripteurs `L…;`,
+opcodes à tiret et slash, la chaîne orpheline qui tombe), log suit le
+classifieur `LogTokenizer` (l'ordre d'évaluation ERREUR →
+AVERTISSEMENT → SUCCÈS → EN-TÊTE → INFO, la ligne entière classée, le
+repli sans couleur) et text suit le profil plaintext (aucun
+commentaire, aucun jeton coloré). Les bancs `PaquetSmaliIntegreTest`,
+`PaquetLogIntegreTest` et `PaquetTextIntegreTest` rejouent l'oracle  ;
+le registre de portage consigne la traduction.
 
 ## Dépendance tierce au runtime des artefacts publiés — grammaires (M7.6)
 
