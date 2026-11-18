@@ -24,3 +24,35 @@ dependencies {
         }
     }
 }
+
+// Chantier B2 (revue du 2026-11-17) : les règles de conservation se
+// publient DANS le jar — R8 lit META-INF/proguard/ des jars de
+// dépendances, l'hôte n'a plus à copier le fichier à la main. La
+// source unique reste regles-conservation.pro à la racine (la
+// démonstration, hors périmètre, l'y lit) ; cette tâche la recopie
+// vers les ressources générées — jamais deux fois le même texte à
+// maintenir.
+val reglesEmbarquees = tasks.register<Sync>("embarquerReglesR8") {
+    from("regles-conservation.pro")
+    into(layout.buildDirectory.dir("generated-resources/proguard/META-INF/proguard"))
+    rename { "celeris-lsp.pro" }
+}
+// La racine des ressources générées se déclare au source set (le
+// PARENT de META-INF — le fichier garde son chemin relatif).
+sourceSets {
+    main {
+        resources.srcDir(layout.buildDirectory.dir("generated-resources/proguard"))
+    }
+}
+tasks.named("processResources") {
+    dependsOn(reglesEmbarquees)
+}
+tasks.named("sourcesJar") {
+    dependsOn(reglesEmbarquees)
+}
+// Le banc des règles embarquées lit le JAR compilé (build/libs) :
+// Gradle doit le bâtier AVANT les tests — sans ce pont, l'ordre des
+// tâches laisse le banc lire un jar d'une construction passée.
+tasks.named("test") {
+    dependsOn(tasks.named("jar"))
+}
