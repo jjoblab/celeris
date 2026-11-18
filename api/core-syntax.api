@@ -54,12 +54,16 @@ public final class jo.celeris.core.syntax.EditSite extends java.lang.Record {
   public int lineDelta();
 }
 
-### jo.celeris.core.syntax.EtatNatif
-Compiled from "EtatNatif.java"
-final class jo.celeris.core.syntax.EtatNatif extends java.lang.Enum<jo.celeris.core.syntax.EtatNatif> implements jo.celeris.core.syntax.LexState {
-  public static final jo.celeris.core.syntax.EtatNatif PREMIER;
-  public static jo.celeris.core.syntax.EtatNatif[] values();
-  public static jo.celeris.core.syntax.EtatNatif valueOf(java.lang.String);
+### jo.celeris.core.syntax.FabriqueMoteurVoie
+Compiled from "FabriqueMoteurVoie.java"
+public interface jo.celeris.core.syntax.FabriqueMoteurVoie {
+  public abstract jo.celeris.core.syntax.MoteurSyntaxe creer(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
+}
+
+### jo.celeris.core.syntax.FabriqueMoteurVoieChargee
+Compiled from "FabriqueMoteurVoieChargee.java"
+public final class jo.celeris.core.syntax.FabriqueMoteurVoieChargee {
+  public static jo.celeris.core.syntax.MoteurSyntaxe creer(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
 }
 
 ### jo.celeris.core.syntax.IncrementalLexer
@@ -127,6 +131,7 @@ public interface jo.celeris.core.syntax.LanguageSyntax {
 ### jo.celeris.core.syntax.LexDocument
 Compiled from "LexDocument.java"
 public final class jo.celeris.core.syntax.LexDocument {
+  public static jo.celeris.core.syntax.LexDocument of(jo.celeris.core.syntax.LexedLine[], int[], jo.celeris.core.syntax.LexState);
   public int lineCount();
   public jo.celeris.core.syntax.LexedLine line(int);
   public jo.celeris.core.syntax.LexState stateBefore(int);
@@ -159,33 +164,6 @@ public final class jo.celeris.core.syntax.LexedLine {
   public jo.celeris.core.syntax.LexState exitState();
 }
 
-### jo.celeris.core.syntax.LiaisonArbre
-Compiled from "LiaisonArbre.java"
-final class jo.celeris.core.syntax.LiaisonArbre {
-}
-
-### jo.celeris.core.syntax.MaterialisationNatif$LeafToken
-Compiled from "MaterialisationNatif.java"
-final class jo.celeris.core.syntax.MaterialisationNatif$LeafToken extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public jo.celeris.core.syntax.TokenKind sorte();
-  public int debut();
-  public int fin();
-}
-
-### jo.celeris.core.syntax.MaterialisationNatif
-Compiled from "MaterialisationNatif.java"
-final class jo.celeris.core.syntax.MaterialisationNatif {
-}
-
-### jo.celeris.core.syntax.MoteurAnalyse$Auditeur
-Compiled from "MoteurAnalyse.java"
-public interface jo.celeris.core.syntax.MoteurAnalyse$Auditeur {
-  public abstract void analysePubliee(jo.celeris.core.syntax.Analysis);
-}
-
 ### jo.celeris.core.syntax.MoteurAnalyse$Tache
 Compiled from "MoteurAnalyse.java"
 final class jo.celeris.core.syntax.MoteurAnalyse$Tache implements java.lang.Runnable {
@@ -194,36 +172,27 @@ final class jo.celeris.core.syntax.MoteurAnalyse$Tache implements java.lang.Runn
 
 ### jo.celeris.core.syntax.MoteurAnalyse
 Compiled from "MoteurAnalyse.java"
-public final class jo.celeris.core.syntax.MoteurAnalyse {
+public final class jo.celeris.core.syntax.MoteurAnalyse implements jo.celeris.core.syntax.MoteurSyntaxe {
   public static jo.celeris.core.syntax.MoteurAnalyse sur(jo.celeris.core.text.TextSession, jo.celeris.core.syntax.LanguageSyntax, java.util.concurrent.Executor);
   public static jo.celeris.core.syntax.MoteurAnalyse sur(jo.celeris.core.text.TextSession, jo.celeris.core.syntax.LanguageSyntax, java.util.concurrent.Executor, int, int);
   public synchronized void fenetre(int, int);
   public void reanalyser();
   public synchronized jo.celeris.core.syntax.Analysis analysePubliee();
-  public synchronized void ajouterAuditeur(jo.celeris.core.syntax.MoteurAnalyse$Auditeur);
-  public synchronized void retirerAuditeur(jo.celeris.core.syntax.MoteurAnalyse$Auditeur);
-  public void close();
-}
-
-### jo.celeris.core.syntax.MoteurNatif
-Compiled from "MoteurNatif.java"
-public final class jo.celeris.core.syntax.MoteurNatif {
-  public static jo.celeris.core.syntax.MoteurNatif sur(jo.celeris.core.text.TextSession, jo.celeris.core.syntax.SyntaxeNatif, java.util.concurrent.Executor);
-  public static jo.celeris.core.syntax.MoteurNatif de(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
-  public synchronized jo.celeris.core.syntax.Analysis analysePubliee();
-  public synchronized jo.celeris.core.syntax.Analysis analyseDeRevision(int);
-  public void reanalyser();
-  public void fenetre(int, int);
+  public synchronized jo.celeris.core.syntax.Analysis analyseDeRevision(long);
   public synchronized void ajouterAuditeur(java.util.function.Consumer<jo.celeris.core.syntax.Analysis>);
+  public synchronized void retirerAuditeur(java.util.function.Consumer<jo.celeris.core.syntax.Analysis>);
   public void close();
 }
 
-### jo.celeris.core.syntax.NativeNodeKind
-Compiled from "NativeNodeKind.java"
-final class jo.celeris.core.syntax.NativeNodeKind extends java.lang.Enum<jo.celeris.core.syntax.NativeNodeKind> implements jo.celeris.core.syntax.NodeKind {
-  public static final jo.celeris.core.syntax.NativeNodeKind NODE;
-  public static jo.celeris.core.syntax.NativeNodeKind[] values();
-  public static jo.celeris.core.syntax.NativeNodeKind valueOf(java.lang.String);
+### jo.celeris.core.syntax.MoteurSyntaxe
+Compiled from "MoteurSyntaxe.java"
+public interface jo.celeris.core.syntax.MoteurSyntaxe extends java.lang.AutoCloseable {
+  public abstract jo.celeris.core.syntax.Analysis analysePubliee();
+  public abstract jo.celeris.core.syntax.Analysis analyseDeRevision(long);
+  public abstract void reanalyser();
+  public abstract void fenetre(int, int);
+  public abstract void ajouterAuditeur(java.util.function.Consumer<jo.celeris.core.syntax.Analysis>);
+  public abstract void close();
 }
 
 ### jo.celeris.core.syntax.NodeCategory
@@ -292,22 +261,12 @@ public final class jo.celeris.core.syntax.SyntaxService {
 ### jo.celeris.core.syntax.SyntaxTree
 Compiled from "SyntaxTree.java"
 public final class jo.celeris.core.syntax.SyntaxTree {
+  public static jo.celeris.core.syntax.SyntaxTree of(int, java.util.List<jo.celeris.core.syntax.Chunk>);
   public int revision();
   public java.util.List<jo.celeris.core.syntax.Chunk> chunks();
   public boolean estComplet();
   public int chunkStartOffset(jo.celeris.core.text.Document, jo.celeris.core.syntax.Chunk);
   public int chunkEndOffset(jo.celeris.core.text.Document, jo.celeris.core.syntax.Chunk);
-}
-
-### jo.celeris.core.syntax.SyntaxeNatif
-Compiled from "SyntaxeNatif.java"
-public final class jo.celeris.core.syntax.SyntaxeNatif implements jo.celeris.core.syntax.LanguageSyntax {
-  public static jo.celeris.core.syntax.SyntaxeNatif json();
-  public static jo.celeris.core.syntax.SyntaxeNatif python();
-  public static jo.celeris.core.syntax.SyntaxeNatif javascript();
-  public java.lang.String id();
-  public jo.celeris.core.syntax.LanguageLexer lexer();
-  public jo.celeris.core.syntax.LanguageParser parser();
 }
 
 ### jo.celeris.core.syntax.Token

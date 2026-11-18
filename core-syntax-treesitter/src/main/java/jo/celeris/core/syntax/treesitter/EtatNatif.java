@@ -1,4 +1,6 @@
-package jo.celeris.core.syntax;
+package jo.celeris.core.syntax.treesitter;
+
+import jo.celeris.core.syntax.LexState;
 
 /**
  * L'état de lexicographie du niveau 2 (ADR-020) : l'arbre natif porte

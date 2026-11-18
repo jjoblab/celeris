@@ -32,18 +32,7 @@ import jo.celeris.core.text.TextSession;
  * puis travaillé hors verrou. Sans volatile ni atomique : la règle
  * ADR-007 est vérifiée par le test d'architecture du module.</p>
  */
-public final class MoteurAnalyse {
-
-    /** Auditeur de publication : prévenu sur le fil de travail, par lot publié. */
-    public interface Auditeur {
-
-        /**
-         * Un instantané d'analyse vient d'être publié.
-         *
-         * @param analyse l'analyse publiée, complète ou partielle
-         */
-        void analysePubliee(Analysis analyse);
-    }
+public final class MoteurAnalyse implements MoteurSyntaxe {
 
     /** Taille d'un lot de complétion entre deux publications. */
     private static final int LOT = 32;
@@ -54,7 +43,8 @@ public final class MoteurAnalyse {
     private final EditListener ecouteur = this::surEdition;
 
     /** Auditeurs, sous moniteur. */
-    private final List<Auditeur> auditeurs = new ArrayList<>();
+    private final List<java.util.function.Consumer<Analysis>> auditeurs =
+            new ArrayList<>();
 
     /** Sites d'édition en attente d'être rejoués par incrément (au plus un). */
     private final Deque<EditSite> sites = new ArrayDeque<>();
@@ -117,6 +107,7 @@ public final class MoteurAnalyse {
      * @param premiereLigne la première ligne visible
      * @param derniereLigne la dernière ligne visible
      */
+    @Override
     public synchronized void fenetre(int premiereLigne, int derniereLigne) {
         this.fenetrePremiere = premiereLigne;
         this.fenetreDerniere = derniereLigne;
@@ -126,6 +117,7 @@ public final class MoteurAnalyse {
      * Programme l'analyse de l'instantané courant par la voie complète :
      * fenêtre d'abord, complétion par lots ensuite.
      */
+    @Override
     public void reanalyser() {
         Runnable tache;
         synchronized (this) {
@@ -146,25 +138,49 @@ public final class MoteurAnalyse {
      *
      * @return l'analyse publiée, complète ou partielle
      */
+    @Override
     public synchronized @Nullable Analysis analysePubliee() {
         return publiee;
     }
 
     /**
-     * S'abonne aux publications.
+     * L'analyse publiée pour la révision demandée (MoteurSyntaxe,
+     * ADR-0024) — null si la publication courante ne la sert pas
+     * exactement : jamais le lexique d'une autre révision ne colore
+     * un document (PIEGE-20).
+     *
+     * @param revision la révision voulue
+     * @return l'analyse à jour, ou null
+     */
+    @Override
+    public synchronized @Nullable Analysis analyseDeRevision(long revision) {
+        Analysis courante = publiee;
+        if (courante == null || courante.revision() != revision) {
+            return null;
+        }
+        return courante;
+    }
+
+    /**
+     * S'abonne aux publications (MoteurSyntaxe, ADR-0024) — le pont
+     * y branche sa remise en couleur.
      *
      * @param auditeur l'auditeur à prévenir sur le fil de travail
      */
-    public synchronized void ajouterAuditeur(Auditeur auditeur) {
+    @Override
+    public synchronized void ajouterAuditeur(
+            java.util.function.Consumer<Analysis> auditeur) {
         auditeurs.add(auditeur);
     }
 
     /** Se désabonne des publications. */
-    public synchronized void retirerAuditeur(Auditeur auditeur) {
+    public synchronized void retirerAuditeur(
+            java.util.function.Consumer<Analysis> auditeur) {
         auditeurs.remove(auditeur);
     }
 
     /** Détache l'auditeur de session, annule le travail en vol : tout s'arrête. */
+    @Override
     public void close() {
         synchronized (this) {
             ferme = true;
@@ -213,7 +229,7 @@ public final class MoteurAnalyse {
 
     /** Publication : ne remplace que si le jeton est encore le courant (PIEGE-20). */
     private void publierSiCourant(JetonAnnulation jeton, Analysis analyse) {
-        Auditeur[] aPrevenir;
+        java.util.List<java.util.function.Consumer<Analysis>> aPrevenir;
         synchronized (this) {
             if (ferme || enCours != jeton) {
                 return;
@@ -222,10 +238,10 @@ public final class MoteurAnalyse {
             publieDoc = cible;
             cheminComplet = false;
             sites.clear();
-            aPrevenir = auditeurs.toArray(new Auditeur[0]);
+            aPrevenir = new ArrayList<>(auditeurs);
         }
-        for (Auditeur auditeur : aPrevenir) {
-            auditeur.analysePubliee(analyse);
+        for (java.util.function.Consumer<Analysis> auditeur : aPrevenir) {
+            auditeur.accept(analyse);
         }
     }
 

@@ -1,4 +1,6 @@
-package jo.celeris.core.syntax;
+package jo.celeris.core.syntax.treesitter;
+
+import jo.celeris.core.syntax.NodeKind;
 
 /**
  * Les sortes de nœuds du niveau 2 (ADR-020) : la matérialisation Java

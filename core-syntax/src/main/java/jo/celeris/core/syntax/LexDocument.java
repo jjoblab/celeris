@@ -22,6 +22,21 @@ public final class LexDocument {
         this.initial = initial;
     }
 
+    /**
+     * Le lexique d'un document (ADR-0024) : fabrique PUBLIQUE — la
+     * voie tree-sitter, module séparé, y bâtit son lexique sans
+     * toucher au constructeur interne.
+     *
+     * @param lignes     les lignes lexicographiées
+     * @param profondeurs les profondeurs de crochets par ligne
+     * @param initial    l'état du lexeur en tête de document
+     * @return le lexique versionné
+     */
+    public static LexDocument of(LexedLine[] lignes, int[] profondeurs,
+            LexState initial) {
+        return new LexDocument(lignes, profondeurs, initial);
+    }
+
     /** Nombre de lignes lexicographiées (une ligne vide finale comprise). */
     public int lineCount() {
         return lignes.length;

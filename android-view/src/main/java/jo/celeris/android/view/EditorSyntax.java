@@ -10,8 +10,9 @@ import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.structure.FoldSpan;
 import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.syntax.FabriqueMoteurVoieChargee;
 import jo.celeris.core.syntax.MoteurAnalyse;
-import jo.celeris.core.syntax.MoteurNatif;
+import jo.celeris.core.syntax.MoteurSyntaxe;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.syntax.structure.TreeDiagnostics;
@@ -92,7 +93,7 @@ public final class EditorSyntax {
     private @Nullable LanguageSyntax syntaxeDuLangage;
     private @Nullable SyntaxCoordinator coordinateur;
     private @Nullable MoteurAnalyse moteur;
-    private @Nullable MoteurNatif moteurNatif;
+    private jo.celeris.core.syntax.@Nullable MoteurSyntaxe moteurNativeVoie;
     private @Nullable Runnable surAnalysePrete;
 
     /** Les consommateurs 2.0 du plan — multiples (ADR-0022, phase
@@ -179,7 +180,7 @@ public final class EditorSyntax {
 
     /** Vrai quand l'analyse est branchée. */
     public boolean active() {
-        return coordinateur != null || moteur != null || moteurNatif != null;
+        return coordinateur != null || moteur != null || moteurNativeVoie != null;
     }
 
     /**
@@ -192,8 +193,8 @@ public final class EditorSyntax {
      * @return vrai quand une publication existe
      */
     public boolean couleurAttendue() {
-        if (moteurNatif != null) {
-            return moteurNatif.analysePubliee() != null;
+        if (moteurNativeVoie != null) {
+            return moteurNativeVoie.analysePubliee() != null;
         }
         MoteurAnalyse moteurLocal = moteur;
         if (moteurLocal != null) {
@@ -378,8 +379,8 @@ public final class EditorSyntax {
      * d'intelligence (M7.5, §8) y lit l'analyse de ses gestes.
      */
     @Nullable Analysis analyseCourante(Document document) {
-        if (moteurNatif != null) {
-            return moteurNatif.analyseDeRevision(document.revision());
+        if (moteurNativeVoie != null) {
+            return moteurNativeVoie.analyseDeRevision(document.revision());
         }
         if (moteur != null) {
             Analysis publiee = moteur.analysePubliee();
@@ -478,11 +479,15 @@ public final class EditorSyntax {
     private void rattacher() {
         fermerMoteur();
         LanguageSyntax syntaxe = syntaxeDuLangage;
-        // La voie du niveau 2 (ADR-020) : la source native sert l'entier.
-        moteurNatif = MoteurNatif.de(syntaxe, session, executeur);
-        if (moteurNatif != null) {
-            moteurNatif.ajouterAuditeur(analyse -> notifierAnalysePrete());
-            moteurNatif.reanalyser();
+        // La voie tree-sitter (ADR-0024) : le pont ne connaît pas le
+        // moteur concret — le module opt-in expose sa fabrique par
+        // ServiceLoader (charge si présent, rien sinon) et la voie
+        // des grammaires sert par défaut.
+        moteurNativeVoie =
+                FabriqueMoteurVoieChargee.creer(syntaxe, session, executeur);
+        if (moteurNativeVoie != null) {
+            moteurNativeVoie.ajouterAuditeur(analyse -> notifierAnalysePrete());
+            moteurNativeVoie.reanalyser();
             return;
         }
         if (executeur == null) {
@@ -500,9 +505,9 @@ public final class EditorSyntax {
     }
 
     private void fermerMoteur() {
-        if (moteurNatif != null) {
-            moteurNatif.close();
-            moteurNatif = null;
+        if (moteurNativeVoie != null) {
+            moteurNativeVoie.close();
+            moteurNativeVoie = null;
         }
         if (moteur != null) {
             moteur.close();

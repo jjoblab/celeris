@@ -1,5 +1,8 @@
-package jo.celeris.core.syntax;
+package jo.celeris.core.syntax.treesitter;
 
+import jo.celeris.core.syntax.MoteurSyntaxe;
+import jo.celeris.core.syntax.LanguageSyntax;
+import jo.celeris.core.syntax.Analysis;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * partent — l'hôte y invalide. La fenêtre visible ne la concerne
  * jamais : la voie sert l'entier, la borne fait la fenêtre.</p>
  */
-public final class MoteurNatif {
+public final class MoteurNatif implements MoteurSyntaxe {
 
     /** La borne de la voie, en octets — le régime mesuré du spike
      *  (0,5 ms incrémental à 190 Ko) : au-delà, l'arbre ne survit pas. */
@@ -95,6 +98,7 @@ public final class MoteurNatif {
     }
 
     /** La publication courante — null avant la première passe. */
+    @Override
     public synchronized @Nullable Analysis analysePubliee() {
         return publiee;
     }
@@ -107,7 +111,8 @@ public final class MoteurNatif {
      * @param revision la révision de l'instantané affiché
      * @return la publication à jour, ou null
      */
-    public synchronized @Nullable Analysis analyseDeRevision(int revision) {
+    @Override
+    public synchronized @Nullable Analysis analyseDeRevision(long revision) {
         Analysis courante = publiee;
         return courante != null && courante.revision() == revision
                 ? courante : null;
@@ -115,6 +120,7 @@ public final class MoteurNatif {
 
     /** Re-analyse le document courant : l'incrémental s'y sert de
      *  l'arbre précédent quand l'édition s'y rapporte. */
+    @Override
     public void reanalyser() {
         Executor fil = executeur;
         if (fil != null) {
@@ -125,6 +131,7 @@ public final class MoteurNatif {
     }
 
     /** La fenêtre visible ne concerna jamais la voie : elle sert l'entier. */
+    @Override
     public void fenetre(int premiereLigne, int derniereLigne) {
         // la voie analyse le document entier — la borne fait la fenêtre
     }
@@ -135,11 +142,13 @@ public final class MoteurNatif {
      *
      * @param auditeur le consommateur d'analyses
      */
+    @Override
     public synchronized void ajouterAuditeur(Consumer<Analysis> auditeur) {
         auditeurs.add(auditeur);
     }
 
     /** Referme le moteur : l'arbre et l'analyseur se libèrent. */
+    @Override
     public void close() {
         session.removeEditListener(ecouteur);
         if (arbrePrecedent != 0) {

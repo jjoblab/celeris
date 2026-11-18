@@ -1,5 +1,9 @@
-package jo.celeris.core.syntax;
+package jo.celeris.core.syntax.treesitter;
 
+import jo.celeris.core.syntax.LanguageLexer;
+import jo.celeris.core.syntax.LanguageParser;
+
+import jo.celeris.core.syntax.LanguageSyntax;
 import org.jspecify.annotations.Nullable;
 
 /**

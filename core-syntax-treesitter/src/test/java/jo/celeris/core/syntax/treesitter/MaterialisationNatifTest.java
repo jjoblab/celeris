@@ -1,5 +1,9 @@
-package jo.celeris.core.syntax;
+package jo.celeris.core.syntax.treesitter;
 
+import jo.celeris.core.syntax.Token;
+import jo.celeris.core.syntax.TokenKind;
+import jo.celeris.core.syntax.Chunk;
+import jo.celeris.core.syntax.Analysis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

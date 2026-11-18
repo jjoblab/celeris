@@ -80,7 +80,7 @@ jobs:
           "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null
       - name: Contrôles complets (tous modules, SDK présent)
         run: ./gradlew check
-      - name: Publication locale (treize artefacts — onze modules + BOM + agrégateur, SBOM, sommes)
+      - name: Publication locale (quatorze artefacts — douze modules + BOM + agrégateur, SBOM, sommes)
         run: ./gradlew publishToMavenLocal publicationChecksums
       # La démonstration a quitté le dépôt (ADR-0024, F.7) : la
       # vérification APK signée repartira avec le futur module de

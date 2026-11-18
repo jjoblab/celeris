@@ -1,4 +1,4 @@
-package jo.celeris.core.syntax;
+package jo.celeris.core.syntax.treesitter;
 
 import java.nio.file.Path;
 

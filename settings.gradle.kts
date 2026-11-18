@@ -24,6 +24,9 @@ rootProject.name = "celeris"
 include(":core-text")
 include(":core-syntax")
 include(":core-syntax-grammars")
+// La voie tree-sitter de la coloration (ADR-0024) : module OPT-IN,
+// séparé — l'hôte l'embarque pour la voie native, rien sans lui.
+include(":core-syntax-treesitter")
 include(":core-language")
 include(":core-intelligence")
 include(":core-lsp")

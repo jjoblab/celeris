@@ -347,6 +347,7 @@ portes) :
 | [`core-text`](core-text/README.md) | JVM pure | modèle de texte, instantanés, transactions, multi-sélection, annulation |
 | [`core-syntax`](core-syntax/README.md) | JVM pure | analyse syntaxique incrémentale, structure (plis, plan, crochets) |
 | [`core-syntax-grammars`](core-syntax-grammars/README.md) | JVM pure | voie de grammaires TextMate, longue traîne (ADR-014) |
+| [`core-syntax-treesitter`](core-syntax-treesitter) | JVM pure, OPT-IN | voie tree-sitter de la coloration : module séparé, embarqué à la main (ADR-0024) |
 | [`core-language`](core-language/README.md) | JVM pure | plateforme de langages : contrats, paquets de données, registre (ADR-017) |
 | [`core-intelligence`](core-intelligence/README.md) | JVM pure | index de symboles, complétion, refactorings, formatage, moteurs des surfaces réveillées |
 | [`core-lsp`](core-lsp/README.md) | JVM pure | domaine LSP : types immuables, ordonnancement, UTF-16 (ADR-015) |

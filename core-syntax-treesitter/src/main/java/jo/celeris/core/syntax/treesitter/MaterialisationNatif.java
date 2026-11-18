@@ -1,5 +1,17 @@
-package jo.celeris.core.syntax;
+package jo.celeris.core.syntax.treesitter;
 
+import jo.celeris.core.syntax.LexDocument;
+import jo.celeris.core.syntax.NodeCategory;
+
+import jo.celeris.core.syntax.LexedLine;
+
+import jo.celeris.core.syntax.Token;
+import jo.celeris.core.syntax.TokenKind;
+import jo.celeris.core.syntax.SynNode;
+
+import jo.celeris.core.syntax.SyntaxTree;
+import jo.celeris.core.syntax.Chunk;
+import jo.celeris.core.syntax.Analysis;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -177,7 +189,7 @@ final class MaterialisationNatif {
         int[] profondeurs = profondeurs(lignes);
         SyntaxTree arbre = arbre(blocks, revision);
         return new Analysis(revision,
-                new LexDocument(lignes, profondeurs, EtatNatif.PREMIER), arbre);
+                LexDocument.of(lignes, profondeurs, EtatNatif.PREMIER), arbre);
     }
 
     /**
@@ -327,7 +339,7 @@ final class MaterialisationNatif {
             chunks.add(new Chunk(ligneDebut, bloc[0] - debut, ligneFin,
                     finDeColonne(bloc[1], ligneFin), racine));
         }
-        return new SyntaxTree(revision, List.copyOf(chunks));
+        return SyntaxTree.of(revision, List.copyOf(chunks));
     }
 
     /** La colonne (caractères) d'un début de ligne. */

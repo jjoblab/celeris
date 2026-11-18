@@ -22,6 +22,19 @@ public final class SyntaxTree {
         this.chunks = List.copyOf(chunks);
     }
 
+    /**
+     * L'arbre d'une révision et de ses chunks (ADR-0024) : la voie
+     * de la fabrique PUBLIQUE — la voie tree-sitter, module séparé,
+     * y bâtit son arbre aplati sans toucher au constructeur interne.
+     *
+     * @param revision la révision du document producteur
+     * @param chunks   les chunks triés par position
+     * @return l'arbre versionné
+     */
+    public static SyntaxTree of(int revision, List<Chunk> chunks) {
+        return new SyntaxTree(revision, chunks);
+    }
+
     /** La révision du document qui a produit cet arbre. */
     public int revision() {
         return revision;

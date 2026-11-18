@@ -37,9 +37,10 @@ install:
   # builds --no-daemon sur JitPack : il est coupé ici.
   # Seuls les modules PUBLIÉS de l'éditeur sont ciblés (directive du
   # propriétaire, 2026-11-18). La démonstration et le serveur LSP de
-  # banc ont quitté le dépôt (ADR-0024, F.7) : plus rien d'eux ne
-  # peut paraître sur JitPack — la commande cible les onze modules
-  # publiés, la BOM (celeris-bom) et l'agrégateur (celeris) de B1 :
-  # treize artefacts, l'hôte écrit UNE dépendance (celeris) ou une
-  # plateforme (celeris-bom).
-  - ./gradlew :core-text:publishToMavenLocal :core-syntax:publishToMavenLocal :core-syntax-grammars:publishToMavenLocal :core-language:publishToMavenLocal :core-intelligence:publishToMavenLocal :core-lsp:publishToMavenLocal :core-ai:publishToMavenLocal :lsp-protocole:publishToMavenLocal :android-view:publishToMavenLocal :android-widgets:publishToMavenLocal :android-host:publishToMavenLocal :celeris:publishToMavenLocal :celeris-bom:publishToMavenLocal --no-daemon -x test -x lint -x check -Dorg.gradle.configuration-cache=false
+  # banc ont quitté le dépôt (ADR-0024, F.7) ; la voie tree-sitter
+  # y entre comme module OPT-IN (ADR-0024, F.4) — l'hôte qui la
+  # veut l'embarque explicitement, la BOM ne l'exige pas. La
+  # commande cible les douze modules publiés, la BOM (celeris-bom)
+  # et l'agrégateur (celeris) : quatorze artefacts, l'hôte écrit
+  # UNE dépendance (celeris) ou une plateforme (celeris-bom).
+  - ./gradlew :core-text:publishToMavenLocal :core-syntax:publishToMavenLocal :core-syntax-grammars:publishToMavenLocal :core-syntax-treesitter:publishToMavenLocal :core-language:publishToMavenLocal :core-intelligence:publishToMavenLocal :core-lsp:publishToMavenLocal :core-ai:publishToMavenLocal :lsp-protocole:publishToMavenLocal :android-view:publishToMavenLocal :android-widgets:publishToMavenLocal :android-host:publishToMavenLocal :celeris:publishToMavenLocal :celeris-bom:publishToMavenLocal --no-daemon -x test -x lint -x check -Dorg.gradle.configuration-cache=false

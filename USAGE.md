@@ -159,6 +159,44 @@ Le cœur n'exige que `core-text` ; chaque autre module ne tire que ce
 que son rôle demande — les règles de dépendance vivent dans
 [`ARCHITECTURE.md`](ARCHITECTURE.md). Le vôtre inclut ce qu'il expose.
 
+### 3.1 bis La voie tree-sitter — module OPT-IN (ADR-0024)
+
+La coloration vit en DEUX voies séparées, chacune réellement ce
+qu'elle prétend être :
+
+- la **voie grammaires** (TextMate, `core-syntax-grammars`) —
+  embarquée par défaut, elle sert la longue traîne des trente-deux
+  langages ;
+- la **voie tree-sitter** (`core-syntax-treesitter`) — un module
+  séparé que SEUL l'hôte qui la veut embarque :
+
+```kotlin
+dependencies {
+    implementation("com.github.jjoblab.celeris:core-syntax-treesitter:<tag>")
+}
+```
+
+Sans ce module, l'hôte ne reçoit AUCUN chemin de chargement natif :
+la voie grammaires sert, personne ne change. Avec lui, la fabrique
+de la voie s'annonce au pont par `ServiceLoader` et inscrit ses
+langages (json, python, javascript) au registre de la plateforme —
+la préférence `tree-sitter` d'un paquet de langage se met à servir.
+
+La bibliothèque partagée (runtime C) ne se charge QUE par la
+propriété système `celeris.natif.lib` (chemin absolu) : elle n'est
+jamais empaquetée dans l'artefact. L'hôte qui embarque la voie en
+banc la construit par la tâche `natif` du module et la désigne :
+
+```bash
+./gradlew :core-syntax-treesitter:natif
+java -Dceleris.natif.lib=/chemin/absolu/libliaison.so ...
+```
+
+**Le choix de voie se déclare dans le paquet de langage**
+(`syntaxPreference`, § 6) : `"tree-sitter"` pour la voie native,
+`"grammar"` pour la voie TextMate — le repli déclaré sert quand la
+voie voulue manque.
+
 ### 3.2 La publication distante — JitPack
 
 Le dépôt se consomme par JitPack, sans compte ni jeton. Le dépôt
