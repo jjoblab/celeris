@@ -1,5 +1,9 @@
 package jo.celeris.android.view;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -10,11 +14,20 @@ import org.jspecify.annotations.Nullable;
  * curseur ne notifie jamais deux fois le même état.
  *
  * <p>Pur et testable sans SDK : la signature se compare en flottants
- * et entiers, l'écouteur vit chez la vue.</p>
+ * et entiers. Les abonnés y sont MULTIPLES (ADR-0022, phase 2, T3 —
+ * point 13 de la revue : le repositionneur des popups du kit et
+ * l'écouteur de l'hôte vivaient sur le même emplacement unique,
+ * s'écrasant l'un l'autre) ; la voie 1.x {@code setListener} reste
+ * pour compatibilité, le temps du recensement des hôtes.</p>
  */
 final class ViewportWatch {
 
-    private @Nullable Runnable listener;
+    /** Les abonnés de l'avis — multiples, sans écrasement (T3). */
+    private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
+
+    /** L'abonné 1.x à emplacement unique — repli compatibilité. */
+    private @Nullable Runnable listenerUnique;
+
     private boolean notified;
     private float scrollX;
     private float scrollY;
@@ -25,14 +38,25 @@ final class ViewportWatch {
     private int width;
     private int height;
 
-    /** Pose (ou retire) l'écouteur des changements de fenêtre. */
+    /** Pose (ou retire) l'écouteur unique 1.x — compatibilité : le
+     *  premier abonné posé vit avec les abonnés 2.0. */
     void setListener(@Nullable Runnable ecouteur) {
-        listener = ecouteur;
+        listenerUnique = ecouteur;
+    }
+
+    /** Abonne un écouteur des changements de fenêtre (voie 2.0, T3). */
+    void addListener(Runnable ecouteur) {
+        listeners.add(Objects.requireNonNull(ecouteur));
+    }
+
+    /** Désabonne un écouteur des changements de fenêtre (voie 2.0). */
+    void removeListener(Runnable ecouteur) {
+        listeners.remove(ecouteur);
     }
 
     /**
      * Compare l'état de fenêtre courant à la signature du dernier avis :
-     * au changement réel, l'écouteur part — sinon le silence tient.
+     * au changement réel, les écouteurs partent — sinon le silence tient.
      *
      * @param scrollX   le défilement horizontal, en pixels
      * @param scrollY   le défilement vertical, en pixels
@@ -45,7 +69,7 @@ final class ViewportWatch {
      */
     void review(float scrollX, float scrollY, float gutter, float charWidth,
             float lineHeight, int columns, int width, int height) {
-        if (listener == null) {
+        if (listeners.isEmpty() && listenerUnique == null) {
             return;
         }
         boolean change = !notified
@@ -67,6 +91,12 @@ final class ViewportWatch {
         this.width = width;
         this.height = height;
         notified = true;
-        listener.run();
+        Runnable unique = listenerUnique;
+        if (unique != null) {
+            unique.run();
+        }
+        for (Runnable ecouteur : listeners) {
+            ecouteur.run();
+        }
     }
 }

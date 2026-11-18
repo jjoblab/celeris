@@ -1,8 +1,115 @@
 # Migration — du dépôt de départ vers celeris
 
-> Guide de migration pour les applications hôtes qui consomment le dépôt de
-> départ (`jo.codeeditor`). Version finale M9 — l'API est celle des
-> manifestes `api/*.api` du dépôt, relue ligne à ligne contre eux.
+> Guide de migration pour les applications hôtes. Deux volets : la
+> montée **1.x → 2.0** (couche d'intégration, ADR-0022 — en cours de
+> déploiement, additive aujourd'hui), puis la correspondance historique
+> depuis le dépôt de départ (`jo.codeeditor`, version finale M9).
+
+## 0. La montée 1.x → 2.0 (ADR-0022, phase 2)
+
+Deux racines nouvelles, **additives** : rien de ce qui suit ne casse un
+hôte 1.x — les anciens poseurs vivent et délèguent. Les retraits
+effectifs attendent le recensement des applications hôtes (§ 0.3).
+
+### 0.1 Écouteurs : plusieurs abonnés (T3)
+
+Les huit poseurs à emplacement unique de `EditorView` s'écrasaient
+l'un l'autre (point 13 de la revue du 2026-11-17) : le
+repositionneur des popups du kit occupait `setSurViewportChange`, tout
+abonnement d'hôte l'écrasait en silence. La voie 2.0 est la paire
+`add…Listener` / `remove…Listener` :
+
+| 1.x (emplacement unique) | 2.0 (multi-abonnés) |
+| --- | --- |
+| `setSurViewportChange(r)` | `addViewportChangeListener(r)` / `removeViewportChangeListener(r)` |
+| `setOnFontSizeChanged(c)` | `addFontSizeChangeListener(c)` / `removeFontSizeChangeListener(c)` |
+| `setSurPlan(c)` | `addPlanListener(c)` / `removePlanListener(c)` |
+| `setSurFichierDepose(c)` | `addFileDropListener(c)` / `removeFileDropListener(c)` |
+| `setSurDoubleTap(v)` | `addDoubleTapListener(v)` / `removeDoubleTapListener(v)` |
+| `setSurBasculeArret(c)` | `addBreakpointToggleListener(c)` / `removeBreakpointToggleListener(c)` |
+| `setSurTouchePopup(v)` | `addPopupKeyListener(v)` / `removePopupKeyListener(v)` |
+| `setSurGesteFantome(c)` | `addGhostGestureListener(c)` / `removeGhostGestureListener(c)` |
+
+```java
+// Avant (1.x) — l'hôte écrase le repositionneur du kit :
+editorView.setSurViewportChange(this::repositionner);
+
+// Après (2.0) — le kit et l'hôte vivent ensemble :
+editorView.addViewportChangeListener(this::repositionner);
+// … et le retrait explicite :
+editorView.removeViewportChangeListener(this::repositionner);
+```
+
+Sémantique des événements à verdict (`doubleTap`, `touchePopup`) :
+chaque abonné rend son verdict ; la cascade s'arrête dès qu'un abonné
+consomme. Les événements d'information (`viewport`, `fontSize`,
+`plan`, `fichierDéposé`, `basculeArrêt`, `gesteFantôme`) atteignent
+CHAQUE abonné, dans l'ordre d'abonnement.
+
+### 0.2 Réglages : une source unique (T2)
+
+Le thème, la police, la taille, le retour à la ligne, les ligatures
+et les portes de fonctionnalités vivent dans `EditorView.settings()`
+(`EditorSettings`, point 14 de la revue) — la vue applique,
+l'orchestrateur des popups suit par abonnement, plus de double pose :
+
+```java
+// Avant (1.x) — deux appels à la main, le désync en prime :
+editorView.setTheme(SOMBRE);
+popups.surTheme(SOMBRE);
+editorView.setFont(new FontSpec("mono", 16f));
+popups.surTailleTexte(16f);
+
+// Après (2.0) — UN endroit, vue ET popups suivent :
+editorView.settings().setTheme(SOMBRE);
+editorView.settings().setFontSizeSp(16f);
+// retour de ligne, ligatures, portes :
+editorView.settings().setSoftWrap(true);
+editorView.settings().setLigatures(true);
+editorView.settings().toggleGate(ReglagesEditeur.Porte.MINIMAP);
+```
+
+Les poseurs 1.x (`setTheme`, `setFont`, `setSoftWrap`,
+`setLigatures`) continuent de marcher : ils écrivent dans la source.
+La table des portes reste `vue.reglages()` (clés stables, § 19
+d'USAGE) — `EditorSettings.gates()` la rend aussi. La persistance
+reste à l'hôte : abonnez-vous
+(`settings().addListener(source -> …)`) et relisez ce qui vous
+intéresse ; plusieurs abonnés vivent ensemble.
+
+La façade `CelerisEditor.settings()` est une vue mince sur cette
+source : `editor.settings().setTheme(...)` et
+`editorView.settings().setTheme(...)` écrivent au même endroit.
+
+### 0.3 Retraits prévus en 2.0.0 — recensement à valider par le propriétaire
+
+Les symboles suivants vivent en compatibilité et sont **candidats au
+retrait** en 2.0.0. Le retrait effectif attend le recensement des
+applications hôtes connues du propriétaire (garde-fou du mandat
+B0 : demander la liste, ne pas la deviner) :
+
+| Symbole | Remplaçant | Remarque |
+| --- | --- | --- |
+| `EditorView.setSurViewportChange` | `add/removeViewportChangeListener` | le plus urgent : l'écrasement silencieux du kit |
+| `EditorView.setOnFontSizeChanged` | `add/removeFontSizeChangeListener` | |
+| `EditorView.setSurPlan` | `add/removePlanListener` | |
+| `EditorView.setSurFichierDepose` | `add/removeFileDropListener` | |
+| `EditorView.setSurDoubleTap` | `add/removeDoubleTapListener` | |
+| `EditorView.setSurBasculeArret` | `add/removeBreakpointToggleListener` | |
+| `EditorView.setSurTouchePopup` | `add/removePopupKeyListener` | |
+| `EditorView.setSurGesteFantome` | `add/removeGhostGestureListener` | |
+| `ReglagesEditeur.setSurBascule` | `EditorSettings.addListener` | l'écouteur unique des portes devient l'abonné des réglages |
+| `PopupsEditeur.surTheme` / `surTailleTexte` | abonnement automatique à `vue.settings()` | l'appel direct reste utile hors vue (montage sans vue) |
+| `EditorView.setTheme/setFont/setSoftWrap/setLigatures` | `settings().set…` | les poseurs 1.x délèguent déjà |
+
+La dépréciation `@Deprecated` de ces symboles suivra le feu vert du
+propriétaire sur ce recensement : le dépôt compile en
+`-Xlint:all -Werror`, une dépréciation posée avant l'accord casserait
+la démonstration (intouchable, § 0.1 du mandat) qui les appelle
+encore.
+
+---
+
 
 ## 1. Correspondance des modules
 

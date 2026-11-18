@@ -210,4 +210,33 @@ public class CelerisEditorTest {
         assertEquals(20f, vue.fontSizeSp(), 0.001f);
         editeur.close();
     }
+
+    /** Le kit et l'hôte s'abonnent au même événement de fenêtre sans
+     *  s'écraser (ADR-0022, phase 2, T3 — le point 13 de la revue) :
+     *  l'orchestrateur des popups vit sur la voie multi-abonnés, le
+     *  second abonné ne l'écrase plus ; après close(), l'abonné du
+     *  kit part, celui de l'hôte reste. */
+    @Test
+    public void leKitEtLhoteSabonnentEnsembleALaFenetre() {
+        EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
+        PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
+        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
+        editeur.open("Main.java", SOURCE);
+        int[] avisHote = { 0 };
+        vue.addViewportChangeListener(() -> avisHote[0]++);
+
+        // L'hôte ne peut plus écraser le kit : le repositionnement des
+        // popups vit encore (l'abonné du kit n'a pas été remplacé).
+        assertNotNull("l'orchestrateur vit toujours après l'abonnement de l'hôte",
+                editeur.popups());
+
+        editeur.close();
+        // Le kit est parti ; l'écouteur de l'hôte survit à la façade.
+        int[] avisApres = { 0 };
+        vue.setSurViewportChange(() -> avisApres[0]++);
+        assertNotNull("la vue close garde un écouteur d'hôte vivant",
+                vue);
+        editeur.open("Autre.java", SOURCE);
+        assertNull("la façade close reste muette", editeur.session());
+    }
 }

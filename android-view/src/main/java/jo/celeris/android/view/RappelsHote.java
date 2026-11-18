@@ -1,5 +1,8 @@
 package jo.celeris.android.view;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 
@@ -20,6 +23,10 @@ import org.jspecify.annotations.Nullable;
  * La vue ne fait que tenir les consommateurs et notifier : les états
  * d'exécution appartiennent à l'hôte.
  *
+ * <p>Les trois événements y sont MULTIPLES (ADR-0022, phase 2, T3 —
+ * point 13 de la revue) : le kit et l'hôte s'abonnent chacun, sans
+ * s'écraser. Les poseurs 1.x restent en compatibilité.</p>
+ *
  * <p>Porteur mince : la vue y délègue ses poseurs publics, ses
  * collaborateurs de toucher y notifient — le plafond de la vue
  * (ADR-002) respire.</p>
@@ -27,18 +34,32 @@ import org.jspecify.annotations.Nullable;
 final class RappelsHote {
 
     /** Le verdict de double-tap de l'hôte — le moment du color picker
-     *  d'un littéral de couleur, par exemple. */
+     *  d'un littéral de couleur, par exemple. Voie 1.x. */
     private volatile @Nullable IntPredicate surDoubleTap;
 
-    /** Le consommateur de bascule d'arrêt de l'hôte (D-04) — l'appui long de gouttière. */
+    /** Les verdicts 2.0 du double-tap — multiples (T3). */
+    private final List<IntPredicate> verdictsDoubleTap =
+            new CopyOnWriteArrayList<>();
+
+    /** Le consommateur de bascule d'arrêt de l'hôte (D-04) — l'appui
+     *  long de gouttière. Voie 1.x. */
     private volatile @Nullable IntConsumer surBasculeArret;
 
+    /** Les consommateurs 2.0 de bascule d'arrêt — multiples (T3). */
+    private final List<IntConsumer> consommateursBascule =
+            new CopyOnWriteArrayList<>();
+
     /** Le verdict des touches matérielles de l'hôte — la navigation
-     *  clavier de ses popups, déléguée sans jamais le focus. */
+     *  clavier de ses popups, déléguée sans jamais le focus. Voie 1.x. */
     private volatile @Nullable IntPredicate surTouchePopup;
 
+    /** Les verdicts 2.0 des touches matérielles — multiples (T3). */
+    private final List<IntPredicate> verdictsTouchePopup =
+            new CopyOnWriteArrayList<>();
+
     /**
-     * Pose (ou coupe) le verdict de double-tap.
+     * Pose (ou coupe) le verdict de double-tap. Voie 1.x à emplacement
+     * unique : la voie 2.0 est {@link #addDoubleTapListener}.
      *
      * @param consommateur le verdict d'offset, null pour couper
      */
@@ -47,17 +68,44 @@ final class RappelsHote {
     }
 
     /**
-     * Notifie l'hôte du double-tap : vrai quand l'hôte CONSOMME le
-     * geste (la cascade du tap simple ne suit pas), faux quand il le
-     * laisse passer.
+     * Abonne un verdict de double-tap (voie 2.0, T3).
+     *
+     * @param verdict le verdict d'offset, jamais null
      */
-    boolean notifierDoubleTap(int offset) {
-        IntPredicate consommateur = surDoubleTap;
-        return consommateur != null && consommateur.test(offset);
+    void addDoubleTapListener(IntPredicate verdict) {
+        verdictsDoubleTap.add(Objects.requireNonNull(verdict));
     }
 
     /**
-     * Pose (ou coupe) le consommateur de bascule d'arrêt.
+     * Désabonne un verdict de double-tap (voie 2.0).
+     *
+     * @param verdict le verdict retiré
+     */
+    void removeDoubleTapListener(IntPredicate verdict) {
+        verdictsDoubleTap.remove(verdict);
+    }
+
+    /**
+     * Notifie le double-tap : vrai quand AU MOINS UN abonné CONSOMME
+     * le geste (la cascade du tap simple ne suit pas), faux quand
+     * tous le laissent passer.
+     */
+    boolean notifierDoubleTap(int offset) {
+        boolean consomme = false;
+        IntPredicate consommateur = surDoubleTap;
+        if (consommateur != null) {
+            consomme |= consommateur.test(offset);
+        }
+        for (IntPredicate verdict : verdictsDoubleTap) {
+            consomme |= verdict.test(offset);
+        }
+        return consomme;
+    }
+
+    /**
+     * Pose (ou coupe) le consommateur de bascule d'arrêt. Voie 1.x à
+     * emplacement unique : la voie 2.0 est
+     * {@link #addBreakpointToggleListener}.
      *
      * @param consommateur le consommateur de ligne, null pour couper
      */
@@ -65,16 +113,40 @@ final class RappelsHote {
         surBasculeArret = consommateur;
     }
 
-    /** Notifie l'hôte de la bascule d'arrêt — la gouttière est visée. */
+    /**
+     * Abonne un consommateur de bascule d'arrêt (voie 2.0, T3).
+     *
+     * @param consommateur le consommateur de ligne, jamais null
+     */
+    void addBreakpointToggleListener(IntConsumer consommateur) {
+        consommateursBascule.add(Objects.requireNonNull(consommateur));
+    }
+
+    /**
+     * Désabonne un consommateur de bascule d'arrêt (voie 2.0).
+     *
+     * @param consommateur le consommateur retiré
+     */
+    void removeBreakpointToggleListener(IntConsumer consommateur) {
+        consommateursBascule.remove(consommateur);
+    }
+
+    /** Notifie la bascule d'arrêt — la gouttière est visée, CHAQUE
+     *  abonné rend sa ligne. */
     void notifierBasculeArret(int ligne) {
         IntConsumer consommateur = surBasculeArret;
         if (consommateur != null) {
             consommateur.accept(ligne);
         }
+        for (IntConsumer abonne : consommateursBascule) {
+            abonne.accept(ligne);
+        }
     }
 
     /**
      * Pose (ou coupe) le verdict des touches matérielles de l'hôte.
+     * Voie 1.x à emplacement unique : la voie 2.0 est
+     * {@link #addPopupKeyListener}.
      *
      * @param consommateur le verdict de touche, null pour couper
      */
@@ -83,14 +155,41 @@ final class RappelsHote {
     }
 
     /**
-     * Notifie l'hôte de la touche matérielle : vrai quand l'hôte la
+     * Abonne un verdict des touches matérielles (voie 2.0, T3).
+     *
+     * @param verdict le verdict de touche, jamais null
+     */
+    void addPopupKeyListener(IntPredicate verdict) {
+        verdictsTouchePopup.add(Objects.requireNonNull(verdict));
+    }
+
+    /**
+     * Désabonne un verdict des touches matérielles (voie 2.0).
+     *
+     * @param verdict le verdict retiré
+     */
+    void removePopupKeyListener(IntPredicate verdict) {
+        verdictsTouchePopup.remove(verdict);
+    }
+
+    /**
+     * Notifie la touche matérielle : vrai quand AU MOINS UN abonné la
      * CONSOMME pour ses popups — la composition IME en cours la rend
      * à la vie normale de l'éditeur, jamais une frappe composée ne
      * sert une carte.
      */
     boolean consommerTouche(CompositionState clavier, int keyCode) {
+        if (clavier.isComposing()) {
+            return false;
+        }
+        boolean consomme = false;
         IntPredicate consommateur = surTouchePopup;
-        return consommateur != null && !clavier.isComposing()
-                && consommateur.test(keyCode);
+        if (consommateur != null) {
+            consomme |= consommateur.test(keyCode);
+        }
+        for (IntPredicate verdict : verdictsTouchePopup) {
+            consomme |= verdict.test(keyCode);
+        }
+        return consomme;
     }
 }

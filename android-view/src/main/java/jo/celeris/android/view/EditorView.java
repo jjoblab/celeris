@@ -174,6 +174,12 @@ public final class EditorView extends View {
      *  retour de ligne, fantôme IA, indices en ligne), l'orchestrateur
      *  des popups et l'hôte lisent les mêmes. */
     final ReglagesEditeur reglages = new ReglagesEditeur();
+    // — la source unique des réglages (ADR-0022, phase 2, T2) : le
+    // thème, la police, la taille, le retour de ligne, les ligatures
+    // et les portes y vivent — la vue applique, les popups suivent,
+    // l'hôte écoute. Le champ s'arme au constructeur (l'écouteur
+    // d'application y naît) ; visible du paquet pour l'assemblage.
+    final EditorSettings reglagesUniques;
     // — la règle porte la table des familles : la mesure et le tracé la
     // lisent ensemble (D-14, PIEGE-22)
     final AndroidFontRuler reglePolices = new AndroidFontRuler();
@@ -236,6 +242,31 @@ public final class EditorView extends View {
         // D-20 : la vue reçoit les dépôts — le texte s'insère au point
         // de chute, les fichiers partent à l'hôte par le rappel.
         setOnDragListener(depot);
+        // T2 (ADR-0022, phase 2) : la source unique des réglages —
+        // la vue y applique ce qui s'y pose (thème, police, retour de
+        // ligne, ligatures, portes), les popups et l'hôte s'y
+        // abonnent. L'écouteur d'application naît ici, une fois :
+        // c'est LA façon dont la vue apprend ses réglages.
+        reglagesUniques = new EditorSettings();
+        reglagesUniques.addListener(source -> appliquerReglages(source));
+    }
+
+    /** Applique les réglages de la source — la vue reste maîtresse
+     *  de l'application (champs d'image, métriques, porte des
+     *  commutateurs), la source porte l'état (T2). */
+    private void appliquerReglages(EditorSettings source) {
+        // le thème : le champ d'image se repeint
+        theme = source.theme();
+        // la police : la mécanique vit dans ViewFonts (PIEGE-05/28)
+        polices.setFont(source.font());
+        // le retour de ligne : la porte se souvient, le budget suit
+        reglages.poser(ReglagesEditeur.Porte.RETOUR_LIGNE,
+                source.softWrap());
+        retourALaLigne = source.softWrap();
+        scrollX = 0f;
+        // les ligatures : l'usine de pinceaux décide du re-tracé
+        usinePinceaux.setLigatures(source.ligatures());
+        invalidate();
     }
 
     /**
@@ -279,39 +310,65 @@ public final class EditorView extends View {
 
     /**
      * Applique le thème donné (identifiant de clé de cache compris).
+     * Voie 1.x : la source unique est {@link #settings()} (T2) — ce
+     * poseur y écrit, les abonnés suivent.
      *
      * @param nouveauTheme le thème résolu
      */
     public void setTheme(EditorTheme nouveauTheme) {
-        theme = nouveauTheme;
-        invalidate();
+        reglagesUniques.setTheme(nouveauTheme);
     }
 
     /**
      * Change la police (PIEGE-05, PIEGE-28) — la mécanique vit dans
-     * {@link ViewFonts}.
+     * {@link ViewFonts}. Voie 1.x : la source unique est
+     * {@link #settings()} (T2) — ce poseur y écrit, les abonnés
+     * suivent.
      *
      * @param police la spécification de police, taille en sp
      */
     public void setFont(FontSpec police) {
-        polices.setFont(police);
+        reglagesUniques.setFont(police);
     }
 
     /**
      * L'écouteur des changements de taille de police (D-15) — l'hôte y
-     *  persiste la taille.
+     * persiste la taille. Voie 1.x à emplacement unique : la voie 2.0
+     * est {@link #addFontSizeChangeListener} (plusieurs abonnés).
+     *
+     * @param ecouteur l'écouteur unique, ou null
      */
     public void setOnFontSizeChanged(@Nullable Consumer<Float> ecouteur) {
         polices.setOnFontSizeChanged(ecouteur);
     }
 
+    /**
+     * Abonne un écouteur des changements de taille de police (D-15 —
+     * ADR-0022, phase 2, T3) : le pincement, la molette Ctrl et le
+     * clavier y notifient CHACUN leurs abonnés — la façade du kit et
+     * la persistance de l'hôte vivent ensemble.
+     *
+     * @param ecouteur l'écouteur, jamais null
+     */
+    public void addFontSizeChangeListener(java.util.function.Consumer<Float> ecouteur) {
+        polices.addFontSizeChangeListener(ecouteur);
+    }
+
+    /**
+     * Désabonne un écouteur des changements de taille de police.
+     *
+     * @param ecouteur l'écouteur retiré
+     */
+    public void removeFontSizeChangeListener(java.util.function.Consumer<Float> ecouteur) {
+        polices.removeFontSizeChangeListener(ecouteur);
+    }
+
     /** Bascule les ligatures du texte (D-14) : « liga » ouvre les
      *  ligatures de la police posée par l'hôte, « -liga » les ferme ;
-     *  toutes les peintures du texte suivent, fermées par défaut. */
+     *  toutes les peintures du texte suivent, fermées par défaut.
+     *  Voie 1.x : la source unique est {@link #settings()} (T2). */
     public void setLigatures(boolean actives) {
-        if (usinePinceaux.setLigatures(actives)) {
-            invalidate();
-        }
+        reglagesUniques.setLigatures(actives);
     }
 
     /** Pose une police de plateforme sous un nom de famille (D-14) : la
@@ -326,12 +383,10 @@ public final class EditorView extends View {
      * le budget de colonnes redérive, le défilement horizontal se
      * rabat. */
     public void setSoftWrap(boolean actif) {
-        // la porte des réglages se souvient : l'hôte qui reçoit la
-        // bascule y relit l'état, jamais deux vérités
-        reglages.poser(ReglagesEditeur.Porte.RETOUR_LIGNE, actif);
-        retourALaLigne = actif;
-        scrollX = 0f;
-        invalidate();
+        // la source unique se souvient (T2) : la porte des réglages
+        // et le drapeau d'image y restent alignés, l'hôte qui reçoit
+        // la bascule y relit l'état, jamais deux vérités
+        reglagesUniques.setSoftWrap(actif);
     }
 
     /** Remplace la table de raccourcis clavier (D-17 : remappage
@@ -347,9 +402,33 @@ public final class EditorView extends View {
 
     /** Le rappel des changements de fenêtre (M7.5, §7) : défilement,
      *  zoom, police, retour à la ligne, redimensionnement — l'hôte y
-     *  repositionne ses popups, un avis par changement réel. */
+     *  repositionne ses popups, un avis par changement réel. Voie 1.x
+     *  à emplacement unique : la voie 2.0 est
+     *  {@link #addViewportChangeListener} (plusieurs abonnés). */
     public void setSurViewportChange(@Nullable Runnable ecouteur) {
         fenetre.setListener(ecouteur);
+    }
+
+    /**
+     * Abonne un écouteur des changements de fenêtre (M7.5, §7 —
+     * ADR-0022, phase 2, T3) : défilement, zoom, police, retour à la
+     * ligne, redimensionnement. Le repositionneur des popups du kit
+     * et l'écouteur de l'hôte vivent ENSEMBLE — plus d'écrasement
+     * silencieux (point 13 de la revue).
+     *
+     * @param ecouteur l'écouteur, jamais null
+     */
+    public void addViewportChangeListener(Runnable ecouteur) {
+        fenetre.addListener(ecouteur);
+    }
+
+    /**
+     * Désabonne un écouteur des changements de fenêtre.
+     *
+     * @param ecouteur l'écouteur retiré
+     */
+    public void removeViewportChangeListener(Runnable ecouteur) {
+        fenetre.removeListener(ecouteur);
     }
 
     /** La fraction verticale du défilement — 0 en tête, 1 au pied (C9). */
@@ -457,7 +536,8 @@ public final class EditorView extends View {
 
     /** Le rappel des fichiers déposés (D-20) : chaque uri déposée y
      *  part, l'hôte décide de l'ouverture — jamais la vue ; le texte
-     *  déposé s'insère au point de chute.
+     *  déposé s'insère au point de chute. Voie 1.x : la voie 2.0 est
+     *  {@link #addFileDropListener}.
      *
      * @param rappel le consommateur d'uri, null pour couper
      */
@@ -465,30 +545,134 @@ public final class EditorView extends View {
         depot.poserSurFichier(rappel);
     }
 
-    /** Le rappel du plan du fichier (B-16), parti à chaque publication d'analyse. */
+    /**
+     * Abonne un consommateur des fichiers déposés (D-20 — ADR-0022,
+     * phase 2, T3) : chaque uri déposée y part, l'hôte décide de
+     * l'ouverture.
+     *
+     * @param consommateur le consommateur d'uri, jamais null
+     */
+    public void addFileDropListener(Consumer<String> consommateur) {
+        depot.addFileDropListener(consommateur);
+    }
+
+    /**
+     * Désabonne un consommateur des fichiers déposés.
+     *
+     * @param consommateur le consommateur retiré
+     */
+    public void removeFileDropListener(Consumer<String> consommateur) {
+        depot.removeFileDropListener(consommateur);
+    }
+
+    /** Le rappel du plan du fichier (B-16), parti à chaque publication
+     *  d'analyse. Voie 1.x : la voie 2.0 est {@link #addPlanListener}. */
     public void setSurPlan(@Nullable Consumer<List<OutlineEntry>> consommateur) {
         syntaxe.setSurPlan(consommateur);
     }
 
+    /**
+     * Abonne un consommateur du plan du fichier (B-16 — ADR-0022,
+     * phase 2, T3), notifié à chaque publication d'analyse.
+     *
+     * @param consommateur le consommateur, jamais null
+     */
+    public void addPlanListener(Consumer<List<OutlineEntry>> consommateur) {
+        syntaxe.addPlanListener(consommateur);
+    }
+
+    /**
+     * Désabonne un consommateur du plan du fichier.
+     *
+     * @param consommateur le consommateur retiré
+     */
+    public void removePlanListener(Consumer<List<OutlineEntry>> consommateur) {
+        syntaxe.removePlanListener(consommateur);
+    }
+
     /** Le verdict de double-tap (le signal du propriétaire : le color
      *  picker d'un littéral au double-clic) : consommé, la cascade du
-     *  tap simple ne suit pas. Null coupe. */
+     *  tap simple ne suit pas. Null coupe. Voie 1.x : la voie 2.0 est
+     *  {@link #addDoubleTapListener}. */
     public void setSurDoubleTap(@Nullable IntPredicate consommateur) {
         rappels.poserDoubleTap(consommateur);
     }
 
+    /**
+     * Abonne un verdict de double-tap (ADR-0022, phase 2, T3) :
+     * consommé par AU MOINS UN abonné, la cascade du tap simple ne
+     * suit pas.
+     *
+     * @param verdict le verdict d'offset, jamais null
+     */
+    public void addDoubleTapListener(IntPredicate verdict) {
+        rappels.addDoubleTapListener(verdict);
+    }
+
+    /**
+     * Désabonne un verdict de double-tap.
+     *
+     * @param verdict le verdict retiré
+     */
+    public void removeDoubleTapListener(IntPredicate verdict) {
+        rappels.removeDoubleTapListener(verdict);
+    }
+
     /** Le rappel de bascule de point d'arrêt (D-04) : l'appui long de
-     *  gouttière rend la LIGNE visée. Null coupe. */
+     *  gouttière rend la LIGNE visée. Null coupe. Voie 1.x : la voie
+     *  2.0 est {@link #addBreakpointToggleListener}. */
     public void setSurBasculeArret(@Nullable IntConsumer consommateur) {
         rappels.poserBasculeArret(consommateur);
+    }
+
+    /**
+     * Abonne un consommateur de bascule de point d'arrêt (D-04 —
+     * ADR-0022, phase 2, T3) : l'appui long de gouttière rend la
+     * ligne visée à CHACUN ses abonnés.
+     *
+     * @param consommateur le consommateur de ligne, jamais null
+     */
+    public void addBreakpointToggleListener(IntConsumer consommateur) {
+        rappels.addBreakpointToggleListener(consommateur);
+    }
+
+    /**
+     * Désabonne un consommateur de bascule de point d'arrêt.
+     *
+     * @param consommateur le consommateur retiré
+     */
+    public void removeBreakpointToggleListener(IntConsumer consommateur) {
+        rappels.removeBreakpointToggleListener(consommateur);
     }
 
     /** Le verdict popup des touches matérielles (chantier
      *  d'unification) : l'hôte reçoit la touche AVANT la table de
      *  raccourcis — flèches, validation, échappement de ses popups
-     *  (PIEGE-27 : l'éditeur garde le focus). Null coupe. */
+     *  (PIEGE-27 : l'éditeur garde le focus). Null coupe. Voie 1.x :
+     *  la voie 2.0 est {@link #addPopupKeyListener}. */
     public void setSurTouchePopup(@Nullable IntPredicate consommateur) {
         rappels.poserTouchePopup(consommateur);
+    }
+
+    /**
+     * Abonne un verdict des touches matérielles (PIEGE-27 — ADR-0022,
+     * phase 2, T3) : la touche remonte à CHACUN ses abonnés avant la
+     * table de raccourcis ; consommée par au moins un, la cascade
+     * s'arrête.
+     *
+     * @param verdict le verdict, jamais null
+     */
+    public void addPopupKeyListener(IntPredicate verdict) {
+        rappels.addPopupKeyListener(verdict);
+    }
+
+    /**
+     * Désabonne un verdict des touches matérielles.
+     *
+     * @param verdict le verdict retiré
+     */
+    public void removePopupKeyListener(IntPredicate verdict) {
+        rappels.removePopupKeyListener(verdict);
     }
 
     /** La loupe du dragage (D-16) — l'hôte y règle le zoom, ×2 par défaut. */
@@ -553,11 +737,44 @@ public final class EditorView extends View {
         return reglages;
     }
 
+    /**
+     * Les réglages de l'éditeur — LA source unique (ADR-0022, phase
+     * 2, T2) : thème, police, taille, retour de ligne, ligatures et
+     * portes de fonctionnalités s'y posent, la vue applique, les
+     * popups et l'hôte s'y abonnent.
+     *
+     * @return les réglages vivants de la vue
+     */
+    public EditorSettings settings() {
+        return reglagesUniques;
+    }
+
     /** Le rappel des gestes du fantôme (F-01) : Tab et l'appui sur le
      *  fantôme acceptent le premier mot, l'hôte exécute — la vue ne
-     *  touche à aucune session de modèle. */
+     *  touche à aucune session de modèle. Voie 1.x : la voie 2.0 est
+     *  {@link #addGhostGestureListener}. */
     public void setSurGesteFantome(@Nullable Consumer<GesteFantome> surGeste) {
         fantome.setSurGeste(surGeste);
+    }
+
+    /**
+     * Abonne un écouteur des gestes du fantôme (F-01 — ADR-0022,
+     * phase 2, T3) : Tab et l'appui sur le fantôme notifient CHACUN
+     * leurs abonnés.
+     *
+     * @param ecouteur l'écouteur, jamais null
+     */
+    public void addGhostGestureListener(Consumer<GesteFantome> ecouteur) {
+        fantome.addGhostGestureListener(ecouteur);
+    }
+
+    /**
+     * Désabonne un écouteur des gestes du fantôme.
+     *
+     * @param ecouteur l'écouteur retiré
+     */
+    public void removeGhostGestureListener(Consumer<GesteFantome> ecouteur) {
+        fantome.removeGhostGestureListener(ecouteur);
     }
 
     /** La session affichée — accès de paquet pour la colle IME. */

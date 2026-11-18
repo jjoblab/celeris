@@ -42,13 +42,28 @@
          de débogage y passent, 614 lignes) ; les ateliers mêmes
          restent sous le plafond standard, le hub seul porte la scène. -->
     <suppress id="PlafondStandard" files="EditorActivity\.java"/>
-    <!-- La vue d'éditeur (nomination du 2026-11-13, la même décision) :
-         le hub câble le pipeline de couches et les crochets publics —
+    <!-- La vue d'éditeur (nomination du 2026-11-13, la même décision,
+         reprise le 2026-11-18 pour la couche d'intégration ADR-0022
+         phase 2) : le hub câble le pipeline de couches, les crochets
+         publics et désormais les paires add/remove de la voie 2.0
+         (T3 : huit événements multi-abonnés) plus la source unique
+         des réglages (T2 : settings() et l'écouteur d'application) —
          chaque surface in-canvas réveillée y gagne sa couche et son
-         crochet (les valeurs de débogage en ligne y passent, 617
-         lignes) ; les couches mêmes (ValeursPainter, FantomePainter…)
-         restent sous le plafond standard, le hub seul porte le câblage. -->
+         crochet (933 lignes au chantier B0 phase 2) ; les couches
+         memes (ValeursPainter, FantomePainter…) et les porteurs
+         (ViewportWatch, RappelsHote…) restent sous le plafond
+         standard, le hub seul porte le câblage. -->
+    <suppress checks="FileLength" files="EditorView\.java"/>
     <suppress id="PlafondStandard" files="EditorView\.java"/>
+    <!-- Le pont de syntaxe (nomination du 2026-11-18, la même décision
+         du propriétaire : « relever le plafond de certains fichiers si
+         nécessaire ») : les paires add/removePlanListener de la voie
+         2.0 (T3) s'y ajoutent au contrat 1.x — le pont porte les deux
+         voies le temps du recensement des hôtes (MIGRATION.md § 0.3),
+         613 lignes ; les moteurs memes restent sous le plafond
+         standard. -->
+    <suppress checks="FileLength" files="EditorSyntax\.java"/>
+    <suppress id="PlafondStandard" files="EditorSyntax\.java"/>
     <!-- Le banc de la machine à états des popups (nomination du
          2026-11-13, la même décision du propriétaire : « relever le
          plafond de certains fichiers si nécessaire ») : chaque genre

@@ -95,6 +95,11 @@ public final class EditorSyntax {
     private @Nullable MoteurNatif moteurNatif;
     private @Nullable Runnable surAnalysePrete;
     private @Nullable Consumer<List<OutlineEntry>> surPlan;
+
+    /** Les consommateurs 2.0 du plan — multiples (ADR-0022, phase
+     *  2, T3) : le kit et l'hôte reçoivent le même arbre. */
+    private final java.util.List<Consumer<List<OutlineEntry>>> consommateursPlan =
+            new java.util.concurrent.CopyOnWriteArrayList<>();
     private int fenetrePremiere;
     private int fenetreDerniere = Integer.MAX_VALUE / 2;
     private @Nullable Document documentSuivi;
@@ -249,6 +254,26 @@ public final class EditorSyntax {
      */
     public void setSurPlan(@Nullable Consumer<List<OutlineEntry>> consommateur) {
         surPlan = consommateur;
+    }
+
+    /**
+     * Abonne un consommateur du plan (voie 2.0, ADR-0022 phase 2
+     * T3) : il reçoit les mêmes entrées, au même moment — le kit et
+     * l'hôte ensemble.
+     *
+     * @param consommateur le consommateur des entrées, jamais null
+     */
+    public void addPlanListener(Consumer<List<OutlineEntry>> consommateur) {
+        consommateursPlan.add(java.util.Objects.requireNonNull(consommateur));
+    }
+
+    /**
+     * Désabonne un consommateur du plan (voie 2.0).
+     *
+     * @param consommateur le consommateur retiré
+     */
+    public void removePlanListener(Consumer<List<OutlineEntry>> consommateur) {
+        consommateursPlan.remove(consommateur);
     }
 
     /** Referme le pont : les moteurs se détachent, la gouttière se vide. */
@@ -510,11 +535,14 @@ public final class EditorSyntax {
         }
     }
 
-    /** Pousse le plan au consommateur déclaré, s'il y en a un. */
+    /** Pousse le plan au consommateur 1.x puis à CHAQUE abonné 2.0. */
     private void pousserPlan(List<OutlineEntry> entrees) {
         Consumer<List<OutlineEntry>> consommateur = surPlan;
         if (consommateur != null) {
             consommateur.accept(entrees);
+        }
+        for (Consumer<List<OutlineEntry>> abonne : consommateursPlan) {
+            abonne.accept(entrees);
         }
     }
 

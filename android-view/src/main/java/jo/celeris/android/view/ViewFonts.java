@@ -2,6 +2,9 @@ package jo.celeris.android.view;
 
 import android.util.DisplayMetrics;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
@@ -22,7 +25,11 @@ final class ViewFonts {
 
     private final EditorView vue;
     private final AndroidFontRuler regle;
+    /** L'écouteur 1.x à emplacement unique — repli compatibilité. */
     private @Nullable Consumer<Float> onFontSizeChanged;
+    /** Les abonnés 2.0 — multiples, sans écrasement (T3). */
+    private final List<Consumer<Float>> abonnesTaille =
+            new CopyOnWriteArrayList<>();
 
     /**
      * Construit le collaborateur des polices de la vue donnée, sur la
@@ -57,20 +64,47 @@ final class ViewFonts {
         // les mises en page de l'ancienne police ne s'y accumulent pas.
         vue.revisionSuivie = Long.MIN_VALUE;
         vue.cache.clear();
-        if (tailleChangee && onFontSizeChanged != null) {
-            onFontSizeChanged.accept(police.size());
+        if (tailleChangee) {
+            Consumer<Float> ecouteurUnique = onFontSizeChanged;
+            if (ecouteurUnique != null) {
+                ecouteurUnique.accept(police.size());
+            }
+            for (Consumer<Float> abonne : abonnesTaille) {
+                abonne.accept(police.size());
+            }
         }
         vue.invalidate();
     }
 
     /**
      * L'écouteur des changements de taille de police (D-15) — l'hôte y
-     * persiste la taille.
+     * persiste la taille. Voie 1.x à emplacement unique : la voie 2.0
+     * est {@link #addFontSizeChangeListener} (plusieurs abonnés).
      *
      * @param ecouteur l'écouteur, ou {@code null} pour le retirer
      */
     void setOnFontSizeChanged(@Nullable Consumer<Float> ecouteur) {
         onFontSizeChanged = ecouteur;
+    }
+
+    /**
+     * Abonne un écouteur des changements de taille de police (voie
+     * 2.0, ADR-0022 phase 2 T3) : le pincement, la molette Ctrl et le
+     * clavier notifient CHACUN leurs abonnés.
+     *
+     * @param ecouteur l'écouteur, jamais null
+     */
+    void addFontSizeChangeListener(Consumer<Float> ecouteur) {
+        abonnesTaille.add(Objects.requireNonNull(ecouteur));
+    }
+
+    /**
+     * Désabonne un écouteur des changements de taille de police.
+     *
+     * @param ecouteur l'écouteur retiré
+     */
+    void removeFontSizeChangeListener(Consumer<Float> ecouteur) {
+        abonnesTaille.remove(ecouteur);
     }
 
     /**

@@ -7,6 +7,8 @@ import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
@@ -45,8 +47,13 @@ final class GlisserDeposer implements View.OnDragListener {
 
     private final EditorView vue;
 
-    /** Le rappel des fichiers déposés — l'uri va à l'hôte. */
+    /** Le rappel 1.x des fichiers déposés — l'uri va à l'hôte. */
     private @Nullable Consumer<String> surFichier;
+
+    /** Les consommateurs 2.0 des fichiers déposés — multiples
+     *  (ADR-0022, phase 2, T3). */
+    private final List<Consumer<String>> consommateursFichier =
+            new CopyOnWriteArrayList<>();
 
     GlisserDeposer(EditorView vue) {
         this.vue = vue;
@@ -60,6 +67,21 @@ final class GlisserDeposer implements View.OnDragListener {
      */
     void poserSurFichier(@Nullable Consumer<String> rappel) {
         surFichier = rappel;
+    }
+
+    /** Abonne un consommateur des fichiers déposés (voie 2.0, T3). */
+    void addFileDropListener(Consumer<String> consommateur) {
+        consommateursFichier.add(Objects.requireNonNull(consommateur));
+    }
+
+    /** Désabonne un consommateur des fichiers déposés (voie 2.0). */
+    void removeFileDropListener(Consumer<String> consommateur) {
+        consommateursFichier.remove(consommateur);
+    }
+
+    /** Des consommateurs vivent-ils — voie 1.x ou 2.0 (T3). */
+    private boolean aConsommateurs() {
+        return surFichier != null || !consommateursFichier.isEmpty();
     }
 
     @Override
@@ -99,9 +121,15 @@ final class GlisserDeposer implements View.OnDragListener {
                 depose = true;
             }
         }
-        if (surFichier != null) {
+        if (aConsommateurs()) {
             for (String uri : recu.uris()) {
-                surFichier.accept(uri);
+                Consumer<String> rappelUnique = surFichier;
+                if (rappelUnique != null) {
+                    rappelUnique.accept(uri);
+                }
+                for (Consumer<String> consommateur : consommateursFichier) {
+                    consommateur.accept(uri);
+                }
                 depose = true;
             }
         }

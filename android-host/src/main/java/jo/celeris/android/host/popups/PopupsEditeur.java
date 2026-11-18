@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import jo.celeris.android.host.spi.DiagnosticHote;
 import jo.celeris.android.view.EditorTheme;
+import jo.celeris.android.view.EditorSettings;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.ReglagesEditeur;
 import jo.celeris.android.widgets.CompletionDocModel;
@@ -131,6 +132,20 @@ public final class PopupsEditeur {
     /** L'écouteur de sélection posé sur la session — mémorisé pour le
      *  même retrait. */
     private final SelectionListener ecouteurSelection = this::surSelection;
+    // L'abonné de l'avis de fenêtre (ADR-0022, phase 2, T3) : la voie
+    // multi-abonnés — le repositionnement du kit ne s'écrase plus
+    // avec l'écouteur de l'hôte, le détachement le retire.
+    private final Runnable abonneFenetre = this::surFenetre;
+
+    // L'abonné de la source unique des réglages (ADR-0022, phase 2,
+    // T2) : le thème et la taille posés sur vue.settings() y
+    // redérivent la palette — plus de double pose à la main, le
+    // détachement le retire.
+    private final EditorSettings.ChangeListener abonneReglages =
+            source -> {
+                surTheme(source.theme());
+                surTailleTexte(source.fontSizeSp());
+            };
     /** Le détachement a-t-il déjà eu lieu — l'idempotence s'y lit. */
     private boolean detache;
 
@@ -265,17 +280,22 @@ public final class PopupsEditeur {
         listeCompletion.setOnPick(this::choisirCompletion);
         session.addEditListener(ecouteurEdition);
         session.addSelectionListener(ecouteurSelection);
-        editeur.setSurViewportChange(this::surFenetre);
+        editeur.addViewportChangeListener(abonneFenetre);
+        editeur.settings().addListener(abonneReglages);
     }
 
 
-    /** Le thème tourne : la palette se redérive — le verre suit. */
+    /** Le thème tourne : la palette se redérive — le verre suit.
+     *  La source unique de la vue (T2) y mène ; l'appel direct reste
+     *  pour qui monte sans la vue. */
     public void surTheme(EditorTheme nouveau) {
         theme = nouveau;
         rafraichirPalette();
     }
 
-    /** La taille de texte tourne : la typographie des popups suit. */
+    /** La taille de texte tourne : la typographie des popups suit.
+     *  La source unique de la vue (T2) y mène ; l'appel direct reste
+     *  pour qui monte sans la vue. */
     public void surTailleTexte(float tailleSp) {
         tailleTexteSp = tailleSp;
         rafraichirPalette();
@@ -774,6 +794,8 @@ public final class PopupsEditeur {
         }
         detache = true;
         popups.detacher();
+        editeur.removeViewportChangeListener(abonneFenetre);
+        editeur.settings().removeListener(abonneReglages);
         session.removeEditListener(ecouteurEdition);
         session.removeSelectionListener(ecouteurSelection);
     }

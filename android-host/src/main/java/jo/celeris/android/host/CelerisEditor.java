@@ -1,12 +1,10 @@
 package jo.celeris.android.host;
 
-import java.util.Objects;
 
 import jo.celeris.android.host.popups.PopupsEditeur;
 import jo.celeris.android.view.EditorTheme;
-import jo.celeris.android.view.EditorThemes;
+import jo.celeris.android.view.EditorSettings;
 import jo.celeris.android.view.EditorView;
-import jo.celeris.android.view.FontSpec;
 import jo.celeris.android.view.IntelligenceHub;
 import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.core.language.LanguageKit;
@@ -102,62 +100,67 @@ public final class CelerisEditor {
         return new Builder(view, layer, languages).build();
     }
 
-    /** Les réglages de l'éditeur (T2, phase 1) : le thème et la
-     *  taille s'y posent une fois, la vue et les popups suivent. */
+    /** Les réglages de l'éditeur (ADR-0022, phase 2, T2) : une
+     *  VUE MINCE sur la source unique réelle de la vue —
+     *  {@link EditorSettings}. Chaque pose y passe, la vue applique
+     *  (thème, métriques), l'orchestrateur des popups suit par son
+     *  abonnement à la même source : plus de compensation à double
+     *  appel, la façade ne fait que déléguer. */
     public final class Settings {
 
-        private EditorTheme theme = EditorThemes.CLAIR;
-        private float fontSizeSp = 14f;
+        private final EditorSettings source;
 
-        private Settings() {
+        private Settings(EditorSettings source) {
+            this.source = source;
         }
 
         /**
-         * Pose le thème : la vue le porte, l'orchestrateur redérive
-         * sa palette — UN appel, les deux suivent.
+         * Pose le thème : la source unique l'entend, la vue applique,
+         * l'orchestrateur redérive sa palette — UN appel, les deux
+         * suivent, plus de double synchronisation.
          *
          * @param nouveau le thème résolu
          */
         public void setTheme(EditorTheme nouveau) {
-            this.theme = Objects.requireNonNull(nouveau);
-            vue.setTheme(nouveau);
-            PopupsEditeur orchestrateur = popups;
-            if (orchestrateur != null) {
-                orchestrateur.surTheme(nouveau);
-            }
+            source.setTheme(nouveau);
         }
 
         /** Le thème courant. */
         public EditorTheme theme() {
-            return theme;
+            return source.theme();
         }
 
         /**
-         * Pose la taille de police, en sp : la vue l'applique, les
-         * popups redérivent leur typographie — le pincement sur la
-         * vue rabat les popups ici aussi (l'écouteur de la façade).
+         * Pose la taille de police, en sp : la source unique
+         * l'entend, la vue applique, l'orchestrateur redérive sa
+         * typographie — le pincement sur la vue y rabat aussi (la
+         * source reste la vérité, le geste écrit dedans).
          *
          * @param tailleSp la taille, en sp
          */
         public void setFontSizeSp(float tailleSp) {
-            this.fontSizeSp = tailleSp;
-            vue.setFont(new FontSpec("mono", tailleSp));
-            PopupsEditeur orchestrateur = popups;
-            if (orchestrateur != null) {
-                orchestrateur.surTailleTexte(tailleSp);
-            }
+            source.setFontSizeSp(tailleSp);
         }
 
         /** La taille de police courante, en sp. */
         public float fontSizeSp() {
-            return fontSizeSp;
+            return source.fontSizeSp();
+        }
+
+        /** La source réelle — pour qui pose plus que le thème et la
+         *  taille (retour de ligne, ligatures, portes).
+         *
+         * @return les réglages vivants de la vue
+         */
+        public EditorSettings source() {
+            return source;
         }
     }
 
     private final EditorView vue;
     private final PopupLayer couche;
     private final LanguageKit langues;
-    private final Settings settings = new Settings();
+    private final Settings settings;
     private @Nullable PopupsEditeur popups;
     private @Nullable TextSession session;
     private @Nullable LanguageSupport langue;
@@ -173,19 +176,11 @@ public final class CelerisEditor {
         if (frappeIntelligente) {
             vue.intelligence().setProvider(IntelligenceHub.builtins());
         }
-        // Le pincement de la vue rabat les popups : la taille reste
-        // UNE source (Settings), le geste suit.
-        vue.setOnFontSizeChanged(taille -> {
-            settings.fontSizeSp = taille;
-            PopupsEditeur orchestrateur = popups;
-            if (orchestrateur != null) {
-                orchestrateur.surTailleTexte(taille);
-            }
-        });
-        // Les réglages posés dès le montage : la vue ET l'orchestrateur
-        // à venir lisent la même source.
-        settings.setTheme(settings.theme);
-        settings.setFontSizeSp(settings.fontSizeSp);
+        // T2 (ADR-0022, phase 2) : la source unique est celle de la
+        // vue — la façade n'a plus de compensation à faire. Le
+        // pincement y écrit aussi (ViewFonts notifie, l'orchestrateur
+        // s'y abonne) : la vérité ne se dédouble jamais.
+        settings = new Settings(vue.settings());
     }
 
     /**
@@ -218,6 +213,9 @@ public final class CelerisEditor {
         if (popups == null) {
             // Le coach muet par défaut (T4, point 9 de la revue) ; le
             // constructeur court de l'orchestrateur suffit.
+            // Le thème et la taille de la source (T2) : l'orchestrateur
+            // les lit de toute façon à son abonnement — ici la palette
+            // initiale en naît.
             popups = new PopupsEditeur(vue, session, couche,
                     settings.theme(), settings.fontSizeSp());
         }
