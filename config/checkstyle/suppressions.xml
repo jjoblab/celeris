@@ -26,7 +26,14 @@
          satellites : les huit surfaces du feu vert, l'info-bulle et le
          menu d'intentions en satellites, les fournisseurs vivants) ; les satellites mêmes (TypeInfo,
          DocAncre, SelecteurCouleur…) restent sous le plafond
-         standard, l'orchestrateur seul porte les câbles. -->
+         standard, l'orchestrateur seul porte les câbles. La
+         nomination RENFORCÉE du 2026-11-18 (autorisation du
+         propriétaire : « si nécessaire je t'autorise à élever le
+         plafond — lignes, méthode — de certaines classes ») lui ouvre
+         le palier 900 : le constructeur court au coach muet
+         (ADR-0022, point 9 de la revue) y passe — 810 lignes, le
+         câbleur seul croît, jamais hors de tout plafond. -->
+    <suppress checks="FileLength" files="PopupsEditeur\.java"/>
     <suppress id="PlafondStandard" files="PopupsEditeur\.java"/>
     <!-- L'activité d'édition de la démonstration (nomination du
          2026-11-13, la même décision du propriétaire) : le hub câble

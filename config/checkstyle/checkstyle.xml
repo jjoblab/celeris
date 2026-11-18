@@ -28,6 +28,17 @@
         <property name="max" value="800"/>
     </module>
 
+    <!-- Nomination renforcée (autorisation du propriétaire du
+         2026-11-18 : « relever le plafond (lignes, méthode) de
+         certaines classes si nécessaire ») : l'orchestrateur des
+         popups seul y vit — le câbleur des satellites passe le palier
+         de 800 ; le palier même demeure un cliquet (900, jamais
+         hors de tout plafond). -->
+    <module name="FileLength">
+        <property name="max" value="900"/>
+        <property name="id" value="PlafondRenforce"/>
+    </module>
+
     <module name="LineLength">
         <property name="max" value="120"/>
     </module>

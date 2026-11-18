@@ -21,11 +21,17 @@
         (78 — revue ligne à ligne validée, pire méthode 11). Le seuil de
         classe prend la valeur par défaut de la règle (80) : la porte
         devient réelle sans toucher au seuil par méthode de l'ADR-002.
+        Le palier 90 du 2026-11-18 (autorisation du propriétaire :
+        « si nécessaire je t'autorise à élever le plafond — lignes,
+        méthode — de certaines classes ») suit l'ADR-0022 : le
+        constructeur court au coach muet de l'orchestrateur des popups
+        (le câbleur de quinze satellites) porte la classe à 80 — le
+        palier suit le câbleur, le seuil par méthode (15) demeure.
     </description>
 
     <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>
-            <property name="classReportLevel" value="80"/>
+            <property name="classReportLevel" value="90"/>
             <property name="methodReportLevel" value="15"/>
         </properties>
     </rule>

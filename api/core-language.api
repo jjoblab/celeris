@@ -57,6 +57,27 @@ Compiled from "LanguageDetection.java"
 public interface jo.celeris.core.language.LanguageDetection {
 }
 
+### jo.celeris.core.language.LanguageKit$Builder
+Compiled from "LanguageKit.java"
+public final class jo.celeris.core.language.LanguageKit$Builder {
+  public jo.celeris.core.language.LanguageKit$Builder grammarFactory(jo.celeris.core.language.packs.GrammarFactory);
+  public jo.celeris.core.language.LanguageKit$Builder addSource(jo.celeris.core.language.packs.PackSource);
+  public jo.celeris.core.language.LanguageKit$Builder addSupport(jo.celeris.core.language.model.LanguageSupport);
+  public jo.celeris.core.language.LanguageKit$Builder builtinPacks();
+  public jo.celeris.core.language.LanguageKit$Builder onError(java.util.function.Consumer<java.lang.Exception>);
+  public jo.celeris.core.language.LanguageKit build();
+}
+
+### jo.celeris.core.language.LanguageKit
+Compiled from "LanguageKit.java"
+public final class jo.celeris.core.language.LanguageKit {
+  public static jo.celeris.core.language.LanguageKit$Builder builder(java.util.concurrent.Executor);
+  public void preload();
+  public jo.celeris.core.language.model.LanguageSupport languageFor(java.lang.String);
+  public void reload();
+  public static java.util.concurrent.Executor sharedDaemon();
+}
+
 ### jo.celeris.core.language.LanguagePlatform$ContributionCollector
 Compiled from "LanguagePlatform.java"
 final class jo.celeris.core.language.LanguagePlatform$ContributionCollector implements jo.celeris.core.language.LanguageContributor$Contribution {

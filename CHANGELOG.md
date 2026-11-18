@@ -7,6 +7,12 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [1.2.0] — en cours
 
+### Intégration — la façade CelerisEditor et le chargeur de langues du kit (2026-11-18)
+- **`CelerisEditor` (ADR-0022, phase 1)** : le montage complet — vue, popups, frappe intelligente, langue détectée, réglages à source unique, libération — tient en quelques lignes (`attach`, `open`, `settings().setTheme/setFontSizeSp`, `close`). La langue se résout du nom de fichier dès que le registre vit (l'édition reste entière pendant le chargement) ; le thème et la taille se posent en UN endroit (vue et orchestrateur suivent, le pincement rabattu) ; `close()` idempotent détache l'orchestrateur, libère la vue (chantiers C1/C2) et rend la façade muette. La frappe intelligente vit dès le montage (`withoutSmartTyping()` en opt-out) ; le coach des popups est muet (constructeur court de `PopupsEditeur`, point 9 de la revue).
+- **`LanguageKit` (`core-language`, T5)** : le chargeur de registre asynchrone et partagé — fil démon unique pour tous les éditeurs du processus (ADR-007, chantier C2), résolution par nom de fichier sans exception, rechargement à chaud, consommateur d'erreurs en repli, voie sans fabrique pour les analyseurs écrits. Manifeste `api/core-language.api` régénéré (nouvelle API publique, anglaise).
+- **Plafonds (autorisation du propriétaire du 2026-11-18)** : nomination renforcée de `PopupsEditeur` (palier Checkstyle 900 — le câbleur de quinze satellites, 810 lignes) ; seuil PMD de complexité de classe à 90 (le constructeur court porte la classe à 80).
+- USAGE : le § 4 mène par la façade (voie manuelle en § 4.3), le § 6 ouvre par `LanguageKit`, l'erreur de nom du point 3 de la revue se corrige (`IntelligenceHub.builtins()`).
+
 ### Intégration — l'ADR de la couche d'intégration (2026-11-18)
 - **`docs/adr/0022-couche-integration.md`** (chantier B0, phase 0) : le diagnostic des quinze démarches de l'hôte (chacune vérifiée sur le code, deux corrigées par les chantiers C1/C2), trois options comparées — façade seule, façade + consolidation, contrôleur propriétaire — et la décision : l'option B en deux phases. La façade `CelerisEditor` (v1.2.0, additive) livre d'abord la valeur ; la consolidation structurelle (v2.0.0, cassante autorisée par le mandat) ferme ensuite à la racine les défauts qu'une façade ne peut que compenser : réglages à source unique, écouteurs multiples sur la vue, chargeur de langues partagé. La publication JitPack n'a lieu qu'à la fin des travaux (directive du propriétaire).
 

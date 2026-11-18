@@ -164,6 +164,23 @@ public final class PopupsEditeur {
     private boolean acceptationEnCours;
 
     /**
+     * Construit l'orchestrateur au coach muet (ADR-0022, point 9 de la
+     * revue) : l'argument opaque disparaît pour qui n'en veut pas — le
+     * coach muet rend le minimum, les mots du document en variables.
+     *
+     * @param editeur      la vue d'éditeur ouverte
+     * @param session      la session d'édition courante
+     * @param couche       la couche porte-popups posée sur l'éditeur
+     * @param theme        le thème d'éditeur courant
+     * @param tailleTexteSp la taille de texte de l'éditeur, en sp
+     */
+    public PopupsEditeur(EditorView editeur, TextSession session,
+            PopupLayer couche, EditorTheme theme, float tailleTexteSp) {
+        this(editeur, session, couche, theme, tailleTexteSp,
+                CoachPopups.muet());
+    }
+
+    /**
      * Construit l'orchestrateur : le manager naît sur la machine et la
      * couche de la scène, les vues se lient à leurs genres (jamais une
      * carte pour deux), les écouteurs y courtent.

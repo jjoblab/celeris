@@ -212,7 +212,43 @@ défilement.
 </FrameLayout>
 ```
 
-### 4.2 Le premier montage en code
+### 4.2 Le montage par la façade — le chemin court
+
+`CelerisEditor` (ADR-0022) compose tout : session, langue détectée,
+popups, frappe intelligente, réglages à source unique, libération.
+Le chargeur de langues se monte une fois (fil démon partagé) et sert
+tous les éditeurs du processus.
+
+```java
+import jo.celeris.android.host.CelerisEditor;
+import jo.celeris.core.language.LanguageKit;
+import jo.celeris.core.syntax.grammars.PackGrammars;
+
+// une fois par processus : le chargeur partagé des trente-deux
+// langages livrés (fabrique de grammaires + paquets intégrés)
+LanguageKit langues = LanguageKit.builder(LanguageKit.sharedDaemon())
+        .grammarFactory(PackGrammars.INSTANCE)
+        .builtinPacks()
+        .build();
+langues.preload();   // l'assemblage part hors fil UI (ADR-007)
+
+// par scène : la façade branchée au gabarit § 4.1
+CelerisEditor editeur = CelerisEditor.attach(editeurView, couchePopups,
+        langues);
+editeur.open("Main.java", texte);               // session + langue + coloration
+editeur.settings().setTheme(EditorThemes.SOMBRE); // vue ET popups, un seul appel
+editeur.settings().setFontSizeSp(14f);            // idem ; suit aussi le pincement
+// fin de vie : editeur.close() — tout se libère (vue, popups, fils)
+```
+
+La façade ouvre la vue éditable **immédiatement** ; la langue se pose
+dès que le registre assemblé vit (coloration en retard, édition jamais
+bloquée). La frappe intelligente (`IntelligenceHub.builtins()`) est
+active dès le montage — `CelerisEditor.attach(...)` renvoie un
+monte-charge : `.withoutSmartTyping().build()` pour la couper. Le
+chemin manuel reste documenté en § 9.2 pour qui assemble lui-même.
+
+### 4.3 Le premier montage en code (voie manuelle)
 
 ```java
 import jo.celeris.android.view.EditorThemes;
@@ -233,7 +269,7 @@ confie (§ 5), `setLanguage(LanguageSupport)` lui dit la couleur, les
 plis, le plan. Sans langage, l'édition reste entière — la coloration
 seule se tait.
 
-### 4.3 Les réglages usuels de la vue
+### 4.4 Les réglages usuels de la vue
 
 | Méthode | Rôle |
 | --- | --- |
@@ -306,8 +342,24 @@ méthode `Document.isLarge()` dit le régime du document (§ 14).
 
 Le registre (`core-language`) assemble paquets intégrés, paquets
 propres et serveurs déclarés — puis répond par la détection (ADR-017).
-L'assemblage se fait **une fois, hors fil UI** (ADR-007) ; la
-démonstration du dépôt (`LangagesDemo`) en est le modèle vivant.
+L'assemblage se fait **une fois, hors fil UI** (ADR-007). La voie
+courte vit dans le kit : `LanguageKit` (ADR-0022) monte le registre
+sur un fil démon partagé, sert tous les éditeurs du processus et
+répond à la question de l'hôte — « la langue de ce nom de fichier ».
+
+```java
+import jo.celeris.core.language.LanguageKit;
+import jo.celeris.core.syntax.grammars.PackGrammars;
+
+LanguageKit langues = LanguageKit.builder(LanguageKit.sharedDaemon())
+        .grammarFactory(PackGrammars.INSTANCE)
+        .builtinPacks()                  // les paquets intégrés
+        .build();
+LanguageSupport java = langues.languageFor("Main.java");  // ou null
+langues.reload();                        // recharge à chaud (H-04)
+```
+
+La voie d'assemblage manuelle reste celle du contrôle fin :
 
 ```java
 import jo.celeris.core.intelligence.WordCompletion;
@@ -768,8 +820,9 @@ editeur.intelligence().setLargeFileMode(LargeFileMode.AUTO);
 ```
 
 Le hub `intelligence()` porte aussi le fournisseur de complétion de
-repli (`IntelligenceHub.Provider.builtins()` pour partir,
-`setProvider` pour le vôtre).
+repli (`IntelligenceHub.builtins()` pour partir,
+`setProvider` pour le vôtre) — la façade `CelerisEditor` le pose
+dès le montage.
 
 ## 15. L'exécutable en ligne de commande
 
