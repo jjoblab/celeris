@@ -167,6 +167,10 @@ public final class IndentGuides extends PainterLayer {
             actifs.add(immediate);
         }
         ajouterJumelles(actifs, table, ligneCaret, colonneCaret);
+        int[] sortie = new int[actifs.size()];
+        for (int i = 0; i < sortie.length; i++) {
+            sortie[i] = actifs.get(i);
+        }
         return sortie;
     }
 
