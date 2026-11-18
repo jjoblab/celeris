@@ -90,6 +90,30 @@ public final class MainActivity extends Activity {
         monterJournal(scene);
 
         // Une fois par processus : le chargeur des paquets intégrés.
+        LanguageKit kit = monterKit();
+
+        // Le chemin court : la façade compose session, langue
+        // détectée, popups, frappe intelligente et réglages — la
+        // langue arrive SANS BLOCAGE dès que l'assemblage vit.
+        editeur = CelerisEditor.attach(vue, couche, kit);
+        editeur.open("Salut.java", EXEMPLE_JAVA);
+        journaliser("éditeur ouvert (Salut.java)");
+        editeur.settings().setTheme(EditorThemes.SOMBRE);
+        editeur.settings().setFontSizeSp(14f);
+        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
+
+        // La langue résolue se journalise dès qu'elle vit : le sondage
+        // léger du registre (toutes les 200 ms, quinze fois au plus).
+        sonderLangue(kit, 0);
+    }
+
+    /** Monte le chargeur de paquets (une fois par processus) : le
+     *  lancement de l'assemblage se journalise — le fil démon le
+     *  termine, l'éditeur n'attend jamais.
+     *
+     * @return le kit prêt, l'assemblage parti en fil démon
+     */
+    private LanguageKit monterKit() {
         long debut = System.currentTimeMillis();
         journaliser("montage : assemblage des paquets de langages…");
         LanguageKit kit = langages;
@@ -106,20 +130,7 @@ public final class MainActivity extends Activity {
         journaliser("assemblage lancé en "
                 + (System.currentTimeMillis() - debut)
                 + " ms (le fil démon le termine, l'éditeur n'attend pas)");
-
-        // Le chemin court : la façade compose session, langue
-        // détectée, popups, frappe intelligente et réglages — la
-        // langue arrive SANS BLOCAGE dès que l'assemblage vit.
-        editeur = CelerisEditor.attach(vue, couche, kit);
-        editeur.open("Salut.java", EXEMPLE_JAVA);
-        journaliser("éditeur ouvert (Salut.java)");
-        editeur.settings().setTheme(EditorThemes.SOMBRE);
-        editeur.settings().setFontSizeSp(14f);
-        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
-
-        // La langue résolue se journalise dès qu'elle vit : le sondage
-        // léger du registre (toutes les 200 ms, quinze fois au plus).
-        sonderLangue(kit, 0);
+        return kit;
     }
 
     /** Journalise l'arrivée de la langue (le registre s'assemble en
@@ -148,35 +159,7 @@ public final class MainActivity extends Activity {
         panneau.setBackgroundColor(0xEE101418);
         panneauJournal = panneau;
 
-        enteteJournal = new LinearLayout(this);
-        enteteJournal.setOrientation(LinearLayout.HORIZONTAL);
-        enteteJournal.setGravity(Gravity.CENTER_VERTICAL);
-        TextView titre = new TextView(this);
-        titre.setText("Journal");
-        titre.setTextColor(0xFF9FE8FF);
-        titre.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        titre.setTextSize(12f);
-        enteteJournal.addView(titre, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-
-        Button copier = new Button(this);
-        copier.setText("Copier");
-        copier.setTextSize(12f);
-        copier.setOnClickListener(v -> copierJournal());
-        enteteJournal.addView(copier, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        Button replier = new Button(this);
-        replier.setText("Cacher");
-        replier.setTextSize(12f);
-        replier.setOnClickListener(v -> basculerJournal());
-        enteteJournal.addView(replier, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-        panneau.addView(enteteJournal, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
+        monterEnteteJournal(panneau);
 
         journal = new TextView(this);
         journal.setTypeface(Typeface.MONOSPACE);
@@ -195,6 +178,37 @@ public final class MainActivity extends Activity {
                 (int) (HAUTEUR_JOURNAL_DP
                         * getResources().getDisplayMetrics().density),
                 Gravity.BOTTOM));
+    }
+
+    /** Monte l'en-tête du journal : le titre, le bouton COPIER, le
+     *  bouton CACHER (replier). */
+    private void monterEnteteJournal(LinearLayout panneau) {
+        enteteJournal = new LinearLayout(this);
+        enteteJournal.setOrientation(LinearLayout.HORIZONTAL);
+        enteteJournal.setGravity(Gravity.CENTER_VERTICAL);
+        TextView titre = new TextView(this);
+        titre.setText("Journal");
+        titre.setTextColor(0xFF9FE8FF);
+        titre.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        titre.setTextSize(12f);
+        enteteJournal.addView(titre, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        ajouterBoutonEntete("Copier", v -> copierJournal());
+        ajouterBoutonEntete("Cacher", v -> basculerJournal());
+        panneau.addView(enteteJournal, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    /** Ajoute un bouton à l'en-tête du journal. */
+    private void ajouterBoutonEntete(String libelle, View.OnClickListener geste) {
+        Button bouton = new Button(this);
+        bouton.setText(libelle);
+        bouton.setTextSize(12f);
+        bouton.setOnClickListener(geste);
+        enteteJournal.addView(bouton, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     /** Bascule le journal : replié, il ne garde que son en-tête. */
