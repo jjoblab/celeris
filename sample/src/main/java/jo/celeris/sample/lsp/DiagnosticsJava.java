@@ -133,7 +133,7 @@ final class DiagnosticsJava {
                                 new PositionLsp(ouvrante[1], ouvrante[2] - 1),
                                 new PositionLsp(ouvrante[1], ouvrante[2])),
                         DiagnosticLsp.ERREUR,
-                        "'''" + (char) ouvrante[0] + "''' ouverte mais jamais fermée",
+                        "'" + (char) ouvrante[0] + "' ouverte, jamais fermee",
                         "minijava", "appariement"));
             }
         }
