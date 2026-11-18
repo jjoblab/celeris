@@ -35,4 +35,12 @@ install:
   # bloquant, Robolectric — trop lourd et trop long pour l'infra JitPack.
   # Le cache de configuration (gradle.properties) a déjà fait échouer des
   # builds --no-daemon sur JitPack : il est coupé ici.
-  - ./gradlew publishToMavenLocal --no-daemon -x test -x lint -x check -Dorg.gradle.configuration-cache=false
+  # Seuls les 11 modules de l'éditeur sont publiés (directive du
+  # propriétaire, 2026-11-18) : serveur-lsp-java et demo sont des
+  # compagnons de banc, hors périmètre (§ 0.1 du mandat), voués à
+  # disparaître — rien d'eux ne doit paraître sur JitPack. demo n'a de
+  # toute façon pas la convention de publication ; serveur-lsp-java,
+  # lui, l'a, d'où le ciblage explicite des 11 modules. Ils restent
+  # dans le build (settings.gradle.kts) : la commande les sélectionne,
+  # elle ne retire rien du graphe.
+  - ./gradlew :core-text:publishToMavenLocal :core-syntax:publishToMavenLocal :core-syntax-grammars:publishToMavenLocal :core-language:publishToMavenLocal :core-intelligence:publishToMavenLocal :core-lsp:publishToMavenLocal :core-ai:publishToMavenLocal :lsp-protocole:publishToMavenLocal :android-view:publishToMavenLocal :android-widgets:publishToMavenLocal :android-host:publishToMavenLocal --no-daemon -x test -x lint -x check -Dorg.gradle.configuration-cache=false
