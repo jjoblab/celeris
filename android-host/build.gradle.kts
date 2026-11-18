@@ -21,4 +21,14 @@ dependencies {
     api(project(":android-widgets"))
     api(project(":core-lsp"))
     api(project(":core-intelligence"))
+    // ADR-013 : les bancs de montage de l'orchestrateur (cycle de vie
+    // C1) tournent sur JVM via Robolectric — lanceur JUnit 4 porté sur
+    // la plateforme Jupiter par le moteur vintage, comme android-view.
+    testImplementation(libs.robolectric)
+    // Le jar android-all du SDK des tests de vue — résolu par Gradle
+    // (tâche robolectricDeps de la convention), jamais par le
+    // résolveur HTTP de Robolectric.
+    "sdkRobolectric"(libs.robolectric.android.all)
+    testImplementation(libs.junit4)
+    testRuntimeOnly(libs.junit.vintage)
 }

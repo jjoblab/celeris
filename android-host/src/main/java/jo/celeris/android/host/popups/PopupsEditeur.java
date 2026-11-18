@@ -28,8 +28,10 @@ import jo.celeris.core.language.model.LanguageSupport;
 
 import jo.celeris.core.syntax.structure.OutlineEntry;
 
+import jo.celeris.core.text.EditListener;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
+import jo.celeris.core.text.SelectionListener;
 import jo.celeris.core.text.TextSession;
 
 import org.jspecify.annotations.Nullable;
@@ -121,6 +123,16 @@ public final class PopupsEditeur {
     private final Reglages reglages;
     /** Le repositionneur des surfaces ouvertes — l'avis de fenêtre. */
     private final Repositionneur repositionneur;
+    /** L'écouteur d'édition posé sur la session — mémorisé pour que
+     *  {@link #detacher()} le retire (chantier C1 : la session vivante
+     *  ne retient plus l'orchestrateur après le détachement). */
+    private final EditListener ecouteurEdition =
+            (debut, fin, retire, insere) -> surEdition();
+    /** L'écouteur de sélection posé sur la session — mémorisé pour le
+     *  même retrait. */
+    private final SelectionListener ecouteurSelection = this::surSelection;
+    /** Le détachement a-t-il déjà eu lieu — l'idempotence s'y lit. */
+    private boolean detache;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -230,11 +242,12 @@ public final class PopupsEditeur {
 
     /** Les écouteurs de la scène : les vues y préviennent, la session
      *  et l'éditeur y répondent — le montage du constructeur s'y
-     *  déleste, la lecture y reste d'un tenant. */
+     *  déleste, la lecture y reste d'un tenant. Chaque écouteur posé
+     *  se mémorise : le détachement les retire tous (chantier C1). */
     private void brancherEcouteurs() {
         listeCompletion.setOnPick(this::choisirCompletion);
-        session.addEditListener((debut, fin, retire, insere) -> surEdition());
-        session.addSelectionListener(this::surSelection);
+        session.addEditListener(ecouteurEdition);
+        session.addSelectionListener(ecouteurSelection);
         editeur.setSurViewportChange(this::surFenetre);
     }
 
@@ -735,9 +748,17 @@ public final class PopupsEditeur {
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap hors
-     *  cartes se coupe, les liens se dissolvent — la scène peut recycler. */
+     *  cartes se coupe, les liens se dissolvent — la session ne retient
+     *  plus l'orchestrateur, la scène peut recycler. Idempotent : un
+     *  second appel ne fait rien (chantier C1). */
     public void detacher() {
+        if (detache) {
+            return;
+        }
+        detache = true;
         popups.detacher();
+        session.removeEditListener(ecouteurEdition);
+        session.removeSelectionListener(ecouteurSelection);
     }
 
     /** Pose le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
