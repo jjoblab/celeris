@@ -30,6 +30,9 @@ final class LecteurGrammaire {
     private final Map<String, Grammaire> externes;
     private final Map<String, RegleListe> externesLiees = new HashMap<>();
     private final RapportGrammaire.Tisseur rapport;
+    /** La moisson des mots réservés (complétion de base) : chaque
+     *  règle keyword au motif littéral y verse au chargement. */
+    private final java.util.Set<String> motsCles = new java.util.LinkedHashSet<>();
 
     LecteurGrammaire(Map<String, RegleListe> referentiel, RegleListe racine,
             Map<String, Grammaire> externes, RapportGrammaire.Tisseur rapport) {
@@ -37,6 +40,12 @@ final class LecteurGrammaire {
         this.racine = racine;
         this.externes = externes;
         this.rapport = rapport;
+    }
+
+    /** Les mots réservés moissonnés au chargement — figés, triés
+     *  sans casse ; la complétion de base les sert. */
+    List<String> motsCles() {
+        return MotsClesGrammaire.figer(motsCles);
     }
 
     /**
@@ -96,11 +105,16 @@ final class LecteurGrammaire {
 
     /** Construit un motif simple, écarté si son expression est invalide. */
     private void simple(Map<?, ?> champs, List<Regle> sortie, String ou) {
-        Regex motif = tenter(texte(champs.get("match"), ou + " match"));
+        String source = texte(champs.get("match"), ou + " match");
+        Regex motif = tenter(source);
         if (motif == null) {
             return;
         }
-        sortie.add(new RegleSimple(motif, nom(champs),
+        String portee = nom(champs);
+        // La moisson au fil du chargement : la portée keyword au motif
+        // littéral verse ses mots à la complétion de base.
+        MotsClesGrammaire.moissonner(source, portee, motsCles);
+        sortie.add(new RegleSimple(motif, portee,
                 captures(champs.get("captures"), ou)));
     }
 

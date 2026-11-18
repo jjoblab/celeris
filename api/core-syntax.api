@@ -106,6 +106,7 @@ public interface jo.celeris.core.syntax.LanguageSyntax {
   public abstract java.lang.String id();
   public abstract jo.celeris.core.syntax.LanguageLexer lexer();
   public abstract jo.celeris.core.syntax.LanguageParser parser();
+  public default java.util.List<java.lang.String> reservedWords();
 }
 
 ### jo.celeris.core.syntax.LexDocument
@@ -430,6 +431,7 @@ public final class jo.celeris.core.syntax.clike.GroovySyntax implements jo.celer
   public java.lang.String id();
   public jo.celeris.core.syntax.LanguageLexer lexer();
   public jo.celeris.core.syntax.LanguageParser parser();
+  public java.util.List<java.lang.String> reservedWords();
 }
 
 ### jo.celeris.core.syntax.clike.JavaDialect
@@ -449,6 +451,7 @@ public final class jo.celeris.core.syntax.clike.JavaSyntax implements jo.celeris
   public java.lang.String id();
   public jo.celeris.core.syntax.LanguageLexer lexer();
   public jo.celeris.core.syntax.LanguageParser parser();
+  public java.util.List<java.lang.String> reservedWords();
 }
 
 ### jo.celeris.core.syntax.clike.KotlinDialect
@@ -463,6 +466,7 @@ public final class jo.celeris.core.syntax.clike.KotlinSyntax implements jo.celer
   public java.lang.String id();
   public jo.celeris.core.syntax.LanguageLexer lexer();
   public jo.celeris.core.syntax.LanguageParser parser();
+  public java.util.List<java.lang.String> reservedWords();
 }
 
 ### jo.celeris.core.syntax.clike.KtsSyntax
@@ -472,6 +476,7 @@ public final class jo.celeris.core.syntax.clike.KtsSyntax implements jo.celeris.
   public java.lang.String id();
   public jo.celeris.core.syntax.LanguageLexer lexer();
   public jo.celeris.core.syntax.LanguageParser parser();
+  public java.util.List<java.lang.String> reservedWords();
 }
 
 ### jo.celeris.core.syntax.clike.MemberScans$LineScan
@@ -556,6 +561,7 @@ public final class jo.celeris.core.syntax.json.JsonSyntax implements jo.celeris.
   public java.lang.String id();
   public jo.celeris.core.syntax.LanguageLexer lexer();
   public jo.celeris.core.syntax.LanguageParser parser();
+  public java.util.List<java.lang.String> reservedWords();
 }
 
 ### jo.celeris.core.syntax.json.package-info

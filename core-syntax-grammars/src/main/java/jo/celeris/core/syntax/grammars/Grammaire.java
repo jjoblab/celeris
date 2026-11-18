@@ -16,13 +16,16 @@ import java.util.List;
  * @param motifs       les règles de premier niveau
  * @param injections   les injections déclarées, éventuellement vides
  * @param rapport      le rapport de chargement
+ * @param motsCles     les mots réservés moissonnés (complétion de base)
  */
 public record Grammaire(String nom, String porteeRacine, List<Regle> motifs,
-        List<Injection> injections, RapportGrammaire rapport) {
+        List<Injection> injections, RapportGrammaire rapport,
+        List<String> motsCles) {
 
     /** Constructeur canonique : les listes se figent, jamais nulles. */
     public Grammaire {
         motifs = List.copyOf(motifs);
         injections = List.copyOf(injections);
+        motsCles = List.copyOf(motsCles);
     }
 }

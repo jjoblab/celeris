@@ -30,4 +30,11 @@ public final class JsonSyntax implements LanguageSyntax {
     public LanguageParser parser() {
         return new JsonParseur();
     }
+
+    /** Les littéraux réservés du JSON — la complétion de base les
+     *  sert ({@code reservedWords()} de {@link LanguageSyntax}). */
+    @Override
+    public java.util.List<String> reservedWords() {
+        return java.util.List.of("true", "false", "null");
+    }
 }

@@ -32,4 +32,11 @@ public final class KotlinSyntax implements LanguageSyntax {
     public LanguageParser parser() {
         return new CLikeParser(KotlinDialect.INSTANCE);
     }
+
+    /** Les mots réservés du dialecte — la complétion de base les
+     *  sert ({@code reservedWords()} de {@link LanguageSyntax}). */
+    @Override
+    public java.util.List<String> reservedWords() {
+        return java.util.List.copyOf(KotlinDialect.INSTANCE.reservedWords());
+    }
 }

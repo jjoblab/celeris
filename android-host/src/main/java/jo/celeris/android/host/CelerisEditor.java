@@ -242,6 +242,21 @@ public final class CelerisEditor {
         }
         // Le nom du fichier : le filtre des diagnostics s'y fait.
         popups.setNomFichier(fileName);
+        // La langue posée porte son coach : les mots réservés du
+        // langage servent la complétion de base dès le premier
+        // caractère — l'hôte ne pose AUCUNE table pour cela (le
+        // coach de l'hôte reste possible par setLangue).
+        popups.setLangue(langue);
+        // Le chrome vit dès la pose : la minimap, le pouce, la bande
+        // et le fil d'Ariane ne patientent pas la première frappe —
+        // le rafraîchissement part au moment où la couche est
+        // mesurée (le premier avis de fenêtre y re-pose tout).
+        vue.post(() -> {
+            PopupsEditeur orchestrateur = popups;
+            if (orchestrateur != null) {
+                orchestrateur.rafraichirMontage();
+            }
+        });
     }
 
     /**

@@ -33,4 +33,11 @@ public final class JavaSyntax implements LanguageSyntax {
     public LanguageParser parser() {
         return new CLikeParser(JavaDialect.INSTANCE);
     }
+
+    /** Les mots réservés du dialecte — la complétion de base les
+     *  sert ({@code reservedWords()} de {@link LanguageSyntax}). */
+    @Override
+    public java.util.List<String> reservedWords() {
+        return java.util.List.copyOf(JavaDialect.INSTANCE.reservedWords());
+    }
 }

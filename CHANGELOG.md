@@ -5,6 +5,29 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.0] — 2026-11-19
+
+### L'éditeur complet dès le montage (revue du propriétaire : « les popups de base doivent vivre sans que l'hôte les active »)
+
+- **Les mots réservés du langage servent la complétion de base** :
+  `LanguageSyntax.reservedWords()` (voie additive) — les dialectes P0
+  (Java, Kotlin, KTS, Groovy, JSON) y posent leurs listes, la voie de
+  grammaires y MOISSONNE les alternatives littérales des règles
+  `keyword.control` (groupes capturants au milieu des assertions :
+  Python 34 mots, Go 24, Ruby 53, TypeScript 13…). La façade pose le
+  coach de la langue à chaque ouverture (`PopupsEditeur.setLangue`,
+  public) : frapper `cla` propose `class` en Java SANS serveur ni
+  table de l'hôte — comme tout éditeur de code.
+- **Le chrome vit dès la pose** : la minimap, le pouce de défilement
+  rapide, la bande d'erreurs et le fil d'Ariane ne patientent plus la
+  première frappe — le premier avis de fenêtre pose le montage
+  (`PopupsEditeur.rafraichirMontage`, public), la façade programme le
+  rafraîchissement à l'ouverture.
+- Banc `EditeurCompletDesLeMontageTest` (3 cas : mots réservés servis,
+  chrome posé, coach qui suit la langue — le document sans langage
+  vide proprement sa table). Manifestes d'API régénérés
+  (`api/core-syntax.api`, `api/core-syntax-grammars.api`).
+
 ## [2.1.0] — 2026-11-19
 
 La version qui fait tourner la machine : la CI, morte depuis le premier

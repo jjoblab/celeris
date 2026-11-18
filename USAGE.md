@@ -643,12 +643,16 @@ editeur.addPopupKeyListener(popups::surTouche);
 popups.detacher();
 ```
 
-- **le coach** — `CoachPopups` porte les tables de l'hôte : mots
-  réservés du langage, badges des candidats bruts, documentation et
-  signatures connues en repli sans serveur. `CoachPopups.muet()` suffit
-  à la complétion des mots du document; l'hôte qui connaît son terrain
-  implémente l'interface (un hôte complet en montre une,
-  `CoachExemple`);
+- **le coach** — `CoachPopups` porte la documentation et les
+  signatures connues de l'hôte en repli sans serveur. Depuis la
+  2.1.0, les MOTS RÉSERVÉS DU LANGAGE vivent de base : la façade pose
+  le coach de la langue ouverte (`PopupsEditeur.setLangue`), les
+  dialectes P0 servent leurs listes (`LanguageSyntax.reservedWords`)
+  et la voie de grammaires moissonne les alternatives littérales des
+  règles keyword — frapper `cla` propose `class` en Java, `def` en
+  Python, sans table à poser. L'hôte qui connaît son terrain garde
+  l'interface pour sa documentation et ses signatures (un hôte
+  complet en montre une, `CoachExemple`);
 - **le serveur** — `LanguageSession` (même module) est la surface
   commune des serveurs de langage : les modèles du kit y arrivent déjà
   convertis, l'orchestrateur n'attrape jamais le protocole (§ 8);

@@ -90,7 +90,7 @@ public final class Grammaires {
         racine.fixer(lecteur.aplatir(champs.get("patterns"), "patterns"));
         List<Injection> injections = injections(champs.get("injections"), lecteur);
         return new Grammaire(nom, porteeRacine, racine.regles(), injections,
-                rapport.tisser());
+                rapport.tisser(), lecteur.motsCles());
     }
 
     /**

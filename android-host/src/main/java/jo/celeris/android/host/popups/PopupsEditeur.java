@@ -57,7 +57,7 @@ public final class PopupsEditeur {
     private final PopupLayer couche;
     private final int margePx;
     /** Le coach de l'hôte — les tables du repli local. */
-    private final CoachPopups coach;
+    private CoachPopups coach;
     /** Le poseur de documents ancrés — survol, aperçu, rendu @Preview. */
     private final DocAncre docAncre;
     /** L'ampoule d'intentions de la gouttière — le tap ouvre le menu
@@ -148,6 +148,9 @@ public final class PopupsEditeur {
             };
     /** Le détachement a-t-il déjà eu lieu — l'idempotence s'y lit. */
     private boolean detache;
+    /** Le premier avis de fenêtre a-t-il déjà posé le chrome du
+     *  montage — les suivants ne re-posent que l'ouvert. */
+    private boolean montageRafraichi;
 
     /** Le thème courant — la palette des popups en dérive. */
     private EditorTheme theme;
@@ -356,6 +359,21 @@ public final class PopupsEditeur {
         sessionLangage.ouvrir(uri,
                 langueParam == null ? "text" : langueParam.id(),
                 session.document().text());
+    }
+
+    /**
+     * Pose la LANGUE de l'éditeur sans serveur : le coach des popups
+     * devient celui de la langue — ses mots réservés servent la
+     * complétion de base dès le premier caractère (la documentation et
+     * les signatures restent les tables de l'hôte ou le serveur
+     * branché). La façade y passe à chaque ouverture : l'hôte n'écrit
+     * rien.
+     *
+     * @param langue le support de langage posé, null pour « text »
+     */
+    public void setLangue(@Nullable LanguageSupport langueParam) {
+        this.langue = langueParam;
+        this.coach = new CoachLangage(langueParam);
     }
 
     /** Pose les actions de la barre — principales en pastilles,
@@ -601,6 +619,14 @@ public final class PopupsEditeur {
 
     private void surFenetre() {
         popups.surDefilement();
+        // Le premier avis porte le MONTAGE : la minimap, le pouce et la
+        // bande vivent dès la première image — les avis suivants ne
+        // re-posent que l'ouvert (repositionnerTout), le rafraîchissement
+        // du montage reste idempotent et bon marché.
+        if (!montageRafraichi) {
+            montageRafraichi = true;
+            rafraichirMontage();
+        }
         repositionnerTout();
     }
 
@@ -804,6 +830,33 @@ public final class PopupsEditeur {
     /** Pose le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     public void setNomFichier(String nom) {
         nomDuFichier = nom;
+    }
+
+    /**
+     * Les mots réservés de la langue ouverte — la sonde du banc de la
+     * façade (le coach langue y passe) : la complétion de base vit
+     * dès le montage sans table de l'hôte.
+     *
+     * @return les mots réservés servis à la complétion
+     */
+    public java.util.List<String> completionMotsReserves() {
+        return coach.motsReserves();
+    }
+
+    /**
+     * Rafraîchit le CHROME du montage : la minimap, le pouce de
+     * défilement rapide, la bande d'erreurs et le fil d'Ariane se
+     * posent SANS attendre la première frappe — l'éditeur vivant dès
+     * la pose, comme tout éditeur de code. La façade l'appelle à
+     * l'ouverture (le temps que la couche soit mesurée) ; l'appel
+     * prématuré ne casse rien (les surfaces se re-posent au prochain
+     * avis de fenêtre).
+     */
+    public void rafraichirMontage() {
+        bordDroit.rafraichir(largeurCouche(), hauteurCouche());
+        bordDroit.rafraichirBande(diagnostics, nomDuFichier,
+                largeurCouche(), hauteurCouche());
+        filAriane.rafraichir();
     }
 
     /** Le plan VIF du fichier ouvert — les hiérarchies y lisent la

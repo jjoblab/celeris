@@ -1,5 +1,7 @@
 package jo.celeris.core.syntax.grammars;
 
+import java.util.List;
+
 import jo.celeris.core.syntax.LanguageLexer;
 import jo.celeris.core.syntax.LanguageParser;
 import jo.celeris.core.syntax.LanguageSyntax;
@@ -46,5 +48,13 @@ public final class GrammaireSyntax implements LanguageSyntax {
     @Override
     public LanguageParser parser() {
         return new GrammaireParseur();
+    }
+
+    /** Les mots réservés moissonnés de la grammaire au chargement —
+     *  les alternatives littérales des règles keyword.control : la
+     *  complétion de base les sert sans serveur ni table de l'hôte. */
+    @Override
+    public List<String> reservedWords() {
+        return grammaire.motsCles();
     }
 }
