@@ -39,33 +39,14 @@ include(":lsp-protocole")
 include(":serveur-lsp-java")
 include(":cli")
 
-// Modules Android : inclus uniquement si un SDK est détecté — l'absence de
-// SDK ne doit jamais casser le build des modules purs ; la CI, elle,
-// installe le SDK et construit l'ensemble. Le refus explicite
-// CELERIS_SKIP_ANDROID=1 prime sur toute détection : les runners d'hébergement
-// préinstallent un SDK que le travail « modules purs » ne doit pas voir.
-val refusAndroid = providers.environmentVariable("CELERIS_SKIP_ANDROID").orNull == "1"
-val sdkAndroid = providers.environmentVariable("ANDROID_HOME").orNull
-    ?: providers.environmentVariable("ANDROID_SDK_ROOT").orNull
-    ?: run {
-        val proprietes = file("local.properties")
-        if (proprietes.exists()) {
-            java.util.Properties().apply {
-                proprietes.inputStream().use { load(it) }
-            }.getProperty("sdk.dir")
-        } else {
-            null
-        }
-    }
-
-if (!refusAndroid && sdkAndroid != null) {
-    include(":android-view")
-    include(":android-widgets")
-    include(":android-host")
-    include(":demo")
-} else {
-    logger.lifecycle(
-        "celeris : SDK Android absent — modules Android non inclus " +
-            "(les modules purs restent constructibles et testables)",
-    )
-}
+// Modules Android : toujours inclus (ADR-0021) — la pureté du cœur est
+// garantie au niveau du code par les tests ArchUnit de chaque module pur
+// (aucune dépendance android.*), pas par l'absence des modules Android du
+// build. Tout build exige donc un SDK Android (ANDROID_HOME,
+// ANDROID_SDK_ROOT ou local.properties) ; sans SDK, la configuration
+// échoue avec un message explicite plutôt que de publier 8 artefacts
+// sur 11 en silence (le piège JitPack relevé par la revue du 2026-11-17).
+include(":android-view")
+include(":android-widgets")
+include(":android-host")
+include(":demo")

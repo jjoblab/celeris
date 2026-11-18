@@ -40,10 +40,11 @@ export JAVA_HOME=<jdk-17>            # javac exigé
 ./gradlew :cli:run                   # fumée de la cli
 ```
 
-Sans SDK Android (ANDROID_HOME, ANDROID_SDK_ROOT ou local.properties),
-les modules Android ne sont pas inclus : `check` reste vert sur les
-modules purs — c'est le critère de sortie M1, pas une dégradation. La CI
-construit l'ensemble avec SDK.
+Tout build exige un SDK Android (ADR-0021) : `ANDROID_HOME`,
+`ANDROID_SDK_ROOT` ou `local.properties`. Les modules Android sont
+toujours inclus ; la pureté du cœur est garantie au niveau du code par
+les tests ArchUnit de chaque module pur (aucune dépendance `android.*`),
+qui tournent à chaque `check`.
 
 ## Conventions
 

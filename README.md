@@ -7,9 +7,12 @@ de référence — édition multi-curseur, coloration syntaxique, plis,
 recherche/remplacement, complétion, refactorings, texte fantôme — pensée
 **tactile d'abord**, hors ligne d'abord, et sobre en mémoire comme en batterie.
 
-Le cœur du moteur ne dépend **pas du SDK Android** : il se construit et se
-teste sur JVM pure, en quelques secondes. Le même cœur alimente la vue Canvas
-Android, l'application de démonstration et un exécutable en ligne de commande.
+Le cœur du moteur ne dépend **pas d'Android** : la garantie est posée
+au niveau du code — chaque module pur porte un test d'architecture qui
+interdit toute dépendance `android.*` (ADR-0021). Le même cœur alimente la
+vue Canvas Android, l'application de démonstration et un exécutable en
+ligne de commande ; tout build du dépôt exige un SDK Android installé
+(`ANDROID_HOME`, `ANDROID_SDK_ROOT` ou `local.properties`).
 
 ## État du projet
 

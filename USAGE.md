@@ -861,10 +861,12 @@ sha256sum core-text-1.1.0.jar
 8. **Aucune version en dur** côté dépendances de celeris si vous
    reprenez les sources : le catalogue `gradle/libs.versions.toml`
    du dépôt est la référence (ADR-011).
-9. **Les modules Android exigent un SDK** : sans `ANDROID_HOME`, le
-   build du dépôt n'inclut que les modules purs — vos inclusions de
-   source (§ 3.3) suivent la même règle ; la variable
-   `CELERIS_SKIP_ANDROID=1` force le refus.
+9. **Tout build du dépôt exige un SDK Android** (ADR-0021) : les modules
+   Android sont toujours inclus — sans `ANDROID_HOME` (ou
+   `ANDROID_SDK_ROOT`, ou `local.properties`), la configuration échoue
+   avec une erreur explicite. Votre inclusion de source (§ 3.3) exige le
+   même SDK. La pureté du cœur est garantie par les tests ArchUnit de
+   chaque module pur, pas par l'absence des modules Android du build.
 
 ---
 
