@@ -28,6 +28,40 @@ vivent dans les ADR et le registre de portage, pas ici.
   vide proprement sa table). Manifestes d'API régénérés
   (`api/core-syntax.api`, `api/core-syntax-grammars.api`).
 
+## [2.2.0] — 2026-11-19 (en cours)
+
+### Les popups de base vivent sans que l'hôte les active (revue du propriétaire du 2026-11-19)
+
+- **La complétion ne se tait plus à la frappe** : trois causes
+  corrigées. (1) `analysisCourante` exigeait l'analyse de la
+  révision COURANTE — or chaque caractère change la révision, la
+  publication la suivait de loin : la liste se refermait aussitôt.
+  La complétion retombe désormais sur la DERNIÈRE publication
+  (`EditorSyntax.analyseDeRepli`, même périmée). (2) L'analyse
+  absente (`null`) taisait tout le repli local :
+  `CompletionMots.completer` tolère désormais l'analyse absente —
+  les mots réservés du langage se proposent seuls. (3) Le fournisseur
+  du concentrateur court-circuitait lui aussi sur `null` : il passe.
+- **La barre de sélection porte les actions d'édition STANDARD au
+  défaut du montage** — couper, copier, coller (seulement « s'il
+  existe quelque chose à coller » : le presse-papiers SYSTÈME
+  d'Android y lit), tout copier — plus le « i » et les « ... » du
+  montage. L'hôte qui pose ses actions remplace la rangée.
+- **L'ouverture ne bloque plus le fil de l'interface** :
+  `open()` résout la langue par `languageForSiPret` (null tant que
+  le registre s'assemble — plus d'attente de 30 s : l'écran restait
+  noir à la première ouverture), et la langue se pose dès que le
+  registre vit, sur un fil démon, au fil de l'interface par `post`.
+- **Le sample porte un JOURNAL** : chaque étape du montage s'y
+  écrit (lancement de l'assemblage, paquets fautifs, langue résolue)
+  — horodaté, repliable, bouton COPIER vers le presse-papiers.
+- Bancs : `CompletionMotsSansAnalyseTest` (2 cas),
+  `BarreSelectionDefautTest` (3 cas : actions standard sans hôte,
+  Coller au presse-papiers près, copier réel vers le système),
+  `EditeurCompletDesLeMontageTest` adapté à la pose asynchrone.
+  Manifeste d'API de `core-language` régénéré (`languageForSiPret`,
+  `estPret`).
+
 ## [2.1.0] — 2026-11-19
 
 La version qui fait tourner la machine : la CI, morte depuis le premier

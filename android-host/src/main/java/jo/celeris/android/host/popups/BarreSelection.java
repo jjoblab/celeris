@@ -1,7 +1,11 @@
 package jo.celeris.android.host.popups;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.graphics.Rect;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -47,8 +51,11 @@ final class BarreSelection {
     private final SelectionBarView barre;
     private final MenuDebordement menu;
     private final int margePx;
-    /** Les actions de la barre, VIVES au déclenchement. */
-    private Supplier<List<SelectionBarView.Item>> actions = List::of;
+    /** Les actions de la barre, VIVES au déclenchement — l'hôte qui
+     *  n'en pose aucune sert les actions d'édition STANDARD (couper,
+     *  copier, coller, tout copier : la revue du propriétaire du
+     *  2026-11-19, « l'éditeur doit les fournir de base »). */
+    private Supplier<List<SelectionBarView.Item>> actions = this::actionsEditionStandard;
     /** Les étages du débordement — vifs à l'ouverture, la visibilité
      *  contextuelle naît de la donnée. */
     private Supplier<List<MenuEtages.Etage>> debordement = List::of;
@@ -100,13 +107,131 @@ final class BarreSelection {
      * l'étage de navigation ne se montre que sur un symbole au caret.
      *
      * @param principales le fournisseur des actions visibles
-     * @param repliees    le fournisseur des étages repliés
+     * @param repliees le fournisseur des étages repliés
      */
     void configurerActionsVives(
             Supplier<List<SelectionBarView.Item>> principales,
             Supplier<List<MenuEtages.Etage>> repliees) {
         actions = principales;
         debordement = repliees;
+    }
+
+    /**
+     * Les actions d'édition STANDARD de la barre — le DÉFAUT du
+     * montage (la revue du propriétaire du 2026-11-19 : couper,
+     * copier, coller « s'il existe quelque chose à coller », copier
+     * tout) : la sélection se copie au PRESSE-PAPIERS SYSTÈME, la
+     * barre se re-pose après chaque geste (Coller se propose dès que
+     * le presse-papiers vit). Le « i » et les « ... » restent ceux du
+     * montage (documentation, débordement) — l'hôte qui pose SES
+     * actions remplace la rangée entière.
+     *
+     * @return les pastilles d'édition, au presse-papiers près
+     */
+    private List<SelectionBarView.Item> actionsEditionStandard() {
+        List<SelectionBarView.Item> items = new ArrayList<>(4);
+        items.add(new SelectionBarView.Item("Couper",
+                jo.celeris.android.widgets.IconeAction.COUPER, this::couper));
+        items.add(new SelectionBarView.Item("Copier",
+                jo.celeris.android.widgets.IconeAction.COPIER, this::copier));
+        if (!pressePapiersVide()) {
+            items.add(new SelectionBarView.Item("Coller",
+                    jo.celeris.android.widgets.IconeAction.COLLER, this::coller));
+        }
+        items.add(new SelectionBarView.Item("Tout copier",
+                jo.celeris.android.widgets.IconeAction.TOUT, this::toutCopier));
+        return items;
+    }
+
+    /** Les actions courantes de la barre — la sonde du banc : le
+     *  fournisseur y lit sans poser la barre. */
+    java.util.List<SelectionBarView.Item> actionsDeBarre() {
+        return actions.get();
+    }
+
+    /** Le presse-papiers système est-il vide — sans hôte, sans texte,
+     *  la pastille Coller ne vit pas. */
+    private boolean pressePapiersVide() {
+        Object service = popups.couche().getContext()
+                .getSystemService(Context.CLIPBOARD_SERVICE);
+        if (!(service instanceof ClipboardManager pressePapiers)) {
+            return true;
+        }
+        ClipData contenu = pressePapiers.getPrimaryClip();
+        return contenu == null || contenu.getItemCount() == 0
+                || contenu.getItemAt(0) == null
+                || contenu.getItemAt(0).coerceToText(
+                        popups.couche().getContext()) == null;
+    }
+
+    /** Copie la sélection au presse-papiers système. */
+    private void copier() {
+        SelRange plage = plagePrimaire();
+        if (plage == null) {
+            return;
+        }
+        poserAuPressePapiers(session.document().subText(
+                plage.start(), plage.end()));
+    }
+
+    /** Coupe la sélection : copie puis remplacement par le vide. */
+    private void couper() {
+        SelRange plage = plagePrimaire();
+        if (plage == null) {
+            return;
+        }
+        poserAuPressePapiers(session.document().subText(
+                plage.start(), plage.end()));
+        session.replaceRange(plage.start(), plage.end(), "");
+        editeur.invalidate();
+    }
+
+    /** Colle le presse-papiers système sur la sélection. */
+    private void coller() {
+        Object service = popups.couche().getContext()
+                .getSystemService(Context.CLIPBOARD_SERVICE);
+        if (!(service instanceof ClipboardManager pressePapiers)) {
+            return;
+        }
+        ClipData contenu = pressePapiers.getPrimaryClip();
+        if (contenu == null || contenu.getItemCount() == 0) {
+            return;
+        }
+        CharSequence texte = contenu.getItemAt(0).coerceToText(
+                popups.couche().getContext());
+        if (texte == null) {
+            return;
+        }
+        SelRange plage = plagePrimaire();
+        if (plage == null) {
+            return;
+        }
+        session.replaceRange(plage.start(), plage.end(), texte.toString());
+        editeur.invalidate();
+    }
+
+    /** Copie TOUT le document au presse-papiers système — « copier
+     *  tout », la sélection devient le document entier. */
+    private void toutCopier() {
+        poserAuPressePapiers(session.document().text());
+    }
+
+    /** Pose le texte au presse-papiers système puis re-pose la barre :
+     *  Coller vient de se proposer (ou se retirer). */
+    private void poserAuPressePapiers(String texte) {
+        Object service = popups.couche().getContext()
+                .getSystemService(Context.CLIPBOARD_SERVICE);
+        if (service instanceof ClipboardManager pressePapiers) {
+            pressePapiers.setPrimaryClip(
+                    ClipData.newPlainText("celeris", texte));
+        }
+        poser(session.selection());
+    }
+
+    /** La plage primaire de la sélection — null sans plage. */
+    private @org.jspecify.annotations.Nullable SelRange plagePrimaire() {
+        List<SelRange> plages = session.selection().ranges();
+        return plages.isEmpty() ? null : plages.get(0);
     }
 
     /** La palette tourne : la barre et son menu la suivent. */

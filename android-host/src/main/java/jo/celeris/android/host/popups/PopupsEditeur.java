@@ -844,6 +844,18 @@ public final class PopupsEditeur {
     }
 
     /**
+     * Les actions courantes de la barre de sélection — la sonde du
+     * banc du DÉFAUT du montage : l'hôte qui n'en pose aucune y lit
+     * les actions d'édition standard (couper, copier, coller au
+     * presse-papiers près, tout copier).
+     *
+     * @return les actions servies par la barre, jamais null
+     */
+    public java.util.List<SelectionBarView.Item> actionsDeBarre() {
+        return barreSelection.actionsDeBarre();
+    }
+
+    /**
      * Rafraîchit le CHROME du montage : la minimap, le pouce de
      * défilement rapide, la bande d'erreurs et le fil d'Ariane se
      * posent SANS attendre la première frappe — l'éditeur vivant dès

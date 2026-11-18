@@ -395,6 +395,26 @@ public final class EditorSyntax {
         return coordinateur.analysis();
     }
 
+    /**
+     * L'analyse de REPLI de la complétion : la DERNIÈRE publication,
+     * même périmée — la complétion de base ne dépend JAMAIS d'une
+     * analyse à jour de la révision (la frappe change la révision à
+     * chaque caractère, la publication la suit de loin : attendre
+     * l'à-jour rend la complétion muette à la première frappe — la
+     * revue du propriétaire du 2026-11-19 : « j'ai tapé des mots,
+     * aucune suggestion »). Les mots du document s'y relisent au
+     * lexique de la dernière publication ; les mots réservés du
+     * langage arrivent de toute façon (le coach de la langue) — le
+     * pire cas (publication jamais venue) rend les mots réservés
+     * seuls, jamais le silence.
+     *
+     * @return la dernière analyse publiée, null sans aucune publication
+     */
+    @Nullable Analysis analyseDeRepli() {
+        MoteurAnalyse moteurLocal = moteur;
+        return moteurLocal == null ? null : moteurLocal.analysePubliee();
+    }
+
     /** Les marques de gouttière courantes — {@link GutterMarks#VIDE} sans analyse. */
     public GutterMarks marques() {
         return marques;

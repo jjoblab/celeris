@@ -350,9 +350,16 @@ editeur.settings().setFontSizeSp(14f);            // idem ; suit aussi le pinc
 
 La façade ouvre la vue éditable **immédiatement** ; la langue se pose
 dès que le registre assemblé vit (coloration en retard, édition jamais
-bloquée). La frappe intelligente (`IntelligenceHub.builtins()`) est
+bloquée — depuis la 2.2.0, `open()` ne bloque JAMAIS le fil de
+l'interface : la résolution sans attente rend null pendant
+l'assemblage, la pose arrive sur un fil démon dès que le registre
+vit). La frappe intelligente (`IntelligenceHub.builtins()`) est
 active dès le montage — `CelerisEditor.attach(...)` renvoie un
-monte-charge : `.withoutSmartTyping().build()` pour la couper. Le
+monte-charge : `.withoutSmartTyping().build()` pour la couper. La
+barre de sélection porte les actions d'édition STANDARD (couper,
+copier, coller au presse-papiers près, tout copier) sans qu'aucune
+action ne soit posée — le « i » et les « … » demeurent ; l'hôte qui
+pose ses actions remplace la rangée. Le
 chemin manuel reste documenté en § 9.2 (annexe avancée) pour qui
 assemble ses propres surfaces, hors façade.
 

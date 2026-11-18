@@ -177,6 +177,34 @@ public final class LanguageKit {
     }
 
     /**
+     * La langue d'un nom de fichier SANS ATTENDRE : null tant que
+     * l'assemblage court (jamais de blocage du fil appelant — la revue
+     * du propriétaire du 2026-11-19 : l'ouverture de l'éditeur
+     * patientait l'assemblage des paquets, l'écran restait noir).
+     * L'hôte asynchrone y lit, puis pose la langue quand l'assemblage
+     * vit — {@link #estPret()} le dit, {@link #languageFor} résout
+     * alors sans attente.
+     *
+     * @param filename le nom du fichier ouvert
+     * @return le support résolu, null sans langage ou pendant l'assemblage
+     */
+    public @Nullable LanguageSupport languageForSiPret(String filename) {
+        LanguageRegistry present = registre;
+        return present == null ? null : present.byFilename(filename);
+    }
+
+    /**
+     * Le registre est-il assemblé — la résolution sans attente peut
+     * commencer. L'hôte y sonde, le poller léger ou l'avis du fil
+     * démon y ramène.
+     *
+     * @return vrai quand le registre vit
+     */
+    public boolean estPret() {
+        return registre != null;
+    }
+
+    /**
      * Recharge à chaud : les sources se relisent au prochain
      * assemblage — le langage ajouté au stockage entre, le retiré
      * sort. Les sessions ouvertes gardent leur langage (USAGE § 6) ;

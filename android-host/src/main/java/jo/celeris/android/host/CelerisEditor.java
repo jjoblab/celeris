@@ -164,6 +164,10 @@ public final class CelerisEditor {
     private @Nullable PopupsEditeur popups;
     private @Nullable TextSession session;
     private @Nullable LanguageSupport langue;
+    /** Le compteur des ouvertures — la pose différée d'une langue ne
+     *  sert que l'ouverture TOUJOURS courante (une ouverture plus
+     *  récente l'a dépassée). */
+    private int ouvertureEnCours;
     private boolean fermee;
     // T4 : les déclencheurs posés par le kit — mémorisés pour le
     // retrait à close() (le montage de l'orchestrateur les pose, le
@@ -212,34 +216,23 @@ public final class CelerisEditor {
         if (fermee) {
             return;
         }
-        TextSession precedente = session;
-        session = TextSession.of(text, System::nanoTime);
-        langue = langues.languageFor(fileName);
-        vue.setSession(session);
+        ouvertureEnCours++;
+        final int numeroOuverture = ouvertureEnCours;
+        final String nomOuvert = fileName;
+        final TextSession ouverte = TextSession.of(text, System::nanoTime);
+        // La langue SANS ATTENDRE (la revue du propriétaire du
+        // 2026-11-19 : l'ouverture bloquait le fil de l'interface le
+        // temps de l'assemblage des paquets — l'écran restait noir) :
+        // null tant que le registre s'assemble, la langue arrive dès
+        // qu'il vit, la vue reste éditable sans coloration entre-temps.
+        langue = langues.languageForSiPret(fileName);
+        session = ouverte;
+        vue.setSession(ouverte);
         vue.setLanguage(langue);
-        if (precedente != null) {
-            // Le remplacement d'un document referme l'orchestrateur
-            // courant : ses écouteurs de session partent (C1).
-            if (popups != null) {
-                popups.detacher();
-                popups = null;
-            }
+        if (langue == null && !langues.estPret()) {
+            poserLaLangueDesQueLeRegistreVit(nomOuvert, ouverte, numeroOuverture);
         }
-        if (popups == null) {
-            // Le coach muet par défaut (T4, point 9 de la revue) ; le
-            // constructeur court de l'orchestrateur suffit.
-            // Le thème et la taille de la source (T2) : l'orchestrateur
-            // les lit de toute façon à son abonnement — ici la palette
-            // initiale en naît.
-            popups = new PopupsEditeur(vue, session, couche,
-                    settings.theme(), settings.fontSizeSp());
-            // T4 : les déclencheurs du kit — la délégation clavier des
-            // popups (PIEGE-27) et le survol au double appui (le color
-            // picker d'abord). L'hôte n'écrit plus rien : ce que
-            // l'intégration branchait à la main vit dans le montage.
-            vue.addPopupKeyListener(verdictTouche);
-            vue.addDoubleTapListener(verdictDoubleTap);
-        }
+        monterOrchestrateurSiAbsent();
         // Le nom du fichier : le filtre des diagnostics s'y fait.
         popups.setNomFichier(fileName);
         // La langue posée porte son coach : les mots réservés du
@@ -257,6 +250,59 @@ public final class CelerisEditor {
                 orchestrateur.rafraichirMontage();
             }
         });
+    }
+
+    /**
+     * Monte l'orchestrateur des popups à la première ouverture — le
+     * remplacement d'un document referme l'orchestrateur courant
+     * (ses écouteurs de session partent, C1) avant le montage neuf :
+     * les déclencheurs du kit (délégation clavier, double appui) s'y
+     * posent, le coach langue et le nom du fichier s'y servent.
+     */
+    private void monterOrchestrateurSiAbsent() {
+        if (ouvertureEnCours > 1 && popups != null) {
+            popups.detacher();
+            popups = null;
+        }
+        if (popups != null) {
+            return;
+        }
+        popups = new PopupsEditeur(vue, session, couche,
+                settings.theme(), settings.fontSizeSp());
+        vue.addPopupKeyListener(verdictTouche);
+        vue.addDoubleTapListener(verdictDoubleTap);
+    }
+
+    /**
+     * Pose la langue de l'ouverture dès que le registre vit — sur un
+     * fil démon, jamais celui de l'interface : la résolution attend
+     * l'assemblage des paquets (30 s de garde-fou au pire), la pose
+     * se joue au fil de l'interface par {@code post}, et ne sert que
+     * l'ouverture TOUJOURS courante (une ouverture plus récente l'a
+     * dépassée).
+     *
+     * @param nomOuvert       le nom du fichier ouvert
+     * @param ouverte         la session ouverte (la garde s'y compare)
+     * @param numeroOuverture le numéro d'ordre de l'ouverture
+     */
+    private void poserLaLangueDesQueLeRegistreVit(String nomOuvert,
+            TextSession ouverte, int numeroOuverture) {
+        Thread poseur = new Thread(() -> {
+            LanguageSupport resolue = langues.languageFor(nomOuvert);
+            vue.post(() -> {
+                if (numeroOuverture == ouvertureEnCours && !fermee
+                        && session == ouverte && resolue != null) {
+                    langue = resolue;
+                    vue.setLanguage(resolue);
+                    PopupsEditeur orchestrateur = popups;
+                    if (orchestrateur != null) {
+                        orchestrateur.setLangue(resolue);
+                    }
+                }
+            });
+        }, "celeris-langue-ouverte");
+        poseur.setDaemon(true);
+        poseur.start();
     }
 
     /**

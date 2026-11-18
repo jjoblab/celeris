@@ -128,9 +128,8 @@ public final class IntelligenceHub {
         default List<String> completionCandidates(Document doc,
                 @Nullable Analysis analysis, int caret,
                 List<String> keywords) {
-            if (analysis == null) {
-                return List.of();
-            }
+            // l'analyse absente reste éligible : les mots réservés du
+            // langage s'y proposent seuls (CompletionMots en décide)
             return CompletionMots.completer(doc, analysis, caret, keywords);
         }
     }
@@ -232,7 +231,7 @@ public final class IntelligenceHub {
         if (courant == null || isLargeFileModeActive()) {
             return List.of();
         }
-        return courant.completionCandidates(document(), analysis(), caret(),
+        return courant.completionCandidates(document(), analysisDeCompletion(), caret(),
                 keywords);
     }
 
@@ -389,8 +388,19 @@ public final class IntelligenceHub {
                 : IndentStyle.spaces(langue.configuration().indentSize());
     }
 
-    /** L'analyse publiée à la révision courante — jamais celle d'une autre. */
+    /** L'analyse publiée à la révision courante — jamais celle d'une
+     *  autre ; la complétion seule retombe sur la DERNIÈRE
+     *  publication (même périmée) : sa liste ne se tait jamais à la
+     *  frappe (revue du 2026-11-19). */
     private @Nullable Analysis analysis() {
         return vue.syntaxe.analyseCourante(document());
+    }
+
+    /** L'analyse de la complétion : la courante, sinon la dernière
+     *  publication — les mots du document seuls se taisent, jamais
+     *  la complétion entière. */
+    private @Nullable Analysis analysisDeCompletion() {
+        Analysis courante = vue.syntaxe.analyseCourante(document());
+        return courante != null ? courante : vue.syntaxe.analyseDeRepli();
     }
 }

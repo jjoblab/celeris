@@ -68,9 +68,28 @@ public class EditeurCompletDesLeMontageTest {
         scene.addView(couche, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
+        // La scène vit à une fenêtre — comme l'écran réel : la posted
+        // pose de langue (open() ne bloque plus le fil) s'y exécute.
+        android.view.WindowManager fenetre = (android.view.WindowManager)
+                contexte.getSystemService(android.content.Context.WINDOW_SERVICE);
+        fenetre.addView(scene, new android.view.WindowManager.LayoutParams(
+                android.view.WindowManager.LayoutParams.MATCH_PARENT,
+                android.view.WindowManager.LayoutParams.MATCH_PARENT));
         CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
         editeur.open("Main.java", SOURCE);
+        attendreLaPoseDeLangue();
         return editeur;
+    }
+
+    /** Laisse la pose de langue arriver : le fil démon résout, le
+     *  posted se joue au fil de l'interface (Robolectric le vide). */
+    private static void attendreLaPoseDeLangue() {
+        try {
+            Thread.sleep(100L);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        org.robolectric.shadows.ShadowLooper.runUiThreadTasks();
     }
 
     /** Le coach de la langue sert les mots réservés du Java sans
@@ -107,16 +126,9 @@ public class EditeurCompletDesLeMontageTest {
         PopupLayer couche = new PopupLayer(contexte);
         CelerisEditor editeur = monter(scene, couche);
 
-        // La scène se mesure, se drape et vit sa première image : le
-        // posted rafraîchissement du montage s'exécute (la posted
-        // action d'une vue non attachée dort jusqu'à l'attachement —
-        // la fenêtre du banc la réveille, comme l'écran réel).
-        android.view.WindowManager fenetre =
-                (android.view.WindowManager) contexte
-                        .getSystemService(android.content.Context.WINDOW_SERVICE);
-        fenetre.addView(scene, new android.view.WindowManager.LayoutParams(
-                android.view.WindowManager.LayoutParams.MATCH_PARENT,
-                android.view.WindowManager.LayoutParams.MATCH_PARENT));
+        // La scène se mesure et se drape (monter() l'a déjà posée à
+        // une fenêtre) : le posted rafraîchissement du montage
+        // s'exécute — la file du fil d'interface se vide.
         scene.measure(android.view.View.MeasureSpec.makeMeasureSpec(
                 1080, android.view.View.MeasureSpec.EXACTLY),
                 android.view.View.MeasureSpec.makeMeasureSpec(
@@ -146,6 +158,7 @@ public class EditeurCompletDesLeMontageTest {
 
         // Le document sans langage : la table se vide, sans erreur.
         editeur.open("notes.txt", "du texte libre\n");
+        attendreLaPoseDeLangue();
         assertTrue("sans langage, la table se vide",
                 editeur.popups().completionMotsReserves().isEmpty());
         editeur.close();

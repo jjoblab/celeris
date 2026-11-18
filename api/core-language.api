@@ -74,6 +74,8 @@ public final class jo.celeris.core.language.LanguageKit {
   public static jo.celeris.core.language.LanguageKit$Builder builder(java.util.concurrent.Executor);
   public void preload();
   public jo.celeris.core.language.model.LanguageSupport languageFor(java.lang.String);
+  public jo.celeris.core.language.model.LanguageSupport languageForSiPret(java.lang.String);
+  public boolean estPret();
   public void reload();
   public static java.util.concurrent.Executor sharedDaemon();
 }

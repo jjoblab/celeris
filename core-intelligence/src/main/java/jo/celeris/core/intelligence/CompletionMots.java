@@ -28,27 +28,35 @@ public final class CompletionMots {
      * Les candidats de complétion au curseur.
      *
      * @param doc       le document porteur
-     * @param analyse   l'analyse courante du document
+     * @param analyse   l'analyse courante du document, absente
+     *                  possible (jamais publiée : les mots réservés
+     *                  seuls se proposent)
      * @param caret     la position du curseur
      * @param motsCles  les mots réservés du langage, se joignant aux mots
      *                  du fichier
      * @return les candidats distincts, triés sans égard à la casse, le
      *         préfixe déjà tapé en tête de chacun
      */
-    public static List<String> completer(Document doc, Analysis analyse, int caret,
+    public static List<String> completer(Document doc,
+            @org.jspecify.annotations.Nullable Analysis analyse, int caret,
             List<String> motsCles) {
         Match mot = WordOccurrences.wordAt(doc.text(), caret);
         String prefixe = mot == null ? ""
                 : doc.subText(mot.start(), Math.min(caret, mot.end()));
         List<String> candidats = new ArrayList<>();
-        for (ScanIdentifiants.NomOffset releve : ScanIdentifiants.scanner(doc, analyse.lex())) {
-            // l'occurrence sous le curseur ne compte pas : le mot tapé ne
-            // se propose pas à lui-même
-            if (mot != null && releve.offset() >= mot.start()
-                    && releve.offset() < mot.end()) {
-                continue;
+        // l'analyse absente (jamais publiée) ne tait pas la complétion :
+        // les mots réservés du langage s'y proposent seuls — jamais le
+        // silence (revue du propriétaire du 2026-11-19)
+        if (analyse != null) {
+            for (ScanIdentifiants.NomOffset releve : ScanIdentifiants.scanner(doc, analyse.lex())) {
+                // l'occurrence sous le curseur ne compte pas : le mot tapé ne
+                // se propose pas à lui-même
+                if (mot != null && releve.offset() >= mot.start()
+                        && releve.offset() < mot.end()) {
+                    continue;
+                }
+                ajouter(candidats, releve.nom(), prefixe);
             }
-            ajouter(candidats, releve.nom(), prefixe);
         }
         for (String motCle : motsCles) {
             ajouter(candidats, motCle, prefixe);
