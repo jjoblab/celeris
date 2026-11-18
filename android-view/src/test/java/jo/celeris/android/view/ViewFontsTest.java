@@ -40,7 +40,7 @@ public class ViewFontsTest {
         EditorView vue = banc.vue();
         EditorMetrics avant = vue.metrics;
         HitTest viseurAvant = vue.viseur;
-        vue.setFont(new FontSpec("mono", 22f));
+        vue.settings().setFont(new FontSpec("mono", 22f));
         assertNotSame("les métriques se redérivent", avant, vue.metrics);
         assertNotSame("le viseur se redérive", viseurAvant, vue.viseur);
         assertEquals("la taille suit, en sp", 22f, vue.metrics.font().size(),
@@ -55,9 +55,9 @@ public class ViewFontsTest {
         EditorView vue = banc.vue();
         AtomicInteger avis = new AtomicInteger();
         vue.addFontSizeChangeListener(taille -> avis.incrementAndGet());
-        vue.setFont(new FontSpec("mono", vue.metrics.font().size()));
+        vue.settings().setFont(new FontSpec("mono", vue.metrics.font().size()));
         assertEquals("la même taille ne prévient pas", 0, avis.get());
-        vue.setFont(new FontSpec("mono", 18f));
+        vue.settings().setFont(new FontSpec("mono", 18f));
         assertEquals("la taille qui change prévient", 1, avis.get());
     }
 
@@ -87,7 +87,7 @@ public class ViewFontsTest {
         assertSame("la règle sert la police posée", posee,
                 vue.reglePolices.policeDe("fira"));
         assertSame("la famille dormante ne redérive rien", avant, vue.metrics);
-        vue.setFont(new FontSpec("fira", 14f));
+        vue.settings().setFont(new FontSpec("fira", 14f));
         assertNotSame("setFont réveille la famille", avant, vue.metrics);
     }
 

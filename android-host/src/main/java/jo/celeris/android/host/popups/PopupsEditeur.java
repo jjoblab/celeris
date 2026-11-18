@@ -286,17 +286,18 @@ public final class PopupsEditeur {
 
 
     /** Le thème tourne : la palette se redérive — le verre suit.
-     *  La source unique de la vue (T2) y mène ; l'appel direct reste
-     *  pour qui monte sans la vue. */
-    public void surTheme(EditorTheme nouveau) {
+     *  Privé depuis la 2.0 (ADR-0024) : la source unique de la vue
+     *  (T2) y mène seule — l'abonné des réglages est le seul
+     *  appelant, l'hôte écrit vue.settings().setTheme(...). */
+    private void surTheme(EditorTheme nouveau) {
         theme = nouveau;
         rafraichirPalette();
     }
 
     /** La taille de texte tourne : la typographie des popups suit.
-     *  La source unique de la vue (T2) y mène ; l'appel direct reste
-     *  pour qui monte sans la vue. */
-    public void surTailleTexte(float tailleSp) {
+     *  Privé depuis la 2.0 (ADR-0024) : la source unique de la vue
+     *  (T2) y mène seule. */
+    private void surTailleTexte(float tailleSp) {
         tailleTexteSp = tailleSp;
         rafraichirPalette();
     }

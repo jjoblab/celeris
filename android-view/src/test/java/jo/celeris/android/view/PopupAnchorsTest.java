@@ -114,7 +114,7 @@ public class PopupAnchorsTest {
         vue.addViewportChangeListener(() -> avis[0]++);
         banc.image();
         assertEquals(1, avis[0]);
-        vue.setFont(new FontSpec("mono", 20f));
+        vue.settings().setFont(new FontSpec("mono", 20f));
         banc.image();
         assertEquals(2, avis[0], "la nouvelle police déplace les ances");
         assertEquals(vue.caretBounds().height(),

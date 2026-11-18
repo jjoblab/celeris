@@ -42,7 +42,7 @@ public class PinchZoomGestureTest {
     public void pinchInDecreasesFontSize() {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), LONGUE_LIGNE);
-        banc.vue().setFont(new FontSpec("mono", 28f));
+        banc.vue().settings().setFont(new FontSpec("mono", 28f));
         banc.pincer(540f, 960f, 400f, 160f, 15);
         assertEquals("un pincement resserré doit ramener au palier 14 sp",
                 14f, banc.vue().policeLogique.size(), 1e-6f);
@@ -60,7 +60,7 @@ public class PinchZoomGestureTest {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), LONGUE_LIGNE);
         EditorView vue = banc.vue();
-        vue.setFont(new FontSpec("mono", 28f));
+        vue.settings().setFont(new FontSpec("mono", 28f));
         banc.image();
         vue.scrollX = 400f;
         float focalX = 540f;
@@ -86,7 +86,7 @@ public class PinchZoomGestureTest {
         EditorView vue = banc.vue();
         assertEquals("le document n'a jamais été édité, la révision est nulle",
                 0L, vue.session().document().revision());
-        vue.setFont(new FontSpec("mono", 28f));
+        vue.settings().setFont(new FontSpec("mono", 28f));
         banc.image();
         FrameState etat = vue.etatImageCourante();
         RowLayout servie = vue.cache.find(etat.revision(), 0,

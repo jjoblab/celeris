@@ -2,9 +2,7 @@ package jo.celeris.android.view;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
-import org.jspecify.annotations.Nullable;
 
 /**
  * Les réglages de l'éditeur (l'audit du propriétaire du 2026-11-14 :
@@ -90,7 +88,6 @@ public final class ReglagesEditeur {
     private final Set<Porte> ouvertes = EnumSet.noneOf(Porte.class);
 
     /** L'écouteur des bascules — l'hôte y applique ses portes. */
-    private @Nullable Consumer<Porte> surBascule;
 
     /** Construit la table aux états PAR DÉFAUT — l'hôte y pose ensuite
      *  ses préférences persistées. */
@@ -119,8 +116,9 @@ public final class ReglagesEditeur {
     }
 
     /**
-     * Bascule une porte et AVERTIT l'écouteur — le geste vif de la
-     * carte de réglages : une bascule, une application.
+     * Bascule une porte — le geste vif de la carte de réglages. Les
+     * abonnés de la source unique (EditorSettings, T2) y apprennent
+     * la bascule : plus d'écouteur dédié depuis la 2.0 (ADR-0024).
      *
      * @param porte la porte à basculer
      * @return le nouvel état de la porte
@@ -128,10 +126,6 @@ public final class ReglagesEditeur {
     public boolean basculer(Porte porte) {
         boolean ouverte = !ouvertes.contains(porte);
         poser(porte, ouverte);
-        Consumer<Porte> ecouteur = surBascule;
-        if (ecouteur != null) {
-            ecouteur.accept(porte);
-        }
         return ouverte;
     }
 
@@ -146,14 +140,4 @@ public final class ReglagesEditeur {
         return ouvertes.contains(porte);
     }
 
-    /**
-     * Pose l'écouteur des bascules — la carte de réglages y bascule,
-     * l'hôte y applique (la vue retire ses indices, l'orchestrateur
-     * retient sa barre). Null retire l'écouteur.
-     *
-     * @param ecouteur l'écouteur des bascules, ou null
-     */
-    public void setSurBascule(@Nullable Consumer<Porte> ecouteur) {
-        surBascule = ecouteur;
-    }
 }

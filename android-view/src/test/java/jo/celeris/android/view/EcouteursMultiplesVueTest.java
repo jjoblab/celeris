@@ -97,7 +97,7 @@ public class EcouteursMultiplesVueTest {
         float[] taillesHote = { 0f };
         vue.addFontSizeChangeListener(taille -> taillesKit[0] = taille);
         vue.addFontSizeChangeListener(taille -> taillesHote[0] = taille);
-        vue.setFont(new FontSpec("mono", 17f));
+        vue.settings().setFont(new FontSpec("mono", 17f));
         assertEquals(17f, taillesKit[0], 0.001f,
                 "le kit lit la nouvelle taille");
         assertEquals(17f, taillesHote[0], 0.001f,

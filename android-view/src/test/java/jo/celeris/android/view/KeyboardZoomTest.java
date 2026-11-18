@@ -48,7 +48,7 @@ public class KeyboardZoomTest {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         EditorView vue = banc.vue();
-        vue.setFont(new FontSpec("mono", 20f));
+        vue.settings().setFont(new FontSpec("mono", 20f));
         vue.onKeyDown(KeyEvent.KEYCODE_MINUS, touche(KeyEvent.KEYCODE_MINUS));
         assertEquals("Ctrl + moins descend au palier voisin",
                 18f, vue.policeLogique.size(), 1e-6f);

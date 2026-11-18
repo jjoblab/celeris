@@ -75,7 +75,7 @@ public class GutterStabilityTest {
                 RuntimeEnvironment.getApplication(), texte.toString());
         banc.image();
         float sansRetour = banc.vue().largeurGouttiere;
-        banc.vue().setSoftWrap(true);
+        banc.vue().settings().setSoftWrap(true);
         banc.image();
         assertEquals("le retour a la ligne ne touche pas la gouttière",
                 sansRetour, banc.vue().largeurGouttiere, 1e-3f);

@@ -312,10 +312,14 @@ public final class EditorView extends View {
      * Applique le thème donné (identifiant de clé de cache compris).
      * Voie 1.x : la source unique est {@link #settings()} (T2) — ce
      * poseur y écrit, les abonnés suivent.
+     * @deprecated depuis la 2.0 (ADR-0024) : écrivez
+     *     {@code settings().setTheme(...)} — le retrait suit le
+     *     chantier de renommage (F.5).
      *
      * @param nouveauTheme le thème résolu
      */
-    public void setTheme(EditorTheme nouveauTheme) {
+@Deprecated
+        public void setTheme(EditorTheme nouveauTheme) {
         reglagesUniques.setTheme(nouveauTheme);
     }
 
@@ -324,10 +328,14 @@ public final class EditorView extends View {
      * {@link ViewFonts}. Voie 1.x : la source unique est
      * {@link #settings()} (T2) — ce poseur y écrit, les abonnés
      * suivent.
+     * @deprecated depuis la 2.0 (ADR-0024) : écrivez
+     *     {@code settings().setFont(...)} — le retrait suit le
+     *     chantier de renommage (F.5).
      *
      * @param police la spécification de police, taille en sp
      */
-    public void setFont(FontSpec police) {
+@Deprecated
+        public void setFont(FontSpec police) {
         reglagesUniques.setFont(police);
     }
 
@@ -356,7 +364,8 @@ public final class EditorView extends View {
      *  ligatures de la police posée par l'hôte, « -liga » les ferme ;
      *  toutes les peintures du texte suivent, fermées par défaut.
      *  Voie 1.x : la source unique est {@link #settings()} (T2). */
-    public void setLigatures(boolean actives) {
+@Deprecated
+        public void setLigatures(boolean actives) {
         reglagesUniques.setLigatures(actives);
     }
 
@@ -371,7 +380,8 @@ public final class EditorView extends View {
      * Active ou coupe le retour à la ligne souple par offsets (A-18) —
      * le budget de colonnes redérive, le défilement horizontal se
      * rabat. */
-    public void setSoftWrap(boolean actif) {
+@Deprecated
+        public void setSoftWrap(boolean actif) {
         // la source unique se souvient (T2) : la porte des réglages
         // et le drapeau d'image y restent alignés, l'hôte qui reçoit
         // la bascule y relit l'état, jamais deux vérités

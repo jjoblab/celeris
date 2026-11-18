@@ -35,20 +35,21 @@ public class ReglagesEditeurTest {
                 reglages.ouverte(ReglagesEditeur.Porte.RETOUR_LIGNE));
     }
 
-    /** La bascule AVERTIT l'écouteur — une bascule, une application ;
-     *  la pose silencieuse n'égrène rien. */
+    /** La bascule AVERTIT l'abonné de la source unique (2.0,
+     *  ADR-0024) — une bascule, une application ; la pose silencieuse
+     *  n'égrène rien. */
     @Test
     public void laBasculeAvertitLaPoseSeTait() {
-        ReglagesEditeur reglages = new ReglagesEditeur();
+        EditorSettings source = new EditorSettings();
         AtomicInteger bascules = new AtomicInteger();
-        reglages.setSurBascule(porte -> bascules.incrementAndGet());
-        reglages.poser(ReglagesEditeur.Porte.MINIMAP, false);
+        source.addListener(s -> bascules.incrementAndGet());
+        source.gates().poser(ReglagesEditeur.Porte.MINIMAP, false);
         assertEquals("la pose silencieuse n'égrène pas", 0, bascules.get());
         assertFalse("la porte fermée reste fermée",
-                reglages.ouverte(ReglagesEditeur.Porte.MINIMAP));
-        assertTrue("la bascule referme et avertit", reglages.basculer(
+                source.gates().ouverte(ReglagesEditeur.Porte.MINIMAP));
+        assertTrue("la bascule referme et avertit", source.toggleGate(
                 ReglagesEditeur.Porte.INDICES_EN_LIGNE) == false);
-        assertEquals("l'écouteur a vécu une fois", 1, bascules.get());
+        assertEquals("l'abonné a vécu une fois", 1, bascules.get());
     }
 
     /** La clé de chaque porte est STABLE — les préférences persistées

@@ -58,10 +58,10 @@ public class LigaturesTest {
     public void laBasculeOuvrePuisReferme() {
         EditorTestRig banc = EditorTestRig.sur(contexte, "a => b != c\n");
         EditorView vue = banc.vue();
-        vue.setLigatures(true);
+        vue.settings().setLigatures(true);
         assertTrue("les ligatures s'ouvrent par la bascule",
                 toutTrace(banc.image(), "liga"));
-        vue.setLigatures(false);
+        vue.settings().setLigatures(false);
         assertTrue("les ligatures se referment par la bascule",
                 toutTrace(banc.image(), "-liga"));
     }
@@ -75,7 +75,7 @@ public class LigaturesTest {
         EditorView vue = banc.vue();
         Typeface fira = Typeface.create("fira-code", Typeface.NORMAL);
         vue.poserPolice("fira", fira);
-        vue.setFont(new FontSpec("fira", 14f));
+        vue.settings().setFont(new FontSpec("fira", 14f));
         assertSame("la règle sert la police posée (la table de la mesure)",
                 fira, vue.reglePolices.policeDe("fira"));
         EditorTestRig.RecordingCanvas image = banc.image();

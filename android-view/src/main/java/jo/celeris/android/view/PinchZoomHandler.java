@@ -156,7 +156,8 @@ final class PinchZoomHandler {
         float ancienneGouttiere = vue.largeurGouttiere;
         float ancienScrollX = vue.scrollX;
         float ancienScrollY = vue.scrollY;
-        vue.setFont(new FontSpec(vue.policeLogique.family(), nouvelleTaille));
+        vue.reglagesUniques.setFont(
+                new FontSpec(vue.policeLogique.family(), nouvelleTaille));
         // La gouttière dépend de la police : la colonne se lit à la
         // gouttière d'avant, se pose à celle d'après — le point focal
         // ne dérive pas d'un palier à l'autre.

@@ -63,7 +63,7 @@ public class SceneDiagnosticsTest {
         EditorView vue = banc.vue();
         assertEquals("la taille par défaut, en sp", 14f, vue.fontSizeSp(),
                 0.01f);
-        vue.setFont(new FontSpec("mono", 20f));
+        vue.settings().setFont(new FontSpec("mono", 20f));
         assertEquals("la taille suit le changement", 20f, vue.fontSizeSp(),
                 0.01f);
         banc.image();
