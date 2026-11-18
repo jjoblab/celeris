@@ -7,6 +7,9 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [1.2.0] — en cours
 
+### Intégration — l'ADR de la couche d'intégration (2026-11-18)
+- **`docs/adr/0022-couche-integration.md`** (chantier B0, phase 0) : le diagnostic des quinze démarches de l'hôte (chacune vérifiée sur le code, deux corrigées par les chantiers C1/C2), trois options comparées — façade seule, façade + consolidation, contrôleur propriétaire — et la décision : l'option B en deux phases. La façade `CelerisEditor` (v1.2.0, additive) livre d'abord la valeur ; la consolidation structurelle (v2.0.0, cassante autorisée par le mandat) ferme ensuite à la racine les défauts qu'une façade ne peut que compenser : réglages à source unique, écouteurs multiples sur la vue, chargeur de langues partagé. La publication JitPack n'a lieu qu'à la fin des travaux (directive du propriétaire).
+
 ### Fiabilité — le cycle de libération de la vue et de l'orchestrateur (2026-11-18)
 - **`EditorView` gagne `release()`** (chantier C1/C2 de la revue du 2026-11-17) : la libération détache les écouteurs de session, referme le pont de syntaxe et éteint les deux fils d'analyse du kit (« celeris-analyse » et son minuteur) — la vue devient collectable même si la session survit (ViewModel, recréation d'activité), les fils ne prolifèrent plus au fil des montages. Idempotent ; la vue libérée est inerte, le détachement de fenêtre n'est pas une libération. `PopupsEditeur.detacher()` retire ses propres écouteurs de session depuis le correctif précédent ; le contrat se documente à l'USAGE § 19.10.
 
