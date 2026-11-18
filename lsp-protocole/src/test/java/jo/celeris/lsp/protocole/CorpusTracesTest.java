@@ -93,9 +93,9 @@ public final class CorpusTracesTest {
         assertTrue(capacites.sertFormatage());
         assertTrue(capacites.sertIndices(), "inlayHintProvider lu");
         assertEquals(List.of("keyword", "variable", "parameter", "function", "type"),
-                capacites.typesJetons());
+                capacites.typesTokens());
         assertEquals(List.of("declaration", "static", "deprecated"),
-                capacites.modificateursJetons());
+                capacites.modificateursTokens());
     }
 
     /** La complétion tronquée : la coupure honorée, l'ordre du serveur tenu (PIEGE-17). */

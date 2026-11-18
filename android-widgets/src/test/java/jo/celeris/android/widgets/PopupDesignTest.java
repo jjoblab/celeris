@@ -66,7 +66,7 @@ public class PopupDesignTest {
      *  propriétaire du 2026-11-14 : les cartes respirent moins, le
      *  texte se resserre, le pictogramme suit le texte. */
     @Test
-    public void lesJetonsGardentLeursValeurs() {
+    public void lesTokensGardentLeursValeurs() {
         assertEquals(12f, PopupTokens.RAYON_CARTE_DP, 0f);
         assertEquals(8f, PopupTokens.RAYON_RANGEE_DP, 0f);
         assertEquals(6f, PopupTokens.RAYON_PUCE_DP, 0f);

@@ -2,7 +2,7 @@ package jo.celeris.core.syntax.clike;
 
 import java.util.List;
 import java.util.Set;
-import jo.celeris.core.syntax.Jetons;
+import jo.celeris.core.syntax.Tokens;
 import jo.celeris.core.syntax.SynNode;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.syntax.TokenSlice;
@@ -113,14 +113,14 @@ final class JavaDialect extends CLikeDialect {
     boolean isTypeDeclaration(TokenSlice slice, int index) {
         if (slice.kind(index) != TokenKind.KEYWORD) {
             return slice.kind(index) == TokenKind.ANNOTATION
-                    && "@interface".equals(Jetons.mot(slice, index));
+                    && "@interface".equals(Tokens.mot(slice, index));
         }
-        return TYPE_DECLARATIONS.contains(Jetons.mot(slice, index));
+        return TYPE_DECLARATIONS.contains(Tokens.mot(slice, index));
     }
 
     @Override
     int advanceAfterType(TokenSlice slice, int keyword, int to) {
-        int opening = Jetons.chercherAccolade(slice, keyword + typeBraceOffset());
+        int opening = Tokens.chercherAccolade(slice, keyword + typeBraceOffset());
         if (opening < 0) {
             return to;
         }

@@ -92,7 +92,7 @@ final class LanguageSupportTest {
     }
 
     @Test
-    void laChaineSArreteSansFournisseur() {
+    void laChaineSBreakpointeSansFournisseur() {
         LanguageSupport texte = LanguageSupport.builder(descripteur("text", null))
                 .build();
         assertNull(texte.capability(Completion.class));

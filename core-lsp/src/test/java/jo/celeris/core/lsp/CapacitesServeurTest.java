@@ -38,8 +38,8 @@ class CapacitesServeurTest {
         assertTrue(capacites.sertCorrectifs());
         assertTrue(capacites.sertFormatage());
         assertTrue(capacites.sertIndices());
-        assertEquals(List.of("keyword", "variable"), capacites.typesJetons());
-        assertEquals(List.of("declaration"), capacites.modificateursJetons());
+        assertEquals(List.of("keyword", "variable"), capacites.typesTokens());
+        assertEquals(List.of("declaration"), capacites.modificateursTokens());
     }
 
     /** Les capacités vides : l'origine avant la poignée de main, rien de deviné. */
@@ -60,7 +60,7 @@ class CapacitesServeurTest {
         assertFalse(vides.sertCorrectifs());
         assertFalse(vides.sertFormatage());
         assertFalse(vides.sertIndices());
-        assertEquals(List.of(), vides.typesJetons());
-        assertEquals(List.of(), vides.modificateursJetons());
+        assertEquals(List.of(), vides.typesTokens());
+        assertEquals(List.of(), vides.modificateursTokens());
     }
 }

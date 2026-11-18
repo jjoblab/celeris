@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  * règle. PIEGE-28 : la source de rangées se réinitialise même à
  * révision constante — un document jamais édité doit se re-mesurer à
  * la nouvelle police. PIEGE-23 : la conversion sp → pixels vit dans
- * {@link TaillesSp}, pure et testée — jamais un pixel cru ne franchit
+ * {@link SpSizes}, pure et testée — jamais un pixel cru ne franchit
  * cette porte.</p>
  */
 final class ViewFonts {
@@ -123,7 +123,7 @@ final class ViewFonts {
     /**
      * La conversion sp vers pixels à la densité courante : la mesure et
      * le tracé vivent en pixels, l'interface vit en sp — la conversion
-     * vit dans {@link TaillesSp}, pure et testée (PIEGE-23), jamais un
+     * vit dans {@link SpSizes}, pure et testée (PIEGE-23), jamais un
      * pixel cru ne franchit cette porte.
      */
     private FontSpec enPixels(FontSpec police) {
@@ -132,7 +132,7 @@ final class ViewFonts {
         // configuration (le champ scaledDensity est dépréqué) : la
         // conversion reste sp × densité × échelle, pure et testée.
         float echelle = vue.getResources().getConfiguration().fontScale;
-        return new FontSpec(police.family(), TaillesSp.enPixels(police.size(),
+        return new FontSpec(police.family(), SpSizes.enPixels(police.size(),
                 metriques.density, echelle));
     }
 }

@@ -17,7 +17,7 @@ public interface IntegrationDebogueur {
      * @param fichier le chemin du fichier
      * @param ligne   la ligne, numérotée à partir de un
      */
-    void poserArret(CheminDoc fichier, int ligne);
+    void poserBreakpoint(CheminDoc fichier, int ligne);
 
     /**
      * Retire le point d'arrêt : muet si l'arrêt n'existe pas.
@@ -25,7 +25,7 @@ public interface IntegrationDebogueur {
      * @param fichier le chemin du fichier
      * @param ligne   la ligne de l'arrêt
      */
-    void retirerArret(CheminDoc fichier, int ligne);
+    void retirerBreakpoint(CheminDoc fichier, int ligne);
 
     /**
      * Bascule l'état actif/inactif du point d'arrêt (D-04) : muet si
@@ -34,14 +34,14 @@ public interface IntegrationDebogueur {
      * @param fichier le chemin du fichier
      * @param ligne   la ligne de l'arrêt
      */
-    void basculerArret(CheminDoc fichier, int ligne);
+    void basculerBreakpoint(CheminDoc fichier, int ligne);
 
     /**
      * Tous les points d'arrêt posés, actifs et inactifs.
      *
      * @return les arrêts, non modifiables
      */
-    List<Arret> arrets();
+    List<Breakpoint> arrets();
 
     /**
      * La ligne courante de l'exécution en pause : null hors pause
@@ -49,7 +49,7 @@ public interface IntegrationDebogueur {
      *
      * @return le lieu de la pause, ou null
      */
-    @Nullable LigneArret ligneCourante();
+    @Nullable BreakpointLine ligneCourante();
 
     /**
      * La pile d'appels de la pause : vide hors pause (D-05).

@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import jo.celeris.core.ai.SuggestionFantome;
+import jo.celeris.core.ai.GhostSuggestion;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.clike.JavaSyntax;
 
@@ -45,7 +45,7 @@ public class InlayWovenPathViewTest {
         EditorTestRig.RecordingCanvas sansIndice = banc.image();
 
         // l'indice en ligne se pose à la fin de la ligne (F-01)
-        vue.setFantome(new SuggestionFantome("Nombre",
+        vue.setFantome(new GhostSuggestion("Nombre",
                 vue.session().document().length(),
                 vue.session().document().revision()));
         EditorTestRig.RecordingCanvas avecIndice = banc.image();

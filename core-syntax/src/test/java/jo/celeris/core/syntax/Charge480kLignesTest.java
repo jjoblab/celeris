@@ -64,7 +64,7 @@ class Charge480kLignesTest {
         int milieu = doc.lineCount() / 2;
         // Échauffement non mesuré : le JIT ne doit pas compter.
         service.analyseFenetre(doc, milieu - FENETRE, milieu + FENETRE,
-                new JetonAnnulation());
+                new TokenCancellation());
 
         System.gc();
         try {
@@ -81,7 +81,7 @@ class Charge480kLignesTest {
         for (int tour = 0; tour < TOURS; tour++) {
             long debut = System.nanoTime();
             fenetre = service.analyseFenetre(doc, milieu - FENETRE,
-                    milieu + FENETRE, new JetonAnnulation());
+                    milieu + FENETRE, new TokenCancellation());
             meilleur = Math.min(meilleur, System.nanoTime() - debut);
         }
 

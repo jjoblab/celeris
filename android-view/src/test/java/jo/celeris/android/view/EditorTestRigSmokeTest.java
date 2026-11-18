@@ -38,6 +38,6 @@ public class EditorTestRigSmokeTest {
                 .getResources().getDisplayMetrics().density;
         assertTrue("la densité doit être positive", densite > 0f);
         assertEquals("la conversion sp vers pixels suit la densité (PIEGE-23)",
-                14f * densite, TaillesSp.enPixels(14f, densite, 1f), 1e-3f);
+                14f * densite, SpSizes.enPixels(14f, densite, 1f), 1e-3f);
     }
 }

@@ -181,7 +181,7 @@ class RetourSoupleCrashTest {
                 new DocumentRowSource(document, projection, metrics, colonnes),
                 document));
 
-        MarquesGouttiere marquesGouttiere = new MarquesGouttiere();
+        GutterIntegrations marquesGouttiere = new GutterIntegrations();
         BrushFactory fabrique = new FabriqueSimple();
         ScrollFrame trace = new ScrollFrame();
         GutterLanes coulisses = marquesGouttiere.coulisses(syntaxe.active());

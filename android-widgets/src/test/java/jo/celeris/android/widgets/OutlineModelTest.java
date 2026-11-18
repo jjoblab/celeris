@@ -59,7 +59,7 @@ class OutlineModelTest {
                 entree(NodeCategory.FUNCTION, "sibling", 70, 90, 3),
                 entree(NodeCategory.TYPE, "Autre", 120, 180, 5)));
 
-        List<OutlineModel.Ligne> lignes = modele.lignes();
+        List<OutlineModel.Row> lignes = modele.lignes();
         assertEquals(5, lignes.size());
         assertEquals(0, lignes.get(0).profondeur(), "la classe racine est à plat");
         assertEquals(1, lignes.get(1).profondeur(), "le champ vit dans la classe");

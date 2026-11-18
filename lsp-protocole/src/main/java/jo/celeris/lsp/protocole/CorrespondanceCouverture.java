@@ -223,7 +223,7 @@ final class CorrespondanceCouverture {
     }
 
     /** Les jetons sémantiques lus : la charge d'entiers, le décodage au domaine. */
-    static SemanticTokensLsp lireJetons(@Nullable SemanticTokens jetons) {
+    static SemanticTokensLsp lireTokens(@Nullable SemanticTokens jetons) {
         if (jetons == null || jetons.getData() == null) {
             return SemanticTokensLsp.de(null, List.of());
         }

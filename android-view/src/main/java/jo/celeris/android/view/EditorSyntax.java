@@ -10,7 +10,7 @@ import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.structure.FoldSpan;
 import jo.celeris.core.syntax.LanguageSyntax;
-import jo.celeris.core.syntax.FabriqueMoteurVoieChargee;
+import jo.celeris.core.syntax.EnginePathFactoryLoader;
 import jo.celeris.core.syntax.MoteurAnalyse;
 import jo.celeris.core.syntax.MoteurSyntaxe;
 import jo.celeris.core.syntax.structure.OutlineEntry;
@@ -484,7 +484,7 @@ public final class EditorSyntax {
         // ServiceLoader (charge si présent, rien sinon) et la voie
         // des grammaires sert par défaut.
         moteurNativeVoie =
-                FabriqueMoteurVoieChargee.creer(syntaxe, session, executeur);
+                EnginePathFactoryLoader.creer(syntaxe, session, executeur);
         if (moteurNativeVoie != null) {
             moteurNativeVoie.ajouterAuditeur(analyse -> notifierAnalysePrete());
             moteurNativeVoie.reanalyser();

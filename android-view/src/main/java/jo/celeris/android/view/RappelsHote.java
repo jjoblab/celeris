@@ -43,7 +43,7 @@ final class RappelsHote {
 
     /** Le consommateur de bascule d'arrêt de l'hôte (D-04) — l'appui
      *  long de gouttière. Voie 1.x. */
-    private volatile @Nullable IntConsumer surBasculeArret;
+    private volatile @Nullable IntConsumer surBasculeBreakpoint;
 
     /** Les consommateurs 2.0 de bascule d'arrêt — multiples (T3). */
     private final List<IntConsumer> consommateursBascule =
@@ -109,8 +109,8 @@ final class RappelsHote {
      *
      * @param consommateur le consommateur de ligne, null pour couper
      */
-    void poserBasculeArret(@Nullable IntConsumer consommateur) {
-        surBasculeArret = consommateur;
+    void poserBasculeBreakpoint(@Nullable IntConsumer consommateur) {
+        surBasculeBreakpoint = consommateur;
     }
 
     /**
@@ -133,8 +133,8 @@ final class RappelsHote {
 
     /** Notifie la bascule d'arrêt — la gouttière est visée, CHAQUE
      *  abonné rend sa ligne. */
-    void notifierBasculeArret(int ligne) {
-        IntConsumer consommateur = surBasculeArret;
+    void notifierBasculeBreakpoint(int ligne) {
+        IntConsumer consommateur = surBasculeBreakpoint;
         if (consommateur != null) {
             consommateur.accept(ligne);
         }

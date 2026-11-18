@@ -50,7 +50,7 @@ public class CycleVieVueTest {
      * deux fils par vue aujourd'hui, jamais arrêtés).
      */
     @Test
-    public void releaseArreteLesFilsDAnalyse() throws Exception {
+    public void releaseBreakpointeLesFilsDAnalyse() throws Exception {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         TextSession session = TextSession.of("class A {}\n", System::nanoTime);
         vue.setSession(session);

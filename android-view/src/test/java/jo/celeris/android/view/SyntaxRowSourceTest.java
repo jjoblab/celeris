@@ -127,7 +127,7 @@ class SyntaxRowSourceTest {
 
     /** Les sortes attendues : mot réservé, nombre, ponctuation — la couleur suit le jeton. */
     @Test
-    void lesSortesSuiventLesJetons() {
+    void lesSortesSuiventLesTokens() {
         Document document = Document.of("return 42;");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         SyntaxRowSource source = new SyntaxRowSource(

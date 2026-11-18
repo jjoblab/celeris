@@ -2,7 +2,7 @@ package jo.celeris.core.syntax.json;
 
 import java.util.ArrayList;
 import java.util.List;
-import jo.celeris.core.syntax.Jetons;
+import jo.celeris.core.syntax.Tokens;
 import jo.celeris.core.syntax.LanguageParser;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.SynNode;
@@ -50,7 +50,7 @@ final class JsonParseur implements LanguageParser {
             return contenant(slice, 0, slice.size()).noeud;
         }
         return SynNode.of(JsonKind.AUTRE, NodeCategory.OTHER, 0,
-                Jetons.finDe(slice, slice.size() - 1), new SynNode[0], null,
+                Tokens.finDe(slice, slice.size() - 1), new SynNode[0], null,
                 false);
     }
 
@@ -66,7 +66,7 @@ final class JsonParseur implements LanguageParser {
     }
 
     private Analyse contenant(TokenSlice slice, int ouvert, int vers) {
-        boolean objet = "{".equals(Jetons.texteCrochet(slice, ouvert));
+        boolean objet = "{".equals(Tokens.texteCrochet(slice, ouvert));
         int fermante = slice.matchOf(ouvert);
         List<SynNode> enfants = new ArrayList<>();
         boolean erreur = fermante < 0;
@@ -78,7 +78,7 @@ final class JsonParseur implements LanguageParser {
                 break;
             }
             if (objet && sorte == TokenKind.STRING && i + 1 < borne
-                    && ":".equals(Jetons.mot(slice, i + 1))) {
+                    && ":".equals(Tokens.mot(slice, i + 1))) {
                 i = paire(slice, i, borne, enfants);
             } else if (sorte == TokenKind.OPEN_BRACKET) {
                 Analyse enfant = contenant(slice, i, borne);
@@ -88,7 +88,7 @@ final class JsonParseur implements LanguageParser {
                 i = scalaire(slice, i, borne, enfants);
             }
         }
-        int fin = fermante < 0 ? Jetons.finDe(slice, vers - 1)
+        int fin = fermante < 0 ? Tokens.finDe(slice, vers - 1)
                 : slice.end(fermante);
         if (fermante < 0) {
             enfants.add(SynNode.of(JsonKind.ERREUR, NodeCategory.ERROR,
@@ -112,12 +112,12 @@ final class JsonParseur implements LanguageParser {
         } else {
             i = scalaire(slice, i, borne, valeur);
         }
-        String brut = Jetons.mot(slice, cle);
+        String brut = Tokens.mot(slice, cle);
         String nom = brut.length() >= 2 && brut.charAt(0) == '"'
                 && brut.charAt(brut.length() - 1) == '"'
                         ? brut.substring(1, brut.length() - 1) : brut;
         enfants.add(SynNode.of(JsonKind.PAIRE, NodeCategory.FIELD,
-                slice.start(cle), Jetons.finDe(slice, i - 1),
+                slice.start(cle), Tokens.finDe(slice, i - 1),
                 valeur.toArray(new SynNode[0]), nom, false));
         return i;
     }
@@ -132,10 +132,10 @@ final class JsonParseur implements LanguageParser {
         }
         if (fin > i) {
             enfants.add(SynNode.of(JsonKind.VALEUR, NodeCategory.OTHER,
-                    slice.start(i), Jetons.finDe(slice, fin - 1),
+                    slice.start(i), Tokens.finDe(slice, fin - 1),
                     new SynNode[0], null, false));
         }
-        if (fin < borne && ",".equals(Jetons.mot(slice, fin))) {
+        if (fin < borne && ",".equals(Tokens.mot(slice, fin))) {
             return fin + 1;
         }
         return Math.max(fin, i + 1);

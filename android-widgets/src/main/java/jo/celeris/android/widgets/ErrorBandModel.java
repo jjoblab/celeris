@@ -22,12 +22,12 @@ public final class ErrorBandModel {
 
     /** Une marque : la ligne du diagnostic, son cran de bande, sa
      *  cible de saut, sa gravité. */
-    public record Marque(int ligne, int cran, int startOffset, int gravite) {
+    public record Mark(int ligne, int cran, int startOffset, int gravite) {
     }
 
-    private final List<Marque> marques;
+    private final List<Mark> marques;
 
-    private ErrorBandModel(List<Marque> marques) {
+    private ErrorBandModel(List<Mark> marques) {
         this.marques = List.copyOf(marques);
     }
 
@@ -61,7 +61,7 @@ public final class ErrorBandModel {
     public static ErrorBandModel of(List<SyntaxIssue> diagnostics,
             int[] gravites, Document doc, int hauteur) {
         int crans = Math.max(1, hauteur);
-        List<Marque> marques = new ArrayList<>();
+        List<Mark> marques = new ArrayList<>();
         int cranOccupe = -1;
         for (int i = 0; i < diagnostics.size(); i++) {
             SyntaxIssue diagnostic = diagnostics.get(i);
@@ -71,7 +71,7 @@ public final class ErrorBandModel {
             int ligne = doc.lineForOffset(diagnostic.startOffset());
             int cran = Math.min(crans - 1, ligne * crans / Math.max(1, doc.lineCount()));
             if (cran != cranOccupe) {
-                marques.add(new Marque(ligne, cran, diagnostic.startOffset(),
+                marques.add(new Mark(ligne, cran, diagnostic.startOffset(),
                         i < gravites.length ? gravites[i] : GRAVITE_ERREUR));
                 cranOccupe = cran;
             }
@@ -84,7 +84,7 @@ public final class ErrorBandModel {
      *
      * @return la liste, vide sans diagnostic
      */
-    public List<Marque> marques() {
+    public List<Mark> marques() {
         return marques;
     }
 
@@ -96,8 +96,8 @@ public final class ErrorBandModel {
      * @return l'offset du diagnostic, -1 sans marque
      */
     public int clic(int cran) {
-        Marque proche = null;
-        for (Marque marque : marques) {
+        Mark proche = null;
+        for (Mark marque : marques) {
             if (proche == null
                     || Math.abs(marque.cran() - cran) < Math.abs(proche.cran() - cran)) {
                 proche = marque;

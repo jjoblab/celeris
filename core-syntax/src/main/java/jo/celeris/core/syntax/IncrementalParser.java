@@ -55,12 +55,12 @@ final class IncrementalParser {
      * @return l'arbre versionné, partiel : chunks hors fenêtre en attente
      */
     SyntaxTree parseFenetre(Document doc, LexDocument lex, LanguageParser parser, int revision,
-                            int fenetrePremiere, int fenetreDerniere, JetonAnnulation jeton) {
+                            int fenetrePremiere, int fenetreDerniere, TokenCancellation jeton) {
         int nombre = doc.lineCount();
         if (nombre == 0) {
             return new SyntaxTree(revision, List.of());
         }
-        PasseJetons passe = collecter(lex, 0, nombre - 1);
+        PasseTokens passe = collecter(lex, 0, nombre - 1);
         if (passe.jetons().length == 0) {
             return new SyntaxTree(revision, List.of());
         }
@@ -93,7 +93,7 @@ final class IncrementalParser {
      * @return l'arbre versionné, complété d'autant de chunks
      */
     SyntaxTree completer(Document doc, LexDocument lex, LanguageParser parser, int revision,
-                         SyntaxTree previous, JetonAnnulation jeton, int maxChunks) {
+                         SyntaxTree previous, TokenCancellation jeton, int maxChunks) {
         List<Chunk> anciens = previous.chunks();
         if (anciens.isEmpty() || maxChunks <= 0) {
             return previous;
@@ -178,7 +178,7 @@ final class IncrementalParser {
         if (fin < premiereLigne) {
             return List.of();
         }
-        PasseJetons passe = collecter(lex, premiereLigne, fin);
+        PasseTokens passe = collecter(lex, premiereLigne, fin);
         if (passe.jetons().length == 0) {
             return List.of();
         }
@@ -189,7 +189,7 @@ final class IncrementalParser {
     }
 
     /** Les jetons d'une plage de lignes, avec leur ligne porteuse chacun. */
-    private static PasseJetons collecter(LexDocument lex, int premiereLigne, int fin) {
+    private static PasseTokens collecter(LexDocument lex, int premiereLigne, int fin) {
         List<Token> collects = new ArrayList<>();
         List<Integer> lignes = new ArrayList<>();
         for (int ligne = premiereLigne; ligne <= fin; ligne++) {
@@ -199,19 +199,19 @@ final class IncrementalParser {
             }
         }
         Token[] jetons = collects.toArray(new Token[0]);
-        int[] lignesJetons = new int[lignes.size()];
+        int[] lignesTokens = new int[lignes.size()];
         for (int i = 0; i < lignes.size(); i++) {
-            lignesJetons[i] = lignes.get(i);
+            lignesTokens[i] = lignes.get(i);
         }
-        return new PasseJetons(jetons, lignesJetons);
+        return new PasseTokens(jetons, lignesTokens);
     }
 
     /** Les jetons d'une plage, avec la ligne de chacun. */
-    private static final class PasseJetons {
+    private static final class PasseTokens {
         private final Token[] jetons;
         private final int[] lignes;
 
-        PasseJetons(Token[] jetons, int[] lignes) {
+        PasseTokens(Token[] jetons, int[] lignes) {
             this.jetons = jetons;
             this.lignes = lignes;
         }
@@ -225,7 +225,7 @@ final class IncrementalParser {
         }
     }
 
-    private static List<Chunk> marcher(Document doc, LanguageParser parser, PasseJetons passe,
+    private static List<Chunk> marcher(Document doc, LanguageParser parser, PasseTokens passe,
                                        int debutMarche, int premiereLigne, int baseProfondeur) {
         TokenSlice tranche = new TokenSlice(doc, passe.jetons(), passe.lignes(), debutMarche,
                 passe.jetons().length, doc.lineStart(premiereLigne));
@@ -267,7 +267,7 @@ final class IncrementalParser {
      * visible, en attente sinon — la géométrie, elle, est toujours celle
      * de la marche.
      */
-    private static Chunk poser(Document doc, LanguageParser parser, PasseJetons passe,
+    private static Chunk poser(Document doc, LanguageParser parser, PasseTokens passe,
                                int debut, int fin,
                                int fenetrePremiere, int fenetreDerniere) {
         Token premier = passe.jetons()[debut];
@@ -280,7 +280,7 @@ final class IncrementalParser {
         return construireChunk(doc, parser, passe, 0, debut, fin, ligneDebut);
     }
 
-    private static Chunk construireChunk(Document doc, LanguageParser parser, PasseJetons passe,
+    private static Chunk construireChunk(Document doc, LanguageParser parser, PasseTokens passe,
                                          int debutMarche, int debut, int fin, int premiereLigne) {
         // l'édition peut vider la tranche de marche de ses jetons (la
         // suppression du chunk ancre) : pas de jeton à lire, pas de chunk
@@ -326,12 +326,12 @@ final class IncrementalParser {
             return enAttente;
         }
         Token[] jetons = collects.toArray(new Token[0]);
-        int[] lignesJetons = new int[lignes.size()];
+        int[] lignesTokens = new int[lignes.size()];
         for (int i = 0; i < lignes.size(); i++) {
-            lignesJetons[i] = lignes.get(i);
+            lignesTokens[i] = lignes.get(i);
         }
         int base = doc.lineStart(enAttente.startLine()) + enAttente.startCol();
-        TokenSlice tranche = new TokenSlice(doc, jetons, lignesJetons, 0,
+        TokenSlice tranche = new TokenSlice(doc, jetons, lignesTokens, 0,
                 jetons.length, base);
         return new Chunk(enAttente.startLine(), enAttente.startCol(),
                 enAttente.endLine(), enAttente.endCol(), parser.parseChunk(tranche));

@@ -128,13 +128,13 @@ public class EcouteursMultiplesVueTest {
     /** La bascule de point d'arrêt atteint CHAQUE abonné (D-04) —
      *  le kit et l'hôte ensemble, la voie 2.0 seule. */
     @Test
-    public void laBasculeArretAtteintChaqueAbonne() {
+    public void laBasculeBreakpointAtteintChaqueAbonne() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         int[] lignesKit = { -1 };
         int[] lignesHote = { -1 };
         vue.addBreakpointToggleListener(ligne -> lignesKit[0] = ligne);
         vue.addBreakpointToggleListener(ligne -> lignesHote[0] = ligne);
-        vue.rappels.notifierBasculeArret(7);
+        vue.rappels.notifierBasculeBreakpoint(7);
         assertEquals(7, lignesKit[0], "l'abonné du kit rend la ligne");
         assertEquals(7, lignesHote[0], "l'abonné de l'hôte rend la même ligne");
     }

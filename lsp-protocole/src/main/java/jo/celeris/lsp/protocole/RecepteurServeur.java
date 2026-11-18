@@ -30,7 +30,7 @@ import jo.celeris.core.lsp.AuditeurDiagnostics;
  * décodé, la correspondance traduit, le domaine reçoit des types
  * immuables.</p>
  */
-final class RecepteurServeur implements LanguageClient {
+final class ReceiverServeur implements LanguageClient {
 
     private final Map<String, List<DiagnosticLsp>> diagnostics =
             new ConcurrentHashMap<>();

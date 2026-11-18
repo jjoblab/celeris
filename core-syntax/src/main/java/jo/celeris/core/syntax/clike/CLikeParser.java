@@ -3,7 +3,7 @@ package jo.celeris.core.syntax.clike;
 import java.util.ArrayList;
 import java.util.List;
 
-import jo.celeris.core.syntax.Jetons;
+import jo.celeris.core.syntax.Tokens;
 import jo.celeris.core.syntax.LanguageParser;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.SynNode;
@@ -44,9 +44,9 @@ final class CLikeParser implements LanguageParser {
                 && sort == TokenKind.IDENTIFIER && lineHead)
                 || sort == TokenKind.ANNOTATION
                 || (sort == TokenKind.KEYWORD
-                        && (dialect.typeDeclarations().contains(Jetons.mot(slice, index))
-                                || dialect.memberWords().contains(Jetons.mot(slice, index))
-                                || dialect.modifiers().contains(Jetons.mot(slice, index))));
+                        && (dialect.typeDeclarations().contains(Tokens.mot(slice, index))
+                                || dialect.memberWords().contains(Tokens.mot(slice, index))
+                                || dialect.modifiers().contains(Tokens.mot(slice, index))));
         if (!candidate) {
             return false;
         }
@@ -72,14 +72,14 @@ final class CLikeParser implements LanguageParser {
             return SynNode.of(CLikeKind.AUTRE, NodeCategory.OTHER, 0, 0,
                     new SynNode[0], null, false);
         }
-        int afterTrivia = Jetons.sauterTrivia(slice, 0);
+        int afterTrivia = Tokens.sauterTrivia(slice, 0);
         int afterHeader = skipHeader(slice, afterTrivia);
         if (afterHeader < slice.size()
                 && dialect.isTypeDeclaration(slice, afterHeader)) {
             return parseType(slice, 0, afterHeader);
         }
         if (afterHeader < slice.size()
-                && dialect.memberWords().contains(Jetons.mot(slice, afterHeader))) {
+                && dialect.memberWords().contains(Tokens.mot(slice, afterHeader))) {
             List<SynNode> members = new ArrayList<>();
             dialect.parseMember(slice, 0, slice.size(), members);
             if (!members.isEmpty()) {
@@ -89,14 +89,14 @@ final class CLikeParser implements LanguageParser {
         List<SynNode> children = Corps.instructions(slice, 0, slice.size(),
                 CLikeKind.STATEMENT, CLikeKind.BLOC, CLikeKind.ERREUR);
         return SynNode.of(CLikeKind.AUTRE, NodeCategory.OTHER, 0,
-                Jetons.finDe(slice, slice.size() - 1), children.toArray(new SynNode[0]),
+                Tokens.finDe(slice, slice.size() - 1), children.toArray(new SynNode[0]),
                 null, hasError(children));
     }
 
     /** Le type déclaré : son nom, ses membres entre accolades, l'erreur à la fermeture manquante. */
     private SynNode parseType(TokenSlice slice, int start, int keyword) {
         String name = typeName(slice, keyword);
-        int opening = Jetons.chercherAccolade(slice, keyword + dialect.typeBraceOffset());
+        int opening = Tokens.chercherAccolade(slice, keyword + dialect.typeBraceOffset());
         if (opening < 0) {
             return leafType(slice, start, keyword, name);
         }
@@ -104,10 +104,10 @@ final class CLikeParser implements LanguageParser {
         if (closing < 0) {
             List<SynNode> members = parseMembers(slice, opening + 1, slice.size());
             members.add(SynNode.of(CLikeKind.ERREUR, NodeCategory.ERROR,
-                    slice.start(opening), Jetons.finDe(slice, slice.size() - 1),
+                    slice.start(opening), Tokens.finDe(slice, slice.size() - 1),
                     new SynNode[0], null, true));
             return SynNode.of(CLikeKind.TYPE, NodeCategory.TYPE,
-                    slice.start(start), Jetons.finDe(slice, slice.size() - 1),
+                    slice.start(start), Tokens.finDe(slice, slice.size() - 1),
                     members.toArray(new SynNode[0]), name, true);
         }
         List<SynNode> members = parseMembers(slice, opening + 1, closing);
@@ -128,7 +128,7 @@ final class CLikeParser implements LanguageParser {
             }
         }
         return SynNode.of(CLikeKind.TYPE, NodeCategory.TYPE, slice.start(start),
-                Jetons.finDe(slice, end), new SynNode[0], name, error);
+                Tokens.finDe(slice, end), new SynNode[0], name, error);
     }
 
     /** Le nom d'un type : tout mot pour Java, un identificateur sinon. */
@@ -137,12 +137,12 @@ final class CLikeParser implements LanguageParser {
             return null;
         }
         if (dialect.anyWordAsTypeName()) {
-            return Jetons.mot(slice, keyword + 1);
+            return Tokens.mot(slice, keyword + 1);
         }
         TokenKind sort = slice.kind(keyword + 1);
         if (sort == TokenKind.IDENTIFIER || sort == TokenKind.TYPE
                 || sort == TokenKind.CONSTANT) {
-            return Jetons.mot(slice, keyword + 1);
+            return Tokens.mot(slice, keyword + 1);
         }
         return null;
     }
@@ -152,7 +152,7 @@ final class CLikeParser implements LanguageParser {
         List<SynNode> members = new ArrayList<>();
         int i = from;
         while (i < to) {
-            int afterTrivia = Jetons.sauterTrivia(slice, i);
+            int afterTrivia = Tokens.sauterTrivia(slice, i);
             if (afterTrivia >= to) {
                 break;
             }
@@ -164,7 +164,7 @@ final class CLikeParser implements LanguageParser {
     /** Un membre : le type imbriqué par le socle, le reste par le dialecte. */
     private int parseOneMember(TokenSlice slice, int start, int to,
             List<SynNode> members) {
-        int afterTrivia = Jetons.sauterTrivia(slice, start);
+        int afterTrivia = Tokens.sauterTrivia(slice, start);
         int afterHeader = skipHeader(slice, afterTrivia);
         if (afterHeader < to && dialect.isTypeDeclaration(slice, afterHeader)) {
             members.add(parseType(slice, start, afterHeader));

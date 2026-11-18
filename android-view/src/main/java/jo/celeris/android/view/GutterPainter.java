@@ -507,7 +507,7 @@ public final class GutterPainter extends PainterLayer {
             int ligne, float centreX, float centreY, float cellule,
             FrameState frame) {
         tracerBarreVcs(surface, marques, ligne, centreY, cellule, frame);
-        tracerArret(surface, marques, ligne, centreX, centreY, cellule, frame);
+        tracerBreakpoint(surface, marques, ligne, centreX, centreY, cellule, frame);
         tracerExecution(surface, marques, ligne, centreX, centreY, cellule,
                 frame);
     }
@@ -518,11 +518,11 @@ public final class GutterPainter extends PainterLayer {
      */
     private void tracerBarreVcs(DrawSurface surface, GutterMarks marques, int ligne,
             float centreY, float cellule, FrameState frame) {
-        MarqueLigne marque = marques.marqueVcs(ligne);
-        if (marque == MarqueLigne.INCHANGE) {
+        MarkLine marque = marques.marqueVcs(ligne);
+        if (marque == MarkLine.INCHANGE) {
             return;
         }
-        brush().setColor(marque == MarqueLigne.MODIFIE
+        brush().setColor(marque == MarkLine.MODIFIE
                 ? frame.theme().selectionColor()
                 : frame.theme().syntaxe().couleur(TokenKind.STRING));
         float haut = centreY - cellule / 2f;
@@ -535,14 +535,14 @@ public final class GutterPainter extends PainterLayer {
      * CERCLE CREUX à l'encre de gouttière désactivé — dans la cellule
      * cohérente, le tiers du côté pour rayon.
      */
-    private void tracerArret(DrawSurface surface, GutterMarks marques, int ligne,
+    private void tracerBreakpoint(DrawSurface surface, GutterMarks marques, int ligne,
             float centreX, float centreY, float cellule, FrameState frame) {
-        EtatArret arret = marques.arret(ligne);
-        if (arret == EtatArret.AUCUN) {
+        EtatBreakpoint arret = marques.arret(ligne);
+        if (arret == EtatBreakpoint.AUCUN) {
             return;
         }
         float rayon = cellule / 3f;
-        if (arret == EtatArret.POSE) {
+        if (arret == EtatBreakpoint.POSE) {
             brush().setColor(frame.theme().syntaxe().couleur(TokenKind.ERROR));
             surface.drawCircle(centreX, centreY, rayon, true, brush());
             return;

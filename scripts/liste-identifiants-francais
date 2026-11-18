@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Liste les identifiants français réels (session 9, F.5) : pour
+chaque module, l'ensemble DÉDUPLIQUÉ des identifiants CamelCase qui
+portent un radical français (le même dictionnaire que
+check-language-baseline), avec fichier et nature (classe/méthode/
+champ). Sert de liste de travail au renommage 2.0.0 : chaque
+identifiant renommé rayé de la liste fait descendre la baseline."""
+
+import os
+import re
+import sys
+
+RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RACINES = (
+    'Editeur|Editeurs|Fabrique|Fabriques|Gouttiere|Gouttieres|Coulisse|'
+    'Coulisses|Fantome|Fantomes|Modele|Modeles|Faux[A-Z]|Apercu|Revues?|'
+    'Rangees?|Pinceaux?|Peinture|Peintre|Curseur|Curseurs|Clavier|Touches|'
+    'Gestes|Marques|Marque|Pilule|Pliage|Pliages|Defilement|Annule|Annulee?|'
+    'Retabli|Retablir|Frappe|Frappes|Largeur|Largeurs|Hauteur|Hauteurs|'
+    'Tailles?|Chiffres?|Lignes?|Paniers?|Lexique|Lexiques|Jeton|Jetons|'
+    'Arret|Arrets|Ecart|Ecarts|Paliers?|Plancher|Cran|Crans|Hysteresis|'
+    'Police|Polices|Texte|Textes|Langue|Langues|Session[sA-Z]|Traites?|'
+    'Habille|Habiller|Habillage|Perimee?|Perimées?|Publiee?|Publication|'
+    'Recaler|Recalage|Relire|Relecture|Rattrapage|Sortes?|Encre|Encres|'
+    'Theme|Themes|Sombre|Clair[s]?|Numeros?|Retour[s]?|Souple|Souple?s?'
+)
+MOTIF = re.compile(r'\b((?:' + RACINES + r')[A-Za-z0-9_]*)')
+
+modules = sys.argv[1:] or sorted(
+    d for d in os.listdir(RACINE)
+    if os.path.isdir(os.path.join(RACINE, d, 'src', 'main', 'java')))
+
+for module in modules:
+    base = os.path.join(RACINE, module, 'src', 'main', 'java')
+    if not os.path.isdir(base):
+        continue
+    vus = {}
+    for racine, _, noms in os.walk(base):
+        for nom in sorted(noms):
+            if not nom.endswith('.java'):
+                continue
+            chemin = os.path.join(racine, nom)
+            with open(chemin, encoding='utf-8') as f:
+                t = f.read()
+            code = re.sub(r'/\*.*?\*/', '', t, flags=re.S)
+            code = re.sub(r'//[^\n]*', '', code)
+            for m in MOTIF.finditer(code):
+                ident = m.group(1)
+                rel = os.path.relpath(chemin, base)
+                vus.setdefault(ident, set()).add(rel)
+    print('=== %s : %d identifiants uniques ===' % (module, len(vus)))
+    for ident in sorted(vus):
+        fichiers = sorted(vus[ident])
+        print('%-42s %s' % (ident, fichiers[0] + (
+            ' (+%d)' % (len(fichiers) - 1) if len(fichiers) > 1 else '')))

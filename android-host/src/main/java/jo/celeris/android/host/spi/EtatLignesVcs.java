@@ -14,11 +14,11 @@ public final class EtatLignesVcs {
     private static final EtatLignesVcs VIDE =
             new EtatLignesVcs(Map.of(), List.of());
 
-    private final Map<Integer, MarqueVcs> marques;
+    private final Map<Integer, VcsMark> marques;
 
     private final List<PlageLignes> supprimees;
 
-    private EtatLignesVcs(Map<Integer, MarqueVcs> marques,
+    private EtatLignesVcs(Map<Integer, VcsMark> marques,
             List<PlageLignes> supprimees) {
         this.marques = marques;
         this.supprimees = supprimees;
@@ -40,7 +40,7 @@ public final class EtatLignesVcs {
      * @param supprimees  les plages de lignes supprimées
      * @return l'état correspondant
      */
-    public static EtatLignesVcs de(Map<Integer, MarqueVcs> marques,
+    public static EtatLignesVcs de(Map<Integer, VcsMark> marques,
             List<PlageLignes> supprimees) {
         return new EtatLignesVcs(Map.copyOf(marques), List.copyOf(supprimees));
     }
@@ -51,8 +51,8 @@ public final class EtatLignesVcs {
      * @param ligne la ligne, numérotée à partir de un
      * @return la marque de la ligne, jamais null
      */
-    public MarqueVcs marque(int ligne) {
-        return marques.getOrDefault(ligne, MarqueVcs.INCHANGE);
+    public VcsMark marque(int ligne) {
+        return marques.getOrDefault(ligne, VcsMark.INCHANGE);
     }
 
     /**
@@ -63,7 +63,7 @@ public final class EtatLignesVcs {
      * @return les marques par ligne (numérotées à partir de un), non
      *         modifiables
      */
-    public Map<Integer, MarqueVcs> marques() {
+    public Map<Integer, VcsMark> marques() {
         return marques;
     }
 

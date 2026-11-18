@@ -70,7 +70,7 @@ final class PilesPorteesTest {
     }
 
     @Test
-    void lesJetonsDuneMemePorteePartagentLeurPile() {
+    void lesTokensDuneMemePorteePartagentLeurPile() {
         GrammaireLexeur lexeur = new GrammaireLexeur(grammairePython());
         LexedLine ligne = lexeur.lex("import os", lexeur.initialState());
         Token premier = ligne.tokens()[0];

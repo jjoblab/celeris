@@ -44,7 +44,7 @@ EXEMPTIONS = {
     "core-syntax-treesitter/src/main/java/jo/celeris/core/syntax/treesitter/SyntaxeNatif.java",
     # la fabrique de la voie (ADR-0024) : elle INSCRIT les langages
     # au registre de la plateforme — les identifiants y vivent.
-    "core-syntax-treesitter/src/main/java/jo/celeris/core/syntax/treesitter/FabriqueVoieTreeSitter.java",
+    "core-syntax-treesitter/src/main/java/jo/celeris/core/syntax/treesitter/TreeSitterPathFactory.java",
     # l'attache des analyseurs écrits à la plateforme
     "core-language/src/main/java/jo/celeris/core/language/WrittenLanguages.java",
     # la constante du protocole LSP (MarkupKind.markdown) — un genre de

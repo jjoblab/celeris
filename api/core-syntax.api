@@ -54,15 +54,15 @@ public final class jo.celeris.core.syntax.EditSite extends java.lang.Record {
   public int lineDelta();
 }
 
-### jo.celeris.core.syntax.FabriqueMoteurVoie
-Compiled from "FabriqueMoteurVoie.java"
-public interface jo.celeris.core.syntax.FabriqueMoteurVoie {
+### jo.celeris.core.syntax.EnginePathFactory
+Compiled from "EnginePathFactory.java"
+public interface jo.celeris.core.syntax.EnginePathFactory {
   public abstract jo.celeris.core.syntax.MoteurSyntaxe creer(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
 }
 
-### jo.celeris.core.syntax.FabriqueMoteurVoieChargee
-Compiled from "FabriqueMoteurVoieChargee.java"
-public final class jo.celeris.core.syntax.FabriqueMoteurVoieChargee {
+### jo.celeris.core.syntax.EnginePathFactoryLoader
+Compiled from "EnginePathFactoryLoader.java"
+public final class jo.celeris.core.syntax.EnginePathFactoryLoader {
   public static jo.celeris.core.syntax.MoteurSyntaxe creer(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
 }
 
@@ -71,38 +71,18 @@ Compiled from "IncrementalLexer.java"
 public final class jo.celeris.core.syntax.IncrementalLexer {
   public jo.celeris.core.syntax.IncrementalLexer();
   public jo.celeris.core.syntax.LexResult lexFull(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer);
-  public jo.celeris.core.syntax.LexResult lexFull(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, jo.celeris.core.syntax.JetonAnnulation);
+  public jo.celeris.core.syntax.LexResult lexFull(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, jo.celeris.core.syntax.TokenCancellation);
   public jo.celeris.core.syntax.LexResult lexIncremental(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, jo.celeris.core.syntax.LexDocument, jo.celeris.core.syntax.EditSite);
 }
 
-### jo.celeris.core.syntax.IncrementalParser$PasseJetons
+### jo.celeris.core.syntax.IncrementalParser$PasseTokens
 Compiled from "IncrementalParser.java"
-final class jo.celeris.core.syntax.IncrementalParser$PasseJetons {
+final class jo.celeris.core.syntax.IncrementalParser$PasseTokens {
 }
 
 ### jo.celeris.core.syntax.IncrementalParser
 Compiled from "IncrementalParser.java"
 final class jo.celeris.core.syntax.IncrementalParser {
-}
-
-### jo.celeris.core.syntax.JetonAnnulation
-Compiled from "JetonAnnulation.java"
-public final class jo.celeris.core.syntax.JetonAnnulation {
-  public jo.celeris.core.syntax.JetonAnnulation();
-  public synchronized void annuler();
-  public synchronized boolean estAnnule();
-  public void verifier();
-}
-
-### jo.celeris.core.syntax.Jetons
-Compiled from "Jetons.java"
-public final class jo.celeris.core.syntax.Jetons {
-  public static java.lang.String mot(jo.celeris.core.syntax.TokenSlice, int);
-  public static java.lang.String texteCrochet(jo.celeris.core.syntax.TokenSlice, int);
-  public static int sauterTrivia(jo.celeris.core.syntax.TokenSlice, int);
-  public static boolean estTrivia(jo.celeris.core.syntax.TokenSlice, int);
-  public static int finDe(jo.celeris.core.syntax.TokenSlice, int);
-  public static int chercherAccolade(jo.celeris.core.syntax.TokenSlice, int);
 }
 
 ### jo.celeris.core.syntax.LanguageLexer
@@ -253,8 +233,8 @@ Compiled from "SyntaxService.java"
 public final class jo.celeris.core.syntax.SyntaxService {
   public static jo.celeris.core.syntax.SyntaxService of(jo.celeris.core.syntax.LanguageSyntax);
   public jo.celeris.core.syntax.Analysis analyseFull(jo.celeris.core.text.Document);
-  public jo.celeris.core.syntax.Analysis analyseFenetre(jo.celeris.core.text.Document, int, int, jo.celeris.core.syntax.JetonAnnulation);
-  public jo.celeris.core.syntax.Analysis completer(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.syntax.JetonAnnulation, int);
+  public jo.celeris.core.syntax.Analysis analyseFenetre(jo.celeris.core.text.Document, int, int, jo.celeris.core.syntax.TokenCancellation);
+  public jo.celeris.core.syntax.Analysis completer(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.syntax.TokenCancellation, int);
   public jo.celeris.core.syntax.Analysis analyseIncremental(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.syntax.EditSite);
 }
 
@@ -282,6 +262,15 @@ public final class jo.celeris.core.syntax.Token extends java.lang.Record {
   public int start();
   public int end();
   public int scope();
+}
+
+### jo.celeris.core.syntax.TokenCancellation
+Compiled from "TokenCancellation.java"
+public final class jo.celeris.core.syntax.TokenCancellation {
+  public jo.celeris.core.syntax.TokenCancellation();
+  public synchronized void annuler();
+  public synchronized boolean estAnnule();
+  public void verifier();
 }
 
 ### jo.celeris.core.syntax.TokenKind
@@ -328,6 +317,17 @@ public final class jo.celeris.core.syntax.TokenSlice {
   public int line(int);
   public java.lang.String text(int);
   public int matchOf(int);
+}
+
+### jo.celeris.core.syntax.Tokens
+Compiled from "Tokens.java"
+public final class jo.celeris.core.syntax.Tokens {
+  public static java.lang.String mot(jo.celeris.core.syntax.TokenSlice, int);
+  public static java.lang.String texteCrochet(jo.celeris.core.syntax.TokenSlice, int);
+  public static int sauterTrivia(jo.celeris.core.syntax.TokenSlice, int);
+  public static boolean estTrivia(jo.celeris.core.syntax.TokenSlice, int);
+  public static int finDe(jo.celeris.core.syntax.TokenSlice, int);
+  public static int chercherAccolade(jo.celeris.core.syntax.TokenSlice, int);
 }
 
 ### jo.celeris.core.syntax.ValidationRegles

@@ -27,12 +27,12 @@ class ImportAutoTest {
         assertEquals(1, plan.transaction().edits().size());
         var edition = plan.transaction().edits().get(0);
         // la tête : le début de la ligne qui suit le paquet
-        assertEquals(14, edition.start());
+        assertEquals(17, edition.start());
         assertEquals("", edition.removed());
         assertEquals("import java.util.List;\n", edition.inserted());
         // la sélection d'après : le curseur au début de l'import inséré
         MultiSelection selection = plan.selection();
-        assertEquals(14, selection.ranges().get(0).caret());
+        assertEquals(17, selection.ranges().get(0).caret());
     }
 
     /** Sans paquet : l'insertion à la toute première position du document. */

@@ -170,7 +170,7 @@ class ServeurDocumentsCouvertureTest {
      * les jetons absolus du domaine — le document entier comme la plage.
      */
     @Test
-    void lesJetonsFontLallerRetour() throws Exception {
+    void lesTokensFontLallerRetour() throws Exception {
         SemanticTokensLsp jetons = session.jetons(URI)
                 .get(5, TimeUnit.SECONDS);
         assertEquals("resultat-1", jetons.identifiantResultat());

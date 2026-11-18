@@ -14,7 +14,7 @@ import java.util.List;
 public final class InvisibleChars {
 
     /** La sorte de blanc matérialisé. */
-    public enum Sorte {
+    public enum Kind {
 
         /** Espace ordinaire (finale, ou interne en mode « tout »). */
         ESPACE,
@@ -30,7 +30,7 @@ public final class InvisibleChars {
     }
 
     /** Une marque : la colonne du blanc et sa sorte. */
-    public record Marque(int colonne, Sorte sorte) {
+    public record Mark(int colonne, Kind sorte) {
     }
 
     private InvisibleChars() {
@@ -44,28 +44,28 @@ public final class InvisibleChars {
      * @param finsDeLigne     vrai pour matérialiser la fin de ligne
      * @return les marques, dans l'ordre des colonnes
      */
-    public static List<Marque> marques(String ligne, boolean espacesInternes,
+    public static List<Mark> marques(String ligne, boolean espacesInternes,
             boolean finsDeLigne) {
         int finBlancs = ligne.length();
         while (finBlancs > 0 && estBlancLarge(ligne.charAt(finBlancs - 1))) {
             finBlancs--;
         }
-        List<Marque> marques = new ArrayList<>(ligne.length() / 4 + 1);
+        List<Mark> marques = new ArrayList<>(ligne.length() / 4 + 1);
         for (int i = 0; i < ligne.length(); i++) {
             char c = ligne.charAt(i);
             if (c == '\t') {
-                marques.add(new Marque(i, Sorte.TABULATION));
+                marques.add(new Mark(i, Kind.TABULATION));
             } else if (estFine(c)) {
-                marques.add(new Marque(i, Sorte.ESPACE_FINE));
+                marques.add(new Mark(i, Kind.ESPACE_FINE));
             } else if (c == ' ') {
                 boolean finale = i >= finBlancs;
                 if (finale || espacesInternes) {
-                    marques.add(new Marque(i, Sorte.ESPACE));
+                    marques.add(new Mark(i, Kind.ESPACE));
                 }
             }
         }
         if (finsDeLigne) {
-            marques.add(new Marque(ligne.length(), Sorte.FIN_DE_LIGNE));
+            marques.add(new Mark(ligne.length(), Kind.FIN_DE_LIGNE));
         }
         return marques;
     }

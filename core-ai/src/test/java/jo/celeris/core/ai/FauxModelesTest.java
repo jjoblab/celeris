@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.jspecify.annotations.Nullable;
 
-import jo.celeris.core.syntax.JetonAnnulation;
+import jo.celeris.core.syntax.TokenCancellation;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextEdit;
 
@@ -29,13 +29,13 @@ import jo.celeris.core.text.TextEdit;
 class FauxModelesTest {
 
     /** Le récepteur de test : ce qui est arrivé, et sur quel fil. */
-    private static final class Enregistreur implements ModeleTexteFantome.Recepteur {
-        private @Nullable SuggestionFantome recue;
+    private static final class Enregistreur implements GhostTextModel.Receiver {
+        private @Nullable GhostSuggestion recue;
         private boolean aucune;
         private @Nullable Thread filLivraison;
 
         @Override
-        public void suggestion(SuggestionFantome suggestion) {
+        public void suggestion(GhostSuggestion suggestion) {
             recue = suggestion;
             filLivraison = Thread.currentThread();
         }
@@ -47,12 +47,12 @@ class FauxModelesTest {
     }
 
     /** Le récepteur de prédiction de test. */
-    private static final class EnregistreurPrediction implements ModelePrediction.Recepteur {
-        private @Nullable PredictionEdition recue;
+    private static final class EnregistreurPrediction implements PredictionModel.Receiver {
+        private @Nullable PredictionEdit recue;
         private boolean aucune;
 
         @Override
-        public void prediction(PredictionEdition prediction) {
+        public void prediction(PredictionEdit prediction) {
             recue = prediction;
         }
 
@@ -65,12 +65,12 @@ class FauxModelesTest {
     /** Le local livre synchronement, sur le fil de l'appelant. */
     @Test
     void localLivresseSynchroneSurLeFilAppelant() {
-        FauxModeleLocal modele = new FauxModeleLocal();
-        modele.fantome(new SuggestionFantome("42;", 8, 0));
+        FakeLocalModel modele = new FakeLocalModel();
+        modele.fantome(new GhostSuggestion("42;", 8, 0));
         Enregistreur recepteur = new Enregistreur();
-        modele.completer(new RequeteModele(Document.of("int x = "), 8,
-                new JetonAnnulation()), recepteur);
-        assertEquals(new SuggestionFantome("42;", 8, 0), recepteur.recue,
+        modele.completer(new ModelRequest(Document.of("int x = "), 8,
+                new TokenCancellation()), recepteur);
+        assertEquals(new GhostSuggestion("42;", 8, 0), recepteur.recue,
                 "la livraison locale est immédiate");
         assertEquals(Thread.currentThread(), recepteur.filLivraison,
                 "le modèle local ne change pas de fil");
@@ -79,10 +79,10 @@ class FauxModelesTest {
     /** Le local sans avis rend l'aveu, pas de suggestion. */
     @Test
     void localSansAvisRendLeaveu() {
-        FauxModeleLocal modele = new FauxModeleLocal();
+        FakeLocalModel modele = new FakeLocalModel();
         Enregistreur recepteur = new Enregistreur();
-        modele.completer(new RequeteModele(Document.of("x"), 0,
-                new JetonAnnulation()), recepteur);
+        modele.completer(new ModelRequest(Document.of("x"), 0,
+                new TokenCancellation()), recepteur);
         assertNull(recepteur.recue);
         assertTrue(recepteur.aucune);
     }
@@ -90,12 +90,12 @@ class FauxModelesTest {
     /** La requête déjà annulée ne livre rien — annuler coûte moins cher. */
     @Test
     void requeteAnnuleeNeLivreRien() {
-        FauxModeleLocal modele = new FauxModeleLocal();
-        modele.fantome(new SuggestionFantome("42;", 8, 0));
-        JetonAnnulation mort = new JetonAnnulation();
+        FakeLocalModel modele = new FakeLocalModel();
+        modele.fantome(new GhostSuggestion("42;", 8, 0));
+        TokenCancellation mort = new TokenCancellation();
         mort.annuler();
         Enregistreur recepteur = new Enregistreur();
-        modele.completer(new RequeteModele(Document.of("int x = "), 8, mort),
+        modele.completer(new ModelRequest(Document.of("int x = "), 8, mort),
                 recepteur);
         assertNull(recepteur.recue, "un vol mort ne livre pas");
         assertFalse(recepteur.aucune, "un vol mort ne dit même pas son aveu");
@@ -105,11 +105,11 @@ class FauxModelesTest {
     /** Le local journalise chaque requête, fantôme et prédiction. */
     @Test
     void localJournaliseChaqueRequete() {
-        FauxModeleLocal modele = new FauxModeleLocal();
+        FakeLocalModel modele = new FakeLocalModel();
         Document document = Document.of("int x = ");
-        modele.completer(new RequeteModele(document, 8, new JetonAnnulation()),
+        modele.completer(new ModelRequest(document, 8, new TokenCancellation()),
                 new Enregistreur());
-        modele.predire(new RequeteModele(document, 4, new JetonAnnulation()),
+        modele.predire(new ModelRequest(document, 4, new TokenCancellation()),
                 new EnregistreurPrediction());
         assertEquals(2, modele.requetes().size());
         assertEquals(document, modele.requetes().get(0).document());
@@ -121,15 +121,15 @@ class FauxModelesTest {
     @Test
     void distantNeLivreQueParSonExecuteur() {
         PompeManuelle reseau = new PompeManuelle();
-        FauxModeleDistant modele = new FauxModeleDistant(reseau);
-        modele.fantome(new SuggestionFantome("42;", 8, 0));
+        FakeRemoteModel modele = new FakeRemoteModel(reseau);
+        modele.fantome(new GhostSuggestion("42;", 8, 0));
         Enregistreur recepteur = new Enregistreur();
-        modele.completer(new RequeteModele(Document.of("int x = "), 8,
-                new JetonAnnulation()), recepteur);
+        modele.completer(new ModelRequest(Document.of("int x = "), 8,
+                new TokenCancellation()), recepteur);
         assertNull(recepteur.recue, "rien ne livre avant le réseau");
         assertEquals(1, reseau.enAttente(), "la livraison attend dans le réseau");
         reseau.executerUne();
-        assertEquals(new SuggestionFantome("42;", 8, 0), recepteur.recue,
+        assertEquals(new GhostSuggestion("42;", 8, 0), recepteur.recue,
                 "le réseau livre");
     }
 
@@ -137,11 +137,11 @@ class FauxModelesTest {
     @Test
     void distantVolMortEnRouteNeLivrePas() {
         PompeManuelle reseau = new PompeManuelle();
-        FauxModeleDistant modele = new FauxModeleDistant(reseau);
-        modele.fantome(new SuggestionFantome("42;", 8, 0));
+        FakeRemoteModel modele = new FakeRemoteModel(reseau);
+        modele.fantome(new GhostSuggestion("42;", 8, 0));
         Enregistreur recepteur = new Enregistreur();
-        RequeteModele requete = new RequeteModele(Document.of("int x = "), 8,
-                new JetonAnnulation());
+        ModelRequest requete = new ModelRequest(Document.of("int x = "), 8,
+                new TokenCancellation());
         modele.completer(requete, recepteur);
         requete.jeton().annuler();
         reseau.executerTout();
@@ -153,10 +153,10 @@ class FauxModelesTest {
     @Test
     void distantRequeteAnnuleeNePartPas() {
         PompeManuelle reseau = new PompeManuelle();
-        FauxModeleDistant modele = new FauxModeleDistant(reseau);
-        JetonAnnulation mort = new JetonAnnulation();
+        FakeRemoteModel modele = new FakeRemoteModel(reseau);
+        TokenCancellation mort = new TokenCancellation();
         mort.annuler();
-        modele.completer(new RequeteModele(Document.of("x"), 0, mort),
+        modele.completer(new ModelRequest(Document.of("x"), 0, mort),
                 new Enregistreur());
         assertEquals(0, reseau.enAttente(), "rien ne voyage pour un vol mort");
     }
@@ -168,20 +168,20 @@ class FauxModelesTest {
      */
     @Test
     void memeContratPourLeLocalEtLeDistant() {
-        SuggestionFantome avis = new SuggestionFantome("42;", 8, 0);
+        GhostSuggestion avis = new GhostSuggestion("42;", 8, 0);
         Document document = Document.of("int x = ");
 
-        FauxModeleLocal local = new FauxModeleLocal();
+        FakeLocalModel local = new FakeLocalModel();
         local.fantome(avis);
         Enregistreur recepteurLocal = new Enregistreur();
-        local.completer(new RequeteModele(document, 8, new JetonAnnulation()),
+        local.completer(new ModelRequest(document, 8, new TokenCancellation()),
                 recepteurLocal);
 
         PompeManuelle reseau = new PompeManuelle();
-        FauxModeleDistant distant = new FauxModeleDistant(reseau);
+        FakeRemoteModel distant = new FakeRemoteModel(reseau);
         distant.fantome(avis);
         Enregistreur recepteurDistant = new Enregistreur();
-        distant.completer(new RequeteModele(document, 8, new JetonAnnulation()),
+        distant.completer(new ModelRequest(document, 8, new TokenCancellation()),
                 recepteurDistant);
         reseau.executerTout();
 
@@ -197,10 +197,10 @@ class FauxModelesTest {
         local.fantome(null);
         distant.fantome(null);
         Enregistreur aveuLocal = new Enregistreur();
-        local.completer(new RequeteModele(document, 8, new JetonAnnulation()),
+        local.completer(new ModelRequest(document, 8, new TokenCancellation()),
                 aveuLocal);
         Enregistreur aveuDistant = new Enregistreur();
-        distant.completer(new RequeteModele(document, 8, new JetonAnnulation()),
+        distant.completer(new ModelRequest(document, 8, new TokenCancellation()),
                 aveuDistant);
         reseau.executerTout();
         assertEquals(aveuLocal.aucune, aveuDistant.aucune, "le même aveu sans avis");
@@ -209,21 +209,21 @@ class FauxModelesTest {
     /** La prédiction suit le même contrat que le fantôme. */
     @Test
     void memeContratPourLaPrediction() {
-        PredictionEdition avis = new PredictionEdition("initialise",
+        PredictionEdit avis = new PredictionEdit("initialise",
                 List.of(new TextEdit(8, "0", "42")), 0);
         Document document = Document.of("int x = 0;");
 
-        FauxModeleLocal local = new FauxModeleLocal();
+        FakeLocalModel local = new FakeLocalModel();
         local.prediction(avis);
         EnregistreurPrediction recepteurLocal = new EnregistreurPrediction();
-        local.predire(new RequeteModele(document, 8, new JetonAnnulation()),
+        local.predire(new ModelRequest(document, 8, new TokenCancellation()),
                 recepteurLocal);
 
         PompeManuelle reseau = new PompeManuelle();
-        FauxModeleDistant distant = new FauxModeleDistant(reseau);
+        FakeRemoteModel distant = new FakeRemoteModel(reseau);
         distant.prediction(avis);
         EnregistreurPrediction recepteurDistant = new EnregistreurPrediction();
-        distant.predire(new RequeteModele(document, 8, new JetonAnnulation()),
+        distant.predire(new ModelRequest(document, 8, new TokenCancellation()),
                 recepteurDistant);
         reseau.executerTout();
 
@@ -251,12 +251,12 @@ class FauxModelesTest {
             }
             livraisons.incrementAndGet();
         };
-        FauxModeleDistant modele = new FauxModeleDistant(autreFil);
-        modele.fantome(new SuggestionFantome("42;", 8, 0));
+        FakeRemoteModel modele = new FakeRemoteModel(autreFil);
+        modele.fantome(new GhostSuggestion("42;", 8, 0));
         Enregistreur recepteur = new Enregistreur();
-        modele.completer(new RequeteModele(Document.of("int x = "), 8,
-                new JetonAnnulation()), recepteur);
-        assertEquals(new SuggestionFantome("42;", 8, 0), recepteur.recue,
+        modele.completer(new ModelRequest(Document.of("int x = "), 8,
+                new TokenCancellation()), recepteur);
+        assertEquals(new GhostSuggestion("42;", 8, 0), recepteur.recue,
                 "la livraison d'un autre fil arrive pareil");
         assertNotEquals(Thread.currentThread(), recepteur.filLivraison,
                 "la livraison a bien voyagé");

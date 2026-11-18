@@ -107,7 +107,7 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
     private static final long DELAI_EXTINCTION = 5;
 
     private final LanguageServer serveur;
-    private final RecepteurServeur recepteur;
+    private final ReceiverServeur recepteur;
     private final ExecutorService executeur;
     private final Future<Void> ecoute;
     private final String nomClient;
@@ -122,7 +122,7 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
     private record IdentiteDocument(String uri, PositionLsp position) {
     }
 
-    private LspSession(Launcher<LanguageServer> lanceur, RecepteurServeur recepteur,
+    private LspSession(Launcher<LanguageServer> lanceur, ReceiverServeur recepteur,
             ExecutorService executeur, String nomClient) {
         this.serveur = lanceur.getRemoteProxy();
         this.recepteur = recepteur;
@@ -149,7 +149,7 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
             daemon.setDaemon(true);
             return daemon;
         });
-        RecepteurServeur recepteur = new RecepteurServeur();
+        ReceiverServeur recepteur = new ReceiverServeur();
         Launcher<LanguageServer> lanceur = LSPLauncher.createClientLauncher(
                 recepteur, entree, sortie, executeur, Function.identity());
         return new LspSession(lanceur, recepteur, executeur, nomClient);

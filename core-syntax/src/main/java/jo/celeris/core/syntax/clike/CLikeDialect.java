@@ -2,7 +2,7 @@ package jo.celeris.core.syntax.clike;
 
 import java.util.List;
 import java.util.Set;
-import jo.celeris.core.syntax.Jetons;
+import jo.celeris.core.syntax.Tokens;
 import jo.celeris.core.syntax.SynNode;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
@@ -163,7 +163,7 @@ abstract class CLikeDialect {
      */
     boolean isTypeDeclaration(TokenSlice slice, int index) {
         return slice.kind(index) == TokenKind.KEYWORD
-                && typeDeclarations().contains(Jetons.mot(slice, index));
+                && typeDeclarations().contains(Tokens.mot(slice, index));
     }
 
     /**
@@ -175,7 +175,7 @@ abstract class CLikeDialect {
      * @param to      la borne du corps contenant
      */
     int advanceAfterType(TokenSlice slice, int keyword, int to) {
-        int opening = Jetons.chercherAccolade(slice, keyword + typeBraceOffset());
+        int opening = Tokens.chercherAccolade(slice, keyword + typeBraceOffset());
         int closing = opening < 0 ? to : slice.matchOf(opening);
         return closing < 0 ? to : closing + 1;
     }
@@ -210,7 +210,7 @@ abstract class CLikeDialect {
             TokenKind sort = slice.kind(i);
             if (sort == TokenKind.ANNOTATION) {
                 i++;
-                if (i < slice.size() && "(".equals(Jetons.texteCrochet(slice, i))) {
+                if (i < slice.size() && "(".equals(Tokens.texteCrochet(slice, i))) {
                     int closing = slice.matchOf(i);
                     if (closing < 0) {
                         return slice.size();
@@ -220,7 +220,7 @@ abstract class CLikeDialect {
                 continue;
             }
             if (sort == TokenKind.KEYWORD
-                    && modifiers().contains(Jetons.mot(slice, i))) {
+                    && modifiers().contains(Tokens.mot(slice, i))) {
                 i++;
                 continue;
             }

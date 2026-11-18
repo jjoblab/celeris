@@ -45,7 +45,7 @@ class AnalyseFenetreTest {
     @Test
     void fenetreAnalysee_leResteEnAttente() {
         Document doc = Document.of(TEXTE);
-        Analysis partielle = service.analyseFenetre(doc, 0, 1, new JetonAnnulation());
+        Analysis partielle = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
         assertFalse(partielle.estComplet());
         List<Chunk> chunks = partielle.tree().chunks();
         assertEquals(3, chunks.size());
@@ -58,7 +58,7 @@ class AnalyseFenetreTest {
     @Test
     void plisSeulementDesChunksAnalyses() {
         Document doc = Document.of(TEXTE);
-        Analysis partielle = service.analyseFenetre(doc, 0, 1, new JetonAnnulation());
+        Analysis partielle = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
         List<FoldSpan> plisPartiels = TreeFolds.regions(doc, partielle);
         List<FoldSpan> plisComplets = TreeFolds.regions(doc, service.analyseFull(doc));
         assertFalse(plisComplets.isEmpty(), "le langage d'essai plie ses blocs");
@@ -72,9 +72,9 @@ class AnalyseFenetreTest {
     @Test
     void completionsTerminentArbre_plisEgauxAuComplet() {
         Document doc = Document.of(TEXTE);
-        Analysis courant = service.analyseFenetre(doc, 0, 1, new JetonAnnulation());
+        Analysis courant = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
         while (!courant.estComplet()) {
-            courant = service.completer(doc, courant, new JetonAnnulation(), 1);
+            courant = service.completer(doc, courant, new TokenCancellation(), 1);
         }
         Analysis complet = service.analyseFull(doc);
         assertEquals(TreeFolds.regions(doc, complet), TreeFolds.regions(doc, courant));
@@ -86,10 +86,10 @@ class AnalyseFenetreTest {
     @Test
     void identiteDesSousArbresAuxEtapes() {
         Document doc = Document.of(TEXTE);
-        Analysis courant = service.analyseFenetre(doc, 0, 1, new JetonAnnulation());
+        Analysis courant = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
         SynNode racinePremier = courant.tree().chunks().get(0).root();
         while (!courant.estComplet()) {
-            courant = service.completer(doc, courant, new JetonAnnulation(), 1);
+            courant = service.completer(doc, courant, new TokenCancellation(), 1);
         }
         assertSame(racinePremier, courant.tree().chunks().get(0).root(),
                 "la complétion ne retouche pas le sous-arbre déjà construit");
@@ -104,7 +104,7 @@ class AnalyseFenetreTest {
     @Test
     void editionDansFenetre_analyseIncrementaleDepuisPartiel() {
         Document doc = Document.of(TEXTE);
-        Analysis partielle = service.analyseFenetre(doc, 0, 1, new JetonAnnulation());
+        Analysis partielle = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
         Document edite = doc.replace(TEXTE.indexOf("x"), TEXTE.indexOf("x") + 1, "z");
         EditSite site = EditSite.of(doc, edite,
                 TEXTE.indexOf("x"), TEXTE.indexOf("x") + 1, "z");
@@ -117,7 +117,7 @@ class AnalyseFenetreTest {
         assertFalse(diff.estComplet());
         Analysis courant = diff;
         while (!courant.estComplet()) {
-            courant = service.completer(edite, courant, new JetonAnnulation(), 1);
+            courant = service.completer(edite, courant, new TokenCancellation(), 1);
         }
         Arbres.verifierEquivalence(courant.tree(),
                 service.analyseFull(edite).tree(), edite);
@@ -134,12 +134,12 @@ class AnalyseFenetreTest {
                   y
                 """;
         Document doc = Document.of(source);
-        Analysis partielle = service.analyseFenetre(doc, 0, 2, new JetonAnnulation());
+        Analysis partielle = service.analyseFenetre(doc, 0, 2, new TokenCancellation());
         assertTrue(TreeDiagnostics.issues(doc, partielle).isEmpty(),
                 "le chunk en attente ne diagnostique rien");
         Analysis courant = partielle;
         while (!courant.estComplet()) {
-            courant = service.completer(doc, courant, new JetonAnnulation(), 1);
+            courant = service.completer(doc, courant, new TokenCancellation(), 1);
         }
         assertFalse(TreeDiagnostics.issues(doc, courant).isEmpty(),
                 "le malformé se diagnostique une fois analysé");

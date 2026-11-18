@@ -21,7 +21,7 @@ class AmpouleGouttiereTest {
 
     @Test
     void lesAmpoulesSePosentEtLeClicDelegue() {
-        MarquesGouttiere marques = new MarquesGouttiere();
+        GutterIntegrations marques = new GutterIntegrations();
         assertFalse(marques.ampoule(2), "sans pose, aucune ampoule");
         marques.setAmpoules(new int[] {2, 7});
         assertTrue(marques.ampoule(2));
@@ -53,7 +53,7 @@ class AmpouleGouttiereTest {
 
     @Test
     void sansEcouteurLampouleNeSePrendPas() {
-        MarquesGouttiere marques = new MarquesGouttiere();
+        GutterIntegrations marques = new GutterIntegrations();
         marques.setAmpoules(new int[] {2});
         Document document = Document.of("l0\nl1\nl2");
         VisualProjection projection = new VisualProjection(document,

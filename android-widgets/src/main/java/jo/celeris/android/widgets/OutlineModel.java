@@ -22,10 +22,10 @@ import org.jspecify.annotations.Nullable;
 public final class OutlineModel {
 
     /** Une rangée du plan : l'entrée et sa profondeur d'affichage. */
-    public record Ligne(OutlineEntry entree, int profondeur) {
+    public record Row(OutlineEntry entree, int profondeur) {
     }
 
-    private List<Ligne> lignes = List.of();
+    private List<Row> lignes = List.of();
 
     /**
      * Applique un nouveau plan : le préfixe identique se conserve, le
@@ -48,7 +48,7 @@ public final class OutlineModel {
     }
 
     /** Les rangées du plan, immuables. */
-    public List<Ligne> lignes() {
+    public List<Row> lignes() {
         return lignes;
     }
 
@@ -79,14 +79,14 @@ public final class OutlineModel {
      * Les profondeurs d'affichage par imbrication : chaque entrée vit
      * dans la première entrée précédente qui la contient.
      */
-    private static List<Ligne> avecProfondeurs(List<OutlineEntry> entrees) {
-        List<Ligne> result = new ArrayList<>(entrees.size());
+    private static List<Row> avecProfondeurs(List<OutlineEntry> entrees) {
+        List<Row> result = new ArrayList<>(entrees.size());
         Deque<OutlineEntry> ouverts = new ArrayDeque<>();
         for (OutlineEntry entree : entrees) {
             while (!ouverts.isEmpty() && !contient(ouverts.peek(), entree)) {
                 ouverts.pop();
             }
-            result.add(new Ligne(entree, ouverts.size()));
+            result.add(new Row(entree, ouverts.size()));
             ouverts.push(entree);
         }
         return List.copyOf(result);

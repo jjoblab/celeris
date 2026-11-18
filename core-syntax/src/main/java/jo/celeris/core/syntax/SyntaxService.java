@@ -56,7 +56,7 @@ public final class SyntaxService {
      * @throws AnalyseAnnulee si l'ouverture est annulée avant la fenêtre
      */
     public Analysis analyseFenetre(Document doc, int premiereLigne, int derniereLigne,
-                                   JetonAnnulation jeton) {
+                                   TokenCancellation jeton) {
         LexResult lex = lexer.lexFull(doc, language.lexer(), jeton);
         SyntaxTree tree = parser.parseFenetre(doc, lex.lex(), language.parser(),
                 doc.revision(), premiereLigne, derniereLigne, jeton);
@@ -75,7 +75,7 @@ public final class SyntaxService {
      * @return l'analyse complétée d'autant de chunks, ou la même si rien à construire
      * @throws AnalyseAnnulee si la complétion est annulée
      */
-    public Analysis completer(Document doc, Analysis partielle, JetonAnnulation jeton,
+    public Analysis completer(Document doc, Analysis partielle, TokenCancellation jeton,
                               int maxChunks) {
         if (partielle.estComplet() || maxChunks <= 0) {
             return partielle;

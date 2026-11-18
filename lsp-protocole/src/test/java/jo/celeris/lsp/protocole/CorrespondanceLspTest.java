@@ -230,7 +230,7 @@ public final class CorrespondanceLspTest {
         sansLegende.setSemanticTokensProvider(
                 new SemanticTokensWithRegistrationOptions());
         assertEquals(List.of(),
-                CorrespondanceLsp.lireCapacites(sansLegende).typesJetons());
+                CorrespondanceLsp.lireCapacites(sansLegende).typesTokens());
 
         TextDocumentSyncOptions options = new TextDocumentSyncOptions();
         options.setChange(TextDocumentSyncKind.Incremental);
@@ -243,7 +243,7 @@ public final class CorrespondanceLspTest {
                         List.of("type"), List.of("declaration")));
         CapacitesServeur lues = CorrespondanceLsp.lireCapacites(avecLegende);
         assertEquals(2, lues.genreSynchro());
-        assertEquals(List.of("type"), lues.typesJetons());
-        assertEquals(List.of("declaration"), lues.modificateursJetons());
+        assertEquals(List.of("type"), lues.typesTokens());
+        assertEquals(List.of("declaration"), lues.modificateursTokens());
     }
 }

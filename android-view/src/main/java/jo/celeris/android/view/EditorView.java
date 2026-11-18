@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 
-import jo.celeris.core.ai.SuggestionFantome;
+import jo.celeris.core.ai.GhostSuggestion;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.text.EditListener;
@@ -88,7 +88,7 @@ public final class EditorView extends View {
     // Visible du paquet : l'assemblage d'image y trace le chrome (C9).
     final ChromePainter chrome = new ChromePainter();
     private final GutterPainter gouttiere;
-    final MarquesGouttiere marquesGouttiere = new MarquesGouttiere();
+    final GutterIntegrations marquesGouttiere = new GutterIntegrations();
     private final AccessibilityHost accessibilite = new AccessibilityHost(this);
     private final EditListener ecouteurAnnonce = (debut, fin, retire, insere)
             -> sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
@@ -145,16 +145,16 @@ public final class EditorView extends View {
     float largeurGouttiere;
     boolean numerosVisibles = true;
     /** Le collaborateur du curseur et du clavier : clignotement, IME. */
-    final CurseurClavier curseurClavier = new CurseurClavier(this);
+    final KeyboardCursor curseurClavier = new KeyboardCursor(this);
     /** Le collaborateur du routage tactile. */
-    final TouchesEditeur touches = new TouchesEditeur(this);
+    final EditorKeys touches = new EditorKeys(this);
     /** Le collaborateur de la loupe du dragage (D-16, le
      *  redressement du 2026-11-13) — la bulle au-dessus du doigt. */
     final Loupe loupe = new Loupe();
     // — le glisser-déposer vit dans son collaborateur (D-20)
     final GlisserDeposer depot = new GlisserDeposer(this);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
-    final FantomeEditeur fantome;
+    final GhostEditor fantome;
     /** La couche des valeurs de débogage en ligne (E-03) : le rendu
      *  en fin de ligne pendant la pause — l'hôte pose, la couche
      *  trace. */
@@ -214,7 +214,7 @@ public final class EditorView extends View {
             postInvalidateOnAnimation();
         });
         BrushFactory pinceaux = usinePinceaux = new PaintBrushes(reglePolices);
-        fantome = new FantomeEditeur(this, pinceaux);
+        fantome = new GhostEditor(this, pinceaux);
         // La respiration naît à la densité de l'appareil (PIEGE-23, M7.5 §5).
         gouttiereEtat.setClasse(ClasseLargeur.MOYEN, densite());
         gouttiere = GutterPainter.monter(pinceaux, this);
@@ -237,8 +237,8 @@ public final class EditorView extends View {
         viseur = new HitTest(metrics);
         syntaxe.attacher(session);
         session.addEditListener(ecouteurAnnonce);
-        longPresses = GestesFabrique.appuisLongs(context, this);
-        pincements = GestesFabrique.pincements(context, this);
+        longPresses = GesturesFactory.appuisLongs(context, this);
+        pincements = GesturesFactory.pincements(context, this);
         // D-20 : la vue reçoit les dépôts — le texte s'insère au point
         // de chute, les fichiers partent à l'hôte par le rappel.
         setOnDragListener(depot);
@@ -309,37 +309,6 @@ public final class EditorView extends View {
     }
 
     /**
-     * Applique le thème donné (identifiant de clé de cache compris).
-     * Voie 1.x : la source unique est {@link #settings()} (T2) — ce
-     * poseur y écrit, les abonnés suivent.
-     * @deprecated depuis la 2.0 (ADR-0024) : écrivez
-     *     {@code settings().setTheme(...)} — le retrait suit le
-     *     chantier de renommage (F.5).
-     *
-     * @param nouveauTheme le thème résolu
-     */
-@Deprecated
-        public void setTheme(EditorTheme nouveauTheme) {
-        reglagesUniques.setTheme(nouveauTheme);
-    }
-
-    /**
-     * Change la police (PIEGE-05, PIEGE-28) — la mécanique vit dans
-     * {@link ViewFonts}. Voie 1.x : la source unique est
-     * {@link #settings()} (T2) — ce poseur y écrit, les abonnés
-     * suivent.
-     * @deprecated depuis la 2.0 (ADR-0024) : écrivez
-     *     {@code settings().setFont(...)} — le retrait suit le
-     *     chantier de renommage (F.5).
-     *
-     * @param police la spécification de police, taille en sp
-     */
-@Deprecated
-        public void setFont(FontSpec police) {
-        reglagesUniques.setFont(police);
-    }
-
-    /**
      * Abonne un écouteur des changements de taille de police (D-15 —
      * ADR-0022, phase 2, T3) : le pincement, la molette Ctrl et le
      * clavier y notifient CHACUN leurs abonnés — la façade du kit et
@@ -360,32 +329,11 @@ public final class EditorView extends View {
         polices.removeFontSizeChangeListener(ecouteur);
     }
 
-    /** Bascule les ligatures du texte (D-14) : « liga » ouvre les
-     *  ligatures de la police posée par l'hôte, « -liga » les ferme ;
-     *  toutes les peintures du texte suivent, fermées par défaut.
-     *  Voie 1.x : la source unique est {@link #settings()} (T2). */
-@Deprecated
-        public void setLigatures(boolean actives) {
-        reglagesUniques.setLigatures(actives);
-    }
-
     /** Pose une police de plateforme sous un nom de famille (D-14) : la
      *  mesure et le tracé la suivent (PIEGE-22) — la voie de l'hôte pour
      *  sa police à ligatures ; la famille active se redérive aussitôt. */
     public void poserPolice(String famille, Typeface police) {
         polices.poserPolice(famille, police);
-    }
-
-    /**
-     * Active ou coupe le retour à la ligne souple par offsets (A-18) —
-     * le budget de colonnes redérive, le défilement horizontal se
-     * rabat. */
-@Deprecated
-        public void setSoftWrap(boolean actif) {
-        // la source unique se souvient (T2) : la porte des réglages
-        // et le drapeau d'image y restent alignés, l'hôte qui reçoit
-        // la bascule y relit l'état, jamais deux vérités
-        reglagesUniques.setSoftWrap(actif);
     }
 
     /** Remplace la table de raccourcis clavier (D-17 : remappage
@@ -630,14 +578,14 @@ public final class EditorView extends View {
     }
 
     /** Les intégrations de la gouttière : marques, arrêts, clic (D-03 à D-05). */
-    public MarquesGouttiere marquesGouttiere() {
+    public GutterIntegrations marquesGouttiere() {
         return marquesGouttiere;
     }
 
     /** Dépose (ou retire) la suggestion fantôme visible (F-01) : la
      *  première ligne à l'ancre, les suivantes au bord gauche du
      *  texte, à l'encre fanée. */
-    public void setFantome(@Nullable SuggestionFantome suggestion) {
+    public void setFantome(@Nullable GhostSuggestion suggestion) {
         // la porte des réglages ferme le fantôme : la suggestion d'une
         // porte fermée ne se trace jamais
         fantome.setSuggestion(reglages.ouverte(
@@ -705,7 +653,7 @@ public final class EditorView extends View {
      *
      * @param ecouteur l'écouteur, jamais null
      */
-    public void addGhostGestureListener(Consumer<GesteFantome> ecouteur) {
+    public void addGhostGestureListener(Consumer<GhostGesture> ecouteur) {
         fantome.addGhostGestureListener(ecouteur);
     }
 
@@ -714,7 +662,7 @@ public final class EditorView extends View {
      *
      * @param ecouteur l'écouteur retiré
      */
-    public void removeGhostGestureListener(Consumer<GesteFantome> ecouteur) {
+    public void removeGhostGestureListener(Consumer<GhostGesture> ecouteur) {
         fantome.removeGhostGestureListener(ecouteur);
     }
 

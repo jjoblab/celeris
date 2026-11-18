@@ -12,7 +12,7 @@ import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.jspecify.annotations.Nullable;
 
-import jo.celeris.core.syntax.JetonAnnulation;
+import jo.celeris.core.syntax.TokenCancellation;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextEdit;
 import jo.celeris.core.text.TextSession;
@@ -27,12 +27,12 @@ import jo.celeris.core.text.TextSession;
 class PredictionTest {
 
     /** Le récepteur de test : la dernière réponse du modèle, ou rien. */
-    private static final class Enregistreur implements ModelePrediction.Recepteur {
-        private @Nullable PredictionEdition recue;
+    private static final class Enregistreur implements PredictionModel.Receiver {
+        private @Nullable PredictionEdit recue;
         private boolean aucune;
 
         @Override
-        public void prediction(PredictionEdition arrivee) {
+        public void prediction(PredictionEdit arrivee) {
             recue = arrivee;
         }
 
@@ -46,11 +46,11 @@ class PredictionTest {
     @Test
     void predictionVideRejetee() {
         assertThrows(IllegalArgumentException.class,
-                () -> new PredictionEdition("", List.of(new TextEdit(0, "a", "b")), 0));
+                () -> new PredictionEdit("", List.of(new TextEdit(0, "a", "b")), 0));
         assertThrows(IllegalArgumentException.class,
-                () -> new PredictionEdition("remplace", List.of(), 0));
+                () -> new PredictionEdit("remplace", List.of(), 0));
         assertThrows(IllegalArgumentException.class,
-                () -> new PredictionEdition("remplace",
+                () -> new PredictionEdit("remplace",
                         List.of(new TextEdit(0, "a", "b")), -1));
     }
 
@@ -61,10 +61,10 @@ class PredictionTest {
     @Test
     void predictionSappliqueEnTransactionAnnulable() {
         TextSession session = TextSession.of("int x = 0;", () -> 0L);
-        PredictionEdition prediction = new PredictionEdition(
+        PredictionEdit prediction = new PredictionEdit(
                 "initialise a 42", List.of(new TextEdit(8, "0", "42")), 0);
-        assertEquals(AppliquerPrediction.Resultat.APPLIQUEE,
-                AppliquerPrediction.appliquer(session, prediction));
+        assertEquals(ApplyPrediction.Resultat.APPLIQUEE,
+                ApplyPrediction.appliquer(session, prediction));
         assertEquals("int x = 42;", session.text());
         assertTrue(session.undo(), "la prédiction est annulable");
         assertEquals("int x = 0;", session.text(), "l'annulation restaure l'original");
@@ -77,12 +77,12 @@ class PredictionTest {
     @Test
     void predictionMultiEditionsSequentialles() {
         TextSession session = TextSession.of("int x = 0;\nint y = 1;", () -> 0L);
-        PredictionEdition prediction = new PredictionEdition("final partout",
+        PredictionEdit prediction = new PredictionEdit("final partout",
                 List.of(new TextEdit(0, "int", "final var"),
                         new TextEdit(17, "int", "var")),
                 0);
-        assertEquals(AppliquerPrediction.Resultat.APPLIQUEE,
-                AppliquerPrediction.appliquer(session, prediction));
+        assertEquals(ApplyPrediction.Resultat.APPLIQUEE,
+                ApplyPrediction.appliquer(session, prediction));
         assertEquals("final var x = 0;\nvar y = 1;", session.text());
         assertTrue(session.undo());
         assertEquals("int x = 0;\nint y = 1;", session.text());
@@ -96,10 +96,10 @@ class PredictionTest {
     void predictionPerimeeRefusee() {
         TextSession session = TextSession.of("int x = 0;", () -> 0L);
         assertTrue(session.replaceRange(session.length(), session.length(), " "));
-        PredictionEdition prediction = new PredictionEdition(
+        PredictionEdit prediction = new PredictionEdit(
                 "initialise a 42", List.of(new TextEdit(8, "0", "42")), 0);
-        assertEquals(AppliquerPrediction.Resultat.REFUSEE_REVISION,
-                AppliquerPrediction.appliquer(session, prediction));
+        assertEquals(ApplyPrediction.Resultat.REFUSEE_REVISION,
+                ApplyPrediction.appliquer(session, prediction));
         assertEquals("int x = 0; ", session.text(),
                 "le document périmé ne bouge pas d'un refus");
     }
@@ -109,10 +109,10 @@ class PredictionTest {
     void predictionRefuseeEnProtection() {
         TextSession session = TextSession.of("int x = 0;", () -> 0L);
         session.setReadOnly(true);
-        PredictionEdition prediction = new PredictionEdition(
+        PredictionEdit prediction = new PredictionEdit(
                 "initialise a 42", List.of(new TextEdit(8, "0", "42")), 0);
-        assertEquals(AppliquerPrediction.Resultat.REFUSEE_PROTECTION,
-                AppliquerPrediction.appliquer(session, prediction));
+        assertEquals(ApplyPrediction.Resultat.REFUSEE_PROTECTION,
+                ApplyPrediction.appliquer(session, prediction));
         assertEquals("int x = 0;", session.text());
     }
 
@@ -120,10 +120,10 @@ class PredictionTest {
     @Test
     void predictionHorsBornesRefusee() {
         TextSession session = TextSession.of("int x = 0;", () -> 0L);
-        PredictionEdition prediction = new PredictionEdition(
+        PredictionEdit prediction = new PredictionEdit(
                 "remplace loin", List.of(new TextEdit(20, "0", "42")), 0);
-        assertEquals(AppliquerPrediction.Resultat.REFUSEE_EDITS,
-                AppliquerPrediction.appliquer(session, prediction));
+        assertEquals(ApplyPrediction.Resultat.REFUSEE_EDITS,
+                ApplyPrediction.appliquer(session, prediction));
         assertEquals("int x = 0;", session.text());
     }
 
@@ -135,12 +135,12 @@ class PredictionTest {
     @Test
     void predictionIncoherenteRefuseeSansApplicationPartielle() {
         TextSession session = TextSession.of("int x = 0;", () -> 0L);
-        PredictionEdition prediction = new PredictionEdition("remplace faux",
+        PredictionEdit prediction = new PredictionEdit("remplace faux",
                 List.of(new TextEdit(0, "int", "final var"),
                         new TextEdit(18, "float", "var")),
                 0);
-        assertEquals(AppliquerPrediction.Resultat.REFUSEE_EDITS,
-                AppliquerPrediction.appliquer(session, prediction));
+        assertEquals(ApplyPrediction.Resultat.REFUSEE_EDITS,
+                ApplyPrediction.appliquer(session, prediction));
         assertEquals("int x = 0;", session.text(),
                 "aucune édition partielle ne fuite d'un refus");
         assertFalse(session.canUndo(), "aucune étape d'annulation ne se pose");
@@ -154,20 +154,20 @@ class PredictionTest {
     @Test
     void leModeleNeToucheJamaisLaSession() {
         TextSession session = TextSession.of("int x = 0;", () -> 0L);
-        FauxModeleLocal modele = new FauxModeleLocal();
-        modele.prediction(new PredictionEdition(
+        FakeLocalModel modele = new FakeLocalModel();
+        modele.prediction(new PredictionEdit(
                 "initialise a 42", List.of(new TextEdit(8, "0", "42")), 0));
         Enregistreur recepteur = new Enregistreur();
-        modele.predire(new RequeteModele(session.document(), 8, new JetonAnnulation()),
+        modele.predire(new ModelRequest(session.document(), 8, new TokenCancellation()),
                 recepteur);
-        assertEquals(new PredictionEdition("initialise a 42",
+        assertEquals(new PredictionEdit("initialise a 42",
                 List.of(new TextEdit(8, "0", "42")), 0), recepteur.recue,
                 "le modèle rend sa prédiction au récepteur");
         assertEquals("int x = 0;", session.text(), "rendre ne touche pas la session");
         assertFalse(session.canUndo());
-        PredictionEdition recue = Objects.requireNonNull(recepteur.recue);
-        assertEquals(AppliquerPrediction.Resultat.APPLIQUEE,
-                AppliquerPrediction.appliquer(session, recue));
+        PredictionEdit recue = Objects.requireNonNull(recepteur.recue);
+        assertEquals(ApplyPrediction.Resultat.APPLIQUEE,
+                ApplyPrediction.appliquer(session, recue));
         assertEquals("int x = 42;", session.text(),
                 "seule l'application explicite de l'hôte écrit");
     }
@@ -175,10 +175,10 @@ class PredictionTest {
     /** Le modèle sans avis rend l'aveu qu'il n'y a rien à prédire. */
     @Test
     void modeleSansAvisRepondAucune() {
-        FauxModeleLocal modele = new FauxModeleLocal();
+        FakeLocalModel modele = new FakeLocalModel();
         Enregistreur recepteur = new Enregistreur();
-        modele.predire(new RequeteModele(Document.of("x"), 0,
-                new JetonAnnulation()), recepteur);
+        modele.predire(new ModelRequest(Document.of("x"), 0,
+                new TokenCancellation()), recepteur);
         assertNull(recepteur.recue);
         assertTrue(recepteur.aucune);
     }

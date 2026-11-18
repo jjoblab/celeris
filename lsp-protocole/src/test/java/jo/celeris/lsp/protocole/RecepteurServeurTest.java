@@ -24,14 +24,14 @@ import org.junit.jupiter.api.Test;
  * les messages ne s'affichent pas seuls, les journaux restent au
  * banc — la surface du module les étoffera au fil des jalons (H-12).
  */
-class RecepteurServeurTest {
+class ReceiverServeurTest {
 
     private static final String URI = "file:///banc/recepteur.xml";
 
     /** Les diagnostics publiés : l'état se garde, l'auditeur entend. */
     @Test
     void lesDiagnosticsPubliesServentLEtatEtLAuditeur() {
-        RecepteurServeur recepteur = new RecepteurServeur();
+        ReceiverServeur recepteur = new ReceiverServeur();
         java.util.List<DiagnosticLsp> entendues = new java.util.ArrayList<>();
         recepteur.ajouterAuditeurDiagnostics(
                 (uri, diags) -> entendues.addAll(diags));
@@ -48,7 +48,7 @@ class RecepteurServeurTest {
     /** Le refus poli de l'édition d'espace : jamais appliquée en aveugle. */
     @Test
     void leditionDEspaceEstRefusee() throws Exception {
-        RecepteurServeur recepteur = new RecepteurServeur();
+        ReceiverServeur recepteur = new ReceiverServeur();
         CompletableFuture<org.eclipse.lsp4j.ApplyWorkspaceEditResponse> refus =
                 recepteur.applyEdit(new ApplyWorkspaceEditParams());
         assertFalse(refus.get().isApplied(),
@@ -58,7 +58,7 @@ class RecepteurServeurTest {
     /** Les messages du serveur : le banc ne s'interrompt pas pour eux. */
     @Test
     void lesMessagesDuServeurRestentAuBanc() throws Exception {
-        RecepteurServeur recepteur = new RecepteurServeur();
+        ReceiverServeur recepteur = new ReceiverServeur();
         recepteur.showMessage(new MessageParams());
         recepteur.logMessage(new MessageParams());
         recepteur.telemetryEvent(null);

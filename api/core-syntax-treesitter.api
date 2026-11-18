@@ -6,14 +6,6 @@ final class jo.celeris.core.syntax.treesitter.EtatNatif extends java.lang.Enum<j
   public static jo.celeris.core.syntax.treesitter.EtatNatif valueOf(java.lang.String);
 }
 
-### jo.celeris.core.syntax.treesitter.FabriqueVoieTreeSitter
-Compiled from "FabriqueVoieTreeSitter.java"
-public final class jo.celeris.core.syntax.treesitter.FabriqueVoieTreeSitter implements jo.celeris.core.syntax.FabriqueMoteurVoie {
-  public jo.celeris.core.syntax.MoteurSyntaxe creer(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
-  public jo.celeris.core.syntax.treesitter.FabriqueVoieTreeSitter();
-  public static jo.celeris.core.syntax.Analysis analysePubliee(jo.celeris.core.syntax.MoteurSyntaxe);
-}
-
 ### jo.celeris.core.syntax.treesitter.LiaisonArbre
 Compiled from "LiaisonArbre.java"
 final class jo.celeris.core.syntax.treesitter.LiaisonArbre {
@@ -65,5 +57,13 @@ public final class jo.celeris.core.syntax.treesitter.SyntaxeNatif implements jo.
   public java.lang.String id();
   public jo.celeris.core.syntax.LanguageLexer lexer();
   public jo.celeris.core.syntax.LanguageParser parser();
+}
+
+### jo.celeris.core.syntax.treesitter.TreeSitterPathFactory
+Compiled from "TreeSitterPathFactory.java"
+public final class jo.celeris.core.syntax.treesitter.TreeSitterPathFactory implements jo.celeris.core.syntax.EnginePathFactory {
+  public jo.celeris.core.syntax.MoteurSyntaxe creer(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
+  public jo.celeris.core.syntax.treesitter.TreeSitterPathFactory();
+  public static jo.celeris.core.syntax.Analysis analysePubliee(jo.celeris.core.syntax.MoteurSyntaxe);
 }
 

@@ -9,7 +9,7 @@ import static jo.celeris.lsp.protocole.EcritureDocuments.ecrireSymbole;
 import static jo.celeris.lsp.protocole.EcritureDocuments.ecrireEditions;
 import static jo.celeris.lsp.protocole.EcritureDocuments.ecrireEspace;
 import static jo.celeris.lsp.protocole.EcritureDocuments.optionsFormatage;
-import static jo.celeris.lsp.protocole.EcritureDocuments.encoderJetons;
+import static jo.celeris.lsp.protocole.EcritureDocuments.encoderTokens;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -363,7 +363,7 @@ final class ServeurDocuments implements LanguageServer {
                     params.getTextDocument().getUri());
             SemanticTokens protocole = new SemanticTokens();
             protocole.setResultId(jetons.identifiantResultat());
-            protocole.setData(encoderJetons(jetons));
+            protocole.setData(encoderTokens(jetons));
             return CompletableFuture.completedFuture(protocole);
         }
 
@@ -375,7 +375,7 @@ final class ServeurDocuments implements LanguageServer {
                     lirePlage(params.getRange()));
             SemanticTokens protocole = new SemanticTokens();
             protocole.setResultId(jetons.identifiantResultat());
-            protocole.setData(encoderJetons(jetons));
+            protocole.setData(encoderTokens(jetons));
             return CompletableFuture.completedFuture(protocole);
         }
 

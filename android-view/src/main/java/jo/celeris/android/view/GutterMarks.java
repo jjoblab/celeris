@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
  * erreur — les trois états par ligne, servis par les mêmes consommateurs de
  * l'arbre (A-15 : régions de pli de l'arbre, D-02 : lignes en erreur du
  * diagnostic) — et les marques d'intégration (VCS, arrêts, repères
- * d'exécution) fondues par {@link #avec(MarquesIntegration)}.
+ * d'exécution) fondues par {@link #avec(IntegrationMarks)}.
  *
  * <p>Immutable pour les régions pliables et les lignes en erreur
  * (tableaux triés, recherche dichotomique, sans allocation à la
@@ -30,17 +30,17 @@ public final class GutterMarks {
     private final int[] pliables;
     private final FoldModel replis;
     private final int[] erreurs;
-    private final MarquesIntegration integration;
+    private final IntegrationMarks integration;
 
     private GutterMarks(int[] pliables, FoldModel replis, int[] erreurs) {
         this.pliables = pliables;
         this.replis = replis;
         this.erreurs = erreurs;
-        this.integration = MarquesIntegration.VIDE;
+        this.integration = IntegrationMarks.VIDE;
     }
 
     private GutterMarks(int[] pliables, FoldModel replis, int[] erreurs,
-            MarquesIntegration integration) {
+            IntegrationMarks integration) {
         this.pliables = pliables;
         this.replis = replis;
         this.erreurs = erreurs;
@@ -87,7 +87,7 @@ public final class GutterMarks {
      * @param marques les marques d'intégration à fondre
      * @return les marques fondues
      */
-    public GutterMarks avec(MarquesIntegration marques) {
+    public GutterMarks avec(IntegrationMarks marques) {
         return new GutterMarks(pliables, replis, erreurs, marques);
     }
 
@@ -112,12 +112,12 @@ public final class GutterMarks {
     }
 
     /** La marque de modification VCS de la ligne (D-03), inchangée par défaut. */
-    public MarqueLigne marqueVcs(int ligne) {
+    public MarkLine marqueVcs(int ligne) {
         return integration.marqueVcs(ligne);
     }
 
     /** L'état d'arrêt de la ligne (D-04), aucun par défaut. */
-    public EtatArret arret(int ligne) {
+    public EtatBreakpoint arret(int ligne) {
         return integration.arret(ligne);
     }
 

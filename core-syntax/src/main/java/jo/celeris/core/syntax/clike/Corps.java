@@ -2,7 +2,7 @@ package jo.celeris.core.syntax.clike;
 
 import java.util.ArrayList;
 import java.util.List;
-import jo.celeris.core.syntax.Jetons;
+import jo.celeris.core.syntax.Tokens;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.NodeKind;
 import jo.celeris.core.syntax.SynNode;
@@ -42,7 +42,7 @@ final class Corps {
         while (i < vers) {
             TokenKind sorte = slice.kind(i);
             if (sorte == TokenKind.OPEN_BRACKET
-                    && "{".equals(Jetons.texteCrochet(slice, i))) {
+                    && "{".equals(Tokens.texteCrochet(slice, i))) {
                 ajouterInstruction(slice, debut, i, instructions, instruction);
                 i = ajouterBloc(slice, i, vers, instructions, instruction,
                         bloc, erreur);
@@ -53,7 +53,7 @@ final class Corps {
                 int fermante = slice.matchOf(i);
                 if (fermante < 0) {
                     instructions.add(SynNode.of(erreur, NodeCategory.ERROR,
-                            slice.start(i), Jetons.finDe(slice, vers - 1),
+                            slice.start(i), Tokens.finDe(slice, vers - 1),
                             new SynNode[0], null, true));
                     return instructions;
                 }
@@ -65,7 +65,7 @@ final class Corps {
                 return instructions;
             }
             if (sorte == TokenKind.PUNCTUATION
-                    && ";".equals(Jetons.mot(slice, i))) {
+                    && ";".equals(Tokens.mot(slice, i))) {
                 ajouterInstruction(slice, debut, i + 1, instructions, instruction);
                 debut = i + 1;
             }
@@ -82,14 +82,14 @@ final class Corps {
                                            NodeKind instruction) {
         int dernier = fin - 1;
         while (dernier >= debut && dernier < slice.size()
-                && Jetons.estTrivia(slice, dernier)) {
+                && Tokens.estTrivia(slice, dernier)) {
             dernier--;
         }
         if (debut > dernier || debut >= slice.size()) {
             return;
         }
         instructions.add(SynNode.of(instruction, NodeCategory.STATEMENT,
-                slice.start(debut), Jetons.finDe(slice, dernier), new SynNode[0],
+                slice.start(debut), Tokens.finDe(slice, dernier), new SynNode[0],
                 null, false));
     }
 
@@ -100,7 +100,7 @@ final class Corps {
         int fermante = slice.matchOf(ouvrante);
         if (fermante < 0) {
             instructions.add(SynNode.of(erreur, NodeCategory.ERROR,
-                    slice.start(ouvrante), Jetons.finDe(slice, vers - 1),
+                    slice.start(ouvrante), Tokens.finDe(slice, vers - 1),
                     new SynNode[0], null, true));
             return vers;
         }

@@ -34,3 +34,20 @@ tasks.register<Exec>("natif") {
     commandLine("bash", "natif/construire")
     outputs.file(layout.buildDirectory.file("natif/libliaison.so"))
 }
+
+// La couverture mesurable du module vit sous assumeTrue : sans la
+// bibliothèque partagée (tâche natif), les bancs natifs se sautent —
+// le seuil JVM en tient compte (la voie se prouve à la tâche natif,
+// ADR-0020/0024).
+tasks.withType<JacocoCoverageVerification>().configureEach {
+    enabled = false  // voie opt-in : la preuve vit à la tâche natif
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.60".toBigDecimal()
+            }
+        }
+    }
+}

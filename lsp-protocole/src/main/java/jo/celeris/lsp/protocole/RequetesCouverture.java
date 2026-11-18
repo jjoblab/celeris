@@ -210,7 +210,7 @@ final class RequetesCouverture {
         return fond("jetons", uri, uri, () -> serveur
                 .getTextDocumentService().semanticTokensFull(
                         new SemanticTokensParams(identifiant(uri))))
-                .thenApply(CorrespondanceCouverture::lireJetons);
+                .thenApply(CorrespondanceCouverture::lireTokens);
     }
 
     /** Les jetons sémantiques d'une plage — la mise à jour locale. */
@@ -221,7 +221,7 @@ final class RequetesCouverture {
                 .getTextDocumentService().semanticTokensRange(
                         new SemanticTokensRangeParams(identifiant(uri),
                                 CorrespondanceLsp.ecrirePlage(plage))))
-                .thenApply(CorrespondanceCouverture::lireJetons);
+                .thenApply(CorrespondanceCouverture::lireTokens);
     }
 
     /** Les indices en ligne d'une plage — la marge, sans décalage de saisie. */

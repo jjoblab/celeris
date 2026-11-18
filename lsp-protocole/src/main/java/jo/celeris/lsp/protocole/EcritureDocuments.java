@@ -184,7 +184,7 @@ final class EcritureDocuments {
     }
 
 /** Les jetons absolus du domaine redeviennent la charge encodée du protocole. */
-    static List<Integer> encoderJetons(SemanticTokensLsp jetons) {
+    static List<Integer> encoderTokens(SemanticTokensLsp jetons) {
         List<Integer> donnees = new ArrayList<>();
         int lignePrecedente = 0;
         int colonnePrecedente = 0;

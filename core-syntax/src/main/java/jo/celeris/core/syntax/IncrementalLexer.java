@@ -22,7 +22,7 @@ public final class IncrementalLexer {
 
     /** Passe complète : toutes les lignes, à l'ouverture ou à la revalidation. */
     public LexResult lexFull(Document doc, LanguageLexer lexeur) {
-        return lexFull(doc, lexeur, new JetonAnnulation());
+        return lexFull(doc, lexeur, new TokenCancellation());
     }
 
     /**
@@ -36,7 +36,7 @@ public final class IncrementalLexer {
      * @return le lexique complet du document
      * @throws AnalyseAnnulee si le travail est annulé en cours de passe
      */
-    public LexResult lexFull(Document doc, LanguageLexer lexeur, JetonAnnulation jeton) {
+    public LexResult lexFull(Document doc, LanguageLexer lexeur, TokenCancellation jeton) {
         int nombre = doc.lineCount();
         LexedLine[] lignes = new LexedLine[nombre];
         int[] profondeurs = new int[nombre];

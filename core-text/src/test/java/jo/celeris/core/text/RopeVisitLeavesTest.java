@@ -73,7 +73,7 @@ public class RopeVisitLeavesTest {
     }
 
     @Test
-    public void lArretAnticipeCoupeLaVisite() {
+    public void lBreakpointAnticipeCoupeLaVisite() {
         Rope rope = Rope.fromString(TEXT);
         List<Integer> visited = new ArrayList<>();
         rope.visitLeaves(0, rope.length(), (data, start) -> {
@@ -117,7 +117,7 @@ public class RopeVisitLeavesTest {
     }
 
     @Test
-    public void laVisiteArriereSArreteApresTroisFeuilles() {
+    public void laVisiteArriereSBreakpointeApresTroisFeuilles() {
         Rope rope = Rope.fromString(TEXT);
         List<Integer> visited = new ArrayList<>();
         rope.visitLeavesBackward(0, rope.length(), (data, start) -> {

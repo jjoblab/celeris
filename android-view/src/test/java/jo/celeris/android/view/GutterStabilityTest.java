@@ -52,7 +52,7 @@ public class GutterStabilityTest {
         banc.image();
         float avant = banc.vue().largeurGouttiere;
         banc.vue().marquesGouttiere().setIntegration(
-                MarquesIntegration.of(Map.of(1, MarqueLigne.MODIFIE),
+                IntegrationMarks.of(Map.of(1, MarkLine.MODIFIE),
                         Map.of(), null, Set.of()));
         banc.image();
         assertEquals("l'arrivée de marques ne décale pas le texte",

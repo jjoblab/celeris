@@ -99,7 +99,7 @@ class PastillesCouleurTest {
 
     @Test
     void lesPastillesViventDansLesMarquesDeGouttiere() {
-        MarquesGouttiere marques = new MarquesGouttiere();
+        GutterIntegrations marques = new GutterIntegrations();
         assertEquals(0, marques.pastille(1));
         marques.setPastilles(PastillesCouleur.desLignes(List.of(
                 "<color name=\"a\">#F00</color>")));

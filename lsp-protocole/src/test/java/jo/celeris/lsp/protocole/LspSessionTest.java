@@ -129,9 +129,9 @@ public final class LspSessionTest {
             assertTrue(banc.session().capacites().sertDefinition());
             assertEquals(2, banc.session().capacites().genreSynchro());
             assertEquals(List.of("type", "fonction"),
-                    banc.session().capacites().typesJetons());
+                    banc.session().capacites().typesTokens());
             assertEquals(List.of("declaration"),
-                    banc.session().capacites().modificateursJetons());
+                    banc.session().capacites().modificateursTokens());
         }
     }
 
@@ -246,7 +246,7 @@ public final class LspSessionTest {
     }
 
     @Test
-    void laFermetureDemandeArretJamaisSortie() throws Exception {
+    void laFermetureDemandeBreakpointJamaisSortie() throws Exception {
         Banc banc = demarrer();
         banc.session().close();
         banc.session().close();
@@ -430,7 +430,7 @@ public final class LspSessionTest {
 
     /** Les jetons : la charge encodée traverse, le décodage reste au domaine. */
     @Test
-    void lesJetonsServentLaChargeEncodee() throws Exception {
+    void lesTokensServentLaChargeEncodee() throws Exception {
         try (Banc banc = demarrer()) {
             SemanticTokensLsp jetons = banc.session().jetons(URI)
                     .get(5, TimeUnit.SECONDS);

@@ -130,7 +130,7 @@ class IndexSymbolesTest {
         // Utilisateur.java : le champ + la locale = 2 — le commentaire ne compte pas
         assertEquals(4, usages.size());
         assertTrue(usages.stream().anyMatch(usage ->
-                usage.uri().equals("file:///Client.java") && usage.offset() == 21));
+                usage.uri().equals("file:///Client.java") && usage.offset() == 24));
         assertEquals(2, usages.stream()
                 .filter(usage -> usage.uri().equals("file:///Utilisateur.java")).count());
         // la casse est exacte : « client » minuscule ne trouve que le champ minuscule

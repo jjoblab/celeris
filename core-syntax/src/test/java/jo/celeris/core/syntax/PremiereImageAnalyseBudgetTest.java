@@ -43,14 +43,14 @@ class PremiereImageAnalyseBudgetTest {
         int milieu = doc.lineCount() / 2;
         // échauffement non mesuré : le JIT ne doit pas compter dans le budget
         service.analyseFenetre(doc, milieu - FENETRE / 2, milieu + FENETRE / 2,
-                new JetonAnnulation());
+                new TokenCancellation());
         long meilleur = Long.MAX_VALUE;
         for (int essai = 0; essai <= RATTRAPAGES; essai++) {
             long serie = Long.MAX_VALUE;
             for (int tour = 0; tour < TOURS; tour++) {
                 long debut = System.nanoTime();
                 Analysis fenetre = service.analyseFenetre(doc,
-                        milieu - FENETRE / 2, milieu + FENETRE / 2, new JetonAnnulation());
+                        milieu - FENETRE / 2, milieu + FENETRE / 2, new TokenCancellation());
                 long duree = System.nanoTime() - debut;
                 assertTrue(!fenetre.estComplet(), "la fenêtre seule laisse le reste en attente");
                 serie = Math.min(serie, duree);
@@ -74,12 +74,12 @@ class PremiereImageAnalyseBudgetTest {
         long complet = Long.MAX_VALUE;
         for (int tour = 0; tour < TOURS; tour++) {
             long debut = System.nanoTime();
-            lexer.lexFull(doc, JavaSyntax.INSTANCE.lexer(), new JetonAnnulation());
+            lexer.lexFull(doc, JavaSyntax.INSTANCE.lexer(), new TokenCancellation());
             complet = Math.min(complet, System.nanoTime() - debut);
         }
         long annule = Long.MAX_VALUE;
         for (int tour = 0; tour < TOURS; tour++) {
-            JetonAnnulation jeton = new JetonAnnulation();
+            TokenCancellation jeton = new TokenCancellation();
             jeton.annuler();
             long debut = System.nanoTime();
             assertThrows(AnalyseAnnulee.class,

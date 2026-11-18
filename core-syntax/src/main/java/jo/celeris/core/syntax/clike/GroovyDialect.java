@@ -2,7 +2,7 @@ package jo.celeris.core.syntax.clike;
 
 import java.util.List;
 import java.util.Set;
-import jo.celeris.core.syntax.Jetons;
+import jo.celeris.core.syntax.Tokens;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.SynNode;
 import jo.celeris.core.syntax.TokenSlice;
@@ -102,9 +102,9 @@ final class GroovyDialect extends CLikeDialect {
 
     @Override
     int parseMember(TokenSlice slice, int start, int to, List<SynNode> members) {
-        int afterTrivia = Jetons.sauterTrivia(slice, start);
+        int afterTrivia = Tokens.sauterTrivia(slice, start);
         int afterHeader = skipHeader(slice, afterTrivia);
-        if (afterHeader < to && MEMBER_WORDS.contains(Jetons.mot(slice, afterHeader))) {
+        if (afterHeader < to && MEMBER_WORDS.contains(Tokens.mot(slice, afterHeader))) {
             members.add(defDeclaration(slice, start, afterHeader));
             return MemberScans.memberEnd(slice, afterHeader, to);
         }
@@ -116,7 +116,7 @@ final class GroovyDialect extends CLikeDialect {
     private SynNode defDeclaration(TokenSlice slice, int start, int keyword) {
         String name = MemberScans.nameAfter(slice, keyword);
         boolean method = name != null && keyword + 2 < slice.size()
-                && "(".equals(Jetons.texteCrochet(slice, keyword + 2));
+                && "(".equals(Tokens.texteCrochet(slice, keyword + 2));
         return MemberScans.lineMember(slice, start, keyword, method, name);
     }
 
@@ -125,7 +125,7 @@ final class GroovyDialect extends CLikeDialect {
         List<SynNode> children = Corps.instructions(slice, start, to,
                 CLikeKind.STATEMENT, CLikeKind.BLOC, CLikeKind.ERREUR);
         return SynNode.of(CLikeKind.STATEMENT, NodeCategory.STATEMENT,
-                slice.start(start), Jetons.finDe(slice, to - 1),
+                slice.start(start), Tokens.finDe(slice, to - 1),
                 children.toArray(new SynNode[0]), null, hasError(children));
     }
 

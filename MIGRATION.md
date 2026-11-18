@@ -111,6 +111,39 @@ encore.
 ---
 
 
+
+## 0. La 2.0.0 — le renommage anglais de l'API (ADR-0023, appliquée)
+
+Direct, sans alias : les identifiants publics français deviennent
+anglais. Le recensement des hôtes étant vide (validé le 2026-11-18),
+aucun consommateur ne casse.
+
+| 1.x (français) | 2.0.0 (anglais) |
+| --- | --- |
+| `core-syntax` : `Jetons`, `JetonAnnulation` | `Tokens`, `TokenCancellation` |
+| `core-syntax` : `FabriqueMoteurVoie(Chargee)` | `EnginePathFactory(Loader)` |
+| `core-syntax-treesitter` : `FabriqueVoieTreeSitter` | `TreeSitterPathFactory` |
+| `core-ai` : `FauxModeleDistant/Local` | `FakeRemoteModel/FakeLocalModel` |
+| `core-ai` : `ModelePrediction`, `ModeleTexteFantome` | `PredictionModel`, `GhostTextModel` |
+| `core-ai` : `SessionTexteFantome`, `SuggestionFantome` | `GhostTextSession`, `GhostSuggestion` |
+| `core-ai` : `RevueAgent`, `RequeteModele` | `AgentReview`, `ModelRequest` |
+| `core-ai` : `OutilsEditeur(SurSession)`, `AppliquerPrediction` | `EditorTools(PerSessionTools)`, `ApplyPrediction` |
+| `core-ai` : `ConnecteurMcp`, `EtiquetteAgent`, `PropositionAgent` | `McpConnector`, `AgentLabel`, `AgentProposal` |
+| `core-ai` : `PlageLue`, `PredictionEdition`, `TransactionOutil(Reponse)` | `ReadRange`, `PredictionEdit`, `ToolTransaction(Reply)` |
+| `core-ai` : `ExclusionsContexte`, `GardeContexte`, `InstructionsAgent` | `ContextExclusions`, `ContextGuard`, `AgentInstructions` |
+| `android-view` : `CurseurClavier`, `FantomeEditeur/Painter` | `KeyboardCursor`, `GhostEditor/Painter` |
+| `android-view` : `GestesFabrique`, `GesteFantome` | `GesturesFactory`, `GhostGesture` |
+| `android-view` : `MarquesGouttiere`, `MarquesIntegration` | `GutterIntegrations`, `IntegrationMarks` |
+| `android-view` : `MarqueLigne`, `EtatArret`, `TaillesSp`, `TouchesEditeur` | `MarkLine`, `EtatBreakpoint`, `SpSizes`, `EditorKeys` |
+| `android-widgets` : `ApercuDefinition`, `RevueDiff` | `DefinitionPreview`, `DiffReview` |
+| `android-host` : `Arret`, `LigneArret`, `MarqueVcs` | `Breakpoint`, `BreakpointLine`, `VcsMark` |
+| `android-host` : `FauxDebogueur/Execution/Vcs` | `FakeDebugger/Execution/Vcs` |
+| `EditorView.setTheme/setFont/setSoftWrap/setLigatures` | **retirés** — `settings().set…` sert (T2) |
+
+La baseline des identifiants français (`scripts/language-baseline.txt`)
+tombe à ZÉRO : le rempart devient vide, tout nouvel identifiant
+français échoue en CI.
+
 ## 1. Correspondance des modules
 
 | Dépôt de départ | celeris | Nature du changement |

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
  * Tests de la fausse exécution (E-04) : lancement signalé à l'auditeur,
  * état visible par fichier — les repères de gouttière s'y abreuvent.
  */
-final class FauxExecutionTest {
+final class FakeExecutionTest {
 
     /** Enregistreur simple : les événements tombent dans une liste. */
     private static final class Enregistreur implements AuditeurExecution {
@@ -30,7 +30,7 @@ final class FauxExecutionTest {
     /** Le lancement est signalé : l'auditeur voit l'état en cours. */
     @Test
     void lancementSignale() {
-        FauxExecution execution = new FauxExecution();
+        FakeExecution execution = new FakeExecution();
         Enregistreur auditeur = new Enregistreur();
         execution.ajouterAuditeur(auditeur);
 
@@ -44,7 +44,7 @@ final class FauxExecutionTest {
     /** La fin d'exécution re-signe : terminée ou échouée, l'état suit. */
     @Test
     void finResignalee() {
-        FauxExecution execution = new FauxExecution();
+        FakeExecution execution = new FakeExecution();
         Enregistreur auditeur = new Enregistreur();
         execution.ajouterAuditeur(auditeur);
         Lancement lancement = execution.lancer(CheminDoc.de("/src/Test.java"), true);
@@ -62,7 +62,7 @@ final class FauxExecutionTest {
     /** Un fichier jamais lancé est prêt : aucune trace fantôme. */
     @Test
     void fichierJamaisLancePret() {
-        FauxExecution execution = new FauxExecution();
+        FakeExecution execution = new FakeExecution();
         assertEquals(EtatExecution.PRET, execution.etat(CheminDoc.de("/a.java")));
         assertEquals(0, execution.etats().size(), "seuls les fichiers lancés sont listés");
     }
@@ -70,7 +70,7 @@ final class FauxExecutionTest {
     /** Plusieurs fichiers vivent côte à côte : les états ne se mélangent pas. */
     @Test
     void etatsIndependantsParFichier() {
-        FauxExecution execution = new FauxExecution();
+        FakeExecution execution = new FakeExecution();
         Lancement un = execution.lancer(CheminDoc.de("/un.java"), false);
         execution.lancer(CheminDoc.de("/deux.java"), false);
         execution.simulerFin(un, false);

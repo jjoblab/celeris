@@ -70,7 +70,7 @@ class ReperesPreviewTest {
 
     @Test
     void lesReperesViventDansLesMarquesEtLeClicDelegue() {
-        MarquesGouttiere marques = new MarquesGouttiere();
+        GutterIntegrations marques = new GutterIntegrations();
         assertFalse(marques.reperePreview(2));
         marques.setReperesPreview(new int[] {2, 7});
         assertTrue(marques.reperePreview(2));

@@ -5,6 +5,18 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.0.0] — 2026-11-19
+
+### Le renommage anglais de l'API (ADR-0023, F.5 — appliquée)
+- **Tous les identifiants publics français deviennent anglais, direct, sans alias** — le recensement des hôtes étant vide, personne ne casse. La baseline `scripts/language-baseline.txt` tombe à **ZÉRO** : le rempart devient vide, tout nouvel identifiant français échoue en CI.
+- core-syntax : `Jetons`→`Tokens`, `JetonAnnulation`→`TokenCancellation`, `FabriqueMoteurVoie(Chargee)`→`EnginePathFactory(Loader)` ; core-syntax-treesitter : `FabriqueVoieTreeSitter`→`TreeSitterPathFactory` (le fichier ServiceLoader suit).
+- core-ai : `FauxModele*`→`Fake*Model`, `Modele*`→`*Model`, `*Fantome`→`Ghost*`, `RevueAgent`→`AgentReview`, `RequeteModele`→`ModelRequest`, `OutilsEditeur*`→`EditorTools/PerSessionTools`, `TransactionOutil*`→`ToolTransaction*`, `PlageLue`→`ReadRange`, `ConnecteurMcp`→`McpConnector`, etc.
+- android-view : `CurseurClavier`→`KeyboardCursor`, `Fantome*`→`Ghost*`, `GestesFabrique`→`GesturesFactory`, `MarquesGouttiere`→`GutterIntegrations` (départagé du `GutterMarks` existant), `MarquesIntegration`→`IntegrationMarks`, `MarqueLigne`→`MarkLine`, `TaillesSp`→`SpSizes`, `TouchesEditeur`→`EditorKeys`, `EtatArret`→`EtatBreakpoint`.
+- android-widgets : `ApercuDefinition`→`DefinitionPreview`, `RevueDiff`→`DiffReview` ; android-host : `Arret`→`Breakpoint`, `LigneArret`→`BreakpointLine`, `MarqueVcs`→`VcsMark`, `Faux*`→`Fake*`.
+- **Les poseurs dépréciés partent** : `EditorView.setTheme/setFont/setSoftWrap/setLigatures` — `settings().set…` est la seule voie (T2).
+- Manifestes d'API régénérés (`api/*.api`) ; snapshots du banc c-like régénérés (le corpus d'exemple avait changé avec la sortie du module retiré) ; MIGRATION.md porte la table complète 1.x→2.0.0.
+- La version du groupe passe à `2.0.0` (quatorze artefacts publiés : douze modules + BOM + agrégateur).
+
 ## [1.2.0] — en cours
 
 ### Deux voies de coloration séparées et choisissables ; l'exemple consommateur quitte le dépôt (ADR-0024, 2026-11-18)

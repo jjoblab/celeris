@@ -49,7 +49,7 @@ public final class MoteurAnalyse implements MoteurSyntaxe {
     /** Sites d'édition en attente d'être rejoués par incrément (au plus un). */
     private final Deque<EditSite> sites = new ArrayDeque<>();
 
-    private @Nullable JetonAnnulation enCours;
+    private @Nullable TokenCancellation enCours;
     private @Nullable Document cible;
     private @Nullable Analysis publiee;
     private @Nullable Document publieDoc;
@@ -222,13 +222,13 @@ public final class MoteurAnalyse implements MoteurSyntaxe {
         if (enCours != null) {
             enCours.annuler();
         }
-        JetonAnnulation jeton = new JetonAnnulation();
+        TokenCancellation jeton = new TokenCancellation();
         enCours = jeton;
         return new Tache(jeton);
     }
 
     /** Publication : ne remplace que si le jeton est encore le courant (PIEGE-20). */
-    private void publierSiCourant(JetonAnnulation jeton, Analysis analyse) {
+    private void publierSiCourant(TokenCancellation jeton, Analysis analyse) {
         java.util.List<java.util.function.Consumer<Analysis>> aPrevenir;
         synchronized (this) {
             if (ferme || enCours != jeton) {
@@ -248,9 +248,9 @@ public final class MoteurAnalyse implements MoteurSyntaxe {
     /** Le travail d'un passage : incrément, fenêtre, puis complétion par lots. */
     private final class Tache implements Runnable {
 
-        private final JetonAnnulation jeton;
+        private final TokenCancellation jeton;
 
-        private Tache(JetonAnnulation jeton) {
+        private Tache(TokenCancellation jeton) {
             this.jeton = jeton;
         }
 

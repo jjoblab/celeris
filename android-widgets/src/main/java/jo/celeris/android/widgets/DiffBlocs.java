@@ -8,7 +8,7 @@ import java.util.List;
  * sous-suite commune des deux textes découpe le reste en blocs de
  * lignes — enlevées, ajoutées, remplacées — aux plages exactes des
  * deux côtés. Chaque bloc vit seul : la revue l'accepte ou le refuse
- * sans toucher aux autres ({@link RevueDiff}), le réalignement suit
+ * sans toucher aux autres ({@link DiffReview}), le réalignement suit
  * l'ordre d'application.
  *
  * <p>La sortie « en ligne » juxtapose enlevées et ajoutées d'un même

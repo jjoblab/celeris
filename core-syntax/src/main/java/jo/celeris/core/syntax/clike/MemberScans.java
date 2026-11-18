@@ -3,7 +3,7 @@ package jo.celeris.core.syntax.clike;
 import java.util.ArrayList;
 import java.util.List;
 
-import jo.celeris.core.syntax.Jetons;
+import jo.celeris.core.syntax.Tokens;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.SynNode;
 import jo.celeris.core.syntax.TokenKind;
@@ -54,7 +54,7 @@ final class MemberScans {
      */
     static int parseSemicolonMember(TokenSlice slice, int start, int to,
             List<SynNode> members) {
-        int afterTrivia = Jetons.sauterTrivia(slice, start);
+        int afterTrivia = Tokens.sauterTrivia(slice, start);
         SemicolonScan scan = scanSemicolonMember(slice, afterTrivia, to);
         members.add(buildSemicolonMember(slice, start, scan));
         return scan.end();
@@ -71,17 +71,17 @@ final class MemberScans {
             boolean error = scan.bodyEnd() < 0;
             if (error) {
                 body.add(SynNode.of(CLikeKind.ERREUR, NodeCategory.ERROR,
-                        slice.start(scan.body()), Jetons.finDe(slice, slice.size() - 1),
+                        slice.start(scan.body()), Tokens.finDe(slice, slice.size() - 1),
                         new SynNode[0], null, true));
             }
             boolean method = firstParenthesis(slice, start, scan) >= 0;
             return SynNode.of(method ? CLikeKind.METHOD : CLikeKind.INITIALIZER,
                     method ? NodeCategory.FUNCTION : NodeCategory.FIELD,
-                    slice.start(start), Jetons.finDe(slice, scan.end() - 1),
+                    slice.start(start), Tokens.finDe(slice, scan.end() - 1),
                     body.toArray(new SynNode[0]), name, error);
         }
         return SynNode.of(CLikeKind.FIELD, NodeCategory.FIELD, slice.start(start),
-                Jetons.finDe(slice, scan.end() - 1), new SynNode[0], name,
+                Tokens.finDe(slice, scan.end() - 1), new SynNode[0], name,
                 scan.error());
     }
 
@@ -90,7 +90,7 @@ final class MemberScans {
             SemicolonScan scan) {
         for (int i = start; i < scan.end() && i < slice.size(); i++) {
             if (slice.kind(i) == TokenKind.OPEN_BRACKET
-                    && "(".equals(Jetons.texteCrochet(slice, i))) {
+                    && "(".equals(Tokens.texteCrochet(slice, i))) {
                 return i;
             }
         }
@@ -107,16 +107,16 @@ final class MemberScans {
                 continue;
             }
             if (i + 1 >= slice.size()) {
-                return sort == TokenKind.IDENTIFIER ? Jetons.mot(slice, i) : null;
+                return sort == TokenKind.IDENTIFIER ? Tokens.mot(slice, i) : null;
             }
             TokenKind next = slice.kind(i + 1);
             if (next == TokenKind.OPEN_BRACKET
-                    && "(".equals(Jetons.texteCrochet(slice, i + 1))) {
-                return Jetons.mot(slice, i);
+                    && "(".equals(Tokens.texteCrochet(slice, i + 1))) {
+                return Tokens.mot(slice, i);
             }
             if (next == TokenKind.OPERATOR || next == TokenKind.PUNCTUATION) {
                 if (sort == TokenKind.IDENTIFIER || sort == TokenKind.CONSTANT) {
-                    return Jetons.mot(slice, i);
+                    return Tokens.mot(slice, i);
                 }
             }
         }
@@ -129,7 +129,7 @@ final class MemberScans {
         for (int i = from; i < to; i++) {
             TokenKind sort = slice.kind(i);
             if (sort == TokenKind.OPEN_BRACKET) {
-                if (!equalSeen && "{".equals(Jetons.texteCrochet(slice, i))) {
+                if (!equalSeen && "{".equals(Tokens.texteCrochet(slice, i))) {
                     int closing = slice.matchOf(i);
                     return new SemicolonScan(closing < 0 ? to : closing + 1,
                             i, closing, equalSeen, false);
@@ -142,10 +142,10 @@ final class MemberScans {
             } else if (sort == TokenKind.CLOSE_BRACKET) {
                 return new SemicolonScan(i, -1, -1, equalSeen, false);
             } else if (sort == TokenKind.OPERATOR
-                    && "=".equals(Jetons.mot(slice, i))) {
+                    && "=".equals(Tokens.mot(slice, i))) {
                 equalSeen = true;
             } else if (sort == TokenKind.PUNCTUATION
-                    && ";".equals(Jetons.mot(slice, i))) {
+                    && ";".equals(Tokens.mot(slice, i))) {
                 return new SemicolonScan(i + 1, -1, -1, equalSeen, false);
             }
         }
@@ -160,7 +160,7 @@ final class MemberScans {
             TokenKind sort = slice.kind(i);
             if (sort == TokenKind.OPEN_BRACKET) {
                 int close = slice.matchOf(i);
-                if ("{".equals(Jetons.texteCrochet(slice, i)) && !equalSeen) {
+                if ("{".equals(Tokens.texteCrochet(slice, i)) && !equalSeen) {
                     return new LineScan(i, close, close < 0 ? slice.size() : close + 1);
                 }
                 if (close < 0) {
@@ -173,7 +173,7 @@ final class MemberScans {
                     || slice.line(i) > slice.line(keyword)) {
                 return new LineScan(-1, -1, i);
             }
-            if (sort == TokenKind.OPERATOR && "=".equals(Jetons.mot(slice, i))) {
+            if (sort == TokenKind.OPERATOR && "=".equals(Tokens.mot(slice, i))) {
                 equalSeen = true;
             }
             i++;
@@ -189,7 +189,7 @@ final class MemberScans {
         TokenKind sort = slice.kind(keyword + 1);
         if (sort == TokenKind.IDENTIFIER || sort == TokenKind.TYPE
                 || sort == TokenKind.CONSTANT) {
-            return Jetons.mot(slice, keyword + 1);
+            return Tokens.mot(slice, keyword + 1);
         }
         return null;
     }
@@ -231,13 +231,13 @@ final class MemberScans {
                         CLikeKind.STATEMENT, CLikeKind.BLOC, CLikeKind.ERREUR);
         if (error) {
             body.add(SynNode.of(CLikeKind.ERREUR, NodeCategory.ERROR,
-                    slice.start(opening), Jetons.finDe(slice, slice.size() - 1),
+                    slice.start(opening), Tokens.finDe(slice, slice.size() - 1),
                     new SynNode[0], null, true));
         }
         return SynNode.of(function ? CLikeKind.METHOD : CLikeKind.FIELD,
                 function ? NodeCategory.FUNCTION : NodeCategory.FIELD,
                 slice.start(start),
-                Jetons.finDe(slice, Math.min(end, slice.size()) - 1),
+                Tokens.finDe(slice, Math.min(end, slice.size()) - 1),
                 body.toArray(new SynNode[0]), name, error);
     }
 }

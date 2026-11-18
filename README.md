@@ -118,7 +118,7 @@ ligne de commande ; tout build du dépôt exige un SDK Android installé
 
 ## État du projet
 
-**1.1.0 taguée `v1.1.0` le 2026-11-12 ; la 1.2.0 est en chantier.**
+**1.1.0 taguée `v1.1.0` le 2026-11-12 ; la 2.0.0 (renommage anglais de l'API, ADR-0023) est la version courante.**
 Les jalons M0 à M9 sont bouclés : moteur de texte, vue Canvas, syntaxe,
 édition assistée, sémantique, Android et SPI, IA native, plateforme de
 trente-deux langages (grammaires réellement TextMate, LSP derrière la

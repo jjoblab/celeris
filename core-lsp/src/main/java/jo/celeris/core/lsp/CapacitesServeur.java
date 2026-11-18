@@ -30,15 +30,15 @@ public final class CapacitesServeur {
     private final boolean sertCorrectifs;
     private final boolean sertFormatage;
     private final boolean sertIndices;
-    private final List<String> typesJetons;
-    private final List<String> modificateursJetons;
+    private final List<String> typesTokens;
+    private final List<String> modificateursTokens;
 
     private CapacitesServeur(int genreSynchro, boolean sertCompletion,
             boolean sertSurvol, boolean sertSignature, boolean sertDefinition,
             boolean sertReferences, boolean sertSurlignages, boolean sertSymboles,
             boolean sertPlis, boolean sertSelectionPlages, boolean sertRennomage,
             boolean sertCorrectifs, boolean sertFormatage, boolean sertIndices,
-            List<String> typesJetons, List<String> modificateursJetons) {
+            List<String> typesTokens, List<String> modificateursTokens) {
         this.genreSynchro = genreSynchro;
         this.sertCompletion = sertCompletion;
         this.sertSurvol = sertSurvol;
@@ -53,8 +53,8 @@ public final class CapacitesServeur {
         this.sertCorrectifs = sertCorrectifs;
         this.sertFormatage = sertFormatage;
         this.sertIndices = sertIndices;
-        this.typesJetons = List.copyOf(typesJetons);
-        this.modificateursJetons = List.copyOf(modificateursJetons);
+        this.typesTokens = List.copyOf(typesTokens);
+        this.modificateursTokens = List.copyOf(modificateursTokens);
     }
 
     /** Les capacités vides — avant l'initialisation. */
@@ -86,8 +86,8 @@ public final class CapacitesServeur {
      * @param sertCorrectifs      le serveur propose les correctifs rapides
      * @param sertFormatage       le serveur propose le formatage du document
      * @param sertIndices         le serveur propose les indices en ligne
-     * @param typesJetons         la légende des types de jetons, vide sans légende
-     * @param modificateursJetons la légende des modificateurs, vide sans légende
+     * @param typesTokens         la légende des types de jetons, vide sans légende
+     * @param modificateursTokens la légende des modificateurs, vide sans légende
      * @return les capacités construites
      */
     public static CapacitesServeur de(int genreSynchro, boolean sertCompletion,
@@ -95,12 +95,12 @@ public final class CapacitesServeur {
             boolean sertReferences, boolean sertSurlignages, boolean sertSymboles,
             boolean sertPlis, boolean sertSelectionPlages, boolean sertRennomage,
             boolean sertCorrectifs, boolean sertFormatage, boolean sertIndices,
-            List<String> typesJetons, List<String> modificateursJetons) {
+            List<String> typesTokens, List<String> modificateursTokens) {
         return new CapacitesServeur(genreSynchro, sertCompletion, sertSurvol,
                 sertSignature, sertDefinition, sertReferences, sertSurlignages,
                 sertSymboles, sertPlis, sertSelectionPlages, sertRennomage,
-                sertCorrectifs, sertFormatage, sertIndices, typesJetons,
-                modificateursJetons);
+                sertCorrectifs, sertFormatage, sertIndices, typesTokens,
+                modificateursTokens);
     }
 
     /** Le genre de synchronisation (1 complète, 2 incrémentale), -1 si absent. */
@@ -174,12 +174,12 @@ public final class CapacitesServeur {
     }
 
     /** La légende des types de jetons sémantiques, vide si le serveur n'en propose pas. */
-    public List<String> typesJetons() {
-        return typesJetons;
+    public List<String> typesTokens() {
+        return typesTokens;
     }
 
     /** La légende des modificateurs de jetons sémantiques, vide sans légende. */
-    public List<String> modificateursJetons() {
-        return modificateursJetons;
+    public List<String> modificateursTokens() {
+        return modificateursTokens;
     }
 }

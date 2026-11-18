@@ -51,9 +51,9 @@ public final class OutlinePainter {
      * @param surface la surface de dessin
      */
     public void dessiner(OutlineModel modele, OutlineSurface surface) {
-        List<OutlineModel.Ligne> lignes = modele.lignes();
+        List<OutlineModel.Row> lignes = modele.lignes();
         for (int i = 0; i < lignes.size(); i++) {
-            OutlineModel.Ligne ligne = lignes.get(i);
+            OutlineModel.Row ligne = lignes.get(i);
             float x = MARGE_GAUCHE + ligne.profondeur() * pasIndentation;
             float centre = (i + 0.5f) * hauteurLigne;
             glyphe(ligne.entree().category(), x, centre, surface);

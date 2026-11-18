@@ -58,7 +58,7 @@ class DocModificateursTest {
 
     /** C-10 — le récepteur des modificateurs se survole en toute position. */
     @Test
-    void leRecepteurSeSurvoleEnToutePosition() {
+    void leReceiverSeSurvoleEnToutePosition() {
         SurvolLsp survol = DocModificateurs.survol(Document.of(ECHEC),
                 auCurseurDe("Modifier") + 1);
         assertNotNull(survol);

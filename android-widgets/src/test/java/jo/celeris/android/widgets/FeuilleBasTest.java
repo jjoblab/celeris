@@ -135,7 +135,7 @@ public class FeuilleBasTest {
     /** La largeur se cantonne a celle de la maquette, la hauteur a sa
      *  part — le corps defile, il ne deborde pas. */
     @Test
-    public void lesCotesSeCantonnentAuxJetons() {
+    public void lesCotesSeCantonnentAuxTokens() {
         FrameLayout hote = hotePose(1000, 1800);
         FeuilleBas feuille = new FeuilleBas(contexte, PopupPalette.dark());
         LinearLayout dense = new LinearLayout(contexte);

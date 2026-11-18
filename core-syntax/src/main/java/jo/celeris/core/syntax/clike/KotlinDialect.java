@@ -2,7 +2,7 @@ package jo.celeris.core.syntax.clike;
 
 import java.util.List;
 import java.util.Set;
-import jo.celeris.core.syntax.Jetons;
+import jo.celeris.core.syntax.Tokens;
 import jo.celeris.core.syntax.SynNode;
 import jo.celeris.core.syntax.TokenSlice;
 
@@ -115,7 +115,7 @@ final class KotlinDialect extends CLikeDialect {
 
     @Override
     int parseMember(TokenSlice slice, int start, int to, List<SynNode> members) {
-        int afterTrivia = Jetons.sauterTrivia(slice, start);
+        int afterTrivia = Tokens.sauterTrivia(slice, start);
         int afterHeader = skipHeader(slice, afterTrivia);
         // la fin de tranche peut n'être que modificateurs ou annotations :
         // la garde du GroovyDialect s'applique ici aussi — jamais de lecture
@@ -123,7 +123,7 @@ final class KotlinDialect extends CLikeDialect {
         if (afterHeader >= slice.size()) {
             return to;
         }
-        String word = Jetons.mot(slice, afterHeader);
+        String word = Tokens.mot(slice, afterHeader);
         boolean function = "fun".equals(word) || "init".equals(word);
         members.add(MemberScans.lineMember(slice, start, afterHeader, function,
                 MemberScans.nameAfter(slice, afterHeader)));

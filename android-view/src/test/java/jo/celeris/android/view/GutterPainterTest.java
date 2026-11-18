@@ -724,12 +724,12 @@ class GutterPainterTest {
      * désactivé, au centre de la coulisse.
      */
     @Test
-    void lePointDArretSeRendCercle() {
+    void lePointDBreakpointSeRendCercle() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
         GutterMarks marques = GutterMarks.of(List.of(), new FoldModel(),
-                new int[0]).avec(MarquesIntegration.of(Map.of(),
-                        Map.of(0, EtatArret.POSE, 1, EtatArret.DESACTIVE),
+                new int[0]).avec(IntegrationMarks.of(Map.of(),
+                        Map.of(0, EtatBreakpoint.POSE, 1, EtatBreakpoint.DESACTIVE),
                         null, Set.of()));
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
                 () -> marques, () -> 12f));
@@ -763,8 +763,8 @@ class GutterPainterTest {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
         GutterMarks marques = GutterMarks.of(List.of(), new FoldModel(),
-                new int[0]).avec(MarquesIntegration.of(Map.of(),
-                        Map.of(0, EtatArret.POSE), 0, Set.of()));
+                new int[0]).avec(IntegrationMarks.of(Map.of(),
+                        Map.of(0, EtatBreakpoint.POSE), 0, Set.of()));
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
                 () -> marques, () -> 12f));
         Document document = Document.of("a\nb");

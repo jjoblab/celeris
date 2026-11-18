@@ -219,7 +219,7 @@ class InlineTest {
 
     /** B-21 — le récepteur étranger refuse : la cible ne se connaît pas par le nom seul. */
     @Test
-    void leRecepteurEtrangerRefuse() {
+    void leReceiverEtrangerRefuse() {
         refuse("""
                 class Calcul {
                     private int base = 40;

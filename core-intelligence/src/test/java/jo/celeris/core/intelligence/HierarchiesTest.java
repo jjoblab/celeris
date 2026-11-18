@@ -226,7 +226,7 @@ class HierarchiesTest {
 
     /** B-12 — le récepteur étranger marque le doute, sans arête — jamais tranché. */
     @Test
-    void leRecepteurEtrangerMarqueLeDoute() {
+    void leReceiverEtrangerMarqueLeDoute() {
         Map<String, Document> fichiers = new LinkedHashMap<>();
         fichiers.put("zoo/Soiree.java", Document.of(SOIREE));
         fichiers.put("zoo/Organisateur.java", Document.of("""

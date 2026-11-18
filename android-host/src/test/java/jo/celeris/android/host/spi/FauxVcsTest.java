@@ -12,13 +12,13 @@ import org.junit.jupiter.api.Test;
  * annotations de blame par ligne — le contrat que la gouttière
  * consommera, servi par l'implémentation de référence déterministe.
  */
-final class FauxVcsTest {
+final class FakeVcsTest {
 
-    private static FauxVcs fauxPrecharge() {
-        Map<Integer, MarqueVcs> marques = Map.of(
-                3, MarqueVcs.MODIFIE,
-                4, MarqueVcs.MODIFIE,
-                7, MarqueVcs.AJOUTE);
+    private static FakeVcs fauxPrecharge() {
+        Map<Integer, VcsMark> marques = Map.of(
+                3, VcsMark.MODIFIE,
+                4, VcsMark.MODIFIE,
+                7, VcsMark.AJOUTE);
         List<PlageLignes> supprimees = List.of(new PlageLignes(9, 10));
         List<AnnotationBlame> blame = List.of(
                 new AnnotationBlame(1, "r1", "amine", "creation"),
@@ -28,18 +28,18 @@ final class FauxVcsTest {
         List<RevisionVcs> revisions = List.of(
                 new RevisionVcs("r2", "sofia", "2026-11-05", "correction"),
                 new RevisionVcs("r1", "amine", "2026-11-01", "creation"));
-        return new FauxVcs(marques, supprimees, blame, revisions);
+        return new FakeVcs(marques, supprimees, blame, revisions);
     }
 
     /** Les marques se servent par ligne, inchangée hors des plages. */
     @Test
     void marquesParLigne() {
-        FauxVcs vcs = fauxPrecharge();
-        assertEquals(MarqueVcs.MODIFIE, vcs.etatLignes(CheminDoc.de("/a")).marque(3));
-        assertEquals(MarqueVcs.MODIFIE, vcs.etatLignes(CheminDoc.de("/a")).marque(4));
-        assertEquals(MarqueVcs.AJOUTE, vcs.etatLignes(CheminDoc.de("/a")).marque(7));
-        assertEquals(MarqueVcs.INCHANGE, vcs.etatLignes(CheminDoc.de("/a")).marque(1));
-        assertEquals(MarqueVcs.INCHANGE, vcs.etatLignes(CheminDoc.de("/a")).marque(5));
+        FakeVcs vcs = fauxPrecharge();
+        assertEquals(VcsMark.MODIFIE, vcs.etatLignes(CheminDoc.de("/a")).marque(3));
+        assertEquals(VcsMark.MODIFIE, vcs.etatLignes(CheminDoc.de("/a")).marque(4));
+        assertEquals(VcsMark.AJOUTE, vcs.etatLignes(CheminDoc.de("/a")).marque(7));
+        assertEquals(VcsMark.INCHANGE, vcs.etatLignes(CheminDoc.de("/a")).marque(1));
+        assertEquals(VcsMark.INCHANGE, vcs.etatLignes(CheminDoc.de("/a")).marque(5));
     }
 
     /** Les plages supprimées se servent intactes : bornes inclusives. */
@@ -73,10 +73,10 @@ final class FauxVcsTest {
     /** Sans données, l'état est vide et muet : aucune marque, aucune ligne supprimée. */
     @Test
     void etatVideParDefaut() {
-        FauxVcs vide = new FauxVcs();
+        FakeVcs vide = new FakeVcs();
         EtatLignesVcs etat = vide.etatLignes(CheminDoc.de("/a"));
-        assertEquals(MarqueVcs.INCHANGE, etat.marque(1));
-        assertEquals(MarqueVcs.INCHANGE, etat.marque(100));
+        assertEquals(VcsMark.INCHANGE, etat.marque(1));
+        assertEquals(VcsMark.INCHANGE, etat.marque(100));
         assertEquals(0, etat.supprimees().size());
         assertEquals(0, vide.blame(CheminDoc.de("/a")).size());
         assertEquals(0, vide.historique(CheminDoc.de("/a")).size());

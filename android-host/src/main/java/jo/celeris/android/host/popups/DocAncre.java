@@ -8,7 +8,7 @@ import java.util.List;
 import jo.celeris.android.host.R;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.view.ReperesPreview;
-import jo.celeris.android.widgets.ApercuDefinition;
+import jo.celeris.android.widgets.DefinitionPreview;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
 import jo.celeris.android.widgets.PopupAnchor;
@@ -151,8 +151,8 @@ public final class DocAncre {
      */
     public void apercu(List<OutlineEntry> plan, List<String> lignes) {
         int curseur = caret();
-        ApercuDefinition apercu = ApercuDefinition.de(plan, lignes,
-                ApercuDefinition.symboleAu(session.document().text(), curseur),
+        DefinitionPreview apercu = DefinitionPreview.de(plan, lignes,
+                DefinitionPreview.symboleAu(session.document().text(), curseur),
                 curseur);
         if (apercu == null) {
             return;

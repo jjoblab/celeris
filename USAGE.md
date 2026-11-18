@@ -1,7 +1,7 @@
 # USAGE — le guide d'intégration hôte
 
 > Guide d'intégration de **celeris** pour les applications hôtes Android.
-> Version 1.1.0 — chaque coordonnée d'artefact et chaque nom d'API cité
+> Version 2.0.0 — chaque coordonnée d'artefact et chaque nom d'API cité
 > ici est vérifié contre les manifestes `api/*.api` du dépôt (ADR-009) et
 > contre les sources publiques des modules Android. Ce qui manque encore
 > se lit honnêtement en § 18 ; la terminologie vit dans
@@ -63,21 +63,21 @@ le SBOM, jamais dans un identifiant.
 
 ## 2. Coordonnées et disponibilité
 
-Les coordonnées Maven, groupe `jo.celeris`, version `1.1.0` —
+Les coordonnées Maven, groupe `jo.celeris`, version `2.0.0` —
 l'artifactId porte le nom du module. **Douze artefacts sont publiés**,
 chacun avec son jar (ou son AAR), ses sources, sa Javadoc, son SBOM
 CycloneDX et sa somme SHA-256 (§ 16) — les neuf modules purs :
 
-`jo.celeris:core-text:1.1.0` · `jo.celeris:core-syntax:1.1.0` ·
-`jo.celeris:core-syntax-grammars:1.1.0` · `jo.celeris:core-language:1.1.0` ·
-`jo.celeris:core-intelligence:1.1.0` · `jo.celeris:core-lsp:1.1.0` ·
-`jo.celeris:core-ai:1.1.0` · `jo.celeris:lsp-protocole:1.1.0` ·
+`jo.celeris:core-text:2.0.0` · `jo.celeris:core-syntax:2.0.0` ·
+`jo.celeris:core-syntax-grammars:2.0.0` · `jo.celeris:core-language:2.0.0` ·
+`jo.celeris:core-intelligence:2.0.0` · `jo.celeris:core-lsp:2.0.0` ·
+`jo.celeris:core-ai:2.0.0` · `jo.celeris:lsp-protocole:2.0.0` ·
 
 et, depuis le 2026-11-11 (décision du propriétaire), les trois
 bibliothèques Android en AAR :
 
-`jo.celeris:android-view:1.1.0` · `jo.celeris:android-widgets:1.1.0` ·
-`jo.celeris:android-host:1.1.0`
+`jo.celeris:android-view:2.0.0` · `jo.celeris:android-widgets:2.0.0` ·
+`jo.celeris:android-host:2.0.0`
 
 État vérifié au 2026-11-11 :
 
@@ -86,7 +86,7 @@ bibliothèques Android en AAR :
   artefacts depuis `mavenLocal()` dès aujourd'hui.
 - **Publication distante** : le registre de paquets de l'hébergeur
   (`https://maven.pkg.github.com/jjoblab/celeris`) porte les douze
-  artefacts `1.1.0` depuis le 2026-11-12 (chantier C1 clos) — un projet
+  artefacts `2.0.0` (chantier C1 clos, registre depuis le 2026-11-12) — un projet
   vierge consomme `core-text` (compile, exécute, édite), l'AAR
   `android-view` s'y vérifie, les sommes SHA-256 correspondent.
   Le dépôt GitHub du projet est le point de contact ; l'annonce de la
@@ -109,9 +109,9 @@ R8, l'hôte qui n'en veut pas ne le paie pas.
 ```kotlin
 dependencies {
     // tout l'éditeur, une ligne (B1)
-    implementation("jo.celeris:celeris:1.1.0")
+    implementation("jo.celeris:celeris:2.0.0")
     // uniquement si vous montez des serveurs de langage embarqués
-    implementation("jo.celeris:lsp-protocole:1.1.0")
+    implementation("jo.celeris:lsp-protocole:2.0.0")
 }
 ```
 
@@ -120,7 +120,7 @@ plateforme : la BOM `celeris-bom` aligne les onze modules publiés.
 
 ```kotlin
 dependencies {
-    implementation(platform("jo.celeris:celeris-bom:1.1.0"))
+    implementation(platform("jo.celeris:celeris-bom:2.0.0"))
     implementation("jo.celeris:android-host")   // sans version
     implementation("jo.celeris:core-syntax-grammars")
 }
@@ -139,19 +139,19 @@ repositories {
 }
 
 dependencies {
-    implementation("jo.celeris:core-text:1.1.0")
-    implementation("jo.celeris:core-syntax:1.1.0")
-    implementation("jo.celeris:core-syntax-grammars:1.1.0")
-    implementation("jo.celeris:core-language:1.1.0")
-    implementation("jo.celeris:core-intelligence:1.1.0")
-    implementation("jo.celeris:core-lsp:1.1.0")
-    implementation("jo.celeris:core-ai:1.1.0")
+    implementation("jo.celeris:core-text:2.0.0")
+    implementation("jo.celeris:core-syntax:2.0.0")
+    implementation("jo.celeris:core-syntax-grammars:2.0.0")
+    implementation("jo.celeris:core-language:2.0.0")
+    implementation("jo.celeris:core-intelligence:2.0.0")
+    implementation("jo.celeris:core-lsp:2.0.0")
+    implementation("jo.celeris:core-ai:2.0.0")
     // uniquement si vous montez des serveurs de langage embarqués
-    implementation("jo.celeris:lsp-protocole:1.1.0")
+    implementation("jo.celeris:lsp-protocole:2.0.0")
     // surfaces Android (AAR, publiées depuis le 2026-11-11)
-    implementation("jo.celeris:android-view:1.1.0")
-    implementation("jo.celeris:android-widgets:1.1.0")
-    implementation("jo.celeris:android-host:1.1.0")
+    implementation("jo.celeris:android-view:2.0.0")
+    implementation("jo.celeris:android-widgets:2.0.0")
+    implementation("jo.celeris:android-host:2.0.0")
 }
 ```
 
@@ -280,7 +280,7 @@ dependencies {
 ```
 
 Ces modules référencent les artefacts du cœur par les mêmes
-coordonnées (`jo.celeris:*:1.1.0`) — votre `mavenLocal()` ou le dépôt
+coordonnées (`jo.celeris:*:2.0.0`) — votre `mavenLocal()` ou le dépôt
 distant les résout. La publication des modules Android comme artefacts
 est tranchée depuis le 2026-11-11 (décision du propriétaire, ADR-011) ;
 l'inclusion de source reste la voie de secours pour lire et adapter.
@@ -486,8 +486,7 @@ LanguageSupport langue = detection instanceof LanguageDetection.Resolved r
 editeur.setLanguage(langue);
 ```
 
-Les trente-deux paquets intégrés (vingt-deux à la 1.0.0, Go et Rust à la
-1.2.0, Swift, Dart, Scala, C#, Lua, smali, log et text depuis la traîne du
+Les trente-deux paquets intégrés (vingt-deux à la 1.0.0 ; Go, Rust,
 2026-11-18) : `c`, `cpp`, `css`, `csharp`, `dart`, `go`, `groovy`, `html`,
 `java`, `javascript`, `json`, `kotlin`, `kts`, `log`, `lua`, `markdown`,
 `php`, `proguard`, `properties`, `python`, `ruby`, `rust`, `scala`,
@@ -952,8 +951,8 @@ renommage (refactorer). Le jar se construit par
   que vous consommez :
 
 ```bash
-sha256sum core-text-1.1.0.jar
-# à comparer au condensé de core-text-1.1.0.jar.sha256
+sha256sum core-text-2.0.0.jar
+# à comparer au condensé de core-text-2.0.0.jar.sha256
 ```
 
 - **SBOM** : chaque artefact embarque un SBOM CycloneDX — la
@@ -987,7 +986,7 @@ sha256sum core-text-1.1.0.jar
 [`docs/feuille-de-route-restante.md`](docs/feuille-de-route-restante.md)) :
 
 - **Publication distante** (C1, clos le 2026-11-12) : les douze artefacts vivent
-  au registre de l'hébergeur — le chantier de la 1.2.0 le consigne.
+  au registre de l'hébergeur — les chantiers successifs le consignent.
 
 ## 19. Pièges d'intégration
 
