@@ -471,6 +471,8 @@ public final class jo.celeris.core.text.TextSession {
   public static final int DEFAULT_MAX_DEPTH;
   public static jo.celeris.core.text.TextSession of(java.lang.String, java.util.function.LongSupplier);
   public static jo.celeris.core.text.TextSession of(jo.celeris.core.text.Document, java.util.function.LongSupplier);
+  public static jo.celeris.core.text.TextSession of(java.lang.String);
+  public static jo.celeris.core.text.TextSession of(jo.celeris.core.text.Document);
   public jo.celeris.core.text.Document document();
   public java.lang.String text();
   public int length();

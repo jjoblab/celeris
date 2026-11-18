@@ -165,6 +165,21 @@ public final class CelerisEditor {
     private @Nullable TextSession session;
     private @Nullable LanguageSupport langue;
     private boolean fermee;
+    // T4 : les déclencheurs posés par le kit — mémorisés pour le
+    // retrait à close() (le montage de l'orchestrateur les pose, le
+    // démontage les retire : jamais d'écouteur fantôme).
+    private final java.util.function.IntPredicate verdictTouche =
+            code -> {
+                PopupsEditeur orchestrateur = popups;
+                return orchestrateur != null && orchestrateur.surTouche(code);
+            };
+    private final java.util.function.IntPredicate verdictDoubleTap =
+            offset -> {
+                PopupsEditeur orchestrateur = popups;
+                return orchestrateur != null
+                        && (orchestrateur.ouvrirColorPicker(offset)
+                                || orchestrateur.ouvrirSurvolAuDoubleTap(offset));
+            };
 
     private CelerisEditor(EditorView vue, PopupLayer couche,
             LanguageKit langues, boolean frappeIntelligente) {
@@ -218,6 +233,12 @@ public final class CelerisEditor {
             // initiale en naît.
             popups = new PopupsEditeur(vue, session, couche,
                     settings.theme(), settings.fontSizeSp());
+            // T4 : les déclencheurs du kit — la délégation clavier des
+            // popups (PIEGE-27) et le survol au double appui (le color
+            // picker d'abord). L'hôte n'écrit plus rien : ce que la
+            // démo branchait à la main vit dans le montage.
+            vue.addPopupKeyListener(verdictTouche);
+            vue.addDoubleTapListener(verdictDoubleTap);
         }
         // Le nom du fichier : le filtre des diagnostics s'y fait.
         popups.setNomFichier(fileName);
@@ -276,6 +297,8 @@ public final class CelerisEditor {
             return;
         }
         fermee = true;
+        vue.removePopupKeyListener(verdictTouche);
+        vue.removeDoubleTapListener(verdictDoubleTap);
         PopupsEditeur orchestrateur = popups;
         if (orchestrateur != null) {
             orchestrateur.detacher();

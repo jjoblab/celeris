@@ -352,4 +352,23 @@ class TextSessionTest {
         assertEquals("abcdef", session.text());
         assertEquals(0, session.undoDepth());
     }
+
+    /** T4 (ADR-0022, phase 2) : la surcharge SANS horloge — l'hôte
+     *  simple n'écrit plus {@code System::nanoTime} à chaque montage ;
+     *  l'horloge par défaut y vit. La coalescence reste fonctionnelle :
+     *  deux frappes dans la même fenêtre temporelle ne se séparent pas
+     *  en deux étapes d'annulation. */
+    @Test
+    void laSurchargeSansHorlogeEditeEtAnnule() {
+        TextSession session = TextSession.of(DOC);
+        assertEquals(DOC, session.text(), "le texte y est");
+        session.replaceRange(0, 3, "long");
+        assertEquals("long a = 1;",
+                session.text().substring(0, 11), "l'édition vit");
+        session.undo();
+        assertEquals(DOC, session.text(), "l'annulation revient");
+
+        TextSession surDocument = TextSession.of(Document.of(DOC));
+        assertEquals(DOC, surDocument.text(), "la surcharge document y est");
+    }
 }

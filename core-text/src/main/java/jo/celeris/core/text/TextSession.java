@@ -76,6 +76,31 @@ public final class TextSession {
         return new TextSession(document, clock);
     }
 
+    /**
+     * Crée une session sur le texte donné, à l'horloge PAR DÉFAUT —
+     * la surcharge de confort de la couche d'intégration (ADR-0022,
+     * phase 2, T4) : l'hôte simple n'écrit plus son horloge à chaque
+     * montage, {@link System#nanoTime} y vit ; le banc qui veut la
+     * main garde la surcharge à horloge injectée.
+     *
+     * @param text le contenu initial
+     * @return la session prête à éditer
+     */
+    public static TextSession of(String text) {
+        return of(text, System::nanoTime);
+    }
+
+    /**
+     * Crée une session sur l'instantané donné, à l'horloge PAR
+     * DÉFAUT (T4) — même confort que {@link #of(String)}.
+     *
+     * @param document l'instantané initial
+     * @return la session prête à éditer
+     */
+    public static TextSession of(Document document) {
+        return of(document, System::nanoTime);
+    }
+
     /** L'instantané courant — lisible sans verrou depuis tout fil. */
     public Document document() {
         return document;

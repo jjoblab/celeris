@@ -160,24 +160,54 @@ Le cœur n'exige que `core-text` ; chaque autre module ne tire que ce
 que son rôle demande — les règles de dépendance vivent dans
 [`ARCHITECTURE.md`](ARCHITECTURE.md). Le vôtre inclut ce qu'il expose.
 
-### 3.2 Quand la publication distante existera — le registre de l'hébergeur
+### 3.2 La publication distante — JitPack
+
+Le dépôt se consomme par JitPack, sans compte ni jeton. Le dépôt
+se déclare dans `settings.gradle.kts` (compatible
+`FAIL_ON_PROJECT_REPOS`), sous `dependencyResolutionManagement` :
 
 ```kotlin
-repositories {
-    maven {
-        url = uri("https://maven.pkg.github.com/jjoblab/celeris")
-        credentials {
-            username = System.getenv("GITHUB_USER")
-            password = System.getenv("GITHUB_TOKEN")
-        }
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")   // celeris vit ici
     }
 }
 ```
 
-Le jeton est un *personal access token* de portée `read:packages`, le
-nom d'utilisateur votre identifiant GitHub. Les coordonnées ne changent
-pas — seul le dépôt s'ajoute (annonce et vérification des sommes au
-chantier C1, § 18).
+En Groovy (`settings.gradle`) :
+
+```groovy
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }   // celeris vit ici
+    }
+}
+```
+
+Les coordonnées changent alors de groupe : le dépôt GitHub devient
+le groupe Maven — `com.github.jjoblab.celeris`. La version est le
+tag publié :
+
+```kotlin
+dependencies {
+    implementation("com.github.jjoblab.celeris:celeris:<tag>")
+}
+```
+
+Aucun jeton, aucune identification : JitPack sert les artefacts du
+tag publiquement. Le premier build d'un tag peut prendre quelques
+minutes (JitPack compile à la demande) ; les suivants sont servis
+depuis son cache. Le dépôt local (`mavenLocal()`, § 3.1) reste la
+voie des bancs et de l'intégration continue — le sample
+[`samples/consumer-smoke/`](samples/consumer-smoke/README.md) tient
+les deux voies.
 
 ### 3.3 Les modules Android — artefacts, ou inclusion de source
 
@@ -279,7 +309,8 @@ dès que le registre assemblé vit (coloration en retard, édition jamais
 bloquée). La frappe intelligente (`IntelligenceHub.builtins()`) est
 active dès le montage — `CelerisEditor.attach(...)` renvoie un
 monte-charge : `.withoutSmartTyping().build()` pour la couper. Le
-chemin manuel reste documenté en § 9.2 pour qui assemble lui-même.
+chemin manuel reste documenté en § 9.2 (annexe avancée) pour qui
+assemble ses propres surfaces, hors façade.
 
 ### 4.3 Le premier montage en code (voie manuelle)
 

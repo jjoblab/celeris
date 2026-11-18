@@ -1,5 +1,107 @@
 # celeris
 
+## Démarrage en 5 minutes
+
+> 🇬🇧 English quick start: [README.en.md](README.en.md).
+
+> **Prérequis** — Android Gradle Plugin **9.5.1** (version éprouvée par
+> l'exemple consommateur en CI), **JDK 17** pour la construction,
+> `minSdk 26`. Rien d'autre : aucune dépendance AndroidX, aucun
+> désucrage. **Si et seulement si** vous montez des serveurs de langage
+> embarqués (`lsp-protocole`) : activez le désucrage de bibliothèque et
+> gardez les règles R8 embarquées (elles voyagent dans l'artefact,
+> R8 les lit).
+
+**1. Le dépôt JitPack** — dans `settings.gradle.kts`, sous
+`dependencyResolutionManagement` (compatible `FAIL_ON_PROJECT_REPOS`) :
+
+```kotlin
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+```
+
+En Groovy (`settings.gradle`) :
+
+```groovy
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+**2. La dépendance** — dans `app/build.gradle.kts` :
+
+```kotlin
+dependencies {
+    implementation("com.github.jjoblab.celeris:celeris:<tag>")
+}
+```
+
+`<tag>` est le tag publié du dépôt (voir la page *Releases*) ; la
+dépendance unique `celeris` porte l'éditeur entier — vue, widgets,
+façade hôte, grammaires.
+
+**3. Le gabarit XML** — dans votre mise en page :
+
+```xml
+<FrameLayout
+    android:id="@+id/scene_edition"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <jo.celeris.android.view.EditorView
+        android:id="@+id/editeur"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <jo.celeris.android.widgets.PopupLayer
+        android:id="@+id/couche_popups"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</FrameLayout>
+```
+
+**4. La façade** — quatre lignes dans votre activité :
+
+```java
+import jo.celeris.android.host.CelerisEditor;
+import jo.celeris.android.view.EditorThemes;
+import jo.celeris.core.language.LanguageKit;
+import jo.celeris.core.syntax.grammars.PackGrammars;
+
+// une fois par processus : le chargeur partagé des trente-deux langages
+LanguageKit langues = LanguageKit.builder(LanguageKit.sharedDaemon())
+        .grammarFactory(PackGrammars.INSTANCE)
+        .builtinPacks()
+        .build();
+
+// par scène : l'éditeur complet — session, langue détectée, popups,
+// frappe intelligente, réglages à source unique, libération
+CelerisEditor editeur = CelerisEditor.attach(
+        findViewById(R.id.editeur), findViewById(R.id.couche_popups), langues);
+editeur.open("Main.java", texte);              // langue détectée + coloration
+editeur.settings().setTheme(EditorThemes.SOMBRE); // vue ET popups, un appel
+editeur.close();                               // tout se libère
+```
+
+La suite vit dans [`USAGE.md`](USAGE.md) — le guide d'intégration
+complet (§ 4.2 pour le montage, § 3.2 pour les coordonnées) et
+[`samples/consumer-smoke/`](samples/consumer-smoke/README.md),
+l'exemple vivant qui ne connaît que cette façade.
+
+---
+
+
 **celeris** (latin : « rapide, vif ») est un éditeur de code embarquable pour
 Android : une bibliothèque que toute application hôte intègre pour obtenir
 une surface d'édition comparable à celle d'un environnement de développement

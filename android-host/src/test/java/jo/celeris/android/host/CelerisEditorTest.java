@@ -1,9 +1,12 @@
 package jo.celeris.android.host;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import android.view.KeyEvent;
 
 import java.lang.ref.WeakReference;
 import java.util.Set;
@@ -238,5 +241,50 @@ public class CelerisEditorTest {
                 vue);
         editeur.open("Autre.java", SOURCE);
         assertNull("la façade close reste muette", editeur.session());
+    }
+
+    /** T4 (ADR-0022, phase 2) : les déclencheurs popups sont branchés
+     *  PAR LE KIT — l'hôte n'écrit plus setSurTouchePopup ni
+     *  setSurDoubleTap (le geste de la démo d'avant). La preuve par
+     *  la délégation clavier (PIEGE-27) : la carte des réglages
+     *  ouverte par la voie publique, ÉCHAP remonte au kit AVANT la
+     *  table de raccourcis — la carte se referme et le curseur ne
+     *  bouge pas ; sans le branchement, ÉCHAP ne fermait rien (le
+     *  verdict n'existait pas côté vue) et la touche tombait dans la
+     *  vie normale de l'éditeur. */
+    @Test
+    public void laFacadeBrancheLaDelegationClavierDesPopups() throws Exception {
+        EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
+        PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
+        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
+        editeur.open("Main.java", SOURCE);
+
+        // la carte s'ouvre par la voie publique du contrôleur (une
+        // carte du régime clavier, INTENTIONS_MENU) — le banc isole
+        // la DÉLÉGATION : ce qui se prouve ici, c'est le branchement
+        // du verdict touche par la façade, pas le contenu des cartes
+        // (le plan et l'analyse suivent leurs propres bancs).
+        jo.celeris.core.text.TextSession sessionOuverte = editeur.session();
+        editeur.popups().manager().controleur().open(
+                jo.celeris.android.widgets.PopupController.PopupKind.INTENTIONS_MENU);
+        assertTrue("la carte vit (ouverte par la voie publique)",
+                editeur.popups().manager().estOuvert(
+                        jo.celeris.android.widgets.PopupController.PopupKind.INTENTIONS_MENU));
+
+        int caretAvant = sessionOuverte.selection().ranges().get(0).caret();
+        KeyEvent echap = new KeyEvent(0L, 0L, KeyEvent.ACTION_DOWN,
+                KeyEvent.KEYCODE_ESCAPE, 0, 0);
+        vue.onKeyDown(KeyEvent.KEYCODE_ESCAPE, echap);
+
+        // le verdict du kit a consommé ÉCHAP : la carte s'est fermée
+        // et le curseur n'a pas bougé — sans branchement, la carte
+        // serait restée ouverte (personne n'écoutait)
+        assertFalse("la carte refermée par le kit",
+                editeur.popups().manager().estOuvert(
+                        jo.celeris.android.widgets.PopupController.PopupKind.INTENTIONS_MENU));
+        assertEquals("ÉCHAP a servi la carte, pas le curseur",
+                caretAvant,
+                sessionOuverte.selection().ranges().get(0).caret());
+        editeur.close();
     }
 }
