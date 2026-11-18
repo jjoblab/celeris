@@ -7,6 +7,11 @@
 >
 > Le dépôt de départ est traité en lecture seule au commit `f310a39` ; le
 > nouveau dépôt n'est pas un fork et ne reprend aucun historique.
+>
+> **Archivage reporté le 2026-11-18** : d'autres projets dépendent encore du dépôt
+> de départ — il demeure actif (la bannière de migration se retire, le dépôt est
+> désarchivé sur l'hébergeur) ; l'archivage viendra en son temps, au signal du
+> propriétaire.
 
 ## Légende
 

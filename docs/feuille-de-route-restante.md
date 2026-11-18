@@ -22,7 +22,7 @@
 | 2 | Clôture de la 1.1.0 et tag `v1.1.0` | Clos le 2026-11-12 | — |
 | 3 | Langages suivants : Go, Rust… (C5) | Clos le 2026-11-18 — trente-deux langages intégrés, le tour des vingt-neuf du dépôt de départ complet | — |
 | 4 | Second étage appareil de vérification (C11) | Livré et passé vert le 2026-11-12 | la CI exécute au nocturne — la recette manuelle du propriétaire reste |
-| 5 | Archivage du dépôt de départ (C14) | Bloqué | décision du propriétaire ; poussée hors de ce bac à sable |
+| 5 | Archivage du dépôt de départ (C14) | Reporté le 2026-11-18 — d'autres projets vivent encore sur le dépôt de départ | l'archivage attendra le signal du propriétaire — la bannière posée se retire, le dépôt redevient actif |
 | 6 | Entretien continu (dependabot, montées de version) | Permanent | rien — veille hebdomadaire |
 | 7 | Mission popups : audit, restructuration, unification | Clos le 2026-11-13 — les neuf phases, les six livrables, l'inventaire sans manquant | — |
 
@@ -120,8 +120,10 @@ celeris — pour qu'aucun hôte ne sème sur une impasse.
 **Sortie** : bannière visible sur le dépôt de départ ; le registre de
 portage le consigne.
 
-**Blocage** : décision du propriétaire ; la poussée se fait dans le
-dépôt de départ, hors de ce bac à sable.
+**Reporté** : le signal du propriétaire arrive le 2026-11-18 — d'autres projets
+utilisent encore le dépôt de départ, l'archivage n'est pas pour tout de suite. La
+bannière posée se retire (le commit `b0c80bc` repris, le dépôt GitHub redevient actif
+— désarchivé) ; l'étape attend le signal du propriétaire, en son temps.
 
 **Source** : audit § 9, recommandation 10 ; § 7.2.
 
