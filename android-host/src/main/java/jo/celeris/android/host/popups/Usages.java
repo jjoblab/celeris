@@ -139,7 +139,7 @@ final class Usages {
             }
         }
         carte.setTitre(popups.couche().getContext().getString(
-                R.string.titre_usages, lieux.size(),
+                R.string.celeris_titre_usages, lieux.size(),
                 ContenuPopups.symboleA(document, caret())));
         carte.setOccurrences(occurrences);
         Rect curseur = editeur.caretBounds();

@@ -43,7 +43,7 @@ public class ArretAppuiLongTest {
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         List<Integer> lignes = new ArrayList<>();
-        vue.setSurBasculeArret(lignes::add);
+        vue.addBreakpointToggleListener(lignes::add);
         banc.image(); // la gouttière prend sa largeur à la première image
         // l'appui long au cœur de la gouttière, rangée 1 — la ligne 1
         float y = 1.5f * vue.metrics.lineHeight();
@@ -71,7 +71,7 @@ public class ArretAppuiLongTest {
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         List<Integer> lignes = new ArrayList<>();
-        vue.setSurBasculeArret(lignes::add);
+        vue.addBreakpointToggleListener(lignes::add);
         banc.image(); // la gouttière prend sa largeur à la première image
         // l'appui long au cœur de « gamma » (rangée 1, colonnes 0..4)
         float y = 1.5f * vue.metrics.lineHeight();

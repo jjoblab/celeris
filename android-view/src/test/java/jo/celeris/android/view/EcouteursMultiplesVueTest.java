@@ -70,20 +70,20 @@ public class EcouteursMultiplesVueTest {
         assertEquals(2, avisHote[0], "l'abonné vivant continue de recevoir");
     }
 
-    /** La voie 1.x setSurViewportChange vit AVEC les abonnés 2.0 —
-     *  l'hôte 1.x qui pose son écouteur n'écrase plus le kit 2.0
-     *  (compatibilité de migration). */
+    /** Deux abonnés du changement de fenêtre notifiés ensemble — le
+     *  kit et l'hôte s'abonnent sans s'écraser (la voie 2.0 seule
+     *  vit désormais, les poseurs 1.x sont retirés). */
     @Test
-    public void laVoieUnPointXCohabiteAvecLaDeuxPointZero() {
+    public void deuxAbonnesFenetreNotifiesEnsemble() {
         EditorTestRig banc = banc();
         EditorView vue = banc.vue();
-        int[] avisAncien = { 0 };
-        int[] avisNouveau = { 0 };
-        vue.setSurViewportChange(() -> avisAncien[0]++);
-        vue.addViewportChangeListener(() -> avisNouveau[0]++);
+        int[] avisKit = { 0 };
+        int[] avisHote = { 0 };
+        vue.addViewportChangeListener(() -> avisKit[0]++);
+        vue.addViewportChangeListener(() -> avisHote[0]++);
         banc.image();
-        assertEquals(1, avisAncien[0], "l'écouteur 1.x reçoit l'avis");
-        assertEquals(1, avisNouveau[0], "l'abonné 2.0 reçoit le même avis");
+        assertEquals(1, avisKit[0], "l'abonné du kit reçoit l'avis");
+        assertEquals(1, avisHote[0], "l'abonné de l'hôte reçoit le même avis");
     }
 
     /** Deux abonnés du changement de taille de police notifiés
@@ -125,17 +125,17 @@ public class EcouteursMultiplesVueTest {
         assertEquals(42, offsetsRecus[1], "le second abonné a rendu son verdict");
     }
 
-    /** La bascule de point d'arrêt atteint CHAQUE abonné — le
-     *  consommateur 1.x et l'abonné 2.0 ensemble (D-04). */
+    /** La bascule de point d'arrêt atteint CHAQUE abonné (D-04) —
+     *  le kit et l'hôte ensemble, la voie 2.0 seule. */
     @Test
     public void laBasculeArretAtteintChaqueAbonne() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
-        int[] lignesAncien = { -1 };
-        int[] lignesNouveau = { -1 };
-        vue.setSurBasculeArret(ligne -> lignesAncien[0] = ligne);
-        vue.addBreakpointToggleListener(ligne -> lignesNouveau[0] = ligne);
+        int[] lignesKit = { -1 };
+        int[] lignesHote = { -1 };
+        vue.addBreakpointToggleListener(ligne -> lignesKit[0] = ligne);
+        vue.addBreakpointToggleListener(ligne -> lignesHote[0] = ligne);
         vue.rappels.notifierBasculeArret(7);
-        assertEquals(7, lignesAncien[0], "le consommateur 1.x rend la ligne");
-        assertEquals(7, lignesNouveau[0], "l'abonné 2.0 rend la même ligne");
+        assertEquals(7, lignesKit[0], "l'abonné du kit rend la ligne");
+        assertEquals(7, lignesHote[0], "l'abonné de l'hôte rend la même ligne");
     }
 }

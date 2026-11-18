@@ -4,8 +4,12 @@
 
 | Version | Prise en charge |
 | --- | --- |
-| 1.0.x | oui |
+| 1.1.x | oui (série courante) |
+| 1.0.x | oui (corrections critiques seules) |
 | < 1.0.0 | non (jalons de développement, jamais publiés) |
+
+La série prise en charge suit la dernière version taguée ; ce tableau
+se met à jour à chaque publication.
 
 ## Signaler une vulnérabilité
 

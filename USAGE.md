@@ -347,8 +347,8 @@ seule se tait.
 | `setRetenueAnalyseMs(long)` | la retenue d'analyse avant re-travail (250 ms par défaut) |
 | `intelligence()` | le hub des fonctions assistées (§ 14) |
 | `marquesGouttiere()` | les marques de gouttière (§ 10) |
-| `setOnFontSizeChanged(Consumer<Float>)` | le pincement change la taille, l'hôte suit |
-| `setSurPlan(Consumer<List<OutlineEntry>>)` | le plan du document suit l'édition |
+| `addFontSizeChangeListener(Consumer<Float>)` | le pincement change la taille, chaque abonné suit (paire `remove…`) |
+| `addPlanListener(Consumer<List<OutlineEntry>>)` | le plan du document suit l'édition (paire `remove…`) |
 
 L'accessibilité est native : la vue sert un arbre virtuel
 (`getAccessibilityNodeProvider`), annonce la sélection et répond aux
@@ -591,10 +591,10 @@ popups.setPlan(entreesDuFichier);
 popups.setDiagnostics(diagnosticsDeLhote);
 
 // les déclenchements maison : double-tap et clavier délégué
-editeur.setSurDoubleTap(offset ->
+editeur.addDoubleTapListener(offset ->
         popups.ouvrirColorPicker(offset)
                 || popups.ouvrirSurvolAuDoubleTap(offset));
-editeur.setSurTouchePopup(popups::surTouche);
+editeur.addPopupKeyListener(popups::surTouche);
 
 // la fin de vie : tout se ferme, les liens se dissolvent
 popups.detacher();
@@ -609,8 +609,9 @@ popups.detacher();
 - **le serveur** — `LanguageSession` (même module) est la surface
   commune des serveurs de langage : les modèles du kit y arrivent déjà
   convertis, l'orchestrateur n'attrape jamais le protocole (§ 8);
-- **la vue** — `editeur.setSurDoubleTap` et
-  `editeur.setSurTouchePopup` (PIEGE-27) restent les deux seuls
+- **la vue** — hors façade (qui les branche à votre place, § 4.2),
+  `editeur.addDoubleTapListener` et `editeur.addPopupKeyListener`
+  (PIEGE-27) restent les deux seuls
   déclenchements à brancher; le survol au « i » et l'ouverture du
   menu d'intentions passent par les actions de la barre et du menu.
 
@@ -683,7 +684,7 @@ qu'ils fermaient — l'hôte sans manager les retire de sa
    sans toucher au curseur :
 
 ```java
-editeur.setSurTouchePopup(popups::surTouche);
+editeur.addPopupKeyListener(popups::surTouche);
 ```
 
 UP et DOWN déplacent la surbrillance de la première carte

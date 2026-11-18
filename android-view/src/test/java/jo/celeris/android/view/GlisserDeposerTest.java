@@ -88,7 +88,7 @@ public class GlisserDeposerTest {
         EditorTestRig banc = bancAttache("aaaa\n");
         EditorView vue = banc.vue();
         List<String> recues = new ArrayList<>();
-        vue.setSurFichierDepose(recues::add);
+        vue.addFileDropListener(recues::add);
         ClipData pressePapiers = new ClipData("fichier",
                 new String[] {"application/octet-stream"},
                 new ClipData.Item(Uri.parse("content://media/externe/42")));
@@ -107,7 +107,7 @@ public class GlisserDeposerTest {
         EditorTestRig banc = bancAttache("aaaa\n");
         EditorView vue = banc.vue();
         List<String> recues = new ArrayList<>();
-        vue.setSurFichierDepose(recues::add);
+        vue.addFileDropListener(recues::add);
         ClipData pressePapiers = new ClipData("double",
                 new String[] {"text/plain"}, new ClipData.Item("XY"));
         pressePapiers.addItem(

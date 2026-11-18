@@ -132,7 +132,7 @@ final class Gabarits {
             return;
         }
         carte.setSection(popups.couche().getContext().getString(
-                R.string.section_gabarits));
+                R.string.celeris_section_gabarits));
         carte.setActions(items);
         montrer();
     }
@@ -154,17 +154,17 @@ final class Gabarits {
             String classe, List<Generateurs.Champ> champs) {
         items.add(new IntentionsMenuView.Item(
                 popups.couche().getContext().getString(
-                        R.string.gabarits_constructeur, classe),
+                        R.string.celeris_gabarits_constructeur, classe),
                 () -> generer(Generateurs.constructeur(classe, champs))));
         if (!champs.isEmpty()) {
             items.add(new IntentionsMenuView.Item(
                     popups.couche().getContext().getString(
-                            R.string.gabarits_accesseurs, classe),
+                            R.string.celeris_gabarits_accesseurs, classe),
                     () -> generer(Generateurs.accesseurs(champs))));
         }
         items.add(new IntentionsMenuView.Item(
                 popups.couche().getContext().getString(
-                        R.string.gabarits_equality, classe),
+                        R.string.celeris_gabarits_equality, classe),
                 () -> generer(
                         Generateurs.equalsHashCodeToString(classe, champs))));
     }
@@ -177,12 +177,12 @@ final class Gabarits {
         }
         items.add(new IntentionsMenuView.Item(
                 popups.couche().getContext().getString(
-                        R.string.gabarits_entourer_try),
+                        R.string.celeris_gabarits_entourer_try),
                 () -> entourer("try {",
                         "} catch (Exception e) {\n    throw e;\n}")));
         items.add(new IntentionsMenuView.Item(
                 popups.couche().getContext().getString(
-                        R.string.gabarits_entourer_if),
+                        R.string.celeris_gabarits_entourer_if),
                 () -> entourer("if (condition) {", "}")));
     }
 
@@ -191,7 +191,7 @@ final class Gabarits {
     private void ajouterGabaritMethode(List<IntentionsMenuView.Item> items) {
         items.add(new IntentionsMenuView.Item(
                 popups.couche().getContext().getString(
-                        R.string.gabarits_methode),
+                        R.string.celeris_gabarits_methode),
                 () -> {
                     popups.fermer(PopupController.PopupKind.GABARITS);
                     gesteGabaritMethode.get().run();

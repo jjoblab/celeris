@@ -110,16 +110,16 @@ final class Masquage {
             if (regle != null) {
                 items.add(new IntentionsMenuView.Item(
                         popups.couche().getContext().getString(
-                                R.string.suppression_item, regle),
+                                R.string.celeris_suppression_item, regle),
                         () -> masquer(ligne, regle)));
             }
         }
         if (items.isEmpty()) {
-            annoncer(R.string.suppression_aucune_inspection);
+            annoncer(R.string.celeris_suppression_aucune_inspection);
             return;
         }
         carte.setSection(popups.couche().getContext().getString(
-                R.string.section_suppression));
+                R.string.celeris_section_suppression));
         carte.setActions(items);
         montrer();
     }
@@ -159,7 +159,7 @@ final class Masquage {
             if (relance != null) {
                 relance.run();
             }
-            annoncer(R.string.suppression_inspection_effectuee, regle);
+            annoncer(R.string.celeris_suppression_inspection_effectuee, regle);
         }
     }
 
@@ -180,7 +180,7 @@ final class Masquage {
      *  coin bas-droit, avec ses arguments. */
     private void annoncer(int message, Object... arguments) {
         String titre = popups.couche().getContext().getString(
-                R.string.titre_notification);
+                R.string.celeris_titre_notification);
         annonces.accept(titre, popups.couche().getContext()
                 .getString(message, arguments));
     }

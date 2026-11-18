@@ -58,7 +58,7 @@ class EditorSyntaxPlanTest {
     void planPousseDuMemeArbreQueLaColoration() {
         List<List<OutlineEntry>> plans = new ArrayList<>();
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel());
-        syntaxe.setSurPlan(plans::add);
+        syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
@@ -87,7 +87,7 @@ class EditorSyntaxPlanTest {
     void planSeMetAJourALaEdition() {
         List<List<OutlineEntry>> plans = new ArrayList<>();
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel());
-        syntaxe.setSurPlan(plans::add);
+        syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
@@ -116,7 +116,7 @@ class EditorSyntaxPlanTest {
     void planPousseHorsFilApresPublication() {
         List<List<OutlineEntry>> plans = new ArrayList<>();
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
-        syntaxe.setSurPlan(plans::add);
+        syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
@@ -140,7 +140,7 @@ class EditorSyntaxPlanTest {
     void retraitDuLangageVideLePlan() {
         List<List<OutlineEntry>> plans = new ArrayList<>();
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
-        syntaxe.setSurPlan(plans::add);
+        syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));

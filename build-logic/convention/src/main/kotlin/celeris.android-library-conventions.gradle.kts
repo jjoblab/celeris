@@ -32,6 +32,11 @@ extensions.configure(LibraryExtension::class.java) {
     defaultConfig {
         minSdk = 26 // ADR-011 : portée cumulée mesurée ~99 %
     }
+    // B4 : toutes les ressources des bibliothèques portent le préfixe
+    // celeris_ — la collision avec les noms de l'hôte devient
+    // impossible (le préfixe devient bloquant à la compilation pour
+    // toute ressource qui l'oublie).
+    resourcePrefix = "celeris_"
     compileOptions {
         sourceCompatibility = org.gradle.api.JavaVersion.VERSION_17
         targetCompatibility = org.gradle.api.JavaVersion.VERSION_17

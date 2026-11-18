@@ -161,7 +161,7 @@ class EditorSyntaxDataPlanTest {
     void planPousseParLesReglesDuPaquet() {
         List<List<OutlineEntry>> plans = new ArrayList<>();
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
-        syntaxe.setSurPlan(plans::add);
+        syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
         syntaxe.attacher(session);
         syntaxe.setLanguage(supportEssai());

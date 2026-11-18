@@ -30,7 +30,6 @@
     <string name="action_usages">Rechercher les usages</string>
     <string name="action_type_info">Info de type au curseur</string>
     <string name="action_hierarchie">Hiérarchie de types ou d\'appels</string>
-    <string name="titre_notification">Avis</string>
     <string name="action_aller">Aller à un fichier ou symbole</string>
     <string name="titre_feuille_aller">Aller à</string>
     <string name="indication_aller">Nom de fichier ou symbole…</string>
@@ -51,7 +50,6 @@
     <string name="barre_majuscules">Majuscules</string>
     <string name="barre_minuscules">Minuscules</string>
     <string name="barre_indenter">Indenter</string>
-    <string name="menu_plus">PLUS</string>
     <string name="barre_tout">Tout sélectionner</string>
     <string name="action_plan">Plan</string>
     <string name="titre_feuille_plan">Plan du fichier</string>

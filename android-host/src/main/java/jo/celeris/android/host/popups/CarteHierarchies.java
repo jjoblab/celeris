@@ -138,11 +138,11 @@ final class CarteHierarchies {
             return;
         }
         carte.setArbre(popups.couche().getContext().getString(
-                        R.string.titre_hierarchie_types, symbole),
+                        R.string.celeris_titre_hierarchie_types, symbole),
                 Transpose.deTypes(arbre, connusDe(entrees), this::sauterVers,
-                        libelle(R.string.section_supertypes),
-                        libelle(R.string.section_soustypes),
-                        libelle(R.string.section_hors_projet)),
+                        libelle(R.string.celeris_section_supertypes),
+                        libelle(R.string.celeris_section_soustypes),
+                        libelle(R.string.celeris_section_hors_projet)),
                 null);
         montrer();
     }
@@ -159,11 +159,11 @@ final class CarteHierarchies {
             return;
         }
         carte.setArbre(popups.couche().getContext().getString(
-                        R.string.titre_hierarchie_appels, symbole),
+                        R.string.celeris_titre_hierarchie_appels, symbole),
                 Transpose.dAppels(arbre, connusDe(entrees), this::sauterVers,
-                        libelle(R.string.section_appelants)),
+                        libelle(R.string.celeris_section_appelants)),
                 arbre.doute() ? popups.couche().getContext().getString(
-                        R.string.legende_doute_hierarchie) : null);
+                        R.string.celeris_legende_doute_hierarchie) : null);
         montrer();
     }
 

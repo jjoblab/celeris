@@ -198,6 +198,20 @@ public final class Packs {
     /** Un paquet archivé : les entrées lues en mémoire, zip-slip refusé. */
     private static final class ArchivePacks implements PackSource {
 
+        /** C3 — plafond par entrée décompressée : un paquet de
+         *  grammaire réel pèse quelques dizaines de Ko ; 8 Mo couvre
+         *  les grammaires lourdes (embedded languages) et refuse la
+         *  bombe de décompression AVANT qu'elle ne remplisse le tas. */
+        private static final int PLAFOND_ENTREE = 8 * 1024 * 1024;
+
+        /** C3 — plafond du nombre d'entrées : l'archive ne devient
+         *  pas un vecteur d'épuisement par déluge de fichiers. */
+        private static final int PLAFOND_ENTREES = 512;
+
+        /** C3 — plafond du total décompressé : des entrées honnêtes
+         *  une à une ne franchissent pas la garde par accumulation. */
+        private static final long PLAFOND_TOTAL = 64L * 1024 * 1024;
+
         private final Path archive;
 
         private ArchivePacks(Path archive) {
@@ -207,6 +221,7 @@ public final class Packs {
         @Override
         public List<PackFiles> packs() throws IOException {
             Map<String, byte[]> entrees = new TreeMap<>();
+            long total = 0L;
             try (ZipInputStream zip =
                     new ZipInputStream(Files.newInputStream(archive))) {
                 ZipEntry entree;
@@ -215,15 +230,61 @@ public final class Packs {
                         continue;
                     }
                     String nom = entree.getName();
-                    if (nom.startsWith("/") || nom.contains("..")) {
+                    if (echappe(nom)) {
                         throw new IllegalArgumentException(
                                 "zip entry escapes the pack: " + nom);
                     }
-                    entrees.put(nom, zip.readAllBytes());
+                    if (entrees.size() >= PLAFOND_ENTREES) {
+                        throw new IllegalArgumentException(
+                                "pack archive holds too many entries (max "
+                                        + PLAFOND_ENTREES + "): " + nom);
+                    }
+                    byte[] octets = lireBorne(zip, nom);
+                    total += octets.length;
+                    if (total > PLAFOND_TOTAL) {
+                        throw new IllegalArgumentException(
+                                "pack archive total decompressed size exceeds "
+                                        + PLAFOND_TOTAL + " bytes at: " + nom);
+                    }
+                    entrees.put(nom, octets);
                 }
             }
             return List.of(new ArchivePack(
                     archive.getFileName().toString(), entrees));
+        }
+
+        /** C3 — la lecture bornée : jamais plus que le plafond par
+         *  entrée, la bombe se refuse au premier octet de trop. */
+        private static byte[] lireBorne(ZipInputStream zip, String nom)
+                throws IOException {
+            java.io.ByteArrayOutputStream tampon =
+                    new java.io.ByteArrayOutputStream();
+            byte[] bloc = new byte[8192];
+            int lus;
+            while ((lus = zip.read(bloc)) != -1) {
+                if (tampon.size() + lus > PLAFOND_ENTREE) {
+                    throw new IllegalArgumentException(
+                            "zip entry exceeds " + PLAFOND_ENTREE
+                                    + " bytes: " + nom);
+                }
+                tampon.write(bloc, 0, lus);
+            }
+            return tampon.toByteArray();
+        }
+
+        /** C3 — la remontée réelle : « .. » comme SEGMENT complet du
+         *  chemin (ou tête absolue), pas comme sous-chaîne — le nom
+         *  légitime « a..b » vit sa vie. */
+        private static boolean echappe(String nom) {
+            if (nom.startsWith("/") || nom.indexOf('\\') >= 0) {
+                return true;
+            }
+            for (String segment : nom.split("/", -1)) {
+                if (segment.equals("..")) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /** Les fichiers de l'archive, en mémoire, plats à la racine. */

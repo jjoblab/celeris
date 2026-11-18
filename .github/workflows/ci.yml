@@ -80,7 +80,7 @@ jobs:
           "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null
       - name: Contrôles complets (tous modules, SDK présent)
         run: ./gradlew check
-      - name: Publication locale (onze artefacts — purs et Android, SBOM, sommes de contrôle)
+      - name: Publication locale (treize artefacts — onze modules + BOM + agrégateur, SBOM, sommes)
         run: ./gradlew publishToMavenLocal publicationChecksums
       - name: Démonstration (APK debug)
         run: ./gradlew :demo:assembleDebug
@@ -134,7 +134,7 @@ jobs:
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses > /dev/null || true
           "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0" "platform-tools" > /dev/null
-      - name: Publication locale (onze artefacts + BOM + agrégateur)
+      - name: Publication locale (treize artefacts — onze modules + BOM + agrégateur)
         run: |
           ./gradlew :core-text:publishToMavenLocal :core-syntax:publishToMavenLocal :core-syntax-grammars:publishToMavenLocal :core-language:publishToMavenLocal :core-intelligence:publishToMavenLocal :core-lsp:publishToMavenLocal :core-ai:publishToMavenLocal :lsp-protocole:publishToMavenLocal :android-view:publishToMavenLocal :android-widgets:publishToMavenLocal :android-host:publishToMavenLocal :celeris:publishToMavenLocal :celeris-bom:publishToMavenLocal --no-daemon -x test -x lint -x check -Dorg.gradle.configuration-cache=false
       - name: Sample (release minifié contre mavenLocal)

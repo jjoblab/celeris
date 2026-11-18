@@ -57,7 +57,7 @@ public class FantomeEditeurTest {
         EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
         EditorView vue = banc.vue();
         List<GesteFantome> gestes = new ArrayList<>();
-        vue.setSurGesteFantome(gestes::add);
+        vue.addGhostGestureListener(gestes::add);
         vue.setFantome(new SuggestionFantome("def", 3,
                 vue.session().document().revision()));
         assertTrue("Tab se consomme", vue.fantome.surTab());
@@ -73,7 +73,7 @@ public class FantomeEditeurTest {
         EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
         EditorView vue = banc.vue();
         List<GesteFantome> gestes = new ArrayList<>();
-        vue.setSurGesteFantome(gestes::add);
+        vue.addGhostGestureListener(gestes::add);
         assertFalse("sans suggestion, Tab se refuse", vue.fantome.surTab());
         assertTrue("aucun geste n'est parti", gestes.isEmpty());
     }
@@ -95,7 +95,7 @@ public class FantomeEditeurTest {
         EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
         EditorView vue = banc.vue();
         List<GesteFantome> gestes = new ArrayList<>();
-        vue.setSurGesteFantome(gestes::add);
+        vue.addGhostGestureListener(gestes::add);
         vue.setFantome(new SuggestionFantome("def", 3,
                 vue.session().document().revision()));
         banc.image();
@@ -116,7 +116,7 @@ public class FantomeEditeurTest {
         EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
         EditorView vue = banc.vue();
         List<GesteFantome> gestes = new ArrayList<>();
-        vue.setSurGesteFantome(gestes::add);
+        vue.addGhostGestureListener(gestes::add);
         vue.setFantome(new SuggestionFantome("def", 3,
                 vue.session().document().revision()));
         banc.image();

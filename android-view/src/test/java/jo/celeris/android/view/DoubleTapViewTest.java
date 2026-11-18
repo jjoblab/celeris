@@ -40,7 +40,7 @@ public class DoubleTapViewTest {
         EditorView vue = banc.vue();
         int[] verdicts = new int[1];
         int[] appels = new int[1];
-        vue.setSurDoubleTap(offset -> {
+        vue.addDoubleTapListener(offset -> {
             appels[0]++;
             verdicts[0] = offset;
             return true;
@@ -72,7 +72,7 @@ public class DoubleTapViewTest {
         EditorTestRig banc = EditorTestRig.sur(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
-        vue.setSurDoubleTap(offset -> false);
+        vue.addDoubleTapListener(offset -> false);
         float y = vue.metrics.lineHeight() / 2f;
         long t = SystemClock.uptimeMillis();
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
@@ -94,7 +94,7 @@ public class DoubleTapViewTest {
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         int[] appels = new int[1];
-        vue.setSurDoubleTap(offset -> {
+        vue.addDoubleTapListener(offset -> {
             appels[0]++;
             return true;
         });

@@ -54,7 +54,7 @@ public class ViewFontsTest {
         EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
         EditorView vue = banc.vue();
         AtomicInteger avis = new AtomicInteger();
-        vue.setOnFontSizeChanged(taille -> avis.incrementAndGet());
+        vue.addFontSizeChangeListener(taille -> avis.incrementAndGet());
         vue.setFont(new FontSpec("mono", vue.metrics.font().size()));
         assertEquals("la même taille ne prévient pas", 0, avis.get());
         vue.setFont(new FontSpec("mono", 18f));

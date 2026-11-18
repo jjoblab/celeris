@@ -42,6 +42,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-020](020-niveau-2-natif-borne.md) | Niveau 2 natif borné (révision de l'ADR-016) | Acceptée (signal du propriétaire, 2026-11-13) |
 | [ADR-0021](0021-modules-android-toujours-construits.md) | Les modules Android toujours construits (révision du critère M1) | Acceptée (décision du propriétaire, 2026-11-17) |
 | [ADR-0022](0022-couche-integration.md) | La couche d'intégration : façade d'abord, consolidation ensuite (chantier B0) | Acceptée (mandat du propriétaire, 2026-11-17) |
+| [ADR-0023](0023-nommage-api-publique.md) | Nommage de l'API publique — brouillon de préparation (chantier E) | Brouillon (décision attendue du propriétaire) |
 
 ## Règles
 

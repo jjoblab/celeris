@@ -284,4 +284,74 @@ final class PackLoaderTest {
         assertInstanceOf(LanguagePack.SyntaxPreference.class,
                 pack.syntaxPreference());
     }
+
+    /** C3 — la bombe de décompression : une entrée qui déclare plus
+     *  d'octets que le plafond se refuse AVANT d'avoir tout lu en
+     *  mémoire. Le paquet est de la donnée non fiable : la borne
+     *  protège le tas de l'hôte. */
+    @Test
+    void uneEntreeHorsPlafondSeRefuse() throws IOException {
+        byte[] gros = new byte[9 * 1024 * 1024];   // 9 Mo > plafond 8 Mo
+        Path zip = bac.resolve("bombe.zip");
+        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
+            sortie.putNextEntry(new ZipEntry("pack.json"));
+            sortie.write("{}".getBytes(StandardCharsets.UTF_8));
+            sortie.putNextEntry(new ZipEntry("grossiere.bin"));
+            sortie.write(gros);
+        }
+        PackSource source = Packs.archive(zip);
+        IllegalArgumentException echec = assertThrows(IllegalArgumentException.class,
+                source::packs);
+        assertTrue(String.valueOf(echec.getMessage()).contains("exceeds"));
+    }
+
+    /** C3 — le déluge d'entrées : plus d'entrées que le plafond se
+     *  refuse, l'archive ne devient pas un vecteur d'épuisement. */
+    @Test
+    void tropDentreesSeRefuse() throws IOException {
+        Path zip = bac.resolve("deluge.zip");
+        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
+            for (int i = 0; i < 513; i++) {   // > plafond 512
+                sortie.putNextEntry(new ZipEntry("f" + i + ".txt"));
+                sortie.write("1".getBytes(StandardCharsets.UTF_8));
+            }
+        }
+        PackSource source = Packs.archive(zip);
+        IllegalArgumentException echec = assertThrows(IllegalArgumentException.class,
+                source::packs);
+        assertTrue(String.valueOf(echec.getMessage()).contains("too many entries"));
+    }
+
+    /** C3 — le total décompressé : des entrées honnêtes une à une
+     *  mais un total hors plafond se refuse aussi. */
+    @Test
+    void leTotalDecompresseHorsPlafondSeRefuse() throws IOException {
+        Path zip = bac.resolve("cumul.zip");
+        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
+            for (int i = 0; i < 12; i++) {   // 12 x 6 Mo > plafond 64 Mo
+                sortie.putNextEntry(new ZipEntry("f" + i + ".bin"));
+                sortie.write(new byte[6 * 1024 * 1024]);
+            }
+        }
+        PackSource source = Packs.archive(zip);
+        IllegalArgumentException echec = assertThrows(IllegalArgumentException.class,
+                source::packs);
+        assertTrue(String.valueOf(echec.getMessage()).contains("total"));
+    }
+
+    /** C3 — le nom « a..b » est LÉGITIME : deux points dans un nom
+     *  de fichier ne sont pas une remontée. L'ancienne garde
+     *  (contains("..")) le refusait à tort ; la garde normale le
+     *  laisse vivre — seule la remontée réelle (../) se refuse. */
+    @Test
+    void leNomADeuxPointsLegitimePasse() throws IOException {
+        Path zip = bac.resolve("honnete.zip");
+        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
+            sortie.putNextEntry(new ZipEntry("a..b.json"));
+            sortie.write("{}".getBytes(StandardCharsets.UTF_8));
+        }
+        // pas d'exception : l'entrée vit dans le paquet
+        PackSource.PackFiles paquet = Packs.archive(zip).packs().get(0);
+        assertTrue(paquet.has("a..b.json"));
+    }
 }

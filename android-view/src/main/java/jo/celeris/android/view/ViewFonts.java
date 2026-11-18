@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
-import org.jspecify.annotations.Nullable;
 
 /**
  * Le collaborateur des polices de la vue (plafond de 600 lignes,
@@ -26,7 +25,6 @@ final class ViewFonts {
     private final EditorView vue;
     private final AndroidFontRuler regle;
     /** L'écouteur 1.x à emplacement unique — repli compatibilité. */
-    private @Nullable Consumer<Float> onFontSizeChanged;
     /** Les abonnés 2.0 — multiples, sans écrasement (T3). */
     private final List<Consumer<Float>> abonnesTaille =
             new CopyOnWriteArrayList<>();
@@ -65,26 +63,11 @@ final class ViewFonts {
         vue.revisionSuivie = Long.MIN_VALUE;
         vue.cache.clear();
         if (tailleChangee) {
-            Consumer<Float> ecouteurUnique = onFontSizeChanged;
-            if (ecouteurUnique != null) {
-                ecouteurUnique.accept(police.size());
-            }
             for (Consumer<Float> abonne : abonnesTaille) {
                 abonne.accept(police.size());
             }
         }
         vue.invalidate();
-    }
-
-    /**
-     * L'écouteur des changements de taille de police (D-15) — l'hôte y
-     * persiste la taille. Voie 1.x à emplacement unique : la voie 2.0
-     * est {@link #addFontSizeChangeListener} (plusieurs abonnés).
-     *
-     * @param ecouteur l'écouteur, ou {@code null} pour le retirer
-     */
-    void setOnFontSizeChanged(@Nullable Consumer<Float> ecouteur) {
-        onFontSizeChanged = ecouteur;
     }
 
     /**

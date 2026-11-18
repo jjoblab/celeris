@@ -332,17 +332,6 @@ public final class EditorView extends View {
     }
 
     /**
-     * L'écouteur des changements de taille de police (D-15) — l'hôte y
-     * persiste la taille. Voie 1.x à emplacement unique : la voie 2.0
-     * est {@link #addFontSizeChangeListener} (plusieurs abonnés).
-     *
-     * @param ecouteur l'écouteur unique, ou null
-     */
-    public void setOnFontSizeChanged(@Nullable Consumer<Float> ecouteur) {
-        polices.setOnFontSizeChanged(ecouteur);
-    }
-
-    /**
      * Abonne un écouteur des changements de taille de police (D-15 —
      * ADR-0022, phase 2, T3) : le pincement, la molette Ctrl et le
      * clavier y notifient CHACUN leurs abonnés — la façade du kit et
@@ -398,15 +387,6 @@ public final class EditorView extends View {
     /** La table de raccourcis courante (D-17). */
     public KeyBindings keyBindings() {
         return raccourcis;
-    }
-
-    /** Le rappel des changements de fenêtre (M7.5, §7) : défilement,
-     *  zoom, police, retour à la ligne, redimensionnement — l'hôte y
-     *  repositionne ses popups, un avis par changement réel. Voie 1.x
-     *  à emplacement unique : la voie 2.0 est
-     *  {@link #addViewportChangeListener} (plusieurs abonnés). */
-    public void setSurViewportChange(@Nullable Runnable ecouteur) {
-        fenetre.setListener(ecouteur);
     }
 
     /**
@@ -534,17 +514,6 @@ public final class EditorView extends View {
         return getResources().getDisplayMetrics().density;
     }
 
-    /** Le rappel des fichiers déposés (D-20) : chaque uri déposée y
-     *  part, l'hôte décide de l'ouverture — jamais la vue ; le texte
-     *  déposé s'insère au point de chute. Voie 1.x : la voie 2.0 est
-     *  {@link #addFileDropListener}.
-     *
-     * @param rappel le consommateur d'uri, null pour couper
-     */
-    public void setSurFichierDepose(@Nullable Consumer<String> rappel) {
-        depot.poserSurFichier(rappel);
-    }
-
     /**
      * Abonne un consommateur des fichiers déposés (D-20 — ADR-0022,
      * phase 2, T3) : chaque uri déposée y part, l'hôte décide de
@@ -565,12 +534,6 @@ public final class EditorView extends View {
         depot.removeFileDropListener(consommateur);
     }
 
-    /** Le rappel du plan du fichier (B-16), parti à chaque publication
-     *  d'analyse. Voie 1.x : la voie 2.0 est {@link #addPlanListener}. */
-    public void setSurPlan(@Nullable Consumer<List<OutlineEntry>> consommateur) {
-        syntaxe.setSurPlan(consommateur);
-    }
-
     /**
      * Abonne un consommateur du plan du fichier (B-16 — ADR-0022,
      * phase 2, T3), notifié à chaque publication d'analyse.
@@ -588,14 +551,6 @@ public final class EditorView extends View {
      */
     public void removePlanListener(Consumer<List<OutlineEntry>> consommateur) {
         syntaxe.removePlanListener(consommateur);
-    }
-
-    /** Le verdict de double-tap (le signal du propriétaire : le color
-     *  picker d'un littéral au double-clic) : consommé, la cascade du
-     *  tap simple ne suit pas. Null coupe. Voie 1.x : la voie 2.0 est
-     *  {@link #addDoubleTapListener}. */
-    public void setSurDoubleTap(@Nullable IntPredicate consommateur) {
-        rappels.poserDoubleTap(consommateur);
     }
 
     /**
@@ -618,13 +573,6 @@ public final class EditorView extends View {
         rappels.removeDoubleTapListener(verdict);
     }
 
-    /** Le rappel de bascule de point d'arrêt (D-04) : l'appui long de
-     *  gouttière rend la LIGNE visée. Null coupe. Voie 1.x : la voie
-     *  2.0 est {@link #addBreakpointToggleListener}. */
-    public void setSurBasculeArret(@Nullable IntConsumer consommateur) {
-        rappels.poserBasculeArret(consommateur);
-    }
-
     /**
      * Abonne un consommateur de bascule de point d'arrêt (D-04 —
      * ADR-0022, phase 2, T3) : l'appui long de gouttière rend la
@@ -643,15 +591,6 @@ public final class EditorView extends View {
      */
     public void removeBreakpointToggleListener(IntConsumer consommateur) {
         rappels.removeBreakpointToggleListener(consommateur);
-    }
-
-    /** Le verdict popup des touches matérielles (chantier
-     *  d'unification) : l'hôte reçoit la touche AVANT la table de
-     *  raccourcis — flèches, validation, échappement de ses popups
-     *  (PIEGE-27 : l'éditeur garde le focus). Null coupe. Voie 1.x :
-     *  la voie 2.0 est {@link #addPopupKeyListener}. */
-    public void setSurTouchePopup(@Nullable IntPredicate consommateur) {
-        rappels.poserTouchePopup(consommateur);
     }
 
     /**
@@ -747,14 +686,6 @@ public final class EditorView extends View {
      */
     public EditorSettings settings() {
         return reglagesUniques;
-    }
-
-    /** Le rappel des gestes du fantôme (F-01) : Tab et l'appui sur le
-     *  fantôme acceptent le premier mot, l'hôte exécute — la vue ne
-     *  touche à aucune session de modèle. Voie 1.x : la voie 2.0 est
-     *  {@link #addGhostGestureListener}. */
-    public void setSurGesteFantome(@Nullable Consumer<GesteFantome> surGeste) {
-        fantome.setSurGeste(surGeste);
     }
 
     /**

@@ -158,7 +158,7 @@ public final class DocAncre {
             return;
         }
         auCurseur(CompletionDocModel.of(
-                contexte.getString(R.string.titre_apercu, apercu.nom()),
+                contexte.getString(R.string.celeris_titre_apercu, apercu.nom()),
                 String.join("\n", apercu.extrait())));
     }
 
@@ -180,8 +180,8 @@ public final class DocAncre {
             }
         }
         auCoin(CompletionDocModel.of(
-                contexte.getString(R.string.titre_rendu_preview),
-                contexte.getString(R.string.message_rendu_preview,
+                contexte.getString(R.string.celeris_titre_rendu_preview),
+                contexte.getString(R.string.celeris_message_rendu_preview,
                         composable, ligne + 1)));
     }
 

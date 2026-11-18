@@ -236,7 +236,7 @@ public class CelerisEditorTest {
         editeur.close();
         // Le kit est parti ; l'écouteur de l'hôte survit à la façade.
         int[] avisApres = { 0 };
-        vue.setSurViewportChange(() -> avisApres[0]++);
+        vue.addViewportChangeListener(() -> avisApres[0]++);
         assertNotNull("la vue close garde un écouteur d'hôte vivant",
                 vue);
         editeur.open("Autre.java", SOURCE);

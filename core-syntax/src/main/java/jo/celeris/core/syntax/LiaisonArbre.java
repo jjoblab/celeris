@@ -1,15 +1,25 @@
 package jo.celeris.core.syntax;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
  * Le porteur de la liaison native du niveau 2 (ADR-020) : la
- * bibliothèque partagée s'y charge si elle existe — construite par
- * {@code natif/construire}, OPTATIVE et hors de {@code check} (la
- * chaîne de build du dépôt reste pure). Absente, le niveau 2 ne se
- * déclare pas : les paquets retombent sur leur repli, aucun
- * consommateur ne change.
+ * bibliothèque partagée s'y charge si l'hôte du banc la désigne —
+ * construite par {@code natif/construire}, OPTATIVE et hors de
+ * {@code check} (la chaîne de build du dépôt reste pure). Absente,
+ * le niveau 2 ne se déclare pas : les paquets retombent sur leur
+ * repli, aucun consommateur ne change.
+ *
+ * <p><b>Voie réservée au banc JVM</b> (C4) : la bibliothèque n'est
+ * jamais empaquetée dans l'artefact publié — dans un consommateur,
+ * {@code SyntaxeNatif.json()/python()/javascript()} rendent toujours
+ * {@code null} et les paquets servent leur repli. Elle ne se charge
+ * QUE par la propriété système explicite
+ * {@code celeris.natif.lib} (chemin absolu) : plus aucun sondage de
+ * chemins relatifs au répertoire courant — le chargement natif
+ * implicite depuis le répertoire de travail est une mauvaise
+ * pratique (exécution depuis un répertoire inattendu, .so surprises
+ * d'un autre build), et le banc qui veut la voie la déclare.</p>
  *
  * <p>Les descripteurs natifs vivent ici, jamais ailleurs : l'arbre
  * aplati se matérialise en Java (le jalon de l'ADR-004 — jamais de
@@ -26,23 +36,16 @@ final class LiaisonArbre {
         return CHARGEE;
     }
 
-    /** La charge des candidats, dans l'ordre : la propriété de l'hôte,
-     *  le répertoire de build du module, la racine du dépôt. */
+    /** C4 — la charge par la propriété explicite de l'hôte du banc,
+     *  uniquement : un chemin absolu déclaré vaut intention ; aucun
+     *  chemin relatif au répertoire courant ne se sonde. */
     private static boolean charger() {
         String imposee = System.getProperty("celeris.natif.lib");
-        if (imposee != null) {
-            System.load(imposee);
-            return true;
+        if (imposee == null) {
+            return false;
         }
-        for (Path candidate : new Path[] {
-                Path.of("build", "natif", "libliaison.so"),
-                Path.of("core-syntax", "build", "natif", "libliaison.so")}) {
-            if (Files.exists(candidate)) {
-                System.load(candidate.toAbsolutePath().toString());
-                return true;
-            }
-        }
-        return false;
+        System.load(Path.of(imposee).toAbsolutePath().toString());
+        return true;
     }
 
     private LiaisonArbre() {

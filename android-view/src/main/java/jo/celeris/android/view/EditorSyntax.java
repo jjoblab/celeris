@@ -46,7 +46,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Le plan consommateur (B-16, tranche 8) : les entrées du plan
  * sortent du MÊME arbre que la coloration — le consommateur déclaré
- * par {@code setSurPlan} reçoit les entrées de l'analyse habillée à
+ * par {@code addPlanListener} reçoit les entrées de l'analyse habillée à
  * chaque changement de révision, jamais celles d'une autre révision.
  * Le rattachement d'une session et le retrait du langage poussent un
  * plan vide : le consommateur n'affiche jamais les entrées d'un
@@ -94,7 +94,6 @@ public final class EditorSyntax {
     private @Nullable MoteurAnalyse moteur;
     private @Nullable MoteurNatif moteurNatif;
     private @Nullable Runnable surAnalysePrete;
-    private @Nullable Consumer<List<OutlineEntry>> surPlan;
 
     /** Les consommateurs 2.0 du plan — multiples (ADR-0022, phase
      *  2, T3) : le kit et l'hôte reçoivent le même arbre. */
@@ -241,19 +240,6 @@ public final class EditorSyntax {
      */
     public void setSurAnalysePrete(@Nullable Runnable rappel) {
         surAnalysePrete = rappel;
-    }
-
-    /**
-     * Le consommateur du plan (B-16) : il reçoit les entrées du plan de
-     * l'analyse habillée à chaque changement de révision — le même arbre
-     * que la coloration — et un plan vide au rattachement d'une session
-     * ou au retrait du langage. Le rappel part sur le fil qui habille :
-     * l'hôte y poste vers le sien.
-     *
-     * @param consommateur le consommateur des entrées, null pour le retirer
-     */
-    public void setSurPlan(@Nullable Consumer<List<OutlineEntry>> consommateur) {
-        surPlan = consommateur;
     }
 
     /**
@@ -535,12 +521,8 @@ public final class EditorSyntax {
         }
     }
 
-    /** Pousse le plan au consommateur 1.x puis à CHAQUE abonné 2.0. */
+    /** Pousse le plan à CHAQUE abonné (voie 2.0 seule). */
     private void pousserPlan(List<OutlineEntry> entrees) {
-        Consumer<List<OutlineEntry>> consommateur = surPlan;
-        if (consommateur != null) {
-            consommateur.accept(entrees);
-        }
         for (Consumer<List<OutlineEntry>> abonne : consommateursPlan) {
             abonne.accept(entrees);
         }

@@ -35,3 +35,6 @@ spikes/treesitter/out/
 # construction par natif/construire, jamais versionnés — la bibliothèque
 # partagée naît dans build/, hors du dépôt.
 core-syntax/natif/sources/
+
+# Journal d'erreurs du compilateur Kotlin des conventions (D)
+.kotlin/

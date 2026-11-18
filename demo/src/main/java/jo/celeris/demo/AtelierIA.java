@@ -103,7 +103,7 @@ final class AtelierIA {
                 exclusions, this::consentementAccorde);
         this.pilote = new PiloteFantome(session,
                 new SessionTexteFantome(garde, Runnable::run));
-        editeur.setSurGesteFantome(geste -> {
+        editeur.addGhostGestureListener(geste -> {
             pilote.surGeste(geste);
             rafraichir();
         });

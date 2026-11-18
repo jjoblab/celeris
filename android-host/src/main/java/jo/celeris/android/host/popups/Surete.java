@@ -123,7 +123,7 @@ final class Surete {
                 analyse -> SafeDelete.delete(session.document(), analyse,
                         debutSelection(), finSelection()));
         if (verdict == null) {
-            annoncer(R.string.suppression_aucune_declaration);
+            annoncer(R.string.celeris_suppression_aucune_declaration);
             return;
         }
         if (!verdict.usages().isEmpty()) {
@@ -132,7 +132,7 @@ final class Surete {
         }
         if (session.apply(Transaction.of(verdict.edits()))) {
             editeur.invalidate();
-            annoncer(R.string.suppression_effectuee);
+            annoncer(R.string.celeris_suppression_effectuee);
         }
     }
 
@@ -145,7 +145,7 @@ final class Surete {
     void deplacerDans() {
         List<String> cibles = cibles(plan.get(), caret());
         if (cibles.isEmpty()) {
-            annoncer(R.string.deplacement_aucune_cible);
+            annoncer(R.string.celeris_deplacement_aucune_cible);
             return;
         }
         List<IntentionsMenuView.Item> items = new ArrayList<>(cibles.size());
@@ -154,7 +154,7 @@ final class Surete {
                     () -> deplacer(cible)));
         }
         carteCibles.setSection(popups.couche().getContext().getString(
-                R.string.section_deplacement));
+                R.string.celeris_section_deplacement));
         carteCibles.setActions(items);
         montrerCibles();
     }
@@ -228,7 +228,7 @@ final class Surete {
     private void poserUsages(SafeDelete.Verdict verdict) {
         popups.controleur().open(PopupController.PopupKind.SAFE_DELETE);
         carteUsages.setTitre(popups.couche().getContext().getString(
-                R.string.titre_suppression, verdict.usages().size(),
+                R.string.celeris_titre_suppression, verdict.usages().size(),
                 verdict.usages().get(0).text()));
         carteUsages.setOccurrences(occurrences(session.document(),
                 verdict.usages(), this::sauter));
@@ -258,12 +258,12 @@ final class Surete {
                 analyse -> SafeMove.move(session.document(), analyse,
                         debutSelection(), finSelection(), cible));
         if (planMouvement == null) {
-            annoncer(R.string.deplacement_refuse);
+            annoncer(R.string.celeris_deplacement_refuse);
             return;
         }
         if (session.apply(Transaction.of(planMouvement.edits()))) {
             editeur.invalidate();
-            annoncer(R.string.deplacement_effectue, cible);
+            annoncer(R.string.celeris_deplacement_effectue, cible);
         }
     }
 
@@ -284,7 +284,7 @@ final class Surete {
      *  coin bas-droit, avec ses arguments. */
     private void annoncer(int message, Object... arguments) {
         String titre = popups.couche().getContext().getString(
-                R.string.titre_notification);
+                R.string.celeris_titre_notification);
         annonces.accept(titre, popups.couche().getContext()
                 .getString(message, arguments));
     }

@@ -98,13 +98,13 @@ final class ExceptionCarte {
         TraceExecution.Echec echec = TraceExecution.echec(
                 "java.lang.Exception",
                 popups.couche().getContext().getString(
-                        R.string.execution_echec_message),
+                        R.string.celeris_execution_echec_message),
                 nomFichier.get(), session.document(), plan.get(), caret());
         if (echec == null) {
-            annoncer(R.string.execution_terminee);
+            annoncer(R.string.celeris_execution_terminee);
             return;
         }
-        annoncer(R.string.execution_echouee);
+        annoncer(R.string.celeris_execution_echouee);
         poser(echec);
     }
 
@@ -157,7 +157,7 @@ final class ExceptionCarte {
      *  coin bas-droit, avec ses arguments. */
     private void annoncer(int message, Object... arguments) {
         String titre = popups.couche().getContext().getString(
-                R.string.titre_notification);
+                R.string.celeris_titre_notification);
         annonces.accept(titre, popups.couche().getContext()
                 .getString(message, arguments));
     }

@@ -65,7 +65,7 @@ public class KeyboardZoomTest {
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         EditorView vue = banc.vue();
         List<Float> tailles = new ArrayList<>();
-        vue.setOnFontSizeChanged(tailles::add);
+        vue.addFontSizeChangeListener(tailles::add);
         vue.onKeyDown(KeyEvent.KEYCODE_PLUS, touche(KeyEvent.KEYCODE_PLUS));
         banc.pincer(540f, 960f, 120f, 520f, 15);
         assertEquals("chaque changement prévient l'écouteur",

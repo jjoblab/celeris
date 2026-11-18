@@ -92,7 +92,7 @@ public class PopupAnchorsTest {
         vue.setSession(jo.celeris.core.text.TextSession.of(
                 contenu.toString(), System::nanoTime));
         int[] avis = { 0 };
-        vue.setSurViewportChange(() -> avis[0]++);
+        vue.addViewportChangeListener(() -> avis[0]++);
         banc.image();
         assertEquals(1, avis[0], "le premier état pose l'avis");
         banc.image();
@@ -111,7 +111,7 @@ public class PopupAnchorsTest {
         EditorTestRig banc = banc();
         EditorView vue = banc.vue();
         int[] avis = { 0 };
-        vue.setSurViewportChange(() -> avis[0]++);
+        vue.addViewportChangeListener(() -> avis[0]++);
         banc.image();
         assertEquals(1, avis[0]);
         vue.setFont(new FontSpec("mono", 20f));

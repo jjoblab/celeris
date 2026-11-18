@@ -239,7 +239,7 @@ public final class EditorActivity extends AppCompatActivity {
         feuilleAller = new FeuilleAller(this, this::paletteFeuilles,
                 this::sauterAller, () -> entreesPlan, this::nomsDuCatalogue);
         feuillePlan = new FeuillePlan(this, this::paletteFeuilles, this::sautVersEntree);
-        editeur.setSurPlan(entrees -> {
+        editeur.addPlanListener(entrees -> {
             entreesPlan = entrees;
             editeur.post(() -> {
                 feuillePlan.setEntrees(entrees);
@@ -278,7 +278,7 @@ public final class EditorActivity extends AppCompatActivity {
      *  curseur au clic des numéros, le repère @Preview au coin (C-11). */
     private void brancherGouttiere() {
         // l'appui long de gouttière bascule l'arrêt — l'hôte y décide
-        editeur.setSurBasculeArret(ligne -> {
+        editeur.addBreakpointToggleListener(ligne -> {
             etatDebogage.basculerArret(ligne);
             majMarques();
         });
@@ -351,7 +351,6 @@ public final class EditorActivity extends AppCompatActivity {
                 this::paletteFeuilles, popups::ouvrirRecherche,
                 popups::fermerRecherche);
         atelierRecherche.brancher();
-        brancherSurvolDoubleTap();
         brancherToolbar();
     }
 
@@ -395,23 +394,12 @@ public final class EditorActivity extends AppCompatActivity {
         popups.configurerRelanceLint(atelierLint::analyser);
     }
 
-    /** Le survol se sert AU DOUBLE-TAP et au « i » de la barre (le
-     *  redressement du 2026-11-13) : le color picker d'abord. */
-    private void brancherSurvolDoubleTap() {
-        editeur.setSurDoubleTap(offset ->
-                popups.ouvrirColorPicker(offset)
-                        || popups.ouvrirSurvolAuDoubleTap(offset));
-        // la délégation clavier (chantier d'unification) : les touches
-        // matérielles remontent aux popups AVANT la table de raccourcis
-        editeur.setSurTouchePopup(popups::surTouche);
-    }
-
     /** Le dépôt de départ : le débordement de la toolbar vit dans la
      *  CARTE du kit, la barre de touches au-dessus du clavier. */
     private void brancherToolbar() {
         barreToolbar = new BarreToolbar(
                 popups.manager(), paletteFeuilles(),
-                getString(R.string.menu_plus));
+                getString(jo.celeris.android.host.R.string.celeris_menu_plus));
         barreToolbar.poserBarreTouches(
                 new AtelierTouchesCode(this, editeur, session,
                         this::langueOuverte).touches());
@@ -681,12 +669,12 @@ public final class EditorActivity extends AppCompatActivity {
         if (corriges > 0) {
             etiquetteArrets.setText(getString(R.string.lint_correctifs, corriges));
             popups.notifier(
-                    getString(R.string.titre_notification),
+                    getString(jo.celeris.android.host.R.string.celeris_titre_notification),
                     getString(R.string.lint_correctifs, corriges));
         } else {
             etiquetteArrets.setText(R.string.lint_propre);
             popups.notifier(
-                    getString(R.string.titre_notification),
+                    getString(jo.celeris.android.host.R.string.celeris_titre_notification),
                     getString(R.string.lint_propre));
         }
         etiquetteArrets.setVisibility(View.VISIBLE);
@@ -773,7 +761,7 @@ public final class EditorActivity extends AppCompatActivity {
     private void annoncerPauseSiPausee() {
         LigneArret pause = etatDebogage.debogueur().ligneCourante();
         if (pause != null) {
-            popups.notifier(getString(R.string.titre_notification),
+            popups.notifier(getString(jo.celeris.android.host.R.string.celeris_titre_notification),
                     getString(R.string.etat_pause, pause.ligne()));
         }
     }

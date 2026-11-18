@@ -44,7 +44,7 @@ public class TouchePopupVueTest {
     public void leVerdictConsommeSertLePopupSansBougerLeCurseur() {
         EditorView vue = vue();
         List<Integer> deleguees = new ArrayList<>();
-        vue.setSurTouchePopup(code -> {
+        vue.addPopupKeyListener(code -> {
             deleguees.add(code);
             return code == KeyEvent.KEYCODE_DPAD_DOWN;
         });
@@ -59,19 +59,22 @@ public class TouchePopupVueTest {
 
     /** Le verdict DÉCLINÉ : la flèche retourne à sa vie normale — le
      *  curseur descend à la rangée suivante, la table de raccourcis
-     *  décide. Le crochet coupé (null) vit la même vie. */
+     *  décide. L'abonné RETIRÉ vit la même vie (2.0 : la paire
+     *  add/remove remplace le crochet coupé du 1.x). */
     @Test
     public void leVerditDeclineLaisseLaFlecheASaVieNormale() {
         EditorView vue = vue();
-        vue.setSurTouchePopup(code -> code == KeyEvent.KEYCODE_ESCAPE);
+        java.util.function.IntPredicate crochot =
+                code -> code == KeyEvent.KEYCODE_ESCAPE;
+        vue.addPopupKeyListener(crochot);
         assertTrue("la touche déclinée tombe dans la vie normale",
                 vue.onKeyDown(KeyEvent.KEYCODE_DPAD_DOWN,
                         touche(KeyEvent.KEYCODE_DPAD_DOWN)));
         assertEquals("la flèche déclinée descend le curseur",
                 11, caret(vue));
-        vue.setSurTouchePopup(null);
+        vue.removePopupKeyListener(crochot);
         vue.onKeyDown(KeyEvent.KEYCODE_DPAD_UP, touche(KeyEvent.KEYCODE_DPAD_UP));
-        assertEquals("le crochet coupé laisse la flèche remonter",
+        assertEquals("l'abonné retiré laisse la flèche remonter",
                 0, caret(vue));
     }
 }

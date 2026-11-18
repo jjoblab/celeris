@@ -127,7 +127,7 @@ final class InfoBulle {
         if (intentions.get().isEmpty()) {
             return null;
         }
-        return popups.couche().getContext().getString(R.string.indice_actions);
+        return popups.couche().getContext().getString(R.string.celeris_indice_actions);
     }
 
 }

@@ -17,6 +17,14 @@ import org.jspecify.annotations.Nullable;
  * Absente la bibliothèque partagée, les fabriques rendent null : les
  * paquets retombent sur leur repli déclaré, aucun consommateur ne
  * change.</p>
+ *
+ * <p><b>Réservée au banc JVM</b> (C4) : la bibliothèque partagée
+ * n'est jamais empaquetée dans l'artefact publié et ne se charge que
+ * par la propriété système explicite {@code celeris.natif.lib}
+ * (chemin absolu). Dans toute application consommatrice, ces
+ * fabriques rendent toujours {@code null} — la voie n'existe que
+ * pour le banc du dépôt qui la déclare ; le repli des paquets sert
+ * tout le reste.</p>
  */
 public final class SyntaxeNatif implements LanguageSyntax {
 
