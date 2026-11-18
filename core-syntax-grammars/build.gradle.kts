@@ -12,7 +12,8 @@ dependencies {
     // Moteur des expressions des grammaires (ADR-014 : joni, portage
     // Java d'Oniguruma) — détail interne : les types du module ne le
     // laissent pas fuir, implementation suffit, la dépendance ride
-    // jusqu'aux consommateurs au runtime par le POM.
+    // jusqu'aux consommateurs au runtime par le POM et le dexage
+    // (vérifié dans l'APK de l'exemple : org/joni y vit).
     implementation(libs.joni)
     implementation(libs.jcodings)
 }

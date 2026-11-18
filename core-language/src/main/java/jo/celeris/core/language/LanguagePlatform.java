@@ -93,20 +93,53 @@ public final class LanguagePlatform {
 
     /**
      * Ajoute les paquets d'une source : chacun se charge et se valide
-     * entier, le premier refus arrête l'assemblage.
+     * entier. Le retour terrain du 2026-11-19 (« plus de retard mais
+     * pas de coloration ») : un paquet fautif n'arrête PLUS
+     * l'assemblage — le premier refus jetait toute la source (les 32
+     * paquets intégrés mouraient d'un seul), la langue du document ne
+     * se résolvait jamais. Le paquet fautif se signale au consommateur
+     * d'erreurs, les suivants se chargent.
      *
      * @param source la source des paquets
      * @return la plateforme
      */
     public LanguagePlatform addPackSource(PackSource source) {
+        return addPackSource(source, erreur -> {
+            throw erreur instanceof RuntimeException runtime
+                    ? runtime : new RuntimeException(erreur);
+        });
+    }
+
+    /**
+     * Ajoute les paquets d'une source en tolérant les paquets fautifs :
+     * chacun se charge et se valide entier, le refus d'UN paquet se
+     * confie au consommateur, les AUTRES vivent — jamais un seul
+     * paquet ne jette l'assemblage entier.
+     *
+     * @param source  la source des paquets
+     * @param erreurs le consommateur des paquets refusés
+     * @return la plateforme
+     */
+    public LanguagePlatform addPackSource(PackSource source,
+            java.util.function.Consumer<Exception> erreurs) {
+        List<PackSource.PackFiles> fichiers;
         try {
-            for (PackSource.PackFiles files : source.packs()) {
-                LanguagePack pack = loader.load(files);
-                supports.add(supportDuPaquet(pack));
-            }
+            fichiers = source.packs();
         } catch (IOException e) {
             throw new IllegalStateException(
                     "pack source unreadable: " + e.getMessage(), e);
+        }
+        for (PackSource.PackFiles files : fichiers) {
+            try {
+                LanguagePack pack = loader.load(files);
+                supports.add(supportDuPaquet(pack));
+            } catch (IOException e) {
+                throw new IllegalStateException("pack source unreadable: "
+                        + files.name() + ": " + e.getMessage(), e);
+            } catch (RuntimeException e) {
+                erreurs.accept(new IllegalArgumentException(
+                        files.name() + ": " + e.getMessage(), e));
+            }
         }
         return this;
     }

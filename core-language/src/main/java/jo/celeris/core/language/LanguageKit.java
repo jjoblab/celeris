@@ -242,52 +242,61 @@ public final class LanguageKit {
         if (present != null) {
             return present;
         }
+        final CountDownLatch aAttendre;
         synchronized (this) {
             present = registre;
             if (present != null) {
                 return present;
             }
-            // L'assemblage est déjà parti : la résolution attend sa
-            // fin — le contrat du kit (« la langue arrive dès que le
-            // registre vit ») prime sur le rendu immédiat.
-            if (assemblageLance) {
-                attendreAssemblage();
-                LanguageRegistry assemble = registre;
-                return assemble == null
-                        ? LanguageRegistry.builder().build()
-                        : assemble;
-            }
-            assemblageLance = true;
-            final CountDownLatch fin = new CountDownLatch(1);
-            finAssemblage = fin;
-            executor.execute(() -> {
-                LanguageRegistry assemble = assemblerSurCeFil();
-                synchronized (LanguageKit.this) {
-                    if (registre == null) {
-                        registre = assemble;
+            if (!assemblageLance) {
+                // Le premier appelant PART l'assemblage : le verrou ne
+                // survit pas à l'attente (le retour terrain du
+                // 2026-11-19 : la résolution tenait le verrou DU KIT
+                // en attendant le latch, le fil d'assemblage attendait
+                // le même verrou pour POSER le registre — verrou mort
+                // de 30 s, puis registre vide, aucune langue).
+                assemblageLance = true;
+                final CountDownLatch fin = new CountDownLatch(1);
+                finAssemblage = fin;
+                executor.execute(() -> {
+                    LanguageRegistry assemble = assemblerSurCeFil();
+                    synchronized (LanguageKit.this) {
+                        if (registre == null) {
+                            registre = assemble;
+                        }
                     }
-                }
-                fin.countDown();
-            });
-            attendreAssemblage();
-            LanguageRegistry fini = registre;
-            return fini == null
-                    ? LanguageRegistry.builder().build()
-                    : fini;
+                    fin.countDown();
+                });
+            }
+            aAttendre = finAssemblage;
         }
+        // L'attente se joue HORS du verrou : le fil d'assemblage le
+        // prend pour poser le registre, le compte à rebours libère.
+        attendre(aAttendre);
+        LanguageRegistry fini = registre;
+        return fini == null
+                ? LanguageRegistry.builder().build()
+                : fini;
     }
 
     /** Attend la fin de l'assemblage parti (au plus le délai du
      *  garde-fou) — le fil qui résout ne pilote pas l'assemblage,
      *  il attend son terme. */
-    private void attendreAssemblage() {
-        CountDownLatch fin = finAssemblage;
-        if (fin != null) {
-            try {
-                fin.await(30L, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+    /** Attend la fin d'un assemblage parti (au plus le délai du
+     *  garde-fou, 120 s : les 32 paquets réels prennent jusqu'à
+     *  une minute sur un appareil lent — l'ancien 30 s coupait
+     *  l'assemblage en cours de route, la résolution repartait
+     *  avec un registre VIDE, la langue n'arrivait jamais).
+     *  Le fil qui résout ne pilote pas l'assemblage, il attend. */
+    private static void attendre(
+            @org.jspecify.annotations.Nullable CountDownLatch fin) {
+        if (fin == null) {
+            return;
+        }
+        try {
+            fin.await(120L, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -305,14 +314,16 @@ public final class LanguageKit {
             plateforme.support(support);
         }
         for (PackSource source : sources) {
-            try {
+            // La tolérance vit PAR PAQUET (le retour terrain du
+            // 2026-11-19) : le refus d'un paquet se confie au
+            // consommateur quand il existe — sinon la surcharge
+            // stricte jette au premier refus (le contrat public
+            // d'addPackSource ne change pas).
+            Consumer<Exception> rapporteur = reporter;
+            if (rapporteur == null) {
                 plateforme.addPackSource(source);
-            } catch (RuntimeException e) {
-                Consumer<Exception> rapporteur = reporter;
-                if (rapporteur == null) {
-                    throw e;
-                }
-                rapporteur.accept(e);
+            } else {
+                plateforme.addPackSource(source, rapporteur);
             }
         }
         return plateforme.build();

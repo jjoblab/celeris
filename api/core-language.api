@@ -93,6 +93,7 @@ public final class jo.celeris.core.language.LanguagePlatform {
   public static jo.celeris.core.language.LanguagePlatform empty();
   public static jo.celeris.core.language.LanguagePlatform with(jo.celeris.core.language.packs.GrammarFactory);
   public jo.celeris.core.language.LanguagePlatform addPackSource(jo.celeris.core.language.packs.PackSource);
+  public jo.celeris.core.language.LanguagePlatform addPackSource(jo.celeris.core.language.packs.PackSource, java.util.function.Consumer<java.lang.Exception>);
   public jo.celeris.core.language.LanguagePlatform builtinPacks();
   public jo.celeris.core.language.LanguagePlatform support(jo.celeris.core.language.model.LanguageSupport);
   public jo.celeris.core.language.LanguagePlatform contributor(jo.celeris.core.language.LanguageContributor);
