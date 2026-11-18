@@ -1,6 +1,6 @@
 package jo.celeris.android.view;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -13,6 +13,10 @@ import java.util.concurrent.Executors;
  * <p>L'annulation fait le ménage : chaque travail supplanté rend son
  * jeton au premier point de contrôle, le fil ne s'empile jamais de
  * passes périmées.</p>
+ *
+ * <p>Le service s'éteint (chantier C2) : la vue libérée arrête le fil
+ * par {@code shutdownNow()} — les fils « celeris-analyse » ne
+ * prolifèrent plus au fil des montées et libérations.</p>
  */
 final class ExecuteurAnalyse {
 
@@ -21,11 +25,11 @@ final class ExecuteurAnalyse {
 
     /**
      * L'exécuteur par défaut de la vue : fil unique démon, nommé pour
-     * le diagnostic.
+     * le diagnostic, arrêtable à la libération (chantier C2).
      *
      * @return l'exécuteur du travail d'analyse
      */
-    static Executor parDefaut() {
+    static ExecutorService parDefaut() {
         return Executors.newSingleThreadExecutor(future -> {
             Thread fil = new Thread(future, "celeris-analyse");
             fil.setDaemon(true);

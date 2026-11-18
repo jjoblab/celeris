@@ -7,6 +7,9 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [1.2.0] — en cours
 
+### Fiabilité — le cycle de libération de la vue et de l'orchestrateur (2026-11-18)
+- **`EditorView` gagne `release()`** (chantier C1/C2 de la revue du 2026-11-17) : la libération détache les écouteurs de session, referme le pont de syntaxe et éteint les deux fils d'analyse du kit (« celeris-analyse » et son minuteur) — la vue devient collectable même si la session survit (ViewModel, recréation d'activité), les fils ne prolifèrent plus au fil des montages. Idempotent ; la vue libérée est inerte, le détachement de fenêtre n'est pas une libération. `PopupsEditeur.detacher()` retire ses propres écouteurs de session depuis le correctif précédent ; le contrat se documente à l'USAGE § 19.10.
+
 ### Build — les modules Android toujours construits (2026-11-17)
 - **La détection du SDK disparaît de `settings.gradle.kts`** (ADR-0021, décision du propriétaire) : `:android-view`, `:android-widgets` et `:android-host` sont inclus sans condition, `CELERIS_SKIP_ANDROID` et la lecture de `local.properties` s'effacent — un build sans SDK ne publie plus 8 artefacts sur 11 en silence (le piège JitPack) ; il échoue explicitement. La pureté du cœur, cherchée par le critère M1, est désormais garantie au niveau du code : les dix tests ArchUnit « aucune dépendance Android » des modules purs tournent à chaque `check` ; la CI installe le SDK dans tous ses travaux.
 

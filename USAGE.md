@@ -867,6 +867,18 @@ sha256sum core-text-1.1.0.jar
    avec une erreur explicite. Votre inclusion de source (§ 3.3) exige le
    même SDK. La pureté du cœur est garantie par les tests ArchUnit de
    chaque module pur, pas par l'absence des modules Android du build.
+10. **Libérez la vue par `release()`** (chantier C1/C2) : une
+    `EditorView` branchée pose des écouteurs sur sa session et ouvre
+    deux fils d'analyse (« celeris-analyse » et son minuteur). Quand la
+    vue quitte définitivement la scène, appelez `editeur.release()` —
+    la session ne retient plus la vue (elle devient collectable même si
+    la session survit en `ViewModel`), le pont de syntaxe se referme,
+    les fils s'éteignent. L'appel est idempotent ; après lui, la vue
+    est inerte (`setSession`/`setLanguage` se refusent) — un nouveau
+    montage demande une nouvelle vue. Le détachement de la fenêtre
+    n'est **pas** une libération : une vue détachée puis rattachée
+    continue d'éditer ; `PopupsEditeur.detacher()` appelle
+    `release()` sur la vue qu'il porte.
 
 ---
 

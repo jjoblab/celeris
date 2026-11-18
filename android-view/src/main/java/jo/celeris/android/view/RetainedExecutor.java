@@ -38,6 +38,15 @@ final class RetainedExecutor implements Executor {
 
         /** Retire la tâche planifiée, s'il y en a une. */
         void cancelPending();
+
+        /**
+         * Éteint le minuteur (chantier C2) : le fil démon qui porte les
+         * reprogrammations meurt. L'implantation par défaut ne fait
+         * rien — les minuteurs de banc, qui ne posent aucun fil,
+         * l'héritent telle quelle.
+         */
+        default void shutdown() {
+        }
     }
 
     /**
@@ -67,6 +76,11 @@ final class RetainedExecutor implements Executor {
                 if (enAttente != null) {
                     enAttente.cancel(false);
                 }
+            }
+
+            @Override
+            public void shutdown() {
+                minuteur.shutdownNow();
             }
         };
     }

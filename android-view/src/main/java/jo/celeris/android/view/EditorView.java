@@ -240,11 +240,15 @@ public final class EditorView extends View {
 
     /**
      * Affiche la session donnée : le modèle, sa sélection et son
-     * historique d'annulation.
+     * historique d'annulation. Sans effet après {@link #release()} —
+     * la vue libérée est inerte.
      *
      * @param nouvelleSession la session d'édition à afficher
      */
     public void setSession(TextSession nouvelleSession) {
+        if (liberee) {
+            return;
+        }
         session.removeEditListener(ecouteurAnnonce);
         session = nouvelleSession;
         session.addEditListener(ecouteurAnnonce);
@@ -255,10 +259,14 @@ public final class EditorView extends View {
     /**
      * Branche le langage — le support complet (M7.6) : sa source donne
      * coloration, plis et diagnostics (B-01, A-15, D-02, D-07), sa
-     * configuration nourrit la frappe ; null coupe l'analyse.
+     * configuration nourrit la frappe ; null coupe l'analyse. Sans
+     * effet après {@link #release()}.
      * @param nouvelleLangue le support du langage, null pour aucun
      */
     public void setLanguage(@Nullable LanguageSupport nouvelleLangue) {
+        if (liberee) {
+            return;
+        }
         syntaxe.setLanguage(nouvelleLangue);
         images.reinitialiserScene(false);
     }
@@ -658,6 +666,40 @@ public final class EditorView extends View {
         super.onDetachedFromWindow();
         curseurClavier.surDetache();
     }
+
+    /**
+     * La libération de fin de vie (chantiers C1/C2 de la revue du
+     * 2026-11-17) : la session ne retient plus la vue (les écouteurs
+     * d'édition et le pont de syntaxe se détachent), le pont referme
+     * ses moteurs, les fils d'analyse du kit (« celeris-analyse » et
+     * son minuteur) s'éteignent. Idempotent : un second appel ne fait
+     * rien.
+     *
+     * <p>Le détachement de la fenêtre n'est PAS une libération : la
+     * vue détachée puis rattachée continue d'éditer (le cycle fenêtre
+     * reste celui d'Android). La libération est explicite —
+     * {@code release()} quand la vue quitte définitivement la scène
+     * (ou via l'orchestrateur qui la porte). Après release(), la vue
+     * est inerte : {@link #setSession} et {@link #setLanguage} se
+     * refusent, un nouveau montage demande une nouvelle vue.</p>
+     */
+    public void release() {
+        if (liberee) {
+            return;
+        }
+        liberee = true;
+        session.removeEditListener(ecouteurAnnonce);
+        syntaxe.fermer();
+        diagnostics.shutdown();
+    }
+
+    /** La vue est-elle libérée — lecture du banc (chantier C1). */
+    boolean estLiberee() {
+        return liberee;
+    }
+
+    /** Le drapeau de libération (chantier C1) : release() s'y lit. */
+    private boolean liberee;
 
     @Override
     protected void onWindowVisibilityChanged(int visibility) {

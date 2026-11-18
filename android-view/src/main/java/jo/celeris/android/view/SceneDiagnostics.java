@@ -1,6 +1,9 @@
 package jo.celeris.android.view;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+
+import jo.celeris.android.view.RetainedExecutor.Delayer;
 
 import org.jspecify.annotations.Nullable;
 
@@ -13,6 +16,10 @@ import org.jspecify.annotations.Nullable;
  * <p>Vue-collaborateur par délégation (même famille qu'
  * {@link AccessibilityHost}) : la vue reste la racine de composition
  * et expose les accès publics minces, la mécanique vit ici.</p>
+ *
+ * <p>Les ressources du kit — le fil d'analyse et son minuteur —
+ * s'éteignent à la libération (chantier C2) : l'exécuteur que l'hôte
+ * a injecté reste le sien, jamais touché.</p>
  */
 final class SceneDiagnostics {
 
@@ -24,6 +31,12 @@ final class SceneDiagnostics {
      *  injecté le sien : le réglage ne détourne jamais un exécuteur
      *  étranger. */
     private final @Nullable RetainedExecutor retenue;
+    /** Le fil d'analyse du kit (celeris-analyse) — null quand l'hôte
+     *  a injecté le sien ; éteint à la libération (chantier C2). */
+    private final @Nullable ExecutorService filAnalyse;
+    /** Le minuteur de la retenue du kit (celeris-analyse-retenu) —
+     *  null quand l'hôte a injecté le sien ; éteint pareillement. */
+    private final @Nullable Delayer minuteur;
     /** Le compteur d'images décolorées : une image y entre quand une
      *  rangée qui AVAIT sa couleur trace à l'encre de base. */
     private long imagesDecolorees;
@@ -40,11 +53,16 @@ final class SceneDiagnostics {
     SceneDiagnostics(EditorView vue, @Nullable Executor executeurInjecte) {
         this.vue = vue;
         if (executeurInjecte == null) {
-            this.retenue = new RetainedExecutor(ExecuteurAnalyse.parDefaut(),
-                    RetainedExecutor.daemonDelayer(),
+            ExecutorService fil = ExecuteurAnalyse.parDefaut();
+            Delayer horloge = RetainedExecutor.daemonDelayer();
+            this.filAnalyse = fil;
+            this.minuteur = horloge;
+            this.retenue = new RetainedExecutor(fil, horloge,
                     EditorView.DELAI_RETENU_PAR_DEFAUT_MS);
             this.executeur = retenue;
         } else {
+            this.filAnalyse = null;
+            this.minuteur = null;
             this.retenue = null;
             this.executeur = executeurInjecte;
         }
@@ -56,6 +74,23 @@ final class SceneDiagnostics {
      */
     Executor executor() {
         return executeur;
+    }
+
+    /**
+     * Éteint les ressources du kit (chantier C2) : le fil d'analyse et
+     * son minuteur meurent — l'exécuteur injecté par l'hôte n'est
+     * jamais touché, la libération ne ferme que ce que le kit a ouvert.
+     * Idempotent.
+     */
+    void shutdown() {
+        ExecutorService fil = filAnalyse;
+        Delayer horloge = minuteur;
+        if (fil != null) {
+            fil.shutdownNow();
+        }
+        if (horloge != null) {
+            horloge.shutdown();
+        }
     }
 
     /**
