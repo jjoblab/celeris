@@ -17,12 +17,14 @@ import jo.celeris.core.syntax.LexedLine;
 
 /**
  * Le banc de conformité des grammaires du commerce (M7.6, H-05) : les
- * TREIZE grammaires TextMate des extensions de VS Code — reprises telles
- * que publiées, SANS MODIFICATION, licence MIT et provenance au
- * registre de portage — se chargent par le moteur réel, rejouent leur
- * échantillon avec déterminisme et sans incident de budget. Ce que le
- * moteur écarte se compte au rapport, jamais en silence : le seuil par
- * grammaire garde la dérive visible d'une montée de version.
+ * VINGT grammaires TextMate des extensions de VS Code et du commerce
+ * (la traîne du chantier C5 y ajoute swift, dart, scala, csharp et
+ * lua) — reprises telles que publiées, SANS MODIFICATION, licence MIT
+ * et provenance au registre de portage — se chargent par le moteur
+ * réel, rejouent leur échantillon avec déterminisme et sans incident
+ * de budget. Ce que le moteur écarte se compte au rapport, jamais en
+ * silence : le seuil par grammaire garde la dérive visible d'une
+ * montée de version.
  *
  * <p>Le dépôt de ces grammaires : {@code grammaires-commerce/} aux
  * ressources de test — des données de banc, hors des paquets intégrés
@@ -37,7 +39,9 @@ class GrammairesCommerceTest {
         {"markdown", "0.92"}, {"html", "0.97"}, {"css", "0.95"},
         {"javascript", "0.88"}, {"typescript", "0.88"},
         {"php", "0.95"}, {"ruby", "0.98"},
-        {"go", "0.85"}, {"rust", "0.98"}};
+        {"go", "0.85"}, {"rust", "0.98"},
+        {"swift", "0.95"}, {"dart", "0.95"}, {"scala", "0.95"},
+        {"csharp", "0.93"}, {"lua", "0.98"}};
 
     /**
      * Chaque grammaire du commerce charge SANS MODIFICATION et son

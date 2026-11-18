@@ -1,0 +1,52 @@
+// Bibliothèque mobiles : le banc d'échantillon Dart du commerce.
+library bancs;
+
+import 'dart:math' as math;
+
+/// ErreurVide se retourne quand le corpus est absent.
+class ErreurCorpus implements Exception {
+  final String message;
+  const ErreurCorpus(this.message);
+  @override
+  String toString() => 'ErreurCorpus: $message';
+}
+
+/// Corpus embarque des lignes repliables.
+class Corpus {
+  final String nom;
+  final List<String> _lignes;
+  final Map<int, String> _cache = <int, String>{};
+
+  /// NouveauCorpus construit un corpus nommé.
+  Corpus(this.nom, List<String> lignes)
+      : _lignes = (lignes..sort((a, b) => a.compareTo(b)))
+           .toList(growable: false);
+
+  /// Ligne retourne la ligne demandée ; le repli sert de défaut.
+  String ligne(int i) {
+    if (i < 0 || i >= _lignes.length) {
+      throw ErreurCorpus('index $i hors bornes (${_lignes.length} lignes)');
+    }
+    return _cache.putIfAbsent(i, () => _lignes[i]);
+  }
+
+  /// Plier enveloppe les lignes dans un résumé.
+  Iterable<String> plier(String Function(String) transform) sync* {
+    for (final ligne in _lignes) {
+      final pliee = transform(ligne);
+      if (pliee.isNotEmpty) yield pliee;
+    }
+  }
+}
+
+/// Le banc rejoue l'échantillon avec déterminisme.
+Future<void> main() async {
+  final corpus = Corpus('banc', ['deux', 'un', 'trois']);
+  final garde = math.Random(42).nextDouble();
+  await for (final ligne in corpus.plier((l) => '$l !')) {
+    print('garde ${garde.toStringAsFixed(2)} : $ligne');
+  }
+  const entiers = <int>[3, 1, 4, 1, 5];
+  final pliees = entiers.where((n) => n > 1).map((n) => n * 2);
+  print(pliees.fold<int>(0, (total, n) => total + n));
+}

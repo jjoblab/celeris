@@ -21,12 +21,14 @@ dur. Vingt-quatre langages intégrés en paquets de données.
   `LanguageConfiguration` (paires, commentaires, plis, indentation,
   règles de portée), `GrammarFactory`, `LanguageCapability`.
 - **Les paquets intégrés** — `src/main/resources/langages/` : c,
-  cpp, css, go, groovy, html, java, javascript, json, kotlin, kts,
-  markdown, php, proguard, properties, python, ruby, rust, shell,
-  sql, toml, typescript, xml, yaml — vingt-quatre paquets, chacun en
+  cpp, css, csharp, dart, go, groovy, html, java, javascript, json,
+  kotlin, kts, log, lua, markdown, php, proguard, properties, python,
+  ruby, rust, scala, shell, smali, sql, swift, text, toml, typescript,
+  xml, yaml — trente-deux paquets, chacun en
   `language.json`, `grammar.json`, `pack.json` (grammaires du commerce
   reprises sans modification, licences au NOTICE, chantier C5 ; Go et
-  Rust livrés le 2026-11-12).
+  Rust livrés le 2026-11-12, Swift, Dart, Scala, C# et Lua le 2026-11-18,
+  smali, log et text écrits ici sur l'oracle du dépôt de départ).
 - **Le lecteur** — `JsonReader` et `ConfigurationParser` lisent les
   paquets ; le registre s'assemble hors fil UI (ADR-007).
 

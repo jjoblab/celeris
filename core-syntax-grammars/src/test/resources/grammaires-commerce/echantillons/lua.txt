@@ -1,0 +1,68 @@
+-- Banc d'échantillon Lua du commerce.
+-- Corpus embarque des lignes repliables.
+
+local ipairs, pairs, setmetatable, table, string, math, tostring =
+      ipairs, pairs, setmetatable, table, string, math, tostring
+
+--- ErreurVide se retourne quand le corpus est absent.
+local ErreurCorpus = { vide = "corpus vide", bornes = "index hors bornes" }
+ErreurCorpus.__index = ErreurCorpus
+setmetatable(ErreurCorpus, { __call = function(classe, cle, valeur)
+    return setmetatable({ cle = cle, valeur = valeur }, classe)
+end })
+
+--- NouveauCorpus construit un corpus nommé.
+local function NouveauCorpus(nom, lignes)
+    table.sort(lignes)
+    local corpus = {
+        nom = nom,
+        lignes = lignes,
+        cache = {},
+    }
+    corpus.ligne = function(i)
+        if i < 1 or i > #lignes then
+            return nil, ErreurCorpus("bornes",
+                string.format("%d hors bornes (%d lignes)", i, #lignes))
+        end
+        if corpus.cache[i] then
+            return corpus.cache[i]
+        end
+        return lignes[i]
+    end
+    corpus.plier = function(transform)
+        transform = transform or function(l) return l end
+        local pliees = {}
+        for indice, ligne in ipairs(lignes) do
+            local pliee = transform(ligne)
+            if #pliee > 0 then
+                table.insert(pliees, pliee)
+            end
+        end
+        return pliees
+    end
+    return corpus
+end
+
+--- Le banc rejoue l'échantillon avec déterminisme.
+local function banc()
+    local corpus = NouveauCorpus("banc", { "deux", "un", "trois" })
+    local ligne, erreur = corpus.ligne(1)
+    if ligne then
+        print(string.format("première : %s", tostring(ligne)))
+    elseif erreur then
+        print(erreur.cle .. " : " .. tostring(erreur.valeur))
+    end
+    for indice, pliee in pairs(corpus.plier(function(l)
+        return l .. " !"
+    end)) do
+        if indice > 1 then
+            print(string.format("ligne %d : %s", indice, pliee))
+        end
+    end
+    local double = function(n) return n * 2 end
+    print(tostring(double(21)))
+    local x = math.floor(3.5) + 0x1f
+    print(("total %d"):format(x))
+end
+
+banc()

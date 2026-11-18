@@ -1,0 +1,62 @@
+.class public Lbanc/Echantillon;
+.super Ljava/lang/Object;
+.source "Echantillon.java"
+
+# Le banc d'échantillon smali : directives, registres, descripteurs, opcodes.
+
+.implements Lbanc/Corpus;
+
+.field private nom:Ljava/lang/String;
+.field private static lignes:Ljava/util/List;
+.annotation runtime Lbanc/Journal;
+    valeur = "gel"
+.end annotation
+
+.method public constructor <init>(Ljava/lang/String;)V
+    .registers 5
+    .prologue
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+    iput-object p1, p0, Lbanc/Echantillon;->nom:Ljava/lang/String;
+    const/4 v0, 0x0
+    iput v0, p0, Lbanc/Echantillon;->cache:I
+    return-void
+.end method
+
+.method public ligne(I)Ljava/lang/String;
+    .registers 6
+    .line 42
+    if-ltz p1, :hors_bornes
+    iget v1, p0, Lbanc/Echantillon;->taille:I
+    if-ge p1, v1, :hors_bornes
+    const v2, 0x7f0a000c
+    invoke-static {v2}, Lbanc/Cartes;->trouve(I)Ljava/lang/String;
+    move-result-object v3
+    return-object v3
+    :hors_bornes
+    const-string v4, "index hors bornes"
+    invoke-static {v4}, Lbanc/Journal;->erreur(Ljava/lang/String;)I
+    move-result v5
+    const/4 v0, -0x1
+    return v0
+.end method
+
+.method public static plier(Ljava/lang/String;I[Ljava/lang/String;)Ljava/util/List;
+    .registers 8
+    new-instance v0, Ljava/util/ArrayList;
+    invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
+    array-length v1, p2
+    const/4 v2, 0
+    :boucle
+    if-ge v2, v1, :fin_boucle
+    aget-object v3, p2, v2
+    invoke-virtual {p0, v3}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v4
+    invoke-interface {v0, v4}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+    add-int/lit8 v2, v2, 0x1
+    goto :boucle
+    :fin_boucle
+    invoke-static {p1}, Lbanc/Cap;->de(I)Ljava/lang/Object;
+    move-result-object v5
+    check-cast v5, Ljava/util/List;
+    return-object v5
+.end method

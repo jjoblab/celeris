@@ -1,0 +1,83 @@
+// Namespace Bancs : le banc d'échantillon C# du commerce.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Bancs.Mobiles
+{
+    /// ErreurVide se retourne quand le corpus est absent.
+    public sealed class ErreurCorpus : Exception
+    {
+        public ErreurCorpus(string message) : base(message) { }
+    }
+
+    /// Corpus embarque des lignes repliables.
+    public sealed class Corpus
+    {
+        private readonly string[] lignes;
+        private readonly Dictionary<int, string> cache = new();
+
+        public string Nom { get; }
+
+        public int Taille => lignes.Length;
+
+        public Corpus(string nom, IEnumerable<string> lignes)
+        {
+            Nom = nom;
+            this.lignes = lignes.OrderBy(l => l, StringComparer.Ordinal)
+                                .ToArray();
+        }
+
+        /// Ligne retourne la ligne demandée ; le repli sert de défaut.
+        public string Ligne(int i)
+        {
+            if (i < 0 || i >= Taille)
+            {
+                throw new ErreurCorpus(
+                    $"index {i} hors bornes ({Taille} lignes)");
+            }
+            return cache.TryGetValue(i, out var garde) ? garde : lignes[i];
+        }
+
+        /// Plier enveloppe les lignes dans un résumé.
+        public IEnumerable<string> Plier(
+                Func<string, string>? transform = null)
+        {
+            transform ??= static l => l;
+            foreach (var ligne in lignes)
+            {
+                var pliee = transform(ligne);
+                if (pliee.Length > 0)
+                {
+                    yield return pliee;
+                }
+            }
+        }
+    }
+
+    /// Le banc rejoue l'échantillon avec déterminisme.
+    public static class Program
+    {
+        public static void Main()
+        {
+            var corpus = new Corpus("banc", new[] { "deux", "un", "trois" });
+            try
+            {
+                Console.WriteLine($"première : {corpus.Ligne(0)}");
+            }
+            catch (ErreurCorpus e) when (e.Message.Contains("bornes"))
+            {
+                Console.WriteLine(e.Message);
+            }
+            var pliees = corpus.Plier(l => l + " !")
+                               .Where((ligne, i) => i > 0)
+                               .Select((ligne, i) => $"ligne {i} : {ligne}");
+            foreach (var ligne in pliees)
+            {
+                Console.WriteLine(ligne);
+            }
+            int Double(int n) => n * 2;
+            Console.WriteLine(Double(21));
+        }
+    }
+}

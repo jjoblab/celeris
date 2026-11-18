@@ -60,10 +60,23 @@ public final class EditorCliTest {
     /** L'analyse d'un fichier inconnu reste honnête : aucun langage, aucun plan. */
     @Test
     public void analyseUnFichierSansLangage() throws IOException {
-        Path fichier = ecrire("notes.txt", "des notes libres\nsur deux lignes\n");
+        Path fichier = ecrire("notes.banc", "des notes libres\nsur deux lignes\n");
         String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
 
         assertTrue(sortie.contains("langage : aucun"), "aucun langage forcé : " + sortie);
+        assertTrue(sortie.contains("lignes : 2"), "deux lignes : " + sortie);
+    }
+
+    /**
+     * La traîne achève le tour : le texte brut vit en paquet — l'analyse
+     * le nomme honnête, aucun plan, aucune coloration.
+     */
+    @Test
+    public void analyseUnFichierTexteBrut() throws IOException {
+        Path fichier = ecrire("notes.txt", "des notes libres\nsur deux lignes\n");
+        String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
+
+        assertTrue(sortie.contains("langage : text"), "le texte brut est nommé : " + sortie);
         assertTrue(sortie.contains("lignes : 2"), "deux lignes : " + sortie);
     }
 

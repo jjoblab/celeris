@@ -1,0 +1,54 @@
+// Package mobiles : le banc d'échantillon Swift du commerce.
+import Fondations
+
+// ErreurVide se retourne quand le corpus est absent.
+enum ErreurCorpus: Error, Equatable {
+    case vide
+    case horsBornes(index: Int, taille: Int)
+}
+
+// Corpus embarque des lignes repliables.
+struct Corpus: Equatable {
+    let nom: String
+    private(set) var lignes: [String]
+    private var cache: [Int: String] = [:]
+
+    // NouveauCorpus construit un corpus nommé.
+    init(nom: String, lignes: [String]) {
+        self.nom = nom
+        self.lignes = lignes.sorted()
+    }
+
+    // Ligne retourne la ligne demandée ; le repli sert de défaut.
+    func ligne(_ i: Int) throws -> String {
+        guard i >= 0 && i < lignes.count else {
+            throw ErreurCorpus.horsBornes(index: i, taille: lignes.count)
+        }
+        if let garde = cache[i] { return garde }
+        return lignes[i]
+    }
+
+    // Plier enveloppe les lignes dans un résumé.
+    mutating func plier(_ transform: (String) -> String = { $0 }) -> [String] {
+        defer { cache.removeAll() }
+        return lignes.map(transform).filter { !$0.isEmpty }
+    }
+}
+
+// Le banc rejoue l'échantillon avec déterminisme.
+@main
+struct Banc {
+    static func main() throws {
+        var corpus = Corpus(nom: "banc", lignes: ["deux", "un", "trois"])
+        try print(String(format: "%d lignes", corpus.ligne(0).count))
+        let pliees = corpus.plier { "\($0) !" }
+        for (indice, ligne) in pliees.enumerated() where indice > 0 {
+            print("ligne \(indice) : \(ligne)")
+        }
+        let dictionnaire: [String: (Int) -> Int] = [
+            "double": { $0 * 2 },
+            "miroir": { valeur in -valeur },
+        ]
+        _ = dictionnaire["double"]?(21) ?? 0
+    }
+}

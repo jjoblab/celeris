@@ -1,0 +1,53 @@
+{
+  "id": "log",
+  "name": "Log",
+  "extensions": [
+    ".log"
+  ],
+  "badge": "Log",
+  "badgeColor": "#F9A825",
+  "syntax": {
+    "preferred": "grammar"
+  },
+  "brackets": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string"
+      ]
+    }
+  ],
+  "surroundingPairs": [
+    [
+      "\"",
+      "\""
+    ],
+    [
+      "'",
+      "'"
+    ]
+  ],
+  "indentSize": 4
+}

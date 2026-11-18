@@ -1,0 +1,7 @@
+{
+  "id": "scala",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "license": "MIT",
+  "provenance": "grammaire Scala.tmLanguage.json du dépôt scala/vscode-scala-syntax (MIT, syntaxes/, main vérifié le 2026-11-18), reprise SANS MODIFICATION du banc du commerce (H-05) — chantier C5, la longue traîne ; somme SHA-256 épinglée au NOTICE et au registre de portage"
+}

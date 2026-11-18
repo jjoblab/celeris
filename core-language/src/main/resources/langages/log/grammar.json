@@ -1,0 +1,79 @@
+{
+  "name": "Log",
+  "scopeName": "text.log",
+  "patterns": [
+    {
+      "include": "#erreurs"
+    },
+    {
+      "include": "#avertissements"
+    },
+    {
+      "include": "#succes"
+    },
+    {
+      "include": "#entetes"
+    },
+    {
+      "include": "#infos"
+    }
+  ],
+  "repository": {
+    "erreurs": {
+      "patterns": [
+        {
+          "match": "(?i)^(?:e:|erreur).*$",
+          "name": "invalid.illegal.log"
+        },
+        {
+          "match": "(?i)^.*(?:error|failed|failure|severe|exception|échec|what went wrong).*$",
+          "name": "invalid.illegal.log"
+        }
+      ]
+    },
+    "avertissements": {
+      "patterns": [
+        {
+          "match": "(?i)^(?:w:|warning:|> warning).*$",
+          "name": "meta.annotation.log"
+        },
+        {
+          "match": "(?i)^.*(?:warning:|\\[warn\\]).*$",
+          "name": "meta.annotation.log"
+        }
+      ]
+    },
+    "succes": {
+      "patterns": [
+        {
+          "match": "(?i)^(?: up-to-date| from-cache| skipped| no-source).*$",
+          "name": "string.log"
+        },
+        {
+          "match": "(?i)^.*(?:build successful|sync successful|succeeded|succès|operation completed successfully).*$",
+          "name": "string.log"
+        },
+        {
+          "match": "(?i)^.*prêt$",
+          "name": "string.log"
+        }
+      ]
+    },
+    "entetes": {
+      "patterns": [
+        {
+          "match": "^> .*$",
+          "name": "entity.name.type.log"
+        }
+      ]
+    },
+    "infos": {
+      "patterns": [
+        {
+          "match": "(?i)^\\[(?:tooling|sync|jvm|jvm-out|cancel)\\].*$",
+          "name": "comment.log"
+        }
+      ]
+    }
+  }
+}

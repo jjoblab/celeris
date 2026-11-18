@@ -1,0 +1,44 @@
+// Package bancs : le banc d'échantillon Scala du commerce.
+package bancs
+
+import scala.collection.mutable
+
+/** ErreurVide se retourne quand le corpus est absent. */
+sealed trait ErreurCorpus
+case object CorpusVide extends ErreurCorpus
+final case class HorsBornes(index: Int, taille: Int) extends ErreurCorpus
+
+/** Corpus embarque des lignes repliables. */
+final class Corpus(val nom: String, lignes: Seq[String]) {
+  private val trie = lignes.sorted
+  private val cache = mutable.Map.empty[Int, String]
+
+  /** Ligne retourne la ligne demandée ; le repli sert de défaut. */
+  def ligne(i: Int): Either[ErreurCorpus, String] =
+    if (i >= 0 && i < trie.length) {
+      Either.right(cache.getOrElseUpdate(i, trie(i)))
+    } else Either.left(HorsBornes(i, trie.length))
+
+  /** Plier enveloppe les lignes dans un résumé. */
+  def plier(transform: String => String = identite): List[String] =
+    trie.map(transform).filter(_.nonEmpty).toList
+
+  private def identite(s: String): String = s
+}
+
+/** Le banc rejoue l'échantillon avec déterminisme. */
+object Banc extends App {
+  val corpus = new Corpus("banc", List("deux", "un", "trois"))
+  corpus.ligne(0) match {
+    case Right(ligne) => println(s"première : $ligne")
+    case Left(HorsBornes(i, n)) => println(s"index $i hors bornes ($n)")
+    case Left(CorpusVide)       => println("corpus vide")
+  }
+  val pliees = for {
+    (ligne, indice) <- corpus.plier(_ + " !").zipWithIndex
+    if indice > 0
+  } yield s"ligne $indice : $ligne"
+  pliees.foreach(println)
+  val double: Int => Int = _ * 2
+  println(double(21))
+}
