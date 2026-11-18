@@ -22,7 +22,7 @@
 | 2 | Clôture de la 1.1.0 et tag `v1.1.0` | Clos le 2026-11-12 | — |
 | 3 | Langages suivants : Go, Rust… (C5) | Clos le 2026-11-18 — trente-deux langages intégrés, le tour des vingt-neuf du dépôt de départ complet | — |
 | 4 | Second étage appareil de vérification (C11) | Livré et passé vert le 2026-11-12 | la CI exécute au nocturne — la recette manuelle du propriétaire reste |
-| 5 | Archivage du dépôt de départ (C14) | Bloqué | décision du propriétaire ; poussée hors de ce bac à sable |
+| 5 | Archivage du dépôt de départ (C14) | Clos le 2026-11-18 — bannière de migration posée, dépôt archivé | — |
 | 6 | Entretien continu (dependabot, montées de version) | Permanent | rien — veille hebdomadaire |
 | 7 | Mission popups : audit, restructuration, unification | Clos le 2026-11-13 — les neuf phases, les six livrables, l'inventaire sans manquant | — |
 
@@ -120,8 +120,13 @@ celeris — pour qu'aucun hôte ne sème sur une impasse.
 **Sortie** : bannière visible sur le dépôt de départ ; le registre de
 portage le consigne.
 
-**Blocage** : décision du propriétaire ; la poussée se fait dans le
-dépôt de départ, hors de ce bac à sable.
+**Avancement** : LIVRÉ le 2026-11-18 (signal du propriétaire — « lancé
+les travaux restants des feuilles de route » ) : la bannière de
+migration vit en tête du README du dépôt de départ (commit `b0c80bc` —
+l'impasse est posée : plus aucune contribution, plus aucune issue, tout
+vit en aval dans celeris) et le dépôt github.com/jjoblab/code-editor est
+ARCHIVÉ — en lecture seule, le gel `f310a39` acté. Le registre de portage
+le consigne.
 
 **Source** : audit § 9, recommandation 10 ; § 7.2.
 

@@ -7,6 +7,12 @@
 >
 > Le dépôt de départ est traité en lecture seule au commit `f310a39` ; le
 > nouveau dépôt n'est pas un fork et ne reprend aucun historique.
+>
+> **Archivé le 2026-11-18** (chantier C14) : la bannière de migration vit
+> en tête du README du dépôt de départ (commit `b0c80bc` du
+> github.com/jjoblab/code-editor) et le dépôt est ARCHIVÉ — en lecture
+> seule, aucune contribution ne s'y accepte plus, aucune issue ne s'y
+> traite.
 
 ## Légende
 
