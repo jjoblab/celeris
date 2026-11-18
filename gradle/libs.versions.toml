@@ -61,10 +61,14 @@ cyclonedx = "3.5.1"
 # versionName, sinon certains installateurs refusent le paquet.
 demo = "1.0.0"
 # Interface de la démonstration (M3 — vérifiées sur Google Maven le
-# 2026-11-06, compatibles compileSdk 36)
+# 2026-11-06, compatibles compileSdk 36). REFUS délibéré du 2026-11-18 :
+# la montée androidxCore 1.19.1 (PR dependabot « correctifs-et-mineures »)
+# exige compileSdk 37 — le dépôt épingle le 36 (ADR-001 : dernier niveau
+# stable vérifié), l'épingle reste 1.18.0 tant que le SDK ne monte pas
+# (décision du propriétaire).
 androidxActivity = "1.12.0"
 androidxAppcompat = "1.8.0"
-androidxCore = "1.19.1"
+androidxCore = "1.18.0"
 androidxRecyclerview = "1.4.0"
 material = "1.14.0"
 # Désucrage des bibliothèques du cœur (M8.6) : la frontière
