@@ -17,6 +17,10 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionParams;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionOptions;
+import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
@@ -35,6 +39,7 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.InlayHintKind;
 import org.eclipse.lsp4j.InlayHintLabelPart;
@@ -65,6 +70,9 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import org.jspecify.annotations.Nullable;
 
+import jo.celeris.core.lsp.types.ListeCompletion;
+import jo.celeris.core.lsp.types.DiagnosticLsp;
+import jo.celeris.core.lsp.types.ElementCompletion;
 import jo.celeris.core.lsp.types.CorrectifLsp;
 import jo.celeris.core.lsp.types.EditionEspaceLsp;
 import jo.celeris.core.lsp.types.IndiceLsp;
@@ -90,9 +98,47 @@ import jo.celeris.core.lsp.types.SymboleLsp;
 final class ServeurDocuments implements LanguageServer {
 
     private final ServeurEmbarque.Documents documents;
+    /** Le proxy client — posé par la convention setClient du montage. */
+    private volatile @Nullable LanguageClient client;
 
     ServeurDocuments(ServeurEmbarque.Documents documents) {
         this.documents = documents;
+    }
+
+    /** La convention des serveurs embarqués : le proxy client du montage. */
+    public void setClient(LanguageClient client) {
+        this.client = client;
+    }
+
+    /** Publie les diagnostics courants d'un document par le protocole. */
+    private void publierDiagnostics(String uri) {
+        org.eclipse.lsp4j.services.LanguageClient clientCourant = client;
+        if (clientCourant == null) {
+            return;
+        }
+        List<org.eclipse.lsp4j.Diagnostic> ecrits = new ArrayList<>();
+        for (DiagnosticLsp diagnostic : documents.diagnosticsDe(uri)) {
+            org.eclipse.lsp4j.Diagnostic ecrit = new org.eclipse.lsp4j.Diagnostic();
+            ecrit.setRange(new org.eclipse.lsp4j.Range(
+                    new org.eclipse.lsp4j.Position(
+                            diagnostic.plage().debut().ligne(),
+                            diagnostic.plage().debut().colonne()),
+                    new org.eclipse.lsp4j.Position(
+                            diagnostic.plage().fin().ligne(),
+                            diagnostic.plage().fin().colonne())));
+            ecrit.setSeverity(org.eclipse.lsp4j.DiagnosticSeverity
+                    .forValue(diagnostic.gravite()));
+            ecrit.setMessage(diagnostic.message());
+            if (diagnostic.code() != null) {
+                ecrit.setCode(Either.forLeft(diagnostic.code()));
+            }
+            if (diagnostic.source() != null) {
+                ecrit.setSource(diagnostic.source());
+            }
+            ecrits.add(ecrit);
+        }
+        clientCourant.publishDiagnostics(
+                new org.eclipse.lsp4j.PublishDiagnosticsParams(uri, ecrits));
     }
 
     @Override
@@ -100,6 +146,11 @@ final class ServeurDocuments implements LanguageServer {
             InitializeParams params) {
         ServerCapabilities capacites = new ServerCapabilities();
         capacites.setHoverProvider(Either.forLeft(Boolean.TRUE));
+        // la complétion du terrain (le retour du 2026-11-19) : le
+        // serveur factice de l'exemple y sert ses candidats
+        capacites.setCompletionProvider(new CompletionOptions());
+        capacites.getCompletionProvider().setTriggerCharacters(
+                List.of(".", "("));
         capacites.setSignatureHelpProvider(
                 new SignatureHelpOptions(List.of("(")));
         // la couverture du jalon (H-12) s'annonce : le terrain qui
@@ -155,6 +206,7 @@ final class ServeurDocuments implements LanguageServer {
             documents.ouvrir(params.getTextDocument().getUri(),
                     params.getTextDocument().getLanguageId(),
                     params.getTextDocument().getText());
+            publierDiagnostics(params.getTextDocument().getUri());
         }
 
         @Override
@@ -165,6 +217,7 @@ final class ServeurDocuments implements LanguageServer {
                 documents.changer(params.getTextDocument().getUri(),
                         params.getTextDocument().getVersion(),
                         changements.get(changements.size() - 1).getText());
+            publierDiagnostics(params.getTextDocument().getUri());
             }
         }
 
@@ -201,6 +254,40 @@ final class ServeurDocuments implements LanguageServer {
                 return CompletableFuture.completedFuture(null);
             }
             return CompletableFuture.completedFuture(ecrireSignature(aide));
+        }
+
+        @Override
+        public CompletableFuture<Either<List<CompletionItem>,
+                CompletionList>> completion(
+                        CompletionParams params) {
+            ListeCompletion liste = documents.completion(
+                    params.getTextDocument().getUri(), position(params));
+            if (liste == null) {
+                return CompletableFuture.completedFuture(
+                        Either.forLeft(List.of()));
+            }
+            List<CompletionItem> elements = new ArrayList<>();
+            for (ElementCompletion element : liste.elements()) {
+                CompletionItem item = new CompletionItem();
+                item.setLabel(element.libelle());
+                item.setKind(org.eclipse.lsp4j.CompletionItemKind
+                        .forValue(element.genre()));
+                if (element.detail() != null) {
+                    item.setDetail(element.detail());
+                }
+                if (element.documentation() != null) {
+                    item.setDocumentation(new MarkupContent(
+                            MarkupKind.MARKDOWN, element.documentation()));
+                }
+                if (element.texteInsertion() != null) {
+                    item.setInsertText(element.texteInsertion());
+                }
+                item.setDeprecated(element.obsolete());
+                elements.add(item);
+            }
+            return CompletableFuture.completedFuture(
+                    Either.forRight(new CompletionList(
+                            liste.estIncomplete(), elements)));
         }
 
         // ── La couverture du jalon (H-12) ───────────────────────

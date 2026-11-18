@@ -4,8 +4,8 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -17,7 +17,9 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import jo.celeris.android.host.CelerisEditor;
@@ -29,52 +31,39 @@ import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.grammars.PackGrammars;
 
 /**
- * L'activité unique de l'exemple : le montage minimal du § 4.2
- * d'USAGE, en code — pas de ressource de gabarit, la scène se pose à
- * la main pour que TOUT ce que l'hôte écrit reste visible ici.
+ * L'activité unique de l'exemple : le montage du § 4.2 d'USAGE en
+ * code — la scène se pose à la main pour que TOUT ce que l'hôte
+ * écrit reste visible ici.
  *
- * <p>Le chargeur de langues vit en champ statique : UN seul fil
- * partagé sert toutes les scènes du processus (ADR-007, T5).</p>
- *
- * <p>Le JOURNAL VIT DE BASE (la revue du propriétaire du 2026-11-19 :
- * « ajoute une petite section pour les logs comme ça on pourra
- * savoir ce qui marche ou pas, la possibilité de copier les logs ») :
- * chaque étape du montage s'y écrit — le temps de lancement de
- * l'assemblage des paquets, les paquets fautifs, la langue résolue —
- * et le bouton COPIER emporte tout le texte au presse-papiers.</p>
+ * <p>Le retour terrain du 2026-11-19 : « ajouter des exemples
+ * d'autres langages (kt, xml…), choix depuis un drawer, ouverture
+ * dans des onglets » — le DRAWER gauche sert les échantillons du
+ * dépôt, la barre d'ONGLETS porte les fichiers ouverts, le mini
+ * serveur LSP Java se branche au fichier .java (diagnostics réels,
+ * complétion, signatures). Le JOURNAL vit toujours en bas :
+ * horodaté, repliable, copiable.</p>
  */
 public final class MainActivity extends Activity {
 
-    private static final String EXEMPLE_JAVA =
-            "package exemple;\n"
-            + "\n"
-            + "/** Salut — l'exemple vit sur la façade. */\n"
-            + "public final class Salut {\n"
-            + "    public static void main(String[] args) {\n"
-            + "        String nom = \"celeris\";\n"
-            + "        System.out.println(\"Salut, \" + nom + \" !\");\n"
-            + "    }\n"
-            + "}\n";
+    private static final float HAUTEUR_JOURNAL_DP = 130f;
 
     /** Le chargeur partagé — un seul assemblage par processus. */
     private static volatile LanguageKit langages;
 
     private CelerisEditor editeur;
-    /** Le journal visible : chaque ligne horodatée s'y pose. */
-    private TextView journal;
-    private final StringBuilder lignesJournal = new StringBuilder();
-    private ScrollView defileurJournal;
-    private LinearLayout enteteJournal;
-    private View panneauJournal;
-    private static final float HAUTEUR_JOURNAL_DP = 150f;
+    private JournalPanneau journal;
+    /** Les fichiers ouverts, dans l'ordre des onglets. */
+    private final List<Echantillons.Echantillon> ouverts = new ArrayList<>();
+    private int ongletActif = -1;
+    private LinearLayout barreOnglets;
+    private LinearLayout tiroir;
+    private FrameLayout scene;
 
     @Override
     protected void onCreate(Bundle etat) {
         super.onCreate(etat);
 
-        // La scène du § 4.1 : la vue sous la couche porte-popups,
-        // le journal en dessous (repliable d'un appui).
-        FrameLayout scene = new FrameLayout(this);
+        scene = new FrameLayout(this);
         EditorView vue = new EditorView(this);
         vue.setId(android.R.id.text1);
         PopupLayer couche = new PopupLayer(this);
@@ -86,143 +75,72 @@ public final class MainActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(scene);
+        getWindow().getDecorView().setBackgroundColor(0xFF101418);
 
-        monterJournal(scene);
-
-        // Une fois par processus : le chargeur des paquets intégrés.
+        journal = new JournalPanneau(this);
         LanguageKit kit = monterKit();
-
-        // Le chemin court : la façade compose session, langue
-        // détectée, popups, frappe intelligente et réglages — la
-        // langue arrive SANS BLOCAGE dès que l'assemblage vit.
         editeur = CelerisEditor.attach(vue, couche, kit);
-        editeur.open("Salut.java", EXEMPLE_JAVA);
-        journaliser("éditeur ouvert (Salut.java)");
         editeur.settings().setTheme(EditorThemes.SOMBRE);
         editeur.settings().setFontSizeSp(14f);
-        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
 
-        // La langue résolue se journalise dès qu'elle vit : le sondage
-        // léger du registre (toutes les 200 ms, quinze fois au plus).
+        monterTiroir();
+        monterBarreOnglets();
+        journal.monterDans(scene, this::copierJournal);
+        journal.ligne("montage prêt — l'assemblage court en fil démon");
+        // L'ouverture de départ : le premier échantillon du drawer.
+        ouvrir(Echantillons.tous().get(0));
         sonderLangue(kit, 0);
     }
 
-    /** Monte le chargeur de paquets (une fois par processus) : le
-     *  lancement de l'assemblage se journalise — le fil démon le
-     *  termine, l'éditeur n'attend jamais.
-     *
-     * @return le kit prêt, l'assemblage parti en fil démon
-     */
+    /** Monte le chargeur de paquets — l'assemblage ENTIER part sur
+     *  le fil démon, le fil de l'interface ne l'attend jamais. */
     private LanguageKit monterKit() {
-        long debut = System.currentTimeMillis();
-        journaliser("montage : assemblage des paquets de langages…");
         LanguageKit kit = langages;
         if (kit == null) {
             kit = LanguageKit.builder(LanguageKit.sharedDaemon())
                     .grammarFactory(PackGrammars.INSTANCE)
                     .builtinPacks()
-                    .onError(erreur -> journaliser(
+                    .onError(erreur -> journal.ligne(
                             "PAQUET FAUTIF : " + erreur.getMessage()))
                     .build();
             langages = kit;
             kit.preload();
         }
-        journaliser("assemblage lancé en "
-                + (System.currentTimeMillis() - debut)
-                + " ms (le fil démon le termine, l'éditeur n'attend pas)");
         return kit;
     }
 
-    /** Journalise l'arrivée de la langue (le registre s'assemble en
-     *  fil démon — l'ouverture n'a pas attendu). */
+    /** Journalise l'arrivée de la langue du fichier ouvert. */
     private void sonderLangue(LanguageKit kit, int tentative) {
-        LanguageSupport langue = kit.languageForSiPret("Salut.java");
+        String nom = ouverts.get(ongletActif).nomFichier();
+        LanguageSupport langue = kit.languageForSiPret(nom);
         if (langue != null || tentative > 15) {
-            journaliser(langue == null
-                    ? "langue : le registre n'a pas résolu Salut.java"
+            journal.ligne(langue == null
+                    ? "langue : le registre n'a pas résolu " + nom
                     : "langue résolue : " + langue.displayName()
-                            + " (" + langue.id() + ") — coloration et mots réservés vivent");
+                            + " — coloration et mots réservés vivent");
             return;
-        }
-        if (editeur != null) {
-            journaliser("langue : assemblage en cours…");
         }
         getWindow().getDecorView().postDelayed(
                 () -> sonderLangue(kit, tentative + 1), 200L);
     }
 
-    /** Monte le panneau du journal au bas de la scène : repliable,
-     *  copiable, lisible sur fond sombre. */
-    private void monterJournal(FrameLayout scene) {
-        LinearLayout panneau = new LinearLayout(this);
-        panneau.setOrientation(LinearLayout.VERTICAL);
-        panneau.setBackgroundColor(0xEE101418);
-        panneauJournal = panneau;
-
-        monterEnteteJournal(panneau);
-
-        journal = new TextView(this);
-        journal.setTypeface(Typeface.MONOSPACE);
-        journal.setTextSize(10f);
-        journal.setTextColor(0xFFCFE3E8);
-        journal.setPadding(24, 8, 24, 16);
-        defileurJournal = new ScrollView(this);
-        defileurJournal.addView(journal, new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-        panneau.addView(defileurJournal, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-
-        scene.addView(panneau, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                (int) (HAUTEUR_JOURNAL_DP
-                        * getResources().getDisplayMetrics().density),
-                Gravity.BOTTOM));
-    }
-
-    /** Monte l'en-tête du journal : le titre, le bouton COPIER, le
-     *  bouton CACHER (replier). */
-    private void monterEnteteJournal(LinearLayout panneau) {
-        enteteJournal = new LinearLayout(this);
-        enteteJournal.setOrientation(LinearLayout.HORIZONTAL);
-        enteteJournal.setGravity(Gravity.CENTER_VERTICAL);
-        TextView titre = new TextView(this);
-        titre.setText("Journal");
-        titre.setTextColor(0xFF9FE8FF);
-        titre.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        titre.setTextSize(12f);
-        enteteJournal.addView(titre, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        ajouterBoutonEntete("Copier", v -> copierJournal());
-        ajouterBoutonEntete("Cacher", v -> basculerJournal());
-        panneau.addView(enteteJournal, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-    }
-
-    /** Ajoute un bouton à l'en-tête du journal. */
-    private void ajouterBoutonEntete(String libelle, View.OnClickListener geste) {
-        Button bouton = new Button(this);
-        bouton.setText(libelle);
-        bouton.setTextSize(12f);
-        bouton.setOnClickListener(geste);
-        enteteJournal.addView(bouton, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-    }
-
-    /** Bascule le journal : replié, il ne garde que son en-tête. */
-    private void basculerJournal() {
-        boolean visible = defileurJournal.getVisibility() == View.VISIBLE;
-        defileurJournal.setVisibility(visible ? View.GONE : View.VISIBLE);
-        ViewGroup.LayoutParams reglages = panneauJournal.getLayoutParams();
-        reglages.height = visible
-                ? ViewGroup.LayoutParams.WRAP_CONTENT
-                : (int) (HAUTEUR_JOURNAL_DP
-                        * getResources().getDisplayMetrics().density);
-        panneauJournal.setLayoutParams(reglages);
-        Button bascule = (Button) enteteJournal.getChildAt(2);
-        bascule.setText(visible ? "Montrer" : "Cacher");
+    /** Ouvre un échantillon : son onglet naît (ou se rappelle), le
+     *  document se charge, le mini serveur se branche au .java. */
+    private void ouvrir(Echantillons.Echantillon echantillon) {
+        int connu = ouverts.indexOf(echantillon);
+        if (connu >= 0) {
+            ongletActif = connu;
+        } else {
+            ouverts.add(echantillon);
+            ongletActif = ouverts.size() - 1;
+        }
+        editeur.open(echantillon.nomFichier(), echantillon.texte());
+        journal.ligne("ouvert : " + echantillon.nomFichier());
+        if (echantillon.nomFichier().endsWith(".java")) {
+            SessionLspPoseuse.poser(this, editeur, echantillon.nomFichier(),
+                    () -> journal.ligne("mini serveur LSP branché"));
+        }
+        rafraichirOnglets();
     }
 
     /** Copie le journal entier au presse-papiers système. */
@@ -230,34 +148,219 @@ public final class MainActivity extends Activity {
         Object service = getSystemService(Context.CLIPBOARD_SERVICE);
         if (service instanceof ClipboardManager pressePapiers) {
             pressePapiers.setPrimaryClip(ClipData.newPlainText(
-                    "journal celeris", lignesJournal.toString()));
-            journaliser("journal copié au presse-papiers");
-        }
-    }
-
-    /** Journalise une ligne horodatée — le montage se lit. */
-    private void journaliser(String message) {
-        String horodatage = new SimpleDateFormat("HH:mm:ss.SSS",
-                Locale.ROOT).format(new Date());
-        lignesJournal.append('[').append(horodatage).append("] ")
-                .append(message).append('\n');
-        if (journal != null) {
-            journal.post(() -> {
-                journal.setText(lignesJournal.toString());
-                defileurJournal.fullScroll(View.FOCUS_DOWN);
-            });
+                    "journal celeris", journal.texte()));
+            journal.ligne("journal copié au presse-papiers");
         }
     }
 
     @Override
     protected void onDestroy() {
-        // La scène meurt : tout se libère (vue, popups, fils) —
-        // idempotent, le détachement de fenêtre n'est pas une
-        // libération (USAGE § 19.10).
         if (editeur != null) {
             editeur.close();
             editeur = null;
         }
         super.onDestroy();
+    }
+
+    // ── Le tiroir des échantillons (la gauche de la scène) ─────────
+
+    /** Monte le tiroir : un échantillon par rangée, l'ouverture y passe. */
+    private void monterTiroir() {
+        tiroir = new LinearLayout(this);
+        tiroir.setOrientation(LinearLayout.VERTICAL);
+        tiroir.setBackgroundColor(0xEE161B21);
+        tiroir.setVisibility(View.GONE);
+        TextView titre = new TextView(this);
+        titre.setText("Échantillons");
+        titre.setTextColor(0xFF9FE8FF);
+        titre.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        titre.setTextSize(13f);
+        titre.setPadding(24, 28, 24, 16);
+        tiroir.addView(titre);
+        ScrollView defileur = new ScrollView(this);
+        LinearLayout rangs = new LinearLayout(this);
+        rangs.setOrientation(LinearLayout.VERTICAL);
+        for (Echantillons.Echantillon echantillon : Echantillons.tous()) {
+            Button rang = new Button(this);
+            rang.setText(echantillon.nomFichier());
+            rang.setTextSize(12f);
+            rang.setAllCaps(false);
+            rang.setOnClickListener(v -> {
+                tiroir.setVisibility(View.GONE);
+                ouvrir(echantillon);
+            });
+            rangs.addView(rang, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
+        defileur.addView(rangs);
+        tiroir.addView(defileur, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        scene.addView(tiroir, new FrameLayout.LayoutParams(
+                (int) (220 * getResources().getDisplayMetrics().density),
+                ViewGroup.LayoutParams.MATCH_PARENT, Gravity.START));
+    }
+
+    /** Bascule le tiroir — le bouton de la barre d'onglets y passe. */
+    private void basculerTiroir() {
+        tiroir.setVisibility(tiroir.getVisibility() == View.VISIBLE
+                ? View.GONE : View.VISIBLE);
+    }
+
+    // ── La barre d'onglets (le haut de la scène) ───────────────────
+
+    /** Monte la barre : le bouton tiroir, puis un onglet par fichier. */
+    private void monterBarreOnglets() {
+        LinearLayout barre = new LinearLayout(this);
+        barre.setOrientation(LinearLayout.VERTICAL);
+        barreOnglets = new LinearLayout(this);
+        barreOnglets.setOrientation(LinearLayout.HORIZONTAL);
+        barreOnglets.setBackgroundColor(0xEE161B21);
+        barre.addView(barreOnglets, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        scene.addView(barre, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP));
+    }
+
+    /** Re-pose les onglets de la barre — l'actif s'illumine. */
+    private void rafraichirOnglets() {
+        barreOnglets.removeAllViews();
+        Button tiroirBouton = new Button(this);
+        tiroirBouton.setText("☰");
+        tiroirBouton.setTextSize(14f);
+        tiroirBouton.setOnClickListener(v -> basculerTiroir());
+        barreOnglets.addView(tiroirBouton, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        for (int i = 0; i < ouverts.size(); i++) {
+            poserOnglet(i);
+        }
+    }
+
+    /** Pose l'onglet d'un fichier ouvert — l'actif s'illumine. */
+    private void poserOnglet(int indice) {
+        Button onglet = new Button(this);
+        onglet.setText(ouverts.get(indice).nomFichier());
+        onglet.setTextSize(11f);
+        onglet.setAllCaps(false);
+        onglet.setTextColor(indice == ongletActif
+                ? 0xFF9FE8FF : 0xFF7A8894);
+        if (indice == ongletActif) {
+            onglet.setBackgroundColor(0x332AA198);
+        } else {
+            onglet.setBackground(new ColorDrawable(0x00000000));
+        }
+        onglet.setOnClickListener(v -> activerOnglet(indice));
+        barreOnglets.addView(onglet, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    /** Active un onglet : le document se rouvre, le .java rebranche son serveur. */
+    private void activerOnglet(int indice) {
+        ongletActif = indice;
+        Echantillons.Echantillon echantillon = ouverts.get(indice);
+        editeur.open(echantillon.nomFichier(), echantillon.texte());
+        if (echantillon.nomFichier().endsWith(".java")) {
+            SessionLspPoseuse.poser(this, editeur, echantillon.nomFichier(),
+                    () -> journal.ligne("mini serveur LSP rebranché"));
+        }
+        rafraichirOnglets();
+    }
+
+    /** Le panneau du journal : horodaté, repliable, copiable. */
+    private static final class JournalPanneau {
+
+        private final TextView lignes;
+        private final StringBuilder texte = new StringBuilder();
+        private ScrollView defileur;
+        private View panneau;
+        private boolean replie;
+
+        JournalPanneau(Context contexte) {
+            lignes = new TextView(contexte);
+            lignes.setTypeface(Typeface.MONOSPACE);
+            lignes.setTextSize(10f);
+            lignes.setTextColor(0xFFCFE3E8);
+            lignes.setPadding(24, 8, 24, 16);
+        }
+
+        void monterDans(FrameLayout scene, Runnable copier) {
+            LinearLayout colonne = new LinearLayout(scene.getContext());
+            colonne.setOrientation(LinearLayout.VERTICAL);
+            colonne.setBackgroundColor(0xEE101418);
+            panneau = colonne;
+            LinearLayout entete = new LinearLayout(scene.getContext());
+            entete.setOrientation(LinearLayout.HORIZONTAL);
+            entete.setGravity(Gravity.CENTER_VERTICAL);
+            TextView titre = new TextView(scene.getContext());
+            titre.setText("Journal");
+            titre.setTextColor(0xFF9FE8FF);
+            titre.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+            titre.setTextSize(12f);
+            entete.addView(titre, new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            ajouterBouton(entete, "Copier", copier);
+            Runnable[] bascule = new Runnable[1];
+            bascule[0] = () -> basculer(bascule[0]);
+            ajouterBouton(entete, "Cacher", () -> basculer(bascule[0]));
+            colonne.addView(entete, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+            defileur = new ScrollView(scene.getContext());
+            defileur.addView(lignes, new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+            colonne.addView(defileur, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+            scene.addView(colonne, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    (int) (HAUTEUR_JOURNAL_DP
+                            * scene.getResources().getDisplayMetrics().density),
+                    Gravity.BOTTOM));
+        }
+
+        /** Bascule le journal : replié, il ne garde que son en-tête. */
+        private void basculer(Runnable rappel) {
+            replie = !replie;
+            defileur.setVisibility(replie ? View.GONE : View.VISIBLE);
+            ViewGroup.LayoutParams reglages = panneau.getLayoutParams();
+            reglages.height = replie
+                    ? ViewGroup.LayoutParams.WRAP_CONTENT
+                    : (int) (HAUTEUR_JOURNAL_DP * panneau.getResources()
+                            .getDisplayMetrics().density);
+            panneau.setLayoutParams(reglages);
+            rappel.run();
+        }
+
+        private static void ajouterBouton(LinearLayout entete, String libelle,
+                Runnable geste) {
+            Button bouton = new Button(entete.getContext());
+            bouton.setText(libelle);
+            bouton.setTextSize(12f);
+            bouton.setOnClickListener(v -> geste.run());
+            entete.addView(bouton, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
+
+        void ligne(String message) {
+            String horodatage = new SimpleDateFormat("HH:mm:ss.SSS",
+                    Locale.ROOT).format(new Date());
+            texte.append('[').append(horodatage).append("] ")
+                    .append(message).append('\n');
+            lignes.post(() -> {
+                lignes.setText(texte.toString());
+                if (defileur != null) {
+                    defileur.fullScroll(View.FOCUS_DOWN);
+                }
+            });
+        }
+
+        String texte() {
+            return texte.toString();
+        }
     }
 }

@@ -231,12 +231,19 @@ final class EditorTestRig {
                 @Nullable String ligatures, @Nullable Typeface police) {
         }
 
-        /** Un tracé de ligne : ses bornes, sa couleur. */
-        record LineDraw(float x1, float y1, float x2, float y2, int color) {
+        /** Un tracé de ligne : ses bornes, sa couleur, son épaisseur. */
+        record LineDraw(float x1, float y1, float x2, float y2, int color,
+                float epaisseur) {
+        }
+
+        /** Un tracé de rectangle plein : ses bornes, sa couleur. */
+        record RectDraw(float left, float top, float right, float bottom,
+                int color) {
         }
 
         private final List<TextDraw> traces = new ArrayList<>();
         private final List<LineDraw> lignes = new ArrayList<>();
+        private final List<RectDraw> rectangles = new ArrayList<>();
 
         /** Les tracés de texte de l'image, dans l'ordre du dessin. */
         List<TextDraw> traces() {
@@ -246,6 +253,11 @@ final class EditorTestRig {
         /** Les tracés de ligne de l'image, dans l'ordre du dessin. */
         List<LineDraw> lignes() {
             return List.copyOf(lignes);
+        }
+
+        /** Les rectangles pleins de l'image, dans l'ordre du dessin. */
+        List<RectDraw> rectangles() {
+            return List.copyOf(rectangles);
         }
 
         /** Le nombre de lignes verticales tracées à l'abscisse donnée (±1 px). */
@@ -280,6 +292,13 @@ final class EditorTestRig {
         public void drawLine(float startX, float startY, float stopX,
                 float stopY, Paint paint) {
             lignes.add(new LineDraw(startX, startY, stopX, stopY,
+                    paint.getColor(), paint.getStrokeWidth()));
+        }
+
+        @Override
+        public void drawRect(float left, float top, float right, float bottom,
+                Paint paint) {
+            rectangles.add(new RectDraw(left, top, right, bottom,
                     paint.getColor()));
         }
 

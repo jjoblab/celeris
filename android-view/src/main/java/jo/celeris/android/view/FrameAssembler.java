@@ -119,7 +119,7 @@ final class FrameAssembler {
         vue.etatImage.beginFrame(document, vue.session.selection(),
                 vue.projection, document.revision(), vue.metrics, vue.theme,
                 premiere, visibles, vue.largeurGouttiere, vue.scrollX,
-                vue.scrollY);
+                vue.scrollY, vue.getWidth());
         // L'attente de couleur (M7.5, §9) : une publication existe —
         // une rangée sans couleur se comptera comme décolorée.
         vue.etatImage.attendCouleur(vue.syntaxe.couleurAttendue());

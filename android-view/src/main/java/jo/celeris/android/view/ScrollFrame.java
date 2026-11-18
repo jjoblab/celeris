@@ -48,6 +48,10 @@ public final class ScrollFrame {
             RebindingRowSource source, PainterLayer fantome) {
         ScrollFrame pipeline = new ScrollFrame();
         pipeline.addLayer(gouttiere);
+        // La bande de ligne courante (le retour terrain du 2026-11-19)
+        // se trace SOUS tout le reste : elle éclaire la rangée du
+        // caret réduit, elle ne lit pas.
+        pipeline.addLayer(new BandeLigneCourante(pinceaux));
         // Les guides d'indentation (A-17) se tracent SOUS la sélection
         // et le texte : ils alignent, ils ne lisent pas.
         pipeline.addLayer(new IndentGuides(pinceaux, guides));

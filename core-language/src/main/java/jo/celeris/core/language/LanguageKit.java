@@ -155,12 +155,33 @@ public final class LanguageKit {
     }
 
     /**
-     * Précharge le registre : l'assemblage part immédiatement sur
-     * l'exécuteur du kit — l'hôte qui veut la langue prête à la
-     * première ouverture l'appelle au démarrage.
+     * Précharge le registre : l'assemblage ENTIER part sur
+     * l'exécuteur du kit — le fil appelant rend LA MAIN IMMÉDIATEMENT
+     * (le retour terrain du 2026-11-19 : « à chaque fois que j'ouvre
+     * l'application démo c'est plus de 30 s d'attente » — l'ancien
+     * chemin assemblait les 32 paquets sur le fil appelant, seul le
+     * POSAGE du registre partait sur l'exécuteur). L'hôte qui veut
+     * suivre l'assemblage sonde {@link #estPret()} ; les erreurs de
+     * paquets partent au consommateur d'erreurs comme avant.
      */
     public void preload() {
-        registre();
+        synchronized (this) {
+            if (registre != null || assemblageLance) {
+                return;
+            }
+            assemblageLance = true;
+            final CountDownLatch fin = new CountDownLatch(1);
+            finAssemblage = fin;
+            executor.execute(() -> {
+                LanguageRegistry assemble = assemblerSurCeFil();
+                synchronized (LanguageKit.this) {
+                    if (registre == null) {
+                        registre = assemble;
+                    }
+                }
+                fin.countDown();
+            });
+        }
     }
 
     /**
@@ -237,11 +258,17 @@ public final class LanguageKit {
                         : assemble;
             }
             assemblageLance = true;
-            final LanguageRegistry assemble = assembler();
-            if (assemble != null) {
-                registre = assemble;
-                return assemble;
-            }
+            final CountDownLatch fin = new CountDownLatch(1);
+            finAssemblage = fin;
+            executor.execute(() -> {
+                LanguageRegistry assemble = assemblerSurCeFil();
+                synchronized (LanguageKit.this) {
+                    if (registre == null) {
+                        registre = assemble;
+                    }
+                }
+                fin.countDown();
+            });
             attendreAssemblage();
             LanguageRegistry fini = registre;
             return fini == null
@@ -264,9 +291,13 @@ public final class LanguageKit {
         }
     }
 
-    /** Lance l'assemblage sur l'exécuteur — une seule fois, les
-     *  paquets fautifs s'y signalent au consommateur d'erreurs. */
-    private @Nullable LanguageRegistry assembler() {
+    /** Assemble le registre SUR LE FIL COURANT (l'exécuteur du kit
+     *  en production, le fil du banc en test direct) — les paquets
+     *  fautifs s'y signalent au consommateur d'erreurs, le registre
+     *  retourné ne se pose pas ici : l'appelant (preload ou registre)
+     *  le pose sous le verrou.
+     */
+    private LanguageRegistry assemblerSurCeFil() {
         final LanguagePlatform plateforme = factory == null
                 ? LanguagePlatform.empty()
                 : LanguagePlatform.with(factory);
@@ -284,19 +315,7 @@ public final class LanguageKit {
                 rapporteur.accept(e);
             }
         }
-        final LanguageRegistry assemble = plateforme.build();
-        final CountDownLatch fin = new CountDownLatch(1);
-        finAssemblage = fin;
-        executor.execute(() -> {
-            synchronized (LanguageKit.this) {
-                registre = assemble;
-            }
-            fin.countDown();
-        });
-        // L'exécuteur peut être direct (le banc) : le registre est
-        // déjà posé au retour d'execute — le ramener tout de suite.
-        LanguageRegistry pose = registre;
-        return pose == assemble ? assemble : null;
+        return plateforme.build();
     }
 
     /** Le signal de fin de l'assemblage en cours, null sinon. */

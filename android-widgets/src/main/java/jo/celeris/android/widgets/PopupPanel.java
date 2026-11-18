@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
 
@@ -27,7 +28,8 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>La fluidité du propriétaire (2026-11-13 : « ajoute une petite
  * animation pour les popups pour qu'il soit plus fluide », redressée
- * le 2026-11-14 : « l'animation n'est pas bonne ») : la carte NAÎT —
+ * le 2026-11-14 : « l'animation n'est pas bonne » ; le 2026-11-19 :
+ * « l'animation des popups de code-editor est mieux ») : la carte NAÎT —
  * l'ENTRÉE RESSORT de l'IDE de référence, échelle 0,96 → 1 et montée
  * de 5 dp sur 160 ms, l'adoucissement qui freine tard — et MEURT —
  * voile qui descend, 90 ms, refermée par la couche AVANT son retrait
@@ -44,7 +46,17 @@ abstract class PopupPanel extends View {
 
     /** La durée de la mort de la carte, en millisecondes — la sortie
      *  referme court, l'œil n'attend pas. */
-    private static final long DUREE_MORT_MS = 90L;
+    private static final long DUREE_MORT_MS = 110L;
+
+    /** La dérive de la mort, en dp (le geste du dépôt de départ : la
+     *  carte qui s'en va COULE VERS LE BAS en s'effaçant, accélérée —
+     *  jamais une sortie immobile, plate). */
+    private static final float DERIVE_MORT_DP = 4f;
+
+    /** L'accélération de la mort — la sortie part doucement puis
+     *  s'enfuit (l'œil la suit, puis la lâche). */
+    private static final Interpolator ACCELERATION =
+            new AccelerateInterpolator();
 
     /** La montée de la naissance, en dp (le geste de l'IDE de référence). */
     private static final float MONTEE_DP = 5f;
@@ -85,6 +97,8 @@ abstract class PopupPanel extends View {
     private boolean morteArmee;
     /** L'instant de la mort, —1 hors sortie. */
     private long morteA = -1L;
+    /** La dérivée verticale de la mort, en pixels — la coulée. */
+    private float deriveeMort;
     /** Le retrait différé de la vue morte — la couche y passe. */
     private @Nullable Runnable retrait;
 
@@ -228,7 +242,8 @@ abstract class PopupPanel extends View {
     @Override
     protected final void onDraw(Canvas canvas) {
         avancerVoile();
-        boolean anime = alphaVoile < 1f || monteeVoile > 0f || echelleVoile < 1f;
+        boolean anime = alphaVoile < 1f || monteeVoile > 0f
+                || echelleVoile < 1f || deriveeMort > 0f;
         int sauve = -1;
         if (anime) {
             voileAnime.setAlpha(Math.round(alphaVoile * 255f));
@@ -236,10 +251,12 @@ abstract class PopupPanel extends View {
                     voileAnime);
             // le RESSORT de l'IDE de référence : la carte naît presque en
             // place, échelle 0,96 → 1 DEPUIS SON CENTRE, montée de 5 dp —
-            // jamais un zoom qui part du coin
+            // jamais un zoom qui part du coin ; la MORT COULE vers le bas
+            // (le geste du dépôt de départ : la sortie part doucement puis
+            // s'enfuit, jamais une sortie immobile)
             float centreX = getWidth() / 2f;
             float centreY = getHeight() / 2f;
-            canvas.translate(centreX, centreY - monteeVoile);
+            canvas.translate(centreX, centreY - monteeVoile + deriveeMort);
             canvas.scale(echelleVoile, echelleVoile);
             canvas.translate(-centreX, -centreY);
         }
@@ -260,6 +277,7 @@ abstract class PopupPanel extends View {
         alphaVoile = 1f;
         monteeVoile = 0f;
         echelleVoile = 1f;
+        deriveeMort = 0f;
         if (naissanceArmee) {
             naissanceA = getDrawingTime();
             naissanceArmee = false;
@@ -307,7 +325,13 @@ abstract class PopupPanel extends View {
             }
             return;
         }
-        alphaVoile *= Math.max(0f, 1f - ecoule / (float) DUREE_MORT_MS);
+        float avancee = Math.max(0f, Math.min(1f,
+                ecoule / (float) DUREE_MORT_MS));
+        // la sortie qui s'enfuit : le voile tombe, la carte COULE vers
+        // le bas en accélérant — l'œil la suit, puis la lâche
+        alphaVoile *= Math.max(0f, 1f - avancee);
+        deriveeMort = ACCELERATION.getInterpolation(avancee)
+                * DERIVE_MORT_DP * densite;
         postInvalidateOnAnimation();
     }
 

@@ -25,4 +25,8 @@ dependencies {
     // widgets, couche hôte (façade, popups) et voie de grammaires.
     // Le LSP embarqué reste optionnel : l'exemple ne le prend pas.
     implementation(project(":celeris"))
+    // Le serveur factice de l'exemple (le retour terrain du
+    // 2026-11-19) : le montage embarqué du protocole — un VRAI LSP
+    // in-process, sans sous-processus.
+    implementation(project(":lsp-protocole"))
 }

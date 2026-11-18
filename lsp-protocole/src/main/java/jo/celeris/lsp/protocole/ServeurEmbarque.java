@@ -7,9 +7,11 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import jo.celeris.core.lsp.types.CorrectifLsp;
+import jo.celeris.core.lsp.types.DiagnosticLsp;
 import jo.celeris.core.lsp.types.EditionEspaceLsp;
 import jo.celeris.core.lsp.types.EditionTexteLsp;
 import jo.celeris.core.lsp.types.IndiceLsp;
+import jo.celeris.core.lsp.types.ListeCompletion;
 import jo.celeris.core.lsp.types.LieuLsp;
 import jo.celeris.core.lsp.types.OptionsFormatageLsp;
 import jo.celeris.core.lsp.types.PlageLsp;
@@ -115,6 +117,33 @@ public final class ServeurEmbarque implements AutoCloseable {
          * @return le survol, ou null
          */
         default @Nullable SurvolLsp survol(String uri, PositionLsp position) {
+            return null;
+        }
+
+        /**
+         * Les diagnostics courants d'un document — publiés par le
+         * canal du protocole après chaque synchronisation ; le
+         * service qui n'en sert pas rend vide (rien ne se publie).
+         *
+         * @param uri l'uri du document synchronisé
+         * @return les diagnostics du texte courant
+         */
+        default List<DiagnosticLsp> diagnosticsDe(String uri) {
+            return List.of();
+        }
+
+        /**
+         * La complétion à une position : les candidats du contexte,
+         * le préfixe déjà filtré — null quand le service n'en sert
+         * pas (le retour terrain du 2026-11-19 : le serveur factice
+         * de l'exemple y sert mots réservés et membres).
+         *
+         * @param uri      l'uri du document
+         * @param position la position du curseur
+         * @return la liste de complétion, ou null sans service
+         */
+        default @Nullable ListeCompletion completion(String uri,
+                PositionLsp position) {
             return null;
         }
 
@@ -349,6 +378,11 @@ public final class ServeurEmbarque implements AutoCloseable {
         Launcher<LanguageClient> lanceur = LSPLauncher.createServerLauncher(
                 new ServeurDocuments(service), versServeur.entree(),
                 duServeur.sortie(), executeur, Function.identity());
+        // Le proxy client au serveur de documents (le retour terrain
+        // du 2026-11-19 : le serveur factice de l'exemple PUBLIE ses
+        // diagnostics par le protocole) — la convention setClient des
+        // serveurs embarqués.
+        injecterClient(service, lanceur.getRemoteProxy());
         lanceur.startListening();
         return achever(versServeur, duServeur, executeur, nomClient);
     }

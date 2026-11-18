@@ -22,6 +22,8 @@ public final class FrameState {
     private int firstRow;
     private int visibleRows;
     private float gutterWidth;
+    /** La largeur de la fenêtre — le bord droit des couches pleine largeur. */
+    private float largeurFenetre;
     private float scrollX;
     private float scrollY;
     /** Une publication d'analyse existe (M7.5, §9) : une rangée sans
@@ -51,6 +53,21 @@ public final class FrameState {
             VisualProjection projection, long revision, EditorMetrics metrics,
             EditorTheme theme, int firstRow, int visibleRows, float gutterWidth,
             float scrollX, float scrollY) {
+        beginFrame(document, selection, projection, revision, metrics, theme,
+                firstRow, visibleRows, gutterWidth, scrollX, scrollY, 0f);
+    }
+
+    /**
+     * La configuration complète de l'image, avec la largeur de la
+     * fenêtre : les couches de chrome pleine largeur (la bande de
+     * ligne courante) y lisent leur bord droit.
+     *
+     * @param largeurFenetre la largeur visible de la vue, en pixels
+     */
+    public void beginFrame(Document document, MultiSelection selection,
+            VisualProjection projection, long revision, EditorMetrics metrics,
+            EditorTheme theme, int firstRow, int visibleRows, float gutterWidth,
+            float scrollX, float scrollY, float largeurFenetre) {
         this.document = document;
         this.selection = selection;
         this.projection = projection;
@@ -66,6 +83,7 @@ public final class FrameState {
         this.gutterWidth = gutterWidth;
         this.scrollX = scrollX;
         this.scrollY = scrollY;
+        this.largeurFenetre = largeurFenetre;
         this.couleurAttendue = false;
         this.imageDecoloree = false;
     }
@@ -170,6 +188,12 @@ public final class FrameState {
     }
 
     /** La largeur de gouttière courante, en pixels. */
+    /** La largeur visible de la fenêtre, en pixels. */
+    public float largeurFenetre() {
+        exigeImage();
+        return largeurFenetre;
+    }
+
     public float gutterWidth() {
         exigeImage();
         return gutterWidth;

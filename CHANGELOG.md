@@ -30,6 +30,39 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [2.2.0] — 2026-11-19 (en cours)
 
+### Le retour terrain du 2026-11-19 (b) : ligne courante, guides illuminés, animations, serveur LSP, multi-langages
+
+- **Le démarrage ne bloque plus** : l'assemblage des 32 paquets
+  partait sur le FIL DE L'INTERFACE (preload assemblait lui-même :
+  37 s d'écran noir) — il vit désormais ENTIER sur le fil démon,
+  `preload()` rend en 1 ms, le registre est prêt en ~1 s.
+- **La ligne du caret s'illumine** (BandeLigneCourante) : la rangée
+  du curseur réduit se teinte d'un voile, pleine largeur — jamais
+  pendant une sélection.
+- **La portée active s'illumine** (IndentGuides) : le guide du bloc
+  qui contient le caret prend l'encre du CURSEUR et un trait plus
+  ÉPAIS ; l'accolade jumelle (caret sur { ou }) s'illumine aussi —
+  la sémantique du dépôt de départ (portée immédiate, pas la
+  chaîne entière).
+- **La sortie des popups COULE** (PopupPanel) : la carte s'efface
+  en dérivant vers le bas, accélérée (110 ms) — plus de sortie
+  immobile ; l'entrée ressort de 160 ms demeure.
+- **Le mini serveur LSP Java de l'exemple** : un VRAI serveur LSP
+  in-process (ServeurEmbarque, tubes à mémoire) — diagnostics réels
+  (accolades non fermées, fermantes orphelines, point-virgule
+  manquant), complétion contextuelle (mots réservés, membres de
+  String après le point, déclarations du fichier), signatures de
+  println/print, survol, symboles, plis, occurrences.
+- **Le protocole embarqué publie ses diagnostics** :
+  `ServeurEmbarque.Documents` gagne `completion(uri, position)` et
+  `diagnosticsDe(uri)` ; le montage injecte le proxy client
+  (convention setClient) et le serveur de documents publie par le
+  protocole après chaque synchronisation.
+- **L'exemple devient multi-langages** : drawer des échantillons
+  (Java, Kotlin, XML, Python, JSON), onglets des fichiers ouverts,
+  branchement LSP du .java, journal conservé (horodaté, Copier,
+  Cacher).
+
 ### Les popups de base vivent sans que l'hôte les active (revue du propriétaire du 2026-11-19)
 
 - **La complétion ne se tait plus à la frappe** : trois causes
