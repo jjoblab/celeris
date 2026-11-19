@@ -128,6 +128,12 @@ final class FrameAssembler {
         vue.fenetre.review(vue.scrollX, vue.scrollY, vue.largeurGouttiere,
                 vue.metrics.charWidth(), vue.metrics.lineHeight(),
                 vue.projection.columns(), vue.getWidth(), vue.getHeight());
+        // Le préfetch de viewport (B-03) : la marge du viewport se
+        // préchauffe au calme de 150 ms — chaque frame reprogramme au
+        // viewport courant, le fling ne paie plus la mesure.
+        if (visibles > 0) {
+            vue.prefetch.programmer(premiere, visibles);
+        }
     }
 
     /**

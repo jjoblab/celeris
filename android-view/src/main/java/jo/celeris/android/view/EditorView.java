@@ -134,6 +134,9 @@ public final class EditorView extends View {
     final EditorGutter gouttiereEtat = new EditorGutter();
     // — les fractions du défilement vivent dans leur collaborateur (C9)
     private final ViewportFractions fractions = new ViewportFractions(this);
+    // — le préfetch de viewport (B-03) : la marge se préchauffe au
+    //   calme, hors de la boucle de dessin
+    final ViewportPrefetch prefetch = new ViewportPrefetch(this);
 
     /** La police logique, en sp — les métriques en dérivent par densité. */
     FontSpec policeLogique = POLICE_PAR_DEFAUT;
@@ -852,6 +855,7 @@ public final class EditorView extends View {
         session.removeEditListener(ecouteurAnnonce);
         syntaxe.fermer();
         diagnostics.shutdown();
+        prefetch.arreter();
     }
 
     /** La vue est-elle libérée — lecture du banc (chantier C1). */

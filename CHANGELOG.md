@@ -34,6 +34,11 @@ vivent dans les ADR et le registre de portage, pas ici.
   l'emplissait plus à vie). Les bornes composites (rejeu
   d'annulation, scripts) retombent sur l'invalidation totale — jamais
   une épissure aux bornes faussées.
+- **Le préfetch de viewport** : après 150 ms de calme, les huit
+  rangées au-dessus et en-dessous du viewport se préchauffent au
+  cache — le fling ne paie plus la mesure dans la frame (B-03). Le
+  défilement reprogramme le préchauffage au viewport courant, jamais
+  un préchauffage périmé.
 
 ## [2.2.1] — 2026-11-19
 
