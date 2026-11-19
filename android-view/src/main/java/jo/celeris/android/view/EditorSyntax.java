@@ -93,7 +93,7 @@ public final class EditorSyntax {
     private @Nullable LanguageSyntax syntaxeDuLangage;
     private @Nullable SyntaxCoordinator coordinateur;
     private @Nullable MoteurAnalyse moteur;
-    private jo.celeris.core.syntax.@Nullable MoteurSyntaxe moteurNativeVoie;
+    private @Nullable MoteurSyntaxe moteurNativeVoie;
     private @Nullable Runnable surAnalysePrete;
 
     /** Les consommateurs 2.0 du plan — multiples (ADR-0022, phase
