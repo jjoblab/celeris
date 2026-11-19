@@ -47,6 +47,10 @@ final class CLikeLexer implements LanguageLexer {
 
     private LexState exitState = SimpleState.NORMAL;
 
+    /** Vrai pour la PREMIÈRE ligne du document (état d'entrée initial)
+     *  — seule ligne où la marque d'ordre des octets s'ignore (A2). */
+    private boolean ligneDeTete;
+
     CLikeLexer(CLikeDialect dialect) {
         this.dialect = dialect;
     }
@@ -59,6 +63,7 @@ final class CLikeLexer implements LanguageLexer {
     @Override
     public LexedLine lex(CharSequence text, LexState entry) {
         exitState = SimpleState.NORMAL;
+        ligneDeTete = entry == initialState();
         List<Token> tokens = new ArrayList<>();
         int resume = 0;
         if (entry instanceof InBlockComment comment) {
@@ -130,6 +135,15 @@ final class CLikeLexer implements LanguageLexer {
     private int lexOne(CharSequence text, List<Token> tokens, int i, int n) {
         char c = text.charAt(i);
         if (Character.isWhitespace(c)) {
+            return i + 1;
+        }
+        // La marque d'ordre des octets (U+FEFF) en tête de PREMIÈRE
+        // ligne est un blanc de format (feuille de route A2) : elle
+        // ne colore rien — l'encre d'opérateur qu'elle recevait était
+        // une couleur parasite en tête de fichier UTF-8. Au MILIEU
+        // d'une ligne, le caractère reste ordinaire (il fait partie
+        // du jeton qui l'entoure).
+        if (c == '\uFEFF' && i == 0 && ligneDeTete) {
             return i + 1;
         }
         if (c == '/') {
