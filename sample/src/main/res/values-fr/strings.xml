@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Les chaînes de l'exemple : le titre, le tiroir, le journal. Les
-  libellés dynamiques (noms de fichiers, lignes du journal) restent
-  au code — eux seuls vivent en Java.
--->
+<!-- Les libellés français de l'exemple (ADR-008 n° 2 : en et fr à
+     100 % — la parité des clés se vérifie par le contrôle
+     d'accessibilité). -->
 <resources>
     <string name="app_name">Celeris exemple</string>
     <string name="titre_tiroir">Échantillons</string>
@@ -12,5 +10,6 @@
     <string name="action_replier">Replier</string>
     <string name="action_deplier">Déplier</string>
     <string name="action_ouvrir_tiroir">Ouvrir le tiroir des échantillons</string>
+    <string name="fermer_onglet">Fermer</string>
     <string name="contenu_tiroir">Le tiroir des échantillons du dépôt</string>
 </resources>
