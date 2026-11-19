@@ -250,16 +250,10 @@ public final class EditorView extends View {
         gouttiere = GutterPainter.monter(pinceaux, this);
         trace = ScrollFrame.assemble(gouttiere, pinceaux, () -> syntaxe.guides,
                 sourceLiee::pieceDuPli, densite(), composition, cache, sourceLiee, fantome.peintre());
-        // Les valeurs de débogage en ligne (E-03) se tracent APRÈS le
-        // texte et le fantôme : la valeur se lit par-dessus la ligne
-        // utile, à l'encre de gouttière.
-        valeursPeintre = new ValeursPainter(pinceaux);
-        trace.addLayer(valeursPeintre);
-        // Les indices en ligne (inlay hints) suivent : le type du « var »
-        // se lit en fin de ligne utile, à l'encre muette italique —
-        // jamais dans le flux, le texte ne se décale pas.
-        indicesPeintre = new InlayHintsPainter(pinceaux);
-        trace.addLayer(indicesPeintre);
+        CouchesDuTexte couches = monterCouchesAuDessusDuTexte(pinceaux);
+        valeursPeintre = couches.valeurs();
+        occurrencesPeintre = couches.occurrences();
+        indicesPeintre = couches.indices();
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
         // logique (sp) se convertit une fois pour toutes (PIEGE-23).
@@ -279,6 +273,29 @@ public final class EditorView extends View {
         // c'est LA façon dont la vue apprend ses réglages.
         reglagesUniques = new EditorSettings();
         reglagesUniques.addListener(source -> appliquerReglages(source));
+    }
+
+    /** Les couches qui se tracent APRÈS le texte (le constructeur
+     *  y allongeait) : les valeurs de débogage en ligne (E-03, la
+     *  valeur se lit par-dessus la ligne utile à l'encre de
+     *  gouttière), la poignée des occurrences du mot au caret (C11,
+     *  la couche vit dans le pipeline, la vue garde l'armement), et
+     *  les indices en ligne (le type du « var » se lit en fin de
+     *  ligne utile, à l'encre muette italique — jamais dans le flux,
+     *  le texte ne se décale pas). */
+    private CouchesDuTexte monterCouchesAuDessusDuTexte(BrushFactory pinceaux) {
+        ValeursPainter valeurs = new ValeursPainter(pinceaux);
+        trace.addLayer(valeurs);
+        OccurrencesPainter occurrences = trace.coucheOccurrences();
+        InlayHintsPainter indices = new InlayHintsPainter(pinceaux);
+        trace.addLayer(indices);
+        return new CouchesDuTexte(valeurs, occurrences, indices);
+    }
+
+    /** Les couches posées au-dessus du texte (C11, E-03) — le
+     *  constructeur y assigne ses champs finaux. */
+    private record CouchesDuTexte(ValeursPainter valeurs,
+            OccurrencesPainter occurrences, InlayHintsPainter indices) {
     }
 
     /** Applique les réglages de la source — la vue reste maîtresse
@@ -306,7 +323,7 @@ public final class EditorView extends View {
      *
      * @param nouvelleSession la session d'édition à afficher
      */
-    public void setSession(TextSession nouvelleSession) {
+    public void setSession(@Nullable TextSession nouvelleSession) {
         setSession(nouvelleSession, syntaxe.language());
     }
 
@@ -324,11 +341,17 @@ public final class EditorView extends View {
      * @param langue          le support du langage du document, null
      *                        pour aucun
      */
-    public void setSession(TextSession nouvelleSession,
+    public void setSession(@Nullable TextSession nouvelleSession,
             @Nullable LanguageSupport langue) {
         if (liberee) {
             return;
         }
+        // D11 (l'analyse croisée) : null VIDE la vue (l'onglet fermé
+        // du départ) — une session vide inerte y prend la place, le
+        // NPE du premier écouteur ne crashe plus l'hôte.
+        TextSession posee = nouvelleSession != null
+                ? nouvelleSession
+                : TextSession.of("");
         session.removeEditListener(ecouteurAnnonce);
         // La composition IME meurt avec le document quitté : ses
         // offsets n'appartiennent pas au document qui arrive (A-19,
@@ -336,7 +359,7 @@ public final class EditorView extends View {
         // d'onglet appliquait les bornes de la composition morte au
         // document neuf et y détruisait des caractères).
         composition.finish();
-        session = nouvelleSession;
+        session = posee;
         session.addEditListener(ecouteurAnnonce);
         syntaxe.attacher(session, langue);
         images.reinitialiserScene(true);
@@ -497,6 +520,10 @@ public final class EditorView extends View {
         return ancres.selectionBounds();
     }
 
+    /** La couche des occurrences du mot au caret (C11) — muette à
+     *  la naissance, l'hôte l'arme. */
+    private final OccurrencesPainter occurrencesPeintre;
+
     /** Affiche ou masque les numéros de lignes (D-01) : masqués, la gouttière
      *  se réduit à la coulisse des marqueurs (plis D-07, erreurs D-02). */
     public void setNumerosVisibles(boolean visibles) {
@@ -504,6 +531,19 @@ public final class EditorView extends View {
         reglages.poser(ReglagesEditeur.Porte.NUMEROS_LIGNES, visibles);
         numerosVisibles = visibles;
         gouttiere.setNumerosVisibles(visibles);
+        invalidate();
+    }
+
+    /** Arme ou coupe le voile des occurrences du mot au caret (C11) :
+     *  les exemplaires du mot courant s'illuminent d'un voile discret
+     *  (la teinte de sélection à l'alpha 0x33) — muet par défaut,
+     *  l'hôte décide. La couche se tait d'elle-même pendant les
+     *  sélections étendues et sur les non-identifiants.
+     *
+     * @param visibles vrai pour armer le voile d'occurrences
+     */
+    public void setOccurrencesVisibles(boolean visibles) {
+        occurrencesPeintre.setVisible(visibles);
         invalidate();
     }
 

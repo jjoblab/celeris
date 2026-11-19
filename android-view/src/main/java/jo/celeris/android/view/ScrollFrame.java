@@ -12,6 +12,15 @@ import java.util.List;
  */
 public final class ScrollFrame {
 
+    /** La couche d'occurrences du montage (C11) — la poignée de la vue. */
+    private OccurrencesPainter coucheOccurrences;
+
+    /** La couche d'occurrences du montage (C11) : la vue y arme le
+     *  voile du mot au caret. */
+    OccurrencesPainter coucheOccurrences() {
+        return coucheOccurrences;
+    }
+
     private final List<PainterLayer> layers = new ArrayList<>();
 
     /**
@@ -55,6 +64,11 @@ public final class ScrollFrame {
         // Les guides d'indentation (A-17) se tracent SOUS la sélection
         // et le texte : ils alignent, ils ne lisent pas.
         pipeline.addLayer(new IndentGuides(pinceaux, guides));
+        // Les occurrences du mot au caret (C11) se voilent SOUS la
+        // sélection : le mot répété parle le langage de la sélection,
+        // discrètement — la sélection voile par-dessus.
+        OccurrencesPainter occurrences = new OccurrencesPainter(pinceaux);
+        pipeline.addLayer(occurrences);
         pipeline.addLayer(new SelectionPainter(pinceaux));
         // Les accolades appariées (D-14) : leurs rectangles se tracent
         // sur la bande de sélection, SOUS le texte — le glyphe prime.
@@ -69,6 +83,7 @@ public final class ScrollFrame {
         // cadre l'encadre — la couleur se voit autour du texte.
         pipeline.addLayer(new PastillesTexte(pinceaux, densite));
         pipeline.addLayer(fantome);
+        pipeline.coucheOccurrences = occurrences;
         return pipeline;
     }
 
