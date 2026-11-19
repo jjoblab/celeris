@@ -39,6 +39,19 @@ vivent dans les ADR et le registre de portage, pas ici.
   cache — le fling ne paie plus la mesure dans la frame (B-03). Le
   défilement reprogramme le préchauffage au viewport courant, jamais
   un préchauffage périmé.
+- **La garde « ligne monstre »** : la mise en page d'une ligne
+  minifiée de centaines de kilo-octets se fenêtre à 5000 caractères
+  (B-04) — plus de subText géant ni de runs bidirectionnels sur tout
+  le texte à chaque miss ; le défilement horizontal suit la fenêtre,
+  le contenu au-delà reste édité mais invisible.
+- **L'indentation de continuation du retour à la ligne** : les
+  rangées de suite démarrent au retrait de leur ligne (B-05) — le
+  budget effectif s'en réduit, le caret, le clic, le texte, la
+  sélection, la composition et les accolades miroir s'y décalent.
+- **La projection s'épisse à l'édition** : plus de reconstruction
+  complète à chaque frappe (B-05) — les entrées d'avant la ligne
+  touchée se recopient, celles d'après se recalculent seules,
+  l'épissure égale la reconstruction fraîche (preuve d'équivalence).
 
 ## [2.2.1] — 2026-11-19
 

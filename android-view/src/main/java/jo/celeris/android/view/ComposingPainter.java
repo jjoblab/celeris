@@ -58,16 +58,19 @@ public final class ComposingPainter extends PainterLayer {
         int colonneDebut = Math.max(debut, debutRangee) - debutRangee;
         int colonneFin = Math.min(fin, document.lineEnd(ligne)) - debutRangee;
         int debutTranche = projection.spanStartAtRow(rangee);
+        // B-05 : la rangée de suite démarre au retrait de sa ligne.
+        float indent = projection.indentAtRow(rangee)
+                * frame.metrics().charWidth();
         colonneDebut = Math.max(colonneDebut, debutTranche);
         colonneFin = Math.min(colonneFin, projection.spanEndAtRow(rangee));
         if (colonneFin <= colonneDebut) {
             return;
         }
         float gauche = frame.gutterWidth()
-                + (colonneDebut - debutTranche) * frame.metrics().charWidth()
+                + indent + (colonneDebut - debutTranche) * frame.metrics().charWidth()
                 - frame.scrollX();
         float droite = frame.gutterWidth()
-                + (colonneFin - debutTranche) * frame.metrics().charWidth()
+                + indent + (colonneFin - debutTranche) * frame.metrics().charWidth()
                 - frame.scrollX();
         float base = frame.metrics().rowBaseline(rangee) - frame.scrollY();
         surface.drawRect(gauche, base, droite,

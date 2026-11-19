@@ -92,6 +92,10 @@ public final class TextPainter extends PainterLayer {
                 cache.store(cle, layout);
             }
             float y = baseY + (rangee - premiere) * hauteur;
+            // B-05 : la rangée de suite démarre au retrait de sa
+            // ligne — le texte s'y décale de l'indentation.
+            float x = bordGauche + frame.projection()
+                    .indentAtRow(rangee) * metrics.charWidth();
             if (layout.runs().isEmpty() && layout.spans().isEmpty()) {
                 // M7.5, §9 : une rangée qui porte de l'encre et vivait
                 // sous une publication tracée sans couleur — image
@@ -102,12 +106,12 @@ public final class TextPainter extends PainterLayer {
                 // Chemin rapide : une rangée purement gauche-à-droite et
                 // sans coloration se trace d'un seul tenant, l'instance
                 // du cache.
-                surface.drawText(layout.text(), bordGauche, y, brush());
+                surface.drawText(layout.text(), x, y, brush());
             } else if (layout.runs().isEmpty()) {
-                tracerPlages(surface, layout, bordGauche, y, metrics.charWidth(),
+                tracerPlages(surface, layout, x, y, metrics.charWidth(),
                         palette, portees);
             } else {
-                tracerSegments(surface, layout, bordGauche, y,
+                tracerSegments(surface, layout, x, y,
                         metrics.charWidth(), palette, portees);
             }
         }

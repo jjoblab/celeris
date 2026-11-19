@@ -85,12 +85,15 @@ public final class SelectionPainter extends PainterLayer {
         }
         // La rangée trace sa tranche depuis son bord gauche : la bande
         // se positionne en colonnes DANS la tranche.
+        // B-05 : la rangée de suite démarre au retrait de sa ligne.
+        float indent = frame.projection().indentAtRow(rangee)
+                * metrics.charWidth();
         float gauche = frame.gutterWidth()
-                + (colonneDebut - debutTranche) * metrics.charWidth()
+                + indent + (colonneDebut - debutTranche) * metrics.charWidth()
                 - frame.scrollX();
         float haut = metrics.rowTop(rangee) - frame.scrollY();
         float droite = frame.gutterWidth()
-                + (colonneFin - debutTranche) * metrics.charWidth()
+                + indent + (colonneFin - debutTranche) * metrics.charWidth()
                 - frame.scrollX();
         float bas = haut + metrics.lineHeight();
         surface.drawRect(gauche, haut, droite, bas, brush());

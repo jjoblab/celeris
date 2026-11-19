@@ -103,7 +103,9 @@ public final class AccoladesMiroir extends PainterLayer {
             return false;
         }
         int debutTranche = projection.spanStartAtRow(rangnee);
+        // B-05 : la rangée de suite démarre au retrait de sa ligne.
         float gauche = frame.gutterWidth()
+                + projection.indentAtRow(rangnee) * metrics.charWidth()
                 + (colonne - debutTranche) * metrics.charWidth()
                 - frame.scrollX();
         float haut = metrics.rowTop(rangnee) - frame.scrollY();

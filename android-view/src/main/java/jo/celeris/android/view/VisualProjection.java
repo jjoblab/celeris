@@ -38,13 +38,18 @@ public final class VisualProjection {
     private final FoldModel plis;
     private final int lineCount;
     private final int colonnes;
-    private final int[] rangneesAvantLigne;
+    private int[] rangneesAvantLigne;
     private final @Nullable int[] longueurs;
+    /** Les indentations de tête par ligne (B-05) : les rangées de
+     *  suite démarrent à l'indentation de leur ligne — le budget
+     *  effectif s'en réduit. Nul quand les longueurs ne sont pas
+     *  connues (pas de retour à la ligne). */
+    private @Nullable int[] indents;
     /** Le maximum des longueurs, mémo à la construction : le
      *  défilement horizontal le relit à CHAQUE trame (B-08, l'analyse
      *  croisée) — le recalcul balayait tout le tableau à chaque
      *  frappe. Zéro quand les longueurs ne sont pas connues. */
-    private final int plusLargeLigne;
+    private int plusLargeLigne;
 
     /**
      * Construit la projection héritée, sans longueurs connues : une
@@ -54,7 +59,7 @@ public final class VisualProjection {
      * @param folds     le modèle de plis, lu en direct
      */
     public VisualProjection(int lineCount, FoldModel folds) {
-        this(lineCount, folds, null, 0);
+        this(lineCount, folds, null, 0, null);
     }
 
     /**
@@ -69,25 +74,116 @@ public final class VisualProjection {
      */
     public VisualProjection(Document document, FoldModel folds, int columns) {
         this(document.lineCount(), folds, longueursDe(document),
-                Math.max(0, columns));
+                Math.max(0, columns), document);
     }
 
     private VisualProjection(int lineCount, FoldModel folds,
-            @Nullable int[] longueurs, int columns) {
+            @Nullable int[] longueurs, int columns, @Nullable Document document) {
         if (lineCount < 0) {
             throw new IllegalArgumentException("negative line count: " + lineCount);
         }
         this.lineCount = lineCount;
         this.plis = folds;
         this.longueurs = longueurs;
+        this.indents = longueurs != null && columns > 0 && document != null
+                ? indentsDe(document, columns) : null;
         this.colonnes = columns;
         this.plusLargeLigne = maxDes(longueurs);
-        this.rangneesAvantLigne = batirPrefixe(lineCount, longueurs, columns);
+        this.rangneesAvantLigne = batirPrefixe(lineCount, longueurs,
+                indents, columns);
     }
 
     /** Le nombre de lignes du document porté par la projection. */
     public int lineCount() {
         return lineCount;
+    }
+
+    /**
+     * Épisse la projection à une édition (B-05, l'analyse croisée) :
+     * la projection neuve naît de l'ancienne — les entrées d'avant la
+     * première ligne touchée se recopient telles quelles, celles de
+     * la ligne touchée à la fin se recalculent sur le document édité.
+     * Le dépôt de départ épisse pareil ses sommes préfixées sur
+     * place ; ici l'immuabilité garde la voie sûre (l'ancienne
+     * projection peut vivre dans une frame en cours), le passage ne
+     * balaye que les lignes restantes, jamais le document entier.
+     *
+     * <p>Sans retour à la ligne (budget nul), l'épissure retombe sur
+     * la construction fraîche : une rangée par ligne, rien à
+     * recopier.</p>
+     *
+     * @param document      le document APRÈS l'édition
+     * @param premiereLigne la première ligne touchée par l'édition
+     * @param deltaLignes   le nombre de lignes ajoutées (négatif si
+     *                      retirées)
+     * @return la projection épicée du document édité
+     */
+    public VisualProjection splice(Document document, int premiereLigne,
+            int deltaLignes) {
+        if (longueurs == null || colonnes <= 0) {
+            return new VisualProjection(document, plis, 0);
+        }
+        int nombreNeuf = document.lineCount();
+        int[] longueursNeuves = new int[nombreNeuf];
+        int[] indentsNeufs = new int[nombreNeuf];
+        int borne = Math.min(premiereLigne, Math.min(lineCount, nombreNeuf));
+        System.arraycopy(longueurs, 0, longueursNeuves, 0, borne);
+        if (indents != null) {
+            System.arraycopy(indents, 0, indentsNeufs, 0, borne);
+        }
+        // Les longueurs et indentations d'après la borne se relisent
+        // sur le document édité — un seul passage sur les lignes
+        // restantes, jamais le document entier.
+        int plafond = Math.max(1, colonnes / 2);
+        for (int ligne = borne; ligne < nombreNeuf; ligne++) {
+            int debut = document.lineStart(ligne);
+            int fin = document.lineEnd(ligne);
+            longueursNeuves[ligne] = fin - debut;
+            int blancs = 0;
+            while (blancs < fin - debut) {
+                char c = document.charAt(debut + blancs);
+                if (c != ' ' && c != '\t') {
+                    break;
+                }
+                blancs++;
+            }
+            indentsNeufs[ligne] = Math.min(blancs, plafond);
+        }
+        int[] prefixeNeuf = new int[nombreNeuf + 1];
+        System.arraycopy(rangneesAvantLigne, 0, prefixeNeuf, 0, borne + 1);
+        for (int ligne = borne; ligne < nombreNeuf; ligne++) {
+            prefixeNeuf[ligne + 1] = prefixeNeuf[ligne]
+                    + rangneesDe(longueursNeuves, indentsNeufs, ligne, colonnes);
+        }
+        VisualProjection epissee = new VisualProjection(nombreNeuf, plis,
+                longueursNeuves, colonnes, null);
+        epissee.indents = indentsNeufs;
+        epissee.rangneesAvantLigne = prefixeNeuf;
+        epissee.plusLargeLigne = recalculerPlusLarge(longueurs, longueursNeuves,
+                borne, plusLargeLigne);
+        return epissee;
+    }
+
+    /** Le plus large après épissure : le mémo d'avant reste valable
+     *  quand aucune longueur d'après la borne ne le dépasse — sinon
+     *  un passage sur les neuves. */
+    private static int recalculerPlusLarge(int[] anciennes, int[] neuves,
+            int borne, int memoAvant) {
+        for (int ligne = borne; ligne < neuves.length; ligne++) {
+            if (neuves[ligne] > memoAvant) {
+                memoAvant = neuves[ligne];
+            }
+        }
+        if (memoAvant > 0) {
+            return memoAvant;
+        }
+        int max = 0;
+        for (int longueur : neuves) {
+            if (longueur > max) {
+                max = longueur;
+            }
+        }
+        return max;
     }
 
     /** Le nombre de rangées visibles : rangées des lignes moins celles des cachées. */
@@ -214,7 +310,27 @@ public final class VisualProjection {
      * @return le début de la tranche dans la ligne
      */
     public int spanStartAtRow(int row) {
-        return spanIndexAtRow(row) * colonnes;
+        // Le budget effectif (B-05) : la première rangée porte le
+        // budget brut, les suivantes le budget réduit de l'indent —
+        // la suite démarre au retrait, chaque rangée de suite porte
+        // colonnes - indent.
+        int ligne = firstLineOfRow(row);
+        int indent = indents != null ? indents[ligne] : 0;
+        int tranche = spanIndexAtRow(row);
+        if (tranche == 0 || colonnes <= 0) {
+            return tranche * colonnes;
+        }
+        return colonnes + (tranche - 1) * Math.max(1, colonnes - indent);
+    }
+
+    /** L'indentation de tête de la ligne portée par la rangée
+     * donnée — le retrait visuel où démarrent ses rangées de suite
+     * (B-05). Zéro sans retour à la ligne. */
+    public int indentAtRow(int row) {
+        if (indents == null) {
+            return 0;
+        }
+        return indents[firstLineOfRow(row)];
     }
 
     /**
@@ -279,16 +395,17 @@ public final class VisualProjection {
     }
 
     private static int[] batirPrefixe(int lineCount, @Nullable int[] longueurs,
-            int columns) {
+            @Nullable int[] indents, int columns) {
         int[] prefixe = new int[lineCount + 1];
         for (int ligne = 0; ligne < lineCount; ligne++) {
             prefixe[ligne + 1] = prefixe[ligne]
-                    + rangneesDe(longueurs, ligne, columns);
+                    + rangneesDe(longueurs, indents, ligne, columns);
         }
         return prefixe;
     }
 
-    private static int rangneesDe(@Nullable int[] longueurs, int ligne, int columns) {
+    private static int rangneesDe(@Nullable int[] longueurs,
+            @Nullable int[] indents, int ligne, int columns) {
         if (longueurs == null || columns <= 0) {
             return 1;
         }
@@ -296,7 +413,37 @@ public final class VisualProjection {
         if (longueur <= 0) {
             return 1;
         }
-        return 1 + (longueur - 1) / columns;
+        // Le budget effectif (B-05) : l'indentation de tête rétrécit
+        // la largeur utile de la ligne — les rangées de suite
+        // démarrent au retrait, la suite tient dans le reste.
+        int indent = indents != null ? indents[ligne] : 0;
+        int budget = Math.max(1, columns - indent);
+        return 1 + (longueur - 1 - indent) / budget;
+    }
+
+    /** Les indentations de tête par ligne (B-05) : les blancs qui
+     *  ouvrent la ligne, plafonnés à la moitié du budget — le retrait
+     *  visuel ne peut pas manger la ligne entière, il reste au moins
+     *  une colonne de texte. Consulté UNE fois, à la construction,
+     *  hors du chemin de dessin. */
+    private static int[] indentsDe(Document document, int columns) {
+        int nombre = document.lineCount();
+        int[] indents = new int[nombre];
+        int plafond = Math.max(1, columns / 2);
+        for (int ligne = 0; ligne < nombre; ligne++) {
+            int debut = document.lineStart(ligne);
+            int fin = document.lineEnd(ligne);
+            int blancs = 0;
+            while (blancs < fin - debut) {
+                char c = document.charAt(debut + blancs);
+                if (c != ' ' && c != '\t') {
+                    break;
+                }
+                blancs++;
+            }
+            indents[ligne] = Math.min(blancs, plafond);
+        }
+        return indents;
     }
 
     private static int maxDes(@Nullable int[] longueurs) {

@@ -155,8 +155,18 @@ final class FrameAssembler {
                 episser(document);
             }
             vue.revisionSuivie = document.revision();
-            vue.projection = new VisualProjection(document, vue.plis,
-                    colonnesVoulues);
+            // B-05 : la projection s'épisse quand seules les lignes
+            // ont bougé (bornes propres, budget et plis inchangés) —
+            // jamais un balayage complet des longueurs à chaque
+            // frappe ; sinon la construction fraîche.
+            if (colonnesVoulues == vue.projection.columns()) {
+                vue.projection = vue.projection.splice(document,
+                        Math.max(0, vue.derniereEditionPremiereLigne),
+                        vue.derniereEditionDeltaLignes);
+            } else {
+                vue.projection = new VisualProjection(document, vue.plis,
+                        colonnesVoulues);
+            }
             RowSource habillee = vue.syntaxe.habiller(
                     new DocumentRowSource(document, vue.projection, vue.metrics,
                             colonnesVoulues), document);

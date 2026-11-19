@@ -78,8 +78,11 @@ public final class HitTest {
         int debutTranche = projection.spanStartAtRow(rangee);
         int longueurLigne = document.lineEnd(ligne) - document.lineStart(ligne);
         int finTranche = Math.min(projection.spanEndAtRow(rangee), longueurLigne);
-        int colonne = columnAt(x - largeurGouttiere + scrollX,
-                finTranche - debutTranche);
+        // B-05 : la rangée de suite démarre au retrait — la colonne
+        // visée le retranche avant la conversion.
+        int indent = projection.indentAtRow(rangee);
+        int colonne = columnAt(x - largeurGouttiere + scrollX
+                - indent * metrics.charWidth(), finTranche - debutTranche);
         return document.lineStart(ligne) + debutTranche + colonne;
     }
 }

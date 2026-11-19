@@ -93,7 +93,8 @@ public final class ScrollGeometry {
     public static float largeurContenu(VisualProjection projection,
             EditorMetrics metrics) {
         int portee = projection.columns() <= 0
-                ? projection.longestLineLength()
+                ? Math.min(projection.longestLineLength(),
+                        DocumentRowSource.FENETRE_MONSTRE)
                 : Math.min(projection.longestLineLength(), projection.columns());
         return portee * metrics.charWidth();
     }

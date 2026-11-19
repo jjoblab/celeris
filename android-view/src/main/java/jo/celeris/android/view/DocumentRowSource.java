@@ -18,6 +18,15 @@ import java.util.List;
  */
 public final class DocumentRowSource implements RowSource {
 
+    /** Le plafond de fenêtre d'une ligne monstre (B-04, l'analyse
+     *  croisée) : une ligne minifiée de centaines de kilo-octets ne
+     *  peut pas façonner sa rangée entière — subText géant, runs
+     *  bidirectionnels sur tout le texte, allocation monstrueuse à
+     *  chaque miss. Le dépôt de départ coupe pareil à 5000 ; le
+     *  contenu au-delà reste édité mais invisible (le scroll suit la
+     *  fenêtre). */
+    public static final int FENETRE_MONSTRE = 5000;
+
     private final Document document;
     private final VisualProjection projection;
     private final EditorMetrics metrics;
@@ -60,6 +69,10 @@ public final class DocumentRowSource implements RowSource {
         int debut = projection.spanStartAtRow(rangee);
         int fin = Math.min(projection.spanEndAtRow(rangee),
                 document.lineEnd(ligne) - document.lineStart(ligne));
+        // La fenêtre monstre (B-04) : la tranche mesurée ne dépasse
+        // jamais le plafond — la coloration rogne ses jetons à la
+        // tranche, le peintre suit, l'édition reste entière.
+        fin = Math.min(fin, debut + FENETRE_MONSTRE);
         if (fin < debut) {
             fin = debut;
         }
