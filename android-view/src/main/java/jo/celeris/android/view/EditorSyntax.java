@@ -410,13 +410,14 @@ public final class EditorSyntax {
      * (PIEGE-26, TokenCatchUp). Sans publication ou chaîne rompue
      * (rafale au-delà du plafond), la source reste sans couleur :
      * jamais une ligne au contenu non prouvé ne se colore à devinant.
+     *
+     * <p>La publication lu est celle de la voie qui SERT (feuille de
+     * route A1.2) : la voie native la publie aussi — le rattrapeur ne
+     * lit qu'un lexique document, jamais le moteur qui l'a produit ;
+     * sa publication périmée y recolle exactement pareil.</p>
      */
     private RowSource habillerPerimee(RowSource source, Document document) {
-        MoteurAnalyse moteurLocal = moteur;
-        if (moteurLocal == null) {
-            return source;
-        }
-        Analysis publiee = moteurLocal.analysePubliee();
+        Analysis publiee = publicationPerimee();
         if (publiee == null || chaineRompue) {
             return source;
         }
@@ -434,6 +435,20 @@ public final class EditorSyntax {
         return new SyntaxRowSource(source, publiee.lex(),
                 TokenCatchUp.of(publiee.lex(), editions, sites, document,
                         syntaxeDuLangage == null ? null : syntaxeDuLangage.lexer()));
+    }
+
+    /**
+     * La publication périmée de la voie qui sert — la voie hors fil du
+     * socle ou la voie native, la première non nulle : le rattrapage
+     * leur est commun, seule la publication change.
+     */
+    private @Nullable Analysis publicationPerimee() {
+        MoteurSyntaxe voieNative = moteurNativeVoie;
+        if (voieNative != null) {
+            return voieNative.analysePubliee();
+        }
+        MoteurAnalyse moteurLocal = moteur;
+        return moteurLocal == null ? null : moteurLocal.analysePubliee();
     }
 
     /**
