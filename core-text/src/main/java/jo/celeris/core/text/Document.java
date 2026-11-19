@@ -203,6 +203,13 @@ public final class Document {
      * Contenu texte de la ligne donnée, sans le saut de ligne final —
      * extraction par tranche, sans matérialiser le document entier.
      *
+     * <p>Convention des fins CRLF (ADR-0026) : l'index ne compte que
+     * {@code \n}, le {@code \r} d'une fin CRLF reste DONC le dernier
+     * caractère du contenu de la ligne — le séparateur d'une fin CRLF
+     * commence au {@code \r}, {@link #lineEnd} rend l'offset du
+     * {@code \n}. Les lexeurs y voient un blanc ; les couches à
+     * colonnes le comptent comme un caractère de contenu.</p>
+     *
      * @param line numéro de ligne quelconque
      * @return le contenu de la ligne, vide pour une ligne vide
      */
