@@ -45,7 +45,7 @@ public class BandeEtPorteeActiveTest {
 
     /** Le banc prêt : langage branché, analyse publiée, image dessinée. */
     private EditorTestRig bancPublie(String contenu) {
-        EditorTestRig banc = EditorTestRig.sur(contexte, contenu);
+        EditorTestRig banc = EditorTestRig.on(contexte, contenu);
         banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();
         return banc;
@@ -80,9 +80,9 @@ public class BandeEtPorteeActiveTest {
     public void laSelectionCoupeLaBande() {
         EditorTestRig banc = bancPublie(TEXTE);
         EditorView vue = banc.vue();
-        int debut = vue.session().document().lineStart(2);
+        int start = vue.session().document().lineStart(2);
         vue.session().setSelection(
-                MultiSelection.of(new SelRange(debut, debut + 3)));
+                MultiSelection.of(new SelRange(start, start + 3)));
         EditorTestRig.RecordingCanvas image = banc.image();
         float haut = vue.metrics.rowTop(2);
         for (EditorTestRig.RecordingCanvas.RectDraw rect : image.rectangles()) {
@@ -112,21 +112,21 @@ public class BandeEtPorteeActiveTest {
         float xClasse = vue.gutterWidth();
         EditorTestRig.RecordingCanvas.LineDraw guideMethode = null;
         EditorTestRig.RecordingCanvas.LineDraw guideClasse = null;
-        for (EditorTestRig.RecordingCanvas.LineDraw ligne : image.lignes()) {
-            if (Math.abs(ligne.x1() - xMethode) <= 1f
-                    && Math.abs(ligne.x2() - xMethode) <= 1f
-                    && ligne.y2() > ligne.y1()) {
+        for (EditorTestRig.RecordingCanvas.LineDraw line : image.lines()) {
+            if (Math.abs(line.x1() - xMethode) <= 1f
+                    && Math.abs(line.x2() - xMethode) <= 1f
+                    && line.y2() > line.y1()) {
                 if (guideMethode == null
-                        || ligne.epaisseur() > guideMethode.epaisseur()) {
-                    guideMethode = ligne;
+                        || line.epaisseur() > guideMethode.epaisseur()) {
+                    guideMethode = line;
                 }
             }
-            if (Math.abs(ligne.x1() - xClasse) <= 1f
-                    && Math.abs(ligne.x2() - xClasse) <= 1f
-                    && ligne.y2() > ligne.y1()) {
+            if (Math.abs(line.x1() - xClasse) <= 1f
+                    && Math.abs(line.x2() - xClasse) <= 1f
+                    && line.y2() > line.y1()) {
                 if (guideClasse == null
-                        || ligne.epaisseur() > guideClasse.epaisseur()) {
-                    guideClasse = ligne;
+                        || line.epaisseur() > guideClasse.epaisseur()) {
+                    guideClasse = line;
                 }
             }
         }
@@ -153,13 +153,13 @@ public class BandeEtPorteeActiveTest {
         EditorTestRig.RecordingCanvas image = banc.image();
         float xMethode = vue.gutterWidth() + 4 * vue.metrics.charWidth();
         EditorTestRig.RecordingCanvas.LineDraw guide = null;
-        for (EditorTestRig.RecordingCanvas.LineDraw ligne : image.lignes()) {
-            if (Math.abs(ligne.x1() - xMethode) <= 1f
-                    && Math.abs(ligne.x2() - xMethode) <= 1f
-                    && ligne.y2() > ligne.y1()
-                    && ligne.color() == ((vue.theme.cursorColor() & 0x00FFFFFF)
+        for (EditorTestRig.RecordingCanvas.LineDraw line : image.lines()) {
+            if (Math.abs(line.x1() - xMethode) <= 1f
+                    && Math.abs(line.x2() - xMethode) <= 1f
+                    && line.y2() > line.y1()
+                    && line.color() == ((vue.theme.cursorColor() & 0x00FFFFFF)
                             | 0xCC000000)) {
-                guide = ligne;
+                guide = line;
                 break;
             }
         }

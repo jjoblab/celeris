@@ -42,30 +42,30 @@ public class FusionDelColoréTest {
 
     /** Un canvas qui enregistre chaque tranche de texte tracée. */
     private static final class CanvasEnregistreur extends android.graphics.Canvas {
-        private final StringBuilder texte = new StringBuilder();
+        private final StringBuilder text = new StringBuilder();
 
         @Override
-        public void drawText(String texte, float x, float y,
-                android.graphics.Paint peinture) {
-            this.texte.append(texte);
+        public void drawText(String text, float x, float y,
+                android.graphics.Paint paint) {
+            this.text.append(text);
         }
 
         @Override
-        public void drawText(CharSequence texte, int debut, int fin,
-                float x, float y, android.graphics.Paint peinture) {
-            this.texte.append(texte, debut, fin);
+        public void drawText(CharSequence text, int start, int end,
+                float x, float y, android.graphics.Paint paint) {
+            this.text.append(text, start, end);
         }
 
         @Override
-        public void drawText(String texte, int debut, int fin,
-                float x, float y, android.graphics.Paint peinture) {
-            this.texte.append(texte, debut, fin);
+        public void drawText(String text, int start, int end,
+                float x, float y, android.graphics.Paint paint) {
+            this.text.append(text, start, end);
         }
 
         @Override
-        public void drawText(char[] texte, int index, int compte,
-                float x, float y, android.graphics.Paint peinture) {
-            this.texte.append(texte, index, index + compte);
+        public void drawText(char[] text, int index, int compte,
+                float x, float y, android.graphics.Paint paint) {
+            this.text.append(text, index, index + compte);
         }
     }
 
@@ -89,32 +89,32 @@ public class FusionDelColoréTest {
         vue.measure(1080, 1920);
         vue.layout(0, 0, 1080, 1920);
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Salut.java", source);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Salut.java", source);
         CanvasEnregistreur c0 = new CanvasEnregistreur();
         vue.draw(c0);
-        assertTrue("départ complet", c0.texte.toString().contains("main"));
+        assertTrue("départ complet", c0.text.toString().contains("main"));
 
         // le caret au début de « String nom = » (ligne 7) — les DEL
         // remontent : indentation, puis ligne VIDE, puis la fusion
-        int debut = editeur.session().document().lineStart(7);
-        editeur.session().setSelection(MultiSelection.caretsAt(debut));
+        int start = editor.session().document().lineStart(7);
+        editor.session().setSelection(MultiSelection.caretsAt(start));
         for (int i = 0; i < 8; i++) {
             vue.onKeyDown(KeyEvent.KEYCODE_DEL, del());
             CanvasEnregistreur ci = new CanvasEnregistreur();
             vue.draw(ci);
         }
-        String doc = editeur.session().document().text();
+        String doc = editor.session().document().text();
         CanvasEnregistreur cf = new CanvasEnregistreur();
         vue.draw(cf);
-        String trace = cf.texte.toString();
+        String trace = cf.text.toString();
         // les mots de la ligne fusionnée restent visibles :
         assertTrue("la ligne fusionnée reste tracée après la remontée "
                 + "(doc = '" + doc.replace("\n", "\\n") + "' ; trace = '"
                 + trace + "')",
                 trace.contains("nom")
                         && trace.contains("celeris"));
-        editeur.close();
+        editor.close();
     }
 
     @Test
@@ -131,12 +131,12 @@ public class FusionDelColoréTest {
         vue.measure(1080, 480);
         vue.layout(0, 0, 1080, 480);
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", source.toString());
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", source.toString());
         // amener le caret à la ligne 60 (sous le viewport) : le DEL#1
         // déclenche revealCaret → la vue DÉFILE
-        int debut = editeur.session().document().lineStart(60);
-        editeur.session().setSelection(MultiSelection.caretsAt(debut));
+        int start = editor.session().document().lineStart(60);
+        editor.session().setSelection(MultiSelection.caretsAt(start));
         // la 1re frappe dévoile le caret (revealCaret suit le DEL)
         for (int i = 0; i < 9; i++) {
             vue.onKeyDown(KeyEvent.KEYCODE_DEL, del());
@@ -146,14 +146,14 @@ public class FusionDelColoréTest {
         // la ligne fusionnée (59) doit rester dans le viewport tracé
         CanvasEnregistreur cf = new CanvasEnregistreur();
         vue.draw(cf);
-        String trace = cf.texte.toString();
+        String trace = cf.text.toString();
         assertTrue("la ligne fusionnée reste tracée après la remontée "
                 + "avec défilement (trace = '"
                 + trace.substring(0, Math.min(250, trace.length()))
                 + "' ; doc ligne 59 = '"
-                + editeur.session().document().lineText(59) + "')",
+                + editor.session().document().lineText(59) + "')",
                 trace.contains("champ60"));
-        editeur.close();
+        editor.close();
     }
 
     @Test
@@ -169,28 +169,28 @@ public class FusionDelColoréTest {
         vue.measure(1080, 1920);
         vue.layout(0, 0, 1080, 1920);
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", source.toString());
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", source.toString());
 
         // une première image colorée
         CanvasEnregistreur c0 = new CanvasEnregistreur();
         vue.draw(c0);
         assertTrue("l'image de départ est colorée et complète",
-                c0.texte.toString().contains("champ59"));
+                c0.text.toString().contains("champ59"));
 
         // le caret au début de la ligne 60 (champ59), les DEL remontent
-        int debut = editeur.session().document().lineStart(60);
-        editeur.session().setSelection(MultiSelection.caretsAt(debut));
+        int start = editor.session().document().lineStart(60);
+        editor.session().setSelection(MultiSelection.caretsAt(start));
         for (int i = 0; i < 12; i++) {
             vue.onKeyDown(KeyEvent.KEYCODE_DEL, del());
             CanvasEnregistreur ci = new CanvasEnregistreur();
             vue.draw(ci); // la frame de CHAQUE frappe
         }
-        String doc = editeur.session().document().text();
+        String doc = editor.session().document().text();
         // la ligne fusionnée (59) : '…champ58 = 58;int champ59…' ou proche
         CanvasEnregistreur cf = new CanvasEnregistreur();
         vue.draw(cf);
-        String trace = cf.texte.toString();
+        String trace = cf.text.toString();
         // diagnostic : QUELLES lignes manquent au tracé ?
         StringBuilder manquantes = new StringBuilder();
         for (int i = 50; i <= 59; i++) {
@@ -201,8 +201,8 @@ public class FusionDelColoréTest {
         }
         assertTrue("la ligne fusionnée reste tracée (manquantes : "
                 + manquantes + " ; doc ligne 59 = '"
-                + editeur.session().document().lineText(59) + "')",
+                + editor.session().document().lineText(59) + "')",
                 trace.contains("champ59 ="));
-        editeur.close();
+        editor.close();
     }
 }

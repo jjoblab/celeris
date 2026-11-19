@@ -56,20 +56,20 @@ class McpConnectorTest {
         EditorTools outils = outils();
 
         assertEquals("{\"revision\":0,\"texte\":\"fun\"}",
-                McpConnector.lire(outils, 0, 3));
+                McpConnector.read(outils, 0, 3));
         assertEquals("{\"revision\":0,\"texte\":\""
                         + "fun principal() {\\n}\"}",
                 McpConnector.instantane(outils));
-        assertTrue(McpConnector.symboles(outils).contains(
+        assertTrue(McpConnector.symbols(outils).contains(
                 "\"nom\":\"principal\""));
-        assertTrue(McpConnector.symboles(outils).contains(
+        assertTrue(McpConnector.symbols(outils).contains(
                 "\"categorie\":\"FUNCTION\""));
         assertTrue(McpConnector.diagnostics(outils).contains(
                 "accolade \\\"ouverte\\\""),
                 "les guillemets du message s'echappent en JSON");
 
-        assertEquals(outils.lire(0, 3).texte(), "fun");
-        assertEquals(outils.symboles().get(0).name(), "principal");
+        assertEquals(outils.read(0, 3).text(), "fun");
+        assertEquals(outils.symbols().get(0).name(), "principal");
         assertEquals(outils.diagnostics().get(0).message(),
                 "accolade \"ouverte\"");
     }

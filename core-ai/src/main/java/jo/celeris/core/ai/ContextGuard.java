@@ -19,7 +19,7 @@ import java.util.function.BooleanSupplier;
  */
 public final class ContextGuard implements GhostTextModel, PredictionModel {
 
-    private final GhostTextModel fantome;
+    private final GhostTextModel ghost;
     private final PredictionModel prediction;
     private final String chemin;
     private final ContextExclusions exclusions;
@@ -30,15 +30,15 @@ public final class ContextGuard implements GhostTextModel, PredictionModel {
      * demande traverse — l'hôte qui ne gère pas de consentement le
      * garde ailleurs (l'activation explicite reste sa règle, ADR-012).
      *
-     * @param fantome    le modèle de complétion branché par l'hôte
+     * @param ghost    le modèle de complétion branché par l'hôte
      * @param prediction le modèle de prédiction branché par l'hôte
      * @param chemin     le chemin du document servi, consulté contre
      *                   les exclusions
      * @param exclusions les exclusions de contexte du dépôt
      */
-    public ContextGuard(GhostTextModel fantome, PredictionModel prediction,
+    public ContextGuard(GhostTextModel ghost, PredictionModel prediction,
             String chemin, ContextExclusions exclusions) {
-        this(fantome, prediction, chemin, exclusions, () -> true);
+        this(ghost, prediction, chemin, exclusions, () -> true);
     }
 
     /**
@@ -46,7 +46,7 @@ public final class ContextGuard implements GhostTextModel, PredictionModel {
      * (F-10) : relu à chaque départ — l'activation explicite de
      * l'utilisateur, jamais une constante figée à la construction.
      *
-     * @param fantome     le modèle de complétion branché par l'hôte
+     * @param ghost     le modèle de complétion branché par l'hôte
      * @param prediction  le modèle de prédiction branché par l'hôte
      * @param chemin      le chemin du document servi, consulté contre
      *                    les exclusions
@@ -54,10 +54,10 @@ public final class ContextGuard implements GhostTextModel, PredictionModel {
      * @param consentement l'état de consentement, consulté à chaque
      *                    départ
      */
-    public ContextGuard(GhostTextModel fantome, PredictionModel prediction,
+    public ContextGuard(GhostTextModel ghost, PredictionModel prediction,
             String chemin, ContextExclusions exclusions,
             BooleanSupplier consentement) {
-        this.fantome = fantome;
+        this.ghost = ghost;
         this.prediction = prediction;
         this.chemin = chemin;
         this.exclusions = exclusions;
@@ -66,25 +66,25 @@ public final class ContextGuard implements GhostTextModel, PredictionModel {
 
     @Override
     public void completer(ModelRequest requete,
-            GhostTextModel.Receiver recepteur) {
+            GhostTextModel.Receiver receiver) {
         if (!consentement.getAsBoolean()) {
             return;
         }
-        if (exclusions.estExclu(chemin)) {
+        if (exclusions.isExcluded(chemin)) {
             return;
         }
-        fantome.completer(requete, recepteur);
+        ghost.completer(requete, receiver);
     }
 
     @Override
     public void predire(ModelRequest requete,
-            PredictionModel.Receiver recepteur) {
+            PredictionModel.Receiver receiver) {
         if (!consentement.getAsBoolean()) {
             return;
         }
-        if (exclusions.estExclu(chemin)) {
+        if (exclusions.isExcluded(chemin)) {
             return;
         }
-        prediction.predire(requete, recepteur);
+        prediction.predire(requete, receiver);
     }
 }

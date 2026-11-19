@@ -106,116 +106,116 @@ public final class Celeris {
      * fichier illisible, 2 usage inconnu.
      *
      * @param args   les arguments, premier terme = la commande
-     * @param sortie le flux de sortie des résultats
+     * @param output le flux de sortie des résultats
      * @return le code de sortie
      */
-    public static int executer(String[] args, PrintStream sortie) {
+    public static int executer(String[] args, PrintStream output) {
         if (args.length == 0 || "version".equals(args[0])) {
-            banniere(sortie);
+            banniere(output);
             return 0;
         }
         return switch (args[0]) {
-            case "analyse" -> analyser(args, sortie);
-            case "recherche" -> chercher(args, sortie);
-            case "diagnostiquer" -> diagnostiquer(args, sortie);
-            case "formater" -> formater(args, sortie);
-            case "refactorer" -> refactorer(args, sortie);
-            default -> usage(sortie);
+            case "analyse" -> analyser(args, output);
+            case "recherche" -> search(args, output);
+            case "diagnostiquer" -> diagnostiquer(args, output);
+            case "formater" -> formater(args, output);
+            case "refactorer" -> refactorer(args, output);
+            default -> usage(output);
         };
     }
 
-    private static void banniere(PrintStream sortie) {
-        sortie.println("celeris " + VERSION);
+    private static void banniere(PrintStream output) {
+        output.println("celeris " + VERSION);
         for (String module : modules()) {
-            sortie.println("  " + module);
+            output.println("  " + module);
         }
     }
 
-    private static int usage(PrintStream sortie) {
-        sortie.println("usage : celeris [version | analyse <fichier> | "
+    private static int usage(PrintStream output) {
+        output.println("usage : celeris [version | analyse <fichier> | "
                 + "recherche <fichier> <motif> | diagnostiquer <fichier> | "
                 + "formater <fichier> | refactorer <fichier> renommer "
                 + "<ancien> <nouveau>]");
         return 2;
     }
 
-    private static int analyser(String[] args, PrintStream sortie) {
+    private static int analyser(String[] args, PrintStream output) {
         if (args.length != 2) {
-            return usage(sortie);
+            return usage(output);
         }
-        String contenu = lire(args[1], sortie);
+        String contenu = read(args[1], output);
         if (contenu == null) {
             return 1;
         }
         Document document = Document.of(contenu);
-        LanguageSupport langue = langageDe(args[1], contenu, registre());
-        sortie.println("fichier : " + Path.of(args[1]).getFileName());
-        sortie.println("langage : "
-                + (langue == null ? "aucun" : langue.id()));
-        sortie.println("lignes : " + lignesVisibles(document, contenu));
-        sortie.println("caracteres : " + document.length());
-        if (langue == null || langue.syntax() == null) {
+        LanguageSupport language = langageDe(args[1], contenu, registre());
+        output.println("fichier : " + Path.of(args[1]).getFileName());
+        output.println("langage : "
+                + (language == null ? "aucun" : language.id()));
+        output.println("lignes : " + visibleLines(document, contenu));
+        output.println("caracteres : " + document.length());
+        if (language == null || language.syntax() == null) {
             return 0;
         }
-        Analysis analyse = SyntaxService.of(langue.syntax()).analyseFull(document);
-        for (FoldSpan region : plis(langue, analyse, document)) {
-            sortie.println("  pli : lignes " + (region.startLine() + 1) + "-"
+        Analysis analyse = SyntaxService.of(language.syntax()).analyseFull(document);
+        for (FoldSpan region : folds(language, analyse, document)) {
+            output.println("  pli : lignes " + (region.startLine() + 1) + "-"
                     + (region.endLine() + 1));
         }
-        for (OutlineEntry entree : plan(langue, analyse, document)) {
-            sortie.println("  plan : " + entree.name() + " (" + entree.category()
-                    + ", ligne " + (entree.startLine() + 1) + ")");
+        for (OutlineEntry input : plan(language, analyse, document)) {
+            output.println("  plan : " + input.name() + " (" + input.category()
+                    + ", ligne " + (input.startLine() + 1) + ")");
         }
         return 0;
     }
 
     /** Les plis du fichier : l'arbre, les commentaires, l'indentation déclarée (H-08). */
-    private static List<FoldSpan> plis(LanguageSupport langue, Analysis analyse,
+    private static List<FoldSpan> folds(LanguageSupport language, Analysis analyse,
             Document document) {
-        LanguageConfiguration.Folding pliage = langue.configuration().folding();
+        LanguageConfiguration.Folding pliage = language.configuration().folding();
         if (!pliage.byIndentation()) {
             return TreeFolds.regions(document, analyse);
         }
         return TreeFolds.regions(document, analyse, new IndentationFolds.Settings(
-                langue.configuration().indentSize(), pliage.offSide()));
+                language.configuration().indentSize(), pliage.offSide()));
     }
 
     /** Le plan du fichier : les règles du paquet quand il en porte, l'arbre sinon (H-08). */
-    private static List<OutlineEntry> plan(LanguageSupport langue, Analysis analyse,
+    private static List<OutlineEntry> plan(LanguageSupport language, Analysis analyse,
             Document document) {
-        if (langue.outlineRules().isEmpty()) {
+        if (language.outlineRules().isEmpty()) {
             return TreeOutline.entries(document, analyse);
         }
-        return RuleOutline.entries(document, langue.outlineRules(),
-                plis(langue, analyse, document));
+        return RuleOutline.entries(document, language.outlineRules(),
+                folds(language, analyse, document));
     }
 
-    private static int chercher(String[] args, PrintStream sortie) {
+    private static int search(String[] args, PrintStream output) {
         if (args.length != 3) {
-            return usage(sortie);
+            return usage(output);
         }
-        String contenu = lire(args[1], sortie);
+        String contenu = read(args[1], output);
         if (contenu == null) {
             return 1;
         }
         Document document = Document.of(contenu);
-        String motif = args[2];
-        if (motif.isEmpty()) {
+        String pattern = args[2];
+        if (pattern.isEmpty()) {
             // le motif vide s'égale à chaque position : la boucle ne
             // finirait jamais — le refus se dit et le code d'usage revient
-            sortie.println("le motif de recherche ne peut pas être vide");
+            output.println("le motif de recherche ne peut pas être vide");
             return 2;
         }
         int total = 0;
-        int position = contenu.indexOf(motif);
+        int position = contenu.indexOf(pattern);
         while (position >= 0) {
-            int ligne = document.lineForOffset(position);
-            int colonne = position - document.lineStart(ligne) + 1;
-            sortie.println((ligne + 1) + ":" + colonne + " " + motif);
+            int line = document.lineForOffset(position);
+            int column = position - document.lineStart(line) + 1;
+            output.println((line + 1) + ":" + column + " " + pattern);
             total++;
-            position = contenu.indexOf(motif, position + motif.length());
+            position = contenu.indexOf(pattern, position + pattern.length());
         }
-        sortie.println(total + " occurrence(s)");
+        output.println(total + " occurrence(s)");
         return 0;
     }
 
@@ -224,27 +224,27 @@ public final class Celeris {
      * se dit par sa ligne et sa colonne, à la manière de la recherche —
      * le décompte clôt.
      */
-    private static int diagnostiquer(String[] args, PrintStream sortie) {
+    private static int diagnostiquer(String[] args, PrintStream output) {
         if (args.length != 2) {
-            return usage(sortie);
+            return usage(output);
         }
-        String contenu = lire(args[1], sortie);
+        String contenu = read(args[1], output);
         if (contenu == null) {
             return 1;
         }
         Document document = Document.of(contenu);
-        LanguageSupport langue = langageDe(args[1], contenu, registre());
+        LanguageSupport language = langageDe(args[1], contenu, registre());
         int total = 0;
-        if (langue != null && langue.syntax() != null) {
-            Analysis analyse = SyntaxService.of(langue.syntax()).analyseFull(document);
+        if (language != null && language.syntax() != null) {
+            Analysis analyse = SyntaxService.of(language.syntax()).analyseFull(document);
             for (SyntaxIssue issue : TreeDiagnostics.issues(document, analyse)) {
-                int ligne = document.lineForOffset(issue.startOffset());
-                int colonne = issue.startOffset() - document.lineStart(ligne) + 1;
-                sortie.println((ligne + 1) + ":" + colonne + " " + issue.message());
+                int line = document.lineForOffset(issue.startOffset());
+                int column = issue.startOffset() - document.lineStart(line) + 1;
+                output.println((line + 1) + ":" + column + " " + issue.message());
                 total++;
             }
         }
-        sortie.println(total + " diagnostic(s)");
+        output.println(total + " diagnostic(s)");
         return total == 0 ? 0 : 3;
     }
 
@@ -253,22 +253,22 @@ public final class Celeris {
      * sortie — le résultat se dirige vers un fichier, quatre espaces
      * par niveau (le style de la maison).
      */
-    private static int formater(String[] args, PrintStream sortie) {
+    private static int formater(String[] args, PrintStream output) {
         if (args.length != 2) {
-            return usage(sortie);
+            return usage(output);
         }
-        String contenu = lire(args[1], sortie);
+        String contenu = read(args[1], output);
         if (contenu == null) {
             return 1;
         }
         Document document = Document.of(contenu);
-        LanguageSupport langue = langageDe(args[1], contenu, registre());
-        if (langue == null || langue.syntax() == null) {
-            sortie.println("langage sans analyse : " + args[1]);
+        LanguageSupport language = langageDe(args[1], contenu, registre());
+        if (language == null || language.syntax() == null) {
+            output.println("langage sans analyse : " + args[1]);
             return 1;
         }
-        Analysis analyse = SyntaxService.of(langue.syntax()).analyseFull(document);
-        sortie.print(Formateur.formater(document, analyse, IndentStyle.ESPACES_4));
+        Analysis analyse = SyntaxService.of(language.syntax()).analyseFull(document);
+        output.print(Formateur.formater(document, analyse, IndentStyle.ESPACES_4));
         return 0;
     }
 
@@ -278,44 +278,44 @@ public final class Celeris {
      * se trancher (B-19), l'ambiguïté comme la collision, et le code 4
      * les dit.
      */
-    private static int refactorer(String[] args, PrintStream sortie) {
+    private static int refactorer(String[] args, PrintStream output) {
         if (args.length != 5 || !"renommer".equals(args[2])) {
-            return usage(sortie);
+            return usage(output);
         }
-        String contenu = lire(args[1], sortie);
+        String contenu = read(args[1], output);
         if (contenu == null) {
             return 1;
         }
         Document document = Document.of(contenu);
-        LanguageSupport langue = langageDe(args[1], contenu, registre());
-        if (langue == null || langue.syntax() == null) {
-            sortie.println("langage sans analyse : " + args[1]);
+        LanguageSupport language = langageDe(args[1], contenu, registre());
+        if (language == null || language.syntax() == null) {
+            output.println("langage sans analyse : " + args[1]);
             return 1;
         }
-        Analysis analyse = SyntaxService.of(langue.syntax()).analyseFull(document);
+        Analysis analyse = SyntaxService.of(language.syntax()).analyseFull(document);
         IndexSymboles index = IndexSymboles.vide();
         index.remplacer(args[1], document, analyse);
         Renommage.PlanRenommage plan = Renommage.plan(index, args[3], args[4]);
         if (!plan.conflits().isEmpty()) {
             for (Renommage.ConflitRenommage conflit : plan.conflits()) {
-                sortie.println("conflit : " + conflit.nom() + " " + conflit.raison());
+                output.println("conflit : " + conflit.nom() + " " + conflit.reason());
             }
             return 4;
         }
         TextSession session = TextSession.of(contenu, System::nanoTime);
-        List<TextEdit> editions = plan.editions().getOrDefault(args[1], List.of());
-        if (!editions.isEmpty()) {
-            session.apply(Transaction.of(editions));
+        List<TextEdit> edits = plan.edits().getOrDefault(args[1], List.of());
+        if (!edits.isEmpty()) {
+            session.apply(Transaction.of(edits));
         }
-        sortie.print(session.text());
+        output.print(session.text());
         return 0;
     }
 
-    private static @Nullable String lire(String chemin, PrintStream sortie) {
+    private static @Nullable String read(String chemin, PrintStream output) {
         try {
             return Files.readString(Path.of(chemin), StandardCharsets.UTF_8);
         } catch (IOException echec) {
-            sortie.println("fichier illisible : " + chemin);
+            output.println("fichier illisible : " + chemin);
             return null;
         }
     }
@@ -324,7 +324,7 @@ public final class Celeris {
      * Les lignes visibles : le saut de ligne final termine sa ligne,
      * il n'en ouvre pas une fantôme — la convention de l'éditeur.
      */
-    private static int lignesVisibles(Document document, String contenu) {
+    private static int visibleLines(Document document, String contenu) {
         if (contenu.isEmpty() || !contenu.endsWith("\n")) {
             return document.lineCount();
         }

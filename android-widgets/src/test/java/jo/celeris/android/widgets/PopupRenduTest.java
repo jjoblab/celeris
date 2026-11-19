@@ -33,7 +33,7 @@ public class PopupRenduTest {
         contexte = RuntimeEnvironment.getApplication();
     }
 
-    private Bitmap dessiner(android.view.View vue, int largeur, int hauteur) {
+    private Bitmap draw(android.view.View vue, int width, int height) {
         vue.measure(android.view.View.MeasureSpec.makeMeasureSpec(0,
                         android.view.View.MeasureSpec.UNSPECIFIED),
                 android.view.View.MeasureSpec.makeMeasureSpec(0,
@@ -60,10 +60,10 @@ public class PopupRenduTest {
                         BadgeGenre.Genre.VARIABLE),
                 new CompletionListView.Candidat("variable", "int",
                         BadgeGenre.Genre.VARIABLE)));
-        Bitmap image = dessiner(vue, 400, 200);
+        Bitmap image = draw(vue, 400, 200);
         assertEquals("la carte se mesure en rangées de 40 dp", 2,
                 Math.round(image.getHeight()
-                        / (PopupTokens.HAUTEUR_RANGEE_LISTE_DP
+                        / (PopupTokens.LIST_ROW_HEIGHT_DP
                                 * contexte.getResources()
                                         .getDisplayMetrics().density
                                 + 2 * vue.paddingYPx)));

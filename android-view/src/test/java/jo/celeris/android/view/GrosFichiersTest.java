@@ -51,21 +51,21 @@ class GrosFichiersTest {
         }
     }
 
-    /** Un texte de {@code lignes} lignes de {@code colonnes} caractères. */
-    private static String texte(int lignes, int colonnes) {
+    /** Un texte de {@code lines} lignes de {@code colonnes} caractères. */
+    private static String text(int lines, int colonnes) {
         StringBuilder gabarit = new StringBuilder(colonnes);
         for (int i = 0; i < colonnes; i++) {
             gabarit.append((char) ('a' + (i % 26)));
         }
-        String ligne = gabarit.toString();
-        StringBuilder texte = new StringBuilder(lignes * (colonnes + 1));
-        for (int i = 0; i < lignes; i++) {
+        String line = gabarit.toString();
+        StringBuilder text = new StringBuilder(lines * (colonnes + 1));
+        for (int i = 0; i < lines; i++) {
             if (i > 0) {
-                texte.append('\n');
+                text.append('\n');
             }
-            texte.append(ligne);
+            text.append(line);
         }
-        return texte.toString();
+        return text.toString();
     }
 
     /**
@@ -74,16 +74,16 @@ class GrosFichiersTest {
      */
     @Test
     void largeFile_firstFrameUnderBudget() {
-        String contenu = texte(100_000, 80);
-        FontSpec police = new FontSpec("mono", 14f);
-        EditorMetrics metrics = EditorMetrics.of(police, new RegleFixe());
+        String contenu = text(100_000, 80);
+        FontSpec font = new FontSpec("mono", 14f);
+        EditorMetrics metrics = EditorMetrics.of(font, new RegleFixe());
         Document[] documents = new Document[1];
         VisualProjection[] projections = new VisualProjection[1];
         DocumentRowSource[] sources = new DocumentRowSource[1];
 
         long meilleur = Long.MAX_VALUE;
         for (int tour = 0; tour < TOURS; tour++) {
-            long debut = System.nanoTime();
+            long start = System.nanoTime();
             documents[0] = Document.of(contenu);
             // Budget de 40 colonnes : chaque ligne de 80 occupe 2 rangées.
             projections[0] = new VisualProjection(documents[0], new FoldModel(), 40);
@@ -91,9 +91,9 @@ class GrosFichiersTest {
                     metrics, 40);
             // La première image ne met en page que les rangées visibles.
             for (int rangee = 0; rangee < 60; rangee++) {
-                sources[0].layoutOf(new RowKey(1L, rangee, 1, police, 40));
+                sources[0].layoutOf(new RowKey(1L, rangee, 1, font, 40));
             }
-            meilleur = Math.min(meilleur, System.nanoTime() - debut);
+            meilleur = Math.min(meilleur, System.nanoTime() - start);
         }
 
         // Les comptes exacts prouvent la projection complète sans mise en
@@ -103,7 +103,7 @@ class GrosFichiersTest {
         assertEquals(100_000, documents[0].lineCount());
         assertEquals(200_000, projections[0].rowCount());
         assertEquals(40, sources[0]
-                .layoutOf(new RowKey(1L, 1, 1, police, 40)).text().length());
+                .layoutOf(new RowKey(1L, 1, 1, font, 40)).text().length());
 
         assertTrue(meilleur / 1_000_000 < BUDGET_PREMIERE_IMAGE_MS,
                 "premiere image " + meilleur / 1_000_000 + " ms, budget "
@@ -116,9 +116,9 @@ class GrosFichiersTest {
      */
     @Test
     void largeFile_halfMillionLinesOpenable() {
-        FontSpec police = new FontSpec("mono", 14f);
-        EditorMetrics metrics = EditorMetrics.of(police, new RegleFixe());
-        Document document = Document.of(texte(480_000, 40));
+        FontSpec font = new FontSpec("mono", 14f);
+        EditorMetrics metrics = EditorMetrics.of(font, new RegleFixe());
+        Document document = Document.of(text(480_000, 40));
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
         DocumentRowSource source = new DocumentRowSource(document, projection,
@@ -127,7 +127,7 @@ class GrosFichiersTest {
         assertEquals(480_000, document.lineCount());
         assertEquals(480_000, projection.rowCount());
         assertEquals(40, projection.longestLineLength());
-        assertEquals(40, source.layoutOf(new RowKey(1L, 479_999, 1, police, 0))
+        assertEquals(40, source.layoutOf(new RowKey(1L, 479_999, 1, font, 0))
                 .text().length());
     }
 }

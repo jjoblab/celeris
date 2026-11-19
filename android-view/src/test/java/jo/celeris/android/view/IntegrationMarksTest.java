@@ -29,45 +29,45 @@ final class IntegrationMarksTest {
     /** L'état vide : aucune marque, aucun arrêt, aucune pause. */
     @Test
     void etatVideNeMarqueRien() {
-        assertTrue(IntegrationMarks.VIDE.estVide());
-        assertEquals(MarkLine.INCHANGE, IntegrationMarks.VIDE.marqueVcs(3));
-        assertEquals(EtatBreakpoint.AUCUN, IntegrationMarks.VIDE.arret(2));
-        assertNull(IntegrationMarks.VIDE.ligneCourante());
-        assertFalse(IntegrationMarks.VIDE.dansPile(1));
+        assertTrue(IntegrationMarks.EMPTY.estVide());
+        assertEquals(MarkLine.INCHANGE, IntegrationMarks.EMPTY.marqueVcs(3));
+        assertEquals(BreakpointState.AUCUN, IntegrationMarks.EMPTY.stop(2));
+        assertNull(IntegrationMarks.EMPTY.currentLine());
+        assertFalse(IntegrationMarks.EMPTY.inStack(1));
     }
 
     /** Les marques VCS se posent par ligne, inchangée par défaut. */
     @Test
     void marquesVcsParLigne() {
-        IntegrationMarks marques = IntegrationMarks.of(
+        IntegrationMarks marks = IntegrationMarks.of(
                 Map.of(2, MarkLine.MODIFIE, 5, MarkLine.AJOUTE),
                 Map.of(), null, Set.of());
-        assertFalse(marques.estVide());
-        assertEquals(MarkLine.MODIFIE, marques.marqueVcs(2));
-        assertEquals(MarkLine.AJOUTE, marques.marqueVcs(5));
-        assertEquals(MarkLine.INCHANGE, marques.marqueVcs(0));
+        assertFalse(marks.estVide());
+        assertEquals(MarkLine.MODIFIE, marks.marqueVcs(2));
+        assertEquals(MarkLine.AJOUTE, marks.marqueVcs(5));
+        assertEquals(MarkLine.INCHANGE, marks.marqueVcs(0));
     }
 
     /** Les arrêts portent leur état : posé ou désactivé, aucun par défaut. */
     @Test
     void arretsPoseEtDesactive() {
-        IntegrationMarks marques = IntegrationMarks.of(
-                Map.of(), Map.of(4, EtatBreakpoint.POSE, 7, EtatBreakpoint.DESACTIVE),
+        IntegrationMarks marks = IntegrationMarks.of(
+                Map.of(), Map.of(4, BreakpointState.POSE, 7, BreakpointState.DESACTIVE),
                 null, Set.of());
-        assertEquals(EtatBreakpoint.POSE, marques.arret(4));
-        assertEquals(EtatBreakpoint.DESACTIVE, marques.arret(7));
-        assertEquals(EtatBreakpoint.AUCUN, marques.arret(1));
+        assertEquals(BreakpointState.POSE, marks.stop(4));
+        assertEquals(BreakpointState.DESACTIVE, marks.stop(7));
+        assertEquals(BreakpointState.AUCUN, marks.stop(1));
     }
 
     /** La ligne courante et les lignes de pile se distinguent (D-05). */
     @Test
     void ligneCouranteEtPile() {
-        IntegrationMarks marques = IntegrationMarks.of(
+        IntegrationMarks marks = IntegrationMarks.of(
                 Map.of(), Map.of(), 6, Set.of(6, 9));
-        assertEquals(6, marques.ligneCourante());
-        assertTrue(marques.dansPile(6));
-        assertTrue(marques.dansPile(9));
-        assertFalse(marques.dansPile(2));
+        assertEquals(6, marks.currentLine());
+        assertTrue(marks.inStack(6));
+        assertTrue(marks.inStack(9));
+        assertFalse(marks.inStack(2));
     }
 
     /** La fusion garde les marques existantes et ajoute les intégrations. */
@@ -77,16 +77,16 @@ final class IntegrationMarksTest {
         GutterMarks sansIntegration = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), replis, new int[] {4});
         IntegrationMarks integration = IntegrationMarks.of(
-                Map.of(2, MarkLine.MODIFIE), Map.of(3, EtatBreakpoint.POSE), 3,
+                Map.of(2, MarkLine.MODIFIE), Map.of(3, BreakpointState.POSE), 3,
                 Set.of(3));
         GutterMarks fondues = sansIntegration.avec(integration);
 
         assertTrue(fondues.pliable(1), "les plis survivent à la fusion");
         assertTrue(fondues.erreur(4), "les erreurs survivent à la fusion");
         assertEquals(MarkLine.MODIFIE, fondues.marqueVcs(2));
-        assertEquals(EtatBreakpoint.POSE, fondues.arret(3));
-        assertEquals(3, fondues.ligneCourante());
-        assertTrue(fondues.dansPile(3));
+        assertEquals(BreakpointState.POSE, fondues.stop(3));
+        assertEquals(3, fondues.currentLine());
+        assertTrue(fondues.inStack(3));
         assertEquals(MarkLine.INCHANGE, sansIntegration.marqueVcs(2),
                 "les marques d'origine restent muettes sans fusion");
     }
@@ -99,18 +99,18 @@ final class IntegrationMarksTest {
     @Test
     void coulisseDecouleDeLaConfiguration() {
         GutterIntegrations gestion = new GutterIntegrations();
-        assertEquals(0f, gestion.coulisses(false).laneWidth(10f, 8f), 1e-6f,
+        assertEquals(0f, gestion.lanes(false).laneWidth(10f, 8f), 1e-6f,
                 "rien d'activé : aucune coulisse réservée");
         gestion.setIntegration(IntegrationMarks.of(
                 Map.of(1, MarkLine.MODIFIE), Map.of(), null, Set.of()));
-        assertEquals(0f, gestion.coulisses(false).laneWidth(10f, 8f), 1e-6f,
+        assertEquals(0f, gestion.lanes(false).laneWidth(10f, 8f), 1e-6f,
                 "des marques sans coulisse activée ne l'élargissent pas");
-        assertEquals(20f, gestion.coulisses(true).laneWidth(10f, 8f), 1e-6f,
+        assertEquals(20f, gestion.lanes(true).laneWidth(10f, 8f), 1e-6f,
                 "la syntaxe activée réserve deux caractères — le chevron y vit à l'aise");
-        gestion.setCoulisseIntegration(true);
-        assertEquals(20f, gestion.coulisses(false).laneWidth(10f, 8f), 1e-6f,
+        gestion.setIntegrationLane(true);
+        assertEquals(20f, gestion.lanes(false).laneWidth(10f, 8f), 1e-6f,
                 "la coulisse activée réserve deux caractères");
-        assertEquals(20f, gestion.coulisses(true).laneWidth(10f, 8f), 1e-6f,
+        assertEquals(20f, gestion.lanes(true).laneWidth(10f, 8f), 1e-6f,
                 "la plus large des coulisses activées gagne");
     }
 
@@ -119,7 +119,7 @@ final class IntegrationMarksTest {
     void clicDansLeChampDesNumeresRendLaLigne() {
         GutterIntegrations gestion = new GutterIntegrations();
         List<Integer> cliques = new java.util.ArrayList<>();
-        gestion.setSurClicLigne(cliques::add);
+        gestion.setOnLineClick(cliques::add);
         VisualProjection projection = new VisualProjection(3, new FoldModel());
 
         assertTrue(gestion.surAppui(20f, 45f, 40f, 10f, 0f, 0f, 20f,
@@ -149,7 +149,7 @@ final class IntegrationMarksTest {
     void clicSuitLeDefilementVertical() {
         GutterIntegrations gestion = new GutterIntegrations();
         List<Integer> cliques = new java.util.ArrayList<>();
-        gestion.setSurClicLigne(cliques::add);
+        gestion.setOnLineClick(cliques::add);
         VisualProjection projection = new VisualProjection(30, new FoldModel());
 
         assertTrue(gestion.surAppui(20f, 5f, 40f, 10f, 0f, 40f, 20f,
@@ -164,7 +164,7 @@ final class IntegrationMarksTest {
     void leChampSBreakpointeALaBandeDePlis() {
         GutterIntegrations gestion = new GutterIntegrations();
         List<Integer> cliques = new java.util.ArrayList<>();
-        gestion.setSurClicLigne(cliques::add);
+        gestion.setOnLineClick(cliques::add);
         VisualProjection projection = new VisualProjection(3, new FoldModel());
         // la bande de plis vit au bord droit : les huit derniers pixels
         assertFalse(gestion.surAppui(35f, 45f, 40f, 10f, 8f, 0f, 20f,

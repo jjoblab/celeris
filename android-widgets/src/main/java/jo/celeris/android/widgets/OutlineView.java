@@ -30,14 +30,14 @@ import org.jspecify.annotations.Nullable;
  */
 public final class OutlineView extends View {
 
-    private static final float FACTEUR_HAUTEUR = 2.2f;
+    private static final float HEIGHT_FACTOR = 2.2f;
     private static final float FACTEUR_GLYPHE = 0.6f;
-    private static final int ENCRE_TEXTE = 0xFF202124;
-    private static final int ENCRE_GLYPHE = 0xFF5F6368;
+    private static final int TEXT_INK = 0xFF202124;
+    private static final int GLYPH_INK = 0xFF5F6368;
 
-    private final OutlineModel modele = new OutlineModel();
-    private final Paint pinceau = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final OutlinePainter peintre;
+    private final OutlineModel model = new OutlineModel();
+    private final Paint brush = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final OutlinePainter painter;
     private final float hauteurLigne;
     private @Nullable Consumer<OutlineEntry> surClic;
 
@@ -49,13 +49,13 @@ public final class OutlineView extends View {
      */
     public OutlineView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        float tailleTexte = TypedValue.applyDimension(
+        float textSize = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_SP, 14f,
                 getResources().getDisplayMetrics());
-        hauteurLigne = tailleTexte * FACTEUR_HAUTEUR;
-        pinceau.setTextSize(tailleTexte);
-        peintre = new OutlinePainter(hauteurLigne, tailleTexte,
-                tailleTexte * FACTEUR_GLYPHE, ENCRE_TEXTE, ENCRE_GLYPHE);
+        hauteurLigne = textSize * HEIGHT_FACTOR;
+        brush.setTextSize(textSize);
+        painter = new OutlinePainter(hauteurLigne, textSize,
+                textSize * FACTEUR_GLYPHE, TEXT_INK, GLYPH_INK);
     }
 
     /**
@@ -65,7 +65,7 @@ public final class OutlineView extends View {
      * @param entrees les entrées du plan, dans l'ordre du source
      */
     public void setEntries(List<OutlineEntry> entrees) {
-        modele.appliquer(entrees);
+        model.appliquer(entrees);
         requestLayout();
         invalidate();
     }
@@ -81,21 +81,21 @@ public final class OutlineView extends View {
 
     /** Le nombre d'entrées affichées. */
     public int nombre() {
-        return modele.nombre();
+        return model.nombre();
     }
 
     @Override
     protected void onMeasure(int largeurMesuree, int hauteurMesuree) {
-        int hauteur = Math.round(peintre.hauteur(modele.nombre()));
+        int height = Math.round(painter.height(model.nombre()));
         setMeasuredDimension(
                 resoudre(largeurMesuree, getSuggestedMinimumWidth()),
-                resoudre(hauteurMesuree, hauteur));
+                resoudre(hauteurMesuree, height));
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        peintre.dessiner(modele, new SurfaceCanvas(canvas));
+        painter.draw(model, new SurfaceCanvas(canvas));
     }
 
     @Override
@@ -103,7 +103,7 @@ public final class OutlineView extends View {
         if (evenement.getAction() != MotionEvent.ACTION_UP || surClic == null) {
             return true;
         }
-        OutlineEntry visee = modele.auPoint(evenement.getY(), hauteurLigne);
+        OutlineEntry visee = model.auPoint(evenement.getY(), hauteurLigne);
         if (visee != null) {
             surClic.accept(visee);
         }
@@ -133,28 +133,28 @@ public final class OutlineView extends View {
 
         @Override
         public void drawText(String text, float x, float y, int couleur) {
-            pinceau.setColor(couleur);
-            canvas.drawText(text, x, y, pinceau);
+            brush.setColor(couleur);
+            canvas.drawText(text, x, y, brush);
         }
 
         @Override
         public void drawLine(float x1, float y1, float x2, float y2, int couleur) {
-            pinceau.setColor(couleur);
-            pinceau.setStrokeWidth(2f);
-            canvas.drawLine(x1, y1, x2, y2, pinceau);
+            brush.setColor(couleur);
+            brush.setStrokeWidth(2f);
+            canvas.drawLine(x1, y1, x2, y2, brush);
         }
 
         @Override
         public void drawRect(float left, float top, float right, float bottom,
                 int couleur) {
-            pinceau.setColor(couleur);
-            canvas.drawRect(left, top, right, bottom, pinceau);
+            brush.setColor(couleur);
+            canvas.drawRect(left, top, right, bottom, brush);
         }
 
         @Override
         public void drawCircle(float cx, float cy, float rayon, int couleur) {
-            pinceau.setColor(couleur);
-            canvas.drawCircle(cx, cy, rayon, pinceau);
+            brush.setColor(couleur);
+            canvas.drawCircle(cx, cy, rayon, brush);
         }
     }
 }

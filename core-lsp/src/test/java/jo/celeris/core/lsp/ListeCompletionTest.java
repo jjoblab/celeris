@@ -1,7 +1,7 @@
 package jo.celeris.core.lsp;
 
-import jo.celeris.core.lsp.types.ElementCompletion;
-import jo.celeris.core.lsp.types.ListeCompletion;
+import jo.celeris.core.lsp.types.CompletionItemLsp;
+import jo.celeris.core.lsp.types.CompletionListLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,11 +26,11 @@ import org.junit.jupiter.api.Test;
 class ListeCompletionTest {
 
     /** La liste tronquée : isIncomplete vrai, ordre non alphabétique assumé. */
-    private static ListeCompletion listeTronquee() {
-        return ListeCompletion.de(true, List.of(
-                new ElementCompletion("zebra", 3, null, null, null, null, null, false),
-                new ElementCompletion("apple", 1, null, null, null, null, null, false),
-                new ElementCompletion("mango", 2, null, null, null, null, null, false)));
+    private static CompletionListLsp listeTronquee() {
+        return CompletionListLsp.of(true, List.of(
+                new CompletionItemLsp("zebra", 3, null, null, null, null, null, false),
+                new CompletionItemLsp("apple", 1, null, null, null, null, null, false),
+                new CompletionItemLsp("mango", 2, null, null, null, null, null, false)));
     }
 
     /**
@@ -39,87 +39,87 @@ class ListeCompletionTest {
      */
     @Test
     void truncatedCompletionList_isNeverReordered() {
-        ListeCompletion liste = listeTronquee();
-        assertTrue(liste.estIncomplete());
+        CompletionListLsp liste = listeTronquee();
+        assertTrue(liste.isIncomplete());
         // l'ordre du serveur survit — zebra avant apple, par choix du serveur
         assertEquals(List.of("zebra", "apple", "mango"), libelles(liste));
         // le filtrage garde l'ordre relatif du serveur, il ne trie pas
-        assertEquals(List.of("apple"), libelles(liste.filtrer("a")));
-        assertEquals(List.of("zebra", "apple", "mango"), libelles(liste.filtrer("")));
+        assertEquals(List.of("apple"), libelles(liste.filter("a")));
+        assertEquals(List.of("zebra", "apple", "mango"), libelles(liste.filter("")));
         // le tri local est REFUSÉ sur une liste tronquée : la même liste revient
-        assertEquals(List.of("zebra", "apple", "mango"), libelles(liste.trier()));
+        assertEquals(List.of("zebra", "apple", "mango"), libelles(liste.sort()));
         // jamais de complétion locale au-delà de la coupure : le filtre ne
         // fait qu'ôter, la taille ne croît jamais
-        assertTrue(liste.filtrer("a").elements().size() <= liste.elements().size());
+        assertTrue(liste.filter("a").elements().size() <= liste.elements().size());
     }
 
     /** La liste complète : l'ordre reste, le tri est permis. */
     @Test
     void laListeCompleteAdmetLeTri() {
-        ListeCompletion liste = ListeCompletion.de(false, List.of(
-                new ElementCompletion("b", 1, null, null, null, null, null, false),
-                new ElementCompletion("a", 1, null, null, null, null, null, false)));
-        assertTrue(!liste.estIncomplete());
+        CompletionListLsp liste = CompletionListLsp.of(false, List.of(
+                new CompletionItemLsp("b", 1, null, null, null, null, null, false),
+                new CompletionItemLsp("a", 1, null, null, null, null, null, false)));
+        assertTrue(!liste.isIncomplete());
         assertEquals(List.of("b", "a"), libelles(liste));
-        assertEquals(List.of("a", "b"), libelles(liste.trier()));
+        assertEquals(List.of("a", "b"), libelles(liste.sort()));
     }
 
     /** Les champs de l'élément : libellé, genre, détail, documentation, textes de tri et filtre. */
     @Test
     void lesChampsDeLElement() {
-        ListeCompletion liste = ListeCompletion.de(false, List.of(
-                new ElementCompletion("suggestion", 2, "(String)", "la doc",
+        CompletionListLsp liste = CompletionListLsp.of(false, List.of(
+                new CompletionItemLsp("suggestion", 2, "(String)", "la doc",
                         "001", "sugg", "suggestion()", true)));
-        ElementCompletion element = liste.elements().get(0);
-        assertEquals("suggestion", element.libelle());
-        assertEquals(2, element.genre());
+        CompletionItemLsp element = liste.elements().get(0);
+        assertEquals("suggestion", element.label());
+        assertEquals(2, element.kind());
         assertEquals("(String)", element.detail());
         assertEquals("la doc", element.documentation());
-        assertEquals("001", element.texteTri());
-        assertEquals("sugg", element.texteFiltre());
-        assertEquals("suggestion()", element.texteInsertion());
+        assertEquals("001", element.sortText());
+        assertEquals("sugg", element.filterText());
+        assertEquals("suggestion()", element.insertText());
         assertTrue(element.obsolete());
         // les champs absents sont nuls ou neutres, jamais devinés
-        ElementCompletion nud = new ElementCompletion(
+        CompletionItemLsp nud = new CompletionItemLsp(
                 "x", 0, null, null, null, null, null, false);
-        assertEquals(0, nud.genre());
+        assertEquals(0, nud.kind());
         assertTrue(!nud.obsolete());
     }
 
     /** Le tri : la clé de tri du serveur prime sur le libellé. */
     @Test
     void leTriSuitLaCleDuServeur() {
-        ListeCompletion liste = ListeCompletion.de(false, List.of(
-                new ElementCompletion("alpha", 1, null, null, "990", null, null, false),
-                new ElementCompletion("zoulou", 1, null, null, "001", null, null, false)));
-        assertEquals(List.of("zoulou", "alpha"), libelles(liste.trier()));
+        CompletionListLsp liste = CompletionListLsp.of(false, List.of(
+                new CompletionItemLsp("alpha", 1, null, null, "990", null, null, false),
+                new CompletionItemLsp("zoulou", 1, null, null, "001", null, null, false)));
+        assertEquals(List.of("zoulou", "alpha"), libelles(liste.sort()));
     }
 
     /** Le filtrage : insensible à la casse, sur le texte de filtre quand le serveur le donne. */
     @Test
     void leFiltrage() {
-        ListeCompletion liste = ListeCompletion.de(false, List.of(
-                new ElementCompletion("Alpha", 0, null, null, null, null, null, false),
-                new ElementCompletion("beta", 0, null, null, null, null, null, false),
-                new ElementCompletion("Gamma", 0, null, null, null, "carotte", null, false)));
-        assertEquals(List.of("Alpha"), libelles(liste.filtrer("ALP")));
-        assertEquals(List.of("beta"), libelles(liste.filtrer("be")));
+        CompletionListLsp liste = CompletionListLsp.of(false, List.of(
+                new CompletionItemLsp("Alpha", 0, null, null, null, null, null, false),
+                new CompletionItemLsp("beta", 0, null, null, null, null, null, false),
+                new CompletionItemLsp("Gamma", 0, null, null, null, "carotte", null, false)));
+        assertEquals(List.of("Alpha"), libelles(liste.filter("ALP")));
+        assertEquals(List.of("beta"), libelles(liste.filter("be")));
         // le texte de filtre prime sur le libellé : « carotte » attrape Gamma
-        assertEquals(List.of("Gamma"), libelles(liste.filtrer("car")));
-        assertTrue(liste.filtrer("zz").elements().isEmpty());
+        assertEquals(List.of("Gamma"), libelles(liste.filter("car")));
+        assertTrue(liste.filter("zz").elements().isEmpty());
     }
 
     /** La liste vide : aucun élément, les règles tiennent sur le vide. */
     @Test
     void laListeVide() {
-        ListeCompletion vide = ListeCompletion.de(false, List.of());
+        CompletionListLsp vide = CompletionListLsp.of(false, List.of());
         assertTrue(vide.elements().isEmpty());
-        assertTrue(vide.filtrer("a").elements().isEmpty());
-        assertTrue(vide.trier().elements().isEmpty());
+        assertTrue(vide.filter("a").elements().isEmpty());
+        assertTrue(vide.sort().elements().isEmpty());
     }
 
     /** Aide : les libellés dans l'ordre. */
-    private static List<String> libelles(ListeCompletion liste) {
-        return liste.elements().stream().map(ElementCompletion::libelle).toList();
+    private static List<String> libelles(CompletionListLsp liste) {
+        return liste.elements().stream().map(CompletionItemLsp::label).toList();
     }
 }

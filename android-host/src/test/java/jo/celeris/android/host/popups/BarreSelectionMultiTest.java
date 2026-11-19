@@ -32,20 +32,20 @@ public class BarreSelectionMultiTest {
     private static final String DOCUMENT = "alpha beta\nalpha beta\n";
 
     /** Le montage du banc : orchestrateur sur la session donnée. */
-    private static PopupsEditeur monter(TextSession session) {
+    private static EditorPopups start(TextSession session) {
         Application contexte = RuntimeEnvironment.getApplication();
-        EditorView editeur = new EditorView(contexte);
+        EditorView editor = new EditorView(contexte);
         PopupLayer couche = new PopupLayer(contexte);
-        editeur.setSession(session);
-        return new PopupsEditeur(editeur, session, couche,
-                jo.celeris.android.view.EditorThemes.SOMBRE, 14f,
+        editor.setSession(session);
+        return new EditorPopups(editor, session, couche,
+                jo.celeris.android.view.EditorThemes.DARK, 14f,
                 CoachPopups.muet());
     }
 
     private static SelectionBarView.Item action(
-            PopupsEditeur popups, String libelle) {
-        return popups.actionsDeBarre().stream()
-                .filter(i -> libelle.equals(i.label())).findFirst()
+            EditorPopups popups, String label) {
+        return popups.barActions().stream()
+                .filter(i -> label.equals(i.label())).findFirst()
                 .orElseThrow();
     }
 
@@ -58,7 +58,7 @@ public class BarreSelectionMultiTest {
     @Test
     public void copierMultiJointLesSegments() {
         TextSession session = TextSession.of(DOCUMENT, System::nanoTime);
-        PopupsEditeur popups = monter(session);
+        EditorPopups popups = start(session);
         // « alpha » (0..5) et « beta » (17..21)
         session.setSelection(MultiSelection.of(
                 new SelRange(0, 5), new SelRange(17, 21)));
@@ -67,7 +67,7 @@ public class BarreSelectionMultiTest {
                 pressePapiers().getPrimaryClip().getItemAt(0)
                         .coerceToText(RuntimeEnvironment.getApplication())
                         .toString());
-        popups.detacher();
+        popups.detach();
     }
 
     /** Coller multi : le clip à deux lignes se distribue sur les
@@ -75,14 +75,14 @@ public class BarreSelectionMultiTest {
     @Test
     public void collerMultiDistribueAuxPlages() {
         TextSession session = TextSession.of("x\ny\n", System::nanoTime);
-        PopupsEditeur popups = monter(session);
+        EditorPopups popups = start(session);
         pressePapiers().setPrimaryClip(ClipData.newPlainText("celeris",
                 "un\ndeux"));
         session.setSelection(MultiSelection.of(
                 new SelRange(0, 1), new SelRange(2, 3)));
         action(popups, "Coller").action().run();
         assertEquals("un\ndeux\n", session.document().text());
-        popups.detacher();
+        popups.detach();
     }
 
     /** Un seul curseur : rien ne change — les curseurs seuls ne
@@ -90,7 +90,7 @@ public class BarreSelectionMultiTest {
     @Test
     public void lesCurseursSeulsNeCopientRien() {
         TextSession session = TextSession.of(DOCUMENT, System::nanoTime);
-        PopupsEditeur popups = monter(session);
+        EditorPopups popups = start(session);
         pressePapiers().setPrimaryClip(ClipData.newPlainText("celeris",
                 "avant"));
         session.setSelection(MultiSelection.caretsAt(0, 6));
@@ -101,6 +101,6 @@ public class BarreSelectionMultiTest {
                         .toString());
         assertTrue("le document est intact",
                 session.document().text().equals(DOCUMENT));
-        popups.detacher();
+        popups.detach();
     }
 }

@@ -42,45 +42,45 @@ final class ClausesHeritage {
      * Les parents déclarés d'un type : les clauses lues à l'en-tête,
      * dans l'ordre du source, doublon jamais.
      *
-     * @param jetons les jetons absolus de la déclaration du type
-     * @param corps  l'index de l'accolade ouvrante du corps, ou -1
+     * @param tokens les jetons absolus de la déclaration du type
+     * @param body  l'index de l'accolade ouvrante du corps, ou -1
      * @return les noms des parents déclarés, dans l'ordre
      */
-    static List<String> de(List<FlowAnalysis.AbsoluteToken> jetons, int corps) {
-        if (corps < 0) {
+    static List<String> of(List<FlowAnalysis.AbsoluteToken> tokens, int body) {
+        if (body < 0) {
             return List.of();
         }
         ClausesHeritage lecture = new ClausesHeritage();
-        for (int i = 0; i < corps; i++) {
-            lecture.jeton(jetons.get(i));
+        for (int i = 0; i < body; i++) {
+            lecture.token(tokens.get(i));
         }
         lecture.basculer();
         return List.copyOf(lecture.clauses);
     }
 
     /** Traite un jeton de l'en-tête : chevron, mot de clause, nom, séparateur. */
-    private void jeton(FlowAnalysis.AbsoluteToken jeton) {
-        String texte = jeton.text();
-        if (texte.equals(OUVRANT)) {
+    private void token(FlowAnalysis.AbsoluteToken token) {
+        String text = token.text();
+        if (text.equals(OUVRANT)) {
             chevrons++;
-        } else if (texte.equals(FERMANT)) {
+        } else if (text.equals(FERMANT)) {
             chevrons = Math.max(0, chevrons - 1);
-        } else if (estMotClause(jeton) && chevrons == 0) {
+        } else if (estMotClause(token) && chevrons == 0) {
             basculer();
             dansClause = true;
         } else if (dansClause && chevrons > 0) {
             // les bornes de généricité ne comptent pas de parents
-        } else if (dansClause && FlowAnalysis.isName(jeton.kind())) {
-            courant = texte;
-        } else if (dansClause && texte.equals(",")) {
+        } else if (dansClause && FlowAnalysis.isName(token.kind())) {
+            courant = text;
+        } else if (dansClause && text.equals(",")) {
             basculer();
         }
     }
 
     /** Vrai quand le jeton ouvre une clause, chevrons fermés. */
-    private boolean estMotClause(FlowAnalysis.AbsoluteToken jeton) {
-        return jeton.kind() == TokenKind.KEYWORD
-                && (jeton.text().equals("extends") || jeton.text().equals("implements"));
+    private boolean estMotClause(FlowAnalysis.AbsoluteToken token) {
+        return token.kind() == TokenKind.KEYWORD
+                && (token.text().equals("extends") || token.text().equals("implements"));
     }
 
     /** Le nom lu bascule dans les clauses, s'il y en a un, doublon jamais. */

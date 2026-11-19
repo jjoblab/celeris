@@ -86,7 +86,7 @@ final class CLikeParser implements LanguageParser {
                 return members.get(members.size() - 1);
             }
         }
-        List<SynNode> children = Corps.instructions(slice, 0, slice.size(),
+        List<SynNode> children = BodyParser.instructions(slice, 0, slice.size(),
                 CLikeKind.STATEMENT, CLikeKind.BLOC, CLikeKind.ERREUR);
         return SynNode.of(CLikeKind.AUTRE, NodeCategory.OTHER, 0,
                 Tokens.finDe(slice, slice.size() - 1), children.toArray(new SynNode[0]),
@@ -96,7 +96,7 @@ final class CLikeParser implements LanguageParser {
     /** Le type déclaré : son nom, ses membres entre accolades, l'erreur à la fermeture manquante. */
     private SynNode parseType(TokenSlice slice, int start, int keyword) {
         String name = typeName(slice, keyword);
-        int opening = Tokens.chercherAccolade(slice, keyword + dialect.typeBraceOffset());
+        int opening = Tokens.findBrace(slice, keyword + dialect.typeBraceOffset());
         if (opening < 0) {
             return leafType(slice, start, keyword, name);
         }

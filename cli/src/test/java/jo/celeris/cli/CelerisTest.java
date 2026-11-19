@@ -31,14 +31,14 @@ public final class CelerisTest {
     /** Le point d'entrée écrit la version puis chaque module du cœur. */
     @Test
     public void lePointDEntreeAnnonceLaVersionEtLesModules() {
-        ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int code = Celeris.executer(new String[0],
-                new PrintStream(tampon, true, StandardCharsets.UTF_8));
+                new PrintStream(buffer, true, StandardCharsets.UTF_8));
         assertEquals(0, code, "sans argument : succès");
-        String sortie = tampon.toString(StandardCharsets.UTF_8);
-        assertTrue(sortie.contains("celeris"), "la bannière doit citer celeris");
-        assertTrue(sortie.contains("core-text"), "le premier module doit apparaître");
-        assertTrue(sortie.contains("core-ai"), "le dernier module doit apparaître");
+        String output = buffer.toString(StandardCharsets.UTF_8);
+        assertTrue(output.contains("celeris"), "la bannière doit citer celeris");
+        assertTrue(output.contains("core-text"), "le premier module doit apparaître");
+        assertTrue(output.contains("core-ai"), "le dernier module doit apparaître");
     }
 
     /**
@@ -47,10 +47,10 @@ public final class CelerisTest {
      */
     @Test
     public void laBanniereAnnonceLaVersionDeLaSortie() {
-        ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         Celeris.executer(new String[0],
-                new PrintStream(tampon, true, StandardCharsets.UTF_8));
-        assertTrue(tampon.toString(StandardCharsets.UTF_8).startsWith("celeris 1.1.0"),
+                new PrintStream(buffer, true, StandardCharsets.UTF_8));
+        assertTrue(buffer.toString(StandardCharsets.UTF_8).startsWith("celeris 1.1.0"),
                 "la bannière doit annoncer la version du dépôt");
     }
 }

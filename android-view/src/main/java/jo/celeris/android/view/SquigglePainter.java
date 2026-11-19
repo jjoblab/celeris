@@ -22,7 +22,7 @@ import jo.celeris.core.text.Document;
 public final class SquigglePainter extends PainterLayer {
 
     /** La hauteur de l'ondulé, en pixels à la densité de l'appareil. */
-    private static final float HAUTEUR = 2.5f;
+    private static final float HEIGHT = 2.5f;
 
     /** La longueur d'une demi-onde. */
     private static final float DEMI_ONDE = 3f;
@@ -64,39 +64,39 @@ public final class SquigglePainter extends PainterLayer {
             return;
         }
         Document document = frame.document();
-        int longueur = document.length();
+        int length = document.length();
         for (SyntaxIssue diagnostic : diagnostics) {
-            int debut = diagnostic.startOffset();
-            int fin = Math.min(debut + Math.max(1, diagnostic.length()),
-                    longueur);
-            if (fin <= debut) {
+            int start = diagnostic.startOffset();
+            int end = Math.min(start + Math.max(1, diagnostic.length()),
+                    length);
+            if (end <= start) {
                 continue;
             }
             teinter(teinteDe(diagnostic.severity()));
-            peindrePlage(surface, frame, debut, fin);
+            paintRange(surface, frame, start, end);
         }
     }
 
     /** L'ondulé sous une plage : la dentelle ondule sur la ligne de
      *  base de chaque tranche de rangée traversée. */
-    private void peindrePlage(DrawSurface surface, FrameState frame,
-            int debut, int fin) {
+    private void paintRange(DrawSurface surface, FrameState frame,
+            int start, int end) {
         Document document = frame.document();
         EditorMetrics metrics = frame.metrics();
         VisualProjection projection = frame.projection();
         int premiere = frame.firstRow();
         int derniere = premiere + frame.visibleRows();
-        int ligneDebut = document.lineForOffset(debut);
-        int ligneFin = document.lineForOffset(fin - 1);
-        for (int ligne = ligneDebut; ligne <= ligneFin; ligne++) {
-            int rangnee = projection.rowOfLine(ligne);
+        int startLine = document.lineForOffset(start);
+        int endLine = document.lineForOffset(end - 1);
+        for (int line = startLine; line <= endLine; line++) {
+            int rangnee = projection.rowOfLine(line);
             if (rangnee < premiere || rangnee >= derniere) {
                 continue;
             }
-            int debutLigne = document.lineStart(ligne);
-            int finLigne = document.lineEnd(ligne);
-            int colonneDebut = Math.max(debut, debutLigne) - debutLigne;
-            int colonneFin = Math.min(fin, finLigne) - debutLigne;
+            int lineStart = document.lineStart(line);
+            int finLigne = document.lineEnd(line);
+            int colonneDebut = Math.max(start, lineStart) - lineStart;
+            int colonneFin = Math.min(end, finLigne) - lineStart;
             int debutTranche = projection.spanStartAtRow(rangnee);
             colonneDebut = Math.max(colonneDebut, debutTranche);
             colonneFin = Math.min(colonneFin, projection.spanEndAtRow(rangnee));
@@ -111,7 +111,7 @@ public final class SquigglePainter extends PainterLayer {
                     + indent + (colonneFin - debutTranche) * metrics.charWidth()
                     - frame.scrollX();
             float base = metrics.rowTop(rangnee) - frame.scrollY()
-                    + metrics.lineHeight() - HAUTEUR;
+                    + metrics.lineHeight() - HEIGHT;
             onduler(surface, gauche, droite, base);
         }
     }
@@ -125,8 +125,8 @@ public final class SquigglePainter extends PainterLayer {
         boolean versLeBas = false;
         while (x < droite) {
             float bout = Math.min(x + demi * 2f, droite);
-            surface.drawLine(x, versLeBas ? base + HAUTEUR : base,
-                    bout, versLeBas ? base : base + HAUTEUR, brush());
+            surface.drawLine(x, versLeBas ? base + HEIGHT : base,
+                    bout, versLeBas ? base : base + HEIGHT, brush());
             x = bout;
             versLeBas = !versLeBas;
         }

@@ -15,12 +15,12 @@ package jo.celeris.android.view;
  */
 final class EditorGutter {
 
-    private float margeDp = ClasseLargeur.MOYEN.margeGouttiereDp();
+    private float margeDp = WidthClass.MOYEN.gutterMarginDp();
     private float margePx;
-    private int chiffres = GutterLayout.DIGITS_FLOOR;
-    private GutterLanes coulisses = GutterLanes.AUCUNE;
-    private float coulisseCourante;
-    private float bandePliCourante;
+    private int digits = GutterLayout.DIGITS_FLOOR;
+    private GutterLanes lanes = GutterLanes.AUCUNE;
+    private float currentLane;
+    private float currentFoldBand;
 
     /**
      * Adapte la respiration à la classe de largeur (D-19) : la valeur
@@ -29,8 +29,8 @@ final class EditorGutter {
      * @param classe  la classe de largeur courante
      * @param density la densité de l'appareil
      */
-    void setClasse(ClasseLargeur classe, float density) {
-        margeDp = classe.margeGouttiereDp();
+    void setClasse(WidthClass classe, float density) {
+        margeDp = classe.gutterMarginDp();
         margePx = Math.round(margeDp * Math.max(0f, density));
     }
 
@@ -46,7 +46,7 @@ final class EditorGutter {
      * @param nouvelles la configuration
      */
     void setCoulisses(GutterLanes nouvelles) {
-        coulisses = nouvelles;
+        lanes = nouvelles;
     }
 
     /**
@@ -57,32 +57,32 @@ final class EditorGutter {
      * @param lineCount le nombre de lignes du document
      * @param charWidth la largeur d'un caractère, en pixels
      * @param density   la densité de l'appareil
-     * @param numeros   vrai pour réserver le champ de numéros
+     * @param numbers   vrai pour réserver le champ de numéros
      * @return la largeur de gouttière, en pixels entiers
      */
     float suivre(int lineCount, float charWidth, float density,
-            boolean numeros) {
-        chiffres = Math.max(chiffres, GutterLayout.digitsFor(lineCount));
-        coulisseCourante = coulisses.laneWidth(charWidth, margePx);
-        bandePliCourante = coulisses.foldStripWidth(charWidth, margePx);
-        return numeros
-                ? GutterLayout.width(chiffres, charWidth, density, margeDp,
-                        coulisses)
-                : GutterLayout.laneOnly(density, margeDp, charWidth, coulisses);
+            boolean numbers) {
+        digits = Math.max(digits, GutterLayout.digitsFor(lineCount));
+        currentLane = lanes.laneWidth(charWidth, margePx);
+        currentFoldBand = lanes.foldStripWidth(charWidth, margePx);
+        return numbers
+                ? GutterLayout.width(digits, charWidth, density, margeDp,
+                        lanes)
+                : GutterLayout.laneOnly(density, margeDp, charWidth, lanes);
     }
 
     /** La largeur de coulisse réservée, en pixels (0 sans coulisse). */
-    float coulisseCourante() {
-        return coulisseCourante;
+    float currentLane() {
+        return currentLane;
     }
 
     /** La largeur de la bande de plis réservée, en pixels (0 sans syntaxe). */
-    float bandePliCourante() {
-        return bandePliCourante;
+    float currentFoldBand() {
+        return currentFoldBand;
     }
 
     /** Retombe au plancher : changement de session ou de langage. */
     void reinitialiser() {
-        chiffres = GutterLayout.DIGITS_FLOOR;
+        digits = GutterLayout.DIGITS_FLOOR;
     }
 }

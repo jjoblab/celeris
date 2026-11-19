@@ -208,15 +208,15 @@ class JavaSmartTypingTest {
     /** Le plan du cran s'applique et s'annule par la voie unique. */
     @Test
     void cranAppliqueEtAnnule() {
-        String texte = "        case 1:";
-        Document doc = Document.of(texte);
+        String text = "        case 1:";
+        Document doc = Document.of(text);
         EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
                 MultiSelection.caretsAt(15), IndentStyle.spaces(4));
-        TextSession session = TextSession.of(texte, () -> 0L);
+        TextSession session = TextSession.of(text, () -> 0L);
         assertTrue(session.apply(plan.transaction(), plan.selection()));
         assertEquals("        case 1:\n            ", session.text());
         assertTrue(session.undo());
-        assertEquals(texte, session.text());
+        assertEquals(text, session.text());
     }
 
     // ---------------------------------------------------------- multi-curseurs
@@ -227,8 +227,8 @@ class JavaSmartTypingTest {
      */
     @Test
     void multiCurseursGestesMeles() {
-        String texte = "String s = \"abcdef\";\n        case 1:";
-        Document doc = Document.of(texte);
+        String text = "String s = \"abcdef\";\n        case 1:";
+        Document doc = Document.of(text);
         // caret 0 : entre c et d de la chaîne (offset 15) ;
         // caret 1 : fin du label (offset 36)
         EditPlan plan = JavaSmartTyping.enter(doc, analyse(doc),
@@ -237,7 +237,7 @@ class JavaSmartTypingTest {
         assertEquals("\" +\n    \"", plan.transaction().edits().get(0).inserted());
         assertEquals("\n            ", plan.transaction().edits().get(1).inserted());
         assertEquals(36 + 9, plan.transaction().edits().get(1).start());
-        TextSession session = TextSession.of(texte, () -> 0L);
+        TextSession session = TextSession.of(text, () -> 0L);
         session.apply(plan.transaction(), plan.selection());
         assertEquals("String s = \"abc\" +\n    \"def\";\n        case 1:\n            ",
                 session.text());

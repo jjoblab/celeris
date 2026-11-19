@@ -20,24 +20,24 @@ import org.junit.jupiter.api.Test;
  */
 class FrappeContinuationsTest {
 
-    private String apresBackspace(String texte, int caret) {
-        Document doc = Document.of(texte);
+    private String apresBackspace(String text, int caret) {
+        Document doc = Document.of(text);
         Optional<EditPlan> plan = SmartTyping.backspace(doc,
                 MultiSelection.caretsAt(caret), TypingRules.generic(),
                 IndentStyle.spaces(4));
         if (plan.isEmpty()) {
-            return texte + " (main au coeur)";
+            return text + " (main au coeur)";
         }
-        TextSession session = TextSession.of(texte, () -> 0L);
+        TextSession session = TextSession.of(text, () -> 0L);
         session.apply(plan.get().transaction(), plan.get().selection());
         return session.text();
     }
 
-    private String apresEnter(String texte, int caret) {
-        Document doc = Document.of(texte);
+    private String apresEnter(String text, int caret) {
+        Document doc = Document.of(text);
         EditPlan plan = SmartTyping.enter(doc, null,
                 MultiSelection.caretsAt(caret), IndentStyle.spaces(4));
-        TextSession session = TextSession.of(texte, () -> 0L);
+        TextSession session = TextSession.of(text, () -> 0L);
         session.apply(plan.transaction(), plan.selection());
         return session.text();
     }

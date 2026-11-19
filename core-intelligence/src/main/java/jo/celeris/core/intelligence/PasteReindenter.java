@@ -30,22 +30,22 @@ public final class PasteReindenter {
      */
     public static String reindent(Document doc, @Nullable Analysis analysis, int offset,
             String pasted, IndentStyle style) {
-        String[] lignes = pasted.split("\n", -1);
-        if (lignes.length <= 1) {
+        String[] lines = pasted.split("\n", -1);
+        if (lines.length <= 1) {
             return pasted;
         }
         int base = baseUnits(doc, analysis, offset, style);
         int premiere = IndentEngine.units(
-                IndentEngine.leadingWhitespace(lignes[0]), style);
+                IndentEngine.leadingWhitespace(lines[0]), style);
         StringBuilder resultat = new StringBuilder(pasted.length() + 16);
-        resultat.append(lignes[0]);
-        for (int i = 1; i < lignes.length; i++) {
+        resultat.append(lines[0]);
+        for (int i = 1; i < lines.length; i++) {
             resultat.append('\n');
-            String blancs = IndentEngine.leadingWhitespace(lignes[i]);
+            String blancs = IndentEngine.leadingWhitespace(lines[i]);
             int relatif = IndentEngine.units(blancs, style) - premiere;
             int niveau = Math.max(0, base + relatif);
             resultat.append(style.indent(niveau));
-            resultat.append(lignes[i], blancs.length(), lignes[i].length());
+            resultat.append(lines[i], blancs.length(), lines[i].length());
         }
         return resultat.toString();
     }
@@ -59,8 +59,8 @@ public final class PasteReindenter {
         if (analysis != null) {
             return IndentEngine.depthAtCaret(doc, analysis, offset);
         }
-        int ligne = doc.lineForOffset(offset);
+        int line = doc.lineForOffset(offset);
         return IndentEngine.units(
-                IndentEngine.leadingWhitespace(doc.lineText(ligne)), style);
+                IndentEngine.leadingWhitespace(doc.lineText(line)), style);
     }
 }

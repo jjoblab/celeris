@@ -41,7 +41,7 @@ final class EditorKeys {
      * L'écart maximal des deux taps d'un double-tap, en millisecondes —
      * au-delà, le second tap retombe dans la cascade du simple.
      */
-    private static final long ECART_DOUBLE_TAP_MS = 300L;
+    private static final long DOUBLE_TAP_GAP_MS = 300L;
 
     private final EditorView vue;
 
@@ -51,9 +51,9 @@ final class EditorKeys {
     private float departX;
     private float departY;
     /** Le DOWN de CE geste nous est arrivé — le fantôme l'engloutit sinon. */
-    private boolean doigtPose;
+    private boolean fingerDown;
     /** Le geste a dépassé le seuil : c'est un défilement, jamais un tap. */
-    private boolean defilement;
+    private boolean scroll;
     private boolean panoramique;
     private SelectionHandles.HandleId poigneeTiree =
             SelectionHandles.HandleId.NONE;
@@ -99,7 +99,7 @@ final class EditorKeys {
     boolean router(MotionEvent event, Predicate<MotionEvent> inconnu) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                if (vue.fantome.touche(event.getX(), event.getY())) {
+                if (vue.ghost.touche(event.getX(), event.getY())) {
                     return true;
                 }
                 return surAppui(event);
@@ -130,11 +130,11 @@ final class EditorKeys {
     boolean surAppui(MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
-        doigtPose = true;
-        defilement = false;
+        fingerDown = true;
+        scroll = false;
         panoramique = false;
         armeLong = false;
-        vue.loupe.cesser();
+        vue.magnifier.cesser();
         vue.glissement.up();
         departX = dernierX = x;
         departY = dernierY = y;
@@ -193,9 +193,9 @@ final class EditorKeys {
      *  lâche — la loupe se referme (le geste à deux doigts ne règle rien). */
     boolean surDoigtPose(MotionEvent event) {
         if (event.getPointerCount() >= 2) {
-            vue.loupe.cesser();
+            vue.magnifier.cesser();
             panoramique = true;
-            defilement = false;
+            scroll = false;
             vue.glissement.up();
             dernierX = event.getX();
             dernierY = event.getY();
@@ -218,15 +218,15 @@ final class EditorKeys {
             return true;
         }
         if (panoramique && event.getPointerCount() >= 2) {
-            float hauteurContenu =
+            float contentHeight =
                     vue.projection.rowCount() * vue.metrics.lineHeight();
             vue.scrollY = ScrollGeometry.clamp(
                     vue.scrollY + dernierY - event.getY(),
-                    hauteurContenu, vue.getHeight());
+                    contentHeight, vue.getHeight());
             vue.scrollX = ScrollGeometry.clamp(
                     vue.scrollX + dernierX - event.getX(),
-                    ScrollGeometry.largeurContenu(vue.projection, vue.metrics),
-                    ScrollGeometry.largeurVisible(vue.getWidth(),
+                    ScrollGeometry.contentWidth(vue.projection, vue.metrics),
+                    ScrollGeometry.visibleWidth(vue.getWidth(),
                             vue.largeurGouttiere));
             dernierX = event.getX();
             dernierY = event.getY();
@@ -234,7 +234,7 @@ final class EditorKeys {
             return true;
         }
         if (poigneeTiree != SelectionHandles.HandleId.NONE) {
-            tirerPoignee(event.getX(), event.getY());
+            pullHandle(event.getX(), event.getY());
             return true;
         }
         if (armeLong && !vue.glissement.isActive()) {
@@ -243,14 +243,14 @@ final class EditorKeys {
         if (vue.glissement.isActive()) {
             // la loupe suit le dragage de sélection (D-16) : le texte
             // sous le doigt s'agrandit au-dessus — le réglage se voit
-            suivreLoupe(event);
+            followMagnifier(event);
             vue.session.setSelection(MultiSelection.of(
                     vue.glissement.dragTo(
                             offsetAt(event.getX(), event.getY()))));
             vue.invalidate();
             return true;
         }
-        return surDeplacementUnDoigt(event);
+        return onOneFingerMove(event);
     }
 
     /** Le doigt levé : le panoramique s'arrête, le glissement lâche. */
@@ -270,22 +270,22 @@ final class EditorKeys {
      * dépassé, le geste devient un défilement — le contenu suit le
      * doigt sur les DEUX axes, borné par la géométrie de défilement.
      */
-    private boolean surDeplacementUnDoigt(MotionEvent event) {
-        if (!armeLong && !defilement && doigtPose
+    private boolean onOneFingerMove(MotionEvent event) {
+        if (!armeLong && !scroll && fingerDown
                 && distanceCarree(departX, departY, event) > SEUIL_TAP_PX
                         * SEUIL_TAP_PX) {
-            defilement = true;
+            scroll = true;
         }
-        if (defilement) {
-            float hauteurContenu =
+        if (scroll) {
+            float contentHeight =
                     vue.projection.rowCount() * vue.metrics.lineHeight();
             vue.scrollY = ScrollGeometry.clamp(
                     vue.scrollY + dernierY - event.getY(),
-                    hauteurContenu, vue.getHeight());
+                    contentHeight, vue.getHeight());
             vue.scrollX = ScrollGeometry.clamp(
                     vue.scrollX + dernierX - event.getX(),
-                    ScrollGeometry.largeurContenu(vue.projection, vue.metrics),
-                    ScrollGeometry.largeurVisible(vue.getWidth(),
+                    ScrollGeometry.contentWidth(vue.projection, vue.metrics),
+                    ScrollGeometry.visibleWidth(vue.getWidth(),
                             vue.largeurGouttiere));
             dernierX = event.getX();
             dernierY = event.getY();
@@ -328,17 +328,17 @@ final class EditorKeys {
      */
     boolean surRelachement(MotionEvent event) {
         boolean annulation = event.getActionMasked() == MotionEvent.ACTION_CANCEL;
-        boolean tap = !annulation && doigtPose && !defilement && !armeLong
+        boolean tap = !annulation && fingerDown && !scroll && !armeLong
                 && poigneeTiree == SelectionHandles.HandleId.NONE
                 && !panoramique
                 && distanceCarree(departX, departY, event)
                         <= SEUIL_TAP_PX * SEUIL_TAP_PX;
-        doigtPose = false;
-        defilement = false;
+        fingerDown = false;
+        scroll = false;
         panoramique = false;
         armeLong = false;
         poigneeTiree = SelectionHandles.HandleId.NONE;
-        vue.loupe.cesser();
+        vue.magnifier.cesser();
         vue.glissement.up();
         if (tap) {
             if (doubleTapRapproche(event) && vue.rappels.notifierDoubleTap(
@@ -365,7 +365,7 @@ final class EditorKeys {
      */
     private boolean doubleTapRapproche(MotionEvent event) {
         if (dernierTapA == 0L
-                || event.getEventTime() - dernierTapA > ECART_DOUBLE_TAP_MS) {
+                || event.getEventTime() - dernierTapA > DOUBLE_TAP_GAP_MS) {
             return false;
         }
         float dx = event.getX() - dernierTapX;
@@ -379,10 +379,10 @@ final class EditorKeys {
      * pose du curseur au point touché, qui seule ouvre le clavier.
      */
     private void resoudreTap(float x, float y) {
-        float coulisse = vue.gouttiereEtat.coulisseCourante();
-        float bandePli = vue.gouttiereEtat.bandePliCourante();
-        if (vue.syntaxe.basculerPliAuPoint(x, y, vue.scrollY,
-                vue.metrics.lineHeight(), vue.largeurGouttiere, bandePli,
+        float lane = vue.gutterState.currentLane();
+        float foldBand = vue.gutterState.currentFoldBand();
+        if (vue.syntaxe.toggleFoldAt(x, y, vue.scrollY,
+                vue.metrics.lineHeight(), vue.largeurGouttiere, foldBand,
                 vue.projection)) {
             // PIEGE-02 : le pli change le SENS des rangées sans toucher
             // la révision du document — la rangée 12 après le repli n'est
@@ -396,16 +396,16 @@ final class EditorKeys {
         }
         // l'ampoule d'intentions PRIME dans la coulisse — son tap rend
         // la ligne à l'hôte, qui y ouvre le menu des intentions
-        if (vue.marquesGouttiere.surAppuiAmpoule(x, y, coulisse,
+        if (vue.gutterMarks.surAppuiAmpoule(x, y, lane,
                 vue.scrollY, vue.metrics.lineHeight(), vue.projection)) {
             return;
         }
-        if (vue.marquesGouttiere.surAppuiRepere(x, y, coulisse,
+        if (vue.gutterMarks.onMarkPress(x, y, lane,
                 vue.scrollY, vue.metrics.lineHeight(), vue.projection)) {
             return;
         }
-        if (vue.marquesGouttiere.surAppui(x, y, vue.largeurGouttiere,
-                coulisse, bandePli, vue.scrollY, vue.metrics.lineHeight(),
+        if (vue.gutterMarks.surAppui(x, y, vue.largeurGouttiere,
+                lane, foldBand, vue.scrollY, vue.metrics.lineHeight(),
                 vue.projection)) {
             return;
         }
@@ -417,17 +417,17 @@ final class EditorKeys {
         vue.invalidate();
     }
 
-    private void tirerPoignee(float x, float y) {
-        List<SelRange> plages = vue.session.selection().ranges();
-        if (plages.size() != 1) {
+    private void pullHandle(float x, float y) {
+        List<SelRange> ranges = vue.session.selection().ranges();
+        if (ranges.size() != 1) {
             poigneeTiree = SelectionHandles.HandleId.NONE;
             return;
         }
         // la loupe suit la poignée tirée (D-16, le dépôt de départ) :
         // l'extrémité réglée s'agrandit au-dessus du doigt
-        suivreLoupe(x, y);
+        followMagnifier(x, y);
         vue.session.setSelection(MultiSelection.of(SelectionHandles.dragged(
-                plages.get(0), poigneeTiree, offsetAt(x, y))));
+                ranges.get(0), poigneeTiree, offsetAt(x, y))));
         vue.invalidate();
     }
 
@@ -438,31 +438,31 @@ final class EditorKeys {
      * rangée), l'abscisse amortie s'y pose — la sémantique des loupes
      * de plateforme (B9 du dépôt de départ).
      */
-    private void suivreLoupe(MotionEvent event) {
-        suivreLoupe(event.getX(), event.getY());
+    private void followMagnifier(MotionEvent event) {
+        followMagnifier(event.getX(), event.getY());
     }
 
     /**
      * La loupe suit le point du geste : le centre de la rangée sous
      * le doigt y passe, l'amortissement vit dans la loupe.
      */
-    private void suivreLoupe(float x, float y) {
+    private void followMagnifier(float x, float y) {
         int rangee = ScrollGeometry.firstRow(vue.scrollY + y,
                 vue.metrics.lineHeight());
         float centreRangee = rangee * vue.metrics.lineHeight()
                 + vue.metrics.lineHeight() / 2f - vue.scrollY;
-        vue.loupe.suivre(x, centreRangee);
+        vue.magnifier.suivre(x, centreRangee);
     }
 
     private SelectionHandles.HandleId poigneeVisee(float x, float y) {
-        List<SelRange> plages = vue.session.selection().ranges();
-        if (plages.size() != 1 || plages.get(0).isEmpty()) {
+        List<SelRange> ranges = vue.session.selection().ranges();
+        if (ranges.size() != 1 || ranges.get(0).isEmpty()) {
             return SelectionHandles.HandleId.NONE;
         }
         return SelectionHandles.hitTest(x, y, vue.largeurGouttiere,
                 vue.scrollX, vue.scrollY, vue.session.document(),
-                vue.projection, vue.metrics, plages.get(0).start(),
-                plages.get(0).end());
+                vue.projection, vue.metrics, ranges.get(0).start(),
+                ranges.get(0).end());
     }
 
     private int offsetAt(float x, float y) {

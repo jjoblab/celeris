@@ -34,8 +34,8 @@ class ResultatsAllerTest {
                 List.of("Exemple.java", "MainActivity.kt", "Styles.xml"),
                 PLAN, 8);
         assertEquals(3, resultats.size());
-        assertEquals(ResultatsAller.GENRE_FICHIER, resultats.get(0).genre());
-        assertEquals("Exemple.java", resultats.get(0).libelle());
+        assertEquals(ResultatsAller.GENRE_FICHIER, resultats.get(0).kind());
+        assertEquals("Exemple.java", resultats.get(0).label());
         assertEquals("java", resultats.get(0).detail());
         List<ResultatsAller.Resultat> borne = ResultatsAller.recherche(" ",
                 List.of("A.java", "B.kt", "C.xml"), List.of(), 2);
@@ -49,13 +49,13 @@ class ResultatsAllerTest {
         List<ResultatsAller.Resultat> resultats = ResultatsAller.recherche(
                 "Ser", List.of("ServiceUtilisateur.java", "Autre.kt"),
                 PLAN, 8);
-        assertEquals("ServiceUtilisateur.java", resultats.get(0).libelle(),
+        assertEquals("ServiceUtilisateur.java", resultats.get(0).label(),
                 "le préfixe du fichier gagne");
-        assertEquals("ServiceUtilisateur", resultats.get(1).libelle(),
+        assertEquals("ServiceUtilisateur", resultats.get(1).label(),
                 "le symbole préfixé suit");
         assertEquals("L3", resultats.get(1).detail(),
                 "le symbole porte SA ligne, numérotée à partir de un");
-        assertEquals(ResultatsAller.GENRE_SYMBOLE, resultats.get(1).genre());
+        assertEquals(ResultatsAller.GENRE_SYMBOLE, resultats.get(1).kind());
         assertTrue(resultats.size() == 2,
                 "Autre.kt ne répond pas à la requête");
     }

@@ -33,8 +33,8 @@
          le palier 900 : le constructeur court au coach muet
          (ADR-0022, point 9 de la revue) y passe — 810 lignes, le
          câbleur seul croît, jamais hors de tout plafond. -->
-    <suppress checks="FileLength" files="PopupsEditeur\.java"/>
-    <suppress id="PlafondStandard" files="PopupsEditeur\.java"/>
+    <suppress checks="FileLength" files="EditorPopups\.java"/>
+    <suppress id="PlafondStandard" files="EditorPopups\.java"/>
     <!-- L'activité d'édition de l'exemplenstration (nomination du
          2026-11-13, la même décision du propriétaire) : le hub câble
          les ateliers à la scène — les surfaces réveillées y gagnent

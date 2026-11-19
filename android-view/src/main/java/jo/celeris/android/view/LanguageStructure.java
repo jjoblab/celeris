@@ -32,39 +32,39 @@ final class LanguageStructure {
     /**
      * Les régions pliables du document selon son langage.
      *
-     * @param langue   le support du langage, ou null
+     * @param language   le support du langage, ou null
      * @param document l'instantané affiché
      * @param analyse  l'analyse courante
      * @return les régions triées, dédoublonnées
      */
-    static List<FoldSpan> plis(@Nullable LanguageSupport langue, Document document,
+    static List<FoldSpan> folds(@Nullable LanguageSupport language, Document document,
             Analysis analyse) {
-        if (langue == null) {
+        if (language == null) {
             return TreeFolds.regions(document, analyse);
         }
-        LanguageConfiguration.Folding pliage = langue.configuration().folding();
+        LanguageConfiguration.Folding pliage = language.configuration().folding();
         if (!pliage.byIndentation()) {
             return TreeFolds.regions(document, analyse);
         }
         return TreeFolds.regions(document, analyse, new IndentationFolds.Settings(
-                langue.configuration().indentSize(), pliage.offSide()));
+                language.configuration().indentSize(), pliage.offSide()));
     }
 
     /**
      * Le plan du document selon son langage : les règles du paquet
      * prolongées sur ses régions pliables, l'arbre sinon.
      *
-     * @param langue   le support du langage, ou null
+     * @param language   le support du langage, ou null
      * @param document l'instantané affiché
      * @param analyse  l'analyse courante
-     * @param plis     les régions pliables du même instantané
+     * @param folds     les régions pliables du même instantané
      * @return les entrées du plan, dans l'ordre du source
      */
-    static List<OutlineEntry> plan(@Nullable LanguageSupport langue, Document document,
-            Analysis analyse, List<FoldSpan> plis) {
-        if (langue == null || langue.outlineRules().isEmpty()) {
+    static List<OutlineEntry> plan(@Nullable LanguageSupport language, Document document,
+            Analysis analyse, List<FoldSpan> folds) {
+        if (language == null || language.outlineRules().isEmpty()) {
             return TreeOutline.entries(document, analyse);
         }
-        return RuleOutline.entries(document, langue.outlineRules(), plis);
+        return RuleOutline.entries(document, language.outlineRules(), folds);
     }
 }

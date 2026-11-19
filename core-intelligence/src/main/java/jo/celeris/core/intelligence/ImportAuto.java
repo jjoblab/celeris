@@ -41,9 +41,9 @@ public final class ImportAuto {
 
     /** Vrai quand la ligne d'import existe déjà, ligne entière — jamais dans une chaîne. */
     private static boolean dejaPresent(Document doc, String importComplet) {
-        String ligne = importComplet.stripTrailing();
+        String line = importComplet.stripTrailing();
         for (int l = 0; l < doc.lineCount(); l++) {
-            if (doc.lineText(l).strip().equals(ligne)) {
+            if (doc.lineText(l).strip().equals(line)) {
                 return true;
             }
         }
@@ -58,11 +58,11 @@ public final class ImportAuto {
     private static int positionDeTete(Document doc) {
         int lignePaquet = -1;
         for (int l = 0; l < doc.lineCount(); l++) {
-            String ligne = doc.lineText(l).strip();
-            if (ligne.startsWith("import ")) {
+            String line = doc.lineText(l).strip();
+            if (line.startsWith("import ")) {
                 return doc.lineStart(l);
             }
-            if (lignePaquet < 0 && ligne.startsWith("package ")) {
+            if (lignePaquet < 0 && line.startsWith("package ")) {
                 lignePaquet = l;
             }
         }

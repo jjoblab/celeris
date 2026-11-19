@@ -37,8 +37,8 @@ class AnalyseCoordinationTest {
         assertEquals(session.document().revision(), premiere.revision());
         assertEquals(3, premiere.tree().chunks().size());
 
-        int cible = TEXTE.indexOf("  y");
-        session.replaceRange(cible, cible + 3, "  omega");
+        int target = TEXTE.indexOf("  y");
+        session.replaceRange(target, target + 3, "  omega");
         Analysis seconde = coordinateur.analysis();
         assertEquals(session.document().revision(), seconde.revision());
         assertSame(premiere.lex().line(0), seconde.lex().line(0),
@@ -57,8 +57,8 @@ class AnalyseCoordinationTest {
         SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session, MiniLangage.langage());
         Analysis premiere = coordinateur.analysis();
 
-        int cible = TEXTE.indexOf("var");
-        session.replaceRange(cible, cible + 3, "let");
+        int target = TEXTE.indexOf("var");
+        session.replaceRange(target, target + 3, "let");
         Analysis apresEdition = coordinateur.analysis();
         assertEquals(3, apresEdition.tree().chunks().size());
 
@@ -81,8 +81,8 @@ class AnalyseCoordinationTest {
         int revision = premiere.revision();
         coordinateur.close();
 
-        int cible = TEXTE.indexOf("  x");
-        session.replaceRange(cible, cible + 3, "  z");
+        int target = TEXTE.indexOf("  x");
+        session.replaceRange(target, target + 3, "  z");
         assertEquals(revision, coordinateur.analysis().revision(),
                 "l'auditeur détaché : la dernière analyse reste celle d'avant");
     }
@@ -92,8 +92,8 @@ class AnalyseCoordinationTest {
     void jamaisInterrogeeJamaisConstruite() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session, MiniLangage.langage());
-        int cible = TEXTE.indexOf("  x");
-        session.replaceRange(cible, cible + 3, "  z");
+        int target = TEXTE.indexOf("  x");
+        session.replaceRange(target, target + 3, "  z");
         Analysis analyse = coordinateur.analysis();
         assertTrue(analyse.revision() >= 1);
         assertEquals(3, analyse.tree().chunks().size(),

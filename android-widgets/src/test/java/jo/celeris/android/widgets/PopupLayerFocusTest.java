@@ -37,17 +37,17 @@ public class PopupLayerFocusTest {
         EditText editeur = new EditText(contexte);
         editeur.setText("int x = 1;");
         PopupLayer couche = new PopupLayer(contexte);
-        android.widget.FrameLayout hote = new android.widget.FrameLayout(
+        android.widget.FrameLayout host = new android.widget.FrameLayout(
                 contexte);
-        hote.addView(editeur, new android.widget.FrameLayout.LayoutParams(
+        host.addView(editeur, new android.widget.FrameLayout.LayoutParams(
                 1080, 1920));
-        hote.addView(couche, new android.widget.FrameLayout.LayoutParams(
+        host.addView(couche, new android.widget.FrameLayout.LayoutParams(
                 1080, 1920));
-        activite.setContentView(hote);
+        activite.setContentView(host);
         // L'attachement de la fenêtre se poste au looper principal :
         // il s'exécute avant de demander le focus.
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        hote.layout(0, 0, 1080, 1920);
+        host.layout(0, 0, 1080, 1920);
 
         editeur.requestFocus();
         assertTrue("l'éditeur tient le focus avant le popup",

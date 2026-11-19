@@ -55,7 +55,7 @@ public class ReferencesViewTest {
                 new ReferencesView.Occurrence("L4 · return total;", () -> { })));
         mesurer(vue);
         assertEquals(3, vue.nombre());
-        assertEquals("L2 · total += 1;", vue.occurrenceAt(1).libelle());
+        assertEquals("L2 · total += 1;", vue.occurrenceAt(1).label());
         assertNull("l'occurrence hors bornes n'existe pas",
                 vue.occurrenceAt(7));
         assertTrue("la carte tient ses rangées", vue.getMeasuredHeight() > 0);

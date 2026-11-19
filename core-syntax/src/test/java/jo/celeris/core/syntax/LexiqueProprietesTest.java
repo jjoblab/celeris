@@ -28,26 +28,26 @@ class LexiqueProprietesTest {
     @Property(tries = 250)
     void leIncrementalEgaleLeComplet(@ForAll long graine) {
         Random rng = new Random(graine);
-        String texte = texteAleatoire(rng, 120);
+        String text = texteAleatoire(rng, 120);
         LanguageLexer lexeur = MiniLangage.langage().lexer();
         IncrementalLexer moteur = new IncrementalLexer();
-        LexResult precedent = moteur.lexFull(Document.of(texte), lexeur);
+        LexResult precedent = moteur.lexFull(Document.of(text), lexeur);
 
         int nombreEditions = rng.nextInt(20) + 1;
         for (int i = 0; i < nombreEditions; i++) {
-            Document avant = Document.of(texte);
-            int debut = rng.nextInt(texte.length() + 1);
-            int fin = Math.min(debut + rng.nextInt(9), texte.length());
+            Document avant = Document.of(text);
+            int start = rng.nextInt(text.length() + 1);
+            int end = Math.min(start + rng.nextInt(9), text.length());
             String insertion = texteAleatoire(rng, 12);
-            Document apres = avant.replace(debut, fin, insertion);
-            EditSite site = EditSite.of(avant, apres, debut, fin, insertion);
+            Document apres = avant.replace(start, end, insertion);
+            EditSite site = EditSite.of(avant, apres, start, end, insertion);
 
             LexResult diff = moteur.lexIncremental(apres, lexeur, precedent.lex(), site);
             LexResult temoin = moteur.lexFull(apres, lexeur);
             verifierEgalite(diff.lex(), temoin.lex(), graine);
 
             precedent = diff;
-            texte = apres.text();
+            text = apres.text();
         }
     }
 
@@ -55,20 +55,20 @@ class LexiqueProprietesTest {
     @Property(tries = 120)
     void chainesDEditionsRestentCoherentes(@ForAll long graine) {
         Random rng = new Random(graine);
-        StringBuilder texte = new StringBuilder(texteAleatoire(rng, 200));
+        StringBuilder text = new StringBuilder(texteAleatoire(rng, 200));
         LanguageLexer lexeur = MiniLangage.langage().lexer();
         IncrementalLexer moteur = new IncrementalLexer();
-        LexResult courant = moteur.lexFull(Document.of(texte.toString()), lexeur);
+        LexResult courant = moteur.lexFull(Document.of(text.toString()), lexeur);
 
         for (int i = 0; i < 15; i++) {
-            Document avant = Document.of(texte.toString());
-            int debut = rng.nextInt(avant.length() + 1);
-            int fin = Math.min(debut + rng.nextInt(20), avant.length());
+            Document avant = Document.of(text.toString());
+            int start = rng.nextInt(avant.length() + 1);
+            int end = Math.min(start + rng.nextInt(20), avant.length());
             String insertion = texteAleatoire(rng, 15);
-            Document apres = avant.replace(debut, fin, insertion);
-            EditSite site = EditSite.of(avant, apres, debut, fin, insertion);
+            Document apres = avant.replace(start, end, insertion);
+            EditSite site = EditSite.of(avant, apres, start, end, insertion);
             courant = moteur.lexIncremental(apres, lexeur, courant.lex(), site);
-            texte = new StringBuilder(apres.text());
+            text = new StringBuilder(apres.text());
             verifierEgalite(courant.lex(),
                     moteur.lexFull(apres, lexeur).lex(), graine);
         }
@@ -77,22 +77,22 @@ class LexiqueProprietesTest {
     private static void verifierEgalite(LexDocument obtenu, LexDocument temoin, long graine) {
         assertEquals(temoin.lineCount(), obtenu.lineCount(),
                 "nombre de lignes (graine " + graine + ")");
-        for (int ligne = 0; ligne < temoin.lineCount(); ligne++) {
-            assertArrayEquals(temoin.line(ligne).tokens(), obtenu.line(ligne).tokens(),
-                    "paniers de la ligne " + ligne + " (graine " + graine + ")");
-            assertEquals(temoin.line(ligne).exitState(), obtenu.line(ligne).exitState(),
-                    "états de la ligne " + ligne + " (graine " + graine + ")");
-            assertEquals(temoin.bracketDepthAtLineStart(ligne),
-                    obtenu.bracketDepthAtLineStart(ligne),
-                    "profondeurs de la ligne " + ligne + " (graine " + graine + ")");
+        for (int line = 0; line < temoin.lineCount(); line++) {
+            assertArrayEquals(temoin.line(line).tokens(), obtenu.line(line).tokens(),
+                    "paniers de la ligne " + line + " (graine " + graine + ")");
+            assertEquals(temoin.line(line).exitState(), obtenu.line(line).exitState(),
+                    "états de la ligne " + line + " (graine " + graine + ")");
+            assertEquals(temoin.bracketDepthAtLineStart(line),
+                    obtenu.bracketDepthAtLineStart(line),
+                    "profondeurs de la ligne " + line + " (graine " + graine + ")");
         }
         assertEquals(temoin.stateBefore(0), obtenu.stateBefore(0),
                 "état initial (graine " + graine + ")");
     }
 
-    private static String texteAleatoire(Random rng, int longueur) {
-        StringBuilder sb = new StringBuilder(longueur);
-        for (int i = 0; i < longueur; i++) {
+    private static String texteAleatoire(Random rng, int length) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
             sb.append(ALPHABET.charAt(rng.nextInt(ALPHABET.length())));
         }
         return sb.toString();

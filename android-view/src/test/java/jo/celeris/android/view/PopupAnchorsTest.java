@@ -25,7 +25,7 @@ public class PopupAnchorsTest {
     private static final String DOCUMENT = "int a = 1;\nint b = 2;\n";
 
     private EditorTestRig banc() {
-        return EditorTestRig.sur(RuntimeEnvironment.getApplication(), DOCUMENT);
+        return EditorTestRig.on(RuntimeEnvironment.getApplication(), DOCUMENT);
     }
 
     /**

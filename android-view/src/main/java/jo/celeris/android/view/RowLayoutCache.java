@@ -18,30 +18,30 @@ import java.util.function.UnaryOperator;
  */
 public final class RowLayoutCache {
 
-    private static final int CAPACITE_INITIALE = 64;
+    private static final int INITIAL_CAPACITY = 64;
     private static final int QUART = 4;
     /** Le plafond d'entrées (B-02, l'analyse croisée) : comme le
      *  LineRenderCache du dépôt de départ — 512 rangées mesurées
      *  suffisent à un viewport et à son préchargement ; au-delà, les
      *  moins récemment déposées partent (le défilement d'un document
      *  monstre n'emplit plus la table à vie). */
-    public static final int PLAFOND = 512;
+    public static final int CEILING = 512;
 
-    private static final class Entree {
-        private final RowKey cle;
-        private RowLayout valeur;
+    private static final class Entry {
+        private final RowKey key;
+        private RowLayout value;
         /** L'âge LRU : le numéro de dépôt — les plus vieux partent
          *  au plafond. */
         long age;
 
-        Entree(RowKey cle, RowLayout valeur, long age) {
-            this.cle = cle;
-            this.valeur = valeur;
+        Entry(RowKey key, RowLayout value, long age) {
+            this.key = key;
+            this.value = value;
             this.age = age;
         }
     }
 
-    private Entree[] table = new Entree[CAPACITE_INITIALE];
+    private Entry[] table = new Entry[INITIAL_CAPACITY];
     private int nombre;
     private long compteurAge;
 
@@ -57,15 +57,15 @@ public final class RowLayoutCache {
      */
     public @Nullable RowLayout find(long revision, int row, int themeId, FontSpec font,
             int columns) {
-        Entree[] cases = table;
+        Entry[] cases = table;
         int indice = empreinte(revision, row, themeId, font, columns) & (cases.length - 1);
         while (cases[indice] != null) {
-            Entree caseCourante = cases[indice];
+            Entry caseCourante = cases[indice];
             if (correspond(caseCourante, revision, row, themeId, font, columns)) {
                 // Servie = vivante (LRU) : l'âge se rafraîchit hors
                 // du chemin d'éviction.
                 caseCourante.age = ++compteurAge;
-                return caseCourante.valeur;
+                return caseCourante.value;
             }
             indice = (indice + 1) & (cases.length - 1);
         }
@@ -99,16 +99,16 @@ public final class RowLayoutCache {
         int indice = empreinte(key.revision(), key.row(), key.themeId(), key.font(),
                 key.columns()) & (table.length - 1);
         while (table[indice] != null) {
-            if (table[indice].cle.equals(key)) {
-                table[indice].valeur = layout;
+            if (table[indice].key.equals(key)) {
+                table[indice].value = layout;
                 table[indice].age = ++compteurAge;
                 return;
             }
             indice = (indice + 1) & (table.length - 1);
         }
-        table[indice] = new Entree(key, layout, ++compteurAge);
+        table[indice] = new Entry(key, layout, ++compteurAge);
         nombre++;
-        if (nombre > PLAFOND) {
+        if (nombre > CEILING) {
             evincerLesPlusVieilles();
         }
     }
@@ -120,22 +120,22 @@ public final class RowLayoutCache {
         // Le seuil d'âge : les PLAFOND entrées les plus récentes
         // survivent — un tri partiel par sélection des ages max.
         long[] ages = new long[nombre];
-        int garde = 0;
-        for (Entree caseCourante : table) {
+        int guard = 0;
+        for (Entry caseCourante : table) {
             if (caseCourante != null) {
-                ages[garde++] = caseCourante.age;
+                ages[guard++] = caseCourante.age;
             }
         }
         java.util.Arrays.sort(ages);
-        long seuil = ages[ages.length - PLAFOND];
-        Entree[] anciennes = table;
-        table = new Entree[CAPACITE_INITIALE];
+        long seuil = ages[ages.length - CEILING];
+        Entry[] anciennes = table;
+        table = new Entry[INITIAL_CAPACITY];
         int anciens = nombre;
         nombre = 0;
         for (int i = 0; i < anciennes.length; i++) {
-            Entree caseCourante = anciennes[i];
+            Entry caseCourante = anciennes[i];
             if (caseCourante != null && caseCourante.age >= seuil) {
-                store(caseCourante.cle, caseCourante.valeur);
+                store(caseCourante.key, caseCourante.value);
             }
         }
         // Le plafond tient par construction : seules les PLAFOND
@@ -165,47 +165,47 @@ public final class RowLayoutCache {
     public void splice(long ancienneRevision, long nouvelleRevision,
             int premiereRangee, int rangeesMortes, int deltaRangees,
             int deltaLignes) {
-        Entree[] restantes = new Entree[nombre];
+        Entry[] restantes = new Entry[nombre];
         int gardees = 0;
         int finZone = premiereRangee + Math.max(1, rangeesMortes);
-        for (Entree caseCourante : table) {
+        for (Entry caseCourante : table) {
             if (caseCourante == null
-                    || caseCourante.cle.revision() != ancienneRevision) {
+                    || caseCourante.key.revision() != ancienneRevision) {
                 continue;
             }
-            RowKey cle = caseCourante.cle;
-            RowLayout valeur = caseCourante.valeur;
-            if (cle.row() < premiereRangee) {
+            RowKey key = caseCourante.key;
+            RowLayout value = caseCourante.value;
+            if (key.row() < premiereRangee) {
                 // Avant la zone : survie par identité, re-timbrée.
-                restantes[gardees++] = new Entree(
-                        new RowKey(nouvelleRevision, cle.row(),
-                                cle.themeId(), cle.font(), cle.columns()),
-                        valeur, caseCourante.age);
-            } else if (cle.row() >= finZone) {
+                restantes[gardees++] = new Entry(
+                        new RowKey(nouvelleRevision, key.row(),
+                                key.themeId(), key.font(), key.columns()),
+                        value, caseCourante.age);
+            } else if (key.row() >= finZone) {
                 // Après la zone : décalage de rangée et de ligne.
-                restantes[gardees++] = new Entree(
-                        new RowKey(nouvelleRevision, cle.row() + deltaRangees,
-                                cle.themeId(), cle.font(), cle.columns()),
-                        new RowLayout(valeur.line() + deltaLignes,
-                                valeur.start(), valeur.end(),
-                                valeur.text(), valeur.width(),
-                                valeur.runs(), valeur.spans()),
+                restantes[gardees++] = new Entry(
+                        new RowKey(nouvelleRevision, key.row() + deltaRangees,
+                                key.themeId(), key.font(), key.columns()),
+                        new RowLayout(value.line() + deltaLignes,
+                                value.start(), value.end(),
+                                value.text(), value.width(),
+                                value.runs(), value.spans()),
                         caseCourante.age);
             }
             // La zone touchée : la mise en page meurt — re-mesure au
             // prochain dessin.
         }
-        Entree[] anciennes = table;
-        table = new Entree[CAPACITE_INITIALE];
+        Entry[] anciennes = table;
+        table = new Entry[INITIAL_CAPACITY];
         nombre = 0;
-        for (Entree caseCourante : anciennes) {
+        for (Entry caseCourante : anciennes) {
             if (caseCourante != null
-                    && caseCourante.cle.revision() != ancienneRevision) {
-                store(caseCourante.cle, caseCourante.valeur);
+                    && caseCourante.key.revision() != ancienneRevision) {
+                store(caseCourante.key, caseCourante.value);
             }
         }
         for (int i = 0; i < gardees; i++) {
-            store(restantes[i].cle, restantes[i].valeur);
+            store(restantes[i].key, restantes[i].value);
         }
     }
 
@@ -215,17 +215,17 @@ public final class RowLayoutCache {
      * @param revision la révision périmée
      */
     public void invalidate(long revision) {
-        Entree[] restantes = new Entree[nombre];
+        Entry[] restantes = new Entry[nombre];
         int gardees = 0;
-        for (Entree caseCourante : table) {
-            if (caseCourante != null && caseCourante.cle.revision() != revision) {
+        for (Entry caseCourante : table) {
+            if (caseCourante != null && caseCourante.key.revision() != revision) {
                 restantes[gardees++] = caseCourante;
             }
         }
-        table = new Entree[CAPACITE_INITIALE];
+        table = new Entry[INITIAL_CAPACITY];
         nombre = 0;
         for (int i = 0; i < gardees; i++) {
-            store(restantes[i].cle, restantes[i].valeur);
+            store(restantes[i].key, restantes[i].value);
         }
     }
 
@@ -236,7 +236,7 @@ public final class RowLayoutCache {
      * une mise en page périmée (PIEGE-02 par construction).
      */
     public void clear() {
-        table = new Entree[CAPACITE_INITIALE];
+        table = new Entry[INITIAL_CAPACITY];
         nombre = 0;
     }
 
@@ -251,9 +251,9 @@ public final class RowLayoutCache {
      *                  sans changement
      */
     public void respan(long revision, UnaryOperator<RowLayout> aJour) {
-        for (Entree caseCourante : table) {
-            if (caseCourante != null && caseCourante.cle.revision() == revision) {
-                caseCourante.valeur = aJour.apply(caseCourante.valeur);
+        for (Entry caseCourante : table) {
+            if (caseCourante != null && caseCourante.key.revision() == revision) {
+                caseCourante.value = aJour.apply(caseCourante.value);
             }
         }
     }
@@ -265,16 +265,16 @@ public final class RowLayoutCache {
 
     /** Le plafond d'entrées du cache (B-02). */
     public int capacity() {
-        return PLAFOND;
+        return CEILING;
     }
 
     private void agrandir() {
-        Entree[] anciennes = table;
-        table = new Entree[anciennes.length * 2];
+        Entry[] anciennes = table;
+        table = new Entry[anciennes.length * 2];
         nombre = 0;
-        for (Entree caseCourante : anciennes) {
+        for (Entry caseCourante : anciennes) {
             if (caseCourante != null) {
-                store(caseCourante.cle, caseCourante.valeur);
+                store(caseCourante.key, caseCourante.value);
             }
         }
     }
@@ -289,12 +289,12 @@ public final class RowLayoutCache {
         return empreinte;
     }
 
-    private static boolean correspond(Entree caseCourante, long revision, int row,
+    private static boolean correspond(Entry caseCourante, long revision, int row,
             int themeId, FontSpec font, int columns) {
-        RowKey cle = caseCourante.cle;
-        return cle.revision() == revision && cle.row() == row
-                && cle.themeId() == themeId && cle.font().equals(font)
-                && cle.columns() == columns;
+        RowKey key = caseCourante.key;
+        return key.revision() == revision && key.row() == row
+                && key.themeId() == themeId && key.font().equals(font)
+                && key.columns() == columns;
     }
 
     /**
@@ -307,7 +307,7 @@ public final class RowLayoutCache {
      */
     public static final class Stockage {
 
-        private Entree[] table = new Entree[CAPACITE_INITIALE];
+        private Entry[] table = new Entry[INITIAL_CAPACITY];
         private int nombre;
         private long compteurAge;
 
@@ -318,12 +318,12 @@ public final class RowLayoutCache {
 
     /** Détache le stockage interne (C1) : l'instance repart VIDE,
      *  l'état rendu vit sa vie ailleurs (le parc). */
-    Stockage detacher() {
+    Stockage detach() {
         Stockage partant = new Stockage();
         partant.table = table;
         partant.nombre = nombre;
         partant.compteurAge = compteurAge;
-        table = new Entree[CAPACITE_INITIALE];
+        table = new Entry[INITIAL_CAPACITY];
         nombre = 0;
         compteurAge = 0;
         return partant;

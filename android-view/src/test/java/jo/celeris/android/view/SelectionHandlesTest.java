@@ -101,12 +101,12 @@ class SelectionHandlesTest {
     /** Le glissement d'une poignée ne bouge QUE son extrémité. */
     @Test
     void drag_movesOnlyItsEndpoint() {
-        jo.celeris.core.text.SelRange plage = new jo.celeris.core.text.SelRange(5, 2);
+        jo.celeris.core.text.SelRange range = new jo.celeris.core.text.SelRange(5, 2);
         assertEquals(new jo.celeris.core.text.SelRange(5, 4),
-                SelectionHandles.dragged(plage, SelectionHandles.HandleId.START, 4),
+                SelectionHandles.dragged(range, SelectionHandles.HandleId.START, 4),
                 "la poignée START déplace le début, l'extrémité opposée tient");
         assertEquals(new jo.celeris.core.text.SelRange(2, 7),
-                SelectionHandles.dragged(plage, SelectionHandles.HandleId.END, 7),
+                SelectionHandles.dragged(range, SelectionHandles.HandleId.END, 7),
                 "la poignée END déplace la fin, l'extrémité opposée tient");
     }
 }

@@ -116,13 +116,13 @@ final class GroovyDialect extends CLikeDialect {
     private SynNode defDeclaration(TokenSlice slice, int start, int keyword) {
         String name = MemberScans.nameAfter(slice, keyword);
         boolean method = name != null && keyword + 2 < slice.size()
-                && "(".equals(Tokens.texteCrochet(slice, keyword + 2));
+                && "(".equals(Tokens.bracketText(slice, keyword + 2));
         return MemberScans.lineMember(slice, start, keyword, method, name);
     }
 
     /** Une instruction libre dans un corps de type : pliage par blocs. */
     private static SynNode freeInstruction(TokenSlice slice, int start, int to) {
-        List<SynNode> children = Corps.instructions(slice, start, to,
+        List<SynNode> children = BodyParser.instructions(slice, start, to,
                 CLikeKind.STATEMENT, CLikeKind.BLOC, CLikeKind.ERREUR);
         return SynNode.of(CLikeKind.STATEMENT, NodeCategory.STATEMENT,
                 slice.start(start), Tokens.finDe(slice, to - 1),

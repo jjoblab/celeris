@@ -17,29 +17,29 @@ import org.junit.jupiter.api.Test;
  */
 class SignatureLspTest {
 
-    private static SignatureLsp.Parametre parametre(String libelle) {
-        return new SignatureLsp.Parametre(libelle, null);
+    private static SignatureLsp.Parameter parametre(String label) {
+        return new SignatureLsp.Parameter(label, null);
     }
 
     /** Le paramètre courant borné : l'indice généreux retombe sur le dernier. */
     @Test
     void leParametreCourantBorne() {
-        SignatureLsp genereux = SignatureLsp.de(List.of(
-                new SignatureLsp.Entree("ajouter(int a, int b)",
+        SignatureLsp genereux = SignatureLsp.of(List.of(
+                new SignatureLsp.Entry("ajouter(int a, int b)",
                         List.of(parametre("a"), parametre("b")), null)),
                 0, 7);
         assertEquals(1, genereux.parametreCourant(),
                 "borne au dernier paramètre");
-        SignatureLsp absent = SignatureLsp.de(List.of(
-                new SignatureLsp.Entree("ajouter(int a, int b)",
+        SignatureLsp absent = SignatureLsp.of(List.of(
+                new SignatureLsp.Entry("ajouter(int a, int b)",
                         List.of(parametre("a"), parametre("b")), null)),
                 -1, -1);
         assertEquals(-1, absent.signatureActiveIndex());
         assertNull(absent.signatureActive());
         assertEquals(-1, absent.parametreCourant());
         // sans paramètre : aucun courant, même si le serveur en annonce un
-        SignatureLsp vide = SignatureLsp.de(List.of(
-                new SignatureLsp.Entree("fermer()", List.of(), null)),
+        SignatureLsp vide = SignatureLsp.of(List.of(
+                new SignatureLsp.Entry("fermer()", List.of(), null)),
                 0, 0);
         assertEquals(-1, vide.parametreCourant());
     }
@@ -47,8 +47,8 @@ class SignatureLspTest {
     /** La signature active hors bornes : null, le repli appartient à l'hôte. */
     @Test
     void laSignatureActiveHorsBornes() {
-        SignatureLsp horsBornes = SignatureLsp.de(List.of(
-                new SignatureLsp.Entree("f(a)", List.of(parametre("a")), null)),
+        SignatureLsp horsBornes = SignatureLsp.of(List.of(
+                new SignatureLsp.Entry("f(a)", List.of(parametre("a")), null)),
                 4, 0);
         assertNull(horsBornes.signatureActive(),
                 "l'index hors bornes ne choisit rien");
@@ -58,7 +58,7 @@ class SignatureLspTest {
     /** La réponse vide : aucune signature, jamais une exception. */
     @Test
     void laReponseVide() {
-        assertEquals(0, SignatureLsp.de(List.of(), -1, -1).entrees().size());
-        assertNull(SignatureLsp.de(List.of(), -1, -1).signatureActive());
+        assertEquals(0, SignatureLsp.of(List.of(), -1, -1).entrees().size());
+        assertNull(SignatureLsp.of(List.of(), -1, -1).signatureActive());
     }
 }

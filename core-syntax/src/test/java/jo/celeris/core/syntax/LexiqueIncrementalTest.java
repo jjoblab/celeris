@@ -27,8 +27,8 @@ class LexiqueIncrementalTest {
             zeta
             """;
 
-    private static Document document(String texte) {
-        return Document.of(texte);
+    private static Document document(String text) {
+        return Document.of(text);
     }
 
     /** La lexicographie complète pose un panier et un état par ligne. */
@@ -41,11 +41,11 @@ class LexiqueIncrementalTest {
                 "six lignes de contenu plus la ligne vide finale");
         assertEquals(0, resultat.firstLine());
         assertEquals(6, resultat.lastLine());
-        assertSame(MiniLangage.Etat.NORMAL, lex.stateBefore(0));
-        assertSame(MiniLangage.Etat.NORMAL, lex.stateBefore(1));
-        assertSame(MiniLangage.Etat.COMMENTAIRE, lex.stateBefore(2));
-        assertSame(MiniLangage.Etat.COMMENTAIRE, lex.stateBefore(3));
-        assertSame(MiniLangage.Etat.NORMAL, lex.stateBefore(4));
+        assertSame(MiniLangage.State.NORMAL, lex.stateBefore(0));
+        assertSame(MiniLangage.State.NORMAL, lex.stateBefore(1));
+        assertSame(MiniLangage.State.COMMENTAIRE, lex.stateBefore(2));
+        assertSame(MiniLangage.State.COMMENTAIRE, lex.stateBefore(3));
+        assertSame(MiniLangage.State.NORMAL, lex.stateBefore(4));
 
         Token[] ligne1 = lex.line(1).tokens();
         assertEquals(2, ligne1.length);
@@ -55,7 +55,7 @@ class LexiqueIncrementalTest {
         assertEquals(TokenKind.COMMENT, ligne1[1].kind());
         assertEquals(6, ligne1[1].start());
         assertEquals(14, ligne1[1].end());
-        assertSame(MiniLangage.Etat.COMMENTAIRE, lex.line(1).exitState());
+        assertSame(MiniLangage.State.COMMENTAIRE, lex.line(1).exitState());
 
         Token[] ligne3 = lex.line(3).tokens();
         assertEquals(2, ligne3.length);
@@ -71,23 +71,23 @@ class LexiqueIncrementalTest {
     void editionUneLigneUneSeuleRelecture() {
         IncrementalLexer moteur = new IncrementalLexer();
         LexResult complet = moteur.lexFull(document(TEXTE), lexeur());
-        int cible = TEXTE.indexOf("delta");
-        Document edite = document(TEXTE).replace(cible, cible + 5, "omega");
+        int target = TEXTE.indexOf("delta");
+        Document edite = document(TEXTE).replace(target, target + 5, "omega");
         LexResult diff = moteur.lexIncremental(edite, lexeur(), complet.lex(),
-                EditSite.of(document(TEXTE), edite, cible, cible + 5, "omega"));
+                EditSite.of(document(TEXTE), edite, target, target + 5, "omega"));
         assertEquals(3, diff.firstLine());
         assertEquals(3, diff.lastLine());
-        for (int ligne = 0; ligne < 7; ligne++) {
-            if (ligne == 4) {
+        for (int line = 0; line < 7; line++) {
+            if (line == 4) {
                 continue;
             }
-            if (ligne == 3) {
+            if (line == 3) {
                 continue;
             }
-            assertSame(complet.lex().line(ligne), diff.lex().line(ligne),
-                    "la ligne " + ligne + " doit être réutilisée à l'identité");
+            assertSame(complet.lex().line(line), diff.lex().line(line),
+                    "la ligne " + line + " doit être réutilisée à l'identité");
         }
-        assertSame(MiniLangage.Etat.NORMAL, diff.lex().line(3).exitState());
+        assertSame(MiniLangage.State.NORMAL, diff.lex().line(3).exitState());
         Token[] remplacee = diff.lex().line(3).tokens();
         assertEquals(2, remplacee.length);
         assertEquals(TokenKind.IDENTIFIER, remplacee[1].kind());
@@ -109,7 +109,7 @@ class LexiqueIncrementalTest {
         assertSame(complet.lex().line(5), diff.lex().line(7),
                 "zeta garde son panier après les deux lignes insérées");
         assertSame(complet.lex().line(3), diff.lex().line(3));
-        assertEquals(MiniLangage.Etat.NORMAL, diff.lex().line(4).exitState());
+        assertEquals(MiniLangage.State.NORMAL, diff.lex().line(4).exitState());
     }
 
     /** Une suppression de lignes réaligne la suite vers le bas. */
@@ -117,18 +117,18 @@ class LexiqueIncrementalTest {
     void suppressionDeLignesRealigneLaSuite() {
         IncrementalLexer moteur = new IncrementalLexer();
         LexResult complet = moteur.lexFull(document(TEXTE), lexeur());
-        int debut = TEXTE.indexOf("gamma");
-        int fin = TEXTE.indexOf("epsilon");
-        Document edite = document(TEXTE).replace(debut, fin, "");
+        int start = TEXTE.indexOf("gamma");
+        int end = TEXTE.indexOf("epsilon");
+        Document edite = document(TEXTE).replace(start, end, "");
         LexResult diff = moteur.lexIncremental(edite, lexeur(), complet.lex(),
-                EditSite.of(document(TEXTE), edite, debut, fin, ""));
+                EditSite.of(document(TEXTE), edite, start, end, ""));
         assertEquals(4, diff.lex().lineCount());
         assertSame(complet.lex().line(0), diff.lex().line(0));
         assertArrayEquals(complet.lex().line(4).tokens(), diff.lex().line(1).tokens(),
                 "la ligne de reprise se relit une fois, au contenu identique");
         assertSame(complet.lex().line(5), diff.lex().line(2));
         assertSame(complet.lex().line(6), diff.lex().line(3));
-        assertSame(MiniLangage.Etat.NORMAL, diff.lex().line(0).exitState());
+        assertSame(MiniLangage.State.NORMAL, diff.lex().line(0).exitState());
     }
 
     /** La profondeur de crochets au début de chaque ligne suit les éditions. */
@@ -171,13 +171,13 @@ class LexiqueIncrementalTest {
                 EditSite.of(document(TEXTE), edite, coupe, coupe + 6, "X"));
         LexResult temoin = moteur.lexFull(edite, lexeur());
         assertEquals(temoin.lex().lineCount(), diff.lex().lineCount());
-        for (int ligne = 0; ligne < temoin.lex().lineCount(); ligne++) {
-            assertArrayEquals(temoin.lex().line(ligne).tokens(),
-                    diff.lex().line(ligne).tokens(), "panier de la ligne " + ligne);
-            assertEquals(temoin.lex().line(ligne).exitState(),
-                    diff.lex().line(ligne).exitState(), "état de la ligne " + ligne);
-            assertEquals(temoin.lex().bracketDepthAtLineStart(ligne),
-                    diff.lex().bracketDepthAtLineStart(ligne), "profondeur ligne " + ligne);
+        for (int line = 0; line < temoin.lex().lineCount(); line++) {
+            assertArrayEquals(temoin.lex().line(line).tokens(),
+                    diff.lex().line(line).tokens(), "panier de la ligne " + line);
+            assertEquals(temoin.lex().line(line).exitState(),
+                    diff.lex().line(line).exitState(), "état de la ligne " + line);
+            assertEquals(temoin.lex().bracketDepthAtLineStart(line),
+                    diff.lex().bracketDepthAtLineStart(line), "profondeur ligne " + line);
         }
         assertTrue(diff.lastLine() < 6, "la cascade doit s'arrêter avant la fin");
     }
@@ -189,7 +189,7 @@ class LexiqueIncrementalTest {
         LexResult resultat = moteur.lexFull(document(""), lexeur());
         assertEquals(1, resultat.lex().lineCount());
         assertEquals(0, resultat.lex().line(0).tokens().length);
-        assertSame(MiniLangage.Etat.NORMAL, resultat.lex().line(0).exitState());
+        assertSame(MiniLangage.State.NORMAL, resultat.lex().line(0).exitState());
     }
 
     private static LanguageLexer lexeur() {

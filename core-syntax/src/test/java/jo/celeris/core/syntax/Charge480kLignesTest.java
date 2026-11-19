@@ -63,7 +63,7 @@ class Charge480kLignesTest {
         SyntaxService service = SyntaxService.of(JavaSyntax.INSTANCE);
         int milieu = doc.lineCount() / 2;
         // Échauffement non mesuré : le JIT ne doit pas compter.
-        service.analyseFenetre(doc, milieu - FENETRE, milieu + FENETRE,
+        service.analyzeWindow(doc, milieu - FENETRE, milieu + FENETRE,
                 new TokenCancellation());
 
         System.gc();
@@ -76,19 +76,19 @@ class Charge480kLignesTest {
         Runtime tas = Runtime.getRuntime();
         long avant = tas.totalMemory() - tas.freeMemory();
 
-        Analysis fenetre = null;
+        Analysis window = null;
         long meilleur = Long.MAX_VALUE;
         for (int tour = 0; tour < TOURS; tour++) {
-            long debut = System.nanoTime();
-            fenetre = service.analyseFenetre(doc, milieu - FENETRE,
+            long start = System.nanoTime();
+            window = service.analyzeWindow(doc, milieu - FENETRE,
                     milieu + FENETRE, new TokenCancellation());
-            meilleur = Math.min(meilleur, System.nanoTime() - debut);
+            meilleur = Math.min(meilleur, System.nanoTime() - start);
         }
 
         System.gc();
         long apres = tas.totalMemory() - tas.freeMemory();
 
-        assertTrue(fenetre != null && !fenetre.estComplet(),
+        assertTrue(window != null && !window.isComplete(),
                 "la fenêtre seule laisse le reste en attente");
         assertTrue(meilleur <= BUDGET_OUVERTURE_NS,
                 "fenêtre d'abord sur " + doc.lineCount() + " lignes en "
@@ -115,17 +115,17 @@ class Charge480kLignesTest {
         // La base de l'incrément : l'arbre complet, calculé hors mesure.
         Analysis base = service.analyseFull(doc);
         Document docBase = doc;
-        assertTrue(base.estComplet(), "la base de l'incrément est complète");
+        assertTrue(base.isComplete(), "la base de l'incrément est complète");
 
         long meilleur = Long.MAX_VALUE;
         for (int tour = 0; tour < TOURS; tour++) {
             int offset = session.document().lineStart(milieu) + 10;
             session.replaceRange(offset, offset, "xyz");
             Document apresEdit = session.document();
-            long debut = System.nanoTime();
+            long start = System.nanoTime();
             Analysis incrementee = service.analyseIncremental(apresEdit, base,
                     EditSite.of(docBase, apresEdit, offset, offset, "xyz"));
-            meilleur = Math.min(meilleur, System.nanoTime() - debut);
+            meilleur = Math.min(meilleur, System.nanoTime() - start);
             assertEquals(apresEdit.revision(), incrementee.revision(),
                     "l'incrément publie l'instantané édité");
             // le retrait rend le document au banc, la base suit

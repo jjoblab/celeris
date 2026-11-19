@@ -211,8 +211,8 @@ class CaretsMotionTest {
         assertEquals(MultiSelection.caretsAt(9), page,
                 "quatre rangées plus bas : ligne 4 (offset 8), colonne conservée");
 
-        MultiSelection retour = CaretsMotion.move(document, projection, page,
+        MultiSelection back = CaretsMotion.move(document, projection, page,
                 EditorAction.PAGE_UP, 4);
-        assertEquals(MultiSelection.caretsAt(1), retour);
+        assertEquals(MultiSelection.caretsAt(1), back);
     }
 }

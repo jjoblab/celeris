@@ -41,19 +41,19 @@ public final class ColorPickerView extends PopupPanel {
     private static final float CHAMP_SV_DP = 112f;
 
     /** La hauteur de la bande de teinte, en dp. */
-    private static final float BANDE_TEINTE_DP = 18f;
+    private static final float BAND_TINT_DP = 18f;
 
     /** Le côté d'une cellule de palette, en dp. */
     private static final float CELLULE_DP = 22f;
 
     /** L'écart entre deux cellules, en dp. */
-    private static final float ECART_CELLULE_DP = 6f;
+    private static final float CELL_GAP_DP = 6f;
 
     /** L'écart entre deux blocs voisins, en dp. */
-    private static final float ECART_BLOC_DP = 8f;
+    private static final float BLOCK_GAP_DP = 8f;
 
     /** Le côté d'une pastille d'en-tête, en dp. */
-    private static final float PASTILLE_ENTETE_DP = 22f;
+    private static final float HEADER_CHIP_DP = 22f;
 
     /** Le rayon d'une pastille ou cellule, en dp. */
     private static final float RAYON_PASTILLE_DP = 4f;
@@ -77,7 +77,7 @@ public final class ColorPickerView extends PopupPanel {
     /** La couleur d'origine du littéral — son alpha survit au pick. */
     private int originale;
     /** La largeur du littéral d'origine (ses chiffres, sans le dièse). */
-    private int chiffres;
+    private int digits;
     /** L'état HSV courant — la teinte, la saturation, la valeur. */
     private final float[] hsv = {0f, 0f, 0f};
     /** Le rappel d'application — la teinte courante y part, opaque. */
@@ -101,11 +101,11 @@ public final class ColorPickerView extends PopupPanel {
      * chiffres.
      *
      * @param originale la couleur ARGB du littéral d'origine
-     * @param chiffres  la largeur du littéral, en chiffres sans dièse
+     * @param digits  la largeur du littéral, en chiffres sans dièse
      */
-    public void ouvrir(int originale, int chiffres) {
+    public void open(int originale, int digits) {
         this.originale = originale;
-        this.chiffres = chiffres;
+        this.digits = digits;
         Color.colorToHSV(originale & 0xFFFFFF, hsv);
         degradeTeinte = null;
         degradeNoir = null;
@@ -131,11 +131,11 @@ public final class ColorPickerView extends PopupPanel {
      * environnant ne bouge pas.
      *
      * @param argb     la couleur au format ARGB
-     * @param chiffres la largeur voulue du littéral (sans le dièse)
+     * @param digits la largeur voulue du littéral (sans le dièse)
      * @return le littéral formaté, dièse compris
      */
-    public static String formater(int argb, int chiffres) {
-        return switch (chiffres) {
+    public static String formater(int argb, int digits) {
+        return switch (digits) {
             case 3 -> String.format("#%1$x%2$x%3$x",
                     quantifie((argb >>> 16) & 0xFF),
                     quantifie((argb >>> 8) & 0xFF),
@@ -167,66 +167,66 @@ public final class ColorPickerView extends PopupPanel {
 
     @Override
     void drawContent(Canvas canvas) {
-        float largeur = contentWidth();
-        dessinerEntete(canvas, largeur);
-        float yChamp = ENTETE_DP * densite + ECART_BLOC_DP * densite;
-        dessinerChamp(canvas, largeur, yChamp);
-        float yBande = yChamp + CHAMP_SV_DP * densite + ECART_BLOC_DP * densite;
-        dessinerBande(canvas, largeur, yBande);
-        dessinerPalette(canvas, yBande + BANDE_TEINTE_DP * densite
-                + ECART_BLOC_DP * densite);
+        float width = contentWidth();
+        drawHeader(canvas, width);
+        float yChamp = ENTETE_DP * densite + BLOCK_GAP_DP * densite;
+        drawField(canvas, width, yChamp);
+        float yBande = yChamp + CHAMP_SV_DP * densite + BLOCK_GAP_DP * densite;
+        drawBand(canvas, width, yBande);
+        drawPalette(canvas, yBande + BAND_TINT_DP * densite
+                + BLOCK_GAP_DP * densite);
     }
 
     /** L'en-tête : la pastille d'origine et son littéral, la courante
      *  et le sien — l'aperçu avant/après vit à chaque cran du drag. */
-    private void dessinerEntete(Canvas canvas, float largeur) {
-        float cote = PASTILLE_ENTETE_DP * densite;
+    private void drawHeader(Canvas canvas, float width) {
+        float cote = HEADER_CHIP_DP * densite;
         float rayon = RAYON_PASTILLE_DP * densite;
         float centre = ENTETE_DP * densite / 2f;
         // la pastille d'origine, à gauche
         pinceauBande.setColor(originale);
         coins.set(0f, centre - cote / 2f, cote, centre + cote / 2f);
         canvas.drawRoundRect(coins, rayon, rayon, pinceauBande);
-        tracerLisere(canvas, coins, rayon);
+        traceTrim(canvas, coins, rayon);
         textPaint().setColor(palette.text());
-        canvas.drawText(formater(originale, chiffres),
-                cote + ECART_BLOC_DP * densite, baseline(centre), textPaint());
+        canvas.drawText(formater(originale, digits),
+                cote + BLOCK_GAP_DP * densite, baseline(centre), textPaint());
         // la pastille courante, au bord droit
         int courante = compose(originale >>> 24);
-        String label = formater(courante, chiffres);
+        String label = formater(courante, digits);
         float largeurLabel = textPaint().measureText(label);
         pinceauBande.setColor(courante);
-        coins.set(largeur - cote, centre - cote / 2f, largeur, centre + cote / 2f);
+        coins.set(width - cote, centre - cote / 2f, width, centre + cote / 2f);
         canvas.drawRoundRect(coins, rayon, rayon, pinceauBande);
-        tracerLisere(canvas, coins, rayon);
-        canvas.drawText(label, largeur - cote - ECART_BLOC_DP * densite
+        traceTrim(canvas, coins, rayon);
+        canvas.drawText(label, width - cote - BLOCK_GAP_DP * densite
                 - largeurLabel, baseline(centre), textPaint());
     }
 
     /** Le champ saturation-valeur : blanc vers la teinte, transparent
      *  vers le noir — le marqueur y vit, double cercle lisible sur tout
      *  fond (le motif du dépôt de départ). */
-    private void dessinerChamp(Canvas canvas, float largeur, float y) {
-        float hauteur = CHAMP_SV_DP * densite;
+    private void drawField(Canvas canvas, float width, float y) {
+        float height = CHAMP_SV_DP * densite;
         LinearGradient teinte = degradeTeinte;
         LinearGradient noir = degradeNoir;
         if (teinte == null || noir == null) {
             int teintePure = Color.HSVToColor(new float[] {hsv[0], 1f, 1f});
-            teinte = new LinearGradient(0f, 0f, largeur, 0f,
+            teinte = new LinearGradient(0f, 0f, width, 0f,
                     Color.WHITE, teintePure, Shader.TileMode.CLAMP);
-            noir = new LinearGradient(0f, 0f, 0f, hauteur,
+            noir = new LinearGradient(0f, 0f, 0f, height,
                     Color.TRANSPARENT, Color.BLACK, Shader.TileMode.CLAMP);
             degradeTeinte = teinte;
             degradeNoir = noir;
         }
         pinceauTeinte.setShader(teinte);
-        canvas.drawRect(0f, y, largeur, y + hauteur, pinceauTeinte);
+        canvas.drawRect(0f, y, width, y + height, pinceauTeinte);
         pinceauVoile.setShader(noir);
-        canvas.drawRect(0f, y, largeur, y + hauteur, pinceauVoile);
-        tracerLisereRect(canvas, 0f, y, largeur, y + hauteur);
+        canvas.drawRect(0f, y, width, y + height, pinceauVoile);
+        traceTrimRect(canvas, 0f, y, width, y + height);
         // le marqueur : double cercle, sombre dehors, blanc dedans
-        float mx = hsv[1] * largeur;
-        float my = (1f - hsv[2]) * hauteur;
+        float mx = hsv[1] * width;
+        float my = (1f - hsv[2]) * height;
         float rayon = 6f * densite;
         pinceauCurseur.setColor(0xFF1F1F1F);
         pinceauCurseur.setStrokeWidth(2f * densite);
@@ -238,10 +238,10 @@ public final class ColorPickerView extends PopupPanel {
 
     /** La bande de teinte : le spectre, curseur à deux traits qui
      *  dépasse de la bande — sombre et blanc superposés. */
-    private void dessinerBande(Canvas canvas, float largeur, float y) {
-        float hauteur = BANDE_TEINTE_DP * densite;
+    private void drawBand(Canvas canvas, float width, float y) {
+        float height = BAND_TINT_DP * densite;
         if (pinceauSpectre.getShader() == null) {
-            pinceauSpectre.setShader(new LinearGradient(0f, 0f, largeur, 0f,
+            pinceauSpectre.setShader(new LinearGradient(0f, 0f, width, 0f,
                     new int[] {Color.RED, Color.YELLOW, Color.GREEN,
                             Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED},
                     new float[] {0f, 1f / 6f, 2f / 6f, 3f / 6f, 4f / 6f,
@@ -250,29 +250,29 @@ public final class ColorPickerView extends PopupPanel {
         }
         canvas.save();
         canvas.translate(0f, y);
-        canvas.drawRect(0f, 0f, largeur, hauteur, pinceauSpectre);
+        canvas.drawRect(0f, 0f, width, height, pinceauSpectre);
         canvas.restore();
-        tracerLisereRect(canvas, 0f, y, largeur, y + hauteur);
-        float x = hsv[0] / 360f * largeur;
+        traceTrimRect(canvas, 0f, y, width, y + height);
+        float x = hsv[0] / 360f * width;
         float depasse = 2f * densite;
         pinceauCurseur.setColor(0xFF1F1F1F);
         pinceauCurseur.setStrokeWidth(2f);
-        canvas.drawLine(x, y - depasse, x, y + hauteur + depasse, pinceauCurseur);
+        canvas.drawLine(x, y - depasse, x, y + height + depasse, pinceauCurseur);
         pinceauCurseur.setColor(Color.WHITE);
         pinceauCurseur.setStrokeWidth(1f);
-        canvas.drawLine(x, y - depasse, x, y + hauteur + depasse, pinceauCurseur);
+        canvas.drawLine(x, y - depasse, x, y + height + depasse, pinceauCurseur);
     }
 
     /** La palette : seize teintes Material, la teinte portée liserée
      *  à l'accent — le tap d'une cellule applique. */
-    private void dessinerPalette(Canvas canvas, float y) {
+    private void drawPalette(Canvas canvas, float y) {
         float cote = CELLULE_DP * densite;
-        float ecart = ECART_CELLULE_DP * densite;
+        float gap = CELL_GAP_DP * densite;
         float rayon = RAYON_PASTILLE_DP * densite;
         int courante = compose(0xFF) & 0xFFFFFF;
         for (int i = 0; i < PALETTE.length; i++) {
-            float x = (i % 8) * (cote + ecart);
-            float cy = y + (i / 8) * (cote + ecart);
+            float x = (i % 8) * (cote + gap);
+            float cy = y + (i / 8) * (cote + gap);
             pinceauBande.setColor(PALETTE[i]);
             coins.set(x, cy, x + cote, cy + cote);
             canvas.drawRoundRect(coins, rayon, rayon, pinceauBande);
@@ -285,13 +285,13 @@ public final class ColorPickerView extends PopupPanel {
 
     @Override
     int contentWidth() {
-        return Math.round(8 * CELLULE_DP * densite + 7 * ECART_CELLULE_DP * densite);
+        return Math.round(8 * CELLULE_DP * densite + 7 * CELL_GAP_DP * densite);
     }
 
     @Override
     int contentHeight() {
-        return Math.round((ENTETE_DP + CHAMP_SV_DP + BANDE_TEINTE_DP
-                + 2 * CELLULE_DP + ECART_CELLULE_DP + 3 * ECART_BLOC_DP)
+        return Math.round((ENTETE_DP + CHAMP_SV_DP + BAND_TINT_DP
+                + 2 * CELLULE_DP + CELL_GAP_DP + 3 * BLOCK_GAP_DP)
                 * densite);
     }
 
@@ -332,12 +332,12 @@ public final class ColorPickerView extends PopupPanel {
 
     /** La zone du point : 1 le champ, 2 la bande, 0 ailleurs dans la carte. */
     private int zoneDe(float x, float y) {
-        float champY = (ENTETE_DP + ECART_BLOC_DP) * densite;
-        float bandeY = champY + CHAMP_SV_DP * densite + ECART_BLOC_DP * densite;
+        float champY = (ENTETE_DP + BLOCK_GAP_DP) * densite;
+        float bandeY = champY + CHAMP_SV_DP * densite + BLOCK_GAP_DP * densite;
         if (y >= champY && y < champY + CHAMP_SV_DP * densite) {
             return 1;
         }
-        if (y >= bandeY && y < bandeY + BANDE_TEINTE_DP * densite) {
+        if (y >= bandeY && y < bandeY + BAND_TINT_DP * densite) {
             return 2;
         }
         return 0;
@@ -346,32 +346,32 @@ public final class ColorPickerView extends PopupPanel {
     /** La cellule de palette du point, —1 hors palette. */
     int celluleDe(float x, float y) {
         float cote = CELLULE_DP * densite;
-        float ecart = ECART_CELLULE_DP * densite;
-        float paletteY = (ENTETE_DP + ECART_BLOC_DP + CHAMP_SV_DP
-                + ECART_BLOC_DP + BANDE_TEINTE_DP + ECART_BLOC_DP) * densite;
+        float gap = CELL_GAP_DP * densite;
+        float paletteY = (ENTETE_DP + BLOCK_GAP_DP + CHAMP_SV_DP
+                + BLOCK_GAP_DP + BAND_TINT_DP + BLOCK_GAP_DP) * densite;
         if (y < paletteY || x < 0f || x > contentWidth()) {
             return -1;
         }
-        int colonne = (int) (x / (cote + ecart));
-        int rangee = (int) ((y - paletteY) / (cote + ecart));
-        if (colonne > 7 || rangee > 1
-                || x > colonne * (cote + ecart) + cote
-                || y > paletteY + rangee * (cote + ecart) + cote) {
+        int column = (int) (x / (cote + gap));
+        int rangee = (int) ((y - paletteY) / (cote + gap));
+        if (column > 7 || rangee > 1
+                || x > column * (cote + gap) + cote
+                || y > paletteY + rangee * (cote + gap) + cote) {
             return -1;
         }
-        return rangee * 8 + colonne;
+        return rangee * 8 + column;
     }
 
     /** Le point pressé suit sa zone : saturation-valeur au champ,
      *  teinte à la bande — bornés au rect. */
     private void presser(float x, float y) {
-        float largeur = contentWidth();
+        float width = contentWidth();
         if (zonePressee == 1) {
-            hsv[1] = borne(x / largeur);
-            hsv[2] = borne(1f - (y - (ENTETE_DP + ECART_BLOC_DP) * densite)
+            hsv[1] = borne(x / width);
+            hsv[2] = borne(1f - (y - (ENTETE_DP + BLOCK_GAP_DP) * densite)
                     / (CHAMP_SV_DP * densite));
         } else if (zonePressee == 2) {
-            hsv[0] = borne(x / largeur) * 360f;
+            hsv[0] = borne(x / width) * 360f;
         }
         degradeTeinte = null;
         degradeNoir = null;
@@ -386,8 +386,8 @@ public final class ColorPickerView extends PopupPanel {
     }
 
     /** La valeur bornée à [0, 1]. */
-    private static float borne(float valeur) {
-        return Math.max(0f, Math.min(1f, valeur));
+    private static float borne(float value) {
+        return Math.max(0f, Math.min(1f, value));
     }
 
     /** La ligne de base d'un texte centré verticalement. */
@@ -396,14 +396,14 @@ public final class ColorPickerView extends PopupPanel {
     }
 
     /** Le liseré d'une pastille. */
-    private void tracerLisere(Canvas canvas, RectF rect, float rayon) {
+    private void traceTrim(Canvas canvas, RectF rect, float rayon) {
         pinceauTrait.setColor(palette.border());
         pinceauTrait.setStrokeWidth(1f);
         canvas.drawRoundRect(rect, rayon, rayon, pinceauTrait);
     }
 
     /** Le liseré d'un rect droit. */
-    private void tracerLisereRect(Canvas canvas, float gauche, float haut,
+    private void traceTrimRect(Canvas canvas, float gauche, float haut,
             float droite, float basse) {
         pinceauTrait.setColor(palette.border());
         pinceauTrait.setStrokeWidth(1f);

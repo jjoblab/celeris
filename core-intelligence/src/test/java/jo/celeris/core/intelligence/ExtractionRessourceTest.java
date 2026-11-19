@@ -75,8 +75,8 @@ class ExtractionRessourceTest {
     }
 
     /** Les éditions d'un fichier du plan : présentes, jamais nulles. */
-    private List<TextEdit> editions(ExtractionRessource.PlanRessource plan, String uri) {
-        List<TextEdit> liste = plan.editions().get(uri);
+    private List<TextEdit> edits(ExtractionRessource.PlanRessource plan, String uri) {
+        List<TextEdit> liste = plan.edits().get(uri);
         assertNotNull(liste, "le plan doit porter l'édition de " + uri);
         return liste;
     }
@@ -86,13 +86,13 @@ class ExtractionRessourceTest {
     void laRessourceNaitEtLaReferenceRemplace() {
         ExtractionRessource.PlanRessource plan =
                 planSur("\"Bienvenue a bord\"", "message_bienvenue");
-        assertEquals(2, plan.editions().size(), "deux fichiers touchés : le java et les valeurs");
+        assertEquals(2, plan.edits().size(), "deux fichiers touchés : le java et les valeurs");
         TextSession sessionJava = TextSession.of(ACTIVITE, System::nanoTime);
         TextSession sessionValeurs = TextSession.of(VALEURS, System::nanoTime);
         assertTrue(sessionJava.apply(
-                Transaction.of(editions(plan, URI_JAVA))), "l'édition du document s'applique");
+                Transaction.of(edits(plan, URI_JAVA))), "l'édition du document s'applique");
         assertTrue(sessionValeurs.apply(
-                Transaction.of(editions(plan, URI_VALEURS))), "l'édition des valeurs s'applique");
+                Transaction.of(edits(plan, URI_VALEURS))), "l'édition des valeurs s'applique");
         // la référence est insérée au point du littéral
         assertTrue(sessionJava.text().contains("setTitle(getString(R.string.message_bienvenue));"),
                 "le littéral devient la référence : " + sessionJava.text());
@@ -218,13 +218,13 @@ class ExtractionRessourceTest {
                 URI_JAVA, doc, analyse, source.indexOf("Ligne1"), "texte_multi", fichiers);
         assertNotNull(plan);
         TextSession sessionValeurs = TextSession.of(VALEURS, System::nanoTime);
-        sessionValeurs.apply(Transaction.of(editions(plan, URI_VALEURS)));
+        sessionValeurs.apply(Transaction.of(edits(plan, URI_VALEURS)));
         assertTrue(sessionValeurs.text().contains(
                 "<string name=\"texte_multi\">Ligne1\nLigne2 &amp; &lt;suite&gt;</string>"),
                 "l'échappement devient une vraie ligne, les entités se protègent : "
                         + sessionValeurs.text());
         // la référence du document reste la forme d'appel
-        assertEquals("getString(R.string.texte_multi)", editions(plan, URI_JAVA).get(0).inserted());
+        assertEquals("getString(R.string.texte_multi)", edits(plan, URI_JAVA).get(0).inserted());
     }
 
     /** C-13 — le fichier de valeurs sans entrée : la ressource pose à un cran de la fermeture. */
@@ -240,7 +240,7 @@ class ExtractionRessourceTest {
                 "message", fichiers);
         assertNotNull(plan);
         TextSession sessionValeurs = TextSession.of(valeurs, System::nanoTime);
-        sessionValeurs.apply(Transaction.of(editions(plan, URI_VALEURS)));
+        sessionValeurs.apply(Transaction.of(edits(plan, URI_VALEURS)));
         assertTrue(sessionValeurs.text().contains(
                         "    <string name=\"message\">Bienvenue a bord</string>\n</resources>"),
                 "l'entrée vierge pose à un cran de la fermeture : " + sessionValeurs.text());
@@ -251,11 +251,11 @@ class ExtractionRessourceTest {
     void leCurseurAuxBornesToucheLeLitteral() {
         Document doc = Document.of(ACTIVITE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = auCurseurDe("\"Trace du lancement\"");
+        int start = auCurseurDe("\"Trace du lancement\"");
         assertNotNull(ExtractionRessource.plan(URI_JAVA, doc, analyse,
-                debut, "trace_lancement", projet()));
+                start, "trace_lancement", projet()));
         assertNotNull(ExtractionRessource.plan(URI_JAVA, doc, analyse,
-                debut + "\"Trace du lancement\"".length(), "trace_lancement", projet()));
+                start + "\"Trace du lancement\"".length(), "trace_lancement", projet()));
     }
 
     /** C-13 — les éditions descendent : l'ordre d'application reste le source. */
@@ -263,7 +263,7 @@ class ExtractionRessourceTest {
     void lesEditionsDescendent() {
         ExtractionRessource.PlanRessource plan =
                 planSur("\"Bienvenue a bord\"", "message_bienvenue");
-        List<TextEdit> editionsJava = editions(plan, URI_JAVA);
+        List<TextEdit> editionsJava = edits(plan, URI_JAVA);
         assertEquals(1, editionsJava.size());
         assertEquals(ACTIVITE.indexOf("\"Bienvenue a bord\""), editionsJava.get(0).start());
         assertEquals("\"Bienvenue a bord\"", editionsJava.get(0).removed());

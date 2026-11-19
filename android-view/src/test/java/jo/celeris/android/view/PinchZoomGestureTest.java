@@ -30,7 +30,7 @@ public class PinchZoomGestureTest {
     /** PIEGE-24 — un pincement ample fait passer la police de 14 à 28 sp. */
     @Test
     public void pinchOutIncreasesFontSize() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         banc.pincer(540f, 960f, 120f, 520f, 15);
         assertEquals("un pincement ample doit mener au palier maximal 28 sp",
@@ -40,7 +40,7 @@ public class PinchZoomGestureTest {
     /** PIEGE-24 — un pincement qui resserre ramène 28 sp à 14 sp. */
     @Test
     public void pinchInDecreasesFontSize() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), LONGUE_LIGNE);
         banc.vue().settings().setFont(new FontSpec("mono", 28f));
         banc.pincer(540f, 960f, 400f, 160f, 15);
@@ -57,7 +57,7 @@ public class PinchZoomGestureTest {
      */
     @Test
     public void pinchInKeepsColumnUnderFocalPoint() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), LONGUE_LIGNE);
         EditorView vue = banc.vue();
         vue.settings().setFont(new FontSpec("mono", 28f));
@@ -81,18 +81,18 @@ public class PinchZoomGestureTest {
      */
     @Test
     public void zoomOnUneditedDocumentRemeasuresText() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "hello");
         EditorView vue = banc.vue();
         assertEquals("le document n'a jamais été édité, la révision est nulle",
                 0L, vue.session().document().revision());
         vue.settings().setFont(new FontSpec("mono", 28f));
         banc.image();
-        FrameState etat = vue.etatImageCourante();
-        RowLayout servie = vue.cache.find(etat.revision(), 0,
-                etat.theme().id(), etat.metrics().font(),
-                etat.projection().columns());
+        FrameState state = vue.etatImageCourante();
+        RowLayout servie = vue.cache.find(state.revision(), 0,
+                state.theme().id(), state.metrics().font(),
+                state.projection().columns());
         assertEquals("la mise en page se mesure à la nouvelle police",
-                5 * etat.metrics().charWidth(), servie.width(), 1e-3f);
+                5 * state.metrics().charWidth(), servie.width(), 1e-3f);
     }
 }

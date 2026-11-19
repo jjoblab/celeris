@@ -40,12 +40,12 @@ public final class PaintBrushes implements BrushFactory {
 
     @Override
     public TextBrush newBrush() {
-        Paint peinture = new Paint(Paint.ANTI_ALIAS_FLAG);
-        peinture.setStyle(Paint.Style.FILL);
-        peinture.setFontFeatureSettings(
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setFontFeatureSettings(
                 ligatures ? LIGATURES_OUVERTES : LIGATURES_FERMEES);
-        peintures.add(peinture);
-        return new PaintBrush(peinture, regle);
+        peintures.add(paint);
+        return new PaintBrush(paint, regle);
     }
 
     /**
@@ -60,8 +60,8 @@ public final class PaintBrushes implements BrushFactory {
             return false;
         }
         ligatures = actives;
-        for (Paint peinture : peintures) {
-            peinture.setFontFeatureSettings(
+        for (Paint paint : peintures) {
+            paint.setFontFeatureSettings(
                     actives ? LIGATURES_OUVERTES : LIGATURES_FERMEES);
         }
         return true;

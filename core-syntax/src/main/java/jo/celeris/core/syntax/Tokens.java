@@ -18,7 +18,7 @@ public final class Tokens {
     }
 
     /** Le texte d'un crochet, ou null si le jeton n'en est pas un. */
-    public static @Nullable String texteCrochet(TokenSlice slice, int index) {
+    public static @Nullable String bracketText(TokenSlice slice, int index) {
         if (slice.kind(index) != TokenKind.OPEN_BRACKET
                 && slice.kind(index) != TokenKind.CLOSE_BRACKET) {
             return null;
@@ -29,14 +29,14 @@ public final class Tokens {
     /** L'indice du premier jeton non trivia à partir de {@code depuis}. */
     public static int sauterTrivia(TokenSlice slice, int depuis) {
         int i = depuis;
-        while (i < slice.size() && estTrivia(slice, i)) {
+        while (i < slice.size() && isTrivia(slice, i)) {
             i++;
         }
         return i;
     }
 
     /** Vrai quand le jeton est un commentaire ou de la documentation. */
-    public static boolean estTrivia(TokenSlice slice, int index) {
+    public static boolean isTrivia(TokenSlice slice, int index) {
         TokenKind sorte = slice.kind(index);
         return sorte == TokenKind.COMMENT || sorte == TokenKind.DOC;
     }
@@ -51,11 +51,11 @@ public final class Tokens {
      * intermédiaires ; -1 si une clôture orpheline ou un point-virgule
      * survient d'abord.
      */
-    public static int chercherAccolade(TokenSlice slice, int depuis) {
+    public static int findBrace(TokenSlice slice, int depuis) {
         for (int i = depuis; i < slice.size(); i++) {
             TokenKind sorte = slice.kind(i);
             if (sorte == TokenKind.OPEN_BRACKET) {
-                if ("{".equals(texteCrochet(slice, i))) {
+                if ("{".equals(bracketText(slice, i))) {
                     return i;
                 }
                 int fermante = slice.matchOf(i);

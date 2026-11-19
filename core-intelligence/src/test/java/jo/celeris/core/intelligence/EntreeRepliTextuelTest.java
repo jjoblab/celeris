@@ -136,16 +136,16 @@ class EntreeRepliTextuelTest {
     /** Le plan s'applique et s'annule par la voie unique. */
     @Test
     void planDeRepliAppliqueEtAnnule() {
-        String texte = "class A {\n    void m() {}\n}";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    void m() {}\n}";
+        Document doc = Document.of(text);
         EditPlan plan = SmartTyping.enter(doc, null,
                 MultiSelection.caretsAt(24), STYLE);
-        TextSession session = TextSession.of(texte, () -> 0L);
+        TextSession session = TextSession.of(text, () -> 0L);
         session.setSelection(MultiSelection.caretsAt(24));
         assertTrue(session.apply(plan.transaction(), plan.selection()));
         assertEquals("class A {\n    void m() {\n        \n    }\n}",
                 session.text());
         assertTrue(session.undo());
-        assertEquals(texte, session.text());
+        assertEquals(text, session.text());
     }
 }

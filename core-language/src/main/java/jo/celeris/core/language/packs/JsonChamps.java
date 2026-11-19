@@ -29,7 +29,7 @@ public final class JsonChamps {
         }
         @SuppressWarnings("unchecked")
         Map<String, Object> types = (Map<String, Object>) champs;
-        verifierProfondeur(types, 0);
+        checkDepth(types, 0);
         return types;
     }
 
@@ -42,18 +42,18 @@ public final class JsonChamps {
     }
 
     /** La profondeur d'imbrication reste bornée : jamais de pile épuisée. */
-    public static void verifierProfondeur(Object valeur, int profondeur) {
+    public static void checkDepth(Object value, int profondeur) {
         if (profondeur > MAX_DEPTH) {
             throw new IllegalArgumentException(
                     "pack JSON nests deeper than " + MAX_DEPTH);
         }
-        if (valeur instanceof Map<?, ?> champs) {
+        if (value instanceof Map<?, ?> champs) {
             for (Object enfant : champs.values()) {
-                verifierProfondeur(enfant, profondeur + 1);
+                checkDepth(enfant, profondeur + 1);
             }
-        } else if (valeur instanceof List<?> elements) {
+        } else if (value instanceof List<?> elements) {
             for (Object enfant : elements) {
-                verifierProfondeur(enfant, profondeur + 1);
+                checkDepth(enfant, profondeur + 1);
             }
         }
     }
@@ -61,14 +61,14 @@ public final class JsonChamps {
     public static String chaineRequise(Map<String, Object> champs, String cle,
             String ou) {
         Object brut = champs.get(cle);
-        if (!(brut instanceof String valeur) || valeur.isEmpty()) {
+        if (!(brut instanceof String value) || value.isEmpty()) {
             throw new IllegalArgumentException(ou + ": " + cle + " must be a string");
         }
-        return valeur;
+        return value;
     }
 
     public static @Nullable String chaineNulle(@Nullable Object brut) {
-        return brut instanceof String valeur ? valeur : null;
+        return brut instanceof String value ? value : null;
     }
 
     public static List<String> chaines(@Nullable Object brut) {
@@ -101,14 +101,14 @@ public final class JsonChamps {
     }
 
     public static boolean booleen(@Nullable Object brut, boolean defaut) {
-        return brut instanceof Boolean valeur ? valeur : defaut;
+        return brut instanceof Boolean value ? value : defaut;
     }
 
     /** Un caractère : les paires sont des chaînes d'un caractère. */
     public static char caractere(@Nullable Object brut, String ou) {
-        if (!(brut instanceof String valeur) || valeur.length() != 1) {
+        if (!(brut instanceof String value) || value.length() != 1) {
             throw new IllegalArgumentException(ou + " must be a single character");
         }
-        return valeur.charAt(0);
+        return value.charAt(0);
     }
 }

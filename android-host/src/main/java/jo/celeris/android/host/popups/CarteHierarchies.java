@@ -51,7 +51,7 @@ import org.jspecify.annotations.Nullable;
  */
 final class CarteHierarchies {
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
@@ -61,34 +61,34 @@ final class CarteHierarchies {
     /** Le nom du fichier ouvert — la clé du projet embarqué. */
     private final Supplier<String> nomFichier;
     /** Le langage du fichier ouvert — la syntaxe s'y lit. */
-    private final Supplier<@Nullable LanguageSupport> langue;
+    private final Supplier<@Nullable LanguageSupport> language;
 
     /**
      * Construit les hiérarchies sur le coordinateur des popups : la
      * carte naît liée à son genre, le patron des trois temps (lier,
      * déclencher, déléguer — USAGE §9).
      *
-     * @param editeur    la vue d'éditeur ouverte
+     * @param editor    la vue d'éditeur ouverte
      * @param session    la session d'édition courante
      * @param popups     le coordinateur des popups de la scène
      * @param margePx    la respiration des ancres aux bords, en pixels
      * @param palette    la palette courante des popups
      * @param plan       le plan courant du fichier ouvert
      * @param nomFichier le nom du fichier ouvert, lu au déclenchement
-     * @param langue     le langage du fichier ouvert, null sans syntaxe
+     * @param language     le langage du fichier ouvert, null sans syntaxe
      */
-    CarteHierarchies(EditorView editeur, TextSession session,
+    CarteHierarchies(EditorView editor, TextSession session,
             PopupManager popups, int margePx, PopupPalette palette,
             Supplier<List<OutlineEntry>> plan,
             Supplier<String> nomFichier,
-            Supplier<@Nullable LanguageSupport> langue) {
-        this.editeur = editeur;
+            Supplier<@Nullable LanguageSupport> language) {
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
         this.plan = plan;
         this.nomFichier = nomFichier;
-        this.langue = langue;
+        this.language = language;
         this.carte = new HierarchiesView(popups.couche().getContext(),
                 palette);
         popups.lier(PopupController.PopupKind.HIERARCHY, carte);
@@ -106,29 +106,29 @@ final class CarteHierarchies {
      * les types et les méthodes). Sans symbole au curseur, sans
      * syntaxe du fichier, la carte ne se pose pas.
      */
-    void ouvrir() {
+    void open() {
         Document document = session.document();
         String symbole = ContenuPopups.symboleA(document, caret());
         if (symbole == null) {
             return;
         }
-        LanguageSupport support = langue.get();
+        LanguageSupport support = language.get();
         if (support == null || support.syntax() == null) {
             return;
         }
         SyntaxService syntaxe = SyntaxService.of(support.syntax());
         List<OutlineEntry> entrees = plan.get();
         if (estMethode(entrees, symbole)) {
-            poserAppels(symbole, document, syntaxe, entrees);
+            placeCalls(symbole, document, syntaxe, entrees);
         } else if (estType(entrees, symbole)) {
-            poserTypes(symbole, document, syntaxe, entrees);
+            placeTypes(symbole, document, syntaxe, entrees);
         }
     }
 
     /** Pose la hiérarchie de types du nom — les sections suivent (la
      *  racine vit à l'en-tête, l'introuvable à la frontière), la
      *  carte se montre sous le curseur. */
-    private void poserTypes(String symbole, Document document,
+    private void placeTypes(String symbole, Document document,
             SyntaxService syntaxe, List<OutlineEntry> entrees) {
         Hierarchies.HierarchieTypes arbre = Hierarchies.types(symbole,
                 Map.of(nomFichier.get(), document), syntaxe);
@@ -140,17 +140,17 @@ final class CarteHierarchies {
         carte.setArbre(popups.couche().getContext().getString(
                         R.string.celeris_titre_hierarchie_types, symbole),
                 Transpose.deTypes(arbre, connusDe(entrees), this::sauterVers,
-                        libelle(R.string.celeris_section_supertypes),
-                        libelle(R.string.celeris_section_soustypes),
-                        libelle(R.string.celeris_section_hors_projet)),
+                        label(R.string.celeris_section_supertypes),
+                        label(R.string.celeris_section_soustypes),
+                        label(R.string.celeris_section_hors_projet)),
                 null);
-        montrer();
+        show();
     }
 
     /** Pose la hiérarchie d'appels du nom — les appelants suivent (la
      *  racine vit à l'en-tête), le doute se porte en légende, la
      *  carte se montre sous le curseur. */
-    private void poserAppels(String symbole, Document document,
+    private void placeCalls(String symbole, Document document,
             SyntaxService syntaxe, List<OutlineEntry> entrees) {
         Hierarchies.HierarchieAppels arbre = Hierarchies.appelants(symbole,
                 Map.of(nomFichier.get(), document), syntaxe);
@@ -161,35 +161,35 @@ final class CarteHierarchies {
         carte.setArbre(popups.couche().getContext().getString(
                         R.string.celeris_titre_hierarchie_appels, symbole),
                 Transpose.dAppels(arbre, connusDe(entrees), this::sauterVers,
-                        libelle(R.string.celeris_section_appelants)),
+                        label(R.string.celeris_section_appelants)),
                 arbre.doute() ? popups.couche().getContext().getString(
                         R.string.celeris_legende_doute_hierarchie) : null);
-        montrer();
+        show();
     }
 
     /** Montre la carte mesurée sous le curseur, bornée. */
-    private void montrer() {
-        Rect curseur = editeur.caretBounds();
+    private void show() {
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom, taille(),
+                cursor.left, cursor.bottom, size(),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.HIERARCHY,
+        popups.show(PopupController.PopupKind.HIERARCHY,
                 placee.x(), placee.y());
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
-    private PopupPlacer.Cadre taille() {
-        return popups.taille(PopupController.PopupKind.HIERARCHY);
+    private PopupPlacer.Cadre size() {
+        return popups.size(PopupController.PopupKind.HIERARCHY);
     }
 
     /** Le saut d'un sommet : la carte se referme, le curseur porte à
      *  la DÉCLARATION du nom — le plan seul la connaît. */
     private void sauterVers(String nom) {
-        popups.fermer(PopupController.PopupKind.HIERARCHY);
-        for (OutlineEntry entree : plan.get()) {
-            if (entree.name().equals(nom)) {
-                NavigationCommands.placeCaret(editeur, entree.startOffset());
+        popups.close(PopupController.PopupKind.HIERARCHY);
+        for (OutlineEntry input : plan.get()) {
+            if (input.name().equals(nom)) {
+                NavigationCommands.placeCaret(editor, input.startOffset());
                 return;
             }
         }
@@ -198,8 +198,8 @@ final class CarteHierarchies {
     /** Les noms déclarés du plan — les sommets prenants s'y lisent. */
     private static Set<String> connusDe(List<OutlineEntry> entrees) {
         Set<String> connus = new HashSet<>();
-        for (OutlineEntry entree : entrees) {
-            connus.add(entree.name());
+        for (OutlineEntry input : entrees) {
+            connus.add(input.name());
         }
         return connus;
     }
@@ -217,9 +217,9 @@ final class CarteHierarchies {
     /** Vrai quand le plan déclare le nom à la catégorie donnée. */
     private static boolean estCategorie(List<OutlineEntry> entrees,
             String nom, NodeCategory categorie) {
-        for (OutlineEntry entree : entrees) {
-            if (entree.name().equals(nom)
-                    && entree.category() == categorie) {
+        for (OutlineEntry input : entrees) {
+            if (input.name().equals(nom)
+                    && input.category() == categorie) {
                 return true;
             }
         }
@@ -227,14 +227,14 @@ final class CarteHierarchies {
     }
 
     /** Le libellé localisé de la ressource — la carte reste pure. */
-    private String libelle(int ressource) {
+    private String label(int ressource) {
         return popups.couche().getContext().getString(ressource);
     }
 
     /** La position du curseur — la tête de la sélection courante. */
     private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).caret();
     }
 
     /**

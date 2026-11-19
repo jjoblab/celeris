@@ -122,8 +122,8 @@ public final class ContextualCompletion {
         if (open < 1 || tokens.get(open - 1).kind() != TokenKind.ANNOTATION) {
             return null;
         }
-        String texte = tokens.get(open - 1).text();
-        String nom = texte.startsWith("@") ? texte.substring(1) : texte;
+        String text = tokens.get(open - 1).text();
+        String nom = text.startsWith("@") ? text.substring(1) : text;
         List<String> attributs = annotationAttributes(tokens, nom);
         return attributs.isEmpty() ? null
                 : new Context(Kind.ANNOTATION_ATTRIBUTES, attributs);
@@ -137,11 +137,11 @@ public final class ContextualCompletion {
     private static List<String> enumConstants(
             List<FlowAnalysis.AbsoluteToken> tokens, String nom) {
         List<String> constantes = new ArrayList<>();
-        int corps = declarationBody(tokens, "enum", nom);
-        if (corps < 0) {
+        int body = declarationBody(tokens, "enum", nom);
+        if (body < 0) {
             return constantes;
         }
-        collectSegmentHeads(tokens, corps, constantes);
+        collectSegmentHeads(tokens, body, constantes);
         return constantes;
     }
 
@@ -153,12 +153,12 @@ public final class ContextualCompletion {
     private static List<String> annotationAttributes(
             List<FlowAnalysis.AbsoluteToken> tokens, String nom) {
         List<String> attributs = new ArrayList<>();
-        int corps = declarationBody(tokens, "@interface", nom);
-        if (corps < 0) {
+        int body = declarationBody(tokens, "@interface", nom);
+        if (body < 0) {
             return attributs;
         }
         int depth = 1;
-        for (int i = corps; i < tokens.size(); i++) {
+        for (int i = body; i < tokens.size(); i++) {
             String text = tokens.get(i).text();
             if (text.equals("{")) {
                 depth++;

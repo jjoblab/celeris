@@ -25,7 +25,7 @@ class AgentReviewTest {
 
     /** Le document de référence et sa proposition à trois blocs. */
     private static AgentProposal propositionTroisBlocs(Document reference) {
-        return AgentProposal.de(reference, ETIQUETTE, List.of(
+        return AgentProposal.of(reference, ETIQUETTE, List.of(
                 new TextEdit(0, "alpha", "ALPHA"),
                 new TextEdit(6, "beta", "BETA"),
                 new TextEdit(11, "gamma", "GAMMA")));
@@ -39,19 +39,19 @@ class AgentReviewTest {
     @Test
     void troisBlocsRefusDuMilieuRealignement() {
         Document reference = Document.of("alpha beta gamma");
-        AgentReview revue = AgentReview.de(reference, propositionTroisBlocs(reference));
+        AgentReview revue = AgentReview.of(reference, propositionTroisBlocs(reference));
 
         assertEquals(3, revue.nombreDeBlocs(), "trois blocs, trois éditions éparses");
         assertEquals(AgentReview.Decision.EN_ATTENTE, revue.decision(0));
 
         AgentReview refuseMilieu = revue.decider(1, AgentReview.Decision.REFUSE);
-        assertEquals("alpha beta gamma", refuseMilieu.texte(),
+        assertEquals("alpha beta gamma", refuseMilieu.text(),
                 "seul le refus est posé, les autres attendent, rien ne s'applique");
 
         AgentReview complete = refuseMilieu
                 .decider(0, AgentReview.Decision.ACCEPTE)
                 .decider(2, AgentReview.Decision.ACCEPTE);
-        assertEquals("ALPHA beta GAMMA", complete.texte(),
+        assertEquals("ALPHA beta GAMMA", complete.text(),
                 "le bloc refusé se saute, les acceptés suivants ne se décalent pas");
     }
 
@@ -60,9 +60,9 @@ class AgentReviewTest {
      * redevient l'état courant, décisions et fusion comprises.
      */
     @Test
-    void retourAuPointDeControle() {
+    void backToCheckpoint() {
         Document reference = Document.of("alpha beta gamma");
-        AgentReview revue = AgentReview.de(reference, propositionTroisBlocs(reference));
+        AgentReview revue = AgentReview.of(reference, propositionTroisBlocs(reference));
         AgentReview pointDeControle = revue
                 .decider(0, AgentReview.Decision.ACCEPTE)
                 .decider(1, AgentReview.Decision.ACCEPTE)
@@ -71,10 +71,10 @@ class AgentReviewTest {
         AgentReview modifiee = pointDeControle
                 .decider(1, AgentReview.Decision.REFUSE)
                 .decider(2, AgentReview.Decision.REFUSE);
-        assertEquals("ALPHA beta gamma", modifiee.texte());
+        assertEquals("ALPHA beta gamma", modifiee.text());
 
-        AgentReview revenue = modifiee.retourAuPointDeControle(pointDeControle);
-        assertEquals("ALPHA BETA gamma", revenue.texte(),
+        AgentReview revenue = modifiee.backToCheckpoint(pointDeControle);
+        assertEquals("ALPHA BETA gamma", revenue.text(),
                 "le retour au point de contrôle restaure les décisions d'alors");
         assertEquals(AgentReview.Decision.ACCEPTE, revenue.decision(1));
     }
@@ -88,7 +88,7 @@ class AgentReviewTest {
     @Test
     void applicationTransactionAnnulableEtRefusExplicites() {
         Document reference = Document.of("alpha beta gamma");
-        AgentReview revue = AgentReview.de(reference, propositionTroisBlocs(reference))
+        AgentReview revue = AgentReview.of(reference, propositionTroisBlocs(reference))
                 .decider(0, AgentReview.Decision.ACCEPTE)
                 .decider(1, AgentReview.Decision.REFUSE)
                 .decider(2, AgentReview.Decision.ACCEPTE);
@@ -109,8 +109,8 @@ class AgentReviewTest {
         protegee.setReadOnly(true);
         assertEquals(AgentReview.Sortie.REFUSEE_PROTECTION, revue.appliquer(protegee));
 
-        AgentReview sansAccepte = AgentReview.de(reference, propositionTroisBlocs(reference));
-        assertEquals(AgentReview.Sortie.VIDE, sansAccepte.appliquer(session));
+        AgentReview sansAccepte = AgentReview.of(reference, propositionTroisBlocs(reference));
+        assertEquals(AgentReview.Sortie.EMPTY, sansAccepte.appliquer(session));
     }
 
     /**
@@ -120,19 +120,19 @@ class AgentReviewTest {
     @Test
     void editionsContiguesMemeBlocEtLectureEnLigne() {
         Document reference = Document.of("un deux trois");
-        AgentProposal proposition = AgentProposal.de(reference, ETIQUETTE,
+        AgentProposal proposition = AgentProposal.of(reference, ETIQUETTE,
                 List.of(
                         new TextEdit(0, "un", "1 "),
                         new TextEdit(2, "", "et "),
                         new TextEdit(8, "trois", "3")));
-        AgentReview revue = AgentReview.de(reference, proposition);
+        AgentReview revue = AgentReview.of(reference, proposition);
 
         assertEquals(2, revue.nombreDeBlocs(),
                 "les deux premières éditions se touchent, un même bloc");
         assertEquals(2, revue.editionsDuBloc(0).size());
-        assertEquals(List.of("- un", "+ 1 ", "+ et "), revue.lignesDuBloc(0),
+        assertEquals(List.of("- un", "+ 1 ", "+ et "), revue.blockLines(0),
                 "le remplacement rend le retiré puis l'inséré, les insertions suivent");
-        assertEquals(List.of("- trois", "+ 3"), revue.lignesDuBloc(1),
+        assertEquals(List.of("- trois", "+ 3"), revue.blockLines(1),
                 "le remplacement rend le retiré puis l'inséré");
     }
 
@@ -144,17 +144,17 @@ class AgentReviewTest {
     @Test
     void propositionInfideleRefuseeALOuverture() {
         Document reference = Document.of("alpha beta");
-        assertThrows(IllegalArgumentException.class, () -> AgentProposal.de(
+        assertThrows(IllegalArgumentException.class, () -> AgentProposal.of(
                 reference, ETIQUETTE,
                 List.of(new TextEdit(0, "ALPHA", "X"))),
                 "texte retire inexact");
-        assertThrows(IllegalArgumentException.class, () -> AgentProposal.de(
+        assertThrows(IllegalArgumentException.class, () -> AgentProposal.of(
                 reference, ETIQUETTE,
                 List.of(new TextEdit(0, "alpha", "X"), new TextEdit(2, "pha", "Y"))),
                 "plages chevauchantes");
         Document edite = reference.replace(0, 0, "x");
-        assertThrows(IllegalArgumentException.class, () -> AgentReview.de(
-                reference, AgentProposal.de(edite, ETIQUETTE,
+        assertThrows(IllegalArgumentException.class, () -> AgentReview.of(
+                reference, AgentProposal.of(edite, ETIQUETTE,
                         List.of(new TextEdit(1, "alpha", "X")))),
                 "la revue veut le document de la révision de la proposition");
     }
@@ -166,7 +166,7 @@ class AgentReviewTest {
     @Test
     void etiquettePresente() {
         Document reference = Document.of("alpha");
-        AgentReview revue = AgentReview.de(reference, AgentProposal.de(reference,
+        AgentReview revue = AgentReview.of(reference, AgentProposal.of(reference,
                 ETIQUETTE, List.of(new TextEdit(0, "alpha", "X"))));
         assertEquals(ETIQUETTE, revue.etiquette());
         assertThrows(IllegalArgumentException.class,

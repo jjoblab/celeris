@@ -14,23 +14,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
-import jo.celeris.core.lsp.types.CorrectifLsp;
+import jo.celeris.core.lsp.types.CodeActionLsp;
 import jo.celeris.core.lsp.types.DiagnosticLsp;
-import jo.celeris.core.lsp.types.EditionEspaceLsp;
-import jo.celeris.core.lsp.types.EditionTexteLsp;
-import jo.celeris.core.lsp.types.IndiceLsp;
-import jo.celeris.core.lsp.types.LieuLsp;
-import jo.celeris.core.lsp.types.ListeCompletion;
-import jo.celeris.core.lsp.types.OptionsFormatageLsp;
-import jo.celeris.core.lsp.types.PlageLsp;
-import jo.celeris.core.lsp.types.PliLsp;
-import jo.celeris.core.lsp.types.PositionLsp;
-import jo.celeris.core.lsp.types.PreparationRennomageLsp;
+import jo.celeris.core.lsp.types.WorkspaceEditLsp;
+import jo.celeris.core.lsp.types.TextEditLsp;
+import jo.celeris.core.lsp.types.InlayHintLsp;
+import jo.celeris.core.lsp.types.LocationLsp;
+import jo.celeris.core.lsp.types.CompletionListLsp;
+import jo.celeris.core.lsp.types.FormatOptionsLsp;
+import jo.celeris.core.lsp.types.RangeLsp;
+import jo.celeris.core.lsp.types.FoldLsp;
+import jo.celeris.core.lsp.types.LspPosition;
+import jo.celeris.core.lsp.types.RenamePrepareLsp;
 import jo.celeris.core.lsp.types.SemanticTokensLsp;
 import jo.celeris.core.lsp.types.SignatureLsp;
-import jo.celeris.core.lsp.types.SurlignageLsp;
-import jo.celeris.core.lsp.types.SurvolLsp;
-import jo.celeris.core.lsp.types.SymboleLsp;
+import jo.celeris.core.lsp.types.HighlightLsp;
+import jo.celeris.core.lsp.types.HoverLsp;
+import jo.celeris.core.lsp.types.SymbolLsp;
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.eclipse.lsp4j.ClientInfo;
 import org.eclipse.lsp4j.CompletionParams;
@@ -51,8 +51,8 @@ import org.jspecify.annotations.Nullable;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageServer;
 
-import jo.celeris.core.lsp.AuditeurDiagnostics;
-import jo.celeris.core.lsp.CapacitesServeur;
+import jo.celeris.core.lsp.DiagnosticsListener;
+import jo.celeris.core.lsp.ServerCapsLsp;
 
 
 
@@ -62,14 +62,14 @@ import jo.celeris.core.lsp.CapacitesServeur;
 
 
 
-import jo.celeris.core.lsp.OrdonnanceurLsp;
+import jo.celeris.core.lsp.LspScheduler;
 
 
 
 
 
 
-import jo.celeris.core.lsp.SuiviVersions;
+import jo.celeris.core.lsp.VersionTracker;
 
 
 
@@ -81,7 +81,7 @@ import jo.celeris.core.lsp.SuiviVersions;
  *
  * <p>L'ordonnancement du domaine (ADR-005) s'assoit AU-DESSUS de la
  * session : les quatre règles — fusion, remplacement, priorités,
- * resynchronisation — vivent dans {@link OrdonnanceurLsp} du cœur et
+ * resynchronisation — vivent dans {@link LspScheduler} du cœur et
  * ordonnancent ici les futurs bruts de la bibliothèque. Le futur
  * émis, c'est le futur du proxy : son annulation traverse le fil en
  * notification {@code $/cancelRequest}, la bibliothèque s'en charge ;
@@ -101,58 +101,58 @@ import jo.celeris.core.lsp.SuiviVersions;
  * {@code shutdown} part, la piscine s'arrête, l'appelant ferme ses
  * flux.</p>
  */
-public final class LspSession implements AutoCloseable, SuiviVersions {
+public final class LspSession implements AutoCloseable, VersionTracker {
 
     private static final long DELAI_INITIALISATION = 30;
     private static final long DELAI_EXTINCTION = 5;
 
-    private final LanguageServer serveur;
-    private final ReceiverServeur recepteur;
-    private final ExecutorService executeur;
-    private final Future<Void> ecoute;
-    private final String nomClient;
-    private final OrdonnanceurLsp ordonnanceur;
-    private final RequetesCouverture couverture;
+    private final LanguageServer server;
+    private final ServerReceiver receiver;
+    private final ExecutorService executor;
+    private final Future<Void> listening;
+    private final String clientName;
+    private final LspScheduler scheduler;
+    private final CoverageRequests coverage;
     private final Map<String, Integer> versions = new ConcurrentHashMap<>();
-    private CapacitesServeur capacites = CapacitesServeur.vides();
+    private ServerCapsLsp capabilities = ServerCapsLsp.empty();
     private volatile boolean initialises;
     private volatile boolean fermee;
 
     /** L'identité de fusion d'une demande positionnée : document et position. */
-    private record IdentiteDocument(String uri, PositionLsp position) {
+    private record IdentiteDocument(String uri, LspPosition position) {
     }
 
-    private LspSession(Launcher<LanguageServer> lanceur, ReceiverServeur recepteur,
-            ExecutorService executeur, String nomClient) {
-        this.serveur = lanceur.getRemoteProxy();
-        this.recepteur = recepteur;
-        this.executeur = executeur;
-        this.ecoute = lanceur.startListening();
-        this.nomClient = nomClient;
-        this.ordonnanceur = OrdonnanceurLsp.sur(this);
-        this.couverture = new RequetesCouverture(serveur, ordonnanceur,
+    private LspSession(Launcher<LanguageServer> lanceur, ServerReceiver receiver,
+            ExecutorService executor, String clientName) {
+        this.server = lanceur.getRemoteProxy();
+        this.receiver = receiver;
+        this.executor = executor;
+        this.listening = lanceur.startListening();
+        this.clientName = clientName;
+        this.scheduler = LspScheduler.on(this);
+        this.coverage = new CoverageRequests(server, scheduler,
                 this::exigerInitialisee);
     }
 
     /**
      * Crée la session sur des flux.
      *
-     * @param entree   le flux qui sort du serveur
-     * @param sortie   le flux qui entre au serveur
-     * @param nomClient le nom annoncé à la poignée de main
+     * @param input   le flux qui sort du serveur
+     * @param output   le flux qui entre au serveur
+     * @param clientName le nom annoncé à la poignée de main
      * @return la session prête à s'initialiser
      */
-    public static LspSession sur(InputStream entree, OutputStream sortie,
-            String nomClient) {
-        ExecutorService executeur = Executors.newCachedThreadPool(fil -> {
-            Thread daemon = new Thread(fil, "celeris-lsp-protocole");
+    public static LspSession on(InputStream input, OutputStream output,
+            String clientName) {
+        ExecutorService executor = Executors.newCachedThreadPool(thread -> {
+            Thread daemon = new Thread(thread, "celeris-lsp-protocole");
             daemon.setDaemon(true);
             return daemon;
         });
-        ReceiverServeur recepteur = new ReceiverServeur();
+        ServerReceiver receiver = new ServerReceiver();
         Launcher<LanguageServer> lanceur = LSPLauncher.createClientLauncher(
-                recepteur, entree, sortie, executeur, Function.identity());
-        return new LspSession(lanceur, recepteur, executeur, nomClient);
+                receiver, input, output, executor, Function.identity());
+        return new LspSession(lanceur, receiver, executor, clientName);
     }
 
     /**
@@ -163,8 +163,8 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      *
      * @return les capacités du serveur
      */
-    public CapacitesServeur initialiser() {
-        return initialiser(Map.of());
+    public ServerCapsLsp initialize() {
+        return initialize(Map.of());
     }
 
     /**
@@ -177,69 +177,69 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      *                              vides
      * @return les capacités du serveur
      */
-    public CapacitesServeur initialiser(Map<String, Object> initializationOptions) {
+    public ServerCapsLsp initialize(Map<String, Object> initializationOptions) {
         exigerOuverte();
         InitializeParams params = new InitializeParams();
         params.setProcessId(null);
-        params.setClientInfo(new ClientInfo(nomClient));
+        params.setClientInfo(new ClientInfo(clientName));
         params.setCapabilities(new ClientCapabilities());
         if (!initializationOptions.isEmpty()) {
             params.setInitializationOptions(initializationOptions);
         }
-        capacites = CorrespondanceLsp.lireCapacites(
-                attendre(serveur.initialize(params), DELAI_INITIALISATION)
+        capabilities = LspMapping.readCapabilities(
+                attendre(server.initialize(params), DELAI_INITIALISATION)
                         .getCapabilities());
-        serveur.initialized(new InitializedParams());
+        server.initialized(new InitializedParams());
         initialises = true;
-        return capacites;
+        return capabilities;
     }
 
     /** Les capacités du serveur, lues à l'initialisation. */
-    public CapacitesServeur capacites() {
-        return capacites;
+    public ServerCapsLsp capabilities() {
+        return capabilities;
     }
 
     /** Ouvre un document — version 1. */
-    public void ouvrir(String uri, String langue, String texte) {
+    public void open(String uri, String language, String text) {
         exigerInitialisee();
         versions.put(uri, 1);
-        serveur.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(
-                new TextDocumentItem(uri, langue, 1, texte)));
+        server.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(
+                new TextDocumentItem(uri, language, 1, text)));
     }
 
     /** Change un document — synchronisation complète, à la version donnée. */
-    public void changer(String uri, int version, String texte) {
+    public void change(String uri, int version, String text) {
         exigerInitialisee();
         versions.put(uri, version);
-        serveur.getTextDocumentService().didChange(new DidChangeTextDocumentParams(
+        server.getTextDocumentService().didChange(new DidChangeTextDocumentParams(
                 new VersionedTextDocumentIdentifier(uri, version),
-                List.of(new TextDocumentContentChangeEvent(texte))));
+                List.of(new TextDocumentContentChangeEvent(text))));
     }
 
     /** Ferme un document — l'état suivi est oublié, diagnostics
      * compris : la carte ne vieillit pas avec les documents visités. */
-    public void fermer(String uri) {
+    public void close(String uri) {
         exigerInitialisee();
         versions.remove(uri);
-        serveur.getTextDocumentService().didClose(new DidCloseTextDocumentParams(
+        server.getTextDocumentService().didClose(new DidCloseTextDocumentParams(
                 new TextDocumentIdentifier(uri)));
-        recepteur.purgerDiagnostics(uri);
+        receiver.purgerDiagnostics(uri);
     }
 
     @Override
-    public int versionDe(String uri) {
+    public int versionOf(String uri) {
         Integer version = versions.get(uri);
         return version == null ? -1 : version;
     }
 
     /** Les derniers diagnostics publiés pour un document — vide par défaut. */
-    public List<DiagnosticLsp> diagnosticsDe(String uri) {
-        return recepteur.diagnosticsDe(uri);
+    public List<DiagnosticLsp> diagnosticsOf(String uri) {
+        return receiver.diagnosticsOf(uri);
     }
 
     /** Branche un auditeur de diagnostics — le contrat du domaine (ADR-005). */
-    public void ajouterAuditeurDiagnostics(AuditeurDiagnostics auditeur) {
-        recepteur.ajouterAuditeurDiagnostics(auditeur);
+    public void addDiagnosticsListener(DiagnosticsListener auditeur) {
+        receiver.addDiagnosticsListener(auditeur);
     }
 
     /**
@@ -252,14 +252,14 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position du curseur
      * @return le futur de la liste de complétion
      */
-    public CompletableFuture<ListeCompletion> completion(String uri,
-            PositionLsp position) {
+    public CompletableFuture<CompletionListLsp> completion(String uri,
+            LspPosition position) {
         exigerInitialisee();
-        return ordonnancer("completion", uri, position, () -> serveur
+        return schedule("completion", uri, position, () -> server
                 .getTextDocumentService().completion(
-                        new CompletionParams(identifiant(uri),
-                                CorrespondanceLsp.ecrirePosition(position))))
-                .thenApply(CorrespondanceDocuments::lireListe);
+                        new CompletionParams(identifier(uri),
+                                LspMapping.writePosition(position))))
+                .thenApply(DocumentsMapping::readList);
     }
 
     /**
@@ -270,13 +270,13 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position survolée
      * @return le futur du survol
      */
-    public CompletableFuture<SurvolLsp> survol(String uri, PositionLsp position) {
+    public CompletableFuture<HoverLsp> hover(String uri, LspPosition position) {
         exigerInitialisee();
-        return ordonnancer("survol", uri, position, () -> serveur
+        return schedule("survol", uri, position, () -> server
                 .getTextDocumentService().hover(new HoverParams(
-                        identifiant(uri),
-                        CorrespondanceLsp.ecrirePosition(position))))
-                .thenApply(CorrespondanceDocuments::lireSurvol);
+                        identifier(uri),
+                        LspMapping.writePosition(position))))
+                .thenApply(DocumentsMapping::readHover);
     }
 
     /**
@@ -289,13 +289,13 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @return le futur de l'aide aux paramètres
      */
     public CompletableFuture<SignatureLsp> signature(String uri,
-            PositionLsp position) {
+            LspPosition position) {
         exigerInitialisee();
-        return ordonnancer("signature", uri, position, () -> serveur
+        return schedule("signature", uri, position, () -> server
                 .getTextDocumentService().signatureHelp(
-                        new SignatureHelpParams(identifiant(uri),
-                                CorrespondanceLsp.ecrirePosition(position))))
-                .thenApply(CorrespondanceDocuments::lireSignature);
+                        new SignatureHelpParams(identifier(uri),
+                                LspMapping.writePosition(position))))
+                .thenApply(DocumentsMapping::readSignature);
     }
 
     /**
@@ -307,14 +307,14 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position du symbole
      * @return le futur des lieux de définition
      */
-    public CompletableFuture<List<LieuLsp>> definition(String uri,
-            PositionLsp position) {
+    public CompletableFuture<List<LocationLsp>> definition(String uri,
+            LspPosition position) {
         exigerInitialisee();
-        return ordonnancer("definition", uri, position, () -> serveur
+        return schedule("definition", uri, position, () -> server
                 .getTextDocumentService().definition(new DefinitionParams(
-                        identifiant(uri),
-                        CorrespondanceLsp.ecrirePosition(position))))
-                .thenApply(CorrespondanceDocuments::lireLieux);
+                        identifier(uri),
+                        LspMapping.writePosition(position))))
+                .thenApply(DocumentsMapping::readLocations);
     }
 
     /** La définition du TYPE (D-10) : où le type du symbole se
@@ -323,9 +323,9 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position du symbole
      * @return le futur des lieux de définition du type
      */
-    public CompletableFuture<List<LieuLsp>> typeDefinition(String uri,
-            PositionLsp position) {
-        return couverture.typeDefinition(uri, position);
+    public CompletableFuture<List<LocationLsp>> typeDefinition(String uri,
+            LspPosition position) {
+        return coverage.typeDefinition(uri, position);
     }
 
     /** Les implémentations d'un symbole (D-10) : les classes d'une
@@ -335,9 +335,9 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position du symbole
      * @return le futur des lieux d'implémentation
      */
-    public CompletableFuture<List<LieuLsp>> implementations(String uri,
-            PositionLsp position) {
-        return couverture.implementations(uri, position);
+    public CompletableFuture<List<LocationLsp>> implementations(String uri,
+            LspPosition position) {
+        return coverage.implementations(uri, position);
     }
 
     /** La définition SUPÉRIEURE (D-10) : la méthode surchargée — la
@@ -348,9 +348,9 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position du symbole
      * @return le futur des lieux de la définition supérieure
      */
-    public CompletableFuture<List<LieuLsp>> superDefinition(String uri,
-            PositionLsp position) {
-        return couverture.superDefinition(uri, position);
+    public CompletableFuture<List<LocationLsp>> superDefinition(String uri,
+            LspPosition position) {
+        return coverage.superDefinition(uri, position);
     }
 
     // ── La couverture du jalon (H-12) : les treize méthodes nouvelles,
@@ -365,9 +365,9 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position du symbole
      * @return le futur des lieux de référence
      */
-    public CompletableFuture<List<LieuLsp>> references(String uri,
-            PositionLsp position) {
-        return couverture.references(uri, position);
+    public CompletableFuture<List<LocationLsp>> references(String uri,
+            LspPosition position) {
+        return coverage.references(uri, position);
     }
 
     /**
@@ -377,8 +377,8 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param uri l'uri du document
      * @return le futur des symboles, hiérarchie du serveur
      */
-    public CompletableFuture<List<SymboleLsp>> symboles(String uri) {
-        return couverture.symboles(uri);
+    public CompletableFuture<List<SymbolLsp>> symbols(String uri) {
+        return coverage.symbols(uri);
     }
 
     /**
@@ -389,9 +389,9 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position du curseur
      * @return le futur des surlignages
      */
-    public CompletableFuture<List<SurlignageLsp>> surlignages(String uri,
-            PositionLsp position) {
-        return couverture.surlignages(uri, position);
+    public CompletableFuture<List<HighlightLsp>> highlights(String uri,
+            LspPosition position) {
+        return coverage.highlights(uri, position);
     }
 
     /**
@@ -403,9 +403,9 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position du nom
      * @return le futur de la préparation, null sans préparation
      */
-    public CompletableFuture<@Nullable PreparationRennomageLsp>
-            preparerRennomage(String uri, PositionLsp position) {
-        return couverture.preparerRennomage(uri, position);
+    public CompletableFuture<@Nullable RenamePrepareLsp>
+            preparerRennomage(String uri, LspPosition position) {
+        return coverage.preparerRennomage(uri, position);
     }
 
     /**
@@ -417,9 +417,9 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param nouveauNom le nom qui remplace
      * @return le futur de l'édition d'espace
      */
-    public CompletableFuture<EditionEspaceLsp> rennomage(String uri,
-            PositionLsp position, String nouveauNom) {
-        return couverture.rennomage(uri, position, nouveauNom);
+    public CompletableFuture<WorkspaceEditLsp> rename(String uri,
+            LspPosition position, String nouveauNom) {
+        return coverage.rename(uri, position, nouveauNom);
     }
 
     /**
@@ -427,12 +427,12 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * d'intentions — priorité interactive, l'utilisateur attend.
      *
      * @param uri   l'uri du document
-     * @param plage la plage porteuse, le curseur typiquement
+     * @param range la plage porteuse, le curseur typiquement
      * @return le futur des correctifs, titres et éditions
      */
-    public CompletableFuture<List<CorrectifLsp>> correctifs(String uri,
-            PlageLsp plage) {
-        return couverture.correctifs(uri, plage);
+    public CompletableFuture<List<CodeActionLsp>> correctifs(String uri,
+            RangeLsp range) {
+        return coverage.correctifs(uri, range);
     }
 
     /**
@@ -443,9 +443,9 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param options les options de formatage
      * @return le futur des éditions de texte
      */
-    public CompletableFuture<List<EditionTexteLsp>> formatage(String uri,
-            OptionsFormatageLsp options) {
-        return couverture.formatage(uri, options);
+    public CompletableFuture<List<TextEditLsp>> formatage(String uri,
+            FormatOptionsLsp options) {
+        return coverage.formatage(uri, options);
     }
 
     /**
@@ -453,13 +453,13 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * de fond.
      *
      * @param uri     l'uri du document
-     * @param plage   la plage à formater
+     * @param range   la plage à formater
      * @param options les options de formatage
      * @return le futur des éditions de texte
      */
-    public CompletableFuture<List<EditionTexteLsp>> formatagePlage(String uri,
-            PlageLsp plage, OptionsFormatageLsp options) {
-        return couverture.formatagePlage(uri, plage, options);
+    public CompletableFuture<List<TextEditLsp>> rangeFormatting(String uri,
+            RangeLsp range, FormatOptionsLsp options) {
+        return coverage.rangeFormatting(uri, range, options);
     }
 
     /**
@@ -470,8 +470,8 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param uri l'uri du document
      * @return le futur des plis
      */
-    public CompletableFuture<List<PliLsp>> plis(String uri) {
-        return couverture.plis(uri);
+    public CompletableFuture<List<FoldLsp>> folds(String uri) {
+        return coverage.folds(uri);
     }
 
     /**
@@ -483,9 +483,9 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param position la position de départ
      * @return le futur des plages englobantes
      */
-    public CompletableFuture<List<PlageLsp>> plagesSelection(String uri,
-            PositionLsp position) {
-        return couverture.plagesSelection(uri, position);
+    public CompletableFuture<List<RangeLsp>> selectionRanges(String uri,
+            LspPosition position) {
+        return coverage.selectionRanges(uri, position);
     }
 
     /**
@@ -496,8 +496,8 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * @param uri l'uri du document
      * @return le futur des jetons
      */
-    public CompletableFuture<SemanticTokensLsp> jetons(String uri) {
-        return couverture.jetons(uri);
+    public CompletableFuture<SemanticTokensLsp> tokens(String uri) {
+        return coverage.tokens(uri);
     }
 
     /**
@@ -505,12 +505,12 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * locale, sans retracer tout le fichier.
      *
      * @param uri   l'uri du document
-     * @param plage la plage visible
+     * @param range la plage visible
      * @return le futur des jetons
      */
-    public CompletableFuture<SemanticTokensLsp> jetonsPlage(String uri,
-            PlageLsp plage) {
-        return couverture.jetonsPlage(uri, plage);
+    public CompletableFuture<SemanticTokensLsp> tokensRange(String uri,
+            RangeLsp range) {
+        return coverage.tokensRange(uri, range);
     }
 
     /**
@@ -519,12 +519,12 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * saisie ne bouge pas d'un pixel.
      *
      * @param uri   l'uri du document
-     * @param plage la plage visible
+     * @param range la plage visible
      * @return le futur des indices
      */
-    public CompletableFuture<List<IndiceLsp>> indices(String uri,
-            PlageLsp plage) {
-        return couverture.indices(uri, plage);
+    public CompletableFuture<List<InlayHintLsp>> inlayHints(String uri,
+            RangeLsp range) {
+        return coverage.inlayHints(uri, range);
     }
 
     /**
@@ -534,11 +534,11 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
      * traverse le fil en {@code $/cancelRequest} — la correspondance
      * se fait après le vol.
      */
-    private <T> CompletableFuture<T> ordonnancer(String famille, String uri,
-            PositionLsp position,
+    private <T> CompletableFuture<T> schedule(String family, String uri,
+            LspPosition position,
             java.util.function.Supplier<CompletableFuture<T>> emission) {
-        return ordonnanceur.ordonnancer(famille, uri,
-                OrdonnanceurLsp.Priorite.INTERACTIF,
+        return scheduler.schedule(family, uri,
+                LspScheduler.Priority.INTERACTIF,
                 new IdentiteDocument(uri, position), emission);
     }
 
@@ -549,15 +549,15 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
         }
         if (initialises) {
             try {
-                attendre(serveur.shutdown(), DELAI_EXTINCTION);
+                attendre(server.shutdown(), DELAI_EXTINCTION);
             } catch (RuntimeException e) {
                 // le serveur ne répond plus : la fermeture continue son chemin
                 ignorerExtinctionSansReponse();
             }
         }
         fermee = true;
-        ecoute.cancel(true);
-        executeur.shutdown();
+        listening.cancel(true);
+        executor.shutdown();
     }
 
     /** Marque la fermeture silencieuse : le serveur ne répond plus, rien à faire. */
@@ -565,7 +565,7 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
         // volontairement vide — le protocole ne prévoit rien de mieux
     }
 
-    private TextDocumentIdentifier identifiant(String uri) {
+    private TextDocumentIdentifier identifier(String uri) {
         return new TextDocumentIdentifier(uri);
     }
 

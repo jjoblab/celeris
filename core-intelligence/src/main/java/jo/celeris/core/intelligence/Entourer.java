@@ -43,16 +43,16 @@ public final class Entourer {
         if (selection.ranges().size() != 1 || selection.ranges().get(0).isEmpty()) {
             return null;
         }
-        SelRange plage = selection.ranges().get(0);
-        int debut = plage.start();
-        int fin = plage.end();
-        String bloc = doc.subText(debut, fin);
+        SelRange range = selection.ranges().get(0);
+        int start = range.start();
+        int end = range.end();
+        String bloc = doc.subText(start, end);
         String blocCeint = indente(bloc);
         String ceint = avant + "\n" + blocCeint + "\n" + apres;
-        int blocDebut = debut + avant.length() + 1;
+        int blocDebut = start + avant.length() + 1;
         int blocFin = blocDebut + blocCeint.length();
         return new EditPlan(
-                Transaction.of(new TextEdit(debut, bloc, ceint)),
+                Transaction.of(new TextEdit(start, bloc, ceint)),
                 MultiSelection.of(new SelRange(blocDebut, blocFin)));
     }
 
@@ -60,14 +60,14 @@ public final class Entourer {
      *  vides restent vides — l'entourage ne respire pas dans le vide. */
     private static String indente(String bloc) {
         StringBuilder rendu = new StringBuilder(bloc.length() + 16);
-        for (String ligne : bloc.split("\n", -1)) {
+        for (String line : bloc.split("\n", -1)) {
             if (rendu.length() > 0) {
                 rendu.append('\n');
             }
-            if (!ligne.isBlank()) {
+            if (!line.isBlank()) {
                 rendu.append(INDENT);
             }
-            rendu.append(ligne);
+            rendu.append(line);
         }
         return rendu.toString();
     }

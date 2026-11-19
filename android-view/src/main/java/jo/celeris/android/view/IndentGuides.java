@@ -43,7 +43,7 @@ public final class IndentGuides extends PainterLayer {
         /**
          * La table des guides de l'image à venir.
          *
-         * @return la table, {@link GuidesStructurels#VIDE} sans
+         * @return la table, {@link GuidesStructurels#EMPTY} sans
          *         structure à jour
          */
         GuidesStructurels guides();
@@ -136,11 +136,11 @@ public final class IndentGuides extends PainterLayer {
     private static int[] porteesActives(FrameState frame,
             GuidesStructurels table) {
         MultiSelection selection = frame.selection();
-        java.util.List<SelRange> plages = selection.ranges();
-        if (plages.size() != 1) {
+        java.util.List<SelRange> ranges = selection.ranges();
+        if (ranges.size() != 1) {
             return new int[0];
         }
-        int caret = plages.get(0).start();
+        int caret = ranges.get(0).start();
         Document document = frame.document();
         if (caret > document.length()) {
             return new int[0];
@@ -157,28 +157,28 @@ public final class IndentGuides extends PainterLayer {
             GuidesStructurels.Guide guide = table.guide(i);
             boolean dedans = ligneCaret > guide.ligneOuverture()
                     && ligneCaret < guide.ligneApresFin();
-            if (dedans && colonneCaret > guide.colonne()
-                    && (immediate < 0 || guide.colonne() > table.guide(
-                            immediate).colonne())) {
+            if (dedans && colonneCaret > guide.column()
+                    && (immediate < 0 || guide.column() > table.guide(
+                            immediate).column())) {
                 immediate = i;
             }
         }
         if (immediate >= 0) {
             actifs.add(immediate);
         }
-        ajouterJumelles(actifs, table, ligneCaret, colonneCaret);
-        int[] sortie = new int[actifs.size()];
-        for (int i = 0; i < sortie.length; i++) {
-            sortie[i] = actifs.get(i);
+        addTwinListeners(actifs, table, ligneCaret, colonneCaret);
+        int[] output = new int[actifs.size()];
+        for (int i = 0; i < output.length; i++) {
+            output[i] = actifs.get(i);
         }
-        return sortie;
+        return output;
     }
 
     /**
      * Les accolades jumelles : les blocs dont le caret TOUCHE
      * l'ouvrante ou la fermante — leurs guides s'illuminent aussi.
      */
-    private static void ajouterJumelles(java.util.List<Integer> actifs,
+    private static void addTwinListeners(java.util.List<Integer> actifs,
             GuidesStructurels table, int ligneCaret, int colonneCaret) {
         for (int i = 0; i < table.nombre(); i++) {
             GuidesStructurels.Guide guide = table.guide(i);
@@ -196,8 +196,8 @@ public final class IndentGuides extends PainterLayer {
 
     /** Le tableau contient-il l'indice. */
     private static boolean contient(int[] table, int indice) {
-        for (int valeur : table) {
-            if (valeur == indice) {
+        for (int value : table) {
+            if (value == indice) {
                 return true;
             }
         }
@@ -231,7 +231,7 @@ public final class IndentGuides extends PainterLayer {
             return;
         }
         float x = frame.gutterWidth()
-                + guide.colonne() * metrics.charWidth() - frame.scrollX();
+                + guide.column() * metrics.charWidth() - frame.scrollX();
         surface.drawLine(x, haut, x, bas, brush());
     }
 }

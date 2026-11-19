@@ -6,11 +6,11 @@ package jo.celeris.core.ai;
  * la révision courante du document, pour que l'agent reprenne sur des
  * bases fraîches.
  *
- * @param sortie  le sort de la transaction
+ * @param output  le sort de la transaction
  * @param message le message lisible, jamais vide
  * @param revision la révision courante du document au moment de la réponse
  */
-public record ToolTransactionReply(Sortie sortie, String message, int revision) {
+public record ToolTransactionReply(Sortie output, String message, int revision) {
 
     /** Le sort d'une transaction d'outil. */
     public enum Sortie {

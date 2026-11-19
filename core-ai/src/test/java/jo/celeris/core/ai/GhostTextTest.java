@@ -43,7 +43,7 @@ class GhostTextTest {
     void propositionFraicheDevientVisible() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
         session.demander(Document.of("int x = "), 8);
         assertEquals(new GhostSuggestion("42;", 8, 0), session.suggestionActive());
     }
@@ -53,7 +53,7 @@ class GhostTextTest {
     void propositionPerimeeJetee() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("42;", 4, 7));
+        modele.ghost(new GhostSuggestion("42;", 4, 7));
         session.demander(Document.of("int x = "), 8);
         assertNull(session.suggestionActive(),
                 "une suggestion d'une autre révision ne s'affiche pas");
@@ -64,7 +64,7 @@ class GhostTextTest {
     void propositionHorsDocumentJetee() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("42;", 99, 0));
+        modele.ghost(new GhostSuggestion("42;", 99, 0));
         session.demander(Document.of("int x = "), 8);
         assertNull(session.suggestionActive(),
                 "une suggestion ancrée hors document ne s'affiche pas");
@@ -75,9 +75,9 @@ class GhostTextTest {
     void aveuDuModeleFermeLeGhost() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
         session.demander(Document.of("int x = "), 8);
-        modele.fantome(null);
+        modele.ghost(null);
         session.demander(Document.of("int x = "), 8);
         assertNull(session.suggestionActive(),
                 "l'aveu qu'il n'y a rien ferme le fantôme");
@@ -94,13 +94,13 @@ class GhostTextTest {
         PompeManuelle publication = new PompeManuelle();
         GhostTextSession session = new GhostTextSession(modele, publication);
         Document document = Document.of("int x = ");
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
         session.demander(document, 8);
         publication.executerTout();
         assertEquals(new GhostSuggestion("42;", 8, 0), session.suggestionActive());
-        modele.fantome(null);
+        modele.ghost(null);
         session.demander(document, 8);
-        modele.fantome(new GhostSuggestion("b;", 8, 0));
+        modele.ghost(new GhostSuggestion("b;", 8, 0));
         session.demander(document, 8);
         publication.executerUne();
         assertEquals(new GhostSuggestion("42;", 8, 0), session.suggestionActive(),
@@ -119,16 +119,16 @@ class GhostTextTest {
     void acceptationParMot() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("mot suivant ligne", 3, 0));
+        modele.ghost(new GhostSuggestion("mot suivant ligne", 3, 0));
         session.demander(Document.of("ab "), 3);
-        assertEquals("mot ", session.accepterMot());
+        assertEquals("mot ", session.acceptWord());
         assertEquals(new GhostSuggestion("suivant ligne", 3, 0),
                 session.suggestionActive());
-        assertEquals("suivant ", session.accepterMot());
+        assertEquals("suivant ", session.acceptWord());
         assertEquals(new GhostSuggestion("ligne", 3, 0), session.suggestionActive());
-        assertEquals("ligne", session.accepterMot());
+        assertEquals("ligne", session.acceptWord());
         assertNull(session.suggestionActive(), "le fantôme épuisé disparaît");
-        assertEquals("", session.accepterMot(), "épuisé, l'acceptation ne rend rien");
+        assertEquals("", session.acceptWord(), "épuisé, l'acceptation ne rend rien");
     }
 
     /** Le mot meneur emporte ses espaces et les sauts de ligne. */
@@ -136,10 +136,10 @@ class GhostTextTest {
     void acceptationParMot_espacesEtSauts() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("  retrait\nsuite", 0, 0));
+        modele.ghost(new GhostSuggestion("  retrait\nsuite", 0, 0));
         session.demander(Document.of(""), 0);
-        assertEquals("  retrait\n", session.accepterMot());
-        assertEquals("suite", session.accepterMot());
+        assertEquals("  retrait\n", session.acceptWord());
+        assertEquals("suite", session.acceptWord());
         assertNull(session.suggestionActive());
     }
 
@@ -148,9 +148,9 @@ class GhostTextTest {
     void acceptationParMot_toutBlancs() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("   ", 0, 0));
+        modele.ghost(new GhostSuggestion("   ", 0, 0));
         session.demander(Document.of(""), 0);
-        assertEquals("   ", session.accepterMot());
+        assertEquals("   ", session.acceptWord());
         assertNull(session.suggestionActive());
     }
 
@@ -162,11 +162,11 @@ class GhostTextTest {
     void acceptationParLigne() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("premiere ligne\ndeuxieme", 0, 0));
+        modele.ghost(new GhostSuggestion("premiere ligne\ndeuxieme", 0, 0));
         session.demander(Document.of(""), 0);
-        assertEquals("premiere ligne\n", session.accepterLigne());
+        assertEquals("premiere ligne\n", session.acceptLine());
         assertEquals(new GhostSuggestion("deuxieme", 0, 0), session.suggestionActive());
-        assertEquals("deuxieme", session.accepterLigne(), "sans saut, le reste entier");
+        assertEquals("deuxieme", session.acceptLine(), "sans saut, le reste entier");
         assertNull(session.suggestionActive());
     }
 
@@ -175,9 +175,9 @@ class GhostTextTest {
     void acceptationEnBloc() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("a\nb c", 2, 0));
+        modele.ghost(new GhostSuggestion("a\nb c", 2, 0));
         session.demander(Document.of("x "), 2);
-        assertEquals("a\nb c", session.accepterTout());
+        assertEquals("a\nb c", session.acceptAll());
         assertNull(session.suggestionActive());
     }
 
@@ -186,9 +186,9 @@ class GhostTextTest {
     void acceptationSansGhostNeRendRien() {
         GhostTextSession session =
                 new GhostTextSession(new FakeLocalModel(), DIRECT);
-        assertEquals("", session.accepterMot());
-        assertEquals("", session.accepterLigne());
-        assertEquals("", session.accepterTout());
+        assertEquals("", session.acceptWord());
+        assertEquals("", session.acceptLine());
+        assertEquals("", session.acceptAll());
         assertNull(session.suggestionActive());
     }
 
@@ -201,11 +201,11 @@ class GhostTextTest {
     void frappeRefuseLeGhostEtAnnuleLeVol() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
         session.demander(Document.of("int x = "), 8);
-        session.frappe();
+        session.keystroke();
         assertNull(session.suggestionActive(), "la frappe suivante refuse le fantôme");
-        assertTrue(modele.requetes().get(0).jeton().estAnnule(),
+        assertTrue(modele.requetes().get(0).token().isCancelled(),
                 "le vol est annulé à la frappe");
     }
 
@@ -214,11 +214,11 @@ class GhostTextTest {
     void refusExpliciteFermeEtAnnule() {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
         session.demander(Document.of("int x = "), 8);
-        session.refuser();
+        session.reject();
         assertNull(session.suggestionActive());
-        assertTrue(modele.requetes().get(0).jeton().estAnnule());
+        assertTrue(modele.requetes().get(0).token().isCancelled());
     }
 
     /**
@@ -230,11 +230,11 @@ class GhostTextTest {
         FakeLocalModel modele = new FakeLocalModel();
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
         Document document = Document.of("int x = ");
-        modele.fantome(new GhostSuggestion("41;", 8, 0));
+        modele.ghost(new GhostSuggestion("41;", 8, 0));
         session.demander(document, 8);
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
         session.demander(document, 8);
-        assertTrue(modele.requetes().get(0).jeton().estAnnule(),
+        assertTrue(modele.requetes().get(0).token().isCancelled(),
                 "la première requête meurt supplémentée");
         assertEquals(new GhostSuggestion("42;", 8, 0), session.suggestionActive());
     }
@@ -248,9 +248,9 @@ class GhostTextTest {
         PompeManuelle reseau = new PompeManuelle();
         FakeRemoteModel modele = new FakeRemoteModel(reseau);
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
         session.demander(Document.of("int x = "), 8);
-        session.frappe();
+        session.keystroke();
         reseau.executerTout();
         assertNull(session.suggestionActive(),
                 "la livraison d'un vol mort ne s'affiche pas");
@@ -263,12 +263,12 @@ class GhostTextTest {
         FakeRemoteModel modele = new FakeRemoteModel(reseau);
         GhostTextSession session = new GhostTextSession(modele, DIRECT);
         Document document = Document.of("");
-        modele.fantome(new GhostSuggestion("mot suite", 0, 0));
+        modele.ghost(new GhostSuggestion("mot suite", 0, 0));
         session.demander(document, 0);
         reseau.executerUne();
-        modele.fantome(new GhostSuggestion("mot suite ENTIER", 0, 0));
+        modele.ghost(new GhostSuggestion("mot suite ENTIER", 0, 0));
         session.demander(document, 0);
-        assertEquals("mot ", session.accepterMot());
+        assertEquals("mot ", session.acceptWord());
         reseau.executerTout();
         assertEquals(new GhostSuggestion("suite", 0, 0), session.suggestionActive(),
                 "le retard du vol clôturé ne remplace pas le reste accepté");

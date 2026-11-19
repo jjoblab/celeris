@@ -73,7 +73,7 @@ class GutterPainterTest {
     }
 
     /** Un texte tracé : son contenu, son abscisse, sa couleur et sa graisse. */
-    private record TexteTrace(String texte, float x, int couleur, boolean gras) {
+    private record TexteTrace(String text, float x, int couleur, boolean gras) {
     }
 
     /** Surface enregistreuse de textes. */
@@ -97,8 +97,8 @@ class GutterPainterTest {
     }
 
     /** La graisse du pinceau au tracé — faux sur un pinceau muet. */
-    private static boolean grasDe(TextBrush brush) {
-        return brush instanceof PinceauMutable pinceau && pinceau.gras();
+    private static boolean grasDe(TextBrush source) {
+        return source instanceof PinceauMutable brush && brush.gras();
     }
 
     /** Un trait tracé : ses deux extrémités et sa couleur. */
@@ -209,22 +209,22 @@ class GutterPainterTest {
     void numerosAbsolusAlignesADroite() {
         SurfaceTextes surface = new SurfaceTextes();
         ScrollFrame image = new ScrollFrame();
-        GutterPainter gouttiere = new GutterPainter(() -> new PinceauMutable(), 4f);
-        image.addLayer(gouttiere);
+        GutterPainter gutter = new GutterPainter(() -> new PinceauMutable(), 4f);
+        image.addLayer(gutter);
         Document document = Document.of("un\ndeux\ntrois");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         // gouttière de 18 px pour « 3 » (un chiffre) : 1 × 10 + 2 × 4.
-        float largeur = GutterGeometry.width(3, 10f, 4f);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        float width = GutterGeometry.width(3, 10f, 4f);
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(3, new FoldModel()), 1L, metrics, THEME,
-                0, 3, largeur, 0f, 0f);
-        image.drawFrame(surface, etat);
+                0, 3, width, 0f, 0f);
+        image.drawFrame(surface, state);
 
         assertEquals(3, surface.textes().size());
-        assertEquals("1", surface.textes().get(0).texte());
-        assertEquals("2", surface.textes().get(1).texte());
-        assertEquals("3", surface.textes().get(2).texte());
+        assertEquals("1", surface.textes().get(0).text());
+        assertEquals("2", surface.textes().get(1).text());
+        assertEquals("3", surface.textes().get(2).text());
         // alignés à droite : « 1 » et « 3 » finissent à 18 - 4, abscisse 4.
         assertEquals(4f, surface.textes().get(0).x(), 1e-6f);
         assertEquals(4f, surface.textes().get(2).x(), 1e-6f);
@@ -242,12 +242,12 @@ class GutterPainterTest {
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
         Document document = Document.of("un\ndeux\ntrois");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        float largeur = GutterGeometry.width(3, 10f, 4f);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        float width = GutterGeometry.width(3, 10f, 4f);
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(3, new FoldModel()), 1L, metrics, THEME,
-                0, 3, largeur, 120f, 0f);
-        image.drawFrame(surface, etat);
+                0, 3, width, 120f, 0f);
+        image.drawFrame(surface, state);
 
         assertEquals(4f, surface.textes().get(0).x(), 1e-6f,
                 "l'abscisse des numéros ne dépend pas du défilement horizontal");
@@ -264,20 +264,20 @@ class GutterPainterTest {
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
         Document document = Document.of("a\nb\nc\nd\ne");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FoldModel plis = new FoldModel();
-        plis.fold(1, 3); // l'en-tête 1 reste, les lignes 2 à 4 sont cachées
-        VisualProjection projection = new VisualProjection(5, plis);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics, THEME,
+        FoldModel folds = new FoldModel();
+        folds.fold(1, 3); // l'en-tête 1 reste, les lignes 2 à 4 sont cachées
+        VisualProjection projection = new VisualProjection(5, folds);
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics, THEME,
                 0, projection.rowCount(), 46f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         // 5 lignes, pli (1, 3) : les lignes 2 et 3 sont cachées —
         // rangées : 0 → ligne 0, 1 → lignes 1 à 3 (pli), 2 → ligne 4.
         assertEquals(3, surface.textes().size());
-        assertEquals("1", surface.textes().get(0).texte());
-        assertEquals("2", surface.textes().get(1).texte(), "la rangée du pli porte l'en-tête");
-        assertEquals("5", surface.textes().get(2).texte());
+        assertEquals("1", surface.textes().get(0).text());
+        assertEquals("2", surface.textes().get(1).text(), "la rangée du pli porte l'en-tête");
+        assertEquals("5", surface.textes().get(2).text());
     }
 
     /** Les étiquettes sont mémoïsées : deux images, mêmes instances (PIEGE-15). */
@@ -288,16 +288,16 @@ class GutterPainterTest {
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
                 0, 2, 28f, 0f, 0f);
-        image.drawFrame(surface, etat);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
+        image.drawFrame(surface, state);
 
-        assertTrue(surface.textes().get(0).texte() == surface.textes().get(2).texte(),
+        assertTrue(surface.textes().get(0).text() == surface.textes().get(2).text(),
                 "la même instance d'étiquette sert les deux images");
-        assertTrue(surface.textes().get(1).texte() == surface.textes().get(3).texte());
+        assertTrue(surface.textes().get(1).text() == surface.textes().get(3).text());
     }
 
     /**
@@ -314,15 +314,15 @@ class GutterPainterTest {
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 4);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 1L,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 1L,
                 metrics, THEME, 0, projection.rowCount(), 18f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         // Seule la première tranche porte le numéro ; la continuation
         // n'écrit rien en gouttière.
         assertEquals(1, surface.textes().size());
-        assertEquals("1", surface.textes().get(0).texte());
+        assertEquals("1", surface.textes().get(0).text());
     }
 
     /** D-07 — l'en-tête replié porte son chevron EN TRAITS, pointe à
@@ -333,18 +333,18 @@ class GutterPainterTest {
         ScrollFrame image = new ScrollFrame();
         FoldModel replis = new FoldModel();
         replis.fold(1, 3);
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), replis, new int[0]);
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f, () -> 8f, ligne -> 0,
-                ligne -> false));
+                () -> marks, () -> 12f, () -> 8f, line -> 0,
+                line -> false));
         Document document = Document.of("a\nb\nc\nd\ne");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection = new VisualProjection(5, replis);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics,
                 THEME, 0, projection.rowCount(), 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         // l'audit du propriétaire du 2026-11-14 (« l'icône pli/dépli…
         //  trop foncé, améliore-la ») : le chevron vit en DEUX TRAITS
@@ -367,18 +367,18 @@ class GutterPainterTest {
     void enTetePliablePointeVersLeBas() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), new FoldModel(), new int[0]);
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f, () -> 8f, ligne -> 0,
-                ligne -> false));
+                () -> marks, () -> 12f, () -> 8f, line -> 0,
+                line -> false));
         Document document = Document.of("a\nb\nc\nd\ne");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(5, new FoldModel()), 1L, metrics, THEME,
                 0, 5, 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(0, surface.triangles().size(),
                 "le chevron ne vit plus en triangle plein");
@@ -404,17 +404,17 @@ class GutterPainterTest {
     void ligneEnErreurPorteSaMarque() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(), new FoldModel(), new int[] {0});
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f));
+                () -> marks, () -> 12f));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
                 0, 2, 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(1, surface.cercles().size(),
                 "une marque d'erreur, un point plein");
@@ -431,20 +431,20 @@ class GutterPainterTest {
     void lampouleDIntentionsPrimeSurLePointDerreur() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
-        GutterMarks marques = GutterMarks.of(List.of(), new FoldModel(),
+        GutterMarks marks = GutterMarks.of(List.of(), new FoldModel(),
                 new int[] {0});
         GutterPainter couche = new GutterPainter(() -> new PinceauMutable(),
-                4f, () -> marques, () -> 12f);
-        couche.brancherAmpoules(ligne -> ligne == 0);
+                4f, () -> marks, () -> 12f);
+        couche.wireBulbs(line -> line == 0);
         image.addLayer(couche);
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f),
                 new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
                 0, 2, 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(1, surface.cercles().size(),
                 "l'ampoule remplace le point d'erreur de sa ligne");
@@ -464,11 +464,11 @@ class GutterPainterTest {
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
                 0, 2, 28f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(0, surface.traits().size());
         assertEquals(0, surface.rectangles().size());
@@ -496,20 +496,20 @@ class GutterPainterTest {
         ScrollFrame image = new ScrollFrame();
         FoldModel replis = new FoldModel();
         replis.fold(1, 3);
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), replis, new int[] {0});
-        GutterPainter gouttiere = new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f, () -> 8f, ligne -> 0,
-                ligne -> false);
-        gouttiere.setNumerosVisibles(false);
-        image.addLayer(gouttiere);
+        GutterPainter gutter = new GutterPainter(() -> new PinceauMutable(), 4f,
+                () -> marks, () -> 12f, () -> 8f, line -> 0,
+                line -> false);
+        gutter.setLineNumbersVisible(false);
+        image.addLayer(gutter);
         Document document = Document.of("a\nb\nc\nd\ne");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection = new VisualProjection(5, replis);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics,
                 THEME, 0, projection.rowCount(), 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(0, surface.textes().size(), "aucun numéro tracé");
         assertEquals(2, surface.traits().size(), "le chevron de pli reste");
@@ -537,32 +537,32 @@ class GutterPainterTest {
     void pastilleRendueDepuisLaValeurResolue() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
-        GutterPainter gouttiere = new GutterPainter(() -> new PinceauMutable(), 8f,
-                () -> GutterMarks.VIDE, () -> 0f,
-                ligne -> ligne == 1 ? 0xFFFF5722 : 0, ligne -> false);
-        image.addLayer(gouttiere);
+        GutterPainter gutter = new GutterPainter(() -> new PinceauMutable(), 8f,
+                () -> GutterMarks.EMPTY, () -> 0f,
+                line -> line == 1 ? 0xFFFF5722 : 0, line -> false);
+        image.addLayer(gutter);
         Document document = Document.of("<a>\n<color>#FF5722</color>\n</a>");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        float largeur = GutterGeometry.width(3, 10f, 8f);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        float width = GutterGeometry.width(3, 10f, 8f);
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(3, new FoldModel()), 1L, metrics, THEME,
-                0, 3, largeur, 0f, 0f);
-        image.drawFrame(surface, etat);
+                0, 3, width, 0f, 0f);
+        image.drawFrame(surface, state);
 
         assertEquals(1, surface.rectangles().size(),
                 "une seule pastille, la ligne porteuse seule");
-        RectTrace pastille = surface.rectangles().get(0);
-        assertEquals(0xFFFF5722, pastille.couleur(),
+        RectTrace chip = surface.rectangles().get(0);
+        assertEquals(0xFFFF5722, chip.couleur(),
                 "la pastille porte la valeur résolue, pas une encre de thème");
         // Le carré vit dans la respiration à droite du champ : bord de
         // 2 px, côté de 4 px — entre largeur - 6 et largeur - 2.
-        assertEquals(largeur - 6f, pastille.left(), 1e-6f);
-        assertEquals(largeur - 2f, pastille.right(), 1e-6f);
+        assertEquals(width - 6f, chip.left(), 1e-6f);
+        assertEquals(width - 2f, chip.right(), 1e-6f);
         // Posé au milieu vertical de la rangée 1 (0-based) : la rangée
         // couvre 20 à 40, le carré 24 à 28.
-        assertEquals(24f, pastille.top(), 1e-6f);
-        assertEquals(28f, pastille.bottom(), 1e-6f);
+        assertEquals(24f, chip.top(), 1e-6f);
+        assertEquals(28f, chip.bottom(), 1e-6f);
     }
 
     /**
@@ -573,17 +573,17 @@ class GutterPainterTest {
     void reperePreviewTraceDansLaCoulisseASaLigne() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
-        GutterPainter gouttiere = new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> GutterMarks.VIDE, () -> 12f,
-                ligne -> 0, ligne -> ligne == 1);
-        image.addLayer(gouttiere);
+        GutterPainter gutter = new GutterPainter(() -> new PinceauMutable(), 4f,
+                () -> GutterMarks.EMPTY, () -> 12f,
+                line -> 0, line -> line == 1);
+        image.addLayer(gutter);
         Document document = Document.of("package\n@Preview\nfun Apercu()");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(3, new FoldModel()), 1L, metrics, THEME,
                 0, 3, 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         // Le losange du repère : quatre traits, tous dans la coulisse,
         // leur enceinte centrée sur l'axe de la coulisse (6 px).
@@ -612,11 +612,11 @@ class GutterPainterTest {
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(2, new FoldModel()), 1L, metrics,
                 THEME_VOILE, 0, 2, 28f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(1, surface.rectangles().size(),
                 "le voile du fond est l'unique rectangle");
@@ -638,11 +638,11 @@ class GutterPainterTest {
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
                 0, 2, 28f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(0, surface.rectangles().size(),
                 "un thème sans voile ne trace aucun fond de gouttière");
@@ -654,18 +654,18 @@ class GutterPainterTest {
     void chevronVitDansSaCelluleEpaisEtCentre() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(new FoldSpan(0, 1)), new FoldModel(), new int[0]);
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f, () -> 8f, ligne -> 0,
-                ligne -> false));
+                () -> marks, () -> 12f, () -> 8f, line -> 0,
+                line -> false));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
                 0, 2, 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(2, surface.traits().size(),
                 "le chevron pliable vit en deux traits joints");
@@ -691,28 +691,28 @@ class GutterPainterTest {
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f));
         Document document = Document.of("a\nb\nc");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
+        FrameState state = new FrameState();
         // le curseur vit sur la ligne 1 — son numéro se graisse
-        etat.beginFrame(document, MultiSelection.of(SelRange.caretAt(2)),
+        state.beginFrame(document, MultiSelection.of(SelRange.caretAt(2)),
                 new VisualProjection(3, new FoldModel()), 1L, metrics, THEME,
                 0, 3, 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(3, surface.textes().size());
         TexteTrace courant = null;
-        for (TexteTrace texte : surface.textes()) {
-            if ("2".equals(texte.texte())) {
-                courant = texte;
+        for (TexteTrace text : surface.textes()) {
+            if ("2".equals(text.text())) {
+                courant = text;
             }
         }
         assertTrue(courant != null, "le numéro de la ligne courante se trace");
         assertTrue(courant.gras(), "le numéro courant se graisse");
         assertEquals(THEME.baseTextColor(), courant.couleur(),
                 "le numéro courant prend l'encre du texte de base");
-        for (TexteTrace texte : surface.textes()) {
-            if (!"2".equals(texte.texte())) {
-                assertFalse(texte.gras(), "les autres numéros restent maigres");
-                assertEquals(THEME.gutterTextColor(), texte.couleur(),
+        for (TexteTrace text : surface.textes()) {
+            if (!"2".equals(text.text())) {
+                assertFalse(text.gras(), "les autres numéros restent maigres");
+                assertEquals(THEME.gutterTextColor(), text.couleur(),
                         "les autres numéros gardent l'encre de gouttière");
             }
         }
@@ -727,19 +727,19 @@ class GutterPainterTest {
     void lePointDBreakpointSeRendCercle() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
-        GutterMarks marques = GutterMarks.of(List.of(), new FoldModel(),
+        GutterMarks marks = GutterMarks.of(List.of(), new FoldModel(),
                 new int[0]).avec(IntegrationMarks.of(Map.of(),
-                        Map.of(0, EtatBreakpoint.POSE, 1, EtatBreakpoint.DESACTIVE),
+                        Map.of(0, BreakpointState.POSE, 1, BreakpointState.DESACTIVE),
                         null, Set.of()));
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f));
+                () -> marks, () -> 12f));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
                 0, 2, 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(2, surface.cercles().size(), "deux arrêts, deux cercles");
         CercleTrace pose = surface.cercles().get(0);
@@ -762,18 +762,18 @@ class GutterPainterTest {
     void laFlecheDExecutionSeRendTriangle() {
         SurfaceMarques surface = new SurfaceMarques();
         ScrollFrame image = new ScrollFrame();
-        GutterMarks marques = GutterMarks.of(List.of(), new FoldModel(),
+        GutterMarks marks = GutterMarks.of(List.of(), new FoldModel(),
                 new int[0]).avec(IntegrationMarks.of(Map.of(),
-                        Map.of(0, EtatBreakpoint.POSE), 0, Set.of()));
+                        Map.of(0, BreakpointState.POSE), 0, Set.of()));
         image.addLayer(new GutterPainter(() -> new PinceauMutable(), 4f,
-                () -> marques, () -> 12f));
+                () -> marks, () -> 12f));
         Document document = Document.of("a\nb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(2, new FoldModel()), 1L, metrics, THEME,
                 0, 2, 30f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(1, surface.triangles().size(),
                 "la flèche d'exécution vit en un triangle plein");

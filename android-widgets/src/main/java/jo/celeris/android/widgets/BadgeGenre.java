@@ -25,7 +25,7 @@ public final class BadgeGenre {
     /** Le genre d'un candidat — le vocabulaire des hôtes. */
     public enum Genre {
         /** Mot réservé du langage. */
-        MOT_CLE,
+        KEYWORD,
         /** Méthode, fonction, constructeur — à l'encre d'accent. */
         METHODE,
         /** Champ, propriété, constante nommée. */
@@ -53,7 +53,7 @@ public final class BadgeGenre {
     private static final int CHAMP = 0xFF61AFEF;
     private static final int VARIABLE = 0xFF5CCFE6;
     private static final int PAQUET = 0xFFA0A1AA;
-    private static final int MOT_CLE = 0xFFCD7EE0;
+    private static final int KEYWORD = 0xFFCD7EE0;
     private static final int EXTRAIT = 0xFF98C97A;
 
     private BadgeGenre() {
@@ -62,15 +62,15 @@ public final class BadgeGenre {
     /**
      * Les métadonnées du badge d'un genre.
      *
-     * @param genre  la nature du candidat
+     * @param kind  la nature du candidat
      * @param sombre vrai pour un thème sombre (palette telle quelle),
      *               faux pour un thème clair (palette assombrie)
      * @param accent l'encre d'accent du thème — le badge de la méthode
      * @return le glyphe et sa couleur
      */
-    public static Meta meta(Genre genre, boolean sombre, int accent) {
-        return switch (genre) {
-            case MOT_CLE -> new Meta("K", ton(MOT_CLE, sombre));
+    public static Meta meta(Genre kind, boolean sombre, int accent) {
+        return switch (kind) {
+            case KEYWORD -> new Meta("K", ton(KEYWORD, sombre));
             case METHODE -> new Meta("M", accent);
             case CHAMP -> new Meta("F", ton(CHAMP, sombre));
             case VARIABLE -> new Meta("v", ton(VARIABLE, sombre));
@@ -104,7 +104,7 @@ public final class BadgeGenre {
      * @param glyphe le glyphe du badge
      * @return le facteur de taille du glyphe
      */
-    public static float facteurTailleGlyphe(String glyphe) {
+    public static float glyphSizeFactor(String glyphe) {
         return glyphe != null && glyphe.length() > 1 ? 0.42f : 0.56f;
     }
 }

@@ -39,18 +39,18 @@ public final class TouchBarView extends PopupPanel {
 
     /** Une touche de la barre : son libellé, son état activé (null =
      *  toujours active), son action au doigt. */
-    public record Touche(String libelle,
+    public record KeyCap(String label,
             @Nullable BooleanSupplier active, Runnable action) {
     }
 
     /** La hauteur de la rangée, en dp — celle du dépôt de départ. */
-    private static final float HAUTEUR_DP = 44f;
+    private static final float HEIGHT_DP = 44f;
 
     /** La cible tactile minimale d'une touche, en dp. */
     private static final float CIBLE_DP = 44f;
 
     /** L'écart entre deux touches, en dp. */
-    private static final float ECART_DP = 6f;
+    private static final float GAP_DP = 6f;
 
     /** La respiration horizontale d'une touche, en dp. */
     private static final float RESPIRATION_TOUCHE_DP = 14f;
@@ -59,20 +59,20 @@ public final class TouchBarView extends PopupPanel {
      *  libellé court. */
     private static final float COTE_MIN_DP = 44f;
 
-    private final List<Touche> touches = new ArrayList<>();
+    private final List<KeyCap> touches = new ArrayList<>();
     private final List<Float> finsDeTouche = new ArrayList<>();
     /** La touche sous le doigt, —1 hors appui. */
     private int pressee = -1;
     private final float hauteurPx;
-    private final float ecartPx;
+    private final float gapPx;
     private final float respirationTouchePx;
     private final float coteMinPx;
 
     public TouchBarView(Context context, PopupPalette palette) {
         super(context, palette);
         float densite = getResources().getDisplayMetrics().density;
-        this.hauteurPx = HAUTEUR_DP * densite;
-        this.ecartPx = ECART_DP * densite;
+        this.hauteurPx = HEIGHT_DP * densite;
+        this.gapPx = GAP_DP * densite;
         this.respirationTouchePx = RESPIRATION_TOUCHE_DP * densite;
         this.coteMinPx = COTE_MIN_DP * densite;
     }
@@ -84,22 +84,22 @@ public final class TouchBarView extends PopupPanel {
      *
      * @param nouvelles les touches, dans l'ordre d'affichage
      */
-    public void setActions(List<Touche> nouvelles) {
+    public void setActions(List<KeyCap> nouvelles) {
         touches.clear();
         finsDeTouche.clear();
-        for (Touche touche : nouvelles) {
+        for (KeyCap touche : nouvelles) {
             if (touche != null) {
                 touches.add(touche);
             }
         }
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_TITRE));
-        float curseur = 0f;
-        for (Touche touche : touches) {
-            float largeurTexte = textPaint().measureText(touche.libelle());
-            float largeur = Math.max(coteMinPx,
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_TITRE));
+        float cursor = 0f;
+        for (KeyCap touche : touches) {
+            float largeurTexte = textPaint().measureText(touche.label());
+            float width = Math.max(coteMinPx,
                     largeurTexte + 2f * respirationTouchePx);
-            finsDeTouche.add(curseur + largeur);
-            curseur += largeur + ecartPx;
+            finsDeTouche.add(cursor + width);
+            cursor += width + gapPx;
         }
         requestLayout();
         invalidate();
@@ -114,22 +114,22 @@ public final class TouchBarView extends PopupPanel {
     /** Vrai quand la touche visée vit à son état activé — la touche
      *  muette rejette le doigt. */
     private boolean active(int index) {
-        Touche touche = touches.get(index);
+        KeyCap touche = touches.get(index);
         return touche.active() == null || touche.active().getAsBoolean();
     }
 
     @Override
     void drawContent(Canvas canvas) {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_TITRE));
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_TITRE));
         Paint.FontMetrics metriques = textPaint().getFontMetrics();
         // la baseline centrée : la moitié de la rangée moins la moitié
         // de l'étendue du texte — la touche vit toute la hauteur
         float baseline = (hauteurPx - (metriques.descent - metriques.ascent))
                 * 0.5f - metriques.ascent;
         for (int i = 0; i < touches.size(); i++) {
-            float debut = debutDe(i);
-            float fin = finsDeTouche.get(i);
-            dessinerTouche(canvas, i, debut, fin, baseline);
+            float start = debutDe(i);
+            float end = finsDeTouche.get(i);
+            drawKey(canvas, i, start, end, baseline);
         }
     }
 
@@ -139,8 +139,8 @@ public final class TouchBarView extends PopupPanel {
      * texte à l'état actif, l'encre atténuée à l'état muet (l'équivalent
      * maison de l'alpha 0,4 du dépôt de départ).
      */
-    private void dessinerTouche(Canvas canvas, int index, float debut,
-            float fin, float baseline) {
+    private void drawKey(Canvas canvas, int index, float start,
+            float end, float baseline) {
         float rayon = PopupTokens.RAYON_RANGEE_DP
                 * getResources().getDisplayMetrics().density;
         boolean appuyee = index == pressee;
@@ -149,21 +149,21 @@ public final class TouchBarView extends PopupPanel {
         // le fond des touches : le liseré lui-même teinté — la pilule
         // vit SUR le verre du panneau, l'appui la surligne
         bandPaint().setAlpha(appuyee ? 0xFF : 0x5A);
-        canvas.drawRoundRect(debut, 0f, fin, hauteurPx,
+        canvas.drawRoundRect(start, 0f, end, hauteurPx,
                 rayon, rayon, bandPaint());
         bandPaint().setAlpha(0xFF);
         boolean vivante = active(index);
         textPaint().setColor(vivante ? palette.text() : palette.muted());
         float demiTexte = textPaint().measureText(
-                touches.get(index).libelle()) * 0.5f;
-        float centre = (debut + fin) * 0.5f;
-        canvas.drawText(touches.get(index).libelle(), centre - demiTexte,
+                touches.get(index).label()) * 0.5f;
+        float centre = (start + end) * 0.5f;
+        canvas.drawText(touches.get(index).label(), centre - demiTexte,
                 baseline, textPaint());
     }
 
     /** Le début d'une touche — la fin de la précédente, l'écart compris. */
     private float debutDe(int index) {
-        return index == 0 ? 0f : finsDeTouche.get(index - 1) + ecartPx;
+        return index == 0 ? 0f : finsDeTouche.get(index - 1) + gapPx;
     }
 
     @Override
@@ -178,10 +178,10 @@ public final class TouchBarView extends PopupPanel {
     }
 
     /** L'index de la touche visée par l'abscisse, —1 si hors barre. */
-    private int toucheA(float x) {
+    private int touches(float x) {
         for (int i = 0; i < finsDeTouche.size(); i++) {
-            float debut = debutDe(i);
-            if (x >= debut && x <= finsDeTouche.get(i)) {
+            float start = debutDe(i);
+            if (x >= start && x <= finsDeTouche.get(i)) {
                 return i;
             }
         }
@@ -191,14 +191,14 @@ public final class TouchBarView extends PopupPanel {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            pressee = toucheA(event.getX() - paddingPx);
+            pressee = touches(event.getX() - paddingPx);
             invalidate();
             return pressee >= 0;
         }
         if (event.getActionMasked() != MotionEvent.ACTION_UP) {
             return false;
         }
-        int index = toucheA(event.getX() - paddingPx);
+        int index = touches(event.getX() - paddingPx);
         boolean appuyee = index >= 0 && index == pressee;
         pressee = -1;
         invalidate();

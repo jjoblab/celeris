@@ -44,9 +44,9 @@ public final class TreeIndent {
     private static int englobants(SynNode noeud, Document doc, int base, int line) {
         int total = 0;
         if (noeud.category() != NodeCategory.OTHER) {
-            int debut = doc.lineForOffset(base + noeud.start());
-            int fin = doc.lineForOffset(base + Math.max(noeud.start(), noeud.end() - 1));
-            if (debut < line && line <= fin) {
+            int start = doc.lineForOffset(base + noeud.start());
+            int end = doc.lineForOffset(base + Math.max(noeud.start(), noeud.end() - 1));
+            if (start < line && line <= end) {
                 total = 1;
             }
         }
@@ -60,8 +60,8 @@ public final class TreeIndent {
         if (line < 0 || line >= analysis.lex().lineCount()) {
             return false;
         }
-        for (Token jeton : analysis.lex().line(line).tokens()) {
-            return jeton.kind() == TokenKind.CLOSE_BRACKET;
+        for (Token token : analysis.lex().line(line).tokens()) {
+            return token.kind() == TokenKind.CLOSE_BRACKET;
         }
         return false;
     }

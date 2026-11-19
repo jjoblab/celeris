@@ -16,45 +16,45 @@ public class EditorGutterTest {
     private static final float CHAR_WIDTH = 10f;
     private static final float DENSITY = 2f;
 
-    private final EditorGutter gouttiere = new EditorGutter();
+    private final EditorGutter gutter = new EditorGutter();
 
     /** La largeur de la gouttière aux réglages courants. */
-    private float largeur(int lignes, boolean numeros) {
-        return gouttiere.suivre(lignes, CHAR_WIDTH, DENSITY, numeros);
+    private float width(int lines, boolean numbers) {
+        return gutter.suivre(lines, CHAR_WIDTH, DENSITY, numbers);
     }
 
     /** Le plancher de trois chiffres : la dixième ligne ne décale rien. */
     @Test
     public void lePlancherDeTroisChiffres() {
-        float uneLigne = largeur(1, true);
+        float uneLigne = width(1, true);
         assertEquals("la dixième ligne ne décale rien",
-                uneLigne, largeur(10, true), 0.5f);
+                uneLigne, width(10, true), 0.5f);
         assertEquals("la millième ligne croît d'un chiffre",
-                uneLigne + CHAR_WIDTH, largeur(1000, true), 0.5f);
+                uneLigne + CHAR_WIDTH, width(1000, true), 0.5f);
     }
 
     /** Le niveau d'eau croît et ne rétrécit jamais : 1 000 lignes
      *  puis 5 — la largeur tient celle du pic. */
     @Test
     public void leNiveauEauNeRetrecitJamais() {
-        float pic = largeur(1000, true);
-        assertEquals("la largeur tient le pic", pic, largeur(5, true), 0.5f);
+        float pic = width(1000, true);
+        assertEquals("la largeur tient le pic", pic, width(5, true), 0.5f);
         // le plancher retombe sur demande explicite (changement de
         // session ou de langage)
-        gouttiere.reinitialiser();
+        gutter.reinitialiser();
         assertTrue("la retombée rend le plancher",
-                largeur(1, true) < pic);
+                width(1, true) < pic);
     }
 
     /** Sans numéros, la gouttière ne réserve que la coulisse et sa
      *  respiration (D-01). */
     @Test
     public void sansNumerosSeuleLaCoulisseReste() {
-        gouttiere.setCoulisses(GutterLanes.AUCUNE);
-        float sansNumeros = largeur(1000, false);
-        gouttiere.reinitialiser();
-        gouttiere.setCoulisses(GutterLanes.AUCUNE);
-        float uneLigne = largeur(1, false);
+        gutter.setCoulisses(GutterLanes.AUCUNE);
+        float sansNumeros = width(1000, false);
+        gutter.reinitialiser();
+        gutter.setCoulisses(GutterLanes.AUCUNE);
+        float uneLigne = width(1, false);
         assertEquals("les chiffres ne comptent plus",
                 uneLigne, sansNumeros, 0.5f);
         assertTrue("la coulisse seule reste positive", uneLigne > 0f);
@@ -64,31 +64,31 @@ public class EditorGutterTest {
      *  d'un résultat (PIEGE-25). */
     @Test
     public void laCoulisseDecouleDeLaConfiguration() {
-        gouttiere.setCoulisses(GutterLanes.AUCUNE);
-        largeur(1, true);
+        gutter.setCoulisses(GutterLanes.AUCUNE);
+        width(1, true);
         assertEquals("aucune intégration, aucune coulisse",
-                0f, gouttiere.coulisseCourante(), 0f);
-        gouttiere.setCoulisses(new GutterLanes(true, false, false, false));
-        largeur(1, true);
+                0f, gutter.currentLane(), 0f);
+        gutter.setCoulisses(new GutterLanes(true, false, false, false));
+        width(1, true);
         assertEquals("la coulisse de syntaxe réserve deux caractères",
-                2f * CHAR_WIDTH, gouttiere.coulisseCourante(), 0.5f);
-        gouttiere.setCoulisses(new GutterLanes(false, true, false, false));
-        largeur(1, true);
+                2f * CHAR_WIDTH, gutter.currentLane(), 0.5f);
+        gutter.setCoulisses(new GutterLanes(false, true, false, false));
+        width(1, true);
         assertEquals("la coulisse d'intégration réserve deux caractères",
-                2f * CHAR_WIDTH, gouttiere.coulisseCourante(), 0.5f);
+                2f * CHAR_WIDTH, gutter.currentLane(), 0.5f);
     }
 
     /** La classe de largeur règle la respiration (D-19) : la valeur
      *  vit en dp, la conversion se fait une fois, en pixels entiers. */
     @Test
     public void laClasseRegleLaRespiration() {
-        gouttiere.setClasse(ClasseLargeur.MOYEN, DENSITY);
-        float moyen = gouttiere.margePx();
-        gouttiere.setClasse(ClasseLargeur.COMPACT, DENSITY);
-        float compact = gouttiere.margePx();
+        gutter.setClasse(WidthClass.MOYEN, DENSITY);
+        float moyen = gutter.margePx();
+        gutter.setClasse(WidthClass.COMPACT, DENSITY);
+        float compact = gutter.margePx();
         assertTrue("le compact resserre", compact < moyen);
         assertEquals("la conversion dp → pixels est entière",
-                Math.round(ClasseLargeur.MOYEN.margeGouttiereDp() * DENSITY),
+                Math.round(WidthClass.MOYEN.gutterMarginDp() * DENSITY),
                 Math.round(moyen));
     }
 

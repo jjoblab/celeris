@@ -37,14 +37,14 @@ public record GutterLanes(boolean syntax, boolean integration,
      * @return la largeur de coulisse, en pixels
      */
     public float laneWidth(float charWidth, float padding) {
-        float coulisse = 0f;
+        float lane = 0f;
         if (syntax) {
-            coulisse = Math.max(coulisse, Math.max(padding, 2f * charWidth));
+            lane = Math.max(lane, Math.max(padding, 2f * charWidth));
         }
         if (integration || importedDiagnostics || preview) {
-            coulisse = Math.max(coulisse, 2f * charWidth);
+            lane = Math.max(lane, 2f * charWidth);
         }
-        return coulisse;
+        return lane;
     }
 
     /**

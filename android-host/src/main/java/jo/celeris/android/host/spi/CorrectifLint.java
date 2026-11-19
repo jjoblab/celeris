@@ -7,28 +7,28 @@ package jo.celeris.android.host.spi;
  * l'éditeur : une transaction annulable, jamais silencieuse.
  *
  * @param titre   le libellé du correctif, montré à l'utilisateur
- * @param ligne   la ligne, numérotée à partir de un
- * @param colonne la colonne du premier caractère, à partir de un
+ * @param line   la ligne, numérotée à partir de un
+ * @param column la colonne du premier caractère, à partir de un
  * @param avant   le texte à remplacer, jamais vide
  * @param apres   le texte de remplacement
  */
-public record CorrectifLint(String titre, int ligne, int colonne,
+public record CorrectifLint(String titre, int line, int column,
         String avant, String apres) {
 
     /**
      * Le correctif appliqué à une ligne de texte : la première
      * occurrence du texte d'avant y devient le texte d'après.
      *
-     * @param texte la ligne à corriger
+     * @param text la ligne à corriger
      * @return la ligne corrigée, identique si l'occurrence a disparu
      */
-    public String appliquer(String texte) {
-        int position = texte.indexOf(avant);
+    public String appliquer(String text) {
+        int position = text.indexOf(avant);
         if (position < 0) {
-            return texte;
+            return text;
         }
-        return texte.substring(0, position) + apres
-                + texte.substring(position + avant.length());
+        return text.substring(0, position) + apres
+                + text.substring(position + avant.length());
     }
 
     /**
@@ -39,8 +39,8 @@ public record CorrectifLint(String titre, int ligne, int colonne,
      *                     ligne, numérotées à partir de zéro
      * @return le décalage du premier caractère touché
      */
-    public int debut(int[] debutsLignes) {
-        return debutsLignes[ligne - 1] + colonne - 1;
+    public int start(int[] debutsLignes) {
+        return debutsLignes[line - 1] + column - 1;
     }
 
     /**
@@ -50,7 +50,7 @@ public record CorrectifLint(String titre, int ligne, int colonne,
      *                     ligne, numérotées à partir de zéro
      * @return le décalage après le dernier caractère touché
      */
-    public int fin(int[] debutsLignes) {
-        return debut(debutsLignes) + avant.length();
+    public int end(int[] debutsLignes) {
+        return start(debutsLignes) + avant.length();
     }
 }

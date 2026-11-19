@@ -32,7 +32,7 @@ import jo.celeris.core.text.TextSession;
  */
 final class TypeInfo {
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
@@ -43,15 +43,15 @@ final class TypeInfo {
      * carte naît liée à son genre, le patron des trois temps (lier,
      * déclencher, déléguer — USAGE §9).
      *
-     * @param editeur la vue d'éditeur ouverte
+     * @param editor la vue d'éditeur ouverte
      * @param session la session d'édition courante
      * @param popups  le coordinateur des popups de la scène
      * @param margePx la respiration des ancres aux bords, en pixels
      * @param palette la palette courante des popups
      */
-    TypeInfo(EditorView editeur, TextSession session, PopupManager popups,
+    TypeInfo(EditorView editor, TextSession session, PopupManager popups,
             int margePx, PopupPalette palette) {
-        this.editeur = editeur;
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
@@ -71,7 +71,7 @@ final class TypeInfo {
      * bornée. Sans symbole au curseur ou sans type lisible, la carte
      * ne se pose pas.
      */
-    void ouvrir() {
+    void open() {
         Document document = session.document();
         String symbole = ContenuPopups.symboleA(document, caret());
         String type = symbole == null ? null
@@ -80,23 +80,23 @@ final class TypeInfo {
             return;
         }
         carte.setType(type);
-        Rect curseur = editeur.caretBounds();
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom, taille(),
+                cursor.left, cursor.bottom, size(),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.TYPE_INFO,
+        popups.show(PopupController.PopupKind.TYPE_INFO,
                 placee.x(), placee.y());
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
-    private PopupPlacer.Cadre taille() {
-        return popups.taille(PopupController.PopupKind.TYPE_INFO);
+    private PopupPlacer.Cadre size() {
+        return popups.size(PopupController.PopupKind.TYPE_INFO);
     }
 
     /** La position du curseur — la tête de la sélection courante. */
     private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).caret();
     }
 }

@@ -54,20 +54,20 @@ final class LiaisonArbre {
      *  la fin (exclusifs), la ligne, la colonne, le nombre d'enfants
      *  — tout en CARACTÈRES du modèle. La matérialisation Java
      *  reconstruit la hiérarchie de la pile des enfants. */
-    static int[] aplatir(TSTree arbre, TSLanguage langue) {
-        String[] noms = nomsDeLangue(langue);
-        java.util.List<Integer> tampon = new java.util.ArrayList<>(6 * 1024);
+    static int[] aplatir(TSTree arbre, TSLanguage language) {
+        String[] noms = languageNames(language);
+        java.util.List<Integer> buffer = new java.util.ArrayList<>(6 * 1024);
         TSTreeCursor curseur = TSTreeCursor.create(arbre.getRootNode());
         boolean descendre = true;
         while (descendre) {
             TSNode noeud = curseur.getCurrentNode();
-            tampon.add(indexDeNom(noms, noeud.getGrammarType()));
-            tampon.add(noeud.getStartByte() / 2);
-            tampon.add(noeud.getEndByte() / 2);
+            buffer.add(indexDeNom(noms, noeud.getGrammarType()));
+            buffer.add(noeud.getStartByte() / 2);
+            buffer.add(noeud.getEndByte() / 2);
             TSPoint point = noeud.getStartPoint();
-            tampon.add(point.getRow());
-            tampon.add(point.getColumn() / 2);
-            tampon.add(noeud.getChildCount());
+            buffer.add(point.getRow());
+            buffer.add(point.getColumn() / 2);
+            buffer.add(noeud.getChildCount());
             if (curseur.gotoFirstChild()) {
                 continue;
             }
@@ -79,19 +79,19 @@ final class LiaisonArbre {
             }
         }
         curseur.close();
-        int[] resultat = new int[tampon.size()];
+        int[] resultat = new int[buffer.size()];
         for (int i = 0; i < resultat.length; i++) {
-            resultat[i] = tampon.get(i);
+            resultat[i] = buffer.get(i);
         }
         return resultat;
     }
 
     /** La table des noms de symboles du langage, dans l'ordre. */
-    static String[] nomsDeLangue(TSLanguage langue) {
-        int nombre = langue.getSymbolCount();
+    static String[] languageNames(TSLanguage language) {
+        int nombre = language.getSymbolCount();
         String[] noms = new String[nombre];
         for (int i = 0; i < nombre; i++) {
-            noms[i] = langue.getSymbolName(i);
+            noms[i] = language.getSymbolName(i);
         }
         return noms;
     }
@@ -109,12 +109,12 @@ final class LiaisonArbre {
 
     /** L'édition incrémentale : bornes et points avant/après, en
      *  CARACTÈRES du modèle — la liaison veut ses unités doublées. */
-    static TSInputEdit edition(int debut, int ancienneFin, int nouvelleFin,
-            int ligne, int colonne, int ancienneFinLigne,
+    static TSInputEdit edit(int start, int ancienneFin, int nouvelleFin,
+            int line, int column, int ancienneFinLigne,
             int ancienneFinColonne, int nouvelleFinLigne,
             int nouvelleFinColonne) {
-        return TSInputEdit.create(debut * 2, ancienneFin * 2,
-                nouvelleFin * 2, TSPoint.create(ligne, colonne * 2),
+        return TSInputEdit.create(start * 2, ancienneFin * 2,
+                nouvelleFin * 2, TSPoint.create(line, column * 2),
                 TSPoint.create(ancienneFinLigne, ancienneFinColonne * 2),
                 TSPoint.create(nouvelleFinLigne, nouvelleFinColonne * 2));
     }

@@ -17,7 +17,7 @@ import org.jspecify.annotations.Nullable;
  * parenthèses précèdent le corps) et le membre à ligne (Kotlin,
  * Groovy : la fin à la ligne suivante, ces langues vivent sans
  * point-virgule). Sans état : chaque scan lit la tranche et rend sa
- * réponse, la construction délègue les corps à {@link Corps}.
+ * réponse, la construction délègue les corps à {@link BodyParser}.
  */
 final class MemberScans {
 
@@ -66,7 +66,7 @@ final class MemberScans {
         String name = findName(slice, start, scan);
         if (scan.body() >= 0) {
             int to = scan.bodyEnd() < 0 ? slice.size() : scan.bodyEnd();
-            List<SynNode> body = Corps.instructions(slice, scan.body() + 1, to,
+            List<SynNode> body = BodyParser.instructions(slice, scan.body() + 1, to,
                     CLikeKind.STATEMENT, CLikeKind.BLOC, CLikeKind.ERREUR);
             boolean error = scan.bodyEnd() < 0;
             if (error) {
@@ -90,7 +90,7 @@ final class MemberScans {
             SemicolonScan scan) {
         for (int i = start; i < scan.end() && i < slice.size(); i++) {
             if (slice.kind(i) == TokenKind.OPEN_BRACKET
-                    && "(".equals(Tokens.texteCrochet(slice, i))) {
+                    && "(".equals(Tokens.bracketText(slice, i))) {
                 return i;
             }
         }
@@ -111,7 +111,7 @@ final class MemberScans {
             }
             TokenKind next = slice.kind(i + 1);
             if (next == TokenKind.OPEN_BRACKET
-                    && "(".equals(Tokens.texteCrochet(slice, i + 1))) {
+                    && "(".equals(Tokens.bracketText(slice, i + 1))) {
                 return Tokens.mot(slice, i);
             }
             if (next == TokenKind.OPERATOR || next == TokenKind.PUNCTUATION) {
@@ -129,7 +129,7 @@ final class MemberScans {
         for (int i = from; i < to; i++) {
             TokenKind sort = slice.kind(i);
             if (sort == TokenKind.OPEN_BRACKET) {
-                if (!equalSeen && "{".equals(Tokens.texteCrochet(slice, i))) {
+                if (!equalSeen && "{".equals(Tokens.bracketText(slice, i))) {
                     int closing = slice.matchOf(i);
                     return new SemicolonScan(closing < 0 ? to : closing + 1,
                             i, closing, equalSeen, false);
@@ -160,7 +160,7 @@ final class MemberScans {
             TokenKind sort = slice.kind(i);
             if (sort == TokenKind.OPEN_BRACKET) {
                 int close = slice.matchOf(i);
-                if ("{".equals(Tokens.texteCrochet(slice, i)) && !equalSeen) {
+                if ("{".equals(Tokens.bracketText(slice, i)) && !equalSeen) {
                     return new LineScan(i, close, close < 0 ? slice.size() : close + 1);
                 }
                 if (close < 0) {
@@ -226,7 +226,7 @@ final class MemberScans {
         int end = scan.end();
         boolean error = opening >= 0 && closing < 0;
         List<SynNode> body = opening < 0 ? new ArrayList<>()
-                : Corps.instructions(slice, opening + 1,
+                : BodyParser.instructions(slice, opening + 1,
                         closing < 0 ? slice.size() : closing,
                         CLikeKind.STATEMENT, CLikeKind.BLOC, CLikeKind.ERREUR);
         if (error) {

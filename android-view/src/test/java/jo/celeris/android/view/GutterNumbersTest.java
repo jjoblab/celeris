@@ -15,45 +15,45 @@ class GutterNumbersTest {
     /** Les étiquettes sont exactes, des unités aux centaines de mille. */
     @Test
     void etiquettesExactes() {
-        GutterNumbers numeros = new GutterNumbers();
-        assertEquals("1", numeros.label(1));
-        assertEquals("7", numeros.label(7));
-        assertEquals("42", numeros.label(42));
-        assertEquals("1000", numeros.label(1000));
-        assertEquals("100000", numeros.label(100000));
+        GutterNumbers numbers = new GutterNumbers();
+        assertEquals("1", numbers.label(1));
+        assertEquals("7", numbers.label(7));
+        assertEquals("42", numbers.label(42));
+        assertEquals("1000", numbers.label(1000));
+        assertEquals("100000", numbers.label(100000));
     }
 
     /** La même instance revient à chaque image : la mémoïsation est par identité. */
     @Test
     void memoisationParInstance() {
-        GutterNumbers numeros = new GutterNumbers();
-        String premiere = numeros.label(12);
-        assertSame(premiere, numeros.label(12));
-        assertSame(premiere, numeros.label(12));
+        GutterNumbers numbers = new GutterNumbers();
+        String premiere = numbers.label(12);
+        assertSame(premiere, numbers.label(12));
+        assertSame(premiere, numbers.label(12));
     }
 
     /** Les numéros croissent dans le désordre : la mémoïsation comble les trous. */
     @Test
     void croissanceDansLeDesordre() {
-        GutterNumbers numeros = new GutterNumbers();
-        assertEquals("50", numeros.label(50));
-        assertEquals("3", numeros.label(3));
-        assertSame(numeros.label(50), numeros.label(50));
+        GutterNumbers numbers = new GutterNumbers();
+        assertEquals("50", numbers.label(50));
+        assertEquals("3", numbers.label(3));
+        assertSame(numbers.label(50), numbers.label(50));
     }
 
     /** Le nombre de chiffres est servi par l'étiquette mémoïsée. */
     @Test
     void chiffresServisParEtiquette() {
-        GutterNumbers numeros = new GutterNumbers();
-        assertEquals(1, numeros.digits(9));
-        assertEquals(4, numeros.digits(4096));
+        GutterNumbers numbers = new GutterNumbers();
+        assertEquals(1, numbers.digits(9));
+        assertEquals(4, numbers.digits(4096));
     }
 
     /** Un numéro invalide est une erreur de programmation, pas un silence. */
     @Test
     void numeroInvalideRejete() {
-        GutterNumbers numeros = new GutterNumbers();
-        assertThrows(IllegalArgumentException.class, () -> numeros.label(0));
-        assertThrows(IllegalArgumentException.class, () -> numeros.label(-3));
+        GutterNumbers numbers = new GutterNumbers();
+        assertThrows(IllegalArgumentException.class, () -> numbers.label(0));
+        assertThrows(IllegalArgumentException.class, () -> numbers.label(-3));
     }
 }

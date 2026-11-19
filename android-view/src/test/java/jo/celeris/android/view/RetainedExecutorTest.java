@@ -67,11 +67,11 @@ class RetainedExecutorTest {
     void rafaleNeLaissePartirQueLaDerniere() {
         MinuteurEssai minuteur = new MinuteurEssai();
         BaseEssai base = new BaseEssai();
-        RetainedExecutor executeur = new RetainedExecutor(base, minuteur, 250L);
+        RetainedExecutor executor = new RetainedExecutor(base, minuteur, 250L);
 
-        executeur.execute(() -> { });
-        executeur.execute(() -> { });
-        executeur.execute(() -> { });
+        executor.execute(() -> { });
+        executor.execute(() -> { });
+        executor.execute(() -> { });
 
         assertEquals(2, minuteur.annulations,
                 "chaque nouvelle soumission retire la planifiée");
@@ -87,9 +87,9 @@ class RetainedExecutorTest {
     void delaiNulRendLaMainImmediate() {
         MinuteurEssai minuteur = new MinuteurEssai();
         BaseEssai base = new BaseEssai();
-        RetainedExecutor executeur = new RetainedExecutor(base, minuteur, 0L);
+        RetainedExecutor executor = new RetainedExecutor(base, minuteur, 0L);
 
-        executeur.execute(() -> { });
+        executor.execute(() -> { });
 
         assertEquals(1, base.passages.size(), "la tâche part immédiatement");
         assertEquals(-1L, minuteur.dernierDelaiMs, "rien ne se programme");
@@ -99,18 +99,18 @@ class RetainedExecutorTest {
     @Test
     void delaiSeRegleAChaud() {
         MinuteurEssai minuteur = new MinuteurEssai();
-        RetainedExecutor executeur = new RetainedExecutor(
+        RetainedExecutor executor = new RetainedExecutor(
                 new BaseEssai(), minuteur, 250L);
 
-        assertEquals(250L, executeur.delayMs());
-        executeur.setDelayMs(600L);
-        assertEquals(600L, executeur.delayMs());
-        executeur.execute(() -> { });
+        assertEquals(250L, executor.delayMs());
+        executor.setDelayMs(600L);
+        assertEquals(600L, executor.delayMs());
+        executor.execute(() -> { });
         assertEquals(600L, minuteur.dernierDelaiMs,
                 "la reprogrammation suit le nouveau délai");
         // le délai négatif se borne : jamais de retenue négative
-        executeur.setDelayMs(-5L);
-        assertEquals(0L, executeur.delayMs());
-        assertTrue(executeur.delayMs() >= 0L);
+        executor.setDelayMs(-5L);
+        assertEquals(0L, executor.delayMs());
+        assertTrue(executor.delayMs() >= 0L);
     }
 }

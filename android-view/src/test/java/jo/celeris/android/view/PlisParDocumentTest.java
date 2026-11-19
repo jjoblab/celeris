@@ -31,8 +31,8 @@ public class PlisParDocumentTest {
 
     /** Le banc posé : la vue du rig, la session A, la langue, la
      *  publication drainée — les régions pliables vivent. */
-    private EditorView monter(TextSession sessionA) {
-        EditorTestRig banc = EditorTestRig.sur(
+    private EditorView start(TextSession sessionA) {
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "x\n");
         EditorView vue = banc.vue();
         vue.setSession(sessionA);
@@ -45,42 +45,42 @@ public class PlisParDocumentTest {
     @Test
     public void lePliSurvitAuChangementDonglet() {
         TextSession sessionA = TextSession.of(SOURCE);
-        EditorView vue = monter(sessionA);
+        EditorView vue = start(sessionA);
 
         // la méthode (ligne 1) se replie
         assertTrue("la ligne de méthode est pliable",
-                vue.syntaxe.marques().pliable(1));
-        assertTrue("le replie consomme", vue.syntaxe.basculerPli(1));
+                vue.syntaxe.marks().pliable(1));
+        assertTrue("le replie consomme", vue.syntaxe.toggleFold(1));
         assertTrue("la méthode est repliée",
-                vue.plis.isFolded(1));
+                vue.folds.isFolded(1));
 
         // changement d'onglet : l'état replié se MÉMORISE pour A
         vue.setSession(TextSession.of("class Autre {\n}\n"));
         assertFalse("le document B repart déplié",
-                vue.plis.isFolded(1));
+                vue.folds.isFolded(1));
 
         // retour au document A : SON pli revient
         vue.setSession(sessionA);
         assertTrue("le pli du document A revient au retour",
-                vue.plis.isFolded(1));
+                vue.folds.isFolded(1));
         vue.release();
     }
 
     @Test
     public void leDepliagePersisteAussi() {
         TextSession sessionA = TextSession.of(SOURCE);
-        EditorView vue = monter(sessionA);
+        EditorView vue = start(sessionA);
 
         // replier puis DÉPLIER : l'état déplié se retient
-        vue.syntaxe.basculerPli(1);
-        assertTrue(vue.plis.isFolded(1));
-        vue.syntaxe.basculerPli(1);
-        assertFalse("la méthode est dépliée", vue.plis.isFolded(1));
+        vue.syntaxe.toggleFold(1);
+        assertTrue(vue.folds.isFolded(1));
+        vue.syntaxe.toggleFold(1);
+        assertFalse("la méthode est dépliée", vue.folds.isFolded(1));
 
         vue.setSession(TextSession.of("class B {\n}\n"));
         vue.setSession(sessionA);
         assertFalse("le dépliage explicite persiste au retour",
-                vue.plis.isFolded(1));
+                vue.folds.isFolded(1));
         vue.release();
     }
 }

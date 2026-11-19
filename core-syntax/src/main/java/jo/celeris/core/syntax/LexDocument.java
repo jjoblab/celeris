@@ -12,12 +12,12 @@ package jo.celeris.core.syntax;
  */
 public final class LexDocument {
 
-    private final LexedLine[] lignes;
+    private final LexedLine[] lines;
     private final int[] profondeurs;
     private final LexState initial;
 
-    LexDocument(LexedLine[] lignes, int[] profondeurs, LexState initial) {
-        this.lignes = lignes;
+    LexDocument(LexedLine[] lines, int[] profondeurs, LexState initial) {
+        this.lines = lines;
         this.profondeurs = profondeurs;
         this.initial = initial;
     }
@@ -27,19 +27,19 @@ public final class LexDocument {
      * voie tree-sitter, module séparé, y bâtit son lexique sans
      * toucher au constructeur interne.
      *
-     * @param lignes     les lignes lexicographiées
+     * @param lines     les lignes lexicographiées
      * @param profondeurs les profondeurs de crochets par ligne
      * @param initial    l'état du lexeur en tête de document
      * @return le lexique versionné
      */
-    public static LexDocument of(LexedLine[] lignes, int[] profondeurs,
+    public static LexDocument of(LexedLine[] lines, int[] profondeurs,
             LexState initial) {
-        return new LexDocument(lignes, profondeurs, initial);
+        return new LexDocument(lines, profondeurs, initial);
     }
 
     /** Nombre de lignes lexicographiées (une ligne vide finale comprise). */
     public int lineCount() {
-        return lignes.length;
+        return lines.length;
     }
 
     /**
@@ -49,7 +49,7 @@ public final class LexDocument {
      * @return la ligne lexicographiée (jetons vides pour une ligne blanche)
      */
     public LexedLine line(int line) {
-        return lignes[Math.min(Math.max(line, 0), lignes.length - 1)];
+        return lines[Math.min(Math.max(line, 0), lines.length - 1)];
     }
 
     /**
@@ -63,7 +63,7 @@ public final class LexDocument {
         if (line <= 0) {
             return initial;
         }
-        return lignes[Math.min(line, lignes.length) - 1].exitState();
+        return lines[Math.min(line, lines.length) - 1].exitState();
     }
 
     /**
@@ -77,8 +77,8 @@ public final class LexDocument {
         return profondeurs[Math.min(Math.max(line, 0), profondeurs.length - 1)];
     }
 
-    LexedLine[] lignes() {
-        return lignes;
+    LexedLine[] lines() {
+        return lines;
     }
 
     int[] profondeurs() {

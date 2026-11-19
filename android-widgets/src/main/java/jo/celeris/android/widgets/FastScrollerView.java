@@ -22,18 +22,18 @@ import org.jspecify.annotations.Nullable;
 public final class FastScrollerView extends View {
 
     /** La largeur tactile de la bande, en dp. */
-    private static final float LARGEUR_DP = 16f;
+    private static final float WIDTH_DP = 16f;
 
     /** La largeur peinte du pouce au repos, en dp. */
-    private static final float LARGEUR_POUCE_DP = 4f;
+    private static final float THUMB_WIDTH_DP = 4f;
 
     /** La largeur peinte du pouce sous le doigt, en dp — le retour du geste. */
-    private static final float LARGEUR_POUCE_POSE_DP = 8f;
+    private static final float THUMB_SET_WIDTH_DP = 8f;
 
     /** La hauteur minimale du pouce, en dp. */
-    private static final float HAUTEUR_MIN_DP = 24f;
+    private static final float MIN_HEIGHT_DP = 24f;
 
-    private final Paint pinceau = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint brush = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final int largeurPx;
     private final float largeurPoucePx;
     private final float largeurPoucePosePx;
@@ -45,18 +45,18 @@ public final class FastScrollerView extends View {
     /** La part visible du document — le pouce la suit. */
     private float partVisible = 1f;
     /** Le doigt tient la bande : le pouce grossit, le glissement emporte. */
-    private boolean doigtPose;
+    private boolean fingerDown;
     private @Nullable DoubleConsumer onScroll;
     private PopupPalette palette;
 
     public FastScrollerView(Context context, PopupPalette palette) {
         super(context, null);
         float densite = getResources().getDisplayMetrics().density;
-        this.largeurPx = Math.round(LARGEUR_DP * densite);
-        this.largeurPoucePx = LARGEUR_POUCE_DP * densite;
-        this.largeurPoucePosePx = LARGEUR_POUCE_POSE_DP * densite;
-        this.hauteurMinPx = HAUTEUR_MIN_DP * densite;
-        poserPalette(palette);
+        this.largeurPx = Math.round(WIDTH_DP * densite);
+        this.largeurPoucePx = THUMB_WIDTH_DP * densite;
+        this.largeurPoucePosePx = THUMB_SET_WIDTH_DP * densite;
+        this.hauteurMinPx = MIN_HEIGHT_DP * densite;
+        setPalette(palette);
     }
 
     /**
@@ -65,11 +65,11 @@ public final class FastScrollerView extends View {
      * @param nouvelle la palette dérivée du thème courant
      */
     public void setPalette(PopupPalette nouvelle) {
-        poserPalette(nouvelle);
+        applyPalette(nouvelle);
         invalidate();
     }
 
-    private void poserPalette(PopupPalette nouvelle) {
+    private void applyPalette(PopupPalette nouvelle) {
         this.palette = nouvelle;
     }
 
@@ -80,14 +80,14 @@ public final class FastScrollerView extends View {
      * @param fraction    la fraction du défilement (0 en tête, 1 en pied)
      * @param partVisible la part visible du document (1 quand tout tient)
      */
-    public void setEtat(float fraction, float partVisible) {
+    public void setState(float fraction, float partVisible) {
         this.fraction = borne(fraction);
         this.partVisible = borne(partVisible);
         invalidate();
     }
 
-    private static float borne(float valeur) {
-        return Math.max(0f, Math.min(1f, valeur));
+    private static float borne(float value) {
+        return Math.max(0f, Math.min(1f, value));
     }
 
     /**
@@ -118,42 +118,42 @@ public final class FastScrollerView extends View {
     }
 
     /** La hauteur du pouce — la part visible de la bande, au plancher. */
-    private float hauteurPouce() {
+    private float thumbHeight() {
         return Math.max(hauteurMinPx, borne(partVisible) * getHeight());
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (partVisible >= 1f && !doigtPose) {
+        if (partVisible >= 1f && !fingerDown) {
             // tout tient : le pouce se tait — rien à dérouler vite
             return;
         }
-        float hauteur = hauteurPouce();
-        float course = getHeight() - hauteur;
+        float height = thumbHeight();
+        float course = getHeight() - height;
         float haut = course * fraction;
-        float largeur = doigtPose ? largeurPoucePosePx : largeurPoucePx;
+        float width = fingerDown ? largeurPoucePosePx : largeurPoucePx;
         float droite = getWidth();
-        pinceau.setColor(doigtPose ? palette.accent() : palette.muted());
-        canvas.drawRect(droite - largeur, haut, droite,
-                haut + hauteur, pinceau);
+        brush.setColor(fingerDown ? palette.accent() : palette.muted());
+        canvas.drawRect(droite - width, haut, droite,
+                haut + height, brush);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                doigtPose = true;
-                glisser(event.getY());
+                fingerDown = true;
+                drag(event.getY());
                 return true;
             case MotionEvent.ACTION_MOVE:
-                if (doigtPose) {
-                    glisser(event.getY());
+                if (fingerDown) {
+                    drag(event.getY());
                 }
                 return true;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                if (doigtPose) {
-                    doigtPose = false;
+                if (fingerDown) {
+                    fingerDown = false;
                     performClick();
                     invalidate();
                     return true;
@@ -169,10 +169,10 @@ public final class FastScrollerView extends View {
      * pouce — la fraction suit la course du pouce, jamais hors des
      * bornes.
      */
-    private void glisser(float y) {
-        float hauteur = hauteurPouce();
-        float course = Math.max(1f, getHeight() - hauteur);
-        float visee = borne((y - hauteur / 2f) / course);
+    private void drag(float y) {
+        float height = thumbHeight();
+        float course = Math.max(1f, getHeight() - height);
+        float visee = borne((y - height / 2f) / course);
         if (onScroll != null) {
             onScroll.accept(visee);
         }

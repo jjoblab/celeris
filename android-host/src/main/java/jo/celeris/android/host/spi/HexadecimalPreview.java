@@ -20,10 +20,10 @@ import java.util.Objects;
 public final class HexadecimalPreview {
 
     /** Le plafond de lignes : 256 lignes, 4 Kio d'octets. */
-    public static final int PLAFOND_LIGNES = 256;
+    public static final int LINES_LIMIT = 256;
 
     /** Les octets par ligne : seize, le classique du vidage. */
-    public static final int OCTETS_PAR_LIGNE = 16;
+    public static final int BYTES_PER_LINE = 16;
 
     private HexadecimalPreview() {
     }
@@ -31,14 +31,14 @@ public final class HexadecimalPreview {
     /**
      * L'aperçu borné : les lignes du vidage et son drapeau de coupe.
      *
-     * @param lignes  les lignes rendues, au plus {@link #PLAFOND_LIGNES}
+     * @param lines  les lignes rendues, au plus {@link #LINES_LIMIT}
      * @param tronque vrai quand le fichier dépasse le plafond
      */
-    public record Dump(List<String> lignes, boolean tronque) {
+    public record Dump(List<String> lines, boolean tronque) {
 
         /** Constructeur canonique : liste figée. */
         public Dump {
-            lignes = List.copyOf(lignes);
+            lines = List.copyOf(lines);
         }
     }
 
@@ -51,31 +51,31 @@ public final class HexadecimalPreview {
      * @param octets les octets bruts du fichier
      * @return l'aperçu : ses lignes et son drapeau de coupe
      */
-    public static Dump de(byte[] octets) {
+    public static Dump of(byte[] octets) {
         Objects.requireNonNull(octets, "octets");
-        List<String> lignes = new ArrayList<>();
-        int total = Math.min(octets.length, PLAFOND_LIGNES * OCTETS_PAR_LIGNE);
-        for (int debut = 0; debut < total; debut += OCTETS_PAR_LIGNE) {
-            lignes.add(ligne(octets, debut, total));
+        List<String> lines = new ArrayList<>();
+        int total = Math.min(octets.length, LINES_LIMIT * BYTES_PER_LINE);
+        for (int start = 0; start < total; start += BYTES_PER_LINE) {
+            lines.add(line(octets, start, total));
         }
-        return new Dump(lignes, octets.length > total);
+        return new Dump(lines, octets.length > total);
     }
 
     /** La ligne du vidage : décalage, seize octets, gouttière. */
-    private static String ligne(byte[] octets, int debut, int total) {
-        StringBuilder hexa = new StringBuilder(OCTETS_PAR_LIGNE * 3);
-        StringBuilder gouttiere = new StringBuilder(OCTETS_PAR_LIGNE);
-        for (int i = 0; i < OCTETS_PAR_LIGNE; i++) {
-            int index = debut + i;
+    private static String line(byte[] octets, int start, int total) {
+        StringBuilder hexa = new StringBuilder(BYTES_PER_LINE * 3);
+        StringBuilder gutter = new StringBuilder(BYTES_PER_LINE);
+        for (int i = 0; i < BYTES_PER_LINE; i++) {
+            int index = start + i;
             if (index < total) {
-                int valeur = octets[index] & 0xFF;
-                hexa.append(String.format("%02X ", valeur));
-                gouttiere.append(valeur >= 0x20 && valeur <= 0x7E
-                        ? (char) valeur : '.');
+                int value = octets[index] & 0xFF;
+                hexa.append(String.format("%02X ", value));
+                gutter.append(value >= 0x20 && value <= 0x7E
+                        ? (char) value : '.');
             } else {
                 hexa.append("   ");
             }
         }
-        return String.format("%08X  %s |%s|", debut, hexa, gouttiere);
+        return String.format("%08X  %s |%s|", start, hexa, gutter);
     }
 }

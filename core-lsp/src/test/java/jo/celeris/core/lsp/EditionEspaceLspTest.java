@@ -1,9 +1,9 @@
 package jo.celeris.core.lsp;
 
-import jo.celeris.core.lsp.types.EditionDocumentLsp;
-import jo.celeris.core.lsp.types.EditionTexteLsp;
-import jo.celeris.core.lsp.types.PlageLsp;
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.DocumentEditLsp;
+import jo.celeris.core.lsp.types.TextEditLsp;
+import jo.celeris.core.lsp.types.RangeLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -27,11 +27,11 @@ class EditionEspaceLspTest {
     @Test
     void laTranspositionEnTransaction() {
         Document doc = Document.of("class Client {}\n");
-        EditionDocumentLsp edition = new EditionDocumentLsp("file:///A.java", 1, List.of(
-                new EditionTexteLsp(new PlageLsp(new PositionLsp(0, 6), new PositionLsp(0, 12)),
+        DocumentEditLsp edit = new DocumentEditLsp("file:///A.java", 1, List.of(
+                new TextEditLsp(new RangeLsp(new LspPosition(0, 6), new LspPosition(0, 12)),
                         "Acheteur")));
         TextSession session = TextSession.of("class Client {}\n", System::nanoTime);
-        session.apply(EditsEspaceLsp.transaction(doc, edition));
+        session.apply(WorkspaceEditsLsp.transaction(doc, edit));
         assertEquals("class Acheteur {}\n", session.text());
         // annulable : le retour arrière restitue l'original (B-17)
         session.undo();
@@ -42,12 +42,12 @@ class EditionEspaceLspTest {
     @Test
     void lesEditionsMultiples() {
         Document doc = Document.of("un deux trois\n");
-        EditionDocumentLsp edition = new EditionDocumentLsp("file:///A.txt", 1, List.of(
-                new EditionTexteLsp(new PlageLsp(new PositionLsp(0, 0), new PositionLsp(0, 2)), "1"),
-                new EditionTexteLsp(new PlageLsp(new PositionLsp(0, 8), new PositionLsp(0, 13)), "3"),
-                new EditionTexteLsp(new PlageLsp(new PositionLsp(0, 3), new PositionLsp(0, 7)), "2")));
+        DocumentEditLsp edit = new DocumentEditLsp("file:///A.txt", 1, List.of(
+                new TextEditLsp(new RangeLsp(new LspPosition(0, 0), new LspPosition(0, 2)), "1"),
+                new TextEditLsp(new RangeLsp(new LspPosition(0, 8), new LspPosition(0, 13)), "3"),
+                new TextEditLsp(new RangeLsp(new LspPosition(0, 3), new LspPosition(0, 7)), "2")));
         TextSession session = TextSession.of("un deux trois\n", System::nanoTime);
-        session.apply(EditsEspaceLsp.transaction(doc, edition));
+        session.apply(WorkspaceEditsLsp.transaction(doc, edit));
         assertEquals("1 2 3\n", session.text());
         session.undo();
         assertEquals("un deux trois\n", session.text());

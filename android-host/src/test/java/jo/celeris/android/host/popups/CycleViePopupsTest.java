@@ -17,7 +17,7 @@ import org.robolectric.RuntimeEnvironment;
 
 /**
  * Le cycle de vie de l'orchestrateur (chantier C1, revue du 2026-11-17) :
- * {@code detacher()} promet « les liens se dissolvent » — le banc le
+ * {@code detach()} promet « les liens se dissolvent » — le banc le
  * prouve. Avant le correctif, les écouteurs de session posés au
  * constructeur (édition, sélection) n'étaient JAMAIS retirés : la
  * session vivante retenait l'orchestrateur, donc la couche, donc le
@@ -38,18 +38,18 @@ public class CycleViePopupsTest {
     @Test
     public void detacherRetireLesEcouteursDeSession() {
         Application contexte = RuntimeEnvironment.getApplication();
-        EditorView editeur = new EditorView(contexte);
+        EditorView editor = new EditorView(contexte);
         PopupLayer couche = new PopupLayer(contexte);
         TextSession session = TextSession.of(DOCUMENT, System::nanoTime);
-        editeur.setSession(session);
-        PopupsEditeur popups = new PopupsEditeur(editeur, session, couche,
-                jo.celeris.android.view.EditorThemes.SOMBRE, 14f,
+        editor.setSession(session);
+        EditorPopups popups = new EditorPopups(editor, session, couche,
+                jo.celeris.android.view.EditorThemes.DARK, 14f,
                 CoachPopups.muet());
 
         // La sonde témoin : elle vit sur la session, elle seule doit
         // rester après le détachement.
         int[] editionsVues = new int[1];
-        session.addEditListener((debut, fin, retire, insere) ->
+        session.addEditListener((start, end, retire, insere) ->
                 editionsVues[0]++);
 
         // Avant : l'orchestrateur écoute — l'édition réveille le kit
@@ -59,7 +59,7 @@ public class CycleViePopupsTest {
                 editionsVues[0] > 0);
 
         // Le détachement : les liens se dissolvent.
-        popups.detacher();
+        popups.detach();
 
         // Après : l'édition traverse la session, la sonde seule compte.
         // Si l'orchestrateur écoutait encore, son écouteur leverait
@@ -83,25 +83,25 @@ public class CycleViePopupsTest {
     @Test
     public void detacherNeLaisseAucuneCarteOuverte() {
         Application contexte = RuntimeEnvironment.getApplication();
-        EditorView editeur = new EditorView(contexte);
+        EditorView editor = new EditorView(contexte);
         PopupLayer couche = new PopupLayer(contexte);
         TextSession session = TextSession.of(DOCUMENT, System::nanoTime);
-        editeur.setSession(session);
-        PopupsEditeur popups = new PopupsEditeur(editeur, session, couche,
-                jo.celeris.android.view.EditorThemes.SOMBRE, 14f,
+        editor.setSession(session);
+        EditorPopups popups = new EditorPopups(editor, session, couche,
+                jo.celeris.android.view.EditorThemes.DARK, 14f,
                 CoachPopups.muet());
 
-        popups.notifier("titre", "message");
+        popups.notifyListeners("titre", "message");
         assertTrue("la notification vit avant le détachement",
                 popups.manager().estOuvert(
                         PopupController.PopupKind.NOTIFICATION));
 
-        popups.detacher();
+        popups.detach();
         assertFalse("le détachement ferme toute carte ouverte",
                 popups.manager().estOuvert(
                         PopupController.PopupKind.NOTIFICATION));
         // Idempotent : un second détachement ne lève rien.
-        popups.detacher();
+        popups.detach();
         assertFalse("le second détachement ne change rien",
                 popups.manager().estOuvert(
                         PopupController.PopupKind.NOTIFICATION));

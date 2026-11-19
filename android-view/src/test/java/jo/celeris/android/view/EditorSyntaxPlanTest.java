@@ -42,7 +42,7 @@ class EditorSyntaxPlanTest {
             """;
 
     /** Une source qui ne rend rien : habiller l'enveloppe, jamais ne la consulte ici. */
-    private static final RowSource SOURCE_MUETTE = cle -> {
+    private static final RowSource SOURCE_MUETTE = key -> {
         throw new UnsupportedOperationException("pas consultée par le pont");
     };
 
@@ -60,11 +60,11 @@ class EditorSyntaxPlanTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel());
         syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
 
         Document document = session.document();
-        syntaxe.habiller(SOURCE_MUETTE, document);
+        syntaxe.wrap(SOURCE_MUETTE, document);
 
         assertEquals(2, plans.size(), "le rattachement vide, l'analyse habille");
         assertTrue(plans.get(0).isEmpty(), "un document sans analyse n'a pas de plan");
@@ -79,7 +79,7 @@ class EditorSyntaxPlanTest {
                         .findFirst().orElseThrow().category());
         assertTrue(pousse.stream().anyMatch(e -> "premiere".equals(e.name())),
                 "la méthode figure au plan");
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /** L'édition renomme une déclaration : le plan poussé la suit. */
@@ -89,14 +89,14 @@ class EditorSyntaxPlanTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel());
         syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
         int avant = plans.size();
 
-        int cible = SOURCE.indexOf("premiere");
-        session.replaceRange(cible, cible + 8, "troisieme");
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        int target = SOURCE.indexOf("premiere");
+        session.replaceRange(target, target + 8, "troisieme");
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
 
         assertEquals(avant + 1, plans.size(), "l'édition republie le plan");
         List<OutlineEntry> pousse = plans.get(plans.size() - 1);
@@ -104,7 +104,7 @@ class EditorSyntaxPlanTest {
                 "le renommé figure au plan");
         assertTrue(pousse.stream().noneMatch(e -> "premiere".equals(e.name())),
                 "l'ancien nom a disparu du plan");
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /**
@@ -118,21 +118,21 @@ class EditorSyntaxPlanTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
         int avant = plans.size();
         assertTrue(plans.get(avant - 1).stream()
                 .anyMatch(e -> "Exemple".equals(e.name())), "le plan initial est là");
 
-        int cible = SOURCE.indexOf("seconde");
-        session.replaceRange(cible, cible + 7, "quatrieme");
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        int target = SOURCE.indexOf("seconde");
+        session.replaceRange(target, target + 7, "quatrieme");
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
 
         List<OutlineEntry> pousse = plans.get(plans.size() - 1);
         assertTrue(pousse.stream().anyMatch(e -> "quatrieme".equals(e.name())),
                 "le plan suit la publication de la nouvelle révision");
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /** Le retrait du langage vide le plan : le consommateur n'affiche rien. */
@@ -142,15 +142,15 @@ class EditorSyntaxPlanTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
         assertTrue(plans.get(plans.size() - 1).size() > 0, "un plan est affiché");
 
         syntaxe.setLanguage(null);
 
         assertTrue(plans.get(plans.size() - 1).isEmpty(),
                 "le retrait du langage vide le plan");
-        syntaxe.fermer();
+        syntaxe.close();
     }
 }

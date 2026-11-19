@@ -8,14 +8,14 @@ import org.jspecify.annotations.Nullable;
  * les types de la bibliothèque vit derrière la frontière protocolaire
  * (ADR-015, CorrespondanceLsp).
  *
- * @param plage    la plage du diagnostic, en positions LSP
- * @param gravite  la gravité (1 erreur, 2 avertissement, 3 information,
+ * @param range    la plage du diagnostic, en positions LSP
+ * @param severity  la gravité (1 erreur, 2 avertissement, 3 information,
  *                 4 suggestion), zéro si absente
  * @param message  le message humain
  * @param code     le code du diagnostic, ou null
  * @param source   la source (le nom de l'analyseur), ou null
  */
-public record DiagnosticLsp(PlageLsp plage, int gravite, String message,
+public record DiagnosticLsp(RangeLsp range, int severity, String message,
                             @Nullable String code, @Nullable String source) {
 
     /** La gravité « erreur ». */

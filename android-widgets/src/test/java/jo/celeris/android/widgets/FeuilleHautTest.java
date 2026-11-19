@@ -37,15 +37,15 @@ public class FeuilleHautTest {
                 Settings.Global.ANIMATOR_DURATION_SCALE, 0f);
     }
 
-    private FrameLayout hotePose(int largeur, int hauteur) {
-        FrameLayout hote = new FrameLayout(contexte);
-        hote.measure(
-                View.MeasureSpec.makeMeasureSpec(largeur,
+    private FrameLayout hotePose(int width, int height) {
+        FrameLayout host = new FrameLayout(contexte);
+        host.measure(
+                View.MeasureSpec.makeMeasureSpec(width,
                         View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(hauteur,
+                View.MeasureSpec.makeMeasureSpec(height,
                         View.MeasureSpec.EXACTLY));
-        hote.layout(0, 0, largeur, hauteur);
-        return hote;
+        host.layout(0, 0, width, height);
+        return host;
     }
 
     private void trainerHaut(View poignee, float dy) {
@@ -61,22 +61,22 @@ public class FeuilleHautTest {
     /** La feuille se pose au haut du cadre, centree, voile compris. */
     @Test
     public void laFeuilleSePoseAuHautDuCadre() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleHaut feuille = new FeuilleHaut(contexte, PopupPalette.dark());
         feuille.titre("Revue d'agent");
         TextView contenu = new TextView(contexte);
         feuille.contenu(contenu);
-        feuille.montrer(hote);
+        feuille.show(host);
         assertTrue(feuille.estOuverte());
         assertEquals("la gravite du haut se pose",
                 Gravity.TOP | Gravity.CENTER_HORIZONTAL,
                 ((FrameLayout.LayoutParams) feuille.getLayoutParams()).gravity);
         assertTrue("le voile vit sous la feuille",
-                hote.getChildAt(0) == feuille.voileVue());
-        hote.measure(
+                host.getChildAt(0) == feuille.voileVue());
+        host.measure(
                 View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(1800, View.MeasureSpec.EXACTLY));
-        hote.layout(0, 0, 1000, 1800);
+        host.layout(0, 0, 1000, 1800);
         assertEquals("la feuille se pose au bord haut", 0, feuille.getTop());
         assertTrue("la largeur se cantonne (densite 1 : 760 px)",
                 feuille.getWidth() <= 760);
@@ -86,10 +86,10 @@ public class FeuilleHautTest {
      *  descend ne fait rien. */
     @Test
     public void leGlissementQuiMonteEmporte() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleHaut feuille = new FeuilleHaut(contexte, PopupPalette.dark());
         feuille.contenu(new TextView(contexte));
-        feuille.montrer(hote);
+        feuille.show(host);
         trainerHaut(feuille.poigneeVue(), 60f);
         assertTrue("verser vers le bas n'emporte pas la feuille du haut",
                 feuille.estOuverte());
@@ -103,12 +103,12 @@ public class FeuilleHautTest {
     /** Le retour se consomme une fois, puis la feuille laisse passer. */
     @Test
     public void leRetourFermeEtPasse() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleHaut feuille = new FeuilleHaut(contexte, PopupPalette.dark());
         feuille.contenu(new TextView(contexte));
-        feuille.montrer(hote);
-        assertTrue(feuille.surRetour());
+        feuille.show(host);
+        assertTrue(feuille.onBack());
         assertFalse(feuille.estOuverte());
-        assertFalse(feuille.surRetour());
+        assertFalse(feuille.onBack());
     }
 }

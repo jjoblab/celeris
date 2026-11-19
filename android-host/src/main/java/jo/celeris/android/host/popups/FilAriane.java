@@ -16,8 +16,8 @@ import jo.celeris.core.text.TextSession;
 /**
  * Le fil d'Ariane de l'éditeur : le chemin du plan qui englobe le
  * curseur, du dehors au dedans, posé au coin haut-gauche de la
- * couche. Le plan s'y abreuvement ({@link #setPlan}), le
- * rafraîchissement suit le curseur ({@link #rafraichir}) — vide hors
+ * couche. Le plan s'y abreuvement ({@link #setOutline}), le
+ * rafraîchissement suit le curseur ({@link #refresh}) — vide hors
  * de tout symbole, le fil se referme.
  */
 final class FilAriane {
@@ -54,31 +54,31 @@ final class FilAriane {
     }
 
     /** Le plan du fichier ouvert — le fil s'y abreuvement. */
-    void setPlan(List<OutlineEntry> entrees) {
+    void setOutline(List<OutlineEntry> entrees) {
         plan = List.copyOf(entrees);
     }
 
     /** Le fil du curseur : les entrées du plan qui l'englobent, du
      *  dehors au dedans — vide, le fil se referme. */
-    void rafraichir() {
+    void refresh() {
         List<String> chemin = ContenuPopups.pathFor(plan, caret());
         if (chemin.isEmpty()) {
-            popups.fermer(PopupController.PopupKind.BREADCRUMB);
+            popups.close(PopupController.PopupKind.BREADCRUMB);
             return;
         }
         popups.controleur().open(PopupController.PopupKind.BREADCRUMB);
         vue.setPath(chemin, popups.couche().getWidth());
         PopupPlacer.Cadre placee = PopupAnchor.topLeftCorner(
-                popups.taille(PopupController.PopupKind.BREADCRUMB),
+                popups.size(PopupController.PopupKind.BREADCRUMB),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.BREADCRUMB,
+        popups.show(PopupController.PopupKind.BREADCRUMB,
                 placee.x(), placee.y());
     }
 
     /** Le caret courant — la première plage de sélection, zéro si vide. */
     private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).caret();
     }
 }

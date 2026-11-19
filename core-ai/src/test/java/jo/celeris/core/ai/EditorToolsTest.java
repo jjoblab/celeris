@@ -41,9 +41,9 @@ class EditorToolsTest {
         TextSession session = TextSession.of("fun principal() {}", System::nanoTime);
         EditorTools outils = outils(session);
 
-        assertEquals(new ReadRange(0, "fun"), outils.lire(0, 3));
+        assertEquals(new ReadRange(0, "fun"), outils.read(0, 3));
         assertEquals(new ReadRange(0, "fun principal() {}"), outils.instantane());
-        assertThrows(IndexOutOfBoundsException.class, () -> outils.lire(0, 99),
+        assertThrows(IndexOutOfBoundsException.class, () -> outils.read(0, 99),
                 "une plage hors document ne se lit pas");
     }
 
@@ -56,8 +56,8 @@ class EditorToolsTest {
         TextSession session = TextSession.of("fun principal() {}", System::nanoTime);
         EditorTools outils = outils(session);
 
-        assertEquals(1, outils.symboles().size());
-        assertEquals("principal", outils.symboles().get(0).name());
+        assertEquals(1, outils.symbols().size());
+        assertEquals("principal", outils.symbols().get(0).name());
         assertEquals(1, outils.diagnostics().size());
         assertEquals("accolade non fermee", outils.diagnostics().get(0).message());
     }
@@ -78,7 +78,7 @@ class EditorToolsTest {
         ToolTransaction perimee = new ToolTransaction(lue.revision(),
                 List.of(new TextEdit(0, "val", "var")));
         ToolTransactionReply refus = outils.appliquer(perimee);
-        assertEquals(ToolTransactionReply.Sortie.REFUSEE_CONFLIT, refus.sortie());
+        assertEquals(ToolTransactionReply.Sortie.REFUSEE_CONFLIT, refus.output());
         assertTrue(refus.message().contains("relire"),
                 "le refus dit quoi faire : " + refus.message());
         assertEquals("val a = 1 ", session.document().text(),
@@ -88,7 +88,7 @@ class EditorToolsTest {
                 session.document().revision(),
                 List.of(new TextEdit(0, "val", "var")));
         ToolTransactionReply reponse = outils.appliquer(fraiche);
-        assertEquals(ToolTransactionReply.Sortie.APPLIQUEE, reponse.sortie());
+        assertEquals(ToolTransactionReply.Sortie.APPLIQUEE, reponse.output());
         assertEquals("var a = 1 ", session.document().text());
         assertTrue(session.undo(), "l'application s'annule d'un geste");
     }
@@ -106,17 +106,17 @@ class EditorToolsTest {
         session.setReadOnly(true);
         assertEquals(ToolTransactionReply.Sortie.REFUSEE_PROTECTION,
                 outils.appliquer(new ToolTransaction(revision,
-                        List.of(new TextEdit(0, "val", "var")))).sortie());
+                        List.of(new TextEdit(0, "val", "var")))).output());
         session.setReadOnly(false);
 
         assertEquals(ToolTransactionReply.Sortie.REFUSEE_EDITS,
                 outils.appliquer(new ToolTransaction(revision,
-                        List.of(new TextEdit(0, "VAR", "var")))).sortie(),
+                        List.of(new TextEdit(0, "VAR", "var")))).output(),
                 "le texte retire inexact ne s'applique pas");
 
         assertEquals(ToolTransactionReply.Sortie.REFUSEE_VIDE,
                 outils.appliquer(new ToolTransaction(revision, List.of()))
-                        .sortie());
+                        .output());
     }
 
     /**
@@ -134,7 +134,7 @@ class EditorToolsTest {
                         new TextEdit(0, "un", "1"),
                         new TextEdit(3, "deux", "2"),
                         new TextEdit(8, "trois", "3"))));
-        assertEquals(ToolTransactionReply.Sortie.APPLIQUEE, reponse.sortie());
+        assertEquals(ToolTransactionReply.Sortie.APPLIQUEE, reponse.output());
         assertEquals("1 2 3", session.document().text());
     }
 }

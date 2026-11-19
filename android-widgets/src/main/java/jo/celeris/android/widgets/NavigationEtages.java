@@ -29,23 +29,23 @@ final class NavigationEtages {
         if (nombre == 0) {
             return -1;
         }
-        int cible = surligne < 0 ? premiereAction(nombre, estEntete)
+        int target = surligne < 0 ? premiereAction(nombre, estEntete)
                 : surligne;
         int pasRestant = surligne < 0 ? Math.abs(pas) - 1 : Math.abs(pas);
         int direction = pas >= 0 ? 1 : -1;
         while (pasRestant > 0) {
-            cible += direction;
-            if (cible < 0 || cible >= nombre) {
+            target += direction;
+            if (target < 0 || target >= nombre) {
                 break;
             }
-            if (!estEntete.test(cible)) {
+            if (!estEntete.test(target)) {
                 pasRestant--;
             }
         }
-        if (cible < 0 || cible >= nombre || estEntete.test(cible)) {
+        if (target < 0 || target >= nombre || estEntete.test(target)) {
             return -1;
         }
-        return cible;
+        return target;
     }
 
     /** La première rangée d'ACTION du menu — la navigation y part. */

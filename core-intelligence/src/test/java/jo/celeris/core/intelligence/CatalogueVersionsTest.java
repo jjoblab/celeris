@@ -37,7 +37,7 @@ final class CatalogueVersionsTest {
     /** La lecture rend les alias de chaque section. */
     @Test
     void lectureRendLesAliasDeChaqueSection() {
-        CatalogueVersions catalogue = CatalogueVersions.lire(TOML);
+        CatalogueVersions catalogue = CatalogueVersions.read(TOML);
         assertTrue(catalogue.bibliotheques().contains("androidx-core"),
                 "les bibliothèques sont lues");
         assertTrue(catalogue.bibliotheques().contains("reseau-moshi"),
@@ -52,7 +52,7 @@ final class CatalogueVersionsTest {
     /** Les alias suggérés suivent l'accès Gradle : tirets en points. */
     @Test
     void aliasSuggeresSuiventLAccesGradle() {
-        CatalogueVersions catalogue = CatalogueVersions.lire(TOML);
+        CatalogueVersions catalogue = CatalogueVersions.read(TOML);
         List<String> candidats = CatalogueVersions.completerAlias(catalogue, "libs.");
         assertTrue(candidats.contains("libs.androidx.core"),
                 "les tirets deviennent des points : " + candidats);
@@ -67,7 +67,7 @@ final class CatalogueVersionsTest {
     /** Les bundles ouvrent leur espace de noms propre. */
     @Test
     void bundlesOuvrentLeurEspaceDeNoms() {
-        CatalogueVersions catalogue = CatalogueVersions.lire(TOML);
+        CatalogueVersions catalogue = CatalogueVersions.read(TOML);
         List<String> candidats = CatalogueVersions.completerAlias(catalogue,
                 "libs.bundles.");
         assertEquals(List.of("libs.bundles.reseau"), candidats,
@@ -77,7 +77,7 @@ final class CatalogueVersionsTest {
     /** Le préfixe inexistant ne suggère rien, jamais null. */
     @Test
     void prefixeInexistantNeSuggerereRien() {
-        CatalogueVersions catalogue = CatalogueVersions.lire(TOML);
+        CatalogueVersions catalogue = CatalogueVersions.read(TOML);
         assertTrue(CatalogueVersions.completerAlias(catalogue, "libs.aucun.").isEmpty());
         assertTrue(CatalogueVersions.completerAlias(catalogue, "autre.").isEmpty());
     }
@@ -85,7 +85,7 @@ final class CatalogueVersionsTest {
     /** Le catalogue vide reste un catalogue valide. */
     @Test
     void catalogueVideResteValide() {
-        CatalogueVersions catalogue = CatalogueVersions.lire("");
+        CatalogueVersions catalogue = CatalogueVersions.read("");
         assertTrue(catalogue.versions().isEmpty());
         assertTrue(CatalogueVersions.completerAlias(catalogue, "libs.").isEmpty());
     }
@@ -93,7 +93,7 @@ final class CatalogueVersionsTest {
     /** Ligne sans égal ou en dehors d'une section : ignorée. */
     @Test
     void lignesHorsSectionsIgnorees() {
-        CatalogueVersions catalogue = CatalogueVersions.lire("version = \"1\"\n[libraries]\n"
+        CatalogueVersions catalogue = CatalogueVersions.read("version = \"1\"\n[libraries]\n"
                 + "androidx-core = { module = \"a:b\" }\nbibre sans rien");
         assertEquals(1, catalogue.bibliotheques().size(), "seule la section libraries lit");
         assertTrue(catalogue.versions().isEmpty(), "hors section, rien n'est lu");

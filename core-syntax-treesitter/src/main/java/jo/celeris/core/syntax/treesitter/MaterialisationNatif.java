@@ -35,7 +35,7 @@ import jo.celeris.core.text.Document;
 final class MaterialisationNatif {
 
     /** Les mots réservés des grammaires servies — la teinte clé. */
-    private static final Map<String, TokenKind> SORTES = Map.ofEntries(
+    private static final Map<String, TokenKind> KINDS = Map.ofEntries(
             Map.entry("true", TokenKind.KEYWORD),
             Map.entry("false", TokenKind.KEYWORD),
             Map.entry("null", TokenKind.KEYWORD),
@@ -91,16 +91,16 @@ final class MaterialisationNatif {
             Map.entry("void", TokenKind.OPERATOR));
 
     /** Le jeton d'une feuille : sa colonne (caractères) et sa longueur. */
-    private record LeafToken(TokenKind sorte, int debut, int fin) {
+    private record LeafToken(TokenKind sorte, int start, int end) {
     }
 
     private final Document document;
     /** Le début (caractères) de chaque ligne du document. */
-    private final int[] debutLigne;
+    private final int[] lineStart;
 
     private MaterialisationNatif(Document document) {
         this.document = document;
-        this.debutLigne = debutsDeLignes();
+        this.lineStart = lineStarts();
     }
 
     /**
@@ -111,33 +111,33 @@ final class MaterialisationNatif {
      *
      * @param document   l'instantané analysé
      * @param aplatit    l'arbre aplati (six entiers par nœud, préordre)
-     * @param symboles   la table des noms de symboles du langage
+     * @param symbols   la table des noms de symboles du langage
      * @param revision   la révision de l'instantané
      * @return l'analyse entière, versionnée
      */
-    static Analysis de(Document document, int[] aplatit, String[] symboles,
+    static Analysis of(Document document, int[] aplatit, String[] symbols,
             int revision) {
         MaterialisationNatif matiere = new MaterialisationNatif(document);
-        return matiere.materiel(aplatit, symboles, revision);
+        return matiere.materiel(aplatit, symbols, revision);
     }
 
     /** Les débuts (caractères) de chaque ligne du document. */
-    private int[] debutsDeLignes() {
+    private int[] lineStarts() {
         int nombre = document.lineCount();
         int[] debuts = new int[nombre];
-        for (int ligne = 0; ligne < nombre; ligne++) {
-            debuts[ligne] = document.lineStart(ligne);
+        for (int line = 0; line < nombre; line++) {
+            debuts[line] = document.lineStart(line);
         }
         return debuts;
     }
 
     /** La ligne (indice) d'un caractère donné — recherche dichotomique. */
-    private int ligneDe(int caractere) {
+    private int lineOf(int caractere) {
         int bas = 0;
-        int haut = debutLigne.length - 1;
+        int haut = lineStart.length - 1;
         while (bas < haut) {
             int milieu = (bas + haut + 1) >>> 1;
-            if (debutLigne[milieu] <= caractere) {
+            if (lineStart[milieu] <= caractere) {
                 bas = milieu;
             } else {
                 haut = milieu - 1;
@@ -147,15 +147,15 @@ final class MaterialisationNatif {
     }
 
     /** La matière : le lexique et l'arbre des chunks. */
-    private Analysis materiel(int[] aplatit, String[] symboles, int revision) {
+    private Analysis materiel(int[] aplatit, String[] symbols, int revision) {
         List<LeafToken> leaves = new ArrayList<>();
         List<int[]> blocks = new ArrayList<>();
-        parcourir(aplatit, symboles, leaves, blocks);
-        LexedLine[] lignes = lexique(leaves);
-        int[] profondeurs = profondeurs(lignes);
+        parcourir(aplatit, symbols, leaves, blocks);
+        LexedLine[] lines = lexicon(leaves);
+        int[] profondeurs = profondeurs(lines);
         SyntaxTree arbre = arbre(blocks, revision);
         return new Analysis(revision,
-                LexDocument.of(lignes, profondeurs, EtatNatif.PREMIER), arbre);
+                LexDocument.of(lines, profondeurs, NativeState.PREMIER), arbre);
     }
 
     /**
@@ -164,7 +164,7 @@ final class MaterialisationNatif {
      * se ramassent en blocs — la pile des enfants restants tient la
      * profondeur (un nœud sans enfant n'y descend jamais).
      */
-    private void parcourir(int[] aplatit, String[] symboles,
+    private void parcourir(int[] aplatit, String[] symbols,
             List<LeafToken> leaves, List<int[]> blocks) {
         int[] restants = new int[64];
         int profondeur = 0;
@@ -174,15 +174,15 @@ final class MaterialisationNatif {
                 restants[profondeur - 1]--;
             }
             int symbole = aplatit[i];
-            int debut = aplatit[i + 1];
-            int fin = aplatit[i + 2];
-            if (profondeur == 1 && fin > debut) {
-                blocks.add(new int[] {debut, fin, aplatit[i + 3]});
+            int start = aplatit[i + 1];
+            int end = aplatit[i + 2];
+            if (profondeur == 1 && end > start) {
+                blocks.add(new int[] {start, end, aplatit[i + 3]});
             }
             if (enfants == 0) {
-                if (fin > debut) {
-                    leaves.add(new LeafToken(sorteDe(symboles[symbole]),
-                            debut, fin));
+                if (end > start) {
+                    leaves.add(new LeafToken(kindOf(symbols[symbole]),
+                            start, end));
                 }
             } else {
                 if (profondeur >= restants.length) {
@@ -204,40 +204,40 @@ final class MaterialisationNatif {
      *  grammaire les découpe, le lexique du socle les soude), les
      *  blancs APPARTIENNENT au jeton qui les suit — la convention du
      *  socle, sauf le blanc de TÊTE de ligne, qui n'est à personne. */
-    private LexedLine[] lexique(List<LeafToken> leaves) {
+    private LexedLine[] lexicon(List<LeafToken> leaves) {
         souder(leaves);
         int nombre = document.lineCount();
-        LexedLine[] lignes = new LexedLine[nombre];
+        LexedLine[] lines = new LexedLine[nombre];
         List<Token> panier = new ArrayList<>();
         int index = 0;
-        for (int ligne = 0; ligne < nombre; ligne++) {
+        for (int line = 0; line < nombre; line++) {
             panier.clear();
-            int debut = debutLigne[ligne];
-            int fin = document.lineEnd(ligne);
+            int start = lineStart[line];
+            int end = document.lineEnd(line);
             int curseur = -1;
-            while (index < leaves.size() && leaves.get(index).debut() < fin) {
-                LeafToken jeton = leaves.get(index);
-                if (jeton.fin() <= debut) {
+            while (index < leaves.size() && leaves.get(index).start() < end) {
+                LeafToken token = leaves.get(index);
+                if (token.end() <= start) {
                     index++;
                     continue;
                 }
-                int finRogne = Math.min(jeton.fin(), fin);
+                int finRogne = Math.min(token.end(), end);
                 int debutRogne = curseur < 0
-                        ? Math.max(jeton.debut(), debut) : curseur;
+                        ? Math.max(token.start(), start) : curseur;
                 if (finRogne > debutRogne) {
-                    panier.add(new Token(jeton.sorte(),
-                            debutRogne - debut, finRogne - debut));
+                    panier.add(new Token(token.sorte(),
+                            debutRogne - start, finRogne - start));
                 }
-                if (jeton.fin() > fin) {
+                if (token.end() > end) {
                     break;
                 }
                 index++;
-                curseur = jeton.fin();
+                curseur = token.end();
             }
-            lignes[ligne] = new LexedLine(panier.toArray(new Token[0]),
-                    EtatNatif.PREMIER);
+            lines[line] = new LexedLine(panier.toArray(new Token[0]),
+                    NativeState.PREMIER);
         }
-        return lignes;
+        return lines;
     }
 
     /** Soude les feuilles contiguës de même sorte — la chaîne de la
@@ -246,18 +246,18 @@ final class MaterialisationNatif {
      *  restent deux jetons, l'appariement le exige). */
     private static void souder(List<LeafToken> leaves) {
         int ecrit = 0;
-        for (LeafToken jeton : leaves) {
+        for (LeafToken token : leaves) {
             if (ecrit > 0) {
                 LeafToken precedent = leaves.get(ecrit - 1);
                 if (souirable(precedent.sorte())
-                        && precedent.sorte() == jeton.sorte()
-                        && precedent.fin() == jeton.debut()) {
+                        && precedent.sorte() == token.sorte()
+                        && precedent.end() == token.start()) {
                     leaves.set(ecrit - 1, new LeafToken(precedent.sorte(),
-                            precedent.debut(), jeton.fin()));
+                            precedent.start(), token.end()));
                     continue;
                 }
             }
-            leaves.set(ecrit, jeton);
+            leaves.set(ecrit, token);
             ecrit++;
         }
         if (ecrit < leaves.size()) {
@@ -272,15 +272,15 @@ final class MaterialisationNatif {
     }
 
     /** Les profondeurs de crochets au début de chaque ligne. */
-    private int[] profondeurs(LexedLine[] lignes) {
-        int[] profondeurs = new int[lignes.length];
+    private int[] profondeurs(LexedLine[] lines) {
+        int[] profondeurs = new int[lines.length];
         int profondeur = 0;
-        for (int ligne = 0; ligne < lignes.length; ligne++) {
-            profondeurs[ligne] = profondeur;
-            for (Token jeton : lignes[ligne].tokens()) {
-                if (jeton.kind() == TokenKind.OPEN_BRACKET) {
+        for (int line = 0; line < lines.length; line++) {
+            profondeurs[line] = profondeur;
+            for (Token token : lines[line].tokens()) {
+                if (token.kind() == TokenKind.OPEN_BRACKET) {
                     profondeur++;
-                } else if (jeton.kind() == TokenKind.CLOSE_BRACKET
+                } else if (token.kind() == TokenKind.CLOSE_BRACKET
                         && profondeur > 0) {
                     profondeur--;
                 }
@@ -294,39 +294,39 @@ final class MaterialisationNatif {
     private SyntaxTree arbre(List<int[]> blocks, int revision) {
         List<Chunk> chunks = new ArrayList<>();
         for (int[] bloc : blocks) {
-            int ligneDebut = bloc[2];
-            int ligneFin = ligneDe(bloc[1] - 1);
-            if (ligneFin <= ligneDebut) {
+            int startLine = bloc[2];
+            int endLine = lineOf(bloc[1] - 1);
+            if (endLine <= startLine) {
                 continue;
             }
-            int debut = document.lineStart(ligneDebut);
+            int start = document.lineStart(startLine);
             SynNode racine = SynNode.of(NativeNodeKind.NODE, NodeCategory.BLOCK,
-                    0, bloc[1] - debut, new SynNode[0], null, false);
-            chunks.add(new Chunk(ligneDebut, bloc[0] - debut, ligneFin,
-                    finDeColonne(bloc[1], ligneFin), racine));
+                    0, bloc[1] - start, new SynNode[0], null, false);
+            chunks.add(new Chunk(startLine, bloc[0] - start, endLine,
+                    finDeColonne(bloc[1], endLine), racine));
         }
         return SyntaxTree.of(revision, List.copyOf(chunks));
     }
 
     /** La colonne (caractères) d'un début de ligne. */
-    private int finDeColonne(int caractere, int ligne) {
-        return caractere - document.lineStart(ligne);
+    private int finDeColonne(int caractere, int line) {
+        return caractere - document.lineStart(line);
     }
 
     /** Les opérateurs d'un seul caractère — la table qui les dit. */
     private static final String OPERATEURS = "+-*/%=<>!~&|^?";
 
     /** La sorte de jeton d'un symbole de grammaire. */
-    private static TokenKind sorteDe(String nom) {
+    private static TokenKind kindOf(String nom) {
         if (nom.length() == 1) {
-            return sorteDuCaractere(nom.charAt(0));
+            return kindOfChar(nom.charAt(0));
         }
-        return sorteDuNom(nom);
+        return kindOfName(nom);
     }
 
     /** La sorte d'un symbole d'un caractère : crochet, chaîne,
      *  opérateur de la table, ponctuation sinon. */
-    private static TokenKind sorteDuCaractere(char caractere) {
+    private static TokenKind kindOfChar(char caractere) {
         return switch (caractere) {
             case '{', '[', '(' -> TokenKind.OPEN_BRACKET;
             case '}', ']', ')' -> TokenKind.CLOSE_BRACKET;
@@ -338,8 +338,8 @@ final class MaterialisationNatif {
 
     /** La sorte d'un symbole nommé : le mot réservé de la table, la
      *  construction par son nom — l'identificateur en repli. */
-    private static TokenKind sorteDuNom(String nom) {
-        TokenKind reservee = SORTES.get(nom);
+    private static TokenKind kindOfName(String nom) {
+        TokenKind reservee = KINDS.get(nom);
         if (reservee != null) {
             return reservee;
         }

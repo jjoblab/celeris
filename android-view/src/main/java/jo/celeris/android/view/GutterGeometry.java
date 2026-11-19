@@ -21,12 +21,12 @@ public final class GutterGeometry {
      * @return le nombre de chiffres (1 pour 1 à 9, 2 pour 10 à 99…)
      */
     public static int digits(int number) {
-        int chiffres = 1;
+        int digits = 1;
         while (number >= BASE) {
             number /= BASE;
-            chiffres++;
+            digits++;
         }
-        return chiffres;
+        return digits;
     }
 
     /**
@@ -92,14 +92,14 @@ public final class GutterGeometry {
      *
      * @param labelLength le nombre de caractères du numéro affiché
      * @param gutterWidth la largeur totale de la gouttière
-     * @param bandePli    la largeur de la bande de plis, en pixels
+     * @param foldBand    la largeur de la bande de plis, en pixels
      * @param charWidth   la largeur d'un caractère, en pixels
      * @param padding     la respiration à droite du champ, en pixels
      * @return l'abscisse de départ du numéro
      */
-    public static float numberX(int labelLength, float gutterWidth, float bandePli,
+    public static float numberX(int labelLength, float gutterWidth, float foldBand,
             float charWidth, float padding) {
-        return gutterWidth - bandePli - padding - labelLength * charWidth;
+        return gutterWidth - foldBand - padding - labelLength * charWidth;
     }
 
     /**
@@ -109,12 +109,12 @@ public final class GutterGeometry {
      *
      * @param x                l'abscisse testée, en pixels
      * @param largeurGouttiere la largeur totale de la gouttière, en pixels
-     * @param bandePli         la largeur de la bande de plis, en pixels
+     * @param foldBand         la largeur de la bande de plis, en pixels
      * @return vrai quand l'abscisse tombe dans la bande
      */
-    public static boolean dansLaBande(float x, float largeurGouttiere,
-            float bandePli) {
-        float dansBande = x - (largeurGouttiere - bandePli);
-        return dansBande >= 0f && dansBande < bandePli;
+    public static boolean inBand(float x, float largeurGouttiere,
+            float foldBand) {
+        float dansBande = x - (largeurGouttiere - foldBand);
+        return dansBande >= 0f && dansBande < foldBand;
     }
 }

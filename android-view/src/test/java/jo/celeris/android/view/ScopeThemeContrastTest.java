@@ -32,7 +32,7 @@ final class ScopeThemeContrastTest {
     @Test
     void chaqueEncreDesThemesLivresContrasteSurSonFond() {
         for (EditorTheme theme : List.of(EditorThemes.CLAIR,
-                EditorThemes.SOMBRE, EditorThemes.CONTRASTE_ELEVE)) {
+                EditorThemes.DARK, EditorThemes.CONTRASTE_ELEVE)) {
             for (String sonde : SONDES) {
                 int pile = ScopeStacks.push(
                         ScopeStacks.root("source.probe"), sonde);
@@ -40,10 +40,10 @@ final class ScopeThemeContrastTest {
                 assertNotNull(style, sonde + " résout dans " + theme.id());
                 assertTrue(style.hasInk(),
                         sonde + " fixe une encre dans " + theme.id());
-                double rapport = WcagContrast.ratio(style.foreground(),
+                double report = WcagContrast.ratio(style.foreground(),
                         theme.backgroundColor());
-                assertTrue(rapport >= 4.5,
-                        sonde + " contraste à " + String.format("%.2f", rapport)
+                assertTrue(report >= 4.5,
+                        sonde + " contraste à " + String.format("%.2f", report)
                                 + ":1 sur le fond du thème " + theme.id());
             }
         }

@@ -33,8 +33,8 @@ public final class Commenter {
      */
     public static Optional<EditPlan> toggle(Document doc, MultiSelection selection,
             CommentRules rules) {
-        if (rules.ligne() != null) {
-            return Optional.of(lignes(doc, selection, rules.ligne()));
+        if (rules.line() != null) {
+            return Optional.of(lines(doc, selection, rules.line()));
         }
         if (rules.blocDebut() != null && rules.blocFin() != null) {
             return bloc(doc, selection, rules.blocDebut(), rules.blocFin());
@@ -43,49 +43,49 @@ public final class Commenter {
     }
 
     /** Le basculement ligne à ligne : tout ou rien sur le bloc touché. */
-    private static EditPlan lignes(Document doc, MultiSelection selection, String prefixe) {
-        List<Integer> lignes = lignesTouchees(doc, selection);
+    private static EditPlan lines(Document doc, MultiSelection selection, String prefixe) {
+        List<Integer> lines = touchedLines(doc, selection);
         boolean auMoinsUne = false;
         boolean toutesCommentees = true;
-        for (int l : lignes) {
-            String texte = doc.lineText(l);
-            if (texte.isBlank()) {
+        for (int l : lines) {
+            String text = doc.lineText(l);
+            if (text.isBlank()) {
                 continue;
             }
             auMoinsUne = true;
-            if (!debutSignificatif(texte).startsWith(prefixe.strip())) {
+            if (!debutSignificatif(text).startsWith(prefixe.strip())) {
                 toutesCommentees = false;
             }
         }
-        List<TextEdit> editions = new ArrayList<>();
+        List<TextEdit> edits = new ArrayList<>();
         List<SelRange> apres = new ArrayList<>();
         List<int[]> tournures = new ArrayList<>();
         int delta = 0;
         boolean commenter = auMoinsUne && !toutesCommentees;
-        for (int l : lignes) {
-            String texte = doc.lineText(l);
-            if (texte.isBlank()) {
+        for (int l : lines) {
+            String text = doc.lineText(l);
+            if (text.isBlank()) {
                 continue;
             }
-            int debutSignificatif = doc.lineStart(l) + indentation(texte);
+            int debutSignificatif = doc.lineStart(l) + indentation(text);
             if (commenter) {
-                editions.add(new TextEdit(debutSignificatif + delta, "", prefixe));
+                edits.add(new TextEdit(debutSignificatif + delta, "", prefixe));
                 tournures.add(new int[] {debutSignificatif, 0, prefixe.length()});
                 delta += prefixe.length();
-            } else if (auMoinsUne && debutSignificatif(texte).startsWith(prefixe.strip())) {
+            } else if (auMoinsUne && debutSignificatif(text).startsWith(prefixe.strip())) {
                 // le préfixe réellement présent part : « //x » sans espace
                 // se décommente, la transaction ne lève jamais
-                String retire = prefixePresent(debutSignificatif(texte), prefixe);
-                editions.add(new TextEdit(debutSignificatif + delta, retire, ""));
+                String retire = prefixePresent(debutSignificatif(text), prefixe);
+                edits.add(new TextEdit(debutSignificatif + delta, retire, ""));
                 tournures.add(new int[] {debutSignificatif, retire.length(), 0});
                 delta -= retire.length();
             }
         }
-        for (SelRange plage : selection.ranges()) {
-            apres.add(new SelRange(projeter(plage.anchor(), tournures),
-                    projeter(plage.caret(), tournures)));
+        for (SelRange range : selection.ranges()) {
+            apres.add(new SelRange(projeter(range.anchor(), tournures),
+                    projeter(range.caret(), tournures)));
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /**
@@ -95,8 +95,8 @@ public final class Commenter {
     private static int projeter(int position, List<int[]> tournures) {
         int resultat = position;
         for (int[] tournure : tournures) {
-            int fin = tournure[0] + tournure[1];
-            if (resultat >= fin) {
+            int end = tournure[0] + tournure[1];
+            if (resultat >= end) {
                 resultat += tournure[2] - tournure[1];
             } else if (resultat > tournure[0]) {
                 resultat = tournure[0];
@@ -108,19 +108,19 @@ public final class Commenter {
     /** Le basculement par bloc : entourer ou dégager la sélection. */
     private static Optional<EditPlan> bloc(Document doc, MultiSelection selection,
             String debutBloc, String finBloc) {
-        List<TextEdit> editions = new ArrayList<>();
+        List<TextEdit> edits = new ArrayList<>();
         List<SelRange> apres = new ArrayList<>();
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
-            int debut = plage.start();
-            int fin = plage.end();
-            if (debut == fin) {
+        for (SelRange range : selection.ranges()) {
+            int start = range.start();
+            int end = range.end();
+            if (start == end) {
                 // plage vide : la ligne entière sert de sélection
-                int ligne = doc.lineForOffset(debut);
-                debut = doc.lineStart(ligne) + indentation(doc.lineText(ligne));
-                fin = doc.lineEnd(ligne);
+                int line = doc.lineForOffset(start);
+                start = doc.lineStart(line) + indentation(doc.lineText(line));
+                end = doc.lineEnd(line);
             }
-            String contenu = doc.subText(debut, fin);
+            String contenu = doc.subText(start, end);
             boolean deja = contenu.startsWith(debutBloc) && contenu.endsWith(finBloc)
                     && contenu.length() >= debutBloc.length() + finBloc.length();
             String insere;
@@ -128,38 +128,38 @@ public final class Commenter {
             if (deja) {
                 insere = contenu.substring(debutBloc.length(),
                         contenu.length() - finBloc.length());
-                apresPlage = new SelRange(debut + delta,
-                        debut + delta + insere.length());
+                apresPlage = new SelRange(start + delta,
+                        start + delta + insere.length());
             } else {
                 insere = debutBloc + contenu + finBloc;
-                apresPlage = new SelRange(debut + delta + debutBloc.length(),
-                        debut + delta + debutBloc.length() + contenu.length());
+                apresPlage = new SelRange(start + delta + debutBloc.length(),
+                        start + delta + debutBloc.length() + contenu.length());
             }
-            editions.add(new TextEdit(debut + delta, contenu, insere));
+            edits.add(new TextEdit(start + delta, contenu, insere));
             apres.add(apresPlage);
             delta += insere.length() - contenu.length();
         }
-        return Optional.of(new EditPlan(Transaction.of(editions),
+        return Optional.of(new EditPlan(Transaction.of(edits),
                 MultiSelection.of(apres)));
     }
 
     /** Les lignes du bloc touché, sans doublon, dans l'ordre. */
-    private static List<Integer> lignesTouchees(Document doc, MultiSelection selection) {
-        List<Integer> lignes = new ArrayList<>();
-        for (SelRange plage : selection.ranges()) {
-            int premiere = doc.lineForOffset(plage.start());
-            int derniere = doc.lineForOffset(Math.max(plage.start(), plage.end() - 1));
+    private static List<Integer> touchedLines(Document doc, MultiSelection selection) {
+        List<Integer> lines = new ArrayList<>();
+        for (SelRange range : selection.ranges()) {
+            int premiere = doc.lineForOffset(range.start());
+            int derniere = doc.lineForOffset(Math.max(range.start(), range.end() - 1));
             for (int l = premiere; l <= derniere; l++) {
-                if (!lignes.contains(l)) {
-                    lignes.add(l);
+                if (!lines.contains(l)) {
+                    lines.add(l);
                 }
             }
         }
-        return lignes;
+        return lines;
     }
 
-    private static String debutSignificatif(String ligne) {
-        return ligne.substring(indentation(ligne));
+    private static String debutSignificatif(String line) {
+        return line.substring(indentation(line));
     }
 
     /** Le préfixe réellement présent sur une ligne commentée : la
@@ -169,7 +169,7 @@ public final class Commenter {
         return significatif.startsWith(prefixe) ? prefixe : prefixe.strip();
     }
 
-    private static int indentation(String ligne) {
-        return IndentEngine.leadingWhitespace(ligne).length();
+    private static int indentation(String line) {
+        return IndentEngine.leadingWhitespace(line).length();
     }
 }

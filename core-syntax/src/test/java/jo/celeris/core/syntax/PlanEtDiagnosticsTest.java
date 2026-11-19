@@ -26,7 +26,7 @@ class PlanEtDiagnosticsTest {
     /** Le plan liste les déclarations avec nom, catégorie et lignes. */
     @Test
     void planListeLesDeclarations() {
-        String texte = """
+        String text = """
                 fn premier {
                   x
                 }
@@ -35,7 +35,7 @@ class PlanEtDiagnosticsTest {
                   y
                 }
                 """;
-        Document doc = Document.of(texte);
+        Document doc = Document.of(text);
         List<OutlineEntry> plan = TreeOutline.entries(doc, service.analyseFull(doc));
         assertEquals(3, plan.size());
         assertEquals(NodeCategory.FUNCTION, plan.get(0).category());
@@ -54,14 +54,14 @@ class PlanEtDiagnosticsTest {
     /** Le plan suit les déplacements : insertion de lignes en amont. */
     @Test
     void planSuitLesDecalages() {
-        String texte = "fn a { x }\nfn b { y }\n";
-        Document doc = Document.of(texte);
+        String text = "fn a { x }\nfn b { y }\n";
+        Document doc = Document.of(text);
         Analysis complet = service.analyseFull(doc);
-        int cible = texte.indexOf("fn a");
-        Document edite = doc.replace(cible, cible, "n1\nn2\nn3\n");
+        int target = text.indexOf("fn a");
+        Document edite = doc.replace(target, target, "n1\nn2\nn3\n");
         List<OutlineEntry> plan = TreeOutline.entries(edite,
                 service.analyseIncremental(edite, complet,
-                        EditSite.of(doc, edite, cible, cible, "n1\nn2\nn3\n")));
+                        EditSite.of(doc, edite, target, target, "n1\nn2\nn3\n")));
         assertEquals(2, plan.size());
         assertEquals("a", plan.get(0).name());
         assertEquals(3, plan.get(0).startLine(), "les trois lignes insérées décalent tout");
@@ -72,14 +72,14 @@ class PlanEtDiagnosticsTest {
     /** Une déclaration ajoutée entre deux autres apparaît au plan. */
     @Test
     void declarationAjouteeApparait() {
-        String texte = "fn a { x }\nfn c { y }\n";
-        Document doc = Document.of(texte);
+        String text = "fn a { x }\nfn c { y }\n";
+        Document doc = Document.of(text);
         Analysis complet = service.analyseFull(doc);
-        int cible = texte.indexOf("fn c");
-        Document edite = doc.replace(cible, cible, "fn b { z }\n");
+        int target = text.indexOf("fn c");
+        Document edite = doc.replace(target, target, "fn b { z }\n");
         List<OutlineEntry> plan = TreeOutline.entries(edite,
                 service.analyseIncremental(edite, complet,
-                        EditSite.of(doc, edite, cible, cible, "fn b { z }\n")));
+                        EditSite.of(doc, edite, target, target, "fn b { z }\n")));
         assertEquals(3, plan.size());
         assertEquals("a", plan.get(0).name());
         assertEquals("b", plan.get(1).name());
@@ -89,8 +89,8 @@ class PlanEtDiagnosticsTest {
     /** Les erreurs de l'arbre deviennent des plages localisées, triées. */
     @Test
     void erreursDeviennentPlagesLocalisees() {
-        String texte = "fn casse {\n  x\n";
-        Document doc = Document.of(texte);
+        String text = "fn casse {\n  x\n";
+        Document doc = Document.of(text);
         List<SyntaxIssue> problemes = TreeDiagnostics.issues(doc, service.analyseFull(doc));
         assertEquals(1, problemes.size(), "un seul chunk malformé");
         SyntaxIssue probleme = problemes.get(0);
@@ -103,8 +103,8 @@ class PlanEtDiagnosticsTest {
     /** Un source sain ne produit aucun diagnostic. */
     @Test
     void sourceSainSansDiagnostics() {
-        String texte = "fn a {\n  x\n}\nvar v ;\n";
-        Document doc = Document.of(texte);
+        String text = "fn a {\n  x\n}\nvar v ;\n";
+        Document doc = Document.of(text);
         List<SyntaxIssue> problemes = TreeDiagnostics.issues(doc, service.analyseFull(doc));
         assertTrue(problemes.isEmpty());
     }

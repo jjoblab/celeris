@@ -51,12 +51,12 @@ class VirtualRowsTest {
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 4);
 
-        List<VirtualRows.Row> rangees = VirtualRows.visible(document, projection,
+        List<VirtualRows.Row> rows = VirtualRows.visible(document, projection,
                 metrics(), 0, 2, 20f, 0f, 0f);
 
-        assertEquals(2, rangees.size());
-        assertEquals("abcd", rangees.get(0).text());
-        assertEquals("efgh", rangees.get(1).text());
+        assertEquals(2, rows.size());
+        assertEquals("abcd", rows.get(0).text());
+        assertEquals("efgh", rows.get(1).text());
     }
 
     /** Les bornes de chaque rangée : du bord de texte à la largeur tracée. */
@@ -66,16 +66,16 @@ class VirtualRowsTest {
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 4);
 
-        List<VirtualRows.Row> rangees = VirtualRows.visible(document, projection,
+        List<VirtualRows.Row> rows = VirtualRows.visible(document, projection,
                 metrics(), 0, 2, 20f, 0f, 0f);
 
-        VirtualRows.Row premiere = rangees.get(0);
+        VirtualRows.Row premiere = rows.get(0);
         assertEquals(0, premiere.row());
         assertEquals(20f, premiere.left(), 1e-6f);
         assertEquals(0f, premiere.top(), 1e-6f);
         assertEquals(20f + 4 * 10f, premiere.right(), 1e-6f);
         assertEquals(20f, premiere.bottom(), 1e-6f);
-        VirtualRows.Row seconde = rangees.get(1);
+        VirtualRows.Row seconde = rows.get(1);
         assertEquals(1, seconde.row());
         assertEquals(20f, seconde.top(), 1e-6f);
         assertEquals(40f, seconde.bottom(), 1e-6f);
@@ -88,11 +88,11 @@ class VirtualRowsTest {
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 10);
 
-        List<VirtualRows.Row> rangees = VirtualRows.visible(document, projection,
+        List<VirtualRows.Row> rows = VirtualRows.visible(document, projection,
                 metrics(), 0, 2, 20f, 0f, 0f);
 
-        assertEquals("ab", rangees.get(0).text());
-        assertEquals("cd", rangees.get(1).text());
+        assertEquals("ab", rows.get(0).text());
+        assertEquals("cd", rows.get(1).text());
     }
 
     /** La fenêtre ne sert que les rangées demandées, défilement déduit. */
@@ -102,12 +102,12 @@ class VirtualRowsTest {
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
 
-        List<VirtualRows.Row> rangees = VirtualRows.visible(document, projection,
+        List<VirtualRows.Row> rows = VirtualRows.visible(document, projection,
                 metrics(), 1, 1, 20f, 0f, 20f);
 
-        assertEquals(1, rangees.size());
-        assertEquals("cd", rangees.get(0).text());
-        assertEquals(0f, rangees.get(0).top(), 1e-6f);
-        assertEquals(20f, rangees.get(0).bottom(), 1e-6f);
+        assertEquals(1, rows.size());
+        assertEquals("cd", rows.get(0).text());
+        assertEquals(0f, rows.get(0).top(), 1e-6f);
+        assertEquals(20f, rows.get(0).bottom(), 1e-6f);
     }
 }

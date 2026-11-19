@@ -22,7 +22,7 @@ import jo.celeris.core.text.Document;
 public final class OptimiseurImports {
 
     /** Le rapport d'un import : sa ligne, son texte complet, son usage. */
-    public record RapportImport(int ligne, String importComplet, boolean utilise) {
+    public record RapportImport(int line, String importComplet, boolean utilise) {
     }
 
     private OptimiseurImports() {
@@ -50,28 +50,28 @@ public final class OptimiseurImports {
         }
         List<RapportImport> rapports = new ArrayList<>();
         for (int l = 0; l < doc.lineCount(); l++) {
-            String texte = doc.lineText(l).strip();
+            String text = doc.lineText(l).strip();
             if (lignesImport.contains(l)) {
-                rapports.add(new RapportImport(l, texte,
-                        nomsUtilises.contains(nomSimple(texte))));
+                rapports.add(new RapportImport(l, text,
+                        nomsUtilises.contains(nomSimple(text))));
             }
         }
         return List.copyOf(rapports);
     }
 
-    private static boolean estImport(String ligne) {
-        String texte = ligne.strip();
-        return texte.startsWith("import ") && texte.endsWith(";");
+    private static boolean estImport(String line) {
+        String text = line.strip();
+        return text.startsWith("import ") && text.endsWith(";");
     }
 
     /** Le nom simple d'une ligne d'import : le dernier segment, point exclu. */
     private static String nomSimple(String importComplet) {
-        String corps = importComplet.substring("import ".length(),
+        String body = importComplet.substring("import ".length(),
                 importComplet.length() - 1);
-        if (corps.startsWith("static ")) {
-            corps = corps.substring("static ".length());
+        if (body.startsWith("static ")) {
+            body = body.substring("static ".length());
         }
-        int dernierPoint = corps.lastIndexOf('.');
-        return dernierPoint < 0 ? corps : corps.substring(dernierPoint + 1);
+        int dernierPoint = body.lastIndexOf('.');
+        return dernierPoint < 0 ? body : body.substring(dernierPoint + 1);
     }
 }

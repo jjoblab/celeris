@@ -72,7 +72,7 @@ final class EditorInputConnection implements InputConnection {
      * @param outAttrs    les informations à remplir
      * @return la connexion, ou null en lecture seule
      */
-    static @Nullable InputConnection creer(EditorView vue,
+    static @Nullable InputConnection create(EditorView vue,
             CompositionState composition, EditorInfo outAttrs) {
         if (vue.session.isReadOnly()) {
             outAttrs.inputType = InputType.TYPE_NULL;
@@ -96,10 +96,10 @@ final class EditorInputConnection implements InputConnection {
                 | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN
                 | EditorInfo.IME_ACTION_NONE;
-        List<SelRange> plages = session.selection().ranges();
-        if (!plages.isEmpty()) {
-            outAttrs.initialSelStart = plages.get(0).start();
-            outAttrs.initialSelEnd = plages.get(0).end();
+        List<SelRange> ranges = session.selection().ranges();
+        if (!ranges.isEmpty()) {
+            outAttrs.initialSelStart = ranges.get(0).start();
+            outAttrs.initialSelEnd = ranges.get(0).end();
         }
     }
 
@@ -125,9 +125,9 @@ final class EditorInputConnection implements InputConnection {
             return "";
         }
         Document document = vue.session().document();
-        int fin = primaire().start();
-        int debut = Math.max(0, fin - length);
-        return document.subText(debut, fin);
+        int end = primaire().start();
+        int start = Math.max(0, end - length);
+        return document.subText(start, end);
     }
 
     @Override
@@ -136,9 +136,9 @@ final class EditorInputConnection implements InputConnection {
             return "";
         }
         Document document = vue.session().document();
-        int debut = primaire().end();
-        int fin = Math.min(document.length(), debut + length);
-        return document.subText(debut, fin);
+        int start = primaire().end();
+        int end = Math.min(document.length(), start + length);
+        return document.subText(start, end);
     }
 
     /** Le plafond du texte de sélection servi à l'IME : le protocole
@@ -152,19 +152,19 @@ final class EditorInputConnection implements InputConnection {
         if (primaire.isEmpty()) {
             return null;
         }
-        CharSequence texte = vue.session().document().subText(
+        CharSequence text = vue.session().document().subText(
                 primaire.start(), primaire.end());
-        return texte.length() > MAX_SELECTED_TEXT_CHARS
-                ? texte.subSequence(0, MAX_SELECTED_TEXT_CHARS)
-                : texte;
+        return text.length() > MAX_SELECTED_TEXT_CHARS
+                ? text.subSequence(0, MAX_SELECTED_TEXT_CHARS)
+                : text;
     }
 
     @Override
     public int getCursorCapsMode(int reqModes) {
         Document document = vue.session().document();
-        int curseur = primaire().end();
-        int ligne = document.lineForOffset(curseur);
-        String texteLigne = document.subText(document.lineStart(ligne), curseur);
+        int cursor = primaire().end();
+        int line = document.lineForOffset(cursor);
+        String texteLigne = document.subText(document.lineStart(line), cursor);
         return TextUtils.getCapsMode(texteLigne, 0, reqModes);
     }
 
@@ -181,10 +181,10 @@ final class EditorInputConnection implements InputConnection {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             return null;
         }
-        SurroundingTexts.Window fenetre = SurroundingTexts.window(
+        SurroundingTexts.Window window = SurroundingTexts.window(
                 vue.session().document(), primaire(), beforeLength, afterLength);
-        return new SurroundingText(fenetre.text(), fenetre.selectionStart(),
-                fenetre.selectionEnd(), fenetre.docOffset());
+        return new SurroundingText(window.text(), window.selectionStart(),
+                window.selectionEnd(), window.docOffset());
     }
 
     /** Pas de texte extrait pleine page : l'IME travaille par fenêtres. */
@@ -306,8 +306,8 @@ final class EditorInputConnection implements InputConnection {
             return false;
         }
         composition.finish();
-        int curseur = curseurApres(s, e, text, newCursorPosition);
-        poserCurseur(curseur);
+        int cursor = cursorAfter(s, e, text, newCursorPosition);
+        setCursor(cursor);
         return true;
     }
 
@@ -469,11 +469,11 @@ final class EditorInputConnection implements InputConnection {
 
     /** La plage primaire : la première de la sélection normalisée. */
     private SelRange primaire() {
-        List<SelRange> plages = vue.session().selection().ranges();
-        if (plages.isEmpty()) {
+        List<SelRange> ranges = vue.session().selection().ranges();
+        if (ranges.isEmpty()) {
             return SelRange.caretAt(0);
         }
-        return plages.get(0);
+        return ranges.get(0);
     }
 
     /** Applique un plan de composition : édition, état, curseur, dévoilement. */
@@ -484,7 +484,7 @@ final class EditorInputConnection implements InputConnection {
         }
         composition.adopt(plan);
         if (plan.caret() >= 0) {
-            poserCurseur(plan.caret());
+            setCursor(plan.caret());
         } else {
             vue.curseurClavier.revealCaret();
         }
@@ -505,17 +505,17 @@ final class EditorInputConnection implements InputConnection {
         return false;
     }
 
-    private int curseurApres(int debut, int finRemplacee, CharSequence text,
+    private int cursorAfter(int start, int finRemplacee, CharSequence text,
             int newCursorPosition) {
-        int nouvelleFin = debut + text.length();
+        int nouvelleFin = start + text.length();
         Document document = vue.session().document();
-        int curseur = newCursorPosition > 0
+        int cursor = newCursorPosition > 0
                 ? nouvelleFin + newCursorPosition - 1
-                : debut + newCursorPosition;
-        return Math.max(0, Math.min(curseur, document.length()));
+                : start + newCursorPosition;
+        return Math.max(0, Math.min(cursor, document.length()));
     }
 
-    private void poserCurseur(int offset) {
+    private void setCursor(int offset) {
         vue.session().setSelection(MultiSelection.of(
                 SelRange.caretAt(Math.max(0, Math.min(offset,
                         vue.session().document().length())))));

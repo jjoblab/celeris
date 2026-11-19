@@ -54,7 +54,7 @@ final class DataStructureTest {
     }
 
     /** Les plis d'un document : l'arbre, les commentaires, l'indentation de la configuration. */
-    private static List<FoldSpan> plis(LanguageSupport support, Analysis analyse,
+    private static List<FoldSpan> folds(LanguageSupport support, Analysis analyse,
             Document doc) {
         LanguageConfiguration.Folding folding = support.configuration().folding();
         IndentationFolds.@Nullable Settings settings = folding.byIndentation()
@@ -66,10 +66,10 @@ final class DataStructureTest {
 
     /** Le plan d'un document : les règles de son paquet, prolongées à ses plis. */
     private static List<OutlineEntry> plan(LanguageSupport support, Document doc,
-            List<FoldSpan> plis) {
+            List<FoldSpan> folds) {
         assertFalse(support.outlineRules().isEmpty(),
                 support.id() + " porte ses règles de plan");
-        return RuleOutline.entries(doc, support.outlineRules(), plis);
+        return RuleOutline.entries(doc, support.outlineRules(), folds);
     }
 
     /** Python : les plis de l'indentation, le plan des définitions — rien de Java. */
@@ -97,10 +97,10 @@ final class DataStructureTest {
         assertNotNull(python, "python est là");
         Document doc = Document.of(source);
         Analysis analyse = analyse(python, source);
-        List<FoldSpan> plis = plis(python, analyse, doc);
-        assertTrue(plis.contains(new FoldSpan(5, 10)), "classifier se replie : " + plis);
-        assertTrue(plis.contains(new FoldSpan(12, 15)), "compter se replie : " + plis);
-        List<OutlineEntry> plan = plan(python, doc, plis);
+        List<FoldSpan> folds = folds(python, analyse, doc);
+        assertTrue(folds.contains(new FoldSpan(5, 10)), "classifier se replie : " + folds);
+        assertTrue(folds.contains(new FoldSpan(12, 15)), "compter se replie : " + folds);
+        List<OutlineEntry> plan = plan(python, doc, folds);
         assertEquals(3, plan.size(), "le plan : " + plan);
         assertEquals("CATEGORIES", plan.get(0).name());
         assertEquals(NodeCategory.FIELD, plan.get(0).category());
@@ -128,10 +128,10 @@ final class DataStructureTest {
         assertNotNull(yaml, "yaml est là");
         Document doc = Document.of(source);
         Analysis analyse = analyse(yaml, source);
-        List<FoldSpan> plis = plis(yaml, analyse, doc);
-        assertTrue(plis.contains(new FoldSpan(0, 6)), "catalogue se replie : " + plis);
-        assertTrue(plis.contains(new FoldSpan(2, 5)), "entrees se replie : " + plis);
-        List<OutlineEntry> plan = plan(yaml, doc, plis);
+        List<FoldSpan> folds = folds(yaml, analyse, doc);
+        assertTrue(folds.contains(new FoldSpan(0, 6)), "catalogue se replie : " + folds);
+        assertTrue(folds.contains(new FoldSpan(2, 5)), "entrees se replie : " + folds);
+        List<OutlineEntry> plan = plan(yaml, doc, folds);
         assertTrue(plan.stream().anyMatch(e -> "catalogue".equals(e.name())),
                 "le plan porte catalogue : " + plan);
         assertTrue(plan.stream().anyMatch(e -> "entrees".equals(e.name())),
@@ -160,10 +160,10 @@ final class DataStructureTest {
         assertNotNull(sql, "sql est là");
         Document doc = Document.of(source);
         Analysis analyse = analyse(sql, source);
-        List<FoldSpan> plis = plis(sql, analyse, doc);
-        assertTrue(plis.stream().anyMatch(r -> r.startLine() == 1 && r.endLine() == 5),
-                "la table se replie par ses crochets : " + plis);
-        List<OutlineEntry> plan = plan(sql, doc, plis);
+        List<FoldSpan> folds = folds(sql, analyse, doc);
+        assertTrue(folds.stream().anyMatch(r -> r.startLine() == 1 && r.endLine() == 5),
+                "la table se replie par ses crochets : " + folds);
+        List<OutlineEntry> plan = plan(sql, doc, folds);
         assertEquals(3, plan.size(), "le plan : " + plan);
         assertEquals("clients", plan.get(0).name());
         assertEquals(NodeCategory.TYPE, plan.get(0).category());

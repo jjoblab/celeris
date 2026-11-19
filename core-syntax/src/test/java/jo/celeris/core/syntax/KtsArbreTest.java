@@ -26,7 +26,7 @@ class KtsArbreTest {
 
     /** Le dialecte porte son identifiant propre. */
     @Test
-    void identifiant() {
+    void identifier() {
         assertEquals("kotlin", KotlinSyntax.INSTANCE.id());
         assertEquals("kts", KtsSyntax.INSTANCE.id());
     }
@@ -39,10 +39,10 @@ class KtsArbreTest {
         assertEquals(4, chunks.size(),
                 "chaque appel de premier niveau ouvre son chunk");
         assertEquals(0, chunks.get(0).startLine());
-        List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
-        assertEquals(5, plis.size(), "plugins, repositories, dependencies, tâche, doLast");
-        assertEquals(0, plis.get(0).startLine());
-        assertEquals(2, plis.get(0).endLine());
+        List<FoldSpan> folds = TreeFolds.regions(doc, service.analyseFull(doc));
+        assertEquals(5, folds.size(), "plugins, repositories, dependencies, tâche, doLast");
+        assertEquals(0, folds.get(0).startLine());
+        assertEquals(2, folds.get(0).endLine());
         assertTrue(TreeOutline.entries(doc, service.analyseFull(doc)).isEmpty(),
                 "aucune déclaration nommée dans un script");
         assertTrue(TreeDiagnostics.issues(doc, service.analyseFull(doc)).isEmpty());

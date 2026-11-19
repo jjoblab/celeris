@@ -21,72 +21,72 @@ import org.jspecify.annotations.Nullable;
 public final class IntegrationMarks {
 
     /** Les marques vides : aucune ligne marquée, aucun arrêt, aucune pause. */
-    public static final IntegrationMarks VIDE =
+    public static final IntegrationMarks EMPTY =
             new IntegrationMarks(Map.of(), Map.of(), null, Set.of());
 
-    private final Map<Integer, MarkLine> marquesVcs;
+    private final Map<Integer, MarkLine> vcsMarks;
 
-    private final Map<Integer, EtatBreakpoint> arrets;
+    private final Map<Integer, BreakpointState> breakpoints;
 
-    private final @Nullable Integer ligneCourante;
+    private final @Nullable Integer currentLine;
 
-    private final Set<Integer> lignesPile;
+    private final Set<Integer> stackLines;
 
-    private IntegrationMarks(Map<Integer, MarkLine> marquesVcs,
-            Map<Integer, EtatBreakpoint> arrets, @Nullable Integer ligneCourante,
-            Set<Integer> lignesPile) {
-        this.marquesVcs = Map.copyOf(marquesVcs);
-        this.arrets = Map.copyOf(arrets);
-        this.ligneCourante = ligneCourante;
-        this.lignesPile = Set.copyOf(lignesPile);
+    private IntegrationMarks(Map<Integer, MarkLine> vcsMarks,
+            Map<Integer, BreakpointState> breakpoints, @Nullable Integer currentLine,
+            Set<Integer> stackLines) {
+        this.vcsMarks = Map.copyOf(vcsMarks);
+        this.breakpoints = Map.copyOf(breakpoints);
+        this.currentLine = currentLine;
+        this.stackLines = Set.copyOf(stackLines);
     }
 
     /**
      * Les marques d'intégration depuis leurs sources.
      *
-     * @param marquesVcs    la marque de modification de chaque ligne
+     * @param vcsMarks    la marque de modification de chaque ligne
      *                      marquée (les absentes sont inchangées)
-     * @param arrets        l'état d'arrêt de chaque ligne porteuse (les
+     * @param breakpoints        l'état d'arrêt de chaque ligne porteuse (les
      *                      absentes n'en portent pas)
-     * @param ligneCourante la ligne courante de l'exécution en pause,
+     * @param currentLine la ligne courante de l'exécution en pause,
      *                      null hors pause
-     * @param lignesPile    les lignes des cadres de la pile courante
+     * @param stackLines    les lignes des cadres de la pile courante
      * @return les marques correspondantes
      */
-    public static IntegrationMarks of(Map<Integer, MarkLine> marquesVcs,
-            Map<Integer, EtatBreakpoint> arrets, @Nullable Integer ligneCourante,
-            Set<Integer> lignesPile) {
-        if (marquesVcs.isEmpty() && arrets.isEmpty() && ligneCourante == null
-                && lignesPile.isEmpty()) {
-            return VIDE;
+    public static IntegrationMarks of(Map<Integer, MarkLine> vcsMarks,
+            Map<Integer, BreakpointState> breakpoints, @Nullable Integer currentLine,
+            Set<Integer> stackLines) {
+        if (vcsMarks.isEmpty() && breakpoints.isEmpty() && currentLine == null
+                && stackLines.isEmpty()) {
+            return EMPTY;
         }
-        return new IntegrationMarks(marquesVcs, arrets, ligneCourante, lignesPile);
+        return new IntegrationMarks(vcsMarks, breakpoints, currentLine, stackLines);
     }
 
     /** Vrai quand aucune marque, aucun arrêt ni repère ne se peint. */
     public boolean estVide() {
-        return marquesVcs.isEmpty() && arrets.isEmpty() && ligneCourante == null
-                && lignesPile.isEmpty();
+        return vcsMarks.isEmpty() && breakpoints.isEmpty() && currentLine == null
+                && stackLines.isEmpty();
     }
 
     /**
      * La marque de modification d'une ligne : inchangée si non marquée.
      *
-     * @param ligne la ligne, numérotée à partir de zéro
+     * @param line la ligne, numérotée à partir de zéro
      * @return la marque de la ligne, jamais null
      */
-    public MarkLine marqueVcs(int ligne) {
-        return marquesVcs.getOrDefault(ligne, MarkLine.INCHANGE);
+    public MarkLine marqueVcs(int line) {
+        return vcsMarks.getOrDefault(line, MarkLine.INCHANGE);
     }
 
     /**
      * L'état d'arrêt d'une ligne : aucun si non porteuse.
      *
-     * @param ligne la ligne, numérotée à partir de zéro
+     * @param line la ligne, numérotée à partir de zéro
      * @return l'état d'arrêt, jamais null
      */
-    public EtatBreakpoint arret(int ligne) {
-        return arrets.getOrDefault(ligne, EtatBreakpoint.AUCUN);
+    public BreakpointState stop(int line) {
+        return breakpoints.getOrDefault(line, BreakpointState.AUCUN);
     }
 
     /**
@@ -94,17 +94,17 @@ public final class IntegrationMarks {
      *
      * @return la ligne, numérotée à partir de zéro, ou null hors pause
      */
-    public @Nullable Integer ligneCourante() {
-        return ligneCourante;
+    public @Nullable Integer currentLine() {
+        return currentLine;
     }
 
     /**
      * Vrai quand la ligne porte un cadre de la pile courante.
      *
-     * @param ligne la ligne, numérotée à partir de zéro
+     * @param line la ligne, numérotée à partir de zéro
      * @return vrai si la ligne est dans la pile
      */
-    public boolean dansPile(int ligne) {
-        return lignesPile.contains(ligne);
+    public boolean inStack(int line) {
+        return stackLines.contains(line);
     }
 }

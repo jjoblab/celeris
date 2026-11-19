@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import jo.celeris.android.host.R;
-import jo.celeris.android.host.spi.DiagnosticHote;
+import jo.celeris.android.host.spi.HostDiagnostic;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.DiagnosticTooltipView;
 import jo.celeris.android.widgets.IntentionsMenuView;
@@ -36,13 +36,13 @@ import org.jspecify.annotations.Nullable;
  */
 final class InfoBulle {
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
     private final DiagnosticTooltipView carte;
     /** Les diagnostics courants de l'hôte — vifs au déclenchement. */
-    private final Supplier<List<DiagnosticHote>> diagnostics;
+    private final Supplier<List<HostDiagnostic>> diagnostics;
     /** Le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     private final Supplier<String> nomFichier;
     /** Les intentions du menu — l'indice d'actions ne se promet pas
@@ -54,7 +54,7 @@ final class InfoBulle {
      * naît liée à son genre, le patron des trois temps (lier,
      * déclencher, déléguer — USAGE §9).
      *
-     * @param editeur     la vue d'éditeur ouverte
+     * @param editor     la vue d'éditeur ouverte
      * @param session     la session d'édition courante
      * @param popups      le coordinateur des popups de la scène
      * @param margePx     la respiration des ancres aux bords, en pixels
@@ -63,12 +63,12 @@ final class InfoBulle {
      * @param nomFichier  le nom du fichier ouvert
      * @param intentions  les intentions du menu d'actions, vives
      */
-    InfoBulle(EditorView editeur, TextSession session, PopupManager popups,
+    InfoBulle(EditorView editor, TextSession session, PopupManager popups,
             int margePx, PopupPalette palette,
-            Supplier<List<DiagnosticHote>> diagnostics,
+            Supplier<List<HostDiagnostic>> diagnostics,
             Supplier<String> nomFichier,
             Supplier<List<IntentionsMenuView.Item>> intentions) {
-        this.editeur = editeur;
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
@@ -94,28 +94,28 @@ final class InfoBulle {
      *
      * @param selection la sélection courante
      */
-    void rafraichir(MultiSelection selection) {
-        List<SelRange> plages = selection.ranges();
-        if (plages.size() != 1) {
+    void refresh(MultiSelection selection) {
+        List<SelRange> ranges = selection.ranges();
+        if (ranges.size() != 1) {
             return;
         }
-        int ligne = session.document().lineForOffset(plages.get(0).caret());
+        int line = session.document().lineForOffset(ranges.get(0).caret());
         List<DiagnosticTooltipView.Probleme> problemes =
                 ContenuPopups.problemesDe(diagnostics.get(),
-                        nomFichier.get(), ligne);
+                        nomFichier.get(), line);
         if (problemes.isEmpty()) {
             return;
         }
         popups.controleur().open(
                 PopupController.PopupKind.DIAGNOSTIC_TOOLTIP);
         carte.setProblemes(problemes, indiceDActions());
-        Rect curseur = editeur.caretBounds();
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.atPoint(
-                curseur.left, curseur.top,
-                popups.taille(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP),
+                cursor.left, cursor.top,
+                popups.size(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
+        popups.show(PopupController.PopupKind.DIAGNOSTIC_TOOLTIP,
                 placee.x(), placee.y());
     }
 

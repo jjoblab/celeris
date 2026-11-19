@@ -37,9 +37,9 @@ public final class BreadcrumbModel {
     public static List<OutlineEntry> chemin(Document doc, Analysis analysis, int offset) {
         List<OutlineEntry> toutes = TreeOutline.entries(doc, analysis);
         List<OutlineEntry> contenantes = new ArrayList<>();
-        for (OutlineEntry entree : toutes) {
-            if (entree.startOffset() <= offset && offset < entree.endOffset()) {
-                contenantes.add(entree);
+        for (OutlineEntry input : toutes) {
+            if (input.startOffset() <= offset && offset < input.endOffset()) {
+                contenantes.add(input);
             }
         }
         // de la plus externe à la plus interne : par taille décroissante
@@ -61,13 +61,13 @@ public final class BreadcrumbModel {
      * décide seule.</p>
      *
      * @param niveaux les noms des niveaux, de la plus externe à la plus interne
-     * @param largeur la largeur disponible
+     * @param width la largeur disponible
      * @param mesure  le mesureur de largeur d'un nom (le peintre fournit le sien)
      * @return les niveaux affichés, éventuellement tête élaguée
      */
-    public static List<String> tronque(List<String> niveaux, int largeur,
+    public static List<String> tronque(List<String> niveaux, int width,
             ToIntFunction<String> mesure) {
-        if (niveaux.isEmpty() || largeur(niveaux, mesure) <= largeur) {
+        if (niveaux.isEmpty() || width(niveaux, mesure) <= width) {
             return niveaux;
         }
         for (int conserves = niveaux.size() - 1; conserves >= 1; conserves--) {
@@ -76,15 +76,15 @@ public final class BreadcrumbModel {
             List<String> avecEllipse = new ArrayList<>(conserves + 1);
             avecEllipse.add(ELLIPSE);
             avecEllipse.addAll(suffixe);
-            if (largeur(avecEllipse, mesure) <= largeur) {
+            if (width(avecEllipse, mesure) <= width) {
                 return List.copyOf(avecEllipse);
             }
         }
         // même le dernier niveau seul déborde : la coupe dichotomique
         // du niveau, par largeur rendue (PIEGE-09, PIEGE-10)
         String dernier = niveaux.get(niveaux.size() - 1);
-        int cible = largeur - mesure.applyAsInt(ELLIPSE) - SEPARATEUR.length();
-        return List.of(ELLIPSE, coupeAuPlusLong(dernier, cible, mesure));
+        int target = width - mesure.applyAsInt(ELLIPSE) - SEPARATEUR.length();
+        return List.of(ELLIPSE, coupeAuPlusLong(dernier, target, mesure));
     }
 
     /**
@@ -94,25 +94,25 @@ public final class BreadcrumbModel {
      * maximum de texte utile survit (PIEGE-09). Un substitut coupé ne
      * survit jamais.
      */
-    private static String coupeAuPlusLong(String texte, int cible,
+    private static String coupeAuPlusLong(String text, int target,
             ToIntFunction<String> mesure) {
         int bas = 0;
-        int haut = texte.length();
+        int haut = text.length();
         while (bas < haut) {
             int milieu = (bas + haut + 1) / 2;
-            if (mesure.applyAsInt(texte.substring(0, milieu)) <= cible) {
+            if (mesure.applyAsInt(text.substring(0, milieu)) <= target) {
                 bas = milieu;
             } else {
                 haut = milieu - 1;
             }
         }
-        while (bas > 0 && Character.isHighSurrogate(texte.charAt(bas - 1))) {
+        while (bas > 0 && Character.isHighSurrogate(text.charAt(bas - 1))) {
             bas--;
         }
-        return texte.substring(0, bas);
+        return text.substring(0, bas);
     }
 
-    private static int largeur(List<String> niveaux, ToIntFunction<String> mesure) {
+    private static int width(List<String> niveaux, ToIntFunction<String> mesure) {
         int total = 0;
         for (int i = 0; i < niveaux.size(); i++) {
             if (i > 0) {

@@ -47,17 +47,17 @@ public final class OutlinePainter {
     /**
      * Peint le plan sur la surface : une rangée par entrée.
      *
-     * @param modele  le modèle du plan
+     * @param model  le modèle du plan
      * @param surface la surface de dessin
      */
-    public void dessiner(OutlineModel modele, OutlineSurface surface) {
-        List<OutlineModel.Row> lignes = modele.lignes();
-        for (int i = 0; i < lignes.size(); i++) {
-            OutlineModel.Row ligne = lignes.get(i);
-            float x = MARGE_GAUCHE + ligne.profondeur() * pasIndentation;
+    public void draw(OutlineModel model, OutlineSurface surface) {
+        List<OutlineModel.Row> lines = model.lines();
+        for (int i = 0; i < lines.size(); i++) {
+            OutlineModel.Row line = lines.get(i);
+            float x = MARGE_GAUCHE + line.profondeur() * pasIndentation;
             float centre = (i + 0.5f) * hauteurLigne;
-            glyphe(ligne.entree().category(), x, centre, surface);
-            surface.drawText(ligne.entree().name(),
+            glyphe(line.input().category(), x, centre, surface);
+            surface.drawText(line.input().name(),
                     x + tailleGlyph + RESPIRATION_GLYPHE,
                     (i + 0.8f) * hauteurLigne, encreTexte);
         }
@@ -69,7 +69,7 @@ public final class OutlinePainter {
      * @param nombre le nombre d'entrées
      * @return la hauteur totale, en pixels
      */
-    public float hauteur(int nombre) {
+    public float height(int nombre) {
         return nombre * hauteurLigne;
     }
 

@@ -51,15 +51,15 @@ class GrammairesCommerceTest {
      */
     @Test
     void chaqueGrammaireDuCommerceChargeSansModification() {
-        for (String[] entree : CATALOGUE) {
-            Grammaire grammaire = grammaireDuCommerce(entree[0]);
-            double seuil = Double.parseDouble(entree[1]);
-            assertTrue(grammaire.rapport().acceptation() >= seuil,
-                    entree[0] + " : acceptation "
-                            + grammaire.rapport().acceptation()
+        for (String[] input : CATALOGUE) {
+            Grammar grammaire = grammaireDuCommerce(input[0]);
+            double seuil = Double.parseDouble(input[1]);
+            assertTrue(grammaire.report().acceptation() >= seuil,
+                    input[0] + " : acceptation "
+                            + grammaire.report().acceptation()
                             + " sous le seuil " + seuil + " ("
-                            + grammaire.rapport().refuses() + " refus sur "
-                            + grammaire.rapport().motifs() + ")");
+                            + grammaire.report().refuses() + " refus sur "
+                            + grammaire.report().patterns() + ")");
         }
     }
 
@@ -69,28 +69,28 @@ class GrammairesCommerceTest {
      */
     @Test
     void lesEchantillonsSeRejouent() {
-        for (String[] entree : CATALOGUE) {
-            Grammaire grammaire = grammaireDuCommerce(entree[0]);
-            String[] lignes = echantillon(entree[0]).split("\n", -1);
-            GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
+        for (String[] input : CATALOGUE) {
+            Grammar grammaire = grammaireDuCommerce(input[0]);
+            String[] lines = echantillon(input[0]).split("\n", -1);
+            GrammarLexer lexeur = new GrammarLexer(grammaire);
             LexState etat = lexeur.initialState();
-            int jetons = 0;
-            for (String ligne : lignes) {
-                LexedLine premiere = lexeur.lex(ligne, etat);
-                jetons += premiere.tokens().length;
-                LexedLine seconde = lexeur.lex(ligne, etat);
+            int tokens = 0;
+            for (String line : lines) {
+                LexedLine premiere = lexeur.lex(line, etat);
+                tokens += premiere.tokens().length;
+                LexedLine seconde = lexeur.lex(line, etat);
                 assertArrayEquals(premiere.tokens(), seconde.tokens(),
-                        entree[0] + " : le lexeur est déterministe");
-                for (jo.celeris.core.syntax.Token jeton : premiere.tokens()) {
-                    assertTrue(jeton.scope() != ScopeStacks.NONE,
-                            entree[0] + " : chaque jeton porte sa pile (H-07)");
+                        input[0] + " : le lexeur est déterministe");
+                for (jo.celeris.core.syntax.Token token : premiere.tokens()) {
+                    assertTrue(token.scope() != ScopeStacks.NONE,
+                            input[0] + " : chaque jeton porte sa pile (H-07)");
                 }
                 etat = premiere.exitState();
             }
-            assertTrue(jetons > 0,
-                    entree[0] + " : l'échantillon produit des jetons");
+            assertTrue(tokens > 0,
+                    input[0] + " : l'échantillon produit des jetons");
             assertEquals(0, lexeur.incidents(),
-                    entree[0] + " : aucun incident de budget sur l'échantillon");
+                    input[0] + " : aucun incident de budget sur l'échantillon");
         }
     }
 
@@ -105,17 +105,17 @@ class GrammairesCommerceTest {
     }
 
     /** La grammaire du commerce, lue de ses ressources de test. */
-    private static Grammaire grammaireDuCommerce(String langage) {
-        return Grammaires.lire(lire(
+    private static Grammar grammaireDuCommerce(String langage) {
+        return Grammars.read(read(
                 "grammaires-commerce/" + langage + ".tmLanguage.json"));
     }
 
     /** L'échantillon d'un langage, lu de ses ressources de test. */
     private static String echantillon(String langage) {
-        return lire("grammaires-commerce/echantillons/" + langage + ".txt");
+        return read("grammaires-commerce/echantillons/" + langage + ".txt");
     }
 
-    private static String lire(String chemin) {
+    private static String read(String chemin) {
         try (InputStream flux = GrammairesCommerceTest.class.getClassLoader()
                 .getResourceAsStream(chemin)) {
             if (flux == null) {

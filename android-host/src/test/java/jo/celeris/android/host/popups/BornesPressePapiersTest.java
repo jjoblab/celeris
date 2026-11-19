@@ -33,13 +33,13 @@ import org.robolectric.RuntimeEnvironment;
 public class BornesPressePapiersTest {
 
     /** Le montage du banc : vue, session, couche, orchestrateur. */
-    private static PopupsEditeur monter(TextSession session) {
+    private static EditorPopups start(TextSession session) {
         Application contexte = RuntimeEnvironment.getApplication();
-        EditorView editeur = new EditorView(contexte);
+        EditorView editor = new EditorView(contexte);
         PopupLayer couche = new PopupLayer(contexte);
-        editeur.setSession(session);
-        return new PopupsEditeur(editeur, session, couche,
-                jo.celeris.android.view.EditorThemes.SOMBRE, 14f,
+        editor.setSession(session);
+        return new EditorPopups(editor, session, couche,
+                jo.celeris.android.view.EditorThemes.DARK, 14f,
                 CoachPopups.muet());
     }
 
@@ -56,10 +56,10 @@ public class BornesPressePapiersTest {
     public void toutCopierEstBorneSurUnDocumentMonstre() {
         String monstre = "a".repeat(500_000);
         TextSession session = TextSession.of(monstre, System::nanoTime);
-        PopupsEditeur popups = monter(session);
+        EditorPopups popups = start(session);
         session.setSelection(MultiSelection.of(new SelRange(0, 1)));
 
-        popups.actionsDeBarre().stream()
+        popups.barActions().stream()
                 .filter(i -> "Tout copier".equals(i.label()))
                 .findFirst().orElseThrow().action().run();
 
@@ -71,7 +71,7 @@ public class BornesPressePapiersTest {
                 colle.length() <= 200_000);
         assertEquals("le début du document est copié",
                 "a".repeat(200_000), colle.toString());
-        popups.detacher();
+        popups.detach();
     }
 
     /** Copier une sélection monstre est borné pareil — le plafond
@@ -80,10 +80,10 @@ public class BornesPressePapiersTest {
     public void copierUneSelectionMonstreEstBorne() {
         String monstre = "b".repeat(400_000);
         TextSession session = TextSession.of(monstre, System::nanoTime);
-        PopupsEditeur popups = monter(session);
+        EditorPopups popups = start(session);
         session.setSelection(MultiSelection.of(new SelRange(0, 400_000)));
 
-        popups.actionsDeBarre().stream()
+        popups.barActions().stream()
                 .filter(i -> "Copier".equals(i.label()))
                 .findFirst().orElseThrow().action().run();
 
@@ -91,7 +91,7 @@ public class BornesPressePapiersTest {
                 .getItemAt(0).coerceToText(RuntimeEnvironment.getApplication());
         assertTrue("la sélection copiée est bornée",
                 colle.length() <= 200_000);
-        popups.detacher();
+        popups.detach();
     }
 
     /** Le texte de sélection servi à l'IME est borné à 4 096 : le

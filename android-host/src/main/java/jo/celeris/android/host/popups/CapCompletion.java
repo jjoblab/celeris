@@ -22,25 +22,25 @@ final class CapCompletion {
      *
      * @param hautCaret     le haut du rectangle du curseur, en pixels
      * @param basCaret      le bas du rectangle du curseur, en pixels
-     * @param hauteurCouche la hauteur de la couche, en pixels
+     * @param layerHeight la hauteur de la couche, en pixels
      * @param margePx       la respiration des ancres aux bords, en pixels
-     * @param hauteurRangee la hauteur d'une rangée de complétion, en pixels
+     * @param rowHeight la hauteur d'une rangée de complétion, en pixels
      * @return le cap de rangées montrées
      */
-    static int de(int hautCaret, int basCaret, int hauteurCouche,
-            int margePx, int hauteurRangee) {
-        if (hauteurRangee <= 0) {
+    static int of(int hautCaret, int basCaret, int layerHeight,
+            int margePx, int rowHeight) {
+        if (rowHeight <= 0) {
             return CompletionListView.MAX_MONTRES;
         }
-        int placeSous = hauteurCouche - margePx - basCaret;
-        int cap = placeSous / hauteurRangee;
+        int placeSous = layerHeight - margePx - basCaret;
+        int cap = placeSous / rowHeight;
         if (cap < CompletionListView.MAX_MONTRES) {
             // la place manque au-dessus aussi ? le plafond du dessous
             // borne le geste — la liste se rabat sans jamais manger la
             // ligne tapée
             int placeDessus = hautCaret - 2 * margePx;
             cap = Math.max(cap, Math.min(CompletionListView.MAX_MONTRES,
-                    placeDessus / hauteurRangee));
+                    placeDessus / rowHeight));
         }
         return Math.max(CompletionListView.MIN_MONTRES,
                 Math.min(cap, CompletionListView.MAX_MONTRES));
@@ -48,7 +48,7 @@ final class CapCompletion {
 
     /** La hauteur d'une rangée de complétion, en pixels — la densité
      *  de l'appareil porte le jeton du kit. */
-    static float hauteurRangee(float densite) {
-        return PopupTokens.HAUTEUR_RANGEE_LISTE_DP * densite;
+    static float rowHeight(float densite) {
+        return PopupTokens.LIST_ROW_HEIGHT_DP * densite;
     }
 }

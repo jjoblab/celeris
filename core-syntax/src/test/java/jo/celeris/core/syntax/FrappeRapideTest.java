@@ -38,8 +38,8 @@ public class FrappeRapideTest {
         private final List<Runnable> file = new ArrayList<>();
 
         @Override
-        public void execute(Runnable commande) {
-            file.add(commande);
+        public void execute(Runnable command) {
+            file.add(command);
         }
 
         void jouer() {
@@ -56,18 +56,18 @@ public class FrappeRapideTest {
     @Test
     public void deuxFrappesDraineesEnsembleGardentLePanierEpargne() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
-        ExecuteurACommande executeur = new ExecuteurACommande();
-        AtomicReference<Analysis> publiee = new AtomicReference<>();
-        MoteurAnalyse moteur = MoteurAnalyse.sur(session,
-                MiniLangage.langage(), executeur);
-        moteur.ajouterAuditeur(publiee::set);
+        ExecuteurACommande executor = new ExecuteurACommande();
+        AtomicReference<Analysis> published = new AtomicReference<>();
+        AnalysisEngine moteur = AnalysisEngine.on(session,
+                MiniLangage.langage(), executor);
+        moteur.addListener(published::set);
 
         // La publication initiale : la voie complète réclamée, la
         // fenêtre couvre tout.
-        moteur.fenetre(0, 10);
+        moteur.window(0, 10);
         moteur.reanalyser();
-        executeur.jouer();
-        Analysis premiere = publiee.get();
+        executor.jouer();
+        Analysis premiere = published.get();
         assertNotNull(premiere, "la publication initiale existe");
         assertEquals(session.document().revision(), premiere.revision());
         Object panierLigne0 = premiere.lex().line(0);
@@ -76,16 +76,16 @@ public class FrappeRapideTest {
         int cibleX = TEXTE.indexOf("  x");
         session.replaceRange(cibleX + 2, cibleX + 3, "xx");
         // Frappe 2 AVANT toute publication : ligne 3 (« b » → « bb »).
-        String texte = session.document().text();
-        int cibleB = texte.indexOf("b ;");
+        String text = session.document().text();
+        int cibleB = text.indexOf("b ;");
         session.replaceRange(cibleB, cibleB + 1, "bb");
 
         // Le drain joue les DEUX tâches d'un coup : la première est
         // supplantée (jeton annulé), la seconde court — les deux sites
         // doivent avoir FUSIONNÉ, la ligne 0 garde son panier.
-        executeur.jouer();
+        executor.jouer();
 
-        Analysis seconde = publiee.get();
+        Analysis seconde = published.get();
         assertNotNull(seconde, "la publication des frappes existe");
         assertEquals(session.document().revision(), seconde.revision());
         assertSame(panierLigne0, seconde.lex().line(0),

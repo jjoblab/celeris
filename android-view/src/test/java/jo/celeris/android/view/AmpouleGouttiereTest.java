@@ -21,47 +21,47 @@ class AmpouleGouttiereTest {
 
     @Test
     void lesAmpoulesSePosentEtLeClicDelegue() {
-        GutterIntegrations marques = new GutterIntegrations();
-        assertFalse(marques.ampoule(2), "sans pose, aucune ampoule");
-        marques.setAmpoules(new int[] {2, 7});
-        assertTrue(marques.ampoule(2));
-        assertTrue(marques.ampoule(7));
-        assertFalse(marques.ampoule(3), "la voisine reste nue");
+        GutterIntegrations marks = new GutterIntegrations();
+        assertFalse(marks.ampoule(2), "sans pose, aucune ampoule");
+        marks.setAmpoules(new int[] {2, 7});
+        assertTrue(marks.ampoule(2));
+        assertTrue(marks.ampoule(7));
+        assertFalse(marks.ampoule(3), "la voisine reste nue");
         // le retrait vide la coulisse
-        marques.setAmpoules(new int[0]);
-        assertFalse(marques.ampoule(2));
-        marques.setAmpoules(new int[] {2});
+        marks.setAmpoules(new int[0]);
+        assertFalse(marks.ampoule(2));
+        marks.setAmpoules(new int[] {2});
 
         int[] ouvertes = {-1};
-        marques.setSurAmpoule(ligne -> ouvertes[0] = ligne);
+        marks.setSurAmpoule(line -> ouvertes[0] = line);
         Document document = Document.of("l0\nl1\nl2\nl3\nl4\nl5\nl6\nl7");
         VisualProjection projection = new VisualProjection(document,
                 new FoldModel(), 0);
         // le clic dans la coulisse sur la ligne de l'ampoule délègue
-        assertTrue(marques.surAppuiAmpoule(5f, 2 * 16f + 8f, 16f, 0f, 16f,
+        assertTrue(marks.surAppuiAmpoule(5f, 2 * 16f + 8f, 16f, 0f, 16f,
                 projection));
         assertEquals(2, ouvertes[0]);
         // le clic hors ampoule ne se consomme pas
-        assertFalse(marques.surAppuiAmpoule(5f, 3 * 16f + 8f, 16f, 0f, 16f,
+        assertFalse(marks.surAppuiAmpoule(5f, 3 * 16f + 8f, 16f, 0f, 16f,
                 projection));
         assertEquals(2, ouvertes[0]);
         // le clic hors coulisse ne se consomme pas
-        assertFalse(marques.surAppuiAmpoule(30f, 2 * 16f + 8f, 16f, 0f, 16f,
+        assertFalse(marks.surAppuiAmpoule(30f, 2 * 16f + 8f, 16f, 0f, 16f,
                 projection));
         assertEquals(2, ouvertes[0]);
     }
 
     @Test
     void sansEcouteurLampouleNeSePrendPas() {
-        GutterIntegrations marques = new GutterIntegrations();
-        marques.setAmpoules(new int[] {2});
+        GutterIntegrations marks = new GutterIntegrations();
+        marks.setAmpoules(new int[] {2});
         Document document = Document.of("l0\nl1\nl2");
         VisualProjection projection = new VisualProjection(document,
                 new FoldModel(), 0);
         // sans écouteur, le clic traverse — le texte garde son geste
-        assertFalse(marques.surAppuiAmpoule(5f, 2 * 16f + 8f, 16f, 0f, 16f,
+        assertFalse(marks.surAppuiAmpoule(5f, 2 * 16f + 8f, 16f, 0f, 16f,
                 projection));
         // la pose reste lisible quand même
-        assertTrue(marques.ampoule(2));
+        assertTrue(marks.ampoule(2));
     }
 }

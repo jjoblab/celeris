@@ -30,7 +30,7 @@ public class PopupPanelTest {
     private static final class PanneauEssai extends PopupPanel {
 
         static final int LARGEUR = 100;
-        static final int HAUTEUR = 50;
+        static final int HEIGHT = 50;
 
         PanneauEssai(Context context, PopupPalette palette) {
             super(context, palette);
@@ -48,15 +48,15 @@ public class PopupPanelTest {
 
         @Override
         int contentHeight() {
-            return HAUTEUR;
+            return HEIGHT;
         }
     }
 
     /** Mesure et dessine le panneau sur un bitmap — l'image rend. */
-    private static void dessiner(PopupPanel panneau) {
-        int largeur = android.view.View.MeasureSpec.makeMeasureSpec(0,
+    private static void draw(PopupPanel panneau) {
+        int width = android.view.View.MeasureSpec.makeMeasureSpec(0,
                 android.view.View.MeasureSpec.UNSPECIFIED);
-        panneau.measure(largeur, largeur);
+        panneau.measure(width, width);
         panneau.layout(0, 0, panneau.getMeasuredWidth(),
                 panneau.getMeasuredHeight());
         android.graphics.Bitmap image = android.graphics.Bitmap.createBitmap(
@@ -104,16 +104,16 @@ public class PopupPanelTest {
     @Test
     public void laMesureReserveLesRespirations() {
         PanneauEssai panneau = new PanneauEssai(contexte, palette());
-        int largeur = android.view.View.MeasureSpec.makeMeasureSpec(0,
+        int width = android.view.View.MeasureSpec.makeMeasureSpec(0,
                 android.view.View.MeasureSpec.UNSPECIFIED);
-        int hauteur = android.view.View.MeasureSpec.makeMeasureSpec(0,
+        int height = android.view.View.MeasureSpec.makeMeasureSpec(0,
                 android.view.View.MeasureSpec.UNSPECIFIED);
-        panneau.measure(largeur, hauteur);
+        panneau.measure(width, height);
         assertEquals("la largeur mesure le contenu et deux respirations",
                 PanneauEssai.LARGEUR + 2 * panneau.paddingPx,
                 panneau.getMeasuredWidth());
         assertEquals("la hauteur mesure le contenu et deux respirations",
-                PanneauEssai.HAUTEUR + 2 * panneau.paddingYPx,
+                PanneauEssai.HEIGHT + 2 * panneau.paddingYPx,
                 panneau.getMeasuredHeight());
     }
 
@@ -131,7 +131,7 @@ public class PopupPanelTest {
         assertTrue("la naissance armée ouvre à la première image",
                 panneau.voileEnCours());
         // la première image ouvre l'horloge — le voile vit
-        dessiner(panneau);
+        draw(panneau);
         assertTrue("l'horloge ouverte, le voile de naissance vit",
                 panneau.voileEnCours());
         // le banc fige la naissance : la carte se tient
@@ -150,7 +150,7 @@ public class PopupPanelTest {
         panneau.mourir(() -> retire[0] = true);
         assertTrue("la mort armée, le voile vit", panneau.voileEnCours());
         // le retrait ne part PAS à l'armement — le voile d'abord
-        dessiner(panneau);
+        draw(panneau);
         assertFalse("le retrait différé ne part pas à l'armement",
                 retire[0]);
         assertTrue("l'horloge ouverte, le voile de mort vit",

@@ -41,9 +41,9 @@ public class KeyboardCursorTest {
      * une vue détachée queue ses posts vers l'attachement (Robolectric).
      */
     private EditorTestRig bancAttache(String contenu) {
-        EditorTestRig banc = EditorTestRig.sur(contexte, contenu);
-        Activity hote = ActivityController.of(new Activity()).setup().get();
-        hote.setContentView(banc.vue());
+        EditorTestRig banc = EditorTestRig.on(contexte, contenu);
+        Activity host = ActivityController.of(new Activity()).setup().get();
+        host.setContentView(banc.vue());
         return banc;
     }
 
@@ -54,10 +54,10 @@ public class KeyboardCursorTest {
         EditorTestRig banc = bancAttache("abc\n");
         EditorView vue = banc.vue();
         assertFalse("aucun clavier demandé à l'ouverture",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
         vue.curseurClavier.surAppui();
         assertTrue("l'appui demande le clavier",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
         assertTrue("le curseur se réveille plein",
                 vue.curseurClavier.visible());
     }
@@ -71,7 +71,7 @@ public class KeyboardCursorTest {
         vue.curseurClavier.surAppui();
         vue.curseurClavier.masquerClavier();
         assertFalse("l'appui long retire le clavier",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
         assertTrue("le curseur reste plein jusqu'au battement",
                 vue.curseurClavier.visible());
     }

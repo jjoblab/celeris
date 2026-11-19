@@ -8,13 +8,13 @@ package jo.celeris.android.view;
  *
  * <p>Le centre x suit le doigt, retenu aux bords de la fenêtre ; une
  * vue plus étroite que la bulle prend son centre. Pure et sans
- * appareil : l'état (amortissement, snap) vit dans {@link Loupe}, le
+ * appareil : l'état (amortissement, snap) vit dans {@link Magnifier}, le
  * tracé y photographie la frame.</p>
  */
 public final class MagnifierGeometry {
 
     /** L'écart vertical de la bulle au doigt, en rayons (le dépôt de départ : 1,8). */
-    private static final float ECART_RAYONS = 1.8f;
+    private static final float RADII_GAP = 1.8f;
 
     private MagnifierGeometry() {
     }
@@ -57,11 +57,11 @@ public final class MagnifierGeometry {
         if (viewHeight <= 2f * radius) {
             return viewHeight / 2f;
         }
-        float auDessus = fingerY - radius * ECART_RAYONS;
+        float auDessus = fingerY - radius * RADII_GAP;
         if (auDessus >= radius) {
             return auDessus;
         }
-        float auDessous = fingerY + radius * ECART_RAYONS;
+        float auDessous = fingerY + radius * RADII_GAP;
         if (auDessous <= viewHeight - radius) {
             return auDessous;
         }

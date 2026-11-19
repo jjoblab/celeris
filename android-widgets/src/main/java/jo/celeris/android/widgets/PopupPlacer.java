@@ -14,7 +14,7 @@ package jo.celeris.android.widgets;
 public final class PopupPlacer {
 
     /** Un rectangle, en coordonnées d'écran entières. */
-    public record Cadre(int x, int y, int largeur, int hauteur) {
+    public record Cadre(int x, int y, int width, int height) {
     }
 
     /** Le placement des trois popups unifiées. */
@@ -38,44 +38,44 @@ public final class PopupPlacer {
     public static Placement placer(Cadre caret, Cadre completion, Cadre documentation,
             Cadre signature, int ecranLargeur, int ecranHauteur) {
         // la complétion : sous le curseur si elle tient, au-dessus sinon
-        boolean dessous = caret.y() + caret.hauteur() + completion.hauteur()
+        boolean dessous = caret.y() + caret.height() + completion.height()
                 <= ecranHauteur;
         int completionY = dessous
-                ? caret.y() + caret.hauteur()
-                : Math.max(0, caret.y() - completion.hauteur());
-        int completionX = borne(caret.x(), completion.largeur(), ecranLargeur);
+                ? caret.y() + caret.height()
+                : Math.max(0, caret.y() - completion.height());
+        int completionX = borne(caret.x(), completion.width(), ecranLargeur);
         Cadre completionPlacee = new Cadre(completionX, completionY,
-                completion.largeur(), completion.hauteur());
+                completion.width(), completion.height());
 
         // la documentation : au flanc droit de la complétion, à gauche en bord
-        int docX = completionPlacee.x() + completionPlacee.largeur();
-        if (docX + documentation.largeur() > ecranLargeur) {
-            docX = completionPlacee.x() - documentation.largeur();
+        int docX = completionPlacee.x() + completionPlacee.width();
+        if (docX + documentation.width() > ecranLargeur) {
+            docX = completionPlacee.x() - documentation.width();
         }
         if (docX < 0) {
-            docX = borne(docX, documentation.largeur(), ecranLargeur);
+            docX = borne(docX, documentation.width(), ecranLargeur);
         }
         Cadre documentationPlacee = new Cadre(docX, completionPlacee.y(),
-                documentation.largeur(), documentation.hauteur());
+                documentation.width(), documentation.height());
 
         // la signature : du côté opposé du curseur, repliée sous la complétion
         int signatureY = dessous
-                ? caret.y() - signature.hauteur()
-                : caret.y() + caret.hauteur();
-        if (signatureY < 0 || signatureY + signature.hauteur() > ecranHauteur) {
+                ? caret.y() - signature.height()
+                : caret.y() + caret.height();
+        if (signatureY < 0 || signatureY + signature.height() > ecranHauteur) {
             signatureY = dessous
-                    ? completionPlacee.y() + completionPlacee.hauteur()
-                    : Math.max(0, completionPlacee.y() - signature.hauteur());
+                    ? completionPlacee.y() + completionPlacee.height()
+                    : Math.max(0, completionPlacee.y() - signature.height());
         }
-        int signatureX = borne(completionPlacee.x(), signature.largeur(), ecranLargeur);
+        int signatureX = borne(completionPlacee.x(), signature.width(), ecranLargeur);
         Cadre signaturePlacee = new Cadre(signatureX, signatureY,
-                signature.largeur(), signature.hauteur());
+                signature.width(), signature.height());
 
         return new Placement(completionPlacee, documentationPlacee, signaturePlacee);
     }
 
     /** Borne une abscisse pour que le cadre tienne dans l'écran. */
-    private static int borne(int x, int largeur, int ecranLargeur) {
-        return Math.max(0, Math.min(x, Math.max(0, ecranLargeur - largeur)));
+    private static int borne(int x, int width, int ecranLargeur) {
+        return Math.max(0, Math.min(x, Math.max(0, ecranLargeur - width)));
     }
 }

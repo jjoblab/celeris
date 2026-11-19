@@ -65,30 +65,30 @@ public class FusionDelFaçadeTest {
         vue.measure(1080, 1920);
         vue.layout(0, 0, 1080, 1920);
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
         // un document LONG : la ligne 60 vit bien sous le viewport
         StringBuilder source = new StringBuilder();
         for (int i = 0; i < 80; i++) {
             source.append("ligne numero ").append(i).append("\n");
         }
-        editeur.open("Main.java", source.toString());
-        int debutLigne60 = editeur.session().document().lineStart(60);
-        editeur.session().setSelection(MultiSelection.caretsAt(debutLigne60));
+        editor.open("Main.java", source.toString());
+        int debutLigne60 = editor.session().document().lineStart(60);
+        editor.session().setSelection(MultiSelection.caretsAt(debutLigne60));
         for (int i = 0; i < 9; i++) {
             vue.onKeyDown(KeyEvent.KEYCODE_DEL, del());
         }
         CanvasEnregistreur canvas = new CanvasEnregistreur();
         vue.draw(canvas);
-        String trace = canvas.texte.toString();
+        String trace = canvas.text.toString();
         // la ligne fusionnée (59) porte le début de l'ancienne 60 —
         // ses mots doivent rester tracés après la remontée du caret
-        String ligneFusionnee = editeur.session().document().lineText(59);
+        String ligneFusionnee = editor.session().document().lineText(59);
         assertTrue("la ligne fusionnée '" + ligneFusionnee
                 + "' reste tracée après la remontée (scrollY="
                 + vue.getScrollY() + ")",
                 trace.contains(ligneFusionnee.substring(0,
                         Math.min(12, ligneFusionnee.length()))));
-        editeur.close();
+        editor.close();
     }
 
     /** Après la fusion par DEL, les mots de la ligne fusionnée
@@ -99,63 +99,63 @@ public class FusionDelFaçadeTest {
         vue.measure(1080, 1920);
         vue.layout(0, 0, 1080, 1920);
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
 
         // Le scénario exact du terrain : le caret au début de
         // « corps(); » (ligne 2) ; les 8 DEL mangent l'indentation,
         // le 9e mange le saut — le caret REMONTE à la ligne
         // précédente, les deux lignes fusionnent.
-        int debutCorps = editeur.session().document().lineStart(2);
-        editeur.session().setSelection(MultiSelection.caretsAt(debutCorps));
+        int debutCorps = editor.session().document().lineStart(2);
+        editor.session().setSelection(MultiSelection.caretsAt(debutCorps));
         for (int i = 0; i < 9; i++) {
             vue.onKeyDown(KeyEvent.KEYCODE_DEL, del());
         }
-        String texte = editeur.session().document().text();
+        String text = editor.session().document().text();
         // le document APRES la frappe réelle : la fusion a eu lieu,
         // le texte de la ligne précédente vit toujours (c'est le
         // comportement du terrain, on l'accepte tel quel)
         assertTrue("la fusion a eu lieu (texte : "
-                + texte.replace("\n", "\\n") + ")",
-                texte.contains("corps()") && texte.chars()
+                + text.replace("\n", "\\n") + ")",
+                text.contains("corps()") && text.chars()
                         .filter(c -> c == '\n').count() == 7);
 
         // l'image : la ligne fusionnée doit rester dessinée
         CanvasEnregistreur canvas = new CanvasEnregistreur();
         vue.draw(canvas);
-        String trace = canvas.texte.toString();
+        String trace = canvas.text.toString();
         assertTrue("« corps() » reste dans l'image après la fusion (tracé : "
                 + trace + ")",
                 trace.contains("corps()"));
-        editeur.close();
+        editor.close();
     }
 
     /** Un canvas qui enregistre chaque tranche de texte tracée. */
     private static final class CanvasEnregistreur extends android.graphics.Canvas {
-        private final StringBuilder texte = new StringBuilder();
+        private final StringBuilder text = new StringBuilder();
 
         @Override
-        public void drawText(String texte, float x, float y,
-                android.graphics.Paint peinture) {
-            this.texte.append(texte);
+        public void drawText(String text, float x, float y,
+                android.graphics.Paint paint) {
+            this.text.append(text);
         }
 
         @Override
-        public void drawText(CharSequence texte, int debut, int fin,
-                float x, float y, android.graphics.Paint peinture) {
-            this.texte.append(texte, debut, fin);
+        public void drawText(CharSequence text, int start, int end,
+                float x, float y, android.graphics.Paint paint) {
+            this.text.append(text, start, end);
         }
 
         @Override
-        public void drawText(String texte, int debut, int fin,
-                float x, float y, android.graphics.Paint peinture) {
-            this.texte.append(texte, debut, fin);
+        public void drawText(String text, int start, int end,
+                float x, float y, android.graphics.Paint paint) {
+            this.text.append(text, start, end);
         }
 
         @Override
-        public void drawText(char[] texte, int index, int compte,
-                float x, float y, android.graphics.Paint peinture) {
-            this.texte.append(texte, index, index + compte);
+        public void drawText(char[] text, int index, int compte,
+                float x, float y, android.graphics.Paint paint) {
+            this.text.append(text, index, index + compte);
         }
     }
 }

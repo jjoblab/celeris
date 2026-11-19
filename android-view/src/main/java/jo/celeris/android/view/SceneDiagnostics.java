@@ -26,7 +26,7 @@ final class SceneDiagnostics {
     private final EditorView vue;
     /** L'exécuteur RÉSOLU du travail d'analyse : la retenue par
      *  défaut, ou celui que l'hôte a injecté — tel quel. */
-    private final Executor executeur;
+    private final Executor executor;
     /** L'exécuteur RETENU du travail d'analyse — null quand l'hôte a
      *  injecté le sien : le réglage ne détourne jamais un exécuteur
      *  étranger. */
@@ -53,18 +53,18 @@ final class SceneDiagnostics {
     SceneDiagnostics(EditorView vue, @Nullable Executor executeurInjecte) {
         this.vue = vue;
         if (executeurInjecte == null) {
-            ExecutorService fil = ExecuteurAnalyse.parDefaut();
+            ExecutorService thread = AnalysisExecutor.parDefaut();
             Delayer horloge = RetainedExecutor.daemonDelayer();
-            this.filAnalyse = fil;
+            this.filAnalyse = thread;
             this.minuteur = horloge;
-            this.retenue = new RetainedExecutor(fil, horloge,
+            this.retenue = new RetainedExecutor(thread, horloge,
                     EditorView.DELAI_RETENU_PAR_DEFAUT_MS);
-            this.executeur = retenue;
+            this.executor = retenue;
         } else {
             this.filAnalyse = null;
             this.minuteur = null;
             this.retenue = null;
-            this.executeur = executeurInjecte;
+            this.executor = executeurInjecte;
         }
     }
 
@@ -73,7 +73,7 @@ final class SceneDiagnostics {
      * celui que l'hôte a injecté — tel quel.
      */
     Executor executor() {
-        return executeur;
+        return executor;
     }
 
     /**
@@ -83,10 +83,10 @@ final class SceneDiagnostics {
      * Idempotent.
      */
     void shutdown() {
-        ExecutorService fil = filAnalyse;
+        ExecutorService thread = filAnalyse;
         Delayer horloge = minuteur;
-        if (fil != null) {
-            fil.shutdownNow();
+        if (thread != null) {
+            thread.shutdownNow();
         }
         if (horloge != null) {
             horloge.shutdown();

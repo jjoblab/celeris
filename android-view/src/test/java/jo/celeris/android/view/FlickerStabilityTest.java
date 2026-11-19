@@ -31,7 +31,7 @@ import org.robolectric.RuntimeEnvironment;
 public class FlickerStabilityTest {
 
     private static EditorTestRig bancColore(String contenu) {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), contenu);
         banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();
@@ -61,9 +61,9 @@ public class FlickerStabilityTest {
 
     private static RowLayout rangeeCachee(EditorTestRig banc, int rangee) {
         EditorView vue = banc.vue();
-        FrameState etat = vue.etatImageCourante();
-        return vue.cache.find(etat.revision(), rangee, etat.theme().id(),
-                etat.metrics().font(), etat.projection().columns());
+        FrameState state = vue.etatImageCourante();
+        return vue.cache.find(state.revision(), rangee, state.theme().id(),
+                state.metrics().font(), state.projection().columns());
     }
 
     /**
@@ -151,16 +151,16 @@ public class FlickerStabilityTest {
         int encreBase = encreBase(banc);
         int encreNombre = banc.image().couleurDe("1000");
         assertNotEquals("le nombre initial est coloré", encreBase, encreNombre);
-        for (int frappe = 0; frappe < 200; frappe++) {
+        for (int keystroke = 0; keystroke < 200; keystroke++) {
             banc.validerTexte("0");
             EditorTestRig.RecordingCanvas image = banc.image();
-            assertNotEquals("frappe " + frappe + " : int reste coloré",
+            assertNotEquals("frappe " + keystroke + " : int reste coloré",
                     encreBase, image.couleurDe("int"));
-            assertEquals("frappe " + frappe + " : le nombre garde son encre",
+            assertEquals("frappe " + keystroke + " : le nombre garde son encre",
                     encreNombre, image.couleurDe("1000"));
-            if (frappe % 10 == 9) {
+            if (keystroke % 10 == 9) {
                 banc.publierAnalyse();
-                assertNotEquals("publication " + frappe + " : int reste coloré",
+                assertNotEquals("publication " + keystroke + " : int reste coloré",
                         encreBase, banc.image().couleurDe("int"));
             }
         }

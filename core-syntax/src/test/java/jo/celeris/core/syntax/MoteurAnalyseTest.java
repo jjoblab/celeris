@@ -49,8 +49,8 @@ class MoteurAnalyseTest {
         private final List<Runnable> file = new ArrayList<>();
 
         @Override
-        public void execute(Runnable commande) {
-            file.add(commande);
+        public void execute(Runnable command) {
+            file.add(command);
         }
 
         void jouer() {
@@ -65,17 +65,17 @@ class MoteurAnalyseTest {
     void analysePublieeEgaleAnalyseComplete() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         List<Analysis> publications = new ArrayList<>();
-        MoteurAnalyse moteur = MoteurAnalyse.sur(session, MiniLangage.langage(), DIRECT);
-        moteur.ajouterAuditeur(publications::add);
+        AnalysisEngine moteur = AnalysisEngine.on(session, MiniLangage.langage(), DIRECT);
+        moteur.addListener(publications::add);
         moteur.reanalyser();
-        Analysis publiee = moteur.analysePubliee();
-        assertNotNull(publiee);
-        assertTrue(publiee.estComplet());
-        assertEquals(session.document().revision(), publiee.revision());
+        Analysis published = moteur.analysePubliee();
+        assertNotNull(published);
+        assertTrue(published.isComplete());
+        assertEquals(session.document().revision(), published.revision());
         Analysis complet = SyntaxService.of(MiniLangage.langage()).analyseFull(session.document());
-        Arbres.verifierEquivalence(publiee.tree(), complet.tree(), session.document());
+        Arbres.verifierEquivalence(published.tree(), complet.tree(), session.document());
         assertFalse(publications.isEmpty());
-        assertSame(publiee, publications.get(publications.size() - 1));
+        assertSame(published, publications.get(publications.size() - 1));
         moteur.close();
     }
 
@@ -84,17 +84,17 @@ class MoteurAnalyseTest {
     void fenetreVisibleAnalyseeDabord() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         List<Analysis> publications = new ArrayList<>();
-        MoteurAnalyse moteur = MoteurAnalyse.sur(session, MiniLangage.langage(), DIRECT,
+        AnalysisEngine moteur = AnalysisEngine.on(session, MiniLangage.langage(), DIRECT,
                 0, 1);
-        moteur.ajouterAuditeur(publications::add);
+        moteur.addListener(publications::add);
         moteur.reanalyser();
         assertTrue(publications.size() >= 2,
                 "la fenêtre d'abord, puis la complétion : au moins deux publications");
         Analysis premiere = publications.get(0);
-        assertFalse(premiere.estComplet());
-        assertFalse(premiere.tree().chunks().get(0).estEnAttente());
-        assertTrue(premiere.tree().chunks().get(2).estEnAttente());
-        assertTrue(moteur.analysePubliee() != null && moteur.analysePubliee().estComplet(),
+        assertFalse(premiere.isComplete());
+        assertFalse(premiere.tree().chunks().get(0).isPending());
+        assertTrue(premiere.tree().chunks().get(2).isPending());
+        assertTrue(moteur.analysePubliee() != null && moteur.analysePubliee().isComplete(),
                 "la complétion a suivi la fenêtre");
         moteur.close();
     }
@@ -104,18 +104,18 @@ class MoteurAnalyseTest {
     void editionAvantTourneeTachePerimeeSeTait() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         List<Analysis> publications = new ArrayList<>();
-        ExecuteurACommande executeur = new ExecuteurACommande();
-        MoteurAnalyse moteur = MoteurAnalyse.sur(session, MiniLangage.langage(), executeur);
-        moteur.ajouterAuditeur(publications::add);
+        ExecuteurACommande executor = new ExecuteurACommande();
+        AnalysisEngine moteur = AnalysisEngine.on(session, MiniLangage.langage(), executor);
+        moteur.addListener(publications::add);
         moteur.reanalyser();
-        assertEquals(1, executeur.file.size());
-        int cible = TEXTE.indexOf("  y");
-        session.replaceRange(cible, cible + 3, "  omega");
-        assertEquals(2, executeur.file.size(), "l'édition supplante et reprogramme");
-        executeur.jouer();
-        Analysis publiee = moteur.analysePubliee();
-        assertNotNull(publiee);
-        assertEquals(session.document().revision(), publiee.revision());
+        assertEquals(1, executor.file.size());
+        int target = TEXTE.indexOf("  y");
+        session.replaceRange(target, target + 3, "  omega");
+        assertEquals(2, executor.file.size(), "l'édition supplante et reprogramme");
+        executor.jouer();
+        Analysis published = moteur.analysePubliee();
+        assertNotNull(published);
+        assertEquals(session.document().revision(), published.revision());
         for (Analysis publication : publications) {
             assertEquals(session.document().revision(), publication.revision(),
                     "aucune publication de révision périmée (PIEGE-20)");
@@ -140,7 +140,7 @@ class MoteurAnalyseTest {
             }
 
             @Override
-            public LexedLine lex(CharSequence texte, LexState etat) {
+            public LexedLine lex(CharSequence text, LexState etat) {
                 if (lignesLues++ == lignePorte) {
                     atteinte.set(true);
                     try {
@@ -149,7 +149,7 @@ class MoteurAnalyseTest {
                         Thread.currentThread().interrupt();
                     }
                 }
-                return lexeur.lex(texte, etat);
+                return lexeur.lex(text, etat);
             }
         }
         Retenu retenu = new Retenu();
@@ -181,38 +181,38 @@ class MoteurAnalyseTest {
         CountDownLatch porte = new CountDownLatch(1);
         AtomicBoolean atteinte = new AtomicBoolean();
         LanguageSyntax langageRetenu = retenuDerrierePorte(2, porte, atteinte);
-        ExecutorService fil = Executors.newSingleThreadExecutor();
+        ExecutorService thread = Executors.newSingleThreadExecutor();
         try {
             TextSession session = TextSession.of(TEXTE, () -> 0L);
             List<Analysis> publications = new ArrayList<>();
-            MoteurAnalyse moteur = MoteurAnalyse.sur(session, langageRetenu, fil);
-            moteur.ajouterAuditeur(publications::add);
+            AnalysisEngine moteur = AnalysisEngine.on(session, langageRetenu, thread);
+            moteur.addListener(publications::add);
             moteur.reanalyser();
             for (int i = 0; i < 500 && !atteinte.get(); i++) {
                 Thread.sleep(10);
             }
             assertTrue(atteinte.get(), "le lexeur retenu a bien atteint la porte");
-            int cible = TEXTE.indexOf("  y");
-            session.replaceRange(cible, cible + 3, "  omega");
+            int target = TEXTE.indexOf("  y");
+            session.replaceRange(target, target + 3, "  omega");
             porte.countDown();
             for (int i = 0; i < 500; i++) {
-                Analysis publiee = moteur.analysePubliee();
-                if (publiee != null && publiee.revision() == session.document().revision()) {
+                Analysis published = moteur.analysePubliee();
+                if (published != null && published.revision() == session.document().revision()) {
                     break;
                 }
                 Thread.sleep(10);
             }
             Analysis finale = moteur.analysePubliee();
             assertNotNull(finale);
-            assertTrue(finale.estComplet());
+            assertTrue(finale.isComplete());
             assertEquals(session.document().revision(), finale.revision());
-            for (Analysis publiee : publications) {
-                assertTrue(publiee.revision() >= session.document().revision() - 1,
+            for (Analysis published : publications) {
+                assertTrue(published.revision() >= session.document().revision() - 1,
                         "aucun retour en arrière de révision");
             }
             moteur.close();
         } finally {
-            fil.shutdownNow();
+            thread.shutdownNow();
         }
     }
 
@@ -221,17 +221,17 @@ class MoteurAnalyseTest {
     void fermetureStoppeTout() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         List<Analysis> publications = new ArrayList<>();
-        ExecuteurACommande executeur = new ExecuteurACommande();
-        MoteurAnalyse moteur = MoteurAnalyse.sur(session, MiniLangage.langage(), executeur);
-        moteur.ajouterAuditeur(publications::add);
+        ExecuteurACommande executor = new ExecuteurACommande();
+        AnalysisEngine moteur = AnalysisEngine.on(session, MiniLangage.langage(), executor);
+        moteur.addListener(publications::add);
         moteur.reanalyser();
         moteur.close();
-        executeur.jouer();
+        executor.jouer();
         assertTrue(publications.isEmpty(), "fermée, la tâche ne publie pas");
         assertNull(moteur.analysePubliee());
-        int tailleAvant = executeur.file.size();
+        int tailleAvant = executor.file.size();
         session.replaceRange(0, 1, "z");
-        assertEquals(tailleAvant, executeur.file.size(),
+        assertEquals(tailleAvant, executor.file.size(),
                 "détachée, la session ne reprogramme plus rien");
     }
 
@@ -240,17 +240,17 @@ class MoteurAnalyseTest {
     void editionApresCompletUneSeulePublication() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         List<Analysis> publications = new ArrayList<>();
-        MoteurAnalyse moteur = MoteurAnalyse.sur(session, MiniLangage.langage(), DIRECT,
+        AnalysisEngine moteur = AnalysisEngine.on(session, MiniLangage.langage(), DIRECT,
                 0, 1);
-        moteur.ajouterAuditeur(publications::add);
+        moteur.addListener(publications::add);
         moteur.reanalyser();
         int apresOuverture = publications.size();
-        int cible = TEXTE.indexOf("  y");
-        session.replaceRange(cible, cible + 3, "  omega");
+        int target = TEXTE.indexOf("  y");
+        session.replaceRange(target, target + 3, "  omega");
         assertEquals(apresOuverture + 1, publications.size(),
                 "l'incrément publie une fois, pas la voie complète");
         Analysis derniere = publications.get(publications.size() - 1);
-        assertTrue(derniere.estComplet());
+        assertTrue(derniere.isComplete());
         assertEquals(session.document().revision(), derniere.revision());
         Analysis complet = SyntaxService.of(MiniLangage.langage())
                 .analyseFull(session.document());
@@ -263,16 +263,16 @@ class MoteurAnalyseTest {
     void annulationRejoueeLAnalyseSuit() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         List<Analysis> publications = new ArrayList<>();
-        MoteurAnalyse moteur = MoteurAnalyse.sur(session, MiniLangage.langage(), DIRECT);
-        moteur.ajouterAuditeur(publications::add);
+        AnalysisEngine moteur = AnalysisEngine.on(session, MiniLangage.langage(), DIRECT);
+        moteur.addListener(publications::add);
         moteur.reanalyser();
-        int cible = TEXTE.indexOf("var");
-        session.replaceRange(cible, cible + 3, "let");
+        int target = TEXTE.indexOf("var");
+        session.replaceRange(target, target + 3, "let");
         session.undo();
         Analysis finale = moteur.analysePubliee();
         assertNotNull(finale);
         assertEquals(session.document().revision(), finale.revision());
-        assertTrue(finale.estComplet());
+        assertTrue(finale.isComplete());
         Analysis complet = SyntaxService.of(MiniLangage.langage())
                 .analyseFull(session.document());
         Arbres.verifierEquivalence(finale.tree(), complet.tree(), session.document());

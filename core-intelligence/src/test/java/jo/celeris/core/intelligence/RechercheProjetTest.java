@@ -48,7 +48,7 @@ class RechercheProjetTest {
                         """);
         IndexSymboles index = index(projet);
         List<RechercheProjet.Trouvaille> trouvailles =
-                RechercheProjet.chercher(projet, index, "total");
+                RechercheProjet.search(projet, index, "total");
         assertEquals(2, trouvailles.size(),
                 "deux déclarations — jamais la chaîne, jamais le commentaire");
         assertEquals("Achat.java", trouvailles.get(0).uri());
@@ -64,7 +64,7 @@ class RechercheProjetTest {
                 "Achat.java", "class Achat {\n    int total() {\n        return 0;\n    }\n}\n",
                 "Etiquette.java", "class Etiquette {\n    String texte = \"total\";\n}\n");
         List<RechercheProjet.Trouvaille> trouvailles =
-                RechercheProjet.chercher(projet, null, "otal");
+                RechercheProjet.search(projet, null, "otal");
         assertEquals(2, trouvailles.size(), "le texte partiel se trouve partout");
         assertEquals("Achat.java", trouvailles.get(0).uri(), "les uris du dictionnaire d'abord");
         assertEquals(23, trouvailles.get(0).offset(), "les offsets croissants ensuite");
@@ -92,7 +92,7 @@ class RechercheProjetTest {
                         """);
         IndexSymboles index = index(projet);
         List<RechercheProjet.Trouvaille> parIndex =
-                RechercheProjet.chercher(projet, index, "total");
+                RechercheProjet.search(projet, index, "total");
         List<RechercheProjet.Trouvaille> parBalayage = motEntier(projet, "total");
         assertEquals(parBalayage, parIndex,
                 "l'index sert exactement le mot entier à casse exacte");
@@ -103,24 +103,24 @@ class RechercheProjetTest {
     @Test
     void laLatenceSeConsigne() {
         Map<String, Document> projet = new LinkedHashMap<>();
-        StringBuilder corps = new StringBuilder();
-        for (int ligne = 0; ligne < 200; ligne++) {
-            corps.append("    int valeur").append(ligne).append(" = ").append(ligne).append(";\n");
+        StringBuilder body = new StringBuilder();
+        for (int line = 0; line < 200; line++) {
+            body.append("    int valeur").append(line).append(" = ").append(line).append(";\n");
         }
         for (int fichier = 0; fichier < 60; fichier++) {
             projet.put("Fichier" + fichier + ".java",
-                    Document.of("class Fichier" + fichier + " {\n" + corps + "}\n"));
+                    Document.of("class Fichier" + fichier + " {\n" + body + "}\n"));
         }
         IndexSymboles index = index(projet);
 
-        long debut = System.nanoTime();
+        long start = System.nanoTime();
         List<RechercheProjet.Trouvaille> parIndex =
-                RechercheProjet.chercher(projet, index, "valeur100");
-        long indexMs = (System.nanoTime() - debut) / 1_000_000;
+                RechercheProjet.search(projet, index, "valeur100");
+        long indexMs = (System.nanoTime() - start) / 1_000_000;
 
-        debut = System.nanoTime();
-        RechercheProjet.chercher(projet, null, "valeur100 = 100");
-        long balayageMs = (System.nanoTime() - debut) / 1_000_000;
+        start = System.nanoTime();
+        RechercheProjet.search(projet, null, "valeur100 = 100");
+        long balayageMs = (System.nanoTime() - start) / 1_000_000;
 
         assertEquals(60, parIndex.size(), "chaque fichier porte sa déclaration");
         System.out.printf("A-21 latence : index %d ms / budget 200 ms, balayage %d ms / budget 400 ms%n",
@@ -133,7 +133,7 @@ class RechercheProjetTest {
     @Test
     void leMotifVideRefuse() {
         assertThrows(IllegalArgumentException.class,
-                () -> RechercheProjet.chercher(Map.of(), null, ""));
+                () -> RechercheProjet.search(Map.of(), null, ""));
     }
 
     /** Le projet embarqué : les fichiers nommés, dans l'ordre donné. */
@@ -157,21 +157,21 @@ class RechercheProjetTest {
 
     /** Le mot entier à casse exacte, par balayage — l'oracle de l'équivalence. */
     private List<RechercheProjet.Trouvaille> motEntier(Map<String, Document> projet,
-            String motif) {
+            String pattern) {
         List<RechercheProjet.Trouvaille> trouvailles = new ArrayList<>();
         for (Map.Entry<String, Document> fichier : new java.util.TreeMap<>(projet).entrySet()) {
-            String texte = fichier.getValue().text();
-            int offset = texte.indexOf(motif);
+            String text = fichier.getValue().text();
+            int offset = text.indexOf(pattern);
             while (offset >= 0) {
-                boolean debut = offset == 0
-                        || !Character.isJavaIdentifierPart(texte.charAt(offset - 1));
-                boolean fin = offset + motif.length() >= texte.length()
+                boolean start = offset == 0
+                        || !Character.isJavaIdentifierPart(text.charAt(offset - 1));
+                boolean end = offset + pattern.length() >= text.length()
                         || !Character.isJavaIdentifierPart(
-                                texte.charAt(offset + motif.length()));
-                if (debut && fin) {
+                                text.charAt(offset + pattern.length()));
+                if (start && end) {
                     trouvailles.add(new RechercheProjet.Trouvaille(fichier.getKey(), offset));
                 }
-                offset = texte.indexOf(motif, offset + motif.length());
+                offset = text.indexOf(pattern, offset + pattern.length());
             }
         }
         return trouvailles;
@@ -181,7 +181,7 @@ class RechercheProjetTest {
     private String extrait(Map<String, Document> projet, RechercheProjet.Trouvaille trouvaille) {
         Document document = projet.get(trouvaille.uri());
         assertTrue(document != null, "le fichier trouvé vit dans le projet");
-        String texte = document.text();
-        return texte.substring(trouvaille.offset() - 1, trouvaille.offset() + 4);
+        String text = document.text();
+        return text.substring(trouvaille.offset() - 1, trouvaille.offset() + 4);
     }
 }

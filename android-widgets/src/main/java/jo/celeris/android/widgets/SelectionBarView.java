@@ -44,16 +44,16 @@ public final class SelectionBarView extends PopupPanel {
 
     /** La hauteur du contenu de la pilule, en dp (14 dp de texte,
      *  2 × 6 dp de respiration — resserrée par l'audit de compacité). */
-    private static final float HAUTEUR_DP = 26f;
+    private static final float HEIGHT_DP = 26f;
 
     /** La respiration horizontale d'un libellé, en dp. */
     private static final float PAD_X_DP = 10f;
 
     /** L'écart entre deux pastilles, en dp. */
-    private static final float ECART_DP = 2f;
+    private static final float GAP_DP = 2f;
 
     /** Le budget du filet séparateur, en dp. */
-    private static final float FILET_DP = 5f;
+    private static final float RULE_DP = 5f;
 
     /** La largeur d'une icône, en dp (12 dp de glyphe, 2 × 5 dp). */
     private static final float ICONE_DP = 22f;
@@ -61,10 +61,10 @@ public final class SelectionBarView extends PopupPanel {
     /** La largeur du pictogramme d'une pastille, en dp (l'audit du
      *  propriétaire du 2026-11-14 : « les icônes sont un peu trop
      *  grosses » — le glyphe se resserre sous le libellé). */
-    private static final float PICTO_PASTILLE_DP = 11f;
+    private static final float CHIP_PICTO_DP = 11f;
 
     /** La respiration entre le pictogramme et le libellé, en dp. */
-    private static final float ECART_PICTO_DP = 4f;
+    private static final float PICTO_GAP_DP = 4f;
 
     /** L'index virtuel de l'icône documentation chez le toucher. */
     private static final int ICONE_DOCS = -2;
@@ -74,12 +74,12 @@ public final class SelectionBarView extends PopupPanel {
 
     private final List<Item> actions = new ArrayList<>();
     /** Les bornes [début, fin] de chaque pastille texte, en contenu. */
-    private final List<float[]> bornes = new ArrayList<>();
+    private final List<float[]> bounds = new ArrayList<>();
     /** Les actions du débordement — servies par le menu de l'hôte. */
     private List<Item> debordement = List.of();
     private final float hauteurPx;
     private final float padX;
-    private final float ecartPx;
+    private final float gapPx;
     private final float filetPx;
     private final float iconePx;
     private final float pictoPastillePx;
@@ -95,13 +95,13 @@ public final class SelectionBarView extends PopupPanel {
     public SelectionBarView(Context context, PopupPalette palette) {
         super(context, palette);
         float densite = getResources().getDisplayMetrics().density;
-        this.hauteurPx = HAUTEUR_DP * densite;
+        this.hauteurPx = HEIGHT_DP * densite;
         this.padX = PAD_X_DP * densite;
-        this.ecartPx = ECART_DP * densite;
-        this.filetPx = FILET_DP * densite;
+        this.gapPx = GAP_DP * densite;
+        this.filetPx = RULE_DP * densite;
         this.iconePx = ICONE_DP * densite;
-        this.pictoPastillePx = PICTO_PASTILLE_DP * densite;
-        this.ecartPictoPx = ECART_PICTO_DP * densite;
+        this.pictoPastillePx = CHIP_PICTO_DP * densite;
+        this.ecartPictoPx = PICTO_GAP_DP * densite;
     }
 
     /**
@@ -122,7 +122,7 @@ public final class SelectionBarView extends PopupPanel {
         actions.clear();
         actions.addAll(nouveaux);
         this.debordement = repliees;
-        mesurerPastilles();
+        measureChips();
         requestLayout();
         invalidate();
     }
@@ -130,15 +130,15 @@ public final class SelectionBarView extends PopupPanel {
     /** Mesure les bornes des pastilles texte, respirations comprises —
      *  le pictogramme de l'action précède le libellé, l'emprise y
      *  compte. */
-    private void mesurerPastilles() {
-        bornes.clear();
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_TITRE));
-        float curseur = 0f;
+    private void measureChips() {
+        bounds.clear();
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_TITRE));
+        float cursor = 0f;
         for (Item item : actions) {
-            float largeur = 2 * padX + emprisePicto(item)
+            float width = 2 * padX + emprisePicto(item)
                     + textPaint().measureText(item.label());
-            bornes.add(new float[] {curseur, curseur + largeur});
-            curseur += largeur + ecartPx;
+            bounds.add(new float[] {cursor, cursor + width});
+            cursor += width + gapPx;
         }
     }
 
@@ -180,7 +180,7 @@ public final class SelectionBarView extends PopupPanel {
      * contenu — l'hôte y ancre son menu.
      */
     float puceDebordementCentreX() {
-        return debutIcones() + (onDocs != null ? iconePx + ecartPx : 0f)
+        return debutIcones() + (onDocs != null ? iconePx + gapPx : 0f)
                 + iconePx * 0.5f;
     }
 
@@ -199,8 +199,8 @@ public final class SelectionBarView extends PopupPanel {
 
     /** L'abscisse de début du groupe icônes (filet compris). */
     private float debutIcones() {
-        return bornes.isEmpty() ? 0f
-                : bornes.get(bornes.size() - 1)[1] + ecartPx + filetPx;
+        return bounds.isEmpty() ? 0f
+                : bounds.get(bounds.size() - 1)[1] + gapPx + filetPx;
     }
 
     /** Vrai quand le « i » de documentation se montre. */
@@ -214,49 +214,49 @@ public final class SelectionBarView extends PopupPanel {
         // ressort unique de la carte (l'IDE de référence n'égrène pas ses
         // pastilles : la pilule se pose d'un tenant)
         for (int i = 0; i < actions.size(); i++) {
-            dessinerPastille(canvas, i);
+            drawChip(canvas, i);
         }
         float xIcones = debutIcones();
         if (docsVisible()) {
-            dessinerIconeDocs(canvas, xIcones);
+            drawDocsIcon(canvas, xIcones);
         }
         if (aDebordement()) {
-            dessinerPuce(canvas, xIcones + (docsVisible()
-                    ? iconePx + ecartPx : 0f));
+            drawBullet(canvas, xIcones + (docsVisible()
+                    ? iconePx + gapPx : 0f));
         }
         if (!actions.isEmpty() && (docsVisible() || aDebordement())) {
-            dessinerFilet(canvas);
+            drawRule(canvas);
         }
     }
 
     /** Une pastille texte : sa bande pressée, SON pictogramme à l'encre
      *  ALLÉGÉE (l'audit du propriétaire : « il est trop foncé » — le
      *  glyphe se lit, il ne crie pas), son libellé. */
-    private void dessinerPastille(Canvas canvas, int index) {
-        float[] borne = bornes.get(index);
+    private void drawChip(Canvas canvas, int index) {
+        float[] borne = bounds.get(index);
         Item item = actions.get(index);
         String label = item.label();
         if (pressee == index) {
-            dessinerBandePressee(canvas, borne[0], borne[1]);
+            drawPressedBand(canvas, borne[0], borne[1]);
         }
         textPaint().setColor(palette.text());
         float contenu = emprisePicto(item)
                 + textPaint().measureText(label);
-        float debut = (borne[0] + borne[1]) / 2f - contenu / 2f;
+        float start = (borne[0] + borne[1]) / 2f - contenu / 2f;
         if (item.picto() != null) {
-            IconeAction.dessiner(item.picto(), canvas, linePaint(),
-                    textPaint(), debut + pictoPastillePx / 2f,
+            IconeAction.draw(item.picto(), canvas, linePaint(),
+                    textPaint(), start + pictoPastillePx / 2f,
                     hauteurPx / 2f, pictoPastillePx / 2f,
-                    IconeAction.encreAllgeee(palette.muted(), palette.text()));
+                    IconeAction.lightenedInk(palette.muted(), palette.text()));
         }
-        canvas.drawText(label, debut + emprisePicto(item), baseline(),
+        canvas.drawText(label, start + emprisePicto(item), baseline(),
                 textPaint());
     }
 
     /** Le « i » de documentation : cercle cerclé, lettre au centre. */
-    private void dessinerIconeDocs(Canvas canvas, float gauche) {
+    private void drawDocsIcon(Canvas canvas, float gauche) {
         if (pressee == ICONE_DOCS) {
-            dessinerBandePressee(canvas, gauche, gauche + iconePx);
+            drawPressedBand(canvas, gauche, gauche + iconePx);
         }
         float cx = gauche + iconePx / 2f;
         float cy = hauteurPx / 2f;
@@ -265,17 +265,17 @@ public final class SelectionBarView extends PopupPanel {
         linePaint().setStrokeWidth(1.1f * densite);
         canvas.drawCircle(cx, cy, 5.5f * densite, linePaint());
         textPaint().setColor(palette.muted());
-        float taille = textPaint().getTextSize();
+        float size = textPaint().getTextSize();
         textPaint().setTextSize(9.5f * densite);
         canvas.drawText("i", cx - textPaint().measureText("i") / 2f,
                 cy + textPaint().measureText("A") * 0.35f, textPaint());
-        textPaint().setTextSize(taille);
+        textPaint().setTextSize(size);
     }
 
     /** La puce de débordement : trois points à l'encre atténuée. */
-    private void dessinerPuce(Canvas canvas, float gauche) {
+    private void drawBullet(Canvas canvas, float gauche) {
         if (pressee == PUCE_DEBORDEMENT) {
-            dessinerBandePressee(canvas, gauche, gauche + iconePx);
+            drawPressedBand(canvas, gauche, gauche + iconePx);
         }
         bandPaint().setColor(palette.muted());
         float densite = getResources().getDisplayMetrics().density;
@@ -287,16 +287,16 @@ public final class SelectionBarView extends PopupPanel {
     }
 
     /** La bande de la pastille pressée — l'accent au voile doux. */
-    private void dessinerBandePressee(Canvas canvas, float gauche, float fin) {
+    private void drawPressedBand(Canvas canvas, float gauche, float end) {
         float densite = getResources().getDisplayMetrics().density;
         float rayon = PopupTokens.RAYON_RANGEE_DP * densite;
         bandPaint().setColor((palette.accent() & 0x00FFFFFF) | 0x38000000);
-        canvas.drawRoundRect(gauche, 2f * densite, fin,
+        canvas.drawRoundRect(gauche, 2f * densite, end,
                 hauteurPx - 2f * densite, rayon, rayon, bandPaint());
     }
 
     /** Le filet séparateur du groupe texte et du groupe icônes. */
-    private void dessinerFilet(Canvas canvas) {
+    private void drawRule(Canvas canvas) {
         linePaint().setStrokeWidth(1f);
         linePaint().setColor(palette.border());
         float x = debutIcones() - filetPx / 2f;
@@ -305,24 +305,24 @@ public final class SelectionBarView extends PopupPanel {
 
     @Override
     int contentWidth() {
-        if (bornes.isEmpty()) {
-            return Math.round(largeurIcones());
+        if (bounds.isEmpty()) {
+            return Math.round(iconsWidth());
         }
-        float largeur = bornes.get(bornes.size() - 1)[1];
+        float width = bounds.get(bounds.size() - 1)[1];
         if (docsVisible() || aDebordement()) {
-            largeur += ecartPx + filetPx + largeurIcones();
+            width += gapPx + filetPx + iconsWidth();
         }
-        return Math.round(largeur);
+        return Math.round(width);
     }
 
     /** La largeur du groupe d'icônes de la pilule — le « i » de
      *  documentation, la puce de débordement, leur écart. */
-    private float largeurIcones() {
-        float largeur = docsVisible() ? iconePx : 0f;
+    private float iconsWidth() {
+        float width = docsVisible() ? iconePx : 0f;
         if (aDebordement()) {
-            largeur += (docsVisible() ? ecartPx : 0f) + iconePx;
+            width += (docsVisible() ? gapPx : 0f) + iconePx;
         }
-        return largeur;
+        return width;
     }
 
     @Override
@@ -341,8 +341,8 @@ public final class SelectionBarView extends PopupPanel {
      * ICONE_DOCS ou PUCE_DEBORDEMENT si une icône y tombe.
      */
     private int chipAt(float x) {
-        for (int i = 0; i < bornes.size(); i++) {
-            if (x >= bornes.get(i)[0] && x < bornes.get(i)[1]) {
+        for (int i = 0; i < bounds.size(); i++) {
+            if (x >= bounds.get(i)[0] && x < bounds.get(i)[1]) {
                 return i;
             }
         }
@@ -350,7 +350,7 @@ public final class SelectionBarView extends PopupPanel {
         if (docsVisible() && x >= icones && x < icones + iconePx) {
             return ICONE_DOCS;
         }
-        float puce = icones + (docsVisible() ? iconePx + ecartPx : 0f);
+        float puce = icones + (docsVisible() ? iconePx + gapPx : 0f);
         if (aDebordement() && x >= puce && x < puce + iconePx) {
             return PUCE_DEBORDEMENT;
         }

@@ -254,9 +254,9 @@ class SafeDeleteTest {
     private void refuse(String source, String designation, String message) {
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf(designation);
-        assertTrue(debut >= 0, "désignation absente du corpus : " + designation);
-        assertNull(SafeDelete.delete(doc, analyse, debut, debut + designation.length()), message);
+        int start = source.indexOf(designation);
+        assertTrue(start >= 0, "désignation absente du corpus : " + designation);
+        assertNull(SafeDelete.delete(doc, analyse, start, start + designation.length()), message);
     }
 
     /** B-23 — hors déclaration, le verdict est nul ; la sélection invalide refuse d'exception. */
@@ -292,10 +292,10 @@ class SafeDeleteTest {
     private SafeDelete.Verdict verdict(String source, String designation) {
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf(designation);
-        assertTrue(debut >= 0, "désignation absente du corpus : " + designation);
+        int start = source.indexOf(designation);
+        assertTrue(start >= 0, "désignation absente du corpus : " + designation);
         SafeDelete.Verdict verdict = SafeDelete.delete(doc, analyse,
-                debut, debut + designation.length());
+                start, start + designation.length());
         assertNotNull(verdict, "la désignation n'est pas reconnue : " + designation);
         return verdict;
     }

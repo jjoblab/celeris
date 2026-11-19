@@ -18,8 +18,8 @@ final class FakeExecutionTest {
         private final List<String> evenements = new ArrayList<>();
 
         @Override
-        public void surChangement(CheminDoc fichier, EtatExecution etat) {
-            evenements.add(fichier.ecriture() + " : " + etat);
+        public void surChangement(CheminDoc fichier, RunState state) {
+            evenements.add(fichier.writing() + " : " + state);
         }
 
         List<String> evenements() {
@@ -32,12 +32,12 @@ final class FakeExecutionTest {
     void lancementSignale() {
         FakeExecution execution = new FakeExecution();
         Enregistreur auditeur = new Enregistreur();
-        execution.ajouterAuditeur(auditeur);
+        execution.addListener(auditeur);
 
-        Lancement lancement = execution.lancer(CheminDoc.de("/src/Main.java"), false);
+        Lancement lancement = execution.lancer(CheminDoc.of("/src/Main.java"), false);
         assertEquals(1, auditeur.evenements().size());
         assertEquals("/src/Main.java : EN_COURS", auditeur.evenements().get(0));
-        assertEquals(EtatExecution.EN_COURS, execution.etat(CheminDoc.de("/src/Main.java")));
+        assertEquals(RunState.EN_COURS, execution.state(CheminDoc.of("/src/Main.java")));
         assertEquals(false, lancement.test());
     }
 
@@ -46,37 +46,37 @@ final class FakeExecutionTest {
     void finResignalee() {
         FakeExecution execution = new FakeExecution();
         Enregistreur auditeur = new Enregistreur();
-        execution.ajouterAuditeur(auditeur);
-        Lancement lancement = execution.lancer(CheminDoc.de("/src/Test.java"), true);
+        execution.addListener(auditeur);
+        Lancement lancement = execution.lancer(CheminDoc.of("/src/Test.java"), true);
 
         execution.simulerFin(lancement, true);
-        assertEquals(EtatExecution.ECHOUE, execution.etat(CheminDoc.de("/src/Test.java")));
+        assertEquals(RunState.ECHOUE, execution.state(CheminDoc.of("/src/Test.java")));
         assertEquals(2, auditeur.evenements().size());
         assertEquals("/src/Test.java : ECHOUE", auditeur.evenements().get(1));
 
-        Lancement reussi = execution.lancer(CheminDoc.de("/src/Test.java"), true);
+        Lancement reussi = execution.lancer(CheminDoc.of("/src/Test.java"), true);
         execution.simulerFin(reussi, false);
-        assertEquals(EtatExecution.TERMINE, execution.etat(CheminDoc.de("/src/Test.java")));
+        assertEquals(RunState.TERMINE, execution.state(CheminDoc.of("/src/Test.java")));
     }
 
     /** Un fichier jamais lancé est prêt : aucune trace fantôme. */
     @Test
     void fichierJamaisLancePret() {
         FakeExecution execution = new FakeExecution();
-        assertEquals(EtatExecution.PRET, execution.etat(CheminDoc.de("/a.java")));
-        assertEquals(0, execution.etats().size(), "seuls les fichiers lancés sont listés");
+        assertEquals(RunState.PRET, execution.state(CheminDoc.of("/a.java")));
+        assertEquals(0, execution.states().size(), "seuls les fichiers lancés sont listés");
     }
 
     /** Plusieurs fichiers vivent côte à côte : les états ne se mélangent pas. */
     @Test
     void etatsIndependantsParFichier() {
         FakeExecution execution = new FakeExecution();
-        Lancement un = execution.lancer(CheminDoc.de("/un.java"), false);
-        execution.lancer(CheminDoc.de("/deux.java"), false);
+        Lancement un = execution.lancer(CheminDoc.of("/un.java"), false);
+        execution.lancer(CheminDoc.of("/deux.java"), false);
         execution.simulerFin(un, false);
 
-        assertEquals(EtatExecution.TERMINE, execution.etat(CheminDoc.de("/un.java")));
-        assertEquals(EtatExecution.EN_COURS, execution.etat(CheminDoc.de("/deux.java")));
-        assertEquals(2, execution.etats().size());
+        assertEquals(RunState.TERMINE, execution.state(CheminDoc.of("/un.java")));
+        assertEquals(RunState.EN_COURS, execution.state(CheminDoc.of("/deux.java")));
+        assertEquals(2, execution.states().size());
     }
 }

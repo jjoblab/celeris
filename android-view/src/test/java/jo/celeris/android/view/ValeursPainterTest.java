@@ -26,7 +26,7 @@ class ValeursPainterTest {
 
     /** Un dessin croisé : le texte, la position et la couleur au moment
      *  de l'appel. */
-    private record Dessin(String texte, float x, float y, int couleur) {
+    private record Dessin(String text, float x, float y, int couleur) {
     }
 
     /** Surface enregistreuse : capture chaque tracé de texte. */
@@ -104,19 +104,19 @@ class ValeursPainterTest {
      */
     @Test
     void laValeurVitEnFinDeLigneUtile() {
-        ValeursPainter peintre = new ValeursPainter(new FabriqueSimple());
+        ValuesPainter painter = new ValuesPainter(new FabriqueSimple());
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         Document document = Document.of("int total = 0;   \nint copie;\n");
         EditorMetrics metrics =
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 3L,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 3L,
                 metrics, THEME, 0, 2, 40f, 0f, 0f);
 
-        peintre.setValeurs(List.of(new ValeurLigne(1, "total = 0")));
-        peintre.paint(surface, etat);
+        painter.setValeurs(List.of(new LineValue(1, "total = 0")));
+        painter.paint(surface, state);
 
         assertEquals(1, surface.dessins().size(), "une valeur, un tracé");
         Dessin rendu = surface.dessins().get(0);
@@ -127,7 +127,7 @@ class ValeursPainterTest {
                 "en fin de ligne utile, respiration comprise");
         assertEquals(metrics.rowBaseline(0), rendu.y(),
                 "la même ligne de base que le code");
-        assertEquals("total = 0", rendu.texte());
+        assertEquals("total = 0", rendu.text());
         assertEquals(THEME.gutterTextColor(), rendu.couleur(),
                 "l'encre de gouttière porte la valeur");
     }
@@ -138,25 +138,25 @@ class ValeursPainterTest {
      */
     @Test
     void laCoucheVideEtLaLigneHorsDocumentNeTracentRien() {
-        ValeursPainter peintre = new ValeursPainter(new FabriqueSimple());
+        ValuesPainter painter = new ValuesPainter(new FabriqueSimple());
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         Document document = Document.of("int total = 0;\n");
         EditorMetrics metrics =
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 0L,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 0L,
                 metrics, THEME, 0, 2, 40f, 0f, 0f);
 
-        peintre.paint(surface, etat);
+        painter.paint(surface, state);
         assertTrue(surface.dessins().isEmpty(), "sans valeur, rien ne se trace");
-        peintre.setValeurs(List.of(new ValeurLigne(9, "hors = true")));
-        peintre.paint(surface, etat);
+        painter.setValeurs(List.of(new LineValue(9, "hors = true")));
+        painter.paint(surface, state);
         assertTrue(surface.dessins().isEmpty(),
                 "la ligne hors document ne se trace pas");
-        peintre.setValeurs(List.of(new ValeurLigne(0, "zero = false")));
-        peintre.paint(surface, etat);
+        painter.setValeurs(List.of(new LineValue(0, "zero = false")));
+        painter.paint(surface, state);
         assertTrue(surface.dessins().isEmpty(),
                 "la ligne zéro (hors convention) ne se trace pas");
     }

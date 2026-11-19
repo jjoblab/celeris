@@ -28,7 +28,7 @@ final class FichierProjet {
 
     private @Nullable List<OutlineEntry> methodes;
 
-    private @Nullable List<FlowAnalysis.AbsoluteToken> jetons;
+    private @Nullable List<FlowAnalysis.AbsoluteToken> tokens;
 
     FichierProjet(String uri, Document doc, Analysis analyse) {
         this.uri = uri;
@@ -56,9 +56,9 @@ final class FichierProjet {
         List<OutlineEntry> charge = types;
         if (charge == null) {
             charge = new ArrayList<>();
-            for (OutlineEntry entree : TreeOutline.entries(doc, analyse)) {
-                if (entree.category() == NodeCategory.TYPE) {
-                    charge.add(entree);
+            for (OutlineEntry input : TreeOutline.entries(doc, analyse)) {
+                if (input.category() == NodeCategory.TYPE) {
+                    charge.add(input);
                 }
             }
             types = charge;
@@ -71,9 +71,9 @@ final class FichierProjet {
         List<OutlineEntry> charge = methodes;
         if (charge == null) {
             charge = new ArrayList<>();
-            for (OutlineEntry entree : TreeOutline.entries(doc, analyse)) {
-                if (entree.category() == NodeCategory.FUNCTION) {
-                    charge.add(entree);
+            for (OutlineEntry input : TreeOutline.entries(doc, analyse)) {
+                if (input.category() == NodeCategory.FUNCTION) {
+                    charge.add(input);
                 }
             }
             methodes = charge;
@@ -82,11 +82,11 @@ final class FichierProjet {
     }
 
     /** Les jetons absolus du document, chargés à la demande. */
-    List<FlowAnalysis.AbsoluteToken> jetons() {
-        List<FlowAnalysis.AbsoluteToken> charge = jetons;
+    List<FlowAnalysis.AbsoluteToken> tokens() {
+        List<FlowAnalysis.AbsoluteToken> charge = tokens;
         if (charge == null) {
             charge = FlowAnalysis.tokens(doc, analyse.lex(), 0, doc.length());
-            jetons = charge;
+            tokens = charge;
         }
         return charge;
     }

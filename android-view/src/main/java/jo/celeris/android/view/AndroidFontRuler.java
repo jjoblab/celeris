@@ -22,7 +22,7 @@ import java.util.Objects;
  */
 public final class AndroidFontRuler implements FontRuler {
 
-    private final Paint peinture = new Paint();
+    private final Paint paint = new Paint();
 
     /** Les familles posées par l'hôte (D-14), par nom. */
     private final Map<String, Typeface> famillesPosees = new HashMap<>();
@@ -30,31 +30,31 @@ public final class AndroidFontRuler implements FontRuler {
     @Override
     public float charWidth(FontSpec spec) {
         configurer(spec);
-        return peinture.measureText("M");
+        return paint.measureText("M");
     }
 
     @Override
     public float lineHeight(FontSpec spec) {
         configurer(spec);
-        Paint.FontMetrics metriques = peinture.getFontMetrics();
+        Paint.FontMetrics metriques = paint.getFontMetrics();
         return metriques.descent - metriques.ascent + metriques.leading;
     }
 
     @Override
     public float ascent(FontSpec spec) {
         configurer(spec);
-        return -peinture.getFontMetrics().ascent;
+        return -paint.getFontMetrics().ascent;
     }
 
     @Override
     public float descent(FontSpec spec) {
         configurer(spec);
-        return peinture.getFontMetrics().descent;
+        return paint.getFontMetrics().descent;
     }
 
     private void configurer(FontSpec spec) {
-        peinture.setTypeface(policeDe(spec.family()));
-        peinture.setTextSize(spec.size());
+        paint.setTypeface(policeDe(spec.family()));
+        paint.setTextSize(spec.size());
     }
 
     /**
@@ -62,13 +62,13 @@ public final class AndroidFontRuler implements FontRuler {
      * rend cette police à la mesure comme au tracé (PIEGE-22) — la voie
      * de l'hôte pour sa police à ligatures.
      *
-     * @param famille le nom de famille, celui du {@link FontSpec}
-     * @param police  la police de plateforme à poser
+     * @param family le nom de famille, celui du {@link FontSpec}
+     * @param font  la police de plateforme à poser
      */
-    void poserPolice(String famille, Typeface police) {
-        Objects.requireNonNull(famille, "famille");
-        Objects.requireNonNull(police, "police");
-        famillesPosees.put(famille, police);
+    void setFont(String family, Typeface font) {
+        Objects.requireNonNull(family, "famille");
+        Objects.requireNonNull(font, "police");
+        famillesPosees.put(family, font);
     }
 
     /**
@@ -77,15 +77,15 @@ public final class AndroidFontRuler implements FontRuler {
      * La famille posee par l'hôte gagne (D-14) ; « sans », « serif » et
      * « mono » suivent les défauts de la plateforme.
      *
-     * @param famille la famille demandée
+     * @param family la famille demandée
      * @return la police de plateforme correspondante
      */
-    Typeface policeDe(String famille) {
-        Typeface posee = famillesPosees.get(famille);
+    Typeface policeDe(String family) {
+        Typeface posee = famillesPosees.get(family);
         if (posee != null) {
             return posee;
         }
-        switch (famille) {
+        switch (family) {
             case "sans":
                 return Typeface.SANS_SERIF;
             case "serif":

@@ -37,66 +37,66 @@ public final class XmlValidation {
      * @param doc le document XML à valider
      * @return les problèmes localisés (peut être vide, jamais null)
      */
-    public static List<SyntaxIssue> valider(Document doc) {
+    public static List<SyntaxIssue> validate(Document doc) {
         List<SyntaxIssue> problemes = new ArrayList<>();
         Deque<Ouverture> pile = new ArrayDeque<>();
         XmlLexeur lexeur = new XmlLexeur();
         LexState etat = lexeur.initialState();
-        for (int ligne = 0; ligne < doc.lineCount(); ligne++) {
-            String texte = doc.lineText(ligne);
-            LexedLine lexe = lexeur.lex(texte, etat);
+        for (int line = 0; line < doc.lineCount(); line++) {
+            String text = doc.lineText(line);
+            LexedLine lexe = lexeur.lex(text, etat);
             etat = lexe.exitState();
-            for (Token jeton : lexe.tokens()) {
-                traiter(jeton, texte, doc.lineStart(ligne), pile, problemes);
+            for (Token token : lexe.tokens()) {
+                traiter(token, text, doc.lineStart(line), pile, problemes);
             }
         }
         while (!pile.isEmpty()) {
             Ouverture ouverte = pile.pop();
-            problemes.add(new SyntaxIssue(ouverte.debut(),
-                    ouverte.fin() - ouverte.debut(),
+            problemes.add(new SyntaxIssue(ouverte.start(),
+                    ouverte.end() - ouverte.start(),
                     "unclosed element: <" + ouverte.nom() + ">"));
         }
         return List.copyOf(problemes);
     }
 
     /** Traite un jeton : seuls les crochets décident, le reste traverse. */
-    private static void traiter(Token jeton, String ligne, int base,
+    private static void traiter(Token token, String line, int base,
             Deque<Ouverture> pile, List<SyntaxIssue> problemes) {
-        if (jeton.kind() != TokenKind.OPEN_BRACKET
-                && jeton.kind() != TokenKind.CLOSE_BRACKET) {
+        if (token.kind() != TokenKind.OPEN_BRACKET
+                && token.kind() != TokenKind.CLOSE_BRACKET) {
             return;
         }
-        String texte = ligne.substring(jeton.start(), jeton.end());
-        if (jeton.kind() == TokenKind.OPEN_BRACKET) {
-            if (!texte.startsWith("<![CDATA[")) {
-                pile.push(new Ouverture(texte.substring(1),
-                        base + jeton.start(), base + jeton.end()));
+        String text = line.substring(token.start(), token.end());
+        if (token.kind() == TokenKind.OPEN_BRACKET) {
+            if (!text.startsWith("<![CDATA[")) {
+                pile.push(new Ouverture(text.substring(1),
+                        base + token.start(), base + token.end()));
             }
             return;
         }
-        if (texte.equals("/>")) {
+        if (text.equals("/>")) {
             if (!pile.isEmpty()) {
                 pile.pop();
             }
             return;
         }
-        if (texte.equals("]]>") || !texte.startsWith("</")) {
+        if (text.equals("]]>") || !text.startsWith("</")) {
             return;
         }
-        fermeture(nomDe(texte), base + jeton.start(), base + jeton.end(), pile, problemes);
+        fermeture(nomDe(text), base + token.start(), base + token.end(), pile, problemes);
     }
 
     /** Le nom refermé par une fermeture nommée, «&#x2f;» et «&#x3e;» déduits. */
-    private static String nomDe(String texte) {
-        int fin = texte.endsWith(">") ? texte.length() - 1 : texte.length();
-        return texte.substring(2, fin);
+    private static String nomDe(String text) {
+        int end = text.endsWith(">") ? text.length() - 1 : text.length();
+        return text.substring(2, end);
     }
 
     /** La fermeture nommée : assortie referme, ancêtre traversé signale. */
-    private static void fermeture(String nom, int debut, int fin,
+    private static void fermeture(String nom, int start, int end,
             Deque<Ouverture> pile, List<SyntaxIssue> problemes) {
         if (pile.isEmpty()) {
-            problemes.add(new SyntaxIssue(debut, fin - debut,
+            problemes.add(new SyntaxIssue(start, end - start,
                     "closing tag without opening: </" + nom + ">"));
             return;
         }
@@ -105,7 +105,7 @@ public final class XmlValidation {
             return;
         }
         if (!porteNom(pile, nom)) {
-            problemes.add(new SyntaxIssue(debut, fin - debut,
+            problemes.add(new SyntaxIssue(start, end - start,
                     "mismatched closing tag: expected </" + pile.peek().nom()
                             + ">, found </" + nom + ">"));
             pile.clear();
@@ -113,8 +113,8 @@ public final class XmlValidation {
         }
         while (!pile.peek().nom().equals(nom)) {
             Ouverture ouverte = pile.pop();
-            problemes.add(new SyntaxIssue(ouverte.debut(),
-                    ouverte.fin() - ouverte.debut(),
+            problemes.add(new SyntaxIssue(ouverte.start(),
+                    ouverte.end() - ouverte.start(),
                     "unclosed element: <" + ouverte.nom() + ">"));
         }
         pile.pop();
@@ -131,6 +131,6 @@ public final class XmlValidation {
     }
 
     /** Une ouverture en attente de sa fermeture : nom et plage source. */
-    private record Ouverture(String nom, int debut, int fin) {
+    private record Ouverture(String nom, int start, int end) {
     }
 }

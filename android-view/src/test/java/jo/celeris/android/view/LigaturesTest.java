@@ -46,7 +46,7 @@ public class LigaturesTest {
      *  du texte, le texte se trace lettre à lettre. */
     @Test
     public void fermeesParDefaut() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "a => b != c\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "a => b != c\n");
         EditorTestRig.RecordingCanvas image = banc.image();
         assertTrue("les ligatures se ferment par défaut",
                 toutTrace(image, "-liga"));
@@ -56,7 +56,7 @@ public class LigaturesTest {
      *  chaque pinceau du texte. */
     @Test
     public void laBasculeOuvrePuisReferme() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "a => b != c\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "a => b != c\n");
         EditorView vue = banc.vue();
         vue.settings().setLigatures(true);
         assertTrue("les ligatures s'ouvrent par la bascule",
@@ -71,10 +71,10 @@ public class LigaturesTest {
      *  la voie de la police à ligatures. */
     @Test
     public void laPolicePoseeVitDansLeTrace() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "a => b\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "a => b\n");
         EditorView vue = banc.vue();
         Typeface fira = Typeface.create("fira-code", Typeface.NORMAL);
-        vue.poserPolice("fira", fira);
+        vue.setFont("fira", fira);
         vue.settings().setFont(new FontSpec("fira", 14f));
         assertSame("la règle sert la police posée (la table de la mesure)",
                 fira, vue.reglePolices.policeDe("fira"));
@@ -82,7 +82,7 @@ public class LigaturesTest {
         assertTrue("au moins un tracé de texte", !image.traces().isEmpty());
         for (var trace : image.traces()) {
             assertSame("le texte se trace dans la police posée",
-                    fira, trace.police());
+                    fira, trace.font());
         }
     }
 
@@ -91,17 +91,17 @@ public class LigaturesTest {
      *  son setFont. */
     @Test
     public void laFamilleActiveSeRederiveAuRepos() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "a => b\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "a => b\n");
         EditorView vue = banc.vue();
         Typeface autre = Typeface.create("autre-mono", Typeface.BOLD);
         // la famille active (« mono » par défaut) se repose : le tracé
         // suit aussitôt, sans setFont
-        vue.poserPolice("mono", autre);
+        vue.setFont("mono", autre);
         EditorTestRig.RecordingCanvas image = banc.image();
         assertTrue("au moins un tracé de texte", !image.traces().isEmpty());
         for (var trace : image.traces()) {
             assertSame("le texte suit la police reposée sur sa famille",
-                    autre, trace.police());
+                    autre, trace.font());
         }
     }
 }

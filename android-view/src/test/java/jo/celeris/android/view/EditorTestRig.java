@@ -33,15 +33,15 @@ final class EditorTestRig {
     /** La fenêtre du banc : largeur d'un téléphone moyen. */
     static final int LARGEUR = 1080;
     /** La fenêtre du banc : hauteur d'un téléphone moyen. */
-    static final int HAUTEUR = 1920;
+    static final int HEIGHT = 1920;
 
     private final EditorView vue;
-    private final ManualAnalysisExecutor executeur = new ManualAnalysisExecutor();
+    private final ManualAnalysisExecutor executor = new ManualAnalysisExecutor();
 
     private EditorTestRig(Context context) {
-        vue = new EditorView(context, null, executeur);
-        vue.measure(LARGEUR, HAUTEUR);
-        vue.layout(0, 0, LARGEUR, HAUTEUR);
+        vue = new EditorView(context, null, executor);
+        vue.measure(LARGEUR, HEIGHT);
+        vue.layout(0, 0, LARGEUR, HEIGHT);
     }
 
     /**
@@ -52,7 +52,7 @@ final class EditorTestRig {
      * @param contenu  le texte initial du document
      * @return le banc posé et mesuré
      */
-    static EditorTestRig sur(Context context, String contenu) {
+    static EditorTestRig on(Context context, String contenu) {
         EditorTestRig banc = new EditorTestRig(context);
         banc.vue.setSession(TextSession.of(contenu, System::nanoTime));
         return banc;
@@ -64,8 +64,8 @@ final class EditorTestRig {
     }
 
     /** L'exécuteur manuel du travail d'analyse. */
-    ManualAnalysisExecutor executeur() {
-        return executeur;
+    ManualAnalysisExecutor executor() {
+        return executor;
     }
 
     /**
@@ -73,7 +73,7 @@ final class EditorTestRig {
      * que sur le prochain {@link ManualAnalysisExecutor#drain()}.
      */
     void retenirAnalyse() {
-        executeur.oublier();
+        executor.forget();
     }
 
     /**
@@ -81,7 +81,7 @@ final class EditorTestRig {
      * le fil du test, la publication arrive avant le retour.
      */
     void publierAnalyse() {
-        executeur.drain();
+        executor.drain();
     }
 
     /**
@@ -119,10 +119,10 @@ final class EditorTestRig {
                 cx, cy - ecartInitial / 2f, cx, cy + ecartInitial / 2f));
         for (int etape = 1; etape <= etapes; etape++) {
             t += 16L;
-            float ecart = ecartInitial
+            float gap = ecartInitial
                     + (ecartFinal - ecartInitial) * etape / etapes;
             vue.onTouchEvent(deuxDoigts(t, MotionEvent.ACTION_MOVE,
-                    cx, cy - ecart / 2f, cx, cy + ecart / 2f));
+                    cx, cy - gap / 2f, cx, cy + gap / 2f));
         }
         t += 16L;
         vue.onTouchEvent(deuxDoigts(t, MotionEvent.ACTION_POINTER_UP
@@ -134,13 +134,13 @@ final class EditorTestRig {
     }
 
     /** Valide du texte par la vraie connexion d'entrée de la vue. */
-    void validerTexte(CharSequence texte) {
-        connexion().commitText(texte, 1);
+    void validerTexte(CharSequence text) {
+        connexion().commitText(text, 1);
     }
 
     /** Pose du texte en composition par la vraie connexion d'entrée. */
-    void composerTexte(CharSequence texte) {
-        connexion().setComposingText(texte, 1);
+    void composerTexte(CharSequence text) {
+        connexion().setComposingText(text, 1);
     }
 
     /** La connexion d'entrée IME de la vue — les bancs de composition
@@ -195,8 +195,8 @@ final class EditorTestRig {
         private final List<Runnable> taches = new ArrayList<>();
 
         @Override
-        public void execute(Runnable commande) {
-            taches.add(commande);
+        public void execute(Runnable command) {
+            taches.add(command);
         }
 
         /** Le nombre de tâches en attente. */
@@ -205,7 +205,7 @@ final class EditorTestRig {
         }
 
         /** Oublie les tâches en attente. */
-        void oublier() {
+        void forget() {
             taches.clear();
         }
 
@@ -235,7 +235,7 @@ final class EditorTestRig {
         /** Un tracé de texte : la tranche, sa couleur, sa position,
          *  ses ligatures, sa police (D-14). */
         record TextDraw(CharSequence text, int color, float x, float y,
-                @Nullable String ligatures, @Nullable Typeface police) {
+                @Nullable String ligatures, @Nullable Typeface font) {
         }
 
         /** Un tracé de ligne : ses bornes, sa couleur, son épaisseur. */
@@ -249,7 +249,7 @@ final class EditorTestRig {
         }
 
         private final List<TextDraw> traces = new ArrayList<>();
-        private final List<LineDraw> lignes = new ArrayList<>();
+        private final List<LineDraw> lines = new ArrayList<>();
         private final List<RectDraw> rectangles = new ArrayList<>();
 
         /** Les tracés de texte de l'image, dans l'ordre du dessin. */
@@ -258,8 +258,8 @@ final class EditorTestRig {
         }
 
         /** Les tracés de ligne de l'image, dans l'ordre du dessin. */
-        List<LineDraw> lignes() {
-            return List.copyOf(lignes);
+        List<LineDraw> lines() {
+            return List.copyOf(lines);
         }
 
         /** Les rectangles pleins de l'image, dans l'ordre du dessin. */
@@ -270,9 +270,9 @@ final class EditorTestRig {
         /** Le nombre de lignes verticales tracées à l'abscisse donnée (±1 px). */
         int lignesVerticalesA(float x) {
             int total = 0;
-            for (LineDraw ligne : lignes) {
-                if (Math.abs(ligne.x1() - x) <= 1f
-                        && Math.abs(ligne.x2() - x) <= 1f) {
+            for (LineDraw line : lines) {
+                if (Math.abs(line.x1() - x) <= 1f
+                        && Math.abs(line.x2() - x) <= 1f) {
                     total++;
                 }
             }
@@ -298,7 +298,7 @@ final class EditorTestRig {
         @Override
         public void drawLine(float startX, float startY, float stopX,
                 float stopY, Paint paint) {
-            lignes.add(new LineDraw(startX, startY, stopX, stopY,
+            lines.add(new LineDraw(startX, startY, stopX, stopY,
                     paint.getColor(), paint.getStrokeWidth()));
         }
 

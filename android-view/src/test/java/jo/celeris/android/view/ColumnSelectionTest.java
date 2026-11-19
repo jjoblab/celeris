@@ -22,21 +22,21 @@ class ColumnSelectionTest {
     /** Dix lignes, une colonne : une plage par rangée, bornes exactes (A-02). */
     @Test
     void colonneSurDixLignes() {
-        StringBuilder texte = new StringBuilder();
+        StringBuilder text = new StringBuilder();
         for (int i = 0; i < 10; i++) {
-            texte.append("ligne").append(i).append("abcdef\n");
+            text.append("ligne").append(i).append("abcdef\n");
         }
-        Document doc = Document.of(texte.toString());
+        Document doc = Document.of(text.toString());
         VisualProjection projection = new VisualProjection(doc, new FoldModel(), 0);
-        MultiSelection colonne = ColumnSelection.ranges(doc, projection,
+        MultiSelection column = ColumnSelection.ranges(doc, projection,
                 0, 2, 9, 5);
-        List<SelRange> plages = colonne.ranges();
-        assertEquals(10, plages.size());
+        List<SelRange> ranges = column.ranges();
+        assertEquals(10, ranges.size());
         for (int i = 0; i < 10; i++) {
-            int debutLigne = doc.lineStart(i);
-            assertEquals(debutLigne + 2, plages.get(i).start(),
+            int lineStart = doc.lineStart(i);
+            assertEquals(lineStart + 2, ranges.get(i).start(),
                     "début de la rangée " + i);
-            assertEquals(debutLigne + 5, plages.get(i).end(),
+            assertEquals(lineStart + 5, ranges.get(i).end(),
                     "fin de la rangée " + i);
         }
     }
@@ -46,19 +46,19 @@ class ColumnSelectionTest {
     void laLigneCourteBorneSaFin() {
         Document doc = Document.of("abc\na\nabcdef\n");
         VisualProjection projection = new VisualProjection(doc, new FoldModel(), 0);
-        MultiSelection colonne = ColumnSelection.ranges(doc, projection,
+        MultiSelection column = ColumnSelection.ranges(doc, projection,
                 0, 1, 2, 4);
-        List<SelRange> plages = colonne.ranges();
-        assertEquals(3, plages.size());
+        List<SelRange> ranges = column.ranges();
+        assertEquals(3, ranges.size());
         // « abc » : [1, 3)
-        assertEquals(1, plages.get(0).start());
-        assertEquals(3, plages.get(0).end());
+        assertEquals(1, ranges.get(0).start());
+        assertEquals(3, ranges.get(0).end());
         // « a » : [5, 5) — la colonne 4 n'existe pas, la ligne s'arrête en 1
-        assertEquals(5, plages.get(1).start());
-        assertEquals(5, plages.get(1).end());
+        assertEquals(5, ranges.get(1).start());
+        assertEquals(5, ranges.get(1).end());
         // « abcdef » : [7, 10)
-        assertEquals(7, plages.get(2).start());
-        assertEquals(10, plages.get(2).end());
+        assertEquals(7, ranges.get(2).start());
+        assertEquals(10, ranges.get(2).end());
     }
 
     /** Le glissement inversé (du bas vers le haut) produit les mêmes plages. */
@@ -67,8 +67,8 @@ class ColumnSelectionTest {
         Document doc = Document.of("abcd\nefgh\n");
         VisualProjection projection = new VisualProjection(doc, new FoldModel(), 0);
         MultiSelection aller = ColumnSelection.ranges(doc, projection, 0, 1, 1, 3);
-        MultiSelection retour = ColumnSelection.ranges(doc, projection, 1, 3, 0, 1);
-        assertEquals(aller.ranges(), retour.ranges());
+        MultiSelection back = ColumnSelection.ranges(doc, projection, 1, 3, 0, 1);
+        assertEquals(aller.ranges(), back.ranges());
     }
 
     /** La colonne au-delà de toutes les lignes : des plages vides en fin de ligne. */
@@ -76,14 +76,14 @@ class ColumnSelectionTest {
     void colonneAuDelaDesLignes() {
         Document doc = Document.of("ab\ncd\n");
         VisualProjection projection = new VisualProjection(doc, new FoldModel(), 0);
-        MultiSelection colonne = ColumnSelection.ranges(doc, projection,
+        MultiSelection column = ColumnSelection.ranges(doc, projection,
                 0, 5, 1, 6);
-        List<SelRange> plages = colonne.ranges();
-        assertEquals(2, plages.size());
-        assertEquals(2, plages.get(0).start());
-        assertEquals(2, plages.get(0).end());
-        assertEquals(5, plages.get(1).start());
-        assertEquals(5, plages.get(1).end());
+        List<SelRange> ranges = column.ranges();
+        assertEquals(2, ranges.size());
+        assertEquals(2, ranges.get(0).start());
+        assertEquals(2, ranges.get(0).end());
+        assertEquals(5, ranges.get(1).start());
+        assertEquals(5, ranges.get(1).end());
     }
 
     /** Le retour à la ligne souple : la colonne vit dans la tranche de la rangée. */
@@ -94,15 +94,15 @@ class ColumnSelectionTest {
         VisualProjection projection = new VisualProjection(doc, new FoldModel(), 4);
         // deux rangées par ligne, plus la rangée de la ligne vide finale
         assertEquals(5, projection.rowCount());
-        MultiSelection colonne = ColumnSelection.ranges(doc, projection,
+        MultiSelection column = ColumnSelection.ranges(doc, projection,
                 0, 1, 1, 3);
-        List<SelRange> plages = colonne.ranges();
-        assertEquals(2, plages.size());
+        List<SelRange> ranges = column.ranges();
+        assertEquals(2, ranges.size());
         // rangée 0 = « abcd » : [1, 3)
-        assertEquals(1, plages.get(0).start());
-        assertEquals(3, plages.get(0).end());
+        assertEquals(1, ranges.get(0).start());
+        assertEquals(3, ranges.get(0).end());
         // rangée 1 = « ef » (la tranche est courte) : [5, 6)
-        assertEquals(5, plages.get(1).start());
-        assertEquals(6, plages.get(1).end());
+        assertEquals(5, ranges.get(1).start());
+        assertEquals(6, ranges.get(1).end());
     }
 }

@@ -35,13 +35,13 @@ class GhostLatencyTest {
         Document document = Document.of("int x = ");
 
         session.demander(document, 8);
-        session.frappe();
-        assertTrue(modele.requetes().get(0).jeton().estAnnule(),
+        session.keystroke();
+        assertTrue(modele.requetes().get(0).token().isCancelled(),
                 "la frappe suivante annule le vol en cours");
 
         session.demander(document, 8);
-        session.frappe();
-        assertTrue(modele.requetes().get(1).jeton().estAnnule(),
+        session.keystroke();
+        assertTrue(modele.requetes().get(1).token().isCancelled(),
                 "le second vol meurt pareil");
         assertNull(session.suggestionActive(),
                 "rien ne s'affiche d'un modèle qui ne répond pas");
@@ -60,11 +60,11 @@ class GhostLatencyTest {
 
         for (int i = 0; i < 1_000; i++) {
             session.demander(document, 8);
-            session.frappe();
+            session.keystroke();
         }
         assertEquals(1_000, modele.requetes().size(),
                 "chaque demande est partie, aucune n'a attendu");
-        assertTrue(modele.requetes().get(999).jeton().estAnnule());
+        assertTrue(modele.requetes().get(999).token().isCancelled());
         assertNull(session.suggestionActive());
     }
 
@@ -85,7 +85,7 @@ class GhostLatencyTest {
             for (int i = 0; i < 1_000; i++) {
                 session.demander(document, 8);
             }
-            session.frappe();
+            session.keystroke();
         };
         long minimum = minDeTroisTours(System::nanoTime, phaseMilleDemandes);
         System.out.printf("[benchmark] fantome : 1000 demandes au modele aveugle"
@@ -105,9 +105,9 @@ class GhostLatencyTest {
             Runnable phase) {
         long meilleur = Long.MAX_VALUE;
         for (int tour = 0; tour < 3; tour++) {
-            long debut = horloge.getAsLong();
+            long start = horloge.getAsLong();
             phase.run();
-            long duree = horloge.getAsLong() - debut;
+            long duree = horloge.getAsLong() - start;
             if (duree < meilleur) {
                 meilleur = duree;
             }

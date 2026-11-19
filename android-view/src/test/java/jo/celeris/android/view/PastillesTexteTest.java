@@ -111,7 +111,7 @@ class PastillesTexteTest {
         FrameState image = new FrameState();
         image.beginFrame(document, MultiSelection.of(new SelRange(0, 0)),
                 projection, 1L, metrics, THEME, 0, 1, 20f, 0f, 0f);
-        PastillesTexte couche = new PastillesTexte(() -> new PinceauMutable(),
+        TextChips couche = new TextChips(() -> new PinceauMutable(),
                 1f);
         SurfaceTraces surface = new SurfaceTraces();
         couche.paint(surface, image);
@@ -143,7 +143,7 @@ class PastillesTexteTest {
         FrameState image = new FrameState();
         image.beginFrame(document, MultiSelection.of(new SelRange(0, 0)),
                 projection, 1L, metrics, THEME, 0, 1, 20f, 0f, 0f);
-        PastillesTexte couche = new PastillesTexte(() -> new PinceauMutable(),
+        TextChips couche = new TextChips(() -> new PinceauMutable(),
                 1f);
         SurfaceTraces surface = new SurfaceTraces();
         couche.paint(surface, image);
@@ -164,7 +164,7 @@ class PastillesTexteTest {
         FrameState image = new FrameState();
         image.beginFrame(document, MultiSelection.of(new SelRange(0, 0)),
                 projection, 1L, metrics, THEME, 0, 1, 20f, 0f, 0f);
-        PastillesTexte couche = new PastillesTexte(() -> new PinceauMutable(),
+        TextChips couche = new TextChips(() -> new PinceauMutable(),
                 1f);
         SurfaceTraces surface = new SurfaceTraces();
         couche.paint(surface, image);
@@ -186,7 +186,7 @@ class PastillesTexteTest {
         FrameState image = new FrameState();
         image.beginFrame(document, MultiSelection.of(new SelRange(0, 0)),
                 projection, 1L, metrics, THEME, 0, 2, 20f, 0f, 0f);
-        PastillesTexte couche = new PastillesTexte(() -> new PinceauMutable(),
+        TextChips couche = new TextChips(() -> new PinceauMutable(),
                 1f);
         SurfaceTraces surface = new SurfaceTraces();
         couche.paint(surface, image);

@@ -37,38 +37,38 @@ public final class CanvasSurface implements DrawSurface {
 
     @Override
     public void drawText(String text, float x, float y, TextBrush brush) {
-        canvas().drawText(text, x, y, peintureDe(brush));
+        canvas().drawText(text, x, y, paintOf(brush));
     }
 
     @Override
     public void drawText(CharSequence text, int start, int end, float x,
             float y, TextBrush brush) {
-        canvas().drawText(text, start, end, x, y, peintureDe(brush));
+        canvas().drawText(text, start, end, x, y, paintOf(brush));
     }
 
     @Override
     public void drawRect(float left, float top, float right, float bottom,
             TextBrush brush) {
-        canvas().drawRect(left, top, right, bottom, peintureDe(brush));
+        canvas().drawRect(left, top, right, bottom, paintOf(brush));
     }
 
     @Override
     public void drawLine(float x1, float y1, float x2, float y2, TextBrush brush) {
-        canvas().drawLine(x1, y1, x2, y2, peintureDe(brush));
+        canvas().drawLine(x1, y1, x2, y2, paintOf(brush));
     }
 
     @Override
     public void drawCircle(float cx, float cy, float rayon, boolean plein,
             TextBrush brush) {
-        Paint peinture = peintureDe(brush);
+        Paint paint = paintOf(brush);
         if (!plein) {
-            peinture.setStyle(Paint.Style.STROKE);
+            paint.setStyle(Paint.Style.STROKE);
         }
-        canvas().drawCircle(cx, cy, Math.max(0.5f, rayon), peinture);
+        canvas().drawCircle(cx, cy, Math.max(0.5f, rayon), paint);
         if (!plein) {
             // ★ la peinture retrouve son FILL — le contour ne fuit
             // jamais vers le tracé suivant
-            peinture.setStyle(Paint.Style.FILL);
+            paint.setStyle(Paint.Style.FILL);
         }
     }
 
@@ -89,7 +89,7 @@ public final class CanvasSurface implements DrawSurface {
             chemin.lineTo(centreX - etendue * 0.6f, centreY + etendue);
         }
         chemin.close();
-        canvas().drawPath(chemin, peintureDe(brush));
+        canvas().drawPath(chemin, paintOf(brush));
     }
 
     private Canvas canvas() {
@@ -100,11 +100,12 @@ public final class CanvasSurface implements DrawSurface {
         return local;
     }
 
-    private static Paint peintureDe(TextBrush brush) {
-        if (brush instanceof PaintBrush pinceau) {
-            return pinceau.peinture();
+    private static Paint paintOf(TextBrush source) {
+        if (source instanceof PaintBrush brush) {
+            return brush.paint();
         }
         throw new IllegalArgumentException(
-                "brush is not a paint brush of this module: " + brush.getClass());
+                "brush is not a paint brush of this module: "
+                + source.getClass());
     }
 }

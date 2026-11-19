@@ -72,7 +72,7 @@ public class PopupDesignTest {
         assertEquals(6f, PopupTokens.RAYON_PUCE_DP, 0f);
         assertEquals(10f, PopupTokens.RESPIRATION_X_DP, 0f);
         assertEquals(6f, PopupTokens.RESPIRATION_Y_DP, 0f);
-        assertEquals(5f, PopupTokens.ECART_DP, 0f);
+        assertEquals(5f, PopupTokens.GAP_DP, 0f);
         assertEquals(0.85f, PopupTokens.TEXTE_TITRE, 0f);
         assertEquals(0.80f, PopupTokens.TEXTE_CORPS, 0f);
         assertEquals(0.72f, PopupTokens.TEXTE_META, 0f);
@@ -80,19 +80,19 @@ public class PopupDesignTest {
         assertEquals("le pictogramme suit le texte, il ne le domine plus",
                 0.76f, PopupTokens.FACTEUR_PICTO, 0f);
         assertEquals("le plafond de la carte d'actions tient la compacité",
-                280f, PopupTokens.HAUTEUR_MENU_MAX_DP, 0f);
+                280f, PopupTokens.MENU_MAX_HEIGHT_DP, 0f);
         assertEquals("la complétion ramassée ne cache jamais la frappe",
-                72f, PopupTokens.HAUTEUR_COMPLETION_MIN_DP, 0f);
-        assertEquals(280f, PopupTokens.LARGEUR_MAX_LISTE_DP, 0f);
+                72f, PopupTokens.COMPLETION_MIN_HEIGHT_DP, 0f);
+        assertEquals(280f, PopupTokens.LIST_MAX_WIDTH_DP, 0f);
         assertEquals("le plancher de la complétion tient la carte raisonnable",
-                240f, PopupTokens.LARGEUR_MIN_LISTE_DP, 0f);
-        assertEquals(40f, PopupTokens.HAUTEUR_RANGEE_LISTE_DP, 0f);
+                240f, PopupTokens.LIST_MIN_WIDTH_DP, 0f);
+        assertEquals(40f, PopupTokens.LIST_ROW_HEIGHT_DP, 0f);
     }
 
     /** Les badges : glyphe et palette calibrée, l'assombrissement du clair. */
     @Test
     public void lesBadgesPortentGlypheEtPalette() {
-        BadgeGenre.Meta motCle = BadgeGenre.meta(BadgeGenre.Genre.MOT_CLE,
+        BadgeGenre.Meta motCle = BadgeGenre.meta(BadgeGenre.Genre.KEYWORD,
                 true, 0xFFDCDCAA);
         assertEquals("K", motCle.glyphe());
         assertEquals("la palette sombre est calibrée telle quelle",
@@ -107,21 +107,21 @@ public class PopupDesignTest {
         assertEquals("le thème clair assombrit (mélange noir à 38 %)",
                 0xFF8E774A, classeClaire.couleur());
         assertEquals("un glyphe long se réduit", 0.42f,
-                BadgeGenre.facteurTailleGlyphe("{}"), 0f);
+                BadgeGenre.glyphSizeFactor("{}"), 0f);
         assertEquals("un glyphe court garde sa taille", 0.56f,
-                BadgeGenre.facteurTailleGlyphe("K"), 0f);
+                BadgeGenre.glyphSizeFactor("K"), 0f);
     }
 
     /** La signature découpe ses plages de paramètres, sans les bords blancs. */
     @Test
     public void laSignatureDecoupeSesPlages() {
-        int[][] plages = SignatureHelpView.plagesParametres(
+        int[][] ranges = SignatureHelpView.plagesParametres(
                 "ajouter(int a, int b)");
-        assertEquals(2, plages.length);
+        assertEquals(2, ranges.length);
         assertEquals("int a", "ajouter(int a, int b)"
-                .substring(plages[0][0], plages[0][1]));
+                .substring(ranges[0][0], ranges[0][1]));
         assertEquals("int b", "ajouter(int a, int b)"
-                .substring(plages[1][0], plages[1][1]));
+                .substring(ranges[1][0], ranges[1][1]));
         assertTrue("sans parenthèses, aucune plage",
                 SignatureHelpView.plagesParametres("sans") == null);
         int[][] imriquees = SignatureHelpView.plagesParametres(
@@ -147,10 +147,10 @@ public class PopupDesignTest {
         ErrorBandModel defaut = ErrorBandModel.of(issues, doc, 10);
         assertEquals("sans gravités, l'erreur tient lieu",
                 ErrorBandModel.GRAVITE_ERREUR,
-                defaut.marques().get(0).gravite());
+                defaut.marks().get(0).severity());
         ErrorBandModel typee = ErrorBandModel.of(issues,
                 new int[] {ErrorBandModel.GRAVITE_ERREUR, 2}, doc, 10);
         assertEquals("la gravité posée se porte",
-                2, typee.marques().get(1).gravite());
+                2, typee.marks().get(1).severity());
     }
 }

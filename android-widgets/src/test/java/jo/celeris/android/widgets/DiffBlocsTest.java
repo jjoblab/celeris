@@ -32,7 +32,7 @@ class DiffBlocsTest {
 
     @Test
     void lesBlocsPortentLeursPlagesExactes() {
-        List<DiffBlocs.BlocDiff> blocs = DiffBlocs.de(ANCIEN, NOUVEAU).blocs();
+        List<DiffBlocs.BlocDiff> blocs = DiffBlocs.of(ANCIEN, NOUVEAU).blocs();
         assertEquals(3, blocs.size(),
                 "un remplacement, une suppression, un ajout — trois changements indépendants");
         DiffBlocs.BlocDiff remplacement = blocs.get(0);
@@ -40,11 +40,11 @@ class DiffBlocsTest {
         assertEquals(2, remplacement.finAncien());
         assertEquals(1, remplacement.debutNouveau());
         assertEquals(2, remplacement.finNouveau());
-        assertEquals(2, remplacement.lignes().size());
-        assertEquals(DiffBlocs.TypeLigne.ENLEVEE,
-                remplacement.lignes().get(0).type());
-        assertEquals(DiffBlocs.TypeLigne.AJOUTEE,
-                remplacement.lignes().get(1).type());
+        assertEquals(2, remplacement.lines().size());
+        assertEquals(DiffBlocs.LineKind.ENLEVEE,
+                remplacement.lines().get(0).type());
+        assertEquals(DiffBlocs.LineKind.AJOUTEE,
+                remplacement.lines().get(1).type());
         DiffBlocs.BlocDiff suppression = blocs.get(1);
         assertEquals(3, suppression.debutAncien());
         assertEquals(4, suppression.finAncien());
@@ -59,17 +59,17 @@ class DiffBlocsTest {
 
     @Test
     void laLectureEnLignePrefixeLesLignes() {
-        List<String> lignes = DiffBlocs.de(ANCIEN, NOUVEAU).enLigne();
+        List<String> lines = DiffBlocs.of(ANCIEN, NOUVEAU).inline();
         assertEquals(List.of(
                 "- deuxieme ligne",
                 "+ ligne remplacee",
                 "- quatrieme ligne",
-                "+ sixieme ligne"), lignes);
+                "+ sixieme ligne"), lines);
     }
 
     @Test
     void laLectureCoteACoteAligneLesColonnes() {
-        List<String> rendues = DiffBlocs.de(ANCIEN, NOUVEAU).coteACote(16);
+        List<String> rendues = DiffBlocs.of(ANCIEN, NOUVEAU).coteACote(16);
         assertEquals(3, rendues.size());
         assertEquals("deuxieme ligne   | ligne remplacee", rendues.get(0));
         assertEquals("quatrieme ligne  | ", rendues.get(1));
@@ -78,15 +78,15 @@ class DiffBlocsTest {
 
     @Test
     void lesTextesEgauxNePortentAucunBloc() {
-        assertEquals(0, DiffBlocs.de(ANCIEN, ANCIEN).blocs().size());
+        assertEquals(0, DiffBlocs.of(ANCIEN, ANCIEN).blocs().size());
     }
 
     @Test
     void laRevueDecideBlocParBlocAvecRealignement() {
-        DiffReview revue = DiffReview.de(ANCIEN, NOUVEAU);
+        DiffReview revue = DiffReview.of(ANCIEN, NOUVEAU);
         assertEquals(3, revue.nombreDeBlocs());
         // Tout en attente : le texte reste l'ancien.
-        assertEquals(ANCIEN, revue.texte());
+        assertEquals(ANCIEN, revue.text());
 
         // Le remplacement accepté : il s'applique, les blocs suivants
         // restent alignés malgré le décalage.
@@ -98,7 +98,7 @@ class DiffBlocsTest {
                 troisieme ligne
                 quatrieme ligne
                 cinquieme ligne
-                """, remplacementAccepte.texte());
+                """, remplacementAccepte.text());
 
         // La suppression refusée : l'ancienne ligne reste.
         DiffReview suppressionRefusee = remplacementAccepte.decider(1,
@@ -109,20 +109,20 @@ class DiffBlocsTest {
                 troisieme ligne
                 quatrieme ligne
                 cinquieme ligne
-                """, suppressionRefusee.texte());
+                """, suppressionRefusee.text());
 
         // L'ajout accepté par-dessus : le texte devient le nouveau.
         DiffReview tousDecides = suppressionRefusee.decider(1,
                 DiffReview.Decision.ACCEPTE).decider(2,
                 DiffReview.Decision.ACCEPTE);
-        assertEquals(NOUVEAU, tousDecides.texte());
+        assertEquals(NOUVEAU, tousDecides.text());
     }
 
     @Test
     void leRefusDuMilieuRealigneLesSuivants() {
         String ancien = "a\nb\nc\nd\ne\n";
         String nouveau = "a\nB\nc\nD\ne\n";
-        DiffReview revue = DiffReview.de(ancien, nouveau);
+        DiffReview revue = DiffReview.of(ancien, nouveau);
         assertEquals(2, revue.nombreDeBlocs());
 
         // Refus du premier bloc, acceptation du second : le second
@@ -130,19 +130,19 @@ class DiffBlocsTest {
         DiffReview revueDecidee = revue
                 .decider(0, DiffReview.Decision.REFUSE)
                 .decider(1, DiffReview.Decision.ACCEPTE);
-        assertEquals("a\nb\nc\nD\ne\n", revueDecidee.texte());
+        assertEquals("a\nb\nc\nD\ne\n", revueDecidee.text());
     }
 
     @Test
     void lePointDeControleRetrouveSonEtat() {
-        DiffReview depart = DiffReview.de(ANCIEN, NOUVEAU);
+        DiffReview depart = DiffReview.of(ANCIEN, NOUVEAU);
         DiffReview point = depart.decider(0, DiffReview.Decision.ACCEPTE)
                 .pointDeControle();
         DiffReview apres = point.decider(1, DiffReview.Decision.ACCEPTE)
                 .decider(0, DiffReview.Decision.REFUSE);
         assertEquals(DiffReview.Decision.REFUSE, apres.decision(0));
         // Le retour au point de contrôle restaure l'état enregistré.
-        DiffReview revenu = apres.retourAuPointDeControle(point);
+        DiffReview revenu = apres.backToCheckpoint(point);
         assertEquals(DiffReview.Decision.ACCEPTE, revenu.decision(0));
         assertEquals(DiffReview.Decision.EN_ATTENTE, revenu.decision(1));
     }

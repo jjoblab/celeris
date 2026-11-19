@@ -54,10 +54,10 @@ class HitTestTest {
     void viewTestHitTestAimsAtLeftQuarterOfGlyph() {
         HitTest hit = viseurFixe();
 
-        for (int colonne = 0; colonne < 12; colonne++) {
-            float quartGauche = colonne * 10f + 10f / 4f;
-            assertEquals(colonne, hit.columnAt(quartGauche),
-                    "la visée au quart gauche de la colonne " + colonne
+        for (int column = 0; column < 12; column++) {
+            float quartGauche = column * 10f + 10f / 4f;
+            assertEquals(column, hit.columnAt(quartGauche),
+                    "la visée au quart gauche de la colonne " + column
                             + " doit donner cette colonne");
         }
 

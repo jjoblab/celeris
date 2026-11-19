@@ -20,8 +20,8 @@ final class CompletionsXmlTest {
     /** Les attributs de la balise connue répondent au préfixe tapé. */
     @Test
     void attributsDeLaBaliseConnueRepondentAuPrefixe() {
-        String texte = "<Button\n    and";
-        List<String> candidats = CompletionsXml.completer(texte, texte.length());
+        String text = "<Button\n    and";
+        List<String> candidats = CompletionsXml.completer(text, text.length());
         assertFalse(candidats.isEmpty(), "au moins un attribut android: suggéré");
         for (String candidat : candidats) {
             assertTrue(candidat.startsWith("and"), "chaque candidat porte le préfixe : "
@@ -36,8 +36,8 @@ final class CompletionsXmlTest {
     /** Le nom de balise se complète après le chevron ouvrant. */
     @Test
     void nomDeBaliseSeCompleteApresLeChevron() {
-        String texte = "<Text";
-        List<String> candidats = CompletionsXml.completer(texte, texte.length());
+        String text = "<Text";
+        List<String> candidats = CompletionsXml.completer(text, text.length());
         assertTrue(candidats.contains("TextView"), "TextView suggéré : " + candidats);
         for (String candidat : candidats) {
             assertTrue(candidat.startsWith("Text"), "chaque candidat porte le préfixe : "
@@ -48,8 +48,8 @@ final class CompletionsXmlTest {
     /** Les valeurs de taille suggèrent les constantes de mise en page. */
     @Test
     void valeursDeTailleSuggerentConstantesEtUnites() {
-        String texte = "<Button\n    android:layout_width=\"ma";
-        List<String> candidats = CompletionsXml.completer(texte, texte.length());
+        String text = "<Button\n    android:layout_width=\"ma";
+        List<String> candidats = CompletionsXml.completer(text, text.length());
         assertTrue(candidats.contains("match_parent"), "match_parent suggéré : " + candidats);
         String vide = "<Button\n    android:layout_height=\"";
         List<String> toutes = CompletionsXml.completer(vide, vide.length());
@@ -60,16 +60,16 @@ final class CompletionsXmlTest {
     /** Les unités dp et sp se suggèrent dans une taille à nombre. */
     @Test
     void unitesDpSpSeSuggerentDansUneTaille() {
-        String texte = "<TextView\n    android:textSize=\"16";
-        List<String> candidats = CompletionsXml.completer(texte, texte.length());
+        String text = "<TextView\n    android:textSize=\"16";
+        List<String> candidats = CompletionsXml.completer(text, text.length());
         assertTrue(candidats.contains("16sp"), "le suffixe sp suggéré : " + candidats);
     }
 
     /** Les références @type/ se suggèrent dans une valeur d'attribut. */
     @Test
     void referencesSeSuggerentDansUneValeur() {
-        String texte = "<TextView\n    android:text=\"@";
-        List<String> candidats = CompletionsXml.completer(texte, texte.length());
+        String text = "<TextView\n    android:text=\"@";
+        List<String> candidats = CompletionsXml.completer(text, text.length());
         assertTrue(candidats.contains("@string/"), "@string/ suggéré : " + candidats);
         assertTrue(candidats.contains("@drawable/"), "@drawable/ suggéré : " + candidats);
         for (String candidat : candidats) {
@@ -81,8 +81,8 @@ final class CompletionsXmlTest {
     /** La balise inconnue retombe sur les attributs communs. */
     @Test
     void baliseInconnueRetombeSurLesAttributsCommuns() {
-        String texte = "<Inconnue\n    android:la";
-        List<String> candidats = CompletionsXml.completer(texte, texte.length());
+        String text = "<Inconnue\n    android:la";
+        List<String> candidats = CompletionsXml.completer(text, text.length());
         assertTrue(candidats.contains("android:layout_width"),
                 "les attributs communs répondent : " + candidats);
     }
@@ -90,16 +90,16 @@ final class CompletionsXmlTest {
     /** Hors d'une balise — dans le texte — rien ne se suggère. */
     @Test
     void horsBaliseRienNeSeSuggerere() {
-        String texte = "<Button>a";
-        List<String> candidats = CompletionsXml.completer(texte, texte.length());
+        String text = "<Button>a";
+        List<String> candidats = CompletionsXml.completer(text, text.length());
         assertTrue(candidats.isEmpty(), "le texte ne porte pas de complétion : " + candidats);
     }
 
     /** Les candidats restent bornés et distincts. */
     @Test
     void candidatsDistinctsEtBornes() {
-        String texte = "<Button\n    ";
-        List<String> candidats = CompletionsXml.completer(texte, texte.length());
+        String text = "<Button\n    ";
+        List<String> candidats = CompletionsXml.completer(text, text.length());
         assertEquals(candidats.size(), candidats.stream().distinct().count(),
                 "aucun doublon");
         assertTrue(candidats.size() <= CompletionsXml.MAX_CANDIDATS,

@@ -15,33 +15,33 @@ public interface IntegrationDebogueur {
      * Pose un point d'arrêt : actif par défaut.
      *
      * @param fichier le chemin du fichier
-     * @param ligne   la ligne, numérotée à partir de un
+     * @param line   la ligne, numérotée à partir de un
      */
-    void poserBreakpoint(CheminDoc fichier, int ligne);
+    void placeBreakpoint(CheminDoc fichier, int line);
 
     /**
      * Retire le point d'arrêt : muet si l'arrêt n'existe pas.
      *
      * @param fichier le chemin du fichier
-     * @param ligne   la ligne de l'arrêt
+     * @param line   la ligne de l'arrêt
      */
-    void retirerBreakpoint(CheminDoc fichier, int ligne);
+    void removeBreakpoint(CheminDoc fichier, int line);
 
     /**
      * Bascule l'état actif/inactif du point d'arrêt (D-04) : muet si
      * l'arrêt n'existe pas.
      *
      * @param fichier le chemin du fichier
-     * @param ligne   la ligne de l'arrêt
+     * @param line   la ligne de l'arrêt
      */
-    void basculerBreakpoint(CheminDoc fichier, int ligne);
+    void toggleBreakpoint(CheminDoc fichier, int line);
 
     /**
      * Tous les points d'arrêt posés, actifs et inactifs.
      *
      * @return les arrêts, non modifiables
      */
-    List<Breakpoint> arrets();
+    List<Breakpoint> breakpoints();
 
     /**
      * La ligne courante de l'exécution en pause : null hors pause
@@ -49,33 +49,33 @@ public interface IntegrationDebogueur {
      *
      * @return le lieu de la pause, ou null
      */
-    @Nullable BreakpointLine ligneCourante();
+    @Nullable BreakpointLine currentLine();
 
     /**
      * La pile d'appels de la pause : vide hors pause (D-05).
      *
      * @return les cadres du plus récent au plus ancien
      */
-    List<CadrePile> pileCourante();
+    List<StackFrame> currentStack();
 
     /**
      * Évalue l'expression au point de survol — bornée : refuse hors
      * pause et sur une ligne hors de la pile courante.
      *
      * @param fichier    le chemin du fichier survolé
-     * @param ligne      la ligne survolée
-     * @param colonne    la colonne survolée, à partir de un
+     * @param line      la ligne survolée
+     * @param column    la colonne survolée, à partir de un
      * @param expression l'expression à évaluer, dérivée du texte
      * @return la valeur rendue, écriture libre
      * @throws IllegalStateException hors pause ou hors pile
      */
-    String evaluerAuSurvol(CheminDoc fichier, int ligne, int colonne, String expression);
+    String evaluerAuSurvol(CheminDoc fichier, int line, int column, String expression);
 
     /**
      * Les valeurs à afficher en marge de la ligne donnée.
      *
-     * @param ligne la ligne, numérotée à partir de un
+     * @param line la ligne, numérotée à partir de un
      * @return les valeurs enregistrées pour la ligne
      */
-    List<ValeurEnLigne> valeursEnLigne(int ligne);
+    List<InlineValue> inlineValues(int line);
 }

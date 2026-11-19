@@ -30,10 +30,10 @@ public final class FoldPlaceholder extends PainterLayer {
         /**
          * La pièce du pli de la ligne d'en-tête donnée.
          *
-         * @param ligne la ligne d'en-tête à interroger
+         * @param line la ligne d'en-tête à interroger
          * @return sa pièce, null si la ligne ne porte pas de pli composé
          */
-        FoldedRowSource.@Nullable PieceDePli piece(int ligne);
+        FoldedRowSource.@Nullable PieceDePli piece(int line);
     }
 
     /**
@@ -71,15 +71,15 @@ public final class FoldPlaceholder extends PainterLayer {
             if (projection.spanStartAtRow(rangee) != 0) {
                 continue;
             }
-            int ligne = projection.firstLineOfRow(rangee);
-            FoldedRowSource.PieceDePli piece = source.piece(ligne);
+            int line = projection.firstLineOfRow(rangee);
+            FoldedRowSource.PieceDePli piece = source.piece(line);
             if (piece == null) {
                 continue;
             }
             float gauche = frame.gutterWidth()
-                    + piece.colonne() * metrics.charWidth() - frame.scrollX();
+                    + piece.column() * metrics.charWidth() - frame.scrollX();
             float droite = frame.gutterWidth()
-                    + (piece.colonne() + piece.texte().length())
+                    + (piece.column() + piece.text().length())
                             * metrics.charWidth() - frame.scrollX();
             float haut = metrics.rowTop(rangee) - frame.scrollY();
             surface.drawRect(gauche, haut, droite, haut + metrics.lineHeight(),

@@ -30,7 +30,7 @@ public final class EncodingCodec {
     }
 
     /** Les marques d'ordre connues, la plus longue d'abord. */
-    private static final byte[][] MARQUES = {
+    private static final byte[][] MARKS = {
             {0, 0, (byte) 0xFE, (byte) 0xFF},
             {(byte) 0xFF, (byte) 0xFE, 0, 0},
             {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF},
@@ -38,7 +38,7 @@ public final class EncodingCodec {
             {(byte) 0xFF, (byte) 0xFE},
     };
 
-    private static final Encoding[] ENCODINGS_DE_MARQUE = {
+    private static final Encoding[] MARK_ENCODINGS = {
             Encoding.UTF_32BE, Encoding.UTF_32LE, Encoding.UTF_8,
             Encoding.UTF_16BE, Encoding.UTF_16LE,
     };
@@ -50,9 +50,9 @@ public final class EncodingCodec {
      * @return encodage détecté et présence de la marque
      */
     public static Detection detect(byte[] bytes) {
-        for (int i = 0; i < MARQUES.length; i++) {
-            if (startsWith(bytes, MARQUES[i])) {
-                return new Detection(ENCODINGS_DE_MARQUE[i], true, MARQUES[i].length, true);
+        for (int i = 0; i < MARKS.length; i++) {
+            if (startsWith(bytes, MARKS[i])) {
+                return new Detection(MARK_ENCODINGS[i], true, MARKS[i].length, true);
             }
         }
         return new Detection(heuristicEncoding(bytes), false, 0, false);
@@ -206,9 +206,9 @@ public final class EncodingCodec {
     }
 
     private static int bomLength(byte[] bytes, Encoding encoding) {
-        for (int i = 0; i < MARQUES.length; i++) {
-            if (ENCODINGS_DE_MARQUE[i] == encoding && startsWith(bytes, MARQUES[i])) {
-                return MARQUES[i].length;
+        for (int i = 0; i < MARKS.length; i++) {
+            if (MARK_ENCODINGS[i] == encoding && startsWith(bytes, MARKS[i])) {
+                return MARKS[i].length;
             }
         }
         return 0;

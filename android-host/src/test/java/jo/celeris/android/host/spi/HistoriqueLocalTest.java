@@ -21,21 +21,21 @@ final class HistoriqueLocalTest {
     private final AtomicLong horloge = new AtomicLong();
 
     private HistoriqueLocal historique() {
-        return new HistoriqueLocal(new MemoireSystemeFichiers(), horloge::incrementAndGet);
+        return new HistoriqueLocal(new InMemoryFileSystem(), horloge::incrementAndGet);
     }
 
     /** A-14 — l'écriture archive le contenu remplacé, l'écriture sans changement n'archive rien. */
     @Test
     void lecritureArchiveLeRemplace() {
         HistoriqueLocal historique = historique();
-        CheminDoc chemin = CheminDoc.de("/projet/src/Main.java");
+        CheminDoc chemin = CheminDoc.of("/projet/src/Main.java");
 
-        historique.ecrire(chemin, "class Main {}");
+        historique.write(chemin, "class Main {}");
         assertTrue(historique.revisions(chemin).isEmpty(),
                 "la création n'a pas de passé à archiver");
 
-        historique.ecrire(chemin, "class Main { int x; }");
-        historique.ecrire(chemin, "class Main { int x; int y; }");
+        historique.write(chemin, "class Main { int x; }");
+        historique.write(chemin, "class Main { int x; int y; }");
         List<RevisionLocale> revisions = historique.revisions(chemin);
         assertEquals(2, revisions.size(), "deux contenus remplacés archivés");
         assertEquals("class Main {}", revisions.get(0).contenu());
@@ -43,7 +43,7 @@ final class HistoriqueLocalTest {
         assertEquals(1, revisions.get(0).horodatage());
         assertEquals(2, revisions.get(1).horodatage());
 
-        historique.ecrire(chemin, "class Main { int x; int y; }");
+        historique.write(chemin, "class Main { int x; int y; }");
         assertEquals(2, historique.revisions(chemin).size(),
                 "l'écriture sans changement n'archive rien");
     }
@@ -52,13 +52,13 @@ final class HistoriqueLocalTest {
     @Test
     void lisolementParFichier() {
         HistoriqueLocal historique = historique();
-        CheminDoc main = CheminDoc.de("/projet/src/Main.java");
-        CheminDoc test = CheminDoc.de("/projet/src/MainTest.java");
+        CheminDoc main = CheminDoc.of("/projet/src/Main.java");
+        CheminDoc test = CheminDoc.of("/projet/src/MainTest.java");
 
-        historique.ecrire(main, "class Main {}");
-        historique.ecrire(test, "class MainTest {}");
-        historique.ecrire(main, "class Main { int x; }");
-        historique.ecrire(test, "class MainTest { int y; }");
+        historique.write(main, "class Main {}");
+        historique.write(test, "class MainTest {}");
+        historique.write(main, "class Main { int x; }");
+        historique.write(test, "class MainTest { int y; }");
 
         List<RevisionLocale> revisionsMain = historique.revisions(main);
         assertEquals(1, revisionsMain.size(), "seul Main.java s'y écrit");
@@ -74,22 +74,22 @@ final class HistoriqueLocalTest {
     @Test
     void restaurerUneVersionAnterieure() {
         HistoriqueLocal historique = historique();
-        CheminDoc chemin = CheminDoc.de("/projet/src/Main.java");
+        CheminDoc chemin = CheminDoc.of("/projet/src/Main.java");
 
-        historique.ecrire(chemin, "class Main {}");
-        historique.ecrire(chemin, "class Main { int x; }");
-        historique.ecrire(chemin, "class Main { int x; int y; }");
+        historique.write(chemin, "class Main {}");
+        historique.write(chemin, "class Main { int x; }");
+        historique.write(chemin, "class Main { int x; int y; }");
 
-        historique.restaurer(chemin, historique.revisions(chemin).get(0));
-        assertEquals("class Main {}", historique.ouvrir(chemin).contenu(),
+        historique.restore(chemin, historique.revisions(chemin).get(0));
+        assertEquals("class Main {}", historique.open(chemin).contenu(),
                 "la version antérieure revient");
 
         List<RevisionLocale> revisions = historique.revisions(chemin);
         assertEquals(3, revisions.size(), "la restauration archive le contenu remplacé");
         assertEquals("class Main { int x; int y; }", revisions.get(2).contenu());
 
-        historique.restaurer(chemin, revisions.get(2));
-        assertEquals("class Main { int x; int y; }", historique.ouvrir(chemin).contenu(),
+        historique.restore(chemin, revisions.get(2));
+        assertEquals("class Main { int x; int y; }", historique.open(chemin).contenu(),
                 "la restauration se défait comme elle s'est faite");
     }
 
@@ -97,23 +97,23 @@ final class HistoriqueLocalTest {
     @Test
     void laRevisionEtrangereRefuse() {
         HistoriqueLocal historique = historique();
-        CheminDoc main = CheminDoc.de("/projet/src/Main.java");
-        CheminDoc test = CheminDoc.de("/projet/src/MainTest.java");
+        CheminDoc main = CheminDoc.of("/projet/src/Main.java");
+        CheminDoc test = CheminDoc.of("/projet/src/MainTest.java");
 
-        historique.ecrire(main, "class Main {}");
-        historique.ecrire(test, "class MainTest {}");
-        historique.ecrire(main, "class Main { int x; }");
-        historique.ecrire(test, "class MainTest { int y; }");
+        historique.write(main, "class Main {}");
+        historique.write(test, "class MainTest {}");
+        historique.write(main, "class Main { int x; }");
+        historique.write(test, "class MainTest { int y; }");
 
         RevisionLocale revisionTest = historique.revisions(test).get(0);
         assertThrows(IllegalArgumentException.class,
-                () -> historique.restaurer(main, revisionTest),
+                () -> historique.restore(main, revisionTest),
                 "la révision de MainTest ne se restaure pas sur Main");
         RevisionLocale forgee = new RevisionLocale(main, "class Forgeree {}", 99);
         assertThrows(IllegalArgumentException.class,
-                () -> historique.restaurer(main, forgee),
+                () -> historique.restore(main, forgee),
                 "la révision forgée refuse");
-        assertEquals("class Main { int x; }", historique.ouvrir(main).contenu(),
+        assertEquals("class Main { int x; }", historique.open(main).contenu(),
                 "rien n'a changé");
     }
 
@@ -121,16 +121,16 @@ final class HistoriqueLocalTest {
     @Test
     void lePasseVideEtLaDelegation() {
         HistoriqueLocal historique = historique();
-        CheminDoc chemin = CheminDoc.de("/projet/a.txt");
-        CheminDoc dossier = CheminDoc.de("/projet");
+        CheminDoc chemin = CheminDoc.of("/projet/a.txt");
+        CheminDoc dossier = CheminDoc.of("/projet");
 
         assertTrue(historique.revisions(chemin).isEmpty(),
                 "le fichier absent n'a pas d'histoire");
-        historique.ecrire(chemin, "un");
+        historique.write(chemin, "un");
         assertTrue(historique.estFichier(chemin), "la délégation répond");
         assertEquals(List.of(chemin), historique.lister(dossier),
                 "le listage délègue");
-        assertEquals("un", historique.ouvrir(chemin).contenu(),
+        assertEquals("un", historique.open(chemin).contenu(),
                 "l'ouverture délègue");
     }
 }

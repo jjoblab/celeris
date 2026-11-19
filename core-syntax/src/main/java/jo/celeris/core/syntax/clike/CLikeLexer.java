@@ -49,7 +49,7 @@ final class CLikeLexer implements LanguageLexer {
 
     /** Vrai pour la PREMIÈRE ligne du document (état d'entrée initial)
      *  — seule ligne où la marque d'ordre des octets s'ignore (A2). */
-    private boolean ligneDeTete;
+    private boolean headline;
 
     CLikeLexer(CLikeDialect dialect) {
         this.dialect = dialect;
@@ -63,7 +63,7 @@ final class CLikeLexer implements LanguageLexer {
     @Override
     public LexedLine lex(CharSequence text, LexState entry) {
         exitState = SimpleState.NORMAL;
-        ligneDeTete = entry == initialState();
+        headline = entry == initialState();
         List<Token> tokens = new ArrayList<>();
         int resume = 0;
         if (entry instanceof InBlockComment comment) {
@@ -143,7 +143,7 @@ final class CLikeLexer implements LanguageLexer {
         // une couleur parasite en tête de fichier UTF-8. Au MILIEU
         // d'une ligne, le caractère reste ordinaire (il fait partie
         // du jeton qui l'entoure).
-        if (c == '\uFEFF' && i == 0 && ligneDeTete) {
+        if (c == '\uFEFF' && i == 0 && headline) {
             return i + 1;
         }
         if (c == '/') {
@@ -287,23 +287,23 @@ final class CLikeLexer implements LanguageLexer {
         return tokens;
     }
 
-    private static boolean startsWith(CharSequence text, int i, String motif) {
-        if (i + motif.length() > text.length()) {
+    private static boolean startsWith(CharSequence text, int i, String pattern) {
+        if (i + pattern.length() > text.length()) {
             return false;
         }
-        for (int j = 0; j < motif.length(); j++) {
-            if (text.charAt(i + j) != motif.charAt(j)) {
+        for (int j = 0; j < pattern.length(); j++) {
+            if (text.charAt(i + j) != pattern.charAt(j)) {
                 return false;
             }
         }
         return true;
     }
 
-    private static int find(CharSequence text, String motif, int from) {
-        for (int i = from; i + motif.length() <= text.length(); i++) {
+    private static int find(CharSequence text, String pattern, int from) {
+        for (int i = from; i + pattern.length() <= text.length(); i++) {
             boolean equal = true;
-            for (int j = 0; j < motif.length(); j++) {
-                if (text.charAt(i + j) != motif.charAt(j)) {
+            for (int j = 0; j < pattern.length(); j++) {
+                if (text.charAt(i + j) != pattern.charAt(j)) {
                     equal = false;
                     break;
                 }

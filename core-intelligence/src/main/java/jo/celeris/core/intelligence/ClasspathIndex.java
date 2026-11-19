@@ -33,13 +33,13 @@ public final class ClasspathIndex {
      */
     public static ClasspathIndex of(Map<String, List<String>> noms) {
         Map<String, List<String>> validee = new LinkedHashMap<>();
-        for (Map.Entry<String, List<String>> entree : noms.entrySet()) {
-            String simple = entree.getKey();
+        for (Map.Entry<String, List<String>> input : noms.entrySet()) {
+            String simple = input.getKey();
             if (simple == null || simple.isBlank()) {
                 throw new IllegalArgumentException("blank simple name");
             }
             Set<String> distincts = new LinkedHashSet<>();
-            for (String fqn : entree.getValue()) {
+            for (String fqn : input.getValue()) {
                 if (fqn == null || !estQualifie(fqn)) {
                     throw new IllegalArgumentException(
                             "malformed qualified name: " + fqn);
@@ -78,7 +78,7 @@ public final class ClasspathIndex {
     }
 
     /** Le nombre de noms simples connus de l'index. */
-    public int taille() {
+    public int size() {
         return nomsVersFqn.size();
     }
 

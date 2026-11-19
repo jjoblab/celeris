@@ -45,8 +45,8 @@ public final class DiffReview {
      * @param nouveau le nouveau texte
      * @return la revue ouverte
      */
-    public static DiffReview de(String ancien, String nouveau) {
-        DiffBlocs blocs = DiffBlocs.de(ancien, nouveau);
+    public static DiffReview of(String ancien, String nouveau) {
+        DiffBlocs blocs = DiffBlocs.of(ancien, nouveau);
         List<Decision> attente = new ArrayList<>();
         for (int i = 0; i < blocs.blocs().size(); i++) {
             attente.add(Decision.EN_ATTENTE);
@@ -95,10 +95,10 @@ public final class DiffReview {
      *
      * @return le texte après les décisions courantes
      */
-    public String texte() {
-        List<String> anciennes = lignes(ancien);
-        List<String> nouvelles = lignes(nouveau);
-        List<DiffBlocs.BlocDiff> blocs = DiffBlocs.de(ancien, nouveau).blocs();
+    public String text() {
+        List<String> anciennes = lines(ancien);
+        List<String> nouvelles = lines(nouveau);
+        List<DiffBlocs.BlocDiff> blocs = DiffBlocs.of(ancien, nouveau).blocs();
         List<String> fusion = new ArrayList<>();
         int ligneAncienne = 0;
         for (int i = 0; i < blocs.size(); i++) {
@@ -144,20 +144,20 @@ public final class DiffReview {
      * @param controle le point de contrôle rendu par {@link #pointDeControle()}
      * @return la revue revenue à l'état du point de contrôle
      */
-    public DiffReview retourAuPointDeControle(DiffReview controle) {
+    public DiffReview backToCheckpoint(DiffReview controle) {
         return controle;
     }
 
-    private static List<String> lignes(String texte) {
-        List<String> lignes = new ArrayList<>();
-        int debut = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
-                lignes.add(texte.substring(debut, i));
-                debut = i + 1;
+    private static List<String> lines(String text) {
+        List<String> lines = new ArrayList<>();
+        int start = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                lines.add(text.substring(start, i));
+                start = i + 1;
             }
         }
-        lignes.add(texte.substring(debut));
-        return lignes;
+        lines.add(text.substring(start));
+        return lines;
     }
 }

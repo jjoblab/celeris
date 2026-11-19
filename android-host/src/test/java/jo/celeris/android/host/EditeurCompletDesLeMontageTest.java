@@ -57,7 +57,7 @@ public class EditeurCompletDesLeMontageTest {
 
     /** La scène du banc : la vue sous la couche, mesurée, la façade
      *  attachée et le document ouvert — comme le sample. */
-    private static CelerisEditor monter(FrameLayout scene, PopupLayer couche) {
+    private static CelerisEditor start(FrameLayout scene, PopupLayer couche) {
         Application contexte = RuntimeEnvironment.getApplication();
         EditorView vue = new EditorView(contexte);
         vue.setId(android.R.id.text1);
@@ -70,15 +70,15 @@ public class EditeurCompletDesLeMontageTest {
                 ViewGroup.LayoutParams.MATCH_PARENT));
         // La scène vit à une fenêtre — comme l'écran réel : la posted
         // pose de langue (open() ne bloque plus le fil) s'y exécute.
-        android.view.WindowManager fenetre = (android.view.WindowManager)
+        android.view.WindowManager window = (android.view.WindowManager)
                 contexte.getSystemService(android.content.Context.WINDOW_SERVICE);
-        fenetre.addView(scene, new android.view.WindowManager.LayoutParams(
+        window.addView(scene, new android.view.WindowManager.LayoutParams(
                 android.view.WindowManager.LayoutParams.MATCH_PARENT,
                 android.view.WindowManager.LayoutParams.MATCH_PARENT));
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
         attendreLaPoseDeLangue();
-        return editeur;
+        return editor;
     }
 
     /** Laisse la pose de langue arriver : le fil démon résout, le
@@ -100,19 +100,19 @@ public class EditeurCompletDesLeMontageTest {
         Application contexte = RuntimeEnvironment.getApplication();
         FrameLayout scene = new FrameLayout(contexte);
         PopupLayer couche = new PopupLayer(contexte);
-        CelerisEditor editeur = monter(scene, couche);
+        CelerisEditor editor = start(scene, couche);
 
-        assertNotNull("l'orchestrateur vit", editeur.popups());
+        assertNotNull("l'orchestrateur vit", editor.popups());
         // La voie publique de la complétion : les mots réservés du
         // langage ouvert. Le banc échouait AVANT (le coach muet rendait
         // une table vide).
         assertTrue("la complétion connaît class",
-                editeur.popups().completionMotsReserves().contains("class"));
+                editor.popups().reservedWordsCompletion().contains("class"));
         assertTrue("la complétion connaît void",
-                editeur.popups().completionMotsReserves().contains("void"));
+                editor.popups().reservedWordsCompletion().contains("void"));
         assertTrue("la table est riche (Java : dizaines de mots)",
-                editeur.popups().completionMotsReserves().size() >= 20);
-        editeur.close();
+                editor.popups().reservedWordsCompletion().size() >= 20);
+        editor.close();
     }
 
     /** Le chrome vit dès la pose : la minimap et le pouce de
@@ -124,7 +124,7 @@ public class EditeurCompletDesLeMontageTest {
         Application contexte = RuntimeEnvironment.getApplication();
         FrameLayout scene = new FrameLayout(contexte);
         PopupLayer couche = new PopupLayer(contexte);
-        CelerisEditor editeur = monter(scene, couche);
+        CelerisEditor editor = start(scene, couche);
 
         // La scène se mesure et se drape (monter() l'a déjà posée à
         // une fenêtre) : le posted rafraîchissement du montage
@@ -136,12 +136,12 @@ public class EditeurCompletDesLeMontageTest {
         scene.layout(0, 0, 1080, 1920);
         org.robolectric.shadows.ShadowLooper.runUiThreadTasks();
 
-        PopupController controleur = editeur.popups().manager().controleur();
+        PopupController controleur = editor.popups().manager().controleur();
         assertTrue("la minimap vit dès la pose",
                 controleur.isOpen(PopupController.PopupKind.MINIMAP));
         assertTrue("le pouce de défilement rapide vit dès la pose",
                 controleur.isOpen(PopupController.PopupKind.FAST_SCROLLER));
-        editeur.close();
+        editor.close();
     }
 
     /** Le coach suit la langue du document ouvert : le .java sert les
@@ -152,15 +152,15 @@ public class EditeurCompletDesLeMontageTest {
         Application contexte = RuntimeEnvironment.getApplication();
         FrameLayout scene = new FrameLayout(contexte);
         PopupLayer couche = new PopupLayer(contexte);
-        CelerisEditor editeur = monter(scene, couche);
+        CelerisEditor editor = start(scene, couche);
         assertTrue("le .java sert les mots du Java",
-                editeur.popups().completionMotsReserves().contains("class"));
+                editor.popups().reservedWordsCompletion().contains("class"));
 
         // Le document sans langage : la table se vide, sans erreur.
-        editeur.open("notes.txt", "du texte libre\n");
+        editor.open("notes.txt", "du texte libre\n");
         attendreLaPoseDeLangue();
         assertTrue("sans langage, la table se vide",
-                editeur.popups().completionMotsReserves().isEmpty());
-        editeur.close();
+                editor.popups().reservedWordsCompletion().isEmpty());
+        editor.close();
     }
 }

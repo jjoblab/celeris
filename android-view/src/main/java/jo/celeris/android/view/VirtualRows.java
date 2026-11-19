@@ -52,26 +52,26 @@ public final class VirtualRows {
     public static List<Row> visible(Document document,
             VisualProjection projection, EditorMetrics metrics, int firstRow,
             int visibleRows, float gutterWidth, float scrollX, float scrollY) {
-        List<Row> rangees = new ArrayList<>(Math.max(0, visibleRows));
+        List<Row> rows = new ArrayList<>(Math.max(0, visibleRows));
         for (int rangee = firstRow;
                 rangee < firstRow + visibleRows && rangee < projection.rowCount();
                 rangee++) {
-            int ligne = projection.firstLineOfRow(rangee);
-            int debutLigne = document.lineStart(ligne);
-            int debut = projection.spanStartAtRow(rangee);
-            int fin = Math.min(projection.spanEndAtRow(rangee),
-                    document.lineEnd(ligne) - debutLigne);
-            if (fin < debut) {
-                fin = debut;
+            int line = projection.firstLineOfRow(rangee);
+            int lineStart = document.lineStart(line);
+            int start = projection.spanStartAtRow(rangee);
+            int end = Math.min(projection.spanEndAtRow(rangee),
+                    document.lineEnd(line) - lineStart);
+            if (end < start) {
+                end = start;
             }
-            String texte = document.subText(debutLigne + debut,
-                    debutLigne + fin);
+            String text = document.subText(lineStart + start,
+                    lineStart + end);
             float gauche = gutterWidth - scrollX;
             float haut = metrics.rowTop(rangee) - scrollY;
-            rangees.add(new Row(rangee, texte, gauche, haut,
-                    gauche + texte.length() * metrics.charWidth(),
+            rows.add(new Row(rangee, text, gauche, haut,
+                    gauche + text.length() * metrics.charWidth(),
                     haut + metrics.lineHeight()));
         }
-        return rangees;
+        return rows;
     }
 }

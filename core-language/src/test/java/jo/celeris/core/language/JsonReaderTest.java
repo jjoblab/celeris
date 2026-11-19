@@ -59,7 +59,7 @@ class JsonReaderTest {
 
     /** Le tableau vide et l'objet vide se lisent. */
     @Test
-    void vides() {
+    void empty() {
         assertEquals(0, assertInstanceOf(List.class, JsonReader.read("[]")).size());
         assertEquals(0, assertInstanceOf(Map.class, JsonReader.read("{}")).size());
     }

@@ -3,9 +3,12 @@
 // modules (ADR-001) : aucun Kotlin ne fuit dans les artefacts publiés.
 dependencyResolutionManagement {
     repositories {
+        // PATCH LOCAL SANDBOX (jamais commité) : miroir Aliyun en tête.
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        maven { url = uri("https://maven.aliyun.com/repository/google") }
+        maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
         google()
         mavenCentral()
-        gradlePluginPortal()
     }
     versionCatalogs {
         create("libs") {

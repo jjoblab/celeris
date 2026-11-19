@@ -18,12 +18,12 @@ import jo.celeris.core.text.Document;
  */
 class ErrorBandModelTest {
 
-    private static Document document(int lignes) {
-        StringBuilder texte = new StringBuilder();
-        for (int i = 0; i < lignes; i++) {
-            texte.append("aaaa\n");
+    private static Document document(int lines) {
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < lines; i++) {
+            text.append("aaaa\n");
         }
-        return Document.of(texte.toString());
+        return Document.of(text.toString());
     }
 
     /** La densité est bornée : deux diagnostics d'un même cran ne font qu'une marque. */
@@ -38,11 +38,11 @@ class ErrorBandModelTest {
         ErrorBandModel bande = ErrorBandModel.of(diagnostics, doc, 10);
         // lignes 0 et 1 partagent le cran 0 ; la ligne 20 vit au cran 1
         // (le saut final crée une cent-unième ligne, vide)
-        assertEquals(2, bande.marques().size());
-        assertEquals(0, bande.marques().get(0).ligne());
-        assertEquals(0, bande.marques().get(0).cran());
-        assertEquals(20, bande.marques().get(1).ligne());
-        assertEquals(1, bande.marques().get(1).cran());
+        assertEquals(2, bande.marks().size());
+        assertEquals(0, bande.marks().get(0).line());
+        assertEquals(0, bande.marks().get(0).cran());
+        assertEquals(20, bande.marks().get(1).line());
+        assertEquals(1, bande.marks().get(1).cran());
     }
 
     /** Le clic sur un cran saute au diagnostic qu'il porte. */
@@ -72,7 +72,7 @@ class ErrorBandModelTest {
     @Test
     void sansDiagnosticRien() {
         ErrorBandModel bande = ErrorBandModel.of(List.of(), document(100), 10);
-        assertTrue(bande.marques().isEmpty());
+        assertTrue(bande.marks().isEmpty());
         assertEquals(-1, bande.clic(3));
     }
 
@@ -83,6 +83,6 @@ class ErrorBandModelTest {
         List<SyntaxIssue> diagnostics = List.of(
                 new SyntaxIssue(10_000, 1, "au-delà"));
         ErrorBandModel bande = ErrorBandModel.of(diagnostics, doc, 10);
-        assertTrue(bande.marques().isEmpty());
+        assertTrue(bande.marks().isEmpty());
     }
 }

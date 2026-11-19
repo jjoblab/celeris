@@ -35,11 +35,11 @@ public class ViewportPrefetchTest {
         for (int i = 0; i < 300; i++) {
             joiner.add("ligne numero " + i);
         }
-        EditorTestRig rig = EditorTestRig.sur(
+        EditorTestRig rig = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), joiner + "\n");
-        android.app.Activity hote = org.robolectric.android.controller.ActivityController
+        android.app.Activity host = org.robolectric.android.controller.ActivityController
                 .of(new android.app.Activity()).setup().get();
-        hote.setContentView(rig.vue());
+        host.setContentView(rig.vue());
         rig.vue().layout(0, 0, 1080, 1920);
         // la première image pose les métriques : la course se mesure
         // après (leçon de ScrollFractionTest), PUIS le défilement.
@@ -49,8 +49,8 @@ public class ViewportPrefetchTest {
         return rig;
     }
 
-    private RowLayout rangee(EditorView vue, int numero) {
-        return vue.cache.find(vue.session.document().revision(), numero,
+    private RowLayout rangee(EditorView vue, int number) {
+        return vue.cache.find(vue.session.document().revision(), number,
                 vue.theme.id(), vue.metrics.font(),
                 vue.projection.columns());
     }
@@ -61,8 +61,8 @@ public class ViewportPrefetchTest {
     public void leCalmePrechauffeLesRangeesSousLeViewport() {
         EditorTestRig rig = bancLong();
         EditorView vue = rig.vue();
-        int premiere = vue.premiereLigneVisible();
-        int visibles = vue.lignesVisibles();
+        int premiere = vue.firstVisibleLine();
+        int visibles = vue.visibleLines();
         int dessous = premiere + visibles + 4;
 
         // Avant le calme : rien au-delà du viewport.
@@ -89,8 +89,8 @@ public class ViewportPrefetchTest {
         // NOUVEAU viewport, pas l'ancien.
         vue.scrollToFractionY(0.66f);
         rig.image();
-        int nouvellePremiere = vue.premiereLigneVisible();
-        int visibles = vue.lignesVisibles();
+        int nouvellePremiere = vue.firstVisibleLine();
+        int visibles = vue.visibleLines();
 
         ShadowLooper shadow = org.robolectric.Shadows.shadowOf(Looper.getMainLooper());
         shadow.idleFor(java.time.Duration.ofMillis(CALME_MS));

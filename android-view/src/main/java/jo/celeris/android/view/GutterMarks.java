@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
 public final class GutterMarks {
 
     /** Les marques vides : aucune ligne pliable, repliée ou en erreur. */
-    public static final GutterMarks VIDE =
+    public static final GutterMarks EMPTY =
             new GutterMarks(new int[0], new FoldModel(), new int[0]);
 
     private final int[] pliables;
@@ -36,7 +36,7 @@ public final class GutterMarks {
         this.pliables = pliables;
         this.replis = replis;
         this.erreurs = erreurs;
-        this.integration = IntegrationMarks.VIDE;
+        this.integration = IntegrationMarks.EMPTY;
     }
 
     private GutterMarks(int[] pliables, FoldModel replis, int[] erreurs,
@@ -65,18 +65,18 @@ public final class GutterMarks {
     }
 
     /** Vrai si la ligne porte l'en-tête d'une région pliable de l'arbre. */
-    public boolean pliable(int ligne) {
-        return contient(pliables, ligne);
+    public boolean pliable(int line) {
+        return contient(pliables, line);
     }
 
     /** Vrai si la ligne porte un pli replié. */
-    public boolean replie(int ligne) {
-        return replis.isFolded(ligne);
+    public boolean replie(int line) {
+        return replis.isFolded(line);
     }
 
     /** Vrai si la ligne porte une marque d'erreur (D-02). */
-    public boolean erreur(int ligne) {
-        return contient(erreurs, ligne);
+    public boolean erreur(int line) {
+        return contient(erreurs, line);
     }
 
     /**
@@ -84,11 +84,11 @@ public final class GutterMarks {
      * (D-03, D-04, D-05) : plis et erreurs survivent, les intégrations
      * s'y ajoutent.
      *
-     * @param marques les marques d'intégration à fondre
+     * @param marks les marques d'intégration à fondre
      * @return les marques fondues
      */
-    public GutterMarks avec(IntegrationMarks marques) {
-        return new GutterMarks(pliables, replis, erreurs, marques);
+    public GutterMarks avec(IntegrationMarks marks) {
+        return new GutterMarks(pliables, replis, erreurs, marks);
     }
 
     /**
@@ -97,38 +97,38 @@ public final class GutterMarks {
      * s'ajoutent aux erreurs de la syntaxe, chaque ligne marquée se
      * trace pareil qu'elle vienne de l'arbre ou du build.
      *
-     * @param lignes les lignes porteuses d'un diagnostic importé,
+     * @param lines les lignes porteuses d'un diagnostic importé,
      *               numérotées à partir de zéro
      * @return les marques fondues
      */
-    public GutterMarks avecErreurs(int[] lignes) {
-        if (lignes.length == 0) {
+    public GutterMarks avecErreurs(int[] lines) {
+        if (lines.length == 0) {
             return this;
         }
-        int[] fondues = Arrays.copyOf(erreurs, erreurs.length + lignes.length);
-        System.arraycopy(lignes, 0, fondues, erreurs.length, lignes.length);
+        int[] fondues = Arrays.copyOf(erreurs, erreurs.length + lines.length);
+        System.arraycopy(lines, 0, fondues, erreurs.length, lines.length);
         Arrays.sort(fondues);
         return new GutterMarks(pliables, replis, fondues, integration);
     }
 
     /** La marque de modification VCS de la ligne (D-03), inchangée par défaut. */
-    public MarkLine marqueVcs(int ligne) {
-        return integration.marqueVcs(ligne);
+    public MarkLine marqueVcs(int line) {
+        return integration.marqueVcs(line);
     }
 
     /** L'état d'arrêt de la ligne (D-04), aucun par défaut. */
-    public EtatBreakpoint arret(int ligne) {
-        return integration.arret(ligne);
+    public BreakpointState stop(int line) {
+        return integration.stop(line);
     }
 
     /** La ligne courante de l'exécution en pause (D-05), ou null hors pause. */
-    public @Nullable Integer ligneCourante() {
-        return integration.ligneCourante();
+    public @Nullable Integer currentLine() {
+        return integration.currentLine();
     }
 
     /** Vrai si la ligne porte un cadre de la pile courante (D-05). */
-    public boolean dansPile(int ligne) {
-        return integration.dansPile(ligne);
+    public boolean inStack(int line) {
+        return integration.inStack(line);
     }
 
     private static int[] triee(int[] valeurs) {
@@ -137,15 +137,15 @@ public final class GutterMarks {
         return copie;
     }
 
-    private static boolean contient(int[] triee, int valeur) {
+    private static boolean contient(int[] triee, int value) {
         int bas = 0;
         int haut = triee.length - 1;
         while (bas <= haut) {
             int milieu = (bas + haut) >>> 1;
             int courante = triee[milieu];
-            if (courante < valeur) {
+            if (courante < value) {
                 bas = milieu + 1;
-            } else if (courante > valeur) {
+            } else if (courante > value) {
                 haut = milieu - 1;
             } else {
                 return true;

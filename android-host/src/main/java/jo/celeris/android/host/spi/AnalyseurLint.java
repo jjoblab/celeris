@@ -34,13 +34,13 @@ public final class AnalyseurLint {
     /**
      * Parse la sortie texte de l'outils, ligne à ligne.
      *
-     * @param sortie la sortie brute de lint, multi-lignes
+     * @param output la sortie brute de lint, multi-lignes
      * @return les diagnostics dans l'ordre de la sortie, vide si rien
      */
-    public static List<DiagnosticHote> parser(String sortie) {
-        List<DiagnosticHote> diagnostiques = new ArrayList<>();
-        for (String ligne : sortie.split("\n", -1)) {
-            DiagnosticHote diagnostic = convertir(ligne.strip());
+    public static List<HostDiagnostic> parser(String output) {
+        List<HostDiagnostic> diagnostiques = new ArrayList<>();
+        for (String line : output.split("\n", -1)) {
+            HostDiagnostic diagnostic = convertir(line.strip());
             if (diagnostic != null) {
                 diagnostiques.add(diagnostic);
             }
@@ -48,24 +48,24 @@ public final class AnalyseurLint {
         return diagnostiques;
     }
 
-    private static @Nullable DiagnosticHote convertir(String ligne) {
-        Matcher forme = FORME_LINT.matcher(ligne);
+    private static @Nullable HostDiagnostic convertir(String line) {
+        Matcher forme = FORME_LINT.matcher(line);
         if (!forme.matches()) {
             return null;
         }
         String chemin = forme.group(1).strip();
-        int numero = Integer.parseInt(forme.group(2));
-        String colonne = forme.group(3);
+        int number = Integer.parseInt(forme.group(2));
+        String column = forme.group(3);
         String message = forme.group(5).strip();
-        return new DiagnosticHote(
-                CheminDoc.de("/" + chemin),
-                numero,
-                colonne != null ? Integer.parseInt(colonne) : 0,
-                gravite(forme.group(4)),
+        return new HostDiagnostic(
+                CheminDoc.of("/" + chemin),
+                number,
+                column != null ? Integer.parseInt(column) : 0,
+                severity(forme.group(4)),
                 message);
     }
 
-    private static GraviteDiagnostic gravite(String ecrite) {
+    private static GraviteDiagnostic severity(String ecrite) {
         return switch (ecrite.strip()) {
             case "Error" -> GraviteDiagnostic.ERREUR;
             case "Warning" -> GraviteDiagnostic.AVERTISSEMENT;
@@ -80,13 +80,13 @@ public final class AnalyseurLint {
      *
      * @param diagnostiques les diagnostics courants de l'hôte
      * @param nomFichier    le nom du fichier ouvert
-     * @param ligne         la ligne cherchée, à partir de un
+     * @param line         la ligne cherchée, à partir de un
      * @return le diagnostic porté, null sinon
      */
-    public static @Nullable DiagnosticHote aLaLigne(
-            List<DiagnosticHote> diagnostiques, String nomFichier, int ligne) {
-        for (DiagnosticHote diagnostic : diagnostiques) {
-            if (diagnostic.ligne() == ligne
+    public static @Nullable HostDiagnostic aLaLigne(
+            List<HostDiagnostic> diagnostiques, String nomFichier, int line) {
+        for (HostDiagnostic diagnostic : diagnostiques) {
+            if (diagnostic.line() == line
                     && diagnostic.chemin().nom().equals(nomFichier)) {
                 return diagnostic;
             }
@@ -103,8 +103,8 @@ public final class AnalyseurLint {
      * @return l'identifiant, ou la chaîne vide
      */
     public static String regle(String message) {
-        Matcher identifiant = IDENTIFIANT.matcher(message.strip());
-        return identifiant.matches() ? identifiant.group(2).strip() : "";
+        Matcher identifier = IDENTIFIANT.matcher(message.strip());
+        return identifier.matches() ? identifier.group(2).strip() : "";
     }
 
     /**
@@ -114,10 +114,10 @@ public final class AnalyseurLint {
      * @param message le message du diagnostic
      * @return le texte du message
      */
-    public static String texte(String message) {
-        Matcher identifiant = IDENTIFIANT.matcher(message.strip());
-        return identifiant.matches()
-                ? identifiant.group(1).strip()
+    public static String text(String message) {
+        Matcher identifier = IDENTIFIANT.matcher(message.strip());
+        return identifier.matches()
+                ? identifier.group(1).strip()
                 : message.strip();
     }
 }

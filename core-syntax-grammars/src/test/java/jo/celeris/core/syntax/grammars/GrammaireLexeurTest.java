@@ -41,16 +41,16 @@ class GrammaireLexeurTest {
     void pileEtatsReconvergeParValeur() {
         SyntaxService service = SyntaxService.of(syntaxeDePaquet("python"));
         Analysis analyse = service.analyseFull(Document.of(PYTHON));
-        EtatGrammaire sortie = (EtatGrammaire) analyse.lex().line(1).exitState();
-        assertTrue(sortie.dansBloc(), "la chaîne triple est ouverte en fin de ligne 1");
-        BlocOuvert bloc = sortie.bloc();
-        EtatGrammaire ouvertA = new EtatGrammaire(bloc, EtatGrammaire.VIDE);
-        EtatGrammaire ouvertB = new EtatGrammaire(bloc, EtatGrammaire.VIDE);
+        GrammarState output = (GrammarState) analyse.lex().line(1).exitState();
+        assertTrue(output.dansBloc(), "la chaîne triple est ouverte en fin de ligne 1");
+        OpenBlock bloc = output.bloc();
+        GrammarState ouvertA = new GrammarState(bloc, GrammarState.EMPTY);
+        GrammarState ouvertB = new GrammarState(bloc, GrammarState.EMPTY);
         assertNotSame(ouvertA, ouvertB, "deux piles distinctes");
         assertEquals(ouvertA, ouvertB, "mais égales par valeur (PIEGE-21)");
-        assertEquals(new EtatGrammaire(bloc, ouvertA), new EtatGrammaire(bloc, ouvertB),
+        assertEquals(new GrammarState(bloc, ouvertA), new GrammarState(bloc, ouvertB),
                 "les piles imbriquées aussi");
-        assertEquals(EtatGrammaire.VIDE, new EtatGrammaire(null, null),
+        assertEquals(GrammarState.EMPTY, new GrammarState(null, null),
                 "le fond se compare au vide");
     }
 
@@ -66,19 +66,19 @@ class GrammaireLexeurTest {
         Document doc = Document.of(PYTHON);
         Analysis complet = service.analyseFull(doc);
 
-        int cible = PYTHON.indexOf("ligne un");
-        Document edite = doc.replace(cible, cible + 1, "L");
-        EditSite site = EditSite.of(doc, edite, cible, cible + 1, "L");
+        int target = PYTHON.indexOf("ligne un");
+        Document edite = doc.replace(target, target + 1, "L");
+        EditSite site = EditSite.of(doc, edite, target, target + 1, "L");
         Analysis diff = service.analyseIncremental(edite, complet, site);
 
-        for (int ligne = 0; ligne < 6; ligne++) {
-            LexedLine avant = complet.lex().line(ligne);
-            LexedLine apres = diff.lex().line(ligne);
-            if (ligne == 2) {
+        for (int line = 0; line < 6; line++) {
+            LexedLine avant = complet.lex().line(line);
+            LexedLine apres = diff.lex().line(line);
+            if (line == 2) {
                 assertNotSame(avant, apres, "seule la ligne éditée se relit");
             } else {
                 assertSame(avant, apres,
-                        "la ligne " + ligne + " garde son panier (PIEGE-21)");
+                        "la ligne " + line + " garde son panier (PIEGE-21)");
             }
         }
     }
@@ -102,34 +102,34 @@ class GrammaireLexeurTest {
     /** Les mots réservés, nombres et commentaires de la grammaire python. */
     @Test
     void motsNombresCommentaires() {
-        Grammaire grammaire = Grammaires.lire(texteDePaquet("python"));
-        LanguageLexer lexeur = new GrammaireLexeur(grammaire);
-        LexedLine ligne = lexeur.lex("if x >= 2:  # borne",
-                EtatGrammaire.VIDE);
-        Token[] jetons = ligne.tokens();
-        assertEquals(6, jetons.length, "six jetons, blancs exclus");
+        Grammar grammaire = Grammars.read(texteDePaquet("python"));
+        LanguageLexer lexeur = new GrammarLexer(grammaire);
+        LexedLine line = lexeur.lex("if x >= 2:  # borne",
+                GrammarState.EMPTY);
+        Token[] tokens = line.tokens();
+        assertEquals(6, tokens.length, "six jetons, blancs exclus");
         // la pile de portées vit dans les jetons (H-07) : les bornes
         // attendues se comparent champ à champ, la pile a son banc propre
-        assertEquals(TokenKind.KEYWORD, jetons[0].kind(), "if est réservé");
-        assertEquals(0, jetons[0].start());
-        assertEquals(2, jetons[0].end());
-        assertEquals(TokenKind.IDENTIFIER, jetons[1].kind(), "x est un écart");
-        assertEquals(3, jetons[1].start());
-        assertEquals(4, jetons[1].end());
-        assertEquals(TokenKind.OPERATOR, jetons[2].kind(), ">= est un opérateur");
-        assertEquals(5, jetons[2].start());
-        assertEquals(7, jetons[2].end());
-        assertEquals(TokenKind.NUMBER, jetons[3].kind(), "2 est un nombre");
-        assertEquals(8, jetons[3].start());
-        assertEquals(9, jetons[3].end());
-        assertEquals(TokenKind.PUNCTUATION, jetons[4].kind(), "le séparateur");
-        assertEquals(9, jetons[4].start());
-        assertEquals(10, jetons[4].end());
-        assertEquals(TokenKind.COMMENT, jetons[5].kind(),
+        assertEquals(TokenKind.KEYWORD, tokens[0].kind(), "if est réservé");
+        assertEquals(0, tokens[0].start());
+        assertEquals(2, tokens[0].end());
+        assertEquals(TokenKind.IDENTIFIER, tokens[1].kind(), "x est un écart");
+        assertEquals(3, tokens[1].start());
+        assertEquals(4, tokens[1].end());
+        assertEquals(TokenKind.OPERATOR, tokens[2].kind(), ">= est un opérateur");
+        assertEquals(5, tokens[2].start());
+        assertEquals(7, tokens[2].end());
+        assertEquals(TokenKind.NUMBER, tokens[3].kind(), "2 est un nombre");
+        assertEquals(8, tokens[3].start());
+        assertEquals(9, tokens[3].end());
+        assertEquals(TokenKind.PUNCTUATION, tokens[4].kind(), "le séparateur");
+        assertEquals(9, tokens[4].start());
+        assertEquals(10, tokens[4].end());
+        assertEquals(TokenKind.COMMENT, tokens[5].kind(),
                 "le commentaire de fin de ligne");
-        assertEquals(12, jetons[5].start());
-        assertEquals(19, jetons[5].end());
-        assertEquals(EtatGrammaire.VIDE, ligne.exitState(), "rien d'ouvert en sortie");
+        assertEquals(12, tokens[5].start());
+        assertEquals(19, tokens[5].end());
+        assertEquals(GrammarState.EMPTY, line.exitState(), "rien d'ouvert en sortie");
     }
 
     /**
@@ -143,27 +143,27 @@ class GrammaireLexeurTest {
         Document doc = Document.of(PYTHON);
         Analysis complet = service.analyseFull(doc);
 
-        int cible = PYTHON.indexOf("\"\"\"");
-        Document edite = doc.replace(cible, cible + 3, "'''");
-        EditSite site = EditSite.of(doc, edite, cible, cible + 3, "'''");
+        int target = PYTHON.indexOf("\"\"\"");
+        Document edite = doc.replace(target, target + 3, "'''");
+        EditSite site = EditSite.of(doc, edite, target, target + 3, "'''");
         Analysis diff = service.analyseIncremental(edite, complet, site);
 
-        for (int ligne = 0; ligne < 6; ligne++) {
-            LexedLine avant = complet.lex().line(ligne);
-            LexedLine apres = diff.lex().line(ligne);
-            if (ligne == 0) {
+        for (int line = 0; line < 6; line++) {
+            LexedLine avant = complet.lex().line(line);
+            LexedLine apres = diff.lex().line(line);
+            if (line == 0) {
                 assertSame(avant, apres,
                         "la ligne d'avant l'ouverture garde son panier");
             } else {
                 assertNotSame(avant, apres,
-                        "la ligne " + ligne + " se relit : l'état de sortie diverge");
+                        "la ligne " + line + " se relit : l'état de sortie diverge");
             }
         }
     }
 
-    private static boolean contient(Analysis analyse, int ligne, TokenKind sorte) {
-        for (Token jeton : analyse.lex().line(ligne).tokens()) {
-            if (jeton.kind() == sorte) {
+    private static boolean contient(Analysis analyse, int line, TokenKind sorte) {
+        for (Token token : analyse.lex().line(line).tokens()) {
+            if (token.kind() == sorte) {
                 return true;
             }
         }

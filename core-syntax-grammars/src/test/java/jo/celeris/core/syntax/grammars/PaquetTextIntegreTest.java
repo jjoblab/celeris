@@ -40,10 +40,10 @@ final class PaquetTextIntegreTest {
 
     /** La grammaire livrée du paquet intégré, en texte. */
     private static String grammaireLivree() {
-        return lire("langages/text/grammar.json");
+        return read("langages/text/grammar.json");
     }
 
-    private static String lire(String chemin) {
+    private static String read(String chemin) {
         try (InputStream flux = PaquetTextIntegreTest.class.getClassLoader()
                 .getResourceAsStream(chemin)) {
             if (flux == null) {
@@ -74,12 +74,12 @@ final class PaquetTextIntegreTest {
      */
     @Test
     void laGrammaireVideCompileSansEcart() {
-        Grammaire grammaire = Grammaires.lire(grammaireLivree());
-        assertEquals(1.0, grammaire.rapport().acceptation(),
-                "text : acceptation " + grammaire.rapport().acceptation()
-                        + " (" + grammaire.rapport().refuses() + " refus sur "
-                        + grammaire.rapport().motifs() + " motifs)");
-        assertEquals(0, grammaire.rapport().motifs(),
+        Grammar grammaire = Grammars.read(grammaireLivree());
+        assertEquals(1.0, grammaire.report().acceptation(),
+                "text : acceptation " + grammaire.report().acceptation()
+                        + " (" + grammaire.report().refuses() + " refus sur "
+                        + grammaire.report().patterns() + " motifs)");
+        assertEquals(0, grammaire.report().patterns(),
                 "le texte brut n'a pas d'expression — c'est la spécification");
     }
 
@@ -95,32 +95,32 @@ final class PaquetTextIntegreTest {
     void lEchantillonVitEnRepliIdentifiant() throws IOException {
         LanguagePack pack = paquetText();
         assertNotNull(pack.grammar(), "la grammaire du paquet text compile");
-        GrammaireLexeur lexeur = (GrammaireLexeur) pack.grammar().lexer();
-        String[] lignes = lire("grammaires-commerce/echantillons/text.txt")
+        GrammarLexer lexeur = (GrammarLexer) pack.grammar().lexer();
+        String[] lines = read("grammaires-commerce/echantillons/text.txt")
                 .split("\n", -1);
         LexState etat = lexeur.initialState();
-        int jetons = 0;
-        for (String ligne : lignes) {
-            LexedLine premiere = lexeur.lex(ligne, etat);
-            LexedLine seconde = lexeur.lex(ligne, etat);
+        int tokens = 0;
+        for (String line : lines) {
+            LexedLine premiere = lexeur.lex(line, etat);
+            LexedLine seconde = lexeur.lex(line, etat);
             assertEquals(premiere.tokens().length, seconde.tokens().length,
                     "le lexeur du paquet est déterministe");
-            if (ligne.isBlank()) {
+            if (line.isBlank()) {
                 assertEquals(0, premiere.tokens().length,
                         "la ligne blanche ne rend rien");
             } else {
                 assertEquals(1, premiere.tokens().length,
-                        "'" + ligne + "' vit en un jeton d'écart");
+                        "'" + line + "' vit en un jeton d'écart");
                 assertEquals(TokenKind.IDENTIFIER, premiere.tokens()[0].kind(),
-                        "'" + ligne + "' : le texte brut ne colore rien");
-                assertEquals(ligne.strip().length(),
+                        "'" + line + "' : le texte brut ne colore rien");
+                assertEquals(line.strip().length(),
                         premiere.tokens()[0].length(),
                         "le jeton couvre la ligne utile, blancs d'escorte rognés");
             }
-            jetons += premiere.tokens().length;
+            tokens += premiere.tokens().length;
             etat = premiere.exitState();
         }
-        assertTrue(jetons > 0, "l'échantillon vit en repli");
+        assertTrue(tokens > 0, "l'échantillon vit en repli");
         assertEquals(0, lexeur.incidents(),
                 "aucun incident de budget sur l'échantillon");
     }

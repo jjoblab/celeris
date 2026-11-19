@@ -66,7 +66,7 @@ final class JsonParseur implements LanguageParser {
     }
 
     private Analyse contenant(TokenSlice slice, int ouvert, int vers) {
-        boolean objet = "{".equals(Tokens.texteCrochet(slice, ouvert));
+        boolean objet = "{".equals(Tokens.bracketText(slice, ouvert));
         int fermante = slice.matchOf(ouvert);
         List<SynNode> enfants = new ArrayList<>();
         boolean erreur = fermante < 0;
@@ -79,7 +79,7 @@ final class JsonParseur implements LanguageParser {
             }
             if (objet && sorte == TokenKind.STRING && i + 1 < borne
                     && ":".equals(Tokens.mot(slice, i + 1))) {
-                i = paire(slice, i, borne, enfants);
+                i = pair(slice, i, borne, enfants);
             } else if (sorte == TokenKind.OPEN_BRACKET) {
                 Analyse enfant = contenant(slice, i, borne);
                 enfants.add(enfant.noeud);
@@ -88,29 +88,29 @@ final class JsonParseur implements LanguageParser {
                 i = scalaire(slice, i, borne, enfants);
             }
         }
-        int fin = fermante < 0 ? Tokens.finDe(slice, vers - 1)
+        int end = fermante < 0 ? Tokens.finDe(slice, vers - 1)
                 : slice.end(fermante);
         if (fermante < 0) {
             enfants.add(SynNode.of(JsonKind.ERREUR, NodeCategory.ERROR,
-                    slice.start(ouvert), fin, new SynNode[0], null, true));
+                    slice.start(ouvert), end, new SynNode[0], null, true));
         }
         SynNode noeud = SynNode.of(objet ? JsonKind.OBJET : JsonKind.TABLEAU,
-                NodeCategory.TAG, slice.start(ouvert), fin,
+                NodeCategory.TAG, slice.start(ouvert), end,
                 enfants.toArray(new SynNode[0]), null, erreur);
         return new Analyse(noeud, fermante < 0 ? vers : fermante + 1);
     }
 
     /** La paire «&#x2f;"clé" : valeur&#x2f;» : la clé nomme le nœud FIELD. */
-    private int paire(TokenSlice slice, int cle, int borne,
+    private int pair(TokenSlice slice, int cle, int borne,
                       List<SynNode> enfants) {
         int i = cle + 2;
-        List<SynNode> valeur = new ArrayList<>();
+        List<SynNode> value = new ArrayList<>();
         if (i < borne && slice.kind(i) == TokenKind.OPEN_BRACKET) {
             Analyse enfant = contenant(slice, i, borne);
-            valeur.add(enfant.noeud);
+            value.add(enfant.noeud);
             i = Math.max(enfant.apres, i + 1);
         } else {
-            i = scalaire(slice, i, borne, valeur);
+            i = scalaire(slice, i, borne, value);
         }
         String brut = Tokens.mot(slice, cle);
         String nom = brut.length() >= 2 && brut.charAt(0) == '"'
@@ -118,26 +118,26 @@ final class JsonParseur implements LanguageParser {
                         ? brut.substring(1, brut.length() - 1) : brut;
         enfants.add(SynNode.of(JsonKind.PAIRE, NodeCategory.FIELD,
                 slice.start(cle), Tokens.finDe(slice, i - 1),
-                valeur.toArray(new SynNode[0]), nom, false));
+                value.toArray(new SynNode[0]), nom, false));
         return i;
     }
 
     /** Les scalaires d'une valeur, jusqu'à la virgule ou la clôture. */
     private int scalaire(TokenSlice slice, int i, int borne,
                          List<SynNode> enfants) {
-        int fin = i;
-        while (fin < borne && slice.kind(fin) != TokenKind.PUNCTUATION
-                && slice.kind(fin) != TokenKind.CLOSE_BRACKET) {
-            fin++;
+        int end = i;
+        while (end < borne && slice.kind(end) != TokenKind.PUNCTUATION
+                && slice.kind(end) != TokenKind.CLOSE_BRACKET) {
+            end++;
         }
-        if (fin > i) {
+        if (end > i) {
             enfants.add(SynNode.of(JsonKind.VALEUR, NodeCategory.OTHER,
-                    slice.start(i), Tokens.finDe(slice, fin - 1),
+                    slice.start(i), Tokens.finDe(slice, end - 1),
                     new SynNode[0], null, false));
         }
-        if (fin < borne && ",".equals(Tokens.mot(slice, fin))) {
-            return fin + 1;
+        if (end < borne && ",".equals(Tokens.mot(slice, end))) {
+            return end + 1;
         }
-        return Math.max(fin, i + 1);
+        return Math.max(end, i + 1);
     }
 }

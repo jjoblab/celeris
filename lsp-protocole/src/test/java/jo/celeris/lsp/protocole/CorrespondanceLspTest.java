@@ -1,11 +1,11 @@
 package jo.celeris.lsp.protocole;
 
 import jo.celeris.core.lsp.types.DiagnosticLsp;
-import jo.celeris.core.lsp.types.LieuLsp;
-import jo.celeris.core.lsp.types.ListeCompletion;
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.LocationLsp;
+import jo.celeris.core.lsp.types.CompletionListLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 import jo.celeris.core.lsp.types.SignatureLsp;
-import jo.celeris.core.lsp.types.SurvolLsp;
+import jo.celeris.core.lsp.types.HoverLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,7 +38,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Tuple;
 import org.junit.jupiter.api.Test;
 
-import jo.celeris.core.lsp.CapacitesServeur;
+import jo.celeris.core.lsp.ServerCapsLsp;
 
 
 
@@ -58,19 +58,19 @@ public final class CorrespondanceLspTest {
 
     @Test
     void laPositionSeLitEtSecrit() {
-        assertEquals(new PositionLsp(3, 7),
-                CorrespondanceLsp.lirePosition(new Position(3, 7)));
-        assertEquals(new PositionLsp(0, 0), CorrespondanceLsp.lirePosition(null));
+        assertEquals(new LspPosition(3, 7),
+                LspMapping.readPosition(new Position(3, 7)));
+        assertEquals(new LspPosition(0, 0), LspMapping.readPosition(null));
         assertEquals(new Position(3, 7),
-                CorrespondanceLsp.ecrirePosition(new PositionLsp(3, 7)));
+                LspMapping.writePosition(new LspPosition(3, 7)));
     }
 
     @Test
     void laPlageAbsenteVautLOrigine() {
-        assertEquals(new PositionLsp(0, 0), CorrespondanceLsp.lirePlage(null).debut());
+        assertEquals(new LspPosition(0, 0), LspMapping.readRange(null).start());
         Range borneNulle = new Range();
-        assertEquals(new PositionLsp(0, 0),
-                CorrespondanceLsp.lirePlage(borneNulle).fin());
+        assertEquals(new LspPosition(0, 0),
+                LspMapping.readRange(borneNulle).end());
     }
 
     @Test
@@ -81,9 +81,9 @@ public final class CorrespondanceLspTest {
         gauche.setMessage(Either.forLeft("message nu"));
         gauche.setCode(Either.forLeft("E001"));
         gauche.setSource("factice");
-        DiagnosticLsp luGauche = CorrespondanceLsp.lireDiagnostic(gauche);
-        assertEquals(new PositionLsp(1, 2), luGauche.plage().debut());
-        assertEquals(DiagnosticLsp.AVERTISSEMENT, luGauche.gravite());
+        DiagnosticLsp luGauche = LspMapping.readDiagnostic(gauche);
+        assertEquals(new LspPosition(1, 2), luGauche.range().start());
+        assertEquals(DiagnosticLsp.AVERTISSEMENT, luGauche.severity());
         assertEquals("message nu", luGauche.message());
         assertEquals("E001", luGauche.code());
         assertEquals("factice", luGauche.source());
@@ -91,44 +91,44 @@ public final class CorrespondanceLspTest {
         Diagnostic balise = new Diagnostic();
         balise.setMessage(Either.forRight(new MarkupContent("markdown", "** Grave **")));
         balise.setCode(Either.forRight(42));
-        DiagnosticLsp luBalise = CorrespondanceLsp.lireDiagnostic(balise);
+        DiagnosticLsp luBalise = LspMapping.readDiagnostic(balise);
         assertEquals("** Grave **", luBalise.message());
         assertEquals("42", luBalise.code());
 
         Diagnostic muet = new Diagnostic();
-        DiagnosticLsp luMuet = CorrespondanceLsp.lireDiagnostic(muet);
-        assertEquals(0, luMuet.gravite());
+        DiagnosticLsp luMuet = LspMapping.readDiagnostic(muet);
+        assertEquals(0, luMuet.severity());
         assertEquals("", luMuet.message());
         assertNull(luMuet.code());
         PublishDiagnosticsParams sansListe = new PublishDiagnosticsParams();
         sansListe.setUri(URI);
-        assertEquals(List.of(), CorrespondanceLsp.diagnosticsPublies(sansListe));
+        assertEquals(List.of(), LspMapping.publishedDiagnostics(sansListe));
     }
 
     @Test
     void lElementRefuseLeLibelleAbsent() {
         CompletionItem muet = new CompletionItem();
         assertThrows(IllegalArgumentException.class,
-                () -> CorrespondanceDocuments.lireElement(muet));
+                () -> DocumentsMapping.readItem(muet));
         CompletionItem complet = new CompletionItem();
         complet.setLabel("ex:exemplaire");
         complet.setKind(CompletionItemKind.Field);
         complet.setDetail("detail");
         complet.setDocumentation(Either.forLeft("documentation nue"));
         complet.setDeprecated(Boolean.TRUE);
-        jo.celeris.core.lsp.types.ElementCompletion lu = CorrespondanceDocuments.lireElement(complet);
+        jo.celeris.core.lsp.types.CompletionItemLsp lu = DocumentsMapping.readItem(complet);
         assertTrue(lu.obsolete());
         assertEquals("documentation nue", lu.documentation());
         CompletionItem sansGenre = new CompletionItem();
         sansGenre.setLabel("nu");
-        assertEquals(0, CorrespondanceDocuments.lireElement(sansGenre).genre());
-        assertNull(CorrespondanceDocuments.lireElement(sansGenre).documentation());
+        assertEquals(0, DocumentsMapping.readItem(sansGenre).kind());
+        assertNull(DocumentsMapping.readItem(sansGenre).documentation());
         CompletionItem documentationBalisee = new CompletionItem();
         documentationBalisee.setLabel("nu");
         documentationBalisee.setDocumentation(
                 Either.forRight(new MarkupContent("markdown", "balisee")));
         assertEquals("balisee",
-                CorrespondanceDocuments.lireElement(documentationBalisee).documentation());
+                DocumentsMapping.readItem(documentationBalisee).documentation());
     }
 
     @Test
@@ -136,101 +136,101 @@ public final class CorrespondanceLspTest {
         CompletionItem element = new CompletionItem();
         element.setLabel("ex");
         assertEquals(List.of(),
-                CorrespondanceDocuments.lireListe(null).elements());
-        assertFalse(CorrespondanceDocuments.lireListe(null).estIncomplete());
-        ListeCompletion tableauNu = CorrespondanceDocuments.lireListe(
+                DocumentsMapping.readList(null).elements());
+        assertFalse(DocumentsMapping.readList(null).isIncomplete());
+        CompletionListLsp tableauNu = DocumentsMapping.readList(
                 Either.forLeft(List.of(element)));
         assertEquals(1, tableauNu.elements().size());
-        assertFalse(tableauNu.estIncomplete());
-        ListeCompletion coupee = CorrespondanceDocuments.lireListe(
+        assertFalse(tableauNu.isIncomplete());
+        CompletionListLsp coupee = DocumentsMapping.readList(
                 Either.forRight(new CompletionList(true, List.of(element))));
-        assertTrue(coupee.estIncomplete());
+        assertTrue(coupee.isIncomplete());
         assertEquals(1, coupee.elements().size());
-        assertEquals(List.of(), CorrespondanceDocuments.lireListe(
+        assertEquals(List.of(), DocumentsMapping.readList(
                 Either.forRight(null)).elements());
     }
 
     @Test
     void leSurvolJointLesContenusBalises() {
-        assertEquals(SurvolLsp.VIDE, CorrespondanceDocuments.lireSurvol(null));
+        assertEquals(HoverLsp.EMPTY, DocumentsMapping.readHover(null));
         Hover liste = new Hover();
         liste.setContents(Either.forLeft(List.of(
                 Either.forLeft("premier"),
                 Either.forRight(new MarkedString("xml", "second")))));
-        assertEquals("premier\nsecond", CorrespondanceDocuments.lireSurvol(liste).texte());
-        assertEquals("", CorrespondanceDocuments.lireSurvol(liste).genre());
+        assertEquals("premier\nsecond", DocumentsMapping.readHover(liste).text());
+        assertEquals("", DocumentsMapping.readHover(liste).kind());
         Hover balise = new Hover(
                 new MarkupContent("markdown", "survolee"),
                 new Range(new Position(1, 0), new Position(1, 2)));
-        SurvolLsp lu = CorrespondanceDocuments.lireSurvol(balise);
-        assertEquals("survolee", lu.texte());
-        assertEquals("markdown", lu.genre());
-        jo.celeris.core.lsp.types.PlageLsp plageLue = lu.plage();
+        HoverLsp lu = DocumentsMapping.readHover(balise);
+        assertEquals("survolee", lu.text());
+        assertEquals("markdown", lu.kind());
+        jo.celeris.core.lsp.types.RangeLsp plageLue = lu.range();
         assertNotNull(plageLue);
-        assertEquals(new PositionLsp(1, 0), plageLue.debut());
+        assertEquals(new LspPosition(1, 0), plageLue.start());
         Hover muet = new Hover();
-        assertEquals("", CorrespondanceDocuments.lireSurvol(muet).texte());
-        assertEquals("", CorrespondanceDocuments.lireSurvol(muet).genre());
-        assertNull(CorrespondanceDocuments.lireSurvol(muet).plage());
+        assertEquals("", DocumentsMapping.readHover(muet).text());
+        assertEquals("", DocumentsMapping.readHover(muet).kind());
+        assertNull(DocumentsMapping.readHover(muet).range());
     }
 
     @Test
     void laSignatureTrancheLesDecalagesBornes() {
-        assertEquals(-1, CorrespondanceDocuments.lireSignature(null).signatureActiveIndex());
-        SignatureHelp aide = new SignatureHelp();
-        SignatureInformation entree = new SignatureInformation();
+        assertEquals(-1, DocumentsMapping.readSignature(null).signatureActiveIndex());
+        SignatureHelp help = new SignatureHelp();
+        SignatureInformation input = new SignatureInformation();
         org.eclipse.lsp4j.ParameterInformation horsBornes =
                 new org.eclipse.lsp4j.ParameterInformation();
         horsBornes.setLabel(Either.forRight(Tuple.two(8, 40)));
-        entree.setParameters(List.of(horsBornes));
-        aide.setSignatures(List.of(entree));
-        SignatureLsp lu = CorrespondanceDocuments.lireSignature(aide);
-        assertEquals("", lu.entrees().get(0).libelle());
-        assertEquals("", lu.entrees().get(0).parametres().get(0).libelle());
+        input.setParameters(List.of(horsBornes));
+        help.setSignatures(List.of(input));
+        SignatureLsp lu = DocumentsMapping.readSignature(help);
+        assertEquals("", lu.entrees().get(0).label());
+        assertEquals("", lu.entrees().get(0).parameters().get(0).label());
         assertEquals(-1, lu.parametreCourant());
     }
 
     @Test
     void lesLieuxLisentLesDeuxReponses() {
-        assertEquals(List.of(), CorrespondanceDocuments.lireLieux(null));
+        assertEquals(List.of(), DocumentsMapping.readLocations(null));
         Location lieu = new Location(URI,
                 new Range(new Position(0, 1), new Position(0, 2)));
-        assertEquals(1, CorrespondanceDocuments.lireLieux(
+        assertEquals(1, DocumentsMapping.readLocations(
                 Either.forLeft(List.of(lieu))).size());
         LocationLink lien = new LocationLink();
         lien.setTargetUri(URI);
         lien.setTargetRange(new Range(new Position(2, 0), new Position(2, 3)));
-        List<LieuLsp> lus = CorrespondanceDocuments.lireLieux(
+        List<LocationLsp> lus = DocumentsMapping.readLocations(
                 Either.forRight(List.of(lien)));
         assertEquals(1, lus.size());
-        jo.celeris.core.lsp.types.PlageLsp plageCible = lus.get(0).plage();
+        jo.celeris.core.lsp.types.RangeLsp plageCible = lus.get(0).range();
         assertNotNull(plageCible);
-        assertEquals(new PositionLsp(2, 0), plageCible.debut());
+        assertEquals(new LspPosition(2, 0), plageCible.start());
     }
 
     @Test
     void lesCapacitesLisentLeursDeuxSyncs() {
-        CapacitesServeur vides = CorrespondanceLsp.lireCapacites(null);
-        assertEquals(-1, vides.genreSynchro());
-        assertFalse(vides.sertCompletion());
+        ServerCapsLsp empty = LspMapping.readCapabilities(null);
+        assertEquals(-1, empty.syncKind());
+        assertFalse(empty.supportsCompletion());
 
         ServerCapabilities complete = new ServerCapabilities();
         complete.setTextDocumentSync(Either.forLeft(TextDocumentSyncKind.Full));
         complete.setCompletionProvider(new org.eclipse.lsp4j.CompletionOptions());
         assertEquals(1,
-                CorrespondanceLsp.lireCapacites(complete).genreSynchro());
-        assertTrue(CorrespondanceLsp.lireCapacites(complete).sertCompletion());
+                LspMapping.readCapabilities(complete).syncKind());
+        assertTrue(LspMapping.readCapabilities(complete).supportsCompletion());
 
         ServerCapabilities incrementale = new ServerCapabilities();
         incrementale.setTextDocumentSync(Either.forRight(new TextDocumentSyncOptions()));
         assertEquals(-1,
-                CorrespondanceLsp.lireCapacites(incrementale).genreSynchro());
+                LspMapping.readCapabilities(incrementale).syncKind());
 
         ServerCapabilities sansLegende = new ServerCapabilities();
         sansLegende.setSemanticTokensProvider(
                 new SemanticTokensWithRegistrationOptions());
         assertEquals(List.of(),
-                CorrespondanceLsp.lireCapacites(sansLegende).typesTokens());
+                LspMapping.readCapabilities(sansLegende).tokenTypes());
 
         TextDocumentSyncOptions options = new TextDocumentSyncOptions();
         options.setChange(TextDocumentSyncKind.Incremental);
@@ -241,9 +241,9 @@ public final class CorrespondanceLspTest {
         avecLegende.getSemanticTokensProvider().setLegend(
                 new org.eclipse.lsp4j.SemanticTokensLegend(
                         List.of("type"), List.of("declaration")));
-        CapacitesServeur lues = CorrespondanceLsp.lireCapacites(avecLegende);
-        assertEquals(2, lues.genreSynchro());
-        assertEquals(List.of("type"), lues.typesTokens());
-        assertEquals(List.of("declaration"), lues.modificateursTokens());
+        ServerCapsLsp lues = LspMapping.readCapabilities(avecLegende);
+        assertEquals(2, lues.syncKind());
+        assertEquals(List.of("type"), lues.tokenTypes());
+        assertEquals(List.of("declaration"), lues.tokenModifiers());
     }
 }

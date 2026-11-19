@@ -64,17 +64,17 @@ public class CelerisEditorTest {
     public void leMontageCompletTientEnQuelquesLignes() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
 
-        TextSession session = editeur.session();
+        TextSession session = editor.session();
         assertNotNull("la session vit", session);
         assertEquals("le texte y est", SOURCE, session.document().text());
         assertTrue("l'intelligence active est celle du kit",
                 vue.intelligence().provider() != null);
-        assertNotNull("l'orchestrateur des popups vit", editeur.popups());
-        assertNotNull("la langue du .java est résolue", editeur.language());
-        editeur.close();
+        assertNotNull("l'orchestrateur des popups vit", editor.popups());
+        assertNotNull("la langue du .java est résolue", editor.language());
+        editor.close();
     }
 
     /** open() résout la langue par le nom du fichier : le .java se
@@ -83,15 +83,15 @@ public class CelerisEditorTest {
     public void openResoutLaLangueDuNomDeFichier() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
-        LanguageSupport langue = editeur.language();
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
+        LanguageSupport language = editor.language();
         assertTrue("la langue du .java est résolue",
-                langue != null && "java".equals(langue.id()));
-        editeur.open("notes.inconnu", "texte");
+                language != null && "java".equals(language.id()));
+        editor.open("notes.inconnu", "texte");
         assertNull("une extension inconnue ne pose aucune langue",
-                editeur.language());
-        editeur.close();
+                editor.language());
+        editor.close();
     }
 
     /** settings() est LA source unique : le thème et la taille y
@@ -101,17 +101,17 @@ public class CelerisEditorTest {
     public void settingsSourceUniqueThemeEtTaille() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
 
-        editeur.settings().setFontSizeSp(18f);
+        editor.settings().setFontSizeSp(18f);
         assertEquals("la vue porte la taille posée (source unique)",
                 18f, vue.fontSizeSp(), 0.001f);
-        editeur.settings().setTheme(EditorThemes.SOMBRE);
+        editor.settings().setTheme(EditorThemes.DARK);
         // Le thème se lit par le comportement : la façade le rend.
         assertEquals("la façade rend le thème posé",
-                EditorThemes.SOMBRE, editeur.settings().theme());
-        editeur.close();
+                EditorThemes.DARK, editor.settings().theme());
+        editor.close();
     }
 
     /** close() libère tout : vue inerte, façade muette, idempotent —
@@ -120,24 +120,24 @@ public class CelerisEditorTest {
     public void closeLibereTout() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
-        TextSession session = editeur.session();
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
+        TextSession session = editor.session();
 
-        editeur.close();
-        editeur.close();
+        editor.close();
+        editor.close();
 
         assertNull("la façade fermée ne rend plus d'orchestrateur",
-                editeur.popups());
+                editor.popups());
         assertNull("la façade fermée ne rend plus de session",
-                editeur.session());
+                editor.session());
         // D12 : la façade fermée PARLE — l'open lève IllegalStateException
         try {
-            editeur.open("Autre.java", SOURCE);
+            editor.open("Autre.java", SOURCE);
             org.junit.Assert.fail("l'open après close doit lever");
         } catch (IllegalStateException attendu) {
             assertNull("la session reste muette après le refus",
-                    editeur.session());
+                    editor.session());
         }
         assertTrue("la session survit à la fermeture (l'hôte la garde)",
                 session.document().text().contains("Premiere"));
@@ -210,13 +210,13 @@ public class CelerisEditorTest {
     private static WeakReference<CelerisEditor> monterCyclerFermer(
             EditorView vue, PopupLayer couche, int onglets) {
         KIT_PRET.preload();
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT_PRET);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT_PRET);
         for (int onglet = 0; onglet < onglets; onglet++) {
-            editeur.open("Fichier" + onglet + ".java", SOURCE);
+            editor.open("Fichier" + onglet + ".java", SOURCE);
         }
-        editeur.close();
-        WeakReference<CelerisEditor> faible = new WeakReference<>(editeur);
-        editeur = null; // le slot de pile ne retient plus la façade
+        editor.close();
+        WeakReference<CelerisEditor> faible = new WeakReference<>(editor);
+        editor = null; // le slot de pile ne retient plus la façade
         return faible;
     }
 
@@ -227,9 +227,9 @@ public class CelerisEditorTest {
             TextSession sessionGardee) {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", sessionGardee.document().text());
-        editeur.close();
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", sessionGardee.document().text());
+        editor.close();
         return new WeakReference<>(vue);
     }
 
@@ -242,9 +242,9 @@ public class CelerisEditorTest {
                     RuntimeEnvironment.getApplication());
             PopupLayer couche = new PopupLayer(
                     RuntimeEnvironment.getApplication());
-            CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-            editeur.open("Main.java", SOURCE);
-            editeur.close();
+            CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+            editor.open("Main.java", SOURCE);
+            editor.close();
         }
         long limite = System.nanoTime() + 10_000_000_000L;
         while (!filsAnalyse().isEmpty() && System.nanoTime() < limite) {
@@ -257,9 +257,9 @@ public class CelerisEditorTest {
     /** Les noms des fils d'analyse du kit, vivants. */
     private static Set<Thread> filsAnalyse() {
         Set<Thread> vivants = ConcurrentHashMap.newKeySet();
-        for (Thread fil : Thread.getAllStackTraces().keySet()) {
-            if (fil.isAlive() && fil.getName().startsWith("celeris-analyse")) {
-                vivants.add(fil);
+        for (Thread thread : Thread.getAllStackTraces().keySet()) {
+            if (thread.isAlive() && thread.getName().startsWith("celeris-analyse")) {
+                vivants.add(thread);
             }
         }
         return vivants;
@@ -272,13 +272,13 @@ public class CelerisEditorTest {
     public void laTailleSuitLeReglage() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
-        editeur.settings().setFontSizeSp(16f);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
+        editor.settings().setFontSizeSp(16f);
         assertEquals(16f, vue.fontSizeSp(), 0.001f);
-        editeur.settings().setFontSizeSp(20f);
+        editor.settings().setFontSizeSp(20f);
         assertEquals(20f, vue.fontSizeSp(), 0.001f);
-        editeur.close();
+        editor.close();
     }
 
     /** Le kit et l'hôte s'abonnent au même événement de fenêtre sans
@@ -290,17 +290,17 @@ public class CelerisEditorTest {
     public void leKitEtLhoteSabonnentEnsembleALaFenetre() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
         int[] avisHote = { 0 };
         vue.addViewportChangeListener(() -> avisHote[0]++);
 
         // L'hôte ne peut plus écraser le kit : le repositionnement des
         // popups vit encore (l'abonné du kit n'a pas été remplacé).
         assertNotNull("l'orchestrateur vit toujours après l'abonnement de l'hôte",
-                editeur.popups());
+                editor.popups());
 
-        editeur.close();
+        editor.close();
         // Le kit est parti ; l'écouteur de l'hôte survit à la façade.
         int[] avisApres = { 0 };
         vue.addViewportChangeListener(() -> avisApres[0]++);
@@ -309,10 +309,10 @@ public class CelerisEditorTest {
         // D12 : la façade fermée PARLE — l'open d'après close lève
         // au lieu de laisser l'hôte devant un écran vide silencieux.
         try {
-            editeur.open("Autre.java", SOURCE);
+            editor.open("Autre.java", SOURCE);
             org.junit.Assert.fail("l'open après close doit lever");
         } catch (IllegalStateException attendu) {
-            assertNull("la façade close reste muette", editeur.session());
+            assertNull("la façade close reste muette", editor.session());
         }
     }
 
@@ -329,19 +329,19 @@ public class CelerisEditorTest {
     public void laFacadeBrancheLaDelegationClavierDesPopups() throws Exception {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
 
         // la carte s'ouvre par la voie publique du contrôleur (une
         // carte du régime clavier, INTENTIONS_MENU) — le banc isole
         //  la DÉLÉGATION : ce qui se prouve ici, c'est le branchement
         // du verdict touche par la façade, pas le contenu des cartes
         // (le plan et l'analyse suivent leurs propres bancs).
-        jo.celeris.core.text.TextSession sessionOuverte = editeur.session();
-        editeur.popups().manager().controleur().open(
+        jo.celeris.core.text.TextSession sessionOuverte = editor.session();
+        editor.popups().manager().controleur().open(
                 jo.celeris.android.widgets.PopupController.PopupKind.INTENTIONS_MENU);
         assertTrue("la carte vit (ouverte par la voie publique)",
-                editeur.popups().manager().estOuvert(
+                editor.popups().manager().estOuvert(
                         jo.celeris.android.widgets.PopupController.PopupKind.INTENTIONS_MENU));
 
         int caretAvant = sessionOuverte.selection().ranges().get(0).caret();
@@ -353,12 +353,12 @@ public class CelerisEditorTest {
         // et le curseur n'a pas bougé — sans branchement, la carte
         // serait restée ouverte (personne n'écoutait)
         assertFalse("la carte refermée par le kit",
-                editeur.popups().manager().estOuvert(
+                editor.popups().manager().estOuvert(
                         jo.celeris.android.widgets.PopupController.PopupKind.INTENTIONS_MENU));
         assertEquals("ÉCHAP a servi la carte, pas le curseur",
                 caretAvant,
                 sessionOuverte.selection().ranges().get(0).caret());
-        editeur.close();
+        editor.close();
     }
 
     /** Le registre des documents (le retour terrain du 2026-11-19 :
@@ -383,28 +383,28 @@ public class CelerisEditorTest {
         kitPret.preload();
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, kitPret);
-        editeur.open("Main.java", SOURCE);
-        TextSession premiere = editeur.session();
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, kitPret);
+        editor.open("Main.java", SOURCE);
+        TextSession premiere = editor.session();
         // l'utilisateur ÉDITE le premier document
         premiere.replaceRange(0, 0, "// note du banc\n");
 
-        editeur.open("Autre.java", SOURCE);
-        TextSession deuxieme = editeur.session();
+        editor.open("Autre.java", SOURCE);
+        TextSession deuxieme = editor.session();
         assertFalse("un autre fichier ouvre une AUTRE session",
                 deuxieme == premiere);
 
         // le RETOUR au premier fichier : SA session, son texte édité
-        editeur.open("Main.java", SOURCE);
+        editor.open("Main.java", SOURCE);
         assertTrue("la réouverture retrouve LA session du document",
-                editeur.session() == premiere);
+                editor.session() == premiere);
         assertTrue("le texte édité survit au changement d'onglet",
-                editeur.session().document().text()
+                editor.session().document().text()
                         .contains("// note du banc"));
         assertTrue("la langue du document revient avec lui",
-                editeur.language() != null
-                        && "java".equals(editeur.language().id()));
-        editeur.close();
+                editor.language() != null
+                        && "java".equals(editor.language().id()));
+        editor.close();
     }
 
     /** L'orchestrateur des popups suit la SESSION (le retour terrain
@@ -415,28 +415,28 @@ public class CelerisEditorTest {
     public void lOrchestrateurSurvitAuRetourDUnDocumentConnu() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
-        Object orchestrateurInitial = editeur.popups();
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
+        Object orchestrateurInitial = editor.popups();
 
-        editeur.open("Autre.java", SOURCE);
+        editor.open("Autre.java", SOURCE);
         // document différent : l'orchestrateur se rebranche
         assertFalse("un document différent rebranche l'orchestrateur",
-                editeur.popups() == orchestrateurInitial);
-        Object orchestrateurRebranche = editeur.popups();
+                editor.popups() == orchestrateurInitial);
+        Object orchestrateurRebranche = editor.popups();
 
         // le retour au document connu recrée l'orchestrateur de SA
         // session (la session de l'orchestrateur est figée à la
         // construction — il ne peut pas suivre l'autre document) :
         // le coà»t est celui des popups, PAS de la tokenisation (les
         // moteurs parqués de la vue ne re-tokenisent rien).
-        editeur.open("Main.java", SOURCE);
+        editor.open("Main.java", SOURCE);
         // le MÊME document rouvert D'AFFILÉE ne touche à rien du tout
-        Object orchestrateurDuRetour = editeur.popups();
-        editeur.open("Main.java", SOURCE);
+        Object orchestrateurDuRetour = editor.popups();
+        editor.open("Main.java", SOURCE);
         assertTrue("rouvrir le même document d'affilée ne recrée rien",
-                editeur.popups() == orchestrateurDuRetour);
-        editeur.close();
+                editor.popups() == orchestrateurDuRetour);
+        editor.close();
     }
 
     /** C10 (l'analyse croisée) : la barre de recherche de la façade
@@ -447,29 +447,29 @@ public class CelerisEditorTest {
     public void laBarreDeRechercheVitAvecLeDocument() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
 
-        SearchBarModel barre = editeur.search();
+        SearchBarModel barre = editor.search();
         barre.setQuery("void");
         assertEquals("les occurrences vivent", 1, barre.matches().size());
         // une édition AJOUTE une occurrence : la barre le voit seule
-        editeur.session().replaceRange(0, 0, "// void\n");
+        editor.session().replaceRange(0, 0, "// void\n");
         assertEquals("le recalcul part à l'édition",
                 2, barre.matches().size());
         // le remplacement courant traverse la transaction (annulable) :
         // l'occurrence visée est celle de la méthode, pas du commentaire
-        int offsetMethode = editeur.session().document().text().indexOf("void methode");
+        int offsetMethode = editor.session().document().text().indexOf("void methode");
         barre.setCurrentNear(offsetMethode);
         assertTrue(barre.replaceCurrent("int"));
-        assertTrue(editeur.session().document().text().contains("int methode"));
+        assertTrue(editor.session().document().text().contains("int methode"));
 
         // le changement d'onglet : la MÊME barre suit la session neuve
-        editeur.open("Autre.java", "void autre()\n");
+        editor.open("Autre.java", "void autre()\n");
         assertEquals("la barre suit l'onglet ouvert", 1, barre.matches().size());
         assertTrue("la même instance sert l'autre document",
-                editeur.search() == barre);
-        editeur.close();
+                editor.search() == barre);
+        editor.close();
     }
 
     /** D12 (l'analyse croisée) : la façade fermée PARLE — open()
@@ -479,9 +479,9 @@ public class CelerisEditorTest {
     public void openApresCloseLeve() {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
-        editeur.open("Main.java", SOURCE);
-        editeur.close();
-        editeur.open("Main.java", SOURCE); // avant : silence, écran vide
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, KIT);
+        editor.open("Main.java", SOURCE);
+        editor.close();
+        editor.open("Main.java", SOURCE); // avant : silence, écran vide
     }
 }

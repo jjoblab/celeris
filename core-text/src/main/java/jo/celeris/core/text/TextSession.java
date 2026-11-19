@@ -150,7 +150,7 @@ public final class TextSession {
         }
         MultiSelection avant = selection;
         selection = newSelection;
-        notifierSelection(avant);
+        notifySelection(avant);
     }
 
     /**
@@ -235,11 +235,11 @@ public final class TextSession {
             return true;
         }
         List<TextEdit> editions = transaction.edits();
-        validerBornes(editions);
+        validateBounds(editions);
         MultiSelection avant = selection;
         appliquer(editions);
         enregistrer(editions, avant, selection);
-        notifierSelection(avant);
+        notifySelection(avant);
         return true;
     }
 
@@ -268,16 +268,16 @@ public final class TextSession {
         if (transaction.isEmpty()) {
             MultiSelection avant = selection;
             selection = selectionAfter;
-            notifierSelection(avant);
+            notifySelection(avant);
             return true;
         }
         List<TextEdit> editions = transaction.edits();
-        validerBornes(editions);
+        validateBounds(editions);
         MultiSelection avant = selection;
         appliquer(editions);
         selection = selectionAfter;
         enregistrer(editions, avant, selectionAfter);
-        notifierSelection(avant);
+        notifySelection(avant);
         return true;
     }
 
@@ -305,7 +305,7 @@ public final class TextSession {
         MultiSelection avant = selection;
         appliquer(editions);
         enregistrer(editions, avant, selection);
-        notifierSelection(avant);
+        notifySelection(avant);
         return true;
     }
 
@@ -320,15 +320,15 @@ public final class TextSession {
         if (readOnly || selection.isEmpty()) {
             return false;
         }
-        List<TextEdit> editions = frappeSur(selection, text);
+        List<TextEdit> editions = keystrokeOn(selection, text);
         if (editions.isEmpty()) {
             return false;
         }
         MultiSelection avant = selection;
-        validerBornes(editions);
+        validateBounds(editions);
         appliquer(editions);
         enregistrer(editions, avant, selection);
-        notifierSelection(avant);
+        notifySelection(avant);
         return true;
     }
 
@@ -343,10 +343,10 @@ public final class TextSession {
             return false;
         }
         MultiSelection avant = selection;
-        validerBornes(editions);
+        validateBounds(editions);
         appliquer(editions);
         enregistrer(editions, avant, selection);
-        notifierSelection(avant);
+        notifySelection(avant);
         return true;
     }
 
@@ -373,10 +373,10 @@ public final class TextSession {
             return false;
         }
         MultiSelection avant = selection;
-        validerBornes(editions);
+        validateBounds(editions);
         appliquer(editions);
         enregistrer(editions, avant, selection);
-        notifierSelection(avant);
+        notifySelection(avant);
         return true;
     }
 
@@ -421,7 +421,7 @@ public final class TextSession {
         MultiSelection avant = selection;
         appliquer(ajustees);
         undoStack.pushStep(new UndoStep(ajustees, avant, selection));
-        notifierSelection(avant);
+        notifySelection(avant);
         return ajustees.size();
     }
 
@@ -448,7 +448,7 @@ public final class TextSession {
         if (step.selectionBefore() != null) {
             selection = step.selectionBefore();
         }
-        notifierSelection(avant);
+        notifySelection(avant);
         return true;
     }
 
@@ -474,7 +474,7 @@ public final class TextSession {
         if (step.selectionAfter() != null) {
             selection = step.selectionAfter();
         }
-        notifierSelection(avant);
+        notifySelection(avant);
         return true;
     }
 
@@ -498,7 +498,7 @@ public final class TextSession {
         return undoStack.redoDepth();
     }
 
-    private void notifierSelection(MultiSelection avant) {
+    private void notifySelection(MultiSelection avant) {
         if (avant.equals(selection)) {
             return;
         }
@@ -515,7 +515,7 @@ public final class TextSession {
         return inverses;
     }
 
-    private void validerBornes(List<TextEdit> editions) {
+    private void validateBounds(List<TextEdit> editions) {
         int longueur = document.length();
         for (TextEdit edition : editions) {
             if (edition.end() > longueur) {
@@ -529,10 +529,10 @@ public final class TextSession {
     /** D-13 : les éditions multi par LA voie de transaction. */
     boolean appliquerEditionsMulti(List<TextEdit> editions) {
         MultiSelection avant = selection;
-        validerBornes(editions);
+        validateBounds(editions);
         appliquer(editions);
         enregistrer(editions, avant, selection);
-        notifierSelection(avant);
+        notifySelection(avant);
         return true;
     }
 
@@ -566,7 +566,7 @@ public final class TextSession {
      * mêmes. Une plage qui ne change rien (curseur sur un texte vide) ne
      * produit pas d'édition.
      */
-    private List<TextEdit> frappeSur(MultiSelection aFrapper, String texte) {
+    private List<TextEdit> keystrokeOn(MultiSelection aFrapper, String texte) {
         List<TextEdit> editions = new ArrayList<>(aFrapper.caretCount());
         int decalage = 0;
         for (SelRange plage : aFrapper.ranges()) {

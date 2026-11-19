@@ -40,10 +40,10 @@ public final class TreeOutline {
                                   List<OutlineEntry> entrees) {
         String nom = noeud.outlineName();
         if (nom != null) {
-            int debut = base + noeud.start();
-            int fin = base + noeud.end();
-            entrees.add(new OutlineEntry(noeud.category(), nom, debut, fin,
-                    doc.lineForOffset(debut), doc.lineForOffset(Math.max(debut, fin - 1))));
+            int start = base + noeud.start();
+            int end = base + noeud.end();
+            entrees.add(new OutlineEntry(noeud.category(), nom, start, end,
+                    doc.lineForOffset(start), doc.lineForOffset(Math.max(start, end - 1))));
         }
         for (SynNode enfant : noeud.children()) {
             collecter(doc, enfant, base, entrees);

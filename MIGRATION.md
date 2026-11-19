@@ -5,6 +5,36 @@
 > déploiement, additive aujourd'hui), puis la correspondance historique
 > depuis le dépôt de départ (`jo.codeeditor`, version finale M9).
 
+
+## La montée 2.2 → 2.3 (le code passe à l'anglais)
+
+La règle redevient celle du dépôt : **le code en anglais, la Javadoc
+et les commentaires en français** (registre complet :
+`docs/renommages-code-anglais.md`). Côté hôte, la façade change de
+noms — le geste de migration est mécanique :
+
+| Vous écriviez | Vous écrivez |
+| --- | --- |
+| `PopupsEditeur` | `EditorPopups` |
+| `popups.brancherServeur(...)` | `popups.connectServer(...)` |
+| `popups.detacher()` | `popups.detach()` |
+| `popups.notifier(titre, msg)` | `popups.notifyListeners(title, msg)` |
+| `popups.setLangue(l)` / `setPlan(...)` / `setNomFichier(n)` | `popups.setLanguage(l)` / `setOutline(...)` / `setFileName(n)` |
+| `popups.ouvrirRecherche()` / `fermerRecherche()` | `popups.openSearch()` / `closeSearch()` |
+| `popups.basculerCompletion()` | `popups.toggleCompletion()` |
+| `popups.ouvrirIntentions()` / `ouvrirSurvol()` / `ouvrirGabarits()` / `ouvrirHierarchie()` / `ouvrirReglages(...)` | `popups.openIntentions()` / `openHover()` / `openTemplates()` / `openHierarchy()` / `openSettings(...)` |
+| `popups.configurerIntentions(...)` / `configurerActionsSelection(...)` | `popups.setIntentions(...)` / `setSelectionActions(...)` |
+| `popups.surTouche(keyCode)` / `surTailleTexte(sp)` | `popups.onKey(keyCode)` / `onTextSize(sp)` |
+| `DiagnosticHote` | `HostDiagnostic` |
+| les types `core-lsp` (`CapacitesServeur`, `PlageLsp`, `PositionLsp`, `SurvolLsp`, `ListeCompletion`, `IndiceLsp`…) | `ServerCapsLsp`, `RangeLsp`, `LspPosition`, `HoverLsp`, `CompletionListLsp`, `InlayHintLsp`… (registre complet) |
+| `LspSession.sur(...)` / `.ouvrir(...)` / `.plis(...)` | `LspSession.on(...)` / `.open(...)` / `.folds(...)` |
+| `MoteurAnalyse` / `MoteurSyntaxe` / `AnalyseAnnulee` (core-syntax) | `AnalysisEngine` / `SyntaxEngine` / `AnalysisCancelled` |
+| `Grammaires.lire(json)` / `Grammaire` (grammars) | `Grammars.read(json)` / `Grammar` |
+| `EditorView.setNumerosVisibles(b)` / `marquesGouttiere()` | `EditorView.setLineNumbersVisible(b)` / `gutterMarks()` |
+
+Les manifestes `api/*.api` font foi ; le registre porte la table
+complète, module par module, y compris les composants de records.
+
 ## 0. La montée 1.x → 2.0 (ADR-0022, phase 2)
 
 Deux racines nouvelles, **additives** : rien de ce qui suit ne casse un

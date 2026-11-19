@@ -13,12 +13,12 @@ package jo.celeris.core.ai;
  * partielle, elle, est un geste de l'utilisateur sur une suggestion
  * visible : le reste survit au fragment accepté.</p>
  *
- * @param texte    le texte suggéré, jamais vide, possiblement multiligne
+ * @param text    le texte suggéré, jamais vide, possiblement multiligne
  * @param offset   l'ancre — où le texte s'insérerait
  * @param revision la révision du document contre laquelle la suggestion
  *                 a été calculée
  */
-public record GhostSuggestion(String texte, int offset, int revision) {
+public record GhostSuggestion(String text, int offset, int revision) {
 
     /**
      * Valide la suggestion : du texte, une ancre, une révision.
@@ -27,7 +27,7 @@ public record GhostSuggestion(String texte, int offset, int revision) {
      *         négative ou si la révision est négative
      */
     public GhostSuggestion {
-        if (texte.isEmpty()) {
+        if (text.isEmpty()) {
             throw new IllegalArgumentException("suggestion text is empty");
         }
         if (offset < 0) {

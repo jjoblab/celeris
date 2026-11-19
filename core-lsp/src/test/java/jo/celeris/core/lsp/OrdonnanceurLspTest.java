@@ -1,6 +1,6 @@
 package jo.celeris.core.lsp;
 
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -30,11 +30,11 @@ class OrdonnanceurLspTest {
     private static final String URI = "file:///A.java";
 
     /** Le suivi des versions du banc : une carte que le banc fait vivre. */
-    private static final class Versions implements SuiviVersions {
+    private static final class Versions implements VersionTracker {
         private final Map<String, Integer> versions = new ConcurrentHashMap<>();
 
         @Override
-        public int versionDe(String uri) {
+        public int versionOf(String uri) {
             return versions.getOrDefault(uri, -1);
         }
     }
@@ -43,21 +43,21 @@ class OrdonnanceurLspTest {
 
     /** Ordonnance une demande de complétion dont l'émission rend un futur tenu. */
     private CompletableFuture<String> completion(
-            OrdonnanceurLsp ordonnanceur, Object identite,
+            LspScheduler ordonnanceur, Object identite,
             Supplier<CompletableFuture<String>> emission) {
-        return ordonnanceur.ordonnancer("completion", URI,
-                OrdonnanceurLsp.Priorite.INTERACTIF, identite, emission);
+        return ordonnanceur.schedule("completion", URI,
+                LspScheduler.Priority.INTERACTIF, identite, emission);
     }
 
     private static <T> T joindre(CompletableFuture<T> futur) throws Exception {
         return futur.get(5, TimeUnit.SECONDS);
     }
 
-    private static RequeteAnnuleeException annulationDe(CompletableFuture<?> futur)
+    private static RequestCancelledException annulationDe(CompletableFuture<?> futur)
             throws Exception {
         ExecutionException echec = assertThrows(ExecutionException.class,
                 () -> joindre(futur));
-        return assertInstanceOf(RequeteAnnuleeException.class, echec.getCause());
+        return assertInstanceOf(RequestCancelledException.class, echec.getCause());
     }
 
     /**
@@ -66,10 +66,10 @@ class OrdonnanceurLspTest {
      */
     @Test
     void laFusionDesRequetesIdentiques() throws Exception {
-        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        LspScheduler ordonnanceur = LspScheduler.on(versions);
         AtomicInteger emissions = new AtomicInteger();
         CompletableFuture<String> tenue = new CompletableFuture<>();
-        record Position(int ligne, int colonne) {
+        record Position(int line, int column) {
         }
         Position identite = new Position(3, 7);
         CompletableFuture<String> premiere = completion(ordonnanceur, identite, () -> {
@@ -95,14 +95,14 @@ class OrdonnanceurLspTest {
      */
     @Test
     void lannulationAuRemplacement() throws Exception {
-        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        LspScheduler ordonnanceur = LspScheduler.on(versions);
         CompletableFuture<String> vieuxVol = new CompletableFuture<>();
         CompletableFuture<String> neuve = completion(ordonnanceur,
-                new PositionLsp(3, 7), () -> vieuxVol);
+                new LspPosition(3, 7), () -> vieuxVol);
         CompletableFuture<String> fraiche = completion(ordonnanceur,
-                new PositionLsp(3, 8), () -> new CompletableFuture<>());
-        assertEquals(RequeteAnnuleeException.Raison.REMPLACEE,
-                annulationDe(neuve).raison());
+                new LspPosition(3, 8), () -> new CompletableFuture<>());
+        assertEquals(RequestCancelledException.Reason.REMPLACEE,
+                annulationDe(neuve).reason());
         assertTrue(vieuxVol.isCancelled(),
                 "le futur émis de la remplacée est annulé — la voie y"
                         + " traduit $/cancelRequest");
@@ -116,26 +116,26 @@ class OrdonnanceurLspTest {
      */
     @Test
     void laPrioriteInteractive() throws Exception {
-        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        LspScheduler ordonnanceur = LspScheduler.on(versions);
         CompletableFuture<String> volFond = new CompletableFuture<>();
-        CompletableFuture<String> fond = ordonnanceur.ordonnancer("formatage",
-                URI, OrdonnanceurLsp.Priorite.FOND, "tout", () -> volFond);
-        CompletableFuture<String> interactive = ordonnanceur.ordonnancer(
-                "survol", URI, OrdonnanceurLsp.Priorite.INTERACTIF, "ici",
+        CompletableFuture<String> fond = ordonnanceur.schedule("formatage",
+                URI, LspScheduler.Priority.FOND, "tout", () -> volFond);
+        CompletableFuture<String> interactive = ordonnanceur.schedule(
+                "survol", URI, LspScheduler.Priority.INTERACTIF, "ici",
                 () -> new CompletableFuture<>());
-        assertEquals(RequeteAnnuleeException.Raison.DEVANCEE,
-                annulationDe(fond).raison());
+        assertEquals(RequestCancelledException.Reason.SUPERSEDED,
+                annulationDe(fond).reason());
         assertTrue(volFond.isCancelled(),
                 "le vol de fond est annulé au fil quand l'interactive arrive");
         assertFalse(interactive.isDone(), "l'interactive vit sa vie");
         // et l'inverse ne déloge pas : le fond n'annule jamais l'interactif
         CompletableFuture<String> volInteractif = new CompletableFuture<>();
-        CompletableFuture<String> interactiveDeux = ordonnanceur.ordonnancer(
-                "survol", URI, OrdonnanceurLsp.Priorite.INTERACTIF, "la-bas",
+        CompletableFuture<String> interactiveDeux = ordonnanceur.schedule(
+                "survol", URI, LspScheduler.Priority.INTERACTIF, "la-bas",
                 () -> volInteractif);
         CompletableFuture<String> volFondDeux = new CompletableFuture<>();
-        CompletableFuture<String> fondDeux = ordonnanceur.ordonnancer(
-                "formatage", URI, OrdonnanceurLsp.Priorite.FOND, "encore",
+        CompletableFuture<String> fondDeux = ordonnanceur.schedule(
+                "formatage", URI, LspScheduler.Priority.FOND, "encore",
                 () -> volFondDeux);
         assertFalse(interactiveDeux.isCompletedExceptionally(),
                 "le fond ne devance jamais l'interactif");
@@ -152,20 +152,20 @@ class OrdonnanceurLspTest {
      */
     @Test
     void laResynchronisation() throws Exception {
-        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        LspScheduler ordonnanceur = LspScheduler.on(versions);
         versions.versions.put(URI, 1);
         CompletableFuture<String> vol = new CompletableFuture<>();
         CompletableFuture<String> aLaVersionUne = completion(ordonnanceur,
-                new PositionLsp(0, 5), () -> vol);
+                new LspPosition(0, 5), () -> vol);
         // le document change pendant le vol : la réponse qui arrive est périmée
         versions.versions.put(URI, 2);
         vol.complete("tardif");
-        assertEquals(RequeteAnnuleeException.Raison.PERIMEE,
-                annulationDe(aLaVersionUne).raison());
+        assertEquals(RequestCancelledException.Reason.STALE,
+                annulationDe(aLaVersionUne).reason());
         // la demande fraîche, partie après le changement, est servie
         CompletableFuture<String> volFrais = new CompletableFuture<>();
         CompletableFuture<String> fraiche = completion(ordonnanceur,
-                new PositionLsp(0, 6), () -> volFrais);
+                new LspPosition(0, 6), () -> volFrais);
         volFrais.complete("frais");
         assertEquals("frais", joindre(fraiche));
     }
@@ -173,29 +173,29 @@ class OrdonnanceurLspTest {
     /** La réponse tardive d'une requête annulée : ignorée, l'ordonnanceur a déjà rendu son verdict. */
     @Test
     void laReponseTardiveEstIgnoree() throws Exception {
-        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        LspScheduler ordonnanceur = LspScheduler.on(versions);
         CompletableFuture<String> vieuxVol = new CompletableFuture<>();
         CompletableFuture<String> vieille = completion(ordonnanceur,
-                new PositionLsp(1, 1), () -> vieuxVol);
+                new LspPosition(1, 1), () -> vieuxVol);
         CompletableFuture<String> volNeuf = new CompletableFuture<>();
         CompletableFuture<String> neuve = completion(ordonnanceur,
-                new PositionLsp(2, 2), () -> volNeuf);
+                new LspPosition(2, 2), () -> volNeuf);
         assertTrue(vieille.isCompletedExceptionally(),
                 "la remplacée a déjà son verdict");
         // le serveur achève la vieille requête annulée : la réponse tombe, rien ne casse
         volNeuf.complete("la bonne");
         assertEquals("la bonne", joindre(neuve));
-        assertEquals(RequeteAnnuleeException.Raison.REMPLACEE,
-                annulationDe(vieille).raison());
+        assertEquals(RequestCancelledException.Reason.REMPLACEE,
+                annulationDe(vieille).reason());
     }
 
     /** L'émission qui échoue sur place : le futur visible porte l'échec, sans vol mort. */
     @Test
     void lemissionQuiEchoueSeVoit() {
-        OrdonnanceurLsp ordonnanceur = OrdonnanceurLsp.sur(versions);
+        LspScheduler ordonnanceur = LspScheduler.on(versions);
         IllegalStateException panne = new IllegalStateException("panne d'émission");
         CompletableFuture<String> visible = completion(ordonnanceur,
-                new PositionLsp(4, 4), () -> {
+                new LspPosition(4, 4), () -> {
                     throw panne;
                 });
         java.util.concurrent.CompletionException echec =

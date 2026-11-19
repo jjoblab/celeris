@@ -41,45 +41,45 @@ public final class Generateurs {
             return List.of();
         }
         List<Champ> champs = new ArrayList<>();
-        for (OutlineEntry entree : TreeOutline.entries(doc, analyse)) {
-            if (entree.category() == NodeCategory.FIELD
-                    && entree.startOffset() >= classe.debut()
-                    && entree.endOffset() <= classe.fin()) {
-                String type = typeDuChamp(doc, analyse, entree);
-                champs.add(new Champ(type, entree.name()));
+        for (OutlineEntry input : TreeOutline.entries(doc, analyse)) {
+            if (input.category() == NodeCategory.FIELD
+                    && input.startOffset() >= classe.start()
+                    && input.endOffset() <= classe.end()) {
+                String type = typeDuChamp(doc, analyse, input);
+                champs.add(new Champ(type, input.name()));
             }
         }
         return List.copyOf(champs);
     }
 
     /** Le type d'un champ : les jetons qui précèdent son nom sur sa ligne, recomposés. */
-    private static String typeDuChamp(Document doc, Analysis analyse, OutlineEntry entree) {
-        int ligne = doc.lineForOffset(entree.startOffset());
-        int base = doc.lineStart(ligne);
-        Token[] jetons = analyse.lex().line(ligne).tokens();
+    private static String typeDuChamp(Document doc, Analysis analyse, OutlineEntry input) {
+        int line = doc.lineForOffset(input.startOffset());
+        int base = doc.lineStart(line);
+        Token[] tokens = analyse.lex().line(line).tokens();
         int indexNom = -1;
-        for (int i = 0; i < jetons.length; i++) {
-            String texte = doc.subText(base + jetons[i].start(),
-                    base + jetons[i].end()).trim();
-            if (jetons[i].kind() == TokenKind.IDENTIFIER && texte.equals(entree.name())) {
+        for (int i = 0; i < tokens.length; i++) {
+            String text = doc.subText(base + tokens[i].start(),
+                    base + tokens[i].end()).trim();
+            if (tokens[i].kind() == TokenKind.IDENTIFIER && text.equals(input.name())) {
                 indexNom = i;
                 break;
             }
         }
         StringBuilder type = new StringBuilder();
         for (int i = indexNom - 1; i >= 0; i--) {
-            Token jeton = jetons[i];
-            String texte = doc.subText(base + jeton.start(), base + jeton.end()).trim();
+            Token token = tokens[i];
+            String text = doc.subText(base + token.start(), base + token.end()).trim();
             // les types à majuscule initiale sont des TYPE, les primitives
             // sont des mots réservés (KEYWORD) — les deux sont des types de
             // champ, jamais des noms de champ (les primitifs sont réservés)
-            if (jeton.kind() == TokenKind.TYPE || estPrimitif(texte)) {
-                type.insert(0, texte);
+            if (token.kind() == TokenKind.TYPE || estPrimitif(text)) {
+                type.insert(0, text);
                 continue;
             }
-            if (jeton.kind() == TokenKind.OPERATOR
-                    && ("<".equals(texte) || ">".equals(texte))) {
-                type.insert(0, texte);
+            if (token.kind() == TokenKind.OPERATOR
+                    && ("<".equals(text) || ">".equals(text))) {
+                type.insert(0, text);
                 continue;
             }
             break;
@@ -97,10 +97,10 @@ public final class Generateurs {
      */
     public static @org.jspecify.annotations.Nullable Symbole classeDe(Document doc,
             Analysis analyse, String nomClasse) {
-        for (OutlineEntry entree : TreeOutline.entries(doc, analyse)) {
-            if (entree.category() == NodeCategory.TYPE && entree.name().equals(nomClasse)) {
-                return new Symbole(entree.name(), entree.category(), "",
-                        entree.startOffset(), entree.endOffset(), entree.startLine());
+        for (OutlineEntry input : TreeOutline.entries(doc, analyse)) {
+            if (input.category() == NodeCategory.TYPE && input.name().equals(nomClasse)) {
+                return new Symbole(input.name(), input.category(), "",
+                        input.startOffset(), input.endOffset(), input.startLine());
             }
         }
         return null;
@@ -108,7 +108,7 @@ public final class Generateurs {
 
     /** La position d'insertion du code généré : avant l'accolade qui ferme la classe. */
     public static int positionInsertion(Symbole classe) {
-        return Math.max(classe.debut(), classe.fin() - 1);
+        return Math.max(classe.start(), classe.end() - 1);
     }
 
     /**
@@ -120,19 +120,19 @@ public final class Generateurs {
      * @return le texte du constructeur
      */
     public static String constructeur(String classe, List<Champ> champs) {
-        StringBuilder texte = new StringBuilder("public ").append(classe).append('(');
+        StringBuilder text = new StringBuilder("public ").append(classe).append('(');
         for (int i = 0; i < champs.size(); i++) {
             if (i > 0) {
-                texte.append(", ");
+                text.append(", ");
             }
-            texte.append(champs.get(i).type()).append(' ').append(champs.get(i).nom());
+            text.append(champs.get(i).type()).append(' ').append(champs.get(i).nom());
         }
-        texte.append(") {\n");
+        text.append(") {\n");
         for (Champ champ : champs) {
-            texte.append("    this.").append(champ.nom()).append(" = ")
+            text.append("    this.").append(champ.nom()).append(" = ")
                     .append(champ.nom()).append(";\n");
         }
-        return texte + "}";
+        return text + "}";
     }
 
     /**
@@ -143,22 +143,22 @@ public final class Generateurs {
      * @return le texte des accesseurs, vide sans champ
      */
     public static String accesseurs(List<Champ> champs) {
-        StringBuilder texte = new StringBuilder();
+        StringBuilder text = new StringBuilder();
         for (Champ champ : champs) {
             String nomMajuscule = Character.toUpperCase(champ.nom().charAt(0))
                     + champ.nom().substring(1);
             String prefixe = "boolean".equals(champ.type()) ? "is" : "get";
-            texte.append("public ").append(champ.type()).append(' ')
+            text.append("public ").append(champ.type()).append(' ')
                     .append(prefixe).append(nomMajuscule).append("() {\n")
                     .append("    return ").append(champ.nom()).append(";\n")
                     .append("}\n\n");
-            texte.append("public void set").append(nomMajuscule).append('(')
+            text.append("public void set").append(nomMajuscule).append('(')
                     .append(champ.type()).append(' ').append(champ.nom()).append(") {\n")
                     .append("    this.").append(champ.nom()).append(" = ")
                     .append(champ.nom()).append(";\n")
                     .append("}\n\n");
         }
-        return texte.toString().stripTrailing();
+        return text.toString().stripTrailing();
     }
 
     /**

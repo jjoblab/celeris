@@ -10,7 +10,7 @@ package jo.celeris.android.view;
 public final class PointerGestures {
 
     /** Le facteur multiplicatif d'un cran de molette. */
-    public static final float FACTEUR_CRAN = 1.1f;
+    public static final float NOTCH_FACTOR = 1.1f;
 
     /** Le zoom minimal, hérité du pincement (D-15). */
     public static final float ZOOM_MIN = 0.5f;
@@ -35,7 +35,7 @@ public final class PointerGestures {
         if (!ctrl || crans == 0) {
             return borne(zoom);
         }
-        float facteur = (float) Math.pow(FACTEUR_CRAN, crans);
+        float facteur = (float) Math.pow(NOTCH_FACTOR, crans);
         return borne(zoom * facteur);
     }
 
@@ -47,13 +47,13 @@ public final class PointerGestures {
      * @param maintenant        l'instant présent
      * @param debutStation      le début de la station courante
      * @param colonnePrecedente la colonne du dernier appel
-     * @param colonne           la colonne courante
+     * @param column           la colonne courante
      * @param delaiMs           le délai de station
      * @return vrai si la bulle doit paraître
      */
     public static boolean bulleVisible(long maintenant, long debutStation,
-            int colonnePrecedente, int colonne, long delaiMs) {
-        if (colonne != colonnePrecedente) {
+            int colonnePrecedente, int column, long delaiMs) {
+        if (column != colonnePrecedente) {
             return false;
         }
         return maintenant - debutStation >= delaiMs;

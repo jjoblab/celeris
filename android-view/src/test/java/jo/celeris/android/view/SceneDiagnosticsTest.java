@@ -46,7 +46,7 @@ public class SceneDiagnosticsTest {
      *  réglage s'ignore, la lecture rend zéro (M7.5, §9). */
     @Test
     public void lexecuteurInjecteNEstJamaisDetourne() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         assertEquals("l'exécuteur du banc garde la main entière", 0L,
                 vue.retenueAnalyseMs());
@@ -59,7 +59,7 @@ public class SceneDiagnosticsTest {
      *  la largeur de gouttière se lit après l'image. */
     @Test
     public void lesLecturesDeVerite() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         assertEquals("la taille par défaut, en sp", 14f, vue.fontSizeSp(),
                 0.01f);
@@ -75,7 +75,7 @@ public class SceneDiagnosticsTest {
      *  PIEGE-26 le garde là. */
     @Test
     public void leCompteurDecoloreesPartDeZero() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         assertEquals("aucune image décolorée à l'ouverture", 0L,
                 vue.discoloredFrames());

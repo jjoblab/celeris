@@ -121,11 +121,11 @@ final class CLikeStrings {
         return delimiter == '"' ? "\"\"\"" : "'''";
     }
 
-    private static int find(CharSequence text, String motif, int from) {
-        for (int i = from; i + motif.length() <= text.length(); i++) {
+    private static int find(CharSequence text, String pattern, int from) {
+        for (int i = from; i + pattern.length() <= text.length(); i++) {
             boolean equal = true;
-            for (int j = 0; j < motif.length(); j++) {
-                if (text.charAt(i + j) != motif.charAt(j)) {
+            for (int j = 0; j < pattern.length(); j++) {
+                if (text.charAt(i + j) != pattern.charAt(j)) {
                     equal = false;
                     break;
                 }

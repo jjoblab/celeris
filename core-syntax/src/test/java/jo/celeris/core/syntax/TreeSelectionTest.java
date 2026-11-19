@@ -30,8 +30,8 @@ class TreeSelectionTest {
     /** La chaîne depuis un mot : mot, instruction, méthode, type, document. */
     @Test
     void chaineDepuisUnMot() {
-        String texte = "class A {\n    int f() {\n        return x + 1;\n    }\n}\n";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    int f() {\n        return x + 1;\n    }\n}\n";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         // le curseur sur « x » (offset 39)
         List<SelRange> chaine = TreeSelection.chaine(doc, analyse, 39);
@@ -56,8 +56,8 @@ class TreeSelectionTest {
     /** Les extensions successives montent la chaîne d'un cran (A-03). */
     @Test
     void extensionsSuccessives() {
-        String texte = "class A {\n    int f() {\n        return x + 1;\n    }\n}\n";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    int f() {\n        return x + 1;\n    }\n}\n";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         SelRange etendue = new SelRange(38, 40);
         etendue = suivanteOuEchec(doc, analyse, etendue);
@@ -74,8 +74,8 @@ class TreeSelectionTest {
     /** La réduction redescend la chaîne d'un cran. */
     @Test
     void reductionRedescend() {
-        String texte = "class A {\n    int f() {\n        return x + 1;\n    }\n}\n";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    int f() {\n        return x + 1;\n    }\n}\n";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         SelRange etendue = new SelRange(0, doc.length());
         etendue = precedenteOuEchec(doc, analyse, etendue);
@@ -90,8 +90,8 @@ class TreeSelectionTest {
     /** XML : le mot est le jeton de texte, l'imbrication des éléments est la chaîne. */
     @Test
     void xmlImbricationDesElements() {
-        String texte = "<racine>\n    <a>\n        <b>texte</b>\n    </a>\n</racine>\n";
-        Document doc = Document.of(texte);
+        String text = "<racine>\n    <a>\n        <b>texte</b>\n    </a>\n</racine>\n";
+        Document doc = Document.of(text);
         Analysis analyse = SyntaxService.of(XmlSyntax.INSTANCE).analyseFull(doc);
         // le curseur dans « texte » (offset 29) : le mot d'abord
         SelRange etendue = suivanteOuEchec(doc, analyse, new SelRange(29, 29));
@@ -107,16 +107,16 @@ class TreeSelectionTest {
     /** Kotlin : la chaîne traverse mot, instruction, fonction, classe, document. */
     @Test
     void kotlinFunEtClasse() {
-        String texte = "class A {\n    fun f(): Int {\n        return x\n    }\n}\n";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    fun f(): Int {\n        return x\n    }\n}\n";
+        Document doc = Document.of(text);
         Analysis analyse = SyntaxService.of(KotlinSyntax.INSTANCE).analyseFull(doc);
         // le curseur sur « x » (offset 44)
         List<SelRange> chaine = TreeSelection.chaine(doc, analyse, 44);
         assertEquals(5, chaine.size());
         // le mot « x », l'instruction « return x », la fonction, la classe, le document
         assertEquals(new SelRange(44, 45), chaine.get(0));
-        assertEquals("return x", texte.substring(chaine.get(1).start(), chaine.get(1).end()));
-        assertEquals("fun", texte.substring(chaine.get(2).start(), chaine.get(2).start() + 3));
+        assertEquals("return x", text.substring(chaine.get(1).start(), chaine.get(1).end()));
+        assertEquals("fun", text.substring(chaine.get(2).start(), chaine.get(2).start() + 3));
         assertEquals(0, chaine.get(3).start());
         assertEquals(new SelRange(0, doc.length()), chaine.get(4));
     }
@@ -124,8 +124,8 @@ class TreeSelectionTest {
     /** La chaîne ne répète pas les étendues identiques. */
     @Test
     void pasDeRepetition() {
-        String texte = "int x = 1;\n";
-        Document doc = Document.of(texte);
+        String text = "int x = 1;\n";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         List<SelRange> chaine = TreeSelection.chaine(doc, analyse, 4);
         for (int i = 1; i < chaine.size(); i++) {
@@ -137,15 +137,15 @@ class TreeSelectionTest {
     }
 
     /** L'étendue suivante, ou l'échec explicite du test. */
-    private static SelRange suivanteOuEchec(Document doc, Analysis analyse, SelRange plage) {
-        SelRange suivante = TreeSelection.suivante(doc, analyse, plage);
+    private static SelRange suivanteOuEchec(Document doc, Analysis analyse, SelRange range) {
+        SelRange suivante = TreeSelection.suivante(doc, analyse, range);
         org.junit.jupiter.api.Assertions.assertNotNull(suivante, "étendue suivante");
         return java.util.Objects.requireNonNull(suivante);
     }
 
     /** L'étendue précédente, ou l'échec explicite du test. */
-    private static SelRange precedenteOuEchec(Document doc, Analysis analyse, SelRange plage) {
-        SelRange precedente = TreeSelection.precedente(doc, analyse, plage);
+    private static SelRange precedenteOuEchec(Document doc, Analysis analyse, SelRange range) {
+        SelRange precedente = TreeSelection.precedente(doc, analyse, range);
         org.junit.jupiter.api.Assertions.assertNotNull(precedente, "étendue précédente");
         return java.util.Objects.requireNonNull(precedente);
     }

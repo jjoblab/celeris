@@ -18,12 +18,12 @@ class SquelettesMethodeTest {
     /** Le squelette de surcharge : types seuls, trous aux paramètres et au corps. */
     @Test
     void leSqueletteDeSurcharge() {
-        String corps = SquelettesMethode.squelette("toString",
+        String body = SquelettesMethode.squelette("toString",
                 List.of("String", "int"), "String");
         assertEquals("@Override\npublic String toString("
-                + "${p1:String arg0}, ${p2:int arg1}) {\n    ${corps}\n}", corps);
+                + "${p1:String arg0}, ${p2:int arg1}) {\n    ${corps}\n}", body);
         // le moteur de gabarits ordonne les trous : p1, p2 puis le corps
-        Gabarit gabarit = Gabarit.of(corps);
+        Gabarit gabarit = Gabarit.of(body);
         assertEquals(List.of("p1", "p2", "corps"),
                 gabarit.trous().stream().map(Trou::variable).toList());
     }
@@ -31,9 +31,9 @@ class SquelettesMethodeTest {
     /** Le squelette sans paramètre : un seul trou, le corps. */
     @Test
     void leSqueletteSansParametre() {
-        String corps = SquelettesMethode.squelette("fermer", List.of(), "void");
-        assertEquals("@Override\npublic void fermer() {\n    ${corps}\n}", corps);
-        Gabarit gabarit = Gabarit.of(corps);
+        String body = SquelettesMethode.squelette("fermer", List.of(), "void");
+        assertEquals("@Override\npublic void fermer() {\n    ${corps}\n}", body);
+        Gabarit gabarit = Gabarit.of(body);
         assertEquals(List.of("corps"),
                 gabarit.trous().stream().map(Trou::variable).toList());
     }
@@ -41,9 +41,9 @@ class SquelettesMethodeTest {
     /** Le rendu pose les défauts : chaque paramètre reçoit son argN. */
     @Test
     void leRenduPoseLesDefauts() {
-        String corps = SquelettesMethode.squelette("ajouter",
+        String body = SquelettesMethode.squelette("ajouter",
                 List.of("java.util.List"), "boolean");
-        Gabarit gabarit = Gabarit.of(corps);
+        Gabarit gabarit = Gabarit.of(body);
         String rendu = gabarit.rendu();
         assertTrue(rendu.startsWith("@Override\npublic boolean ajouter("));
         assertTrue(rendu.contains("java.util.List arg0"));

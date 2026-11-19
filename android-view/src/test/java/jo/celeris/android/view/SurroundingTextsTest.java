@@ -22,13 +22,13 @@ class SurroundingTextsTest {
     void window_honorsLengthsWithRelativeSelection() {
         Document document = Document.of("abcdefghij");
 
-        SurroundingTexts.Window fenetre =
+        SurroundingTexts.Window window =
                 SurroundingTexts.window(document, new SelRange(3, 6), 2, 1);
 
-        assertEquals("bcdefg", fenetre.text());
-        assertEquals(2, fenetre.selectionStart());
-        assertEquals(5, fenetre.selectionEnd());
-        assertEquals(1, fenetre.docOffset());
+        assertEquals("bcdefg", window.text());
+        assertEquals(2, window.selectionStart());
+        assertEquals(5, window.selectionEnd());
+        assertEquals(1, window.docOffset());
     }
 
     /** La fenêtre se borne au document : ni avant le début, ni après la fin. */
@@ -36,16 +36,16 @@ class SurroundingTextsTest {
     void window_clampsAtDocumentEdges() {
         Document document = Document.of("abcdefghij");
 
-        SurroundingTexts.Window debut =
+        SurroundingTexts.Window start =
                 SurroundingTexts.window(document, SelRange.caretAt(1), 10, 2);
-        assertEquals("abc", debut.text());
-        assertEquals(0, debut.docOffset());
-        assertEquals(1, debut.selectionStart());
+        assertEquals("abc", start.text());
+        assertEquals(0, start.docOffset());
+        assertEquals(1, start.selectionStart());
 
-        SurroundingTexts.Window fin =
+        SurroundingTexts.Window end =
                 SurroundingTexts.window(document, SelRange.caretAt(9), 2, 10);
-        assertEquals("hij", fin.text());
-        assertEquals(10, fin.docOffset() + fin.text().length());
+        assertEquals("hij", end.text());
+        assertEquals(10, end.docOffset() + end.text().length());
     }
 
     /** Des longueurs négatives se traitent comme nulles. */
@@ -53,13 +53,13 @@ class SurroundingTextsTest {
     void window_negativeLengthsAreZero() {
         Document document = Document.of("abcdef");
 
-        SurroundingTexts.Window fenetre =
+        SurroundingTexts.Window window =
                 SurroundingTexts.window(document, SelRange.caretAt(3), -4, -2);
 
-        assertEquals("", fenetre.text());
-        assertEquals(0, fenetre.selectionStart());
-        assertEquals(0, fenetre.selectionEnd());
-        assertEquals(3, fenetre.docOffset());
+        assertEquals("", window.text());
+        assertEquals(0, window.selectionStart());
+        assertEquals(0, window.selectionEnd());
+        assertEquals(3, window.docOffset());
     }
 
     /** Suppression d'entourage en unités : autour de la sélection, bornée aux bords. */
@@ -120,8 +120,8 @@ class SurroundingTextsTest {
     /** Une famille liée par sélecteur forme un cluster : la suppression l'absorbe. */
     @Test
     void delete_absorbsZwjFamily() {
-        String famille = "\ud83d\udc68\u200d\ud83d\udc69";
-        Document document = Document.of("x" + famille + "y");
+        String family = "\ud83d\udc68\u200d\ud83d\udc69";
+        Document document = Document.of("x" + family + "y");
 
         // La famille occupe 1..6 ; deux unités avant le curseur en 6
         // tombent au milieu : le cluster entier part.

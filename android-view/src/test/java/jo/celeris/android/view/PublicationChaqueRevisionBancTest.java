@@ -17,7 +17,7 @@ import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.IncrementalLexer;
 import jo.celeris.core.syntax.LanguageLexer;
-import jo.celeris.core.syntax.MoteurSyntaxe;
+import jo.celeris.core.syntax.SyntaxEngine;
 import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
@@ -30,7 +30,7 @@ import jo.celeris.core.text.TextSession;
  * pilotée par le pont : chaque frappe publie, la vue invalide à
  * chaque révision, la couleur ne périmé jamais plus d'une frappe.
  *
- * <p>La maquette vit derrière le même contrat {@code MoteurSyntaxe}
+ * <p>La maquette vit derrière le même contrat {@code SyntaxEngine}
  * que la voie réelle (fabrique de banc armée sélectivement) : la
  * preuve vaut pour la voie native — le banc natif direct saute sur
  * JVM (liaison Android), celui-ci tourne partout.</p>
@@ -43,20 +43,20 @@ class PublicationChaqueRevisionBancTest {
      * la passe publie l'analyse du document COURANT. C'est le
      * comportement exact de MoteurNatif après le correctif.
      */
-    static final class MoteurReprogrammante implements MoteurSyntaxe {
+    static final class MoteurReprogrammante implements SyntaxEngine {
         private final TextSession session;
-        private final @org.jspecify.annotations.Nullable Executor executeur;
+        private final @org.jspecify.annotations.Nullable Executor executor;
         private final List<java.util.function.Consumer<Analysis>> auditeurs =
                 new ArrayList<>();
         private final LanguageLexer lexeur;
         private final AtomicInteger passes = new AtomicInteger();
-        private @org.jspecify.annotations.Nullable Analysis publiee;
+        private @org.jspecify.annotations.Nullable Analysis published;
         private boolean ferme;
 
         MoteurReprogrammante(TextSession session,
-                @org.jspecify.annotations.Nullable Executor executeur) {
+                @org.jspecify.annotations.Nullable Executor executor) {
             this.session = session;
-            this.executeur = executeur;
+            this.executor = executor;
             this.lexeur = JavaSyntax.INSTANCE.lexer();
             session.addEditListener((start, end, removed, inserted) -> {
                 if (!ferme) {
@@ -67,21 +67,21 @@ class PublicationChaqueRevisionBancTest {
 
         @Override
         public @org.jspecify.annotations.Nullable Analysis analysePubliee() {
-            return publiee;
+            return published;
         }
 
         @Override
         public @org.jspecify.annotations.Nullable Analysis analyseDeRevision(long revision) {
-            Analysis courante = publiee;
+            Analysis courante = published;
             return courante != null && courante.revision() == revision
                     ? courante : null;
         }
 
         @Override
         public void reanalyser() {
-            Executor fil = executeur;
-            if (fil != null) {
-                fil.execute(this::passe);
+            Executor thread = executor;
+            if (thread != null) {
+                thread.execute(this::passe);
             } else {
                 passe();
             }
@@ -93,12 +93,12 @@ class PublicationChaqueRevisionBancTest {
             }
             passes.incrementAndGet();
             Document document = session.document();
-            publiee = new Analysis(document.revision(),
+            published = new Analysis(document.revision(),
                     new IncrementalLexer().lexFull(document, lexeur).lex(),
                     jo.celeris.core.syntax.SyntaxTree.of(document.revision(),
                             List.of()));
             for (java.util.function.Consumer<Analysis> auditeur : List.copyOf(auditeurs)) {
-                auditeur.accept(publiee);
+                auditeur.accept(published);
             }
         }
 
@@ -107,12 +107,12 @@ class PublicationChaqueRevisionBancTest {
         }
 
         @Override
-        public void fenetre(int premiereLigne, int derniereLigne) {
+        public void window(int premiereLigne, int derniereLigne) {
             // la voie entière ignore la fenêtre
         }
 
         @Override
-        public void ajouterAuditeur(java.util.function.Consumer<Analysis> auditeur) {
+        public void addListener(java.util.function.Consumer<Analysis> auditeur) {
             auditeurs.add(auditeur);
         }
 
@@ -127,8 +127,8 @@ class PublicationChaqueRevisionBancTest {
         private final List<Runnable> file = new ArrayList<>();
 
         @Override
-        public void execute(Runnable commande) {
-            file.add(commande);
+        public void execute(Runnable command) {
+            file.add(command);
         }
 
         void jouer() {
@@ -140,20 +140,20 @@ class PublicationChaqueRevisionBancTest {
 
     private EditorSyntax syntaxe;
     private TextSession session;
-    private ExecuteurACommande executeur;
+    private ExecuteurACommande executor;
 
     @BeforeEach
-    void monter() {
+    void start() {
         FabriqueVoieBanc.armee = true;
         FabriqueVoieBanc.moteurReprogrammante = true;
-        executeur = new ExecuteurACommande();
-        syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        executor = new ExecuteurACommande();
+        syntaxe = new EditorSyntax(new FoldModel(), executor);
         session = TextSession.of("int alpha;\nint beta;\n", () -> 0L);
     }
 
     @AfterEach
     void demonter() {
-        syntaxe.fermer();
+        syntaxe.close();
         FabriqueVoieBanc.armee = false;
         FabriqueVoieBanc.moteurReprogrammante = false;
     }
@@ -165,23 +165,23 @@ class PublicationChaqueRevisionBancTest {
      */
     @Test
     void laRafalePublieAChaqueRevision() {
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        executeur.jouer();   // la passe d'attachement
-        MoteurReprogrammante moteur = (MoteurReprogrammante)
+        executor.jouer();   // la passe d'attachement
+        MoteurReprogrammante engine = (MoteurReprogrammante)
                 FabriqueVoieBanc.dernierMoteur;
-        assertNotNull(moteur, "la fabrique de banc a servi la maquette");
-        int passesInitiales = moteur.passes();
+        assertNotNull(engine, "la fabrique de banc a servi la maquette");
+        int passesInitiales = engine.passes();
         assertTrue(passesInitiales >= 1, "l'attachement a publié");
 
         for (int i = 0; i < 20; i++) {
             assertTrue(session.replaceRange(0, 0, "x"));
-            executeur.jouer();
+            executor.jouer();
         }
-        assertEquals(20, moteur.passes() - passesInitiales,
+        assertEquals(20, engine.passes() - passesInitiales,
                 "chaque frappe a reprogrammé SA passe (voie native réparée)");
         assertEquals(session.document().revision(),
-                moteur.analysePubliee().revision(),
+                engine.analysePubliee().revision(),
                 "la dernière publication sert la dernière révision");
     }
 
@@ -193,25 +193,25 @@ class PublicationChaqueRevisionBancTest {
      */
     @Test
     void laCouleurNePertimePlusDuneFrappe() {
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        executeur.jouer();
+        executor.jouer();
         Document avant = session.document();
-        RowSource muette = cle -> {
+        RowSource muette = key -> {
             throw new UnsupportedOperationException("pas consultée");
         };
-        assertTrue(syntaxe.habiller(muette, avant) != muette,
+        assertTrue(syntaxe.wrap(muette, avant) != muette,
                 "la publication d'attachement pare la source");
 
         // LA frappe : le rattrapage tient (pas de source nue)…
         assertTrue(session.replaceRange(5, 5, " + 1"));
         Document apres = session.document();
-        assertTrue(syntaxe.habiller(muette, apres) != muette,
+        assertTrue(syntaxe.wrap(muette, apres) != muette,
                 "le rattrapage tient entre la frappe et sa publication");
 
         // …sa publication arrive, elle ressert TOUT.
-        executeur.jouer();
-        assertTrue(syntaxe.habiller(muette, apres) != muette,
+        executor.jouer();
+        assertTrue(syntaxe.wrap(muette, apres) != muette,
                 "la publication ressert la source");
         assertEquals(apres.revision(),
                 ((MoteurReprogrammante) FabriqueVoieBanc.dernierMoteur)

@@ -25,14 +25,14 @@ import jo.celeris.core.syntax.TokenKind;
 final class PilesPorteesTest {
 
     /** La grammaire du paquet python, chargée par le vrai chargeur. */
-    private static Grammaire grammairePython() {
+    private static Grammar grammairePython() {
         var flux = PilesPorteesTest.class.getResourceAsStream(
                 "/langages/python/grammar.json");
         if (flux == null) {
             throw new IllegalArgumentException("grammaire du paquet python");
         }
         try (flux) {
-            return Grammaires.lire(new String(flux.readAllBytes(),
+            return Grammars.read(new String(flux.readAllBytes(),
                     java.nio.charset.StandardCharsets.UTF_8));
         } catch (java.io.IOException e) {
             throw new IllegalStateException(e);
@@ -41,13 +41,13 @@ final class PilesPorteesTest {
 
     @Test
     void leJetonPorteSaPileDeLaRacineASaPortee() {
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammairePython());
-        LexedLine ligne = lexeur.lex("import os", lexeur.initialState());
-        assertTrue(ligne.tokens().length > 0);
-        for (Token jeton : ligne.tokens()) {
-            assertTrue(jeton.scope() != ScopeStacks.NONE,
+        GrammarLexer lexeur = new GrammarLexer(grammairePython());
+        LexedLine line = lexeur.lex("import os", lexeur.initialState());
+        assertTrue(line.tokens().length > 0);
+        for (Token token : line.tokens()) {
+            assertTrue(token.scope() != ScopeStacks.NONE,
                     "chaque jeton de la voie des grammaires porte sa pile");
-            List<String> portees = ScopeStacks.scopesOf(jeton.scope());
+            List<String> portees = ScopeStacks.scopesOf(token.scope());
             assertEquals("source.python", portees.get(0),
                     "la pile commence à la racine du langage");
         }
@@ -55,25 +55,25 @@ final class PilesPorteesTest {
 
     @Test
     void laChainePorteLaPileDeSonBlocOuvert() {
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammairePython());
+        GrammarLexer lexeur = new GrammarLexer(grammairePython());
         LexState etat = lexeur.initialState();
         // la première ligne ouvre la chaîne triple, la seconde vit dedans
         LexedLine premiere = lexeur.lex("doc = \"\"\"", etat);
         etat = premiere.exitState();
         LexedLine seconde = lexeur.lex("du texte", etat);
-        Token texte = seconde.tokens()[0];
-        List<String> portees = ScopeStacks.scopesOf(texte.scope());
+        Token text = seconde.tokens()[0];
+        List<String> portees = ScopeStacks.scopesOf(text.scope());
         assertTrue(portees.contains("string.quoted.triple.double.python"),
                 "l'écart vit dans la pile de son bloc : " + portees);
-        assertEquals(TokenKind.STRING, texte.kind(),
+        assertEquals(TokenKind.STRING, text.kind(),
                 "la sorte dérivée de la pile reste la catégorie commune");
     }
 
     @Test
     void lesTokensDuneMemePorteePartagentLeurPile() {
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammairePython());
-        LexedLine ligne = lexeur.lex("import os", lexeur.initialState());
-        Token premier = ligne.tokens()[0];
+        GrammarLexer lexeur = new GrammarLexer(grammairePython());
+        LexedLine line = lexeur.lex("import os", lexeur.initialState());
+        Token premier = line.tokens()[0];
         LexedLine relue = lexeur.lex("import os", lexeur.initialState());
         assertEquals(premier.scope(), relue.tokens()[0].scope(),
                 "la pile internée est déterministe : même texte, même entier");

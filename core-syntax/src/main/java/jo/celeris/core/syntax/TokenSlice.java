@@ -16,16 +16,16 @@ import jo.celeris.core.text.Document;
 public final class TokenSlice {
 
     private final Document doc;
-    private final Token[] jetons;
-    private final int[] lignes;
+    private final Token[] tokens;
+    private final int[] lines;
     private final int from;
     private final int to;
     private final int baseOffset;
 
-    TokenSlice(Document doc, Token[] jetons, int[] lignes, int from, int to, int baseOffset) {
+    TokenSlice(Document doc, Token[] tokens, int[] lines, int from, int to, int baseOffset) {
         this.doc = doc;
-        this.jetons = jetons;
-        this.lignes = lignes;
+        this.tokens = tokens;
+        this.lines = lines;
         this.from = from;
         this.to = to;
         this.baseOffset = baseOffset;
@@ -38,31 +38,31 @@ public final class TokenSlice {
 
     /** La sorte du jeton d'indice donné (indices locaux à la tranche). */
     public TokenKind kind(int index) {
-        return jetons[from + index].kind();
+        return tokens[from + index].kind();
     }
 
     /** Le début du jeton, relatif à la base de la tranche. */
     public int start(int index) {
-        Token jeton = jetons[from + index];
-        return doc.lineStart(lignes[from + index]) + jeton.start() - baseOffset;
+        Token token = tokens[from + index];
+        return doc.lineStart(lines[from + index]) + token.start() - baseOffset;
     }
 
     /** La fin exclusive du jeton, relative à la base de la tranche. */
     public int end(int index) {
-        Token jeton = jetons[from + index];
-        return doc.lineStart(lignes[from + index]) + jeton.end() - baseOffset;
+        Token token = tokens[from + index];
+        return doc.lineStart(lines[from + index]) + token.end() - baseOffset;
     }
 
     /** La ligne absolue du jeton. */
     public int line(int index) {
-        return lignes[from + index];
+        return lines[from + index];
     }
 
     /** Le texte du jeton. */
     public String text(int index) {
-        Token jeton = jetons[from + index];
-        return doc.lineText(lignes[from + index])
-                .substring(jeton.start(), jeton.end());
+        Token token = tokens[from + index];
+        return doc.lineText(lines[from + index])
+                .substring(token.start(), token.end());
     }
 
     /**

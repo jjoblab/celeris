@@ -18,7 +18,7 @@ import org.robolectric.RuntimeEnvironment;
  * du guide du développeur, la seconde surface réveillée du signal du
  * propriétaire) : le nom du type du symbole au caret, UNE rangée au
  * palier titre — elle décrit, elle ne choisit pas (aucune navigation
- * clavier : la carte passive ne réalise pas {@code PopupClavier}, la
+ * clavier : la carte passive ne réalise pas {@code KeyboardPopup}, la
  * frappe la referme avant qu'une flèche ne la serve).
  */
 @RunWith(RobolectricTestRunner.class)
@@ -63,6 +63,6 @@ public class TypeInfoViewTest {
         TypeInfoView vue = new TypeInfoView(contexte, PopupPalette.dark());
         vue.setType("int");
         assertFalse("la carte passive ne règne pas sur le clavier",
-                PopupClavier.class.isInstance(vue));
+                KeyboardPopup.class.isInstance(vue));
     }
 }

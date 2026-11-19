@@ -48,8 +48,8 @@ class MaterialisationNatifTest {
     private static final int IDENT = 20;
 
     /** Un nœud aplati : [symbole, debut, fin, ligne, colonne, enfants]. */
-    private static int[] noeud(int symbole, int debut, int fin, int enfants) {
-        return new int[] {symbole, debut, fin, 0, 0, enfants};
+    private static int[] noeud(int symbole, int start, int end, int enfants) {
+        return new int[] {symbole, start, end, 0, 0, enfants};
     }
 
     /** L'arbre aplati d'une suite de nœuds — le préordre s'y écrit. */
@@ -61,9 +61,9 @@ class MaterialisationNatifTest {
         return arbre;
     }
 
-    private static Analysis materielise(String texte, int[] arbre) {
-        Document document = TextSession.of(texte, () -> 0L).document();
-        return MaterialisationNatif.de(document, arbre, SYMBOLES, 7);
+    private static Analysis materielise(String text, int[] arbre) {
+        Document document = TextSession.of(text, () -> 0L).document();
+        return MaterialisationNatif.of(document, arbre, SYMBOLES, 7);
     }
 
     /** Les trois morceaux d'une chaîne (guillemet, contenu, guillemet)
@@ -89,34 +89,34 @@ class MaterialisationNatifTest {
                 noeud(FERM_ACC, 17, 18, 0));
         Analysis analyse = materielise("{\"cle\": [1, true]}", arbre);
         assertEquals(7, analyse.revision());
-        Token[] jetons = analyse.lex().line(0).tokens();
+        Token[] tokens = analyse.lex().line(0).tokens();
         // onze feuilles, trois soudées en une : neuf jetons
-        assertEquals(9, jetons.length);
-        assertEquals(TokenKind.OPEN_BRACKET, jetons[0].kind());
-        assertEquals(0, jetons[0].start());
-        assertEquals(1, jetons[0].end());
+        assertEquals(9, tokens.length);
+        assertEquals(TokenKind.OPEN_BRACKET, tokens[0].kind());
+        assertEquals(0, tokens[0].start());
+        assertEquals(1, tokens[0].end());
         // la chaîne soudée couvre guillemets compris
-        assertEquals(TokenKind.STRING, jetons[1].kind());
-        assertEquals(1, jetons[1].start());
-        assertEquals(6, jetons[1].end());
-        assertEquals(TokenKind.PUNCTUATION, jetons[2].kind());
+        assertEquals(TokenKind.STRING, tokens[1].kind());
+        assertEquals(1, tokens[1].start());
+        assertEquals(6, tokens[1].end());
+        assertEquals(TokenKind.PUNCTUATION, tokens[2].kind());
         // le blanc du crochet : [8..9] devient [7..9]
-        assertEquals(TokenKind.OPEN_BRACKET, jetons[3].kind());
-        assertEquals(7, jetons[3].start());
-        assertEquals(9, jetons[3].end());
-        assertEquals(TokenKind.NUMBER, jetons[4].kind());
-        assertEquals(9, jetons[4].start());
+        assertEquals(TokenKind.OPEN_BRACKET, tokens[3].kind());
+        assertEquals(7, tokens[3].start());
+        assertEquals(9, tokens[3].end());
+        assertEquals(TokenKind.NUMBER, tokens[4].kind());
+        assertEquals(9, tokens[4].start());
         // le blanc avant « true » lui appartient
-        assertEquals(TokenKind.KEYWORD, jetons[6].kind());
-        assertEquals(11, jetons[6].start());
-        assertEquals(16, jetons[6].end());
+        assertEquals(TokenKind.KEYWORD, tokens[6].kind());
+        assertEquals(11, tokens[6].start());
+        assertEquals(16, tokens[6].end());
         // les fermantes voisines restent DEUX jetons
-        assertEquals(TokenKind.CLOSE_BRACKET, jetons[7].kind());
-        assertEquals(16, jetons[7].start());
-        assertEquals(17, jetons[7].end());
-        assertEquals(TokenKind.CLOSE_BRACKET, jetons[8].kind());
-        assertEquals(17, jetons[8].start());
-        assertEquals(18, jetons[8].end());
+        assertEquals(TokenKind.CLOSE_BRACKET, tokens[7].kind());
+        assertEquals(16, tokens[7].start());
+        assertEquals(17, tokens[7].end());
+        assertEquals(TokenKind.CLOSE_BRACKET, tokens[8].kind());
+        assertEquals(17, tokens[8].start());
+        assertEquals(18, tokens[8].end());
         assertEquals(0, analyse.lex().bracketDepthAtLineStart(0));
     }
 
@@ -153,7 +153,7 @@ class MaterialisationNatifTest {
         assertEquals(0, chunk.startCol());
         assertEquals(1, chunk.endLine());
         assertEquals(3, chunk.endCol());
-        assertTrue(analyse.estComplet());
+        assertTrue(analyse.isComplete());
     }
 
     /** Les offsets de l'arbre aplati sont déjà en CARACTÈRES du
@@ -169,27 +169,27 @@ class MaterialisationNatifTest {
                 noeud(PLUS, 2, 3, 0),
                 noeud(IDENT, 4, 5, 0));
         Analysis analyse = materielise("é + ☕", arbre);
-        Token[] jetons = analyse.lex().line(0).tokens();
-        assertEquals(3, jetons.length);
+        Token[] tokens = analyse.lex().line(0).tokens();
+        assertEquals(3, tokens.length);
         // é : l'identificateur d'UN caractère
-        assertEquals(TokenKind.IDENTIFIER, jetons[0].kind());
-        assertEquals(0, jetons[0].start());
-        assertEquals(1, jetons[0].end());
+        assertEquals(TokenKind.IDENTIFIER, tokens[0].kind());
+        assertEquals(0, tokens[0].start());
+        assertEquals(1, tokens[0].end());
         // le blanc au + qui le suit
-        assertEquals(TokenKind.OPERATOR, jetons[1].kind());
-        assertEquals(1, jetons[1].start());
-        assertEquals(3, jetons[1].end());
+        assertEquals(TokenKind.OPERATOR, tokens[1].kind());
+        assertEquals(1, tokens[1].start());
+        assertEquals(3, tokens[1].end());
         // l'emoji : UN caractère, blanc compris
-        assertEquals(TokenKind.IDENTIFIER, jetons[2].kind());
-        assertEquals(3, jetons[2].start());
-        assertEquals(5, jetons[2].end());
+        assertEquals(TokenKind.IDENTIFIER, tokens[2].kind());
+        assertEquals(3, tokens[2].start());
+        assertEquals(5, tokens[2].end());
     }
 
     /** La table des sorts : mots réservés, constructions par leur nom,
      *  opérateur d'un caractère, ponctuation — le repli identificateur. */
     @Test
     void laTableDesSortsSeLit() {
-        String texte = "x".repeat(50);
+        String text = "x".repeat(50);
         int[] arbre = aplatir(
                 noeud(27, 0, 50, 1),
                 noeud(27, 0, 50, 11),
@@ -204,22 +204,22 @@ class MaterialisationNatifTest {
                 noeud(18, 40, 42, 0),
                 noeud(21, 43, 45, 0),
                 noeud(27, 46, 50, 0));
-        Analysis analyse = materielise(texte, arbre);
-        Token[] jetons = analyse.lex().line(0).tokens();
-        assertEquals(11, jetons.length);
-        assertEquals(TokenKind.KEYWORD, jetons[0].kind());
+        Analysis analyse = materielise(text, arbre);
+        Token[] tokens = analyse.lex().line(0).tokens();
+        assertEquals(11, tokens.length);
+        assertEquals(TokenKind.KEYWORD, tokens[0].kind());
         // « void » porte la teinte opérateur — la table le dit
-        assertEquals(TokenKind.OPERATOR, jetons[1].kind());
-        assertEquals(TokenKind.IDENTIFIER, jetons[2].kind());
-        assertEquals(TokenKind.PUNCTUATION, jetons[3].kind());
-        assertEquals(TokenKind.COMMENT, jetons[4].kind());
-        assertEquals(TokenKind.STRING, jetons[5].kind());
-        assertEquals(TokenKind.STRING, jetons[6].kind());
-        assertEquals(TokenKind.NUMBER, jetons[7].kind());
-        assertEquals(TokenKind.NUMBER, jetons[8].kind());
+        assertEquals(TokenKind.OPERATOR, tokens[1].kind());
+        assertEquals(TokenKind.IDENTIFIER, tokens[2].kind());
+        assertEquals(TokenKind.PUNCTUATION, tokens[3].kind());
+        assertEquals(TokenKind.COMMENT, tokens[4].kind());
+        assertEquals(TokenKind.STRING, tokens[5].kind());
+        assertEquals(TokenKind.STRING, tokens[6].kind());
+        assertEquals(TokenKind.NUMBER, tokens[7].kind());
+        assertEquals(TokenKind.NUMBER, tokens[8].kind());
         // le décorateur porte l'annotation, l'inconnu l'identifiant
-        assertEquals(TokenKind.ANNOTATION, jetons[9].kind());
-        assertEquals(TokenKind.IDENTIFIER, jetons[10].kind());
+        assertEquals(TokenKind.ANNOTATION, tokens[9].kind());
+        assertEquals(TokenKind.IDENTIFIER, tokens[10].kind());
     }
 
     /** Les guillemets d'un seul caractère portent la teinte chaîne —
@@ -233,11 +233,11 @@ class MaterialisationNatifTest {
                 noeud(11, 2, 3, 0),
                 noeud(12, 4, 5, 0));
         Analysis analyse = materielise("\" ' `", arbre);
-        Token[] jetons = analyse.lex().line(0).tokens();
-        assertEquals(3, jetons.length);
-        assertEquals(TokenKind.STRING, jetons[0].kind());
-        assertEquals(TokenKind.STRING, jetons[1].kind());
-        assertEquals(TokenKind.STRING, jetons[2].kind());
+        Token[] tokens = analyse.lex().line(0).tokens();
+        assertEquals(3, tokens.length);
+        assertEquals(TokenKind.STRING, tokens[0].kind());
+        assertEquals(TokenKind.STRING, tokens[1].kind());
+        assertEquals(TokenKind.STRING, tokens[2].kind());
     }
 
     /** La pile des enfants restants GRANDIT : soixante-dix niveaux
@@ -279,6 +279,6 @@ class MaterialisationNatifTest {
     @Test
     void leRepliDuPontSansSourceNativeRendNull() {
         TextSession session = TextSession.of("x", () -> 0L);
-        assertNull(MoteurNatif.de(null, session, null));
+        assertNull(NativeEngine.of(null, session, null));
     }
 }

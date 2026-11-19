@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class PopupAnchorTest {
 
     private static final int LARGEUR = 1080;
-    private static final int HAUTEUR = 1920;
+    private static final int HEIGHT = 1920;
     private static final int MARGE = 8;
 
     /** Sous le curseur si la place y tient, au-dessus sinon. */
@@ -22,16 +22,16 @@ class PopupAnchorTest {
     void belowOrAboveCaretFollowsTheRoom() {
         PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 200, 300);
         PopupPlacer.Cadre dessous = PopupAnchor.belowOrAboveCaret(400, 500,
-                popup, LARGEUR, HAUTEUR, MARGE);
+                popup, LARGEUR, HEIGHT, MARGE);
         assertEquals(500, dessous.y(), "la place tient : sous le curseur");
         PopupPlacer.Cadre dessus = PopupAnchor.belowOrAboveCaret(400, 1800,
-                popup, LARGEUR, HAUTEUR, MARGE);
+                popup, LARGEUR, HEIGHT, MARGE);
         assertEquals(1500, dessus.y(),
                 "la place manque : au-dessus, collée au bas du curseur");
         // Le bord bas : même en bas de couche, le popup reste dedans.
         PopupPlacer.Cadre borne = PopupAnchor.belowOrAboveCaret(400, 1900,
-                popup, LARGEUR, HAUTEUR, MARGE);
-        assertTrue(borne.y() + borne.hauteur() <= HAUTEUR - MARGE,
+                popup, LARGEUR, HEIGHT, MARGE);
+        assertTrue(borne.y() + borne.height() <= HEIGHT - MARGE,
                 "jamais hors couche, même au bord");
     }
 
@@ -40,12 +40,12 @@ class PopupAnchorTest {
     void aboveOrBelowCaretPrefersAbove() {
         PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 300, 200);
         PopupPlacer.Cadre dessus = PopupAnchor.aboveOrBelowCaret(500, 600,
-                popup, LARGEUR, HAUTEUR, MARGE);
+                popup, LARGEUR, HEIGHT, MARGE);
         assertEquals(400, dessus.y(), "la place tient : au-dessus du curseur");
         // Le curseur tout en haut : la signature passe dessous, dedans.
         PopupPlacer.Cadre bas = PopupAnchor.aboveOrBelowCaret(500, 100,
-                popup, LARGEUR, HAUTEUR, MARGE);
-        assertTrue(bas.y() >= MARGE && bas.y() + bas.hauteur() <= HAUTEUR,
+                popup, LARGEUR, HEIGHT, MARGE);
+        assertTrue(bas.y() >= MARGE && bas.y() + bas.height() <= HEIGHT,
                 "jamais hors couche, même en haut");
     }
 
@@ -54,14 +54,14 @@ class PopupAnchorTest {
     void atPointStaysAboveTheFinger() {
         PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 280, 160);
         PopupPlacer.Cadre bulle = PopupAnchor.atPoint(540, 900, popup,
-                LARGEUR, HAUTEUR, MARGE);
-        assertTrue(bulle.y() + bulle.hauteur() <= 900,
+                LARGEUR, HEIGHT, MARGE);
+        assertTrue(bulle.y() + bulle.height() <= 900,
                 "la bulle finit au-dessus du point touché");
         assertEquals(400, bulle.x(),
                 "centrée sur le point, bornée à la couche");
         // Le point tout en haut : la bulle passe dessous, dans la couche.
         PopupPlacer.Cadre haut = PopupAnchor.atPoint(540, 100, popup,
-                LARGEUR, HAUTEUR, MARGE);
+                LARGEUR, HEIGHT, MARGE);
         assertTrue(haut.y() >= MARGE, "en haut de couche, la bulle reste dedans");
     }
 
@@ -70,10 +70,10 @@ class PopupAnchorTest {
     void breadcrumbSitsTopLeft() {
         PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 900, 48);
         PopupPlacer.Cadre bandeau = PopupAnchor.topLeftCorner(popup,
-                LARGEUR, HAUTEUR, MARGE);
+                LARGEUR, HEIGHT, MARGE);
         assertEquals(MARGE, bandeau.x());
         assertEquals(MARGE, bandeau.y());
-        assertTrue(bandeau.largeur() <= LARGEUR - 2 * MARGE,
+        assertTrue(bandeau.width() <= LARGEUR - 2 * MARGE,
                 "le bandeau ne sort jamais de la largeur");
     }
 
@@ -82,9 +82,9 @@ class PopupAnchorTest {
     void errorBandHoldsTheRightEdge() {
         PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 24, 1904);
         PopupPlacer.Cadre bande = PopupAnchor.rightEdge(popup,
-                LARGEUR, HAUTEUR, MARGE);
+                LARGEUR, HEIGHT, MARGE);
         assertEquals(LARGEUR - 24 - MARGE, bande.x(), "collée au bord droit");
-        assertEquals(HAUTEUR - 2 * MARGE, bande.hauteur(),
+        assertEquals(HEIGHT - 2 * MARGE, bande.height(),
                 "pleine hauteur de couche, respirations comprises");
     }
 
@@ -93,13 +93,13 @@ class PopupAnchorTest {
     void selectionBarCentersAboveTheSelection() {
         PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 320, 56);
         PopupPlacer.Cadre barre = PopupAnchor.centeredAboveSelection(
-                300, 700, 400, popup, LARGEUR, HAUTEUR, MARGE);
+                300, 700, 400, popup, LARGEUR, HEIGHT, MARGE);
         assertEquals(340, barre.x(), "centrée sur le milieu de la sélection");
         assertEquals(344, barre.y(), "au-dessus de la sélection");
         // La sélection tout en haut : la barre passe dessous, dedans.
         PopupPlacer.Cadre haut = PopupAnchor.centeredAboveSelection(
-                300, 700, 20, popup, LARGEUR, HAUTEUR, MARGE);
-        assertTrue(haut.y() >= MARGE && haut.y() + haut.hauteur() <= HAUTEUR,
+                300, 700, 20, popup, LARGEUR, HEIGHT, MARGE);
+        assertTrue(haut.y() >= MARGE && haut.y() + haut.height() <= HEIGHT,
                 "jamais hors couche, même en haut");
     }
     /** Le coin bas-droit — l'ancre de la notification (2026-11-14) :
@@ -108,17 +108,17 @@ class PopupAnchorTest {
     void notificationHoldsTheBottomRightCorner() {
         PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 300, 120);
         PopupPlacer.Cadre coin = PopupAnchor.bottomRightCorner(
-                popup, LARGEUR, HAUTEUR, MARGE);
+                popup, LARGEUR, HEIGHT, MARGE);
         assertEquals(LARGEUR - MARGE - 300, coin.x(), "posée à droite");
-        assertEquals(HAUTEUR - MARGE - 120, coin.y(), "posée en bas");
+        assertEquals(HEIGHT - MARGE - 120, coin.y(), "posée en bas");
         PopupPlacer.Cadre grande = new PopupPlacer.Cadre(0, 0, 2000, 2000);
         PopupPlacer.Cadre borne = PopupAnchor.bottomRightCorner(
-                grande, LARGEUR, HAUTEUR, MARGE);
+                grande, LARGEUR, HEIGHT, MARGE);
         assertEquals(MARGE, borne.x(), "trop grande : au mur gauche");
         assertEquals(MARGE, borne.y(), "trop grande : au mur haut");
-        assertEquals(LARGEUR - 2 * MARGE, borne.largeur(),
+        assertEquals(LARGEUR - 2 * MARGE, borne.width(),
                 "la largeur bornée aux murs");
-        assertEquals(HAUTEUR - 2 * MARGE, borne.hauteur(),
+        assertEquals(HEIGHT - 2 * MARGE, borne.height(),
                 "la hauteur bornée aux murs");
     }
 
@@ -130,7 +130,7 @@ class PopupAnchorTest {
     void selectionOverflowSitsBelowTheSelection() {
         PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 320, 240);
         PopupPlacer.Cadre posee = PopupAnchor.belowSelectionOrAboveBar(
-                200, 170, 140, popup, LARGEUR, HAUTEUR, MARGE);
+                200, 170, 140, popup, LARGEUR, HEIGHT, MARGE);
         assertEquals(170, posee.y(),
                 "posée sous le bas de la sélection, jamais sur elle");
         assertEquals(40, posee.x(), "centrée sous la puce");
@@ -146,10 +146,10 @@ class PopupAnchorTest {
     void selectionOverflowRetreatsAboveTheBar() {
         PopupPlacer.Cadre popup = new PopupPlacer.Cadre(0, 0, 320, 240);
         PopupPlacer.Cadre posee = PopupAnchor.belowSelectionOrAboveBar(
-                200, 1750, 1720, popup, LARGEUR, HAUTEUR, MARGE);
+                200, 1750, 1720, popup, LARGEUR, HEIGHT, MARGE);
         assertEquals(1480, posee.y(),
                 "retirée au-dessus de la barre, marge comprise");
-        assertTrue(posee.y() + posee.hauteur() <= 1720,
+        assertTrue(posee.y() + posee.height() <= 1720,
                 "la barre demeure à découvert sous le menu");
     }
 }

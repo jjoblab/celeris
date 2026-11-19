@@ -57,16 +57,16 @@ public final class IndentEngine {
     /**
      * Le préfixe de blancs d'une ligne (espaces et tabulations).
      *
-     * @param ligne le texte de la ligne
+     * @param line le texte de la ligne
      * @return ses blancs de tête, éventuellement vides
      */
-    public static String leadingWhitespace(String ligne) {
-        int fin = 0;
-        while (fin < ligne.length()
-                && (ligne.charAt(fin) == ' ' || ligne.charAt(fin) == '\t')) {
-            fin++;
+    public static String leadingWhitespace(String line) {
+        int end = 0;
+        while (end < line.length()
+                && (line.charAt(end) == ' ' || line.charAt(end) == '\t')) {
+            end++;
         }
-        return ligne.substring(0, fin);
+        return line.substring(0, end);
     }
 
     /**
@@ -80,9 +80,9 @@ public final class IndentEngine {
         return blancs.length() / Math.max(1, style.width());
     }
 
-    public static String continuationDeLigne(Document doc, int ligne) {
-        String texte = doc.lineText(ligne);
-        String sansRetrait = texte.stripLeading();
+    public static String lineContinuation(Document doc, int line) {
+        String text = doc.lineText(line);
+        String sansRetrait = text.stripLeading();
         // Le préfixe SANS son retrait : le saut porte déjà
         // l'indentation de la ligne (indentationAttendue).
         if (sansRetrait.startsWith("/**")) {

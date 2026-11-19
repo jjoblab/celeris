@@ -43,14 +43,14 @@ public final class SelectionPainter extends PainterLayer {
 
     @Override
     protected void onPaint(DrawSurface surface, FrameState frame) {
-        List<SelRange> plages = frame.selection().ranges();
-        for (int i = 0; i < plages.size(); i++) {
-            peindrePlage(surface, frame, plages.get(i));
+        List<SelRange> ranges = frame.selection().ranges();
+        for (int i = 0; i < ranges.size(); i++) {
+            paintRange(surface, frame, ranges.get(i));
         }
     }
 
-    private void peindrePlage(DrawSurface surface, FrameState frame, SelRange plage) {
-        if (plage.isEmpty()) {
+    private void paintRange(DrawSurface surface, FrameState frame, SelRange range) {
+        if (range.isEmpty()) {
             return;
         }
         Document document = frame.document();
@@ -59,7 +59,7 @@ public final class SelectionPainter extends PainterLayer {
         int premiere = frame.firstRow();
         int derniere = premiere + frame.visibleRows();
         for (int rangee = premiere; rangee < derniere; rangee++) {
-            peindreRangnee(surface, frame, metrics, projection, plage, rangee, document);
+            peindreRangnee(surface, frame, metrics, projection, range, rangee, document);
         }
     }
 
@@ -69,13 +69,13 @@ public final class SelectionPainter extends PainterLayer {
      * ni à droite de la coupure.
      */
     private void peindreRangnee(DrawSurface surface, FrameState frame,
-            EditorMetrics metrics, VisualProjection projection, SelRange plage,
+            EditorMetrics metrics, VisualProjection projection, SelRange range,
             int rangee, Document document) {
-        int ligne = projection.firstLineOfRow(rangee);
-        int debutRangee = document.lineStart(ligne);
-        int finRangee = document.lineEnd(ligne);
-        int colonneDebut = Math.max(plage.start(), debutRangee) - debutRangee;
-        int colonneFin = Math.min(plage.end(), finRangee) - debutRangee;
+        int line = projection.firstLineOfRow(rangee);
+        int rowStart = document.lineStart(line);
+        int rowEnd = document.lineEnd(line);
+        int colonneDebut = Math.max(range.start(), rowStart) - rowStart;
+        int colonneFin = Math.min(range.end(), rowEnd) - rowStart;
         // La bande se borne à la tranche de la rangée, jamais la ligne entière.
         int debutTranche = projection.spanStartAtRow(rangee);
         colonneDebut = Math.max(colonneDebut, debutTranche);

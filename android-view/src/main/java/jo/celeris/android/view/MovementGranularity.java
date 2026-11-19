@@ -39,7 +39,7 @@ public enum MovementGranularity {
      */
     public static int next(Document document, VisualProjection projection,
             int offset, MovementGranularity granularity, int pageRows) {
-        return cible(document, projection, offset, granularity, pageRows, true);
+        return target(document, projection, offset, granularity, pageRows, true);
     }
 
     /**
@@ -54,10 +54,10 @@ public enum MovementGranularity {
      */
     public static int previous(Document document, VisualProjection projection,
             int offset, MovementGranularity granularity, int pageRows) {
-        return cible(document, projection, offset, granularity, pageRows, false);
+        return target(document, projection, offset, granularity, pageRows, false);
     }
 
-    private static int cible(Document document, VisualProjection projection,
+    private static int target(Document document, VisualProjection projection,
             int offset, MovementGranularity granularity, int pageRows,
             boolean enAvant) {
         EditorAction action = switch (granularity) {

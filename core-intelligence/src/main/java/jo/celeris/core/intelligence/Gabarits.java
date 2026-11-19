@@ -30,23 +30,23 @@ public final class Gabarits {
      * @return le plan du geste
      */
     public static EditPlan inserer(Document doc, MultiSelection selection, Gabarit gabarit) {
-        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<TextEdit> edits = new ArrayList<>(selection.caretCount());
         List<SelRange> apres = new ArrayList<>(selection.caretCount());
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
-            String retire = doc.subText(plage.start(), plage.end());
-            editions.add(new TextEdit(plage.start() + delta, retire, gabarit.rendu()));
+        for (SelRange range : selection.ranges()) {
+            String retire = doc.subText(range.start(), range.end());
+            edits.add(new TextEdit(range.start() + delta, retire, gabarit.rendu()));
             Trou premier = gabarit.trous().isEmpty()
                     ? null : gabarit.trous().get(0);
             if (premier == null) {
-                apres.add(SelRange.caretAt(plage.start() + delta + gabarit.rendu().length()));
+                apres.add(SelRange.caretAt(range.start() + delta + gabarit.rendu().length()));
             } else {
-                apres.add(new SelRange(plage.start() + delta + premier.debut(),
-                        plage.start() + delta + premier.fin()));
+                apres.add(new SelRange(range.start() + delta + premier.start(),
+                        range.start() + delta + premier.end()));
             }
             delta += gabarit.rendu().length() - retire.length();
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /**
@@ -59,25 +59,25 @@ public final class Gabarits {
      * @param rendu       le rendu du gabarit, tel qu'inséré dans le document
      * @param occurrences toutes les occurrences de la variable liée
      * @param source      l'occurrence éditée
-     * @param edition     l'édition appliquée à l'occurrence source
+     * @param edit     l'édition appliquée à l'occurrence source
      * @return les éditions des occurrences sœurs, dans l'ordre du rendu
      */
-    public static List<TextEdit> miroirs(String rendu, List<Trou> occurrences, Trou source,
-            TextEdit edition) {
-        int relatifDebut = edition.start() - source.debut();
-        int relatifFin = edition.end() - source.debut();
-        List<TextEdit> miroirs = new ArrayList<>(occurrences.size() - 1);
+    public static List<TextEdit> mirrors(String rendu, List<Trou> occurrences, Trou source,
+            TextEdit edit) {
+        int relatifDebut = edit.start() - source.start();
+        int relatifFin = edit.end() - source.start();
+        List<TextEdit> mirrors = new ArrayList<>(occurrences.size() - 1);
         for (Trou occurrence : occurrences) {
             if (occurrence.equals(source)) {
                 continue;
             }
-            int debut = occurrence.debut()
-                    + Math.max(0, Math.min(relatifDebut, occurrence.longueur()));
-            int fin = occurrence.debut()
-                    + Math.max(0, Math.min(relatifFin, occurrence.longueur()));
-            miroirs.add(new TextEdit(debut, rendu.substring(debut, fin),
-                    edition.inserted()));
+            int start = occurrence.start()
+                    + Math.max(0, Math.min(relatifDebut, occurrence.length()));
+            int end = occurrence.start()
+                    + Math.max(0, Math.min(relatifFin, occurrence.length()));
+            mirrors.add(new TextEdit(start, rendu.substring(start, end),
+                    edit.inserted()));
         }
-        return miroirs;
+        return mirrors;
     }
 }

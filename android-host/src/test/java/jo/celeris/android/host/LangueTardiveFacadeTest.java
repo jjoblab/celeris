@@ -53,11 +53,11 @@ public class LangueTardiveFacadeTest {
         final StringBuilder trace = new StringBuilder();
         java.util.concurrent.ExecutorService demon =
                 java.util.concurrent.Executors.newSingleThreadExecutor(f -> {
-                    Thread fil = new Thread(f, "banc-langues");
-                    fil.setDaemon(true);
-                    fil.setUncaughtExceptionHandler((t, e) ->
+                    Thread thread = new Thread(f, "banc-langues");
+                    thread.setDaemon(true);
+                    thread.setUncaughtExceptionHandler((t, e) ->
                             trace.append("FIL MORT : ").append(e));
-                    return fil;
+                    return thread;
                 });
         LanguageKit kit = LanguageKit.builder(demon)
                 .builtinPacks()
@@ -65,21 +65,21 @@ public class LangueTardiveFacadeTest {
                         .append(erreur.getMessage()).append('\n'))
                 .build();
         kit.preload();
-        CelerisEditor editeur = CelerisEditor.attach(vue, couche, kit);
-        editeur.open("Main.java", SOURCE);
+        CelerisEditor editor = CelerisEditor.attach(vue, couche, kit);
+        editor.open("Main.java", SOURCE);
         // L'assemblage réel des 32 paquets : jusqu'à 30 s au pire —
         // le banc attend la fin réelle (le latch du kit).
-        long fin = System.currentTimeMillis() + 25_000L;
-        while (editeur.language() == null
-                && System.currentTimeMillis() < fin) {
+        long end = System.currentTimeMillis() + 25_000L;
+        while (editor.language() == null
+                && System.currentTimeMillis() < end) {
             Thread.sleep(50L);
             org.robolectric.shadows.ShadowLooper.runUiThreadTasks();
         }
         assertNotNull("la langue posée par la façade",
-                editeur.language());
+                editor.language());
         assertTrue("la langue du .java est le Java",
-                "java".equals(editeur.language().id()));
-        editeur.close();
+                "java".equals(editor.language().id()));
+        editor.close();
     }
 
     /** La scène vit à une fenêtre — comme l'écran réel (la posted
@@ -95,9 +95,9 @@ public class LangueTardiveFacadeTest {
         scene.addView(couche, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
-        android.view.WindowManager fenetre = (android.view.WindowManager)
+        android.view.WindowManager window = (android.view.WindowManager)
                 contexte.getSystemService(android.content.Context.WINDOW_SERVICE);
-        fenetre.addView(scene, new android.view.WindowManager.LayoutParams(
+        window.addView(scene, new android.view.WindowManager.LayoutParams(
                 android.view.WindowManager.LayoutParams.MATCH_PARENT,
                 android.view.WindowManager.LayoutParams.MATCH_PARENT));
     }

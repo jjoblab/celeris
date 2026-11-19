@@ -1,6 +1,6 @@
 package jo.celeris.android.view;
 
-import jo.celeris.android.view.internal.ParcRangees;
+import jo.celeris.android.view.internal.RowPark;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -82,7 +82,7 @@ public final class EditorView extends View {
     final ScrollFrame trace;
     final SelectionDrag glissement = new SelectionDrag();
     // Visible du paquet : la projection vit dans l'assemblage d'image.
-    final FoldModel plis = new FoldModel();
+    final FoldModel folds = new FoldModel();
     // B-01 (l'analyse croisée) : bornes de la dernière édition, pour
     // l'épissure du cache de rangées — la première ligne touchée et
     // le décalage de lignes qu'amène l'édition. L'écouteur d'annonce
@@ -95,33 +95,33 @@ public final class EditorView extends View {
     // C1 (feuille des améliorations) : le parc des stockages de
     // mises en page par session — le retour d'onglet adopte le
     // stockage du document qui revient, jamais une re-mesure.
-    final ParcRangees parcRangees = new ParcRangees();
+    final RowPark parcRangees = new RowPark();
     private final CompositionState composition = new CompositionState();
     // Visible du paquet : l'assemblage d'image y trace le chrome (C9).
     final ChromePainter chrome = new ChromePainter();
-    private final GutterPainter gouttiere;
-    final GutterIntegrations marquesGouttiere = new GutterIntegrations();
+    private final GutterPainter gutter;
+    final GutterIntegrations gutterMarks = new GutterIntegrations();
     private final AccessibilityHost accessibilite = new AccessibilityHost(this);
 
     // — la session courante et sa projection visuelle (B-01 : la
     //  session vit AVANT l'écouteur d'annonce, qui y lit les bornes
     //  d'édition pour l'épissure du cache)
     TextSession session = TextSession.of("", System::nanoTime);
-    VisualProjection projection = new VisualProjection(session.document(), plis, 0);
-    private final EditListener ecouteurAnnonce = (debut, fin, retire, insere) -> {
+    VisualProjection projection = new VisualProjection(session.document(), folds, 0);
+    private final EditListener ecouteurAnnonce = (start, end, retire, insere) -> {
         // B-01 : les bornes de l'édition nourrissent l'épissure du
         // cache — première ligne touchée et décalage de lignes. Les
         // lots multi-édits (rejeu d'annulation, script) ne
         // s'épissent pas : bornes composites, l'invalidation totale
         // reste la voie sûre.
-        int ligne = session.document().lineForOffset(Math.min(debut,
+        int line = session.document().lineForOffset(Math.min(start,
                 session.document().length()));
         int lignesAjoutees = (int) insere.chars().filter(c -> c == '\n').count()
                 - (int) retire.chars().filter(c -> c == '\n').count();
         if (derniereEditionPremiereLigne == Integer.MAX_VALUE) {
-            derniereEditionPremiereLigne = ligne;
+            derniereEditionPremiereLigne = line;
             derniereEditionDeltaLignes = lignesAjoutees;
-        } else if (ligne != derniereEditionPremiereLigne
+        } else if (line != derniereEditionPremiereLigne
                 || derniereEditionDeltaLignes != 0 || lignesAjoutees != 0) {
             derniereEditionPremiereLigne = -1;
         }
@@ -133,11 +133,11 @@ public final class EditorView extends View {
     private final ScaleGestureDetector pincements;
     private KeyBindings raccourcis = KeyBindings.defaults();
     // — les rappels de gestes de l'hôte vivent dans leur porteur (ADR-002)
-    final RappelsHote rappels = new RappelsHote();
+    final HostCallbacks rappels = new HostCallbacks();
     // — le zoom au pincement vit dans son collaborateur (D-15, PIEGE-24)
     final PinchZoomHandler zoom = new PinchZoomHandler(this);
     // — la gouttière stable vit dans son collaborateur (PIEGE-25)
-    final EditorGutter gouttiereEtat = new EditorGutter();
+    final EditorGutter gutterState = new EditorGutter();
     // — les fractions du défilement vivent dans leur collaborateur (C9)
     private final ViewportFractions fractions = new ViewportFractions(this);
     // — le préfetch de viewport (B-03) : la marge se préchauffe au
@@ -171,7 +171,7 @@ public final class EditorView extends View {
     /** Le collaborateur de l'avis de fenêtre (M7.5, §7) : les popups
      *  se repositionnent au changement réel, jamais au clignotement.
      *  Visible du paquet : l'assemblage d'image y pose l'avis. */
-    final ViewportWatch fenetre = new ViewportWatch();
+    final ViewportWatch window = new ViewportWatch();
     /** Le collaborateur de l'assemblage d'image (ADR-006) : gouttière,
      *  révision, défilement borné, fenêtre d'analyse, avis de fenêtre. */
     private final FrameAssembler images = new FrameAssembler(this);
@@ -179,26 +179,26 @@ public final class EditorView extends View {
     float scrollX;
     float scrollY;
     float largeurGouttiere;
-    boolean numerosVisibles = true;
+    boolean visibleNumbers = true;
     /** Le collaborateur du curseur et du clavier : clignotement, IME. */
     final KeyboardCursor curseurClavier = new KeyboardCursor(this);
     /** Le collaborateur du routage tactile. */
     final EditorKeys touches = new EditorKeys(this);
     /** Le collaborateur de la loupe du dragage (D-16, le
      *  redressement du 2026-11-13) — la bulle au-dessus du doigt. */
-    final Loupe loupe = new Loupe();
+    final Magnifier magnifier = new Magnifier();
     // — le glisser-déposer vit dans son collaborateur (D-20)
-    final GlisserDeposer depot = new GlisserDeposer(this);
+    final DragDrop depot = new DragDrop(this);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
-    final GhostEditor fantome;
+    final GhostEditor ghost;
     /** La couche des valeurs de débogage en ligne (E-03) : le rendu
      *  en fin de ligne pendant la pause — l'hôte pose, la couche
      *  trace. */
-    private final ValeursPainter valeursPeintre;
+    private final ValuesPainter valeursPeintre;
     /** La couche des indices en ligne (inlay hints — l'audit Android
      *  Studio du 2026-11-14) : le type du « var » se lit en fin de
      *  ligne utile — l'hôte pose, la couche trace. */
-    private final InlayHintsPainter indicesPeintre;
+    private final InlayHintsPainter hintsPainter;
     /** Le collaborateur de diagnostic de scène (M7.5, §9) : retenue
      *  d'analyse, compteur d'images décolorées, lectures de vérité. */
     final SceneDiagnostics diagnostics;
@@ -209,7 +209,7 @@ public final class EditorView extends View {
      *  table, un point de vérité : la vue y lit ses portes (numéros,
      *  retour de ligne, fantôme IA, indices en ligne), l'orchestrateur
      *  des popups et l'hôte lisent les mêmes. */
-    final ReglagesEditeur reglages = new ReglagesEditeur();
+    final EditorSettingsPanel settings = new EditorSettingsPanel();
     // — la source unique des réglages (ADR-0022, phase 2, T2) : le
     // thème, la police, la taille, le retour de ligne, les ligatures
     // et les portes y vivent — la vue applique, les popups suivent,
@@ -223,7 +223,7 @@ public final class EditorView extends View {
     final ViewFonts polices = new ViewFonts(this, reglePolices);
     /** L'usine des pinceaux du texte (PIEGE-01) — la bascule des
      *  ligatures y vit (D-14). */
-    private final PaintBrushes usinePinceaux;
+    private final PaintBrushes brushFactory;
 
     public EditorView(Context context) {
         this(context, null);
@@ -242,30 +242,30 @@ public final class EditorView extends View {
         // M7.5, §9 : la retenue par défaut — l'hôte qui injecte son
         // exécuteur garde la main entière, jamais détournée.
         diagnostics = new SceneDiagnostics(this, executeurAnalyse);
-        syntaxe = new EditorSyntax(plis, diagnostics.executor());
+        syntaxe = new EditorSyntax(folds, diagnostics.executor());
         setFocusable(true);
         setFocusableInTouchMode(true);
         syntaxe.setSurAnalysePrete(() -> {
             publicationRecue = true;
             postInvalidateOnAnimation();
         });
-        BrushFactory pinceaux = usinePinceaux = new PaintBrushes(reglePolices);
-        fantome = new GhostEditor(this, pinceaux);
+        BrushFactory pinceaux = brushFactory = new PaintBrushes(reglePolices);
+        ghost = new GhostEditor(this, pinceaux);
         // La respiration naît à la densité de l'appareil (PIEGE-23, M7.5 §5).
-        gouttiereEtat.setClasse(ClasseLargeur.MOYEN, densite());
-        gouttiere = GutterPainter.monter(pinceaux, this);
-        trace = ScrollFrame.assemble(gouttiere, pinceaux, () -> syntaxe.guides,
-                sourceLiee::pieceDuPli, densite(), composition, cache, sourceLiee, fantome.peintre(), syntaxe);
-        CouchesDuTexte couches = monterCouchesAuDessusDuTexte(pinceaux);
+        gutterState.setClasse(WidthClass.MOYEN, densite());
+        gutter = GutterPainter.start(pinceaux, this);
+        trace = ScrollFrame.assemble(gutter, pinceaux, () -> syntaxe.guides,
+                sourceLiee::pieceDuPli, densite(), composition, cache, sourceLiee, ghost.painter(), syntaxe);
+        TextLayers couches = mountLayersAboveText(pinceaux);
         valeursPeintre = couches.valeurs();
-        occurrencesPeintre = couches.occurrences();
-        indicesPeintre = couches.indices();
+        occurrencesPainter = couches.occurrences();
+        hintsPainter = couches.inlayHints();
         pinceauChrome = pinceaux.newBrush();
         // Les métriques naissent à la densité de l'appareil : la police
         // logique (sp) se convertit une fois pour toutes (PIEGE-23).
         metrics = polices.metricsOf(POLICE_PAR_DEFAUT);
         viseur = new HitTest(metrics);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         session.addEditListener(ecouteurAnnonce);
         longPresses = GesturesFactory.appuisLongs(context, this);
         pincements = GesturesFactory.pincements(context, this);
@@ -278,7 +278,7 @@ public final class EditorView extends View {
         // abonnent. L'écouteur d'application naît ici, une fois :
         // c'est LA façon dont la vue apprend ses réglages.
         reglagesUniques = new EditorSettings();
-        reglagesUniques.addListener(source -> appliquerReglages(source));
+        reglagesUniques.addListener(source -> applySettings(source));
     }
 
     /** Les couches qui se tracent APRÈS le texte (le constructeur
@@ -289,36 +289,36 @@ public final class EditorView extends View {
      *  les indices en ligne (le type du « var » se lit en fin de
      *  ligne utile, à l'encre muette italique — jamais dans le flux,
      *  le texte ne se décale pas). */
-    private CouchesDuTexte monterCouchesAuDessusDuTexte(BrushFactory pinceaux) {
-        ValeursPainter valeurs = new ValeursPainter(pinceaux);
+    private TextLayers mountLayersAboveText(BrushFactory pinceaux) {
+        ValuesPainter valeurs = new ValuesPainter(pinceaux);
         trace.addLayer(valeurs);
         OccurrencesPainter occurrences = trace.coucheOccurrences();
-        InlayHintsPainter indices = new InlayHintsPainter(pinceaux);
-        trace.addLayer(indices);
-        return new CouchesDuTexte(valeurs, occurrences, indices);
+        InlayHintsPainter inlayHints = new InlayHintsPainter(pinceaux);
+        trace.addLayer(inlayHints);
+        return new TextLayers(valeurs, occurrences, inlayHints);
     }
 
     /** Les couches posées au-dessus du texte (C11, E-03) — le
      *  constructeur y assigne ses champs finaux. */
-    private record CouchesDuTexte(ValeursPainter valeurs,
-            OccurrencesPainter occurrences, InlayHintsPainter indices) {
+    private record TextLayers(ValuesPainter valeurs,
+            OccurrencesPainter occurrences, InlayHintsPainter inlayHints) {
     }
 
     /** Applique les réglages de la source — la vue reste maîtresse
      *  de l'application (champs d'image, métriques, porte des
      *  commutateurs), la source porte l'état (T2). */
-    private void appliquerReglages(EditorSettings source) {
+    private void applySettings(EditorSettings source) {
         // le thème : le champ d'image se repeint
         theme = source.theme();
         // la police : la mécanique vit dans ViewFonts (PIEGE-05/28)
         polices.setFont(source.font());
         // le retour de ligne : la porte se souvient, le budget suit
-        reglages.poser(ReglagesEditeur.Porte.RETOUR_LIGNE,
+        settings.place(EditorSettingsPanel.Porte.RETOUR_LIGNE,
                 source.softWrap());
         retourALaLigne = source.softWrap();
         scrollX = 0f;
         // les ligatures : l'usine de pinceaux décide du re-tracé
-        usinePinceaux.setLigatures(source.ligatures());
+        brushFactory.setLigatures(source.ligatures());
         invalidate();
     }
 
@@ -344,11 +344,11 @@ public final class EditorView extends View {
      * Sans effet après {@link #release()}.
      *
      * @param nouvelleSession la session d'édition à afficher
-     * @param langue          le support du langage du document, null
+     * @param language          le support du langage du document, null
      *                        pour aucun
      */
     public void setSession(@Nullable TextSession nouvelleSession,
-            @Nullable LanguageSupport langue) {
+            @Nullable LanguageSupport language) {
         if (liberee) {
             return;
         }
@@ -372,13 +372,13 @@ public final class EditorView extends View {
         // Le retour d'onglet ne re-mesure RIEN : l'ancien chemin
         // vidait TOUT le cache à chaque pose — le retard ressenti
         // venait de là.
-        RowLayoutCache.Stockage quittancier = cache.detacher();
+        RowLayoutCache.Stockage quittancier = cache.detach();
         RowLayoutCache.Stockage revenu =
-                parcRangees.basculer(session, quittancier, posee);
+                parcRangees.toggle(session, quittancier, posee);
         cache.adopter(revenu);
         session = posee;
         session.addEditListener(ecouteurAnnonce);
-        syntaxe.attacher(session, langue);
+        syntaxe.attach(session, language);
         images.reinitialiserScene(true);
     }
 
@@ -401,7 +401,7 @@ public final class EditorView extends View {
         // pas la clé (PIEGE-02) : le stockage courant MEURT au
         // changement — le parc de C1 ne rendra jamais un stockage
         // périmé par la langue à la session revenue.
-        parcRangees.oublier(session);
+        parcRangees.forget(session);
         images.reinitialiserScene(false);
     }
 
@@ -435,8 +435,8 @@ public final class EditorView extends View {
     /** Pose une police de plateforme sous un nom de famille (D-14) : la
      *  mesure et le tracé la suivent (PIEGE-22) — la voie de l'hôte pour
      *  sa police à ligatures ; la famille active se redérive aussitôt. */
-    public void poserPolice(String famille, Typeface police) {
-        polices.poserPolice(famille, police);
+    public void setFont(String family, Typeface font) {
+        polices.setFont(family, font);
     }
 
     /** Remplace la table de raccourcis clavier (D-17 : remappage
@@ -460,7 +460,7 @@ public final class EditorView extends View {
      * @param ecouteur l'écouteur, jamais null
      */
     public void addViewportChangeListener(Runnable ecouteur) {
-        fenetre.addListener(ecouteur);
+        window.addListener(ecouteur);
     }
 
     /**
@@ -469,7 +469,7 @@ public final class EditorView extends View {
      * @param ecouteur l'écouteur retiré
      */
     public void removeViewportChangeListener(Runnable ecouteur) {
-        fenetre.removeListener(ecouteur);
+        window.removeListener(ecouteur);
     }
 
         /**
@@ -479,17 +479,17 @@ public final class EditorView extends View {
      * les numéros. La vue sauvegarde ELLE-MÊME son état transitoire :
      * l'hôte n'a plus rien à porter, son Bundle transporte le nôtre.
      *
-     * @param etat le Bundle de la rotation à remplir
+     * @param state le Bundle de la rotation à remplir
      */
-    public void saveState(android.os.Bundle etat) {
-        etat.putFloat("celeris.scroll.fractionY", scrollFractionY());
+    public void saveState(android.os.Bundle state) {
+        state.putFloat("celeris.scroll.fractionY", scrollFractionY());
         // le défilement horizontal vit en pixels (aucune fraction X
         // publique) : la largeur affichée d'une rotation à l'autre
         // varie peu, l'offset reste parlant
-        etat.putFloat("celeris.scroll.pxX", scrollX);
-        etat.putFloat("celeris.zoom.sp", settings().fontSizeSp());
-        etat.putBoolean("celeris.retourLigne", settings().softWrap());
-        etat.putBoolean("celeris.numeros", numerosVisibles);
+        state.putFloat("celeris.scroll.pxX", scrollX);
+        state.putFloat("celeris.zoom.sp", settings().fontSizeSp());
+        state.putBoolean("celeris.retourLigne", settings().softWrap());
+        state.putBoolean("celeris.numeros", visibleNumbers);
     }
 
     /**
@@ -497,23 +497,23 @@ public final class EditorView extends View {
      * recréée retrouve son défilement, son zoom et ses portes. Un
      * Bundle sans nos clés ne casse rien : les défauts tiennent.
      *
-     * @param etat le Bundle de la rotation
+     * @param state le Bundle de la rotation
      */
-    public void restoreState(android.os.Bundle etat) {
-        if (etat.containsKey("celeris.zoom.sp")) {
-            settings().setFontSizeSp(etat.getFloat("celeris.zoom.sp"));
+    public void restoreState(android.os.Bundle state) {
+        if (state.containsKey("celeris.zoom.sp")) {
+            settings().setFontSizeSp(state.getFloat("celeris.zoom.sp"));
         }
-        if (etat.containsKey("celeris.retourLigne")) {
-            settings().setSoftWrap(etat.getBoolean("celeris.retourLigne"));
+        if (state.containsKey("celeris.retourLigne")) {
+            settings().setSoftWrap(state.getBoolean("celeris.retourLigne"));
         }
-        if (etat.containsKey("celeris.numeros")) {
-            setNumerosVisibles(etat.getBoolean("celeris.numeros"));
+        if (state.containsKey("celeris.numeros")) {
+            setLineNumbersVisible(state.getBoolean("celeris.numeros"));
         }
-        if (etat.containsKey("celeris.scroll.fractionY")) {
-            scrollToFractionY(etat.getFloat("celeris.scroll.fractionY"));
+        if (state.containsKey("celeris.scroll.fractionY")) {
+            scrollToFractionY(state.getFloat("celeris.scroll.fractionY"));
         }
-        if (etat.containsKey("celeris.scroll.pxX")) {
-            scrollX = etat.getFloat("celeris.scroll.pxX");
+        if (state.containsKey("celeris.scroll.pxX")) {
+            scrollX = state.getFloat("celeris.scroll.pxX");
             invalidate();
         }
     }
@@ -539,13 +539,13 @@ public final class EditorView extends View {
     }
 
     /** La première ligne visible — la rangée du haut de la fenêtre (C9). */
-    public int premiereLigneVisible() {
-        return fractions.premiereLigneVisible();
+    public int firstVisibleLine() {
+        return fractions.firstVisibleLine();
     }
 
     /** Le nombre de lignes visibles, au moins une (C9). */
-    public int lignesVisibles() {
-        return fractions.lignesVisibles();
+    public int visibleLines() {
+        return fractions.visibleLines();
     }
 
     /** Le réglage de lenteur d'analyse (M7.5, §9) : zéro rend la main immédiate,
@@ -590,15 +590,15 @@ public final class EditorView extends View {
 
     /** La couche des occurrences du mot au caret (C11) — muette à
      *  la naissance, l'hôte l'arme. */
-    private final OccurrencesPainter occurrencesPeintre;
+    private final OccurrencesPainter occurrencesPainter;
 
     /** Affiche ou masque les numéros de lignes (D-01) : masqués, la gouttière
      *  se réduit à la coulisse des marqueurs (plis D-07, erreurs D-02). */
-    public void setNumerosVisibles(boolean visibles) {
+    public void setLineNumbersVisible(boolean visibles) {
         // la porte des réglages se souvient : la bascule y vit
-        reglages.poser(ReglagesEditeur.Porte.NUMEROS_LIGNES, visibles);
-        numerosVisibles = visibles;
-        gouttiere.setNumerosVisibles(visibles);
+        settings.place(EditorSettingsPanel.Porte.NUMEROS_LIGNES, visibles);
+        visibleNumbers = visibles;
+        gutter.setLineNumbersVisible(visibles);
         invalidate();
     }
 
@@ -611,15 +611,15 @@ public final class EditorView extends View {
      * @param visibles vrai pour armer le voile d'occurrences
      */
     public void setOccurrencesVisibles(boolean visibles) {
-        occurrencesPeintre.setVisible(visibles);
+        occurrencesPainter.setVisible(visibles);
         invalidate();
     }
 
     /** Adapte la gouttière à la classe de largeur de fenêtre (D-19) :
      *  le compact resserre le champ de numéros, l'étendu le respire. */
-    public void setClasseLargeur(ClasseLargeur classe) {
-        gouttiereEtat.setClasse(classe, densite());
-        gouttiere.setMarge(gouttiereEtat.margePx());
+    public void setWidthClass(WidthClass classe) {
+        gutterState.setClasse(classe, densite());
+        gutter.setMarge(gutterState.margePx());
         invalidate();
     }
 
@@ -629,7 +629,7 @@ public final class EditorView extends View {
      * langage — jamais pendant la frappe.
      */
     public void resetGutterWidth() {
-        gouttiereEtat.reinitialiser();
+        gutterState.reinitialiser();
         invalidate();
     }
 
@@ -739,33 +739,33 @@ public final class EditorView extends View {
     }
 
     /** La loupe du dragage (D-16) — l'hôte y règle le zoom, ×2 par défaut. */
-    public Loupe loupe() {
-        return loupe;
+    public Magnifier magnifier() {
+        return magnifier;
     }
 
     /** Les intégrations de la gouttière : marques, arrêts, clic (D-03 à D-05). */
-    public GutterIntegrations marquesGouttiere() {
-        return marquesGouttiere;
+    public GutterIntegrations gutterMarks() {
+        return gutterMarks;
     }
 
     /** Dépose (ou retire) la suggestion fantôme visible (F-01) : la
      *  première ligne à l'ancre, les suivantes au bord gauche du
      *  texte, à l'encre fanée. */
-    public void setFantome(@Nullable GhostSuggestion suggestion) {
+    public void setGhost(@Nullable GhostSuggestion suggestion) {
         // la porte des réglages ferme le fantôme : la suggestion d'une
         // porte fermée ne se trace jamais
-        fantome.setSuggestion(reglages.ouverte(
-                ReglagesEditeur.Porte.FANTOME_IA) ? suggestion : null);
+        ghost.setSuggestion(settings.ouverte(
+                EditorSettingsPanel.Porte.FANTOME_IA) ? suggestion : null);
     }
 
     /** Dépose (ou retire) les valeurs de débogage en ligne (E-03) : la
      *  pause les pose en fin de ligne utile, la reprise les retire —
      *  l'hôte transpose, la vue ne connaît pas le débogueur. */
-    public void setValeursEnLigne(@Nullable List<ValeurLigne> valeurs) {
+    public void setInlineValues(@Nullable List<LineValue> valeurs) {
         // la porte des réglages ferme la couche : les valeurs d'une
         // porte fermée ne se tracent pas
-        valeursPeintre.setValeurs(reglages.ouverte(
-                ReglagesEditeur.Porte.VALEURS_PAUSE) ? valeurs : null);
+        valeursPeintre.setValeurs(settings.ouverte(
+                EditorSettingsPanel.Porte.VALEURS_PAUSE) ? valeurs : null);
         invalidate();
     }
 
@@ -777,14 +777,14 @@ public final class EditorView extends View {
      * locale des « var », la réponse inlayHint du serveur), la couche
      * trace.
      *
-     * @param indices les indices par ligne, ou {@code null} pour
+     * @param inlayHints les indices par ligne, ou {@code null} pour
      *                retirer
      */
-    public void setIndicesInlay(@Nullable List<IndiceInlay> indices) {
+    public void setInlayHints(@Nullable List<InlayHintMark> inlayHints) {
         // la porte des réglages ferme la couche : l'hôte peut poser, la
         // vue n'arme pas la lecture assistée d'une porte fermée
-        indicesPeintre.setIndices(reglages.ouverte(
-                ReglagesEditeur.Porte.INDICES_EN_LIGNE) ? indices : null);
+        hintsPainter.setIndices(settings.ouverte(
+                EditorSettingsPanel.Porte.INDICES_EN_LIGNE) ? inlayHints : null);
         invalidate();
     }
 
@@ -796,8 +796,8 @@ public final class EditorView extends View {
      *
      * @return la table des portes, vivante
      */
-    public ReglagesEditeur reglages() {
-        return reglages;
+    public EditorSettingsPanel settingsPanel() {
+        return settings;
     }
 
     /**
@@ -820,7 +820,7 @@ public final class EditorView extends View {
      * @param ecouteur l'écouteur, jamais null
      */
     public void addGhostGestureListener(Consumer<GhostGesture> ecouteur) {
-        fantome.addGhostGestureListener(ecouteur);
+        ghost.addGhostGestureListener(ecouteur);
     }
 
     /**
@@ -829,7 +829,7 @@ public final class EditorView extends View {
      * @param ecouteur l'écouteur retiré
      */
     public void removeGhostGestureListener(Consumer<GhostGesture> ecouteur) {
-        fantome.removeGhostGestureListener(ecouteur);
+        ghost.removeGhostGestureListener(ecouteur);
     }
 
     /** La session affichée — accès de paquet pour la colle IME. */
@@ -852,7 +852,7 @@ public final class EditorView extends View {
     @Override
     public @Nullable InputConnection onCreateInputConnection(
             EditorInfo outAttrs) {
-        return EditorInputConnection.creer(this, composition, outAttrs);
+        return EditorInputConnection.create(this, composition, outAttrs);
     }
 
     /** L'état d'image courant — l'hôte d'accessibilité (G-05) y lit. */
@@ -890,7 +890,7 @@ public final class EditorView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        images.dessiner(canvas);
+        images.draw(canvas);
     }
 
     /** Prépare l'état d'image (gouttière AVANT le budget de colonnes,
@@ -966,12 +966,12 @@ public final class EditorView extends View {
         // (comme setSession(null)), le document de l'onglet fermé
         // cesse de vivre retenu par une vue libérée.
         session = TextSession.of("");
-        syntaxe.fermer();
+        syntaxe.close();
         diagnostics.shutdown();
-        prefetch.arreter();
+        prefetch.stop();
         // C1 : le parc des mises en page meurt avec la vue — aucun
         // document d'onglet ne reste retenu par une vue libérée.
-        parcRangees.toutVider();
+        parcRangees.clearAll();
     }
 
     /** La vue est-elle libérée — lecture du banc (chantier C1). */

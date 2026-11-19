@@ -57,10 +57,10 @@ class TraceExecutionTest {
     @Test
     void lechecPorteLeSommetALaLigneDuCaret() {
         TextSession session = TextSession.of(TERRAIN, () -> 0L);
-        int aide = TERRAIN.indexOf("aide();");
+        int help = TERRAIN.indexOf("aide();");
         TraceExecution.Echec echec = TraceExecution.echec(
                 "java.lang.Exception", "l'échec simulé", "Service.java",
-                session.document(), planDe(session), aide);
+                session.document(), planDe(session), help);
         assertNotNull(echec, "le fichier porte type et méthodes");
         assertEquals("java.lang.Exception", echec.type());
         assertEquals("l'échec simulé", echec.message());
@@ -68,10 +68,10 @@ class TraceExecutionTest {
                 "la méthode englobante au sommet, l'autre suit");
         assertEquals("Service", echec.cadres().get(0).classe());
         assertEquals("inscrire", echec.cadres().get(0).methode());
-        assertEquals(3, echec.cadres().get(0).ligne(),
+        assertEquals(3, echec.cadres().get(0).line(),
                 "le sommet vit à la ligne du caret — jamais deviné");
         assertEquals("aide", echec.cadres().get(1).methode());
-        assertEquals(5, echec.cadres().get(1).ligne(),
+        assertEquals(5, echec.cadres().get(1).line(),
                 "le cadre suivant vit à sa ligne de déclaration");
     }
 
@@ -80,10 +80,10 @@ class TraceExecutionTest {
     @Test
     void laTransposeSauteAuFichierOuvertSeul() {
         TextSession session = TextSession.of(TERRAIN, () -> 0L);
-        int aide = TERRAIN.indexOf("aide();");
+        int help = TERRAIN.indexOf("aide();");
         TraceExecution.Echec echec = TraceExecution.echec(
                 "java.lang.Exception", "l'échec simulé", "Service.java",
-                session.document(), planDe(session), aide);
+                session.document(), planDe(session), help);
         List<Integer> sautes = new ArrayList<>();
         List<ExceptionView.Cadre> cadres = TraceExecution.cadres(
                 new TraceExecution.Echec(echec.type(), echec.message(),
@@ -92,7 +92,7 @@ class TraceExecutionTest {
         assertEquals(2, cadres.size());
         assertNull(cadres.get(0).saut(),
                 "le cadre étranger au fichier ouvert vit muet");
-        assertEquals("L3 · Service.inscrire", cadres.get(0).libelle());
+        assertEquals("L3 · Service.inscrire", cadres.get(0).label());
         List<ExceptionView.Cadre> ouverts = TraceExecution.cadres(echec,
                 "Service.java", sautes::add);
         ouverts.get(0).saut().run();

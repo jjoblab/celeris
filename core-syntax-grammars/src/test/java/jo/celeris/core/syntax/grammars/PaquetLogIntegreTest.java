@@ -48,10 +48,10 @@ final class PaquetLogIntegreTest {
 
     /** La grammaire livrée du paquet intégré, en texte. */
     private static String grammaireLivree() {
-        return lire("langages/log/grammar.json");
+        return read("langages/log/grammar.json");
     }
 
-    private static String lire(String chemin) {
+    private static String read(String chemin) {
         try (InputStream flux = PaquetLogIntegreTest.class.getClassLoader()
                 .getResourceAsStream(chemin)) {
             if (flux == null) {
@@ -76,10 +76,10 @@ final class PaquetLogIntegreTest {
     }
 
     /** Le lexeur du paquet, par la vraie fabrique. */
-    private static GrammaireLexeur lexeur() throws IOException {
+    private static GrammarLexer lexeur() throws IOException {
         LanguagePack pack = paquetLog();
         assertNotNull(pack.grammar(), "la grammaire du paquet log compile");
-        return (GrammaireLexeur) pack.grammar().lexer();
+        return (GrammarLexer) pack.grammar().lexer();
     }
 
     /**
@@ -88,12 +88,12 @@ final class PaquetLogIntegreTest {
      */
     @Test
     void laGrammaireCompileSansEcart() {
-        Grammaire grammaire = Grammaires.lire(grammaireLivree());
-        assertEquals(1.0, grammaire.rapport().acceptation(),
-                "log : acceptation " + grammaire.rapport().acceptation()
-                        + " (" + grammaire.rapport().refuses() + " refus sur "
-                        + grammaire.rapport().motifs() + " motifs)");
-        assertTrue(grammaire.rapport().motifs() > 0, "la grammaire a des motifs");
+        Grammar grammaire = Grammars.read(grammaireLivree());
+        assertEquals(1.0, grammaire.report().acceptation(),
+                "log : acceptation " + grammaire.report().acceptation()
+                        + " (" + grammaire.report().refuses() + " refus sur "
+                        + grammaire.report().patterns() + " motifs)");
+        assertTrue(grammaire.report().patterns() > 0, "la grammaire a des motifs");
     }
 
     /**
@@ -104,7 +104,7 @@ final class PaquetLogIntegreTest {
      */
     @Test
     void lOracleDuDepartSeRejoue() throws IOException {
-        GrammaireLexeur lexeur = lexeur();
+        GrammarLexer lexeur = lexeur();
         niveau(lexeur, "error: something", TokenKind.ERROR);
         niveau(lexeur, "BUILD FAILED in 3s", TokenKind.ERROR);
         niveau(lexeur, "e: file.kt:3", TokenKind.ERROR);
@@ -131,31 +131,31 @@ final class PaquetLogIntegreTest {
      * rendu texte brut du chemin rapide, la span du départ ne
      * portait pas de couleur, le jeton d'écart n'en porte pas plus).
      */
-    private static void repli(GrammaireLexeur lexeur, String ligne) {
-        Token[] jetons = lexeur.lex(ligne, lexeur.initialState()).tokens();
-        assertEquals(1, jetons.length,
-                "'" + ligne + "' vit en un jeton d'écart");
-        assertEquals(TokenKind.IDENTIFIER, jetons[0].kind(),
-                "'" + ligne + "' : la ligne ordinaire reste sans couleur");
-        assertEquals(0, jetons[0].start());
-        assertEquals(ligne.length(), jetons[0].end());
+    private static void repli(GrammarLexer lexeur, String line) {
+        Token[] tokens = lexeur.lex(line, lexeur.initialState()).tokens();
+        assertEquals(1, tokens.length,
+                "'" + line + "' vit en un jeton d'écart");
+        assertEquals(TokenKind.IDENTIFIER, tokens[0].kind(),
+                "'" + line + "' : la ligne ordinaire reste sans couleur");
+        assertEquals(0, tokens[0].start());
+        assertEquals(line.length(), tokens[0].end());
     }
 
     /**
      * La ligne classée vit en UN jeton pleine ligne à SA sorte —
      * l'oracle LogTokenizer du départ : LineSpan(0, longueur, TYPE).
      */
-    private static void niveau(GrammaireLexeur lexeur, String ligne,
+    private static void niveau(GrammarLexer lexeur, String line,
             TokenKind attendu) {
-        LexedLine lexee = lexeur.lex(ligne, lexeur.initialState());
-        Token[] jetons = lexee.tokens();
-        assertTrue(jetons.length == 1,
-                "'" + ligne + "' vit en un jeton (" + jetons.length + ")");
-        assertEquals(attendu, jetons[0].kind(), "'" + ligne + "' : " + attendu);
-        assertEquals(0, jetons[0].start(), "le jeton part du début de ligne");
-        assertEquals(ligne.length(), jetons[0].end(),
+        LexedLine lexee = lexeur.lex(line, lexeur.initialState());
+        Token[] tokens = lexee.tokens();
+        assertTrue(tokens.length == 1,
+                "'" + line + "' vit en un jeton (" + tokens.length + ")");
+        assertEquals(attendu, tokens[0].kind(), "'" + line + "' : " + attendu);
+        assertEquals(0, tokens[0].start(), "le jeton part du début de ligne");
+        assertEquals(line.length(), tokens[0].end(),
                 "le jeton couvre la ligne entière");
-        assertTrue(jetons[0].scope() != ScopeStacks.NONE,
+        assertTrue(tokens[0].scope() != ScopeStacks.NONE,
                 "le jeton porte sa pile (H-07)");
     }
 
@@ -165,24 +165,24 @@ final class PaquetLogIntegreTest {
      */
     @Test
     void lEchantillonSeRejoueAvecDeterminisme() throws IOException {
-        GrammaireLexeur lexeur = lexeur();
-        String[] lignes = lire("grammaires-commerce/echantillons/log.txt")
+        GrammarLexer lexeur = lexeur();
+        String[] lines = read("grammaires-commerce/echantillons/log.txt")
                 .split("\n", -1);
         LexState etat = lexeur.initialState();
-        int jetons = 0;
-        for (String ligne : lignes) {
-            LexedLine premiere = lexeur.lex(ligne, etat);
-            LexedLine seconde = lexeur.lex(ligne, etat);
+        int tokens = 0;
+        for (String line : lines) {
+            LexedLine premiere = lexeur.lex(line, etat);
+            LexedLine seconde = lexeur.lex(line, etat);
             assertArrayEquals(premiere.tokens(), seconde.tokens(),
                     "le lexeur du paquet est déterministe");
-            for (Token jeton : premiere.tokens()) {
-                assertTrue(jeton.scope() != ScopeStacks.NONE,
+            for (Token token : premiere.tokens()) {
+                assertTrue(token.scope() != ScopeStacks.NONE,
                         "chaque jeton porte sa pile (H-07)");
             }
-            jetons += premiere.tokens().length;
+            tokens += premiere.tokens().length;
             etat = premiere.exitState();
         }
-        assertTrue(jetons > 0, "l'échantillon produit des jetons");
+        assertTrue(tokens > 0, "l'échantillon produit des jetons");
         assertEquals(0, lexeur.incidents(),
                 "aucun incident de budget sur l'échantillon");
     }

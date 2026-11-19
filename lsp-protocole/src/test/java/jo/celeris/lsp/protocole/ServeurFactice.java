@@ -62,7 +62,7 @@ import org.jspecify.annotations.Nullable;
 final class ServeurFactice implements LanguageServer {
 
     /** L'état observable du serveur après la session : qui a été appelé. */
-    static final class Etat {
+    static final class State {
         final AtomicBoolean arretDemande = new AtomicBoolean();
         final AtomicBoolean sortieDemandee = new AtomicBoolean();
         final AtomicReference<String> dernierTexte = new AtomicReference<>("");
@@ -73,7 +73,7 @@ final class ServeurFactice implements LanguageServer {
                 new CopyOnWriteArrayList<>();
     }
 
-    private final Etat etat = new Etat();
+    private final State etat = new State();
     private volatile @Nullable LanguageClient client;
 
     /**
@@ -93,46 +93,46 @@ final class ServeurFactice implements LanguageServer {
      * suppression de l'avertissement le consigne.</p>
      */
     @SuppressWarnings("FutureReturnValueIgnored")
-    static Etat demarrer(InputStream entree, OutputStream sortie) {
-        ServeurFactice serveur = new ServeurFactice();
-        ExecutorService executeur = Executors.newCachedThreadPool(fil -> {
-            Thread daemon = new Thread(fil, "serveur-factice");
+    static State demarrer(InputStream input, OutputStream output) {
+        ServeurFactice server = new ServeurFactice();
+        ExecutorService executor = Executors.newCachedThreadPool(thread -> {
+            Thread daemon = new Thread(thread, "serveur-factice");
             daemon.setDaemon(true);
             return daemon;
         });
         Launcher<LanguageClient> lanceur = LSPLauncher.createServerLauncher(
-                serveur, entree, sortie, executeur, Function.identity());
-        serveur.client = lanceur.getRemoteProxy();
+                server, input, output, executor, Function.identity());
+        server.client = lanceur.getRemoteProxy();
         lanceur.startListening();
-        return serveur.etat;
+        return server.etat;
     }
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        ServerCapabilities capacites = new ServerCapabilities();
+        ServerCapabilities capabilities = new ServerCapabilities();
         CompletionOptions completion = new CompletionOptions();
-        capacites.setCompletionProvider(completion);
-        capacites.setHoverProvider(Either.forLeft(Boolean.TRUE));
-        capacites.setDefinitionProvider(Either.forLeft(Boolean.TRUE));
-        capacites.setSignatureHelpProvider(new SignatureHelpOptions());
-        SemanticTokensWithRegistrationOptions jetons =
+        capabilities.setCompletionProvider(completion);
+        capabilities.setHoverProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setDefinitionProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setSignatureHelpProvider(new SignatureHelpOptions());
+        SemanticTokensWithRegistrationOptions tokens =
                 new SemanticTokensWithRegistrationOptions();
-        jetons.setLegend(new SemanticTokensLegend(
+        tokens.setLegend(new SemanticTokensLegend(
                 List.of("type", "fonction"), List.of("declaration")));
-        capacites.setSemanticTokensProvider(jetons);
-        capacites.setReferencesProvider(Either.forLeft(Boolean.TRUE));
-        capacites.setDocumentHighlightProvider(Either.forLeft(Boolean.TRUE));
-        capacites.setDocumentSymbolProvider(Either.forLeft(Boolean.TRUE));
-        capacites.setFoldingRangeProvider(Either.forLeft(Boolean.TRUE));
-        capacites.setDocumentFormattingProvider(Boolean.TRUE);
-        capacites.setRenameProvider(Either.forLeft(Boolean.TRUE));
-        capacites.setCodeActionProvider(Either.forLeft(Boolean.TRUE));
-        capacites.setInlayHintProvider(Either.forLeft(Boolean.TRUE));
-        capacites.setSelectionRangeProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setSemanticTokensProvider(tokens);
+        capabilities.setReferencesProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setDocumentHighlightProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setDocumentSymbolProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setFoldingRangeProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setDocumentFormattingProvider(Boolean.TRUE);
+        capabilities.setRenameProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setCodeActionProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setInlayHintProvider(Either.forLeft(Boolean.TRUE));
+        capabilities.setSelectionRangeProvider(Either.forLeft(Boolean.TRUE));
         TextDocumentSyncOptions incrementale = new TextDocumentSyncOptions();
         incrementale.setChange(TextDocumentSyncKind.Incremental);
-        capacites.setTextDocumentSync(Either.forRight(incrementale));
-        return CompletableFuture.completedFuture(new InitializeResult(capacites));
+        capabilities.setTextDocumentSync(Either.forRight(incrementale));
+        return CompletableFuture.completedFuture(new InitializeResult(capabilities));
     }
 
     @Override
@@ -148,11 +148,11 @@ final class ServeurFactice implements LanguageServer {
 
     @Override
     public TextDocumentService getTextDocumentService() {
-        return new ServiceDocuments();
+        return new DocumentsService();
     }
 
     /** Le service de documents du banc : chaque méthode rejoue un fragment du protocole. */
-    private final class ServiceDocuments implements TextDocumentService {
+    private final class DocumentsService implements TextDocumentService {
 
         @Override
         public void didOpen(DidOpenTextDocumentParams params) {
@@ -217,12 +217,12 @@ final class ServeurFactice implements LanguageServer {
                     org.eclipse.lsp4j.jsonrpc.messages.Tuple.two(2, 3)));
             org.eclipse.lsp4j.ParameterInformation bChaine =
                     new org.eclipse.lsp4j.ParameterInformation("b");
-            SignatureHelp aide = new SignatureHelp();
-            aide.setSignatures(List.of(new SignatureInformation(
+            SignatureHelp help = new SignatureHelp();
+            help.setSignatures(List.of(new SignatureInformation(
                     "f(a, b)", (String) null, List.of(aDecalage, bChaine))));
-            aide.setActiveSignature(0);
-            aide.setActiveParameter(1);
-            return CompletableFuture.completedFuture(aide);
+            help.setActiveSignature(0);
+            help.setActiveParameter(1);
+            return CompletableFuture.completedFuture(help);
         }
 
         @Override
@@ -326,13 +326,13 @@ final class ServeurFactice implements LanguageServer {
         @Override
         public CompletableFuture<org.eclipse.lsp4j.WorkspaceEdit> rename(
                 org.eclipse.lsp4j.RenameParams params) {
-            org.eclipse.lsp4j.WorkspaceEdit edition =
+            org.eclipse.lsp4j.WorkspaceEdit edit =
                     new org.eclipse.lsp4j.WorkspaceEdit();
-            edition.getChanges().put(params.getTextDocument().getUri(),
+            edit.getChanges().put(params.getTextDocument().getUri(),
                     List.of(new org.eclipse.lsp4j.TextEdit(
                             new Range(new Position(0, 4), new Position(0, 9)),
                             params.getNewName())));
-            return CompletableFuture.completedFuture(edition);
+            return CompletableFuture.completedFuture(edit);
         }
 
         @Override
@@ -341,12 +341,12 @@ final class ServeurFactice implements LanguageServer {
                         org.eclipse.lsp4j.CodeActionParams params) {
             org.eclipse.lsp4j.CodeAction action =
                     new org.eclipse.lsp4j.CodeAction("Entourer d'accolades");
-            org.eclipse.lsp4j.WorkspaceEdit edition =
+            org.eclipse.lsp4j.WorkspaceEdit edit =
                     new org.eclipse.lsp4j.WorkspaceEdit();
-            edition.getChanges().put(params.getTextDocument().getUri(),
+            edit.getChanges().put(params.getTextDocument().getUri(),
                     List.of(new org.eclipse.lsp4j.TextEdit(
                             params.getRange(), "{sélection}")));
-            action.setEdit(edition);
+            action.setEdit(edit);
             return CompletableFuture.completedFuture(List.of(
                     Either.forRight(action)));
         }
@@ -362,21 +362,21 @@ final class ServeurFactice implements LanguageServer {
         @Override
         public CompletableFuture<org.eclipse.lsp4j.SemanticTokens> semanticTokensFull(
                 org.eclipse.lsp4j.SemanticTokensParams params) {
-            org.eclipse.lsp4j.SemanticTokens jetons =
+            org.eclipse.lsp4j.SemanticTokens tokens =
                     new org.eclipse.lsp4j.SemanticTokens();
-            jetons.setResultId("factice-1");
+            tokens.setResultId("factice-1");
             // un quintuple : ligne 2, colonne 4, 5 caractères, type 1
-            jetons.setData(List.of(2, 4, 5, 1, 0));
-            return CompletableFuture.completedFuture(jetons);
+            tokens.setData(List.of(2, 4, 5, 1, 0));
+            return CompletableFuture.completedFuture(tokens);
         }
 
         @Override
         public CompletableFuture<org.eclipse.lsp4j.SemanticTokens> semanticTokensRange(
                 org.eclipse.lsp4j.SemanticTokensRangeParams params) {
-            org.eclipse.lsp4j.SemanticTokens jetons =
+            org.eclipse.lsp4j.SemanticTokens tokens =
                     new org.eclipse.lsp4j.SemanticTokens();
-            jetons.setData(List.of(0, 0, 3, 0, 0));
-            return CompletableFuture.completedFuture(jetons);
+            tokens.setData(List.of(0, 0, 3, 0, 0));
+            return CompletableFuture.completedFuture(tokens);
         }
 
         @Override
@@ -444,7 +444,7 @@ final class ServeurFactice implements LanguageServer {
     }
 
     /** Publie un diagnostic au message nu. */
-    private void publierNu(String uri, DiagnosticSeverity gravite, String message,
+    private void publierNu(String uri, DiagnosticSeverity severity, String message,
             @Nullable Integer code, @Nullable String source) {
         LanguageClient clientCourant = client;
         if (clientCourant == null) {
@@ -452,7 +452,7 @@ final class ServeurFactice implements LanguageServer {
         }
         Diagnostic diagnostic = new Diagnostic();
         diagnostic.setRange(new Range(new Position(0, 0), new Position(0, 1)));
-        diagnostic.setSeverity(gravite);
+        diagnostic.setSeverity(severity);
         diagnostic.setMessage(Either.forLeft(message));
         if (code != null) {
             diagnostic.setCode(Either.forRight(code));
@@ -463,7 +463,7 @@ final class ServeurFactice implements LanguageServer {
     }
 
     /** Publie un diagnostic au message balisé, le code en chaîne. */
-    private void publierBalise(String uri, DiagnosticSeverity gravite,
+    private void publierBalise(String uri, DiagnosticSeverity severity,
             MarkupContent message, int code) {
         LanguageClient clientCourant = client;
         if (clientCourant == null) {
@@ -471,7 +471,7 @@ final class ServeurFactice implements LanguageServer {
         }
         Diagnostic diagnostic = new Diagnostic();
         diagnostic.setRange(new Range(new Position(1, 0), new Position(1, 2)));
-        diagnostic.setSeverity(gravite);
+        diagnostic.setSeverity(severity);
         diagnostic.setMessage(Either.forRight(message));
         diagnostic.setCode(Either.forLeft(String.valueOf(code)));
         clientCourant.publishDiagnostics(

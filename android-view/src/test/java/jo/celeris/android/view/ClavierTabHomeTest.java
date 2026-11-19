@@ -27,7 +27,7 @@ public class ClavierTabHomeTest {
     /** Le banc branché : le fournisseur standard posé (la frappe
      *  intelligente vit au clavier comme dans CelerisEditor). */
     private EditorTestRig bancBranche(String contenu) {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), contenu);
         banc.vue().intelligence().setProvider(IntelligenceHub.builtins());
         return banc;

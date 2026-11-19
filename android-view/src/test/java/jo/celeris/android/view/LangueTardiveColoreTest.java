@@ -38,7 +38,7 @@ public class LangueTardiveColoreTest {
      *  l'image doit montrer de la couleur après publication. */
     @Test
     public void laLanguePoseeApresLaSessionColoreLEcran() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 org.robolectric.RuntimeEnvironment.getApplication(), SOURCE);
         // La langue arrive APRÈS la session (pose différée) :
         banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));

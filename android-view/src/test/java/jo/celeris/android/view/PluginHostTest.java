@@ -20,56 +20,56 @@ class PluginHostTest {
     /** L'extension qui lève est journalisée, les suivantes courent. */
     @Test
     void extensionQuiLeveEstJournalisee() {
-        PluginHost hote = new PluginHost();
+        PluginHost host = new PluginHost();
         List<String> peints = new ArrayList<>();
-        hote.enregistrer(image -> peints.add("premier:" + image));
-        hote.enregistrer(image -> {
+        host.enregistrer(image -> peints.add("premier:" + image));
+        host.enregistrer(image -> {
             throw new IllegalStateException("pan");
         });
-        hote.enregistrer(image -> peints.add("troisieme:" + image));
-        boolean toutes = hote.executer("image-1");
+        host.enregistrer(image -> peints.add("troisieme:" + image));
+        boolean toutes = host.executer("image-1");
         assertFalse(toutes, "la défaillance se sait");
         assertEquals(List.of("premier:image-1", "troisieme:image-1"), peints);
-        assertEquals(1, hote.journal().size());
-        assertTrue(hote.journal().get(0).contains("pan"));
+        assertEquals(1, host.journal().size());
+        assertTrue(host.journal().get(0).contains("pan"));
     }
 
     /** L'image suivante est intacte : l'erreur ne se propage pas. */
     @Test
     void imageSuivanteIntacte() {
-        PluginHost hote = new PluginHost();
+        PluginHost host = new PluginHost();
         List<String> peints = new ArrayList<>();
-        hote.enregistrer(image -> {
+        host.enregistrer(image -> {
             throw new RuntimeException("toujours pan");
         });
-        hote.enregistrer(image -> peints.add(image));
-        hote.executer("image-1");
-        hote.executer("image-2");
+        host.enregistrer(image -> peints.add(image));
+        host.executer("image-1");
+        host.executer("image-2");
         assertEquals(List.of("image-1", "image-2"), peints);
-        assertEquals(2, hote.journal().size());
+        assertEquals(2, host.journal().size());
     }
 
     /** Un hôte sans défaillance rend vrai et ne journalise rien. */
     @Test
     void sansDefaillanceRendVrai() {
-        PluginHost hote = new PluginHost();
-        hote.enregistrer(image -> {
+        PluginHost host = new PluginHost();
+        host.enregistrer(image -> {
         });
-        assertTrue(hote.executer("image"));
-        assertTrue(hote.journal().isEmpty());
+        assertTrue(host.executer("image"));
+        assertTrue(host.journal().isEmpty());
     }
 
     /** Le journal est borné : les lignes anciennes tombent. */
     @Test
     void journalBorne() {
-        PluginHost hote = new PluginHost(3);
-        hote.enregistrer(image -> {
+        PluginHost host = new PluginHost(3);
+        host.enregistrer(image -> {
             throw new RuntimeException("pan");
         });
         for (int i = 0; i < 5; i++) {
-            hote.executer("image-" + i);
+            host.executer("image-" + i);
         }
-        assertEquals(3, hote.journal().size());
+        assertEquals(3, host.journal().size());
     }
 
     /** D13 (l'analyse croisée) : une extension qui s'enregistre
@@ -79,21 +79,21 @@ class PluginHostTest {
      *  tour suivant). */
     @Test
     void inscriptionPendantExecutionNeCassePasLeTour() {
-        PluginHost hote = new PluginHost();
+        PluginHost host = new PluginHost();
         List<String> peints = new ArrayList<>();
-        hote.enregistrer(image -> peints.add("premier:" + image));
+        host.enregistrer(image -> peints.add("premier:" + image));
         // la 2e extension s'enregistre PENDANT son propre tour : la
         // liste change sous les pieds de l'itérateur
-        hote.enregistrer(image -> {
+        host.enregistrer(image -> {
             peints.add("deuxieme:" + image);
-            hote.enregistrer(autre -> peints.add("tardif:" + autre));
+            host.enregistrer(autre -> peints.add("tardif:" + autre));
         });
-        boolean toutes = hote.executer("image-1");
+        boolean toutes = host.executer("image-1");
         assertTrue(toutes, "aucune défaillance");
         assertEquals(List.of("premier:image-1", "deuxieme:image-1"), peints,
                 "le tour ne casse pas, la tardive attend le suivant");
         // et l'image suivante sert la tardive
-        hote.executer("image-2");
+        host.executer("image-2");
         assertTrue(peints.contains("tardif:image-2"));
     }
 }

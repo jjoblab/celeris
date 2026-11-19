@@ -44,7 +44,7 @@ public class PliAuTapTest {
     /** Le chevron de pli répond au tap : la région sous la ligne 0 se replie. */
     @Test
     public void leChevronDePliRepondAuTap() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CLASSE);
         EditorView vue = banc.vue();
         vue.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
@@ -52,16 +52,16 @@ public class PliAuTapTest {
         banc.image(); // l'habillage du dessin porte les régions pliables
         // la ligne 0 porte une région pliable (l'accordade de la classe)
         assertTrue("la ligne 0 est pliable",
-                vue.syntaxe.marques().pliable(0));
+                vue.syntaxe.marks().pliable(0));
         assertFalse("rien n'est encore replié",
-                vue.syntaxe.marques().replie(0));
+                vue.syntaxe.marks().replie(0));
         tapCoulisse(banc, 0);
         assertTrue("le tap sur le chevron replie la région (D-07)",
-                vue.syntaxe.marques().replie(0));
+                vue.syntaxe.marks().replie(0));
         // le dépliage suit le même chemin
         tapCoulisse(banc, 0);
         assertFalse("le second tap déplie",
-                vue.syntaxe.marques().replie(0));
+                vue.syntaxe.marks().replie(0));
     }
 
     /**
@@ -72,7 +72,7 @@ public class PliAuTapTest {
      */
     @Test
     public void leTexteSousLePliSeRehabiliteAuReplie() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CLASSE);
         EditorView vue = banc.vue();
         vue.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
@@ -94,7 +94,7 @@ public class PliAuTapTest {
     /** Le tap hors coulisse ne plie rien — le curseur s'y pose. */
     @Test
     public void leTapHorsCoulisseNePliePas() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CLASSE);
         EditorView vue = banc.vue();
         vue.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
@@ -109,7 +109,7 @@ public class PliAuTapTest {
         vue.onTouchEvent(EditorTestRig.obtenir(t, t + 16L,
                 MotionEvent.ACTION_UP, x, y));
         assertFalse("le tap dans le texte ne replie rien",
-                vue.syntaxe.marques().replie(0));
+                vue.syntaxe.marks().replie(0));
     }
 
     /** Le tap dans la bande de plis, rangée donnée — DOWN puis UP au
@@ -119,7 +119,7 @@ public class PliAuTapTest {
         float y = (rangee + 0.5f) * vue.metrics.lineHeight();
         // la bande de plis : le bord droit de la gouttière, où vit le
         // chevron — sa cible tactile
-        float bande = vue.gouttiereEtat.bandePliCourante();
+        float bande = vue.gutterState.currentFoldBand();
         float x = vue.largeurGouttiere - bande / 2f;
         long t = SystemClock.uptimeMillis();
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,

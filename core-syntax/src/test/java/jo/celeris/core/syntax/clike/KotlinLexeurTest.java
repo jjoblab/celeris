@@ -27,16 +27,16 @@ class KotlinLexeurTest {
 
     private final LanguageLexer lexeur = KotlinSyntax.INSTANCE.lexer();
 
-    private Token[] lex(String ligne) {
-        return lexeur.lex(ligne, CLikeLexer.SimpleState.NORMAL).tokens();
+    private Token[] lex(String line) {
+        return lexeur.lex(line, CLikeLexer.SimpleState.NORMAL).tokens();
     }
 
     /** Les mots réservés du langage se distinguent des identificateurs. */
     @Test
     void motsReserves() {
-        Token[] jetons = lex("fun val var class object when companion data");
-        for (Token jeton : jetons) {
-            assertEquals(TokenKind.KEYWORD, jeton.kind());
+        Token[] tokens = lex("fun val var class object when companion data");
+        for (Token token : tokens) {
+            assertEquals(TokenKind.KEYWORD, token.kind());
         }
         assertEquals(TokenKind.IDENTIFIER, lex("compteur")[0].kind());
     }
@@ -44,10 +44,10 @@ class KotlinLexeurTest {
     /** Le gabarit garde ses guillemets internes dans la chaîne. */
     @Test
     void gabaritsDeChaine() {
-        Token[] jetons = lex("valeur = \"somme = ${somme}\" + \"$nom\"");
-        assertEquals(TokenKind.STRING, jetons[2].kind());
-        assertEquals(18, jetons[2].length(), "le gabarit entier reste un jeton");
-        assertEquals(TokenKind.OPERATOR, jetons[3].kind());
+        Token[] tokens = lex("valeur = \"somme = ${somme}\" + \"$nom\"");
+        assertEquals(TokenKind.STRING, tokens[2].kind());
+        assertEquals(18, tokens[2].length(), "le gabarit entier reste un jeton");
+        assertEquals(TokenKind.OPERATOR, tokens[3].kind());
         Token[] interne = lex("x = \"cle ${map[\"k\"]}\"");
         assertEquals(3, interne.length,
                 "les guillemets internes aux accolades ne clôturent pas");

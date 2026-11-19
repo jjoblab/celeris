@@ -83,8 +83,8 @@ class GhostLatencyVueTest {
      */
     @Test
     void milleTracesSousLeBudgetDUneImage() {
-        GhostPainter peintre = new GhostPainter(new FabriqueMuette());
-        peintre.setSuggestion(new GhostSuggestion(
+        GhostPainter painter = new GhostPainter(new FabriqueMuette());
+        painter.setSuggestion(new GhostSuggestion(
                 "lireAuClavier()\n    .premier()\n    .second()", 14, 0));
         SurfaceMuette surface = new SurfaceMuette();
         Document document = Document.of("val reponse = \n");
@@ -92,13 +92,13 @@ class GhostLatencyVueTest {
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 0L,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 0L,
                 metrics, EditorThemes.CLAIR, 0, 4, 40f, 0f, 0f);
 
         long minimum = minDeTroisTours(() -> {
             for (int i = 0; i < 1_000; i++) {
-                peintre.paint(surface, etat);
+                painter.paint(surface, state);
             }
         });
         System.out.printf("[benchmark] fantome : 1000 tracés au chemin des"
@@ -117,9 +117,9 @@ class GhostLatencyVueTest {
     private static long minDeTroisTours(Runnable phase) {
         long meilleur = Long.MAX_VALUE;
         for (int tour = 0; tour < 3; tour++) {
-            long debut = System.nanoTime();
+            long start = System.nanoTime();
             phase.run();
-            long duree = System.nanoTime() - debut;
+            long duree = System.nanoTime() - start;
             if (duree < meilleur) {
                 meilleur = duree;
             }

@@ -37,7 +37,7 @@ final class IncrementalParser {
      */
     SyntaxTree parseFull(Document doc, LexDocument lex, LanguageParser parser, int revision) {
         return new SyntaxTree(revision,
-                decouper(doc, lex, parser, 0, doc.lineCount() - 1, 0, 0, false));
+                split(doc, lex, parser, 0, doc.lineCount() - 1, 0, 0, false));
     }
 
     /**
@@ -49,31 +49,31 @@ final class IncrementalParser {
      * @param lex              son lexique complet
      * @param parser           le parseur du langage
      * @param revision         la révision du document
-     * @param fenetrePremiere  la première ligne visible
-     * @param fenetreDerniere  la dernière ligne visible
-     * @param jeton            le jeton d'annulation, interrogé avant chaque chunk
+     * @param windowFirst  la première ligne visible
+     * @param windowLast  la dernière ligne visible
+     * @param token            le jeton d'annulation, interrogé avant chaque chunk
      * @return l'arbre versionné, partiel : chunks hors fenêtre en attente
      */
     SyntaxTree parseFenetre(Document doc, LexDocument lex, LanguageParser parser, int revision,
-                            int fenetrePremiere, int fenetreDerniere, TokenCancellation jeton) {
+                            int windowFirst, int windowLast, TokenCancellation token) {
         int nombre = doc.lineCount();
         if (nombre == 0) {
             return new SyntaxTree(revision, List.of());
         }
         PasseTokens passe = collecter(lex, 0, nombre - 1);
-        if (passe.jetons().length == 0) {
+        if (passe.tokens().length == 0) {
             return new SyntaxTree(revision, List.of());
         }
-        TokenSlice tranche = new TokenSlice(doc, passe.jetons(), passe.lignes(), 0,
-                passe.jetons().length, doc.lineStart(0));
-        List<Integer> bornes = bornes(tranche, parser, 0);
-        List<Chunk> chunks = new ArrayList<>(bornes.size());
-        for (int b = 0; b < bornes.size(); b++) {
-            jeton.verifier();
-            int debut = bornes.get(b);
-            int fin = b + 1 < bornes.size() ? bornes.get(b + 1) - 1 : tranche.size() - 1;
-            chunks.add(poser(doc, parser, passe, debut, fin,
-                    fenetrePremiere, fenetreDerniere));
+        TokenSlice tranche = new TokenSlice(doc, passe.tokens(), passe.lines(), 0,
+                passe.tokens().length, doc.lineStart(0));
+        List<Integer> bounds = bounds(tranche, parser, 0);
+        List<Chunk> chunks = new ArrayList<>(bounds.size());
+        for (int b = 0; b < bounds.size(); b++) {
+            token.check();
+            int start = bounds.get(b);
+            int end = b + 1 < bounds.size() ? bounds.get(b + 1) - 1 : tranche.size() - 1;
+            chunks.add(place(doc, parser, passe, start, end,
+                    windowFirst, windowLast));
         }
         return new SyntaxTree(revision, chunks);
     }
@@ -88,12 +88,12 @@ final class IncrementalParser {
      * @param parser    le parseur du langage
      * @param revision  la révision du document
      * @param previous  l'arbre partiel
-     * @param jeton     le jeton d'annulation, interrogé avant chaque chunk
+     * @param token     le jeton d'annulation, interrogé avant chaque chunk
      * @param maxChunks le nombre maximal de chunks à construire
      * @return l'arbre versionné, complété d'autant de chunks
      */
     SyntaxTree completer(Document doc, LexDocument lex, LanguageParser parser, int revision,
-                         SyntaxTree previous, TokenCancellation jeton, int maxChunks) {
+                         SyntaxTree previous, TokenCancellation token, int maxChunks) {
         List<Chunk> anciens = previous.chunks();
         if (anciens.isEmpty() || maxChunks <= 0) {
             return previous;
@@ -102,10 +102,10 @@ final class IncrementalParser {
         int construits = 0;
         for (int i = 0; i < chunks.size() && construits < maxChunks; i++) {
             Chunk ancien = chunks.get(i);
-            if (!ancien.estEnAttente()) {
+            if (!ancien.isPending()) {
                 continue;
             }
-            jeton.verifier();
+            token.check();
             chunks.set(i, analyser(doc, parser, lex, ancien));
             construits++;
         }
@@ -136,8 +136,8 @@ final class IncrementalParser {
         if (anciens.isEmpty()) {
             return parseFull(doc, lex, parser, revision);
         }
-        int premier = indiceProprietaire(anciens, site.firstLine());
-        int dernier = indiceProprietaire(anciens, site.lastLine() - site.lineDelta());
+        int premier = ownerIndex(anciens, site.firstLine());
+        int dernier = ownerIndex(anciens, site.lastLine() - site.lineDelta());
         int debutPlage = premier == 0 ? 0 : anciens.get(premier).startLine();
         int finPlage = dernier + 1 < anciens.size()
                 ? anciens.get(dernier + 1).startLine() + site.lineDelta() - 1
@@ -148,7 +148,7 @@ final class IncrementalParser {
         }
         if (finPlage >= debutPlage) {
             Chunk ancre = anciens.get(premier);
-            chunks.addAll(decouper(doc, lex, parser, debutPlage, finPlage,
+            chunks.addAll(split(doc, lex, parser, debutPlage, finPlage,
                     premier == 0 ? 0 : ancre.startCol(),
                     profondeurAncre(lex, ancre, premier == 0), premier != 0));
         }
@@ -171,69 +171,69 @@ final class IncrementalParser {
      * profondeur, prédicat du langage, extension arrière des trivia de
      * documentation vers le chunk qui suit.
      */
-    private static List<Chunk> decouper(Document doc, LexDocument lex, LanguageParser parser,
+    private static List<Chunk> split(Document doc, LexDocument lex, LanguageParser parser,
                                         int premiereLigne, int derniereLigne, int colonneAncre,
                                         int baseProfondeur, boolean sauterAncre) {
-        int fin = Math.min(derniereLigne, doc.lineCount() - 1);
-        if (fin < premiereLigne) {
+        int end = Math.min(derniereLigne, doc.lineCount() - 1);
+        if (end < premiereLigne) {
             return List.of();
         }
-        PasseTokens passe = collecter(lex, premiereLigne, fin);
-        if (passe.jetons().length == 0) {
+        PasseTokens passe = collecter(lex, premiereLigne, end);
+        if (passe.tokens().length == 0) {
             return List.of();
         }
         int debutMarche = sauterAncre
-                ? indiceAncre(passe.jetons(), passe.lignes(), premiereLigne, colonneAncre)
+                ? anchorIndex(passe.tokens(), passe.lines(), premiereLigne, colonneAncre)
                 : 0;
         return marcher(doc, parser, passe, debutMarche, premiereLigne, baseProfondeur);
     }
 
     /** Les jetons d'une plage de lignes, avec leur ligne porteuse chacun. */
-    private static PasseTokens collecter(LexDocument lex, int premiereLigne, int fin) {
+    private static PasseTokens collecter(LexDocument lex, int premiereLigne, int end) {
         List<Token> collects = new ArrayList<>();
-        List<Integer> lignes = new ArrayList<>();
-        for (int ligne = premiereLigne; ligne <= fin; ligne++) {
-            for (Token jeton : lex.line(ligne).tokens()) {
-                collects.add(jeton);
-                lignes.add(ligne);
+        List<Integer> lines = new ArrayList<>();
+        for (int line = premiereLigne; line <= end; line++) {
+            for (Token token : lex.line(line).tokens()) {
+                collects.add(token);
+                lines.add(line);
             }
         }
-        Token[] jetons = collects.toArray(new Token[0]);
-        int[] lignesTokens = new int[lignes.size()];
-        for (int i = 0; i < lignes.size(); i++) {
-            lignesTokens[i] = lignes.get(i);
+        Token[] tokens = collects.toArray(new Token[0]);
+        int[] lignesTokens = new int[lines.size()];
+        for (int i = 0; i < lines.size(); i++) {
+            lignesTokens[i] = lines.get(i);
         }
-        return new PasseTokens(jetons, lignesTokens);
+        return new PasseTokens(tokens, lignesTokens);
     }
 
     /** Les jetons d'une plage, avec la ligne de chacun. */
     private static final class PasseTokens {
-        private final Token[] jetons;
-        private final int[] lignes;
+        private final Token[] tokens;
+        private final int[] lines;
 
-        PasseTokens(Token[] jetons, int[] lignes) {
-            this.jetons = jetons;
-            this.lignes = lignes;
+        PasseTokens(Token[] tokens, int[] lines) {
+            this.tokens = tokens;
+            this.lines = lines;
         }
 
-        Token[] jetons() {
-            return jetons;
+        Token[] tokens() {
+            return tokens;
         }
 
-        int[] lignes() {
-            return lignes;
+        int[] lines() {
+            return lines;
         }
     }
 
     private static List<Chunk> marcher(Document doc, LanguageParser parser, PasseTokens passe,
                                        int debutMarche, int premiereLigne, int baseProfondeur) {
-        TokenSlice tranche = new TokenSlice(doc, passe.jetons(), passe.lignes(), debutMarche,
-                passe.jetons().length, doc.lineStart(premiereLigne));
-        List<Integer> bornes = bornes(tranche, parser, baseProfondeur);
-        List<Chunk> chunks = new ArrayList<>(bornes.size());
-        for (int b = 0; b < bornes.size(); b++) {
-            chunks.add(construireChunk(doc, parser, passe, debutMarche, bornes.get(b),
-                    b + 1 < bornes.size() ? bornes.get(b + 1) - 1 : tranche.size() - 1,
+        TokenSlice tranche = new TokenSlice(doc, passe.tokens(), passe.lines(), debutMarche,
+                passe.tokens().length, doc.lineStart(premiereLigne));
+        List<Integer> bounds = bounds(tranche, parser, baseProfondeur);
+        List<Chunk> chunks = new ArrayList<>(bounds.size());
+        for (int b = 0; b < bounds.size(); b++) {
+            chunks.add(construireChunk(doc, parser, passe, debutMarche, bounds.get(b),
+                    b + 1 < bounds.size() ? bounds.get(b + 1) - 1 : tranche.size() - 1,
                     premiereLigne));
         }
         return chunks;
@@ -244,22 +244,22 @@ final class IncrementalParser {
      * chaque chunk (le premier commence à zéro), prédicat du langage à
      * profondeur de découpe, documentation entraînée en arrière.
      */
-    private static List<Integer> bornes(TokenSlice tranche, LanguageParser parser,
+    private static List<Integer> bounds(TokenSlice tranche, LanguageParser parser,
                                         int baseProfondeur) {
-        List<Integer> bornes = new ArrayList<>();
-        bornes.add(0);
+        List<Integer> bounds = new ArrayList<>();
+        bounds.add(0);
         int profondeur = baseProfondeur;
         for (int i = 0; i < tranche.size(); i++) {
             if (i > 0 && profondeur <= parser.chunkLevel()
                     && parser.startsChunk(tranche, i, profondeur)) {
                 int etendue = etendreTrivia(tranche, i);
-                if (etendue > bornes.get(bornes.size() - 1)) {
-                    bornes.add(etendue);
+                if (etendue > bounds.get(bounds.size() - 1)) {
+                    bounds.add(etendue);
                 }
             }
             profondeur = avancer(profondeur, tranche.kind(i));
         }
-        return bornes;
+        return bounds;
     }
 
     /**
@@ -267,36 +267,36 @@ final class IncrementalParser {
      * visible, en attente sinon — la géométrie, elle, est toujours celle
      * de la marche.
      */
-    private static Chunk poser(Document doc, LanguageParser parser, PasseTokens passe,
-                               int debut, int fin,
-                               int fenetrePremiere, int fenetreDerniere) {
-        Token premier = passe.jetons()[debut];
-        Token dernier = passe.jetons()[fin];
-        int ligneDebut = passe.lignes()[debut];
-        int ligneFin = passe.lignes()[fin];
-        if (ligneFin < fenetrePremiere || ligneDebut > fenetreDerniere) {
-            return Chunk.enAttente(ligneDebut, premier.start(), ligneFin, dernier.end());
+    private static Chunk place(Document doc, LanguageParser parser, PasseTokens passe,
+                               int start, int end,
+                               int windowFirst, int windowLast) {
+        Token premier = passe.tokens()[start];
+        Token dernier = passe.tokens()[end];
+        int startLine = passe.lines()[start];
+        int endLine = passe.lines()[end];
+        if (endLine < windowFirst || startLine > windowLast) {
+            return Chunk.enAttente(startLine, premier.start(), endLine, dernier.end());
         }
-        return construireChunk(doc, parser, passe, 0, debut, fin, ligneDebut);
+        return construireChunk(doc, parser, passe, 0, start, end, startLine);
     }
 
     private static Chunk construireChunk(Document doc, LanguageParser parser, PasseTokens passe,
-                                         int debutMarche, int debut, int fin, int premiereLigne) {
+                                         int debutMarche, int start, int end, int premiereLigne) {
         // l'édition peut vider la tranche de marche de ses jetons (la
         // suppression du chunk ancre) : pas de jeton à lire, pas de chunk
-        if (debutMarche + debut >= passe.jetons().length) {
+        if (debutMarche + start >= passe.tokens().length) {
             return Chunk.enAttente(premiereLigne, doc.lineStart(premiereLigne),
                     premiereLigne, doc.lineEnd(premiereLigne));
         }
-        TokenSlice trancheMarche = new TokenSlice(doc, passe.jetons(), passe.lignes(), debutMarche,
-                passe.jetons().length, doc.lineStart(premiereLigne));
-        int baseChunk = doc.lineStart(premiereLigne) + trancheMarche.start(debut);
-        TokenSlice trancheChunk = new TokenSlice(doc, passe.jetons(), passe.lignes(),
-                debutMarche + debut, debutMarche + fin + 1, baseChunk);
-        Token premier = passe.jetons()[debutMarche + debut];
-        Token dernier = passe.jetons()[debutMarche + fin];
-        return new Chunk(passe.lignes()[debutMarche + debut], premier.start(),
-                passe.lignes()[debutMarche + fin], dernier.end(),
+        TokenSlice trancheMarche = new TokenSlice(doc, passe.tokens(), passe.lines(), debutMarche,
+                passe.tokens().length, doc.lineStart(premiereLigne));
+        int baseChunk = doc.lineStart(premiereLigne) + trancheMarche.start(start);
+        TokenSlice trancheChunk = new TokenSlice(doc, passe.tokens(), passe.lines(),
+                debutMarche + start, debutMarche + end + 1, baseChunk);
+        Token premier = passe.tokens()[debutMarche + start];
+        Token dernier = passe.tokens()[debutMarche + end];
+        return new Chunk(passe.lines()[debutMarche + start], premier.start(),
+                passe.lines()[debutMarche + end], dernier.end(),
                 parser.parseChunk(trancheChunk));
     }
 
@@ -309,30 +309,30 @@ final class IncrementalParser {
     private static Chunk analyser(Document doc, LanguageParser parser, LexDocument lex,
                                   Chunk enAttente) {
         List<Token> collects = new ArrayList<>();
-        List<Integer> lignes = new ArrayList<>();
-        for (int ligne = enAttente.startLine(); ligne <= enAttente.endLine(); ligne++) {
-            for (Token jeton : lex.line(ligne).tokens()) {
-                boolean apresDebut = ligne > enAttente.startLine()
-                        || jeton.start() >= enAttente.startCol();
-                boolean avantFin = ligne < enAttente.endLine()
-                        || jeton.end() <= enAttente.endCol();
+        List<Integer> lines = new ArrayList<>();
+        for (int line = enAttente.startLine(); line <= enAttente.endLine(); line++) {
+            for (Token token : lex.line(line).tokens()) {
+                boolean apresDebut = line > enAttente.startLine()
+                        || token.start() >= enAttente.startCol();
+                boolean avantFin = line < enAttente.endLine()
+                        || token.end() <= enAttente.endCol();
                 if (apresDebut && avantFin) {
-                    collects.add(jeton);
-                    lignes.add(ligne);
+                    collects.add(token);
+                    lines.add(line);
                 }
             }
         }
         if (collects.isEmpty()) {
             return enAttente;
         }
-        Token[] jetons = collects.toArray(new Token[0]);
-        int[] lignesTokens = new int[lignes.size()];
-        for (int i = 0; i < lignes.size(); i++) {
-            lignesTokens[i] = lignes.get(i);
+        Token[] tokens = collects.toArray(new Token[0]);
+        int[] lignesTokens = new int[lines.size()];
+        for (int i = 0; i < lines.size(); i++) {
+            lignesTokens[i] = lines.get(i);
         }
         int base = doc.lineStart(enAttente.startLine()) + enAttente.startCol();
-        TokenSlice tranche = new TokenSlice(doc, jetons, lignesTokens, 0,
-                jetons.length, base);
+        TokenSlice tranche = new TokenSlice(doc, tokens, lignesTokens, 0,
+                tokens.length, base);
         return new Chunk(enAttente.startLine(), enAttente.startCol(),
                 enAttente.endLine(), enAttente.endCol(), parser.parseChunk(tranche));
     }
@@ -367,39 +367,39 @@ final class IncrementalParser {
         return j;
     }
 
-    private static int indiceAncre(Token[] jetons, int[] lignes, int ligneAncre,
+    private static int anchorIndex(Token[] tokens, int[] lines, int ligneAncre,
                                    int colonneAncre) {
-        for (int i = 0; i < jetons.length; i++) {
-            if (lignes[i] > ligneAncre || jetons[i].start() >= colonneAncre) {
+        for (int i = 0; i < tokens.length; i++) {
+            if (lines[i] > ligneAncre || tokens[i].start() >= colonneAncre) {
                 return i;
             }
         }
-        return jetons.length;
+        return tokens.length;
     }
 
     private static int profondeurAncre(LexDocument lex, Chunk ancre,
                                        boolean depuisDebut) {
-        int ligne = depuisDebut ? 0 : ancre.startLine();
-        int profondeur = lex.bracketDepthAtLineStart(ligne);
+        int line = depuisDebut ? 0 : ancre.startLine();
+        int profondeur = lex.bracketDepthAtLineStart(line);
         if (depuisDebut) {
             return profondeur;
         }
-        for (Token jeton : lex.line(ligne).tokens()) {
-            if (jeton.start() >= ancre.startCol()) {
+        for (Token token : lex.line(line).tokens()) {
+            if (token.start() >= ancre.startCol()) {
                 break;
             }
-            profondeur = avancer(profondeur, jeton.kind());
+            profondeur = avancer(profondeur, token.kind());
         }
         return profondeur;
     }
 
-    private static int indiceProprietaire(List<Chunk> chunks, int ligne) {
+    private static int ownerIndex(List<Chunk> chunks, int line) {
         int bas = 0;
         int haut = chunks.size() - 1;
         int candidat = 0;
         while (bas <= haut) {
             int milieu = (bas + haut) >>> 1;
-            if (chunks.get(milieu).startLine() <= ligne) {
+            if (chunks.get(milieu).startLine() <= line) {
                 candidat = milieu;
                 bas = milieu + 1;
             } else {

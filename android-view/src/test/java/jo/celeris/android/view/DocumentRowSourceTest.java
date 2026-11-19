@@ -61,9 +61,9 @@ class DocumentRowSourceTest {
     void rangeeDePliPorteLEnTete() {
         Document document = Document.of("a\nbb\nccc\ndddd");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FoldModel plis = new FoldModel();
-        plis.fold(1, 2); // l'en-tête 1 reste, la ligne 2 est cachée
-        VisualProjection projection = new VisualProjection(4, plis);
+        FoldModel folds = new FoldModel();
+        folds.fold(1, 2); // l'en-tête 1 reste, la ligne 2 est cachée
+        VisualProjection projection = new VisualProjection(4, folds);
         DocumentRowSource source = new DocumentRowSource(document, projection, metrics);
 
         RowLayout pliee = source.layoutOf(new RowKey(1L, 1, 1, new FontSpec("mono", 14f)));
@@ -98,33 +98,33 @@ class DocumentRowSourceTest {
     void wrappedRowCarriesItsSpan() {
         Document document = Document.of("aaaaaaaaaa\nbb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FontSpec police = new FontSpec("mono", 14f);
+        FontSpec font = new FontSpec("mono", 14f);
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 4);
         DocumentRowSource source = new DocumentRowSource(document, projection,
                 metrics, 4);
 
-        RowLayout premiere = source.layoutOf(new RowKey(1L, 0, 1, police, 4));
+        RowLayout premiere = source.layoutOf(new RowKey(1L, 0, 1, font, 4));
         assertEquals(0, premiere.line());
         assertEquals(0, premiere.start());
         assertEquals(4, premiere.end());
         assertEquals("aaaa", premiere.text());
         assertEquals(40f, premiere.width(), 1e-6f);
 
-        RowLayout milieu = source.layoutOf(new RowKey(1L, 1, 1, police, 4));
+        RowLayout milieu = source.layoutOf(new RowKey(1L, 1, 1, font, 4));
         assertEquals(0, milieu.line());
         assertEquals(4, milieu.start());
         assertEquals(8, milieu.end());
         assertEquals("aaaa", milieu.text());
 
-        RowLayout queue = source.layoutOf(new RowKey(1L, 2, 1, police, 4));
+        RowLayout queue = source.layoutOf(new RowKey(1L, 2, 1, font, 4));
         assertEquals(0, queue.line());
         assertEquals(8, queue.start());
         assertEquals(10, queue.end());
         assertEquals("aa", queue.text());
         assertEquals(20f, queue.width(), 1e-6f);
 
-        RowLayout ligneSuivante = source.layoutOf(new RowKey(1L, 3, 1, police, 4));
+        RowLayout ligneSuivante = source.layoutOf(new RowKey(1L, 3, 1, font, 4));
         assertEquals(1, ligneSuivante.line());
         assertEquals("bb", ligneSuivante.text());
     }
@@ -134,13 +134,13 @@ class DocumentRowSourceTest {
     void zeroColumnsServesWholeLine() {
         Document document = Document.of("aaaaaaaaaa\nbb");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
-        FontSpec police = new FontSpec("mono", 14f);
+        FontSpec font = new FontSpec("mono", 14f);
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
         DocumentRowSource source = new DocumentRowSource(document, projection,
                 metrics, 0);
 
-        RowLayout premiere = source.layoutOf(new RowKey(1L, 0, 1, police, 0));
+        RowLayout premiere = source.layoutOf(new RowKey(1L, 0, 1, font, 0));
         assertEquals(0, premiere.start());
         assertEquals(10, premiere.end());
         assertEquals("aaaaaaaaaa", premiere.text());

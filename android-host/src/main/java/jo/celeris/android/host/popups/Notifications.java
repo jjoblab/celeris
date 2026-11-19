@@ -46,7 +46,7 @@ final class Notifications {
         this.carte = new NotificationView(popups.couche().getContext(),
                 palette);
         popups.lier(PopupController.PopupKind.NOTIFICATION, carte);
-        carte.setSurPrise(this::fermer);
+        carte.setSurPrise(this::close);
     }
 
     /** La palette tourne : la carte de notification la suit. */
@@ -62,8 +62,8 @@ final class Notifications {
      * @param titre   le titre de l'annonce
      * @param message le message de l'annonce, ses lignes suivent
      */
-    void notifier(String titre, String message) {
-        notifier(titre, message, List.of());
+    void notifyListeners(String titre, String message) {
+        notifyListeners(titre, message, List.of());
     }
 
     /**
@@ -76,24 +76,24 @@ final class Notifications {
      * @param message le message de l'annonce, ses lignes suivent
      * @param actions les liens de la bulle, vides pour aucun
      */
-    void notifier(String titre, String message,
+    void notifyListeners(String titre, String message,
             List<NotificationView.Action> actions) {
         if (titre.isBlank() || message.isBlank()) {
             return;
         }
         carte.setAnnonce(titre, message, actions);
-        carte.armer(DUREE_ANNONCE_MS, this::fermer);
+        carte.armer(DUREE_ANNONCE_MS, this::close);
         PopupPlacer.Cadre placee = PopupAnchor.bottomRightCorner(
-                popups.taille(PopupController.PopupKind.NOTIFICATION),
+                popups.size(PopupController.PopupKind.NOTIFICATION),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.NOTIFICATION,
+        popups.show(PopupController.PopupKind.NOTIFICATION,
                 placee.x(), placee.y());
     }
 
     /** Referme l'annonce — l'horloge se coupe, le genre se ferme. */
-    void fermer() {
+    void close() {
         carte.desarmer();
-        popups.fermer(PopupController.PopupKind.NOTIFICATION);
+        popups.close(PopupController.PopupKind.NOTIFICATION);
     }
 }

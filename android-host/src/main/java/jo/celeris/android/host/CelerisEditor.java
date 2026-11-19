@@ -1,7 +1,7 @@
 package jo.celeris.android.host;
 
 
-import jo.celeris.android.host.popups.PopupsEditeur;
+import jo.celeris.android.host.popups.EditorPopups;
 import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorSettings;
 import jo.celeris.android.view.EditorView;
@@ -160,11 +160,11 @@ public final class CelerisEditor {
 
     private final EditorView vue;
     private final PopupLayer couche;
-    private final LanguageKit langues;
+    private final LanguageKit languages;
     private final Settings settings;
-    private @Nullable PopupsEditeur popups;
+    private @Nullable EditorPopups popups;
     private @Nullable TextSession session;
-    private @Nullable LanguageSupport langue;
+    private @Nullable LanguageSupport language;
     /** La barre de recherche vivante (C10) — une seule pour la
      *  façade, rebasculée à chaque ouverture de document. */
     private @Nullable SearchBarModel barre;
@@ -176,24 +176,24 @@ public final class CelerisEditor {
     // T4 : les déclencheurs posés par le kit — mémorisés pour le
     // retrait à close() (le montage de l'orchestrateur les pose, le
     // démontage les retire : jamais d'écouteur fantôme).
-    private final java.util.function.IntPredicate verdictTouche =
+    private final java.util.function.IntPredicate keyVerdict =
             code -> {
-                PopupsEditeur orchestrateur = popups;
-                return orchestrateur != null && orchestrateur.surTouche(code);
+                EditorPopups orchestrateur = popups;
+                return orchestrateur != null && orchestrateur.onKey(code);
             };
     private final java.util.function.IntPredicate verdictDoubleTap =
             offset -> {
-                PopupsEditeur orchestrateur = popups;
+                EditorPopups orchestrateur = popups;
                 return orchestrateur != null
-                        && (orchestrateur.ouvrirColorPicker(offset)
-                                || orchestrateur.ouvrirSurvolAuDoubleTap(offset));
+                        && (orchestrateur.openColorPicker(offset)
+                                || orchestrateur.openHoverOnDoubleTap(offset));
             };
 
     private CelerisEditor(EditorView vue, PopupLayer couche,
-            LanguageKit langues, boolean frappeIntelligente) {
+            LanguageKit languages, boolean frappeIntelligente) {
         this.vue = vue;
         this.couche = couche;
-        this.langues = langues;
+        this.languages = languages;
         // T4 : la frappe intelligente vit dès le montage — l'opt-out
         // existe (withoutSmartTyping), le fournisseur se remplace.
         if (frappeIntelligente) {
@@ -234,11 +234,11 @@ public final class CelerisEditor {
         // document quitté s'y archive, celui qui arrive y retrouve
         // la sienne (ou garde la courante si inconnu : la taille
         // par défaut au premier tour).
-        memoriserTailleDuDocumentCourant();
+        rememberCurrentDocumentSize();
         documentCourant = fileName;
-        Float tailleConnue = taillesParFichier.get(fileName);
+        Float tailleConnue = sizesByFile.get(fileName);
         float tailleAPoser = tailleConnue != null
-                ? tailleConnue : TAILLE_PAR_DEFAUT;
+                ? tailleConnue : DEFAULT_SIZE;
         if (Math.abs(tailleAPoser - settings.fontSizeSp()) > 0.001f) {
             settings.setFontSizeSp(tailleAPoser);
         }
@@ -246,17 +246,17 @@ public final class CelerisEditor {
         final int numeroOuverture = ouvertureEnCours;
         final String nomOuvert = fileName;
         DocumentOuvert document = documentAAfficher(fileName, text);
-        langue = document.langue;
+        language = document.language;
         session = document.session;
-        poserSurLaScene(fileName, document.session, numeroOuverture, nomOuvert);
-        monterOrchestrateurSiAbsent();
+        stageDocument(fileName, document.session, numeroOuverture, nomOuvert);
+        mountOrchestratorIfMissing();
         // Le nom du fichier : le filtre des diagnostics s'y fait.
-        popups.setNomFichier(fileName);
+        popups.setFileName(fileName);
         // La langue posée porte son coach : les mots réservés du
         // langage servent la complétion de base dès le premier
         // caractère — l'hôte ne pose AUCUNE table pour cela (le
         // coach de l'hôte reste possible par setLangue).
-        popups.setLangue(langue);
+        popups.setLanguage(language);
         // Le chrome vit dès la pose : la minimap, le pouce, la bande
         // et le fil d'Ariane ne patientent pas la première frappe —
         // le rafraîchissement part au moment où la couche est
@@ -265,15 +265,15 @@ public final class CelerisEditor {
         // post en vol survit au close() (file du thread tant que la
         // vue n'est pas attachée) — l'ancienne lambda retenait la
         // façade fermée jusqu'à l'exécution du post.
-        PopupsEditeur orchestrateurPose = popups;
-        vue.post(orchestrateurPose::rafraichirMontage);
+        EditorPopups orchestrateurPose = popups;
+        vue.post(orchestrateurPose::refreshMount);
     }
 
     /** D2 : archive la taille courante sous le nom du document
      *  affiché — appelée juste avant chaque ouverture. */
-    private void memoriserTailleDuDocumentCourant() {
+    private void rememberCurrentDocumentSize() {
         if (documentCourant != null && settings != null) {
-            taillesParFichier.put(documentCourant,
+            sizesByFile.put(documentCourant,
                     settings.fontSizeSp());
         }
     }
@@ -299,14 +299,14 @@ public final class CelerisEditor {
             // registre, la pose différée d'alors peut être morte avec
             // la scène ; le registre vit maintenant, la résolution
             // est immédiate.
-            return connu.langue != null
+            return connu.language != null
                     ? connu
                     : new DocumentOuvert(connu.session,
-                            langues.languageForSiPret(fileName));
+                            languages.languageForSiPret(fileName));
         }
         return new DocumentOuvert(
                 TextSession.of(text, System::nanoTime),
-                langues.languageForSiPret(fileName));
+                languages.languageForSiPret(fileName));
     }
 
     /** Pose le document sur la scène : la pose COMBINÉE rattache le
@@ -322,20 +322,20 @@ public final class CelerisEditor {
      * @param numeroOuverture le numéro d'ordre de l'ouverture courante
      * @param nomOuvert      le nom capturé pour la pose différée
      */
-    private void poserSurLaScene(String fileName, TextSession ouverte,
+    private void stageDocument(String fileName, TextSession ouverte,
             int numeroOuverture, String nomOuvert) {
-        vue.setSession(ouverte, langue);
+        vue.setSession(ouverte, language);
         // C10 : la barre de recherche suit la session ouverte — les
         // occurrences d'un document ne fuient jamais sur l'autre, et
         // la barre vit avec les éditions (recalcul à la frappe).
         if (barre != null) {
             barre.setSession(ouverte);
         }
-        documents.put(fileName, new DocumentOuvert(ouverte, langue));
-        if (langue == null && !langues.estPret()) {
-            poserLaLangueDesQueLeRegistreVit(nomOuvert, ouverte, numeroOuverture);
+        documents.put(fileName, new DocumentOuvert(ouverte, language));
+        if (language == null && !languages.estPret()) {
+            setLanguageWhenRegistryReady(nomOuvert, ouverte, numeroOuverture);
         }
-        if (langue == null && langues.estPret()) {
+        if (language == null && languages.estPret()) {
             // Le registre vit et le document n'a TOUJOURS pas de
             // langue : l'extension n'est pas résolue — le document
             // reste sans coloration (langue null), le registre le
@@ -348,11 +348,11 @@ public final class CelerisEditor {
      *  sa langue résolue — la réouverture les retrouve tous deux. */
     private static final class DocumentOuvert {
         private final TextSession session;
-        private final @Nullable LanguageSupport langue;
+        private final @Nullable LanguageSupport language;
 
-        DocumentOuvert(TextSession session, @Nullable LanguageSupport langue) {
+        DocumentOuvert(TextSession session, @Nullable LanguageSupport language) {
             this.session = session;
-            this.langue = langue;
+            this.language = language;
         }
     }
 
@@ -365,7 +365,7 @@ public final class CelerisEditor {
      *  fichier — le changement d'onglet ne la remet plus à zéro ; le
      *  document rouvre à SA taille, la taille courante sinon. Vidée
      *  à close(). */
-    private final java.util.Map<String, Float> taillesParFichier =
+    private final java.util.Map<String, Float> sizesByFile =
             new java.util.HashMap<>();
 
     /** Le nom du document actuellement affiché (D2) — null avant la
@@ -375,7 +375,7 @@ public final class CelerisEditor {
     /** La taille par défaut de la vue (D2) : celle d'un fichier
      *  ouvert pour la première fois — miroir de la police logique
      *  par défaut de l'éditeur. */
-    private static final float TAILLE_PAR_DEFAUT = 14f;
+    private static final float DEFAULT_SIZE = 14f;
 
     /**
      * Monte l'orchestrateur des popups à la première ouverture — le
@@ -384,7 +384,7 @@ public final class CelerisEditor {
      * les déclencheurs du kit (délégation clavier, double appui) s'y
      * posent, le coach langue et le nom du fichier s'y servent.
      */
-    private void monterOrchestrateurSiAbsent() {
+    private void mountOrchestratorIfMissing() {
         // L'orchestrateur suit la SESSION (le retour terrain du
         // 2026-11-19 : chaque changement d'onglet détruisait et
         // recréait ~20 vues de popups) : il survit au retour d'un
@@ -395,7 +395,7 @@ public final class CelerisEditor {
             return;
         }
         if (popups != null) {
-            popups.detacher();
+            popups.detach();
             popups = null;
         }
         // Les verdicts de la façade ne s'empilent PAS : un rebranchement
@@ -403,11 +403,11 @@ public final class CelerisEditor {
         // rappelait addPopupKeyListener à chaque document différent — N
         // onglets = N exemplaires du même prédicat, close() n'en retirait
         // qu'un, la façade fermée fuyait tant que la vue vivait).
-        vue.removePopupKeyListener(verdictTouche);
+        vue.removePopupKeyListener(keyVerdict);
         vue.removeDoubleTapListener(verdictDoubleTap);
-        popups = new PopupsEditeur(vue, session, couche,
+        popups = new EditorPopups(vue, session, couche,
                 settings.theme(), settings.fontSizeSp());
-        vue.addPopupKeyListener(verdictTouche);
+        vue.addPopupKeyListener(keyVerdict);
         vue.addDoubleTapListener(verdictDoubleTap);
     }
 
@@ -423,23 +423,23 @@ public final class CelerisEditor {
      * @param ouverte         la session ouverte (la garde s'y compare)
      * @param numeroOuverture le numéro d'ordre de l'ouverture
      */
-    private void poserLaLangueDesQueLeRegistreVit(String nomOuvert,
+    private void setLanguageWhenRegistryReady(String nomOuvert,
             TextSession ouverte, int numeroOuverture) {
         Thread poseur = new Thread(() -> {
-            LanguageSupport resolue = langues.languageFor(nomOuvert);
+            LanguageSupport resolue = languages.languageFor(nomOuvert);
             vue.post(() -> {
                 if (numeroOuverture == ouvertureEnCours && !fermee
                         && session == ouverte && resolue != null) {
-                    langue = resolue;
+                    language = resolue;
                     vue.setLanguage(resolue);
                     // Le registre suit : la langue servie appartient AU
                     // document — sa réouverture la retrouvera sans
                     // attendre le registre de langues.
                     documents.put(nomOuvert,
                             new DocumentOuvert(ouverte, resolue));
-                    PopupsEditeur orchestrateur = popups;
+                    EditorPopups orchestrateur = popups;
                     if (orchestrateur != null) {
-                        orchestrateur.setLangue(resolue);
+                        orchestrateur.setLanguage(resolue);
                     }
                 }
             });
@@ -466,7 +466,7 @@ public final class CelerisEditor {
      * @return le support de langage posé, ou null
      */
     public @Nullable LanguageSupport language() {
-        return langue;
+        return language;
     }
 
     /**
@@ -486,7 +486,7 @@ public final class CelerisEditor {
      *
      * @return l'orchestrateur, null après close()
      */
-    public @Nullable PopupsEditeur popups() {
+    public @Nullable EditorPopups popups() {
         return popups;
     }
 
@@ -529,11 +529,11 @@ public final class CelerisEditor {
             return;
         }
         fermee = true;
-        vue.removePopupKeyListener(verdictTouche);
+        vue.removePopupKeyListener(keyVerdict);
         vue.removeDoubleTapListener(verdictDoubleTap);
-        PopupsEditeur orchestrateur = popups;
+        EditorPopups orchestrateur = popups;
         if (orchestrateur != null) {
-            orchestrateur.detacher();
+            orchestrateur.detach();
         }
         popups = null;
         if (barre != null) {
@@ -542,12 +542,12 @@ public final class CelerisEditor {
         barre = null;
         vue.release();
         session = null;
-        langue = null;
+        language = null;
         // Le registre des documents meurt avec la façade : les
         // sessions parquées de la vue aussi (release() ferme ses
         // moteurs) — aucun document ne survit à l'éditeur fermé.
         documents.clear();
-        taillesParFichier.clear();
+        sizesByFile.clear();
         documentCourant = null;
     }
 }

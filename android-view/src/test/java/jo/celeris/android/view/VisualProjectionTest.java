@@ -22,9 +22,9 @@ class VisualProjectionTest {
      */
     @Test
     void renderer_visibleRowsConvertThroughFoldModel() {
-        FoldModel plis = new FoldModel();
-        plis.fold(2, 4); // l'en-tête 2 reste visible, les lignes 3 et 4 sont cachées
-        VisualProjection projection = new VisualProjection(10, plis);
+        FoldModel folds = new FoldModel();
+        folds.fold(2, 4); // l'en-tête 2 reste visible, les lignes 3 et 4 sont cachées
+        VisualProjection projection = new VisualProjection(10, folds);
 
         // 8 rangées visibles pour 10 lignes : le pli en cache deux.
         assertEquals(8, projection.rowCount());
@@ -53,22 +53,22 @@ class VisualProjectionTest {
     void sansPlisRangeeEtLigneSeCorrespondent() {
         VisualProjection projection = new VisualProjection(5, new FoldModel());
         assertEquals(5, projection.rowCount());
-        for (int ligne = 0; ligne < 5; ligne++) {
-            assertEquals(ligne, projection.rowOfLine(ligne));
-            assertEquals(ligne, projection.firstLineOfRow(ligne));
-            assertEquals(ligne, projection.lastLineOfRow(ligne));
+        for (int line = 0; line < 5; line++) {
+            assertEquals(line, projection.rowOfLine(line));
+            assertEquals(line, projection.firstLineOfRow(line));
+            assertEquals(line, projection.lastLineOfRow(line));
         }
     }
 
     /** Déplier redonne toutes les rangées : la projection lit le modèle en direct. */
     @Test
     void deplierRedonneToutesLesRangees() {
-        FoldModel plis = new FoldModel();
-        plis.fold(2, 4);
-        VisualProjection projection = new VisualProjection(10, plis);
+        FoldModel folds = new FoldModel();
+        folds.fold(2, 4);
+        VisualProjection projection = new VisualProjection(10, folds);
         assertEquals(8, projection.rowCount());
 
-        plis.unfold(2);
+        folds.unfold(2);
 
         assertEquals(10, projection.rowCount());
         assertEquals(5, projection.rowOfLine(5));
@@ -78,10 +78,10 @@ class VisualProjectionTest {
     /** Deux plis successifs se cumulent proprement. */
     @Test
     void deuxPlisSeCumulent() {
-        FoldModel plis = new FoldModel();
-        plis.fold(1, 2); // l'en-tête 1 reste visible, la ligne 2 est cachée
-        plis.fold(6, 8); // l'en-tête 6 reste visible, les lignes 7 et 8 sont cachées
-        VisualProjection projection = new VisualProjection(12, plis);
+        FoldModel folds = new FoldModel();
+        folds.fold(1, 2); // l'en-tête 1 reste visible, la ligne 2 est cachée
+        folds.fold(6, 8); // l'en-tête 6 reste visible, les lignes 7 et 8 sont cachées
+        VisualProjection projection = new VisualProjection(12, folds);
 
         // 12 lignes - 3 cachées = 9 rangées visibles.
         assertEquals(9, projection.rowCount());
@@ -100,9 +100,9 @@ class VisualProjectionTest {
     /** Un pli au-delà de la dernière ligne ne cache rien : robustesse aux bornes. */
     @Test
     void pliHorsBornesNeCacheRien() {
-        FoldModel plis = new FoldModel();
-        plis.fold(20, 24);
-        VisualProjection projection = new VisualProjection(10, plis);
+        FoldModel folds = new FoldModel();
+        folds.fold(20, 24);
+        VisualProjection projection = new VisualProjection(10, folds);
 
         assertEquals(10, projection.rowCount());
         assertEquals(9, projection.rowOfLine(9));
@@ -116,15 +116,15 @@ class VisualProjectionTest {
      */
     @Test
     void pliParentImbriqueSurEnfantReplie() {
-        FoldModel plis = new FoldModel();
-        plis.fold(3, 5);
+        FoldModel folds = new FoldModel();
+        folds.fold(3, 5);
         // l'enfant seul : 10 lignes - 2 cachées (4 et 5) = 8 rangées
-        VisualProjection projection = new VisualProjection(10, plis);
+        VisualProjection projection = new VisualProjection(10, folds);
         assertEquals(8, projection.rowCount());
 
         // le parent par-dessus : 1..8 cache 2..8 tout entières —
         // l'enfant est DANS cette plage, rien ne se compte double
-        plis.fold(1, 8);
+        folds.fold(1, 8);
         assertEquals(3, projection.rowCount(),
                 "le parent absorbe la plage entière sans double compte");
         assertEquals(1, projection.rowOfLine(2));
@@ -137,7 +137,7 @@ class VisualProjectionTest {
         assertEquals(2, projection.rowOfLine(9));
 
         // le dépliage du parent rend l'enfant replié : 4 et 5 cachées
-        plis.unfold(1);
+        folds.unfold(1);
         assertEquals(8, projection.rowCount(),
                 "l'enfant reparaît replié après le dépliage du parent");
         assertEquals(2, projection.rowOfLine(2));

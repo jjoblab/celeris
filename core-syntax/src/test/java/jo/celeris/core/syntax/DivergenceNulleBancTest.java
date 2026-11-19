@@ -57,7 +57,7 @@ final class DivergenceNulleBancTest {
     @Test
     void milleCentCinquanteEditionsSansDivergence() {
         Random alea = new Random(GRAINE);
-        String texte = """
+        String text = """
                 package exemple;
 
                 class Premiere {
@@ -65,23 +65,23 @@ final class DivergenceNulleBancTest {
                     String deux(String s) { return s + "x"; }
                 }
                 """;
-        Document document = Document.of(texte);
+        Document document = Document.of(text);
         IncrementalLexer moteur = new IncrementalLexer();
         LexDocument reference = moteur.lexFull(document, LEXEUR).lex();
 
         for (int i = 0; i < EDITIONS; i++) {
             Geste geste = tirer(alea, document);
             Document apres = Document.of(geste.appliquerA(document.text()));
-            EditSite site = EditSite.of(document, apres, geste.debut,
-                    geste.fin, geste.inser);
+            EditSite site = EditSite.of(document, apres, geste.start,
+                    geste.end, geste.inser);
             LexDocument increm = moteur.lexIncremental(apres, LEXEUR,
                     reference, site).lex();
             reference = moteur.lexFull(apres, LEXEUR).lex();
             document = apres;
 
-            java.util.Optional<String> ecart = premierEcart(reference, increm);
-            assertTrue(ecart.isEmpty(),
-                    "édition " + i + " (" + geste + ") : " + ecart.orElse(""));
+            java.util.Optional<String> gap = premierEcart(reference, increm);
+            assertTrue(gap.isEmpty(),
+                    "édition " + i + " (" + geste + ") : " + gap.orElse(""));
         }
         // Le document final a bien vécu : mille gestes y ont passé, le
         // texte reste vivant (non vide, lignes présentes).
@@ -90,17 +90,17 @@ final class DivergenceNulleBancTest {
     }
 
     /** Un geste d'édition : plage remplacée et texte inséré. */
-    private record Geste(int debut, int fin, String inser) {
+    private record Geste(int start, int end, String inser) {
 
-        String appliquerA(String texte) {
-            int d = Math.min(debut, texte.length());
-            int f = Math.min(fin, texte.length());
-            return texte.substring(0, d) + inser + texte.substring(f);
+        String appliquerA(String text) {
+            int d = Math.min(start, text.length());
+            int f = Math.min(end, text.length());
+            return text.substring(0, d) + inser + text.substring(f);
         }
 
         @Override
         public String toString() {
-            return "[" + debut + ".." + fin + ") ← « " + inser + " »";
+            return "[" + start + ".." + end + ") ← « " + inser + " »";
         }
     }
 
@@ -126,17 +126,17 @@ final class DivergenceNulleBancTest {
             return new Geste(d, f, fragment);
         }
         // coupure ou soudure de ligne au hasard
-        int ligne = alea.nextInt(document.lineCount());
-        int debutLigne = document.lineStart(ligne);
-        return new Geste(debutLigne, debutLigne, "\n");
+        int line = alea.nextInt(document.lineCount());
+        int lineStart = document.lineStart(line);
+        return new Geste(lineStart, lineStart, "\n");
     }
 
     /** Une position valide, biaisée vers le début (le texte vivant). */
-    private static int position(Random alea, int longueur) {
-        if (longueur == 0) {
+    private static int position(Random alea, int length) {
+        if (length == 0) {
             return 0;
         }
-        return alea.nextInt(longueur);
+        return alea.nextInt(length);
     }
 
     /**
@@ -185,9 +185,9 @@ final class DivergenceNulleBancTest {
         return java.util.Optional.empty();
     }
 
-    private static String decrire(Token[] jetons) {
+    private static String decrire(Token[] tokens) {
         StringBuilder sb = new StringBuilder();
-        for (Token t : jetons) {
+        for (Token t : tokens) {
             sb.append(t.kind()).append('[').append(t.start()).append(':')
                     .append(t.end()).append(']');
         }

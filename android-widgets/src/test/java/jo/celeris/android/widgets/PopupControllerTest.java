@@ -189,13 +189,13 @@ class PopupControllerTest {
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.COMPLETION_LIST,
                         PopupController.PopupKind.TOOLBAR_OVERFLOW),
-                controleur.ouvrirRendus(PopupController.PopupKind.TOOLBAR_OVERFLOW),
+                controleur.openRenders(PopupController.PopupKind.TOOLBAR_OVERFLOW),
                 "l'ouverture rend la carte ET l'exclu");
         assertEquals(java.util.EnumSet.noneOf(PopupController.PopupKind.class),
-                controleur.ouvrirRendus(PopupController.PopupKind.TOOLBAR_OVERFLOW),
+                controleur.openRenders(PopupController.PopupKind.TOOLBAR_OVERFLOW),
                 "le re-pose rend vide — la carte se re-monte quand même");
         assertEquals(java.util.EnumSet.noneOf(PopupController.PopupKind.class),
-                controleur.ouvrirRendus(PopupController.PopupKind.COMPLETION_DOC),
+                controleur.openRenders(PopupController.PopupKind.COMPLETION_DOC),
                 "la documentation sans sa liste ne rend rien : la machine refuse");
     }
 
@@ -237,7 +237,7 @@ class PopupControllerTest {
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.INTENTIONS_MENU,
                         PopupController.PopupKind.COLOR_PICKER),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "les menus et le sélecteur cèdent au geste extérieur");
         assertTrue(controleur.isOpen(PopupController.PopupKind.SIGNATURE_HELP),
                 "la signature suit le curseur");
@@ -250,7 +250,7 @@ class PopupControllerTest {
                 "la documentation suit sa liste rouverte");
         assertEquals(
                 java.util.EnumSet.noneOf(PopupController.PopupKind.class),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "le second geste ne referme rien : rien ne cède");
         assertTrue(controleur.isOpen(PopupController.PopupKind.COMPLETION_LIST),
                 "la complétion suit le curseur, pas le doigt");
@@ -304,14 +304,14 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.REFERENCES);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.REFERENCES),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "la carte d'actions cède au geste extérieur");
         assertTrue(controleur.isOpen(PopupController.PopupKind.MINIMAP),
                 "le chrome survit aux trois régimes");
         controleur.open(PopupController.PopupKind.HIERARCHY);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.HIERARCHY),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "la hiérarchie, carte d'actions, cède au geste extérieur");
     }
 
@@ -371,7 +371,7 @@ class PopupControllerTest {
                 "la complétion poursuit sa vie");
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.EXTERNAL_DOC),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "le geste extérieur referme la consultation");
         controleur.open(PopupController.PopupKind.EXTERNAL_DOC);
         controleur.close(PopupController.PopupKind.EXTERNAL_DOC);
@@ -393,7 +393,7 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.NOTIFICATION);
         controleur.onKeystroke();
         controleur.onScroll();
-        controleur.surToucheHorsCartes();
+        controleur.onTouchOutsideCards();
         assertTrue(controleur.isOpen(PopupController.PopupKind.NOTIFICATION),
                 "l'annonce vit son quart — frappe, défilement et geste"
                         + " extérieur ne l'interrompent pas");
@@ -431,7 +431,7 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.TYPE_INFO);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.TYPE_INFO),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "la bulle cède au geste extérieur");
     }
 
@@ -471,7 +471,7 @@ class PopupControllerTest {
                 "le défilement le repositionne, il ne le ferme pas");
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.GABARITS),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "le geste extérieur referme la carte d'actions");
     }
 
@@ -512,7 +512,7 @@ class PopupControllerTest {
         controleur.open(PopupController.PopupKind.SAFE_DELETE);
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.SAFE_DELETE),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "la carte d'actions cède au geste extérieur");
     }
 
@@ -547,7 +547,7 @@ class PopupControllerTest {
                 "le défilement le repositionne, il ne le ferme pas");
         assertEquals(
                 java.util.EnumSet.of(PopupController.PopupKind.SAFE_MOVE),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "le geste extérieur referme la carte d'actions");
     }
 
@@ -588,7 +588,7 @@ class PopupControllerTest {
         assertEquals(
                 java.util.EnumSet.of(
                         PopupController.PopupKind.SUPPRESS_INSPECTION),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "le geste extérieur referme la carte d'actions");
     }
 
@@ -615,7 +615,7 @@ class PopupControllerTest {
         assertEquals(
                 java.util.EnumSet.of(
                         PopupController.PopupKind.EXCEPTION_DETAILS),
-                controleur.surToucheHorsCartes(),
+                controleur.onTouchOutsideCards(),
                 "le geste extérieur referme la consultation");
         controleur.open(PopupController.PopupKind.EXCEPTION_DETAILS);
         controleur.close(PopupController.PopupKind.EXCEPTION_DETAILS);

@@ -1,15 +1,15 @@
 package jo.celeris.lsp.protocole;
 
-import jo.celeris.core.lsp.types.EditionEspaceLsp;
-import jo.celeris.core.lsp.types.EditionGabaritLsp;
-import jo.celeris.core.lsp.types.ElementCompletion;
-import jo.celeris.core.lsp.types.IndiceLsp;
-import jo.celeris.core.lsp.types.LieuLsp;
-import jo.celeris.core.lsp.types.ListeCompletion;
-import jo.celeris.core.lsp.types.PlageLsp;
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.WorkspaceEditLsp;
+import jo.celeris.core.lsp.types.TemplateEditLsp;
+import jo.celeris.core.lsp.types.CompletionItemLsp;
+import jo.celeris.core.lsp.types.InlayHintLsp;
+import jo.celeris.core.lsp.types.LocationLsp;
+import jo.celeris.core.lsp.types.CompletionListLsp;
+import jo.celeris.core.lsp.types.RangeLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 import jo.celeris.core.lsp.types.SignatureLsp;
-import jo.celeris.core.lsp.types.SurvolLsp;
+import jo.celeris.core.lsp.types.HoverLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import jo.celeris.core.lsp.CapacitesServeur;
+import jo.celeris.core.lsp.ServerCapsLsp;
 
 
 
@@ -82,20 +82,20 @@ public final class CorpusTracesTest {
     void laTraceInitialisation() {
         InitializeResult reponse =
                 GSON.fromJson(trace("initialisation"), InitializeResult.class);
-        CapacitesServeur capacites =
-                CorrespondanceLsp.lireCapacites(reponse.getCapabilities());
-        assertEquals(1, capacites.genreSynchro());
-        assertTrue(capacites.sertCompletion());
-        assertTrue(capacites.sertSurvol());
-        assertTrue(capacites.sertSignature());
-        assertTrue(capacites.sertDefinition());
-        assertTrue(capacites.sertReferences());
-        assertTrue(capacites.sertFormatage());
-        assertTrue(capacites.sertIndices(), "inlayHintProvider lu");
+        ServerCapsLsp capabilities =
+                LspMapping.readCapabilities(reponse.getCapabilities());
+        assertEquals(1, capabilities.syncKind());
+        assertTrue(capabilities.supportsCompletion());
+        assertTrue(capabilities.supportsHover());
+        assertTrue(capabilities.supportsSignature());
+        assertTrue(capabilities.supportsDefinition());
+        assertTrue(capabilities.supportsReferences());
+        assertTrue(capabilities.supportsFormatting());
+        assertTrue(capabilities.supportsInlayHints(), "inlayHintProvider lu");
         assertEquals(List.of("keyword", "variable", "parameter", "function", "type"),
-                capacites.typesTokens());
+                capabilities.tokenTypes());
         assertEquals(List.of("declaration", "static", "deprecated"),
-                capacites.modificateursTokens());
+                capabilities.tokenModifiers());
     }
 
     /** La complétion tronquée : la coupure honorée, l'ordre du serveur tenu (PIEGE-17). */
@@ -103,31 +103,31 @@ public final class CorpusTracesTest {
     void laTraceCompletionTronquee() {
         CompletionList reponse =
                 GSON.fromJson(trace("completion-tronquee"), CompletionList.class);
-        ListeCompletion liste = CorrespondanceDocuments.lireListe(
+        CompletionListLsp liste = DocumentsMapping.readList(
                 Either.forRight(reponse));
-        assertTrue(liste.estIncomplete());
+        assertTrue(liste.isIncomplete());
         assertEquals(3, liste.elements().size());
-        assertEquals("ajouter", liste.elements().get(0).libelle());
+        assertEquals("ajouter", liste.elements().get(0).label());
         // la liste tronquée ne se trie jamais — la même revient
-        assertEquals(liste, liste.trier());
+        assertEquals(liste, liste.sort());
         // le filtrage garde l'ordre relatif, n'ajoute rien
         assertEquals(List.of("ajouter", "ajuster"),
-                liste.filtrer("aj").elements().stream()
-                        .map(ElementCompletion::libelle).toList());
+                liste.filter("aj").elements().stream()
+                        .map(CompletionItemLsp::label).toList());
     }
 
     /** Le survol : le contenu balisé et la plage, résolus à la demande. */
     @Test
     void laTraceSurvol() {
         Hover reponse = GSON.fromJson(trace("survol"), Hover.class);
-        SurvolLsp survol = CorrespondanceDocuments.lireSurvol(reponse);
-        assertEquals("markdown", survol.genre());
-        assertTrue(survol.texte().startsWith("fun ajouter"));
-        assertTrue(survol.texte().contains("Ajoute deux entiers."));
-        PlageLsp plage = survol.plage();
-        assertNotNull(plage);
-        assertEquals(new PositionLsp(2, 10), plage.debut());
-        assertEquals(new PositionLsp(2, 17), plage.fin());
+        HoverLsp hover = DocumentsMapping.readHover(reponse);
+        assertEquals("markdown", hover.kind());
+        assertTrue(hover.text().startsWith("fun ajouter"));
+        assertTrue(hover.text().contains("Ajoute deux entiers."));
+        RangeLsp range = hover.range();
+        assertNotNull(range);
+        assertEquals(new LspPosition(2, 10), range.start());
+        assertEquals(new LspPosition(2, 17), range.end());
     }
 
     /** La signature : paramètres par bornes, l'actif au-delà de l'arité retombe au dernier. */
@@ -135,14 +135,14 @@ public final class CorpusTracesTest {
     void laTraceSignature() {
         SignatureHelp reponse =
                 GSON.fromJson(trace("signature"), SignatureHelp.class);
-        SignatureLsp aide = CorrespondanceDocuments.lireSignature(reponse);
-        assertEquals(1, aide.entrees().size());
-        SignatureLsp.Entree entree = aide.entrees().get(0);
-        assertEquals("ajouter(a: Int, b: Int, c: Int): Int", entree.libelle());
-        assertEquals(List.of("a", "b", "c"), entree.parametres().stream()
-                .map(SignatureLsp.Parametre::libelle).toList());
-        assertEquals("le premier terme", entree.parametres().get(0).documentation());
-        assertEquals(2, aide.parametreCourant(),
+        SignatureLsp help = DocumentsMapping.readSignature(reponse);
+        assertEquals(1, help.entrees().size());
+        SignatureLsp.Entry input = help.entrees().get(0);
+        assertEquals("ajouter(a: Int, b: Int, c: Int): Int", input.label());
+        assertEquals(List.of("a", "b", "c"), input.parameters().stream()
+                .map(SignatureLsp.Parameter::label).toList());
+        assertEquals("le premier terme", input.parameters().get(0).documentation());
+        assertEquals(2, help.parametreCourant(),
                 "l'actif 5 au-dela de l'arite 3 retombe au dernier");
     }
 
@@ -156,34 +156,34 @@ public final class CorpusTracesTest {
     void laTraceDefinition() {
         List<Location> enregistres = GSON.fromJson(trace("definition"),
                 new TypeToken<List<Location>>() { }.getType());
-        List<LieuLsp> lieux = CorrespondanceDocuments.lireLieux(
+        List<LocationLsp> lieux = DocumentsMapping.readLocations(
                 Either.forLeft(enregistres));
         assertEquals(2, lieux.size());
         assertEquals("file:///src/main/java/com/exemple/app/Calcul.kt",
                 lieux.get(0).uri());
-        PlageLsp seconde = lieux.get(1).plage();
+        RangeLsp seconde = lieux.get(1).range();
         assertNotNull(seconde);
-        assertEquals(new PositionLsp(40, 2), seconde.debut());
+        assertEquals(new LspPosition(40, 2), seconde.start());
     }
 
     /** Les indices : parties cliquables, la chaîne nue, les remplissages. */
     @Test
     void laTraceIndices() {
-        List<IndiceLsp> indices = CorrespondanceCouverture.lireIndices(
+        List<InlayHintLsp> inlayHints = CoverageMapping.readInlayHints(
                 GSON.fromJson(trace("indices"),
                         INLAY_HINTS));
-        assertEquals(2, indices.size());
-        IndiceLsp premier = indices.get(0);
+        assertEquals(2, inlayHints.size());
+        InlayHintLsp premier = inlayHints.get(0);
         assertEquals(3, premier.parties().size());
-        assertEquals(1, premier.genre());
+        assertEquals(1, premier.kind());
         assertTrue(premier.remplissageGauche());
         assertFalse(premier.remplissageDroite());
-        LieuLsp cible = premier.parties().get(1).cible();
-        assertNotNull(cible, "la partie « : » porte sa cible de navigation");
-        assertEquals("file:///src/main/java/com/exemple/app/Calcul.kt", cible.uri());
-        IndiceLsp second = indices.get(1);
+        LocationLsp target = premier.parties().get(1).target();
+        assertNotNull(target, "la partie « : » porte sa cible de navigation");
+        assertEquals("file:///src/main/java/com/exemple/app/Calcul.kt", target.uri());
+        InlayHintLsp second = inlayHints.get(1);
         assertEquals(1, second.parties().size());
-        assertEquals("a =", second.parties().get(0).valeur());
+        assertEquals("a =", second.parties().get(0).value());
         assertTrue(second.remplissageDroite());
     }
 
@@ -193,19 +193,19 @@ public final class CorpusTracesTest {
      */
     @Test
     void laTraceEditionEspace() {
-        EditionEspaceLsp espace = CorrespondanceEspace.lireEspace(
+        WorkspaceEditLsp espace = WorkspaceMapping.readWorkspace(
                 GSON.fromJson(trace("edition-espace"),
                         WorkspaceEdit.class));
         assertEquals(1, espace.documents().size());
         assertEquals(7, espace.documents().get(0).version());
-        assertEquals("additionner", espace.documents().get(0).editions()
-                .get(0).nouveauTexte());
-        assertEquals(1, espace.gabarits().size(), "l'edit de gabarit vit dans la trace");
-        EditionGabaritLsp gabarit = espace.gabarits().get(0);
+        assertEquals("additionner", espace.documents().get(0).edits()
+                .get(0).newText());
+        assertEquals(1, espace.templates().size(), "l'edit de gabarit vit dans la trace");
+        TemplateEditLsp gabarit = espace.templates().get(0);
         assertEquals("file:///src/main/java/com/exemple/app/Calcul.kt",
                 gabarit.uri());
-        assertEquals(new PositionLsp(20, 4), gabarit.position());
-        assertTrue(gabarit.corps().contains("${nom:soustraire}"));
+        assertEquals(new LspPosition(20, 4), gabarit.position());
+        assertTrue(gabarit.body().contains("${nom:soustraire}"));
     }
 
     private static String trace(String nom) {

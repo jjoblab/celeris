@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import jo.celeris.android.view.EditorView;
-import jo.celeris.android.view.ReglagesEditeur;
+import jo.celeris.android.view.EditorSettingsPanel;
 import jo.celeris.android.widgets.MenuDebordement;
 import jo.celeris.android.widgets.MenuEtages;
 import jo.celeris.android.widgets.PopupAnchor;
@@ -45,7 +45,7 @@ import jo.celeris.core.text.TextSession;
  */
 final class BarreSelection {
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final SelectionBarView barre;
@@ -64,17 +64,17 @@ final class BarreSelection {
      * Construit le satellite sur le coordinateur des popups : la barre
      * naît liée à son genre, le menu de débordement au sien.
      *
-     * @param editeur la vue d'éditeur ouverte (bornes de sélection)
+     * @param editor la vue d'éditeur ouverte (bornes de sélection)
      * @param session la session d'édition courante
      * @param popups   le coordinateur des popups de la scène
      * @param palette  la palette courante des popups
      * @param margePx  la respiration des ancres aux bords, en pixels
      * @param docs     le geste du « i » de documentation de l'hôte
      */
-    BarreSelection(EditorView editeur, TextSession session,
+    BarreSelection(EditorView editor, TextSession session,
             PopupManager popups, PopupPalette palette, int margePx,
             Runnable docs) {
-        this.editeur = editeur;
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.barre = new SelectionBarView(popups.couche().getContext(),
@@ -82,7 +82,7 @@ final class BarreSelection {
         popups.lier(PopupController.PopupKind.SELECTION_BAR, barre);
         this.menu = new MenuDebordement(popups, palette, margePx);
         this.margePx = margePx;
-        barre.setOnOverflow(this::ouvrirDebordement);
+        barre.setOnOverflow(this::openOverflow);
         barre.setOnDocs(docs);
     }
 
@@ -131,12 +131,12 @@ final class BarreSelection {
     private List<SelectionBarView.Item> actionsEditionStandard() {
         List<SelectionBarView.Item> items = new ArrayList<>(4);
         items.add(new SelectionBarView.Item("Couper",
-                jo.celeris.android.widgets.IconeAction.COUPER, this::couper));
+                jo.celeris.android.widgets.IconeAction.COUPER, this::cut));
         items.add(new SelectionBarView.Item("Copier",
                 jo.celeris.android.widgets.IconeAction.COPIER, this::copier));
-        if (!pressePapiersVide()) {
+        if (!clipboardEmpty()) {
             items.add(new SelectionBarView.Item("Coller",
-                    jo.celeris.android.widgets.IconeAction.COLLER, this::coller));
+                    jo.celeris.android.widgets.IconeAction.COLLER, this::paste));
         }
         items.add(new SelectionBarView.Item("Tout copier",
                 jo.celeris.android.widgets.IconeAction.TOUT, this::toutCopier));
@@ -145,13 +145,13 @@ final class BarreSelection {
 
     /** Les actions courantes de la barre — la sonde du banc : le
      *  fournisseur y lit sans poser la barre. */
-    java.util.List<SelectionBarView.Item> actionsDeBarre() {
+    java.util.List<SelectionBarView.Item> barActions() {
         return actions.get();
     }
 
     /** Le presse-papiers système est-il vide — sans hôte, sans texte,
      *  la pastille Coller ne vit pas. */
-    private boolean pressePapiersVide() {
+    private boolean clipboardEmpty() {
         Object service = popups.couche().getContext()
                 .getSystemService(Context.CLIPBOARD_SERVICE);
         if (!(service instanceof ClipboardManager pressePapiers)) {
@@ -177,37 +177,37 @@ final class BarreSelection {
         if (joint == null) {
             return;
         }
-        poserAuPressePapiers(joint);
+        placeToClipboard(joint);
     }
 
     /** Coupe la sélection : copie les segments joints puis remplace
      *  chaque plage par le vide (C-13 : le geste multi). */
-    private void couper() {
+    private void cut() {
         String joint = segmentsJoints();
         if (joint == null) {
             return;
         }
-        poserAuPressePapiers(joint);
+        placeToClipboard(joint);
         session.replaceEach(java.util.Collections.nCopies(
                 plagesEtendues().size(), ""));
-        editeur.invalidate();
+        editor.invalidate();
     }
 
     /** Les segments des plages étendues, joints par \n (C-13) —
      *  null si aucune plage étendue (les curseurs seuls ne copient
      *  rien). */
     private String segmentsJoints() {
-        List<SelRange> plages = plagesEtendues();
-        if (plages.isEmpty()) {
+        List<SelRange> ranges = plagesEtendues();
+        if (ranges.isEmpty()) {
             return null;
         }
         StringBuilder joint = new StringBuilder();
-        for (SelRange plage : plages) {
+        for (SelRange range : ranges) {
             if (joint.length() > 0) {
                 joint.append('\n');
             }
             joint.append(session.document().subText(
-                    plage.start(), plage.end()));
+                    range.start(), range.end()));
         }
         return joint.toString();
     }
@@ -216,16 +216,16 @@ final class BarreSelection {
      *  copient rien, ne coupent rien — C-13). */
     private List<SelRange> plagesEtendues() {
         List<SelRange> etendues = new java.util.ArrayList<>();
-        for (SelRange plage : session.selection().ranges()) {
-            if (!plage.isEmpty()) {
-                etendues.add(plage);
+        for (SelRange range : session.selection().ranges()) {
+            if (!range.isEmpty()) {
+                etendues.add(range);
             }
         }
         return etendues;
     }
 
     /** Colle le presse-papiers système sur la sélection. */
-    private void coller() {
+    private void paste() {
         Object service = popups.couche().getContext()
                 .getSystemService(Context.CLIPBOARD_SERVICE);
         if (!(service instanceof ClipboardManager pressePapiers)) {
@@ -235,57 +235,57 @@ final class BarreSelection {
         if (contenu == null || contenu.getItemCount() == 0) {
             return;
         }
-        CharSequence texte = contenu.getItemAt(0).coerceToText(
+        CharSequence text = contenu.getItemAt(0).coerceToText(
                 popups.couche().getContext());
-        if (texte == null) {
+        if (text == null) {
             return;
         }
         // C-13 : le coller multi — le clip se DISTRIBUE quand il a
         // autant de lignes que de plages, sinon il se pose entier
         // sur chaque plage.
-        List<SelRange> plages = session.selection().ranges();
-        if (plages.isEmpty()) {
+        List<SelRange> ranges = session.selection().ranges();
+        if (ranges.isEmpty()) {
             return;
         }
-        List<String> lignes = java.util.Arrays.asList(
-                texte.toString().split("\\n", -1));
+        List<String> lines = java.util.Arrays.asList(
+                text.toString().split("\\n", -1));
         List<String> parts;
-        if (lignes.size() == plages.size() && plages.size() > 1) {
-            parts = lignes;
+        if (lines.size() == ranges.size() && ranges.size() > 1) {
+            parts = lines;
         } else {
-            parts = java.util.Collections.nCopies(plages.size(),
-                    texte.toString());
+            parts = java.util.Collections.nCopies(ranges.size(),
+                    text.toString());
         }
         session.replaceEach(parts);
-        editeur.invalidate();
+        editor.invalidate();
     }
 
     /** Copie TOUT le document au presse-papiers système — « copier
      *  tout », la sélection devient le document entier. */
     private void toutCopier() {
-        poserAuPressePapiers(session.document().text());
+        placeToClipboard(session.document().text());
     }
 
     /** Pose le texte au presse-papiers système puis re-pose la barre :
      *  Coller vient de se proposer (ou se retirer). La pose est
      *  BORNÉE au plafond : la transaction Binder ne porte pas un
      *  document monstre (A-20). */
-    private void poserAuPressePapiers(String texte) {
+    private void placeToClipboard(String text) {
         Object service = popups.couche().getContext()
                 .getSystemService(Context.CLIPBOARD_SERVICE);
         if (service instanceof ClipboardManager pressePapiers) {
             pressePapiers.setPrimaryClip(ClipData.newPlainText("celeris",
-                    texte.length() > MAX_CLIPBOARD_CHARS
-                            ? texte.substring(0, MAX_CLIPBOARD_CHARS)
-                            : texte));
+                    text.length() > MAX_CLIPBOARD_CHARS
+                            ? text.substring(0, MAX_CLIPBOARD_CHARS)
+                            : text));
         }
-        poser(session.selection());
+        place(session.selection());
     }
 
     /** La plage primaire de la sélection — null sans plage. */
     private @org.jspecify.annotations.Nullable SelRange plagePrimaire() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? null : plages.get(0);
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? null : ranges.get(0);
     }
 
     /** La palette tourne : la barre et son menu la suivent. */
@@ -296,45 +296,45 @@ final class BarreSelection {
 
     /** Re-pose la barre ouverte — les actions vives se relisent : le
      *  presse-papiers a changé, Coller se propose ou se retire. */
-    void rafraichir() {
-        poser(session.selection());
+    void refresh() {
+        place(session.selection());
     }
 
     /** La sélection a changé : la barre se pose au-dessus d'elle, ou
      *  se referme sans sélection unique à tenir — la PORTE des
      *  réglages peut la retirer (la table centrale décide). */
-    void poser(MultiSelection selection) {
-        if (!editeur.reglages().ouverte(
-                ReglagesEditeur.Porte.BARRE_SELECTION)) {
-            popups.fermer(PopupController.PopupKind.SELECTION_BAR);
+    void place(MultiSelection selection) {
+        if (!editor.settingsPanel().ouverte(
+                EditorSettingsPanel.Porte.BARRE_SELECTION)) {
+            popups.close(PopupController.PopupKind.SELECTION_BAR);
             return;
         }
-        List<SelRange> plages = selection.ranges();
-        boolean visible = plages.size() == 1 && !plages.get(0).isEmpty();
+        List<SelRange> ranges = selection.ranges();
+        boolean visible = ranges.size() == 1 && !ranges.get(0).isEmpty();
         if (!visible) {
-            popups.fermer(PopupController.PopupKind.SELECTION_BAR);
+            popups.close(PopupController.PopupKind.SELECTION_BAR);
             return;
         }
         popups.controleur().open(PopupController.PopupKind.SELECTION_BAR);
         barre.setActions(actions.get(), List.of());
-        Rect sel = editeur.selectionBounds();
+        Rect sel = editor.selectionBounds();
         PopupPlacer.Cadre placee = PopupAnchor.centeredAboveSelection(
                 sel.left, sel.right, sel.top,
-                popups.taille(PopupController.PopupKind.SELECTION_BAR),
+                popups.size(PopupController.PopupKind.SELECTION_BAR),
                 popups.couche().getWidth(), popups.couche().getHeight(),
                 margePx);
-        popups.montrer(PopupController.PopupKind.SELECTION_BAR,
+        popups.show(PopupController.PopupKind.SELECTION_BAR,
                 placee.x(), placee.y());
         if (popups.estOuvert(PopupController.PopupKind.SELECTION_OVERFLOW)) {
-            ouvrirDebordement();
+            openOverflow();
         }
     }
 
     /** Ouvre le menu de débordement sous la SÉLECTION — le menu ne
      *  marche jamais sur le caret (l'audit du 2026-11-14) ; les étages
      *  se relisent : la visibilité contextuelle naît de la donnée. */
-    private void ouvrirDebordement() {
-        menu.ouvrir(barre, editeur.selectionBounds().bottom,
+    private void openOverflow() {
+        menu.open(barre, editor.selectionBounds().bottom,
                 debordement.get());
     }
 }

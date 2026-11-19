@@ -46,10 +46,10 @@ final class PaquetSmaliIntegreTest {
 
     /** La grammaire livrée du paquet intégré, en texte. */
     private static String grammaireLivree() {
-        return lire("langages/smali/grammar.json");
+        return read("langages/smali/grammar.json");
     }
 
-    private static String lire(String chemin) {
+    private static String read(String chemin) {
         try (InputStream flux = PaquetSmaliIntegreTest.class.getClassLoader()
                 .getResourceAsStream(chemin)) {
             if (flux == null) {
@@ -79,12 +79,12 @@ final class PaquetSmaliIntegreTest {
      */
     @Test
     void laGrammaireCompileSansEcart() {
-        Grammaire grammaire = Grammaires.lire(grammaireLivree());
-        assertEquals(1.0, grammaire.rapport().acceptation(),
-                "smali : acceptation " + grammaire.rapport().acceptation()
-                        + " (" + grammaire.rapport().refuses() + " refus sur "
-                        + grammaire.rapport().motifs() + " motifs)");
-        assertTrue(grammaire.rapport().motifs() > 0, "la grammaire a des motifs");
+        Grammar grammaire = Grammars.read(grammaireLivree());
+        assertEquals(1.0, grammaire.report().acceptation(),
+                "smali : acceptation " + grammaire.report().acceptation()
+                        + " (" + grammaire.report().refuses() + " refus sur "
+                        + grammaire.report().patterns() + " motifs)");
+        assertTrue(grammaire.report().patterns() > 0, "la grammaire a des motifs");
     }
 
     /**
@@ -98,7 +98,7 @@ final class PaquetSmaliIntegreTest {
     void lOracleDuDepartSeRejoue() throws IOException {
         LanguagePack pack = paquetSmali();
         assertNotNull(pack.grammar(), "la grammaire du paquet smali compile");
-        GrammaireLexeur lexeur = (GrammaireLexeur) pack.grammar().lexer();
+        GrammarLexer lexeur = (GrammarLexer) pack.grammar().lexer();
         sorte(lexeur, ".class public Lbanc/Echantillon;", TokenKind.KEYWORD,
                 "la directive .class");
         sorte(lexeur, ".registers 5", TokenKind.KEYWORD, "la directive .registers");
@@ -122,10 +122,10 @@ final class PaquetSmaliIntegreTest {
                 "le commentaire au croisillon");
         Token[] orpheline = lexeur.lex("const-string v4, \"orpheline",
                 lexeur.initialState()).tokens();
-        for (Token jeton : orpheline) {
-            assertTrue(jeton.kind() != TokenKind.STRING,
+        for (Token token : orpheline) {
+            assertTrue(token.kind() != TokenKind.STRING,
                     "la chaîne orpheline ne se colore pas comme chaîne (la"
-                            + " garde historique du départ) : " + jeton.kind());
+                            + " garde historique du départ) : " + token.kind());
         }
     }
 
@@ -134,20 +134,20 @@ final class PaquetSmaliIntegreTest {
      * l'oracle SmaliTokenizer classait les familles, le paquet les
      * rend par la portée du commerce.
      */
-    private static void sorte(GrammaireLexeur lexeur, String ligne,
+    private static void sorte(GrammarLexer lexeur, String line,
             TokenKind attendu, String commentaire) {
-        LexedLine lexee = lexeur.lex(ligne, lexeur.initialState());
-        Token[] jetons = lexee.tokens();
-        assertTrue(jetons.length > 0, "'" + ligne + "' produit des jetons");
+        LexedLine lexee = lexeur.lex(line, lexeur.initialState());
+        Token[] tokens = lexee.tokens();
+        assertTrue(tokens.length > 0, "'" + line + "' produit des jetons");
         boolean trouve = false;
-        for (Token jeton : jetons) {
-            assertTrue(jeton.scope() != ScopeStacks.NONE,
+        for (Token token : tokens) {
+            assertTrue(token.scope() != ScopeStacks.NONE,
                     "chaque jeton porte sa pile (H-07)");
-            if (jeton.kind() == attendu) {
+            if (token.kind() == attendu) {
                 trouve = true;
             }
         }
-        assertTrue(trouve, ligne + " : " + commentaire + " vit en " + attendu);
+        assertTrue(trouve, line + " : " + commentaire + " vit en " + attendu);
     }
 
     /**
@@ -158,24 +158,24 @@ final class PaquetSmaliIntegreTest {
     void lEchantillonSeRejoueAvecDeterminisme() throws IOException {
         LanguagePack pack = paquetSmali();
         assertNotNull(pack.grammar(), "la grammaire du paquet smali compile");
-        GrammaireLexeur lexeur = (GrammaireLexeur) pack.grammar().lexer();
-        String[] lignes = lire("grammaires-commerce/echantillons/smali.txt")
+        GrammarLexer lexeur = (GrammarLexer) pack.grammar().lexer();
+        String[] lines = read("grammaires-commerce/echantillons/smali.txt")
                 .split("\n", -1);
         LexState etat = lexeur.initialState();
-        int jetons = 0;
-        for (String ligne : lignes) {
-            LexedLine premiere = lexeur.lex(ligne, etat);
-            LexedLine seconde = lexeur.lex(ligne, etat);
+        int tokens = 0;
+        for (String line : lines) {
+            LexedLine premiere = lexeur.lex(line, etat);
+            LexedLine seconde = lexeur.lex(line, etat);
             assertArrayEquals(premiere.tokens(), seconde.tokens(),
                     "le lexeur du paquet est déterministe");
-            for (Token jeton : premiere.tokens()) {
-                assertTrue(jeton.scope() != ScopeStacks.NONE,
+            for (Token token : premiere.tokens()) {
+                assertTrue(token.scope() != ScopeStacks.NONE,
                         "chaque jeton porte sa pile (H-07)");
             }
-            jetons += premiere.tokens().length;
+            tokens += premiere.tokens().length;
             etat = premiere.exitState();
         }
-        assertTrue(jetons > 0, "l'échantillon produit des jetons");
+        assertTrue(tokens > 0, "l'échantillon produit des jetons");
         assertEquals(0, lexeur.incidents(),
                 "aucun incident de budget sur l'échantillon");
     }

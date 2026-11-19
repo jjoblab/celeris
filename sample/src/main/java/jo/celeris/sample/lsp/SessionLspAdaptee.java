@@ -6,17 +6,17 @@ import java.util.concurrent.CompletableFuture;
 import jo.celeris.android.host.popups.LanguageSession;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.SignatureAideModel;
-import jo.celeris.core.lsp.types.CorrectifLsp;
+import jo.celeris.core.lsp.types.CodeActionLsp;
 import jo.celeris.core.lsp.types.DiagnosticLsp;
-import jo.celeris.core.lsp.types.EditionEspaceLsp;
-import jo.celeris.core.lsp.types.IndiceLsp;
-import jo.celeris.core.lsp.types.LieuLsp;
-import jo.celeris.core.lsp.types.ListeCompletion;
-import jo.celeris.core.lsp.types.PliLsp;
-import jo.celeris.core.lsp.types.PositionLsp;
-import jo.celeris.core.lsp.types.PreparationRennomageLsp;
-import jo.celeris.core.lsp.types.SurlignageLsp;
-import jo.celeris.core.lsp.types.SymboleLsp;
+import jo.celeris.core.lsp.types.WorkspaceEditLsp;
+import jo.celeris.core.lsp.types.InlayHintLsp;
+import jo.celeris.core.lsp.types.LocationLsp;
+import jo.celeris.core.lsp.types.CompletionListLsp;
+import jo.celeris.core.lsp.types.FoldLsp;
+import jo.celeris.core.lsp.types.LspPosition;
+import jo.celeris.core.lsp.types.RenamePrepareLsp;
+import jo.celeris.core.lsp.types.HighlightLsp;
+import jo.celeris.core.lsp.types.SymbolLsp;
 import jo.celeris.core.text.Document;
 import jo.celeris.lsp.protocole.LspSession;
 
@@ -44,13 +44,13 @@ public final class SessionLspAdaptee implements LanguageSession {
     }
 
     @Override
-    public void ouvrir(String uri, String langue, String texte) {
-        session.ouvrir(uri, langue, texte);
+    public void open(String uri, String language, String text) {
+        session.open(uri, language, text);
     }
 
     @Override
-    public void synchroniser(String uri, String texte) {
-        session.changer(uri, versionSuivante(uri), texte);
+    public void synchroniser(String uri, String text) {
+        session.change(uri, versionSuivante(uri), text);
     }
 
     /** Les versions suivies — la resynchronisation annonce la suivante. */
@@ -69,51 +69,51 @@ public final class SessionLspAdaptee implements LanguageSession {
     public CompletableFuture<@Nullable SignatureAideModel> signature(String uri,
             Document doc, int caret) {
         return session.signature(uri, position(doc, caret))
-                .thenApply(aide -> {
-                    if (aide == null || aide.entrees().isEmpty()) {
+                .thenApply(help -> {
+                    if (help == null || help.entrees().isEmpty()) {
                         return null;
                     }
-                    List<SignatureAideModel.Entree> entrees =
+                    List<SignatureAideModel.Entry> entrees =
                             new java.util.ArrayList<>();
-                    for (var source : aide.entrees()) {
-                        List<String> parametres = new java.util.ArrayList<>();
-                        for (var parametre : source.parametres()) {
-                            parametres.add(parametre.libelle());
+                    for (var source : help.entrees()) {
+                        List<String> parameters = new java.util.ArrayList<>();
+                        for (var parametre : source.parameters()) {
+                            parameters.add(parametre.label());
                         }
-                        entrees.add(new SignatureAideModel.Entree(
-                                source.libelle(), parametres,
+                        entrees.add(new SignatureAideModel.Entry(
+                                source.label(), parameters,
                                 source.documentation()));
                     }
                     return SignatureAideModel.of(entrees,
-                            aide.signatureActiveIndex(),
-                            aide.parametreCourant());
+                            help.signatureActiveIndex(),
+                            help.parametreCourant());
                 });
     }
 
     @Override
-    public CompletableFuture<@Nullable CompletionDocModel> survol(String uri,
+    public CompletableFuture<@Nullable CompletionDocModel> hover(String uri,
             Document doc, String symbole, int caret) {
-        return session.survol(uri, position(doc, caret))
-                .thenApply(survol -> survol == null ? null
-                        : CompletionDocModel.of(survol.texte(),
-                                survol.texte()));
+        return session.hover(uri, position(doc, caret))
+                .thenApply(hover -> hover == null ? null
+                        : CompletionDocModel.of(hover.text(),
+                                hover.text()));
     }
 
     @Override
-    public boolean sertCompletion() {
+    public boolean supportsCompletion() {
         return true;
     }
 
     @Override
-    public CompletableFuture<ListeCompletion> completion(String uri,
+    public CompletableFuture<CompletionListLsp> completion(String uri,
             Document doc, int caret) {
         return session.completion(uri, position(doc, caret));
     }
 
     @Override
-    public void poserAuditeurDiagnostics(
+    public void setDiagnosticsListener(
             java.util.function.BiConsumer<String, List<DiagnosticLsp>> auditeur) {
-        session.ajouterAuditeurDiagnostics(
+        session.addDiagnosticsListener(
                 (uri, diagnostics) -> auditeur.accept(uri, diagnostics));
     }
 
@@ -121,78 +121,78 @@ public final class SessionLspAdaptee implements LanguageSession {
     //    serveur, les vides du domaine restent aux replis. ──────────
 
     @Override
-    public CompletableFuture<List<SymboleLsp>> symboles(String uri) {
-        return session.symboles(uri);
+    public CompletableFuture<List<SymbolLsp>> symbols(String uri) {
+        return session.symbols(uri);
     }
 
     @Override
-    public CompletableFuture<List<PliLsp>> plis(String uri) {
-        return session.plis(uri);
+    public CompletableFuture<List<FoldLsp>> folds(String uri) {
+        return session.folds(uri);
     }
 
     @Override
-    public CompletableFuture<List<jo.celeris.core.lsp.types.EditionTexteLsp>> formatage(
-            String uri, jo.celeris.core.lsp.types.OptionsFormatageLsp options) {
+    public CompletableFuture<List<jo.celeris.core.lsp.types.TextEditLsp>> formatage(
+            String uri, jo.celeris.core.lsp.types.FormatOptionsLsp options) {
         return session.formatage(uri, options);
     }
 
     @Override
-    public CompletableFuture<List<jo.celeris.core.lsp.types.EditionTexteLsp>> formatagePlage(
-            String uri, jo.celeris.core.lsp.types.PlageLsp plage,
-            jo.celeris.core.lsp.types.OptionsFormatageLsp options) {
-        return session.formatagePlage(uri, plage, options);
+    public CompletableFuture<List<jo.celeris.core.lsp.types.TextEditLsp>> rangeFormatting(
+            String uri, jo.celeris.core.lsp.types.RangeLsp range,
+            jo.celeris.core.lsp.types.FormatOptionsLsp options) {
+        return session.rangeFormatting(uri, range, options);
     }
 
     @Override
-    public CompletableFuture<List<SurlignageLsp>> surlignages(String uri,
+    public CompletableFuture<List<HighlightLsp>> highlights(String uri,
             Document doc, int caret) {
-        return session.surlignages(uri, position(doc, caret));
+        return session.highlights(uri, position(doc, caret));
     }
 
     @Override
-    public CompletableFuture<List<jo.celeris.core.lsp.types.PlageLsp>> plagesSelection(
+    public CompletableFuture<List<jo.celeris.core.lsp.types.RangeLsp>> selectionRanges(
             String uri, Document doc, int caret) {
-        return session.plagesSelection(uri, position(doc, caret));
+        return session.selectionRanges(uri, position(doc, caret));
     }
 
     @Override
-    public CompletableFuture<@Nullable PreparationRennomageLsp> preparerRennomage(
+    public CompletableFuture<@Nullable RenamePrepareLsp> preparerRennomage(
             String uri, Document doc, int caret) {
         return session.preparerRennomage(uri, position(doc, caret));
     }
 
     @Override
-    public CompletableFuture<EditionEspaceLsp> rennomage(String uri, Document doc,
+    public CompletableFuture<WorkspaceEditLsp> rename(String uri, Document doc,
             int caret, String nouveauNom) {
-        return session.rennomage(uri, position(doc, caret), nouveauNom);
+        return session.rename(uri, position(doc, caret), nouveauNom);
     }
 
     @Override
-    public CompletableFuture<List<CorrectifLsp>> correctifs(String uri,
-            jo.celeris.core.lsp.types.PlageLsp plage) {
-        return session.correctifs(uri, plage);
+    public CompletableFuture<List<CodeActionLsp>> correctifs(String uri,
+            jo.celeris.core.lsp.types.RangeLsp range) {
+        return session.correctifs(uri, range);
     }
 
     @Override
-    public CompletableFuture<List<IndiceLsp>> indices(String uri,
-            jo.celeris.core.lsp.types.PlageLsp plage) {
-        return session.indices(uri, plage);
+    public CompletableFuture<List<InlayHintLsp>> inlayHints(String uri,
+            jo.celeris.core.lsp.types.RangeLsp range) {
+        return session.inlayHints(uri, range);
     }
 
     @Override
-    public CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> jetons(
+    public CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> tokens(
             String uri) {
-        return session.jetons(uri);
+        return session.tokens(uri);
     }
 
     @Override
-    public CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> jetonsPlage(
-            String uri, jo.celeris.core.lsp.types.PlageLsp plage) {
-        return session.jetonsPlage(uri, plage);
+    public CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> tokensRange(
+            String uri, jo.celeris.core.lsp.types.RangeLsp range) {
+        return session.tokensRange(uri, range);
     }
 
     @Override
-    public CompletableFuture<List<LieuLsp>> references(String uri, Document doc,
+    public CompletableFuture<List<LocationLsp>> references(String uri, Document doc,
             int caret) {
         return session.references(uri, position(doc, caret));
     }
@@ -212,16 +212,16 @@ public final class SessionLspAdaptee implements LanguageSession {
     // ── Les conversions offset ↔ position LSP ──────────────────────
 
     /** La position LSP d'un offset du document. */
-    private static PositionLsp position(Document doc, int offset) {
+    private static LspPosition position(Document doc, int offset) {
         int borne = Math.max(0, Math.min(offset, doc.length()));
-        int ligne = doc.lineForOffset(borne);
-        return new PositionLsp(ligne, borne - doc.lineStart(ligne));
+        int line = doc.lineForOffset(borne);
+        return new LspPosition(line, borne - doc.lineStart(line));
     }
 
     /** La plage LSP d'une étendue du document. */
-    private static jo.celeris.core.lsp.types.PlageLsp plage(Document doc,
-            int debut, int fin) {
-        return new jo.celeris.core.lsp.types.PlageLsp(position(doc, debut),
-                position(doc, fin));
+    private static jo.celeris.core.lsp.types.RangeLsp range(Document doc,
+            int start, int end) {
+        return new jo.celeris.core.lsp.types.RangeLsp(position(doc, start),
+                position(doc, end));
     }
 }

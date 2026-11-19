@@ -23,13 +23,13 @@ public final class FrameState {
     private int visibleRows;
     private float gutterWidth;
     /** La largeur de la fenêtre — le bord droit des couches pleine largeur. */
-    private float largeurFenetre;
+    private float windowWidth;
     private float scrollX;
     private float scrollY;
     /** Une publication d'analyse existe (M7.5, §9) : une rangée sans
      *  couleur se comptera comme décolorée — avant la première
      *  publication, rien n'avait de couleur à perdre. */
-    private boolean couleurAttendue;
+    private boolean expectedColor;
     /** L'image en cours a tracé une rangée sans couleur qu'elle
      *  possédait (M7.5, §9 — la surimpression de diagnostic le lit). */
     private boolean imageDecoloree;
@@ -62,12 +62,12 @@ public final class FrameState {
      * fenêtre : les couches de chrome pleine largeur (la bande de
      * ligne courante) y lisent leur bord droit.
      *
-     * @param largeurFenetre la largeur visible de la vue, en pixels
+     * @param windowWidth la largeur visible de la vue, en pixels
      */
     public void beginFrame(Document document, MultiSelection selection,
             VisualProjection projection, long revision, EditorMetrics metrics,
             EditorTheme theme, int firstRow, int visibleRows, float gutterWidth,
-            float scrollX, float scrollY, float largeurFenetre) {
+            float scrollX, float scrollY, float windowWidth) {
         this.document = document;
         this.selection = selection;
         this.projection = projection;
@@ -83,8 +83,8 @@ public final class FrameState {
         this.gutterWidth = gutterWidth;
         this.scrollX = scrollX;
         this.scrollY = scrollY;
-        this.largeurFenetre = largeurFenetre;
-        this.couleurAttendue = false;
+        this.windowWidth = windowWidth;
+        this.expectedColor = false;
         this.imageDecoloree = false;
     }
 
@@ -95,16 +95,16 @@ public final class FrameState {
      *
      * @param attendue vrai quand une publication existe
      */
-    public void attendCouleur(boolean attendue) {
-        this.couleurAttendue = attendue;
+    public void awaitColor(boolean attendue) {
+        this.expectedColor = attendue;
     }
 
     /**
      * Vrai quand une publication d'analyse existe : le peintre de
      * texte y marque les rangées décolorées (M7.5, §9).
      */
-    public boolean couleurAttendue() {
-        return couleurAttendue;
+    public boolean expectedColor() {
+        return expectedColor;
     }
 
     /**
@@ -189,9 +189,9 @@ public final class FrameState {
 
     /** La largeur de gouttière courante, en pixels. */
     /** La largeur visible de la fenêtre, en pixels. */
-    public float largeurFenetre() {
+    public float windowWidth() {
         exigeImage();
-        return largeurFenetre;
+        return windowWidth;
     }
 
     public float gutterWidth() {

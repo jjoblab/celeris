@@ -28,7 +28,7 @@ class SyntaxPaletteTest {
     void lesTroisThemesPortentUnePaletteCompleteContrastee() {
         Map<String, EditorTheme> themes = new LinkedHashMap<>();
         themes.put("clair", EditorThemes.CLAIR);
-        themes.put("sombre", EditorThemes.SOMBRE);
+        themes.put("sombre", EditorThemes.DARK);
         themes.put("contraste élevé", EditorThemes.CONTRASTE_ELEVE);
         themes.put("dracula", EditorThemes.DRACULA);
         themes.put("monokai", EditorThemes.MONOKAI);
@@ -37,16 +37,16 @@ class SyntaxPaletteTest {
         themes.put("nord", EditorThemes.NORD);
         themes.put("github clair", EditorThemes.GITHUB_CLAIR);
 
-        for (Map.Entry<String, EditorTheme> entree : themes.entrySet()) {
-            EditorTheme theme = entree.getValue();
-            String nom = entree.getKey();
+        for (Map.Entry<String, EditorTheme> input : themes.entrySet()) {
+            EditorTheme theme = input.getValue();
+            String nom = input.getKey();
             SyntaxPalette palette = theme.syntaxe();
             for (TokenKind sorte : TokenKind.values()) {
-                double rapport = WcagContrast.ratio(palette.couleur(sorte),
+                double report = WcagContrast.ratio(palette.couleur(sorte),
                         theme.backgroundColor());
-                assertTrue(rapport >= 4.5,
+                assertTrue(report >= 4.5,
                         nom + " : la sorte " + sorte + " doit contraster "
-                                + "≥ 4,5:1 sur le fond (mesuré " + rapport + ")");
+                                + "≥ 4,5:1 sur le fond (mesuré " + report + ")");
             }
         }
     }
@@ -55,7 +55,7 @@ class SyntaxPaletteTest {
     @Test
     void lesSortesStructurantesSeDistinguentDeLaBase() {
         for (EditorTheme theme : new EditorTheme[] {EditorThemes.CLAIR,
-                EditorThemes.SOMBRE, EditorThemes.CONTRASTE_ELEVE,
+                EditorThemes.DARK, EditorThemes.CONTRASTE_ELEVE,
                 EditorThemes.DRACULA, EditorThemes.MONOKAI,
                 EditorThemes.ONE_DARK, EditorThemes.SOLARIZED_CLAIR,
                 EditorThemes.NORD, EditorThemes.GITHUB_CLAIR}) {

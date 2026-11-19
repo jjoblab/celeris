@@ -95,18 +95,18 @@ public final class McpConnector {
     }
 
     /**
-     * Lit une plage par le connecteur — le même {@code lire} qu'en
+     * Lit une plage par le connecteur — le même {@code read} qu'en
      * direct, la réponse se rend en JSON.
      *
      * @param outils les outils de l'éditeur
-     * @param debut  le début de la plage, inclusif
-     * @param fin    la fin de la plage, exclusive
+     * @param start  le début de la plage, inclusif
+     * @param end    la fin de la plage, exclusive
      * @return la réponse JSON : révision et texte
      */
-    public static String lire(EditorTools outils, int debut, int fin) {
-        ReadRange plage = outils.lire(debut, fin);
-        return "{\"revision\":" + plage.revision() + ",\"texte\":\""
-                + echapper(plage.texte()) + "\"}";
+    public static String read(EditorTools outils, int start, int end) {
+        ReadRange range = outils.read(start, end);
+        return "{\"revision\":" + range.revision() + ",\"texte\":\""
+                + echapper(range.text()) + "\"}";
     }
 
     /**
@@ -117,23 +117,23 @@ public final class McpConnector {
      * @return la réponse JSON : révision et texte
      */
     public static String instantane(EditorTools outils) {
-        ReadRange plage = outils.instantane();
-        return "{\"revision\":" + plage.revision() + ",\"texte\":\""
-                + echapper(plage.texte()) + "\"}";
+        ReadRange range = outils.instantane();
+        return "{\"revision\":" + range.revision() + ",\"texte\":\""
+                + echapper(range.text()) + "\"}";
     }
 
     /**
-     * Liste les symboles par le connecteur — le même {@code symboles}
+     * Liste les symboles par le connecteur — le même {@code symbols}
      * qu'en direct.
      *
      * @param outils les outils de l'éditeur
      * @return la réponse JSON : les symboles, bornes comprises
      */
-    public static String symboles(EditorTools outils) {
+    public static String symbols(EditorTools outils) {
         StringBuilder json = new StringBuilder("{\"symboles\":[");
-        List<OutlineEntry> symboles = outils.symboles();
-        for (int i = 0; i < symboles.size(); i++) {
-            OutlineEntry symbole = symboles.get(i);
+        List<OutlineEntry> symbols = outils.symbols();
+        for (int i = 0; i < symbols.size(); i++) {
+            OutlineEntry symbole = symbols.get(i);
             if (i > 0) {
                 json.append(',');
             }
@@ -180,8 +180,8 @@ public final class McpConnector {
      */
     public static String instructions(EditorTools outils) {
         AgentInstructions instructions = outils.instructions();
-        return "{\"instructions\":\"" + echapper(instructions.texte())
-                + "\",\"absentes\":" + instructions.estAbsente() + "}";
+        return "{\"instructions\":\"" + echapper(instructions.text())
+                + "\",\"absentes\":" + instructions.isAbsent() + "}";
     }
 
     /**
@@ -195,7 +195,7 @@ public final class McpConnector {
     public static String appliquer(EditorTools outils,
             ToolTransaction transaction) {
         ToolTransactionReply reponse = outils.appliquer(transaction);
-        return "{\"sortie\":\"" + reponse.sortie().name() + "\",\"message\":\""
+        return "{\"sortie\":\"" + reponse.output().name() + "\",\"message\":\""
                 + echapper(reponse.message()) + "\",\"revision\":"
                 + reponse.revision() + "}";
     }
@@ -204,10 +204,10 @@ public final class McpConnector {
      * L'échappement JSON minimal : guillemet, barre oblique inverse et
      * contrôles — le texte servi reste lisible par tout serveur.
      */
-    private static String echapper(String texte) {
-        StringBuilder json = new StringBuilder(texte.length() + 8);
-        for (int i = 0; i < texte.length(); i++) {
-            char c = texte.charAt(i);
+    private static String echapper(String text) {
+        StringBuilder json = new StringBuilder(text.length() + 8);
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
             switch (c) {
                 case '"' -> json.append("\\\"");
                 case '\\' -> json.append("\\\\");

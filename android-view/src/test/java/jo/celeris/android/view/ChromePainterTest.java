@@ -130,7 +130,7 @@ class ChromePainterTest {
         SurfaceRectangles surface = new SurfaceRectangles();
         EditorMetrics metrics = metrics();
 
-        chrome.tracer(surface, new PinceauSimple(), THEME, metrics,
+        chrome.trace(surface, new PinceauSimple(), THEME, metrics,
                 document, projection,
                 List.of(SelRange.caretAt(3)), GOUTTIERE, 0f, 0f, true);
 
@@ -156,7 +156,7 @@ class ChromePainterTest {
         ChromePainter chrome = new ChromePainter();
         SurfaceRectangles surface = new SurfaceRectangles();
 
-        chrome.tracer(surface, new PinceauSimple(), THEME, metrics(),
+        chrome.trace(surface, new PinceauSimple(), THEME, metrics(),
                 document, projection,
                 List.of(SelRange.caretAt(2), SelRange.caretAt(9)),
                 GOUTTIERE, 0f, 0f, true);
@@ -173,7 +173,7 @@ class ChromePainterTest {
         ChromePainter chrome = new ChromePainter();
         SurfaceRectangles surface = new SurfaceRectangles();
 
-        chrome.tracer(surface, new PinceauSimple(), THEME, metrics(),
+        chrome.trace(surface, new PinceauSimple(), THEME, metrics(),
                 document, projection,
                 List.of(SelRange.caretAt(3)), GOUTTIERE, 0f, 0f, false);
 
@@ -195,7 +195,7 @@ class ChromePainterTest {
         SurfaceRectangles surface = new SurfaceRectangles();
         EditorMetrics metrics = metrics();
 
-        chrome.tracer(surface, new PinceauSimple(), THEME, metrics,
+        chrome.trace(surface, new PinceauSimple(), THEME, metrics,
                 document, projection,
                 List.of(new SelRange(1, 4)), GOUTTIERE, 0f, 0f, true);
 

@@ -18,7 +18,7 @@ class GrammairesTest {
     /** Une grammaire minimale se charge : nom, portée racine, motifs. */
     @Test
     void grammaireMinimale() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai",
                   "scopeName": "source.essai",
@@ -30,13 +30,13 @@ class GrammairesTest {
                 """);
         assertEquals("Essai", grammaire.nom());
         assertEquals("source.essai", grammaire.porteeRacine());
-        assertEquals(2, grammaire.motifs().size());
+        assertEquals(2, grammaire.patterns().size());
     }
 
     /** Les inclusions du référentiel se résolvent en références parcourues. */
     @Test
     void inclusionsResolues() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai",
                   "scopeName": "source.essai",
@@ -46,17 +46,17 @@ class GrammairesTest {
                   }
                 }
                 """);
-        assertEquals(1, grammaire.motifs().size());
-        Regle regle = grammaire.motifs().get(0);
-        assertTrue(regle instanceof RegleListe, "l'inclusion devient une référence");
-        RegleListe liste = (RegleListe) regle;
+        assertEquals(1, grammaire.patterns().size());
+        Rule regle = grammaire.patterns().get(0);
+        assertTrue(regle instanceof ListRule, "l'inclusion devient une référence");
+        ListRule liste = (ListRule) regle;
         assertEquals(1, liste.regles().size());
     }
 
     /** L'inclusion cyclique est permise quand elle traverse un bloc. */
     @Test
     void inclusionCycliqueATraversUnBloc() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai",
                   "scopeName": "source.essai",
@@ -72,14 +72,14 @@ class GrammairesTest {
                 """);
         // la référence du tableau pointe vers la liste en cours de
         // construction — la lexicographie la parcourt sans fin d'aplatissement
-        RegleListe valeurs = (RegleListe) grammaire.motifs().get(0);
-        assertTrue(valeurs.regles().get(1) instanceof RegleBloc, "le tableau est un bloc");
+        ListRule valeurs = (ListRule) grammaire.patterns().get(0);
+        assertTrue(valeurs.regles().get(1) instanceof BlockRule, "le tableau est un bloc");
     }
 
     /** $self se résout en la racine : la grammaire s'inclut elle-même (TextMate réel). */
     @Test
     void selfSeResoutALaRacine() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai",
                   "scopeName": "source.essai",
@@ -90,24 +90,24 @@ class GrammairesTest {
                   ]
                 }
                 """);
-        assertTrue(grammaire.motifs().get(1) instanceof RegleBloc, "le second motif est un bloc");
-        RegleBloc bloc = (RegleBloc) grammaire.motifs().get(1);
-        assertEquals(1, bloc.motifs().size(), "une inclusion");
-        assertTrue(bloc.motifs().get(0) instanceof RegleListe,
+        assertTrue(grammaire.patterns().get(1) instanceof BlockRule, "le second motif est un bloc");
+        BlockRule bloc = (BlockRule) grammaire.patterns().get(1);
+        assertEquals(1, bloc.patterns().size(), "une inclusion");
+        assertTrue(bloc.patterns().get(0) instanceof ListRule,
                 "$self devient une référence de liste");
     }
 
     /** Une inclusion inconnue est refusée au chargement. */
     @Test
     void inclusionInconnueSauteComptee() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai",
                   "scopeName": "source.essai",
                   "patterns": [ { "include": "#absent" } ]
                 }
                 """);
-        assertEquals(1, grammaire.rapport().inclusionsInternes(),
+        assertEquals(1, grammaire.report().inclusionsInternes(),
                 "l'inclusion inconnue se saute et se compte — les grammaires"
                         + " du commerce s'en portent auteurs");
     }
@@ -119,7 +119,7 @@ class GrammairesTest {
      */
     @Test
     void motifInvalideEcarteEtCompte() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai",
                   "scopeName": "source.essai",
@@ -129,16 +129,16 @@ class GrammairesTest {
                   ]
                 }
                 """);
-        assertEquals(1, grammaire.motifs().size(), "la règle invalide est écartée");
-        assertEquals(1, grammaire.rapport().refuses(), "un refus compté");
-        assertEquals(2, grammaire.rapport().motifs(), "deux expressions rencontrées");
-        assertEquals(0.5, grammaire.rapport().acceptation(), "le taux le dit");
+        assertEquals(1, grammaire.patterns().size(), "la règle invalide est écartée");
+        assertEquals(1, grammaire.report().refuses(), "un refus compté");
+        assertEquals(2, grammaire.report().patterns(), "deux expressions rencontrées");
+        assertEquals(0.5, grammaire.report().acceptation(), "le taux le dit");
     }
 
     /** Un bloc sans fermeture est refusé. */
     @Test
     void blocSansFinRefuse() {
-        assertThrows(IllegalArgumentException.class, () -> Grammaires.lire("""
+        assertThrows(IllegalArgumentException.class, () -> Grammars.read("""
                 {
                   "name": "Essai",
                   "scopeName": "source.essai",
@@ -154,14 +154,14 @@ class GrammairesTest {
     void grammairesDesPaquetsEmbarques() {
         for (String nom : new String[] {"toml", "yaml", "properties", "markdown",
                 "python", "shell", "sql", "c", "cpp", "proguard"}) {
-            Grammaire grammaire = Grammaires.lire(texteDePaquet(nom));
+            Grammar grammaire = Grammars.read(resourceText(nom));
             assertNotNull(grammaire, nom + " se charge");
-            assertTrue(!grammaire.motifs().isEmpty(), nom + " a des motifs");
+            assertTrue(!grammaire.patterns().isEmpty(), nom + " a des patterns");
         }
     }
 
     /** Le texte JSON de la grammaire d'un paquet intégré. */
-    private static String texteDePaquet(String id) {
+    private static String resourceText(String id) {
         var flux = GrammairesTest.class.getResourceAsStream(
                 "/langages/" + id + "/grammar.json");
         assertNotNull(flux, "grammaire du paquet " + id);
@@ -176,6 +176,6 @@ class GrammairesTest {
     @Test
     void jsonMalFormeRefuse() {
         assertThrows(IllegalArgumentException.class,
-                () -> Grammaires.lire("{ \"name\": "));
+                () -> Grammars.read("{ \"name\": "));
     }
 }

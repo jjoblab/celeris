@@ -26,7 +26,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
 
 import jo.celeris.android.host.CelerisEditor;
-import jo.celeris.sample.SessionLspPoseuse.Journal;
+import jo.celeris.sample.LspSessionMount.Journal;
 import jo.celeris.android.view.EditorThemes;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.PopupLayer;
@@ -51,24 +51,24 @@ public final class MainActivity extends Activity {
     /** Le chargeur partagé — un seul assemblage par processus. */
     private static volatile LanguageKit langages;
 
-    private CelerisEditor editeur;
+    private CelerisEditor editor;
     private JournalPanneau journal;
     /** Les fichiers ouverts, dans l'ordre des onglets. */
-    private final List<Echantillons.Echantillon> ouverts = new ArrayList<>();
+    private final List<Samples.Sample> ouverts = new ArrayList<>();
     private int ongletActif = -1;
-    private DrawerLayout tiroirRacine;
-    private NavigationView tiroirNavigation;
+    private DrawerLayout drawerRoot;
+    private NavigationView navigationDrawer;
     private MaterialToolbar barreOutils;
     private TabLayout barreOnglets;
     private boolean journalReplie;
 
     @Override
-    protected void onCreate(Bundle etat) {
-        super.onCreate(etat);
+    protected void onCreate(Bundle state) {
+        super.onCreate(state);
         setContentView(R.layout.activite_principale);
 
-        tiroirRacine = findViewById(R.id.tiroir_racine);
-        tiroirNavigation = findViewById(R.id.tiroir_navigation);
+        drawerRoot = findViewById(R.id.tiroir_racine);
+        navigationDrawer = findViewById(R.id.tiroir_navigation);
         barreOutils = findViewById(R.id.barre_outils);
         barreOnglets = findViewById(R.id.barre_onglets);
         EditorView vue = findViewById(R.id.vue_editeur);
@@ -78,28 +78,28 @@ public final class MainActivity extends Activity {
                 findViewById(R.id.lignes_journal),
                 findViewById(R.id.defileur_journal),
                 findViewById(R.id.panneau_journal));
-        LanguageKit kit = monterKit();
-        editeur = CelerisEditor.attach(vue, couche, kit);
-        editeur.settings().setTheme(EditorThemes.SOMBRE);
-        editeur.settings().setFontSizeSp(14f);
+        LanguageKit kit = mountKit();
+        editor = CelerisEditor.attach(vue, couche, kit);
+        editor.settings().setTheme(EditorThemes.DARK);
+        editor.settings().setFontSizeSp(14f);
 
-        monterTiroir();
-        monterJournal();
-        journal.ligne("montage prêt — l'assemblage court en fil démon");
+        mountDrawer();
+        mountJournal();
+        journal.line("montage prêt — l'assemblage court en fil démon");
         // L'ouverture de départ : le premier échantillon du drawer.
-        ouvrir(Echantillons.tous().get(0));
-        sonderLangue(kit);
+        open(Samples.tous().get(0));
+        probeLanguage(kit);
     }
 
     /** Monte le chargeur de paquets — l'assemblage ENTIER part sur
      *  le fil démon, le fil de l'interface ne l'attend jamais. */
-    private LanguageKit monterKit() {
+    private LanguageKit mountKit() {
         LanguageKit kit = langages;
         if (kit == null) {
             kit = LanguageKit.builder(LanguageKit.sharedDaemon())
                     .grammarFactory(PackGrammars.INSTANCE)
                     .builtinPacks()
-                    .onError(erreur -> journal.ligne(
+                    .onError(erreur -> journal.line(
                             "PAQUET FAUTIF : " + erreur.getMessage()))
                     .build();
             langages = kit;
@@ -115,43 +115,43 @@ public final class MainActivity extends Activity {
      *  2026-11-19 journalisait un mensonge : « le registre n'a pas
      *  résolu Salut.java » alors que l'assemblage courait encore) ;
      *  le verdict ne tombe QUE quand le registre vit vraiment. */
-    private void sonderLangue(LanguageKit kit) {
+    private void probeLanguage(LanguageKit kit) {
         String nom = ouverts.get(ongletActif).nomFichier();
         if (!kit.estPret()) {
             getWindow().getDecorView().postDelayed(
-                    () -> sonderLangue(kit), 500L);
+                    () -> probeLanguage(kit), 500L);
             return;
         }
-        LanguageSupport langue = kit.languageForSiPret(nom);
-        journal.ligne(langue == null
+        LanguageSupport language = kit.languageForSiPret(nom);
+        journal.line(language == null
                 ? "langue : " + nom + " n'a pas de langage dans le registre"
-                : "langue résolue : " + langue.displayName()
+                : "langue résolue : " + language.displayName()
                         + " — coloration et mots réservés vivent");
     }
 
     /** Ouvre un échantillon : son onglet naît (ou se rappelle), le
      *  document se charge, le mini serveur se branche au .java. */
-    private void ouvrir(Echantillons.Echantillon echantillon) {
-        int connu = ouverts.indexOf(echantillon);
+    private void open(Samples.Sample sample) {
+        int connu = ouverts.indexOf(sample);
         if (connu >= 0) {
             ongletActif = connu;
         } else {
-            ouverts.add(echantillon);
+            ouverts.add(sample);
             ongletActif = ouverts.size() - 1;
         }
-        editeur.open(echantillon.nomFichier(), echantillon.texte());
-        journal.ligne("ouvert : " + echantillon.nomFichier());
-        poserLsp(echantillon, "mini serveur LSP branché");
-        rafraichirOnglets();
+        editor.open(sample.nomFichier(), sample.text());
+        journal.line("ouvert : " + sample.nomFichier());
+        mountLsp(sample, "mini serveur LSP branché");
+        refreshTabs();
     }
 
     /** Branche le mini serveur LSP d'un échantillon .java — le
      *  geste partagé de l'ouverture et de l'activation d'onglet. */
-    private void poserLsp(Echantillons.Echantillon echantillon, String message) {
-        if (!echantillon.nomFichier().endsWith(".java")) {
+    private void mountLsp(Samples.Sample sample, String message) {
+        if (!sample.nomFichier().endsWith(".java")) {
             return;
         }
-        SessionLspPoseuse.poser(this, editeur, echantillon.nomFichier(),
+        LspSessionMount.place(this, editor, sample.nomFichier(),
                 journalLsp(message));
     }
 
@@ -162,12 +162,12 @@ public final class MainActivity extends Activity {
 
             @Override
             public void run() {
-                journal.ligne(message);
+                journal.line(message);
             }
 
             @Override
             public void echec(String cause) {
-                journal.ligne("pose LSP échouée : " + cause);
+                journal.line("pose LSP échouée : " + cause);
             }
         };
     }
@@ -177,16 +177,16 @@ public final class MainActivity extends Activity {
         Object service = getSystemService(Context.CLIPBOARD_SERVICE);
         if (service instanceof ClipboardManager pressePapiers) {
             pressePapiers.setPrimaryClip(ClipData.newPlainText(
-                    "journal celeris", journal.texte()));
-            journal.ligne("journal copié au presse-papiers");
+                    "journal celeris", journal.text()));
+            journal.line("journal copié au presse-papiers");
         }
     }
 
     @Override
     protected void onDestroy() {
-        if (editeur != null) {
-            editeur.close();
-            editeur = null;
+        if (editor != null) {
+            editor.close();
+            editor = null;
         }
         super.onDestroy();
     }
@@ -195,25 +195,25 @@ public final class MainActivity extends Activity {
 
     /** Branche le tiroir : le menu se pose depuis les échantillons,
      *  le hamburger de la barre d'outils l'ouvre. */
-    private void monterTiroir() {
-        android.view.Menu menu = tiroirNavigation.getMenu();
-        menu.removeGroup(GROUPE_ECHANTILLONS);
-        for (int i = 0; i < Echantillons.tous().size(); i++) {
-            Echantillons.Echantillon echantillon =
-                    Echantillons.tous().get(i);
-            menu.add(GROUPE_ECHANTILLONS, MenuIds.echantillon(i),
-                    i, echantillon.nomFichier());
+    private void mountDrawer() {
+        android.view.Menu menu = navigationDrawer.getMenu();
+        menu.removeGroup(SAMPLES_GROUP);
+        for (int i = 0; i < Samples.tous().size(); i++) {
+            Samples.Sample sample =
+                    Samples.tous().get(i);
+            menu.add(SAMPLES_GROUP, MenuIds.sample(i),
+                    i, sample.nomFichier());
         }
-        tiroirNavigation.setNavigationItemSelectedListener(item -> {
+        navigationDrawer.setNavigationItemSelectedListener(item -> {
             int i = MenuIds.position(item.getItemId());
-            tiroirRacine.closeDrawer(androidx.core.view.GravityCompat.START);
-            if (i >= 0 && i < Echantillons.tous().size()) {
-                ouvrir(Echantillons.tous().get(i));
+            drawerRoot.closeDrawer(androidx.core.view.GravityCompat.START);
+            if (i >= 0 && i < Samples.tous().size()) {
+                open(Samples.tous().get(i));
             }
             return true;
         });
         barreOutils.setNavigationOnClickListener(
-                v -> tiroirRacine.openDrawer(
+                v -> drawerRoot.openDrawer(
                         androidx.core.view.GravityCompat.START));
         // L'écouteur des onglets : UN seul, posé ICI au montage —
         // jamais empilé par les rafraîchissements (le retour terrain
@@ -239,8 +239,8 @@ public final class MainActivity extends Activity {
 
     /** Le groupe du menu du tiroir — les identifiants stables des
      *  échantillons (position + base, jamais View.generateViewId). */
-    private static final int GROUPE_ECHANTILLONS = 1;
-    private static final int BASE_ID_ECHANTILLON = 1000;
+    private static final int SAMPLES_GROUP = 1;
+    private static final int SAMPLE_BASE_ID = 1000;
 
     /** Les identifiants du menu du tiroir : un par échantillon,
      *  l'aller-retour position ↔ identifiant vit ici. */
@@ -249,12 +249,12 @@ public final class MainActivity extends Activity {
         private MenuIds() {
         }
 
-        static int echantillon(int position) {
-            return BASE_ID_ECHANTILLON + position;
+        static int sample(int position) {
+            return SAMPLE_BASE_ID + position;
         }
 
-        static int position(int identifiant) {
-            return identifiant - BASE_ID_ECHANTILLON;
+        static int position(int identifier) {
+            return identifier - SAMPLE_BASE_ID;
         }
     }
 
@@ -267,19 +267,19 @@ public final class MainActivity extends Activity {
      *  pression d'onglet redéclenchait l'activation autant de fois
      *  que d'écouteurs survivants (le bug « ça bug quand j'appuie
      *  sur l'onglet inactif » du retour terrain du 2026-11-19). */
-    private void rafraichirOnglets() {
+    private void refreshTabs() {
         barreOnglets.removeAllTabs();
         for (int i = 0; i < ouverts.size(); i++) {
             TabLayout.Tab onglet = barreOnglets.newTab();
-            poserVueOnglet(onglet, i);
+            mountTabView(onglet, i);
             barreOnglets.addTab(onglet, i == ongletActif);
         }
-        Echantillons.Echantillon actif = ouverts.get(ongletActif);
+        Samples.Sample actif = ouverts.get(ongletActif);
         barreOutils.setTitle(actif.nomFichier());
     }
 
     /** Pose la vue d'un onglet : le nom et sa croix de fermeture. */
-    private void poserVueOnglet(TabLayout.Tab onglet, int indice) {
+    private void mountTabView(TabLayout.Tab onglet, int indice) {
         View vue = LayoutInflater.from(this)
                 .inflate(R.layout.vue_onglet, barreOnglets, false);
         TextView nom = vue.findViewById(R.id.nom_onglet);
@@ -289,19 +289,19 @@ public final class MainActivity extends Activity {
                 : getColor(R.color.texte_secondaire));
         TextView croix = vue.findViewById(R.id.croix_onglet);
         croix.setTextColor(getColor(R.color.texte_secondaire));
-        croix.setOnClickListener(v -> fermerOnglet(indice));
+        croix.setOnClickListener(v -> closeTab(indice));
         onglet.setCustomView(vue);
     }
 
     /** Ferme un onglet : le suivant prend la place par activation —
      *  le dernier vivant ne meurt pas. */
-    private void fermerOnglet(int indice) {
+    private void closeTab(int indice) {
         if (ouverts.size() <= 1) {
-            journal.ligne("le dernier onglet ouvert ne se ferme pas");
+            journal.line("le dernier onglet ouvert ne se ferme pas");
             return;
         }
         ouverts.remove(indice);
-        journal.ligne("fermé — actif : "
+        journal.line("fermé — actif : "
                 + ouverts.get(Math.min(indice, ouverts.size() - 1)).nomFichier());
         // L'activation porte TOUT le rebranchement (document, serveur,
         // onglets) : -1 force l'activation même si l'indice ne bouge pas.
@@ -316,33 +316,33 @@ public final class MainActivity extends Activity {
             return;
         }
         ongletActif = indice;
-        Echantillons.Echantillon echantillon = ouverts.get(indice);
-        editeur.open(echantillon.nomFichier(), echantillon.texte());
-        poserLsp(echantillon, "mini serveur LSP rebranché");
-        rafraichirOnglets();
+        Samples.Sample sample = ouverts.get(indice);
+        editor.open(sample.nomFichier(), sample.text());
+        mountLsp(sample, "mini serveur LSP rebranché");
+        refreshTabs();
     }
 
     // ── Le journal (le panneau bas de la scène) ───────────────────
 
     /** Branche le journal : les deux boutons de son en-tête. */
-    private void monterJournal() {
+    private void mountJournal() {
         ImageButton copier = findViewById(R.id.bouton_copier_journal);
         copier.setOnClickListener(v -> copierJournal());
         ImageButton replier = findViewById(R.id.bouton_replier_journal);
-        replier.setOnClickListener(v -> basculerJournal());
+        replier.setOnClickListener(v -> toggleJournal());
     }
 
     /** Bascule le journal : replié, il ne garde que son en-tête. */
-    private void basculerJournal() {
+    private void toggleJournal() {
         journalReplie = !journalReplie;
         findViewById(R.id.defileur_journal).setVisibility(
                 journalReplie ? View.GONE : View.VISIBLE);
         View panneau = findViewById(R.id.panneau_journal);
-        ViewGroup.LayoutParams reglages = panneau.getLayoutParams();
-        reglages.height = journalReplie
+        ViewGroup.LayoutParams settings = panneau.getLayoutParams();
+        settings.height = journalReplie
                 ? ViewGroup.LayoutParams.WRAP_CONTENT
                 : (int) (130f * getResources().getDisplayMetrics().density);
-        panneau.setLayoutParams(reglages);
+        panneau.setLayoutParams(settings);
         ImageButton bouton = findViewById(R.id.bouton_replier_journal);
         bouton.setContentDescription(getString(journalReplie
                 ? R.string.action_deplier
@@ -353,33 +353,33 @@ public final class MainActivity extends Activity {
      *  vues vivent dans le layout, la classe ne fait que servir. */
     private static final class JournalPanneau {
 
-        private final TextView lignes;
+        private final TextView lines;
         private final ScrollView defileur;
         private final View panneau;
-        private final StringBuilder texte = new StringBuilder();
+        private final StringBuilder text = new StringBuilder();
 
-        JournalPanneau(TextView lignes, ScrollView defileur, View panneau) {
-            this.lignes = lignes;
+        JournalPanneau(TextView lines, ScrollView defileur, View panneau) {
+            this.lines = lines;
             this.defileur = defileur;
             this.panneau = panneau;
-            lignes.setTypeface(Typeface.MONOSPACE);
+            lines.setTypeface(Typeface.MONOSPACE);
         }
 
-        void ligne(String message) {
+        void line(String message) {
             String horodatage = new SimpleDateFormat("HH:mm:ss.SSS",
                     Locale.ROOT).format(new Date());
-            texte.append('[').append(horodatage).append("] ")
+            text.append('[').append(horodatage).append("] ")
                     .append(message).append('\n');
-            lignes.post(() -> {
-                lignes.setText(texte.toString());
+            lines.post(() -> {
+                lines.setText(text.toString());
                 if (defileur != null) {
                     defileur.fullScroll(View.FOCUS_DOWN);
                 }
             });
         }
 
-        String texte() {
-            return texte.toString();
+        String text() {
+            return text.toString();
         }
     }
 }

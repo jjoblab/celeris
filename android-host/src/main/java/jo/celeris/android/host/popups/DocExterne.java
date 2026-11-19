@@ -35,7 +35,7 @@ import org.jspecify.annotations.Nullable;
  */
 final class DocExterne {
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
@@ -43,7 +43,7 @@ final class DocExterne {
     /** Le coach de l'hôte — la table du repli sans serveur. */
     private final CoachPopups coach;
     /** La session de langage branchée — la documentation y passe. */
-    private @Nullable LanguageSession serveur;
+    private @Nullable LanguageSession server;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
 
@@ -52,16 +52,16 @@ final class DocExterne {
      * popups : la carte DÉRIVÉE naît liée à son genre — sa propre
      * instance, jamais la carte du survol (une carte par genre).
      *
-     * @param editeur la vue d'éditeur ouverte
+     * @param editor la vue d'éditeur ouverte
      * @param session la session d'édition courante
      * @param popups  le coordinateur des popups de la scène
      * @param margePx la respiration des ancres aux bords, en pixels
      * @param palette la palette courante des popups
      * @param coach   le coach de l'hôte — le repli sans serveur
      */
-    DocExterne(EditorView editeur, TextSession session, PopupManager popups,
+    DocExterne(EditorView editor, TextSession session, PopupManager popups,
             int margePx, PopupPalette palette, CoachPopups coach) {
-        this.editeur = editeur;
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
@@ -75,11 +75,11 @@ final class DocExterne {
      * Branche la session de langage — la documentation du symbole y
      * passe au fil du protocole.
      *
-     * @param serveur la session démarrée, null pour le repli seul
+     * @param server la session démarrée, null pour le repli seul
      * @param uri     l'uri du document ouvert
      */
-    void brancherServeur(@Nullable LanguageSession serveur, String uri) {
-        this.serveur = serveur;
+    void connectServer(@Nullable LanguageSession server, String uri) {
+        this.server = server;
         this.uriDocument = uri;
     }
 
@@ -93,18 +93,18 @@ final class DocExterne {
      * survol par le fil du protocole, la table du coach en repli. Sans
      * symbole au curseur, la carte ne se pose pas.
      */
-    void ouvrir() {
+    void open() {
         String symbole = ContenuPopups.symboleA(session.document(), caret());
         if (symbole == null) {
             return;
         }
-        if (serveur != null) {
-            serveur.survol(uriDocument, session.document(), symbole, caret())
-                    .whenComplete((doc, echec) -> editeur.post(
-                            () -> poser(doc)));
+        if (server != null) {
+            server.hover(uriDocument, session.document(), symbole, caret())
+                    .whenComplete((doc, echec) -> editor.post(
+                            () -> place(doc)));
             return;
         }
-        poser(coach.docDe(symbole));
+        place(coach.docDe(symbole));
     }
 
     /** Le défilement a déplacé le curseur : la consultation se
@@ -113,41 +113,41 @@ final class DocExterne {
      *  re-paraît pas : la même carte se re-place). */
     void repositionner() {
         if (popups.estOuvert(PopupController.PopupKind.EXTERNAL_DOC)) {
-            montrer();
+            show();
         }
     }
 
     /** Pose la documentation de symbole — null ne pose rien, le modèle
      *  sinon gagne la carte et s'ancre sous le curseur, borné. */
-    private void poser(@Nullable CompletionDocModel doc) {
+    private void place(@Nullable CompletionDocModel doc) {
         if (doc == null) {
             return;
         }
         carte.setModel(doc);
-        montrer();
+        show();
     }
 
     /** Monte la carte mesurée sous le curseur, bornée — la pose ET la
      *  re-pose y passent (la même carte se re-place, jamais le contenu
      *  ne re-naît). */
-    private void montrer() {
-        Rect curseur = editeur.caretBounds();
+    private void show() {
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom, taille(),
+                cursor.left, cursor.bottom, size(),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.EXTERNAL_DOC,
+        popups.show(PopupController.PopupKind.EXTERNAL_DOC,
                 placee.x(), placee.y());
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
-    private PopupPlacer.Cadre taille() {
-        return popups.taille(PopupController.PopupKind.EXTERNAL_DOC);
+    private PopupPlacer.Cadre size() {
+        return popups.size(PopupController.PopupKind.EXTERNAL_DOC);
     }
 
     /** La position du curseur — la tête de la sélection courante. */
     private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).caret();
     }
 }

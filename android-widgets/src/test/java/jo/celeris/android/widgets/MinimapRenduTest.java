@@ -38,18 +38,18 @@ public class MinimapRenduTest {
     }
 
     /** Le document de tant de lignes portant le texte donné. */
-    private static String document(String ligne, int nombre) {
+    private static String document(String line, int nombre) {
         StringBuilder contenu = new StringBuilder();
         for (int i = 0; i < nombre; i++) {
             if (i > 0) {
                 contenu.append('\n');
             }
-            contenu.append(ligne);
+            contenu.append(line);
         }
         return contenu.toString();
     }
 
-    private Bitmap dessiner(MinimapView vue) {
+    private Bitmap draw(MinimapView vue) {
         vue.measure(android.view.View.MeasureSpec.makeMeasureSpec(0,
                         android.view.View.MeasureSpec.UNSPECIFIED),
                 android.view.View.MeasureSpec.makeMeasureSpec(0,
@@ -70,20 +70,20 @@ public class MinimapRenduTest {
      */
     @Test
     public void laSilhouetteSeTisseSerreeSansTrou() {
-        int lignes = 20;
-        var session = TextSession.of(document("aaaaaaaaaaaaaaaaaaaa", lignes),
+        int lines = 20;
+        var session = TextSession.of(document("aaaaaaaaaaaaaaaaaaaa", lines),
                 System::nanoTime);
         MinimapView vue = new MinimapView(contexte, PopupPalette.dark());
-        vue.setModel(MinimapModel.of(session.document(), lignes), lignes);
+        vue.setModel(MinimapModel.of(session.document(), lines), lines);
         vue.setSpanPx(1000);
-        Bitmap image = dessiner(vue);
-        int hauteurBrique = image.getHeight() / lignes;
+        Bitmap image = draw(vue);
+        int hauteurBrique = image.getHeight() / lines;
         assertEquals("vingt briques honnêtes à 2,5 dp (densité 1)",
                 2, hauteurBrique);
         // le cœur horizontal de chaque brique : le code rend son encre
         // assombrie, jamais le fond de bande (25, 25, 25)
         int x = 8;
-        for (int brique = 0; brique < lignes; brique++) {
+        for (int brique = 0; brique < lines; brique++) {
             int y = Math.min(image.getHeight() - 1, brique * hauteurBrique + 1);
             int pixel = image.getPixel(x, y);
             assertTrue("la brique " + brique + " se tisse sans trou",
@@ -104,7 +104,7 @@ public class MinimapRenduTest {
         MinimapView vue = new MinimapView(contexte, PopupPalette.dark());
         vue.setModel(MinimapModel.of(session.document(), 2), 2);
         vue.setSpanPx(1000);
-        Bitmap image = dessiner(vue);
+        Bitmap image = draw(vue);
         int code = image.getPixel(8, 1);
         int chaine = image.getPixel(8, 4);
         // la chaîne (accent 220, 220, 170 à 0,8) garde ses canaux
@@ -122,15 +122,15 @@ public class MinimapRenduTest {
      */
     @Test
     public void laFenetreTeinteSaCartouche() {
-        int lignes = 20;
-        var session = TextSession.of(document("aaaaaaaaaaaaaaaaaaaa", lignes),
+        int lines = 20;
+        var session = TextSession.of(document("aaaaaaaaaaaaaaaaaaaa", lines),
                 System::nanoTime);
         MinimapView vue = new MinimapView(contexte, PopupPalette.dark());
-        vue.setModel(MinimapModel.of(session.document(), lignes), lignes);
-        vue.setViewport(0, 5, lignes);
+        vue.setModel(MinimapModel.of(session.document(), lines), lines);
+        vue.setViewport(0, 5, lines);
         vue.setSpanPx(1000);
-        Bitmap image = dessiner(vue);
-        int hauteurBrique = image.getHeight() / lignes;
+        Bitmap image = draw(vue);
+        int hauteurBrique = image.getHeight() / lines;
         int dedans = image.getPixel(8, hauteurBrique + 1);
         int dehors = image.getPixel(8, 15 * hauteurBrique + 1);
         assertNotEquals("la cartouche teinte la brique qu'elle couvre",

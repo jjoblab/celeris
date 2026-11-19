@@ -53,7 +53,7 @@ public final class FusedFloor {
     }
 
     /** Un candidat fusionné : son label, son palier, son groupe, son rang d'origine. */
-    private record Entree(String label, int tier, int group, int rang) {
+    private record Entry(String label, int tier, int group, int rang) {
     }
 
     /**
@@ -73,7 +73,7 @@ public final class FusedFloor {
         Objects.requireNonNull(provider, "provider");
         Objects.requireNonNull(floor, "floor");
         Objects.requireNonNull(prefix, "prefix");
-        List<Entree> entrees = new ArrayList<>();
+        List<Entry> entrees = new ArrayList<>();
         Set<String> vus = new HashSet<>();
         collect(entrees, vus, provider, CompletionMatcher.GROUP_RESOLVED, prefix);
         collect(entrees, vus, floor.keywords(), CompletionMatcher.GROUP_KEYWORD, prefix);
@@ -88,14 +88,14 @@ public final class FusedFloor {
             return cmp != 0 ? cmp : Integer.compare(a.rang(), b.rang());
         });
         List<String> labels = new ArrayList<>();
-        for (Entree entree : entrees) {
-            labels.add(entree.label());
+        for (Entry input : entrees) {
+            labels.add(input.label());
         }
         return List.copyOf(labels);
     }
 
     /** Les candidats correspondants d'une liste, leur rang d'origine croissant. */
-    private static void collect(List<Entree> entrees, Set<String> vus,
+    private static void collect(List<Entry> entrees, Set<String> vus,
             List<String> labels, int group, String prefix) {
         for (String label : labels) {
             if (!CompletionMatcher.matches(label, "", prefix)) {
@@ -105,7 +105,7 @@ public final class FusedFloor {
             if (!vus.add(ident)) {
                 continue;
             }
-            entrees.add(new Entree(label, CompletionMatcher.tier(label, "", prefix),
+            entrees.add(new Entry(label, CompletionMatcher.tier(label, "", prefix),
                     group, entrees.size()));
         }
     }

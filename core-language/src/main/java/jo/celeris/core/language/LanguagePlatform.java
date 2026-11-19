@@ -340,15 +340,15 @@ public final class LanguagePlatform {
                 .configuration(support.configuration())
                 .injections(support.injections())
                 .outlineRules(support.outlineRules())
-                .servers(serveursDe(support.id()))
+                .servers(serversOf(support.id()))
                 .parent(parent);
         if (support.syntax() != null) {
             batisseur.syntax(support.syntax());
         }
-        Map<Class<? extends LanguageCapability>, LanguageCapability> capacites =
+        Map<Class<? extends LanguageCapability>, LanguageCapability> capabilities =
                 contributions.get(support.id());
-        if (capacites != null) {
-            batisseur.capabilities(capacites);
+        if (capabilities != null) {
+            batisseur.capabilities(capabilities);
         }
         return batisseur.build().withGenericFallbacks(generics);
     }
@@ -357,7 +357,7 @@ public final class LanguagePlatform {
      * Les serveurs d'un langage assemblé (H-13) : ceux du paquet,
      * puis ceux de l'hôte — la donnée seule décide.
      */
-    private List<LanguageServerDeclaration> serveursDe(String languageId) {
+    private List<LanguageServerDeclaration> serversOf(String languageId) {
         List<LanguageServerDeclaration> duPaquet = new ArrayList<>();
         for (LanguageSupport support : supports) {
             if (support.id().equals(languageId)) {
@@ -382,9 +382,9 @@ public final class LanguagePlatform {
         @Override
         public <T extends LanguageCapability> @Nullable T declared(
                 String languageId, Class<T> key) {
-            Map<Class<? extends LanguageCapability>, LanguageCapability> capacites =
+            Map<Class<? extends LanguageCapability>, LanguageCapability> capabilities =
                     contributions.get(languageId);
-            return capacites == null ? null : key.cast(capacites.get(key));
+            return capabilities == null ? null : key.cast(capabilities.get(key));
         }
     }
 }

@@ -36,7 +36,7 @@ public final class Document {
     private static final int LIMITE_GROS_CARACTERES = 2_500_000;
 
     /** Seuil « gros document » en lignes (portage du dépôt de départ). */
-    private static final int LIMITE_GROS_LIGNES = 50_000;
+    private static final int BIG_LINE_LIMIT = 50_000;
 
     private final Rope rope;
     private final int[] lineStarts;
@@ -229,7 +229,7 @@ public final class Document {
      * @return vrai au-delà des seuils
      */
     public boolean isLarge() {
-        return rope.length() > LIMITE_GROS_CARACTERES || lineStarts.length > LIMITE_GROS_LIGNES;
+        return rope.length() > LIMITE_GROS_CARACTERES || lineStarts.length > BIG_LINE_LIMIT;
     }
 
     // ── Maintien de l'index ───────────────────────────────────────

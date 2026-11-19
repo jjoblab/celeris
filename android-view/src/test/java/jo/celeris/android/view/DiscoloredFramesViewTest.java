@@ -25,7 +25,7 @@ public class DiscoloredFramesViewTest {
     /** Avant la première publication, aucune image ne se compte. */
     @Test
     public void beforeFirstPublicationNothingCounts() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         // analyse retenue : aucune publication encore
@@ -43,7 +43,7 @@ public class DiscoloredFramesViewTest {
      */
     @Test
     public void retainedKeystrokesKeepTheCounterAtZero() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();

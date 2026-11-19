@@ -63,7 +63,7 @@ public final class SelectionHandles {
     /**
      * L'ordonnée du CENTRE du cercle d'une poignée : sous la rangée
      * d'ancre, du rayon qui respire la rangée (le dépôt de départ :
-     * {@code ligne + hauteur + r × 0,6}).
+     * {@code line + hauteur + r × 0,6}).
      *
      * @param document   l'instantané de document affiché
      * @param projection la projection rangées ↔ lignes
@@ -111,11 +111,11 @@ public final class SelectionHandles {
     public static HandleId hitTest(float px, float py, float gutterWidth,
             float scrollX, float scrollY, Document document,
             VisualProjection projection, EditorMetrics metrics, int start, int end) {
-        boolean debut = aPortee(px, py, gutterWidth, scrollX, scrollY, document,
-                projection, metrics, start);
-        boolean fin = aPortee(px, py, gutterWidth, scrollX, scrollY, document,
-                projection, metrics, end);
-        if (debut && fin) {
+        boolean startHit = aPortee(px, py, gutterWidth, scrollX, scrollY,
+                document, projection, metrics, start);
+        boolean endHit = aPortee(px, py, gutterWidth, scrollX, scrollY,
+                document, projection, metrics, end);
+        if (startHit && endHit) {
             // Les deux à portée : la plus proche gagne.
             float dxDebut = Math.abs(px - xOfOffset(document, projection, metrics,
                     gutterWidth, scrollX, start));
@@ -123,10 +123,10 @@ public final class SelectionHandles {
                     gutterWidth, scrollX, end));
             return dxDebut <= dxFin ? HandleId.START : HandleId.END;
         }
-        if (debut) {
+        if (startHit) {
             return HandleId.START;
         }
-        if (fin) {
+        if (endHit) {
             return HandleId.END;
         }
         return HandleId.NONE;
@@ -136,19 +136,19 @@ public final class SelectionHandles {
      * La plage après le glissement d'une poignée : l'extrémité touchée
      * devient le curseur (le doigt la mène), l'autre devient l'ancre.
      *
-     * @param plage     la plage avant le glissement
+     * @param range     la plage avant le glissement
      * @param handle    la poignée glissée
      * @param newOffset la position visée par le doigt
      * @return la nouvelle plage
      */
-    public static SelRange dragged(SelRange plage, HandleId handle, int newOffset) {
+    public static SelRange dragged(SelRange range, HandleId handle, int newOffset) {
         if (handle == HandleId.START) {
-            return new SelRange(plage.end(), newOffset);
+            return new SelRange(range.end(), newOffset);
         }
         if (handle == HandleId.END) {
-            return new SelRange(plage.start(), newOffset);
+            return new SelRange(range.start(), newOffset);
         }
-        return plage;
+        return range;
     }
 
     private static boolean aPortee(float px, float py, float gutterWidth,

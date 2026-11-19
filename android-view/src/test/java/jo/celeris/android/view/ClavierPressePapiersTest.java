@@ -29,9 +29,9 @@ public class ClavierPressePapiersTest {
 
     private static final String DOCUMENT = "public class Salut {\n}\n";
 
-    private EditorTestRig banc(String texte) {
-        return EditorTestRig.sur(
-                RuntimeEnvironment.getApplication(), texte);
+    private EditorTestRig banc(String text) {
+        return EditorTestRig.on(
+                RuntimeEnvironment.getApplication(), text);
     }
 
     private static ClipboardManager pressePapiers() {

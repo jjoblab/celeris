@@ -11,11 +11,11 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import jo.celeris.android.host.spi.CheminDoc;
-import jo.celeris.android.host.spi.DiagnosticHote;
+import jo.celeris.android.host.spi.HostDiagnostic;
 import jo.celeris.android.host.spi.GraviteDiagnostic;
 import jo.celeris.android.widgets.DiagnosticTooltipView;
-import jo.celeris.core.lsp.types.ElementCompletion;
-import jo.celeris.core.lsp.types.ListeCompletion;
+import jo.celeris.core.lsp.types.CompletionItemLsp;
+import jo.celeris.core.lsp.types.CompletionListLsp;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.text.Document;
@@ -50,9 +50,9 @@ final class ContenuPopupsTest {
     void completionFiltersByPrefix() {
         TextSession session = TextSession.of(DOCUMENT, () -> 0L);
         // « aj » avant le curseur : les deux fonctions et rien d'autre.
-        int curseur = DOCUMENT.indexOf("ajouter(") + 2;
+        int cursor = DOCUMENT.indexOf("ajouter(") + 2;
         List<String> candidats = ContenuPopups.completionMots(
-                session.document(), curseur, MOTS);
+                session.document(), cursor, MOTS);
         assertTrue(candidats.contains("ajouter"),
                 "ajouter est candidat de son propre préfixe");
         assertFalse(candidats.contains("int"),
@@ -74,15 +74,15 @@ final class ContenuPopupsTest {
         TextSession session = TextSession.of("int nombreLu = 3;",
                 System::nanoTime);
         Document document = session.document();
-        assertFalse(ContenuPopups.doitOuvrirALaFrappe(document, 0),
+        assertFalse(ContenuPopups.shouldOpenOnType(document, 0),
                 "au début du document, rien ne se propose");
-        assertFalse(ContenuPopups.doitOuvrirALaFrappe(document, 4),
+        assertFalse(ContenuPopups.shouldOpenOnType(document, 4),
                 "après un blanc, rien ne se propose");
-        assertFalse(ContenuPopups.doitOuvrirALaFrappe(document, 14),
+        assertFalse(ContenuPopups.shouldOpenOnType(document, 14),
                 "après un signe, rien ne se propose");
-        assertTrue(ContenuPopups.doitOuvrirALaFrappe(document, 1),
+        assertTrue(ContenuPopups.shouldOpenOnType(document, 1),
                 "le premier caractère tapé propose");
-        assertTrue(ContenuPopups.doitOuvrirALaFrappe(document, 10),
+        assertTrue(ContenuPopups.shouldOpenOnType(document, 10),
                 "au cœur d'un mot, la liste filtre");
     }
 
@@ -123,20 +123,20 @@ final class ContenuPopupsTest {
      *  qualifiée, la première ligne de documentation sinon. */
     @Test
     void candidatsDuProtocole() {
-        ListeCompletion reponse = ListeCompletion.de(false, List.of(
-                new ElementCompletion("nombreLu", 3, "int nombreLu",
+        CompletionListLsp reponse = CompletionListLsp.of(false, List.of(
+                new CompletionItemLsp("nombreLu", 3, "int nombreLu",
                         null, null, null, null, false),
-                new ElementCompletion("mesurer", 2, null,
+                new CompletionItemLsp("mesurer", 2, null,
                         "Mesure une valeur.\n@param unite l'unité",
                         null, null, null, false)));
         List<jo.celeris.android.widgets.CompletionListView.Candidat> types =
                 ContenuPopups.candidats(reponse);
         assertEquals(2, types.size(), "le protocole garde son ordre");
-        assertEquals("nombreLu", types.get(0).libelle());
+        assertEquals("nombreLu", types.get(0).label());
         assertEquals("int nombreLu", types.get(0).detail(),
                 "le détail sert d'identité qualifiée");
         assertEquals(jo.celeris.android.widgets.BadgeGenre.Genre.METHODE,
-                types.get(0).genre(), "le genre 3 du protocole est méthode");
+                types.get(0).kind(), "le genre 3 du protocole est méthode");
         assertEquals("Mesure une valeur.", types.get(1).detail(),
                 "la première ligne de documentation sinon");
         assertTrue(ContenuPopups.candidats(null).isEmpty(),
@@ -154,17 +154,17 @@ final class ContenuPopupsTest {
      *  pas, la ligne voisine non plus. */
     @Test
     void lesProblemesDuLieuSempilent() {
-        List<DiagnosticHote> diagnostics = List.of(
-                new DiagnosticHote(CheminDoc.de("/app/Exemple.java"), 4, 3,
+        List<HostDiagnostic> diagnostics = List.of(
+                new HostDiagnostic(CheminDoc.of("/app/Exemple.java"), 4, 3,
                         GraviteDiagnostic.ERREUR,
                         "Point-virgule absent"),
-                new DiagnosticHote(CheminDoc.de("/app/Exemple.java"), 4, 8,
+                new HostDiagnostic(CheminDoc.of("/app/Exemple.java"), 4, 8,
                         GraviteDiagnostic.AVERTISSEMENT,
                         "Variable jamais lue"),
-                new DiagnosticHote(CheminDoc.de("/app/Exemple.java"), 6, 1,
+                new HostDiagnostic(CheminDoc.of("/app/Exemple.java"), 6, 1,
                         GraviteDiagnostic.ERREUR,
                         "Autre ligne, autre lieu"),
-                new DiagnosticHote(CheminDoc.de("/app/Autre.kt"), 4, 1,
+                new HostDiagnostic(CheminDoc.of("/app/Autre.kt"), 4, 1,
                         GraviteDiagnostic.ERREUR,
                         "Autre fichier, autre lieu"));
         List<DiagnosticTooltipView.Probleme> problemes =

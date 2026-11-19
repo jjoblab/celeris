@@ -29,13 +29,13 @@ public final class FeuilleHaut extends Feuille {
     }
 
     @Override
-    int gravite() {
+    int severity() {
         return Gravity.TOP | Gravity.CENTER_HORIZONTAL;
     }
 
     @Override
-    float largeurMaxDp() {
-        return PopupTokens.LARGEUR_MAX_FEUILLE_HAUT_DP;
+    float maxWidthDp() {
+        return PopupTokens.TOP_SHEET_MAX_WIDTH_DP;
     }
 
     @Override

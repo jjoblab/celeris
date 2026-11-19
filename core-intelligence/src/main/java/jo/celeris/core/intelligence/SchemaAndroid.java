@@ -93,20 +93,20 @@ public final class SchemaAndroid {
      * unités suffixées pour les autres.
      *
      * @param attribut le nom complet de l'attribut
-     * @param valeur   la valeur en cours de frappe (peut être vide)
+     * @param value   la valeur en cours de frappe (peut être vide)
      * @return les valeurs suggérées
      */
-    public static List<String> valeurs(String attribut, String valeur) {
+    public static List<String> valeurs(String attribut, String value) {
         if (attribut.equals("android:layout_width")
                 || attribut.equals("android:layout_height")) {
             return TAILLES;
         }
-        if (attribut.equals("android:textSize") && !valeur.isEmpty()) {
-            return List.of(valeur + "sp");
+        if (attribut.equals("android:textSize") && !value.isEmpty()) {
+            return List.of(value + "sp");
         }
-        if (!valeur.isEmpty() && (attribut.endsWith("Margin")
+        if (!value.isEmpty() && (attribut.endsWith("Margin")
                 || attribut.startsWith("android:padding"))) {
-            return List.of(valeur + "dp");
+            return List.of(value + "dp");
         }
         return List.of();
     }

@@ -63,12 +63,12 @@ public final class OccurrencesPainter extends PainterLayer {
             return;
         }
         MultiSelection selection = frame.selection();
-        List<SelRange> plages = selection.ranges();
+        List<SelRange> ranges = selection.ranges();
         // un curseur réduit SEUL : une sélection étendue parle déjà
-        if (plages.size() != 1 || !plages.get(0).isEmpty()) {
+        if (ranges.size() != 1 || !ranges.get(0).isEmpty()) {
             return;
         }
-        int caret = plages.get(0).start();
+        int caret = ranges.get(0).start();
         Document document = frame.document();
         if (caret > document.length()) {
             return;
@@ -82,31 +82,31 @@ public final class OccurrencesPainter extends PainterLayer {
                 document.text(), document.text().substring(
                         mot.start(), mot.end()));
         for (Match occurrence : occurrences) {
-            peindrePlage(surface, frame, occurrence.start(), occurrence.end());
+            paintRange(surface, frame, occurrence.start(), occurrence.end());
         }
     }
 
     /** Le voile d'une occurrence : la même géométrie bornée que la
      *  sélection (tranche de rangée, PIEGE-04 et B-05), sans
      *  déborder de la ligne. */
-    private void peindrePlage(DrawSurface surface, FrameState frame,
-            int debut, int fin) {
+    private void paintRange(DrawSurface surface, FrameState frame,
+            int start, int end) {
         Document document = frame.document();
         EditorMetrics metrics = frame.metrics();
         VisualProjection projection = frame.projection();
         int premiere = frame.firstRow();
         int derniere = premiere + frame.visibleRows();
-        int ligneDebut = document.lineForOffset(debut);
-        int ligneFin = document.lineForOffset(fin > debut ? fin - 1 : fin);
-        for (int ligne = ligneDebut; ligne <= ligneFin; ligne++) {
-            int rangnee = projection.rowOfLine(ligne);
+        int startLine = document.lineForOffset(start);
+        int endLine = document.lineForOffset(end > start ? end - 1 : end);
+        for (int line = startLine; line <= endLine; line++) {
+            int rangnee = projection.rowOfLine(line);
             if (rangnee < premiere || rangnee >= derniere) {
                 continue;
             }
-            int debutLigne = document.lineStart(ligne);
-            int finLigne = document.lineEnd(ligne);
-            int colonneDebut = Math.max(debut, debutLigne) - debutLigne;
-            int colonneFin = Math.min(fin, finLigne) - debutLigne;
+            int lineStart = document.lineStart(line);
+            int finLigne = document.lineEnd(line);
+            int colonneDebut = Math.max(start, lineStart) - lineStart;
+            int colonneFin = Math.min(end, finLigne) - lineStart;
             int debutTranche = projection.spanStartAtRow(rangnee);
             colonneDebut = Math.max(colonneDebut, debutTranche);
             colonneFin = Math.min(colonneFin, projection.spanEndAtRow(rangnee));

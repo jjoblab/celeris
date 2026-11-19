@@ -13,7 +13,7 @@ package jo.celeris.core.syntax;
 public record Analysis(int revision, LexDocument lex, SyntaxTree tree) {
 
     /** Vrai quand l'arbre est complet — aucun chunk en attente (G-01). */
-    public boolean estComplet() {
-        return tree.estComplet();
+    public boolean isComplete() {
+        return tree.isComplete();
     }
 }

@@ -34,13 +34,13 @@ final class BomEnteteTest {
     void laBomDeTeteNEstPasUnOperateur() {
         Document doc = Document.of("\uFEFFint a;\nint b;\n");
         LexDocument lex = new IncrementalLexer().lexFull(doc, LEXEUR).lex();
-        Token[] jetons = lex.line(0).tokens();
-        assertEquals(TokenKind.KEYWORD, jetons[0].kind(),
+        Token[] tokens = lex.line(0).tokens();
+        assertEquals(TokenKind.KEYWORD, tokens[0].kind(),
                 "le premier jeton est le mot-clé, pas un opérateur");
-        assertEquals(1, jetons[0].start(),
+        assertEquals(1, tokens[0].start(),
                 "le mot-clé commence après la BOM (offset 1)");
-        for (Token jeton : jetons) {
-            assertTrue(jeton.start() >= 1 && jeton.end() >= 1,
+        for (Token token : tokens) {
+            assertTrue(token.start() >= 1 && token.end() >= 1,
                     "aucun jeton ne couvre la BOM");
         }
         // la ligne 1 reste ordinaire
@@ -56,12 +56,12 @@ final class BomEnteteTest {
     void laBomAuMilieuResteUnJeton() {
         Document doc = Document.of("int a\uFEFFb;\n");
         LexDocument lex = new IncrementalLexer().lexFull(doc, LEXEUR).lex();
-        Token[] jetons = lex.line(0).tokens();
+        Token[] tokens = lex.line(0).tokens();
         boolean bomColoree = false;
-        for (Token jeton : jetons) {
-            if (jeton.start() <= 4 && jeton.end() > 4) {
-                bomColoree = jeton.kind() == TokenKind.OPERATOR
-                        || jeton.kind() == TokenKind.IDENTIFIER;
+        for (Token token : tokens) {
+            if (token.start() <= 4 && token.end() > 4) {
+                bomColoree = token.kind() == TokenKind.OPERATOR
+                        || token.kind() == TokenKind.IDENTIFIER;
             }
         }
         assertTrue(bomColoree,
@@ -73,18 +73,18 @@ final class BomEnteteTest {
      *  fait pas revenir l'opérateur parasite. */
     @Test
     void laRepriseIncrementaleGardeLaBomIgnoree() {
-        String texte = "\uFEFFint alpha;\nint beta;\n";
-        Document avant = Document.of(texte);
+        String text = "\uFEFFint alpha;\nint beta;\n";
+        Document avant = Document.of(text);
         LexDocument lexAvant = new IncrementalLexer().lexFull(avant, LEXEUR).lex();
-        int pos = texte.indexOf("alpha") + 5;
-        String apresTexte = texte.substring(0, pos) + "bet" + texte.substring(pos);
+        int pos = text.indexOf("alpha") + 5;
+        String apresTexte = text.substring(0, pos) + "bet" + text.substring(pos);
         Document apres = Document.of(apresTexte);
         LexDocument lexApres = new IncrementalLexer().lexIncremental(apres,
                 LEXEUR, lexAvant,
                 jo.celeris.core.syntax.EditSite.of(avant, apres, pos, pos, "bet")).lex();
-        Token[] jetons = lexApres.line(0).tokens();
-        assertEquals(TokenKind.KEYWORD, jetons[0].kind());
-        assertEquals(1, jetons[0].start(),
+        Token[] tokens = lexApres.line(0).tokens();
+        assertEquals(TokenKind.KEYWORD, tokens[0].kind());
+        assertEquals(1, tokens[0].start(),
                 "la reprise garde la BOM ignorée — le mot-clé à l'offset 1");
     }
 }

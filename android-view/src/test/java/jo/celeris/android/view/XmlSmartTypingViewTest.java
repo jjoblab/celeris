@@ -22,7 +22,7 @@ import org.robolectric.RuntimeEnvironment;
 public class XmlSmartTypingViewTest {
 
     private EditorTestRig bancBranche(String contenu) {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), contenu);
         banc.vue().intelligence().setProvider(IntelligenceHub.builtins());
         return banc;

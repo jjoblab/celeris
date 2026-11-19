@@ -38,30 +38,30 @@ class CompletionDocModelTest {
      */
     @Test
     void completionDocModelKeepsTypedSections() {
-        CompletionDocModel modele = CompletionDocModel.of("substring", DOC_SERVEUR);
+        CompletionDocModel model = CompletionDocModel.of("substring", DOC_SERVEUR);
         // le titre est distinct : il ne commence ni ne finit dans une section
-        assertEquals("substring", modele.titre());
+        assertEquals("substring", model.titre());
         // les blocs clôturés sortent en sections typées séparées, dans l'ordre
-        List<CompletionDocModel.Section> sections = modele.sections();
+        List<CompletionDocModel.Section> sections = model.sections();
         assertEquals(2, sections.size());
-        assertEquals("signature", sections.get(0).genre());
+        assertEquals("signature", sections.get(0).kind());
         assertEquals("java.lang.String substring(int beginIndex)",
-                sections.get(0).texte());
-        assertEquals("description", sections.get(1).genre());
+                sections.get(0).text());
+        assertEquals("description", sections.get(1).kind());
         assertEquals("Returns a string that is a substring.",
-                sections.get(1).texte());
+                sections.get(1).text());
         // aucun marqueur de clôture ne fuit dans le texte des sections
         for (CompletionDocModel.Section section : sections) {
-            assertTrue(!section.texte().contains("```"));
-            assertTrue(!section.texte().contains(section.genre()));
+            assertTrue(!section.text().contains("```"));
+            assertTrue(!section.text().contains(section.kind()));
         }
     }
 
     /** Le texte hors clôtures : il vit à part, jamais mêlé aux sections typées. */
     @Test
     void leTexteHorsClotures() {
-        CompletionDocModel modele = CompletionDocModel.of("x", DOC_SERVEUR);
-        String libre = modele.texteLibre();
+        CompletionDocModel model = CompletionDocModel.of("x", DOC_SERVEUR);
+        String libre = model.freeText();
         assertTrue(libre.contains("Some text before."));
         assertTrue(libre.contains("Some text between."));
         assertTrue(libre.contains("Some text after."));
@@ -73,39 +73,39 @@ class CompletionDocModelTest {
     /** Sans clôture : tout est texte libre, aucune section inventée. */
     @Test
     void sansClotureToutEstLibre() {
-        CompletionDocModel modele = CompletionDocModel.of("ret",
+        CompletionDocModel model = CompletionDocModel.of("ret",
                 "Just plain documentation, no fences.");
-        assertTrue(modele.sections().isEmpty());
-        assertEquals("Just plain documentation, no fences.", modele.texteLibre());
+        assertTrue(model.sections().isEmpty());
+        assertEquals("Just plain documentation, no fences.", model.freeText());
     }
 
     /** La clôture non fermée : le reste du texte en est le contenu — jamais perdu. */
     @Test
     void laClotureNonFermee() {
-        CompletionDocModel modele = CompletionDocModel.of("y",
+        CompletionDocModel model = CompletionDocModel.of("y",
                 "```signature\nint run()\nno closing fence");
-        assertEquals(1, modele.sections().size());
-        assertEquals("signature", modele.sections().get(0).genre());
-        assertTrue(modele.sections().get(0).texte().contains("int run()"));
-        assertEquals("", modele.texteLibre());
+        assertEquals(1, model.sections().size());
+        assertEquals("signature", model.sections().get(0).kind());
+        assertTrue(model.sections().get(0).text().contains("int run()"));
+        assertEquals("", model.freeText());
     }
 
     /** Le genre inconnu : la clôture porte ce qu'elle porte, le modèle ne devine pas. */
     @Test
     void leGenreInconnuEstConserve() {
-        CompletionDocModel modele = CompletionDocModel.of("z",
+        CompletionDocModel model = CompletionDocModel.of("z",
                 "```example\nexemple\n```");
-        assertEquals("example", modele.sections().get(0).genre());
-        assertEquals("exemple", modele.sections().get(0).texte());
+        assertEquals("example", model.sections().get(0).kind());
+        assertEquals("exemple", model.sections().get(0).text());
     }
 
     /** La documentation vide : titre seul, ni section ni texte libre. */
     @Test
     void laDocumentationVide() {
-        CompletionDocModel modele = CompletionDocModel.of("seul", "");
-        assertEquals("seul", modele.titre());
-        assertTrue(modele.sections().isEmpty());
-        assertEquals("", modele.texteLibre());
+        CompletionDocModel model = CompletionDocModel.of("seul", "");
+        assertEquals("seul", model.titre());
+        assertTrue(model.sections().isEmpty());
+        assertEquals("", model.freeText());
     }
 
     /** La convention des serveurs LSP (audit Android Studio du
@@ -125,20 +125,20 @@ class CompletionDocModelTest {
                 + "- endIndex — the ending index\n"
                 + "**Returns:**\n"
                 + "the substring";
-        CompletionDocModel modele = CompletionDocModel.of("substring", doc);
-        assertEquals("substring", modele.titre());
+        CompletionDocModel model = CompletionDocModel.of("substring", doc);
+        assertEquals("substring", model.titre());
         assertEquals("Returns a string that is a substring.",
-                modele.texteLibre());
-        assertEquals(3, modele.sections().size());
-        assertEquals("java", modele.sections().get(0).genre());
+                model.freeText());
+        assertEquals(3, model.sections().size());
+        assertEquals("java", model.sections().get(0).kind());
         assertEquals("java.lang.String substring(int beginIndex)",
-                modele.sections().get(0).texte());
-        assertEquals("Parameters:", modele.sections().get(1).genre());
+                model.sections().get(0).text());
+        assertEquals("Parameters:", model.sections().get(1).kind());
         assertEquals("- beginIndex — the beginning index\n"
                         + "- endIndex — the ending index",
-                modele.sections().get(1).texte());
-        assertEquals("Returns:", modele.sections().get(2).genre());
-        assertEquals("the substring", modele.sections().get(2).texte());
+                model.sections().get(1).text());
+        assertEquals("Returns:", model.sections().get(2).kind());
+        assertEquals("the substring", model.sections().get(2).text());
     }
 
     /** Les titres Markdown (« # Titre ») ouvrent aussi la section —
@@ -146,13 +146,13 @@ class CompletionDocModelTest {
     @Test
     void lesTitresMarkdownOuvrentLesSections() {
         String doc = "intro\n# Details\nla description\n# See Also\nrien";
-        CompletionDocModel modele = CompletionDocModel.of("x", doc);
-        assertEquals("intro", modele.texteLibre());
-        assertEquals(2, modele.sections().size());
-        assertEquals("Details", modele.sections().get(0).genre());
-        assertEquals("la description", modele.sections().get(0).texte());
-        assertEquals("See Also", modele.sections().get(1).genre());
-        assertEquals("rien", modele.sections().get(1).texte());
+        CompletionDocModel model = CompletionDocModel.of("x", doc);
+        assertEquals("intro", model.freeText());
+        assertEquals(2, model.sections().size());
+        assertEquals("Details", model.sections().get(0).kind());
+        assertEquals("la description", model.sections().get(0).text());
+        assertEquals("See Also", model.sections().get(1).kind());
+        assertEquals("rien", model.sections().get(1).text());
     }
 
     /** Le gras EN LIGNE n'ouvre RIEN : seule la ligne PORTÉE par le
@@ -161,8 +161,8 @@ class CompletionDocModelTest {
     @Test
     void leGrasEnLigneResteAuCorps() {
         String doc = "le mot **important** reste au corps";
-        CompletionDocModel modele = CompletionDocModel.of("y", doc);
-        assertTrue(modele.sections().isEmpty());
-        assertEquals(doc, modele.texteLibre());
+        CompletionDocModel model = CompletionDocModel.of("y", doc);
+        assertTrue(model.sections().isEmpty());
+        assertEquals(doc, model.freeText());
     }
 }

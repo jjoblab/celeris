@@ -7,7 +7,7 @@ import org.jspecify.annotations.Nullable;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.EnginePathFactory;
 import jo.celeris.core.syntax.LanguageSyntax;
-import jo.celeris.core.syntax.MoteurSyntaxe;
+import jo.celeris.core.syntax.SyntaxEngine;
 import jo.celeris.core.text.TextSession;
 
 /**
@@ -21,7 +21,7 @@ import jo.celeris.core.text.TextSession;
  * des langages servis (json, python, javascript) y entrent dès
  * l'initialisation — la préférence « tree-sitter » d'un paquet se met
  * à servir, son repli cesse de servir. Le retrait s'y fait
- * symétriquement ({@code oublier}) à la fermeture.</p>
+ * symétriquement ({@code forget}) à la fermeture.</p>
  */
 public final class TreeSitterPathFactory implements EnginePathFactory {
 
@@ -48,10 +48,10 @@ public final class TreeSitterPathFactory implements EnginePathFactory {
     }
 
     @Override
-    public @Nullable MoteurSyntaxe creer(@Nullable LanguageSyntax source,
-            TextSession session, @Nullable Executor executeur) {
+    public @Nullable SyntaxEngine create(@Nullable LanguageSyntax source,
+            TextSession session, @Nullable Executor executor) {
         inscrire();
-        return MoteurNatif.de(source, session, executeur);
+        return NativeEngine.of(source, session, executor);
     }
 
     /** La fabrique ne porte aucun état d'instance. */
@@ -65,7 +65,7 @@ public final class TreeSitterPathFactory implements EnginePathFactory {
      * @param moteur le moteur de la voie
      * @return l'analyse publiée, ou null
      */
-    public static @Nullable Analysis analysePubliee(MoteurSyntaxe moteur) {
+    public static @Nullable Analysis analysePubliee(SyntaxEngine moteur) {
         return moteur.analysePubliee();
     }
 }

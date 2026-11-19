@@ -43,7 +43,7 @@ import org.jspecify.annotations.Nullable;
  * equals/hashCode/toString lus des CHAMPS RÉELS de la classe
  * englobante (B-24), l'entourage de la sélection (try/catch, if) et
  * le gabarit de méthode à trous liés (A-22 — le geste de l'hôte par
- * {@link PopupsEditeur#configurerGabaritMethode}, un seul canal, la
+ * {@link EditorPopups#setMethodTemplateGesture}, un seul canal, la
  * carte est une peau de plus). Le choix génère et applique en
  * transaction annulable ; la classe inconnue ne propose que ce qui
  * ne la demande pas (l'entourage et le gabarit).
@@ -55,7 +55,7 @@ import org.jspecify.annotations.Nullable;
  */
 final class Gabarits {
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
@@ -63,40 +63,40 @@ final class Gabarits {
     /** Le plan du fichier ouvert — la classe englobante s'y lit. */
     private final Supplier<List<OutlineEntry>> plan;
     /** Le langage du fichier ouvert — l'analyse s'y lit. */
-    private final Supplier<@Nullable LanguageSupport> langue;
+    private final Supplier<@Nullable LanguageSupport> language;
     /** Le geste du gabarit de méthode — le canal unique de la
      *  refactorisation (A-22), l'hôte le pose par configuration. */
-    private final Supplier<Runnable> gesteGabaritMethode;
+    private final Supplier<Runnable> methodTemplateGesture;
 
     /**
      * Construit les gabarits sur le coordinateur des popups : la carte
      * naît liée à son genre, le patron des trois temps (lier,
      * déclencher, déléguer — USAGE §9).
      *
-     * @param editeur            la vue d'éditeur ouverte
+     * @param editor            la vue d'éditeur ouverte
      * @param session            la session d'édition courante
      * @param popups             le coordinateur des popups de la scène
      * @param margePx            la respiration des ancres aux bords, en pixels
      * @param palette            la palette courante des popups
      * @param plan               le plan courant du fichier ouvert
-     * @param langue             le langage du fichier ouvert, null sans
-     * @param gesteGabaritMethode le geste d'insertion du gabarit de
+     * @param language             le langage du fichier ouvert, null sans
+     * @param methodTemplateGesture le geste d'insertion du gabarit de
      *                           méthode (A-22) — le canal unique de la
      *                           refactorisation, la carte n'est qu'une
      *                           peau de plus
      */
-    Gabarits(EditorView editeur, TextSession session, PopupManager popups,
+    Gabarits(EditorView editor, TextSession session, PopupManager popups,
             int margePx, PopupPalette palette,
             Supplier<List<OutlineEntry>> plan,
-            Supplier<@Nullable LanguageSupport> langue,
-            Supplier<Runnable> gesteGabaritMethode) {
-        this.editeur = editeur;
+            Supplier<@Nullable LanguageSupport> language,
+            Supplier<Runnable> methodTemplateGesture) {
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
         this.plan = plan;
-        this.langue = langue;
-        this.gesteGabaritMethode = gesteGabaritMethode;
+        this.language = language;
+        this.methodTemplateGesture = methodTemplateGesture;
         this.carte = new IntentionsMenuView(popups.couche().getContext(),
                 palette);
         popups.lier(PopupController.PopupKind.GABARITS, carte);
@@ -114,7 +114,7 @@ final class Gabarits {
      * curseur, bornée. Sans aucune action servie, la carte ne se pose
      * pas.
      */
-    void ouvrir() {
+    void open() {
         List<IntentionsMenuView.Item> items = new ArrayList<>();
         String classe = classeEnglobante();
         if (classe != null) {
@@ -124,24 +124,24 @@ final class Gabarits {
             if (champs == null) {
                 return;
             }
-            ajouterClasse(items, classe, champs);
+            addClass(items, classe, champs);
         }
-        ajouterEntourage(items);
-        ajouterGabaritMethode(items);
+        addSurround(items);
+        addMethodTemplate(items);
         if (items.isEmpty()) {
             return;
         }
         carte.setSection(popups.couche().getContext().getString(
                 R.string.celeris_section_gabarits));
         carte.setActions(items);
-        montrer();
+        show();
     }
 
     /** Le défilement a déplacé le curseur : la carte ouverte se
      *  REPOSITIONNE — le genre suit les régimes du menu du caret. */
     void repositionner() {
         if (popups.estOuvert(PopupController.PopupKind.GABARITS)) {
-            montrer();
+            show();
         }
     }
 
@@ -150,7 +150,7 @@ final class Gabarits {
      * accesseurs quand les champs existent, le trio
      * equals/hashCode/toString toujours — la classe sert son règlement.
      */
-    private void ajouterClasse(List<IntentionsMenuView.Item> items,
+    private void addClass(List<IntentionsMenuView.Item> items,
             String classe, List<Generateurs.Champ> champs) {
         items.add(new IntentionsMenuView.Item(
                 popups.couche().getContext().getString(
@@ -171,7 +171,7 @@ final class Gabarits {
 
     /** Les actions d'entourage : la sélection NON VIDE seule s'y
      *  propose — rien à entourer ne se devine jamais. */
-    private void ajouterEntourage(List<IntentionsMenuView.Item> items) {
+    private void addSurround(List<IntentionsMenuView.Item> items) {
         if (!selectionUniqueNonVide()) {
             return;
         }
@@ -188,13 +188,13 @@ final class Gabarits {
 
     /** Le gabarit de méthode — le canal de la refactorisation, une
      *  peau de plus : la carte ne duplique jamais la logique. */
-    private void ajouterGabaritMethode(List<IntentionsMenuView.Item> items) {
+    private void addMethodTemplate(List<IntentionsMenuView.Item> items) {
         items.add(new IntentionsMenuView.Item(
                 popups.couche().getContext().getString(
                         R.string.celeris_gabarits_methode),
                 () -> {
-                    popups.fermer(PopupController.PopupKind.GABARITS);
-                    gesteGabaritMethode.get().run();
+                    popups.close(PopupController.PopupKind.GABARITS);
+                    methodTemplateGesture.get().run();
                 }));
     }
 
@@ -202,54 +202,54 @@ final class Gabarits {
      *  fraîche, l'application appartient à la session — la carte se
      *  referme d'abord (le geste prend le relais). */
     private void generer(String genere) {
-        popups.fermer(PopupController.PopupKind.GABARITS);
+        popups.close(PopupController.PopupKind.GABARITS);
         EditPlan plan = surAnalyse(analyse -> planGenere(
                 session.document(), analyse, classeEnglobante(), genere));
         if (plan == null || !session.apply(plan.transaction(), plan.selection())) {
             return;
         }
         selectionner();
-        editeur.invalidate();
+        editor.invalidate();
     }
 
     /** Le geste d'entourage : le plan ceint la sélection, l'application
      *  suit, le bloc ceint vit sélectionné. */
     private void entourer(String avant, String apres) {
-        popups.fermer(PopupController.PopupKind.GABARITS);
+        popups.close(PopupController.PopupKind.GABARITS);
         EditPlan plan = Entourer.entourer(session.document(),
                 session.selection(), avant, apres);
         if (plan == null || !session.apply(plan.transaction(), plan.selection())) {
             return;
         }
         selectionner();
-        editeur.invalidate();
+        editor.invalidate();
     }
 
     /** La sélection courante se révèle à la vue — le caret suit sa
      *  sélection (le bloc ceint, la suite du généré). */
     private void selectionner() {
-        List<SelRange> plages = session.selection().ranges();
-        if (!plages.isEmpty()) {
-            NavigationCommands.selectRange(editeur, plages.get(0).start(),
-                    plages.get(0).end());
+        List<SelRange> ranges = session.selection().ranges();
+        if (!ranges.isEmpty()) {
+            NavigationCommands.selectRange(editor, ranges.get(0).start(),
+                    ranges.get(0).end());
         }
     }
 
     /** Monte la carte mesurée sous le curseur, bornée — la pose ET la
      *  re-pose y passent (le genre suit le menu du caret). */
-    private void montrer() {
-        Rect curseur = editeur.caretBounds();
+    private void show() {
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom, taille(),
+                cursor.left, cursor.bottom, size(),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.GABARITS,
+        popups.show(PopupController.PopupKind.GABARITS,
                 placee.x(), placee.y());
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
-    private PopupPlacer.Cadre taille() {
-        return popups.taille(PopupController.PopupKind.GABARITS);
+    private PopupPlacer.Cadre size() {
+        return popups.size(PopupController.PopupKind.GABARITS);
     }
 
     /**
@@ -274,10 +274,10 @@ final class Gabarits {
             return null;
         }
         int position = Generateurs.positionInsertion(classe);
-        String texte = "\n" + membre(genere) + "\n";
+        String text = "\n" + membre(genere) + "\n";
         return new EditPlan(
-                Transaction.of(new TextEdit(position, "", texte)),
-                MultiSelection.caretsAt(position + texte.length() - 1));
+                Transaction.of(new TextEdit(position, "", text)),
+                MultiSelection.caretsAt(position + text.length() - 1));
     }
 
     /** Le généré à son cran de membre : chaque ligne portante gagne
@@ -286,14 +286,14 @@ final class Gabarits {
      *  son niveau). */
     private static String membre(String genere) {
         StringBuilder rendu = new StringBuilder(genere.length() + 16);
-        for (String ligne : genere.split("\n", -1)) {
+        for (String line : genere.split("\n", -1)) {
             if (rendu.length() > 0) {
                 rendu.append('\n');
             }
-            if (!ligne.isBlank()) {
+            if (!line.isBlank()) {
                 rendu.append("    ");
             }
-            rendu.append(ligne);
+            rendu.append(line);
         }
         return rendu.toString();
     }
@@ -303,11 +303,11 @@ final class Gabarits {
     private @Nullable String classeEnglobante() {
         int caret = caret();
         String trouvee = null;
-        for (OutlineEntry entree : plan.get()) {
-            if (entree.category() == NodeCategory.TYPE
-                    && entree.startOffset() <= caret
-                    && caret <= entree.endOffset()) {
-                trouvee = entree.name();
+        for (OutlineEntry input : plan.get()) {
+            if (input.category() == NodeCategory.TYPE
+                    && input.startOffset() <= caret
+                    && caret <= input.endOffset()) {
+                trouvee = input.name();
             }
         }
         return trouvee;
@@ -322,7 +322,7 @@ final class Gabarits {
     /** Le calcul mené sur une analyse FRAÎCHE — coordinateur ponctuel,
      *  fermé d'entrée ; null quand la langue ne s'analyse pas. */
     private <T> @Nullable T surAnalyse(Function<Analysis, T> calcul) {
-        LanguageSupport support = langue.get();
+        LanguageSupport support = language.get();
         if (support == null || support.syntax() == null) {
             return null;
         }
@@ -337,7 +337,7 @@ final class Gabarits {
 
     /** La position du curseur — la tête de la sélection courante. */
     private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).caret();
     }
 }

@@ -39,7 +39,7 @@ public final class PopupLayer extends ViewGroup {
 
     /** L'avis du tap hors cartes — le coordinateur y ferme les cartes
      *  qui cèdent au geste extérieur. */
-    private @Nullable Runnable surToucheHorsCartes;
+    private @Nullable Runnable onTouchOutsideCards;
 
     public PopupLayer(Context context) {
         this(context, null);
@@ -97,14 +97,14 @@ public final class PopupLayer extends ViewGroup {
         }
         popup.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        poser(kind, popup, x, y);
+        place(kind, popup, x, y);
     }
 
     /** La vue se pose bornée aux murs de la couche — la défense en
      *  profondeur : les ancres bornent déjà, la couche veille quand
      *  l'hôte calcule lui-même (les poses d'avant layout restent
      *  telles quelles, la couche n'a pas encore de murs). */
-    private void poser(PopupController.PopupKind kind, View popup, int x, int y) {
+    private void place(PopupController.PopupKind kind, View popup, int x, int y) {
         int borneX = getWidth() > 0
                 ? Math.max(0, Math.min(x, getWidth() - popup.getMeasuredWidth())) : x;
         int borneY = getHeight() > 0
@@ -125,7 +125,7 @@ public final class PopupLayer extends ViewGroup {
     public void reposition(PopupController.PopupKind kind, int x, int y) {
         View popup = popups.get(kind);
         if (popup != null) {
-            poserVueMesuree(popup, x, y);
+            setMeasuredView(popup, x, y);
             invalidate();
         }
     }
@@ -150,13 +150,13 @@ public final class PopupLayer extends ViewGroup {
         }
         popup.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        poserVueMesuree(popup, x, y);
+        setMeasuredView(popup, x, y);
         invalidate();
     }
 
     /** La vue MESURÉE se pose bornée — le re-monte de la couche y
      *  passe, la largeur et la hauteur mesurées servent le bornage. */
-    private void poserVueMesuree(View popup, int x, int y) {
+    private void setMeasuredView(View popup, int x, int y) {
         int borneX = getWidth() > 0
                 ? Math.max(0, Math.min(x, getWidth() - popup.getMeasuredWidth())) : x;
         int borneY = getHeight() > 0
@@ -213,15 +213,15 @@ public final class PopupLayer extends ViewGroup {
      *
      * @param avis l'avertisseur du tap extérieur, null pour couper
      */
-    public void setSurToucheHorsCartes(@Nullable Runnable avis) {
-        surToucheHorsCartes = avis;
+    public void setOnTouchOutsideCards(@Nullable Runnable avis) {
+        onTouchOutsideCards = avis;
     }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN
                 && horsDesCartes(event)) {
-            Runnable avis = surToucheHorsCartes;
+            Runnable avis = onTouchOutsideCards;
             if (avis != null) {
                 avis.run();
             }

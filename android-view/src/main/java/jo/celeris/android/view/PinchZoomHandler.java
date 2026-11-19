@@ -24,12 +24,12 @@ import android.view.ScaleGestureDetector;
 final class PinchZoomHandler {
 
     /** L'écartement nul ne divise jamais : le plancher de garde. */
-    private static final float ECART_MIN = 1e-6f;
+    private static final float MIN_GAP = 1e-6f;
 
     private final EditorView vue;
 
-    private float tailleAuDepart;
-    private float ecartAuDepart;
+    private float startSize;
+    private float startGap;
     private boolean actif;
 
     /**
@@ -56,8 +56,8 @@ final class PinchZoomHandler {
      */
     void surEngagement(ScaleGestureDetector detecteur) {
         actif = true;
-        tailleAuDepart = vue.policeLogique.size();
-        ecartAuDepart = detecteur.getCurrentSpan();
+        startSize = vue.policeLogique.size();
+        startGap = detecteur.getCurrentSpan();
         vue.touches.couperPanoramique();
     }
 
@@ -68,11 +68,11 @@ final class PinchZoomHandler {
      * @param detecteur le détecteur au cran courant
      */
     void surCran(ScaleGestureDetector detecteur) {
-        if (!actif || ecartAuDepart <= ECART_MIN) {
+        if (!actif || startGap <= MIN_GAP) {
             return;
         }
         surCranCumule(detecteur.getFocusX(), detecteur.getFocusY(),
-                detecteur.getCurrentSpan() / ecartAuDepart);
+                detecteur.getCurrentSpan() / startGap);
     }
 
     /**
@@ -100,13 +100,13 @@ final class PinchZoomHandler {
      * molette (D-15) : le point central de la vue sert de point focal.
      */
     void agrandir() {
-        poserTaille(PinchZoom.stepAbove(vue.policeLogique.size()),
+        setSize(PinchZoom.stepAbove(vue.policeLogique.size()),
                 vue.getWidth() / 2f, vue.getHeight() / 2f);
     }
 
     /** Un cran en dessous, focal au centre de la vue (D-15). */
     void retrecir() {
-        poserTaille(PinchZoom.stepBelow(vue.policeLogique.size()),
+        setSize(PinchZoom.stepBelow(vue.policeLogique.size()),
                 vue.getWidth() / 2f, vue.getHeight() / 2f);
     }
 
@@ -117,7 +117,7 @@ final class PinchZoomHandler {
      * @param tailleParDefaut la police par défaut de l'hôte, en sp
      */
     void retablir(float tailleParDefaut) {
-        poserTaille(tailleParDefaut, vue.getWidth() / 2f, vue.getHeight() / 2f);
+        setSize(tailleParDefaut, vue.getWidth() / 2f, vue.getHeight() / 2f);
     }
 
     /**
@@ -138,16 +138,16 @@ final class PinchZoomHandler {
             return false;
         }
         if (cran > 0f) {
-            poserTaille(PinchZoom.stepAbove(vue.policeLogique.size()),
+            setSize(PinchZoom.stepAbove(vue.policeLogique.size()),
                     event.getX(), event.getY());
         } else {
-            poserTaille(PinchZoom.stepBelow(vue.policeLogique.size()),
+            setSize(PinchZoom.stepBelow(vue.policeLogique.size()),
                     event.getX(), event.getY());
         }
         return true;
     }
 
-    private void poserTaille(float nouvelleTaille, float focalX, float focalY) {
+    private void setSize(float nouvelleTaille, float focalX, float focalY) {
         if (nouvelleTaille == vue.policeLogique.size()) {
             return;
         }
@@ -161,7 +161,7 @@ final class PinchZoomHandler {
         // La gouttière dépend de la police : la colonne se lit à la
         // gouttière d'avant, se pose à celle d'après — le point focal
         // ne dérive pas d'un palier à l'autre.
-        float nouvelleGouttiere = largeurGouttierePrevue();
+        float nouvelleGouttiere = expectedGutterWidth();
         vue.scrollX = PinchZoom.scrollXKeepingColumn(focalX, ancienneGouttiere,
                 nouvelleGouttiere, ancienScrollX, ancienCharWidth,
                 vue.metrics.charWidth());
@@ -171,14 +171,14 @@ final class PinchZoomHandler {
         vue.largeurGouttiere = nouvelleGouttiere;
         vue.scrollY = PinchZoom.scrollYKeepingRow(focalY, ancienScrollY,
                 ancienLineHeight, vue.metrics.lineHeight());
-        bornerDefilement(nouvelleGouttiere);
+        clampScroll(nouvelleGouttiere);
         vue.invalidate();
     }
 
     private void zoomer(float focalX, float focalY, float facteurCumule) {
-        float cible = PinchZoom.targetSize(tailleAuDepart, facteurCumule);
-        float nouvelleTaille = PinchZoom.steppedSize(vue.policeLogique.size(), cible);
-        poserTaille(nouvelleTaille, focalX, focalY);
+        float target = PinchZoom.targetSize(startSize, facteurCumule);
+        float nouvelleTaille = PinchZoom.steppedSize(vue.policeLogique.size(), target);
+        setSize(nouvelleTaille, focalX, focalY);
     }
 
     /**
@@ -186,22 +186,22 @@ final class PinchZoomHandler {
      * variante pure du calcul d'image, servie au zoom avant l'ajustement
      * du défilement (D-15), la même que celle de l'image (PIEGE-25).
      */
-    private float largeurGouttierePrevue() {
-        vue.gouttiereEtat.setCoulisses(
-                vue.marquesGouttiere.coulisses(vue.syntaxe.active()));
-        return vue.gouttiereEtat.suivre(
+    private float expectedGutterWidth() {
+        vue.gutterState.setCoulisses(
+                vue.gutterMarks.lanes(vue.syntaxe.active()));
+        return vue.gutterState.suivre(
                 vue.session.document().lineCount(),
-                vue.metrics.charWidth(), vue.densite(), vue.numerosVisibles);
+                vue.metrics.charWidth(), vue.densite(), vue.visibleNumbers);
     }
 
     /** Bornage du défilement à la taille du contenu (D-15). */
-    private void bornerDefilement(float gouttiere) {
-        float hauteurContenu =
+    private void clampScroll(float gutter) {
+        float contentHeight =
                 vue.projection.rowCount() * vue.metrics.lineHeight();
-        vue.scrollY = ScrollGeometry.clamp(vue.scrollY, hauteurContenu,
+        vue.scrollY = ScrollGeometry.clamp(vue.scrollY, contentHeight,
                 vue.getHeight());
         vue.scrollX = ScrollGeometry.clamp(vue.scrollX,
-                ScrollGeometry.largeurContenu(vue.projection, vue.metrics),
-                ScrollGeometry.largeurVisible(vue.getWidth(), gouttiere));
+                ScrollGeometry.contentWidth(vue.projection, vue.metrics),
+                ScrollGeometry.visibleWidth(vue.getWidth(), gutter));
     }
 }

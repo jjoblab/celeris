@@ -21,14 +21,14 @@ public final class KeyBindings {
     private static final int MASQUE_CTRL = 2;
     private static final int MASQUE_ALT = 4;
 
-    private final Map<KeyBinding, EditorAction> parTouche;
+    private final Map<KeyBinding, EditorAction> perKey;
     private final Map<EditorAction, KeyBinding> parAction;
 
-    private KeyBindings(Map<KeyBinding, EditorAction> parTouche) {
-        this.parTouche = new HashMap<>(parTouche);
+    private KeyBindings(Map<KeyBinding, EditorAction> perKey) {
+        this.perKey = new HashMap<>(perKey);
         this.parAction = new EnumMap<>(EditorAction.class);
-        for (Map.Entry<KeyBinding, EditorAction> entree : parTouche.entrySet()) {
-            parAction.put(entree.getValue(), entree.getKey());
+        for (Map.Entry<KeyBinding, EditorAction> input : perKey.entrySet()) {
+            parAction.put(input.getValue(), input.getKey());
         }
     }
 
@@ -115,7 +115,7 @@ public final class KeyBindings {
      * @return l'action liée, null si la touche est libre
      */
     public @Nullable EditorAction actionOf(KeyBinding touche) {
-        return parTouche.get(touche);
+        return perKey.get(touche);
     }
 
     /**
@@ -141,12 +141,12 @@ public final class KeyBindings {
      *                               nommant
      */
     public KeyBindings rebound(EditorAction action, KeyBinding touche) {
-        EditorAction tenanciere = parTouche.get(touche);
+        EditorAction tenanciere = perKey.get(touche);
         if (tenanciere != null && tenanciere != action) {
             throw new IllegalStateException("key " + touche.keyCode()
                     + " already bound to " + tenanciere);
         }
-        Map<KeyBinding, EditorAction> table = new HashMap<>(parTouche);
+        Map<KeyBinding, EditorAction> table = new HashMap<>(perKey);
         KeyBinding ancienne = parAction.get(action);
         if (ancienne != null) {
             table.remove(ancienne);
@@ -163,13 +163,13 @@ public final class KeyBindings {
      */
     public Map<String, Integer> encode() {
         Map<String, Integer> codee = new HashMap<>();
-        for (Map.Entry<EditorAction, KeyBinding> entree : parAction.entrySet()) {
-            KeyBinding touche = entree.getValue();
+        for (Map.Entry<EditorAction, KeyBinding> input : parAction.entrySet()) {
+            KeyBinding touche = input.getValue();
             int compact = touche.keyCode() * 8
                     + (touche.shift() ? MASQUE_SHIFT : 0)
                     + (touche.ctrl() ? MASQUE_CTRL : 0)
                     + (touche.alt() ? MASQUE_ALT : 0);
-            codee.put(entree.getKey().name(), compact);
+            codee.put(input.getKey().name(), compact);
         }
         return codee;
     }
@@ -183,15 +183,15 @@ public final class KeyBindings {
      */
     public static KeyBindings decode(Map<String, Integer> codee) {
         Map<KeyBinding, EditorAction> table = new HashMap<>();
-        for (Map.Entry<String, Integer> entree : codee.entrySet()) {
+        for (Map.Entry<String, Integer> input : codee.entrySet()) {
             EditorAction action;
             try {
-                action = EditorAction.valueOf(entree.getKey());
+                action = EditorAction.valueOf(input.getKey());
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("unknown action: "
-                        + entree.getKey(), e);
+                        + input.getKey(), e);
             }
-            int compact = entree.getValue();
+            int compact = input.getValue();
             table.put(new KeyBinding(compact / 8, (compact & MASQUE_SHIFT) != 0,
                     (compact & MASQUE_CTRL) != 0, (compact & MASQUE_ALT) != 0), action);
         }

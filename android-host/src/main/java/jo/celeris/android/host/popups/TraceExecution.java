@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import jo.celeris.android.host.spi.AnalyseurPile;
-import jo.celeris.android.host.spi.CadrePile;
+import jo.celeris.android.host.spi.StackAnalyzer;
+import jo.celeris.android.host.spi.StackFrame;
 import jo.celeris.android.widgets.ExceptionView;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.structure.OutlineEntry;
@@ -33,7 +33,7 @@ final class TraceExecution {
 
     /** L'échec d'une exécution : le type et le message de l'exception,
      *  les cadres de la pile dans l'ordre de la trace. */
-    record Echec(String type, String message, List<CadrePile> cadres) {
+    record Echec(String type, String message, List<StackFrame> cadres) {
     }
 
     /**
@@ -59,18 +59,18 @@ final class TraceExecution {
         String classe = null;
         OutlineEntry sommet = null;
         List<OutlineEntry> methodes = new ArrayList<>();
-        for (OutlineEntry entree : plan) {
-            if (entree.category() == NodeCategory.TYPE) {
-                if (entree.startOffset() <= caret
-                        && caret <= entree.endOffset()) {
-                    classe = entree.name();
+        for (OutlineEntry input : plan) {
+            if (input.category() == NodeCategory.TYPE) {
+                if (input.startOffset() <= caret
+                        && caret <= input.endOffset()) {
+                    classe = input.name();
                 }
             }
-            if (entree.category() == NodeCategory.FUNCTION) {
-                methodes.add(entree);
-                if (entree.startOffset() <= caret
-                        && caret <= entree.endOffset()) {
-                    sommet = entree;
+            if (input.category() == NodeCategory.FUNCTION) {
+                methodes.add(input);
+                if (input.startOffset() <= caret
+                        && caret <= input.endOffset()) {
+                    sommet = input;
                 }
             }
         }
@@ -89,7 +89,7 @@ final class TraceExecution {
                         methode.startLine() + 1));
             }
         }
-        return new Echec(type, message, AnalyseurPile.parser(rendu.toString()));
+        return new Echec(type, message, StackAnalyzer.parser(rendu.toString()));
     }
 
     /**
@@ -108,20 +108,20 @@ final class TraceExecution {
             Consumer<Integer> sauteur) {
         List<ExceptionView.Cadre> cadres = new ArrayList<>(
                 echec.cadres().size());
-        for (CadrePile pile : echec.cadres()) {
+        for (StackFrame pile : echec.cadres()) {
             boolean ouvert = pile.fichier().equals(fichierOuvert);
             cadres.add(new ExceptionView.Cadre(
-                    "L" + pile.ligne() + " · " + pile.classe() + "."
+                    "L" + pile.line() + " · " + pile.classe() + "."
                             + pile.methode(),
-                    ouvert ? () -> sauteur.accept(pile.ligne()) : null));
+                    ouvert ? () -> sauteur.accept(pile.line()) : null));
         }
         return cadres;
     }
 
     /** Un cadre de la trace — « at classe.methode(fichier:ligne) ». */
     private static String cadre(String classe, String methode,
-            String fichier, int ligne) {
+            String fichier, int line) {
         return "\tat " + classe + '.' + methode + '(' + fichier + ':'
-                + ligne + ")\n";
+                + line + ")\n";
     }
 }

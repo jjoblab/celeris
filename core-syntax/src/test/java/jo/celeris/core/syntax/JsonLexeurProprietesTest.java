@@ -27,38 +27,38 @@ class JsonLexeurProprietesTest {
     @Property(tries = 120)
     void leIncrementalEgaleLeComplet(@ForAll long graine) {
         Random rng = new Random(graine);
-        String texte = CorpusChargeur.exempleJson();
+        String text = CorpusChargeur.exempleJson();
         LanguageLexer lexeur = JsonSyntax.INSTANCE.lexer();
         IncrementalLexer moteur = new IncrementalLexer();
-        LexResult courant = moteur.lexFull(Document.of(texte), lexeur);
+        LexResult courant = moteur.lexFull(Document.of(text), lexeur);
 
         for (int i = 0; i < 12; i++) {
-            Document avant = Document.of(texte);
-            int debut = rng.nextInt(avant.length() + 1);
-            int fin = Math.min(debut + rng.nextInt(30), avant.length());
+            Document avant = Document.of(text);
+            int start = rng.nextInt(avant.length() + 1);
+            int end = Math.min(start + rng.nextInt(30), avant.length());
             String insertion = texteAleatoire(rng, 20);
-            Document apres = avant.replace(debut, fin, insertion);
-            EditSite site = EditSite.of(avant, apres, debut, fin, insertion);
+            Document apres = avant.replace(start, end, insertion);
+            EditSite site = EditSite.of(avant, apres, start, end, insertion);
             courant = moteur.lexIncremental(apres, lexeur, courant.lex(), site);
             LexResult temoin = moteur.lexFull(apres, lexeur);
             verifierEgalite(courant.lex(), temoin.lex(), graine);
-            texte = apres.text();
+            text = apres.text();
         }
     }
 
     private static void verifierEgalite(LexDocument obtenu, LexDocument temoin, long graine) {
         assertEquals(temoin.lineCount(), obtenu.lineCount(), "lignes (graine " + graine + ")");
-        for (int ligne = 0; ligne < temoin.lineCount(); ligne++) {
-            assertArrayEquals(temoin.line(ligne).tokens(), obtenu.line(ligne).tokens(),
-                    "paniers ligne " + ligne + " (graine " + graine + ")");
-            assertEquals(temoin.line(ligne).exitState(), obtenu.line(ligne).exitState(),
-                    "états ligne " + ligne + " (graine " + graine + ")");
+        for (int line = 0; line < temoin.lineCount(); line++) {
+            assertArrayEquals(temoin.line(line).tokens(), obtenu.line(line).tokens(),
+                    "paniers ligne " + line + " (graine " + graine + ")");
+            assertEquals(temoin.line(line).exitState(), obtenu.line(line).exitState(),
+                    "états ligne " + line + " (graine " + graine + ")");
         }
     }
 
-    private static String texteAleatoire(Random rng, int longueur) {
-        StringBuilder sb = new StringBuilder(longueur);
-        for (int i = 0; i < longueur; i++) {
+    private static String texteAleatoire(Random rng, int length) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
             sb.append(ALPHABET.charAt(rng.nextInt(ALPHABET.length())));
         }
         return sb.toString();

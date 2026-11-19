@@ -40,7 +40,7 @@ final class TreeSitterPathFactoryTest {
     void sansBibliothequeLaFabriqueRendNull() {
         TreeSitterPathFactory fabrique = new TreeSitterPathFactory();
         TextSession session = TextSession.of("");
-        assertNull(fabrique.creer(null, session, null),
+        assertNull(fabrique.create(null, session, null),
                 "sans source de la voie, la fabrique ne fabrique rien");
     }
 
@@ -50,7 +50,7 @@ final class TreeSitterPathFactoryTest {
     void lInscriptionSansBibliothequeResteVide() {
         TreeSitterPathFactory fabrique = new TreeSitterPathFactory();
         TextSession session = TextSession.of("");
-        fabrique.creer(null, session, null);   // déclenche l'inscription
+        fabrique.create(null, session, null);   // déclenche l'inscription
         assertNull(jo.celeris.core.language.packs.TreeSitterLanguages
                         .syntaxOf("json"),
                 "sans bibliothèque, le registre reste vide — le repli sert");

@@ -32,27 +32,27 @@ final class ChromePainter {
      * @param metrics   les métriques d'éditeur courantes
      * @param document  l'instantané de document affiché
      * @param projection la projection rangées ↔ lignes courante
-     * @param plages    les plages sélectionnées
+     * @param ranges    les plages sélectionnées
      * @param gutterWidth la largeur de gouttière, en pixels
      * @param scrollX   le défilement horizontal, en pixels
      * @param scrollY   le défilement vertical, en pixels
      * @param curseurVisible l'état clignotant du curseur d'écriture
      */
-    void tracer(DrawSurface surface, TextBrush brush, EditorTheme theme,
+    void trace(DrawSurface surface, TextBrush brush, EditorTheme theme,
             EditorMetrics metrics, Document document,
-            VisualProjection projection, List<SelRange> plages,
+            VisualProjection projection, List<SelRange> ranges,
             float gutterWidth, float scrollX, float scrollY,
             boolean curseurVisible) {
         if (curseurVisible) {
             tracerCurseurs(surface, brush, theme, metrics, document,
-                    projection, plages, gutterWidth, scrollX, scrollY);
+                    projection, ranges, gutterWidth, scrollX, scrollY);
         }
-        if (plages.size() == 1 && !plages.get(0).isEmpty()) {
+        if (ranges.size() == 1 && !ranges.get(0).isEmpty()) {
             brush.setColor(theme.cursorColor());
             poignee(surface, brush, document, projection, metrics, gutterWidth,
-                    scrollX, scrollY, plages.get(0).start());
+                    scrollX, scrollY, ranges.get(0).start());
             poignee(surface, brush, document, projection, metrics, gutterWidth,
-                    scrollX, scrollY, plages.get(0).end());
+                    scrollX, scrollY, ranges.get(0).end());
         }
     }
 
@@ -64,18 +64,18 @@ final class ChromePainter {
      */
     private void tracerCurseurs(DrawSurface surface, TextBrush brush,
             EditorTheme theme, EditorMetrics metrics, Document document,
-            VisualProjection projection, List<SelRange> plages,
+            VisualProjection projection, List<SelRange> ranges,
             float gutterWidth, float scrollX, float scrollY) {
         brush.setColor(theme.cursorColor());
         float demiEpaisseur = Math.max(2f, metrics.charWidth() / 12f);
-        for (SelRange plage : plages) {
-            if (!plage.isEmpty()) {
+        for (SelRange range : ranges) {
+            if (!range.isEmpty()) {
                 continue;
             }
             float x = CaretGeometry.xOfOffset(document, projection, metrics,
-                    gutterWidth, scrollX, plage.caret());
+                    gutterWidth, scrollX, range.caret());
             float y = CaretGeometry.yOfOffset(document, projection, metrics,
-                    scrollY, plage.caret());
+                    scrollY, range.caret());
             surface.drawRect(x - demiEpaisseur, y, x + demiEpaisseur,
                     y + metrics.lineHeight(), brush);
         }

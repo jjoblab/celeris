@@ -32,34 +32,34 @@ final class FrameAssembler {
      *
      * @param canvas le canvas de l'image
      */
-    void dessiner(android.graphics.Canvas canvas) {
-        if (vue.loupe.active()) {
-            Canvas toile = vue.loupe.toileDe(vue.getWidth(), vue.getHeight());
+    void draw(android.graphics.Canvas canvas) {
+        if (vue.magnifier.active()) {
+            Canvas toile = vue.magnifier.toileDe(vue.getWidth(), vue.getHeight());
             if (toile != null) {
                 // la photographie : la frame s'y rend entière, la vue
                 // reçoit la photographie pleine — puis la bulle y sert
                 // sa zone agrandie, au-dessus du doigt
-                dessinerImage(toile);
+                drawImage(toile);
                 android.graphics.Bitmap photographie =
-                        vue.loupe.photographie();
+                        vue.magnifier.photographie();
                 canvas.drawBitmap(photographie, 0f, 0f, null);
-                vue.loupe.tracer(canvas, photographie, vue.theme,
+                vue.magnifier.trace(canvas, photographie, vue.theme,
                         vue.getWidth(), vue.getHeight(), vue.densite());
                 return;
             }
         }
-        dessinerImage(canvas);
+        drawImage(canvas);
     }
 
     /** Le corps de l'image, sur le canvas donné (vue ou photographie). */
-    private void dessinerImage(android.graphics.Canvas canvas) {
+    private void drawImage(android.graphics.Canvas canvas) {
         canvas.drawColor(vue.theme.backgroundColor());
         preparer();
         vue.surface.attach(canvas);
         vue.trace.drawFrame(vue.surface, vue.etatImage);
         vue.diagnostics.surImageTracee();
         vue.pinceauChrome.setFont(vue.metrics.font());
-        vue.chrome.tracer(vue.surface, vue.pinceauChrome, vue.theme,
+        vue.chrome.trace(vue.surface, vue.pinceauChrome, vue.theme,
                 vue.metrics, vue.etatImage.document(),
                 vue.projection, vue.session.selection().ranges(),
                 vue.largeurGouttiere, vue.scrollX, vue.scrollY,
@@ -77,13 +77,13 @@ final class FrameAssembler {
      * session), le retour d'onglet traverse ce chemin avec ses
      * rangées INTACTES — c'est le correctif du retard ressenti.
      *
-     * @param defilement vrai pour rabattre aussi le défilement
+     * @param scroll vrai pour rabattre aussi le défilement
      */
-    void reinitialiserScene(boolean defilement) {
+    void reinitialiserScene(boolean scroll) {
         vue.revisionSuivie = Long.MIN_VALUE;
-        vue.gouttiereEtat.reinitialiser();
+        vue.gutterState.reinitialiser();
         vue.diagnostics.reinitialiser();
-        if (defilement) {
+        if (scroll) {
             vue.scrollX = 0f;
             vue.scrollY = 0f;
         }
@@ -101,34 +101,34 @@ final class FrameAssembler {
         // document, métriques, densité et configuration de coulisse —
         // jamais de la projection visuelle ni d'un état d'analyse
         // (PIEGE-25). Le budget de colonnes la lit à l'image COURANTE.
-        vue.gouttiereEtat.setCoulisses(
-                vue.marquesGouttiere.coulisses(vue.syntaxe.active()));
-        vue.largeurGouttiere = vue.gouttiereEtat.suivre(document.lineCount(),
-                vue.metrics.charWidth(), vue.densite(), vue.numerosVisibles);
+        vue.gutterState.setCoulisses(
+                vue.gutterMarks.lanes(vue.syntaxe.active()));
+        vue.largeurGouttiere = vue.gutterState.suivre(document.lineCount(),
+                vue.metrics.charWidth(), vue.densite(), vue.visibleNumbers);
         suivreRevision(document);
-        float hauteurContenu = vue.projection.rowCount()
+        float contentHeight = vue.projection.rowCount()
                 * vue.metrics.lineHeight();
-        vue.scrollY = ScrollGeometry.clamp(vue.scrollY, hauteurContenu,
+        vue.scrollY = ScrollGeometry.clamp(vue.scrollY, contentHeight,
                 vue.getHeight());
         vue.scrollX = ScrollGeometry.clamp(vue.scrollX,
-                ScrollGeometry.largeurContenu(vue.projection, vue.metrics),
-                ScrollGeometry.largeurVisible(vue.getWidth(),
+                ScrollGeometry.contentWidth(vue.projection, vue.metrics),
+                ScrollGeometry.visibleWidth(vue.getWidth(),
                         vue.largeurGouttiere));
         int premiere = ScrollGeometry.firstRow(vue.scrollY,
                 vue.metrics.lineHeight());
         int visibles = ScrollGeometry.visibleRows(vue.getHeight(),
                 vue.metrics.lineHeight());
-        vue.syntaxe.fenetre(vue.projection, premiere, visibles);
+        vue.syntaxe.window(vue.projection, premiere, visibles);
         vue.etatImage.beginFrame(document, vue.session.selection(),
                 vue.projection, document.revision(), vue.metrics, vue.theme,
                 premiere, visibles, vue.largeurGouttiere, vue.scrollX,
                 vue.scrollY, vue.getWidth());
         // L'attente de couleur (M7.5, §9) : une publication existe —
         // une rangée sans couleur se comptera comme décolorée.
-        vue.etatImage.attendCouleur(vue.syntaxe.couleurAttendue());
+        vue.etatImage.awaitColor(vue.syntaxe.expectedColor());
         // L'avis de fenêtre (M7.5, §7) : les popups se repositionnent
         // au changement réel — le clignotement ne notifie jamais.
-        vue.fenetre.review(vue.scrollX, vue.scrollY, vue.largeurGouttiere,
+        vue.window.review(vue.scrollX, vue.scrollY, vue.largeurGouttiere,
                 vue.metrics.charWidth(), vue.metrics.lineHeight(),
                 vue.projection.columns(), vue.getWidth(), vue.getHeight());
         // Le préfetch de viewport (B-03) : la marge du viewport se
@@ -155,7 +155,7 @@ final class FrameAssembler {
         if (recue || document.revision() != vue.revisionSuivie
                 || colonnesVoulues != vue.projection.columns()) {
             if (document.revision() != vue.revisionSuivie) {
-                episser(document);
+                splice(document);
             }
             vue.revisionSuivie = document.revision();
             // B-05 : la projection s'épisse quand seules les lignes
@@ -167,10 +167,10 @@ final class FrameAssembler {
                         Math.max(0, vue.derniereEditionPremiereLigne),
                         vue.derniereEditionDeltaLignes);
             } else {
-                vue.projection = new VisualProjection(document, vue.plis,
+                vue.projection = new VisualProjection(document, vue.folds,
                         colonnesVoulues);
             }
-            RowSource habillee = vue.syntaxe.habiller(
+            RowSource habillee = vue.syntaxe.wrap(
                     new DocumentRowSource(document, vue.projection, vue.metrics,
                             colonnesVoulues), document);
             vue.sourceLiee.set(habillee);
@@ -202,7 +202,7 @@ final class FrameAssembler {
      * d'annulation en plusieurs pas), l'invalidation totale reste la
      * voie sûre — jamais une épissure aux bornes faussées.
      */
-    private void episser(Document document) {
+    private void splice(Document document) {
         int premiereLigne = vue.derniereEditionPremiereLigne;
         int deltaLignes = vue.derniereEditionDeltaLignes;
         // Une seule édition continue, bornes propres : épisser. Le

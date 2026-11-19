@@ -54,7 +54,7 @@ public final class AgentReview {
         REFUSEE_PROTECTION,
 
         /** Rien à appliquer : aucun bloc accepté. */
-        VIDE
+        EMPTY
     }
 
     private final Document reference;
@@ -81,14 +81,14 @@ public final class AgentReview {
      * @throws IllegalArgumentException si la proposition ne date pas de
      *         la révision du document donné
      */
-    public static AgentReview de(Document reference, AgentProposal proposition) {
+    public static AgentReview of(Document reference, AgentProposal proposition) {
         if (proposition.revision() != reference.revision()) {
             throw new IllegalArgumentException(
                     "la proposition date de la revision "
                             + proposition.revision() + ", le document est a "
                             + reference.revision());
         }
-        List<List<TextEdit>> blocs = decouperEnBlocs(proposition.edits());
+        List<List<TextEdit>> blocs = splitIntoBlocks(proposition.edits());
         List<Decision> attente = new ArrayList<>();
         for (int i = 0; i < blocs.size(); i++) {
             attente.add(Decision.EN_ATTENTE);
@@ -101,17 +101,17 @@ public final class AgentReview {
      * touche la plage de la précédente — forment un même bloc, la
      * matière du changement se lit d'un tenant.
      */
-    private static List<List<TextEdit>> decouperEnBlocs(List<TextEdit> edits) {
+    private static List<List<TextEdit>> splitIntoBlocks(List<TextEdit> edits) {
         List<List<TextEdit>> blocs = new ArrayList<>();
         List<TextEdit> courant = new ArrayList<>();
         int finPrecedente = -1;
-        for (TextEdit edition : edits) {
-            if (!courant.isEmpty() && edition.start() > finPrecedente) {
+        for (TextEdit edit : edits) {
+            if (!courant.isEmpty() && edit.start() > finPrecedente) {
                 blocs.add(List.copyOf(courant));
                 courant = new ArrayList<>();
             }
-            courant.add(edition);
-            finPrecedente = edition.end();
+            courant.add(edit);
+            finPrecedente = edit.end();
         }
         if (!courant.isEmpty()) {
             blocs.add(List.copyOf(courant));
@@ -182,17 +182,17 @@ public final class AgentReview {
      * @param bloc l'index du bloc, à partir de zéro
      * @return les lignes préfixées, dans l'ordre du document
      */
-    public List<String> lignesDuBloc(int bloc) {
-        List<String> lignes = new ArrayList<>();
-        for (TextEdit edition : blocs.get(bloc)) {
-            for (String ligne : couperEnLignes(edition.removed())) {
-                lignes.add("- " + ligne);
+    public List<String> blockLines(int bloc) {
+        List<String> lines = new ArrayList<>();
+        for (TextEdit edit : blocs.get(bloc)) {
+            for (String line : cutIntoLines(edit.removed())) {
+                lines.add("- " + line);
             }
-            for (String ligne : couperEnLignes(edition.inserted())) {
-                lignes.add("+ " + ligne);
+            for (String line : cutIntoLines(edit.inserted())) {
+                lines.add("+ " + line);
             }
         }
-        return List.copyOf(lignes);
+        return List.copyOf(lines);
     }
 
     /**
@@ -203,17 +203,17 @@ public final class AgentReview {
      *
      * @return le texte après les décisions courantes
      */
-    public String texte() {
+    public String text() {
         StringBuilder fusion = new StringBuilder();
         int curseur = 0;
         for (int i = 0; i < blocs.size(); i++) {
             if (decisions.get(i) != Decision.ACCEPTE) {
                 continue;
             }
-            for (TextEdit edition : blocs.get(i)) {
-                fusion.append(reference.subText(curseur, edition.start()));
-                fusion.append(edition.inserted());
-                curseur = edition.end();
+            for (TextEdit edit : blocs.get(i)) {
+                fusion.append(reference.subText(curseur, edit.start()));
+                fusion.append(edit.inserted());
+                curseur = edit.end();
             }
         }
         fusion.append(reference.subText(curseur, reference.length()));
@@ -238,7 +238,7 @@ public final class AgentReview {
      *                 {@link #pointDeControle()}
      * @return la revue revenue à l'état du point de contrôle
      */
-    public AgentReview retourAuPointDeControle(AgentReview controle) {
+    public AgentReview backToCheckpoint(AgentReview controle) {
         return controle;
     }
 
@@ -254,7 +254,7 @@ public final class AgentReview {
     public Sortie appliquer(TextSession session) {
         List<TextEdit> acceptees = editionsAcceptees();
         if (acceptees.isEmpty()) {
-            return Sortie.VIDE;
+            return Sortie.EMPTY;
         }
         if (proposition.revision() != session.document().revision()) {
             return Sortie.REFUSEE_REVISION;
@@ -266,10 +266,10 @@ public final class AgentReview {
         // édition acceptée décale les suivantes de son delta.
         List<TextEdit> sequentielles = new ArrayList<>(acceptees.size());
         int delta = 0;
-        for (TextEdit edition : acceptees) {
-            sequentielles.add(new TextEdit(edition.start() + delta,
-                    edition.removed(), edition.inserted()));
-            delta += edition.inserted().length() - edition.removed().length();
+        for (TextEdit edit : acceptees) {
+            sequentielles.add(new TextEdit(edit.start() + delta,
+                    edit.removed(), edit.inserted()));
+            delta += edit.inserted().length() - edit.removed().length();
         }
         boolean appliquee = session.apply(Transaction.of(sequentielles));
         return appliquee ? Sortie.APPLIQUEE : Sortie.REFUSEE_PROTECTION;
@@ -290,21 +290,21 @@ public final class AgentReview {
      * Coupe un texte en lignes : le texte vide ne rend aucune ligne,
      * le saut final n'en ouvre pas une vide.
      */
-    private static List<String> couperEnLignes(String texte) {
-        if (texte.isEmpty()) {
+    private static List<String> cutIntoLines(String text) {
+        if (text.isEmpty()) {
             return List.of();
         }
-        List<String> lignes = new ArrayList<>();
-        int debut = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
-                lignes.add(texte.substring(debut, i));
-                debut = i + 1;
+        List<String> lines = new ArrayList<>();
+        int start = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                lines.add(text.substring(start, i));
+                start = i + 1;
             }
         }
-        if (debut < texte.length()) {
-            lignes.add(texte.substring(debut));
+        if (start < text.length()) {
+            lines.add(text.substring(start));
         }
-        return lignes;
+        return lines;
     }
 }

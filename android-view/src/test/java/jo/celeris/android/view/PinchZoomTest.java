@@ -91,8 +91,8 @@ class PinchZoomTest {
         // la colonne 11 doit rester à 120 px de la fenêtre.
         float nouveauScroll = PinchZoom.scrollXKeepingColumn(120f, 40f, 40f,
                 30f, 10f, 16f);
-        float colonne = (120f - 40f + nouveauScroll) / 16f;
-        assertEquals(11f, colonne, 1e-4f,
+        float column = (120f - 40f + nouveauScroll) / 16f;
+        assertEquals(11f, column, 1e-4f,
                 "la colonne sous le doigt ne bouge pas d'un cran");
 
         // La gouttière qui change entre les deux images ne dérive pas

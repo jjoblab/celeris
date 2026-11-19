@@ -31,7 +31,7 @@ import org.jspecify.annotations.Nullable;
 public final class SignatureHelpView extends PopupPanel {
 
     /** Le modèle courant, null pour vider le panneau. */
-    private @Nullable SignatureAideModel modele;
+    private @Nullable SignatureAideModel model;
     /** Le rappel du pas du stepper — reçoit le nouvel index actif. */
     private @Nullable IntConsumer onStep;
     /** Le peek ouvert par l'appui long — la documentation montrée. */
@@ -57,7 +57,7 @@ public final class SignatureHelpView extends PopupPanel {
      * @param model la signature active, ou null pour vider le panneau
      */
     public void setModel(SignatureAideModel model) {
-        this.modele = model;
+        this.model = model;
         requestLayout();
         invalidate();
     }
@@ -86,77 +86,77 @@ public final class SignatureHelpView extends PopupPanel {
 
     @Override
     void drawContent(Canvas canvas) {
-        SignatureAideModel courant = modele;
+        SignatureAideModel courant = model;
         if (courant == null) {
             return;
         }
         float y = 0f;
-        y = dessinerVoisine(canvas, courant, -1, y);
-        y = dessinerActive(canvas, courant, y);
-        y = dessinerVoisine(canvas, courant, 1, y);
+        y = drawNeighbor(canvas, courant, -1, y);
+        y = drawActive(canvas, courant, y);
+        y = drawNeighbor(canvas, courant, 1, y);
         if (courant.nombreSignatures() > 1) {
-            y = dessinerStepper(canvas, courant, y);
+            y = drawStepper(canvas, courant, y);
         }
         if (peekVisible && courant.peek() != null) {
-            dessinerPeek(canvas, courant, y);
+            drawPeek(canvas, courant, y);
         }
     }
 
     /** La voisine de la fenêtre au-dessus (-1) ou en dessous (1) de l'active. */
-    private float dessinerVoisine(Canvas canvas, SignatureAideModel courant,
+    private float drawNeighbor(Canvas canvas, SignatureAideModel courant,
             int cote, float y) {
         int index = courant.signatureActive() + cote;
         if (index < 0 || index >= courant.nombreSignatures()) {
             return y;
         }
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_META));
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_META));
         textPaint().setColor(palette.muted());
         float base = y - textPaint().getFontMetrics().top;
-        canvas.drawText(courant.fenetre().get(index - borneBasse(courant)).libelle(),
+        canvas.drawText(courant.window().get(index - borneBasse(courant)).label(),
                 0f, base, textPaint());
-        return y + hauteurMeta();
+        return y + metaHeight();
     }
 
     /** La signature active : ses trois paliers, la structure en barre de progression. */
-    private float dessinerActive(Canvas canvas, SignatureAideModel courant, float y) {
-        String libelle = courant.libelle();
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_CORPS));
+    private float drawActive(Canvas canvas, SignatureAideModel courant, float y) {
+        String label = courant.label();
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_CORPS));
         int actif = courant.parametreCourant();
-        int[][] plages = plagesParametres(libelle);
-        if (plages == null || plages.length == 0) {
+        int[][] ranges = plagesParametres(label);
+        if (ranges == null || ranges.length == 0) {
             textPaint().setColor(palette.text());
-            canvas.drawText(libelle, 0f, y - textPaint().getFontMetrics().top,
+            canvas.drawText(label, 0f, y - textPaint().getFontMetrics().top,
                     textPaint());
-            return y + hauteurCorps();
+            return y + bodyHeight();
         }
-        int actifBorne = Math.max(0, Math.min(actif, plages.length - 1));
+        int actifBorne = Math.max(0, Math.min(actif, ranges.length - 1));
         float x = 0f;
         float base = y - textPaint().getFontMetrics().top;
-        int curseur = 0;
-        for (int p = 0; p < plages.length; p++) {
-            if (plages[p][0] > curseur) {
-                x = dessinerSegment(canvas,
-                        libelle.substring(curseur, plages[p][0]), x, base,
+        int cursor = 0;
+        for (int p = 0; p < ranges.length; p++) {
+            if (ranges[p][0] > cursor) {
+                x = drawSegment(canvas,
+                        label.substring(cursor, ranges[p][0]), x, base,
                         p <= actifBorne ? palette.text() : palette.muted(),
                         false);
             }
             boolean estActif = p == actifBorne;
-            x = dessinerSegment(canvas,
-                    libelle.substring(plages[p][0], plages[p][1]), x, base,
+            x = drawSegment(canvas,
+                    label.substring(ranges[p][0], ranges[p][1]), x, base,
                     p <= actifBorne ? palette.accent() : palette.muted(),
                     estActif);
-            curseur = plages[p][1];
+            cursor = ranges[p][1];
         }
-        if (curseur < libelle.length()) {
-            dessinerSegment(canvas, libelle.substring(curseur), x, base,
+        if (cursor < label.length()) {
+            drawSegment(canvas, label.substring(cursor), x, base,
                     palette.muted(), false);
         }
-        return y + hauteurCorps();
+        return y + bodyHeight();
     }
 
     /** Le stepper ‹ i/n › — les chevrons aux ailes, le compte au centre. */
-    private float dessinerStepper(Canvas canvas, SignatureAideModel courant, float y) {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_MICRO));
+    private float drawStepper(Canvas canvas, SignatureAideModel courant, float y) {
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));
         textPaint().setColor(palette.muted());
         float base = y - textPaint().getFontMetrics().top;
         String compte = (courant.signatureActive() + 1) + "/"
@@ -170,21 +170,21 @@ public final class SignatureHelpView extends PopupPanel {
         textPaint().setColor(palette.muted());
         canvas.drawText(">", centre + largeurCompte / 2f + aileStepper(), base,
                 textPaint());
-        return y + hauteurMicro();
+        return y + microHeight();
     }
 
     /** Le peek : la documentation sous un filet, atténuée. */
-    private void dessinerPeek(Canvas canvas, SignatureAideModel courant, float y) {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_META));
+    private void drawPeek(Canvas canvas, SignatureAideModel courant, float y) {
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_META));
         textPaint().setColor(palette.muted());
-        float ligne = y + ecartPx();
-        tracerFilet(canvas, ligne - ecartPx() / 2f);
-        float base = ligne - textPaint().getFontMetrics().top;
+        float line = y + gapPx();
+        traceRule(canvas, line - gapPx() / 2f);
+        float base = line - textPaint().getFontMetrics().top;
         canvas.drawText(courant.peek(), 0f, base, textPaint());
     }
 
     /** Un segment typé de la ligne de signature — renvoie le X suivant. */
-    private float dessinerSegment(Canvas canvas, String segment, float x,
+    private float drawSegment(Canvas canvas, String segment, float x,
             float base, int couleur, boolean gras) {
         if (segment.isEmpty()) {
             return x;
@@ -202,22 +202,22 @@ public final class SignatureHelpView extends PopupPanel {
     }
 
     /** La hauteur d'une rangée de voisine, au palier méta. */
-    private int hauteurMeta() {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_META));
+    private int metaHeight() {
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_META));
         Paint.FontMetrics metriques = textPaint().getFontMetrics();
         return Math.round(metriques.bottom - metriques.top);
     }
 
     /** La hauteur du stepper, au palier micro. */
-    private int hauteurMicro() {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_MICRO));
+    private int microHeight() {
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));
         Paint.FontMetrics metriques = textPaint().getFontMetrics();
         return Math.round(metriques.bottom - metriques.top);
     }
 
     /** La hauteur de la signature active, au palier corps. */
-    private int hauteurCorps() {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_CORPS));
+    private int bodyHeight() {
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_CORPS));
         Paint.FontMetrics metriques = textPaint().getFontMetrics();
         return Math.round(metriques.bottom - metriques.top);
     }
@@ -228,55 +228,55 @@ public final class SignatureHelpView extends PopupPanel {
     }
 
     /** L'écart d'une section de peek (dp). */
-    private float ecartPx() {
-        return PopupTokens.ECART_DP * getResources().getDisplayMetrics().density;
+    private float gapPx() {
+        return PopupTokens.GAP_DP * getResources().getDisplayMetrics().density;
     }
 
     @Override
     int contentWidth() {
-        SignatureAideModel courant = modele;
+        SignatureAideModel courant = model;
         if (courant == null) {
             return 0;
         }
-        float largeur = 0f;
-        for (SignatureAideModel.Entree entree : courant.fenetre()) {
-            textPaint().setTextSize(tailleTexte(entree == courant.active()
+        float width = 0f;
+        for (SignatureAideModel.Entry input : courant.window()) {
+            textPaint().setTextSize(textSize(input == courant.active()
                     ? PopupTokens.TEXTE_CORPS : PopupTokens.TEXTE_META));
-            largeur = Math.max(largeur,
-                    textPaint().measureText(entree.libelle()));
+            width = Math.max(width,
+                    textPaint().measureText(input.label()));
         }
         if (peekVisible && courant.peek() != null) {
-            textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_META));
-            largeur = Math.max(largeur,
+            textPaint().setTextSize(textSize(PopupTokens.TEXTE_META));
+            width = Math.max(width,
                     textPaint().measureText(courant.peek()));
         }
-        return Math.round(largeur);
+        return Math.round(width);
     }
 
     @Override
     int contentHeight() {
-        SignatureAideModel courant = modele;
+        SignatureAideModel courant = model;
         if (courant == null) {
             return 0;
         }
-        int hauteur = 0;
-        int voisines = courant.fenetre().size() - 1;
-        hauteur += voisines * hauteurMeta();
-        hauteur += hauteurCorps();
+        int height = 0;
+        int voisines = courant.window().size() - 1;
+        height += voisines * metaHeight();
+        height += bodyHeight();
         if (courant.nombreSignatures() > 1) {
-            textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_MICRO));
+            textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));
             Paint.FontMetrics micro = textPaint().getFontMetrics();
-            hauteur += Math.round(micro.bottom - micro.top);
+            height += Math.round(micro.bottom - micro.top);
         }
         if (peekVisible && courant.peek() != null) {
-            hauteur += Math.round(2f * ecartPx()) + hauteurMeta();
+            height += Math.round(2f * gapPx()) + metaHeight();
         }
-        return hauteur;
+        return height;
     }
 
     @Override
     public boolean onTouchEvent(android.view.MotionEvent event) {
-        SignatureAideModel courant = modele;
+        SignatureAideModel courant = model;
         if (courant == null) {
             return false;
         }
@@ -324,50 +324,50 @@ public final class SignatureHelpView extends PopupPanel {
      * parenthèses, sans leurs espaces de bord. Null si le libellé
      * n'expose pas de couple de parenthèses.
      *
-     * @param libelle le libellé de la signature
+     * @param label le libellé de la signature
      * @return les plages, ou null sans parenthèses
      */
-    static int[][] plagesParametres(String libelle) {
-        if (libelle == null) {
+    static int[][] plagesParametres(String label) {
+        if (label == null) {
             return null;
         }
-        int ouverture = libelle.indexOf('(');
+        int ouverture = label.indexOf('(');
         if (ouverture < 0) {
             return null;
         }
-        int fermeture = libelle.lastIndexOf(')');
+        int fermeture = label.lastIndexOf(')');
         if (fermeture <= ouverture) {
             return null;
         }
-        List<int[]> plages = new java.util.ArrayList<>();
+        List<int[]> ranges = new java.util.ArrayList<>();
         int profondeur = 0;
         int debutPlage = ouverture + 1;
         for (int i = ouverture + 1; i < fermeture; i++) {
-            char c = libelle.charAt(i);
+            char c = label.charAt(i);
             if (c == '(' || c == '[' || c == '{') {
                 profondeur++;
             } else if (c == ')' || c == ']' || c == '}') {
                 profondeur--;
             } else if (c == ',' && profondeur == 0) {
-                ajouterPlage(plages, libelle, debutPlage, i);
+                addRange(ranges, label, debutPlage, i);
                 debutPlage = i + 1;
             }
         }
-        ajouterPlage(plages, libelle, debutPlage, fermeture);
-        return plages.toArray(new int[0][]);
+        addRange(ranges, label, debutPlage, fermeture);
+        return ranges.toArray(new int[0][]);
     }
 
     /** Ajoute la plage sans ses espaces de bord — une plage blanche s'ignore. */
-    private static void ajouterPlage(List<int[]> plages, String libelle,
-            int debut, int fin) {
-        while (debut < fin && Character.isWhitespace(libelle.charAt(debut))) {
-            debut++;
+    private static void addRange(List<int[]> ranges, String label,
+            int start, int end) {
+        while (start < end && Character.isWhitespace(label.charAt(start))) {
+            start++;
         }
-        while (fin > debut && Character.isWhitespace(libelle.charAt(fin - 1))) {
-            fin--;
+        while (end > start && Character.isWhitespace(label.charAt(end - 1))) {
+            end--;
         }
-        if (debut < fin) {
-            plages.add(new int[] {debut, fin});
+        if (start < end) {
+            ranges.add(new int[] {start, end});
         }
     }
 }

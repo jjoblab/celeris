@@ -41,13 +41,13 @@ public class BarreSelectionDefautTest {
 
     /** Le montage du banc : vue, session, couche, orchestrateur au
      *  coach muet — l'hôte n'a rien posé d'autre. */
-    private static PopupsEditeur monter(TextSession session) {
+    private static EditorPopups start(TextSession session) {
         Application contexte = RuntimeEnvironment.getApplication();
-        EditorView editeur = new EditorView(contexte);
+        EditorView editor = new EditorView(contexte);
         PopupLayer couche = new PopupLayer(contexte);
-        editeur.setSession(session);
-        return new PopupsEditeur(editeur, session, couche,
-                jo.celeris.android.view.EditorThemes.SOMBRE, 14f,
+        editor.setSession(session);
+        return new EditorPopups(editor, session, couche,
+                jo.celeris.android.view.EditorThemes.DARK, 14f,
                 CoachPopups.muet());
     }
 
@@ -57,12 +57,12 @@ public class BarreSelectionDefautTest {
     @Test
     public void lesActionsEditionStandardViventSansHote() {
         TextSession session = TextSession.of(DOCUMENT, System::nanoTime);
-        PopupsEditeur popups = monter(session);
+        EditorPopups popups = start(session);
         session.setSelection(MultiSelection.of(new SelRange(0, 6)));
 
         // la voie publique de la barre : les actions lues par la pose
         java.util.List<SelectionBarView.Item> actions =
-                popups.actionsDeBarre();
+                popups.barActions();
         assertTrue("la barre a des actions sans hôte",
                 actions.size() >= 3);
         assertTrue("Couper vit",
@@ -73,7 +73,7 @@ public class BarreSelectionDefautTest {
                 actions.stream().anyMatch(i -> "Tout copier".equals(i.label())));
         assertFalse("Coller ne vit pas : le presse-papiers est vide",
                 actions.stream().anyMatch(i -> "Coller".equals(i.label())));
-        popups.detacher();
+        popups.detach();
     }
 
     /** Le presse-papiers plein fait vivre Coller — la pastille suit le
@@ -88,13 +88,13 @@ public class BarreSelectionDefautTest {
                 ClipData.newPlainText("banc", "du texte"));
 
         TextSession session = TextSession.of(DOCUMENT, System::nanoTime);
-        PopupsEditeur popups = monter(session);
+        EditorPopups popups = start(session);
         session.setSelection(MultiSelection.of(new SelRange(0, 6)));
 
         assertTrue("Coller vit : le presse-papiers est plein",
-                popups.actionsDeBarre().stream()
+                popups.barActions().stream()
                         .anyMatch(i -> "Coller".equals(i.label())));
-        popups.detacher();
+        popups.detach();
     }
 
     /** Copier pose la sélection au presse-papiers SYSTÈME : le geste
@@ -102,10 +102,10 @@ public class BarreSelectionDefautTest {
     @Test
     public void copierPoseLePressePapiersSysteme() {
         TextSession session = TextSession.of(DOCUMENT, System::nanoTime);
-        PopupsEditeur popups = monter(session);
+        EditorPopups popups = start(session);
         session.setSelection(MultiSelection.of(new SelRange(0, 6)));
 
-        popups.actionsDeBarre().stream()
+        popups.barActions().stream()
                 .filter(i -> "Copier".equals(i.label()))
                 .findFirst().orElseThrow().action().run();
 
@@ -116,6 +116,6 @@ public class BarreSelectionDefautTest {
                 "public",
                 pressePapiers.getPrimaryClip()
                         .getItemAt(0).coerceToText(contexte).toString());
-        popups.detacher();
+        popups.detach();
     }
 }

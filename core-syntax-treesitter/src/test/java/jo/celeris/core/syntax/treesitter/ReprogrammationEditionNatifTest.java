@@ -46,7 +46,7 @@ class ReprogrammationEditionNatifTest {
         SyntaxeNatif python = python();
         TextSession session = TextSession.of(
                 "def f():\n    return 1\n", () -> 0L);
-        MoteurNatif moteur = MoteurNatif.sur(session, python, null);
+        NativeEngine moteur = NativeEngine.on(session, python, null);
         assumeTrue(moteur != null);
         moteur.reanalyser();
         assertNotNull(moteur.analysePubliee());
@@ -69,7 +69,7 @@ class ReprogrammationEditionNatifTest {
     void laRafaleFinitPublieeALaDerniere() {
         SyntaxeNatif python = python();
         TextSession session = TextSession.of("x = 1\n", () -> 0L);
-        MoteurNatif moteur = MoteurNatif.sur(session, python, null);
+        NativeEngine moteur = NativeEngine.on(session, python, null);
         assumeTrue(moteur != null);
         moteur.reanalyser();
         assertNotNull(moteur.analysePubliee());
@@ -91,11 +91,11 @@ class ReprogrammationEditionNatifTest {
     void lauditeurSuivitLesPublicationsDEdition() {
         SyntaxeNatif python = python();
         TextSession session = TextSession.of("x = 1\n", () -> 0L);
-        MoteurNatif moteur = MoteurNatif.sur(session, python, null);
+        NativeEngine moteur = NativeEngine.on(session, python, null);
         assumeTrue(moteur != null);
         AtomicInteger publications = new AtomicInteger();
         List<Integer> revisions = new ArrayList<>();
-        moteur.ajouterAuditeur(analyse -> {
+        moteur.addListener(analyse -> {
             publications.incrementAndGet();
             revisions.add(analyse.revision());
         });
@@ -119,7 +119,7 @@ class ReprogrammationEditionNatifTest {
     void laFermetureCoupeLaReprogrammation() {
         SyntaxeNatif python = python();
         TextSession session = TextSession.of("x = 1\n", () -> 0L);
-        MoteurNatif moteur = MoteurNatif.sur(session, python, null);
+        NativeEngine moteur = NativeEngine.on(session, python, null);
         assumeTrue(moteur != null);
         moteur.reanalyser();
         Analysis avant = moteur.analysePubliee();

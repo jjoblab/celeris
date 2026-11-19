@@ -41,15 +41,15 @@ public final class HistoriqueLocal implements SystemeFichiersVirtuel {
     }
 
     @Override
-    public FichierVirtuel ouvrir(CheminDoc chemin) {
-        return systeme.ouvrir(chemin);
+    public FichierVirtuel open(CheminDoc chemin) {
+        return systeme.open(chemin);
     }
 
     @Override
-    public void ecrire(CheminDoc chemin, String contenu) {
+    public void write(CheminDoc chemin, String contenu) {
         Objects.requireNonNull(contenu, "contenu");
         enregistrer(chemin, contenu);
-        systeme.ecrire(chemin, contenu);
+        systeme.write(chemin, contenu);
     }
 
     @Override
@@ -85,13 +85,13 @@ public final class HistoriqueLocal implements SystemeFichiersVirtuel {
      * @throws IllegalArgumentException si la révision n'appartient pas
      *         à l'histoire du fichier
      */
-    public void restaurer(CheminDoc chemin, RevisionLocale revision) {
+    public void restore(CheminDoc chemin, RevisionLocale revision) {
         Objects.requireNonNull(revision, "revision");
         if (!revisions(chemin).contains(revision)) {
             throw new IllegalArgumentException(
-                    "revision does not belong to the history of " + chemin.ecriture());
+                    "revision does not belong to the history of " + chemin.writing());
         }
-        ecrire(chemin, revision.contenu());
+        write(chemin, revision.contenu());
     }
 
     /** Archive le contenu remplacé quand l'écriture change le fichier. */
@@ -99,7 +99,7 @@ public final class HistoriqueLocal implements SystemeFichiersVirtuel {
         if (!systeme.estFichier(chemin)) {
             return;
         }
-        String remplace = systeme.ouvrir(chemin).contenu();
+        String remplace = systeme.open(chemin).contenu();
         if (remplace.equals(contenu)) {
             return;
         }

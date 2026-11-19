@@ -42,14 +42,14 @@ public final class CatalogueVersions {
      * @param toml le contenu du fichier {@code libs.versions.toml}
      * @return le catalogue lu (vide sur un contenu vide ou sans section)
      */
-    public static CatalogueVersions lire(String toml) {
+    public static CatalogueVersions read(String toml) {
         Set<String> versions = new LinkedHashSet<>();
         Set<String> bibliotheques = new LinkedHashSet<>();
         Set<String> extensions = new LinkedHashSet<>();
         Set<String> greffons = new LinkedHashSet<>();
         String section = "";
-        for (String ligne : toml.split("\n", -1)) {
-            String propre = ligne.strip();
+        for (String line : toml.split("\n", -1)) {
+            String propre = line.strip();
             if (propre.startsWith("#") || propre.isEmpty()) {
                 continue;
             }

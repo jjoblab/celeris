@@ -29,21 +29,21 @@ public final class Formateur {
      * @return le texte formaté
      */
     public static String formater(Document doc, Analysis analyse, IndentStyle style) {
-        List<String> lignes = new ArrayList<>(doc.lineCount());
+        List<String> lines = new ArrayList<>(doc.lineCount());
         for (int l = 0; l < doc.lineCount(); l++) {
-            lignes.add(formaterLigne(doc, analyse, style, l));
+            lines.add(formatLine(doc, analyse, style, l));
         }
-        String joint = String.join("\n", lignes);
+        String joint = String.join("\n", lines);
         return joint.endsWith("\n") ? joint : joint + "\n";
     }
 
-    private static String formaterLigne(Document doc, Analysis analyse, IndentStyle style,
-                                        int ligne) {
-        String contenu = doc.lineText(ligne).stripLeading();
+    private static String formatLine(Document doc, Analysis analyse, IndentStyle style,
+                                        int line) {
+        String contenu = doc.lineText(line).stripLeading();
         if (contenu.isBlank()) {
             return "";
         }
-        int niveau = TreeIndent.levelAt(doc, analyse, ligne);
+        int niveau = TreeIndent.levelAt(doc, analyse, line);
         if (commenceParFermant(contenu)) {
             // la ligne qui ferme un groupe porte le niveau de ce groupe :
             // levelAt compte le groupe fermant et un cran de plus — deux de moins

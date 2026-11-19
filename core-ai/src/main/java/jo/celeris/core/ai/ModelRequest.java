@@ -15,9 +15,9 @@ import jo.celeris.core.text.Document;
  *
  * @param document l'instantané immuable contre lequel la requête se calcule
  * @param offset   la position du curseur dans le document
- * @param jeton    le jeton d'annulation du vol
+ * @param token    le jeton d'annulation du vol
  */
-public record ModelRequest(Document document, int offset, TokenCancellation jeton) {
+public record ModelRequest(Document document, int offset, TokenCancellation token) {
 
     /**
      * Valide la requête : le curseur vit dans le document.

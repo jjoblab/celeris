@@ -64,22 +64,22 @@ public final class TokenCatchUp {
         }
 
         /** Vrai si l'édition touche la ligne publiée donnée. */
-        boolean dansLigne(int ligne) {
-            return !structural && publishedLine == ligne;
+        boolean dansLigne(int line) {
+            return !structural && publishedLine == line;
         }
     }
 
-    private final LexDocument publie;
-    private final List<PendingEdit> editions;
+    private final LexDocument published;
+    private final List<PendingEdit> edits;
     private final List<EditSite> sites;
     private final Document courant;
     private final @Nullable LanguageLexer lexeur;
 
-    private TokenCatchUp(LexDocument publie, List<PendingEdit> editions,
+    private TokenCatchUp(LexDocument published, List<PendingEdit> edits,
             List<EditSite> sites, Document courant,
             @Nullable LanguageLexer lexeur) {
-        this.publie = publie;
-        this.editions = List.copyOf(editions);
+        this.published = published;
+        this.edits = List.copyOf(edits);
         this.sites = List.copyOf(sites);
         this.courant = courant;
         this.lexeur = lexeur;
@@ -89,17 +89,17 @@ public final class TokenCatchUp {
      * Le rattrapage d'une publication périmée : les éditions en
      * attente, en coordonnées publiées et en ordre chronologique.
      *
-     * @param publie    le document lexicographié publié
-     * @param editions  les éditions en attente, coordonnées publiées
+     * @param published    le document lexicographié publié
+     * @param edits  les éditions en attente, coordonnées publiées
      * @param sites     les sites en lignes des mêmes éditions, en ordre
      * @param courant   le document affiché
      * @param lexeur    le lexeur par ligne du langage, null sans langage
      * @return le rattrapeur
      */
-    public static TokenCatchUp of(LexDocument publie, List<PendingEdit> editions,
+    public static TokenCatchUp of(LexDocument published, List<PendingEdit> edits,
             List<EditSite> sites, Document courant,
             @Nullable LanguageLexer lexeur) {
-        return new TokenCatchUp(publie, editions, sites, courant, lexeur);
+        return new TokenCatchUp(published, edits, sites, courant, lexeur);
     }
 
     /**
@@ -112,27 +112,27 @@ public final class TokenCatchUp {
      * @return le panier provisoire, null sans rien à servir
      */
     public @Nullable LexedLine basketFor(int currentLine) {
-        int[] ancetre = ancetrePublie(currentLine);
+        int[] ancetre = publishedAncestor(currentLine);
         int lignePubliee = ancetre[0];
         boolean touchee = ancetre[1] != 0;
-        if (lignePubliee < 0 || lignePubliee >= publie.lineCount()) {
+        if (lignePubliee < 0 || lignePubliee >= published.lineCount()) {
             // Ligne sans ancêtre publié (bas de document neuf) : la
             // relecture depuis le dernier état publié connu.
-            return relire(currentLine, publie.lineCount() - 1);
+            return relire(currentLine, published.lineCount() - 1);
         }
         if (!touchee) {
-            return publie.line(lignePubliee);
+            return published.line(lignePubliee);
         }
         if (editionsStructurelles()) {
             return relire(currentLine, lignePubliee);
         }
-        return recalage(publie.line(lignePubliee), lignePubliee);
+        return realignment(published.line(lignePubliee), lignePubliee);
     }
 
     /** Vrai quand une édition en attente retire ou insère un saut de ligne. */
     private boolean editionsStructurelles() {
-        for (PendingEdit edition : editions) {
-            if (edition.structural()) {
+        for (PendingEdit edit : edits) {
+            if (edit.structural()) {
                 return true;
             }
         }
@@ -144,11 +144,11 @@ public final class TokenCatchUp {
      * éditions en attente de CETTE ligne — chirurgie fine, les
      * caractères non touchés gardent leur catégorie exacte.
      */
-    private LexedLine recalage(LexedLine publiee, int lignePubliee) {
-        LexedLine resultat = publiee;
-        for (PendingEdit edition : editions) {
-            if (edition.dansLigne(lignePubliee)) {
-                resultat = recaler(resultat, edition);
+    private LexedLine realignment(LexedLine published, int lignePubliee) {
+        LexedLine resultat = published;
+        for (PendingEdit edit : edits) {
+            if (edit.dansLigne(lignePubliee)) {
+                resultat = recaler(resultat, edit);
             }
         }
         return resultat;
@@ -163,9 +163,9 @@ public final class TokenCatchUp {
         if (lexeurLocal == null) {
             return null;
         }
-        LexState entree = publie.stateBefore(Math.max(0, lignePubliee));
-        CharSequence texte = courant.lineText(currentLine);
-        return lexeurLocal.lex(texte, entree);
+        LexState input = published.stateBefore(Math.max(0, lignePubliee));
+        CharSequence text = courant.lineText(currentLine);
+        return lexeurLocal.lex(text, input);
     }
 
     /**
@@ -176,22 +176,22 @@ public final class TokenCatchUp {
      * découpes et les fusions, exacte pour les éditions d'une seule
      * ligne.
      */
-    private int[] ancetrePublie(int ligneCourante) {
-        int ligne = ligneCourante;
+    private int[] publishedAncestor(int currentLine) {
+        int line = currentLine;
         int touchee = 0;
         for (int i = sites.size() - 1; i >= 0; i--) {
             EditSite site = sites.get(i);
-            if (ligne < site.firstLine()) {
+            if (line < site.firstLine()) {
                 continue;
             }
-            if (ligne > site.lastLine()) {
-                ligne -= site.lineDelta();
+            if (line > site.lastLine()) {
+                line -= site.lineDelta();
                 continue;
             }
-            ligne = site.firstLine();
+            line = site.firstLine();
             touchee = 1;
         }
-        return new int[] {ligne, touchee};
+        return new int[] {line, touchee};
     }
 
     /**
@@ -201,41 +201,41 @@ public final class TokenCatchUp {
      * hérite de la catégorie du jeton de gauche, à défaut de
      * l'identificateur.
      */
-    private static LexedLine recaler(LexedLine panier, PendingEdit edition) {
-        Token[] jetons = panier.tokens();
-        int debut = edition.startInLine();
-        int finRemplacement = debut + edition.removedLength();
-        int delta = edition.delta();
-        List<Token> resultat = new ArrayList<>(jetons.length + 1);
-        TokenKind categorieInseree = categorieAGauche(jetons, debut);
-        for (Token jeton : jetons) {
-            if (jeton.end() <= debut) {
-                resultat.add(jeton);
+    private static LexedLine recaler(LexedLine panier, PendingEdit edit) {
+        Token[] tokens = panier.tokens();
+        int start = edit.startInLine();
+        int finRemplacement = start + edit.removedLength();
+        int delta = edit.delta();
+        List<Token> resultat = new ArrayList<>(tokens.length + 1);
+        TokenKind categorieInseree = categorieAGauche(tokens, start);
+        for (Token token : tokens) {
+            if (token.end() <= start) {
+                resultat.add(token);
                 continue;
             }
-            if (jeton.start() >= finRemplacement) {
-                poserInseree(resultat, categorieInseree, debut,
-                        edition.insertedLength());
-                resultat.add(new Token(jeton.kind(), jeton.start() + delta,
-                        jeton.end() + delta));
+            if (token.start() >= finRemplacement) {
+                setInserted(resultat, categorieInseree, start,
+                        edit.insertedLength());
+                resultat.add(new Token(token.kind(), token.start() + delta,
+                        token.end() + delta));
                 continue;
             }
-            if (jeton.start() <= debut && jeton.end() >= finRemplacement) {
+            if (token.start() <= start && token.end() >= finRemplacement) {
                 // Il contient le point d'insertion : il s'étend (ou se
                 // resserre) — taper dans un identificateur ne change
                 // pas sa couleur.
-                int fin = jeton.end() + delta;
-                if (fin > jeton.start()) {
-                    resultat.add(new Token(jeton.kind(), jeton.start(), fin));
+                int end = token.end() + delta;
+                if (end > token.start()) {
+                    resultat.add(new Token(token.kind(), token.start(), end));
                 }
                 continue;
             }
-            recalerACheval(jeton, debut, finRemplacement, delta,
-                    categorieInseree, edition.insertedLength(), resultat);
+            recalerACheval(token, start, finRemplacement, delta,
+                    categorieInseree, edit.insertedLength(), resultat);
         }
-        if (resultat.isEmpty() && edition.insertedLength() > 0) {
-            poserInseree(resultat, categorieInseree, debut,
-                    edition.insertedLength());
+        if (resultat.isEmpty() && edit.insertedLength() > 0) {
+            setInserted(resultat, categorieInseree, start,
+                    edit.insertedLength());
         }
         return new LexedLine(resultat.toArray(new Token[0]), panier.exitState());
     }
@@ -244,26 +244,26 @@ public final class TokenCatchUp {
      * La catégorie du texte inséré : celle du jeton qui précède le
      * point d'édition, à défaut l'identificateur.
      */
-    private static TokenKind categorieAGauche(Token[] jetons, int debut) {
-        for (Token jeton : jetons) {
-            if (jeton.end() > debut) {
+    private static TokenKind categorieAGauche(Token[] tokens, int start) {
+        for (Token token : tokens) {
+            if (token.end() > start) {
                 break;
             }
-            if (jeton.kind() != TokenKind.IDENTIFIER) {
-                return jeton.kind();
+            if (token.kind() != TokenKind.IDENTIFIER) {
+                return token.kind();
             }
         }
         return TokenKind.IDENTIFIER;
     }
 
     /** Pose la plage du texte inséré, sauf si déjà couverte. */
-    private static void poserInseree(List<Token> resultat,
-            TokenKind categorie, int debut, int longueur) {
-        if (longueur <= 0 || !resultat.isEmpty()
-                && resultat.get(resultat.size() - 1).end() > debut) {
+    private static void setInserted(List<Token> resultat,
+            TokenKind categorie, int start, int length) {
+        if (length <= 0 || !resultat.isEmpty()
+                && resultat.get(resultat.size() - 1).end() > start) {
             return;
         }
-        resultat.add(new Token(categorie, debut, debut + longueur));
+        resultat.add(new Token(categorie, start, start + length));
     }
 
     /**
@@ -271,17 +271,17 @@ public final class TokenCatchUp {
      * reste, l'insertion hérite de sa catégorie, son morceau droit se
      * décale.
      */
-    private static void recalerACheval(Token jeton, int debut,
+    private static void recalerACheval(Token token, int start,
             int finRemplacement, int delta, TokenKind categorieInseree,
             int longueurInseree, List<Token> resultat) {
-        if (jeton.start() < debut) {
-            resultat.add(new Token(jeton.kind(), jeton.start(), debut));
+        if (token.start() < start) {
+            resultat.add(new Token(token.kind(), token.start(), start));
         }
-        poserInseree(resultat, jeton.kind() != TokenKind.IDENTIFIER
-                ? jeton.kind() : categorieInseree, debut, longueurInseree);
-        if (jeton.end() > finRemplacement) {
-            resultat.add(new Token(jeton.kind(),
-                    finRemplacement + delta, jeton.end() + delta));
+        setInserted(resultat, token.kind() != TokenKind.IDENTIFIER
+                ? token.kind() : categorieInseree, start, longueurInseree);
+        if (token.end() > finRemplacement) {
+            resultat.add(new Token(token.kind(),
+                    finRemplacement + delta, token.end() + delta));
         }
     }
 }

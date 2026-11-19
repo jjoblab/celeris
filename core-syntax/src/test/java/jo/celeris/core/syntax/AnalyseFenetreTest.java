@@ -45,20 +45,20 @@ class AnalyseFenetreTest {
     @Test
     void fenetreAnalysee_leResteEnAttente() {
         Document doc = Document.of(TEXTE);
-        Analysis partielle = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
-        assertFalse(partielle.estComplet());
+        Analysis partielle = service.analyzeWindow(doc, 0, 1, new TokenCancellation());
+        assertFalse(partielle.isComplete());
         List<Chunk> chunks = partielle.tree().chunks();
         assertEquals(3, chunks.size());
-        assertFalse(chunks.get(0).estEnAttente(), "le chunk de la fenêtre est analysé");
-        assertTrue(chunks.get(1).estEnAttente(), "le chunk hors fenêtre attend");
-        assertTrue(chunks.get(2).estEnAttente(), "le chunk hors fenêtre attend");
+        assertFalse(chunks.get(0).isPending(), "le chunk de la fenêtre est analysé");
+        assertTrue(chunks.get(1).isPending(), "le chunk hors fenêtre attend");
+        assertTrue(chunks.get(2).isPending(), "le chunk hors fenêtre attend");
     }
 
     /** Les plis ne viennent que des chunks analysés : la fenêtre seule se sert. */
     @Test
     void plisSeulementDesChunksAnalyses() {
         Document doc = Document.of(TEXTE);
-        Analysis partielle = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
+        Analysis partielle = service.analyzeWindow(doc, 0, 1, new TokenCancellation());
         List<FoldSpan> plisPartiels = TreeFolds.regions(doc, partielle);
         List<FoldSpan> plisComplets = TreeFolds.regions(doc, service.analyseFull(doc));
         assertFalse(plisComplets.isEmpty(), "le langage d'essai plie ses blocs");
@@ -72,8 +72,8 @@ class AnalyseFenetreTest {
     @Test
     void completionsTerminentArbre_plisEgauxAuComplet() {
         Document doc = Document.of(TEXTE);
-        Analysis courant = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
-        while (!courant.estComplet()) {
+        Analysis courant = service.analyzeWindow(doc, 0, 1, new TokenCancellation());
+        while (!courant.isComplete()) {
             courant = service.completer(doc, courant, new TokenCancellation(), 1);
         }
         Analysis complet = service.analyseFull(doc);
@@ -86,9 +86,9 @@ class AnalyseFenetreTest {
     @Test
     void identiteDesSousArbresAuxEtapes() {
         Document doc = Document.of(TEXTE);
-        Analysis courant = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
+        Analysis courant = service.analyzeWindow(doc, 0, 1, new TokenCancellation());
         SynNode racinePremier = courant.tree().chunks().get(0).root();
-        while (!courant.estComplet()) {
+        while (!courant.isComplete()) {
             courant = service.completer(doc, courant, new TokenCancellation(), 1);
         }
         assertSame(racinePremier, courant.tree().chunks().get(0).root(),
@@ -104,19 +104,19 @@ class AnalyseFenetreTest {
     @Test
     void editionDansFenetre_analyseIncrementaleDepuisPartiel() {
         Document doc = Document.of(TEXTE);
-        Analysis partielle = service.analyseFenetre(doc, 0, 1, new TokenCancellation());
+        Analysis partielle = service.analyzeWindow(doc, 0, 1, new TokenCancellation());
         Document edite = doc.replace(TEXTE.indexOf("x"), TEXTE.indexOf("x") + 1, "z");
         EditSite site = EditSite.of(doc, edite,
                 TEXTE.indexOf("x"), TEXTE.indexOf("x") + 1, "z");
         Analysis diff = service.analyseIncremental(edite, partielle, site);
         assertTrue(diff.tree().chunks().size() >= 3);
-        assertFalse(diff.tree().chunks().get(0).estEnAttente(),
+        assertFalse(diff.tree().chunks().get(0).isPending(),
                 "le chunk propriétaire édité se ré-analyse");
-        assertTrue(diff.tree().chunks().get(1).estEnAttente(),
+        assertTrue(diff.tree().chunks().get(1).isPending(),
                 "les chunks hors fenêtre restent en attente");
-        assertFalse(diff.estComplet());
+        assertFalse(diff.isComplete());
         Analysis courant = diff;
-        while (!courant.estComplet()) {
+        while (!courant.isComplete()) {
             courant = service.completer(edite, courant, new TokenCancellation(), 1);
         }
         Arbres.verifierEquivalence(courant.tree(),
@@ -134,11 +134,11 @@ class AnalyseFenetreTest {
                   y
                 """;
         Document doc = Document.of(source);
-        Analysis partielle = service.analyseFenetre(doc, 0, 2, new TokenCancellation());
+        Analysis partielle = service.analyzeWindow(doc, 0, 2, new TokenCancellation());
         assertTrue(TreeDiagnostics.issues(doc, partielle).isEmpty(),
                 "le chunk en attente ne diagnostique rien");
         Analysis courant = partielle;
-        while (!courant.estComplet()) {
+        while (!courant.isComplete()) {
             courant = service.completer(doc, courant, new TokenCancellation(), 1);
         }
         assertFalse(TreeDiagnostics.issues(doc, courant).isEmpty(),

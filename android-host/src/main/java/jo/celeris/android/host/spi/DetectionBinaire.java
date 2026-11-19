@@ -48,9 +48,9 @@ public final class DetectionBinaire {
      * l'octet nul compris, les blancs du texte exceptés (tabulation,
      * saut de ligne, saut de page, retour de chariot).
      */
-    private static boolean estControle(byte octet) {
-        int valeur = octet & 0xFF;
-        return valeur < 0x09 || valeur == 0x0B
-                || (valeur >= 0x0E && valeur <= 0x1F);
+    private static boolean estControle(byte aByte) {
+        int value = aByte & 0xFF;
+        return value < 0x09 || value == 0x0B
+                || (value >= 0x0E && value <= 0x1F);
     }
 }

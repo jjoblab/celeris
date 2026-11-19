@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public final class FakeVcs implements IntegrationVcs {
 
-    private final EtatLignesVcs etatServi;
+    private final VcsLinesState servedState;
 
     private final List<AnnotationBlame> blameServi;
 
@@ -28,21 +28,21 @@ public final class FakeVcs implements IntegrationVcs {
     /**
      * Construit le faux préchargé.
      *
-     * @param marques    la marque de chaque ligne modifiée ou ajoutée
+     * @param marks    la marque de chaque ligne modifiée ou ajoutée
      * @param supprimees les plages supprimées
      * @param blame      les annotations de blame, dans l'ordre des lignes
      * @param revisions  l'historique, la plus récente en tête
      */
-    public FakeVcs(Map<Integer, VcsMark> marques, List<PlageLignes> supprimees,
+    public FakeVcs(Map<Integer, VcsMark> marks, List<LineRange> supprimees,
             List<AnnotationBlame> blame, List<RevisionVcs> revisions) {
-        this.etatServi = EtatLignesVcs.de(marques, supprimees);
+        this.servedState = VcsLinesState.of(marks, supprimees);
         this.blameServi = List.copyOf(blame);
         this.historiqueServi = List.copyOf(revisions);
     }
 
     @Override
-    public EtatLignesVcs etatLignes(CheminDoc fichier) {
-        return etatServi;
+    public VcsLinesState linesState(CheminDoc fichier) {
+        return servedState;
     }
 
     @Override

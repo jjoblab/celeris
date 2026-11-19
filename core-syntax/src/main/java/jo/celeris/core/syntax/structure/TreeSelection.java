@@ -39,16 +39,16 @@ public final class TreeSelection {
      */
     public static List<SelRange> chaine(Document doc, Analysis analysis, int offset) {
         List<SelRange> candidats = new ArrayList<>();
-        SelRange jeton = jetonContenant(doc, analysis, offset);
-        if (jeton != null) {
-            candidats.add(jeton);
+        SelRange token = jetonContenant(doc, analysis, offset);
+        if (token != null) {
+            candidats.add(token);
         }
         for (Chunk chunk : analysis.tree().chunks()) {
             int base = analysis.tree().chunkStartOffset(doc, chunk);
             rassembler(chunk.root(), base, offset, offset, candidats);
         }
         candidats.add(new SelRange(0, doc.length()));
-        return trier(candidats);
+        return sort(candidats);
     }
 
     /**
@@ -58,14 +58,14 @@ public final class TreeSelection {
      *
      * @param doc      le document porteur
      * @param analysis l'analyse courante
-     * @param plage    la sélection courante
+     * @param range    la sélection courante
      * @return l'étendue englobante suivante, ou null au sommet
      */
     public static @Nullable SelRange suivante(Document doc, Analysis analysis,
-            SelRange plage) {
-        for (SelRange candidat : chaine(doc, analysis, plage.start())) {
-            if (candidat.start() <= plage.start() && plage.end() <= candidat.end()
-                    && !candidat.equals(plage)) {
+            SelRange range) {
+        for (SelRange candidat : chaine(doc, analysis, range.start())) {
+            if (candidat.start() <= range.start() && range.end() <= candidat.end()
+                    && !candidat.equals(range)) {
                 // la chaîne est triée : le premier qui contient est le plus petit
                 return candidat;
             }
@@ -79,29 +79,29 @@ public final class TreeSelection {
      *
      * @param doc      le document porteur
      * @param analysis l'analyse courante
-     * @param plage    la sélection courante
+     * @param range    la sélection courante
      * @return l'étendue contenue précédente, ou null à la base
      */
     public static @Nullable SelRange precedente(Document doc, Analysis analysis,
-            SelRange plage) {
+            SelRange range) {
         List<SelRange> contenus = new ArrayList<>();
-        int premiereLigne = doc.lineForOffset(plage.start());
-        int derniereLigne = doc.lineForOffset(Math.max(plage.start(), plage.end() - 1));
+        int premiereLigne = doc.lineForOffset(range.start());
+        int derniereLigne = doc.lineForOffset(Math.max(range.start(), range.end() - 1));
         for (int l = premiereLigne; l <= derniereLigne && l < analysis.lex().lineCount(); l++) {
-            int debutLigne = doc.lineStart(l);
-            for (Token jeton : analysis.lex().line(l).tokens()) {
-                SelRange etendue = new SelRange(debutLigne + jeton.start(),
-                        debutLigne + jeton.end());
-                ajouterSiContenu(etendue, plage, contenus);
+            int lineStart = doc.lineStart(l);
+            for (Token token : analysis.lex().line(l).tokens()) {
+                SelRange etendue = new SelRange(lineStart + token.start(),
+                        lineStart + token.end());
+                addIfContent(etendue, range, contenus);
             }
         }
         for (Chunk chunk : analysis.tree().chunks()) {
             int base = analysis.tree().chunkStartOffset(doc, chunk);
-            rassemblerContenus(chunk.root(), base, plage, contenus);
+            rassemblerContenus(chunk.root(), base, range, contenus);
         }
         SelRange meilleure = null;
         for (SelRange candidat : contenus) {
-            if (meilleure == null || taille(candidat) > taille(meilleure)) {
+            if (meilleure == null || size(candidat) > size(meilleure)) {
                 meilleure = candidat;
             }
         }
@@ -111,64 +111,64 @@ public final class TreeSelection {
     /** Le jeton qui porte la position, ou null entre deux jetons. */
     private static @Nullable SelRange jetonContenant(Document doc, Analysis analysis,
             int offset) {
-        int ligne = doc.lineForOffset(offset);
-        if (ligne >= analysis.lex().lineCount()) {
+        int line = doc.lineForOffset(offset);
+        if (line >= analysis.lex().lineCount()) {
             return null;
         }
-        int debutLigne = doc.lineStart(ligne);
-        for (Token jeton : analysis.lex().line(ligne).tokens()) {
-            int debut = debutLigne + jeton.start();
-            int fin = debutLigne + jeton.end();
-            if (debut <= offset && offset < fin) {
-                return new SelRange(debut, fin);
+        int lineStart = doc.lineStart(line);
+        for (Token token : analysis.lex().line(line).tokens()) {
+            int start = lineStart + token.start();
+            int end = lineStart + token.end();
+            if (start <= offset && offset < end) {
+                return new SelRange(start, end);
             }
         }
         return null;
     }
 
     /** Rassemble les nœuds structurants dont la plage couvre [debut, fin]. */
-    private static void rassembler(SynNode noeud, int base, int debut, int fin,
+    private static void rassembler(SynNode noeud, int base, int start, int end,
             List<SelRange> candidats) {
         if (noeud.category() != NodeCategory.OTHER) {
             int absoluDebut = base + noeud.start();
             int absoluFin = base + noeud.end();
-            if (absoluDebut <= debut && fin <= absoluFin) {
+            if (absoluDebut <= start && end <= absoluFin) {
                 candidats.add(new SelRange(absoluDebut, absoluFin));
             }
         }
         for (SynNode enfant : noeud.children()) {
-            rassembler(enfant, base, debut, fin, candidats);
+            rassembler(enfant, base, start, end, candidats);
         }
     }
 
     /** Rassemble les nœuds structurants contenus dans la plage donnée. */
-    private static void rassemblerContenus(SynNode noeud, int base, SelRange plage,
+    private static void rassemblerContenus(SynNode noeud, int base, SelRange range,
             List<SelRange> contenus) {
         if (noeud.category() != NodeCategory.OTHER) {
             SelRange etendue = new SelRange(base + noeud.start(), base + noeud.end());
-            ajouterSiContenu(etendue, plage, contenus);
+            addIfContent(etendue, range, contenus);
         }
         for (SynNode enfant : noeud.children()) {
-            rassemblerContenus(enfant, base, plage, contenus);
+            rassemblerContenus(enfant, base, range, contenus);
         }
     }
 
     /** Ajoute l'étendue si elle est contenue dans la plage, distincte d'elle. */
-    private static void ajouterSiContenu(SelRange etendue, SelRange plage,
+    private static void addIfContent(SelRange etendue, SelRange range,
             List<SelRange> contenus) {
-        if (plage.start() <= etendue.start() && etendue.end() <= plage.end()
-                && !etendue.equals(plage)) {
+        if (range.start() <= etendue.start() && etendue.end() <= range.end()
+                && !etendue.equals(range)) {
             contenus.add(etendue);
         }
     }
 
     /** La taille d'une étendue. */
-    private static int taille(SelRange plage) {
-        return plage.end() - plage.start();
+    private static int size(SelRange range) {
+        return range.end() - range.start();
     }
 
     /** Trie par taille croissante, dédoublonne, exige la croissance stricte. */
-    private static List<SelRange> trier(List<SelRange> candidats) {
+    private static List<SelRange> sort(List<SelRange> candidats) {
         candidats.sort((a, b) -> Integer.compare(
                 a.end() - a.start(), b.end() - b.start()));
         List<SelRange> chaine = new ArrayList<>(candidats.size());

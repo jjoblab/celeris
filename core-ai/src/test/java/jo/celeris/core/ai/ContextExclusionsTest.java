@@ -27,7 +27,7 @@ class ContextExclusionsTest {
      */
     @Test
     void leFichierDExclusionSeLit() {
-        ContextExclusions exclusions = ContextExclusions.de("""
+        ContextExclusions exclusions = ContextExclusions.of("""
                 # Les secrets ne partent jamais
                 secrets.properties
                 keystore/
@@ -37,17 +37,17 @@ class ContextExclusionsTest {
                 # (fin)
                 """);
 
-        assertTrue(exclusions.estExclu("secrets.properties"),
+        assertTrue(exclusions.isExcluded("secrets.properties"),
                 "le chemin exact se refuse");
-        assertTrue(exclusions.estExclu("keystore/release.keystore"),
+        assertTrue(exclusions.isExcluded("keystore/release.keystore"),
                 "le dossier refuse tout son contenu");
-        assertTrue(exclusions.estExclu("certs/debug.jks"),
+        assertTrue(exclusions.isExcluded("certs/debug.jks"),
                 "le joker prend les chemins qui y collent");
-        assertTrue(exclusions.estExclu("config/cle-prod.pem"),
+        assertTrue(exclusions.isExcluded("config/cle-prod.pem"),
                 "l'asterisque traverse les barres obliques");
-        assertTrue(!exclusions.estExclu("build.gradle.kts"),
+        assertTrue(!exclusions.isExcluded("build.gradle.kts"),
                 "les fichiers ordinaires passent");
-        assertTrue(!exclusions.estExclu("secrets-doc.txt"),
+        assertTrue(!exclusions.isExcluded("secrets-doc.txt"),
                 "le prefixe seul ne refuse pas : le dossier tient a sa barre");
     }
 
@@ -57,10 +57,10 @@ class ContextExclusionsTest {
      */
     @Test
     void leDossierSansBarreCouvreSonContenu() {
-        ContextExclusions exclusions = ContextExclusions.de("secrets\n");
-        assertTrue(exclusions.estExclu("secrets"));
-        assertTrue(exclusions.estExclu("secrets/interne.txt"));
-        assertTrue(!ContextExclusions.aucune().estExclu("secrets.properties"),
+        ContextExclusions exclusions = ContextExclusions.of("secrets\n");
+        assertTrue(exclusions.isExcluded("secrets"));
+        assertTrue(exclusions.isExcluded("secrets/interne.txt"));
+        assertTrue(!ContextExclusions.aucune().isExcluded("secrets.properties"),
                 "sans regles, rien ne se refuse");
     }
 
@@ -72,10 +72,10 @@ class ContextExclusionsTest {
     @Test
     void cheminExcluJamaisTransmis() {
         FakeLocalModel modele = new FakeLocalModel();
-        modele.fantome(new GhostSuggestion(" suggestion", 8, 0));
-        ContextGuard garde = new ContextGuard(modele, modele,
-                "secrets.properties", ContextExclusions.de("secrets.properties"));
-        GhostTextSession session = new GhostTextSession(garde, Runnable::run);
+        modele.ghost(new GhostSuggestion(" suggestion", 8, 0));
+        ContextGuard guard = new ContextGuard(modele, modele,
+                "secrets.properties", ContextExclusions.of("secrets.properties"));
+        GhostTextSession session = new GhostTextSession(guard, Runnable::run);
         Document document = Document.of("cle = xx");
 
         session.demander(document, 8);
@@ -85,7 +85,7 @@ class ContextExclusionsTest {
                 "aucune suggestion ne s'affiche : rien n'est parti");
 
         ContextGuard gardeAdmis = new ContextGuard(modele, modele,
-                "build.gradle.kts", ContextExclusions.de("secrets.properties"));
+                "build.gradle.kts", ContextExclusions.of("secrets.properties"));
         GhostTextSession sessionAdmise =
                 new GhostTextSession(gardeAdmis, Runnable::run);
         sessionAdmise.demander(document, 8);
@@ -93,7 +93,7 @@ class ContextExclusionsTest {
                 "le chemin admis traverse le garde");
         assertNotNull(sessionAdmise.suggestionActive(),
                 "la suggestion du chemin admis s'affiche");
-        assertEquals(" suggestion", sessionAdmise.suggestionActive().texte());
+        assertEquals(" suggestion", sessionAdmise.suggestionActive().text());
     }
 
     /**
@@ -104,7 +104,7 @@ class ContextExclusionsTest {
     @Test
     void instructionsServiesParLesOutils() {
         TextSession session = TextSession.of("fun principal() {}", System::nanoTime);
-        AgentInstructions declarees = AgentInstructions.de(
+        AgentInstructions declarees = AgentInstructions.of(
                 "Toujours passer par la transaction.\nJamais toucher aux secrets.");
         EditorTools outils = new PerSessionTools(session,
                 document -> List.of(), List::of, declarees);
@@ -115,7 +115,7 @@ class ContextExclusionsTest {
 
         EditorTools sansFichier = new PerSessionTools(session,
                 document -> List.of(), List::of);
-        assertTrue(sansFichier.instructions().estAbsente(),
+        assertTrue(sansFichier.instructions().isAbsent(),
                 "le depot sans fichier n'invente pas de conventions");
         assertTrue(McpConnector.instructions(sansFichier)
                         .contains("\"absentes\":true"));

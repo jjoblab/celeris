@@ -24,11 +24,11 @@ import jo.celeris.core.ai.GhostSuggestion;
 final class GhostEditor {
 
     private final EditorView vue;
-    private final GhostPainter peintre;
+    private final GhostPainter painter;
     /** Le rappel 1.x à emplacement unique — repli compatibilité. */
-    private @Nullable Consumer<GhostGesture> surGeste;
+    private @Nullable Consumer<GhostGesture> onGesture;
     /** Les abonnés 2.0 des gestes — multiples (T3). */
-    private final List<Consumer<GhostGesture>> abonnesGeste =
+    private final List<Consumer<GhostGesture>> gestureSubscribers =
             new CopyOnWriteArrayList<>();
 
     /**
@@ -40,12 +40,12 @@ final class GhostEditor {
      */
     GhostEditor(EditorView vue, BrushFactory brushes) {
         this.vue = vue;
-        this.peintre = new GhostPainter(brushes);
+        this.painter = new GhostPainter(brushes);
     }
 
     /** La couche de peinture — la vue la pose au-dessus du texte. */
-    GhostPainter peintre() {
-        return peintre;
+    GhostPainter painter() {
+        return painter;
     }
 
     /**
@@ -54,14 +54,14 @@ final class GhostEditor {
      * @param suggestion la suggestion, ou {@code null} pour fermer
      */
     void setSuggestion(@Nullable GhostSuggestion suggestion) {
-        peintre.setSuggestion(suggestion);
+        painter.setSuggestion(suggestion);
         vue.invalidate();
     }
 
     /** La suggestion visible, ou {@code null}. */
     @Nullable
     GhostSuggestion suggestion() {
-        return peintre.suggestion();
+        return painter.suggestion();
     }
 
     /**
@@ -70,29 +70,29 @@ final class GhostEditor {
      * session. Voie 1.x à emplacement unique : la voie 2.0 est
      * {@link #addGhostGestureListener}.
      *
-     * @param surGeste le rappel, ou {@code null} pour couper
+     * @param onGesture le rappel, ou {@code null} pour couper
      */
-    void setSurGeste(@Nullable Consumer<GhostGesture> surGeste) {
-        this.surGeste = surGeste;
+    void setSurGeste(@Nullable Consumer<GhostGesture> onGesture) {
+        this.onGesture = onGesture;
     }
 
     /** Abonne un écouteur des gestes du fantôme (voie 2.0, T3). */
     void addGhostGestureListener(Consumer<GhostGesture> ecouteur) {
-        abonnesGeste.add(Objects.requireNonNull(ecouteur));
+        gestureSubscribers.add(Objects.requireNonNull(ecouteur));
     }
 
     /** Désabonne un écouteur des gestes du fantôme (voie 2.0). */
     void removeGhostGestureListener(Consumer<GhostGesture> ecouteur) {
-        abonnesGeste.remove(ecouteur);
+        gestureSubscribers.remove(ecouteur);
     }
 
     /** Notifie le geste — le rappel 1.x puis CHAQUE abonné 2.0. */
-    private void notifierGeste(GhostGesture geste) {
-        Consumer<GhostGesture> rappel = surGeste;
+    private void notifyGesture(GhostGesture geste) {
+        Consumer<GhostGesture> rappel = onGesture;
         if (rappel != null) {
             rappel.accept(geste);
         }
-        for (Consumer<GhostGesture> abonne : abonnesGeste) {
+        for (Consumer<GhostGesture> abonne : gestureSubscribers) {
             abonne.accept(geste);
         }
     }
@@ -106,13 +106,13 @@ final class GhostEditor {
      * @return vrai si le geste est consommé
      */
     boolean touche(float x, float y) {
-        if (!aAbonnes() || peintre.suggestion() == null) {
+        if (!aAbonnes() || painter.suggestion() == null) {
             return false;
         }
-        if (!peintre.premiereLigneTouchee(vue.etatImageCourante(), x, y)) {
+        if (!painter.premiereLigneTouchee(vue.etatImageCourante(), x, y)) {
             return false;
         }
-        notifierGeste(GhostGesture.ACCEPTER_MOT);
+        notifyGesture(GhostGesture.ACCEPTER_MOT);
         return true;
     }
 
@@ -123,15 +123,15 @@ final class GhostEditor {
      * @return vrai si le geste est consommé
      */
     boolean surTab() {
-        if (!aAbonnes() || peintre.suggestion() == null) {
+        if (!aAbonnes() || painter.suggestion() == null) {
             return false;
         }
-        notifierGeste(GhostGesture.ACCEPTER_MOT);
+        notifyGesture(GhostGesture.ACCEPTER_MOT);
         return true;
     }
 
     /** Des abonnés vivent-ils — voie 1.x ou 2.0 (T3). */
     private boolean aAbonnes() {
-        return surGeste != null || !abonnesGeste.isEmpty();
+        return onGesture != null || !gestureSubscribers.isEmpty();
     }
 }

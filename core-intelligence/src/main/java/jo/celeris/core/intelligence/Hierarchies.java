@@ -96,7 +96,7 @@ public final class Hierarchies {
         for (FichierProjet fichier : fichiers) {
             for (OutlineEntry type : fichier.types()) {
                 uris.putIfAbsent(type.name(), fichier.uri());
-                ajouterClauses(parents, type.name(), parentsDe(fichier, type));
+                addClauses(parents, type.name(), parentsDe(fichier, type));
             }
         }
         return new HierarchieTypes(ancetres(nom, parents, uris),
@@ -124,44 +124,44 @@ public final class Hierarchies {
         List<FichierProjet> fichiers = analyser(projet, syntaxe);
         Map<String, List<Sommet>> aretes = new LinkedHashMap<>();
         Map<String, String> uris = urisDesMethodes(fichiers);
-        List<Sommet> sortie = new ArrayList<>();
-        sortie.add(new Sommet(nom, uris.getOrDefault(nom, ""), 0));
+        List<Sommet> output = new ArrayList<>();
+        output.add(new Sommet(nom, uris.getOrDefault(nom, ""), 0));
         Set<String> visites = new HashSet<>();
         visites.add(cle(nom, uris.getOrDefault(nom, "")));
         Doute doute = new Doute();
-        appelantsDescendants(nom, 1, fichiers, aretes, visites, sortie, doute);
-        return new HierarchieAppels(sortie, doute.marque());
+        appelantsDescendants(nom, 1, fichiers, aretes, visites, output, doute);
+        return new HierarchieAppels(output, doute.marque());
     }
 
     /** Les ancêtres par générations : la racine, puis chaque génération en largeur. */
     private static List<Sommet> ancetres(String nom, Map<String, List<String>> parents,
             Map<String, String> uris) {
-        List<Sommet> sortie = new ArrayList<>();
-        sortie.add(new Sommet(nom, uris.getOrDefault(nom, ""), 0));
+        List<Sommet> output = new ArrayList<>();
+        output.add(new Sommet(nom, uris.getOrDefault(nom, ""), 0));
         Set<String> visites = new HashSet<>();
         visites.add(nom);
         List<String> generation = new ArrayList<>();
-        ajouterGeneration(parents.getOrDefault(nom, List.of()), visites, generation);
+        addGeneration(parents.getOrDefault(nom, List.of()), visites, generation);
         for (String parent : generation) {
-            sortie.add(new Sommet(parent, uris.getOrDefault(parent, ""), 1));
+            output.add(new Sommet(parent, uris.getOrDefault(parent, ""), 1));
         }
         int profondeur = 2;
         while (!generation.isEmpty()) {
             List<String> suivante = new ArrayList<>();
             for (String membre : generation) {
-                ajouterGeneration(parents.getOrDefault(membre, List.of()), visites, suivante);
+                addGeneration(parents.getOrDefault(membre, List.of()), visites, suivante);
             }
             for (String parent : suivante) {
-                sortie.add(new Sommet(parent, uris.getOrDefault(parent, ""), profondeur));
+                output.add(new Sommet(parent, uris.getOrDefault(parent, ""), profondeur));
             }
             generation = suivante;
             profondeur++;
         }
-        return sortie;
+        return output;
     }
 
     /** La génération suivante : les parents non visités, jamais dédoublés. */
-    private static void ajouterGeneration(List<String> candidats, Set<String> visites,
+    private static void addGeneration(List<String> candidats, Set<String> visites,
             List<String> generation) {
         for (String parent : candidats) {
             if (visites.add(parent)) {
@@ -173,25 +173,25 @@ public final class Hierarchies {
     /** Les descendants en profondeur : la racine, puis chaque sous-type. */
     private static List<Sommet> descendants(String nom, Map<String, List<String>> parents,
             Map<String, String> uris) {
-        List<Sommet> sortie = new ArrayList<>();
-        sortie.add(new Sommet(nom, uris.getOrDefault(nom, ""), 0));
+        List<Sommet> output = new ArrayList<>();
+        output.add(new Sommet(nom, uris.getOrDefault(nom, ""), 0));
         Set<String> visites = new HashSet<>();
         visites.add(nom);
-        descendantsDfs(nom, 1, enfantsDe(parents), uris, visites, sortie);
-        return sortie;
+        descendantsDfs(nom, 1, enfantsDe(parents), uris, visites, output);
+        return output;
     }
 
     /** Le parcours en profondeur des sous-types, garde de cycle comprise. */
     private static void descendantsDfs(String nom, int profondeur,
             Map<String, List<String>> enfants, Map<String, String> uris,
-            Set<String> visites, List<Sommet> sortie) {
+            Set<String> visites, List<Sommet> output) {
         for (String enfant : enfants.getOrDefault(nom, List.of())) {
             if (visites.contains(enfant)) {
                 continue;
             }
             visites.add(enfant);
-            sortie.add(new Sommet(enfant, uris.getOrDefault(enfant, ""), profondeur));
-            descendantsDfs(enfant, profondeur + 1, enfants, uris, visites, sortie);
+            output.add(new Sommet(enfant, uris.getOrDefault(enfant, ""), profondeur));
+            descendantsDfs(enfant, profondeur + 1, enfants, uris, visites, output);
         }
     }
 
@@ -211,7 +211,7 @@ public final class Hierarchies {
     private static List<String> introuvables(String nom, Map<String, List<String>> parents,
             Map<String, String> uris) {
         Set<String> vus = new HashSet<>();
-        List<String> sortie = new ArrayList<>();
+        List<String> output = new ArrayList<>();
         List<String> frontiere = new ArrayList<>(parents.getOrDefault(nom, List.of()));
         for (int i = 0; i < frontiere.size(); i++) {
             String membre = frontiere.get(i);
@@ -221,10 +221,10 @@ public final class Hierarchies {
             if (uris.containsKey(membre)) {
                 frontiere.addAll(parents.getOrDefault(membre, List.of()));
             } else {
-                sortie.add(membre);
+                output.add(membre);
             }
         }
-        return sortie;
+        return output;
     }
 
     /**
@@ -234,41 +234,41 @@ public final class Hierarchies {
      */
     private static void appelantsDescendants(String nom, int profondeur,
             List<FichierProjet> fichiers, Map<String, List<Sommet>> aretes,
-            Set<String> visites, List<Sommet> sortie, Doute doute) {
+            Set<String> visites, List<Sommet> output, Doute doute) {
         List<Sommet> arete = aretes.computeIfAbsent(nom, cle -> appelantsDe(cle, fichiers, doute));
         for (Sommet appelant : arete) {
             String cle = cle(appelant.nom(), appelant.uri());
-            if (visites.contains(cle) && !(profondeur == 1 && estRacine(appelant, sortie))) {
+            if (visites.contains(cle) && !(profondeur == 1 && estRacine(appelant, output))) {
                 continue;
             }
             visites.add(cle);
-            sortie.add(new Sommet(appelant.nom(), appelant.uri(), profondeur));
+            output.add(new Sommet(appelant.nom(), appelant.uri(), profondeur));
             appelantsDescendants(appelant.nom(), profondeur + 1,
-                    fichiers, aretes, visites, sortie, doute);
+                    fichiers, aretes, visites, output, doute);
         }
     }
 
     /** Vrai quand le sommet est la racine de la hiérarchie en cours. */
-    private static boolean estRacine(Sommet sommet, List<Sommet> sortie) {
-        Sommet racine = sortie.get(0);
+    private static boolean estRacine(Sommet sommet, List<Sommet> output) {
+        Sommet racine = output.get(0);
         return racine.nom().equals(sommet.nom()) && racine.uri().equals(sommet.uri());
     }
 
     /** Les appelants d'un nom sur le projet : chaque site d'appel résolu porte son arête. */
     private static List<Sommet> appelantsDe(String nom, List<FichierProjet> fichiers,
             Doute doute) {
-        List<Sommet> sortie = new ArrayList<>();
+        List<Sommet> output = new ArrayList<>();
         for (FichierProjet fichier : fichiers) {
-            List<FlowAnalysis.AbsoluteToken> jetons = fichier.jetons();
+            List<FlowAnalysis.AbsoluteToken> tokens = fichier.tokens();
             List<int[]> zones = zonesAEpargner(nom, fichier);
-            for (int i = 0; i < jetons.size(); i++) {
-                Sommet appelant = siteAppelant(jetons, i, nom, zones, fichier, doute);
+            for (int i = 0; i < tokens.size(); i++) {
+                Sommet appelant = siteAppelant(tokens, i, nom, zones, fichier, doute);
                 if (appelant != null) {
-                    sortie.add(appelant);
+                    output.add(appelant);
                 }
             }
         }
-        return sortie;
+        return output;
     }
 
     /**
@@ -279,26 +279,26 @@ public final class Hierarchies {
      * marquent le doute sans arête, la signature épargnée ne compte
      * pas.
      */
-    private static @Nullable Sommet siteAppelant(List<FlowAnalysis.AbsoluteToken> jetons,
+    private static @Nullable Sommet siteAppelant(List<FlowAnalysis.AbsoluteToken> tokens,
             int i, String nom, List<int[]> zones, FichierProjet fichier, Doute doute) {
-        FlowAnalysis.AbsoluteToken jeton = jetons.get(i);
-        if (!FlowAnalysis.isName(jeton.kind()) || !jeton.text().equals(nom)) {
+        FlowAnalysis.AbsoluteToken token = tokens.get(i);
+        if (!FlowAnalysis.isName(token.kind()) || !token.text().equals(nom)) {
             return null;
         }
-        String avant = voisin(jetons, i - 1);
-        boolean formeAppel = i + 1 < jetons.size() && jetons.get(i + 1).text().equals("(");
+        String avant = voisin(tokens, i - 1);
+        boolean formeAppel = i + 1 < tokens.size() && tokens.get(i + 1).text().equals("(");
         if (!formeAppel) {
             doute.marquerSi(avant.equals("::"));
             return null;
         }
-        if (dansZones(jeton.offset(), zones) || avant.equals("new")) {
+        if (dansZones(token.offset(), zones) || avant.equals("new")) {
             return null;
         }
-        if (avant.equals(".") && !voisin(jetons, i - 2).equals("this")) {
+        if (avant.equals(".") && !voisin(tokens, i - 2).equals("this")) {
             doute.marquer();
             return null;
         }
-        Sommet porteuse = porteuse(fichier, jeton.offset());
+        Sommet porteuse = porteuse(fichier, token.offset());
         if (porteuse == null) {
             doute.marquer();
         }
@@ -324,12 +324,12 @@ public final class Hierarchies {
             if (!methode.name().equals(nom)) {
                 continue;
             }
-            int corps = MethodStructure.bodyOffset(FlowAnalysis.tokens(
+            int body = MethodStructure.bodyOffset(FlowAnalysis.tokens(
                     fichier.doc(), fichier.analyse().lex(),
                     methode.startOffset(), methode.endOffset()));
-            zones.add(corps < 0
+            zones.add(body < 0
                     ? new int[]{methode.startOffset(), methode.endOffset()}
-                    : new int[]{methode.startOffset(), corps + 1});
+                    : new int[]{methode.startOffset(), body + 1});
         }
         return zones;
     }
@@ -346,15 +346,15 @@ public final class Hierarchies {
 
     /** Les parents déclarés d'un type : les clauses lues à l'en-tête de sa déclaration. */
     private static List<String> parentsDe(FichierProjet fichier, OutlineEntry type) {
-        List<FlowAnalysis.AbsoluteToken> jetons = FlowAnalysis.tokens(fichier.doc(),
+        List<FlowAnalysis.AbsoluteToken> tokens = FlowAnalysis.tokens(fichier.doc(),
                 fichier.analyse().lex(), type.startOffset(), type.endOffset());
-        return ClausesHeritage.de(jetons, indexDuCorps(jetons));
+        return ClausesHeritage.of(tokens, bodyIndex(tokens));
     }
 
     /** L'index de l'accolade ouvrante du corps dans les jetons du type, ou -1. */
-    private static int indexDuCorps(List<FlowAnalysis.AbsoluteToken> jetons) {
-        for (int i = 0; i < jetons.size(); i++) {
-            if (jetons.get(i).text().equals("{")) {
+    private static int bodyIndex(List<FlowAnalysis.AbsoluteToken> tokens) {
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).text().equals("{")) {
                 return i;
             }
         }
@@ -362,7 +362,7 @@ public final class Hierarchies {
     }
 
     /** Les clauses d'un type s'ajoutent aux siennes, doublon jamais, ordre du source. */
-    private static void ajouterClauses(Map<String, List<String>> parents, String nom,
+    private static void addClauses(Map<String, List<String>> parents, String nom,
             List<String> clauses) {
         List<String> connus = parents.computeIfAbsent(nom, cle -> new ArrayList<>());
         for (String clause : clauses) {
@@ -373,17 +373,17 @@ public final class Hierarchies {
     }
 
     /** Le voisin d'un jeton par son index, chaîne vide aux bornes. */
-    private static String voisin(List<FlowAnalysis.AbsoluteToken> jetons, int i) {
-        return i >= 0 && i < jetons.size() ? jetons.get(i).text() : "";
+    private static String voisin(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
+        return i >= 0 && i < tokens.size() ? tokens.get(i).text() : "";
     }
 
     /** Les fichiers analysés du projet, uris croissantes — l'ordre déterministe. */
     private static List<FichierProjet> analyser(Map<String, Document> projet,
             SyntaxService syntaxe) {
         List<FichierProjet> fichiers = new ArrayList<>();
-        for (Map.Entry<String, Document> entree : new TreeMap<>(projet).entrySet()) {
-            fichiers.add(new FichierProjet(entree.getKey(), entree.getValue(),
-                    syntaxe.analyseFull(entree.getValue())));
+        for (Map.Entry<String, Document> input : new TreeMap<>(projet).entrySet()) {
+            fichiers.add(new FichierProjet(input.getKey(), input.getValue(),
+                    syntaxe.analyseFull(input.getValue())));
         }
         return fichiers;
     }

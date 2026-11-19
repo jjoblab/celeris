@@ -24,10 +24,10 @@ public final class PatchPreview {
     /** Le contexte par défaut : deux lignes intactes autour d'un bloc. */
     public static final int CONTEXTE_DEFAUT = 2;
 
-    private final List<Line> lignes;
+    private final List<Line> lines;
 
-    private PatchPreview(List<Line> lignes) {
-        this.lignes = List.copyOf(lignes);
+    private PatchPreview(List<Line> lines) {
+        this.lines = List.copyOf(lines);
     }
 
     /** Le genre d'une ligne d'aperçu. */
@@ -44,11 +44,11 @@ public final class PatchPreview {
     }
 
     /** Une ligne d'aperçu : son genre et son texte. */
-    public record Line(LineKind genre, String texte) {
+    public record Line(LineKind kind, String text) {
 
         /** Le préfixe de la ligne rendue : « - », « + » ou deux blancs. */
         public String prefixe() {
-            return switch (genre) {
+            return switch (kind) {
                 case ENLEVEE -> "- ";
                 case AJOUTEE -> "+ ";
                 case INTACTE -> "  ";
@@ -57,7 +57,7 @@ public final class PatchPreview {
 
         /** La ligne rendue : son préfixe et son texte. */
         public String rendue() {
-            return prefixe() + texte;
+            return prefixe() + text;
         }
     }
 
@@ -69,8 +69,8 @@ public final class PatchPreview {
      * @param apres le texte après l'édition proposée
      * @return l'aperçu, ou l'aperçu vide quand les textes sont identiques
      */
-    public static PatchPreview de(String avant, String apres) {
-        return de(avant, apres, CONTEXTE_DEFAUT);
+    public static PatchPreview of(String avant, String apres) {
+        return of(avant, apres, CONTEXTE_DEFAUT);
     }
 
     /**
@@ -85,26 +85,26 @@ public final class PatchPreview {
      * @return l'aperçu, ou l'aperçu vide quand les textes sont identiques
      * @throws IllegalArgumentException si le contexte est négatif
      */
-    public static PatchPreview de(String avant, String apres, int contexte) {
+    public static PatchPreview of(String avant, String apres, int contexte) {
         Objects.requireNonNull(avant, "avant");
         Objects.requireNonNull(apres, "apres");
         if (contexte < 0) {
             throw new IllegalArgumentException("contexte must not be negative");
         }
-        List<DiffBlocs.BlocDiff> blocs = DiffBlocs.de(avant, apres).blocs();
-        List<String> anciennes = lignes(avant);
+        List<DiffBlocs.BlocDiff> blocs = DiffBlocs.of(avant, apres).blocs();
+        List<String> anciennes = lines(avant);
         List<Line> rendues = new ArrayList<>();
         // Le parcours unifié : chaque ligne ancienne se rend au plus une
         // fois — intacte de contexte, ou dans son bloc avec ses
         // ajoutées derrière ; les blocs d'ajout pur s'ancrent à leur
         // ligne — leurs lignes se rendent avant elle.
         for (int i = 0; i < anciennes.size(); i++) {
-            ajoutsPurs(blocs, i).forEach(ligne ->
-                    rendues.add(new Line(genre(ligne), ligne.texte())));
+            ajoutsPurs(blocs, i).forEach(line ->
+                    rendues.add(new Line(kind(line), line.text())));
             DiffBlocs.BlocDiff bloc = blocDe(blocs, i);
             if (bloc != null) {
-                for (DiffBlocs.LineDiff ligne : bloc.lignes()) {
-                    rendues.add(new Line(genre(ligne), ligne.texte()));
+                for (DiffBlocs.LineDiff line : bloc.lines()) {
+                    rendues.add(new Line(kind(line), line.text()));
                 }
                 i = bloc.finAncien() - 1;
                 continue;
@@ -115,8 +115,8 @@ public final class PatchPreview {
         }
         // L'ajout pur ancré à la fin du texte : le parcours ne l'atteint
         // jamais — il se rend en dernier.
-        ajoutsPurs(blocs, anciennes.size()).forEach(ligne ->
-                rendues.add(new Line(genre(ligne), ligne.texte())));
+        ajoutsPurs(blocs, anciennes.size()).forEach(line ->
+                rendues.add(new Line(kind(line), line.text())));
         return new PatchPreview(rendues);
     }
 
@@ -126,8 +126,8 @@ public final class PatchPreview {
      *
      * @return les lignes, non modifiables
      */
-    public List<Line> lignes() {
-        return lignes;
+    public List<Line> lines() {
+        return lines;
     }
 
     /**
@@ -136,8 +136,8 @@ public final class PatchPreview {
      * @return vrai si au moins une ligne changée se montre
      */
     public boolean porteChangement() {
-        for (Line ligne : lignes) {
-            if (ligne.genre() != LineKind.INTACTE) {
+        for (Line line : lines) {
+            if (line.kind() != LineKind.INTACTE) {
                 return true;
             }
         }
@@ -150,11 +150,11 @@ public final class PatchPreview {
      * @return les lignes préfixées, non modifiables
      */
     public List<String> rendues() {
-        List<String> sortie = new ArrayList<>();
-        for (Line ligne : lignes) {
-            sortie.add(ligne.rendue());
+        List<String> output = new ArrayList<>();
+        for (Line line : lines) {
+            output.add(line.rendue());
         }
-        return sortie;
+        return output;
     }
 
     /** Les lignes d'ajout pur du bloc ancré à la ligne ancienne donnée. */
@@ -163,7 +163,7 @@ public final class PatchPreview {
         for (DiffBlocs.BlocDiff bloc : blocs) {
             if (bloc.debutAncien() == ligneAncienne
                     && bloc.finAncien() == ligneAncienne) {
-                return bloc.lignes();
+                return bloc.lines();
             }
         }
         return List.of();
@@ -193,22 +193,22 @@ public final class PatchPreview {
     }
 
     /** Le genre d'aperçu d'une ligne de diff. */
-    private static LineKind genre(DiffBlocs.LineDiff ligne) {
-        return ligne.type() == DiffBlocs.TypeLigne.ENLEVEE
+    private static LineKind kind(DiffBlocs.LineDiff line) {
+        return line.type() == DiffBlocs.LineKind.ENLEVEE
                 ? LineKind.ENLEVEE : LineKind.AJOUTEE;
     }
 
     /** Les lignes du texte, la convention du diff : coupe au saut. */
-    private static List<String> lignes(String texte) {
-        List<String> lignes = new ArrayList<>();
-        int debut = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
-                lignes.add(texte.substring(debut, i));
-                debut = i + 1;
+    private static List<String> lines(String text) {
+        List<String> lines = new ArrayList<>();
+        int start = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                lines.add(text.substring(start, i));
+                start = i + 1;
             }
         }
-        lignes.add(texte.substring(debut));
-        return lignes;
+        lines.add(text.substring(start));
+        return lines;
     }
 }

@@ -50,18 +50,18 @@ public class IndentGuidesTest {
     }
 
     /** L'abscisse du guide d'une colonne, de la vue mesurée. */
-    private static float xDeColonne(EditorView vue, int colonne) {
-        return vue.gutterWidth() + colonne * vue.metrics.charWidth();
+    private static float xDeColonne(EditorView vue, int column) {
+        return vue.gutterWidth() + column * vue.metrics.charWidth();
     }
 
     /** Le segment vertical tracé à l'abscisse donnée, null si aucun. */
     private static EditorTestRig.RecordingCanvas.LineDraw segmentA(
             EditorTestRig.RecordingCanvas image, float x) {
-        for (EditorTestRig.RecordingCanvas.LineDraw ligne : image.lignes()) {
-            if (Math.abs(ligne.x1() - x) <= 1f
-                    && Math.abs(ligne.x2() - x) <= 1f
-                    && ligne.y2() > ligne.y1()) {
-                return ligne;
+        for (EditorTestRig.RecordingCanvas.LineDraw line : image.lines()) {
+            if (Math.abs(line.x1() - x) <= 1f
+                    && Math.abs(line.x2() - x) <= 1f
+                    && line.y2() > line.y1()) {
+                return line;
             }
         }
         return null;
@@ -69,7 +69,7 @@ public class IndentGuidesTest {
 
     /** Le banc prêt : langage branché, analyse publiée, image dessinée. */
     private EditorTestRig bancPublie(String contenu) {
-        EditorTestRig banc = EditorTestRig.sur(contexte, contenu);
+        EditorTestRig banc = EditorTestRig.on(contexte, contenu);
         banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();
         return banc;
@@ -138,7 +138,7 @@ public class IndentGuidesTest {
     public void leGuideTraverseLePli() {
         EditorTestRig banc = bancPublie(TEXTE);
         EditorView vue = banc.vue();
-        vue.plis.fold(2, 4);
+        vue.folds.fold(2, 4);
         EditorTestRig.RecordingCanvas image = banc.image();
         assertEquals("le guide de la classe traverse le pli", 1,
                 image.lignesVerticalesA(xDeColonne(vue, 0)));
@@ -162,7 +162,7 @@ public class IndentGuidesTest {
     /** Sans langage, pas de structure — pas de guide. */
     @Test
     public void sansLangueAucunGuide() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, TEXTE);
+        EditorTestRig banc = EditorTestRig.on(contexte, TEXTE);
         EditorView vue = banc.vue();
         EditorTestRig.RecordingCanvas image = banc.image();
         assertEquals("sans structure, rien à aligner", 0,

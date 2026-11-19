@@ -22,13 +22,13 @@ public final class ErrorBandModel {
 
     /** Une marque : la ligne du diagnostic, son cran de bande, sa
      *  cible de saut, sa gravité. */
-    public record Mark(int ligne, int cran, int startOffset, int gravite) {
+    public record Mark(int line, int cran, int startOffset, int severity) {
     }
 
-    private final List<Mark> marques;
+    private final List<Mark> marks;
 
-    private ErrorBandModel(List<Mark> marques) {
-        this.marques = List.copyOf(marques);
+    private ErrorBandModel(List<Mark> marks) {
+        this.marks = List.copyOf(marks);
     }
 
     /**
@@ -37,14 +37,14 @@ public final class ErrorBandModel {
      *
      * @param diagnostics les diagnostics courants, dans l'ordre du source
      * @param doc         le document porteur (offsets → lignes)
-     * @param hauteur     la hauteur de la bande en crans
+     * @param height     la hauteur de la bande en crans
      * @return la bande, densité bornée à un cran
      */
     public static ErrorBandModel of(List<SyntaxIssue> diagnostics, Document doc,
-            int hauteur) {
+            int height) {
         int[] gravites = new int[diagnostics.size()];
         java.util.Arrays.fill(gravites, GRAVITE_ERREUR);
-        return of(diagnostics, gravites, doc, hauteur);
+        return of(diagnostics, gravites, doc, height);
     }
 
     /**
@@ -55,28 +55,28 @@ public final class ErrorBandModel {
      * @param gravites    la gravité de chaque diagnostic (3 erreur,
      *                    2 avertissement, autre information), même ordre
      * @param doc         le document porteur (offsets → lignes)
-     * @param hauteur     la hauteur de la bande en crans
+     * @param height     la hauteur de la bande en crans
      * @return la bande, densité bornée à un cran
      */
     public static ErrorBandModel of(List<SyntaxIssue> diagnostics,
-            int[] gravites, Document doc, int hauteur) {
-        int crans = Math.max(1, hauteur);
-        List<Mark> marques = new ArrayList<>();
+            int[] gravites, Document doc, int height) {
+        int crans = Math.max(1, height);
+        List<Mark> marks = new ArrayList<>();
         int cranOccupe = -1;
         for (int i = 0; i < diagnostics.size(); i++) {
             SyntaxIssue diagnostic = diagnostics.get(i);
             if (diagnostic.startOffset() >= doc.length()) {
                 continue;
             }
-            int ligne = doc.lineForOffset(diagnostic.startOffset());
-            int cran = Math.min(crans - 1, ligne * crans / Math.max(1, doc.lineCount()));
+            int line = doc.lineForOffset(diagnostic.startOffset());
+            int cran = Math.min(crans - 1, line * crans / Math.max(1, doc.lineCount()));
             if (cran != cranOccupe) {
-                marques.add(new Mark(ligne, cran, diagnostic.startOffset(),
+                marks.add(new Mark(line, cran, diagnostic.startOffset(),
                         i < gravites.length ? gravites[i] : GRAVITE_ERREUR));
                 cranOccupe = cran;
             }
         }
-        return new ErrorBandModel(marques);
+        return new ErrorBandModel(marks);
     }
 
     /**
@@ -84,8 +84,8 @@ public final class ErrorBandModel {
      *
      * @return la liste, vide sans diagnostic
      */
-    public List<Mark> marques() {
-        return marques;
+    public List<Mark> marks() {
+        return marks;
     }
 
     /**
@@ -97,7 +97,7 @@ public final class ErrorBandModel {
      */
     public int clic(int cran) {
         Mark proche = null;
-        for (Mark marque : marques) {
+        for (Mark marque : marks) {
             if (proche == null
                     || Math.abs(marque.cran() - cran) < Math.abs(proche.cran() - cran)) {
                 proche = marque;

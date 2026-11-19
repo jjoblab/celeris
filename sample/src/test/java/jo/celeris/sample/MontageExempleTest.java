@@ -45,14 +45,14 @@ public class MontageExempleTest {
         NavigationView navigation = activite.findViewById(R.id.tiroir_navigation);
         assertNotNull("le NavigationView du tiroir vit", navigation);
         assertEquals("le tiroir porte TOUS les échantillons",
-                Echantillons.tous().size(), navigation.getMenu().size());
+                Samples.tous().size(), navigation.getMenu().size());
         MaterialToolbar barre = activite.findViewById(R.id.barre_outils);
         assertEquals("la barre d'outils suit le fichier ouvert",
-                Echantillons.tous().get(0).nomFichier(),
+                Samples.tous().get(0).nomFichier(),
                 String.valueOf(barre.getTitle()));
         TabLayout onglets = activite.findViewById(R.id.barre_onglets);
         assertEquals("l'onglet du fichier de départ vit",
-                Echantillons.tous().get(0).nomFichier(),
+                Samples.tous().get(0).nomFichier(),
                 nomDeLOnglet(onglets, 0));
         assertNotNull("la vue d'éditeur du kit vit",
                 activite.findViewById(R.id.vue_editeur));
@@ -60,9 +60,9 @@ public class MontageExempleTest {
                 activite.findViewById(R.id.couche_popups));
         View journal = activite.findViewById(R.id.panneau_journal);
         assertNotNull("le panneau du journal vit", journal);
-        TextView lignes = activite.findViewById(R.id.lignes_journal);
+        TextView lines = activite.findViewById(R.id.lignes_journal);
         assertTrue("le journal a déjà parlé (montage prêt)",
-                lignes.getText().toString().contains("montage prêt"));
+                lines.getText().toString().contains("montage prêt"));
         activite.finish();
     }
 

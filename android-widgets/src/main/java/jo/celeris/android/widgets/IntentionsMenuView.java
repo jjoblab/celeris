@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
  * intentions classiques (lint, aperçu, revue) et actions IA au même
  * titre, même barre, même gestuelle. L'appui exécute : l'hôte ferme
  * le menu et déroule l'action choisie. PIEGE-27 : jamais de focus —
- * la navigation clavier s'y reçoit DÉLÉGUÉE ({@link PopupClavier}).
+ * la navigation clavier s'y reçoit DÉLÉGUÉE ({@link KeyboardPopup}).
  *
  * <p>Le menu de DÉBORDEMENT de la barre de sélection y prend le motif
  * NavMenu du dépôt de départ : une SECTION en petites capitales muettes
@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
  * prend jamais, le choix d'une action la referme avant de l'exécuter.
  * {@link #setSection(String)} la pose, null la retire.</p>
  */
-public final class IntentionsMenuView extends TextRowsPopup implements PopupClavier {
+public final class IntentionsMenuView extends TextRowsPopup implements KeyboardPopup {
 
     /** Une action du menu : son libellé, son pictogramme propre
      *  (null : l'action sans glyphe) et ce qu'elle fait — l'audit du
@@ -57,7 +57,7 @@ public final class IntentionsMenuView extends TextRowsPopup implements PopupClav
         // le contenu neuf efface la surbrillance clavier — jamais
         // d'action retenue d'un contenu d'avant
         this.surligne = -1;
-        rebatirRangees();
+        rebuildRows();
     }
 
     /**
@@ -69,20 +69,20 @@ public final class IntentionsMenuView extends TextRowsPopup implements PopupClav
      */
     public void setSection(@Nullable String titre) {
         this.section = titre;
-        rebatirRangees();
+        rebuildRows();
     }
 
     /** Rebâtit les rangées : la section d'abord, les actions
      *  ensuite — chacune son pictogramme quand l'hôte l'a posé. */
-    private void rebatirRangees() {
-        List<Row> rangees = new ArrayList<>(actions.size() + 1);
+    private void rebuildRows() {
+        List<Row> rows = new ArrayList<>(actions.size() + 1);
         if (section != null && !section.isEmpty()) {
-            rangees.add(Row.section(section));
+            rows.add(Row.section(section));
         }
         for (Item item : actions) {
-            rangees.add(Row.action(item.label(), -1, item.picto()));
+            rows.add(Row.action(item.label(), -1, item.picto()));
         }
-        setRows(rangees);
+        setRows(rows);
     }
 
     /** L'appui d'une rangée : le rang compte la section éventuelle. */
@@ -113,10 +113,10 @@ public final class IntentionsMenuView extends TextRowsPopup implements PopupClav
         }
         // la flèche part de la tête quand la surbrillance n'existe pas —
         // jamais de saut hors des bornes ni d'arrêt sur l'en-tête
-        int cible = surligne < 0 ? 0
+        int target = surligne < 0 ? 0
                 : Math.min(actions.size() - 1, Math.max(0, surligne + pas));
-        surligne = cible;
-        setHighlighted(rangDe(cible));
+        surligne = target;
+        setHighlighted(rangDe(target));
         return true;
     }
 

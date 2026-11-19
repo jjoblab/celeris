@@ -22,13 +22,13 @@ import jo.celeris.core.syntax.Token;
  */
 final class InjectionsLexeurTest {
 
-    private static GrammaireLexeur lexeurDe(String json) {
-        return new GrammaireLexeur(Grammaires.lire(json));
+    private static GrammarLexer lexeurDe(String json) {
+        return new GrammarLexer(Grammars.read(json));
     }
 
     @Test
     void linjectionGaucheGagneLesExAequo() {
-        GrammaireLexeur lexeur = lexeurDe("""
+        GrammarLexer lexeur = lexeurDe("""
                 {
                   "name": "Hote", "scopeName": "text.hote",
                   "patterns": [ { "match": "mot", "name": "keyword.other.hote" } ],
@@ -38,16 +38,16 @@ final class InjectionsLexeurTest {
                   }
                 }
                 """);
-        LexedLine ligne = lexeur.lex("mot", lexeur.initialState());
-        Token jeton = ligne.tokens()[0];
+        LexedLine line = lexeur.lex("mot", lexeur.initialState());
+        Token token = line.tokens()[0];
         assertEquals("support.function.hote",
-                sommet(ScopeStacks.scopesOf(jeton.scope())),
+                sommet(ScopeStacks.scopesOf(token.scope())),
                 "l'injection L: gagne l'ex æquo contre la règle de l'hôte");
     }
 
     @Test
     void linjectionDroiteCedeLesExAequo() {
-        GrammaireLexeur lexeur = lexeurDe("""
+        GrammarLexer lexeur = lexeurDe("""
                 {
                   "name": "Hote", "scopeName": "text.hote",
                   "patterns": [ { "match": "mot", "name": "keyword.other.hote" } ],
@@ -57,16 +57,16 @@ final class InjectionsLexeurTest {
                   }
                 }
                 """);
-        LexedLine ligne = lexeur.lex("mot", lexeur.initialState());
-        Token jeton = ligne.tokens()[0];
+        LexedLine line = lexeur.lex("mot", lexeur.initialState());
+        Token token = line.tokens()[0];
         assertEquals("keyword.other.hote",
-                sommet(ScopeStacks.scopesOf(jeton.scope())),
+                sommet(ScopeStacks.scopesOf(token.scope())),
                 "l'injection R: cède l'ex æquo à la règle de l'hôte");
     }
 
     @Test
     void leSelecteurNApplyQueSurSaPile() {
-        GrammaireLexeur lexeur = lexeurDe("""
+        GrammarLexer lexeur = lexeurDe("""
                 {
                   "name": "Hote", "scopeName": "text.hote",
                   "patterns": [
@@ -97,7 +97,7 @@ final class InjectionsLexeurTest {
 
     @Test
     void lexclusionDuSelecteurEcarteLinjection() {
-        GrammaireLexeur lexeur = lexeurDe("""
+        GrammarLexer lexeur = lexeurDe("""
                 {
                   "name": "Hote", "scopeName": "text.hote",
                   "patterns": [

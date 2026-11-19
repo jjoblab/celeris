@@ -49,8 +49,8 @@ final class SureteTransposeTest {
     void lesCiblesExcluentLaClasseEnglobante() {
         TextSession session = TextSession.of(TERRAIN, () -> 0L);
         List<OutlineEntry> plan = planDe(session);
-        int corps = TERRAIN.indexOf("aide();");
-        assertEquals(List.of("Cible"), Surete.cibles(plan, corps),
+        int body = TERRAIN.indexOf("aide();");
+        assertEquals(List.of("Cible"), Surete.cibles(plan, body),
                 "la classe du caret ne se propose jamais à elle-même");
         int horsClasse = TERRAIN.indexOf("class Cible") - 1;
         assertEquals(List.of("Source", "Cible"),
@@ -64,16 +64,16 @@ final class SureteTransposeTest {
     @Test
     void lesUsagesBarrantsDeviennentDesOccurrences() {
         TextSession session = TextSession.of(TERRAIN, () -> 0L);
-        int aide = TERRAIN.indexOf("aide();");
+        int help = TERRAIN.indexOf("aide();");
         List<Integer> sautes = new ArrayList<>();
         List<ReferencesView.Occurrence> occurrences = Surete.occurrences(
-                session.document(), List.of(new SafeDelete.Usage(aide, "aide")),
+                session.document(), List.of(new SafeDelete.Usage(help, "aide")),
                 sautes::add);
         assertEquals(1, occurrences.size());
-        assertEquals("L3 · aide();", occurrences.get(0).libelle(),
+        assertEquals("L3 · aide();", occurrences.get(0).label(),
                 "le libellé se lit du document, ligne comprise");
         occurrences.get(0).saut().run();
-        assertEquals(List.of(aide), sautes,
+        assertEquals(List.of(help), sautes,
                 "le saut porte à l'offset exact de l'usage");
     }
 

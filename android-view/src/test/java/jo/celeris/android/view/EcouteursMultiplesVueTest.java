@@ -23,7 +23,7 @@ public class EcouteursMultiplesVueTest {
     private static final String DOCUMENT = ("int a = 1;\n").repeat(200);
 
     private EditorTestRig banc() {
-        return EditorTestRig.sur(RuntimeEnvironment.getApplication(), DOCUMENT);
+        return EditorTestRig.on(RuntimeEnvironment.getApplication(), DOCUMENT);
     }
 
     /** Deux abonnés du changement de fenêtre notifiés ENSEMBLE — le
@@ -95,8 +95,8 @@ public class EcouteursMultiplesVueTest {
         EditorView vue = banc.vue();
         float[] taillesKit = { 0f };
         float[] taillesHote = { 0f };
-        vue.addFontSizeChangeListener(taille -> taillesKit[0] = taille);
-        vue.addFontSizeChangeListener(taille -> taillesHote[0] = taille);
+        vue.addFontSizeChangeListener(size -> taillesKit[0] = size);
+        vue.addFontSizeChangeListener(size -> taillesHote[0] = size);
         vue.settings().setFont(new FontSpec("mono", 17f));
         assertEquals(17f, taillesKit[0], 0.001f,
                 "le kit lit la nouvelle taille");
@@ -132,8 +132,8 @@ public class EcouteursMultiplesVueTest {
         EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
         int[] lignesKit = { -1 };
         int[] lignesHote = { -1 };
-        vue.addBreakpointToggleListener(ligne -> lignesKit[0] = ligne);
-        vue.addBreakpointToggleListener(ligne -> lignesHote[0] = ligne);
+        vue.addBreakpointToggleListener(line -> lignesKit[0] = line);
+        vue.addBreakpointToggleListener(line -> lignesHote[0] = line);
         vue.rappels.notifierBasculeBreakpoint(7);
         assertEquals(7, lignesKit[0], "l'abonné du kit rend la ligne");
         assertEquals(7, lignesHote[0], "l'abonné de l'hôte rend la même ligne");

@@ -25,7 +25,7 @@ public final class DocumentRowSource implements RowSource {
      *  chaque miss. Le dépôt de départ coupe pareil à 5000 ; le
      *  contenu au-delà reste édité mais invisible (le scroll suit la
      *  fenêtre). */
-    public static final int FENETRE_MONSTRE = 5000;
+    public static final int MONSTER_WINDOW = 5000;
 
     private final Document document;
     private final VisualProjection projection;
@@ -65,29 +65,29 @@ public final class DocumentRowSource implements RowSource {
     @Override
     public RowLayout layoutOf(RowKey key) {
         int rangee = key.row();
-        int ligne = projection.firstLineOfRow(rangee);
-        int debut = projection.spanStartAtRow(rangee);
-        int fin = Math.min(projection.spanEndAtRow(rangee),
-                document.lineEnd(ligne) - document.lineStart(ligne));
+        int line = projection.firstLineOfRow(rangee);
+        int start = projection.spanStartAtRow(rangee);
+        int end = Math.min(projection.spanEndAtRow(rangee),
+                document.lineEnd(line) - document.lineStart(line));
         // La fenêtre monstre (B-04) : la tranche mesurée ne dépasse
         // jamais le plafond — la coloration rogne ses jetons à la
         // tranche, le peintre suit, l'édition reste entière.
-        fin = Math.min(fin, debut + FENETRE_MONSTRE);
-        if (fin < debut) {
-            fin = debut;
+        end = Math.min(end, start + MONSTER_WINDOW);
+        if (end < start) {
+            end = start;
         }
-        String texte = document.subText(document.lineStart(ligne) + debut,
-                document.lineStart(ligne) + fin);
-        List<VisualRuns.Run> segments = VisualRuns.runs(texte);
+        String text = document.subText(document.lineStart(line) + start,
+                document.lineStart(line) + end);
+        List<VisualRuns.Run> segments = VisualRuns.runs(text);
         // Le chemin rapide du peintre : une rangée purement
         // gauche-à-droite porte des segments vides, jamais une liste
         // d'un seul segment pleine largeur (PIEGE-15).
         boolean purGaucheADroite = segments.size() == 1
                 && !segments.get(0).rtl()
                 && segments.get(0).start() == 0
-                && segments.get(0).end() == texte.length();
-        return new RowLayout(ligne, debut, fin, texte,
-                texte.length() * metrics.charWidth(),
+                && segments.get(0).end() == text.length();
+        return new RowLayout(line, start, end, text,
+                text.length() * metrics.charWidth(),
                 purGaucheADroite ? List.of() : segments);
     }
 }

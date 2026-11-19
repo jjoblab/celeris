@@ -52,10 +52,10 @@ public final class LecteurTypes {
                 "(?<![\\w$.])(?:(?:final|public|private|protected|static)\\s+)*"
                         + "([\\w$.]+(?:<[^=;()]*>)?(?:\\[\\])*)\\s+"
                         + Pattern.quote(symbole) + "(?![\\w$])");
-        for (int ligne = 0; ligne < document.lineCount(); ligne++) {
-            Matcher corps = forme.matcher(document.lineText(ligne));
-            while (corps.find()) {
-                String candidat = corps.group(1);
+        for (int line = 0; line < document.lineCount(); line++) {
+            Matcher body = forme.matcher(document.lineText(line));
+            while (body.find()) {
+                String candidat = body.group(1);
                 if (!MOTS_DE_CONDUITE.contains(candidat)) {
                     return candidat;
                 }
@@ -74,17 +74,17 @@ public final class LecteurTypes {
      * @return l'identifiant complet, null si aucun
      */
     private static @Nullable String symboleA(Document document, int offset) {
-        String texte = document.text();
-        int borne = Math.min(offset, texte.length());
-        int debut = borne;
-        while (debut > 0 && estIdentifiant(texte.charAt(debut - 1))) {
-            debut--;
+        String text = document.text();
+        int borne = Math.min(offset, text.length());
+        int start = borne;
+        while (start > 0 && estIdentifiant(text.charAt(start - 1))) {
+            start--;
         }
-        int fin = borne;
-        while (fin < texte.length() && estIdentifiant(texte.charAt(fin))) {
-            fin++;
+        int end = borne;
+        while (end < text.length() && estIdentifiant(text.charAt(end))) {
+            end++;
         }
-        return debut == fin ? null : texte.substring(debut, fin);
+        return start == end ? null : text.substring(start, end);
     }
 
     /** Les caractères d'identifiant — lettres, chiffres, souligné. */

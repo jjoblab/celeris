@@ -51,11 +51,11 @@ public final class RebindingRowSource implements RowSource {
      * plis, null sinon : la couche de fond y lit la géométrie du TEXTE
      * qu'elle trace, jamais celle d'une autre révision (PIEGE-20).
      *
-     * @param ligne la ligne d'en-tête interrogée
+     * @param line la ligne d'en-tête interrogée
      * @return sa pièce, null sans pli composé courant
      */
-    public FoldedRowSource.@Nullable PieceDePli pieceDuPli(int ligne) {
+    public FoldedRowSource.@Nullable PieceDePli pieceDuPli(int line) {
         return deleguee instanceof FoldedRowSource composee
-                ? composee.piece(ligne) : null;
+                ? composee.piece(line) : null;
     }
 }

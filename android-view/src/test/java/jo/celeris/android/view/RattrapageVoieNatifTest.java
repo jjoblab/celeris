@@ -16,7 +16,7 @@ import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.IncrementalLexer;
 import jo.celeris.core.syntax.LanguageLexer;
-import jo.celeris.core.syntax.MoteurSyntaxe;
+import jo.celeris.core.syntax.SyntaxEngine;
 import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
@@ -34,7 +34,7 @@ import jo.celeris.core.text.TextSession;
  * module de test) : un moteur maquette qui publie une analyse réelle
  * du lexeur Java à l'attachement, puis reste silencieux — le pire cas
  * de la voie native avant A1.1. Le pont ne connaît que le contrat
- * {@code MoteurSyntaxe} : la preuve vaut pour la vraie voie.</p>
+ * {@code SyntaxEngine} : la preuve vaut pour la vraie voie.</p>
  */
 class RattrapageVoieNatifTest {
 
@@ -44,35 +44,35 @@ class RattrapageVoieNatifTest {
     /** Le moteur maquette : publie à la première reanalyser(), puis
      *  silence — l'édition ne reprogramme RIEN (le comportement natif
      *  avant A1.1, le pire cas du rattrapage). */
-    static final class MoteurMaquette implements MoteurSyntaxe {
+    static final class MoteurMaquette implements SyntaxEngine {
         private final TextSession session;
-        private final @org.jspecify.annotations.Nullable Executor executeur;
+        private final @org.jspecify.annotations.Nullable Executor executor;
         private final List<java.util.function.Consumer<Analysis>> auditeurs =
                 new ArrayList<>();
-        private @org.jspecify.annotations.Nullable Analysis publiee;
+        private @org.jspecify.annotations.Nullable Analysis published;
 
-        MoteurMaquette(TextSession session, @org.jspecify.annotations.Nullable Executor executeur) {
+        MoteurMaquette(TextSession session, @org.jspecify.annotations.Nullable Executor executor) {
             this.session = session;
-            this.executeur = executeur;
+            this.executor = executor;
         }
 
         @Override
         public @org.jspecify.annotations.Nullable Analysis analysePubliee() {
-            return publiee;
+            return published;
         }
 
         @Override
         public @org.jspecify.annotations.Nullable Analysis analyseDeRevision(long revision) {
-            Analysis courante = publiee;
+            Analysis courante = published;
             return courante != null && courante.revision() == revision
                     ? courante : null;
         }
 
         @Override
         public void reanalyser() {
-            Executor fil = executeur;
-            if (fil != null) {
-                fil.execute(this::passe);
+            Executor thread = executor;
+            if (thread != null) {
+                thread.execute(this::passe);
             } else {
                 passe();
             }
@@ -80,22 +80,22 @@ class RattrapageVoieNatifTest {
 
         private void passe() {
             Document document = session.document();
-            publiee = new Analysis(document.revision(),
+            published = new Analysis(document.revision(),
                     new IncrementalLexer().lexFull(document, LEXEUR).lex(),
                     jo.celeris.core.syntax.SyntaxTree.of(document.revision(),
                             java.util.List.of()));
             for (java.util.function.Consumer<Analysis> auditeur : List.copyOf(auditeurs)) {
-                auditeur.accept(publiee);
+                auditeur.accept(published);
             }
         }
 
         @Override
-        public void fenetre(int premiereLigne, int derniereLigne) {
+        public void window(int premiereLigne, int derniereLigne) {
             // la voie entière ignore la fenêtre
         }
 
         @Override
-        public void ajouterAuditeur(java.util.function.Consumer<Analysis> auditeur) {
+        public void addListener(java.util.function.Consumer<Analysis> auditeur) {
             auditeurs.add(auditeur);
         }
 
@@ -110,8 +110,8 @@ class RattrapageVoieNatifTest {
         private final List<Runnable> file = new ArrayList<>();
 
         @Override
-        public void execute(Runnable commande) {
-            file.add(commande);
+        public void execute(Runnable command) {
+            file.add(command);
         }
 
         void jouer() {
@@ -122,25 +122,25 @@ class RattrapageVoieNatifTest {
     }
 
     /** Source muette : habiller ne la consulte jamais ici. */
-    private static final RowSource SOURCE_MUETTE = cle -> {
+    private static final RowSource SOURCE_MUETTE = key -> {
         throw new UnsupportedOperationException("pas consultée par le pont");
     };
 
     private EditorSyntax syntaxe;
     private TextSession session;
-    private ExecuteurACommande executeur;
+    private ExecuteurACommande executor;
 
     @BeforeEach
-    void monter() {
+    void start() {
         FabriqueVoieBanc.armee = true;
-        executeur = new ExecuteurACommande();
-        syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        executor = new ExecuteurACommande();
+        syntaxe = new EditorSyntax(new FoldModel(), executor);
         session = TextSession.of("int alpha;\nint beta;\n", () -> 0L);
     }
 
     @AfterEach
     void demonter() {
-        syntaxe.fermer();
+        syntaxe.close();
         FabriqueVoieBanc.armee = false;
     }
 
@@ -150,12 +150,12 @@ class RattrapageVoieNatifTest {
      */
     @Test
     void laPublicationNativesHabille() {
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        executeur.jouer();
+        executor.jouer();
         Document document = session.document();
-        assertNotNull(syntaxe.habiller(SOURCE_MUETTE, document));
-        assertTrue(syntaxe.habiller(SOURCE_MUETTE, document) != SOURCE_MUETTE,
+        assertNotNull(syntaxe.wrap(SOURCE_MUETTE, document));
+        assertTrue(syntaxe.wrap(SOURCE_MUETTE, document) != SOURCE_MUETTE,
                 "après publication, la source se pare");
     }
 
@@ -168,24 +168,24 @@ class RattrapageVoieNatifTest {
      */
     @Test
     void laFrappeGardeSesCouleursSurLaVoieNative() {
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        executeur.jouer();   // la publication d'attachement
+        executor.jouer();   // la publication d'attachement
         Document avant = session.document();
-        assertTrue(syntaxe.habiller(SOURCE_MUETTE, avant) != SOURCE_MUETTE);
+        assertTrue(syntaxe.wrap(SOURCE_MUETTE, avant) != SOURCE_MUETTE);
 
         // LA frappe : "alpha" -> "alphabet" (non structurelle)
         int pos = "int alpha".length();
         assertTrue(session.replaceRange(pos, pos, "bet"));
         Document apres = session.document();
 
-        RowSource habillee = syntaxe.habiller(SOURCE_MUETTE, apres);
+        RowSource habillee = syntaxe.wrap(SOURCE_MUETTE, apres);
         assertTrue(habillee != SOURCE_MUETTE,
                 "la publication périmée de la voie native DOIT rattraper — "
                         + "jamais la source nue après une frappe");
         // La couleur attendue reste posée : la vue compte les rangées
         // décolorées, elle ne doit rien compter ici.
-        assertTrue(syntaxe.couleurAttendue(),
+        assertTrue(syntaxe.expectedColor(),
                 "une publication existe, la couleur reste attendue");
     }
 
@@ -198,9 +198,9 @@ class RattrapageVoieNatifTest {
      */
     @Test
     void laRafaleBoreeResteHonnete() {
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        executeur.jouer();
+        executor.jouer();
         for (int i = 0; i < 266; i++) {
             assertTrue(session.replaceRange(0, 0, "\n"));
         }
@@ -208,7 +208,7 @@ class RattrapageVoieNatifTest {
         // chaîne rompue ou pas, la source reste NUE ou rattrape : le
         // contrat est « jamais de couleur devinée ». Ici la chaîne est
         // rompue (rafale au-delà du plafond) : la source passe nue.
-        RowSource habillee = syntaxe.habiller(SOURCE_MUETTE, apres);
+        RowSource habillee = syntaxe.wrap(SOURCE_MUETTE, apres);
         assertEquals(SOURCE_MUETTE, habillee,
                 "rafale au-delà du plafond : le rattrapage cède, la source nue");
     }

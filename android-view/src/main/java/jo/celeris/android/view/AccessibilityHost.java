@@ -28,8 +28,8 @@ import org.jspecify.annotations.Nullable;
  */
 final class AccessibilityHost {
 
-    private static final String CLASSE_TEXTE = "android.widget.EditText";
-    private static final String CLASSE_RANGEE = "android.widget.TextView";
+    private static final String TEXT_CLASS = "android.widget.EditText";
+    private static final String ROW_CLASS = "android.widget.TextView";
 
     private final EditorView vue;
     private final Fournisseur fournisseur = new Fournisseur();
@@ -50,7 +50,7 @@ final class AccessibilityHost {
 
     /** Remplit le nœud d'accessibilité de l'éditeur (la racine). */
     void remplir(AccessibilityNodeInfo info) {
-        info.setClassName(CLASSE_TEXTE);
+        info.setClassName(TEXT_CLASS);
         info.setEditable(!vue.session().isReadOnly());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             info.setTextSelectable(true);
@@ -61,9 +61,9 @@ final class AccessibilityHost {
         info.addAction(AccessibilityAction.ACTION_SCROLL_FORWARD);
         info.addAction(AccessibilityAction.ACTION_SCROLL_BACKWARD);
         info.setMovementGranularities(masqueGranularites());
-        List<SelRange> plages = vue.session().selection().ranges();
-        if (!plages.isEmpty()) {
-            info.setTextSelection(plages.get(0).start(), plages.get(0).end());
+        List<SelRange> ranges = vue.session().selection().ranges();
+        if (!ranges.isEmpty()) {
+            info.setTextSelection(ranges.get(0).start(), ranges.get(0).end());
         }
     }
 
@@ -82,7 +82,7 @@ final class AccessibilityHost {
             return mouvoir(action, args);
         }
         if (action == AccessibilityNodeInfo.ACTION_SET_SELECTION) {
-            return poserSelection(args);
+            return setSelection(args);
         }
         if (action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
                 || action == AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD) {
@@ -94,8 +94,8 @@ final class AccessibilityHost {
     }
 
     /** Remplit le nœud d'une rangée virtuelle. */
-    private void remplirRangee(AccessibilityNodeInfo info, VirtualRows.Row rangee) {
-        info.setClassName(CLASSE_RANGEE);
+    private void fillRow(AccessibilityNodeInfo info, VirtualRows.Row rangee) {
+        info.setClassName(ROW_CLASS);
         info.setText(rangee.text());
         info.setParent(vue);
         info.setBoundsInScreen(bornesAEcran(rangee));
@@ -124,53 +124,53 @@ final class AccessibilityHost {
                 AccessibilityNodeInfo.ACTION_ARGUMENT_EXTEND_SELECTION_BOOLEAN,
                 false);
         Document document = vue.session().document();
-        List<SelRange> plages = vue.session().selection().ranges();
-        int origine = plages.isEmpty() ? 0 : plages.get(0).caret();
-        FrameState etat = vue.etatImageCourante();
+        List<SelRange> ranges = vue.session().selection().ranges();
+        int origine = ranges.isEmpty() ? 0 : ranges.get(0).caret();
+        FrameState state = vue.etatImageCourante();
         int pageRows = ScrollGeometry.visibleRows(vue.getHeight(),
-                etat.metrics().lineHeight());
-        int cible = action
+                state.metrics().lineHeight());
+        int target = action
                 == AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY
-                ? MovementGranularity.next(document, etat.projection(), origine,
+                ? MovementGranularity.next(document, state.projection(), origine,
                         granularite, pageRows)
-                : MovementGranularity.previous(document, etat.projection(), origine,
+                : MovementGranularity.previous(document, state.projection(), origine,
                         granularite, pageRows);
         SelRange apres = etendre
-                ? new SelRange(plages.get(0).anchor(), cible)
-                : SelRange.caretAt(cible);
+                ? new SelRange(ranges.get(0).anchor(), target)
+                : SelRange.caretAt(target);
         vue.session().setSelection(MultiSelection.of(apres));
         vue.invalidate();
         vue.curseurClavier.annoncerSelection();
         return true;
     }
 
-    private boolean poserSelection(@Nullable Bundle args) {
+    private boolean setSelection(@Nullable Bundle args) {
         if (args == null) {
             return false;
         }
-        int debut = args.getInt(
+        int start = args.getInt(
                 AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_START_INT, -1);
-        int fin = args.getInt(
+        int end = args.getInt(
                 AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT, -1);
-        if (debut < 0 || fin < 0) {
+        if (start < 0 || end < 0) {
             return false;
         }
         Document document = vue.session().document();
         vue.session().setSelection(MultiSelection.of(new SelRange(
-                Math.min(debut, document.length()),
-                Math.min(fin, document.length()))));
+                Math.min(start, document.length()),
+                Math.min(end, document.length()))));
         vue.invalidate();
         vue.curseurClavier.annoncerSelection();
         return true;
     }
 
     /** Pose le curseur au début d'une rangée virtuelle cliquée. */
-    private boolean cliquerRangee(int rangee) {
-        FrameState etat = vue.etatImageCourante();
-        int ligne = etat.projection().firstLineOfRow(rangee);
-        int colonne = etat.projection().spanStartAtRow(rangee);
+    private boolean clickRow(int rangee) {
+        FrameState state = vue.etatImageCourante();
+        int line = state.projection().firstLineOfRow(rangee);
+        int column = state.projection().spanStartAtRow(rangee);
         vue.session().setSelection(MultiSelection.of(SelRange.caretAt(
-                etat.document().lineStart(ligne) + colonne)));
+                state.document().lineStart(line) + column)));
         vue.invalidate();
         vue.curseurClavier.annoncerSelection();
         return true;
@@ -208,11 +208,11 @@ final class AccessibilityHost {
     }
 
     /** Les rangées virtuelles de la fenêtre courante. */
-    private List<VirtualRows.Row> rangees() {
-        FrameState etat = vue.etatImageCourante();
-        return VirtualRows.visible(etat.document(), etat.projection(),
-                etat.metrics(), etat.firstRow(), etat.visibleRows(),
-                etat.gutterWidth(), etat.scrollX(), etat.scrollY());
+    private List<VirtualRows.Row> rows() {
+        FrameState state = vue.etatImageCourante();
+        return VirtualRows.visible(state.document(), state.projection(),
+                state.metrics(), state.firstRow(), state.visibleRows(),
+                state.gutterWidth(), state.scrollX(), state.scrollY());
     }
 
     /** Le fournisseur de l'arbre virtuel : sert les rangées à la demande. */
@@ -234,13 +234,13 @@ final class AccessibilityHost {
                 return info;
             }
             int rangee = virtualViewId - 1;
-            List<VirtualRows.Row> rangees = rangees();
-            if (rangee < 0 || rangee >= rangees.size()) {
+            List<VirtualRows.Row> rows = rows();
+            if (rangee < 0 || rangee >= rows.size()) {
                 return null;
             }
             AccessibilityNodeInfo info =
                     AccessibilityNodeInfo.obtain(vue, virtualViewId);
-            remplirRangee(info, rangees.get(rangee));
+            fillRow(info, rows.get(rangee));
             return info;
         }
 
@@ -250,13 +250,13 @@ final class AccessibilityHost {
             if (virtualViewId == AccessibilityNodeProvider.HOST_VIEW_ID) {
                 return vue.performAccessibilityAction(action, arguments);
             }
-            List<VirtualRows.Row> rangees = rangees();
+            List<VirtualRows.Row> rows = rows();
             int rangee = virtualViewId - 1;
-            if (rangee < 0 || rangee >= rangees.size()) {
+            if (rangee < 0 || rangee >= rows.size()) {
                 return false;
             }
             if (action == AccessibilityNodeInfo.ACTION_CLICK) {
-                return cliquerRangee(rangees.get(rangee).row());
+                return clickRow(rows.get(rangee).row());
             }
             return vue.performAccessibilityAction(action, arguments);
         }

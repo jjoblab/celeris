@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 import jo.celeris.android.host.R;
 import jo.celeris.android.host.spi.AnalyseurLint;
-import jo.celeris.android.host.spi.DiagnosticHote;
+import jo.celeris.android.host.spi.HostDiagnostic;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.IntentionsMenuView;
 import jo.celeris.android.widgets.PopupAnchor;
@@ -42,13 +42,13 @@ import org.jspecify.annotations.Nullable;
  */
 final class Masquage {
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
     private final IntentionsMenuView carte;
     /** Les diagnostics courants de l'hôte — lint ou serveur. */
-    private final Supplier<List<DiagnosticHote>> diagnostics;
+    private final Supplier<List<HostDiagnostic>> diagnostics;
     /** Le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     private final Supplier<String> nomFichier;
     /** La relance de l'analyse lint — le masquage ne vaut
@@ -62,7 +62,7 @@ final class Masquage {
      * la carte naît liée à son genre, le patron des trois temps
      * (lier, déclencher, déléguer — USAGE §9).
      *
-     * @param editeur      la vue d'éditeur ouverte
+     * @param editor      la vue d'éditeur ouverte
      * @param session      la session d'édition courante
      * @param popups       le coordinateur des popups de la scène
      * @param margePx      la respiration des ancres aux bords, en pixels
@@ -73,12 +73,12 @@ final class Masquage {
      *                     null abrège le geste
      * @param annonces     le canal des annonces (titre, message)
      */
-    Masquage(EditorView editeur, TextSession session,
+    Masquage(EditorView editor, TextSession session,
             PopupManager popups, int margePx, PopupPalette palette,
-            Supplier<List<DiagnosticHote>> diagnostics,
+            Supplier<List<HostDiagnostic>> diagnostics,
             Supplier<String> nomFichier, Supplier<Runnable> relancerLint,
             BiConsumer<String, String> annonces) {
-        this.editeur = editeur;
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
@@ -102,16 +102,16 @@ final class Masquage {
      * l'analyse. Sans diagnostic réglé, le geste s'annonce et ne
      * touche rien.
      */
-    void ouvrir() {
+    void open() {
         List<IntentionsMenuView.Item> items = new ArrayList<>();
-        int ligne = ligneDuCaret();
-        for (DiagnosticHote diagnostic : diagnostics.get()) {
-            String regle = regleDe(diagnostic, ligne);
+        int line = caretLine();
+        for (HostDiagnostic diagnostic : diagnostics.get()) {
+            String regle = regleDe(diagnostic, line);
             if (regle != null) {
                 items.add(new IntentionsMenuView.Item(
                         popups.couche().getContext().getString(
                                 R.string.celeris_suppression_item, regle),
-                        () -> masquer(ligne, regle)));
+                        () -> masquer(line, regle)));
             }
         }
         if (items.isEmpty()) {
@@ -121,21 +121,21 @@ final class Masquage {
         carte.setSection(popups.couche().getContext().getString(
                 R.string.celeris_section_suppression));
         carte.setActions(items);
-        montrer();
+        show();
     }
 
     /** Le défilement a déplacé le curseur : la carte ouverte se
      *  REPOSITIONNE — le genre suit les régimes du menu du caret. */
     void repositionner() {
         if (popups.estOuvert(PopupController.PopupKind.SUPPRESS_INSPECTION)) {
-            montrer();
+            show();
         }
     }
 
     /** La règle du diagnostic porté par la ligne du fichier ouvert —
      *  vide ou étrangère, la règle ne se devine jamais : null. */
-    private @Nullable String regleDe(DiagnosticHote diagnostic, int ligne) {
-        if (diagnostic.ligne() != ligne
+    private @Nullable String regleDe(HostDiagnostic diagnostic, int line) {
+        if (diagnostic.line() != line
                 || !diagnostic.chemin().nom().equals(nomFichier.get())) {
             return null;
         }
@@ -146,15 +146,15 @@ final class Masquage {
     /** Le geste de masquage : la marque se pose en fin de la ligne
      *  captée à l'ouverture, la transaction s'applique, l'analyse se
      *  relance — la règle masquée ne se rapporte plus. */
-    private void masquer(int ligne, String regle) {
+    private void masquer(int line, String regle) {
         EditPlan plan = SuppressionInspection.masquer(session.document(),
-                ligne, regle);
+                line, regle);
         if (plan == null) {
             return;
         }
-        popups.fermer(PopupController.PopupKind.SUPPRESS_INSPECTION);
+        popups.close(PopupController.PopupKind.SUPPRESS_INSPECTION);
         if (session.apply(plan.transaction(), plan.selection())) {
-            editeur.invalidate();
+            editor.invalidate();
             Runnable relance = relancerLint.get();
             if (relance != null) {
                 relance.run();
@@ -165,14 +165,14 @@ final class Masquage {
 
     /** Monte la carte mesurée sous le curseur, bornée — la pose ET la
      *  re-pose y passent. */
-    private void montrer() {
-        Rect curseur = editeur.caretBounds();
+    private void show() {
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom,
-                popups.taille(PopupController.PopupKind.SUPPRESS_INSPECTION),
+                cursor.left, cursor.bottom,
+                popups.size(PopupController.PopupKind.SUPPRESS_INSPECTION),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.SUPPRESS_INSPECTION,
+        popups.show(PopupController.PopupKind.SUPPRESS_INSPECTION,
                 placee.x(), placee.y());
     }
 
@@ -186,9 +186,9 @@ final class Masquage {
     }
 
     /** La ligne du caret — à partir de un, comme les diagnostics. */
-    private int ligneDuCaret() {
-        List<SelRange> plages = session.selection().ranges();
-        int caret = plages.isEmpty() ? 0 : plages.get(0).caret();
+    private int caretLine() {
+        List<SelRange> ranges = session.selection().ranges();
+        int caret = ranges.isEmpty() ? 0 : ranges.get(0).caret();
         return session.document().lineForOffset(caret) + 1;
     }
 }

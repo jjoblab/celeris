@@ -37,7 +37,7 @@ public final class IndexSymboles {
 
     /** L'état indexé d'un fichier : ses symboles, ses occurrences, sa saturation. */
     private static final class Fichier {
-        private final List<Symbole> symboles = new ArrayList<>();
+        private final List<Symbole> symbols = new ArrayList<>();
         private final Map<String, List<Integer>> occurrences = new LinkedHashMap<>();
         private boolean sature;
     }
@@ -78,9 +78,9 @@ public final class IndexSymboles {
         // l'ancien état part d'abord : son budget est rendu avant le nouveau décompte
         fichiers.remove(uri);
         Fichier fichier = new Fichier();
-        for (OutlineEntry entree : TreeOutline.entries(doc, analyse)) {
-            fichier.symboles.add(new Symbole(entree.name(), entree.category(), uri,
-                    entree.startOffset(), entree.endOffset(), entree.startLine()));
+        for (OutlineEntry input : TreeOutline.entries(doc, analyse)) {
+            fichier.symbols.add(new Symbole(input.name(), input.category(), uri,
+                    input.startOffset(), input.endOffset(), input.startLine()));
         }
         int restant = budgetOccurrences - nombreOccurrences();
         for (ScanIdentifiants.NomOffset releve : ScanIdentifiants.scanner(doc, analyse.lex())) {
@@ -96,15 +96,15 @@ public final class IndexSymboles {
     }
 
     /** Retire un fichier de l'index — le fichier fermé quitte, les autres restent. */
-    public void retirer(String uri) {
+    public void remove(String uri) {
         fichiers.remove(uri);
     }
 
     /** Toutes les déclarations indexées, dans l'ordre (uri, offset). */
-    public List<Symbole> symboles() {
+    public List<Symbole> symbols() {
         List<Symbole> toutes = new ArrayList<>();
-        for (Map.Entry<String, Fichier> entree : fichiers.entrySet()) {
-            toutes.addAll(entree.getValue().symboles);
+        for (Map.Entry<String, Fichier> input : fichiers.entrySet()) {
+            toutes.addAll(input.getValue().symbols);
         }
         return List.copyOf(toutes);
     }
@@ -119,7 +119,7 @@ public final class IndexSymboles {
      */
     public List<Symbole> rechercher(String requete) {
         List<Symbole> repondants = new ArrayList<>();
-        for (Symbole symbole : symboles()) {
+        for (Symbole symbole : symbols()) {
             if (RechercheFloue.correspond(symbole.nom(), requete)) {
                 repondants.add(symbole);
             }
@@ -141,13 +141,13 @@ public final class IndexSymboles {
      */
     public List<Usage> usages(String nom) {
         List<Usage> usages = new ArrayList<>();
-        for (Map.Entry<String, Fichier> entree : fichiers.entrySet()) {
-            List<Integer> offsets = entree.getValue().occurrences.get(nom);
+        for (Map.Entry<String, Fichier> input : fichiers.entrySet()) {
+            List<Integer> offsets = input.getValue().occurrences.get(nom);
             if (offsets == null) {
                 continue;
             }
             for (Integer offset : offsets) {
-                usages.add(new Usage(entree.getKey(), offset));
+                usages.add(new Usage(input.getKey(), offset));
             }
         }
         return List.copyOf(usages);
@@ -178,20 +178,20 @@ public final class IndexSymboles {
      */
     public String serialiser() {
         StringBuilder forme = new StringBuilder(EN_TETE).append('\n');
-        for (Map.Entry<String, Fichier> entree : fichiers.entrySet()) {
-            forme.append("F\t").append(entree.getKey());
-            if (entree.getValue().sature) {
+        for (Map.Entry<String, Fichier> input : fichiers.entrySet()) {
+            forme.append("F\t").append(input.getKey());
+            if (input.getValue().sature) {
                 forme.append("\tsature");
             }
             forme.append('\n');
-            for (Symbole symbole : entree.getValue().symboles) {
+            for (Symbole symbole : input.getValue().symbols) {
                 forme.append("S\t").append(symbole.categorie()).append('\t')
-                        .append(symbole.debut()).append('\t').append(symbole.fin())
-                        .append('\t').append(symbole.ligne()).append('\t')
+                        .append(symbole.start()).append('\t').append(symbole.end())
+                        .append('\t').append(symbole.line()).append('\t')
                         .append(symbole.nom()).append('\n');
             }
             for (Map.Entry<String, List<Integer>> occurrence
-                    : entree.getValue().occurrences.entrySet()) {
+                    : input.getValue().occurrences.entrySet()) {
                 forme.append("O\t").append(occurrence.getKey());
                 for (Integer offset : occurrence.getValue()) {
                     forme.append('\t').append(offset);
@@ -210,26 +210,26 @@ public final class IndexSymboles {
      * @throws IllegalArgumentException si la forme n'est pas la nôtre
      */
     public static IndexSymboles deserialiser(String forme) {
-        String[] lignes = forme.split("\n", -1);
-        if (lignes.length == 0 || !EN_TETE.equals(lignes[0])) {
+        String[] lines = forme.split("\n", -1);
+        if (lines.length == 0 || !EN_TETE.equals(lines[0])) {
             throw new IllegalArgumentException("unknown index format");
         }
         IndexSymboles index = new IndexSymboles(BUDGET_DEFAUT);
         Fichier fichier = null;
         String uri = null;
-        for (int i = 1; i < lignes.length; i++) {
-            String ligne = lignes[i];
-            if (ligne.isEmpty()) {
+        for (int i = 1; i < lines.length; i++) {
+            String line = lines[i];
+            if (line.isEmpty()) {
                 continue;
             }
-            String[] champs = ligne.split("\t", -1);
+            String[] champs = line.split("\t", -1);
             if ("F".equals(champs[0])) {
                 uri = champs[1];
                 fichier = new Fichier();
                 fichier.sature = champs.length > 2 && "sature".equals(champs[2]);
                 index.fichiers.put(uri, fichier);
             } else if ("S".equals(champs[0]) && fichier != null && uri != null) {
-                fichier.symboles.add(new Symbole(champs[5],
+                fichier.symbols.add(new Symbole(champs[5],
                         jo.celeris.core.syntax.NodeCategory.valueOf(champs[1]), uri,
                         Integer.parseInt(champs[2]), Integer.parseInt(champs[3]),
                         Integer.parseInt(champs[4])));

@@ -23,7 +23,7 @@ public final class ExceptionView extends TextRowsPopup {
     /** Un cadre de la pile : son libellé et son saut — null quand le
      *  cadre vit hors du document ouvert (le lieu étranger ne se
      *  devine jamais). */
-    public record Cadre(String libelle, @Nullable Runnable saut) {
+    public record Cadre(String label, @Nullable Runnable saut) {
     }
 
     private List<Cadre> cadres = List.of();
@@ -49,7 +49,7 @@ public final class ExceptionView extends TextRowsPopup {
     public void setException(@Nullable String type, @Nullable String message) {
         this.type = type;
         this.message = message;
-        rebatirRangees();
+        rebuildRows();
     }
 
     /**
@@ -61,7 +61,7 @@ public final class ExceptionView extends TextRowsPopup {
      */
     public void setCadres(List<Cadre> cadres) {
         this.cadres = List.copyOf(cadres);
-        rebatirRangees();
+        rebuildRows();
     }
 
     /** Le cadre d'index donné, null s'il n'existe pas. */
@@ -76,24 +76,24 @@ public final class ExceptionView extends TextRowsPopup {
 
     /** Rebâtit les rangées : le marqueur et le type, le message, puis
      *  la pile — le premier cadre vit derrière un filet. */
-    private void rebatirRangees() {
-        List<Row> rangees = new ArrayList<>(cadres.size() + 2);
+    private void rebuildRows() {
+        List<Row> rows = new ArrayList<>(cadres.size() + 2);
         if (type != null && !type.isEmpty()) {
-            rangees.add(Row.tier("× " + type, palette.error(), Tier.TITRE));
+            rows.add(Row.tier("× " + type, palette.error(), Tier.TITRE));
         }
         if (message != null && !message.isEmpty()) {
-            for (String ligne : message.split("\n", -1)) {
-                rangees.add(Row.of(ligne));
+            for (String line : message.split("\n", -1)) {
+                rows.add(Row.of(line));
             }
         }
         boolean premier = true;
         for (Cadre cadre : cadres) {
-            Row rangee = Row.of(cadre.libelle(),
+            Row rangee = Row.of(cadre.label(),
                     cadre.saut() == null ? palette.muted() : palette.text());
-            rangees.add(premier ? Row.apresFilet(rangee) : rangee);
+            rows.add(premier ? Row.afterRule(rangee) : rangee);
             premier = false;
         }
-        setRows(rangees);
+        setRows(rows);
     }
 
     /** L'appui d'une rangée : le type et le message ne se prennent
@@ -109,13 +109,13 @@ public final class ExceptionView extends TextRowsPopup {
     /** Le décalage des cadres — le type et le message éventuels
      *  comptent leurs rangées. */
     private int decalage() {
-        int rangees = 0;
+        int rows = 0;
         if (type != null && !type.isEmpty()) {
-            rangees++;
+            rows++;
         }
         if (message != null && !message.isEmpty()) {
-            rangees += message.split("\n", -1).length;
+            rows += message.split("\n", -1).length;
         }
-        return rangees;
+        return rows;
     }
 }

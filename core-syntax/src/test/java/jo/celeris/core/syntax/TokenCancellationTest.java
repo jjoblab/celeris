@@ -18,36 +18,36 @@ class TokenCancellationTest {
     /** Un jeton frais est actif : la vérification passe. */
     @Test
     void jetonActifVerifieSansLever() {
-        TokenCancellation jeton = new TokenCancellation();
-        assertFalse(jeton.estAnnule());
-        jeton.verifier();
+        TokenCancellation token = new TokenCancellation();
+        assertFalse(token.isCancelled());
+        token.check();
     }
 
     /** Un jeton annulé lève AnalyseAnnulee à la vérification. */
     @Test
     void jetonAnnuleLeveAnalyseAnnulee() {
-        TokenCancellation jeton = new TokenCancellation();
-        jeton.annuler();
-        assertTrue(jeton.estAnnule());
-        assertThrows(AnalyseAnnulee.class, jeton::verifier);
+        TokenCancellation token = new TokenCancellation();
+        token.annuler();
+        assertTrue(token.isCancelled());
+        assertThrows(AnalysisCancelled.class, token::check);
     }
 
     /** L'annulation depuis un autre fil devient visible : moniteur et précédence. */
     @Test
     void annulationDepuisAutreFilDevientVisible() throws InterruptedException {
-        TokenCancellation jeton = new TokenCancellation();
-        Thread fil = new Thread(jeton::annuler);
-        fil.start();
-        fil.join(5_000);
-        assertTrue(jeton.estAnnule());
+        TokenCancellation token = new TokenCancellation();
+        Thread thread = new Thread(token::annuler);
+        thread.start();
+        thread.join(5_000);
+        assertTrue(token.isCancelled());
     }
 
     /** Annuler deux fois reste idempotent. */
     @Test
     void annulationIdempotente() {
-        TokenCancellation jeton = new TokenCancellation();
-        jeton.annuler();
-        jeton.annuler();
-        assertTrue(jeton.estAnnule());
+        TokenCancellation token = new TokenCancellation();
+        token.annuler();
+        token.annuler();
+        assertTrue(token.isCancelled());
     }
 }

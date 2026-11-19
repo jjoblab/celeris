@@ -54,8 +54,8 @@ class EntreeIndentationTest {
     /** Le retrait suit l'imbrication : le corps de méthode gagne deux crans. */
     @Test
     void corpsDeMethodeDeuxCrans() {
-        String texte = "class A {\n    void m() {\n    }\n}";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    void m() {\n    }\n}";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         // caret en fin de « void m() { » (offset 24)
         EditPlan plan = SmartTyping.enter(doc, analyse,
@@ -67,8 +67,8 @@ class EntreeIndentationTest {
     /** Une ligne simple garde son niveau : pas de cran fantôme. */
     @Test
     void ligneSimpleGardeSonNiveau() {
-        String texte = "class A {\n    int x;\n}";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    int x;\n}";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         // caret en fin de « int x; » (offset 20, avant le saut)
         EditPlan plan = SmartTyping.enter(doc, analyse,
@@ -121,8 +121,8 @@ class EntreeIndentationTest {
     /** Multi-curseurs : chaque saut est indenté, les deltas s'ajustent. */
     @Test
     void multiCurseursChacunSonSaut() {
-        String texte = "class A {\n    int x;\n}";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    int x;\n}";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         // fin de ligne 0 (offset 9) et fin de ligne 1 (offset 20)
         EditPlan plan = SmartTyping.enter(doc, analyse,
@@ -136,18 +136,18 @@ class EntreeIndentationTest {
     /** Le plan s'applique par la voie unique, l'annulation restitue tout. */
     @Test
     void planAppliqueEtAnnule() {
-        String texte = "class A {\n    int x;\n}";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    int x;\n}";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         EditPlan plan = SmartTyping.enter(doc, analyse,
                 MultiSelection.caretsAt(20), IndentStyle.spaces(4));
         jo.celeris.core.text.TextSession session =
-                jo.celeris.core.text.TextSession.of(texte, () -> 0L);
+                jo.celeris.core.text.TextSession.of(text, () -> 0L);
         session.setSelection(MultiSelection.caretsAt(20));
         assertTrue(session.apply(plan.transaction(), plan.selection()));
         assertEquals("class A {\n    int x;\n    \n}", session.text());
         assertTrue(session.undo());
-        assertEquals(texte, session.text());
+        assertEquals(text, session.text());
         assertEquals(List.of(20), session.selection().carets());
     }
 }

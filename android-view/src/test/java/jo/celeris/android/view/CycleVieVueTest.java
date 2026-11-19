@@ -36,9 +36,9 @@ public class CycleVieVueTest {
     /** Les noms des fils d'analyse vivants, filtrés du kit. */
     private static Set<Thread> filsAnalyse() {
         Set<Thread> vivants = ConcurrentHashMap.newKeySet();
-        for (Thread fil : Thread.getAllStackTraces().keySet()) {
-            if (fil.isAlive() && fil.getName().startsWith("celeris-analyse")) {
-                vivants.add(fil);
+        for (Thread thread : Thread.getAllStackTraces().keySet()) {
+            if (thread.isAlive() && thread.getName().startsWith("celeris-analyse")) {
+                vivants.add(thread);
             }
         }
         return vivants;
@@ -64,8 +64,8 @@ public class CycleVieVueTest {
         AtomicInteger vus = new AtomicInteger();
         for (int tour = 0; tour < 200 && naisance.getCount() > 0; tour++) {
             vus.set(0);
-            for (Thread fil : Thread.getAllStackTraces().keySet()) {
-                if (fil.isAlive() && fil.getName().startsWith("celeris-analyse")) {
+            for (Thread thread : Thread.getAllStackTraces().keySet()) {
+                if (thread.isAlive() && thread.getName().startsWith("celeris-analyse")) {
                     vus.incrementAndGet();
                 }
             }
@@ -214,7 +214,7 @@ public class CycleVieVueTest {
      *  session lue y est vide et inerte. */
     @Test
     public void releaseVideLeChampSession() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(),
                 "un document qui ne doit pas survivre a la vue");
         EditorView vue = banc.vue();

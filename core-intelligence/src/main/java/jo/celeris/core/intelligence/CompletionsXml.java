@@ -28,12 +28,12 @@ public final class CompletionsXml {
     /**
      * Les candidats de complétion au curseur, guidés par le schéma.
      *
-     * @param texte le texte XML porteur
+     * @param text le texte XML porteur
      * @param caret la position du curseur, dans les bornes du texte
      * @return les candidats distincts (peut être vide, jamais null)
      */
-    public static List<String> completer(String texte, int caret) {
-        Contexte contexte = contexte(texte, caret);
+    public static List<String> completer(String text, int caret) {
+        Contexte contexte = contexte(text, caret);
         if (contexte == null) {
             return List.of();
         }
@@ -50,23 +50,23 @@ public final class CompletionsXml {
     }
 
     /** Le contexte de complétion : la source des candidats et le préfixe. */
-    private static @Nullable Contexte contexte(String texte, int caret) {
-        int chevron = ouvertureLaPlusProche(texte, caret);
+    private static @Nullable Contexte contexte(String text, int caret) {
+        int chevron = ouvertureLaPlusProche(text, caret);
         if (chevron < 0) {
             return null;
         }
-        String balise = nomDeBalise(texte, chevron);
-        int guillemet = texte.lastIndexOf('"', Math.max(0, caret - 1));
+        String balise = nomDeBalise(text, chevron);
+        int guillemet = text.lastIndexOf('"', Math.max(0, caret - 1));
         if (guillemet > chevron) {
-            return contexteValeur(texte, chevron, guillemet, caret);
+            return valueContext(text, chevron, guillemet, caret);
         }
-        return contexteNom(texte, chevron, caret, balise);
+        return contexteNom(text, chevron, caret, balise);
     }
 
     /** Contexte de nom : la balise elle-même ou ses attributs. */
-    private static Contexte contexteNom(String texte, int chevron, int caret,
+    private static Contexte contexteNom(String text, int chevron, int caret,
             String balise) {
-        String apresChevron = texte.substring(chevron + 1, caret);
+        String apresChevron = text.substring(chevron + 1, caret);
         int dernierBlanc = Math.max(apresChevron.lastIndexOf(' '),
                 apresChevron.lastIndexOf('\n'));
         if (dernierBlanc < 0) {
@@ -78,50 +78,50 @@ public final class CompletionsXml {
     }
 
     /** Contexte de valeur : constantes, unités ou références. */
-    private static Contexte contexteValeur(String texte, int chevron, int guillemet,
+    private static Contexte valueContext(String text, int chevron, int guillemet,
             int caret) {
-        String valeur = texte.substring(Math.min(guillemet + 1, caret), caret);
-        if (valeur.startsWith("@") || valeur.startsWith("?")) {
-            return new Contexte(SchemaAndroid.references(), valeur);
+        String value = text.substring(Math.min(guillemet + 1, caret), caret);
+        if (value.startsWith("@") || value.startsWith("?")) {
+            return new Contexte(SchemaAndroid.references(), value);
         }
-        String attribut = attributEnCours(texte, chevron, guillemet);
-        return new Contexte(SchemaAndroid.valeurs(attribut, valeur), valeur);
+        String attribut = attributEnCours(text, chevron, guillemet);
+        return new Contexte(SchemaAndroid.valeurs(attribut, value), value);
     }
 
     /** Le nom de l'attribut dont la valeur s'écrit après le guillemet. */
-    private static String attributEnCours(String texte, int chevron, int guillemet) {
-        int egal = texte.lastIndexOf('=', guillemet);
+    private static String attributEnCours(String text, int chevron, int guillemet) {
+        int egal = text.lastIndexOf('=', guillemet);
         if (egal <= chevron) {
             return "";
         }
-        int debut = egal - 1;
-        while (debut > chevron && !Character.isWhitespace(texte.charAt(debut))) {
-            debut--;
+        int start = egal - 1;
+        while (start > chevron && !Character.isWhitespace(text.charAt(start))) {
+            start--;
         }
-        return texte.substring(debut + 1, egal).strip();
+        return text.substring(start + 1, egal).strip();
     }
 
     /** L'indice du «&#x2f;» ouvrant la balise la plus proche, non refermée. */
-    private static int ouvertureLaPlusProche(String texte, int caret) {
-        int dernierFerme = Math.max(texte.lastIndexOf('>', caret - 1), -1);
-        int ouverture = texte.lastIndexOf('<', caret - 1);
+    private static int ouvertureLaPlusProche(String text, int caret) {
+        int dernierFerme = Math.max(text.lastIndexOf('>', caret - 1), -1);
+        int ouverture = text.lastIndexOf('<', caret - 1);
         if (ouverture <= dernierFerme) {
             return -1;
         }
-        if (ouverture + 1 < texte.length() && texte.charAt(ouverture + 1) == '/') {
+        if (ouverture + 1 < text.length() && text.charAt(ouverture + 1) == '/') {
             return -1;
         }
         return ouverture;
     }
 
     /** Le nom de la balise ouverte à l'indice donné, vide si encore vide. */
-    private static String nomDeBalise(String texte, int ouverture) {
-        int fin = ouverture + 1;
-        while (fin < texte.length()
-                && Character.isLetterOrDigit(texte.charAt(fin))) {
-            fin++;
+    private static String nomDeBalise(String text, int ouverture) {
+        int end = ouverture + 1;
+        while (end < text.length()
+                && Character.isLetterOrDigit(text.charAt(end))) {
+            end++;
         }
-        return texte.substring(ouverture + 1, fin);
+        return text.substring(ouverture + 1, end);
     }
 
     /** Un contexte de complétion : candidats source et préfixe tapé. */

@@ -39,16 +39,16 @@ public final class PostfixCompletion {
         /** Constructeur canonique : le curseur vit dans le texte inséré. */
         public PostfixEdit {
             Objects.requireNonNull(edit, "edit");
-            int fin = edit.start() + edit.inserted().length();
-            if (caret < edit.start() || caret > fin) {
+            int end = edit.start() + edit.inserted().length();
+            if (caret < edit.start() || caret > end) {
                 throw new IllegalArgumentException(
-                        "caret " + caret + " out of inserted [" + edit.start() + ", " + fin + ")");
+                        "caret " + caret + " out of inserted [" + edit.start() + ", " + end + ")");
             }
         }
     }
 
     /** Les motifs reconnus, dans l'ordre du dictionnaire. */
-    public static List<String> motifs() {
+    public static List<String> patterns() {
         return List.of("for", "if", "not", "notnull", "null", "return", "while");
     }
 
@@ -67,11 +67,11 @@ public final class PostfixCompletion {
             throw new IllegalArgumentException(
                     "caret " + caret + " out of (0, " + doc.length() + ")");
         }
-        int[] bornes = wordBefore(doc, caret);
-        if (bornes == null || !motifs().contains(doc.subText(bornes[0], bornes[1]))) {
+        int[] bounds = wordBefore(doc, caret);
+        if (bounds == null || !patterns().contains(doc.subText(bounds[0], bounds[1]))) {
             return null;
         }
-        int dot = bornes[0] - 1;
+        int dot = bounds[0] - 1;
         if (dot < 0 || doc.charAt(dot) != '.') {
             return null;
         }
@@ -80,7 +80,7 @@ public final class PostfixCompletion {
             return null;
         }
         String expr = doc.subText(start, dot);
-        String gabarit = gabarit(doc.subText(bornes[0], caret), expr);
+        String gabarit = gabarit(doc.subText(bounds[0], caret), expr);
         TextEdit edit = new TextEdit(start, doc.subText(start, caret), gabarit);
         boolean auBout = gabarit.equals("!" + expr) || gabarit.equals("return " + expr + ";");
         return new PostfixEdit(edit,
@@ -88,8 +88,8 @@ public final class PostfixCompletion {
     }
 
     /** Le gabarit du motif : l'expression s'y consomme entière. */
-    private static String gabarit(String motif, String expr) {
-        return switch (motif) {
+    private static String gabarit(String pattern, String expr) {
+        return switch (pattern) {
             case "if" -> "if (" + expr + ") {}";
             case "while" -> "while (" + expr + ") {}";
             case "for" -> "for (var element : " + expr + ") {}";
@@ -135,13 +135,13 @@ public final class PostfixCompletion {
     }
 
     /** Vrai quand le texte commence par une lettre et ne finit pas par un point. */
-    private static boolean estExpression(String texte) {
-        if (texte.isEmpty()) {
+    private static boolean estExpression(String text) {
+        if (text.isEmpty()) {
             return false;
         }
-        char premiere = texte.charAt(0);
+        char premiere = text.charAt(0);
         return (Character.isLetter(premiere) || premiere == '_')
-                && texte.charAt(texte.length() - 1) != '.';
+                && text.charAt(text.length() - 1) != '.';
     }
 
     /** Vrai quand le caractère compose un mot : lettre, chiffre ou trait bas. */

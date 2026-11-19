@@ -75,18 +75,18 @@ class ReanalyseBudgetTest {
         Document doc = Document.of(source);
         SyntaxService service = SyntaxService.of(langage);
         Analysis complet = service.analyseFull(doc);
-        int cible = source.length() / 2;
-        Document edite = doc.replace(cible, cible + 1, "z");
-        EditSite site = EditSite.of(doc, edite, cible, cible + 1, "z");
+        int target = source.length() / 2;
+        Document edite = doc.replace(target, target + 1, "z");
+        EditSite site = EditSite.of(doc, edite, target, target + 1, "z");
         // échauffement non mesuré : le JIT ne doit pas compter dans le budget
         service.analyseIncremental(edite, complet, site);
         long meilleur = Long.MAX_VALUE;
         for (int essai = 0; essai <= RATTRAPAGES; essai++) {
             long serie = Long.MAX_VALUE;
             for (int tour = 0; tour < TOURS; tour++) {
-                long debut = System.nanoTime();
+                long start = System.nanoTime();
                 Analysis diff = service.analyseIncremental(edite, complet, site);
-                long duree = System.nanoTime() - debut;
+                long duree = System.nanoTime() - start;
                 if (diff.tree().chunks().isEmpty()) {
                     throw new IllegalStateException("arbre vide pour " + langage.id());
                 }

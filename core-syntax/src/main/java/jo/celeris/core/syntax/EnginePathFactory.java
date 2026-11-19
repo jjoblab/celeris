@@ -24,11 +24,11 @@ public interface EnginePathFactory {
      *
      * @param source    la source syntaxique du langage, ou null
      * @param session   la session d'édition suivie
-     * @param executeur l'exécuteur du travail, null pour la voie
+     * @param executor l'exécuteur du travail, null pour la voie
      *                  synchrone
      * @return le moteur prêt, null hors de la voie
      */
-    @Nullable MoteurSyntaxe creer(@Nullable LanguageSyntax source,
+    @Nullable SyntaxEngine create(@Nullable LanguageSyntax source,
             jo.celeris.core.text.TextSession session,
-            java.util.concurrent.@Nullable Executor executeur);
+            java.util.concurrent.@Nullable Executor executor);
 }

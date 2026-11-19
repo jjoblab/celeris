@@ -53,20 +53,20 @@ public final class ArbreDocumentsSaf implements ArbreDocuments {
         Uri enfants = DocumentsContract.buildChildDocumentsUriUsingTree(
                 racineArbre, idDossier);
         List<EntreeDocument> entrees = new ArrayList<>();
-        try (Cursor curseur = resolver.query(
+        try (Cursor cursor = resolver.query(
                 enfants,
                 new String[] {
                         DocumentsContract.Document.COLUMN_DOCUMENT_ID,
                         DocumentsContract.Document.COLUMN_DISPLAY_NAME,
                         DocumentsContract.Document.COLUMN_MIME_TYPE },
                 null, null, null)) {
-            if (curseur == null) {
+            if (cursor == null) {
                 return entrees;
             }
-            while (curseur.moveToNext()) {
-                String id = curseur.getString(0);
-                String nom = curseur.getString(1);
-                String mime = curseur.getString(2);
+            while (cursor.moveToNext()) {
+                String id = cursor.getString(0);
+                String nom = cursor.getString(1);
+                String mime = cursor.getString(2);
                 boolean dossier = DocumentsContract.Document.MIME_TYPE_DIR.equals(mime);
                 entrees.add(new EntreeDocument(nom, id, dossier));
             }
@@ -75,23 +75,23 @@ public final class ArbreDocumentsSaf implements ArbreDocuments {
     }
 
     @Override
-    public String lire(String idFichier) {
-        return new String(lireOctets(idFichier), StandardCharsets.UTF_8);
+    public String read(String idFichier) {
+        return new String(readBytes(idFichier), StandardCharsets.UTF_8);
     }
 
     @Override
-    public byte[] lireOctets(String idFichier) {
+    public byte[] readBytes(String idFichier) {
         Uri document = DocumentsContract.buildDocumentUriUsingTree(racineArbre, idFichier);
         try (InputStream flot = resolver.openInputStream(document)) {
             if (flot == null) {
                 throw new IllegalStateException("stream refused: " + idFichier);
             }
-            ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             byte[] bloc = new byte[8192];
             for (int lu = flot.read(bloc); lu >= 0; lu = flot.read(bloc)) {
-                tampon.write(bloc, 0, lu);
+                buffer.write(bloc, 0, lu);
             }
-            return tampon.toByteArray();
+            return buffer.toByteArray();
         } catch (IOException e) {
             throw new IllegalStateException("read failed: " + idFichier, e);
         }
@@ -114,7 +114,7 @@ public final class ArbreDocumentsSaf implements ArbreDocuments {
     }
 
     @Override
-    public String creer(String idParent, String nom, boolean dossier) {
+    public String create(String idParent, String nom, boolean dossier) {
         String mime = dossier
                 ? DocumentsContract.Document.MIME_TYPE_DIR
                 : "text/plain";
@@ -133,14 +133,14 @@ public final class ArbreDocumentsSaf implements ArbreDocuments {
     @Override
     public boolean estFichier(String idDocument) {
         Uri document = DocumentsContract.buildDocumentUriUsingTree(racineArbre, idDocument);
-        try (Cursor curseur = resolver.query(
+        try (Cursor cursor = resolver.query(
                 document,
                 new String[] {DocumentsContract.Document.COLUMN_MIME_TYPE},
                 null, null, null)) {
-            if (curseur == null || !curseur.moveToFirst()) {
+            if (cursor == null || !cursor.moveToFirst()) {
                 return false;
             }
-            return !DocumentsContract.Document.MIME_TYPE_DIR.equals(curseur.getString(0));
+            return !DocumentsContract.Document.MIME_TYPE_DIR.equals(cursor.getString(0));
         }
     }
 }

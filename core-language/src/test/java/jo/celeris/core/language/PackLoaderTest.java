@@ -48,7 +48,7 @@ final class PackLoaderTest {
         Files.createDirectories(dossier);
         ecrire(dossier, "pack.json", """
                 {"id": "essai", "version": "1.0.0", "schemaVersion": 1,
-                 "license": "Apache-2.0", "provenance": "banc de test"}
+                 "license": "Apache-2.0", "provenance": "banc of test"}
                 """);
         ecrire(dossier, "language.json", """
                 {"id": "essai", "name": "Essai", "extensions": [".essai"],
@@ -195,9 +195,9 @@ final class PackLoaderTest {
     @Test
     void uneArchiveQuiRemonteSeRefuse() throws IOException {
         Path zip = bac.resolve("piege.zip");
-        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
-            sortie.putNextEntry(new ZipEntry("../ evasion.json"));
-            sortie.write("1".getBytes(StandardCharsets.UTF_8));
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(zip))) {
+            output.putNextEntry(new ZipEntry("../ evasion.json"));
+            output.write("1".getBytes(StandardCharsets.UTF_8));
         }
         PackSource source = Packs.archive(zip);
         IllegalArgumentException echec = assertThrows(IllegalArgumentException.class,
@@ -208,14 +208,14 @@ final class PackLoaderTest {
     @Test
     void uneArchiveSaineSeCharge() throws IOException {
         Path zip = bac.resolve("essai.zip");
-        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
-            sortie.putNextEntry(new ZipEntry("pack.json"));
-            sortie.write("""
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(zip))) {
+            output.putNextEntry(new ZipEntry("pack.json"));
+            output.write("""
                     {"id": "essai", "version": "1.0.0", "schemaVersion": 1,
                      "license": "Apache-2.0", "provenance": "banc"}
                     """.getBytes(StandardCharsets.UTF_8));
-            sortie.putNextEntry(new ZipEntry("language.json"));
-            sortie.write("""
+            output.putNextEntry(new ZipEntry("language.json"));
+            output.write("""
                     {"id": "essai", "name": "Essai", "extensions": [".essai"],
                      "syntax": {"preferred": "grammar"}}
                     """.getBytes(StandardCharsets.UTF_8));
@@ -293,11 +293,11 @@ final class PackLoaderTest {
     void uneEntreeHorsPlafondSeRefuse() throws IOException {
         byte[] gros = new byte[9 * 1024 * 1024];   // 9 Mo > plafond 8 Mo
         Path zip = bac.resolve("bombe.zip");
-        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
-            sortie.putNextEntry(new ZipEntry("pack.json"));
-            sortie.write("{}".getBytes(StandardCharsets.UTF_8));
-            sortie.putNextEntry(new ZipEntry("grossiere.bin"));
-            sortie.write(gros);
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(zip))) {
+            output.putNextEntry(new ZipEntry("pack.json"));
+            output.write("{}".getBytes(StandardCharsets.UTF_8));
+            output.putNextEntry(new ZipEntry("grossiere.bin"));
+            output.write(gros);
         }
         PackSource source = Packs.archive(zip);
         IllegalArgumentException echec = assertThrows(IllegalArgumentException.class,
@@ -310,10 +310,10 @@ final class PackLoaderTest {
     @Test
     void tropDentreesSeRefuse() throws IOException {
         Path zip = bac.resolve("deluge.zip");
-        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(zip))) {
             for (int i = 0; i < 513; i++) {   // > plafond 512
-                sortie.putNextEntry(new ZipEntry("f" + i + ".txt"));
-                sortie.write("1".getBytes(StandardCharsets.UTF_8));
+                output.putNextEntry(new ZipEntry("f" + i + ".txt"));
+                output.write("1".getBytes(StandardCharsets.UTF_8));
             }
         }
         PackSource source = Packs.archive(zip);
@@ -327,10 +327,10 @@ final class PackLoaderTest {
     @Test
     void leTotalDecompresseHorsPlafondSeRefuse() throws IOException {
         Path zip = bac.resolve("cumul.zip");
-        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(zip))) {
             for (int i = 0; i < 12; i++) {   // 12 x 6 Mo > plafond 64 Mo
-                sortie.putNextEntry(new ZipEntry("f" + i + ".bin"));
-                sortie.write(new byte[6 * 1024 * 1024]);
+                output.putNextEntry(new ZipEntry("f" + i + ".bin"));
+                output.write(new byte[6 * 1024 * 1024]);
             }
         }
         PackSource source = Packs.archive(zip);
@@ -346,9 +346,9 @@ final class PackLoaderTest {
     @Test
     void leNomADeuxPointsLegitimePasse() throws IOException {
         Path zip = bac.resolve("honnete.zip");
-        try (ZipOutputStream sortie = new ZipOutputStream(Files.newOutputStream(zip))) {
-            sortie.putNextEntry(new ZipEntry("a..b.json"));
-            sortie.write("{}".getBytes(StandardCharsets.UTF_8));
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(zip))) {
+            output.putNextEntry(new ZipEntry("a..b.json"));
+            output.write("{}".getBytes(StandardCharsets.UTF_8));
         }
         // pas d'exception : l'entrée vit dans le paquet
         PackSource.PackFiles paquet = Packs.archive(zip).packs().get(0);

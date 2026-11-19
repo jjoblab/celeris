@@ -17,7 +17,7 @@ import jo.celeris.core.syntax.TokenKind;
  */
 public final class SyntaxPalette {
 
-    private final int[] couleurs;
+    private final int[] colors;
 
     /**
      * Construit la palette, une encre par sorte dans l'ordre de
@@ -42,10 +42,10 @@ public final class SyntaxPalette {
             int comment, int doc, int annotation, int operator, int punctuation,
             int identifier, int constant, int openBracket, int closeBracket,
             int error) {
-        couleurs = new int[] {keyword, type, string, number, comment, doc,
+        colors = new int[] {keyword, type, string, number, comment, doc,
                 annotation, operator, punctuation, identifier, constant,
                 openBracket, closeBracket, error};
-        for (int couleur : couleurs) {
+        for (int couleur : colors) {
             if ((couleur >>> 24) != 0xFF) {
                 throw new IllegalArgumentException(
                         "la couleur doit être opaque : " + couleur);
@@ -73,6 +73,6 @@ public final class SyntaxPalette {
      * @return la couleur résolue, en ARGB
      */
     public int couleur(TokenKind sorte) {
-        return couleurs[sorte.ordinal()];
+        return colors[sorte.ordinal()];
     }
 }

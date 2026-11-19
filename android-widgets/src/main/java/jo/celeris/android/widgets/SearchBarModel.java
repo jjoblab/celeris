@@ -56,12 +56,12 @@ public final class SearchBarModel {
 
     /** L'écouteur des éditions de la session (C10) — détaché au
      *  changement de document et à la fermeture. */
-    private final EditListenerPont ecouteur = new EditListenerPont();
+    private final EditListenerBridge ecouteur = new EditListenerBridge();
 
     /** Pont d'écoute : la classe nommée se retire elle-même (la
      *  session ne retient que l'écouteur, jamais la barre entière
      *  par une lambda captive). */
-    private final class EditListenerPont
+    private final class EditListenerBridge
             implements jo.celeris.core.text.EditListener {
         @Override
         public void onTextEdit(int start, int end, String removed, String inserted) {

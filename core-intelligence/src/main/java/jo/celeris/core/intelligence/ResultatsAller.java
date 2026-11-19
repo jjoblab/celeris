@@ -20,7 +20,7 @@ public final class ResultatsAller {
     /** Un résultat de l'aller à : son genre (fichier ou symbole), son
      *  libellé et son détail — le genre est une CLÉ, la feuille la
      *  localise. */
-    public record Resultat(String genre, String libelle, String detail) {
+    public record Resultat(String kind, String label, String detail) {
     }
 
     /** La clé du genre fichier — la feuille la localise. */
@@ -63,15 +63,15 @@ public final class ResultatsAller {
                         extension(fichier)));
             }
         }
-        for (OutlineEntry entree : plan) {
-            if (RechercheFloue.correspond(entree.name(), requete)) {
-                candidats.add(new Resultat(GENRE_SYMBOLE, entree.name(),
-                        "L" + (entree.startLine() + 1)));
+        for (OutlineEntry input : plan) {
+            if (RechercheFloue.correspond(input.name(), requete)) {
+                candidats.add(new Resultat(GENRE_SYMBOLE, input.name(),
+                        "L" + (input.startLine() + 1)));
             }
         }
         candidats.sort(Comparator.comparingInt(
                 (Resultat resultat) -> RechercheFloue.score(
-                        resultat.libelle(), requete)).reversed());
+                        resultat.label(), requete)).reversed());
         return candidats.size() <= plafond ? List.copyOf(candidats)
                 : List.copyOf(candidats.subList(0, plafond));
     }

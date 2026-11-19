@@ -31,7 +31,7 @@ public interface SystemeFichiersVirtuel {
      * @return le fichier, chemin et contenu
      * @throws FichierAbsentException si le chemin n'est pas un fichier
      */
-    FichierVirtuel ouvrir(CheminDoc chemin);
+    FichierVirtuel open(CheminDoc chemin);
 
     /**
      * Écrit le fichier donné : créé s'il est absent, remplacé sinon —
@@ -40,7 +40,7 @@ public interface SystemeFichiersVirtuel {
      * @param chemin   le chemin du fichier
      * @param contenu  le contenu intégral à écrire
      */
-    void ecrire(CheminDoc chemin, String contenu);
+    void write(CheminDoc chemin, String contenu);
 
     /**
      * Les fichiers directement contenus dans le dossier donné.

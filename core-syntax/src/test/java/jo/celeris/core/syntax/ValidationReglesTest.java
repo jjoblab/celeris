@@ -35,14 +35,14 @@ class ValidationReglesTest {
                 -keepnames class com.celeris.core.text.**
                 -dontwarn org.slf4j.**
                 """);
-        assertTrue(ValidationRegles.valider(doc).isEmpty(),
+        assertTrue(ValidationRegles.validate(doc).isEmpty(),
                 "le corpus sain ne se signale pas");
     }
 
     @Test
     void laRegleInconnueSeSignaleASaPlageExacte() {
         Document doc = Document.of("-keep class Foo {\n}\n-kepp class Bar\n");
-        List<SyntaxIssue> problemes = ValidationRegles.valider(doc);
+        List<SyntaxIssue> problemes = ValidationRegles.validate(doc);
         assertEquals(1, problemes.size());
         SyntaxIssue probleme = problemes.get(0);
         assertEquals("-keep class Foo {\n}\n".length(), probleme.startOffset());
@@ -54,7 +54,7 @@ class ValidationReglesTest {
     @Test
     void lAccoladeOrphelineSeSignale() {
         Document doc = Document.of("-keep class Foo {\n    void cree();\n}\n}\n");
-        List<SyntaxIssue> problemes = ValidationRegles.valider(doc);
+        List<SyntaxIssue> problemes = ValidationRegles.validate(doc);
         assertEquals(1, problemes.size());
         int position = "-keep class Foo {\n    void cree();\n}\n".length();
         assertEquals(position, problemes.get(0).startOffset());
@@ -67,7 +67,7 @@ class ValidationReglesTest {
         // peut couper un fichier en cours d'édition — le garde-fou
         // reste délibérément basique, sans faux positif.
         Document doc = Document.of("-keep class Foo {\n    void cree();\n");
-        List<SyntaxIssue> problemes = ValidationRegles.valider(doc);
+        List<SyntaxIssue> problemes = ValidationRegles.validate(doc);
         assertTrue(problemes.isEmpty());
     }
 
@@ -78,7 +78,7 @@ class ValidationReglesTest {
                     void cree()
                 }
                 """);
-        List<SyntaxIssue> problemes = ValidationRegles.valider(doc);
+        List<SyntaxIssue> problemes = ValidationRegles.validate(doc);
         assertEquals(1, problemes.size());
         SyntaxIssue probleme = problemes.get(0);
         assertEquals("-keep class Foo {\n    ".length(), probleme.startOffset());
@@ -89,12 +89,12 @@ class ValidationReglesTest {
     @Test
     void laRegleAvecTiretInterneNeSeSignalePas() {
         Document doc = Document.of("-keepclassmembers class *\n");
-        assertTrue(ValidationRegles.valider(doc).isEmpty());
+        assertTrue(ValidationRegles.validate(doc).isEmpty());
     }
 
     @Test
     void leCommentaireNeSeVerifiePas() {
         Document doc = Document.of("# -kepp dans un commentaire\n-verbose\n");
-        assertTrue(ValidationRegles.valider(doc).isEmpty());
+        assertTrue(ValidationRegles.validate(doc).isEmpty());
     }
 }

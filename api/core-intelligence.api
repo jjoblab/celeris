@@ -28,7 +28,7 @@ public final class jo.celeris.core.intelligence.AcceptanceHistory {
 ### jo.celeris.core.intelligence.CatalogueVersions
 Compiled from "CatalogueVersions.java"
 public final class jo.celeris.core.intelligence.CatalogueVersions {
-  public static jo.celeris.core.intelligence.CatalogueVersions lire(java.lang.String);
+  public static jo.celeris.core.intelligence.CatalogueVersions read(java.lang.String);
   public static java.util.List<java.lang.String> completerAlias(jo.celeris.core.intelligence.CatalogueVersions, java.lang.String);
   public java.util.Set<java.lang.String> versions();
   public java.util.Set<java.lang.String> bibliotheques();
@@ -65,7 +65,7 @@ public final class jo.celeris.core.intelligence.CommentRules extends java.lang.R
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public java.lang.String ligne();
+  public java.lang.String line();
   public java.lang.String blocDebut();
   public java.lang.String blocFin();
 }
@@ -164,7 +164,7 @@ public final class jo.celeris.core.intelligence.CorrectifImport$Candidat extends
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String fqn();
-  public jo.celeris.core.text.Transaction edition();
+  public jo.celeris.core.text.Transaction edit();
 }
 
 ### jo.celeris.core.intelligence.CorrectifImport
@@ -269,7 +269,7 @@ public final class jo.celeris.core.intelligence.ExtractionRessource$PlanRessourc
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public java.util.Map<java.lang.String, java.util.List<jo.celeris.core.text.TextEdit>> editions();
+  public java.util.Map<java.lang.String, java.util.List<jo.celeris.core.text.TextEdit>> edits();
 }
 
 ### jo.celeris.core.intelligence.ExtractionRessource
@@ -349,9 +349,9 @@ public final class jo.celeris.core.intelligence.Formateur {
   public static java.lang.String formater(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.intelligence.IndentStyle);
 }
 
-### jo.celeris.core.intelligence.FusedFloor$Entree
+### jo.celeris.core.intelligence.FusedFloor$Entry
 Compiled from "FusedFloor.java"
-final class jo.celeris.core.intelligence.FusedFloor$Entree extends java.lang.Record {
+final class jo.celeris.core.intelligence.FusedFloor$Entry extends java.lang.Record {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -524,8 +524,8 @@ public final class jo.celeris.core.intelligence.IndexSymboles {
   public static jo.celeris.core.intelligence.IndexSymboles vide();
   public static jo.celeris.core.intelligence.IndexSymboles vide(int);
   public void remplacer(java.lang.String, jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis);
-  public void retirer(java.lang.String);
-  public java.util.List<jo.celeris.core.intelligence.Symbole> symboles();
+  public void remove(java.lang.String);
+  public java.util.List<jo.celeris.core.intelligence.Symbole> symbols();
   public java.util.List<jo.celeris.core.intelligence.Symbole> rechercher(java.lang.String);
   public java.util.List<jo.celeris.core.intelligence.IndexSymboles$Usage> usages(java.lang.String);
   public int nombreOccurrences();
@@ -587,7 +587,7 @@ final class jo.celeris.core.intelligence.JavaSmartTyping$Geste extends java.lang
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public jo.celeris.core.text.TextEdit edition();
+  public jo.celeris.core.text.TextEdit edit();
   public jo.celeris.core.text.SelRange selection();
   public int delta();
 }
@@ -615,7 +615,7 @@ final class jo.celeris.core.intelligence.LineActions$Geste extends java.lang.Rec
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public jo.celeris.core.text.TextEdit edition();
+  public jo.celeris.core.text.TextEdit edit();
   public jo.celeris.core.text.SelRange selection();
   public int delta();
 }
@@ -669,7 +669,7 @@ public final class jo.celeris.core.intelligence.OptimiseurImports$RapportImport 
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public int ligne();
+  public int line();
   public java.lang.String importComplet();
   public boolean utilise();
 }
@@ -759,7 +759,7 @@ public final class jo.celeris.core.intelligence.Renommage$ConflitRenommage exten
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String nom();
-  public jo.celeris.core.intelligence.Renommage$RaisonConflit raison();
+  public jo.celeris.core.intelligence.Renommage$RaisonConflit reason();
 }
 
 ### jo.celeris.core.intelligence.Renommage$PlanRenommage
@@ -769,7 +769,7 @@ public final class jo.celeris.core.intelligence.Renommage$PlanRenommage extends 
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public java.util.Map<java.lang.String, java.util.List<jo.celeris.core.text.TextEdit>> editions();
+  public java.util.Map<java.lang.String, java.util.List<jo.celeris.core.text.TextEdit>> edits();
   public java.util.List<jo.celeris.core.intelligence.Renommage$ConflitRenommage> conflits();
 }
 
@@ -795,8 +795,8 @@ public final class jo.celeris.core.intelligence.ResultatsAller$Resultat extends 
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public java.lang.String genre();
-  public java.lang.String libelle();
+  public java.lang.String kind();
+  public java.lang.String label();
   public java.lang.String detail();
 }
 
@@ -913,7 +913,7 @@ final class jo.celeris.core.intelligence.SmartTyping$Geste extends java.lang.Rec
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public jo.celeris.core.text.TextEdit edition();
+  public jo.celeris.core.text.TextEdit edit();
   public jo.celeris.core.text.SelRange selection();
   public int delta();
 }
@@ -950,9 +950,9 @@ public final class jo.celeris.core.intelligence.Symbole extends java.lang.Record
   public java.lang.String nom();
   public jo.celeris.core.syntax.NodeCategory categorie();
   public java.lang.String uri();
-  public int debut();
-  public int fin();
-  public int ligne();
+  public int start();
+  public int end();
+  public int line();
 }
 
 ### jo.celeris.core.intelligence.Trou
@@ -960,14 +960,14 @@ Compiled from "Trou.java"
 public final class jo.celeris.core.intelligence.Trou extends java.lang.Record {
   public jo.celeris.core.intelligence.Trou(int, int, java.lang.String);
   public jo.celeris.core.intelligence.Trou(int, int, java.lang.String, java.util.List<java.lang.String>);
-  public int longueur();
+  public int length();
   public boolean aDesChoix();
   public java.lang.String choixSuivant(java.lang.String);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public int debut();
-  public int fin();
+  public int start();
+  public int end();
   public java.lang.String variable();
   public java.util.List<java.lang.String> choix();
 }

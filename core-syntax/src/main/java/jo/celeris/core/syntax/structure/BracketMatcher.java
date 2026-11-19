@@ -31,20 +31,20 @@ public final class BracketMatcher {
      *         si aucun crochet n'est adjacent à l'offset
      */
     public static @Nullable TokenMatch matchAt(Document doc, LexDocument lex, int offset) {
-        int ligne = doc.lineForOffset(offset);
-        int debutLigne = doc.lineStart(ligne);
-        for (Token jeton : lex.line(ligne).tokens()) {
-            boolean ouvrant = jeton.kind() == TokenKind.OPEN_BRACKET;
-            boolean fermant = jeton.kind() == TokenKind.CLOSE_BRACKET;
+        int line = doc.lineForOffset(offset);
+        int lineStart = doc.lineStart(line);
+        for (Token token : lex.line(line).tokens()) {
+            boolean ouvrant = token.kind() == TokenKind.OPEN_BRACKET;
+            boolean fermant = token.kind() == TokenKind.CLOSE_BRACKET;
             if (!ouvrant && !fermant) {
                 continue;
             }
-            int debutAbsolu = debutLigne + jeton.start();
-            int finAbsolue = debutLigne + jeton.end();
+            int debutAbsolu = lineStart + token.start();
+            int finAbsolue = lineStart + token.end();
             if (debutAbsolu <= offset && offset <= finAbsolue) {
                 return ouvrant
-                        ? chercherApres(doc, lex, ligne, jeton)
-                        : chercherAvant(doc, lex, ligne, jeton);
+                        ? chercherApres(doc, lex, line, token)
+                        : chercherAvant(doc, lex, line, token);
             }
             if (debutAbsolu > offset) {
                 return null;
@@ -54,19 +54,19 @@ public final class BracketMatcher {
     }
 
     private static @Nullable TokenMatch chercherApres(Document doc, LexDocument lex,
-                                                       int ligne, Token ouvrant) {
+                                                       int line, Token ouvrant) {
         int profondeur = 0;
-        for (int l = ligne; l < lex.lineCount(); l++) {
-            for (Token jeton : lex.line(l).tokens()) {
-                if (l == ligne && jeton.start() < ouvrant.start()) {
+        for (int l = line; l < lex.lineCount(); l++) {
+            for (Token token : lex.line(l).tokens()) {
+                if (l == line && token.start() < ouvrant.start()) {
                     continue;
                 }
-                if (jeton.kind() == TokenKind.OPEN_BRACKET) {
+                if (token.kind() == TokenKind.OPEN_BRACKET) {
                     profondeur++;
-                } else if (jeton.kind() == TokenKind.CLOSE_BRACKET) {
+                } else if (token.kind() == TokenKind.CLOSE_BRACKET) {
                     profondeur--;
                     if (profondeur == 0) {
-                        return match(doc, ligne, ouvrant, l, jeton);
+                        return match(doc, line, ouvrant, l, token);
                     }
                 }
             }
@@ -75,21 +75,21 @@ public final class BracketMatcher {
     }
 
     private static @Nullable TokenMatch chercherAvant(Document doc, LexDocument lex,
-                                                       int ligne, Token fermant) {
+                                                       int line, Token fermant) {
         int profondeur = 0;
-        for (int l = ligne; l >= 0; l--) {
-            Token[] jetons = lex.line(l).tokens();
-            for (int i = jetons.length - 1; i >= 0; i--) {
-                Token jeton = jetons[i];
-                if (l == ligne && jeton.start() > fermant.start()) {
+        for (int l = line; l >= 0; l--) {
+            Token[] tokens = lex.line(l).tokens();
+            for (int i = tokens.length - 1; i >= 0; i--) {
+                Token token = tokens[i];
+                if (l == line && token.start() > fermant.start()) {
                     continue;
                 }
-                if (jeton.kind() == TokenKind.CLOSE_BRACKET) {
+                if (token.kind() == TokenKind.CLOSE_BRACKET) {
                     profondeur++;
-                } else if (jeton.kind() == TokenKind.OPEN_BRACKET) {
+                } else if (token.kind() == TokenKind.OPEN_BRACKET) {
                     profondeur--;
                     if (profondeur == 0) {
-                        return match(doc, ligne, fermant, l, jeton);
+                        return match(doc, line, fermant, l, token);
                     }
                 }
             }

@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
  * choix d'une occurrence exécute son saut (le Runnable de l'hôte
  * seul décide ce que sauter veut dire : porter le curseur au lieu,
  * refermer la carte). PIEGE-27 : jamais de focus — la navigation
- * clavier s'y reçoit DÉLÉGUÉE ({@link PopupClavier} : flèches,
+ * clavier s'y reçoit DÉLÉGUÉE ({@link KeyboardPopup} : flèches,
  * validation ; les pages déclinent — les rangées vivent toutes à
  * découvert).
  *
@@ -29,11 +29,11 @@ import org.jspecify.annotations.Nullable;
  * lieu ne se visite pas, jamais il ne se devine) et ni le doigt ni
  * la flèche ne la prennent.</p>
  */
-public final class ReferencesView extends TextRowsPopup implements PopupClavier {
+public final class ReferencesView extends TextRowsPopup implements KeyboardPopup {
 
     /** Une occurrence d'usage : son libellé et son saut — null pour
      *  l'étrangère (hors du document ouvert : muette, jamais prise). */
-    public record Occurrence(String libelle, @Nullable Runnable saut) {
+    public record Occurrence(String label, @Nullable Runnable saut) {
     }
 
     private List<Occurrence> occurrences = List.of();
@@ -55,7 +55,7 @@ public final class ReferencesView extends TextRowsPopup implements PopupClavier 
      */
     public void setTitre(@Nullable String titre) {
         this.titre = titre;
-        rebatirRangees();
+        rebuildRows();
     }
 
     /**
@@ -68,7 +68,7 @@ public final class ReferencesView extends TextRowsPopup implements PopupClavier 
     public void setOccurrences(List<Occurrence> usages) {
         this.occurrences = List.copyOf(usages);
         this.surligne = -1;
-        rebatirRangees();
+        rebuildRows();
     }
 
     /** L'occurrence d'index donné, null s'il n'existe pas. */
@@ -90,17 +90,17 @@ public final class ReferencesView extends TextRowsPopup implements PopupClavier 
 
     /** Rebâtit les rangées : l'en-tête d'abord, les occurrences
      *  ensuite — l'étrangère muette, la locale à l'encre du texte. */
-    private void rebatirRangees() {
-        List<Row> rangees = new ArrayList<>(occurrences.size() + 1);
+    private void rebuildRows() {
+        List<Row> rows = new ArrayList<>(occurrences.size() + 1);
         if (titre != null && !titre.isEmpty()) {
-            rangees.add(Row.section(titre));
+            rows.add(Row.section(titre));
         }
         for (Occurrence usage : occurrences) {
-            rangees.add(Row.tier(usage.libelle(),
+            rows.add(Row.tier(usage.label(),
                     usage.saut() == null ? palette.muted() : -1,
                     Tier.CORPS));
         }
-        setRows(rangees);
+        setRows(rows);
     }
 
     /** L'appui d'une rangée : le rang compte l'en-tête éventuel,
@@ -129,13 +129,13 @@ public final class ReferencesView extends TextRowsPopup implements PopupClavier 
         // la flèche part de la tête PRENABLE quand la surbrillance
         // n'existe pas — jamais de saut hors des bornes, jamais d'arrêt
         // sur l'en-tête ni sur l'étrangère muette
-        int cible = surligne < 0 ? premierPrenable(pas)
+        int target = surligne < 0 ? premierPrenable(pas)
                 : bornePrenable(surligne, pas);
-        if (cible < 0) {
+        if (target < 0) {
             return false;
         }
-        surligne = cible;
-        setHighlighted(rangDe(cible));
+        surligne = target;
+        setHighlighted(rangDe(target));
         return true;
     }
 
@@ -165,13 +165,13 @@ public final class ReferencesView extends TextRowsPopup implements PopupClavier 
     /** Le premier prenable depuis le départ, dans la direction —
      *  l'étrangère muette se saute, jamais elle ne s'arrête. */
     private int premierPrenable(int pas) {
-        int taille = occurrences.size();
-        int cible = pas >= 0 ? 0 : taille - 1;
-        while (cible >= 0 && cible < taille) {
-            if (estPrenable(cible)) {
-                return cible;
+        int size = occurrences.size();
+        int target = pas >= 0 ? 0 : size - 1;
+        while (target >= 0 && target < size) {
+            if (estPrenable(target)) {
+                return target;
             }
-            cible += pas >= 0 ? 1 : -1;
+            target += pas >= 0 ? 1 : -1;
         }
         return -1;
     }
@@ -179,15 +179,15 @@ public final class ReferencesView extends TextRowsPopup implements PopupClavier 
     /** Le prenable depuis l'index donné, borné aux extrêmes — l'arrêt
      *  sur l'étrangère muette ne s'invente pas. */
     private int bornePrenable(int courant, int pas) {
-        int taille = occurrences.size();
-        int cible = Math.min(taille - 1, Math.max(0, courant + pas));
-        while (cible >= 0 && cible < taille && !estPrenable(cible)) {
-            cible += pas >= 0 ? 1 : -1;
+        int size = occurrences.size();
+        int target = Math.min(size - 1, Math.max(0, courant + pas));
+        while (target >= 0 && target < size && !estPrenable(target)) {
+            target += pas >= 0 ? 1 : -1;
         }
-        if (cible < 0 || cible >= taille) {
+        if (target < 0 || target >= size) {
             return courant;
         }
-        return cible;
+        return target;
     }
 
     /** Vrai quand l'occurrence d'index donné se prend — l'étrangère

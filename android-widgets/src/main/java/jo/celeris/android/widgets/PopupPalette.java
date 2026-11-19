@@ -35,7 +35,7 @@ public record PopupPalette(int background, int border, int text, int muted,
         int info, float textBaseSp) {
 
     /** La taille de texte de base de référence — celle de l'éditeur. */
-    private static final float BASE_TEXTE_SP = 14f;
+    private static final float TEXT_BASE_SP = 14f;
 
     /**
      * La palette dérivée du thème de l'éditeur hôte — le calcul du
@@ -78,7 +78,7 @@ public record PopupPalette(int background, int border, int text, int muted,
      */
     public static PopupPalette dark() {
         return verre(0xFF1E1E1E, 0xFFD4D4D4, 0xFF858585, 0xFF264F78,
-                0xFFDCDCAA, 0xFF569CD6, BASE_TEXTE_SP);
+                0xFFDCDCAA, 0xFF569CD6, TEXT_BASE_SP);
     }
 
     /**
@@ -90,6 +90,6 @@ public record PopupPalette(int background, int border, int text, int muted,
      */
     public static PopupPalette light() {
         return verre(0xFFFFFFFF, 0xFF000000, 0xFF808080, 0xFFADD6FF,
-                0xFF795E26, 0xFF0000FF, BASE_TEXTE_SP);
+                0xFF795E26, 0xFF0000FF, TEXT_BASE_SP);
     }
 }

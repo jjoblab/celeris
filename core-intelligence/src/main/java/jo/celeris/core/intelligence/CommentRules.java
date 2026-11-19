@@ -12,11 +12,11 @@ import org.jspecify.annotations.Nullable;
  * ({@link LanguageConfiguration.Comments}) : plus aucun aiguillage par
  * identifiant.
  *
- * @param ligne      le préfixe de commentaire de ligne, ou null
+ * @param line      le préfixe de commentaire de ligne, ou null
  * @param blocDebut l'ouverture du commentaire de bloc, ou null
  * @param blocFin   la fermeture du commentaire de bloc, ou null
  */
-public record CommentRules(@Nullable String ligne, @Nullable String blocDebut,
+public record CommentRules(@Nullable String line, @Nullable String blocDebut,
         @Nullable String blocFin) {
 
     /**
@@ -37,6 +37,6 @@ public record CommentRules(@Nullable String ligne, @Nullable String blocDebut,
      * @return la disponibilité du commentaire
      */
     public boolean commentable() {
-        return ligne != null || blocDebut != null;
+        return line != null || blocDebut != null;
     }
 }

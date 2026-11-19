@@ -26,7 +26,7 @@ final class ViewFonts {
     private final AndroidFontRuler regle;
     /** L'écouteur 1.x à emplacement unique — repli compatibilité. */
     /** Les abonnés 2.0 — multiples, sans écrasement (T3). */
-    private final List<Consumer<Float>> abonnesTaille =
+    private final List<Consumer<Float>> sizeSubscribers =
             new CopyOnWriteArrayList<>();
 
     /**
@@ -49,12 +49,12 @@ final class ViewFonts {
      * changeante prévient l'écouteur — l'hôte y persiste sa taille
      * (D-15).
      *
-     * @param police la spécification de police, taille en sp
+     * @param font la spécification de police, taille en sp
      */
-    void setFont(FontSpec police) {
-        boolean tailleChangee = police.size() != vue.policeLogique.size();
-        vue.policeLogique = police;
-        vue.metrics = EditorMetrics.of(enPixels(police), regle);
+    void setFont(FontSpec font) {
+        boolean tailleChangee = font.size() != vue.policeLogique.size();
+        vue.policeLogique = font;
+        vue.metrics = EditorMetrics.of(enPixels(font), regle);
         vue.viseur = new HitTest(vue.metrics);
         // PIEGE-28 : la source de rangées se réinitialise même à
         // révision constante — un document jamais édité (révision 0)
@@ -63,8 +63,8 @@ final class ViewFonts {
         vue.revisionSuivie = Long.MIN_VALUE;
         vue.cache.clear();
         if (tailleChangee) {
-            for (Consumer<Float> abonne : abonnesTaille) {
-                abonne.accept(police.size());
+            for (Consumer<Float> abonne : sizeSubscribers) {
+                abonne.accept(font.size());
             }
         }
         vue.invalidate();
@@ -78,7 +78,7 @@ final class ViewFonts {
      * @param ecouteur l'écouteur, jamais null
      */
     void addFontSizeChangeListener(Consumer<Float> ecouteur) {
-        abonnesTaille.add(Objects.requireNonNull(ecouteur));
+        sizeSubscribers.add(Objects.requireNonNull(ecouteur));
     }
 
     /**
@@ -87,7 +87,7 @@ final class ViewFonts {
      * @param ecouteur l'écouteur retiré
      */
     void removeFontSizeChangeListener(Consumer<Float> ecouteur) {
-        abonnesTaille.remove(ecouteur);
+        sizeSubscribers.remove(ecouteur);
     }
 
     /**
@@ -96,12 +96,12 @@ final class ViewFonts {
      * famille active se redérive — métriques, viseur, cache (PIEGE-05,
      * PIEGE-28) — la famille dormante attend son setFont.
      *
-     * @param famille le nom de famille, celui du {@link FontSpec}
-     * @param police  la police de plateforme à poser
+     * @param family le nom de famille, celui du {@link FontSpec}
+     * @param font  la police de plateforme à poser
      */
-    void poserPolice(String famille, android.graphics.Typeface police) {
-        regle.poserPolice(famille, police);
-        if (vue.policeLogique.family().equals(famille)) {
+    void setFont(String family, android.graphics.Typeface font) {
+        regle.setFont(family, font);
+        if (vue.policeLogique.family().equals(family)) {
             setFont(vue.policeLogique);
         } else {
             vue.invalidate();
@@ -113,11 +113,11 @@ final class ViewFonts {
      * la construction : la police logique (sp) s'y convertit une fois
      * pour toutes (PIEGE-23).
      *
-     * @param police la spécification de police, taille en sp
+     * @param font la spécification de police, taille en sp
      * @return les métriques résolues, en pixels
      */
-    EditorMetrics metricsOf(FontSpec police) {
-        return EditorMetrics.of(enPixels(police), regle);
+    EditorMetrics metricsOf(FontSpec font) {
+        return EditorMetrics.of(enPixels(font), regle);
     }
 
     /**
@@ -126,13 +126,13 @@ final class ViewFonts {
      * vit dans {@link SpSizes}, pure et testée (PIEGE-23), jamais un
      * pixel cru ne franchit cette porte.
      */
-    private FontSpec enPixels(FontSpec police) {
+    private FontSpec enPixels(FontSpec font) {
         DisplayMetrics metriques = vue.getResources().getDisplayMetrics();
         // L'échelle de police de l'accessibilité vit dans la
         // configuration (le champ scaledDensity est dépréqué) : la
         // conversion reste sp × densité × échelle, pure et testée.
         float echelle = vue.getResources().getConfiguration().fontScale;
-        return new FontSpec(police.family(), SpSizes.enPixels(police.size(),
+        return new FontSpec(font.family(), SpSizes.enPixels(font.size(),
                 metriques.density, echelle));
     }
 }

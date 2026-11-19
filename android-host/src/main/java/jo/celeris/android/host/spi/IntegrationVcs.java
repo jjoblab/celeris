@@ -18,7 +18,7 @@ public interface IntegrationVcs {
      * @param fichier le chemin du fichier
      * @return l'état des lignes, vide si le fichier est inconnu
      */
-    EtatLignesVcs etatLignes(CheminDoc fichier);
+    VcsLinesState linesState(CheminDoc fichier);
 
     /**
      * Le blame du fichier : une annotation par ligne connue.

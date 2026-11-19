@@ -43,8 +43,8 @@ public class SquigglePainterTest {
     /** Le nombre de segments tracés à la teinte donnée. */
     private int segments(EditorTestRig.RecordingCanvas image, int teinte) {
         int n = 0;
-        for (EditorTestRig.RecordingCanvas.LineDraw ligne : image.lignes()) {
-            if (ligne.color() == teinte) {
+        for (EditorTestRig.RecordingCanvas.LineDraw line : image.lines()) {
+            if (line.color() == teinte) {
                 n++;
             }
         }
@@ -54,7 +54,7 @@ public class SquigglePainterTest {
     /** Le banc posé : java branché, l'analyse publiée (les issues de
      *  l'arbre y vivent), une image dessinée. */
     private EditorTestRig.RecordingCanvas banc(String contenu) {
-        EditorTestRig banc = EditorTestRig.sur(contexte, contenu);
+        EditorTestRig banc = EditorTestRig.on(contexte, contenu);
         banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();
         banc.vue().invalidate();
@@ -66,7 +66,7 @@ public class SquigglePainterTest {
     @Test
     public void laMalformationSeVoitSousLeTexte() {
         Context contexte = RuntimeEnvironment.getApplication();
-        EditorTestRig banc = EditorTestRig.sur(contexte,
+        EditorTestRig banc = EditorTestRig.on(contexte,
                 "<a>\n  <b>\n</a>\n");
         banc.vue().setLanguage(LanguageSupport.of(
                 jo.celeris.core.syntax.xml.XmlSyntax.INSTANCE));
@@ -81,7 +81,7 @@ public class SquigglePainterTest {
     @Test
     public void leDocumentSainNeTraceRien() {
         Context contexte = RuntimeEnvironment.getApplication();
-        EditorTestRig banc = EditorTestRig.sur(contexte, "<a>\n  <b/>\n</a>\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "<a>\n  <b/>\n</a>\n");
         banc.vue().setLanguage(LanguageSupport.of(
                 jo.celeris.core.syntax.xml.XmlSyntax.INSTANCE));
         banc.publierAnalyse();
@@ -94,7 +94,7 @@ public class SquigglePainterTest {
      *  WARNING se tracent en ambre, pas en rouge. */
     @Test
     public void laTeinteSuitLaSeverite() {
-        EditorTestRig banc = EditorTestRig.sur(contexte,
+        EditorTestRig banc = EditorTestRig.on(contexte,
                 "class A {\n    int x = 1;\n}\n");
         banc.vue().setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         banc.publierAnalyse();

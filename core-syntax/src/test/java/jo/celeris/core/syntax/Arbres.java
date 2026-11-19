@@ -55,16 +55,16 @@ final class Arbres {
     /** Vérifie que les paniers et états de deux lexiques sont égaux ligne à ligne. */
     static void verifierEgalite(LexDocument obtenu, LexDocument temoin) {
         assertEquals(temoin.lineCount(), obtenu.lineCount(), "nombre de lignes");
-        for (int ligne = 0; ligne < temoin.lineCount(); ligne++) {
+        for (int line = 0; line < temoin.lineCount(); line++) {
             assertTrue(
-                    java.util.Arrays.equals(temoin.line(ligne).tokens(),
-                            obtenu.line(ligne).tokens()),
-                    "paniers de la ligne " + ligne);
-            assertEquals(temoin.line(ligne).exitState(), obtenu.line(ligne).exitState(),
-                    "états de la ligne " + ligne);
-            assertEquals(temoin.bracketDepthAtLineStart(ligne),
-                    obtenu.bracketDepthAtLineStart(ligne),
-                    "profondeurs de la ligne " + ligne);
+                    java.util.Arrays.equals(temoin.line(line).tokens(),
+                            obtenu.line(line).tokens()),
+                    "paniers de la ligne " + line);
+            assertEquals(temoin.line(line).exitState(), obtenu.line(line).exitState(),
+                    "états de la ligne " + line);
+            assertEquals(temoin.bracketDepthAtLineStart(line),
+                    obtenu.bracketDepthAtLineStart(line),
+                    "profondeurs de la ligne " + line);
         }
     }
 }

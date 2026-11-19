@@ -14,7 +14,7 @@ import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.ReferencesView;
 
-import jo.celeris.core.lsp.types.LieuLsp;
+import jo.celeris.core.lsp.types.LocationLsp;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -47,13 +47,13 @@ final class Usages {
      *  reste lisible, jamais une rangée qui mange la couche. */
     private static final int EXTRAIT_MAX = 48;
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
     private final ReferencesView carte;
     /** La session de langage branchée — les références y passent. */
-    private @Nullable LanguageSession serveur;
+    private @Nullable LanguageSession server;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
 
@@ -62,15 +62,15 @@ final class Usages {
      * naît liée à son genre, le patron des trois temps (lier,
      * déclencher, déléguer — USAGE §9).
      *
-     * @param editeur la vue d'éditeur ouverte
+     * @param editor la vue d'éditeur ouverte
      * @param session la session d'édition courante
      * @param popups  le coordinateur des popups de la scène
      * @param margePx la respiration des ancres aux bords, en pixels
      * @param palette la palette courante des popups
      */
-    Usages(EditorView editeur, TextSession session, PopupManager popups,
+    Usages(EditorView editor, TextSession session, PopupManager popups,
             int margePx, PopupPalette palette) {
-        this.editeur = editeur;
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
@@ -83,11 +83,11 @@ final class Usages {
      * Branche la session de langage — les références du symbole y
      * passent au fil du protocole.
      *
-     * @param serveur la session démarrée, null pour le silence
+     * @param server la session démarrée, null pour le silence
      * @param uri     l'uri du document ouvert
      */
-    void brancherServeur(@Nullable LanguageSession serveur, String uri) {
-        this.serveur = serveur;
+    void connectServer(@Nullable LanguageSession server, String uri) {
+        this.server = server;
         this.uriDocument = uri;
     }
 
@@ -102,14 +102,14 @@ final class Usages {
      * UI (l'ancre y vit). Sans symbole au curseur ou sans serveur
      * branché, la carte ne se pose pas — aucune fausse intégration.
      */
-    void ouvrir() {
-        if (serveur == null
+    void open() {
+        if (server == null
                 || ContenuPopups.symboleA(session.document(), caret()) == null) {
             return;
         }
-        serveur.references(uriDocument, session.document(), caret())
-                .whenComplete((lieux, echec) -> editeur.post(
-                        () -> poser(lieux)));
+        server.references(uriDocument, session.document(), caret())
+                .whenComplete((lieux, echec) -> editor.post(
+                        () -> place(lieux)));
     }
 
     /**
@@ -121,14 +121,14 @@ final class Usages {
      *
      * @param lieux les lieux servis par le serveur
      */
-    private void poser(@Nullable List<LieuLsp> lieux) {
+    private void place(@Nullable List<LocationLsp> lieux) {
         if (lieux == null || lieux.isEmpty()) {
             return;
         }
         Document document = session.document();
         List<ReferencesView.Occurrence> occurrences =
                 new ArrayList<>(lieux.size());
-        for (LieuLsp lieu : lieux) {
+        for (LocationLsp lieu : lieux) {
             int offset = offsetDe(lieu, uriDocument, document);
             if (offset >= 0) {
                 occurrences.add(new ReferencesView.Occurrence(
@@ -142,19 +142,19 @@ final class Usages {
                 R.string.celeris_titre_usages, lieux.size(),
                 ContenuPopups.symboleA(document, caret())));
         carte.setOccurrences(occurrences);
-        Rect curseur = editeur.caretBounds();
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom, taille(),
+                cursor.left, cursor.bottom, size(),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.REFERENCES,
+        popups.show(PopupController.PopupKind.REFERENCES,
                 placee.x(), placee.y());
     }
 
     /** Le saut d'usage : la carte se referme, le curseur porte au lieu —
      *  l'éditeur y révèle sa cible (le caret suit sa sélection). */
     private void sauter(int offset) {
-        popups.fermer(PopupController.PopupKind.REFERENCES);
+        popups.close(PopupController.PopupKind.REFERENCES);
         session.setSelection(MultiSelection.of(SelRange.caretAt(offset)));
     }
 
@@ -169,52 +169,52 @@ final class Usages {
      * @param document     le document ouvert
      * @return l'offset du début de plage, —1 pour l'étranger
      */
-    static int offsetDe(LieuLsp lieu, String uriDocument, Document document) {
-        if (lieu.plage() == null || !uriDocument.equals(lieu.uri())) {
+    static int offsetDe(LocationLsp lieu, String uriDocument, Document document) {
+        if (lieu.range() == null || !uriDocument.equals(lieu.uri())) {
             return -1;
         }
-        int ligne = lieu.plage().debut().ligne();
-        if (ligne < 0 || ligne >= document.lineCount()) {
+        int line = lieu.range().start().line();
+        if (line < 0 || line >= document.lineCount()) {
             return -1;
         }
-        int colonne = Math.max(0, lieu.plage().debut().colonne());
-        int offset = document.lineStart(ligne) + colonne;
+        int column = Math.max(0, lieu.range().start().column());
+        int offset = document.lineStart(line) + column;
         return Math.min(offset, document.length());
     }
 
     /** Le libellé de l'occurrence ouverte : « L12 · l'extrait de la
      *  ligne, rogné » — le lieu se lit sans quitter la carte. */
     static String libelleDe(Document document, int offset) {
-        int ligne = document.lineForOffset(offset);
-        String extrait = document.lineText(ligne).strip();
+        int line = document.lineForOffset(offset);
+        String extrait = document.lineText(line).strip();
         if (extrait.length() > EXTRAIT_MAX) {
             extrait = extrait.substring(0, EXTRAIT_MAX) + "…";
         }
-        return "L" + (ligne + 1) + " · " + extrait;
+        return "L" + (line + 1) + " · " + extrait;
     }
 
     /** Le libellé de l'occurrence ÉTRANGÈRE (l'audit Android Studio :
      *  l'IDE de référence montre les usages de tous les fichiers) — le
      *  nom court du fichier du serveur et la ligne se lisent, le lieu
      *  ne se visite pas. */
-    static String libelleEtrangere(LieuLsp lieu) {
+    static String libelleEtrangere(LocationLsp lieu) {
         String nom = lieu.uri();
         int barre = nom.lastIndexOf('/');
         if (barre >= 0) {
             nom = nom.substring(barre + 1);
         }
-        return lieu.plage() == null ? nom
-                : nom + " · L" + (lieu.plage().debut().ligne() + 1);
+        return lieu.range() == null ? nom
+                : nom + " · L" + (lieu.range().start().line() + 1);
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
-    private PopupPlacer.Cadre taille() {
-        return popups.taille(PopupController.PopupKind.REFERENCES);
+    private PopupPlacer.Cadre size() {
+        return popups.size(PopupController.PopupKind.REFERENCES);
     }
 
     /** La position du curseur — la tête de la sélection courante. */
     private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).caret();
     }
 }

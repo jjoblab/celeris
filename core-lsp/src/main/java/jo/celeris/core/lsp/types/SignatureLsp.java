@@ -17,26 +17,26 @@ import org.jspecify.annotations.Nullable;
 public final class SignatureLsp {
 
     /** Un paramètre de signature : son libellé, sa documentation. */
-    public record Parametre(String libelle, @Nullable String documentation) {
+    public record Parameter(String label, @Nullable String documentation) {
     }
 
     /** Une signature candidate : son libellé, ses paramètres dans l'ordre. */
-    public record Entree(String libelle, List<Parametre> parametres,
+    public record Entry(String label, List<Parameter> parameters,
                          @Nullable String documentation) {
 
         /** Les paramètres copiés, profonds pour l'auditeur. */
-        public Entree {
-            parametres = List.copyOf(parametres);
+        public Entry {
+            parameters = List.copyOf(parameters);
         }
     }
 
     private static final int ABSENT = -1;
 
-    private final List<Entree> entrees;
+    private final List<Entry> entrees;
     private final int signatureActive;
     private final int parametreActif;
 
-    private SignatureLsp(List<Entree> entrees, int signatureActive, int parametreActif) {
+    private SignatureLsp(List<Entry> entrees, int signatureActive, int parametreActif) {
         this.entrees = List.copyOf(entrees);
         this.signatureActive = signatureActive;
         this.parametreActif = parametreActif;
@@ -52,13 +52,13 @@ public final class SignatureLsp {
      * @param parametreActif   l'index du paramètre actif, -1 si absent
      * @return l'aide construite
      */
-    public static SignatureLsp de(List<Entree> entrees, int signatureActive,
+    public static SignatureLsp of(List<Entry> entrees, int signatureActive,
             int parametreActif) {
         return new SignatureLsp(entrees, signatureActive, parametreActif);
     }
 
     /** Les signatures candidates dans l'ordre du serveur. */
-    public List<Entree> entrees() {
+    public List<Entry> entrees() {
         return entrees;
     }
 
@@ -74,7 +74,7 @@ public final class SignatureLsp {
      *
      * @return la signature active, ou null
      */
-    public @Nullable Entree signatureActive() {
+    public @Nullable Entry signatureActive() {
         if (signatureActive < 0 || signatureActive >= entrees.size()) {
             return null;
         }
@@ -90,10 +90,10 @@ public final class SignatureLsp {
      * @return l'index du paramètre courant, -1 s'il n'y en a pas
      */
     public int parametreCourant() {
-        Entree active = signatureActive();
-        if (parametreActif < 0 || active == null || active.parametres().isEmpty()) {
+        Entry active = signatureActive();
+        if (parametreActif < 0 || active == null || active.parameters().isEmpty()) {
             return ABSENT;
         }
-        return Math.min(parametreActif, active.parametres().size() - 1);
+        return Math.min(parametreActif, active.parameters().size() - 1);
     }
 }

@@ -30,7 +30,7 @@ public interface ArbreDocuments {
      * @param idFichier l'identifiant du fichier
      * @return le contenu intégral
      */
-    String lire(String idFichier);
+    String read(String idFichier);
 
     /**
      * Lit les octets BRUTS du fichier donné (A-26) : la détection
@@ -41,7 +41,7 @@ public interface ArbreDocuments {
      * @param idFichier l'identifiant du fichier
      * @return les octets intégraux, bruts
      */
-    byte[] lireOctets(String idFichier);
+    byte[] readBytes(String idFichier);
 
     /**
      * Remplace le contenu du fichier donné.
@@ -59,7 +59,7 @@ public interface ArbreDocuments {
      * @param dossier   vrai pour un dossier, faux pour un fichier
      * @return l'identifiant de l'entrée créée
      */
-    String creer(String idParent, String nom, boolean dossier);
+    String create(String idParent, String nom, boolean dossier);
 
     /**
      * Vrai si l'identifiant donné désigne un fichier.

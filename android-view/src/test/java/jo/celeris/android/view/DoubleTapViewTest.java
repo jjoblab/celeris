@@ -35,7 +35,7 @@ public class DoubleTapViewTest {
     /** Le double-tap consommé : le verdict part, le curseur tient. */
     @Test
     public void doubleTapConsommeLeGeste() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         int[] verdicts = new int[1];
@@ -69,7 +69,7 @@ public class DoubleTapViewTest {
     /** Le double-tap non consommé : le tap retombe dans la cascade. */
     @Test
     public void doubleTapNonConsommeRetombeDansLaCascade() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         vue.addDoubleTapListener(offset -> false);
@@ -90,7 +90,7 @@ public class DoubleTapViewTest {
     /** Le tap trop écarté n'est pas un double : le verdict ne part jamais. */
     @Test
     public void tapTropEcarteNestPasUnDouble() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         int[] appels = new int[1];

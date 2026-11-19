@@ -58,9 +58,9 @@ final class RetainedExecutor implements Executor {
     static Delayer daemonDelayer() {
         ScheduledExecutorService minuteur =
                 Executors.newSingleThreadScheduledExecutor(future -> {
-                    Thread fil = new Thread(future, "celeris-analyse-retenu");
-                    fil.setDaemon(true);
-                    return fil;
+                    Thread thread = new Thread(future, "celeris-analyse-retenu");
+                    thread.setDaemon(true);
+                    return thread;
                 });
         AtomicReference<ScheduledFuture<?>> planifiee = new AtomicReference<>();
         return new Delayer() {

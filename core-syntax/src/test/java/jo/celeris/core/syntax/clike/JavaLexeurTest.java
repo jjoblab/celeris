@@ -27,21 +27,21 @@ class JavaLexeurTest {
 
     private final LanguageLexer lexeur = JavaSyntax.INSTANCE.lexer();
 
-    private Token[] lex(String ligne) {
-        return lexeur.lex(ligne, CLikeLexer.SimpleState.NORMAL).tokens();
+    private Token[] lex(String line) {
+        return lexeur.lex(line, CLikeLexer.SimpleState.NORMAL).tokens();
     }
 
     /** Les mots réservés et les littéraux se distinguent des identificateurs. */
     @Test
     void motsReservesEtLitteraux() {
-        Token[] jetons = lex("public class while true false null");
-        assertEquals(TokenKind.KEYWORD, jetons[0].kind());
-        assertEquals("public".length(), jetons[0].length());
-        assertEquals(TokenKind.KEYWORD, jetons[1].kind());
-        assertEquals(TokenKind.KEYWORD, jetons[2].kind());
-        assertEquals(TokenKind.KEYWORD, jetons[3].kind());
-        assertEquals(TokenKind.KEYWORD, jetons[4].kind());
-        assertEquals(TokenKind.KEYWORD, jetons[5].kind());
+        Token[] tokens = lex("public class while true false null");
+        assertEquals(TokenKind.KEYWORD, tokens[0].kind());
+        assertEquals("public".length(), tokens[0].length());
+        assertEquals(TokenKind.KEYWORD, tokens[1].kind());
+        assertEquals(TokenKind.KEYWORD, tokens[2].kind());
+        assertEquals(TokenKind.KEYWORD, tokens[3].kind());
+        assertEquals(TokenKind.KEYWORD, tokens[4].kind());
+        assertEquals(TokenKind.KEYWORD, tokens[5].kind());
 
         Token[] identifiants = lex("compteur valeur");
         assertEquals(TokenKind.IDENTIFIER, identifiants[0].kind());
@@ -63,19 +63,19 @@ class JavaLexeurTest {
     /** Chaînes et caractères, échappements compris. */
     @Test
     void chainesEtCaracteres() {
-        Token[] jetons = lex("\"bon\\\"jour\" 'a' '\\n'");
-        assertEquals(TokenKind.STRING, jetons[0].kind());
-        assertEquals(TokenKind.STRING, jetons[1].kind());
-        assertEquals(TokenKind.STRING, jetons[2].kind());
-        assertEquals(3, jetons.length);
-        assertEquals("\"bon\\\"jour\"".length(), jetons[0].length());
+        Token[] tokens = lex("\"bon\\\"jour\" 'a' '\\n'");
+        assertEquals(TokenKind.STRING, tokens[0].kind());
+        assertEquals(TokenKind.STRING, tokens[1].kind());
+        assertEquals(TokenKind.STRING, tokens[2].kind());
+        assertEquals(3, tokens.length);
+        assertEquals("\"bon\\\"jour\"".length(), tokens[0].length());
     }
 
     /** Une chaîne non fermée donne un jeton ERROR, pas d'exception. */
     @Test
     void chaineNonFermee() {
-        Token[] jetons = lex("\"sans fin");
-        assertEquals(TokenKind.ERROR, jetons[0].kind());
+        Token[] tokens = lex("\"sans fin");
+        assertEquals(TokenKind.ERROR, tokens[0].kind());
         assertSame(CLikeLexer.SimpleState.NORMAL, lexeur.lex("\"sans fin", CLikeLexer.SimpleState.NORMAL).exitState());
     }
 
@@ -85,8 +85,8 @@ class JavaLexeurTest {
         assertEquals(TokenKind.COMMENT, lex("// note")[0].kind());
         assertEquals(TokenKind.COMMENT, lex("/* bloc */ code")[0].kind());
         assertEquals(TokenKind.DOC, lex("/** doc */ class")[0].kind());
-        Token[] lignes = lex("code /* ouverture");
-        assertEquals(TokenKind.COMMENT, lignes[1].kind());
+        Token[] lines = lex("code /* ouverture");
+        assertEquals(TokenKind.COMMENT, lines[1].kind());
     }
 
     /** Un commentaire de bloc ouvert traverse les lignes par l'état. */
@@ -127,9 +127,9 @@ class JavaLexeurTest {
     /** Annotations, opérateurs, ponctuation et crochets. */
     @Test
     void annotationsOperateursPonctuation() {
-        Token[] jetons = lex("@Override");
-        assertEquals(TokenKind.ANNOTATION, jetons[0].kind());
-        assertEquals(1, jetons.length);
+        Token[] tokens = lex("@Override");
+        assertEquals(TokenKind.ANNOTATION, tokens[0].kind());
+        assertEquals(1, tokens.length);
 
         Token[] ops = lex("a + b * c");
         assertEquals(TokenKind.IDENTIFIER, ops[0].kind());
@@ -181,12 +181,12 @@ class JavaLexeurTest {
     /** Les jetons d'une ligne sont disjoints et triés. */
     @Test
     void jetonsDisjointsEtTries() {
-        Token[] jetons = lex("public static int LIMITE = 512;");
+        Token[] tokens = lex("public static int LIMITE = 512;");
         int finPrecedente = 0;
-        for (Token jeton : jetons) {
-            assertEquals(finPrecedente, jeton.start(), "les blancs séparent les jetons");
-            finPrecedente = jeton.end();
+        for (Token token : tokens) {
+            assertEquals(finPrecedente, token.start(), "les blancs séparent les jetons");
+            finPrecedente = token.end();
         }
-        assertArrayEquals(jetons, jetons);
+        assertArrayEquals(tokens, tokens);
     }
 }

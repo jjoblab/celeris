@@ -90,11 +90,11 @@ public class PopupViewsTest {
         CompletionListView vue = new CompletionListView(contexte,
                 PopupPalette.dark());
         vue.setItems(List.of(new CompletionListView.Candidat("int", "",
-                BadgeGenre.Genre.MOT_CLE)));
+                BadgeGenre.Genre.KEYWORD)));
         mesurer(vue);
         float densite = vue.getResources().getDisplayMetrics().density;
         assertEquals("à libellé court, la carte prend son plancher",
-                PopupTokens.LARGEUR_MIN_LISTE_DP * densite,
+                PopupTokens.LIST_MIN_WIDTH_DP * densite,
                 vue.getMeasuredWidth(), 2f);
     }
 
@@ -144,9 +144,9 @@ public class PopupViewsTest {
         SignatureHelpView vue = new SignatureHelpView(contexte,
                 PopupPalette.dark());
         SignatureAideModel model = SignatureAideModel.of(List.of(
-                new SignatureAideModel.Entree("ajouter(int a, int b)",
+                new SignatureAideModel.Entry("ajouter(int a, int b)",
                         List.of("a", "b"), null),
-                new SignatureAideModel.Entree("ajouter(int a, int b, int c)",
+                new SignatureAideModel.Entry("ajouter(int a, int b, int c)",
                         List.of("a", "b", "c"), null)),
                 0, 0);
         vue.setModel(model);
@@ -161,7 +161,7 @@ public class PopupViewsTest {
                 MotionEvent.ACTION_UP, vue.getMeasuredWidth(), 1f, 0)));
         assertEquals("le rappel reçoit la nouvelle active", 1, pas.get());
         assertEquals("le modèle a marché", "ajouter(int a, int b, int c)",
-                model.suivante().libelle());
+                model.suivante().label());
         // le toucher à GAUCHE du centre recule — la première revient
         vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
                 0f, 1f, 0));
@@ -189,7 +189,7 @@ public class PopupViewsTest {
         SignatureHelpView vue = new SignatureHelpView(contexte,
                 PopupPalette.dark());
         SignatureAideModel model = SignatureAideModel.of(List.of(
-                new SignatureAideModel.Entree("ajouter(int a, int b)",
+                new SignatureAideModel.Entry("ajouter(int a, int b)",
                         List.of("a", "b"), "Ajoute deux entiers.")),
                 0, 0);
         vue.setModel(model);
@@ -375,15 +375,15 @@ public class PopupViewsTest {
                 PopupPalette.dark());
         PopupPalette palette = PopupPalette.dark();
         assertEquals("la sentinelle du panneau garde son encre",
-                palette.text(), vue.encreDe(-1));
+                palette.text(), vue.inkOf(-1));
         assertEquals("la sentinelle muette garde son encre",
-                palette.muted(), vue.encreDe(-2));
+                palette.muted(), vue.inkOf(-2));
         assertEquals("l'encre d'erreur se pose telle quelle",
-                palette.error(), vue.encreDe(palette.error()));
+                palette.error(), vue.inkOf(palette.error()));
         assertEquals("l'encre d'avertissement se pose telle quelle",
-                palette.warning(), vue.encreDe(palette.warning()));
+                palette.warning(), vue.inkOf(palette.warning()));
         assertEquals("l'encre d'accent se pose telle quelle",
-                palette.accent(), vue.encreDe(palette.accent()));
+                palette.accent(), vue.inkOf(palette.accent()));
     }
 
     /** Aucune vue de popup ne se déclare focalisable (PIEGE-27). */

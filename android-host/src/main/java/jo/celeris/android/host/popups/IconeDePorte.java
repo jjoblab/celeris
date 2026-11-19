@@ -1,6 +1,6 @@
 package jo.celeris.android.host.popups;
 
-import jo.celeris.android.view.ReglagesEditeur;
+import jo.celeris.android.view.EditorSettingsPanel;
 import jo.celeris.android.widgets.IconeAction;
 
 /**
@@ -15,7 +15,7 @@ final class IconeDePorte {
     }
 
     /** Le pictogramme de la porte donnée. */
-    static IconeAction de(ReglagesEditeur.Porte porte) {
+    static IconeAction of(EditorSettingsPanel.Porte porte) {
         return switch (porte) {
             case INDICES_EN_LIGNE -> IconeAction.TYPE_INFO;
             case BARRE_SELECTION -> IconeAction.COUPER;

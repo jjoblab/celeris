@@ -36,12 +36,12 @@ public final class StickyLines {
      */
     public static List<Integer> entetes(Document doc, Analysis analysis, int ligneVisible,
             int max) {
-        TreeSet<Integer> lignes = new TreeSet<>();
+        TreeSet<Integer> lines = new TreeSet<>();
         for (Chunk chunk : analysis.tree().chunks()) {
             int base = analysis.tree().chunkStartOffset(doc, chunk);
-            rassembler(chunk.root(), base, doc, ligneVisible, lignes);
+            rassembler(chunk.root(), base, doc, ligneVisible, lines);
         }
-        List<Integer> toutes = new ArrayList<>(lignes);
+        List<Integer> toutes = new ArrayList<>(lines);
         if (toutes.size() <= max) {
             return List.copyOf(toutes);
         }
@@ -50,16 +50,16 @@ public final class StickyLines {
 
     /** Rassemble les lignes d'en-tête des nœuds englobant strictement la ligne visible. */
     private static void rassembler(SynNode noeud, int base, Document doc, int ligneVisible,
-            TreeSet<Integer> lignes) {
+            TreeSet<Integer> lines) {
         if (noeud.category() != NodeCategory.OTHER) {
-            int debut = doc.lineForOffset(base + noeud.start());
-            int fin = doc.lineForOffset(base + Math.max(noeud.start(), noeud.end() - 1));
-            if (debut < ligneVisible && ligneVisible <= fin) {
-                lignes.add(debut);
+            int start = doc.lineForOffset(base + noeud.start());
+            int end = doc.lineForOffset(base + Math.max(noeud.start(), noeud.end() - 1));
+            if (start < ligneVisible && ligneVisible <= end) {
+                lines.add(start);
             }
         }
         for (SynNode enfant : noeud.children()) {
-            rassembler(enfant, base, doc, ligneVisible, lignes);
+            rassembler(enfant, base, doc, ligneVisible, lines);
         }
     }
 }

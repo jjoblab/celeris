@@ -107,7 +107,7 @@ class PostfixCompletionTest {
         assertThrows(IllegalArgumentException.class,
                 () -> PostfixCompletion.expand(doc, doc.length() + 1));
         assertEquals(java.util.List.of("for", "if", "not", "notnull", "null", "return", "while"),
-                PostfixCompletion.motifs());
+                PostfixCompletion.patterns());
     }
 
     /** Le geste étendu sur une source d'une ligne, rendu en texte. */
@@ -120,12 +120,12 @@ class PostfixCompletionTest {
     }
 
     /** Les occurrences d'un mot dans un texte. */
-    private int occurrences(String texte, String mot) {
+    private int occurrences(String text, String mot) {
         int total = 0;
-        int position = texte.indexOf(mot);
+        int position = text.indexOf(mot);
         while (position >= 0) {
             total++;
-            position = texte.indexOf(mot, position + mot.length());
+            position = text.indexOf(mot, position + mot.length());
         }
         return total;
     }

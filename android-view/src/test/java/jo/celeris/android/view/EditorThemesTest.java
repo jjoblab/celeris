@@ -25,7 +25,7 @@ class EditorThemesTest {
     void lesTroisThemesPassentLesContrastesWcag() {
         Map<String, EditorTheme> themes = new LinkedHashMap<>();
         themes.put("clair", EditorThemes.CLAIR);
-        themes.put("sombre", EditorThemes.SOMBRE);
+        themes.put("sombre", EditorThemes.DARK);
         themes.put("contraste élevé", EditorThemes.CONTRASTE_ELEVE);
         themes.put("dracula", EditorThemes.DRACULA);
         themes.put("monokai", EditorThemes.MONOKAI);
@@ -34,9 +34,9 @@ class EditorThemesTest {
         themes.put("nord", EditorThemes.NORD);
         themes.put("github clair", EditorThemes.GITHUB_CLAIR);
 
-        for (Map.Entry<String, EditorTheme> entree : themes.entrySet()) {
-            EditorTheme theme = entree.getValue();
-            String nom = entree.getKey();
+        for (Map.Entry<String, EditorTheme> input : themes.entrySet()) {
+            EditorTheme theme = input.getValue();
+            String nom = input.getKey();
 
             assertTrue(
                     WcagContrast.ratio(theme.baseTextColor(), theme.backgroundColor()) >= 4.5,
@@ -58,7 +58,7 @@ class EditorThemesTest {
     @Test
     void themesDistinctsParIdentifiant() {
         assertEquals(1, EditorThemes.CLAIR.id());
-        assertEquals(2, EditorThemes.SOMBRE.id());
+        assertEquals(2, EditorThemes.DARK.id());
         assertEquals(3, EditorThemes.CONTRASTE_ELEVE.id());
         assertEquals(4, EditorThemes.DRACULA.id());
         assertEquals(5, EditorThemes.MONOKAI.id());

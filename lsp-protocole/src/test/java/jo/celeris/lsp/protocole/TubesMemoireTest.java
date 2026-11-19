@@ -23,16 +23,16 @@ class TubesMemoireTest {
     /** L'ordre tient : octet seul, trame, octet seul — tout sort dans l'ordre d'entrée. */
     @Test
     void lordreDesOctetsTientEntreTramesEtOctetsSeuls() throws Exception {
-        TubesMemoire.Direction direction = TubesMemoire.creer();
-        OutputStream sortie = direction.sortie();
-        InputStream entree = direction.entree();
-        sortie.write(65);
-        sortie.write("BCD".getBytes(StandardCharsets.UTF_8));
-        sortie.write(69);
+        MemoryPipes.Direction direction = MemoryPipes.create();
+        OutputStream output = direction.output();
+        InputStream input = direction.input();
+        output.write(65);
+        output.write("BCD".getBytes(StandardCharsets.UTF_8));
+        output.write(69);
         byte[] lus = new byte[5];
         int total = 0;
         while (total < 5) {
-            int n = entree.read(lus, total, 5 - total);
+            int n = input.read(lus, total, 5 - total);
             assertTrue(n > 0, "la lecture bloque jusqu'aux octets, jamais moins");
             total += n;
         }
@@ -43,31 +43,31 @@ class TubesMemoireTest {
     /** La fermeture : l'écriture suivante échoue, la lecture vide le reste puis rend la fin. */
     @Test
     void laFermetureCoupleLEcritureEtAcheveLaLecture() throws Exception {
-        TubesMemoire.Direction direction = TubesMemoire.creer();
-        OutputStream sortie = direction.sortie();
-        InputStream entree = direction.entree();
-        sortie.write("reste".getBytes(StandardCharsets.UTF_8));
-        sortie.close();
-        assertThrows(IOException.class, () -> sortie.write(88),
+        MemoryPipes.Direction direction = MemoryPipes.create();
+        OutputStream output = direction.output();
+        InputStream input = direction.input();
+        output.write("reste".getBytes(StandardCharsets.UTF_8));
+        output.close();
+        assertThrows(IOException.class, () -> output.write(88),
                 "l'écriture après fermeture échoue");
-        byte[] tampon = new byte[10];
+        byte[] buffer = new byte[10];
         int total = 0;
         int lus;
-        while ((lus = entree.read(tampon, total, tampon.length - total)) >= 0) {
+        while ((lus = input.read(buffer, total, buffer.length - total)) >= 0) {
             total += lus;
         }
         assertTrue(total >= 5, "la lecture vide ce qui restait avant la fin");
-        assertTrue(new String(tampon, 0, total, StandardCharsets.UTF_8).startsWith("reste"),
+        assertTrue(new String(buffer, 0, total, StandardCharsets.UTF_8).startsWith("reste"),
                 "le reste arrive avant la fin de flux");
     }
 
     /** La lecture d'un octet seul : le premier octet attendu, pas un de plus. */
     @Test
     void laLectureOctetParOctetAttendChaqueOctet() throws Exception {
-        TubesMemoire.Direction direction = TubesMemoire.creer();
-        direction.sortie().write("xy".getBytes(StandardCharsets.UTF_8));
-        InputStream entree = direction.entree();
-        assertTrue(entree.read() == 'x', "le premier octet sort le premier");
-        assertTrue(entree.read() == 'y', "le deuxième suit");
+        MemoryPipes.Direction direction = MemoryPipes.create();
+        direction.output().write("xy".getBytes(StandardCharsets.UTF_8));
+        InputStream input = direction.input();
+        assertTrue(input.read() == 'x', "le premier octet sort le premier");
+        assertTrue(input.read() == 'y', "le deuxième suit");
     }
 }

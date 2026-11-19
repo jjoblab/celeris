@@ -18,7 +18,7 @@ import java.util.List;
 public final class DiffBlocs {
 
     /** Le type d'une ligne du diff. */
-    public enum TypeLigne {
+    public enum LineKind {
 
         /** La ligne existe dans l'ancien texte seulement. */
         ENLEVEE,
@@ -31,8 +31,8 @@ public final class DiffBlocs {
     }
 
     /** Une ligne du diff : son type, ses lignes d'origine et son texte. */
-    public record LineDiff(TypeLigne type, int ligneAncienne, int ligneNouvelle,
-            String texte) {
+    public record LineDiff(LineKind type, int ligneAncienne, int ligneNouvelle,
+            String text) {
     }
 
     /**
@@ -43,10 +43,10 @@ public final class DiffBlocs {
      * @param finAncien   la fin exclusive des lignes enlevées
      * @param debutNouveau la première ligne ajoutée, dans le nouveau
      * @param finNouveau  la fin exclusive des lignes ajoutées
-     * @param lignes      les lignes du bloc, enlevées puis ajoutées
+     * @param lines      les lignes du bloc, enlevées puis ajoutées
      */
     public record BlocDiff(int debutAncien, int finAncien, int debutNouveau,
-            int finNouveau, List<LineDiff> lignes) {
+            int finNouveau, List<LineDiff> lines) {
     }
 
     private final List<BlocDiff> blocs;
@@ -65,9 +65,9 @@ public final class DiffBlocs {
      * @param nouveau le nouveau texte
      * @return les blocs, dans l'ordre du texte
      */
-    public static DiffBlocs de(String ancien, String nouveau) {
-        List<String> anciennes = lignes(ancien);
-        List<String> nouvelles = lignes(nouveau);
+    public static DiffBlocs of(String ancien, String nouveau) {
+        List<String> anciennes = lines(ancien);
+        List<String> nouvelles = lines(nouveau);
         List<int[]> ancres = ancres(anciennes, nouvelles);
         List<BlocDiff> blocs = new ArrayList<>();
         int ancreAncienne = -1;
@@ -83,11 +83,11 @@ public final class DiffBlocs {
                     || suivantNouveau > ancreNouvelle + 1) {
                 List<LineDiff> lignesBloc = new ArrayList<>();
                 for (int i = ancreAncienne + 1; i < suivantAncien; i++) {
-                    lignesBloc.add(new LineDiff(TypeLigne.ENLEVEE, i, -1,
+                    lignesBloc.add(new LineDiff(LineKind.ENLEVEE, i, -1,
                             anciennes.get(i)));
                 }
                 for (int j = ancreNouvelle + 1; j < suivantNouveau; j++) {
-                    lignesBloc.add(new LineDiff(TypeLigne.AJOUTEE, -1, j,
+                    lignesBloc.add(new LineDiff(LineKind.AJOUTEE, -1, j,
                             nouvelles.get(j)));
                 }
                 blocs.add(new BlocDiff(ancreAncienne + 1, suivantAncien,
@@ -147,12 +147,12 @@ public final class DiffBlocs {
      *
      * @return les lignes préfixées du diff complet
      */
-    public List<String> enLigne() {
+    public List<String> inline() {
         List<String> rendues = new ArrayList<>();
         for (BlocDiff bloc : blocs) {
-            for (LineDiff ligne : bloc.lignes()) {
-                rendues.add((ligne.type() == TypeLigne.ENLEVEE ? "- " : "+ ")
-                        + ligne.texte());
+            for (LineDiff line : bloc.lines()) {
+                rendues.add((line.type() == LineKind.ENLEVEE ? "- " : "+ ")
+                        + line.text());
             }
         }
         return rendues;
@@ -163,51 +163,51 @@ public final class DiffBlocs {
      * même bloc s'alignent en deux colonnes de la largeur donnée —
      * la gauche ancienne, la droite nouvelle, les trous en tirets.
      *
-     * @param largeur la largeur de chaque colonne, en caractères
+     * @param width la largeur de chaque colonne, en caractères
      * @return les lignes des deux colonnes, collées
      */
-    public List<String> coteACote(int largeur) {
+    public List<String> coteACote(int width) {
         List<String> rendues = new ArrayList<>();
         for (BlocDiff bloc : blocs) {
             List<LineDiff> enlevees = new ArrayList<>();
             List<LineDiff> ajoutees = new ArrayList<>();
-            for (LineDiff ligne : bloc.lignes()) {
-                if (ligne.type() == TypeLigne.ENLEVEE) {
-                    enlevees.add(ligne);
+            for (LineDiff line : bloc.lines()) {
+                if (line.type() == LineKind.ENLEVEE) {
+                    enlevees.add(line);
                 } else {
-                    ajoutees.add(ligne);
+                    ajoutees.add(line);
                 }
             }
-            int hauteur = Math.max(enlevees.size(), ajoutees.size());
-            for (int i = 0; i < hauteur; i++) {
+            int height = Math.max(enlevees.size(), ajoutees.size());
+            for (int i = 0; i < height; i++) {
                 String gauche = i < enlevees.size()
-                        ? enlevees.get(i).texte() : "";
+                        ? enlevees.get(i).text() : "";
                 String droite = i < ajoutees.size()
-                        ? ajoutees.get(i).texte() : "";
-                rendues.add(colonne(gauche, largeur) + " | " + droite);
+                        ? ajoutees.get(i).text() : "";
+                rendues.add(column(gauche, width) + " | " + droite);
             }
         }
         return rendues;
     }
 
-    private static String colonne(String texte, int largeur) {
-        if (texte.length() >= largeur) {
-            return texte.substring(0, Math.max(0, largeur - 1)) + "…";
+    private static String column(String text, int width) {
+        if (text.length() >= width) {
+            return text.substring(0, Math.max(0, width - 1)) + "…";
         }
-        return texte + " ".repeat(largeur - texte.length());
+        return text + " ".repeat(width - text.length());
     }
 
-    private static List<String> lignes(String texte) {
-        List<String> lignes = new ArrayList<>();
-        int debut = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
-                lignes.add(texte.substring(debut, i));
-                debut = i + 1;
+    private static List<String> lines(String text) {
+        List<String> lines = new ArrayList<>();
+        int start = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                lines.add(text.substring(start, i));
+                start = i + 1;
             }
         }
-        lignes.add(texte.substring(debut));
-        return lignes;
+        lines.add(text.substring(start));
+        return lines;
     }
 
 }

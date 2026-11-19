@@ -64,7 +64,7 @@ class ClikeSnapshotsTest {
                 echecs.append(corpus.name()).append(" : témoin réécrit — relire\n");
                 continue;
             }
-            String attendu = lire(temoin);
+            String attendu = read(temoin);
             if (!attendu.equals(voulu)) {
                 echecs.append(corpus.name()).append(" : l'analyse a changé — ")
                         .append(difference(attendu, voulu)).append('\n');
@@ -79,31 +79,31 @@ class ClikeSnapshotsTest {
     private static String instantane(Corpus corpus) {
         Document doc = Document.of(corpus.source().get());
         Analysis analyse = SyntaxService.of(corpus.syntax()).analyseFull(doc);
-        StringBuilder sortie = new StringBuilder();
+        StringBuilder output = new StringBuilder();
         LexDocument lex = analyse.lex();
-        for (int ligne = 0; ligne < lex.lineCount(); ligne++) {
-            for (Token jeton : lex.line(ligne).tokens()) {
-                sortie.append("lex ").append(ligne).append(' ')
-                        .append(jeton.kind()).append(' ')
-                        .append(jeton.start()).append(' ')
-                        .append(jeton.end()).append('\n');
+        for (int line = 0; line < lex.lineCount(); line++) {
+            for (Token token : lex.line(line).tokens()) {
+                output.append("lex ").append(line).append(' ')
+                        .append(token.kind()).append(' ')
+                        .append(token.start()).append(' ')
+                        .append(token.end()).append('\n');
             }
         }
         SyntaxTree arbre = analyse.tree();
         List<Chunk> chunks = arbre.chunks();
         for (int c = 0; c < chunks.size(); c++) {
             Chunk chunk = chunks.get(c);
-            sortie.append("chunk ").append(c).append(' ')
+            output.append("chunk ").append(c).append(' ')
                     .append(arbre.chunkStartOffset(doc, chunk)).append('\n');
-            ecrireNoeud(sortie, chunk.root(), 0);
+            ecrireNoeud(output, chunk.root(), 0);
         }
-        return sortie.toString();
+        return output.toString();
     }
 
     /** Un nœud par ligne : profondeur, sorte, catégorie, nom, bornes, erreur. */
-    private static void ecrireNoeud(StringBuilder sortie, SynNode noeud, int profondeur) {
+    private static void ecrireNoeud(StringBuilder output, SynNode noeud, int profondeur) {
         String nom = noeud.outlineName() == null ? "-" : noeud.outlineName();
-        sortie.append("node ").append(profondeur).append(' ')
+        output.append("node ").append(profondeur).append(' ')
                 .append(noeud.kind()).append(' ')
                 .append(noeud.category()).append(' ')
                 .append(nom).append(' ')
@@ -111,7 +111,7 @@ class ClikeSnapshotsTest {
                 .append(noeud.end()).append(' ')
                 .append(noeud.isError()).append('\n');
         for (SynNode enfant : noeud.children()) {
-            ecrireNoeud(sortie, enfant, profondeur + 1);
+            ecrireNoeud(output, enfant, profondeur + 1);
         }
     }
 
@@ -129,7 +129,7 @@ class ClikeSnapshotsTest {
         return "longueurs divergentes : " + lignesA.length + " contre " + lignesV.length;
     }
 
-    private static String lire(Path temoin) {
+    private static String read(Path temoin) {
         try {
             return Files.readString(temoin, StandardCharsets.UTF_8);
         } catch (java.io.IOException e) {

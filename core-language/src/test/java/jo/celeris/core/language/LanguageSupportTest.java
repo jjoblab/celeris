@@ -30,11 +30,11 @@ import org.junit.jupiter.api.Test;
 final class LanguageSupportTest {
 
     /** Une capacité de banc : rend une liste fixe. */
-    private record Compteur(String valeur) implements Completion {
+    private record Compteur(String value) implements Completion {
         @Override
         public List<String> candidates(Document document,
                 @Nullable Analysis analysis, int caretOffset) {
-            return List.of(valeur);
+            return List.of(value);
         }
     }
 
@@ -93,9 +93,9 @@ final class LanguageSupportTest {
 
     @Test
     void laChaineSBreakpointeSansFournisseur() {
-        LanguageSupport texte = LanguageSupport.builder(descripteur("text", null))
+        LanguageSupport text = LanguageSupport.builder(descripteur("text", null))
                 .build();
-        assertNull(texte.capability(Completion.class));
+        assertNull(text.capability(Completion.class));
     }
 
     @Test
@@ -111,12 +111,12 @@ final class LanguageSupportTest {
 
     @Test
     void laConfigurationVideNormaliseSesSections() {
-        LanguageSupport texte = LanguageSupport.builder(descripteur("text", null))
+        LanguageSupport text = LanguageSupport.builder(descripteur("text", null))
                 .build();
-        assertTrue(texte.configuration().brackets().isEmpty());
-        assertTrue(texte.injections().isEmpty());
-        assertEquals(4, texte.configuration().indentSize());
-        assertFalse(texte.configuration().folding().byIndentation());
+        assertTrue(text.configuration().brackets().isEmpty());
+        assertTrue(text.injections().isEmpty());
+        assertEquals(4, text.configuration().indentSize());
+        assertFalse(text.configuration().folding().byIndentation());
     }
 
     @Test

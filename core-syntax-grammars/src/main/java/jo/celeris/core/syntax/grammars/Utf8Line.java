@@ -14,25 +14,25 @@ import org.jspecify.annotations.Nullable;
  */
 final class Utf8Line {
 
-    private final CharSequence texte;
+    private final CharSequence text;
     private final byte[] octets;
     private final int @Nullable [] octetVersChar;
 
-    private Utf8Line(CharSequence texte, byte[] octets, int @Nullable [] octetVersChar) {
-        this.texte = texte;
+    private Utf8Line(CharSequence text, byte[] octets, int @Nullable [] octetVersChar) {
+        this.text = text;
         this.octets = octets;
         this.octetVersChar = octetVersChar;
     }
 
     /** La ligne préparée : encode en UTF-8 et dresse la table si besoin. */
-    static Utf8Line preparer(CharSequence ligne) {
-        int n = ligne.length();
-        byte[] octets = new byte[longueurUtf8(ligne)];
+    static Utf8Line preparer(CharSequence line) {
+        int n = line.length();
+        byte[] octets = new byte[longueurUtf8(line)];
         int[] table = new int[octets.length + 1];
         boolean ascii = true;
         int curseur = 0;
         for (int i = 0; i < n; ) {
-            int code = substitution(Character.codePointAt(ligne, i));
+            int code = substitution(Character.codePointAt(line, i));
             int largeur = Character.charCount(code);
             for (int b = 0; b < largeur; b++) {
                 table[curseur + b] = i;
@@ -44,12 +44,12 @@ final class Utf8Line {
             i += largeur;
         }
         table[octets.length] = n;
-        return new Utf8Line(ligne, octets, ascii ? null : table);
+        return new Utf8Line(line, octets, ascii ? null : table);
     }
 
     /** Le texte de la ligne, en UTF-16. */
-    CharSequence texte() {
-        return texte;
+    CharSequence text() {
+        return text;
     }
 
     /** Les octets UTF-8 de la ligne. */
@@ -58,16 +58,16 @@ final class Utf8Line {
     }
 
     /** La position UTF-16 du caractère qui commence à la frontière d'octet. */
-    int versChar(int octet) {
+    int versChar(int aByte) {
         int[] table = octetVersChar;
-        return table == null ? octet : table[octet];
+        return table == null ? aByte : table[aByte];
     }
 
     /** Le nombre d'octets de l'encodage UTF-8 de la ligne. */
-    private static int longueurUtf8(CharSequence ligne) {
+    private static int longueurUtf8(CharSequence line) {
         int total = 0;
-        for (int i = 0; i < ligne.length(); ) {
-            int code = substitution(Character.codePointAt(ligne, i));
+        for (int i = 0; i < line.length(); ) {
+            int code = substitution(Character.codePointAt(line, i));
             total += code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4;
             i += Character.charCount(code);
         }

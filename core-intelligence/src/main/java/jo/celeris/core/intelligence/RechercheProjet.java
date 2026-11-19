@@ -38,33 +38,33 @@ public final class RechercheProjet {
      *               projet embarqué, hors ligne
      * @param index  l'index des symboles du projet, ou null : la
      *               voie du balayage seule
-     * @param motif  le motif cherché, identifiant entier ou texte
+     * @param pattern  le motif cherché, identifiant entier ou texte
      *               partiel
      * @return les trouvailles, uris du dictionnaire puis offsets
      *         croissants
      * @throws IllegalArgumentException si le motif est vide
      */
-    public static List<Trouvaille> chercher(Map<String, Document> projet,
-            @Nullable IndexSymboles index, String motif) {
+    public static List<Trouvaille> search(Map<String, Document> projet,
+            @Nullable IndexSymboles index, String pattern) {
         Objects.requireNonNull(projet, "projet");
-        Objects.requireNonNull(motif, "motif");
-        if (motif.isEmpty()) {
+        Objects.requireNonNull(pattern, "motif");
+        if (pattern.isEmpty()) {
             throw new IllegalArgumentException("motif must not be empty");
         }
-        if (index != null && estIdentifiant(motif)) {
+        if (index != null && estIdentifiant(pattern)) {
             List<Trouvaille> trouvailles = new ArrayList<>();
-            for (IndexSymboles.Usage usage : index.usages(motif)) {
+            for (IndexSymboles.Usage usage : index.usages(pattern)) {
                 trouvailles.add(new Trouvaille(usage.uri(), usage.offset()));
             }
             return List.copyOf(trouvailles);
         }
         List<Trouvaille> trouvailles = new ArrayList<>();
         for (Map.Entry<String, Document> fichier : new TreeMap<>(projet).entrySet()) {
-            String texte = fichier.getValue().text();
-            int offset = texte.indexOf(motif);
+            String text = fichier.getValue().text();
+            int offset = text.indexOf(pattern);
             while (offset >= 0) {
                 trouvailles.add(new Trouvaille(fichier.getKey(), offset));
-                offset = texte.indexOf(motif, offset + motif.length());
+                offset = text.indexOf(pattern, offset + pattern.length());
             }
         }
         return List.copyOf(trouvailles);
@@ -76,12 +76,12 @@ public final class RechercheProjet {
      * ponctuation — la voie de l'index se l'autorise, le balayage
      * prend le reste.
      */
-    private static boolean estIdentifiant(String motif) {
-        if (!Character.isJavaIdentifierStart(motif.charAt(0))) {
+    private static boolean estIdentifiant(String pattern) {
+        if (!Character.isJavaIdentifierStart(pattern.charAt(0))) {
             return false;
         }
-        for (int i = 1; i < motif.length(); i++) {
-            if (!Character.isJavaIdentifierPart(motif.charAt(i))) {
+        for (int i = 1; i < pattern.length(); i++) {
+            if (!Character.isJavaIdentifierPart(pattern.charAt(i))) {
                 return false;
             }
         }

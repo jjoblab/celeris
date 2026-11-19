@@ -224,12 +224,12 @@ public final class Packs {
             long total = 0L;
             try (ZipInputStream zip =
                     new ZipInputStream(Files.newInputStream(archive))) {
-                ZipEntry entree;
-                while ((entree = zip.getNextEntry()) != null) {
-                    if (entree.isDirectory()) {
+                ZipEntry input;
+                while ((input = zip.getNextEntry()) != null) {
+                    if (input.isDirectory()) {
                         continue;
                     }
-                    String nom = entree.getName();
+                    String nom = input.getName();
                     if (echappe(nom)) {
                         throw new IllegalArgumentException(
                                 "zip entry escapes the pack: " + nom);
@@ -239,7 +239,7 @@ public final class Packs {
                                 "pack archive holds too many entries (max "
                                         + PLAFOND_ENTREES + "): " + nom);
                     }
-                    byte[] octets = lireBorne(zip, nom);
+                    byte[] octets = readBound(zip, nom);
                     total += octets.length;
                     if (total > PLAFOND_TOTAL) {
                         throw new IllegalArgumentException(
@@ -255,21 +255,21 @@ public final class Packs {
 
         /** C3 — la lecture bornée : jamais plus que le plafond par
          *  entrée, la bombe se refuse au premier octet de trop. */
-        private static byte[] lireBorne(ZipInputStream zip, String nom)
+        private static byte[] readBound(ZipInputStream zip, String nom)
                 throws IOException {
-            java.io.ByteArrayOutputStream tampon =
+            java.io.ByteArrayOutputStream buffer =
                     new java.io.ByteArrayOutputStream();
             byte[] bloc = new byte[8192];
             int lus;
             while ((lus = zip.read(bloc)) != -1) {
-                if (tampon.size() + lus > PLAFOND_ENTREE) {
+                if (buffer.size() + lus > PLAFOND_ENTREE) {
                     throw new IllegalArgumentException(
                             "zip entry exceeds " + PLAFOND_ENTREE
                                     + " bytes: " + nom);
                 }
-                tampon.write(bloc, 0, lus);
+                buffer.write(bloc, 0, lus);
             }
-            return tampon.toByteArray();
+            return buffer.toByteArray();
         }
 
         /** C3 — la remontée réelle : « .. » comme SEGMENT complet du

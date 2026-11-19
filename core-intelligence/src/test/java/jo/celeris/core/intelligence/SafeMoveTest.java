@@ -322,8 +322,8 @@ class SafeMoveTest {
             String designation, String targetName) {
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf(designation);
-        assertTrue(debut >= 0, "désignation absente du corpus : " + designation);
-        return SafeMove.move(doc, analyse, debut, debut + designation.length(), targetName);
+        int start = source.indexOf(designation);
+        assertTrue(start >= 0, "désignation absente du corpus : " + designation);
+        return SafeMove.move(doc, analyse, start, start + designation.length(), targetName);
     }
 }

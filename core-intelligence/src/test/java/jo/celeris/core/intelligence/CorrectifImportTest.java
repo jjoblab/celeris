@@ -44,7 +44,7 @@ class CorrectifImportTest {
         assertEquals("java.util.List", candidat.fqn(),
                 "la première candidate gagne, jamais l'aléa");
         TextSession epreuve = TextSession.of(document.text(), () -> 0L);
-        epreuve.apply(candidat.edition());
+        epreuve.apply(candidat.edit());
         assertEquals("package zoo;\nimport java.util.List;\n\nList noms;\n",
                 epreuve.text(),
                 "la ligne d'import se pose en tête du bloc, derrière le paquet");

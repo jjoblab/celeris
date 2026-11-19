@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-import jo.celeris.android.view.IndiceInlay;
+import jo.celeris.android.view.InlayHintMark;
 import jo.celeris.core.text.Document;
 
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ class MoteurInlayHintsTest {
     /** Le « var » littéral porte SON type — chaque famille compte. */
     @Test
     void leVarLitteralPorteSonType() {
-        List<IndiceInlay> indices = MoteurInlayHints.indices(Document.of(
+        List<InlayHintMark> inlayHints = InlayHintsEngine.inlayHints(Document.of(
                 "var entier = 1;\n"
                 + "var decimal = 2.5;\n"
                 + "var flottant = 3f;\n"
@@ -37,44 +37,44 @@ class MoteurInlayHintsTest {
                 + "var table = {1, 2, 3};\n"
                 + "var inconnu = calcul();\n"
                 + "var rien = null;\n"));
-        assertEquals(": int", indices.get(0).rendu());
-        assertEquals(": double", indices.get(1).rendu());
-        assertEquals(": float", indices.get(2).rendu());
-        assertEquals(": long", indices.get(3).rendu());
-        assertEquals(": boolean", indices.get(4).rendu());
-        assertEquals(": String", indices.get(5).rendu());
-        assertEquals(": char", indices.get(6).rendu());
-        assertEquals(": int[]", indices.get(7).rendu());
+        assertEquals(": int", inlayHints.get(0).rendu());
+        assertEquals(": double", inlayHints.get(1).rendu());
+        assertEquals(": float", inlayHints.get(2).rendu());
+        assertEquals(": long", inlayHints.get(3).rendu());
+        assertEquals(": boolean", inlayHints.get(4).rendu());
+        assertEquals(": String", inlayHints.get(5).rendu());
+        assertEquals(": char", inlayHints.get(6).rendu());
+        assertEquals(": int[]", inlayHints.get(7).rendu());
         // l'appel et le null ne se devinent JAMAIS — huit indices seuls
-        assertEquals(8, indices.size());
+        assertEquals(8, inlayHints.size());
     }
 
     /** Le type se lit à la fin de la ligne UTILE — l'offset porte la
      *  colonne, l'indice s'ancre au texte. */
     @Test
     void leTypeSeLitEnFinDeLigneUtile() {
-        List<IndiceInlay> indices = MoteurInlayHints.indices(Document.of(
+        List<InlayHintMark> inlayHints = InlayHintsEngine.inlayHints(Document.of(
                 "var solde = 100;"));
-        assertEquals(1, indices.size());
-        assertEquals(1, indices.get(0).ligne());
-        assertEquals("var solde = 100;".length(), indices.get(0).offset());
+        assertEquals(1, inlayHints.size());
+        assertEquals(1, inlayHints.get(0).line());
+        assertEquals("var solde = 100;".length(), inlayHints.get(0).offset());
     }
 
     /** Le nom du paramètre muet se lit devant SON argument littéral —
      *  la méthode du fichier sert ses paramètres. */
     @Test
     void leNomDuParametreSeLitDevantSonArgument() {
-        List<IndiceInlay> indices = MoteurInlayHints.indices(Document.of(
+        List<InlayHintMark> inlayHints = InlayHintsEngine.inlayHints(Document.of(
                 "private void verser(int montant, boolean vif) {\n"
                 + "}\n"
                 + "void appeler() {\n"
                 + "    verser(100, true);\n"
                 + "}\n"));
-        IndiceInlay montant = chercher(indices, "montant:");
-        IndiceInlay vif = chercher(indices, "vif:");
+        InlayHintMark montant = search(inlayHints, "montant:");
+        InlayHintMark vif = search(inlayHints, "vif:");
         assertNotNull(montant, "le premier paramètre se nomme");
         assertNotNull(vif, "le second paramètre se nomme");
-        assertEquals(4, montant.ligne());
+        assertEquals(4, montant.line());
         assertTrue(montant.offset() > 0);
         assertTrue(montant.offset() < vif.offset());
     }
@@ -82,30 +82,30 @@ class MoteurInlayHintsTest {
     /** L'argument NOMMÉ d'avance et l'expression ne portent rien. */
     @Test
     void largumentNommeNePorteRien() {
-        List<IndiceInlay> indices = MoteurInlayHints.indices(Document.of(
+        List<InlayHintMark> inlayHints = InlayHintsEngine.inlayHints(Document.of(
                 "private void verser(int montant) {\n"
                 + "}\n"
                 + "void appeler() {\n"
                 + "    verser(inconnu);\n"
                 + "}\n"));
-        assertNull(chercher(indices, "montant:"));
+        assertNull(search(inlayHints, "montant:"));
     }
 
     /** La méthode INCONNUE du fichier ne sert rien — jamais de nom
      *  décalé. */
     @Test
     void laMethodeInconnueNeSertRien() {
-        List<IndiceInlay> indices = MoteurInlayHints.indices(Document.of(
+        List<InlayHintMark> inlayHints = InlayHintsEngine.inlayHints(Document.of(
                 "void appeler() {\n"
                 + "    inconnue(100);\n"
                 + "}\n"));
-        assertTrue(indices.isEmpty());
+        assertTrue(inlayHints.isEmpty());
     }
 
     /** Le premier indice du rendu donné, null s'il n'existe pas. */
-    private static IndiceInlay chercher(List<IndiceInlay> indices,
+    private static InlayHintMark search(List<InlayHintMark> inlayHints,
             String rendu) {
-        for (IndiceInlay indice : indices) {
+        for (InlayHintMark indice : inlayHints) {
             if (indice.rendu().equals(rendu)) {
                 return indice;
             }

@@ -24,17 +24,17 @@ class BreadcrumbModelTest {
     /** Le chemin du symbole courant : les entrées englobantes, dehors vers dedans. */
     @Test
     void cheminDuSymboleCourant() {
-        String texte = "class A {\n"
+        String text = "class A {\n"
                 + "    int champ;\n"
                 + "    void methode() {\n"
                 + "        int interne;\n"
                 + "    }\n"
                 + "}\n";
-        Document doc = Document.of(texte);
+        Document doc = Document.of(text);
         Analysis analyse = SyntaxService.of(JavaSyntax.INSTANCE).analyseFull(doc);
         // le curseur sur « interne » (offset 49)
         List<OutlineEntry> chemin = BreadcrumbModel.chemin(doc, analyse,
-                texte.indexOf("interne"));
+                text.indexOf("interne"));
         assertEquals(2, chemin.size());
         assertEquals("A", chemin.get(0).name());
         assertEquals("methode", chemin.get(1).name());
@@ -43,8 +43,8 @@ class BreadcrumbModelTest {
     /** Hors de tout symbole, le chemin est vide. */
     @Test
     void horsSymboleCheminVide() {
-        String texte = "package exemple;\n\nclass A {\n}\n";
-        Document doc = Document.of(texte);
+        String text = "package exemple;\n\nclass A {\n}\n";
+        Document doc = Document.of(text);
         Analysis analyse = SyntaxService.of(JavaSyntax.INSTANCE).analyseFull(doc);
         // le curseur sur « package »
         List<OutlineEntry> chemin = BreadcrumbModel.chemin(doc, analyse, 2);

@@ -44,11 +44,11 @@ class GabaritTest {
         Gabarit gabarit = Gabarit.of("${salut:Bonjour} ${nom:monde}");
         assertEquals("Bonjour monde", gabarit.rendu());
         Trou salut = gabarit.occurrencesDe("salut").get(0);
-        assertEquals(0, salut.debut());
-        assertEquals(7, salut.fin());
+        assertEquals(0, salut.start());
+        assertEquals(7, salut.end());
         Trou nom = gabarit.occurrencesDe("nom").get(0);
-        assertEquals(8, nom.debut());
-        assertEquals(13, nom.fin());
+        assertEquals(8, nom.start());
+        assertEquals(13, nom.end());
     }
 
     /** Sans défaut, le trou est vide : le curseur s'y pose. */
@@ -57,8 +57,8 @@ class GabaritTest {
         Gabarit gabarit = Gabarit.of("val ${nom};");
         assertEquals("val ;", gabarit.rendu());
         Trou nom = gabarit.occurrencesDe("nom").get(0);
-        assertEquals(4, nom.debut());
-        assertEquals(4, nom.fin());
+        assertEquals(4, nom.start());
+        assertEquals(4, nom.end());
     }
 
     /** L'insertion : le rendu s'insère, le premier trou est sélectionné. */
@@ -85,12 +85,12 @@ class GabaritTest {
         Trou premiere = occurrences.get(0);
         Trou derniere = occurrences.get(1);
         // l'utilisateur remplace la première occurrence par « 10 »
-        List<TextEdit> miroirs = Gabarits.miroirs(rendu, occurrences, premiere,
-                new TextEdit(premiere.debut(), "i", "10"));
-        assertEquals(1, miroirs.size());
-        assertEquals(derniere.debut(), miroirs.get(0).start());
-        assertTrue(miroirs.get(0).removed().isEmpty());
-        assertEquals("10", miroirs.get(0).inserted());
+        List<TextEdit> mirrors = Gabarits.mirrors(rendu, occurrences, premiere,
+                new TextEdit(premiere.start(), "i", "10"));
+        assertEquals(1, mirrors.size());
+        assertEquals(derniere.start(), mirrors.get(0).start());
+        assertTrue(mirrors.get(0).removed().isEmpty());
+        assertEquals("10", mirrors.get(0).inserted());
     }
 
     /** Une édition partielle d'une occurrence se propage au même décalage relatif. */
@@ -100,13 +100,13 @@ class GabaritTest {
         String rendu = gabarit.rendu();
         List<Trou> occurrences = gabarit.occurrencesDe("x");
         // remplacer « pha » (offsets 2..5 de la première occurrence) par « PHA »
-        List<TextEdit> miroirs = Gabarits.miroirs(rendu, occurrences,
+        List<TextEdit> mirrors = Gabarits.mirrors(rendu, occurrences,
                 occurrences.get(0), new TextEdit(2, "pha", "PHA"));
-        assertEquals(1, miroirs.size());
+        assertEquals(1, mirrors.size());
         // la sœur « omega » : le même décalage relatif [2..5) = « ega »
-        assertEquals(8, miroirs.get(0).start());
-        assertEquals("ega", miroirs.get(0).removed());
-        assertEquals("PHA", miroirs.get(0).inserted());
+        assertEquals(8, mirrors.get(0).start());
+        assertEquals("ega", mirrors.get(0).removed());
+        assertEquals("PHA", mirrors.get(0).inserted());
     }
 
     /** Les trous sans variable liée n'ont pas de miroir. */
@@ -114,9 +114,9 @@ class GabaritTest {
     void trouSolitaireSansMiroir() {
         Gabarit gabarit = Gabarit.of("${seul:unique}");
         List<Trou> occurrences = gabarit.occurrencesDe("seul");
-        List<TextEdit> miroirs = Gabarits.miroirs(gabarit.rendu(), occurrences,
+        List<TextEdit> mirrors = Gabarits.mirrors(gabarit.rendu(), occurrences,
                 occurrences.get(0), new TextEdit(0, "unique", "autre"));
-        assertTrue(miroirs.isEmpty());
+        assertTrue(mirrors.isEmpty());
     }
 
     // ------------------------------------------------ trous riches (C7)
@@ -126,11 +126,11 @@ class GabaritTest {
     void trouAChoixRendSonPremierChoix() {
         Gabarit gabarit = Gabarit.of("final ${genre|int,long,double|} ${nom:taille} = 0;");
         assertEquals("final int taille = 0;", gabarit.rendu());
-        Trou genre = gabarit.occurrencesDe("genre").get(0);
-        assertTrue(genre.aDesChoix());
-        assertEquals(List.of("int", "long", "double"), genre.choix());
-        assertEquals(6, genre.debut());
-        assertEquals(9, genre.fin());
+        Trou kind = gabarit.occurrencesDe("genre").get(0);
+        assertTrue(kind.aDesChoix());
+        assertEquals(List.of("int", "long", "double"), kind.choix());
+        assertEquals(6, kind.start());
+        assertEquals(9, kind.end());
         assertTrue(!gabarit.occurrencesDe("nom").get(0).aDesChoix());
     }
 
@@ -198,7 +198,7 @@ class GabaritTest {
         // « USER » sans table reste une variable : son défaut vide
         assertEquals("/monde", gabarit.rendu());
         assertEquals(2, gabarit.trous().size());
-        assertTrue(gabarit.occurrencesDe("USER").get(0).longueur() == 0);
+        assertTrue(gabarit.occurrencesDe("USER").get(0).length() == 0);
     }
 
     /** La macro se lie : les occurrences de la même macro partagent la valeur. */

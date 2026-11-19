@@ -17,6 +17,6 @@ public final class FichierBinaireException extends RuntimeException {
      * @param chemin le chemin du fichier binaire
      */
     public FichierBinaireException(CheminDoc chemin) {
-        super("binary file refuses text writes: " + chemin.ecriture());
+        super("binary file refuses text writes: " + chemin.writing());
     }
 }

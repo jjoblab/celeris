@@ -18,7 +18,7 @@ import java.util.List;
 final class MiniLangage {
 
     /** États transportés d'une ligne à la suivante. */
-    enum Etat implements LexState {
+    enum State implements LexState {
         /** Hors commentaire de bloc. */
         NORMAL,
         /** Dans un commentaire de bloc ouvert. */
@@ -67,86 +67,86 @@ final class MiniLangage {
 
         @Override
         public LexState initialState() {
-            return Etat.NORMAL;
+            return State.NORMAL;
         }
 
         @Override
-        public LexedLine lex(CharSequence texte, LexState entree) {
-            List<Token> jetons = new java.util.ArrayList<>();
-            Etat etat = entree == Etat.COMMENTAIRE ? Etat.COMMENTAIRE : Etat.NORMAL;
-            int n = texte.length();
+        public LexedLine lex(CharSequence text, LexState input) {
+            List<Token> tokens = new java.util.ArrayList<>();
+            State etat = input == State.COMMENTAIRE ? State.COMMENTAIRE : State.NORMAL;
+            int n = text.length();
             int i = 0;
             while (i < n) {
-                char c = texte.charAt(i);
-                if (etat == Etat.COMMENTAIRE) {
-                    int fermeture = trouver(texte, "*/", i);
-                    int fin = fermeture < 0 ? n : fermeture + 2;
-                    jetons.add(new Token(TokenKind.COMMENT, i, fin));
-                    i = fin;
+                char c = text.charAt(i);
+                if (etat == State.COMMENTAIRE) {
+                    int fermeture = find(text, "*/", i);
+                    int end = fermeture < 0 ? n : fermeture + 2;
+                    tokens.add(new Token(TokenKind.COMMENT, i, end));
+                    i = end;
                     if (fermeture >= 0) {
-                        etat = Etat.NORMAL;
+                        etat = State.NORMAL;
                     }
-                } else if (c == '/' && i + 1 < n && texte.charAt(i + 1) == '*') {
-                    etat = Etat.COMMENTAIRE;
-                    int resultat = lexCommentaire(texte, jetons, i);
+                } else if (c == '/' && i + 1 < n && text.charAt(i + 1) == '*') {
+                    etat = State.COMMENTAIRE;
+                    int resultat = lexCommentaire(text, tokens, i);
                     i = Math.abs(resultat);
                     if (resultat > 0) {
-                        etat = Etat.NORMAL;
+                        etat = State.NORMAL;
                     }
                 } else {
-                    i = lexSimple(texte, jetons, i);
+                    i = lexSimple(text, tokens, i);
                 }
             }
-            return new LexedLine(jetons.toArray(new Token[0]), etat);
+            return new LexedLine(tokens.toArray(new Token[0]), etat);
         }
 
-        private static int lexCommentaire(CharSequence texte, List<Token> jetons, int debut) {
-            int fermeture = trouver(texte, "*/", debut + 2);
-            int fin = fermeture < 0 ? texte.length() : fermeture + 2;
-            jetons.add(new Token(TokenKind.COMMENT, debut, fin));
-            return fermeture < 0 ? -fin : fin;
+        private static int lexCommentaire(CharSequence text, List<Token> tokens, int start) {
+            int fermeture = find(text, "*/", start + 2);
+            int end = fermeture < 0 ? text.length() : fermeture + 2;
+            tokens.add(new Token(TokenKind.COMMENT, start, end));
+            return fermeture < 0 ? -end : end;
         }
 
-        private static int lexSimple(CharSequence texte, List<Token> jetons, int i) {
-            char c = texte.charAt(i);
-            int n = texte.length();
+        private static int lexSimple(CharSequence text, List<Token> tokens, int i) {
+            char c = text.charAt(i);
+            int n = text.length();
             if (c == ' ' || c == '\t') {
                 return i + 1;
             }
             if (c == '"') {
-                return lexChaine(texte, jetons, i, n);
+                return lexChaine(text, tokens, i, n);
             }
             if (estOuvrant(c)) {
-                jetons.add(new Token(TokenKind.OPEN_BRACKET, i, i + 1));
+                tokens.add(new Token(TokenKind.OPEN_BRACKET, i, i + 1));
                 return i + 1;
             }
             if (estFermant(c)) {
-                jetons.add(new Token(TokenKind.CLOSE_BRACKET, i, i + 1));
+                tokens.add(new Token(TokenKind.CLOSE_BRACKET, i, i + 1));
                 return i + 1;
             }
-            return lexMot(texte, jetons, i, n);
+            return lexMot(text, tokens, i, n);
         }
 
-        private static int lexChaine(CharSequence texte, List<Token> jetons, int i, int n) {
-            int fin = i + 1;
-            while (fin < n && texte.charAt(fin) != '"') {
-                fin++;
+        private static int lexChaine(CharSequence text, List<Token> tokens, int i, int n) {
+            int end = i + 1;
+            while (end < n && text.charAt(end) != '"') {
+                end++;
             }
-            jetons.add(new Token(TokenKind.STRING, i, Math.min(fin + 1, n)));
-            return Math.min(fin + 1, n);
+            tokens.add(new Token(TokenKind.STRING, i, Math.min(end + 1, n)));
+            return Math.min(end + 1, n);
         }
 
-        private static int lexMot(CharSequence texte, List<Token> jetons, int i, int n) {
-            char c = texte.charAt(i);
+        private static int lexMot(CharSequence text, List<Token> tokens, int i, int n) {
+            char c = text.charAt(i);
             if (!Character.isLetter(c)) {
-                jetons.add(new Token(TokenKind.OPERATOR, i, i + 1));
+                tokens.add(new Token(TokenKind.OPERATOR, i, i + 1));
                 return i + 1;
             }
-            int debut = i;
-            while (i < n && Character.isLetter(texte.charAt(i))) {
+            int start = i;
+            while (i < n && Character.isLetter(text.charAt(i))) {
                 i++;
             }
-            jetons.add(new Token(TokenKind.IDENTIFIER, debut, i));
+            tokens.add(new Token(TokenKind.IDENTIFIER, start, i));
             return i;
         }
 
@@ -158,11 +158,11 @@ final class MiniLangage {
             return c == ')' || c == '}' || c == ']';
         }
 
-        private static int trouver(CharSequence texte, String motif, int depuis) {
-            for (int i = depuis; i + motif.length() <= texte.length(); i++) {
+        private static int find(CharSequence text, String pattern, int depuis) {
+            for (int i = depuis; i + pattern.length() <= text.length(); i++) {
                 boolean egale = true;
-                for (int j = 0; j < motif.length(); j++) {
-                    if (texte.charAt(i + j) != motif.charAt(j)) {
+                for (int j = 0; j < pattern.length(); j++) {
+                    if (text.charAt(i + j) != pattern.charAt(j)) {
                         egale = false;
                         break;
                     }
@@ -191,8 +191,8 @@ final class MiniLangage {
             if (slice.kind(index) != TokenKind.IDENTIFIER) {
                 return false;
             }
-            String texte = slice.text(index);
-            if (!"fn".equals(texte) && !"var".equals(texte)) {
+            String text = slice.text(index);
+            if (!"fn".equals(text) && !"var".equals(text)) {
                 return false;
             }
             if (index == 0) {
@@ -222,16 +222,16 @@ final class MiniLangage {
 
         private SynNode parseFonction(TokenSlice slice) {
             String nom = slice.size() > 1 ? slice.text(1) : null;
-            SynNode corps = parseCorps(slice, 2, slice.end(slice.size() - 1));
-            List<SynNode> enfantsCorps = corps.children();
-            int fin = enfantsCorps.isEmpty()
+            SynNode body = parseCorps(slice, 2, slice.end(slice.size() - 1));
+            List<SynNode> enfantsCorps = body.children();
+            int end = enfantsCorps.isEmpty()
                     ? slice.end(Math.min(1, slice.size() - 1))
                     : enfantsCorps.get(enfantsCorps.size() - 1).end();
             return SynNode.of(Sorte.FONCTION, NodeCategory.FUNCTION, 0,
-                    fin, new SynNode[] {corps}, nom, corps.isError());
+                    end, new SynNode[] {body}, nom, body.isError());
         }
 
-        private SynNode parseCorps(TokenSlice slice, int depuis, int fin) {
+        private SynNode parseCorps(TokenSlice slice, int depuis, int end) {
             List<SynNode> enfants = new java.util.ArrayList<>();
             boolean erreur = false;
             int i = depuis;
@@ -241,7 +241,7 @@ final class MiniLangage {
                     if (fermeture < 0) {
                         erreur = true;
                         enfants.add(SynNode.of(Sorte.ERREUR, NodeCategory.ERROR,
-                                slice.start(i), fin, new SynNode[0], null, true));
+                                slice.start(i), end, new SynNode[0], null, true));
                         i = slice.size();
                         break;
                     }
@@ -255,17 +255,17 @@ final class MiniLangage {
             }
             return SynNode.of(erreur ? Sorte.ERREUR : Sorte.AUTRE,
                     erreur ? NodeCategory.ERROR : NodeCategory.OTHER,
-                    depuis < slice.size() ? slice.start(depuis) : 0, fin,
+                    depuis < slice.size() ? slice.start(depuis) : 0, end,
                     enfants.toArray(new SynNode[0]), null, erreur);
         }
 
-        private SynNode[] corpsEnfants(TokenSlice slice, int depuis, int fin) {
+        private SynNode[] corpsEnfants(TokenSlice slice, int depuis, int end) {
             List<SynNode> imbriques = new java.util.ArrayList<>();
             int i = depuis;
-            while (i < fin) {
+            while (i < end) {
                 if (slice.kind(i) == TokenKind.OPEN_BRACKET && "{".equals(slice.text(i))) {
                     int fermeture = slice.matchOf(i);
-                    if (fermeture < 0 || fermeture >= fin) {
+                    if (fermeture < 0 || fermeture >= end) {
                         break;
                     }
                     imbriques.add(SynNode.of(Sorte.BLOC, NodeCategory.BLOCK,

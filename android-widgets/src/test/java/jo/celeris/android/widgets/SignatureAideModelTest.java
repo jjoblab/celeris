@@ -20,27 +20,27 @@ class SignatureAideModelTest {
     /** Le paramètre courant : sa plage dans le libellé, dans les bornes. */
     @Test
     void laPlageDuParametreCourant() {
-        SignatureAideModel modele = SignatureAideModel.of(
+        SignatureAideModel model = SignatureAideModel.of(
                 "ajouter(int a, int b)", List.of("a", "b"), 1);
-        assertEquals("ajouter(int a, int b)", modele.libelle());
-        assertEquals(1, modele.parametreCourant());
-        SignatureAideModel.Plage plage = modele.plageParametreCourant();
-        assertEquals(19, plage.debut());
-        assertEquals(20, plage.fin());
-        assertTrue(plage.debut() >= 0 && plage.fin() <= modele.libelle().length()
-                && plage.debut() <= plage.fin(), "la plage reste dans le libelle");
+        assertEquals("ajouter(int a, int b)", model.label());
+        assertEquals(1, model.parametreCourant());
+        SignatureAideModel.Plage range = model.plageParametreCourant();
+        assertEquals(19, range.start());
+        assertEquals(20, range.end());
+        assertTrue(range.start() >= 0 && range.end() <= model.label().length()
+                && range.start() <= range.end(), "la plage reste dans le libelle");
         // le texte souligné est le paramètre lui-même
-        assertEquals("b", modele.libelle().substring(plage.debut(), plage.fin()));
+        assertEquals("b", model.label().substring(range.start(), range.end()));
     }
 
     /** Les doublons : la recherche est séquentielle, le second « a » gagne. */
     @Test
     void lesDoublonsCherchesDansLOrdre() {
-        SignatureAideModel modele = SignatureAideModel.of(
+        SignatureAideModel model = SignatureAideModel.of(
                 "regler(int a, int a)", List.of("a", "a"), 1);
-        SignatureAideModel.Plage plage = modele.plageParametreCourant();
-        assertEquals(18, plage.debut());
-        assertEquals("a", modele.libelle().substring(plage.debut(), plage.fin()));
+        SignatureAideModel.Plage range = model.plageParametreCourant();
+        assertEquals(18, range.start());
+        assertEquals("a", model.label().substring(range.start(), range.end()));
     }
 
     /** Le paramètre courant BORNÉ : au-delà de l'arité, le dernier ; négatif, aucun. */
@@ -61,20 +61,20 @@ class SignatureAideModelTest {
     /** Le paramètre introuvable dans le libellé : aucune plage, jamais inventée. */
     @Test
     void leParametreIntrouvable() {
-        SignatureAideModel modele = SignatureAideModel.of(
+        SignatureAideModel model = SignatureAideModel.of(
                 "ajouter(premier, second)", List.of("a", "b"), 0);
-        assertNull(modele.plageParametreCourant(), "aucune plage inventee");
+        assertNull(model.plageParametreCourant(), "aucune plage inventee");
     }
 
     // ------------------------------------------------------- riche (C7)
 
     private static SignatureAideModel troisSurcharges() {
         return SignatureAideModel.of(List.of(
-                new SignatureAideModel.Entree("ajouter(int a, int b)",
+                new SignatureAideModel.Entry("ajouter(int a, int b)",
                         List.of("a", "b"), "Ajoute deux entiers."),
-                new SignatureAideModel.Entree("ajouter(int a, int b, int c)",
+                new SignatureAideModel.Entry("ajouter(int a, int b, int c)",
                         List.of("a", "b", "c"), "Ajoute trois entiers."),
-                new SignatureAideModel.Entree("ajouter(String a, String b)",
+                new SignatureAideModel.Entry("ajouter(String a, String b)",
                         List.of("a", "b"), "Concatène deux chaînes.")),
                 1, 2);
     }
@@ -82,33 +82,33 @@ class SignatureAideModelTest {
     /** Le stepper : la suivante avance, la précédente recule, le cycle revient. */
     @Test
     void leStepperCycle() {
-        SignatureAideModel modele = troisSurcharges();
-        assertEquals(3, modele.nombreSignatures());
-        assertEquals(1, modele.signatureActive());
-        assertEquals("ajouter(int a, int b, int c)", modele.libelle());
+        SignatureAideModel model = troisSurcharges();
+        assertEquals(3, model.nombreSignatures());
+        assertEquals(1, model.signatureActive());
+        assertEquals("ajouter(int a, int b, int c)", model.label());
         assertEquals("ajouter(String a, String b)",
-                modele.suivante().libelle());
+                model.suivante().label());
         // la dernière rend la première — le cycle, jamais bloqué
         assertEquals("ajouter(int a, int b)",
-                modele.suivante().suivante().libelle());
+                model.suivante().suivante().label());
         // depuis la première, la précédente rend la dernière
         assertEquals("ajouter(String a, String b)",
-                modele.suivante().suivante().precedente().libelle());
+                model.suivante().suivante().precedente().label());
     }
 
     /** La fenêtre ±1 : l'active et ses voisines d'un cran, moins aux bords. */
     @Test
     void laFenetreBorneeAUnCran() {
-        SignatureAideModel modele = troisSurcharges();
-        List<SignatureAideModel.Entree> fenetre = modele.fenetre();
-        assertEquals(3, fenetre.size());
-        assertEquals("ajouter(int a, int b)", fenetre.get(0).libelle());
-        assertEquals(modele.libelle(), fenetre.get(1).libelle());
-        assertEquals("ajouter(String a, String b)", fenetre.get(2).libelle());
+        SignatureAideModel model = troisSurcharges();
+        List<SignatureAideModel.Entry> window = model.window();
+        assertEquals(3, window.size());
+        assertEquals("ajouter(int a, int b)", window.get(0).label());
+        assertEquals(model.label(), window.get(1).label());
+        assertEquals("ajouter(String a, String b)", window.get(2).label());
         // au bord bas : la fenêtre rétrécit
-        assertEquals(2, modele.suivante().fenetre().size());
+        assertEquals(2, model.suivante().window().size());
         // au bord haut : la fenêtre rétrécit aussi
-        assertEquals(2, modele.precedente().precedente().fenetre().size());
+        assertEquals(2, model.precedente().precedente().window().size());
     }
 
     /** Le peek : la documentation de la signature active, jamais inventée. */
@@ -124,15 +124,15 @@ class SignatureAideModelTest {
     /** Le paramètre courant suit l'active du stepper, borné à son arité. */
     @Test
     void leParametreCourantSuitLePas() {
-        SignatureAideModel modele = troisSurcharges();
+        SignatureAideModel model = troisSurcharges();
         // trois paramètres à l'active : l'index 2 tient
-        assertEquals(2, modele.parametreCourant());
+        assertEquals(2, model.parametreCourant());
         // deux paramètres à la suivante : l'index retombe au dernier
-        assertEquals(1, modele.suivante().parametreCourant());
+        assertEquals(1, model.suivante().parametreCourant());
         // la plage du paramètre courant se lit sur la NOUVELLE active
-        assertEquals("b", modele.suivante().libelle()
-                .substring(modele.suivante().plageParametreCourant().debut(),
-                        modele.suivante().plageParametreCourant().fin()));
+        assertEquals("b", model.suivante().label()
+                .substring(model.suivante().plageParametreCourant().start(),
+                        model.suivante().plageParametreCourant().end()));
     }
 
     /** Sans entrée, le modèle refuse d'exception ; l'active négative retombe à la première. */
@@ -142,12 +142,12 @@ class SignatureAideModelTest {
                 IllegalArgumentException.class,
                 () -> SignatureAideModel.of(List.of(), 0, 0));
         SignatureAideModel premiere = SignatureAideModel.of(List.of(
-                new SignatureAideModel.Entree("a()", List.of(), null),
-                new SignatureAideModel.Entree("b()", List.of(), null)),
+                new SignatureAideModel.Entry("a()", List.of(), null),
+                new SignatureAideModel.Entry("b()", List.of(), null)),
                 -3, 0);
         assertEquals(0, premiere.signatureActive());
         SignatureAideModel auDela = SignatureAideModel.of(List.of(
-                new SignatureAideModel.Entree("a()", List.of(), null)),
+                new SignatureAideModel.Entry("a()", List.of(), null)),
                 9, 0);
         assertEquals(0, auDela.signatureActive());
     }

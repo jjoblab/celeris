@@ -18,7 +18,7 @@ import jo.celeris.core.text.TextSession;
  */
 class XmlLinkedTagsTest {
 
-    private Optional<EditPlan> frappe(String source, String designation, String ch) {
+    private Optional<EditPlan> keystroke(String source, String designation, String ch) {
         int caret = source.indexOf(designation) + designation.length();
         return XmlLinkedTags.typeChar(Document.of(source), caret, ch);
     }
@@ -27,7 +27,7 @@ class XmlLinkedTagsTest {
     @Test
     void laFrappeSeReflete() {
         String source = "<catalogue>\n    <livre></livre>\n</catalogue>\n";
-        Optional<EditPlan> plan = frappe(source, "<livre", "s");
+        Optional<EditPlan> plan = keystroke(source, "<livre", "s");
         assertTrue(plan.isPresent(), "la liaison vit");
         TextSession session = TextSession.of(source, System::nanoTime);
         session.apply(plan.get().transaction());
@@ -41,7 +41,7 @@ class XmlLinkedTagsTest {
     @Test
     void laFrappeAuMilieuSeReflete() {
         String source = "<liste>\n    <element>texte</element>\n</liste>\n";
-        Optional<EditPlan> plan = frappe(source, "<ele", "v");
+        Optional<EditPlan> plan = keystroke(source, "<ele", "v");
         assertTrue(plan.isPresent());
         TextSession session = TextSession.of(source, System::nanoTime);
         session.apply(plan.get().transaction());
@@ -65,7 +65,7 @@ class XmlLinkedTagsTest {
     @Test
     void lesHomonymesImbriques() {
         String source = "<a><a></a></a>";
-        Optional<EditPlan> plan = frappe(source, "<a", "b");
+        Optional<EditPlan> plan = keystroke(source, "<a", "b");
         assertTrue(plan.isPresent());
         TextSession session = TextSession.of(source, System::nanoTime);
         session.apply(plan.get().transaction());
@@ -73,7 +73,7 @@ class XmlLinkedTagsTest {
                 "la fermante APPARIÉE (la dernière) suit, l'homonyme imbriqué reste");
 
         String autofermante = "<a><a/></a>";
-        plan = frappe(autofermante, "<a", "b");
+        plan = keystroke(autofermante, "<a", "b");
         assertTrue(plan.isPresent());
         session = TextSession.of(autofermante, System::nanoTime);
         session.apply(plan.get().transaction());
@@ -105,7 +105,7 @@ class XmlLinkedTagsTest {
     @Test
     void lesCommentairesSeSautent() {
         String source = "<a><!-- <a></a> --><![CDATA[ </a> ]]></a>";
-        Optional<EditPlan> plan = frappe(source, "<a", "b");
+        Optional<EditPlan> plan = keystroke(source, "<a", "b");
         assertTrue(plan.isPresent(), "la fermante réelle s'apparie au-delà du commentaire");
         TextSession session = TextSession.of(source, System::nanoTime);
         session.apply(plan.get().transaction());

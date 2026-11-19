@@ -50,7 +50,7 @@ public final class TreeSitterLanguages {
      *
      * @param id l'identifiant du langage
      */
-    public static void oublier(String id) {
+    public static void forget(String id) {
         SYNTAXES.remove(id);
     }
 

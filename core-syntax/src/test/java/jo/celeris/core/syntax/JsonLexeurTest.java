@@ -18,27 +18,27 @@ class JsonLexeurTest {
 
     private final LanguageLexer lexeur = JsonSyntax.INSTANCE.lexer();
 
-    private Token[] lex(String ligne) {
-        return lexeur.lex(ligne, lexeur.initialState()).tokens();
+    private Token[] lex(String line) {
+        return lexeur.lex(line, lexeur.initialState()).tokens();
     }
 
     /** Les chaînes se fermement, échappements compris. */
     @Test
     void chainesEchappees() {
-        Token[] jetons = lex("\"clé\": \"a\\\"b\\\\c\"");
-        assertEquals(TokenKind.STRING, jetons[0].kind());
-        assertEquals(5, jetons[0].length());
-        assertEquals(TokenKind.PUNCTUATION, jetons[1].kind());
-        assertEquals(TokenKind.STRING, jetons[2].kind());
-        assertEquals(9, jetons[2].length(), "les échappements restent dans la chaîne");
+        Token[] tokens = lex("\"clé\": \"a\\\"b\\\\c\"");
+        assertEquals(TokenKind.STRING, tokens[0].kind());
+        assertEquals(5, tokens[0].length());
+        assertEquals(TokenKind.PUNCTUATION, tokens[1].kind());
+        assertEquals(TokenKind.STRING, tokens[2].kind());
+        assertEquals(9, tokens[2].length(), "les échappements restent dans la chaîne");
     }
 
     /** Le tiret seul en fin de ligne ne dépasse jamais la ligne : la fin
      * du jeton reste dans les bornes, la frappe en cours se digère. */
     @Test
     void tiretSeulEnFinDeLigne() {
-        Token[] jetons = lex("[ 1, -");
-        Token dernier = jetons[jetons.length - 1];
+        Token[] tokens = lex("[ 1, -");
+        Token dernier = tokens[tokens.length - 1];
         assertEquals(TokenKind.NUMBER, dernier.kind());
         assertEquals(6, dernier.end(),
                 "le tiret seul ferme le jeton à la fin de la ligne, pas au-delà");
@@ -68,12 +68,12 @@ class JsonLexeurTest {
     /** Accolades et crochets appariés, ponctuation deux-points et virgule. */
     @Test
     void crochetsEtPonctuation() {
-        Token[] jetons = lex("{ \"a\": [1, 2] }");
-        assertEquals(TokenKind.OPEN_BRACKET, jetons[0].kind());
-        assertEquals(TokenKind.PUNCTUATION, jetons[2].kind(), "le deux-points");
-        assertEquals(TokenKind.PUNCTUATION, jetons[5].kind(), "la virgule");
-        assertEquals(TokenKind.CLOSE_BRACKET, jetons[7].kind(), "le crochet fermant");
-        assertEquals(TokenKind.CLOSE_BRACKET, jetons[8].kind(), "l'accolade fermante");
+        Token[] tokens = lex("{ \"a\": [1, 2] }");
+        assertEquals(TokenKind.OPEN_BRACKET, tokens[0].kind());
+        assertEquals(TokenKind.PUNCTUATION, tokens[2].kind(), "le deux-points");
+        assertEquals(TokenKind.PUNCTUATION, tokens[5].kind(), "la virgule");
+        assertEquals(TokenKind.CLOSE_BRACKET, tokens[7].kind(), "le crochet fermant");
+        assertEquals(TokenKind.CLOSE_BRACKET, tokens[8].kind(), "l'accolade fermante");
     }
 
     /** Une chaîne non fermée donne un jeton ERROR, pas d'exception. */

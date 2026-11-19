@@ -60,11 +60,11 @@ public final class SurroundingTexts {
             int after) {
         int avant = Math.max(0, before);
         int apres = Math.max(0, after);
-        int debut = Math.max(0, primary.start() - avant);
-        int fin = Math.min(document.length(), primary.end() + apres);
-        String texte = document.subText(debut, fin);
-        return new Window(texte, primary.start() - debut,
-                primary.end() - debut, debut);
+        int start = Math.max(0, primary.start() - avant);
+        int end = Math.min(document.length(), primary.end() + apres);
+        String text = document.subText(start, end);
+        return new Window(text, primary.start() - start,
+                primary.end() - start, start);
     }
 
     /**
@@ -82,13 +82,13 @@ public final class SurroundingTexts {
      */
     public static Deletion deleteAround(Document document, SelRange primary,
             int before, int after, boolean codePoints) {
-        int debut = recule(document, primary.start(), Math.max(0, before),
+        int start = recule(document, primary.start(), Math.max(0, before),
                 codePoints);
-        int fin = avance(document, primary.end(), Math.max(0, after),
+        int end = avance(document, primary.end(), Math.max(0, after),
                 codePoints);
-        debut = CompositionState.debutDeCluster(document, debut);
-        fin = CompositionState.finDeCluster(document, fin);
-        return new Deletion(debut, fin);
+        start = CompositionState.debutDeCluster(document, start);
+        end = CompositionState.finDeCluster(document, end);
+        return new Deletion(start, end);
     }
 
     /** Recule de n unités ou n points de code, borné au début. */
@@ -111,9 +111,9 @@ public final class SurroundingTexts {
     private static int avance(Document document, int from, int n,
             boolean codePoints) {
         int position = from;
-        int longueur = document.length();
-        for (int i = 0; i < n && position < longueur; i++) {
-            if (codePoints && position + 1 < longueur
+        int length = document.length();
+        for (int i = 0; i < n && position < length; i++) {
+            if (codePoints && position + 1 < length
                     && Character.isHighSurrogate(document.charAt(position))
                     && Character.isLowSurrogate(document.charAt(position + 1))) {
                 position += 2;
@@ -121,6 +121,6 @@ public final class SurroundingTexts {
                 position += 1;
             }
         }
-        return Math.min(longueur, position);
+        return Math.min(length, position);
     }
 }

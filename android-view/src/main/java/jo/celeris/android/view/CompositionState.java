@@ -84,9 +84,9 @@ public final class CompositionState {
      */
     public Plan planComposing(Document document, SelRange primary, String text,
             int newCursor) {
-        int debut = composing ? spanStart : primary.start();
-        int fin = composing ? spanEnd : primary.end();
-        return plan(debut, fin, text, newCursor, true, document);
+        int start = composing ? spanStart : primary.start();
+        int end = composing ? spanEnd : primary.end();
+        return plan(start, end, text, newCursor, true, document);
     }
 
     /**
@@ -101,9 +101,9 @@ public final class CompositionState {
      */
     public Plan planCommit(Document document, SelRange primary, String text,
             int newCursor) {
-        int debut = composing ? spanStart : primary.start();
-        int fin = composing ? spanEnd : primary.end();
-        return plan(debut, fin, text, newCursor, false, document);
+        int start = composing ? spanStart : primary.start();
+        int end = composing ? spanEnd : primary.end();
+        return plan(start, end, text, newCursor, false, document);
     }
 
     /**
@@ -141,12 +141,12 @@ public final class CompositionState {
         if (!composing || spanStart >= spanEnd) {
             return null;
         }
-        int fin = spanEnd;
+        int end = spanEnd;
         // Le cluster qui FINIT à la borne : sa frontière de début est
         // strictement avant elle — debutDeCluster à la borne même
         // renverrait la borne (elle est une frontière).
-        int debut = debutDeCluster(document, fin - 1);
-        return new Plan(debut, fin, "", debut, true, spanStart, debut);
+        int start = debutDeCluster(document, end - 1);
+        return new Plan(start, end, "", start, true, spanStart, start);
     }
 
     /**
@@ -167,25 +167,25 @@ public final class CompositionState {
         spanEnd = 0;
     }
 
-    private Plan plan(int debut, int fin, String text, int newCursor,
+    private Plan plan(int start, int end, String text, int newCursor,
             boolean composingApres, Document document) {
-        int nouvelleFin = debut + text.length();
-        int nouvelleLongueur = document.length() - (fin - debut) + text.length();
-        int curseur;
+        int nouvelleFin = start + text.length();
+        int nouvelleLongueur = document.length() - (end - start) + text.length();
+        int cursor;
         if (newCursor > 0) {
-            curseur = nouvelleFin + newCursor - 1;
+            cursor = nouvelleFin + newCursor - 1;
         } else {
-            curseur = debut + newCursor;
+            cursor = start + newCursor;
         }
-        curseur = Math.max(0, Math.min(curseur, nouvelleLongueur));
-        int nouveauDebut = composingApres ? debut : 0;
+        cursor = Math.max(0, Math.min(cursor, nouvelleLongueur));
+        int nouveauDebut = composingApres ? start : 0;
         int nouvelleFinSpan = composingApres ? nouvelleFin : 0;
-        return new Plan(debut, fin, text, curseur, composingApres,
+        return new Plan(start, end, text, cursor, composingApres,
                 nouveauDebut, nouvelleFinSpan);
     }
 
-    private static int borne(int valeur, long maximum) {
-        return (int) Math.max(0, Math.min(valeur, maximum));
+    private static int borne(int value, long maximum) {
+        return (int) Math.max(0, Math.min(value, maximum));
     }
 
     /**
@@ -200,10 +200,10 @@ public final class CompositionState {
         if (offset <= 0) {
             return 0;
         }
-        int fenetre = 64;
+        int window = 64;
         for (;;) {
-            int bas = Math.max(0, offset - fenetre);
-            int haut = Math.min(document.length(), offset + fenetre);
+            int bas = Math.max(0, offset - window);
+            int haut = Math.min(document.length(), offset + window);
             int candidate = -1;
             for (int frontiere : frontieresFiables(document, bas, haut)) {
                 if (frontiere <= offset) {
@@ -216,7 +216,7 @@ public final class CompositionState {
             if (bas == 0 && haut == document.length()) {
                 return 0;
             }
-            fenetre *= 2;
+            window *= 2;
         }
     }
 
@@ -227,23 +227,23 @@ public final class CompositionState {
      * machine.
      */
     static int finDeCluster(Document document, int offset) {
-        int longueur = document.length();
-        if (offset >= longueur) {
-            return longueur;
+        int length = document.length();
+        if (offset >= length) {
+            return length;
         }
-        int fenetre = 64;
+        int window = 64;
         for (;;) {
-            int bas = Math.max(0, offset - fenetre);
-            int haut = Math.min(longueur, offset + fenetre);
+            int bas = Math.max(0, offset - window);
+            int haut = Math.min(length, offset + window);
             for (int frontiere : frontieresFiables(document, bas, haut)) {
                 if (frontiere >= offset) {
                     return frontiere;
                 }
             }
-            if (bas == 0 && haut == longueur) {
-                return longueur;
+            if (bas == 0 && haut == length) {
+                return length;
             }
-            fenetre *= 2;
+            window *= 2;
         }
     }
 

@@ -36,12 +36,12 @@ public final class TypingRules {
     public static TypingRules of(LanguageConfiguration configuration) {
         Map<Character, Character> paires = new LinkedHashMap<>();
         Map<Character, Character> citations = new LinkedHashMap<>();
-        for (LanguageConfiguration.AutoClosePair paire
+        for (LanguageConfiguration.AutoClosePair pair
                 : configuration.effectiveAutoClosingPairs()) {
-            if (paire.open() == paire.close()) {
-                citations.put(paire.open(), paire.close());
+            if (pair.open() == pair.close()) {
+                citations.put(pair.open(), pair.close());
             } else {
-                paires.put(paire.open(), paire.close());
+                paires.put(pair.open(), pair.close());
             }
         }
         return new TypingRules(Map.copyOf(paires), Map.copyOf(citations));

@@ -28,9 +28,9 @@ import jo.celeris.core.text.TextSession;
 public class EpissureCacheTest {
 
     /** Le montage du banc : une vue sur son harnais, la vue mesurée. */
-    private EditorTestRig banc(String texte) {
-        EditorTestRig rig = EditorTestRig.sur(
-                RuntimeEnvironment.getApplication(), texte);
+    private EditorTestRig banc(String text) {
+        EditorTestRig rig = EditorTestRig.on(
+                RuntimeEnvironment.getApplication(), text);
         rig.vue().layout(0, 0, 1080, 1920);
         return rig;
     }
@@ -125,11 +125,11 @@ public class EpissureCacheTest {
                 plafond <= 512);
         // La voie de dépôt elle-même borne : 2000 dépôts ne font
         // jamais plus de 512 entrées.
-        FontSpec police = vue.metrics.font();
+        FontSpec font = vue.metrics.font();
         RowLayout gabarit = new RowLayout(0, 0, 5, "alpha",
                 50f, java.util.List.of(), java.util.List.of());
         for (int i = 0; i < 2000; i++) {
-            vue.cache.store(new RowKey(i, i, 1, police), gabarit);
+            vue.cache.store(new RowKey(i, i, 1, font), gabarit);
         }
         assertTrue("le plafond tient : " + vue.cache.size(),
                 vue.cache.size() <= 512);

@@ -27,10 +27,10 @@ public class ScrollFractionTest {
         contexte = RuntimeEnvironment.getApplication();
     }
 
-    /** Un texte de {@code lignes} lignes courtes. */
-    private static String texte(int lignes) {
-        StringBuilder contenu = new StringBuilder(lignes * 3);
-        for (int i = 0; i < lignes; i++) {
+    /** Un texte de {@code lines} lignes courtes. */
+    private static String text(int lines) {
+        StringBuilder contenu = new StringBuilder(lines * 3);
+        for (int i = 0; i < lines; i++) {
             if (i > 0) {
                 contenu.append('\n');
             }
@@ -45,7 +45,7 @@ public class ScrollFractionTest {
      */
     @Test
     public void fractionSeLitEtLeDefilementBorne() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, texte(200));
+        EditorTestRig banc = EditorTestRig.on(contexte, text(200));
         EditorView vue = banc.vue();
         // la première image pose les métriques : la course se mesure après
         banc.image();
@@ -59,7 +59,7 @@ public class ScrollFractionTest {
         assertEquals("la moitié défile à la moitié", 0.5f,
                 vue.scrollFractionY(), 0.15f);
         assertTrue("la premiere ligne visible a suivi",
-                vue.premiereLigneVisible() > 0);
+                vue.firstVisibleLine() > 0);
         // hors des bornes : la fraction se borne aux extrêmes
         vue.scrollToFractionY(-5f);
         banc.image();
@@ -74,21 +74,21 @@ public class ScrollFractionTest {
     /** Les lignes visibles se lisent — au moins une, la première suit le défilement. */
     @Test
     public void lignesVisiblesSeLivsent() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, texte(200));
+        EditorTestRig banc = EditorTestRig.on(contexte, text(200));
         EditorView vue = banc.vue();
         banc.image();
-        assertTrue("au moins une ligne visible", vue.lignesVisibles() >= 1);
-        int avant = vue.premiereLigneVisible();
+        assertTrue("au moins une ligne visible", vue.visibleLines() >= 1);
+        int avant = vue.firstVisibleLine();
         vue.scrollToFractionY(1f);
         banc.image();
         assertTrue("le pied descend la premiere ligne visible",
-                vue.premiereLigneVisible() >= avant);
+                vue.firstVisibleLine() >= avant);
     }
 
     /** Un document qui tient : la fraction reste nulle, la part visible entière. */
     @Test
     public void documentQuiTientResteNul() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "seule\nligne");
+        EditorTestRig banc = EditorTestRig.on(contexte, "seule\nligne");
         EditorView vue = banc.vue();
         banc.image();
         assertEquals("tout tient : fraction nulle", 0f,

@@ -95,10 +95,10 @@ public final class TreeFolds {
                                   List<FoldSpan> regions) {
         NodeCategory categorie = noeud.category();
         if (pliable(categorie)) {
-            int debut = doc.lineForOffset(base + noeud.start());
-            int fin = doc.lineForOffset(base + noeud.end() - 1);
-            if (fin > debut) {
-                regions.add(new FoldSpan(debut, fin));
+            int start = doc.lineForOffset(base + noeud.start());
+            int end = doc.lineForOffset(base + noeud.end() - 1);
+            if (end > start) {
+                regions.add(new FoldSpan(start, end));
             }
         }
         for (SynNode enfant : noeud.children()) {
@@ -122,25 +122,25 @@ public final class TreeFolds {
                                                 List<FoldSpan> regions) {
         int ligneOuverture = -1;
         boolean ouvertureEditorFold = false;
-        for (int ligne = 0; ligne < lex.lineCount(); ligne++) {
-            String texte = texteCommentaire(doc, lex, ligne);
-            if (texte == null) {
+        for (int line = 0; line < lex.lineCount(); line++) {
+            String text = texteCommentaire(doc, lex, line);
+            if (text == null) {
                 continue;
             }
-            String epuree = texte.trim();
+            String epuree = text.trim();
             if (ligneOuverture < 0) {
                 if (epuree.startsWith("region ") || epuree.equals("region")) {
-                    ligneOuverture = ligne;
+                    ligneOuverture = line;
                     ouvertureEditorFold = false;
                 } else if (epuree.startsWith("<editor-fold")) {
-                    ligneOuverture = ligne;
+                    ligneOuverture = line;
                     ouvertureEditorFold = true;
                 }
             } else if (ouvertureEditorFold
                     ? epuree.startsWith("</editor-fold")
                     : epuree.startsWith("endregion")) {
-                if (ligne > ligneOuverture + 1) {
-                    regions.add(new FoldSpan(ligneOuverture, ligne));
+                if (line > ligneOuverture + 1) {
+                    regions.add(new FoldSpan(ligneOuverture, line));
                 }
                 ligneOuverture = -1;
             }
@@ -157,22 +157,22 @@ public final class TreeFolds {
                                          List<FoldSpan> regions) {
         int premiere = -1;
         int derniere = -1;
-        for (int ligne = 0; ligne < lex.lineCount(); ligne++) {
+        for (int line = 0; line < lex.lineCount(); line++) {
             boolean ligneImport = false;
-            for (Token jeton : lex.line(ligne).tokens()) {
-                int debutLigne = doc.lineStart(ligne);
-                if (jeton.kind() == TokenKind.KEYWORD && "import".equals(
-                        doc.subText(debutLigne + jeton.start(),
-                                debutLigne + jeton.end()))) {
+            for (Token token : lex.line(line).tokens()) {
+                int lineStart = doc.lineStart(line);
+                if (token.kind() == TokenKind.KEYWORD && "import".equals(
+                        doc.subText(lineStart + token.start(),
+                                lineStart + token.end()))) {
                     ligneImport = true;
                 }
                 break;
             }
             if (ligneImport) {
                 if (premiere < 0) {
-                    premiere = ligne;
+                    premiere = line;
                 }
-                derniere = ligne;
+                derniere = line;
             } else if (premiere >= 0) {
                 if (derniere > premiere) {
                     regions.add(new FoldSpan(premiere, derniere));
@@ -189,17 +189,17 @@ public final class TreeFolds {
     /** Le texte d'un commentaire {@code //} de la ligne, null si la
      *  ligne n'en porte pas — la matière des régions nommées. */
     private static @org.jspecify.annotations.Nullable String texteCommentaire(
-            Document doc, LexDocument lex, int ligne) {
+            Document doc, LexDocument lex, int line) {
         // les bornes du jeton sont RELATIVES À SA LIGNE (contrat
         // Token) : la lecture du document part du début de ligne
-        int debutLigne = doc.lineStart(ligne);
-        for (Token jeton : lex.line(ligne).tokens()) {
-            if (jeton.kind() == TokenKind.COMMENT) {
-                String texte = doc.subText(debutLigne + jeton.start(),
-                        debutLigne + jeton.end());
+        int lineStart = doc.lineStart(line);
+        for (Token token : lex.line(line).tokens()) {
+            if (token.kind() == TokenKind.COMMENT) {
+                String text = doc.subText(lineStart + token.start(),
+                        lineStart + token.end());
                 // la matière de la région vit APRÈS les barres : le
                 // commentaire « // region X » se lit « region X »
-                return texte.startsWith("//") ? texte.substring(2) : texte;
+                return text.startsWith("//") ? text.substring(2) : text;
             }
         }
         return null;
@@ -207,26 +207,26 @@ public final class TreeFolds {
 
     private static void collecterCommentaires(LexDocument lex,
                                               List<FoldSpan> regions) {
-        int ligneDebut = -1;
-        for (int ligne = 0; ligne < lex.lineCount(); ligne++) {
+        int startLine = -1;
+        for (int line = 0; line < lex.lineCount(); line++) {
             boolean commentaire = false;
-            for (Token jeton : lex.line(ligne).tokens()) {
-                if (jeton.kind() == TokenKind.COMMENT || jeton.kind() == TokenKind.DOC) {
+            for (Token token : lex.line(line).tokens()) {
+                if (token.kind() == TokenKind.COMMENT || token.kind() == TokenKind.DOC) {
                     commentaire = true;
                     break;
                 }
             }
-            if (commentaire && ligneDebut < 0) {
-                ligneDebut = ligne;
-            } else if (!commentaire && ligneDebut >= 0) {
-                if (ligne - 1 > ligneDebut) {
-                    regions.add(new FoldSpan(ligneDebut, ligne - 1));
+            if (commentaire && startLine < 0) {
+                startLine = line;
+            } else if (!commentaire && startLine >= 0) {
+                if (line - 1 > startLine) {
+                    regions.add(new FoldSpan(startLine, line - 1));
                 }
-                ligneDebut = -1;
+                startLine = -1;
             }
         }
-        if (ligneDebut >= 0 && lex.lineCount() - 1 > ligneDebut) {
-            regions.add(new FoldSpan(ligneDebut, lex.lineCount() - 1));
+        if (startLine >= 0 && lex.lineCount() - 1 > startLine) {
+            regions.add(new FoldSpan(startLine, lex.lineCount() - 1));
         }
     }
 }

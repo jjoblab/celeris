@@ -32,13 +32,13 @@ public final class AnalyseurProblemes {
     /**
      * Parse la sortie de build, ligne à ligne.
      *
-     * @param sortie la sortie brute du build, multi-lignes
+     * @param output la sortie brute du build, multi-lignes
      * @return les diagnostics dans l'ordre de la sortie, vide si rien
      */
-    public static List<DiagnosticHote> parser(String sortie) {
-        List<DiagnosticHote> diagnostiques = new ArrayList<>();
-        for (String ligne : sortie.split("\n", -1)) {
-            DiagnosticHote diagnostic = convertir(ligne.strip());
+    public static List<HostDiagnostic> parser(String output) {
+        List<HostDiagnostic> diagnostiques = new ArrayList<>();
+        for (String line : output.split("\n", -1)) {
+            HostDiagnostic diagnostic = convertir(line.strip());
             if (diagnostic != null) {
                 diagnostiques.add(diagnostic);
             }
@@ -46,29 +46,29 @@ public final class AnalyseurProblemes {
         return diagnostiques;
     }
 
-    private static @Nullable DiagnosticHote convertir(String ligne) {
-        Matcher complete = FORME_COMPLETE.matcher(ligne);
+    private static @Nullable HostDiagnostic convertir(String line) {
+        Matcher complete = FORME_COMPLETE.matcher(line);
         if (complete.matches()) {
-            return new DiagnosticHote(
-                    CheminDoc.de("/" + complete.group(1).strip()),
+            return new HostDiagnostic(
+                    CheminDoc.of("/" + complete.group(1).strip()),
                     Integer.parseInt(complete.group(2)),
                     Integer.parseInt(complete.group(3)),
-                    gravite(complete.group(4)),
+                    severity(complete.group(4)),
                     complete.group(5).strip());
         }
-        Matcher courte = FORME_COURTE.matcher(ligne);
+        Matcher courte = FORME_COURTE.matcher(line);
         if (courte.matches()) {
-            return new DiagnosticHote(
-                    CheminDoc.de("/" + courte.group(1).strip()),
+            return new HostDiagnostic(
+                    CheminDoc.of("/" + courte.group(1).strip()),
                     Integer.parseInt(courte.group(2)),
                     0,
-                    gravite(courte.group(3)),
+                    severity(courte.group(3)),
                     courte.group(4).strip());
         }
         return null;
     }
 
-    private static GraviteDiagnostic gravite(String ecrite) {
+    private static GraviteDiagnostic severity(String ecrite) {
         return switch (ecrite.strip()) {
             case "error" -> GraviteDiagnostic.ERREUR;
             case "warning" -> GraviteDiagnostic.AVERTISSEMENT;

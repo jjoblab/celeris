@@ -35,10 +35,10 @@ import org.jspecify.annotations.Nullable;
  */
 public final class VisualProjection {
 
-    private final FoldModel plis;
+    private final FoldModel folds;
     private final int lineCount;
     private final int colonnes;
-    private int[] rangneesAvantLigne;
+    private int[] rowsBeforeLine;
     private final @Nullable int[] longueurs;
     /** Les indentations de tête par ligne (B-05) : les rangées de
      *  suite démarrent à l'indentation de leur ligne — le budget
@@ -49,7 +49,7 @@ public final class VisualProjection {
      *  défilement horizontal le relit à CHAQUE trame (B-08, l'analyse
      *  croisée) — le recalcul balayait tout le tableau à chaque
      *  frappe. Zéro quand les longueurs ne sont pas connues. */
-    private int plusLargeLigne;
+    private int widestLine;
 
     /**
      * Construit la projection héritée, sans longueurs connues : une
@@ -83,13 +83,13 @@ public final class VisualProjection {
             throw new IllegalArgumentException("negative line count: " + lineCount);
         }
         this.lineCount = lineCount;
-        this.plis = folds;
+        this.folds = folds;
         this.longueurs = longueurs;
         this.indents = longueurs != null && columns > 0 && document != null
                 ? indentsDe(document, columns) : null;
         this.colonnes = columns;
-        this.plusLargeLigne = maxDes(longueurs);
-        this.rangneesAvantLigne = batirPrefixe(lineCount, longueurs,
+        this.widestLine = maxDes(longueurs);
+        this.rowsBeforeLine = batirPrefixe(lineCount, longueurs,
                 indents, columns);
     }
 
@@ -121,7 +121,7 @@ public final class VisualProjection {
     public VisualProjection splice(Document document, int premiereLigne,
             int deltaLignes) {
         if (longueurs == null || colonnes <= 0) {
-            return new VisualProjection(document, plis, 0);
+            return new VisualProjection(document, folds, 0);
         }
         int nombreNeuf = document.lineCount();
         int[] longueursNeuves = new int[nombreNeuf];
@@ -135,32 +135,32 @@ public final class VisualProjection {
         // sur le document édité — un seul passage sur les lignes
         // restantes, jamais le document entier.
         int plafond = Math.max(1, colonnes / 2);
-        for (int ligne = borne; ligne < nombreNeuf; ligne++) {
-            int debut = document.lineStart(ligne);
-            int fin = document.lineEnd(ligne);
-            longueursNeuves[ligne] = fin - debut;
+        for (int line = borne; line < nombreNeuf; line++) {
+            int start = document.lineStart(line);
+            int end = document.lineEnd(line);
+            longueursNeuves[line] = end - start;
             int blancs = 0;
-            while (blancs < fin - debut) {
-                char c = document.charAt(debut + blancs);
+            while (blancs < end - start) {
+                char c = document.charAt(start + blancs);
                 if (c != ' ' && c != '\t') {
                     break;
                 }
                 blancs++;
             }
-            indentsNeufs[ligne] = Math.min(blancs, plafond);
+            indentsNeufs[line] = Math.min(blancs, plafond);
         }
         int[] prefixeNeuf = new int[nombreNeuf + 1];
-        System.arraycopy(rangneesAvantLigne, 0, prefixeNeuf, 0, borne + 1);
-        for (int ligne = borne; ligne < nombreNeuf; ligne++) {
-            prefixeNeuf[ligne + 1] = prefixeNeuf[ligne]
-                    + rangneesDe(longueursNeuves, indentsNeufs, ligne, colonnes);
+        System.arraycopy(rowsBeforeLine, 0, prefixeNeuf, 0, borne + 1);
+        for (int line = borne; line < nombreNeuf; line++) {
+            prefixeNeuf[line + 1] = prefixeNeuf[line]
+                    + rangneesDe(longueursNeuves, indentsNeufs, line, colonnes);
         }
-        VisualProjection epissee = new VisualProjection(nombreNeuf, plis,
+        VisualProjection epissee = new VisualProjection(nombreNeuf, folds,
                 longueursNeuves, colonnes, null);
         epissee.indents = indentsNeufs;
-        epissee.rangneesAvantLigne = prefixeNeuf;
-        epissee.plusLargeLigne = recalculerPlusLarge(longueurs, longueursNeuves,
-                borne, plusLargeLigne);
+        epissee.rowsBeforeLine = prefixeNeuf;
+        epissee.widestLine = recalculerPlusLarge(longueurs, longueursNeuves,
+                borne, widestLine);
         return epissee;
     }
 
@@ -169,18 +169,18 @@ public final class VisualProjection {
      *  un passage sur les neuves. */
     private static int recalculerPlusLarge(int[] anciennes, int[] neuves,
             int borne, int memoAvant) {
-        for (int ligne = borne; ligne < neuves.length; ligne++) {
-            if (neuves[ligne] > memoAvant) {
-                memoAvant = neuves[ligne];
+        for (int line = borne; line < neuves.length; line++) {
+            if (neuves[line] > memoAvant) {
+                memoAvant = neuves[line];
             }
         }
         if (memoAvant > 0) {
             return memoAvant;
         }
         int max = 0;
-        for (int longueur : neuves) {
-            if (longueur > max) {
-                max = longueur;
+        for (int length : neuves) {
+            if (length > max) {
+                max = length;
             }
         }
         return max;
@@ -189,11 +189,11 @@ public final class VisualProjection {
     /** Le nombre de rangées visibles : rangées des lignes moins celles des cachées. */
     public int rowCount() {
         int cachees = 0;
-        int[] f = plis.plisFondus();
+        int[] f = folds.plisFondus();
         for (int i = 0; i < f.length; i += 2) {
             cachees += rangneesCachees(f[i], f[i + 1]);
         }
-        return rangneesAvantLigne[lineCount] - cachees;
+        return rowsBeforeLine[lineCount] - cachees;
     }
 
     /** Le budget de colonnes signé par la clé de cache (0 = sans coupure). */
@@ -208,7 +208,7 @@ public final class VisualProjection {
      * @return la longueur de la plus large ligne, en caractères
      */
     public int longestLineLength() {
-        return plusLargeLigne;
+        return widestLine;
     }
 
     /**
@@ -220,15 +220,15 @@ public final class VisualProjection {
      * @return le numéro de première rangée visuelle de la ligne
      */
     public int rowOfLine(int line) {
-        int cible = borneLigne(line);
-        int[] f = plis.plisFondus();
+        int target = lineBound(line);
+        int[] f = folds.plisFondus();
         for (int i = 0; i < f.length; i += 2) {
-            if (cible > f[i] && cible <= f[i + 1]) {
-                cible = f[i];
+            if (target > f[i] && target <= f[i + 1]) {
+                target = f[i];
                 break;
             }
         }
-        return rangneesAvantLigne[cible] - rangneesCacheesAvant(cible);
+        return rowsBeforeLine[target] - rangneesCacheesAvant(target);
     }
 
     /**
@@ -238,28 +238,28 @@ public final class VisualProjection {
      * @return la ligne affichée par la rangée
      */
     public int firstLineOfRow(int row) {
-        int borne = borneRangee(row);
+        int borne = rowBound(row);
         int cachees = 0;
         int debutRegion = 0;
-        int[] f = plis.plisFondus();
+        int[] f = folds.plisFondus();
         for (int i = 0; i < f.length; i += 2) {
-            int debut = f[i];
-            int fin = f[i + 1];
-            if (debut >= lineCount) {
+            int start = f[i];
+            int end = f[i + 1];
+            if (start >= lineCount) {
                 break;
             }
-            int finBornee = Math.min(fin, lineCount - 1);
-            int rangeeEnTete = rangneesAvantLigne[debut] - cachees;
+            int finBornee = Math.min(end, lineCount - 1);
+            int rangeeEnTete = rowsBeforeLine[start] - cachees;
             if (borne < rangeeEnTete) {
-                return chercheLigne(borne + cachees, debutRegion, debut);
+                return findLine(borne + cachees, debutRegion, start);
             }
-            if (borne < rangeeEnTete + rangneesDeLigne(debut)) {
-                return debut;
+            if (borne < rangeeEnTete + rangneesDeLigne(start)) {
+                return start;
             }
-            cachees += rangneesCachees(debut, fin);
+            cachees += rangneesCachees(start, end);
             debutRegion = finBornee + 1;
         }
-        return chercheLigne(borne + cachees, debutRegion, lineCount);
+        return findLine(borne + cachees, debutRegion, lineCount);
     }
 
     /**
@@ -270,25 +270,25 @@ public final class VisualProjection {
      * @return la dernière ligne couverte par la rangée
      */
     public int lastLineOfRow(int row) {
-        int borne = borneRangee(row);
+        int borne = rowBound(row);
         int cachees = 0;
-        int[] f = plis.plisFondus();
+        int[] f = folds.plisFondus();
         for (int i = 0; i < f.length; i += 2) {
-            int debut = f[i];
-            int fin = f[i + 1];
-            if (debut >= lineCount) {
+            int start = f[i];
+            int end = f[i + 1];
+            if (start >= lineCount) {
                 break;
             }
-            int rangeeEnTete = rangneesAvantLigne[debut] - cachees;
-            if (borne < rangeeEnTete + rangneesDeLigne(debut)) {
+            int rangeeEnTete = rowsBeforeLine[start] - cachees;
+            if (borne < rangeeEnTete + rangneesDeLigne(start)) {
                 if (borne >= rangeeEnTete) {
-                    return Math.min(fin, lineCount - 1);
+                    return Math.min(end, lineCount - 1);
                 }
-                return chercheLigne(borne + cachees, 0, debut);
+                return findLine(borne + cachees, 0, start);
             }
-            cachees += rangneesCachees(debut, fin);
+            cachees += rangneesCachees(start, end);
         }
-        return chercheLigne(borne + cachees, 0, lineCount);
+        return findLine(borne + cachees, 0, lineCount);
     }
 
     /**
@@ -299,8 +299,8 @@ public final class VisualProjection {
      * @return l'indice de tranche dans la ligne, ≥ 0
      */
     public int spanIndexAtRow(int row) {
-        int ligne = firstLineOfRow(row);
-        return row - rowOfLine(ligne);
+        int line = firstLineOfRow(row);
+        return row - rowOfLine(line);
     }
 
     /**
@@ -314,8 +314,8 @@ public final class VisualProjection {
         // budget brut, les suivantes le budget réduit de l'indent —
         // la suite démarre au retrait, chaque rangée de suite porte
         // colonnes - indent.
-        int ligne = firstLineOfRow(row);
-        int indent = indents != null ? indents[ligne] : 0;
+        int line = firstLineOfRow(row);
+        int indent = indents != null ? indents[line] : 0;
         int tranche = spanIndexAtRow(row);
         if (tranche == 0 || colonnes <= 0) {
             return tranche * colonnes;
@@ -346,18 +346,18 @@ public final class VisualProjection {
         if (longueurs == null) {
             return Integer.MAX_VALUE;
         }
-        int ligne = firstLineOfRow(row);
-        int debut = spanStartAtRow(row);
-        int fin = colonnes <= 0 ? longueurs[ligne] : debut + colonnes;
-        return Math.min(fin, longueurs[ligne]);
+        int line = firstLineOfRow(row);
+        int start = spanStartAtRow(row);
+        int end = colonnes <= 0 ? longueurs[line] : start + colonnes;
+        return Math.min(end, longueurs[line]);
     }
 
-    private int chercheLigne(int rangneeAbsolue, int lo, int hi) {
+    private int findLine(int rangneeAbsolue, int lo, int hi) {
         int bas = lo;
         int haut = Math.max(lo, hi - 1);
         while (bas < haut) {
             int milieu = (bas + haut + 1) >>> 1;
-            if (rangneesAvantLigne[milieu] <= rangneeAbsolue) {
+            if (rowsBeforeLine[milieu] <= rangneeAbsolue) {
                 bas = milieu;
             } else {
                 haut = milieu - 1;
@@ -367,28 +367,28 @@ public final class VisualProjection {
     }
 
     private int rangneesDeLigne(int line) {
-        return rangneesAvantLigne[line + 1] - rangneesAvantLigne[line];
+        return rowsBeforeLine[line + 1] - rowsBeforeLine[line];
     }
 
-    private int rangneesCachees(int debut, int fin) {
-        int finBornee = Math.min(fin, lineCount - 1);
-        if (finBornee <= debut) {
+    private int rangneesCachees(int start, int end) {
+        int finBornee = Math.min(end, lineCount - 1);
+        if (finBornee <= start) {
             return 0;
         }
-        return rangneesAvantLigne[finBornee + 1]
-                - rangneesAvantLigne[debut + 1];
+        return rowsBeforeLine[finBornee + 1]
+                - rowsBeforeLine[start + 1];
     }
 
     private int rangneesCacheesAvant(int line) {
         int total = 0;
-        int[] f = plis.plisFondus();
+        int[] f = folds.plisFondus();
         for (int i = 0; i < f.length; i += 2) {
             int finBornee = Math.min(f[i + 1], lineCount - 1);
             if (line > finBornee) {
                 total += rangneesCachees(f[i], f[i + 1]);
             } else if (line > f[i]) {
-                total += rangneesAvantLigne[line]
-                        - rangneesAvantLigne[f[i] + 1];
+                total += rowsBeforeLine[line]
+                        - rowsBeforeLine[f[i] + 1];
             }
         }
         return total;
@@ -397,28 +397,28 @@ public final class VisualProjection {
     private static int[] batirPrefixe(int lineCount, @Nullable int[] longueurs,
             @Nullable int[] indents, int columns) {
         int[] prefixe = new int[lineCount + 1];
-        for (int ligne = 0; ligne < lineCount; ligne++) {
-            prefixe[ligne + 1] = prefixe[ligne]
-                    + rangneesDe(longueurs, indents, ligne, columns);
+        for (int line = 0; line < lineCount; line++) {
+            prefixe[line + 1] = prefixe[line]
+                    + rangneesDe(longueurs, indents, line, columns);
         }
         return prefixe;
     }
 
     private static int rangneesDe(@Nullable int[] longueurs,
-            @Nullable int[] indents, int ligne, int columns) {
+            @Nullable int[] indents, int line, int columns) {
         if (longueurs == null || columns <= 0) {
             return 1;
         }
-        int longueur = longueurs[ligne];
-        if (longueur <= 0) {
+        int length = longueurs[line];
+        if (length <= 0) {
             return 1;
         }
         // Le budget effectif (B-05) : l'indentation de tête rétrécit
         // la largeur utile de la ligne — les rangées de suite
         // démarrent au retrait, la suite tient dans le reste.
-        int indent = indents != null ? indents[ligne] : 0;
+        int indent = indents != null ? indents[line] : 0;
         int budget = Math.max(1, columns - indent);
-        return 1 + (longueur - 1 - indent) / budget;
+        return 1 + (length - 1 - indent) / budget;
     }
 
     /** Les indentations de tête par ligne (B-05) : les blancs qui
@@ -430,18 +430,18 @@ public final class VisualProjection {
         int nombre = document.lineCount();
         int[] indents = new int[nombre];
         int plafond = Math.max(1, columns / 2);
-        for (int ligne = 0; ligne < nombre; ligne++) {
-            int debut = document.lineStart(ligne);
-            int fin = document.lineEnd(ligne);
+        for (int line = 0; line < nombre; line++) {
+            int start = document.lineStart(line);
+            int end = document.lineEnd(line);
             int blancs = 0;
-            while (blancs < fin - debut) {
-                char c = document.charAt(debut + blancs);
+            while (blancs < end - start) {
+                char c = document.charAt(start + blancs);
                 if (c != ' ' && c != '\t') {
                     break;
                 }
                 blancs++;
             }
-            indents[ligne] = Math.min(blancs, plafond);
+            indents[line] = Math.min(blancs, plafond);
         }
         return indents;
     }
@@ -451,9 +451,9 @@ public final class VisualProjection {
             return 0;
         }
         int max = 0;
-        for (int longueur : longueurs) {
-            if (longueur > max) {
-                max = longueur;
+        for (int length : longueurs) {
+            if (length > max) {
+                max = length;
             }
         }
         return max;
@@ -462,17 +462,17 @@ public final class VisualProjection {
     private static int[] longueursDe(Document document) {
         int nombre = document.lineCount();
         int[] longueurs = new int[nombre];
-        for (int ligne = 0; ligne < nombre; ligne++) {
-            longueurs[ligne] = document.lineEnd(ligne) - document.lineStart(ligne);
+        for (int line = 0; line < nombre; line++) {
+            longueurs[line] = document.lineEnd(line) - document.lineStart(line);
         }
         return longueurs;
     }
 
-    private int borneLigne(int line) {
+    private int lineBound(int line) {
         return Math.max(0, Math.min(line, lineCount - 1));
     }
 
-    private int borneRangee(int row) {
+    private int rowBound(int row) {
         return Math.max(0, Math.min(row, rowCount() - 1));
     }
 }

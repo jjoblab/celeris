@@ -39,11 +39,11 @@ public class BreakpointAppuiLongTest {
      */
     @Test
     public void lAppuiLongDeGouttiereRendLaLigne() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
-        List<Integer> lignes = new ArrayList<>();
-        vue.addBreakpointToggleListener(lignes::add);
+        List<Integer> lines = new ArrayList<>();
+        vue.addBreakpointToggleListener(lines::add);
         banc.image(); // la gouttière prend sa largeur à la première image
         // l'appui long au cœur de la gouttière, rangée 1 — la ligne 1
         float y = 1.5f * vue.metrics.lineHeight();
@@ -53,10 +53,10 @@ public class BreakpointAppuiLongTest {
                 MotionEvent.ACTION_DOWN, x, y));
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(
                 Duration.ofMillis(900));
-        assertEquals("la ligne visée part à l'hôte (D-04)", List.of(1), lignes);
-        SelRange plage = vue.session().selection().ranges().get(0);
+        assertEquals("la ligne visée part à l'hôte (D-04)", List.of(1), lines);
+        SelRange range = vue.session().selection().ranges().get(0);
         assertTrue("le mot sous le doigt ne se sélectionne pas",
-                plage.isEmpty());
+                range.isEmpty());
         vue.onTouchEvent(EditorTestRig.obtenir(t, SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_UP, x, y));
     }
@@ -67,11 +67,11 @@ public class BreakpointAppuiLongTest {
      */
     @Test
     public void lAppuiLongDansLeTexteNeBasculeRien() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
-        List<Integer> lignes = new ArrayList<>();
-        vue.addBreakpointToggleListener(lignes::add);
+        List<Integer> lines = new ArrayList<>();
+        vue.addBreakpointToggleListener(lines::add);
         banc.image(); // la gouttière prend sa largeur à la première image
         // l'appui long au cœur de « gamma » (rangée 1, colonnes 0..4)
         float y = 1.5f * vue.metrics.lineHeight();
@@ -82,11 +82,11 @@ public class BreakpointAppuiLongTest {
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(
                 Duration.ofMillis(900));
         assertTrue("aucune ligne d'arrêt ne part du texte",
-                lignes.isEmpty());
-        SelRange plage = vue.session().selection().ranges().get(0);
+                lines.isEmpty());
+        SelRange range = vue.session().selection().ranges().get(0);
         assertEquals("le mot « gamma » se sélectionne comme avant",
-                CONTENU.indexOf("gamma"), plage.start());
-        assertEquals(CONTENU.indexOf("gamma") + 5, plage.end());
+                CONTENU.indexOf("gamma"), range.start());
+        assertEquals(CONTENU.indexOf("gamma") + 5, range.end());
         vue.onTouchEvent(EditorTestRig.obtenir(t, SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_UP, x, y));
     }

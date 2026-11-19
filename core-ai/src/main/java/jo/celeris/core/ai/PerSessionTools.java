@@ -70,18 +70,18 @@ public final class PerSessionTools implements EditorTools {
     }
 
     @Override
-    public ReadRange lire(int debut, int fin) {
+    public ReadRange read(int start, int end) {
         Document document = session.document();
-        return new ReadRange(document.revision(), document.subText(debut, fin));
+        return new ReadRange(document.revision(), document.subText(start, end));
     }
 
     @Override
     public ReadRange instantane() {
-        return lire(0, session.document().length());
+        return read(0, session.document().length());
     }
 
     @Override
-    public List<OutlineEntry> symboles() {
+    public List<OutlineEntry> symbols() {
         return List.copyOf(sourceSymboles.apply(session.document()));
     }
 
@@ -119,10 +119,10 @@ public final class PerSessionTools implements EditorTools {
         }
         List<TextEdit> sequentielles = new ArrayList<>(transaction.edits().size());
         int delta = 0;
-        for (TextEdit edition : transaction.edits()) {
-            sequentielles.add(new TextEdit(edition.start() + delta,
-                    edition.removed(), edition.inserted()));
-            delta += edition.inserted().length() - edition.removed().length();
+        for (TextEdit edit : transaction.edits()) {
+            sequentielles.add(new TextEdit(edit.start() + delta,
+                    edit.removed(), edit.inserted()));
+            delta += edit.inserted().length() - edit.removed().length();
         }
         boolean appliquee = session.apply(Transaction.of(sequentielles));
         if (!appliquee) {
@@ -135,8 +135,8 @@ public final class PerSessionTools implements EditorTools {
     }
 
     private static ToolTransactionReply refus(
-            ToolTransactionReply.Sortie sortie, String message,
+            ToolTransactionReply.Sortie output, String message,
             Document document) {
-        return new ToolTransactionReply(sortie, message, document.revision());
+        return new ToolTransactionReply(output, message, document.revision());
     }
 }

@@ -1,115 +1,38 @@
-### jo.celeris.lsp.protocole.CorrespondanceCouverture
-Compiled from "CorrespondanceCouverture.java"
-final class jo.celeris.lsp.protocole.CorrespondanceCouverture {
+### jo.celeris.lsp.protocole.CoverageMapping
+Compiled from "CoverageMapping.java"
+final class jo.celeris.lsp.protocole.CoverageMapping {
 }
 
-### jo.celeris.lsp.protocole.CorrespondanceDocuments
-Compiled from "CorrespondanceDocuments.java"
-final class jo.celeris.lsp.protocole.CorrespondanceDocuments {
-}
-
-### jo.celeris.lsp.protocole.CorrespondanceEspace
-Compiled from "CorrespondanceEspace.java"
-final class jo.celeris.lsp.protocole.CorrespondanceEspace {
-}
-
-### jo.celeris.lsp.protocole.CorrespondanceLsp$1
-Compiled from "CorrespondanceLsp.java"
-class jo.celeris.lsp.protocole.CorrespondanceLsp$1 {
-}
-
-### jo.celeris.lsp.protocole.CorrespondanceLsp
-Compiled from "CorrespondanceLsp.java"
-final class jo.celeris.lsp.protocole.CorrespondanceLsp {
-}
-
-### jo.celeris.lsp.protocole.EcritureDocuments
-Compiled from "EcritureDocuments.java"
-final class jo.celeris.lsp.protocole.EcritureDocuments {
-}
-
-### jo.celeris.lsp.protocole.LspSession$IdentiteDocument
-Compiled from "LspSession.java"
-final class jo.celeris.lsp.protocole.LspSession$IdentiteDocument extends java.lang.Record {
+### jo.celeris.lsp.protocole.CoverageRequests$Request
+Compiled from "CoverageRequests.java"
+final class jo.celeris.lsp.protocole.CoverageRequests$Request extends java.lang.Record {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String uri();
-  public jo.celeris.core.lsp.types.PositionLsp position();
+  public jo.celeris.core.lsp.types.LspPosition position();
 }
 
-### jo.celeris.lsp.protocole.LspSession
-Compiled from "LspSession.java"
-public final class jo.celeris.lsp.protocole.LspSession implements java.lang.AutoCloseable,jo.celeris.core.lsp.SuiviVersions {
-  public static jo.celeris.lsp.protocole.LspSession sur(java.io.InputStream, java.io.OutputStream, java.lang.String);
-  public jo.celeris.core.lsp.CapacitesServeur initialiser();
-  public jo.celeris.core.lsp.CapacitesServeur initialiser(java.util.Map<java.lang.String, java.lang.Object>);
-  public jo.celeris.core.lsp.CapacitesServeur capacites();
-  public void ouvrir(java.lang.String, java.lang.String, java.lang.String);
-  public void changer(java.lang.String, int, java.lang.String);
-  public void fermer(java.lang.String);
-  public int versionDe(java.lang.String);
-  public java.util.List<jo.celeris.core.lsp.types.DiagnosticLsp> diagnosticsDe(java.lang.String);
-  public void ajouterAuditeurDiagnostics(jo.celeris.core.lsp.AuditeurDiagnostics);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.ListeCompletion> completion(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SurvolLsp> survol(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SignatureLsp> signature(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> definition(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> typeDefinition(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> implementations(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> superDefinition(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> references(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.SymboleLsp>> symboles(java.lang.String);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.SurlignageLsp>> surlignages(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.PreparationRennomageLsp> preparerRennomage(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.EditionEspaceLsp> rennomage(java.lang.String, jo.celeris.core.lsp.types.PositionLsp, java.lang.String);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.CorrectifLsp>> correctifs(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.EditionTexteLsp>> formatage(java.lang.String, jo.celeris.core.lsp.types.OptionsFormatageLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.EditionTexteLsp>> formatagePlage(java.lang.String, jo.celeris.core.lsp.types.PlageLsp, jo.celeris.core.lsp.types.OptionsFormatageLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.PliLsp>> plis(java.lang.String);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.PlageLsp>> plagesSelection(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> jetons(java.lang.String);
-  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> jetonsPlage(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
-  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.IndiceLsp>> indices(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
-  public void close();
+### jo.celeris.lsp.protocole.CoverageRequests
+Compiled from "CoverageRequests.java"
+final class jo.celeris.lsp.protocole.CoverageRequests {
 }
 
-### jo.celeris.lsp.protocole.ReceiverServeur
-Compiled from "ReceiverServeur.java"
-final class jo.celeris.lsp.protocole.ReceiverServeur implements org.eclipse.lsp4j.services.LanguageClient {
-  public void telemetryEvent(java.lang.Object);
-  public void publishDiagnostics(org.eclipse.lsp4j.PublishDiagnosticsParams);
-  public void showMessage(org.eclipse.lsp4j.MessageParams);
-  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.MessageActionItem> showMessageRequest(org.eclipse.lsp4j.ShowMessageRequestParams);
-  public void logMessage(org.eclipse.lsp4j.MessageParams);
-  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.ApplyWorkspaceEditResponse> applyEdit(org.eclipse.lsp4j.ApplyWorkspaceEditParams);
+### jo.celeris.lsp.protocole.DocumentsMapping
+Compiled from "DocumentsMapping.java"
+final class jo.celeris.lsp.protocole.DocumentsMapping {
 }
 
-### jo.celeris.lsp.protocole.RequetesCouverture$Demande
-Compiled from "RequetesCouverture.java"
-final class jo.celeris.lsp.protocole.RequetesCouverture$Demande extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public java.lang.String uri();
-  public jo.celeris.core.lsp.types.PositionLsp position();
-}
-
-### jo.celeris.lsp.protocole.RequetesCouverture
-Compiled from "RequetesCouverture.java"
-final class jo.celeris.lsp.protocole.RequetesCouverture {
-}
-
-### jo.celeris.lsp.protocole.ServeurDocuments$1
-Compiled from "ServeurDocuments.java"
-class jo.celeris.lsp.protocole.ServeurDocuments$1 implements org.eclipse.lsp4j.services.WorkspaceService {
+### jo.celeris.lsp.protocole.DocumentsServer$1
+Compiled from "DocumentsServer.java"
+class jo.celeris.lsp.protocole.DocumentsServer$1 implements org.eclipse.lsp4j.services.WorkspaceService {
   public void didChangeConfiguration(org.eclipse.lsp4j.DidChangeConfigurationParams);
   public void didChangeWatchedFiles(org.eclipse.lsp4j.DidChangeWatchedFilesParams);
 }
 
-### jo.celeris.lsp.protocole.ServeurDocuments$ServiceDocuments
-Compiled from "ServeurDocuments.java"
-final class jo.celeris.lsp.protocole.ServeurDocuments$ServiceDocuments implements org.eclipse.lsp4j.services.TextDocumentService {
+### jo.celeris.lsp.protocole.DocumentsServer$DocumentsService
+Compiled from "DocumentsServer.java"
+final class jo.celeris.lsp.protocole.DocumentsServer$DocumentsService implements org.eclipse.lsp4j.services.TextDocumentService {
   public void didOpen(org.eclipse.lsp4j.DidOpenTextDocumentParams);
   public void didChange(org.eclipse.lsp4j.DidChangeTextDocumentParams);
   public void didClose(org.eclipse.lsp4j.DidCloseTextDocumentParams);
@@ -132,9 +55,9 @@ final class jo.celeris.lsp.protocole.ServeurDocuments$ServiceDocuments implement
   public java.util.concurrent.CompletableFuture<java.util.List<org.eclipse.lsp4j.InlayHint>> inlayHint(org.eclipse.lsp4j.InlayHintParams);
 }
 
-### jo.celeris.lsp.protocole.ServeurDocuments
-Compiled from "ServeurDocuments.java"
-final class jo.celeris.lsp.protocole.ServeurDocuments implements org.eclipse.lsp4j.services.LanguageServer {
+### jo.celeris.lsp.protocole.DocumentsServer
+Compiled from "DocumentsServer.java"
+final class jo.celeris.lsp.protocole.DocumentsServer implements org.eclipse.lsp4j.services.LanguageServer {
   public void setClient(org.eclipse.lsp4j.services.LanguageClient);
   public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.InitializeResult> initialize(org.eclipse.lsp4j.InitializeParams);
   public java.util.concurrent.CompletableFuture<java.lang.Object> shutdown();
@@ -143,79 +66,156 @@ final class jo.celeris.lsp.protocole.ServeurDocuments implements org.eclipse.lsp
   public org.eclipse.lsp4j.services.WorkspaceService getWorkspaceService();
 }
 
-### jo.celeris.lsp.protocole.ServeurEmbarque$Documents
-Compiled from "ServeurEmbarque.java"
-public interface jo.celeris.lsp.protocole.ServeurEmbarque$Documents {
-  public default void ouvrir(java.lang.String, java.lang.String, java.lang.String);
-  public default void changer(java.lang.String, int, java.lang.String);
-  public default void fermer(java.lang.String);
-  public default jo.celeris.core.lsp.types.SurvolLsp survol(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public default java.util.List<jo.celeris.core.lsp.types.DiagnosticLsp> diagnosticsDe(java.lang.String);
-  public default jo.celeris.core.lsp.types.ListeCompletion completion(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public default jo.celeris.core.lsp.types.SignatureLsp signature(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public default java.util.List<jo.celeris.core.lsp.types.SymboleLsp> symboles(java.lang.String);
-  public default java.util.List<jo.celeris.core.lsp.types.PliLsp> plis(java.lang.String);
-  public default java.util.List<jo.celeris.core.lsp.types.EditionTexteLsp> formatage(java.lang.String, jo.celeris.core.lsp.types.OptionsFormatageLsp);
-  public default java.util.List<jo.celeris.core.lsp.types.SurlignageLsp> surlignages(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public default jo.celeris.core.lsp.types.PreparationRennomageLsp preparerRennomage(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public default jo.celeris.core.lsp.types.EditionEspaceLsp rennomage(java.lang.String, jo.celeris.core.lsp.types.PositionLsp, java.lang.String);
-  public default java.util.List<jo.celeris.core.lsp.types.CorrectifLsp> correctifs(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
-  public default java.util.List<jo.celeris.core.lsp.types.IndiceLsp> indices(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
-  public default jo.celeris.core.lsp.types.SemanticTokensLsp jetons(java.lang.String);
-  public default java.util.List<jo.celeris.core.lsp.types.EditionTexteLsp> formatagePlage(java.lang.String, jo.celeris.core.lsp.types.PlageLsp, jo.celeris.core.lsp.types.OptionsFormatageLsp);
-  public default java.util.List<jo.celeris.core.lsp.types.PlageLsp> plagesSelection(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
-  public default jo.celeris.core.lsp.types.SemanticTokensLsp jetonsPlage(java.lang.String, jo.celeris.core.lsp.types.PlageLsp);
-  public default java.util.List<jo.celeris.core.lsp.types.LieuLsp> references(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+### jo.celeris.lsp.protocole.DocumentsWriting
+Compiled from "DocumentsWriting.java"
+final class jo.celeris.lsp.protocole.DocumentsWriting {
 }
 
-### jo.celeris.lsp.protocole.ServeurEmbarque
-Compiled from "ServeurEmbarque.java"
-public final class jo.celeris.lsp.protocole.ServeurEmbarque implements java.lang.AutoCloseable {
-  public static jo.celeris.lsp.protocole.ServeurEmbarque monter(java.lang.Object, java.lang.Class<?>, java.lang.String);
-  public static jo.celeris.lsp.protocole.ServeurEmbarque monter(jo.celeris.lsp.protocole.ServeurEmbarque$Documents, java.lang.String);
-  public static jo.celeris.lsp.protocole.ServeurEmbarque monter(java.lang.String, java.lang.String, java.lang.String);
+### jo.celeris.lsp.protocole.EmbeddedServer$Docs
+Compiled from "EmbeddedServer.java"
+public interface jo.celeris.lsp.protocole.EmbeddedServer$Docs {
+  public default void open(java.lang.String, java.lang.String, java.lang.String);
+  public default void change(java.lang.String, int, java.lang.String);
+  public default void close(java.lang.String);
+  public default jo.celeris.core.lsp.types.HoverLsp hover(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public default java.util.List<jo.celeris.core.lsp.types.DiagnosticLsp> diagnosticsOf(java.lang.String);
+  public default jo.celeris.core.lsp.types.CompletionListLsp completion(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public default jo.celeris.core.lsp.types.SignatureLsp signature(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public default java.util.List<jo.celeris.core.lsp.types.SymbolLsp> symbols(java.lang.String);
+  public default java.util.List<jo.celeris.core.lsp.types.FoldLsp> folds(java.lang.String);
+  public default java.util.List<jo.celeris.core.lsp.types.TextEditLsp> formatage(java.lang.String, jo.celeris.core.lsp.types.FormatOptionsLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.HighlightLsp> highlights(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public default jo.celeris.core.lsp.types.RenamePrepareLsp preparerRennomage(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public default jo.celeris.core.lsp.types.WorkspaceEditLsp rename(java.lang.String, jo.celeris.core.lsp.types.LspPosition, java.lang.String);
+  public default java.util.List<jo.celeris.core.lsp.types.CodeActionLsp> correctifs(java.lang.String, jo.celeris.core.lsp.types.RangeLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.InlayHintLsp> inlayHints(java.lang.String, jo.celeris.core.lsp.types.RangeLsp);
+  public default jo.celeris.core.lsp.types.SemanticTokensLsp tokens(java.lang.String);
+  public default java.util.List<jo.celeris.core.lsp.types.TextEditLsp> rangeFormatting(java.lang.String, jo.celeris.core.lsp.types.RangeLsp, jo.celeris.core.lsp.types.FormatOptionsLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.RangeLsp> selectionRanges(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public default jo.celeris.core.lsp.types.SemanticTokensLsp tokensRange(java.lang.String, jo.celeris.core.lsp.types.RangeLsp);
+  public default java.util.List<jo.celeris.core.lsp.types.LocationLsp> references(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+}
+
+### jo.celeris.lsp.protocole.EmbeddedServer
+Compiled from "EmbeddedServer.java"
+public final class jo.celeris.lsp.protocole.EmbeddedServer implements java.lang.AutoCloseable {
+  public static jo.celeris.lsp.protocole.EmbeddedServer start(java.lang.Object, java.lang.Class<?>, java.lang.String);
+  public static jo.celeris.lsp.protocole.EmbeddedServer start(jo.celeris.lsp.protocole.EmbeddedServer$Docs, java.lang.String);
+  public static jo.celeris.lsp.protocole.EmbeddedServer start(java.lang.String, java.lang.String, java.lang.String);
   public jo.celeris.lsp.protocole.LspSession session();
   public void close();
 }
 
-### jo.celeris.lsp.protocole.ServeurExterne
-Compiled from "ServeurExterne.java"
-public final class jo.celeris.lsp.protocole.ServeurExterne implements java.lang.AutoCloseable {
-  public static jo.celeris.lsp.protocole.ServeurExterne parStdio(java.lang.String[], java.lang.String) throws java.io.IOException;
-  public static jo.celeris.lsp.protocole.ServeurExterne parSocket(java.lang.String, int, java.lang.String) throws java.io.IOException;
+### jo.celeris.lsp.protocole.ExternalServer
+Compiled from "ExternalServer.java"
+public final class jo.celeris.lsp.protocole.ExternalServer implements java.lang.AutoCloseable {
+  public static jo.celeris.lsp.protocole.ExternalServer viaStdio(java.lang.String[], java.lang.String) throws java.io.IOException;
+  public static jo.celeris.lsp.protocole.ExternalServer viaSocket(java.lang.String, int, java.lang.String) throws java.io.IOException;
   public jo.celeris.lsp.protocole.LspSession session();
   public void close();
 }
 
-### jo.celeris.lsp.protocole.TubesMemoire$Direction$1
-Compiled from "TubesMemoire.java"
-class jo.celeris.lsp.protocole.TubesMemoire$Direction$1 extends java.io.OutputStream {
+### jo.celeris.lsp.protocole.LspMapping$1
+Compiled from "LspMapping.java"
+class jo.celeris.lsp.protocole.LspMapping$1 {
+}
+
+### jo.celeris.lsp.protocole.LspMapping
+Compiled from "LspMapping.java"
+final class jo.celeris.lsp.protocole.LspMapping {
+}
+
+### jo.celeris.lsp.protocole.LspSession$IdentiteDocument
+Compiled from "LspSession.java"
+final class jo.celeris.lsp.protocole.LspSession$IdentiteDocument extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String uri();
+  public jo.celeris.core.lsp.types.LspPosition position();
+}
+
+### jo.celeris.lsp.protocole.LspSession
+Compiled from "LspSession.java"
+public final class jo.celeris.lsp.protocole.LspSession implements java.lang.AutoCloseable,jo.celeris.core.lsp.VersionTracker {
+  public static jo.celeris.lsp.protocole.LspSession on(java.io.InputStream, java.io.OutputStream, java.lang.String);
+  public jo.celeris.core.lsp.ServerCapsLsp initialize();
+  public jo.celeris.core.lsp.ServerCapsLsp initialize(java.util.Map<java.lang.String, java.lang.Object>);
+  public jo.celeris.core.lsp.ServerCapsLsp capabilities();
+  public void open(java.lang.String, java.lang.String, java.lang.String);
+  public void change(java.lang.String, int, java.lang.String);
+  public void close(java.lang.String);
+  public int versionOf(java.lang.String);
+  public java.util.List<jo.celeris.core.lsp.types.DiagnosticLsp> diagnosticsOf(java.lang.String);
+  public void addDiagnosticsListener(jo.celeris.core.lsp.DiagnosticsListener);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.CompletionListLsp> completion(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.HoverLsp> hover(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SignatureLsp> signature(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LocationLsp>> definition(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LocationLsp>> typeDefinition(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LocationLsp>> implementations(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LocationLsp>> superDefinition(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LocationLsp>> references(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.SymbolLsp>> symbols(java.lang.String);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.HighlightLsp>> highlights(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.RenamePrepareLsp> preparerRennomage(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.WorkspaceEditLsp> rename(java.lang.String, jo.celeris.core.lsp.types.LspPosition, java.lang.String);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.CodeActionLsp>> correctifs(java.lang.String, jo.celeris.core.lsp.types.RangeLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.TextEditLsp>> formatage(java.lang.String, jo.celeris.core.lsp.types.FormatOptionsLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.TextEditLsp>> rangeFormatting(java.lang.String, jo.celeris.core.lsp.types.RangeLsp, jo.celeris.core.lsp.types.FormatOptionsLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.FoldLsp>> folds(java.lang.String);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.RangeLsp>> selectionRanges(java.lang.String, jo.celeris.core.lsp.types.LspPosition);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> tokens(java.lang.String);
+  public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SemanticTokensLsp> tokensRange(java.lang.String, jo.celeris.core.lsp.types.RangeLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.InlayHintLsp>> inlayHints(java.lang.String, jo.celeris.core.lsp.types.RangeLsp);
+  public void close();
+}
+
+### jo.celeris.lsp.protocole.MemoryPipes$Direction$1
+Compiled from "MemoryPipes.java"
+class jo.celeris.lsp.protocole.MemoryPipes$Direction$1 extends java.io.OutputStream {
   public void write(int) throws java.io.IOException;
   public void write(byte[], int, int) throws java.io.IOException;
   public void close();
 }
 
-### jo.celeris.lsp.protocole.TubesMemoire$Direction$2
-Compiled from "TubesMemoire.java"
-class jo.celeris.lsp.protocole.TubesMemoire$Direction$2 extends java.io.InputStream {
+### jo.celeris.lsp.protocole.MemoryPipes$Direction$2
+Compiled from "MemoryPipes.java"
+class jo.celeris.lsp.protocole.MemoryPipes$Direction$2 extends java.io.InputStream {
   public int read(byte[], int, int) throws java.io.IOException;
   public int read() throws java.io.IOException;
   public void close();
 }
 
-### jo.celeris.lsp.protocole.TubesMemoire$Direction
-Compiled from "TubesMemoire.java"
-public final class jo.celeris.lsp.protocole.TubesMemoire$Direction {
-  public jo.celeris.lsp.protocole.TubesMemoire$Direction();
-  public java.io.OutputStream sortie();
-  public java.io.InputStream entree();
-  public void fermer();
+### jo.celeris.lsp.protocole.MemoryPipes$Direction
+Compiled from "MemoryPipes.java"
+public final class jo.celeris.lsp.protocole.MemoryPipes$Direction {
+  public jo.celeris.lsp.protocole.MemoryPipes$Direction();
+  public java.io.OutputStream output();
+  public java.io.InputStream input();
+  public void close();
 }
 
-### jo.celeris.lsp.protocole.TubesMemoire
-Compiled from "TubesMemoire.java"
-public final class jo.celeris.lsp.protocole.TubesMemoire {
-  public static jo.celeris.lsp.protocole.TubesMemoire$Direction creer();
+### jo.celeris.lsp.protocole.MemoryPipes
+Compiled from "MemoryPipes.java"
+public final class jo.celeris.lsp.protocole.MemoryPipes {
+  public static jo.celeris.lsp.protocole.MemoryPipes$Direction create();
+}
+
+### jo.celeris.lsp.protocole.ServerReceiver
+Compiled from "ServerReceiver.java"
+final class jo.celeris.lsp.protocole.ServerReceiver implements org.eclipse.lsp4j.services.LanguageClient {
+  public void telemetryEvent(java.lang.Object);
+  public void publishDiagnostics(org.eclipse.lsp4j.PublishDiagnosticsParams);
+  public void showMessage(org.eclipse.lsp4j.MessageParams);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.MessageActionItem> showMessageRequest(org.eclipse.lsp4j.ShowMessageRequestParams);
+  public void logMessage(org.eclipse.lsp4j.MessageParams);
+  public java.util.concurrent.CompletableFuture<org.eclipse.lsp4j.ApplyWorkspaceEditResponse> applyEdit(org.eclipse.lsp4j.ApplyWorkspaceEditParams);
+}
+
+### jo.celeris.lsp.protocole.WorkspaceMapping
+Compiled from "WorkspaceMapping.java"
+final class jo.celeris.lsp.protocole.WorkspaceMapping {
 }
 
 ### jo.celeris.lsp.protocole.package-info

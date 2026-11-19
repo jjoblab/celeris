@@ -39,7 +39,7 @@ class GrammaireParseurTest {
                 """));
         assertEquals(3, analyse.tree().chunks().size(),
                 "trois lignes de premier niveau, trois chunks — le tableau imbriqué n'en ouvre pas");
-        assertTrue(analyse.estComplet(), "l'arbre est complet");
+        assertTrue(analyse.isComplete(), "l'arbre est complet");
     }
 
     /** La paire de crochets multi-lignes devient une région de pli. */
@@ -79,7 +79,7 @@ class GrammaireParseurTest {
                 "sombre",
                 """);
         Analysis analyse = service.analyseFull(doc);
-        assertTrue(analyse.estComplet(), "l'arbre reste complet, le crochet ouvert se tolère");
+        assertTrue(analyse.isComplete(), "l'arbre reste complet, le crochet ouvert se tolère");
         assertTrue(TreeFolds.regions(doc, analyse).isEmpty(),
                 "le crochet non fermé n'ouvre aucune région");
     }

@@ -31,11 +31,11 @@ public final class EditorCliTest {
     }
 
     private static String sortieDe(String[] args) {
-        ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int code = Celeris.executer(args,
-                new PrintStream(tampon, true, StandardCharsets.UTF_8));
+                new PrintStream(buffer, true, StandardCharsets.UTF_8));
         assertEquals(0, code, "la commande doit reussir");
-        return tampon.toString(StandardCharsets.UTF_8);
+        return buffer.toString(StandardCharsets.UTF_8);
     }
 
     /** L'analyse d'un fichier Java rend le langage, les lignes et le plan. */
@@ -49,22 +49,22 @@ public final class EditorCliTest {
                     int compteur;
                 }
                 """);
-        String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
+        String output = sortieDe(new String[] {"analyse", fichier.toString()});
 
-        assertTrue(sortie.contains("langage : java"), "langage détecté : " + sortie);
-        assertTrue(sortie.contains("lignes : 6"), "six lignes : " + sortie);
-        assertTrue(sortie.contains("Service"), "le plan cite la classe : " + sortie);
-        assertTrue(sortie.contains("ligne 3"), "la classe vit ligne 3 : " + sortie);
+        assertTrue(output.contains("langage : java"), "langage détecté : " + output);
+        assertTrue(output.contains("lignes : 6"), "six lignes : " + output);
+        assertTrue(output.contains("Service"), "le plan cite la classe : " + output);
+        assertTrue(output.contains("ligne 3"), "la classe vit ligne 3 : " + output);
     }
 
     /** L'analyse d'un fichier inconnu reste honnête : aucun langage, aucun plan. */
     @Test
     public void analyseUnFichierSansLangage() throws IOException {
         Path fichier = ecrire("notes.banc", "des notes libres\nsur deux lignes\n");
-        String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
+        String output = sortieDe(new String[] {"analyse", fichier.toString()});
 
-        assertTrue(sortie.contains("langage : aucun"), "aucun langage forcé : " + sortie);
-        assertTrue(sortie.contains("lignes : 2"), "deux lignes : " + sortie);
+        assertTrue(output.contains("langage : aucun"), "aucun langage forcé : " + output);
+        assertTrue(output.contains("lignes : 2"), "deux lignes : " + output);
     }
 
     /**
@@ -74,19 +74,19 @@ public final class EditorCliTest {
     @Test
     public void analyseUnFichierTexteBrut() throws IOException {
         Path fichier = ecrire("notes.txt", "des notes libres\nsur deux lignes\n");
-        String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
+        String output = sortieDe(new String[] {"analyse", fichier.toString()});
 
-        assertTrue(sortie.contains("langage : text"), "le texte brut est nommé : " + sortie);
-        assertTrue(sortie.contains("lignes : 2"), "deux lignes : " + sortie);
+        assertTrue(output.contains("langage : text"), "le texte brut est nommé : " + output);
+        assertTrue(output.contains("lignes : 2"), "deux lignes : " + output);
     }
 
     /** L'analyse traverse la voie de grammaires : le TOML est reconnu. */
     @Test
     public void analyseUnFichierToml() throws IOException {
         Path fichier = ecrire("libs.versions.toml", "[versions]\nagp = \"9.5.0\"\n");
-        String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
+        String output = sortieDe(new String[] {"analyse", fichier.toString()});
 
-        assertTrue(sortie.contains("langage : toml"), "grammaire toml : " + sortie);
+        assertTrue(output.contains("langage : toml"), "grammaire toml : " + output);
     }
 
     /** Le Python se plie à l'indentation et se planifie par les règles de son paquet (H-08). */
@@ -102,14 +102,14 @@ public final class EditorCliTest {
                         return "vide"
                     return "code"
                 """);
-        String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
+        String output = sortieDe(new String[] {"analyse", fichier.toString()});
 
-        assertTrue(sortie.contains("langage : python"), "langage détecté : " + sortie);
-        assertTrue(sortie.contains("plan : CATEGORIES"), "la constante figure : " + sortie);
-        assertTrue(sortie.contains("plan : classifier"),
-                "la définition figure au plan : " + sortie);
-        assertTrue(sortie.contains("pli : lignes 5-8"),
-                "la définition se replie : " + sortie);
+        assertTrue(output.contains("langage : python"), "langage détecté : " + output);
+        assertTrue(output.contains("plan : CATEGORIES"), "la constante figure : " + output);
+        assertTrue(output.contains("plan : classifier"),
+                "la définition figure au plan : " + output);
+        assertTrue(output.contains("pli : lignes 5-8"),
+                "la définition se replie : " + output);
     }
 
     /** Le point H se départage par son contenu : les marqueurs C++
@@ -134,22 +134,22 @@ public final class EditorCliTest {
             gros.append("echo ligne ").append(i).append('\n');
         }
         Path fichier = ecrire("script-sans-extension", gros.toString());
-        String sortie = sortieDe(new String[] {"analyse", fichier.toString()});
-        assertTrue(sortie.contains("langage : shell"), "le shebang parle : " + sortie);
+        String output = sortieDe(new String[] {"analyse", fichier.toString()});
+        assertTrue(output.contains("langage : shell"), "le shebang parle : " + output);
     }
 
     /** La recherche rend les occurrences avec lignes et colonnes exactes. */
     @Test
     public void rechercheLesOccurrences() throws IOException {
         Path fichier = ecrire("texte.txt", "bonjour\nle monde\nbonjour encore\n");
-        String sortie = sortieDe(
+        String output = sortieDe(
                 new String[] {"recherche", fichier.toString(), "bonjour"});
 
-        assertTrue(sortie.contains("2 occurrence(s)"), "deux occurrences : " + sortie);
-        assertTrue(sortie.contains("1:1"), "première occurrence ligne 1 colonne 1 : "
-                + sortie);
-        assertTrue(sortie.contains("3:1"), "seconde occurrence ligne 3 colonne 1 : "
-                + sortie);
+        assertTrue(output.contains("2 occurrence(s)"), "deux occurrences : " + output);
+        assertTrue(output.contains("1:1"), "première occurrence ligne 1 colonne 1 : "
+                + output);
+        assertTrue(output.contains("3:1"), "seconde occurrence ligne 3 colonne 1 : "
+                + output);
     }
 
     /** Le motif vide se refuse : la boucle d'occurrences ne tournerait
@@ -157,37 +157,37 @@ public final class EditorCliTest {
     @Test
     public void motifVideRefuse() throws IOException {
         Path fichier = ecrire("texte.txt", "bonjour\n");
-        ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int code = Celeris.executer(
                 new String[] {"recherche", fichier.toString(), ""},
-                new PrintStream(tampon, true, StandardCharsets.UTF_8));
+                new PrintStream(buffer, true, StandardCharsets.UTF_8));
         assertEquals(2, code, "code d'erreur d'usage");
-        String sortie = tampon.toString(StandardCharsets.UTF_8);
-        assertTrue(sortie.contains("le motif de recherche ne peut pas être vide"),
-                "le refus se dit : " + sortie);
+        String output = buffer.toString(StandardCharsets.UTF_8);
+        assertTrue(output.contains("le motif de recherche ne peut pas être vide"),
+                "le refus se dit : " + output);
     }
 
     /** Un fichier illisible rend un code d'erreur et un message, pas une trace. */
     @Test
     public void fichierAbsentRefuse() {
-        ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int code = Celeris.executer(
                 new String[] {"analyse", "/chemin/absent.java"},
-                new PrintStream(tampon, true, StandardCharsets.UTF_8));
+                new PrintStream(buffer, true, StandardCharsets.UTF_8));
         assertEquals(1, code, "code d'erreur de lecture");
-        String sortie = tampon.toString(StandardCharsets.UTF_8);
-        assertTrue(sortie.contains("illisible"), "message explicite : " + sortie);
+        String output = buffer.toString(StandardCharsets.UTF_8);
+        assertTrue(output.contains("illisible"), "message explicite : " + output);
     }
 
     /** Une commande inconnue rend l'usage et un code d'erreur distinct. */
     @Test
     public void commandeInconnueRendUsage() {
-        ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int code = Celeris.executer(new String[] {"farfelu"},
-                new PrintStream(tampon, true, StandardCharsets.UTF_8));
+                new PrintStream(buffer, true, StandardCharsets.UTF_8));
         assertEquals(2, code, "code d'erreur d'usage");
-        String sortie = tampon.toString(StandardCharsets.UTF_8);
-        assertTrue(sortie.contains("usage"), "l'usage s'affiche : " + sortie);
-        assertTrue(sortie.contains("analyse"), "l'usage cite analyse : " + sortie);
+        String output = buffer.toString(StandardCharsets.UTF_8);
+        assertTrue(output.contains("usage"), "l'usage s'affiche : " + output);
+        assertTrue(output.contains("analyse"), "l'usage cite analyse : " + output);
     }
 }

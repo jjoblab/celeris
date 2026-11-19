@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import jo.celeris.android.host.spi.CheminDoc;
-import jo.celeris.android.host.spi.DiagnosticHote;
+import jo.celeris.android.host.spi.HostDiagnostic;
 import jo.celeris.android.host.spi.GraviteDiagnostic;
 
 /**
@@ -19,24 +19,24 @@ import jo.celeris.android.host.spi.GraviteDiagnostic;
  */
 final class AmpouleIntentionsTest {
 
-    private static DiagnosticHote diagnostic(int ligne) {
-        return new DiagnosticHote(CheminDoc.de("/Compte.java"), ligne, 1,
+    private static HostDiagnostic diagnostic(int line) {
+        return new HostDiagnostic(CheminDoc.of("/Compte.java"), line, 1,
                 GraviteDiagnostic.AVERTISSEMENT, "La variable n'est jamais lue");
     }
 
     @Test
     void lampouleVitAuCaretQuiPorteUnDiagnostic() {
-        List<DiagnosticHote> diagnostics = List.of(diagnostic(13),
+        List<HostDiagnostic> diagnostics = List.of(diagnostic(13),
                 diagnostic(19));
         assertEquals(13,
-                AmpouleIntentions.ligneAmpoule(13, diagnostics),
+                AmpouleIntentions.bulbLine(13, diagnostics),
                 "le caret sur la ligne du diagnostic porte l'ampoule");
-        assertEquals(-1, AmpouleIntentions.ligneAmpoule(14, diagnostics),
+        assertEquals(-1, AmpouleIntentions.bulbLine(14, diagnostics),
                 "la ligne sans diagnostic reste nue");
-        assertEquals(-1, AmpouleIntentions.ligneAmpoule(0, diagnostics),
+        assertEquals(-1, AmpouleIntentions.bulbLine(0, diagnostics),
                 "sans caret lu, aucune ampoule");
         assertEquals(-1,
-                AmpouleIntentions.ligneAmpoule(13, List.of()),
+                AmpouleIntentions.bulbLine(13, List.of()),
                 "sans diagnostics, aucune ampoule — jamais devinée");
     }
 }

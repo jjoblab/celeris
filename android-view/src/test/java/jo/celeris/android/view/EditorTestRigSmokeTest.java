@@ -22,7 +22,7 @@ public class EditorTestRigSmokeTest {
     /** La vue se dessine et le texte du document arrive au canvas. */
     @Test
     public void rigDrawsDocumentText() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         EditorTestRig.RecordingCanvas image = banc.image();
         assertFalse("l'image doit tracer du texte", image.traces().isEmpty());
@@ -33,7 +33,7 @@ public class EditorTestRigSmokeTest {
     /** La densité de l'appareil se lit : les sp s'y convertissent (PIEGE-23). */
     @Test
     public void rigExposesDeviceDensity() {
-        EditorTestRig.sur(RuntimeEnvironment.getApplication(), "hello");
+        EditorTestRig.on(RuntimeEnvironment.getApplication(), "hello");
         float densite = RuntimeEnvironment.getApplication()
                 .getResources().getDisplayMetrics().density;
         assertTrue("la densité doit être positive", densite > 0f);

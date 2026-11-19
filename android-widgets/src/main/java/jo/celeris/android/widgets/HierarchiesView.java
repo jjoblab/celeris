@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
  * sommet prenable SAUTE au choix (le Runnable de l'hôte seul décide ce
  * que sauter veut dire : porter le curseur à la déclaration,
  * refermer la carte). PIEGE-27 : jamais de focus — la navigation
- * clavier s'y reçoit DÉLÉGUÉE ({@link PopupClavier} : flèches bornées
+ * clavier s'y reçoit DÉLÉGUÉE ({@link KeyboardPopup} : flèches bornées
  * aux sommets PRENANTS, validation ; la page décline — les rangées
  * vivent toutes à découvert).
  *
@@ -26,18 +26,18 @@ import org.jspecify.annotations.Nullable;
  * hiérarchie d'appels se porte en légende (les sites non résolus se
  * signalent, jamais ne se tranchent).</p>
  */
-public final class HierarchiesView extends TextRowsPopup implements PopupClavier {
+public final class HierarchiesView extends TextRowsPopup implements KeyboardPopup {
 
     /** Un sommet de l'arbre : son libellé, sa profondeur (zéro à la
      *  racine), son saut — null pour l'introuvable (la frontière hors
      *  projet : muet, jamais pris). */
-    public record Sommet(String libelle, int profondeur,
+    public record Sommet(String label, int profondeur,
             @Nullable Runnable saut) {
     }
 
     /** Une section de l'arbre : son libellé (petites capitales muettes,
      *  jamais pris) et ses sommets. */
-    public record Section(String libelle, List<Sommet> sommets) {
+    public record Section(String label, List<Sommet> sommets) {
 
         /** Constructeur canonique : sommets figés. */
         public Section {
@@ -80,7 +80,7 @@ public final class HierarchiesView extends TextRowsPopup implements PopupClavier
         this.sections = List.copyOf(sections);
         this.doute = doute;
         this.surligne = -1;
-        rebatirRangees();
+        rebuildRows();
     }
 
     /** Le sommet d'index donné de l'arbre aplati, null s'il n'existe
@@ -103,39 +103,39 @@ public final class HierarchiesView extends TextRowsPopup implements PopupClavier
 
     /** Rebâtit les rangées : l'en-tête, chaque section et son arbre —
      *  la légende du doute clôt. */
-    private void rebatirRangees() {
-        List<Row> rangees = new ArrayList<>();
+    private void rebuildRows() {
+        List<Row> rows = new ArrayList<>();
         if (titre != null && !titre.isEmpty()) {
-            rangees.add(Row.section(titre));
+            rows.add(Row.section(titre));
         }
         for (Section section : sections) {
-            if (!rangees.isEmpty()) {
-                rangees.add(Row.apresFilet(Row.section(section.libelle())));
+            if (!rows.isEmpty()) {
+                rows.add(Row.afterRule(Row.section(section.label())));
             } else {
-                rangees.add(Row.section(section.libelle()));
+                rows.add(Row.section(section.label()));
             }
             for (Sommet sommet : section.sommets()) {
-                rangees.add(Row.arbre(sommet.libelle(),
+                rows.add(Row.arbre(sommet.label(),
                         sommet.saut() == null ? palette.muted() : -1,
                         sommet.saut() == null ? Tier.META : Tier.CORPS,
                         sommet.profondeur()));
             }
         }
         if (doute != null && !doute.isEmpty()) {
-            rangees.add(Row.of(doute, palette.muted()));
+            rows.add(Row.of(doute, palette.muted()));
         }
-        setRows(rangees);
+        setRows(rows);
     }
 
     /** L'appui d'une rangée : l'indice du sommet y compte l'en-tête
      *  et les sections éventuels. */
     private void prendre(int rang) {
-        sauter(indiceDe(rang));
+        sauter(indexOf(rang));
     }
 
     /** L'indice du sommet à la rangée d'affichage — l'en-tête et les
      *  sections comptent leurs rangées, —1 hors des sommets. */
-    private int indiceDe(int rang) {
+    private int indexOf(int rang) {
         int reste = rang - decalage();
         for (Section section : sections) {
             reste--;
@@ -161,19 +161,19 @@ public final class HierarchiesView extends TextRowsPopup implements PopupClavier
 
     @Override
     public boolean surFleche(int pas) {
-        int taille = nombreDeSommets();
-        if (taille == 0) {
+        int size = nombreDeSommets();
+        if (size == 0) {
             return false;
         }
         // la flèche part de la tête prenable, saute les introuvables et
         // ne déborde jamais des bornes
-        int cible = surligne < 0 ? premierPrenable(0, pas)
+        int target = surligne < 0 ? premierPrenable(0, pas)
                 : bornePrenable(surligne, pas);
-        if (cible < 0) {
+        if (target < 0) {
             return false;
         }
-        surligne = cible;
-        setHighlighted(rangDe(cible));
+        surligne = target;
+        setHighlighted(rangDe(target));
         return true;
     }
 
@@ -208,28 +208,28 @@ public final class HierarchiesView extends TextRowsPopup implements PopupClavier
 
     /** Le premier sommet prenable depuis le départ, dans la direction. */
     private int premierPrenable(int depart, int pas) {
-        int taille = nombreDeSommets();
-        int cible = pas >= 0 ? depart : taille - 1;
-        while (cible >= 0 && cible < taille) {
-            if (estPrenable(cible)) {
-                return cible;
+        int size = nombreDeSommets();
+        int target = pas >= 0 ? depart : size - 1;
+        while (target >= 0 && target < size) {
+            if (estPrenable(target)) {
+                return target;
             }
-            cible += pas >= 0 ? 1 : -1;
+            target += pas >= 0 ? 1 : -1;
         }
         return -1;
     }
 
     /** Le sommet prenable depuis l'index donné, borné aux extrêmes. */
     private int bornePrenable(int courant, int pas) {
-        int taille = nombreDeSommets();
-        int cible = Math.min(taille - 1, Math.max(0, courant + pas));
-        while (cible >= 0 && cible < taille && !estPrenable(cible)) {
-            cible += pas >= 0 ? 1 : -1;
+        int size = nombreDeSommets();
+        int target = Math.min(size - 1, Math.max(0, courant + pas));
+        while (target >= 0 && target < size && !estPrenable(target)) {
+            target += pas >= 0 ? 1 : -1;
         }
-        if (cible < 0 || cible >= taille) {
+        if (target < 0 || target >= size) {
             return courant;
         }
-        return cible;
+        return target;
     }
 
     /** Vrai quand le sommet d'index donné se prend (l'introuvable

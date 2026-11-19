@@ -38,7 +38,7 @@ public final class ScrollFrame {
      * accolades, pli, composition, texte, fantôme — dans l'ordre du
      * tracé.
      *
-     * @param gouttiere   le peintre de gouttière
+     * @param gutter   le peintre de gouttière
      * @param pinceaux    la fabrique de pinceaux de la vue
      * @param guides      la source des guides structurels courants
      * @param piecesPli   la source des pièces de pli composé courantes
@@ -47,21 +47,21 @@ public final class ScrollFrame {
      * @param composition l'état de composition de la vue
      * @param cache       le cache de rangées de la vue
      * @param source      la source de rangées liée de la vue
-     * @param fantome     la couche du texte fantôme
+     * @param ghost     la couche du texte fantôme
      * @return le pipeline assemblé
      */
-    public static ScrollFrame assemble(GutterPainter gouttiere,
+    public static ScrollFrame assemble(GutterPainter gutter,
             BrushFactory pinceaux, IndentGuides.GuidesSource guides,
             FoldPlaceholder.Source piecesPli, float densite,
             CompositionState composition, RowLayoutCache cache,
-            RebindingRowSource source, PainterLayer fantome,
+            RebindingRowSource source, PainterLayer ghost,
             EditorSyntax syntaxe) {
         ScrollFrame pipeline = new ScrollFrame();
-        pipeline.addLayer(gouttiere);
+        pipeline.addLayer(gutter);
         // La bande de ligne courante (le retour terrain du 2026-11-19)
         // se trace SOUS tout le reste : elle éclaire la rangée du
         // caret réduit, elle ne lit pas.
-        pipeline.addLayer(new BandeLigneCourante(pinceaux));
+        pipeline.addLayer(new CurrentLineBand(pinceaux));
         // Les guides d'indentation (A-17) se tracent SOUS la sélection
         // et le texte : ils alignent, ils ne lisent pas.
         pipeline.addLayer(new IndentGuides(pinceaux, guides));
@@ -73,7 +73,7 @@ public final class ScrollFrame {
         pipeline.addLayer(new SelectionPainter(pinceaux));
         // Les accolades appariées (D-14) : leurs rectangles se tracent
         // sur la bande de sélection, SOUS le texte — le glyphe prime.
-        pipeline.addLayer(new AccoladesMiroir(pinceaux));
+        pipeline.addLayer(new BraceMirror(pinceaux));
         // Le placeholder de pli ({…}) : sa bande se trace sur la sélection
         // et sous le texte — la chip se distingue, l'encre prime.
         pipeline.addLayer(new FoldPlaceholder(pinceaux, piecesPli));
@@ -86,8 +86,8 @@ public final class ScrollFrame {
         // texte : la dentelle ondule sous les glyphes sur la ligne de
         // base — la malformation se voit sans gêner la lecture.
         pipeline.addLayer(new SquigglePainter(pinceaux, syntaxe));
-        pipeline.addLayer(new PastillesTexte(pinceaux, densite));
-        pipeline.addLayer(fantome);
+        pipeline.addLayer(new TextChips(pinceaux, densite));
+        pipeline.addLayer(ghost);
         pipeline.coucheOccurrences = occurrences;
         return pipeline;
     }

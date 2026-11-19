@@ -22,10 +22,10 @@ import org.jspecify.annotations.Nullable;
 public final class OutlineModel {
 
     /** Une rangée du plan : l'entrée et sa profondeur d'affichage. */
-    public record Row(OutlineEntry entree, int profondeur) {
+    public record Row(OutlineEntry input, int profondeur) {
     }
 
-    private List<Row> lignes = List.of();
+    private List<Row> lines = List.of();
 
     /**
      * Applique un nouveau plan : le préfixe identique se conserve, le
@@ -35,26 +35,26 @@ public final class OutlineModel {
      * @return le changement — préfixe conservé, remplacées, ajoutées
      */
     public OutlineChange appliquer(List<OutlineEntry> entrees) {
-        int ancien = lignes.size();
+        int ancien = lines.size();
         int prefixe = 0;
         int borne = Math.min(ancien, entrees.size());
         while (prefixe < borne
-                && lignes.get(prefixe).entree().equals(entrees.get(prefixe))) {
+                && lines.get(prefixe).input().equals(entrees.get(prefixe))) {
             prefixe++;
         }
-        lignes = avecProfondeurs(entrees);
+        lines = avecProfondeurs(entrees);
         return new OutlineChange(prefixe, ancien - prefixe,
                 entrees.size() - prefixe);
     }
 
     /** Les rangées du plan, immuables. */
-    public List<Row> lignes() {
-        return lignes;
+    public List<Row> lines() {
+        return lines;
     }
 
     /** Le nombre d'entrées du plan. */
     public int nombre() {
-        return lignes.size();
+        return lines.size();
     }
 
     /**
@@ -65,14 +65,14 @@ public final class OutlineModel {
      * @return l'entrée visée, null hors bornes
      */
     public @Nullable OutlineEntry auPoint(float y, float hauteurLigne) {
-        if (hauteurLigne <= 0f || lignes.isEmpty()) {
+        if (hauteurLigne <= 0f || lines.isEmpty()) {
             return null;
         }
         int indice = (int) (y / hauteurLigne);
-        if (indice < 0 || indice >= lignes.size()) {
+        if (indice < 0 || indice >= lines.size()) {
             return null;
         }
-        return lignes.get(indice).entree();
+        return lines.get(indice).input();
     }
 
     /**
@@ -82,12 +82,12 @@ public final class OutlineModel {
     private static List<Row> avecProfondeurs(List<OutlineEntry> entrees) {
         List<Row> result = new ArrayList<>(entrees.size());
         Deque<OutlineEntry> ouverts = new ArrayDeque<>();
-        for (OutlineEntry entree : entrees) {
-            while (!ouverts.isEmpty() && !contient(ouverts.peek(), entree)) {
+        for (OutlineEntry input : entrees) {
+            while (!ouverts.isEmpty() && !contient(ouverts.peek(), input)) {
                 ouverts.pop();
             }
-            result.add(new Row(entree, ouverts.size()));
-            ouverts.push(entree);
+            result.add(new Row(input, ouverts.size()));
+            ouverts.push(input);
         }
         return List.copyOf(result);
     }

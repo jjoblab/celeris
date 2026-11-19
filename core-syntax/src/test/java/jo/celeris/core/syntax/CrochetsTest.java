@@ -24,47 +24,47 @@ class CrochetsTest {
     /** Le crochet à l'offset désigne son partenaire, dans les deux sens. */
     @Test
     void crochetDesigneSonPartenaire() {
-        String texte = "a ( b { c } d ) e";
-        Document doc = Document.of(texte);
+        String text = "a ( b { c } d ) e";
+        Document doc = Document.of(text);
         LexDocument lex = moteur.lexFull(doc, lexeur).lex();
 
-        TokenMatch ouvrant = attendMatch(doc, lex, texte.indexOf('('));
-        assertEquals(texte.indexOf('('), ouvrant.start());
-        assertEquals(texte.indexOf(')'), ouvrant.otherStart());
+        TokenMatch ouvrant = attendMatch(doc, lex, text.indexOf('('));
+        assertEquals(text.indexOf('('), ouvrant.start());
+        assertEquals(text.indexOf(')'), ouvrant.otherStart());
 
-        TokenMatch fermant = attendMatch(doc, lex, texte.indexOf(')'));
-        assertEquals(texte.indexOf(')'), fermant.start());
-        assertEquals(texte.indexOf('('), fermant.otherStart());
+        TokenMatch fermant = attendMatch(doc, lex, text.indexOf(')'));
+        assertEquals(text.indexOf(')'), fermant.start());
+        assertEquals(text.indexOf('('), fermant.otherStart());
 
-        TokenMatch interne = attendMatch(doc, lex, texte.indexOf('{'));
-        assertEquals(texte.indexOf('}'), interne.otherStart());
+        TokenMatch interne = attendMatch(doc, lex, text.indexOf('{'));
+        assertEquals(text.indexOf('}'), interne.otherStart());
     }
 
     /** L'imbriquement rend le partenaire du niveau, pas le premier venu. */
     @Test
     void imbricationRendLePartenaireDuNiveau() {
-        String texte = "( a ( b ) c )";
-        Document doc = Document.of(texte);
+        String text = "( a ( b ) c )";
+        Document doc = Document.of(text);
         LexDocument lex = moteur.lexFull(doc, lexeur).lex();
-        TokenMatch interne = attendMatch(doc, lex, texte.indexOf("( b") + 1);
-        assertEquals(texte.indexOf(")"), interne.otherStart(),
+        TokenMatch interne = attendMatch(doc, lex, text.indexOf("( b") + 1);
+        assertEquals(text.indexOf(")"), interne.otherStart(),
                 "le partenaire du niveau, pas le premier fermant venu");
     }
 
     /** Un crochet sans partenaire ne désigne personne, sans lever. */
     @Test
     void crochetOrphelinNeDesignePersonne() {
-        String texte = "a ( b c";
-        Document doc = Document.of(texte);
+        String text = "a ( b c";
+        Document doc = Document.of(text);
         LexDocument lex = moteur.lexFull(doc, lexeur).lex();
-        assertNull(BracketMatcher.matchAt(doc, lex, texte.indexOf('(')));
+        assertNull(BracketMatcher.matchAt(doc, lex, text.indexOf('(')));
     }
 
     /** Un offset hors crochet ne désigne personne. */
     @Test
     void offsetSansCrochetNeDesignePersonne() {
-        String texte = "abc def";
-        Document doc = Document.of(texte);
+        String text = "abc def";
+        Document doc = Document.of(text);
         LexDocument lex = moteur.lexFull(doc, lexeur).lex();
         assertNull(BracketMatcher.matchAt(doc, lex, 0));
         assertNull(BracketMatcher.matchAt(doc, lex, 7));
@@ -73,45 +73,45 @@ class CrochetsTest {
     /** Les crochets des commentaires et chaînes sont invisibles pour la visée. */
     @Test
     void crochetsDeCommentaireEtChaineInvisibles() {
-        String texte = "/* ( { */ x \"y)\" z (w)";
-        Document doc = Document.of(texte);
+        String text = "/* ( { */ x \"y)\" z (w)";
+        Document doc = Document.of(text);
         LexDocument lex = moteur.lexFull(doc, lexeur).lex();
-        assertNull(BracketMatcher.matchAt(doc, lex, texte.indexOf("/* (") + 3));
-        assertNull(BracketMatcher.matchAt(doc, lex, texte.indexOf("( {") + 2));
-        assertNull(BracketMatcher.matchAt(doc, lex, texte.indexOf("y)") ));
-        TokenMatch reel = attendMatch(doc, lex, texte.indexOf("(w)"));
-        assertEquals(texte.indexOf("(w)"), reel.start());
-        assertEquals(texte.length() - 1, reel.otherStart());
+        assertNull(BracketMatcher.matchAt(doc, lex, text.indexOf("/* (") + 3));
+        assertNull(BracketMatcher.matchAt(doc, lex, text.indexOf("( {") + 2));
+        assertNull(BracketMatcher.matchAt(doc, lex, text.indexOf("y)") ));
+        TokenMatch reel = attendMatch(doc, lex, text.indexOf("(w)"));
+        assertEquals(text.indexOf("(w)"), reel.start());
+        assertEquals(text.length() - 1, reel.otherStart());
     }
 
     /** Un offset collé au crochet le vise ; loin d'un crochet, personne. */
     @Test
     void offsetColleAuCrochetLeVise() {
-        String texte = "ab ( c ) de { f }";
-        Document doc = Document.of(texte);
+        String text = "ab ( c ) de { f }";
+        Document doc = Document.of(text);
         LexDocument lex = moteur.lexFull(doc, lexeur).lex();
-        TokenMatch colle = attendMatch(doc, lex, texte.indexOf('('));
-        assertEquals(texte.indexOf('('), colle.start());
-        TokenMatch apres = attendMatch(doc, lex, texte.indexOf('(') + 1);
-        assertEquals(texte.indexOf('('), apres.start(),
+        TokenMatch colle = attendMatch(doc, lex, text.indexOf('('));
+        assertEquals(text.indexOf('('), colle.start());
+        TokenMatch apres = attendMatch(doc, lex, text.indexOf('(') + 1);
+        assertEquals(text.indexOf('('), apres.start(),
                 "collé juste après l'ouvrant, c'est encore lui");
         assertNull(BracketMatcher.matchAt(doc, lex, 0));
-        assertNull(BracketMatcher.matchAt(doc, lex, texte.indexOf("de")));
+        assertNull(BracketMatcher.matchAt(doc, lex, text.indexOf("de")));
     }
 
     /** Le partenaire se trouve au-delà des lignes, par balayage local. */
     @Test
     void partenaireMultiLignes() {
-        String texte = "debut (\nmilieu\n) fin";
-        Document doc = Document.of(texte);
+        String text = "debut (\nmilieu\n) fin";
+        Document doc = Document.of(text);
         LexDocument lex = moteur.lexFull(doc, lexeur).lex();
-        TokenMatch vise = attendMatch(doc, lex, texte.indexOf('('));
+        TokenMatch vise = attendMatch(doc, lex, text.indexOf('('));
         assertEquals(doc.lineStart(2), vise.otherStart());
     }
 
     private static TokenMatch attendMatch(Document doc, LexDocument lex, int offset) {
-        TokenMatch paire = BracketMatcher.matchAt(doc, lex, offset);
-        assertNotNull(paire);
-        return paire;
+        TokenMatch pair = BracketMatcher.matchAt(doc, lex, offset);
+        assertNotNull(pair);
+        return pair;
     }
 }

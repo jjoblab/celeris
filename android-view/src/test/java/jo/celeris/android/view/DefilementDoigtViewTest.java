@@ -48,7 +48,7 @@ public class DefilementDoigtViewTest {
      */
     @Test
     public void panoramiqueDeuxDoigtsSansClavier() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU_LONG);
         EditorView vue = banc.vue();
         banc.image();
@@ -68,7 +68,7 @@ public class DefilementDoigtViewTest {
         }
         assertTrue("le panoramique défile verticalement", vue.scrollY > 0f);
         assertFalse("le panoramique n'ouvre pas le clavier",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
         vue.onTouchEvent(EditorTestRig.obtenir(t, SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_UP, x, 1100f));
     }
@@ -79,7 +79,7 @@ public class DefilementDoigtViewTest {
      */
     @Test
     public void glissementUnDoigtDefleSansClavier() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU_LONG);
         EditorView vue = banc.vue();
         banc.image();
@@ -94,7 +94,7 @@ public class DefilementDoigtViewTest {
         }
         assertTrue("le glissement vertical défile", vue.scrollY > 0f);
         assertFalse("le glissement n'ouvre pas le clavier",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
         // le doigt glisse ensuite vers la gauche : l'axe horizontal suit
         for (int cran = 1; cran <= 20; cran++) {
             vue.onTouchEvent(EditorTestRig.obtenir(t, t + 320L + 16L * cran,
@@ -103,7 +103,7 @@ public class DefilementDoigtViewTest {
         vue.onTouchEvent(EditorTestRig.obtenir(t, SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_UP, x - 300f, 1100f));
         assertFalse("le relâchement du glissement n'ouvre pas le clavier",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
     }
 
     /**
@@ -114,7 +114,7 @@ public class DefilementDoigtViewTest {
     @Test
     public void glissementHorizontalDefleAxeX() {
         String longueLigne = "alpha ".repeat(400);
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), longueLigne);
         EditorView vue = banc.vue();
         banc.image();
@@ -130,7 +130,7 @@ public class DefilementDoigtViewTest {
         assertTrue("le glissement horizontal défile l'axe X",
                 vue.scrollX > 0f);
         assertFalse("aucun clavier dans le geste horizontal",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
         vue.onTouchEvent(EditorTestRig.obtenir(t, SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_UP, x - 400f, y));
     }
@@ -141,7 +141,7 @@ public class DefilementDoigtViewTest {
      */
     @Test
     public void tapPoseCurseurEtOuvreClavier() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "alpha beta");
         EditorView vue = banc.vue();
         float y = vue.metrics.lineHeight() / 2f;
@@ -150,14 +150,14 @@ public class DefilementDoigtViewTest {
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, x, y));
         assertFalse("le doigt posé n'arme pas encore le clavier",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
         vue.onTouchEvent(EditorTestRig.obtenir(t, t + 50L,
                 MotionEvent.ACTION_UP, x, y));
         assertTrue("le tap ouvre le clavier",
-                vue.curseurClavier.clavierDemande());
-        SelRange plage = vue.session().selection().ranges().get(0);
+                vue.curseurClavier.keyboardRequested());
+        SelRange range = vue.session().selection().ranges().get(0);
         assertEquals("le tap pose le curseur au point touché",
-                2, plage.caret());
+                2, range.caret());
     }
 
     /**
@@ -166,7 +166,7 @@ public class DefilementDoigtViewTest {
      */
     @Test
     public void jitterSousLeSeuilResteUnTap() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "alpha beta");
         EditorView vue = banc.vue();
         float y = vue.metrics.lineHeight() / 2f;
@@ -179,7 +179,7 @@ public class DefilementDoigtViewTest {
         vue.onTouchEvent(EditorTestRig.obtenir(t, t + 50L,
                 MotionEvent.ACTION_UP, x + SEUIL_TAP / 2f, y + 2f));
         assertTrue("le jitter sous le seuil reste un tap",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
     }
 
     /**
@@ -188,7 +188,7 @@ public class DefilementDoigtViewTest {
      */
     @Test
     public void relachementAppuiLongNeRouvrePasLeClavier() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "alpha beta");
         EditorView vue = banc.vue();
         float y = vue.metrics.lineHeight() / 2f;
@@ -200,10 +200,10 @@ public class DefilementDoigtViewTest {
         vue.onTouchEvent(EditorTestRig.obtenir(t, SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_UP, x, y));
         assertFalse("le relâchement de l'appui long garde le clavier caché",
-                vue.curseurClavier.clavierDemande());
-        SelRange plage = vue.session().selection().ranges().get(0);
+                vue.curseurClavier.keyboardRequested());
+        SelRange range = vue.session().selection().ranges().get(0);
         assertEquals("la sélection de l'appui long survit",
-                0, plage.start());
+                0, range.start());
     }
 
     /**

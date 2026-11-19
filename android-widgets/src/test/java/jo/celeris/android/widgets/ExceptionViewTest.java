@@ -51,7 +51,7 @@ public class ExceptionViewTest {
                 new ExceptionView.Cadre("L7 · Autre.aide", null)));
         mesurer(vue);
         assertEquals(2, vue.nombre());
-        assertEquals("L12 · Service.inscrire", vue.cadreAt(0).libelle());
+        assertEquals("L12 · Service.inscrire", vue.cadreAt(0).label());
         assertNull("le cadre hors bornes n'existe pas", vue.cadreAt(7));
         assertTrue("la carte tient ses rangées", vue.getMeasuredHeight() > 0);
     }

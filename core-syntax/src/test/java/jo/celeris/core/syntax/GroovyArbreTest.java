@@ -76,11 +76,11 @@ class GroovyArbreTest {
     @Test
     void plisParBloc() {
         Document doc = Document.of(SCRIPT);
-        List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
-        assertTrue(plis.size() >= 4, "plugins, salut, Etat, avance — " + plis.size()
+        List<FoldSpan> folds = TreeFolds.regions(doc, service.analyseFull(doc));
+        assertTrue(folds.size() >= 4, "plugins, salut, Etat, avance — " + folds.size()
                 + " plis");
-        assertEquals(0, plis.get(0).startLine());
-        assertEquals(2, plis.get(0).endLine(), "le pli de plugins couvre sa fermeture");
+        assertEquals(0, folds.get(0).startLine());
+        assertEquals(2, folds.get(0).endLine(), "le pli de plugins couvre sa fermeture");
     }
 
     /** Une accolade manquante devient un diagnostic, jamais une exception. */
@@ -115,10 +115,10 @@ class GroovyArbreTest {
                 }
                 """;
         Document doc = Document.of(source);
-        List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
-        assertEquals(1, plis.size(), "le corps de la tâche se plie");
-        assertEquals(0, plis.get(0).startLine());
-        assertEquals(5, plis.get(0).endLine());
+        List<FoldSpan> folds = TreeFolds.regions(doc, service.analyseFull(doc));
+        assertEquals(1, folds.size(), "le corps de la tâche se plie");
+        assertEquals(0, folds.get(0).startLine());
+        assertEquals(5, folds.get(0).endLine());
         assertTrue(TreeDiagnostics.issues(doc, service.analyseFull(doc)).isEmpty());
     }
 
@@ -128,11 +128,11 @@ class GroovyArbreTest {
         TextSession session = TextSession.of(SCRIPT, () -> 0L);
         Document avant = session.document();
         Analysis premiere = service.analyseFull(avant);
-        int cible = SCRIPT.indexOf("compteur");
-        session.replaceRange(cible, cible + 8, "total");
+        int target = SCRIPT.indexOf("compteur");
+        session.replaceRange(target, target + 8, "total");
         Document edite = session.document();
         Analysis complet = service.analyseFull(edite);
-        EditSite site = EditSite.of(avant, edite, cible, cible + 8, "total");
+        EditSite site = EditSite.of(avant, edite, target, target + 8, "total");
         Analysis diff = service.analyseIncremental(edite, premiere, site);
         Arbres.verifierEquivalence(diff.tree(), complet.tree(), edite);
     }

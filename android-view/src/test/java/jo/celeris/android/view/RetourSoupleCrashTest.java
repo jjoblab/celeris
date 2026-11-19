@@ -166,47 +166,47 @@ class RetourSoupleCrashTest {
      * gouttière, sélection, texte — le chemin exact de
      * {@code EditorView.preparerEtatImage} et {@code onDraw}.
      */
-    private SurfaceEnregistreuse image(TextSession session, FoldModel plis,
-            EditorSyntax syntaxe, int colonnes, int hauteur, int largeur,
+    private SurfaceEnregistreuse image(TextSession session, FoldModel folds,
+            EditorSyntax syntaxe, int colonnes, int height, int width,
             int premiereRangeeClic) {
         Document document = session.document();
         EditorMetrics metrics = EditorMetrics.of(
                 new FontSpec("mono", 14f), new RegleDroite());
         VisualProjection projection =
-                new VisualProjection(document, plis, colonnes);
+                new VisualProjection(document, folds, colonnes);
         RowLayoutCache cache = new RowLayoutCache();
         RebindingRowSource source = new RebindingRowSource(
                 new DocumentRowSource(document, projection, metrics, 0));
-        source.set(syntaxe.habiller(
+        source.set(syntaxe.wrap(
                 new DocumentRowSource(document, projection, metrics, colonnes),
                 document));
 
-        GutterIntegrations marquesGouttiere = new GutterIntegrations();
-        BrushFactory fabrique = new FabriqueSimple();
+        GutterIntegrations gutterMarks = new GutterIntegrations();
+        BrushFactory factory = new FabriqueSimple();
         ScrollFrame trace = new ScrollFrame();
-        GutterLanes coulisses = marquesGouttiere.coulisses(syntaxe.active());
-        trace.addLayer(new GutterPainter(fabrique, 8f,
-                () -> marquesGouttiere.marques(syntaxe.marques()),
-                () -> coulisses.laneWidth(metrics.charWidth(), 8f)));
-        trace.addLayer(new SelectionPainter(fabrique));
-        trace.addLayer(new TextPainter(fabrique, cache, source));
+        GutterLanes lanes = gutterMarks.lanes(syntaxe.active());
+        trace.addLayer(new GutterPainter(factory, 8f,
+                () -> gutterMarks.marks(syntaxe.marks()),
+                () -> lanes.laneWidth(metrics.charWidth(), 8f)));
+        trace.addLayer(new SelectionPainter(factory));
+        trace.addLayer(new TextPainter(factory, cache, source));
 
-        float coulisse = coulisses.laneWidth(metrics.charWidth(), 8f);
+        float lane = lanes.laneWidth(metrics.charWidth(), 8f);
         float largeurGouttiere = GutterLayout.width(
                 GutterLayout.digitsFor(document.lineCount()),
-                metrics.charWidth(), 1f, 8f, coulisses);
+                metrics.charWidth(), 1f, 8f, lanes);
         int premiere = 0;
-        int visibles = ScrollGeometry.visibleRows(hauteur, metrics.lineHeight());
-        syntaxe.fenetre(projection, premiere, visibles);
+        int visibles = ScrollGeometry.visibleRows(height, metrics.lineHeight());
+        syntaxe.window(projection, premiere, visibles);
 
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, session.selection(), projection,
+        FrameState state = new FrameState();
+        state.beginFrame(document, session.selection(), projection,
                 document.revision(), metrics, THEME, premiere, visibles,
                 largeurGouttiere, 0f, 0f);
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
-        trace.drawFrame(surface, etat);
+        trace.drawFrame(surface, state);
         viserEtDevoilerChaqueColonne(document, projection, metrics,
-                largeurGouttiere, largeur, hauteur);
+                largeurGouttiere, width, height);
         return surface;
     }
 
@@ -216,32 +216,32 @@ class RetourSoupleCrashTest {
      */
     private static void viserEtDevoilerChaqueColonne(Document document,
             VisualProjection projection, EditorMetrics metrics,
-            float largeurGouttiere, int largeur, int hauteur) {
+            float largeurGouttiere, int width, int height) {
         HitTest viseur = new HitTest(metrics);
         for (int rangee = 0; rangee < projection.rowCount(); rangee++) {
-            int ligne = projection.firstLineOfRow(rangee);
-            int debut = projection.spanStartAtRow(rangee);
-            int fin = Math.min(projection.spanEndAtRow(rangee),
-                    document.lineEnd(ligne) - document.lineStart(ligne));
-            for (int colonne = 0; colonne <= fin - debut; colonne++) {
+            int line = projection.firstLineOfRow(rangee);
+            int start = projection.spanStartAtRow(rangee);
+            int end = Math.min(projection.spanEndAtRow(rangee),
+                    document.lineEnd(line) - document.lineStart(line));
+            for (int column = 0; column <= end - start; column++) {
                 int vise = viseur.offsetAt(document, projection, metrics,
                         largeurGouttiere, 0f, 0f,
-                        largeurGouttiere + colonne * metrics.charWidth() + 1f,
+                        largeurGouttiere + column * metrics.charWidth() + 1f,
                         rangee * metrics.lineHeight() + 1f);
                 CaretReveal.reveal(vise, document, projection, metrics,
-                        largeurGouttiere, largeur, hauteur, 0f, 0f, 8f);
+                        largeurGouttiere, width, height, 0f, 0f, 8f);
             }
         }
     }
 
-    private void rejouer(String contenu, LanguageSyntax langue, int colonnes) {
+    private void rejouer(String contenu, LanguageSyntax language, int colonnes) {
         TextSession session = TextSession.of(contenu, System::nanoTime);
-        FoldModel plis = new FoldModel();
-        EditorSyntax syntaxe = new EditorSyntax(plis);
-        syntaxe.attacher(session);
-        syntaxe.setLanguage(LanguageSupport.of(langue));
+        FoldModel folds = new FoldModel();
+        EditorSyntax syntaxe = new EditorSyntax(folds);
+        syntaxe.attach(session);
+        syntaxe.setLanguage(LanguageSupport.of(language));
         SurfaceEnregistreuse surface =
-                image(session, plis, syntaxe, colonnes, 640, 1080, 0);
+                image(session, folds, syntaxe, colonnes, 640, 1080, 0);
         assertTrue(!surface.textes.isEmpty());
     }
 
@@ -264,21 +264,21 @@ class RetourSoupleCrashTest {
     @Test
     void retourSouple_avecPliSansCrash() {
         TextSession session = TextSession.of(KOTLIN, System::nanoTime);
-        FoldModel plis = new FoldModel();
-        EditorSyntax syntaxe = new EditorSyntax(plis);
-        syntaxe.attacher(session);
+        FoldModel folds = new FoldModel();
+        EditorSyntax syntaxe = new EditorSyntax(folds);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(KotlinSyntax.INSTANCE));
         // Première image sans pli : les régions pliables se publient.
-        image(session, plis, syntaxe, 40, 640, 1080, 0);
+        image(session, folds, syntaxe, 40, 640, 1080, 0);
         // Plier la première région pliable publiée.
         boolean plie = false;
-        for (int ligne = 0; ligne < session.document().lineCount()
-                && !plie; ligne++) {
-            plie = syntaxe.basculerPli(ligne);
+        for (int line = 0; line < session.document().lineCount()
+                && !plie; line++) {
+            plie = syntaxe.toggleFold(line);
         }
         assertTrue(plie, "une région pliable devait exister");
         SurfaceEnregistreuse surface =
-                image(session, plis, syntaxe, 40, 640, 1080, 0);
+                image(session, folds, syntaxe, 40, 640, 1080, 0);
         assertTrue(!surface.textes.isEmpty());
     }
 
@@ -299,16 +299,16 @@ class RetourSoupleCrashTest {
     @Test
     void retourSouple_selectionSousCoupuresSansCrash() {
         TextSession session = TextSession.of(KOTLIN, System::nanoTime);
-        FoldModel plis = new FoldModel();
-        EditorSyntax syntaxe = new EditorSyntax(plis);
-        syntaxe.attacher(session);
+        FoldModel folds = new FoldModel();
+        EditorSyntax syntaxe = new EditorSyntax(folds);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(KotlinSyntax.INSTANCE));
         Document document = session.document();
         session.setSelection(MultiSelection.of(new SelRange(
                 document.lineStart(5),
                 Math.min(document.lineStart(5) + 80, document.length()))));
         SurfaceEnregistreuse surface =
-                image(session, plis, syntaxe, 40, 640, 1080, 0);
+                image(session, folds, syntaxe, 40, 640, 1080, 0);
         assertTrue(surface.rectangles > 0, "la sélection devait se tracer");
     }
 }

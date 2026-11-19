@@ -21,8 +21,8 @@ class OptimiseurImportsTest {
 
     private final SyntaxService service = SyntaxService.of(JavaSyntax.INSTANCE);
 
-    private List<OptimiseurImports.RapportImport> analyser(String texte) {
-        Document doc = Document.of(texte);
+    private List<OptimiseurImports.RapportImport> analyser(String text) {
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         return OptimiseurImports.analyser(doc, analyse);
     }
@@ -42,7 +42,7 @@ class OptimiseurImportsTest {
                 """);
         assertEquals(2, rapports.size());
         assertEquals("import java.util.List;", rapports.get(0).importComplet());
-        assertEquals(2, rapports.get(0).ligne());
+        assertEquals(2, rapports.get(0).line());
         assertTrue(rapports.get(0).utilise());
         assertEquals("import java.util.Map;", rapports.get(1).importComplet());
         assertTrue(!rapports.get(1).utilise());
@@ -87,14 +87,14 @@ class OptimiseurImportsTest {
     /** Le signalement ne mute jamais le document — rien n'est supprimé en silence. */
     @Test
     void leSignalementNeMuteRien() {
-        String texte = "import java.util.Map;\n\nclass A {}\n";
-        Document doc = Document.of(texte);
+        String text = "import java.util.Map;\n\nclass A {}\n";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         List<OptimiseurImports.RapportImport> rapports = OptimiseurImports.analyser(doc, analyse);
         assertEquals(1, rapports.size());
         assertTrue(!rapports.get(0).utilise());
         // le document est intact : l'optimiseur ne décide pas à la place de l'hôte
-        assertEquals(texte, doc.text());
+        assertEquals(text, doc.text());
     }
 
     /** Les lignes d'édition attendues : le rapport donne la ligne du plan, zéro pour la première. */
@@ -105,8 +105,8 @@ class OptimiseurImportsTest {
                 import java.util.Map;
                 class A { List x; }
                 """);
-        assertEquals(0, rapports.get(0).ligne());
-        assertEquals(1, rapports.get(1).ligne());
+        assertEquals(0, rapports.get(0).line());
+        assertEquals(1, rapports.get(1).line());
         assertTrue(rapports.get(0).utilise());
         assertTrue(!rapports.get(1).utilise());
     }

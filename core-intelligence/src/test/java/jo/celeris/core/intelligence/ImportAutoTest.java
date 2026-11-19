@@ -20,16 +20,16 @@ class ImportAutoTest {
     /** L'insertion après le paquet : une seule édition, à la position exacte. */
     @Test
     void linsertionApresLePaquet() {
-        String texte = "package exemple;\n\nclass A {}\n";
-        Document doc = Document.of(texte);
+        String text = "package exemple;\n\nclass A {}\n";
+        Document doc = Document.of(text);
         EditPlan plan = ImportAuto.importer(doc, "import java.util.List;\n");
         assertNotNull(plan);
         assertEquals(1, plan.transaction().edits().size());
-        var edition = plan.transaction().edits().get(0);
+        var edit = plan.transaction().edits().get(0);
         // la tête : le début de la ligne qui suit le paquet
-        assertEquals(17, edition.start());
-        assertEquals("", edition.removed());
-        assertEquals("import java.util.List;\n", edition.inserted());
+        assertEquals(17, edit.start());
+        assertEquals("", edit.removed());
+        assertEquals("import java.util.List;\n", edit.inserted());
         // la sélection d'après : le curseur au début de l'import inséré
         MultiSelection selection = plan.selection();
         assertEquals(17, selection.ranges().get(0).caret());
@@ -38,8 +38,8 @@ class ImportAutoTest {
     /** Sans paquet : l'insertion à la toute première position du document. */
     @Test
     void linsertionSansPaquet() {
-        String texte = "class A {}\n";
-        Document doc = Document.of(texte);
+        String text = "class A {}\n";
+        Document doc = Document.of(text);
         EditPlan plan = ImportAuto.importer(doc, "import java.util.Map;\n");
         assertNotNull(plan);
         assertEquals(0, plan.transaction().edits().get(0).start());
@@ -50,12 +50,12 @@ class ImportAutoTest {
     /** Avec des imports existants : l'insertion en tête du bloc, avant le premier. */
     @Test
     void linsertionEnTeteDuBloc() {
-        String texte = "package exemple;\n\nimport java.util.Map;\n\nimport java.util.Set;\n\nclass A {}\n";
-        Document doc = Document.of(texte);
+        String text = "package exemple;\n\nimport java.util.Map;\n\nimport java.util.Set;\n\nclass A {}\n";
+        Document doc = Document.of(text);
         EditPlan plan = ImportAuto.importer(doc, "import java.util.List;\n");
         assertNotNull(plan);
         // la tête du bloc : le début de la ligne du premier import (ligne 2)
-        assertEquals(texte.indexOf("import java.util.Map;"),
+        assertEquals(text.indexOf("import java.util.Map;"),
                 plan.transaction().edits().get(0).start());
         assertEquals("import java.util.List;\n",
                 plan.transaction().edits().get(0).inserted());
@@ -64,28 +64,28 @@ class ImportAutoTest {
     /** L'import déjà présent : rien à faire — null, jamais de doublon. */
     @Test
     void limportDejaPresent() {
-        String texte = "package exemple;\n\nimport java.util.List;\n\nclass A {}\n";
-        Document doc = Document.of(texte);
+        String text = "package exemple;\n\nimport java.util.List;\n\nclass A {}\n";
+        Document doc = Document.of(text);
         assertNull(ImportAuto.importer(doc, "import java.util.List;\n"));
     }
 
     /** L'import déjà présent ailleurs dans le texte : la ligne entière compte. */
     @Test
     void laPresenceSeVerifieALaLigneEntiere() {
-        String texte = """
+        String text = """
                 package exemple;
 
                 import java.util.List;
 
                 class A { Object o = "import java.util.List;"; }
                 """;
-        Document doc = Document.of(texte);
+        Document doc = Document.of(text);
         // présent à la ligne des imports : rien à faire
         assertNull(ImportAuto.importer(doc, "import java.util.List;\n"));
         // un autre import : il s'insère, la chaîne ne compte pas comme présence
         EditPlan plan = ImportAuto.importer(doc, "import java.util.Map;\n");
         assertNotNull(plan);
-        assertEquals(texte.indexOf("import java.util.List;"),
+        assertEquals(text.indexOf("import java.util.List;"),
                 plan.transaction().edits().get(0).start());
     }
 }

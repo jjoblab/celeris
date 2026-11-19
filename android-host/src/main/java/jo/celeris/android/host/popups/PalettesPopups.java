@@ -21,13 +21,13 @@ public final class PalettesPopups {
      * verre du dépôt de départ.
      *
      * @param theme         le thème d'éditeur courant
-     * @param tailleTexteSp la taille de texte de l'éditeur, en sp
+     * @param textSizeSp la taille de texte de l'éditeur, en sp
      * @return la palette des popups de l'éditeur
      */
-    public static PopupPalette de(EditorTheme theme, float tailleTexteSp) {
+    public static PopupPalette of(EditorTheme theme, float textSizeSp) {
         return PopupPalette.verre(theme.backgroundColor(),
                 theme.baseTextColor(), theme.gutterTextColor(),
                 theme.selectionColor(), theme.cursorColor(),
-                theme.syntaxe().couleur(TokenKind.KEYWORD), tailleTexteSp);
+                theme.syntaxe().couleur(TokenKind.KEYWORD), textSizeSp);
     }
 }

@@ -27,10 +27,10 @@ class CommenterTest {
 
     /** La configuration d'un langage au commentaire de ligne et de bloc. */
     private static LanguageConfiguration configuration(
-            @Nullable String ligne, @Nullable String blocDebut,
+            @Nullable String line, @Nullable String blocDebut,
             @Nullable String blocFin) {
         return new LanguageConfiguration(
-                new LanguageConfiguration.Comments(ligne, blocDebut, blocFin),
+                new LanguageConfiguration.Comments(line, blocDebut, blocFin),
                 java.util.List.of(), java.util.List.of(), java.util.List.of(),
                 null, new LanguageConfiguration.Folding(false, false, null, null),
                 new LanguageConfiguration.IndentRules(null, null, null, null),

@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 public final class ScopeTheme {
 
     /** Le thème vide : aucune règle, tout retombe à la palette. */
-    private static final ScopeTheme VIDE = new ScopeTheme(List.of());
+    private static final ScopeTheme EMPTY = new ScopeTheme(List.of());
 
     /** Le marqueur de cache « aucune règle ne matche ». */
     private static final Optional<ScopeStyle> AUCUNE = Optional.empty();
@@ -42,7 +42,7 @@ public final class ScopeTheme {
      * @return le thème vide
      */
     public static ScopeTheme empty() {
-        return VIDE;
+        return EMPTY;
     }
 
     /**

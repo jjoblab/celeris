@@ -26,8 +26,8 @@ public class PressePapiersMultiTest {
 
     private static final String DOCUMENT = "alpha beta\nalpha beta\nalpha beta\n";
 
-    private EditorTestRig banc(String texte) {
-        EditorTestRig banc = EditorTestRig.sur(RuntimeEnvironment.getApplication(), texte);
+    private EditorTestRig banc(String text) {
+        EditorTestRig banc = EditorTestRig.on(RuntimeEnvironment.getApplication(), text);
         return banc;
     }
 

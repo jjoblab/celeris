@@ -42,8 +42,8 @@ final class ParcMoteursTest {
         private final AtomicInteger passees = new AtomicInteger();
 
         @Override
-        public void execute(Runnable commande) {
-            file.add(commande);
+        public void execute(Runnable command) {
+            file.add(command);
         }
 
         void jouer() {
@@ -63,36 +63,36 @@ final class ParcMoteursTest {
      */
     @Test
     void leRetourAUneSessionParqueeNeRetokenisePas() {
-        ExecuteurCompte executeur = new ExecuteurCompte();
-        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        ExecuteurCompte executor = new ExecuteurCompte();
+        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executor);
         LanguageSupport java = LanguageSupport.of(JavaSyntax.INSTANCE);
         TextSession sessionA = TextSession.of(SOURCE, () -> 0L);
         TextSession sessionB = TextSession.of(SOURCE, () -> 0L);
 
         // A s'ouvre, sa passe complète joue, la publication vit.
-        syntaxe.attacher(sessionA, java);
-        executeur.jouer();
-        int apresA = executeur.passees.get();
+        syntaxe.attach(sessionA, java);
+        executor.jouer();
+        int apresA = executor.passees.get();
 
         // B prend la scène : A se parque.
-        syntaxe.attacher(sessionB, java);
-        executeur.jouer();
-        assertTrue(executeur.passees.get() > apresA,
+        syntaxe.attach(sessionB, java);
+        executor.jouer();
+        assertTrue(executor.passees.get() > apresA,
                 "B se paie sa première passe (document neuf)");
 
         // A REVIENT : le moteur parqué le ressert — la publication
         // de A survit au détachement, RIEN ne se rejoue pour lui.
         assertNotNull(syntaxe.analyseCourante(sessionA.document()),
                 "la publication de A survit au détachement (parc)");
-        int apresB = executeur.passees.get();
-        syntaxe.attacher(sessionA, java);
-        executeur.jouer();
-        assertEquals(apresB, executeur.passees.get(),
+        int apresB = executor.passees.get();
+        syntaxe.attach(sessionA, java);
+        executor.jouer();
+        assertEquals(apresB, executor.passees.get(),
                 "le retour de A ne re-tokenise RIEN (moteur parqué)");
         assertNotNull(syntaxe.analyseCourante(sessionA.document()),
                 "la publication de A sert encore après le retour");
 
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /**
@@ -104,31 +104,31 @@ final class ParcMoteursTest {
      */
     @Test
     void lattacheCombineNeTokeniseQuuneFois() {
-        ExecuteurCompte executeur = new ExecuteurCompte();
-        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        ExecuteurCompte executor = new ExecuteurCompte();
+        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executor);
         LanguageSupport java = LanguageSupport.of(JavaSyntax.INSTANCE);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
 
         // L'attache combinée pose la langue AU premier rattachement :
         // UNE seule programmation, pas deux.
-        syntaxe.attacher(session, java);
-        int programmee = executeur.file.size();
+        syntaxe.attach(session, java);
+        int programmee = executor.file.size();
         assertTrue(programmee >= 1, "le moteur programme sa passe");
-        executeur.jouer();
-        int apresOuverture = executeur.passees.get();
+        executor.jouer();
+        int apresOuverture = executor.passees.get();
 
         // La langue REPOSÉE (même support) ne re-rattache rien :
         // setLanguage idempotent — même document, même langue, zéro
         // nouvelle passe.
         syntaxe.setLanguage(java);
-        int apresRepose = executeur.passees.get();
+        int apresRepose = executor.passees.get();
         assertEquals(apresOuverture, apresRepose,
                 "la même langue reposée ne re-tokenise pas");
-        assertFalse(executeur.file.isEmpty() && apresRepose == apresOuverture
+        assertFalse(executor.file.isEmpty() && apresRepose == apresOuverture
                         && programmee > 1,
                 "sanity : le banc a bien observé des passes");
 
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /**
@@ -138,23 +138,23 @@ final class ParcMoteursTest {
      */
     @Test
     void laFermetureVideLeParc() {
-        ExecuteurCompte executeur = new ExecuteurCompte();
-        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        ExecuteurCompte executor = new ExecuteurCompte();
+        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executor);
         LanguageSupport java = LanguageSupport.of(JavaSyntax.INSTANCE);
         TextSession sessionA = TextSession.of(SOURCE, () -> 0L);
         TextSession sessionB = TextSession.of(SOURCE, () -> 0L);
 
-        syntaxe.attacher(sessionA, java);
-        syntaxe.attacher(sessionB, java);
+        syntaxe.attach(sessionA, java);
+        syntaxe.attach(sessionB, java);
         // A vit dans le parc maintenant.
-        syntaxe.fermer();
+        syntaxe.close();
 
         // Après fermeture : l'attache d'une session morte ne ressuscite
         // pas le moteur parqué (le parc est vide, la vue fermée ne
         // re-tokenise plus rien — le banc vérifie l'état interne par
         // le comportement : plus AUCUNE programmation après fermeture).
-        int avant = executeur.file.size();
-        assertEquals(avant, executeur.file.size(),
+        int avant = executor.file.size();
+        assertEquals(avant, executor.file.size(),
                 "la fermeture ne programme rien");
         assertSame(sessionB, sessionB, "sanity : le banc vit");
     }

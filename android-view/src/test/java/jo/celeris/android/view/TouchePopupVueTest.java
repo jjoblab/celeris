@@ -28,7 +28,7 @@ public class TouchePopupVueTest {
     }
 
     private EditorView vue() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int x = 1;\nint y = 2;");
         return banc.vue();
     }

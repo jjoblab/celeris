@@ -351,7 +351,7 @@ public final class PopupController {
      * @return vrai si l'état a changé
      */
     public boolean open(PopupKind kind) {
-        return !ouvrirRendus(kind).isEmpty();
+        return !openRenders(kind).isEmpty();
     }
 
     /**
@@ -364,14 +364,14 @@ public final class PopupController {
      * @param kind le popup à ouvrir
      * @return les genres ouverts ou exclus — vide quand rien ne change
      */
-    public Set<PopupKind> ouvrirRendus(PopupKind kind) {
+    public Set<PopupKind> openRenders(PopupKind kind) {
         Set<PopupKind> rendus = EnumSet.noneOf(PopupKind.class);
         if (ouverts.contains(kind)) {
             return rendus;
         }
         PopupKind[] chasses = FAMILLE_ACTIONS.get(kind);
         if (chasses != null) {
-            rendus.addAll(fermerParExclusion(chasses));
+            rendus.addAll(closeByExclusion(chasses));
         } else if (kind == PopupKind.COMPLETION_DOC
                 && !ouverts.contains(PopupKind.COMPLETION_LIST)) {
             return rendus;
@@ -386,11 +386,11 @@ public final class PopupController {
 
     /** Les genres exclus qui se fermaient — l'ouverture d'un menu
      *  chasse ses concurrents, l'état les rend. */
-    private Set<PopupKind> fermerParExclusion(PopupKind... genres) {
+    private Set<PopupKind> closeByExclusion(PopupKind... genres) {
         Set<PopupKind> fermes = EnumSet.noneOf(PopupKind.class);
-        for (PopupKind genre : genres) {
-            if (ouverts.remove(genre)) {
-                fermes.add(genre);
+        for (PopupKind kind : genres) {
+            if (ouverts.remove(kind)) {
+                fermes.add(kind);
             }
         }
         return fermes;
@@ -463,7 +463,7 @@ public final class PopupController {
      * jamais)
      */
     public Set<PopupKind> onKeystroke() {
-        return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
+        return close(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.SELECTION_BAR, PopupKind.SELECTION_OVERFLOW,
                 PopupKind.COLOR_PICKER, PopupKind.TOOLBAR_OVERFLOW,
                 PopupKind.REFERENCES, PopupKind.TYPE_INFO,
@@ -480,7 +480,7 @@ public final class PopupController {
      * vue ne survit jamais à son état
      */
     public Set<PopupKind> onScroll() {
-        return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
+        return close(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.COLOR_PICKER, PopupKind.REFERENCES,
                 PopupKind.TYPE_INFO, PopupKind.HIERARCHY,
                 PopupKind.SAFE_DELETE);
@@ -497,8 +497,8 @@ public final class PopupController {
      *
      * @return les genres qui se fermaient — la couche les retire
      */
-    public Set<PopupKind> surToucheHorsCartes() {
-        return fermer(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
+    public Set<PopupKind> onTouchOutsideCards() {
+        return close(PopupKind.HOVER, PopupKind.DIAGNOSTIC_TOOLTIP,
                 PopupKind.COLOR_PICKER, PopupKind.INTENTIONS_MENU,
                 PopupKind.SELECTION_OVERFLOW, PopupKind.TOOLBAR_OVERFLOW,
                 PopupKind.REFERENCES, PopupKind.TYPE_INFO,
@@ -510,11 +510,11 @@ public final class PopupController {
 
     /** Les genres donnés se ferment — la copie fraîche des fermés se
      *  rend, l'état reste au contrôleur. */
-    private Set<PopupKind> fermer(PopupKind... genres) {
+    private Set<PopupKind> close(PopupKind... genres) {
         Set<PopupKind> fermes = EnumSet.noneOf(PopupKind.class);
-        for (PopupKind genre : genres) {
-            if (ouverts.remove(genre)) {
-                fermes.add(genre);
+        for (PopupKind kind : genres) {
+            if (ouverts.remove(kind)) {
+                fermes.add(kind);
             }
         }
         return fermes;

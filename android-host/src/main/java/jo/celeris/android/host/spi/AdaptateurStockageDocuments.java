@@ -13,7 +13,7 @@ import java.util.Objects;
  * accordé jusqu'au fichier. L'écriture crée les parents implicites au
  * passage (« mkdir -p »), l'ordre de listage est l'ordre
  * lexicographique des noms — le même contrat que l'implémentation de
- * référence {@link MemoireSystemeFichiers}.
+ * référence {@link InMemoryFileSystem}.
  *
  * <p>L'adaptateur est mince par construction : il ne connaît ni
  * {@code ContentResolver} ni {@code DocumentsContract} — tout accès
@@ -41,19 +41,19 @@ public final class AdaptateurStockageDocuments implements SystemeFichiersVirtuel
     }
 
     @Override
-    public FichierVirtuel ouvrir(CheminDoc chemin) {
-        EntreeDocument entree = resoudre(chemin);
-        if (entree == null || entree.dossier()) {
+    public FichierVirtuel open(CheminDoc chemin) {
+        EntreeDocument input = resoudre(chemin);
+        if (input == null || input.dossier()) {
             throw new FichierAbsentException(chemin);
         }
-        return new FichierVirtuel(chemin, arbre.lire(entree.idDocument()));
+        return new FichierVirtuel(chemin, arbre.read(input.idDocument()));
     }
 
     @Override
     public boolean estBinaire(CheminDoc chemin) {
-        EntreeDocument entree = resoudre(chemin);
-        return entree != null && !entree.dossier()
-                && DetectionBinaire.binaire(arbre.lireOctets(entree.idDocument()));
+        EntreeDocument input = resoudre(chemin);
+        return input != null && !input.dossier()
+                && DetectionBinaire.binaire(arbre.readBytes(input.idDocument()));
     }
 
     @Override
@@ -61,14 +61,14 @@ public final class AdaptateurStockageDocuments implements SystemeFichiersVirtuel
         if (!estBinaire(chemin)) {
             return null;
         }
-        EntreeDocument entree = resoudre(chemin);
-        String vidage = entree == null ? null : String.join("\n",
-                HexadecimalPreview.de(arbre.lireOctets(entree.idDocument())).lignes());
+        EntreeDocument input = resoudre(chemin);
+        String vidage = input == null ? null : String.join("\n",
+                HexadecimalPreview.of(arbre.readBytes(input.idDocument())).lines());
         return vidage;
     }
 
     @Override
-    public void ecrire(CheminDoc chemin, String contenu) {
+    public void write(CheminDoc chemin, String contenu) {
         EntreeDocument existant = resoudre(chemin);
         if (existant != null) {
             if (existant.dossier()) {
@@ -76,7 +76,7 @@ public final class AdaptateurStockageDocuments implements SystemeFichiersVirtuel
             }
             // A-26 : le binaire ne repart jamais par la voie texte —
             // l'aller-retour du décodage se refuse d'entrée.
-            if (DetectionBinaire.binaire(arbre.lireOctets(existant.idDocument()))) {
+            if (DetectionBinaire.binaire(arbre.readBytes(existant.idDocument()))) {
                 throw new FichierBinaireException(chemin);
             }
             arbre.remplacer(existant.idDocument(), contenu);
@@ -89,36 +89,36 @@ public final class AdaptateurStockageDocuments implements SystemeFichiersVirtuel
             EntreeDocument enfant = enfantNomme(idParent, segment);
             idParent = enfant != null
                     ? enfant.idDocument()
-                    : arbre.creer(idParent, segment, true);
+                    : arbre.create(idParent, segment, true);
         }
         String nom = chemin.nom();
         EntreeDocument fichier = enfantNomme(idParent, nom);
         String idFichier = fichier != null
                 ? fichier.idDocument()
-                : arbre.creer(idParent, nom, false);
+                : arbre.create(idParent, nom, false);
         arbre.remplacer(idFichier, contenu);
     }
 
     @Override
     public List<CheminDoc> lister(CheminDoc dossier) {
-        EntreeDocument entree = resoudre(dossier);
-        if (entree == null || !entree.dossier()) {
+        EntreeDocument input = resoudre(dossier);
+        if (input == null || !input.dossier()) {
             return List.of();
         }
         List<CheminDoc> fichiers = new ArrayList<>();
-        for (EntreeDocument enfant : arbre.enfants(entree.idDocument())) {
+        for (EntreeDocument enfant : arbre.enfants(input.idDocument())) {
             if (!enfant.dossier()) {
                 fichiers.add(dossier.resoudre(enfant.nom()));
             }
         }
-        fichiers.sort(Comparator.comparing(CheminDoc::ecriture));
+        fichiers.sort(Comparator.comparing(CheminDoc::writing));
         return fichiers;
     }
 
     @Override
     public boolean estFichier(CheminDoc chemin) {
-        EntreeDocument entree = resoudre(chemin);
-        return entree != null && !entree.dossier();
+        EntreeDocument input = resoudre(chemin);
+        return input != null && !input.dossier();
     }
 
     private EntreeDocument resoudre(CheminDoc chemin) {

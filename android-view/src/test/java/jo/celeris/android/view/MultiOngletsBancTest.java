@@ -34,8 +34,8 @@ final class MultiOngletsBancTest {
         private final AtomicInteger passees = new AtomicInteger();
 
         @Override
-        public void execute(Runnable commande) {
-            file.add(commande);
+        public void execute(Runnable command) {
+            file.add(command);
         }
 
         void jouer() {
@@ -55,8 +55,8 @@ final class MultiOngletsBancTest {
      */
     @Test
     void troisOngletsTroisLangagesDixBasculesSansRetokenisation() {
-        ExecuteurCompte executeur = new ExecuteurCompte();
-        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        ExecuteurCompte executor = new ExecuteurCompte();
+        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executor);
 
         LanguageSupport java = LanguageSupport.of(JavaSyntax.INSTANCE);
         LanguageSupport kotlin = LanguageSupport.of(KotlinSyntax.INSTANCE);
@@ -70,13 +70,13 @@ final class MultiOngletsBancTest {
                 "def c() { return 3 }\n", () -> 0L);
 
         // Les trois onglets s'ouvrent : trois premières passes.
-        syntaxe.attacher(ongletJava, java);
-        executeur.jouer();
-        syntaxe.attacher(ongletKotlin, kotlin);
-        executeur.jouer();
-        syntaxe.attacher(ongletGroovy, groovy);
-        executeur.jouer();
-        int apresOuvertures = executeur.passees.get();
+        syntaxe.attach(ongletJava, java);
+        executor.jouer();
+        syntaxe.attach(ongletKotlin, kotlin);
+        executor.jouer();
+        syntaxe.attach(ongletGroovy, groovy);
+        executor.jouer();
+        int apresOuvertures = executor.passees.get();
         assertTrue(apresOuvertures >= 3,
                 "chaque onglet se paie sa première passe");
 
@@ -85,10 +85,10 @@ final class MultiOngletsBancTest {
         TextSession[] ronde = { ongletJava, ongletKotlin, ongletGroovy };
         LanguageSupport[] langues = { java, kotlin, groovy };
         for (int i = 0; i < 10; i++) {
-            syntaxe.attacher(ronde[i % 3], langues[i % 3]);
-            executeur.jouer();
+            syntaxe.attach(ronde[i % 3], langues[i % 3]);
+            executor.jouer();
         }
-        int apresBascules = executeur.passees.get();
+        int apresBascules = executor.passees.get();
         assertEquals(apresOuvertures, apresBascules,
                 "dix bascules : le parc ressert les publications, "
                         + "AUCUNE re-tokenisation au retour");
@@ -101,7 +101,7 @@ final class MultiOngletsBancTest {
         assertNotNull(syntaxe.analyseCourante(ongletGroovy.document()),
                 "l'onglet Groovy garde sa publication");
 
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /**
@@ -111,8 +111,8 @@ final class MultiOngletsBancTest {
      */
     @Test
     void laFrappeActiveNeRetokeniseQueLactif() {
-        ExecuteurCompte executeur = new ExecuteurCompte();
-        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        ExecuteurCompte executor = new ExecuteurCompte();
+        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executor);
         LanguageSupport java = LanguageSupport.of(JavaSyntax.INSTANCE);
         LanguageSupport kotlin = LanguageSupport.of(KotlinSyntax.INSTANCE);
 
@@ -120,26 +120,26 @@ final class MultiOngletsBancTest {
                 "class A { int x() { return 1; } }\n", () -> 0L);
         TextSession ongletKotlin = TextSession.of(
                 "class B { fun y(): Int = 2 }\n", () -> 0L);
-        syntaxe.attacher(ongletJava, java);
-        executeur.jouer();
-        syntaxe.attacher(ongletKotlin, kotlin);
-        executeur.jouer();
-        int equilibre = executeur.passees.get();
+        syntaxe.attach(ongletJava, java);
+        executor.jouer();
+        syntaxe.attach(ongletKotlin, kotlin);
+        executor.jouer();
+        int equilibre = executor.passees.get();
 
         // La frappe dans Kotlin (actif) : SEULEMENT Kotlin re-tokenise.
         assertTrue(ongletKotlin.replaceRange(0, 0, "// "));
-        executeur.jouer();
-        assertTrue(executeur.passees.get() > equilibre,
+        executor.jouer();
+        assertTrue(executor.passees.get() > equilibre,
                 "l'onglet actif re-tokenise à la frappe");
-        int apresFrappe = executeur.passees.get();
+        int apresFrappe = executor.passees.get();
 
         // Le retour à Java ne rejoue PAS la frappe de Kotlin : le parc
         // tient, la publication de Java n'a pas bougé.
-        syntaxe.attacher(ongletJava, java);
-        executeur.jouer();
-        assertEquals(apresFrappe, executeur.passees.get(),
+        syntaxe.attach(ongletJava, java);
+        executor.jouer();
+        assertEquals(apresFrappe, executor.passees.get(),
                 "le retour à Java ne re-tokenise rien");
 
-        syntaxe.fermer();
+        syntaxe.close();
     }
 }

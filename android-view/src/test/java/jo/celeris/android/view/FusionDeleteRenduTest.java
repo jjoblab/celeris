@@ -30,11 +30,11 @@ public class FusionDeleteRenduTest {
 
     /** La concaténation des tranches de texte tracées dans l'image. */
     private static String textes(EditorTestRig.RecordingCanvas image) {
-        StringBuilder texte = new StringBuilder();
+        StringBuilder text = new StringBuilder();
         for (EditorTestRig.RecordingCanvas.TextDraw trace : image.traces()) {
-            texte.append(trace.text());
+            text.append(trace.text());
         }
-        return texte.toString();
+        return text.toString();
     }
 
     private static KeyEvent del() {
@@ -47,7 +47,7 @@ public class FusionDeleteRenduTest {
      *  remontée du caret par DEL enchaînés. */
     @Test
     public void lesMotsSurviventALaFusionParDel() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), DOCUMENT);
         EditorView vue = banc.vue();
         // caret au début de la ligne 1 (offset 11) : DEL retire le
@@ -75,7 +75,7 @@ public class FusionDeleteRenduTest {
      *  en retard ne doit jamais cacher le texte). */
     @Test
     public void laFusionResteVisibleSansCouleur() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), DOCUMENT);
         EditorView vue = banc.vue();
         banc.retenirAnalyse();

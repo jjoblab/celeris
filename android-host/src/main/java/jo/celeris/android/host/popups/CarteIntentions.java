@@ -16,14 +16,14 @@ import jo.celeris.android.widgets.PopupPlacer;
 /**
  * Le menu d'intentions au curseur (le satellite de la carte — la pose
  * déménage du corps de l'orchestrateur au satellite, 2026-11-14) : les
- * actions posées par l'hôte ({@link PopupsEditeur#configurerIntentions})
+ * actions posées par l'hôte ({@link EditorPopups#setIntentions})
  * se proposent au caret, sans AUCUNE section — la carte la laisse au
  * débordement des barres. PIEGE-27 : jamais de focus — la navigation
  * clavier s'y reçoit DÉLÉGUÉE (le manager route).
  */
 final class CarteIntentions {
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final PopupManager popups;
     private final int margePx;
     private final IntentionsMenuView carte;
@@ -35,16 +35,16 @@ final class CarteIntentions {
      * la carte naît liée à son genre, le patron des trois temps (lier,
      * déclencher, déléguer — USAGE §9).
      *
-     * @param editeur    la vue d'éditeur ouverte
+     * @param editor    la vue d'éditeur ouverte
      * @param popups     le coordinateur des popups de la scène
      * @param margePx    la respiration des ancres aux bords, en pixels
      * @param palette    la palette courante des popups
      * @param intentions les intentions de l'hôte, vives
      */
-    CarteIntentions(EditorView editeur, PopupManager popups, int margePx,
+    CarteIntentions(EditorView editor, PopupManager popups, int margePx,
             PopupPalette palette,
             Supplier<List<IntentionsMenuView.Item>> intentions) {
-        this.editeur = editeur;
+        this.editor = editor;
         this.popups = popups;
         this.margePx = margePx;
         this.intentions = intentions;
@@ -63,20 +63,20 @@ final class CarteIntentions {
      * sans AUCUNE section, la carte la laisse au débordement des
      * barres. Sans intention, le menu ne se pose pas.
      */
-    void ouvrir() {
+    void open() {
         List<IntentionsMenuView.Item> items = intentions.get();
         if (items.isEmpty()) {
             return;
         }
         carte.setSection(null);
         carte.setActions(items);
-        Rect curseur = editeur.caretBounds();
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom,
-                popups.taille(PopupController.PopupKind.INTENTIONS_MENU),
+                cursor.left, cursor.bottom,
+                popups.size(PopupController.PopupKind.INTENTIONS_MENU),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU,
+        popups.show(PopupController.PopupKind.INTENTIONS_MENU,
                 placee.x(), placee.y());
     }
 }

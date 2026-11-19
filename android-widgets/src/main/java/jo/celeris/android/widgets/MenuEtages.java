@@ -26,10 +26,10 @@ import org.jspecify.annotations.Nullable;
  * <p>Chaque étage porte ses rangées DENSES : hauteur de rangée
  * resserrée au palier titre, pictogramme à l'encre allégée qui
  * précède le libellé, filet entre étages. La navigation clavier
- * déléguée ({@link PopupClavier}) saute les en-têtes — une section
+ * déléguée ({@link KeyboardPopup}) saute les en-têtes — une section
  * ne se prend jamais. PIEGE-27 : jamais de focus.</p>
  */
-public final class MenuEtages extends PopupPanel implements PopupClavier {
+public final class MenuEtages extends PopupPanel implements KeyboardPopup {
 
     /** Une action d'étage : son libellé, SON pictogramme (null :
      *  rangée sans glyphe) et ce qu'elle fait. */
@@ -75,7 +75,7 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
     private List<Etage> etages = List.of();
     /** Les rangées aplaties : null = en-tête d'étage (jamais pris), le
      *  reste sert l'action de l'index. */
-    private List<Item> rangees = new ArrayList<>();
+    private List<Item> rows = new ArrayList<>();
     /** Les rangées d'en-tête — vrai quand la rangée d'index annonce un étage. */
     private List<Boolean> entetes = new ArrayList<>();
     /** La hauteur de chaque rangée posée, en pixels. */
@@ -83,7 +83,7 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
     /** L'action surlignée par le clavier délégué — —1 si aucune. */
     private int surligne = -1;
     /** L'écart de respiration entre rangées, en pixels. */
-    private final int ecartPx;
+    private final int gapPx;
     /** La hauteur cible d'une rangée d'action, en pixels. */
     private final int hauteurActionPx;
     private @Nullable IntConsumer onPick;
@@ -91,11 +91,11 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
     public MenuEtages(Context context, PopupPalette palette) {
         super(context, palette);
         float densite = getResources().getDisplayMetrics().density;
-        this.ecartPx = Math.round(PopupTokens.ECART_DP * densite);
+        this.gapPx = Math.round(PopupTokens.GAP_DP * densite);
         // la rangée d'action de l'IDE de référence : DENSE — le texte
         // au palier titre, deux respirations verticales comprises
         this.hauteurActionPx = Math.round(
-                tailleTexte(PopupTokens.TEXTE_TITRE) + 2 * ecartPx);
+                textSize(PopupTokens.TEXTE_TITRE) + 2 * gapPx);
     }
 
     /**
@@ -115,30 +115,30 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
         }
         this.etages = List.copyOf(vivants);
         this.surligne = -1;
-        rebatirRangees();
+        rebuildRows();
     }
 
     /** Vrai quand le menu porte au moins une action — l'hôte y
      *  décide de la pose. */
     public boolean aActions() {
-        return !rangees.isEmpty();
+        return !rows.isEmpty();
     }
 
     /** Rebâtit les rangées aplaties : l'en-tête d'étage vit —1, les
      *  actions suivent — les hauteurs se posent par palier. */
-    private void rebatirRangees() {
-        rangees = new ArrayList<>();
+    private void rebuildRows() {
+        rows = new ArrayList<>();
         entetes = new ArrayList<>();
         hauteurs = new ArrayList<>();
         for (int e = 0; e < etages.size(); e++) {
             Etage etage = etages.get(e);
             if (etage.titre() != null && !etage.titre().isEmpty()) {
-                rangees.add(null);
+                rows.add(null);
                 entetes.add(true);
-                hauteurs.add(hauteurEntete());
+                hauteurs.add(headerHeight());
             }
             for (Item item : etage.actions()) {
-                rangees.add(item);
+                rows.add(item);
                 entetes.add(false);
                 hauteurs.add(hauteurActionPx);
             }
@@ -149,41 +149,41 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
 
     /** La hauteur d'une rangée d'en-tête — le micro-palier respire
      *  moins qu'une action. */
-    private int hauteurEntete() {
-        return Math.round(tailleTexte(PopupTokens.TEXTE_MICRO) + ecartPx);
+    private int headerHeight() {
+        return Math.round(textSize(PopupTokens.TEXTE_MICRO) + gapPx);
     }
 
     @Override
     void drawContent(Canvas canvas) {
         float y = 0f;
-        for (int i = 0; i < rangees.size(); i++) {
-            int hauteur = hauteurs.get(i);
-            Item item = rangees.get(i);
+        for (int i = 0; i < rows.size(); i++) {
+            int height = hauteurs.get(i);
+            Item item = rows.get(i);
             if (item == null) {
-                dessinerEntete(canvas, etageDe(i).titre(), y, hauteur);
+                drawHeader(canvas, etageDe(i).titre(), y, height);
             } else {
                 if (i == surligne) {
                     bandPaint().setColor(palette.selection());
                     canvas.drawRect(-paddingPx + 1f, y,
-                            contentWidth() + paddingPx - 1f, y + hauteur,
+                            contentWidth() + paddingPx - 1f, y + height,
                             bandPaint());
                 }
-                dessinerAction(canvas, item, y, hauteur);
+                drawAction(canvas, item, y, height);
             }
-            y += hauteur;
+            y += height;
             // le filet ENTRE étages — jamais après la dernière rangée
-            if (estDerniereDeSonEtage(i) && i < rangees.size() - 1) {
-                tracerFilet(canvas, y + ecartPx / 2f);
-                y += ecartPx;
+            if (estDerniereDeSonEtage(i) && i < rows.size() - 1) {
+                traceRule(canvas, y + gapPx / 2f);
+                y += gapPx;
             }
         }
     }
 
     /** L'en-tête d'étage : petites capitales à l'encre muette — la
      *  section annonce, elle ne se prend jamais. */
-    private void dessinerEntete(Canvas canvas, String titre, float y,
-            int hauteur) {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_MICRO));
+    private void drawHeader(Canvas canvas, String titre, float y,
+            int height) {
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));
         textPaint().setColor(palette.muted());
         Paint.FontMetrics metriques = textPaint().getFontMetrics();
         canvas.drawText(titre.toUpperCase(), 0f, y - metriques.top,
@@ -192,34 +192,34 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
 
     /** Une rangée d'action : SON pictogramme à l'encre allégée, son
      *  libellé au palier titre. */
-    private void dessinerAction(Canvas canvas, Item item, float y,
-            int hauteur) {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_TITRE));
+    private void drawAction(Canvas canvas, Item item, float y,
+            int height) {
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_TITRE));
         textPaint().setColor(palette.text());
         Paint.FontMetrics metriques = textPaint().getFontMetrics();
-        float ligne = y + (hauteur + metriques.bottom - metriques.top) / 2f
+        float line = y + (height + metriques.bottom - metriques.top) / 2f
                 - metriques.bottom;
         float rayon = textPaint().getTextSize() * PopupTokens.FACTEUR_PICTO;
         float x = 0f;
         if (item.picto() != null) {
-            IconeAction.dessiner(item.picto(), canvas, linePaint(),
-                    textPaint(), x + rayon, ligne - textPaint().getTextSize()
+            IconeAction.draw(item.picto(), canvas, linePaint(),
+                    textPaint(), x + rayon, line - textPaint().getTextSize()
                             * 0.35f, rayon,
-                    IconeAction.encreAllgeee(palette.muted(), palette.text()));
+                    IconeAction.lightenedInk(palette.muted(), palette.text()));
             x += 2 * rayon + 5f * getResources().getDisplayMetrics().density;
         }
-        canvas.drawText(item.label(), x, ligne, textPaint());
+        canvas.drawText(item.label(), x, line, textPaint());
     }
 
     /** L'étage de la rangée d'index donné — l'en-tête y vit. */
     private Etage etageDe(int index) {
-        int curseur = 0;
+        int cursor = 0;
         for (Etage etage : etages) {
             if (etage.titre() != null && !etage.titre().isEmpty()) {
-                curseur++;
+                cursor++;
             }
-            curseur += etage.actions().size();
-            if (index < curseur) {
+            cursor += etage.actions().size();
+            if (index < cursor) {
                 return etage;
             }
         }
@@ -230,14 +230,14 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
     /** Vrai quand la rangée d'index donné ferme son étage — le filet
      *  s'y pose après elle. */
     private boolean estDerniereDeSonEtage(int index) {
-        int curseur = 0;
+        int cursor = 0;
         for (Etage etage : etages) {
             if (etage.titre() != null && !etage.titre().isEmpty()) {
-                curseur++;
+                cursor++;
             }
-            curseur += etage.actions().size();
-            if (index < curseur) {
-                return index == curseur - 1;
+            cursor += etage.actions().size();
+            if (index < cursor) {
+                return index == cursor - 1;
             }
         }
         return false;
@@ -245,36 +245,36 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
 
     @Override
     int contentWidth() {
-        float largeur = 0f;
+        float width = 0f;
         float densite = getResources().getDisplayMetrics().density;
-        for (int i = 0; i < rangees.size(); i++) {
-            Item item = rangees.get(i);
+        for (int i = 0; i < rows.size(); i++) {
+            Item item = rows.get(i);
             if (item == null) {
-                textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_MICRO));
-                largeur = Math.max(largeur, textPaint().measureText(
+                textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));
+                width = Math.max(width, textPaint().measureText(
                         etageDe(i).titre().toUpperCase()));
             } else {
-                textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_TITRE));
+                textPaint().setTextSize(textSize(PopupTokens.TEXTE_TITRE));
                 float picto = item.picto() == null ? 0f
                         : 2 * textPaint().getTextSize()
                                 * PopupTokens.FACTEUR_PICTO + 5f * densite;
-                largeur = Math.max(largeur, picto
+                width = Math.max(width, picto
                         + textPaint().measureText(item.label()));
             }
         }
-        return Math.round(largeur);
+        return Math.round(width);
     }
 
     @Override
     int contentHeight() {
-        int hauteur = 0;
-        for (int i = 0; i < rangees.size(); i++) {
-            hauteur += hauteurs.get(i);
-            if (estDerniereDeSonEtage(i) && i < rangees.size() - 1) {
-                hauteur += ecartPx;
+        int height = 0;
+        for (int i = 0; i < rows.size(); i++) {
+            height += hauteurs.get(i);
+            if (estDerniereDeSonEtage(i) && i < rows.size() - 1) {
+                height += gapPx;
             }
         }
-        return hauteur;
+        return height;
     }
 
     /** L'ordonnée du CENTRE de la rangée donnée — les bancs y visent
@@ -286,8 +286,8 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
         float y = 0f;
         for (int i = 0; i < index && i < hauteurs.size(); i++) {
             y += hauteurs.get(i);
-            if (estDerniereDeSonEtage(i) && i < rangees.size() - 1) {
-                y += ecartPx;
+            if (estDerniereDeSonEtage(i) && i < rows.size() - 1) {
+                y += gapPx;
             }
         }
         return y + hauteurs.get(Math.min(index, hauteurs.size() - 1)) / 2f;
@@ -296,14 +296,14 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
     /** La rangée visée par l'ordonnée, —1 si hors contenu ou sur un
      *  EN-TÊTE — une section ne se prend jamais. */
     private int rowAt(float y) {
-        float curseur = 0f;
-        for (int i = 0; i < rangees.size(); i++) {
-            if (y >= curseur && y < curseur + hauteurs.get(i)) {
+        float cursor = 0f;
+        for (int i = 0; i < rows.size(); i++) {
+            if (y >= cursor && y < cursor + hauteurs.get(i)) {
                 return entetes.get(i) ? -1 : i;
             }
-            curseur += hauteurs.get(i);
-            if (estDerniereDeSonEtage(i) && i < rangees.size() - 1) {
-                curseur += ecartPx;
+            cursor += hauteurs.get(i);
+            if (estDerniereDeSonEtage(i) && i < rows.size() - 1) {
+                cursor += gapPx;
             }
         }
         return -1;
@@ -331,10 +331,10 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
     /** L'action de rangée d'index donné, null s'il n'existe pas ou sur
      *  un en-tête — les bancs y lisent la structure. */
     public @Nullable Item itemAt(int index) {
-        if (index < 0 || index >= rangees.size()) {
+        if (index < 0 || index >= rows.size()) {
             return null;
         }
-        return rangees.get(index);
+        return rows.get(index);
     }
 
     /** L'action surlignée par le clavier délégué, —1 si aucune — les
@@ -347,12 +347,12 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
     public boolean surFleche(int pas) {
         // la navigation SAUTE les en-têtes — jamais d'arrêt sur une
         // section : le saut vit en pur chez NavigationEtages, testé
-        int cible = NavigationEtages.saut(rangees.size(), surligne, pas,
+        int target = NavigationEtages.saut(rows.size(), surligne, pas,
                 entetes::get);
-        if (cible < 0) {
+        if (target < 0) {
             return false;
         }
-        surligne = cible;
+        surligne = target;
         invalidate();
         return true;
     }
@@ -366,10 +366,10 @@ public final class MenuEtages extends PopupPanel implements PopupClavier {
 
     @Override
     public boolean surValidation() {
-        if (surligne < 0 || surligne >= rangees.size()) {
+        if (surligne < 0 || surligne >= rows.size()) {
             return false;
         }
-        Item item = rangees.get(surligne);
+        Item item = rows.get(surligne);
         if (item == null) {
             return false;
         }

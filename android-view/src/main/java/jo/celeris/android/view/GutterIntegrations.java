@@ -29,37 +29,37 @@ import org.jspecify.annotations.Nullable;
  * les marques de la syntaxe avec les intégrations et les diagnostics
  * importés, et convertir le point touché en ligne. Après un appel à
  * {@link #setIntegration}, {@link #setErreursImportees},
- * {@link #setPastilles}, {@link #setReperesPreview} ou
+ * {@link #setChips}, {@link #setPreviewMarks} ou
  * {@link #setAmpoules}, l'hôte invalide la vue — le rafraîchissement
  * reste son geste.</p>
  */
 public final class GutterIntegrations {
 
-    private IntegrationMarks integration = IntegrationMarks.VIDE;
+    private IntegrationMarks integration = IntegrationMarks.EMPTY;
 
     private int[] erreursImportees = new int[0];
 
-    private Map<Integer, Integer> pastilles = Map.of();
+    private Map<Integer, Integer> chips = Map.of();
 
-    private int[] reperesPreview = new int[0];
+    private int[] previewMarks = new int[0];
 
     /** Les lignes porteuses de l'ampoule d'intentions — la ligne du
      *  caret qui porte un diagnostic, jamais devinée. */
     private int[] ampoules = new int[0];
 
-    private boolean coulisseIntegration;
+    private boolean integrationLane;
 
-    private boolean coulisseErreursImportees;
+    private boolean importedErrorsLane;
 
-    private boolean coulissePreview;
+    private boolean previewLane;
 
     /** La dernière configuration servie — mémoïsée : le chemin d'image
      *  n'alloue rien en régime établi (PIEGE-15). */
-    private GutterLanes dernieresCoulisses = new GutterLanes(false,
+    private GutterLanes recentLanes = new GutterLanes(false,
             false, false, false);
     private boolean dernierSyntaxeActif;
 
-    private @Nullable IntConsumer surClicLigne;
+    private @Nullable IntConsumer onLineClick;
 
     private @Nullable IntConsumer surRenduPreview;
 
@@ -70,11 +70,11 @@ public final class GutterIntegrations {
     /**
      * Dépose les marques d'intégration courantes.
      *
-     * @param marques les marques, {@link IntegrationMarks#VIDE} pour
+     * @param marks les marques, {@link IntegrationMarks#EMPTY} pour
      *                retirer
      */
-    public void setIntegration(IntegrationMarks marques) {
-        integration = marques;
+    public void setIntegration(IntegrationMarks marks) {
+        integration = marks;
     }
 
     /**
@@ -82,45 +82,45 @@ public final class GutterIntegrations {
      * (C-12) : elles se fondent aux erreurs de la syntaxe — tableau
      * vide pour retirer.
      *
-     * @param lignes les lignes, numérotées à partir de zéro
+     * @param lines les lignes, numérotées à partir de zéro
      */
-    public void setErreursImportees(int[] lignes) {
-        erreursImportees = lignes.clone();
+    public void setErreursImportees(int[] lines) {
+        erreursImportees = lines.clone();
     }
 
     /**
      * Dépose les pastilles de couleur (C-05) : la ligne porteuse et sa
      * couleur résolue — liste vide pour retirer.
      *
-     * @param pastilles les pastilles, une par ligne porteuse au plus
+     * @param chips les pastilles, une par ligne porteuse au plus
      */
-    public void setPastilles(List<PastilleCouleur> pastilles) {
+    public void setChips(List<ColorChip> chips) {
         Map<Integer, Integer> resolues = new HashMap<>();
-        for (PastilleCouleur pastille : pastilles) {
-            resolues.put(pastille.ligne(), pastille.argb());
+        for (ColorChip chip : chips) {
+            resolues.put(chip.line(), chip.argb());
         }
-        this.pastilles = Map.copyOf(resolues);
+        this.chips = Map.copyOf(resolues);
     }
 
     /**
      * La pastille de la ligne donnée.
      *
-     * @param ligne la ligne, numérotée à partir de zéro
+     * @param line la ligne, numérotée à partir de zéro
      * @return la couleur ARGB résolue, 0 si la ligne n'en porte pas
      */
-    public int pastille(int ligne) {
-        return pastilles.getOrDefault(ligne, 0);
+    public int chip(int line) {
+        return chips.getOrDefault(line, 0);
     }
 
     /**
      * Dépose les repères {@code @Preview} de Compose (C-11) — tableau
      * vide pour retirer.
      *
-     * @param lignes les lignes des annotations, numérotées à partir de
+     * @param lines les lignes des annotations, numérotées à partir de
      *               zéro
      */
-    public void setReperesPreview(int[] lignes) {
-        reperesPreview = lignes.clone();
+    public void setPreviewMarks(int[] lines) {
+        previewMarks = lines.clone();
     }
 
     /**
@@ -128,21 +128,21 @@ public final class GutterIntegrations {
      * Android Studio : la ligne du caret qui porte un diagnostic —
      * jamais devinée, l'hôte seul décide) — tableau vide pour retirer.
      *
-     * @param lignes les lignes de l'ampoule, numérotées à partir de zéro
+     * @param lines les lignes de l'ampoule, numérotées à partir de zéro
      */
-    public void setAmpoules(int[] lignes) {
-        ampoules = lignes.clone();
+    public void setAmpoules(int[] lines) {
+        ampoules = lines.clone();
     }
 
     /**
      * Vrai si la ligne porte l'ampoule d'intentions.
      *
-     * @param ligne la ligne, numérotée à partir de zéro
+     * @param line la ligne, numérotée à partir de zéro
      * @return vrai si la ligne porte l'ampoule
      */
-    public boolean ampoule(int ligne) {
+    public boolean ampoule(int line) {
         for (int ampoule : ampoules) {
-            if (ampoule == ligne) {
+            if (ampoule == line) {
                 return true;
             }
         }
@@ -163,12 +163,12 @@ public final class GutterIntegrations {
     /**
      * Vrai si la ligne porte un repère {@code @Preview} (C-11).
      *
-     * @param ligne la ligne, numérotée à partir de zéro
+     * @param line la ligne, numérotée à partir de zéro
      * @return vrai si la ligne porte un repère
      */
-    public boolean reperePreview(int ligne) {
-        for (int repere : reperesPreview) {
-            if (repere == ligne) {
+    public boolean reperePreview(int line) {
+        for (int repere : previewMarks) {
+            if (repere == line) {
                 return true;
             }
         }
@@ -179,10 +179,10 @@ public final class GutterIntegrations {
      * L'écouteur des clics dans le champ des numéros : la ligne visée,
      * numérotée à partir de zéro, s'y rend — null retire l'écouteur.
      *
-     * @param surClicLigne l'écouteur, ou null
+     * @param onLineClick l'écouteur, ou null
      */
-    public void setSurClicLigne(@Nullable IntConsumer surClicLigne) {
-        this.surClicLigne = surClicLigne;
+    public void setOnLineClick(@Nullable IntConsumer onLineClick) {
+        this.onLineClick = onLineClick;
     }
 
     /**
@@ -199,12 +199,12 @@ public final class GutterIntegrations {
     /**
      * Les marques fondues de l'image à venir.
      *
-     * @param marques les marques de la syntaxe (plis, erreurs)
+     * @param marks les marques de la syntaxe (plis, erreurs)
      * @return les marques fondues avec les intégrations courantes et
      *         les diagnostics importés
      */
-    public GutterMarks marques(GutterMarks marques) {
-        return marques.avec(integration).avecErreurs(erreursImportees);
+    public GutterMarks marks(GutterMarks marks) {
+        return marks.avec(integration).avecErreurs(erreursImportees);
     }
 
     /**
@@ -214,8 +214,8 @@ public final class GutterIntegrations {
      *
      * @param activee vrai pour réserver la coulisse
      */
-    public void setCoulisseIntegration(boolean activee) {
-        coulisseIntegration = activee;
+    public void setIntegrationLane(boolean activee) {
+        integrationLane = activee;
     }
 
     /**
@@ -224,8 +224,8 @@ public final class GutterIntegrations {
      *
      * @param activee vrai pour réserver la coulisse
      */
-    public void setCoulisseErreursImportees(boolean activee) {
-        coulisseErreursImportees = activee;
+    public void setImportedErrorsLane(boolean activee) {
+        importedErrorsLane = activee;
     }
 
     /**
@@ -234,8 +234,8 @@ public final class GutterIntegrations {
      *
      * @param activee vrai pour réserver la coulisse
      */
-    public void setCoulissePreview(boolean activee) {
-        coulissePreview = activee;
+    public void setPreviewLane(boolean activee) {
+        previewLane = activee;
     }
 
     /**
@@ -246,17 +246,17 @@ public final class GutterIntegrations {
      * @param syntaxeActivee vrai quand l'analyse est branchée
      * @return la configuration courante
      */
-    public GutterLanes coulisses(boolean syntaxeActivee) {
+    public GutterLanes lanes(boolean syntaxeActivee) {
         if (syntaxeActivee == dernierSyntaxeActif
-                && dernieresCoulisses.integration() == coulisseIntegration
-                && dernieresCoulisses.importedDiagnostics() == coulisseErreursImportees
-                && dernieresCoulisses.preview() == coulissePreview) {
-            return dernieresCoulisses;
+                && recentLanes.integration() == integrationLane
+                && recentLanes.importedDiagnostics() == importedErrorsLane
+                && recentLanes.preview() == previewLane) {
+            return recentLanes;
         }
         dernierSyntaxeActif = syntaxeActivee;
-        dernieresCoulisses = new GutterLanes(syntaxeActivee,
-                coulisseIntegration, coulisseErreursImportees, coulissePreview);
-        return dernieresCoulisses;
+        recentLanes = new GutterLanes(syntaxeActivee,
+                integrationLane, importedErrorsLane, previewLane);
+        return recentLanes;
     }
 
     /**
@@ -268,8 +268,8 @@ public final class GutterIntegrations {
      * @param x                l'abscisse touchée, en pixels
      * @param y                l'ordonnée touchée, en pixels
      * @param largeurGouttiere la largeur courante de la gouttière
-     * @param coulisse         la largeur courante de la coulisse
-     * @param bandePli         la largeur courante de la bande de plis
+     * @param lane         la largeur courante de la coulisse
+     * @param foldBand         la largeur courante de la bande de plis
      * @param scrollY          le défilement vertical courant
      * @param hauteurLigne     la hauteur d'une ligne, en pixels
      * @param projection       la projection courante (rangée vers ligne)
@@ -277,14 +277,14 @@ public final class GutterIntegrations {
      *         numéros
      */
     public boolean surAppui(float x, float y, float largeurGouttiere,
-            float coulisse, float bandePli, float scrollY, float hauteurLigne,
+            float lane, float foldBand, float scrollY, float hauteurLigne,
             VisualProjection projection) {
-        if (surClicLigne == null || x <= coulisse
-                || x >= largeurGouttiere - bandePli) {
+        if (onLineClick == null || x <= lane
+                || x >= largeurGouttiere - foldBand) {
             return false;
         }
         int rangee = ScrollGeometry.firstRow(scrollY + y, hauteurLigne);
-        surClicLigne.accept(projection.firstLineOfRow(rangee));
+        onLineClick.accept(projection.firstLineOfRow(rangee));
         return true;
     }
 
@@ -296,23 +296,23 @@ public final class GutterIntegrations {
      *
      * @param x            l'abscisse touchée, en pixels
      * @param y            l'ordonnée touchée, en pixels
-     * @param coulisse     la largeur courante de la coulisse
+     * @param lane     la largeur courante de la coulisse
      * @param scrollY      le défilement vertical courant
      * @param hauteurLigne la hauteur d'une ligne, en pixels
      * @param projection   la projection courante (rangée vers ligne)
      * @return vrai quand le clic s'est consommé sur un repère
      */
-    public boolean surAppuiRepere(float x, float y, float coulisse,
+    public boolean onMarkPress(float x, float y, float lane,
             float scrollY, float hauteurLigne, VisualProjection projection) {
-        if (surRenduPreview == null || x > coulisse) {
+        if (surRenduPreview == null || x > lane) {
             return false;
         }
         int rangee = ScrollGeometry.firstRow(scrollY + y, hauteurLigne);
-        int ligne = projection.firstLineOfRow(rangee);
-        if (!reperePreview(ligne)) {
+        int line = projection.firstLineOfRow(rangee);
+        if (!reperePreview(line)) {
             return false;
         }
-        surRenduPreview.accept(ligne);
+        surRenduPreview.accept(line);
         return true;
     }
 
@@ -324,23 +324,23 @@ public final class GutterIntegrations {
      *
      * @param x            l'abscisse touchée, en pixels
      * @param y            l'ordonnée touchée, en pixels
-     * @param coulisse     la largeur courante de la coulisse
+     * @param lane     la largeur courante de la coulisse
      * @param scrollY      le défilement vertical courant
      * @param hauteurLigne la hauteur d'une ligne, en pixels
      * @param projection   la projection courante (rangée vers ligne)
      * @return vrai quand le clic s'est consommé sur l'ampoule
      */
-    public boolean surAppuiAmpoule(float x, float y, float coulisse,
+    public boolean surAppuiAmpoule(float x, float y, float lane,
             float scrollY, float hauteurLigne, VisualProjection projection) {
-        if (surAmpoule == null || x > coulisse) {
+        if (surAmpoule == null || x > lane) {
             return false;
         }
         int rangee = ScrollGeometry.firstRow(scrollY + y, hauteurLigne);
-        int ligne = projection.firstLineOfRow(rangee);
-        if (!ampoule(ligne)) {
+        int line = projection.firstLineOfRow(rangee);
+        if (!ampoule(line)) {
             return false;
         }
-        surAmpoule.accept(ligne);
+        surAmpoule.accept(line);
         return true;
     }
 }

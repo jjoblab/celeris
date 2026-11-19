@@ -43,7 +43,7 @@ public record AgentProposal(AgentLabel etiquette, int revision,
      * @throws IllegalArgumentException si une édition ne colle pas au
      *         document ou si les plages se chevauchent
      */
-    public static AgentProposal de(Document reference, AgentLabel etiquette,
+    public static AgentProposal of(Document reference, AgentLabel etiquette,
             List<TextEdit> edits) {
         if (!editsFideles(reference, edits)) {
             throw new IllegalArgumentException(
@@ -65,18 +65,18 @@ public record AgentProposal(AgentLabel etiquette, int revision,
     static boolean editsFideles(Document reference, List<TextEdit> edits) {
         int borne = reference.length();
         int finPrecedente = 0;
-        for (TextEdit edition : edits) {
-            if (edition.end() > borne) {
+        for (TextEdit edit : edits) {
+            if (edit.end() > borne) {
                 return false;
             }
-            if (edition.start() < finPrecedente) {
+            if (edit.start() < finPrecedente) {
                 return false;
             }
-            if (!reference.subText(edition.start(), edition.end())
-                    .equals(edition.removed())) {
+            if (!reference.subText(edit.start(), edit.end())
+                    .equals(edit.removed())) {
                 return false;
             }
-            finPrecedente = edition.end();
+            finPrecedente = edit.end();
         }
         return true;
     }

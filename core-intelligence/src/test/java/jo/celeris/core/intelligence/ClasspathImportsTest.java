@@ -135,10 +135,10 @@ class ClasspathImportsTest {
     /** Le nom mal formé refuse d'exception — jamais d'index sale. */
     @Test
     void indexRefuseLesNomsMalFormes() {
-        Map<String, List<String>> vides = new LinkedHashMap<>();
-        vides.put("List", List.of(""));
+        Map<String, List<String>> empty = new LinkedHashMap<>();
+        empty.put("List", List.of(""));
         assertThrows(IllegalArgumentException.class,
-                () -> ClasspathIndex.of(vides));
+                () -> ClasspathIndex.of(empty));
         Map<String, List<String>> malForme = new LinkedHashMap<>();
         malForme.put("List", List.of("java..List"));
         assertThrows(IllegalArgumentException.class,
@@ -160,6 +160,6 @@ class ClasspathImportsTest {
     /** La taille de l'index compte ses noms simples. */
     @Test
     void tailleCompteLesNomsSimples() {
-        assertEquals(2, classpath().taille());
+        assertEquals(2, classpath().size());
     }
 }

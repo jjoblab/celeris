@@ -124,7 +124,7 @@ public final class ScopeSelector {
 
         private @Nullable Integer score(List<String> scopes) {
             for (String exclusion : exclusions) {
-                if (porteeDansLaPile(scopes, exclusion)) {
+                if (scopeInStack(scopes, exclusion)) {
                     return null;
                 }
             }
@@ -153,7 +153,7 @@ public final class ScopeSelector {
         }
 
         /** Vrai quand une portée de la pile matche l'élément donné. */
-        private static boolean porteeDansLaPile(List<String> scopes,
+        private static boolean scopeInStack(List<String> scopes,
                 String element) {
             for (String portee : scopes) {
                 if (matche(portee, element)) {

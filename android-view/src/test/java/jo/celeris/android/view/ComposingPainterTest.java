@@ -98,9 +98,9 @@ class ComposingPainterTest {
                         jo.celeris.core.text.SelRange.caretAt(0)),
                 projection, 1L, metrics, THEME, 0, 2, 20f, 0f, 0f);
 
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         SurfaceRectangles surface = new SurfaceRectangles();
-        new ComposingPainter(() -> new PinceauMutable(), etat).paint(surface, image);
+        new ComposingPainter(() -> new PinceauMutable(), state).paint(surface, image);
 
         assertTrue(surface.rectangles().isEmpty());
     }
@@ -123,10 +123,10 @@ class ComposingPainterTest {
                         jo.celeris.core.text.SelRange.caretAt(0)),
                 projection, 1L, metrics, THEME, 0, 2, 20f, 0f, 0f);
 
-        CompositionState etat = new CompositionState();
-        etat.adopt(etat.planRegion(document, 2, 7));
+        CompositionState state = new CompositionState();
+        state.adopt(state.planRegion(document, 2, 7));
         SurfaceRectangles surface = new SurfaceRectangles();
-        new ComposingPainter(() -> new PinceauMutable(), etat).paint(surface, image);
+        new ComposingPainter(() -> new PinceauMutable(), state).paint(surface, image);
 
         assertEquals(2, surface.rectangles().size());
         // Rangée 0, tranche [0,4) : soulignement des colonnes 2 à 4,
@@ -158,10 +158,10 @@ class ComposingPainterTest {
                         jo.celeris.core.text.SelRange.caretAt(2)),
                 projection, 1L, metrics, THEME, 0, 2, 20f, 0f, 0f);
 
-        CompositionState etat = new CompositionState();
-        etat.adopt(etat.planRegion(document, 2, 2));
+        CompositionState state = new CompositionState();
+        state.adopt(state.planRegion(document, 2, 2));
         SurfaceRectangles surface = new SurfaceRectangles();
-        new ComposingPainter(() -> new PinceauMutable(), etat).paint(surface, image);
+        new ComposingPainter(() -> new PinceauMutable(), state).paint(surface, image);
 
         assertTrue(surface.rectangles().isEmpty());
     }

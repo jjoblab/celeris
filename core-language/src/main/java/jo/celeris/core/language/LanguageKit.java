@@ -185,10 +185,10 @@ public final class LanguageKit {
      *  repart sur le registre posé (vide au pire), jamais sur un
      *  latch mort. */
     private CountDownLatch partirAssemblage() {
-        final CountDownLatch fin = new CountDownLatch(1);
+        final CountDownLatch end = new CountDownLatch(1);
         executor.execute(() -> {
             try {
-                LanguageRegistry assemble = assemblerSurCeFil();
+                LanguageRegistry assemble = assembleOnThread();
                 synchronized (LanguageKit.this) {
                     if (registre == null) {
                         registre = assemble;
@@ -200,10 +200,10 @@ public final class LanguageKit {
                     rapporteur.accept(echec);
                 }
             } finally {
-                fin.countDown();
+                end.countDown();
             }
         });
-        return fin;
+        return end;
     }
 
     /**
@@ -301,12 +301,12 @@ public final class LanguageKit {
      *  avec un registre VIDE, la langue n'arrivait jamais).
      *  Le fil qui résout ne pilote pas l'assemblage, il attend. */
     private static void attendre(
-            @org.jspecify.annotations.Nullable CountDownLatch fin) {
-        if (fin == null) {
+            @org.jspecify.annotations.Nullable CountDownLatch end) {
+        if (end == null) {
             return;
         }
         try {
-            fin.await(120L, TimeUnit.SECONDS);
+            end.await(120L, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -318,7 +318,7 @@ public final class LanguageKit {
      *  retourné ne se pose pas ici : l'appelant (preload ou registre)
      *  le pose sous le verrou.
      */
-    private LanguageRegistry assemblerSurCeFil() {
+    private LanguageRegistry assembleOnThread() {
         final LanguagePlatform plateforme = factory == null
                 ? LanguagePlatform.empty()
                 : LanguagePlatform.with(factory);
@@ -357,8 +357,8 @@ public final class LanguageKit {
 
     private static final java.util.concurrent.ExecutorService FIL_PARTAGE =
             Executors.newSingleThreadExecutor(runnable -> {
-                Thread fil = new Thread(runnable, "celeris-langues");
-                fil.setDaemon(true);
-                return fil;
+                Thread thread = new Thread(runnable, "celeris-langues");
+                thread.setDaemon(true);
+                return thread;
             });
 }

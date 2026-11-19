@@ -14,17 +14,17 @@ import jo.celeris.core.text.Document;
  */
 public final class ComposingPainter extends PainterLayer {
 
-    private final CompositionState etat;
+    private final CompositionState state;
 
     /**
      * Construit la couche de composition.
      *
      * @param brushes la fabrique de pinceaux (la couche prend le sien)
-     * @param etat    l'état de composition lu à chaque image
+     * @param state    l'état de composition lu à chaque image
      */
-    public ComposingPainter(BrushFactory brushes, CompositionState etat) {
+    public ComposingPainter(BrushFactory brushes, CompositionState state) {
         super(brushes);
-        this.etat = etat;
+        this.state = state;
     }
 
     @Override
@@ -34,29 +34,29 @@ public final class ComposingPainter extends PainterLayer {
 
     @Override
     protected void onPaint(DrawSurface surface, FrameState frame) {
-        if (!etat.isComposing()) {
+        if (!state.isComposing()) {
             return;
         }
-        int debut = etat.composingStart();
-        int fin = etat.composingEnd();
-        if (fin <= debut) {
+        int start = state.composingStart();
+        int end = state.composingEnd();
+        if (end <= start) {
             return;
         }
         Document document = frame.document();
         for (int rangee = frame.firstRow();
                 rangee < frame.firstRow() + frame.visibleRows(); rangee++) {
-            soulignerRangee(surface, frame, document, debut, fin, rangee);
+            underlineRow(surface, frame, document, start, end, rangee);
         }
     }
 
     /** Souligne l'intersection de la plage composée avec SA tranche. */
-    private void soulignerRangee(DrawSurface surface, FrameState frame,
-            Document document, int debut, int fin, int rangee) {
+    private void underlineRow(DrawSurface surface, FrameState frame,
+            Document document, int start, int end, int rangee) {
         VisualProjection projection = frame.projection();
-        int ligne = projection.firstLineOfRow(rangee);
-        int debutRangee = document.lineStart(ligne);
-        int colonneDebut = Math.max(debut, debutRangee) - debutRangee;
-        int colonneFin = Math.min(fin, document.lineEnd(ligne)) - debutRangee;
+        int line = projection.firstLineOfRow(rangee);
+        int rowStart = document.lineStart(line);
+        int colonneDebut = Math.max(start, rowStart) - rowStart;
+        int colonneFin = Math.min(end, document.lineEnd(line)) - rowStart;
         int debutTranche = projection.spanStartAtRow(rangee);
         // B-05 : la rangée de suite démarre au retrait de sa ligne.
         float indent = projection.indentAtRow(rangee)

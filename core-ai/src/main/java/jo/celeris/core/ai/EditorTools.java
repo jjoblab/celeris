@@ -23,12 +23,12 @@ public interface EditorTools {
      * Lit la plage {@code [debut, fin)} de l'instantané courant — la
      * réponse porte la révision servie.
      *
-     * @param debut le début de la plage, inclusif
-     * @param fin   la fin de la plage, exclusive
+     * @param start le début de la plage, inclusif
+     * @param end   la fin de la plage, exclusive
      * @return la plage lue, révision comprise
      * @throws IndexOutOfBoundsException si la plage sort du document
      */
-    ReadRange lire(int debut, int fin);
+    ReadRange read(int start, int end);
 
     /**
      * Lit l'instantané entier — la réponse porte la révision servie.
@@ -43,7 +43,7 @@ public interface EditorTools {
      *
      * @return les symboles, dans l'ordre du document
      */
-    List<OutlineEntry> symboles();
+    List<OutlineEntry> symbols();
 
     /**
      * Liste les diagnostics courants — la source se fournit à la

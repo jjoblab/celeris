@@ -16,7 +16,7 @@ import java.util.List;
  *
  * <p>La carte vit son PROPRE genre ({@code TOOLBAR_OVERFLOW}) — deux
  * menus ne tiennent jamais ; l'observateur du layout global se garde
- * RETIRABLE ({@link #detacher()}), jamais une référence de méthode ne
+ * RETIRABLE ({@link #detach()}), jamais une référence de méthode ne
  * s'y perd.</p>
  */
 public final class BarreToolbar {
@@ -28,7 +28,7 @@ public final class BarreToolbar {
     private final IntentionsMenuView carte;
     /** Le titre de la section du débordement — l'état NavMenu de la carte. */
     private final String section;
-    private final TouchBarView barreTouches;
+    private final TouchBarView keyRow;
     private final int margePx;
     /** L'observateur du layout global — gardé, jamais perdu, retirable. */
     private final ViewTreeObserver.OnGlobalLayoutListener observateur;
@@ -49,9 +49,9 @@ public final class BarreToolbar {
                 palette);
         popups.lier(PopupController.PopupKind.TOOLBAR_OVERFLOW, carte);
         this.section = section;
-        this.barreTouches = new TouchBarView(popups.couche().getContext(),
+        this.keyRow = new TouchBarView(popups.couche().getContext(),
                 palette);
-        popups.lier(PopupController.PopupKind.TOUCH_BAR, barreTouches);
+        popups.lier(PopupController.PopupKind.TOUCH_BAR, keyRow);
         this.margePx = Math.round(MARGE_DP
                 * popups.couche().getResources().getDisplayMetrics().density);
         // la touchbar se REPOSE au changement de layout : la rotation
@@ -69,26 +69,26 @@ public final class BarreToolbar {
      *
      * @param actions les actions repliées derrière la puce
      */
-    public void ouvrirDebordement(List<IntentionsMenuView.Item> actions) {
+    public void openOverflow(List<IntentionsMenuView.Item> actions) {
         if (actions.isEmpty()) {
             return;
         }
         // la carte prend son état NavMenu : la section du débordement
         carte.setSection(section);
         carte.setActions(items(actions));
-        PopupPlacer.Cadre taille = popups.taille(
+        PopupPlacer.Cadre size = popups.size(
                 PopupController.PopupKind.TOOLBAR_OVERFLOW);
         // la carte pend sous la puce : le long du bord DROIT, en tête
         // de scène — la puce de la toolbar vit au-dessus à droite
         int x = Math.max(margePx,
-                popups.couche().getWidth() - margePx - taille.largeur());
+                popups.couche().getWidth() - margePx - size.width());
         int y = margePx;
-        popups.montrer(PopupController.PopupKind.TOOLBAR_OVERFLOW, x, y);
+        popups.show(PopupController.PopupKind.TOOLBAR_OVERFLOW, x, y);
     }
 
     /** Ferme la carte — la couche suit. */
-    public void fermerDebordement() {
-        popups.fermer(PopupController.PopupKind.TOOLBAR_OVERFLOW);
+    public void closeOverflow() {
+        popups.close(PopupController.PopupKind.TOOLBAR_OVERFLOW);
     }
 
     /**
@@ -98,20 +98,20 @@ public final class BarreToolbar {
      *
      * @param touches les touches de code, dans l'ordre d'affichage
      */
-    public void poserBarreTouches(List<TouchBarView.Touche> touches) {
-        barreTouches.setActions(touches);
+    public void setKeyRow(List<TouchBarView.KeyCap> touches) {
+        keyRow.setActions(touches);
         popups.controleur().open(PopupController.PopupKind.TOUCH_BAR);
         reposerBarre();
     }
 
     /** La barre de touches — l'hôte y rafraîchit les états activés. */
-    public TouchBarView barreTouches() {
-        return barreTouches;
+    public TouchBarView keyRow() {
+        return keyRow;
     }
 
     /** La palette tourne : la barre de touches la suit. */
     public void surPalette(PopupPalette palette) {
-        barreTouches.setPalette(palette);
+        keyRow.setPalette(palette);
         carte.setPalette(palette);
     }
 
@@ -119,7 +119,7 @@ public final class BarreToolbar {
      * Le détachement de fin de vie : l'observateur du layout se retire
      * — jamais la fuite ne se paie.
      */
-    public void detacher() {
+    public void detach() {
         popups.couche().getViewTreeObserver()
                 .removeOnGlobalLayoutListener(observateur);
     }
@@ -127,17 +127,17 @@ public final class BarreToolbar {
     /** Recolle la barre au bas de la scène — au layout global. */
     private void reposerBarre() {
         if (!popups.estOuvert(PopupController.PopupKind.TOUCH_BAR)
-                || barreTouches.getMeasuredWidth() <= 0) {
+                || keyRow.getMeasuredWidth() <= 0) {
             return;
         }
-        PopupPlacer.Cadre taille = new PopupPlacer.Cadre(0, 0,
-                barreTouches.getMeasuredWidth(),
-                barreTouches.getMeasuredHeight());
+        PopupPlacer.Cadre size = new PopupPlacer.Cadre(0, 0,
+                keyRow.getMeasuredWidth(),
+                keyRow.getMeasuredHeight());
         int x = Math.max(margePx,
-                (popups.couche().getWidth() - taille.largeur()) / 2);
+                (popups.couche().getWidth() - size.width()) / 2);
         int y = Math.max(margePx,
-                popups.couche().getHeight() - taille.hauteur() - margePx);
-        popups.montrer(PopupController.PopupKind.TOUCH_BAR, x, y);
+                popups.couche().getHeight() - size.height() - margePx);
+        popups.show(PopupController.PopupKind.TOUCH_BAR, x, y);
     }
 
     /** Les items de la carte : chaque action court APRÈS la fermeture. */
@@ -146,7 +146,7 @@ public final class BarreToolbar {
         List<IntentionsMenuView.Item> items = new ArrayList<>(actions.size());
         for (IntentionsMenuView.Item item : actions) {
             items.add(new IntentionsMenuView.Item(item.label(), () -> {
-                fermerDebordement();
+                closeOverflow();
                 item.action().run();
             }));
         }

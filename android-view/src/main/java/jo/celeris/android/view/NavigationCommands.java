@@ -32,14 +32,14 @@ public final class NavigationCommands {
     /**
      * La sélection de plage, bornée au document et ordonnée.
      *
-     * @param debut  l'offset de début voulu
-     * @param fin    l'offset de fin exclusive voulu
+     * @param start  l'offset de début voulu
+     * @param end    l'offset de fin exclusive voulu
      * @param length la longueur du document
      * @return la sélection de plage bornée, ancre avant curseur
      */
-    public static MultiSelection rangeBetween(int debut, int fin, int length) {
-        int d = Math.max(0, Math.min(debut, length));
-        int f = Math.max(0, Math.min(fin, length));
+    public static MultiSelection rangeBetween(int start, int end, int length) {
+        int d = Math.max(0, Math.min(start, length));
+        int f = Math.max(0, Math.min(end, length));
         if (f < d) {
             int temporaire = d;
             d = f;
@@ -69,12 +69,12 @@ public final class NavigationCommands {
      * d'un coup d'œil.
      *
      * @param vue   la vue d'éditeur visée
-     * @param debut l'offset absolu de début
-     * @param fin   l'offset absolu de fin exclusive
+     * @param start l'offset absolu de début
+     * @param end   l'offset absolu de fin exclusive
      */
-    public static void selectRange(EditorView vue, int debut, int fin) {
+    public static void selectRange(EditorView vue, int start, int end) {
         TextSession session = vue.session();
-        session.setSelection(rangeBetween(debut, fin, session.length()));
+        session.setSelection(rangeBetween(start, end, session.length()));
         vue.curseurClavier.revealCaret();
         vue.curseurClavier.annoncerSelection();
     }

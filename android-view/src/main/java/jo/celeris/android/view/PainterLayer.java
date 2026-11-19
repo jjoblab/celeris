@@ -12,7 +12,7 @@ package jo.celeris.android.view;
  */
 public abstract class PainterLayer {
 
-    private final TextBrush pinceau;
+    private final TextBrush brush;
 
     /**
      * Construit la couche : elle prend son pinceau à la fabrique et le
@@ -21,12 +21,12 @@ public abstract class PainterLayer {
      * @param brushes la fabrique de pinceaux de l'hôte
      */
     protected PainterLayer(BrushFactory brushes) {
-        this.pinceau = brushes.newBrush();
+        this.brush = brushes.newBrush();
     }
 
     /** Le pinceau possédé par la couche. */
     protected final TextBrush brush() {
-        return pinceau;
+        return brush;
     }
 
     /**
@@ -39,8 +39,8 @@ public abstract class PainterLayer {
      * @param frame   l'état d'image courant
      */
     public final void paint(DrawSurface surface, FrameState frame) {
-        pinceau.setColor(baseColor(frame));
-        pinceau.setFont(frame.metrics().font());
+        brush.setColor(baseColor(frame));
+        brush.setFont(frame.metrics().font());
         onPaint(surface, frame);
     }
 

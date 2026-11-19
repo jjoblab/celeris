@@ -50,16 +50,16 @@ public class TouchBarViewTest {
     public void laRangeeSeMesureASesTouches() {
         TouchBarView vue = new TouchBarView(contexte, PopupPalette.dark());
         vue.setActions(List.of(
-                new TouchBarView.Touche("Tab", null, () -> { }),
-                new TouchBarView.Touche("Commenter", null, () -> { })));
+                new TouchBarView.KeyCap("Tab", null, () -> { }),
+                new TouchBarView.KeyCap("Commenter", null, () -> { })));
         mesurer(vue);
         float densite = contexte.getResources().getDisplayMetrics().density;
-        float cible = 44f * densite;
-        float ecart = 6f * densite;
+        float target = 44f * densite;
+        float gap = 6f * densite;
         // deux touches : les largeurs de texte + respirations, plus
         // l'écart — au moins deux cibles et un écart, la hauteur 44 dp
         assertTrue("la rangée tient deux cibles au moins",
-                vue.getMeasuredWidth() >= 2f * cible + ecart);
+                vue.getMeasuredWidth() >= 2f * target + gap);
         assertTrue("la hauteur tient à 44 dp (le dépôt de départ)",
                 vue.getMeasuredHeight() >= Math.round(44f * densite));
     }
@@ -70,8 +70,8 @@ public class TouchBarViewTest {
         AtomicInteger courses = new AtomicInteger();
         TouchBarView vue = new TouchBarView(contexte, PopupPalette.dark());
         vue.setActions(List.of(
-                new TouchBarView.Touche("Tab", null, () -> { }),
-                new TouchBarView.Touche("Commenter", null,
+                new TouchBarView.KeyCap("Tab", null, () -> { }),
+                new TouchBarView.KeyCap("Commenter", null,
                         courses::incrementAndGet)));
         mesurer(vue);
         float densite = contexte.getResources().getDisplayMetrics().density;
@@ -90,7 +90,7 @@ public class TouchBarViewTest {
         AtomicInteger courses = new AtomicInteger();
         TouchBarView vue = new TouchBarView(contexte, PopupPalette.dark());
         vue.setActions(List.of(
-                new TouchBarView.Touche("Muette", () -> false,
+                new TouchBarView.KeyCap("Muette", () -> false,
                         courses::incrementAndGet)));
         mesurer(vue);
         float x = vue.getMeasuredWidth() * 0.5f;

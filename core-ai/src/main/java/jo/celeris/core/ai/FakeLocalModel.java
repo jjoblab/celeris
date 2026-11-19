@@ -29,7 +29,7 @@ public final class FakeLocalModel implements GhostTextModel, PredictionModel {
      * @param suggestion la suggestion à servir, ou {@code null} pour
      *                   l'aveu qu'il n'y en a pas
      */
-    public void fantome(@Nullable GhostSuggestion suggestion) {
+    public void ghost(@Nullable GhostSuggestion suggestion) {
         this.avisGhost = suggestion;
     }
 
@@ -54,30 +54,30 @@ public final class FakeLocalModel implements GhostTextModel, PredictionModel {
     }
 
     @Override
-    public void completer(ModelRequest requete, GhostTextModel.Receiver recepteur) {
+    public void completer(ModelRequest requete, GhostTextModel.Receiver receiver) {
         requetes.add(requete);
-        if (requete.jeton().estAnnule()) {
+        if (requete.token().isCancelled()) {
             return;
         }
         GhostSuggestion avis = avisGhost;
         if (avis == null) {
-            recepteur.aucune();
+            receiver.aucune();
         } else {
-            recepteur.suggestion(avis);
+            receiver.suggestion(avis);
         }
     }
 
     @Override
-    public void predire(ModelRequest requete, PredictionModel.Receiver recepteur) {
+    public void predire(ModelRequest requete, PredictionModel.Receiver receiver) {
         requetes.add(requete);
-        if (requete.jeton().estAnnule()) {
+        if (requete.token().isCancelled()) {
             return;
         }
         PredictionEdit avis = avisPrediction;
         if (avis == null) {
-            recepteur.aucune();
+            receiver.aucune();
         } else {
-            recepteur.prediction(avis);
+            receiver.prediction(avis);
         }
     }
 }

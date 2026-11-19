@@ -31,10 +31,10 @@ public final class PopupAnchor {
     public static PopupPlacer.Cadre belowOrAboveCaret(int caretX, int caretBottom,
             PopupPlacer.Cadre popup, int layerWidth, int layerHeight, int margin) {
         int x = borneX(caretX, popup, layerWidth, margin);
-        boolean dessous = caretBottom + popup.hauteur() <= layerHeight - margin;
+        boolean dessous = caretBottom + popup.height() <= layerHeight - margin;
         int y = dessous ? caretBottom
-                : Math.max(margin, caretBottom - popup.hauteur());
-        return new PopupPlacer.Cadre(x, y, popup.largeur(), popup.hauteur());
+                : Math.max(margin, caretBottom - popup.height());
+        return new PopupPlacer.Cadre(x, y, popup.width(), popup.height());
     }
 
     /**
@@ -53,11 +53,11 @@ public final class PopupAnchor {
     public static PopupPlacer.Cadre aboveOrBelowCaret(int caretX, int caretTop,
             PopupPlacer.Cadre popup, int layerWidth, int layerHeight, int margin) {
         int x = borneX(caretX, popup, layerWidth, margin);
-        boolean dessus = caretTop - popup.hauteur() >= margin;
-        int y = dessus ? caretTop - popup.hauteur()
-                : Math.min(layerHeight - margin - popup.hauteur(), caretTop);
+        boolean dessus = caretTop - popup.height() >= margin;
+        int y = dessus ? caretTop - popup.height()
+                : Math.min(layerHeight - margin - popup.height(), caretTop);
         return new PopupPlacer.Cadre(x, Math.max(margin, y),
-                popup.largeur(), popup.hauteur());
+                popup.width(), popup.height());
     }
 
     /**
@@ -74,12 +74,12 @@ public final class PopupAnchor {
      */
     public static PopupPlacer.Cadre atPoint(int pointX, int pointY,
             PopupPlacer.Cadre popup, int layerWidth, int layerHeight, int margin) {
-        int x = borneX(pointX - popup.largeur() / 2, popup, layerWidth, margin);
-        int y = pointY - popup.hauteur() >= margin
-                ? pointY - popup.hauteur()
-                : Math.min(layerHeight - margin - popup.hauteur(), pointY);
+        int x = borneX(pointX - popup.width() / 2, popup, layerWidth, margin);
+        int y = pointY - popup.height() >= margin
+                ? pointY - popup.height()
+                : Math.min(layerHeight - margin - popup.height(), pointY);
         return new PopupPlacer.Cadre(x, Math.max(margin, y),
-                popup.largeur(), popup.hauteur());
+                popup.width(), popup.height());
     }
 
     /**
@@ -94,8 +94,8 @@ public final class PopupAnchor {
     public static PopupPlacer.Cadre topLeftCorner(PopupPlacer.Cadre popup,
             int layerWidth, int layerHeight, int margin) {
         return new PopupPlacer.Cadre(margin, margin,
-                Math.min(popup.largeur(), layerWidth - 2 * margin),
-                Math.min(popup.hauteur(), layerHeight - 2 * margin));
+                Math.min(popup.width(), layerWidth - 2 * margin),
+                Math.min(popup.height(), layerHeight - 2 * margin));
     }
 
     /**
@@ -111,8 +111,8 @@ public final class PopupAnchor {
     public static PopupPlacer.Cadre rightEdge(PopupPlacer.Cadre popup,
             int layerWidth, int layerHeight, int margin) {
         return new PopupPlacer.Cadre(
-                Math.max(margin, layerWidth - popup.largeur() - margin),
-                margin, popup.largeur(),
+                Math.max(margin, layerWidth - popup.width() - margin),
+                margin, popup.width(),
                 Math.max(margin, layerHeight - 2 * margin));
     }
 
@@ -132,12 +132,12 @@ public final class PopupAnchor {
             int layerWidth, int layerHeight, int margin) {
         // la taille se borne AUX MURS d'abord, la position suit — la
         // carte trop grande ne dépasse jamais le bas ni la droite
-        int largeur = Math.min(popup.largeur(), layerWidth - 2 * margin);
-        int hauteur = Math.min(popup.hauteur(), layerHeight - 2 * margin);
+        int width = Math.min(popup.width(), layerWidth - 2 * margin);
+        int height = Math.min(popup.height(), layerHeight - 2 * margin);
         return new PopupPlacer.Cadre(
-                Math.max(margin, layerWidth - largeur - margin),
-                Math.max(margin, layerHeight - hauteur - margin),
-                largeur, hauteur);
+                Math.max(margin, layerWidth - width - margin),
+                Math.max(margin, layerHeight - height - margin),
+                width, height);
     }
 
     /**
@@ -159,12 +159,12 @@ public final class PopupAnchor {
     public static PopupPlacer.Cadre belowSelectionOrAboveBar(int puceX,
             int selBottom, int barTop, PopupPlacer.Cadre popup,
             int layerWidth, int layerHeight, int margin) {
-        int x = borneX(puceX - popup.largeur() / 2, popup, layerWidth,
+        int x = borneX(puceX - popup.width() / 2, popup, layerWidth,
                 margin);
-        boolean dessous = selBottom + popup.hauteur() <= layerHeight - margin;
+        boolean dessous = selBottom + popup.height() <= layerHeight - margin;
         int y = dessous ? selBottom
-                : Math.max(margin, barTop - popup.hauteur());
-        return new PopupPlacer.Cadre(x, y, popup.largeur(), popup.hauteur());
+                : Math.max(margin, barTop - popup.height());
+        return new PopupPlacer.Cadre(x, y, popup.width(), popup.height());
     }
 
     /**
@@ -184,19 +184,19 @@ public final class PopupAnchor {
             int selTop, PopupPlacer.Cadre popup, int layerWidth, int layerHeight,
             int margin) {
         int centre = (selLeft + selRight) / 2;
-        int x = borneX(centre - popup.largeur() / 2, popup, layerWidth, margin);
-        int y = selTop - popup.hauteur() >= margin
-                ? selTop - popup.hauteur()
-                : Math.min(layerHeight - margin - popup.hauteur(),
+        int x = borneX(centre - popup.width() / 2, popup, layerWidth, margin);
+        int y = selTop - popup.height() >= margin
+                ? selTop - popup.height()
+                : Math.min(layerHeight - margin - popup.height(),
                         selTop + margin);
         return new PopupPlacer.Cadre(x, Math.max(margin, y),
-                popup.largeur(), popup.hauteur());
+                popup.width(), popup.height());
     }
 
     /** L'abscisse bornée : le popup tient dans la couche, respiration comprise. */
     private static int borneX(int x, PopupPlacer.Cadre popup, int layerWidth,
             int margin) {
-        return Math.max(margin, Math.min(x, layerWidth - popup.largeur()
+        return Math.max(margin, Math.min(x, layerWidth - popup.width()
                 - margin));
     }
 }

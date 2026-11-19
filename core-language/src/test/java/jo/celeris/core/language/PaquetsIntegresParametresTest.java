@@ -86,8 +86,8 @@ final class PaquetsIntegresParametresTest {
         seCompile(id, configuration.indentRules().unindentedLine());
         seCompile(id, pack.descriptor().firstLine());
         seCompile(id, pack.descriptor().contentHint());
-        for (String motif : pack.descriptor().filenamePatterns()) {
-            assertFalse(motif.isEmpty(), id + " : motif de nom non vide");
+        for (String pattern : pack.descriptor().filenamePatterns()) {
+            assertFalse(pattern.isEmpty(), id + " : motif de nom non vide");
         }
     }
 

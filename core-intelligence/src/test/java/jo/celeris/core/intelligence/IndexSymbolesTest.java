@@ -65,19 +65,19 @@ class IndexSymbolesTest {
     void lesSymbolesDuPlan() {
         IndexSymboles index = IndexSymboles.vide();
         indexJava(index, "file:///Client.java", sourceClient());
-        List<Symbole> symboles = index.symboles();
-        assertEquals(4, symboles.size());
-        Symbole classe = symboles.get(0);
+        List<Symbole> symbols = index.symbols();
+        assertEquals(4, symbols.size());
+        Symbole classe = symbols.get(0);
         assertEquals("Client", classe.nom());
         assertEquals(NodeCategory.TYPE, classe.categorie());
         assertEquals("file:///Client.java", classe.uri());
-        assertEquals(2, classe.ligne());
-        assertTrue(classe.debut() < classe.fin());
-        assertEquals("nom", symboles.get(1).nom());
-        assertEquals(NodeCategory.FIELD, symboles.get(1).categorie());
-        assertEquals("nomComplet", symboles.get(2).nom());
-        assertEquals(NodeCategory.FUNCTION, symboles.get(2).categorie());
-        assertEquals("ajouter", symboles.get(3).nom());
+        assertEquals(2, classe.line());
+        assertTrue(classe.start() < classe.end());
+        assertEquals("nom", symbols.get(1).nom());
+        assertEquals(NodeCategory.FIELD, symbols.get(1).categorie());
+        assertEquals("nomComplet", symbols.get(2).nom());
+        assertEquals(NodeCategory.FUNCTION, symbols.get(2).categorie());
+        assertEquals("ajouter", symbols.get(3).nom());
     }
 
     /** Le remplacement par fichier : la ré-analyse remplace, ne cumule pas. */
@@ -85,7 +85,7 @@ class IndexSymbolesTest {
     void leRemplacementParFichier() {
         IndexSymboles index = IndexSymboles.vide();
         indexJava(index, "file:///Client.java", sourceClient());
-        assertEquals(4, index.symboles().size());
+        assertEquals(4, index.symbols().size());
         // le fichier change : une méthode disparaît, une autre naît
         String nouvelle = """
                 package exemple;
@@ -95,9 +95,9 @@ class IndexSymbolesTest {
                 }
                 """;
         indexJava(index, "file:///Client.java", nouvelle);
-        assertEquals(2, index.symboles().size());
-        assertEquals("Client", index.symboles().get(0).nom());
-        assertEquals("nomComplet", index.symboles().get(1).nom());
+        assertEquals(2, index.symbols().size());
+        assertEquals("Client", index.symbols().get(0).nom());
+        assertEquals("nomComplet", index.symbols().get(1).nom());
     }
 
     /** Le retrait : le fichier fermé quitte l'index, les autres restent. */
@@ -106,10 +106,10 @@ class IndexSymbolesTest {
         IndexSymboles index = IndexSymboles.vide();
         indexJava(index, "file:///Client.java", sourceClient());
         indexJava(index, "file:///Utilisateur.java", sourceUtilisateur());
-        assertEquals(7, index.symboles().size());
-        index.retirer("file:///Client.java");
-        assertEquals(3, index.symboles().size());
-        assertTrue(index.symboles().stream()
+        assertEquals(7, index.symbols().size());
+        index.remove("file:///Client.java");
+        assertEquals(3, index.symbols().size());
+        assertTrue(index.symbols().stream()
                 .allMatch(symbole -> symbole.uri().equals("file:///Utilisateur.java")));
     }
 
@@ -151,7 +151,7 @@ class IndexSymbolesTest {
                 """;
         Document doc = Document.of(manifeste);
         index.remplacer("file:///AndroidManifest.xml", doc, xml.analyseFull(doc));
-        List<String> noms = index.symboles().stream().map(Symbole::nom).toList();
+        List<String> noms = index.symbols().stream().map(Symbole::nom).toList();
         assertEquals(List.of("manifest", "application", "activity"), noms);
         // le nom de balise compte à l'ouverture et à la fermeture
         assertEquals(2, index.usages("manifest").size());
@@ -175,7 +175,7 @@ class IndexSymbolesTest {
                 .map(Symbole::nom).toList();
         assertEquals(List.of("Client", "client"), exacte);
         // requête muette : tout l'index
-        assertEquals(index.symboles().size(), index.rechercher("").size());
+        assertEquals(index.symbols().size(), index.rechercher("").size());
     }
 
     /** Le budget mémoire (ADR-005) : les occurrences sont bornées, la saturation est signée. */
@@ -202,7 +202,7 @@ class IndexSymbolesTest {
         indexJava(index, "file:///Utilisateur.java", sourceUtilisateur());
         String forme = index.serialiser();
         IndexSymboles relu = IndexSymboles.deserialiser(forme);
-        assertEquals(index.symboles(), relu.symboles());
+        assertEquals(index.symbols(), relu.symbols());
         assertEquals(index.usages("Client"), relu.usages("Client"));
         assertEquals(index.nombreOccurrences(), relu.nombreOccurrences());
         assertTrue(!relu.sature("file:///Client.java"));

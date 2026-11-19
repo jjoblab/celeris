@@ -49,35 +49,35 @@ public final class JavaSmartTyping {
      */
     public static EditPlan enter(Document doc, @Nullable Analysis analysis,
             MultiSelection selection, IndentStyle style) {
-        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<TextEdit> edits = new ArrayList<>(selection.caretCount());
         List<SelRange> apres = new ArrayList<>(selection.caretCount());
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
+        for (SelRange range : selection.ranges()) {
             final int deltaCumule = delta;
-            Geste geste = gesteDedie(doc, plage, style, deltaCumule)
-                    .orElseGet(() -> gesteGenerique(doc, analysis, plage,
+            TypingGesture geste = dedicatedGesture(doc, range, style, deltaCumule)
+                    .orElseGet(() -> genericGesture(doc, analysis, range,
                             style, deltaCumule));
-            editions.add(geste.edition());
+            edits.add(geste.edit());
             apres.add(geste.selection());
             delta = geste.delta();
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /**
      * Le geste dédié d'une plage, s'il y en a un : le découpage de
      * chaîne, sinon le cran de label de cas.
      */
-    private static Optional<Geste> gesteDedie(Document doc, SelRange plage,
+    private static Optional<TypingGesture> dedicatedGesture(Document doc, SelRange range,
             IndentStyle style, int delta) {
-        int coupe = plage.isEmpty() ? plage.caret() : plage.start();
-        if (plage.isEmpty()) {
-            Optional<Geste> decoupe = decoupeChaine(doc, coupe, style, delta);
+        int coupe = range.isEmpty() ? range.caret() : range.start();
+        if (range.isEmpty()) {
+            Optional<TypingGesture> decoupe = decoupeChaine(doc, coupe, style, delta);
             if (decoupe.isPresent()) {
                 return decoupe;
             }
         }
-        return cranLabelDeCas(doc, coupe, plage, style, delta);
+        return caseLabelStep(doc, coupe, range, style, delta);
     }
 
     /**
@@ -85,16 +85,16 @@ public final class JavaSmartTyping {
      * pour cette plage seule, relogé au delta cumulé — une plage
      * toujours exactement une édition, un caret.
      */
-    private static Geste gesteGenerique(Document doc, @Nullable Analysis analysis,
-            SelRange plage, IndentStyle style, int delta) {
+    private static TypingGesture genericGesture(Document doc, @Nullable Analysis analysis,
+            SelRange range, IndentStyle style, int delta) {
         EditPlan plan = SmartTyping.enter(doc, analysis,
-                MultiSelection.of(plage), style);
-        TextEdit edition = plan.transaction().edits().get(0);
-        TextEdit reloge = new TextEdit(edition.start() + delta,
-                edition.removed(), edition.inserted());
+                MultiSelection.of(range), style);
+        TextEdit edit = plan.transaction().edits().get(0);
+        TextEdit reloge = new TextEdit(edit.start() + delta,
+                edit.removed(), edit.inserted());
         int caret = plan.selection().carets().get(0) + delta;
-        return new Geste(reloge, SelRange.caretAt(caret),
-                delta + edition.inserted().length() - edition.removed().length());
+        return new TypingGesture(reloge, SelRange.caretAt(caret),
+                delta + edit.inserted().length() - edit.removed().length());
     }
 
     /**
@@ -116,31 +116,31 @@ public final class JavaSmartTyping {
      * @param delta le delta cumulé des gestes précédents
      * @return le geste de découpage, vide pour laisser la main
      */
-    private static Optional<Geste> decoupeChaine(Document doc, int caret,
+    private static Optional<TypingGesture> decoupeChaine(Document doc, int caret,
             IndentStyle style, int delta) {
-        int ligne = doc.lineForOffset(caret);
-        int debut = doc.lineStart(ligne);
-        if (caret <= debut || caret > doc.lineEnd(ligne)) {
+        int line = doc.lineForOffset(caret);
+        int start = doc.lineStart(line);
+        if (caret <= start || caret > doc.lineEnd(line)) {
             return Optional.empty();
         }
-        EtatChaine etat = etatChaineAvant(doc, debut, caret);
+        StringState etat = stringStateBefore(doc, start, caret);
         if (!etat.dansChaine || etat.echappe) {
             return Optional.empty();
         }
-        if (!chaineFermeeApres(doc, caret, doc.lineEnd(ligne))) {
+        if (!chaineFermeeApres(doc, caret, doc.lineEnd(line))) {
             return Optional.empty();
         }
-        String indentation = IndentEngine.leadingWhitespace(doc.lineText(ligne))
+        String indentation = IndentEngine.leadingWhitespace(doc.lineText(line))
                 + style.indent(1);
         String insere = "\" +\n" + indentation + "\"";
         int position = caret + delta;
-        return Optional.of(new Geste(new TextEdit(position, "", insere),
+        return Optional.of(new TypingGesture(new TextEdit(position, "", insere),
                 SelRange.caretAt(position + insere.length()),
                 delta + insere.length()));
     }
 
     /** L'état des citations d'une ligne à une position. */
-    private record EtatChaine(boolean dansChaine, boolean echappe) {
+    private record StringState(boolean dansChaine, boolean echappe) {
     }
 
     /**
@@ -150,11 +150,11 @@ public final class JavaSmartTyping {
      * ({@code """}) ouvre trois fois la citation — l'état devient
      * faux, le découpage refuse.
      */
-    private static EtatChaine etatChaineAvant(Document doc, int debut,
+    private static StringState stringStateBefore(Document doc, int start,
             int caret) {
         boolean dansChaine = false;
         boolean echappe = false;
-        for (int i = debut; i < caret; i++) {
+        for (int i = start; i < caret; i++) {
             char c = doc.charAt(i);
             if (echappe) {
                 echappe = false;
@@ -165,18 +165,18 @@ public final class JavaSmartTyping {
                 continue;
             }
             if (c == '"') {
-                if (!dansChaine && estBlocTexte(doc, i)) {
+                if (!dansChaine && isTextBlock(doc, i)) {
                     // trois citations : l'état de parité ne dit plus rien
-                    return new EtatChaine(false, true);
+                    return new StringState(false, true);
                 }
                 dansChaine = !dansChaine;
             }
         }
-        return new EtatChaine(dansChaine, echappe);
+        return new StringState(dansChaine, echappe);
     }
 
     /** Vrai quand la citation à {@code i} ouvre un bloc de texte. */
-    private static boolean estBlocTexte(Document doc, int i) {
+    private static boolean isTextBlock(Document doc, int i) {
         return i + 2 < doc.length()
                 && doc.charAt(i + 1) == '"' && doc.charAt(i + 2) == '"';
     }
@@ -185,9 +185,9 @@ public final class JavaSmartTyping {
      * Vrai quand la chaîne ouverte au caret se ferme sur sa ligne :
      * une citation non échappée vit entre le caret et la fin de ligne.
      */
-    private static boolean chaineFermeeApres(Document doc, int caret, int fin) {
+    private static boolean chaineFermeeApres(Document doc, int caret, int end) {
         boolean echappe = false;
-        for (int i = caret; i < fin; i++) {
+        for (int i = caret; i < end; i++) {
             char c = doc.charAt(i);
             if (echappe) {
                 echappe = false;
@@ -217,16 +217,16 @@ public final class JavaSmartTyping {
      *
      * @param doc   le document, jamais muté
      * @param coupe la position de coupe
-     * @param plage la plage remplacée par le saut
+     * @param range la plage remplacée par le saut
      * @param style le style d'indentation de l'hôte
      * @param delta le delta cumulé des gestes précédents
      * @return le geste du cran, vide pour laisser la main
      */
-    private static Optional<Geste> cranLabelDeCas(Document doc, int coupe,
-            SelRange plage, IndentStyle style, int delta) {
-        int ligne = doc.lineForOffset(coupe);
-        int debut = doc.lineStart(ligne);
-        String avant = doc.subText(debut, coupe).stripTrailing();
+    private static Optional<TypingGesture> caseLabelStep(Document doc, int coupe,
+            SelRange range, IndentStyle style, int delta) {
+        int line = doc.lineForOffset(coupe);
+        int start = doc.lineStart(line);
+        String avant = doc.subText(start, coupe).stripTrailing();
         if (avant.isBlank()) {
             return Optional.empty();
         }
@@ -241,13 +241,13 @@ public final class JavaSmartTyping {
         if (!"case".equals(motDeTete) && !"default".equals(motDeTete)) {
             return Optional.empty();
         }
-        String indentation = IndentEngine.leadingWhitespace(doc.lineText(ligne))
+        String indentation = IndentEngine.leadingWhitespace(doc.lineText(line))
                 + style.indent(1);
-        String retire = doc.subText(plage.start(), plage.end());
+        String retire = doc.subText(range.start(), range.end());
         String insere = "\n" + indentation;
-        return Optional.of(new Geste(
-                new TextEdit(plage.start() + delta, retire, insere),
-                SelRange.caretAt(plage.start() + delta + insere.length()),
+        return Optional.of(new TypingGesture(
+                new TextEdit(range.start() + delta, retire, insere),
+                SelRange.caretAt(range.start() + delta + insere.length()),
                 delta + insere.length() - retire.length()));
     }
 
@@ -255,10 +255,10 @@ public final class JavaSmartTyping {
      * Le premier mot d'un texte : ses caractères d'identifiant de
      * tête, en minuscules — le mot clé qui décide.
      */
-    private static String motDeTete(String texte) {
+    private static String motDeTete(String text) {
         StringBuilder mot = new StringBuilder();
-        for (int i = 0; i < texte.length(); i++) {
-            char c = texte.charAt(i);
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
             if (!Character.isJavaIdentifierPart(c)) {
                 break;
             }
@@ -268,6 +268,6 @@ public final class JavaSmartTyping {
     }
 
     /** Le geste d'une plage : édition, sélection d'après, delta cumulé. */
-    private record Geste(TextEdit edition, SelRange selection, int delta) {
+    private record TypingGesture(TextEdit edit, SelRange selection, int delta) {
     }
 }

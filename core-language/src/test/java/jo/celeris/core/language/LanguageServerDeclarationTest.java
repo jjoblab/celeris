@@ -232,7 +232,7 @@ final class LanguageServerDeclarationTest {
         Files.createDirectories(dossier);
         ecrire(dossier, "pack.json", """
                 {"id": "essai", "version": "1.0.0", "schemaVersion": 1,
-                 "license": "Apache-2.0", "provenance": "banc de test"}
+                 "license": "Apache-2.0", "provenance": "banc of test"}
                 """);
         ecrire(dossier, "language.json", """
                 {"id": "essai", "name": "Essai", "extensions": [".essai"],
@@ -291,7 +291,7 @@ final class LanguageServerDeclarationTest {
         Files.createDirectories(dossier);
         ecrire(dossier, "pack.json", """
                 {"id": "essai", "version": "1.0.0", "schemaVersion": 1,
-                 "license": "Apache-2.0", "provenance": "banc de test"}
+                 "license": "Apache-2.0", "provenance": "banc of test"}
                 """);
         ecrire(dossier, "language.json", """
                 {"id": "essai", "name": "Essai", "extensions": [".essai"],

@@ -12,35 +12,35 @@ import android.graphics.Paint;
  */
 public final class PaintBrush implements TextBrush {
 
-    private final Paint peinture;
+    private final Paint paint;
     private final AndroidFontRuler regle;
 
     /**
      * Construit le pinceau sur la peinture donnée.
      *
-     * @param peinture la peinture Android sous-jacente
+     * @param paint la peinture Android sous-jacente
      * @param regle    la règle porteuse de la table des familles
      *                 (PIEGE-22 : le tracé lit la même table que la
      *                 mesure)
      */
-    public PaintBrush(Paint peinture, AndroidFontRuler regle) {
-        this.peinture = peinture;
+    public PaintBrush(Paint paint, AndroidFontRuler regle) {
+        this.paint = paint;
         this.regle = regle;
     }
 
     /** La peinture Android sous-jacente (accès package). */
-    Paint peinture() {
-        return peinture;
+    Paint paint() {
+        return paint;
     }
 
     @Override
     public void setColor(int argb) {
-        peinture.setColor(argb);
+        paint.setColor(argb);
     }
 
     @Override
     public int color() {
-        return peinture.getColor();
+        return paint.getColor();
     }
 
     /**
@@ -51,15 +51,15 @@ public final class PaintBrush implements TextBrush {
      * mesuré est ce que la plateforme trace.
      */
     @Override
-    public void setFont(FontSpec police) {
-        peinture.setTypeface(regle.policeDe(police.family()));
-        peinture.setTextSize(police.size());
+    public void setFont(FontSpec font) {
+        paint.setTypeface(regle.policeDe(font.family()));
+        paint.setTextSize(font.size());
     }
 
     /** L'épaisseur des traits — les chevrons de la gouttière (M7.5). */
     @Override
     public void setStrokeWidth(float pixels) {
-        peinture.setStrokeWidth(Math.max(1f, pixels));
+        paint.setStrokeWidth(Math.max(1f, pixels));
     }
 
     /**
@@ -69,8 +69,8 @@ public final class PaintBrush implements TextBrush {
      */
     @Override
     public void setStyle(boolean bold, boolean italic, boolean underline) {
-        peinture.setFakeBoldText(bold);
-        peinture.setTextSkewX(italic ? -0.25f : 0f);
-        peinture.setUnderlineText(underline);
+        paint.setFakeBoldText(bold);
+        paint.setTextSkewX(italic ? -0.25f : 0f);
+        paint.setUnderlineText(underline);
     }
 }

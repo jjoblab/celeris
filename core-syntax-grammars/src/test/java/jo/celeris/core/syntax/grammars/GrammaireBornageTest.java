@@ -21,14 +21,14 @@ class GrammaireBornageTest {
     /** Le budget épuisé dégrade la ligne en portée de contexte, comptée. */
     @Test
     void budgetDepasseDegradeEtCompte() {
-        Grammaire grammaire = grammaireDePaquet("python");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire, 8);
-        LexedLine ligne = lexeur.lex("if x >= 2:  # borne", EtatGrammaire.VIDE);
+        Grammar grammaire = grammaireDePaquet("python");
+        GrammarLexer lexeur = new GrammarLexer(grammaire, 8);
+        LexedLine line = lexeur.lex("if x >= 2:  # borne", GrammarState.EMPTY);
         assertEquals(1, lexeur.incidents(), "l'incident se compte");
-        assertTrue(ligne.tokens().length > 0, "la ligne dégradée a des jetons quand même");
+        assertTrue(line.tokens().length > 0, "la ligne dégradée a des jetons quand même");
         boolean degrades = false;
-        for (var jeton : ligne.tokens()) {
-            if (jeton.kind() == TokenKind.IDENTIFIER) {
+        for (var token : line.tokens()) {
+            if (token.kind() == TokenKind.IDENTIFIER) {
                 degrades = true;
             }
         }
@@ -38,30 +38,30 @@ class GrammaireBornageTest {
     /** Le budget large ne se déclenche pas : ligne complète, aucun incident. */
     @Test
     void budgetLargeNeSeDeclenchePas() {
-        Grammaire grammaire = grammaireDePaquet("python");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire, 20_000);
-        lexeur.lex("if x >= 2:  # borne", EtatGrammaire.VIDE);
+        Grammar grammaire = grammaireDePaquet("python");
+        GrammarLexer lexeur = new GrammarLexer(grammaire, 20_000);
+        lexeur.lex("if x >= 2:  # borne", GrammarState.EMPTY);
         assertEquals(0, lexeur.incidents());
     }
 
     /** Une seconde ligne repart à zéro : le budget est par ligne. */
     @Test
     void budgetParLigne() {
-        Grammaire grammaire = grammaireDePaquet("python");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire, 60);
-        lexeur.lex("if x >= 2:  # borne", EtatGrammaire.VIDE);
+        Grammar grammaire = grammaireDePaquet("python");
+        GrammarLexer lexeur = new GrammarLexer(grammaire, 60);
+        lexeur.lex("if x >= 2:  # borne", GrammarState.EMPTY);
         assertEquals(1, lexeur.incidents());
-        lexeur.lex("# court", EtatGrammaire.VIDE);
+        lexeur.lex("# court", GrammarState.EMPTY);
         assertEquals(1, lexeur.incidents(), "la ligne suivante repart à zéro");
     }
 
     /** Deux lignes qui débordent comptent deux incidents, une journalisation chacune. */
     @Test
     void deuxLignesQuiDebordentComptentDeux() {
-        Grammaire grammaire = grammaireDePaquet("python");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire, 8);
-        lexeur.lex("if x >= 2:  # borne", EtatGrammaire.VIDE);
-        lexeur.lex("y = 3  # note", EtatGrammaire.VIDE);
+        Grammar grammaire = grammaireDePaquet("python");
+        GrammarLexer lexeur = new GrammarLexer(grammaire, 8);
+        lexeur.lex("if x >= 2:  # borne", GrammarState.EMPTY);
+        lexeur.lex("y = 3  # note", GrammarState.EMPTY);
         assertEquals(2, lexeur.incidents(), "chaque ligne qui déborde se compte");
     }
 
@@ -69,30 +69,30 @@ class GrammaireBornageTest {
     @Test
     void rapportCoherent() {
         assertThrows(IllegalArgumentException.class,
-                () -> new RapportGrammaire(-1, 0, 0, 0, 0, 0, 0, 0));
-        assertEquals(1.0, new RapportGrammaire(0, 0, 0, 0, 0, 0, 0, 0).acceptation(),
+                () -> new GrammarReport(-1, 0, 0, 0, 0, 0, 0, 0));
+        assertEquals(1.0, new GrammarReport(0, 0, 0, 0, 0, 0, 0, 0).acceptation(),
                 "sans expression, l'acceptation est entière");
     }
 
     /** L'état de sortie d'une ligne dégradée reste cohérent avec ses jetons. */
     @Test
     void etatCoherentApresDepassement() {
-        Grammaire grammaire = grammaireDePaquet("python");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire, 6);
-        LexState etat = EtatGrammaire.VIDE;
-        LexedLine ligne = lexeur.lex("doc = \"\"\"", etat);
-        assertEquals(((EtatGrammaire) ligne.exitState()).dansBloc(),
+        Grammar grammaire = grammaireDePaquet("python");
+        GrammarLexer lexeur = new GrammarLexer(grammaire, 6);
+        LexState etat = GrammarState.EMPTY;
+        LexedLine line = lexeur.lex("doc = \"\"\"", etat);
+        assertEquals(((GrammarState) line.exitState()).dansBloc(),
                 true, "l'ouverture qui a matché reste ouverte à la sortie");
     }
 
     /** La grammaire d'un paquet intégré, chargée par le vrai chargeur. */
-    private static Grammaire grammaireDePaquet(String id) {
+    private static Grammar grammaireDePaquet(String id) {
         var flux = GrammaireBornageTest.class.getResourceAsStream("/langages/" + id + "/grammar.json");
         if (flux == null) {
             throw new IllegalArgumentException("grammaire du paquet " + id);
         }
         try (flux) {
-            return Grammaires.lire(new String(flux.readAllBytes(),
+            return Grammars.read(new String(flux.readAllBytes(),
                     java.nio.charset.StandardCharsets.UTF_8));
         } catch (java.io.IOException e) {
             throw new IllegalStateException(e);

@@ -90,11 +90,11 @@ public final class ScrollGeometry {
      * @param metrics    les métriques d'éditeur courantes
      * @return la largeur du contenu, en pixels
      */
-    public static float largeurContenu(VisualProjection projection,
+    public static float contentWidth(VisualProjection projection,
             EditorMetrics metrics) {
         int portee = projection.columns() <= 0
                 ? Math.min(projection.longestLineLength(),
-                        DocumentRowSource.FENETRE_MONSTRE)
+                        DocumentRowSource.MONSTER_WINDOW)
                 : Math.min(projection.longestLineLength(), projection.columns());
         return portee * metrics.charWidth();
     }
@@ -106,7 +106,7 @@ public final class ScrollGeometry {
      * @param gutterWidth   la largeur de gouttière, en pixels
      * @return la largeur visible, jamais négative
      */
-    public static float largeurVisible(float viewportWidth, float gutterWidth) {
+    public static float visibleWidth(float viewportWidth, float gutterWidth) {
         return Math.max(0f, viewportWidth - gutterWidth);
     }
 }

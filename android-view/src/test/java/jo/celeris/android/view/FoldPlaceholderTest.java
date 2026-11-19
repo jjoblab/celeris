@@ -114,7 +114,7 @@ class FoldPlaceholderTest {
         image.beginFrame(document, MultiSelection.of(new SelRange(0, 0)),
                 projection, 1L, metrics, THEME, 0, 2, 20f, 0f, 0f);
         FoldPlaceholder couche = new FoldPlaceholder(() -> new PinceauMutable(),
-                ligne -> ligne == 0
+                line -> line == 0
                         ? new FoldedRowSource.PieceDePli(8, 1, "{…}")
                         : null);
         SurfaceRectangles surface = new SurfaceRectangles();
@@ -141,7 +141,7 @@ class FoldPlaceholderTest {
         image.beginFrame(document, MultiSelection.of(new SelRange(0, 0)),
                 projection, 1L, metrics, THEME, 0, 2, 20f, 0f, 0f);
         FoldPlaceholder couche = new FoldPlaceholder(() -> new PinceauMutable(),
-                ligne -> null);
+                line -> null);
         SurfaceRectangles surface = new SurfaceRectangles();
         couche.paint(surface, image);
         assertEquals(0, surface.rectangles().size());

@@ -40,17 +40,17 @@ public final class FoldedRowSource implements RowSource {
      * fermante dans la dernière ligne cachée (le début du suffixe), et
      * le texte du placeholder.
      *
-     * @param colonne   la colonne de l'ouvrante dans la ligne d'en-tête
+     * @param column   la colonne de l'ouvrante dans la ligne d'en-tête
      * @param colonneFin la fin exclusive de la fermante dans la dernière
      *                   ligne cachée
-     * @param texte     le texte du placeholder (« {…} », « […] »,
+     * @param text     le texte du placeholder (« {…} », « […] »,
      *                  celui du commentaire de bloc, « … »)
      */
-    public record PieceDePli(int colonne, int colonneFin, String texte) {
+    public record PieceDePli(int column, int colonneFin, String text) {
     }
 
     /** Le placeholder d'un bloc d'accolades. */
-    private static final String ACCOLADES = "{…}";
+    private static final String BRACES = "{…}";
 
     /** Le placeholder d'un bloc de crochets carrés. */
     private static final String CROCHETS = "[…]";
@@ -63,23 +63,23 @@ public final class FoldedRowSource implements RowSource {
 
     private final RowSource deleguee;
     private final Document document;
-    private final FoldModel plis;
-    private final LexDocument lexique;
+    private final FoldModel folds;
+    private final LexDocument lexicon;
 
     /**
      * Construit la décoration de plis sur une source déléguée.
      *
      * @param deleguee la source des rangées à l'image (colorée ou non)
      * @param document l'instantané affiché
-     * @param plis     le modèle de plis, lu en direct
-     * @param lexique  le document lexicographié de la publication à jour
+     * @param folds     le modèle de plis, lu en direct
+     * @param lexicon  le document lexicographié de la publication à jour
      */
     public FoldedRowSource(RowSource deleguee, Document document,
-            FoldModel plis, LexDocument lexique) {
+            FoldModel folds, LexDocument lexicon) {
         this.deleguee = deleguee;
         this.document = document;
-        this.plis = plis;
-        this.lexique = lexique;
+        this.folds = folds;
+        this.lexicon = lexicon;
     }
 
     /**
@@ -94,29 +94,29 @@ public final class FoldedRowSource implements RowSource {
     }
 
     @Override
-    public RowLayout layoutOf(RowKey cle) {
-        RowLayout base = deleguee.layoutOf(cle);
-        int ligne = base.line();
-        int fin = plis.finDe(ligne);
-        if (fin <= ligne || base.start() != 0) {
+    public RowLayout layoutOf(RowKey key) {
+        RowLayout base = deleguee.layoutOf(key);
+        int line = base.line();
+        int end = folds.finDe(line);
+        if (end <= line || base.start() != 0) {
             return base;
         }
-        PieceDePli piece = pieceDe(document, lexique, plis, ligne, fin);
+        PieceDePli piece = pieceDe(document, lexicon, folds, line, end);
         if (piece == null) {
             return base;
         }
-        return composer(base, piece, fin);
+        return composer(base, piece, end);
     }
 
     /**
      * La pièce du pli composé de la ligne d'en-tête donnée — la géométrie
      * de la source courante, null sans pli sur cette ligne.
      *
-     * @param ligne la ligne d'en-tête interrogée
+     * @param line la ligne d'en-tête interrogée
      * @return sa pièce, null sans pli
      */
-    public PieceDePli piece(int ligne) {
-        return pieceDe(document, lexique, plis, ligne, plis.finDe(ligne));
+    public PieceDePli piece(int line) {
+        return pieceDe(document, lexicon, folds, line, folds.finDe(line));
     }
 
     /**
@@ -129,12 +129,12 @@ public final class FoldedRowSource implements RowSource {
      * @return la mise en page à jour — la même si rien n'a changé
      */
     public RowLayout respan(RowLayout base) {
-        int ligne = base.line();
-        int fin = plis.finDe(ligne);
-        if (fin > ligne && base.start() == 0) {
-            PieceDePli piece = pieceDe(document, lexique, plis, ligne, fin);
+        int line = base.line();
+        int end = folds.finDe(line);
+        if (end > line && base.start() == 0) {
+            PieceDePli piece = pieceDe(document, lexicon, folds, line, end);
             if (piece != null) {
-                return composer(base, piece, fin);
+                return composer(base, piece, end);
             }
         }
         if (deleguee instanceof SyntaxRowSource coloree) {
@@ -158,22 +158,22 @@ public final class FoldedRowSource implements RowSource {
      * points.</p>
      *
      * @param document l'instantané affiché
-     * @param lexique  le document lexicographié à jour
-     * @param plis     le modèle de plis, lu en direct
-     * @param ligne    la ligne d'en-tête du pli
-     * @param fin      la dernière ligne cachée du pli
+     * @param lexicon  le document lexicographié à jour
+     * @param folds     le modèle de plis, lu en direct
+     * @param line    la ligne d'en-tête du pli
+     * @param end      la dernière ligne cachée du pli
      * @return la pièce du placeholder, null sans géométrie
      */
     public static @Nullable PieceDePli pieceDe(Document document,
-            LexDocument lexique, FoldModel plis, int ligne, int fin) {
-        if (!plis.isFolded(ligne) || fin <= ligne) {
+            LexDocument lexicon, FoldModel folds, int line, int end) {
+        if (!folds.isFolded(line) || end <= line) {
             return null;
         }
-        PieceDePli commentaire = pieceCommentaire(document, lexique, ligne, fin);
+        PieceDePli commentaire = pieceCommentaire(document, lexicon, line, end);
         if (commentaire != null) {
             return commentaire;
         }
-        return pieceCrochets(document, lexique, ligne, fin);
+        return pieceCrochets(document, lexicon, line, end);
     }
 
     /**
@@ -188,17 +188,17 @@ public final class FoldedRowSource implements RowSource {
      * points, à la fin du dernier jeton.
      */
     private static @Nullable PieceDePli pieceCommentaire(Document document,
-            LexDocument lexique, int ligne, int fin) {
-        String texteEntete = document.lineText(ligne);
-        Token premier = premierJeton(lexique, ligne);
+            LexDocument lexicon, int line, int end) {
+        String texteEntete = document.lineText(line);
+        Token premier = premierJeton(lexicon, line);
         if (premier == null || !estCommentaire(premier)) {
             return null;
         }
-        int colonne = colonneDuGlyphe(texteEntete, premier);
-        String texteFin = document.lineText(fin);
-        int colonneFin = colonneFinDe(lexique, fin, texteFin);
-        boolean bloc = texteEntete.startsWith("/*", colonne);
-        return new PieceDePli(colonne, colonneFin,
+        int column = colonneDuGlyphe(texteEntete, premier);
+        String texteFin = document.lineText(end);
+        int colonneFin = colonneFinDe(lexicon, end, texteFin);
+        boolean bloc = texteEntete.startsWith("/*", column);
+        return new PieceDePli(column, colonneFin,
                 bloc ? COMMENTAIRE : POINTS);
     }
 
@@ -208,17 +208,17 @@ public final class FoldedRowSource implements RowSource {
      * région fusionnée (la déclaration documentée ferme à sa
      * fermante), la fin de la ligne en dernier recours.
      */
-    private static int colonneFinDe(LexDocument lexique, int fin,
+    private static int colonneFinDe(LexDocument lexicon, int end,
             String texteFin) {
-        Token dernier = dernierJetonCommentaire(lexique, fin);
+        Token dernier = dernierJetonCommentaire(lexicon, end);
         if (dernier != null) {
             return Math.min(dernier.end(), texteFin.length());
         }
-        for (Token jeton : lexique.line(fin).tokens()) {
-            if (jeton.kind() == TokenKind.CLOSE_BRACKET) {
-                int colonne = colonneDuGlyphe(texteFin, jeton);
-                if (colonne < texteFin.length()) {
-                    return colonne + 1;
+        for (Token token : lexicon.line(end).tokens()) {
+            if (token.kind() == TokenKind.CLOSE_BRACKET) {
+                int column = colonneDuGlyphe(texteFin, token);
+                if (column < texteFin.length()) {
+                    return column + 1;
                 }
             }
         }
@@ -232,32 +232,32 @@ public final class FoldedRowSource implements RowSource {
      * entrent pas (le lexeur ne leur donne pas de jeton de crochet).
      */
     private static @Nullable PieceDePli pieceCrochets(Document document,
-            LexDocument lexique, int ligne, int fin) {
+            LexDocument lexicon, int line, int end) {
         List<int[]> pile = new ArrayList<>();
         int colonneOuvrante = -1;
         char ouvrante = 0;
         int colonneFermante = -1;
-        for (int l = ligne; l <= fin; l++) {
-            String texte = document.lineText(l);
-            for (Token jeton : lexique.line(l).tokens()) {
-                if (jeton.kind() == TokenKind.OPEN_BRACKET) {
-                    int colonne = colonneDuGlyphe(texte, jeton);
-                    if (colonne < texte.length()) {
-                        pile.add(new int[] {l, colonne,
-                                texte.charAt(colonne)});
+        for (int l = line; l <= end; l++) {
+            String text = document.lineText(l);
+            for (Token token : lexicon.line(l).tokens()) {
+                if (token.kind() == TokenKind.OPEN_BRACKET) {
+                    int column = colonneDuGlyphe(text, token);
+                    if (column < text.length()) {
+                        pile.add(new int[] {l, column,
+                                text.charAt(column)});
                     }
-                } else if (jeton.kind() == TokenKind.CLOSE_BRACKET) {
-                    int colonne = colonneDuGlyphe(texte, jeton);
-                    if (colonne >= texte.length() || pile.isEmpty()) {
+                } else if (token.kind() == TokenKind.CLOSE_BRACKET) {
+                    int column = colonneDuGlyphe(text, token);
+                    if (column >= text.length() || pile.isEmpty()) {
                         continue;
                     }
                     int[] sommet = pile.remove(pile.size() - 1);
-                    if (sommet[0] == ligne && l == fin
+                    if (sommet[0] == line && l == end
                             && (colonneOuvrante < 0
                                     || sommet[1] < colonneOuvrante)) {
                         colonneOuvrante = sommet[1];
                         ouvrante = (char) sommet[2];
-                        colonneFermante = colonne + 1;
+                        colonneFermante = column + 1;
                     }
                 }
             }
@@ -266,7 +266,7 @@ public final class FoldedRowSource implements RowSource {
             return null;
         }
         return new PieceDePli(colonneOuvrante, colonneFermante,
-                ouvrante == '{' ? ACCOLADES : CROCHETS);
+                ouvrante == '{' ? BRACES : CROCHETS);
     }
 
     /**
@@ -274,25 +274,25 @@ public final class FoldedRowSource implements RowSource {
      * placeholder à l'encre de documentation, suffixe coloré de la
      * fermante — aucune trouée, la couverture reste sans interstice.
      */
-    private RowLayout composer(RowLayout base, PieceDePli piece, int fin) {
+    private RowLayout composer(RowLayout base, PieceDePli piece, int end) {
         String texteEntete = document.lineText(base.line());
-        String texteFin = document.lineText(fin);
-        int ouvrante = Math.min(piece.colonne(), texteEntete.length());
+        String texteFin = document.lineText(end);
+        int ouvrante = Math.min(piece.column(), texteEntete.length());
         int fermante = Math.min(piece.colonneFin(), texteFin.length());
         String prefixe = texteEntete.substring(0, ouvrante);
         String suffixe = fermante < texteFin.length()
                 ? texteFin.substring(fermante) : "";
-        String texte = prefixe + piece.texte() + suffixe;
-        float largeurCar = largeurCarDe(base);
-        List<ColoredSpan> plages = new ArrayList<>();
-        plages.addAll(fragmente(lexique.line(base.line()), 0, ouvrante, 0));
-        plages.add(new ColoredSpan(TokenKind.DOC, prefixe.length(),
-                prefixe.length() + piece.texte().length()));
-        plages.addAll(fragmente(lexique.line(fin), fermante,
-                texteFin.length(), prefixe.length() + piece.texte().length()
+        String text = prefixe + piece.text() + suffixe;
+        float largeurCar = charWidthOf(base);
+        List<ColoredSpan> ranges = new ArrayList<>();
+        ranges.addAll(fragmente(lexicon.line(base.line()), 0, ouvrante, 0));
+        ranges.add(new ColoredSpan(TokenKind.DOC, prefixe.length(),
+                prefixe.length() + piece.text().length()));
+        ranges.addAll(fragmente(lexicon.line(end), fermante,
+                texteFin.length(), prefixe.length() + piece.text().length()
                         - fermante));
-        return new RowLayout(base.line(), 0, texte.length(), texte,
-                texte.length() * largeurCar, List.of(), plages);
+        return new RowLayout(base.line(), 0, text.length(), text,
+                text.length() * largeurCar, List.of(), ranges);
     }
 
     /**
@@ -303,43 +303,43 @@ public final class FoldedRowSource implements RowSource {
      */
     private static List<ColoredSpan> fragmente(LexedLine panier,
             int debutFragment, int finFragment, int decalage) {
-        List<ColoredSpan> plages = new ArrayList<>();
+        List<ColoredSpan> ranges = new ArrayList<>();
         if (finFragment <= debutFragment) {
-            return plages;
+            return ranges;
         }
-        int curseur = debutFragment;
-        for (Token jeton : panier.tokens()) {
-            if (jeton.end() <= curseur) {
+        int cursor = debutFragment;
+        for (Token token : panier.tokens()) {
+            if (token.end() <= cursor) {
                 continue;
             }
-            if (jeton.start() >= finFragment) {
+            if (token.start() >= finFragment) {
                 break;
             }
-            if (jeton.start() > curseur) {
-                plages.add(new ColoredSpan(TokenKind.IDENTIFIER,
-                        curseur + decalage, jeton.start() + decalage));
+            if (token.start() > cursor) {
+                ranges.add(new ColoredSpan(TokenKind.IDENTIFIER,
+                        cursor + decalage, token.start() + decalage));
             }
-            int debutRogne = Math.max(jeton.start(), curseur);
-            int finRogne = Math.min(jeton.end(), finFragment);
+            int debutRogne = Math.max(token.start(), cursor);
+            int finRogne = Math.min(token.end(), finFragment);
             if (finRogne > debutRogne) {
-                plages.add(new ColoredSpan(jeton.kind(),
+                ranges.add(new ColoredSpan(token.kind(),
                         debutRogne + decalage, finRogne + decalage,
-                        jeton.scope()));
+                        token.scope()));
             }
-            curseur = Math.max(curseur, jeton.end());
-            if (curseur >= finFragment) {
+            cursor = Math.max(cursor, token.end());
+            if (cursor >= finFragment) {
                 break;
             }
         }
-        if (curseur < finFragment) {
-            plages.add(new ColoredSpan(TokenKind.IDENTIFIER,
-                    curseur + decalage, finFragment + decalage));
+        if (cursor < finFragment) {
+            ranges.add(new ColoredSpan(TokenKind.IDENTIFIER,
+                    cursor + decalage, finFragment + decalage));
         }
-        return plages;
+        return ranges;
     }
 
     /** La largeur d'un caractère de la rangée de base, en pixels. */
-    private static float largeurCarDe(RowLayout base) {
+    private static float charWidthOf(RowLayout base) {
         if (base.text().isEmpty()) {
             return 0f;
         }
@@ -347,40 +347,40 @@ public final class FoldedRowSource implements RowSource {
     }
 
     /** Le premier jeton d'une ligne, null si sa corbeille est vide. */
-    private static @Nullable Token premierJeton(LexDocument lexique, int ligne) {
-        Token[] jetons = lexique.line(ligne).tokens();
-        return jetons.length == 0 ? null : jetons[0];
+    private static @Nullable Token premierJeton(LexDocument lexicon, int line) {
+        Token[] tokens = lexicon.line(line).tokens();
+        return tokens.length == 0 ? null : tokens[0];
     }
 
     /** Le dernier jeton de commentaire de la ligne donnée, null sans. */
-    private static @Nullable Token dernierJetonCommentaire(LexDocument lexique,
-            int ligne) {
+    private static @Nullable Token dernierJetonCommentaire(LexDocument lexicon,
+            int line) {
         Token dernier = null;
-        for (Token jeton : lexique.line(ligne).tokens()) {
-            if (estCommentaire(jeton)) {
-                dernier = jeton;
+        for (Token token : lexicon.line(line).tokens()) {
+            if (estCommentaire(token)) {
+                dernier = token;
             }
         }
         return dernier;
     }
 
     /** Vrai quand le jeton parle en commentaire ou documentation. */
-    private static boolean estCommentaire(Token jeton) {
-        return jeton.kind() == TokenKind.COMMENT
-                || jeton.kind() == TokenKind.DOC;
+    private static boolean estCommentaire(Token token) {
+        return token.kind() == TokenKind.COMMENT
+                || token.kind() == TokenKind.DOC;
     }
 
     /**
      * La colonne du glyphe d'un jeton : son premier caractère non blanc
      * dans SA portée (les blancs soudés ne sont pas le glyphe).
      */
-    private static int colonneDuGlyphe(String texte, Token jeton) {
-        int colonne = jeton.start();
-        int fin = Math.min(jeton.end(), texte.length());
-        while (colonne < fin
-                && (texte.charAt(colonne) == ' ' || texte.charAt(colonne) == '\t')) {
-            colonne++;
+    private static int colonneDuGlyphe(String text, Token token) {
+        int column = token.start();
+        int end = Math.min(token.end(), text.length());
+        while (column < end
+                && (text.charAt(column) == ' ' || text.charAt(column) == '\t')) {
+            column++;
         }
-        return colonne;
+        return column;
     }
 }

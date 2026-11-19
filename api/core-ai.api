@@ -3,12 +3,12 @@ Compiled from "AgentInstructions.java"
 public final class jo.celeris.core.ai.AgentInstructions extends java.lang.Record {
   public static final jo.celeris.core.ai.AgentInstructions AUCUNE;
   public jo.celeris.core.ai.AgentInstructions(java.lang.String);
-  public static jo.celeris.core.ai.AgentInstructions de(java.lang.String);
-  public boolean estAbsente();
+  public static jo.celeris.core.ai.AgentInstructions of(java.lang.String);
+  public boolean isAbsent();
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public java.lang.String texte();
+  public java.lang.String text();
 }
 
 ### jo.celeris.core.ai.AgentLabel
@@ -26,7 +26,7 @@ public final class jo.celeris.core.ai.AgentLabel extends java.lang.Record {
 Compiled from "AgentProposal.java"
 public final class jo.celeris.core.ai.AgentProposal extends java.lang.Record {
   public jo.celeris.core.ai.AgentProposal(jo.celeris.core.ai.AgentLabel, int, java.util.List<jo.celeris.core.text.TextEdit>);
-  public static jo.celeris.core.ai.AgentProposal de(jo.celeris.core.text.Document, jo.celeris.core.ai.AgentLabel, java.util.List<jo.celeris.core.text.TextEdit>);
+  public static jo.celeris.core.ai.AgentProposal of(jo.celeris.core.text.Document, jo.celeris.core.ai.AgentLabel, java.util.List<jo.celeris.core.text.TextEdit>);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -51,7 +51,7 @@ public final class jo.celeris.core.ai.AgentReview$Sortie extends java.lang.Enum<
   public static final jo.celeris.core.ai.AgentReview$Sortie APPLIQUEE;
   public static final jo.celeris.core.ai.AgentReview$Sortie REFUSEE_REVISION;
   public static final jo.celeris.core.ai.AgentReview$Sortie REFUSEE_PROTECTION;
-  public static final jo.celeris.core.ai.AgentReview$Sortie VIDE;
+  public static final jo.celeris.core.ai.AgentReview$Sortie EMPTY;
   public static jo.celeris.core.ai.AgentReview$Sortie[] values();
   public static jo.celeris.core.ai.AgentReview$Sortie valueOf(java.lang.String);
 }
@@ -59,14 +59,14 @@ public final class jo.celeris.core.ai.AgentReview$Sortie extends java.lang.Enum<
 ### jo.celeris.core.ai.AgentReview
 Compiled from "AgentReview.java"
 public final class jo.celeris.core.ai.AgentReview {
-  public static jo.celeris.core.ai.AgentReview de(jo.celeris.core.text.Document, jo.celeris.core.ai.AgentProposal);
+  public static jo.celeris.core.ai.AgentReview of(jo.celeris.core.text.Document, jo.celeris.core.ai.AgentProposal);
   public int nombreDeBlocs();
   public jo.celeris.core.ai.AgentReview$Decision decision(int);
   public jo.celeris.core.ai.AgentLabel etiquette();
   public jo.celeris.core.ai.AgentReview decider(int, jo.celeris.core.ai.AgentReview$Decision);
   public java.util.List<jo.celeris.core.text.TextEdit> editionsDuBloc(int);
   public java.util.List<java.lang.String> lignesDuBloc(int);
-  public java.lang.String texte();
+  public java.lang.String text();
   public jo.celeris.core.ai.AgentReview pointDeControle();
   public jo.celeris.core.ai.AgentReview retourAuPointDeControle(jo.celeris.core.ai.AgentReview);
   public jo.celeris.core.ai.AgentReview$Sortie appliquer(jo.celeris.core.text.TextSession);
@@ -92,9 +92,9 @@ public final class jo.celeris.core.ai.ApplyPrediction {
 ### jo.celeris.core.ai.ContextExclusions
 Compiled from "ContextExclusions.java"
 public final class jo.celeris.core.ai.ContextExclusions {
-  public static jo.celeris.core.ai.ContextExclusions de(java.lang.String);
+  public static jo.celeris.core.ai.ContextExclusions of(java.lang.String);
   public static jo.celeris.core.ai.ContextExclusions aucune();
-  public boolean estExclu(java.lang.String);
+  public boolean isExcluded(java.lang.String);
 }
 
 ### jo.celeris.core.ai.ContextGuard
@@ -109,9 +109,9 @@ public final class jo.celeris.core.ai.ContextGuard implements jo.celeris.core.ai
 ### jo.celeris.core.ai.EditorTools
 Compiled from "EditorTools.java"
 public interface jo.celeris.core.ai.EditorTools {
-  public abstract jo.celeris.core.ai.ReadRange lire(int, int);
+  public abstract jo.celeris.core.ai.ReadRange read(int, int);
   public abstract jo.celeris.core.ai.ReadRange instantane();
-  public abstract java.util.List<jo.celeris.core.syntax.structure.OutlineEntry> symboles();
+  public abstract java.util.List<jo.celeris.core.syntax.structure.OutlineEntry> symbols();
   public abstract java.util.List<jo.celeris.core.syntax.SyntaxIssue> diagnostics();
   public abstract jo.celeris.core.ai.AgentInstructions instructions();
   public abstract jo.celeris.core.ai.ToolTransactionReply appliquer(jo.celeris.core.ai.ToolTransaction);
@@ -146,7 +146,7 @@ public final class jo.celeris.core.ai.GhostSuggestion extends java.lang.Record {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public java.lang.String texte();
+  public java.lang.String text();
   public int offset();
   public int revision();
 }
@@ -215,9 +215,9 @@ public final class jo.celeris.core.ai.McpConnector$Outil extends java.lang.Enum<
 Compiled from "McpConnector.java"
 public final class jo.celeris.core.ai.McpConnector {
   public static java.util.List<jo.celeris.core.ai.McpConnector$DescriptionOutil> catalogue();
-  public static java.lang.String lire(jo.celeris.core.ai.EditorTools, int, int);
+  public static java.lang.String read(jo.celeris.core.ai.EditorTools, int, int);
   public static java.lang.String instantane(jo.celeris.core.ai.EditorTools);
-  public static java.lang.String symboles(jo.celeris.core.ai.EditorTools);
+  public static java.lang.String symbols(jo.celeris.core.ai.EditorTools);
   public static java.lang.String diagnostics(jo.celeris.core.ai.EditorTools);
   public static java.lang.String instructions(jo.celeris.core.ai.EditorTools);
   public static java.lang.String appliquer(jo.celeris.core.ai.EditorTools, jo.celeris.core.ai.ToolTransaction);
@@ -232,7 +232,7 @@ public final class jo.celeris.core.ai.ModelRequest extends java.lang.Record {
   public final boolean equals(java.lang.Object);
   public jo.celeris.core.text.Document document();
   public int offset();
-  public jo.celeris.core.syntax.TokenCancellation jeton();
+  public jo.celeris.core.syntax.TokenCancellation token();
 }
 
 ### jo.celeris.core.ai.PerSessionTools
@@ -240,9 +240,9 @@ Compiled from "PerSessionTools.java"
 public final class jo.celeris.core.ai.PerSessionTools implements jo.celeris.core.ai.EditorTools {
   public jo.celeris.core.ai.PerSessionTools(jo.celeris.core.text.TextSession, java.util.function.Function<jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.structure.OutlineEntry>>, java.util.function.Supplier<java.util.List<jo.celeris.core.syntax.SyntaxIssue>>);
   public jo.celeris.core.ai.PerSessionTools(jo.celeris.core.text.TextSession, java.util.function.Function<jo.celeris.core.text.Document, java.util.List<jo.celeris.core.syntax.structure.OutlineEntry>>, java.util.function.Supplier<java.util.List<jo.celeris.core.syntax.SyntaxIssue>>, jo.celeris.core.ai.AgentInstructions);
-  public jo.celeris.core.ai.ReadRange lire(int, int);
+  public jo.celeris.core.ai.ReadRange read(int, int);
   public jo.celeris.core.ai.ReadRange instantane();
-  public java.util.List<jo.celeris.core.syntax.structure.OutlineEntry> symboles();
+  public java.util.List<jo.celeris.core.syntax.structure.OutlineEntry> symbols();
   public java.util.List<jo.celeris.core.syntax.SyntaxIssue> diagnostics();
   public jo.celeris.core.ai.AgentInstructions instructions();
   public jo.celeris.core.ai.ToolTransactionReply appliquer(jo.celeris.core.ai.ToolTransaction);
@@ -281,7 +281,7 @@ public final class jo.celeris.core.ai.ReadRange extends java.lang.Record {
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public int revision();
-  public java.lang.String texte();
+  public java.lang.String text();
 }
 
 ### jo.celeris.core.ai.ToolTransaction
@@ -314,7 +314,7 @@ public final class jo.celeris.core.ai.ToolTransactionReply extends java.lang.Rec
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public jo.celeris.core.ai.ToolTransactionReply$Sortie sortie();
+  public jo.celeris.core.ai.ToolTransactionReply$Sortie output();
   public java.lang.String message();
   public int revision();
 }

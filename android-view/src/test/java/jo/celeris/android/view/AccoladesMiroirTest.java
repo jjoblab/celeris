@@ -38,12 +38,12 @@ public class AccoladesMiroirTest {
         TextSession session = TextSession.of(CLASSE, System::nanoTime);
         int ouvrante = CLASSE.indexOf('{');
         int fermante = CLASSE.indexOf('}');
-        int[] paire = new int[2];
+        int[] pair = new int[2];
         assertTrue("la paire se trouve après la fermante",
-                PaireAccolades.appariee(session.document(), fermante + 1,
-                        paire));
-        assertEquals("l'ouvrante d'abord", ouvrante, paire[0]);
-        assertEquals("la fermante ensuite", fermante, paire[1]);
+                BracePair.appariee(session.document(), fermante + 1,
+                        pair));
+        assertEquals("l'ouvrante d'abord", ouvrante, pair[0]);
+        assertEquals("la fermante ensuite", fermante, pair[1]);
     }
 
     /** Le curseur posé SUR l'ouvrante voit sa fermante. */
@@ -51,60 +51,60 @@ public class AccoladesMiroirTest {
     public void laPaireSurLouvranteSeTrouve() {
         TextSession session = TextSession.of(CLASSE, System::nanoTime);
         int ouvrante = CLASSE.indexOf('{');
-        int[] paire = new int[2];
+        int[] pair = new int[2];
         assertTrue("la paire se trouve sur l'ouvrante",
-                PaireAccolades.appariee(session.document(), ouvrante, paire));
-        assertEquals("l'ouvrante d'abord", ouvrante, paire[0]);
-        assertEquals("la fermante ensuite", CLASSE.indexOf('}'), paire[1]);
+                BracePair.appariee(session.document(), ouvrante, pair));
+        assertEquals("l'ouvrante d'abord", ouvrante, pair[0]);
+        assertEquals("la fermante ensuite", CLASSE.indexOf('}'), pair[1]);
     }
 
     /** L'imbrication se respecte : la fermante interne épouse son ouvrante. */
     @Test
     public void laPaireImbriqueeEpouseSaBorne() {
-        String texte = "if (a) { f( { } ); }";
-        TextSession session = TextSession.of(texte, System::nanoTime);
-        int interneOuvrante = texte.indexOf("{ }");
+        String text = "if (a) { f( { } ); }";
+        TextSession session = TextSession.of(text, System::nanoTime);
+        int interneOuvrante = text.indexOf("{ }");
         int interneFermante = interneOuvrante + 2;
-        int[] paire = new int[2];
-        assertTrue(PaireAccolades.appariee(session.document(),
-                interneFermante + 1, paire));
+        int[] pair = new int[2];
+        assertTrue(BracePair.appariee(session.document(),
+                interneFermante + 1, pair));
         assertEquals("la fermante interne épouse son ouvrante",
-                interneOuvrante, paire[0]);
-        assertEquals(interneFermante, paire[1]);
+                interneOuvrante, pair[0]);
+        assertEquals(interneFermante, pair[1]);
     }
 
     /** L'orpheline ne répond pas — ni les parenthèses, ni les crochets. */
     @Test
     public void lOrphelineNeRepondPas() {
         TextSession session = TextSession.of("foo (bar\n", System::nanoTime);
-        int[] paire = new int[2];
+        int[] pair = new int[2];
         assertFalse("une ouvrante orpheline ne se pare pas",
-                PaireAccolades.appariee(session.document(), 6, paire));
+                BracePair.appariee(session.document(), 6, pair));
         assertFalse("le blanc ne se pare pas",
-                PaireAccolades.appariee(session.document(), 2, paire));
+                BracePair.appariee(session.document(), 2, pair));
     }
 
     /** Le plafond tient : une paire au-delà de la borne ne se trouve pas. */
     @Test
     public void lePlafondDuBalayageTient() {
-        StringBuilder corps = new StringBuilder(PaireAccolades.PLAFOND + 16);
-        corps.append('{');
-        for (int i = 0; i < PaireAccolades.PLAFOND; i++) {
-            corps.append('x');
+        StringBuilder body = new StringBuilder(BracePair.CEILING + 16);
+        body.append('{');
+        for (int i = 0; i < BracePair.CEILING; i++) {
+            body.append('x');
         }
-        corps.append('}');
-        TextSession session = TextSession.of(corps.toString(), System::nanoTime);
-        int[] paire = new int[2];
+        body.append('}');
+        TextSession session = TextSession.of(body.toString(), System::nanoTime);
+        int[] pair = new int[2];
         assertFalse("une paire au-delà du plafond ne se trouve pas",
-                PaireAccolades.appariee(session.document(),
-                        corps.length(), paire));
+                BracePair.appariee(session.document(),
+                        body.length(), pair));
         // sous le plafond, la même paire se trouve
-        corps.setLength(PaireAccolades.PLAFOND / 2);
-        corps.append('}');
-        TextSession proche = TextSession.of(corps.toString(), System::nanoTime);
+        body.setLength(BracePair.CEILING / 2);
+        body.append('}');
+        TextSession proche = TextSession.of(body.toString(), System::nanoTime);
         assertTrue("sous le plafond, la paire se trouve",
-                PaireAccolades.appariee(proche.document(),
-                        corps.length(), paire));
+                BracePair.appariee(proche.document(),
+                        body.length(), pair));
     }
 
     /**
@@ -115,7 +115,7 @@ public class AccoladesMiroirTest {
      */
     @Test
     public void lImageTraceLesRectanglesEtLaJonction() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CLASSE);
         EditorView vue = banc.vue();
         int ouvrante = CLASSE.indexOf('{');
@@ -138,7 +138,7 @@ public class AccoladesMiroirTest {
     /** Une sélection non vide coupe le surlignage — le curseur seul le porte. */
     @Test
     public void laSelectionNonVideCoupeLeSurlignage() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CLASSE);
         EditorView vue = banc.vue();
         int ouvrante = CLASSE.indexOf('{');
@@ -157,7 +157,7 @@ public class AccoladesMiroirTest {
     /** Le nombre de traits de l'image à la couleur donnée. */
     private static int traitsA(EditorTestRig.RecordingCanvas image, int couleur) {
         int total = 0;
-        for (var trait : image.lignes()) {
+        for (var trait : image.lines()) {
             if (trait.color() == couleur) {
                 total++;
             }
@@ -168,7 +168,7 @@ public class AccoladesMiroirTest {
     /** Vrai quand une jambe verticale vit à l'abscisse donnée (±1 px). */
     private static boolean jambeVerticaleA(EditorTestRig.RecordingCanvas image,
             float x, int couleur) {
-        for (var trait : image.lignes()) {
+        for (var trait : image.lines()) {
             if (trait.color() == couleur
                     && Math.abs(trait.x1() - x) <= 1f
                     && Math.abs(trait.x2() - x) <= 1f) {

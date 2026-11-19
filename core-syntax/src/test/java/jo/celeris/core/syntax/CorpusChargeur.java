@@ -18,32 +18,32 @@ public final class CorpusChargeur {
 
     /** Le corpus Java d'exemple (constructions variées, contenu original). */
     public static String exempleJava() {
-        return lire("corpus/exemple.java");
+        return read("corpus/exemple.java");
     }
 
     /** Le corpus XML d'exemple. */
     public static String exempleXml() {
-        return lire("corpus/exemple.xml");
+        return read("corpus/exemple.xml");
     }
 
     /** Le corpus JSON d'exemple. */
     public static String exempleJson() {
-        return lire("corpus/exemple.json");
+        return read("corpus/exemple.json");
     }
 
     /** Le corpus Kotlin d'exemple. */
     public static String exempleKotlin() {
-        return lire("corpus/exemple.kt");
+        return read("corpus/exemple.kt");
     }
 
     /** Le corpus Gradle KTS d'exemple. */
     public static String exempleKts() {
-        return lire("corpus/exemple.gradle.kts");
+        return read("corpus/exemple.gradle.kts");
     }
 
     /** Le corpus Groovy d'exemple. */
     public static String exempleGroovy() {
-        return lire("corpus/exemple.groovy");
+        return read("corpus/exemple.groovy");
     }
 
     /**
@@ -72,17 +72,17 @@ public final class CorpusChargeur {
                 .replace("exemple", "exemple" + tour);
     }
 
-    private static int compterLignes(CharSequence texte) {
-        int lignes = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
-                lignes++;
+    private static int compterLignes(CharSequence text) {
+        int lines = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                lines++;
             }
         }
-        return lignes;
+        return lines;
     }
 
-    private static String lire(String chemin) {
+    private static String read(String chemin) {
         try (InputStream flux = CorpusChargeur.class.getClassLoader()
                 .getResourceAsStream(chemin)) {
             if (flux == null) {

@@ -34,7 +34,7 @@ public final class LineActions {
      * @return le plan du geste
      */
     public static EditPlan moveLines(Document doc, MultiSelection selection, int direction) {
-        List<TextEdit> editions = new ArrayList<>();
+        List<TextEdit> edits = new ArrayList<>();
         List<SelRange> apres = new ArrayList<>();
         int delta = 0;
         for (Bloc bloc : blocs(doc, selection)) {
@@ -43,26 +43,26 @@ public final class LineActions {
             boolean bloque = direction < 0 ? premiere == 0 : derniere == doc.lineCount() - 1;
             if (!bloque) {
                 String blocTexte = texteBloc(doc, premiere, derniere);
-                int debut = direction < 0 ? doc.lineStart(premiere - 1)
+                int start = direction < 0 ? doc.lineStart(premiere - 1)
                         : doc.lineStart(premiere);
-                int fin = direction < 0 ? doc.lineEnd(derniere)
+                int end = direction < 0 ? doc.lineEnd(derniere)
                         : doc.lineEnd(derniere + 1);
                 String voisin = direction < 0 ? doc.lineText(premiere - 1)
                         : doc.lineText(derniere + 1);
                 String insere = direction < 0 ? blocTexte + "\n" + voisin
                         : voisin + "\n" + blocTexte;
-                editions.add(new TextEdit(debut + delta,
-                        doc.subText(debut, fin), insere));
-                delta += insere.length() - (fin - debut);
+                edits.add(new TextEdit(start + delta,
+                        doc.subText(start, end), insere));
+                delta += insere.length() - (end - start);
             }
             for (int caret : bloc.carets) {
-                int ligne = doc.lineForOffset(caret);
-                int colonne = caret - doc.lineStart(ligne);
-                int nouvelleLigne = bloque ? ligne : ligne + direction;
-                apres.add(SelRange.caretAt(doc.lineStart(nouvelleLigne) + colonne + delta));
+                int line = doc.lineForOffset(caret);
+                int column = caret - doc.lineStart(line);
+                int nouvelleLigne = bloque ? line : line + direction;
+                apres.add(SelRange.caretAt(doc.lineStart(nouvelleLigne) + column + delta));
             }
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /**
@@ -74,7 +74,7 @@ public final class LineActions {
      * @return le plan du geste
      */
     public static EditPlan duplicateLines(Document doc, MultiSelection selection) {
-        List<TextEdit> editions = new ArrayList<>();
+        List<TextEdit> edits = new ArrayList<>();
         List<SelRange> apres = new ArrayList<>();
         int delta = 0;
         for (Bloc bloc : blocs(doc, selection)) {
@@ -82,13 +82,13 @@ public final class LineActions {
             boolean derniereLigne = bloc.derniere == doc.lineCount() - 1;
             int point = derniereLigne ? doc.length() : doc.lineEnd(bloc.derniere) + 1;
             String insere = derniereLigne ? "\n" + blocTexte : blocTexte + "\n";
-            editions.add(new TextEdit(point + delta, "", insere));
+            edits.add(new TextEdit(point + delta, "", insere));
             for (int caret : bloc.carets) {
                 apres.add(SelRange.caretAt(caret + delta + insere.length()));
             }
             delta += insere.length();
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /**
@@ -102,7 +102,7 @@ public final class LineActions {
      * @return le plan du geste
      */
     public static EditPlan joinLines(Document doc, MultiSelection selection) {
-        List<TextEdit> editions = new ArrayList<>();
+        List<TextEdit> edits = new ArrayList<>();
         List<SelRange> apres = new ArrayList<>();
         int delta = 0;
         for (Bloc bloc : blocs(doc, selection)) {
@@ -117,35 +117,35 @@ public final class LineActions {
                 int debutSuivant = doc.lineStart(bloc.premiere + 1);
                 String suivant = doc.lineText(bloc.premiere + 1);
                 int indent = IndentEngine.leadingWhitespace(suivant).length();
-                int fin = debutSuivant + indent;
-                editions.add(new TextEdit(jonction + delta,
-                        doc.subText(jonction, fin), ""));
+                int end = debutSuivant + indent;
+                edits.add(new TextEdit(jonction + delta,
+                        doc.subText(jonction, end), ""));
                 for (int k = 0; k < bloc.carets.size(); k++) {
                     apres.add(SelRange.caretAt(jonction + delta));
                 }
-                delta -= fin - jonction;
+                delta -= end - jonction;
                 continue;
             }
-            int debut = doc.lineStart(bloc.premiere);
-            int fin = doc.lineEnd(bloc.derniere);
+            int start = doc.lineStart(bloc.premiere);
+            int end = doc.lineEnd(bloc.derniere);
             StringBuilder joint = new StringBuilder();
             for (int l = bloc.premiere; l <= bloc.derniere; l++) {
-                String ligne = doc.lineText(l);
+                String line = doc.lineText(l);
                 if (l == bloc.premiere) {
-                    joint.append(ligne);
+                    joint.append(line);
                 } else {
-                    joint.append(ligne.substring(
-                            IndentEngine.leadingWhitespace(ligne).length()));
+                    joint.append(line.substring(
+                            IndentEngine.leadingWhitespace(line).length()));
                 }
             }
-            editions.add(new TextEdit(debut + delta, doc.subText(debut, fin),
+            edits.add(new TextEdit(start + delta, doc.subText(start, end),
                     joint.toString()));
             for (int k = 0; k < bloc.carets.size(); k++) {
                 apres.add(SelRange.caretAt(doc.lineEnd(bloc.premiere) + delta));
             }
-            delta += joint.length() - (fin - debut);
+            delta += joint.length() - (end - start);
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /**
@@ -157,29 +157,29 @@ public final class LineActions {
      * @return le plan du geste
      */
     public static EditPlan deleteLines(Document doc, MultiSelection selection) {
-        List<TextEdit> editions = new ArrayList<>();
+        List<TextEdit> edits = new ArrayList<>();
         List<SelRange> apres = new ArrayList<>();
         int delta = 0;
         for (Bloc bloc : blocs(doc, selection)) {
-            int debut = doc.lineStart(bloc.premiere);
+            int start = doc.lineStart(bloc.premiere);
             boolean avecSaut = doc.lineEnd(bloc.derniere) + 1 <= doc.length();
-            int fin;
+            int end;
             if (avecSaut) {
-                fin = doc.lineEnd(bloc.derniere) + 1;
-            } else if (debut > 0) {
+                end = doc.lineEnd(bloc.derniere) + 1;
+            } else if (start > 0) {
                 // dernier bloc sans saut final : le saut d'avant part avec
-                debut -= 1;
-                fin = doc.length();
+                start -= 1;
+                end = doc.length();
             } else {
-                fin = doc.length();
+                end = doc.length();
             }
-            editions.add(new TextEdit(debut + delta, doc.subText(debut, fin), ""));
+            edits.add(new TextEdit(start + delta, doc.subText(start, end), ""));
             for (int k = 0; k < bloc.carets.size(); k++) {
-                apres.add(SelRange.caretAt(debut + delta));
+                apres.add(SelRange.caretAt(start + delta));
             }
-            delta -= fin - debut;
+            delta -= end - start;
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /**
@@ -188,32 +188,32 @@ public final class LineActions {
      * en blocs.
      */
     static List<Bloc> blocs(Document doc, MultiSelection selection) {
-        List<Integer> lignes = new ArrayList<>();
-        for (SelRange plage : selection.ranges()) {
-            int premiere = doc.lineForOffset(plage.start());
-            int derniere = doc.lineForOffset(Math.max(plage.start(), plage.end() - 1));
+        List<Integer> lines = new ArrayList<>();
+        for (SelRange range : selection.ranges()) {
+            int premiere = doc.lineForOffset(range.start());
+            int derniere = doc.lineForOffset(Math.max(range.start(), range.end() - 1));
             for (int l = premiere; l <= derniere; l++) {
-                if (!lignes.contains(l)) {
-                    lignes.add(l);
+                if (!lines.contains(l)) {
+                    lines.add(l);
                 }
             }
         }
-        lignes.sort(null);
+        lines.sort(null);
         List<Bloc> blocs = new ArrayList<>();
-        for (int ligne : lignes) {
-            if (!blocs.isEmpty() && blocs.get(blocs.size() - 1).derniere == ligne - 1) {
+        for (int line : lines) {
+            if (!blocs.isEmpty() && blocs.get(blocs.size() - 1).derniere == line - 1) {
                 Bloc dernier = blocs.remove(blocs.size() - 1);
-                blocs.add(new Bloc(dernier.premiere, ligne, dernier.carets));
+                blocs.add(new Bloc(dernier.premiere, line, dernier.carets));
             } else {
-                blocs.add(new Bloc(ligne, ligne));
+                blocs.add(new Bloc(line, line));
             }
         }
         // les carets dans chaque bloc : les positions vides de la sélection
         List<Bloc> avecCarets = new ArrayList<>(blocs.size());
         for (Bloc bloc : blocs) {
             List<Integer> carets = new ArrayList<>();
-            for (SelRange plage : selection.ranges()) {
-                for (int p : new int[] {plage.caret(), plage.anchor()}) {
+            for (SelRange range : selection.ranges()) {
+                for (int p : new int[] {range.caret(), range.anchor()}) {
                     int l = doc.lineForOffset(p);
                     if (l >= bloc.premiere && l <= bloc.derniere && !carets.contains(p)) {
                         carets.add(p);
@@ -227,14 +227,14 @@ public final class LineActions {
     }
 
     private static String texteBloc(Document doc, int premiere, int derniere) {
-        StringBuilder texte = new StringBuilder();
+        StringBuilder text = new StringBuilder();
         for (int l = premiere; l <= derniere; l++) {
-            if (texte.length() > 0) {
-                texte.append('\n');
+            if (text.length() > 0) {
+                text.append('\n');
             }
-            texte.append(doc.lineText(l));
+            text.append(doc.lineText(l));
         }
-        return texte.toString();
+        return text.toString();
     }
 
     /** Un bloc contigu de lignes, avec les positions vides qui s'y trouvent. */
@@ -270,33 +270,33 @@ public final class LineActions {
      */
     public static EditPlan tab(Document doc, MultiSelection selection,
             IndentStyle style) {
-        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<TextEdit> edits = new ArrayList<>(selection.caretCount());
         List<SelRange> apres = new ArrayList<>(selection.caretCount());
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
+        for (SelRange range : selection.ranges()) {
             String cran = style.indent(1);
-            if (plage.isEmpty()) {
-                editions.add(new TextEdit(plage.caret() + delta, "", cran));
-                apres.add(SelRange.caretAt(plage.caret() + delta
+            if (range.isEmpty()) {
+                edits.add(new TextEdit(range.caret() + delta, "", cran));
+                apres.add(SelRange.caretAt(range.caret() + delta
                         + cran.length()));
                 delta += cran.length();
                 continue;
             }
-            int premiereLigne = doc.lineForOffset(plage.start());
+            int premiereLigne = doc.lineForOffset(range.start());
             int derniereLigne = doc.lineForOffset(
-                    plage.end() - (plage.end() > plage.start() ? 1 : 0));
-            for (int ligne = premiereLigne; ligne <= derniereLigne; ligne++) {
-                int debut = doc.lineStart(ligne);
-                if (debut >= doc.length()) {
+                    range.end() - (range.end() > range.start() ? 1 : 0));
+            for (int line = premiereLigne; line <= derniereLigne; line++) {
+                int start = doc.lineStart(line);
+                if (start >= doc.length()) {
                     continue;
                 }
-                editions.add(new TextEdit(debut + delta, "", cran));
+                edits.add(new TextEdit(start + delta, "", cran));
                 delta += cran.length();
             }
-            apres.add(new SelRange(plage.start() + cran.length(),
-                    plage.end() + delta));
+            apres.add(new SelRange(range.start() + cran.length(),
+                    range.end() + delta));
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /**
@@ -311,75 +311,75 @@ public final class LineActions {
      */
     public static EditPlan untab(Document doc, MultiSelection selection,
             IndentStyle style) {
-        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<TextEdit> edits = new ArrayList<>(selection.caretCount());
         List<SelRange> apres = new ArrayList<>(selection.caretCount());
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
-            if (plage.isEmpty()) {
-                int ligne = doc.lineForOffset(plage.caret());
+        for (SelRange range : selection.ranges()) {
+            if (range.isEmpty()) {
+                int line = doc.lineForOffset(range.caret());
                 String blancs = IndentEngine.leadingWhitespace(
-                        doc.lineText(ligne));
+                        doc.lineText(line));
                 int retire = Math.min(Math.max(1, style.width()),
                         Math.min(blancs.length(),
-                                plage.caret() - doc.lineStart(ligne)));
+                                range.caret() - doc.lineStart(line)));
                 if (retire <= 0) {
-                    apres.add(SelRange.caretAt(plage.caret() + delta));
+                    apres.add(SelRange.caretAt(range.caret() + delta));
                     continue;
                 }
-                editions.add(new TextEdit(plage.caret() - retire + delta,
-                        doc.subText(plage.caret() - retire, plage.caret()), ""));
-                apres.add(SelRange.caretAt(plage.caret() - retire + delta));
+                edits.add(new TextEdit(range.caret() - retire + delta,
+                        doc.subText(range.caret() - retire, range.caret()), ""));
+                apres.add(SelRange.caretAt(range.caret() - retire + delta));
                 delta -= retire;
                 continue;
             }
-            int premiereLigne = doc.lineForOffset(plage.start());
+            int premiereLigne = doc.lineForOffset(range.start());
             int derniereLigne = doc.lineForOffset(
-                    plage.end() - (plage.end() > plage.start() ? 1 : 0));
+                    range.end() - (range.end() > range.start() ? 1 : 0));
             int retraitTotal = 0;
             int retraitDebut = 0;
-            for (int ligne = premiereLigne; ligne <= derniereLigne; ligne++) {
-                String texte = doc.lineText(ligne);
-                String blancs = IndentEngine.leadingWhitespace(texte);
+            for (int line = premiereLigne; line <= derniereLigne; line++) {
+                String text = doc.lineText(line);
+                String blancs = IndentEngine.leadingWhitespace(text);
                 int retire = Math.min(style.width(), blancs.length());
                 if (retire <= 0) {
                     continue;
                 }
-                editions.add(new TextEdit(doc.lineStart(ligne) + delta,
-                        texte.substring(0, retire), ""));
+                edits.add(new TextEdit(doc.lineStart(line) + delta,
+                        text.substring(0, retire), ""));
                 delta -= retire;
                 retraitTotal += retire;
-                if (ligne == premiereLigne) {
+                if (line == premiereLigne) {
                     retraitDebut = Math.min(retire,
-                            plage.start() - doc.lineStart(ligne));
+                            range.start() - doc.lineStart(line));
                 }
             }
-            apres.add(new SelRange(plage.start() - retraitDebut,
-                    plage.end() - retraitTotal));
+            apres.add(new SelRange(range.start() - retraitDebut,
+                    range.end() - retraitTotal));
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /** Le collapse des lignes vides (C7) : le retour arrière sur un
      *  blanc (ou en tête de ligne) précédé d'un saut et suivi d'un
      *  autre saut retire le blanc ET le saut qui précède — « a\n\n\nb »
      *  devient « a\nb ». La ligne vide s'effondre d'un geste. */
-    static Optional<Geste> effondrerLigneVide(Document doc, int p,
+    static Optional<TypingGesture> collapseBlankLine(Document doc, int p,
             int delta) {
         if (p < 1 || p > doc.length()) {
             return Optional.empty();
         }
-        int ligne = doc.lineForOffset(p);
-        int debut = doc.lineStart(ligne);
+        int line = doc.lineForOffset(p);
+        int start = doc.lineStart(line);
         // le caret vit sur les blancs de tête (ou au début) d'une
         // ligne dont la précédente est vide
-        if (p > debut) {
+        if (p > start) {
             return Optional.empty();
         }
-        if (ligne < 1) {
+        if (line < 1) {
             return Optional.empty();
         }
-        int debutPrecedente = doc.lineStart(ligne - 1);
-        int finPrecedente = doc.lineEnd(ligne - 1);
+        int debutPrecedente = doc.lineStart(line - 1);
+        int finPrecedente = doc.lineEnd(line - 1);
         if (finPrecedente - debutPrecedente > 0) {
             // la précédente n'est pas vide : rien à effondrer
             return Optional.empty();
@@ -387,7 +387,7 @@ public final class LineActions {
         if (p >= doc.length() || doc.charAt(p) == '\n') {
             // la ligne courante est vide aussi : effondrer le saut de
             // la précédente
-            return Optional.of(new Geste(
+            return Optional.of(new TypingGesture(
                     new TextEdit(debutPrecedente + delta, "\n", ""),
                     SelRange.caretAt(debutPrecedente + delta), delta - 1));
         }
@@ -410,14 +410,14 @@ public final class LineActions {
         if (selection.isEmpty()) {
             return Optional.empty();
         }
-        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<TextEdit> edits = new ArrayList<>(selection.caretCount());
         List<SelRange> apres = new ArrayList<>(selection.caretCount());
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
-            if (!plage.isEmpty()) {
+        for (SelRange range : selection.ranges()) {
+            if (!range.isEmpty()) {
                 return Optional.empty();
             }
-            int p = plage.caret();
+            int p = range.caret();
             if (p + 1 >= doc.length()) {
                 return Optional.empty();
             }
@@ -429,12 +429,12 @@ public final class LineActions {
             if (!paireVide && !citationsVides) {
                 return Optional.empty();
             }
-            editions.add(new TextEdit(p + delta,
+            edits.add(new TextEdit(p + delta,
                     deuxCaracteres(devant, apresDeux), ""));
             apres.add(SelRange.caretAt(p + delta));
             delta -= 2;
         }
-        return Optional.of(new EditPlan(Transaction.of(editions),
+        return Optional.of(new EditPlan(Transaction.of(edits),
                 MultiSelection.of(apres)));
     }
 
@@ -443,6 +443,6 @@ public final class LineActions {
     }
 
     /** Le geste d'une plage : édition (nulle pour le saut), sélection d'après, delta cumulé. */
-    record Geste(@Nullable TextEdit edition, SelRange selection, int delta) {
+    record TypingGesture(@Nullable TextEdit edit, SelRange selection, int delta) {
     }
 }

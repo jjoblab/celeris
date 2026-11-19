@@ -44,13 +44,13 @@ public final class TreeDiagnostics {
      * @param analysis l'analyse courante
      * @return les lignes des plages en erreur
      */
-    public static int[] lignesEnErreur(Document doc, Analysis analysis) {
+    public static int[] linesInError(Document doc, Analysis analysis) {
         List<SyntaxIssue> problemes = issues(doc, analysis);
-        int[] lignes = new int[problemes.size()];
+        int[] lines = new int[problemes.size()];
         for (int i = 0; i < problemes.size(); i++) {
-            lignes[i] = doc.lineForOffset(problemes.get(i).startOffset());
+            lines[i] = doc.lineForOffset(problemes.get(i).startOffset());
         }
-        return lignes;
+        return lines;
     }
 
     private static void collecter(SynNode noeud, int base, List<SyntaxIssue> problemes) {

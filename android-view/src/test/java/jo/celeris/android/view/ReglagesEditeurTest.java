@@ -22,17 +22,17 @@ public class ReglagesEditeurTest {
      *  retour à la ligne attend son tour. */
     @Test
     public void lesPortesViventParDefaut() {
-        ReglagesEditeur reglages = new ReglagesEditeur();
+        EditorSettingsPanel settings = new EditorSettingsPanel();
         assertTrue("les indices en ligne vivent",
-                reglages.ouverte(ReglagesEditeur.Porte.INDICES_EN_LIGNE));
+                settings.ouverte(EditorSettingsPanel.Porte.INDICES_EN_LIGNE));
         assertTrue("la barre de sélection vit",
-                reglages.ouverte(ReglagesEditeur.Porte.BARRE_SELECTION));
+                settings.ouverte(EditorSettingsPanel.Porte.BARRE_SELECTION));
         assertTrue("l'ampoule vit",
-                reglages.ouverte(ReglagesEditeur.Porte.AMPOULE_INTENTIONS));
+                settings.ouverte(EditorSettingsPanel.Porte.AMPOULE_INTENTIONS));
         assertTrue("la complétion automatique vit",
-                reglages.ouverte(ReglagesEditeur.Porte.COMPLETION_AUTO));
+                settings.ouverte(EditorSettingsPanel.Porte.COMPLETION_AUTO));
         assertFalse("le retour à la ligne attend",
-                reglages.ouverte(ReglagesEditeur.Porte.RETOUR_LIGNE));
+                settings.ouverte(EditorSettingsPanel.Porte.RETOUR_LIGNE));
     }
 
     /** La bascule AVERTIT l'abonné de la source unique (2.0,
@@ -43,12 +43,12 @@ public class ReglagesEditeurTest {
         EditorSettings source = new EditorSettings();
         AtomicInteger bascules = new AtomicInteger();
         source.addListener(s -> bascules.incrementAndGet());
-        source.gates().poser(ReglagesEditeur.Porte.MINIMAP, false);
+        source.gates().place(EditorSettingsPanel.Porte.MINIMAP, false);
         assertEquals("la pose silencieuse n'égrène pas", 0, bascules.get());
         assertFalse("la porte fermée reste fermée",
-                source.gates().ouverte(ReglagesEditeur.Porte.MINIMAP));
+                source.gates().ouverte(EditorSettingsPanel.Porte.MINIMAP));
         assertTrue("la bascule referme et avertit", source.toggleGate(
-                ReglagesEditeur.Porte.INDICES_EN_LIGNE) == false);
+                EditorSettingsPanel.Porte.INDICES_EN_LIGNE) == false);
         assertEquals("l'abonné a vécu une fois", 1, bascules.get());
     }
 
@@ -56,15 +56,15 @@ public class ReglagesEditeurTest {
      *  de l'hôte s'y branchent sans renégocier le monde. */
     @Test
     public void lesClesRestentStables() {
-        assertEquals("editeur.inlays", ReglagesEditeur.Porte.INDICES_EN_LIGNE.cle());
-        assertEquals("editeur.barreSelection", ReglagesEditeur.Porte.BARRE_SELECTION.cle());
-        assertEquals("editeur.ampoule", ReglagesEditeur.Porte.AMPOULE_INTENTIONS.cle());
-        assertEquals("editeur.completionAuto", ReglagesEditeur.Porte.COMPLETION_AUTO.cle());
-        assertEquals("editeur.valeursPause", ReglagesEditeur.Porte.VALEURS_PAUSE.cle());
-        assertEquals("editeur.fantomeIa", ReglagesEditeur.Porte.FANTOME_IA.cle());
-        assertEquals("editeur.minimap", ReglagesEditeur.Porte.MINIMAP.cle());
-        assertEquals("editeur.defilementRapide", ReglagesEditeur.Porte.DEFILEMENT_RAPIDE.cle());
-        assertEquals("editeur.numeros", ReglagesEditeur.Porte.NUMEROS_LIGNES.cle());
-        assertEquals("editeur.retourLigne", ReglagesEditeur.Porte.RETOUR_LIGNE.cle());
+        assertEquals("editeur.inlays", EditorSettingsPanel.Porte.INDICES_EN_LIGNE.key());
+        assertEquals("editeur.barreSelection", EditorSettingsPanel.Porte.BARRE_SELECTION.key());
+        assertEquals("editeur.ampoule", EditorSettingsPanel.Porte.AMPOULE_INTENTIONS.key());
+        assertEquals("editeur.completionAuto", EditorSettingsPanel.Porte.COMPLETION_AUTO.key());
+        assertEquals("editeur.valeursPause", EditorSettingsPanel.Porte.VALEURS_PAUSE.key());
+        assertEquals("editeur.fantomeIa", EditorSettingsPanel.Porte.FANTOME_IA.key());
+        assertEquals("editeur.minimap", EditorSettingsPanel.Porte.MINIMAP.key());
+        assertEquals("editeur.defilementRapide", EditorSettingsPanel.Porte.DEFILEMENT_RAPIDE.key());
+        assertEquals("editeur.numeros", EditorSettingsPanel.Porte.NUMEROS_LIGNES.key());
+        assertEquals("editeur.retourLigne", EditorSettingsPanel.Porte.RETOUR_LIGNE.key());
     }
 }

@@ -44,7 +44,7 @@ public class LongPressSelectionViewTest {
      */
     @Test
     public void appuiLongSelectionneLeMotEtLeDragageEtend() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         float y = vue.metrics.lineHeight() / 2f;
@@ -53,25 +53,25 @@ public class LongPressSelectionViewTest {
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, xDe(banc, 2), y));
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(900));
-        SelRange plage = vue.session().selection().ranges().get(0);
+        SelRange range = vue.session().selection().ranges().get(0);
         assertEquals("le mot « alpha » commence à la sélection",
-                0, plage.start());
+                0, range.start());
         assertEquals("le mot « alpha » entier est sélectionné",
-                5, plage.end());
+                5, range.end());
         assertFalse("l'appui long retire le clavier",
-                vue.curseurClavier.clavierDemande());
+                vue.curseurClavier.keyboardRequested());
         // le dragage étend vers « beta » : le doigt glisse à droite
-        glisser(banc, t, xDe(banc, 2), y, xDe(banc, 8));
-        plage = vue.session().selection().ranges().get(0);
+        drag(banc, t, xDe(banc, 2), y, xDe(banc, 8));
+        range = vue.session().selection().ranges().get(0);
         assertEquals("l'ancre reste le début du mot (PIEGE-03)",
-                0, plage.start());
+                0, range.start());
         assertTrue("la sélection s'étend au-delà du mot",
-                plage.end() >= 8);
+                range.end() >= 8);
         // le retour dans le mot ne le ronge pas
-        glisser(banc, t, xDe(banc, 8), y, xDe(banc, 1));
-        plage = vue.session().selection().ranges().get(0);
-        assertEquals(0, plage.start());
-        assertEquals("le mot de départ reste englobé", 5, plage.end());
+        drag(banc, t, xDe(banc, 8), y, xDe(banc, 1));
+        range = vue.session().selection().ranges().get(0);
+        assertEquals(0, range.start());
+        assertEquals("le mot de départ reste englobé", 5, range.end());
         vue.onTouchEvent(EditorTestRig.obtenir(t, SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_UP, xDe(banc, 1), y));
     }
@@ -79,17 +79,17 @@ public class LongPressSelectionViewTest {
     /** Le simple appui pose le curseur ; le dragage qui suit ne sélectionne rien. */
     @Test
     public void simpleAppuiPuisDragageNeSelectionneRien() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         float y = vue.metrics.lineHeight() / 2f;
         long t = SystemClock.uptimeMillis();
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, xDe(banc, 2), y));
-        glisser(banc, t, xDe(banc, 2), y, xDe(banc, 8));
-        SelRange plage = vue.session().selection().ranges().get(0);
+        drag(banc, t, xDe(banc, 2), y, xDe(banc, 8));
+        SelRange range = vue.session().selection().ranges().get(0);
         assertTrue("le dragage d'un simple appui ne sélectionne pas",
-                plage.isEmpty());
+                range.isEmpty());
         vue.onTouchEvent(EditorTestRig.obtenir(t, SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_UP, xDe(banc, 8), y));
     }
@@ -102,7 +102,7 @@ public class LongPressSelectionViewTest {
      */
     @Test
     public void appuiLongNePeintAucunRectangleSurLeMot() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         float y = vue.metrics.lineHeight() / 2f;
@@ -110,9 +110,9 @@ public class LongPressSelectionViewTest {
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, xDe(banc, 2), y));
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(900));
-        SelRange plage = vue.session().selection().ranges().get(0);
+        SelRange range = vue.session().selection().ranges().get(0);
         assertEquals("le mot « alpha » entier est sélectionné",
-                5, plage.end());
+                5, range.end());
         // l'appui qui suit ailleurs pose le curseur à son point — la
         // cascade du tap vit comme avant, la pilule ne s'y interpose
         t = SystemClock.uptimeMillis();
@@ -129,7 +129,7 @@ public class LongPressSelectionViewTest {
     /** L'appui long sur le blanc entre deux mots ne sélectionne rien. */
     @Test
     public void appuiLongSurLeBlancNeSelectionneRien() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), CONTENU);
         EditorView vue = banc.vue();
         float y = vue.metrics.lineHeight() / 2f;
@@ -137,13 +137,13 @@ public class LongPressSelectionViewTest {
         vue.onTouchEvent(EditorTestRig.obtenir(t, t,
                 MotionEvent.ACTION_DOWN, xDe(banc, 5), y));
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(900));
-        SelRange plage = vue.session().selection().ranges().get(0);
+        SelRange range = vue.session().selection().ranges().get(0);
         assertTrue("le blanc entre deux mots ne se sélectionne pas",
-                plage.isEmpty());
+                range.isEmpty());
     }
 
     /** Glisse le doigt vers la cible, par pas de deux pixels, un MOVE par cran. */
-    private static void glisser(EditorTestRig banc, long t,
+    private static void drag(EditorTestRig banc, long t,
             float departX, float y, float cibleX) {
         EditorView vue = banc.vue();
         long maintenant = SystemClock.uptimeMillis();

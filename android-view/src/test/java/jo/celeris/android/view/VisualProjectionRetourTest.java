@@ -100,9 +100,9 @@ class VisualProjectionRetourTest {
         // Lignes de 6, 2 et 3 caractères ; budget 4 : la ligne 0 occupe
         // deux rangées.
         Document document = Document.of("aaaaaa\nbb\nccc");
-        FoldModel plis = new FoldModel();
-        plis.fold(0, 1); // l'en-tête 0 reste, la ligne 1 est cachée
-        VisualProjection projection = new VisualProjection(document, plis, 4);
+        FoldModel folds = new FoldModel();
+        folds.fold(0, 1); // l'en-tête 0 reste, la ligne 1 est cachée
+        VisualProjection projection = new VisualProjection(document, folds, 4);
 
         // Rangées visibles : 2 pour la ligne 0, 1 pour la ligne 2.
         assertEquals(3, projection.rowCount());
@@ -125,9 +125,9 @@ class VisualProjectionRetourTest {
     @Test
     void softWrap_foldAfterWrappedLines() {
         Document document = Document.of("aaaaaa\nbb\nccc\ndddd");
-        FoldModel plis = new FoldModel();
-        plis.fold(1, 2); // l'en-tête 1 reste, la ligne 2 est cachée
-        VisualProjection projection = new VisualProjection(document, plis, 4);
+        FoldModel folds = new FoldModel();
+        folds.fold(1, 2); // l'en-tête 1 reste, la ligne 2 est cachée
+        VisualProjection projection = new VisualProjection(document, folds, 4);
 
         // Ligne 0 : 2 rangées, ligne 1 : 1, ligne 2 cachée, ligne 3 : 1.
         assertEquals(4, projection.rowCount());

@@ -60,15 +60,15 @@ final class PopupAnchors {
     static Rect selectionRect(Document document, VisualProjection projection,
             EditorMetrics metrics, float gutter, float scrollX, float scrollY,
             List<SelRange> ranges) {
-        SelRange plage = ranges.isEmpty() ? SelRange.caretAt(0) : ranges.get(0);
+        SelRange range = ranges.isEmpty() ? SelRange.caretAt(0) : ranges.get(0);
         int debutX = Math.round(CaretGeometry.xOfOffset(document, projection,
-                metrics, gutter, scrollX, plage.start()));
+                metrics, gutter, scrollX, range.start()));
         int debutY = Math.round(CaretGeometry.yOfOffset(document, projection,
-                metrics, scrollY, plage.start()));
+                metrics, scrollY, range.start()));
         int finX = Math.round(CaretGeometry.xOfOffset(document, projection,
-                metrics, gutter, scrollX, plage.end()));
+                metrics, gutter, scrollX, range.end()));
         int finY = Math.round(CaretGeometry.yOfOffset(document, projection,
-                metrics, scrollY, plage.end()));
+                metrics, scrollY, range.end()));
         int gauche = Math.min(debutX, finX);
         int droite = Math.max(debutX, finX);
         int haut = Math.min(debutY, finY);

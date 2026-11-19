@@ -1,6 +1,6 @@
 package jo.celeris.android.view;
 
-import jo.celeris.android.view.internal.ParcRangees;
+import jo.celeris.android.view.internal.RowPark;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -25,7 +25,7 @@ import jo.celeris.core.text.TextSession;
  * retour d'onglet re-payait la mesure de chaque rangée visible,
  * l'image retarde d'autant — le retard ressenti.
  *
- * <p>Le modèle est le {@link ParcMoteurs} : la tokenisation
+ * <p>Le modèle est le {@link EnginePark} : la tokenisation
  * appartient au document depuis le retour terrain du 2026-11-19 ;
  * la mesure suit le même principe. La clé de cache
  * ({@link RowKey}) porte la révision du document mais pas la
@@ -41,34 +41,34 @@ public class CacheRangeesParSessionTest {
      *  des rangées se voie, chaque ligne distincte pour que la
      *  re-mesure se détecte. */
     private static final String TEXTE_A =
-            "public class OngletA {\n" + lignes(30) + "}\n";
+            "public class OngletA {\n" + lines(30) + "}\n";
 
     /** Le texte de l'onglet B : AUTANT de lignes — la collision des
      *  clés serait possible (révisions voisines, mêmes rangées) si
      *  le stockage ne basculait pas. */
     private static final String TEXTE_B =
-            "public class OngletB {\n" + lignes(30) + "}\n";
+            "public class OngletB {\n" + lines(30) + "}\n";
 
-    private static String lignes(int nombre) {
-        StringBuilder lignes = new StringBuilder();
+    private static String lines(int nombre) {
+        StringBuilder lines = new StringBuilder();
         for (int i = 0; i < nombre; i++) {
-            lignes.append("    int ligne").append(i).append(" = ")
+            lines.append("    int ligne").append(i).append(" = ")
                     .append(i).append(";\n");
         }
-        return lignes.toString();
+        return lines.toString();
     }
 
     /** Le montage du banc : une vue sur son harnais, la vue mesurée. */
-    private EditorTestRig banc(String texte) {
-        EditorTestRig rig = EditorTestRig.sur(
-                RuntimeEnvironment.getApplication(), texte);
+    private EditorTestRig banc(String text) {
+        EditorTestRig rig = EditorTestRig.on(
+                RuntimeEnvironment.getApplication(), text);
         rig.vue().layout(0, 0, 1080, 1920);
         return rig;
     }
 
     /** Dessine une image : les rangées visibles se mesurent et se
      *  déposent au cache. */
-    private void dessiner(EditorTestRig rig) {
+    private void draw(EditorTestRig rig) {
         rig.image();
     }
 
@@ -84,7 +84,7 @@ public class CacheRangeesParSessionTest {
         EditorTestRig rig = banc(TEXTE_A);
         EditorView vue = rig.vue();
         TextSession sessionA = vue.session();
-        dessiner(rig);
+        draw(rig);
         long revisionA = vue.session().document().revision();
         // Les rangées visibles de A sont au cache.
         RowLayout premiereDeA = vue.cache.find(revisionA, 0,
@@ -96,11 +96,11 @@ public class CacheRangeesParSessionTest {
         // L'excursus sur l'onglet B : la session B prend l'écran.
         TextSession sessionB = TextSession.of(TEXTE_B, System::nanoTime);
         vue.setSession(sessionB);
-        dessiner(rig);
+        draw(rig);
 
         // Le RETOUR sur A : la session A revient.
         vue.setSession(sessionA);
-        dessiner(rig);
+        draw(rig);
         RowLayout revenue = vue.cache.find(revisionA, 0,
                 vue.theme.id(), vue.metrics.font(),
                 vue.projection.columns());
@@ -120,7 +120,7 @@ public class CacheRangeesParSessionTest {
     public void lesSessionsNeSeMelentPasDansLeCache() {
         EditorTestRig rig = banc(TEXTE_A);
         EditorView vue = rig.vue();
-        dessiner(rig);
+        draw(rig);
         // A et B naissent du même nombre de lignes : leurs révisions
         // de départ sont voisines (zéro pour des sessions jamais
         // éditées), leurs rangées se numérotent pareil — l'ancien
@@ -128,7 +128,7 @@ public class CacheRangeesParSessionTest {
         // prudente d'alors.
         TextSession sessionB = TextSession.of(TEXTE_B, System::nanoTime);
         vue.setSession(sessionB);
-        dessiner(rig);
+        draw(rig);
         long revisionB = sessionB.document().revision();
         RowLayout rangeeDeB = vue.cache.find(revisionB, 0,
                 vue.theme.id(), vue.metrics.font(),
@@ -153,21 +153,21 @@ public class CacheRangeesParSessionTest {
         EditorTestRig rig = banc(TEXTE_A);
         EditorView vue = rig.vue();
         TextSession premiere = vue.session();
-        dessiner(rig);
+        draw(rig);
         // Le va-et-vient au-delà du plafond : neuf sessions
         // distinctes passent, le parc en garde au plus
         // PLAFOND_PARQUES.
-        for (int i = 0; i < ParcRangees.PLAFOND_PARQUES + 1; i++) {
+        for (int i = 0; i < RowPark.PARKED_LIMIT + 1; i++) {
             vue.setSession(TextSession.of(TEXTE_B + i, System::nanoTime));
         }
         assertTrue("le parc vit sous son plafond : "
-                        + vue.parcRangees.taille(),
-                vue.parcRangees.taille() <= ParcRangees.PLAFOND_PARQUES);
+                        + vue.parcRangees.size(),
+                vue.parcRangees.size() <= RowPark.PARKED_LIMIT);
         // La session d'origine revient : son stockage fut chassé du
         // parc (le plus ancien), elle repart d'un stockage NEUF —
         // la mesure se refait, correctement, sans erreur.
         vue.setSession(premiere);
-        dessiner(rig);
+        draw(rig);
         long revision = premiere.document().revision();
         assertNotNull("la session chassée se re-mesure proprement",
                 vue.cache.find(revision, 0, vue.theme.id(),
@@ -185,14 +185,14 @@ public class CacheRangeesParSessionTest {
         EditorTestRig rig = banc(TEXTE_A);
         EditorView vue = rig.vue();
         TextSession sessionA = vue.session();
-        dessiner(rig);
+        draw(rig);
 
         // B passe, puis REVIENT sur A — mais la langue de A a changé
         // pendant l'excursus (la pose différée du registre vivant).
         TextSession sessionB = TextSession.of(TEXTE_B, System::nanoTime);
         vue.setSession(sessionB);
         vue.setSession(sessionA);
-        dessiner(rig);
+        draw(rig);
         // La session A revenue mesure SANS erreur — le banc ne
         // vérifie pas la langue elle-même (le harnais n'en porte
         // pas), il vérifie que le chemin est COHERENT quand la

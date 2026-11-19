@@ -27,9 +27,9 @@ class SemanticTokensLspTest {
         // jeton 1 : ligne 2, colonne 4, 5 caractères, type 3, modificateur 1
         // jeton 2 : même ligne, colonne +3 (7), 2 caractères, type 0
         // jeton 3 : ligne +1 (3), colonne 0, 8 caractères, type 42
-        SemanticTokensLsp jetons = SemanticTokensLsp.de(null,
+        SemanticTokensLsp tokens = SemanticTokensLsp.of(null,
                 List.of(2, 4, 5, 3, 1, 0, 3, 2, 0, 0, 1, 0, 8, 42, 0));
-        List<SemanticTokenLsp> absolus = jetons.jetons();
+        List<SemanticTokenLsp> absolus = tokens.tokens();
         assertEquals(3, absolus.size());
         assertEquals(new SemanticTokenLsp(2, 4, 5, 3, 1), absolus.get(0));
         assertEquals(new SemanticTokenLsp(2, 7, 2, 0, 0), absolus.get(1));
@@ -39,32 +39,32 @@ class SemanticTokensLspTest {
     /** Le résultat porte son identifiant quand le serveur en donne un — nul sinon. */
     @Test
     void lidentifiantDeResultat() {
-        assertEquals("resultat-1", SemanticTokensLsp.de("resultat-1", List.of())
+        assertEquals("resultat-1", SemanticTokensLsp.of("resultat-1", List.of())
                 .identifiantResultat());
-        assertNull(SemanticTokensLsp.de(null, List.of()).identifiantResultat());
+        assertNull(SemanticTokensLsp.of(null, List.of()).identifiantResultat());
     }
 
     /** La charge vide : aucun jeton, jamais d'exception. */
     @Test
     void laChargeVide() {
-        assertTrue(SemanticTokensLsp.de(null, List.of()).jetons().isEmpty());
+        assertTrue(SemanticTokensLsp.of(null, List.of()).tokens().isEmpty());
     }
 
     /** Le rejet : un tableau de taille non multiple de cinq est une erreur de protocole. */
     @Test
     void leRejetDesTailles() {
         org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
-                () -> SemanticTokensLsp.de(null, List.of(1, 2, 3)));
+                () -> SemanticTokensLsp.of(null, List.of(1, 2, 3)));
     }
 
     /** Un delta de ligne non nul ramène la colonne au delta donné — pas à un cumul. */
     @Test
     void laColonneSeReinitialiseParLigne() {
-        SemanticTokensLsp jetons = SemanticTokensLsp.de(null,
+        SemanticTokensLsp tokens = SemanticTokensLsp.of(null,
                 List.of(0, 10, 2, 1, 0, 2, 5, 3, 2, 0));
-        assertEquals(0, jetons.jetons().get(0).ligne());
-        assertEquals(10, jetons.jetons().get(0).colonne());
-        assertEquals(2, jetons.jetons().get(1).ligne());
-        assertEquals(5, jetons.jetons().get(1).colonne());
+        assertEquals(0, tokens.tokens().get(0).line());
+        assertEquals(10, tokens.tokens().get(0).column());
+        assertEquals(2, tokens.tokens().get(1).line());
+        assertEquals(5, tokens.tokens().get(1).column());
     }
 }

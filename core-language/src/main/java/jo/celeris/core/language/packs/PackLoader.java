@@ -95,7 +95,7 @@ public final class PackLoader {
         byte[] serversBytes = files.has("servers.json")
                 ? read(files, "servers.json")
                 : null;
-        bornerLaTaille(files, manifestBytes, languageBytes, grammarBytes,
+        boundSize(files, manifestBytes, languageBytes, grammarBytes,
                 snippetsBytes, outlineBytes, serversBytes);
         String fingerprint = fingerprint(files.name(), manifestBytes,
                 languageBytes, grammarBytes, snippetsBytes, outlineBytes,
@@ -104,7 +104,7 @@ public final class PackLoader {
         if (enCache != null) {
             return enCache;
         }
-        LanguagePack charge = assembler(files, manifestBytes, languageBytes,
+        LanguagePack charge = assemble(files, manifestBytes, languageBytes,
                 grammarBytes, snippetsBytes, outlineBytes, serversBytes,
                 fingerprint);
         cache.put(fingerprint, charge);
@@ -117,13 +117,13 @@ public final class PackLoader {
     }
 
     /** Le paquet assemblé : analyse, cohérence, compilation. */
-    private LanguagePack assembler(PackSource.PackFiles files,
+    private LanguagePack assemble(PackSource.PackFiles files,
             byte[] manifestBytes, byte[] languageBytes,
             byte @Nullable [] grammarBytes, byte @Nullable [] snippetsBytes,
             byte @Nullable [] outlineBytes, byte @Nullable [] serversBytes,
             String fingerprint) {
-        PackManifest manifest = PackParser.manifest(texte(manifestBytes));
-        String languageJson = texte(languageBytes);
+        PackManifest manifest = PackParser.manifest(text(manifestBytes));
+        String languageJson = text(languageBytes);
         LanguageDescriptor descriptor = PackParser.descriptor(languageJson);
         if (!manifest.id().equals(descriptor.id())) {
             throw new IllegalArgumentException(files.name()
@@ -137,20 +137,20 @@ public final class PackLoader {
         List<LanguageInjection> injections = PackParser.injections(languageJson);
         List<PackSnippet> snippets = snippetsBytes == null
                 ? List.of()
-                : PackParser.snippets(texte(snippetsBytes));
+                : PackParser.snippets(text(snippetsBytes));
         List<OutlineRule> outlineRules = outlineBytes == null
                 ? List.of()
-                : PackParser.outline(texte(outlineBytes));
+                : PackParser.outline(text(outlineBytes));
         List<LanguageServerDeclaration> servers = serversBytes == null
                 ? List.of()
-                : serveursDuPaquet(files, manifest.id(),
-                        texte(serversBytes));
+                : serversOfPack(files, manifest.id(),
+                        text(serversBytes));
         LanguageSyntax grammar = null;
         if (grammarBytes != null) {
-            grammar = compiler(files, manifest.id(), texte(grammarBytes));
+            grammar = compiler(files, manifest.id(), text(grammarBytes));
         }
         return new LanguagePack(manifest, descriptor, configuration, grammar,
-                grammarBytes == null ? null : texte(grammarBytes), snippets,
+                grammarBytes == null ? null : text(grammarBytes), snippets,
                 injections, outlineRules, servers, preference, fingerprint);
     }
 
@@ -159,7 +159,7 @@ public final class PackLoader {
      * langage DU paquet — une entrée qui en sert un autre se refuse
      * avec les deux identifiants en cause.
      */
-    private static List<LanguageServerDeclaration> serveursDuPaquet(
+    private static List<LanguageServerDeclaration> serversOfPack(
             PackSource.PackFiles files, String id, String serversJson) {
         List<LanguageServerDeclaration> declarations =
                 LanguageServerDeclaration.parse(serversJson);
@@ -230,7 +230,7 @@ public final class PackLoader {
     }
 
     /** Le plafond du paquet tient : la somme des fichiers se borne. */
-    private static void bornerLaTaille(PackSource.PackFiles files,
+    private static void boundSize(PackSource.PackFiles files,
             byte[] manifest, byte[] language, byte @Nullable [] grammar,
             byte @Nullable [] snippets, byte @Nullable [] outline,
             byte @Nullable [] servers) {
@@ -255,7 +255,7 @@ public final class PackLoader {
     }
 
     /** Les octets en texte UTF-8. */
-    private static String texte(byte[] octets) {
+    private static String text(byte[] octets) {
         return new String(octets, StandardCharsets.UTF_8);
     }
 }

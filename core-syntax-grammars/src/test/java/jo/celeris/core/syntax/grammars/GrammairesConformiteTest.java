@@ -36,16 +36,16 @@ class GrammairesConformiteTest {
     /** Chaque grammaire livrée accepte la totalité de ses expressions. */
     @Test
     void acceptationCompleteParGrammaire() {
-        for (String[] entree : CATALOGUE) {
-            Grammaire grammaire = grammaireDePaquet(entree[0]);
-            assertEquals(1.0, grammaire.rapport().acceptation(),
-                    entree[0] + " : le taux d'acceptation est un seuil bloquant ("
-                            + grammaire.rapport().acceptes() + "/"
-                            + grammaire.rapport().motifs() + ")");
-            assertEquals(0, grammaire.rapport().refuses(),
-                    entree[0] + " : aucune règle écartée");
-            assertEquals(0, grammaire.rapport().inclusionsInternes(),
-                    entree[0] + " : aucune inclusion de référentiel inconnue"
+        for (String[] input : CATALOGUE) {
+            Grammar grammaire = grammaireDePaquet(input[0]);
+            assertEquals(1.0, grammaire.report().acceptation(),
+                    input[0] + " : le taux d'acceptation est un seuil bloquant ("
+                            + grammaire.report().acceptes() + "/"
+                            + grammaire.report().patterns() + ")");
+            assertEquals(0, grammaire.report().refuses(),
+                    input[0] + " : aucune règle écartée");
+            assertEquals(0, grammaire.report().inclusionsInternes(),
+                    input[0] + " : aucune inclusion de référentiel inconnue"
                             + " — les paquets écrits ici restent stricts");
         }
     }
@@ -53,23 +53,23 @@ class GrammairesConformiteTest {
     /** Chaque grammaire rejoue son corpus : des jetons, le déterminisme, aucun incident. */
     @Test
     void corpusRejoues() {
-        for (String[] entree : CATALOGUE) {
-            Grammaire grammaire = grammaireDePaquet(entree[0]);
-            String[] lignes = corpus(entree[1]).split("\n", -1);
-            GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
+        for (String[] input : CATALOGUE) {
+            Grammar grammaire = grammaireDePaquet(input[0]);
+            String[] lines = corpus(input[1]).split("\n", -1);
+            GrammarLexer lexeur = new GrammarLexer(grammaire);
             LexState etat = lexeur.initialState();
-            int jetons = 0;
-            for (String ligne : lignes) {
-                LexedLine premiere = lexeur.lex(ligne, etat);
-                jetons += premiere.tokens().length;
-                LexedLine seconde = lexeur.lex(ligne, etat);
+            int tokens = 0;
+            for (String line : lines) {
+                LexedLine premiere = lexeur.lex(line, etat);
+                tokens += premiere.tokens().length;
+                LexedLine seconde = lexeur.lex(line, etat);
                 assertArrayEquals(premiere.tokens(), seconde.tokens(),
-                        entree[0] + " : le lexeur est déterministe");
+                        input[0] + " : le lexeur est déterministe");
                 etat = premiere.exitState();
             }
-            assertTrue(jetons > 0, entree[0] + " : le corpus produit des jetons");
+            assertTrue(tokens > 0, input[0] + " : le corpus produit des jetons");
             assertEquals(0, lexeur.incidents(),
-                    entree[0] + " : aucun incident de budget sur le corpus");
+                    input[0] + " : aucun incident de budget sur le corpus");
         }
     }
 
@@ -87,13 +87,13 @@ class GrammairesConformiteTest {
     }
 
     /** La grammaire d'un paquet intégré, chargée par le vrai chargeur. */
-    private static Grammaire grammaireDePaquet(String id) {
+    private static Grammar grammaireDePaquet(String id) {
         var flux = GrammairesConformiteTest.class.getResourceAsStream("/langages/" + id + "/grammar.json");
         if (flux == null) {
             throw new IllegalArgumentException("grammaire du paquet " + id);
         }
         try (flux) {
-            return Grammaires.lire(new String(flux.readAllBytes(),
+            return Grammars.read(new String(flux.readAllBytes(),
                     java.nio.charset.StandardCharsets.UTF_8));
         } catch (java.io.IOException e) {
             throw new IllegalStateException(e);

@@ -78,7 +78,7 @@ class GuidesStructurelsTest {
             """;
 
     /** Une source qui ne rend rien : habiller l'enveloppe, jamais ne la consulte ici. */
-    private static final RowSource SOURCE_MUETTE = cle -> {
+    private static final RowSource SOURCE_MUETTE = key -> {
         throw new UnsupportedOperationException("pas consultée par le pont");
     };
 
@@ -115,14 +115,14 @@ class GuidesStructurelsTest {
                 }
 
                 @Override
-                public LexedLine lex(CharSequence texte, LexState entree) {
-                    String ligne = texte.toString();
-                    if (ligne.isBlank()) {
+                public LexedLine lex(CharSequence text, LexState input) {
+                    String line = text.toString();
+                    if (line.isBlank()) {
                         return new LexedLine(new Token[0], EtatEssai.NORMAL);
                     }
-                    if (ligne.strip().startsWith("#")) {
+                    if (line.strip().startsWith("#")) {
                         return new LexedLine(new Token[] {
-                                new Token(TokenKind.COMMENT, 0, ligne.length()) },
+                                new Token(TokenKind.COMMENT, 0, line.length()) },
                                 EtatEssai.NORMAL);
                     }
                     return new LexedLine(
@@ -178,12 +178,12 @@ class GuidesStructurelsTest {
     }
 
     /** Le pont prêt : session attachée, langage branché, analyse habitée. */
-    private static GuidesStructurels publier(String contenu, LanguageSupport langue) {
+    private static GuidesStructurels publier(String contenu, LanguageSupport language) {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         TextSession session = TextSession.of(contenu, () -> 0L);
-        syntaxe.attacher(session);
-        syntaxe.setLanguage(langue);
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.attach(session);
+        syntaxe.setLanguage(language);
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
         return syntaxe.guides;
     }
 
@@ -196,13 +196,13 @@ class GuidesStructurelsTest {
                 LanguageSupport.of(JavaSyntax.INSTANCE));
         assertEquals(2, guides.nombre());
         GuidesStructurels.Guide classe = guides.guide(0);
-        assertEquals(0, classe.colonne());
+        assertEquals(0, classe.column());
         assertEquals(8, classe.colonneOuvrante());
         assertEquals(0, classe.ligneOuverture());
         assertEquals(0, classe.colonneFermante());
         assertEquals(4, classe.ligneApresFin());
         GuidesStructurels.Guide methode = guides.guide(1);
-        assertEquals(4, methode.colonne());
+        assertEquals(4, methode.column());
         assertEquals(13, methode.colonneOuvrante());
         assertEquals(1, methode.ligneOuverture());
         assertEquals(4, methode.colonneFermante());
@@ -232,7 +232,7 @@ class GuidesStructurelsTest {
                 LanguageSupport.of(JavaSyntax.INSTANCE));
         assertEquals(2, guides.nombre());
         GuidesStructurels.Guide javadoc = guides.guide(1);
-        assertEquals(4, javadoc.colonne());
+        assertEquals(4, javadoc.column());
         assertEquals(1, javadoc.ligneOuverture());
         assertEquals(3, javadoc.ligneApresFin());
         // la classe garde la sienne, le trait traverse la javadoc
@@ -272,7 +272,7 @@ class GuidesStructurelsTest {
     void guidesDesRegionsDindentationDeclaree() {
         GuidesStructurels guides = publier(SOURCE, supportEssai());
         assertEquals(4, guides.nombre());
-        assertEquals(0, guides.guide(0).colonne());
+        assertEquals(0, guides.guide(0).column());
         assertEquals(0, guides.guide(0).ligneOuverture());
         assertEquals(2, guides.guide(0).ligneApresFin());
         assertEquals(4, guides.guide(1).ligneOuverture());
@@ -290,9 +290,9 @@ class GuidesStructurelsTest {
     void leditionRemappeLesGuides() {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         TextSession session = TextSession.of(CLASSE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
         Document document = session.document();
         session.replaceRange(document.lineEnd(2), document.lineEnd(2), "\n");
         GuidesStructurels remappee = syntaxe.guides;
@@ -303,11 +303,11 @@ class GuidesStructurelsTest {
         assertEquals(4, remappee.guide(1).ligneApresFin(),
                 "la fermante de la méthode s'est décalée");
         assertEquals(5, remappee.guide(0).ligneApresFin());
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
         assertEquals(4, syntaxe.guides.guide(1).ligneApresFin(),
                 "la redérivation reprend la même borne");
         assertEquals(5, syntaxe.guides.guide(0).ligneApresFin());
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /** La ligne qui ouvre meurt : le guide meurt avec elle — le
@@ -316,9 +316,9 @@ class GuidesStructurelsTest {
     void leGuideMeurtAvecSaLigneOuverture() {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         TextSession session = TextSession.of(CLASSE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
         Document document = session.document();
         session.replaceRange(document.lineStart(1), document.lineStart(2), "");
         GuidesStructurels remappee = syntaxe.guides;
@@ -326,10 +326,10 @@ class GuidesStructurelsTest {
                 "le guide de la méthode meurt avec son ouverture");
         assertEquals(3, remappee.guide(0).ligneApresFin(),
                 "la borne de la classe recule du différentiel");
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
         assertEquals(1, syntaxe.guides.nombre(),
                 "le réapparimage raccorde la fermante orpheline");
         assertEquals(2, syntaxe.guides.guide(0).ligneApresFin());
-        syntaxe.fermer();
+        syntaxe.close();
     }
 }

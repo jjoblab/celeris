@@ -42,33 +42,33 @@ import org.jspecify.annotations.Nullable;
 public final class MinimapView extends View {
 
     /** La largeur de la bande, en dp — celle du dépôt de départ. */
-    private static final float LARGEUR_DP = 60f;
+    private static final float WIDTH_DP = 60f;
 
     /** La marge horizontale du contenu, en dp. */
     private static final float MARGE_DP = 5f;
 
     /** La hauteur nominale d'une rangée de la carte, en dp. */
-    private static final float HAUTEUR_TRAIT_DP = 2.5f;
+    private static final float STROKE_HEIGHT_DP = 2.5f;
 
     /** L'assombrissement du fond de la bande — 0,85 comme là-bas. */
     private static final float ASSOMBRISSEMENT_FOND = 0.85f;
 
     /** L'alpha du REMPLI de la fenêtre visible. */
-    private static final float ALPHA_FENETRE_REMPLI = 0.18f;
+    private static final float WINDOW_FILL_ALPHA = 0.18f;
 
     /** L'alpha du CONTOUR de la fenêtre visible. */
-    private static final float ALPHA_FENETRE_CONTOUR = 0.55f;
+    private static final float WINDOW_OUTLINE_ALPHA = 0.55f;
 
     /** Le rayon de la cartouche de la fenêtre visible, en dp. */
-    private static final float RAYON_FENETRE_DP = 3f;
+    private static final float WINDOW_RADIUS_DP = 3f;
 
     /** L'atténuation des encres de silhouette — la couleur sans le cri. */
-    private static final float ATTENUATION_ENCRE = 0.8f;
+    private static final float INK_FADE = 0.8f;
 
     /** L'atténuation de l'encre du commentaire — déjà atténuée au thème. */
     private static final float ATTENUATION_COMMENTAIRE = 0.9f;
 
-    private final Paint pinceau = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint brush = new Paint(Paint.ANTI_ALIAS_FLAG);
     /** Le rect de la fenêtre visible — réutilisé, jamais alloué par image. */
     private final RectF fenetreRect = new RectF();
     private final int largeurPx;
@@ -84,20 +84,20 @@ public final class MinimapView extends View {
     /** Le nombre de crans de la fenêtre visible, 0 sans fenêtre. */
     private int cransFenetre = 0;
     /** Le nombre de lignes du document — la cible du saut. */
-    private int lignes = 1;
+    private int lines = 1;
     /** Le doigt tient la bande : chaque mouvement saute. */
-    private boolean doigtPose;
+    private boolean fingerDown;
     private @Nullable IntConsumer onJump;
     private PopupPalette palette;
 
     public MinimapView(Context context, PopupPalette palette) {
         super(context, null);
         float densite = getResources().getDisplayMetrics().density;
-        this.largeurPx = Math.round(LARGEUR_DP * densite);
+        this.largeurPx = Math.round(WIDTH_DP * densite);
         this.margePx = Math.round(MARGE_DP * densite);
-        this.hauteurTraitPx = HAUTEUR_TRAIT_DP * densite;
-        this.rayonFenetrePx = RAYON_FENETRE_DP * densite;
-        poserPalette(palette);
+        this.hauteurTraitPx = STROKE_HEIGHT_DP * densite;
+        this.rayonFenetrePx = WINDOW_RADIUS_DP * densite;
+        setPalette(palette);
     }
 
     /**
@@ -106,11 +106,11 @@ public final class MinimapView extends View {
      * @param nouvelle la palette dérivée du thème courant
      */
     public void setPalette(PopupPalette nouvelle) {
-        poserPalette(nouvelle);
+        applyPalette(nouvelle);
         invalidate();
     }
 
-    private void poserPalette(PopupPalette nouvelle) {
+    private void applyPalette(PopupPalette nouvelle) {
         this.palette = nouvelle;
     }
 
@@ -118,12 +118,12 @@ public final class MinimapView extends View {
      * Pose la silhouette d'un modèle déjà chargé.
      *
      * @param model  la carte, charges et segments compris
-     * @param lignes le nombre de lignes du document — la cible du saut
+     * @param lines le nombre de lignes du document — la cible du saut
      */
-    public void setModel(MinimapModel model, int lignes) {
-        var rangees = model.rangees();
-        this.crans = rangees.toArray(new MinimapModel.MapRow[0]);
-        this.lignes = Math.max(1, lignes);
+    public void setModel(MinimapModel model, int lines) {
+        var rows = model.rows();
+        this.crans = rows.toArray(new MinimapModel.MapRow[0]);
+        this.lines = Math.max(1, lines);
         requestLayout();
         invalidate();
     }
@@ -131,18 +131,18 @@ public final class MinimapView extends View {
     /**
      * Pose la fenêtre visible : les crans que le document montre.
      *
-     * @param premiereLigneVisible la premiere ligne visible
-     * @param lignesVisibles       le nombre de lignes visibles
+     * @param firstVisibleLine la premiere ligne visible
+     * @param visibleLines       le nombre de lignes visibles
      * @param lignesTotales        le nombre de lignes du document
      */
-    public void setViewport(int premiereLigneVisible, int lignesVisibles,
+    public void setViewport(int firstVisibleLine, int visibleLines,
             int lignesTotales) {
         int total = Math.max(1, crans.length);
         int totales = Math.max(1, lignesTotales);
-        this.cranFenetre = MinimapModel.cranDeLigne(
-                Math.max(0, premiereLigneVisible), totales, total);
-        int dernier = MinimapModel.cranDeLigne(
-                Math.max(0, premiereLigneVisible + Math.max(1, lignesVisibles) - 1),
+        this.cranFenetre = MinimapModel.lineNotch(
+                Math.max(0, firstVisibleLine), totales, total);
+        int dernier = MinimapModel.lineNotch(
+                Math.max(0, firstVisibleLine + Math.max(1, visibleLines) - 1),
                 totales, total);
         this.cransFenetre = Math.max(1, dernier - cranFenetre + 1);
         invalidate();
@@ -176,10 +176,10 @@ public final class MinimapView extends View {
         // carte de dix lignes ne s'étire pas sur mille pixels, elle
         // prend ses dix briques et laisse le reste à la couche ; la
         // carte longue plafonne à l'étendue posée.
-        int hauteur = (int) Math.min((long) spanPx,
+        int height = (int) Math.min((long) spanPx,
                 Math.round(crans.length * (double) hauteurTraitPx));
         setMeasuredDimension(resolveSize(largeurPx, widthSpec),
-                resolveSize(Math.max(1, hauteur), heightSpec));
+                resolveSize(Math.max(1, height), heightSpec));
     }
 
     @Override
@@ -187,10 +187,10 @@ public final class MinimapView extends View {
         // Le fond de la bande : celui de l'hôte assombri (0,85 comme le
         // dépôt de départ) — la bande se voit, sans crier.
         canvas.drawRect(0f, 0f, getWidth(), getHeight(),
-                pinceauFond(pinceau, palette));
+                backgroundBrush(brush, palette));
         // Le liseré de séparation au bord gauche — 1 px, comme là-bas.
-        pinceau.setColor(palette.border());
-        canvas.drawLine(0f, 0f, 0f, getHeight(), pinceau);
+        brush.setColor(palette.border());
+        canvas.drawLine(0f, 0f, 0f, getHeight(), brush);
         if (crans.length == 0) {
             return;
         }
@@ -206,7 +206,7 @@ public final class MinimapView extends View {
             tisserBrique(canvas, crans[cran], haut,
                     Math.min(getHeight(), haut + cranPx));
         }
-        dessinerFenetre(canvas);
+        drawWindow(canvas);
     }
 
     /**
@@ -231,16 +231,16 @@ public final class MinimapView extends View {
             if (segment.colonnes() <= 0) {
                 continue;
             }
-            float largeur = Math.min(
+            float width = Math.min(
                     segment.colonnes() * disponible
                             / (float) MinimapModel.CHARGE_MAX,
                     getWidth() - margePx - x);
-            if (largeur < 0.5f) {
-                largeur = 0.5f;
+            if (width < 0.5f) {
+                width = 0.5f;
             }
-            pinceau.setColor(encreDe(segment.encre()));
-            canvas.drawRect(x, haut, x + largeur, bas, pinceau);
-            x += largeur;
+            brush.setColor(inkOf(segment.encre()));
+            canvas.drawRect(x, haut, x + width, bas, brush);
+            x += width;
             if (x >= getWidth() - margePx) {
                 break;
             }
@@ -255,7 +255,7 @@ public final class MinimapView extends View {
      * le contour du viewport ne doit jamais fuir vers la frame
      * suivante).
      */
-    private void dessinerFenetre(Canvas canvas) {
+    private void drawWindow(Canvas canvas) {
         if (cranFenetre < 0 || cransFenetre <= 0 || crans.length == 0) {
             return;
         }
@@ -266,21 +266,21 @@ public final class MinimapView extends View {
         // la cartouche respire d'un pixel aux bords : l'arrondi ne
         // ronge jamais le liseré de la bande
         fenetreRect.set(1f, haut, getWidth() - 1f, Math.max(haut + 1f, bas));
-        pinceau.setColor(avecAlpha(palette.selection(),
-                ALPHA_FENETRE_REMPLI));
-        pinceau.setStyle(Paint.Style.FILL);
+        brush.setColor(avecAlpha(palette.selection(),
+                WINDOW_FILL_ALPHA));
+        brush.setStyle(Paint.Style.FILL);
         canvas.drawRoundRect(fenetreRect, rayonFenetrePx, rayonFenetrePx,
-                pinceau);
-        pinceau.setStyle(Paint.Style.STROKE);
-        pinceau.setStrokeWidth(1.25f);
-        pinceau.setColor(avecAlpha(palette.selection(),
-                ALPHA_FENETRE_CONTOUR));
+                brush);
+        brush.setStyle(Paint.Style.STROKE);
+        brush.setStrokeWidth(1.25f);
+        brush.setColor(avecAlpha(palette.selection(),
+                WINDOW_OUTLINE_ALPHA));
         canvas.drawRoundRect(fenetreRect, rayonFenetrePx, rayonFenetrePx,
-                pinceau);
+                brush);
         // ★ le paint partagé retrouve son FILL — aucune trace du
         // contour ne fuit vers la frame suivante
-        pinceau.setStyle(Paint.Style.FILL);
-        pinceau.setStrokeWidth(0f);
+        brush.setStyle(Paint.Style.FILL);
+        brush.setStrokeWidth(0f);
     }
 
     /**
@@ -290,27 +290,27 @@ public final class MinimapView extends View {
      * nombre à l'info adoucie, le mot-clé à son encre tamisée — la
      * couleur se lit, elle ne crie pas.
      */
-    private int encreDe(int classe) {
+    private int inkOf(int classe) {
         return switch (classe) {
-            case MinimapModel.ENCRE_CHAINE -> avecAlpha(palette.accent(),
-                    ATTENUATION_ENCRE);
-            case MinimapModel.ENCRE_COMMENTAIRE -> avecAlpha(palette.muted(),
+            case MinimapModel.STRING_INK -> avecAlpha(palette.accent(),
+                    INK_FADE);
+            case MinimapModel.COMMENT_INK -> avecAlpha(palette.muted(),
                     ATTENUATION_COMMENTAIRE);
-            case MinimapModel.ENCRE_NOMBRE -> avecAlpha(palette.info(),
-                    ATTENUATION_ENCRE);
-            case MinimapModel.ENCRE_MOTCLE -> avecAlpha(palette.keyword(),
-                    ATTENUATION_ENCRE);
+            case MinimapModel.NUMBER_INK -> avecAlpha(palette.info(),
+                    INK_FADE);
+            case MinimapModel.KEYWORD_INK -> avecAlpha(palette.keyword(),
+                    INK_FADE);
             default -> assombrir(palette.text(), 0.55f);
         };
     }
 
     /** Le fond de la bande : celui de la palette, opaque et assombri. */
-    private static Paint pinceauFond(Paint pinceau, PopupPalette palette) {
-        pinceau.setStyle(Paint.Style.FILL);
-        pinceau.setStrokeWidth(0f);
-        pinceau.setColor(assombrirRenduOpaque(palette.background(),
+    private static Paint backgroundBrush(Paint brush, PopupPalette palette) {
+        brush.setStyle(Paint.Style.FILL);
+        brush.setStrokeWidth(0f);
+        brush.setColor(assombrirRenduOpaque(palette.background(),
                 ASSOMBRISSEMENT_FOND));
-        return pinceau;
+        return brush;
     }
 
     /** Assombrit une couleur ARGB — opaque par construction. */
@@ -335,24 +335,24 @@ public final class MinimapView extends View {
     }
 
     /** La ligne visée par l'ordonnée du doigt — la première du bouquet du cran. */
-    private int ligneVisee(float y) {
+    private int targetLine(float y) {
         int cran = Math.round(y * crans.length / (float) getHeight());
         cran = Math.max(0, Math.min(crans.length - 1, cran));
-        return (int) ((long) cran * lignes / Math.max(1, crans.length));
+        return (int) ((long) cran * lines / Math.max(1, crans.length));
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                doigtPose = true;
+                fingerDown = true;
                 return sauter(event.getY());
             case MotionEvent.ACTION_MOVE:
-                return doigtPose && sauter(event.getY());
+                return fingerDown && sauter(event.getY());
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                if (doigtPose) {
-                    doigtPose = false;
+                if (fingerDown) {
+                    fingerDown = false;
                     performClick();
                     return true;
                 }
@@ -367,7 +367,7 @@ public final class MinimapView extends View {
         if (onJump == null || getHeight() <= 0) {
             return true;
         }
-        onJump.accept(ligneVisee(y));
+        onJump.accept(targetLine(y));
         return true;
     }
 }

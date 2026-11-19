@@ -29,23 +29,23 @@ import org.jspecify.annotations.Nullable;
 final class CoachLangage implements CoachPopups {
 
     /** La langue ouverte — null garde la table vide (texte brut). */
-    private final @Nullable LanguageSupport langue;
+    private final @Nullable LanguageSupport language;
 
     /**
      * Le coach de la langue ouverte.
      *
-     * @param langue le support de langage posé, null sans langage
+     * @param language le support de langage posé, null sans langage
      */
-    CoachLangage(@Nullable LanguageSupport langue) {
-        this.langue = langue;
+    CoachLangage(@Nullable LanguageSupport language) {
+        this.language = language;
     }
 
     @Override
     public List<String> motsReserves() {
-        if (langue == null || langue.syntax() == null) {
+        if (language == null || language.syntax() == null) {
             return List.of();
         }
-        return langue.syntax().reservedWords();
+        return language.syntax().reservedWords();
     }
 
     @Override
@@ -56,7 +56,7 @@ final class CoachLangage implements CoachPopups {
         for (String nom : bruts) {
             types.add(new CompletionListView.Candidat(nom, "",
                     reserves.contains(nom)
-                            ? jo.celeris.android.widgets.BadgeGenre.Genre.MOT_CLE
+                            ? jo.celeris.android.widgets.BadgeGenre.Genre.KEYWORD
                             : jo.celeris.android.widgets.BadgeGenre.Genre.VARIABLE));
         }
         return types;

@@ -37,22 +37,22 @@ public final class ColumnSelection {
         int derniereRangee = Math.max(rowA, rowB);
         int colonneBasse = Math.max(0, Math.min(colA, colB));
         int colonneHaute = Math.max(0, Math.max(colA, colB));
-        List<SelRange> plages = new ArrayList<>(derniereRangee - premiereRangee + 1);
+        List<SelRange> ranges = new ArrayList<>(derniereRangee - premiereRangee + 1);
         for (int rangee = premiereRangee; rangee <= derniereRangee; rangee++) {
-            int ligne = projection.firstLineOfRow(rangee);
+            int line = projection.firstLineOfRow(rangee);
             int debutTranche = projection.spanStartAtRow(rangee);
             int finTranche = projection.spanEndAtRow(rangee);
             if (finTranche == Integer.MAX_VALUE) {
                 // longueurs inconnues : la tranche est la ligne entière
-                finTranche = doc.lineEnd(ligne) - doc.lineStart(ligne);
+                finTranche = doc.lineEnd(line) - doc.lineStart(line);
             }
-            int largeur = Math.max(0, finTranche - debutTranche);
-            int colonneDebut = debutTranche + Math.min(colonneBasse, largeur);
-            int colonneFin = debutTranche + Math.min(colonneHaute, largeur);
-            int debutLigne = doc.lineStart(ligne);
-            plages.add(new SelRange(debutLigne + colonneDebut,
-                    debutLigne + colonneFin));
+            int width = Math.max(0, finTranche - debutTranche);
+            int colonneDebut = debutTranche + Math.min(colonneBasse, width);
+            int colonneFin = debutTranche + Math.min(colonneHaute, width);
+            int lineStart = doc.lineStart(line);
+            ranges.add(new SelRange(lineStart + colonneDebut,
+                    lineStart + colonneFin));
         }
-        return MultiSelection.of(plages);
+        return MultiSelection.of(ranges);
     }
 }

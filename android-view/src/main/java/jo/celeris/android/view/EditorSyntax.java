@@ -1,6 +1,6 @@
 package jo.celeris.android.view;
 
-import jo.celeris.android.view.internal.ParcMoteurs;
+import jo.celeris.android.view.internal.EnginePark;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +13,8 @@ import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.structure.FoldSpan;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.EnginePathFactoryLoader;
-import jo.celeris.core.syntax.MoteurAnalyse;
-import jo.celeris.core.syntax.MoteurSyntaxe;
+import jo.celeris.core.syntax.AnalysisEngine;
+import jo.celeris.core.syntax.SyntaxEngine;
 import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxCoordinator;
 import jo.celeris.core.syntax.structure.TreeDiagnostics;
@@ -78,45 +78,45 @@ public final class EditorSyntax {
         }
     }
 
-    private final FoldTracker suiviPlis;
-    private final FoldModel plis;
+    private final FoldTracker foldTracking;
+    private final FoldModel folds;
     private final List<FoldSpan> regionsPliables = new ArrayList<>();
-    private final EditListener ecouteurPlis = this::surEdition;
-    private final @Nullable Executor executeur;
+    private final EditListener foldListener = this::surEdition;
+    private final @Nullable Executor executor;
     private final List<EditionEnAttente> editionsEnAttente = new ArrayList<>();
     /** La table des guides verticaux structurels (H-09, A-17 relue),
      *  remappée à l'édition, redérivée à la publication — VIDE sans
      *  analyse à jour. Visible du paquet : la couche des guides y lit
      *  la table courante, collée à la révision (PIEGE-20). */
-    GuidesStructurels guides = GuidesStructurels.VIDE;
+    GuidesStructurels guides = GuidesStructurels.EMPTY;
 
     private @Nullable TextSession session;
-    private @Nullable LanguageSupport langue;
+    private @Nullable LanguageSupport language;
     private @Nullable LanguageSyntax syntaxeDuLangage;
     private @Nullable SyntaxCoordinator coordinateur;
-    private @Nullable MoteurAnalyse moteur;
-    private @Nullable MoteurSyntaxe moteurNativeVoie;
+    private @Nullable AnalysisEngine engine;
+    private @Nullable SyntaxEngine nativePathEngine;
     /** Le parc des moteurs détachés, un par session ouverte (le
      *  retour terrain du 2026-11-19 : la tokenisation appartient AU
      *  DOCUMENT — le moteur de la session quittée s'y parque, la
      *  session revenue le retrouve avec sa publication). */
-    private final ParcMoteurs parc = new ParcMoteurs();
+    private final EnginePark park = new EnginePark();
 
     /** L'auditeur de publication du moteur — UN seul, posé et retiré
      *  proprement : jamais dupliqué au retour du parc. */
     private final java.util.function.Consumer<jo.celeris.core.syntax.Analysis> auditeurPublication =
-            analyse -> notifierAnalysePrete();
+            analyse -> notifyAnalysisReady();
     private @Nullable Runnable surAnalysePrete;
 
     /** Les consommateurs 2.0 du plan — multiples (ADR-0022, phase
      *  2, T3) : le kit et l'hôte reçoivent le même arbre. */
     private final java.util.List<Consumer<List<OutlineEntry>>> consommateursPlan =
             new java.util.concurrent.CopyOnWriteArrayList<>();
-    private int fenetrePremiere;
-    private int fenetreDerniere = Integer.MAX_VALUE / 2;
+    private int windowFirst;
+    private int windowLast = Integer.MAX_VALUE / 2;
     private @Nullable Document documentSuivi;
     private long revisionAnalysee = -1L;
-    private GutterMarks marques = GutterMarks.VIDE;
+    private GutterMarks marks = GutterMarks.EMPTY;
 
     /** Les diagnostics courants, plages et sévérité (D-05, D-06) —
      *  la couche de squiggles y lit, la gouttière garde ses lignes. */
@@ -128,18 +128,18 @@ public final class EditorSyntax {
      * l'archive et la restauration vivent dans le porteur, à clés
      * faibles — une session morte n'y retient plus rien.
      */
-    private final PlisParSession memoirePlis;
+    private final FoldsBySession foldMemory;
     private boolean chaineRompue;
 
     /**
      * Construit le pont synchrone sur le modèle de plis de la projection
      * — l'analyse se paie à la première demande, sur le fil d'appel.
      *
-     * @param plis le modèle de plis, lu en direct par la projection et
+     * @param folds le modèle de plis, lu en direct par la projection et
      *             par les marques
      */
-    public EditorSyntax(FoldModel plis) {
-        this(plis, null);
+    public EditorSyntax(FoldModel folds) {
+        this(folds, null);
     }
 
     /**
@@ -147,24 +147,24 @@ public final class EditorSyntax {
      * l'analyse vit hors fil d'appel (ADR-007), la fenêtre visible se
      * paie d'abord (G-01).
      *
-     * @param plis      le modèle de plis, lu en direct par la projection
+     * @param folds      le modèle de plis, lu en direct par la projection
      *                  et par les marques
-     * @param executeur l'exécuteur du travail d'analyse, null pour la
+     * @param executor l'exécuteur du travail d'analyse, null pour la
      *                  voie synchrone
      */
-    public EditorSyntax(FoldModel plis, @Nullable Executor executeur) {
-        this.plis = plis;
-        this.suiviPlis = new FoldTracker(plis);
-        this.memoirePlis = new PlisParSession(plis, suiviPlis);
-        this.executeur = executeur;
+    public EditorSyntax(FoldModel folds, @Nullable Executor executor) {
+        this.folds = folds;
+        this.foldTracking = new FoldTracker(folds);
+        this.foldMemory = new FoldsBySession(folds, foldTracking);
+        this.executor = executor;
     }
 
     /** Attache la session suivie : les plis de la précédente
      *  s'oublient — un pli appartient à son document. La langue
      *  RESTE celle posée (la voie historique : la vue rattache la
      *  session seule, l'hôte pose la langue ensuite). */
-    public void attacher(TextSession nouvelleSession) {
-        attacher(nouvelleSession, langue);
+    public void attach(TextSession nouvelleSession) {
+        attach(nouvelleSession, language);
     }
 
     /**
@@ -181,33 +181,33 @@ public final class EditorSyntax {
      * @param nouvelleLangue  le support du langage du document, null
      *                        pour aucun
      */
-    public void attacher(TextSession nouvelleSession,
+    public void attach(TextSession nouvelleSession,
             @Nullable LanguageSupport nouvelleLangue) {
         TextSession precedente = session;
         if (precedente != null) {
-            precedente.removeEditListener(ecouteurPlis);
+            precedente.removeEditListener(foldListener);
         }
         // D-07 : l'état replié de la session quittée s'archive,
         // celui de la session qui arrive se restaure — le pli
         // manuel appartient à SON document.
-        memoirePlis.archiver(precedente);
+        foldMemory.archiver(precedente);
         session = nouvelleSession;
-        session.addEditListener(ecouteurPlis);
+        session.addEditListener(foldListener);
         documentSuivi = session.document();
-        memoirePlis.restaurer(session);
+        foldMemory.restaurer(session);
         // Le parquage par session (le retour terrain du 2026-11-19) :
         // la tokenisation appartient AU DOCUMENT. Le moteur de la
         // session quittée se PARQUE sous ELLE avec sa publication —
         // une session revenue le retrouve et ne re-tokenise RIEN (le
         // dépôt de départ y gardait les styledLines dans la session).
-        moteur = parc.basculer(precedente, moteur, nouvelleSession,
-                fenetrePremiere, fenetreDerniere);
-        langue = nouvelleLangue;
+        engine = park.toggle(precedente, engine, nouvelleSession,
+                windowFirst, windowLast);
+        language = nouvelleLangue;
         syntaxeDuLangage =
                 nouvelleLangue == null ? null : nouvelleLangue.syntax();
         editionsEnAttente.clear();
         chaineRompue = false;
-        guides = GuidesStructurels.VIDE;
+        guides = GuidesStructurels.EMPTY;
         rattacher();
         // suiviPlis.clear() vit dans restaurerPlis() (D-07) : la
         // restauration vide PUIS repose les plis du document qui
@@ -216,7 +216,7 @@ public final class EditorSyntax {
         // n'est pas relue (habiller pousse le vrai plan à la première
         // rangée habillée) — le consommateur n'affiche jamais les
         // entrées d'un document parti.
-        pousserPlan(List.of());
+        pushOutline(List.of());
     }
 
     /**
@@ -232,26 +232,26 @@ public final class EditorSyntax {
      * @param nouvelleLangue le support du langage, null pour aucun
      */
     public void setLanguage(@Nullable LanguageSupport nouvelleLangue) {
-        langue = nouvelleLangue;
+        language = nouvelleLangue;
         syntaxeDuLangage = nouvelleLangue == null ? null : nouvelleLangue.syntax();
         editionsEnAttente.clear();
         chaineRompue = false;
-        guides = GuidesStructurels.VIDE;
+        guides = GuidesStructurels.EMPTY;
         rattacher();
         revisionAnalysee = -1L;
-        if (langue == null) {
-            pousserPlan(List.of());
+        if (language == null) {
+            pushOutline(List.of());
         }
     }
 
     /** Le support du langage analysé, null sans analyse. */
     public @Nullable LanguageSupport language() {
-        return langue;
+        return language;
     }
 
     /** Vrai quand l'analyse est branchée. */
     public boolean active() {
-        return coordinateur != null || moteur != null || moteurNativeVoie != null;
+        return coordinateur != null || engine != null || nativePathEngine != null;
     }
 
     /**
@@ -263,11 +263,11 @@ public final class EditorSyntax {
      *
      * @return vrai quand une publication existe
      */
-    public boolean couleurAttendue() {
-        if (moteurNativeVoie != null) {
-            return moteurNativeVoie.analysePubliee() != null;
+    public boolean expectedColor() {
+        if (nativePathEngine != null) {
+            return nativePathEngine.analysePubliee() != null;
         }
-        MoteurAnalyse moteurLocal = moteur;
+        AnalysisEngine moteurLocal = engine;
         if (moteurLocal != null) {
             return moteurLocal.analysePubliee() != null;
         }
@@ -282,11 +282,11 @@ public final class EditorSyntax {
      * @param premiereLigne la première ligne visible
      * @param derniereLigne la dernière ligne visible
      */
-    public void fenetre(int premiereLigne, int derniereLigne) {
-        fenetrePremiere = premiereLigne;
-        fenetreDerniere = derniereLigne;
-        if (moteur != null) {
-            moteur.fenetre(premiereLigne, derniereLigne);
+    public void window(int premiereLigne, int derniereLigne) {
+        windowFirst = premiereLigne;
+        windowLast = derniereLigne;
+        if (engine != null) {
+            engine.window(premiereLigne, derniereLigne);
         }
     }
 
@@ -298,9 +298,9 @@ public final class EditorSyntax {
      * @param premiereRangee la première rangée visible
      * @param nombreRangees  le nombre de rangées visibles
      */
-    public void fenetre(VisualProjection projection, int premiereRangee, int nombreRangees) {
+    public void window(VisualProjection projection, int premiereRangee, int nombreRangees) {
         int derniere = Math.min(premiereRangee + nombreRangees, projection.rowCount() - 1);
-        fenetre(projection.firstLineOfRow(premiereRangee), projection.firstLineOfRow(derniere));
+        window(projection.firstLineOfRow(premiereRangee), projection.firstLineOfRow(derniere));
     }
 
     /**
@@ -336,14 +336,14 @@ public final class EditorSyntax {
 
     /** Referme le pont : les moteurs se détachent, le parc se vide,
      *  la gouttière se vide. */
-    public void fermer() {
-        fermerMoteur();
+    public void close() {
+        closeEngine();
         // Le parc suit : les moteurs parqués des sessions détachées
         // meurent tous — la vue qui ferme ne laisse AUCUN fil d'analyse
         // vivant derrière elle (C2).
-        parc.toutFermer();
+        park.closeAll();
         if (session != null) {
-            session.removeEditListener(ecouteurPlis);
+            session.removeEditListener(foldListener);
         }
     }
 
@@ -357,7 +357,7 @@ public final class EditorSyntax {
      * @param plancher  la marge minimale, en pixels
      * @return la largeur de coulisse, en pixels
      */
-    public float coulisse(float charWidth, float plancher) {
+    public float lane(float charWidth, float plancher) {
         if (!active()) {
             return 0f;
         }
@@ -376,30 +376,30 @@ public final class EditorSyntax {
      * @param document l'instantané affiché
      * @return la source habillée, ou la source telle quelle
      */
-    public RowSource habiller(RowSource source, Document document) {
+    public RowSource wrap(RowSource source, Document document) {
         Analysis analyse = analyseCourante(document);
         if (analyse == null) {
-            return habillerPerimee(source, document);
+            return wrapStale(source, document);
         }
         if (analyse.revision() != revisionAnalysee) {
             revisionAnalysee = analyse.revision();
             regionsPliables.clear();
             regionsPliables.addAll(
-                    LanguageStructure.plis(langue, document, analyse));
+                    LanguageStructure.folds(language, document, analyse));
             java.util.List<jo.celeris.core.syntax.SyntaxIssue> issuesNeuves =
                     fusionner(TreeDiagnostics.issues(document, analyse),
-                            issuesDeBanc);
-            marques = GutterMarks.of(regionsPliables, plis,
-                    lignesDe(issuesNeuves, document));
+                            fromBench);
+            marks = GutterMarks.of(regionsPliables, folds,
+                    linesOf(issuesNeuves, document));
             issues = issuesNeuves;
-            guides = GuidesStructurels.de(langue, document, analyse);
-            pousserPlan(LanguageStructure.plan(langue, document, analyse,
+            guides = GuidesStructurels.of(language, document, analyse);
+            pushOutline(LanguageStructure.plan(language, document, analyse,
                     regionsPliables));
         }
         editionsEnAttente.clear();
         chaineRompue = false;
         return new FoldedRowSource(new SyntaxRowSource(source, analyse.lex()),
-                document, plis, analyse.lex());
+                document, folds, analyse.lex());
     }
 
     /**
@@ -418,24 +418,24 @@ public final class EditorSyntax {
      * lit qu'un lexique document, jamais le moteur qui l'a produit ;
      * sa publication périmée y recolle exactement pareil.</p>
      */
-    private RowSource habillerPerimee(RowSource source, Document document) {
-        Analysis publiee = publicationPerimee();
-        if (publiee == null || chaineRompue) {
+    private RowSource wrapStale(RowSource source, Document document) {
+        Analysis published = publicationPerimee();
+        if (published == null || chaineRompue) {
             return source;
         }
-        List<EditionEnAttente> enAttente = editionsDepuis(publiee.revision());
+        List<EditionEnAttente> enAttente = editionsDepuis(published.revision());
         if (enAttente.isEmpty()) {
             return source;
         }
         List<EditSite> sites = new ArrayList<>(enAttente.size());
-        List<TokenCatchUp.PendingEdit> editions =
+        List<TokenCatchUp.PendingEdit> edits =
                 new ArrayList<>(enAttente.size());
-        for (EditionEnAttente edition : enAttente) {
-            sites.add(edition.site());
-            editions.add(edition.versPendingEdit());
+        for (EditionEnAttente edit : enAttente) {
+            sites.add(edit.site());
+            edits.add(edit.versPendingEdit());
         }
-        return new SyntaxRowSource(source, publiee.lex(),
-                TokenCatchUp.of(publiee.lex(), editions, sites, document,
+        return new SyntaxRowSource(source, published.lex(),
+                TokenCatchUp.of(published.lex(), edits, sites, document,
                         syntaxeDuLangage == null ? null : syntaxeDuLangage.lexer()));
     }
 
@@ -445,11 +445,11 @@ public final class EditorSyntax {
      * leur est commun, seule la publication change.
      */
     private @Nullable Analysis publicationPerimee() {
-        MoteurSyntaxe voieNative = moteurNativeVoie;
+        SyntaxEngine voieNative = nativePathEngine;
         if (voieNative != null) {
             return voieNative.analysePubliee();
         }
-        MoteurAnalyse moteurLocal = moteur;
+        AnalysisEngine moteurLocal = engine;
         return moteurLocal == null ? null : moteurLocal.analysePubliee();
     }
 
@@ -474,15 +474,15 @@ public final class EditorSyntax {
      * d'intelligence (M7.5, §8) y lit l'analyse de ses gestes.
      */
     @Nullable Analysis analyseCourante(Document document) {
-        if (moteurNativeVoie != null) {
-            return moteurNativeVoie.analyseDeRevision(document.revision());
+        if (nativePathEngine != null) {
+            return nativePathEngine.analyseDeRevision(document.revision());
         }
-        if (moteur != null) {
-            Analysis publiee = moteur.analysePubliee();
-            if (publiee == null || publiee.revision() != document.revision()) {
+        if (engine != null) {
+            Analysis published = engine.analysePubliee();
+            if (published == null || published.revision() != document.revision()) {
                 return null;
             }
-            return publiee;
+            return published;
         }
         if (coordinateur == null) {
             return null;
@@ -506,13 +506,13 @@ public final class EditorSyntax {
      * @return la dernière analyse publiée, null sans aucune publication
      */
     @Nullable Analysis analyseDeRepli() {
-        MoteurAnalyse moteurLocal = moteur;
+        AnalysisEngine moteurLocal = engine;
         return moteurLocal == null ? null : moteurLocal.analysePubliee();
     }
 
-    /** Les marques de gouttière courantes — {@link GutterMarks#VIDE} sans analyse. */
-    public GutterMarks marques() {
-        return marques;
+    /** Les marques de gouttière courantes — {@link GutterMarks#EMPTY} sans analyse. */
+    public GutterMarks marks() {
+        return marks;
     }
 
     /**
@@ -533,7 +533,7 @@ public final class EditorSyntax {
      *  la même sémantique que les lignes fusionnées de la gouttière,
      *  C-12).
      */
-    private java.util.List<jo.celeris.core.syntax.SyntaxIssue> issuesDeBanc =
+    private java.util.List<jo.celeris.core.syntax.SyntaxIssue> fromBench =
             java.util.List.of();
 
     /** Pose des issues de banc (D-05) — jamais appelé hors banc.
@@ -542,9 +542,9 @@ public final class EditorSyntax {
      */
     void poserIssuesDeBanc(
             java.util.List<jo.celeris.core.syntax.SyntaxIssue> nouvelles) {
-        issuesDeBanc = java.util.List.copyOf(nouvelles);
+        fromBench = java.util.List.copyOf(nouvelles);
         // re-fusion immédiate : la pose suit les issues courantes
-        issues = fusionner(issues, issuesDeBanc);
+        issues = fusionner(issues, fromBench);
     }
 
     /** La fusion : les issues de l'arbre puis celles du banc —
@@ -565,14 +565,14 @@ public final class EditorSyntax {
 
     /** Les lignes des issues données — la voie historique de la
      *  gouttière (D-02), nourrie par les issues complètes (D-06). */
-    private static int[] lignesDe(
+    private static int[] linesOf(
             java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues,
             Document document) {
-        int[] lignes = new int[issues.size()];
+        int[] lines = new int[issues.size()];
         for (int i = 0; i < issues.size(); i++) {
-            lignes[i] = document.lineForOffset(issues.get(i).startOffset());
+            lines[i] = document.lineForOffset(issues.get(i).startOffset());
         }
-        return lignes;
+        return lines;
     }
 
     /**
@@ -586,12 +586,12 @@ public final class EditorSyntax {
      * @param scrollY    le défilement vertical courant, en pixels
      * @param hauteurLigne la hauteur d'une rangée, en pixels
      * @param largeurGouttiere la largeur totale de la gouttière, en pixels
-     * @param bandePli   la largeur de la bande de plis, en pixels
+     * @param foldBand   la largeur de la bande de plis, en pixels
      * @param projection la projection rangées ↔ lignes courante
      * @return vrai quand l'appui est consommé par la bande de plis
      */
-    public boolean basculerPliAuPoint(float x, float y, float scrollY,
-            float hauteurLigne, float largeurGouttiere, float bandePli,
+    public boolean toggleFoldAt(float x, float y, float scrollY,
+            float hauteurLigne, float largeurGouttiere, float foldBand,
             VisualProjection projection) {
         // D-07 : la bande vit pour l'analyse, qu'elle soit servie par le
         // coordinateur synchrone OU par le moteur hors fil — la voie de
@@ -599,12 +599,12 @@ public final class EditorSyntax {
         // fabrique l'exécuteur quand l'hôte n'en fournit pas), l'ancienne
         // garde y tuait l'appui avant même le test d'appartenance.
         if (!active()
-                || !GutterGeometry.dansLaBande(x, largeurGouttiere, bandePli)) {
+                || !GutterGeometry.inBand(x, largeurGouttiere, foldBand)) {
             return false;
         }
         int rangee = ScrollGeometry.firstRow(scrollY + y, hauteurLigne);
-        int ligne = projection.firstLineOfRow(rangee);
-        return basculerPli(ligne);
+        int line = projection.firstLineOfRow(rangee);
+        return toggleFold(line);
     }
 
     /**
@@ -615,22 +615,22 @@ public final class EditorSyntax {
      * redressement du 2026-11-13) ; seul un pli voisin qui CROISE la
      * région bloque le repli, l'appui se consomme sans effet.
      *
-     * @param ligne la ligne d'en-tête visée
+     * @param line la ligne d'en-tête visée
      * @return vrai quand la ligne porte une région pliable
      */
-    public boolean basculerPli(int ligne) {
-        if (!marques.pliable(ligne)) {
+    public boolean toggleFold(int line) {
+        if (!marks.pliable(line)) {
             return false;
         }
-        if (marques.replie(ligne)) {
-            suiviPlis.unfold(ligne);
+        if (marks.replie(line)) {
+            foldTracking.unfold(line);
             return true;
         }
         for (FoldSpan region : regionsPliables) {
-            if (region.startLine() == ligne) {
-                if (region.endLine() > ligne
-                        && !croiseUnPli(ligne, region.endLine())) {
-                    suiviPlis.fold(ligne, region.endLine());
+            if (region.startLine() == line) {
+                if (region.endLine() > line
+                        && !croiseUnPli(line, region.endLine())) {
+                    foldTracking.fold(line, region.endLine());
                 }
                 return true;
             }
@@ -642,9 +642,9 @@ public final class EditorSyntax {
      * Vrai quand la plage donnée CROISE un pli déjà replié : la règle
      * vit dans {@link FoldModel#croise} — LA source unique.
      */
-    private boolean croiseUnPli(int debut, int fin) {
-        for (FoldModel.Pli pli : plis.plis()) {
-            if (FoldModel.croise(debut, fin, pli)) {
+    private boolean croiseUnPli(int start, int end) {
+        for (FoldModel.Pli pli : folds.folds()) {
+            if (FoldModel.croise(start, end, pli)) {
                 return true;
             }
         }
@@ -658,33 +658,33 @@ public final class EditorSyntax {
         // déjà analysé). La garde précède fermerMoteur : le moteur
         // courant sert TOUJOURS la session courante ici (attacher a
         // parqué l'ancien et repris le bon avant l'appel).
-        if (rattraperMoteurParque()) {
+        if (catchUpParkedEngine()) {
             return;
         }
-        fermerMoteur();
+        closeEngine();
         LanguageSyntax syntaxe = syntaxeDuLangage;
         // La voie tree-sitter (ADR-0024) : le pont ne connaît pas le
         // moteur concret — le module opt-in expose sa fabrique par
         // ServiceLoader (charge si présent, rien sinon) et la voie
         // des grammaires sert par défaut.
-        moteurNativeVoie =
-                EnginePathFactoryLoader.creer(syntaxe, session, executeur);
-        if (moteurNativeVoie != null) {
-            moteurNativeVoie.ajouterAuditeur(auditeurPublication);
-            moteurNativeVoie.reanalyser();
+        nativePathEngine =
+                EnginePathFactoryLoader.create(syntaxe, session, executor);
+        if (nativePathEngine != null) {
+            nativePathEngine.addListener(auditeurPublication);
+            nativePathEngine.reanalyser();
             return;
         }
-        if (executeur == null) {
+        if (executor == null) {
             coordinateur = syntaxe == null || session == null
                     ? null
                     : SyntaxCoordinator.on(session, syntaxe);
             return;
         }
         if (syntaxe != null && session != null) {
-            moteur = MoteurAnalyse.sur(session, syntaxe, executeur,
-                    fenetrePremiere, fenetreDerniere);
-            moteur.ajouterAuditeur(auditeurPublication);
-            moteur.reanalyser();
+            engine = AnalysisEngine.on(session, syntaxe, executor,
+                    windowFirst, windowLast);
+            engine.addListener(auditeurPublication);
+            engine.reanalyser();
         }
     }
 
@@ -695,35 +695,35 @@ public final class EditorSyntax {
      *  éditions manquées pendant l'absence demandent un rattrapage.
      *  Vrai quand le moteur a servi, faux quand il faut le refaire.
      */
-    private boolean rattraperMoteurParque() {
-        boolean duDocument = moteur != null
-                && moteur.session() == session
-                && moteur.language() == syntaxeDuLangage;
+    private boolean catchUpParkedEngine() {
+        boolean duDocument = engine != null
+                && engine.session() == session
+                && engine.language() == syntaxeDuLangage;
         if (!duDocument) {
             return false;
         }
         // L'auditeur ne se DUPLIQUE pas au retour du parc (l'ancien chemin
         // ré-additionnait l'auditeur de la création à chaque retour — N
         // allers-retours d'onglets = N invalidate par publication).
-        moteur.retirerAuditeur(auditeurPublication);
-        moteur.ajouterAuditeur(auditeurPublication);
-        Analysis publiee = moteur.analysePubliee();
-        boolean aJour = publiee != null
-                && publiee.revision() == session.document().revision();
+        engine.removeListener(auditeurPublication);
+        engine.addListener(auditeurPublication);
+        Analysis published = engine.analysePubliee();
+        boolean aJour = published != null
+                && published.revision() == session.document().revision();
         if (!aJour) {
-            moteur.reanalyser();
+            engine.reanalyser();
         }
         return true;
     }
 
-    private void fermerMoteur() {
-        if (moteurNativeVoie != null) {
-            moteurNativeVoie.close();
-            moteurNativeVoie = null;
+    private void closeEngine() {
+        if (nativePathEngine != null) {
+            nativePathEngine.close();
+            nativePathEngine = null;
         }
-        if (moteur != null) {
-            moteur.close();
-            moteur = null;
+        if (engine != null) {
+            engine.close();
+            engine = null;
         }
         if (coordinateur != null) {
             coordinateur.close();
@@ -731,7 +731,7 @@ public final class EditorSyntax {
         }
     }
 
-    private void notifierAnalysePrete() {
+    private void notifyAnalysisReady() {
         Runnable rappel = surAnalysePrete;
         if (rappel != null) {
             rappel.run();
@@ -739,7 +739,7 @@ public final class EditorSyntax {
     }
 
     /** Pousse le plan à CHAQUE abonné (voie 2.0 seule). */
-    private void pousserPlan(List<OutlineEntry> entrees) {
+    private void pushOutline(List<OutlineEntry> entrees) {
         for (Consumer<List<OutlineEntry>> abonne : consommateursPlan) {
             abonne.accept(entrees);
         }
@@ -756,7 +756,7 @@ public final class EditorSyntax {
         Document avant = documentSuivi;
         if (avant != null && session != null) {
             Document apres = session.document();
-            suiviPlis.surEdition(avant, start, end, removed, inserted);
+            foldTracking.surEdition(avant, start, end, removed, inserted);
             documentSuivi = apres;
             guides = guides.remapper(apres.revision(), avant, start, end,
                     removed, inserted);
@@ -784,11 +784,11 @@ public final class EditorSyntax {
             structurelle |= ancienne.structurelle();
         }
         int publieStart = versPublie(start);
-        int ligne = apres.lineForOffset(start);
+        int line = apres.lineForOffset(start);
         editionsEnAttente.add(new EditionEnAttente(apres.revision(),
                 EditSite.of(avant, apres, start, end, insere),
-                publieStart, end - start, insere.length(), ligne,
-                publieStart - apres.lineStart(ligne), structurelle));
+                publieStart, end - start, insere.length(), line,
+                publieStart - apres.lineStart(line), structurelle));
     }
 
     /**
@@ -801,10 +801,10 @@ public final class EditorSyntax {
     private int versPublie(int position) {
         int x = position;
         for (int i = editionsEnAttente.size() - 1; i >= 0; i--) {
-            EditionEnAttente edition = editionsEnAttente.get(i);
-            x = x >= edition.publieStart() + edition.publieInserted()
-                    ? x - edition.publieInserted() + edition.publieRemoved()
-                    : Math.min(x, edition.publieStart());
+            EditionEnAttente edit = editionsEnAttente.get(i);
+            x = x >= edit.publieStart() + edit.publieInserted()
+                    ? x - edit.publieInserted() + edit.publieRemoved()
+                    : Math.min(x, edit.publieStart());
         }
         return x;
     }

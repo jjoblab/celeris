@@ -60,20 +60,20 @@ public final class GhostTextSession {
      */
     public void demander(Document document, int offset) {
         annulerEnVol();
-        TokenCancellation jeton = new TokenCancellation();
-        enVol = jeton;
+        TokenCancellation token = new TokenCancellation();
+        enVol = token;
         int revisionAttendue = document.revision();
-        modele.completer(new ModelRequest(document, offset, jeton),
+        modele.completer(new ModelRequest(document, offset, token),
                 new GhostTextModel.Receiver() {
                     @Override
                     public void suggestion(GhostSuggestion arrivee) {
                         publication.execute(
-                                () -> recevoir(jeton, revisionAttendue, document, arrivee));
+                                () -> recevoir(token, revisionAttendue, document, arrivee));
                     }
 
                     @Override
                     public void aucune() {
-                        publication.execute(() -> recevoirAucune(jeton));
+                        publication.execute(() -> recevoirAucune(token));
                     }
                 });
     }
@@ -83,9 +83,9 @@ public final class GhostTextSession {
      * document — la proposition se jette ; sinon elle devient le fantôme
      * visible.
      */
-    private void recevoir(TokenCancellation jeton, int revisionAttendue,
+    private void recevoir(TokenCancellation token, int revisionAttendue,
             Document document, GhostSuggestion arrivee) {
-        if (jeton.estAnnule()) {
+        if (token.isCancelled()) {
             return;
         }
         if (arrivee.revision() != revisionAttendue) {
@@ -98,8 +98,8 @@ public final class GhostTextSession {
     }
 
     /** L'aveu du modèle ferme le fantôme visible — l'avis courant meurt. */
-    private void recevoirAucune(TokenCancellation jeton) {
-        if (jeton.estAnnule()) {
+    private void recevoirAucune(TokenCancellation token) {
+        if (token.isCancelled()) {
             return;
         }
         suggestion = null;
@@ -119,7 +119,7 @@ public final class GhostTextSession {
      * le texte qui change rend la suggestion obsolète, la requête qui
      * vole ne sert plus à rien.
      */
-    public void frappe() {
+    public void keystroke() {
         annulerEnVol();
         suggestion = null;
     }
@@ -128,7 +128,7 @@ public final class GhostTextSession {
      * Le refus explicite — clavier ou geste (F-01) : même effet que la
      * frappe, l'intention diffère — l'utilisateur rejette, il n'écrit pas.
      */
-    public void refuser() {
+    public void reject() {
         annulerEnVol();
         suggestion = null;
     }
@@ -150,12 +150,12 @@ public final class GhostTextSession {
      * @return le fragment à insérer à l'ancre, vide s'il n'y a pas de
      *         fantôme
      */
-    public String accepterMot() {
+    public String acceptWord() {
         GhostSuggestion courante = suggestion;
         if (courante == null) {
             return "";
         }
-        return accepterJusqua(finMot(courante.texte()));
+        return acceptUntil(finMot(courante.text()));
     }
 
     /**
@@ -165,13 +165,13 @@ public final class GhostTextSession {
      * @return le fragment à insérer à l'ancre, vide s'il n'y a pas de
      *         fantôme
      */
-    public String accepterLigne() {
+    public String acceptLine() {
         GhostSuggestion courante = suggestion;
         if (courante == null) {
             return "";
         }
-        int saut = courante.texte().indexOf('\n');
-        return accepterJusqua(saut < 0 ? courante.texte().length() : saut + 1);
+        int saut = courante.text().indexOf('\n');
+        return acceptUntil(saut < 0 ? courante.text().length() : saut + 1);
     }
 
     /**
@@ -180,12 +180,12 @@ public final class GhostTextSession {
      * @return le fragment à insérer à l'ancre, vide s'il n'y a pas de
      *         fantôme
      */
-    public String accepterTout() {
+    public String acceptAll() {
         GhostSuggestion courante = suggestion;
         if (courante == null) {
             return "";
         }
-        return accepterJusqua(courante.texte().length());
+        return acceptUntil(courante.text().length());
     }
 
     /**
@@ -193,20 +193,20 @@ public final class GhostTextSession {
      * traîne comprise — l'acceptation par mot pose le mot et l'espace
      * qui le sépare du suivant, jamais elle ne coupe deux mots.
      */
-    private static int finMot(String texte) {
-        int n = texte.length();
+    private static int finMot(String text) {
+        int n = text.length();
         int i = 0;
-        while (i < n && Character.isWhitespace(texte.charAt(i))) {
+        while (i < n && Character.isWhitespace(text.charAt(i))) {
             i++;
         }
-        while (i < n && !Character.isWhitespace(texte.charAt(i))) {
+        while (i < n && !Character.isWhitespace(text.charAt(i))) {
             i++;
         }
-        int fin = i;
-        while (fin < n && Character.isWhitespace(texte.charAt(fin))) {
-            fin++;
+        int end = i;
+        while (end < n && Character.isWhitespace(text.charAt(end))) {
+            end++;
         }
-        return fin;
+        return end;
     }
 
     /**
@@ -214,14 +214,14 @@ public final class GhostTextSession {
      * l'hôte, le reste survit ancré pareil — le geste de l'utilisateur
      * clôt le vol.
      */
-    private String accepterJusqua(int fin) {
+    private String acceptUntil(int end) {
         GhostSuggestion courante = suggestion;
         if (courante == null) {
             return "";
         }
         annulerEnVol();
-        String fragment = courante.texte().substring(0, fin);
-        String reste = courante.texte().substring(fin);
+        String fragment = courante.text().substring(0, end);
+        String reste = courante.text().substring(end);
         suggestion = reste.isEmpty()
                 ? null
                 : new GhostSuggestion(reste, courante.offset(), courante.revision());

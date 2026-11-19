@@ -18,7 +18,7 @@ import jo.celeris.core.syntax.scope.ScopeSelector;
  * @param regles     les règles injectées
  * @param prioriteGauche vrai pour la priorité {@code L:}
  */
-public record Injection(ScopeSelector selector, List<Regle> regles,
+public record Injection(ScopeSelector selector, List<Rule> regles,
         boolean prioriteGauche) {
 
     /** Constructeur canonique : les règles se figent, jamais nulles. */

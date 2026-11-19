@@ -25,7 +25,7 @@ class GhostPainterTest {
             0xFFE3E3E6, 0xFF9AA0A6);
 
     /** Un dessin croisé : le texte, la position et la couleur au moment de l'appel. */
-    private record Dessin(String texte, float x, float y, int couleur) {
+    private record Dessin(String text, float x, float y, int couleur) {
     }
 
     /** Surface enregistreuse : capture chaque tracé de texte. */
@@ -104,20 +104,20 @@ class GhostPainterTest {
      */
     @Test
     void inlayOccupiesExactInkCells_onCodeBaseline() {
-        GhostPainter peintre = new GhostPainter(new FabriqueSimple());
+        GhostPainter painter = new GhostPainter(new FabriqueSimple());
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         Document document = Document.of("val reponse = \n");
         EditorMetrics metrics =
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 3L,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 3L,
                 metrics, THEME, 0, 4, 40f, 0f, 0f);
 
-        peintre.setSuggestion(
+        painter.setSuggestion(
                 new GhostSuggestion("lireAuClavier()\n    .premier()", 14, 3));
-        peintre.paint(surface, etat);
+        painter.paint(surface, state);
 
         assertEquals(2, surface.dessins().size(), "deux lignes, deux tracés");
         Dessin premiere = surface.dessins().get(0);
@@ -131,8 +131,8 @@ class GhostPainterTest {
                 "les lignes suivantes repartent au bord gauche du texte");
         assertEquals(metrics.rowBaseline(0) + metrics.lineHeight(), seconde.y(),
                 "une rangée chacune, lignes de base alignées au code");
-        assertEquals("lireAuClavier()", premiere.texte());
-        assertEquals("    .premier()", seconde.texte());
+        assertEquals("lireAuClavier()", premiere.text());
+        assertEquals("    .premier()", seconde.text());
     }
 
     /**
@@ -142,19 +142,19 @@ class GhostPainterTest {
      */
     @Test
     void encreFaneeDuTheme() {
-        GhostPainter peintre = new GhostPainter(new FabriqueSimple());
+        GhostPainter painter = new GhostPainter(new FabriqueSimple());
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         Document document = Document.of("val x = ");
         EditorMetrics metrics =
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 0L,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 0L,
                 metrics, THEME, 0, 2, 40f, 0f, 0f);
 
-        peintre.setSuggestion(new GhostSuggestion("1", 8, 0));
-        peintre.paint(surface, etat);
+        painter.setSuggestion(new GhostSuggestion("1", 8, 0));
+        painter.paint(surface, state);
 
         assertEquals(1, surface.dessins().size());
         int couleur = surface.dessins().get(0).couleur();
@@ -169,31 +169,31 @@ class GhostPainterTest {
      */
     @Test
     void fantomeFermeEtCibleDuGeste() {
-        GhostPainter peintre = new GhostPainter(new FabriqueSimple());
+        GhostPainter painter = new GhostPainter(new FabriqueSimple());
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         Document document = Document.of("val x = ");
         EditorMetrics metrics =
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 0L,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 0L,
                 metrics, THEME, 0, 2, 40f, 0f, 0f);
 
-        peintre.paint(surface, etat);
+        painter.paint(surface, state);
         assertTrue(surface.dessins().isEmpty(), "sans suggestion, rien ne se trace");
 
-        peintre.setSuggestion(new GhostSuggestion("1", 99, 0));
-        peintre.paint(surface, etat);
+        painter.setSuggestion(new GhostSuggestion("1", 99, 0));
+        painter.paint(surface, state);
         assertTrue(surface.dessins().isEmpty(),
                 "l'ancre hors document ne se trace pas");
 
-        peintre.setSuggestion(new GhostSuggestion("calcul()", 8, 0));
+        painter.setSuggestion(new GhostSuggestion("calcul()", 8, 0));
         // L'ancre vit à la colonne 8 : la première ligne couvre
         // [120, 200] horizontalement, [0, 20] verticalement.
-        assertTrue(peintre.premiereLigneTouchee(etat, 120f + 4f * 10f + 2f, 8f),
+        assertTrue(painter.premiereLigneTouchee(state, 120f + 4f * 10f + 2f, 8f),
                 "le milieu de la première ligne se touche");
-        assertTrue(!peintre.premiereLigneTouchee(etat, 205f, 8f),
+        assertTrue(!painter.premiereLigneTouchee(state, 205f, 8f),
                 "au-delà de la dernière cellule, le geste vise le code");
     }
 }

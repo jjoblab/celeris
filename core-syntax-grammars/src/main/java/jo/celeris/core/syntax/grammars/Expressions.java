@@ -16,7 +16,7 @@ import org.joni.exception.JOniException;
  * en silence, divergence de coloration invisible, pire qu'un refus.
  *
  * <p>La détection des formes catastrophiques visibles vit dans
- * {@link GardeCatastrophique} ; la substitution des fermetures à
+ * {@link CatastrophicGuard} ; la substitution des fermetures à
  * références s'appuie sur {@link #echapperLitteral} et
  * {@link #modele}.</p>
  */
@@ -36,17 +36,17 @@ final class Expressions {
     /**
      * Compile un motif au sens d'Oniguruma.
      *
-     * @param motif le texte du motif
+     * @param pattern le texte du motif
      * @return l'expression compilée, prête à matcher sur des octets UTF-8
      * @throws IllegalArgumentException si le motif est invalide — l'appelant
      *                                   décide de rejeter le paquet ou d'écarter la règle
      */
-    static Regex compiler(String motif) {
+    static Regex compiler(String pattern) {
         try {
-            byte[] octets = motif.getBytes(StandardCharsets.UTF_8);
+            byte[] octets = pattern.getBytes(StandardCharsets.UTF_8);
             return new Regex(octets, 0, octets.length, Option.NONE, UTF8Encoding.INSTANCE);
         } catch (JOniException | IllegalArgumentException e) {
-            throw new IllegalArgumentException("motif invalide : " + motif, e);
+            throw new IllegalArgumentException("motif invalide : " + pattern, e);
         }
     }
 
@@ -68,18 +68,18 @@ final class Expressions {
      * références de la fermeture ({@code \1}) se substituent par le texte
      * capturé à l'ouverture, jamais interprété.
      *
-     * @param texte le texte capturé
+     * @param text le texte capturé
      * @return le texte échappé, prêt pour le motif
      */
-    static String echapperLitteral(String texte) {
-        StringBuilder sortie = new StringBuilder(texte.length() + 8);
-        for (int i = 0; i < texte.length(); i++) {
-            char c = texte.charAt(i);
+    static String echapperLitteral(String text) {
+        StringBuilder output = new StringBuilder(text.length() + 8);
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
             if ("\\^.[]|()*+?{}-$# \t\n\r\f\u000B".indexOf(c) >= 0) {
-                sortie.append('\\');
+                output.append('\\');
             }
-            sortie.append(c);
+            output.append(c);
         }
-        return sortie.toString();
+        return output.toString();
     }
 }

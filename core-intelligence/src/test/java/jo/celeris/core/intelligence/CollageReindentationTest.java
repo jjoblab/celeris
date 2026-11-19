@@ -23,8 +23,8 @@ class CollageReindentationTest {
     /** Collage multiligne dans un corps de méthode : aligné à l'accueil. */
     @Test
     void collageMultiligneAligneALAccueil() {
-        String texte = "class A {\n    void m() {\n    }\n}";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    void m() {\n    }\n}";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         // collage en fin de « void m() { » (offset 24)
         String colle = PasteReindenter.reindent(doc, analyse, 24,
@@ -35,8 +35,8 @@ class CollageReindentationTest {
     /** La structure relative du collage se conserve. */
     @Test
     void structureRelativeConservee() {
-        String texte = "class A {\n    void m() {\n    }\n}";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    void m() {\n    }\n}";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         String colle = PasteReindenter.reindent(doc, analyse, 24,
                 "if (x) {\n    y();\n}", IndentStyle.spaces(4));
@@ -47,8 +47,8 @@ class CollageReindentationTest {
     /** Collage monoligne : inchangé. */
     @Test
     void collageMonoligneInchange() {
-        String texte = "class A {\n    void m() {\n    }\n}";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    void m() {\n    }\n}";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         String colle = PasteReindenter.reindent(doc, analyse, 24,
                 "int a;", IndentStyle.spaces(4));
@@ -67,8 +67,8 @@ class CollageReindentationTest {
     /** Le premier niveau du collage au niveau de la classe : un cran. */
     @Test
     void collageAuNiveauClasse() {
-        String texte = "class A {\n}";
-        Document doc = Document.of(texte);
+        String text = "class A {\n}";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         // collage en fin de ligne ouvrante (offset 9)
         String colle = PasteReindenter.reindent(doc, analyse, 9,

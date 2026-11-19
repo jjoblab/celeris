@@ -14,6 +14,6 @@ public final class FichierAbsentException extends RuntimeException {
      * @param chemin le chemin absent
      */
     public FichierAbsentException(CheminDoc chemin) {
-        super("file not found: " + chemin.ecriture());
+        super("file not found: " + chemin.writing());
     }
 }

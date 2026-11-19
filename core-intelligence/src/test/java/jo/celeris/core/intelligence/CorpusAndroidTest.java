@@ -103,8 +103,8 @@ class CorpusAndroidTest {
                 activite, java.analyseFull(activite));
         index.remplacer("src/main/java/com/exemple/app/Utilitaire.kt",
                 utilitaire, kotlin.analyseFull(utilitaire));
-        assertTrue(index.symboles().stream().anyMatch(s -> s.nom().equals("MainActivity")));
-        assertTrue(index.symboles().stream().anyMatch(s -> s.nom().equals("Utilitaire")));
+        assertTrue(index.symbols().stream().anyMatch(s -> s.nom().equals("MainActivity")));
+        assertTrue(index.symbols().stream().anyMatch(s -> s.nom().equals("Utilitaire")));
         // les usages de Utilitaire vivent dans DEUX fichiers : la déclaration
         // Kotlin, l'appel Java
         List<IndexSymboles.Usage> usages = index.usages("Utilitaire");
@@ -123,7 +123,7 @@ class CorpusAndroidTest {
         assertEquals("MainActivity", trouves.get(0).nom());
         // la requête muette montre tout, l'ordre de la matrice tient
         List<Symbole> tout = index.rechercher("");
-        assertTrue(tout.size() >= index.symboles().size());
+        assertTrue(tout.size() >= index.symbols().size());
     }
 
     /** Le renommage : le plan par occurrence, fichier par fichier, la collision signalée. */
@@ -132,16 +132,16 @@ class CorpusAndroidTest {
         IndexSymboles index = indexDuCorpus();
         Renommage.PlanRenommage plan = Renommage.plan(index, "Utilitaire", "Aide");
         assertTrue(plan.conflits().isEmpty());
-        assertTrue(plan.editions().size() >= 2, "les editions couvrent les deux fichiers");
+        assertTrue(plan.edits().size() >= 2, "les editions couvrent les deux fichiers");
         // les éditions d'un fichier : ordre descendant, les offsets tiennent
-        List<TextEdit> editions = plan.editions().get(
+        List<TextEdit> edits = plan.edits().get(
                 "src/main/java/com/exemple/app/Utilitaire.kt");
-        assertNotNull(editions);
-        assertFalse(editions.isEmpty());
+        assertNotNull(edits);
+        assertFalse(edits.isEmpty());
         // la collision : renommer vers un nom déjà déclaré — signalé, jamais tranché
         Renommage.PlanRenommage collision = Renommage.plan(index, "Utilitaire", "MainActivity");
         assertTrue(collision.conflits().stream()
-                .anyMatch(c -> c.raison() == Renommage.RaisonConflit.COLLISION));
+                .anyMatch(c -> c.reason() == Renommage.RaisonConflit.COLLISION));
     }
 
     /** La complétion de base : les mots du code répondent, jamais ceux des chaînes. */

@@ -18,8 +18,8 @@ final class Repositionneur {
 
     private final PopupManager popups;
     private final Runnable compl;
-    private final Runnable fil;
-    private final Runnable bande;
+    private final Runnable thread;
+    private final Runnable band;
     private final Runnable barre;
     private final Runnable intentions;
     private final List<Runnable> consultations;
@@ -29,20 +29,20 @@ final class Repositionneur {
      *
      * @param popups       le coordinateur des popups (qui vit ?)
      * @param compl        re-pose la complétion (ouverte)
-     * @param fil          rafraîchit le fil d'Ariane (ouvert)
-     * @param bande        rafraîchit la bande d'erreurs (ouverte)
+     * @param thread          rafraîchit le fil d'Ariane (ouvert)
+     * @param band        rafraîchit la bande d'erreurs (ouverte)
      * @param barre        re-pose la barre de sélection (ouverte)
      * @param intentions   re-pose le menu d'intentions (ouvert)
      * @param consultations les repositionnements inconditionnels de la
      *                     consultation (usages, hiérarchie, gabarits…)
      */
-    Repositionneur(PopupManager popups, Runnable compl, Runnable fil,
-            Runnable bande, Runnable barre, Runnable intentions,
+    Repositionneur(PopupManager popups, Runnable compl, Runnable thread,
+            Runnable band, Runnable barre, Runnable intentions,
             List<Runnable> consultations) {
         this.popups = popups;
         this.compl = compl;
-        this.fil = fil;
-        this.bande = bande;
+        this.thread = thread;
+        this.band = band;
         this.barre = barre;
         this.intentions = intentions;
         this.consultations = List.copyOf(consultations);
@@ -54,10 +54,10 @@ final class Repositionneur {
             compl.run();
         }
         if (popups.estOuvert(PopupController.PopupKind.BREADCRUMB)) {
-            fil.run();
+            thread.run();
         }
         if (popups.estOuvert(PopupController.PopupKind.ERROR_BAND)) {
-            bande.run();
+            band.run();
         }
         if (popups.estOuvert(PopupController.PopupKind.SELECTION_BAR)) {
             barre.run();

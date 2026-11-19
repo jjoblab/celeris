@@ -37,7 +37,7 @@ import org.jspecify.annotations.Nullable;
  * pilule décorative muette à l'accessibilité — la maquette la porte
  * {@code aria-hidden}), rangée de titre avec bouton de fermeture, corps
  * défilant. Les fermetures : bouton, voile, glissement au-delà du seuil,
- * retour — l'hôte câble la touche retour sur {@link #surRetour()}. Le
+ * retour — l'hôte câble la touche retour sur {@link #onBack()}. Le
  * verre et le liseré se dessinent comme la carte des popups (un pixel,
  * les encres de la palette) ; les jetons vivent dans {@link PopupTokens},
  * la maquette de référence est {@code docs/maquettes/popups.html}.</p>
@@ -51,12 +51,12 @@ abstract class Feuille extends LinearLayout {
     /** Le bouton de fermeture — sa cible fait au moins celle du kit. */
     private final TextView boutonFermer;
     /** Le corps défilant — l'hôte y pose son contenu. */
-    private final ScrollView corps;
+    private final ScrollView body;
 
     /** Le voile de la scène — posé dans l'hôte, cliqué il ferme. */
     private @Nullable View voile;
     /** L'hôte courant — un cadre de type FrameLayout. */
-    private @Nullable ViewGroup hote;
+    private @Nullable ViewGroup host;
     /** Le rappel de fermeture — l'hôte y réapplique son état. */
     private @Nullable Runnable surFermeture;
     private boolean ouverte;
@@ -64,7 +64,7 @@ abstract class Feuille extends LinearLayout {
     /** La palette posée — le verre suit le thème de l'éditeur hôte. */
     private PopupPalette palette;
 
-    private final Paint pinceauFond = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint backgroundBrush = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pinceauLisere = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pinceauPoignee = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path cheminCarte = new Path();
@@ -87,23 +87,23 @@ abstract class Feuille extends LinearLayout {
         poignee = new Poignee(context);
         vueTitre = new TextView(context);
         boutonFermer = new TextView(context);
-        corps = new ScrollView(context);
+        body = new ScrollView(context);
 
-        poserChrome(context);
-        poserContour();
+        setChrome(context);
+        setOutline();
         // Le voile et la feuille respirent avec les barres : la feuille
         // se cale sur la barre de son bord (bas : barres et clavier,
         // haut : barre d'état), même quand l'hôte consomme les encarts.
         setOnApplyWindowInsetsListener((vue, encarts) -> {
-            poserEncarts(encarts);
+            setInsets(encarts);
             return encarts;
         });
-        poserPalette(palette);
+        setPalette(palette);
     }
 
     /** Pose le chrome : poignée, rangée de titre, corps défilant. */
-    private void poserChrome(Context context) {
-        int cible = Math.round(PopupTokens.CIBLE_MIN_FEUILLE_DP * densite);
+    private void setChrome(Context context) {
+        int target = Math.round(PopupTokens.CIBLE_MIN_FEUILLE_DP * densite);
         int respireX = Math.round(PopupTokens.RESPIRATION_X_DP * densite);
         int respireY = Math.round(PopupTokens.RESPIRATION_Y_DP * densite);
 
@@ -111,30 +111,30 @@ abstract class Feuille extends LinearLayout {
                 new LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
         boutonFermer.setText("\u00d7");
         boutonFermer.setGravity(Gravity.CENTER);
-        boutonFermer.setMinimumWidth(cible);
-        boutonFermer.setMinimumHeight(cible);
-        boutonFermer.setOnClickListener(vue -> cacher());
+        boutonFermer.setMinimumWidth(target);
+        boutonFermer.setMinimumHeight(target);
+        boutonFermer.setOnClickListener(vue -> hide());
         LinearLayout rangeeTitre = new LinearLayout(context);
         rangeeTitre.setOrientation(LinearLayout.HORIZONTAL);
         rangeeTitre.setGravity(Gravity.CENTER_VERTICAL);
         rangeeTitre.setPadding(respireX, 0, respireX / 2, 0);
         rangeeTitre.addView(vueTitre);
-        rangeeTitre.addView(boutonFermer, new LayoutParams(cible, cible));
+        rangeeTitre.addView(boutonFermer, new LayoutParams(target, target));
 
-        corps.setFillViewport(true);
-        corps.setPadding(respireX, 0, respireX, respireY);
+        body.setFillViewport(true);
+        body.setPadding(respireX, 0, respireX, respireY);
         int aire = Math.round(PopupTokens.POIGNEE_AIRE_DP * densite);
         addView(poignee, new LayoutParams(LayoutParams.MATCH_PARENT, aire));
         addView(rangeeTitre, new LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-        addView(corps, new LayoutParams(
+        addView(body, new LayoutParams(
                 LayoutParams.MATCH_PARENT, 0, 1f));
     }
 
     /** Pose le contour arrondi : les enfants se clippent aux coins de
      *  la carte. Avant l'API 30, le chemin n'existe pas — le repli
      *  arrondit les quatre coins, à un poil près le même verre. */
-    private void poserContour() {
+    private void setOutline() {
         setClipToOutline(true);
         setOutlineProvider(new ViewOutlineProvider() {
             @Override
@@ -159,10 +159,10 @@ abstract class Feuille extends LinearLayout {
     // ------------------------------------------------------------ formes
 
     /** La gravité de la feuille dans son hôte FrameLayout. */
-    abstract int gravite();
+    abstract int severity();
 
     /** La largeur au plus de la feuille, en dp. */
-    abstract float largeurMaxDp();
+    abstract float maxWidthDp();
 
     /** Les rayons de la carte, huit valeurs (quatre coins, x puis y). */
     abstract float[] rayonsDp();
@@ -179,7 +179,7 @@ abstract class Feuille extends LinearLayout {
      * @param nouvelle la palette dérivée du thème courant
      */
     public final void setPalette(PopupPalette nouvelle) {
-        poserPalette(nouvelle);
+        applyPalette(nouvelle);
         invalidate();
     }
 
@@ -192,8 +192,8 @@ abstract class Feuille extends LinearLayout {
      * Pose le libellé du bouton de fermeture — l'accessibilité l'exige
      * (ADR-008) : le glyphe seul ne dit rien au lecteur d'écran.
      */
-    public final void libelleFermeture(CharSequence libelle) {
-        boutonFermer.setContentDescription(libelle);
+    public final void libelleFermeture(CharSequence label) {
+        boutonFermer.setContentDescription(label);
     }
 
     /**
@@ -203,8 +203,8 @@ abstract class Feuille extends LinearLayout {
      * @param contenu la vue de contenu, remplie par l'hôte
      */
     public final void contenu(View contenu) {
-        corps.removeAllViews();
-        corps.addView(contenu, new FrameLayout.LayoutParams(
+        body.removeAllViews();
+        body.addView(contenu, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT));
     }
@@ -229,23 +229,23 @@ abstract class Feuille extends LinearLayout {
      *
      * @param hoteCourant le cadre hôte, de type FrameLayout
      */
-    public final void montrer(ViewGroup hoteCourant) {
+    public final void show(ViewGroup hoteCourant) {
         if (ouverte) {
             return;
         }
         if (!(hoteCourant instanceof FrameLayout)) {
             throw new IllegalStateException("Sheet host must be a FrameLayout");
         }
-        this.hote = hoteCourant;
+        this.host = hoteCourant;
         voile = new View(hoteCourant.getContext());
-        voile.setBackgroundColor(couleurVoile());
-        voile.setOnClickListener(vue -> cacher());
+        voile.setBackgroundColor(veilColor());
+        voile.setOnClickListener(vue -> hide());
         hoteCourant.addView(voile, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
         hoteCourant.addView(this, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT, gravite()));
+                FrameLayout.LayoutParams.WRAP_CONTENT, severity()));
         ouverte = true;
         setTranslationY(decalageEntreePx());
         if (animationsActives()) {
@@ -259,7 +259,7 @@ abstract class Feuille extends LinearLayout {
         // tient toujours.
         post(() -> {
             if (getRootWindowInsets() != null) {
-                poserEncarts(getRootWindowInsets());
+                setInsets(getRootWindowInsets());
             }
         });
     }
@@ -268,15 +268,15 @@ abstract class Feuille extends LinearLayout {
      * Referme la feuille — le voile s'en va, la feuille glisse vers son
      * bord, le rappel de fermeture court à la fin du geste.
      */
-    public final void cacher() {
-        ViewGroup hoteCourant = hote;
+    public final void hide() {
+        ViewGroup hoteCourant = host;
         View voileCourant = voile;
         if (!ouverte || hoteCourant == null || voileCourant == null) {
             return;
         }
         int decalage = decalageEntreePx();
         ouverte = false;
-        hote = null;
+        host = null;
         voile = null;
         hoteCourant.removeView(voileCourant);
         // La fermeture LOGIQUE est immédiate — le rappel et l'état ne
@@ -307,11 +307,11 @@ abstract class Feuille extends LinearLayout {
      *
      * @return vrai quand la feuille a consommé le retour
      */
-    public final boolean surRetour() {
+    public final boolean onBack() {
         if (!ouverte) {
             return false;
         }
-        cacher();
+        hide();
         return true;
     }
 
@@ -320,18 +320,18 @@ abstract class Feuille extends LinearLayout {
     @Override
     protected void onMeasure(int largeurSpec, int hauteurSpec) {
         super.onMeasure(largeurSpec, hauteurSpec);
-        int largeur = Math.min(getMeasuredWidth(),
+        int width = Math.min(getMeasuredWidth(),
                 MeasureSpec.getSize(largeurSpec));
-        largeur = Math.min(largeur, Math.round(largeurMaxDp() * densite));
+        width = Math.min(width, Math.round(maxWidthDp() * densite));
         int hauteurMax = Math.round(MeasureSpec.getSize(hauteurSpec)
-                * PopupTokens.PART_HAUTEUR_FEUILLE);
-        int hauteur = Math.min(getMeasuredHeight(), hauteurMax);
-        if (largeur != getMeasuredWidth() || hauteur != getMeasuredHeight()) {
+                * PopupTokens.SHEET_HEIGHT_SHARE);
+        int height = Math.min(getMeasuredHeight(), hauteurMax);
+        if (width != getMeasuredWidth() || height != getMeasuredHeight()) {
             // Seconde passe aux dimensions retenues : les enfants s'y
             // replient — le corps défilant prend ce qui reste.
             super.onMeasure(
-                    MeasureSpec.makeMeasureSpec(largeur, MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(hauteur, MeasureSpec.EXACTLY));
+                    MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
         }
     }
 
@@ -341,7 +341,7 @@ abstract class Feuille extends LinearLayout {
         cheminCarte.reset();
         coins.set(0f, 0f, getWidth(), getHeight());
         cheminCarte.addRoundRect(coins, rayonsPx(), Path.Direction.CW);
-        canvas.drawPath(cheminCarte, pinceauFond);
+        canvas.drawPath(cheminCarte, backgroundBrush);
         pinceauLisere.setStyle(Paint.Style.STROKE);
         pinceauLisere.setStrokeWidth(1f);
         canvas.drawPath(cheminCarte, pinceauLisere);
@@ -369,9 +369,9 @@ abstract class Feuille extends LinearLayout {
         return voile;
     }
 
-    private void poserPalette(PopupPalette nouvelle) {
+    private void applyPalette(PopupPalette nouvelle) {
         palette = nouvelle;
-        pinceauFond.setColor(nouvelle.background());
+        backgroundBrush.setColor(nouvelle.background());
         pinceauLisere.setColor(nouvelle.border());
         vueTitre.setTextColor(nouvelle.text());
         boutonFermer.setTextColor(nouvelle.text());
@@ -381,7 +381,7 @@ abstract class Feuille extends LinearLayout {
 
     /** La couleur du voile — la maquette : encre à 46 % sur verre clair,
      *  noir à 52 % sur verre sombre. */
-    private int couleurVoile() {
+    private int veilColor() {
         boolean sombre = (palette.background() & 0xFFFFFF) < 0x808080;
         return sombre ? 0x85000000 : 0x750F1218;
     }
@@ -398,7 +398,7 @@ abstract class Feuille extends LinearLayout {
     @SuppressWarnings("deprecation")
     // Les encarts d'avant l'API 30 ne se lisent que par les méthodes
     // depreciees du SDK — la garde de version les garde vivantes.
-    private void poserEncarts(WindowInsets encarts) {
+    private void setInsets(WindowInsets encarts) {
         int encart;
         if (Build.VERSION.SDK_INT >= 30) {
             if (coteBas()) {
@@ -423,10 +423,10 @@ abstract class Feuille extends LinearLayout {
     /** Le décalage d'entrée — hors écran avant le glissement : la
      *  hauteur de l'hôte du côté d'où la feuille glisse. */
     private int decalageEntreePx() {
-        ViewGroup hoteCourant = hote;
-        int hauteur = hoteCourant != null && hoteCourant.getHeight() > 0
+        ViewGroup hoteCourant = host;
+        int height = hoteCourant != null && hoteCourant.getHeight() > 0
                 ? hoteCourant.getHeight() : Math.max(1, getHeight());
-        return coteBas() ? hauteur : -hauteur;
+        return coteBas() ? height : -height;
     }
 
     private float[] rayonsPx() {
@@ -476,7 +476,7 @@ abstract class Feuille extends LinearLayout {
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
             float demiLargeur =
-                    PopupTokens.POIGNEE_LARGEUR_DP * densite / 2f;
+                    PopupTokens.HANDLE_WIDTH_DP * densite / 2f;
             float demiEpaisseur =
                     PopupTokens.POIGNEE_EPAISSEUR_DP * densite / 2f;
             float cx = getWidth() / 2f;
@@ -518,7 +518,7 @@ abstract class Feuille extends LinearLayout {
                     float emportee = (evenement.getRawY() - debutY)
                             * sensFermeture();
                     if (emportee > seuilGlissPx()) {
-                        cacher();
+                        hide();
                     } else if (animationsActives()) {
                         animate().translationY(0f)
                                 .setDuration(PopupTokens.DUREE_FEUILLE_MS);

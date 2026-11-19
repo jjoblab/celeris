@@ -45,7 +45,7 @@ public final class NotificationView extends TextRowsPopup {
 
     /** Une action de l'annonce — le lien de la bulle : son libellé et
      *  ce qu'elle fait. */
-    public record Action(String libelle, Runnable action) {
+    public record Action(String label, Runnable action) {
     }
 
     /** Le pas du tick de la jauge, en millisecondes — le simulateur
@@ -90,7 +90,7 @@ public final class NotificationView extends TextRowsPopup {
     public NotificationView(Context context, PopupPalette palette) {
         super(context, palette);
         float densite = getResources().getDisplayMetrics().density;
-        this.ecartJaugePx = Math.round(PopupTokens.ECART_DP * densite);
+        this.ecartJaugePx = Math.round(PopupTokens.GAP_DP * densite);
         this.epaisseurJaugePx = EPAISSEUR_JAUGE_DP * densite;
         setOnPick(this::prendre);
     }
@@ -118,19 +118,19 @@ public final class NotificationView extends TextRowsPopup {
             List<Action> actions) {
         this.titre = titre;
         this.actions = List.copyOf(actions);
-        List<Row> rangees = new ArrayList<>();
-        rangees.add(Row.tier(titre, -1, Tier.TITRE));
-        for (String ligne : message.split("\n", -1)) {
-            rangees.add(Row.of(ligne));
+        List<Row> rows = new ArrayList<>();
+        rows.add(Row.tier(titre, -1, Tier.TITRE));
+        for (String line : message.split("\n", -1)) {
+            rows.add(Row.of(line));
         }
         boolean premier = true;
         for (Action lien : this.actions) {
-            Row rangee = Row.tier(lien.libelle(), palette.accent(),
+            Row rangee = Row.tier(lien.label(), palette.accent(),
                     Tier.CORPS);
-            rangees.add(premier ? Row.apresFilet(rangee) : rangee);
+            rows.add(premier ? Row.afterRule(rangee) : rangee);
             premier = false;
         }
-        setRows(rangees);
+        setRows(rows);
     }
 
     /** Le titre de l'annonce posée. */
@@ -274,8 +274,8 @@ public final class NotificationView extends TextRowsPopup {
             return;
         }
         float y = super.contentHeight() + ecartJaugePx;
-        dessinerJauge(canvas, y);
-        dessinerLegende(canvas, y + epaisseurJaugePx
+        drawGauge(canvas, y);
+        drawLegend(canvas, y + epaisseurJaugePx
                 + ecartJaugePx * 0.5f);
     }
 
@@ -285,22 +285,22 @@ public final class NotificationView extends TextRowsPopup {
      * d'accent au prorata du reste, coins arrondis à la moitié de
      * l'épaisseur — le filet qui coule.
      */
-    private void dessinerJauge(Canvas canvas, float y) {
-        float largeur = contentWidth();
+    private void drawGauge(Canvas canvas, float y) {
+        float width = contentWidth();
         bandPaint().setColor((palette.text() & 0x00FFFFFF) | 0x1A000000);
-        jauge.set(0f, y, largeur, y + epaisseurJaugePx);
+        jauge.set(0f, y, width, y + epaisseurJaugePx);
         canvas.drawRoundRect(jauge, epaisseurJaugePx * 0.5f,
                 epaisseurJaugePx * 0.5f, bandPaint());
         bandPaint().setColor(palette.accent());
-        jauge.set(0f, y, largeur * progression(), y + epaisseurJaugePx);
+        jauge.set(0f, y, width * progression(), y + epaisseurJaugePx);
         canvas.drawRoundRect(jauge, epaisseurJaugePx * 0.5f,
                 epaisseurJaugePx * 0.5f, bandPaint());
     }
 
     /** La légende du compte à rebours — micro-typographie muette,
      *  la phrase de la jauge sous la barre. */
-    private void dessinerLegende(Canvas canvas, float y) {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_MICRO));
+    private void drawLegend(Canvas canvas, float y) {
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));
         textPaint().setColor(palette.muted());
         Paint.FontMetrics metriques = textPaint().getFontMetrics();
         canvas.drawText(phraseRebours(resteMs), 0f,
@@ -309,25 +309,25 @@ public final class NotificationView extends TextRowsPopup {
 
     @Override
     int contentWidth() {
-        float largeur = super.contentWidth();
+        float width = super.contentWidth();
         if (jaugeArmee()) {
-            textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_MICRO));
-            largeur = Math.max(largeur, textPaint().measureText(
+            textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));
+            width = Math.max(width, textPaint().measureText(
                     phraseRebours(dureeMs)));
         }
-        return Math.round(largeur);
+        return Math.round(width);
     }
 
     @Override
     int contentHeight() {
-        int hauteur = super.contentHeight();
+        int height = super.contentHeight();
         if (jaugeArmee()) {
-            textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_MICRO));
+            textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));
             Paint.FontMetrics metriques = textPaint().getFontMetrics();
-            hauteur += Math.round(ecartJaugePx + epaisseurJaugePx
+            height += Math.round(ecartJaugePx + epaisseurJaugePx
                     + ecartJaugePx * 0.5f
                     + (metriques.bottom - metriques.top));
         }
-        return hauteur;
+        return height;
     }
 }

@@ -31,9 +31,9 @@ public final class BookmarkModel implements jo.celeris.core.text.PositionProject
      * @param line la ligne à marquer ou démarquer
      */
     public void toggle(Document doc, int line) {
-        Integer debut = doc.lineStart(line);
-        if (!offsets.remove(debut)) {
-            offsets.add(debut);
+        Integer start = doc.lineStart(line);
+        if (!offsets.remove(start)) {
+            offsets.add(start);
         }
     }
 
@@ -55,11 +55,11 @@ public final class BookmarkModel implements jo.celeris.core.text.PositionProject
      * @return les lignes triées
      */
     public List<Integer> lines(Document doc) {
-        List<Integer> lignes = new ArrayList<>(offsets.size());
+        List<Integer> lines = new ArrayList<>(offsets.size());
         for (Integer offset : offsets) {
-            lignes.add(doc.lineForOffset(Math.min(offset, Math.max(0, doc.length()))));
+            lines.add(doc.lineForOffset(Math.min(offset, Math.max(0, doc.length()))));
         }
-        return lignes;
+        return lines;
     }
 
     /**
@@ -86,8 +86,8 @@ public final class BookmarkModel implements jo.celeris.core.text.PositionProject
      * @return la ligne marquée précédente, -1 sans signet
      */
     public int previousBefore(Document doc, int line) {
-        int debutLigne = doc.lineStart(line);
-        Integer precedent = offsets.lower(debutLigne);
+        int lineStart = doc.lineStart(line);
+        Integer precedent = offsets.lower(lineStart);
         if (precedent == null) {
             precedent = offsets.isEmpty() ? null : offsets.last();
         }

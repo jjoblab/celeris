@@ -32,10 +32,10 @@ public final class ContextExclusions {
      * @param contenuFichier le contenu du fichier d'exclusions
      * @return les exclusions prêtes à consulter
      */
-    public static ContextExclusions de(String contenuFichier) {
+    public static ContextExclusions of(String contenuFichier) {
         List<String> regles = new ArrayList<>();
-        for (String ligne : contenuFichier.split("\n", -1)) {
-            String nue = ligne.strip();
+        for (String line : contenuFichier.split("\n", -1)) {
+            String nue = line.strip();
             if (!nue.isEmpty() && !nue.startsWith("#")) {
                 regles.add(nue);
             }
@@ -60,7 +60,7 @@ public final class ContextExclusions {
      * @param chemin le chemin du document visé, normalisé
      * @return vrai si ce chemin ne part jamais vers un modèle
      */
-    public boolean estExclu(String chemin) {
+    public boolean isExcluded(String chemin) {
         for (String regle : regles) {
             if (regleExclut(regle, chemin)) {
                 return true;

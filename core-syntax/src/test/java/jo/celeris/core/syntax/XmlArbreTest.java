@@ -60,15 +60,15 @@ class XmlArbreTest {
     @Test
     void plisDesElements() {
         Document doc = Document.of(CorpusChargeur.exempleXml());
-        List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
-        FoldSpan premier = plis.get(0);
+        List<FoldSpan> folds = TreeFolds.regions(doc, service.analyseFull(doc));
+        FoldSpan premier = folds.get(0);
         assertEquals(0, premier.startLine(),
                 "le prologue et son commentaire se replient ensemble");
         assertEquals(1, premier.endLine());
-        FoldSpan racine = plis.get(1);
+        FoldSpan racine = folds.get(1);
         assertEquals(2, racine.startLine(), "le pli de la racine s'ouvre à sa balise");
         assertEquals(21, racine.endLine(), "et couvre tout le document");
-        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 4 && p.endLine() == 10),
+        assertTrue(folds.stream().anyMatch(p -> p.startLine() == 4 && p.endLine() == 10),
                 "le premier produit se replie de sa balise à sa fermeture");
     }
 
@@ -98,8 +98,8 @@ class XmlArbreTest {
         Document doc = Document.of(source);
         List<OutlineEntry> plan = TreeOutline.entries(doc, service.analyseFull(doc));
         assertEquals(2, plan.size(), "la racine et sa feuille, rien de plus");
-        List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
-        assertTrue(plis.isEmpty(), "une seule ligne : aucun pli");
+        List<FoldSpan> folds = TreeFolds.regions(doc, service.analyseFull(doc));
+        assertTrue(folds.isEmpty(), "une seule ligne : aucun pli");
     }
 
     /** Les niveaux d'indentation suivent l'imbrication des éléments. */
@@ -120,11 +120,11 @@ class XmlArbreTest {
         String source = CorpusChargeur.exempleXml();
         Document doc = Document.of(source);
         Analysis complet = service.analyseFull(doc);
-        int cible = source.indexOf("électronique");
-        assertTrue(cible > 0);
-        Document edite = doc.replace(cible, cible + 12, "numerique");
+        int target = source.indexOf("électronique");
+        assertTrue(target > 0);
+        Document edite = doc.replace(target, target + 12, "numerique");
         Analysis diff = service.analyseIncremental(edite, complet,
-                EditSite.of(doc, edite, cible, cible + 12, "numerique"));
+                EditSite.of(doc, edite, target, target + 12, "numerique"));
         Arbres.verifierEquivalence(diff.tree(),
                 service.analyseFull(edite).tree(), edite);
     }

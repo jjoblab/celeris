@@ -12,7 +12,7 @@ public interface AuditeurExecution {
      * Appelé à chaque changement d'état d'un fichier lancé.
      *
      * @param fichier le fichier dont l'état change
-     * @param etat    le nouvel état
+     * @param state    le nouvel état
      */
-    void surChangement(CheminDoc fichier, EtatExecution etat);
+    void surChangement(CheminDoc fichier, RunState state);
 }

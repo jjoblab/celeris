@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import jo.celeris.android.host.spi.DiagnosticHote;
+import jo.celeris.android.host.spi.HostDiagnostic;
 import jo.celeris.android.host.spi.GraviteDiagnostic;
 import jo.celeris.android.widgets.BadgeGenre;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionListView;
 import jo.celeris.android.widgets.DiagnosticTooltipView;
 import jo.celeris.android.widgets.ErrorBandModel;
-import jo.celeris.core.lsp.types.ElementCompletion;
-import jo.celeris.core.lsp.types.ListeCompletion;
+import jo.celeris.core.lsp.types.CompletionItemLsp;
+import jo.celeris.core.lsp.types.CompletionListLsp;
 
 import jo.celeris.core.syntax.structure.OutlineEntry;
 import jo.celeris.core.syntax.SyntaxIssue;
@@ -56,7 +56,7 @@ public final class ContenuPopups {
             Map.entry(9, BadgeGenre.Genre.PAQUET),
             Map.entry(17, BadgeGenre.Genre.PAQUET),
             Map.entry(19, BadgeGenre.Genre.PAQUET),
-            Map.entry(14, BadgeGenre.Genre.MOT_CLE),
+            Map.entry(14, BadgeGenre.Genre.KEYWORD),
             Map.entry(15, BadgeGenre.Genre.EXTRAIT));
 
     /** Le constructeur des décisions — purement statique, il reste muet. */
@@ -72,14 +72,14 @@ public final class ContenuPopups {
      * @return l'identifiant complet, null si aucun
      */
     public static @Nullable String symboleA(Document document, int offset) {
-        String texte = document.text();
-        int borne = Math.min(offset, texte.length());
-        int debut = debutIdentifiant(texte, borne);
-        int fin = borne;
-        while (fin < texte.length() && estIdentifiant(texte.charAt(fin))) {
-            fin++;
+        String text = document.text();
+        int borne = Math.min(offset, text.length());
+        int start = debutIdentifiant(text, borne);
+        int end = borne;
+        while (end < text.length() && estIdentifiant(text.charAt(end))) {
+            end++;
         }
-        return debut == fin ? null : texte.substring(debut, fin);
+        return start == end ? null : text.substring(start, end);
     }
 
     /**
@@ -100,11 +100,11 @@ public final class ContenuPopups {
      * vit ET la sert — sa réponse brute deviendra les candidats typés ;
      * sinon le repli local (les mots du code, le coach) propose.
      *
-     * @param serveur la session de langage branchée, null pour aucune
+     * @param server la session de langage branchée, null pour aucune
      * @return vrai quand la complétion passe par le serveur
      */
-    public static boolean leServeurPassePremier(@Nullable LanguageSession serveur) {
-        return serveur != null && serveur.sertCompletion();
+    public static boolean serverFirst(@Nullable LanguageSession server) {
+        return server != null && server.supportsCompletion();
     }
 
     /**
@@ -124,7 +124,7 @@ public final class ContenuPopups {
     public static boolean doitProposerApresEdition(boolean completionAuto,
             boolean acceptation, Document document, int caret) {
         return completionAuto && !acceptation
-                && doitOuvrirALaFrappe(document, caret);
+                && shouldOpenOnType(document, caret);
     }
 
     /**
@@ -138,10 +138,10 @@ public final class ContenuPopups {
      * @param caret    la position du curseur
      * @return vrai quand la liste se propose à la frappe
      */
-    public static boolean doitOuvrirALaFrappe(Document document, int caret) {
-        String texte = document.text();
-        int borne = Math.min(caret, texte.length());
-        return borne > 0 && estIdentifiant(texte.charAt(borne - 1));
+    public static boolean shouldOpenOnType(Document document, int caret) {
+        String text = document.text();
+        int borne = Math.min(caret, text.length());
+        return borne > 0 && estIdentifiant(text.charAt(borne - 1));
     }
 
     /**
@@ -157,18 +157,18 @@ public final class ContenuPopups {
      */
     public static List<String> completionMots(Document document, int caret,
             List<String> motsReserves) {
-        String texte = document.text();
-        int debutMot = debutIdentifiant(texte, caret);
-        String prefixe = texte.substring(debutMot, caret);
+        String text = document.text();
+        int debutMot = debutIdentifiant(text, caret);
+        String prefixe = text.substring(debutMot, caret);
         if (prefixe.isEmpty()) {
             return List.of();
         }
         Map<String, Boolean> vus = new LinkedHashMap<>();
-        for (String nom : identifiers(texte)) {
-            ajouter(vus, nom, prefixe);
+        for (String nom : identifiers(text)) {
+            add(vus, nom, prefixe);
         }
         for (String mot : motsReserves) {
-            ajouter(vus, mot, prefixe);
+            add(vus, mot, prefixe);
         }
         List<String> candidats = new ArrayList<>(vus.keySet());
         candidats.sort((a, b) -> {
@@ -190,9 +190,9 @@ public final class ContenuPopups {
      * @return le préfixe, vide hors de tout identifiant
      */
     public static String prefixeCourant(Document document, int caret) {
-        String texte = document.text();
-        int borne = Math.min(caret, texte.length());
-        return texte.substring(debutIdentifiant(texte, borne), borne);
+        String text = document.text();
+        int borne = Math.min(caret, text.length());
+        return text.substring(debutIdentifiant(text, borne), borne);
     }
 
     /**
@@ -204,17 +204,17 @@ public final class ContenuPopups {
      * @return les candidats typés, même ordre que le serveur
      */
     public static List<CompletionListView.Candidat> candidats(
-            @Nullable ListeCompletion reponse) {
+            @Nullable CompletionListLsp reponse) {
         if (reponse == null) {
             return List.of();
         }
         List<CompletionListView.Candidat> types = new ArrayList<>();
-        for (ElementCompletion element : reponse.elements()) {
+        for (CompletionItemLsp element : reponse.elements()) {
             if (types.size() >= MAX_CANDIDATS) {
                 break;
             }
-            types.add(new CompletionListView.Candidat(element.libelle(),
-                    identiteDe(element), genreDe(element.genre())));
+            types.add(new CompletionListView.Candidat(element.label(),
+                    identiteDe(element), kindOf(element.kind())));
         }
         return types;
     }
@@ -228,14 +228,14 @@ public final class ContenuPopups {
      * @return le modèle de documentation, null si l'élément n'en dit rien
      */
     public static @Nullable CompletionDocModel docDe(
-            @Nullable ListeCompletion reponse, int index) {
+            @Nullable CompletionListLsp reponse, int index) {
         if (reponse == null || index < 0
                 || index >= reponse.elements().size()) {
             return null;
         }
-        ElementCompletion element = reponse.elements().get(index);
+        CompletionItemLsp element = reponse.elements().get(index);
         return element.documentation() == null ? null
-                : CompletionDocModel.of(element.libelle(),
+                : CompletionDocModel.of(element.label(),
                         element.documentation());
     }
 
@@ -249,17 +249,17 @@ public final class ContenuPopups {
      */
     public static List<String> pathFor(List<OutlineEntry> entrees, int caret) {
         List<OutlineEntry> contenantes = new ArrayList<>();
-        for (OutlineEntry entree : entrees) {
-            if (entree.startOffset() <= caret && caret < entree.endOffset()) {
-                contenantes.add(entree);
+        for (OutlineEntry input : entrees) {
+            if (input.startOffset() <= caret && caret < input.endOffset()) {
+                contenantes.add(input);
             }
         }
         contenantes.sort((a, b) -> Integer.compare(
                 b.endOffset() - b.startOffset(),
                 a.endOffset() - a.startOffset()));
         List<String> noms = new ArrayList<>();
-        for (OutlineEntry entree : contenantes) {
-            noms.add(entree.name());
+        for (OutlineEntry input : contenantes) {
+            noms.add(input.name());
         }
         return List.copyOf(noms);
     }
@@ -282,18 +282,18 @@ public final class ContenuPopups {
      *
      * @param diagnostics les diagnostics de l'hôte
      * @param nomFichier  le nom du fichier ouvert — le filtre s'y fait
-     * @param ligne       la ligne visitée, à partir de zéro
+     * @param line       la ligne visitée, à partir de zéro
      * @return les problèmes de la ligne, vides sans diagnostic
      */
     public static List<DiagnosticTooltipView.Probleme> problemesDe(
-            List<DiagnosticHote> diagnostics, String nomFichier, int ligne) {
+            List<HostDiagnostic> diagnostics, String nomFichier, int line) {
         List<DiagnosticTooltipView.Probleme> problemes = new ArrayList<>();
-        for (DiagnosticHote diagnostic : diagnostics) {
-            if (diagnostic.ligne() == ligne + 1
+        for (HostDiagnostic diagnostic : diagnostics) {
+            if (diagnostic.line() == line + 1
                     && diagnostic.chemin().nom().equals(nomFichier)) {
                 problemes.add(new DiagnosticTooltipView.Probleme(
                         diagnostic.message(),
-                        diagnostic.gravite() == GraviteDiagnostic.ERREUR
+                        diagnostic.severity() == GraviteDiagnostic.ERREUR
                                 ? DiagnosticTooltipView.Severity.ERROR
                                 : DiagnosticTooltipView.Severity.WARNING));
             }
@@ -301,13 +301,13 @@ public final class ContenuPopups {
         return problemes;
     }
 
-    public static List<SyntaxIssue> issues(List<DiagnosticHote> diagnostics,
+    public static List<SyntaxIssue> issues(List<HostDiagnostic> diagnostics,
             String nomFichier, Document document) {
         List<SyntaxIssue> issues = new ArrayList<>();
-        for (DiagnosticHote diagnostic : diagnostics(diagnostics, nomFichier)) {
-            int ligne = Math.max(0, diagnostic.ligne() - 1);
-            int debut = document.lineStart(ligne);
-            issues.add(new SyntaxIssue(debut, 1, diagnostic.message()));
+        for (HostDiagnostic diagnostic : diagnostics(diagnostics, nomFichier)) {
+            int line = Math.max(0, diagnostic.line() - 1);
+            int start = document.lineStart(line);
+            issues.add(new SyntaxIssue(start, 1, diagnostic.message()));
         }
         return issues;
     }
@@ -320,12 +320,12 @@ public final class ContenuPopups {
      * @param nomFichier  le nom du fichier ouvert — le filtre s'y fait
      * @return les gravités (3 erreur, 2 avertissement, autre information)
      */
-    public static int[] gravites(List<DiagnosticHote> diagnostics,
+    public static int[] gravites(List<HostDiagnostic> diagnostics,
             String nomFichier) {
-        List<DiagnosticHote> duFichier = diagnostics(diagnostics, nomFichier);
+        List<HostDiagnostic> duFichier = diagnostics(diagnostics, nomFichier);
         int[] gravites = new int[duFichier.size()];
         for (int i = 0; i < duFichier.size(); i++) {
-            gravites[i] = duFichier.get(i).gravite()
+            gravites[i] = duFichier.get(i).severity()
                     == GraviteDiagnostic.ERREUR
                     ? ErrorBandModel.GRAVITE_ERREUR : 2;
         }
@@ -334,7 +334,7 @@ public final class ContenuPopups {
 
     /** L'identité qualifiée d'un élément du serveur : son détail, la
      *  première ligne de sa documentation sinon, vide sans rien. */
-    private static String identiteDe(ElementCompletion element) {
+    private static String identiteDe(CompletionItemLsp element) {
         if (element.detail() != null && !element.detail().isEmpty()) {
             return element.detail();
         }
@@ -349,14 +349,14 @@ public final class ContenuPopups {
 
     /** Le genre de badge du protocole (CompletionItemKind) au
      *  vocabulaire du kit — le hors-table reste variable. */
-    private static BadgeGenre.Genre genreDe(int kind) {
+    private static BadgeGenre.Genre kindOf(int kind) {
         return GENRES.getOrDefault(kind, BadgeGenre.Genre.VARIABLE);
     }
 
-    private static List<DiagnosticHote> diagnostics(
-            List<DiagnosticHote> diagnostics, String nomFichier) {
-        List<DiagnosticHote> duFichier = new ArrayList<>();
-        for (DiagnosticHote diagnostic : diagnostics) {
+    private static List<HostDiagnostic> diagnostics(
+            List<HostDiagnostic> diagnostics, String nomFichier) {
+        List<HostDiagnostic> duFichier = new ArrayList<>();
+        for (HostDiagnostic diagnostic : diagnostics) {
             if (diagnostic.chemin().nom().equals(nomFichier)) {
                 duFichier.add(diagnostic);
             }
@@ -364,7 +364,7 @@ public final class ContenuPopups {
         return duFichier;
     }
 
-    private static void ajouter(Map<String, Boolean> vus, String nom,
+    private static void add(Map<String, Boolean> vus, String nom,
             String prefixe) {
         if (nom.length() >= prefixe.length()
                 && nom.regionMatches(true, 0, prefixe, 0, prefixe.length())) {
@@ -373,25 +373,25 @@ public final class ContenuPopups {
     }
 
     /** Le début de l'identifiant qui porte l'offset donné. */
-    private static int debutIdentifiant(String texte, int offset) {
-        int i = Math.min(offset, texte.length());
-        while (i > 0 && estIdentifiant(texte.charAt(i - 1))) {
+    private static int debutIdentifiant(String text, int offset) {
+        int i = Math.min(offset, text.length());
+        while (i > 0 && estIdentifiant(text.charAt(i - 1))) {
             i--;
         }
         return i;
     }
 
     /** Les identifiants du texte, dans l'ordre du document. */
-    private static List<String> identifiers(String texte) {
+    private static List<String> identifiers(String text) {
         List<String> noms = new ArrayList<>();
         int i = 0;
-        while (i < texte.length()) {
-            if (estIdentifiant(texte.charAt(i))) {
-                int debut = i;
-                while (i < texte.length() && estIdentifiant(texte.charAt(i))) {
+        while (i < text.length()) {
+            if (estIdentifiant(text.charAt(i))) {
+                int start = i;
+                while (i < text.length() && estIdentifiant(text.charAt(i))) {
                     i++;
                 }
-                noms.add(texte.substring(debut, i));
+                noms.add(text.substring(start, i));
             } else {
                 i++;
             }

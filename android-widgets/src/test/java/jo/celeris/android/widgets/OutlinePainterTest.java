@@ -46,23 +46,23 @@ class OutlinePainterTest {
         }
     }
 
-    private static OutlineEntry entree(NodeCategory categorie, String nom,
-            int debut, int fin) {
-        return new OutlineEntry(categorie, nom, debut, fin, 0, 0);
+    private static OutlineEntry input(NodeCategory categorie, String nom,
+            int start, int end) {
+        return new OutlineEntry(categorie, nom, start, end, 0, 0);
     }
 
     /** Le glyphe suit la catégorie, le nom se retire d'un pas par niveau. */
     @Test
     void glypheParCategorieEtRetraitParNiveau() {
-        OutlineModel modele = new OutlineModel();
-        modele.appliquer(List.of(
-                entree(NodeCategory.TYPE, "Exemple", 0, 100),
-                entree(NodeCategory.FUNCTION, "premiere", 10, 90),
-                entree(NodeCategory.FIELD, "champ", 20, 30)));
+        OutlineModel model = new OutlineModel();
+        model.appliquer(List.of(
+                input(NodeCategory.TYPE, "Exemple", 0, 100),
+                input(NodeCategory.FUNCTION, "premiere", 10, 90),
+                input(NodeCategory.FIELD, "champ", 20, 30)));
 
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
-        OutlinePainter peintre = new OutlinePainter(40f, 24f, 10f, 0xFF000000, 0xFF5F6368);
-        peintre.dessiner(modele, surface);
+        OutlinePainter painter = new OutlinePainter(40f, 24f, 10f, 0xFF000000, 0xFF5F6368);
+        painter.draw(model, surface);
 
         assertEquals(List.of("rectangle", "texte:Exemple",
                         "cercle", "texte:premiere",
@@ -77,33 +77,33 @@ class OutlinePainterTest {
     /** Un plan vide ne trace rien ; la hauteur suit le nombre d'entrées. */
     @Test
     void planVideNeTraceRienEtHauteurSuitLesEntrees() {
-        OutlineModel modele = new OutlineModel();
+        OutlineModel model = new OutlineModel();
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
-        OutlinePainter peintre = new OutlinePainter(40f, 24f, 10f, 0xFF000000, 0xFF5F6368);
+        OutlinePainter painter = new OutlinePainter(40f, 24f, 10f, 0xFF000000, 0xFF5F6368);
 
-        peintre.dessiner(modele, surface);
+        painter.draw(model, surface);
         assertEquals(0, surface.appels.size(), "un plan vide ne trace rien");
-        assertEquals(0f, peintre.hauteur(0), 0.001f, "hauteur nulle sans entrée");
+        assertEquals(0f, painter.height(0), 0.001f, "hauteur nulle sans entrée");
 
-        modele.appliquer(List.of(entree(NodeCategory.TYPE, "Exemple", 0, 100)));
-        assertEquals(40f, peintre.hauteur(modele.nombre()), 0.001f,
+        model.appliquer(List.of(input(NodeCategory.TYPE, "Exemple", 0, 100)));
+        assertEquals(40f, painter.height(model.nombre()), 0.001f,
                 "une entrée, une hauteur de rangée");
     }
 
     /** Les catégories restantes ont leur glyphe, jamais de trou. */
     @Test
     void chaqueCategorieATraceSonGlyphe() {
-        OutlineModel modele = new OutlineModel();
-        modele.appliquer(List.of(
-                entree(NodeCategory.TAG, "balise", 0, 10),
-                entree(NodeCategory.BLOCK, "bloc", 20, 30),
-                entree(NodeCategory.STATEMENT, "instruction", 40, 50),
-                entree(NodeCategory.OTHER, "autre", 60, 70),
-                entree(NodeCategory.ERROR, "rate", 80, 90)));
+        OutlineModel model = new OutlineModel();
+        model.appliquer(List.of(
+                input(NodeCategory.TAG, "balise", 0, 10),
+                input(NodeCategory.BLOCK, "bloc", 20, 30),
+                input(NodeCategory.STATEMENT, "instruction", 40, 50),
+                input(NodeCategory.OTHER, "autre", 60, 70),
+                input(NodeCategory.ERROR, "rate", 80, 90)));
 
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
-        OutlinePainter peintre = new OutlinePainter(40f, 24f, 10f, 0xFF000000, 0xFF5F6368);
-        peintre.dessiner(modele, surface);
+        OutlinePainter painter = new OutlinePainter(40f, 24f, 10f, 0xFF000000, 0xFF5F6368);
+        painter.draw(model, surface);
 
         assertEquals(10, surface.appels.size(), "cinq entrées, un glyphe et un texte chacune");
         assertEquals("rectangle", surface.appels.get(0), "une balise en rectangle");

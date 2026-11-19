@@ -76,8 +76,8 @@ class ExtractionTest {
     void laVariableHorsMethodeRefuse() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = debutDe("40");
-        assertNull(Extraction.variable(doc, analyse, debut, debut + 2, "dix"));
+        int start = debutDe("40");
+        assertNull(Extraction.variable(doc, analyse, start, start + 2, "dix"));
     }
 
     /** B-20 — la sélection au début de sa ligne : le nom remplacé reste après la déclaration. */
@@ -93,9 +93,9 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("a + b");
+        int start = source.indexOf("a + b");
         Extraction.ExtractionPlan plan = Extraction.variable(doc, analyse,
-                debut, debut + 5, "somme");
+                start, start + 5, "somme");
         assertNotNull(plan);
         TextSession session = TextSession.of(source, System::nanoTime);
         session.apply(Transaction.of(plan.edits()));
@@ -115,9 +115,9 @@ class ExtractionTest {
     void laConstante() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = debutDe("40");
+        int start = debutDe("40");
         Extraction.ExtractionPlan plan = Extraction.constant(doc, analyse,
-                debut, debut + 2, "baseInitiale");
+                start, start + 2, "baseInitiale");
         assertNotNull(plan);
         TextSession session = TextSession.of(SOURCE, System::nanoTime);
         session.apply(Transaction.of(plan.edits()));
@@ -135,9 +135,9 @@ class ExtractionTest {
     void leChamp() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = debutDe("40");
+        int start = debutDe("40");
         Extraction.ExtractionPlan plan = Extraction.field(doc, analyse,
-                debut, debut + 2, "valeurBase");
+                start, start + 2, "valeurBase");
         assertNotNull(plan);
         TextSession session = TextSession.of(SOURCE, System::nanoTime);
         session.apply(Transaction.of(plan.edits()));
@@ -153,11 +153,11 @@ class ExtractionTest {
     void sansLitteralLesMembresRefusent() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = debutDe("base + ajout");
-        assertNull(Extraction.constant(doc, analyse, debut, debut + 11, "somme"));
-        assertNull(Extraction.field(doc, analyse, debut, debut + 11, "somme"));
+        int start = debutDe("base + ajout");
+        assertNull(Extraction.constant(doc, analyse, start, start + 11, "somme"));
+        assertNull(Extraction.field(doc, analyse, start, start + 11, "somme"));
         // La variable, elle, tombe sur « var ».
-        assertNotNull(Extraction.variable(doc, analyse, debut, debut + 11, "somme"));
+        assertNotNull(Extraction.variable(doc, analyse, start, start + 11, "somme"));
     }
 
     /** B-20 — les types lexicaux : la forme du littéral décide. */
@@ -187,17 +187,17 @@ class ExtractionTest {
     void lesSelectionsInvalidesSeRefusent() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = debutDe("40");
+        int start = debutDe("40");
         assertThrows(IllegalArgumentException.class,
-                () -> Extraction.variable(doc, analyse, debut, debut, "x"));
+                () -> Extraction.variable(doc, analyse, start, start, "x"));
         assertThrows(IllegalArgumentException.class,
-                () -> Extraction.variable(doc, analyse, debut + 2, debut, "x"));
+                () -> Extraction.variable(doc, analyse, start + 2, start, "x"));
         assertThrows(IllegalArgumentException.class,
                 () -> Extraction.variable(doc, analyse, -1, 2, "x"));
         assertThrows(IllegalArgumentException.class,
-                () -> Extraction.variable(doc, analyse, debut, doc.length() + 1, "x"));
+                () -> Extraction.variable(doc, analyse, start, doc.length() + 1, "x"));
         assertThrows(IllegalArgumentException.class,
-                () -> Extraction.variable(doc, analyse, debut, debut + 2, " "));
+                () -> Extraction.variable(doc, analyse, start, start + 2, " "));
     }
 
     /** B-20 — la méthode : l'appel remplace la sélection, la méthode naît
@@ -206,9 +206,9 @@ class ExtractionTest {
     void laMethode() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = debutDe("base + ajout");
+        int start = debutDe("base + ajout");
         Extraction.ExtractionPlan plan = Extraction.method(doc, analyse,
-                debut, debut + "base + ajout".length(), "somme");
+                start, start + "base + ajout".length(), "somme");
         assertNotNull(plan);
         TextSession session = TextSession.of(SOURCE, System::nanoTime);
         session.apply(Transaction.of(plan.edits()));
@@ -231,9 +231,9 @@ class ExtractionTest {
     void laMethodeSansParametre() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = debutDe("partiel * 2");
+        int start = debutDe("partiel * 2");
         Extraction.ExtractionPlan plan = Extraction.method(doc, analyse,
-                debut, debut + 11, "foisDeux");
+                start, start + 11, "foisDeux");
         assertNotNull(plan);
         TextSession session = TextSession.of(SOURCE, System::nanoTime);
         session.apply(Transaction.of(plan.edits()));
@@ -259,9 +259,9 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("borne - compteur");
+        int start = source.indexOf("borne - compteur");
         Extraction.ExtractionPlan plan = Extraction.method(doc, analyse,
-                debut, debut + 16, "restant");
+                start, start + 16, "restant");
         assertNotNull(plan);
         TextSession session = TextSession.of(source, System::nanoTime);
         session.apply(Transaction.of(plan.edits()));
@@ -283,9 +283,9 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("prefixe + \" !\"");
+        int start = source.indexOf("prefixe + \" !\"");
         Extraction.ExtractionPlan plan = Extraction.method(doc, analyse,
-                debut, debut + 14, "suffixer");
+                start, start + 14, "suffixer");
         assertNotNull(plan);
         TextSession session = TextSession.of(source, System::nanoTime);
         session.apply(Transaction.of(plan.edits()));
@@ -299,8 +299,8 @@ class ExtractionTest {
     void laMethodeHorsMethodeRefuse() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = debutDe("40");
-        assertNull(Extraction.method(doc, analyse, debut, debut + 2, "quarante"));
+        int start = debutDe("40");
+        assertNull(Extraction.method(doc, analyse, start, start + 2, "quarante"));
     }
 
     /** B-20 — la méthode refuse une référence nue non déclarée, jamais un plan faux. */
@@ -315,8 +315,8 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("mystere * 2");
-        assertNull(Extraction.method(doc, analyse, debut, debut + 11, "double"));
+        int start = source.indexOf("mystere * 2");
+        assertNull(Extraction.method(doc, analyse, start, start + 11, "double"));
     }
 
     /** B-20 — la méthode refuse un local « var » dont l'initialisateur ne se lit pas. */
@@ -332,8 +332,8 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("tampon;");
-        assertNull(Extraction.method(doc, analyse, debut, debut + 6, "valeur"));
+        int start = source.indexOf("tampon;");
+        assertNull(Extraction.method(doc, analyse, start, start + 6, "valeur"));
     }
 
     /** B-20 — le paramètre : la signature gagne le paramètre, la sélection
@@ -353,8 +353,8 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("quantite * 2");
-        int debutLitteral = source.indexOf("2", debut);
+        int start = source.indexOf("quantite * 2");
+        int debutLitteral = source.indexOf("2", start);
         Extraction.ExtractionPlan plan = Extraction.parameter(doc, analyse,
                 debutLitteral, debutLitteral + 1, "unite");
         assertNotNull(plan);
@@ -388,9 +388,9 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("tarif / 2");
+        int start = source.indexOf("tarif / 2");
         Extraction.ExtractionPlan plan = Extraction.parameter(doc, analyse,
-                debut, debut + 5, "seuil");
+                start, start + 5, "seuil");
         assertNotNull(plan);
         TextSession session = TextSession.of(source, System::nanoTime);
         session.apply(Transaction.of(plan.edits()));
@@ -421,9 +421,9 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("100");
+        int start = source.indexOf("100");
         Extraction.ExtractionPlan plan = Extraction.parameter(doc, analyse,
-                debut, debut + 3, "arrondi");
+                start, start + 3, "arrondi");
         assertNotNull(plan);
         TextSession session = TextSession.of(source, System::nanoTime);
         session.apply(Transaction.of(plan.edits()));
@@ -445,8 +445,8 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("quantite);");
-        assertNull(Extraction.parameter(doc, analyse, debut, debut + 8, "unite"));
+        int start = source.indexOf("quantite);");
+        assertNull(Extraction.parameter(doc, analyse, start, start + 8, "unite"));
     }
 
     /** B-20 — le paramètre refuse la surcharge homonyme : l'appel ne se
@@ -466,8 +466,8 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("2;");
-        assertNull(Extraction.parameter(doc, analyse, debut, debut + 1, "unite"));
+        int start = source.indexOf("2;");
+        assertNull(Extraction.parameter(doc, analyse, start, start + 1, "unite"));
     }
 
     /** B-20 — le paramètre refuse l'appel sur un récepteur qui n'est pas
@@ -487,7 +487,7 @@ class ExtractionTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("2;");
-        assertNull(Extraction.parameter(doc, analyse, debut, debut + 1, "unite"));
+        int start = source.indexOf("2;");
+        assertNull(Extraction.parameter(doc, analyse, start, start + 1, "unite"));
     }
 }

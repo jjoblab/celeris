@@ -55,7 +55,7 @@ public final class GuidesStructurels {
      * fermeture dans leurs lignes, pour le calcul des rangées quand
      * la coupure les déplace.
      *
-     * @param colonne         la colonne du trait, en colonnes visuelles
+     * @param column         la colonne du trait, en colonnes visuelles
      * @param colonneOuvrante la colonne de l'accolade ouvrante dans sa
      *                        ligne (zéro pour un guide d'indentation)
      * @param ligneOuverture  la ligne qui porte l'ouverture du bloc
@@ -63,12 +63,12 @@ public final class GuidesStructurels {
      *                        ligne (zéro pour un guide d'indentation)
      * @param ligneApresFin   la première ligne APRÈS le corps du bloc
      */
-    public record Guide(int colonne, int colonneOuvrante, int ligneOuverture,
+    public record Guide(int column, int colonneOuvrante, int ligneOuverture,
             int colonneFermante, int ligneApresFin) {
     }
 
     /** La table vide : aucune révision ne la porte, rien ne se trace. */
-    public static final GuidesStructurels VIDE =
+    public static final GuidesStructurels EMPTY =
             new GuidesStructurels(-1, List.of());
 
     private final int revision;
@@ -106,21 +106,21 @@ public final class GuidesStructurels {
      * pour les langages à décalage — null rend la table vide (sans
      * analyse, pas de structure, pas de guide).
      *
-     * @param langue   le support du langage, ou null
+     * @param language   le support du langage, ou null
      * @param document l'instantané analysé
      * @param analyse  l'analyse courante du document
      * @return la table triée par ligne d'ouverture puis colonne
      */
-    public static GuidesStructurels de(@Nullable LanguageSupport langue,
+    public static GuidesStructurels of(@Nullable LanguageSupport language,
             Document document, Analysis analyse) {
-        if (langue == null) {
-            return VIDE;
+        if (language == null) {
+            return EMPTY;
         }
-        int taquet = langue.configuration().indentSize();
-        if (langue.configuration().folding().byIndentation()) {
+        int taquet = language.configuration().indentSize();
+        if (language.configuration().folding().byIndentation()) {
             return new GuidesStructurels(analyse.revision(),
                     guidesParIndentation(document, analyse.lex(), taquet,
-                            langue.configuration().folding().offSide()));
+                            language.configuration().folding().offSide()));
         }
         return new GuidesStructurels(analyse.revision(),
                 guidesParCrochets(document, analyse.lex(), taquet));
@@ -144,27 +144,27 @@ public final class GuidesStructurels {
             LexDocument lex, int taquet) {
         List<int[]> pile = new ArrayList<>();
         List<Guide> guides = new ArrayList<>();
-        int lignes = Math.min(lex.lineCount(), document.lineCount());
-        for (int ligne = 0; ligne < lignes; ligne++) {
-            String texte = document.lineText(ligne);
-            for (Token jeton : lex.line(ligne).tokens()) {
-                if (jeton.kind() == TokenKind.OPEN_BRACKET) {
-                    int colonne = colonneDuCrochet(texte, jeton);
-                    if (colonne < texte.length()) {
-                        pile.add(new int[] {ligne, colonne,
-                                texte.charAt(colonne)});
+        int lines = Math.min(lex.lineCount(), document.lineCount());
+        for (int line = 0; line < lines; line++) {
+            String text = document.lineText(line);
+            for (Token token : lex.line(line).tokens()) {
+                if (token.kind() == TokenKind.OPEN_BRACKET) {
+                    int column = colonneDuCrochet(text, token);
+                    if (column < text.length()) {
+                        pile.add(new int[] {line, column,
+                                text.charAt(column)});
                     }
-                } else if (jeton.kind() == TokenKind.CLOSE_BRACKET) {
-                    int colonne = colonneDuCrochet(texte, jeton);
-                    if (colonne < texte.length()) {
-                        apparier(document, pile, guides, ligne, colonne,
-                                texte.charAt(colonne), taquet);
+                } else if (token.kind() == TokenKind.CLOSE_BRACKET) {
+                    int column = colonneDuCrochet(text, token);
+                    if (column < text.length()) {
+                        apparier(document, pile, guides, line, column,
+                                text.charAt(column), taquet);
                     }
                 }
             }
         }
         guides.addAll(guidesDeCommentaires(document, lex, taquet));
-        return trier(guides);
+        return sort(guides);
     }
 
     /**
@@ -179,16 +179,16 @@ public final class GuidesStructurels {
             LexDocument lex, int taquet) {
         List<Guide> guides = new ArrayList<>();
         int ouverture = -1;
-        int lignes = Math.min(lex.lineCount(), document.lineCount());
-        for (int ligne = 0; ligne <= lignes; ligne++) {
-            boolean commentaire = ligne < lignes
-                    && porteCommentaire(lex, ligne);
+        int lines = Math.min(lex.lineCount(), document.lineCount());
+        for (int line = 0; line <= lines; line++) {
+            boolean commentaire = line < lines
+                    && porteCommentaire(lex, line);
             if (commentaire && ouverture < 0) {
-                ouverture = ligne;
+                ouverture = line;
             } else if (!commentaire && ouverture >= 0) {
-                if (ligne - 1 > ouverture) {
+                if (line - 1 > ouverture) {
                     guides.add(guideDeCommentaire(document, lex, taquet,
-                            ouverture, ligne - 1));
+                            ouverture, line - 1));
                 }
                 ouverture = -1;
             }
@@ -218,19 +218,19 @@ public final class GuidesStructurels {
      * documentation — le commentaire de FIN de ligne ne compte pas : il
      * n'ouvre rien, il aligne avec le code qui le porte.
      */
-    private static boolean porteCommentaire(LexDocument lex, int ligne) {
-        Token[] jetons = lex.line(ligne).tokens();
-        return jetons.length > 0 && (jetons[0].kind() == TokenKind.COMMENT
-                || jetons[0].kind() == TokenKind.DOC);
+    private static boolean porteCommentaire(LexDocument lex, int line) {
+        Token[] tokens = lex.line(line).tokens();
+        return tokens.length > 0 && (tokens[0].kind() == TokenKind.COMMENT
+                || tokens[0].kind() == TokenKind.DOC);
     }
 
     /** Le dernier jeton de commentaire d'une ligne — sa ligne même sinon. */
     private static Token dernierCommentaire(LexedLine panier) {
         Token dernier = panier.tokens()[panier.tokens().length - 1];
-        for (Token jeton : panier.tokens()) {
-            if (jeton.kind() == TokenKind.COMMENT
-                    || jeton.kind() == TokenKind.DOC) {
-                dernier = jeton;
+        for (Token token : panier.tokens()) {
+            if (token.kind() == TokenKind.COMMENT
+                    || token.kind() == TokenKind.DOC) {
+                dernier = token;
             }
         }
         return dernier;
@@ -241,14 +241,14 @@ public final class GuidesStructurels {
      * blanc de la portée du jeton — les blancs soudés ne sont pas le
      * crochet.
      */
-    private static int colonneDuCrochet(String texte, Token jeton) {
-        int colonne = jeton.start();
-        int fin = Math.min(jeton.end(), texte.length());
-        while (colonne < fin
-                && (texte.charAt(colonne) == ' ' || texte.charAt(colonne) == '\t')) {
-            colonne++;
+    private static int colonneDuCrochet(String text, Token token) {
+        int column = token.start();
+        int end = Math.min(token.end(), text.length());
+        while (column < end
+                && (text.charAt(column) == ' ' || text.charAt(column) == '\t')) {
+            column++;
         }
-        return colonne;
+        return column;
     }
 
     /**
@@ -294,7 +294,7 @@ public final class GuidesStructurels {
                     indentation(document.lineText(region.startLine()), taquet),
                     0, region.startLine(), 0, region.endLine() + 1));
         }
-        return trier(guides);
+        return sort(guides);
     }
 
     /**
@@ -317,20 +317,20 @@ public final class GuidesStructurels {
     public GuidesStructurels remapper(int revisionApres, Document avant,
             int start, int end, String removed, String inserted) {
         if (guides.isEmpty()) {
-            return VIDE;
+            return EMPTY;
         }
-        int delta = sautsDeLigne(inserted) - sautsDeLigne(removed);
-        int ligne = avant.lineForOffset(start);
+        int delta = lineJumps(inserted) - lineJumps(removed);
+        int line = avant.lineForOffset(start);
         int premiereDecalee;
         int premiereDetruite;
         int derniereDetruite;
         if (start == end) {
-            premiereDecalee = start == avant.lineEnd(ligne) ? ligne + 1 : ligne;
+            premiereDecalee = start == avant.lineEnd(line) ? line + 1 : line;
             premiereDetruite = Integer.MAX_VALUE;
             derniereDetruite = -1;
         } else {
             derniereDetruite = avant.lineForOffset(end - 1);
-            premiereDetruite = ligne;
+            premiereDetruite = line;
             premiereDecalee = derniereDetruite + 1;
         }
         List<Guide> remplaces = new ArrayList<>(guides.size());
@@ -351,7 +351,7 @@ public final class GuidesStructurels {
             int premiereDetruite, int derniereDetruite, int delta) {
         int ouverture = guide.ligneOuverture();
         if (ouverture >= premiereDecalee) {
-            return new Guide(guide.colonne(), guide.colonneOuvrante(),
+            return new Guide(guide.column(), guide.colonneOuvrante(),
                     ouverture + delta, guide.colonneFermante(),
                     guide.ligneApresFin() + delta);
         }
@@ -366,14 +366,14 @@ public final class GuidesStructurels {
         if (apresFin <= ouverture + 1) {
             return null;
         }
-        return new Guide(guide.colonne(), guide.colonneOuvrante(), ouverture,
+        return new Guide(guide.column(), guide.colonneOuvrante(), ouverture,
                 guide.colonneFermante(), apresFin);
     }
 
     /** Les guides triés par ligne d'ouverture puis colonne. */
-    private static List<Guide> trier(List<Guide> guides) {
+    private static List<Guide> sort(List<Guide> guides) {
         guides.sort(Comparator.comparingInt(Guide::ligneOuverture)
-                .thenComparingInt(Guide::colonne));
+                .thenComparingInt(Guide::column));
         return List.copyOf(guides);
     }
 
@@ -388,26 +388,26 @@ public final class GuidesStructurels {
     }
 
     /** Le retrait visuel d'une ligne : l'espace compte un, la tabulation au taquet. */
-    private static int indentation(String texte, int taquet) {
-        int largeur = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            char c = texte.charAt(i);
+    private static int indentation(String text, int taquet) {
+        int width = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
             if (c == ' ') {
-                largeur++;
+                width++;
             } else if (c == '\t') {
-                largeur += taquet - (largeur % taquet);
+                width += taquet - (width % taquet);
             } else {
                 break;
             }
         }
-        return largeur;
+        return width;
     }
 
     /** Le nombre de sauts de ligne d'un texte d'édition. */
-    private static int sautsDeLigne(String texte) {
+    private static int lineJumps(String text) {
         int nombre = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
                 nombre++;
             }
         }

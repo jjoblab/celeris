@@ -25,9 +25,9 @@ import org.junit.jupiter.api.Test;
  */
 class TokenCatchUpTest {
 
-    private static LexDocument lexique(String texte) {
+    private static LexDocument lexicon(String text) {
         return SyntaxService.of(JavaSyntax.INSTANCE)
-                .analyseFull(Document.of(texte)).lex();
+                .analyseFull(Document.of(text)).lex();
     }
 
     /**
@@ -36,8 +36,8 @@ class TokenCatchUpTest {
      */
     @Test
     void typingInsideIdentifierKeepsItsKind() {
-        String publie = "int compteur = 1;";
-        LexDocument lex = lexique(publie);
+        String published = "int compteur = 1;";
+        LexDocument lex = lexicon(published);
         TokenCatchUp rattrapage = TokenCatchUp.of(lex,
                 List.of(new TokenCatchUp.PendingEdit(9, 0, 1, 0, false)),
                 List.of(new EditSite(0, 0, 0)),
@@ -45,8 +45,8 @@ class TokenCatchUpTest {
         var panier = rattrapage.basketFor(0);
         assertNotNull(panier, "la ligne touchée reçoit un panier recalé");
         boolean identifiantEtendu = false;
-        for (var jeton : panier.tokens()) {
-            if (jeton.kind() == TokenKind.IDENTIFIER && jeton.end() > 12) {
+        for (var token : panier.tokens()) {
+            if (token.kind() == TokenKind.IDENTIFIER && token.end() > 12) {
                 identifiantEtendu = true;
             }
         }
@@ -72,7 +72,7 @@ class TokenCatchUpTest {
                     + "xy".substring(0, insere)
                     + lignePubliee.substring(Math.min(point + retire,
                             lignePubliee.length()));
-            LexDocument lex = lexique(lignePubliee);
+            LexDocument lex = lexicon(lignePubliee);
             TokenCatchUp rattrapage = TokenCatchUp.of(lex,
                     List.of(new TokenCatchUp.PendingEdit(point, retire,
                             insere, 0, false)),
@@ -92,16 +92,16 @@ class TokenCatchUpTest {
      */
     private static void verifierPrefixeIntact(LexDocument lex,
             LexedLine panier, int point, int essai) {
-        var publie = lex.line(0);
-        for (var jetonPublie : publie.tokens()) {
+        var published = lex.line(0);
+        for (var jetonPublie : published.tokens()) {
             if (jetonPublie.end() > point) {
                 break;
             }
             boolean retrouve = false;
-            for (var jeton : panier.tokens()) {
-                if (jeton.start() == jetonPublie.start()
-                        && jeton.end() == jetonPublie.end()
-                        && jeton.kind() == jetonPublie.kind()) {
+            for (var token : panier.tokens()) {
+                if (token.start() == jetonPublie.start()
+                        && token.end() == jetonPublie.end()
+                        && token.kind() == jetonPublie.kind()) {
                     retrouve = true;
                     break;
                 }
@@ -116,13 +116,13 @@ class TokenCatchUpTest {
     /** La couverture : la ligne reste couverte par les jetons soudés. */
     private static void verifierCouvertureExacte(LexedLine panier,
             String editee, int essai) {
-        int couverture = 0;
-        for (var jeton : panier.tokens()) {
-            assertEquals(jeton.start(), couverture,
+        int coverage = 0;
+        for (var token : panier.tokens()) {
+            assertEquals(token.start(), coverage,
                     "essai " + essai + " : les jetons restent soudés");
-            couverture = jeton.end();
+            coverage = token.end();
         }
-        assertEquals(editee.length(), couverture,
+        assertEquals(editee.length(), coverage,
                 "essai " + essai + " : la ligne reste couverte exactement");
     }
 
@@ -133,21 +133,21 @@ class TokenCatchUpTest {
      */
     @Test
     void openingQuoteKeepsLineCovered() {
-        String publie = "int x = 1;";
-        LexDocument lex = lexique(publie);
+        String published = "int x = 1;";
+        LexDocument lex = lexicon(published);
         TokenCatchUp rattrapage = TokenCatchUp.of(lex,
                 List.of(new TokenCatchUp.PendingEdit(7, 0, 1, 0, false)),
                 List.of(new EditSite(0, 0, 0)),
                 Document.of("int x = \"1;"), null);
         var panier = rattrapage.basketFor(0);
         assertNotNull(panier);
-        int couverture = 0;
-        for (var jeton : panier.tokens()) {
-            assertEquals(couverture, jeton.start(),
+        int coverage = 0;
+        for (var token : panier.tokens()) {
+            assertEquals(coverage, token.start(),
                     "les jetons restent soudés après l'ouverture du guillemet");
-            couverture = jeton.end();
+            coverage = token.end();
         }
-        assertEquals("int x = \"1;".length(), couverture,
+        assertEquals("int x = \"1;".length(), coverage,
                 "la ligne reste couverte exactement");
     }
 
@@ -157,8 +157,8 @@ class TokenCatchUpTest {
      */
     @Test
     void erasingWholeLineEmptiesTheBasketCleanly() {
-        String publie = "int x = 1;\nint y = 2;";
-        LexDocument lex = lexique(publie);
+        String published = "int x = 1;\nint y = 2;";
+        LexDocument lex = lexicon(published);
         TokenCatchUp rattrapage = TokenCatchUp.of(lex,
                 List.of(new TokenCatchUp.PendingEdit(0, 10, 0, 0, false)),
                 List.of(new EditSite(0, 0, 0)),
@@ -175,8 +175,8 @@ class TokenCatchUpTest {
      */
     @Test
     void structuralChangeFallsBackToRelex() {
-        String publie = "int a = 1;\nint b = 2;";
-        LexDocument lex = lexique(publie);
+        String published = "int a = 1;\nint b = 2;";
+        LexDocument lex = lexicon(published);
         TokenCatchUp rattrapage = TokenCatchUp.of(lex,
                 List.of(new TokenCatchUp.PendingEdit(0, 0, 1, 0, true)),
                 List.of(new EditSite(0, 0, 1)),

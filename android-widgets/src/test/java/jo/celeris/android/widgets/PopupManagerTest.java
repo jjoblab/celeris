@@ -41,7 +41,7 @@ public class PopupManagerTest {
     private static final class PanneauEssai extends PopupPanel {
 
         static final int LARGEUR = 100;
-        static final int HAUTEUR = 50;
+        static final int HEIGHT = 50;
 
         PanneauEssai(Context context, PopupPalette palette) {
             super(context, palette);
@@ -59,7 +59,7 @@ public class PopupManagerTest {
 
         @Override
         int contentHeight() {
-            return HAUTEUR;
+            return HEIGHT;
         }
     }
 
@@ -109,13 +109,13 @@ public class PopupManagerTest {
         PopupManager popups = manager();
         popups.lier(PopupController.PopupKind.COMPLETION_LIST, panneau());
         popups.lier(PopupController.PopupKind.COMPLETION_DOC, panneau());
-        assertTrue(popups.montrer(
+        assertTrue(popups.show(
                 PopupController.PopupKind.COMPLETION_LIST, 10, 10));
-        assertTrue(popups.montrer(
+        assertTrue(popups.show(
                 PopupController.PopupKind.COMPLETION_DOC, 120, 10));
         assertNotNull(popups.couche().popupOf(
                 PopupController.PopupKind.COMPLETION_DOC));
-        assertTrue(popups.fermer(PopupController.PopupKind.COMPLETION_LIST));
+        assertTrue(popups.close(PopupController.PopupKind.COMPLETION_LIST));
         assertFalse("l'état ferme la documentation",
                 popups.estOuvert(PopupController.PopupKind.COMPLETION_DOC));
         assertNull("la couche retire la documentation — jamais de zombie",
@@ -133,11 +133,11 @@ public class PopupManagerTest {
         PopupManager popups = manager();
         popups.lier(PopupController.PopupKind.COMPLETION_LIST, panneau());
         popups.lier(PopupController.PopupKind.TOOLBAR_OVERFLOW, panneau());
-        assertTrue(popups.montrer(
+        assertTrue(popups.show(
                 PopupController.PopupKind.COMPLETION_LIST, 10, 10));
         assertNotNull(popups.couche().popupOf(
                 PopupController.PopupKind.COMPLETION_LIST));
-        assertTrue(popups.montrer(
+        assertTrue(popups.show(
                 PopupController.PopupKind.TOOLBAR_OVERFLOW, 150, 0));
         assertFalse("l'état ferme la complétion",
                 popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST));
@@ -155,7 +155,7 @@ public class PopupManagerTest {
     public void leGenreRefuseNeSeMontrePas() {
         PopupManager popups = manager();
         popups.lier(PopupController.PopupKind.COMPLETION_DOC, panneau());
-        assertFalse(popups.montrer(
+        assertFalse(popups.show(
                 PopupController.PopupKind.COMPLETION_DOC, 10, 10));
         assertFalse(popups.estOuvert(PopupController.PopupKind.COMPLETION_DOC));
         assertNull(popups.couche().popupOf(
@@ -170,10 +170,10 @@ public class PopupManagerTest {
         popups.lier(PopupController.PopupKind.HOVER, panneau());
         popups.lier(PopupController.PopupKind.COLOR_PICKER, panneau());
         popups.lier(PopupController.PopupKind.MINIMAP, panneau());
-        popups.montrer(PopupController.PopupKind.HOVER, 10, 40);
-        popups.montrer(PopupController.PopupKind.COLOR_PICKER, 150, 40);
-        popups.montrer(PopupController.PopupKind.MINIMAP, 180, 40);
-        assertFalse(popups.surFrappe().isEmpty());
+        popups.show(PopupController.PopupKind.HOVER, 10, 40);
+        popups.show(PopupController.PopupKind.COLOR_PICKER, 150, 40);
+        popups.show(PopupController.PopupKind.MINIMAP, 180, 40);
+        assertFalse(popups.onType().isEmpty());
         assertNull("le survol cède à la frappe",
                 popups.couche().popupOf(PopupController.PopupKind.HOVER));
         assertNull("le sélecteur cède à la frappe",
@@ -193,8 +193,8 @@ public class PopupManagerTest {
         PopupManager popups = manager();
         popups.lier(PopupController.PopupKind.INTENTIONS_MENU, panneau());
         popups.lier(PopupController.PopupKind.COMPLETION_LIST, panneau());
-        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 0, 0);
-        popups.montrer(PopupController.PopupKind.COMPLETION_LIST, 200, 150);
+        popups.show(PopupController.PopupKind.INTENTIONS_MENU, 0, 0);
+        popups.show(PopupController.PopupKind.COMPLETION_LIST, 200, 150);
         MotionEvent horsCartes = MotionEvent.obtain(0L, 0L,
                 MotionEvent.ACTION_DOWN, 5f, 5f, 0);
         popups.couche().dispatchTouchEvent(horsCartes);
@@ -206,7 +206,7 @@ public class PopupManagerTest {
                         PopupController.PopupKind.INTENTIONS_MENU));
         assertTrue("la complétion suit le curseur, pas le doigt",
                 popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST));
-        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 0, 0);
+        popups.show(PopupController.PopupKind.INTENTIONS_MENU, 0, 0);
         MotionEvent surCarte = MotionEvent.obtain(0L, 0L,
                 MotionEvent.ACTION_DOWN, 50f, 25f, 0);
         popups.couche().dispatchTouchEvent(surCarte);
@@ -222,7 +222,7 @@ public class PopupManagerTest {
     public void laPoseSeBorneAuxMurs() {
         PopupManager popups = manager();
         popups.lier(PopupController.PopupKind.HOVER, panneau());
-        popups.montrer(PopupController.PopupKind.HOVER, 500, 500);
+        popups.show(PopupController.PopupKind.HOVER, 500, 500);
         View carte = popups.vue(PopupController.PopupKind.HOVER);
         assertEquals("la carte se recolle au mur droit",
                 300 - carte.getMeasuredWidth(), carte.getLeft());
@@ -242,29 +242,29 @@ public class PopupManagerTest {
         popups.lier(PopupController.PopupKind.COMPLETION_LIST, liste);
         popups.lier(PopupController.PopupKind.COMPLETION_DOC, panneau());
         liste.setItems(List.of(
-                new CompletionListView.Candidat("alpha", "", BadgeGenre.Genre.MOT_CLE),
+                new CompletionListView.Candidat("alpha", "", BadgeGenre.Genre.KEYWORD),
                 new CompletionListView.Candidat("beta", "", BadgeGenre.Genre.CHAMP),
                 new CompletionListView.Candidat("gamma", "", BadgeGenre.Genre.CLASSE)));
-        popups.montrer(PopupController.PopupKind.COMPLETION_LIST, 10, 10);
-        popups.montrer(PopupController.PopupKind.COMPLETION_DOC, 120, 10);
+        popups.show(PopupController.PopupKind.COMPLETION_LIST, 10, 10);
+        popups.show(PopupController.PopupKind.COMPLETION_DOC, 120, 10);
         assertEquals("la surbrillance naît à la tête", 0, liste.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_DPAD_DOWN));
         assertEquals("la flèche descend la surbrillance", 1,
                 liste.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_DPAD_DOWN));
         assertEquals("la flèche au bas s'arrête", 2, liste.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_UP));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_DPAD_UP));
         assertEquals("la flèche remonte", 1, liste.surbrillance());
         assertFalse("la touche inconnue retourne à l'éditeur",
-                popups.surTouche(KeyEvent.KEYCODE_DPAD_LEFT));
+                popups.onKey(KeyEvent.KEYCODE_DPAD_LEFT));
         int[] retenu = { -1 };
         liste.setOnPick(index -> retenu[0] = index);
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ENTER));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_ENTER));
         assertEquals("Enter valide le candidat courant", 1, retenu[0]);
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_TAB));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_TAB));
         assertEquals("Tab valide aussi le candidat courant", 1, retenu[0]);
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_ESCAPE));
         assertFalse(popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST));
         assertNull("la documentation suit sa liste à l'échappement",
                 popups.couche().popupOf(
@@ -284,15 +284,15 @@ public class PopupManagerTest {
         menu.setActions(List.of(
                 new IntentionsMenuView.Item("premier", () -> execute[0] = 1),
                 new IntentionsMenuView.Item("second", () -> execute[0] = 2)));
-        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        popups.show(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_DPAD_DOWN));
         assertEquals("la flèche surligne la première action", 0,
                 menu.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_DPAD_DOWN));
         assertEquals("la flèche descend", 1, menu.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ENTER));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_ENTER));
         assertEquals("Enter exécute l'action surlignée", 2, execute[0]);
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_ESCAPE));
         assertFalse(popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
     }
 
@@ -312,23 +312,23 @@ public class PopupManagerTest {
         List<CompletionListView.Candidat> candidats = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
             candidats.add(new CompletionListView.Candidat("c" + i, "",
-                    BadgeGenre.Genre.MOT_CLE));
+                    BadgeGenre.Genre.KEYWORD));
         }
         liste.setItems(candidats);
-        popups.montrer(PopupController.PopupKind.COMPLETION_LIST, 10, 10);
+        popups.show(PopupController.PopupKind.COMPLETION_LIST, 10, 10);
         assertEquals("la surbrillance naît à la tête", 0, liste.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_PAGE_DOWN));
         assertEquals("la page descend de huit rangées", 8,
                 liste.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_PAGE_DOWN));
         assertEquals("la page se borne au bas de la liste", 11,
                 liste.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_UP));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_PAGE_UP));
         assertEquals("la page remonte de huit", 3, liste.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_UP));
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_PAGE_UP));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_PAGE_UP));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_PAGE_UP));
         assertEquals("la page se borne à la tête", 0, liste.surbrillance());
-        popups.fermer(PopupController.PopupKind.COMPLETION_LIST);
+        popups.close(PopupController.PopupKind.COMPLETION_LIST);
         IntentionsMenuView menu = new IntentionsMenuView(
                 couche.getContext(), PopupPalette.dark());
         popups.lier(PopupController.PopupKind.INTENTIONS_MENU, menu);
@@ -336,9 +336,9 @@ public class PopupManagerTest {
         menu.setActions(List.of(
                 new IntentionsMenuView.Item("premier", () -> execute[0] = 1),
                 new IntentionsMenuView.Item("second", () -> execute[0] = 2)));
-        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        popups.show(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
         assertFalse("le menu décline les pages — la touche retourne à "
-                + "l'éditeur", popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
+                + "l'éditeur", popups.onKey(KeyEvent.KEYCODE_PAGE_DOWN));
         assertTrue("le menu vit, la page déclinée ne l'a pas servie",
                 popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
     }
@@ -357,29 +357,29 @@ public class PopupManagerTest {
                 PopupPalette.dark());
         popups.lier(PopupController.PopupKind.REFERENCES, carte);
         popups.lier(PopupController.PopupKind.INTENTIONS_MENU, panneau());
-        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        popups.show(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
         assertNotNull("la carte du menu se montre d'abord",
                 popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
         int[] saute = { -1 };
         carte.setOccurrences(List.of(
                 new ReferencesView.Occurrence("L3 · int a", () -> saute[0] = 3),
                 new ReferencesView.Occurrence("L7 · int a", () -> saute[0] = 7)));
-        popups.montrer(PopupController.PopupKind.REFERENCES, 10, 80);
+        popups.show(PopupController.PopupKind.REFERENCES, 10, 80);
         assertFalse("l'ouverture chasse le menu du caret",
                 popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
         assertNull("la carte du menu quitte la couche",
                 popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_DPAD_DOWN));
         assertEquals("la flèche surligne la première occurrence", 0,
                 carte.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_DPAD_DOWN));
         assertEquals("la flèche descend", 1, carte.surbrillance());
         assertFalse("la page décline — la touche retourne à l'éditeur",
-                popups.surTouche(KeyEvent.KEYCODE_PAGE_DOWN));
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ENTER));
+                popups.onKey(KeyEvent.KEYCODE_PAGE_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_ENTER));
         assertEquals("Enter exécute le saut de l'occurrence surlignée", 7,
                 saute[0]);
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_ESCAPE));
         assertFalse("l'échappement referme la carte des usages",
                 popups.estOuvert(PopupController.PopupKind.REFERENCES));
     }
@@ -397,7 +397,7 @@ public class PopupManagerTest {
                 PopupPalette.dark());
         popups.lier(PopupController.PopupKind.GABARITS, carte);
         popups.lier(PopupController.PopupKind.INTENTIONS_MENU, panneau());
-        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        popups.show(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
         assertNotNull("la carte du menu se montre d'abord",
                 popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
         boolean[] pris = { false };
@@ -406,17 +406,17 @@ public class PopupManagerTest {
                         () -> pris[0] = true),
                 new IntentionsMenuView.Item("equals et hashCode",
                         () -> pris[0] = true)));
-        popups.montrer(PopupController.PopupKind.GABARITS, 10, 80);
+        popups.show(PopupController.PopupKind.GABARITS, 10, 80);
         assertFalse("l'ouverture chasse le menu du caret",
                 popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
         assertNull("la carte du menu quitte la couche",
                 popups.couche().popupOf(PopupController.PopupKind.INTENTIONS_MENU));
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_DPAD_DOWN));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_DPAD_DOWN));
         assertEquals("la flèche surligne la première action", 0,
                 carte.surbrillance());
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ENTER));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_ENTER));
         assertTrue("Enter exécute l'action surlignée", pris[0]);
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_ESCAPE));
         assertFalse("l'échappement referme la carte des gabarits",
                 popups.estOuvert(PopupController.PopupKind.GABARITS));
     }
@@ -428,9 +428,9 @@ public class PopupManagerTest {
         PopupManager popups = manager();
         popups.lier(PopupController.PopupKind.HOVER, panneau());
         popups.lier(PopupController.PopupKind.MINIMAP, panneau());
-        popups.montrer(PopupController.PopupKind.HOVER, 10, 10);
-        popups.montrer(PopupController.PopupKind.MINIMAP, 180, 40);
-        assertTrue(popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+        popups.show(PopupController.PopupKind.HOVER, 10, 10);
+        popups.show(PopupController.PopupKind.MINIMAP, 180, 40);
+        assertTrue(popups.onKey(KeyEvent.KEYCODE_ESCAPE));
         assertFalse(popups.estOuvert(PopupController.PopupKind.HOVER));
         assertTrue("le chrome ne cède pas à l'échappement",
                 popups.estOuvert(PopupController.PopupKind.MINIMAP));
@@ -443,9 +443,9 @@ public class PopupManagerTest {
         PopupManager popups = manager();
         popups.lier(PopupController.PopupKind.COMPLETION_LIST, panneau());
         popups.lier(PopupController.PopupKind.MINIMAP, panneau());
-        popups.montrer(PopupController.PopupKind.COMPLETION_LIST, 10, 10);
-        popups.montrer(PopupController.PopupKind.MINIMAP, 180, 40);
-        assertFalse(popups.fermerSousVoile().isEmpty());
+        popups.show(PopupController.PopupKind.COMPLETION_LIST, 10, 10);
+        popups.show(PopupController.PopupKind.MINIMAP, 180, 40);
+        assertFalse(popups.closeSubsheet().isEmpty());
         assertFalse("la complétion ne survit pas au voile",
                 popups.estOuvert(PopupController.PopupKind.COMPLETION_LIST));
         assertTrue("le chrome survit au voile",
@@ -460,14 +460,14 @@ public class PopupManagerTest {
         PopupManager popups = manager();
         PanneauEssai carte = panneau();
         popups.lier(PopupController.PopupKind.HOVER, carte);
-        PopupPlacer.Cadre taille = popups.taille(
+        PopupPlacer.Cadre size = popups.size(
                 PopupController.PopupKind.HOVER);
         assertEquals("la mesure rend le contenu et sa respiration",
                 PanneauEssai.LARGEUR + 2 * carte.paddingPx,
-                taille.largeur());
+                size.width());
         assertEquals("la mesure rend le contenu et sa respiration",
-                PanneauEssai.HAUTEUR + 2 * carte.paddingYPx,
-                taille.hauteur());
+                PanneauEssai.HEIGHT + 2 * carte.paddingYPx,
+                size.height());
     }
 
     /** Le détachement de fin de vie : tout se ferme, l'avis du tap
@@ -476,8 +476,8 @@ public class PopupManagerTest {
     public void leDetachementCoupeTout() {
         PopupManager popups = manager();
         popups.lier(PopupController.PopupKind.INTENTIONS_MENU, panneau());
-        popups.montrer(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
-        popups.detacher();
+        popups.show(PopupController.PopupKind.INTENTIONS_MENU, 10, 10);
+        popups.detach();
         assertFalse(popups.estOuvert(PopupController.PopupKind.INTENTIONS_MENU));
         assertNull(popups.vue(PopupController.PopupKind.INTENTIONS_MENU));
         MotionEvent appui = MotionEvent.obtain(0L, 0L,
@@ -496,15 +496,15 @@ public class PopupManagerTest {
         PopupManager popups = manager();
         PanneauEssai carte = panneau();
         popups.lier(PopupController.PopupKind.NOTIFICATION, carte);
-        popups.montrer(PopupController.PopupKind.NOTIFICATION, 10, 10);
+        popups.show(PopupController.PopupKind.NOTIFICATION, 10, 10);
         assertTrue("la notification posée vit ouverte",
                 popups.estOuvert(PopupController.PopupKind.NOTIFICATION));
         assertFalse("l'échappement l'épargne — seule son heure la conclut",
-                popups.surTouche(KeyEvent.KEYCODE_ESCAPE));
+                popups.onKey(KeyEvent.KEYCODE_ESCAPE));
         assertTrue("l'annonce vit son quart",
                 popups.estOuvert(PopupController.PopupKind.NOTIFICATION));
         assertTrue("la feuille modale l'emporte",
-                popups.fermerSousVoile().contains(
+                popups.closeSubsheet().contains(
                         PopupController.PopupKind.NOTIFICATION));
         assertFalse("refermée sous le voile",
                 popups.estOuvert(PopupController.PopupKind.NOTIFICATION));

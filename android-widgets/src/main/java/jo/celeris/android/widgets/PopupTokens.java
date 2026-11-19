@@ -38,7 +38,7 @@ public final class PopupTokens {
     public static final float RESPIRATION_Y_DP = 6f;
 
     /** L'écart visuel entre deux blocs voisins (filet compris). */
-    public static final float ECART_DP = 5f;
+    public static final float GAP_DP = 5f;
 
     // ── Échelle typographique (× taille de texte de base) ─────────
 
@@ -62,16 +62,16 @@ public final class PopupTokens {
 
     /** La hauteur au plus d'un menu d'actions (étages compris) — la
      *  carte ne mange jamais la couche, l'ancre borne sa pose. */
-    public static final float HAUTEUR_MENU_MAX_DP = 280f;
+    public static final float MENU_MAX_HEIGHT_DP = 280f;
 
     /** La hauteur au plus d'une liste de complétion quand la place
      *  manque sous le caret — la liste se ramasse au lieu de marcher
      *  sur le texte (l'audit : les popups ne cachent pas la frappe). */
-    public static final float HAUTEUR_COMPLETION_MIN_DP = 72f;
+    public static final float COMPLETION_MIN_HEIGHT_DP = 72f;
 
     /** Le plafond de largeur d'une carte de complétion (le dépôt de
      *  départ fixait la largeur de la liste à 280 dp). */
-    public static final float LARGEUR_MAX_LISTE_DP = 280f;
+    public static final float LIST_MAX_WIDTH_DP = 280f;
 
     /** Le PLANCHER de largeur d'une carte de complétion : la carte
      *  garde une taille raisonnable même à libellés courts — le
@@ -79,10 +79,10 @@ public final class PopupTokens {
      *  popup de complétion trop petite, il n'a pas une taille
      *  raisonnable »). La rangée deux lignes — badge, libellé,
      *  identité qualifiée — y respire. */
-    public static final float LARGEUR_MIN_LISTE_DP = 240f;
+    public static final float LIST_MIN_WIDTH_DP = 240f;
 
     /** La hauteur d'une rangée de complétion, deux lignes comprises. */
-    public static final float HAUTEUR_RANGEE_LISTE_DP = 40f;
+    public static final float LIST_ROW_HEIGHT_DP = 40f;
 
     /** Le badge de genre d'un candidat, au plus (dp). */
     public static final float BADGE_MAX_DP = 20f;
@@ -94,13 +94,13 @@ public final class PopupTokens {
     public static final float RAYON_FEUILLE_DP = 18f;
 
     /** La largeur au plus d'une feuille du bas (maquette : 660 px). */
-    public static final float LARGEUR_MAX_FEUILLE_BAS_DP = 660f;
+    public static final float BOTTOM_SHEET_MAX_WIDTH_DP = 660f;
 
     /** La largeur au plus d'une feuille du haut (maquette : 760 px). */
-    public static final float LARGEUR_MAX_FEUILLE_HAUT_DP = 760f;
+    public static final float TOP_SHEET_MAX_WIDTH_DP = 760f;
 
     /** La poignée de glissement d'une feuille : sa largeur (dp). */
-    public static final float POIGNEE_LARGEUR_DP = 44f;
+    public static final float HANDLE_WIDTH_DP = 44f;
 
     /** La poignée de glissement d'une feuille : son épaisseur (dp). */
     public static final float POIGNEE_EPAISSEUR_DP = 5f;
@@ -114,7 +114,7 @@ public final class PopupTokens {
 
     /** La part de la hauteur de l'hôte qu'une feuille occupe au plus
      *  (maquette : 76 %). */
-    public static final float PART_HAUTEUR_FEUILLE = 0.76f;
+    public static final float SHEET_HEIGHT_SHARE = 0.76f;
 
     /** La durée du glissement d'une feuille, en millisecondes
      *  (maquette : 0,18 s). */

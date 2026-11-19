@@ -61,9 +61,9 @@ class GutterLayoutTest {
         float[] densites = {1.0f, 2.625f, 3.5f};
         float dpAttendu = -1f;
         for (float densite : densites) {
-            int largeur = GutterLayout.width(3, 8f * densite, densite, 8f,
+            int width = GutterLayout.width(3, 8f * densite, densite, 8f,
                     SANS_COULISSE);
-            float enDp = largeur / densite;
+            float enDp = width / densite;
             if (dpAttendu < 0f) {
                 dpAttendu = enDp;
             }

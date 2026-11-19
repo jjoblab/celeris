@@ -65,16 +65,16 @@ public class BarreToolbarTest {
         PopupManager popups = manager();
         BarreToolbar barre = new BarreToolbar(popups, PopupPalette.dark(),
                 "MORE");
-        barre.ouvrirDebordement(List.of());
+        barre.openOverflow(List.of());
         assertFalse("sans action, la carte ne se pose pas",
                 popups.estOuvert(
                         PopupController.PopupKind.TOOLBAR_OVERFLOW));
-        barre.ouvrirDebordement(List.of(new IntentionsMenuView.Item(
+        barre.openOverflow(List.of(new IntentionsMenuView.Item(
                 "Réglages", () -> { })));
         assertTrue("la puce pose la carte",
                 popups.estOuvert(
                         PopupController.PopupKind.TOOLBAR_OVERFLOW));
-        barre.fermerDebordement();
+        barre.closeOverflow();
         assertFalse("la fermeture rend la carte",
                 popups.estOuvert(
                         PopupController.PopupKind.TOOLBAR_OVERFLOW));
@@ -87,14 +87,14 @@ public class BarreToolbarTest {
         PopupManager popups = manager();
         BarreToolbar barre = new BarreToolbar(popups, PopupPalette.dark(),
                 "MORE");
-        barre.poserBarreTouches(List.of(new TouchBarView.Touche("Tab",
+        barre.setKeyRow(List.of(new TouchBarView.KeyCap("Tab",
                 null, () -> { })));
         assertTrue("la pose ouvre le genre touchbar",
                 popups.estOuvert(PopupController.PopupKind.TOUCH_BAR));
         assertSame("la barre posée vit sous son genre",
-                barre.barreTouches(),
+                barre.keyRow(),
                 popups.vue(PopupController.PopupKind.TOUCH_BAR));
-        barre.detacher();
+        barre.detach();
         assertTrue("le détachement ne referme pas la barre posée",
                 popups.estOuvert(PopupController.PopupKind.TOUCH_BAR));
     }

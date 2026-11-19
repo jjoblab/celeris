@@ -66,13 +66,13 @@ class FauxModelesTest {
     @Test
     void localLivresseSynchroneSurLeFilAppelant() {
         FakeLocalModel modele = new FakeLocalModel();
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
-        Enregistreur recepteur = new Enregistreur();
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
+        Enregistreur receiver = new Enregistreur();
         modele.completer(new ModelRequest(Document.of("int x = "), 8,
-                new TokenCancellation()), recepteur);
-        assertEquals(new GhostSuggestion("42;", 8, 0), recepteur.recue,
+                new TokenCancellation()), receiver);
+        assertEquals(new GhostSuggestion("42;", 8, 0), receiver.recue,
                 "la livraison locale est immédiate");
-        assertEquals(Thread.currentThread(), recepteur.filLivraison,
+        assertEquals(Thread.currentThread(), receiver.filLivraison,
                 "le modèle local ne change pas de fil");
     }
 
@@ -80,25 +80,25 @@ class FauxModelesTest {
     @Test
     void localSansAvisRendLeaveu() {
         FakeLocalModel modele = new FakeLocalModel();
-        Enregistreur recepteur = new Enregistreur();
+        Enregistreur receiver = new Enregistreur();
         modele.completer(new ModelRequest(Document.of("x"), 0,
-                new TokenCancellation()), recepteur);
-        assertNull(recepteur.recue);
-        assertTrue(recepteur.aucune);
+                new TokenCancellation()), receiver);
+        assertNull(receiver.recue);
+        assertTrue(receiver.aucune);
     }
 
     /** La requête déjà annulée ne livre rien — annuler coûte moins cher. */
     @Test
     void requeteAnnuleeNeLivreRien() {
         FakeLocalModel modele = new FakeLocalModel();
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
         TokenCancellation mort = new TokenCancellation();
         mort.annuler();
-        Enregistreur recepteur = new Enregistreur();
+        Enregistreur receiver = new Enregistreur();
         modele.completer(new ModelRequest(Document.of("int x = "), 8, mort),
-                recepteur);
-        assertNull(recepteur.recue, "un vol mort ne livre pas");
-        assertFalse(recepteur.aucune, "un vol mort ne dit même pas son aveu");
+                receiver);
+        assertNull(receiver.recue, "un vol mort ne livre pas");
+        assertFalse(receiver.aucune, "un vol mort ne dit même pas son aveu");
         assertEquals(1, modele.requetes().size(), "la requête morte est journalisée");
     }
 
@@ -122,14 +122,14 @@ class FauxModelesTest {
     void distantNeLivreQueParSonExecuteur() {
         PompeManuelle reseau = new PompeManuelle();
         FakeRemoteModel modele = new FakeRemoteModel(reseau);
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
-        Enregistreur recepteur = new Enregistreur();
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
+        Enregistreur receiver = new Enregistreur();
         modele.completer(new ModelRequest(Document.of("int x = "), 8,
-                new TokenCancellation()), recepteur);
-        assertNull(recepteur.recue, "rien ne livre avant le réseau");
+                new TokenCancellation()), receiver);
+        assertNull(receiver.recue, "rien ne livre avant le réseau");
         assertEquals(1, reseau.enAttente(), "la livraison attend dans le réseau");
         reseau.executerUne();
-        assertEquals(new GhostSuggestion("42;", 8, 0), recepteur.recue,
+        assertEquals(new GhostSuggestion("42;", 8, 0), receiver.recue,
                 "le réseau livre");
     }
 
@@ -138,15 +138,15 @@ class FauxModelesTest {
     void distantVolMortEnRouteNeLivrePas() {
         PompeManuelle reseau = new PompeManuelle();
         FakeRemoteModel modele = new FakeRemoteModel(reseau);
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
-        Enregistreur recepteur = new Enregistreur();
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
+        Enregistreur receiver = new Enregistreur();
         ModelRequest requete = new ModelRequest(Document.of("int x = "), 8,
                 new TokenCancellation());
-        modele.completer(requete, recepteur);
-        requete.jeton().annuler();
+        modele.completer(requete, receiver);
+        requete.token().annuler();
         reseau.executerTout();
-        assertNull(recepteur.recue, "le jeton relu au moment de livrer");
-        assertFalse(recepteur.aucune);
+        assertNull(receiver.recue, "le jeton relu au moment de livrer");
+        assertFalse(receiver.aucune);
     }
 
     /** La requête déjà annulée ne part même pas sur le réseau. */
@@ -172,14 +172,14 @@ class FauxModelesTest {
         Document document = Document.of("int x = ");
 
         FakeLocalModel local = new FakeLocalModel();
-        local.fantome(avis);
+        local.ghost(avis);
         Enregistreur recepteurLocal = new Enregistreur();
         local.completer(new ModelRequest(document, 8, new TokenCancellation()),
                 recepteurLocal);
 
         PompeManuelle reseau = new PompeManuelle();
         FakeRemoteModel distant = new FakeRemoteModel(reseau);
-        distant.fantome(avis);
+        distant.ghost(avis);
         Enregistreur recepteurDistant = new Enregistreur();
         distant.completer(new ModelRequest(document, 8, new TokenCancellation()),
                 recepteurDistant);
@@ -194,8 +194,8 @@ class FauxModelesTest {
         assertEquals(local.requetes().get(0).offset(),
                 distant.requetes().get(0).offset());
 
-        local.fantome(null);
-        distant.fantome(null);
+        local.ghost(null);
+        distant.ghost(null);
         Enregistreur aveuLocal = new Enregistreur();
         local.completer(new ModelRequest(document, 8, new TokenCancellation()),
                 aveuLocal);
@@ -242,23 +242,23 @@ class FauxModelesTest {
     void distantLivreeDepuisUnAutreFil() {
         AtomicInteger livraisons = new AtomicInteger();
         Executor autreFil = tache -> {
-            Thread fil = new Thread(tache);
-            fil.start();
+            Thread thread = new Thread(tache);
+            thread.start();
             try {
-                fil.join(5_000);
+                thread.join(5_000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
             livraisons.incrementAndGet();
         };
         FakeRemoteModel modele = new FakeRemoteModel(autreFil);
-        modele.fantome(new GhostSuggestion("42;", 8, 0));
-        Enregistreur recepteur = new Enregistreur();
+        modele.ghost(new GhostSuggestion("42;", 8, 0));
+        Enregistreur receiver = new Enregistreur();
         modele.completer(new ModelRequest(Document.of("int x = "), 8,
-                new TokenCancellation()), recepteur);
-        assertEquals(new GhostSuggestion("42;", 8, 0), recepteur.recue,
+                new TokenCancellation()), receiver);
+        assertEquals(new GhostSuggestion("42;", 8, 0), receiver.recue,
                 "la livraison d'un autre fil arrive pareil");
-        assertNotEquals(Thread.currentThread(), recepteur.filLivraison,
+        assertNotEquals(Thread.currentThread(), receiver.filLivraison,
                 "la livraison a bien voyagé");
         assertEquals(1, livraisons.get());
     }

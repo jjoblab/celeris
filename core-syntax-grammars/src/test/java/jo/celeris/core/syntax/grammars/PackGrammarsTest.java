@@ -68,7 +68,7 @@ final class PackGrammarsTest {
                 LanguageSyntax source = pack.grammar();
                 assertNotNull(source, pack.manifest().id() + " compile");
                 assertEquals(pack.manifest().id(), source.id());
-                assertTrue(source.lexer() instanceof GrammaireLexeur,
+                assertTrue(source.lexer() instanceof GrammarLexer,
                         pack.manifest().id() + " sert la voie de grammaires");
             }
         }
@@ -84,7 +84,7 @@ final class PackGrammarsTest {
         assertNotNull(toml, "toml est là");
         LanguageSyntax source = toml.syntax();
         assertNotNull(source, "toml a sa source");
-        assertSame(GrammaireSyntax.class, source.getClass());
+        assertSame(GrammarSyntax.class, source.getClass());
         assertEquals("toml", source.id());
     }
 }

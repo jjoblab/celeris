@@ -77,12 +77,12 @@ class KotlinArbreTest {
     @Test
     void plisDesCorps() {
         Document doc = Document.of(CorpusChargeur.exempleKotlin());
-        List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
-        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 5 && p.endLine() == 15),
+        List<FoldSpan> folds = TreeFolds.regions(doc, service.analyseFull(doc));
+        assertTrue(folds.stream().anyMatch(p -> p.startLine() == 5 && p.endLine() == 15),
                 "la classe de données se replie, documentation comprise");
-        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 17 && p.endLine() == 50),
+        assertTrue(folds.stream().anyMatch(p -> p.startLine() == 17 && p.endLine() == 50),
                 "la classe catalogue se replie de sa déclaration à sa fermeture");
-        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 35 && p.endLine() == 41),
+        assertTrue(folds.stream().anyMatch(p -> p.startLine() == 35 && p.endLine() == 41),
                 "la fonction à chaîne brute se replie");
     }
 
@@ -122,11 +122,11 @@ class KotlinArbreTest {
         String source = CorpusChargeur.exempleKotlin();
         Document doc = Document.of(source);
         Analysis complet = service.analyseFull(doc);
-        int cible = source.indexOf("somme += v");
-        assertTrue(cible > 0);
-        Document edite = doc.replace(cible + 7, cible + 8, "w");
+        int target = source.indexOf("somme += v");
+        assertTrue(target > 0);
+        Document edite = doc.replace(target + 7, target + 8, "w");
         Analysis diff = service.analyseIncremental(edite, complet,
-                EditSite.of(doc, edite, cible + 7, cible + 8, "w"));
+                EditSite.of(doc, edite, target + 7, target + 8, "w"));
         Arbres.verifierEquivalence(diff.tree(),
                 service.analyseFull(edite).tree(), edite);
     }

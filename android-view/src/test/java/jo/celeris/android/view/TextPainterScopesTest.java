@@ -36,7 +36,7 @@ class TextPainterScopesTest {
         private boolean gras;
         private boolean italique;
         private boolean souligne;
-        private @Nullable FontSpec police;
+        private @Nullable FontSpec font;
 
         @Override
         public void setColor(int argb) {
@@ -49,8 +49,8 @@ class TextPainterScopesTest {
         }
 
         @Override
-        public void setFont(FontSpec police) {
-            this.police = police;
+        public void setFont(FontSpec font) {
+            this.font = font;
         }
 
         @Override
@@ -62,7 +62,7 @@ class TextPainterScopesTest {
     }
 
     /** Un tracé : tranche, couleur et attributs à l'instant de l'appel. */
-    private record Trace(int debut, int fin, int couleur, boolean gras,
+    private record Trace(int start, int end, int couleur, boolean gras,
             boolean italique, boolean souligne) {
     }
 
@@ -78,9 +78,9 @@ class TextPainterScopesTest {
         @Override
         public void drawText(CharSequence text, int start, int end, float x,
                 float y, TextBrush brush) {
-            PinceauMutable pinceau = (PinceauMutable) brush;
-            traces.add(new Trace(start, end, pinceau.couleur, pinceau.gras,
-                    pinceau.italique, pinceau.souligne));
+            PinceauMutable mutable = (PinceauMutable) brush;
+            traces.add(new Trace(start, end, mutable.couleur, mutable.gras,
+                    mutable.italique, mutable.souligne));
         }
 
         @Override
@@ -132,29 +132,29 @@ class TextPainterScopesTest {
     }
 
     private static FrameState image(Document document) {
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(),
                 new VisualProjection(1, new FoldModel()), 1L,
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe()),
                 THEME, 0, 1, 40f, 0f, 0f);
-        return etat;
+        return state;
     }
 
     @Test
     void laPlageAPeintSePeintALaCouleurDuTheme() {
         int pileMotCle = ScopeStacks.push(
                 ScopeStacks.root("source.exemple"), "keyword.other");
-        String texte = "import os";
-        List<ColoredSpan> plages = List.of(
+        String text = "import os";
+        List<ColoredSpan> ranges = List.of(
                 new ColoredSpan(TokenKind.KEYWORD, 0, 6, pileMotCle),
                 new ColoredSpan(TokenKind.IDENTIFIER, 7, 9));
-        RowLayout mise = new RowLayout(0, 0, texte.length(), texte,
-                texte.length() * 10f, List.of(), plages);
+        RowLayout mise = new RowLayout(0, 0, text.length(), text,
+                text.length() * 10f, List.of(), ranges);
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         ScrollFrame cadre = new ScrollFrame();
         cadre.addLayer(new TextPainter(PinceauMutable::new,
                 new RowLayoutCache(), new SourceImposee(mise)));
-        cadre.drawFrame(surface, image(Document.of(texte)));
+        cadre.drawFrame(surface, image(Document.of(text)));
 
         assertEquals(2, surface.traces().size());
         ScopeStyle styleMotCle = THEME.portees().styleFor(pileMotCle);
@@ -178,22 +178,22 @@ class TextPainterScopesTest {
                 THEME.syntaxe(), theme);
         int pileFonction = ScopeStacks.push(
                 ScopeStacks.root("source.exemple"), "entity.name.function");
-        String texte = "def un";
-        List<ColoredSpan> plages = List.of(
+        String text = "def un";
+        List<ColoredSpan> ranges = List.of(
                 new ColoredSpan(TokenKind.IDENTIFIER, 0, 3, pileFonction),
                 new ColoredSpan(TokenKind.IDENTIFIER, 4, 6));
-        RowLayout mise = new RowLayout(0, 0, texte.length(), texte,
-                texte.length() * 10f, List.of(), plages);
+        RowLayout mise = new RowLayout(0, 0, text.length(), text,
+                text.length() * 10f, List.of(), ranges);
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         ScrollFrame cadre = new ScrollFrame();
         cadre.addLayer(new TextPainter(PinceauMutable::new,
                 new RowLayoutCache(), new SourceImposee(mise)));
-        FrameState etat = new FrameState();
-        etat.beginFrame(Document.of(texte), MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(Document.of(text), MultiSelection.empty(),
                 new VisualProjection(1, new FoldModel()), 1L,
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe()),
                 aThemes, 0, 1, 40f, 0f, 0f);
-        cadre.drawFrame(surface, etat);
+        cadre.drawFrame(surface, state);
 
         assertEquals(2, surface.traces().size());
         assertTrue(surface.traces().get(0).gras(),
@@ -206,11 +206,11 @@ class TextPainterScopesTest {
     void leThemeVideRendLaPalettePartout() {
         int pile = ScopeStacks.push(ScopeStacks.root("source.exemple"),
                 "keyword.other");
-        String texte = "if x";
-        List<ColoredSpan> plages = List.of(
+        String text = "if x";
+        List<ColoredSpan> ranges = List.of(
                 new ColoredSpan(TokenKind.KEYWORD, 0, 2, pile));
-        RowLayout mise = new RowLayout(0, 0, texte.length(), texte,
-                texte.length() * 10f, List.of(), plages);
+        RowLayout mise = new RowLayout(0, 0, text.length(), text,
+                text.length() * 10f, List.of(), ranges);
         EditorTheme themeVide = new EditorTheme(8, 0xFFFFFFFF, 0xFF202124,
                 0xFFD3E3FD, 0xFF1A73E8, 0xFF5F6368, 0x14202124,
                 THEME.syntaxe(), ScopeTheme.empty());
@@ -218,12 +218,12 @@ class TextPainterScopesTest {
         ScrollFrame cadre = new ScrollFrame();
         cadre.addLayer(new TextPainter(PinceauMutable::new,
                 new RowLayoutCache(), new SourceImposee(mise)));
-        FrameState etat = new FrameState();
-        etat.beginFrame(Document.of(texte), MultiSelection.empty(),
+        FrameState state = new FrameState();
+        state.beginFrame(Document.of(text), MultiSelection.empty(),
                 new VisualProjection(1, new FoldModel()), 1L,
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe()),
                 themeVide, 0, 1, 40f, 0f, 0f);
-        cadre.drawFrame(surface, etat);
+        cadre.drawFrame(surface, state);
 
         assertEquals(1, surface.traces().size());
         assertEquals(THEME.syntaxe().couleur(TokenKind.KEYWORD),
@@ -234,7 +234,7 @@ class TextPainterScopesTest {
     @Test
     void lesThemesLivresPortentLeursPortees() {
         assertTrue(EditorThemes.CLAIR.portees() != ScopeTheme.empty());
-        assertTrue(EditorThemes.SOMBRE.portees() != ScopeTheme.empty());
+        assertTrue(EditorThemes.DARK.portees() != ScopeTheme.empty());
         assertTrue(EditorThemes.CONTRASTE_ELEVE.portees() != ScopeTheme.empty());
         assertEquals(ScopeThemes.light().rules().size(),
                 EditorThemes.CLAIR.portees().rules().size());

@@ -74,10 +74,10 @@ class RowLayoutCacheTest {
 
         // Un état mutable partagé change entre deux consultations : les
         // résultats ne bougent pas — la clé ne voit jamais cet état.
-        TextBrush pinceau = new PinceauMutable();
-        pinceau.setColor(0xFFFF0000);
+        TextBrush brush = new PinceauMutable();
+        brush.setColor(0xFFFF0000);
         assertEquals("abc", present(cache.find(1L, 0, THEME, MONO)).text());
-        pinceau.setColor(0xFF00FF00);
+        brush.setColor(0xFF00FF00);
         assertEquals("abc", present(cache.find(1L, 0, THEME, MONO)).text());
 
         // Clé par valeur : une spécification égale (autre instance) touche
@@ -118,9 +118,9 @@ class RowLayoutCacheTest {
     @Test
     void redepotRemplace() {
         RowLayoutCache cache = new RowLayoutCache();
-        RowKey cle = new RowKey(3L, 0, THEME, MONO);
-        cache.store(cle, new RowLayout(0, 0, 1, "a", 8.4f));
-        cache.store(cle, new RowLayout(0, 0, 2, "bc", 16.8f));
+        RowKey key = new RowKey(3L, 0, THEME, MONO);
+        cache.store(key, new RowLayout(0, 0, 1, "a", 8.4f));
+        cache.store(key, new RowLayout(0, 0, 2, "bc", 16.8f));
 
         assertEquals(1, cache.size());
         assertEquals("bc", present(cache.find(3L, 0, THEME, MONO)).text());

@@ -23,13 +23,13 @@ class AutoCloseGardesTest {
      *  mal le litteral de char guillemet. */
     private static final char CITATION = (char) 34;
 
-    private String apresFrappe(String texte, int caret, char frappe) {
-        Document doc = Document.of(texte);
+    private String apresFrappe(String text, int caret, char keystroke) {
+        Document doc = Document.of(text);
         java.util.Optional<EditPlan> plan = SmartTyping.insert(doc,
-                MultiSelection.caretsAt(caret), String.valueOf(frappe), rules);
+                MultiSelection.caretsAt(caret), String.valueOf(keystroke), rules);
         assertTrue(plan.isPresent(),
                 "le plan existe toujours (insertion simple au pire)");
-        TextSession session = TextSession.of(texte, () -> 0L);
+        TextSession session = TextSession.of(text, () -> 0L);
         session.apply(plan.get().transaction(), plan.get().selection());
         return session.text();
     }

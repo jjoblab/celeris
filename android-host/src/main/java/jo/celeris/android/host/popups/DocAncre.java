@@ -7,7 +7,7 @@ import java.util.List;
 
 import jo.celeris.android.host.R;
 import jo.celeris.android.view.EditorView;
-import jo.celeris.android.view.ReperesPreview;
+import jo.celeris.android.view.PreviewMarks;
 import jo.celeris.android.widgets.DefinitionPreview;
 import jo.celeris.android.widgets.CompletionDocModel;
 import jo.celeris.android.widgets.CompletionDocView;
@@ -40,12 +40,12 @@ public final class DocAncre {
     private final Context contexte;
     private final PopupManager popups;
     private final CompletionDocView vue;
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final CoachPopups coach;
     private final int margePx;
     /** La session de langage branchée — le survol y passe au protocole. */
-    private @Nullable LanguageSession serveur;
+    private @Nullable LanguageSession server;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
 
@@ -55,13 +55,13 @@ public final class DocAncre {
      *
      * @param contexte  le contexte — les libellés s'y lisent
      * @param popups    le coordinateur des popups de la scène
-     * @param editeur   la vue d'éditeur ouverte
+     * @param editor   la vue d'éditeur ouverte
      * @param session   la session d'édition courante
      * @param margePx   la respiration des ancres aux bords de la couche
      * @param palette   la palette courante des popups
      * @param coach     le coach de l'hôte — le repli du survol sans serveur
      */
-    DocAncre(Context contexte, PopupManager popups, EditorView editeur,
+    DocAncre(Context contexte, PopupManager popups, EditorView editor,
             TextSession session, int margePx, PopupPalette palette,
             CoachPopups coach) {
         this.contexte = contexte;
@@ -69,7 +69,7 @@ public final class DocAncre {
         this.vue = new CompletionDocView(popups.couche().getContext(),
                 palette);
         popups.lier(PopupController.PopupKind.HOVER, vue);
-        this.editeur = editeur;
+        this.editor = editor;
         this.session = session;
         this.coach = coach;
         this.margePx = margePx;
@@ -79,11 +79,11 @@ public final class DocAncre {
      * Branche la session de langage — le survol du symbole au curseur y
      * passe au fil du protocole, la table du coach reste le repli.
      *
-     * @param serveur la session démarrée, null pour le repli seul
+     * @param server la session démarrée, null pour le repli seul
      * @param uri     l'uri du document ouvert
      */
-    void brancherServeur(@Nullable LanguageSession serveur, String uri) {
-        this.serveur = serveur;
+    void connectServer(@Nullable LanguageSession server, String uri) {
+        this.server = server;
         this.uriDocument = uri;
     }
 
@@ -102,13 +102,13 @@ public final class DocAncre {
         if (symbole == null) {
             return;
         }
-        if (serveur != null) {
-            serveur.survol(uriDocument, session.document(), symbole, caret())
-                    .whenComplete((doc, echec) -> editeur.post(
-                            () -> survol(doc)));
+        if (server != null) {
+            server.hover(uriDocument, session.document(), symbole, caret())
+                    .whenComplete((doc, echec) -> editor.post(
+                            () -> hover(doc)));
             return;
         }
-        survol(coach.docDe(symbole));
+        hover(coach.docDe(symbole));
     }
 
     /**
@@ -134,11 +134,11 @@ public final class DocAncre {
      *
      * @param doc le modèle du survol, null pour fermer
      */
-    public void survol(@Nullable CompletionDocModel doc) {
+    public void hover(@Nullable CompletionDocModel doc) {
         if (doc == null) {
             return;
         }
-        auCurseur(doc);
+        atCaret(doc);
     }
 
     /**
@@ -147,19 +147,19 @@ public final class DocAncre {
      * quitter le fichier. Aucun symbole, aucun aperçu.
      *
      * @param plan   les entrées du plan du fichier ouvert
-     * @param lignes les lignes du document ouvert
+     * @param lines les lignes du document ouvert
      */
-    public void apercu(List<OutlineEntry> plan, List<String> lignes) {
-        int curseur = caret();
-        DefinitionPreview apercu = DefinitionPreview.de(plan, lignes,
-                DefinitionPreview.symboleAu(session.document().text(), curseur),
-                curseur);
-        if (apercu == null) {
+    public void preview(List<OutlineEntry> plan, List<String> lines) {
+        int cursor = caret();
+        DefinitionPreview preview = DefinitionPreview.of(plan, lines,
+                DefinitionPreview.symboleAu(session.document().text(), cursor),
+                cursor);
+        if (preview == null) {
             return;
         }
-        auCurseur(CompletionDocModel.of(
-                contexte.getString(R.string.celeris_titre_apercu, apercu.nom()),
-                String.join("\n", apercu.extrait())));
+        atCaret(CompletionDocModel.of(
+                contexte.getString(R.string.celeris_titre_apercu, preview.nom()),
+                String.join("\n", preview.extrait())));
     }
 
     /**
@@ -167,60 +167,60 @@ public final class DocAncre {
      * l'hôte, la réponse se lit dans la carte ancrée au coin de la
      * gouttière — la colonne des repères porte l'ancre.
      *
-     * @param ligne   la ligne du repère cliqué dans la gouttière
-     * @param reperes les repères du fichier ouvert
+     * @param line   la ligne du repère cliqué dans la gouttière
+     * @param marks les repères du fichier ouvert
      */
-    public void renduPreview(int ligne,
-            List<ReperesPreview.ReperePreview> reperes) {
+    public void renduPreview(int line,
+            List<PreviewMarks.PreviewMark> marks) {
         String composable = "";
-        for (ReperesPreview.ReperePreview repere : reperes) {
-            if (repere.ligne() == ligne) {
-                composable = repere.libelle();
+        for (PreviewMarks.PreviewMark repere : marks) {
+            if (repere.line() == line) {
+                composable = repere.label();
                 break;
             }
         }
         auCoin(CompletionDocModel.of(
                 contexte.getString(R.string.celeris_titre_rendu_preview),
                 contexte.getString(R.string.celeris_message_rendu_preview,
-                        composable, ligne + 1)));
+                        composable, line + 1)));
     }
 
     /** Ouvre le document au CURSEUR — survol, aperçu de définition. */
-    private void auCurseur(CompletionDocModel doc) {
-        Rect curseur = editeur.caretBounds();
-        poser(doc, PopupAnchor.atPoint(curseur.left, curseur.top,
-                taille(), coucheLargeur(), coucheHauteur(), margePx));
+    private void atCaret(CompletionDocModel doc) {
+        Rect cursor = editor.caretBounds();
+        place(doc, PopupAnchor.atPoint(cursor.left, cursor.top,
+                size(), layerWidth(), layerHeight(), margePx));
     }
 
     /** Ouvre le document au COIN de la gouttière — rendu @Preview. */
     private void auCoin(CompletionDocModel doc) {
-        poser(doc, PopupAnchor.topLeftCorner(taille(),
-                coucheLargeur(), coucheHauteur(), margePx));
+        place(doc, PopupAnchor.topLeftCorner(size(),
+                layerWidth(), layerHeight(), margePx));
     }
 
     /** Le document posé : la carte HOVER porte le modèle à l'ancre — le
      *  manager tient l'état ET la vue d'un seul tenant. */
-    private void poser(CompletionDocModel doc, PopupPlacer.Cadre placee) {
+    private void place(CompletionDocModel doc, PopupPlacer.Cadre placee) {
         vue.setModel(doc);
-        popups.montrer(PopupController.PopupKind.HOVER,
+        popups.show(PopupController.PopupKind.HOVER,
                 placee.x(), placee.y());
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
-    private PopupPlacer.Cadre taille() {
-        return popups.taille(PopupController.PopupKind.HOVER);
+    private PopupPlacer.Cadre size() {
+        return popups.size(PopupController.PopupKind.HOVER);
     }
 
-    private int coucheLargeur() {
+    private int layerWidth() {
         return popups.couche().getWidth();
     }
 
-    private int coucheHauteur() {
+    private int layerHeight() {
         return popups.couche().getHeight();
     }
 
     private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).caret();
     }
 }

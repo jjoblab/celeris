@@ -33,7 +33,7 @@ final class KeyboardCursor {
     /** Vrai tant que le clavier s'est vu demander de se montrer —
      *  l'appui long de sélection le retire (M7.5). Accès de paquet :
      *  le banc y lit l'état sans fenêtre réelle. */
-    private boolean clavierDemande;
+    private boolean keyboardRequested;
 
     /**
      * Construit le collaborateur de la vue donnée — la vue n'est
@@ -59,8 +59,8 @@ final class KeyboardCursor {
      */
     void surAppui() {
         vue.requestFocus();
-        montrerClavier();
-        clavierDemande = true;
+        showKeyboard();
+        keyboardRequested = true;
         reveiller();
     }
 
@@ -75,12 +75,12 @@ final class KeyboardCursor {
         if (clavier != null && vue.getWindowToken() != null) {
             clavier.hideSoftInputFromWindow(vue.getWindowToken(), 0);
         }
-        clavierDemande = false;
+        keyboardRequested = false;
     }
 
     /** Vrai tant que le clavier est demandé montré — accès de paquet, bancs. */
-    boolean clavierDemande() {
-        return clavierDemande;
+    boolean keyboardRequested() {
+        return keyboardRequested;
     }
 
     /** Le gain ou la perte de focus démarre ou arrête le battement. */
@@ -88,7 +88,7 @@ final class KeyboardCursor {
         if (gagne) {
             reveiller();
         } else {
-            arreter();
+            stop();
         }
     }
 
@@ -134,13 +134,13 @@ final class KeyboardCursor {
     }
 
     /** L'arrêt : le cycle meurt, le curseur redevient plein. */
-    private void arreter() {
+    private void stop() {
         vue.removeCallbacks(battement);
         visible = true;
     }
 
     /** Dévoile le clavier logiciel de la vue. */
-    private void montrerClavier() {
+    private void showKeyboard() {
         InputMethodManager clavier = (InputMethodManager)
                 vue.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         if (clavier != null) {
@@ -153,9 +153,9 @@ final class KeyboardCursor {
      * (CaretReveal), puis invalidation.
      */
     void revealCaret() {
-        List<SelRange> plages = vue.session().selection().ranges();
-        int curseur = plages.isEmpty() ? 0 : plages.get(0).caret();
-        CaretReveal.Revealed devoile = CaretReveal.reveal(curseur,
+        List<SelRange> ranges = vue.session().selection().ranges();
+        int cursor = ranges.isEmpty() ? 0 : ranges.get(0).caret();
+        CaretReveal.Revealed devoile = CaretReveal.reveal(cursor,
                 vue.session().document(), vue.projection, vue.metrics,
                 vue.largeurGouttiere, vue.getWidth(), vue.getHeight(),
                 vue.scrollX, vue.scrollY,
@@ -167,13 +167,13 @@ final class KeyboardCursor {
 
     /** Défile d'une page, bornée au contenu. */
     void defilerPage(boolean enAvant) {
-        float hauteurContenu =
+        float contentHeight =
                 vue.projection.rowCount() * vue.metrics.lineHeight();
         float pas = ScrollGeometry.visibleRows(vue.getHeight(),
                 vue.metrics.lineHeight()) * vue.metrics.lineHeight();
         vue.scrollY = ScrollGeometry.clamp(
                 enAvant ? vue.scrollY + pas : vue.scrollY - pas,
-                hauteurContenu, vue.getHeight());
+                contentHeight, vue.getHeight());
         vue.invalidate();
     }
 

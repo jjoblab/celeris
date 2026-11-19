@@ -25,7 +25,7 @@ final class GhostPainter extends PainterLayer {
     private static final int OPACITE = 0x99;
 
     private @Nullable GhostSuggestion suggestion;
-    private String[] lignes = new String[0];
+    private String[] lines = new String[0];
 
     /**
      * Construit la couche du fantôme.
@@ -45,7 +45,7 @@ final class GhostPainter extends PainterLayer {
      */
     void setSuggestion(@Nullable GhostSuggestion nouvelle) {
         suggestion = nouvelle;
-        lignes = nouvelle == null ? new String[0] : couperEnLignes(nouvelle.texte());
+        lines = nouvelle == null ? new String[0] : splitIntoLines(nouvelle.text());
     }
 
     /** La suggestion visible, ou {@code null}. */
@@ -76,12 +76,12 @@ final class GhostPainter extends PainterLayer {
         float x = CaretGeometry.xOfOffset(document, projection, metrics,
                 frame.gutterWidth(), frame.scrollX(), courante.offset());
         float baseY = metrics.rowBaseline(rangee) - frame.scrollY();
-        for (int i = 0; i < lignes.length; i++) {
+        for (int i = 0; i < lines.length; i++) {
             if (i > 0) {
                 x = frame.gutterWidth() - frame.scrollX();
             }
-            if (!lignes[i].isEmpty()) {
-                surface.drawText(lignes[i], x,
+            if (!lines[i].isEmpty()) {
+                surface.drawText(lines[i], x,
                         baseY + i * metrics.lineHeight(), brush());
             }
         }
@@ -99,7 +99,7 @@ final class GhostPainter extends PainterLayer {
      */
     boolean premiereLigneTouchee(FrameState frame, float x, float y) {
         GhostSuggestion courante = suggestion;
-        if (courante == null || lignes.length == 0 || lignes[0].isEmpty()) {
+        if (courante == null || lines.length == 0 || lines[0].isEmpty()) {
             return false;
         }
         Document document = frame.document();
@@ -113,7 +113,7 @@ final class GhostPainter extends PainterLayer {
                 metrics, frame.gutterWidth(), frame.scrollX(),
                 courante.offset());
         float haut = metrics.rowTop(rangee) - frame.scrollY();
-        return x >= gauche && x <= gauche + lignes[0].length() * metrics.charWidth()
+        return x >= gauche && x <= gauche + lines[0].length() * metrics.charWidth()
                 && y >= haut && y <= haut + metrics.lineHeight();
     }
 
@@ -129,23 +129,23 @@ final class GhostPainter extends PainterLayer {
      * Coupe le texte en lignes : le texte vide ne rend aucune ligne, le
      * saut final n'en ouvre pas une vide.
      */
-    private static String[] couperEnLignes(String texte) {
+    private static String[] splitIntoLines(String text) {
         int nombre = 1;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
                 nombre++;
             }
         }
         String[] coupees = new String[nombre];
         int index = 0;
-        int debut = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
-                coupees[index++] = texte.substring(debut, i);
-                debut = i + 1;
+        int start = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                coupees[index++] = text.substring(start, i);
+                start = i + 1;
             }
         }
-        coupees[index] = texte.substring(debut);
+        coupees[index] = text.substring(start);
         return coupees;
     }
 }

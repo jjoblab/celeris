@@ -46,9 +46,9 @@ public final class SyntaxTree {
     }
 
     /** Vrai quand aucun chunk n'attend son analyse (arbre complet, G-01). */
-    public boolean estComplet() {
+    public boolean isComplete() {
         for (Chunk chunk : chunks) {
-            if (chunk.estEnAttente()) {
+            if (chunk.isPending()) {
                 return false;
             }
         }

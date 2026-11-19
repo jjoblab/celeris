@@ -15,7 +15,7 @@ import java.util.List;
 public final class GutterNumbers {
 
     private final List<String> etiquettes = new ArrayList<>();
-    private final StringBuilder tampon = new StringBuilder();
+    private final StringBuilder buffer = new StringBuilder();
 
     /**
      * L'étiquette du numéro donné, mémoïsée après première demande.
@@ -28,9 +28,9 @@ public final class GutterNumbers {
             throw new IllegalArgumentException("line number must be positive: " + number);
         }
         while (etiquettes.size() < number) {
-            tampon.setLength(0);
-            tampon.append(etiquettes.size() + 1);
-            etiquettes.add(tampon.toString());
+            buffer.setLength(0);
+            buffer.append(etiquettes.size() + 1);
+            etiquettes.add(buffer.toString());
         }
         return etiquettes.get(number - 1);
     }

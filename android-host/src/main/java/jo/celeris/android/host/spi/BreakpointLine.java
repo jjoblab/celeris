@@ -5,7 +5,7 @@ package jo.celeris.android.host.spi;
  * l'exécution s'est arrêtée.
  *
  * @param fichier le chemin du fichier en cours d'exécution
- * @param ligne   la ligne courante, numérotée à partir de un
+ * @param line   la ligne courante, numérotée à partir de un
  */
-public record BreakpointLine(CheminDoc fichier, int ligne) {
+public record BreakpointLine(CheminDoc fichier, int line) {
 }

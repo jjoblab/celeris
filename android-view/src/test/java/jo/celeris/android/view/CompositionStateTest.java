@@ -30,11 +30,11 @@ class CompositionStateTest {
     /** La composition démarre sur la sélection : elle la remplace. */
     @Test
     void composing_startsOnSelectionAndReplacesIt() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
 
         CompositionState.Plan plan =
-                etat.planComposing(document, new SelRange(2, 5), "xy", 1);
+                state.planComposing(document, new SelRange(2, 5), "xy", 1);
 
         assertEquals(2, plan.replaceStart());
         assertEquals(5, plan.replaceEnd());
@@ -51,13 +51,13 @@ class CompositionStateTest {
      */
     @Test
     void composing_successiveCallsReplaceTheSpanNotAppend() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
-        etat.adopt(etat.planComposing(document, new SelRange(2, 5), "xy", 1));
+        state.adopt(state.planComposing(document, new SelRange(2, 5), "xy", 1));
         Document apres = document.replace(2, 5, "xy");
 
         CompositionState.Plan second =
-                etat.planComposing(apres, SelRange.caretAt(4), "xyz", 1);
+                state.planComposing(apres, SelRange.caretAt(4), "xyz", 1);
 
         assertEquals(2, second.replaceStart());
         assertEquals(4, second.replaceEnd());
@@ -68,45 +68,45 @@ class CompositionStateTest {
     /** Curseur positif : relatif à la fin du texte composé, moins un. */
     @Test
     void composing_positiveCursorIsRelativeToEndMinusOne() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
 
         // fin = 2 + 3 = 5 ; position 1 -> 5 ; position 2 -> 6.
-        assertEquals(5, etat.planComposing(document, SelRange.caretAt(2), "abc", 1).caret());
-        assertEquals(6, etat.planComposing(document, SelRange.caretAt(2), "abc", 2).caret());
+        assertEquals(5, state.planComposing(document, SelRange.caretAt(2), "abc", 1).caret());
+        assertEquals(6, state.planComposing(document, SelRange.caretAt(2), "abc", 2).caret());
     }
 
     /** Curseur nul ou négatif : relatif au début du texte composé. */
     @Test
     void composing_nonPositiveCursorIsRelativeToStart() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
 
-        assertEquals(2, etat.planComposing(document, SelRange.caretAt(2), "abc", 0).caret());
-        assertEquals(1, etat.planComposing(document, SelRange.caretAt(2), "abc", -1).caret());
+        assertEquals(2, state.planComposing(document, SelRange.caretAt(2), "abc", 0).caret());
+        assertEquals(1, state.planComposing(document, SelRange.caretAt(2), "abc", -1).caret());
     }
 
     /** Le curseur ne sort jamais du document : borné à la nouvelle longueur. */
     @Test
     void composing_cursorIsClampedToTheDocument() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
 
         // Nouvelle longueur 6 - 3 + 3 = 6 ; position 9 -> 6.
         CompositionState.Plan plan =
-                etat.planComposing(document, new SelRange(0, 3), "abc", 9);
+                state.planComposing(document, new SelRange(0, 3), "abc", 9);
         assertEquals(6, plan.caret());
     }
 
     /** Le commit remplace la composition puis la clôt. */
     @Test
     void commit_replacesTheSpanAndClosesComposition() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
-        etat.adopt(etat.planComposing(document, new SelRange(2, 5), "xy", 1));
+        state.adopt(state.planComposing(document, new SelRange(2, 5), "xy", 1));
         Document apres = document.replace(2, 5, "xy");
 
-        CompositionState.Plan plan = etat.planCommit(apres, SelRange.caretAt(4), "Z", 1);
+        CompositionState.Plan plan = state.planCommit(apres, SelRange.caretAt(4), "Z", 1);
 
         assertEquals(2, plan.replaceStart());
         assertEquals(4, plan.replaceEnd());
@@ -117,10 +117,10 @@ class CompositionStateTest {
     /** Le commit sans composition ouverte insère à la sélection. */
     @Test
     void commit_withoutCompositionInsertsAtCaret() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
 
-        CompositionState.Plan plan = etat.planCommit(document, SelRange.caretAt(3), "Q", 1);
+        CompositionState.Plan plan = state.planCommit(document, SelRange.caretAt(3), "Q", 1);
 
         assertEquals(3, plan.replaceStart());
         assertEquals(3, plan.replaceEnd());
@@ -130,10 +130,10 @@ class CompositionStateTest {
     /** Le commit consomme une sélection non vide. */
     @Test
     void commit_consumesTheSelection() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
 
-        CompositionState.Plan plan = etat.planCommit(document, new SelRange(2, 5), "Q", 1);
+        CompositionState.Plan plan = state.planCommit(document, new SelRange(2, 5), "Q", 1);
 
         assertEquals(2, plan.replaceStart());
         assertEquals(5, plan.replaceEnd());
@@ -146,11 +146,11 @@ class CompositionStateTest {
      */
     @Test
     void region_snapsToWholeClusters() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("a\ud83d\ude00b");
 
         // L'emoji occupe 1..3 ; la région demandée le coupe en deux.
-        CompositionState.Plan plan = etat.planRegion(document, 2, 3);
+        CompositionState.Plan plan = state.planRegion(document, 2, 3);
 
         assertFalse(plan.hasReplacement(), "la région ne remplace rien");
         assertTrue(plan.composingAfter());
@@ -162,14 +162,14 @@ class CompositionStateTest {
     /** Région inversée : les bornes s'échangent, puis se bornent au document. */
     @Test
     void region_reversedIsSwappedAndClamped() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdefghij");
 
-        CompositionState.Plan inversee = etat.planRegion(document, 5, 2);
+        CompositionState.Plan inversee = state.planRegion(document, 5, 2);
         assertEquals(2, inversee.spanStart());
         assertEquals(5, inversee.spanEnd());
 
-        CompositionState.Plan horsBornes = etat.planRegion(document, -3, 99);
+        CompositionState.Plan horsBornes = state.planRegion(document, -3, 99);
         assertEquals(0, horsBornes.spanStart());
         assertEquals(10, horsBornes.spanEnd());
     }
@@ -177,11 +177,11 @@ class CompositionStateTest {
     /** Une famille d'emoji liée par sélecteur forme UN cluster : la région l'absorbe. */
     @Test
     void region_absorbsZwjFamily() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("a" + FAMILLE + "b");
 
         // La famille occupe 1..6 ; la région demandée coupe au milieu.
-        CompositionState.Plan plan = etat.planRegion(document, 3, 4);
+        CompositionState.Plan plan = state.planRegion(document, 3, 4);
 
         assertEquals(1, plan.spanStart());
         assertEquals(6, plan.spanEnd());
@@ -190,19 +190,19 @@ class CompositionStateTest {
     /** Le retour arrière dans la composition retire le DERNIER cluster entier. */
     @Test
     void backspace_removesTheLastWholeCluster() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("xy" + FAMILLE + "c");
-        etat.adopt(etat.planRegion(document, 2, 8));
+        state.adopt(state.planRegion(document, 2, 8));
 
-        CompositionState.Plan premier = etat.planClusterBackspace(document);
+        CompositionState.Plan premier = state.planClusterBackspace(document);
         assertEquals(7, premier.replaceStart());
         assertEquals(8, premier.replaceEnd());
         assertEquals("", premier.insertion());
         assertEquals(7, premier.caret());
         Document apres = document.replace(7, 8, "");
-        etat.adopt(premier);
+        state.adopt(premier);
 
-        CompositionState.Plan second = etat.planClusterBackspace(apres);
+        CompositionState.Plan second = state.planClusterBackspace(apres);
         // La famille entière forme le dernier cluster : elle part d'un bloc.
         assertEquals(2, second.replaceStart());
         assertEquals(7, second.replaceEnd());
@@ -211,36 +211,36 @@ class CompositionStateTest {
     /** Retour arrière sur une composition vide : pas de plan, la voie clavier suit. */
     @Test
     void backspace_onEmptySpanYieldsNoPlan() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abc");
-        etat.adopt(etat.planRegion(document, 1, 1));
+        state.adopt(state.planRegion(document, 1, 1));
 
-        assertNull(etat.planClusterBackspace(document));
+        assertNull(state.planClusterBackspace(document));
     }
 
     /** Clôturer la composition ne touche pas au texte : l'état seul se vide. */
     @Test
     void finish_keepsTextAndClearsState() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
-        etat.adopt(etat.planComposing(document, new SelRange(2, 5), "xy", 1));
-        assertTrue(etat.isComposing());
+        state.adopt(state.planComposing(document, new SelRange(2, 5), "xy", 1));
+        assertTrue(state.isComposing());
 
-        etat.finish();
+        state.finish();
 
-        assertFalse(etat.isComposing());
-        assertEquals(0, etat.composingStart());
-        assertEquals(0, etat.composingEnd());
+        assertFalse(state.isComposing());
+        assertEquals(0, state.composingStart());
+        assertEquals(0, state.composingEnd());
     }
 
     /** Une composition vide reste une composition : la plage est posée, vide. */
     @Test
     void composing_emptyTextKeepsAnEmptySpan() {
-        CompositionState etat = new CompositionState();
+        CompositionState state = new CompositionState();
         Document document = Document.of("abcdef");
-        etat.adopt(etat.planRegion(document, 2, 4));
+        state.adopt(state.planRegion(document, 2, 4));
 
-        CompositionState.Plan plan = etat.planComposing(document, SelRange.caretAt(3), "", 1);
+        CompositionState.Plan plan = state.planComposing(document, SelRange.caretAt(3), "", 1);
 
         assertEquals(2, plan.replaceStart());
         assertEquals(4, plan.replaceEnd());

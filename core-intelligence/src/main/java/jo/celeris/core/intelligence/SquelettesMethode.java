@@ -28,16 +28,16 @@ public final class SquelettesMethode {
      */
     public static String squelette(String nom, List<String> typesParametres,
                                    String typeRetour) {
-        StringBuilder corps = new StringBuilder("@Override\npublic ")
+        StringBuilder body = new StringBuilder("@Override\npublic ")
                 .append(typeRetour).append(' ').append(nom).append('(');
         for (int i = 0; i < typesParametres.size(); i++) {
             if (i > 0) {
-                corps.append(", ");
+                body.append(", ");
             }
-            corps.append("${p").append(i + 1).append(':')
+            body.append("${p").append(i + 1).append(':')
                     .append(typesParametres.get(i)).append(" arg").append(i).append('}');
         }
-        corps.append(") {\n    ${corps}\n}");
-        return corps.toString();
+        body.append(") {\n    ${corps}\n}");
+        return body.toString();
     }
 }

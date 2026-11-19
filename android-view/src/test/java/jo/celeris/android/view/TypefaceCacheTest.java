@@ -40,8 +40,8 @@ class TypefaceCacheTest {
      */
     @Test
     void boldTypefaceMemoized_untilFontChange() {
-        FabriqueComptee fabrique = new FabriqueComptee();
-        TypefaceCache cache = new TypefaceCache(fabrique);
+        FabriqueComptee factory = new FabriqueComptee();
+        TypefaceCache cache = new TypefaceCache(factory);
         FontHandle mono = new PoigneeSimple();
         FontSpec quatorze = new FontSpec("mono", 14f);
 
@@ -50,24 +50,24 @@ class TypefaceCacheTest {
         FontHandle gras1 = cache.boldFor(quatorze, mono);
         assertSame(gras1, cache.boldFor(quatorze, mono));
         assertSame(gras1, cache.boldFor(quatorze, mono));
-        assertEquals(1, fabrique.derivations);
+        assertEquals(1, factory.derivations);
 
         // Mémoïsation par valeur : une spécification égale (autre
         // instance) touche la même entrée.
         assertSame(gras1, cache.boldFor(new FontSpec("mono", 14f), mono));
-        assertEquals(1, fabrique.derivations);
+        assertEquals(1, factory.derivations);
 
         // Une autre taille est une autre police : sa propre dérivation.
         FontHandle gras16 = cache.boldFor(new FontSpec("mono", 16f), mono);
         assertNotSame(gras1, gras16);
-        assertEquals(2, fabrique.derivations);
+        assertEquals(2, factory.derivations);
 
         // Le changement de police invalide la mémoïsation : la dérivation
         // repart — jamais une variante périmée.
         cache.fontChanged();
         FontHandle grasApres = cache.boldFor(quatorze, mono);
         assertNotSame(gras1, grasApres);
-        assertEquals(3, fabrique.derivations);
+        assertEquals(3, factory.derivations);
         assertSame(grasApres, cache.boldFor(quatorze, mono));
     }
 }

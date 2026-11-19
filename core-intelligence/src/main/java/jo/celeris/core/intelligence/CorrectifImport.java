@@ -19,7 +19,7 @@ public final class CorrectifImport {
     /** Un correctif local : son nom qualifié et son édition — l'aperçu
      *  se prévoit sur une copie, l'acceptation appartient à la
      *  session. */
-    public record Candidat(String fqn, Transaction edition) {
+    public record Candidat(String fqn, Transaction edit) {
     }
 
     private CorrectifImport() {

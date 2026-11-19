@@ -37,17 +37,17 @@ public final class CompletionDocModel {
     private static final Pattern TITRE_MARKDOWN = Pattern.compile("#{1,6}\\s+(.+)");
 
     /** Une section typée : le genre de la clôture et son texte, sans les marqueurs. */
-    public record Section(String genre, String texte) {
+    public record Section(String kind, String text) {
     }
 
     private final String titre;
     private final List<Section> sections;
-    private final String texteLibre;
+    private final String freeText;
 
-    private CompletionDocModel(String titre, List<Section> sections, String texteLibre) {
+    private CompletionDocModel(String titre, List<Section> sections, String freeText) {
         this.titre = titre;
         this.sections = List.copyOf(sections);
-        this.texteLibre = texteLibre;
+        this.freeText = freeText;
     }
 
     /**
@@ -62,56 +62,56 @@ public final class CompletionDocModel {
     public static CompletionDocModel of(String titre, String documentation) {
         List<Section> sections = new ArrayList<>();
         StringBuilder libre = new StringBuilder();
-        String[] lignes = documentation.split("\n", -1);
+        String[] lines = documentation.split("\n", -1);
         int i = 0;
-        while (i < lignes.length) {
-            String ligne = lignes[i];
-            if (estOuvertureDeCloture(ligne)) {
-                String genre = ligne.substring(3).trim();
-                StringBuilder corps = new StringBuilder();
+        while (i < lines.length) {
+            String line = lines[i];
+            if (estOuvertureDeCloture(line)) {
+                String kind = line.substring(3).trim();
+                StringBuilder body = new StringBuilder();
                 i++;
-                while (i < lignes.length && !estFermetureDeCloture(lignes[i])) {
-                    if (corps.length() > 0) {
-                        corps.append('\n');
+                while (i < lines.length && !estFermetureDeCloture(lines[i])) {
+                    if (body.length() > 0) {
+                        body.append('\n');
                     }
-                    corps.append(lignes[i]);
+                    body.append(lines[i]);
                     i++;
                 }
                 // la clôture fermante est consommée ; sans fermante, la fin du texte clot
                 i++;
-                sections.add(new Section(genre, corps.toString()));
-            } else if (enteteMarkdown(ligne) != null) {
+                sections.add(new Section(kind, body.toString()));
+            } else if (enteteMarkdown(line) != null) {
                 // l'en-tête Markdown du serveur LSP : la section naît
                 // sous son libellé, le corps vit jusqu'à l'en-tête suivant
-                String genre = enteteMarkdown(ligne);
-                StringBuilder corps = new StringBuilder();
+                String kind = enteteMarkdown(line);
+                StringBuilder body = new StringBuilder();
                 i++;
-                while (i < lignes.length && !estOuvertureDeCloture(lignes[i])
-                        && enteteMarkdown(lignes[i]) == null) {
-                    if (corps.length() > 0) {
-                        corps.append('\n');
+                while (i < lines.length && !estOuvertureDeCloture(lines[i])
+                        && enteteMarkdown(lines[i]) == null) {
+                    if (body.length() > 0) {
+                        body.append('\n');
                     }
-                    corps.append(lignes[i]);
+                    body.append(lines[i]);
                     i++;
                 }
-                sections.add(new Section(genre, corps.toString()));
+                sections.add(new Section(kind, body.toString()));
             } else {
                 if (libre.length() > 0) {
                     libre.append('\n');
                 }
-                libre.append(ligne);
+                libre.append(line);
                 i++;
             }
         }
         return new CompletionDocModel(titre, sections, libre.toString());
     }
 
-    private static boolean estOuvertureDeCloture(String ligne) {
-        return ligne.startsWith("```");
+    private static boolean estOuvertureDeCloture(String line) {
+        return line.startsWith("```");
     }
 
-    private static boolean estFermetureDeCloture(String ligne) {
-        return ligne.trim().equals("```");
+    private static boolean estFermetureDeCloture(String line) {
+        return line.trim().equals("```");
     }
 
     /**
@@ -120,8 +120,8 @@ public final class CompletionDocModel {
      * — null pour toute autre ligne (le gras EN LIGNE reste au corps,
      * seul l'en-tête PORTÉ PAR LA LIGNE ENTIERÈ ouvre une section).
      */
-    private static @Nullable String enteteMarkdown(String ligne) {
-        String epuree = ligne.strip();
+    private static @Nullable String enteteMarkdown(String line) {
+        String epuree = line.strip();
         // l'en-tête gras occupe la ligne ENTIÈRE — le gras en ligne
         // (une phrase qui porte un mot en gras) reste au corps
         if (GRAS_ENTIER.matcher(epuree).matches()) {
@@ -145,7 +145,7 @@ public final class CompletionDocModel {
     }
 
     /** Le texte hors clôtures — épuré, jamais mêlé aux sections. */
-    public String texteLibre() {
-        return texteLibre;
+    public String freeText() {
+        return freeText;
     }
 }

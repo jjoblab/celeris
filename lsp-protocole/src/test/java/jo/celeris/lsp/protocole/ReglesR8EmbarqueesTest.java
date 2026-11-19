@@ -54,11 +54,11 @@ final class ReglesR8EmbarqueesTest {
     void leJarPubliePorteLesRegles() throws IOException {
         Path jar = jarCompile();
         try (ZipFile archive = new ZipFile(jar.toFile())) {
-            ZipEntry entree = archive.getEntry(
+            ZipEntry input = archive.getEntry(
                     "META-INF/proguard/celeris-lsp.pro");
-            assertNotNull(entree,
+            assertNotNull(input,
                     "le jar porte META-INF/proguard/celeris-lsp.pro");
-            String embarquee = lire(archive.getInputStream(entree));
+            String embarquee = read(archive.getInputStream(input));
             String source = Files.readString(
                     Paths.get("regles-conservation.pro"),
                     StandardCharsets.UTF_8);
@@ -74,10 +74,10 @@ final class ReglesR8EmbarqueesTest {
     void lesReglesGardentLeFilReflexif() throws IOException {
         Path jar = jarCompile();
         try (ZipFile archive = new ZipFile(jar.toFile())) {
-            ZipEntry entree = archive.getEntry(
+            ZipEntry input = archive.getEntry(
                     "META-INF/proguard/celeris-lsp.pro");
-            assertNotNull(entree, "l'entrée existe (re-vérifiée ici)");
-            String regles = lire(archive.getInputStream(entree));
+            assertNotNull(input, "l'entrée existe (re-vérifiée ici)");
+            String regles = read(archive.getInputStream(input));
             assertTrue(regles.contains("-keep class org.eclipse.lsp4j.**"),
                     "la bibliothèque de la frontière se garde");
             assertTrue(regles.contains(
@@ -89,7 +89,7 @@ final class ReglesR8EmbarqueesTest {
         }
     }
 
-    private static String lire(InputStream flot) throws IOException {
+    private static String read(InputStream flot) throws IOException {
         return new String(flot.readAllBytes(), StandardCharsets.UTF_8);
     }
 }

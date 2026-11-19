@@ -66,15 +66,15 @@ class FenetreBorneeTest {
         Document document = Document.of("aaaa\nbbbb\ncccc");
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.of(
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.of(
                 jo.celeris.core.text.SelRange.caretAt(0)), projection,
                 document.revision(),
                 EditorMetrics.of(new FontSpec("mono", 16f), new RegleDroite()),
                 EditorThemes.CLAIR, 0, 40, 40f, 0f, 0f);
         assertEquals(3, projection.rowCount());
-        assertEquals(0, etat.firstRow());
-        assertEquals(3, etat.visibleRows());
+        assertEquals(0, state.firstRow());
+        assertEquals(3, state.visibleRows());
     }
 
     /**
@@ -86,15 +86,15 @@ class FenetreBorneeTest {
         Document document = Document.of("aaaaaaaaaa\nbb\ncc");
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 4);
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.of(
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.of(
                 jo.celeris.core.text.SelRange.caretAt(0)), projection,
                 document.revision(),
                 EditorMetrics.of(new FontSpec("mono", 16f), new RegleDroite()),
                 EditorThemes.CLAIR, 0, 40, 40f, 0f, 0f);
         // Ligne 0 coupée en 3 rangées, lignes 1 et 2 entières : 5 rangées.
         assertEquals(5, projection.rowCount());
-        assertEquals(5, etat.visibleRows());
+        assertEquals(5, state.visibleRows());
     }
 
     /**
@@ -115,12 +115,12 @@ class FenetreBorneeTest {
         RowLayoutCache cache = new RowLayoutCache();
         List<String> textes = new ArrayList<>();
         DrawSurface surface = surfaceCollectantTextes(textes);
-        FrameState etat = new FrameState();
+        FrameState state = new FrameState();
         // La fenêtre demandée dépasse largement le contenu.
-        etat.beginFrame(document, session.selection(), projection,
+        state.beginFrame(document, session.selection(), projection,
                 document.revision(), metrics, EditorThemes.CLAIR, 0, 100,
                 40f, 0f, 0f);
-        TextPainter peintre = new TextPainter(new BrushFactory() {
+        TextPainter painter = new TextPainter(new BrushFactory() {
             @Override
             public TextBrush newBrush() {
                 return new TextBrush() {
@@ -138,7 +138,7 @@ class FenetreBorneeTest {
                 };
             }
         }, cache, source);
-        peintre.paint(surface, etat);
+        painter.paint(surface, state);
         // Le contenu coupé en 4 colonnes : 3 rangées, 3 textes — pas un
         // de plus, jamais l'exception de la rangée fantôme.
         assertEquals(3, textes.size());
@@ -174,12 +174,12 @@ class FenetreBorneeTest {
         Document document = Document.of("abc");
         VisualProjection projection =
                 new VisualProjection(document, new FoldModel(), 0);
-        FrameState etat = new FrameState();
-        FontSpec police = new FontSpec("mono", 22f);
-        etat.beginFrame(document, MultiSelection.of(
+        FrameState state = new FrameState();
+        FontSpec font = new FontSpec("mono", 22f);
+        state.beginFrame(document, MultiSelection.of(
                 jo.celeris.core.text.SelRange.caretAt(0)), projection,
                 document.revision(),
-                EditorMetrics.of(police, new RegleDroite()),
+                EditorMetrics.of(font, new RegleDroite()),
                 EditorThemes.CLAIR, 0, 3, 40f, 0f, 0f);
         couche.paint(new DrawSurface() {
             @Override
@@ -193,9 +193,9 @@ class FenetreBorneeTest {
                     float bottom, TextBrush brush) {
                 // muet
             }
-        }, etat);
+        }, state);
         assertEquals(1, policesRecues.size());
-        assertSame(police, policesRecues.get(0));
+        assertSame(font, policesRecues.get(0));
     }
 
     /**
@@ -250,8 +250,8 @@ class FenetreBorneeTest {
             }
 
             @Override
-            public void setFont(FontSpec police) {
-                policesRecues.add(police);
+            public void setFont(FontSpec font) {
+                policesRecues.add(font);
             }
         };
     }

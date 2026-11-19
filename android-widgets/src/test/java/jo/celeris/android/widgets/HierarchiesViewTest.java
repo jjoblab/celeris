@@ -46,9 +46,9 @@ public class HierarchiesViewTest {
 
     /** Un sommet prenable : son libellé, sa profondeur, son saut —
      *  null pour l'introuvable (la frontière hors projet). */
-    private static HierarchiesView.Sommet sommet(String libelle, int profondeur,
+    private static HierarchiesView.Sommet sommet(String label, int profondeur,
             Runnable saut) {
-        return new HierarchiesView.Sommet(libelle, profondeur, saut);
+        return new HierarchiesView.Sommet(label, profondeur, saut);
     }
 
     /** L'arbre de types se rend : l'en-tête, les sections et l'arbre
@@ -71,7 +71,7 @@ public class HierarchiesViewTest {
                 + " sommets, la section des sous-types, son sommet, la"
                 + " section de la frontière et l'introuvable", 8,
                 vue.rowCount());
-        assertEquals("Animal", vue.sommetAt(0).libelle());
+        assertEquals("Animal", vue.sommetAt(0).label());
         assertNull("le sommet hors bornes n'existe pas", vue.sommetAt(9));
         vue.setArbre(null, List.of(), null);
         assertEquals("l'arbre vide se rend sans rangées", 0, vue.rowCount());
@@ -99,11 +99,11 @@ public class HierarchiesViewTest {
                 10f, section, 0));
         assertEquals("la section ne se prend jamais", -1, courses.get());
         // le sommet de profondeur 2 suit la section : le doigt y vise son centre
-        float cible = vue.rowCenterY(4) + vue.paddingYPx;
+        float target = vue.rowCenterY(4) + vue.paddingYPx;
         vue.onTouchEvent(MotionEvent.obtain(t, t + 32L, MotionEvent.ACTION_DOWN,
-                10f, cible, 0));
+                10f, target, 0));
         vue.onTouchEvent(MotionEvent.obtain(t, t + 48L, MotionEvent.ACTION_UP,
-                10f, cible, 0));
+                10f, target, 0));
         assertEquals("le relâchement saute le sommet visé", 2, courses.get());
     }
 

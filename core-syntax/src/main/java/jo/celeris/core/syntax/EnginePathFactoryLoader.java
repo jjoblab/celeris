@@ -33,12 +33,12 @@ public final class EnginePathFactoryLoader {
      *
      * @param source    la source syntaxique du langage, ou null
      * @param session   la session d'édition suivie
-     * @param executeur l'exécuteur du travail, null pour la voie
+     * @param executor l'exécuteur du travail, null pour la voie
      *                  synchrone
      * @return le moteur prêt, null hors de la voie
      */
-    public static @Nullable MoteurSyntaxe creer(@Nullable LanguageSyntax source,
-            TextSession session, @Nullable Executor executeur) {
+    public static @Nullable SyntaxEngine create(@Nullable LanguageSyntax source,
+            TextSession session, @Nullable Executor executor) {
         EnginePathFactory locale = fabrique;
         if (locale == null) {
             Optional<EnginePathFactory> trouve = ServiceLoader.load(
@@ -47,6 +47,6 @@ public final class EnginePathFactoryLoader {
             locale = trouve.orElse(null);
             fabrique = locale;
         }
-        return locale == null ? null : locale.creer(source, session, executeur);
+        return locale == null ? null : locale.create(source, session, executor);
     }
 }

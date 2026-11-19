@@ -81,17 +81,17 @@ class JavaArbreTest {
     @Test
     void plisDesCorps() {
         Document doc = Document.of(CorpusChargeur.exempleJava());
-        List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
-        assertFalse(plis.isEmpty());
-        FoldSpan premier = plis.get(0);
+        List<FoldSpan> folds = TreeFolds.regions(doc, service.analyseFull(doc));
+        assertFalse(folds.isEmpty());
+        FoldSpan premier = folds.get(0);
         assertEquals(2, premier.startLine(),
                 "le pli des imports ouvre à la première ligne d'import (D-04)");
         assertEquals(3, premier.endLine(), "et ferme à la dernière");
-        FoldSpan pliClasse = plis.get(1);
+        FoldSpan pliClasse = folds.get(1);
         assertEquals(5, pliClasse.startLine(),
                 "le pli de la classe s'ouvre à sa documentation, en-tête de sa déclaration");
         assertTrue(pliClasse.endLine() > 60, "et couvre tout le corps");
-        assertTrue(plis.stream().anyMatch(p -> p.endLine() > p.startLine() + 3),
+        assertTrue(folds.stream().anyMatch(p -> p.endLine() > p.startLine() + 3),
                 "plusieurs régions de plusieurs lignes");
     }
 
@@ -101,11 +101,11 @@ class JavaArbreTest {
         String source = CorpusChargeur.exempleJava();
         Document doc = Document.of(source);
         Analysis complet = service.analyseFull(doc);
-        int cible = source.indexOf("somme += valeur;");
-        assertTrue(cible > 0);
-        Document edite = doc.replace(cible + 7, cible + 14, "alpha");
+        int target = source.indexOf("somme += valeur;");
+        assertTrue(target > 0);
+        Document edite = doc.replace(target + 7, target + 14, "alpha");
         Analysis diff = service.analyseIncremental(edite, complet,
-                EditSite.of(doc, edite, cible + 7, cible + 14, "alpha"));
+                EditSite.of(doc, edite, target + 7, target + 14, "alpha"));
         Arbres.verifierEquivalence(diff.tree(),
                 service.analyseFull(edite).tree(), edite);
     }
@@ -178,8 +178,8 @@ class JavaArbreTest {
                 jo.celeris.core.text.TextSession.of(source, () -> 0L);
         SyntaxCoordinator coordinateur = SyntaxCoordinator.on(session, JavaSyntax.INSTANCE);
         Analysis premiere = coordinateur.analysis();
-        int cible = source.indexOf("compteur;");
-        session.replaceRange(cible, cible + 9, "totalite");
+        int target = source.indexOf("compteur;");
+        session.replaceRange(target, target + 9, "totalite");
         Analysis seconde = coordinateur.analysis();
         assertSame(premiere.lex().line(0), seconde.lex().line(0));
         Arbres.verifierEquivalence(seconde.tree(),

@@ -4,7 +4,7 @@ import java.util.concurrent.Executor;
 
 import jo.celeris.core.syntax.EnginePathFactory;
 import jo.celeris.core.syntax.LanguageSyntax;
-import jo.celeris.core.syntax.MoteurSyntaxe;
+import jo.celeris.core.syntax.SyntaxEngine;
 import jo.celeris.core.text.TextSession;
 
 import org.jspecify.annotations.Nullable;
@@ -38,14 +38,14 @@ public final class FabriqueVoieBanc implements EnginePathFactory {
     static volatile boolean moteurReprogrammante;
 
     /** Le dernier moteur servi — le banc y lit ses publications. */
-    static volatile MoteurSyntaxe dernierMoteur;
+    static volatile SyntaxEngine dernierMoteur;
 
     /** Compteur des moteurs servis — le banc asserte le rattachement. */
     static volatile int moteurs;
 
     @Override
-    public @Nullable MoteurSyntaxe creer(@Nullable LanguageSyntax source,
-            TextSession session, @Nullable Executor executeur) {
+    public @Nullable SyntaxEngine create(@Nullable LanguageSyntax source,
+            TextSession session, @Nullable Executor executor) {
         // La voie ne sert que les sources de la langue de banc : la
         // JavaSyntax marque la voie (toute source non nulle y passe —
         // le banc n'attache qu'elle).
@@ -53,12 +53,12 @@ public final class FabriqueVoieBanc implements EnginePathFactory {
             return null;
         }
         derniereSession = session;
-        MoteurSyntaxe moteur = moteurReprogrammante
+        SyntaxEngine engine = moteurReprogrammante
                 ? new PublicationChaqueRevisionBancTest.MoteurReprogrammante(
-                        session, executeur)
-                : new RattrapageVoieNatifTest.MoteurMaquette(session, executeur);
-        dernierMoteur = moteur;
+                        session, executor)
+                : new RattrapageVoieNatifTest.MoteurMaquette(session, executor);
+        dernierMoteur = engine;
         moteurs++;
-        return moteur;
+        return engine;
     }
 }

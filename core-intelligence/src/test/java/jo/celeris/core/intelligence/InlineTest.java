@@ -30,10 +30,10 @@ class InlineTest {
     private Inline.InlinePlan aligne(String source, String designation) {
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf(designation);
-        assertTrue(debut >= 0, "désignation absente du corpus : " + designation);
-        Inline.InlinePlan plan = Inline.declaration(doc, analyse, debut,
-                Math.min(debut + designation.length(), source.length()));
+        int start = source.indexOf(designation);
+        assertTrue(start >= 0, "désignation absente du corpus : " + designation);
+        Inline.InlinePlan plan = Inline.declaration(doc, analyse, start,
+                Math.min(start + designation.length(), source.length()));
         assertNotNull(plan, "le plan refuse une désignation alignable : " + designation);
         return plan;
     }
@@ -41,9 +41,9 @@ class InlineTest {
     private void refuse(String source, String designation) {
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf(designation);
-        assertTrue(debut >= 0, "désignation absente du corpus : " + designation);
-        assertNull(Inline.declaration(doc, analyse, debut, debut + designation.length()),
+        int start = source.indexOf(designation);
+        assertTrue(start >= 0, "désignation absente du corpus : " + designation);
+        assertNull(Inline.declaration(doc, analyse, start, start + designation.length()),
                 "le plan accepte une désignation refusable : " + designation);
     }
 
@@ -257,9 +257,9 @@ class InlineTest {
                 """;
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf("unite = 2");
+        int start = source.indexOf("unite = 2");
         assertThrows(IllegalArgumentException.class,
-                () -> Inline.declaration(doc, analyse, debut + 2, debut));
+                () -> Inline.declaration(doc, analyse, start + 2, start));
         assertThrows(IllegalArgumentException.class,
                 () -> Inline.declaration(doc, analyse, -1, 2));
         assertThrows(IllegalArgumentException.class,

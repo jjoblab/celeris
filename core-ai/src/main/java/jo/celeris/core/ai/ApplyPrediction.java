@@ -75,14 +75,14 @@ public final class ApplyPrediction {
      */
     private static boolean editsFideles(Document document, PredictionEdit prediction) {
         Document etat = document;
-        for (TextEdit edition : prediction.edits()) {
-            if (edition.end() > etat.length()) {
+        for (TextEdit edit : prediction.edits()) {
+            if (edit.end() > etat.length()) {
                 return false;
             }
-            if (!etat.subText(edition.start(), edition.end()).equals(edition.removed())) {
+            if (!etat.subText(edit.start(), edit.end()).equals(edit.removed())) {
                 return false;
             }
-            etat = etat.replace(edition.start(), edition.end(), edition.inserted());
+            etat = etat.replace(edit.start(), edit.end(), edit.inserted());
         }
         return true;
     }

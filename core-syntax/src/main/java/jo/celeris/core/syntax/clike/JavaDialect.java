@@ -120,7 +120,7 @@ final class JavaDialect extends CLikeDialect {
 
     @Override
     int advanceAfterType(TokenSlice slice, int keyword, int to) {
-        int opening = Tokens.chercherAccolade(slice, keyword + typeBraceOffset());
+        int opening = Tokens.findBrace(slice, keyword + typeBraceOffset());
         if (opening < 0) {
             return to;
         }

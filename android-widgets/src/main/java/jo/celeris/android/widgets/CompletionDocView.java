@@ -31,24 +31,24 @@ public final class CompletionDocView extends TextRowsPopup {
             setRows(List.of());
             return;
         }
-        List<Row> rangees = new ArrayList<>();
+        List<Row> rows = new ArrayList<>();
         // La bande signature : teintée, à l'encre d'accent.
-        rangees.add(Row.teintee(model.titre(), palette.accent(),
+        rows.add(Row.teintee(model.titre(), palette.accent(),
                 Tier.TITRE));
         for (CompletionDocModel.Section section : model.sections()) {
-            rangees.add(Row.apresFilet(Row.tier(section.genre(),
+            rows.add(Row.afterRule(Row.tier(section.kind(),
                     palette.muted(), Tier.MICRO)));
-            poserCorps(rangees, section.texte());
+            setBody(rows, section.text());
         }
-        if (!model.texteLibre().isEmpty()) {
+        if (!model.freeText().isEmpty()) {
             List<Row> bloc = new ArrayList<>();
-            poserCorps(bloc, model.texteLibre());
+            setBody(bloc, model.freeText());
             if (!bloc.isEmpty()) {
-                bloc.set(0, Row.apresFilet(bloc.get(0)));
-                rangees.addAll(bloc);
+                bloc.set(0, Row.afterRule(bloc.get(0)));
+                rows.addAll(bloc);
             }
         }
-        setRows(rangees);
+        setRows(rows);
     }
 
     /**
@@ -59,23 +59,23 @@ public final class CompletionDocView extends TextRowsPopup {
      * d'Android Studio y rend ses paramètres de la même façon, le
      * reste vit en corps.
      */
-    private void poserCorps(List<Row> rangees, String corps) {
-        for (String ligne : corps.split("\n", -1)) {
-            if (ligne.startsWith("@param")) {
-                rangees.add(Row.indentee(ligne, palette.keyword(), Tier.META));
-            } else if (ligne.startsWith("@return")) {
-                rangees.add(Row.indentee(ligne, palette.muted(), Tier.META));
-            } else if (estTiret(ligne)) {
-                rangees.add(Row.indentee(ligne, palette.keyword(), Tier.META));
+    private void setBody(List<Row> rows, String body) {
+        for (String line : body.split("\n", -1)) {
+            if (line.startsWith("@param")) {
+                rows.add(Row.indentee(line, palette.keyword(), Tier.META));
+            } else if (line.startsWith("@return")) {
+                rows.add(Row.indentee(line, palette.muted(), Tier.META));
+            } else if (estTiret(line)) {
+                rows.add(Row.indentee(line, palette.keyword(), Tier.META));
             } else {
-                rangees.add(Row.of(ligne));
+                rows.add(Row.of(line));
             }
         }
     }
 
     /** La ligne de liste — « - » ou « * » ouvre l'item du serveur. */
-    private static boolean estTiret(String ligne) {
-        String epuree = ligne.strip();
+    private static boolean estTiret(String line) {
+        String epuree = line.strip();
         return epuree.startsWith("- ") || epuree.startsWith("* ");
     }
 }

@@ -34,15 +34,15 @@ final class IdentifierBounds {
         if (borne >= doc.length() || !estIdentifiant(doc.charAt(borne))) {
             return new Around(borne, borne);
         }
-        int debut = borne;
-        int fin = borne + 1;
-        while (debut > 0 && estIdentifiant(doc.charAt(debut - 1))) {
-            debut--;
+        int start = borne;
+        int end = borne + 1;
+        while (start > 0 && estIdentifiant(doc.charAt(start - 1))) {
+            start--;
         }
-        while (fin < doc.length() && estIdentifiant(doc.charAt(fin))) {
-            fin++;
+        while (end < doc.length() && estIdentifiant(doc.charAt(end))) {
+            end++;
         }
-        return new Around(debut, fin);
+        return new Around(start, end);
     }
 
     private static boolean estIdentifiant(char c) {

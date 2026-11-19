@@ -23,8 +23,8 @@ class FormateurTest {
     private final SyntaxService kotlin = SyntaxService.of(KotlinSyntax.INSTANCE);
     private final SyntaxService xml = SyntaxService.of(XmlSyntax.INSTANCE);
 
-    private String formater(SyntaxService service, String texte, IndentStyle style) {
-        Document doc = Document.of(texte);
+    private String formater(SyntaxService service, String text, IndentStyle style) {
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         return Formateur.formater(doc, analyse, style);
     }

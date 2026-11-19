@@ -37,7 +37,7 @@ public record Chunk(int startLine, int startCol, int endLine, int endCol, SynNod
     }
 
     /** Vrai quand le chunk attend son analyse (ouverture progressive, G-01). */
-    public boolean estEnAttente() {
+    public boolean isPending() {
         return root.kind() == Attente.INSTANCE;
     }
 

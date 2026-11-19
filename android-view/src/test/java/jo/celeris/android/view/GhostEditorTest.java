@@ -38,29 +38,29 @@ public class GhostEditorTest {
     /** La suggestion se dépose et se retire — null la ferme. */
     @Test
     public void laSuggestionSeDeposeEtSeRetire() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
-        assertNull("aucune suggestion à l'ouverture", vue.fantome.suggestion());
+        assertNull("aucune suggestion à l'ouverture", vue.ghost.suggestion());
         GhostSuggestion suggestion = new GhostSuggestion("def", 3,
                 vue.session().document().revision());
-        vue.setFantome(suggestion);
+        vue.setGhost(suggestion);
         assertSame("la suggestion posée se lit", suggestion,
-                vue.fantome.suggestion());
-        vue.setFantome(null);
-        assertNull("null la ferme", vue.fantome.suggestion());
+                vue.ghost.suggestion());
+        vue.setGhost(null);
+        assertNull("null la ferme", vue.ghost.suggestion());
     }
 
     /** Tab accepte le premier mot — le geste part au rappel de
      *  l'hôte, la vue ne touche à aucune session. */
     @Test
     public void tabAccepteLePremierMot() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         List<GhostGesture> gestes = new ArrayList<>();
         vue.addGhostGestureListener(gestes::add);
-        vue.setFantome(new GhostSuggestion("def", 3,
+        vue.setGhost(new GhostSuggestion("def", 3,
                 vue.session().document().revision()));
-        assertTrue("Tab se consomme", vue.fantome.surTab());
+        assertTrue("Tab se consomme", vue.ghost.surTab());
         assertEquals("le geste d'acceptation part à l'hôte",
                 List.of(GhostGesture.ACCEPTER_MOT), gestes);
         assertEquals("la vue ne touche à aucune session", "abc\n",
@@ -70,33 +70,33 @@ public class GhostEditorTest {
     /** Tab refuse sans suggestion — le rappel ne part pas. */
     @Test
     public void tabRefuseSansSuggestion() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         List<GhostGesture> gestes = new ArrayList<>();
         vue.addGhostGestureListener(gestes::add);
-        assertFalse("sans suggestion, Tab se refuse", vue.fantome.surTab());
+        assertFalse("sans suggestion, Tab se refuse", vue.ghost.surTab());
         assertTrue("aucun geste n'est parti", gestes.isEmpty());
     }
 
     /** Tab refuse sans rappel — le geste se tait. */
     @Test
     public void tabRefuseSansRappel() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
-        vue.setFantome(new GhostSuggestion("def", 3,
+        vue.setGhost(new GhostSuggestion("def", 3,
                 vue.session().document().revision()));
-        assertFalse("sans rappel, Tab se refuse", vue.fantome.surTab());
+        assertFalse("sans rappel, Tab se refuse", vue.ghost.surTab());
     }
 
     /** L'appui sur la première ligne du fantôme accepte — le point
      *  visé vit à droite de l'ancre, dans la rangée de l'ancre. */
     @Test
     public void lappuiSurLaPremiereLigneAccepte() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         List<GhostGesture> gestes = new ArrayList<>();
         vue.addGhostGestureListener(gestes::add);
-        vue.setFantome(new GhostSuggestion("def", 3,
+        vue.setGhost(new GhostSuggestion("def", 3,
                 vue.session().document().revision()));
         banc.image();
         // la première ligne du fantôme : la rangée de l'ancre (3 →
@@ -104,7 +104,7 @@ public class GhostEditorTest {
         float x = vue.largeurGouttiere + 4f * vue.metrics.charWidth();
         float y = vue.metrics.lineHeight() / 2f;
         assertTrue("l'appui sur le fantôme se consomme",
-                vue.fantome.touche(x, y));
+                vue.ghost.touche(x, y));
         assertEquals("le geste part à l'hôte",
                 List.of(GhostGesture.ACCEPTER_MOT), gestes);
     }
@@ -113,20 +113,20 @@ public class GhostEditorTest {
      *  ni la gauche de l'ancre. */
     @Test
     public void lappuiHorsDuFantomeSeRefuse() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         List<GhostGesture> gestes = new ArrayList<>();
         vue.addGhostGestureListener(gestes::add);
-        vue.setFantome(new GhostSuggestion("def", 3,
+        vue.setGhost(new GhostSuggestion("def", 3,
                 vue.session().document().revision()));
         banc.image();
         float x = vue.largeurGouttiere + 4f * vue.metrics.charWidth();
         // la rangée au-dessus de l'ancre
         assertFalse("l'appui au-dessus se refuse",
-                vue.fantome.touche(x, vue.metrics.lineHeight() * -1.5f));
+                vue.ghost.touche(x, vue.metrics.lineHeight() * -1.5f));
         // à gauche de l'ancre, dans le texte
         assertFalse("l'appui dans le texte se refuse",
-                vue.fantome.touche(vue.largeurGouttiere,
+                vue.ghost.touche(vue.largeurGouttiere,
                         vue.metrics.lineHeight() / 2f));
         assertTrue("aucun geste n'est parti", gestes.isEmpty());
     }

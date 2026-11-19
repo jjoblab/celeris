@@ -38,24 +38,24 @@ public final class CheminDoc {
      * barres redondantes et les segments « . » disparaissent, « .. » se
      * résout dans les bornes et sortant il est refusé.
      *
-     * @param ecriture l'écriture du chemin, « /a/b/c »
+     * @param writing l'écriture du chemin, « /a/b/c »
      * @return le chemin normalisé
      * @throws IllegalArgumentException si l'écriture est vide, ne
      *                                  commence pas par « / » ou sort
      *                                  de la racine par « .. »
      */
-    public static CheminDoc de(String ecriture) {
-        Objects.requireNonNull(ecriture, "ecriture");
-        if (ecriture.isBlank() || !ecriture.startsWith("/")) {
+    public static CheminDoc of(String writing) {
+        Objects.requireNonNull(writing, "ecriture");
+        if (writing.isBlank() || !writing.startsWith("/")) {
             throw new IllegalArgumentException(
-                    "path must be absolute: " + ecriture);
+                    "path must be absolute: " + writing);
         }
-        return resoudreSegments(List.of(ecriture.split("/")));
+        return resoudreSegments(List.of(writing.split("/")));
     }
 
     /**
      * Résout le relatif donné depuis ce chemin : même discipline que
-     * {@link #de(String)} — « .. » borné résolu, « .. » sortant refusé.
+     * {@link #of(String)} — « .. » borné résolu, « .. » sortant refusé.
      *
      * @param relatif le relatif, « b/c » ou « b/../c »
      * @return le chemin résolu et normalisé
@@ -127,7 +127,7 @@ public final class CheminDoc {
      *
      * @return l'écriture, toujours « / »-préfixée
      */
-    public String ecriture() {
+    public String writing() {
         if (segments.isEmpty()) {
             return "/";
         }
@@ -146,6 +146,6 @@ public final class CheminDoc {
 
     @Override
     public String toString() {
-        return ecriture();
+        return writing();
     }
 }

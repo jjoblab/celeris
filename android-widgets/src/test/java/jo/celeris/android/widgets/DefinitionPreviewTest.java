@@ -25,7 +25,7 @@ class DefinitionPreviewTest {
                 new OutlineEntry(NodeCategory.FUNCTION, "pxVersDp", 200, 320, 6, 8));
     }
 
-    private static List<String> lignes() {
+    private static List<String> lines() {
         return List.of(
                 "object Conversions {",
                 "",
@@ -42,12 +42,12 @@ class DefinitionPreviewTest {
     /** Le symbole visé rend sa déclaration : nom, catégorie, extrait. */
     @Test
     void leSymboleViseRendSaDeclaration() {
-        DefinitionPreview apercu = DefinitionPreview.de(plan(), lignes(),
+        DefinitionPreview apercu = DefinitionPreview.of(plan(), lines(),
                 "pxVersDp", 0);
         assertTrue(apercu != null);
         assertEquals("pxVersDp", apercu.nom());
         assertEquals("FUNCTION", apercu.categorie());
-        assertEquals(6, apercu.ligne());
+        assertEquals(6, apercu.line());
         assertEquals("    fun pxVersDp(px: Int): Float {",
                 apercu.extrait().get(0));
     }
@@ -55,7 +55,7 @@ class DefinitionPreviewTest {
     /** Sans symbole, l'entrée qui contient le curseur se survole. */
     @Test
     void leCurseurDansUneDeclarationSeSurvole() {
-        DefinitionPreview apercu = DefinitionPreview.de(plan(), lignes(), "",
+        DefinitionPreview apercu = DefinitionPreview.of(plan(), lines(), "",
                 220);
         assertTrue(apercu != null);
         assertEquals("pxVersDp", apercu.nom());
@@ -64,7 +64,7 @@ class DefinitionPreviewTest {
     /** Le symbole inconnu ne rend rien : jamais d'aperçu inventé. */
     @Test
     void leSymboleInconnuNeRendRien() {
-        assertNull(DefinitionPreview.de(plan(), lignes(), "inconnu", 0));
+        assertNull(DefinitionPreview.of(plan(), lines(), "inconnu", 0));
     }
 
     /** L'extrait reste borné : assez pour lire, trop peu pour noyer. */
@@ -72,8 +72,8 @@ class DefinitionPreviewTest {
     void lextraitResteBorne() {
         OutlineEntry longue = new OutlineEntry(NodeCategory.TYPE, "Longue",
                 0, 1000, 0, 40);
-        List<String> nombreuses = lignes();
-        DefinitionPreview apercu = DefinitionPreview.de(List.of(longue),
+        List<String> nombreuses = lines();
+        DefinitionPreview apercu = DefinitionPreview.of(List.of(longue),
                 nombreuses, "Longue", 0);
         assertTrue(apercu != null);
         assertTrue(apercu.extrait().size() <= 12,

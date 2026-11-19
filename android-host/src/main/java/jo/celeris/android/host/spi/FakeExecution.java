@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public final class FakeExecution implements IntegrationExecution {
 
-    private final Map<CheminDoc, EtatExecution> etats = new LinkedHashMap<>();
+    private final Map<CheminDoc, RunState> states = new LinkedHashMap<>();
 
     private final Map<String, Lancement> lancements = new LinkedHashMap<>();
 
@@ -26,22 +26,22 @@ public final class FakeExecution implements IntegrationExecution {
         compteur++;
         Lancement lancement = new Lancement("lancement-" + compteur, fichier, test);
         lancements.put(lancement.id(), lancement);
-        changer(fichier, EtatExecution.EN_COURS);
+        change(fichier, RunState.EN_COURS);
         return lancement;
     }
 
     @Override
-    public EtatExecution etat(CheminDoc fichier) {
-        return etats.getOrDefault(fichier, EtatExecution.PRET);
+    public RunState state(CheminDoc fichier) {
+        return states.getOrDefault(fichier, RunState.PRET);
     }
 
     @Override
-    public List<CheminDoc> etats() {
-        return List.copyOf(etats.keySet());
+    public List<CheminDoc> states() {
+        return List.copyOf(states.keySet());
     }
 
     @Override
-    public void ajouterAuditeur(AuditeurExecution auditeur) {
+    public void addListener(AuditeurExecution auditeur) {
         auditeurs.add(auditeur);
     }
 
@@ -53,13 +53,13 @@ public final class FakeExecution implements IntegrationExecution {
      * @param echec     vrai si l'exécution a échoué
      */
     public void simulerFin(Lancement lancement, boolean echec) {
-        changer(lancement.fichier(), echec ? EtatExecution.ECHOUE : EtatExecution.TERMINE);
+        change(lancement.fichier(), echec ? RunState.ECHOUE : RunState.TERMINE);
     }
 
-    private void changer(CheminDoc fichier, EtatExecution etat) {
-        etats.put(fichier, etat);
+    private void change(CheminDoc fichier, RunState state) {
+        states.put(fichier, state);
         for (AuditeurExecution auditeur : List.copyOf(auditeurs)) {
-            auditeur.surChangement(fichier, etat);
+            auditeur.surChangement(fichier, state);
         }
     }
 }

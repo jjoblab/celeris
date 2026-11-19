@@ -5,15 +5,25 @@ final class jo.celeris.core.syntax.grammars.Alphabet extends java.lang.Record {
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String source();
-  public int debut();
-  public int fin();
+  public int start();
+  public int end();
 }
 
-### jo.celeris.core.syntax.grammars.BlocOuvert
-Compiled from "BlocOuvert.java"
-final class jo.celeris.core.syntax.grammars.BlocOuvert {
-  public boolean equals(java.lang.Object);
-  public int hashCode();
+### jo.celeris.core.syntax.grammars.BlockRule
+Compiled from "BlockRule.java"
+final class jo.celeris.core.syntax.grammars.BlockRule extends java.lang.Record implements jo.celeris.core.syntax.grammars.Rule {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public org.joni.Regex start();
+  public java.lang.String sourceFin();
+  public org.joni.Regex end();
+  public boolean referencesFin();
+  public java.lang.String portee();
+  public java.lang.String contenu();
+  public java.util.Map<java.lang.Integer, jo.celeris.core.syntax.grammars.Capture> capturesDebut();
+  public java.util.Map<java.lang.Integer, jo.celeris.core.syntax.grammars.Capture> capturesFin();
+  public java.util.List<jo.celeris.core.syntax.grammars.Rule> patterns();
 }
 
 ### jo.celeris.core.syntax.grammars.Capture
@@ -25,19 +35,19 @@ final class jo.celeris.core.syntax.grammars.Capture extends java.lang.Record {
   public java.lang.String nom();
 }
 
-### jo.celeris.core.syntax.grammars.Delimitation
-Compiled from "Delimitation.java"
-final class jo.celeris.core.syntax.grammars.Delimitation {
+### jo.celeris.core.syntax.grammars.CatastrophicGuard$Groupe
+Compiled from "CatastrophicGuard.java"
+final class jo.celeris.core.syntax.grammars.CatastrophicGuard$Groupe {
 }
 
-### jo.celeris.core.syntax.grammars.EtatGrammaire
-Compiled from "EtatGrammaire.java"
-final class jo.celeris.core.syntax.grammars.EtatGrammaire extends java.lang.Record implements jo.celeris.core.syntax.LexState {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public jo.celeris.core.syntax.grammars.BlocOuvert bloc();
-  public jo.celeris.core.syntax.grammars.EtatGrammaire parent();
+### jo.celeris.core.syntax.grammars.CatastrophicGuard
+Compiled from "CatastrophicGuard.java"
+final class jo.celeris.core.syntax.grammars.CatastrophicGuard {
+}
+
+### jo.celeris.core.syntax.grammars.Delimiter
+Compiled from "Delimiter.java"
+final class jo.celeris.core.syntax.grammars.Delimiter {
 }
 
 ### jo.celeris.core.syntax.grammars.Expressions
@@ -45,109 +55,144 @@ Compiled from "Expressions.java"
 final class jo.celeris.core.syntax.grammars.Expressions {
 }
 
-### jo.celeris.core.syntax.grammars.GardeCatastrophique$Groupe
-Compiled from "GardeCatastrophique.java"
-final class jo.celeris.core.syntax.grammars.GardeCatastrophique$Groupe {
-}
-
-### jo.celeris.core.syntax.grammars.GardeCatastrophique
-Compiled from "GardeCatastrophique.java"
-final class jo.celeris.core.syntax.grammars.GardeCatastrophique {
-}
-
-### jo.celeris.core.syntax.grammars.Grammaire
-Compiled from "Grammaire.java"
-public final class jo.celeris.core.syntax.grammars.Grammaire extends java.lang.Record {
-  public jo.celeris.core.syntax.grammars.Grammaire(java.lang.String, java.lang.String, java.util.List<jo.celeris.core.syntax.grammars.Regle>, java.util.List<jo.celeris.core.syntax.grammars.Injection>, jo.celeris.core.syntax.grammars.RapportGrammaire, java.util.List<java.lang.String>);
+### jo.celeris.core.syntax.grammars.Grammar
+Compiled from "Grammar.java"
+public final class jo.celeris.core.syntax.grammars.Grammar extends java.lang.Record {
+  public jo.celeris.core.syntax.grammars.Grammar(java.lang.String, java.lang.String, java.util.List<jo.celeris.core.syntax.grammars.Rule>, java.util.List<jo.celeris.core.syntax.grammars.Injection>, jo.celeris.core.syntax.grammars.GrammarReport, java.util.List<java.lang.String>);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public java.lang.String nom();
   public java.lang.String porteeRacine();
-  public java.util.List<jo.celeris.core.syntax.grammars.Regle> motifs();
+  public java.util.List<jo.celeris.core.syntax.grammars.Rule> patterns();
   public java.util.List<jo.celeris.core.syntax.grammars.Injection> injections();
-  public jo.celeris.core.syntax.grammars.RapportGrammaire rapport();
-  public java.util.List<java.lang.String> motsCles();
+  public jo.celeris.core.syntax.grammars.GrammarReport report();
+  public java.util.List<java.lang.String> keywords();
 }
 
-### jo.celeris.core.syntax.grammars.GrammaireKind
-Compiled from "GrammaireKind.java"
-final class jo.celeris.core.syntax.grammars.GrammaireKind extends java.lang.Enum<jo.celeris.core.syntax.grammars.GrammaireKind> implements jo.celeris.core.syntax.NodeKind {
-  public static final jo.celeris.core.syntax.grammars.GrammaireKind RACINE;
-  public static final jo.celeris.core.syntax.grammars.GrammaireKind BLOC;
-  public static final jo.celeris.core.syntax.grammars.GrammaireKind TEXTE;
-  public static jo.celeris.core.syntax.grammars.GrammaireKind[] values();
-  public static jo.celeris.core.syntax.grammars.GrammaireKind valueOf(java.lang.String);
+### jo.celeris.core.syntax.grammars.GrammarKeywords
+Compiled from "GrammarKeywords.java"
+final class jo.celeris.core.syntax.grammars.GrammarKeywords {
 }
 
-### jo.celeris.core.syntax.grammars.GrammaireLexeur$Candidat
-Compiled from "GrammaireLexeur.java"
-final class jo.celeris.core.syntax.grammars.GrammaireLexeur$Candidat extends java.lang.Record {
+### jo.celeris.core.syntax.grammars.GrammarKind
+Compiled from "GrammarKind.java"
+final class jo.celeris.core.syntax.grammars.GrammarKind extends java.lang.Enum<jo.celeris.core.syntax.grammars.GrammarKind> implements jo.celeris.core.syntax.NodeKind {
+  public static final jo.celeris.core.syntax.grammars.GrammarKind RACINE;
+  public static final jo.celeris.core.syntax.grammars.GrammarKind BLOC;
+  public static final jo.celeris.core.syntax.grammars.GrammarKind TEXTE;
+  public static jo.celeris.core.syntax.grammars.GrammarKind[] values();
+  public static jo.celeris.core.syntax.grammars.GrammarKind valueOf(java.lang.String);
+}
+
+### jo.celeris.core.syntax.grammars.GrammarLexer$Candidat
+Compiled from "GrammarLexer.java"
+final class jo.celeris.core.syntax.grammars.GrammarLexer$Candidat extends java.lang.Record {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public int debut();
-  public int fin();
+  public int start();
+  public int end();
   public org.joni.Matcher matcher();
   public char type();
-  public jo.celeris.core.syntax.grammars.RegleBloc bloc();
-  public jo.celeris.core.syntax.grammars.BlocOuvert ferme();
-  public jo.celeris.core.syntax.grammars.RegleSimple simple();
+  public jo.celeris.core.syntax.grammars.BlockRule bloc();
+  public jo.celeris.core.syntax.grammars.OpenBlock ferme();
+  public jo.celeris.core.syntax.grammars.SimpleRule simple();
 }
 
-### jo.celeris.core.syntax.grammars.GrammaireLexeur
-Compiled from "GrammaireLexeur.java"
-final class jo.celeris.core.syntax.grammars.GrammaireLexeur implements jo.celeris.core.syntax.LanguageLexer {
+### jo.celeris.core.syntax.grammars.GrammarLexer
+Compiled from "GrammarLexer.java"
+final class jo.celeris.core.syntax.grammars.GrammarLexer implements jo.celeris.core.syntax.LanguageLexer {
   public jo.celeris.core.syntax.LexState initialState();
   public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
 }
 
-### jo.celeris.core.syntax.grammars.GrammaireParseur
-Compiled from "GrammaireParseur.java"
-final class jo.celeris.core.syntax.grammars.GrammaireParseur implements jo.celeris.core.syntax.LanguageParser {
+### jo.celeris.core.syntax.grammars.GrammarParser
+Compiled from "GrammarParser.java"
+final class jo.celeris.core.syntax.grammars.GrammarParser implements jo.celeris.core.syntax.LanguageParser {
   public int chunkLevel();
   public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
   public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
 }
 
-### jo.celeris.core.syntax.grammars.GrammaireSyntax
-Compiled from "GrammaireSyntax.java"
-public final class jo.celeris.core.syntax.grammars.GrammaireSyntax implements jo.celeris.core.syntax.LanguageSyntax {
-  public jo.celeris.core.syntax.grammars.GrammaireSyntax(java.lang.String, jo.celeris.core.syntax.grammars.Grammaire);
+### jo.celeris.core.syntax.grammars.GrammarReader
+Compiled from "GrammarReader.java"
+final class jo.celeris.core.syntax.grammars.GrammarReader {
+}
+
+### jo.celeris.core.syntax.grammars.GrammarReport$Tisseur
+Compiled from "GrammarReport.java"
+final class jo.celeris.core.syntax.grammars.GrammarReport$Tisseur {
+}
+
+### jo.celeris.core.syntax.grammars.GrammarReport
+Compiled from "GrammarReport.java"
+public final class jo.celeris.core.syntax.grammars.GrammarReport extends java.lang.Record {
+  public jo.celeris.core.syntax.grammars.GrammarReport(int, int, int, int, int, int, int, int);
+  public double acceptation();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public int patterns();
+  public int acceptes();
+  public int refuses();
+  public int inclusionsExterieures();
+  public int inclusionsInternes();
+  public int reglesWhile();
+  public int reglesDrapeaux();
+  public int subPatternCaptures();
+}
+
+### jo.celeris.core.syntax.grammars.GrammarState
+Compiled from "GrammarState.java"
+final class jo.celeris.core.syntax.grammars.GrammarState extends java.lang.Record implements jo.celeris.core.syntax.LexState {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.syntax.grammars.OpenBlock bloc();
+  public jo.celeris.core.syntax.grammars.GrammarState parent();
+}
+
+### jo.celeris.core.syntax.grammars.GrammarSyntax
+Compiled from "GrammarSyntax.java"
+public final class jo.celeris.core.syntax.grammars.GrammarSyntax implements jo.celeris.core.syntax.LanguageSyntax {
+  public jo.celeris.core.syntax.grammars.GrammarSyntax(java.lang.String, jo.celeris.core.syntax.grammars.Grammar);
   public java.lang.String id();
-  public jo.celeris.core.syntax.grammars.Grammaire grammaire();
+  public jo.celeris.core.syntax.grammars.Grammar grammaire();
   public jo.celeris.core.syntax.LanguageLexer lexer();
   public jo.celeris.core.syntax.LanguageParser parser();
   public java.util.List<java.lang.String> reservedWords();
 }
 
-### jo.celeris.core.syntax.grammars.Grammaires
-Compiled from "Grammaires.java"
-public final class jo.celeris.core.syntax.grammars.Grammaires {
-  public static jo.celeris.core.syntax.grammars.Grammaire lire(java.lang.String);
-  public static jo.celeris.core.syntax.grammars.Grammaire lire(java.lang.String, java.util.Map<java.lang.String, jo.celeris.core.syntax.grammars.Grammaire>);
+### jo.celeris.core.syntax.grammars.Grammars
+Compiled from "Grammars.java"
+public final class jo.celeris.core.syntax.grammars.Grammars {
+  public static jo.celeris.core.syntax.grammars.Grammar read(java.lang.String);
+  public static jo.celeris.core.syntax.grammars.Grammar read(java.lang.String, java.util.Map<java.lang.String, jo.celeris.core.syntax.grammars.Grammar>);
 }
 
 ### jo.celeris.core.syntax.grammars.Injection
 Compiled from "Injection.java"
 public final class jo.celeris.core.syntax.grammars.Injection extends java.lang.Record {
-  public jo.celeris.core.syntax.grammars.Injection(jo.celeris.core.syntax.scope.ScopeSelector, java.util.List<jo.celeris.core.syntax.grammars.Regle>, boolean);
+  public jo.celeris.core.syntax.grammars.Injection(jo.celeris.core.syntax.scope.ScopeSelector, java.util.List<jo.celeris.core.syntax.grammars.Rule>, boolean);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public jo.celeris.core.syntax.scope.ScopeSelector selector();
-  public java.util.List<jo.celeris.core.syntax.grammars.Regle> regles();
+  public java.util.List<jo.celeris.core.syntax.grammars.Rule> regles();
   public boolean prioriteGauche();
 }
 
-### jo.celeris.core.syntax.grammars.LecteurGrammaire
-Compiled from "LecteurGrammaire.java"
-final class jo.celeris.core.syntax.grammars.LecteurGrammaire {
+### jo.celeris.core.syntax.grammars.ListRule
+Compiled from "ListRule.java"
+final class jo.celeris.core.syntax.grammars.ListRule implements jo.celeris.core.syntax.grammars.Rule {
 }
 
-### jo.celeris.core.syntax.grammars.MotsClesGrammaire
-Compiled from "MotsClesGrammaire.java"
-final class jo.celeris.core.syntax.grammars.MotsClesGrammaire {
+### jo.celeris.core.syntax.grammars.OpenBlock
+Compiled from "OpenBlock.java"
+final class jo.celeris.core.syntax.grammars.OpenBlock {
+  public boolean equals(java.lang.Object);
+  public int hashCode();
 }
 
 ### jo.celeris.core.syntax.grammars.PackGrammars
@@ -157,63 +202,18 @@ public final class jo.celeris.core.syntax.grammars.PackGrammars implements jo.ce
   public jo.celeris.core.syntax.LanguageSyntax compile(java.lang.String, java.lang.String);
 }
 
-### jo.celeris.core.syntax.grammars.RapportGrammaire$Tisseur
-Compiled from "RapportGrammaire.java"
-final class jo.celeris.core.syntax.grammars.RapportGrammaire$Tisseur {
+### jo.celeris.core.syntax.grammars.Rule
+Compiled from "Rule.java"
+public interface jo.celeris.core.syntax.grammars.Rule {
 }
 
-### jo.celeris.core.syntax.grammars.RapportGrammaire
-Compiled from "RapportGrammaire.java"
-public final class jo.celeris.core.syntax.grammars.RapportGrammaire extends java.lang.Record {
-  public jo.celeris.core.syntax.grammars.RapportGrammaire(int, int, int, int, int, int, int, int);
-  public double acceptation();
+### jo.celeris.core.syntax.grammars.SimpleRule
+Compiled from "SimpleRule.java"
+final class jo.celeris.core.syntax.grammars.SimpleRule extends java.lang.Record implements jo.celeris.core.syntax.grammars.Rule {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public int motifs();
-  public int acceptes();
-  public int refuses();
-  public int inclusionsExterieures();
-  public int inclusionsInternes();
-  public int reglesWhile();
-  public int reglesDrapeaux();
-  public int capturesSousMotifs();
-}
-
-### jo.celeris.core.syntax.grammars.Regle
-Compiled from "Regle.java"
-public interface jo.celeris.core.syntax.grammars.Regle {
-}
-
-### jo.celeris.core.syntax.grammars.RegleBloc
-Compiled from "RegleBloc.java"
-final class jo.celeris.core.syntax.grammars.RegleBloc extends java.lang.Record implements jo.celeris.core.syntax.grammars.Regle {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public org.joni.Regex debut();
-  public java.lang.String sourceFin();
-  public org.joni.Regex fin();
-  public boolean referencesFin();
-  public java.lang.String portee();
-  public java.lang.String contenu();
-  public java.util.Map<java.lang.Integer, jo.celeris.core.syntax.grammars.Capture> capturesDebut();
-  public java.util.Map<java.lang.Integer, jo.celeris.core.syntax.grammars.Capture> capturesFin();
-  public java.util.List<jo.celeris.core.syntax.grammars.Regle> motifs();
-}
-
-### jo.celeris.core.syntax.grammars.RegleListe
-Compiled from "RegleListe.java"
-final class jo.celeris.core.syntax.grammars.RegleListe implements jo.celeris.core.syntax.grammars.Regle {
-}
-
-### jo.celeris.core.syntax.grammars.RegleSimple
-Compiled from "RegleSimple.java"
-final class jo.celeris.core.syntax.grammars.RegleSimple extends java.lang.Record implements jo.celeris.core.syntax.grammars.Regle {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public org.joni.Regex motif();
+  public org.joni.Regex pattern();
   public java.lang.String portee();
   public java.util.Map<java.lang.Integer, jo.celeris.core.syntax.grammars.Capture> captures();
 }

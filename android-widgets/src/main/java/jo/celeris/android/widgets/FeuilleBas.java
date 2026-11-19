@@ -10,7 +10,7 @@ import android.view.Gravity;
  * tenir le focus. Le voile couvre la scène, la feuille respire dans la
  * largeur de la maquette (660 dp au plus), le corps défile, la
  * fermeture vit au bouton, au voile, au glissement de la poignée et au
- * retour ({@link #surRetour()}).
+ * retour ({@link #onBack()}).
  *
  * <p>La feuille se pose sur le cadre de contenu de la fenêtre —
  * typiquement {@code android.R.id.content}, toujours un FrameLayout :
@@ -31,13 +31,13 @@ public final class FeuilleBas extends Feuille {
     }
 
     @Override
-    int gravite() {
+    int severity() {
         return Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
     }
 
     @Override
-    float largeurMaxDp() {
-        return PopupTokens.LARGEUR_MAX_FEUILLE_BAS_DP;
+    float maxWidthDp() {
+        return PopupTokens.BOTTOM_SHEET_MAX_WIDTH_DP;
     }
 
     @Override

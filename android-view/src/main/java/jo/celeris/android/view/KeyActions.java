@@ -65,13 +65,13 @@ final class KeyActions {
             vue.invalidate();
             return consomme || true;
         }
-        if (servirPressePapiers(vue, action)) {
+        if (serveClipboard(vue, action)) {
             vue.invalidate();
             return true;
         }
         switch (action) {
             case DELETE_BACKWARD, DELETE_FORWARD, ENTER, TAB, UNTAB, UNDO,
-                    REDO, SELECT_ALL -> edition(vue, action);
+                    REDO, SELECT_ALL -> edit(vue, action);
             default -> mouvements(vue, action);
         }
         vue.invalidate();
@@ -86,10 +86,10 @@ final class KeyActions {
      * ne se rappelle.
      */
     private static boolean servirTab(EditorView vue) {
-        if (vue.fantome.surTab()) {
+        if (vue.ghost.surTab()) {
             return true;
         }
-        edition(vue, EditorAction.TAB);
+        edit(vue, EditorAction.TAB);
         return true;
     }
 
@@ -100,12 +100,12 @@ final class KeyActions {
      *
      * @return vrai si l'action est une action presse-papiers servie
      */
-    private static boolean servirPressePapiers(EditorView vue, EditorAction action) {
+    private static boolean serveClipboard(EditorView vue, EditorAction action) {
         if (action.ordinal() < EditorAction.COPY.ordinal()
                 || action.ordinal() > EditorAction.PASTE.ordinal()) {
             return false;
         }
-        PressePapiersClavier.servir(vue, action);
+        KeyboardClipboard.servir(vue, action);
         return true;
     }
 
@@ -127,7 +127,7 @@ final class KeyActions {
      *  ligne disparaissait du viewport jusqu'à la prochaine touche
      *  servie par l'intelligence, qui elle révèle ; la voie clavier
      *  révèle désormais comme toutes les autres). */
-    private static void edition(EditorView vue, EditorAction action) {
+    private static void edit(EditorView vue, EditorAction action) {
         TextSession session = vue.session();
         Document document = session.document();
         boolean caretABouge = true;
@@ -165,10 +165,10 @@ final class KeyActions {
 
     /** Les mouvements et sélections : la projection et la fenêtre courantes. */
     private static void mouvements(EditorView vue, EditorAction action) {
-        FrameState etat = vue.etatImageCourante();
+        FrameState state = vue.etatImageCourante();
         int pageRows = ScrollGeometry.visibleRows(vue.getHeight(),
-                etat.metrics().lineHeight());
-        vue.session().setSelection(CaretsMotion.move(etat.document(),
-                etat.projection(), vue.session().selection(), action, pageRows));
+                state.metrics().lineHeight());
+        vue.session().setSelection(CaretsMotion.move(state.document(),
+                state.projection(), vue.session().selection(), action, pageRows));
     }
 }

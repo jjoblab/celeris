@@ -16,7 +16,7 @@ enum GrammaireNatif {
     /** La grammaire json — l'artefact tree-sitter-json. */
     JSON("json") {
         @Override
-        TSLanguage langue() {
+        TSLanguage language() {
             return TSLanguageJson.getInstance();
         }
     },
@@ -24,7 +24,7 @@ enum GrammaireNatif {
     /** La grammaire python — l'artefact tree-sitter-python. */
     PYTHON("python") {
         @Override
-        TSLanguage langue() {
+        TSLanguage language() {
             return TSLanguagePython.getInstance();
         }
     };
@@ -36,7 +36,7 @@ enum GrammaireNatif {
     }
 
     /** La langue tree-sitter de la grammaire. */
-    abstract TSLanguage langue();
+    abstract TSLanguage language();
 
     /** L'identifiant du langage servi. */
     String id() {

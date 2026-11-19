@@ -112,7 +112,7 @@ public final class LanguageRegistry {
         }
         List<LanguageSupport> parExtension = byExtension(nom);
         if (!parExtension.isEmpty()) {
-            return byExtensionOuIndice(parExtension, sample);
+            return byExtensionOrIndex(parExtension, sample);
         }
         if (firstLine != null && !firstLine.isEmpty()) {
             List<LanguageSupport> parLigne = matches(firstLines, firstLine, false);
@@ -140,16 +140,16 @@ public final class LanguageRegistry {
     }
 
     /** Une revendication d'extension : l'unique gagne, l'indice départage l'égalité. */
-    private LanguageDetection byExtensionOuIndice(List<LanguageSupport> candidats,
+    private LanguageDetection byExtensionOrIndex(List<LanguageSupport> candidats,
             @Nullable String sample) {
         if (candidats.size() == 1) {
             return new LanguageDetection.Resolved(candidats.get(0));
         }
-        List<LanguageSupport> indices = byContentHint(candidats, sample);
-        if (indices.size() == 1) {
-            return new LanguageDetection.Resolved(indices.get(0));
+        List<LanguageSupport> inlayHints = byContentHint(candidats, sample);
+        if (inlayHints.size() == 1) {
+            return new LanguageDetection.Resolved(inlayHints.get(0));
         }
-        return new LanguageDetection.Ambiguous(indices);
+        return new LanguageDetection.Ambiguous(inlayHints);
     }
 
     /** Les langages dont une extension revendiquée est la plus longue. */
@@ -182,7 +182,7 @@ public final class LanguageRegistry {
      */
     private List<LanguageSupport> byContentHint(List<LanguageSupport> candidats,
             @Nullable String sample) {
-        List<LanguageSupport> indices = new ArrayList<>();
+        List<LanguageSupport> inlayHints = new ArrayList<>();
         List<LanguageSupport> defauts = new ArrayList<>();
         for (LanguageSupport candidat : candidats) {
             Pattern indice = contentHints.get(candidat.id());
@@ -190,11 +190,11 @@ public final class LanguageRegistry {
                 defauts.add(candidat);
             } else if (sample != null && !sample.isEmpty()
                     && indice.matcher(sample).find()) {
-                indices.add(candidat);
+                inlayHints.add(candidat);
             }
         }
-        if (!indices.isEmpty()) {
-            return indices;
+        if (!inlayHints.isEmpty()) {
+            return inlayHints;
         }
         if (!defauts.isEmpty()) {
             return defauts;
@@ -203,15 +203,15 @@ public final class LanguageRegistry {
     }
 
     /** Les supports dont un motif correspond — en entier ou en extrait. */
-    private static List<LanguageSupport> matches(List<CompiledPattern> motifs,
-            String valeur, boolean enEntier) {
+    private static List<LanguageSupport> matches(List<CompiledPattern> patterns,
+            String value, boolean enEntier) {
         List<LanguageSupport> trouves = new ArrayList<>();
-        for (CompiledPattern motif : motifs) {
+        for (CompiledPattern pattern : patterns) {
             boolean vu = enEntier
-                    ? motif.pattern().matcher(valeur).matches()
-                    : motif.pattern().matcher(valeur).find();
+                    ? pattern.pattern().matcher(value).matches()
+                    : pattern.pattern().matcher(value).find();
             if (vu) {
-                trouves.add(motif.support());
+                trouves.add(pattern.support());
             }
         }
         return trouves;
@@ -243,8 +243,8 @@ public final class LanguageRegistry {
             List<CompiledPattern> firstLines = new ArrayList<>();
             Map<String, Pattern> contentHints = new HashMap<>();
             for (LanguageSupport support : supports) {
-                verifierUnicite(support, byId, byFilename);
-                compilerMotifs(support.descriptor(), support, filenamePatterns,
+                checkUniqueness(support, byId, byFilename);
+                compilePatterns(support.descriptor(), support, filenamePatterns,
                         firstLines, contentHints);
             }
             Map<String, LanguageSupport> resolus =
@@ -291,7 +291,7 @@ public final class LanguageRegistry {
         }
 
         /** Identifiants et noms exacts uniques — la propriété du registre. */
-        private static void verifierUnicite(LanguageSupport support,
+        private static void checkUniqueness(LanguageSupport support,
                 Map<String, LanguageSupport> byId,
                 Map<String, LanguageSupport> byFilename) {
             LanguageDescriptor descriptor = support.descriptor();
@@ -315,24 +315,24 @@ public final class LanguageRegistry {
         private static Map<String, LanguageSupport> resoudreChoix(
                 Map<String, String> choix, Map<String, LanguageSupport> byId) {
             Map<String, LanguageSupport> resolus = new LinkedHashMap<>();
-            for (Map.Entry<String, String> entree : choix.entrySet()) {
-                LanguageSupport support = byId.get(entree.getValue());
+            for (Map.Entry<String, String> input : choix.entrySet()) {
+                LanguageSupport support = byId.get(input.getValue());
                 if (support == null) {
                     throw new IllegalArgumentException(
-                            "user choice for " + entree.getKey()
-                                    + " names unknown language " + entree.getValue());
+                            "user choice for " + input.getKey()
+                                    + " names unknown language " + input.getValue());
                 }
-                resolus.put(entree.getKey(), support);
+                resolus.put(input.getKey(), support);
             }
             return resolus;
         }
 
         /** Compile les motifs d'un support : jokers de nom, première ligne, indice. */
-        private static void compilerMotifs(LanguageDescriptor descriptor,
+        private static void compilePatterns(LanguageDescriptor descriptor,
                 LanguageSupport support, List<CompiledPattern> filenamePatterns,
                 List<CompiledPattern> firstLines, Map<String, Pattern> contentHints) {
-            for (String motif : descriptor.filenamePatterns()) {
-                filenamePatterns.add(new CompiledPattern(glob(motif), true, support));
+            for (String pattern : descriptor.filenamePatterns()) {
+                filenamePatterns.add(new CompiledPattern(glob(pattern), true, support));
             }
             if (descriptor.firstLine() != null) {
                 firstLines.add(new CompiledPattern(
@@ -346,10 +346,10 @@ public final class LanguageRegistry {
         }
 
         /** Un motif de nom de fichier : les jokers {@code *} et {@code ?}. */
-        private static Pattern glob(String motif) {
+        private static Pattern glob(String pattern) {
             StringBuilder regex = new StringBuilder();
-            for (int i = 0; i < motif.length(); i++) {
-                char c = motif.charAt(i);
+            for (int i = 0; i < pattern.length(); i++) {
+                char c = pattern.charAt(i);
                 if (c == '*') {
                     regex.append(".*");
                 } else if (c == '?') {
@@ -362,12 +362,12 @@ public final class LanguageRegistry {
         }
 
         /** Une expression régulière du descripteur, les erreurs nommées. */
-        private static Pattern regex(String motif, String id, String role) {
+        private static Pattern regex(String pattern, String id, String role) {
             try {
-                return Pattern.compile(motif);
+                return Pattern.compile(pattern);
             } catch (PatternSyntaxException e) {
                 throw new IllegalArgumentException(
-                        "language " + id + ": invalid " + role + " pattern: " + motif, e);
+                        "language " + id + ": invalid " + role + " pattern: " + pattern, e);
             }
         }
     }

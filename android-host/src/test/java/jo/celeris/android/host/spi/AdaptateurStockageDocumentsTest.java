@@ -61,7 +61,7 @@ class AdaptateurStockageDocumentsTest {
         }
 
         @Override
-        public String lire(String idFichier) {
+        public String read(String idFichier) {
             byte[] contenu = fichiers.get(idFichier);
             if (contenu == null) {
                 throw new IllegalStateException("not a file: " + idFichier);
@@ -70,7 +70,7 @@ class AdaptateurStockageDocumentsTest {
         }
 
         @Override
-        public byte[] lireOctets(String idFichier) {
+        public byte[] readBytes(String idFichier) {
             byte[] contenu = fichiers.get(idFichier);
             if (contenu == null) {
                 throw new IllegalStateException("not a file: " + idFichier);
@@ -87,7 +87,7 @@ class AdaptateurStockageDocumentsTest {
         }
 
         @Override
-        public String creer(String idParent, String nom, boolean dossier) {
+        public String create(String idParent, String nom, boolean dossier) {
             String id = nouvelId();
             if (dossier) {
                 this.dossiers.put(id, new ArrayList<>());
@@ -115,9 +115,9 @@ class AdaptateurStockageDocumentsTest {
         arbre.dossier("racine", "src");
         arbre.dossier("doc-0", "main");
         arbre.fichier("doc-1", "App.kt", "class App");
-        FichierVirtuel fichier = adaptateur(arbre).ouvrir(CheminDoc.de("/src/main/App.kt"));
+        FichierVirtuel fichier = adaptateur(arbre).open(CheminDoc.of("/src/main/App.kt"));
         assertEquals("class App", fichier.contenu());
-        assertEquals("/src/main/App.kt", fichier.chemin().ecriture());
+        assertEquals("/src/main/App.kt", fichier.chemin().writing());
     }
 
     @Test
@@ -125,9 +125,9 @@ class AdaptateurStockageDocumentsTest {
         ArbreFaux arbre = new ArbreFaux();
         arbre.dossier("racine", "src");
         assertThrows(FichierAbsentException.class,
-                () -> adaptateur(arbre).ouvrir(CheminDoc.de("/src")));
+                () -> adaptateur(arbre).open(CheminDoc.of("/src")));
         assertThrows(FichierAbsentException.class,
-                () -> adaptateur(arbre).ouvrir(CheminDoc.de("/inconnu.txt")));
+                () -> adaptateur(arbre).open(CheminDoc.of("/inconnu.txt")));
     }
 
     @Test
@@ -135,18 +135,18 @@ class AdaptateurStockageDocumentsTest {
         ArbreFaux arbre = new ArbreFaux();
         arbre.fichier("racine", "notes.md", "un");
         AdaptateurStockageDocuments systeme = adaptateur(arbre);
-        systeme.ecrire(CheminDoc.de("/notes.md"), "deux");
-        assertEquals("deux", systeme.ouvrir(CheminDoc.de("/notes.md")).contenu());
+        systeme.write(CheminDoc.of("/notes.md"), "deux");
+        assertEquals("deux", systeme.open(CheminDoc.of("/notes.md")).contenu());
     }
 
     @Test
     void ecrireCreeLesParentsImplicites() {
         ArbreFaux arbre = new ArbreFaux();
         AdaptateurStockageDocuments systeme = adaptateur(arbre);
-        systeme.ecrire(CheminDoc.de("/a/b/c/fichier.txt"), "contenu");
-        assertEquals("contenu", systeme.ouvrir(CheminDoc.de("/a/b/c/fichier.txt")).contenu());
-        assertTrue(systeme.estFichier(CheminDoc.de("/a/b/c/fichier.txt")));
-        assertFalse(systeme.estFichier(CheminDoc.de("/a/b/c")));
+        systeme.write(CheminDoc.of("/a/b/c/fichier.txt"), "contenu");
+        assertEquals("contenu", systeme.open(CheminDoc.of("/a/b/c/fichier.txt")).contenu());
+        assertTrue(systeme.estFichier(CheminDoc.of("/a/b/c/fichier.txt")));
+        assertFalse(systeme.estFichier(CheminDoc.of("/a/b/c")));
     }
 
     @Test
@@ -154,7 +154,7 @@ class AdaptateurStockageDocumentsTest {
         ArbreFaux arbre = new ArbreFaux();
         arbre.dossier("racine", "src");
         assertThrows(FichierAbsentException.class, () -> adaptateur(arbre)
-                .ecrire(CheminDoc.de("/src"), "contenu"));
+                .write(CheminDoc.of("/src"), "contenu"));
     }
 
     @Test
@@ -165,11 +165,11 @@ class AdaptateurStockageDocumentsTest {
         arbre.dossier("doc-0", "sous-dossier");
         arbre.fichier("doc-0", "alpha.txt", "a");
         arbre.fichier("doc-0", "milieu.txt", "m");
-        List<CheminDoc> chemins = adaptateur(arbre).lister(CheminDoc.de("/projet"));
+        List<CheminDoc> chemins = adaptateur(arbre).lister(CheminDoc.of("/projet"));
         assertEquals(List.of(
-                CheminDoc.de("/projet/alpha.txt"),
-                CheminDoc.de("/projet/milieu.txt"),
-                CheminDoc.de("/projet/zeta.txt")), chemins);
+                CheminDoc.of("/projet/alpha.txt"),
+                CheminDoc.of("/projet/milieu.txt"),
+                CheminDoc.of("/projet/zeta.txt")), chemins);
     }
 
     @Test
@@ -177,8 +177,8 @@ class AdaptateurStockageDocumentsTest {
         ArbreFaux arbre = new ArbreFaux();
         arbre.fichier("racine", "f.txt", "x");
         AdaptateurStockageDocuments systeme = adaptateur(arbre);
-        assertTrue(systeme.lister(CheminDoc.de("/f.txt")).isEmpty());
-        assertTrue(systeme.lister(CheminDoc.de("/absent")).isEmpty());
+        assertTrue(systeme.lister(CheminDoc.of("/f.txt")).isEmpty());
+        assertTrue(systeme.lister(CheminDoc.of("/absent")).isEmpty());
     }
 
     @Test
@@ -187,21 +187,21 @@ class AdaptateurStockageDocumentsTest {
         arbre.fichier("racine", "secret.txt", "jamais");
         AdaptateurStockageDocuments systeme = adaptateur(arbre);
         assertThrows(IllegalArgumentException.class,
-                () -> systeme.ouvrir(CheminDoc.de("/../secret.txt")));
+                () -> systeme.open(CheminDoc.of("/../secret.txt")));
         assertThrows(IllegalArgumentException.class,
-                () -> systeme.ecrire(CheminDoc.de("/../../etc/passwd"), "x"));
-        assertFalse(systeme.estFichier(CheminDoc.de("/etc/passwd")));
+                () -> systeme.write(CheminDoc.of("/../../etc/passwd"), "x"));
+        assertFalse(systeme.estFichier(CheminDoc.of("/etc/passwd")));
     }
 
     @Test
     void leMemeContratQueLimplementationDeReference() {
         ArbreFaux arbre = new ArbreFaux();
         AdaptateurStockageDocuments adaptateur = adaptateur(arbre);
-        MemoireSystemeFichiers reference = new MemoireSystemeFichiers();
-        CheminDoc chemin = CheminDoc.de("/projet/liremoi.md");
-        adaptateur.ecrire(chemin, "mêmes règles");
-        reference.ecrire(chemin, "mêmes règles");
-        assertEquals(reference.ouvrir(chemin).contenu(), adaptateur.ouvrir(chemin).contenu());
+        InMemoryFileSystem reference = new InMemoryFileSystem();
+        CheminDoc chemin = CheminDoc.of("/projet/liremoi.md");
+        adaptateur.write(chemin, "mêmes règles");
+        reference.write(chemin, "mêmes règles");
+        assertEquals(reference.open(chemin).contenu(), adaptateur.open(chemin).contenu());
         assertEquals(reference.lister(chemin.parent()), adaptateur.lister(chemin.parent()));
         assertEquals(reference.estFichier(chemin), adaptateur.estFichier(chemin));
     }

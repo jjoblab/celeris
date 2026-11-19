@@ -32,7 +32,7 @@ public class PopupLayerReposeTest {
     private static final class PanneauEssai extends PopupPanel {
 
         static final int LARGEUR = 100;
-        static final int HAUTEUR = 50;
+        static final int HEIGHT = 50;
 
         PanneauEssai(Context context, PopupPalette palette) {
             super(context, palette);
@@ -50,7 +50,7 @@ public class PopupLayerReposeTest {
 
         @Override
         int contentHeight() {
-            return HAUTEUR;
+            return HEIGHT;
         }
     }
 

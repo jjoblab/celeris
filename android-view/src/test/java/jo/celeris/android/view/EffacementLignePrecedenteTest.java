@@ -48,7 +48,7 @@ public class EffacementLignePrecedenteTest {
      *  MaClasse { » reste tracé — et À SA PLACE (bord gauche). */
     @Test
     public void laLigneEntiereResteTracetApresRemontee() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), DOCUMENT);
         EditorView vue = banc.vue();
         banc.publierAnalyse();
@@ -80,7 +80,7 @@ public class EffacementLignePrecedenteTest {
      *  au banc : le texte reste tracé noir même sans couleur. */
     @Test
     public void laLigneResteTracetSansCouleur() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), DOCUMENT);
         EditorView vue = banc.vue();
         banc.retenirAnalyse();

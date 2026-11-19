@@ -30,7 +30,7 @@ public final class InvisibleChars {
     }
 
     /** Une marque : la colonne du blanc et sa sorte. */
-    public record Mark(int colonne, Kind sorte) {
+    public record Mark(int column, Kind sorte) {
     }
 
     private InvisibleChars() {
@@ -39,35 +39,35 @@ public final class InvisibleChars {
     /**
      * Les blancs à matérialiser sur une ligne.
      *
-     * @param ligne          le texte de la ligne, sans le saut final
+     * @param line          le texte de la ligne, sans le saut final
      * @param espacesInternes vrai pour matérialiser aussi les espaces internes
      * @param finsDeLigne     vrai pour matérialiser la fin de ligne
      * @return les marques, dans l'ordre des colonnes
      */
-    public static List<Mark> marques(String ligne, boolean espacesInternes,
+    public static List<Mark> marks(String line, boolean espacesInternes,
             boolean finsDeLigne) {
-        int finBlancs = ligne.length();
-        while (finBlancs > 0 && estBlancLarge(ligne.charAt(finBlancs - 1))) {
+        int finBlancs = line.length();
+        while (finBlancs > 0 && estBlancLarge(line.charAt(finBlancs - 1))) {
             finBlancs--;
         }
-        List<Mark> marques = new ArrayList<>(ligne.length() / 4 + 1);
-        for (int i = 0; i < ligne.length(); i++) {
-            char c = ligne.charAt(i);
+        List<Mark> marks = new ArrayList<>(line.length() / 4 + 1);
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
             if (c == '\t') {
-                marques.add(new Mark(i, Kind.TABULATION));
+                marks.add(new Mark(i, Kind.TABULATION));
             } else if (estFine(c)) {
-                marques.add(new Mark(i, Kind.ESPACE_FINE));
+                marks.add(new Mark(i, Kind.ESPACE_FINE));
             } else if (c == ' ') {
                 boolean finale = i >= finBlancs;
                 if (finale || espacesInternes) {
-                    marques.add(new Mark(i, Kind.ESPACE));
+                    marks.add(new Mark(i, Kind.ESPACE));
                 }
             }
         }
         if (finsDeLigne) {
-            marques.add(new Mark(ligne.length(), Kind.FIN_DE_LIGNE));
+            marks.add(new Mark(line.length(), Kind.FIN_DE_LIGNE));
         }
-        return marques;
+        return marks;
     }
 
     private static boolean estBlancLarge(char c) {

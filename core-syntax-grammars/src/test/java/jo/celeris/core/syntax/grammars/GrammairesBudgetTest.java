@@ -90,18 +90,18 @@ class GrammairesBudgetTest {
         Document doc = Document.of(source);
         SyntaxService service = SyntaxService.of(langage);
         Analysis complet = service.analyseFull(doc);
-        int cible = source.length() / 2;
-        Document edite = doc.replace(cible, cible + 1, "z");
-        EditSite site = EditSite.of(doc, edite, cible, cible + 1, "z");
+        int target = source.length() / 2;
+        Document edite = doc.replace(target, target + 1, "z");
+        EditSite site = EditSite.of(doc, edite, target, target + 1, "z");
         // échauffement non mesuré : le JIT ne doit pas compter dans le budget
         service.analyseIncremental(edite, complet, site);
         long meilleur = Long.MAX_VALUE;
         for (int essai = 0; essai <= RATTRAPAGES; essai++) {
             long serie = Long.MAX_VALUE;
             for (int tour = 0; tour < TOURS; tour++) {
-                long debut = System.nanoTime();
+                long start = System.nanoTime();
                 Analysis diff = service.analyseIncremental(edite, complet, site);
-                long duree = System.nanoTime() - debut;
+                long duree = System.nanoTime() - start;
                 if (diff.tree().chunks().isEmpty()) {
                     throw new IllegalStateException("arbre vide pour " + langage.id());
                 }
@@ -131,14 +131,14 @@ class GrammairesBudgetTest {
         return sb.toString();
     }
 
-    private static int compterLignes(CharSequence texte) {
-        int lignes = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
-                lignes++;
+    private static int compterLignes(CharSequence text) {
+        int lines = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                lines++;
             }
         }
-        return lignes;
+        return lines;
     }
 
     private static String corpus(String nom) {

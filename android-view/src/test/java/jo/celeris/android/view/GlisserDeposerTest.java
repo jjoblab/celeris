@@ -55,9 +55,9 @@ public class GlisserDeposerTest {
      * chemin du geste passe par le vrai dispatch de la vue.
      */
     private EditorTestRig bancAttache(String contenu) {
-        EditorTestRig banc = EditorTestRig.sur(contexte, contenu);
-        Activity hote = ActivityController.of(new Activity()).setup().get();
-        hote.setContentView(banc.vue());
+        EditorTestRig banc = EditorTestRig.on(contexte, contenu);
+        Activity host = ActivityController.of(new Activity()).setup().get();
+        host.setContentView(banc.vue());
         banc.image();
         return banc;
     }

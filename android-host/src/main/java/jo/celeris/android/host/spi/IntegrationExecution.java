@@ -22,21 +22,21 @@ public interface IntegrationExecution {
      * L'état courant du fichier.
      *
      * @param fichier le chemin du fichier
-     * @return l'état, {@link EtatExecution#PRET} si jamais lancé
+     * @return l'état, {@link RunState#PRET} si jamais lancé
      */
-    EtatExecution etat(CheminDoc fichier);
+    RunState state(CheminDoc fichier);
 
     /**
      * Les fichiers lancés et leur état courant.
      *
      * @return les états par fichier, non modifiables
      */
-    List<CheminDoc> etats();
+    List<CheminDoc> states();
 
     /**
      * Ajoute un auditeur des changements d'état.
      *
      * @param auditeur l'auditeur à prévenir
      */
-    void ajouterAuditeur(AuditeurExecution auditeur);
+    void addListener(AuditeurExecution auditeur);
 }

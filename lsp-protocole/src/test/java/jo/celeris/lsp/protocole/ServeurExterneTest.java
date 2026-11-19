@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import jo.celeris.core.lsp.types.LieuLsp;
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.LocationLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 
 /**
  * D-09/D-10 (l'analyse croisée) : les connexions aux serveurs
@@ -33,7 +33,7 @@ class ServeurExterneTest {
     java.nio.file.Path dossier;
 
     /** La commande du sous-processus : java -cp … ServeurFacticeMain. */
-    private String[] commande() {
+    private String[] command() {
         return new String[] {
                 System.getProperty("java.home") + "/bin/java",
                 "-cp", CLASSPATH,
@@ -50,9 +50,9 @@ class ServeurExterneTest {
     /** D-09 stdio : la poignée de main traverse les flux du processus. */
     @Test
     void laPoigneeDeMainTraverseStdio() throws Exception {
-        try (ServeurExterne connexion = ServeurExterne.parStdio(commande(),
+        try (ExternalServer connexion = ExternalServer.viaStdio(command(),
                 "banc-celeris")) {
-            assertTrue(connexion.session().initialiser().sertDefinition(),
+            assertTrue(connexion.session().initialize().supportsDefinition(),
                     "le factice sert la définition au travers du processus");
         }
     }
@@ -61,32 +61,32 @@ class ServeurExterneTest {
      *  travers du processus externe. */
     @Test
     void lesNavigationsTypeesTraversentStdio() throws Exception {
-        try (ServeurExterne connexion = ServeurExterne.parStdio(commande(),
+        try (ExternalServer connexion = ExternalServer.viaStdio(command(),
                 "banc-celeris")) {
-            connexion.session().initialiser();
+            connexion.session().initialize();
             String uri = "file:///banc/Test.java";
-            PositionLsp position = new PositionLsp(0, 3);
+            LspPosition position = new LspPosition(0, 3);
 
-            List<LieuLsp> type = connexion.session()
+            List<LocationLsp> type = connexion.session()
                     .typeDefinition(uri, position).get(10, TimeUnit.SECONDS);
             assertEquals(1, type.size(), "la définition du type répond");
-            org.junit.jupiter.api.Assertions.assertNotNull(type.get(0).plage());
-            assertEquals(1, type.get(0).plage().debut().ligne(),
+            org.junit.jupiter.api.Assertions.assertNotNull(type.get(0).range());
+            assertEquals(1, type.get(0).range().start().line(),
                     "la plage du type (ligne 1) est celle du factice");
 
-            List<LieuLsp> impls = connexion.session()
+            List<LocationLsp> impls = connexion.session()
                     .implementations(uri, position).get(10, TimeUnit.SECONDS);
             assertEquals(1, impls.size(), "l'implémentation répond");
-            org.junit.jupiter.api.Assertions.assertNotNull(impls.get(0).plage());
-            assertEquals(2, impls.get(0).plage().debut().ligne(),
+            org.junit.jupiter.api.Assertions.assertNotNull(impls.get(0).range());
+            assertEquals(2, impls.get(0).range().start().line(),
                     "la plage d'implémentation (ligne 2) est celle du factice");
 
-            List<LieuLsp> superLieu = connexion.session()
+            List<LocationLsp> superLieu = connexion.session()
                     .superDefinition(uri, position).get(10, TimeUnit.SECONDS);
             assertEquals(1, superLieu.size(),
                     "la super-définition répond (commande maison)");
-            org.junit.jupiter.api.Assertions.assertNotNull(superLieu.get(0).plage());
-            assertEquals(3, superLieu.get(0).plage().debut().ligne(),
+            org.junit.jupiter.api.Assertions.assertNotNull(superLieu.get(0).range());
+            assertEquals(3, superLieu.get(0).range().start().line(),
                     "la plage super (ligne 3) est celle du factice");
         }
     }
@@ -96,7 +96,7 @@ class ServeurExterneTest {
     void laConnexionSocketMonteEtSEteint() throws Exception {
         int port = portLibre();
         // le serveur socket du banc : le factice en écoute
-        Process serveur = new ProcessBuilder(
+        Process server = new ProcessBuilder(
                 System.getProperty("java.home") + "/bin/java",
                 "-cp", CLASSPATH,
                 "jo.celeris.lsp.protocole.ServeurFacticeMain",
@@ -106,19 +106,19 @@ class ServeurExterneTest {
         try {
             // attendre « PRET port » (le serveur annonce son écoute)
             BufferedReader lecteur = new BufferedReader(new InputStreamReader(
-                    serveur.getInputStream(), StandardCharsets.UTF_8));
+                    server.getInputStream(), StandardCharsets.UTF_8));
             String annonce = lecteur.readLine();
             assertTrue(annonce != null && annonce.startsWith("PRET "),
                     "le serveur socket annonce son écoute : " + annonce);
-            try (ServeurExterne connexion = ServeurExterne.parSocket(
+            try (ExternalServer connexion = ExternalServer.viaSocket(
                     "127.0.0.1", port, "banc-celeris")) {
-                assertTrue(connexion.session().initialiser().sertDefinition(),
+                assertTrue(connexion.session().initialize().supportsDefinition(),
                         "la poignée de main traverse la socket");
             }
         } finally {
-            serveur.destroy();
-            if (!serveur.waitFor(5, TimeUnit.SECONDS)) {
-                serveur.destroyForcibly();
+            server.destroy();
+            if (!server.waitFor(5, TimeUnit.SECONDS)) {
+                server.destroyForcibly();
             }
         }
     }
@@ -127,9 +127,9 @@ class ServeurExterneTest {
      *  close() est borné, le processus est forclos. */
     @Test
     void laFermetureSurvitAuServeurMort() throws Exception {
-        ServeurExterne connexion = ServeurExterne.parStdio(commande(),
+        ExternalServer connexion = ExternalServer.viaStdio(command(),
                 "banc-celeris");
-        connexion.session().initialiser();
+        connexion.session().initialize();
         // le serveur meurt brutalement : kill -9 du sous-processus
         connexion.close();
         // la fermeture est idempotente — un second close ne jette rien

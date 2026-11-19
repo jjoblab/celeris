@@ -17,7 +17,7 @@ public final class NavigationHistory {
 
     private final List<Integer> positions = new ArrayList<>();
 
-    private int curseur = -1;
+    private int cursor = -1;
 
     /**
      * Un historique de profondeur maximale donnée.
@@ -39,18 +39,18 @@ public final class NavigationHistory {
      * @param offset la position visitée
      */
     public void visit(int offset) {
-        if (curseur >= 0 && positions.get(curseur) == offset) {
+        if (cursor >= 0 && positions.get(cursor) == offset) {
             return;
         }
         // la visite coupe l'avance
-        while (positions.size() > curseur + 1) {
+        while (positions.size() > cursor + 1) {
             positions.remove(positions.size() - 1);
         }
         positions.add(offset);
         if (positions.size() > profondeurMax) {
             positions.remove(0);
         }
-        curseur = positions.size() - 1;
+        cursor = positions.size() - 1;
     }
 
     /**
@@ -59,11 +59,11 @@ public final class NavigationHistory {
      * @return la nouvelle position courante, ou null au fond
      */
     public @Nullable Integer back() {
-        if (curseur <= 0) {
+        if (cursor <= 0) {
             return null;
         }
-        curseur--;
-        return positions.get(curseur);
+        cursor--;
+        return positions.get(cursor);
     }
 
     /**
@@ -72,11 +72,11 @@ public final class NavigationHistory {
      * @return la nouvelle position courante, ou null au sommet
      */
     public @Nullable Integer forward() {
-        if (curseur >= positions.size() - 1) {
+        if (cursor >= positions.size() - 1) {
             return null;
         }
-        curseur++;
-        return positions.get(curseur);
+        cursor++;
+        return positions.get(cursor);
     }
 
     /**
@@ -85,7 +85,7 @@ public final class NavigationHistory {
      * @return la disponibilité du retour
      */
     public boolean canBack() {
-        return curseur > 0;
+        return cursor > 0;
     }
 
     /**
@@ -94,7 +94,7 @@ public final class NavigationHistory {
      * @return la disponibilité de l'avance
      */
     public boolean canForward() {
-        return curseur < positions.size() - 1;
+        return cursor < positions.size() - 1;
     }
 
     /**
@@ -112,6 +112,6 @@ public final class NavigationHistory {
      */
     public void fichierFerme() {
         positions.clear();
-        curseur = -1;
+        cursor = -1;
     }
 }

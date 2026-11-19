@@ -32,11 +32,11 @@ public final class CelerisOutilsTest {
     }
 
     private static String sortieDe(int codeAttendu, String[] args) {
-        ByteArrayOutputStream tampon = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int code = Celeris.executer(args,
-                new PrintStream(tampon, true, StandardCharsets.UTF_8));
+                new PrintStream(buffer, true, StandardCharsets.UTF_8));
         assertEquals(codeAttendu, code, "code de sortie inattendu");
-        return tampon.toString(StandardCharsets.UTF_8);
+        return buffer.toString(StandardCharsets.UTF_8);
     }
 
     /** G-03 — diagnostiquer : les plages malformées se disent, ligne et colonne. */
@@ -48,14 +48,14 @@ public final class CelerisOutilsTest {
                     }
                 }
                 """);
-        String sortie = sortieDe(3,
+        String output = sortieDe(3,
                 new String[] {"diagnostiquer", fichier.toString()});
-        assertTrue(sortie.contains("malformed structure"),
-                "la malformation se dit : " + sortie);
-        assertTrue(sortie.contains("1:1 "),
-                "la plage malformée vit ligne 1 : " + sortie);
-        assertTrue(sortie.trim().endsWith("1 diagnostic(s)"),
-                "le décompte clôt : " + sortie);
+        assertTrue(output.contains("malformed structure"),
+                "la malformation se dit : " + output);
+        assertTrue(output.contains("1:1 "),
+                "la plage malformée vit ligne 1 : " + output);
+        assertTrue(output.trim().endsWith("1 diagnostic(s)"),
+                "le décompte clôt : " + output);
     }
 
     /** G-03 — diagnostiquer un fichier sain : aucun diagnostic, code 0. */
@@ -67,10 +67,10 @@ public final class CelerisOutilsTest {
                     }
                 }
                 """);
-        String sortie = sortieDe(0,
+        String output = sortieDe(0,
                 new String[] {"diagnostiquer", fichier.toString()});
-        assertTrue(sortie.trim().endsWith("0 diagnostic(s)"),
-                "aucun diagnostic : " + sortie);
+        assertTrue(output.trim().endsWith("0 diagnostic(s)"),
+                "aucun diagnostic : " + output);
     }
 
     /** G-03 — formater : le texte formaté paraît seul sur la sortie. */
@@ -83,23 +83,23 @@ public final class CelerisOutilsTest {
                     }
                 }
                 """);
-        String sortie = sortieDe(0, new String[] {"formater", fichier.toString()});
+        String output = sortieDe(0, new String[] {"formater", fichier.toString()});
         assertEquals("""
                 class Banc {
                     void f() {
                         int x = 1;
                     }
                 }
-                """, sortie, "le texte formaté, seul sur la sortie");
+                """, output, "le texte formaté, seul sur la sortie");
     }
 
     /** G-03 — formater un fichier sans langage analysable refuse : code 1. */
     @Test
     public void formateUnFichierSansLangageRefuse() throws IOException {
         Path fichier = ecrire("inconnu.quelconque", "n'importe quoi");
-        String sortie = sortieDe(1, new String[] {"formater", fichier.toString()});
-        assertTrue(sortie.contains("langage sans analyse"),
-                "le refus se dit : " + sortie);
+        String output = sortieDe(1, new String[] {"formater", fichier.toString()});
+        assertTrue(output.contains("langage sans analyse"),
+                "le refus se dit : " + output);
     }
 
     /** G-03 — refactorer renommer : le fichier renommé paraît, chaque occurrence suit. */
@@ -114,7 +114,7 @@ public final class CelerisOutilsTest {
                     }
                 }
                 """);
-        String sortie = sortieDe(0, new String[] {"refactorer",
+        String output = sortieDe(0, new String[] {"refactorer",
                 fichier.toString(), "renommer", "quantite", "nombre"});
         assertEquals("""
                 class Achat {
@@ -124,7 +124,7 @@ public final class CelerisOutilsTest {
                         return nombre * 2;
                     }
                 }
-                """, sortie, "le fichier renommé, seul sur la sortie");
+                """, output, "le fichier renommé, seul sur la sortie");
     }
 
     /** G-03 — le renommage ambigu refuse : deux déclarations du même nom, code 4. */
@@ -139,10 +139,10 @@ public final class CelerisOutilsTest {
                     }
                 }
                 """);
-        String sortie = sortieDe(4, new String[] {"refactorer",
+        String output = sortieDe(4, new String[] {"refactorer",
                 fichier.toString(), "renommer", "homonyme", "autre"});
-        assertTrue(sortie.contains("conflit : homonyme AMBIGUITE"),
-                "l'ambiguïté se dit : " + sortie);
+        assertTrue(output.contains("conflit : homonyme AMBIGUITE"),
+                "l'ambiguïté se dit : " + output);
     }
 
     /** G-03 — le renommage en collision refuse : le nouveau nom déjà pris, code 4. */
@@ -158,20 +158,20 @@ public final class CelerisOutilsTest {
                     }
                 }
                 """);
-        String sortie = sortieDe(4, new String[] {"refactorer",
+        String output = sortieDe(4, new String[] {"refactorer",
                 fichier.toString(), "renommer", "prix", "seuil"});
-        assertTrue(sortie.contains("conflit : seuil COLLISION"),
-                "la collision se dit : " + sortie);
+        assertTrue(output.contains("conflit : seuil COLLISION"),
+                "la collision se dit : " + output);
     }
 
     /** G-03 — l'usage incomplet rend l'usage, code 2 ; le sous-commande inconnue aussi. */
     @Test
     public void lUsageIncompletRendUsage() throws IOException {
-        String sortie = sortieDe(2, new String[] {"refactorer", "a.java",
+        String output = sortieDe(2, new String[] {"refactorer", "a.java",
                 "bouger", "x", "y"});
-        assertTrue(sortie.startsWith("usage :"),
-                "l'usage se rend : " + sortie);
-        assertTrue(sortie.contains("diagnostiquer <fichier>"),
-                "l'usage cite les nouvelles commandes : " + sortie);
+        assertTrue(output.startsWith("usage :"),
+                "l'usage se rend : " + output);
+        assertTrue(output.contains("diagnostiquer <fichier>"),
+                "l'usage cite les nouvelles commandes : " + output);
     }
 }

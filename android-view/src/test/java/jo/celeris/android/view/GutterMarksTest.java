@@ -25,16 +25,16 @@ class GutterMarksTest {
     @Test
     void lesEnTetesPliablesPortentLaMarque() {
         FoldModel replis = new FoldModel();
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(new FoldSpan(1, 3), new FoldSpan(7, 9)), replis, new int[0]);
 
-        assertTrue(marques.pliable(1));
-        assertTrue(marques.pliable(7));
-        assertFalse(marques.pliable(0), "une ligne sans région n'est pas pliable");
-        assertFalse(marques.pliable(2), "le corps d'une région n'est pas pliable");
-        assertFalse(marques.pliable(4));
-        assertFalse(marques.pliable(-1), "hors bornes : jamais pliable");
-        assertFalse(marques.pliable(100));
+        assertTrue(marks.pliable(1));
+        assertTrue(marks.pliable(7));
+        assertFalse(marks.pliable(0), "une ligne sans région n'est pas pliable");
+        assertFalse(marks.pliable(2), "le corps d'une région n'est pas pliable");
+        assertFalse(marks.pliable(4));
+        assertFalse(marks.pliable(-1), "hors bornes : jamais pliable");
+        assertFalse(marks.pliable(100));
     }
 
     /** Un pli replié se distingue d'une région simplement pliable. */
@@ -42,25 +42,25 @@ class GutterMarksTest {
     void lePliReplieSeDistingue() {
         FoldModel replis = new FoldModel();
         replis.fold(1, 3);
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(new FoldSpan(1, 3)), replis, new int[0]);
 
-        assertTrue(marques.pliable(1));
-        assertTrue(marques.replie(1), "l'en-tête replié porte l'état replié");
-        assertFalse(marques.replie(7), "aucune autre ligne n'est repliée");
+        assertTrue(marks.pliable(1));
+        assertTrue(marks.replie(1), "l'en-tête replié porte l'état replié");
+        assertFalse(marks.replie(7), "aucune autre ligne n'est repliée");
     }
 
     /** Les lignes en erreur portent la marque de diagnostic (D-02). */
     @Test
     void lesLignesEnErreurPortentLaMarque() {
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(), new FoldModel(), new int[] {2, 5, 5});
 
-        assertTrue(marques.erreur(2));
-        assertTrue(marques.erreur(5), "les doublons ne comptent pas double");
-        assertFalse(marques.erreur(0));
-        assertFalse(marques.erreur(3));
-        assertFalse(marques.erreur(-3));
+        assertTrue(marks.erreur(2));
+        assertTrue(marks.erreur(5), "les doublons ne comptent pas double");
+        assertFalse(marks.erreur(0));
+        assertFalse(marks.erreur(3));
+        assertFalse(marks.erreur(-3));
     }
 
     /** Une ligne peut porter pli ET erreur : les deux états coexistent. */
@@ -68,47 +68,47 @@ class GutterMarksTest {
     void pliEtErreurCoexistent() {
         FoldModel replis = new FoldModel();
         replis.fold(2, 4);
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(new FoldSpan(2, 4)), replis, new int[] {2});
 
-        assertTrue(marques.pliable(2));
-        assertTrue(marques.replie(2));
-        assertTrue(marques.erreur(2));
+        assertTrue(marks.pliable(2));
+        assertTrue(marks.replie(2));
+        assertTrue(marks.erreur(2));
     }
 
     /** Les marques vides ne marquent rien : la gouttiere reste muette. */
     @Test
     void lesMarquesVidesNeMarquentRien() {
-        GutterMarks marques = GutterMarks.VIDE;
-        for (int ligne = -1; ligne < 10; ligne++) {
-            assertFalse(marques.pliable(ligne));
-            assertFalse(marques.replie(ligne));
-            assertFalse(marques.erreur(ligne));
+        GutterMarks marks = GutterMarks.EMPTY;
+        for (int line = -1; line < 10; line++) {
+            assertFalse(marks.pliable(line));
+            assertFalse(marks.replie(line));
+            assertFalse(marks.erreur(line));
         }
     }
 
     /** Les diagnostics importes du build (C-12) se fondent aux erreurs. */
     @Test
     void lesErreursImporteesSeFondentAuxErreursDeSyntaxe() {
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(), new FoldModel(), new int[] {4});
 
-        GutterMarks fondues = marques.avecErreurs(new int[] {4, 9});
+        GutterMarks fondues = marks.avecErreurs(new int[] {4, 9});
 
         assertTrue(fondues.erreur(4), "la ligne commune se marque une fois");
         assertTrue(fondues.erreur(9), "la ligne importee se marque");
         assertFalse(fondues.erreur(0));
         assertFalse(fondues.erreur(5));
-        assertTrue(marques.erreur(4));
-        assertFalse(marques.erreur(9), "la source reste intacte");
+        assertTrue(marks.erreur(4));
+        assertFalse(marks.erreur(9), "la source reste intacte");
     }
 
     /** Les erreurs importees vides ne changent rien : la fusion est gratuite. */
     @Test
     void lesErreursImporteesVidesNeChangentRien() {
-        GutterMarks marques = GutterMarks.of(
+        GutterMarks marks = GutterMarks.of(
                 List.of(), new FoldModel(), new int[] {4});
 
-        assertSame(marques, marques.avecErreurs(new int[0]));
+        assertSame(marks, marks.avecErreurs(new int[0]));
     }
 }

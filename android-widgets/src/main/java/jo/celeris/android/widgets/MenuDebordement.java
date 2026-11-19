@@ -14,8 +14,8 @@ import java.util.List;
  * (la machine à états l'emporte avec elle) ; le choix d'une action la
  * referme AVANT de l'exécuter, l'en-tête de section ne se prend jamais.
  *
- * <p>Le montage tient en deux temps : {@link #ouvrir} sous la puce de
- * la barre (les étages y courent), {@link #fermer} sur le choix ou la
+ * <p>Le montage tient en deux temps : {@link #open} sous la puce de
+ * la barre (les étages y courent), {@link #close} sur le choix ou la
  * fermeture de la barre — la machine à états tient le reste, l'hôte
  * n'y code rien. Sans étage vivant, le menu ne se pose pas.</p>
  */
@@ -46,7 +46,7 @@ public final class MenuDebordement {
         carte.setOnPick(rang -> {
             MenuEtages.Item item = carte.itemAt(rang);
             if (item != null) {
-                fermer();
+                close();
                 item.action().run();
             }
         });
@@ -71,7 +71,7 @@ public final class MenuDebordement {
      *                     le caret
      * @param etages       les étages d'actions, vides pour ne rien poser
      */
-    public void ouvrir(SelectionBarView barre, int basSelection,
+    public void open(SelectionBarView barre, int basSelection,
             List<MenuEtages.Etage> etages) {
         carte.setEtages(etages);
         if (!carte.aActions()) {
@@ -79,27 +79,27 @@ public final class MenuDebordement {
         }
         int x = barre.getLeft() + barre.ancrePuceDebordementX();
         PopupPlacer.Cadre placee = PopupAnchor.belowSelectionOrAboveBar(x,
-                basSelection, barre.getTop(), taille(), coucheLargeur(),
-                coucheHauteur(), margePx);
-        popups.montrer(PopupController.PopupKind.SELECTION_OVERFLOW,
+                basSelection, barre.getTop(), size(), layerWidth(),
+                layerHeight(), margePx);
+        popups.show(PopupController.PopupKind.SELECTION_OVERFLOW,
                 placee.x(), placee.y());
     }
 
     /** Ferme le menu — la couche suit, la barre reste. */
-    public void fermer() {
-        popups.fermer(PopupController.PopupKind.SELECTION_OVERFLOW);
+    public void close() {
+        popups.close(PopupController.PopupKind.SELECTION_OVERFLOW);
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
-    private PopupPlacer.Cadre taille() {
-        return popups.taille(PopupController.PopupKind.SELECTION_OVERFLOW);
+    private PopupPlacer.Cadre size() {
+        return popups.size(PopupController.PopupKind.SELECTION_OVERFLOW);
     }
 
-    private int coucheLargeur() {
+    private int layerWidth() {
         return popups.couche().getWidth();
     }
 
-    private int coucheHauteur() {
+    private int layerHeight() {
         return popups.couche().getHeight();
     }
 }

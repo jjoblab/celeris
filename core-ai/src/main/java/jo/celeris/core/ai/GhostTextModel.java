@@ -23,9 +23,9 @@ public interface GhostTextModel {
      * (l'attente ne bloque jamais la frappe, ADR-012).</p>
      *
      * @param requete  l'instantané, le curseur et le jeton du vol
-     * @param recepteur le récepteur de l'unique réponse
+     * @param receiver le récepteur de l'unique réponse
      */
-    void completer(ModelRequest requete, Receiver recepteur);
+    void completer(ModelRequest requete, Receiver receiver);
 
     /** Le récepteur de la réponse d'une complétion. */
     interface Receiver {

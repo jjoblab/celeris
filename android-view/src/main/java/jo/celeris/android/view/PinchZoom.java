@@ -28,7 +28,7 @@ package jo.celeris.android.view;
 public final class PinchZoom {
 
     /** L'échelle des tailles autorisées, croissante. */
-    private static final float[] PALIERS = {10f, 12f, 14f, 16f, 18f, 20f, 24f, 28f};
+    private static final float[] STEPS = {10f, 12f, 14f, 16f, 18f, 20f, 24f, 28f};
 
     /** Le facteur cumulé le plus bas servi par la cible. */
     private static final float FACTEUR_MIN = 0.25f;
@@ -37,7 +37,7 @@ public final class PinchZoom {
     private static final float FACTEUR_MAX = 4f;
 
     /** La bande d'hystérésis, en part de l'intervalle entre deux paliers. */
-    private static final float BANDE = 0.15f;
+    private static final float BAND = 0.15f;
 
     private PinchZoom() {
     }
@@ -67,14 +67,14 @@ public final class PinchZoom {
      * @return le palier retenu, en sp
      */
     public static float steppedSize(float currentStep, float targetSize) {
-        int indice = indiceDe(currentStep);
-        while (indice + 1 < PALIERS.length && targetSize >= seuilHaut(indice)) {
+        int indice = indexOf(currentStep);
+        while (indice + 1 < STEPS.length && targetSize >= seuilHaut(indice)) {
             indice++;
         }
         while (indice > 0 && targetSize <= seuilBas(indice)) {
             indice--;
         }
-        return PALIERS[indice];
+        return STEPS[indice];
     }
 
     /**
@@ -96,9 +96,9 @@ public final class PinchZoom {
     public static float scrollXKeepingColumn(float focalX, float oldGutter,
             float newGutter, float scrollX, float oldCharWidth,
             float newCharWidth) {
-        float colonne = (focalX - oldGutter + scrollX)
+        float column = (focalX - oldGutter + scrollX)
                 / Math.max(1e-6f, oldCharWidth);
-        return Math.max(0f, colonne * newCharWidth - (focalX - newGutter));
+        return Math.max(0f, column * newCharWidth - (focalX - newGutter));
     }
 
     /**
@@ -125,11 +125,11 @@ public final class PinchZoom {
      * @return le palier juste au-dessus, le courant au sommet de l'échelle
      */
     public static float stepAbove(float currentStep) {
-        int indice = indiceDe(currentStep);
-        if (indice + 1 < PALIERS.length) {
-            return PALIERS[indice + 1];
+        int indice = indexOf(currentStep);
+        if (indice + 1 < STEPS.length) {
+            return STEPS[indice + 1];
         }
-        return PALIERS[indice];
+        return STEPS[indice];
     }
 
     /**
@@ -140,18 +140,18 @@ public final class PinchZoom {
      * @return le palier juste en dessous, le courant au pied de l'échelle
      */
     public static float stepBelow(float currentStep) {
-        int indice = indiceDe(currentStep);
+        int indice = indexOf(currentStep);
         if (indice > 0) {
-            return PALIERS[indice - 1];
+            return STEPS[indice - 1];
         }
-        return PALIERS[indice];
+        return STEPS[indice];
     }
 
     /** L'indice du palier courant, borné à l'échelle. */
-    private static int indiceDe(float palier) {
+    private static int indexOf(float palier) {
         int meilleur = 0;
-        for (int i = 1; i < PALIERS.length; i++) {
-            if (Math.abs(PALIERS[i] - palier) < Math.abs(PALIERS[meilleur] - palier)) {
+        for (int i = 1; i < STEPS.length; i++) {
+            if (Math.abs(STEPS[i] - palier) < Math.abs(STEPS[meilleur] - palier)) {
                 meilleur = i;
             }
         }
@@ -160,11 +160,11 @@ public final class PinchZoom {
 
     /** Le seuil d'entrée du palier suivant : le palier moins la bande. */
     private static float seuilHaut(int indice) {
-        return PALIERS[indice + 1] - BANDE * (PALIERS[indice + 1] - PALIERS[indice]);
+        return STEPS[indice + 1] - BAND * (STEPS[indice + 1] - STEPS[indice]);
     }
 
     /** Le seuil de sortie vers le palier précédent : le palier plus la bande. */
     private static float seuilBas(int indice) {
-        return PALIERS[indice - 1] + BANDE * (PALIERS[indice] - PALIERS[indice - 1]);
+        return STEPS[indice - 1] + BAND * (STEPS[indice] - STEPS[indice - 1]);
     }
 }

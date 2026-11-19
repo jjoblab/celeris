@@ -28,7 +28,7 @@ import jo.celeris.core.syntax.TokenKind;
 final class XmlLexeur implements LanguageLexer {
 
     /** États transportés d'une ligne à la suivante. */
-    enum Etat implements LexState {
+    enum State implements LexState {
         /** Dans le texte, entre les balises. */
         TEXTE,
         /** Dans une balise ouverte, entre les attributs. */
@@ -40,243 +40,243 @@ final class XmlLexeur implements LanguageLexer {
     }
 
     private boolean dansBalise;
-    private Etat etatSortie = Etat.TEXTE;
+    private State exitState = State.TEXTE;
 
     @Override
     public LexState initialState() {
-        return Etat.TEXTE;
+        return State.TEXTE;
     }
 
     @Override
-    public LexedLine lex(CharSequence texte, LexState entree) {
-        etatSortie = Etat.TEXTE;
-        dansBalise = entree == Etat.BALISE;
-        List<Token> jetons = new ArrayList<>();
+    public LexedLine lex(CharSequence text, LexState input) {
+        exitState = State.TEXTE;
+        dansBalise = input == State.BALISE;
+        List<Token> tokens = new ArrayList<>();
         int reprise = 0;
-        if (entree == Etat.COMMENTAIRE) {
-            reprise = lexDansCommentaire(texte, jetons);
-        } else if (entree == Etat.CDATA) {
-            reprise = lexDansCdata(texte, jetons);
+        if (input == State.COMMENTAIRE) {
+            reprise = lexDansCommentaire(text, tokens);
+        } else if (input == State.CDATA) {
+            reprise = lexDansCdata(text, tokens);
         }
-        int n = texte.length();
+        int n = text.length();
         int i = reprise;
         while (i < n) {
-            i = lexUn(texte, jetons, i, n);
+            i = lexUn(text, tokens, i, n);
         }
-        if (etatSortie == Etat.TEXTE) {
-            etatSortie = dansBalise ? Etat.BALISE : Etat.TEXTE;
+        if (exitState == State.TEXTE) {
+            exitState = dansBalise ? State.BALISE : State.TEXTE;
         }
-        return new LexedLine(jetons.toArray(new Token[0]), etatSortie);
+        return new LexedLine(tokens.toArray(new Token[0]), exitState);
     }
 
     /** Renvoie la position de reprise : le lexique continue après la fermeture. */
-    private int lexDansCommentaire(CharSequence texte, List<Token> jetons) {
-        int fermeture = trouver(texte, "-->", 0);
-        int fin = fermeture < 0 ? texte.length() : fermeture + 3;
-        jetons.add(new Token(TokenKind.COMMENT, 0, fin));
-        etatSortie = fermeture < 0 ? Etat.COMMENTAIRE : Etat.TEXTE;
-        return fin;
+    private int lexDansCommentaire(CharSequence text, List<Token> tokens) {
+        int fermeture = find(text, "-->", 0);
+        int end = fermeture < 0 ? text.length() : fermeture + 3;
+        tokens.add(new Token(TokenKind.COMMENT, 0, end));
+        exitState = fermeture < 0 ? State.COMMENTAIRE : State.TEXTE;
+        return end;
     }
 
     /** Renvoie la position de reprise : le lexique continue après la fermeture. */
-    private int lexDansCdata(CharSequence texte, List<Token> jetons) {
-        int fermeture = trouver(texte, "]]>", 0);
+    private int lexDansCdata(CharSequence text, List<Token> tokens) {
+        int fermeture = find(text, "]]>", 0);
         if (fermeture < 0) {
-            if (texte.length() > 0) {
-                jetons.add(new Token(TokenKind.STRING, 0, texte.length()));
+            if (text.length() > 0) {
+                tokens.add(new Token(TokenKind.STRING, 0, text.length()));
             }
-            etatSortie = Etat.CDATA;
-            return texte.length();
+            exitState = State.CDATA;
+            return text.length();
         }
         if (fermeture > 0) {
-            jetons.add(new Token(TokenKind.STRING, 0, fermeture));
+            tokens.add(new Token(TokenKind.STRING, 0, fermeture));
         }
-        jetons.add(new Token(TokenKind.CLOSE_BRACKET, fermeture, fermeture + 3));
-        etatSortie = Etat.TEXTE;
+        tokens.add(new Token(TokenKind.CLOSE_BRACKET, fermeture, fermeture + 3));
+        exitState = State.TEXTE;
         return fermeture + 3;
     }
 
-    private int lexUn(CharSequence texte, List<Token> jetons, int i, int n) {
-        char c = texte.charAt(i);
+    private int lexUn(CharSequence text, List<Token> tokens, int i, int n) {
+        char c = text.charAt(i);
         if (Character.isWhitespace(c)) {
             return i + 1;
         }
         if (dansBalise) {
-            return lexAttribut(texte, jetons, i, n);
+            return lexAttribut(text, tokens, i, n);
         }
         if (c == '<') {
-            return lexBalise(texte, jetons, i, n);
+            return lexBalise(text, tokens, i, n);
         }
-        return lexTexte(texte, jetons, i, n);
+        return lexText(text, tokens, i, n);
     }
 
     /** Le prologue et le doctype sont de la documentation. */
-    private int lexBalise(CharSequence texte, List<Token> jetons, int i, int n) {
+    private int lexBalise(CharSequence text, List<Token> tokens, int i, int n) {
         int apres = i + 1;
-        if (apres < n && texte.charAt(apres) == '?') {
-            return lexPrologue(texte, jetons, i, n);
+        if (apres < n && text.charAt(apres) == '?') {
+            return lexPrologue(text, tokens, i, n);
         }
-        if (apres < n && texte.charAt(apres) == '!') {
-            return lexExclamation(texte, jetons, i, n);
+        if (apres < n && text.charAt(apres) == '!') {
+            return lexExclamation(text, tokens, i, n);
         }
-        if (apres < n && texte.charAt(apres) == '/') {
-            return lexFermeture(texte, jetons, i, n);
+        if (apres < n && text.charAt(apres) == '/') {
+            return lexFermeture(text, tokens, i, n);
         }
-        int fin = apres;
-        while (fin < n && estNomChar(texte.charAt(fin))) {
-            fin++;
+        int end = apres;
+        while (end < n && estNomChar(text.charAt(end))) {
+            end++;
         }
-        if (fin == apres) {
-            jetons.add(new Token(TokenKind.OPERATOR, i, i + 1));
+        if (end == apres) {
+            tokens.add(new Token(TokenKind.OPERATOR, i, i + 1));
             return i + 1;
         }
-        jetons.add(new Token(TokenKind.OPEN_BRACKET, i, fin));
+        tokens.add(new Token(TokenKind.OPEN_BRACKET, i, end));
         dansBalise = true;
-        return fin;
+        return end;
     }
 
-    private static int lexPrologue(CharSequence texte, List<Token> jetons, int i, int n) {
-        int fermeture = trouver(texte, "?>", i);
-        int fin = fermeture < 0 ? n : fermeture + 2;
-        jetons.add(new Token(TokenKind.DOC, i, fin));
-        return fin;
+    private static int lexPrologue(CharSequence text, List<Token> tokens, int i, int n) {
+        int fermeture = find(text, "?>", i);
+        int end = fermeture < 0 ? n : fermeture + 2;
+        tokens.add(new Token(TokenKind.DOC, i, end));
+        return end;
     }
 
     /** Commentaire ou section CDATA — le doctype retombe sur la documentation. */
-    private int lexExclamation(CharSequence texte, List<Token> jetons, int i, int n) {
-        if (commence(texte, i, "<!--")) {
-            int fermeture = trouver(texte, "-->", i + 4);
-            int fin = fermeture < 0 ? n : fermeture + 3;
-            jetons.add(new Token(TokenKind.COMMENT, i, fin));
-            etatSortie = fermeture < 0 ? Etat.COMMENTAIRE : Etat.TEXTE;
-            return fin;
+    private int lexExclamation(CharSequence text, List<Token> tokens, int i, int n) {
+        if (commence(text, i, "<!--")) {
+            int fermeture = find(text, "-->", i + 4);
+            int end = fermeture < 0 ? n : fermeture + 3;
+            tokens.add(new Token(TokenKind.COMMENT, i, end));
+            exitState = fermeture < 0 ? State.COMMENTAIRE : State.TEXTE;
+            return end;
         }
-        if (commence(texte, i, "<![CDATA[")) {
-            jetons.add(new Token(TokenKind.OPEN_BRACKET, i, i + 9));
-            return lexCdataOuvert(texte, jetons, i + 9, n);
+        if (commence(text, i, "<![CDATA[")) {
+            tokens.add(new Token(TokenKind.OPEN_BRACKET, i, i + 9));
+            return lexCdataOuvert(text, tokens, i + 9, n);
         }
-        int fermeture = trouver(texte, ">", i);
-        int fin = fermeture < 0 ? n : fermeture + 1;
-        jetons.add(new Token(TokenKind.DOC, i, fin));
-        return fin;
+        int fermeture = find(text, ">", i);
+        int end = fermeture < 0 ? n : fermeture + 1;
+        tokens.add(new Token(TokenKind.DOC, i, end));
+        return end;
     }
 
-    private int lexCdataOuvert(CharSequence texte, List<Token> jetons, int depuis, int n) {
-        int fermeture = trouver(texte, "]]>", depuis);
+    private int lexCdataOuvert(CharSequence text, List<Token> tokens, int depuis, int n) {
+        int fermeture = find(text, "]]>", depuis);
         if (fermeture < 0) {
             if (depuis < n) {
-                jetons.add(new Token(TokenKind.STRING, depuis, n));
+                tokens.add(new Token(TokenKind.STRING, depuis, n));
             }
-            etatSortie = Etat.CDATA;
+            exitState = State.CDATA;
             return n;
         }
         if (fermeture > depuis) {
-            jetons.add(new Token(TokenKind.STRING, depuis, fermeture));
+            tokens.add(new Token(TokenKind.STRING, depuis, fermeture));
         }
-        jetons.add(new Token(TokenKind.CLOSE_BRACKET, fermeture, fermeture + 3));
-        etatSortie = Etat.TEXTE;
+        tokens.add(new Token(TokenKind.CLOSE_BRACKET, fermeture, fermeture + 3));
+        exitState = State.TEXTE;
         return fermeture + 3;
     }
 
-    private int lexFermeture(CharSequence texte, List<Token> jetons, int i, int n) {
-        int debut = i + 2;
-        int fin = debut;
-        while (fin < n && estNomChar(texte.charAt(fin))) {
-            fin++;
+    private int lexFermeture(CharSequence text, List<Token> tokens, int i, int n) {
+        int start = i + 2;
+        int end = start;
+        while (end < n && estNomChar(text.charAt(end))) {
+            end++;
         }
-        int apresNom = fin;
-        while (apresNom < n && Character.isWhitespace(texte.charAt(apresNom))) {
+        int apresNom = end;
+        while (apresNom < n && Character.isWhitespace(text.charAt(apresNom))) {
             apresNom++;
         }
-        if (apresNom < n && texte.charAt(apresNom) == '>') {
-            jetons.add(new Token(TokenKind.CLOSE_BRACKET, i, apresNom + 1));
+        if (apresNom < n && text.charAt(apresNom) == '>') {
+            tokens.add(new Token(TokenKind.CLOSE_BRACKET, i, apresNom + 1));
             return apresNom + 1;
         }
-        jetons.add(new Token(TokenKind.CLOSE_BRACKET, i, Math.max(fin, i + 2)));
-        return Math.max(fin, i + 2);
+        tokens.add(new Token(TokenKind.CLOSE_BRACKET, i, Math.max(end, i + 2)));
+        return Math.max(end, i + 2);
     }
 
     /** Dans la balise : chevron, auto-fermeture, égale, valeur ou nom d'attribut. */
-    private int lexAttribut(CharSequence texte, List<Token> jetons, int i, int n) {
-        char c = texte.charAt(i);
+    private int lexAttribut(CharSequence text, List<Token> tokens, int i, int n) {
+        char c = text.charAt(i);
         if (c == '>') {
             dansBalise = false;
-            jetons.add(new Token(TokenKind.PUNCTUATION, i, i + 1));
+            tokens.add(new Token(TokenKind.PUNCTUATION, i, i + 1));
             return i + 1;
         }
-        if (c == '/' && i + 1 < n && texte.charAt(i + 1) == '>') {
+        if (c == '/' && i + 1 < n && text.charAt(i + 1) == '>') {
             dansBalise = false;
-            jetons.add(new Token(TokenKind.CLOSE_BRACKET, i, i + 2));
+            tokens.add(new Token(TokenKind.CLOSE_BRACKET, i, i + 2));
             return i + 2;
         }
         if (c == '=') {
-            jetons.add(new Token(TokenKind.OPERATOR, i, i + 1));
+            tokens.add(new Token(TokenKind.OPERATOR, i, i + 1));
             return i + 1;
         }
         if (c == '"') {
-            return lexValeur(texte, jetons, i, n);
+            return lexValue(text, tokens, i, n);
         }
-        int fin = i;
-        while (fin < n && estNomChar(texte.charAt(fin))) {
-            fin++;
+        int end = i;
+        while (end < n && estNomChar(text.charAt(end))) {
+            end++;
         }
-        if (fin == i) {
-            jetons.add(new Token(TokenKind.ERROR, i, i + 1));
+        if (end == i) {
+            tokens.add(new Token(TokenKind.ERROR, i, i + 1));
             return i + 1;
         }
-        jetons.add(new Token(TokenKind.IDENTIFIER, i, fin));
-        return fin;
+        tokens.add(new Token(TokenKind.IDENTIFIER, i, end));
+        return end;
     }
 
     /** La valeur d'attribut jusqu'au guillemet fermant — l'antislash
      * n'échappe rien en XML, seul «&#x2f;&…;&#x2f;» est une entité : le
      * chemin Windows se ferme comme toute valeur ; non fermée =
      * ERROR. */
-    private int lexValeur(CharSequence texte, List<Token> jetons, int i, int n) {
-        int fin = i + 1;
-        while (fin < n) {
-            char c = texte.charAt(fin);
+    private int lexValue(CharSequence text, List<Token> tokens, int i, int n) {
+        int end = i + 1;
+        while (end < n) {
+            char c = text.charAt(end);
             if (c == '"') {
-                jetons.add(new Token(TokenKind.STRING, i, fin + 1));
-                return fin + 1;
+                tokens.add(new Token(TokenKind.STRING, i, end + 1));
+                return end + 1;
             }
-            fin++;
+            end++;
         }
-        jetons.add(new Token(TokenKind.ERROR, i, n));
+        tokens.add(new Token(TokenKind.ERROR, i, n));
         return n;
     }
 
     /** Le texte jusqu'au «&#x2f;» ouvrant suivant — entités comprises. */
-    private int lexTexte(CharSequence texte, List<Token> jetons, int i, int n) {
-        int fin = i;
-        while (fin < n && texte.charAt(fin) != '<') {
-            fin++;
+    private int lexText(CharSequence text, List<Token> tokens, int i, int n) {
+        int end = i;
+        while (end < n && text.charAt(end) != '<') {
+            end++;
         }
-        jetons.add(new Token(TokenKind.STRING, i, fin));
-        return fin;
+        tokens.add(new Token(TokenKind.STRING, i, end));
+        return end;
     }
 
     private static boolean estNomChar(char c) {
         return Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == '.' || c == ':';
     }
 
-    private static boolean commence(CharSequence texte, int i, String motif) {
-        if (i + motif.length() > texte.length()) {
+    private static boolean commence(CharSequence text, int i, String pattern) {
+        if (i + pattern.length() > text.length()) {
             return false;
         }
-        for (int j = 0; j < motif.length(); j++) {
-            if (texte.charAt(i + j) != motif.charAt(j)) {
+        for (int j = 0; j < pattern.length(); j++) {
+            if (text.charAt(i + j) != pattern.charAt(j)) {
                 return false;
             }
         }
         return true;
     }
 
-    private static int trouver(CharSequence texte, String motif, int depuis) {
-        for (int i = depuis; i + motif.length() <= texte.length(); i++) {
+    private static int find(CharSequence text, String pattern, int depuis) {
+        for (int i = depuis; i + pattern.length() <= text.length(); i++) {
             boolean egale = true;
-            for (int j = 0; j < motif.length(); j++) {
-                if (texte.charAt(i + j) != motif.charAt(j)) {
+            for (int j = 0; j < pattern.length(); j++) {
+                if (text.charAt(i + j) != pattern.charAt(j)) {
                     egale = false;
                     break;
                 }

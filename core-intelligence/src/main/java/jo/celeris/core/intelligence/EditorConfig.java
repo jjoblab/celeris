@@ -19,10 +19,10 @@ public final class EditorConfig {
     }
 
     /** Une section : son motif et ses propriétés. */
-    private record Section(String motif, List<String[]> proprietes) {
+    private record Section(String pattern, List<String[]> proprietes) {
     }
 
-    private static final int LARGEUR_TAB_DEFAUT = 4;
+    private static final int DEFAULT_TAB_WIDTH = 4;
 
     private final List<Section> sections = new ArrayList<>();
 
@@ -40,22 +40,22 @@ public final class EditorConfig {
         Section courante = new Section("", new ArrayList<>());
         config.sections.add(courante);
         for (String ligneBrute : contenu.split("\n", -1)) {
-            String ligne = ligneBrute.strip();
-            if (ligne.isEmpty() || ligne.startsWith("#") || ligne.startsWith(";")) {
+            String line = ligneBrute.strip();
+            if (line.isEmpty() || line.startsWith("#") || line.startsWith(";")) {
                 continue;
             }
-            if (ligne.startsWith("[") && ligne.endsWith("]")) {
-                courante = new Section(ligne.substring(1, ligne.length() - 1).strip(),
+            if (line.startsWith("[") && line.endsWith("]")) {
+                courante = new Section(line.substring(1, line.length() - 1).strip(),
                         new ArrayList<>());
                 config.sections.add(courante);
                 continue;
             }
-            int egale = ligne.indexOf('=');
+            int egale = line.indexOf('=');
             if (egale < 0) {
                 continue;
             }
             courante.proprietes().add(new String[] {
-                    ligne.substring(0, egale).strip(), ligne.substring(egale + 1).strip()});
+                    line.substring(0, egale).strip(), line.substring(egale + 1).strip()});
         }
         return config;
     }
@@ -74,7 +74,7 @@ public final class EditorConfig {
         String finDeLigne = "";
         String encodage = "";
         for (Section section : sections) {
-            if (!motifRepond(section.motif(), chemin)) {
+            if (!motifRepond(section.pattern(), chemin)) {
                 continue;
             }
             for (String[] propriete : section.proprietes()) {
@@ -90,7 +90,7 @@ public final class EditorConfig {
             }
         }
         if (largeur < 0) {
-            largeur = LARGEUR_TAB_DEFAUT;
+            largeur = DEFAULT_TAB_WIDTH;
         }
         return new Regles(tabs ? IndentStyle.tabs(largeur) : IndentStyle.spaces(largeur),
                 finDeLigne, encodage);
@@ -101,32 +101,32 @@ public final class EditorConfig {
      * convertit en retours chariots, lf en sauts simples, sans règle le
      * texte reste tel quel.
      *
-     * @param texte  le texte à convertir
+     * @param text  le texte à convertir
      * @param regles les règles résolues
      * @return le texte converti
      */
-    public static String appliquerFins(String texte, Regles regles) {
+    public static String appliquerFins(String text, Regles regles) {
         return switch (regles.finDeLigne()) {
-            case "crlf" -> texte.replace("\r\n", "\n").replace("\n", "\r\n");
-            case "lf" -> texte.replace("\r\n", "\n");
-            default -> texte;
+            case "crlf" -> text.replace("\r\n", "\n").replace("\n", "\r\n");
+            case "lf" -> text.replace("\r\n", "\n");
+            default -> text;
         };
     }
 
     /** Vrai quand le motif répond au chemin : la racine répond à tout, sinon l'extension. */
-    private static boolean motifRepond(String motif, String chemin) {
-        if (motif.isEmpty() || "*".equals(motif)) {
+    private static boolean motifRepond(String pattern, String chemin) {
+        if (pattern.isEmpty() || "*".equals(pattern)) {
             return true;
         }
-        if (!motif.startsWith("*.")) {
-            return chemin.equals(motif);
+        if (!pattern.startsWith("*.")) {
+            return chemin.equals(pattern);
         }
-        return chemin.endsWith(motif.substring(1));
+        return chemin.endsWith(pattern.substring(1));
     }
 
-    private static int entierOu(String texte, int defaut) {
+    private static int entierOu(String text, int defaut) {
         try {
-            return Integer.parseInt(texte);
+            return Integer.parseInt(text);
         } catch (NumberFormatException e) {
             return defaut;
         }

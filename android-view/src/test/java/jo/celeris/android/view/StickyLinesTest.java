@@ -24,13 +24,13 @@ class StickyLinesTest {
     /** Les en-têtes englobants collent, de la plus externe à la plus profonde. */
     @Test
     void enTetesEnglobantsCollent() {
-        String texte = "class A {\n"
+        String text = "class A {\n"
                 + "    void m() {\n"
                 + "        int x;\n"
                 + "        int y;\n"
                 + "    }\n"
                 + "}\n";
-        Document doc = Document.of(texte);
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         // la première ligne visible est la ligne 3 (« int y ; »)
         List<Integer> entetes = StickyLines.entetes(doc, analyse, 3, 5);
@@ -40,13 +40,13 @@ class StickyLinesTest {
     /** Le budget d'image borne : les plus profondes l'emportent (A-16). */
     @Test
     void budgetDBorneAuxPlusProfondes() {
-        String texte = "class A {\n"
+        String text = "class A {\n"
                 + "    void m() {\n"
                 + "        int x;\n"
                 + "        int y;\n"
                 + "    }\n"
                 + "}\n";
-        Document doc = Document.of(texte);
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         // un seul cran de budget : la méthode seule colle
         List<Integer> entetes = StickyLines.entetes(doc, analyse, 3, 1);
@@ -56,8 +56,8 @@ class StickyLinesTest {
     /** La première ligne visible dans aucune structure ne colle rien. */
     @Test
     void horsStructureRienNeColle() {
-        String texte = "int a;\nint b;\n";
-        Document doc = Document.of(texte);
+        String text = "int a;\nint b;\n";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         assertEquals(List.of(), StickyLines.entetes(doc, analyse, 1, 5));
     }
@@ -65,8 +65,8 @@ class StickyLinesTest {
     /** La ligne d'en-tête elle-même visible ne colle pas (déjà à l'écran). */
     @Test
     void enTeteDejaVisibleNeCollePas() {
-        String texte = "class A {\n    int x;\n}\n";
-        Document doc = Document.of(texte);
+        String text = "class A {\n    int x;\n}\n";
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
         // la ligne visible est la ligne 0 : rien au-dessus à coller
         assertEquals(List.of(), StickyLines.entetes(doc, analyse, 0, 5));

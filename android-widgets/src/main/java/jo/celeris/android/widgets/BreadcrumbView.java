@@ -29,10 +29,10 @@ public final class BreadcrumbView extends TextRowsPopup {
      * @param largeurDisponible la largeur du bandeau, en pixels
      */
     public void setPath(List<String> niveaux, int largeurDisponible) {
-        textPaint().setTextSize(tailleTexte(PopupTokens.TEXTE_META));
+        textPaint().setTextSize(textSize(PopupTokens.TEXTE_META));
         List<String> affiches = BreadcrumbModel.tronque(niveaux,
                 Math.max(0, largeurDisponible - 2 * paddingPx),
-                this::largeurDe);
+                this::widthOf);
         if (affiches.isEmpty()) {
             setRows(List.of());
             return;
@@ -41,7 +41,7 @@ public final class BreadcrumbView extends TextRowsPopup {
                 palette.muted(), Tier.META)));
     }
 
-    private int largeurDe(String nom) {
+    private int widthOf(String nom) {
         return Math.round(textPaint().measureText(nom));
     }
 }

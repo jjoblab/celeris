@@ -157,15 +157,15 @@ class PredictionTest {
         FakeLocalModel modele = new FakeLocalModel();
         modele.prediction(new PredictionEdit(
                 "initialise a 42", List.of(new TextEdit(8, "0", "42")), 0));
-        Enregistreur recepteur = new Enregistreur();
+        Enregistreur receiver = new Enregistreur();
         modele.predire(new ModelRequest(session.document(), 8, new TokenCancellation()),
-                recepteur);
+                receiver);
         assertEquals(new PredictionEdit("initialise a 42",
-                List.of(new TextEdit(8, "0", "42")), 0), recepteur.recue,
+                List.of(new TextEdit(8, "0", "42")), 0), receiver.recue,
                 "le modèle rend sa prédiction au récepteur");
         assertEquals("int x = 0;", session.text(), "rendre ne touche pas la session");
         assertFalse(session.canUndo());
-        PredictionEdit recue = Objects.requireNonNull(recepteur.recue);
+        PredictionEdit recue = Objects.requireNonNull(receiver.recue);
         assertEquals(ApplyPrediction.Resultat.APPLIQUEE,
                 ApplyPrediction.appliquer(session, recue));
         assertEquals("int x = 42;", session.text(),
@@ -176,10 +176,10 @@ class PredictionTest {
     @Test
     void modeleSansAvisRepondAucune() {
         FakeLocalModel modele = new FakeLocalModel();
-        Enregistreur recepteur = new Enregistreur();
+        Enregistreur receiver = new Enregistreur();
         modele.predire(new ModelRequest(Document.of("x"), 0,
-                new TokenCancellation()), recepteur);
-        assertNull(recepteur.recue);
-        assertTrue(recepteur.aucune);
+                new TokenCancellation()), receiver);
+        assertNull(receiver.recue);
+        assertTrue(receiver.aucune);
     }
 }

@@ -28,7 +28,7 @@ import jo.celeris.core.text.Document;
  */
 public final class FoldTracker {
 
-    private final FoldModel modele;
+    private final FoldModel model;
 
     /** Construit le suivi sur un modèle de plis vierge. */
     public FoldTracker() {
@@ -38,40 +38,40 @@ public final class FoldTracker {
     /**
      * Construit le suivi sur un modèle donné.
      *
-     * @param modele le modèle de plis suivi
+     * @param model le modèle de plis suivi
      */
-    public FoldTracker(FoldModel modele) {
-        this.modele = modele;
+    public FoldTracker(FoldModel model) {
+        this.model = model;
     }
 
     /** Le modèle de plis suivi — la projection le lit en direct. */
-    public FoldModel modele() {
-        return modele;
+    public FoldModel model() {
+        return model;
     }
 
     /**
      * Replie les lignes après l'en-tête donné (délégation au modèle).
      *
-     * @param debut la ligne d'en-tête, qui reste visible
-     * @param fin   la dernière ligne cachée
+     * @param start la ligne d'en-tête, qui reste visible
+     * @param end   la dernière ligne cachée
      */
-    public void fold(int debut, int fin) {
-        modele.fold(debut, fin);
+    public void fold(int start, int end) {
+        model.fold(start, end);
     }
 
     /**
      * Déplie le pli porté par l'en-tête donné (délégation au modèle).
      *
-     * @param debut la ligne d'en-tête du pli à déplier
+     * @param start la ligne d'en-tête du pli à déplier
      */
-    public void unfold(int debut) {
-        modele.unfold(debut);
+    public void unfold(int start) {
+        model.unfold(start);
     }
 
     /** Oublie tous les plis — changement de document. */
     public void clear() {
-        while (!modele.plis().isEmpty()) {
-            modele.unfold(modele.plis().get(0).debut());
+        while (!model.folds().isEmpty()) {
+            model.unfold(model.folds().get(0).start());
         }
     }
 
@@ -86,11 +86,11 @@ public final class FoldTracker {
      */
     public void surEdition(Document avant, int start, int end, String removed,
             String inserted) {
-        if (modele.plis().isEmpty()) {
+        if (model.folds().isEmpty()) {
             return;
         }
-        int delta = sautsDeLigne(inserted) - sautsDeLigne(removed);
-        int ligne = avant.lineForOffset(start);
+        int delta = lineJumps(inserted) - lineJumps(removed);
+        int line = avant.lineForOffset(start);
         int premiereDecalee;
         int premiereDetruite;
         int derniereDetruite;
@@ -98,24 +98,24 @@ public final class FoldTracker {
             // Insertion pure : rien n'est détruit ; posée en fin de
             // contenu de ligne, elle s'attache après — l'en-tête de la
             // ligne n'y bouge pas.
-            premiereDecalee = start == avant.lineEnd(ligne) ? ligne + 1 : ligne;
+            premiereDecalee = start == avant.lineEnd(line) ? line + 1 : line;
             premiereDetruite = Integer.MAX_VALUE;
             derniereDetruite = -1;
         } else {
             derniereDetruite = avant.lineForOffset(end - 1);
-            premiereDetruite = ligne;
+            premiereDetruite = line;
             premiereDecalee = derniereDetruite + 1;
         }
         List<int[]> anciens = new ArrayList<>();
-        for (FoldModel.Pli pli : modele.plis()) {
-            anciens.add(new int[] {pli.debut(), pli.fin()});
+        for (FoldModel.Pli pli : model.folds()) {
+            anciens.add(new int[] {pli.start(), pli.end()});
         }
         clear();
         for (int[] ancien : anciens) {
             int[] nouveau = remapper(ancien[0], ancien[1], premiereDecalee,
                     premiereDetruite, derniereDetruite, delta);
             if (nouveau != null && repliable(nouveau[0], nouveau[1])) {
-                modele.fold(nouveau[0], nouveau[1]);
+                model.fold(nouveau[0], nouveau[1]);
             }
         }
     }
@@ -127,12 +127,12 @@ public final class FoldTracker {
      * la monotonie du remappage ordonne les réinscriptions, la garde
      * reste défensive.
      */
-    private boolean repliable(int debut, int fin) {
-        if (fin <= debut) {
+    private boolean repliable(int start, int end) {
+        if (end <= start) {
             return false;
         }
-        for (FoldModel.Pli pli : modele.plis()) {
-            if (FoldModel.croise(debut, fin, pli)) {
+        for (FoldModel.Pli pli : model.folds()) {
+            if (FoldModel.croise(start, end, pli)) {
                 return false;
             }
         }
@@ -142,33 +142,33 @@ public final class FoldTracker {
     /**
      * Remappe un pli : null quand il meurt, ses nouvelles bornes sinon.
      */
-    private static int[] remapper(int debut, int fin, int premiereDecalee,
+    private static int[] remapper(int start, int end, int premiereDecalee,
             int premiereDetruite, int derniereDetruite, int delta) {
-        if (debut >= premiereDecalee) {
+        if (start >= premiereDecalee) {
             // l'en-tête survit, décalé : tout le pli suit.
-            return new int[] {debut + delta, fin + delta};
+            return new int[] {start + delta, end + delta};
         }
-        if (debut >= premiereDetruite && debut <= derniereDetruite) {
+        if (start >= premiereDetruite && start <= derniereDetruite) {
             // la ligne d'en-tête est détruite : le pli meurt.
             return null;
         }
         int premiereTouchee = Math.min(premiereDecalee, premiereDetruite);
-        if (fin < premiereTouchee) {
+        if (end < premiereTouchee) {
             // l'édition passe sous le pli : il ne bouge pas.
-            return new int[] {debut, fin};
+            return new int[] {start, end};
         }
-        int nouvelleFin = fin + delta;
-        if (nouvelleFin <= debut) {
+        int nouvelleFin = end + delta;
+        if (nouvelleFin <= start) {
             // le corps s'est vidé : le pli meurt.
             return null;
         }
-        return new int[] {debut, nouvelleFin};
+        return new int[] {start, nouvelleFin};
     }
 
-    private static int sautsDeLigne(String texte) {
+    private static int lineJumps(String text) {
         int nombre = 0;
-        for (int i = 0; i < texte.length(); i++) {
-            if (texte.charAt(i) == '\n') {
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
                 nombre++;
             }
         }

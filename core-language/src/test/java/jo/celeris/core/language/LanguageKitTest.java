@@ -54,8 +54,8 @@ final class LanguageKitTest {
         LanguageSupport java = kit.languageFor("Main.java");
         assertTrue(java != null && "java".equals(java.id()),
                 "le .java se résout en java");
-        LanguageSupport texte = kit.languageFor("notes.txt");
-        assertTrue(texte != null && "text".equals(texte.id()),
+        LanguageSupport text = kit.languageFor("notes.txt");
+        assertTrue(text != null && "text".equals(text.id()),
                 "le .txt se résout en Plain Text, langage livré");
         assertNull(kit.languageFor("montage.inconnu"),
                 "une extension inconnue rend null, pas d'exception");

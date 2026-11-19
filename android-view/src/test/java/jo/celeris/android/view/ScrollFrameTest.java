@@ -88,9 +88,9 @@ class ScrollFrameTest {
 
         @Override
         public RowLayout layoutOf(RowKey key) {
-            String texte = document.lineText(key.row());
-            return new RowLayout(key.row(), 0, texte.length(), texte,
-                    texte.length() * metrics.charWidth());
+            String text = document.lineText(key.row());
+            return new RowLayout(key.row(), 0, text.length(), text,
+                    text.length() * metrics.charWidth());
         }
     }
 
@@ -120,15 +120,15 @@ class ScrollFrameTest {
             viser(null, brush);
         }
 
-        private void viser(@Nullable String texte, TextBrush pinceau) {
-            if (texte != null) {
-                Integer identite = System.identityHashCode(texte);
+        private void viser(@Nullable String text, TextBrush brush) {
+            if (text != null) {
+                Integer identite = System.identityHashCode(text);
                 if (enRegime && !etabli.contains(identite)) {
                     nouvelles.add(identite);
                 }
                 vues.add(identite);
             }
-            Integer identitePinceau = System.identityHashCode(pinceau);
+            Integer identitePinceau = System.identityHashCode(brush);
             if (enRegime && !etabli.contains(identitePinceau)) {
                 nouvelles.add(identitePinceau);
             }
@@ -167,28 +167,28 @@ class ScrollFrameTest {
         MultiSelection selection = MultiSelection.of(new SelRange(3, 7));
         VisualProjection projection = new VisualProjection(5, new FoldModel());
         RowLayoutCache cache = new RowLayoutCache();
-        FabriqueSaine fabrique = new FabriqueSaine();
+        FabriqueSaine factory = new FabriqueSaine();
         ScrollFrame image = new ScrollFrame();
-        image.addLayer(new SelectionPainter(fabrique));
-        image.addLayer(new TextPainter(fabrique, cache,
+        image.addLayer(new SelectionPainter(factory));
+        image.addLayer(new TextPainter(factory, cache,
                 new SourceParLigne(document, metrics)));
-        FrameState etat = new FrameState();
+        FrameState state = new FrameState();
         SurfaceIdentites surface = new SurfaceIdentites();
 
         // Image 1 : échauffement — le cache se remplit, les instances
         // croisent l'interface pour la première fois (légitime).
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        state.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, 0f);
+        image.drawFrame(surface, state);
         assertEquals(6, surface.dessins(), "un rectangle de sélection et cinq textes");
         assertEquals(5, cache.size());
         surface.basculerEnRegimeEtabli();
 
         // Images 2 à 101 : défilement pixel en régime établi — aucun
         // objet nouveau ne doit croiser l'interface (PIEGE-15).
-        for (int numero = 2; numero <= 101; numero++) {
-            float dy = (numero - 2) * 0.5f;
-            etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, dy);
-            image.drawFrame(surface, etat);
+        for (int number = 2; number <= 101; number++) {
+            float dy = (number - 2) * 0.5f;
+            state.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, dy);
+            image.drawFrame(surface, state);
         }
 
         assertEquals(606, surface.dessins(), "cent une images, six dessins chacune");
@@ -208,27 +208,27 @@ class ScrollFrameTest {
         MultiSelection selection = MultiSelection.of(new SelRange(0, 2));
         VisualProjection projection = new VisualProjection(6, new FoldModel());
         RowLayoutCache cache = new RowLayoutCache();
-        FabriqueSaine fabrique = new FabriqueSaine();
+        FabriqueSaine factory = new FabriqueSaine();
         ScrollFrame image = new ScrollFrame();
-        image.addLayer(new SelectionPainter(fabrique));
-        image.addLayer(new TextPainter(fabrique, cache,
+        image.addLayer(new SelectionPainter(factory));
+        image.addLayer(new TextPainter(factory, cache,
                 new SourceParLigne(document, metrics)));
-        FrameState etat = new FrameState();
+        FrameState state = new FrameState();
         SurfaceIdentites surface = new SurfaceIdentites();
 
         // Fenêtre sur les rangées 0 à 4, puis 1 à 5 (la rangée 5 se voit
         // pour la première fois — légitime), puis retour sur 0 à 4 : tout
         // a déjà été vu, rien ne doit être alloué.
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        state.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, 0f);
+        image.drawFrame(surface, state);
         surface.basculerEnRegimeEtabli();
 
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 1, 5, 40f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        state.beginFrame(document, selection, projection, 1L, metrics, THEME, 1, 5, 40f, 0f, 0f);
+        image.drawFrame(surface, state);
         surface.basculerEnRegimeEtabli();
 
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        state.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 5, 40f, 0f, 0f);
+        image.drawFrame(surface, state);
 
         assertTrue(surface.aucuneIdentiteNouvelle(),
                 "re-voir des rangées déjà vues n'alloue rien");

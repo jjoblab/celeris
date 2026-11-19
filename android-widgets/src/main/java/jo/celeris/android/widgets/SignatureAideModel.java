@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
  * signatures candidates vivent au modèle, le stepper navigue —
  * {@link #precedente()} et {@link #suivante()} rendent le modèle
  * voisin, le cycle revient au premier —, la fenêtre ±1
- * ({@link #fenetre()}) borne ce que la vue montre autour de l'active,
+ * ({@link #window()}) borne ce que la vue montre autour de l'active,
  * et le peek ({@link #peek()}) sert la documentation de la signature
  * active — celle du paramètre courant d'abord, celle de la signature
  * sinon.</p>
@@ -32,12 +32,12 @@ public final class SignatureAideModel {
      * Une signature candidate : son libellé, les libellés de ses
      * paramètres dans l'ordre, sa documentation.
      */
-    public record Entree(String libelle, List<String> libellesParametres,
+    public record Entry(String label, List<String> libellesParametres,
                          @Nullable String documentation) {
 
         /** Constructeur canonique : composantes figées, jamais nulles. */
-        public Entree {
-            java.util.Objects.requireNonNull(libelle, "libelle");
+        public Entry {
+            java.util.Objects.requireNonNull(label, "libelle");
             java.util.Objects.requireNonNull(libellesParametres,
                     "libellesParametres");
             libellesParametres = List.copyOf(libellesParametres);
@@ -45,16 +45,16 @@ public final class SignatureAideModel {
     }
 
     /** Une plage de caractères dans le libellé : début inclus, fin exclue. */
-    public record Plage(int debut, int fin) {
+    public record Plage(int start, int end) {
     }
 
     private static final int AUCUN = -1;
 
-    private final List<Entree> entrees;
+    private final List<Entry> entrees;
     private final int signatureActive;
     private final int parametreCourant;
 
-    private SignatureAideModel(List<Entree> entrees, int signatureActive,
+    private SignatureAideModel(List<Entry> entrees, int signatureActive,
             int parametreCourant) {
         this.entrees = entrees;
         this.signatureActive = signatureActive;
@@ -65,16 +65,16 @@ public final class SignatureAideModel {
      * Construit le modèle d'une signature seule — le modèle riche à
      * une entrée.
      *
-     * @param libelle            le libellé de la signature — « ajouter(int a, int b) »
+     * @param label            le libellé de la signature — « ajouter(int a, int b) »
      * @param libellesParametres les libellés des paramètres, dans l'ordre
      * @param parametreCourant   l'index du paramètre en cours de frappe,
      *                           -1 pour aucun ; l'index est BORNÉ à
      *                           l'arité (au-delà : le dernier paramètre)
      * @return le modèle
      */
-    public static SignatureAideModel of(String libelle,
+    public static SignatureAideModel of(String label,
             List<String> libellesParametres, int parametreCourant) {
-        return of(List.of(new Entree(libelle, libellesParametres, null)),
+        return of(List.of(new Entry(label, libellesParametres, null)),
                 0, parametreCourant);
     }
 
@@ -90,7 +90,7 @@ public final class SignatureAideModel {
      * @return le modèle
      * @throws IllegalArgumentException sans entrée
      */
-    public static SignatureAideModel of(List<Entree> entrees,
+    public static SignatureAideModel of(List<Entry> entrees,
             int signatureActive, int parametreCourant) {
         if (entrees.isEmpty()) {
             throw new IllegalArgumentException("no signature entry");
@@ -102,18 +102,18 @@ public final class SignatureAideModel {
     }
 
     /** Le libellé de la signature active. */
-    public String libelle() {
-        return entrees.get(signatureActive).libelle();
+    public String label() {
+        return entrees.get(signatureActive).label();
     }
 
     /** L'index du paramètre courant, borné à l'arité — -1 s'il n'y en a pas. */
     public int parametreCourant() {
-        List<String> parametres = entrees.get(signatureActive)
+        List<String> parameters = entrees.get(signatureActive)
                 .libellesParametres();
-        if (parametres.isEmpty() || parametreCourant < 0) {
+        if (parameters.isEmpty() || parametreCourant < 0) {
             return AUCUN;
         }
-        return Math.min(parametreCourant, parametres.size() - 1);
+        return Math.min(parametreCourant, parameters.size() - 1);
     }
 
     /**
@@ -131,23 +131,23 @@ public final class SignatureAideModel {
         if (index == AUCUN) {
             return null;
         }
-        Entree active = entrees.get(signatureActive);
-        String libelle = active.libelle();
-        int ouverture = libelle.indexOf('(');
-        int fermeture = libelle.lastIndexOf(')');
+        Entry active = entrees.get(signatureActive);
+        String label = active.label();
+        int ouverture = label.indexOf('(');
+        int fermeture = label.lastIndexOf(')');
         int depuis = ouverture < 0 ? 0 : ouverture + 1;
-        int borne = fermeture < 0 ? libelle.length() : fermeture;
+        int borne = fermeture < 0 ? label.length() : fermeture;
         for (int i = 0; i < active.libellesParametres().size(); i++) {
             String nom = active.libellesParametres().get(i);
-            int trouve = libelle.indexOf(nom, depuis);
+            int trouve = label.indexOf(nom, depuis);
             if (trouve < 0 || trouve + nom.length() > borne) {
                 continue;
             }
-            int fin = trouve + nom.length();
+            int end = trouve + nom.length();
             if (i == index) {
-                return new Plage(trouve, fin);
+                return new Plage(trouve, end);
             }
-            depuis = fin;
+            depuis = end;
         }
         return null;
     }
@@ -172,9 +172,9 @@ public final class SignatureAideModel {
      * @return le modèle voisin, le paramètre courant suit
      */
     public SignatureAideModel precedente() {
-        int cible = signatureActive == 0
+        int target = signatureActive == 0
                 ? entrees.size() - 1 : signatureActive - 1;
-        return new SignatureAideModel(entrees, cible, parametreCourant);
+        return new SignatureAideModel(entrees, target, parametreCourant);
     }
 
     /**
@@ -184,9 +184,9 @@ public final class SignatureAideModel {
      * @return le modèle voisin, le paramètre courant suit
      */
     public SignatureAideModel suivante() {
-        int cible = signatureActive == entrees.size() - 1
+        int target = signatureActive == entrees.size() - 1
                 ? 0 : signatureActive + 1;
-        return new SignatureAideModel(entrees, cible, parametreCourant);
+        return new SignatureAideModel(entrees, target, parametreCourant);
     }
 
     /**
@@ -195,16 +195,16 @@ public final class SignatureAideModel {
      *
      * @return les entrées de la fenêtre, l'active au milieu
      */
-    public List<Entree> fenetre() {
-        List<Entree> fenetre = new ArrayList<>(3);
+    public List<Entry> window() {
+        List<Entry> window = new ArrayList<>(3);
         if (signatureActive > 0) {
-            fenetre.add(entrees.get(signatureActive - 1));
+            window.add(entrees.get(signatureActive - 1));
         }
-        fenetre.add(entrees.get(signatureActive));
+        window.add(entrees.get(signatureActive));
         if (signatureActive < entrees.size() - 1) {
-            fenetre.add(entrees.get(signatureActive + 1));
+            window.add(entrees.get(signatureActive + 1));
         }
-        return List.copyOf(fenetre);
+        return List.copyOf(window);
     }
 
     /**
@@ -220,7 +220,7 @@ public final class SignatureAideModel {
     }
 
     /** L'entrée de la signature active. */
-    Entree active() {
+    Entry active() {
         return entrees.get(signatureActive);
     }
 }

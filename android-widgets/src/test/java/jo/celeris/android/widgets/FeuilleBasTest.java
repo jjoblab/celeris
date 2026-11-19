@@ -47,15 +47,15 @@ public class FeuilleBasTest {
                 Settings.Global.ANIMATOR_DURATION_SCALE, 0f);
     }
 
-    private FrameLayout hotePose(int largeur, int hauteur) {
-        FrameLayout hote = new FrameLayout(contexte);
-        hote.measure(
-                View.MeasureSpec.makeMeasureSpec(largeur,
+    private FrameLayout hotePose(int width, int height) {
+        FrameLayout host = new FrameLayout(contexte);
+        host.measure(
+                View.MeasureSpec.makeMeasureSpec(width,
                         View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(hauteur,
+                View.MeasureSpec.makeMeasureSpec(height,
                         View.MeasureSpec.EXACTLY));
-        hote.layout(0, 0, largeur, hauteur);
-        return hote;
+        host.layout(0, 0, width, height);
+        return host;
     }
 
     private FeuilleBas feuilleGarnie() {
@@ -81,14 +81,14 @@ public class FeuilleBasTest {
     /** Le voile se pose sous la feuille, le titre et le contenu vivent. */
     @Test
     public void leVoileEtLaFeuilleSePosent() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleBas feuille = feuilleGarnie();
-        feuille.montrer(hote);
+        feuille.show(host);
         assertTrue("la feuille est ouverte", feuille.estOuverte());
         assertEquals("l'hote porte le voile puis la feuille",
-                2, hote.getChildCount());
+                2, host.getChildCount());
         assertTrue("le voile se pose SOUS la feuille",
-                hote.getChildAt(0) == feuille.voileVue());
+                host.getChildAt(0) == feuille.voileVue());
         assertEquals("le titre se pose", "Reglages",
                 feuille.titreVue().getText().toString());
         assertEquals("le libelle de fermeture se pose", "Fermer",
@@ -101,15 +101,15 @@ public class FeuilleBasTest {
      *  rappel ne dependent d'aucune horloge. */
     @Test
     public void leRetourFermeEtSeConsommeUneSeuleFois() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleBas feuille = feuilleGarnie();
         AtomicInteger fermetures = new AtomicInteger();
         feuille.setSurFermeture(fermetures::incrementAndGet);
-        feuille.montrer(hote);
+        feuille.show(host);
         assertTrue("le retour se consomme par la feuille ouverte",
-                feuille.surRetour());
+                feuille.onBack());
         assertFalse("fermee, la feuille laisse le retour passer",
-                feuille.surRetour());
+                feuille.onBack());
         assertFalse(feuille.estOuverte());
         assertNull("le voile s'en va", feuille.voileVue());
         assertEquals("le rappel court une fois", 1, fermetures.get());
@@ -119,15 +119,15 @@ public class FeuilleBasTest {
      *  tiennent la promesse de la maquette. */
     @Test
     public void leVoileEtLeBoutonFerment() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleBas feuille = feuilleGarnie();
-        feuille.montrer(hote);
+        feuille.show(host);
         feuille.voileVue().performClick();
         assertFalse("le voile clique ferme", feuille.estOuverte());
 
         FrameLayout autreHote = hotePose(1000, 1800);
         FeuilleBas autre = feuilleGarnie();
-        autre.montrer(autreHote);
+        autre.show(autreHote);
         autre.boutonFermeture().performClick();
         assertFalse("le bouton ferme", autre.estOuverte());
     }
@@ -136,21 +136,21 @@ public class FeuilleBasTest {
      *  part — le corps defile, il ne deborde pas. */
     @Test
     public void lesCotesSeCantonnentAuxTokens() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleBas feuille = new FeuilleBas(contexte, PopupPalette.dark());
         LinearLayout dense = new LinearLayout(contexte);
         dense.setOrientation(LinearLayout.VERTICAL);
         for (int i = 0; i < 80; i++) {
-            TextView ligne = new TextView(contexte);
-            ligne.setText("ligne " + i);
-            dense.addView(ligne);
+            TextView line = new TextView(contexte);
+            line.setText("ligne " + i);
+            dense.addView(line);
         }
         feuille.contenu(dense);
-        feuille.montrer(hote);
-        hote.measure(
+        feuille.show(host);
+        host.measure(
                 View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(1800, View.MeasureSpec.EXACTLY));
-        hote.layout(0, 0, 1000, 1800);
+        host.layout(0, 0, 1000, 1800);
         assertTrue("la largeur se cantonne (densite 1 : 660 px)",
                 feuille.getWidth() <= 660);
         assertTrue("la hauteur se cantonne a la part de la maquette",
@@ -163,9 +163,9 @@ public class FeuilleBasTest {
      *  elle revient — jamais plus haut que son repos. */
     @Test
     public void leGlissementSuitSonSeuil() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleBas feuille = feuilleGarnie();
-        feuille.montrer(hote);
+        feuille.show(host);
         trainer(feuille.poigneeVue(), 40f);
         assertTrue("un glissement court laisse la feuille ouverte",
                 feuille.estOuverte());
@@ -181,13 +181,13 @@ public class FeuilleBasTest {
      *  muette a l'accessibilite (maquette : aria-hidden). */
     @Test
     public void lesCiblesTactilesEtLAccessibiliteTiennent() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleBas feuille = feuilleGarnie();
-        feuille.montrer(hote);
-        hote.measure(
+        feuille.show(host);
+        host.measure(
                 View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(1800, View.MeasureSpec.EXACTLY));
-        hote.layout(0, 0, 1000, 1800);
+        host.layout(0, 0, 1000, 1800);
         assertTrue("la cible du bouton fait au moins 48 px",
                 feuille.boutonFermeture().getWidth() >= 48
                         && feuille.boutonFermeture().getHeight() >= 48);
@@ -199,9 +199,9 @@ public class FeuilleBasTest {
     /** Le verre suit la palette posee — le titre change d'encre. */
     @Test
     public void laPaletteRetematise() {
-        FrameLayout hote = hotePose(1000, 1800);
+        FrameLayout host = hotePose(1000, 1800);
         FeuilleBas feuille = feuilleGarnie();
-        feuille.montrer(hote);
+        feuille.show(host);
         feuille.setPalette(PopupPalette.light());
         assertEquals("l'encre du titre suit la palette",
                 PopupPalette.light().text(),
@@ -213,7 +213,7 @@ public class FeuilleBasTest {
     public void lhoteDoitEtreUnFrameLayout() {
         FeuilleBas feuille = feuilleGarnie();
         LinearLayout pile = new LinearLayout(contexte);
-        assertThrows(IllegalStateException.class, () -> feuille.montrer(pile));
+        assertThrows(IllegalStateException.class, () -> feuille.show(pile));
         assertFalse("rien ne s'est ouvert", feuille.estOuverte());
     }
 }

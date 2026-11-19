@@ -8,7 +8,7 @@ import java.util.List;
  * triées par début, sans chevauchement croisé.
  *
  * <p>Le pli {@code (début, fin)} garde la ligne d'en-tête visible et
- * cache les lignes {@code début+1} à {@code fin}. Les plis
+ * cache les lignes {@code début+1} à {@code end}. Les plis
  * <b>imbriqués</b> vivent ensemble (le redressement du 2026-11-13 :
  * « si je plie le {} imbriqué, le {} parent ne veut pas plier ») : un
  * pli qui EN CONTIENT un autre — le bloc parent autour d'un bloc déjà
@@ -29,10 +29,10 @@ import java.util.List;
 public final class FoldModel {
 
     /** Un pli : la ligne d'en-tête et la dernière ligne cachée. */
-    record Pli(int debut, int fin) {
+    record Pli(int start, int end) {
     }
 
-    private final List<Pli> plis = new ArrayList<>();
+    private final List<Pli> folds = new ArrayList<>();
     /** La révision de l'état des plis — la fonte s'y invalide. */
     private int revision;
 
@@ -55,17 +55,17 @@ public final class FoldModel {
             throw new IllegalArgumentException(
                     "fold span must be increasing: " + startLine + ".." + endLine);
         }
-        for (Pli pli : plis) {
+        for (Pli pli : folds) {
             if (croise(startLine, endLine, pli)) {
                 throw new IllegalStateException(
                         "fold " + startLine + ".." + endLine + " crosses " + pli);
             }
         }
         int rang = 0;
-        while (rang < plis.size() && plis.get(rang).debut() < startLine) {
+        while (rang < folds.size() && folds.get(rang).start() < startLine) {
             rang++;
         }
-        plis.add(rang, new Pli(startLine, endLine));
+        folds.add(rang, new Pli(startLine, endLine));
         revision++;
     }
 
@@ -76,9 +76,9 @@ public final class FoldModel {
      * @throws IllegalStateException si aucun pli ne porte cet en-tête
      */
     public void unfold(int startLine) {
-        for (int i = 0; i < plis.size(); i++) {
-            if (plis.get(i).debut() == startLine) {
-                plis.remove(i);
+        for (int i = 0; i < folds.size(); i++) {
+            if (folds.get(i).start() == startLine) {
+                folds.remove(i);
                 revision++;
                 return;
             }
@@ -93,8 +93,8 @@ public final class FoldModel {
      * @return vrai si un pli y est replié
      */
     public boolean isFolded(int startLine) {
-        for (Pli pli : plis) {
-            if (pli.debut() == startLine) {
+        for (Pli pli : folds) {
+            if (pli.start() == startLine) {
                 return true;
             }
         }
@@ -108,17 +108,17 @@ public final class FoldModel {
      * @return sa dernière ligne cachée, —1 si aucun pli ne la porte
      */
     public int finDe(int startLine) {
-        for (Pli pli : plis) {
-            if (pli.debut() == startLine) {
-                return pli.fin();
+        for (Pli pli : folds) {
+            if (pli.start() == startLine) {
+                return pli.end();
             }
         }
         return -1;
     }
 
     /** Les plis triés par début, pour la projection visuelle. */
-    List<Pli> plis() {
-        return plis;
+    List<Pli> folds() {
+        return folds;
     }
 
     /**
@@ -155,23 +155,23 @@ public final class FoldModel {
      * d'un pli qui touche la fermante du précédent reste VISIBLE.
      */
     private int[] fondre() {
-        int[] brut = new int[plis.size() * 2];
+        int[] brut = new int[folds.size() * 2];
         int nombre = 0;
-        for (Pli pli : plis) {
-            int debut = Math.max(0, pli.debut());
-            int fin = pli.fin();
-            if (nombre > 0 && debut < brut[2 * (nombre - 1) + 1]) {
+        for (Pli pli : folds) {
+            int start = Math.max(0, pli.start());
+            int end = pli.end();
+            if (nombre > 0 && start < brut[2 * (nombre - 1) + 1]) {
                 int finFusible = 2 * (nombre - 1) + 1;
-                if (fin > brut[finFusible]) {
-                    brut[finFusible] = fin;
+                if (end > brut[finFusible]) {
+                    brut[finFusible] = end;
                 }
             } else {
-                brut[2 * nombre] = debut;
-                brut[2 * nombre + 1] = fin;
+                brut[2 * nombre] = start;
+                brut[2 * nombre + 1] = end;
                 nombre++;
             }
         }
-        if (nombre == plis.size()) {
+        if (nombre == folds.size()) {
             return brut;
         }
         int[] exact = new int[nombre * 2];
@@ -185,15 +185,15 @@ public final class FoldModel {
      * source unique de la règle : le modèle au repli, le suivi au
      * remappage et le pont au geste s'y servent.
      *
-     * @param debut le début de la plage candidate
-     * @param fin   la fin de la plage candidate
+     * @param start le début de la plage candidate
+     * @param end   la fin de la plage candidate
      * @param pli   le pli confronté
      * @return vrai quand la plage traverse le pli
      */
-    static boolean croise(int debut, int fin, Pli pli) {
-        boolean chevauche = debut <= pli.fin() && pli.debut() <= fin;
-        boolean contient = pli.debut() <= debut && fin <= pli.fin();
-        boolean contenu = debut <= pli.debut() && pli.fin() <= fin;
+    static boolean croise(int start, int end, Pli pli) {
+        boolean chevauche = start <= pli.end() && pli.start() <= end;
+        boolean contient = pli.start() <= start && end <= pli.end();
+        boolean contenu = start <= pli.start() && pli.end() <= end;
         return chevauche && !contient && !contenu;
     }
 }

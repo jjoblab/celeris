@@ -41,10 +41,10 @@ class SignatureChangeTest {
     private SignatureChange.SignaturePlan planDe(String source, String designation, int[] order) {
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf(designation);
-        assertTrue(debut >= 0, "désignation absente du corpus : " + designation);
+        int start = source.indexOf(designation);
+        assertTrue(start >= 0, "désignation absente du corpus : " + designation);
         SignatureChange.SignaturePlan plan = SignatureChange.reorder(doc, analyse,
-                debut, debut + designation.length(), order);
+                start, start + designation.length(), order);
         assertNotNull(plan);
         return plan;
     }
@@ -52,10 +52,10 @@ class SignatureChangeTest {
     private void refuse(String source, String designation, int[] order) {
         Document doc = Document.of(source);
         Analysis analyse = java.analyseFull(doc);
-        int debut = source.indexOf(designation);
-        assertTrue(debut >= 0, "désignation absente du corpus : " + designation);
+        int start = source.indexOf(designation);
+        assertTrue(start >= 0, "désignation absente du corpus : " + designation);
         assertNull(SignatureChange.reorder(doc, analyse,
-                debut, debut + designation.length(), order),
+                start, start + designation.length(), order),
                 "le plan accepte une désignation refusable : " + designation);
     }
 
@@ -222,13 +222,13 @@ class SignatureChangeTest {
     void laPermutationInvalideSeRefuse() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = SOURCE.indexOf("int quantite, double prix");
+        int start = SOURCE.indexOf("int quantite, double prix");
         assertThrows(IllegalArgumentException.class,
-                () -> SignatureChange.reorder(doc, analyse, debut, debut + 5, new int[]{0, 0}));
+                () -> SignatureChange.reorder(doc, analyse, start, start + 5, new int[]{0, 0}));
         assertThrows(IllegalArgumentException.class,
-                () -> SignatureChange.reorder(doc, analyse, debut, debut + 5, new int[]{0, 1, 2}));
+                () -> SignatureChange.reorder(doc, analyse, start, start + 5, new int[]{0, 1, 2}));
         assertThrows(IllegalArgumentException.class,
-                () -> SignatureChange.reorder(doc, analyse, debut, debut + 5, new int[]{1}));
+                () -> SignatureChange.reorder(doc, analyse, start, start + 5, new int[]{1}));
     }
 
     /** B-22 — les sélections inversées ou hors bornes se refusent. */
@@ -236,9 +236,9 @@ class SignatureChangeTest {
     void lesSelectionsInvalidesSeRefusent() {
         Document doc = Document.of(SOURCE);
         Analysis analyse = java.analyseFull(doc);
-        int debut = SOURCE.indexOf("int quantite");
+        int start = SOURCE.indexOf("int quantite");
         assertThrows(IllegalArgumentException.class,
-                () -> SignatureChange.reorder(doc, analyse, debut + 2, debut,
+                () -> SignatureChange.reorder(doc, analyse, start + 2, start,
                         new int[]{1, 0}));
         assertThrows(IllegalArgumentException.class,
                 () -> SignatureChange.reorder(doc, analyse, -1, 2, new int[]{1, 0}));

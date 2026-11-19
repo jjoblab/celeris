@@ -102,14 +102,14 @@ class PopupPlacerTest {
                 "documentation et signature disjointes");
     }
 
-    private static boolean dansLEcran(PopupPlacer.Cadre cadre, int largeur, int hauteur) {
+    private static boolean dansLEcran(PopupPlacer.Cadre cadre, int width, int height) {
         return cadre.x() >= 0 && cadre.y() >= 0
-                && cadre.x() + cadre.largeur() <= largeur
-                && cadre.y() + cadre.hauteur() <= hauteur;
+                && cadre.x() + cadre.width() <= width
+                && cadre.y() + cadre.height() <= height;
     }
 
     private static boolean superposees(PopupPlacer.Cadre a, PopupPlacer.Cadre b) {
-        return a.x() < b.x() + b.largeur() && b.x() < a.x() + a.largeur()
-                && a.y() < b.y() + b.hauteur() && b.y() < a.y() + a.hauteur();
+        return a.x() < b.x() + b.width() && b.x() < a.x() + a.width()
+                && a.y() < b.y() + b.height() && b.y() < a.y() + a.height();
     }
 }

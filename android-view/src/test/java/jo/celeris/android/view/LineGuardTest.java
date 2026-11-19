@@ -25,15 +25,15 @@ public class LineGuardTest {
         for (int i = 0; i < 30_000; i++) {
             monstre.append('x');
         }
-        EditorTestRig rig = EditorTestRig.sur(
+        EditorTestRig rig = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), monstre + "\n");
         rig.vue().layout(0, 0, 1080, 1920);
         rig.image();
         return rig;
     }
 
-    private RowLayout rangee(EditorView vue, int numero) {
-        return vue.cache.find(vue.session.document().revision(), numero,
+    private RowLayout rangee(EditorView vue, int number) {
+        return vue.cache.find(vue.session.document().revision(), number,
                 vue.theme.id(), vue.metrics.font(),
                 vue.projection.columns());
     }

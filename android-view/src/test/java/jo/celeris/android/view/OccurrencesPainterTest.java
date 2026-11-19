@@ -41,7 +41,7 @@ public class OccurrencesPainterTest {
 
     /** Le banc posé, la couche armée, une image dessinée. */
     private EditorTestRig.RecordingCanvas banc(String contenu, int caret) {
-        EditorTestRig banc = EditorTestRig.sur(contexte, contenu);
+        EditorTestRig banc = EditorTestRig.on(contexte, contenu);
         banc.vue().setOccurrencesVisibles(true);
         banc.vue().session().setSelection(MultiSelection.caretsAt(caret));
         banc.vue().invalidate();
@@ -75,9 +75,9 @@ public class OccurrencesPainterTest {
      *  null, la couche reste muette. */
     @Test
     public void laPonctuationNAllumeRien() {
-        String texte = "a; b; c;\n";
-        int apresPointVirgule = texte.indexOf(';') + 1;
-        EditorTestRig.RecordingCanvas image = banc(texte, apresPointVirgule);
+        String text = "a; b; c;\n";
+        int apresPointVirgule = text.indexOf(';') + 1;
+        EditorTestRig.RecordingCanvas image = banc(text, apresPointVirgule);
         assertEquals("aucune occurrence peinte", 0, voiles(image));
     }
 
@@ -85,7 +85,7 @@ public class OccurrencesPainterTest {
      *  par sa sélection, pas par ses occurrences. */
     @Test
     public void laSelectionEtendueCoupeLaCouche() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "mot mot mot\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "mot mot mot\n");
         banc.vue().setOccurrencesVisibles(true);
         banc.vue().session().setSelection(
                 MultiSelection.of(new jo.celeris.core.text.SelRange(0, 3)));

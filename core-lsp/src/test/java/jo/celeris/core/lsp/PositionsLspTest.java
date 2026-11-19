@@ -1,7 +1,7 @@
 package jo.celeris.core.lsp;
 
-import jo.celeris.core.lsp.types.PlageLsp;
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.RangeLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -22,19 +22,19 @@ class PositionsLspTest {
     @Test
     void lallerRetourSimple() {
         Document doc = Document.of("ab\ncd\n");
-        assertEquals(new PositionLsp(0, 0), PositionsLsp.position(doc, 0));
-        assertEquals(new PositionLsp(0, 1), PositionsLsp.position(doc, 1));
+        assertEquals(new LspPosition(0, 0), LspPositions.position(doc, 0));
+        assertEquals(new LspPosition(0, 1), LspPositions.position(doc, 1));
         // l'offset du saut de ligne appartient à la ligne qu'il termine : colonne = longueur
-        assertEquals(new PositionLsp(0, 2), PositionsLsp.position(doc, 2));
-        assertEquals(new PositionLsp(1, 0), PositionsLsp.position(doc, 3));
-        assertEquals(new PositionLsp(1, 2), PositionsLsp.position(doc, 5));
-        assertEquals(new PositionLsp(2, 0), PositionsLsp.position(doc, 6));
+        assertEquals(new LspPosition(0, 2), LspPositions.position(doc, 2));
+        assertEquals(new LspPosition(1, 0), LspPositions.position(doc, 3));
+        assertEquals(new LspPosition(1, 2), LspPositions.position(doc, 5));
+        assertEquals(new LspPosition(2, 0), LspPositions.position(doc, 6));
         // retour
-        assertEquals(0, PositionsLsp.offset(doc, new PositionLsp(0, 0)));
-        assertEquals(2, PositionsLsp.offset(doc, new PositionLsp(0, 2)));
-        assertEquals(3, PositionsLsp.offset(doc, new PositionLsp(1, 0)));
-        assertEquals(5, PositionsLsp.offset(doc, new PositionLsp(1, 2)));
-        assertEquals(6, PositionsLsp.offset(doc, new PositionLsp(2, 0)));
+        assertEquals(0, LspPositions.offset(doc, new LspPosition(0, 0)));
+        assertEquals(2, LspPositions.offset(doc, new LspPosition(0, 2)));
+        assertEquals(3, LspPositions.offset(doc, new LspPosition(1, 0)));
+        assertEquals(5, LspPositions.offset(doc, new LspPosition(1, 2)));
+        assertEquals(6, LspPositions.offset(doc, new LspPosition(2, 0)));
     }
 
     /** Les paires de substitution : la colonne compte deux unités par point de code astral. */
@@ -42,21 +42,21 @@ class PositionsLspTest {
     void lesPairesDeSubstitution() {
         // « 😀 » est une paire de deux unités UTF-16 ; « x » en suit une
         Document doc = Document.of("😀x\ny");
-        assertEquals(new PositionLsp(0, 2), PositionsLsp.position(doc, 2));
-        assertEquals(new PositionLsp(0, 3), PositionsLsp.position(doc, 3));
-        assertEquals(2, PositionsLsp.offset(doc, new PositionLsp(0, 2)));
-        assertEquals(4, PositionsLsp.offset(doc, new PositionLsp(1, 0)));
+        assertEquals(new LspPosition(0, 2), LspPositions.position(doc, 2));
+        assertEquals(new LspPosition(0, 3), LspPositions.position(doc, 3));
+        assertEquals(2, LspPositions.offset(doc, new LspPosition(0, 2)));
+        assertEquals(4, LspPositions.offset(doc, new LspPosition(1, 0)));
     }
 
     /** Le clampage : ligne au-delà, colonne au-delà, négatifs — jamais d'exception. */
     @Test
     void leClampage() {
         Document doc = Document.of("ab\ncd\n");
-        assertEquals(6, PositionsLsp.offset(doc, new PositionLsp(99, 0)));
-        assertEquals(2, PositionsLsp.offset(doc, new PositionLsp(0, 99)));
-        assertEquals(0, PositionsLsp.offset(doc, new PositionLsp(-1, -1)));
+        assertEquals(6, LspPositions.offset(doc, new LspPosition(99, 0)));
+        assertEquals(2, LspPositions.offset(doc, new LspPosition(0, 99)));
+        assertEquals(0, LspPositions.offset(doc, new LspPosition(-1, -1)));
         // une colonne au-delà du contenu de la ligne retombe sur sa fin
-        assertEquals(5, PositionsLsp.offset(doc, new PositionLsp(1, 42)));
+        assertEquals(5, LspPositions.offset(doc, new LspPosition(1, 42)));
     }
 
     /** Le clampage sur ligne vide : la colonne ne peut pas dépasser zéro. */
@@ -64,32 +64,32 @@ class PositionsLspTest {
     void leClampageSurLigneVide() {
         Document doc = Document.of("a\n\nc");
         // ligne 1 vide : toute colonne retombe à son début
-        assertEquals(2, PositionsLsp.offset(doc, new PositionLsp(1, 7)));
-        assertEquals(new PositionLsp(1, 0), PositionsLsp.position(doc, 2));
+        assertEquals(2, LspPositions.offset(doc, new LspPosition(1, 7)));
+        assertEquals(new LspPosition(1, 0), LspPositions.position(doc, 2));
     }
 
     /** Le document vide : une ligne, une colonne, l'offset zéro. */
     @Test
     void leDocumentVide() {
         Document doc = Document.of("");
-        assertEquals(new PositionLsp(0, 0), PositionsLsp.position(doc, 0));
-        assertEquals(0, PositionsLsp.offset(doc, new PositionLsp(0, 5)));
-        assertEquals(0, PositionsLsp.offset(doc, new PositionLsp(3, 3)));
+        assertEquals(new LspPosition(0, 0), LspPositions.position(doc, 0));
+        assertEquals(0, LspPositions.offset(doc, new LspPosition(0, 5)));
+        assertEquals(0, LspPositions.offset(doc, new LspPosition(3, 3)));
     }
 
     /** Les plages : la paire (début, fin) en offsets et retour. */
     @Test
     void lesPlages() {
         Document doc = Document.of("ab\ncd\nef");
-        PlageLsp plage = PositionsLsp.plage(doc, 3, 5);
-        assertEquals(new PositionLsp(1, 0), plage.debut());
-        assertEquals(new PositionLsp(1, 2), plage.fin());
-        int[] bornes = PositionsLsp.bornes(doc, plage);
-        assertEquals(3, bornes[0]);
-        assertEquals(5, bornes[1]);
+        RangeLsp range = LspPositions.range(doc, 3, 5);
+        assertEquals(new LspPosition(1, 0), range.start());
+        assertEquals(new LspPosition(1, 2), range.end());
+        int[] bounds = LspPositions.bounds(doc, range);
+        assertEquals(3, bounds[0]);
+        assertEquals(5, bounds[1]);
         // une plage de serveur généreux : les bornes sont clampées aux lignes réelles
-        int[] bornees = PositionsLsp.bornes(doc, new PlageLsp(
-                new PositionLsp(0, 99), new PositionLsp(99, 99)));
+        int[] bornees = LspPositions.bounds(doc, new RangeLsp(
+                new LspPosition(0, 99), new LspPosition(99, 99)));
         assertEquals(2, bornees[0]);
         assertEquals(8, bornees[1]);
     }

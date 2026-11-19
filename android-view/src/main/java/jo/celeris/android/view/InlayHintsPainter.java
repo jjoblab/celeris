@@ -39,7 +39,7 @@ final class InlayHintsPainter extends PainterLayer {
      *  se trace pas. */
     private static final int PORTEE_CARET = 2;
 
-    private @Nullable List<IndiceInlay> indices;
+    private @Nullable List<InlayHintMark> inlayHints;
 
     /**
      * Construit la couche des indices.
@@ -56,8 +56,8 @@ final class InlayHintsPainter extends PainterLayer {
      * @param nouveaux les indices par ligne, ou {@code null} pour
      *                 retirer
      */
-    void setIndices(@Nullable List<IndiceInlay> nouveaux) {
-        indices = nouveaux;
+    void setIndices(@Nullable List<InlayHintMark> nouveaux) {
+        inlayHints = nouveaux;
     }
 
     @Override
@@ -69,7 +69,7 @@ final class InlayHintsPainter extends PainterLayer {
 
     @Override
     protected void onPaint(DrawSurface surface, FrameState frame) {
-        List<IndiceInlay> courants = indices;
+        List<InlayHintMark> courants = inlayHints;
         if (courants == null || courants.isEmpty()) {
             return;
         }
@@ -78,17 +78,17 @@ final class InlayHintsPainter extends PainterLayer {
         EditorMetrics metrics = frame.metrics();
         int caret = caretDe(frame);
         for (int i = 0; i < courants.size(); i++) {
-            IndiceInlay indice = courants.get(i);
-            int ligne = indice.ligne() - 1;
-            if (ligne < 0 || ligne >= document.lineCount()) {
+            InlayHintMark indice = courants.get(i);
+            int line = indice.line() - 1;
+            if (line < 0 || line >= document.lineCount()) {
                 continue;
             }
-            int debutLigne = document.lineStart(ligne);
+            int lineStart = document.lineStart(line);
             // l'offset de l'indice vit DANS la ligne — la colonne du
             // texte où l'indice se lit (fin de ligne utile pour un
             // type, l'argument pour un nom de paramètre)
-            int ancre = Math.min(debutLigne + Math.max(0, indice.offset()),
-                    document.lineEnd(ligne));
+            int ancre = Math.min(lineStart + Math.max(0, indice.offset()),
+                    document.lineEnd(line));
             int rangee = CaretGeometry.rowOfOffset(document, projection, ancre);
             float x = CaretGeometry.xOfOffset(document, projection, metrics,
                     frame.gutterWidth(), frame.scrollX(), ancre)
@@ -111,8 +111,8 @@ final class InlayHintsPainter extends PainterLayer {
 
     /** Le caret primaire de l'image — la première plage seule compte. */
     private static int caretDe(FrameState frame) {
-        var plages = frame.selection().ranges();
-        return plages.isEmpty() ? -1 : plages.get(0).caret();
+        var ranges = frame.selection().ranges();
+        return ranges.isEmpty() ? -1 : ranges.get(0).caret();
     }
 
     /** Le rectangle translucide autour du rendu — le voile doux de la
@@ -120,17 +120,17 @@ final class InlayHintsPainter extends PainterLayer {
      *  puce. */
     private void tracerCadre(DrawSurface surface, float x, float baseY,
             String rendu, EditorMetrics metrics, FrameState frame) {
-        float largeur = largeurDu(rendu, metrics);
+        float width = widthOf(rendu, metrics);
         float respiration = metrics.charWidth() * 0.4f;
         brush().setColor(frame.theme().selectionColor());
         surface.drawRect(x - respiration, baseY - metrics.ascent() * 0.9f,
-                x + largeur + respiration, baseY + metrics.descent() * 0.9f,
+                x + width + respiration, baseY + metrics.descent() * 0.9f,
                 brush());
     }
 
     /** La largeur du rendu au pinceau posé — le texte italique muet se
      *  mesure à la volée, l'indice ne vit pas dans le flux. */
-    private float largeurDu(String rendu, EditorMetrics metrics) {
+    private float widthOf(String rendu, EditorMetrics metrics) {
         return rendu.length() * metrics.charWidth() * 0.55f;
     }
 }

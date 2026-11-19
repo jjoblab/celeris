@@ -31,9 +31,9 @@ public interface TextBrush {
      * sa police et sa taille. Toute couche qui trace du texte doit
      * recevoir la police de l'image avant de tracer.</p>
      *
-     * @param police la spécification de police, en pixels
+     * @param font la spécification de police, en pixels
      */
-    default void setFont(FontSpec police) {
+    default void setFont(FontSpec font) {
         // repli muet — voir la documentation
     }
 

@@ -45,15 +45,15 @@ final class PaquetJavascriptIntegreTest {
 
     /** La grammaire livrée du paquet intégré, en texte. */
     private static String grammaireLivree() {
-        return lire("langages/javascript/grammar.json");
+        return read("langages/javascript/grammar.json");
     }
 
     /** La grammaire épinglée du banc du commerce, en texte. */
     private static String grammaireDuBanc() {
-        return lire("grammaires-commerce/javascript.tmLanguage.json");
+        return read("grammaires-commerce/javascript.tmLanguage.json");
     }
 
-    private static String lire(String chemin) {
+    private static String read(String chemin) {
         try (InputStream flux = PaquetJavascriptIntegreTest.class.getClassLoader()
                 .getResourceAsStream(chemin)) {
             if (flux == null) {
@@ -95,12 +95,12 @@ final class PaquetJavascriptIntegreTest {
      */
     @Test
     void lAcceptationTientLeSeuilDuBanc() {
-        Grammaire grammaire = Grammaires.lire(grammaireLivree());
-        assertTrue(grammaire.rapport().acceptation() >= SEUIL_ACCEPTATION,
-                "javascript : acceptation " + grammaire.rapport().acceptation()
+        Grammar grammaire = Grammars.read(grammaireLivree());
+        assertTrue(grammaire.report().acceptation() >= SEUIL_ACCEPTATION,
+                "javascript : acceptation " + grammaire.report().acceptation()
                         + " sous le seuil " + SEUIL_ACCEPTATION + " ("
-                        + grammaire.rapport().refuses() + " refus sur "
-                        + grammaire.rapport().motifs() + ")");
+                        + grammaire.report().refuses() + " refus sur "
+                        + grammaire.report().patterns() + ")");
     }
 
     /**
@@ -114,24 +114,24 @@ final class PaquetJavascriptIntegreTest {
         LanguagePack pack = paquetJavascript();
         assertNotNull(pack.grammar(), "la grammaire du paquet compile");
         assertEquals("javascript", pack.grammar().id());
-        GrammaireLexeur lexeur = (GrammaireLexeur) pack.grammar().lexer();
-        String[] lignes = lire("grammaires-commerce/echantillons/javascript.txt")
+        GrammarLexer lexeur = (GrammarLexer) pack.grammar().lexer();
+        String[] lines = read("grammaires-commerce/echantillons/javascript.txt")
                 .split("\n", -1);
         LexState etat = lexeur.initialState();
-        int jetons = 0;
-        for (String ligne : lignes) {
-            LexedLine premiere = lexeur.lex(ligne, etat);
-            LexedLine seconde = lexeur.lex(ligne, etat);
+        int tokens = 0;
+        for (String line : lines) {
+            LexedLine premiere = lexeur.lex(line, etat);
+            LexedLine seconde = lexeur.lex(line, etat);
             assertArrayEquals(premiere.tokens(), seconde.tokens(),
                     "le lexeur du paquet est déterministe");
-            for (Token jeton : premiere.tokens()) {
-                assertTrue(jeton.scope() != ScopeStacks.NONE,
+            for (Token token : premiere.tokens()) {
+                assertTrue(token.scope() != ScopeStacks.NONE,
                         "chaque jeton porte sa pile (H-07)");
             }
-            jetons += premiere.tokens().length;
+            tokens += premiere.tokens().length;
             etat = premiere.exitState();
         }
-        assertTrue(jetons > 0, "l'échantillon produit des jetons");
+        assertTrue(tokens > 0, "l'échantillon produit des jetons");
         assertEquals(0, lexeur.incidents(),
                 "aucun incident de budget sur l'échantillon");
     }

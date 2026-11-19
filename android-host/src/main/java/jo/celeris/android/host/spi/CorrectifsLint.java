@@ -27,34 +27,34 @@ public final class CorrectifsLint {
      *
      * @param diagnostic le diagnostic de lint, message porteur de son
      *                   identifiant de règle
-     * @param lignes     les lignes du fichier, numérotées à partir de
+     * @param lines     les lignes du fichier, numérotées à partir de
      *                   zéro
      * @return le correctif, vide si la règle n'est pas mécanique ou si
      *         la ligne ne porte plus le texte fautif
      */
-    public static Optional<CorrectifLint> pour(DiagnosticHote diagnostic, List<String> lignes) {
+    public static Optional<CorrectifLint> pour(HostDiagnostic diagnostic, List<String> lines) {
         String regle = AnalyseurLint.regle(diagnostic.message());
-        int index = diagnostic.ligne() - 1;
-        if (index < 0 || index >= lignes.size()) {
+        int index = diagnostic.line() - 1;
+        if (index < 0 || index >= lines.size()) {
             return Optional.empty();
         }
-        String ligne = lignes.get(index);
+        String line = lines.get(index);
         return switch (regle) {
-            case "TypographyEllipsis" -> occurrence(diagnostic, ligne, "...",
+            case "TypographyEllipsis" -> occurrence(diagnostic, line, "...",
                     "Remplacer les trois points par le caractère d'ellipse");
-            case "TypographyDashes" -> occurrence(diagnostic, ligne, "--",
+            case "TypographyDashes" -> occurrence(diagnostic, line, "--",
                     "Remplacer le double tiret par le tiret cadratin");
             default -> Optional.empty();
         };
     }
 
-    private static Optional<CorrectifLint> occurrence(DiagnosticHote diagnostic,
-            String ligne, String avant, String titre) {
-        int position = ligne.indexOf(avant);
+    private static Optional<CorrectifLint> occurrence(HostDiagnostic diagnostic,
+            String line, String avant, String titre) {
+        int position = line.indexOf(avant);
         if (position < 0) {
             return Optional.empty();
         }
-        return Optional.of(new CorrectifLint(titre, diagnostic.ligne(),
+        return Optional.of(new CorrectifLint(titre, diagnostic.line(),
                 position + 1, avant, remplacant(avant)));
     }
 

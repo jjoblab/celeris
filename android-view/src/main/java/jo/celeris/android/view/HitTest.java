@@ -45,11 +45,11 @@ public final class HitTest {
      * @return la colonne, bornée à [0, maxColumn]
      */
     public int columnAt(float x, int maxColumn) {
-        int colonne = columnAt(x);
+        int column = columnAt(x);
         if (maxColumn < 0) {
             maxColumn = 0;
         }
-        return Math.min(colonne, maxColumn);
+        return Math.min(column, maxColumn);
     }
 
     /**
@@ -74,15 +74,15 @@ public final class HitTest {
             float scrollY, float x, float y) {
         int rangee = ScrollGeometry.firstRow(scrollY + y, metrics.lineHeight());
         rangee = Math.max(0, Math.min(rangee, projection.rowCount() - 1));
-        int ligne = projection.firstLineOfRow(rangee);
+        int line = projection.firstLineOfRow(rangee);
         int debutTranche = projection.spanStartAtRow(rangee);
-        int longueurLigne = document.lineEnd(ligne) - document.lineStart(ligne);
+        int longueurLigne = document.lineEnd(line) - document.lineStart(line);
         int finTranche = Math.min(projection.spanEndAtRow(rangee), longueurLigne);
         // B-05 : la rangée de suite démarre au retrait — la colonne
         // visée le retranche avant la conversion.
         int indent = projection.indentAtRow(rangee);
-        int colonne = columnAt(x - largeurGouttiere + scrollX
+        int column = columnAt(x - largeurGouttiere + scrollX
                 - indent * metrics.charWidth(), finTranche - debutTranche);
-        return document.lineStart(ligne) + debutTranche + colonne;
+        return document.lineStart(line) + debutTranche + column;
     }
 }

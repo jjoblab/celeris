@@ -65,22 +65,22 @@ public final class DiagnosticTooltipView extends TextRowsPopup {
      */
     public void setProblemes(List<Probleme> problemes,
             @Nullable String plusActions) {
-        List<Row> rangees = new ArrayList<>();
+        List<Row> rows = new ArrayList<>();
         boolean premier = true;
         for (Probleme probleme : problemes) {
             Row marqueur = Row.tier(marqueurDe(probleme),
-                    encreDe(probleme), Tier.TITRE);
-            rangees.add(premier ? marqueur : Row.apresFilet(marqueur));
+                    inkOf(probleme), Tier.TITRE);
+            rows.add(premier ? marqueur : Row.afterRule(marqueur));
             premier = false;
-            for (String ligne : probleme.message().split("\n", -1)) {
-                rangees.add(Row.of(ligne));
+            for (String line : probleme.message().split("\n", -1)) {
+                rows.add(Row.of(line));
             }
         }
         if (plusActions != null && !plusActions.isEmpty()) {
-            rangees.add(Row.apresFilet(
+            rows.add(Row.afterRule(
                     Row.tier(plusActions, palette.muted(), Tier.META)));
         }
-        setRows(rangees);
+        setRows(rows);
     }
 
     /** Le marqueur du problème — « × » à l'erreur, « ! » sinon. */
@@ -91,7 +91,7 @@ public final class DiagnosticTooltipView extends TextRowsPopup {
     /** L'encre du marqueur — l'erreur ou l'avertissement suit la
      *  sévérité (l'encre explicite se pose enfin, l'entier négatif
      *  n'est plus confondu avec la sentinelle). */
-    private int encreDe(Probleme probleme) {
+    private int inkOf(Probleme probleme) {
         return probleme.severity() == Severity.ERROR
                 ? palette.error() : palette.warning();
     }

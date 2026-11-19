@@ -40,7 +40,7 @@ public final class EditorThemes {
 
     /** Thème sombre : fond anthracite, encre claire, sélection bleu
      *  profond, gouttière voilée de noir. */
-    public static final EditorTheme SOMBRE = new EditorTheme(2,
+    public static final EditorTheme DARK = new EditorTheme(2,
             0xFF1E1F22, 0xFFE3E3E3, 0xFF2D4A7A, 0xFF8AB4F8, 0xFF9AA0A6,
             0x2E000000,
             new SyntaxPalette(

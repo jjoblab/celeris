@@ -31,7 +31,7 @@ public class KeyboardZoomTest {
     /** Ctrl + plus marche d'un palier, jamais deux. */
     @Test
     public void ctrlPlusZoomsInExactlyOneStep() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         EditorView vue = banc.vue();
         assertEquals(14f, vue.policeLogique.size(), 1e-6f);
@@ -45,7 +45,7 @@ public class KeyboardZoomTest {
     /** Ctrl + moins descend, Ctrl + zéro revient au défaut. */
     @Test
     public void ctrlMinusAndZeroFollowTheLadder() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         EditorView vue = banc.vue();
         vue.settings().setFont(new FontSpec("mono", 20f));
@@ -61,7 +61,7 @@ public class KeyboardZoomTest {
     /** L'écouteur de taille prévient chaque changement, pincement compris. */
     @Test
     public void fontSizeListenerFiresOnEveryChange() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         EditorView vue = banc.vue();
         List<Float> tailles = new ArrayList<>();
@@ -75,7 +75,7 @@ public class KeyboardZoomTest {
     /** La molette avec Ctrl zoome d'un palier, sans Ctrl elle ne consomme pas. */
     @Test
     public void ctrlWheelZoomsOneStepPerNotch() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int x = 1;");
         EditorView vue = banc.vue();
         assertEquals(true, vue.onGenericMotionEvent(molette(1f, true)));

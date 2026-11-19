@@ -70,17 +70,17 @@ public final class IntelligenceHub {
             // dans la fermante. Un seul caret : le geste lié n'a de
             // sens que sans sélection multiple.
             if (selection.caretCount() == 1 && typed.length() == 1) {
-                SelRange plage = selection.ranges().get(0);
-                if (plage.isEmpty()) {
+                SelRange range = selection.ranges().get(0);
+                if (range.isEmpty()) {
                     if (typed.charAt(0) == '>') {
                         Optional<EditPlan> fermeture = XmlSmartTyping.closeTag(
-                                doc, plage.caret(), rules);
+                                doc, range.caret(), rules);
                         if (fermeture.isPresent()) {
                             return fermeture;
                         }
                     } else if (Character.isLetterOrDigit(typed.charAt(0))) {
                         Optional<EditPlan> lie = XmlLinkedTags.typeChar(
-                                doc, plage.caret(), typed);
+                                doc, range.caret(), typed);
                         if (lie.isPresent()) {
                             return lie;
                         }
@@ -122,10 +122,10 @@ public final class IntelligenceHub {
             // C6 : le retour arrière dans un nom de balise ouvrante
             // retire son miroir dans la fermante.
             if (selection.caretCount() == 1) {
-                SelRange plage = selection.ranges().get(0);
-                if (plage.isEmpty()) {
+                SelRange range = selection.ranges().get(0);
+                if (range.isEmpty()) {
                     Optional<EditPlan> lie = XmlLinkedTags.backspace(
-                            doc, plage.caret());
+                            doc, range.caret());
                     if (lie.isPresent()) {
                         return lie;
                     }
@@ -234,7 +234,7 @@ public final class IntelligenceHub {
     }
 
     /** Le régime courant des fonctions lourdes (C10). */
-    public LargeFileMode largeFileMode() {
+    public LargeFileMode largeFileModeOn() {
         return regimeGrosFichier;
     }
 
@@ -388,7 +388,7 @@ public final class IntelligenceHub {
      */
     boolean pasteMultiline(String pasted) {
         Provider courant = provider;
-        String texte = courant == null ? pasted
+        String text = courant == null ? pasted
                 : courant.pasteAdjusted(document(), analysis(), caret(),
                         pasted, style());
         SelRange primaire = primaryRange();
@@ -396,25 +396,25 @@ public final class IntelligenceHub {
         String retire = doc.subText(primaire.start(), primaire.end());
         EditPlan plan = new EditPlan(
                 Transaction.of(List.of(new TextEdit(primaire.start(), retire,
-                        texte))),
+                        text))),
                 MultiSelection.of(SelRange.caretAt(primaire.start()
-                        + texte.length())));
+                        + text.length())));
         return apply(plan);
     }
 
     /** Le saut de ligne nu : chaque plage remplacée, curseur après le saut. */
     private EditPlan plainNewline() {
         Document doc = document();
-        List<TextEdit> editions = new ArrayList<>();
+        List<TextEdit> edits = new ArrayList<>();
         List<SelRange> apres = new ArrayList<>();
         int delta = 0;
-        for (SelRange plage : selection().ranges()) {
-            String retire = doc.subText(plage.start(), plage.end());
-            editions.add(new TextEdit(plage.start() + delta, retire, "\n"));
-            apres.add(SelRange.caretAt(plage.start() + delta + 1));
+        for (SelRange range : selection().ranges()) {
+            String retire = doc.subText(range.start(), range.end());
+            edits.add(new TextEdit(range.start() + delta, retire, "\n"));
+            apres.add(SelRange.caretAt(range.start() + delta + 1));
             delta += 1 - retire.length();
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /** Applique un plan par la voie unique, avec dévoilement du curseur. */
@@ -427,8 +427,8 @@ public final class IntelligenceHub {
     }
 
     private SelRange primaryRange() {
-        List<SelRange> plages = selection().ranges();
-        return plages.isEmpty() ? SelRange.caretAt(0) : plages.get(0);
+        List<SelRange> ranges = selection().ranges();
+        return ranges.isEmpty() ? SelRange.caretAt(0) : ranges.get(0);
     }
 
     private Document document() {
@@ -448,10 +448,10 @@ public final class IntelligenceHub {
      * (M7.6) — les règles génériques sans langage.
      */
     private TypingRules rules() {
-        LanguageSupport langue = vue.syntaxe.language();
-        return langue == null
+        LanguageSupport language = vue.syntaxe.language();
+        return language == null
                 ? TypingRules.generic()
-                : TypingRules.of(langue.configuration());
+                : TypingRules.of(language.configuration());
     }
 
     private IndentStyle style() {
@@ -459,13 +459,13 @@ public final class IntelligenceHub {
         // langage courant — un pack à deux espaces y entre, une
         // indentation à tabulations y tabule. Sans langage, le style
         // canonique quatre espaces tient.
-        LanguageSupport langue = vue.syntaxe.language();
-        if (langue == null) {
+        LanguageSupport language = vue.syntaxe.language();
+        if (language == null) {
             return DEFAULT_STYLE;
         }
-        return langue.configuration().tabIndent()
-                ? IndentStyle.tabs(langue.configuration().indentSize())
-                : IndentStyle.spaces(langue.configuration().indentSize());
+        return language.configuration().tabIndent()
+                ? IndentStyle.tabs(language.configuration().indentSize())
+                : IndentStyle.spaces(language.configuration().indentSize());
     }
 
     /** L'analyse publiée à la révision courante — jamais celle d'une

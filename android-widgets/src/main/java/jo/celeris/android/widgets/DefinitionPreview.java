@@ -16,7 +16,7 @@ import jo.celeris.core.syntax.structure.OutlineEntry;
  * qui porte ce nom exact répond ; à défaut, l'entrée qui contient le
  * curseur — la déclaration la plus proche se survole.</p>
  */
-public record DefinitionPreview(String nom, String categorie, int ligne,
+public record DefinitionPreview(String nom, String categorie, int line,
         List<String> extrait) {
 
     /** Le plafond de lignes de l'extrait : assez pour lire, trop peu pour noyer. */
@@ -26,65 +26,65 @@ public record DefinitionPreview(String nom, String categorie, int ligne,
      * Le symbole au curseur : les caractères d'identifiant qui
      * l'entourent — la chaîne vide entre deux mots.
      *
-     * @param texte  le texte intégral du document
-     * @param curseur le décalage du curseur
+     * @param text  le texte intégral du document
+     * @param cursor le décalage du curseur
      * @return le mot du curseur, jamais null
      */
-    public static String symboleAu(String texte, int curseur) {
-        int borne = Math.min(curseur, texte.length());
-        int debut = borne;
-        while (debut > 0 && Character.isJavaIdentifierPart(texte.charAt(debut - 1))) {
-            debut--;
+    public static String symboleAu(String text, int cursor) {
+        int borne = Math.min(cursor, text.length());
+        int start = borne;
+        while (start > 0 && Character.isJavaIdentifierPart(text.charAt(start - 1))) {
+            start--;
         }
-        int fin = borne;
-        while (fin < texte.length() && Character.isJavaIdentifierPart(
-                texte.charAt(fin))) {
-            fin++;
+        int end = borne;
+        while (end < text.length() && Character.isJavaIdentifierPart(
+                text.charAt(end))) {
+            end++;
         }
-        return texte.substring(debut, fin);
+        return text.substring(start, end);
     }
 
     /**
      * L'aperçu du symbole au curseur, depuis le plan du fichier.
      *
      * @param plan    les entrées du plan, dans l'ordre du fichier
-     * @param lignes  les lignes du fichier
+     * @param lines  les lignes du fichier
      * @param symbole le symbole cherché, la chaîne vide pour l'entrée
      *                qui contient le curseur
      * @param offset  le décalage du curseur dans le fichier
      * @return l'aperçu, null si aucune déclaration ne répond
      */
-    public static @Nullable DefinitionPreview de(List<OutlineEntry> plan,
-            List<String> lignes, String symbole, int offset) {
-        OutlineEntry cible = null;
+    public static @Nullable DefinitionPreview of(List<OutlineEntry> plan,
+            List<String> lines, String symbole, int offset) {
+        OutlineEntry target = null;
         if (!symbole.isEmpty()) {
-            for (OutlineEntry entree : plan) {
-                if (entree.name().equals(symbole)) {
-                    cible = entree;
+            for (OutlineEntry input : plan) {
+                if (input.name().equals(symbole)) {
+                    target = input;
                     break;
                 }
             }
         }
-        if (cible == null) {
+        if (target == null) {
             // L'entrée la plus intime qui contient le curseur : la
             // déclaration précise se survole, pas son enveloppe.
-            for (OutlineEntry entree : plan) {
-                if (offset >= entree.startOffset() && offset < entree.endOffset()
-                        && (cible == null || entree.endOffset()
-                                - entree.startOffset() < cible.endOffset()
-                                - cible.startOffset())) {
-                    cible = entree;
+            for (OutlineEntry input : plan) {
+                if (offset >= input.startOffset() && offset < input.endOffset()
+                        && (target == null || input.endOffset()
+                                - input.startOffset() < target.endOffset()
+                                - target.startOffset())) {
+                    target = input;
                 }
             }
         }
-        if (cible == null) {
+        if (target == null) {
             return null;
         }
-        int debut = Math.min(cible.startLine(), lignes.size());
-        int fin = Math.min(cible.endLine() + 1, lignes.size());
-        List<String> extrait = lignes.subList(debut, Math.min(fin, debut
+        int start = Math.min(target.startLine(), lines.size());
+        int end = Math.min(target.endLine() + 1, lines.size());
+        List<String> extrait = lines.subList(start, Math.min(end, start
                 + LIMITE_EXTRAIT));
-        return new DefinitionPreview(cible.name(),
-                cible.category().name(), debut, List.copyOf(extrait));
+        return new DefinitionPreview(target.name(),
+                target.category().name(), start, List.copyOf(extrait));
     }
 }

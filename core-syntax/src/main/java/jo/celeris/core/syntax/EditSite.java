@@ -51,7 +51,7 @@ public record EditSite(int firstLine, int lastLine, int lineDelta) {
     }
 
     /** Vérifie la cohérence du site avec un lexique précédent, sinon refuse. */
-    void verifier(int lignesPrecedentes, int lignesNouvelles) {
+    void check(int lignesPrecedentes, int lignesNouvelles) {
         if (firstLine < 0 || lastLine < firstLine) {
             throw new IllegalArgumentException("edit site lines inverted: " + this);
         }

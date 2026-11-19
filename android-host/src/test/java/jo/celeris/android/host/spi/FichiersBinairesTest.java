@@ -64,24 +64,24 @@ class FichiersBinairesTest {
     @Test
     void lApercuRendSesLignes() {
         byte[] octets = new byte[] {'A', 'c', 'c', 'u', 'e', 'i', 'l', 0x00, 'b', 'o', 'r', 'd'};
-        HexadecimalPreview.Dump apercu = HexadecimalPreview.de(octets);
-        assertFalse(apercu.tronque(), "douze octets tiennent sous le plafond");
-        assertEquals(1, apercu.lignes().size());
+        HexadecimalPreview.Dump preview = HexadecimalPreview.of(octets);
+        assertFalse(preview.tronque(), "douze octets tiennent sous le plafond");
+        assertEquals(1, preview.lines().size());
         assertEquals("00000000  41 63 63 75 65 69 6C 00 62 6F 72 64 "
                         + " ".repeat(12) + " |Accueil.bord|",
-                apercu.lignes().get(0),
+                preview.lines().get(0),
                 "le décalage, les octets en hexadécimal, la gouttière au point pour le nul");
     }
 
     /** A-26 — le plafond tient : 256 lignes, 4 Kio, le drapeau de coupe le dit. */
     @Test
     void lePlafondTient() {
-        HexadecimalPreview.Dump plein = HexadecimalPreview.de(new byte[4096]);
-        assertEquals(HexadecimalPreview.PLAFOND_LIGNES, plein.lignes().size(),
+        HexadecimalPreview.Dump plein = HexadecimalPreview.of(new byte[4096]);
+        assertEquals(HexadecimalPreview.LINES_LIMIT, plein.lines().size(),
                 "4 Kio exact : 256 lignes, pas de coupe");
         assertFalse(plein.tronque());
-        HexadecimalPreview.Dump vaste = HexadecimalPreview.de(new byte[4097]);
-        assertEquals(HexadecimalPreview.PLAFOND_LIGNES, vaste.lignes().size(),
+        HexadecimalPreview.Dump vaste = HexadecimalPreview.of(new byte[4097]);
+        assertEquals(HexadecimalPreview.LINES_LIMIT, vaste.lines().size(),
                 "l'octet de trop se coupe : le plafond tient");
         assertTrue(vaste.tronque(), "le drapeau de coupe se porte");
     }
@@ -94,27 +94,27 @@ class FichiersBinairesTest {
         arbre.fichierBinaire("racine", "image.png",
                 new byte[] {(byte) 0x89, 'P', 'N', 'G', 0x00, 0x0D, 0x0A, 0x1A, 0x0A});
         AdaptateurStockageDocuments systeme = new AdaptateurStockageDocuments(arbre, "racine");
-        assertTrue(systeme.estBinaire(CheminDoc.de("/image.png")),
+        assertTrue(systeme.estBinaire(CheminDoc.of("/image.png")),
                 "le binaire se détecte au système virtuel");
-        assertFalse(systeme.estBinaire(CheminDoc.de("/source.java")),
+        assertFalse(systeme.estBinaire(CheminDoc.of("/source.java")),
                 "le texte ne se détecte pas");
-        assertFalse(systeme.estBinaire(CheminDoc.de("/absent.png")),
+        assertFalse(systeme.estBinaire(CheminDoc.of("/absent.png")),
                 "l'absent ne se détecte pas — il n'existe pas");
-        String apercu = systeme.apercuBinaire(CheminDoc.de("/image.png"));
-        assertNotNull(apercu, "l'aperçu du binaire se sert");
-        assertTrue(apercu.startsWith("00000000  89 50 4E 47 00 0D 0A 1A 0A "),
-                "l'aperçu rend les octets bruts : " + apercu);
-        assertNull(systeme.apercuBinaire(CheminDoc.de("/source.java")),
+        String preview = systeme.apercuBinaire(CheminDoc.of("/image.png"));
+        assertNotNull(preview, "l'aperçu du binaire se sert");
+        assertTrue(preview.startsWith("00000000  89 50 4E 47 00 0D 0A 1A 0A "),
+                "l'aperçu rend les octets bruts : " + preview);
+        assertNull(systeme.apercuBinaire(CheminDoc.of("/source.java")),
                 "le texte ne se prévoit pas");
-        assertNull(systeme.apercuBinaire(CheminDoc.de("/absent.png")),
+        assertNull(systeme.apercuBinaire(CheminDoc.of("/absent.png")),
                 "l'absent ne se prévoit pas");
         // le refus d'édition destructrice : jamais l'aller-retour
-        assertThrows(FichierBinaireException.class, () -> systeme.ecrire(
-                CheminDoc.de("/image.png"), "réécrit en texte"));
+        assertThrows(FichierBinaireException.class, () -> systeme.write(
+                CheminDoc.of("/image.png"), "réécrit en texte"));
         // le texte s'écrit, lui — le garde ne bloque que le binaire
-        systeme.ecrire(CheminDoc.de("/source.java"), "class Source { /* neuf */ }");
+        systeme.write(CheminDoc.of("/source.java"), "class Source { /* neuf */ }");
         assertEquals("class Source { /* neuf */ }",
-                arbre.lire(arbre.enfants("racine").stream()
+                arbre.read(arbre.enfants("racine").stream()
                         .filter(e -> e.nom().equals("source.java"))
                         .findFirst().orElseThrow().idDocument()));
     }
@@ -122,11 +122,11 @@ class FichiersBinairesTest {
     /** A-26 — la mémoire de référence ne porte que du texte : ses défauts disent non. */
     @Test
     void laMemoireDeReferenceNePorteQueDuTexte() {
-        MemoireSystemeFichiers systeme = new MemoireSystemeFichiers();
-        systeme.ecrire(CheminDoc.de("/note.txt"), TEXTE);
-        assertFalse(systeme.estBinaire(CheminDoc.de("/note.txt")),
+        InMemoryFileSystem systeme = new InMemoryFileSystem();
+        systeme.write(CheminDoc.of("/note.txt"), TEXTE);
+        assertFalse(systeme.estBinaire(CheminDoc.of("/note.txt")),
                 "le texte en mémoire ne se détecte pas");
-        assertNull(systeme.apercuBinaire(CheminDoc.de("/note.txt")),
+        assertNull(systeme.apercuBinaire(CheminDoc.of("/note.txt")),
                 "la mémoire de texte ne prévoit rien");
     }
 
@@ -160,12 +160,12 @@ class FichiersBinairesTest {
         }
 
         @Override
-        public String lire(String idFichier) {
+        public String read(String idFichier) {
             return new String(octetsDe(idFichier), StandardCharsets.UTF_8);
         }
 
         @Override
-        public byte[] lireOctets(String idFichier) {
+        public byte[] readBytes(String idFichier) {
             return octetsDe(idFichier).clone();
         }
 
@@ -183,7 +183,7 @@ class FichiersBinairesTest {
         }
 
         @Override
-        public String creer(String idParent, String nom, boolean dossier) {
+        public String create(String idParent, String nom, boolean dossier) {
             String id = "doc-" + compteur++;
             if (dossier) {
                 dossiers.put(id, new java.util.ArrayList<>());

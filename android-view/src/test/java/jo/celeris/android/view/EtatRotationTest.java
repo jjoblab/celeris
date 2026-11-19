@@ -61,7 +61,7 @@ public class EtatRotationTest {
     @Test
     public void leDefilementEtLeZoomSurviventALaRotation() {
         EditorView avant = vuePreparee();
-        avant.setNumerosVisibles(true);
+        avant.setLineNumbersVisible(true);
         avant.setOccurrencesVisibles(false);
         // l'hôte zoome puis défile (la voie publique)
         avant.settings().setFontSizeSp(19f);
@@ -69,9 +69,9 @@ public class EtatRotationTest {
 
         // la rotation : l'état part au Bundle
         android.os.Parcel colis = Parcel.obtain();
-        Bundle etat = new Bundle();
-        avant.saveState(etat);
-        etat.writeToParcel(colis, 0);
+        Bundle state = new Bundle();
+        avant.saveState(state);
+        state.writeToParcel(colis, 0);
         colis.setDataPosition(0);
         Bundle recu = Bundle.CREATOR.createFromParcel(colis);
         colis.recycle();
@@ -92,11 +92,11 @@ public class EtatRotationTest {
         EditorView avant = vuePreparee();
         avant.settings().setSoftWrap(true);
         // la rotation
-        Bundle etat = new Bundle();
-        avant.saveState(etat);
+        Bundle state = new Bundle();
+        avant.saveState(state);
 
         EditorView apres = vuePreparee();
-        apres.restoreState(etat);
+        apres.restoreState(state);
         assertTrue("le retour de ligne souple revient",
                 apres.settings().softWrap());
         apres.release();

@@ -32,50 +32,50 @@ final class ScanIdentifiants {
      */
     static List<NomOffset> scanner(Document doc, LexDocument lex) {
         List<NomOffset> releves = new java.util.ArrayList<>();
-        for (int ligne = 0; ligne < lex.lineCount(); ligne++) {
-            LexedLine panier = lex.line(ligne);
-            int base = doc.lineStart(ligne);
-            for (Token jeton : panier.tokens()) {
-                relever(doc, base, jeton, releves);
+        for (int line = 0; line < lex.lineCount(); line++) {
+            LexedLine panier = lex.line(line);
+            int base = doc.lineStart(line);
+            for (Token token : panier.tokens()) {
+                relever(doc, base, token, releves);
             }
         }
         return List.copyOf(releves);
     }
 
-    private static void relever(Document doc, int base, Token jeton,
+    private static void relever(Document doc, int base, Token token,
             List<NomOffset> releves) {
-        String texte = doc.subText(base + jeton.start(), base + jeton.end()).trim();
-        if (texte.isEmpty()) {
+        String text = doc.subText(base + token.start(), base + token.end()).trim();
+        if (text.isEmpty()) {
             return;
         }
-        if (estNom(jeton.kind())) {
-            releves.add(new NomOffset(texte, base + jeton.start()
-                    + espacesDeTete(doc, base + jeton.start(), base + jeton.end())));
-        } else if (jeton.kind() == TokenKind.OPEN_BRACKET && texte.startsWith("<")) {
+        if (estNom(token.kind())) {
+            releves.add(new NomOffset(text, base + token.start()
+                    + espacesDeTete(doc, base + token.start(), base + token.end())));
+        } else if (token.kind() == TokenKind.OPEN_BRACKET && text.startsWith("<")) {
             // balise d'ouverture du balisage : le nom vit après « < »
-            String nom = texte.substring(1);
+            String nom = text.substring(1);
             if (!nom.isEmpty()) {
-                releves.add(new NomOffset(nom, base + jeton.start()
-                        + espacesDeTete(doc, base + jeton.start(), base + jeton.end()) + 1));
+                releves.add(new NomOffset(nom, base + token.start()
+                        + espacesDeTete(doc, base + token.start(), base + token.end()) + 1));
             }
-        } else if (jeton.kind() == TokenKind.CLOSE_BRACKET && texte.startsWith("</")) {
+        } else if (token.kind() == TokenKind.CLOSE_BRACKET && text.startsWith("</")) {
             // balise de fermeture du balisage : le nom vit après « </ », le
             // chevron fermant fait partie du jeton et s'ôte
-            String nom = texte.substring(2);
+            String nom = text.substring(2);
             if (nom.endsWith(">")) {
                 nom = nom.substring(0, nom.length() - 1);
             }
             if (!nom.isEmpty()) {
-                releves.add(new NomOffset(nom, base + jeton.start()
-                        + espacesDeTete(doc, base + jeton.start(), base + jeton.end()) + 2));
+                releves.add(new NomOffset(nom, base + token.start()
+                        + espacesDeTete(doc, base + token.start(), base + token.end()) + 2));
             }
         }
     }
 
     /** Les espaces de tête du jeton : le relevé pointe le premier caractère du nom. */
-    private static int espacesDeTete(Document doc, int debut, int fin) {
+    private static int espacesDeTete(Document doc, int start, int end) {
         int espaces = 0;
-        while (debut + espaces < fin && Character.isWhitespace(doc.charAt(debut + espaces))) {
+        while (start + espaces < end && Character.isWhitespace(doc.charAt(start + espaces))) {
             espaces++;
         }
         return espaces;

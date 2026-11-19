@@ -39,21 +39,21 @@ final class FinsCrlfTest {
         Document doc = Document.of("int a;\r\nint b;\r\n");
         LexDocument lex = new IncrementalLexer().lexFull(doc, LEXEUR).lex();
         Token[] ligne0 = lex.line(0).tokens();
-        for (Token jeton : ligne0) {
-            assertTrue(jeton.end() <= 7,
-                    "aucun jeton ne couvre le \\r : " + jeton.kind()
-                            + "[" + jeton.start() + ".." + jeton.end() + "]");
+        for (Token token : ligne0) {
+            assertTrue(token.end() <= 7,
+                    "aucun jeton ne couvre le \\r : " + token.kind()
+                            + "[" + token.start() + ".." + token.end() + "]");
         }
     }
 
     /** L'édition avant une fin CRLF : l'incrémental égale le complet. */
     @Test
     void leditionAvantUneFinCrlfRecolle() {
-        String texte = "int alpha;\r\nint beta;\r\n";
-        Document avant = Document.of(texte);
+        String text = "int alpha;\r\nint beta;\r\n";
+        Document avant = Document.of(text);
         LexDocument lexAvant = new IncrementalLexer().lexFull(avant, LEXEUR).lex();
-        int pos = texte.indexOf("alpha") + 5;
-        String apresTexte = texte.substring(0, pos) + "bet" + texte.substring(pos);
+        int pos = text.indexOf("alpha") + 5;
+        String apresTexte = text.substring(0, pos) + "bet" + text.substring(pos);
         Document apres = Document.of(apresTexte);
         LexDocument increm = new IncrementalLexer().lexIncremental(apres, LEXEUR,
                 lexAvant, EditSite.of(avant, apres, pos, pos, "bet")).lex();

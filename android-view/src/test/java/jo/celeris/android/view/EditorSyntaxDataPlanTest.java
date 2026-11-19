@@ -54,7 +54,7 @@ class EditorSyntaxDataPlanTest {
             """;
 
     /** Une source qui ne rend rien : habiller l'enveloppe, jamais ne la consulte ici. */
-    private static final RowSource SOURCE_MUETTE = cle -> {
+    private static final RowSource SOURCE_MUETTE = key -> {
         throw new UnsupportedOperationException("pas consultée par le pont");
     };
 
@@ -91,14 +91,14 @@ class EditorSyntaxDataPlanTest {
                 }
 
                 @Override
-                public LexedLine lex(CharSequence texte, LexState entree) {
-                    String ligne = texte.toString();
-                    if (ligne.isBlank()) {
+                public LexedLine lex(CharSequence text, LexState input) {
+                    String line = text.toString();
+                    if (line.isBlank()) {
                         return new LexedLine(new Token[0], EtatEssai.NORMAL);
                     }
-                    if (ligne.strip().startsWith("#")) {
+                    if (line.strip().startsWith("#")) {
                         return new LexedLine(new Token[] {
-                                new Token(TokenKind.COMMENT, 0, ligne.length()) },
+                                new Token(TokenKind.COMMENT, 0, line.length()) },
                                 EtatEssai.NORMAL);
                     }
                     return new LexedLine(
@@ -163,10 +163,10 @@ class EditorSyntaxDataPlanTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         syntaxe.addPlanListener(plans::add);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(supportEssai());
 
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
 
         List<OutlineEntry> pousse = plans.get(plans.size() - 1);
         assertEquals(3, pousse.size(), "le plan des règles : " + pousse);
@@ -180,27 +180,27 @@ class EditorSyntaxDataPlanTest {
         assertEquals(7, pousse.get(1).endLine(), "la définition couvre son bloc");
         assertEquals("compter", pousse.get(2).name());
         assertEquals(10, pousse.get(2).endLine());
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /** Les régions pliables suivent l'indentation déclarée : la gouttière s'y retrouve. */
     @Test
     void gouttierePlieALIndentationDeclaree() {
-        FoldModel plis = new FoldModel();
-        EditorSyntax syntaxe = new EditorSyntax(plis, DIRECT);
+        FoldModel folds = new FoldModel();
+        EditorSyntax syntaxe = new EditorSyntax(folds, DIRECT);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(supportEssai());
 
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
 
-        assertTrue(syntaxe.marques().pliable(0), "la constante se replie");
-        assertTrue(syntaxe.marques().pliable(4), "la définition se replie");
-        assertTrue(syntaxe.marques().pliable(9), "la seconde définition se replie");
-        assertTrue(syntaxe.basculerPli(4), "l'appui dans la coulisse consomme");
-        assertTrue(plis.plis().stream().anyMatch(p -> p.debut() == 4 && p.fin() == 7),
-                "le bloc replié couvre les lignes 4-7 : " + plis.plis());
-        syntaxe.fermer();
+        assertTrue(syntaxe.marks().pliable(0), "la constante se replie");
+        assertTrue(syntaxe.marks().pliable(4), "la définition se replie");
+        assertTrue(syntaxe.marks().pliable(9), "la seconde définition se replie");
+        assertTrue(syntaxe.toggleFold(4), "l'appui dans la coulisse consomme");
+        assertTrue(folds.folds().stream().anyMatch(p -> p.start() == 4 && p.end() == 7),
+                "le bloc replié couvre les lignes 4-7 : " + folds.folds());
+        syntaxe.close();
     }
 
     /**
@@ -212,31 +212,31 @@ class EditorSyntaxDataPlanTest {
      */
     @Test
     void pliParentApresPliImbrique() {
-        FoldModel plis = new FoldModel();
-        EditorSyntax syntaxe = new EditorSyntax(plis, DIRECT);
+        FoldModel folds = new FoldModel();
+        EditorSyntax syntaxe = new EditorSyntax(folds, DIRECT);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(supportEssai());
 
-        syntaxe.habiller(SOURCE_MUETTE, session.document());
+        syntaxe.wrap(SOURCE_MUETTE, session.document());
 
         // le bloc intime : le « if » de la définition, lignes 5-6
-        assertTrue(syntaxe.basculerPli(5), "l'appui du bloc intime consomme");
-        assertTrue(plis.plis().stream().anyMatch(p -> p.debut() == 5 && p.fin() == 6),
-                "le bloc intime replié : " + plis.plis());
+        assertTrue(syntaxe.toggleFold(5), "l'appui du bloc intime consomme");
+        assertTrue(folds.folds().stream().anyMatch(p -> p.start() == 5 && p.end() == 6),
+                "le bloc intime replié : " + folds.folds());
 
         // le parent par-dessus : AVANT le redressement, le garde
         // chevaucheUnPli rejetait le repli du parent (l'appui se
         // consommait sans effet) — le parent se replie maintenant
-        assertTrue(syntaxe.basculerPli(4), "l'appui du parent consomme");
-        assertTrue(plis.plis().stream().anyMatch(p -> p.debut() == 4 && p.fin() == 7),
-                "le parent replié par-dessus son enfant : " + plis.plis());
-        assertTrue(plis.isFolded(5), "l'enfant survit replié sous le parent");
+        assertTrue(syntaxe.toggleFold(4), "l'appui du parent consomme");
+        assertTrue(folds.folds().stream().anyMatch(p -> p.start() == 4 && p.end() == 7),
+                "le parent replié par-dessus son enfant : " + folds.folds());
+        assertTrue(folds.isFolded(5), "l'enfant survit replié sous le parent");
 
         // le dépliage du parent rend l'enfant replié
-        syntaxe.basculerPli(4);
-        assertFalse(plis.isFolded(4), "le parent se déplie");
-        assertTrue(plis.isFolded(5), "l'enfant reparaît replié");
-        syntaxe.fermer();
+        syntaxe.toggleFold(4);
+        assertFalse(folds.isFolded(4), "le parent se déplie");
+        assertTrue(folds.isFolded(5), "l'enfant reparaît replié");
+        syntaxe.close();
     }
 }

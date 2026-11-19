@@ -7,7 +7,7 @@ package jo.celeris.core.ai;
  * conflit s'y accroche.
  *
  * @param revision la révision de l'instantané servi
- * @param texte    le texte de la plage
+ * @param text    le texte de la plage
  */
-public record ReadRange(int revision, String texte) {
+public record ReadRange(int revision, String text) {
 }

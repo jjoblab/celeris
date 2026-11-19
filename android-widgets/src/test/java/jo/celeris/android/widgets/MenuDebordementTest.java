@@ -63,7 +63,7 @@ public class MenuDebordementTest {
                 PopupPalette.dark(), 8);
         SelectionBarView barre = new SelectionBarView(contexte,
                 PopupPalette.dark());
-        menu.ouvrir(barre, 120, List.of());
+        menu.open(barre, 120, List.of());
         assertFalse("sans étage, la carte ne se pose pas",
                 popups.estOuvert(
                         PopupController.PopupKind.SELECTION_OVERFLOW));
@@ -83,7 +83,7 @@ public class MenuDebordementTest {
         popups.controleur().open(PopupController.PopupKind.SELECTION_BAR);
         // l'étage de navigation VIDE vit avec l'étage d'édition PLEIN —
         // seul l'étage plein se montre
-        menu.ouvrir(barre, 96, List.of(
+        menu.open(barre, 96, List.of(
                 MenuEtages.Etage.depuis("GO TO", List.of()),
                 MenuEtages.Etage.depuis("EDIT", List.of(
                         new SelectionBarView.Item("Dupliquer",
@@ -116,7 +116,7 @@ public class MenuDebordementTest {
         // le menu se pose SOUS LA SÉLECTION (bas 96), jamais sur le
         // caret (l'audit du propriétaire du 2026-11-14)
         popups.controleur().open(PopupController.PopupKind.SELECTION_BAR);
-        menu.ouvrir(barre, 96, List.of(MenuEtages.Etage.depuis("EDIT",
+        menu.open(barre, 96, List.of(MenuEtages.Etage.depuis("EDIT",
                 List.of(new SelectionBarView.Item("Dupliquer",
                         IconeAction.DUPLIQUER,
                         passe::incrementAndGet)))));

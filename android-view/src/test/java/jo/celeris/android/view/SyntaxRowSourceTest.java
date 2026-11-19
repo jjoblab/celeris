@@ -62,45 +62,45 @@ class SyntaxRowSourceTest {
 
         @Override
         public RowLayout layoutOf(RowKey key) {
-            String texte = document.lineText(key.row());
-            return new RowLayout(key.row(), 0, texte.length(), texte,
-                    texte.length() * metrics.charWidth());
+            String text = document.lineText(key.row());
+            return new RowLayout(key.row(), 0, text.length(), text,
+                    text.length() * metrics.charWidth());
         }
     }
 
     /** Source à tranche imposée : la rangée porte [debut, fin) de sa ligne (A-18). */
     private static final class SourceATranche implements RowSource {
         private final Document document;
-        private final int debut;
-        private final int fin;
+        private final int start;
+        private final int end;
 
-        SourceATranche(Document document, int debut, int fin) {
+        SourceATranche(Document document, int start, int end) {
             this.document = document;
-            this.debut = debut;
-            this.fin = fin;
+            this.start = start;
+            this.end = end;
         }
 
         @Override
         public RowLayout layoutOf(RowKey key) {
-            String ligne = document.lineText(key.row());
-            String tranche = ligne.substring(debut, Math.min(fin, ligne.length()));
-            return new RowLayout(key.row(), debut, debut + tranche.length(), tranche,
+            String line = document.lineText(key.row());
+            String tranche = line.substring(start, Math.min(end, line.length()));
+            return new RowLayout(key.row(), start, start + tranche.length(), tranche,
                     tranche.length() * 10f);
         }
     }
 
-    private static LexDocument lexique(String texte) {
+    private static LexDocument lexicon(String text) {
         return SyntaxService.of(JavaSyntax.INSTANCE)
-                .analyseFull(Document.of(texte)).lex();
+                .analyseFull(Document.of(text)).lex();
     }
 
     /** Concatène les plages colorées : le texte reconstitué, preuve de couverture exacte. */
     private static String reconstruit(RowLayout mise) {
-        StringBuilder texte = new StringBuilder();
-        for (ColoredSpan plage : mise.spans()) {
-            texte.append(mise.text(), plage.start(), plage.end());
+        StringBuilder text = new StringBuilder();
+        for (ColoredSpan range : mise.spans()) {
+            text.append(mise.text(), range.start(), range.end());
         }
-        return texte.toString();
+        return text.toString();
     }
 
     /** Les plages couvrent la rangée exactement, sans trou ni chevauchement. */
@@ -109,20 +109,20 @@ class SyntaxRowSourceTest {
         Document document = Document.of("int x = 42;");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         SyntaxRowSource source = new SyntaxRowSource(
-                new SourceParLigne(document, metrics), lexique("int x = 42;"));
+                new SourceParLigne(document, metrics), lexicon("int x = 42;"));
         RowLayout mise = source.layoutOf(new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
 
         assertEquals("int x = 42;", mise.text());
         assertEquals("int x = 42;", reconstruit(mise),
                 "les plages doivent reconstituer le texte de la rangée sans trou");
-        int curseur = 0;
-        for (ColoredSpan plage : mise.spans()) {
-            assertEquals(curseur, plage.start(),
+        int cursor = 0;
+        for (ColoredSpan range : mise.spans()) {
+            assertEquals(cursor, range.start(),
                     "la plage suivante commence où la précédente finit (jetons soudés)");
-            assertTrue(plage.end() > plage.start());
-            curseur = plage.end();
+            assertTrue(range.end() > range.start());
+            cursor = range.end();
         }
-        assertEquals(mise.text().length(), curseur, "la dernière plage ferme la rangée");
+        assertEquals(mise.text().length(), cursor, "la dernière plage ferme la rangée");
     }
 
     /** Les sortes attendues : mot réservé, nombre, ponctuation — la couleur suit le jeton. */
@@ -131,27 +131,27 @@ class SyntaxRowSourceTest {
         Document document = Document.of("return 42;");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         SyntaxRowSource source = new SyntaxRowSource(
-                new SourceParLigne(document, metrics), lexique("return 42;"));
+                new SourceParLigne(document, metrics), lexicon("return 42;"));
         RowLayout mise = source.layoutOf(new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
 
-        List<ColoredSpan> plages = mise.spans();
-        assertTrue(plages.size() >= 3, "au moins trois plages : return, 42, point-virgule");
-        assertEquals(TokenKind.KEYWORD, plages.get(0).kind());
-        assertEquals("return", mise.text().substring(plages.get(0).start(),
-                plages.get(0).end()));
-        assertEquals(TokenKind.NUMBER, plages.get(1).kind());
-        assertEquals(" 42", mise.text().substring(plages.get(1).start(),
-                plages.get(1).end()),
+        List<ColoredSpan> ranges = mise.spans();
+        assertTrue(ranges.size() >= 3, "au moins trois plages : return, 42, point-virgule");
+        assertEquals(TokenKind.KEYWORD, ranges.get(0).kind());
+        assertEquals("return", mise.text().substring(ranges.get(0).start(),
+                ranges.get(0).end()));
+        assertEquals(TokenKind.NUMBER, ranges.get(1).kind());
+        assertEquals(" 42", mise.text().substring(ranges.get(1).start(),
+                ranges.get(1).end()),
                 "le blanc soudé au nombre appartient à sa plage (jetons soudés)");
     }
 
     /** Sous retour à la ligne (A-18), la rangée ne porte que sa tranche : les plages sont rognées. */
     @Test
     void lesPlagesSontRoigneesALaTranche() {
-        String ligne = "String message = \"bonjour\";";
-        Document document = Document.of(ligne);
+        String line = "String message = \"bonjour\";";
+        Document document = Document.of(line);
         SyntaxRowSource source = new SyntaxRowSource(
-                new SourceATranche(document, 17, 26), lexique(ligne));
+                new SourceATranche(document, 17, 26), lexicon(line));
         RowLayout mise = source.layoutOf(new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
 
         assertEquals("\"bonjour\"", mise.text());
@@ -166,10 +166,10 @@ class SyntaxRowSourceTest {
     /** La tranche peut couper un jeton en deux : les plages suivent les bords de la rangée. */
     @Test
     void laTrancheCoupeUnJeton() {
-        String ligne = "// commentaire entier de ligne";
-        Document document = Document.of(ligne);
+        String line = "// commentaire entier de ligne";
+        Document document = Document.of(line);
         SyntaxRowSource source = new SyntaxRowSource(
-                new SourceATranche(document, 4, 12), lexique(ligne));
+                new SourceATranche(document, 4, 12), lexicon(line));
         RowLayout mise = source.layoutOf(new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
 
         assertEquals("ommentai", reconstruit(mise));
@@ -180,11 +180,11 @@ class SyntaxRowSourceTest {
     /** Un commentaire de bloc multi-lignes colore la ligne suivante entière (état transporté). */
     @Test
     void commentaireMultiLignesColoreLaSuite() {
-        String texte = "/* debut\nsuite du bloc */ int apres;";
-        Document document = Document.of(texte);
+        String text = "/* debut\nsuite du bloc */ int apres;";
+        Document document = Document.of(text);
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         SyntaxRowSource source = new SyntaxRowSource(
-                new SourceParLigne(document, metrics), lexique(texte));
+                new SourceParLigne(document, metrics), lexicon(text));
         RowLayout ligneDeux = source.layoutOf(
                 new RowKey(1L, 1, 1, new FontSpec("mono", 14f)));
 
@@ -200,7 +200,7 @@ class SyntaxRowSourceTest {
         Document document = Document.of("");
         EditorMetrics metrics = EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         SyntaxRowSource source = new SyntaxRowSource(
-                new SourceParLigne(document, metrics), lexique(""));
+                new SourceParLigne(document, metrics), lexicon(""));
         RowLayout mise = source.layoutOf(new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
 
         assertTrue(mise.spans().isEmpty(), "une rangée vide n'a rien à colorer");
@@ -209,10 +209,10 @@ class SyntaxRowSourceTest {
     /** La source déléguée sert les autres champs (ligne, bornes, largeur) tels quels. */
     @Test
     void laSourceDelegueeServitLesAutresChamps() {
-        String ligne = "int x = 42;";
-        Document document = Document.of(ligne);
+        String line = "int x = 42;";
+        Document document = Document.of(line);
         SyntaxRowSource source = new SyntaxRowSource(
-                new SourceATranche(document, 0, 5), lexique(ligne));
+                new SourceATranche(document, 0, 5), lexicon(line));
         RowLayout mise = source.layoutOf(new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
 
         assertEquals(0, mise.line());
@@ -231,16 +231,16 @@ class SyntaxRowSourceTest {
     void rattapeeLaLigneEpargneeGardeSesPlages() {
         // Publié : trois lignes ; l'édition remplace « b » par « bb » à
         // la ligne 1 (delta nul) : les lignes 0 et 2 sont épargnées.
-        String publie = "int a = 1;\nint b = 2;\nint c = 3;";
+        String published = "int a = 1;\nint b = 2;\nint c = 3;";
         String edite = "int a = 1;\nint bb = 2;\nint c = 3;";
         Document document = Document.of(edite);
-        TokenCatchUp rattrapage = TokenCatchUp.of(lexique(publie),
+        TokenCatchUp rattrapage = TokenCatchUp.of(lexicon(published),
                 List.of(new TokenCatchUp.PendingEdit(4, 1, 2, 1, false)),
                 List.of(new EditSite(1, 1, 0)), document, null);
         SyntaxRowSource source = new SyntaxRowSource(
                 new SourceParLigne(document, EditorMetrics.of(
                         new FontSpec("mono", 14f), new RegleFixe())),
-                lexique(publie), rattrapage);
+                lexicon(published), rattrapage);
 
         RowLayout ligneDeux = source.layoutOf(
                 new RowKey(1L, 2, 1, new FontSpec("mono", 14f)));
@@ -257,16 +257,16 @@ class SyntaxRowSourceTest {
      */
     @Test
     void rattapeeLaLigneToucheeGardeSesCouleurs() {
-        String publie = "int a = 1;\nint b = 2;\nint c = 3;";
+        String published = "int a = 1;\nint b = 2;\nint c = 3;";
         String edite = "int a = 1;\nint bb = 2;\nint c = 3;";
         Document document = Document.of(edite);
-        TokenCatchUp rattrapage = TokenCatchUp.of(lexique(publie),
+        TokenCatchUp rattrapage = TokenCatchUp.of(lexicon(published),
                 List.of(new TokenCatchUp.PendingEdit(4, 1, 2, 1, false)),
                 List.of(new EditSite(1, 1, 0)), document, null);
         SyntaxRowSource source = new SyntaxRowSource(
                 new SourceParLigne(document, EditorMetrics.of(
                         new FontSpec("mono", 14f), new RegleFixe())),
-                lexique(publie), rattrapage);
+                lexicon(published), rattrapage);
 
         RowLayout ligneUne = source.layoutOf(
                 new RowKey(1L, 1, 1, new FontSpec("mono", 14f)));
@@ -285,16 +285,16 @@ class SyntaxRowSourceTest {
     @Test
     void rattapeeLigneInsereeDecaleLesSuivantes() {
         // Publié : deux lignes ; l'édition insère une ligne vide en tête.
-        String publie = "int a = 1;\nint b = 2;";
+        String published = "int a = 1;\nint b = 2;";
         String edite = "\nint a = 1;\nint b = 2;";
         Document document = Document.of(edite);
-        TokenCatchUp rattrapage = TokenCatchUp.of(lexique(publie),
+        TokenCatchUp rattrapage = TokenCatchUp.of(lexicon(published),
                 List.of(new TokenCatchUp.PendingEdit(0, 0, 1, 0, true)),
                 List.of(new EditSite(0, 0, 1)), document, null);
         SyntaxRowSource source = new SyntaxRowSource(
                 new SourceParLigne(document, EditorMetrics.of(
                         new FontSpec("mono", 14f), new RegleFixe())),
-                lexique(publie), rattrapage);
+                lexicon(published), rattrapage);
 
         RowLayout ligneInseree = source.layoutOf(
                 new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
@@ -313,12 +313,12 @@ class SyntaxRowSourceTest {
      */
     @Test
     void rattapeeDeuxEditionsConsecutives() {
-        String publie = "int a = 1;";
+        String published = "int a = 1;";
         String edite = "int axy = 1;";
         Document document = Document.of(edite);
         // « x » puis « y » insérés après le a — la seconde en coordonnées
         // publiées (4), la chirurgie compose les deux.
-        TokenCatchUp rattrapage = TokenCatchUp.of(lexique(publie),
+        TokenCatchUp rattrapage = TokenCatchUp.of(lexicon(published),
                 List.of(new TokenCatchUp.PendingEdit(4, 0, 1, 0, false),
                         new TokenCatchUp.PendingEdit(4, 0, 1, 0, false)),
                 List.of(new EditSite(0, 0, 0), new EditSite(0, 0, 0)),
@@ -326,11 +326,11 @@ class SyntaxRowSourceTest {
         SyntaxRowSource source = new SyntaxRowSource(
                 new SourceParLigne(document, EditorMetrics.of(
                         new FontSpec("mono", 14f), new RegleFixe())),
-                lexique(publie), rattrapage);
-        RowLayout ligne = source.layoutOf(
+                lexicon(published), rattrapage);
+        RowLayout line = source.layoutOf(
                 new RowKey(1L, 0, 1, new FontSpec("mono", 14f)));
-        assertEquals("int axy = 1;", reconstruit(ligne),
+        assertEquals("int axy = 1;", reconstruit(line),
                 "les deux insertions composées couvrent la ligne");
-        assertEquals(TokenKind.KEYWORD, ligne.spans().get(0).kind());
+        assertEquals(TokenKind.KEYWORD, line.spans().get(0).kind());
     }
 }

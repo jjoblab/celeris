@@ -68,10 +68,10 @@ class ArbreIncrementalTest {
     void editionDansUnChunkNeReanalyseQueLui() {
         Document doc = Document.of(TEXTE);
         Analysis complet = service.analyseFull(doc);
-        int cible = TEXTE.indexOf("  x");
-        Document edite = doc.replace(cible, cible + 3, "  omega");
+        int target = TEXTE.indexOf("  x");
+        Document edite = doc.replace(target, target + 3, "  omega");
         Analysis diff = service.analyseIncremental(edite, complet,
-                EditSite.of(doc, edite, cible, cible + 3, "  omega"));
+                EditSite.of(doc, edite, target, target + 3, "  omega"));
 
         assertEquals(4, diff.tree().chunks().size());
         assertSame(complet.tree().chunks().get(0), diff.tree().chunks().get(0),
@@ -90,10 +90,10 @@ class ArbreIncrementalTest {
     void decalageDeLignesDecaleLesAncres() {
         Document doc = Document.of(TEXTE);
         Analysis complet = service.analyseFull(doc);
-        int cible = TEXTE.indexOf("  x");
-        Document edite = doc.replace(cible, cible, "  nouveau\n  encore\n");
+        int target = TEXTE.indexOf("  x");
+        Document edite = doc.replace(target, target, "  nouveau\n  encore\n");
         Analysis diff = service.analyseIncremental(edite, complet,
-                EditSite.of(doc, edite, cible, cible, "  nouveau\n  encore\n"));
+                EditSite.of(doc, edite, target, target, "  nouveau\n  encore\n"));
 
         Chunk troisiemeAvant = complet.tree().chunks().get(3);
         Chunk troisiemeApres = diff.tree().chunks().get(3);
@@ -187,10 +187,10 @@ class ArbreIncrementalTest {
     void incrementEgalCompletSurLArbre() {
         Document doc = Document.of(TEXTE);
         Analysis complet = service.analyseFull(doc);
-        int cible = TEXTE.indexOf("corps");
-        Document edite = doc.replace(cible, cible + 5, "alpha beta");
+        int target = TEXTE.indexOf("corps");
+        Document edite = doc.replace(target, target + 5, "alpha beta");
         Analysis diff = service.analyseIncremental(edite, complet,
-                EditSite.of(doc, edite, cible, cible + 5, "alpha beta"));
+                EditSite.of(doc, edite, target, target + 5, "alpha beta"));
         Analysis temoin = service.analyseFull(edite);
         Arbres.verifierEquivalence(diff.tree(), temoin.tree(), edite);
     }

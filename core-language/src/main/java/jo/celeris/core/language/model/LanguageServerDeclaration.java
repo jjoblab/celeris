@@ -161,25 +161,25 @@ public record LanguageServerDeclaration(
         int indice = 0;
         for (Object element : JsonChamps.liste(brut, "servers")) {
             String ou = "servers[" + indice + "]";
-            Map<String, Object> entree = JsonChamps.objet(element, ou);
+            Map<String, Object> input = JsonChamps.objet(element, ou);
             declarations.add(new LanguageServerDeclaration(
-                    JsonChamps.chaineRequise(entree, "language", ou),
-                    JsonChamps.chaineRequise(entree, "transport", ou),
-                    JsonChamps.chaineNulle(entree.get("serverClass")),
-                    JsonChamps.chaineNulle(entree.get("clientInterface")),
-                    JsonChamps.chaineRequise(entree, "clientName", ou),
-                    JsonChamps.chaines(entree.get("command")),
-                    JsonChamps.chaineNulle(entree.get("host")),
-                    portOuMoinsUn(entree, ou),
-                    options(entree.get("initializationOptions"), ou)));
+                    JsonChamps.chaineRequise(input, "language", ou),
+                    JsonChamps.chaineRequise(input, "transport", ou),
+                    JsonChamps.chaineNulle(input.get("serverClass")),
+                    JsonChamps.chaineNulle(input.get("clientInterface")),
+                    JsonChamps.chaineRequise(input, "clientName", ou),
+                    JsonChamps.chaines(input.get("command")),
+                    JsonChamps.chaineNulle(input.get("host")),
+                    portOuMoinsUn(input, ou),
+                    options(input.get("initializationOptions"), ou)));
             indice++;
         }
         return List.copyOf(declarations);
     }
 
     /** Le port d'une entrée, -1 absent. */
-    private static int portOuMoinsUn(Map<String, Object> entree, String ou) {
-        Object brut = entree.get("port");
+    private static int portOuMoinsUn(Map<String, Object> input, String ou) {
+        Object brut = input.get("port");
         if (brut == null) {
             return -1;
         }
@@ -204,8 +204,8 @@ public record LanguageServerDeclaration(
     }
 
     /** Une chaîne exigée non vide — le champ nommé dans l'erreur. */
-    private static void exigerNonVide(@Nullable String valeur, String champ) {
-        if (valeur == null || valeur.isEmpty()) {
+    private static void exigerNonVide(@Nullable String value, String champ) {
+        if (value == null || value.isEmpty()) {
             throw new IllegalArgumentException(
                     "servers.json: \"" + champ + "\" must be a string");
         }

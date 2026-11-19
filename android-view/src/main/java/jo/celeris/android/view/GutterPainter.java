@@ -49,10 +49,10 @@ public final class GutterPainter extends PainterLayer {
         /**
          * Les marques de l'image à venir.
          *
-         * @return les marques fondues, {@link GutterMarks#VIDE} sans
+         * @return les marques fondues, {@link GutterMarks#EMPTY} sans
          *         analyse
          */
-        GutterMarks marques();
+        GutterMarks marks();
     }
 
     /** La largeur courante d'une bande de gouttière, servie à chaque image. */
@@ -69,28 +69,28 @@ public final class GutterPainter extends PainterLayer {
 
     /** La pastille de couleur d'une ligne, servie à chaque image (C-05). */
     @FunctionalInterface
-    public interface PastilleSource {
+    public interface SourceChip {
 
         /**
          * La couleur résolue de la ligne, 0 si elle n'en porte pas.
          *
-         * @param ligne la ligne, numérotée à partir de zéro
+         * @param line la ligne, numérotée à partir de zéro
          * @return la couleur ARGB, 0 sans pastille
          */
-        int pastille(int ligne);
+        int chip(int line);
     }
 
     /** Le repère {@code @Preview} d'une ligne, servi à chaque image (C-11). */
     @FunctionalInterface
-    public interface RepereSource {
+    public interface SourceMark {
 
         /**
          * Vrai si la ligne porte un repère {@code @Preview}.
          *
-         * @param ligne la ligne, numérotée à partir de zéro
+         * @param line la ligne, numérotée à partir de zéro
          * @return vrai si la ligne porte un repère
          */
-        boolean repere(int ligne);
+        boolean repere(int line);
     }
 
     /** L'ampoule d'intentions d'une ligne, servie à chaque image
@@ -101,30 +101,30 @@ public final class GutterPainter extends PainterLayer {
         /**
          * Vrai si la ligne porte l'ampoule d'intentions.
          *
-         * @param ligne la ligne, numérotée à partir de zéro
+         * @param line la ligne, numérotée à partir de zéro
          * @return vrai si la ligne porte l'ampoule
          */
-        boolean ampoule(int ligne);
+        boolean ampoule(int line);
     }
 
     /** Le jaune de l'ampoule de l'IDE de référence — la couleur de
      *  l'ICÔNE, pas du thème : l'ampoule reste jaune sur tout thème,
      *  comme dans l'IDE (le simulateur de référence porte #FFCB6B). */
-    private static final int ENCRE_AMPOULE = 0xFFFFCB6B;
+    private static final int BULB_INK = 0xFFFFCB6B;
 
-    private static final LaneSource SANS_PLIS = () -> 0f;
+    private static final LaneSource NO_FOLDS = () -> 0f;
 
-    private final GutterNumbers numeros = new GutterNumbers();
-    private final MarksSource marques;
+    private final GutterNumbers numbers = new GutterNumbers();
+    private final MarksSource marks;
     private float marge;
-    private final LaneSource coulisse;
+    private final LaneSource lane;
     /** La bande de plis au bord DROIT de la gouttière (D-07). */
-    private final LaneSource bandePli;
-    private final PastilleSource pastilles;
-    private final RepereSource reperes;
+    private final LaneSource foldBand;
+    private final SourceChip chips;
+    private final SourceMark previewMarks;
     /** L'ampoule d'intentions de chaque ligne — muette sans branchement. */
-    private AmpouleSource ampoules = ligne -> false;
-    private boolean numerosVisibles = true;
+    private AmpouleSource ampoules = line -> false;
+    private boolean visibleNumbers = true;
 
     /**
      * Construit la couche de gouttière à respiration par défaut, sans
@@ -144,7 +144,7 @@ public final class GutterPainter extends PainterLayer {
      * @param padding la respiration de chaque côté du champ, en pixels
      */
     public GutterPainter(BrushFactory brushes, float padding) {
-        this(brushes, padding, () -> GutterMarks.VIDE, () -> 0f);
+        this(brushes, padding, () -> GutterMarks.EMPTY, () -> 0f);
     }
 
     /**
@@ -152,15 +152,15 @@ public final class GutterPainter extends PainterLayer {
      *
      * @param brushes    la fabrique de pinceaux (la couche prend le sien)
      * @param padding    la respiration de chaque côté du champ, en pixels
-     * @param marques    la source des marques, consultée à chaque image
+     * @param marks    la source des marques, consultée à chaque image
      * @param markerLane la largeur courante de la coulisse des
      *                   marqueurs à gauche, en pixels (0 sans marques) —
      *                   servie à chaque image, la police peut changer
      */
-    public GutterPainter(BrushFactory brushes, float padding, MarksSource marques,
+    public GutterPainter(BrushFactory brushes, float padding, MarksSource marks,
             LaneSource markerLane) {
-        this(brushes, padding, marques, markerLane, SANS_PLIS, ligne -> 0,
-                ligne -> false);
+        this(brushes, padding, marks, markerLane, NO_FOLDS, line -> 0,
+                line -> false);
     }
 
     /**
@@ -169,15 +169,16 @@ public final class GutterPainter extends PainterLayer {
      *
      * @param brushes    la fabrique de pinceaux (la couche prend le sien)
      * @param padding    la respiration de chaque côté du champ, en pixels
-     * @param marques    la source des marques, consultée à chaque image
+     * @param marks    la source des marques, consultée à chaque image
      * @param markerLane la largeur courante de la coulisse des
      *                   marqueurs à gauche, en pixels (0 sans marques)
-     * @param pastilles  la pastille de chaque ligne (C-05), 0 sans
-     * @param reperes    le repère {@code @Preview} de chaque ligne (C-11)
+     * @param chips  la pastille de chaque ligne (C-05), 0 sans
+     * @param marks    le repère {@code @Preview} de chaque ligne (C-11)
      */
-    public GutterPainter(BrushFactory brushes, float padding, MarksSource marques,
-            LaneSource markerLane, PastilleSource pastilles, RepereSource reperes) {
-        this(brushes, padding, marques, markerLane, SANS_PLIS, pastilles, reperes);
+    public GutterPainter(BrushFactory brushes, float padding, MarksSource marks,
+            LaneSource markerLane, SourceChip chips, SourceMark previewMarks) {
+        this(brushes, padding, marks, markerLane, NO_FOLDS, chips,
+                previewMarks);
     }
 
     /**
@@ -186,24 +187,24 @@ public final class GutterPainter extends PainterLayer {
      *
      * @param brushes    la fabrique de pinceaux (la couche prend le sien)
      * @param padding    la respiration de chaque côté du champ, en pixels
-     * @param marques    la source des marques, consultée à chaque image
+     * @param marks    la source des marques, consultée à chaque image
      * @param markerLane la largeur courante de la coulisse des
      *                   marqueurs à gauche, en pixels (0 sans marques)
      * @param foldLane   la largeur courante de la bande de plis à
      *                   droite, en pixels (0 sans syntaxe)
-     * @param pastilles  la pastille de chaque ligne (C-05), 0 sans
-     * @param reperes    le repère {@code @Preview} de chaque ligne (C-11)
+     * @param chips  la pastille de chaque ligne (C-05), 0 sans
+     * @param marks    le repère {@code @Preview} de chaque ligne (C-11)
      */
-    public GutterPainter(BrushFactory brushes, float padding, MarksSource marques,
-            LaneSource markerLane, LaneSource foldLane, PastilleSource pastilles,
-            RepereSource reperes) {
+    public GutterPainter(BrushFactory brushes, float padding, MarksSource marks,
+            LaneSource markerLane, LaneSource foldLane, SourceChip chips,
+            SourceMark previewMarks) {
         super(brushes);
         this.marge = padding;
-        this.marques = marques;
-        this.coulisse = markerLane;
-        this.bandePli = foldLane;
-        this.pastilles = pastilles;
-        this.reperes = reperes;
+        this.marks = marks;
+        this.lane = markerLane;
+        this.foldBand = foldLane;
+        this.chips = chips;
+        this.previewMarks = previewMarks;
     }
 
     /**
@@ -218,15 +219,15 @@ public final class GutterPainter extends PainterLayer {
      * @param vue     la vue dont la gouttière se monte
      * @return la couche montée, branchée sur l'état de la vue
      */
-    static GutterPainter monter(BrushFactory brushes, EditorView vue) {
+    static GutterPainter start(BrushFactory brushes, EditorView vue) {
         GutterPainter couche = new GutterPainter(brushes,
-                vue.gouttiereEtat.margePx(),
-                () -> vue.marquesGouttiere.marques(vue.syntaxe.marques()),
-                vue.gouttiereEtat::coulisseCourante,
-                vue.gouttiereEtat::bandePliCourante,
-                vue.marquesGouttiere::pastille,
-                vue.marquesGouttiere::reperePreview);
-        couche.brancherAmpoules(vue.marquesGouttiere::ampoule);
+                vue.gutterState.margePx(),
+                () -> vue.gutterMarks.marks(vue.syntaxe.marks()),
+                vue.gutterState::currentLane,
+                vue.gutterState::currentFoldBand,
+                vue.gutterMarks::chip,
+                vue.gutterMarks::reperePreview);
+        couche.wireBulbs(vue.gutterMarks::ampoule);
         return couche;
     }
 
@@ -237,8 +238,8 @@ public final class GutterPainter extends PainterLayer {
      *
      * @param source la source des lignes porteuses de l'ampoule
      */
-    public void brancherAmpoules(AmpouleSource source) {
-        ampoules = source == null ? ligne -> false : source;
+    public void wireBulbs(AmpouleSource source) {
+        ampoules = source == null ? line -> false : source;
     }
 
     @Override
@@ -253,8 +254,8 @@ public final class GutterPainter extends PainterLayer {
      *
      * @param visibles vrai pour tracer les numéros (défaut)
      */
-    public void setNumerosVisibles(boolean visibles) {
-        numerosVisibles = visibles;
+    public void setLineNumbersVisible(boolean visibles) {
+        visibleNumbers = visibles;
     }
 
     /**
@@ -276,11 +277,11 @@ public final class GutterPainter extends PainterLayer {
         int premiere = frame.firstRow();
         int derniere = premiere + frame.visibleRows();
         float baseY = metrics.rowBaseline(premiere) - frame.scrollY();
-        float hauteur = metrics.lineHeight();
-        tracerVoile(surface, frame, largeurGouttiere, hauteur,
+        float height = metrics.lineHeight();
+        tracerVoile(surface, frame, largeurGouttiere, height,
                 derniere - premiere);
-        GutterMarks marquesImage = marques.marques();
-        int ligneCourante = ligneCouranteDe(frame);
+        GutterMarks marquesImage = marks.marks();
+        int currentLine = currentLineOf(frame);
         for (int rangee = premiere; rangee < derniere; rangee++) {
             // A-18 : le numéro ne se pose que sur la première tranche
             // d'une ligne coupée — les rangées de continuation restent
@@ -288,25 +289,25 @@ public final class GutterPainter extends PainterLayer {
             if (frame.projection().spanIndexAtRow(rangee) != 0) {
                 continue;
             }
-            int ligne = frame.projection().firstLineOfRow(rangee);
-            float y = baseY + (rangee - premiere) * hauteur;
-            float largeurCoulisse = Math.max(0f, coulisse.laneWidth());
+            int line = frame.projection().firstLineOfRow(rangee);
+            float y = baseY + (rangee - premiere) * height;
+            float largeurCoulisse = Math.max(0f, lane.laneWidth());
             if (largeurCoulisse > 0f) {
-                tracerMarques(surface, marquesImage, ligne, y, hauteur,
+                tracerMarques(surface, marquesImage, line, y, height,
                         largeurCoulisse, frame);
             }
-            float largeurPli = Math.max(0f, bandePli.laneWidth());
+            float largeurPli = Math.max(0f, foldBand.laneWidth());
             if (largeurPli > 0f) {
-                tracerChevron(surface, marquesImage, ligne, y, hauteur,
+                tracerChevron(surface, marquesImage, line, y, height,
                         largeurGouttiere, largeurPli, frame);
             }
-            tracerPastille(surface, ligne, y, hauteur, largeurGouttiere,
+            tracerPastille(surface, line, y, height, largeurGouttiere,
                     largeurPli);
-            if (!numerosVisibles) {
+            if (!visibleNumbers) {
                 continue;
             }
-            tracerNumero(surface, frame, ligne, y, largeurGouttiere,
-                    largeurPli, charWidth, ligneCourante);
+            tracerNumero(surface, frame, line, y, largeurGouttiere,
+                    largeurPli, charWidth, currentLine);
         }
     }
 
@@ -315,12 +316,12 @@ public final class GutterPainter extends PainterLayer {
      * sans curseur (sélection vide de plages), la première ligne sert
      * de repère nul.
      */
-    private static int ligneCouranteDe(FrameState frame) {
-        var plages = frame.selection().ranges();
-        if (plages.isEmpty()) {
+    private static int currentLineOf(FrameState frame) {
+        var ranges = frame.selection().ranges();
+        if (ranges.isEmpty()) {
             return -1;
         }
-        return frame.document().lineForOffset(plages.get(0).caret());
+        return frame.document().lineForOffset(ranges.get(0).caret());
     }
 
     /**
@@ -329,14 +330,14 @@ public final class GutterPainter extends PainterLayer {
      * l'œil s'y pose ; la graisse et la couleur se reposent après le
      * tracé (PIEGE-01 : rien ne fuit vers l'étiquette suivante).
      */
-    private void tracerNumero(DrawSurface surface, FrameState frame, int ligne,
-            float y, float largeurGouttiere, float bandePli, float charWidth,
-            int ligneCourante) {
-        int numero = ligne + 1;
-        String etiquette = numeros.label(numero);
+    private void tracerNumero(DrawSurface surface, FrameState frame, int line,
+            float y, float largeurGouttiere, float foldBand, float charWidth,
+            int currentLine) {
+        int number = line + 1;
+        String etiquette = numbers.label(number);
         float x = GutterGeometry.numberX(etiquette.length(), largeurGouttiere,
-                bandePli, charWidth, marge);
-        if (ligne == ligneCourante) {
+                foldBand, charWidth, marge);
+        if (line == currentLine) {
             brush().setColor(frame.theme().baseTextColor());
             brush().setStyle(true, false, false);
             surface.drawText(etiquette, x, y, brush());
@@ -354,14 +355,14 @@ public final class GutterPainter extends PainterLayer {
      * de la zone de texte.
      */
     private void tracerVoile(DrawSurface surface, FrameState frame,
-            float largeurGouttiere, float hauteur, int rangeesVisibles) {
+            float largeurGouttiere, float height, int rangeesVisibles) {
         int voile = frame.theme().gutterBackground();
         if ((voile >>> 24) == 0 || largeurGouttiere <= 0f) {
             return;
         }
         brush().setColor(voile);
-        surface.drawRect(0f, -hauteur, largeurGouttiere,
-                (rangeesVisibles + 1) * hauteur, brush());
+        surface.drawRect(0f, -height, largeurGouttiere,
+                (rangeesVisibles + 1) * height, brush());
     }
 
     /**
@@ -370,16 +371,16 @@ public final class GutterPainter extends PainterLayer {
      * résolue du littéral — la couleur de la ressource, pas celle d'un
      * thème.
      */
-    private void tracerPastille(DrawSurface surface, int ligne, float y,
-            float hauteur, float largeurGouttiere, float bandePli) {
-        int couleur = pastilles.pastille(ligne);
+    private void tracerPastille(DrawSurface surface, int line, float y,
+            float height, float largeurGouttiere, float foldBand) {
+        int couleur = chips.chip(line);
         if (couleur == 0) {
             return;
         }
         float bord = Math.max(1f, marge / 4f);
         float cote = marge - 2f * bord;
-        float gauche = largeurGouttiere - bandePli - bord - cote;
-        float haut = y - hauteur + (hauteur - cote) / 2f;
+        float gauche = largeurGouttiere - foldBand - bord - cote;
+        float haut = y - height + (height - cote) / 2f;
         brush().setColor(couleur);
         surface.drawRect(gauche, haut, gauche + cote, haut + cote, brush());
     }
@@ -389,9 +390,9 @@ public final class GutterPainter extends PainterLayer {
      * coulisse — un losange plein dans la cellule, à l'encre du texte
      * de gouttière, le rendu du composé reste délégué à l'hôte.
      */
-    private void tracerRepere(DrawSurface surface, int ligne, float centreX,
+    private void tracerRepere(DrawSurface surface, int line, float centreX,
             float centreY, float cellule, FrameState frame) {
-        if (!reperes.repere(ligne)) {
+        if (!previewMarks.repere(line)) {
             return;
         }
         brush().setColor(frame.theme().gutterTextColor());
@@ -411,28 +412,28 @@ public final class GutterPainter extends PainterLayer {
      * (C-11) — la priorité se juge au tracé, l'arrêt et le repère
      * d'exécution y priment sur le point d'erreur.
      */
-    private void tracerMarques(DrawSurface surface, GutterMarks marques, int ligne,
-            float y, float hauteur, float coulisse, FrameState frame) {
-        float cellule = Math.min(coulisse, hauteur);
-        float centreX = coulisse / 2f;
+    private void tracerMarques(DrawSurface surface, GutterMarks marks, int line,
+            float y, float height, float lane, FrameState frame) {
+        float cellule = Math.min(lane, height);
+        float centreX = lane / 2f;
         // le MILIEU VISUEL de la rangée : la rangée couvre
         // [y - ascent, y + descent], le centre vit à y - ascent + h/2
-        float centreY = y - frame.metrics().ascent() + hauteur / 2f;
+        float centreY = y - frame.metrics().ascent() + height / 2f;
         // l'AMPOULE d'intentions PRIME sur le point d'erreur (le
         // comportement de l'IDE de référence : au caret qui porte un
         // diagnostic, l'ampoule remplace le marqueur — son tap ouvre
         // le menu des intentions)
-        if (ampoules.ampoule(ligne)) {
-            dessinerAmpoule(surface, centreX, centreY, cellule);
-        } else if (marques.erreur(ligne)) {
+        if (ampoules.ampoule(line)) {
+            drawBulb(surface, centreX, centreY, cellule);
+        } else if (marks.erreur(line)) {
             // le point d'erreur : un disque plein à l'encre d'erreur —
             // la marque se voit, elle ne se devine plus
             brush().setColor(frame.theme().syntaxe().couleur(TokenKind.ERROR));
             surface.drawCircle(centreX, centreY, cellule / 5f, true, brush());
         }
-        tracerIntegration(surface, marques, ligne, centreX, centreY, cellule,
+        tracerIntegration(surface, marks, line, centreX, centreY, cellule,
                 frame);
-        tracerRepere(surface, ligne, centreX, centreY, cellule, frame);
+        tracerRepere(surface, line, centreX, centreY, cellule, frame);
     }
 
     /**
@@ -441,9 +442,9 @@ public final class GutterPainter extends PainterLayer {
      * dessous, dans la cellule cohérente — le glyphe iconique, à
      * l'encre de l'icône (jaune sur tout thème, comme dans l'IDE).
      */
-    private void dessinerAmpoule(DrawSurface surface, float centreX,
+    private void drawBulb(DrawSurface surface, float centreX,
             float centreY, float cellule) {
-        brush().setColor(ENCRE_AMPOULE);
+        brush().setColor(BULB_INK);
         float rayon = cellule * 0.28f;
         // le verre de l'ampoule : un disque plein, légèrement haut
         surface.drawCircle(centreX, centreY - rayon * 0.2f, rayon, true,
@@ -463,17 +464,17 @@ public final class GutterPainter extends PainterLayer {
      * regarde en bas. Le glyphe prend sa cellule, la cible du doigt
      * comprise.
      */
-    private void tracerChevron(DrawSurface surface, GutterMarks marques, int ligne,
-            float y, float hauteur, float largeurGouttiere, float bandePli,
+    private void tracerChevron(DrawSurface surface, GutterMarks marks, int line,
+            float y, float height, float largeurGouttiere, float foldBand,
             FrameState frame) {
-        if (!marques.pliable(ligne)) {
+        if (!marks.pliable(line)) {
             return;
         }
-        float cellule = Math.min(bandePli, hauteur);
+        float cellule = Math.min(foldBand, height);
         // le chevron vit au centre de la bande, à droite du dernier
         // chiffre — le pli se lit contre le code qu'il replie
-        float centreX = largeurGouttiere - bandePli / 2f;
-        float centreY = y - frame.metrics().ascent() + hauteur / 2f;
+        float centreX = largeurGouttiere - foldBand / 2f;
+        float centreY = y - frame.metrics().ascent() + height / 2f;
         brush().setColor(attenuer(frame.theme().gutterTextColor(), 0.6f));
         // le trait FIN du chevron — l'épaisseur d'un filet, jamais la
         // graisse d'un triangle plein
@@ -481,7 +482,7 @@ public final class GutterPainter extends PainterLayer {
         float demi = cellule * 0.22f;
         // replié : la pointe regarde à droite › ; pliable : en bas ⌄ —
         // deux traits joints au sommet racontent l'état
-        if (marques.replie(ligne)) {
+        if (marks.replie(line)) {
             surface.drawLine(centreX - demi, centreY - demi, centreX + demi,
                     centreY, brush());
             surface.drawLine(centreX - demi, centreY + demi, centreX + demi,
@@ -503,12 +504,12 @@ public final class GutterPainter extends PainterLayer {
      * PLEINE de la ligne courante à l'encre du curseur, le chevron
      * discret des lignes de pile.
      */
-    private void tracerIntegration(DrawSurface surface, GutterMarks marques,
-            int ligne, float centreX, float centreY, float cellule,
+    private void tracerIntegration(DrawSurface surface, GutterMarks marks,
+            int line, float centreX, float centreY, float cellule,
             FrameState frame) {
-        tracerBarreVcs(surface, marques, ligne, centreY, cellule, frame);
-        tracerBreakpoint(surface, marques, ligne, centreX, centreY, cellule, frame);
-        tracerExecution(surface, marques, ligne, centreX, centreY, cellule,
+        tracerBarreVcs(surface, marks, line, centreY, cellule, frame);
+        tracerBreakpoint(surface, marks, line, centreX, centreY, cellule, frame);
+        tracerExecution(surface, marks, line, centreX, centreY, cellule,
                 frame);
     }
 
@@ -516,9 +517,9 @@ public final class GutterPainter extends PainterLayer {
      * La barre de modification VCS (D-03) : au bord gauche de la
      * coulisse, plein rang de hauteur.
      */
-    private void tracerBarreVcs(DrawSurface surface, GutterMarks marques, int ligne,
+    private void tracerBarreVcs(DrawSurface surface, GutterMarks marks, int line,
             float centreY, float cellule, FrameState frame) {
-        MarkLine marque = marques.marqueVcs(ligne);
+        MarkLine marque = marks.marqueVcs(line);
         if (marque == MarkLine.INCHANGE) {
             return;
         }
@@ -535,14 +536,14 @@ public final class GutterPainter extends PainterLayer {
      * CERCLE CREUX à l'encre de gouttière désactivé — dans la cellule
      * cohérente, le tiers du côté pour rayon.
      */
-    private void tracerBreakpoint(DrawSurface surface, GutterMarks marques, int ligne,
+    private void tracerBreakpoint(DrawSurface surface, GutterMarks marks, int line,
             float centreX, float centreY, float cellule, FrameState frame) {
-        EtatBreakpoint arret = marques.arret(ligne);
-        if (arret == EtatBreakpoint.AUCUN) {
+        BreakpointState stop = marks.stop(line);
+        if (stop == BreakpointState.AUCUN) {
             return;
         }
         float rayon = cellule / 3f;
-        if (arret == EtatBreakpoint.POSE) {
+        if (stop == BreakpointState.POSE) {
             brush().setColor(frame.theme().syntaxe().couleur(TokenKind.ERROR));
             surface.drawCircle(centreX, centreY, rayon, true, brush());
             return;
@@ -556,13 +557,13 @@ public final class GutterPainter extends PainterLayer {
      * Le repère d'exécution (D-05) : FLÈCHE PLEINE à la ligne courante,
      * chevron discret à la pile — dans la cellule cohérente.
      */
-    private void tracerExecution(DrawSurface surface, GutterMarks marques, int ligne,
+    private void tracerExecution(DrawSurface surface, GutterMarks marks, int line,
             float centreX, float centreY, float cellule, FrameState frame) {
-        @Nullable Integer courante = marques.ligneCourante();
-        if (courante != null && courante == ligne) {
+        @Nullable Integer courante = marks.currentLine();
+        if (courante != null && courante == line) {
             brush().setColor(frame.theme().cursorColor());
             surface.drawTriangle(centreX, centreY, cellule / 3f, false, brush());
-        } else if (marques.dansPile(ligne)) {
+        } else if (marks.inStack(line)) {
             brush().setColor(frame.theme().gutterTextColor());
             float ouverture = cellule / 6f;
             surface.drawLine(centreX - ouverture, centreY - ouverture,

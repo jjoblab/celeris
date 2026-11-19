@@ -37,17 +37,17 @@ import org.jspecify.annotations.Nullable;
 public final class SyntaxRowSource implements RowSource {
 
     private final RowSource deleguee;
-    private final LexDocument lexique;
+    private final LexDocument lexicon;
     private final @Nullable TokenCatchUp remappeur;
 
     /**
      * Construit la source colorée sur une source déléguée.
      *
      * @param deleguee la source des mises en page non colorées
-     * @param lexique  le document lexicographié de l'analyse courante
+     * @param lexicon  le document lexicographié de l'analyse courante
      */
-    public SyntaxRowSource(RowSource deleguee, LexDocument lexique) {
-        this(deleguee, lexique, null);
+    public SyntaxRowSource(RowSource deleguee, LexDocument lexicon) {
+        this(deleguee, lexicon, null);
     }
 
     /**
@@ -57,26 +57,26 @@ public final class SyntaxRowSource implements RowSource {
      * ligne touchée, tels quels pour les lignes épargnées.
      *
      * @param deleguee  la source des mises en page non colorées
-     * @param lexique   le document lexicographié de la publication
+     * @param lexicon   le document lexicographié de la publication
      * @param remappeur le rattrapage des jetons sur l'édition en
      *                  attente, null pour l'habillage à jour
      */
-    public SyntaxRowSource(RowSource deleguee, LexDocument lexique,
+    public SyntaxRowSource(RowSource deleguee, LexDocument lexicon,
             @Nullable TokenCatchUp remappeur) {
         this.deleguee = deleguee;
-        this.lexique = lexique;
+        this.lexicon = lexicon;
         this.remappeur = remappeur;
     }
 
     @Override
     public RowLayout layoutOf(RowKey key) {
         RowLayout base = deleguee.layoutOf(key);
-        List<ColoredSpan> plages = plagesDe(base);
-        if (plages.isEmpty()) {
+        List<ColoredSpan> ranges = plagesDe(base);
+        if (ranges.isEmpty()) {
             return base;
         }
         return new RowLayout(base.line(), base.start(), base.end(), base.text(),
-                base.width(), base.runs(), plages);
+                base.width(), base.runs(), ranges);
     }
 
     /**
@@ -89,12 +89,12 @@ public final class SyntaxRowSource implements RowSource {
      * @return la mise en page à jour — la même si rien n'a changé
      */
     public RowLayout respan(RowLayout base) {
-        List<ColoredSpan> plages = plagesDe(base);
-        if (plages.equals(base.spans())) {
+        List<ColoredSpan> ranges = plagesDe(base);
+        if (ranges.equals(base.spans())) {
             return base;
         }
         return new RowLayout(base.line(), base.start(), base.end(), base.text(),
-                base.width(), base.runs(), plages);
+                base.width(), base.runs(), ranges);
     }
 
     /**
@@ -114,37 +114,37 @@ public final class SyntaxRowSource implements RowSource {
             // neuve sans lexeur) : encre de base — le seul cas restant.
             return List.of();
         }
-        Token[] jetons = panier.tokens();
-        List<ColoredSpan> plages = new ArrayList<>();
-        int curseur = base.start();
-        for (Token jeton : jetons) {
-            if (jeton.end() <= curseur) {
+        Token[] tokens = panier.tokens();
+        List<ColoredSpan> ranges = new ArrayList<>();
+        int cursor = base.start();
+        for (Token token : tokens) {
+            if (token.end() <= cursor) {
                 continue;
             }
-            if (jeton.start() >= base.end()) {
+            if (token.start() >= base.end()) {
                 break;
             }
-            if (jeton.start() > curseur) {
-                plages.add(new ColoredSpan(TokenKind.IDENTIFIER,
-                        curseur - base.start(), jeton.start() - base.start()));
+            if (token.start() > cursor) {
+                ranges.add(new ColoredSpan(TokenKind.IDENTIFIER,
+                        cursor - base.start(), token.start() - base.start()));
             }
-            int debutRogne = Math.max(jeton.start(), curseur);
-            int finRogne = Math.min(jeton.end(), base.end());
+            int debutRogne = Math.max(token.start(), cursor);
+            int finRogne = Math.min(token.end(), base.end());
             if (finRogne > debutRogne) {
-                plages.add(new ColoredSpan(jeton.kind(),
+                ranges.add(new ColoredSpan(token.kind(),
                         debutRogne - base.start(), finRogne - base.start(),
-                        jeton.scope()));
+                        token.scope()));
             }
-            curseur = Math.max(curseur, jeton.end());
-            if (curseur >= base.end()) {
+            cursor = Math.max(cursor, token.end());
+            if (cursor >= base.end()) {
                 break;
             }
         }
-        if (curseur < base.end()) {
-            plages.add(new ColoredSpan(TokenKind.IDENTIFIER,
-                    curseur - base.start(), base.end() - base.start()));
+        if (cursor < base.end()) {
+            ranges.add(new ColoredSpan(TokenKind.IDENTIFIER,
+                    cursor - base.start(), base.end() - base.start()));
         }
-        return plages;
+        return ranges;
     }
 
     /**
@@ -155,7 +155,7 @@ public final class SyntaxRowSource implements RowSource {
     private @Nullable LexedLine panierDe(RowLayout base) {
         TokenCatchUp remap = remappeur;
         if (remap == null) {
-            return lexique.line(base.line());
+            return lexicon.line(base.line());
         }
         return remap.basketFor(base.line());
     }

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jo.celeris.core.lsp.types.DiagnosticLsp;
-import jo.celeris.core.lsp.types.PlageLsp;
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.RangeLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 
 /**
  * Les diagnostics Java du mini serveur : un balayage réel du texte,
@@ -21,20 +21,20 @@ final class DiagnosticsJava {
     }
 
     /** Les diagnostics du texte Java. */
-    static List<DiagnosticLsp> de(String texte) {
+    static List<DiagnosticLsp> of(String text) {
         List<DiagnosticLsp> diagnostics = new ArrayList<>();
-        appariement(texte, diagnostics);
-        pointsVirgules(texte, diagnostics);
+        appariement(text, diagnostics);
+        pointsVirgules(text, diagnostics);
         return diagnostics;
     }
 
     /** L'appariement des accolades, parenthèses et crochets — les
      *  ouvrantes orphelines rendent leur ligne, chaque fermante
      *  solitaire aussi. */
-    private static void appariement(String texte,
+    private static void appariement(String text,
             List<DiagnosticLsp> diagnostics) {
         BalayageJava balayage = new BalayageJava();
-        java.util.ArrayDeque<int[]> pile = balayage.balayer(texte, diagnostics);
+        java.util.ArrayDeque<int[]> pile = balayage.balayer(text, diagnostics);
         noterOuvrantesOrphelines(diagnostics, pile);
     }
 
@@ -51,31 +51,31 @@ final class DiagnosticsJava {
         /** L'état du balayage : chaîne, commentaires, position. */
         private boolean dansChaine;
         private char quote;
-        private boolean ligneCommentaire;
+        private boolean commentLine;
         private boolean blocCommentaire;
-        private int ligne;
-        private int colonne;
+        private int line;
+        private int column;
 
-        java.util.ArrayDeque<int[]> balayer(String texte,
+        java.util.ArrayDeque<int[]> balayer(String text,
                 List<DiagnosticLsp> diagnostics) {
-            for (int i = 0; i < texte.length(); i++) {
-                char c = texte.charAt(i);
-                char suivant = i + 1 < texte.length()
-                        ? texte.charAt(i + 1) : 0;
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                char suivant = i + 1 < text.length()
+                        ? text.charAt(i + 1) : 0;
                 if (c == '\n') {
-                    ligne++;
-                    colonne = 0;
-                    ligneCommentaire = false;
+                    line++;
+                    column = 0;
+                    commentLine = false;
                     continue;
                 }
-                colonne++;
+                column++;
                 if (horsCode(c, suivant, i) >= 0) {
                     continue;
                 }
                 if (c == '{' || c == '(' || c == '[') {
-                    pile.push(new int[]{c, ligne, colonne});
+                    pile.push(new int[]{c, line, column});
                 } else if (c == '}' || c == ')' || c == ']') {
-                    noterFermante(diagnostics, pile, c, ligne, colonne);
+                    noterFermante(diagnostics, pile, c, line, column);
                 }
             }
             return pile;
@@ -86,7 +86,7 @@ final class DiagnosticsJava {
          *  l'échappée), chaîne qui s'ouvre (0), -1 quand le caractère
          *  vit dans le code. */
         private int horsCode(char c, char suivant, int position) {
-            if (ligneCommentaire) {
+            if (commentLine) {
                 return 0;
             }
             if (blocCommentaire) {
@@ -106,7 +106,7 @@ final class DiagnosticsJava {
                 return 0;
             }
             if (c == '/' && suivant == '/') {
-                ligneCommentaire = true;
+                commentLine = true;
                 return 0;
             }
             if (c == '/' && suivant == '*') {
@@ -129,9 +129,9 @@ final class DiagnosticsJava {
         for (int[] ouvrante : pile) {
             if (lignesDeja.add(ouvrante[1])) {
                 diagnostics.add(new DiagnosticLsp(
-                        new PlageLsp(
-                                new PositionLsp(ouvrante[1], ouvrante[2] - 1),
-                                new PositionLsp(ouvrante[1], ouvrante[2])),
+                        new RangeLsp(
+                                new LspPosition(ouvrante[1], ouvrante[2] - 1),
+                                new LspPosition(ouvrante[1], ouvrante[2])),
                         DiagnosticLsp.ERREUR,
                         "'" + (char) ouvrante[0] + "' ouverte, jamais fermee",
                         "minijava", "appariement"));
@@ -142,12 +142,12 @@ final class DiagnosticsJava {
     /** Note une fermante : appariée elle se dépile, solitaire elle
      *  rend son diagnostic. */
     private static void noterFermante(List<DiagnosticLsp> diagnostics,
-            java.util.ArrayDeque<int[]> pile, char c, int ligne, int colonne) {
+            java.util.ArrayDeque<int[]> pile, char c, int line, int column) {
         char attendue = c == '}' ? '{' : c == ')' ? '(' : '[';
         if (pile.isEmpty() || pile.peek()[0] != attendue) {
             diagnostics.add(new DiagnosticLsp(
-                    new PlageLsp(new PositionLsp(ligne, colonne - 1),
-                            new PositionLsp(ligne, colonne)),
+                    new RangeLsp(new LspPosition(line, column - 1),
+                            new LspPosition(line, column)),
                     DiagnosticLsp.ERREUR,
                     "Fermante '''" + c + "''' sans ouvrante",
                     "minijava", "appariement"));
@@ -164,12 +164,12 @@ final class DiagnosticsJava {
      *  classe (qui finissent en « ) { » ou « { ») ne comptent pas :
      *  l'ouvrante d'appel finit en « ( » ? Le filtrage par dernier
      *  caractère significant suffit à la mesure de l'exemple. */
-    private static void pointsVirgules(String texte,
+    private static void pointsVirgules(String text,
             List<DiagnosticLsp> diagnostics) {
-        String[] lignes = texte.split("\n", -1);
-        for (int numero = 0; numero < lignes.length; numero++) {
-            String ligne = lignes[numero];
-            String code = ligne.trim();
+        String[] lines = text.split("\n", -1);
+        for (int number = 0; number < lines.length; number++) {
+            String line = lines[number];
+            String code = line.trim();
             if (code.isEmpty() || code.startsWith("//")
                     || code.startsWith("*") || code.startsWith("/*")) {
                 continue;
@@ -186,9 +186,9 @@ final class DiagnosticsJava {
                     || dernier == ']' || dernier == '"'
                     || dernier == '.') {
                 diagnostics.add(new DiagnosticLsp(
-                        new PlageLsp(
-                                new PositionLsp(numero, code.length() - 1),
-                                new PositionLsp(numero, code.length())),
+                        new RangeLsp(
+                                new LspPosition(number, code.length() - 1),
+                                new LspPosition(number, code.length())),
                         DiagnosticLsp.AVERTISSEMENT,
                         "Point-virgule manquant probable",
                         "minijava", "syntaxe"));

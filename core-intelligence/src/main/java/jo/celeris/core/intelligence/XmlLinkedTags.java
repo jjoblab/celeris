@@ -278,11 +278,11 @@ public final class XmlLinkedTags {
     }
 
     /** Vrai quand le texte au offset commence par le terminateur donné. */
-    private static boolean commence(Document doc, int offset, int limit, String fin) {
-        if (offset + fin.length() > limit) {
+    private static boolean commence(Document doc, int offset, int limit, String end) {
+        if (offset + end.length() > limit) {
             return false;
         }
-        return doc.subText(offset, offset + fin.length()).equals(fin);
+        return doc.subText(offset, offset + end.length()).equals(end);
     }
 
     /** Vrai pour un caractère de nom XML : lettre, chiffre ou les séparateurs usuels. */

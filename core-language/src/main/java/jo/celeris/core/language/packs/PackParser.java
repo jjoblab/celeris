@@ -65,7 +65,7 @@ final class PackParser {
                 JsonChamps.chaineNulle(champs.get("parent")),
                 JsonChamps.chaineNulle(champs.get("contentHint")),
                 badge(champs),
-                couleurBadge(champs));
+                badgeColor(champs));
     }
 
     /** La configuration d'un language.json lu (son analyseur dédié). */
@@ -105,12 +105,12 @@ final class PackParser {
     static List<PackSnippet> snippets(String json) {
         Map<String, Object> champs = JsonChamps.objet(JsonReader.read(json), "snippets.json");
         List<PackSnippet> extraits = new ArrayList<>();
-        for (Map.Entry<String, Object> entree : champs.entrySet()) {
-            Map<String, Object> extrait = JsonChamps.objet(entree.getValue(), "snippets.json");
+        for (Map.Entry<String, Object> input : champs.entrySet()) {
+            Map<String, Object> extrait = JsonChamps.objet(input.getValue(), "snippets.json");
             extraits.add(new PackSnippet(
-                    entree.getKey(),
+                    input.getKey(),
                     JsonChamps.chaineRequise(extrait, "prefix", "snippets.json entry"),
-                    corps(extrait.get("body"), entree.getKey()),
+                    body(extrait.get("body"), input.getKey()),
                     JsonChamps.chaineNulle(extrait.get("description"))));
         }
         return extraits;
@@ -158,22 +158,22 @@ final class PackParser {
     }
 
     /** La couleur du badge : #RRGGBB ou #AARRGGBB, gris par défaut. */
-    private static int couleurBadge(Map<String, Object> champs) {
+    private static int badgeColor(Map<String, Object> champs) {
         String hex = JsonChamps.chaineNulle(champs.get("badgeColor"));
         if (hex == null) {
             return 0xFF9AA0A6;
         }
-        String chiffres = hex.startsWith("#") ? hex.substring(1) : hex;
-        if (chiffres.length() != 6 && chiffres.length() != 8) {
+        String digits = hex.startsWith("#") ? hex.substring(1) : hex;
+        if (digits.length() != 6 && digits.length() != 8) {
             throw new IllegalArgumentException(
                     "badgeColor must be #RRGGBB or #AARRGGBB: " + hex);
         }
         try {
-            long valeur = Long.parseLong(chiffres, 16);
-            if (chiffres.length() == 6) {
-                return (int) (0xFF000000L | valeur);
+            long value = Long.parseLong(digits, 16);
+            if (digits.length() == 6) {
+                return (int) (0xFF000000L | value);
             }
-            return (int) valeur;
+            return (int) value;
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(
                     "badgeColor must be hexadecimal: " + hex);
@@ -200,21 +200,21 @@ final class PackParser {
     }
 
     /** Le corps d'un extrait : chaîne ou liste de lignes. */
-    private static List<String> corps(@Nullable Object brut, String nom) {
+    private static List<String> body(@Nullable Object brut, String nom) {
         if (brut == null) {
             throw new IllegalArgumentException(
                     "snippet body is missing: " + nom);
         }
-        if (brut instanceof List<?> lignes) {
-            List<String> corps = new ArrayList<>();
-            for (Object ligne : lignes) {
-                corps.add(String.valueOf(ligne));
+        if (brut instanceof List<?> lines) {
+            List<String> body = new ArrayList<>();
+            for (Object line : lines) {
+                body.add(String.valueOf(line));
             }
-            if (corps.isEmpty()) {
+            if (body.isEmpty()) {
                 throw new IllegalArgumentException(
                         "snippet body must not be empty: " + nom);
             }
-            return corps;
+            return body;
         }
         return List.of(String.valueOf(brut));
     }

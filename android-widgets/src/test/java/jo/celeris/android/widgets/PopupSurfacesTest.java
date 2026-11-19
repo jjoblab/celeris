@@ -232,22 +232,22 @@ public class PopupSurfacesTest {
         // s'étire pas sur l'étendue posée
         assertEquals("la carte courte prend sa hauteur honnête", 250,
                 vue.getMeasuredHeight());
-        AtomicInteger ligne = new AtomicInteger(-1);
-        vue.setOnJump(ligne::set);
+        AtomicInteger line = new AtomicInteger(-1);
+        vue.setOnJump(line::set);
         // le haut de carte vise la tête du document
         vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
                 2f, 5f, 0));
         assertTrue(vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
                 MotionEvent.ACTION_UP, 2f, 5f, 0)));
         assertTrue("l'appui saute vers la tête",
-                ligne.get() >= 0 && ligne.get() <= 2);
+                line.get() >= 0 && line.get() <= 2);
         // le glissement saute aussi — le doigt tient la carte
         vue.onTouchEvent(MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN,
                 2f, 5f, 0));
         assertTrue(vue.onTouchEvent(MotionEvent.obtain(0L, 10L,
                 MotionEvent.ACTION_MOVE, 2f, 995f, 0)));
         assertTrue("le glissement saute vers le pied",
-                ligne.get() >= 97);
+                line.get() >= 97);
         // la fenêtre visible : les crans se bornent
         vue.setViewport(50, 10, 100);
         assertTrue("la fenêtre se pose sans casser",
@@ -289,7 +289,7 @@ public class PopupSurfacesTest {
     public void fastScrollerDragsToTheTargetFraction() {
         FastScrollerView vue = new FastScrollerView(contexte,
                 PopupPalette.dark());
-        vue.setEtat(0f, 0.5f);
+        vue.setState(0f, 0.5f);
         vue.setSpanPx(1000);
         mesurer(vue);
         vue.layout(0, 0, vue.getMeasuredWidth(), vue.getMeasuredHeight());
@@ -316,13 +316,13 @@ public class PopupSurfacesTest {
         assertTrue(vue.onTouchEvent(MotionEvent.obtain(0L, 30L,
                 MotionEvent.ACTION_UP, 2f, 995f, 0)));
         // tout tient : le pouce se tait — l'état reste posé
-        vue.setEtat(0.5f, 1f);
+        vue.setState(0.5f, 1f);
         assertTrue("tout tient, l'état reste", vue.getMeasuredHeight() > 0);
     }
 
     private static jo.celeris.core.syntax.SyntaxIssue nouvelleIssue(
-            int offset, int longueur) {
-        return new jo.celeris.core.syntax.SyntaxIssue(offset, longueur,
+            int offset, int length) {
+        return new jo.celeris.core.syntax.SyntaxIssue(offset, length,
                 "exemple de diagnostic");
     }
 

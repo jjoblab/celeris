@@ -23,11 +23,11 @@ public final class CaretGeometry {
      */
     public static int rowOfOffset(Document document, VisualProjection projection,
             int offset) {
-        int ligne = document.lineForOffset(offset);
-        int colonne = offset - document.lineStart(ligne);
+        int line = document.lineForOffset(offset);
+        int column = offset - document.lineStart(line);
         int colonnes = projection.columns();
-        int tranche = colonnes > 0 ? colonne / colonnes : 0;
-        return projection.rowOfLine(ligne) + tranche;
+        int tranche = colonnes > 0 ? column / colonnes : 0;
+        return projection.rowOfLine(line) + tranche;
     }
 
     /**
@@ -45,10 +45,10 @@ public final class CaretGeometry {
     public static float xOfOffset(Document document, VisualProjection projection,
             EditorMetrics metrics, float gutterWidth, float scrollX, int offset) {
         int rangee = rowOfOffset(document, projection, offset);
-        int ligne = document.lineForOffset(offset);
-        int colonne = offset - document.lineStart(ligne);
+        int line = document.lineForOffset(offset);
+        int column = offset - document.lineStart(line);
         int colonnes = projection.columns();
-        int dansTranche = colonnes > 0 ? colonne % colonnes : colonne;
+        int dansTranche = colonnes > 0 ? column % colonnes : column;
         // B-05 : la rangée de suite démarre au retrait de sa ligne.
         int indent = projection.indentAtRow(rangee);
         return gutterWidth + (indent + dansTranche) * metrics.charWidth()

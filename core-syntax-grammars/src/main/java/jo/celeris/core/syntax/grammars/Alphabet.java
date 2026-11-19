@@ -7,10 +7,10 @@ package jo.celeris.core.syntax.grammars;
  * ces caractères (classe large, négation, intervalle).
  *
  * @param source la source du motif qui porte le délimiteur
- * @param debut  le début de l'alphabet dans la source
- * @param fin    la fin (exclusive) de l'alphabet dans la source
+ * @param start  le début de l'alphabet dans la source
+ * @param end    la fin (exclusive) de l'alphabet dans la source
  */
-record Alphabet(String source, int debut, int fin) {
+record Alphabet(String source, int start, int end) {
 
     /** Vrai si l'alphabet contient le caractère donné. */
     boolean contient(char c) {
@@ -61,11 +61,11 @@ record Alphabet(String source, int debut, int fin) {
      * @return vrai si l'échappement peut avaler un caractère du délimiteur
      */
     boolean couvreEchappement(char echappee) {
-        return largeurNulle(echappee) ? false : couvreClasseLarge(echappee);
+        return zeroWidth(echappee) ? false : couvreClasseLarge(echappee);
     }
 
     /** Les échappements de largeur nulle : assertions, jamais des atomes. */
-    private static boolean largeurNulle(char echappee) {
+    private static boolean zeroWidth(char echappee) {
         return "bBAzZGK".indexOf(echappee) >= 0;
     }
 
@@ -105,7 +105,7 @@ record Alphabet(String source, int debut, int fin) {
 
     /** Vrai si un caractère de l'alphabet satisfait le prédicat. */
     private boolean existe(java.util.function.IntPredicate predicat) {
-        for (int i = debut; i < fin; i++) {
+        for (int i = start; i < end; i++) {
             if (predicat.test(source.charAt(i))) {
                 return true;
             }

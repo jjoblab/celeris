@@ -20,47 +20,47 @@ class CapacitesServeurTest {
     /** La fabrique typée : la surface complète se relit champ à champ. */
     @Test
     void laFabriqueTypee() {
-        CapacitesServeur capacites = CapacitesServeur.de(2,
+        ServerCapsLsp capacites = ServerCapsLsp.of(2,
                 true, true, true, true, true, true, true, true, true,
                 true, true, true, true,
                 List.of("keyword", "variable"), List.of("declaration"));
-        assertEquals(2, capacites.genreSynchro());
-        assertTrue(capacites.sertCompletion());
-        assertTrue(capacites.sertSurvol());
-        assertTrue(capacites.sertSignature());
-        assertTrue(capacites.sertDefinition());
-        assertTrue(capacites.sertReferences());
-        assertTrue(capacites.sertSurlignages());
-        assertTrue(capacites.sertSymboles());
-        assertTrue(capacites.sertPlis());
-        assertTrue(capacites.sertSelectionPlages());
-        assertTrue(capacites.sertRennomage());
-        assertTrue(capacites.sertCorrectifs());
-        assertTrue(capacites.sertFormatage());
-        assertTrue(capacites.sertIndices());
-        assertEquals(List.of("keyword", "variable"), capacites.typesTokens());
-        assertEquals(List.of("declaration"), capacites.modificateursTokens());
+        assertEquals(2, capacites.syncKind());
+        assertTrue(capacites.supportsCompletion());
+        assertTrue(capacites.supportsHover());
+        assertTrue(capacites.supportsSignature());
+        assertTrue(capacites.supportsDefinition());
+        assertTrue(capacites.supportsReferences());
+        assertTrue(capacites.supportsHighlights());
+        assertTrue(capacites.supportsSymbols());
+        assertTrue(capacites.supportsFolds());
+        assertTrue(capacites.supportsRangeSelection());
+        assertTrue(capacites.supportsRename());
+        assertTrue(capacites.supportsCodeActions());
+        assertTrue(capacites.supportsFormatting());
+        assertTrue(capacites.supportsInlayHints());
+        assertEquals(List.of("keyword", "variable"), capacites.tokenTypes());
+        assertEquals(List.of("declaration"), capacites.tokenModifiers());
     }
 
     /** Les capacités vides : l'origine avant la poignée de main, rien de deviné. */
     @Test
     void lesCapacitesVides() {
-        CapacitesServeur vides = CapacitesServeur.vides();
-        assertEquals(-1, vides.genreSynchro());
-        assertFalse(vides.sertCompletion());
-        assertFalse(vides.sertSurvol());
-        assertFalse(vides.sertSignature());
-        assertFalse(vides.sertDefinition());
-        assertFalse(vides.sertReferences());
-        assertFalse(vides.sertSurlignages());
-        assertFalse(vides.sertSymboles());
-        assertFalse(vides.sertPlis());
-        assertFalse(vides.sertSelectionPlages());
-        assertFalse(vides.sertRennomage());
-        assertFalse(vides.sertCorrectifs());
-        assertFalse(vides.sertFormatage());
-        assertFalse(vides.sertIndices());
-        assertEquals(List.of(), vides.typesTokens());
-        assertEquals(List.of(), vides.modificateursTokens());
+        ServerCapsLsp empty = ServerCapsLsp.empty();
+        assertEquals(-1, empty.syncKind());
+        assertFalse(empty.supportsCompletion());
+        assertFalse(empty.supportsHover());
+        assertFalse(empty.supportsSignature());
+        assertFalse(empty.supportsDefinition());
+        assertFalse(empty.supportsReferences());
+        assertFalse(empty.supportsHighlights());
+        assertFalse(empty.supportsSymbols());
+        assertFalse(empty.supportsFolds());
+        assertFalse(empty.supportsRangeSelection());
+        assertFalse(empty.supportsRename());
+        assertFalse(empty.supportsCodeActions());
+        assertFalse(empty.supportsFormatting());
+        assertFalse(empty.supportsInlayHints());
+        assertEquals(List.of(), empty.tokenTypes());
+        assertEquals(List.of(), empty.tokenModifiers());
     }
 }

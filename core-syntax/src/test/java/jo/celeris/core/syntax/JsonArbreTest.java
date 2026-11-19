@@ -68,11 +68,11 @@ class JsonArbreTest {
     @Test
     void plisDesContenants() {
         Document doc = Document.of(CorpusChargeur.exempleJson());
-        List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
-        assertEquals(3, plis.size(), "la racine, les modules, les seuils");
-        assertEquals(0, plis.get(0).startLine());
-        assertEquals(16, plis.get(0).endLine());
-        assertTrue(plis.stream().anyMatch(p -> p.startLine() == 3 && p.endLine() == 7),
+        List<FoldSpan> folds = TreeFolds.regions(doc, service.analyseFull(doc));
+        assertEquals(3, folds.size(), "la racine, les modules, les seuils");
+        assertEquals(0, folds.get(0).startLine());
+        assertEquals(16, folds.get(0).endLine());
+        assertTrue(folds.stream().anyMatch(p -> p.startLine() == 3 && p.endLine() == 7),
                 "le tableau des modules se replie");
     }
 
@@ -101,11 +101,11 @@ class JsonArbreTest {
         String source = CorpusChargeur.exempleJson();
         Document doc = Document.of(source);
         Analysis complet = service.analyseFull(doc);
-        int cible = source.indexOf("Celeris");
-        assertTrue(cible > 0);
-        Document edite = doc.replace(cible, cible + 7, "CelerisX");
+        int target = source.indexOf("Celeris");
+        assertTrue(target > 0);
+        Document edite = doc.replace(target, target + 7, "CelerisX");
         Analysis diff = service.analyseIncremental(edite, complet,
-                EditSite.of(doc, edite, cible, cible + 7, "CelerisX"));
+                EditSite.of(doc, edite, target, target + 7, "CelerisX"));
         Arbres.verifierEquivalence(diff.tree(),
                 service.analyseFull(edite).tree(), edite);
     }

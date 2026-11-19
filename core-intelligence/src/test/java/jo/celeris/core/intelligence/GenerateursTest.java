@@ -57,39 +57,39 @@ class GenerateursTest {
     /** Le constructeur : paramètres et affectations, un par champ. */
     @Test
     void leConstructeur() {
-        String texte = Generateurs.constructeur("Personne", champs());
+        String text = Generateurs.constructeur("Personne", champs());
         assertEquals("""
                 public Personne(String nom, int age, boolean actif) {
                     this.nom = nom;
                     this.age = age;
                     this.actif = actif;
                 }
-                """.stripTrailing(), texte.stripTrailing());
+                """.stripTrailing(), text.stripTrailing());
     }
 
     /** Les accesseurs : getter et setter par champ, conventions de nommage. */
     @Test
     void lesAccesseurs() {
-        String texte = Generateurs.accesseurs(champs());
-        assertTrue(texte.contains("public String getNom()"));
-        assertTrue(texte.contains("return nom;"));
-        assertTrue(texte.contains("public void setAge(int age)"));
-        assertTrue(texte.contains("this.age = age;"));
+        String text = Generateurs.accesseurs(champs());
+        assertTrue(text.contains("public String getNom()"));
+        assertTrue(text.contains("return nom;"));
+        assertTrue(text.contains("public void setAge(int age)"));
+        assertTrue(text.contains("this.age = age;"));
         // le booléen : isActif, pas getActif — la convention Java
-        assertTrue(texte.contains("public boolean isActif()"));
-        assertTrue(!texte.contains("getActif"));
+        assertTrue(text.contains("public boolean isActif()"));
+        assertTrue(!text.contains("getActif"));
     }
 
     /** equals/hashCode/toString : tous les champs, les conventions tenues. */
     @Test
     void equalsHashCodeToString() {
-        String texte = Generateurs.equalsHashCodeToString("Personne", champs());
-        assertTrue(texte.contains("@Override"));
-        assertTrue(texte.contains("public boolean equals(Object o)"));
-        assertTrue(texte.contains("public int hashCode()"));
-        assertTrue(texte.contains("Objects.hash(nom, age, actif)"));
-        assertTrue(texte.contains("public String toString()"));
-        assertTrue(texte.contains("return \"Personne{nom=\" + nom"));
+        String text = Generateurs.equalsHashCodeToString("Personne", champs());
+        assertTrue(text.contains("@Override"));
+        assertTrue(text.contains("public boolean equals(Object o)"));
+        assertTrue(text.contains("public int hashCode()"));
+        assertTrue(text.contains("Objects.hash(nom, age, actif)"));
+        assertTrue(text.contains("public String toString()"));
+        assertTrue(text.contains("return \"Personne{nom=\" + nom"));
     }
 
     /** La position d'insertion : avant l'accolade fermante de la classe. */

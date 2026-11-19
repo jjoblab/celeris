@@ -34,7 +34,7 @@ class TextPainterSyntaxTest {
      */
     private static final class PinceauMutable implements TextBrush {
         private int couleur;
-        private @Nullable FontSpec police;
+        private @Nullable FontSpec font;
 
         @Override
         public void setColor(int argb) {
@@ -47,8 +47,8 @@ class TextPainterSyntaxTest {
         }
 
         @Override
-        public void setFont(FontSpec police) {
-            this.police = police;
+        public void setFont(FontSpec font) {
+            this.font = font;
         }
     }
 
@@ -56,8 +56,8 @@ class TextPainterSyntaxTest {
      * Un tracé de texte : sa tranche, la couleur posée à l'instant de
      * l'appel, et la police posée au même instant.
      */
-    private record Trace(CharSequence texte, int debut, int fin, float x, int couleur,
-            @Nullable FontSpec police) {
+    private record Trace(CharSequence text, int start, int end, float x, int couleur,
+            @Nullable FontSpec font) {
     }
 
     /** Surface enregistreuse : capture chaque tracé avec la couleur au moment précis. */
@@ -86,9 +86,9 @@ class TextPainterSyntaxTest {
             return traces;
         }
 
-        private static @Nullable FontSpec policeDe(TextBrush brush) {
-            if (brush instanceof PinceauMutable pinceau) {
-                return pinceau.police;
+        private static @Nullable FontSpec policeDe(TextBrush source) {
+            if (source instanceof PinceauMutable brush) {
+                return brush.font;
             }
             return null;
         }
@@ -133,58 +133,58 @@ class TextPainterSyntaxTest {
 
     private static FrameState image(Document document, VisualProjection projection,
             int rangeesVisibles) {
-        FrameState etat = new FrameState();
-        etat.beginFrame(document, MultiSelection.empty(), projection, 1L,
+        FrameState state = new FrameState();
+        state.beginFrame(document, MultiSelection.empty(), projection, 1L,
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe()), THEME,
                 0, rangeesVisibles, 40f, 0f, 0f);
-        return etat;
+        return state;
     }
 
     /** Chaque plage se trace avec l'encre de sa sorte, de gauche à droite, sans trou. */
     @Test
     void chaquePlageSeTraceAvecSonEncre() {
-        String texte = "int x = 42;";
-        List<ColoredSpan> plages = List.of(
+        String text = "int x = 42;";
+        List<ColoredSpan> ranges = List.of(
                 new ColoredSpan(TokenKind.KEYWORD, 0, 3),
                 new ColoredSpan(TokenKind.IDENTIFIER, 3, 5),
                 new ColoredSpan(TokenKind.OPERATOR, 5, 7),
                 new ColoredSpan(TokenKind.NUMBER, 7, 9),
                 new ColoredSpan(TokenKind.PUNCTUATION, 9, 10));
-        RowLayout mise = new RowLayout(0, 0, texte.length(), texte,
-                texte.length() * 10f, List.of(), plages);
+        RowLayout mise = new RowLayout(0, 0, text.length(), text,
+                text.length() * 10f, List.of(), ranges);
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new TextPainter(() -> new PinceauMutable(),
                 new RowLayoutCache(), new SourceImposee(mise)));
-        image.drawFrame(surface, image(Document.of(texte),
+        image.drawFrame(surface, image(Document.of(text),
                 new VisualProjection(1, new FoldModel()), 1));
 
-        assertEquals(plages.size(), surface.traces().size(),
+        assertEquals(ranges.size(), surface.traces().size(),
                 "une plage, un tracé — jamais de regroupement silencieux");
         float x = 40f;
-        for (int i = 0; i < plages.size(); i++) {
+        for (int i = 0; i < ranges.size(); i++) {
             Trace trace = surface.traces().get(i);
-            ColoredSpan plage = plages.get(i);
-            assertEquals(plage.start(), trace.debut());
-            assertEquals(plage.end(), trace.fin());
+            ColoredSpan range = ranges.get(i);
+            assertEquals(range.start(), trace.start());
+            assertEquals(range.end(), trace.end());
             assertEquals(x, trace.x(), 1e-6f, "le tracé avance de la largeur de sa plage");
-            assertEquals(THEME.syntaxe().couleur(plage.kind()), trace.couleur(),
-                    "la plage " + plage.kind() + " porte son encre");
-            x += (plage.end() - plage.start()) * 10f;
+            assertEquals(THEME.syntaxe().couleur(range.kind()), trace.couleur(),
+                    "la plage " + range.kind() + " porte son encre");
+            x += (range.end() - range.start()) * 10f;
         }
     }
 
     /** Une rangée sans plage reste sur le chemin rapide : un seul tracé, encre de base (PIEGE-15). */
     @Test
     void rangeeSansPlageResteSurLeCheminRapide() {
-        String texte = "sans coloration";
-        RowLayout mise = new RowLayout(0, 0, texte.length(), texte,
-                texte.length() * 10f);
+        String text = "sans coloration";
+        RowLayout mise = new RowLayout(0, 0, text.length(), text,
+                text.length() * 10f);
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new TextPainter(() -> new PinceauMutable(),
                 new RowLayoutCache(), new SourceImposee(mise)));
-        image.drawFrame(surface, image(Document.of(texte),
+        image.drawFrame(surface, image(Document.of(text),
                 new VisualProjection(1, new FoldModel()), 1));
 
         assertEquals(1, surface.traces().size());
@@ -199,33 +199,33 @@ class TextPainterSyntaxTest {
     @Test
     void laCouleurSuitLesSegmentsBidi() {
         // Ordre visuel inversé : le segment [6, 11) se trace avant [0, 6).
-        String texte = "abcde «Hebrew»";
+        String text = "abcde «Hebrew»";
         List<VisualRuns.Run> segments = List.of(
                 new VisualRuns.Run(6, 11, true),
                 new VisualRuns.Run(0, 6, false));
-        List<ColoredSpan> plages = List.of(
+        List<ColoredSpan> ranges = List.of(
                 new ColoredSpan(TokenKind.STRING, 0, 6),
                 new ColoredSpan(TokenKind.COMMENT, 6, 11));
-        RowLayout mise = new RowLayout(0, 0, 11, texte.substring(0, 11),
-                11 * 10f, segments, plages);
+        RowLayout mise = new RowLayout(0, 0, 11, text.substring(0, 11),
+                11 * 10f, segments, ranges);
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new TextPainter(() -> new PinceauMutable(),
                 new RowLayoutCache(), new SourceImposee(mise)));
-        image.drawFrame(surface, image(Document.of(texte),
+        image.drawFrame(surface, image(Document.of(text),
                 new VisualProjection(1, new FoldModel()), 1));
 
         // Deux tracés : le segment visuel de gauche porte la plage
         // COMMENT [6, 11), celui de droite la plage STRING [0, 6).
         assertEquals(2, surface.traces().size());
         Trace premierVisuel = surface.traces().get(0);
-        assertEquals(6, premierVisuel.debut());
-        assertEquals(11, premierVisuel.fin());
+        assertEquals(6, premierVisuel.start());
+        assertEquals(11, premierVisuel.end());
         assertEquals(40f, premierVisuel.x(), 1e-6f);
         assertEquals(THEME.syntaxe().couleur(TokenKind.COMMENT), premierVisuel.couleur());
         Trace secondVisuel = surface.traces().get(1);
-        assertEquals(0, secondVisuel.debut());
-        assertEquals(6, secondVisuel.fin());
+        assertEquals(0, secondVisuel.start());
+        assertEquals(6, secondVisuel.end());
         assertEquals(40f + 5 * 10f, secondVisuel.x(), 1e-6f,
                 "le second segment se trace après le premier, largeur rendue en tête");
         assertEquals(THEME.syntaxe().couleur(TokenKind.STRING), secondVisuel.couleur());
@@ -240,24 +240,24 @@ class TextPainterSyntaxTest {
      */
     @Test
     void lesPlagesSeTracentALaPoliceDeLEditeur() {
-        String texte = "int x = 42;";
-        List<ColoredSpan> plages = List.of(
+        String text = "int x = 42;";
+        List<ColoredSpan> ranges = List.of(
                 new ColoredSpan(TokenKind.KEYWORD, 0, 3),
                 new ColoredSpan(TokenKind.IDENTIFIER, 3, 5),
                 new ColoredSpan(TokenKind.NUMBER, 7, 9));
-        RowLayout mise = new RowLayout(0, 0, texte.length(), texte,
-                texte.length() * 10f, List.of(), plages);
+        RowLayout mise = new RowLayout(0, 0, text.length(), text,
+                text.length() * 10f, List.of(), ranges);
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new TextPainter(() -> new PinceauMutable(),
                 new RowLayoutCache(), new SourceImposee(mise)));
-        image.drawFrame(surface, image(Document.of(texte),
+        image.drawFrame(surface, image(Document.of(text),
                 new VisualProjection(1, new FoldModel()), 1));
 
-        assertEquals(plages.size(), surface.traces().size(),
+        assertEquals(ranges.size(), surface.traces().size(),
                 "une plage, un tracé — chacun à la police de l'image");
         for (Trace trace : surface.traces()) {
-            assertEquals(new FontSpec("mono", 14f), trace.police(),
+            assertEquals(new FontSpec("mono", 14f), trace.font(),
                     "chaque plage se trace à la police de l'éditeur (PIEGE-22)");
         }
     }
@@ -269,18 +269,18 @@ class TextPainterSyntaxTest {
      */
     @Test
     void pinceauPartageChaqueTracePoseSaCouleur() {
-        String texte = "int 42";
-        List<ColoredSpan> plages = List.of(
+        String text = "int 42";
+        List<ColoredSpan> ranges = List.of(
                 new ColoredSpan(TokenKind.KEYWORD, 0, 3),
                 new ColoredSpan(TokenKind.NUMBER, 3, 6));
-        RowLayout mise = new RowLayout(0, 0, texte.length(), texte,
-                texte.length() * 10f, List.of(), plages);
+        RowLayout mise = new RowLayout(0, 0, text.length(), text,
+                text.length() * 10f, List.of(), ranges);
         TextBrush unique = new PinceauMutable();
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new TextPainter(() -> unique, new RowLayoutCache(),
                 new SourceImposee(mise)));
-        image.drawFrame(surface, image(Document.of(texte),
+        image.drawFrame(surface, image(Document.of(text),
                 new VisualProjection(1, new FoldModel()), 1));
 
         assertEquals(2, surface.traces().size());
@@ -294,24 +294,24 @@ class TextPainterSyntaxTest {
     /** Une rangée colorée ne peint que ses plages : le cache sert la même mise en page deux fois. */
     @Test
     void leCacheResertLaMemeMiseEnPageColoree() {
-        String texte = "int x;";
-        List<ColoredSpan> plages = List.of(
+        String text = "int x;";
+        List<ColoredSpan> ranges = List.of(
                 new ColoredSpan(TokenKind.KEYWORD, 0, 3),
                 new ColoredSpan(TokenKind.IDENTIFIER, 3, 6));
-        RowLayout mise = new RowLayout(0, 0, texte.length(), texte,
-                texte.length() * 10f, List.of(), plages);
+        RowLayout mise = new RowLayout(0, 0, text.length(), text,
+                text.length() * 10f, List.of(), ranges);
         RowLayoutCache cache = new RowLayoutCache();
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new TextPainter(() -> new PinceauMutable(), cache,
                 new SourceImposee(mise)));
-        FrameState etat = image(Document.of(texte),
+        FrameState state = image(Document.of(text),
                 new VisualProjection(1, new FoldModel()), 1);
-        image.drawFrame(surface, etat);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
+        image.drawFrame(surface, state);
 
         assertEquals(4, surface.traces().size(), "deux images, deux plages chacune");
-        assertTrue(surface.traces().get(0).texte() == surface.traces().get(2).texte(),
+        assertTrue(surface.traces().get(0).text() == surface.traces().get(2).text(),
                 "la même instance de texte sert les deux images (PIEGE-15)");
     }
 }

@@ -41,18 +41,18 @@ class IndentationFoldsTest {
         return new LexedLine(new Token[0], Neutre.NORMAL);
     }
 
-    private static LexDocument lex(LexedLine... lignes) {
-        return new LexDocument(lignes, new int[lignes.length], Neutre.NORMAL);
+    private static LexDocument lex(LexedLine... lines) {
+        return new LexDocument(lines, new int[lines.length], Neutre.NORMAL);
     }
 
-    private static List<FoldSpan> plis(String source, boolean offSide) {
+    private static List<FoldSpan> folds(String source, boolean offSide) {
         Document doc = Document.of(source);
-        String[] lignes = source.split("\n", -1);
-        LexedLine[] lexees = new LexedLine[lignes.length];
-        for (int i = 0; i < lignes.length; i++) {
-            String ligne = lignes[i];
-            lexees[i] = ligne.isBlank() || ligne.strip().startsWith("#")
-                    ? (ligne.isEmpty() ? vide() : comment())
+        String[] lines = source.split("\n", -1);
+        LexedLine[] lexees = new LexedLine[lines.length];
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            lexees[i] = line.isBlank() || line.strip().startsWith("#")
+                    ? (line.isEmpty() ? vide() : comment())
                     : code();
         }
         return IndentationFolds.regions(doc, lex(lexees),
@@ -80,7 +80,7 @@ class IndentationFoldsTest {
                         CATEGORIES[classifier(ligne)] += 1
                     return dict(CATEGORIES)
                 """;
-        List<FoldSpan> regions = plis(source, true);
+        List<FoldSpan> regions = folds(source, true);
         assertEquals(List.of(
                 new FoldSpan(1, 2),
                 new FoldSpan(5, 10),
@@ -99,7 +99,7 @@ class IndentationFoldsTest {
                 c:
                   d
                 """;
-        List<FoldSpan> regions = plis(source, false);
+        List<FoldSpan> regions = folds(source, false);
         assertEquals(List.of(new FoldSpan(0, 3)), regions);
     }
 
@@ -113,7 +113,7 @@ class IndentationFoldsTest {
                     # note du corps
                     suite
                 """;
-        List<FoldSpan> regions = plis(source, true);
+        List<FoldSpan> regions = folds(source, true);
         assertEquals(List.of(new FoldSpan(0, 4)), regions);
     }
 
@@ -121,7 +121,7 @@ class IndentationFoldsTest {
     @Test
     void tabulationsAuTaquet() {
         String source = "a:\n\tb\n  c\n";
-        List<FoldSpan> regions = plis(source, true);
+        List<FoldSpan> regions = folds(source, true);
         assertEquals(List.of(new FoldSpan(0, 2)), regions);
     }
 
@@ -129,7 +129,7 @@ class IndentationFoldsTest {
     @Test
     void blancsDeQueueExclus() {
         String source = "a:\n  b\n\n\n";
-        List<FoldSpan> regions = plis(source, true);
+        List<FoldSpan> regions = folds(source, true);
         assertEquals(List.of(new FoldSpan(0, 1)), regions);
     }
 

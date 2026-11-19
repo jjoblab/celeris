@@ -49,7 +49,7 @@ public class ColorPickerViewTest {
     @Test
     public void laCartePorteLesBlocsDuDepot() {
         ColorPickerView vue = new ColorPickerView(contexte, PopupPalette.dark());
-        vue.ouvrir(0xFFFF5722, 6);
+        vue.open(0xFFFF5722, 6);
         mesurer(vue);
         assertEquals(238, vue.getMeasuredWidth());
         assertEquals(238 + 12, vue.getMeasuredHeight());
@@ -60,7 +60,7 @@ public class ColorPickerViewTest {
     @Test
     public void leTapDeCelluleAppliqueSaTeinte() {
         ColorPickerView vue = new ColorPickerView(contexte, PopupPalette.dark());
-        vue.ouvrir(0xFFFF5722, 6);
+        vue.open(0xFFFF5722, 6);
         List<Integer> appliquees = new ArrayList<>();
         vue.setOnAppliquer(appliquees::add);
         // la cellule 0 (rouge Material) vit à (11, 199) du contenu —
@@ -78,7 +78,7 @@ public class ColorPickerViewTest {
     @Test
     public void leChampSuitLeDoigtEtAppliqueAuRelachement() {
         ColorPickerView vue = new ColorPickerView(contexte, PopupPalette.dark());
-        vue.ouvrir(0xFFFF5722, 6);
+        vue.open(0xFFFF5722, 6);
         int originale = vue.courante();
         List<Integer> appliquees = new ArrayList<>();
         vue.setOnAppliquer(appliquees::add);
@@ -100,7 +100,7 @@ public class ColorPickerViewTest {
     @Test
     public void leToucherHorsZonesNappliqueRien() {
         ColorPickerView vue = new ColorPickerView(contexte, PopupPalette.dark());
-        vue.ouvrir(0xFFFF5722, 6);
+        vue.open(0xFFFF5722, 6);
         List<Integer> appliquees = new ArrayList<>();
         vue.setOnAppliquer(appliquees::add);
         // dans l'en-tête, hors champ, hors bande, hors palette

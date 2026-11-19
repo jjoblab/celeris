@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Test;
  */
 class XmlSmartTypingTest {
 
-    private String apresPlan(Optional<EditPlan> plan, String texte) {
+    private String apresPlan(Optional<EditPlan> plan, String text) {
         assertTrue(plan.isPresent(), "le plan existe");
-        TextSession session = TextSession.of(texte, () -> 0L);
+        TextSession session = TextSession.of(text, () -> 0L);
         session.apply(plan.get().transaction(), plan.get().selection());
         return session.text();
     }

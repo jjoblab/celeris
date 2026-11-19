@@ -44,7 +44,7 @@ abstract class TextRowsPopup extends PopupPanel {
      *  actions des menus portent leur glyphe, le libellé respire
      *  après lui (l'audit du 2026-11-14 : jamais la même icône pour
      *  toutes). */
-    private static final float ECART_PICTO_DP = 5f;
+    private static final float PICTO_GAP_DP = 5f;
 
     /**
      * Une rangée : son texte, son encre (—1 pour l'encre du panneau),
@@ -103,12 +103,12 @@ abstract class TextRowsPopup extends PopupPanel {
          * capitales à l'encre muette, jamais cliquable — elle annonce
          * les rangées qui la suivent.
          */
-        static Row section(String texte) {
-            return new Row(texte, -2, Tier.MICRO, false, false, 0, null, true);
+        static Row section(String text) {
+            return new Row(text, -2, Tier.MICRO, false, false, 0, null, true);
         }
 
         /** La même rangée, précédée d'un filet de séparation. */
-        static Row apresFilet(Row rangee) {
+        static Row afterRule(Row rangee) {
             return new Row(rangee.text(), rangee.ink(), rangee.tier(),
                     rangee.teintee(), true, rangee.retrait(),
                     rangee.picto(), rangee.enTete());
@@ -119,7 +119,7 @@ abstract class TextRowsPopup extends PopupPanel {
     /** La hauteur de chaque rangée posée — les paliers diffèrent. */
     private final List<Integer> hauteurs = new ArrayList<>();
     /** L'écart de respiration entre rangées, en pixels. */
-    private final int ecartPx;
+    private final int gapPx;
     /** L'indentation des rangées PARAM, en pixels. */
     private final int indentPx;
     /** La respiration derrière un pictogramme de rangée, en pixels. */
@@ -131,9 +131,9 @@ abstract class TextRowsPopup extends PopupPanel {
     TextRowsPopup(Context context, PopupPalette palette) {
         super(context, palette);
         float densite = getResources().getDisplayMetrics().density;
-        this.ecartPx = Math.round(PopupTokens.ECART_DP * densite);
+        this.gapPx = Math.round(PopupTokens.GAP_DP * densite);
         this.indentPx = Math.round(INDENT_DP * densite);
-        this.ecartPictoPx = Math.round(ECART_PICTO_DP * densite);
+        this.ecartPictoPx = Math.round(PICTO_GAP_DP * densite);
     }
 
     /** Pose les rangées — le panneau se redimensionne et se redessine. */
@@ -144,7 +144,7 @@ abstract class TextRowsPopup extends PopupPanel {
         for (Row rangee : rows) {
             Paint.FontMetrics metriques = metriquesDe(rangee.tier());
             hauteurs.add(Math.round(metriques.bottom - metriques.top
-                    + ecartPx));
+                    + gapPx));
         }
         requestLayout();
         invalidate();
@@ -152,7 +152,7 @@ abstract class TextRowsPopup extends PopupPanel {
 
     /** Les métriques du pinceau posé au palier donné. */
     private Paint.FontMetrics metriquesDe(Tier tier) {
-        textPaint().setTextSize(tailleTexte(facteurDe(tier)));
+        textPaint().setTextSize(textSize(facteurDe(tier)));
         return textPaint().getFontMetrics();
     }
 
@@ -185,20 +185,20 @@ abstract class TextRowsPopup extends PopupPanel {
         float y = 0f;
         for (int i = 0; i < rows.size(); i++) {
             Row rangee = rows.get(i);
-            int hauteur = hauteurs.get(i);
+            int height = hauteurs.get(i);
             if (rangee.filetAvant()) {
-                tracerFilet(canvas, y);
-                y += ecartPx;
+                traceRule(canvas, y);
+                y += gapPx;
             }
             if (rangee.teintee()) {
-                dessinerBande(canvas, y, hauteur + ecartPx,
+                drawBand(canvas, y, height + gapPx,
                         palette.selection());
             }
             if (i == highlighted) {
-                dessinerBande(canvas, y, hauteur,
+                drawBand(canvas, y, height,
                         palette.selection());
             }
-            textPaint().setTextSize(tailleTexte(facteurDe(rangee.tier())));
+            textPaint().setTextSize(textSize(facteurDe(rangee.tier())));
             // l'en-tête de section prend l'encre muette et ses
             // petites capitales ; —2 le dit, —1 garde l'encre du panneau —
             // l'encre EXPLICITE se pose telle quelle (l'audit Android
@@ -206,20 +206,20 @@ abstract class TextRowsPopup extends PopupPanel {
             // entiers NÉGATIFS (alpha opaque), le plonger au texte du
             // panneau mentait — le marqueur d'erreur, l'introuvable muet
             // et le cadre étranger rendaient à l'encre du texte)
-            textPaint().setColor(encreDe(rangee.ink()));
-            String texte = rangee.enTete()
+            textPaint().setColor(inkOf(rangee.ink()));
+            String text = rangee.enTete()
                     ? rangee.text().toUpperCase() : rangee.text();
             Paint.FontMetrics metriques = textPaint().getFontMetrics();
-            float ligne = y - metriques.top;
+            float line = y - metriques.top;
             float x = rangee.retrait() * indentPx;
             if (rangee.picto() != null) {
                 // le glyphe de l'action précède son libellé — l'encre de
                 // la rangée l'habille, la graisse suit le rayon
-                dessinerPicto(rangee, canvas, x, ligne);
+                drawPicto(rangee, canvas, x, line);
                 x += emprisePicto(rangee.tier());
             }
-            canvas.drawText(texte, x, ligne, textPaint());
-            y += hauteur;
+            canvas.drawText(text, x, line, textPaint());
+            y += height;
         }
     }
 
@@ -229,19 +229,19 @@ abstract class TextRowsPopup extends PopupPanel {
      *  propriétaire du 2026-11-14 : « les icônes sont un peu trop
      *  grosses ») ; l'encre ALLÉGÉE le sert — l'ampoule seule garde
      *  sa couleur (« il est trop foncé »). */
-    private void dessinerPicto(Row rangee, Canvas canvas, float x,
-            float ligne) {
-        float taille = textPaint().getTextSize();
-        float rayon = taille * PopupTokens.FACTEUR_PICTO;
-        IconeAction.dessiner(rangee.picto(), canvas, linePaint(),
-                textPaint(), x + rayon, ligne - taille * 0.35f, rayon,
-                IconeAction.encreAllgeee(palette.muted(), encreDe(rangee.ink())));
+    private void drawPicto(Row rangee, Canvas canvas, float x,
+            float line) {
+        float size = textPaint().getTextSize();
+        float rayon = size * PopupTokens.FACTEUR_PICTO;
+        IconeAction.draw(rangee.picto(), canvas, linePaint(),
+                textPaint(), x + rayon, line - size * 0.35f, rayon,
+                IconeAction.lightenedInk(palette.muted(), inkOf(rangee.ink())));
     }
 
     /** L'emprise horizontale du pictogramme au palier donné — le
      *  glyphe et sa respiration, la mesure y compte le libellé. */
     private float emprisePicto(Tier tier) {
-        return tailleTexte(facteurDe(tier)) * PopupTokens.FACTEUR_PICTO
+        return textSize(facteurDe(tier)) * PopupTokens.FACTEUR_PICTO
                 + ecartPictoPx;
     }
 
@@ -249,27 +249,27 @@ abstract class TextRowsPopup extends PopupPanel {
      * La bande pleine largeur, encadrée à un pixel (le motif du dépôt
      * de départ : la bande vit sous le clip arrondi de la carte).
      */
-    private void dessinerBande(Canvas canvas, float y, float hauteur,
+    private void drawBand(Canvas canvas, float y, float height,
             int couleur) {
         bandPaint().setColor(couleur);
         canvas.drawRect(-paddingPx + 1f, y,
-                contentWidth() + paddingPx - 1f, y + hauteur, bandPaint());
+                contentWidth() + paddingPx - 1f, y + height, bandPaint());
     }
 
     @Override
     int contentWidth() {
-        float largeur = 0f;
+        float width = 0f;
         for (Row rangee : rows) {
-            textPaint().setTextSize(tailleTexte(facteurDe(rangee.tier())));
-            String texte = rangee.enTete()
+            textPaint().setTextSize(textSize(facteurDe(rangee.tier())));
+            String text = rangee.enTete()
                     ? rangee.text().toUpperCase() : rangee.text();
             float picto = rangee.picto() == null ? 0f
                     : emprisePicto(rangee.tier());
-            largeur = Math.max(largeur,
+            width = Math.max(width,
                     rangee.retrait() * indentPx + picto
-                            + textPaint().measureText(texte));
+                            + textPaint().measureText(text));
         }
-        return Math.round(largeur);
+        return Math.round(width);
     }
 
     @Override
@@ -277,14 +277,14 @@ abstract class TextRowsPopup extends PopupPanel {
         if (rows.isEmpty()) {
             return 0;
         }
-        int hauteur = 0;
+        int height = 0;
         for (int i = 0; i < rows.size(); i++) {
-            hauteur += hauteurs.get(i);
+            height += hauteurs.get(i);
             if (rows.get(i).filetAvant()) {
-                hauteur += ecartPx;
+                height += gapPx;
             }
         }
-        return hauteur;
+        return height;
     }
 
     /** Le nombre de rangées courantes — lisibilité des sous-classes. */
@@ -304,7 +304,7 @@ abstract class TextRowsPopup extends PopupPanel {
         for (int i = 0; i < index && i < hauteurs.size(); i++) {
             y += hauteurs.get(i);
             if (rows.get(i).filetAvant()) {
-                y += ecartPx;
+                y += gapPx;
             }
         }
         return y + hauteurs.get(Math.min(index, hauteurs.size() - 1)) / 2f;
@@ -315,7 +315,7 @@ abstract class TextRowsPopup extends PopupPanel {
      *  explicite (les entiers négatifs des couleurs opaques comprises)
      *  n'est plus confondue avec les sentinelles. Les bancs y lisent
      *  la résolution sans passer par le rendu. */
-    final int encreDe(int encreRangee) {
+    final int inkOf(int encreRangee) {
         if (encreRangee == -1) {
             return palette.text();
         }
@@ -335,15 +335,15 @@ abstract class TextRowsPopup extends PopupPanel {
     /** La rangée visée par l'ordonnée donnée, —1 si hors contenu ou
      *  sur un EN-TÊTE DE SECTION — une section ne se prend jamais. */
     private int rowAt(float y) {
-        float curseur = 0f;
+        float cursor = 0f;
         for (int i = 0; i < rows.size(); i++) {
             if (rows.get(i).filetAvant()) {
-                curseur += ecartPx;
+                cursor += gapPx;
             }
-            if (y >= curseur && y < curseur + hauteurs.get(i)) {
+            if (y >= cursor && y < cursor + hauteurs.get(i)) {
                 return rows.get(i).enTete() ? -1 : i;
             }
-            curseur += hauteurs.get(i);
+            cursor += hauteurs.get(i);
         }
         return -1;
     }

@@ -7,9 +7,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jo.celeris.core.lsp.types.LieuLsp;
-import jo.celeris.core.lsp.types.PlageLsp;
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.LocationLsp;
+import jo.celeris.core.lsp.types.RangeLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextSession;
 
@@ -42,9 +42,9 @@ final class UsagesTransposeTest {
     void leLieuDuDocumentDevientLOffsetDuSaut() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         Document document = session.document();
-        LieuLsp lieu = new LieuLsp(URI,
-                new PlageLsp(new PositionLsp(1, 12),
-                        new PositionLsp(1, 17)));
+        LocationLsp lieu = new LocationLsp(URI,
+                new RangeLsp(new LspPosition(1, 12),
+                        new LspPosition(1, 17)));
         int offset = Usages.offsetDe(lieu, URI, document);
         assertEquals(TEXTE.indexOf("total", TEXTE.indexOf("copie")),
                 offset, "le second usage vit à la copie");
@@ -60,15 +60,15 @@ final class UsagesTransposeTest {
     void letrangereVitMue() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         Document document = session.document();
-        LieuLsp etrangere = new LieuLsp(AUTRE,
-                new PlageLsp(new PositionLsp(4, 3),
-                        new PositionLsp(4, 8)));
+        LocationLsp etrangere = new LocationLsp(AUTRE,
+                new RangeLsp(new LspPosition(4, 3),
+                        new LspPosition(4, 8)));
         assertEquals(-1, Usages.offsetDe(etrangere, URI, document),
                 "l'uri étrangère ne répond pas à la frontière");
         assertEquals("Concurrence.kt · L5",
                 Usages.libelleEtrangere(etrangere),
                 "le nom court du fichier du serveur et sa ligne se lisent");
-        LieuLsp sansPlage = new LieuLsp(AUTRE, null);
+        LocationLsp sansPlage = new LocationLsp(AUTRE, null);
         assertEquals(-1, Usages.offsetDe(sansPlage, URI, document),
                 "le lieu sans plage ne se devine jamais");
         assertEquals("Concurrence.kt",
@@ -82,13 +82,13 @@ final class UsagesTransposeTest {
     void lextraitSeRogne() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         Document document = session.document();
-        int ligne = document.lineForOffset(
+        int line = document.lineForOffset(
                 TEXTE.indexOf("volontairement"));
-        String libelle = Usages.libelleDe(document,
-                document.lineStart(ligne));
-        assertTrue(libelle.length() <= 48 + " · L3…".length(),
-                "l'extrait rogné tient la rangée : " + libelle);
-        assertTrue(libelle.endsWith("…"), "l'extrait rogné l'annonce");
+        String label = Usages.libelleDe(document,
+                document.lineStart(line));
+        assertTrue(label.length() <= 48 + " · L3…".length(),
+                "l'extrait rogné tient la rangée : " + label);
+        assertTrue(label.endsWith("…"), "l'extrait rogné l'annonce");
     }
 
     /** La ligne hors bornes rend —1 — le lieu au-delà du document ne
@@ -97,9 +97,9 @@ final class UsagesTransposeTest {
     void laLigneHorsBornesNeSeDevinePas() {
         TextSession session = TextSession.of(TEXTE, () -> 0L);
         Document document = session.document();
-        LieuLsp horsBornes = new LieuLsp(URI,
-                new PlageLsp(new PositionLsp(99, 0),
-                        new PositionLsp(99, 5)));
+        LocationLsp horsBornes = new LocationLsp(URI,
+                new RangeLsp(new LspPosition(99, 0),
+                        new LspPosition(99, 5)));
         assertEquals(-1, Usages.offsetDe(horsBornes, URI, document),
                 "la ligne hors bornes rend —1");
     }
@@ -109,11 +109,11 @@ final class UsagesTransposeTest {
     @Test
     void laRessourceCompteCommeLIde() {
         // deux lieux : un ouvert, une étrangère — l'en-tête dira « 2 »
-        List<LieuLsp> lieux = List.of(
-                new LieuLsp(URI, new PlageLsp(
-                        new PositionLsp(0, 4), new PositionLsp(0, 9))),
-                new LieuLsp(AUTRE, new PlageLsp(
-                        new PositionLsp(4, 3), new PositionLsp(4, 8))));
+        List<LocationLsp> lieux = List.of(
+                new LocationLsp(URI, new RangeLsp(
+                        new LspPosition(0, 4), new LspPosition(0, 9))),
+                new LocationLsp(AUTRE, new RangeLsp(
+                        new LspPosition(4, 3), new LspPosition(4, 8))));
         long ouverts = lieux.stream().filter(
                 l -> Usages.offsetDe(l, URI,
                         TextSession.of(TEXTE, () -> 0L).document()) >= 0)

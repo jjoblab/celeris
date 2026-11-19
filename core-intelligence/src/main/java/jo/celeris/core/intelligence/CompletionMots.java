@@ -32,14 +32,14 @@ public final class CompletionMots {
      *                  possible (jamais publiée : les mots réservés
      *                  seuls se proposent)
      * @param caret     la position du curseur
-     * @param motsCles  les mots réservés du langage, se joignant aux mots
+     * @param keywords  les mots réservés du langage, se joignant aux mots
      *                  du fichier
      * @return les candidats distincts, triés sans égard à la casse, le
      *         préfixe déjà tapé en tête de chacun
      */
     public static List<String> completer(Document doc,
             @org.jspecify.annotations.Nullable Analysis analyse, int caret,
-            List<String> motsCles) {
+            List<String> keywords) {
         Match mot = WordOccurrences.wordAt(doc.text(), caret);
         String prefixe = mot == null ? ""
                 : doc.subText(mot.start(), Math.min(caret, mot.end()));
@@ -58,7 +58,7 @@ public final class CompletionMots {
                 ajouter(candidats, releve.nom(), prefixe);
             }
         }
-        for (String motCle : motsCles) {
+        for (String motCle : keywords) {
             ajouter(candidats, motCle, prefixe);
         }
         candidats.sort((a, b) -> {

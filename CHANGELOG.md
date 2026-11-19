@@ -5,6 +5,14 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.3.0] — 2026-11-19
+
+### Changements cassants (le code passe à l'anglais)
+
+- **La règle du dépôt s'applique enfin à la dette héritée** : le code (classes, méthodes, champs, constantes) devient ANGLAIS, la Javadoc et les commentaires restent FRANÇAIS — 82 types, 551 méthodes et 298 champs français recensés et renommés (registre complet et table de migration : `docs/renommages-code-anglais.md`, MIGRATION.md § « 2.2 → 2.3 »).
+- **API publique anglaise** : les 8 manifestes `api/*.api` régénérés — `EditorPopups` (ex-`PopupsEditeur`, la table de l'ADR-0023 appliquée : `connectServer`, `openSearch`, `toggleCompletion`…), `AnalysisEngine` (ex-`MoteurAnalyse`), `ServerCapsLsp`/`CompletionListLsp`/`RangeLsp`… (suffixe `Lsp` contre les collisions lsp4j), `EmbeddedServer`/`DocumentsServer`/`LspMapping`… côté protocole.
+- **Baseline langue descendante** : 17 → 13 identifiants figés (le reste : bancs et internes convergents, chantier P).
+
 ## [2.2.7] — 2026-11-19
 
 ### Corrections

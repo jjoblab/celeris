@@ -74,10 +74,10 @@ final class XmlParseur implements LanguageParser {
                     false));
             return i + 1;
         }
-        return corps(slice, depuis, nom, i + 1, vers, enfants);
+        return body(slice, depuis, nom, i + 1, vers, enfants);
     }
 
-    private int corps(TokenSlice slice, int debut, String nom, int depuis,
+    private int body(TokenSlice slice, int start, String nom, int depuis,
                       int vers, List<SynNode> freres) {
         List<SynNode> enfants = new ArrayList<>();
         boolean erreur = false;
@@ -93,7 +93,7 @@ final class XmlParseur implements LanguageParser {
                 j++;
             }
         }
-        int fin;
+        int end;
         if (j < vers) {
             if (!fermetureAssortie(slice, j, nom)) {
                 enfants.add(SynNode.of(XmlKind.ERREUR, NodeCategory.ERROR,
@@ -101,18 +101,18 @@ final class XmlParseur implements LanguageParser {
                         true));
                 erreur = true;
             }
-            fin = slice.end(j);
+            end = slice.end(j);
             j = j + 1;
         } else {
             enfants.add(SynNode.of(XmlKind.ERREUR, NodeCategory.ERROR,
-                    slice.start(debut), Tokens.finDe(slice, vers - 1),
+                    slice.start(start), Tokens.finDe(slice, vers - 1),
                     new SynNode[0], null, true));
             erreur = true;
-            fin = Tokens.finDe(slice, vers - 1);
+            end = Tokens.finDe(slice, vers - 1);
             j = vers;
         }
         freres.add(SynNode.of(XmlKind.ELEMENT, NodeCategory.TAG,
-                slice.start(debut), fin, enfants.toArray(new SynNode[0]), nom,
+                slice.start(start), end, enfants.toArray(new SynNode[0]), nom,
                 erreur));
         return j;
     }
@@ -122,9 +122,9 @@ final class XmlParseur implements LanguageParser {
         if (slice.kind(index) != TokenKind.OPEN_BRACKET) {
             return false;
         }
-        String texte = Tokens.mot(slice, index);
-        return texte.length() > 1 && texte.charAt(0) == '<'
-                && Character.isLetter(texte.charAt(1));
+        String text = Tokens.mot(slice, index);
+        return text.length() > 1 && text.charAt(0) == '<'
+                && Character.isLetter(text.charAt(1));
     }
 
     private static boolean fermetureAssortie(TokenSlice slice, int index,

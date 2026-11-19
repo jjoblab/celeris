@@ -49,8 +49,8 @@ class EditorSyntaxAsyncTest {
         private final List<Runnable> file = new ArrayList<>();
 
         @Override
-        public void execute(Runnable commande) {
-            file.add(commande);
+        public void execute(Runnable command) {
+            file.add(command);
         }
 
         void jouer() {
@@ -61,7 +61,7 @@ class EditorSyntaxAsyncTest {
     }
 
     /** Une source qui ne rend rien : habiller l'enveloppe ou la laisse, jamais ne la consulte ici. */
-    private static final RowSource SOURCE_MUETTE = cle -> {
+    private static final RowSource SOURCE_MUETTE = key -> {
         throw new UnsupportedOperationException("pas consultée par le pont");
     };
 
@@ -75,9 +75,9 @@ class EditorSyntaxAsyncTest {
 
         @Override
         public RowLayout layoutOf(RowKey key) {
-            String texte = document.lineText(key.row());
-            return new RowLayout(key.row(), 0, texte.length(), texte,
-                    texte.length() * 10f);
+            String text = document.lineText(key.row());
+            return new RowLayout(key.row(), 0, text.length(), text,
+                    text.length() * 10f);
         }
     }
 
@@ -87,19 +87,19 @@ class EditorSyntaxAsyncTest {
      */
     @Test
     void sansAnalysePublieeLaSourceResteSansCouleur() {
-        ExecuteurACommande executeur = new ExecuteurACommande();
-        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        ExecuteurACommande executor = new ExecuteurACommande();
+        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executor);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        assertFalse(executeur.file.isEmpty(), "le moteur a programmé son ouverture");
+        assertFalse(executor.file.isEmpty(), "le moteur a programmé son ouverture");
         Document document = session.document();
-        assertSame(SOURCE_MUETTE, syntaxe.habiller(SOURCE_MUETTE, document),
+        assertSame(SOURCE_MUETTE, syntaxe.wrap(SOURCE_MUETTE, document),
                 "sans analyse publiée, pas de coloration");
-        executeur.jouer();
-        assertFalse(syntaxe.habiller(SOURCE_MUETTE, document) == SOURCE_MUETTE,
+        executor.jouer();
+        assertFalse(syntaxe.wrap(SOURCE_MUETTE, document) == SOURCE_MUETTE,
                 "après publication, la source se pare");
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /** La publication prévient la vue : le rappel d'invalidation part à chaque instantané. */
@@ -109,10 +109,10 @@ class EditorSyntaxAsyncTest {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         syntaxe.setSurAnalysePrete(() -> prevenue.set(true));
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         assertTrue(prevenue.get(), "la publication directe prévient la vue");
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /**
@@ -124,16 +124,16 @@ class EditorSyntaxAsyncTest {
      */
     @Test
     void editionPendantLeVolRattrapeParRemappage() {
-        ExecuteurACommande executeur = new ExecuteurACommande();
-        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        ExecuteurACommande executor = new ExecuteurACommande();
+        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executor);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        executeur.jouer();
-        int cible = SOURCE.indexOf("methode");
-        session.replaceRange(cible, cible + 7, "autre");
+        executor.jouer();
+        int target = SOURCE.indexOf("methode");
+        session.replaceRange(target, target + 7, "autre");
         Document edite = session.document();
-        RowSource habillee = syntaxe.habiller(
+        RowSource habillee = syntaxe.wrap(
                 new SourceParLigne(edite), edite);
 
         assertFalse(habillee == SOURCE_MUETTE,
@@ -148,13 +148,13 @@ class EditorSyntaxAsyncTest {
                 "PIEGE-26 : la ligne touchée garde ses couleurs publiées "
                         + "recalées — plus d'encre de base en attendant");
 
-        executeur.jouer();
-        RowSource exacte = syntaxe.habiller(new SourceParLigne(edite), edite);
+        executor.jouer();
+        RowSource exacte = syntaxe.wrap(new SourceParLigne(edite), edite);
         RowLayout recoloree = exacte.layoutOf(
                 new RowKey(edite.revision(), 3, 1, new FontSpec("mono", 14f)));
         assertFalse(recoloree.spans().isEmpty(),
                 "la publication de la bonne révision recolore la ligne touchée");
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /**
@@ -164,24 +164,24 @@ class EditorSyntaxAsyncTest {
      */
     @Test
     void rafaleAuDelaDuPlafondRomptLaChaine() {
-        ExecuteurACommande executeur = new ExecuteurACommande();
-        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executeur);
+        ExecuteurACommande executor = new ExecuteurACommande();
+        EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), executor);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
-        executeur.jouer();
-        int cible = SOURCE.indexOf("Premiere");
+        executor.jouer();
+        int target = SOURCE.indexOf("Premiere");
         for (int i = 0; i < 300; i++) {
-            session.replaceRange(cible, cible, "x");
-            cible++;
+            session.replaceRange(target, target, "x");
+            target++;
         }
         Document edite = session.document();
-        assertSame(SOURCE_MUETTE, syntaxe.habiller(SOURCE_MUETTE, edite),
+        assertSame(SOURCE_MUETTE, syntaxe.wrap(SOURCE_MUETTE, edite),
                 "chaîne rompue : sans couleur, le remappage ne devine pas");
-        executeur.jouer();
-        assertFalse(syntaxe.habiller(SOURCE_MUETTE, edite) == SOURCE_MUETTE,
+        executor.jouer();
+        assertFalse(syntaxe.wrap(SOURCE_MUETTE, edite) == SOURCE_MUETTE,
                 "la publication à jour répare la chaîne et recolore");
-        syntaxe.fermer();
+        syntaxe.close();
     }
 
     /** Le retrait du langage referme le moteur et vide la coloration. */
@@ -189,11 +189,11 @@ class EditorSyntaxAsyncTest {
     void retraitDuLangageRefermeLeMoteur() {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         TextSession session = TextSession.of(SOURCE, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         syntaxe.setLanguage(null);
         assertFalse(syntaxe.active(), "sans langage, plus de moteur");
-        assertSame(SOURCE_MUETTE, syntaxe.habiller(SOURCE_MUETTE, session.document()));
-        syntaxe.fermer();
+        assertSame(SOURCE_MUETTE, syntaxe.wrap(SOURCE_MUETTE, session.document()));
+        syntaxe.close();
     }
 }

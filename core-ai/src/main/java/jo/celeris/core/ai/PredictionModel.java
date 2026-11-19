@@ -21,9 +21,9 @@ public interface PredictionModel {
      * récepteur, ou pas — le jeton mort enterre la requête.</p>
      *
      * @param requete   l'instantané, le curseur et le jeton du vol
-     * @param recepteur le récepteur de l'unique réponse
+     * @param receiver le récepteur de l'unique réponse
      */
-    void predire(ModelRequest requete, Receiver recepteur);
+    void predire(ModelRequest requete, Receiver receiver);
 
     /** Le récepteur de la réponse d'une prédiction. */
     interface Receiver {

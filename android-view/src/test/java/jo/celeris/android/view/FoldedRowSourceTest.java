@@ -72,18 +72,18 @@ class FoldedRowSourceTest {
     private static FoldedRowSource publier(String contenu, int enTete) {
         EditorSyntax syntaxe = new EditorSyntax(new FoldModel(), DIRECT);
         TextSession session = TextSession.of(contenu, () -> 0L);
-        syntaxe.attacher(session);
+        syntaxe.attach(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         EditorMetrics metrics =
                 EditorMetrics.of(new FontSpec("mono", 14f), new RegleFixe());
         DocumentRowSource source = new DocumentRowSource(session.document(),
                 new VisualProjection(session.document(), new FoldModel(), 0),
                 metrics);
-        syntaxe.habiller(source, session.document());
+        syntaxe.wrap(source, session.document());
         if (enTete >= 0) {
-            syntaxe.basculerPli(enTete);
+            syntaxe.toggleFold(enTete);
         }
-        return (FoldedRowSource) syntaxe.habiller(source, session.document());
+        return (FoldedRowSource) syntaxe.wrap(source, session.document());
     }
 
     /** La pièce d'une classe repliée : l'accolade ouvre à sa colonne. */
@@ -92,9 +92,9 @@ class FoldedRowSourceTest {
         Document document = TextSession.of(CLASSE, () -> 0L).document();
         FoldedRowSource.PieceDePli piece = FoldedRowSource.pieceDe(document,
                 lexicalDe(document), plisDe(0, 7), 0, 7);
-        assertEquals(8, piece.colonne());
+        assertEquals(8, piece.column());
         assertEquals(1, piece.colonneFin());
-        assertEquals("{…}", piece.texte());
+        assertEquals("{…}", piece.text());
     }
 
     /** La pièce d'une javadoc repliée : le commentaire ouvre à sa colonne. */
@@ -103,9 +103,9 @@ class FoldedRowSourceTest {
         Document document = TextSession.of(CLASSE, () -> 0L).document();
         FoldedRowSource.PieceDePli piece = FoldedRowSource.pieceDe(document,
                 lexicalDe(document), plisDe(1, 3), 1, 3);
-        assertEquals(4, piece.colonne());
+        assertEquals(4, piece.column());
         assertEquals(7, piece.colonneFin());
-        assertEquals("/*…*/", piece.texte());
+        assertEquals("/*…*/", piece.text());
     }
 
     /** Sans pli, la pièce rend null — la couche de fond reste muette. */
@@ -120,7 +120,7 @@ class FoldedRowSourceTest {
     @Test
     void composite_portePrefixePlaceholderSuffixe() {
         FoldedRowSource source = publier(CLASSE, 0);
-        RowLayout composite = source.layoutOf(cle());
+        RowLayout composite = source.layoutOf(key());
         assertEquals("class A {…}", composite.text());
         assertEquals(0, composite.start());
         assertEquals(11, composite.end());
@@ -128,7 +128,7 @@ class FoldedRowSourceTest {
         assertEquals(0, composite.line());
         // la chip vit à l'encre de documentation, la couverture sans trou
         assertEquals(TokenKind.DOC, composite.spans()
-                .get(indiceDe(composite, 8)).kind());
+                .get(indexOf(composite, 8)).kind());
         assertEquals(composite.text().length(), composite.spans()
                 .get(composite.spans().size() - 1).end());
     }
@@ -161,14 +161,14 @@ class FoldedRowSourceTest {
     }
 
     /** Le modèle de plis replié de l'en-tête donné à sa fin. */
-    private static FoldModel plisDe(int debut, int fin) {
-        FoldModel plis = new FoldModel();
-        plis.fold(debut, fin);
-        return plis;
+    private static FoldModel plisDe(int start, int end) {
+        FoldModel folds = new FoldModel();
+        folds.fold(start, end);
+        return folds;
     }
 
     /** La clé de la première rangée du document d'essai. */
-    private static RowKey cle() {
+    private static RowKey key() {
         return cleDe(0);
     }
 
@@ -178,10 +178,10 @@ class FoldedRowSourceTest {
     }
 
     /** L'indice de la plage qui couvre la colonne donnée, —1 si vide. */
-    private static int indiceDe(RowLayout composite, int colonne) {
+    private static int indexOf(RowLayout composite, int column) {
         for (int i = 0; i < composite.spans().size(); i++) {
-            ColoredSpan plage = composite.spans().get(i);
-            if (plage.start() <= colonne && plage.end() > colonne) {
+            ColoredSpan range = composite.spans().get(i);
+            if (range.start() <= column && range.end() > column) {
                 return i;
             }
         }

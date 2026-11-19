@@ -11,10 +11,10 @@ import jo.celeris.core.syntax.NodeCategory;
  * @param nom       le nom déclaré
  * @param categorie la catégorie générique du plan
  * @param uri       l'uri du fichier porteur
- * @param debut     l'offset absolu du début de la déclaration
- * @param fin       l'offset absolu de fin (exclusif)
- * @param ligne     la ligne de la déclaration
+ * @param start     l'offset absolu du début de la déclaration
+ * @param end       l'offset absolu de fin (exclusif)
+ * @param line     la ligne de la déclaration
  */
 public record Symbole(String nom, NodeCategory categorie, String uri,
-                      int debut, int fin, int ligne) {
+                      int start, int end, int line) {
 }

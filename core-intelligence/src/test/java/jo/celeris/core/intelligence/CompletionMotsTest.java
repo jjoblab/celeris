@@ -22,16 +22,16 @@ class CompletionMotsTest {
 
     private final SyntaxService service = SyntaxService.of(JavaSyntax.INSTANCE);
 
-    private List<String> completer(String texte, int caret, List<String> motsCles) {
-        Document doc = Document.of(texte);
+    private List<String> completer(String text, int caret, List<String> keywords) {
+        Document doc = Document.of(text);
         Analysis analyse = service.analyseFull(doc);
-        return CompletionMots.completer(doc, analyse, caret, motsCles);
+        return CompletionMots.completer(doc, analyse, caret, keywords);
     }
 
     /** Le préfixe attrape les mots du fichier, insensible à la casse. */
     @Test
     void lePrefixeAttrapeLesMots() {
-        String texte = """
+        String text = """
                 class Client {
                     int largeur;
                     int longueur;
@@ -40,11 +40,11 @@ class CompletionMotsTest {
                 """;
         // le curseur après « l » de lire : le préfixe est l — le mot tapé
         // ne compte pas, les deux autres répondent
-        int caret = texte.indexOf("lire") + 1;
+        int caret = text.indexOf("lire") + 1;
         assertEquals(List.of("largeur", "longueur"),
-                completer(texte, caret, List.of()));
+                completer(text, caret, List.of()));
         // le même fichier en majuscules : la casse n'y change rien
-        String majuscules = texte.toUpperCase(java.util.Locale.ROOT);
+        String majuscules = text.toUpperCase(java.util.Locale.ROOT);
         int caretMaj = majuscules.indexOf("LIRE") + 1;
         assertEquals(List.of("LARGEUR", "LONGUEUR"),
                 completer(majuscules, caretMaj, List.of()));
@@ -53,27 +53,27 @@ class CompletionMotsTest {
     /** Le mot en cours de frappe n'est pas son propre candidat. */
     @Test
     void leMotEnCoursNEstPasCandidat() {
-        String texte = "int alpha;\nint alphabeta;\n";
+        String text = "int alpha;\nint alphabeta;\n";
         // curseur à la fin de « alpha » (première occurrence) : alpha n'est pas proposé,
         // alphabeta oui — le mot tapé ne se propose pas à lui-même
-        int caret = texte.indexOf("alpha") + 5;
-        assertEquals(List.of("alphabeta"), completer(texte, caret, List.of()));
+        int caret = text.indexOf("alpha") + 5;
+        assertEquals(List.of("alphabeta"), completer(text, caret, List.of()));
     }
 
     /** Un mot identique ailleurs dans le fichier reste candidat. */
     @Test
     void leMotIdentiqueAilleursResteCandidat() {
-        String texte = "int alpha;\nint beta = alpha;\n";
+        String text = "int alpha;\nint beta = alpha;\n";
         // curseur après « al » de la seconde occurrence d'alpha
-        int caret = texte.lastIndexOf("alpha") + 2;
+        int caret = text.lastIndexOf("alpha") + 2;
         // l'autre occurrence rend alpha candidat ; beta ne commence pas par al
-        assertEquals(List.of("alpha"), completer(texte, caret, List.of()));
+        assertEquals(List.of("alpha"), completer(text, caret, List.of()));
     }
 
     /** Les chaînes et les commentaires ne prêtent jamais leurs mots. */
     @Test
     void lesChainesEtCommentairesNeComptentPas() {
-        String texte = """
+        String text = """
                 class A {
                     // horloge en commentaire
                     String s = "horloge dans une chaine";
@@ -83,30 +83,30 @@ class CompletionMotsTest {
                 """;
         // « ho » : le mot tapé hors ne compte pas, hote répond — horloge
         // ni en commentaire ni en chaîne ne se propose
-        int caret = texte.indexOf("hors") + 2;
-        assertEquals(List.of("hote"), completer(texte, caret, List.of()));
+        int caret = text.indexOf("hors") + 2;
+        assertEquals(List.of("hote"), completer(text, caret, List.of()));
     }
 
     /** Les mots réservés du langage se joignent aux mots du fichier. */
     @Test
     void lesMotsReservesSeJoignent() {
-        String texte = "int retour;\n";
+        String text = "int retour;\n";
         // curseur après « re » : le mot en cours ne compte pas, les réservés oui
-        int caret = texte.indexOf("retour") + 2;
+        int caret = text.indexOf("retour") + 2;
         assertEquals(List.of("reader", "return"),
-                completer(texte, caret, List.of("return", "reader")));
+                completer(text, caret, List.of("return", "reader")));
     }
 
     /** Le curseur dans le blanc : les mots du fichier, triés sans égard à la casse. */
     @Test
     void leCurseurDansLeBlanc() {
-        String texte = "int Zebre;\nint abeille;\n";
+        String text = "int Zebre;\nint abeille;\n";
         // curseur sur le saut de ligne : aucun mot touché, le préfixe est
         // vide — les mots réservés (int) ne sont pas des mots du fichier,
         // ils se joignent par le paramètre dédié
-        int caret = texte.indexOf('\n');
+        int caret = text.indexOf('\n');
         assertEquals(List.of("abeille", "Zebre"),
-                completer(texte, caret, List.of()));
+                completer(text, caret, List.of()));
     }
 
     /** Le document vide : rien à proposer, pas d'exception. */
@@ -119,13 +119,13 @@ class CompletionMotsTest {
     /** Le curseur au milieu d'un mot : le préfixe est la partie déjà tapée. */
     @Test
     void leCurseurAuMilieu() {
-        String texte = "int alphabet;\nint alpha;\n";
+        String text = "int alphabet;\nint alpha;\n";
         // curseur après « alp » d'alphabet : le préfixe est alp — le mot tapé
         // ne compte pas, l'autre mot répond
-        int caret = texte.indexOf("alphabet") + 3;
-        assertEquals(List.of("alpha"), completer(texte, caret, List.of()));
+        int caret = text.indexOf("alphabet") + 3;
+        assertEquals(List.of("alpha"), completer(text, caret, List.of()));
         // curseur après « alph » : le préfixe grandit, la réponse tient
-        int apres = texte.indexOf("alphabet") + 4;
-        assertEquals(List.of("alpha"), completer(texte, apres, List.of()));
+        int apres = text.indexOf("alphabet") + 4;
+        assertEquals(List.of("alpha"), completer(text, apres, List.of()));
     }
 }

@@ -65,12 +65,12 @@ public final class VisualRuns {
      * @return les plages logiques dans l'ordre visuel
      */
     public static List<Run> runs(String line) {
-        int longueur = line.length();
-        if (longueur == 0) {
+        int length = line.length();
+        if (length == 0) {
             return List.of();
         }
         if (!containsRtl(line)) {
-            return List.of(new Run(0, longueur, false));
+            return List.of(new Run(0, length, false));
         }
         List<Segment> segments = segmentsDeNiveau(line);
         reorganiser(segments);
@@ -86,11 +86,11 @@ public final class VisualRuns {
     private static List<Segment> segmentsDeNiveau(String line) {
         int[] niveaux = Bidi.analyze(line).levels();
         List<Segment> segments = new ArrayList<>();
-        int debut = 0;
+        int start = 0;
         for (int i = 1; i <= niveaux.length; i++) {
-            if (i == niveaux.length || niveaux[i] != niveaux[debut]) {
-                segments.add(new Segment(debut, i, niveaux[debut]));
-                debut = i;
+            if (i == niveaux.length || niveaux[i] != niveaux[start]) {
+                segments.add(new Segment(start, i, niveaux[start]));
+                start = i;
             }
         }
         return segments;
@@ -119,11 +119,11 @@ public final class VisualRuns {
                 i++;
                 continue;
             }
-            int debut = i;
+            int start = i;
             while (i < segments.size() && segments.get(i).level() >= niveau) {
                 i++;
             }
-            for (int a = debut, b = i - 1; a < b; a++, b--) {
+            for (int a = start, b = i - 1; a < b; a++, b--) {
                 Segment temp = segments.get(a);
                 segments.set(a, segments.get(b));
                 segments.set(b, temp);

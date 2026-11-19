@@ -40,7 +40,7 @@ import jo.celeris.core.text.TextSession;
  */
 final class ExceptionCarte {
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
@@ -57,7 +57,7 @@ final class ExceptionCarte {
      * la carte naît liée à son genre, le patron des trois temps
      * (lier, déclencher, déléguer — USAGE §9).
      *
-     * @param editeur    la vue d'éditeur ouverte
+     * @param editor    la vue d'éditeur ouverte
      * @param session    la session d'édition courante
      * @param popups     le coordinateur des popups de la scène
      * @param margePx    la respiration des ancres aux bords, en pixels
@@ -66,11 +66,11 @@ final class ExceptionCarte {
      * @param nomFichier le nom du fichier ouvert
      * @param annonces   le canal des annonces (titre, message)
      */
-    ExceptionCarte(EditorView editeur, TextSession session,
+    ExceptionCarte(EditorView editor, TextSession session,
             PopupManager popups, int margePx, PopupPalette palette,
             Supplier<List<OutlineEntry>> plan, Supplier<String> nomFichier,
             BiConsumer<String, String> annonces) {
-        this.editeur = editeur;
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
@@ -105,52 +105,52 @@ final class ExceptionCarte {
             return;
         }
         annoncer(R.string.celeris_execution_echouee);
-        poser(echec);
+        place(echec);
     }
 
     /** Le défilement a déplacé le curseur : la carte ouverte se
      *  REPOSITIONNE — le genre suit le régime de la consultation. */
     void repositionner() {
         if (popups.estOuvert(PopupController.PopupKind.EXCEPTION_DETAILS)) {
-            montrer();
+            show();
         }
     }
 
     /** Pose la carte de l'échec : le type et le message, la pile
      *  transposée — le cadre du fichier ouvert saute, l'étranger vit
      *  muet. */
-    private void poser(TraceExecution.Echec echec) {
+    private void place(TraceExecution.Echec echec) {
         carte.setException(echec.type(), echec.message());
         carte.setCadres(TraceExecution.cadres(echec, nomFichier.get(),
                 this::sauter));
-        montrer();
+        show();
     }
 
     /** Le saut d'un cadre : la carte se referme, le curseur porte au
      *  début de la ligne du cadre. */
-    private void sauter(int ligne) {
-        popups.fermer(PopupController.PopupKind.EXCEPTION_DETAILS);
-        int borne = Math.min(Math.max(1, ligne),
+    private void sauter(int line) {
+        popups.close(PopupController.PopupKind.EXCEPTION_DETAILS);
+        int borne = Math.min(Math.max(1, line),
                 session.document().lineCount());
-        NavigationCommands.placeCaret(editeur,
+        NavigationCommands.placeCaret(editor,
                 session.document().lineStart(borne - 1));
     }
 
     /** Monte la carte mesurée sous le curseur, bornée — la pose ET la
      *  re-pose y passent (la même carte se re-place). */
-    private void montrer() {
-        Rect curseur = editeur.caretBounds();
+    private void show() {
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom, taille(),
+                cursor.left, cursor.bottom, size(),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.EXCEPTION_DETAILS,
+        popups.show(PopupController.PopupKind.EXCEPTION_DETAILS,
                 placee.x(), placee.y());
     }
 
     /** La taille mesurée de la carte — l'ancre y anticipe la pose. */
-    private PopupPlacer.Cadre taille() {
-        return popups.taille(PopupController.PopupKind.EXCEPTION_DETAILS);
+    private PopupPlacer.Cadre size() {
+        return popups.size(PopupController.PopupKind.EXCEPTION_DETAILS);
     }
 
     /** L'annonce par ressource — le canal de l'orchestreur la porte au
@@ -164,7 +164,7 @@ final class ExceptionCarte {
 
     /** La position du curseur — la tête de la sélection courante. */
     private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).caret();
     }
 }

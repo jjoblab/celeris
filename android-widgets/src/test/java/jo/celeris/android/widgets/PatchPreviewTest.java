@@ -33,7 +33,7 @@ class PatchPreviewTest {
     @Test
     void leBlocChangeSePrefixeEtLeContexteEncadre() {
         String apres = AVANT.replace("quatre", "QUATRE!");
-        PatchPreview apercu = PatchPreview.de(AVANT, apres);
+        PatchPreview apercu = PatchPreview.of(AVANT, apres);
         assertTrue(apercu.porteChangement(), "l'édition engage des lignes");
         assertEquals(List.of(
                 "  deux",
@@ -50,14 +50,14 @@ class PatchPreviewTest {
     @Test
     void leHorsBlocNeSeMontrePas() {
         String apres = AVANT.replace("quatre", "QUATRE!");
-        List<String> rendues = PatchPreview.de(AVANT, apres).rendues();
-        assertFalse(rendues.stream().anyMatch(ligne -> ligne.contains("un")),
+        List<String> rendues = PatchPreview.of(AVANT, apres).rendues();
+        assertFalse(rendues.stream().anyMatch(line -> line.contains("un")),
                 "la ligne d'avant-bloc ne se montre pas");
-        assertFalse(rendues.stream().anyMatch(ligne -> ligne.contains("huit")),
+        assertFalse(rendues.stream().anyMatch(line -> line.contains("huit")),
                 "la ligne d'après-bloc ne se montre pas");
-        assertFalse(rendues.stream().anyMatch(ligne -> ligne.contains("sept")),
+        assertFalse(rendues.stream().anyMatch(line -> line.contains("sept")),
                 "la ligne juste hors de portée ne se montre pas");
-        assertTrue(rendues.stream().anyMatch(ligne -> ligne.contains("quatre")),
+        assertTrue(rendues.stream().anyMatch(line -> line.contains("quatre")),
                 "la ligne changée se montre, elle");
     }
 
@@ -66,7 +66,7 @@ class PatchPreviewTest {
     void leContexteNulNeMontreQueLesChangees() {
         String apres = AVANT.replace("quatre", "QUATRE!");
         assertEquals(List.of("- quatre", "+ QUATRE!"),
-                PatchPreview.de(AVANT, apres, 0).rendues(),
+                PatchPreview.of(AVANT, apres, 0).rendues(),
                 "sans contexte, seules les lignes changées se montrent");
     }
 
@@ -84,7 +84,7 @@ class PatchPreviewTest {
                 "+ CINQ!",
                 "  six",
                 "  sept"),
-                PatchPreview.de(AVANT, apres).rendues(),
+                PatchPreview.of(AVANT, apres).rendues(),
                 "la ligne intacte entre les deux blocs se montre une fois, "
                         + "la portée des deux côtés");
     }
@@ -99,7 +99,7 @@ class PatchPreviewTest {
                 "+ milieu",
                 "  cinq",
                 "  six"),
-                PatchPreview.de(AVANT, apres).rendues(),
+                PatchPreview.of(AVANT, apres).rendues(),
                 "la ligne ajoutée s'ancre entre les intactes qui l'entourent");
     }
 
@@ -112,7 +112,7 @@ class PatchPreviewTest {
                 "  huit",
                 "+ neuf",
                 "  "),
-                PatchPreview.de(AVANT, apres).rendues(),
+                PatchPreview.of(AVANT, apres).rendues(),
                 "l'ajout de fin se rend avant la ligne vide de fin, intacte elle aussi");
     }
 
@@ -121,15 +121,15 @@ class PatchPreviewTest {
     void laSuppressionPureSeMontre() {
         String apres = AVANT.replace("trois\n", "");
         assertEquals(List.of("- trois"),
-                PatchPreview.de(AVANT, apres, 0).rendues(),
+                PatchPreview.of(AVANT, apres, 0).rendues(),
                 "la suppression pure ne montre que l'enlevée");
     }
 
     /** B-18 — les textes identiques ne se prévisent pas. */
     @Test
     void lesTextesIdentiquesNeSePrevisentPas() {
-        PatchPreview apercu = PatchPreview.de(AVANT, AVANT);
-        assertTrue(apercu.lignes().isEmpty(), "rien ne change, rien ne se montre");
+        PatchPreview apercu = PatchPreview.of(AVANT, AVANT);
+        assertTrue(apercu.lines().isEmpty(), "rien ne change, rien ne se montre");
         assertFalse(apercu.porteChangement());
     }
 
@@ -137,7 +137,7 @@ class PatchPreviewTest {
     @Test
     void leContexteNegatifRefuseDEntree() {
         assertThrows(IllegalArgumentException.class,
-                () -> PatchPreview.de(AVANT, AVANT, -1));
+                () -> PatchPreview.of(AVANT, AVANT, -1));
     }
 
     /** B-18 — le préfixe suit le genre : « - », « + », deux blancs. */

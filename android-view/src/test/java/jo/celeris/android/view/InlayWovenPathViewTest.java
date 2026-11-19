@@ -36,7 +36,7 @@ public class InlayWovenPathViewTest {
      */
     @Test
     public void linesWithInlaysFallBackToWovenPath() {
-        EditorTestRig banc = EditorTestRig.sur(
+        EditorTestRig banc = EditorTestRig.on(
                 RuntimeEnvironment.getApplication(), "int nombre = 1;");
         EditorView vue = banc.vue();
         vue.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
@@ -45,7 +45,7 @@ public class InlayWovenPathViewTest {
         EditorTestRig.RecordingCanvas sansIndice = banc.image();
 
         // l'indice en ligne se pose à la fin de la ligne (F-01)
-        vue.setFantome(new GhostSuggestion("Nombre",
+        vue.setGhost(new GhostSuggestion("Nombre",
                 vue.session().document().length(),
                 vue.session().document().revision()));
         EditorTestRig.RecordingCanvas avecIndice = banc.image();

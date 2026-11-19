@@ -56,7 +56,7 @@ final class Surete {
      *  reste lisible, jamais une rangée qui mange la couche. */
     private static final int EXTRAIT_MAX = 48;
 
-    private final EditorView editeur;
+    private final EditorView editor;
     private final TextSession session;
     private final PopupManager popups;
     private final int margePx;
@@ -67,7 +67,7 @@ final class Surete {
     /** Le plan du fichier ouvert — la classe englobante s'y lit. */
     private final Supplier<List<OutlineEntry>> plan;
     /** Le langage du fichier ouvert — l'analyse s'y lit. */
-    private final Supplier<@Nullable LanguageSupport> langue;
+    private final Supplier<@Nullable LanguageSupport> language;
     /** Le canal des annonces — la bulle éphémère du coin bas-droit. */
     private final BiConsumer<String, String> annonces;
 
@@ -76,26 +76,26 @@ final class Surete {
      * naissent liées à leurs genres, le patron des trois temps (lier,
      * déclencher, déléguer — USAGE §9).
      *
-     * @param editeur  la vue d'éditeur ouverte
+     * @param editor  la vue d'éditeur ouverte
      * @param session  la session d'édition courante
      * @param popups   le coordinateur des popups de la scène
      * @param margePx  la respiration des ancres aux bords, en pixels
      * @param palette  la palette courante des popups
      * @param plan     le plan courant du fichier ouvert
-     * @param langue   le langage du fichier ouvert, null sans
+     * @param language   le langage du fichier ouvert, null sans
      * @param annonces le canal des annonces (titre, message)
      */
-    Surete(EditorView editeur, TextSession session, PopupManager popups,
+    Surete(EditorView editor, TextSession session, PopupManager popups,
             int margePx, PopupPalette palette,
             Supplier<List<OutlineEntry>> plan,
-            Supplier<@Nullable LanguageSupport> langue,
+            Supplier<@Nullable LanguageSupport> language,
             BiConsumer<String, String> annonces) {
-        this.editeur = editeur;
+        this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
         this.plan = plan;
-        this.langue = langue;
+        this.language = language;
         this.annonces = annonces;
         this.carteUsages = new ReferencesView(popups.couche().getContext(),
                 palette);
@@ -118,7 +118,7 @@ final class Surete {
      * l'annonce ; hors déclaration, le geste s'annonce et ne touche
      * rien.
      */
-    void supprimerSur() {
+    void deleteIn() {
         SafeDelete.Verdict verdict = surAnalyse(
                 analyse -> SafeDelete.delete(session.document(), analyse,
                         debutSelection(), finSelection()));
@@ -127,11 +127,11 @@ final class Surete {
             return;
         }
         if (!verdict.usages().isEmpty()) {
-            poserUsages(verdict);
+            placeUsages(verdict);
             return;
         }
         if (session.apply(Transaction.of(verdict.edits()))) {
-            editeur.invalidate();
+            editor.invalidate();
             annoncer(R.string.celeris_suppression_effectuee);
         }
     }
@@ -142,21 +142,21 @@ final class Surete {
      * sûreté seules décident. Sans candidat, le geste s'annonce et ne
      * touche rien.
      */
-    void deplacerDans() {
+    void moveInto() {
         List<String> cibles = cibles(plan.get(), caret());
         if (cibles.isEmpty()) {
             annoncer(R.string.celeris_deplacement_aucune_cible);
             return;
         }
         List<IntentionsMenuView.Item> items = new ArrayList<>(cibles.size());
-        for (String cible : cibles) {
-            items.add(new IntentionsMenuView.Item(cible,
-                    () -> deplacer(cible)));
+        for (String target : cibles) {
+            items.add(new IntentionsMenuView.Item(target,
+                    () -> deplacer(target)));
         }
         carteCibles.setSection(popups.couche().getContext().getString(
                 R.string.celeris_section_deplacement));
         carteCibles.setActions(items);
-        montrerCibles();
+        showTargets();
     }
 
     /** Le défilement a déplacé le curseur : la carte des cibles
@@ -164,7 +164,7 @@ final class Surete {
      *  caret (la carte des usages, elle, cède au défilement). */
     void repositionner() {
         if (popups.estOuvert(PopupController.PopupKind.SAFE_MOVE)) {
-            montrerCibles();
+            showTargets();
         }
     }
 
@@ -179,13 +179,13 @@ final class Surete {
      */
     static List<String> cibles(List<OutlineEntry> plan, int caret) {
         List<String> cibles = new ArrayList<>();
-        for (OutlineEntry entree : plan) {
-            if (entree.category() != NodeCategory.TYPE
-                    || (entree.startOffset() <= caret
-                            && caret <= entree.endOffset())) {
+        for (OutlineEntry input : plan) {
+            if (input.category() != NodeCategory.TYPE
+                    || (input.startOffset() <= caret
+                            && caret <= input.endOffset())) {
                 continue;
             }
-            cibles.add(entree.name());
+            cibles.add(input.name());
         }
         return cibles;
     }
@@ -215,68 +215,68 @@ final class Surete {
     /** Le libellé de l'usage : « L12 · l'extrait de la ligne, rogné »
      *  — le lieu se lit sans quitter la carte. */
     private static String libelleDe(Document document, int offset) {
-        int ligne = document.lineForOffset(offset);
-        String extrait = document.lineText(ligne).strip();
+        int line = document.lineForOffset(offset);
+        String extrait = document.lineText(line).strip();
         if (extrait.length() > EXTRAIT_MAX) {
             extrait = extrait.substring(0, EXTRAIT_MAX) + "…";
         }
-        return "L" + (ligne + 1) + " · " + extrait;
+        return "L" + (line + 1) + " · " + extrait;
     }
 
     /** La carte des usages qui barrent : l'en-tête compte, le choix
      *  saute — la suppression attend son heure. */
-    private void poserUsages(SafeDelete.Verdict verdict) {
+    private void placeUsages(SafeDelete.Verdict verdict) {
         popups.controleur().open(PopupController.PopupKind.SAFE_DELETE);
         carteUsages.setTitre(popups.couche().getContext().getString(
                 R.string.celeris_titre_suppression, verdict.usages().size(),
                 verdict.usages().get(0).text()));
         carteUsages.setOccurrences(occurrences(session.document(),
                 verdict.usages(), this::sauter));
-        Rect curseur = editeur.caretBounds();
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom,
-                popups.taille(PopupController.PopupKind.SAFE_DELETE),
+                cursor.left, cursor.bottom,
+                popups.size(PopupController.PopupKind.SAFE_DELETE),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.SAFE_DELETE,
+        popups.show(PopupController.PopupKind.SAFE_DELETE,
                 placee.x(), placee.y());
     }
 
     /** Le saut d'un usage qui barre : la carte se referme, le curseur
      *  porte au lieu. */
     private void sauter(int offset) {
-        popups.fermer(PopupController.PopupKind.SAFE_DELETE);
+        popups.close(PopupController.PopupKind.SAFE_DELETE);
         session.setSelection(MultiSelection.of(SelRange.caretAt(offset)));
     }
 
     /** Le déménagement vers la cible : le plan du moteur, l'application
      *  en transaction annulable, l'annonce du refus SANS raison
      *  inventée — les conditions de sûreté seules décident. */
-    private void deplacer(String cible) {
-        popups.fermer(PopupController.PopupKind.SAFE_MOVE);
+    private void deplacer(String target) {
+        popups.close(PopupController.PopupKind.SAFE_MOVE);
         SafeMove.MovePlan planMouvement = surAnalyse(
                 analyse -> SafeMove.move(session.document(), analyse,
-                        debutSelection(), finSelection(), cible));
+                        debutSelection(), finSelection(), target));
         if (planMouvement == null) {
             annoncer(R.string.celeris_deplacement_refuse);
             return;
         }
         if (session.apply(Transaction.of(planMouvement.edits()))) {
-            editeur.invalidate();
-            annoncer(R.string.celeris_deplacement_effectue, cible);
+            editor.invalidate();
+            annoncer(R.string.celeris_deplacement_effectue, target);
         }
     }
 
     /** Monte la carte des cibles mesurée sous le curseur, bornée — la
      *  pose ET la re-pose y passent. */
-    private void montrerCibles() {
-        Rect curseur = editeur.caretBounds();
+    private void showTargets() {
+        Rect cursor = editor.caretBounds();
         PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
-                curseur.left, curseur.bottom,
-                popups.taille(PopupController.PopupKind.SAFE_MOVE),
+                cursor.left, cursor.bottom,
+                popups.size(PopupController.PopupKind.SAFE_MOVE),
                 popups.couche().getWidth(),
                 popups.couche().getHeight(), margePx);
-        popups.montrer(PopupController.PopupKind.SAFE_MOVE,
+        popups.show(PopupController.PopupKind.SAFE_MOVE,
                 placee.x(), placee.y());
     }
 
@@ -292,7 +292,7 @@ final class Surete {
     /** Le calcul mené sur une analyse FRAÎCHE — coordinateur ponctuel,
      *  fermé d'entrée ; null quand la langue ne s'analyse pas. */
     private <T> @Nullable T surAnalyse(Function<Analysis, T> calcul) {
-        LanguageSupport support = langue.get();
+        LanguageSupport support = language.get();
         if (support == null || support.syntax() == null) {
             return null;
         }
@@ -307,19 +307,19 @@ final class Surete {
 
     /** Le début de la sélection — la désignation s'y lit. */
     private int debutSelection() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).start();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).start();
     }
 
     /** La fin (exclusive) de la sélection — la désignation s'y borne. */
     private int finSelection() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).end();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).end();
     }
 
     /** La position du curseur — la tête de la sélection courante. */
     private int caret() {
-        List<SelRange> plages = session.selection().ranges();
-        return plages.isEmpty() ? 0 : plages.get(0).caret();
+        List<SelRange> ranges = session.selection().ranges();
+        return ranges.isEmpty() ? 0 : ranges.get(0).caret();
     }
 }

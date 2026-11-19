@@ -31,26 +31,26 @@ class ReceiverServeurTest {
     /** Les diagnostics publiés : l'état se garde, l'auditeur entend. */
     @Test
     void lesDiagnosticsPubliesServentLEtatEtLAuditeur() {
-        ReceiverServeur recepteur = new ReceiverServeur();
+        ServerReceiver receiver = new ServerReceiver();
         java.util.List<DiagnosticLsp> entendues = new java.util.ArrayList<>();
-        recepteur.ajouterAuditeurDiagnostics(
+        receiver.addDiagnosticsListener(
                 (uri, diags) -> entendues.addAll(diags));
         PublishDiagnosticsParams params = new PublishDiagnosticsParams(URI,
                 java.util.List.of());
-        recepteur.publishDiagnostics(params);
-        assertTrue(recepteur.diagnosticsDe(URI).isEmpty(),
+        receiver.publishDiagnostics(params);
+        assertTrue(receiver.diagnosticsOf(URI).isEmpty(),
                 "la publication vide se garde comme état vide");
         assertTrue(entendues.isEmpty(), "l'auditeur entend la publication vide");
-        assertTrue(recepteur.diagnosticsDe("file:///autre").isEmpty(),
+        assertTrue(receiver.diagnosticsOf("file:///autre").isEmpty(),
                 "un document jamais publié reste vide");
     }
 
     /** Le refus poli de l'édition d'espace : jamais appliquée en aveugle. */
     @Test
     void leditionDEspaceEstRefusee() throws Exception {
-        ReceiverServeur recepteur = new ReceiverServeur();
+        ServerReceiver receiver = new ServerReceiver();
         CompletableFuture<org.eclipse.lsp4j.ApplyWorkspaceEditResponse> refus =
-                recepteur.applyEdit(new ApplyWorkspaceEditParams());
+                receiver.applyEdit(new ApplyWorkspaceEditParams());
         assertFalse(refus.get().isApplied(),
                 "l'édition d'espace reçoit son refus poli");
     }
@@ -58,11 +58,11 @@ class ReceiverServeurTest {
     /** Les messages du serveur : le banc ne s'interrompt pas pour eux. */
     @Test
     void lesMessagesDuServeurRestentAuBanc() throws Exception {
-        ReceiverServeur recepteur = new ReceiverServeur();
-        recepteur.showMessage(new MessageParams());
-        recepteur.logMessage(new MessageParams());
-        recepteur.telemetryEvent(null);
-        MessageActionItem reponse = recepteur.showMessageRequest(
+        ServerReceiver receiver = new ServerReceiver();
+        receiver.showMessage(new MessageParams());
+        receiver.logMessage(new MessageParams());
+        receiver.telemetryEvent(null);
+        MessageActionItem reponse = receiver.showMessageRequest(
                 new ShowMessageRequestParams()).get();
         assertNotNull(reponse,
                 "la demande de message reçoit une réponse, jamais un silence");

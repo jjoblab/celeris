@@ -78,9 +78,9 @@ public record TokenColorsTheme(String name, int background, int foreground,
     }
 
     /** Une règle tokenColors : sélecteur exigé, réglages lus. */
-    private static ScopeTheme.Rule regle(Map<String, Object> entree, String ou) {
+    private static ScopeTheme.Rule regle(Map<String, Object> input, String ou) {
         List<String> selecteurs = new ArrayList<>();
-        Object brut = entree.get("scope");
+        Object brut = input.get("scope");
         if (brut instanceof List<?> liste) {
             for (Object element : liste) {
                 selecteurs.add(String.valueOf(element));
@@ -96,7 +96,7 @@ public record TokenColorsTheme(String name, int background, int foreground,
             throw new IllegalArgumentException(ou + ": scope is empty —"
                     + " the global ink lives in colors.editor.foreground");
         }
-        Object reglagesBruts = entree.get("settings");
+        Object reglagesBruts = input.get("settings");
         if (reglagesBruts == null) {
             throw new IllegalArgumentException(ou + ": settings is missing");
         }
@@ -123,24 +123,24 @@ public record TokenColorsTheme(String name, int background, int foreground,
         if (brut == null) {
             return 0;
         }
-        if (!(brut instanceof String texte) || !texte.startsWith("#")) {
+        if (!(brut instanceof String text) || !text.startsWith("#")) {
             throw new IllegalArgumentException(ou + " must be #RRGGBB or"
                     + " #AARRGGBB: " + brut);
         }
-        String chiffres = texte.substring(1);
+        String digits = text.substring(1);
         try {
-            if (chiffres.length() == 6) {
+            if (digits.length() == 6) {
                 return (int) (0xFF000000L
-                        | Long.parseLong(chiffres, 16));
+                        | Long.parseLong(digits, 16));
             }
-            if (chiffres.length() == 8) {
-                return (int) Long.parseLong(chiffres, 16);
+            if (digits.length() == 8) {
+                return (int) Long.parseLong(digits, 16);
             }
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(ou + " is not hexadecimal: "
-                    + texte, e);
+                    + text, e);
         }
         throw new IllegalArgumentException(ou + " must be #RRGGBB or"
-                + " #AARRGGBB: " + texte);
+                + " #AARRGGBB: " + text);
     }
 }

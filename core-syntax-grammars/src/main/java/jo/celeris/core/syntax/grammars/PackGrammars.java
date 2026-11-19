@@ -34,6 +34,6 @@ public final class PackGrammars implements GrammarFactory {
      */
     @Override
     public LanguageSyntax compile(String languageId, String grammarJson) {
-        return new GrammaireSyntax(languageId, Grammaires.lire(grammarJson));
+        return new GrammarSyntax(languageId, Grammars.read(grammarJson));
     }
 }

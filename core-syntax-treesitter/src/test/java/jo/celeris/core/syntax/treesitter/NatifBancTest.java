@@ -29,8 +29,8 @@ class NatifBancTest {
 
     /** La fabrique rend-elle la source ? — le saut du banc sans elle
      *  (liaison Maven : chargée sur Android, absente sur JVM). */
-    private static SyntaxeNatif source(int langue) {
-        SyntaxeNatif source = switch (langue) {
+    private static SyntaxeNatif source(int language) {
+        SyntaxeNatif source = switch (language) {
             case 0 -> SyntaxeNatif.json();
             default -> SyntaxeNatif.python();
         };
@@ -48,28 +48,28 @@ class NatifBancTest {
         SyntaxeNatif json = source(0);
         TextSession session = TextSession.of("{\"cle\": [1, true, null]}",
                 () -> 0L);
-        MoteurNatif moteur = MoteurNatif.sur(session, json, null);
+        NativeEngine moteur = NativeEngine.on(session, json, null);
         assumeTrue(moteur != null);
         moteur.reanalyser();
         Analysis analyse = moteur.analysePubliee();
         assertNotNull(analyse);
         assertEquals(1, analyse.lex().lineCount());
         assertEquals(0, analyse.lex().bracketDepthAtLineStart(0));
-        Token[] jetons = analyse.lex().line(0).tokens();
-        assertEquals(11, jetons.length);
-        assertEquals(TokenKind.OPEN_BRACKET, jetons[0].kind());
+        Token[] tokens = analyse.lex().line(0).tokens();
+        assertEquals(11, tokens.length);
+        assertEquals(TokenKind.OPEN_BRACKET, tokens[0].kind());
         // « cle » : les guillemets de la grammaire soudés au contenu
-        assertEquals(TokenKind.STRING, jetons[1].kind());
-        assertEquals(1, jetons[1].start());
-        assertEquals(6, jetons[1].end());
-        assertEquals(TokenKind.PUNCTUATION, jetons[2].kind());
-        assertEquals(TokenKind.OPEN_BRACKET, jetons[3].kind());
-        assertEquals(TokenKind.NUMBER, jetons[4].kind());
-        assertEquals(TokenKind.KEYWORD, jetons[6].kind());
-        assertEquals(TokenKind.KEYWORD, jetons[8].kind());
-        assertEquals(TokenKind.CLOSE_BRACKET, jetons[9].kind());
-        assertEquals(TokenKind.CLOSE_BRACKET, jetons[10].kind());
-        assertEquals(24, jetons[10].end());
+        assertEquals(TokenKind.STRING, tokens[1].kind());
+        assertEquals(1, tokens[1].start());
+        assertEquals(6, tokens[1].end());
+        assertEquals(TokenKind.PUNCTUATION, tokens[2].kind());
+        assertEquals(TokenKind.OPEN_BRACKET, tokens[3].kind());
+        assertEquals(TokenKind.NUMBER, tokens[4].kind());
+        assertEquals(TokenKind.KEYWORD, tokens[6].kind());
+        assertEquals(TokenKind.KEYWORD, tokens[8].kind());
+        assertEquals(TokenKind.CLOSE_BRACKET, tokens[9].kind());
+        assertEquals(TokenKind.CLOSE_BRACKET, tokens[10].kind());
+        assertEquals(24, tokens[10].end());
         moteur.close();
     }
 
@@ -84,7 +84,7 @@ class NatifBancTest {
         TextSession session = TextSession.of(
                 "def f():\n    \"\"\"doc\n    suite\n    \"\"\"\n    return 1\n",
                 () -> 0L);
-        MoteurNatif moteur = MoteurNatif.sur(session, python, null);
+        NativeEngine moteur = NativeEngine.on(session, python, null);
         assumeTrue(moteur != null);
         moteur.reanalyser();
         Analysis analyse = moteur.analysePubliee();
@@ -105,7 +105,7 @@ class NatifBancTest {
         assertEquals(1, chunks.size());
         assertEquals(0, chunks.get(0).startLine());
         assertEquals(4, chunks.get(0).endLine());
-        assertTrue(analyse.estComplet());
+        assertTrue(analyse.isComplete());
         moteur.close();
     }
 
@@ -119,7 +119,7 @@ class NatifBancTest {
         SyntaxeNatif python = source(1);
         TextSession session = TextSession.of(
                 "def f():\n    return 1\n", () -> 0L);
-        MoteurNatif moteur = MoteurNatif.sur(session, python, null);
+        NativeEngine moteur = NativeEngine.on(session, python, null);
         assumeTrue(moteur != null);
         moteur.reanalyser();
         assertNotNull(moteur.analysePubliee());
@@ -129,16 +129,16 @@ class NatifBancTest {
         Analysis apres = moteur.analysePubliee();
         assertNotNull(apres);
         assertEquals(1, apres.revision());
-        Token[] jetons = apres.lex().line(1).tokens();
+        Token[] tokens = apres.lex().line(1).tokens();
         // « return 1 + 2 » : l'opérateur et le second nombre naissent,
         // les blancs soudés au jeton qui les suit (la convention)
-        assertEquals(TokenKind.KEYWORD, jetons[0].kind());
-        assertEquals(4, jetons[0].start());
-        assertEquals(TokenKind.NUMBER, jetons[1].kind());
-        assertEquals(TokenKind.OPERATOR, jetons[2].kind());
-        assertEquals(TokenKind.NUMBER, jetons[3].kind());
-        assertEquals(14, jetons[3].start());
-        assertEquals(16, jetons[3].end());
+        assertEquals(TokenKind.KEYWORD, tokens[0].kind());
+        assertEquals(4, tokens[0].start());
+        assertEquals(TokenKind.NUMBER, tokens[1].kind());
+        assertEquals(TokenKind.OPERATOR, tokens[2].kind());
+        assertEquals(TokenKind.NUMBER, tokens[3].kind());
+        assertEquals(14, tokens[3].start());
+        assertEquals(16, tokens[3].end());
         moteur.close();
     }
 

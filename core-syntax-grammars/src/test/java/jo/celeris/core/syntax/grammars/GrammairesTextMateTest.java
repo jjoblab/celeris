@@ -18,7 +18,7 @@ class GrammairesTextMateTest {
     /** Les captures en objets portent leur nom de portée. */
     @Test
     void capturesEnObjets() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [
@@ -30,20 +30,20 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        assertEquals(1.0, grammaire.rapport().acceptation());
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
-        var ligne = lexeur.lex("x=42", EtatGrammaire.VIDE);
-        assertEquals(3, ligne.tokens().length, "la variable, le signe, le nombre");
-        assertEquals(0, ligne.tokens()[0].start(), "la première capture commence à zéro");
-        assertEquals(jo.celeris.core.syntax.TokenKind.NUMBER, ligne.tokens()[2].kind(),
+        assertEquals(1.0, grammaire.report().acceptation());
+        GrammarLexer lexeur = new GrammarLexer(grammaire);
+        var line = lexeur.lex("x=42", GrammarState.EMPTY);
+        assertEquals(3, line.tokens().length, "la variable, le signe, le nombre");
+        assertEquals(0, line.tokens()[0].start(), "la première capture commence à zéro");
+        assertEquals(jo.celeris.core.syntax.TokenKind.NUMBER, line.tokens()[2].kind(),
                 "la seconde capture est un nombre");
-        assertEquals(4, ligne.tokens()[2].end(), "et couvre 42");
+        assertEquals(4, line.tokens()[2].end(), "et couvre 42");
     }
 
     /** La règle sans nom laisse son texte à la portée du contexte. */
     @Test
     void regleSansNomPorteLeContexte() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [
@@ -53,12 +53,12 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
-        var ligne = lexeur.lex("\"abc\"", EtatGrammaire.VIDE);
-        assertTrue(ligne.tokens().length >= 2, "l'ouverture, le contenu, la fermeture");
+        GrammarLexer lexeur = new GrammarLexer(grammaire);
+        var line = lexeur.lex("\"abc\"", GrammarState.EMPTY);
+        assertTrue(line.tokens().length >= 2, "l'ouverture, le contenu, la fermeture");
         boolean contenuEnChaine = false;
-        for (var jeton : ligne.tokens()) {
-            if (jeton.kind() == jo.celeris.core.syntax.TokenKind.STRING) {
+        for (var token : line.tokens()) {
+            if (token.kind() == jo.celeris.core.syntax.TokenKind.STRING) {
                 contenuEnChaine = true;
             }
         }
@@ -68,7 +68,7 @@ class GrammairesTextMateTest {
     /** Le contenu d'un bloc sans contentName porte la portée de sa construction. */
     @Test
     void contenuSansContentNamePorteLeNom() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [
@@ -76,9 +76,9 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
-        var ligne = lexeur.lex("<abc>", EtatGrammaire.VIDE);
-        assertEquals(jo.celeris.core.syntax.TokenKind.STRING, ligne.tokens()[1].kind(),
+        GrammarLexer lexeur = new GrammarLexer(grammaire);
+        var line = lexeur.lex("<abc>", GrammarState.EMPTY);
+        assertEquals(jo.celeris.core.syntax.TokenKind.STRING, line.tokens()[1].kind(),
                 "l'écart porte le nom de la construction quand le contenu n'en a pas");
     }
 
@@ -88,18 +88,18 @@ class GrammairesTextMateTest {
      */
     @Test
     void heredocFermeSurSonMot() {
-        Grammaire grammaire = grammaireDePaquet("shell");
-        assertEquals(1.0, grammaire.rapport().acceptation());
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
-        EtatGrammaire etat = EtatGrammaire.VIDE;
+        Grammar grammaire = grammaireDePaquet("shell");
+        assertEquals(1.0, grammaire.report().acceptation());
+        GrammarLexer lexeur = new GrammarLexer(grammaire);
+        GrammarState etat = GrammarState.EMPTY;
         var ouverture = lexeur.lex("cat <<EOF", etat);
-        etat = (EtatGrammaire) ouverture.exitState();
+        etat = (GrammarState) ouverture.exitState();
         assertTrue(etat.dansBloc(), "l'ici-document est ouvert");
         var milieu = lexeur.lex("du texte", etat);
         assertEquals(etat, milieu.exitState(),
                 "la ligne de texte garde le bloc ouvert — FIN ne referme pas");
         var fermeture = lexeur.lex("EOF", etat);
-        assertEquals(EtatGrammaire.VIDE, fermeture.exitState(),
+        assertEquals(GrammarState.EMPTY, fermeture.exitState(),
                 "la fermeture substituée referme sur le mot capturé");
     }
 
@@ -110,27 +110,27 @@ class GrammairesTextMateTest {
      */
     @Test
     void clotureMarkdownRefermeeSurSaCloture() {
-        Grammaire grammaire = grammaireDePaquet("markdown");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
-        EtatGrammaire etat = EtatGrammaire.VIDE;
+        Grammar grammaire = grammaireDePaquet("markdown");
+        GrammarLexer lexeur = new GrammarLexer(grammaire);
+        GrammarState etat = GrammarState.EMPTY;
         var ouverture = lexeur.lex("```kotlin", etat);
-        etat = (EtatGrammaire) ouverture.exitState();
+        etat = (GrammarState) ouverture.exitState();
         assertTrue(etat.dansBloc(), "la clôture ouvre un bloc");
         var code = lexeur.lex("val x = 1", etat);
         assertEquals(etat, code.exitState(), "le code garde le bloc ouvert");
         var fermeture = lexeur.lex("```", etat);
-        assertEquals(EtatGrammaire.VIDE, fermeture.exitState(), "les trois backticks referment");
+        assertEquals(GrammarState.EMPTY, fermeture.exitState(), "les trois backticks referment");
     }
 
     /** $self en action : la substitution de commande reprend la grammaire shell. */
     @Test
     void selfDansLaSubstitutionDeCommande() {
-        Grammaire grammaire = grammaireDePaquet("shell");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
-        var ligne = lexeur.lex("echo $(if true)", EtatGrammaire.VIDE);
+        Grammar grammaire = grammaireDePaquet("shell");
+        GrammarLexer lexeur = new GrammarLexer(grammaire);
+        var line = lexeur.lex("echo $(if true)", GrammarState.EMPTY);
         boolean motCle = false;
-        for (var jeton : ligne.tokens()) {
-            if (jeton.kind() == jo.celeris.core.syntax.TokenKind.KEYWORD) {
+        for (var token : line.tokens()) {
+            if (token.kind() == jo.celeris.core.syntax.TokenKind.KEYWORD) {
                 motCle = true;
             }
         }
@@ -140,7 +140,7 @@ class GrammairesTextMateTest {
     /** L'inclusion externe absente se saute et se compte ; résolue, elle s'inclut. */
     @Test
     void inclusionExterneCompteeOuResolue() {
-        String hote = """
+        String host = """
                 {
                   "name": "Hote", "scopeName": "text.hote",
                   "patterns": [
@@ -149,26 +149,26 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """;
-        Grammaire sansRegistre = Grammaires.lire(hote);
-        assertEquals(1, sansRegistre.rapport().inclusionsExterieures(),
+        Grammar sansRegistre = Grammars.read(host);
+        assertEquals(1, sansRegistre.report().inclusionsExterieures(),
                 "l'inclusion absente se compte");
-        assertEquals(1, sansRegistre.motifs().size(), "et se saute");
+        assertEquals(1, sansRegistre.patterns().size(), "et se saute");
 
-        Grammaire invite = Grammaires.lire("""
+        Grammar invite = Grammars.read("""
                 {
                   "name": "Invite", "scopeName": "source.invite",
                   "patterns": [ { "match": "\\\\\\\\d+", "name": "constant.numeric.invite" } ]
                 }
                 """);
-        Grammaire avecRegistre = Grammaires.lire(hote, java.util.Map.of("source.invite", invite));
-        assertEquals(0, avecRegistre.rapport().inclusionsExterieures());
-        assertEquals(2, avecRegistre.motifs().size(), "l'inclusion résolue devient une référence");
+        Grammar avecRegistre = Grammars.read(host, java.util.Map.of("source.invite", invite));
+        assertEquals(0, avecRegistre.report().inclusionsExterieures());
+        assertEquals(2, avecRegistre.patterns().size(), "l'inclusion résolue devient une référence");
     }
 
     /** La règle begin/while sans fermeture se dégrade en motif simple, comptée. */
     @Test
     void regleWhileDegradee() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [
@@ -176,15 +176,15 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        assertEquals(1, grammaire.rapport().reglesWhile(), "la dégradation se compte");
-        assertEquals(1, grammaire.rapport().acceptes(), "l'ouverture seule se compile");
-        assertFalse(grammaire.motifs().isEmpty());
+        assertEquals(1, grammaire.report().reglesWhile(), "la dégradation se compte");
+        assertEquals(1, grammaire.report().acceptes(), "l'ouverture seule se compile");
+        assertFalse(grammaire.patterns().isEmpty());
     }
 
     /** Les sous-motifs de capture se dégradent au nom, comptés. */
     @Test
     void capturesSousMotifsDegradees() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [
@@ -194,13 +194,13 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        assertEquals(1, grammaire.rapport().capturesSousMotifs(), "la dégradation se compte");
+        assertEquals(1, grammaire.report().subPatternCaptures(), "la dégradation se compte");
     }
 
     /** Les injections se lisent (H-05) : sélecteur, priorité, règles. */
     @Test
     void injectionsLuesAvecLeurPriorite() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [ { "match": "a", "name": "keyword.essai" } ],
@@ -225,7 +225,7 @@ class GrammairesTextMateTest {
     @Test
     void selecteurDInjectionMalFormeRefuse() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> Grammaires.lire("""
+                () -> Grammars.read("""
                         {
                           "name": "Essai", "scopeName": "source.essai",
                           "patterns": [ { "match": "a" } ],
@@ -243,7 +243,7 @@ class GrammairesTextMateTest {
      */
     @Test
     void formeCatastrophiqueEcarteSaRegle() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "X", "scopeName": "source.x",
                   "patterns": [
@@ -252,9 +252,9 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        assertEquals(1, grammaire.rapport().refuses(),
+        assertEquals(1, grammaire.report().refuses(),
                 "la forme catastrophique se compte, jamais en silence");
-        assertEquals(1, grammaire.motifs().size(),
+        assertEquals(1, grammaire.patterns().size(),
                 "la règle saine charge, le paquet reste entier");
     }
 
@@ -264,7 +264,7 @@ class GrammairesTextMateTest {
      */
     @Test
     void fermetureModeleInvalideEcartee() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [
@@ -272,9 +272,9 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        assertTrue(grammaire.motifs().isEmpty(), "la règle à fermeture invalide est écartée");
-        assertEquals(1, grammaire.rapport().refuses(), "le refus se compte");
-        assertEquals(2, grammaire.rapport().motifs(), "ouverture et fermeture rencontrées");
+        assertTrue(grammaire.patterns().isEmpty(), "la règle à fermeture invalide est écartée");
+        assertEquals(1, grammaire.report().refuses(), "le refus se compte");
+        assertEquals(2, grammaire.report().patterns(), "ouverture et fermeture rencontrées");
     }
 
     /**
@@ -284,7 +284,7 @@ class GrammairesTextMateTest {
      */
     @Test
     void fermetureSubstitueeInvalideTientLeCoup() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [
@@ -292,11 +292,11 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        assertEquals(1.0, grammaire.rapport().acceptation(),
+        assertEquals(1.0, grammaire.report().acceptation(),
                 "le modèle \\w++ compile — la substitution vide, elle, ne le peut pas");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
-        EtatGrammaire etat =
-                (EtatGrammaire) lexeur.lex("x z", EtatGrammaire.VIDE).exitState();
+        GrammarLexer lexeur = new GrammarLexer(grammaire);
+        GrammarState etat =
+                (GrammarState) lexeur.lex("x z", GrammarState.EMPTY).exitState();
         assertTrue(etat.dansBloc(),
                 "l'ouverture matche (groupe vide), la fermeture substituée est invalide");
         var suite = lexeur.lex("zz", etat);
@@ -308,7 +308,7 @@ class GrammairesTextMateTest {
     /** applyEndPatternLast se tolère sans effet — compté. */
     @Test
     void drapeauApplyEndPatternLastTolere() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [
@@ -317,26 +317,26 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        assertEquals(1, grammaire.rapport().reglesDrapeaux(), "le drapeau se compte");
+        assertEquals(1, grammaire.report().reglesDrapeaux(), "le drapeau se compte");
     }
 
     /** La règle vide se tolère comme la référence le fait. */
     @Test
     void regleVideToleree() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [ { }, { "match": "a", "name": "keyword.essai" } ]
                 }
                 """);
-        assertEquals(1, grammaire.motifs().size(), "la règle vide passe son chemin");
+        assertEquals(1, grammaire.patterns().size(), "la règle vide passe son chemin");
     }
 
     /** Le référentiel hors objet se refuse avec le champ en cause. */
     @Test
     void referentielHorsObjetRefuse() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> Grammaires.lire("""
+                () -> Grammars.read("""
                         {
                           "name": "Essai", "scopeName": "source.essai",
                           "patterns": [], "repository": 3
@@ -348,13 +348,13 @@ class GrammairesTextMateTest {
     /** Deux inclusions de la même portée externe partagent leur référence liée. */
     @Test
     void inclusionExterneLieeDeuxFois() {
-        Grammaire invite = Grammaires.lire("""
+        Grammar invite = Grammars.read("""
                 {
                   "name": "Invite", "scopeName": "source.invite",
                   "patterns": [ { "match": "\\\\\\\\d+", "name": "constant.invite" } ]
                 }
                 """);
-        Grammaire hote = Grammaires.lire("""
+        Grammar host = Grammars.read("""
                 {
                   "name": "Hote", "scopeName": "text.hote",
                   "patterns": [
@@ -364,15 +364,15 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """, java.util.Map.of("source.invite", invite));
-        assertEquals(2, hote.motifs().size());
-        assertEquals(0, hote.rapport().inclusionsExterieures(),
+        assertEquals(2, host.patterns().size());
+        assertEquals(0, host.report().inclusionsExterieures(),
                 "les deux inclusions résolvent la même liaison");
     }
 
     /** La fermeture qui référence au-delà des groupes de l'ouverture reste littérale. */
     @Test
     void referenceAuDelaDesGroupesResteLitterale() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 {
                   "name": "Essai", "scopeName": "source.essai",
                   "patterns": [
@@ -380,10 +380,10 @@ class GrammairesTextMateTest {
                   ]
                 }
                 """);
-        assertEquals(1.0, grammaire.rapport().acceptation(),
+        assertEquals(1.0, grammaire.report().acceptation(),
                 "le modèle compile — la référence hors groupes, substituée littérale, est refusée au vol");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
-        EtatGrammaire etat = (EtatGrammaire) lexeur.lex("a", EtatGrammaire.VIDE).exitState();
+        GrammarLexer lexeur = new GrammarLexer(grammaire);
+        GrammarState etat = (GrammarState) lexeur.lex("a", GrammarState.EMPTY).exitState();
         assertTrue(etat.dansBloc(), "le bloc s'ouvre");
         var suite = lexeur.lex("zz", etat);
         assertEquals(etat, suite.exitState(), "la fermeture substituée invalide ne matche jamais");
@@ -397,7 +397,7 @@ class GrammairesTextMateTest {
      */
     @Test
     void nomAbsentTombeSurLaPorteeRacine() {
-        Grammaire grammaire = Grammaires.lire("""
+        Grammar grammaire = Grammars.read("""
                 { "scopeName": "source.essai", "patterns": [] }
                 """);
         assertEquals("source.essai", grammaire.nom(),
@@ -408,7 +408,7 @@ class GrammairesTextMateTest {
     @Test
     void porteeRacineAbsenteRefusee() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> Grammaires.lire("""
+                () -> Grammars.read("""
                         { "name": "Essai", "patterns": [] }
                         """));
         assertTrue(String.valueOf(e.getMessage()).contains("scopeName"));
@@ -417,7 +417,7 @@ class GrammairesTextMateTest {
     /** La grammaire sans motifs se refuse : un tableau est attendu. */
     @Test
     void motifsHorsTableauRefuses() {
-        assertThrows(IllegalArgumentException.class, () -> Grammaires.lire("""
+        assertThrows(IllegalArgumentException.class, () -> Grammars.read("""
                 { "name": "Essai", "scopeName": "source.essai", "patterns": 3 }
                 """));
     }
@@ -425,13 +425,13 @@ class GrammairesTextMateTest {
     /** L'emoji astral (quatre octets UTF-8) revient en positions UTF-16 exactes. */
     @Test
     void emojiAstralEnPositionsExactes() {
-        Grammaire grammaire = grammaireDePaquet("python");
-        GrammaireLexeur lexeur = new GrammaireLexeur(grammaire);
-        var ligne = lexeur.lex("x = \"🚀\"", EtatGrammaire.VIDE);
+        Grammar grammaire = grammaireDePaquet("python");
+        GrammarLexer lexeur = new GrammarLexer(grammaire);
+        var line = lexeur.lex("x = \"🚀\"", GrammarState.EMPTY);
         boolean fuseeDansChaine = false;
-        for (var jeton : ligne.tokens()) {
-            if (jeton.kind() == jo.celeris.core.syntax.TokenKind.PUNCTUATION
-                    && jeton.start() == 4 && jeton.end() == 5) {
+        for (var token : line.tokens()) {
+            if (token.kind() == jo.celeris.core.syntax.TokenKind.PUNCTUATION
+                    && token.start() == 4 && token.end() == 5) {
                 fuseeDansChaine = true;
             }
         }
@@ -439,13 +439,13 @@ class GrammairesTextMateTest {
     }
 
     /** La grammaire d'un paquet intégré, chargée par le vrai chargeur. */
-    private static Grammaire grammaireDePaquet(String id) {
+    private static Grammar grammaireDePaquet(String id) {
         var flux = GrammairesTextMateTest.class.getResourceAsStream("/langages/" + id + "/grammar.json");
         if (flux == null) {
             throw new IllegalArgumentException("grammaire du paquet " + id);
         }
         try (flux) {
-            return Grammaires.lire(new String(flux.readAllBytes(),
+            return Grammars.read(new String(flux.readAllBytes(),
                     java.nio.charset.StandardCharsets.UTF_8));
         } catch (java.io.IOException e) {
             throw new IllegalStateException(e);

@@ -69,25 +69,25 @@ final class HierarchiesTransposeTest {
                         "Hors projet");
         assertEquals(3, sections.size(),
                 "supertypes, sous-types et la frontière");
-        assertEquals("Supertypes", sections.get(0).libelle());
-        assertEquals("Animal", sections.get(0).sommets().get(0).libelle());
+        assertEquals("Supertypes", sections.get(0).label());
+        assertEquals("Animal", sections.get(0).sommets().get(0).label());
         assertEquals(1, sections.get(0).sommets().get(0).profondeur(),
                 "le parent vit à sa génération — la racine est à l'en-tête");
-        assertEquals("Sous-types", sections.get(1).libelle());
-        assertEquals("Chaton", sections.get(1).sommets().get(0).libelle());
+        assertEquals("Sous-types", sections.get(1).label());
+        assertEquals("Chaton", sections.get(1).sommets().get(0).label());
         // la frontière : Perroquet ne vit pas dans le projet — muet à
         // la frontière SEULE, jamais deux fois
         HierarchiesView.Sommet frontiere = sections.get(2).sommets().get(0);
-        assertEquals("Perroquet", frontiere.libelle());
+        assertEquals("Perroquet", frontiere.label());
         assertNull(frontiere.saut(),
                 "le parent hors projet ne se prend jamais");
         // l'audit Android Studio : la racine « Chat » ne vit dans
         // AUCUNE section — l'en-tête seul la nomme
         for (HierarchiesView.Section section : sections) {
             for (HierarchiesView.Sommet sommet : section.sommets()) {
-                assertTrue(!sommet.libelle().equals("Chat"),
+                assertTrue(!sommet.label().equals("Chat"),
                         "la racine vit à l'en-tête, jamais en section : "
-                                + sommet.libelle());
+                                + sommet.label());
             }
         }
         // le sommet connu saute : le sauteur reçoit SON nom
@@ -111,15 +111,15 @@ final class HierarchiesTransposeTest {
                         courses::add, "Callers");
         assertEquals(1, sections.size());
         HierarchiesView.Sommet appelant = sections.get(0).sommets().get(0);
-        assertEquals("miaule", appelant.libelle(),
+        assertEquals("miaule", appelant.label(),
                 "l'appelant porte la méthode — la racine vit à l'en-tête");
         assertEquals(1, appelant.profondeur());
         appelant.saut().run();
         assertEquals(List.of("miaule"), courses);
         for (HierarchiesView.Sommet sommet : sections.get(0).sommets()) {
-            assertTrue(!sommet.libelle().equals("respire"),
+            assertTrue(!sommet.label().equals("respire"),
                     "la racine vit à l'en-tête, jamais en section : "
-                            + sommet.libelle());
+                            + sommet.label());
         }
     }
 
@@ -145,7 +145,7 @@ final class HierarchiesTransposeTest {
         for (HierarchiesView.Section section : sections) {
             assertTrue(!section.sommets().isEmpty(),
                     "une section vide ne se pose jamais : "
-                            + section.libelle());
+                            + section.label());
         }
     }
 }

@@ -1,8 +1,8 @@
 package jo.celeris.lsp.protocole;
 
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 import jo.celeris.core.lsp.types.SignatureLsp;
-import jo.celeris.core.lsp.types.SurvolLsp;
+import jo.celeris.core.lsp.types.HoverLsp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,38 +31,38 @@ class ServeurEmbarqueTest {
     private static final String URI = "file:///banc/reference.txt";
 
     /** Un serveur de référence du banc : survol et signature en dur, l'état des documents suivi. */
-    private static final class ReferenceDuBanc implements ServeurEmbarque.Documents {
+    private static final class ReferenceDuBanc implements EmbeddedServer.Docs {
         String dernierTexte = "";
         String derniereLangue = "";
         int versionsVues;
 
         @Override
-        public void ouvrir(String uri, String langue, String texte) {
-            derniereLangue = langue;
-            suivre(texte);
+        public void open(String uri, String language, String text) {
+            derniereLangue = language;
+            suivre(text);
         }
 
         @Override
-        public void changer(String uri, int version, String texte) {
+        public void change(String uri, int version, String text) {
             versionsVues = version;
-            suivre(texte);
+            suivre(text);
         }
 
-        private void suivre(String texte) {
-            dernierTexte = texte;
-        }
-
-        @Override
-        public SurvolLsp survol(String uri, PositionLsp position) {
-            return new SurvolLsp("La documentation du banc.", "markdown", null);
+        private void suivre(String text) {
+            dernierTexte = text;
         }
 
         @Override
-        public SignatureLsp signature(String uri, PositionLsp position) {
-            return SignatureLsp.de(List.of(
-                    new SignatureLsp.Entree("mesurer(int a, int b)",
-                            List.of(new SignatureLsp.Parametre("a", null),
-                                    new SignatureLsp.Parametre("b", null)),
+        public HoverLsp hover(String uri, LspPosition position) {
+            return new HoverLsp("La documentation du banc.", "markdown", null);
+        }
+
+        @Override
+        public SignatureLsp signature(String uri, LspPosition position) {
+            return SignatureLsp.of(List.of(
+                    new SignatureLsp.Entry("mesurer(int a, int b)",
+                            List.of(new SignatureLsp.Parameter("a", null),
+                                    new SignatureLsp.Parameter("b", null)),
                             null)),
                     0, 1);
         }
@@ -71,23 +71,23 @@ class ServeurEmbarqueTest {
     /** Le survol et la signature du terrain, servis par le fil du protocole. */
     @Test
     void leServiceDeDocumentsSertSurvolEtSignature() throws Exception {
-        try (ServeurEmbarque montage = ServeurEmbarque.monter(
+        try (EmbeddedServer montage = EmbeddedServer.start(
                 new ReferenceDuBanc(), "celeris-banc")) {
             LspSession session = montage.session();
-            session.initialiser();
-            session.ouvrir(URI, "texte", "mesurer(1, 2)");
-            SurvolLsp survol = session.survol(URI, new PositionLsp(0, 3))
+            session.initialize();
+            session.open(URI, "texte", "mesurer(1, 2)");
+            HoverLsp hover = session.hover(URI, new LspPosition(0, 3))
                     .get(5, TimeUnit.SECONDS);
-            assertEquals("La documentation du banc.", survol.texte());
-            assertEquals("markdown", survol.genre());
-            SignatureLsp aide = session.signature(URI, new PositionLsp(0, 11))
+            assertEquals("La documentation du banc.", hover.text());
+            assertEquals("markdown", hover.kind());
+            SignatureLsp help = session.signature(URI, new LspPosition(0, 11))
                     .get(5, TimeUnit.SECONDS);
-            SignatureLsp.Entree active = aide.signatureActive();
+            SignatureLsp.Entry active = help.signatureActive();
             assertTrue(active != null, "la signature active est servie");
-            assertEquals("mesurer(int a, int b)", active.libelle());
-            assertEquals(List.of("a", "b"), active.parametres().stream()
-                    .map(SignatureLsp.Parametre::libelle).toList());
-            assertEquals(1, aide.parametreCourant());
+            assertEquals("mesurer(int a, int b)", active.label());
+            assertEquals(List.of("a", "b"), active.parameters().stream()
+                    .map(SignatureLsp.Parameter::label).toList());
+            assertEquals(1, help.parametreCourant());
         }
     }
 
@@ -95,13 +95,13 @@ class ServeurEmbarqueTest {
     @Test
     void laSynchronisationSuitLesDocuments() throws Exception {
         ReferenceDuBanc reference = new ReferenceDuBanc();
-        try (ServeurEmbarque montage = ServeurEmbarque.monter(
+        try (EmbeddedServer montage = EmbeddedServer.start(
                 reference, "celeris-banc")) {
             LspSession session = montage.session();
-            session.initialiser();
-            session.ouvrir(URI, "texte", "premier");
-            session.changer(URI, 2, "second");
-            session.fermer(URI);
+            session.initialize();
+            session.open(URI, "texte", "premier");
+            session.change(URI, 2, "second");
+            session.close(URI);
             // les notifications sont asynchrones : l'état du terrain
             // s'attend borné, jamais supposé déjà là
             long borne = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
@@ -120,15 +120,15 @@ class ServeurEmbarqueTest {
     /** Le repli du SPI : sans survol ni signature, le protocole rend ses vides. */
     @Test
     void leServiceMuertRendLesVidesDuProtocole() throws Exception {
-        try (ServeurEmbarque montage = ServeurEmbarque.monter(
-                new ServeurEmbarque.Documents() {
+        try (EmbeddedServer montage = EmbeddedServer.start(
+                new EmbeddedServer.Docs() {
                 }, "celeris-banc")) {
             LspSession session = montage.session();
-            session.initialiser();
-            session.ouvrir(URI, "texte", "rien");
-            assertEquals("", session.survol(URI, new PositionLsp(0, 1))
-                    .get(5, TimeUnit.SECONDS).texte());
-            assertNull(session.signature(URI, new PositionLsp(0, 1))
+            session.initialize();
+            session.open(URI, "texte", "rien");
+            assertEquals("", session.hover(URI, new LspPosition(0, 1))
+                    .get(5, TimeUnit.SECONDS).text());
+            assertNull(session.signature(URI, new LspPosition(0, 1))
                     .get(5, TimeUnit.SECONDS).signatureActive());
         }
     }
@@ -136,16 +136,16 @@ class ServeurEmbarqueTest {
     /** Le montage d'un serveur existant : l'objet opaque, l'interface standard du banc. */
     @Test
     void leServeurExistantMonteParObjetOpaque() throws Exception {
-        try (ServeurEmbarque montage = ServeurEmbarque.monter(
+        try (EmbeddedServer montage = EmbeddedServer.start(
                 new ServeurFactice(), org.eclipse.lsp4j.services.LanguageClient.class,
                 "celeris-banc")) {
             LspSession session = montage.session();
-            assertTrue(session.initialiser().sertCompletion(),
+            assertTrue(session.initialize().supportsCompletion(),
                     "le serveur factice monte par l'objet opaque et répond");
-            session.ouvrir(URI, "xml", "<ex/>");
+            session.open(URI, "xml", "<ex/>");
             List<jo.celeris.core.lsp.types.DiagnosticLsp> publies = new java.util.ArrayList<>();
-            session.ajouterAuditeurDiagnostics((uri, diags) -> publies.addAll(diags));
-            session.ouvrir(URI + "2", "xml", "<ex/>");
+            session.addDiagnosticsListener((uri, diags) -> publies.addAll(diags));
+            session.open(URI + "2", "xml", "<ex/>");
             long borne = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
             while (publies.isEmpty() && System.nanoTime() < borne) {
                 Thread.sleep(10);
@@ -159,10 +159,10 @@ class ServeurEmbarqueTest {
     /** Le montage par désignation : les noms en toutes lettres, la voie des déclarations. */
     @Test
     void leMontageParDesignationInstancieEtRepond() throws Exception {
-        try (ServeurEmbarque montage = ServeurEmbarque.monter(
+        try (EmbeddedServer montage = EmbeddedServer.start(
                 "jo.celeris.lsp.protocole.ServeurFactice",
                 "org.eclipse.lsp4j.services.LanguageClient", "celeris-banc")) {
-            assertTrue(montage.session().initialiser().sertSurvol(),
+            assertTrue(montage.session().initialize().supportsHover(),
                     "le serveur désigné par ses noms monte et répond");
         }
     }
@@ -170,7 +170,7 @@ class ServeurEmbarqueTest {
     /** Le montage par désignation refuse l'introuvable — l'échec se dit, jamais ne se devine. */
     @Test
     void leMontageParDesignationRefuseLintrouvable() {
-        assertThrows(IllegalStateException.class, () -> ServeurEmbarque.monter(
+        assertThrows(IllegalStateException.class, () -> EmbeddedServer.start(
                 "jo.celeris.introuvable.Serveur", "java.lang.Runnable", "banc"));
     }
 
@@ -180,11 +180,11 @@ class ServeurEmbarqueTest {
      */
     @Test
     void leRepliConnectDeLaBibliothequePorteLeProxy() throws Exception {
-        ServeurConscient serveur = new ServeurConscient();
-        try (ServeurEmbarque montage = ServeurEmbarque.monter(serveur,
+        ServeurConscient server = new ServeurConscient();
+        try (EmbeddedServer montage = EmbeddedServer.start(server,
                 org.eclipse.lsp4j.services.LanguageClient.class, "celeris-banc")) {
-            montage.session().initialiser();
-            assertTrue(serveur.connecte,
+            montage.session().initialize();
+            assertTrue(server.connecte,
                     "le proxy est passé par connect, la convention standard");
         }
     }
@@ -195,10 +195,10 @@ class ServeurEmbarqueTest {
      */
     @Test
     void leServeurSansRappelsMonteQuandMeme() throws Exception {
-        try (ServeurEmbarque montage = ServeurEmbarque.monter(
+        try (EmbeddedServer montage = EmbeddedServer.start(
                 new ServeurSansRappels(),
                 org.eclipse.lsp4j.services.LanguageClient.class, "celeris-banc")) {
-            assertTrue(montage.session().initialiser().sertSurvol(),
+            assertTrue(montage.session().initialize().supportsHover(),
                     "le serveur sans rappels répond à la poignée de main");
         }
     }
@@ -220,12 +220,12 @@ class ServeurEmbarqueTest {
         @Override
         public CompletableFuture<org.eclipse.lsp4j.InitializeResult> initialize(
                 org.eclipse.lsp4j.InitializeParams params) {
-            org.eclipse.lsp4j.ServerCapabilities capacites =
+            org.eclipse.lsp4j.ServerCapabilities capabilities =
                     new org.eclipse.lsp4j.ServerCapabilities();
-            capacites.setHoverProvider(
+            capabilities.setHoverProvider(
                     org.eclipse.lsp4j.jsonrpc.messages.Either.forLeft(Boolean.TRUE));
             return CompletableFuture.completedFuture(
-                    new org.eclipse.lsp4j.InitializeResult(capacites));
+                    new org.eclipse.lsp4j.InitializeResult(capabilities));
         }
 
         @Override

@@ -6,7 +6,7 @@ import java.util.List;
  * Un trou de gabarit (M5, A-22) : l'occurrence d'une variable dans le
  * rendu, ses bornes et son nom. Les occurrences d'une même variable
  * sont liées : l'édition de l'une se propage aux autres (les miroirs,
- * {@link Gabarits#miroirs}).
+ * {@link Gabarits#mirrors}).
  *
  * <p>Le trou riche (chantier C7) porte ses choix — la liste fermée
  * d'un trou à choix ({@code ${fruit|pomme,poire,banane|}}), vide pour
@@ -14,22 +14,22 @@ import java.util.List;
  * cycle ({@link #choixSuivant(String)}) — l'hôte présente la liste ou
  * le cycle, le moteur reste pur.</p>
  *
- * @param debut    le début du trou dans le rendu, inclusif
- * @param fin      la fin du trou dans le rendu, exclusive
+ * @param start    le début du trou dans le rendu, inclusif
+ * @param end      la fin du trou dans le rendu, exclusive
  * @param variable le nom de la variable
  * @param choix    les choix du trou à choix, vides pour un trou libre
  */
-public record Trou(int debut, int fin, String variable, List<String> choix) {
+public record Trou(int start, int end, String variable, List<String> choix) {
 
     /**
      * Constructeur de commodité d'un trou libre — sans choix.
      *
-     * @param debut    le début du trou dans le rendu, inclusif
-     * @param fin      la fin du trou dans le rendu, exclusive
+     * @param start    le début du trou dans le rendu, inclusif
+     * @param end      la fin du trou dans le rendu, exclusive
      * @param variable le nom de la variable
      */
-    public Trou(int debut, int fin, String variable) {
-        this(debut, fin, variable, List.of());
+    public Trou(int start, int end, String variable) {
+        this(start, end, variable, List.of());
     }
 
     /**
@@ -37,11 +37,11 @@ public record Trou(int debut, int fin, String variable, List<String> choix) {
      * choix figés — jamais nuls.
      */
     public Trou {
-        if (debut < 0) {
-            throw new IllegalArgumentException("debut must be >= 0: " + debut);
+        if (start < 0) {
+            throw new IllegalArgumentException("debut must be >= 0: " + start);
         }
-        if (fin < debut) {
-            throw new IllegalArgumentException("fin must be >= debut: " + fin);
+        if (end < start) {
+            throw new IllegalArgumentException("fin must be >= debut: " + end);
         }
         if (variable == null || variable.isBlank()) {
             throw new IllegalArgumentException("variable must not be blank");
@@ -55,10 +55,10 @@ public record Trou(int debut, int fin, String variable, List<String> choix) {
     /**
      * La longueur du trou.
      *
-     * @return {@code fin - debut}
+     * @return {@code end - debut}
      */
-    public int longueur() {
-        return fin - debut;
+    public int length() {
+        return end - start;
     }
 
     /**

@@ -28,16 +28,16 @@ public final class Renommage {
     }
 
     /** Un conflit signalé : le nom en cause et sa raison. */
-    public record ConflitRenommage(String nom, RaisonConflit raison) {
+    public record ConflitRenommage(String nom, RaisonConflit reason) {
     }
 
     /** Le plan de renommage : les éditions par uri, les conflits signalés. */
-    public record PlanRenommage(Map<String, List<TextEdit>> editions,
+    public record PlanRenommage(Map<String, List<TextEdit>> edits,
                                 List<ConflitRenommage> conflits) {
 
         /** Constructeur canonique : carte et liste figées. */
         public PlanRenommage {
-            editions = Map.copyOf(editions);
+            edits = Map.copyOf(edits);
             conflits = List.copyOf(conflits);
         }
     }
@@ -58,7 +58,7 @@ public final class Renommage {
                                      String nouveauNom) {
         List<ConflitRenommage> conflits = new ArrayList<>();
         int declarations = 0;
-        for (Symbole symbole : index.symboles()) {
+        for (Symbole symbole : index.symbols()) {
             if (symbole.nom().equals(ancienNom)) {
                 declarations++;
             }
@@ -69,16 +69,16 @@ public final class Renommage {
         if (declarations > 1) {
             conflits.add(new ConflitRenommage(ancienNom, RaisonConflit.AMBIGUITE));
         }
-        Map<String, List<TextEdit>> editions = new LinkedHashMap<>();
+        Map<String, List<TextEdit>> edits = new LinkedHashMap<>();
         for (IndexSymboles.Usage usage : index.usages(ancienNom)) {
-            editions.computeIfAbsent(usage.uri(), uri -> new ArrayList<>())
+            edits.computeIfAbsent(usage.uri(), uri -> new ArrayList<>())
                     .add(new TextEdit(usage.offset(), ancienNom, nouveauNom));
         }
         // ordre descendant d'application : les offsets originaux restent
         // valides au fil de la transaction séquentielle
-        for (List<TextEdit> liste : editions.values()) {
+        for (List<TextEdit> liste : edits.values()) {
             liste.sort(java.util.Comparator.comparingInt(TextEdit::start).reversed());
         }
-        return new PlanRenommage(editions, conflits);
+        return new PlanRenommage(edits, conflits);
     }
 }

@@ -55,44 +55,44 @@ public final class SmartTyping {
         if (selection.isEmpty() || typed.isEmpty()) {
             return Optional.empty();
         }
-        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<TextEdit> edits = new ArrayList<>(selection.caretCount());
         List<SelRange> apres = new ArrayList<>(selection.caretCount());
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
-            Geste geste = frappePlage(doc, plage, typed, rules, delta);
-            if (geste.edition() != null) {
-                editions.add(geste.edition());
+        for (SelRange range : selection.ranges()) {
+            TypingGesture geste = typeRange(doc, range, typed, rules, delta);
+            if (geste.edit() != null) {
+                edits.add(geste.edit());
             }
             apres.add(geste.selection());
             delta = geste.delta();
         }
-        return Optional.of(new EditPlan(Transaction.of(editions),
+        return Optional.of(new EditPlan(Transaction.of(edits),
                 MultiSelection.of(apres)));
     }
 
     /** Le geste de frappe d'une plage : entourage, paire ou saut. */
-    private static Geste frappePlage(Document doc, SelRange plage, String typed,
+    private static TypingGesture typeRange(Document doc, SelRange range, String typed,
             TypingRules rules, int delta) {
         boolean caractere = typed.length() == 1;
         char c = caractere ? typed.charAt(0) : '\0';
-        if (!plage.isEmpty()) {
-            String contenu = doc.subText(plage.start(), plage.end());
+        if (!range.isEmpty()) {
+            String contenu = doc.subText(range.start(), range.end());
             String ferme = caractere && rules.estOuvrant(c) ? String.valueOf(rules.fermantDe(c))
                     : caractere && rules.estCitation(c) ? typed : "";
             if (!ferme.isEmpty()) {
                 String insere = typed + contenu + ferme;
-                return new Geste(
-                        new TextEdit(plage.start() + delta, contenu, insere),
-                        new SelRange(plage.start() + delta + 1, plage.end() + delta + 1),
+                return new TypingGesture(
+                        new TextEdit(range.start() + delta, contenu, insere),
+                        new SelRange(range.start() + delta + 1, range.end() + delta + 1),
                         delta + insere.length() - contenu.length());
             }
-            return new Geste(new TextEdit(plage.start() + delta, contenu, typed),
-                    SelRange.caretAt(plage.start() + delta + typed.length()),
+            return new TypingGesture(new TextEdit(range.start() + delta, contenu, typed),
+                    SelRange.caretAt(range.start() + delta + typed.length()),
                     delta + typed.length() - contenu.length());
         }
-        int p = plage.caret();
+        int p = range.caret();
         int pd = p + delta;
-        if (caractere && !autoCloseGarde(doc, p, doc.lineForOffset(p))) {
+        if (caractere && !autoCloseGuard(doc, p, doc.lineForOffset(p))) {
             return insertionSimple(typed, pd, delta);
         }
         boolean ouvre = caractere && (rules.estOuvrant(c) || rules.estCitation(c));
@@ -101,14 +101,14 @@ public final class SmartTyping {
         if (ouvre) {
             String ferme = rules.estOuvrant(c) ? String.valueOf(rules.fermantDe(c)) : typed;
             String insere = typed + ferme;
-            return new Geste(new TextEdit(pd, "", insere), SelRange.caretAt(pd + 1),
+            return new TypingGesture(new TextEdit(pd, "", insere), SelRange.caretAt(pd + 1),
                     delta + insere.length());
         }
         if (saute) {
             // le fermant déjà présent est sauté : aucune édition
-            return new Geste(null, SelRange.caretAt(pd + 1), delta);
+            return new TypingGesture(null, SelRange.caretAt(pd + 1), delta);
         }
-        return new Geste(new TextEdit(pd, "", typed),
+        return new TypingGesture(new TextEdit(pd, "", typed),
                 SelRange.caretAt(pd + typed.length()), delta + typed.length());
     }
 
@@ -132,36 +132,36 @@ public final class SmartTyping {
      */
     public static EditPlan enter(Document doc, @Nullable Analysis analysis,
             MultiSelection selection, IndentStyle style) {
-        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<TextEdit> edits = new ArrayList<>(selection.caretCount());
         List<SelRange> apres = new ArrayList<>(selection.caretCount());
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
-            int coupe = plage.isEmpty() ? plage.caret() : plage.start();
-            String retire = doc.subText(plage.start(), plage.end());
-            int ligne = doc.lineForOffset(coupe);
-            String indentation = indentationAttendue(doc, analysis, coupe, ligne, style);
+        for (SelRange range : selection.ranges()) {
+            int coupe = range.isEmpty() ? range.caret() : range.start();
+            String retire = doc.subText(range.start(), range.end());
+            int line = doc.lineForOffset(coupe);
+            String indentation = indentationAttendue(doc, analysis, coupe, line, style);
             // C9 : la continuation de ligne — le « * » de
             // documentation, la puce de liste, repris au saut.
-            String continuation = plage.isEmpty()
-                    ? IndentEngine.continuationDeLigne(doc, ligne) : "";
-            String reste = doc.subText(coupe, doc.lineEnd(ligne));
+            String continuation = range.isEmpty()
+                    ? IndentEngine.lineContinuation(doc, line) : "";
+            String reste = doc.subText(coupe, doc.lineEnd(line));
             String insere;
-            if (!plage.isEmpty()) {
+            if (!range.isEmpty()) {
                 insere = "\n" + indentation;
             } else {
                 String retraitFermant = commenceParFermant(reste)
-                        ? retraitDuFermant(doc, analysis, coupe, ligne, style)
+                        ? retraitDuFermant(doc, analysis, coupe, line, style)
                         : null;
                 insere = retraitFermant == null
                         ? "\n" + indentation + continuation
                         : "\n" + indentation + continuation + "\n" + retraitFermant;
             }
-            editions.add(new TextEdit(plage.start() + delta, retire, insere));
-            apres.add(SelRange.caretAt(plage.start() + delta + 1
+            edits.add(new TextEdit(range.start() + delta, retire, insere));
+            apres.add(SelRange.caretAt(range.start() + delta + 1
                     + indentation.length() + continuation.length()));
             delta += insere.length() - retire.length();
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(apres));
     }
 
     /**
@@ -182,68 +182,68 @@ public final class SmartTyping {
         if (selection.isEmpty()) {
             return Optional.empty();
         }
-        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<TextEdit> edits = new ArrayList<>(selection.caretCount());
         List<SelRange> apres = new ArrayList<>(selection.caretCount());
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
-            Optional<Geste> geste = retourArrierePlage(doc, plage, rules, style, delta);
+        for (SelRange range : selection.ranges()) {
+            Optional<TypingGesture> geste = retourArrierePlage(doc, range, rules, style, delta);
             if (geste.isEmpty()) {
                 // pas de règle : le repli global rend la main au cœur
                 return Optional.empty();
             }
-            Geste g = geste.get();
-            editions.add(g.edition());
+            TypingGesture g = geste.get();
+            edits.add(g.edit());
             apres.add(g.selection());
             delta = g.delta();
         }
-        return Optional.of(new EditPlan(Transaction.of(editions),
+        return Optional.of(new EditPlan(Transaction.of(edits),
                 MultiSelection.of(apres)));
     }
 
     /** Le retour arrière d'une plage : paire vide, citation vide, cran d'indentation. */
-    private static Optional<Geste> retourArrierePlage(Document doc, SelRange plage,
+    private static Optional<TypingGesture> retourArrierePlage(Document doc, SelRange range,
             TypingRules rules, IndentStyle style, int delta) {
-        if (!plage.isEmpty()) {
-            String retire = doc.subText(plage.start(), plage.end());
-            return Optional.of(new Geste(
-                    new TextEdit(plage.start() + delta, retire, ""),
-                    SelRange.caretAt(plage.start() + delta), delta - retire.length()));
+        if (!range.isEmpty()) {
+            String retire = doc.subText(range.start(), range.end());
+            return Optional.of(new TypingGesture(
+                    new TextEdit(range.start() + delta, retire, ""),
+                    SelRange.caretAt(range.start() + delta), delta - retire.length()));
         }
-        int p = plage.caret();
+        int p = range.caret();
         if (p >= 1 && p < doc.length()) {
             char avant = doc.charAt(p - 1);
             char apresCaret = doc.charAt(p);
             boolean paireVide = rules.estOuvrant(avant) && apresCaret == rules.fermantDe(avant);
             boolean citationsVides = rules.estCitation(avant) && apresCaret == avant;
             if (paireVide || citationsVides) {
-                return Optional.of(new Geste(
+                return Optional.of(new TypingGesture(
                         new TextEdit(p - 1 + delta, deuxCaracteres(avant, apresCaret), ""),
                         SelRange.caretAt(p - 1 + delta), delta - 2));
             }
         }
         // C7 (l'analyse croisée) : le collapse des lignes vides —
         // LineActions y sert l'effondrement du saut qui précède.
-        Optional<LineActions.Geste> effondrement =
-                LineActions.effondrerLigneVide(doc, p, delta);
+        Optional<LineActions.TypingGesture> effondrement =
+                LineActions.collapseBlankLine(doc, p, delta);
         if (effondrement.isPresent()) {
-            LineActions.Geste g = effondrement.get();
-            return Optional.of(new Geste(g.edition(), g.selection(), g.delta()));
+            LineActions.TypingGesture g = effondrement.get();
+            return Optional.of(new TypingGesture(g.edit(), g.selection(), g.delta()));
         }
-        return cranIndentation(doc, p, style, delta);
+        return indentStep(doc, p, style, delta);
     }
 
     /** Le cran d'indentation excédentaire, ou la main au cœur. */
-    private static Optional<Geste> cranIndentation(Document doc, int p, IndentStyle style,
+    private static Optional<TypingGesture> indentStep(Document doc, int p, IndentStyle style,
             int delta) {
-        int ligne = doc.lineForOffset(p);
-        int debut = doc.lineStart(ligne);
-        String blancs = IndentEngine.leadingWhitespace(doc.lineText(ligne));
-        if (p > debut && blancs.length() >= p - debut) {
-            int colonne = p - debut;
-            int cran = colonne % style.width() == 0
-                    ? Math.min(style.width(), colonne)
-                    : colonne % style.width();
-            return Optional.of(new Geste(
+        int line = doc.lineForOffset(p);
+        int start = doc.lineStart(line);
+        String blancs = IndentEngine.leadingWhitespace(doc.lineText(line));
+        if (p > start && blancs.length() >= p - start) {
+            int column = p - start;
+            int cran = column % style.width() == 0
+                    ? Math.min(style.width(), column)
+                    : column % style.width();
+            return Optional.of(new TypingGesture(
                     new TextEdit(p - cran + delta, doc.subText(p - cran, p), ""),
                     SelRange.caretAt(p - cran + delta), delta - cran));
         }
@@ -267,29 +267,29 @@ public final class SmartTyping {
      */
     public static EditPlan surround(Document doc, MultiSelection selection,
             String avant, String apres, boolean parLignes, IndentStyle style) {
-        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<TextEdit> edits = new ArrayList<>(selection.caretCount());
         List<SelRange> resultante = new ArrayList<>(selection.caretCount());
         int delta = 0;
-        for (SelRange plage : selection.ranges()) {
-            String contenu = doc.subText(plage.start(), plage.end());
+        for (SelRange range : selection.ranges()) {
+            String contenu = doc.subText(range.start(), range.end());
             String insere;
             if (parLignes && !contenu.isEmpty()) {
-                StringBuilder corps = new StringBuilder();
-                for (String ligne : contenu.split("\n", -1)) {
-                    if (corps.length() > 0) {
-                        corps.append('\n');
+                StringBuilder body = new StringBuilder();
+                for (String line : contenu.split("\n", -1)) {
+                    if (body.length() > 0) {
+                        body.append('\n');
                     }
-                    corps.append(style.indent(1)).append(ligne);
+                    body.append(style.indent(1)).append(line);
                 }
-                insere = avant + "\n" + corps + "\n" + apres;
+                insere = avant + "\n" + body + "\n" + apres;
             } else {
                 insere = avant + contenu + apres;
             }
-            editions.add(new TextEdit(plage.start() + delta, contenu, insere));
-            resultante.add(SelRange.caretAt(plage.start() + delta + insere.length()));
+            edits.add(new TextEdit(range.start() + delta, contenu, insere));
+            resultante.add(SelRange.caretAt(range.start() + delta + insere.length()));
             delta += insere.length() - contenu.length();
         }
-        return new EditPlan(Transaction.of(editions), MultiSelection.of(resultante));
+        return new EditPlan(Transaction.of(edits), MultiSelection.of(resultante));
     }
 
     /**
@@ -299,12 +299,12 @@ public final class SmartTyping {
      * départ : l'arbre suit la frappe, jamais il ne devance la main).
      */
     private static String indentationAttendue(Document doc, @Nullable Analysis analysis,
-            int coupe, int ligne, IndentStyle style) {
+            int coupe, int line, IndentStyle style) {
         if (analysis != null) {
             return style.indent(IndentEngine.depthAtCaret(doc, analysis, coupe));
         }
-        String retrait = IndentEngine.leadingWhitespace(doc.lineText(ligne));
-        if (ouvrantColle(doc, coupe) && !dansLitteral(doc, coupe, ligne)) {
+        String retrait = IndentEngine.leadingWhitespace(doc.lineText(line));
+        if (ouvrantColle(doc, coupe) && !dansLitteral(doc, coupe, line)) {
             return retrait + style.indent(1);
         }
         return retrait;
@@ -330,23 +330,23 @@ public final class SmartTyping {
      * @return le retrait de la ligne du fermant, null pour le saut simple
      */
     private static @Nullable String retraitDuFermant(Document doc,
-            @Nullable Analysis analysis, int coupe, int ligne, IndentStyle style) {
+            @Nullable Analysis analysis, int coupe, int line, IndentStyle style) {
         if (analysis != null) {
             int profondeur = IndentEngine.depthAtCaret(doc, analysis, coupe);
             if (profondeur >= 1) {
                 return style.indent(profondeur - 1);
             }
         }
-        if (paireVideAu(doc, coupe) && !dansLitteral(doc, coupe, ligne)) {
-            return IndentEngine.leadingWhitespace(doc.lineText(ligne));
+        if (paireVideAu(doc, coupe) && !dansLitteral(doc, coupe, line)) {
+            return IndentEngine.leadingWhitespace(doc.lineText(line));
         }
         return null;
     }
 
     /** L'insertion simple : la frappe passe telle quelle, le caret
      *  suit — le geste des cas gardés (littéral, balance monstre). */
-    private static Geste insertionSimple(String typed, int pd, int delta) {
-        return new Geste(new TextEdit(pd, "", typed),
+    private static TypingGesture insertionSimple(String typed, int pd, int delta) {
+        return new TypingGesture(new TextEdit(pd, "", typed),
                 SelRange.caretAt(pd + typed.length()), delta + typed.length());
     }
 
@@ -363,8 +363,8 @@ public final class SmartTyping {
      * (chaîne ou commentaire : le délimiteur y est du texte) et sur
      * un document dont la balance de crochets dépasse le seuil.
      */
-    private static boolean autoCloseGarde(Document doc, int coupe, int ligne) {
-        if (dansLitteralEtendu(doc, coupe, ligne)) {
+    private static boolean autoCloseGuard(Document doc, int coupe, int line) {
+        if (dansLitteralEtendu(doc, coupe, line)) {
             return false;
         }
         return balanceSousSeuil(doc);
@@ -378,14 +378,14 @@ public final class SmartTyping {
      * dépôt de départ consulte son lexeur ; sans publication, la
      * parité textuelle reste le repli fidèle.
      */
-    private static boolean dansLitteralEtendu(Document doc, int coupe, int ligne) {
-        if (dansLitteral(doc, coupe, ligne)) {
+    private static boolean dansLitteralEtendu(Document doc, int coupe, int line) {
+        if (dansLitteral(doc, coupe, line)) {
             return true;
         }
-        int debut = doc.lineStart(ligne);
-        String texte = doc.lineText(ligne);
-        int barres = texte.indexOf("//");
-        return barres >= 0 && debut + barres < coupe;
+        int start = doc.lineStart(line);
+        String text = doc.lineText(line);
+        int barres = text.indexOf("//");
+        return barres >= 0 && start + barres < coupe;
     }
 
     /** La balance de crochets du document reste sous le seuil (C3). */
@@ -437,9 +437,9 @@ public final class SmartTyping {
      * guillemets, échappés exceptés — le repli n'y gagne ni cran ni
      * descente du fermant.
      */
-    private static boolean dansLitteral(Document doc, int coupe, int ligne) {
+    private static boolean dansLitteral(Document doc, int coupe, int line) {
         boolean guillemet = false;
-        for (int i = doc.lineStart(ligne); i < coupe; i++) {
+        for (int i = doc.lineStart(line); i < coupe; i++) {
             char c = doc.charAt(i);
             if (c == '\\' && i + 1 < coupe) {
                 i++;
@@ -471,6 +471,6 @@ public final class SmartTyping {
     }
 
     /** Le geste d'une plage : édition (nulle pour le saut), sélection d'après, delta cumulé. */
-    private record Geste(@Nullable TextEdit edition, SelRange selection, int delta) {
+    private record TypingGesture(@Nullable TextEdit edit, SelRange selection, int delta) {
     }
 }

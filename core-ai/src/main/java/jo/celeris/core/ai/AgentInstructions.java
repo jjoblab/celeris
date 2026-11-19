@@ -11,9 +11,9 @@ package jo.celeris.core.ai;
  * fichier : l'outil répond honnêtement qu'il n'y a rien, jamais il
  * n'invente de conventions.</p>
  *
- * @param texte les instructions, lues telles quelles
+ * @param text les instructions, lues telles quelles
  */
-public record AgentInstructions(String texte) {
+public record AgentInstructions(String text) {
 
     /** Les instructions absentes : le dépôt n'en déclare pas. */
     public static final AgentInstructions AUCUNE = new AgentInstructions("");
@@ -25,7 +25,7 @@ public record AgentInstructions(String texte) {
      * @throws NullPointerException si le texte est null
      */
     public AgentInstructions {
-        java.util.Objects.requireNonNull(texte, "texte");
+        java.util.Objects.requireNonNull(text, "texte");
     }
 
     /**
@@ -36,13 +36,13 @@ public record AgentInstructions(String texte) {
      * @return les instructions, ou {@link #AUCUNE} si le contenu est
      *         blanc
      */
-    public static AgentInstructions de(String contenuFichier) {
+    public static AgentInstructions of(String contenuFichier) {
         return contenuFichier.isBlank() ? AUCUNE
                 : new AgentInstructions(contenuFichier.strip());
     }
 
     /** Vrai quand le dépôt ne déclare aucune instruction. */
-    public boolean estAbsente() {
-        return texte.isEmpty();
+    public boolean isAbsent() {
+        return text.isEmpty();
     }
 }

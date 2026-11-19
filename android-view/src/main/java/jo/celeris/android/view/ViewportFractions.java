@@ -34,9 +34,9 @@ final class ViewportFractions {
      * fenêtre.
      */
     float partVisible() {
-        float hauteurContenu = hauteurContenu();
-        return hauteurContenu <= 0f || vue.getHeight() <= 0f ? 1f
-                : Math.max(0f, Math.min(1f, vue.getHeight() / hauteurContenu));
+        float contentHeight = contentHeight();
+        return contentHeight <= 0f || vue.getHeight() <= 0f ? 1f
+                : Math.max(0f, Math.min(1f, vue.getHeight() / contentHeight));
     }
 
     /**
@@ -45,10 +45,10 @@ final class ViewportFractions {
      */
     void defilerA(float fraction) {
         float max = course();
-        float cible = max <= 0f ? 0f
+        float target = max <= 0f ? 0f
                 : Math.max(0f, Math.min(1f, fraction)) * max;
-        if (cible != vue.scrollY) {
-            vue.scrollY = cible;
+        if (target != vue.scrollY) {
+            vue.scrollY = target;
             vue.invalidate();
         }
     }
@@ -57,7 +57,7 @@ final class ViewportFractions {
      * La première ligne visible : la rangée du haut de la fenêtre, dans
      * les bornes du document.
      */
-    int premiereLigneVisible() {
+    int firstVisibleLine() {
         return Math.max(0, ScrollGeometry.firstRow(vue.scrollY,
                 vue.metrics.lineHeight()));
     }
@@ -66,18 +66,18 @@ final class ViewportFractions {
      * Le nombre de lignes visibles : la hauteur de la fenêtre en
      * rangées, au moins une.
      */
-    int lignesVisibles() {
+    int visibleLines() {
         return Math.max(1, ScrollGeometry.visibleRows(vue.getHeight(),
                 vue.metrics.lineHeight()));
     }
 
     /** La hauteur du contenu visuel — rangées × hauteur de rangée. */
-    private float hauteurContenu() {
+    private float contentHeight() {
         return vue.projection.rowCount() * vue.metrics.lineHeight();
     }
 
     /** La course verticale du défilement — le maximum déroulable. */
     private float course() {
-        return ScrollGeometry.maxScroll(hauteurContenu(), vue.getHeight());
+        return ScrollGeometry.maxScroll(contentHeight(), vue.getHeight());
     }
 }

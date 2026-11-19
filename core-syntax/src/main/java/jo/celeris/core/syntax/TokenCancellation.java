@@ -11,35 +11,35 @@ package jo.celeris.core.syntax;
  *
  * <p>Le jeton ne porte pas de raison : supplanté par une édition ou
  * fermé par l'hôte, le travail s'arrête de la même façon —
- * {@link AnalyseAnnulee} au prochain point de contrôle.</p>
+ * {@link AnalysisCancelled} au prochain point de contrôle.</p>
  */
 public final class TokenCancellation {
 
-    private boolean annule;
+    private boolean cancelled;
 
     /** Un jeton actif. */
     public TokenCancellation() {
-        this.annule = false;
+        this.cancelled = false;
     }
 
     /** Annule le travail associé : idempotent. */
     public synchronized void annuler() {
-        annule = true;
+        cancelled = true;
     }
 
     /** Vrai quand le travail associé doit s'arrêter au prochain point de contrôle. */
-    public synchronized boolean estAnnule() {
-        return annule;
+    public synchronized boolean isCancelled() {
+        return cancelled;
     }
 
     /**
      * Point de contrôle : lève si le travail est annulé, sinon passe.
      *
-     * @throws AnalyseAnnulee si le travail a été annulé
+     * @throws AnalysisCancelled si le travail a été annulé
      */
-    public void verifier() {
-        if (estAnnule()) {
-            throw new AnalyseAnnulee();
+    public void check() {
+        if (isCancelled()) {
+            throw new AnalysisCancelled();
         }
     }
 }

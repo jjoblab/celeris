@@ -33,32 +33,32 @@ public final class LineSorter {
     public static EditPlan sort(Document doc, MultiSelection selection, boolean caseSensitive) {
         int premiere = doc.lineCount();
         int derniere = -1;
-        for (SelRange plage : selection.ranges()) {
-            premiere = Math.min(premiere, doc.lineForOffset(plage.start()));
+        for (SelRange range : selection.ranges()) {
+            premiere = Math.min(premiere, doc.lineForOffset(range.start()));
             derniere = Math.max(derniere,
-                    doc.lineForOffset(Math.max(plage.start(), plage.end() - 1)));
+                    doc.lineForOffset(Math.max(range.start(), range.end() - 1)));
         }
         if (derniere < 0) {
             premiere = 0;
             derniere = doc.lineCount() - 1;
         }
-        List<String> lignes = new ArrayList<>();
+        List<String> lines = new ArrayList<>();
         for (int l = premiere; l <= derniere; l++) {
-            lignes.add(doc.lineText(l));
+            lines.add(doc.lineText(l));
         }
-        lignes.sort(naturel(caseSensitive));
+        lines.sort(naturel(caseSensitive));
         StringBuilder trie = new StringBuilder();
-        for (int i = 0; i < lignes.size(); i++) {
+        for (int i = 0; i < lines.size(); i++) {
             if (i > 0) {
                 trie.append('\n');
             }
-            trie.append(lignes.get(i));
+            trie.append(lines.get(i));
         }
-        int debut = doc.lineStart(premiere);
-        int fin = doc.lineEnd(derniere);
-        TextEdit edition = new TextEdit(debut, doc.subText(debut, fin), trie.toString());
-        SelRange blocTrie = new SelRange(debut, debut + trie.length());
-        return new EditPlan(Transaction.of(edition), MultiSelection.of(blocTrie));
+        int start = doc.lineStart(premiere);
+        int end = doc.lineEnd(derniere);
+        TextEdit edit = new TextEdit(start, doc.subText(start, end), trie.toString());
+        SelRange blocTrie = new SelRange(start, start + trie.length());
+        return new EditPlan(Transaction.of(edit), MultiSelection.of(blocTrie));
     }
 
     /**
@@ -97,22 +97,22 @@ public final class LineSorter {
         };
     }
 
-    /** La valeur de la tranche numérique en {@code debut} et sa fin exclusive. */
-    private static long[] trancheNumerique(String s, int debut) {
-        int fin = debut;
-        while (fin < s.length() && Character.isDigit(s.charAt(fin))) {
-            fin++;
+    /** La valeur de la tranche numérique en {@code start} et sa fin exclusive. */
+    private static long[] trancheNumerique(String s, int start) {
+        int end = start;
+        while (end < s.length() && Character.isDigit(s.charAt(end))) {
+            end++;
         }
-        return new long[] {Long.parseLong(s.substring(debut, fin)), fin};
+        return new long[] {Long.parseLong(s.substring(start, end)), end};
     }
 
-    /** La tranche de texte (non numérique) en {@code debut}, un caractère au moins. */
-    private static String trancheTexte(String s, int debut, boolean caseSensitive) {
-        int fin = debut + 1;
-        while (fin < s.length() && !Character.isDigit(s.charAt(fin))) {
-            fin++;
+    /** La tranche de texte (non numérique) en {@code start}, un caractère au moins. */
+    private static String trancheTexte(String s, int start, boolean caseSensitive) {
+        int end = start + 1;
+        while (end < s.length() && !Character.isDigit(s.charAt(end))) {
+            end++;
         }
-        String texte = s.substring(debut, fin);
-        return caseSensitive ? texte : texte.toLowerCase(java.util.Locale.ROOT);
+        String text = s.substring(start, end);
+        return caseSensitive ? text : text.toLowerCase(java.util.Locale.ROOT);
     }
 }

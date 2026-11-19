@@ -32,19 +32,19 @@ public final class SuppressionInspection {
      * ligne, les lignes suivantes ne bougent pas).
      *
      * @param doc       le document, jamais muté
-     * @param ligne     la ligne porteuse, à partir de un
+     * @param line     la ligne porteuse, à partir de un
      * @param regle     l'identifiant de règle à masquer, jamais vide
      * @return le plan du geste, null si la ligne porte déjà la marque
      */
-    public static @Nullable EditPlan masquer(Document doc, int ligne, String regle) {
-        if (ligne < 1 || ligne > doc.lineCount()) {
+    public static @Nullable EditPlan masquer(Document doc, int line, String regle) {
+        if (line < 1 || line > doc.lineCount()) {
             return null;
         }
-        String texte = doc.lineText(ligne - 1);
-        if (texte.contains(MARQUE + regle)) {
+        String text = doc.lineText(line - 1);
+        if (text.contains(MARQUE + regle)) {
             return null;
         }
-        int position = doc.lineStart(ligne - 1) + texte.length();
+        int position = doc.lineStart(line - 1) + text.length();
         String marque = " " + MARQUE + regle;
         return new EditPlan(
                 Transaction.of(new TextEdit(position, "", marque)),

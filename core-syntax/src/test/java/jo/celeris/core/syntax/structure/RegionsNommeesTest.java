@@ -23,23 +23,23 @@ public class RegionsNommeesTest {
     private static final JavaSyntax SYNTAXE = JavaSyntax.INSTANCE;
 
     /** Le document analysé : plis dérivés de l'arbre + du lexique. */
-    private static Document document(String texte) {
-        return Document.of(texte);
+    private static Document document(String text) {
+        return Document.of(text);
     }
 
-    private static boolean pliable(String texte, int ligne) {
-        Document doc = document(texte);
+    private static boolean pliable(String text, int line) {
+        Document doc = document(text);
         Analysis analyse = jo.celeris.core.syntax.SyntaxService.of(SYNTAXE)
                 .analyseFull(doc);
         return TreeFolds.regions(doc, analyse).stream()
-                .anyMatch(r -> r.startLine() == ligne);
+                .anyMatch(r -> r.startLine() == line);
     }
 
     /** La région nommée {@code // region} se plie : l'en-tête porte
      *  le pli, la dernière ligne est celle du {@code // endregion}. */
     @Test
     public void laRegionNommeeSePlie() {
-        String texte = """
+        String text = """
                 class A {
                 }
                 // region Constantes
@@ -47,7 +47,7 @@ public class RegionsNommeesTest {
                 int deux = 2;
                 // endregion
                 """;
-        assertTrue(pliable(texte, 2),
+        assertTrue(pliable(text, 2),
                 "la ligne // region porte un pli");
     }
 
@@ -55,7 +55,7 @@ public class RegionsNommeesTest {
      *  marque ouvrante porte le pli, la fermante ferme la plage. */
     @Test
     public void leditorFoldSePlie() {
-        String texte = """
+        String text = """
                 class A {
                 }
                 // <editor-fold desc="Champs">
@@ -63,7 +63,7 @@ public class RegionsNommeesTest {
                 int deux = 2;
                 // </editor-fold>
                 """;
-        assertTrue(pliable(texte, 2),
+        assertTrue(pliable(text, 2),
                 "la ligne editor-fold porte un pli");
     }
 
@@ -72,7 +72,7 @@ public class RegionsNommeesTest {
      *  repliait « Imports » d'un geste). */
     @Test
     public void leBlocDimportsSePlie() {
-        String texte = """
+        String text = """
                 package jo;
 
                 import java.util.List;
@@ -82,32 +82,32 @@ public class RegionsNommeesTest {
                 class A {
                 }
                 """;
-        assertTrue(pliable(texte, 2),
+        assertTrue(pliable(text, 2),
                 "la première ligne d'import porte un pli");
     }
 
     /** Sans région ni imports, la ligne orpheline ne porte rien. */
     @Test
     public void lesLignesOrphelinesNePortentRien() {
-        String texte = """
+        String text = """
                 class A {
                     int x = 1;
                 }
                 """;
-        assertFalse(pliable(texte, 1),
+        assertFalse(pliable(text, 1),
                 "la ligne du champ ne porte pas de pli région");
     }
 
     /** Une région FERMÉE d'abord (endif sans region) ne plie rien. */
     @Test
     public void laRegionFermeeSansOuvertureNePlieRien() {
-        String texte = """
+        String text = """
                 class A {
                 }
                 // endregion orphelin
                 int un = 1;
                 """;
-        assertFalse(pliable(texte, 2),
+        assertFalse(pliable(text, 2),
                 "l'endregion orphelin ne porte pas de pli");
     }
 }

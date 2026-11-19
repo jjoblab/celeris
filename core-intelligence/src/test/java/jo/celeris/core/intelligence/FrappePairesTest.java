@@ -144,19 +144,19 @@ class FrappePairesTest {
         assertTruePour(json, "\"");
     }
 
-    private void assertFalsePour(TypingRules regles, String frappe) {
+    private void assertFalsePour(TypingRules regles, String keystroke) {
         Document doc = Document.of("x");
         Optional<EditPlan> plan = SmartTyping.insert(doc,
-                MultiSelection.caretsAt(1), frappe, regles);
+                MultiSelection.caretsAt(1), keystroke, regles);
         assertTrue(plan.isPresent());
         // pas de paire : insertion simple
         assertEquals(1, plan.get().transaction().edits().get(0).inserted().length());
     }
 
-    private void assertTruePour(TypingRules regles, String frappe) {
+    private void assertTruePour(TypingRules regles, String keystroke) {
         Document doc = Document.of("x");
         Optional<EditPlan> plan = SmartTyping.insert(doc,
-                MultiSelection.caretsAt(1), frappe, regles);
+                MultiSelection.caretsAt(1), keystroke, regles);
         assertTrue(plan.isPresent());
         assertEquals(2, plan.get().transaction().edits().get(0).inserted().length());
     }

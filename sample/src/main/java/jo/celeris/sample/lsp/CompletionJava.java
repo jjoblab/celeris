@@ -3,14 +3,14 @@ package jo.celeris.sample.lsp;
 import java.util.ArrayList;
 import java.util.List;
 
-import jo.celeris.core.lsp.types.ElementCompletion;
-import jo.celeris.core.lsp.types.ListeCompletion;
-import jo.celeris.core.lsp.types.PositionLsp;
+import jo.celeris.core.lsp.types.CompletionItemLsp;
+import jo.celeris.core.lsp.types.CompletionListLsp;
+import jo.celeris.core.lsp.types.LspPosition;
 import jo.celeris.core.lsp.types.SignatureLsp;
-import jo.celeris.core.lsp.types.SurlignageLsp;
-import jo.celeris.core.lsp.types.SurvolLsp;
-import jo.celeris.core.lsp.types.SymboleLsp;
-import jo.celeris.core.lsp.types.PlageLsp;
+import jo.celeris.core.lsp.types.HighlightLsp;
+import jo.celeris.core.lsp.types.HoverLsp;
+import jo.celeris.core.lsp.types.SymbolLsp;
+import jo.celeris.core.lsp.types.RangeLsp;
 
 /**
  * La complétion, les signatures, le survol, les symboles et les
@@ -38,7 +38,7 @@ final class CompletionJava {
             "false", "null");
 
     /** Les membres de String les plus servis — après un point. */
-    private static final List<ElementCompletion> MEMBRES_STRING = List.of(
+    private static final List<CompletionItemLsp> MEMBRES_STRING = List.of(
             membre("length()", "int", "La longueur de la chaîne."),
             membre("charAt(int index)", "char",
                     "Le caractère à l'index donné."),
@@ -68,20 +68,20 @@ final class CompletionJava {
                     "Vrai quand la chaîne finit par le suffixe."));
 
     /** Un membre de complétion (genre 2 = méthode du protocole). */
-    private static ElementCompletion membre(String libelle, String detail,
+    private static CompletionItemLsp membre(String label, String detail,
             String documentation) {
-        return new ElementCompletion(libelle, 2, detail, documentation,
+        return new CompletionItemLsp(label, 2, detail, documentation,
                 null, null, null, false);
     }
 
     /** Les identifiants déclarés du document : variables et méthodes
      *  lues des têtes de déclaration. */
-    static List<String> declarations(String texte) {
+    static List<String> declarations(String text) {
         List<String> noms = new ArrayList<>();
         java.util.regex.Matcher matcher = java.util.regex.Pattern
                 .compile("\\b(?:[A-Za-z_][\\w<>\\[\\], .]*)\\s+"
                         + "([a-z_][\\w]*)\\s*[=;(]")
-                .matcher(texte);
+                .matcher(text);
         while (matcher.find()) {
             String nom = matcher.group(1);
             if (!noms.contains(nom)) {
@@ -95,22 +95,22 @@ final class CompletionJava {
      *  bornes de l'identifiant ; un point devant sert les membres de
      *  String, sinon les mots réservés et les déclarations du
      *  document. */
-    static ListeCompletion completion(String texte, int caret) {
-        int debutMot = debutDuMot(texte, caret);
-        String prefixe = texte.substring(debutMot, caret);
-        ListeCompletion membres = membresDuReceveur(texte, debutMot, prefixe);
+    static CompletionListLsp completion(String text, int caret) {
+        int debutMot = debutDuMot(text, caret);
+        String prefixe = text.substring(debutMot, caret);
+        CompletionListLsp membres = membresDuReceveur(text, debutMot, prefixe);
         if (membres != null) {
             return membres;
         }
-        return baseDuDocument(texte, prefixe);
+        return baseDuDocument(text, prefixe);
     }
 
     /** L'offset du début du mot tapé, en remontant aux bornes de
      *  l'identifiant. */
-    private static int debutDuMot(String texte, int caret) {
+    private static int debutDuMot(String text, int caret) {
         int debutMot = caret;
         while (debutMot > 0
-                && Character.isJavaIdentifierPart(texte.charAt(debutMot - 1))) {
+                && Character.isJavaIdentifierPart(text.charAt(debutMot - 1))) {
             debutMot--;
         }
         return debutMot;
@@ -118,75 +118,75 @@ final class CompletionJava {
 
     /** Les membres de String derrière un point — le récepteur lu du
      *  mot avant le point ; null quand la complétion de base se sert. */
-    private static @org.jspecify.annotations.Nullable ListeCompletion
-            membresDuReceveur(String texte, int debutMot, String prefixe) {
-        boolean apresPoint = debutMot > 0 && texte.charAt(debutMot - 1) == '.';
+    private static @org.jspecify.annotations.Nullable CompletionListLsp
+            membresDuReceveur(String text, int debutMot, String prefixe) {
+        boolean apresPoint = debutMot > 0 && text.charAt(debutMot - 1) == '.';
         if (!apresPoint) {
             return null;
         }
         int finReceveur = debutMot - 1;
         int debutReceveur = finReceveur;
-        while (debutReceveur > 0 && texte.charAt(debutReceveur - 1) != '"'
+        while (debutReceveur > 0 && text.charAt(debutReceveur - 1) != '"'
                 && Character.isJavaIdentifierPart(
-                        texte.charAt(debutReceveur - 1))) {
+                        text.charAt(debutReceveur - 1))) {
             debutReceveur--;
         }
-        String receveur = texte.substring(debutReceveur, finReceveur);
+        String receveur = text.substring(debutReceveur, finReceveur);
         boolean chaine = debutReceveur > 0
-                && texte.charAt(debutReceveur - 1) == '"';
+                && text.charAt(debutReceveur - 1) == '"';
         if (!chaine && !"nom".equals(receveur) && !"texte".equals(receveur)) {
             return null;
         }
-        List<ElementCompletion> elements = new ArrayList<>();
-        for (ElementCompletion membre : MEMBRES_STRING) {
-            if (membre.libelle().startsWith(prefixe)) {
+        List<CompletionItemLsp> elements = new ArrayList<>();
+        for (CompletionItemLsp membre : MEMBRES_STRING) {
+            if (membre.label().startsWith(prefixe)) {
                 elements.add(membre);
             }
         }
-        return ListeCompletion.de(false, elements);
+        return CompletionListLsp.of(false, elements);
     }
 
     /** La base du document : mots réservés et déclarations du fichier. */
-    private static ListeCompletion baseDuDocument(String texte, String prefixe) {
-        List<ElementCompletion> elements = new ArrayList<>();
+    private static CompletionListLsp baseDuDocument(String text, String prefixe) {
+        List<CompletionItemLsp> elements = new ArrayList<>();
         for (String reserve : MOTS_RESERVES) {
             if (reserve.startsWith(prefixe)) {
-                elements.add(new ElementCompletion(reserve, 14,
+                elements.add(new CompletionItemLsp(reserve, 14,
                         "mot réservé", null, null, null, null, false));
             }
         }
-        for (String nom : declarations(texte)) {
+        for (String nom : declarations(text)) {
             if (nom.startsWith(prefixe) && !nom.equals(prefixe)) {
-                elements.add(new ElementCompletion(nom, 6,
+                elements.add(new CompletionItemLsp(nom, 6,
                         "déclaré dans ce fichier", null, null, null, null,
                         false));
             }
         }
-        return ListeCompletion.de(false, elements);
+        return CompletionListLsp.of(false, elements);
     }
 
     /** L'aide aux signatures : l'appel ouvert devant le caret —
      *  println et print du System.out, les méthodes du document. */
-    static SignatureLsp signature(String texte, int caret) {
+    static SignatureLsp signature(String text, int caret) {
         // l'appel ouvert : remonter au « ( » non fermé le plus proche
-        int parenthese = parentheseOuverte(texte, caret);
+        int parenthese = parentheseOuverte(text, caret);
         if (parenthese < 0) {
             return null;
         }
         int debutMot = parenthese;
         while (debutMot > 0 && (Character.isJavaIdentifierPart(
-                texte.charAt(debutMot - 1)) || texte.charAt(debutMot - 1) == '.')) {
+                text.charAt(debutMot - 1)) || text.charAt(debutMot - 1) == '.')) {
             debutMot--;
         }
-        String nom = texte.substring(debutMot, parenthese);
+        String nom = text.substring(debutMot, parenthese);
         int parametreActif = 0;
-        for (int i = parenthese + 1; i < caret && i < texte.length(); i++) {
-            if (texte.charAt(i) == ',') {
+        for (int i = parenthese + 1; i < caret && i < text.length(); i++) {
+            if (text.charAt(i) == ',') {
                 parametreActif++;
             }
         }
         if (nom.endsWith("println")) {
-            return SignatureLsp.de(List.of(
+            return SignatureLsp.of(List.of(
                     entreePrintln("println(Object x)", "x",
                             "ce qui s'imprime, puis le saut de ligne",
                             "Impression avec saut de ligne."),
@@ -196,7 +196,7 @@ final class CompletionJava {
                     0, parametreActif);
         }
         if (nom.endsWith("print")) {
-            return SignatureLsp.de(List.of(entreePrintln(
+            return SignatureLsp.of(List.of(entreePrintln(
                     "print(Object x)", "x",
                     "ce qui s'imprime, sans saut de ligne",
                     "Impression sans saut de ligne.")),
@@ -206,10 +206,10 @@ final class CompletionJava {
     }
 
     /** L'offset du « ( » non fermé qui porte le caret, -1 sans appel ouvert. */
-    private static int parentheseOuverte(String texte, int caret) {
+    private static int parentheseOuverte(String text, int caret) {
         int profondeur = 0;
         for (int i = caret - 1; i >= 0; i--) {
-            char c = texte.charAt(i);
+            char c = text.charAt(i);
             if (c == ')') {
                 profondeur++;
             } else if (c == '(') {
@@ -225,170 +225,170 @@ final class CompletionJava {
     }
 
     /** Une entrée de signature d'impression. */
-    private static SignatureLsp.Entree entreePrintln(String libelle,
+    private static SignatureLsp.Entry entreePrintln(String label,
             String parametre, String documentationParametre,
             String documentation) {
-        return new SignatureLsp.Entree(libelle,
-                List.of(new SignatureLsp.Parametre(parametre,
+        return new SignatureLsp.Entry(label,
+                List.of(new SignatureLsp.Parameter(parametre,
                         documentationParametre)),
                 documentation);
     }
 
     /** Le survol : la déclaration locale du mot sous la position. */
-    static SurvolLsp survol(String texte, PositionLsp position) {
-        int[] ligneColonne = offsetDe(texte, position);
+    static HoverLsp hover(String text, LspPosition position) {
+        int[] ligneColonne = offsetDe(text, position);
         if (ligneColonne == null) {
             return null;
         }
         int debutMot = ligneColonne[0];
         while (debutMot > 0 && Character.isJavaIdentifierPart(
-                texte.charAt(debutMot - 1))) {
+                text.charAt(debutMot - 1))) {
             debutMot--;
         }
         int finMot = ligneColonne[0];
-        while (finMot < texte.length()
-                && Character.isJavaIdentifierPart(texte.charAt(finMot))) {
+        while (finMot < text.length()
+                && Character.isJavaIdentifierPart(text.charAt(finMot))) {
             finMot++;
         }
         if (finMot <= debutMot) {
             return null;
         }
-        String mot = texte.substring(debutMot, finMot);
+        String mot = text.substring(debutMot, finMot);
         // le mot apparaît-il en tête de déclaration ?
         java.util.regex.Matcher declaration = java.util.regex.Pattern
                 .compile("\\b(\\w+(?:<[^>]*>)?(?:\\[\\])?)\\s+" 
                         + java.util.regex.Pattern.quote(mot)
                         + "\\s*[=;]")
-                .matcher(texte);
+                .matcher(text);
         if (declaration.find()) {
-            return new SurvolLsp(mot + " : " + declaration.group(1),
+            return new HoverLsp(mot + " : " + declaration.group(1),
                     "variable", null);
         }
         java.util.regex.Matcher methode = java.util.regex.Pattern
                 .compile("\\b\\w[\\w<>, \\[\\]]*\\s+"
                         + java.util.regex.Pattern.quote(mot)
                         + "\\s*\\(")
-                .matcher(texte);
+                .matcher(text);
         if (methode.find()) {
-            int finLigne = texte.indexOf('\n', methode.start());
-            String entete = texte.substring(methode.start(),
-                    finLigne < 0 ? Math.min(texte.length(),
+            int finLigne = text.indexOf('\n', methode.start());
+            String entete = text.substring(methode.start(),
+                    finLigne < 0 ? Math.min(text.length(),
                             methode.start() + 80) : finLigne).trim();
-            return new SurvolLsp(entete, "méthode", null);
+            return new HoverLsp(entete, "méthode", null);
         }
         if (MOTS_RESERVES.contains(mot)) {
-            return new SurvolLsp(mot, "mot réservé", null);
+            return new HoverLsp(mot, "mot réservé", null);
         }
         return null;
     }
 
     /** L'offset du début de ligne+colonne, null hors texte. */
-    private static int[] offsetDe(String texte, PositionLsp position) {
-        int ligne = 0;
+    private static int[] offsetDe(String text, LspPosition position) {
+        int line = 0;
         int offset = 0;
-        while (ligne < position.ligne() && offset < texte.length()) {
-            if (texte.charAt(offset) == '\n') {
-                ligne++;
+        while (line < position.line() && offset < text.length()) {
+            if (text.charAt(offset) == '\n') {
+                line++;
             }
             offset++;
         }
-        if (ligne != position.ligne()) {
+        if (line != position.line()) {
             return null;
         }
-        return new int[]{offset + position.colonne()};
+        return new int[]{offset + position.column()};
     }
 
     /** Les symboles du document : les classes, les méthodes, lues
      *  des têtes de déclaration. */
-    static List<SymboleLsp> symboles(String texte) {
-        List<SymboleLsp> symboles = new ArrayList<>();
-        String[] lignes = texte.split("\n", -1);
-        for (int numero = 0; numero < lignes.length; numero++) {
-            String ligne = lignes[numero].trim();
+    static List<SymbolLsp> symbols(String text) {
+        List<SymbolLsp> symbols = new ArrayList<>();
+        String[] lines = text.split("\n", -1);
+        for (int number = 0; number < lines.length; number++) {
+            String line = lines[number].trim();
             java.util.regex.Matcher classe = java.util.regex.Pattern
                     .compile("(?:class|interface|enum)\\s+(\\w+)")
-                    .matcher(ligne);
+                    .matcher(line);
             if (classe.find()) {
-                symboles.add(new SymboleLsp(classe.group(1), 5,
-                        new PlageLsp(new PositionLsp(numero, 0),
-                                new PositionLsp(numero + 1, 0)),
+                symbols.add(new SymbolLsp(classe.group(1), 5,
+                        new RangeLsp(new LspPosition(number, 0),
+                                new LspPosition(number + 1, 0)),
                         null, List.of()));
                 continue;
             }
             java.util.regex.Matcher methode = java.util.regex.Pattern
                     .compile("(?:public|private|protected|static|final|\\s)*"
                             + "[\\w<>,\\[\\]]+\\s+(\\w+)\\s*\\([^;]*\\)\\s*\\{")
-                    .matcher(ligne);
-            if (methode.find() && !ligne.startsWith("//")) {
-                symboles.add(new SymboleLsp(methode.group(1), 6,
-                        new PlageLsp(new PositionLsp(numero, 0),
-                                new PositionLsp(numero + 1, 0)),
+                    .matcher(line);
+            if (methode.find() && !line.startsWith("//")) {
+                symbols.add(new SymbolLsp(methode.group(1), 6,
+                        new RangeLsp(new LspPosition(number, 0),
+                                new LspPosition(number + 1, 0)),
                         null, List.of()));
             }
         }
-        return symboles;
+        return symbols;
     }
 
     /** Les occurrences du mot sous la position : chaque apparition
      *  du mot entier, la surlignage du protocole. */
-    static List<SurlignageLsp> surlignages(String texte, PositionLsp position) {
-        int[] ligneColonne = offsetDe(texte, position);
+    static List<HighlightLsp> highlights(String text, LspPosition position) {
+        int[] ligneColonne = offsetDe(text, position);
         if (ligneColonne == null) {
             return List.of();
         }
         int offset = ligneColonne[0];
-        if (offset >= texte.length()) {
+        if (offset >= text.length()) {
             return List.of();
         }
         int debutMot = offset;
         while (debutMot > 0 && Character.isJavaIdentifierPart(
-                texte.charAt(debutMot - 1))) {
+                text.charAt(debutMot - 1))) {
             debutMot--;
         }
         int finMot = offset;
-        while (finMot < texte.length()
-                && Character.isJavaIdentifierPart(texte.charAt(finMot))) {
+        while (finMot < text.length()
+                && Character.isJavaIdentifierPart(text.charAt(finMot))) {
             finMot++;
         }
-        String mot = texte.substring(debutMot, finMot);
+        String mot = text.substring(debutMot, finMot);
         if (mot.isEmpty()) {
             return List.of();
         }
-        List<SurlignageLsp> surlignages = new ArrayList<>();
+        List<HighlightLsp> highlights = new ArrayList<>();
         java.util.regex.Matcher matcher = java.util.regex.Pattern
                 .compile("\\b" + java.util.regex.Pattern.quote(mot) + "\\b")
-                .matcher(texte);
+                .matcher(text);
         int[] offsets = new int[1];
         while (matcher.find()) {
             offsets[0] = matcher.start();
-            int[] lc = ligneColonneDe(texte, matcher.start(), matcher.end());
+            int[] lc = lineColumnOf(text, matcher.start(), matcher.end());
             if (lc != null) {
-                surlignages.add(new SurlignageLsp(
-                        new PlageLsp(new PositionLsp(lc[0], lc[1]),
-                                new PositionLsp(lc[2], lc[3])), 1));
+                highlights.add(new HighlightLsp(
+                        new RangeLsp(new LspPosition(lc[0], lc[1]),
+                                new LspPosition(lc[2], lc[3])), 1));
             }
         }
-        return surlignages;
+        return highlights;
     }
 
     /** Les positions LSP d'une plage d'offsets, null hors texte. */
-    private static int[] ligneColonneDe(String texte, int debut, int fin) {
-        int ligne = 0;
-        int colonne = 0;
-        int debutLigne = 0;
-        for (int i = 0; i < fin && i < texte.length(); i++) {
-            if (i == debut) {
+    private static int[] lineColumnOf(String text, int start, int end) {
+        int line = 0;
+        int column = 0;
+        int lineStart = 0;
+        for (int i = 0; i < end && i < text.length(); i++) {
+            if (i == start) {
                 break;
             }
-            if (texte.charAt(i) == '\n') {
-                ligne++;
-                colonne = 0;
-                debutLigne = i + 1;
+            if (text.charAt(i) == '\n') {
+                line++;
+                column = 0;
+                lineStart = i + 1;
             } else {
-                colonne++;
+                column++;
             }
         }
-        return new int[]{ligne, debut - debutLigne, ligne,
-                fin - debutLigne};
+        return new int[]{line, start - lineStart, line,
+                end - lineStart};
     }
 }

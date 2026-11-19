@@ -32,27 +32,27 @@ public final class IncrementalLexer {
      *
      * @param doc    le document
      * @param lexeur le lexeur du langage
-     * @param jeton  le jeton d'annulation interrogé entre les lots de lignes
+     * @param token  le jeton d'annulation interrogé entre les lots de lignes
      * @return le lexique complet du document
-     * @throws AnalyseAnnulee si le travail est annulé en cours de passe
+     * @throws AnalysisCancelled si le travail est annulé en cours de passe
      */
-    public LexResult lexFull(Document doc, LanguageLexer lexeur, TokenCancellation jeton) {
+    public LexResult lexFull(Document doc, LanguageLexer lexeur, TokenCancellation token) {
         int nombre = doc.lineCount();
-        LexedLine[] lignes = new LexedLine[nombre];
+        LexedLine[] lines = new LexedLine[nombre];
         int[] profondeurs = new int[nombre];
         LexState etat = lexeur.initialState();
         int profondeur = 0;
-        for (int ligne = 0; ligne < nombre; ligne++) {
-            if ((ligne & 0xFF) == 0) {
-                jeton.verifier();
+        for (int line = 0; line < nombre; line++) {
+            if ((line & 0xFF) == 0) {
+                token.check();
             }
-            LexedLine lue = lexeur.lex(doc.lineText(ligne), etat);
-            lignes[ligne] = lue;
-            profondeurs[ligne] = profondeur;
+            LexedLine lue = lexeur.lex(doc.lineText(line), etat);
+            lines[line] = lue;
+            profondeurs[line] = profondeur;
             profondeur += deltaCrochets(lue.tokens());
             etat = lue.exitState();
         }
-        return new LexResult(new LexDocument(lignes, profondeurs, lexeur.initialState()),
+        return new LexResult(new LexDocument(lines, profondeurs, lexeur.initialState()),
                 0, Math.max(0, nombre - 1));
     }
 
@@ -67,44 +67,44 @@ public final class IncrementalLexer {
      */
     public LexResult lexIncremental(Document doc, LanguageLexer lexeur,
                                     LexDocument previous, EditSite site) {
-        site.verifier(previous.lineCount(), doc.lineCount());
+        site.check(previous.lineCount(), doc.lineCount());
         int nombre = doc.lineCount();
         List<LexedLine> relues = new ArrayList<>();
         List<Integer> profondeursRelues = new ArrayList<>();
-        LexState etat = etatEntree(previous, site.firstLine());
+        LexState etat = entryState(previous, site.firstLine());
         int profondeur = previous.bracketDepthAtLineStart(site.firstLine());
-        int ligne = site.firstLine();
+        int line = site.firstLine();
         int derniere = site.lastLine();
-        while (ligne < nombre) {
-            LexedLine lue = lexeur.lex(doc.lineText(ligne), etat);
+        while (line < nombre) {
+            LexedLine lue = lexeur.lex(doc.lineText(line), etat);
             relues.add(lue);
             profondeursRelues.add(profondeur);
             profondeur += deltaCrochets(lue.tokens());
             etat = lue.exitState();
-            if (ligne >= derniere && ligne + 1 < nombre
-                    && converge(lue, previous, ligne + 1, site.lineDelta())) {
+            if (line >= derniere && line + 1 < nombre
+                    && converge(lue, previous, line + 1, site.lineDelta())) {
                 break;
             }
-            ligne++;
+            line++;
         }
-        return assembler(doc, lexeur, previous, site, relues, profondeursRelues,
-                Math.min(ligne, nombre - 1), profondeur);
+        return assemble(doc, lexeur, previous, site, relues, profondeursRelues,
+                Math.min(line, nombre - 1), profondeur);
     }
 
-    private LexResult assembler(Document doc, LanguageLexer lexeur, LexDocument previous,
+    private LexResult assemble(Document doc, LanguageLexer lexeur, LexDocument previous,
                                 EditSite site, List<LexedLine> relues,
                                 List<Integer> profondeursRelues, int derniereRelue,
                                 int profondeurApres) {
         int nombre = doc.lineCount();
-        LexedLine[] anciennes = previous.lignes();
+        LexedLine[] anciennes = previous.lines();
         int[] anciennesProfondeurs = previous.profondeurs();
-        LexedLine[] lignes = new LexedLine[nombre];
+        LexedLine[] lines = new LexedLine[nombre];
         int[] profondeurs = new int[nombre];
         for (int i = 0; i < relues.size(); i++) {
-            lignes[site.firstLine() + i] = relues.get(i);
+            lines[site.firstLine() + i] = relues.get(i);
             profondeurs[site.firstLine() + i] = profondeursRelues.get(i);
         }
-        assemblerPrefixe(previous, anciennes, anciennesProfondeurs, lignes, profondeurs,
+        assemblePrefix(previous, anciennes, anciennesProfondeurs, lines, profondeurs,
                 site.firstLine());
         int decalage = site.lineDelta();
         int differentiel = 0;
@@ -113,10 +113,10 @@ public final class IncrementalLexer {
                     Math.min(derniereRelue + 1 - decalage, anciennesProfondeurs.length - 1));
             differentiel = profondeurApres - anciennesProfondeurs[ancienneAlignee];
         }
-        assemblerSuffixe(previous, anciennes, anciennesProfondeurs, lignes, profondeurs,
+        assembleSuffix(previous, anciennes, anciennesProfondeurs, lines, profondeurs,
                 derniereRelue + 1, decalage, differentiel);
         return new LexResult(
-                new LexDocument(lignes, profondeurs, lexeur.initialState()),
+                new LexDocument(lines, profondeurs, lexeur.initialState()),
                 site.firstLine(), Math.max(derniereRelue, site.firstLine()));
     }
 
@@ -128,16 +128,16 @@ public final class IncrementalLexer {
      * machine lente. Le garde-fou retombe sur la relecture bornée si le
      * site dépasse le lexique précédent — cas hors contrat, jamais vu.
      */
-    private static void assemblerPrefixe(LexDocument previous, LexedLine[] anciennes,
-                                         int[] anciennesProfondeurs, LexedLine[] lignes,
+    private static void assemblePrefix(LexDocument previous, LexedLine[] anciennes,
+                                         int[] anciennesProfondeurs, LexedLine[] lines,
                                          int[] profondeurs, int prefixe) {
         int copie = Math.min(prefixe, anciennes.length);
         if (copie > 0) {
-            System.arraycopy(anciennes, 0, lignes, 0, copie);
+            System.arraycopy(anciennes, 0, lines, 0, copie);
             System.arraycopy(anciennesProfondeurs, 0, profondeurs, 0, copie);
         }
         for (int i = copie; i < prefixe; i++) {
-            lignes[i] = previous.line(i);
+            lines[i] = previous.line(i);
             profondeurs[i] = previous.bracketDepthAtLineStart(i);
         }
     }
@@ -148,35 +148,35 @@ public final class IncrementalLexer {
      * différentiel nul les copie de masse, sinon l'ajustement reste
      * élément par élément sur les seuls entiers.
      */
-    private static void assemblerSuffixe(LexDocument previous, LexedLine[] anciennes,
-                                         int[] anciennesProfondeurs, LexedLine[] lignes,
-                                         int[] profondeurs, int debut, int decalage,
+    private static void assembleSuffix(LexDocument previous, LexedLine[] anciennes,
+                                         int[] anciennesProfondeurs, LexedLine[] lines,
+                                         int[] profondeurs, int start, int decalage,
                                          int differentiel) {
-        int nombre = lignes.length;
-        int ancienDebut = debut - decalage;
-        if (debut >= nombre) {
+        int nombre = lines.length;
+        int ancienDebut = start - decalage;
+        if (start >= nombre) {
             return;
         }
         if (ancienDebut >= 0 && ancienDebut <= anciennes.length
-                && nombre - debut <= anciennes.length - ancienDebut) {
-            System.arraycopy(anciennes, ancienDebut, lignes, debut, nombre - debut);
+                && nombre - start <= anciennes.length - ancienDebut) {
+            System.arraycopy(anciennes, ancienDebut, lines, start, nombre - start);
             if (differentiel == 0) {
-                System.arraycopy(anciennesProfondeurs, ancienDebut, profondeurs, debut,
-                        nombre - debut);
+                System.arraycopy(anciennesProfondeurs, ancienDebut, profondeurs, start,
+                        nombre - start);
             } else {
-                for (int i = debut; i < nombre; i++) {
+                for (int i = start; i < nombre; i++) {
                     profondeurs[i] = anciennesProfondeurs[i - decalage] + differentiel;
                 }
             }
             return;
         }
-        for (int i = debut; i < nombre; i++) {
-            lignes[i] = previous.line(i - decalage);
+        for (int i = start; i < nombre; i++) {
+            lines[i] = previous.line(i - decalage);
             profondeurs[i] = previous.bracketDepthAtLineStart(i - decalage) + differentiel;
         }
     }
 
-    private static LexState etatEntree(LexDocument previous, int firstLine) {
+    private static LexState entryState(LexDocument previous, int firstLine) {
         if (firstLine <= 0) {
             return previous.stateBefore(0);
         }
@@ -192,12 +192,12 @@ public final class IncrementalLexer {
         return lue.exitState().equals(previous.line(ancienne).exitState());
     }
 
-    private static int deltaCrochets(Token[] jetons) {
+    private static int deltaCrochets(Token[] tokens) {
         int delta = 0;
-        for (Token jeton : jetons) {
-            if (jeton.kind() == TokenKind.OPEN_BRACKET) {
+        for (Token token : tokens) {
+            if (token.kind() == TokenKind.OPEN_BRACKET) {
                 delta++;
-            } else if (jeton.kind() == TokenKind.CLOSE_BRACKET) {
+            } else if (token.kind() == TokenKind.CLOSE_BRACKET) {
                 delta--;
             }
         }

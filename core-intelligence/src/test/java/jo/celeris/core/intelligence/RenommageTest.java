@@ -63,23 +63,23 @@ class RenommageTest {
         IndexSymboles index = indexDeuxFichiers();
         Renommage.PlanRenommage plan = Renommage.plan(index, "Client", "Acheteur");
         assertTrue(plan.conflits().isEmpty());
-        Map<String, List<jo.celeris.core.text.TextEdit>> editions = plan.editions();
-        assertEquals(2, editions.size());
+        Map<String, List<jo.celeris.core.text.TextEdit>> edits = plan.edits();
+        assertEquals(2, edits.size());
         // Client.java : la déclaration seule
-        List<jo.celeris.core.text.TextEdit> dansClient = editions.get("file:///Client.java");
+        List<jo.celeris.core.text.TextEdit> dansClient = edits.get("file:///Client.java");
         assertNotNull(dansClient);
         assertEquals(1, dansClient.size());
         // Utilisateur.java : le champ ET le type de retour — deux occurrences
-        List<jo.celeris.core.text.TextEdit> dansUtilisateur = editions.get("file:///Utilisateur.java");
+        List<jo.celeris.core.text.TextEdit> dansUtilisateur = edits.get("file:///Utilisateur.java");
         assertNotNull(dansUtilisateur);
         assertEquals(2, dansUtilisateur.size());
         // chaque édition remplace exactement l'ancien nom par le nouveau
         Document utilisateur = Document.of(sourceUtilisateur());
-        for (jo.celeris.core.text.TextEdit edition : dansUtilisateur) {
-            assertEquals("Client", edition.removed());
-            assertEquals("Acheteur", edition.inserted());
-            assertEquals("Client", utilisateur.subText(edition.start(), edition.start()
-                    + edition.removed().length()));
+        for (jo.celeris.core.text.TextEdit edit : dansUtilisateur) {
+            assertEquals("Client", edit.removed());
+            assertEquals("Acheteur", edit.inserted());
+            assertEquals("Client", utilisateur.subText(edit.start(), edit.start()
+                    + edit.removed().length()));
         }
     }
 
@@ -113,11 +113,11 @@ class RenommageTest {
     /** Aide : les éditions du plan pour une uri — le test sait qu'elles y sont. */
     private static List<jo.celeris.core.text.TextEdit> editionsDe(
             Renommage.PlanRenommage plan, String uri) {
-        List<jo.celeris.core.text.TextEdit> editions = plan.editions().get(uri);
-        if (editions == null) {
+        List<jo.celeris.core.text.TextEdit> edits = plan.edits().get(uri);
+        if (edits == null) {
             throw new AssertionError("aucune edition pour " + uri);
         }
-        return editions;
+        return edits;
     }
 
     /** Le conflit d'ambiguïté : deux déclarations portent le nom — signalé, le plan tient. */
@@ -129,10 +129,10 @@ class RenommageTest {
         index.remplacer("file:///Doublon.java", deuxieme, java.analyseFull(deuxieme));
         Renommage.PlanRenommage plan = Renommage.plan(index, "Client", "Acheteur");
         assertEquals(1, plan.conflits().size());
-        assertEquals(Renommage.RaisonConflit.AMBIGUITE, plan.conflits().get(0).raison());
+        assertEquals(Renommage.RaisonConflit.AMBIGUITE, plan.conflits().get(0).reason());
         assertTrue(plan.conflits().get(0).nom().equals("Client"));
         // le plan existe toujours : l'hôte décide après lecture du conflit
-        assertTrue(!plan.editions().isEmpty());
+        assertTrue(!plan.edits().isEmpty());
     }
 
     /** Le conflit de collision : le nouveau nom est déjà déclaré — signalé. */
@@ -144,7 +144,7 @@ class RenommageTest {
         index.remplacer("file:///Acheteur.java", acheteur, java.analyseFull(acheteur));
         Renommage.PlanRenommage plan = Renommage.plan(index, "Client", "Acheteur");
         assertEquals(1, plan.conflits().size());
-        assertEquals(Renommage.RaisonConflit.COLLISION, plan.conflits().get(0).raison());
+        assertEquals(Renommage.RaisonConflit.COLLISION, plan.conflits().get(0).reason());
     }
 
     /** Le nom inconnu : plan vide, aucun conflit — rien à renommer. */
@@ -152,7 +152,7 @@ class RenommageTest {
     void leNomInconnu() {
         IndexSymboles index = indexDeuxFichiers();
         Renommage.PlanRenommage plan = Renommage.plan(index, "Inconnu", "Autre");
-        assertTrue(plan.editions().isEmpty());
+        assertTrue(plan.edits().isEmpty());
         assertTrue(plan.conflits().isEmpty());
     }
 }

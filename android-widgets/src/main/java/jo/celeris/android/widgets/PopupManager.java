@@ -21,12 +21,12 @@ import java.util.Set;
  * <p>Le montage tient en trois temps : {@link #lier} une vue par genre
  * (JAMAIS une vue pour deux genres — le partage d'instances désynchronisait
  * l'état, l'audit P1), déclencher par
- * {@link #montrer} / {@link #fermer} / {@link #surFrappe} /
- * {@link #surDefilement}, déléguer le clavier par {@link #surTouche} (la
+ * {@link #show} / {@link #close} / {@link #onType} /
+ * {@link #onScroll}, déléguer le clavier par {@link #onKey} (la
  * carte interactive reçoit flèches et validation, l'éditeur garde le
- * focus — PIEGE-27). La mesure unique ({@link #taille}) sert les ancres
+ * focus — PIEGE-27). La mesure unique ({@link #size}) sert les ancres
  * de l'hôte ; le tap hors cartes ferme les genres qui cèdent ; une
- * feuille modale qui s'ouvre appelle {@link #fermerSousVoile}.</p>
+ * feuille modale qui s'ouvre appelle {@link #closeSubsheet}.</p>
  *
  * <p>Le manager ne connaît NI les moteurs (LSP, index), NI l'éditeur :
  * le contenu vit chez l'hôte, la géométrie chez lui — la séparation
@@ -47,7 +47,7 @@ public final class PopupManager {
      * la file — elles ne tiennent jamais avec les précédentes ; la
      * carte de masquage d'inspection vit avec les menus du caret.
      */
-    private static final PopupController.PopupKind[] ORDRE_CLAVIER = {
+    private static final PopupController.PopupKind[] KEYBOARD_ORDER = {
             PopupController.PopupKind.COMPLETION_LIST,
             PopupController.PopupKind.INTENTIONS_MENU,
             PopupController.PopupKind.GABARITS,
@@ -116,7 +116,7 @@ public final class PopupManager {
     public PopupManager(PopupController controleur, PopupLayer couche) {
         this.controleur = controleur;
         this.couche = couche;
-        couche.setSurToucheHorsCartes(this::surToucheHorsCartes);
+        couche.setOnTouchOutsideCards(this::onTouchOutsideCards);
     }
 
     /**
@@ -125,24 +125,24 @@ public final class PopupManager {
      * (l'audit P1 : le survol volait la documentation de complétion) ;
      * le lien l'interdit dès le montage.
      *
-     * @param genre le genre à lier
+     * @param kind le genre à lier
      * @param vue   la carte du genre
      * @throws IllegalArgumentException si la vue vit déjà sous un autre genre
      */
-    public void lier(PopupController.PopupKind genre, View vue) {
+    public void lier(PopupController.PopupKind kind, View vue) {
         for (Map.Entry<PopupController.PopupKind, View> lien : vues.entrySet()) {
-            if (lien.getValue() == vue && lien.getKey() != genre) {
-                throw new IllegalArgumentException(genre + " ne peut pas lier "
+            if (lien.getValue() == vue && lien.getKey() != kind) {
+                throw new IllegalArgumentException(kind + " ne peut pas lier "
                         + "la carte : elle vit déjà sous " + lien.getKey()
                         + " — une carte ne sert jamais deux genres");
             }
         }
-        vues.put(genre, vue);
+        vues.put(kind, vue);
     }
 
     /** La vue liée du genre, null s'il n'en vit aucune. */
-    public View vue(PopupController.PopupKind genre) {
-        return vues.get(genre);
+    public View vue(PopupController.PopupKind kind) {
+        return vues.get(kind);
     }
 
     /** La machine coordonnée — les bancs de l'hôte y lisent. */
@@ -156,8 +156,8 @@ public final class PopupManager {
     }
 
     /** Vrai si le genre est ouvert — l'état seul décide, la couche suit. */
-    public boolean estOuvert(PopupController.PopupKind genre) {
-        return controleur.isOpen(genre);
+    public boolean estOuvert(PopupController.PopupKind kind) {
+        return controleur.isOpen(kind);
     }
 
     /**
@@ -165,12 +165,12 @@ public final class PopupManager {
      * couche re-mesure à sa pose (la double mesure est arithmétique, le
      * contenu n'y re-naît pas).
      *
-     * @param genre le genre à mesurer
+     * @param kind le genre à mesurer
      * @return la taille mesurée sans contrainte
      * @throws IllegalStateException si le genre n'est pas lié
      */
-    public PopupPlacer.Cadre taille(PopupController.PopupKind genre) {
-        View vue = carteDe(genre);
+    public PopupPlacer.Cadre size(PopupController.PopupKind kind) {
+        View vue = carteDe(kind);
         vue.measure(View.MeasureSpec.makeMeasureSpec(0,
                         View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0,
@@ -187,27 +187,27 @@ public final class PopupManager {
      * le débordement sans sa barre) ne se montre pas : l'état et la
      * couche restent d'un seul tenant.
      *
-     * @param genre le genre à montrer
+     * @param kind le genre à montrer
      * @param x     l'abscisse de pose, en pixels
      * @param y     l'ordonnée de pose, en pixels
      * @return vrai si l'ÉTAT a changé — faux au re-pose (la carte se
      *         re-montre quand même : le filtre de complétion)
      */
-    public boolean montrer(PopupController.PopupKind genre, int x, int y) {
-        View vue = carteDe(genre);
-        Set<PopupController.PopupKind> rendus = controleur.ouvrirRendus(genre);
-        if (rendus.isEmpty() && !controleur.isOpen(genre)) {
+    public boolean show(PopupController.PopupKind kind, int x, int y) {
+        View vue = carteDe(kind);
+        Set<PopupController.PopupKind> rendus = controleur.openRenders(kind);
+        if (rendus.isEmpty() && !controleur.isOpen(kind)) {
             // la machine refuse : la carte ne se pose pas (l'état et la
             // couche ne divergent jamais)
             return false;
         }
         for (PopupController.PopupKind sortant : rendus) {
-            if (sortant != genre) {
+            if (sortant != kind) {
                 couche.dismiss(sortant);
             }
         }
-        couche.show(genre, vue, x, y);
-        return rendus.contains(genre);
+        couche.show(kind, vue, x, y);
+        return rendus.contains(kind);
     }
 
     /**
@@ -215,12 +215,12 @@ public final class PopupManager {
      * liste, le débordement suit sa barre) : l'état et les cartes
      * ferment d'un seul appel.
      *
-     * @param genre le genre à fermer
+     * @param kind le genre à fermer
      * @return vrai si quelque chose s'est fermé
      */
-    public boolean fermer(PopupController.PopupKind genre) {
-        Set<PopupController.PopupKind> fermes = controleur.closeRendus(genre);
-        retirer(fermes);
+    public boolean close(PopupController.PopupKind kind) {
+        Set<PopupController.PopupKind> fermes = controleur.closeRendus(kind);
+        remove(fermes);
         return !fermes.isEmpty();
     }
 
@@ -230,9 +230,9 @@ public final class PopupManager {
      *
      * @return les genres qui se fermaient
      */
-    public Set<PopupController.PopupKind> fermerTout() {
+    public Set<PopupController.PopupKind> closeAll() {
         Set<PopupController.PopupKind> fermes = controleur.closeAll();
-        retirer(fermes);
+        remove(fermes);
         return fermes;
     }
 
@@ -242,9 +242,9 @@ public final class PopupManager {
      *
      * @return les genres qui se fermaient
      */
-    public Set<PopupController.PopupKind> surFrappe() {
+    public Set<PopupController.PopupKind> onType() {
         Set<PopupController.PopupKind> fermes = controleur.onKeystroke();
-        retirer(fermes);
+        remove(fermes);
         return fermes;
     }
 
@@ -255,9 +255,9 @@ public final class PopupManager {
      *
      * @return les genres qui se fermaient
      */
-    public Set<PopupController.PopupKind> surDefilement() {
+    public Set<PopupController.PopupKind> onScroll() {
         Set<PopupController.PopupKind> fermes = controleur.onScroll();
-        retirer(fermes);
+        remove(fermes);
         return fermes;
     }
 
@@ -268,13 +268,13 @@ public final class PopupManager {
      *
      * @return les genres qui se fermaient
      */
-    public Set<PopupController.PopupKind> fermerSousVoile() {
+    public Set<PopupController.PopupKind> closeSubsheet() {
         Set<PopupController.PopupKind> fermes =
                 EnumSet.noneOf(PopupController.PopupKind.class);
-        for (PopupController.PopupKind genre : SOUS_VOILE) {
-            fermes.addAll(controleur.closeRendus(genre));
+        for (PopupController.PopupKind kind : SOUS_VOILE) {
+            fermes.addAll(controleur.closeRendus(kind));
         }
-        retirer(fermes);
+        remove(fermes);
         return fermes;
     }
 
@@ -292,12 +292,12 @@ public final class PopupManager {
      * @param keyCode le code de la touche déléguée
      * @return vrai si la touche a servi un popup
      */
-    public boolean surTouche(int keyCode) {
+    public boolean onKey(int keyCode) {
         if (keyCode == KeyEvent.KEYCODE_ESCAPE) {
             return surEchappement();
         }
-        for (PopupController.PopupKind genre : ORDRE_CLAVIER) {
-            if (controleur.isOpen(genre) && surToucheCarte(genre, keyCode)) {
+        for (PopupController.PopupKind kind : KEYBOARD_ORDER) {
+            if (controleur.isOpen(kind) && onCardTouch(kind, keyCode)) {
                 return true;
             }
         }
@@ -308,34 +308,34 @@ public final class PopupManager {
      * Le détachement de fin de vie : tout se ferme, l'avis du tap hors
      * cartes se coupe, les liens se dissolvent — la scène peut recycler.
      */
-    public void detacher() {
-        fermerTout();
-        couche.setSurToucheHorsCartes(null);
+    public void detach() {
+        closeAll();
+        couche.setOnTouchOutsideCards(null);
         vues.clear();
     }
 
     /** L'échappement : la première carte interactive se referme, sinon
      *  les bulles éphémères — jamais le chrome, jamais la barre. */
     private boolean surEchappement() {
-        for (PopupController.PopupKind genre : ORDRE_CLAVIER) {
-            if (controleur.isOpen(genre)) {
-                fermer(genre);
+        for (PopupController.PopupKind kind : KEYBOARD_ORDER) {
+            if (controleur.isOpen(kind)) {
+                close(kind);
                 return true;
             }
         }
         boolean ferme = false;
-        for (PopupController.PopupKind genre : EPHEMERES) {
-            ferme |= fermer(genre);
+        for (PopupController.PopupKind kind : EPHEMERES) {
+            ferme |= close(kind);
         }
         return ferme;
     }
 
     /** La touche servie par la carte interactive du genre — la carte
      *  décline, la touche retourne à l'éditeur. */
-    private boolean surToucheCarte(PopupController.PopupKind genre,
+    private boolean onCardTouch(PopupController.PopupKind kind,
             int keyCode) {
-        View vue = vues.get(genre);
-        if (!(vue instanceof PopupClavier carte)) {
+        View vue = vues.get(kind);
+        if (!(vue instanceof KeyboardPopup carte)) {
             return false;
         }
         if (keyCode == KeyEvent.KEYCODE_PAGE_UP) {
@@ -360,23 +360,23 @@ public final class PopupManager {
 
     /** Le tap hors cartes : les genres qui cèdent au geste extérieur
      *  se referment — la couche a prévenu, les cartes partent. */
-    private void surToucheHorsCartes() {
-        retirer(controleur.surToucheHorsCartes());
+    private void onTouchOutsideCards() {
+        remove(controleur.onTouchOutsideCards());
     }
 
     /** Les cartes des genres fermés quittent la couche — la vue ne
      *  survit jamais à son état. */
-    private void retirer(Set<PopupController.PopupKind> fermes) {
+    private void remove(Set<PopupController.PopupKind> fermes) {
         for (PopupController.PopupKind ferme : fermes) {
             couche.dismiss(ferme);
         }
     }
 
     /** La carte liée du genre — jamais de genre orphelin. */
-    private View carteDe(PopupController.PopupKind genre) {
-        View vue = vues.get(genre);
+    private View carteDe(PopupController.PopupKind kind) {
+        View vue = vues.get(kind);
         if (vue == null) {
-            throw new IllegalStateException("genre non lié : " + genre);
+            throw new IllegalStateException("genre non lié : " + kind);
         }
         return vue;
     }

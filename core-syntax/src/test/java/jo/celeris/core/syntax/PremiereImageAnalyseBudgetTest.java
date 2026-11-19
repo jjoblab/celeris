@@ -42,17 +42,17 @@ class PremiereImageAnalyseBudgetTest {
         SyntaxService service = SyntaxService.of(JavaSyntax.INSTANCE);
         int milieu = doc.lineCount() / 2;
         // échauffement non mesuré : le JIT ne doit pas compter dans le budget
-        service.analyseFenetre(doc, milieu - FENETRE / 2, milieu + FENETRE / 2,
+        service.analyzeWindow(doc, milieu - FENETRE / 2, milieu + FENETRE / 2,
                 new TokenCancellation());
         long meilleur = Long.MAX_VALUE;
         for (int essai = 0; essai <= RATTRAPAGES; essai++) {
             long serie = Long.MAX_VALUE;
             for (int tour = 0; tour < TOURS; tour++) {
-                long debut = System.nanoTime();
-                Analysis fenetre = service.analyseFenetre(doc,
+                long start = System.nanoTime();
+                Analysis window = service.analyzeWindow(doc,
                         milieu - FENETRE / 2, milieu + FENETRE / 2, new TokenCancellation());
-                long duree = System.nanoTime() - debut;
-                assertTrue(!fenetre.estComplet(), "la fenêtre seule laisse le reste en attente");
+                long duree = System.nanoTime() - start;
+                assertTrue(!window.isComplete(), "la fenêtre seule laisse le reste en attente");
                 serie = Math.min(serie, duree);
             }
             meilleur = Math.min(meilleur, serie);
@@ -73,22 +73,22 @@ class PremiereImageAnalyseBudgetTest {
         IncrementalLexer lexer = new IncrementalLexer();
         long complet = Long.MAX_VALUE;
         for (int tour = 0; tour < TOURS; tour++) {
-            long debut = System.nanoTime();
+            long start = System.nanoTime();
             lexer.lexFull(doc, JavaSyntax.INSTANCE.lexer(), new TokenCancellation());
-            complet = Math.min(complet, System.nanoTime() - debut);
+            complet = Math.min(complet, System.nanoTime() - start);
         }
-        long annule = Long.MAX_VALUE;
+        long cancelled = Long.MAX_VALUE;
         for (int tour = 0; tour < TOURS; tour++) {
-            TokenCancellation jeton = new TokenCancellation();
-            jeton.annuler();
-            long debut = System.nanoTime();
-            assertThrows(AnalyseAnnulee.class,
-                    () -> lexer.lexFull(doc, JavaSyntax.INSTANCE.lexer(), jeton),
+            TokenCancellation token = new TokenCancellation();
+            token.annuler();
+            long start = System.nanoTime();
+            assertThrows(AnalysisCancelled.class,
+                    () -> lexer.lexFull(doc, JavaSyntax.INSTANCE.lexer(), token),
                     "le premier point de contrôle arrête la passe");
-            annule = Math.min(annule, System.nanoTime() - debut);
+            cancelled = Math.min(cancelled, System.nanoTime() - start);
         }
-        assertTrue(annule < complet,
-                "annuler (" + annule / 1_000_000.0 + " ms) coûte moins cher que terminer ("
+        assertTrue(cancelled < complet,
+                "annuler (" + cancelled / 1_000_000.0 + " ms) coûte moins cher que terminer ("
                         + complet / 1_000_000.0 + " ms)");
     }
 }

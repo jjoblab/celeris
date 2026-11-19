@@ -47,15 +47,15 @@ final class ViewportPrefetch {
      * @param visibles le nombre de rangées visibles
      */
     void programmer(int premiere, int visibles) {
-        arreter();
-        int debutRangee = Math.max(0, premiere - PORTEE);
-        int finRangee = premiere + visibles + PORTEE;
-        tache = () -> prechauffer(debutRangee, finRangee);
+        stop();
+        int rowStart = Math.max(0, premiere - PORTEE);
+        int rowEnd = premiere + visibles + PORTEE;
+        tache = () -> prechauffer(rowStart, rowEnd);
         vue.postDelayed(tache, CALME_MS);
     }
 
     /** Arrête toute programmation — la vue se détache ou se libère. */
-    void arreter() {
+    void stop() {
         if (tache != null) {
             vue.removeCallbacks(tache);
             tache = null;
@@ -64,21 +64,21 @@ final class ViewportPrefetch {
 
     /** Le préchauffage : les rangées de la marge se mesurent au
      *  cache, hors de la boucle de dessin. */
-    private void prechauffer(int debutRangee, int finRangee) {
+    private void prechauffer(int rowStart, int rowEnd) {
         tache = null;
         long revision = vue.session.document().revision();
         int theme = vue.theme.id();
-        FontSpec police = vue.metrics.font();
+        FontSpec font = vue.metrics.font();
         int colonnes = vue.projection.columns();
-        for (int rangee = debutRangee; rangee < finRangee; rangee++) {
+        for (int rangee = rowStart; rangee < rowEnd; rangee++) {
             if (rangee < 0 || rangee >= vue.projection.rowCount()) {
                 continue;
             }
-            if (vue.cache.find(revision, rangee, theme, police, colonnes) != null) {
+            if (vue.cache.find(revision, rangee, theme, font, colonnes) != null) {
                 continue;
             }
-            RowKey cle = new RowKey(revision, rangee, theme, police, colonnes);
-            vue.cache.store(cle, vue.sourceLiee.layoutOf(cle));
+            RowKey key = new RowKey(revision, rangee, theme, font, colonnes);
+            vue.cache.store(key, vue.sourceLiee.layoutOf(key));
         }
     }
 }

@@ -39,9 +39,9 @@ class NavigationCommandsTest {
     @Test
     void plageBorneeEtOrdonnee() {
         MultiSelection selection = NavigationCommands.rangeBetween(2, 7, 10);
-        SelRange plage = selection.ranges().get(0);
-        assertEquals(2, plage.start());
-        assertEquals(7, plage.end());
+        SelRange range = selection.ranges().get(0);
+        assertEquals(2, range.start());
+        assertEquals(7, range.end());
 
         assertEquals(3, NavigationCommands.rangeBetween(3, 3, 10)
                 .ranges().get(0).start(), "plage vide admise (recherche sans sélection)");

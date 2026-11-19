@@ -57,15 +57,15 @@ public final class SyntaxService {
      * @param doc           le document à analyser
      * @param premiereLigne la première ligne visible
      * @param derniereLigne la dernière ligne visible
-     * @param jeton         le jeton d'annulation de l'ouverture
+     * @param token         le jeton d'annulation de l'ouverture
      * @return l'analyse versionnée, partielle hors fenêtre
-     * @throws AnalyseAnnulee si l'ouverture est annulée avant la fenêtre
+     * @throws AnalysisCancelled si l'ouverture est annulée avant la fenêtre
      */
-    public Analysis analyseFenetre(Document doc, int premiereLigne, int derniereLigne,
-                                   TokenCancellation jeton) {
-        LexResult lex = lexer.lexFull(doc, language.lexer(), jeton);
+    public Analysis analyzeWindow(Document doc, int premiereLigne, int derniereLigne,
+                                   TokenCancellation token) {
+        LexResult lex = lexer.lexFull(doc, language.lexer(), token);
         SyntaxTree tree = parser.parseFenetre(doc, lex.lex(), language.parser(),
-                doc.revision(), premiereLigne, derniereLigne, jeton);
+                doc.revision(), premiereLigne, derniereLigne, token);
         return new Analysis(doc.revision(), lex.lex(), tree);
     }
 
@@ -76,18 +76,18 @@ public final class SyntaxService {
      *
      * @param doc       le document de l'analyse partielle
      * @param partielle l'analyse partielle à compléter
-     * @param jeton     le jeton d'annulation de la complétion
+     * @param token     le jeton d'annulation de la complétion
      * @param maxChunks le nombre maximal de chunks à construire
      * @return l'analyse complétée d'autant de chunks, ou la même si rien à construire
-     * @throws AnalyseAnnulee si la complétion est annulée
+     * @throws AnalysisCancelled si la complétion est annulée
      */
-    public Analysis completer(Document doc, Analysis partielle, TokenCancellation jeton,
+    public Analysis completer(Document doc, Analysis partielle, TokenCancellation token,
                               int maxChunks) {
-        if (partielle.estComplet() || maxChunks <= 0) {
+        if (partielle.isComplete() || maxChunks <= 0) {
             return partielle;
         }
         SyntaxTree tree = parser.completer(doc, partielle.lex(), language.parser(),
-                doc.revision(), partielle.tree(), jeton, maxChunks);
+                doc.revision(), partielle.tree(), token, maxChunks);
         return new Analysis(doc.revision(), partielle.lex(), tree);
     }
 

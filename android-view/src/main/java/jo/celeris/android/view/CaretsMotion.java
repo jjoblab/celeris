@@ -28,7 +28,7 @@ import jo.celeris.core.text.Grapheme;
  */
 public final class CaretsMotion {
 
-    private static final int FENETRE_MOTS = 256;
+    private static final int WORDS_WINDOW = 256;
 
     private CaretsMotion() {
     }
@@ -50,10 +50,10 @@ public final class CaretsMotion {
         }
         boolean etend = estSelection(action);
         List<SelRange> apres = new ArrayList<>(selection.caretCount());
-        for (SelRange plage : selection.ranges()) {
-            int vise = caretVise(document, projection, base(action), plage.caret(),
+        for (SelRange range : selection.ranges()) {
+            int vise = caretVise(document, projection, base(action), range.caret(),
                     pageRows);
-            apres.add(etend ? new SelRange(plage.anchor(), vise)
+            apres.add(etend ? new SelRange(range.anchor(), vise)
                     : SelRange.caretAt(vise));
         }
         return MultiSelection.of(apres);
@@ -82,21 +82,21 @@ public final class CaretsMotion {
     }
 
     private static int caretVise(Document document, VisualProjection projection,
-            EditorAction mouvement, int curseur, int pageRows) {
+            EditorAction mouvement, int cursor, int pageRows) {
         return switch (mouvement) {
-            case MOVE_LEFT -> clusterPrecedent(document, curseur);
-            case MOVE_RIGHT -> clusterSuivant(document, curseur);
-            case MOVE_WORD_LEFT -> motPrecedent(document, curseur);
-            case MOVE_WORD_RIGHT -> motSuivant(document, curseur);
-            case MOVE_UP, PAGE_UP -> rangeeCible(document, projection, curseur,
+            case MOVE_LEFT -> clusterPrecedent(document, cursor);
+            case MOVE_RIGHT -> clusterSuivant(document, cursor);
+            case MOVE_WORD_LEFT -> motPrecedent(document, cursor);
+            case MOVE_WORD_RIGHT -> motSuivant(document, cursor);
+            case MOVE_UP, PAGE_UP -> targetRow(document, projection, cursor,
                     -saut(mouvement, pageRows));
-            case MOVE_DOWN, PAGE_DOWN -> rangeeCible(document, projection, curseur,
+            case MOVE_DOWN, PAGE_DOWN -> targetRow(document, projection, cursor,
                     saut(mouvement, pageRows));
-            case LINE_START -> debutRangee(document, projection, curseur);
-            case LINE_END -> finRangee(document, projection, curseur);
+            case LINE_START -> rowStart(document, projection, cursor);
+            case LINE_END -> rowEnd(document, projection, cursor);
             case DOC_START -> 0;
             case DOC_END -> document.length();
-            default -> curseur;
+            default -> cursor;
         };
     }
 
@@ -163,7 +163,7 @@ public final class CaretsMotion {
     }
 
     private static int frontiereMotSuivante(Document document, int offset) {
-        int window = FENETRE_MOTS;
+        int window = WORDS_WINDOW;
         while (true) {
             int end = Math.min(document.length(), offset + window);
             String chunk = document.subText(offset, end);
@@ -176,7 +176,7 @@ public final class CaretsMotion {
     }
 
     private static int frontiereMotPrecedente(Document document, int offset) {
-        int window = FENETRE_MOTS;
+        int window = WORDS_WINDOW;
         while (true) {
             int start = Math.max(0, offset - window);
             // Un caractère au-delà du curseur : la fin de course de
@@ -196,39 +196,39 @@ public final class CaretsMotion {
      * L'offset de la rangée cible : la colonne visuelle se conserve,
      * bornée à la tranche de la rangée d'arrivée (A-18).
      */
-    private static int rangeeCible(Document document, VisualProjection projection,
+    private static int targetRow(Document document, VisualProjection projection,
             int offset, int delta) {
         int rangee = CaretGeometry.rowOfOffset(document, projection, offset);
-        int cible = rangee + delta;
-        if (cible < 0) {
+        int target = rangee + delta;
+        if (target < 0) {
             return 0;
         }
-        if (cible >= projection.rowCount()) {
+        if (target >= projection.rowCount()) {
             return document.length();
         }
-        int ligne = projection.firstLineOfRow(cible);
-        int ligneCourante = document.lineForOffset(offset);
-        int colonne = offset - document.lineStart(ligneCourante);
+        int line = projection.firstLineOfRow(target);
+        int currentLine = document.lineForOffset(offset);
+        int column = offset - document.lineStart(currentLine);
         int colonnes = projection.columns();
-        int visuelle = colonnes > 0 ? colonne % colonnes : colonne;
-        int debutTranche = projection.spanStartAtRow(cible);
-        int longueurLigne = document.lineEnd(ligne) - document.lineStart(ligne);
-        int finTranche = Math.min(projection.spanEndAtRow(cible), longueurLigne);
+        int visuelle = colonnes > 0 ? column % colonnes : column;
+        int debutTranche = projection.spanStartAtRow(target);
+        int longueurLigne = document.lineEnd(line) - document.lineStart(line);
+        int finTranche = Math.min(projection.spanEndAtRow(target), longueurLigne);
         int dansTranche = Math.min(visuelle, Math.max(0, finTranche - debutTranche));
-        return document.lineStart(ligne) + debutTranche + dansTranche;
+        return document.lineStart(line) + debutTranche + dansTranche;
     }
 
-    private static int debutRangee(Document document, VisualProjection projection,
+    private static int rowStart(Document document, VisualProjection projection,
             int offset) {
         // C2 (l'analyse croisée) : le Home intelligent du dépôt de
         // départ — le premier appel va au premier non-blanc de la
         // ligne, le second retourne à la colonne zéro (le début de la
         // tranche visuelle sous retour à la ligne).
         int rangee = CaretGeometry.rowOfOffset(document, projection, offset);
-        int ligne = document.lineForOffset(offset);
-        int debutTranche = document.lineStart(ligne)
+        int line = document.lineForOffset(offset);
+        int debutTranche = document.lineStart(line)
                 + projection.spanStartAtRow(rangee);
-        int premierNonBlanc = premierNonBlanc(document, ligne);
+        int premierNonBlanc = premierNonBlanc(document, line);
         if (offset > premierNonBlanc && premierNonBlanc > debutTranche) {
             return premierNonBlanc;
         }
@@ -237,24 +237,24 @@ public final class CaretsMotion {
 
     /** La colonne du premier caractère non blanc de la ligne (sa fin
      *  si elle n'est que des blancs). */
-    private static int premierNonBlanc(Document document, int ligne) {
-        int debut = document.lineStart(ligne);
-        int fin = document.lineEnd(ligne);
-        for (int i = debut; i < fin; i++) {
+    private static int premierNonBlanc(Document document, int line) {
+        int start = document.lineStart(line);
+        int end = document.lineEnd(line);
+        for (int i = start; i < end; i++) {
             char c = document.charAt(i);
             if (c != ' ' && c != '\t') {
                 return i;
             }
         }
-        return fin;
+        return end;
     }
 
-    private static int finRangee(Document document, VisualProjection projection,
+    private static int rowEnd(Document document, VisualProjection projection,
             int offset) {
         int rangee = CaretGeometry.rowOfOffset(document, projection, offset);
-        int ligne = document.lineForOffset(offset);
-        int longueur = document.lineEnd(ligne) - document.lineStart(ligne);
-        return document.lineStart(ligne)
-                + Math.min(projection.spanEndAtRow(rangee), longueur);
+        int line = document.lineForOffset(offset);
+        int length = document.lineEnd(line) - document.lineStart(line);
+        return document.lineStart(line)
+                + Math.min(projection.spanEndAtRow(rangee), length);
     }
 }

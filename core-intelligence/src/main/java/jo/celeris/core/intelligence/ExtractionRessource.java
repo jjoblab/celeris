@@ -51,19 +51,19 @@ public final class ExtractionRessource {
      * Le plan d'extraction : les éditions par chemin de fichier — le
      * document édité et le fichier de valeurs.
      *
-     * @param editions les éditions : le littéral remplacé par sa
+     * @param edits les éditions : le littéral remplacé par sa
      *                 référence, la ressource insérée avant la
      *                 fermeture ; en ordre descendant d'application
      */
-    public record PlanRessource(Map<String, List<TextEdit>> editions) {
+    public record PlanRessource(Map<String, List<TextEdit>> edits) {
 
         /** Constructeur canonique : carte figée, jamais vide. */
         public PlanRessource {
-            Objects.requireNonNull(editions, "editions");
-            if (editions.isEmpty()) {
+            Objects.requireNonNull(edits, "editions");
+            if (edits.isEmpty()) {
                 throw new IllegalArgumentException("editions must not be empty");
             }
-            editions = Map.copyOf(editions);
+            edits = Map.copyOf(edits);
         }
     }
 
@@ -99,11 +99,11 @@ public final class ExtractionRessource {
             throw new IllegalArgumentException(
                     "offset " + offset + " out of [0, " + doc.length() + "]");
         }
-        Litteral jeton = jetonStringAt(doc, analyse, offset);
-        if (jeton == null || jeton.text().length() < 3) {
+        Litteral token = jetonStringAt(doc, analyse, offset);
+        if (token == null || token.text().length() < 3) {
             return null;
         }
-        String literal = jeton.text();
+        String literal = token.text();
         if (!NOM_RESSOURCE.matcher(nom).matches()) {
             return null;
         }
@@ -120,21 +120,21 @@ public final class ExtractionRessource {
             return null;
         }
         String interior = literal.substring(1, literal.length() - 1);
-        int ligneFermeture = debutDeLigne(valeurs, fermeture);
-        String entree = retraitExistant(valeurs, fermeture, ligneFermeture)
+        int ligneFermeture = lineStart(valeurs, fermeture);
+        String input = retraitExistant(valeurs, fermeture, ligneFermeture)
                 + "<string name=\"" + nom + "\">" + valeurXml(interior) + "</string>\n";
         // Ordre descendant d'application : les offsets originaux
         // restent valides au fil de la transaction séquentielle.
-        Map<String, List<TextEdit>> editions = new LinkedHashMap<>();
-        editions.computeIfAbsent(uri, cle -> new ArrayList<>())
-                .add(new TextEdit(jeton.offset(), literal,
+        Map<String, List<TextEdit>> edits = new LinkedHashMap<>();
+        edits.computeIfAbsent(uri, cle -> new ArrayList<>())
+                .add(new TextEdit(token.offset(), literal,
                         "getString(R.string." + nom + ")"));
-        editions.computeIfAbsent(cheminValeurs, cle -> new ArrayList<>())
-                .add(new TextEdit(ligneFermeture, "", entree));
-        for (List<TextEdit> liste : editions.values()) {
+        edits.computeIfAbsent(cheminValeurs, cle -> new ArrayList<>())
+                .add(new TextEdit(ligneFermeture, "", input));
+        for (List<TextEdit> liste : edits.values()) {
             liste.sort(Comparator.comparingInt(TextEdit::start).reversed());
         }
-        return new PlanRessource(editions);
+        return new PlanRessource(edits);
     }
 
     /** Le littéral trouvé : son offset d'ouverture et son texte jeton. */
@@ -150,14 +150,14 @@ public final class ExtractionRessource {
      */
     private static @Nullable Litteral jetonStringAt(Document doc,
             Analysis analyse, int offset) {
-        for (FlowAnalysis.AbsoluteToken jeton
+        for (FlowAnalysis.AbsoluteToken token
                 : FlowAnalysis.tokens(doc, analyse.lex(), 0, doc.length())) {
-            if (jeton.kind() != TokenKind.STRING || jeton.text().charAt(0) != '"') {
+            if (token.kind() != TokenKind.STRING || token.text().charAt(0) != '"') {
                 continue;
             }
-            int fin = jeton.offset() + jeton.text().length();
-            if (jeton.offset() <= offset && offset <= fin) {
-                return new Litteral(jeton.offset(), jeton.text());
+            int end = token.offset() + token.text().length();
+            if (token.offset() <= offset && offset <= end) {
+                return new Litteral(token.offset(), token.text());
             }
         }
         return null;
@@ -212,12 +212,12 @@ public final class ExtractionRessource {
     }
 
     /** Le début de la ligne qui porte l'offset donné. */
-    private static int debutDeLigne(String texte, int offset) {
-        int debut = offset;
-        while (debut > 0 && texte.charAt(debut - 1) != '\n') {
-            debut--;
+    private static int lineStart(String text, int offset) {
+        int start = offset;
+        while (start > 0 && text.charAt(start - 1) != '\n') {
+            start--;
         }
-        return debut;
+        return start;
     }
 
     /**
@@ -227,19 +227,19 @@ public final class ExtractionRessource {
     private static String retraitExistant(String valeurs, int fermeture, int ligneFermeture) {
         int derniereEntree = valeurs.lastIndexOf("<string", fermeture);
         if (derniereEntree >= 0) {
-            return indentationDe(valeurs, debutDeLigne(valeurs, derniereEntree));
+            return indentationDe(valeurs, lineStart(valeurs, derniereEntree));
         }
         return indentationDe(valeurs, ligneFermeture) + "    ";
     }
 
     /** Le retrait d'une ligne : espaces et tabulations de tête. */
-    private static String indentationDe(String texte, int debutLigne) {
-        int fin = debutLigne;
-        while (fin < texte.length()
-                && (texte.charAt(fin) == ' ' || texte.charAt(fin) == '\t')) {
-            fin++;
+    private static String indentationDe(String text, int lineStart) {
+        int end = lineStart;
+        while (end < text.length()
+                && (text.charAt(end) == ' ' || text.charAt(end) == '\t')) {
+            end++;
         }
-        return texte.substring(debutLigne, fin);
+        return text.substring(lineStart, end);
     }
 
     private static void requireNom(String nom) {

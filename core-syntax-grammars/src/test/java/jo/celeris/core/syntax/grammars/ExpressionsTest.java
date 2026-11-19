@@ -17,14 +17,14 @@ class ExpressionsTest {
     /** Les formes exponentielles classiques se refusent. */
     @Test
     void formesExponentiellesRefusees() {
-        assertTrue(GardeCatastrophique.catastrophique("(a+)+"));
-        assertTrue(GardeCatastrophique.catastrophique("(a*)*"));
-        assertTrue(GardeCatastrophique.catastrophique("(?:\\w+\\s*)*"));
-        assertTrue(GardeCatastrophique.catastrophique("(a{2,})*"));
-        assertTrue(GardeCatastrophique.catastrophique("((a)+)+"));
-        assertTrue(GardeCatastrophique.catastrophique("(?:a[ab]+)+"),
+        assertTrue(CatastrophicGuard.catastrophique("(a+)+"));
+        assertTrue(CatastrophicGuard.catastrophique("(a*)*"));
+        assertTrue(CatastrophicGuard.catastrophique("(?:\\w+\\s*)*"));
+        assertTrue(CatastrophicGuard.catastrophique("(a{2,})*"));
+        assertTrue(CatastrophicGuard.catastrophique("((a)+)+"));
+        assertTrue(CatastrophicGuard.catastrophique("(?:a[ab]+)+"),
                 "le délimiteur ordinaire que la suite peut avaler ne protège pas");
-        assertTrue(GardeCatastrophique.catastrophique("(?:\\.-+\\.)+"),
+        assertTrue(CatastrophicGuard.catastrophique("(?:\\.-+\\.)+"),
                 "conservateur : le délimiteur revient aussi en fin d'itération");
     }
 
@@ -33,28 +33,28 @@ class ExpressionsTest {
      * plus par le sommet seul. */
     @Test
     void formesImbriqueesRefusees() {
-        assertTrue(GardeCatastrophique.catastrophique("((a+))+"),
+        assertTrue(CatastrophicGuard.catastrophique("((a+))+"),
                 "l'imbriquée porte le mal au père, pas au sommet seul");
-        assertTrue(GardeCatastrophique.catastrophique("((a+))*"));
-        assertTrue(GardeCatastrophique.catastrophique("(((a+)))+"),
+        assertTrue(CatastrophicGuard.catastrophique("((a+))*"));
+        assertTrue(CatastrophicGuard.catastrophique("(((a+)))+"),
                 "la profondeur supplémentaire ne dilue rien");
-        assertTrue(GardeCatastrophique.catastrophique("((?:\\w+\\s*))+"),
+        assertTrue(CatastrophicGuard.catastrophique("((?:\\w+\\s*))+"),
                 "l'imbriquée délimitée d'intérieur non borné se refuse aussi");
     }
 
     /** Les formes bornées ou délimitées passent. */
     @Test
     void formesBornesEtDelimiteesPasse() {
-        assertFalse(GardeCatastrophique.catastrophique("(a+){2}"));
-        assertFalse(GardeCatastrophique.catastrophique("(abc|def)*"));
-        assertFalse(GardeCatastrophique.catastrophique("a+b+"));
-        assertFalse(GardeCatastrophique.catastrophique("[+]+"));
-        assertFalse(GardeCatastrophique.catastrophique("(?:\\.\\w+)+"));
-        assertFalse(GardeCatastrophique.catastrophique(
+        assertFalse(CatastrophicGuard.catastrophique("(a+){2}"));
+        assertFalse(CatastrophicGuard.catastrophique("(abc|def)*"));
+        assertFalse(CatastrophicGuard.catastrophique("a+b+"));
+        assertFalse(CatastrophicGuard.catastrophique("[+]+"));
+        assertFalse(CatastrophicGuard.catastrophique("(?:\\.\\w+)+"));
+        assertFalse(CatastrophicGuard.catastrophique(
                 "\\b[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)+\\b"));
-        assertFalse(GardeCatastrophique.catastrophique(
+        assertFalse(CatastrophicGuard.catastrophique(
                 "[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)*(?=[ \\t]*=)"));
-        assertFalse(GardeCatastrophique.catastrophique("(`{3,})([^`\\n]*)$"));
+        assertFalse(CatastrophicGuard.catastrophique("(`{3,})([^`\\n]*)$"));
     }
 
     /** L'échappement littéral protège les métacaractères du texte capturé. */
@@ -70,34 +70,34 @@ class ExpressionsTest {
     /** Les classes larges couvrent ou épargnent le délimiteur, selon leur lettre. */
     @Test
     void alphabetDesClassesLarges() {
-        assertFalse(GardeCatastrophique.catastrophique("(?:\\.\\d+)+"),
+        assertFalse(CatastrophicGuard.catastrophique("(?:\\.\\d+)+"),
                 "\\d ne couvre pas le point : délimité");
-        assertTrue(GardeCatastrophique.catastrophique("(?:\\.\\W+)+"),
+        assertTrue(CatastrophicGuard.catastrophique("(?:\\.\\W+)+"),
                 "\\W couvre le point : catastrophique");
-        assertFalse(GardeCatastrophique.catastrophique("(?:\\:\\s+)+"),
+        assertFalse(CatastrophicGuard.catastrophique("(?:\\:\\s+)+"),
                 "\\s ne couvre pas le deux-points");
-        assertTrue(GardeCatastrophique.catastrophique("(?:\\:\\S+)+"),
+        assertTrue(CatastrophicGuard.catastrophique("(?:\\:\\S+)+"),
                 "\\S couvre le deux-points");
-        assertFalse(GardeCatastrophique.catastrophique("(?:\\.[0-9]+)+"),
+        assertFalse(CatastrophicGuard.catastrophique("(?:\\.[0-9]+)+"),
                 "l'intervalle des chiffres ne couvre pas le point");
-        assertTrue(GardeCatastrophique.catastrophique("(?:\\.[.-0]+)+"),
+        assertTrue(CatastrophicGuard.catastrophique("(?:\\.[.-0]+)+"),
                 "l'intervalle .-0 couvre le point");
-        assertFalse(GardeCatastrophique.catastrophique("(?:\\.\\ba+)+"),
+        assertFalse(CatastrophicGuard.catastrophique("(?:\\.\\ba+)+"),
                 "la largeur nulle ne mange rien — le reste ne couvre pas le point");
-        assertTrue(GardeCatastrophique.catastrophique("(?:(?=a)\\.\\w+)+"),
+        assertTrue(CatastrophicGuard.catastrophique("(?:(?=a)\\.\\w+)+"),
                 "conservateur : le look-around en tête interdit la délimitation");
     }
 
     /** Les groupes nommés et leurs closeurs se parcourent sans se confondre. */
     @Test
     void groupesNomesEtDelimitation() {
-        assertFalse(GardeCatastrophique.catastrophique("(?<nom>\\.\\w+)+"),
+        assertFalse(CatastrophicGuard.catastrophique("(?<nom>\\.\\w+)+"),
                 "le groupe nommé pointe le point, la suite ne l'avale pas");
-        assertFalse(GardeCatastrophique.catastrophique("(?'nom'\\.\\w+)+"),
+        assertFalse(CatastrophicGuard.catastrophique("(?'nom'\\.\\w+)+"),
                 "le closeur apostrophe aussi");
-        assertTrue(GardeCatastrophique.catastrophique("((?<=a)\\w+)+"),
+        assertTrue(CatastrophicGuard.catastrophique("((?<=a)\\w+)+"),
                 "le look-behind en tête d'un groupe quantifié interdit la délimitation");
-        assertTrue(GardeCatastrophique.catastrophique("(?<nom>a+)+"),
+        assertTrue(CatastrophicGuard.catastrophique("(?<nom>a+)+"),
                 "sans délimiteur, l'imbriqué se refuse");
     }
 

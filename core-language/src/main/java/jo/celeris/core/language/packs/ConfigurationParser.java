@@ -28,13 +28,13 @@ final class ConfigurationParser {
                 "language.json");
         return new LanguageConfiguration(
                 commentaires(champs.get("comments")),
-                pairesCrochets(champs.get("brackets")),
-                pairesAuto(champs.get("autoClosingPairs")),
-                pairesCrochets(champs.get("surroundingPairs")),
+                bracketPairs(champs.get("brackets")),
+                autoPairs(champs.get("autoClosingPairs")),
+                bracketPairs(champs.get("surroundingPairs")),
                 JsonChamps.chaineNulle(champs.get("wordPattern")),
-                plis(champs.get("folding")),
+                folds(champs.get("folding")),
                 indentation(champs.get("indentationRules")),
-                tailleIndentation(champs.get("indentSize")),
+                indentSize(champs.get("indentSize")),
                 JsonChamps.booleen(champs.get("tabIndent"), false));
     }
 
@@ -45,43 +45,43 @@ final class ConfigurationParser {
             return new LanguageConfiguration.Comments(null, null, null);
         }
         Map<String, Object> champs = JsonChamps.objet(brut, "comments");
-        String debut = null;
-        String fin = null;
+        String start = null;
+        String end = null;
         if (champs.get("blockComment") != null) {
-            List<?> paire = JsonChamps.liste(champs.get("blockComment"), "blockComment");
-            if (paire.size() != 2 || paire.get(0) == null || paire.get(1) == null) {
+            List<?> pair = JsonChamps.liste(champs.get("blockComment"), "blockComment");
+            if (pair.size() != 2 || pair.get(0) == null || pair.get(1) == null) {
                 throw new IllegalArgumentException(
                         "blockComment must be a pair [start, end]");
             }
-            debut = String.valueOf(paire.get(0));
-            fin = String.valueOf(paire.get(1));
+            start = String.valueOf(pair.get(0));
+            end = String.valueOf(pair.get(1));
         }
         return new LanguageConfiguration.Comments(
-                JsonChamps.chaineNulle(champs.get("lineComment")), debut, fin);
+                JsonChamps.chaineNulle(champs.get("lineComment")), start, end);
     }
 
     /** Les paires de crochets : [["(", ")"], …]. */
-    static List<LanguageConfiguration.BracketPair> pairesCrochets(
+    static List<LanguageConfiguration.BracketPair> bracketPairs(
             @Nullable Object brut) {
         List<LanguageConfiguration.BracketPair> paires = new ArrayList<>();
         if (brut == null) {
             return paires;
         }
         for (Object element : JsonChamps.liste(brut, "brackets")) {
-            List<?> paire = JsonChamps.liste(element, "brackets[]");
-            if (paire.size() != 2) {
+            List<?> pair = JsonChamps.liste(element, "brackets[]");
+            if (pair.size() != 2) {
                 throw new IllegalArgumentException(
-                        "brackets[] must be a pair, found " + paire.size());
+                        "brackets[] must be a pair, found " + pair.size());
             }
             paires.add(new LanguageConfiguration.BracketPair(
-                    JsonChamps.caractere(paire.get(0), "brackets[0]"),
-                    JsonChamps.caractere(paire.get(1), "brackets[1]")));
+                    JsonChamps.caractere(pair.get(0), "brackets[0]"),
+                    JsonChamps.caractere(pair.get(1), "brackets[1]")));
         }
         return paires;
     }
 
     /** Les paires à fermeture automatique : objets {open, close, notIn}. */
-    static List<LanguageConfiguration.AutoClosePair> pairesAuto(
+    static List<LanguageConfiguration.AutoClosePair> autoPairs(
             @Nullable Object brut) {
         List<LanguageConfiguration.AutoClosePair> paires = new ArrayList<>();
         if (brut == null) {
@@ -104,11 +104,11 @@ final class ConfigurationParser {
     }
 
     /** Les plis : offSide et marqueurs de VS Code, parIndentation en plus. */
-    static LanguageConfiguration.Folding plis(@Nullable Object brut) {
+    static LanguageConfiguration.Folding folds(@Nullable Object brut) {
         boolean parIndentation = false;
         boolean offSide = false;
-        String debut = null;
-        String fin = null;
+        String start = null;
+        String end = null;
         if (brut != null) {
             Map<String, Object> champs = JsonChamps.objet(brut, "folding");
             parIndentation = JsonChamps.booleen(champs.get("byIndentation"), false);
@@ -116,11 +116,11 @@ final class ConfigurationParser {
             if (champs.get("markers") != null) {
                 Map<String, Object> marqueurs = JsonChamps.objet(champs.get("markers"),
                         "folding.markers");
-                debut = JsonChamps.chaineNulle(marqueurs.get("start"));
-                fin = JsonChamps.chaineNulle(marqueurs.get("end"));
+                start = JsonChamps.chaineNulle(marqueurs.get("start"));
+                end = JsonChamps.chaineNulle(marqueurs.get("end"));
             }
         }
-        return new LanguageConfiguration.Folding(parIndentation, offSide, debut, fin);
+        return new LanguageConfiguration.Folding(parIndentation, offSide, start, end);
     }
 
     /** Les règles d'indentation de VS Code. */
@@ -137,7 +137,7 @@ final class ConfigurationParser {
     }
 
     /** La taille d'indentation : 4 par défaut, entier strictement positif. */
-    static int tailleIndentation(@Nullable Object brut) {
+    static int indentSize(@Nullable Object brut) {
         if (brut == null) {
             return 4;
         }

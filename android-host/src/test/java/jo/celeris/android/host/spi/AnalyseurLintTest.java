@@ -18,95 +18,95 @@ class AnalyseurLintTest {
 
     @Test
     void laFormeCompleteSeConvertitAuxLignesExactes() {
-        String sortie = """
+        String output = """
                 app/src/main/java/com/exemple/App.kt:42: Error: Missing permission check [MissingPermission]
                 res/values/strings.xml:7: Warning: Replace "..." with ellipsis character [TypographyEllipsis]
                 """;
-        List<DiagnosticHote> diagnostiques = AnalyseurLint.parser(sortie);
+        List<HostDiagnostic> diagnostiques = AnalyseurLint.parser(output);
         assertEquals(2, diagnostiques.size());
-        assertEquals(CheminDoc.de("/app/src/main/java/com/exemple/App.kt"),
+        assertEquals(CheminDoc.of("/app/src/main/java/com/exemple/App.kt"),
                 diagnostiques.get(0).chemin());
-        assertEquals(42, diagnostiques.get(0).ligne());
-        assertEquals(GraviteDiagnostic.ERREUR, diagnostiques.get(0).gravite());
-        assertEquals(GraviteDiagnostic.AVERTISSEMENT, diagnostiques.get(1).gravite());
-        assertEquals(7, diagnostiques.get(1).ligne());
+        assertEquals(42, diagnostiques.get(0).line());
+        assertEquals(GraviteDiagnostic.ERREUR, diagnostiques.get(0).severity());
+        assertEquals(GraviteDiagnostic.AVERTISSEMENT, diagnostiques.get(1).severity());
+        assertEquals(7, diagnostiques.get(1).line());
     }
 
     @Test
     void laColonneFacultativeSeLit() {
-        DiagnosticHote avec = AnalyseurLint
+        HostDiagnostic avec = AnalyseurLint
                 .parser("res/layout/activity.xml:3:12: Error: Unexpected text [XmlValue]")
                 .get(0);
-        assertEquals(12, avec.colonne());
-        DiagnosticHote sans = AnalyseurLint
+        assertEquals(12, avec.column());
+        HostDiagnostic sans = AnalyseurLint
                 .parser("res/layout/activity.xml:3: Error: Unexpected text [XmlValue]")
                 .get(0);
-        assertEquals(0, sans.colonne());
+        assertEquals(0, sans.column());
     }
 
     @Test
     void lInformationSeConvertitEtLeBruitNeProduitRien() {
-        String sortie = """
+        String output = """
                 Checking build.gradle.kts: /chemin/du/projet
                 gradle/libs.versions.toml:20: Information: Unknown dependency alias [UnknownAlias]
                 1 errors, 1 warnings, 1 informations
                 """;
-        List<DiagnosticHote> diagnostiques = AnalyseurLint.parser(sortie);
+        List<HostDiagnostic> diagnostiques = AnalyseurLint.parser(output);
         assertEquals(1, diagnostiques.size());
-        assertEquals(GraviteDiagnostic.INFO, diagnostiques.get(0).gravite());
+        assertEquals(GraviteDiagnostic.INFO, diagnostiques.get(0).severity());
     }
 
     @Test
     void lIdentifiantDeRegleSePorteParLeMessage() {
-        DiagnosticHote diagnostic = AnalyseurLint
+        HostDiagnostic diagnostic = AnalyseurLint
                 .parser(ligneLintEllipse(7))
                 .get(0);
         assertEquals("TypographyEllipsis", AnalyseurLint.regle(diagnostic.message()));
         assertEquals("Replace \"...\" with ellipsis character",
-                AnalyseurLint.texte(diagnostic.message()));
+                AnalyseurLint.text(diagnostic.message()));
         assertEquals("", AnalyseurLint.regle("sans identifiant"));
     }
 
     @Test
     void leCorrectifDeLigneSeCalculeALOccurrenceExacte() {
-        DiagnosticHote diagnostic = AnalyseurLint
+        HostDiagnostic diagnostic = AnalyseurLint
                 .parser(ligneLintEllipse(7))
                 .get(0);
-        List<String> lignes = List.of(
+        List<String> lines = List.of(
                 "<resources>",
                 "  <string name=\"titre\">Attendez...",
                 "</resources>");
         // la ligne porteuse est la septième : les lignes manquantes
         // ne changent rien, le correctif lit la sienne.
-        lignes = new java.util.ArrayList<>(lignes);
-        while (lignes.size() < 7) {
-            lignes.add("");
+        lines = new java.util.ArrayList<>(lines);
+        while (lines.size() < 7) {
+            lines.add("");
         }
-        lignes.set(6, "  <string name=\"titre\">Attendez...</string>");
-        Optional<CorrectifLint> correctif = CorrectifsLint.pour(diagnostic, lignes);
+        lines.set(6, "  <string name=\"titre\">Attendez...</string>");
+        Optional<CorrectifLint> correctif = CorrectifsLint.pour(diagnostic, lines);
         assertTrue(correctif.isPresent());
-        assertEquals(7, correctif.get().ligne());
-        assertEquals(32, correctif.get().colonne());
+        assertEquals(7, correctif.get().line());
+        assertEquals(32, correctif.get().column());
         assertEquals("...", correctif.get().avant());
         assertEquals("…", correctif.get().apres());
         assertEquals("  <string name=\"titre\">Attendez…</string>",
-                correctif.get().appliquer(lignes.get(6)));
+                correctif.get().appliquer(lines.get(6)));
     }
 
     @Test
     void leCorrectifDeCadratinRemplaceLeDoubleTiret() {
-        DiagnosticHote diagnostic = AnalyseurLint
+        HostDiagnostic diagnostic = AnalyseurLint
                 .parser("res/values/strings.xml:2: Warning: Use an em-dash instead of two hyphens [TypographyDashes]")
                 .get(0);
-        List<String> lignes = List.of("<resources>", "attente -- puis suite");
-        Optional<CorrectifLint> correctif = CorrectifsLint.pour(diagnostic, lignes);
+        List<String> lines = List.of("<resources>", "attente -- puis suite");
+        Optional<CorrectifLint> correctif = CorrectifsLint.pour(diagnostic, lines);
         assertTrue(correctif.isPresent());
-        assertEquals("attente — puis suite", correctif.get().appliquer(lignes.get(1)));
+        assertEquals("attente — puis suite", correctif.get().appliquer(lines.get(1)));
     }
 
     @Test
     void laRegleSansCorrectifMecaniqueNeProposeRien() {
-        DiagnosticHote diagnostic = AnalyseurLint
+        HostDiagnostic diagnostic = AnalyseurLint
                 .parser("app/src/main/java/App.kt:42: Error: Missing permission check [MissingPermission]")
                 .get(0);
         assertTrue(CorrectifsLint.pour(diagnostic, List.of("ligne")).isEmpty());
@@ -114,7 +114,7 @@ class AnalyseurLintTest {
 
     @Test
     void laLigneSansLeTexteFautifNeProposeRien() {
-        DiagnosticHote diagnostic = AnalyseurLint
+        HostDiagnostic diagnostic = AnalyseurLint
                 .parser(ligneLintEllipse(1))
                 .get(0);
         assertTrue(CorrectifsLint.pour(diagnostic, List.of("rien a corriger")).isEmpty());
@@ -122,18 +122,18 @@ class AnalyseurLintTest {
 
     @Test
     void lesDecalagesDuCorrectifSeCalculentDepuisLesDebutsDeLignes() {
-        DiagnosticHote diagnostic = AnalyseurLint
+        HostDiagnostic diagnostic = AnalyseurLint
                 .parser(ligneLintEllipse(2))
                 .get(0);
-        List<String> lignes = List.of("<resources>", "attente ...");
-        CorrectifLint correctif = CorrectifsLint.pour(diagnostic, lignes).orElseThrow();
+        List<String> lines = List.of("<resources>", "attente ...");
+        CorrectifLint correctif = CorrectifsLint.pour(diagnostic, lines).orElseThrow();
         int[] debuts = {0, 13};
-        assertEquals(13 + 8, correctif.debut(debuts));
-        assertEquals(13 + 8 + 3, correctif.fin(debuts));
+        assertEquals(13 + 8, correctif.start(debuts));
+        assertEquals(13 + 8 + 3, correctif.end(debuts));
     }
     /** La ligne de sortie Lint de l'ellipse, à la ligne près. */
-    private static String ligneLintEllipse(int ligne) {
-        return "res/values/strings.xml:" + ligne
+    private static String ligneLintEllipse(int line) {
+        return "res/values/strings.xml:" + line
                 + ": Warning: Replace \"...\" with ellipsis character"
                 + " [TypographyEllipsis]";
     }

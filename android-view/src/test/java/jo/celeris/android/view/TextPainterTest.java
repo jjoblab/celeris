@@ -47,7 +47,7 @@ class TextPainterTest {
     }
 
     /** Un dessin croisé : le texte (ou le rectangle), le pinceau et la couleur au moment de l'appel. */
-    private record Dessin(String texte, TextBrush pinceau, int couleur) {
+    private record Dessin(String text, TextBrush brush, int couleur) {
     }
 
     /** Surface enregistreuse : capture chaque appel avec la couleur du pinceau à l'instant précis. */
@@ -103,9 +103,9 @@ class TextPainterTest {
 
         @Override
         public RowLayout layoutOf(RowKey key) {
-            String texte = document.lineText(key.row());
-            return new RowLayout(key.row(), 0, texte.length(), texte,
-                    texte.length() * metrics.charWidth());
+            String text = document.lineText(key.row());
+            return new RowLayout(key.row(), 0, text.length(), text,
+                    text.length() * metrics.charWidth());
         }
     }
 
@@ -150,16 +150,16 @@ class TextPainterTest {
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new SelectionPainter(saine));
         image.addLayer(new TextPainter(saine, cache, new SourceParLigne(document, metrics)));
-        FrameState etat = new FrameState();
+        FrameState state = new FrameState();
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
-        etat.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 2, 40f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        state.beginFrame(document, selection, projection, 1L, metrics, THEME, 0, 2, 40f, 0f, 0f);
+        image.drawFrame(surface, state);
 
         Dessin rect = surface.dessins().get(0);
-        Dessin texte = surface.dessins().get(1);
-        assertEquals("<rect>", rect.texte());
-        assertEquals("alpha", texte.texte());
-        assertNotSame(rect.pinceau(), texte.pinceau(),
+        Dessin text = surface.dessins().get(1);
+        assertEquals("<rect>", rect.text());
+        assertEquals("alpha", text.text());
+        assertNotSame(rect.brush(), text.brush(),
                 "chaque couche doit posséder son pinceau (fabrique saine)");
         // 1 pinceau de sélection, 1 de base, 14 de sortes de jetons
         // (B-01) et 1 de portées (M7.6, H-07) : chacun possède le
@@ -196,7 +196,7 @@ class TextPainterTest {
         assertEquals(6, dessins.size(),
                 "deux images : chacune peint un rectangle de sélection et deux textes");
         for (Dessin dessin : dessins) {
-            if ("<rect>".equals(dessin.texte())) {
+            if ("<rect>".equals(dessin.text())) {
                 assertEquals((THEME.selectionColor() & 0x00FFFFFF) | 0x99000000,
                         dessin.couleur(),
                         "la sélection peint dans sa couleur propre, en voile");
@@ -205,8 +205,8 @@ class TextPainterTest {
                         "le texte repose sa couleur de base à chaque image (PIEGE-01)");
             }
         }
-        assertTrue(dessins.get(0).texte().equals("<rect>")
-                && dessins.get(dessins.size() - 1).texte().equals("beta"),
+        assertTrue(dessins.get(0).text().equals("<rect>")
+                && dessins.get(dessins.size() - 1).text().equals("beta"),
                 "dans chaque image, la sélection peint avant le texte");
     }
 
@@ -221,16 +221,16 @@ class TextPainterTest {
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new SelectionPainter(saine));
         image.addLayer(new TextPainter(saine, cache, new SourceParLigne(document, metrics)));
-        FrameState etat = new FrameState();
+        FrameState state = new FrameState();
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
 
-        etat.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics, THEME,
+        state.beginFrame(document, MultiSelection.empty(), projection, 1L, metrics, THEME,
                 0, 2, 40f, 0f, 0f);
-        image.drawFrame(surface, etat);
+        image.drawFrame(surface, state);
 
         assertEquals(2, surface.dessins().size());
-        assertEquals("alpha", surface.dessins().get(0).texte());
-        assertEquals("beta", surface.dessins().get(1).texte());
+        assertEquals("alpha", surface.dessins().get(0).text());
+        assertEquals("beta", surface.dessins().get(1).text());
     }
 
     /**
@@ -249,25 +249,25 @@ class TextPainterTest {
                 new SourceParLigne(Document.of("alpha"), metrics));
         ScrollFrame image = new ScrollFrame();
         image.addLayer(new TextPainter(new FabriqueSaine(), cache, sourceLiee));
-        FrameState etat = new FrameState();
+        FrameState state = new FrameState();
         SurfaceEnregistreuse surface = new SurfaceEnregistreuse();
 
         // Première image : la source d'origine sert la révision 1.
-        etat.beginFrame(Document.of("alpha"), MultiSelection.empty(),
+        state.beginFrame(Document.of("alpha"), MultiSelection.empty(),
                 new VisualProjection(1, new FoldModel()), 1L, metrics, THEME,
                 0, 1, 40f, 0f, 0f);
-        image.drawFrame(surface, etat);
-        assertEquals("alpha", surface.dessins().get(0).texte());
+        image.drawFrame(surface, state);
+        assertEquals("alpha", surface.dessins().get(0).text());
 
         // La session change : autre source, autre révision — le peintre
         // construit une fois doit servir le NOUVEAU contenu.
         sourceLiee.set(new SourceParLigne(Document.of("nouveau"), metrics));
         cache.invalidate(1L);
-        etat.beginFrame(Document.of("nouveau"), MultiSelection.empty(),
+        state.beginFrame(Document.of("nouveau"), MultiSelection.empty(),
                 new VisualProjection(1, new FoldModel()), 2L, metrics, THEME,
                 0, 1, 40f, 0f, 0f);
-        image.drawFrame(surface, etat);
-        assertEquals("nouveau", surface.dessins().get(1).texte(),
+        image.drawFrame(surface, state);
+        assertEquals("nouveau", surface.dessins().get(1).text(),
                 "le peintre doit consulter la source réassignée, pas sa capture d'origine");
     }
 }

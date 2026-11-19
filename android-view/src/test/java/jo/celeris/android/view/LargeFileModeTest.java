@@ -53,10 +53,10 @@ public class LargeFileModeTest {
         contexte = RuntimeEnvironment.getApplication();
     }
 
-    /** Un texte de {@code lignes} lignes courtes. */
-    private static String texte(int lignes) {
-        StringBuilder contenu = new StringBuilder(lignes * 3);
-        for (int i = 0; i < lignes; i++) {
+    /** Un texte de {@code lines} lignes courtes. */
+    private static String text(int lines) {
+        StringBuilder contenu = new StringBuilder(lines * 3);
+        for (int i = 0; i < lines; i++) {
             if (i > 0) {
                 contenu.append('\n');
             }
@@ -68,11 +68,11 @@ public class LargeFileModeTest {
     /** AUTO sur un petit document : le régime dort, la complétion sert. */
     @Test
     public void autoSurPetitDocumentSertLaCompletion() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, texte(100));
+        EditorTestRig banc = EditorTestRig.on(contexte, text(100));
         IntelligenceHub intelligence = banc.vue().intelligence();
         intelligence.setProvider(fournisseurFixe);
         assertEquals("le régime défaut est AUTO",
-                LargeFileMode.AUTO, intelligence.largeFileMode());
+                LargeFileMode.AUTO, intelligence.largeFileModeOn());
         assertFalse("un petit document ne coupe rien",
                 intelligence.isLargeFileModeActive());
         assertEquals("la complétion sert",
@@ -82,7 +82,7 @@ public class LargeFileModeTest {
     /** ON force les coupures, même sur un petit document. */
     @Test
     public void onCoupeMemeSurPetitDocument() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, texte(100));
+        EditorTestRig banc = EditorTestRig.on(contexte, text(100));
         IntelligenceHub intelligence = banc.vue().intelligence();
         intelligence.setProvider(fournisseurFixe);
         intelligence.setLargeFileMode(LargeFileMode.ON);
@@ -97,13 +97,13 @@ public class LargeFileModeTest {
     public void autoSurGrosDocumentCoupeLaCompletion() {
         // 50 001 lignes : une de plus que le seuil, le texte reste petit
         // en caractères — le seuil de lignes seul décide.
-        EditorTestRig banc = EditorTestRig.sur(contexte, texte(50_001));
+        EditorTestRig banc = EditorTestRig.on(contexte, text(50_001));
         EditorView vue = banc.vue();
         assertTrue("le document dépasse le seuil de lignes",
                 vue.session().document().isLarge());
         IntelligenceHub intelligence = vue.intelligence();
         intelligence.setProvider(fournisseurFixe);
-        assertEquals(LargeFileMode.AUTO, intelligence.largeFileMode());
+        assertEquals(LargeFileMode.AUTO, intelligence.largeFileModeOn());
         assertTrue("AUTO suit les seuils", intelligence.isLargeFileModeActive());
         assertTrue("la complétion se coupe",
                 intelligence.completionCandidates(List.of()).isEmpty());
@@ -117,7 +117,7 @@ public class LargeFileModeTest {
     /** OFF ferme les coupures, même sur un gros document. */
     @Test
     public void offFermeLesCoupuresSurGrosDocument() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, texte(50_001));
+        EditorTestRig banc = EditorTestRig.on(contexte, text(50_001));
         IntelligenceHub intelligence = banc.vue().intelligence();
         intelligence.setProvider(fournisseurFixe);
         intelligence.setLargeFileMode(LargeFileMode.OFF);
@@ -130,19 +130,19 @@ public class LargeFileModeTest {
     /** Null retombe sur AUTO — jamais de régime fantôme. */
     @Test
     public void nullRetombeSurAuto() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, texte(100));
+        EditorTestRig banc = EditorTestRig.on(contexte, text(100));
         IntelligenceHub intelligence = banc.vue().intelligence();
         intelligence.setLargeFileMode(LargeFileMode.ON);
         intelligence.setLargeFileMode(null);
         assertEquals("null retombe sur AUTO",
-                LargeFileMode.AUTO, intelligence.largeFileMode());
+                LargeFileMode.AUTO, intelligence.largeFileModeOn());
         assertFalse(intelligence.isLargeFileModeActive());
     }
 
     /** La sélection se pose sur le gros document — la voie reste unique. */
     @Test
     public void selectionSePoseSurGrosDocument() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, texte(50_001));
+        EditorTestRig banc = EditorTestRig.on(contexte, text(50_001));
         TextSession session = banc.vue().session();
         session.setSelection(MultiSelection.of(SelRange.caretAt(5)));
         assertEquals(5, session.selection().ranges().get(0).caret());

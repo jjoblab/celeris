@@ -66,9 +66,9 @@ public final class ClasspathImports {
      * présence se vérifie à la ligne d'import, jamais dans une chaîne.
      */
     private static boolean dejaImporte(Document doc, String fqn) {
-        String ligne = "import " + fqn + ";";
+        String line = "import " + fqn + ";";
         for (int l = 0; l < doc.lineCount(); l++) {
-            if (doc.lineText(l).strip().equals(ligne)) {
+            if (doc.lineText(l).strip().equals(line)) {
                 return true;
             }
         }
@@ -81,20 +81,20 @@ public final class ClasspathImports {
      * bornes — null hors identifiant.
      */
     private static @Nullable String identifiantSous(Document doc, int caret) {
-        int fin = caret;
-        while (fin < doc.length()
-                && Character.isJavaIdentifierPart(doc.charAt(fin))) {
-            fin++;
+        int end = caret;
+        while (end < doc.length()
+                && Character.isJavaIdentifierPart(doc.charAt(end))) {
+            end++;
         }
-        int debut = caret;
-        while (debut > 0
-                && Character.isJavaIdentifierPart(doc.charAt(debut - 1))) {
-            debut--;
+        int start = caret;
+        while (start > 0
+                && Character.isJavaIdentifierPart(doc.charAt(start - 1))) {
+            start--;
         }
-        if (debut == fin) {
+        if (start == end) {
             return null;
         }
-        String nom = doc.subText(debut, fin);
+        String nom = doc.subText(start, end);
         return Character.isJavaIdentifierStart(nom.charAt(0)) ? nom : null;
     }
 }

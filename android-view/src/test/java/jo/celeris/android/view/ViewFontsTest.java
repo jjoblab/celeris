@@ -36,7 +36,7 @@ public class ViewFontsTest {
     /** Le changement de police redérive métriques et viseur (PIEGE-05). */
     @Test
     public void leChangementRederiveMetriquesEtViseur() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         EditorMetrics avant = vue.metrics;
         HitTest viseurAvant = vue.viseur;
@@ -51,10 +51,10 @@ public class ViewFontsTest {
      *  tait (D-15). */
     @Test
     public void laTailleChangeantePrevientLecouteur() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         AtomicInteger avis = new AtomicInteger();
-        vue.addFontSizeChangeListener(taille -> avis.incrementAndGet());
+        vue.addFontSizeChangeListener(size -> avis.incrementAndGet());
         vue.settings().setFont(new FontSpec("mono", vue.metrics.font().size()));
         assertEquals("la même taille ne prévient pas", 0, avis.get());
         vue.settings().setFont(new FontSpec("mono", 18f));
@@ -65,11 +65,11 @@ public class ViewFontsTest {
      *  redérive aussitôt (D-14, PIEGE-05). */
     @Test
     public void laPolicePoseeSurLaFamilleActiveRederive() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         EditorMetrics avant = vue.metrics;
         Typeface posee = Typeface.create("posee-mono", Typeface.NORMAL);
-        vue.poserPolice("mono", posee);
+        vue.setFont("mono", posee);
         assertSame("la règle sert la police posée", posee,
                 vue.reglePolices.policeDe("mono"));
         assertNotSame("la famille active se redérive", avant, vue.metrics);
@@ -79,11 +79,11 @@ public class ViewFontsTest {
      *  les métriques ne bougent pas (D-14). */
     @Test
     public void laPolicePoseeSurFamilleDormanteAttend() {
-        EditorTestRig banc = EditorTestRig.sur(contexte, "abc\n");
+        EditorTestRig banc = EditorTestRig.on(contexte, "abc\n");
         EditorView vue = banc.vue();
         EditorMetrics avant = vue.metrics;
         Typeface posee = Typeface.create("fira-test", Typeface.NORMAL);
-        vue.poserPolice("fira", posee);
+        vue.setFont("fira", posee);
         assertSame("la règle sert la police posée", posee,
                 vue.reglePolices.policeDe("fira"));
         assertSame("la famille dormante ne redérive rien", avant, vue.metrics);
@@ -102,7 +102,7 @@ public class ViewFontsTest {
         assertSame("l'inconnue rend mono", Typeface.MONOSPACE,
                 regle.policeDe("inconnue"));
         Typeface posee = Typeface.create("posee", Typeface.BOLD);
-        regle.poserPolice("posee", posee);
+        regle.setFont("posee", posee);
         assertSame("la police posée gagne", posee, regle.policeDe("posee"));
     }
 
@@ -110,7 +110,7 @@ public class ViewFontsTest {
     @Test(expected = NullPointerException.class)
     public void laPolicePoseeRefuseLeNul() {
         AndroidFontRuler regle = new AndroidFontRuler();
-        regle.poserPolice("fira", null);
+        regle.setFont("fira", null);
     }
 
     /** La règle mesure par la table : la police posée donne sa largeur
@@ -120,7 +120,7 @@ public class ViewFontsTest {
         AndroidFontRuler regle = new AndroidFontRuler();
         FontSpec spec = new FontSpec("fira", 14f);
         Typeface posee = Typeface.create("fira-mesure", Typeface.NORMAL);
-        regle.poserPolice("fira", posee);
+        regle.setFont("fira", posee);
         assertTrue("la largeur se mesure, positive",
                 regle.charWidth(spec) > 0f);
         assertTrue("la hauteur se mesure, positive",

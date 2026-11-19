@@ -20,9 +20,9 @@ import jo.celeris.core.text.TextSession;
 public class CompositionPurgeTest {
 
     /** Le montage du banc : une vue sur son harnais. */
-    private EditorTestRig banc(String texte) {
-        return EditorTestRig.sur(
-                org.robolectric.RuntimeEnvironment.getApplication(), texte);
+    private EditorTestRig banc(String text) {
+        return EditorTestRig.on(
+                org.robolectric.RuntimeEnvironment.getApplication(), text);
     }
 
     /** Le backspace IME juste après un changement d'onglet agit sur le

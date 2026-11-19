@@ -11,7 +11,7 @@ import java.util.Set;
  * {@code ${variable}} a laissé sa valeur par défaut, vide sans
  * deux-points — et ses trous, dans l'ordre du rendu : l'ordre de
  * tabulation. Les occurrences d'une même variable sont liées (les
- * miroirs, {@link Gabarits#miroirs}).
+ * miroirs, {@link Gabarits#mirrors}).
  *
  * <p>Le gabarit riche (chantier C7) porte les trous à choix et les
  * macros. Le trou à choix — {@code ${fruit|pomme,poire,banane|}} —
@@ -43,12 +43,12 @@ public record Gabarit(String rendu, List<Trou> trous) {
      * devient un trou — le défaut du trou à choix est son premier
      * choix —, les autres segments restent littéraux.
      *
-     * @param corps le corps du gabarit
+     * @param body le corps du gabarit
      * @return le gabarit rendu et analysé
      * @throws IllegalArgumentException si une balise n'est pas fermée
      */
-    public static Gabarit of(String corps) {
-        return of(corps, Map.of());
+    public static Gabarit of(String body) {
+        return of(body, Map.of());
     }
 
     /**
@@ -57,34 +57,34 @@ public record Gabarit(String rendu, List<Trou> trous) {
      * les autres deviennent des trous — défaut déclaré, premier choix
      * d'un trou à choix, vide sinon.
      *
-     * @param corps  le corps du gabarit
+     * @param body  le corps du gabarit
      * @param macros la table des macros de l'hôte — noms en
      *               MAJUSCULES, valeurs rendues telles quelles
      * @return le gabarit rendu et analysé
      * @throws IllegalArgumentException si une balise n'est pas fermée
      */
-    public static Gabarit of(String corps, Map<String, String> macros) {
+    public static Gabarit of(String body, Map<String, String> macros) {
         StringBuilder rendu = new StringBuilder();
         List<Trou> trous = new ArrayList<>();
         int i = 0;
-        while (i < corps.length()) {
-            int ouverture = corps.indexOf("${", i);
+        while (i < body.length()) {
+            int ouverture = body.indexOf("${", i);
             if (ouverture < 0) {
-                rendu.append(corps, i, corps.length());
+                rendu.append(body, i, body.length());
                 break;
             }
-            int fermeture = corps.indexOf('}', ouverture + 2);
+            int fermeture = body.indexOf('}', ouverture + 2);
             if (fermeture < 0) {
                 throw new IllegalArgumentException("unclosed placeholder at " + ouverture);
             }
-            rendu.append(corps, i, ouverture);
-            String nom = corps.substring(ouverture + 2, fermeture);
+            rendu.append(body, i, ouverture);
+            String nom = body.substring(ouverture + 2, fermeture);
             String macro = macros.get(variableDe(nom, ouverture));
             if (macro != null) {
                 // la macro se résout au rendu : elle n'attend pas la frappe
                 rendu.append(macro);
             } else {
-                ajouterTrou(rendu, trous, nom, ouverture);
+                addHole(rendu, trous, nom, ouverture);
             }
             i = fermeture + 1;
         }
@@ -109,7 +109,7 @@ public record Gabarit(String rendu, List<Trou> trous) {
      * déclaré, premier choix d'un trou à choix, vide sinon —, ses
      * choix, ses bornes.
      */
-    private static void ajouterTrou(StringBuilder rendu, List<Trou> trous,
+    private static void addHole(StringBuilder rendu, List<Trou> trous,
             String nom, int ouverture) {
         int separateur = premierSeparateur(nom);
         String variable = variableDe(nom, ouverture);
@@ -126,9 +126,9 @@ public record Gabarit(String rendu, List<Trou> trous) {
                     ouverture);
             defaut = choix.get(0);
         }
-        int debut = rendu.length();
+        int start = rendu.length();
         rendu.append(defaut);
-        trous.add(new Trou(debut, debut + defaut.length(), variable, choix));
+        trous.add(new Trou(start, start + defaut.length(), variable, choix));
     }
 
     /**

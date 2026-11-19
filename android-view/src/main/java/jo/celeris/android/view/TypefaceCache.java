@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public final class TypefaceCache {
 
-    private final TypefaceFactory fabrique;
+    private final TypefaceFactory factory;
     private final Map<FontSpec, FontHandle> grasMemoise = new HashMap<>();
 
     /**
@@ -22,7 +22,7 @@ public final class TypefaceCache {
      * @param factory la fabrique de variantes côté hôte
      */
     public TypefaceCache(TypefaceFactory factory) {
-        this.fabrique = factory;
+        this.factory = factory;
     }
 
     /**
@@ -37,7 +37,7 @@ public final class TypefaceCache {
     public FontHandle boldFor(FontSpec spec, FontHandle base) {
         FontHandle gras = grasMemoise.get(spec);
         if (gras == null) {
-            gras = fabrique.deriveBold(base);
+            gras = factory.deriveBold(base);
             grasMemoise.put(spec, gras);
         }
         return gras;

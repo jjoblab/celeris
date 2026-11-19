@@ -28,15 +28,15 @@ import org.jspecify.annotations.Nullable;
 public final class ErrorBandView extends View {
 
     /** La largeur tactile de la bande, en dp. */
-    private static final float LARGEUR_TACTILE_DP = 10f;
+    private static final float TOUCH_WIDTH_DP = 10f;
 
     /** La largeur peinte d'une marque, en dp. */
-    private static final float LARGEUR_MARQUE_DP = 4f;
+    private static final float MARK_WIDTH_DP = 4f;
 
     /** La hauteur minimale d'une marque, en dp. */
-    private static final float HAUTEUR_MARQUE_DP = 3f;
+    private static final float MARK_HEIGHT_DP = 3f;
 
-    private final Paint pinceau = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint brush = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final int largeurPx;
     private final int largeurMarquePx;
     private final float hauteurMarquePx;
@@ -55,10 +55,10 @@ public final class ErrorBandView extends View {
     public ErrorBandView(Context context, PopupPalette palette) {
         super(context, null);
         float densite = getResources().getDisplayMetrics().density;
-        this.largeurPx = Math.round(LARGEUR_TACTILE_DP * densite);
-        this.largeurMarquePx = Math.round(LARGEUR_MARQUE_DP * densite);
-        this.hauteurMarquePx = HAUTEUR_MARQUE_DP * densite;
-        poserPalette(palette);
+        this.largeurPx = Math.round(TOUCH_WIDTH_DP * densite);
+        this.largeurMarquePx = Math.round(MARK_WIDTH_DP * densite);
+        this.hauteurMarquePx = MARK_HEIGHT_DP * densite;
+        setPalette(palette);
     }
 
     /**
@@ -68,11 +68,11 @@ public final class ErrorBandView extends View {
      * @param nouvelle la palette dérivée du thème courant
      */
     public void setPalette(PopupPalette nouvelle) {
-        poserPalette(nouvelle);
+        applyPalette(nouvelle);
         invalidate();
     }
 
-    private void poserPalette(PopupPalette nouvelle) {
+    private void applyPalette(PopupPalette nouvelle) {
         this.palette = nouvelle;
     }
 
@@ -83,14 +83,14 @@ public final class ErrorBandView extends View {
      * @param cranCount le nombre de crans du modèle (l'échelle verticale)
      */
     public void setModel(ErrorBandModel model, int cranCount) {
-        var marques = model.marques();
-        this.crans = new int[marques.size()];
-        this.offsets = new int[marques.size()];
-        this.gravites = new int[marques.size()];
-        for (int i = 0; i < marques.size(); i++) {
-            this.crans[i] = marques.get(i).cran();
-            this.offsets[i] = marques.get(i).startOffset();
-            this.gravites[i] = marques.get(i).gravite();
+        var marks = model.marks();
+        this.crans = new int[marks.size()];
+        this.offsets = new int[marks.size()];
+        this.gravites = new int[marks.size()];
+        for (int i = 0; i < marks.size(); i++) {
+            this.crans[i] = marks.get(i).cran();
+            this.offsets[i] = marks.get(i).startOffset();
+            this.gravites[i] = marks.get(i).severity();
         }
         this.cranCount = Math.max(1, cranCount);
         requestLayout();
@@ -130,19 +130,19 @@ public final class ErrorBandView extends View {
         float cranPx = getHeight() / (float) cranCount;
         for (int i = 0; i < crans.length; i++) {
             float haut = crans[i] * cranPx;
-            pinceau.setColor(encreDe(gravites[i]));
+            brush.setColor(inkOf(gravites[i]));
             canvas.drawRect(getWidth() - largeurMarquePx, haut, getWidth(),
                     Math.min(getHeight(), haut
-                            + Math.max(cranPx, hauteurMarquePx)), pinceau);
+                            + Math.max(cranPx, hauteurMarquePx)), brush);
         }
     }
 
     /** L'encre d'une gravité (la source unique du mapping, 3 = erreur). */
-    private int encreDe(int gravite) {
-        if (gravite == ErrorBandModel.GRAVITE_ERREUR) {
+    private int inkOf(int severity) {
+        if (severity == ErrorBandModel.GRAVITE_ERREUR) {
             return palette.error();
         }
-        return gravite == 2 ? palette.warning() : palette.info();
+        return severity == 2 ? palette.warning() : palette.info();
     }
 
     /** L'index de la marque du cran le plus proche de l'ordonnée, —1 si vide. */
@@ -154,9 +154,9 @@ public final class ErrorBandView extends View {
         int meilleur = 0;
         int meilleurEcart = Integer.MAX_VALUE;
         for (int i = 0; i < crans.length; i++) {
-            int ecart = Math.abs(crans[i] - cranVise);
-            if (ecart < meilleurEcart) {
-                meilleurEcart = ecart;
+            int gap = Math.abs(crans[i] - cranVise);
+            if (gap < meilleurEcart) {
+                meilleurEcart = gap;
                 meilleur = i;
             }
         }

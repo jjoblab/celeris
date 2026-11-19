@@ -20,65 +20,65 @@ final class JavaNombres {
      *
      * @return la position après le littéral
      */
-    static int lex(CharSequence texte, List<Token> jetons, int i, int n) {
-        int fin = partieNumerique(texte, i, n);
-        if (fin < n && "lLfFdD".indexOf(texte.charAt(fin)) >= 0) {
-            fin++;
+    static int lex(CharSequence text, List<Token> tokens, int i, int n) {
+        int end = partieNumerique(text, i, n);
+        if (end < n && "lLfFdD".indexOf(text.charAt(end)) >= 0) {
+            end++;
         }
-        jetons.add(new Token(TokenKind.NUMBER, i, fin));
-        return fin;
+        tokens.add(new Token(TokenKind.NUMBER, i, end));
+        return end;
     }
 
     /** Vrai quand le caractère peut ouvrir un littéral numérique. */
-    static boolean ouvre(char c, CharSequence texte, int i, int n) {
-        return estChiffre(c) || (c == '.' && i + 1 < n && estChiffre(texte.charAt(i + 1)));
+    static boolean ouvre(char c, CharSequence text, int i, int n) {
+        return isDigit(c) || (c == '.' && i + 1 < n && isDigit(text.charAt(i + 1)));
     }
 
-    private static int partieNumerique(CharSequence texte, int i, int n) {
-        if (texte.charAt(i) == '0' && i + 1 < n
-                && "xXbB".indexOf(texte.charAt(i + 1)) >= 0) {
-            return base(texte, i + 2, n);
+    private static int partieNumerique(CharSequence text, int i, int n) {
+        if (text.charAt(i) == '0' && i + 1 < n
+                && "xXbB".indexOf(text.charAt(i + 1)) >= 0) {
+            return base(text, i + 2, n);
         }
-        int fin = ciffrable(texte, i, n);
-        if (fin < n && texte.charAt(fin) == '.' && fin + 1 < n
-                && estChiffre(texte.charAt(fin + 1))) {
-            fin = ciffrable(texte, fin + 1, n);
+        int end = ciffrable(text, i, n);
+        if (end < n && text.charAt(end) == '.' && end + 1 < n
+                && isDigit(text.charAt(end + 1))) {
+            end = ciffrable(text, end + 1, n);
         }
-        if (fin < n && "eE".indexOf(texte.charAt(fin)) >= 0) {
-            fin = exposant(texte, fin, n);
+        if (end < n && "eE".indexOf(text.charAt(end)) >= 0) {
+            end = exposant(text, end, n);
         }
-        return fin;
+        return end;
     }
 
-    private static int base(CharSequence texte, int depuis, int n) {
-        int fin = depuis;
-        while (fin < n && (estChiffre(texte.charAt(fin))
-                || "abcdefABCDEF_".indexOf(texte.charAt(fin)) >= 0)) {
-            fin++;
+    private static int base(CharSequence text, int depuis, int n) {
+        int end = depuis;
+        while (end < n && (isDigit(text.charAt(end))
+                || "abcdefABCDEF_".indexOf(text.charAt(end)) >= 0)) {
+            end++;
         }
-        return fin;
+        return end;
     }
 
-    private static int ciffrable(CharSequence texte, int depuis, int n) {
-        int fin = depuis;
-        while (fin < n && (estChiffre(texte.charAt(fin)) || texte.charAt(fin) == '_')) {
-            fin++;
+    private static int ciffrable(CharSequence text, int depuis, int n) {
+        int end = depuis;
+        while (end < n && (isDigit(text.charAt(end)) || text.charAt(end) == '_')) {
+            end++;
         }
-        return fin;
+        return end;
     }
 
-    private static int exposant(CharSequence texte, int marqueur, int n) {
+    private static int exposant(CharSequence text, int marqueur, int n) {
         int apres = marqueur + 1;
-        if (apres < n && "+-".indexOf(texte.charAt(apres)) >= 0) {
+        if (apres < n && "+-".indexOf(text.charAt(apres)) >= 0) {
             apres++;
         }
-        if (apres < n && estChiffre(texte.charAt(apres))) {
-            return ciffrable(texte, apres, n);
+        if (apres < n && isDigit(text.charAt(apres))) {
+            return ciffrable(text, apres, n);
         }
         return marqueur;
     }
 
-    private static boolean estChiffre(char c) {
+    private static boolean isDigit(char c) {
         return c >= '0' && c <= '9';
     }
 }
