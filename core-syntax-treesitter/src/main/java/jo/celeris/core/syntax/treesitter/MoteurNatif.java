@@ -12,6 +12,8 @@ import com.itsaky.androidide.treesitter.TSLanguage;
 import com.itsaky.androidide.treesitter.TSParser;
 import com.itsaky.androidide.treesitter.TSTree;
 
+import java.util.logging.Logger;
+
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
 import jo.celeris.core.text.TextSession;
@@ -62,6 +64,13 @@ public final class MoteurNatif implements MoteurSyntaxe {
     private String insereEdite = "";
     private boolean editionEnAttente;
     private @Nullable Analysis publiee;
+    /** Une passe attend son tour sur l'exécuteur — la rafale de
+     *  frappes n'y empile pas : la dernière édition reprogramme la
+     *  même passe, elle servira le document le plus récent. */
+    private boolean passeEnAttente;
+    /** Le moteur refermé ne reprogramme plus rien (C2 : aucun fil
+     *  d'analyse vivant derrière la vue morte). */
+    private boolean ferme;
 
     private MoteurNatif(TextSession session, SyntaxeNatif source,
             @Nullable Executor executeur) {
@@ -158,6 +167,9 @@ public final class MoteurNatif implements MoteurSyntaxe {
     /** Referme le moteur : l'arbre et l'analyseur se libèrent. */
     @Override
     public void close() {
+        synchronized (this) {
+            ferme = true;
+        }
         session.removeEditListener(ecouteur);
         TSTree arbre = arbrePrecedent;
         if (arbre != null) {
@@ -168,12 +180,20 @@ public final class MoteurNatif implements MoteurSyntaxe {
     }
 
     /**
-     * L'édition s'enregistre : une seule vit en attente — la deuxième
-     * qui arrive abandonne l'arbre (le re-parse repart au plein, la
-     * composition d'éditions ne se devine jamais).
+     * L'édition s'enregistre — puis REPROGRAMME la passe (feuille de
+     * route A1.1) : la voie du socle poste son travail à chaque
+     * édition, la voie native faisait attendre un appel externe de
+     * {@code reanalyser()} que le pipeline réel ne fait jamais — la
+     * publication périmait à la première frappe, pour toujours.
+     * Une seule vit en attente : la deuxième qui arrive abandonne
+     * l'arbre (le re-parse repart au plein, la composition d'éditions
+     * ne se devine jamais).
      */
     private synchronized void surEdition(int start, int end, String removed,
             String inserted) {
+        if (ferme) {
+            return;
+        }
         if (editionEnAttente && arbrePrecedent != null) {
             arbrePrecedent.close();
             arbrePrecedent = null;
@@ -183,17 +203,59 @@ public final class MoteurNatif implements MoteurSyntaxe {
         retireEdite = removed;
         insereEdite = inserted;
         editionEnAttente = true;
+        programmer();
+    }
+
+    /**
+     * La passe part sur l'exécuteur si elle n'y attend pas déjà — la
+     * rafale de frappes ne l'y empile pas (une en attente suffit : la
+     * passe lit TOUJOURS le document courant, elle servira la révision
+     * la plus récente au moment de tourner). Sans exécuteur, la voie
+     * synchrone reste servie par le {@code reanalyser()} du pont de
+     * vue, qui le déclenche déjà à l'attachement et au rattrapage.
+     * Appelé sous moniteur.
+     */
+    private void programmer() {
+        Executor fil = executeur;
+        if (fil == null || passeEnAttente) {
+            return;
+        }
+        passeEnAttente = true;
+        fil.execute(() -> {
+            try {
+                analyser();
+            } finally {
+                synchronized (MoteurNatif.this) {
+                    passeEnAttente = false;
+                    // Une édition arrivée PENDANT la passe redéclenche :
+                    // la publication servie date peut-être déjà.
+                    if (!ferme && editionEnAttente) {
+                        programmer();
+                    }
+                }
+            }
+        });
     }
 
     /** La passe d'analyse : l'arbre précédent sert l'incrémental, la
      *  matérialisation Java en sort l'analyse, la borne décide de la
-     *  survie de l'arbre. */
+     *  survie de l'arbre. L'échec de parse NE FIGE PLUS la vue
+     *  (feuille de route A1.3) : l'incident se journalise, la
+     *  publication précédente reste, les auditeurs partent prévenus —
+     *  la vue quitte son attente de couleur au lieu d'attendre un
+     *  résultat qui ne viendra jamais. */
     private synchronized void analyser() {
+        if (ferme) {
+            return;
+        }
         Document document = session.document();
         String texte = document.text();
         TSTree arbre = parser(document, texte);
         if (arbre == null) {
-            publiee = null;
+            JOURNAL.warning("la passe native n'a pas produit d'arbre — "
+                    + "la publication precedente reste servie (document de "
+                    + texte.length() + " caracteres)");
+            notifier();
             return;
         }
         int[] aplatit = LiaisonArbre.aplatir(arbre, langue);
