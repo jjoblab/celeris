@@ -118,7 +118,7 @@ repli : 48 → 24), puis verts — `GutterStabilityTest` (5, dont deux
 images consécutives identiques), `GutterLayoutTest` (5 : plancher,
 999 → 1000 un cran exact, trois densités, coulisse de configuration
 seule). Les tests du peigne de l'ancien contrat
-(`MarquesIntegrationTest`, `RetourSoupleCrashTest`) suivent le
+(`IntegrationMarksTest`, `RetourSoupleCrashTest`) suivent le
 nouveau — l'ancienne attente « les marques qui arrivent élargissent »
 était le défaut, pas la garantie. Appareil : NON EXÉCUTÉ.
 

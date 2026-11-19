@@ -100,15 +100,15 @@ but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 | C-16 | partiel (tokéniseurs au départ ; celeris : la voie de gramma… | Noyau | FichiersExempleTest | oui |
 | D-01 | présent | Câblé | GutterPainterTest | oui |
 | D-02 | présent (au départ ; celeris : marque d'erreur par ligne dan… | Câblé | GutterPainterTest | non |
-| D-03 | livré (celeris : peinture M7-t5 — barre au bord gauche de la… | Câblé | MarquesIntegrationTest | oui |
-| D-04 | livré (celeris : peinture M7-t5 — carré plein posé, carré cr… | Câblé | MarquesIntegrationTest | oui |
-| D-05 | livré (celeris : peinture M7-t5 — flèche de ligne courante à… | Câblé | MarquesIntegrationTest | oui |
+| D-03 | livré (celeris : peinture M7-t5 — barre au bord gauche de la… | Câblé | IntegrationMarksTest | oui |
+| D-04 | livré (celeris : peinture M7-t5 — carré plein posé, carré cr… | Câblé | IntegrationMarksTest | oui |
+| D-05 | livré (celeris : peinture M7-t5 — flèche de ligne courante à… | Câblé | IntegrationMarksTest | oui |
 | D-06 | absent (couvert par B-15) | Noyau | ScenarioCatalogTest | oui |
 | D-07 | présent (au départ ; celeris : chevrons replié/déplié et bas… | Câblé | GutterPainterTest | non |
 | D-08 | absent (celeris : livré M5-t5 — densité bornée à un cran de … | Câblé | ErrorBandModelTest | oui |
 | D-09 | présent (celeris : livré M5-t5 — chemin du symbole depuis le… | Câblé | BreadcrumbModelTest | oui |
 | D-10 | présent (kit unifié) (celeris : placement coordonné livré M5… | Câblé | SignatureAideModelTest | oui |
-| D-11 | livré (celeris : M7-t9 — le plan du fichier sert d'index, l'… | Câblé | ApercuDefinitionTest | oui |
+| D-11 | livré (celeris : M7-t9 — le plan du fichier sert d'index, l'… | Câblé | DefinitionPreviewTest | oui |
 | D-12 | livré (celeris : M7-t9 — DiffBlocs découpe par la plus longu… | Câblé | DiffBlocsTest | oui |
 | D-13 | partiel | Câblé | SyntaxPaletteTest | oui |
 | D-14 | présent | Non démarré | — | oui |
@@ -124,7 +124,7 @@ but de l'exercice : un modèle pur sans vue n'a jamais été livré.
 | E-04 | couvert (celeris : contrat SPI et fausse exécution livrés M7… | Noyau | FauxExecutionTest | oui |
 | E-05 | livré (celeris : analyseur de sortie M7-t2, formes complète … | Noyau | AnalyseurProblemesTest | oui |
 | E-06 | absent (celeris : analyseur de piles livré M7-t2 — cadres co… | Noyau | AnalyseurPileTest | oui |
-| F-01 | livré (celeris : noyau M8-t1 — SessionTexteFantome, suggesti… | Câblé | LatenceFantomeVueTest | oui |
+| F-01 | livré (celeris : noyau M8-t1 — SessionTexteFantome, suggesti… | Câblé | GhostLatencyVueTest | oui |
 | F-02 | livré (celeris : noyau M8-t1 — ModelePrediction prédit une o… | Noyau | PredictionTest | oui |
 | F-03 | livré (celeris : M8-t5 — les actions IA (suggestion, prédict… | Noyau | ScenarioCatalogTest | oui |
 | F-04 | livré (celeris : M8-t2 — PropositionAgent étiquetée et datée… | Noyau | RevueAgentTest | oui |

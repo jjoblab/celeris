@@ -85,7 +85,7 @@ gras mémoïsées (`TypefaceCache`, PIEGE-14), les tailles en sp
 converties une fois à la densité, échelle de police de
 l'accessibilité comprise (`TaillesSp`, PIEGE-23).
 
-**Preuves** : `TypefaceCacheTest`, `TaillesSpTest`,
+**Preuves** : `TypefaceCacheTest`, `SpSizesTest`,
 `EditorMetricsTest` (PIEGE-05), `PinchZoomGestureTest` (PIEGE-28).
 
 ## Les deux défauts trouvés — et corrigés

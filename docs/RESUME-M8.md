@@ -21,7 +21,7 @@ Le registre des pièges rattrape les deux pièges du rapport d'appareil
 de M7 : la police qui trace devient **PIEGE-22** (couvert —
 `lesPlagesSeTracentALaPoliceDeLEditeur`, `TextPainterSyntaxTest`), les
 sp convertis à la densité deviennent **PIEGE-23** (couvert depuis le
-2026-11-07 — `taillesSpConvertiesALaDensite`, `TaillesSpTest` : la
+2026-11-07 — `taillesSpConvertiesALaDensite`, `SpSizesTest` : la
 conversion quitte la vue pour `TaillesSp`, pure, échelle de police de
 l'accessibilité comprise). Les citations suivaient dans
 android-view, le changelog et le résumé M7 ; l'« État » de ce dernier,
@@ -228,8 +228,8 @@ livrée.
 
 ### Preuve
 
-`:android-view:check` vert — `FantomePainterTest` compris (PIEGE-11
-couvert, le registre suit) ; le module d'exemple :check` vert — `PiloteFantomeTest`
+`:android-view:check` vert — `GhostPainterTest` compris (PIEGE-11
+couvert, le registre suit) ; le module d'exemple :check` vert — `GhostEditorTest`
 (la boucle complète sans appareil). `EditorView` reste sous le plafond
 de 600 lignes. Les lignes F-01, F-02 et F-03 de la matrice passent à
 livrées.
@@ -251,7 +251,7 @@ livrées.
   paquet sans prise ne peut pas en ouvrir) et le scénario d'exclusions
   y passe (le chemin exclu ne part jamais, même consentant).
 - **F-01 — le budget de latence d'affichage consigné** :
-  `LatenceFantomeVueTest` mesure mille tracés du fantôme au minimum de
+  `GhostLatencyVueTest` mesure mille tracés du fantôme au minimum de
   trois tours (PIEGE-13), chaque tracé sous le budget d'une image à
   soixante hertz (16 ms) — la protection est structurelle, le chemin
   est fait d'appels purs sur l'état d'image.
@@ -268,7 +268,7 @@ livrées.
 
 `:core-ai:check` vert — 67 tests, mutation 80,5 % (190/236, seuil 80).
 `:android-view:check` et le module d'exemple :check` verts (`ExempleNeutreTest` et
-`PiloteFantomeTest` compris), la construction des modules assemblé (7,3 Mo).
+`GhostEditorTest` compris), la construction des modules assemblé (7,3 Mo).
 `./gradlew check` vert sur l'ensemble (SDK présent). Les lignes F-08,
 F-09 et F-10 de la matrice passent à livrées.
 

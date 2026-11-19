@@ -33,7 +33,7 @@ cd samples/consumer-smoke
 ```
 
 La version de celeris se pilote par propriété :
-`./gradlew :app:assembleRelease -PcelerisVersion=1.2.0`.
+`./gradlew :app:assembleRelease -PcelerisVersion=2.1.0`.
 
 ## Après un tag
 
