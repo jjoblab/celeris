@@ -70,15 +70,18 @@ final class FrameAssembler {
     /**
      * Réinitialise la scène (chantier C9 — le corps des poseurs de
      * session et de langage vit chez son assemblage) : suivi de
-     * révision, plafond d'eau de la gouttière (PIEGE-25), cache,
-     * diagnostics — le défilement se rabat quand la session change.
+     * révision, plafond d'eau de la gouttière (PIEGE-25), diagnostics
+     * — le défilement se rabat quand la session change. Le cache ne
+     * s'y vide PLUS (C1, feuille des améliorations) : la bascule de
+     * stockage vit chez setSession (le parc des mises en page par
+     * session), le retour d'onglet traverse ce chemin avec ses
+     * rangées INTACTES — c'est le correctif du retard ressenti.
      *
      * @param defilement vrai pour rabattre aussi le défilement
      */
     void reinitialiserScene(boolean defilement) {
         vue.revisionSuivie = Long.MIN_VALUE;
         vue.gouttiereEtat.reinitialiser();
-        vue.cache.clear();
         vue.diagnostics.reinitialiser();
         if (defilement) {
             vue.scrollX = 0f;

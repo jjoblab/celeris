@@ -5,6 +5,13 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.7] — 2026-11-19
+
+### Corrections
+
+- **Le retour d'onglet ne re-mesure plus rien (feuille des améliorations, C1)** : le stockage du cache de mises en page se parque PAR SESSION (`ParcRangees`, le modèle du `ParcMoteurs` de la tokenisation) — l'ancien chemin vidait TOUT le cache à chaque pose de session, le retard ressenti au changement d'onglet venait de là. Banc `CacheRangeesParSessionTest` (retour par IDENTITÉ, collision des clés levée, parc borné LRU, langue périmant le stockage parqué).
+- **Feuille de route des améliorations** posée : trois chantiers (réactivité C, documentation D, packages P), chaque étape poussée une fois terminée.
+
 ## [2.2.6] — 2026-11-20
 
 ### Ajouts

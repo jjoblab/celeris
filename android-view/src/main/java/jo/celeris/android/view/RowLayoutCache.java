@@ -296,4 +296,46 @@ public final class RowLayoutCache {
                 && cle.themeId() == themeId && cle.font().equals(font)
                 && cle.columns() == columns;
     }
+
+    /**
+     * Le stockage interne du cache (feuille des améliorations, C1) :
+     * la table et ses compteurs, DÉTACHABLES de l'instance. Le
+     * pipeline porte l'INSTANCE (les couches la capturent à leur
+     * montage) ; le parc de mises en page parque le STOCKAGE — la
+     * bascule de session change le contenu, jamais la référence que
+     * les couches portent.
+     */
+    static final class Stockage {
+
+        private Entree[] table = new Entree[CAPACITE_INITIALE];
+        private int nombre;
+        private long compteurAge;
+
+        /** Le stockage vide (C1) — le parc y naît ses caches neufs. */
+        Stockage() {
+        }
+    }
+
+    /** Détache le stockage interne (C1) : l'instance repart VIDE,
+     *  l'état rendu vit sa vie ailleurs (le parc). */
+    Stockage detacher() {
+        Stockage partant = new Stockage();
+        partant.table = table;
+        partant.nombre = nombre;
+        partant.compteurAge = compteurAge;
+        table = new Entree[CAPACITE_INITIALE];
+        nombre = 0;
+        compteurAge = 0;
+        return partant;
+    }
+
+    /** Adopte un stockage parqué (C1) : l'état de l'instance courante
+     *  meurt, remplacé par celui du document qui revient.
+     *
+     * @param partant le stockage adopté, jamais null */
+    void adopter(Stockage partant) {
+        table = partant.table;
+        nombre = partant.nombre;
+        compteurAge = partant.compteurAge;
+    }
 }

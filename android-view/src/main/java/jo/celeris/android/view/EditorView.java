@@ -90,6 +90,10 @@ public final class EditorView extends View {
     final EditorSyntax syntaxe;
     // Visible du paquet : le banc de test y lit la mise en page servie (ADR-013).
     final RowLayoutCache cache = new RowLayoutCache();
+    // C1 (feuille des améliorations) : le parc des stockages de
+    // mises en page par session — le retour d'onglet adopte le
+    // stockage du document qui revient, jamais une re-mesure.
+    final ParcRangees parcRangees = new ParcRangees();
     private final CompositionState composition = new CompositionState();
     // Visible du paquet : l'assemblage d'image y trace le chrome (C9).
     final ChromePainter chrome = new ChromePainter();
@@ -359,6 +363,17 @@ public final class EditorView extends View {
         // d'onglet appliquait les bornes de la composition morte au
         // document neuf et y détruisait des caractères).
         composition.finish();
+        // C1 (feuille des améliorations) : la mesure des rangées
+        // appartient AU DOCUMENT, comme la tokenisation du
+        // ParcMoteurs — le stockage du cache de la session quittée
+        // se PARQUE, celle qui arrive adopte le sien (ou un neuf).
+        // Le retour d'onglet ne re-mesure RIEN : l'ancien chemin
+        // vidait TOUT le cache à chaque pose — le retard ressenti
+        // venait de là.
+        RowLayoutCache.Stockage quittancier = cache.detacher();
+        RowLayoutCache.Stockage revenu =
+                parcRangees.basculer(session, quittancier, posee);
+        cache.adopter(revenu);
         session = posee;
         session.addEditListener(ecouteurAnnonce);
         syntaxe.attacher(session, langue);
@@ -380,6 +395,11 @@ public final class EditorView extends View {
             return;
         }
         syntaxe.setLanguage(nouvelleLangue);
+        // La langue signe la mise en page (les portées colorées) mais
+        // pas la clé (PIEGE-02) : le stockage courant MEURT au
+        // changement — le parc de C1 ne rendra jamais un stockage
+        // périmé par la langue à la session revenue.
+        parcRangees.oublier(session);
         images.reinitialiserScene(false);
     }
 
@@ -947,6 +967,9 @@ public final class EditorView extends View {
         syntaxe.fermer();
         diagnostics.shutdown();
         prefetch.arreter();
+        // C1 : le parc des mises en page meurt avec la vue — aucun
+        // document d'onglet ne reste retenu par une vue libérée.
+        parcRangees.toutVider();
     }
 
     /** La vue est-elle libérée — lecture du banc (chantier C1). */
