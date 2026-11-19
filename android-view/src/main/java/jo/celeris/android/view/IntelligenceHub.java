@@ -10,6 +10,8 @@ import jo.celeris.core.intelligence.IndentStyle;
 import jo.celeris.core.intelligence.PasteReindenter;
 import jo.celeris.core.intelligence.SmartTyping;
 import jo.celeris.core.intelligence.TypingRules;
+import jo.celeris.core.intelligence.XmlLinkedTags;
+import jo.celeris.core.intelligence.XmlSmartTyping;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.text.Document;
@@ -61,6 +63,29 @@ public final class IntelligenceHub {
          */
         default Optional<EditPlan> insertTyped(Document doc,
                 MultiSelection selection, String typed, TypingRules rules) {
+            // C5/C6 (l'analyse croisée) : la frappe XML vit d'abord —
+            // le chevron qui clôt une balise ouvrante insère sa
+            // fermante, la frappe dans un nom de balise lié se reflète
+            // dans la fermante. Un seul caret : le geste lié n'a de
+            // sens que sans sélection multiple.
+            if (selection.caretCount() == 1 && typed.length() == 1) {
+                SelRange plage = selection.ranges().get(0);
+                if (plage.isEmpty()) {
+                    if (typed.charAt(0) == '>') {
+                        Optional<EditPlan> fermeture = XmlSmartTyping.closeTag(
+                                doc, plage.caret(), rules);
+                        if (fermeture.isPresent()) {
+                            return fermeture;
+                        }
+                    } else if (Character.isLetterOrDigit(typed.charAt(0))) {
+                        Optional<EditPlan> lie = XmlLinkedTags.typeChar(
+                                doc, plage.caret(), typed);
+                        if (lie.isPresent()) {
+                            return lie;
+                        }
+                    }
+                }
+            }
             return SmartTyping.insert(doc, selection, typed, rules);
         }
 
@@ -93,6 +118,18 @@ public final class IntelligenceHub {
         default Optional<EditPlan> backspace(Document doc,
                 MultiSelection selection, TypingRules rules,
                 IndentStyle style) {
+            // C6 : le retour arrière dans un nom de balise ouvrante
+            // retire son miroir dans la fermante.
+            if (selection.caretCount() == 1) {
+                SelRange plage = selection.ranges().get(0);
+                if (plage.isEmpty()) {
+                    Optional<EditPlan> lie = XmlLinkedTags.backspace(
+                            doc, plage.caret());
+                    if (lie.isPresent()) {
+                        return lie;
+                    }
+                }
+            }
             return SmartTyping.backspace(doc, selection, rules, style);
         }
 
@@ -285,6 +322,21 @@ public final class IntelligenceHub {
             return false;
         }
         return apply(SmartTyping.untab(document(), selection(), style()));
+    }
+
+    /**
+     * La suppression avant (C8) : la paire vide sous le caret se
+     * mange entière — le plan du fournisseur, la main au cœur sinon.
+     *
+     * @return vrai si le geste est consommé
+     */
+    boolean deleteForwardTyped() {
+        Provider courant = provider;
+        if (courant == null) {
+            return false;
+        }
+        return SmartTyping.deleteForward(document(), selection(), rules())
+                .map(this::apply).orElse(false);
     }
 
     boolean insertTyped(String typed) {

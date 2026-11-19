@@ -115,7 +115,13 @@ final class KeyActions {
                     session.deleteBackward();
                 }
             }
-            case DELETE_FORWARD -> session.deleteForward();
+            case DELETE_FORWARD -> {
+                // C8 : la paire vide passe par le fournisseur, la
+                // main au cœur sinon.
+                if (!vue.intelligence.deleteForwardTyped()) {
+                    session.deleteForward();
+                }
+            }
             case ENTER -> vue.intelligence.enterTyped();
             case TAB -> vue.intelligence.tabTyped();
             case UNTAB -> vue.intelligence.untabTyped();

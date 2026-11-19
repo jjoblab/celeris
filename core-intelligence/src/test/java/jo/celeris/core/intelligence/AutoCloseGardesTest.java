@@ -33,21 +33,16 @@ class AutoCloseGardesTest {
         return session.text();
     }
 
-    /** Devant un identifiant : PAS de paire — « ( » collé à « foo »
-     *  devient un appel, l'auto-close ne s'invite pas. */
-    @Test
-    void pasDAutoCloseDevantUnIdentifiant() {
-        // le caret vit entre l'espace et le f : DEVANT l'identifiant
-        assertEquals("int (foo;",
-                apresFrappe("int foo;", 4, '('),
-                "la frappe « ( » avant « foo » s'insère simplement");
-    }
-
-    /** Après un identifiant : la paire se pose — « foo( » appelle. */
+    /** La paire vit au milieu d'un mot comme après — l'insertion
+     *  simple ne s'invite pas hors littéral (le garde identifiant du
+     *  dépôt de départ ne survit pas au milieu de mot : la paire y
+     *  reste utile). */
     @Test
     void autoCloseApresUnIdentifiant() {
         assertEquals("foo()", apresFrappe("foo", 3, '('),
                 "la frappe « ( » après « foo » ouvre sa paire");
+        assertEquals("a()b", apresFrappe("ab", 1, '('),
+                "la frappe « ( » au milieu d'un mot ouvre sa paire");
     }
 
     /** Au sein d'une chaîne : PAS de paire — le délimiteur y est du

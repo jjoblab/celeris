@@ -52,6 +52,21 @@ vivent dans les ADR et le registre de portage, pas ici.
   complète à chaque frappe (B-05) — les entrées d'avant la ligne
   touchée se recopient, celles d'après se recalculent seules,
   l'épissure égale la reconstruction fraîche (preuve d'équivalence).
+- **La frappe intelligente retrouvée (C1-C9)** : les gardes de
+  l'auto-close (littéral de chaîne ou commentaire, balance de
+  crochets au-delà de 50 000) ; Tab indente les lignes de la
+  sélection et Shift+Tab les désindente (Tab accepte d'abord le
+  fantôme de complétion visible) ; le Home bascule premier
+  non-blanc ↔ colonne zéro ; le chevron XML clôt la balise ouvrante
+  et le renommage lié des balises vit ENFIN branché (la frappe dans
+  l'ouvrante se reflète dans la fermante) ; le retour arrière
+  collapse les lignes vides et la suppression avant mange les paires
+  vides ; l'Entrée continue les blocs de documentation (« * ») et
+  les puces de liste.
+- **La frappe rapide ne re-lexique plus le document (B6)** : les
+  sites d'édition se FUSIONNENT quand la publication tarde — la
+  ligne épargnée garde son panier de jetons, jamais la voie
+  complète.
 
 ## [2.2.1] — 2026-11-19
 
