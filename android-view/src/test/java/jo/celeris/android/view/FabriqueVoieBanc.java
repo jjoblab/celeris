@@ -27,10 +27,15 @@ public final class FabriqueVoieBanc implements EnginePathFactory {
     /** La dernière session demandée — le banc y lit son moteur. */
     static volatile TextSession derniereSession;
 
-    /** L'arme du banc : la fabrique ne sert QUE le banc A1.2 — les
-     *  autres bancs du module gardent la voie du socle, la fabrique
-     *  muette ne change RIEN pour eux. */
+    /** L'arme du banc : la fabrique ne sert QUE les bancs de la voie
+     *  de banc (A1.2, A5.2) — les autres bancs du module gardent la
+     *  voie du socle, la fabrique muette ne change RIEN pour eux. */
     static volatile boolean armee;
+
+    /** La maquette REPROGRAMMANTE (A5.2) : la fabrique sert la
+     *  maquette qui reprogramme à l'édition — le comportement de la
+     *  voie native réparée (A1.1) — au lieu de la maquette muette. */
+    static volatile boolean moteurReprogrammante;
 
     /** Le dernier moteur servi — le banc y lit ses publications. */
     static volatile MoteurSyntaxe dernierMoteur;
@@ -48,8 +53,10 @@ public final class FabriqueVoieBanc implements EnginePathFactory {
             return null;
         }
         derniereSession = session;
-        MoteurSyntaxe moteur = new RattrapageVoieNatifTest.MoteurMaquette(
-                session, executeur);
+        MoteurSyntaxe moteur = moteurReprogrammante
+                ? new PublicationChaqueRevisionBancTest.MoteurReprogrammante(
+                        session, executeur)
+                : new RattrapageVoieNatifTest.MoteurMaquette(session, executeur);
         dernierMoteur = moteur;
         moteurs++;
         return moteur;
