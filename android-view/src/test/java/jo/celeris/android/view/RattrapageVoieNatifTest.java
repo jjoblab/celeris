@@ -201,7 +201,7 @@ class RattrapageVoieNatifTest {
      * devine.
      */
     @Test
-    void laRafaleBoréeResteHonnête() {
+    void laRafaleBoreeResteHonnete() {
         syntaxe.attacher(session);
         syntaxe.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
         executeur.jouer();
