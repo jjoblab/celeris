@@ -85,6 +85,15 @@ plan lisent **le même arbre** — là où le dépôt de départ entretenait
 dix-neuf tokéniseurs manuels indépendants. La voie des grammaires (format
 TextMate) couvre la longue traîne de langages.
 
+La seconde voie — l'analyse native par arbre de syntaxe concrète (module
+opt-in `core-syntax-treesitter`, ADR-020/0025) — est **bornée à 200 Ko** :
+au-delà, l'arbre natif ne survit pas à la passe (la discipline mémoire de
+l'ADR — la re-analyse s'y paie au plein, les budgets de l'ADR-004 ne
+tiennent que sous la borne) et la publication précédente reste servie.
+La borne vit dans le code (`MoteurNatif.BORNE_OCTETS`) ; le dépassement
+n'est pas une erreur, c'est un repli silencieux vers la publication
+courante de la voie qui sert.
+
 ### 2.3 Chaîne de rendu
 
 Une seule vue Canvas ; chaîne de rendu sans allocation par image ;

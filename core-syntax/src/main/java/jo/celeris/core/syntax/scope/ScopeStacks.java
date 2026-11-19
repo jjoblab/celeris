@@ -29,6 +29,17 @@ import org.jspecify.annotations.Nullable;
  * elle-même se borne (au-delà, les piles nouvelles partagent le
  * dessous existant) : une grammaire hostile ne gonfle pas la mémoire
  * de l'éditeur, elle y perd seulement de la précision.</p>
+ *
+ * <p><em>Garde-fou, pas cache</em> (constat de l'audit du 2026-11-19)
+ * : la table est statique et ne se vide JAMAIS — les nœuds internés
+ * vivent toute la vie du processus. C'est voulu : les piles suivent
+ * les LANGAGES réellement fréquentés, pas les documents (une session
+ * fermée ne vide rien, le langage reviendrait les recréer) ; au
+ * plafond de {@value #MAX_NODES} nœuds (~2 Mo d'occupation de pire
+ * cas, nœud + portée), les piles nouvelles partagent le dessous
+ * existant et la précision de couleur se dégrade, jamais la mémoire.
+ * Le plafond ne se lève que sur mesure : un banc de charge d'un
+ * mois d'édition multi-langages en décide.</p>
  */
 public final class ScopeStacks {
 

@@ -46,6 +46,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-0024](0024-deux-voies-syntaxe-separees.md) | Deux voies de coloration séparées et choisissables (F.4) ; périmètre publié resserré aux modules de l'éditeur (F.7) | Acceptée (décision du propriétaire, 2026-11-18) |
 | [ADR-0025](0025-treesitter-par-maven.md) | La voie tree-sitter consomme les artefacts Maven de la liaison Android (révision de l'ADR-0024 décision 1) | Acceptée (décision du propriétaire, 2026-11-18) |
 | [ADR-0026](0026-fins-de-ligne-crlf.md) | Fins de ligne CRLF : le `\r` assumé dans la ligne rendue (feuille de route A3) | Acceptée (2026-11-19) |
+| [ADR-0027](0027-coloration-semantique-lsp.md) | Coloration sémantique LSP : câbler en surcouche, phase dédiée (feuille de route A4) | Proposition (2026-11-19, décision propriétaire attendue) |
 
 ## Règles
 
