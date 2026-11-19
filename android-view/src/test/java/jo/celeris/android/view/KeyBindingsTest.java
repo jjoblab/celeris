@@ -19,11 +19,22 @@ import org.junit.jupiter.api.Test;
  */
 class KeyBindingsTest {
 
-    /** D-17 — la table par défaut est complète : chaque action a sa touche. */
+    /** D-17 — la table par défaut est complète : chaque action a sa
+     *  touche. L'exception C1 : TAB vit PAR la touche d'ACCEPT_FANTOME
+     *  (Tab accepte le fantôme visible, sinon indente — la sémantique
+     *  du dépôt de départ) : sa touche est celle du fantôme. */
     @Test
     void keyboard_defaultTableBindsEveryAction() {
         KeyBindings table = KeyBindings.defaults();
         for (EditorAction action : EditorAction.values()) {
+            if (action == EditorAction.TAB) {
+                // TAB partage la touche d'ACCEPT_FANTOME (KeyActions y
+                // sert le repli d'indentation).
+                assertEquals(EditorAction.ACCEPT_FANTOME,
+                        table.actionOf(new KeyBinding(61, false, false, false)),
+                        "Tab vit par la touche du fantôme");
+                continue;
+            }
             assertTrue(table.bindingOf(action).isPresent(),
                     "action sans touche : " + action);
             assertEquals(action, table.actionOf(table.bindingOf(action).orElseThrow()),

@@ -220,9 +220,33 @@ public final class CaretsMotion {
 
     private static int debutRangee(Document document, VisualProjection projection,
             int offset) {
+        // C2 (l'analyse croisée) : le Home intelligent du dépôt de
+        // départ — le premier appel va au premier non-blanc de la
+        // ligne, le second retourne à la colonne zéro (le début de la
+        // tranche visuelle sous retour à la ligne).
         int rangee = CaretGeometry.rowOfOffset(document, projection, offset);
         int ligne = document.lineForOffset(offset);
-        return document.lineStart(ligne) + projection.spanStartAtRow(rangee);
+        int debutTranche = document.lineStart(ligne)
+                + projection.spanStartAtRow(rangee);
+        int premierNonBlanc = premierNonBlanc(document, ligne);
+        if (offset > premierNonBlanc && premierNonBlanc > debutTranche) {
+            return premierNonBlanc;
+        }
+        return debutTranche;
+    }
+
+    /** La colonne du premier caractère non blanc de la ligne (sa fin
+     *  si elle n'est que des blancs). */
+    private static int premierNonBlanc(Document document, int ligne) {
+        int debut = document.lineStart(ligne);
+        int fin = document.lineEnd(ligne);
+        for (int i = debut; i < fin; i++) {
+            char c = document.charAt(i);
+            if (c != ' ' && c != '\t') {
+                return i;
+            }
+        }
+        return fin;
     }
 
     private static int finRangee(Document document, VisualProjection projection,

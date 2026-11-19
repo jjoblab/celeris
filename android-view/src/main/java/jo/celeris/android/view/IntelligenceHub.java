@@ -260,6 +260,33 @@ public final class IntelligenceHub {
      * @param typed le texte frappé
      * @return vrai si le geste est consommé
      */
+    /**
+     * Tab (C1) : l'indentation des lignes de la sélection — le plan
+     * du fournisseur, ou le cran simple du moteur.
+     *
+     * @return vrai si le geste est consommé
+     */
+    boolean tabTyped() {
+        Provider courant = provider;
+        if (courant == null) {
+            return false;
+        }
+        return apply(SmartTyping.tab(document(), selection(), style()));
+    }
+
+    /**
+     * Shift+Tab (C1) : la désindentation des lignes de la sélection.
+     *
+     * @return vrai si le geste est consommé
+     */
+    boolean untabTyped() {
+        Provider courant = provider;
+        if (courant == null) {
+            return false;
+        }
+        return apply(SmartTyping.untab(document(), selection(), style()));
+    }
+
     boolean insertTyped(String typed) {
         Provider courant = provider;
         if (courant == null) {

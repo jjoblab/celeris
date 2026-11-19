@@ -61,11 +61,18 @@ final class KeyActions {
             return true;
         }
         if (action == EditorAction.ACCEPT_FANTOME) {
+            // C1 : Tab accepte le fantôme s'il est visible — sinon il
+            // indente les lignes de la sélection (la sémantique du
+            // dépôt de départ : la complétion d'abord, l'indentation
+            // en repli). L'appel direct à l'édition évite la boucle —
+            // jamais appliquer() ne se rappelle.
             if (vue.fantome.surTab()) {
                 vue.invalidate();
                 return true;
             }
-            return false;
+            edition(vue, EditorAction.TAB);
+            vue.invalidate();
+            return true;
         }
         // C-12 : le presse-papiers clavier (COPY, CUT, PASTE —
         // consécutifs dans l'enum) se sert avant la dispatch
@@ -77,8 +84,8 @@ final class KeyActions {
             return true;
         }
         switch (action) {
-            case DELETE_BACKWARD, DELETE_FORWARD, ENTER, UNDO, REDO,
-                    SELECT_ALL -> edition(vue, action);
+            case DELETE_BACKWARD, DELETE_FORWARD, ENTER, TAB, UNTAB, UNDO,
+                    REDO, SELECT_ALL -> edition(vue, action);
             default -> mouvements(vue, action);
         }
         vue.invalidate();
@@ -110,6 +117,8 @@ final class KeyActions {
             }
             case DELETE_FORWARD -> session.deleteForward();
             case ENTER -> vue.intelligence.enterTyped();
+            case TAB -> vue.intelligence.tabTyped();
+            case UNTAB -> vue.intelligence.untabTyped();
             case UNDO -> session.undo();
             case REDO -> session.redo();
             case SELECT_ALL -> session.setSelection(MultiSelection.of(

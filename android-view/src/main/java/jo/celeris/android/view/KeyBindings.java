@@ -82,6 +82,12 @@ public final class KeyBindings {
         lier(table, EditorAction.COPY, new KeyBinding(31, false, true, false));
         lier(table, EditorAction.CUT, new KeyBinding(52, false, true, false));
         lier(table, EditorAction.PASTE, new KeyBinding(50, false, true, false));
+        // C1 : Tab indente, Shift+Tab désindente — les lignes de la
+        // sélection gagnent ou perdent un cran.
+        // C1 : Tab accepte le fantôme visible (KeyActions y regarde
+        // d'abord), sinon indente les lignes de la sélection — la
+        // sémantique du dépôt de départ. Shift+Tab désindente.
+        lier(table, EditorAction.UNTAB, new KeyBinding(61, true, false, false));
         lier(table, EditorAction.ACCEPT_FANTOME,
                 new KeyBinding(61, false, false, false));
         // D-15 — les raccourcis de bureau du zoom : Ctrl + plus 81,

@@ -92,6 +92,20 @@ public final class SmartTyping {
         }
         int p = plage.caret();
         int pd = p + delta;
+        // C3 (l'analyse croisée) : les gardes de l'auto-close. Devant
+        // un identifiant, l'ouvrant ouvre un APPEL, pas une paire ;
+        // au sein d'un littéral — chaîne ou commentaire — le
+        // délimiteur est du TEXTE ; un document dont la balance de
+        // crochets dépasse le seuil ne suit plus ses paires. Dans ces
+        // cas la frappe s'insère simplement : la main au cœur.
+        int ligne = doc.lineForOffset(p);
+        if (caractere && !autoCloseGarde(doc, p, ligne)) {
+            // Dans un littéral ou devant un identifiant, TOUT est du
+            // texte : ni paire, ni saut — la frappe s'insère simplement
+            // (le saut du fermant n'y serait qu'une confusion).
+            return new Geste(new TextEdit(pd, "", typed),
+                    SelRange.caretAt(pd + typed.length()), delta + typed.length());
+        }
         boolean ouvre = caractere && (rules.estOuvrant(c) || rules.estCitation(c));
         boolean saute = caractere && (rules.estFermant(c) || rules.estCitation(c))
                 && p < doc.length() && doc.charAt(p) == c;
@@ -235,6 +249,109 @@ public final class SmartTyping {
     }
 
     /**
+     * Tab (C1, l'analyse croisée) : la sélection multi-lignes gagne un
+     * cran d'indentation sur CHACUNE de ses lignes — la sélection
+     * survit au geste (mêmes lignes, décalées du cran) ; au caret
+     * simple, l'indentation se pose à la coupe. Le dépôt de départ
+     * indente pareil ses lignes sélectionnées.
+     *
+     * @param doc       le document, jamais muté
+     * @param selection la sélection courante
+     * @param style     le style d'indentation de l'hôte
+     * @return le plan du geste
+     */
+    public static EditPlan tab(Document doc, MultiSelection selection,
+            IndentStyle style) {
+        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<SelRange> apres = new ArrayList<>(selection.caretCount());
+        int delta = 0;
+        for (SelRange plage : selection.ranges()) {
+            String cran = style.indent(1);
+            if (plage.isEmpty()) {
+                editions.add(new TextEdit(plage.caret() + delta, "", cran));
+                apres.add(SelRange.caretAt(plage.caret() + delta
+                        + cran.length()));
+                delta += cran.length();
+                continue;
+            }
+            int premiereLigne = doc.lineForOffset(plage.start());
+            int derniereLigne = doc.lineForOffset(
+                    plage.end() - (plage.end() > plage.start() ? 1 : 0));
+            for (int ligne = premiereLigne; ligne <= derniereLigne; ligne++) {
+                int debut = doc.lineStart(ligne);
+                if (debut >= doc.length()) {
+                    continue;
+                }
+                editions.add(new TextEdit(debut + delta, "", cran));
+                delta += cran.length();
+            }
+            apres.add(new SelRange(plage.start() + cran.length(),
+                    plage.end() + delta));
+        }
+        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+    }
+
+    /**
+     * Shift+Tab (C1) : chaque ligne de la sélection perd UN cran
+     * d'indentation — au plus son indentation, jamais plus. Le
+     * caret vide retire le cran qui précède la coupe.
+     *
+     * @param doc       le document, jamais muté
+     * @param selection la sélection courante
+     * @param style     le style d'indentation de l'hôte
+     * @return le plan du geste
+     */
+    public static EditPlan untab(Document doc, MultiSelection selection,
+            IndentStyle style) {
+        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<SelRange> apres = new ArrayList<>(selection.caretCount());
+        int delta = 0;
+        for (SelRange plage : selection.ranges()) {
+            if (plage.isEmpty()) {
+                int ligne = doc.lineForOffset(plage.caret());
+                String blancs = IndentEngine.leadingWhitespace(
+                        doc.lineText(ligne));
+                int retire = Math.min(Math.max(1, style.width()),
+                        Math.min(blancs.length(),
+                                plage.caret() - doc.lineStart(ligne)));
+                if (retire <= 0) {
+                    apres.add(SelRange.caretAt(plage.caret() + delta));
+                    continue;
+                }
+                editions.add(new TextEdit(plage.caret() - retire + delta,
+                        doc.subText(plage.caret() - retire, plage.caret()), ""));
+                apres.add(SelRange.caretAt(plage.caret() - retire + delta));
+                delta -= retire;
+                continue;
+            }
+            int premiereLigne = doc.lineForOffset(plage.start());
+            int derniereLigne = doc.lineForOffset(
+                    plage.end() - (plage.end() > plage.start() ? 1 : 0));
+            int retraitTotal = 0;
+            int retraitDebut = 0;
+            for (int ligne = premiereLigne; ligne <= derniereLigne; ligne++) {
+                String texte = doc.lineText(ligne);
+                String blancs = IndentEngine.leadingWhitespace(texte);
+                int retire = Math.min(style.width(), blancs.length());
+                if (retire <= 0) {
+                    continue;
+                }
+                editions.add(new TextEdit(doc.lineStart(ligne) + delta,
+                        texte.substring(0, retire), ""));
+                delta -= retire;
+                retraitTotal += retire;
+                if (ligne == premiereLigne) {
+                    retraitDebut = Math.min(retire,
+                            plage.start() - doc.lineStart(ligne));
+                }
+            }
+            apres.add(new SelRange(plage.start() - retraitDebut,
+                    plage.end() - retraitTotal));
+        }
+        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+    }
+
+    /**
      * Entourer la sélection (A-08) : par une paire en ligne (curseur
      * après le fermant), ou par un bloc multiligne (le contenu gagne un
      * cran entre les délimiteurs). Chaque plage de la sélection est
@@ -315,6 +432,79 @@ public final class SmartTyping {
             return IndentEngine.leadingWhitespace(doc.lineText(ligne));
         }
         return null;
+    }
+
+    /** Le seuil de balance (C3) : au-delà, le suivi de paires coûte
+     *  plus cher que l'éditeur n'y gagne — l'auto-close rend la main.
+     *  Le dépôt de départ borne pareil ses filets de paires. */
+    private static final int SEUIL_BALANCE = 50_000;
+
+    /**
+     * La garde d'auto-close (C3, l'analyse croisée) : vrai quand la
+     * frappe d'un ouvrant ou d'une citation à la coupe donnée peut
+     * déclencher la paire ou le dédoublement — faux devant un
+     * identifiant (l'ouvrant y ouvre un appel), au sein d'un littéral
+     * (chaîne ou commentaire : le délimiteur y est du texte) et sur
+     * un document dont la balance de crochets dépasse le seuil.
+     */
+    private static boolean autoCloseGarde(Document doc, int coupe, int ligne) {
+        if (devantIdentifiant(doc, coupe, ligne)) {
+            return false;
+        }
+        if (dansLitteralEtendu(doc, coupe, ligne)) {
+            return false;
+        }
+        return balanceSousSeuil(doc);
+    }
+
+    /** Vrai quand un IDENTIFIANT commence juste après la coupe :
+     *  lettre, chiffre ou soulignement — la frappe « ( » y devient
+     *  un appel ou un groupement devant son opérande, pas une paire
+     *  vide (le dépôt de départ garde pareil : « foo( » appelle,
+     *  « (foo » groupe). */
+    private static boolean devantIdentifiant(Document doc, int coupe, int ligne) {
+        if (coupe >= doc.lineEnd(ligne)) {
+            return false;
+        }
+        char apres = doc.charAt(coupe);
+        return Character.isLetterOrDigit(apres) || apres == '_';
+    }
+
+    /**
+     * Vrai quand la coupe vit dans un littéral ÉTENDU (C3) : la
+     * parité des guillemets de la ligne (repli textuel) OU un
+     * commentaire de ligne {@code //} ouvrant avant la coupe. Le
+     * dépôt de départ consulte son lexeur ; sans publication, la
+     * parité textuelle reste le repli fidèle.
+     */
+    private static boolean dansLitteralEtendu(Document doc, int coupe, int ligne) {
+        if (dansLitteral(doc, coupe, ligne)) {
+            return true;
+        }
+        int debut = doc.lineStart(ligne);
+        String texte = doc.lineText(ligne);
+        int barres = texte.indexOf("//");
+        return barres >= 0 && debut + barres < coupe;
+    }
+
+    /** La balance de crochets du document reste sous le seuil (C3). */
+    private static boolean balanceSousSeuil(Document doc) {
+        if (doc.length() <= SEUIL_BALANCE) {
+            return true;
+        }
+        int balance = 0;
+        for (int i = 0; i < doc.length(); i++) {
+            char c = doc.charAt(i);
+            if (c == '(' || c == '[' || c == '{') {
+                balance++;
+                if (balance > SEUIL_BALANCE) {
+                    return false;
+                }
+            } else if (c == ')' || c == ']' || c == '}') {
+                balance--;
+            }
+        }
+        return true;
     }
 
     /**

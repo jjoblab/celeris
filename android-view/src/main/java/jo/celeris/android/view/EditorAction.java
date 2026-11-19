@@ -69,6 +69,10 @@ public enum EditorAction {
     /** Accepte le premier mot du texte fantôme (F-01) — Tab au
      *  clavier matériel, l'hôte exécute le geste. */
     ACCEPT_FANTOME,
+    /** Tab — l'indentation des lignes sélectionnées (C1). */
+    TAB,
+    /** Shift+Tab — la désindentation des lignes sélectionnées (C1). */
+    UNTAB,
     /** Un palier de police au-dessus — Ctrl + plus ou molette (D-15). */
     ZOOM_IN,
     /** Un palier de police en dessous — Ctrl + moins ou molette (D-15). */
