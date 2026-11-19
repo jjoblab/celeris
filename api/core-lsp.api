@@ -23,8 +23,8 @@ public final class jo.celeris.core.lsp.CapacitesServeur {
   public boolean sertCorrectifs();
   public boolean sertFormatage();
   public boolean sertIndices();
-  public java.util.List<java.lang.String> typesJetons();
-  public java.util.List<java.lang.String> modificateursJetons();
+  public java.util.List<java.lang.String> typesTokens();
+  public java.util.List<java.lang.String> modificateursTokens();
 }
 
 ### jo.celeris.core.lsp.DocModificateurs
