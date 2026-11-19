@@ -46,6 +46,7 @@ Compiled from "EditSite.java"
 public final class jo.celeris.core.syntax.EditSite extends java.lang.Record {
   public jo.celeris.core.syntax.EditSite(int, int, int);
   public static jo.celeris.core.syntax.EditSite of(jo.celeris.core.text.Document, jo.celeris.core.text.Document, int, int, java.lang.String);
+  public jo.celeris.core.syntax.EditSite enveloppe(jo.celeris.core.syntax.EditSite);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
