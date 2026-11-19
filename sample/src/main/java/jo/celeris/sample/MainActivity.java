@@ -253,23 +253,20 @@ public final class MainActivity extends Activity {
         onglet.setCustomView(vue);
     }
 
-    /** Ferme un onglet : le suivant prend la place, l'éditeur rouvre
-     *  l'onglet qui devient actif — le dernier vivant ne meurt pas. */
+    /** Ferme un onglet : le suivant prend la place par activation —
+     *  le dernier vivant ne meurt pas. */
     private void fermerOnglet(int indice) {
         if (ouverts.size() <= 1) {
             journal.ligne("le dernier onglet ouvert ne se ferme pas");
             return;
         }
         ouverts.remove(indice);
-        ongletActif = Math.min(indice, ouverts.size() - 1);
-        Echantillons.Echantillon actif = ouverts.get(ongletActif);
-        editeur.open(actif.nomFichier(), actif.texte());
-        journal.ligne("fermé — actif : " + actif.nomFichier());
-        if (actif.nomFichier().endsWith(".java")) {
-            SessionLspPoseuse.poser(this, editeur, actif.nomFichier(),
-                    () -> journal.ligne("mini serveur LSP rebranché"));
-        }
-        rafraichirOnglets();
+        journal.ligne("fermé — actif : "
+                + ouverts.get(Math.min(indice, ouverts.size() - 1)).nomFichier());
+        // L'activation porte TOUT le rebranchement (document, serveur,
+        // onglets) : -1 force l'activation même si l'indice ne bouge pas.
+        ongletActif = -1;
+        activerOnglet(Math.min(indice, ouverts.size() - 1));
     }
 
     /** Active un onglet : le document se rouvre, le .java rebranche
