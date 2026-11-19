@@ -26,6 +26,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
 
 import jo.celeris.android.host.CelerisEditor;
+import jo.celeris.sample.SessionLspPoseuse.Journal;
 import jo.celeris.android.view.EditorThemes;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.PopupLayer;
@@ -140,21 +141,35 @@ public final class MainActivity extends Activity {
         }
         editeur.open(echantillon.nomFichier(), echantillon.texte());
         journal.ligne("ouvert : " + echantillon.nomFichier());
-        if (echantillon.nomFichier().endsWith(".java")) {
-            SessionLspPoseuse.poser(this, editeur, echantillon.nomFichier(),
-                    new SessionLspPoseuse.Journal() {
-                        @Override
-                        public void run() {
-                            journal.ligne("mini serveur LSP branché");
-                        }
-
-                        @Override
-                        public void echec(String cause) {
-                            journal.ligne("pose LSP échouée : " + cause);
-                        }
-                    });
-        }
+        poserLsp(echantillon, "mini serveur LSP branché");
         rafraichirOnglets();
+    }
+
+    /** Branche le mini serveur LSP d'un échantillon .java — le
+     *  geste partagé de l'ouverture et de l'activation d'onglet. */
+    private void poserLsp(Echantillons.Echantillon echantillon, String message) {
+        if (!echantillon.nomFichier().endsWith(".java")) {
+            return;
+        }
+        SessionLspPoseuse.poser(this, editeur, echantillon.nomFichier(),
+                journalLsp(message));
+    }
+
+    /** Le geste de pose LSP qui journalise sa réussite ET son échec
+     *  (l'ancien chemin silencieux tuait le serveur sans trace). */
+    private Journal journalLsp(String message) {
+        return new Journal() {
+
+            @Override
+            public void run() {
+                journal.ligne(message);
+            }
+
+            @Override
+            public void echec(String cause) {
+                journal.ligne("pose LSP échouée : " + cause);
+            }
+        };
     }
 
     /** Copie le journal entier au presse-papiers système. */
@@ -303,20 +318,7 @@ public final class MainActivity extends Activity {
         ongletActif = indice;
         Echantillons.Echantillon echantillon = ouverts.get(indice);
         editeur.open(echantillon.nomFichier(), echantillon.texte());
-        if (echantillon.nomFichier().endsWith(".java")) {
-            SessionLspPoseuse.poser(this, editeur, echantillon.nomFichier(),
-                    new SessionLspPoseuse.Journal() {
-                        @Override
-                        public void run() {
-                            journal.ligne("mini serveur LSP rebranché");
-                        }
-
-                        @Override
-                        public void echec(String cause) {
-                            journal.ligne("pose LSP échouée : " + cause);
-                        }
-                    });
-        }
+        poserLsp(echantillon, "mini serveur LSP rebranché");
         rafraichirOnglets();
     }
 
