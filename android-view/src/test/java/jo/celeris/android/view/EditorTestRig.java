@@ -143,6 +143,13 @@ final class EditorTestRig {
         connexion().setComposingText(texte, 1);
     }
 
+    /** La connexion d'entrée IME de la vue — les bancs de composition
+     *  y testent le contrat public (backspace, commit, purge). */
+    android.view.inputmethod.InputConnection connexionPublique() {
+        return vue.onCreateInputConnection(
+                new android.view.inputmethod.EditorInfo());
+    }
+
     private android.view.inputmethod.InputConnection connexion() {
         return vue.onCreateInputConnection(
                 new android.view.inputmethod.EditorInfo());

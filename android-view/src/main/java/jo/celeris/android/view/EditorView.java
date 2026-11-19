@@ -300,6 +300,12 @@ public final class EditorView extends View {
             return;
         }
         session.removeEditListener(ecouteurAnnonce);
+        // La composition IME meurt avec le document quitté : ses
+        // offsets n'appartiennent pas au document qui arrive (A-19,
+        // l'analyse croisée — le backspace juste après un changement
+        // d'onglet appliquait les bornes de la composition morte au
+        // document neuf et y détruisait des caractères).
+        composition.finish();
         session = nouvelleSession;
         session.addEditListener(ecouteurAnnonce);
         syntaxe.attacher(session, langue);
