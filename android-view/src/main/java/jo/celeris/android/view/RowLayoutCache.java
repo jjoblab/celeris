@@ -305,14 +305,14 @@ public final class RowLayoutCache {
      * bascule de session change le contenu, jamais la référence que
      * les couches portent.
      */
-    static final class Stockage {
+    public static final class Stockage {
 
         private Entree[] table = new Entree[CAPACITE_INITIALE];
         private int nombre;
         private long compteurAge;
 
         /** Le stockage vide (C1) — le parc y naît ses caches neufs. */
-        Stockage() {
+        public Stockage() {
         }
     }
 

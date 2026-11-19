@@ -1,4 +1,6 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal;
+
+import jo.celeris.android.view.RowLayoutCache;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -36,11 +38,11 @@ import jo.celeris.core.text.TextSession;
  * vide le parc à la libération de la vue — la vue qui meurt ne
  * retient le document d'aucun onglet.</p>
  */
-final class ParcRangees {
+public final class ParcRangees {
 
     /** Le plafond de stockages parqués (C1) : au-delà, le moins
      *  récemment utilisé part. */
-    static final int PLAFOND_PARQUES = 8;
+    public static final int PLAFOND_PARQUES = 8;
 
     private final Map<TextSession, RowLayoutCache.Stockage> parques =
             new IdentityHashMap<>();
@@ -67,7 +69,7 @@ final class ParcRangees {
      * @param revenue  la session qui prend l'écran
      * @return le stockage de la session revenue, NEUF si inconnu
      */
-    RowLayoutCache.Stockage basculer(
+    public RowLayoutCache.Stockage basculer(
             @org.jspecify.annotations.Nullable TextSession quittee,
             RowLayoutCache.Stockage courant, TextSession revenue) {
         if (quittee != null) {
@@ -96,20 +98,20 @@ final class ParcRangees {
      *  changé sous le document — les mises en page parquées sont
      *  périmées par la langue (les portées signent le tracé), le
      *  retour de la session repartira d'un stockage NEUF. */
-    void oublier(TextSession morte) {
+    public void oublier(TextSession morte) {
         parques.remove(morte);
         ordre.remove(morte);
     }
 
     /** Vide TOUT le parc — la vue qui meurt ne retient le document
      *  d'aucun onglet. */
-    void toutVider() {
+    public void toutVider() {
         parques.clear();
         ordre.clear();
     }
 
     /** Le nombre de stockages parqués — lecture du banc (C1). */
-    int taille() {
+    public int taille() {
         return parques.size();
     }
 }

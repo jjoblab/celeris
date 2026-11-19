@@ -1,5 +1,7 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.ParcRangees;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;

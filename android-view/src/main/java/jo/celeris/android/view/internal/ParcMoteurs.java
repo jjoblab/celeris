@@ -1,4 +1,5 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal;
+
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -21,7 +22,7 @@ import jo.celeris.core.text.TextSession;
  * fermeture de la vue — jamais par le nombre de changements
  * d'onglet.</p>
  */
-final class ParcMoteurs {
+public final class ParcMoteurs {
 
     private final Map<TextSession, MoteurAnalyse> parques =
             new IdentityHashMap<>();
@@ -40,7 +41,7 @@ final class ParcMoteurs {
      * @param derniere  la dernière ligne visible
      * @return le moteur parqué de la session revenue, null si aucun
      */
-    MoteurAnalyse basculer(@org.jspecify.annotations.Nullable TextSession quittee,
+    public MoteurAnalyse basculer(@org.jspecify.annotations.Nullable TextSession quittee,
             @org.jspecify.annotations.Nullable MoteurAnalyse courant,
             TextSession revenue, int premiere, int derniere) {
         if (courant != null && quittee != null) {
@@ -58,7 +59,7 @@ final class ParcMoteurs {
 
     /** Ferme TOUT les moteurs parqués — la vue qui meurt ne laisse
      *  aucun fil d'analyse vivant derrière elle (C2). */
-    void toutFermer() {
+    public void toutFermer() {
         for (MoteurAnalyse moteur : parques.values()) {
             moteur.close();
         }

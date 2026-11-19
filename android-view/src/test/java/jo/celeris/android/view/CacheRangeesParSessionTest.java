@@ -1,5 +1,7 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.ParcRangees;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;

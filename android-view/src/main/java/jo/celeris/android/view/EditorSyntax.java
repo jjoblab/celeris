@@ -1,5 +1,7 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.ParcMoteurs;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;

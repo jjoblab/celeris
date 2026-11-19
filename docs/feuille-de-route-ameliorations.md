@@ -147,24 +147,41 @@
   journaux clos, audit = preuves). La feuille close rejoint
   l'historique si rien ne la cite.
 
-### P1 — Pilote : lsp-protocole en sous-packages
+### P1 — Pilote : le paquet `internal` d'android-view
 
-- **Constat** : 13 classes dont 9 package-privées, 4 publiques
-  (`LspSession`, `ServeurEmbarque`, `ServeurExterne`,
-  `TubesMemoire`). Le manifeste `api/lsp-protocole.api` ne porte que
-  les noms — les classes publiques ne changent PAS de package (le
-  contrat public reste `jo.celeris.lsp.protocole`).
-- **Correctif pilote** : les 9 internes se rangent en sous-packages
-  par rôle (`protocole.correspondance` : les Correspondance* ;
-  `protocole.serveur` : le serveur embarqué de banc ; …), les
-  publiques restent au paquet racine. Le module est petit : le
-  mouvement complet tient en un commit, il JETTE LES BASES du
-  chantier P (naming, manifeste régénéré, baseline langue,
-  checkstyle, contrôles).
-- **Banc** : le module a ses tests (le banc du protocole) ; le
-  manifeste `api/lsp-protocole.api` se régénère
-  (`./gradlew apiManifest --rerun-tasks`), la baseline des
-  identifiants français ne bouge pas (noms inchangés).
+- **Constat d'origine** : le pilote prévu était lsp-protocole (9
+  internes en sous-packages par rôle). **L'essai réel a été mené et
+  ANNULÉ** : le module est couplé en croix — `LspSession` (publique,
+  paquet racine) coordonne directement `ReceiverServeur`,
+  `RequetesCouverture`, `CorrespondanceLsp`… Rendre ces classes
+  accessibles inter-paquets les PUBLICISERAIT, or ce sont des noms
+  français et la règle du dépôt interdit les nouveaux symboles
+  publics non anglais (la ligne de base ne monte jamais). **La
+  leçon tient pour tout le chantier P** : les familles du dépôt
+  s'échangent des types package-privés dans les deux sens — un
+  sous-paquet n'est pas une affaire de `git mv`, il faut d'abord
+  l'exception qui autorise la visibilité.
+- **L'exception existe, l'ADR-009 l'avait promise** : « tout
+  package dont le nom contient `internal` est interne » — mais le
+  générateur de manifeste ne l'implémentait PAS (`javap -public`
+  sur TOUTES les classes). **P1 pose le mécanisme** : le filtre
+  `internal` dans `ApiManifestTask` (un segment de paquet nommé
+  `internal` n'entre jamais dans le manifeste), et le premier
+  sous-paquet vit : `jo.celeris.android.view.internal` porte les
+  PARCS d'état par session (`ParcMoteurs` — la tokenisation
+  appartient au document ; `ParcRangees` — la mesure y appartient
+  depuis C1), publics DANS leur paquet internal, hors contrat
+  (android-view, module Android, n'a pas de manifeste ; les modules
+  purs sont protégés par le filtre pour les mouvements P4/P5).
+- **Vérifications** : 584 tests android-view verts, checkstyle et
+  PMD verts, `:lsp-protocole:check` vert (le module est revenu à
+  l'état d'origine — l'essai annulé n'a rien laissé), `apiCheck`
+  vert sur un module pur (le filtre ne change AUCUN manifeste
+  existant), baseline langue intacte (17).
+- **La suite de P (P2/P3)** déplace les familles internes vers
+  `view.internal.<famille>` au fil des étapes ; les publics ne
+  bougent qu'avec une version et une entrée MIGRATION (décision
+  propriétaire).
 
 ### P2 — android-view : peintres et gouttière
 

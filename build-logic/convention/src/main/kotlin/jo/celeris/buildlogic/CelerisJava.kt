@@ -97,6 +97,12 @@ fun Project.configureTestPlatform() {
  * javap -public pour chaque classe compilée (tri par nom binaire). Le
  * manifeste committé fait foi ; toute divergence casse la construction
  * via la tâche de vérification (ADR-009).
+ *
+ * Les paquets INTERNAL (un segment nommé `internal`) n'y entrent JAMAIS
+ * (ADR-009, règle 1 : « tout package dont le nom contient internal est
+ * interne » — la promesse vit ici) : les familles d'implantation s'y
+ * rangent sans élargir le contrat public, le chantier P de la feuille
+ * des améliorations en dépend.
  */
 abstract class ApiManifestTask : org.gradle.api.DefaultTask() {
 
@@ -114,6 +120,13 @@ abstract class ApiManifestTask : org.gradle.api.DefaultTask() {
                 root.walkTopDown()
                     .filter { it.isFile && it.extension == "class" }
                     .map { it.relativeTo(root).path }
+            }
+            .filter { relative ->
+                // ADR-009 : un paquet internal ne signe pas l'API —
+                // la classe n'entre pas dans le manifeste.
+                !relative.substringBeforeLast('/')
+                    .split('/')
+                    .contains("internal")
             }
             .sorted()
         val javap = File(System.getProperty("java.home"), "bin/javap")

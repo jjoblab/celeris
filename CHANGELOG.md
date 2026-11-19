@@ -11,6 +11,11 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 - **Le retour d'onglet ne re-mesure plus rien (feuille des améliorations, C1)** : le stockage du cache de mises en page se parque PAR SESSION (`ParcRangees`, le modèle du `ParcMoteurs` de la tokenisation) — l'ancien chemin vidait TOUT le cache à chaque pose de session, le retard ressenti au changement d'onglet venait de là. Banc `CacheRangeesParSessionTest` (retour par IDENTITÉ, collision des clés levée, parc borné LRU, langue périmant le stockage parqué).
 - **Feuille de route des améliorations** posée : trois chantiers (réactivité C, documentation D, packages P), chaque étape poussée une fois terminée.
+- **Les journaux clos partent à l'archive (D1)** : quatorze `RESUME-M*` et six `POPUP_*` rejoignent `docs/historique/`, citations réparées (AGENT, README, USAGE, CHANGELOG, feuilles de route) ; les documents lus par les contrôles ne bougent pas.
+
+### Changements internes
+
+- **Le paquet `internal` existe enfin (P1)** : le générateur de manifeste implémente la règle 1 de l'ADR-009 (un paquet dont un segment se nomme `internal` n'entre JAMAIS dans le manifeste d'API) ; premier sous-paquet `jo.celeris.android.view.internal` — les parcs d'état par session (`ParcMoteurs`, `ParcRangees`) y vivent, publics dans leur paquet, hors contrat. L'essai pilote sur lsp-protocole a été ANNULÉ (couplage croix — la leçon vit dans la feuille de route).
 
 ## [2.2.6] — 2026-11-20
 
