@@ -336,7 +336,7 @@ public final class IntelligenceHub {
         if (courant == null) {
             return false;
         }
-        return SmartTyping.deleteForward(document(), selection(), rules())
+        return LineActions.deleteForward(document(), selection(), rules())
                 .map(this::apply).orElse(false);
     }
 

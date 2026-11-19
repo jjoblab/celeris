@@ -85,35 +85,50 @@ public final class TextPainter extends PainterLayer {
         SyntaxPalette palette = frame.theme().syntaxe();
         ScopeTheme portees = frame.theme().portees();
         for (int rangee = premiere; rangee < derniere; rangee++) {
-            RowLayout layout = cache.find(revision, rangee, theme, police, colonnes);
-            if (layout == null) {
-                RowKey cle = new RowKey(revision, rangee, theme, police, colonnes);
-                layout = source.layoutOf(cle);
-                cache.store(cle, layout);
+            peindreRangee(surface, frame, metrics, police, revision, theme,
+                    colonnes, rangee, baseY + (rangee - premiere) * hauteur,
+                    bordGauche, palette, portees);
+        }
+    }
+
+    /**
+     * La peinture d'une rangée : la mise en page au cache (PIEGE-15 :
+     * le chemin rapide dessine l'instance même), le retrait de
+     * continuation (B-05 : la rangée de suite démarre au retrait de
+     * sa ligne), puis le tracé — segments, plages ou texte plein
+     * selon la rangée.
+     */
+    private void peindreRangee(DrawSurface surface, FrameState frame,
+            EditorMetrics metrics, FontSpec police, long revision, int theme,
+            int colonnes, int rangee, float y, float bordGauche,
+            SyntaxPalette palette, ScopeTheme portees) {
+        RowLayout layout = cache.find(revision, rangee, theme, police, colonnes);
+        if (layout == null) {
+            RowKey cle = new RowKey(revision, rangee, theme, police, colonnes);
+            layout = source.layoutOf(cle);
+            cache.store(cle, layout);
+        }
+        // B-05 : la rangée de suite démarre au retrait de sa
+        // ligne — le texte s'y décale de l'indentation.
+        float x = bordGauche + frame.projection()
+                .indentAtRow(rangee) * metrics.charWidth();
+        if (layout.runs().isEmpty() && layout.spans().isEmpty()) {
+            // M7.5, §9 : une rangée qui porte de l'encre et vivait
+            // sous une publication tracée sans couleur — image
+            // décolorée, la surimpression de diagnostic la compte.
+            if (frame.couleurAttendue() && porteEncre(layout.text())) {
+                frame.marquerImageDecoloree();
             }
-            float y = baseY + (rangee - premiere) * hauteur;
-            // B-05 : la rangée de suite démarre au retrait de sa
-            // ligne — le texte s'y décale de l'indentation.
-            float x = bordGauche + frame.projection()
-                    .indentAtRow(rangee) * metrics.charWidth();
-            if (layout.runs().isEmpty() && layout.spans().isEmpty()) {
-                // M7.5, §9 : une rangée qui porte de l'encre et vivait
-                // sous une publication tracée sans couleur — image
-                // décolorée, la surimpression de diagnostic la compte.
-                if (frame.couleurAttendue() && porteEncre(layout.text())) {
-                    frame.marquerImageDecoloree();
-                }
-                // Chemin rapide : une rangée purement gauche-à-droite et
-                // sans coloration se trace d'un seul tenant, l'instance
-                // du cache.
-                surface.drawText(layout.text(), x, y, brush());
-            } else if (layout.runs().isEmpty()) {
-                tracerPlages(surface, layout, x, y, metrics.charWidth(),
-                        palette, portees);
-            } else {
-                tracerSegments(surface, layout, x, y,
-                        metrics.charWidth(), palette, portees);
-            }
+            // Chemin rapide : une rangée purement gauche-à-droite et
+            // sans coloration se trace d'un seul tenant, l'instance
+            // du cache.
+            surface.drawText(layout.text(), x, y, brush());
+        } else if (layout.runs().isEmpty()) {
+            tracerPlages(surface, layout, x, y, metrics.charWidth(),
+                    palette, portees);
+        } else {
+            tracerSegments(surface, layout, x, y,
+                    metrics.charWidth(), palette, portees);
         }
     }
 

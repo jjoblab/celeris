@@ -55,7 +55,7 @@ class FrappeContinuationsTest {
     @Test
     void laSuppressionAvantMangeLaPaireVide() {
         Document doc = Document.of("f()");
-        Optional<EditPlan> plan = SmartTyping.deleteForward(doc,
+        Optional<EditPlan> plan = LineActions.deleteForward(doc,
                 MultiSelection.caretsAt(1), TypingRules.generic());
         assertTrue(plan.isPresent(), "le plan existe");
         TextSession session = TextSession.of("f()", () -> 0L);

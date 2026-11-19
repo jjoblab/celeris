@@ -3,6 +3,9 @@ package jo.celeris.core.intelligence;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.Optional;
+import org.jspecify.annotations.Nullable;
+
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.SelRange;
@@ -354,5 +357,92 @@ public final class LineActions {
                     plage.end() - retraitTotal));
         }
         return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+    }
+
+    /** Le collapse des lignes vides (C7) : le retour arrière sur un
+     *  blanc (ou en tête de ligne) précédé d'un saut et suivi d'un
+     *  autre saut retire le blanc ET le saut qui précède — « a\n\n\nb »
+     *  devient « a\nb ». La ligne vide s'effondre d'un geste. */
+    static Optional<Geste> effondrerLigneVide(Document doc, int p,
+            int delta) {
+        if (p < 1 || p > doc.length()) {
+            return Optional.empty();
+        }
+        int ligne = doc.lineForOffset(p);
+        int debut = doc.lineStart(ligne);
+        // le caret vit sur les blancs de tête (ou au début) d'une
+        // ligne dont la précédente est vide
+        if (p > debut) {
+            return Optional.empty();
+        }
+        if (ligne < 1) {
+            return Optional.empty();
+        }
+        int debutPrecedente = doc.lineStart(ligne - 1);
+        int finPrecedente = doc.lineEnd(ligne - 1);
+        if (finPrecedente - debutPrecedente > 0) {
+            // la précédente n'est pas vide : rien à effondrer
+            return Optional.empty();
+        }
+        if (p >= doc.length() || doc.charAt(p) == '\n') {
+            // la ligne courante est vide aussi : effondrer le saut de
+            // la précédente
+            return Optional.of(new Geste(
+                    new TextEdit(debutPrecedente + delta, "\n", ""),
+                    SelRange.caretAt(debutPrecedente + delta), delta - 1));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * La suppression avant (C8, l'analyse croisée) : la paire vide
+     * sous le caret se mange ENTIÈRE — « (|) » devient « » d'un
+     * geste, comme le dépôt de départ. La citation vide pareil. Tout
+     * autre cas rend la main : le cœur supprime le cluster suivant.
+     *
+     * @param doc       le document, jamais muté
+     * @param selection la sélection courante
+     * @param rules     les règles du langage
+     * @return le plan du geste, vide pour retomber sur le cœur
+     */
+    public static Optional<EditPlan> deleteForward(Document doc,
+            MultiSelection selection, TypingRules rules) {
+        if (selection.isEmpty()) {
+            return Optional.empty();
+        }
+        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<SelRange> apres = new ArrayList<>(selection.caretCount());
+        int delta = 0;
+        for (SelRange plage : selection.ranges()) {
+            if (!plage.isEmpty()) {
+                return Optional.empty();
+            }
+            int p = plage.caret();
+            if (p + 1 >= doc.length()) {
+                return Optional.empty();
+            }
+            char devant = p < doc.length() ? doc.charAt(p) : '\0';
+            char apresDeux = doc.charAt(p + 1);
+            boolean paireVide = rules.estOuvrant(devant)
+                    && apresDeux == rules.fermantDe(devant);
+            boolean citationsVides = rules.estCitation(devant) && apresDeux == devant;
+            if (!paireVide && !citationsVides) {
+                return Optional.empty();
+            }
+            editions.add(new TextEdit(p + delta,
+                    deuxCaracteres(devant, apresDeux), ""));
+            apres.add(SelRange.caretAt(p + delta));
+            delta -= 2;
+        }
+        return Optional.of(new EditPlan(Transaction.of(editions),
+                MultiSelection.of(apres)));
+    }
+
+    private static String deuxCaracteres(char a, char b) {
+        return new String(new char[] {a, b});
+    }
+
+    /** Le geste d'une plage : édition (nulle pour le saut), sélection d'après, delta cumulé. */
+    record Geste(@Nullable TextEdit edition, SelRange selection, int delta) {
     }
 }

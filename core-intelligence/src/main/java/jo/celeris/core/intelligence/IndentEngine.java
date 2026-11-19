@@ -79,4 +79,22 @@ public final class IndentEngine {
     public static int units(String blancs, IndentStyle style) {
         return blancs.length() / Math.max(1, style.width());
     }
+
+    public static String continuationDeLigne(Document doc, int ligne) {
+        String texte = doc.lineText(ligne);
+        String sansRetrait = texte.stripLeading();
+        // Le préfixe SANS son retrait : le saut porte déjà
+        // l'indentation de la ligne (indentationAttendue).
+        if (sansRetrait.startsWith("/**")) {
+            return " * ";
+        }
+        if (sansRetrait.startsWith("* ") || sansRetrait.equals("*")) {
+            return "* ";
+        }
+        if (sansRetrait.startsWith("- ") || sansRetrait.startsWith("+ ")) {
+            return sansRetrait.substring(0, 2);
+        }
+        return "";
+    }
+
 }

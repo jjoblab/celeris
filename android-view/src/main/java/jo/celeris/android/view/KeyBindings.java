@@ -45,6 +45,13 @@ public final class KeyBindings {
      */
     public static KeyBindings defaults() {
         Map<KeyBinding, EditorAction> table = new HashMap<>();
+        lierMouvements(table);
+        lierActionsDeBase(table);
+        return new KeyBindings(table);
+    }
+
+    /** Les mouvements du curseur et leurs extensions Maj. */
+    private static void lierMouvements(Map<KeyBinding, EditorAction> table) {
         lier(table, EditorAction.MOVE_LEFT, new KeyBinding(21, false, false, false));
         lier(table, EditorAction.MOVE_RIGHT, new KeyBinding(22, false, false, false));
         lier(table, EditorAction.MOVE_UP, new KeyBinding(19, false, false, false));
@@ -65,6 +72,10 @@ public final class KeyBindings {
         lier(table, EditorAction.SELECT_WORD_RIGHT, new KeyBinding(22, true, false, true));
         lier(table, EditorAction.SELECT_LINE_START, new KeyBinding(122, true, false, false));
         lier(table, EditorAction.SELECT_LINE_END, new KeyBinding(123, true, false, false));
+    }
+
+    /** Les actions d'édition et leurs raccourcis de bureau. */
+    private static void lierActionsDeBase(Map<KeyBinding, EditorAction> table) {
         lier(table, EditorAction.SELECT_ALL, new KeyBinding(29, false, true, false));
         lier(table, EditorAction.DELETE_BACKWARD, new KeyBinding(67, false, false, false));
         lier(table, EditorAction.DELETE_FORWARD, new KeyBinding(112, false, false, false));
@@ -95,7 +106,6 @@ public final class KeyBindings {
         lier(table, EditorAction.ZOOM_IN, new KeyBinding(81, false, true, false));
         lier(table, EditorAction.ZOOM_OUT, new KeyBinding(69, false, true, false));
         lier(table, EditorAction.ZOOM_RESET, new KeyBinding(7, false, true, false));
-        return new KeyBindings(table);
     }
 
     /**

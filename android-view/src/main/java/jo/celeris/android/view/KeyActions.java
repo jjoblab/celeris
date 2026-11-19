@@ -61,25 +61,11 @@ final class KeyActions {
             return true;
         }
         if (action == EditorAction.ACCEPT_FANTOME) {
-            // C1 : Tab accepte le fantôme s'il est visible — sinon il
-            // indente les lignes de la sélection (la sémantique du
-            // dépôt de départ : la complétion d'abord, l'indentation
-            // en repli). L'appel direct à l'édition évite la boucle —
-            // jamais appliquer() ne se rappelle.
-            if (vue.fantome.surTab()) {
-                vue.invalidate();
-                return true;
-            }
-            edition(vue, EditorAction.TAB);
+            boolean consomme = servirTab(vue);
             vue.invalidate();
-            return true;
+            return consomme || true;
         }
-        // C-12 : le presse-papiers clavier (COPY, CUT, PASTE —
-        // consécutifs dans l'enum) se sert avant la dispatch
-        // principale : jamais la géométrie n'y perd son chemin.
-        if (action.ordinal() >= EditorAction.COPY.ordinal()
-                && action.ordinal() <= EditorAction.PASTE.ordinal()) {
-            PressePapiersClavier.servir(vue, action);
+        if (servirPressePapiers(vue, action)) {
             vue.invalidate();
             return true;
         }
@@ -89,6 +75,37 @@ final class KeyActions {
             default -> mouvements(vue, action);
         }
         vue.invalidate();
+        return true;
+    }
+
+    /**
+     * Tab (C1) : le fantôme visible se sert d'abord — sinon il
+     * indente les lignes de la sélection (la sémantique du dépôt de
+     * départ : la complétion d'abord, l'indentation en repli).
+     * L'appel direct à l'édition évite la boucle — jamais appliquer()
+     * ne se rappelle.
+     */
+    private static boolean servirTab(EditorView vue) {
+        if (vue.fantome.surTab()) {
+            return true;
+        }
+        edition(vue, EditorAction.TAB);
+        return true;
+    }
+
+    /**
+     * Le presse-papiers clavier (C-12) : COPY, CUT, PASTE —
+     * consécutifs dans l'enum — se sert avant la dispatch
+     * principale : jamais la géométrie n'y perd son chemin.
+     *
+     * @return vrai si l'action est une action presse-papiers servie
+     */
+    private static boolean servirPressePapiers(EditorView vue, EditorAction action) {
+        if (action.ordinal() < EditorAction.COPY.ordinal()
+                || action.ordinal() > EditorAction.PASTE.ordinal()) {
+            return false;
+        }
+        PressePapiersClavier.servir(vue, action);
         return true;
     }
 

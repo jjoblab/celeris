@@ -483,6 +483,7 @@ public final class jo.celeris.core.intelligence.IndentEngine {
   public static int depthAtCaret(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
   public static java.lang.String leadingWhitespace(java.lang.String);
   public static int units(java.lang.String, jo.celeris.core.intelligence.IndentStyle);
+  public static java.lang.String continuationDeLigne(jo.celeris.core.text.Document, int);
 }
 
 ### jo.celeris.core.intelligence.IndentStyle
@@ -608,6 +609,17 @@ Compiled from "LineActions.java"
 final class jo.celeris.core.intelligence.LineActions$Bloc {
 }
 
+### jo.celeris.core.intelligence.LineActions$Geste
+Compiled from "LineActions.java"
+final class jo.celeris.core.intelligence.LineActions$Geste extends java.lang.Record {
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public jo.celeris.core.text.TextEdit edition();
+  public jo.celeris.core.text.SelRange selection();
+  public int delta();
+}
+
 ### jo.celeris.core.intelligence.LineActions
 Compiled from "LineActions.java"
 public final class jo.celeris.core.intelligence.LineActions {
@@ -617,6 +629,7 @@ public final class jo.celeris.core.intelligence.LineActions {
   public static jo.celeris.core.intelligence.EditPlan deleteLines(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection);
   public static jo.celeris.core.intelligence.EditPlan tab(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
   public static jo.celeris.core.intelligence.EditPlan untab(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
+  public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> deleteForward(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.TypingRules);
 }
 
 ### jo.celeris.core.intelligence.LineSorter
@@ -911,7 +924,6 @@ public final class jo.celeris.core.intelligence.SmartTyping {
   public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> insert(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, java.lang.String, jo.celeris.core.intelligence.TypingRules);
   public static jo.celeris.core.intelligence.EditPlan enter(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
   public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> backspace(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.TypingRules, jo.celeris.core.intelligence.IndentStyle);
-  public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> deleteForward(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.TypingRules);
   public static jo.celeris.core.intelligence.EditPlan surround(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, java.lang.String, java.lang.String, boolean, jo.celeris.core.intelligence.IndentStyle);
 }
 
