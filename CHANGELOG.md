@@ -5,6 +5,17 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.6] — 2026-11-20
+
+### Ajouts
+
+- **Bancs structurels de la coloration (A5)** : multi-onglets (trois langages, dix bascules, zéro re-tokenisation au retour) ; publication à chaque révision (maquette reprogrammante de la voie native) ; **critère de l'audit figé en CI** — 1 150 éditions aléatoires à graine fixe, incrémental == complet (jetons, états, profondeurs).
+- **ADR-0027** (proposition) : la coloration sémantique LSP se câblera en surcouche, phase dédiée après validation terrain — le retrait n'est pas une option.
+
+### Documentation
+
+- La borne de 200 Ko de la voie native entre dans ARCHITECTURE.md ; le garde-fou mémoire de l'internement des portées se documente (« garde-fou, pas cache ») ; la feuille de route de la coloration gagne l'étape A6 (étude d'un moteur de grammaires externe — décision du propriétaire).
+
 ## [2.2.5] — 2026-11-20
 
 ### Corrections

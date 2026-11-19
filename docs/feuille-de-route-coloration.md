@@ -29,8 +29,9 @@
 | A1.3 | L'échec de passe native notifie (plus d'écran figé) | moyenne | ✅ fait (e13428b, 2026-11-19) |
 | A2 | La BOM n'est plus colorée comme un opérateur | mineure | ✅ fait (444a064, 2026-11-19) |
 | A3 | Statut du `\r` CRLF décidé et documenté | mineure | ✅ fait (7ebe335, 2026-11-19 — ADR-0026, voie (b) retenue) |
-| A4 | Consolidations documentaires (bornes, internement, sémantique LSP) | mineure | ☐ à faire |
-| A5 | Bancs structurels : multi-onglets, frappe native, critère incrémental en CI | — | ☐ à faire |
+| A4 | Consolidations documentaires (bornes, internement, sémantique LSP) | mineure | ✅ fait (ADR-0027 en proposition — décision propriétaire attendue) |
+| A5 | Bancs structurels : multi-onglets, frappe native, critère incrémental en CI | — | ✅ fait (3 bancs, 5 tests verts) |
+| A6 | Étude : la voie des grammaires par moteur externe (textmate) | — | 🟡 étude posée — décision propriétaire |
 
 ## Détail des étapes
 
@@ -127,8 +128,13 @@
   Javadoc.
 - Statut de la coloration sémantique LSP (types présents, rendu non
   câblé) : note d'orientation — câbler en surcouche ou retirer de
-  l'API. **Décision propriétaire.**
-- **Statut** : ☐ à faire
+  l'API. **Décision propriétaire.** *(Tranché par l'ADR-0027 —
+  proposition : câbler EN SURCOUCHE, phase dédiée après validation
+  terrain de A1-A3 ; le retrait n'est pas une option, le protocolaire
+  est complet et testé.)*
+- **Statut** : ✅ fait (borne dans ARCHITECTURE.md §2.2, garde-fou
+  documenté dans ScopeStacks, ADR-0027 posée et indexée — reste la
+  validation propriétaire de l'ADR)
 
 ### A5 — Bancs structurels (non-régression durable)
 
@@ -138,7 +144,36 @@
   révision (verrouille A1.1/A1.2).
 - Le critère « zéro divergence incrémental/complet sur N éditions
   aléatoires » (vrai à N=1 150 dans l'audit) se fige en banc CI.
-- **Statut** : ☐ à faire
+  *(Fait : `DivergenceNulleBancTest` — 1 150 éditions à graine fixe
+  20261119, gestes réalistes y compris états ouverts ; VÉRIFIÉ VERT :
+  zéro divergence, jetons/états/profondeurs comparés à chaque étape.)*
+- **Statut** : ✅ fait (MultiOngletsBancTest 2/2 — trois onglets
+  Java/Kotlin/Groovy, dix bascules sans re-tokenisation, frappe active
+  isolée ; PublicationChaqueRevisionBancTest 2/2 — maquette
+  reprogrammante, la rafale publie à chaque révision, la couleur ne
+  périmé plus d'une frappe ; DivergenceNulleBancTest 1/1)
+
+### A6 — Étude : la voie des grammaires par moteur externe (textmate)
+
+- **Question posée par le propriétaire** (2026-11-19) : utiliser un
+  moteur de grammaires EXTERNE pour la voie des grammaires, comme le
+  fait l'éditeur de référence sur Android.
+- **État des lieux** : la voie maison (ADR-004 révisé, ADR-014) lit
+  les grammaires TextMate RÉELLES (celles que publient les extensions
+  de VS Code — format JSON/PList, captures, inclusions, `$self`),
+  embarque 27 grammaires (1,8 Mo), et exécute les expressions par
+  **joni** (portage Java d'Oniguruma — le MÊME moteur que la
+  référence). L'audit du 2026-11-19 a validé sa conformité au banc.
+- **Ce qu'un moteur externe apporterait** : un moteur natif (C via
+  JNI, comme la référence) exécute les expressions plus vite et
+  déporte la maintenance. Ce qu'il COÛTE : une dépendance JNI de plus
+  (la voie tree-sitter en a déjà une), la perte du contrôle
+  incrémental (les moteurs externes pensent « ligne par ligne », le
+  socle pense « reconvergence par états »), et le doublement des
+  chemins de repli si le moteur manque sur une architecture.
+- **Statut** : 🟡 étude posée — la décision appartient au
+  propriétaire ; les données vivent dans la réponse de session et la
+  comparaison des chemins ci-dessus.
 
 ## Journal de suivi
 
@@ -149,3 +184,6 @@
 | 2026-11-19 | A1.2 | daa62fc | le rattrapage lit la publication de la voie qui sert ; prouvé rouge→vert par fabrique de banc armée sélectivement (3/3 verts, 21 bancs coloration sans régression) |
 | 2026-11-19 | A2 | 444a064 | la BOM de tête est un blanc de format (garde en position 0 de la ligne de tête) ; banc rouge 2 échecs → vert 3/3 |
 | 2026-11-19 | A3 | 7ebe335 | ADR-0026 : le \r reste dans la ligne rendue (voie (b)) ; Javadoc du modèle + banc CRLF (convention, lexicographie, incrémental == complet) |
+| 2026-11-19 | A4 | — | borne 200 Ko dans ARCHITECTURE.md §2.2 ; garde-fou ScopeStacks documenté (« garde-fou, pas cache ») ; ADR-0027 (proposition) : sémantique LSP en surcouche, phase dédiée |
+| 2026-11-19 | A5 | — | MultiOngletsBancTest 2/2, PublicationChaqueRevisionBancTest 2/2, DivergenceNulleBancTest 1/1 (1 150 éditions, graine 20261119, zéro divergence) |
+| 2026-11-19 | A6 | — | étude posée : moteur de grammaires externe — décision propriétaire |
