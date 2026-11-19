@@ -9,24 +9,24 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Correctifs de l'analyse croisée avec le dépôt de départ (session 15)
 
-- **Coalescence des frappes réparée sur l'horloge nano** : le seuil de
+- **Coalescence des frappes réparée sur l'horloge nano** : le seuil de
   `UndoStack` vivait en millisecondes contre une horloge injectée en
   nanosecondes — chaque caractère tapé redevenait une étape d'annulation
   séparée (le bug que le dépôt de départ avait corrigé dans son
   UndoManager). Le délai se convertit désormais en nanosecondes, la
   constante `COALESCE_TIMEOUT_NS` est publique, six bancs historiques
   passent à la convention nano.
-- **Le remplacement regex de la session aboutit enfin** : le budget du
+- **Le remplacement regex de la session aboutit enfin** : le budget du
   moteur de recherche (contrat en millisecondes) expirait en 250 ns sur
   l'horloge nano de la session — la conversion se fait maintenant à la
   frontière, dans `TextSession.replaceAll`.
-- **La façade fermée ne fuit plus vers une vue vivante** : le post du
+- **La façade fermée ne fuit plus vers une vue vivante** : le post du
   montage du chrome capturait la façade (il survit au close() dans la
   file du thread tant que la vue n'est pas attachée) — il capture
-  désormais l'orchestrateur seul ; les verdicts de touche et de double
+  désormais l'orchestrateur seul ; les verdicts de touche et de double
   appui ne s'empilent plus aux rebondissements d'onglets (retrait avant
   repose).
-- **Alias d'extensions perdus retrouvés** : `.scss`/`.less` (css),
+- **Alias d'extensions perdus retrouvés** : `.scss`/`.less` (css),
   `.svg` (xml), `.ini` (properties) et `.plaintext` (text) colorent de
   nouveau.
 
