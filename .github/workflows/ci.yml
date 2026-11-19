@@ -33,7 +33,7 @@ jobs:
         uses: gradle/actions/setup-gradle@7296c772c13d12d9871528814b51fb2143c138ef # v6.4.1
         with:
           validate-wrappers: true
-      - name: Composants du SDK Android (ADR-0021 : tout build l'exige)
+      - name: "Composants du SDK Android (ADR-0021 : tout build l'exige)"
         run: |
           if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ]; then
             echo "SDK Android absent du runner : tout build du dépôt l'exige (ADR-0021)" >&2
@@ -68,7 +68,7 @@ jobs:
         uses: gradle/actions/setup-gradle@7296c772c13d12d9871528814b51fb2143c138ef # v6.4.1
         with:
           validate-wrappers: true
-      - name: Composants du SDK Android
+      - name: "Composants du SDK Android"
         run: |
           if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ]; then
             echo "SDK Android absent du runner : les modules Android ne seraient pas testés" >&2
@@ -89,6 +89,12 @@ jobs:
       # mécanique reste au job consumer-smoke).
       - name: Exemple (assemblage debug de l'application d'exemple)
         run: ./gradlew :sample:assembleDebug
+      - name: Artefact — l'APK debug de l'exemple
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sample-debug-apk
+          path: sample/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
 
   # Chantier B5 (revue du 2026-11-17) : l'exemple consommateur « vierge
   # » — la preuve d'intégration comme un hôte réel la vit. Onze
@@ -114,7 +120,7 @@ jobs:
         uses: gradle/actions/setup-gradle@7296c772c13d12d9871528814b51fb2143c138ef # v6.4.1
         with:
           validate-wrappers: true
-      - name: Composants du SDK Android
+      - name: "Composants du SDK Android"
         run: |
           if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ]; then
             echo "SDK Android absent du runner : le sample ne s'assemblerait pas" 2>&1
@@ -130,7 +136,7 @@ jobs:
         run: |
           cd samples/consumer-smoke
           ./gradlew :app:assembleRelease --no-daemon -Dorg.gradle.configuration-cache=false
-      - name: Preuve R8 (mapping : façade et chargeur vivants, lsp4j absent)
+      - name: "Preuve R8 (mapping : façade et chargeur vivants, lsp4j absent)"
         run: |
           MAPPING="samples/consumer-smoke/app/build/outputs/mapping/release/mapping.txt"
           test -s "$MAPPING"
@@ -153,7 +159,8 @@ jobs:
   # M7.5 (ADR-013) : les tests de vue (Robolectric) tournent à chaque
   # commit, vite — la couture Android↔modèles purs ne reste plus sans
   # preuve entre deux contrôles complets.
-  view-tests:    name: Tests de vue (Robolectric, JVM)
+  view-tests:
+    name: Tests de vue (Robolectric, JVM)
     runs-on: ubuntu-latest
     # Ce travail installe le SDK puis exécute les tests de vue
     # d'android-view et d'android-widgets — sélectifs et rapides, ils
@@ -170,7 +177,7 @@ jobs:
         uses: gradle/actions/setup-gradle@7296c772c13d12d9871528814b51fb2143c138ef # v6.4.1
         with:
           validate-wrappers: true
-      - name: Composants du SDK Android
+      - name: "Composants du SDK Android"
         run: |
           if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ]; then
             echo "SDK Android absent du runner : les tests de vue ne tourneraient pas" >&2
