@@ -615,6 +615,8 @@ public final class jo.celeris.core.intelligence.LineActions {
   public static jo.celeris.core.intelligence.EditPlan duplicateLines(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection);
   public static jo.celeris.core.intelligence.EditPlan joinLines(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection);
   public static jo.celeris.core.intelligence.EditPlan deleteLines(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection);
+  public static jo.celeris.core.intelligence.EditPlan tab(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
+  public static jo.celeris.core.intelligence.EditPlan untab(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
 }
 
 ### jo.celeris.core.intelligence.LineSorter
@@ -909,6 +911,7 @@ public final class jo.celeris.core.intelligence.SmartTyping {
   public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> insert(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, java.lang.String, jo.celeris.core.intelligence.TypingRules);
   public static jo.celeris.core.intelligence.EditPlan enter(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.IndentStyle);
   public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> backspace(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.TypingRules, jo.celeris.core.intelligence.IndentStyle);
+  public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> deleteForward(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.TypingRules);
   public static jo.celeris.core.intelligence.EditPlan surround(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, java.lang.String, java.lang.String, boolean, jo.celeris.core.intelligence.IndentStyle);
 }
 
@@ -990,6 +993,12 @@ Compiled from "XmlLinkedTags.java"
 public final class jo.celeris.core.intelligence.XmlLinkedTags {
   public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> typeChar(jo.celeris.core.text.Document, int, java.lang.String);
   public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> backspace(jo.celeris.core.text.Document, int);
+}
+
+### jo.celeris.core.intelligence.XmlSmartTyping
+Compiled from "XmlSmartTyping.java"
+public final class jo.celeris.core.intelligence.XmlSmartTyping {
+  public static java.util.Optional<jo.celeris.core.intelligence.EditPlan> closeTag(jo.celeris.core.text.Document, int, jo.celeris.core.intelligence.TypingRules);
 }
 
 ### jo.celeris.core.intelligence.package-info

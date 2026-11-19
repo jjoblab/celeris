@@ -8,6 +8,7 @@ import jo.celeris.core.intelligence.CompletionMots;
 import jo.celeris.core.intelligence.EditPlan;
 import jo.celeris.core.intelligence.IndentStyle;
 import jo.celeris.core.intelligence.PasteReindenter;
+import jo.celeris.core.intelligence.LineActions;
 import jo.celeris.core.intelligence.SmartTyping;
 import jo.celeris.core.intelligence.TypingRules;
 import jo.celeris.core.intelligence.XmlLinkedTags;
@@ -308,7 +309,7 @@ public final class IntelligenceHub {
         if (courant == null) {
             return false;
         }
-        return apply(SmartTyping.tab(document(), selection(), style()));
+        return apply(LineActions.tab(document(), selection(), style()));
     }
 
     /**
@@ -321,7 +322,7 @@ public final class IntelligenceHub {
         if (courant == null) {
             return false;
         }
-        return apply(SmartTyping.untab(document(), selection(), style()));
+        return apply(LineActions.untab(document(), selection(), style()));
     }
 
     /**

@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jo.celeris.core.text.Document;
-import jo.celeris.core.text.MultiSelection;
 import jo.celeris.core.text.TextSession;
 
 import java.util.Optional;

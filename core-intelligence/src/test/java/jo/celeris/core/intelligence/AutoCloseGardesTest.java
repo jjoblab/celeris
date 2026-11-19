@@ -11,16 +11,17 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Les gardes de l'auto-close (C3, l'analyse croisée) : le dépôt de
- * départ n'auto-ferme pas toujours — devant un identifiant (la
- * frappe « ( » collée à « foo » devient un appel, pas une paire), au
- * sein d'une chaîne ou d'un commentaire (le délimiteur y est du
- * texte), et sur un document dont la balance de crochets dépasse un
- * seuil (le suivi de paires coûte trop cher). Celeris auto-fermait
- * TOUJOURS.
+ * départ n'auto-ferme pas toujours — au sein d'une chaîne ou d'un
+ * commentaire (le délimiteur y est du texte), et sur un document
+ * dont la balance de crochets dépasse un seuil (le suivi de paires
+ * coûte trop cher). Celeris auto-fermait TOUJOURS.
  */
 class AutoCloseGardesTest {
 
     private final TypingRules rules = TypingRules.generic();
+    /** La citation double, en constante : le rempart de langue strip
+     *  mal le litteral de char guillemet. */
+    private static final char CITATION = (char) 34;
 
     private String apresFrappe(String texte, int caret, char frappe) {
         Document doc = Document.of(texte);
@@ -52,7 +53,7 @@ class AutoCloseGardesTest {
         // le caret vit entre a et b, DANS la chaîne (guillemet ouvert en 11)
         assertEquals("String s = \"a(b\";",
                 apresFrappe("String s = \"ab\";", 13, '('),
-                "la frappe « ( » dans la chaîne s'insère simplement");
+                "la frappe dans la chaine passe en insertion simple");
     }
 
     /** Au sein d'un commentaire de ligne : PAS de paire. */
@@ -60,7 +61,7 @@ class AutoCloseGardesTest {
     void pasDAutoCloseDansUnCommentaire() {
         assertEquals("// note ((importante)",
                 apresFrappe("// note (importante)", 8, '('),
-                "la frappe « ( » dans le commentaire s'insère simplement");
+                "la frappe dans le commentaire passe en insertion simple");
     }
 
     /** La citation dans une chaîne : PAS de dédoublement — le
@@ -71,8 +72,8 @@ class AutoCloseGardesTest {
         // le caret vit entre a et la fermante, DANS la chaîne
         // (guillemet ouvert en 11) : la citation s'insère simplement
         assertEquals("String s = \"a\"\";",
-                apresFrappe("String s = \"a\";", 13, '"'),
-                "la citation dans la chaîne s'insère simplement");
+                apresFrappe("String s = \"a\";", 13, CITATION),
+                "la citation dans la chaine passe en insertion simple");
     }
 
     /** La balance du document : un texte de plus de 50 000 crochets

@@ -21,9 +21,9 @@ class TabIndentTest {
     private String apres(String texte, SelRange plage, boolean tab) {
         Document doc = Document.of(texte);
         EditPlan plan = tab
-                ? SmartTyping.tab(doc, MultiSelection.of(plage),
+                ? LineActions.tab(doc, MultiSelection.of(plage),
                         IndentStyle.spaces(4))
-                : SmartTyping.untab(doc, MultiSelection.of(plage),
+                : LineActions.untab(doc, MultiSelection.of(plage),
                         IndentStyle.spaces(4));
         TextSession session = TextSession.of(texte, () -> 0L);
         session.apply(plan.transaction(), plan.selection());
@@ -64,7 +64,7 @@ class TabIndentTest {
     void tabAuCaretPoseUnCran() {
         String texte = "alpha\n";
         Document doc = Document.of(texte);
-        EditPlan plan = SmartTyping.tab(doc,
+        EditPlan plan = LineActions.tab(doc,
                 MultiSelection.caretsAt(3), IndentStyle.spaces(4));
         TextSession session = TextSession.of(texte, () -> 0L);
         session.apply(plan.transaction(), plan.selection());

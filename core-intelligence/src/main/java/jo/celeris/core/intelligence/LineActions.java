@@ -253,4 +253,106 @@ public final class LineActions {
             this.carets = List.copyOf(carets);
         }
     }
+    /**
+     * Tab (C1, l'analyse croisée) : la sélection multi-lignes gagne un
+     * cran d'indentation sur CHACUNE de ses lignes — la sélection
+     * survit au geste (mêmes lignes, décalées du cran) ; au caret
+     * simple, l'indentation se pose à la coupe. Le dépôt de départ
+     * indente pareil ses lignes sélectionnées.
+     *
+     * @param doc       le document, jamais muté
+     * @param selection la sélection courante
+     * @param style     le style d'indentation de l'hôte
+     * @return le plan du geste
+     */
+    public static EditPlan tab(Document doc, MultiSelection selection,
+            IndentStyle style) {
+        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<SelRange> apres = new ArrayList<>(selection.caretCount());
+        int delta = 0;
+        for (SelRange plage : selection.ranges()) {
+            String cran = style.indent(1);
+            if (plage.isEmpty()) {
+                editions.add(new TextEdit(plage.caret() + delta, "", cran));
+                apres.add(SelRange.caretAt(plage.caret() + delta
+                        + cran.length()));
+                delta += cran.length();
+                continue;
+            }
+            int premiereLigne = doc.lineForOffset(plage.start());
+            int derniereLigne = doc.lineForOffset(
+                    plage.end() - (plage.end() > plage.start() ? 1 : 0));
+            for (int ligne = premiereLigne; ligne <= derniereLigne; ligne++) {
+                int debut = doc.lineStart(ligne);
+                if (debut >= doc.length()) {
+                    continue;
+                }
+                editions.add(new TextEdit(debut + delta, "", cran));
+                delta += cran.length();
+            }
+            apres.add(new SelRange(plage.start() + cran.length(),
+                    plage.end() + delta));
+        }
+        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+    }
+
+    /**
+     * Shift+Tab (C1) : chaque ligne de la sélection perd UN cran
+     * d'indentation — au plus son indentation, jamais plus. Le
+     * caret vide retire le cran qui précède la coupe.
+     *
+     * @param doc       le document, jamais muté
+     * @param selection la sélection courante
+     * @param style     le style d'indentation de l'hôte
+     * @return le plan du geste
+     */
+    public static EditPlan untab(Document doc, MultiSelection selection,
+            IndentStyle style) {
+        List<TextEdit> editions = new ArrayList<>(selection.caretCount());
+        List<SelRange> apres = new ArrayList<>(selection.caretCount());
+        int delta = 0;
+        for (SelRange plage : selection.ranges()) {
+            if (plage.isEmpty()) {
+                int ligne = doc.lineForOffset(plage.caret());
+                String blancs = IndentEngine.leadingWhitespace(
+                        doc.lineText(ligne));
+                int retire = Math.min(Math.max(1, style.width()),
+                        Math.min(blancs.length(),
+                                plage.caret() - doc.lineStart(ligne)));
+                if (retire <= 0) {
+                    apres.add(SelRange.caretAt(plage.caret() + delta));
+                    continue;
+                }
+                editions.add(new TextEdit(plage.caret() - retire + delta,
+                        doc.subText(plage.caret() - retire, plage.caret()), ""));
+                apres.add(SelRange.caretAt(plage.caret() - retire + delta));
+                delta -= retire;
+                continue;
+            }
+            int premiereLigne = doc.lineForOffset(plage.start());
+            int derniereLigne = doc.lineForOffset(
+                    plage.end() - (plage.end() > plage.start() ? 1 : 0));
+            int retraitTotal = 0;
+            int retraitDebut = 0;
+            for (int ligne = premiereLigne; ligne <= derniereLigne; ligne++) {
+                String texte = doc.lineText(ligne);
+                String blancs = IndentEngine.leadingWhitespace(texte);
+                int retire = Math.min(style.width(), blancs.length());
+                if (retire <= 0) {
+                    continue;
+                }
+                editions.add(new TextEdit(doc.lineStart(ligne) + delta,
+                        texte.substring(0, retire), ""));
+                delta -= retire;
+                retraitTotal += retire;
+                if (ligne == premiereLigne) {
+                    retraitDebut = Math.min(retire,
+                            plage.start() - doc.lineStart(ligne));
+                }
+            }
+            apres.add(new SelRange(plage.start() - retraitDebut,
+                    plage.end() - retraitTotal));
+        }
+        return new EditPlan(Transaction.of(editions), MultiSelection.of(apres));
+    }
 }
