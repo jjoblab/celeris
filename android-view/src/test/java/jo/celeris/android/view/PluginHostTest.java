@@ -71,4 +71,29 @@ class PluginHostTest {
         }
         assertEquals(3, hote.journal().size());
     }
+
+    /** D13 (l'analyse croisée) : une extension qui s'enregistre
+     *  PENDANT l'exécution ne casse plus l'itération — la liste
+     *  d'écouteurs nue jetait ConcurrentModificationException ; la
+     *  copie du tour la rend sûre (l'inscription prendra effet au
+     *  tour suivant). */
+    @Test
+    void inscriptionPendantExecutionNeCassePasLeTour() {
+        PluginHost hote = new PluginHost();
+        List<String> peints = new ArrayList<>();
+        hote.enregistrer(image -> peints.add("premier:" + image));
+        // la 2e extension s'enregistre PENDANT son propre tour : la
+        // liste change sous les pieds de l'itérateur
+        hote.enregistrer(image -> {
+            peints.add("deuxieme:" + image);
+            hote.enregistrer(autre -> peints.add("tardif:" + autre));
+        });
+        boolean toutes = hote.executer("image-1");
+        assertTrue(toutes, "aucune défaillance");
+        assertEquals(List.of("premier:image-1", "deuxieme:image-1"), peints,
+                "le tour ne casse pas, la tardive attend le suivant");
+        // et l'image suivante sert la tardive
+        hote.executer("image-2");
+        assertTrue(peints.contains("tardif:image-2"));
+    }
 }

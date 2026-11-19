@@ -22,6 +22,8 @@ import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.text.TextSession;
 
 import org.junit.Test;
+import jo.celeris.android.widgets.SearchBarModel;
+
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -129,9 +131,14 @@ public class CelerisEditorTest {
                 editeur.popups());
         assertNull("la façade fermée ne rend plus de session",
                 editeur.session());
-        editeur.open("Autre.java", SOURCE);
-        assertNull("open() après close() ne fait rien",
-                editeur.session());
+        // D12 : la façade fermée PARLE — l'open lève IllegalStateException
+        try {
+            editeur.open("Autre.java", SOURCE);
+            org.junit.Assert.fail("l'open après close doit lever");
+        } catch (IllegalStateException attendu) {
+            assertNull("la session reste muette après le refus",
+                    editeur.session());
+        }
         assertTrue("la session survit à la fermeture (l'hôte la garde)",
                 session.document().text().contains("Premiere"));
     }
@@ -299,8 +306,14 @@ public class CelerisEditorTest {
         vue.addViewportChangeListener(() -> avisApres[0]++);
         assertNotNull("la vue close garde un écouteur d'hôte vivant",
                 vue);
-        editeur.open("Autre.java", SOURCE);
-        assertNull("la façade close reste muette", editeur.session());
+        // D12 : la façade fermée PARLE — l'open d'après close lève
+        // au lieu de laisser l'hôte devant un écran vide silencieux.
+        try {
+            editeur.open("Autre.java", SOURCE);
+            org.junit.Assert.fail("l'open après close doit lever");
+        } catch (IllegalStateException attendu) {
+            assertNull("la façade close reste muette", editeur.session());
+        }
     }
 
     /** T4 (ADR-0022, phase 2) : les déclencheurs popups sont branchés
@@ -424,5 +437,51 @@ public class CelerisEditorTest {
         assertTrue("rouvrir le même document d'affilée ne recrée rien",
                 editeur.popups() == orchestrateurDuRetour);
         editeur.close();
+    }
+
+    /** C10 (l'analyse croisée) : la barre de recherche de la façade
+     *  VIT avec le document — les occurrences suivent la frappe, la
+     *  barre suit le changement d'onglet, le remplacement courant
+     *  passe par la voie de transaction, et close() la détache. */
+    @Test
+    public void laBarreDeRechercheVitAvecLeDocument() {
+        EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
+        PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
+        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
+        editeur.open("Main.java", SOURCE);
+
+        SearchBarModel barre = editeur.search();
+        barre.setQuery("void");
+        assertEquals("les occurrences vivent", 1, barre.matches().size());
+        // une édition AJOUTE une occurrence : la barre le voit seule
+        editeur.session().replaceRange(0, 0, "// void\n");
+        assertEquals("le recalcul part à l'édition",
+                2, barre.matches().size());
+        // le remplacement courant traverse la transaction (annulable) :
+        // l'occurrence visée est celle de la méthode, pas du commentaire
+        int offsetMethode = editeur.session().document().text().indexOf("void methode");
+        barre.setCurrentNear(offsetMethode);
+        assertTrue(barre.replaceCurrent("int"));
+        assertTrue(editeur.session().document().text().contains("int methode"));
+
+        // le changement d'onglet : la MÊME barre suit la session neuve
+        editeur.open("Autre.java", "void autre()\n");
+        assertEquals("la barre suit l'onglet ouvert", 1, barre.matches().size());
+        assertTrue("la même instance sert l'autre document",
+                editeur.search() == barre);
+        editeur.close();
+    }
+
+    /** D12 (l'analyse croisée) : la façade fermée PARLE — open()
+     *  après close() lève IllegalStateException au lieu de laisser
+     *  l'hôte devant un écran vide sans signal. */
+    @Test(expected = IllegalStateException.class)
+    public void openApresCloseLeve() {
+        EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
+        PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
+        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
+        editeur.open("Main.java", SOURCE);
+        editeur.close();
+        editeur.open("Main.java", SOURCE); // avant : silence, écran vide
     }
 }

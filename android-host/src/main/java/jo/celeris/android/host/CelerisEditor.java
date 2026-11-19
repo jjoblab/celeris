@@ -10,6 +10,7 @@ import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.core.language.LanguageKit;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.text.TextSession;
+import jo.celeris.android.widgets.SearchBarModel;
 
 import org.jspecify.annotations.Nullable;
 
@@ -164,6 +165,9 @@ public final class CelerisEditor {
     private @Nullable PopupsEditeur popups;
     private @Nullable TextSession session;
     private @Nullable LanguageSupport langue;
+    /** La barre de recherche vivante (C10) — une seule pour la
+     *  façade, rebasculée à chaque ouverture de document. */
+    private @Nullable SearchBarModel barre;
     /** Le compteur des ouvertures — la pose différée d'une langue ne
      *  sert que l'ouverture TOUJOURS courante (une ouverture plus
      *  récente l'a dépassée). */
@@ -221,7 +225,22 @@ public final class CelerisEditor {
      */
     public void open(String fileName, String text) {
         if (fermee) {
-            return;
+            // D12 (l'analyse croisée) : la façade fermée PARLE — le
+            // silence laissait l'hôte devant un écran vide sans
+            // signal ; l'exception dit ce qui arrive.
+            throw new IllegalStateException("editor closed");
+        }
+        // D2 : le zoom se souvient par fichier — la taille du
+        // document quitté s'y archive, celui qui arrive y retrouve
+        // la sienne (ou garde la courante si inconnu : la taille
+        // par défaut au premier tour).
+        memoriserTailleDuDocumentCourant();
+        documentCourant = fileName;
+        Float tailleConnue = taillesParFichier.get(fileName);
+        float tailleAPoser = tailleConnue != null
+                ? tailleConnue : TAILLE_PAR_DEFAUT;
+        if (Math.abs(tailleAPoser - settings.fontSizeSp()) > 0.001f) {
+            settings.setFontSizeSp(tailleAPoser);
         }
         ouvertureEnCours++;
         final int numeroOuverture = ouvertureEnCours;
@@ -248,6 +267,15 @@ public final class CelerisEditor {
         // façade fermée jusqu'à l'exécution du post.
         PopupsEditeur orchestrateurPose = popups;
         vue.post(orchestrateurPose::rafraichirMontage);
+    }
+
+    /** D2 : archive la taille courante sous le nom du document
+     *  affiché — appelée juste avant chaque ouverture. */
+    private void memoriserTailleDuDocumentCourant() {
+        if (documentCourant != null && settings != null) {
+            taillesParFichier.put(documentCourant,
+                    settings.fontSizeSp());
+        }
     }
 
     /** Le document à afficher (le retour terrain du 2026-11-19) :
@@ -297,6 +325,12 @@ public final class CelerisEditor {
     private void poserSurLaScene(String fileName, TextSession ouverte,
             int numeroOuverture, String nomOuvert) {
         vue.setSession(ouverte, langue);
+        // C10 : la barre de recherche suit la session ouverte — les
+        // occurrences d'un document ne fuient jamais sur l'autre, et
+        // la barre vit avec les éditions (recalcul à la frappe).
+        if (barre != null) {
+            barre.setSession(ouverte);
+        }
         documents.put(fileName, new DocumentOuvert(ouverte, langue));
         if (langue == null && !langues.estPret()) {
             poserLaLangueDesQueLeRegistreVit(nomOuvert, ouverte, numeroOuverture);
@@ -326,6 +360,22 @@ public final class CelerisEditor {
      *  Vidés à close(), jamais par les changements d'onglet. */
     private final java.util.Map<String, DocumentOuvert> documents =
             new java.util.HashMap<>();
+
+    /** D2 (l'analyse croisée) : la taille de police se SOUVIENT par
+     *  fichier — le changement d'onglet ne la remet plus à zéro ; le
+     *  document rouvre à SA taille, la taille courante sinon. Vidée
+     *  à close(). */
+    private final java.util.Map<String, Float> taillesParFichier =
+            new java.util.HashMap<>();
+
+    /** Le nom du document actuellement affiché (D2) — null avant la
+     *  première ouverture et après close(). */
+    private @Nullable String documentCourant;
+
+    /** La taille par défaut de la vue (D2) : celle d'un fichier
+     *  ouvert pour la première fois — miroir de la police logique
+     *  par défaut de l'éditeur. */
+    private static final float TAILLE_PAR_DEFAUT = 14f;
 
     /**
      * Monte l'orchestrateur des popups à la première ouverture — le
@@ -446,6 +496,34 @@ public final class CelerisEditor {
      * ses fils d'analyse s'éteignent, C1/C2), la façade devient
      * muette. Idempotent — le second appel ne fait rien.
      */
+    /**
+     * La barre de recherche (C10, l'analyse croisée) : vivante sur la
+     * session courante — les occurrences suivent les éditions, la
+     * navigation circulaire s'y sert, le remplacement courant passe
+     * par la voie de transaction (annulable), et les signaux du
+     * moteur ({@code isTruncated()} / {@code isTooCostly()})
+     * remontent à l'interface. La MÊME barre sert tous les documents
+     * de la façade : chaque {@link #open(String, String)} la
+     * rebascule sur la session ouverte.
+     *
+     * @return la barre de recherche de l'éditeur
+     */
+    public SearchBarModel search() {
+        if (fermee) {
+            throw new IllegalStateException("editor closed");
+        }
+        if (session == null) {
+            throw new IllegalStateException("no document open");
+        }
+        if (barre == null) {
+            // horloge session en ns → le moteur de recherche veut
+            // des ms (conversion à la frontière, comme replaceAll)
+            barre = new SearchBarModel(session,
+                    () -> System.nanoTime() / 1_000_000L);
+        }
+        return barre;
+    }
+
     public void close() {
         if (fermee) {
             return;
@@ -458,6 +536,10 @@ public final class CelerisEditor {
             orchestrateur.detacher();
         }
         popups = null;
+        if (barre != null) {
+            barre.close();
+        }
+        barre = null;
         vue.release();
         session = null;
         langue = null;
@@ -465,5 +547,7 @@ public final class CelerisEditor {
         // sessions parquées de la vue aussi (release() ferme ses
         // moteurs) — aucun document ne survit à l'éditeur fermé.
         documents.clear();
+        taillesParFichier.clear();
+        documentCourant = null;
     }
 }

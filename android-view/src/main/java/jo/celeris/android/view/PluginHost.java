@@ -70,7 +70,11 @@ public final class PluginHost {
      */
     public boolean executer(String image) {
         boolean toutes = true;
-        for (Extension extension : extensions) {
+        // D13 (l'analyse croisée) : la copie du tour — une extension
+        // qui s'enregistre PENDANT l'exécution ne casse plus
+        // l'itération (ConcurrentModificationException) ; son tour
+        // viendra à l'image suivante.
+        for (Extension extension : List.copyOf(extensions)) {
             try {
                 extension.executer(image);
             } catch (RuntimeException echec) {

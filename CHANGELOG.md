@@ -5,6 +5,30 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.3] — 2026-11-20
+
+### Recherche vivante, occurrences et durcissements (sessions 18-19)
+
+- **La barre de recherche vit avec le document** (C-10) : posée sur
+  la session, les occurrences suivent la frappe au lieu de périmer à
+  la première édition ; l'occurrence courante se remplace par la voie
+  de transaction (annulable) ; les signaux `truncated`/`tooCostly`
+  du moteur remontent à l'hôte ; la façade expose `search()` — la
+  même barre suit les changements d'onglet.
+- **Le mot au caret s'allume** (C-11) : la couche d'occurrences
+  voile les exemplaires entiers du mot courant (teinte de sélection
+  à l'alpha 0x33, sous la sélection) — `setOccurrencesVisibles`
+  arme le voile, muet par défaut.
+- **La vue survit à `setSession(null)`** (D-11) : null vide la vue
+  (l'onglet fermé) au lieu de craser au premier écouteur.
+- **La façade fermée parle** (D-12) : `open()` après `close()` lève
+  `IllegalStateException` — plus d'écran vide silencieux.
+- **Le zoom se souvient par fichier** (D-02) : le changement d'onglet
+  ne remet plus la taille à zéro, chaque document rouvre à la sienne.
+- **Une extension peut s'enregistrer en plein tour** (D-13) :
+  l'itération des plugins court sur une copie — plus de
+  `ConcurrentModificationException`.
+
 ## [2.2.2] — 2026-11-19
 
 ### Correctifs de l'analyse croisée, suite (session 16)
