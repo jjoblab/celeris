@@ -170,18 +170,40 @@ public final class LanguageKit {
                 return;
             }
             assemblageLance = true;
-            final CountDownLatch fin = new CountDownLatch(1);
-            finAssemblage = fin;
-            executor.execute(() -> {
+            finAssemblage = partirAssemblage();
+        }
+    }
+
+    /** Part l'assemblage sur l'exécuteur et rend SON compte à
+     *  rebours — l'appelant tient le verrou du kit (assemblageLance
+     *  vient d'être posé). L'échec d'assemblage ne tue JAMAIS le kit
+     *  (le retour terrain du 2026-11-19 : le fil d'assemblage mort
+     *  par exception laissait le latch armé à vie — chaque
+     *  résolution patientait 120 s puis lisait un registre vide).
+     *  L'exception part au consommateur d'erreurs comme un paquet
+     *  fautif, le compte à rebours vit en finally : la résolution
+     *  repart sur le registre posé (vide au pire), jamais sur un
+     *  latch mort. */
+    private CountDownLatch partirAssemblage() {
+        final CountDownLatch fin = new CountDownLatch(1);
+        executor.execute(() -> {
+            try {
                 LanguageRegistry assemble = assemblerSurCeFil();
                 synchronized (LanguageKit.this) {
                     if (registre == null) {
                         registre = assemble;
                     }
                 }
+            } catch (RuntimeException echec) {
+                Consumer<Exception> rapporteur = reporter;
+                if (rapporteur != null) {
+                    rapporteur.accept(echec);
+                }
+            } finally {
                 fin.countDown();
-            });
-        }
+            }
+        });
+        return fin;
     }
 
     /**
@@ -256,17 +278,7 @@ public final class LanguageKit {
                 // le même verrou pour POSER le registre — verrou mort
                 // de 30 s, puis registre vide, aucune langue).
                 assemblageLance = true;
-                final CountDownLatch fin = new CountDownLatch(1);
-                finAssemblage = fin;
-                executor.execute(() -> {
-                    LanguageRegistry assemble = assemblerSurCeFil();
-                    synchronized (LanguageKit.this) {
-                        if (registre == null) {
-                            registre = assemble;
-                        }
-                    }
-                    fin.countDown();
-                });
+                finAssemblage = partirAssemblage();
             }
             aAttendre = finAssemblage;
         }

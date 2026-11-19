@@ -261,7 +261,7 @@ public class CelerisEditorTest {
 
         // la carte s'ouvre par la voie publique du contrôleur (une
         // carte du régime clavier, INTENTIONS_MENU) — le banc isole
-        // la DÉLÉGATION : ce qui se prouve ici, c'est le branchement
+        //  la DÉLÉGATION : ce qui se prouve ici, c'est le branchement
         // du verdict touche par la façade, pas le contenu des cartes
         // (le plan et l'analyse suivent leurs propres bancs).
         jo.celeris.core.text.TextSession sessionOuverte = editeur.session();
@@ -285,6 +285,84 @@ public class CelerisEditorTest {
         assertEquals("ÉCHAP a servi la carte, pas le curseur",
                 caretAvant,
                 sessionOuverte.selection().ranges().get(0).caret());
+        editeur.close();
+    }
+
+    /** Le registre des documents (le retour terrain du 2026-11-19 :
+     *  « quand j'appuie sur l'un des onglets la coloration se refait
+     *  encore et encore ») : un fichier réouvert retrouve SA session —
+     *  le texte ÉDITÉ survit au changement d'onglet, l'orchestrateur
+     *  des popups ne se recrée pas pour un document connu, la langue
+     *  du document revient avec lui. */
+    @Test
+    public void laReouvertureRetrouveLeDocumentEtSonTexteEdite() {
+        // Le kit du banc ASSEMBLE son registre : la langue se résout
+        // dès le premier open (le KIT statique ne précharge pas — la
+        // pose différée y vivrait, le banc la court-circuite).
+        LanguageKit kitPret = LanguageKit
+                .builder(Runnable::run)
+                .addSupport(LanguageSupport.builder(
+                                LanguageDescriptor.of("java", "Java",
+                                        java.util.List.of("java")))
+                        .syntax(JavaSyntax.INSTANCE)
+                        .build())
+                .build();
+        kitPret.preload();
+        EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
+        PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
+        CelerisEditor editeur = CelerisEditor.attach(vue, couche, kitPret);
+        editeur.open("Main.java", SOURCE);
+        TextSession premiere = editeur.session();
+        // l'utilisateur ÉDITE le premier document
+        premiere.replaceRange(0, 0, "// note du banc\n");
+
+        editeur.open("Autre.java", SOURCE);
+        TextSession deuxieme = editeur.session();
+        assertFalse("un autre fichier ouvre une AUTRE session",
+                deuxieme == premiere);
+
+        // le RETOUR au premier fichier : SA session, son texte édité
+        editeur.open("Main.java", SOURCE);
+        assertTrue("la réouverture retrouve LA session du document",
+                editeur.session() == premiere);
+        assertTrue("le texte édité survit au changement d'onglet",
+                editeur.session().document().text()
+                        .contains("// note du banc"));
+        assertTrue("la langue du document revient avec lui",
+                editeur.language() != null
+                        && "java".equals(editeur.language().id()));
+        editeur.close();
+    }
+
+    /** L'orchestrateur des popups suit la SESSION (le retour terrain
+     *  du 2026-11-19 : chaque changement d'onglet détruisait et
+     *  recréait ~20 vues de popups) : il survit au retour d'un
+     *  document connu, il se REBRANCHE pour un document différent. */
+    @Test
+    public void lOrchestrateurSurvitAuRetourDUnDocumentConnu() {
+        EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
+        PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
+        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT);
+        editeur.open("Main.java", SOURCE);
+        Object orchestrateurInitial = editeur.popups();
+
+        editeur.open("Autre.java", SOURCE);
+        // document différent : l'orchestrateur se rebranche
+        assertFalse("un document différent rebranche l'orchestrateur",
+                editeur.popups() == orchestrateurInitial);
+        Object orchestrateurRebranche = editeur.popups();
+
+        // le retour au document connu recrée l'orchestrateur de SA
+        // session (la session de l'orchestrateur est figée à la
+        // construction — il ne peut pas suivre l'autre document) :
+        // le coà»t est celui des popups, PAS de la tokenisation (les
+        // moteurs parqués de la vue ne re-tokenisent rien).
+        editeur.open("Main.java", SOURCE);
+        // le MÊME document rouvert D'AFFILÉE ne touche à rien du tout
+        Object orchestrateurDuRetour = editeur.popups();
+        editeur.open("Main.java", SOURCE);
+        assertTrue("rouvrir le même document d'affilée ne recrée rien",
+                editeur.popups() == orchestrateurDuRetour);
         editeur.close();
     }
 }

@@ -207,10 +207,17 @@ public final class CelerisEditor {
      * résout du nom de fichier (null sans langage : l'édition reste
      * entière, la coloration seule se tait) et se pose sur la vue ;
      * l'orchestrateur des popups se (re)branche sur la session vivante.
+     * Un fichier RÉOUVERT retrouve SA session (le retour terrain du
+     * 2026-11-19 : « quand j'appuie sur l'un des onglets la
+     * coloration se refait encore et encore » — chaque open()
+     * reconstruisait session, moteur d'analyse et popups ; le dépôt
+     * de départ gardait la coloration DANS la session du document).
+     * Le document déjà ouvert revient avec son texte ÉDITÉ et sa
+     * langue ; le texte passé ne se lit que pour un document NEUF.
      * Sans effet après {@link #close()}.
      *
      * @param fileName le nom du fichier ouvert (langue détectée)
-     * @param text     le texte initial du document
+     * @param text     le texte initial du document (neuf seul)
      */
     public void open(String fileName, String text) {
         if (fermee) {
@@ -219,19 +226,10 @@ public final class CelerisEditor {
         ouvertureEnCours++;
         final int numeroOuverture = ouvertureEnCours;
         final String nomOuvert = fileName;
-        final TextSession ouverte = TextSession.of(text, System::nanoTime);
-        // La langue SANS ATTENDRE (la revue du propriétaire du
-        // 2026-11-19 : l'ouverture bloquait le fil de l'interface le
-        // temps de l'assemblage des paquets — l'écran restait noir) :
-        // null tant que le registre s'assemble, la langue arrive dès
-        // qu'il vit, la vue reste éditable sans coloration entre-temps.
-        langue = langues.languageForSiPret(fileName);
-        session = ouverte;
-        vue.setSession(ouverte);
-        vue.setLanguage(langue);
-        if (langue == null && !langues.estPret()) {
-            poserLaLangueDesQueLeRegistreVit(nomOuvert, ouverte, numeroOuverture);
-        }
+        DocumentOuvert document = documentAAfficher(fileName, text);
+        langue = document.langue;
+        session = document.session;
+        poserSurLaScene(fileName, document.session, numeroOuverture, nomOuvert);
         monterOrchestrateurSiAbsent();
         // Le nom du fichier : le filtre des diagnostics s'y fait.
         popups.setNomFichier(fileName);
@@ -252,6 +250,83 @@ public final class CelerisEditor {
         });
     }
 
+    /** Le document à afficher (le retour terrain du 2026-11-19) :
+     *  un fichier ouvert garde SA session — la réouverture (le
+     *  changement d'onglet du démo) la RETROUVE, le moteur parqué de
+     *  la vue ressert sa tokenisation, le texte ÉDITÉ survit à
+     *  l'absence. La clé est le nom : le démo rouvre par nom de
+     *  fichier, comme tout hôte à onglets. Un document NEUF naît du
+     *  texte ; sa langue se résout SANS ATTENDRE (null tant que le
+     *  registre s'assemble, la revue du propriétaire du 2026-11-19).
+     *
+     * @param fileName le nom du fichier (clé du registre)
+     * @param text     le texte initial (document neuf seul)
+     * @return le document à afficher : sa session et sa langue
+     */
+    private DocumentOuvert documentAAfficher(String fileName, String text) {
+        DocumentOuvert connu = documents.get(fileName);
+        if (connu != null) {
+            // La langue du document REVIENT — et se RETENTE si elle
+            // manquait : le document fut ouvert avant l'assemblage du
+            // registre, la pose différée d'alors peut être morte avec
+            // la scène ; le registre vit maintenant, la résolution
+            // est immédiate.
+            return connu.langue != null
+                    ? connu
+                    : new DocumentOuvert(connu.session,
+                            langues.languageForSiPret(fileName));
+        }
+        return new DocumentOuvert(
+                TextSession.of(text, System::nanoTime),
+                langues.languageForSiPret(fileName));
+    }
+
+    /** Pose le document sur la scène : la pose COMBINÉE rattache le
+     *  document UNE fois avec SA langue (plus jamais la langue de
+     *  l'onglet précédent — l'ancienne pose séparée tokenisait deux
+     *  fois, trois quand la langue arrivait en retard), le registre
+     *  des documents s'y souvient de lui, la langue manquante se
+     *  pose dès que le registre vit (ou se déclare définitivement
+     *  absente).
+     *
+     * @param fileName       le nom du fichier ouvert (clé du registre)
+     * @param ouverte        la session du document (trouvée ou neuve)
+     * @param numeroOuverture le numéro d'ordre de l'ouverture courante
+     * @param nomOuvert      le nom capturé pour la pose différée
+     */
+    private void poserSurLaScene(String fileName, TextSession ouverte,
+            int numeroOuverture, String nomOuvert) {
+        vue.setSession(ouverte, langue);
+        documents.put(fileName, new DocumentOuvert(ouverte, langue));
+        if (langue == null && !langues.estPret()) {
+            poserLaLangueDesQueLeRegistreVit(nomOuvert, ouverte, numeroOuverture);
+        }
+        if (langue == null && langues.estPret()) {
+            // Le registre vit et le document n'a TOUJOURS pas de
+            // langue : l'extension n'est pas résolue — le document
+            // reste sans coloration (langue null), le registre le
+            // dit définitivement.
+            documents.put(fileName, new DocumentOuvert(ouverte, null));
+        }
+    }
+
+    /** Un document ouvert : sa session (le texte édité vit dedans) et
+     *  sa langue résolue — la réouverture les retrouve tous deux. */
+    private static final class DocumentOuvert {
+        private final TextSession session;
+        private final @Nullable LanguageSupport langue;
+
+        DocumentOuvert(TextSession session, @Nullable LanguageSupport langue) {
+            this.session = session;
+            this.langue = langue;
+        }
+    }
+
+    /** Les documents ouverts par la façade — un par nom de fichier.
+     *  Vidés à close(), jamais par les changements d'onglet. */
+    private final java.util.Map<String, DocumentOuvert> documents =
+            new java.util.HashMap<>();
+
     /**
      * Monte l'orchestrateur des popups à la première ouverture — le
      * remplacement d'un document referme l'orchestrateur courant
@@ -260,12 +335,18 @@ public final class CelerisEditor {
      * posent, le coach langue et le nom du fichier s'y servent.
      */
     private void monterOrchestrateurSiAbsent() {
-        if (ouvertureEnCours > 1 && popups != null) {
-            popups.detacher();
-            popups = null;
+        // L'orchestrateur suit la SESSION (le retour terrain du
+        // 2026-11-19 : chaque changement d'onglet détruisait et
+        // recréait ~20 vues de popups) : il survit au retour d'un
+        // document CONNU (même session — ses composants la capturent
+        // à la construction, elle ne se fige plus au mauvais
+        // document), un document DIFFÉRENT le rebranche proprement.
+        if (popups != null && popups.session() == session) {
+            return;
         }
         if (popups != null) {
-            return;
+            popups.detacher();
+            popups = null;
         }
         popups = new PopupsEditeur(vue, session, couche,
                 settings.theme(), settings.fontSizeSp());
@@ -294,6 +375,11 @@ public final class CelerisEditor {
                         && session == ouverte && resolue != null) {
                     langue = resolue;
                     vue.setLanguage(resolue);
+                    // Le registre suit : la langue servie appartient AU
+                    // document — sa réouverture la retrouvera sans
+                    // attendre le registre de langues.
+                    documents.put(nomOuvert,
+                            new DocumentOuvert(ouverte, resolue));
                     PopupsEditeur orchestrateur = popups;
                     if (orchestrateur != null) {
                         orchestrateur.setLangue(resolue);
@@ -368,5 +454,9 @@ public final class CelerisEditor {
         vue.release();
         session = null;
         langue = null;
+        // Le registre des documents meurt avec la façade : les
+        // sessions parquées de la vue aussi (release() ferme ses
+        // moteurs) — aucun document ne survit à l'éditeur fermé.
+        documents.clear();
     }
 }

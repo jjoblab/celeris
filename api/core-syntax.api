@@ -159,6 +159,8 @@ public final class jo.celeris.core.syntax.MoteurAnalyse implements jo.celeris.co
   public synchronized void fenetre(int, int);
   public void reanalyser();
   public synchronized jo.celeris.core.syntax.Analysis analysePubliee();
+  public jo.celeris.core.text.TextSession session();
+  public jo.celeris.core.syntax.LanguageSyntax language();
   public synchronized jo.celeris.core.syntax.Analysis analyseDeRevision(long);
   public synchronized void ajouterAuditeur(java.util.function.Consumer<jo.celeris.core.syntax.Analysis>);
   public synchronized void retirerAuditeur(java.util.function.Consumer<jo.celeris.core.syntax.Analysis>);
@@ -232,6 +234,7 @@ public final class jo.celeris.core.syntax.SyntaxIssue extends java.lang.Record {
 ### jo.celeris.core.syntax.SyntaxService
 Compiled from "SyntaxService.java"
 public final class jo.celeris.core.syntax.SyntaxService {
+  public jo.celeris.core.syntax.LanguageSyntax language();
   public static jo.celeris.core.syntax.SyntaxService of(jo.celeris.core.syntax.LanguageSyntax);
   public jo.celeris.core.syntax.Analysis analyseFull(jo.celeris.core.text.Document);
   public jo.celeris.core.syntax.Analysis analyseFenetre(jo.celeris.core.text.Document, int, int, jo.celeris.core.syntax.TokenCancellation);

@@ -30,6 +30,36 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [2.2.0] — 2026-11-19 (en cours)
 
+### Le retour terrain du 2026-11-19 (d) : la coloration ne se refait plus jamais
+
+- **La tokenisation appartient AU document** (le modèle du dépôt
+  de départ) : le moteur d'analyse de la session quittée se PARQUE
+  dans le pont de syntaxe avec sa publication — une session revenue
+  le retrouve et ne re-tokenise RIEN (`EditorSyntax`, banc
+  `ParcMoteursTest`). La pose combinée `setSession(session, langue)`
+  rattache le document UNE fois avec SA langue (l'ancienne pose
+  séparée tokenisait avec la langue de l'onglet précédent,
+  puis re-tokenisait — deux passes par changement d'onglet, trois
+  quand la langue arrivait en retard) ; `setLanguage` devient
+  idempotent.
+- **La façade garde les documents ouverts** : `CelerisEditor.open()`
+  retrouve la session d'un fichier RÉOUVERT — le texte édité
+  survit au changement d'onglet, la langue revient avec lui, le
+  serveur ne se rebranche que pour la pose courante (bancs
+  `CelerisEditorTest` : réouverture, orchestrateur).
+- **Le latch d'assemblage ne meurt plus** : une source qui jette
+  pendant l'assemblage laissait le compte à rebours armé à vie
+  — chaque résolution patientait 120 s puis lisait un registre
+  vide pour toujours. L'échec part au consommateur d'erreurs, le
+  finally libère le latch (banc `uneSourceQuiJetteNeBloquePasLaResolution`).
+- **L'exemple ne s'empile plus** : UN écouteur d'onglets posé au
+  montage (les rafraîchissements successifs empilaient les
+  écouteurs, chaque pression redéclenchait l'activation), la
+  sonde de langue PATIENTE tant que le registre s'assemble (elle
+  abandonnait à 3 s et journalisait « le registre n'a pas
+  résolu » pendant que l'assemblage courait encore), la poseuse
+  LSP capture la session à la pose et journalise son échec.
+
 ### Le retour terrain du 2026-11-19 (c) : la démo sur de vrais layouts
 
 - **L'exemple passe aux layouts XML Material 3** : tiroir

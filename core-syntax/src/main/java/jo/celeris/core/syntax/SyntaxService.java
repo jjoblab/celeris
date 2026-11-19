@@ -25,6 +25,12 @@ public final class SyntaxService {
      * @param language le langage (lexeur et parseur)
      * @return le service prêt à analyser
      */
+    /** Le langage servi — le moteur l'expose, la vue y reconnaît
+     *  le moteur de la langue courante (parquage par document). */
+    public LanguageSyntax language() {
+        return language;
+    }
+
     public static SyntaxService of(LanguageSyntax language) {
         return new SyntaxService(language);
     }

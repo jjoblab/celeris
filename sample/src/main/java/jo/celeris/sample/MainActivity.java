@@ -87,7 +87,7 @@ public final class MainActivity extends Activity {
         journal.ligne("montage prêt — l'assemblage court en fil démon");
         // L'ouverture de départ : le premier échantillon du drawer.
         ouvrir(Echantillons.tous().get(0));
-        sonderLangue(kit, 0);
+        sonderLangue(kit);
     }
 
     /** Monte le chargeur de paquets — l'assemblage ENTIER part sur
@@ -107,19 +107,25 @@ public final class MainActivity extends Activity {
         return kit;
     }
 
-    /** Journalise l'arrivée de la langue du fichier ouvert. */
-    private void sonderLangue(LanguageKit kit, int tentative) {
+    /** Journalise l'arrivée de la langue du fichier ouvert — la
+     *  sonde HONNÊTE : tant que le registre s'assemble, elle PATIENTE
+     *  (les 32 paquets prennent jusqu'à une minute sur un appareil
+     *  lent — l'abandon à trois secondes du retour terrain du
+     *  2026-11-19 journalisait un mensonge : « le registre n'a pas
+     *  résolu Salut.java » alors que l'assemblage courait encore) ;
+     *  le verdict ne tombe QUE quand le registre vit vraiment. */
+    private void sonderLangue(LanguageKit kit) {
         String nom = ouverts.get(ongletActif).nomFichier();
-        LanguageSupport langue = kit.languageForSiPret(nom);
-        if (langue != null || tentative > 15) {
-            journal.ligne(langue == null
-                    ? "langue : le registre n'a pas résolu " + nom
-                    : "langue résolue : " + langue.displayName()
-                            + " — coloration et mots réservés vivent");
+        if (!kit.estPret()) {
+            getWindow().getDecorView().postDelayed(
+                    () -> sonderLangue(kit), 500L);
             return;
         }
-        getWindow().getDecorView().postDelayed(
-                () -> sonderLangue(kit, tentative + 1), 200L);
+        LanguageSupport langue = kit.languageForSiPret(nom);
+        journal.ligne(langue == null
+                ? "langue : " + nom + " n'a pas de langage dans le registre"
+                : "langue résolue : " + langue.displayName()
+                        + " — coloration et mots réservés vivent");
     }
 
     /** Ouvre un échantillon : son onglet naît (ou se rappelle), le
@@ -136,7 +142,17 @@ public final class MainActivity extends Activity {
         journal.ligne("ouvert : " + echantillon.nomFichier());
         if (echantillon.nomFichier().endsWith(".java")) {
             SessionLspPoseuse.poser(this, editeur, echantillon.nomFichier(),
-                    () -> journal.ligne("mini serveur LSP branché"));
+                    new SessionLspPoseuse.Journal() {
+                        @Override
+                        public void run() {
+                            journal.ligne("mini serveur LSP branché");
+                        }
+
+                        @Override
+                        public void echec(String cause) {
+                            journal.ligne("pose LSP échouée : " + cause);
+                        }
+                    });
         }
         rafraichirOnglets();
     }
@@ -184,6 +200,26 @@ public final class MainActivity extends Activity {
         barreOutils.setNavigationOnClickListener(
                 v -> tiroirRacine.openDrawer(
                         androidx.core.view.GravityCompat.START));
+        // L'écouteur des onglets : UN seul, posé ICI au montage —
+        // jamais empilé par les rafraîchissements (le retour terrain
+        // du 2026-11-19 : chaque pression d'onglet redéclenchait
+        // l'activation par autant d'écouteurs empilés).
+        barreOnglets.addOnTabSelectedListener(
+                new TabLayout.OnTabSelectedListener() {
+
+                    @Override
+                    public void onTabSelected(TabLayout.Tab onglet) {
+                        activerOnglet(onglet.getPosition());
+                    }
+
+                    @Override
+                    public void onTabUnselected(TabLayout.Tab onglet) {
+                    }
+
+                    @Override
+                    public void onTabReselected(TabLayout.Tab onglet) {
+                    }
+                });
     }
 
     /** Le groupe du menu du tiroir — les identifiants stables des
@@ -210,7 +246,12 @@ public final class MainActivity extends Activity {
     // ── La barre d'onglets (TabLayout du haut) ────────────────────
 
     /** Re-pose les onglets de la barre : la sélection suit l'actif,
-     *  la croix ferme sans activer. */
+     *  la croix ferme sans activer. L'ÉCOUTEUR vit au montage
+     *  (monterTiroir) — il ne se pose PLUS ici : l'ancienne pose à
+     *  chaque rafraîchissement EMPILOIT les écouteurs, chaque
+     *  pression d'onglet redéclenchait l'activation autant de fois
+     *  que d'écouteurs survivants (le bug « ça bug quand j'appuie
+     *  sur l'onglet inactif » du retour terrain du 2026-11-19). */
     private void rafraichirOnglets() {
         barreOnglets.removeAllTabs();
         for (int i = 0; i < ouverts.size(); i++) {
@@ -220,22 +261,6 @@ public final class MainActivity extends Activity {
         }
         Echantillons.Echantillon actif = ouverts.get(ongletActif);
         barreOutils.setTitle(actif.nomFichier());
-        barreOnglets.addOnTabSelectedListener(
-                new TabLayout.OnTabSelectedListener() {
-
-                    @Override
-                    public void onTabSelected(TabLayout.Tab onglet) {
-                        activerOnglet(onglet.getPosition());
-                    }
-
-                    @Override
-                    public void onTabUnselected(TabLayout.Tab onglet) {
-                    }
-
-                    @Override
-                    public void onTabReselected(TabLayout.Tab onglet) {
-                    }
-                });
     }
 
     /** Pose la vue d'un onglet : le nom et sa croix de fermeture. */
@@ -280,7 +305,17 @@ public final class MainActivity extends Activity {
         editeur.open(echantillon.nomFichier(), echantillon.texte());
         if (echantillon.nomFichier().endsWith(".java")) {
             SessionLspPoseuse.poser(this, editeur, echantillon.nomFichier(),
-                    () -> journal.ligne("mini serveur LSP rebranché"));
+                    new SessionLspPoseuse.Journal() {
+                        @Override
+                        public void run() {
+                            journal.ligne("mini serveur LSP rebranché");
+                        }
+
+                        @Override
+                        public void echec(String cause) {
+                            journal.ligne("pose LSP échouée : " + cause);
+                        }
+                    });
         }
         rafraichirOnglets();
     }

@@ -94,6 +94,11 @@ public final class EditorSyntax {
     private @Nullable SyntaxCoordinator coordinateur;
     private @Nullable MoteurAnalyse moteur;
     private @Nullable MoteurSyntaxe moteurNativeVoie;
+    /** Le parc des moteurs détachés, un par session ouverte (le
+     *  retour terrain du 2026-11-19 : la tokenisation appartient AU
+     *  DOCUMENT — le moteur de la session quittée s'y parque, la
+     *  session revenue le retrouve avec sa publication). */
+    private final ParcMoteurs parc = new ParcMoteurs();
     private @Nullable Runnable surAnalysePrete;
 
     /** Les consommateurs 2.0 du plan — multiples (ADR-0022, phase
@@ -134,20 +139,56 @@ public final class EditorSyntax {
         this.executeur = executeur;
     }
 
-    /** Attache la session suivie : les plis de la précédente s'oublient —
-     *  un pli appartient à son document. */
+    /** Attache la session suivie : les plis de la précédente
+     *  s'oublient — un pli appartient à son document. La langue
+     *  RESTE celle posée (la voie historique : la vue rattache la
+     *  session seule, l'hôte pose la langue ensuite). */
     public void attacher(TextSession nouvelleSession) {
-        if (session != null) {
-            session.removeEditListener(ecouteurPlis);
+        attacher(nouvelleSession, langue);
+    }
+
+    /**
+     * Attache la session ET sa langue d'un seul geste (le retour
+     * terrain du 2026-11-19 : « la coloration se refait encore et
+     * encore à chaque affichage » — la pose séparée rattachait le
+     * document avec la langue de l'onglet PRÉCÉDENT, une tokenisation
+     * complète pour rien, aussitôt remplacée par la vraie). Le
+     * parquage fait le reste : une session revenue retrouve SON
+     * moteur et SA publication — la tokenisation vit avec le
+     * document (le modèle du dépôt de départ), jamais refaite.
+     *
+     * @param nouvelleSession la session d'édition à afficher
+     * @param nouvelleLangue  le support du langage du document, null
+     *                        pour aucun
+     */
+    public void attacher(TextSession nouvelleSession,
+            @Nullable LanguageSupport nouvelleLangue) {
+        TextSession precedente = session;
+        if (precedente != null) {
+            precedente.removeEditListener(ecouteurPlis);
         }
         session = nouvelleSession;
         session.addEditListener(ecouteurPlis);
         documentSuivi = session.document();
+        // Le parquage par session (le retour terrain du 2026-11-19) :
+        // la tokenisation appartient AU DOCUMENT. Le moteur de la
+        // session quittée se PARQUE sous ELLE avec sa publication —
+        // une session revenue le retrouve et ne re-tokenise RIEN (le
+        // dépôt de départ y gardait les styledLines dans la session).
+        moteur = parc.basculer(precedente, moteur, nouvelleSession,
+                fenetrePremiere, fenetreDerniere);
+        langue = nouvelleLangue;
+        syntaxeDuLangage =
+                nouvelleLangue == null ? null : nouvelleLangue.syntax();
         editionsEnAttente.clear();
         chaineRompue = false;
         guides = GuidesStructurels.VIDE;
         rattacher();
         suiviPlis.clear();
+        // Le plan de l'attachement : vide tant que la publication
+        // n'est pas relue (habiller pousse le vrai plan à la première
+        // rangée habillée) — le consommateur n'affiche jamais les
+        // entrées d'un document parti.
         pousserPlan(List.of());
     }
 
@@ -156,7 +197,10 @@ public final class EditorSyntax {
      * descripteur, configuration, source syntaxique, capacités) ;
      * null coupe l'analyse et vide la coulisse de marqueurs. La
      * source syntaxique du support nourrit l'analyse, sa
-     * configuration nourrit la frappe.
+     * configuration nourrit la frappe. La LANGUE inchangée ne
+     * re-rattache rien (le retour terrain du 2026-11-19 : chaque
+     * pose re-tokenisait le document entier — même langue, même
+     * document, même travail refait).
      *
      * @param nouvelleLangue le support du langage, null pour aucun
      */
@@ -263,9 +307,14 @@ public final class EditorSyntax {
         consommateursPlan.remove(consommateur);
     }
 
-    /** Referme le pont : les moteurs se détachent, la gouttière se vide. */
+    /** Referme le pont : les moteurs se détachent, le parc se vide,
+     *  la gouttière se vide. */
     public void fermer() {
         fermerMoteur();
+        // Le parc suit : les moteurs parqués des sessions détachées
+        // meurent tous — la vue qui ferme ne laisse AUCUN fil d'analyse
+        // vivant derrière elle (C2).
+        parc.toutFermer();
         if (session != null) {
             session.removeEditListener(ecouteurPlis);
         }
@@ -497,6 +546,15 @@ public final class EditorSyntax {
     }
 
     private void rattacher() {
+        // Le moteur revenu du PARC ne se referme pas (le retour
+        // terrain du 2026-11-19 : sa publication survit au
+        // détachement — la vue ne re-tokenise JAMAIS un document
+        // déjà analysé). La garde précède fermerMoteur : le moteur
+        // courant sert TOUJOURS la session courante ici (attacher a
+        // parqué l'ancien et repris le bon avant l'appel).
+        if (rattraperMoteurParque()) {
+            return;
+        }
         fermerMoteur();
         LanguageSyntax syntaxe = syntaxeDuLangage;
         // La voie tree-sitter (ADR-0024) : le pont ne connaît pas le
@@ -522,6 +580,30 @@ public final class EditorSyntax {
             moteur.ajouterAuditeur(analyse -> notifierAnalysePrete());
             moteur.reanalyser();
         }
+    }
+
+    /** Le moteur courant ressert la session et la langue courantes
+     *  (le retour terrain du 2026-11-19) : sa publication à jour ne
+     *  se rejoue PAS — le document inchangé depuis le détachement
+     *  revient coloré sans AUCUNE nouvelle passe ; seules les
+     *  éditions manquées pendant l'absence demandent un rattrapage.
+     *  Vrai quand le moteur a servi, faux quand il faut le refaire.
+     */
+    private boolean rattraperMoteurParque() {
+        boolean duDocument = moteur != null
+                && moteur.session() == session
+                && moteur.language() == syntaxeDuLangage;
+        if (!duDocument) {
+            return false;
+        }
+        moteur.ajouterAuditeur(analyse -> notifierAnalysePrete());
+        Analysis publiee = moteur.analysePubliee();
+        boolean aJour = publiee != null
+                && publiee.revision() == session.document().revision();
+        if (!aJour) {
+            moteur.reanalyser();
+        }
+        return true;
     }
 
     private void fermerMoteur() {

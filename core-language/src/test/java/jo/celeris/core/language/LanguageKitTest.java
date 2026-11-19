@@ -133,4 +133,30 @@ final class LanguageKitTest {
         assertTrue(resolu != null && "essai".equals(resolu.id()),
                 "le support écrit posé directement se résout");
     }
+
+    /** Une source qui JETTE ne laisse jamais le latch armé (le retour
+     *  terrain du 2026-11-19 : le fil d'assemblage mort par exception
+     *  laissait chaque résolution patienter le garde-fou entier puis
+     *  lire un registre vide à vie — l'exécuteur avalait l'exception,
+     *  le compte à rebours ne partait jamais). Ici la résolution
+     *  suivante doit rendre un registre VIDE sans attendre : le
+     *  finally du fil d'assemblage libère le latch même en échec. */
+    @Test
+    void uneSourceQuiJetteNeBloquePasLaResolution() {
+        PackSource sourceFautive = () -> {
+            throw new IllegalStateException("source morte du banc");
+        };
+        LanguageKit kit = LanguageKit.builder(DIRECT)
+                .grammarFactory(FABRIQUE)
+                .addSource(sourceFautive)
+                .build();
+        kit.preload();
+        long depart = System.nanoTime();
+        assertNull(kit.languageFor("Main.java"),
+                "la résolution rend null (registre vide), pas d'exception");
+        long ecouleMs = (System.nanoTime() - depart) / 1_000_000L;
+        assertTrue(ecouleMs < 2_000L,
+                "la résolution ne patiente pas le garde-fou (écoulé : "
+                        + ecouleMs + " ms)");
+    }
 }

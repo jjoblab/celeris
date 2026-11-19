@@ -363,6 +363,15 @@ pose ses actions remplace la rangée. Le
 chemin manuel reste documenté en § 9.2 (annexe avancée) pour qui
 assemble ses propres surfaces, hors façade.
 
+**Plusieurs fichiers, une façade** (le retour terrain du 2026-11-19) :
+`open()` SE SOUVIENT des documents ouverts — un fichier réouvert
+retrouve SA session (le texte édité survit au changement d’onglet),
+sa langue et sa coloration : le moteur d’analyse de la session
+quittée se parque dans le pont de la vue avec sa publication, la
+session revenue le retrouve et ne re-tokenise RIEN. Le changement
+d’onglet se réduit donc à rappeler `open(nom, texte)` — le texte ne
+sert qu’à la première ouverture du fichier.
+
 ### 4.3 Le premier montage en code (voie manuelle)
 
 ```java

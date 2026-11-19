@@ -144,6 +144,31 @@ public final class MoteurAnalyse implements MoteurSyntaxe {
     }
 
     /**
+     * La session suivie par le moteur — le parquage de la vue s'y
+     * reconnaît (un moteur DETACHÉ reste vivant pour son document,
+     * la vue le retrouve au retour de sa session ; le retour terrain
+     * du 2026-11-19 : la coloration ne se refait jamais).
+     *
+     * @return la session que le moteur analyse
+     */
+    public TextSession session() {
+        return session;
+    }
+
+    /**
+     * Le langage que le moteur analyse — la vue y reconnaît le
+     * moteur de la LANGUE courante : un moteur parqué ne revient du
+     * parc que pour le document ET la langue qui sont les siens (le
+     * retrait ou le changement de langue referme le moteur, la
+     * re-tokenisation ne se fait que là où elle est due).
+     *
+     * @return la syntaxe que le moteur sert
+     */
+    public LanguageSyntax language() {
+        return service.language();
+    }
+
+    /**
      * L'analyse publiée pour la révision demandée (MoteurSyntaxe,
      * ADR-0024) — null si la publication courante ne la sert pas
      * exactement : jamais le lexique d'une autre révision ne colore

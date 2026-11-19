@@ -277,25 +277,47 @@ public final class EditorView extends View {
      * @param nouvelleSession la session d'édition à afficher
      */
     public void setSession(TextSession nouvelleSession) {
+        setSession(nouvelleSession, syntaxe.language());
+    }
+
+    /**
+     * Affiche la session ET sa langue d'un seul geste (le retour
+     * terrain du 2026-11-19 : « la coloration se refait encore et
+     * encore à chaque affichage » — la pose séparée tokenisait le
+     * document neuf avec la langue de l'onglet PRÉCÉDENT, puis le
+     * re-tokenisait avec la bonne : DEUX passes par changement
+     * d'onglet, trois quand la langue arrivait en retard). La pose
+     * combinée rattache le document UNE fois, avec SA langue.
+     * Sans effet après {@link #release()}.
+     *
+     * @param nouvelleSession la session d'édition à afficher
+     * @param langue          le support du langage du document, null
+     *                        pour aucun
+     */
+    public void setSession(TextSession nouvelleSession,
+            @Nullable LanguageSupport langue) {
         if (liberee) {
             return;
         }
         session.removeEditListener(ecouteurAnnonce);
         session = nouvelleSession;
         session.addEditListener(ecouteurAnnonce);
-        syntaxe.attacher(session);
+        syntaxe.attacher(session, langue);
         images.reinitialiserScene(true);
     }
 
     /**
      * Branche le langage — le support complet (M7.6) : sa source donne
      * coloration, plis et diagnostics (B-01, A-15, D-02, D-07), sa
-     * configuration nourrit la frappe ; null coupe l'analyse. Sans
-     * effet après {@link #release()}.
+     * configuration nourrit la frappe ; null coupe l'analyse. La
+     * langue INCHANGÉE ne purge rien (le retour terrain du
+     * 2026-11-19 : chaque pose vidait le cache de mise en page et
+     * re-tokenisait le document — même langue, même travail refait).
+     * Sans effet après {@link #release()}.
      * @param nouvelleLangue le support du langage, null pour aucun
      */
     public void setLanguage(@Nullable LanguageSupport nouvelleLangue) {
-        if (liberee) {
+        if (liberee || nouvelleLangue == syntaxe.language()) {
             return;
         }
         syntaxe.setLanguage(nouvelleLangue);

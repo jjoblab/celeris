@@ -827,6 +827,15 @@ public final class PopupsEditeur {
         session.removeSelectionListener(ecouteurSelection);
     }
 
+    /** La session servie par l'orchestrateur — la façade y
+     *  reconnaît l'orchestrateur de la session courante (le
+     *  retour terrain du 2026-11-19 : l'orchestrateur survit au
+     *  retour d'un document connu, il ne se recrée QUE pour un
+     *  document différent). */
+    public TextSession session() {
+        return session;
+    }
+
     /** Pose le nom du fichier ouvert — le filtre des diagnostics s'y fait. */
     public void setNomFichier(String nom) {
         nomDuFichier = nom;
