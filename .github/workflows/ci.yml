@@ -9,7 +9,10 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    # La branche de travail vit dans la CI comme main : chaque poussée
+    # se prouve avant la fusion (le run rouge de la branche du
+    # 2026-11-18 n'avait aucun log — le YAML y était invalide).
+    branches: [main, chore/jitpack-et-integration]
   pull_request:
 
 permissions:
