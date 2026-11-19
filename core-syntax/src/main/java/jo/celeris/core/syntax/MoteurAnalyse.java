@@ -226,11 +226,28 @@ public final class MoteurAnalyse implements MoteurSyntaxe {
             if (ferme) {
                 return;
             }
-            Document avant = documentSuivi;
             Document apres = session.document();
-            if (publieDoc != null && publieDoc == avant && !cheminComplet
-                    && sites.isEmpty()) {
-                sites.add(EditSite.of(avant, apres, start, end, inserted));
+            Document avant = documentSuivi == null ? apres : documentSuivi;
+            // B-06 : la base reste publieDoc tant qu'aucune publication
+            // n'a eu lieu (publierSiCourant seul la change, en vidant
+            // les sites) — les sites en attente chaînent de publieDoc
+            // au document courant, chacun dérivé de son avant, le
+            // documentSuivi qui avance à chaque frappe. La chaîne se
+            // coupe seulement par cheminComplet (rejeu multi-pas).
+            if (publieDoc != null && !cheminComplet) {
+                EditSite site = EditSite.of(avant, apres, start, end, inserted);
+                // B-06 : la frappe rapide FUSIONNE ses sites — le
+                // lexing déjà fait sert de base, la plage cumulée se
+                // relit en une passe. La voie complète ne se reprend
+                // QUE si la base publiée a changé de document (rejeu
+                // d'annulation multi-pas) — jamais pour des sites qui
+                // s'enveloppent proprement.
+                EditSite dernier = sites.peekLast();
+                if (dernier == null) {
+                    sites.add(site);
+                } else {
+                    sites.add(dernier.enveloppe(site));
+                }
             } else {
                 cheminComplet = true;
                 sites.clear();
@@ -292,7 +309,10 @@ public final class MoteurAnalyse implements MoteurSyntaxe {
                 }
                 doc = cible;
                 base = cheminComplet ? null : publiee;
-                site = cheminComplet ? null : sites.poll();
+                // B-06 : les sites cumulés s'enveloppent — la
+                // DERNIÈRE couvre toutes les frappes en attente, les
+                // précédentes n'en sont que des préfixes.
+                site = cheminComplet ? null : sites.pollLast();
                 premiere = fenetrePremiere;
                 derniere = fenetreDerniere;
             }

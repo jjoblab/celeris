@@ -32,6 +32,24 @@ public record EditSite(int firstLine, int lastLine, int lineDelta) {
         return new EditSite(premiere, derniere, delta);
     }
 
+    /**
+     * L'enveloppe de deux sites cumulés (B-06, l'analyse croisée) :
+     * une deuxième frappe avant publication ne rejette pas la
+     * première — les plages fusionnent, de la première ligne à la
+     * dernière touchée, le décalage se cumule. Le dépôt de départ
+     * épisse ses pistes à CHAQUE édition ; ici les sites s'enveloppent
+     * tant qu'aucune publication n'a eu lieu entre eux.
+     *
+     * @param autre le site postérieur, dans les coordonnées du
+     *              document APRÈS ses éditions
+     * @return l'enveloppe des deux plages, le décalage cumulé
+     */
+    public EditSite enveloppe(EditSite autre) {
+        return new EditSite(Math.min(firstLine, autre.firstLine),
+                Math.max(lastLine, autre.lastLine),
+                lineDelta + autre.lineDelta);
+    }
+
     /** Vérifie la cohérence du site avec un lexique précédent, sinon refuse. */
     void verifier(int lignesPrecedentes, int lignesNouvelles) {
         if (firstLine < 0 || lastLine < firstLine) {
