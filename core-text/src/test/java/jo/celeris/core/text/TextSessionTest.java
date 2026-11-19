@@ -144,9 +144,9 @@ class TextSessionTest {
     void coalescenceTimeout_breaksTheChain() {
         long[] maintenant = {0L};
         TextSession session = TextSession.of("", () -> maintenant[0]);
-        maintenant[0] = 1_000L;
+        maintenant[0] = 1_000_000_000L;
         assertTrue(session.replaceRange(0, 0, "a"));
-        maintenant[0] = 1_000L + UndoStack.COALESCE_TIMEOUT_MS;
+        maintenant[0] = 1_000_000_000L + UndoStack.COALESCE_TIMEOUT_NS;
         assertTrue(session.replaceRange(1, 1, "b"));
         // Le délai de coalescence est expiré : deux étapes distinctes.
         assertEquals(2, session.undoDepth());

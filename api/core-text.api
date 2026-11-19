@@ -515,6 +515,7 @@ public final class jo.celeris.core.text.Transaction {
 Compiled from "UndoStack.java"
 public final class jo.celeris.core.text.UndoStack {
   public static final long COALESCE_TIMEOUT_MS;
+  public static final long COALESCE_TIMEOUT_NS;
   public jo.celeris.core.text.UndoStack(int, java.util.function.LongSupplier);
   public void pushStep(jo.celeris.core.text.UndoStep);
   public void armNextCoalesce(jo.celeris.core.text.TextEdit);

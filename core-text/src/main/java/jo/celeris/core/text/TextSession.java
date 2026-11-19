@@ -409,19 +409,19 @@ public final class TextSession {
      * (groupes {@code $n} développés), mot entier et casse suivent les
      * options ; un motif trop coûteux ou invalide ne mute rien. La passe
      * est plafonnée à {@link FindReplace#MAX_MATCHES} remplacements (état
-     * {@code truncated} du moteur pur — l'appelant qui veut les signaux
-     * l'utilise directement).
+     * {@code truncated} — signaux via le moteur pur seul).
      *
-     * @param query       la requête de recherche
-     * @param replacement le texte de remplacement
+     * @param query       la requête
+     * @param replacement le remplacement
      * @param opts        les options (casse, mot entier, regex)
-     * @return le nombre de remplacements effectués
+     * @return le nombre de remplacements
      */
     public int replaceAll(String query, String replacement, FindOptions opts) {
         if (readOnly) {
             return 0;
         }
-        FindReplace moteur = FindReplace.of(clock);
+        FindReplace moteur = // horloge session ns → contrat moteur ms
+                FindReplace.of(() -> clock.getAsLong() / 1_000_000L);
         FindReplace.ReplaceResult passe = moteur.replaceAll(document.text(), query,
                 replacement, opts);
         List<TextEdit> passees = passe.edits();

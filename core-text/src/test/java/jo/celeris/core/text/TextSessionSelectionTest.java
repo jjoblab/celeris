@@ -24,12 +24,12 @@ class TextSessionSelectionTest {
     private long maintenant;
 
     private TextSession session(String texte) {
-        maintenant = 1_000L;
+        maintenant = 1_000_000_000L;
         return TextSession.of(texte, () -> maintenant);
     }
 
-    private void avancer(long millis) {
-        maintenant += millis;
+    private void avancer(long nanos) {
+        maintenant += nanos;
     }
 
     @Test
@@ -94,9 +94,9 @@ class TextSessionSelectionTest {
     void typingCoalescesWithinTheWindow_andSplitsBeyond() {
         TextSession session = session("");
         assertTrue(session.type("a"));
-        avancer(100);
+        avancer(100_000_000L);
         assertTrue(session.type("b"));
-        avancer(100);
+        avancer(100_000_000L);
         assertTrue(session.type("c"));
         assertEquals("abc", session.text());
         // Une seule étape : un geste d'annulation retire tout.
@@ -105,9 +105,9 @@ class TextSessionSelectionTest {
         assertEquals("", session.text());
 
         assertTrue(session.redo());
-        avancer(2_000);
+        avancer(2_000_000_000L);
         assertTrue(session.type("d"));
-        avancer(2_000);
+        avancer(2_000_000_000L);
         assertTrue(session.type("e"));
         assertEquals("abcde", session.text());
         assertTrue(session.undo());

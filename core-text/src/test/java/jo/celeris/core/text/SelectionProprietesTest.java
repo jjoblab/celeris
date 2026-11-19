@@ -47,7 +47,7 @@ class SelectionProprietesTest {
 
         int gestes = rng.nextInt(20) + 1;
         for (int i = 0; i < gestes; i++) {
-            horloge[0] += UndoStack.COALESCE_TIMEOUT_MS + rng.nextInt(100);
+            horloge[0] += UndoStack.COALESCE_TIMEOUT_NS + rng.nextInt(100);
             int nombreCurseurs = rng.nextInt(3) + 1;
             int[] positions = new int[nombreCurseurs];
             for (int c = 0; c < nombreCurseurs; c++) {

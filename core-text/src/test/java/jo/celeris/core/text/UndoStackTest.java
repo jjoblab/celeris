@@ -169,21 +169,21 @@ class UndoStackTest {
 
     @Test
     void coalescenceJustBeforeTimeout_fuses() {
-        long[] maintenant = {1_000L};
+        long[] maintenant = {1_000_000_000L};
         UndoStack pile = new UndoStack(100, () -> maintenant[0]);
         pile.pushStep(UndoStep.of(insertion(0, "a")));
         pile.armNextCoalesce(insertion(0, "a"));
-        maintenant[0] = 1_000L + UndoStack.COALESCE_TIMEOUT_MS - 1;
+        maintenant[0] = 1_000_000_000L + UndoStack.COALESCE_TIMEOUT_NS - 1;
         assertTrue(pile.tryCoalesce(insertion(1, "b")));
     }
 
     @Test
     void coalescenceAtExactTimeout_cuts() {
-        long[] maintenant = {1_000L};
+        long[] maintenant = {1_000_000_000L};
         UndoStack pile = new UndoStack(100, () -> maintenant[0]);
         pile.pushStep(UndoStep.of(insertion(0, "a")));
         pile.armNextCoalesce(insertion(0, "a"));
-        maintenant[0] = 1_000L + UndoStack.COALESCE_TIMEOUT_MS;
+        maintenant[0] = 1_000_000_000L + UndoStack.COALESCE_TIMEOUT_NS;
         assertFalse(pile.tryCoalesce(insertion(1, "b")));
     }
 

@@ -34,6 +34,16 @@ public final class UndoStack {
     /** Délai de coalescence des frappes, en millisecondes. */
     public static final long COALESCE_TIMEOUT_MS = 500;
 
+    /** Le délai en NANOSECONDES : l'horloge injectée est en nanosecondes
+     *  (System::nanoTime, la convention du cœur de texte) — la comparaison
+     *  brute de l'ancien code mettait un seuil de 500 « ns » contre une
+     *  horloge en ns : deux frappes séparées de 100 ms voyaient un écart
+     *  de 100 000 000, jamais coalescées — chaque caractère tapé
+     *  redevenait une étape d'annulation séparée (le même bug que le
+     *  dépôt de départ avait corrigé dans son UndoManager). */
+    public static final long COALESCE_TIMEOUT_NS =
+            COALESCE_TIMEOUT_MS * 1_000_000L;
+
     private final List<UndoStep> undoSteps = new ArrayList<>();
     private final List<UndoStep> redoSteps = new ArrayList<>();
     private final int maxDepth;
@@ -140,7 +150,7 @@ public final class UndoStack {
         long now = clock.getAsLong();
         if (carets == null || carets.size() != chainEnds.size()
                 || !landingPositions(edits).equals(chainEnds)
-                || now - chainTime >= COALESCE_TIMEOUT_MS) {
+                || now - chainTime >= COALESCE_TIMEOUT_NS) {
             return false;
         }
         UndoStep top = undoSteps.get(undoSteps.size() - 1);
