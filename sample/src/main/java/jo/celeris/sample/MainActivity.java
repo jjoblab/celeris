@@ -5,14 +5,11 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
+import android.widget.ImageButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -21,6 +18,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.tabs.TabLayout;
 
 import jo.celeris.android.host.CelerisEditor;
 import jo.celeris.android.view.EditorThemes;
@@ -31,21 +34,18 @@ import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.grammars.PackGrammars;
 
 /**
- * L'activité unique de l'exemple : le montage du § 4.2 d'USAGE en
- * code — la scène se pose à la main pour que TOUT ce que l'hôte
- * écrit reste visible ici.
- *
- * <p>Le retour terrain du 2026-11-19 : « ajouter des exemples
- * d'autres langages (kt, xml…), choix depuis un drawer, ouverture
- * dans des onglets » — le DRAWER gauche sert les échantillons du
- * dépôt, la barre d'ONGLETS porte les fichiers ouverts, le mini
- * serveur LSP Java se branche au fichier .java (diagnostics réels,
- * complétion, signatures). Le JOURNAL vit toujours en bas :
- * horodaté, repliable, copiable.</p>
+ * L'activité unique de l'exemple : le montage du § 4.2 d'USAGE sur
+ * une scène VRAIE — le retour terrain du 2026-11-19 : « utiliser de
+ * vrais layout pour le demo, qu'il soit plus moderne ». Tout le
+ * chrome vit en XML Material 3 (activite_principale.xml) : le
+ * tiroir DrawerLayout + NavigationView porte les échantillons du
+ * dépôt, la MaterialToolbar suit l'onglet actif, la TabLayout porte
+ * les fichiers ouverts (fermables par leur croix), le journal vit
+ * en panneau bas repliable. L'activité gonfle, branche, vit — le
+ * code ne monte plus une seule vue à la main, il ne reste que le
+ * montage du § 4.2 : la façade attachée à la scène.
  */
 public final class MainActivity extends Activity {
-
-    private static final float HAUTEUR_JOURNAL_DP = 130f;
 
     /** Le chargeur partagé — un seul assemblage par processus. */
     private static volatile LanguageKit langages;
@@ -55,37 +55,35 @@ public final class MainActivity extends Activity {
     /** Les fichiers ouverts, dans l'ordre des onglets. */
     private final List<Echantillons.Echantillon> ouverts = new ArrayList<>();
     private int ongletActif = -1;
-    private LinearLayout barreOnglets;
-    private LinearLayout tiroir;
-    private FrameLayout scene;
+    private DrawerLayout tiroirRacine;
+    private NavigationView tiroirNavigation;
+    private MaterialToolbar barreOutils;
+    private TabLayout barreOnglets;
+    private boolean journalReplie;
 
     @Override
     protected void onCreate(Bundle etat) {
         super.onCreate(etat);
+        setContentView(R.layout.activite_principale);
 
-        scene = new FrameLayout(this);
-        EditorView vue = new EditorView(this);
-        vue.setId(android.R.id.text1);
-        PopupLayer couche = new PopupLayer(this);
-        couche.setId(android.R.id.text2);
-        scene.addView(vue, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        scene.addView(couche, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        setContentView(scene);
-        getWindow().getDecorView().setBackgroundColor(0xFF101418);
+        tiroirRacine = findViewById(R.id.tiroir_racine);
+        tiroirNavigation = findViewById(R.id.tiroir_navigation);
+        barreOutils = findViewById(R.id.barre_outils);
+        barreOnglets = findViewById(R.id.barre_onglets);
+        EditorView vue = findViewById(R.id.vue_editeur);
+        PopupLayer couche = findViewById(R.id.couche_popups);
 
-        journal = new JournalPanneau(this);
+        journal = new JournalPanneau(
+                findViewById(R.id.lignes_journal),
+                findViewById(R.id.defileur_journal),
+                findViewById(R.id.panneau_journal));
         LanguageKit kit = monterKit();
         editeur = CelerisEditor.attach(vue, couche, kit);
         editeur.settings().setTheme(EditorThemes.SOMBRE);
         editeur.settings().setFontSizeSp(14f);
 
         monterTiroir();
-        monterBarreOnglets();
-        journal.monterDans(scene, this::copierJournal);
+        monterJournal();
         journal.ligne("montage prêt — l'assemblage court en fil démon");
         // L'ouverture de départ : le premier échantillon du drawer.
         ouvrir(Echantillons.tous().get(0));
@@ -162,104 +160,124 @@ public final class MainActivity extends Activity {
         super.onDestroy();
     }
 
-    // ── Le tiroir des échantillons (la gauche de la scène) ─────────
+    // ── Le tiroir des échantillons (NavigationView de la gauche) ──
 
-    /** Monte le tiroir : un échantillon par rangée, l'ouverture y passe. */
+    /** Branche le tiroir : le menu se pose depuis les échantillons,
+     *  le hamburger de la barre d'outils l'ouvre. */
     private void monterTiroir() {
-        tiroir = new LinearLayout(this);
-        tiroir.setOrientation(LinearLayout.VERTICAL);
-        tiroir.setBackgroundColor(0xEE161B21);
-        tiroir.setVisibility(View.GONE);
-        TextView titre = new TextView(this);
-        titre.setText("Échantillons");
-        titre.setTextColor(0xFF9FE8FF);
-        titre.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        titre.setTextSize(13f);
-        titre.setPadding(24, 28, 24, 16);
-        tiroir.addView(titre);
-        ScrollView defileur = new ScrollView(this);
-        LinearLayout rangs = new LinearLayout(this);
-        rangs.setOrientation(LinearLayout.VERTICAL);
-        for (Echantillons.Echantillon echantillon : Echantillons.tous()) {
-            Button rang = new Button(this);
-            rang.setText(echantillon.nomFichier());
-            rang.setTextSize(12f);
-            rang.setAllCaps(false);
-            rang.setOnClickListener(v -> {
-                tiroir.setVisibility(View.GONE);
-                ouvrir(echantillon);
-            });
-            rangs.addView(rang, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
+        android.view.Menu menu = tiroirNavigation.getMenu();
+        menu.removeGroup(GROUPE_ECHANTILLONS);
+        for (int i = 0; i < Echantillons.tous().size(); i++) {
+            Echantillons.Echantillon echantillon =
+                    Echantillons.tous().get(i);
+            menu.add(GROUPE_ECHANTILLONS, MenuIds.echantillon(i),
+                    i, echantillon.nomFichier());
         }
-        defileur.addView(rangs);
-        tiroir.addView(defileur, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-        scene.addView(tiroir, new FrameLayout.LayoutParams(
-                (int) (220 * getResources().getDisplayMetrics().density),
-                ViewGroup.LayoutParams.MATCH_PARENT, Gravity.START));
+        tiroirNavigation.setNavigationItemSelectedListener(item -> {
+            int i = MenuIds.position(item.getItemId());
+            tiroirRacine.closeDrawer(androidx.core.view.GravityCompat.START);
+            if (i >= 0 && i < Echantillons.tous().size()) {
+                ouvrir(Echantillons.tous().get(i));
+            }
+            return true;
+        });
+        barreOutils.setNavigationOnClickListener(
+                v -> tiroirRacine.openDrawer(
+                        androidx.core.view.GravityCompat.START));
     }
 
-    /** Bascule le tiroir — le bouton de la barre d'onglets y passe. */
-    private void basculerTiroir() {
-        tiroir.setVisibility(tiroir.getVisibility() == View.VISIBLE
-                ? View.GONE : View.VISIBLE);
+    /** Le groupe du menu du tiroir — les identifiants stables des
+     *  échantillons (position + base, jamais View.generateViewId). */
+    private static final int GROUPE_ECHANTILLONS = 1;
+    private static final int BASE_ID_ECHANTILLON = 1000;
+
+    /** Les identifiants du menu du tiroir : un par échantillon,
+     *  l'aller-retour position ↔ identifiant vit ici. */
+    private static final class MenuIds {
+
+        private MenuIds() {
+        }
+
+        static int echantillon(int position) {
+            return BASE_ID_ECHANTILLON + position;
+        }
+
+        static int position(int identifiant) {
+            return identifiant - BASE_ID_ECHANTILLON;
+        }
     }
 
-    // ── La barre d'onglets (le haut de la scène) ───────────────────
+    // ── La barre d'onglets (TabLayout du haut) ────────────────────
 
-    /** Monte la barre : le bouton tiroir, puis un onglet par fichier. */
-    private void monterBarreOnglets() {
-        LinearLayout barre = new LinearLayout(this);
-        barre.setOrientation(LinearLayout.VERTICAL);
-        barreOnglets = new LinearLayout(this);
-        barreOnglets.setOrientation(LinearLayout.HORIZONTAL);
-        barreOnglets.setBackgroundColor(0xEE161B21);
-        barre.addView(barreOnglets, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-        scene.addView(barre, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP));
-    }
-
-    /** Re-pose les onglets de la barre — l'actif s'illumine. */
+    /** Re-pose les onglets de la barre : la sélection suit l'actif,
+     *  la croix ferme sans activer. */
     private void rafraichirOnglets() {
-        barreOnglets.removeAllViews();
-        Button tiroirBouton = new Button(this);
-        tiroirBouton.setText("☰");
-        tiroirBouton.setTextSize(14f);
-        tiroirBouton.setOnClickListener(v -> basculerTiroir());
-        barreOnglets.addView(tiroirBouton, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
+        barreOnglets.removeAllTabs();
         for (int i = 0; i < ouverts.size(); i++) {
-            poserOnglet(i);
+            TabLayout.Tab onglet = barreOnglets.newTab();
+            poserVueOnglet(onglet, i);
+            barreOnglets.addTab(onglet, i == ongletActif);
         }
+        Echantillons.Echantillon actif = ouverts.get(ongletActif);
+        barreOutils.setTitle(actif.nomFichier());
+        barreOnglets.addOnTabSelectedListener(
+                new TabLayout.OnTabSelectedListener() {
+
+                    @Override
+                    public void onTabSelected(TabLayout.Tab onglet) {
+                        activerOnglet(onglet.getPosition());
+                    }
+
+                    @Override
+                    public void onTabUnselected(TabLayout.Tab onglet) {
+                    }
+
+                    @Override
+                    public void onTabReselected(TabLayout.Tab onglet) {
+                    }
+                });
     }
 
-    /** Pose l'onglet d'un fichier ouvert — l'actif s'illumine. */
-    private void poserOnglet(int indice) {
-        Button onglet = new Button(this);
-        onglet.setText(ouverts.get(indice).nomFichier());
-        onglet.setTextSize(11f);
-        onglet.setAllCaps(false);
-        onglet.setTextColor(indice == ongletActif
-                ? 0xFF9FE8FF : 0xFF7A8894);
-        if (indice == ongletActif) {
-            onglet.setBackgroundColor(0x332AA198);
-        } else {
-            onglet.setBackground(new ColorDrawable(0x00000000));
-        }
-        onglet.setOnClickListener(v -> activerOnglet(indice));
-        barreOnglets.addView(onglet, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
+    /** Pose la vue d'un onglet : le nom et sa croix de fermeture. */
+    private void poserVueOnglet(TabLayout.Tab onglet, int indice) {
+        View vue = LayoutInflater.from(this)
+                .inflate(R.layout.vue_onglet, barreOnglets, false);
+        TextView nom = vue.findViewById(R.id.nom_onglet);
+        nom.setText(ouverts.get(indice).nomFichier());
+        nom.setTextColor(indice == ongletActif
+                ? getColor(R.color.accent_cyan_clair)
+                : getColor(R.color.texte_secondaire));
+        TextView croix = vue.findViewById(R.id.croix_onglet);
+        croix.setTextColor(getColor(R.color.texte_secondaire));
+        croix.setOnClickListener(v -> fermerOnglet(indice));
+        onglet.setCustomView(vue);
     }
 
-    /** Active un onglet : le document se rouvre, le .java rebranche son serveur. */
+    /** Ferme un onglet : le suivant prend la place, l'éditeur rouvre
+     *  l'onglet qui devient actif — le dernier vivant ne meurt pas. */
+    private void fermerOnglet(int indice) {
+        if (ouverts.size() <= 1) {
+            journal.ligne("le dernier onglet ouvert ne se ferme pas");
+            return;
+        }
+        ouverts.remove(indice);
+        ongletActif = Math.min(indice, ouverts.size() - 1);
+        Echantillons.Echantillon actif = ouverts.get(ongletActif);
+        editeur.open(actif.nomFichier(), actif.texte());
+        journal.ligne("fermé — actif : " + actif.nomFichier());
+        if (actif.nomFichier().endsWith(".java")) {
+            SessionLspPoseuse.poser(this, editeur, actif.nomFichier(),
+                    () -> journal.ligne("mini serveur LSP rebranché"));
+        }
+        rafraichirOnglets();
+    }
+
+    /** Active un onglet : le document se rouvre, le .java rebranche
+     *  son serveur, la barre d'outils suit le titre. */
     private void activerOnglet(int indice) {
+        if (indice == ongletActif) {
+            return;
+        }
         ongletActif = indice;
         Echantillons.Echantillon echantillon = ouverts.get(indice);
         editeur.open(echantillon.nomFichier(), echantillon.texte());
@@ -270,80 +288,47 @@ public final class MainActivity extends Activity {
         rafraichirOnglets();
     }
 
-    /** Le panneau du journal : horodaté, repliable, copiable. */
+    // ── Le journal (le panneau bas de la scène) ───────────────────
+
+    /** Branche le journal : les deux boutons de son en-tête. */
+    private void monterJournal() {
+        ImageButton copier = findViewById(R.id.bouton_copier_journal);
+        copier.setOnClickListener(v -> copierJournal());
+        ImageButton replier = findViewById(R.id.bouton_replier_journal);
+        replier.setOnClickListener(v -> basculerJournal());
+    }
+
+    /** Bascule le journal : replié, il ne garde que son en-tête. */
+    private void basculerJournal() {
+        journalReplie = !journalReplie;
+        findViewById(R.id.defileur_journal).setVisibility(
+                journalReplie ? View.GONE : View.VISIBLE);
+        View panneau = findViewById(R.id.panneau_journal);
+        ViewGroup.LayoutParams reglages = panneau.getLayoutParams();
+        reglages.height = journalReplie
+                ? ViewGroup.LayoutParams.WRAP_CONTENT
+                : (int) (130f * getResources().getDisplayMetrics().density);
+        panneau.setLayoutParams(reglages);
+        ImageButton bouton = findViewById(R.id.bouton_replier_journal);
+        bouton.setContentDescription(getString(journalReplie
+                ? R.string.action_deplier
+                : R.string.action_replier));
+    }
+
+    /** Le panneau du journal : horodaté, repliable, copiable — ses
+     *  vues vivent dans le layout, la classe ne fait que servir. */
     private static final class JournalPanneau {
 
         private final TextView lignes;
+        private final ScrollView defileur;
+        private final View panneau;
         private final StringBuilder texte = new StringBuilder();
-        private ScrollView defileur;
-        private View panneau;
-        private boolean replie;
 
-        JournalPanneau(Context contexte) {
-            lignes = new TextView(contexte);
+        JournalPanneau(TextView lignes, ScrollView defileur, View panneau) {
+            this.lignes = lignes;
+            this.defileur = defileur;
+            this.panneau = panneau;
             lignes.setTypeface(Typeface.MONOSPACE);
-            lignes.setTextSize(10f);
-            lignes.setTextColor(0xFFCFE3E8);
-            lignes.setPadding(24, 8, 24, 16);
-        }
-
-        void monterDans(FrameLayout scene, Runnable copier) {
-            LinearLayout colonne = new LinearLayout(scene.getContext());
-            colonne.setOrientation(LinearLayout.VERTICAL);
-            colonne.setBackgroundColor(0xEE101418);
-            panneau = colonne;
-            LinearLayout entete = new LinearLayout(scene.getContext());
-            entete.setOrientation(LinearLayout.HORIZONTAL);
-            entete.setGravity(Gravity.CENTER_VERTICAL);
-            TextView titre = new TextView(scene.getContext());
-            titre.setText("Journal");
-            titre.setTextColor(0xFF9FE8FF);
-            titre.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-            titre.setTextSize(12f);
-            entete.addView(titre, new LinearLayout.LayoutParams(
-                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-            ajouterBouton(entete, "Copier", copier);
-            Runnable[] bascule = new Runnable[1];
-            bascule[0] = () -> basculer(bascule[0]);
-            ajouterBouton(entete, "Cacher", () -> basculer(bascule[0]));
-            colonne.addView(entete, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
-            defileur = new ScrollView(scene.getContext());
-            defileur.addView(lignes, new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
-            colonne.addView(defileur, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-            scene.addView(colonne, new FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    (int) (HAUTEUR_JOURNAL_DP
-                            * scene.getResources().getDisplayMetrics().density),
-                    Gravity.BOTTOM));
-        }
-
-        /** Bascule le journal : replié, il ne garde que son en-tête. */
-        private void basculer(Runnable rappel) {
-            replie = !replie;
-            defileur.setVisibility(replie ? View.GONE : View.VISIBLE);
-            ViewGroup.LayoutParams reglages = panneau.getLayoutParams();
-            reglages.height = replie
-                    ? ViewGroup.LayoutParams.WRAP_CONTENT
-                    : (int) (HAUTEUR_JOURNAL_DP * panneau.getResources()
-                            .getDisplayMetrics().density);
-            panneau.setLayoutParams(reglages);
-            rappel.run();
-        }
-
-        private static void ajouterBouton(LinearLayout entete, String libelle,
-                Runnable geste) {
-            Button bouton = new Button(entete.getContext());
-            bouton.setText(libelle);
-            bouton.setTextSize(12f);
-            bouton.setOnClickListener(v -> geste.run());
-            entete.addView(bouton, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
         }
 
         void ligne(String message) {

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Le tiroir des échantillons : un menu NavigationView dont les
+  entrées se posent AU CODE (les échantillons viennent du dépôt
+  Echantillons). L'en-tête porte le titre du tiroir.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Les entrées naissent au code : Echantillons.tous() y pose
+         un item par échantillon (groupId 1, l'ordre du dépôt). -->
+</menu>

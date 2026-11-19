@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Les chaînes de l'exemple : le titre, le tiroir, le journal. Les
+  libellés dynamiques (noms de fichiers, lignes du journal) restent
+  au code — eux seuls vivent en Java.
+-->
+<resources>
+    <string name="app_name">Celeris exemple</string>
+    <string name="titre_tiroir">Échantillons</string>
+    <string name="titre_journal">Journal</string>
+    <string name="action_copier">Copier</string>
+    <string name="action_replier">Replier</string>
+    <string name="action_deplier">Déplier</string>
+    <string name="action_ouvrir_tiroir">Ouvrir le tiroir des échantillons</string>
+    <string name="contenu_tiroir">Le tiroir des échantillons du dépôt</string>
+</resources>

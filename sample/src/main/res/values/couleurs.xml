@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  La palette de l'exemple : un bleu-nuit d'éditeur de code (la scène
+  de l'éditeur peint EditorThemes.SOMBRE, le chrome l'accompagne) et
+  l'accent cyan du kit. Le retour terrain du 2026-11-19 : « utiliser
+  de vrais layout pour le demo, qu'il soit plus moderne » — la
+  palette vit ICI, plus jamais en dur dans le code.
+-->
+<resources>
+    <color name="fond_nuit">#FF101418</color>
+    <color name="fond_surfacique">#FF161B21</color>
+    <color name="fond_surfacique_clair">#FF1C232B</color>
+    <color name="contour_discret">#FF2A3138</color>
+    <color name="accent_cyan">#FF2AA198</color>
+    <color name="accent_cyan_clair">#FF9FE8FF</color>
+    <color name="texte_principal">#FFE6EDF3</color>
+    <color name="texte_secondaire">#FF7A8894</color>
+    <color name="texte_journal">#FFCFE3E8</color>
+    <color name="fond_tiroir">#FF141A20</color>
+</resources>

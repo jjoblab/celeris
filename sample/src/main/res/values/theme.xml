@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Le thème de l'exemple : Material 3 sans barre d'action (la barre
+  d'outils se pose dans le layout), calé sur la palette bleu-nuit de
+  l'éditeur — le chrome accompagne EditorThemes.SOMBRE au lieu de
+  le contrarier. Les couleurs Material (surface, onSurface,
+  secondaryContainer…) dérivent de la palette ci-dessus.
+-->
+<resources>
+    <style name="Theme.Exemple" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/accent_cyan</item>
+        <item name="colorOnPrimary">@color/fond_nuit</item>
+        <item name="colorPrimaryContainer">@color/accent_cyan</item>
+        <item name="colorOnPrimaryContainer">@color/fond_nuit</item>
+        <item name="colorSecondary">@color/accent_cyan_clair</item>
+        <item name="colorOnSecondary">@color/fond_nuit</item>
+        <item name="colorSecondaryContainer">@color/fond_surfacique_clair</item>
+        <item name="colorOnSecondaryContainer">@color/accent_cyan_clair</item>
+        <item name="android:colorBackground">@color/fond_nuit</item>
+        <item name="colorOnBackground">@color/texte_principal</item>
+        <item name="colorSurface">@color/fond_surfacique</item>
+        <item name="colorOnSurface">@color/texte_principal</item>
+        <item name="colorSurfaceVariant">@color/fond_surfacique_clair</item>
+        <item name="colorOnSurfaceVariant">@color/texte_secondaire</item>
+        <item name="colorOutline">@color/contour_discret</item>
+        <item name="android:statusBarColor">@color/fond_surfacique</item>
+        <item name="android:navigationBarColor">@color/fond_surfacique</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <!-- L'onglet de la barre de fichiers : l'actif s'illumine (cyan),
+         l'inactif reste discret — les états vivent dans le sélecteur. -->
+    <style name="Texte.Onglet" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- La ligne du journal : mono, compacte, lisible sur bleu-nuit. -->
+    <style name="Texte.Journal" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">@color/texte_journal</item>
+    </style>
+</resources>

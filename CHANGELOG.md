@@ -30,6 +30,18 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ## [2.2.0] — 2026-11-19 (en cours)
 
+### Le retour terrain du 2026-11-19 (c) : la démo sur de vrais layouts
+
+- **L'exemple passe aux layouts XML Material 3** : tiroir
+  DrawerLayout + NavigationView, MaterialToolbar (le titre suit
+  l'onglet actif), barre d'onglets TabLayout défilable (fermeture
+  par croix), journal en panneau bas repliable — le code ne monte
+  plus une seule vue à la main, il ne reste que le montage du
+  § 4.2 d'USAGE (la façade attachée à la scène). Banc
+  `MontageExempleTest` : l'activité gonfle, branche et vit sur
+  Robolectric ; la convention application gagne la mécanique
+  android-all des bancs (même que les bibliothèques, ADR-013).
+
 ### Le retour terrain du 2026-11-19 (b) : ligne courante, guides illuminés, animations, serveur LSP, multi-langages
 
 - **Le démarrage ne bloque plus** : l'assemblage des 32 paquets

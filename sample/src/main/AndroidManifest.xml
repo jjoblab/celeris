@@ -3,7 +3,9 @@
 
     <application
         android:allowBackup="false"
-        android:label="Celeris exemple">
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Exemple">
 
         <activity
             android:name=".MainActivity"

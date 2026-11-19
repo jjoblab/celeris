@@ -3,6 +3,7 @@
 // non publiée (terrain d'exemple).
 
 import com.android.build.api.dsl.ApplicationExtension
+import jo.celeris.buildlogic.RobolectricDepsTask
 import jo.celeris.buildlogic.catalogVersion
 import jo.celeris.buildlogic.configureAndroidJavac
 import jo.celeris.buildlogic.configureJavadoc
@@ -57,6 +58,35 @@ tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
         error("NullAway")
         option("NullAway:AnnotatedPackages", "jo.celeris")
     }
+}
+
+// Le jar android-all des bancs Robolectric de l'application (même
+// mécanique que les bibliothèques Android, ADR-013) : le banc du
+// montage de l'exemple gonfle l'activité sur JVM — le jar se résout
+// par Gradle (jamais téléchargé par Robolectric au démarrage du
+// test, un bridage 429 de Maven Central fait tomber la suite au
+// premier démarrage).
+val sdkRobolectric = configurations.create("sdkRobolectric") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+val depsRobolectric = layout.buildDirectory.file("robolectric/robolectric-deps.properties")
+val ecrireDepsRobolectric = tasks.register<RobolectricDepsTask>("robolectricDeps") {
+    group = "verification"
+    description = "Écrit la correspondance du jar android-all pour Robolectric."
+    jarFiles.from(sdkRobolectric)
+    artifactKey.set(
+        "org.robolectric:android-all-instrumented:" +
+            catalogVersion("robolectricAndroidAll"),
+    )
+    propertiesFile.set(depsRobolectric)
+}
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    dependsOn(ecrireDepsRobolectric)
+    systemProperty(
+        "robolectric-deps.properties",
+        depsRobolectric.get().asFile.absolutePath,
+    )
 }
 
 // Mêmes plafonds que les modules purs (ADR-002) ; nominations du
