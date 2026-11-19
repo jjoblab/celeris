@@ -146,7 +146,7 @@ final class FrameAssembler {
         if (recue || document.revision() != vue.revisionSuivie
                 || colonnesVoulues != vue.projection.columns()) {
             if (document.revision() != vue.revisionSuivie) {
-                vue.cache.invalidate(vue.revisionSuivie);
+                episser(document);
             }
             vue.revisionSuivie = document.revision();
             vue.projection = new VisualProjection(document, vue.plis,
@@ -171,6 +171,50 @@ final class FrameAssembler {
                 }
             }
         }
+    }
+
+    /**
+     * Épisse le cache de rangées au changement de révision (B-01,
+     * l'analyse croisée) : une frappe ne rejette plus TOUT le cache —
+     * les rangées hors de la zone touchée survivent par identité,
+     * re-timbrées à la nouvelle révision. Les bornes viennent de
+     * l'écouteur d'annonce (première ligne touchée, décalage de
+     * lignes) ; sans bornes fiables (édition composite, rejeu
+     * d'annulation en plusieurs pas), l'invalidation totale reste la
+     * voie sûre — jamais une épissure aux bornes faussées.
+     */
+    private void episser(Document document) {
+        int premiereLigne = vue.derniereEditionPremiereLigne;
+        int deltaLignes = vue.derniereEditionDeltaLignes;
+        // Une seule édition continue, bornes propres : épisser. Le
+        // décalage de lignes doit réconcilier les deux documents.
+        if (premiereLigne >= 0 && premiereLigne != Integer.MAX_VALUE
+                && vue.projection.lineCount() + deltaLignes
+                        == document.lineCount()) {
+            // La zone morte couvre les lignes touchées : de la
+            // première ligne de l'édition à la première ligne
+            // APRÈS l'édition (ancienne numérotation).
+            int premiereRangee = vue.projection.rowOfLine(premiereLigne);
+            int ligneApresZone = Math.min(premiereLigne + 1 + deltaLignes,
+                    vue.projection.lineCount());
+            int rangeeFinZone = ligneApresZone == vue.projection.lineCount()
+                    ? vue.projection.rowCount()
+                    : vue.projection.rowOfLine(ligneApresZone);
+            int rangeesMortes = Math.max(1, rangeeFinZone - premiereRangee);
+            // Le décalage de rangées : sous coupure, chaque ligne
+            // ajoutée ajoute ses tranches — le nombre de rangées de
+            // la ligne APRÈS la zone (ancienne numérotation) ne peut
+            // pas se lire avant la reconstruction ; le décalage sûr
+            // est le delta de lignes (une rangée par ligne sans
+            // coupure ; sous coupure la re-mesure rattrape).
+            vue.cache.splice(vue.revisionSuivie, document.revision(),
+                    premiereRangee, rangeesMortes, deltaLignes,
+                    deltaLignes);
+        } else {
+            vue.cache.invalidate(vue.revisionSuivie);
+        }
+        vue.derniereEditionPremiereLigne = Integer.MAX_VALUE;
+        vue.derniereEditionDeltaLignes = 0;
     }
 
     /** Le budget de colonnes de la fenêtre, au moins une colonne (PIEGE-08). */

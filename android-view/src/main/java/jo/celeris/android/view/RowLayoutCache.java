@@ -20,19 +20,30 @@ public final class RowLayoutCache {
 
     private static final int CAPACITE_INITIALE = 64;
     private static final int QUART = 4;
+    /** Le plafond d'entrées (B-02, l'analyse croisée) : comme le
+     *  LineRenderCache du dépôt de départ — 512 rangées mesurées
+     *  suffisent à un viewport et à son préchargement ; au-delà, les
+     *  moins récemment déposées partent (le défilement d'un document
+     *  monstre n'emplit plus la table à vie). */
+    public static final int PLAFOND = 512;
 
     private static final class Entree {
         private final RowKey cle;
         private RowLayout valeur;
+        /** L'âge LRU : le numéro de dépôt — les plus vieux partent
+         *  au plafond. */
+        long age;
 
-        Entree(RowKey cle, RowLayout valeur) {
+        Entree(RowKey cle, RowLayout valeur, long age) {
             this.cle = cle;
             this.valeur = valeur;
+            this.age = age;
         }
     }
 
     private Entree[] table = new Entree[CAPACITE_INITIALE];
     private int nombre;
+    private long compteurAge;
 
     /**
      * Consulte la mise en page d'une rangée, sans allouer.
@@ -51,6 +62,9 @@ public final class RowLayoutCache {
         while (cases[indice] != null) {
             Entree caseCourante = cases[indice];
             if (correspond(caseCourante, revision, row, themeId, font, columns)) {
+                // Servie = vivante (LRU) : l'âge se rafraîchit hors
+                // du chemin d'éviction.
+                caseCourante.age = ++compteurAge;
                 return caseCourante.valeur;
             }
             indice = (indice + 1) & (cases.length - 1);
@@ -87,12 +101,112 @@ public final class RowLayoutCache {
         while (table[indice] != null) {
             if (table[indice].cle.equals(key)) {
                 table[indice].valeur = layout;
+                table[indice].age = ++compteurAge;
                 return;
             }
             indice = (indice + 1) & (table.length - 1);
         }
-        table[indice] = new Entree(key, layout);
+        table[indice] = new Entree(key, layout, ++compteurAge);
         nombre++;
+        if (nombre > PLAFOND) {
+            evincerLesPlusVieilles();
+        }
+    }
+
+    /** Évince les entrées les moins récemment servies : la table
+     *  revient sous le plafond (B-02). Hors du chemin de dessin —
+     *  l'éviction ne vit que lors des dépôts. */
+    private void evincerLesPlusVieilles() {
+        // Le seuil d'âge : les PLAFOND entrées les plus récentes
+        // survivent — un tri partiel par sélection des ages max.
+        long[] ages = new long[nombre];
+        int garde = 0;
+        for (Entree caseCourante : table) {
+            if (caseCourante != null) {
+                ages[garde++] = caseCourante.age;
+            }
+        }
+        java.util.Arrays.sort(ages);
+        long seuil = ages[ages.length - PLAFOND];
+        Entree[] anciennes = table;
+        table = new Entree[CAPACITE_INITIALE];
+        int anciens = nombre;
+        nombre = 0;
+        for (int i = 0; i < anciennes.length; i++) {
+            Entree caseCourante = anciennes[i];
+            if (caseCourante != null && caseCourante.age >= seuil) {
+                store(caseCourante.cle, caseCourante.valeur);
+            }
+        }
+        // Le plafond tient par construction : seules les PLAFOND
+        // entrées les plus récentes ont survécu au seuil.
+    }
+
+    /**
+     * Épisse le cache à une édition (B-01, l'analyse croisée) : les
+     * rangées AVANT la zone touchée survivent par IDENTITÉ,
+     * re-timbrées à la nouvelle révision ; celles de la zone touchée
+     * meurent (elles se re-mesurent au prochain dessin) ; celles
+     * d'APRÈS survivent re-timbrées et DÉCALÉES du nombre de rangées
+     * et de lignes qu'amène l'édition. Le dépôt de départ documente
+     * le principe à propos de son LineRenderCache : « un compteur de
+     * révision global invaliderait toutes les lignes en cache à
+     * chaque édition, ruinant le cache ».
+     *
+     * @param ancienneRevision la révision avant l'édition
+     * @param nouvelleRevision la révision après l'édition
+     * @param premiereRangee   la première rangée visuelle touchée
+     * @param rangeesMortes    le nombre de rangées de la zone morte
+     *                         (au moins une : la portée de l'édité)
+     * @param deltaRangees     le décalage de rangées visuelles
+     *                         (nouvelle rowCount − ancienne)
+     * @param deltaLignes      le décalage de numéros de ligne
+     */
+    public void splice(long ancienneRevision, long nouvelleRevision,
+            int premiereRangee, int rangeesMortes, int deltaRangees,
+            int deltaLignes) {
+        Entree[] restantes = new Entree[nombre];
+        int gardees = 0;
+        int finZone = premiereRangee + Math.max(1, rangeesMortes);
+        for (Entree caseCourante : table) {
+            if (caseCourante == null
+                    || caseCourante.cle.revision() != ancienneRevision) {
+                continue;
+            }
+            RowKey cle = caseCourante.cle;
+            RowLayout valeur = caseCourante.valeur;
+            if (cle.row() < premiereRangee) {
+                // Avant la zone : survie par identité, re-timbrée.
+                restantes[gardees++] = new Entree(
+                        new RowKey(nouvelleRevision, cle.row(),
+                                cle.themeId(), cle.font(), cle.columns()),
+                        valeur, caseCourante.age);
+            } else if (cle.row() >= finZone) {
+                // Après la zone : décalage de rangée et de ligne.
+                restantes[gardees++] = new Entree(
+                        new RowKey(nouvelleRevision, cle.row() + deltaRangees,
+                                cle.themeId(), cle.font(), cle.columns()),
+                        new RowLayout(valeur.line() + deltaLignes,
+                                valeur.start(), valeur.end(),
+                                valeur.text(), valeur.width(),
+                                valeur.runs(), valeur.spans()),
+                        caseCourante.age);
+            }
+            // La zone touchée : la mise en page meurt — re-mesure au
+            // prochain dessin.
+        }
+        Entree[] anciennes = table;
+        table = new Entree[CAPACITE_INITIALE];
+        nombre = 0;
+        for (Entree caseCourante : anciennes) {
+            if (caseCourante != null
+                    && caseCourante.cle.revision() != ancienneRevision) {
+                store(caseCourante.cle, caseCourante.valeur);
+            }
+        }
+        for (int i = 0; i < gardees; i++) {
+            store(restantes[i].cle, restantes[i].valeur);
+        }
     }
 
     /**
@@ -147,6 +261,11 @@ public final class RowLayoutCache {
     /** Le nombre de mises en page en cache. */
     public int size() {
         return nombre;
+    }
+
+    /** Le plafond d'entrées du cache (B-02). */
+    public int capacity() {
+        return PLAFOND;
     }
 
     private void agrandir() {

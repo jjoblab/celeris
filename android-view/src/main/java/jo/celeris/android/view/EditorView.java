@@ -81,6 +81,12 @@ public final class EditorView extends View {
     final SelectionDrag glissement = new SelectionDrag();
     // Visible du paquet : la projection vit dans l'assemblage d'image.
     final FoldModel plis = new FoldModel();
+    // B-01 (l'analyse croisée) : bornes de la dernière édition, pour
+    // l'épissure du cache de rangées — la première ligne touchée et
+    // le décalage de lignes qu'amène l'édition. L'écouteur d'annonce
+    // les écrit ; l'assemblage d'image les lit à la frame suivante.
+    int derniereEditionPremiereLigne = Integer.MAX_VALUE;
+    int derniereEditionDeltaLignes;
     final EditorSyntax syntaxe;
     // Visible du paquet : le banc de test y lit la mise en page servie (ADR-013).
     final RowLayoutCache cache = new RowLayoutCache();
@@ -90,8 +96,31 @@ public final class EditorView extends View {
     private final GutterPainter gouttiere;
     final GutterIntegrations marquesGouttiere = new GutterIntegrations();
     private final AccessibilityHost accessibilite = new AccessibilityHost(this);
-    private final EditListener ecouteurAnnonce = (debut, fin, retire, insere)
-            -> sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+
+    // — la session courante et sa projection visuelle (B-01 : la
+    //  session vit AVANT l'écouteur d'annonce, qui y lit les bornes
+    //  d'édition pour l'épissure du cache)
+    TextSession session = TextSession.of("", System::nanoTime);
+    VisualProjection projection = new VisualProjection(session.document(), plis, 0);
+    private final EditListener ecouteurAnnonce = (debut, fin, retire, insere) -> {
+        // B-01 : les bornes de l'édition nourrissent l'épissure du
+        // cache — première ligne touchée et décalage de lignes. Les
+        // lots multi-édits (rejeu d'annulation, script) ne
+        // s'épissent pas : bornes composites, l'invalidation totale
+        // reste la voie sûre.
+        int ligne = session.document().lineForOffset(Math.min(debut,
+                session.document().length()));
+        int lignesAjoutees = (int) insere.chars().filter(c -> c == '\n').count()
+                - (int) retire.chars().filter(c -> c == '\n').count();
+        if (derniereEditionPremiereLigne == Integer.MAX_VALUE) {
+            derniereEditionPremiereLigne = ligne;
+            derniereEditionDeltaLignes = lignesAjoutees;
+        } else if (ligne != derniereEditionPremiereLigne
+                || derniereEditionDeltaLignes != 0 || lignesAjoutees != 0) {
+            derniereEditionPremiereLigne = -1;
+        }
+        sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+    };
     // Visible du paquet : l'assemblage d'image y pose son pinceau (C9).
     final TextBrush pinceauChrome;
     private final GestureDetector longPresses;
@@ -106,8 +135,6 @@ public final class EditorView extends View {
     // — les fractions du défilement vivent dans leur collaborateur (C9)
     private final ViewportFractions fractions = new ViewportFractions(this);
 
-    TextSession session = TextSession.of("", System::nanoTime);
-    VisualProjection projection = new VisualProjection(session.document(), plis, 0);
     /** La police logique, en sp — les métriques en dérivent par densité. */
     FontSpec policeLogique = POLICE_PAR_DEFAUT;
     // métriques provisoires : le constructeur les redérive à la densité (PIEGE-23)

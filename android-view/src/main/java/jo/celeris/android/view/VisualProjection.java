@@ -85,6 +85,11 @@ public final class VisualProjection {
         this.rangneesAvantLigne = batirPrefixe(lineCount, longueurs, columns);
     }
 
+    /** Le nombre de lignes du document porté par la projection. */
+    public int lineCount() {
+        return lineCount;
+    }
+
     /** Le nombre de rangées visibles : rangées des lignes moins celles des cachées. */
     public int rowCount() {
         int cachees = 0;
