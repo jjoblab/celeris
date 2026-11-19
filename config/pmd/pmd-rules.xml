@@ -28,12 +28,15 @@
         (le câbleur de quinze satellites) porte la classe à 80 — le
         palier suit le câbleur, le seuil par méthode (15) demeure. Les
         diagnostics à sévérité (D-05/D-06) portent EditorSyntax à 93 —
-        la fusion des issues y vit, le palier suit (95).
+        la fusion des issues y vit, le palier suit (95). Le rattrapage
+        de la voie native (feuille de route A1.2, 2026-11-19) — la
+        publication périmée de la voie qui sert — porte la classe à
+        95 : le rattrapage y vit, le palier suit (100).
     </description>
 
     <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>
-            <property name="classReportLevel" value="95"/>
+            <property name="classReportLevel" value="100"/>
             <property name="methodReportLevel" value="15"/>
         </properties>
     </rule>

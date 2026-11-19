@@ -1,14 +1,12 @@
 package jo.celeris.android.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,10 +14,8 @@ import org.junit.jupiter.api.Test;
 
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.Analysis;
-import jo.celeris.core.syntax.EnginePathFactory;
 import jo.celeris.core.syntax.IncrementalLexer;
 import jo.celeris.core.syntax.LanguageLexer;
-import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.MoteurSyntaxe;
 import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.text.Document;

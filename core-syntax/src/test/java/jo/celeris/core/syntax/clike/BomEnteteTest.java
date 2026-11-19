@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import jo.celeris.core.syntax.IncrementalLexer;
 import jo.celeris.core.syntax.LanguageLexer;
 import jo.celeris.core.syntax.LexDocument;
-import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
 import jo.celeris.core.text.Document;
