@@ -22,10 +22,9 @@ import jo.celeris.core.text.TextSession;
  * la ligne, la colonne d'octets, le compte d'enfants) — y nourrissent
  * {@code MaterialisationNatif.de} : les feuilles soudées redeviennent
  * les jetons du socle, les blancs au jeton qui suit, le pli se chunk
- * aux nœuds de premier niveau qui traversent les lignes, les octets de
- * la grammaire se traduisent en caractères du modèle. Le banc vit sans
- * la bibliothèque partagée — la matière est pure, l'arbre y entre
- * aplati.
+ * aux nœuds de premier niveau qui traversent les lignes — les
+ * offsets y sont déjà en caractères du modèle (ADR-0025). Le banc
+ * vit sans la liaison : la matière est pure, l'arbre y entre aplati.
  */
 class MaterialisationNatifTest {
 
@@ -157,18 +156,18 @@ class MaterialisationNatifTest {
         assertTrue(analyse.estComplet());
     }
 
-    /** Les octets de la grammaire deviennent les caractères du modèle :
-     *  é (deux octets) et l'emoji (quatre) s'y traduisent — la table
-     *  dressée par le décodage, les colonnes suivent. */
+    /** Les offsets de l'arbre aplati sont déjà en CARACTÈRES du
+     *  modèle (ADR-0025) : é et l'emoji y comptent UN chacun, la
+     *  matérialisation lit direct — plus de table de traduction. */
     @Test
-    void lesOctetsSeTraduisentEnCaracteres() {
-        // é + ☕ : octets é=0..2, +=3..4, ☕=5..8 ; caractères 0, 2, 4
+    void lesOffsetsSontDejaDesCaracteres() {
+        // é + ☕ : caractères 0, 2, 4
         int[] arbre = aplatir(
-                noeud(27, 0, 8, 1),
-                noeud(27, 0, 8, 3),
-                noeud(IDENT, 0, 2, 0),
-                noeud(PLUS, 3, 4, 0),
-                noeud(IDENT, 5, 8, 0));
+                noeud(27, 0, 5, 1),
+                noeud(27, 0, 5, 3),
+                noeud(IDENT, 0, 1, 0),
+                noeud(PLUS, 2, 3, 0),
+                noeud(IDENT, 4, 5, 0));
         Analysis analyse = materielise("é + ☕", arbre);
         Token[] jetons = analyse.lex().line(0).tokens();
         assertEquals(3, jetons.length);

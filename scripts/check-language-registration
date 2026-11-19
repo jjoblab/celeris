@@ -42,6 +42,9 @@ EXEMPTIONS = {
     # la source du niveau 2 (ADR-020) : le SPI natif déclare
     # l'identifiant du langage qu'il analyse, comme les analyseurs écrits
     "core-syntax-treesitter/src/main/java/jo/celeris/core/syntax/treesitter/SyntaxeNatif.java",
+    # les grammaires servies par la voie (ADR-0025) : l'énum des
+    # grammaires publiées nomme ses langages, comme l'enregistrement
+    "core-syntax-treesitter/src/main/java/jo/celeris/core/syntax/treesitter/GrammaireNatif.java",
     # la fabrique de la voie (ADR-0024) : elle INSCRIT les langages
     # au registre de la plateforme — les identifiants y vivent.
     "core-syntax-treesitter/src/main/java/jo/celeris/core/syntax/treesitter/TreeSitterPathFactory.java",

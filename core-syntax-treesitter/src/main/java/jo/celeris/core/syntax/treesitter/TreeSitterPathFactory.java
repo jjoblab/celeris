@@ -35,7 +35,6 @@ public final class TreeSitterPathFactory implements EnginePathFactory {
         }
         inscrireLangage("json", SyntaxeNatif.json());
         inscrireLangage("python", SyntaxeNatif.python());
-        inscrireLangage("javascript", SyntaxeNatif.javascript());
         inscrite = true;
     }
 

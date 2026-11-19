@@ -5,6 +5,36 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## La voie tree-sitter consomme la liaison Android par Maven (ADR-0025, 2026-11-18)
+
+- **Le module `core-syntax-treesitter` devient bibliothèque Android**
+  (décision du propriétaire : « pour tree sitter, je pense à utiliser
+  com.itsaky.androidide.treesitter, regarde comment l'éditeur de
+  référence a fait » — méthode étudiée et reproduite : dépendance sur
+  l'artefact cœur, règles de conservation R8 embarquées). La liaison
+  JNI maison PART TOUT ENTIÈRE : `natif/liaison.c`, `natif/construire`
+  et la tâche `natif` (du module ET la résiduelle de `core-syntax`),
+  la propriété `celeris.natif.lib` et la Javadoc « réservée au banc
+  JVM » — le dépôt ne compile plus aucun C. Les `.so` suivent les AAR
+  Maven (`android-tree-sitter` 4.3.3 + `tree-sitter-json` +
+  `tree-sitter-python`, quatre ABI) : **embarquer le module suffit,
+  la voie vit sur appareil** — la preuve JVM par gcc disparaît, la
+  preuve appareil reste à écrire (assumée, ADR-0025).
+- **Les positions passent au modèle du dépôt** : la liaison travaille
+  en unités UTF-16 doublées ; l'aplatisseur divise par deux à la
+  frontière — l'arbre aplati et les éditions incrémentales portent
+  des offsets CARACTÈRES, la table octet→caractère de
+  `MaterialisationNatif` disparaît.
+- **JavaScript quitte le registre de la voie** : aucune grammaire
+  publiée ne le porte (vérifié sur Maven Central le 2026-11-18) —
+  `SyntaxeNatif.javascript()` est retiré, le paquet garde son repli
+  TextMate déclaré. La liste servie : json, python.
+- **LGPL-2.1 au runtime publié** : premier cas du dépôt — consigné au
+  NOTICE et à REFERENCES ; la voie reste OPT-IN (jamais dans la BOM ni
+  l'agrégateur), l'hôte qui ne l'embarque pas ne reçoit rien de cette
+  licence. Le manifeste `api/core-syntax-treesitter.api` part (les
+  modules Android n'en portent pas, ADR-009).
+
 ## L'exemple consommateur neuf — le module `sample` (ADR-0024, 2026-11-18)
 
 - **`sample` naît** (décision 6 de l'ADR-0024, directive du

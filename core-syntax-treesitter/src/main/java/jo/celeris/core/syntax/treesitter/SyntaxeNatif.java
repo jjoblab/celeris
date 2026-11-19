@@ -7,82 +7,61 @@ import jo.celeris.core.syntax.LanguageSyntax;
 import org.jspecify.annotations.Nullable;
 
 /**
- * La source syntaxique du niveau 2 (ADR-020 — la révision de l'ADR-016
- * sur signal du propriétaire du 2026-11-13 : « tu dois lancer le
- * chantier tree sitter ») : l'arrière natif analyse le document ENTIER
- * en une passe — lexeur et parseur ligne à ligne ne s'y servent jamais,
- * le pont de vue ({@code EditorSyntax}) y branche le moteur natif dès
- * qu'il reconnaît la source. Le contrat {@link LanguageSyntax} reste
- * tenu : la plateforme peut l'enregistrer dans la case déclarée du
- * niveau 2, ses composants ligne à ligne restent muets.
+ * La source syntaxique du niveau 2 (ADR-020, révisé par l'ADR-0025 :
+ * la liaison AndroidIDE vit par Maven) : l'arrière natif analyse le
+ * document ENTIER en une passe — lexeur et parseur ligne à ligne ne
+ * s'y servent jamais, le pont de vue ({@code EditorSyntax}) y
+ * branche le moteur natif dès qu'il reconnaît la source. Le contrat
+ * {@link LanguageSyntax} reste tenu : la plateforme peut
+ * l'enregistrer dans la case déclarée du niveau 2, ses composants
+ * ligne à ligne restent muets.
  *
- * <p>Les langages servis : json, python, javascript — les grammaires
- * épinglées du spike (MIT, provenance par {@code natif/construire}).
- * Absente la bibliothèque partagée, les fabriques rendent null : les
- * paquets retombent sur leur repli déclaré, aucun consommateur ne
- * change.</p>
- *
- * <p><b>Réservée au banc JVM</b> (C4) : la bibliothèque partagée
- * n'est jamais empaquetée dans l'artefact publié et ne se charge que
- * par la propriété système explicite {@code celeris.natif.lib}
- * (chemin absolu). Dans toute application consommatrice, ces
- * fabriques rendent toujours {@code null} — la voie n'existe que
- * pour le banc du dépôt qui la déclare ; le repli des paquets sert
- * tout le reste.</p>
+ * <p>Les langages servis : json, python — les grammaires PUBLIÉES de
+ * la liaison (ADR-0025 ; javascript n'a pas d'artefact publié, son
+ * paquet garde son repli TextMate déclaré). Absente la liaison (banc
+ * JVM sans Android), les fabriques rendent null : les paquets
+ * retombent sur leur repli déclaré, aucun consommateur ne change.</p>
  */
 public final class SyntaxeNatif implements LanguageSyntax {
 
-    /** L'index du langage auprès de la liaison native. */
-    private final int langue;
+    /** La grammaire servie par cette source. */
+    private final GrammaireNatif grammaire;
 
-    private SyntaxeNatif(int langue) {
-        this.langue = langue;
+    private SyntaxeNatif(GrammaireNatif grammaire) {
+        this.grammaire = grammaire;
     }
 
     /**
-     * La source json du niveau 2 — null sans bibliothèque partagée.
+     * La source json du niveau 2 — null sans liaison chargée.
      *
      * @return la source, ou null
      */
     public static @Nullable SyntaxeNatif json() {
-        return deLangue(0);
+        return deLangue(GrammaireNatif.JSON);
     }
 
     /**
-     * La source python du niveau 2 — null sans bibliothèque partagée.
+     * La source python du niveau 2 — null sans liaison chargée.
      *
      * @return la source, ou null
      */
     public static @Nullable SyntaxeNatif python() {
-        return deLangue(1);
+        return deLangue(GrammaireNatif.PYTHON);
     }
 
-    /**
-     * La source javascript du niveau 2 — null sans bibliothèque partagée.
-     *
-     * @return la source, ou null
-     */
-    public static @Nullable SyntaxeNatif javascript() {
-        return deLangue(2);
+    /** La source du langage donné, null sans liaison. */
+    private static @Nullable SyntaxeNatif deLangue(GrammaireNatif g) {
+        return LiaisonArbre.presente() ? new SyntaxeNatif(g) : null;
     }
 
-    /** La source du langage d'index donné, null sans bibliothèque. */
-    private static @Nullable SyntaxeNatif deLangue(int index) {
-        return LiaisonArbre.presente() ? new SyntaxeNatif(index) : null;
-    }
-
-    /** L'index du langage auprès de la liaison — le moteur y lit. */
-    int langue() {
-        return langue;
+    /** La grammaire auprès de la liaison — le moteur y lit. */
+    GrammaireNatif grammaire() {
+        return grammaire;
     }
 
     @Override
     public String id() {
-        return switch (langue) {
-            case 0 -> "json";
-            case 1 -> "python";
-            default -> "javascript";
-        };
+        return grammaire.id();
     }
 
     @Override

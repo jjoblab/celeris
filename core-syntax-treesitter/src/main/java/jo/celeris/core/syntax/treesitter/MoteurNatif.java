@@ -3,11 +3,14 @@ package jo.celeris.core.syntax.treesitter;
 import jo.celeris.core.syntax.MoteurSyntaxe;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.Analysis;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+
+import com.itsaky.androidide.treesitter.TSLanguage;
+import com.itsaky.androidide.treesitter.TSParser;
+import com.itsaky.androidide.treesitter.TSTree;
 
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.EditListener;
@@ -16,36 +19,40 @@ import jo.celeris.core.text.TextSession;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Le moteur du niveau 2 (ADR-020) : la source native y analyse le
- * document ENTIER — l'arbre de la passe précédente sert le re-parse
- * incrémental (l'édition s'y rapporte, l'arbre s'y édite), la
- * matérialisation Java en sort le lexique et les chunks. La VOIE EST
- * BORNÉE : au-delà de deux cent kilo-octets, l'arbre natif ne survit
- * pas à la passe (la discipline mémoire de l'ADR — la re-analyse s'y
- * paie au plein, les budgets de l'ADR-004 ne tiennent que sous la
- * borne).
+ * Le moteur du niveau 2 (ADR-020, révisé par l'ADR-0025 : la liaison
+ * AndroidIDE vit par Maven) : la source native y analyse le document
+ * ENTIER — l'arbre de la passe précédente sert le re-parse incrémental
+ * (l'édition s'y rapporte, l'arbre s'y édite), la matérialisation Java
+ * en sort le lexique et les chunks. La VOIE EST BORNÉE : au-delà de
+ * deux cent kilo-octets, l'arbre natif ne survit pas à la passe (la
+ * discipline mémoire de l'ADR — la re-analyse s'y paie au plein, les
+ * budgets de l'ADR-004 ne tiennent que sous la borne).
  *
  * <p>La publication suit la voie du socle : sans exécuteur, elle se
  * paie sur le fil d'appel (la première demande la sert) ; avec
  * exécuteur (ADR-007), le travail s'y poste et les auditeurs y
  * partent — l'hôte y invalide. La fenêtre visible ne la concerne
  * jamais : la voie sert l'entier, la borne fait la fenêtre.</p>
+ *
+ * <p>Les positions vivent en offsets du modèle (UTF-16, ADR-0025) :
+ * l'édition incrémentale se rapporte telle quelle — la liaison
+ * reçoit ses unités doublées à la frontière {@link LiaisonArbre}.</p>
  */
 public final class MoteurNatif implements MoteurSyntaxe {
 
-    /** La borne de la voie, en octets — le régime mesuré du spike
+    /** La borne de la voie, en caractères — le régime mesuré du spike
      *  (0,5 ms incrémental à 190 Ko) : au-delà, l'arbre ne survit pas. */
     static final int BORNE_OCTETS = 200 * 1024;
 
     private final TextSession session;
     private final @Nullable Executor executeur;
-    private final long parser;
-    private final String[] symboles;
+    private final TSParser parser;
+    private final TSLanguage langue;
     private final List<Consumer<Analysis>> auditeurs = new ArrayList<>();
     private final EditListener ecouteur = this::surEdition;
 
-    /** L'arbre de la passe précédente — 0 sans (borné ou abandonné). */
-    private long arbrePrecedent;
+    /** L'arbre de la passe précédente — null sans (borné ou abandonné). */
+    private @Nullable TSTree arbrePrecedent;
     /** Le document de la dernière passe — l'AVANT de l'édition suivante. */
     private @Nullable Document documentAnalyse;
     /** L'édition en attente de rapport : ses bornes, ses textes. */
@@ -60,18 +67,19 @@ public final class MoteurNatif implements MoteurSyntaxe {
             @Nullable Executor executeur) {
         this.session = session;
         this.executeur = executeur;
-        this.parser = LiaisonArbre.parserNew(source.langue());
-        this.symboles = LiaisonArbre.symboles(parser);
+        this.langue = source.grammaire().langue();
+        this.parser = TSParser.create();
+        this.parser.setLanguage(langue);
         session.addEditListener(ecouteur);
     }
 
     /**
-     * Le moteur d'une session — null sans bibliothèque partagée.
+     * Le moteur d'une session — null sans liaison chargée.
      *
      * @param session   la session d'édition suivie
      * @param source    la source native du langage
      * @param executeur l'exécuteur du travail, null pour la voie synchrone
-     * @return le moteur prêt, null sans bibliothèque
+     * @return le moteur prêt, null sans liaison
      */
     public static @Nullable MoteurNatif sur(TextSession session,
             SyntaxeNatif source, @Nullable Executor executeur) {
@@ -83,7 +91,7 @@ public final class MoteurNatif implements MoteurSyntaxe {
 
     /**
      * Le moteur de la voie du niveau 2 : null quand la source n'est pas
-     * native, que la session manque ou que la bibliothèque absente — le
+     * native, que la session manque ou que la liaison manque — le
      * pont y branche sans lire la source lui-même.
      *
      * @param source    la source syntaxique du langage, ou null
@@ -151,11 +159,12 @@ public final class MoteurNatif implements MoteurSyntaxe {
     @Override
     public void close() {
         session.removeEditListener(ecouteur);
-        if (arbrePrecedent != 0) {
-            LiaisonArbre.treeFree(arbrePrecedent);
-            arbrePrecedent = 0;
+        TSTree arbre = arbrePrecedent;
+        if (arbre != null) {
+            arbre.close();
+            arbrePrecedent = null;
         }
-        LiaisonArbre.parserFree(parser);
+        parser.close();
     }
 
     /**
@@ -165,11 +174,9 @@ public final class MoteurNatif implements MoteurSyntaxe {
      */
     private synchronized void surEdition(int start, int end, String removed,
             String inserted) {
-        if (editionEnAttente) {
-            if (arbrePrecedent != 0) {
-                LiaisonArbre.treeFree(arbrePrecedent);
-                arbrePrecedent = 0;
-            }
+        if (editionEnAttente && arbrePrecedent != null) {
+            arbrePrecedent.close();
+            arbrePrecedent = null;
         }
         debutEdite = start;
         finEdite = end;
@@ -183,21 +190,21 @@ public final class MoteurNatif implements MoteurSyntaxe {
      *  survie de l'arbre. */
     private synchronized void analyser() {
         Document document = session.document();
-        byte[] octets = document.text().getBytes(StandardCharsets.UTF_8);
-        long arbre = parser(document, octets);
-        if (arbre == 0) {
+        String texte = document.text();
+        TSTree arbre = parser(document, texte);
+        if (arbre == null) {
             publiee = null;
             return;
         }
-        int[] aplatit = LiaisonArbre.aplatir(arbre);
-        publiee = MaterialisationNatif.de(document, aplatit, symboles,
-                document.revision());
+        int[] aplatit = LiaisonArbre.aplatir(arbre, langue);
+        publiee = MaterialisationNatif.de(document, aplatit,
+                LiaisonArbre.nomsDeLangue(langue), document.revision());
         documentAnalyse = document;
-        if (octets.length <= BORNE_OCTETS) {
+        if (texte.length() <= BORNE_OCTETS) {
             arbrePrecedent = arbre;
         } else {
-            LiaisonArbre.treeFree(arbre);
-            arbrePrecedent = 0;
+            arbre.close();
+            arbrePrecedent = null;
         }
         editionEnAttente = false;
         notifier();
@@ -205,30 +212,22 @@ public final class MoteurNatif implements MoteurSyntaxe {
 
     /** La passe elle-même : l'incrémental quand l'arbre précédent vit
      *  et que l'édition s'y rapporte, le plein sinon. */
-    private long parser(Document document, byte[] octets) {
-        long precedent = arbrePrecedent;
+    private @Nullable TSTree parser(Document document, String texte) {
+        TSTree precedent = arbrePrecedent;
         Document avant = documentAnalyse;
-        if (precedent == 0 || !editionEnAttente || avant == null) {
-            return LiaisonArbre.parse(parser, octets, octets.length);
+        if (precedent == null || !editionEnAttente || avant == null) {
+            return parser.parseString(texte);
         }
-        LiaisonArbre.treeEdit(precedent,
-                octetsDe(avant, 0, debutEdite),
-                octetsDe(avant, 0, debutEdite)
-                        + retireEdite.getBytes(StandardCharsets.UTF_8).length,
-                octetsDe(avant, 0, debutEdite)
-                        + insereEdite.getBytes(StandardCharsets.UTF_8).length,
-                ligneDe(avant, debutEdite),
-                octetsDe(avant, ligneDe(avant, debutEdite), debutEdite),
-                ligneDe(avant, finEdite),
-                octetsDe(avant, ligneDe(avant, finEdite), finEdite),
-                ligneDe(document, debutEdite + insereEdite.length()),
-                octetsDe(document,
-                        ligneDe(document, debutEdite + insereEdite.length()),
-                        debutEdite + insereEdite.length()));
-        long arbre = LiaisonArbre.reparse(parser, precedent, octets,
-                octets.length);
-        LiaisonArbre.treeFree(precedent);
-        arbrePrecedent = 0;
+        int nouvelleFin = debutEdite + insereEdite.length();
+        precedent.edit(LiaisonArbre.edition(debutEdite, finEdite,
+                nouvelleFin,
+                ligneDe(avant, debutEdite), colonneDe(avant, debutEdite),
+                ligneDe(avant, finEdite), colonneDe(avant, finEdite),
+                ligneDe(document, nouvelleFin),
+                colonneDe(document, nouvelleFin)));
+        TSTree arbre = parser.parseString(precedent, texte);
+        precedent.close();
+        arbrePrecedent = null;
         return arbre;
     }
 
@@ -238,11 +237,10 @@ public final class MoteurNatif implements MoteurSyntaxe {
                 Math.max(0, document.length() - 1)));
     }
 
-    /** Les octets d'une tranche de document, préfixe compris. */
-    private static int octetsDe(Document document, int debut, int fin) {
-        int borne = Math.min(fin, document.length());
-        return document.subText(debut, Math.max(debut, borne))
-                .getBytes(StandardCharsets.UTF_8).length;
+    /** La colonne (caractères) d'un caractère dans le document donné. */
+    private static int colonneDe(Document document, int caractere) {
+        int borne = Math.min(caractere, Math.max(0, document.length() - 1));
+        return borne - document.lineStart(document.lineForOffset(borne));
     }
 
     /** Les auditeurs partent sur le fil qui a servi la passe. */

@@ -13,8 +13,8 @@ import jo.celeris.core.text.TextSession;
 
 /**
  * Le banc de la MÉCANIQUE de la voie (ADR-0024) : le module opt-in
- * s'annonce par ServiceLoader, sa fabrique rend null sans
- * bibliothèque partagée (le repli des paquets sert) — et le pont,
+ * s'annonce par ServiceLoader, sa fabrique rend null sans liaison
+ * chargée (JVM sans Android — le repli des paquets sert) — et le pont,
  * qui ne connaît que l'interface, vit sa voie des grammaires sans
  * jamais savoir que la voie existe. La séparation se PROUVE.
  */

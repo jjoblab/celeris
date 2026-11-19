@@ -176,6 +176,33 @@ Apache-2.0) ; Gson Apache-2.0.
 - Le SBOM CycloneDX de publication (ADR-011) porte la dépendance dans
   chaque publication de `lsp-protocole`.
 
+## Dépendance tierce au runtime des artefacts publiés — voie tree-sitter (ADR-0025)
+
+Le module publié OPT-IN `core-syntax-treesitter` consomme la liaison
+Android de tree-sitter par Maven (artefacts du projet AndroidIDE) :
+`android-tree-sitter` 4.3.3 (cœur : TSParser, TSLanguage, TSTree),
+`tree-sitter-json` 4.3.3 et `tree-sitter-python` 4.3.3 (grammaires
+servies). Chaque AAR embarque ses bibliothèques natives pour les
+quatre ABI courantes (arm64-v8a, armeabi-v7a, x86, x86_64).
+
+| Dépendance | Version | Licence | Usage |
+| --- | --- | --- | --- |
+| com.itsaky.androidide.treesitter:android-tree-sitter | 4.3.3 | **LGPL-2.1** | liaison Android de tree-sitter (cœur) — `core-syntax-treesitter`, ADR-0025 |
+| com.itsaky.androidide.treesitter:tree-sitter-json | 4.3.3 | LGPL-2.1 | grammaire json de la voie |
+| com.itsaky.androidide.treesitter:tree-sitter-python | 4.3.3 | LGPL-2.1 | grammaire python de la voie |
+
+- Provenance : `https://repo1.maven.org/maven2/com/itsaky/androidide/treesitter/`
+  (POM et AAR ouverts le 2026-11-18 : licence LGPL-2.1 déclarée,
+  packaging AAR, dépendance transitive unique — `annotations`, scope
+  runtime ; projet archivé par ses auteurs).
+- **Première dépendance LGPL du runtime publié du dépôt** : la voie
+  est OPT-IN — l'hôte qui n'embarque pas `core-syntax-treesitter` ne
+  reçoit RIEN de cette licence (ni la BOM ni l'agrégateur ne
+  l'exigent). L'hôte qui l'embarque la reçoit en connaissance de
+  cause ; les obligations LGPL-2.1 se lisent chez l'hôte.
+- Le SBOM CycloneDX de publication (ADR-011) porte les trois
+  dépendances dans chaque publication du module.
+
 ## Code hérité
 
 Les algorithmes portés depuis le dépôt de départ du propriétaire (Apache-2.0)

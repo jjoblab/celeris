@@ -20,6 +20,7 @@
 | [joni](https://github.com/jruby/joni) | dépendance du runtime publié `core-syntax-grammars` (M7.6, ADR-014) : portage Java d'Oniguruma, moteur des expressions des grammaires TextMate | MIT | 2026-11-08 |
 | [jcodings](https://github.com/jruby/jcodings) | rouage d'encodages de joni (UTF-8 seul sert), même module publié | MIT | 2026-11-08 |
 | [tree-sitter](https://github.com/tree-sitter/tree-sitter) | candidate (M7.6, spike) : moteur d'analyse incrémental en C, niveau 2 de l'analyse structurelle par liaison JNI écrite ici | MIT | 2026-11-08 |
+| [android-tree-sitter](https://github.com/AndroidIDEOfficial/android-tree-sitter) | dépendance du runtime publié `core-syntax-treesitter` (ADR-0025) : liaison Android de tree-sitter, artefacts Maven `com.itsaky.androidide.treesitter` 4.3.3 — `.so` des quatre ABI courantes dans les AAR | LGPL-2.1 | 2026-11-18 |
 | [Gson](https://github.com/google/gson) | rouage JSON de la bibliothèque LSP derrière la frontière `lsp-protocole` (M7.6, ADR-015), épinglée STRICTEMENT : épinglée pour la maîtrise de l'octet du runtime | Apache-2.0 | 2026-11-09 |
 
 ## Points de comparaison

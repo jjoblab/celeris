@@ -21,18 +21,18 @@ import jo.celeris.core.text.TextSession;
  * document ENTIER — jetons exacts (les feuilles soudées, la convention
  * du socle), profondeurs de crochets, chunks du pli exact, re-parse
  * incrémental à l'édition. Le banc vit sous {@code assumeTrue} : sans
- * la bibliothèque partagée (tâche {@code natif}, hors de {@code
- * check}), il se saute — la voie retombe sur le repli des paquets,
- * aucun consommateur ne change.
+ * la liaison chargée (JVM sans Android — la liaison vit dans les AAR
+ * Maven, ADR-0025), il se saute — la voie retombe sur le repli des
+ * paquets, aucun consommateur ne change.
  */
 class NatifBancTest {
 
-    /** La fabrique rend-elle la source ? — le saut du banc sans elle. */
+    /** La fabrique rend-elle la source ? — le saut du banc sans elle
+     *  (liaison Maven : chargée sur Android, absente sur JVM). */
     private static SyntaxeNatif source(int langue) {
         SyntaxeNatif source = switch (langue) {
             case 0 -> SyntaxeNatif.json();
-            case 1 -> SyntaxeNatif.python();
-            default -> SyntaxeNatif.javascript();
+            default -> SyntaxeNatif.python();
         };
         assumeTrue(source != null);
         return source;
@@ -151,5 +151,6 @@ class NatifBancTest {
     void sansBibliothequeLaFabriqueRendNull() {
         assumeTrue(!LiaisonArbre.presente());
         assumeTrue(SyntaxeNatif.json() == null);
+        assumeTrue(SyntaxeNatif.python() == null);
     }
 }

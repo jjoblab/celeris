@@ -28,10 +28,9 @@ import jo.celeris.core.text.Document;
  * de la voie bornée (jamais de natif dans le chemin de rendu — le
  * jalon de l'ADR-004).
  *
- * <p>Les octets de la grammaire s'y traduisent en caractères du modèle
- * (le décodage UTF-8 dresse la table), les colonnes d'octets en
- * colonnes de caractères — la ligne d'un point ne bouge jamais (les
- * sauts comptent pareil des deux côtés).</p>
+ * <p>L'arbre aplati porte déjà des offsets CARACTÈRES du modèle
+ * (l'aplatisseur de la liaison divise par deux, ADR-0025) : la table
+ * octet→caractère n'a plus lieu — la matérialisation lit direct.</p>
  */
 final class MaterialisationNatif {
 
@@ -96,14 +95,11 @@ final class MaterialisationNatif {
     }
 
     private final Document document;
-    /** La table octet → caractère (l'indice des octets décodés). */
-    private final int[] charParOctet;
     /** Le début (caractères) de chaque ligne du document. */
     private final int[] debutLigne;
 
     private MaterialisationNatif(Document document) {
         this.document = document;
-        this.charParOctet = caracteresParOctet(document.text());
         this.debutLigne = debutsDeLignes();
     }
 
@@ -123,36 +119,6 @@ final class MaterialisationNatif {
             int revision) {
         MaterialisationNatif matiere = new MaterialisationNatif(document);
         return matiere.materiel(aplatit, symboles, revision);
-    }
-
-    /** La traduction octets → caractères du texte décodé. */
-    private static int[] caracteresParOctet(String texte) {
-        byte[] octets = texte.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        int[] table = new int[octets.length + 1];
-        int caractere = 0;
-        for (int octet = 0; octet < octets.length; ) {
-            table[octet] = caractere;
-            int largeur = largeurUtf8(octets[octet]);
-            octet += Math.max(1, largeur);
-            caractere++;
-        }
-        table[octets.length] = caractere;
-        return table;
-    }
-
-    /** La largeur d'un octet de tête UTF-8, 1 par défaut. */
-    private static int largeurUtf8(byte octet) {
-        int b = octet & 0xFF;
-        if ((b & 0xE0) == 0xC0) {
-            return 2;
-        }
-        if ((b & 0xF0) == 0xE0) {
-            return 3;
-        }
-        if ((b & 0xF8) == 0xF0) {
-            return 4;
-        }
-        return 1;
     }
 
     /** Les débuts (caractères) de chaque ligne du document. */
@@ -208,8 +174,8 @@ final class MaterialisationNatif {
                 restants[profondeur - 1]--;
             }
             int symbole = aplatit[i];
-            int debut = charParOctet[aplatit[i + 1]];
-            int fin = charParOctet[aplatit[i + 2]];
+            int debut = aplatit[i + 1];
+            int fin = aplatit[i + 2];
             if (profondeur == 1 && fin > debut) {
                 blocks.add(new int[] {debut, fin, aplatit[i + 3]});
             }

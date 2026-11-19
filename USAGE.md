@@ -161,7 +161,7 @@ Le cœur n'exige que `core-text` ; chaque autre module ne tire que ce
 que son rôle demande — les règles de dépendance vivent dans
 [`ARCHITECTURE.md`](ARCHITECTURE.md). Le vôtre inclut ce qu'il expose.
 
-### 3.1 bis La voie tree-sitter — module OPT-IN (ADR-0024)
+### 3.1 bis La voie tree-sitter — module OPT-IN (ADR-0024, ADR-0025)
 
 La coloration vit en DEUX voies séparées, chacune réellement ce
 qu'elle prétend être :
@@ -181,18 +181,22 @@ dependencies {
 Sans ce module, l'hôte ne reçoit AUCUN chemin de chargement natif :
 la voie grammaires sert, personne ne change. Avec lui, la fabrique
 de la voie s'annonce au pont par `ServiceLoader` et inscrit ses
-langages (json, python, javascript) au registre de la plateforme —
-la préférence `tree-sitter` d'un paquet de langage se met à servir.
+langages (json, python — les grammaires publiées de la liaison,
+ADR-0025) au registre de la plateforme — la préférence `tree-sitter`
+d'un paquet de langage se met à servir.
 
-La bibliothèque partagée (runtime C) ne se charge QUE par la
-propriété système `celeris.natif.lib` (chemin absolu) : elle n'est
-jamais empaquetée dans l'artefact. L'hôte qui embarque la voie en
-banc la construit par la tâche `natif` du module et la désigne :
-
-```bash
-./gradlew :core-syntax-treesitter:natif
-java -Dceleris.natif.lib=/chemin/absolu/libliaison.so ...
-```
+Depuis l'ADR-0025, le module consomme la liaison Android de
+tree-sitter par Maven (`com.itsaky.androidide.treesitter` 4.3.3,
+LGPL-2.1 consignée au NOTICE) : les bibliothèques natives suivent
+les AAR (quatre ABI courantes), le dépôt ne compile plus aucun C —
+embarquer le module SUFFIT, la voie vit sur appareil. Deux
+prérequis chez l'hôte : le **désucrage des bibliothèques du cœur**
+(exigé par les métadonnées de l'AAR, `desugar_jdk_libs` 2.1.5) et,
+si l'hôte minifie, les règles de conservation embarquées
+(`consumer-rules.pro` du module les apportent). Sur JVM (bancs
+sans Android), la liaison ne se charge pas : les fabriques rendent
+null et les paquets servent leur repli — javascript notamment garde
+son repli TextMate (aucune grammaire publiée ne le porte).
 
 **Le choix de voie se déclare dans le paquet de langage**
 (`syntaxPreference`, § 6) : `"tree-sitter"` pour la voie native,

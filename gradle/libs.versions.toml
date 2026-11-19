@@ -88,6 +88,13 @@ jcodings = "1.0.65"
 # BSD-3-Clause, compatible Apache-2.0), arbre réduit à gson seul —
 # vérifiées sur Maven Central le 2026-11-09 (POM lus au spike).
 lsp4j = "1.0.0"
+# La liaison Android de tree-sitter (ADR-0025) : le module opt-in
+# core-syntax-treesitter consomme les artefacts Maven du projet
+# AndroidIDE — l'artefact cœur et les grammaires servies (json,
+# python). Licence LGPL-2.1, consignée au NOTICE ; versions vérifiées
+# sur repo1.maven.org le 2026-11-18 (AAR, 4 ABI, dépendance
+# transitive unique : annotations).
+androidTreeSitter = "4.3.3"
 # La copie unique de Gson (ADR-015, décision 3) : une version dans
 # l'intervalle exigé par la bibliothèque, épinglée pour maîtriser
 # l'octet du runtime — vérifiée sur Maven Central le 2026-11-09.
@@ -149,6 +156,13 @@ lsp4j = { module = "org.eclipse.lsp4j:org.eclipse.lsp4j", version.ref = "lsp4j" 
 # la version, la copie unique avec le serveur exige la maîtrise de
 # l'octet (ADR-015, décision 3).
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+# La voie tree-sitter (ADR-0025) : liaison Android consommée par le
+# module opt-in core-syntax-treesitter — aucun type de la liaison ne
+# paraît dans son API (implementation) ; NOTICE et REFERENCES la
+# couvrent (LGPL-2.1).
+android-tree-sitter = { module = "com.itsaky.androidide.treesitter:android-tree-sitter", version.ref = "androidTreeSitter" }
+tree-sitter-json = { module = "com.itsaky.androidide.treesitter:tree-sitter-json", version.ref = "androidTreeSitter" }
+tree-sitter-python = { module = "com.itsaky.androidide.treesitter:tree-sitter-python", version.ref = "androidTreeSitter" }
 # Artefacts de plugin résolus par build-logic (aucun plugin appliqué par
 # identifiant hors des conventions) :
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
