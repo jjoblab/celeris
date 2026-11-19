@@ -99,6 +99,11 @@ public final class EditorSyntax {
      *  DOCUMENT — le moteur de la session quittée s'y parque, la
      *  session revenue le retrouve avec sa publication). */
     private final ParcMoteurs parc = new ParcMoteurs();
+
+    /** L'auditeur de publication du moteur — UN seul, posé et retiré
+     *  proprement : jamais dupliqué au retour du parc. */
+    private final java.util.function.Consumer<jo.celeris.core.syntax.Analysis> auditeurPublication =
+            analyse -> notifierAnalysePrete();
     private @Nullable Runnable surAnalysePrete;
 
     /** Les consommateurs 2.0 du plan — multiples (ADR-0022, phase
@@ -564,7 +569,7 @@ public final class EditorSyntax {
         moteurNativeVoie =
                 EnginePathFactoryLoader.creer(syntaxe, session, executeur);
         if (moteurNativeVoie != null) {
-            moteurNativeVoie.ajouterAuditeur(analyse -> notifierAnalysePrete());
+            moteurNativeVoie.ajouterAuditeur(auditeurPublication);
             moteurNativeVoie.reanalyser();
             return;
         }
@@ -577,7 +582,7 @@ public final class EditorSyntax {
         if (syntaxe != null && session != null) {
             moteur = MoteurAnalyse.sur(session, syntaxe, executeur,
                     fenetrePremiere, fenetreDerniere);
-            moteur.ajouterAuditeur(analyse -> notifierAnalysePrete());
+            moteur.ajouterAuditeur(auditeurPublication);
             moteur.reanalyser();
         }
     }
@@ -596,7 +601,11 @@ public final class EditorSyntax {
         if (!duDocument) {
             return false;
         }
-        moteur.ajouterAuditeur(analyse -> notifierAnalysePrete());
+        // L'auditeur ne se DUPLIQUE pas au retour du parc (l'ancien chemin
+        // ré-additionnait l'auditeur de la création à chaque retour — N
+        // allers-retours d'onglets = N invalidate par publication).
+        moteur.retirerAuditeur(auditeurPublication);
+        moteur.ajouterAuditeur(auditeurPublication);
         Analysis publiee = moteur.analysePubliee();
         boolean aJour = publiee != null
                 && publiee.revision() == session.document().revision();

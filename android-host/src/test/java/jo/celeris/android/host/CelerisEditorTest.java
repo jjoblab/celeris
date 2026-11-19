@@ -153,6 +153,66 @@ public class CelerisEditorTest {
                 vueFaible.get());
     }
 
+    /** La facade fermee ne survit pas au ramasse-miettes même quand
+     *  la VUE vit encore (le scénario réel : la vue reste dans le
+     *  layout) : chaque rebranchement d'orchestrateur retire les
+     *  verdicts de touche et de double appui AVANT de les reposer —
+     *  l'ancien chemin les empilait (N onglets = N exemplaires du
+     *  même prédicat, close() n'en retirait qu'un : les N-1 restants
+     *  retenaient la façade fermée tant que la vue vivait). */
+
+    @Test
+    public void laFacadeFermeeNeFuitPasVersUneVueVivante() throws Exception {
+        // La vue vit dans le layout (référence forte du banc).
+        EditorView vue = new EditorView(RuntimeEnvironment.getApplication());
+        PopupLayer couche = new PopupLayer(RuntimeEnvironment.getApplication());
+        WeakReference<CelerisEditor> facadeFaible =
+                monterCyclerFermer(vue, couche, 5);
+        // Le looper d'abord : les posts en vol (montage du chrome)
+        // ne retiennent pas la façade, mais vidons tout de même.
+        org.robolectric.Shadows.shadowOf(
+                android.os.Looper.getMainLooper()).idle();
+        for (int tour = 0; tour < 50 && facadeFaible.get() != null; tour++) {
+            System.gc();
+            System.runFinalization();
+            Thread.sleep(10L);
+        }
+        assertNull("aucun verdict empilé ne retient la façade fermée "
+                + "pendant que la vue vit", facadeFaible.get());
+    }
+
+    /** Monte la façade sur la vue donnée, cycle N documents DIFFÉRENTS
+     *  (rebranchement de l'orchestrateur à chaque fois), ferme — ne
+     *  rend que la référence faible de la FAÇADE ; la vue et la
+     *  couche vivent encore, tenues par l'appelant. */
+    /** Le kit PRÉCHARGÉ du banc de fuite : sans preload(), le
+     *  premier open() lance la pose différée de langue (fil démon +
+     *  vue.post) qui retient la façade TANT QUE le registre
+     *  s'assemble — le banc la court-circuite, comme le banc de
+     *  réouverture (le scénario testé est la fuite APRÈS close(),
+     *  pas la pose différée légitime). */
+    private static final LanguageKit KIT_PRET = LanguageKit
+            .builder(Runnable::run)
+            .addSupport(LanguageSupport.builder(
+                            LanguageDescriptor.of("java", "Java",
+                                    java.util.List.of("java")))
+                    .syntax(JavaSyntax.INSTANCE)
+                    .build())
+            .build();
+
+    private static WeakReference<CelerisEditor> monterCyclerFermer(
+            EditorView vue, PopupLayer couche, int onglets) {
+        KIT_PRET.preload();
+        CelerisEditor editeur = CelerisEditor.attach(vue, couche, KIT_PRET);
+        for (int onglet = 0; onglet < onglets; onglet++) {
+            editeur.open("Fichier" + onglet + ".java", SOURCE);
+        }
+        editeur.close();
+        WeakReference<CelerisEditor> faible = new WeakReference<>(editeur);
+        editeur = null; // le slot de pile ne retient plus la façade
+        return faible;
+    }
+
     /** Monte la façade, ouvre, ferme — ne rend que la référence
      *  faible de la vue ; la façade et la couche meurent dans le
      *  frame de CETTE méthode, pas dans celui du banc. */

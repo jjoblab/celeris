@@ -242,12 +242,12 @@ public final class CelerisEditor {
         // et le fil d'Ariane ne patientent pas la première frappe —
         // le rafraîchissement part au moment où la couche est
         // mesurée (le premier avis de fenêtre y re-pose tout).
-        vue.post(() -> {
-            PopupsEditeur orchestrateur = popups;
-            if (orchestrateur != null) {
-                orchestrateur.rafraichirMontage();
-            }
-        });
+        // Le runnable capture l'ORCHESTRATEUR, jamais la façade : un
+        // post en vol survit au close() (file du thread tant que la
+        // vue n'est pas attachée) — l'ancienne lambda retenait la
+        // façade fermée jusqu'à l'exécution du post.
+        PopupsEditeur orchestrateurPose = popups;
+        vue.post(orchestrateurPose::rafraichirMontage);
     }
 
     /** Le document à afficher (le retour terrain du 2026-11-19) :
@@ -348,6 +348,13 @@ public final class CelerisEditor {
             popups.detacher();
             popups = null;
         }
+        // Les verdicts de la façade ne s'empilent PAS : un rebranchement
+        // d'orchestrateur les retire AVANT de les reposer (l'ancien chemin
+        // rappelait addPopupKeyListener à chaque document différent — N
+        // onglets = N exemplaires du même prédicat, close() n'en retirait
+        // qu'un, la façade fermée fuyait tant que la vue vivait).
+        vue.removePopupKeyListener(verdictTouche);
+        vue.removeDoubleTapListener(verdictDoubleTap);
         popups = new PopupsEditeur(vue, session, couche,
                 settings.theme(), settings.fontSizeSp());
         vue.addPopupKeyListener(verdictTouche);
