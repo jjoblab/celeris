@@ -5,6 +5,27 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.2] — 2026-11-19
+
+### Correctifs de l'analyse croisée, suite (session 16)
+
+- **La composition IME meurt avec le document quitté** : changer
+  d'onglet clôt la composition en vol — le backspace IME juste après
+  le changement appliquait les bornes de la composition morte au
+  document neuf (A-19).
+- **Le presse-papiers est borné** : la transaction IPC d'Android
+  plafonne à ~1 Mo — copier, couper et « tout copier » tronquent à
+  200 000 caractères, le texte de sélection servi à l'IME à 4 096
+  (A-20 : TransactionTooLarge ne tue plus l'éditeur).
+- **La plus large ligne se relit en O(1)** : le maximum des longueurs
+  est mémo à la construction de la projection — le défilement
+  horizontal ne balayait plus le tableau à chaque trame (B-08).
+- **Ctrl+C, Ctrl+X, Ctrl+V vivent au clavier** : les actions
+  presse-papiers rejoignent la table des raccourcis, sans ouvrir la
+  barre de sélection (C-12). Au passage, REDO quitte Ctrl+X pour
+  Ctrl+Y : le code 52 est X, pas Y — Ctrl+Y ne répondait pas (bug
+  latent révélé par la nouvelle liaison CUT).
+
 ## [2.2.1] — 2026-11-19
 
 ### Correctifs de l'analyse croisée avec le dépôt de départ (session 15)

@@ -36,9 +36,10 @@ public final class KeyBindings {
      * La table par défaut : chaque action liée une fois, aucun conflit.
      *
      * <p>Codes plateforme@n@: DPAD 19–22, PAGE_UP 92, PAGE_DOWN 93, DEL
-     * 67, FORWARD_DEL 112, MOVE_HOME 122, MOVE_END 123, A 29, Y 52,
-     * Z 54. Alt+DPAD déplace par mots, Ctrl+MOVE_HOME/END saute aux
-     * bornes du document, Maj étend la sélection.</p>
+     * 67, FORWARD_DEL 112, MOVE_HOME 122, MOVE_END 123, A 29, C 31,
+     * V 50, X 52, Y 53, Z 54. Alt+DPAD déplace par mots,
+     * Ctrl+MOVE_HOME/END saute aux bornes du document, Maj étend la
+     * sélection, Ctrl+C/X/V sert le presse-papiers.</p>
      *
      * @return la table par défaut
      */
@@ -71,7 +72,16 @@ public final class KeyBindings {
         // d'intelligence vit sur la vue, le saut nu sinon.
         lier(table, EditorAction.ENTER, new KeyBinding(66, false, false, false));
         lier(table, EditorAction.UNDO, new KeyBinding(54, false, true, false));
-        lier(table, EditorAction.REDO, new KeyBinding(52, false, true, false));
+        // C-12 : REDO vit sur Ctrl+Y (53) — l'ancienne liaison au code
+        // 52 posait le raccourci sur Ctrl+X (52 EST X, pas Y) : Ctrl+Y
+        // ne répondait pas et Ctrl+X entrait en conflit avec la coupe.
+        lier(table, EditorAction.REDO, new KeyBinding(53, false, true, false));
+        // C-12 : les actions presse-papiers du clavier — copier (C=31),
+        // couper (X=52), coller (V=50), la barre de sélection reste le
+        // chemin tactile.
+        lier(table, EditorAction.COPY, new KeyBinding(31, false, true, false));
+        lier(table, EditorAction.CUT, new KeyBinding(52, false, true, false));
+        lier(table, EditorAction.PASTE, new KeyBinding(50, false, true, false));
         lier(table, EditorAction.ACCEPT_FANTOME,
                 new KeyBinding(61, false, false, false));
         // D-15 — les raccourcis de bureau du zoom : Ctrl + plus 81,

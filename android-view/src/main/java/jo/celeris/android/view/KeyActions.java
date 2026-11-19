@@ -54,6 +54,50 @@ final class KeyActions {
      * @return vrai si l'action est consommée
      */
     static boolean appliquer(EditorView vue, EditorAction action) {
+        if (action == EditorAction.ZOOM_IN || action == EditorAction.ZOOM_OUT
+                || action == EditorAction.ZOOM_RESET) {
+            zoom(vue, action);
+            vue.invalidate();
+            return true;
+        }
+        if (action == EditorAction.ACCEPT_FANTOME) {
+            if (vue.fantome.surTab()) {
+                vue.invalidate();
+                return true;
+            }
+            return false;
+        }
+        // C-12 : le presse-papiers clavier (COPY, CUT, PASTE —
+        // consécutifs dans l'enum) se sert avant la dispatch
+        // principale : jamais la géométrie n'y perd son chemin.
+        if (action.ordinal() >= EditorAction.COPY.ordinal()
+                && action.ordinal() <= EditorAction.PASTE.ordinal()) {
+            PressePapiersClavier.servir(vue, action);
+            vue.invalidate();
+            return true;
+        }
+        switch (action) {
+            case DELETE_BACKWARD, DELETE_FORWARD, ENTER, UNDO, REDO,
+                    SELECT_ALL -> edition(vue, action);
+            default -> mouvements(vue, action);
+        }
+        vue.invalidate();
+        return true;
+    }
+
+    /** Le zoom clavier (A-18) : la taille suit la table de la vue. */
+    private static void zoom(EditorView vue, EditorAction action) {
+        switch (action) {
+            case ZOOM_IN -> vue.zoom.agrandir();
+            case ZOOM_OUT -> vue.zoom.retrecir();
+            default -> vue.zoom.retablir(EditorView.POLICE_PAR_DEFAUT.size());
+        }
+    }
+
+    /** Les actions d'édition : suppression, entrée, historique,
+     *  sélection entière et presse-papiers (C-12) — le cœur de la
+     *  session, jamais la géométrie. */
+    private static void edition(EditorView vue, EditorAction action) {
         TextSession session = vue.session();
         Document document = session.document();
         switch (action) {
@@ -70,18 +114,9 @@ final class KeyActions {
             case REDO -> session.redo();
             case SELECT_ALL -> session.setSelection(MultiSelection.of(
                     new SelRange(0, document.length())));
-            case ACCEPT_FANTOME -> {
-                if (!vue.fantome.surTab()) {
-                    return false;
-                }
+            default -> {
             }
-            case ZOOM_IN -> vue.zoom.agrandir();
-            case ZOOM_OUT -> vue.zoom.retrecir();
-            case ZOOM_RESET -> vue.zoom.retablir(EditorView.POLICE_PAR_DEFAUT.size());
-            default -> mouvements(vue, action);
         }
-        vue.invalidate();
-        return true;
     }
 
     /** Les mouvements et sélections : la projection et la fenêtre courantes. */

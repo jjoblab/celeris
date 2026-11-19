@@ -57,6 +57,13 @@ public enum EditorAction {
     DELETE_FORWARD,
     /** Annule le dernier geste. */
     UNDO,
+    /** Copie la sélection au presse-papiers système (C-12 : Ctrl+C,
+     *  sans ouvrir la barre de sélection). */
+    COPY,
+    /** Coupe la sélection : copie puis remplacement par le vide. */
+    CUT,
+    /** Colle le presse-papiers système sur la sélection. */
+    PASTE,
     /** Retablit le geste annulé. */
     REDO,
     /** Accepte le premier mot du texte fantôme (F-01) — Tab au
