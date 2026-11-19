@@ -141,14 +141,22 @@ final class EditorInputConnection implements InputConnection {
         return document.subText(debut, fin);
     }
 
+    /** Le plafond du texte de sélection servi à l'IME : le protocole
+     *  IME n'a pas à recevoir un document entier (A-20, l'analyse
+     *  croisée — le dépôt de départ borne pareil). */
+    static final int MAX_SELECTED_TEXT_CHARS = 4_096;
+
     @Override
     public @Nullable CharSequence getSelectedText(int flags) {
         SelRange primaire = primaire();
         if (primaire.isEmpty()) {
             return null;
         }
-        return vue.session().document().subText(primaire.start(),
-                primaire.end());
+        CharSequence texte = vue.session().document().subText(
+                primaire.start(), primaire.end());
+        return texte.length() > MAX_SELECTED_TEXT_CHARS
+                ? texte.subSequence(0, MAX_SELECTED_TEXT_CHARS)
+                : texte;
     }
 
     @Override

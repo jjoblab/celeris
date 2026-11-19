@@ -164,6 +164,13 @@ final class BarreSelection {
                         popups.couche().getContext()) == null;
     }
 
+    /** Le plafond des copies au presse-papiers, en caractères : la
+     *  transaction IPC d'Android plafonne à ~1 Mo (A-20, l'analyse
+     *  croisée) — au-delà, le système tue l'appelant
+     *  (TransactionTooLargeException). Le dépôt de départ borne à
+     *  200 000 : pareil ici, la copie tronque au plafond. */
+    static final int MAX_CLIPBOARD_CHARS = 200_000;
+
     /** Copie la sélection au presse-papiers système. */
     private void copier() {
         SelRange plage = plagePrimaire();
@@ -217,13 +224,17 @@ final class BarreSelection {
     }
 
     /** Pose le texte au presse-papiers système puis re-pose la barre :
-     *  Coller vient de se proposer (ou se retirer). */
+     *  Coller vient de se proposer (ou se retirer). La pose est
+     *  BORNÉE au plafond : la transaction Binder ne porte pas un
+     *  document monstre (A-20). */
     private void poserAuPressePapiers(String texte) {
         Object service = popups.couche().getContext()
                 .getSystemService(Context.CLIPBOARD_SERVICE);
         if (service instanceof ClipboardManager pressePapiers) {
-            pressePapiers.setPrimaryClip(
-                    ClipData.newPlainText("celeris", texte));
+            pressePapiers.setPrimaryClip(ClipData.newPlainText("celeris",
+                    texte.length() > MAX_CLIPBOARD_CHARS
+                            ? texte.substring(0, MAX_CLIPBOARD_CHARS)
+                            : texte));
         }
         poser(session.selection());
     }
