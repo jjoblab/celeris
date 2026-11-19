@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Le garde-fou d'avant-poussée : la chaîne qualité COMPLÈTE en local,
+# la même que le CI — pour que le rouge ne se découvre plus sur GitHub.
+#
+# Usage : scripts/check-avant-pousse [--rapide]
+#
+#   (défaut)  les contrôles de politique du dépôt, puis ./gradlew check
+#             (tous les modules : checkstyle, PMD, tests).
+#   --rapide  les contrôles de politique seulement (typographie,
+#             dates, pièges, enregistrement, ligne de base) — pour un
+#             dernier contrôle entre deux commit docs.
+#
+# La leçon du 2026-11-19 : le CI est resté rouge deux runs parce que
+# la politique de langue échouait AVANT PMD/checkstyle dans le graphe
+# Gradle — les tests verts ne prouvent rien des autres portes. On
+# pousse seulement quand TOUT passe ici.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+echo "== Politique du dépôt =="
+python3 scripts/check-language-policy
+python3 scripts/check-language-baseline
+python3 scripts/check-docs-dates
+python3 scripts/check-pieges
+python3 scripts/check-language-registration
+python3 scripts/check-catalog-coverage
+# Les références interdites viennent de l'environnement (règle 7,
+# M7.6) : hors CI la variable manque, le contrôle s'avertit et passe.
+if [ -n "${CELERIS_FORBIDDEN_REFS:-}" ]; then
+    python3 scripts/check-forbidden-refs
+else
+    echo "check-forbidden-refs : sauté (CELERIS_FORBIDDEN_REFS absente — la CI l'applique)"
+fi
+
+if [ "${1:-}" = "--rapide" ]; then
+    echo "== Mode rapide : Gradle sauté =="
+    exit 0
+fi
+
+echo "== Gradle : check complet (checkstyle, PMD, tests) =="
+./gradlew check --no-configuration-cache
+
+echo "== Tout est vert : la poussée peut partir =="
