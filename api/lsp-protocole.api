@@ -71,9 +71,9 @@ public final class jo.celeris.lsp.protocole.LspSession implements java.lang.Auto
   public void close();
 }
 
-### jo.celeris.lsp.protocole.RecepteurServeur
-Compiled from "RecepteurServeur.java"
-final class jo.celeris.lsp.protocole.RecepteurServeur implements org.eclipse.lsp4j.services.LanguageClient {
+### jo.celeris.lsp.protocole.ReceiverServeur
+Compiled from "ReceiverServeur.java"
+final class jo.celeris.lsp.protocole.ReceiverServeur implements org.eclipse.lsp4j.services.LanguageClient {
   public void telemetryEvent(java.lang.Object);
   public void publishDiagnostics(org.eclipse.lsp4j.PublishDiagnosticsParams);
   public void showMessage(org.eclipse.lsp4j.MessageParams);

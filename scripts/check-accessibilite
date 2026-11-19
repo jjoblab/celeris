@@ -252,31 +252,35 @@ def main():
 
     interactifs = 0
     etiquettes = 0
-    # L'application d'exemple a quitté le dépôt (ADR-0024) : les
-    # ressources interactives se contrôlent dans les modules Android.
-    for module in ("android-view", "android-widgets", "android-host"):
-        layouts = os.path.join(racine, module, "src", "main", "res", "layout")
-        if not os.path.isdir(layouts):
+    # Tout module qui porte des layouts s'audit (les modules Android du
+    # dépôt comme l'exemple ou l'application d'un hôte de banc — la
+    # liste ne se fige pas : un module neuf est couvert sans toucher
+    # l'auditeur).
+    for base, _dossiers, noms in os.walk(racine):
+        if not base.endswith(os.sep + "layout") and not base.endswith("/layout"):
             continue
-        for base, _dossiers, noms in os.walk(layouts):
-            for nom in sorted(noms):
-                if nom.endswith(".xml"):
-                    i, e = auditer_layout(os.path.join(base, nom), problemes)
-                    interactifs += i
-                    etiquettes += e
+        if "src" + os.sep + "main" + os.sep + "res" not in base:
+            continue
+        for nom in sorted(noms):
+            if nom.endswith(".xml"):
+                i, e = auditer_layout(os.path.join(base, nom), problemes)
+                interactifs += i
+                etiquettes += e
 
     items = 0
     titres = 0
-    for module in ("android-view", "android-widgets", "android-host"):
-        menus = os.path.join(racine, module, "src", "main", "res", "menu")
-        if not os.path.isdir(menus):
+    # Tout module qui porte des menus s'audit — même règle que les
+    # layouts : la liste ne se fige pas.
+    for base, _dossiers, noms in os.walk(racine):
+        if not base.endswith(os.sep + "menu") and not base.endswith("/menu"):
             continue
-        for base, _dossiers, noms in os.walk(menus):
-            for nom in sorted(noms):
-                if nom.endswith(".xml"):
-                    i, t = auditer_menu(os.path.join(base, nom), problemes)
-                    items += i
-                    titres += t
+        if "src" + os.sep + "main" + os.sep + "res" not in base:
+            continue
+        for nom in sorted(noms):
+            if nom.endswith(".xml"):
+                i, t = auditer_menu(os.path.join(base, nom), problemes)
+                items += i
+                titres += t
 
     paires = auditer_ressources(racine, problemes)
     auditer_cablage(racine, problemes)

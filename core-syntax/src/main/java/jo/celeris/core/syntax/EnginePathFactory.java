@@ -5,7 +5,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * La fabrique du moteur de la voie tree-sitter, VUE PAR LE PONT
  * (ADR-0024) : le module opt-in {@code core-syntax-treesitter} en
- * fournit l'implémentation — chargée par {@link ServiceLoader} quand
+ * fournit l'implémentation — chargée par {@link java.util.ServiceLoader} quand
  * il vit sur le classpath de l'hôte, introuvable sinon. Le pont ne
  * connaît ni la classe, ni la bibliothèque : il demande, la voie
  * répond.
