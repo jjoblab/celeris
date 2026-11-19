@@ -653,4 +653,4 @@ modules purs ; Checkstyle et PMD verts partout ; manifestes d'API à
 jour (additions seulement, `api/core-syntax-grammars.api` posé) ;
 mutation core-text au seuil (85,2 % détectées, seuil 80) ; publication
 locale et sommes de contrôle vertes ; fumée de la cli verte (sept
-modules du cœur annoncés) ; APK de exemple consommateur assemblé.
+modules du cœur annoncés) ; APK de l'exemple consommateur assemblé.

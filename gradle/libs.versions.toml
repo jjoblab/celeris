@@ -56,9 +56,9 @@ androidxTestExtJunit = "1.2.1"
 androidxTestUiAutomator = "2.4.1"
 # Publication (ADR-011 : SBOM)
 cyclonedx = "3.5.1"
-# Version de l'application de exemple consommateur (non publiée) — toute
-# version vit au catalogue ; l'APK doit porter versionCode et
-# versionName, sinon certains installateurs refusent le paquet.
+# Version de l'application d'exemple (non publiée) — toute version vit
+# au catalogue ; l'APK doit porter versionCode et versionName, sinon
+# certains installateurs refusent le paquet.
 # Interface du dépôt de départ (M3 — vérifiées sur Google Maven le
 # 2026-11-06, compatibles compileSdk 36). REFUS délibéré du 2026-11-18 :
 # la montée androidxCore 1.19.1 (PR dependabot « correctifs-et-mineures »)
@@ -70,6 +70,9 @@ androidxAppcompat = "1.8.0"
 androidxCore = "1.18.0"
 androidxRecyclerview = "1.4.0"
 material = "1.14.0"
+# L'application d'exemple du dépôt (ADR-0024, décision 6) — jamais
+# publiée, jamais sur JitPack ; version APK seule.
+sample = "0.1.0"
 # Désucrage des bibliothèques du cœur (M8.6) : la frontière
 # protocolaire du LSP touche les API Java au-delà du niveau 26 —
 # vérifiée sur Google Maven le 2026-11-08.

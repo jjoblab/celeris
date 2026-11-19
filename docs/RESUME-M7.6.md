@@ -164,7 +164,7 @@ d'initialisation — de la donnée pure lue du `servers.json` du paquet
 ou du fichier de l'hôte qui assemble. Les seize paquets intégrés
 n'en déclarent AUCUN : l'éditeur ne connaît pas les serveurs de ses
 hôtes (règle du propriétaire), il porte la déclaration jusqu'à eux.
-La exemple consommateur porte ses déclarations (`serveurs/servers.json`), l'aiguillage `instanceof` de `EditorActivity` disparaît, la session générique
+L'exemple consommateur porte ses déclarations (`serveurs/servers.json`), l'aiguillage `instanceof` de `EditorActivity` disparaît, la session générique
 `DeclaredServerSession` ne demande que ce que la négociation annonce.
 
 **Commits** : `c380e91`, `5f99a75`, `7c52f02`, `0d5fb87`, `21cb6c9`,
@@ -184,7 +184,7 @@ La exemple consommateur porte ses déclarations (`serveurs/servers.json`), l'aig
 ## L'état sur appareil
 
 **Non exécuté** — l'environnement de travail n'offre ni émulateur ni
-appareil. La preuve disponible : l'APK de exemple consommateur s'assemble
+appareil. La preuve disponible : l'APK de l'exemple consommateur s'assemble
 (debug et release réduite par R8, `assembleRelease` vert), les bancs JVM exécutent les serveurs de bout en bout, la réduction est vérifiée au dex. La vérification sur appareil reste au plan du
 propriétaire (`docs/qualite/VERIFICATION-APPAREIL.md`).
 

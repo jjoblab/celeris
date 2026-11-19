@@ -5,7 +5,7 @@
 > taille raisonnable », « tu dois aussi faire la même chose pour le
 > toolbar de sélection avec le menu overflow même design », et l'exécution des serveurs de langage en processus devait devenir sûre. Périmètre : le plancher de largeur de la complétition, le menu de débordement de la barre de sélection au design du kit, et les tubes mémoire des serveurs en processus.
 >
-> **État** : les DEUX livrables sont en place, `./gradlew check` vert sur l'ensemble (politique comprise), l'APK de exemple consommateur se construit, et les serveurs de langage passent par la porte commune de session sur tubes à file.
+> **État** : les DEUX livrables sont en place, `./gradlew check` vert sur l'ensemble (politique comprise), l'APK de l'exemple consommateur se construit, et les serveurs de langage passent par la porte commune de session sur tubes à file.
 
 ## La complétion raisonnable
 

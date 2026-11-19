@@ -5,6 +5,28 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## L'exemple consommateur neuf — le module `sample` (ADR-0024, 2026-11-18)
+
+- **`sample` naît** (décision 6 de l'ADR-0024, directive du
+  propriétaire du 2026-11-18) : l'application d'exemple du dépôt,
+  volontairement petite — une activité unique qui pose la scène du
+  § 4.1 d'USAGE en code (aucune ressource de gabarit : tout ce que
+  l'hôte écrit reste visible au même endroit), monte le chargeur de
+  langues partagé puis la façade (`CelerisEditor.attach`), ouvre un
+  document Java, referme tout à la destruction de la scène. Sa seule
+  dépendance est l'agrégateur `celeris` (le LSP embarqué reste
+  optionnel, l'exemple ne le prend pas). La CI l'assemble à chaque
+  poussée (`:sample:assembleDebug`) ; il ne se publie jamais (aucune
+  convention de publication, hors BOM et agrégateur, jamais sur
+  JitPack). `samples/consumer-smoke` garde la preuve mécanique
+  (mavenLocal, R8) : `sample` montre le code, `consumer-smoke` prouve
+  l'octet.
+- **Grammaire française réparée au passage** : la purge de la
+  démonstration (F.7) avait laissé des articles fabriqués (« la
+  exemple consommateur », « de exemple consommateur ») dans
+  vingt et un fichiers suivis — corrigés par « l'exemple
+  consommateur » partout où l'histoire du dépôt le raconte.
+
 ## [2.0.0] — 2026-11-19
 
 ### Le renommage anglais de l'API (ADR-0023, F.5 — appliquée)

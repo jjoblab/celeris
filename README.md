@@ -356,10 +356,11 @@ portes) :
 | [`android-view`](android-view/README.md) | bibliothèque Android | vue Canvas, rendu, entrées, IME, accessibilité, gouttière |
 | [`android-widgets`](android-widgets/README.md) | bibliothèque Android | kit de popups (ADR-018), complétion, recherche, plan, minimap, défilement rapide |
 | [`android-host`](android-host/README.md) | bibliothèque Android | adaptateurs hôte (SPI) : fichiers, VCS, exécution, débogueur, historique local — et l'orchestration des popups (`PopupsEditeur`, déménagement du 2026-11-14) |
+| [`sample`](sample/README.md) | application Android | exemple consommateur : le chemin court de la façade, non publiée (ADR-0024) |
 | [`cli`](cli/README.md) | application JVM | exécutable sans Android (diagnostiquer, formater, refactorer) |
 
 Onze des modules se publient en artefacts Maven
-(`jo.celeris:*`, section « Publication ») ; la cli est une
+(`jo.celeris:*`, section « Publication ») ; la cli et l'exemple consommateur `sample` sont des
 applications, jamais publiées.
 
 ## Documentation

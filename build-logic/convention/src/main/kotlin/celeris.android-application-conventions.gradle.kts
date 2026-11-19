@@ -1,5 +1,6 @@
-// Convention de l'application de exemple consommateur (banc) : mêmes portes
-// qualité que les bibliothèques Android ; non publiée (terrain de jeu).
+// Convention des applications Android du dépôt (l'exemple consommateur
+// `sample`) : mêmes portes qualité que les bibliothèques Android ;
+// non publiée (terrain d'exemple).
 
 import com.android.build.api.dsl.ApplicationExtension
 import jo.celeris.buildlogic.catalogVersion

@@ -10,7 +10,7 @@
 > **État** : le jalon est clos — les six livrables ci-dessous,
 > `./gradlew check` vert (1 819 tests, 0 échec, politique comprise),
 > publication locale `jo.celeris:*:1.0.0` verte (SBOM et sommes de
-> contrôle), mutation 85,0 % (seuil 80), APK de exemple consommateur assemblé
+> contrôle), mutation 85,0 % (seuil 80), APK de l'exemple consommateur assemblé
 > (debug et release réduite par R8). Poussée sur `main` à chaque
 > livrable (décision du propriétaire).
 
@@ -88,7 +88,7 @@ rattrape l'état : treize modules (`core-syntax-grammars` et
 `lsp-protocole` compris), ADR 001 à 017, catégories A à H,
 `MIGRATION.md`, `REFERENCES.md` et les audits M9.
 
-## 5. La exemple consommateur complète (commit `c3e8feb`)
+## 5. L'exemple consommateur complète (commit `c3e8feb`)
 
 **Fait.** Le dernier écart du dépôt se ferme : **H-04 jouable**. Le
 paquet jouet — un langage ENTIER en données seules (le Logo de la

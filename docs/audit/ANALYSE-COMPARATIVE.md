@@ -138,7 +138,7 @@ cœur sans Android, un seul point de mutation — mais celeris va sensiblement
 plus loin :
 
 - **Topologie** : 13 modules à frontières nettes (8 modules purs JVM publiés,
-  3 modules Android, un exécutable `cli`, une exemple) contre 5 bibliothèques.
+  3 modules Android, un exécutable `cli`, un exemple) contre 5 bibliothèques.
   Le moteur du dépôt de départ vivait dans une bibliothèque Android (`cel-core`) ;
   chez celeris, tout ce qui pense vit en JVM pure, publiable et testable
   sans SDK (le `check` des modules purs tourne en quelques secondes).

@@ -35,7 +35,7 @@ Sont proscrits pour une fonctionnalité : activité ou fragment plein
 cadre, dialogues système (`AlertDialog` et semblables), tiroirs de
 navigation fonctionnels. L'hôte reste maître de sa navigation
 (ADR-009) ; la bibliothèque rend des surfaces, elle n'impose pas
-d'écran. La exemple consommateur garde son activité hôte — le conteneur
+d'écran. L'exemple consommateur garde son activité hôte — le conteneur
 Android l'exige — mais ses surfaces fonctionnelles migrent en feuilles.
 
 ## Options

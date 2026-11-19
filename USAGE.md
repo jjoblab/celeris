@@ -126,10 +126,12 @@ dependencies {
 }
 ```
 
-L'exemple vivant de la voie courte vit dans
-[`samples/consumer-smoke/`](samples/consumer-smoke/README.md) — un
-build indépendant qui consomme l'agrégateur et ne connaît que la
-façade (§ 4.2).
+Deux exemples vivent dans le dépôt : le module
+[`sample/`](sample/README.md) — l'application d'exemple qui montre le
+chemin court en code (ADR-0024, jamais publiée) — et
+[`samples/consumer-smoke/`](samples/consumer-smoke/README.md) — la
+preuve mécanique de la CI (build indépendant, mavenLocal, R8), qui
+consomme l'agrégateur et ne connaît que la façade (§ 4.2).
 
 ### 3.1 Les modules un par un — le dépôt local
 
@@ -244,7 +246,8 @@ minutes (JitPack compile à la demande) ; les suivants sont servis
 depuis son cache. Le dépôt local (`mavenLocal()`, § 3.1) reste la
 voie des bancs et de l'intégration continue — le sample
 [`samples/consumer-smoke/`](samples/consumer-smoke/README.md) tient
-les deux voies.
+les deux voies, et l'application d'exemple
+[`sample/`](sample/README.md) montre le code du montage (§ 4.2).
 
 ### 3.3 Les modules Android — artefacts, ou inclusion de source
 

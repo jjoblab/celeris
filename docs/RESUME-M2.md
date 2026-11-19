@@ -28,7 +28,7 @@
   environ 10 300 séquences aléatoires par exécution, couvrant l'objectif
   ADR-003 (10 000) pour la rope — séquences d'éditions complètes,
   `charAt` au fil des insertions, sous-plages quelconques, immuabilité,
-  survie des paires de substituts. Le harnais de exemple consommateur M1 est
+  survie des paires de substituts. Le harnais de l'exemple consommateur M1 est
   retiré, remplacé par ces propriétés réelles.
 - **Correctif de construction** : `apiCheck` capturait le nom de projet à
   l'exécution — toute divergence de manifeste échouait en erreur de cache

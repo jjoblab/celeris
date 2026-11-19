@@ -36,7 +36,7 @@ install:
   # Le cache de configuration (gradle.properties) a déjà fait échouer des
   # builds --no-daemon sur JitPack : il est coupé ici.
   # Seuls les modules PUBLIÉS de l'éditeur sont ciblés (directive du
-  # propriétaire, 2026-11-18). La exemple consommateur et le serveur LSP de
+  # propriétaire, 2026-11-18). L'exemple consommateur et le serveur LSP de
   # banc ont quitté le dépôt (ADR-0024, F.7) ; la voie tree-sitter
   # y entre comme module OPT-IN (ADR-0024, F.4) — l'hôte qui la
   # veut l'embarque explicitement, la BOM ne l'exige pas. La

@@ -51,7 +51,7 @@ Maquettes de référence : [`docs/maquettes/popups.html`](../maquettes/popups.h
 
 | Surface | Forme | Verdict |
 | --- | --- | --- |
-| Accueil du dépôt de départ (`MainActivity`, cartes de fichiers) | activité hôte | conforme — le conteneur Android l'exige (ADR-018 : « La exemple consommateur garde son activité hôte ») ; les cartes choisissent le fichier, c'est la navigation de l'hôte (ADR-009) ; le catalogue de scénarios proprement dit est une donnée (`ScenarioCatalog`), lue par le compteur d'accueil |
+| Accueil du dépôt de départ (`MainActivity`, cartes de fichiers) | activité hôte | conforme — le conteneur Android l'exige (ADR-018 : « L'exemple consommateur garde son activité hôte ») ; les cartes choisissent le fichier, c'est la navigation de l'hôte (ADR-009) ; le catalogue de scénarios proprement dit est une donnée (`ScenarioCatalog`), lue par le compteur d'accueil |
 | Atelier d'édition (`EditorActivity`) | activité hôte de l'éditeur | conforme — le conteneur embarque la vue (`EditorView`), c'est le mandat d'embarquable |
 | Barres d'application et menus | chrome de l'hôte | conforme — l'hôte possède sa navigation ; le voile d'une feuille couvre le menu, aucune surface ne s'ouvre sous une feuille |
 | Les dix popups de la couche (M7.5, §7) | popups ancrées | conforme — complétion, documentation, signature, intentions, survol, info-bulle, fil d'Ariane, recherche (état), barre de sélection, menu de débordement |

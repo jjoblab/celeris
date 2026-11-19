@@ -115,7 +115,8 @@ picking modules one by one, `celeris-bom` aligns the eleven published
 modules (`core-text`, `core-syntax`, `core-syntax-grammars`,
 `core-language`, `core-intelligence`, `core-lsp`, `core-ai`,
 `android-view`, `android-widgets`, `android-host`, `lsp-protocole`
-— the latter optional, for embedded language servers only).
+— the latter optional, for embedded language servers only). The `cli`
+and the `sample` example app are plain applications, never published.
 
 ## Where to go next
 
@@ -124,5 +125,7 @@ modules (`core-text`, `core-syntax`, `core-syntax-grammars`,
 - [USAGE.md](USAGE.md) — the complete integration guide (French):
   coordinates (§ 3), mounting (§ 4), the text model (§ 5), language
   registry (§ 6), language servers (§ 8), popups (§ 9);
+- [sample/](sample/README.md) — the example app, the short path
+  through the facade above (French readme; never published);
 - [samples/consumer-smoke/](samples/consumer-smoke/README.md) — the
-  living consumer sample that knows only the facade above.
+  mechanical integration proof that knows only the facade above.

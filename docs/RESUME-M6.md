@@ -512,7 +512,7 @@
 - mutation `:core-text:mutationThreshold` : **85.2 %** (seuil 80)
   sur 1807 mutations ;
 - publication locale (`publishToMavenLocal`, sommes de contrôle) et
-  APK de exemple consommateur assemblés ; fumée de la cli exécutée ;
+  APK de l'exemple consommateur assemblés ; fumée de la cli exécutée ;
 - manifestes d'API régénérés (`core-lsp` neuf et étendu,
   `core-intelligence` étendu).
 

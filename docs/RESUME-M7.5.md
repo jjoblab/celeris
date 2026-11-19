@@ -191,7 +191,7 @@ diagnostic du cran le plus proche), SelectionBarView — PIEGE-27 prouvé
 le même état (ViewportWatch, le clignotement ne notifie pas). La
 session notifie chaque changement effectif de sélection
 (`SelectionListener`, toute source comprise — pose, projection,
-annulation, refaire : `SelectionListenerTest`). La exemple consommateur
+annulation, refaire : `SelectionListenerTest`). L'exemple consommateur
 branche les dix : `PopupCoach` décide (pur, testé), `AtelierPopups`
 câble, la barre de recherche coordonne son ÉTAT — son champ garde le
 focus, la couche l'interdit (PIEGE-27 assumé et consigné).
@@ -227,7 +227,7 @@ désormais LIÉ, elle était muette, défaut réel de la vue — porte
 l'indentation de `IndentEngine` (A-06) ; le retour arrière connaît
 les paires vides et les crans (A-07) ; le collage multiligne s'aligne
 par `PasteReindenter` (A-09). Tout passe par la voie de transaction
-unique avec sélection d'après explicite (A-13). La exemple consommateur
+unique avec sélection d'après explicite (A-13). L'exemple consommateur
 branche son fournisseur : `ExempleIntelligence` sert la complétion par
 les mots du CODE (`CompletionMots` sur l'analyse publiée — jamais les
 chaînes, B-03), le coach ne garde que le repli. L'atelier de

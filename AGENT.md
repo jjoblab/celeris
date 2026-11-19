@@ -25,6 +25,7 @@ la frontière protocolaire du LSP à M7.6) :
 | `android-view` | Android | vue Canvas, rendu, IME, accessibilité |
 | `android-widgets` | Android | popups, gouttière, barres |
 | `android-host` | Android | adaptateurs hôte (SPI) |
+| `sample` | application Android | exemple consommateur : le chemin court de la façade (non publiée, ADR-0024) |
 | `cli` | application JVM | exécutable sans Android |
 
 ## Commandes (vérifiées)

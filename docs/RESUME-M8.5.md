@@ -80,7 +80,7 @@ portée telle quelle, pas réinterprétée.
   de sélection (rayon rangée), les séparateurs restent des filets
   hairline.
 
-La exemple consommateur suit : l'atelier dérive sa palette du thème d'éditeur
+L'exemple consommateur suit : l'atelier dérive sa palette du thème d'éditeur
 COURANT (`PopupPalette.verre(theme...)` — fond, encres, teinte de
 sélection, curseur pour l'accent, mot-clé de la palette syntaxique),
 le verre suit la rotation des thèmes (rappel de changement chez

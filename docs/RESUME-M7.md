@@ -274,7 +274,7 @@ langue comprise), la construction des modules assemblé et vérifié (apksigner)
   `MarquesGouttiere.setErreursImportees`). Les correctifs mécaniques —
   l'ellipse typographique, le tiret cadratin — s'appliquent en
   transactions de remplacement annulables ; le catalogue est fermé et
-  honnête, le mécanisme est le livrable. La exemple consommateur analyse et
+  honnête, le mécanisme est le livrable. L'exemple consommateur analyse et
   corrige d'un geste (`FauxLint`, `AtelierLint`).
 
 ### Preuve
@@ -319,7 +319,7 @@ ADR-009).
   repère à sa ligne, le nom du composable se lit sur la ligne même ou
   sur les deux suivantes ; le losange se trace dans la coulisse, le
   clic sur le repère délègue le rendu à l'hôte
-  (`setSurRenduPreview`) — jamais embarqué. La exemple consommateur répond
+  (`setSurRenduPreview`) — jamais embarqué. L'exemple consommateur répond
   par sa propre scène.
 
 ### Preuve

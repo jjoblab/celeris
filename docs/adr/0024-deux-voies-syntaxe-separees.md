@@ -95,3 +95,19 @@ JitPack, directive du propriétaire du 2026-11-18).
   artefacts publiés : jamais dans la BOM, jamais dans l'agrégateur,
   jamais sur JitPack (directive du propriétaire) ;
   `samples/consumer-smoke` reste le consommateur de référence.
+
+## Le module d'exemple est né (2026-11-18, séance suivante)
+
+Le futur module annoncé est arrivé : **`sample`** — l'application
+d'exemple du dépôt, née VOLONTAIREMENT petite. Une activité unique
+(`MainActivity`) pose la scène du § 4.1 d'USAGE en code (aucune
+ressource de gabarit : tout ce que l'hôte écrit reste visible au
+même endroit), monte le chargeur de langues partagé puis la façade
+(`CelerisEditor.attach`), ouvre un document Java et referme tout à
+la destruction de la scène. Sa seule dépendance est l'agrégateur
+`celeris` — le LSP embarqué reste optionnel et l'exemple ne le
+prend pas. La CI l'assemble (`:sample:assembleDebug`) ; il ne se
+publie jamais (aucune convention de publication, hors BOM et
+agrégateur, jamais sur JitPack). `samples/consumer-smoke` garde la
+preuve mécanique (mavenLocal, R8, mapping vérifié) : `sample`
+montre le code, `consumer-smoke` prouve l'octet.

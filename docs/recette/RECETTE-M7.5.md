@@ -118,7 +118,7 @@
     se disent), « Ajouter l'import List » (la ligne se pose sous le
     paquet, le doublon se refuse).
 
-## 7. La exemple consommateur vérifie ses scénarios
+## 7. L'exemple consommateur vérifie ses scénarios
 
 27. Écran d'accueil : le troisième compteur « Vérifiés » lit
     `12/12`. L'appui liste les verdicts ligne à ligne — chaque

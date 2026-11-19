@@ -111,7 +111,7 @@ Les lignes F-01, F-02, F-08 et F-09 de la matrice passent à partiel
   éditions acceptées deviennent une seule transaction, une étape
   d'annulation — et le document qui a bougé depuis la proposition refuse
   le transfert, explicitement (jamais de fusion silencieuse).
-- **La exemple consommateur** : l'agent factice (`FauxAgent`, déterministe,
+- **L'exemple consommateur** : l'agent factice (`FauxAgent`, déterministe,
   trois insertions éparses — tête, milieu, pied) propose sur le
   document ouvert ; l'atelier (`AtelierAgent`) montre l'intention
   déclarée et les lignes du bloc, décide bloc par bloc, revient au
