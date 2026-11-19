@@ -5,6 +5,18 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.5] — 2026-11-20
+
+### Corrections
+
+- **Coloration, voie tree-sitter (A1.1, A1.3)** : l'édition reprogramme l'analyse — la publication périmait à la première frappe ; l'échec de passe journalise et prévient au lieu de figer la vue.
+- **Coloration, rattrapage (A1.2)** : la publication périmée de la voie native rattrape aussi — la frappe garde ses couleurs sur les deux voies.
+- **BOM de tête (A2)** : la marque d'ordre des octets n'est plus colorée comme un opérateur.
+
+### Ajouts
+
+- **Feuille de route de la coloration** (`docs/feuille-de-route-coloration.md`) : le plan de fiabilisation suivi à chaque étape ; **ADR-0026** : le `\r` des fins CRLF reste dans la ligne rendue (convention écrite).
+
 ## [2.2.4] — 2026-11-20
 
 ### Ajouts

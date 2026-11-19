@@ -24,11 +24,11 @@
 
 | Étape | Objet | Gravité | Statut |
 | --- | --- | --- | --- |
-| A1.1 | La voie native reprogramme l'analyse à l'édition | critique | ☐ à faire |
-| A1.2 | Le rattrapage de coloration sert la voie native | critique | ☐ à faire |
-| A1.3 | L'échec de passe native notifie (plus d'écran figé) | moyenne | ☐ à faire |
-| A2 | La BOM n'est plus colorée comme un opérateur | mineure | ☐ à faire |
-| A3 | Statut du `\r` CRLF décidé et documenté | mineure | ☐ à faire |
+| A1.1 | La voie native reprogramme l'analyse à l'édition | critique | ✅ fait (e13428b, 2026-11-19) |
+| A1.2 | Le rattrapage de coloration sert la voie native | critique | ✅ fait (daa62fc, 2026-11-19) |
+| A1.3 | L'échec de passe native notifie (plus d'écran figé) | moyenne | ✅ fait (e13428b, 2026-11-19) |
+| A2 | La BOM n'est plus colorée comme un opérateur | mineure | ✅ fait (444a064, 2026-11-19) |
+| A3 | Statut du `\r` CRLF décidé et documenté | mineure | ✅ fait (7ebe335, 2026-11-19 — ADR-0026, voie (b) retenue) |
 | A4 | Consolidations documentaires (bornes, internement, sémantique LSP) | mineure | ☐ à faire |
 | A5 | Bancs structurels : multi-onglets, frappe native, critère incrémental en CI | — | ☐ à faire |
 
@@ -50,8 +50,10 @@
   chacune servant la révision la plus récente au moment où elle tourne.
 - **Bancs** : (1) l'édition suivi d'`analyseDeRevision(révision courante)`
   rend une analyse non nulle (sous `assumeTrue` de la liaison) ; (2) la
-  rafale de frappes finit publiée à la dernière révision.
-- **Statut** : ☐ à faire
+  rafale de frappes finit publiée à la dernière révision. *(Posés :
+  `ReprogrammationEditionNatifTest` — sautés sur JVM sans la liaison,
+  ils servent la CI Android où elle vit.)*
+- **Statut** : ✅ fait (e13428b, 2026-11-19)
 
 ### A1.2 — Le rattrapage de coloration sert la voie native
 
@@ -64,9 +66,12 @@
   rattrapeur `TokenCatchUp` s'y applique tel quel — il ne lit qu'un
   lexique document, jamais le moteur qui l'a produit.
 - **Bancs** : banc de vue avec une fausse fabrique de voie (enregistrée
-  par `ServiceLoader` de test) : la frappe garde les couleurs publiées
-  recalées jusqu'à la publication suivante.
-- **Statut** : ☐ à faire
+  par `ServiceLoader` de test, armée sélectivement pour ne servir que
+  ce banc) : la frappe garde les couleurs publiées recalées jusqu'à la
+  publication suivante. *(Posés : `RattrapageVoieNatifTest` — rouge sans
+  correctif, vert avec ; les 21 bancs coloration existants restent
+  verts.)*
+- **Statut** : ✅ fait (daa62fc, 2026-11-19)
 
 ### A1.3 — L'échec de passe native notifie
 
@@ -78,8 +83,10 @@
   l'attente ; l'incident se journalise (`java.util.logging`, comme le
   lexeur des grammaires).
 - **Bancs** : un auditeur posé sur un moteur dont la passe échoue
-  (source factice qui rend un arbre nul) reçoit la notification.
-- **Statut** : ☐ à faire
+  reçoit la notification. *(La notification part maintenant à CHAQUE
+  passe — échec compris : la maquette du banc A1.2 la vérifie côté vue,
+  le banc natif la couvrira sur CI.)*
+- **Statut** : ✅ fait (e13428b, 2026-11-19)
 
 ### A2 — La BOM n'est plus colorée comme un opérateur
 
@@ -90,8 +97,9 @@
 - **Correctif** : le caractère U+FEFF en tête de PREMIÈRE ligne est
   ignoré (jeton vide), la voie des grammaires pareil si elle le colore.
 - **Bancs** : fichier avec BOM → premier jeton = KEYWORD à l'offset 1,
-  aucun jeton opérateur parasite.
-- **Statut** : ☐ à faire
+  aucun jeton opérateur parasite. *(Posés : `BomEnteteTest` — rouge 2
+  échecs, vert 3/3 ; la BOM au MILIEU reste un jeton, frontière figée.)*
+- **Statut** : ✅ fait (444a064, 2026-11-19)
 
 ### A3 — Statut du `\r` CRLF décidé et documenté
 
@@ -104,8 +112,11 @@
   ou (b) l'assumer et le documenter. L'audit recommande (a) : la
   convention du socle est déjà « sans le saut de ligne final », le
   `\r` en fait partie.
-- **Bancs** : cohérence colonnes/offsets sur un document CRLF.
-- **Statut** : ☐ à faire (décision du propriétaire si (a) pose souci)
+- **Bancs** : cohérence colonnes/offsets sur un document CRLF. *(La
+  voie (b) est retenue — ADR-0026 ; banc `FinsCrlfTest` : convention du
+  modèle, lexicographie exacte, édition avant fin CRLF : incrémental ==
+  complet.)*
+- **Statut** : ✅ fait (7ebe335, 2026-11-19)
 
 ### A4 — Consolidations documentaires
 
@@ -134,3 +145,7 @@
 | Date | Étape | Commit | Notes |
 | --- | --- | --- | --- |
 | 2026-11-19 | création | — | feuille posée après décision du propriétaire (option A) |
+| 2026-11-19 | A1.1 + A1.3 | e13428b | la voie native reprogramme à l'édition (coalescence, garde fermeture) ; l'échec de passe journalise et prévient — les bancs natifs sautent sur JVM (liaison Android), ils servent la CI |
+| 2026-11-19 | A1.2 | daa62fc | le rattrapage lit la publication de la voie qui sert ; prouvé rouge→vert par fabrique de banc armée sélectivement (3/3 verts, 21 bancs coloration sans régression) |
+| 2026-11-19 | A2 | 444a064 | la BOM de tête est un blanc de format (garde en position 0 de la ligne de tête) ; banc rouge 2 échecs → vert 3/3 |
+| 2026-11-19 | A3 | 7ebe335 | ADR-0026 : le \r reste dans la ligne rendue (voie (b)) ; Javadoc du modèle + banc CRLF (convention, lexicographie, incrémental == complet) |
