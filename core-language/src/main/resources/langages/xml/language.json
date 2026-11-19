@@ -2,7 +2,8 @@
   "id": "xml",
   "name": "XML",
   "extensions": [
-    ".xml"
+    ".xml",
+    ".svg"
   ],
   "badge": "Xm",
   "badgeColor": "#B0BEC5",

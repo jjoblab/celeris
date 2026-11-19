@@ -2,7 +2,8 @@
   "id": "properties",
   "name": "Properties",
   "extensions": [
-    ".properties"
+    ".properties",
+    ".ini"
   ],
   "badge": "Pr",
   "badgeColor": "#C792EA",

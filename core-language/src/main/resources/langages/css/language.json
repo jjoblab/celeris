@@ -2,7 +2,9 @@
   "id": "css",
   "name": "CSS",
   "extensions": [
-    ".css"
+    ".css",
+    ".scss",
+    ".less"
   ],
   "badge": "Cs",
   "badgeColor": "#1572B6",

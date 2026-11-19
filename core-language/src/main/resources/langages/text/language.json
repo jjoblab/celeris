@@ -2,7 +2,8 @@
   "id": "text",
   "name": "Plain Text",
   "extensions": [
-    ".txt"
+    ".txt",
+    ".plaintext"
   ],
   "badge": "Txt",
   "badgeColor": "#9E9E9E",
