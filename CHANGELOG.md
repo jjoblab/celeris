@@ -25,6 +25,15 @@ vivent dans les ADR et le registre de portage, pas ici.
   barre de sélection (C-12). Au passage, REDO quitte Ctrl+X pour
   Ctrl+Y : le code 52 est X, pas Y — Ctrl+Y ne répondait pas (bug
   latent révélé par la nouvelle liaison CUT).
+- **L'épissure du cache de rangées** : une frappe ne rejette plus
+  TOUT le cache de mises en page — les rangées hors de la zone
+  touchée survivent par identité, re-timbrées à la nouvelle révision
+  (B-01 : la clé portait la révision GLOBALE du document, la ruine à
+  chaque frappe). Le cache est borné à 512 entrées, les moins
+  récemment servies quittent la table (B-02 : un document déroulé ne
+  l'emplissait plus à vie). Les bornes composites (rejeu
+  d'annulation, scripts) retombent sur l'invalidation totale — jamais
+  une épissure aux bornes faussées.
 
 ## [2.2.1] — 2026-11-19
 
