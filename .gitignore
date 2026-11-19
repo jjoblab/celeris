@@ -5,8 +5,11 @@ classes/
 *.class
 *.jar
 *.aar
-# Le jar du wrapper Gradle est versionné (wrapper autosuffisant, ADR-001)
+# Le jar du wrapper Gradle est versionné (wrapper autosuffisant, ADR-001) —
+# racine et exemple consommateur indépendant (consumer-smoke, B5) : le
+# build de la CI y lance ./gradlew sans SDK Gradle préinstallé.
 !gradle/wrapper/gradle-wrapper.jar
+!samples/consumer-smoke/gradle/wrapper/gradle-wrapper.jar
 *.hprof
 
 # Environnements et IDE
