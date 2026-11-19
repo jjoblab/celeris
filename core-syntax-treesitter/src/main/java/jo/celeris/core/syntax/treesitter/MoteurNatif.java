@@ -42,6 +42,12 @@ import org.jspecify.annotations.Nullable;
  */
 public final class MoteurNatif implements MoteurSyntaxe {
 
+    /** Le journal de la voie — l'API du JDK, pas System.Logger : la
+     *  seconde manque sur appareil avant le niveau 33 (R8 l'a révélé
+     *  à la réduction — même discipline que le lexeur des grammaires). */
+    private static final Logger JOURNAL =
+            Logger.getLogger(MoteurNatif.class.getName());
+
     /** La borne de la voie, en caractères — le régime mesuré du spike
      *  (0,5 ms incrémental à 190 Ko) : au-delà, l'arbre ne survit pas. */
     static final int BORNE_OCTETS = 200 * 1024;
