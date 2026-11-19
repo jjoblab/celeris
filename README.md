@@ -287,7 +287,7 @@ révocations IA, aller à fichier/symbole (`FeuilleAller`, recherche
 floue) — vivent en **feuilles** modales (`FeuilleBas`,
 `FeuilleHaut`). Le guide complet (clavier délégué, régimes, composition à
 la main) vit dans [`USAGE.md`](USAGE.md) § 9 ; l'inventaire exhaustif,
-fiche par fiche, dans [`docs/POPUP_INVENTORY.md`](docs/POPUP_INVENTORY.md).
+fiche par fiche, dans [`docs/historique/POPUP_INVENTORY.md`](docs/historique/POPUP_INVENTORY.md).
 
 ## Vie privée
 

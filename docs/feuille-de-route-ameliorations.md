@@ -63,7 +63,7 @@
 | --- | --- | --- | --- |
 | C1 | Le cache de rangées survit au changement d'onglet | haute (le retard ressenti) | ☐ à faire |
 | C2 | Le retour d'onglet restaure la position de défilement | moyenne | ☐ à faire |
-| D1 | Les journaux de chantiers partent au archive (docs/historique/) | moyenne | ☐ à faire |
+| D1 | Les journaux de chantiers partent à l’archive (docs/historique/) | moyenne | ✅ fait (D1, 2026-11-19) |
 | D2 | Les feuilles de route closes se rangent, l'index vit | basse | ☐ à faire |
 | P1 | Pilote : lsp-protocole en sous-packages | — (jette les bases) | ☐ à faire |
 | P2 | android-view : les peintres et la gouttière en sous-packages | haute (126 classes) | ☐ à faire |
@@ -117,16 +117,17 @@
 
 ### D1 — Les journaux de chantiers partent à l'archive
 
-- **Constat** : `docs/RESUME-M0..M9.md` (14 fichiers) et
-  `docs/POPUP_*.md` (6) sont des journaux clos — le mouvement M*, la
-  migration popups et le système popups sont FAITS, l'avancement
-  courant vit dans le CHANGELOG et les feuilles de route. Ils
-  encombrent la racine de `docs/` (30 fichiers).
+- **Constat** : les quatorze `RESUME-M*.md` et six `POPUP_*.md`
+  (alors à la racine de `docs/`) sont des journaux clos — le
+  mouvement M*, la migration popups et le système popups sont
+  FAITS, l'avancement courant vit dans le CHANGELOG et les feuilles
+  de route. Ils encombraient la racine de `docs/` (20 fichiers
+  historiques sur 30).
 - **Correctif** : déplacement vers `docs/historique/` (git mv, les
-  liens relatifs se réparent : `docs/RESUME-M0.md` →
-  `docs/historique/RESUME-M0.md`), citations réparées dans AGENT.md,
-  CHANGELOG.md (entrées historiques : le chemin cité se met à jour),
-  feuille-de-route.md. `docs/audit/PIEGES-HERITES.md` et
+  liens se réparent), citations réparées dans AGENT.md,
+  CHANGELOG.md (entrées historiques : le chemin cité se met à
+  jour), feuille-de-route.md, README.md, USAGE.md et
+  ANALYSE-COMPARATIVE.md. `docs/audit/PIEGES-HERITES.md` et
   `docs/parite/MATRICE-PARITE.md` NE BOUGENT PAS (lus par les
   contrôles). La date des fichiers déplacés reste lisible pour
   `check-docs-dates` (le contrôle lit les dates de DERNIÈRE

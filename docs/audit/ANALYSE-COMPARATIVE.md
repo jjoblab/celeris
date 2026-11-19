@@ -9,7 +9,7 @@
 > accessibilité, performance, docs, publication), comptages indépendants par
 > `git ls-files` et `rg` sur les fichiers suivis uniquement, recoupement avec
 > les documents internes des deux dépôts (`docs/audit/ETAT-DES-LIEUX.md`,
-> `docs/RESUME-M9.md`, `docs/parite/MATRICE-PARITE.md`,
+> `docs/historique/RESUME-M9.md`, `docs/parite/MATRICE-PARITE.md`,
 > `docs/audit/REGISTRE-PORTAGE.md`, `MIGRATION.md`, `FEATURES.md`,
 > `ARCHITECTURE.md` de chacun). Chaque chiffre cité ci-dessous a été mesuré
 > ou recoupé au moins deux fois ; les points non vérifiables sont signalés.
@@ -605,7 +605,7 @@ politique auto-testés, tests de mutation PIT.)
   `scripts/audit_etat_des_lieux.py`, qui mesure l'ancien indépendamment de
   cette analyse et confirme chacun des chiffres reprises ici).
 - **Documents internes mobilisés** : côté celeris — `README.md`,
-  `MIGRATION.md`, `CHANGELOG.md`, `docs/RESUME-M9.md`,
+  `MIGRATION.md`, `CHANGELOG.md`, `docs/historique/RESUME-M9.md`,
   `docs/parite/MATRICE-PARITE.md` (123 lignes, statuts comptés),
   `docs/audit/REGISTRE-PORTAGE.md`, `docs/audit/ETAT-DES-LIEUX.md`,
   ADR-001 à 017 ; côté dépôt de départ — `README.md`, `FEATURES.md` (402 l.),

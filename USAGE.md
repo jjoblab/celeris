@@ -786,7 +786,7 @@ cadre connu saute) ; les valeurs de débogage en ligne vivent
 in-canvas (`EditorView.setValeursEnLigne`) et l'aller à
 fichier/symbole en feuille (`FeuilleAller`) — vos surfaces propres
 vivent dans les feuilles. L'inventaire des surfaces vit à
-`docs/POPUP_INVENTORY.md` : aucune catégorie A–E ne compte de
+`docs/historique/POPUP_INVENTORY.md` : aucune catégorie A–E ne compte de
 manquant. Le kit est thémé et accessible par construction
 (ADR-008) : poignée de glissement, bouton de fermeture, voile,
 fermeture au retour.
