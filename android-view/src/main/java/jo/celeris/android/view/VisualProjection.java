@@ -40,6 +40,11 @@ public final class VisualProjection {
     private final int colonnes;
     private final int[] rangneesAvantLigne;
     private final @Nullable int[] longueurs;
+    /** Le maximum des longueurs, mémo à la construction : le
+     *  défilement horizontal le relit à CHAQUE trame (B-08, l'analyse
+     *  croisée) — le recalcul balayait tout le tableau à chaque
+     *  frappe. Zéro quand les longueurs ne sont pas connues. */
+    private final int plusLargeLigne;
 
     /**
      * Construit la projection héritée, sans longueurs connues : une
@@ -76,6 +81,7 @@ public final class VisualProjection {
         this.plis = folds;
         this.longueurs = longueurs;
         this.colonnes = columns;
+        this.plusLargeLigne = maxDes(longueurs);
         this.rangneesAvantLigne = batirPrefixe(lineCount, longueurs, columns);
     }
 
@@ -101,16 +107,7 @@ public final class VisualProjection {
      * @return la longueur de la plus large ligne, en caractères
      */
     public int longestLineLength() {
-        if (longueurs == null) {
-            return 0;
-        }
-        int max = 0;
-        for (int longueur : longueurs) {
-            if (longueur > max) {
-                max = longueur;
-            }
-        }
-        return max;
+        return plusLargeLigne;
     }
 
     /**
@@ -295,6 +292,19 @@ public final class VisualProjection {
             return 1;
         }
         return 1 + (longueur - 1) / columns;
+    }
+
+    private static int maxDes(@Nullable int[] longueurs) {
+        if (longueurs == null) {
+            return 0;
+        }
+        int max = 0;
+        for (int longueur : longueurs) {
+            if (longueur > max) {
+                max = longueur;
+            }
+        }
+        return max;
     }
 
     private static int[] longueursDe(Document document) {
