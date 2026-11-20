@@ -1,5 +1,6 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.ScrollPositions.Position;
 import jo.celeris.core.text.Document;
 
 import android.graphics.Canvas;
@@ -80,12 +81,34 @@ final class FrameAssembler {
      * @param scroll vrai pour rabattre aussi le défilement
      */
     void reinitialiserScene(boolean scroll) {
+        reinitialiserScene(scroll, null);
+    }
+
+    /**
+     * La variante C2 (feuille des améliorations) : la pose de session
+     * ne rabat PLUS le défilement à zéro — la position de l'onglet
+     * qui arrive se RESTAURE (parquée sous sa session), le clamp de
+     * {@code preparer()} la rabat dans le contenu au premier dessin
+     * (un document raccourci en arrière-plan). La position null
+     * rabat à zéro comme avant (langue, montage initial).
+     *
+     * @param scroll   vrai pour toucher au défilement
+     * @param position la position restaurée de la session posée,
+     *                 null pour la neutre (zéro, zéro)
+     */
+    void reinitialiserScene(boolean scroll,
+            @org.jspecify.annotations.Nullable Position position) {
         vue.revisionSuivie = Long.MIN_VALUE;
         vue.gutterState.reinitialiser();
         vue.diagnostics.reinitialiser();
         if (scroll) {
-            vue.scrollX = 0f;
-            vue.scrollY = 0f;
+            if (position != null) {
+                vue.scrollX = position.scrollX();
+                vue.scrollY = position.scrollY();
+            } else {
+                vue.scrollX = 0f;
+                vue.scrollY = 0f;
+            }
         }
         vue.invalidate();
     }

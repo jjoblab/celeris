@@ -1,6 +1,7 @@
 package jo.celeris.android.view;
 
 import jo.celeris.android.view.internal.RowPark;
+import jo.celeris.android.view.internal.ScrollPositions;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -96,6 +97,10 @@ public final class EditorView extends View {
     // mises en page par session — le retour d'onglet adopte le
     // stockage du document qui revient, jamais une re-mesure.
     final RowPark parcRangees = new RowPark();
+    // C2 (feuille des améliorations) : le parc des positions de
+    // défilement par session — la position de l'onglet quitté
+    // s'archive, l'onglet revenu la retrouve (clampée à la pose).
+    final ScrollPositions parcPositions = new ScrollPositions();
     private final CompositionState composition = new CompositionState();
     // Visible du paquet : l'assemblage d'image y trace le chrome (C9).
     final ChromePainter chrome = new ChromePainter();
@@ -376,10 +381,17 @@ public final class EditorView extends View {
         RowLayoutCache.Stockage revenu =
                 parcRangees.toggle(session, quittancier, posee);
         cache.adopter(revenu);
+        // C2 : la position de défilement suit le même destin que la
+        // mise en page — elle s'archive sous la session quittée,
+        // celle qui arrive RETROUVE la sienne (ou la neutre). Le
+        // clamp de preparer() la rabat dans le contenu au premier
+        // dessin (un document raccourci en arrière-plan).
+        ScrollPositions.Position position =
+                parcPositions.toggle(session, scrollX, scrollY, posee);
         session = posee;
         session.addEditListener(ecouteurAnnonce);
         syntaxe.attach(session, language);
-        images.reinitialiserScene(true);
+        images.reinitialiserScene(true, position);
     }
 
     /**
@@ -402,6 +414,10 @@ public final class EditorView extends View {
         // changement — le parc de C1 ne rendra jamais un stockage
         // périmé par la langue à la session revenue.
         parcRangees.forget(session);
+        // C2 : la position archivée de la session meurt avec sa
+        // langue — la hauteur de contenu change au retour à la
+        // ligne, la position serait périmée.
+        parcPositions.forget(session);
         images.reinitialiserScene(false);
     }
 
@@ -972,6 +988,9 @@ public final class EditorView extends View {
         // C1 : le parc des mises en page meurt avec la vue — aucun
         // document d'onglet ne reste retenu par une vue libérée.
         parcRangees.clearAll();
+        // C2 : les positions archivées suivent — la vue libérée ne
+        // retient rien des onglets.
+        parcPositions.clearAll();
     }
 
     /** La vue est-elle libérée — lecture du banc (chantier C1). */

@@ -5,6 +5,12 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.8] — 2026-11-20
+
+### Corrections
+
+- **Le retour d'onglet retrouve sa position de défilement (feuille des améliorations, C2)** : la position s'archive sous la session quittée et se restaure à la pose — CLAMPÉE par `ScrollGeometry` (un document raccourci en arrière-plan ne ramène pas une fenêtre hors contenu). L'ancien chemin rabattait le défilement à zéro à chaque pose de session : le contenu sautait en tête, puis se re-mesurait (C1) — les deux participaient de l'impression de « refait ». Parc `ScrollPositions` (modèle `RowPark` : LRU 8, oubli au changement de langue, vidage à la libération), banc `PositionDefilementParSessionTest` (retour exact, clamp, parc borné, langue).
+
 ## [2.3.0] — 2026-11-19
 
 ### Changements cassants (le code passe à l'anglais)
