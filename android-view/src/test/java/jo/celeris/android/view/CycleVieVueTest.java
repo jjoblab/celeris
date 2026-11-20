@@ -209,4 +209,21 @@ public class CycleVieVueTest {
         assertEquals("aucun fil d'analyse ne renaît après release()",
                 0, filsAnalyse().size());
     }
+    /** D11 (suite) : release() vide AUSSI le champ session — la vue
+     *  libérée ne retient plus le document de l'onglet fermé ; la
+     *  session lue y est vide et inerte. */
+    @Test
+    public void releaseVideLeChampSession() {
+        EditorTestRig banc = EditorTestRig.sur(
+                RuntimeEnvironment.getApplication(),
+                "un document qui ne doit pas survivre a la vue");
+        EditorView vue = banc.vue();
+        TextSession avant = vue.session();
+        vue.release();
+        assertTrue("la vue est libérée", vue.estLiberee());
+        assertTrue("le champ session est vide (inerte)",
+                vue.session() != avant
+                        && vue.session().document().length() == 0);
+    }
+
 }

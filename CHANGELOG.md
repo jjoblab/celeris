@@ -22,6 +22,8 @@ vivent dans les ADR et le registre de portage, pas ici.
 
 ### Corrections
 
+- **La ligne fusionnée reste visible au clavier (retour de terrain du 2026-11-20)** : les DEL enchaînés au clavier faisaient remonter le caret à la ligne précédente SANS que le défilement ne suive — la ligne fusionnée sortait du viewport et ses mots disparaissaient jusqu'à la touche Entrée (elle, servie par l'intelligence, révélait le caret). La voie clavier (`KeyActions`) révèle désormais le caret après toute édition qui le déplace, comme les voies IME, intelligence et navigation.
+- **`release()` vide le champ session (D-11 suite)** : la vue libérée ne retient plus le document de l'onglet fermé — une session vide inerte y prend la place, comme `setSession(null)`.
 - Les 28 derniers commits portaient le mauvais auteur (`Z User <z@container>`) — l'historique est réécrit : 577 commits à `jjoblab <olson12jb@gmail.com>`.
 
 ## [2.2.3] — 2026-11-20

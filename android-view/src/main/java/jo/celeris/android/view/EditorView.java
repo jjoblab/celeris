@@ -939,6 +939,11 @@ public final class EditorView extends View {
         }
         liberee = true;
         session.removeEditListener(ecouteurAnnonce);
+        // D11 (suite, l'analyse croisée) : le champ ne retient plus la
+        // session morte — une session vide inerte y prend la place
+        // (comme setSession(null)), le document de l'onglet fermé
+        // cesse de vivre retenu par une vue libérée.
+        session = TextSession.of("");
         syntaxe.fermer();
         diagnostics.shutdown();
         prefetch.arreter();

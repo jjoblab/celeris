@@ -120,10 +120,17 @@ final class KeyActions {
 
     /** Les actions d'édition : suppression, entrée, historique,
      *  sélection entière et presse-papiers (C-12) — le cœur de la
-     *  session, jamais la géométrie. */
+     *  session, jamais la géométrie. Toute édition qui bouge le
+     *  caret le DÉVOILE ensuite (le retour de terrain du
+     *  2026-11-20 : les DEL enchaînés au clavier faisaient remonter
+     *  le caret à la ligne fusionnée SANS suivre au défilement — la
+     *  ligne disparaissait du viewport jusqu'à la prochaine touche
+     *  servie par l'intelligence, qui elle révèle ; la voie clavier
+     *  révèle désormais comme toutes les autres). */
     private static void edition(EditorView vue, EditorAction action) {
         TextSession session = vue.session();
         Document document = session.document();
+        boolean caretABouge = true;
         switch (action) {
             case DELETE_BACKWARD -> {
                 // M7.5 §8 — la paire vide et le cran d'indentation
@@ -144,10 +151,15 @@ final class KeyActions {
             case UNTAB -> vue.intelligence.untabTyped();
             case UNDO -> session.undo();
             case REDO -> session.redo();
-            case SELECT_ALL -> session.setSelection(MultiSelection.of(
-                    new SelRange(0, document.length())));
-            default -> {
+            case SELECT_ALL -> {
+                session.setSelection(MultiSelection.of(
+                        new SelRange(0, document.length())));
+                caretABouge = false;
             }
+            default -> caretABouge = false;
+        }
+        if (caretABouge) {
+            vue.curseurClavier.revealCaret();
         }
     }
 
