@@ -341,6 +341,11 @@ public final class jo.celeris.core.text.Match extends java.lang.Record {
   public int end();
 }
 
+### jo.celeris.core.text.MultiPaste
+Compiled from "MultiPaste.java"
+final class jo.celeris.core.text.MultiPaste {
+}
+
 ### jo.celeris.core.text.MultiSelection$Span
 Compiled from "MultiSelection.java"
 final class jo.celeris.core.text.MultiSelection$Span extends java.lang.Record {
@@ -488,6 +493,7 @@ public final class jo.celeris.core.text.TextSession {
   public boolean apply(jo.celeris.core.text.Transaction);
   public boolean apply(jo.celeris.core.text.Transaction, jo.celeris.core.text.MultiSelection);
   public boolean replaceRange(int, int, java.lang.String);
+  public boolean replaceEach(java.util.List<java.lang.String>);
   public boolean type(java.lang.String);
   public boolean deleteBackward();
   public boolean deleteForward();

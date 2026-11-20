@@ -309,62 +309,13 @@ public final class TextSession {
         return true;
     }
 
-    /**
-     * Remplace chaque plage de la sélection par SON texte (C-13, le
-     * presse-papiers multi-curseurs) : une transaction ordinaire par
-     * la voie unique, la i-ème chaîne sur la i-ème plage — la
-     * distribution du coller multi. Les tailles se correspondent :
-     * autant de chaînes que de plages.
-     *
-     * @param textes le texte de chaque plage, en ordre de sélection
-     * @return vrai si la pose a eu lieu ; faux en lecture seule, sur
-     *         une sélection vide ou si les tailles divergent
-     */
+    /** D-13 : le remplacement multi-plages vit dans MultiPaste. */
     public boolean replaceEach(java.util.List<String> textes) {
-        if (readOnly || selection.isEmpty()) {
-            return false;
-        }
-        List<SelRange> plages = selection.ranges();
-        if (textes.size() != plages.size()) {
-            return false;
-        }
-        List<TextEdit> editions = new ArrayList<>(plages.size());
-        int decalage = 0;
-        boolean change = false;
-        for (int i = 0; i < plages.size(); i++) {
-            SelRange plage = plages.get(i);
-            String retire = document.subText(plage.start(), plage.end());
-            String pose = textes.get(i);
-            if (!retire.equals(pose)) {
-                editions.add(new TextEdit(plage.start() + decalage,
-                        retire, pose));
-                decalage += pose.length() - retire.length();
-                change = true;
-            }
-        }
-        if (!change) {
-            return false;
-        }
-        MultiSelection avant = selection;
-        validerBornes(editions);
-        appliquer(editions);
-        enregistrer(editions, avant, selection);
-        notifierSelection(avant);
-        return true;
+        return MultiPaste.appliquer(this, textes);
     }
 
-    /**
-     * Frappe le texte donné sur toutes les plages de la sélection : la
-     * frappe multi-curseurs (parité A-01), une transaction ordinaire par la
-     * voie unique. Chaque plage est remplacée par le texte, les curseurs se
-     * posent après l'insertion qui les concerne, et le geste coalescence
-     * avec les frappes précédentes dans la fenêtre de l'historique (A-13 :
-     * annuler restitue le texte et toutes les sélections d'avant).
-     *
-     * @param text le texte à frapper sur chaque plage
-     * @return vrai si la frappe a eu lieu ; faux en lecture seule, sur une
-     *         sélection vide ou si rien ne change
-     */
+    /** Frappe le texte sur toutes les plages (parité A-01) : la
+     *  voie de transaction unique, coalescence de l'annulation (A-13). */
     public boolean type(String text) {
         if (readOnly || selection.isEmpty()) {
             return false;
@@ -381,20 +332,8 @@ public final class TextSession {
         return true;
     }
 
-    /**
-     * Supprime en arrière, curseur par curseur, par clusters de
-     * graphèmes entiers (ADR-003 : jamais une demi-paire de substitut,
-     * jamais un emoji amputé de son sélecteur).
-     *
-     * <p>Une plage non vide est remplacée par le vide ; un curseur retire
-     * le cluster qui le précède ; les plages de suppression issues de
-     * curseurs voisins fusionnent si elles se touchent. Le geste
-     * coalescence avec la frappe dans la fenêtre de l'historique et
-     * s'annule avec restauration de la sélection (A-13).</p>
-     *
-     * @return vrai si une suppression a eu lieu ; faux en lecture seule,
-     *         sur une sélection vide ou curseur à l'origine du document
-     */
+    /** Supprime en arrière par clusters de graphèmes (ADR-003,
+     *  A-13 : coalescence et annulation). */
     public boolean deleteBackward() {
         if (readOnly || selection.isEmpty()) {
             return false;
@@ -585,6 +524,16 @@ public final class TextSession {
             }
             longueur += edition.inserted().length() - edition.removed().length();
         }
+    }
+
+    /** D-13 : les éditions multi par LA voie de transaction. */
+    boolean appliquerEditionsMulti(List<TextEdit> editions) {
+        MultiSelection avant = selection;
+        validerBornes(editions);
+        appliquer(editions);
+        enregistrer(editions, avant, selection);
+        notifierSelection(avant);
+        return true;
     }
 
     private void appliquer(List<TextEdit> editions) {
