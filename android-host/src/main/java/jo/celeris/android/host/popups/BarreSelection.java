@@ -173,24 +173,55 @@ final class BarreSelection {
 
     /** Copie la sélection au presse-papiers système. */
     private void copier() {
-        SelRange plage = plagePrimaire();
-        if (plage == null) {
+        String joint = segmentsJoints();
+        if (joint == null) {
             return;
         }
-        poserAuPressePapiers(session.document().subText(
-                plage.start(), plage.end()));
+        poserAuPressePapiers(joint);
     }
 
-    /** Coupe la sélection : copie puis remplacement par le vide. */
+    /** Coupe la sélection : copie les segments joints puis remplace
+     *  chaque plage par le vide (C-13 : le geste multi). */
     private void couper() {
-        SelRange plage = plagePrimaire();
-        if (plage == null) {
+        String joint = segmentsJoints();
+        if (joint == null) {
             return;
         }
-        poserAuPressePapiers(session.document().subText(
-                plage.start(), plage.end()));
-        session.replaceRange(plage.start(), plage.end(), "");
+        poserAuPressePapiers(joint);
+        session.replaceEach(java.util.Collections.nCopies(
+                plagesEtendues().size(), ""));
         editeur.invalidate();
+    }
+
+    /** Les segments des plages étendues, joints par \n (C-13) —
+     *  null si aucune plage étendue (les curseurs seuls ne copient
+     *  rien). */
+    private String segmentsJoints() {
+        List<SelRange> plages = plagesEtendues();
+        if (plages.isEmpty()) {
+            return null;
+        }
+        StringBuilder joint = new StringBuilder();
+        for (SelRange plage : plages) {
+            if (joint.length() > 0) {
+                joint.append('\n');
+            }
+            joint.append(session.document().subText(
+                    plage.start(), plage.end()));
+        }
+        return joint.toString();
+    }
+
+    /** Les plages étendues de la sélection (les curseurs réduits ne
+     *  copient rien, ne coupent rien — C-13). */
+    private List<SelRange> plagesEtendues() {
+        List<SelRange> etendues = new java.util.ArrayList<>();
+        for (SelRange plage : session.selection().ranges()) {
+            if (!plage.isEmpty()) {
+                etendues.add(plage);
+            }
+        }
+        return etendues;
     }
 
     /** Colle le presse-papiers système sur la sélection. */
@@ -209,11 +240,23 @@ final class BarreSelection {
         if (texte == null) {
             return;
         }
-        SelRange plage = plagePrimaire();
-        if (plage == null) {
+        // C-13 : le coller multi — le clip se DISTRIBUE quand il a
+        // autant de lignes que de plages, sinon il se pose entier
+        // sur chaque plage.
+        List<SelRange> plages = session.selection().ranges();
+        if (plages.isEmpty()) {
             return;
         }
-        session.replaceRange(plage.start(), plage.end(), texte.toString());
+        List<String> lignes = java.util.Arrays.asList(
+                texte.toString().split("\\n", -1));
+        List<String> parts;
+        if (lignes.size() == plages.size() && plages.size() > 1) {
+            parts = lignes;
+        } else {
+            parts = java.util.Collections.nCopies(plages.size(),
+                    texte.toString());
+        }
+        session.replaceEach(parts);
         editeur.invalidate();
     }
 

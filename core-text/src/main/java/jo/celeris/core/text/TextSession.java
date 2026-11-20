@@ -310,6 +310,50 @@ public final class TextSession {
     }
 
     /**
+     * Remplace chaque plage de la sélection par SON texte (C-13, le
+     * presse-papiers multi-curseurs) : une transaction ordinaire par
+     * la voie unique, la i-ème chaîne sur la i-ème plage — la
+     * distribution du coller multi. Les tailles se correspondent :
+     * autant de chaînes que de plages.
+     *
+     * @param textes le texte de chaque plage, en ordre de sélection
+     * @return vrai si la pose a eu lieu ; faux en lecture seule, sur
+     *         une sélection vide ou si les tailles divergent
+     */
+    public boolean replaceEach(java.util.List<String> textes) {
+        if (readOnly || selection.isEmpty()) {
+            return false;
+        }
+        List<SelRange> plages = selection.ranges();
+        if (textes.size() != plages.size()) {
+            return false;
+        }
+        List<TextEdit> editions = new ArrayList<>(plages.size());
+        int decalage = 0;
+        boolean change = false;
+        for (int i = 0; i < plages.size(); i++) {
+            SelRange plage = plages.get(i);
+            String retire = document.subText(plage.start(), plage.end());
+            String pose = textes.get(i);
+            if (!retire.equals(pose)) {
+                editions.add(new TextEdit(plage.start() + decalage,
+                        retire, pose));
+                decalage += pose.length() - retire.length();
+                change = true;
+            }
+        }
+        if (!change) {
+            return false;
+        }
+        MultiSelection avant = selection;
+        validerBornes(editions);
+        appliquer(editions);
+        enregistrer(editions, avant, selection);
+        notifierSelection(avant);
+        return true;
+    }
+
+    /**
      * Frappe le texte donné sur toutes les plages de la sélection : la
      * frappe multi-curseurs (parité A-01), une transaction ordinaire par la
      * voie unique. Chaque plage est remplacée par le texte, les curseurs se
