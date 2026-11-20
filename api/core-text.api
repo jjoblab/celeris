@@ -35,59 +35,6 @@ public final class jo.celeris.core.text.Bidi {
   public static jo.celeris.core.text.Bidi$BidiInfo analyze(java.lang.String);
 }
 
-### jo.celeris.core.text.BidiCategory
-Compiled from "BidiCategory.java"
-final class jo.celeris.core.text.BidiCategory extends java.lang.Enum<jo.celeris.core.text.BidiCategory> {
-  public static final jo.celeris.core.text.BidiCategory L;
-  public static final jo.celeris.core.text.BidiCategory R;
-  public static final jo.celeris.core.text.BidiCategory AL;
-  public static final jo.celeris.core.text.BidiCategory EN;
-  public static final jo.celeris.core.text.BidiCategory AN;
-  public static final jo.celeris.core.text.BidiCategory ES;
-  public static final jo.celeris.core.text.BidiCategory ET;
-  public static final jo.celeris.core.text.BidiCategory CS;
-  public static final jo.celeris.core.text.BidiCategory WS;
-  public static final jo.celeris.core.text.BidiCategory ON;
-  public static final jo.celeris.core.text.BidiCategory BN;
-  public static final jo.celeris.core.text.BidiCategory NSM;
-  public static final jo.celeris.core.text.BidiCategory LRE;
-  public static final jo.celeris.core.text.BidiCategory RLE;
-  public static final jo.celeris.core.text.BidiCategory LRO;
-  public static final jo.celeris.core.text.BidiCategory RLO;
-  public static final jo.celeris.core.text.BidiCategory PDF;
-  public static final jo.celeris.core.text.BidiCategory LRI;
-  public static final jo.celeris.core.text.BidiCategory RLI;
-  public static final jo.celeris.core.text.BidiCategory FSI;
-  public static final jo.celeris.core.text.BidiCategory PDI;
-  public static jo.celeris.core.text.BidiCategory[] values();
-  public static jo.celeris.core.text.BidiCategory valueOf(java.lang.String);
-}
-
-### jo.celeris.core.text.BidiClassifier
-Compiled from "BidiClassifier.java"
-final class jo.celeris.core.text.BidiClassifier {
-}
-
-### jo.celeris.core.text.BidiEmbeddings$1
-Compiled from "BidiEmbeddings.java"
-class jo.celeris.core.text.BidiEmbeddings$1 {
-}
-
-### jo.celeris.core.text.BidiEmbeddings$Stack
-Compiled from "BidiEmbeddings.java"
-final class jo.celeris.core.text.BidiEmbeddings$Stack {
-}
-
-### jo.celeris.core.text.BidiEmbeddings
-Compiled from "BidiEmbeddings.java"
-final class jo.celeris.core.text.BidiEmbeddings {
-}
-
-### jo.celeris.core.text.BidiRuns
-Compiled from "BidiRuns.java"
-final class jo.celeris.core.text.BidiRuns {
-}
-
 ### jo.celeris.core.text.CamelWord
 Compiled from "CamelWord.java"
 public final class jo.celeris.core.text.CamelWord {
@@ -578,34 +525,6 @@ Compiled from "Utf8Codec.java"
 final class jo.celeris.core.text.Utf8Codec {
 }
 
-### jo.celeris.core.text.WbClass
-Compiled from "WbClass.java"
-final class jo.celeris.core.text.WbClass extends java.lang.Enum<jo.celeris.core.text.WbClass> {
-  public static final jo.celeris.core.text.WbClass NEWLINE;
-  public static final jo.celeris.core.text.WbClass CR;
-  public static final jo.celeris.core.text.WbClass LF;
-  public static final jo.celeris.core.text.WbClass WS;
-  public static final jo.celeris.core.text.WbClass EXTEND;
-  public static final jo.celeris.core.text.WbClass FORMAT;
-  public static final jo.celeris.core.text.WbClass ZWJ;
-  public static final jo.celeris.core.text.WbClass LETTER;
-  public static final jo.celeris.core.text.WbClass NUMERIC;
-  public static final jo.celeris.core.text.WbClass KATAKANA;
-  public static final jo.celeris.core.text.WbClass EXTENDNUMLET;
-  public static final jo.celeris.core.text.WbClass MIDLETTER;
-  public static final jo.celeris.core.text.WbClass MIDNUM;
-  public static final jo.celeris.core.text.WbClass MIDNUMLET;
-  public static final jo.celeris.core.text.WbClass EXTPICT;
-  public static final jo.celeris.core.text.WbClass ANY;
-  public static jo.celeris.core.text.WbClass[] values();
-  public static jo.celeris.core.text.WbClass valueOf(java.lang.String);
-}
-
-### jo.celeris.core.text.WbClassifier
-Compiled from "WbClassifier.java"
-final class jo.celeris.core.text.WbClassifier {
-}
-
 ### jo.celeris.core.text.WideCodecs
 Compiled from "WideCodecs.java"
 final class jo.celeris.core.text.WideCodecs {
@@ -617,7 +536,7 @@ final class jo.celeris.core.text.Word$Effective extends java.lang.Record {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public jo.celeris.core.text.WbClass cls();
+  public jo.celeris.core.text.internal.segmentation.WbClass cls();
   public int start();
 }
 

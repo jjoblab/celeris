@@ -51,11 +51,6 @@ public final class jo.celeris.core.intelligence.ClasspathIndex {
   public int size();
 }
 
-### jo.celeris.core.intelligence.ClausesHeritage
-Compiled from "ClausesHeritage.java"
-final class jo.celeris.core.intelligence.ClausesHeritage {
-}
-
 ### jo.celeris.core.intelligence.CommentRules
 Compiled from "CommentRules.java"
 public final class jo.celeris.core.intelligence.CommentRules extends java.lang.Record {
@@ -221,16 +216,6 @@ public final class jo.celeris.core.intelligence.Entourer {
   public static jo.celeris.core.intelligence.EditPlan entourer(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, java.lang.String, java.lang.String);
 }
 
-### jo.celeris.core.intelligence.ExpressionTypes$MixState
-Compiled from "ExpressionTypes.java"
-final class jo.celeris.core.intelligence.ExpressionTypes$MixState {
-}
-
-### jo.celeris.core.intelligence.ExpressionTypes
-Compiled from "ExpressionTypes.java"
-final class jo.celeris.core.intelligence.ExpressionTypes {
-}
-
 ### jo.celeris.core.intelligence.Extraction$ExtractionPlan
 Compiled from "Extraction.java"
 public final class jo.celeris.core.intelligence.Extraction$ExtractionPlan extends java.lang.Record {
@@ -276,71 +261,6 @@ public final class jo.celeris.core.intelligence.ExtractionRessource$PlanRessourc
 Compiled from "ExtractionRessource.java"
 public final class jo.celeris.core.intelligence.ExtractionRessource {
   public static jo.celeris.core.intelligence.ExtractionRessource$PlanRessource plan(java.lang.String, jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, java.lang.String, java.util.Map<java.lang.String, java.lang.String>);
-}
-
-### jo.celeris.core.intelligence.FichierProjet
-Compiled from "FichierProjet.java"
-final class jo.celeris.core.intelligence.FichierProjet {
-}
-
-### jo.celeris.core.intelligence.FlowAnalysis$AbsoluteToken
-Compiled from "FlowAnalysis.java"
-final class jo.celeris.core.intelligence.FlowAnalysis$AbsoluteToken extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public jo.celeris.core.syntax.TokenKind kind();
-  public int offset();
-  public java.lang.String text();
-}
-
-### jo.celeris.core.intelligence.FlowAnalysis$Call
-Compiled from "FlowAnalysis.java"
-final class jo.celeris.core.intelligence.FlowAnalysis$Call extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public int nameOffset();
-  public int openParen();
-  public int closeParen();
-}
-
-### jo.celeris.core.intelligence.FlowAnalysis$CallCollector
-Compiled from "FlowAnalysis.java"
-final class jo.celeris.core.intelligence.FlowAnalysis$CallCollector {
-}
-
-### jo.celeris.core.intelligence.FlowAnalysis$CallSites
-Compiled from "FlowAnalysis.java"
-final class jo.celeris.core.intelligence.FlowAnalysis$CallSites extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public java.util.List<jo.celeris.core.intelligence.FlowAnalysis$Call> calls();
-  public boolean ambiguous();
-  public boolean methodReference();
-  public java.util.List<java.lang.Integer> suspects();
-}
-
-### jo.celeris.core.intelligence.FlowAnalysis$Reference
-Compiled from "FlowAnalysis.java"
-final class jo.celeris.core.intelligence.FlowAnalysis$Reference extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public java.lang.String name();
-  public int offset();
-  public boolean receiver();
-}
-
-### jo.celeris.core.intelligence.FlowAnalysis
-Compiled from "FlowAnalysis.java"
-final class jo.celeris.core.intelligence.FlowAnalysis {
-}
-
-### jo.celeris.core.intelligence.FlowExtractions
-Compiled from "FlowExtractions.java"
-final class jo.celeris.core.intelligence.FlowExtractions {
 }
 
 ### jo.celeris.core.intelligence.Formateur
@@ -638,30 +558,6 @@ public final class jo.celeris.core.intelligence.LineSorter {
   public static jo.celeris.core.intelligence.EditPlan sort(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, boolean);
 }
 
-### jo.celeris.core.intelligence.MethodDeclarations$Declaration
-Compiled from "MethodDeclarations.java"
-final class jo.celeris.core.intelligence.MethodDeclarations$Declaration extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public java.lang.String name();
-  public java.lang.String type();
-  public int statementStart();
-  public int statementEnd();
-  public int initializerStart();
-  public int initializerEnd();
-}
-
-### jo.celeris.core.intelligence.MethodDeclarations
-Compiled from "MethodDeclarations.java"
-final class jo.celeris.core.intelligence.MethodDeclarations {
-}
-
-### jo.celeris.core.intelligence.MethodStructure
-Compiled from "MethodStructure.java"
-final class jo.celeris.core.intelligence.MethodStructure {
-}
-
 ### jo.celeris.core.intelligence.OptimiseurImports$RapportImport
 Compiled from "OptimiseurImports.java"
 public final class jo.celeris.core.intelligence.OptimiseurImports$RapportImport extends java.lang.Record {
@@ -852,21 +748,6 @@ public final class jo.celeris.core.intelligence.SafeMove {
   public static jo.celeris.core.intelligence.SafeMove$MovePlan move(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, java.lang.String);
 }
 
-### jo.celeris.core.intelligence.ScanIdentifiants$NomOffset
-Compiled from "ScanIdentifiants.java"
-final class jo.celeris.core.intelligence.ScanIdentifiants$NomOffset extends java.lang.Record {
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
-  public java.lang.String nom();
-  public int offset();
-}
-
-### jo.celeris.core.intelligence.ScanIdentifiants
-Compiled from "ScanIdentifiants.java"
-final class jo.celeris.core.intelligence.ScanIdentifiants {
-}
-
 ### jo.celeris.core.intelligence.SchemaAndroid
 Compiled from "SchemaAndroid.java"
 public final class jo.celeris.core.intelligence.SchemaAndroid {
@@ -970,11 +851,6 @@ public final class jo.celeris.core.intelligence.Trou extends java.lang.Record {
   public int end();
   public java.lang.String variable();
   public java.util.List<java.lang.String> choix();
-}
-
-### jo.celeris.core.intelligence.TypeRun
-Compiled from "TypeRun.java"
-final class jo.celeris.core.intelligence.TypeRun {
 }
 
 ### jo.celeris.core.intelligence.TypingRules
