@@ -2,9 +2,6 @@ package jo.celeris.android.view;
 
 import java.util.List;
 
-import jo.celeris.android.view.EditorSyntax;
-import jo.celeris.android.view.FoldModel;
-import jo.celeris.android.view.FoldTracker;
 
 /**
  * La mémoire des plis PAR SESSION (D-07, l'analyse croisée) : le pli
