@@ -47,7 +47,8 @@ final class PackGrammarsTest {
     @Test
     void lesTrenteDeuxPaquetsSeChargentParLaVraieFabrique() throws IOException {
         List<LanguagePack> charges = paquetsCharges();
-        assertEquals(32, charges.size());
+        // D-08 : dockerfile revient — 33 paquets
+        assertEquals(33, charges.size());
         for (LanguagePack pack : charges) {
             assertEquals(1, pack.manifest().schemaVersion(),
                     pack.manifest().id() + " au schéma courant");
@@ -77,7 +78,8 @@ final class PackGrammarsTest {
     void leRegistreAssembleLesTrenteDeuxLangages() {
         LanguageRegistry registre = LanguagePlatform.with(PackGrammars.INSTANCE)
                 .builtinPacks().build();
-        assertEquals(32, registre.supports().size());
+        // D-08 : dockerfile revient — 33 langages
+        assertEquals(33, registre.supports().size());
         LanguageSupport toml = registre.byId("toml");
         assertNotNull(toml, "toml est là");
         LanguageSyntax source = toml.syntax();
