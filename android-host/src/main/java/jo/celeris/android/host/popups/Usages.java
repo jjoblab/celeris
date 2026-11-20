@@ -4,6 +4,7 @@ import android.graphics.Rect;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import jo.celeris.android.host.R;
 import jo.celeris.android.view.EditorView;
@@ -14,6 +15,8 @@ import jo.celeris.android.widgets.PopupPalette;
 import jo.celeris.android.widgets.PopupPlacer;
 import jo.celeris.android.widgets.ReferencesView;
 
+import jo.celeris.core.intelligence.IndexSymboles;
+import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.lsp.types.LocationLsp;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
@@ -56,6 +59,9 @@ final class Usages {
     private @Nullable LanguageSession server;
     /** L'uri du document ouvert auprès du serveur de langage. */
     private String uriDocument = "";
+    /** Le langage du fichier ouvert — le repli local sans serveur y
+     *  lit sa syntaxe. */
+    private final Supplier<@Nullable LanguageSupport> language;
 
     /**
      * Construit les usages sur le coordinateur des popups : la carte
@@ -67,13 +73,16 @@ final class Usages {
      * @param popups  le coordinateur des popups de la scène
      * @param margePx la respiration des ancres aux bords, en pixels
      * @param palette la palette courante des popups
+     * @param language le langage du fichier ouvert, null sans syntaxe
      */
     Usages(EditorView editor, TextSession session, PopupManager popups,
-            int margePx, PopupPalette palette) {
+            int margePx, PopupPalette palette,
+            Supplier<@Nullable LanguageSupport> language) {
         this.editor = editor;
         this.session = session;
         this.popups = popups;
         this.margePx = margePx;
+        this.language = language;
         this.carte = new ReferencesView(popups.couche().getContext(),
                 palette);
         popups.lier(PopupController.PopupKind.REFERENCES, carte);
@@ -99,17 +108,87 @@ final class Usages {
     /**
      * Ouvre la carte des usages du symbole au curseur : le serveur sert
      * les lieux par le fil du protocole, la réponse se pose sur le fil
-     * UI (l'ancre y vit). Sans symbole au curseur ou sans serveur
-     * branché, la carte ne se pose pas — aucune fausse intégration.
+     * UI (l'ancre y vit). SANS serveur, le repli local sert les
+     * occurrences du document ouvert — l'index du dépôt y lit la
+     * syntaxe de la langue courante (la carte ne se tait plus hors
+     * LSP : le mot sous le curseur se liste quand même, cliquable,
+     * jamais l'inventé). Sans symbole au curseur ni syntaxe, la carte
+     * ne se pose pas — aucune fausse intégration.
      */
     void open() {
-        if (server == null
-                || ContenuPopups.symboleA(session.document(), caret()) == null) {
+        if (ContenuPopups.symboleA(session.document(), caret()) == null) {
             return;
         }
-        server.references(uriDocument, session.document(), caret())
-                .whenComplete((lieux, echec) -> editor.post(
-                        () -> place(lieux)));
+        if (server != null) {
+            server.references(uriDocument, session.document(), caret())
+                    .whenComplete((lieux, echec) -> editor.post(
+                            () -> place(lieux)));
+            return;
+        }
+        placeLocalement();
+    }
+
+    /** Le repli local : les occurrences du document ouvert par
+     *  l'index du dépôt, posées immédiatement — le fil UI tient déjà,
+     *  la mesure ne paie qu'une passe d'analyse. */
+    private void placeLocalement() {
+        String symbole = ContenuPopups.symboleA(session.document(),
+                caret());
+        LanguageSupport support = language.get();
+        if (support == null || support.syntax() == null) {
+            return;
+        }
+        List<Integer> offsets = usagesLocaux(session.document(),
+                support.syntax(), symbole);
+        if (offsets.isEmpty()) {
+            return;
+        }
+        Document document = session.document();
+        List<ReferencesView.Occurrence> occurrences =
+                new ArrayList<>(offsets.size());
+        for (Integer offset : offsets) {
+            int cible = offset;
+            occurrences.add(new ReferencesView.Occurrence(
+                    libelleDe(document, cible), () -> sauter(cible)));
+        }
+        carte.setTitre(popups.couche().getContext().getString(
+                R.string.celeris_titre_usages, occurrences.size(),
+                symbole));
+        carte.setOccurrences(occurrences);
+        Rect cursor = editor.caretBounds();
+        PopupPlacer.Cadre placee = PopupAnchor.belowOrAboveCaret(
+                cursor.left, cursor.bottom, size(),
+                popups.couche().getWidth(),
+                popups.couche().getHeight(), margePx);
+        popups.show(PopupController.PopupKind.REFERENCES,
+                placee.x(), placee.y());
+    }
+
+    /**
+     * Les usages du symbole dans le document ouvert, sans serveur :
+     * l'index des symboles du dépôt y passe une fois — l'analyse
+     * pleine de la syntaxe posée, les occurrences du document s'y
+     * lisent ({@code IdentifierScan} n'indexe que les identificateurs
+     * : les mots réservés ne se listent jamais). Pur, sans état : la
+     * carte locale ne retient rien entre deux ouvertures.
+     *
+     * @param document le document ouvert
+     * @param syntaxe  la syntaxe de la langue du fichier
+     * @param symbole  le symbole cherché au curseur
+     * @return les offsets des occurrences, croissants
+     */
+    static List<Integer> usagesLocaux(Document document,
+            jo.celeris.core.syntax.LanguageSyntax syntaxe, String symbole) {
+        IndexSymboles index = IndexSymboles.vide();
+        index.remplacer("", document,
+                jo.celeris.core.syntax.SyntaxService.of(syntaxe)
+                        .analyseFull(document));
+        List<Integer> offsets = new ArrayList<>();
+        for (IndexSymboles.Usage usage : index.usages(symbole)) {
+            offsets.add(usage.offset());
+        }
+        java.util.Collections.sort(offsets);
+        return offsets;
     }
 
     /**

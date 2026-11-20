@@ -5,6 +5,12 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.11] — 2026-11-20
+
+### Ajouts
+
+- **La carte des usages fonctionne sans serveur de langage** : le repli local sert les occurrences du document ouvert — l'index des symboles du dépôt (`IndexSymboles`, voie du CLI) y lit la syntaxe de la langue courante, les occurrences deviennent cliquables, le titre compte ce qui se liste (aucune occurrence étrangère hors serveur — jamais l'inventé). Le serveur branché reste prioritaire (tous les fichiers) ; sans serveur ni syntaxe, la carte ne se pose pas. Bancs : `UsagesSansServeurTest` 3/3 (occurrences servies, absent vide, mots réservés exclus).
+
 ## [2.2.10] — 2026-11-20
 
 ### Ajouts

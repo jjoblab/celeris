@@ -240,7 +240,8 @@ public final class EditorPopups {
         filAriane = new FilAriane(popups, session, margePx, palette);
         notifications = new Notifications(popups, margePx, palette);
         typeInfo = new TypeInfo(editor, session, popups, margePx, palette);
-        usages = new Usages(editor, session, popups, margePx, palette);
+        usages = new Usages(editor, session, popups, margePx, palette,
+                () -> language);
         docExterne = new DocExterne(editor, session, popups, margePx, palette, coach);
         hierarchies = new CarteHierarchies(editor, session, popups,
                 margePx, palette, this::planVif, this::nomVif, () -> language);
