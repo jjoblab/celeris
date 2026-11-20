@@ -1,4 +1,4 @@
-package jo.celeris.core.intelligence;
+package jo.celeris.core.intelligence.internal.scan;
 
 import java.util.List;
 
@@ -14,13 +14,13 @@ import jo.celeris.core.text.Document;
  * jamais les chaînes ni les commentaires. L'index des usages (B-11) y
  * puise ses occurrences : ce que le lexique ne dit pas n'existe pas.
  */
-final class ScanIdentifiants {
+public final class IdentifierScan  {
 
     /** Un identifiant relevé : son nom et son offset absolu. */
-    record NomOffset(String nom, int offset) {
+    public record NomOffset(String nom, int offset) {
     }
 
-    private ScanIdentifiants() {
+    private IdentifierScan() {
     }
 
     /**
@@ -30,7 +30,7 @@ final class ScanIdentifiants {
      * @param lex le lexique de la même analyse
      * @return les noms dans l'ordre du source
      */
-    static List<NomOffset> scanner(Document doc, LexDocument lex) {
+    public static List<NomOffset> scanner(Document doc, LexDocument lex) {
         List<NomOffset> releves = new java.util.ArrayList<>();
         for (int line = 0; line < lex.lineCount(); line++) {
             LexedLine panier = lex.line(line);

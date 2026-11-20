@@ -1,6 +1,10 @@
-package jo.celeris.core.intelligence;
+package jo.celeris.core.intelligence.internal.flow;
 
 import java.util.ArrayList;
+
+import jo.celeris.core.intelligence.internal.structure.ExpressionTypes;
+import jo.celeris.core.intelligence.internal.structure.MethodStructure;
+import jo.celeris.core.intelligence.internal.structure.TypeRun;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,22 +39,22 @@ import jo.celeris.core.text.Document;
  * (précédé de {@code new}). Un récepteur non résolu se lit comme un nom
  * de classe (référence statique), jamais comme une variable.</p>
  */
-final class FlowAnalysis {
+public final class FlowAnalysis  {
 
     /** Un jeton porté à l'offset absolu, avec son texte décollé. */
-    record AbsoluteToken(TokenKind kind, int offset, String text) {
+    public record AbsoluteToken(TokenKind kind, int offset, String text) {
     }
 
     /** Une référence de la sélection : nom, offset, récepteur ou non. */
-    record Reference(String name, int offset, boolean receiver) {
+    public record Reference(String name, int offset, boolean receiver) {
     }
 
     /** Un appel du nom : l'offset de son nom, ses parenthèses ouvrante et fermante. */
-    record Call(int nameOffset, int openParen, int closeParen) {
+    public record Call(int nameOffset, int openParen, int closeParen) {
     }
 
     /** Les appels d'un nom dans le document et leur verdict. */
-    record CallSites(List<Call> calls, boolean ambiguous, boolean methodReference,
+    public record CallSites(List<Call> calls, boolean ambiguous, boolean methodReference,
             List<Integer> suspects) {
     }
 
@@ -67,7 +71,7 @@ final class FlowAnalysis {
      * @param to    fin exclusive de la plage
      * @return les jetons dans l'ordre du source
      */
-    static List<AbsoluteToken> tokens(Document doc, LexDocument lex, int from, int to) {
+    public static List<AbsoluteToken> tokens(Document doc, LexDocument lex, int from, int to) {
         List<AbsoluteToken> tokens = new ArrayList<>();
         int first = doc.lineForOffset(Math.max(from, 0));
         int last = doc.lineForOffset(Math.max(from, Math.max(to - 1, 0)));
@@ -96,7 +100,7 @@ final class FlowAnalysis {
      * @param tokens les jetons de la sélection
      * @return les références dans l'ordre du source
      */
-    static List<Reference> references(List<AbsoluteToken> tokens) {
+    public static List<Reference> references(List<AbsoluteToken> tokens) {
         List<Reference> refs = new ArrayList<>();
         for (int i = 0; i < tokens.size(); i++) {
             AbsoluteToken token = tokens.get(i);
@@ -122,7 +126,7 @@ final class FlowAnalysis {
      * @param owner   l'entrée de la classe porteuse
      * @return les champs nommés et leur type
      */
-    static Map<String, String> classFields(Document doc, Analysis analyse, OutlineEntry owner) {
+    public static Map<String, String> classFields(Document doc, Analysis analyse, OutlineEntry owner) {
         Map<String, String> fields = new LinkedHashMap<>();
         List<OutlineEntry> entries = TreeOutline.entries(doc, analyse);
         for (OutlineEntry entry : entries) {
@@ -150,7 +154,7 @@ final class FlowAnalysis {
      * @param constructor vrai quand le nom déclaré est un constructeur
      * @return les appels et leur verdict
      */
-    static CallSites calls(Document doc, LexDocument lex, String name,
+    public static CallSites calls(Document doc, LexDocument lex, String name,
             int headerFrom, int headerTo, boolean constructor) {
         CallCollector collector = new CallCollector();
         boolean methodReference = false;
@@ -185,7 +189,7 @@ final class FlowAnalysis {
      * @param enclosing la méthode déclarée
      * @return vrai sur une surcharge homonyme
      */
-    static boolean overloaded(Document doc, Analysis analyse, OutlineEntry enclosing) {
+    public static boolean overloaded(Document doc, Analysis analyse, OutlineEntry enclosing) {
         for (OutlineEntry entry : TreeOutline.entries(doc, analyse)) {
             if (entry.category() == NodeCategory.FUNCTION
                     && entry.name().equals(enclosing.name())
@@ -260,7 +264,7 @@ final class FlowAnalysis {
      * @param openIndex  l'index du jeton ouvrant
      * @return l'index du jeton fermant, ou -1 si non apparié
      */
-    static int matchingClose(List<AbsoluteToken> tokens, int openIndex) {
+    public static int matchingClose(List<AbsoluteToken> tokens, int openIndex) {
         int depth = 0;
         for (int i = openIndex; i < tokens.size(); i++) {
             TokenKind kind = tokens.get(i).kind();
@@ -319,7 +323,7 @@ final class FlowAnalysis {
     }
 
     /** Vrai quand la sorte porte un nom : identifiant, type ou constante. */
-    static boolean isName(TokenKind kind) {
+    public static boolean isName(TokenKind kind) {
         return kind == TokenKind.IDENTIFIER || kind == TokenKind.TYPE
                 || kind == TokenKind.CONSTANT;
     }

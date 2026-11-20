@@ -1,6 +1,9 @@
-package jo.celeris.core.intelligence;
+package jo.celeris.core.intelligence.internal.structure;
 
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
 import java.util.List;
+
+import jo.celeris.core.intelligence.Extraction;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
@@ -17,7 +20,7 @@ import jo.celeris.core.syntax.TokenKind;
  * Ce qui ne se lit pas n'est pas déclaré — la lecture ne devine
  * jamais.
  */
-final class MethodDeclarations {
+public final class MethodDeclarations  {
 
     /**
      * Une déclaration locale : le nom, le type lu, les index de jetons
@@ -25,7 +28,7 @@ final class MethodDeclarations {
      * point-virgule) et de l'initialisateur seul (-1 s'il n'y en a pas,
      * toujours -1 pour un paramètre).
      */
-    record Declaration(String name, String type, int statementStart, int statementEnd,
+    public record Declaration(String name, String type, int statementStart, int statementEnd,
             int initializerStart, int initializerEnd) {
     }
 
@@ -41,7 +44,7 @@ final class MethodDeclarations {
      * @param close  l'index de la parenthèse fermante
      * @param declared les déclarations lues, enrichies
      */
-    static void declareSegment(List<FlowAnalysis.AbsoluteToken> tokens, int from, int close,
+    public static void declareSegment(List<FlowAnalysis.AbsoluteToken> tokens, int from, int close,
             Map<String, Declaration> declared) {
         int segmentStart = from;
         int depth = 0;
@@ -69,7 +72,7 @@ final class MethodDeclarations {
     }
 
     /** Le corps : chaque nom déclaré se lit, ses déclarateurs frères suivent. */
-    static void declareBody(List<FlowAnalysis.AbsoluteToken> tokens, int from,
+    public static void declareBody(List<FlowAnalysis.AbsoluteToken> tokens, int from,
             Map<String, Declaration> declared) {
         int i = from;
         while (i < tokens.size()) {

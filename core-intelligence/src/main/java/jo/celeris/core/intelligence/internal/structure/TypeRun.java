@@ -1,6 +1,8 @@
-package jo.celeris.core.intelligence;
+package jo.celeris.core.intelligence.internal.structure;
 
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
 import java.util.List;
+
 import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
@@ -13,7 +15,7 @@ import jo.celeris.core.syntax.TokenKind;
  * équilibrés, jamais au travers d'une virgule de déclarateur, modifieurs
  * ôtés. Ce qui ne se referme pas rend null, jamais un type faux.
  */
-final class TypeRun {
+public final class TypeRun  {
 
     /** Les mots qui portent un type ou un modifieur de déclaration. */
     private static final Set<String> TYPE_WORDS = Set.of(
@@ -43,7 +45,7 @@ final class TypeRun {
      * @param i      l'index du nom déclaré
      * @return le type lu, ou null quand la course ne se referme pas
      */
-    static @Nullable String beforeName(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
+    public static @Nullable String beforeName(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
         int run = runStart(tokens, i);
         if (run < 0) {
             return null;
@@ -64,7 +66,7 @@ final class TypeRun {
      * @param i      l'index du nom déclaré
      * @return l'index du premier jeton de la course, ou -1
      */
-    static int runStart(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
+    public static int runStart(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
         int angles = 0;
         int end = i;
         int j = i - 1;
@@ -91,7 +93,7 @@ final class TypeRun {
     }
 
     /** Vrai quand le nom est suivi d'un déclarateur : = ; : , ou ). */
-    static boolean declaresAfter(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
+    public static boolean declaresAfter(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
         if (i + 1 >= tokens.size()) {
             return false;
         }
@@ -101,7 +103,7 @@ final class TypeRun {
     }
 
     /** Vrai quand le jeton précédent peut clore un type : nom, mot de type, chevron, crochet. */
-    static boolean followsType(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
+    public static boolean followsType(List<FlowAnalysis.AbsoluteToken> tokens, int i) {
         if (i <= 0) {
             return false;
         }

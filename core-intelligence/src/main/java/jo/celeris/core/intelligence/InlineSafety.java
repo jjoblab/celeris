@@ -1,5 +1,8 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
+import jo.celeris.core.intelligence.internal.structure.MethodDeclarations;
+import jo.celeris.core.intelligence.internal.structure.TypeRun;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

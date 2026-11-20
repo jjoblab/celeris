@@ -1,5 +1,8 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.flow.FlowExtractions;
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
+import jo.celeris.core.intelligence.internal.structure.MethodStructure;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.List;
@@ -108,7 +111,7 @@ public final class SignatureChange {
     /** La désignation lue, ou null : méthode introuvable, surchargée, illisible ou sans paramètre. */
     private static @Nullable Designation designate(Document doc, Analysis analyse,
             int start, int end) {
-        OutlineEntry enclosing = Extraction.enclosing(doc, analyse, start, end,
+        OutlineEntry enclosing = FlowExtractions.enclosing(doc, analyse, start, end,
                 NodeCategory.FUNCTION);
         if (enclosing == null || FlowAnalysis.overloaded(doc, analyse, enclosing)) {
             return null;

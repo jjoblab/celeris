@@ -68,7 +68,9 @@
 | P1 | Pilote : le paquet internal d'android-view | — (jette les bases) | ✅ fait (32e38af — 2026-11-19) |
 | P2 | android-view : les peintres et la gouttière en sous-packages | haute (126 classes) | 🟡 en cours — vague 1 faite (2026-11-20) ; la vague 2 (couplées à la vue) suit P3 |
 | P3 | android-view : la suite (source, curseurs, plis, fantômes) | haute | 🟡 en cours — vague 2 faite (2026-11-20) ; le reste VERROUILLÉ (voir journal) |
-| P4 | core-intelligence en familles | moyenne (65 classes) | ☐ à faire |
+| P4 | core-intelligence en familles | moyenne (65 classes) | ✅ fait
+  pour les internes (2026-11-20) ; les 53 publiques attendent
+  la décision propriétaire n°  1 |
 | P5 | core-text et android-widgets | moyenne | ☐ à faire |
 | P6 | Manifestes api et documentation consolidés | — (clôture) | ☐ à faire |
 
@@ -300,3 +302,20 @@
   publiciser CES champs (la décision propriétaire n°  1 de la feuille : publiques en version mineure ou
   internes seulement). Le paquet racine : 126 -> 112
   classes.
+- 2026-11-20 : P4 fait pour les internes — les 10 classes
+  internes (3 renommées d'abord : ClausesHeritage ->
+  ExtendsClauses, FichierProjet -> ProjectFile, ScanIdentifiants ->
+  IdentifierScan — la règle des symboles publics anglais s'applique
+  aux classes déplacées en internal, précèdent P1) rejoignent
+  `intelligence.internal.{structure,flow,scan}` :
+  structure (ExtendsClauses, ExpressionTypes, MethodDeclarations,
+  MethodStructure, TypeRun, ProjectFile), flow (FlowAnalysis,
+  FlowExtractions), scan (IdentifierScan). Les deux aides
+  package-privées d'Extraction (enclosing, indentationOf) — classe
+  PUBLIQUE au manifeste — déménagent chez FlowExtractions (les
+  publiciser aurait changé le contrat). InlineFields et InlineSafety
+  restent au racine (la publique Inline les utilise). CONTRAT
+  INTACT : manifeste régénéré FORCEMENT, zéro diff
+  (le filtre ADR-009 exclut les paquets internal). 369 tests
+  verts, checkstyle et PMD verts, consommateurs compilés. Le
+  paquet racine : 65 -> 54 classes.

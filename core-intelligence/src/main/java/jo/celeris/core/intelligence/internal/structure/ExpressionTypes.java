@@ -1,6 +1,9 @@
-package jo.celeris.core.intelligence;
+package jo.celeris.core.intelligence.internal.structure;
 
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
 import java.util.List;
+
+import jo.celeris.core.intelligence.Extraction;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
@@ -14,7 +17,7 @@ import jo.celeris.core.syntax.TokenKind;
  * concaténation quand une chaîne se joint à des « + » seuls. Ce qui ne se
  * lit pas rend null, jamais un type faux.
  */
-final class ExpressionTypes {
+public final class ExpressionTypes  {
 
     private ExpressionTypes() {
     }
@@ -29,7 +32,7 @@ final class ExpressionTypes {
      * @param fields   les champs de la classe porteuse (pour this.champ)
      * @return le type lu, ou null quand la forme ne se lit pas
      */
-    static @Nullable String read(String text, List<FlowAnalysis.AbsoluteToken> tokens,
+    public static @Nullable String read(String text, List<FlowAnalysis.AbsoluteToken> tokens,
             List<FlowAnalysis.Reference> refs, Map<String, String> resolved,
             Map<String, String> fields) {
         String literal = Extraction.literalType(text);

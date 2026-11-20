@@ -1,6 +1,12 @@
-package jo.celeris.core.intelligence;
+package jo.celeris.core.intelligence.internal.flow;
 
+import jo.celeris.core.syntax.structure.TreeOutline;
 import java.util.ArrayList;
+
+import jo.celeris.core.intelligence.internal.structure.ExpressionTypes;
+import jo.celeris.core.intelligence.internal.structure.MethodDeclarations;
+import jo.celeris.core.intelligence.internal.structure.MethodStructure;
+import jo.celeris.core.intelligence.internal.structure.TypeRun;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,7 +30,7 @@ import jo.celeris.core.text.TextEdit;
  * éditions descendent — les offsets originaux restent valides au fil de
  * l'application séquentielle.
  */
-final class FlowExtractions {
+public final class FlowExtractions  {
 
     private FlowExtractions() {
     }
@@ -45,13 +51,13 @@ final class FlowExtractions {
      * @return le plan, ou null sur une référence nue non résolue ou sans
      *         type de retour lisible
      */
-    static @Nullable ExtractionPlan method(Document doc, Analysis analyse,
+    public static @Nullable ExtractionPlan method(Document doc, Analysis analyse,
             OutlineEntry enclosing, int start, int end, String name) {
         List<FlowAnalysis.AbsoluteToken> methodTokens = FlowAnalysis.tokens(doc, analyse.lex(),
                 enclosing.startOffset(), enclosing.endOffset());
         Map<String, MethodDeclarations.Declaration> declared =
                 MethodStructure.declarations(methodTokens);
-        OutlineEntry owner = Extraction.enclosing(doc, analyse, start, end, NodeCategory.TYPE);
+        OutlineEntry owner = enclosing(doc, analyse, start, end, NodeCategory.TYPE);
         Map<String, String> fields = owner == null ? Map.of()
                 : FlowAnalysis.classFields(doc, analyse, owner);
         String expression = doc.subText(start, end).strip();
@@ -91,7 +97,7 @@ final class FlowExtractions {
      * @return le plan, ou null sur une expression invivable aux appels,
      *         un appel ambigu ou une surcharge homonyme
      */
-    static @Nullable ExtractionPlan parameter(Document doc, Analysis analyse,
+    public static @Nullable ExtractionPlan parameter(Document doc, Analysis analyse,
             OutlineEntry enclosing, int start, int end, String name) {
         if (FlowAnalysis.overloaded(doc, analyse, enclosing)) {
             return null;
@@ -105,7 +111,7 @@ final class FlowExtractions {
         }
         Map<String, MethodDeclarations.Declaration> declared =
                 MethodStructure.declarations(methodTokens);
-        OutlineEntry owner = Extraction.enclosing(doc, analyse, start, end, NodeCategory.TYPE);
+        OutlineEntry owner = enclosing(doc, analyse, start, end, NodeCategory.TYPE);
         Map<String, String> fields = owner == null ? Map.of()
                 : FlowAnalysis.classFields(doc, analyse, owner);
         String expression = doc.subText(start, end).strip();
@@ -227,6 +233,38 @@ final class FlowExtractions {
     /** Le retrait de la ligne d'un offset. */
     private static String indentationAt(Document doc, int offset) {
         int lineStart = doc.lineStart(doc.lineForOffset(offset));
-        return Extraction.indentationOf(doc, lineStart);
+        return indentationOf(doc, lineStart);
     }
+
+    /** L'entrée du plan qui enclot la sélection (déménagée
+     *  d'Extraction — membre public exigé par le paquet racine,
+     *  Extraction est au manifeste, FlowExtractions non). */
+    /**
+     * L'entrée du plan qui enclot la sélection : la déclaration la plus
+     * intime de la catégorie donnée.
+     */
+    public static @Nullable OutlineEntry enclosing(Document doc, Analysis analyse,
+            int start, int end, NodeCategory category) {
+        OutlineEntry best = null;
+        for (OutlineEntry entry : TreeOutline.entries(doc, analyse)) {
+            if (entry.category() != category) {
+                continue;
+            }
+            if (entry.startOffset() <= start && end <= entry.endOffset()
+                    && (best == null || entry.startOffset() >= best.startOffset())) {
+                best = entry;
+            }
+        }
+        return best;
+    }
+
+    /** Le retrait d'une ligne (déménagée d'Extraction). */
+    public static String indentationOf(Document doc, int lineStart) {
+        int end = lineStart;
+        while (end < doc.length() && (doc.charAt(end) == ' ' || doc.charAt(end) == '\t')) {
+            end++;
+        }
+        return doc.subText(lineStart, end);
+    }
+
 }

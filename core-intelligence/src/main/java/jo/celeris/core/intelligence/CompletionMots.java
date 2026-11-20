@@ -1,5 +1,6 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.scan.IdentifierScan;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -48,7 +49,7 @@ public final class CompletionMots {
         // les mots réservés du langage s'y proposent seuls — jamais le
         // silence (revue du propriétaire du 2026-11-19)
         if (analyse != null) {
-            for (ScanIdentifiants.NomOffset releve : ScanIdentifiants.scanner(doc, analyse.lex())) {
+            for (IdentifierScan.NomOffset releve : IdentifierScan.scanner(doc, analyse.lex())) {
                 // l'occurrence sous le curseur ne compte pas : le mot tapé ne
                 // se propose pas à lui-même
                 if (mot != null && releve.offset() >= mot.start()

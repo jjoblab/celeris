@@ -1,5 +1,10 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.flow.FlowExtractions;
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
+import jo.celeris.core.intelligence.internal.structure.ExtendsClauses;
+import jo.celeris.core.intelligence.internal.structure.MethodStructure;
+import jo.celeris.core.intelligence.internal.structure.ProjectFile;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -20,7 +25,7 @@ import jo.celeris.core.text.Document;
  * Les hiérarchies de types et d'appels (B-12) : les ancêtres et les
  * descendants d'un type par les clauses {@code extends} et
  * {@code implements} lues à l'en-tête (la lecture vit dans
- * {@link ClausesHeritage}), les appelants d'une méthode par les sites
+ * {@link ExtendsClauses}), les appelants d'une méthode par les sites
  * d'appel — l'arbre se parcourt en liste, chaque sommet porte sa
  * profondeur (le patron du plan : c'est l'arbre qui porte la
  * hiérarchie, la liste la parcourt).
@@ -90,10 +95,10 @@ public final class Hierarchies {
         requireNom(nom);
         Objects.requireNonNull(projet, "projet");
         Objects.requireNonNull(syntaxe, "syntaxe");
-        List<FichierProjet> fichiers = analyser(projet, syntaxe);
+        List<ProjectFile> fichiers = analyser(projet, syntaxe);
         Map<String, List<String>> parents = new LinkedHashMap<>();
         Map<String, String> uris = new LinkedHashMap<>();
-        for (FichierProjet fichier : fichiers) {
+        for (ProjectFile fichier : fichiers) {
             for (OutlineEntry type : fichier.types()) {
                 uris.putIfAbsent(type.name(), fichier.uri());
                 addClauses(parents, type.name(), parentsDe(fichier, type));
@@ -121,7 +126,7 @@ public final class Hierarchies {
         requireNom(nom);
         Objects.requireNonNull(projet, "projet");
         Objects.requireNonNull(syntaxe, "syntaxe");
-        List<FichierProjet> fichiers = analyser(projet, syntaxe);
+        List<ProjectFile> fichiers = analyser(projet, syntaxe);
         Map<String, List<Sommet>> aretes = new LinkedHashMap<>();
         Map<String, String> uris = urisDesMethodes(fichiers);
         List<Sommet> output = new ArrayList<>();
@@ -233,7 +238,7 @@ public final class Hierarchies {
      * récursion directe se montre une fois, profondeur un.
      */
     private static void appelantsDescendants(String nom, int profondeur,
-            List<FichierProjet> fichiers, Map<String, List<Sommet>> aretes,
+            List<ProjectFile> fichiers, Map<String, List<Sommet>> aretes,
             Set<String> visites, List<Sommet> output, Doute doute) {
         List<Sommet> arete = aretes.computeIfAbsent(nom, cle -> appelantsDe(cle, fichiers, doute));
         for (Sommet appelant : arete) {
@@ -255,10 +260,10 @@ public final class Hierarchies {
     }
 
     /** Les appelants d'un nom sur le projet : chaque site d'appel résolu porte son arête. */
-    private static List<Sommet> appelantsDe(String nom, List<FichierProjet> fichiers,
+    private static List<Sommet> appelantsDe(String nom, List<ProjectFile> fichiers,
             Doute doute) {
         List<Sommet> output = new ArrayList<>();
-        for (FichierProjet fichier : fichiers) {
+        for (ProjectFile fichier : fichiers) {
             List<FlowAnalysis.AbsoluteToken> tokens = fichier.tokens();
             List<int[]> zones = zonesAEpargner(nom, fichier);
             for (int i = 0; i < tokens.size(); i++) {
@@ -280,7 +285,7 @@ public final class Hierarchies {
      * pas.
      */
     private static @Nullable Sommet siteAppelant(List<FlowAnalysis.AbsoluteToken> tokens,
-            int i, String nom, List<int[]> zones, FichierProjet fichier, Doute doute) {
+            int i, String nom, List<int[]> zones, ProjectFile fichier, Doute doute) {
         FlowAnalysis.AbsoluteToken token = tokens.get(i);
         if (!FlowAnalysis.isName(token.kind()) || !token.text().equals(nom)) {
             return null;
@@ -306,8 +311,8 @@ public final class Hierarchies {
     }
 
     /** La méthode porteuse d'un site, ou null hors méthode — l'appel ne se résout pas. */
-    private static @Nullable Sommet porteuse(FichierProjet fichier, int offset) {
-        OutlineEntry porteuse = Extraction.enclosing(fichier.doc(), fichier.analyse(),
+    private static @Nullable Sommet porteuse(ProjectFile fichier, int offset) {
+        OutlineEntry porteuse = FlowExtractions.enclosing(fichier.doc(), fichier.analyse(),
                 offset, offset + 1, NodeCategory.FUNCTION);
         return porteuse == null ? null : new Sommet(porteuse.name(), fichier.uri(), 0);
     }
@@ -318,7 +323,7 @@ public final class Hierarchies {
      * corps) ; la méthode brisée s'épargne entière — ses appels ne se
      * comptent pas.
      */
-    private static List<int[]> zonesAEpargner(String nom, FichierProjet fichier) {
+    private static List<int[]> zonesAEpargner(String nom, ProjectFile fichier) {
         List<int[]> zones = new ArrayList<>();
         for (OutlineEntry methode : fichier.methodes()) {
             if (!methode.name().equals(nom)) {
@@ -345,10 +350,10 @@ public final class Hierarchies {
     }
 
     /** Les parents déclarés d'un type : les clauses lues à l'en-tête de sa déclaration. */
-    private static List<String> parentsDe(FichierProjet fichier, OutlineEntry type) {
+    private static List<String> parentsDe(ProjectFile fichier, OutlineEntry type) {
         List<FlowAnalysis.AbsoluteToken> tokens = FlowAnalysis.tokens(fichier.doc(),
                 fichier.analyse().lex(), type.startOffset(), type.endOffset());
-        return ClausesHeritage.of(tokens, bodyIndex(tokens));
+        return ExtendsClauses.of(tokens, bodyIndex(tokens));
     }
 
     /** L'index de l'accolade ouvrante du corps dans les jetons du type, ou -1. */
@@ -378,20 +383,20 @@ public final class Hierarchies {
     }
 
     /** Les fichiers analysés du projet, uris croissantes — l'ordre déterministe. */
-    private static List<FichierProjet> analyser(Map<String, Document> projet,
+    private static List<ProjectFile> analyser(Map<String, Document> projet,
             SyntaxService syntaxe) {
-        List<FichierProjet> fichiers = new ArrayList<>();
+        List<ProjectFile> fichiers = new ArrayList<>();
         for (Map.Entry<String, Document> input : new TreeMap<>(projet).entrySet()) {
-            fichiers.add(new FichierProjet(input.getKey(), input.getValue(),
+            fichiers.add(new ProjectFile(input.getKey(), input.getValue(),
                     syntaxe.analyseFull(input.getValue())));
         }
         return fichiers;
     }
 
     /** Les uris des premières déclarations de méthodes, nom vers uri. */
-    private static Map<String, String> urisDesMethodes(List<FichierProjet> fichiers) {
+    private static Map<String, String> urisDesMethodes(List<ProjectFile> fichiers) {
         Map<String, String> uris = new LinkedHashMap<>();
-        for (FichierProjet fichier : fichiers) {
+        for (ProjectFile fichier : fichiers) {
             for (OutlineEntry methode : fichier.methodes()) {
                 uris.putIfAbsent(methode.name(), fichier.uri());
             }

@@ -1,5 +1,9 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.flow.FlowExtractions;
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
+import jo.celeris.core.intelligence.internal.structure.MethodDeclarations;
+import jo.celeris.core.intelligence.internal.structure.MethodStructure;
 import java.util.List;
 import java.util.Objects;
 
@@ -70,7 +74,7 @@ public final class Inline {
             throw new IllegalArgumentException(
                     "selection [" + start + ", " + end + ") out of (0, " + doc.length() + ")");
         }
-        OutlineEntry function = Extraction.enclosing(doc, analyse, start, end,
+        OutlineEntry function = FlowExtractions.enclosing(doc, analyse, start, end,
                 NodeCategory.FUNCTION);
         if (function != null) {
             MethodDeclarations.Declaration local = localWithin(doc, analyse, function,

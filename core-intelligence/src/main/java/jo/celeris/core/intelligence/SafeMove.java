@@ -1,5 +1,7 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.flow.FlowExtractions;
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -79,9 +81,9 @@ public final class SafeMove {
             throw new IllegalArgumentException("targetName must not be blank");
         }
         requireSelection(doc, start, end);
-        OutlineEntry method = Extraction.enclosing(doc, analyse, start, end,
+        OutlineEntry method = FlowExtractions.enclosing(doc, analyse, start, end,
                 NodeCategory.FUNCTION);
-        OutlineEntry source = Extraction.enclosing(doc, analyse, start, end,
+        OutlineEntry source = FlowExtractions.enclosing(doc, analyse, start, end,
                 NodeCategory.TYPE);
         OutlineEntry target = typeNamed(doc, analyse, targetName);
         if (method == null || source == null || target == null
@@ -243,10 +245,10 @@ public final class SafeMove {
         if (!doc.subText(insertOffset, closeOffset).isBlank()) {
             return null;
         }
-        String memberIndent = Extraction.indentationOf(doc, insertOffset) + MEMBER_INDENT;
+        String memberIndent = FlowExtractions.indentationOf(doc, insertOffset) + MEMBER_INDENT;
         int from = annotatedStart(doc, method);
         int delta = memberIndent.length()
-                - Extraction.indentationOf(doc, from).length();
+                - FlowExtractions.indentationOf(doc, from).length();
         String moved = doc.subText(from, method.endOffset()).stripTrailing();
         return new TextEdit(insertOffset, "", reindented(moved, delta) + "\n");
     }
@@ -257,9 +259,9 @@ public final class SafeMove {
      */
     private static int annotatedStart(Document doc, OutlineEntry method) {
         int line = method.startLine();
-        String indent = Extraction.indentationOf(doc, doc.lineStart(line));
+        String indent = FlowExtractions.indentationOf(doc, doc.lineStart(line));
         while (line > 0 && doc.lineText(line - 1).strip().startsWith("@")
-                && Extraction.indentationOf(doc, doc.lineStart(line - 1)).equals(indent)) {
+                && FlowExtractions.indentationOf(doc, doc.lineStart(line - 1)).equals(indent)) {
             line--;
         }
         return doc.lineStart(line);

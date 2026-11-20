@@ -1,6 +1,8 @@
-package jo.celeris.core.intelligence;
+package jo.celeris.core.intelligence.internal.structure;
 
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
 import java.util.ArrayList;
+
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -19,7 +21,7 @@ import jo.celeris.core.syntax.TokenKind;
  * dit rien (liste vide), une clause jamais fermée rend ce qu'elle a lu
  * — jamais d'exception.</p>
  */
-final class ClausesHeritage {
+public final class ExtendsClauses  {
 
     /** Les chevrons ouvrants des généricités. */
     private static final String OUVRANT = "<";
@@ -35,7 +37,7 @@ final class ClausesHeritage {
 
     private @Nullable String courant;
 
-    private ClausesHeritage() {
+    private ExtendsClauses() {
     }
 
     /**
@@ -46,11 +48,11 @@ final class ClausesHeritage {
      * @param body  l'index de l'accolade ouvrante du corps, ou -1
      * @return les noms des parents déclarés, dans l'ordre
      */
-    static List<String> of(List<FlowAnalysis.AbsoluteToken> tokens, int body) {
+    public static List<String> of(List<FlowAnalysis.AbsoluteToken> tokens, int body) {
         if (body < 0) {
             return List.of();
         }
-        ClausesHeritage lecture = new ClausesHeritage();
+        ExtendsClauses lecture = new ExtendsClauses();
         for (int i = 0; i < body; i++) {
             lecture.token(tokens.get(i));
         }

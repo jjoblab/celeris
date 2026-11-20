@@ -1,5 +1,10 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
+import jo.celeris.core.intelligence.internal.flow.FlowExtractions;
+import jo.celeris.core.intelligence.internal.structure.ExpressionTypes;
+import jo.celeris.core.intelligence.internal.structure.MethodStructure;
+import jo.celeris.core.intelligence.internal.structure.TypeRun;
 import java.util.List;
 import java.util.Objects;
 
@@ -8,7 +13,6 @@ import org.jspecify.annotations.Nullable;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.NodeCategory;
 import jo.celeris.core.syntax.structure.OutlineEntry;
-import jo.celeris.core.syntax.structure.TreeOutline;
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.TextEdit;
 
@@ -81,12 +85,12 @@ public final class Extraction {
             int start, int end, String name) {
         requireSelection(doc, start, end);
         requireName(name);
-        if (enclosing(doc, analyse, start, end, NodeCategory.FUNCTION) == null) {
+        if (FlowExtractions.enclosing(doc, analyse, start, end, NodeCategory.FUNCTION) == null) {
             return null;
         }
         String expression = doc.subText(start, end).strip();
         int lineStart = doc.lineStart(doc.lineForOffset(start));
-        String declaration = indentationOf(doc, lineStart)
+        String declaration = FlowExtractions.indentationOf(doc, lineStart)
                 + "var " + name + " = " + expression + ";\n";
         return plan(doc, start, end, name, lineStart, declaration);
     }
@@ -163,7 +167,7 @@ public final class Extraction {
             int start, int end, String name) {
         requireSelection(doc, start, end);
         requireName(name);
-        OutlineEntry enclosing = enclosing(doc, analyse, start, end, NodeCategory.FUNCTION);
+        OutlineEntry enclosing = FlowExtractions.enclosing(doc, analyse, start, end, NodeCategory.FUNCTION);
         if (enclosing == null) {
             return null;
         }
@@ -195,7 +199,7 @@ public final class Extraction {
             int start, int end, String name) {
         requireSelection(doc, start, end);
         requireName(name);
-        OutlineEntry enclosing = enclosing(doc, analyse, start, end, NodeCategory.FUNCTION);
+        OutlineEntry enclosing = FlowExtractions.enclosing(doc, analyse, start, end, NodeCategory.FUNCTION);
         if (enclosing == null) {
             return null;
         }
@@ -248,7 +252,7 @@ public final class Extraction {
             int start, int end, String name, String modifiers, boolean upperCase) {
         requireSelection(doc, start, end);
         requireName(name);
-        OutlineEntry classe = enclosing(doc, analyse, start, end, NodeCategory.TYPE);
+        OutlineEntry classe = FlowExtractions.enclosing(doc, analyse, start, end, NodeCategory.TYPE);
         if (classe == null) {
             return null;
         }
@@ -259,7 +263,7 @@ public final class Extraction {
         }
         String declaredName = upperCase ? constantName(name) : name;
         int lineStart = doc.lineStart(doc.lineForOffset(classe.endOffset() - 1));
-        String declaration = indentationOf(doc, lineStart) + "    " + modifiers
+        String declaration = FlowExtractions.indentationOf(doc, lineStart) + "    " + modifiers
                 + type + " " + declaredName + " = " + expression + ";\n";
         return plan(doc, start, end, declaredName, lineStart, declaration);
     }
@@ -320,33 +324,8 @@ public final class Extraction {
         };
     }
 
-    /**
-     * L'entrée du plan qui enclot la sélection : la déclaration la plus
-     * intime de la catégorie donnée.
-     */
-    static @Nullable OutlineEntry enclosing(Document doc, Analysis analyse,
-            int start, int end, NodeCategory category) {
-        OutlineEntry best = null;
-        for (OutlineEntry entry : TreeOutline.entries(doc, analyse)) {
-            if (entry.category() != category) {
-                continue;
-            }
-            if (entry.startOffset() <= start && end <= entry.endOffset()
-                    && (best == null || entry.startOffset() >= best.startOffset())) {
-                best = entry;
-            }
-        }
-        return best;
-    }
 
     /** Le indent d'une ligne : espaces et tabulations de tête. */
-    static String indentationOf(Document doc, int lineStart) {
-        int end = lineStart;
-        while (end < doc.length() && (doc.charAt(end) == ' ' || doc.charAt(end) == '\t')) {
-            end++;
-        }
-        return doc.subText(lineStart, end);
-    }
 
     /** Le nom de constante : majuscules, tirets bas aux joints de casse. */
     private static String constantName(String name) {

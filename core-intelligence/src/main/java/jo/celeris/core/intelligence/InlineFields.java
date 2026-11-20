@@ -1,5 +1,10 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.flow.FlowExtractions;
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
+import jo.celeris.core.intelligence.internal.structure.MethodDeclarations;
+import jo.celeris.core.intelligence.internal.structure.MethodStructure;
+import jo.celeris.core.intelligence.internal.structure.TypeRun;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -28,7 +33,7 @@ final class InlineFields {
     /** Le plan d'alignement du champ désigné par la sélection, ou null hors champ. */
     static Inline.@Nullable InlinePlan plan(Document doc, Analysis analyse,
             int start, int end) {
-        OutlineEntry owner = Extraction.enclosing(doc, analyse, start, end, NodeCategory.TYPE);
+        OutlineEntry owner = FlowExtractions.enclosing(doc, analyse, start, end, NodeCategory.TYPE);
         if (owner == null) {
             return null;
         }

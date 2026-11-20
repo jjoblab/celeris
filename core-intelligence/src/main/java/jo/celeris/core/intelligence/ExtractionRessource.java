@@ -1,5 +1,6 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;

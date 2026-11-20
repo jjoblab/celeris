@@ -1,5 +1,6 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.scan.IdentifierScan;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +44,7 @@ public final class OptimiseurImports {
             }
         }
         Set<String> nomsUtilises = new HashSet<>();
-        for (ScanIdentifiants.NomOffset releve : ScanIdentifiants.scanner(doc, analyse.lex())) {
+        for (IdentifierScan.NomOffset releve : IdentifierScan.scanner(doc, analyse.lex())) {
             if (!lignesImport.contains(doc.lineForOffset(releve.offset()))) {
                 nomsUtilises.add(releve.nom());
             }

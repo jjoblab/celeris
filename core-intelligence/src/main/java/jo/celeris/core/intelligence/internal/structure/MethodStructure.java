@@ -1,6 +1,8 @@
-package jo.celeris.core.intelligence;
+package jo.celeris.core.intelligence.internal.structure;
 
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
 import java.util.LinkedHashMap;
+
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +17,7 @@ import jo.celeris.core.syntax.TokenKind;
  * signature et les locaux du corps vivent dans
  * {@link MethodDeclarations}).
  */
-final class MethodStructure {
+public final class MethodStructure  {
 
     private MethodStructure() {
     }
@@ -27,7 +29,7 @@ final class MethodStructure {
      * @param tokens les jetons de la méthode entière
      * @return l'offset du « { » du corps, ou -1
      */
-    static int bodyOffset(List<FlowAnalysis.AbsoluteToken> tokens) {
+    public static int bodyOffset(List<FlowAnalysis.AbsoluteToken> tokens) {
         int body = bodyBraceIndex(tokens);
         return body < 0 ? -1 : tokens.get(body).offset();
     }
@@ -40,7 +42,7 @@ final class MethodStructure {
      * @return { ouvrante, fermante } en offsets absolus, ou null si
      *         la signature ne se lit pas
      */
-    static int @Nullable [] signatureParens(List<FlowAnalysis.AbsoluteToken> tokens) {
+    public static int @Nullable [] signatureParens(List<FlowAnalysis.AbsoluteToken> tokens) {
         int body = bodyBraceIndex(tokens);
         if (body < 0) {
             return null;
@@ -64,7 +66,7 @@ final class MethodStructure {
      * @param tokens les jetons de la méthode entière
      * @return les noms déclarés et leur déclaration
      */
-    static Map<String, MethodDeclarations.Declaration> declarations(
+    public static Map<String, MethodDeclarations.Declaration> declarations(
             List<FlowAnalysis.AbsoluteToken> tokens) {
         Map<String, MethodDeclarations.Declaration> declared = new LinkedHashMap<>();
         int body = bodyBraceIndex(tokens);

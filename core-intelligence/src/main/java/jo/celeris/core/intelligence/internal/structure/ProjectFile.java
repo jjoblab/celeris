@@ -1,6 +1,8 @@
-package jo.celeris.core.intelligence;
+package jo.celeris.core.intelligence.internal.structure;
 
+import jo.celeris.core.intelligence.internal.flow.FlowAnalysis;
 import java.util.ArrayList;
+
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -16,7 +18,7 @@ import jo.celeris.core.text.Document;
  * son analyse — les entrées de types, de méthodes et les jetons absolus
  * s'y chargent à la demande, une fois par lecture.
  */
-final class FichierProjet {
+public final class ProjectFile  {
 
     private final String uri;
 
@@ -30,29 +32,29 @@ final class FichierProjet {
 
     private @Nullable List<FlowAnalysis.AbsoluteToken> tokens;
 
-    FichierProjet(String uri, Document doc, Analysis analyse) {
+    public ProjectFile(String uri, Document doc, Analysis analyse) {
         this.uri = uri;
         this.doc = doc;
         this.analyse = analyse;
     }
 
     /** L'uri du fichier dans le projet. */
-    String uri() {
+    public String uri() {
         return uri;
     }
 
     /** Le document porteur. */
-    Document doc() {
+    public Document doc() {
         return doc;
     }
 
     /** L'analyse courante du document. */
-    Analysis analyse() {
+    public Analysis analyse() {
         return analyse;
     }
 
     /** Les entrées de types du plan, chargées à la demande. */
-    List<OutlineEntry> types() {
+    public List<OutlineEntry> types() {
         List<OutlineEntry> charge = types;
         if (charge == null) {
             charge = new ArrayList<>();
@@ -67,7 +69,7 @@ final class FichierProjet {
     }
 
     /** Les entrées de méthodes du plan, chargées à la demande. */
-    List<OutlineEntry> methodes() {
+    public List<OutlineEntry> methodes() {
         List<OutlineEntry> charge = methodes;
         if (charge == null) {
             charge = new ArrayList<>();
@@ -82,7 +84,7 @@ final class FichierProjet {
     }
 
     /** Les jetons absolus du document, chargés à la demande. */
-    List<FlowAnalysis.AbsoluteToken> tokens() {
+    public List<FlowAnalysis.AbsoluteToken> tokens() {
         List<FlowAnalysis.AbsoluteToken> charge = tokens;
         if (charge == null) {
             charge = FlowAnalysis.tokens(doc, analyse.lex(), 0, doc.length());

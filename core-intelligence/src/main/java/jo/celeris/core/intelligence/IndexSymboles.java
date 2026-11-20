@@ -1,5 +1,6 @@
 package jo.celeris.core.intelligence;
 
+import jo.celeris.core.intelligence.internal.scan.IdentifierScan;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -83,7 +84,7 @@ public final class IndexSymboles {
                     input.startOffset(), input.endOffset(), input.startLine()));
         }
         int restant = budgetOccurrences - nombreOccurrences();
-        for (ScanIdentifiants.NomOffset releve : ScanIdentifiants.scanner(doc, analyse.lex())) {
+        for (IdentifierScan.NomOffset releve : IdentifierScan.scanner(doc, analyse.lex())) {
             if (restant <= 0) {
                 fichier.sature = true;
                 break;
