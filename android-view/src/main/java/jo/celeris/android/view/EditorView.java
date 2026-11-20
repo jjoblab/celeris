@@ -450,7 +450,53 @@ public final class EditorView extends View {
         fenetre.removeListener(ecouteur);
     }
 
-    /** La fraction verticale du défilement — 0 en tête, 1 au pied (C9). */
+        /**
+     * D-03 (l'analyse croisée) : l'état d'affichage part au Bundle de
+     * la rotation — le défilement (fractions, indépendantes de la
+     * densité et de la taille d'écran), le zoom, le retour de ligne,
+     * les numéros. La vue sauvegarde ELLE-MÊME son état transitoire :
+     * l'hôte n'a plus rien à porter, son Bundle transporte le nôtre.
+     *
+     * @param etat le Bundle de la rotation à remplir
+     */
+    public void saveState(android.os.Bundle etat) {
+        etat.putFloat("celeris.scroll.fractionY", scrollFractionY());
+        // le défilement horizontal vit en pixels (aucune fraction X
+        // publique) : la largeur affichée d'une rotation à l'autre
+        // varie peu, l'offset reste parlant
+        etat.putFloat("celeris.scroll.pxX", scrollX);
+        etat.putFloat("celeris.zoom.sp", settings().fontSizeSp());
+        etat.putBoolean("celeris.retourLigne", settings().softWrap());
+        etat.putBoolean("celeris.numeros", numerosVisibles);
+    }
+
+    /**
+     * D-03 : l'état sauvegardé revient — après rotation, la vue
+     * recréée retrouve son défilement, son zoom et ses portes. Un
+     * Bundle sans nos clés ne casse rien : les défauts tiennent.
+     *
+     * @param etat le Bundle de la rotation
+     */
+    public void restoreState(android.os.Bundle etat) {
+        if (etat.containsKey("celeris.zoom.sp")) {
+            settings().setFontSizeSp(etat.getFloat("celeris.zoom.sp"));
+        }
+        if (etat.containsKey("celeris.retourLigne")) {
+            settings().setSoftWrap(etat.getBoolean("celeris.retourLigne"));
+        }
+        if (etat.containsKey("celeris.numeros")) {
+            setNumerosVisibles(etat.getBoolean("celeris.numeros"));
+        }
+        if (etat.containsKey("celeris.scroll.fractionY")) {
+            scrollToFractionY(etat.getFloat("celeris.scroll.fractionY"));
+        }
+        if (etat.containsKey("celeris.scroll.pxX")) {
+            scrollX = etat.getFloat("celeris.scroll.pxX");
+            invalidate();
+        }
+    }
+
+/** La fraction verticale du défilement — 0 en tête, 1 au pied (C9). */
     public float scrollFractionY() {
         return fractions.fraction();
     }
