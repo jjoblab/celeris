@@ -1,5 +1,6 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.viewport.ViewportWatch;
 import jo.celeris.android.view.internal.ScrollPositions.Position;
 import jo.celeris.core.text.Document;
 

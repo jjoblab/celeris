@@ -1,4 +1,4 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.viewport;
 
 import java.util.List;
 import java.util.Objects;
@@ -20,7 +20,7 @@ import org.jspecify.annotations.Nullable;
  * s'écrasant l'un l'autre) ; la voie 1.x {@code setListener} reste
  * pour compatibilité, le temps du recensement des hôtes.</p>
  */
-final class ViewportWatch {
+public final class ViewportWatch  {
 
     /** Les abonnés de l'avis — multiples, sans écrasement (T3). */
     private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
@@ -40,17 +40,17 @@ final class ViewportWatch {
 
     /** Pose (ou retire) l'écouteur unique 1.x — compatibilité : le
      *  premier abonné posé vit avec les abonnés 2.0. */
-    void setListener(@Nullable Runnable ecouteur) {
+    public void setListener(@Nullable Runnable ecouteur) {
         listenerUnique = ecouteur;
     }
 
     /** Abonne un écouteur des changements de fenêtre (voie 2.0, T3). */
-    void addListener(Runnable ecouteur) {
+    public void addListener(Runnable ecouteur) {
         listeners.add(Objects.requireNonNull(ecouteur));
     }
 
     /** Désabonne un écouteur des changements de fenêtre (voie 2.0). */
-    void removeListener(Runnable ecouteur) {
+    public void removeListener(Runnable ecouteur) {
         listeners.remove(ecouteur);
     }
 
@@ -67,7 +67,7 @@ final class ViewportWatch {
      * @param width     la largeur de la vue
      * @param height    la hauteur de la vue
      */
-    void review(float scrollX, float scrollY, float gutter, float charWidth,
+    public void review(float scrollX, float scrollY, float gutter, float charWidth,
             float lineHeight, int columns, int width, int height) {
         if (listeners.isEmpty() && listenerUnique == null) {
             return;

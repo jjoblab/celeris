@@ -2,6 +2,10 @@ package jo.celeris.android.view;
 
 import java.util.List;
 
+import jo.celeris.android.view.EditorSyntax;
+import jo.celeris.android.view.FoldModel;
+import jo.celeris.android.view.FoldTracker;
+
 /**
  * La mémoire des plis PAR SESSION (D-07, l'analyse croisée) : le pli
  * manuel appartient à SON document — l'archive et la restauration y
@@ -11,7 +15,7 @@ import java.util.List;
  * rien (le changement d'onglet n'accumule pas de mémoire), une
  * session vivante y retrouve SES plis au retour.</p>
  */
-final class FoldsBySession {
+final class FoldsBySession  {
 
     /** Les états repliés : session → paires [début, fin]. */
     private final java.util.Map<jo.celeris.core.text.TextSession,

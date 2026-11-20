@@ -67,7 +67,7 @@
 | D2 | Les feuilles de route closes se rangent, l'index vit | basse | ✅ fait (2026-11-20) |
 | P1 | Pilote : le paquet internal d'android-view | — (jette les bases) | ✅ fait (32e38af — 2026-11-19) |
 | P2 | android-view : les peintres et la gouttière en sous-packages | haute (126 classes) | 🟡 en cours — vague 1 faite (2026-11-20) ; la vague 2 (couplées à la vue) suit P3 |
-| P3 | android-view : la suite (source, curseurs, plis, fantômes) | haute | ☐ à faire |
+| P3 | android-view : la suite (source, curseurs, plis, fantômes) | haute | 🟡 en cours — vague 2 faite (2026-11-20) ; le reste VERROUILLÉ (voir journal) |
 | P4 | core-intelligence en familles | moyenne (65 classes) | ☐ à faire |
 | P5 | core-text et android-widgets | moyenne | ☐ à faire |
 | P6 | Manifestes api et documentation consolidés | — (clôture) | ☐ à faire |
@@ -279,3 +279,24 @@
   diagnostics, fantômes) NE PEUVENT PAS partir sans publiciser un
   membre racine — elles attendent P3 et la décision du
   propriétaire (n° 1 de la feuille).
+- 2026-11-20 : P3, vague 2 — `ViewportWatch` rejoint
+  `internal/viewport` (registre d'écouteurs de fenêtre, autonome).
+  L'essai `FoldsBySession` -> `internal/folds` a été MENÉ PUIS
+  ANNULÉ : il exige de publiciser `FoldModel.Pli` et
+  `FoldModel.folds()` — des symboles FRANÇAIS d'une classe
+  publique du paquet racine, la règle du dépôt l'interdit
+  (publiciser un membre d'une classe publique d'un module
+  Android SANS manifeste = l'ajouter de fait au contrat).
+  **Le verrou P3 est maintenant CARTOGRAPHIÉ** (script
+  scripts/p3-analyse.py, sortie au journal de session) :
+  les familles clavier (EditorKeys, KeyActions, KeyboardClipboard,
+  KeyboardCursor, NavigationCommands), gestes (PinchZoomHandler,
+  GesturesFactory), IME (EditorInputConnection), diagnostics
+  (SceneDiagnostics), fantômes (GhostEditor), curseur
+  (CaretAnchors), viewport (ViewportFractions, ViewportPrefetch),
+  ViewFonts et FrameAssembler touchent TOUTES des champs
+  package-privés de la vue (session, curseurClavier, glissement,
+  rappels, metrics, projection…) — les déplacer exige de
+  publiciser CES champs (la décision propriétaire n°  1 de la feuille : publiques en version mineure ou
+  internes seulement). Le paquet racine : 126 -> 112
+  classes.
