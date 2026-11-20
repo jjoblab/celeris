@@ -63,7 +63,8 @@ final class LanguagePlatformTest {
     @Test
     void lesTrenteDeuxLangagesIntegresSAssemblent() {
         LanguageRegistry registre = registreIntegre();
-        assertEquals(32, registre.supports().size());
+        // D-08 : dockerfile revient — 33 langages intégrés
+        assertEquals(33, registre.supports().size());
         for (String id : new String[] {"java", "kotlin", "kts", "groovy",
                 "xml", "json", "toml", "yaml", "properties", "markdown",
                 "python", "shell", "sql", "c", "cpp", "proguard", "html",

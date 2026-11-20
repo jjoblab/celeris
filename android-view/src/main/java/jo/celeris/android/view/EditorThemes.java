@@ -5,7 +5,12 @@ import jo.celeris.core.syntax.scope.ScopeThemes;
 /**
  * Palettes complètes de l'éditeur : clair, sombre, contraste élevé
  * (D-13, ADR-008 §5 — un thème dédié respectant les rapports de
- * contraste recommandés), palette syntaxique comprise (B-01).
+ * contraste recommandés), palette syntaxique comprise (B-01) — et
+ * les six thèmes du dépôt de départ (D-01, l'analyse croisée) :
+ * dracula, monokai, one-dark, solarized clair, nord, github clair,
+ * leurs encres ajustées aux seuils WCAG du banc (l'identité de
+ * chaque thème vit dans ses teintes, les encres faibles montent
+ * au seuil).
  *
  * <p>Les couleurs sont résolues une fois pour toutes : le chemin de
  * dessin ne dérive jamais de thème (ADR-008). Les rapports de contraste
@@ -56,6 +61,78 @@ public final class EditorThemes {
                     0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF69B4, 0xFFFFFFFF,
                     0xFFFFFFFF, 0xFFFF4444),
             ScopeThemes.highContrast());
+
+    /** Dracula (D-01) : fond nuit profonde, encre laiteuse, keyword
+     *  rose, type cyan pâle, chaîne jaune — le classique sombre. */
+    public static final EditorTheme DRACULA = new EditorTheme(4,
+            0xFF282A36, 0xFFF8F8F2, 0xFF44475A, 0xFFFF79C6, 0xFF8B92B8,
+            0x2EFFFFFF,
+            new SyntaxPalette(
+                    0xFFFF79C6, 0xFF8BE9FD, 0xFFF1FA8C, 0xFFBD93F9,
+                    0xFF8F92A7, 0xFF9CA0B4, 0xFFFF79C6, 0xFFF8F8F2,
+                    0xFFF8F8F2, 0xFFF8F8F2, 0xFFBD93F9, 0xFFF8F8F2,
+                    0xFFF8F8F2, 0xFFFF5858),
+            ScopeThemes.dark());
+
+    /** Monokai (D-01) : fond charbon chaud, keyword rose vif, type
+     *  cyan, chaîne jaune d'or — le thème de Sublime. */
+    public static final EditorTheme MONOKAI = new EditorTheme(5,
+            0xFF272822, 0xFFF8F8F2, 0xFF49483E, 0xFFFD971F, 0xFFA8AB90,
+            0x2EFFFFFF,
+            new SyntaxPalette(
+                    0xFFFF4591, 0xFF66D9EF, 0xFFE6DB74, 0xFFAE81FF,
+                    0xFF8F908A, 0xFFA6AB95, 0xFFFF4591, 0xFFF8F8F2,
+                    0xFFF8F8F2, 0xFFF8F8F2, 0xFFAE81FF, 0xFFF8F8F2,
+                    0xFFF8F8F2, 0xFFFF4591),
+            ScopeThemes.dark());
+
+    /** One Dark (D-01) : fond ardoise, encre gris bleuté, keyword
+     *  mauve, type ambre — le thème d'Atom. */
+    public static final EditorTheme ONE_DARK = new EditorTheme(6,
+            0xFF282C34, 0xFFD7DAE0, 0xFF4B5262, 0xFF61AFEF, 0xFF8B949E,
+            0x2EFFFFFF,
+            new SyntaxPalette(
+                    0xFFC678DD, 0xFFE5C07B, 0xFF98C379, 0xFFD19A66,
+                    0xFF90959F, 0xFF9CA3AF, 0xFFE5C07B, 0xFFD7DAE0,
+                    0xFFD7DAE0, 0xFFD7DAE0, 0xFFD19A66, 0xFFD7DAE0,
+                    0xFFD7DAE0, 0xFFE5717A),
+            ScopeThemes.dark());
+
+    /** Solarized clair (D-01) : fond crème, encre ardoise bleutée,
+     *  keyword vert, type bleu — le thème d'Ethan Schoonover. */
+    public static final EditorTheme SOLARIZED_CLAIR = new EditorTheme(7,
+            0xFFFDF6E3, 0xFF4A5B68, 0xFFEFE9DA, 0xFF1A6FB5, 0xFF55697A,
+            0x14202124,
+            new SyntaxPalette(
+                    0xFF647800, 0xFF0E73BA, 0xFF936700, 0xFFCB2E7A,
+                    0xFF617182, 0xFF586E75, 0xFF0E73BA, 0xFF4A5B68,
+                    0xFF4A5B68, 0xFF4A5B68, 0xFFC4440F, 0xFF4A5B68,
+                    0xFF4A5B68, 0xFFD52B28),
+            ScopeThemes.light());
+
+    /** Nord (D-01) : fond bleu nuit polaire, encre neige, keyword
+     *  bleu glacé — la palette du Nord Arctique. */
+    public static final EditorTheme NORD = new EditorTheme(8,
+            0xFF2E3440, 0xFFD8DEE9, 0xFF434C5E, 0xFF88C0D0, 0xFF9AACB8,
+            0x2EFFFFFF,
+            new SyntaxPalette(
+                    0xFF81A1C1, 0xFF8FBCBB, 0xFFA3BE8C, 0xFFB892B1,
+                    0xFF959EAF, 0xFF9DA6B5, 0xFF8FBCBB, 0xFFD8DEE9,
+                    0xFFD8DEE9, 0xFFD8DEE9, 0xFFB892B1, 0xFFD8DEE9,
+                    0xFFD8DEE9, 0xFFE0828B),
+            ScopeThemes.dark());
+
+    /** GitHub clair (D-01) : fond blanc, encre graphite, keyword
+     *  rouge brique — le thème de github.com. */
+    public static final EditorTheme GITHUB_CLAIR = new EditorTheme(9,
+            0xFFFFFFFF, 0xFF1F2328, 0xFFBBE0F5, 0xFF0969DA, 0xFF6E7781,
+            0x14202124,
+            new SyntaxPalette(
+                    0xFFCF222E, 0xFF0550AE, 0xFF0A3069, 0xFF0550AE,
+                    0xFF6E7781, 0xFF57606A, 0xFF953800, 0xFF1F2328,
+                    0xFF1F2328, 0xFF1F2328, 0xFF0550AE, 0xFF1F2328,
+                    0xFF1F2328, 0xFFCF222E),
+            ScopeThemes.light());
 
     private EditorThemes() {
     }

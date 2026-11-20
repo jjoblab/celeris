@@ -66,7 +66,7 @@ final class PaquetsIntegresParametresTest {
                 "python", "shell", "sql", "c", "cpp", "proguard", "html",
                 "css", "javascript", "typescript", "php", "ruby",
                 "go", "rust", "swift", "dart", "scala", "csharp",
-                "lua", "smali");
+                "lua", "smali", "dockerfile");
         if (attendusAvecCommentaire.contains(id)) {
             assertTrue(configuration.comments().commentable(),
                     id + " déclare ses commentaires");

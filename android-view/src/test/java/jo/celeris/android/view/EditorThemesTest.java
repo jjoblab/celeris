@@ -27,6 +27,12 @@ class EditorThemesTest {
         themes.put("clair", EditorThemes.CLAIR);
         themes.put("sombre", EditorThemes.SOMBRE);
         themes.put("contraste élevé", EditorThemes.CONTRASTE_ELEVE);
+        themes.put("dracula", EditorThemes.DRACULA);
+        themes.put("monokai", EditorThemes.MONOKAI);
+        themes.put("one-dark", EditorThemes.ONE_DARK);
+        themes.put("solarized clair", EditorThemes.SOLARIZED_CLAIR);
+        themes.put("nord", EditorThemes.NORD);
+        themes.put("github clair", EditorThemes.GITHUB_CLAIR);
 
         for (Map.Entry<String, EditorTheme> entree : themes.entrySet()) {
             EditorTheme theme = entree.getValue();
@@ -47,11 +53,18 @@ class EditorThemesTest {
         }
     }
 
-    /** Les trois thèmes sont distincts et identifiables par leur identifiant. */
+    /** Les neuf thèmes sont distincts et identifiables par leur
+     *  identifiant (D-01 : les six du dépôt de départ reviennent). */
     @Test
     void themesDistinctsParIdentifiant() {
         assertEquals(1, EditorThemes.CLAIR.id());
         assertEquals(2, EditorThemes.SOMBRE.id());
         assertEquals(3, EditorThemes.CONTRASTE_ELEVE.id());
+        assertEquals(4, EditorThemes.DRACULA.id());
+        assertEquals(5, EditorThemes.MONOKAI.id());
+        assertEquals(6, EditorThemes.ONE_DARK.id());
+        assertEquals(7, EditorThemes.SOLARIZED_CLAIR.id());
+        assertEquals(8, EditorThemes.NORD.id());
+        assertEquals(9, EditorThemes.GITHUB_CLAIR.id());
     }
 }

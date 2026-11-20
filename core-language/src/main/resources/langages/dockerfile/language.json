@@ -1,0 +1,47 @@
+{
+  "id": "dockerfile",
+  "name": "Dockerfile",
+  "extensions": [],
+  "filenames": [
+    "Dockerfile",
+    "Containerfile"
+  ],
+  "badge": "Dk",
+  "badgeColor": "#0DB7ED",
+  "syntax": {
+    "preferred": "grammar"
+  },
+  "comments": {
+    "lineComment": "# "
+  },
+  "brackets": [
+    [
+      "(",
+      ")"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "autoClosingPairs": [
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string"
+      ]
+    }
+  ]
+}

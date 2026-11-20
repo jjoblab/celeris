@@ -30,6 +30,12 @@ class SyntaxPaletteTest {
         themes.put("clair", EditorThemes.CLAIR);
         themes.put("sombre", EditorThemes.SOMBRE);
         themes.put("contraste élevé", EditorThemes.CONTRASTE_ELEVE);
+        themes.put("dracula", EditorThemes.DRACULA);
+        themes.put("monokai", EditorThemes.MONOKAI);
+        themes.put("one-dark", EditorThemes.ONE_DARK);
+        themes.put("solarized clair", EditorThemes.SOLARIZED_CLAIR);
+        themes.put("nord", EditorThemes.NORD);
+        themes.put("github clair", EditorThemes.GITHUB_CLAIR);
 
         for (Map.Entry<String, EditorTheme> entree : themes.entrySet()) {
             EditorTheme theme = entree.getValue();
@@ -49,7 +55,10 @@ class SyntaxPaletteTest {
     @Test
     void lesSortesStructurantesSeDistinguentDeLaBase() {
         for (EditorTheme theme : new EditorTheme[] {EditorThemes.CLAIR,
-                EditorThemes.SOMBRE, EditorThemes.CONTRASTE_ELEVE}) {
+                EditorThemes.SOMBRE, EditorThemes.CONTRASTE_ELEVE,
+                EditorThemes.DRACULA, EditorThemes.MONOKAI,
+                EditorThemes.ONE_DARK, EditorThemes.SOLARIZED_CLAIR,
+                EditorThemes.NORD, EditorThemes.GITHUB_CLAIR}) {
             SyntaxPalette palette = theme.syntaxe();
             for (TokenKind sorte : new TokenKind[] {TokenKind.KEYWORD,
                     TokenKind.TYPE, TokenKind.STRING, TokenKind.COMMENT,

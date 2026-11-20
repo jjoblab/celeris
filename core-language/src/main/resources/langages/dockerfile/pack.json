@@ -1,0 +1,7 @@
+{
+  "id": "dockerfile",
+  "version": "1.0.0",
+  "schemaVersion": 1,
+  "license": "Apache-2.0",
+  "provenance": "écrit ici — projet celeris (D-08, l'analyse croisée : le langage dockerfile du dépôt de départ revient)"
+}
