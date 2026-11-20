@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.view.MotionEvent;
+import jo.celeris.android.widgets.internal.NavigationEtages;
+import jo.celeris.android.widgets.internal.PopupPanel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -154,7 +156,7 @@ public final class MenuEtages extends PopupPanel implements KeyboardPopup {
     }
 
     @Override
-    void drawContent(Canvas canvas) {
+    public void drawContent(Canvas canvas) {
         float y = 0f;
         for (int i = 0; i < rows.size(); i++) {
             int height = hauteurs.get(i);
@@ -165,7 +167,7 @@ public final class MenuEtages extends PopupPanel implements KeyboardPopup {
                 if (i == surligne) {
                     bandPaint().setColor(palette.selection());
                     canvas.drawRect(-paddingPx + 1f, y,
-                            contentWidth() + paddingPx - 1f, y + height,
+                             contentWidth() + paddingPx - 1f, y + height,
                             bandPaint());
                 }
                 drawAction(canvas, item, y, height);
@@ -244,7 +246,7 @@ public final class MenuEtages extends PopupPanel implements KeyboardPopup {
     }
 
     @Override
-    int contentWidth() {
+    public int contentWidth() {
         float width = 0f;
         float densite = getResources().getDisplayMetrics().density;
         for (int i = 0; i < rows.size(); i++) {
@@ -266,7 +268,7 @@ public final class MenuEtages extends PopupPanel implements KeyboardPopup {
     }
 
     @Override
-    int contentHeight() {
+    public int contentHeight() {
         int height = 0;
         for (int i = 0; i < rows.size(); i++) {
             height += hauteurs.get(i);

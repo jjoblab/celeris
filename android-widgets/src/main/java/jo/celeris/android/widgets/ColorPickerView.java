@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.view.MotionEvent;
+import jo.celeris.android.widgets.internal.PopupPanel;
 
 import java.util.function.Consumer;
 
@@ -166,7 +167,7 @@ public final class ColorPickerView extends PopupPanel {
     }
 
     @Override
-    void drawContent(Canvas canvas) {
+    public void drawContent(Canvas canvas) {
         float width = contentWidth();
         drawHeader(canvas, width);
         float yChamp = ENTETE_DP * densite + BLOCK_GAP_DP * densite;
@@ -284,12 +285,12 @@ public final class ColorPickerView extends PopupPanel {
     }
 
     @Override
-    int contentWidth() {
+    public int contentWidth() {
         return Math.round(8 * CELLULE_DP * densite + 7 * CELL_GAP_DP * densite);
     }
 
     @Override
-    int contentHeight() {
+    public int contentHeight() {
         return Math.round((ENTETE_DP + CHAMP_SV_DP + BAND_TINT_DP
                 + 2 * CELLULE_DP + CELL_GAP_DP + 3 * BLOCK_GAP_DP)
                 * densite);

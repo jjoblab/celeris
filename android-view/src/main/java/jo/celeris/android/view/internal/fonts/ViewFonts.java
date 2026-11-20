@@ -1,6 +1,12 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.fonts;
 
 import android.util.DisplayMetrics;
+import jo.celeris.android.view.AndroidFontRuler;
+import jo.celeris.android.view.EditorMetrics;
+import jo.celeris.android.view.FontSpec;
+import jo.celeris.android.view.HitTest;
+import jo.celeris.android.view.SpSizes;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 import java.util.List;
 import java.util.Objects;
@@ -20,9 +26,9 @@ import java.util.function.Consumer;
  * {@link SpSizes}, pure et testée — jamais un pixel cru ne franchit
  * cette porte.</p>
  */
-final class ViewFonts {
+public final class ViewFonts  {
 
-    private final EditorView vue;
+    private final EditorAccess acces;
     private final AndroidFontRuler regle;
     /** L'écouteur 1.x à emplacement unique — repli compatibilité. */
     /** Les abonnés 2.0 — multiples, sans écrasement (T3). */
@@ -37,8 +43,8 @@ final class ViewFonts {
      * @param vue   la vue propriétaire des métriques
      * @param regle la règle de police partagée
      */
-    ViewFonts(EditorView vue, AndroidFontRuler regle) {
-        this.vue = vue;
+    public ViewFonts(EditorAccess acces, AndroidFontRuler regle) {
+        this.acces = acces;
         this.regle = regle;
     }
 
@@ -51,23 +57,23 @@ final class ViewFonts {
      *
      * @param font la spécification de police, taille en sp
      */
-    void setFont(FontSpec font) {
-        boolean tailleChangee = font.size() != vue.policeLogique.size();
-        vue.policeLogique = font;
-        vue.metrics = EditorMetrics.of(enPixels(font), regle);
-        vue.viseur = new HitTest(vue.metrics);
+    public void setFont(FontSpec font) {
+        boolean tailleChangee = font.size() != acces.policeLogique().size();
+        acces.setPoliceLogique(font);
+        acces.setMetrics(EditorMetrics.of(enPixels(font), regle));
+        acces.setViseur(new HitTest(acces.metrics()));
         // PIEGE-28 : la source de rangées se réinitialise même à
         // révision constante — un document jamais édité (révision 0)
         // doit se re-mesurer à la nouvelle police ; le cache se vide,
         // les mises en page de l'ancienne police ne s'y accumulent pas.
-        vue.revisionSuivie = Long.MIN_VALUE;
-        vue.cache.clear();
+        acces.setRevisionSuivie(Long.MIN_VALUE);
+        acces.cache().clear();
         if (tailleChangee) {
             for (Consumer<Float> abonne : sizeSubscribers) {
                 abonne.accept(font.size());
             }
         }
-        vue.invalidate();
+        acces.invalidate();
     }
 
     /**
@@ -77,7 +83,7 @@ final class ViewFonts {
      *
      * @param ecouteur l'écouteur, jamais null
      */
-    void addFontSizeChangeListener(Consumer<Float> ecouteur) {
+    public void addFontSizeChangeListener(Consumer<Float> ecouteur) {
         sizeSubscribers.add(Objects.requireNonNull(ecouteur));
     }
 
@@ -86,7 +92,7 @@ final class ViewFonts {
      *
      * @param ecouteur l'écouteur retiré
      */
-    void removeFontSizeChangeListener(Consumer<Float> ecouteur) {
+    public void removeFontSizeChangeListener(Consumer<Float> ecouteur) {
         sizeSubscribers.remove(ecouteur);
     }
 
@@ -99,12 +105,12 @@ final class ViewFonts {
      * @param family le nom de famille, celui du {@link FontSpec}
      * @param font  la police de plateforme à poser
      */
-    void setFont(String family, android.graphics.Typeface font) {
-        regle.setFont(family, font);
-        if (vue.policeLogique.family().equals(family)) {
-            setFont(vue.policeLogique);
+    public void setFont(String family, android.graphics.Typeface font) {
+        acces.setFont(family, font);
+        if (acces.policeLogique().family().equals(family)) {
+            setFont(acces.policeLogique());
         } else {
-            vue.invalidate();
+            acces.invalidate();
         }
     }
 
@@ -116,7 +122,7 @@ final class ViewFonts {
      * @param font la spécification de police, taille en sp
      * @return les métriques résolues, en pixels
      */
-    EditorMetrics metricsOf(FontSpec font) {
+    public EditorMetrics metricsOf(FontSpec font) {
         return EditorMetrics.of(enPixels(font), regle);
     }
 
@@ -127,11 +133,11 @@ final class ViewFonts {
      * pixel cru ne franchit cette porte.
      */
     private FontSpec enPixels(FontSpec font) {
-        DisplayMetrics metriques = vue.getResources().getDisplayMetrics();
+        DisplayMetrics metriques = acces.getResources().getDisplayMetrics();
         // L'échelle de police de l'accessibilité vit dans la
         // configuration (le champ scaledDensity est dépréqué) : la
         // conversion reste sp × densité × échelle, pure et testée.
-        float echelle = vue.getResources().getConfiguration().fontScale;
+        float echelle = acces.getResources().getConfiguration().fontScale;
         return new FontSpec(font.family(), SpSizes.enPixels(font.size(),
                 metriques.density, echelle));
     }

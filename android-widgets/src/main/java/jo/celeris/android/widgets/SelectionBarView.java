@@ -3,6 +3,7 @@ package jo.celeris.android.widgets;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.view.MotionEvent;
+import jo.celeris.android.widgets.internal.PopupPanel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -209,7 +210,7 @@ public final class SelectionBarView extends PopupPanel {
     }
 
     @Override
-    void drawContent(Canvas canvas) {
+    public void drawContent(Canvas canvas) {
         // l'entrée tient toute entière dans la naissance du panneau — le
         // ressort unique de la carte (l'IDE de référence n'égrène pas ses
         // pastilles : la pilule se pose d'un tenant)
@@ -304,7 +305,7 @@ public final class SelectionBarView extends PopupPanel {
     }
 
     @Override
-    int contentWidth() {
+    public int contentWidth() {
         if (bounds.isEmpty()) {
             return Math.round(iconsWidth());
         }
@@ -326,13 +327,13 @@ public final class SelectionBarView extends PopupPanel {
     }
 
     @Override
-    int contentHeight() {
+    public int contentHeight() {
         return Math.round(hauteurPx);
     }
 
     /** La capsule : le rayon de la carte prend la moitié de la hauteur. */
     @Override
-    float rayonCartePx() {
+    public float rayonCartePx() {
         return getHeight() / 2f;
     }
 

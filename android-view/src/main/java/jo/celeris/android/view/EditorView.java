@@ -1,6 +1,21 @@
 package jo.celeris.android.view;
 
 import jo.celeris.android.view.internal.RowPark;
+import jo.celeris.android.view.internal.accessibility.AccessibilityHost;
+import jo.celeris.android.view.internal.caret.CaretAnchors;
+import jo.celeris.android.view.internal.diagnostics.SceneDiagnostics;
+import jo.celeris.android.view.internal.fonts.ViewFonts;
+import jo.celeris.android.view.internal.frame.FrameAssembler;
+import jo.celeris.android.view.internal.gestures.DragDrop;
+import jo.celeris.android.view.internal.gestures.GesturesFactory;
+import jo.celeris.android.view.internal.gestures.GhostEditor;
+import jo.celeris.android.view.internal.gestures.PinchZoomHandler;
+import jo.celeris.android.view.internal.input.EditorInputConnection;
+import jo.celeris.android.view.internal.input.EditorKeys;
+import jo.celeris.android.view.internal.input.KeyActions;
+import jo.celeris.android.view.internal.input.KeyboardCursor;
+import jo.celeris.android.view.internal.viewport.ViewportFractions;
+import jo.celeris.android.view.internal.viewport.ViewportPrefetch;
 import jo.celeris.android.view.internal.viewport.ViewportWatch;
 import jo.celeris.android.view.internal.gutter.EditorGutter;
 import jo.celeris.android.view.internal.model.HostCallbacks;
@@ -72,6 +87,10 @@ import org.jspecify.annotations.Nullable;
  */
 public final class EditorView extends View {
 
+    /** Le pont d'accès interne (P7) : les familles déplacées le
+     *  reçoivent, elles ne touchent plus les champs de la vue. */
+    final EditorViewAccess access = new EditorViewAccess(this);
+
     /** La police par défaut : mono, 14 sp — la conversion en pixels
      *  suit la densité de l'appareil (PIEGE-23). */
     static final FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
@@ -112,7 +131,7 @@ public final class EditorView extends View {
     final ChromePainter chrome = new ChromePainter();
     private final GutterPainter gutter;
     final GutterIntegrations gutterMarks = new GutterIntegrations();
-    private final AccessibilityHost accessibilite = new AccessibilityHost(this);
+    private final AccessibilityHost accessibilite = new AccessibilityHost(access);
 
     // — la session courante et sa projection visuelle (B-01 : la
     //  session vit AVANT l'écouteur d'annonce, qui y lit les bornes
@@ -146,14 +165,14 @@ public final class EditorView extends View {
     // — les rappels de gestes de l'hôte vivent dans leur porteur (ADR-002)
     final HostCallbacks rappels = new HostCallbacks();
     // — le zoom au pincement vit dans son collaborateur (D-15, PIEGE-24)
-    final PinchZoomHandler zoom = new PinchZoomHandler(this);
+    final PinchZoomHandler zoom = new PinchZoomHandler(access);
     // — la gouttière stable vit dans son collaborateur (PIEGE-25)
     final EditorGutter gutterState = new EditorGutter();
     // — les fractions du défilement vivent dans leur collaborateur (C9)
-    private final ViewportFractions fractions = new ViewportFractions(this);
+    private final ViewportFractions fractions = new ViewportFractions(access);
     // — le préfetch de viewport (B-03) : la marge se préchauffe au
     //   calme, hors de la boucle de dessin
-    final ViewportPrefetch prefetch = new ViewportPrefetch(this);
+    final ViewportPrefetch prefetch = new ViewportPrefetch(access);
 
     /** La police logique, en sp — les métriques en dérivent par densité. */
     FontSpec policeLogique = POLICE_PAR_DEFAUT;
@@ -185,21 +204,21 @@ public final class EditorView extends View {
     final ViewportWatch window = new ViewportWatch();
     /** Le collaborateur de l'assemblage d'image (ADR-006) : gouttière,
      *  révision, défilement borné, fenêtre d'analyse, avis de fenêtre. */
-    private final FrameAssembler images = new FrameAssembler(this);
+    private final FrameAssembler images = new FrameAssembler(access);
 
     float scrollX;
     float scrollY;
     float largeurGouttiere;
     boolean visibleNumbers = true;
     /** Le collaborateur du curseur et du clavier : clignotement, IME. */
-    final KeyboardCursor curseurClavier = new KeyboardCursor(this);
+    final KeyboardCursor curseurClavier = new KeyboardCursor(access);
     /** Le collaborateur du routage tactile. */
-    final EditorKeys touches = new EditorKeys(this);
+    final EditorKeys touches = new EditorKeys(access);
     /** Le collaborateur de la loupe du dragage (D-16, le
      *  redressement du 2026-11-13) — la bulle au-dessus du doigt. */
     final Magnifier magnifier = new Magnifier();
     // — le glisser-déposer vit dans son collaborateur (D-20)
-    final DragDrop depot = new DragDrop(this);
+    final DragDrop depot = new DragDrop(access);
     /** Le collaborateur du texte fantôme (F-01) : affichage et gestes. */
     final GhostEditor ghost;
     /** La couche des valeurs de débogage en ligne (E-03) : le rendu
@@ -214,7 +233,7 @@ public final class EditorView extends View {
      *  d'analyse, compteur d'images décolorées, lectures de vérité. */
     final SceneDiagnostics diagnostics;
     /** Le collaborateur des ancres de popups (M7.5, §7). */
-    final CaretAnchors ancres = new CaretAnchors(this);
+    final CaretAnchors ancres = new CaretAnchors(access);
     /** Les réglages de l'éditeur (l'audit du propriétaire du
      *  2026-11-14 : « un système central editor settings ») — UNE
      *  table, un point de vérité : la vue y lit ses portes (numéros,
@@ -231,7 +250,7 @@ public final class EditorView extends View {
     // lisent ensemble (D-14, PIEGE-22)
     final AndroidFontRuler reglePolices = new AndroidFontRuler();
     /** Le collaborateur des polices (PIEGE-05, PIEGE-23, PIEGE-28). */
-    final ViewFonts polices = new ViewFonts(this, reglePolices);
+    final ViewFonts polices = new ViewFonts(access, reglePolices);
     /** L'usine des pinceaux du texte (PIEGE-01) — la bascule des
      *  ligatures y vit (D-14). */
     private final PaintBrushes brushFactory;
@@ -252,7 +271,7 @@ public final class EditorView extends View {
         super(context, attrs);
         // M7.5, §9 : la retenue par défaut — l'hôte qui injecte son
         // exécuteur garde la main entière, jamais détournée.
-        diagnostics = new SceneDiagnostics(this, executeurAnalyse);
+        diagnostics = new SceneDiagnostics(access, executeurAnalyse);
         syntaxe = new EditorSyntax(folds, diagnostics.executor());
         setFocusable(true);
         setFocusableInTouchMode(true);
@@ -261,7 +280,7 @@ public final class EditorView extends View {
             postInvalidateOnAnimation();
         });
         BrushFactory pinceaux = brushFactory = new PaintBrushes(reglePolices);
-        ghost = new GhostEditor(this, pinceaux);
+        ghost = new GhostEditor(access, pinceaux);
         // La respiration naît à la densité de l'appareil (PIEGE-23, M7.5 §5).
         gutterState.setClasse(WidthClass.MOYEN, densite());
         gutter = GutterPainter.start(pinceaux, this);
@@ -278,8 +297,8 @@ public final class EditorView extends View {
         viseur = new HitTest(metrics);
         syntaxe.attach(session);
         session.addEditListener(ecouteurAnnonce);
-        longPresses = GesturesFactory.appuisLongs(context, this);
-        pincements = GesturesFactory.pincements(context, this);
+        longPresses = GesturesFactory.appuisLongs(context, access);
+        pincements = GesturesFactory.pincements(context, access);
         // D-20 : la vue reçoit les dépôts — le texte s'insère au point
         // de chute, les fichiers partent à l'hôte par le rappel.
         setOnDragListener(depot);
@@ -874,7 +893,7 @@ public final class EditorView extends View {
     @Override
     public @Nullable InputConnection onCreateInputConnection(
             EditorInfo outAttrs) {
-        return EditorInputConnection.create(this, composition, outAttrs);
+        return EditorInputConnection.create(access, composition, outAttrs);
     }
 
     /** L'état d'image courant — l'hôte d'accessibilité (G-05) y lit. */
@@ -942,11 +961,11 @@ public final class EditorView extends View {
         if (rappels.consommerTouche(composition, keyCode)) {
             return true;
         }
-        EditorAction action = KeyActions.action(this, raccourcis, composition,
+        EditorAction action = KeyActions.action(access, raccourcis, composition,
                 keyCode, event);
         return action == null
                 ? super.onKeyDown(keyCode, event)
-                : KeyActions.appliquer(this, action);
+                : KeyActions.appliquer(access, action);
     }
 
     @Override

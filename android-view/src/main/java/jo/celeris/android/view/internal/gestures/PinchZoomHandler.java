@@ -1,7 +1,11 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.gestures;
 
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import jo.celeris.android.view.FontSpec;
+import jo.celeris.android.view.PinchZoom;
+import jo.celeris.android.view.ScrollGeometry;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 /**
  * Le collaborateur du zoom au pincement (D-15) : il porte l'état du
@@ -21,12 +25,12 @@ import android.view.ScaleGestureDetector;
  * défilement ne s'applique jamais deux fois, ni par la pan ni par la
  * compensation du point focal.</p>
  */
-final class PinchZoomHandler {
+public final class PinchZoomHandler  {
 
     /** L'écartement nul ne divise jamais : le plancher de garde. */
     private static final float MIN_GAP = 1e-6f;
 
-    private final EditorView vue;
+    private final EditorAccess acces;
 
     private float startSize;
     private float startGap;
@@ -38,12 +42,12 @@ final class PinchZoomHandler {
      *
      * @param vue la vue propriétaire du zoom
      */
-    PinchZoomHandler(EditorView vue) {
-        this.vue = vue;
+    public PinchZoomHandler(EditorAccess acces) {
+        this.acces = acces;
     }
 
     /** Vrai quand un pincement est engagé : le panoramique s'efface. */
-    boolean actif() {
+    public boolean actif() {
         return actif;
     }
 
@@ -54,11 +58,11 @@ final class PinchZoomHandler {
      *
      * @param detecteur le détecteur au franchissement du seuil
      */
-    void surEngagement(ScaleGestureDetector detecteur) {
+    public void surEngagement(ScaleGestureDetector detecteur) {
         actif = true;
-        startSize = vue.policeLogique.size();
+        startSize = acces.policeLogique().size();
         startGap = detecteur.getCurrentSpan();
-        vue.touches.couperPanoramique();
+        acces.touches().couperPanoramique();
     }
 
     /**
@@ -67,7 +71,7 @@ final class PinchZoomHandler {
      *
      * @param detecteur le détecteur au cran courant
      */
-    void surCran(ScaleGestureDetector detecteur) {
+    public void surCran(ScaleGestureDetector detecteur) {
         if (!actif || startGap <= MIN_GAP) {
             return;
         }
@@ -91,7 +95,7 @@ final class PinchZoomHandler {
     }
 
     /** La fin du geste : le collaborateur se désarme. */
-    void surFin() {
+    public void surFin() {
         actif = false;
     }
 
@@ -99,15 +103,15 @@ final class PinchZoomHandler {
      * Un cran au-dessus — la voie du raccourci clavier et de la
      * molette (D-15) : le point central de la vue sert de point focal.
      */
-    void agrandir() {
-        setSize(PinchZoom.stepAbove(vue.policeLogique.size()),
-                vue.getWidth() / 2f, vue.getHeight() / 2f);
+    public void agrandir() {
+        setSize(PinchZoom.stepAbove(acces.policeLogique().size()),
+                acces.getWidth() / 2f, acces.getHeight() / 2f);
     }
 
     /** Un cran en dessous, focal au centre de la vue (D-15). */
-    void retrecir() {
-        setSize(PinchZoom.stepBelow(vue.policeLogique.size()),
-                vue.getWidth() / 2f, vue.getHeight() / 2f);
+    public void retrecir() {
+        setSize(PinchZoom.stepBelow(acces.policeLogique().size()),
+                acces.getWidth() / 2f, acces.getHeight() / 2f);
     }
 
     /**
@@ -116,8 +120,8 @@ final class PinchZoomHandler {
      *
      * @param tailleParDefaut la police par défaut de l'hôte, en sp
      */
-    void retablir(float tailleParDefaut) {
-        setSize(tailleParDefaut, vue.getWidth() / 2f, vue.getHeight() / 2f);
+    public void retablir(float tailleParDefaut) {
+        setSize(tailleParDefaut, acces.getWidth() / 2f, acces.getHeight() / 2f);
     }
 
     /**
@@ -127,7 +131,7 @@ final class PinchZoomHandler {
      * @param event l'événement de mouvement générique
      * @return vrai quand le cran se consomme
      */
-    boolean surMolette(MotionEvent event) {
+    public boolean surMolette(MotionEvent event) {
         if (event.getActionMasked() != MotionEvent.ACTION_SCROLL
                 || (event.getMetaState() & android.view.KeyEvent.META_CTRL_ON) == 0
                 || (event.getSource() & android.view.InputDevice.SOURCE_CLASS_POINTER) == 0) {
@@ -138,46 +142,46 @@ final class PinchZoomHandler {
             return false;
         }
         if (cran > 0f) {
-            setSize(PinchZoom.stepAbove(vue.policeLogique.size()),
+            setSize(PinchZoom.stepAbove(acces.policeLogique().size()),
                     event.getX(), event.getY());
         } else {
-            setSize(PinchZoom.stepBelow(vue.policeLogique.size()),
+            setSize(PinchZoom.stepBelow(acces.policeLogique().size()),
                     event.getX(), event.getY());
         }
         return true;
     }
 
     private void setSize(float nouvelleTaille, float focalX, float focalY) {
-        if (nouvelleTaille == vue.policeLogique.size()) {
+        if (nouvelleTaille == acces.policeLogique().size()) {
             return;
         }
-        float ancienCharWidth = vue.metrics.charWidth();
-        float ancienLineHeight = vue.metrics.lineHeight();
-        float ancienneGouttiere = vue.largeurGouttiere;
-        float ancienScrollX = vue.scrollX;
-        float ancienScrollY = vue.scrollY;
-        vue.reglagesUniques.setFont(
-                new FontSpec(vue.policeLogique.family(), nouvelleTaille));
+        float ancienCharWidth = acces.metrics().charWidth();
+        float ancienLineHeight = acces.metrics().lineHeight();
+        float ancienneGouttiere = acces.largeurGouttiere();
+        float ancienScrollX = acces.scrollX();
+        float ancienScrollY = acces.scrollY();
+        acces.reglagesUniques().setFont(
+                new FontSpec(acces.policeLogique().family(), nouvelleTaille));
         // La gouttière dépend de la police : la colonne se lit à la
         // gouttière d'avant, se pose à celle d'après — le point focal
         // ne dérive pas d'un palier à l'autre.
         float nouvelleGouttiere = expectedGutterWidth();
-        vue.scrollX = PinchZoom.scrollXKeepingColumn(focalX, ancienneGouttiere,
+        acces.setScrollX(PinchZoom.scrollXKeepingColumn(focalX, ancienneGouttiere,
                 nouvelleGouttiere, ancienScrollX, ancienCharWidth,
-                vue.metrics.charWidth());
+                acces.metrics().charWidth()));
         // La gouttière courante suit le palier : le cran suivant du même
         // geste — sans image entre les événements — lit la gouttière de
         // SON image, pas celle d'avant le premier palier.
-        vue.largeurGouttiere = nouvelleGouttiere;
-        vue.scrollY = PinchZoom.scrollYKeepingRow(focalY, ancienScrollY,
-                ancienLineHeight, vue.metrics.lineHeight());
+        acces.setLargeurGouttiere(nouvelleGouttiere);
+        acces.setScrollY(PinchZoom.scrollYKeepingRow(focalY, ancienScrollY,
+                ancienLineHeight, acces.metrics().lineHeight()));
         clampScroll(nouvelleGouttiere);
-        vue.invalidate();
+        acces.invalidate();
     }
 
     private void zoomer(float focalX, float focalY, float facteurCumule) {
         float target = PinchZoom.targetSize(startSize, facteurCumule);
-        float nouvelleTaille = PinchZoom.steppedSize(vue.policeLogique.size(), target);
+        float nouvelleTaille = PinchZoom.steppedSize(acces.policeLogique().size(), target);
         setSize(nouvelleTaille, focalX, focalY);
     }
 
@@ -187,21 +191,21 @@ final class PinchZoomHandler {
      * du défilement (D-15), la même que celle de l'image (PIEGE-25).
      */
     private float expectedGutterWidth() {
-        vue.gutterState.setCoulisses(
-                vue.gutterMarks.lanes(vue.syntaxe.active()));
-        return vue.gutterState.suivre(
-                vue.session.document().lineCount(),
-                vue.metrics.charWidth(), vue.densite(), vue.visibleNumbers);
+        acces.gutterState().setCoulisses(
+                acces.gutterMarks().lanes(acces.syntaxe().active()));
+        return acces.gutterState().suivre(
+                acces.session().document().lineCount(),
+                acces.metrics().charWidth(), acces.densite(), acces.visibleNumbers());
     }
 
     /** Bornage du défilement à la taille du contenu (D-15). */
     private void clampScroll(float gutter) {
         float contentHeight =
-                vue.projection.rowCount() * vue.metrics.lineHeight();
-        vue.scrollY = ScrollGeometry.clamp(vue.scrollY, contentHeight,
-                vue.getHeight());
-        vue.scrollX = ScrollGeometry.clamp(vue.scrollX,
-                ScrollGeometry.contentWidth(vue.projection, vue.metrics),
-                ScrollGeometry.visibleWidth(vue.getWidth(), gutter));
+                acces.projection().rowCount() * acces.metrics().lineHeight();
+        acces.setScrollY(ScrollGeometry.clamp(acces.scrollY(), contentHeight,
+                acces.getHeight()));
+        acces.setScrollX(ScrollGeometry.clamp(acces.scrollX(),
+                ScrollGeometry.contentWidth(acces.projection(), acces.metrics()),
+                ScrollGeometry.visibleWidth(acces.getWidth(), gutter)));
     }
 }

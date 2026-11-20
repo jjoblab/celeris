@@ -1,4 +1,4 @@
-package jo.celeris.android.widgets;
+package jo.celeris.android.widgets.internal;
 
 import java.util.function.IntPredicate;
 
@@ -8,7 +8,7 @@ import java.util.function.IntPredicate;
  * section. Pure et testable sans appareil : la table des en-têtes se
  * passe en prédicat, le saut se calcule seul.
  */
-final class NavigationEtages {
+public final class NavigationEtages  {
 
     private NavigationEtages() {
     }
@@ -24,7 +24,7 @@ final class NavigationEtages {
      * @param estEntete le prédicat d'en-tête d'étage (jamais pris)
      * @return l'index visé, —1 quand le saut ne tombe sur aucune action
      */
-    static int saut(int nombre, int surligne, int pas,
+    public static int saut(int nombre, int surligne, int pas,
             IntPredicate estEntete) {
         if (nombre == 0) {
             return -1;

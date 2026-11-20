@@ -1,6 +1,9 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.viewport;
 
 import org.jspecify.annotations.Nullable;
+import jo.celeris.android.view.FontSpec;
+import jo.celeris.android.view.RowKey;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 /**
  * Le préfetch de viewport (B-03, l'analyse croisée) : après un calme
@@ -17,7 +20,7 @@ import org.jspecify.annotations.Nullable;
  * La mesure emprunte la voie du peintre : la source de rangées, le
  * même cléage (PIEGE-02), le même cache.</p>
  */
-final class ViewportPrefetch {
+public final class ViewportPrefetch  {
 
     /** Le calme avant le préchauffage, en millisecondes. */
     static final long CALME_MS = 150;
@@ -25,7 +28,7 @@ final class ViewportPrefetch {
     /** La portée du préchauffage de chaque côté, en rangées. */
     static final int PORTEE = 8;
 
-    private final EditorView vue;
+    private final EditorAccess acces;
     private @Nullable Runnable tache;
 
     /**
@@ -33,8 +36,8 @@ final class ViewportPrefetch {
      *
      * @param vue la vue propriétaire du cache et de la source
      */
-    ViewportPrefetch(EditorView vue) {
-        this.vue = vue;
+    public ViewportPrefetch(EditorAccess acces) {
+        this.acces = acces;
     }
 
     /**
@@ -46,18 +49,18 @@ final class ViewportPrefetch {
      * @param premiere la première rangée visible
      * @param visibles le nombre de rangées visibles
      */
-    void programmer(int premiere, int visibles) {
+    public void programmer(int premiere, int visibles) {
         stop();
         int rowStart = Math.max(0, premiere - PORTEE);
         int rowEnd = premiere + visibles + PORTEE;
         tache = () -> prechauffer(rowStart, rowEnd);
-        vue.postDelayed(tache, CALME_MS);
+        acces.postDelayed(tache, CALME_MS);
     }
 
     /** Arrête toute programmation — la vue se détache ou se libère. */
-    void stop() {
+    public void stop() {
         if (tache != null) {
-            vue.removeCallbacks(tache);
+            acces.removeCallbacks(tache);
             tache = null;
         }
     }
@@ -66,19 +69,19 @@ final class ViewportPrefetch {
      *  cache, hors de la boucle de dessin. */
     private void prechauffer(int rowStart, int rowEnd) {
         tache = null;
-        long revision = vue.session.document().revision();
-        int theme = vue.theme.id();
-        FontSpec font = vue.metrics.font();
-        int colonnes = vue.projection.columns();
+        long revision = acces.session().document().revision();
+        int theme = acces.theme().id();
+        FontSpec font = acces.metrics().font();
+        int colonnes = acces.projection().columns();
         for (int rangee = rowStart; rangee < rowEnd; rangee++) {
-            if (rangee < 0 || rangee >= vue.projection.rowCount()) {
+            if (rangee < 0 || rangee >= acces.projection().rowCount()) {
                 continue;
             }
-            if (vue.cache.find(revision, rangee, theme, font, colonnes) != null) {
+            if (acces.cache().find(revision, rangee, theme, font, colonnes) != null) {
                 continue;
             }
             RowKey key = new RowKey(revision, rangee, theme, font, colonnes);
-            vue.cache.store(key, vue.sourceLiee.layoutOf(key));
+            acces.cache().store(key, acces.sourceLiee().layoutOf(key));
         }
     }
 }

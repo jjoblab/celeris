@@ -1,4 +1,4 @@
-package jo.celeris.android.widgets;
+package jo.celeris.android.widgets.internal;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -18,6 +18,9 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import jo.celeris.android.widgets.PopupLayer;
+import jo.celeris.android.widgets.PopupPalette;
+import jo.celeris.android.widgets.PopupTokens;
 
 import org.jspecify.annotations.Nullable;
 
@@ -42,7 +45,7 @@ import org.jspecify.annotations.Nullable;
  * les encres de la palette) ; les jetons vivent dans {@link PopupTokens},
  * la maquette de référence est {@code docs/maquettes/popups.html}.</p>
  */
-abstract class Feuille extends LinearLayout {
+public abstract class Feuille  extends LinearLayout {
 
     /** La poignée : aire tactile du kit, pilule muette, geste de fermeture. */
     private final Poignee poignee;
@@ -73,7 +76,7 @@ abstract class Feuille extends LinearLayout {
     /** Les rayons de la carte en pixels — calculés une fois, jamais mutés. */
     private @Nullable float[] rayonsPxCache;
 
-    Feuille(Context context, PopupPalette palette) {
+    public Feuille(Context context, PopupPalette palette) {
         super(context);
         setOrientation(LinearLayout.VERTICAL);
         // La feuille est modale et porte des champs : elle prend le
@@ -159,16 +162,16 @@ abstract class Feuille extends LinearLayout {
     // ------------------------------------------------------------ formes
 
     /** La gravité de la feuille dans son hôte FrameLayout. */
-    abstract int severity();
+    public abstract int severity();
 
     /** La largeur au plus de la feuille, en dp. */
-    abstract float maxWidthDp();
+    public abstract float maxWidthDp();
 
     /** Les rayons de la carte, huit valeurs (quatre coins, x puis y). */
-    abstract float[] rayonsDp();
+    public abstract float[] rayonsDp();
 
     /** Vrai quand la feuille glisse depuis le BAS de l'écran. */
-    abstract boolean coteBas();
+    public abstract boolean coteBas();
 
     // ------------------------------------------------------------ surface
 
@@ -350,22 +353,22 @@ abstract class Feuille extends LinearLayout {
     // ------------------------------------------------------------ internes
 
     /** La vue de titre — lisibilité des bancs du kit. */
-    final TextView titreVue() {
+    public final TextView titreVue() {
         return vueTitre;
     }
 
     /** Le bouton de fermeture — lisibilité des bancs du kit. */
-    final TextView boutonFermeture() {
+    public final TextView boutonFermeture() {
         return boutonFermer;
     }
 
     /** La poignée de glissement — lisibilité des bancs du kit. */
-    final View poigneeVue() {
+    public final View poigneeVue() {
         return poignee;
     }
 
     /** Le voile courant, null feuille fermée — lisibilité des bancs. */
-    final @Nullable View voileVue() {
+    public final @Nullable View voileVue() {
         return voile;
     }
 

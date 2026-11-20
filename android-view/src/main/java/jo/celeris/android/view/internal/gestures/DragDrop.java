@@ -1,9 +1,10 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.gestures;
 
 import android.content.ClipData;
 import android.net.Uri;
 import android.view.DragEvent;
 import android.view.View;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ import org.jspecify.annotations.Nullable;
  * dans la colle Android (fine), la décision et l'insertion vivent ici —
  * le banc les couvre sans appareil.</p>
  */
-final class DragDrop implements View.OnDragListener {
+public final class DragDrop  implements View.OnDragListener {
 
     /** Un dépôt reçu : le texte et les uris, décodés du geste. */
     record Recu(String text, List<String> uris) {
@@ -45,7 +46,7 @@ final class DragDrop implements View.OnDragListener {
         }
     }
 
-    private final EditorView vue;
+    private final EditorAccess acces;
 
     /** Le rappel 1.x des fichiers déposés — l'uri va à l'hôte. */
     private @Nullable Consumer<String> surFichier;
@@ -55,8 +56,8 @@ final class DragDrop implements View.OnDragListener {
     private final List<Consumer<String>> consommateursFichier =
             new CopyOnWriteArrayList<>();
 
-    DragDrop(EditorView vue) {
-        this.vue = vue;
+    public DragDrop(EditorAccess acces) {
+        this.acces = acces;
     }
 
     /**
@@ -70,12 +71,12 @@ final class DragDrop implements View.OnDragListener {
     }
 
     /** Abonne un consommateur des fichiers déposés (voie 2.0, T3). */
-    void addFileDropListener(Consumer<String> consommateur) {
+    public void addFileDropListener(Consumer<String> consommateur) {
         consommateursFichier.add(Objects.requireNonNull(consommateur));
     }
 
     /** Désabonne un consommateur des fichiers déposés (voie 2.0). */
-    void removeFileDropListener(Consumer<String> consommateur) {
+    public void removeFileDropListener(Consumer<String> consommateur) {
         consommateursFichier.remove(consommateur);
     }
 
@@ -113,11 +114,11 @@ final class DragDrop implements View.OnDragListener {
     boolean deposer(Recu recu, float x, float y) {
         boolean depose = false;
         if (!recu.text().isEmpty()) {
-            int offset = vue.viseur.offsetAt(vue.session.document(),
-                    vue.projection, vue.metrics, vue.largeurGouttiere,
-                    vue.scrollX, vue.scrollY, x, y);
-            if (vue.session.replaceRange(offset, offset, recu.text())) {
-                vue.invalidate();
+            int offset = acces.viseur().offsetAt(acces.session().document(),
+                    acces.projection(), acces.metrics(), acces.largeurGouttiere(),
+                    acces.scrollX(), acces.scrollY(), x, y);
+            if (acces.session().replaceRange(offset, offset, recu.text())) {
+                acces.invalidate();
                 depose = true;
             }
         }

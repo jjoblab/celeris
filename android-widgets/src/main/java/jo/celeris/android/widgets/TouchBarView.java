@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.view.MotionEvent;
+import jo.celeris.android.widgets.internal.PopupPanel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,7 +120,7 @@ public final class TouchBarView extends PopupPanel {
     }
 
     @Override
-    void drawContent(Canvas canvas) {
+    public void drawContent(Canvas canvas) {
         textPaint().setTextSize(textSize(PopupTokens.TEXTE_TITRE));
         Paint.FontMetrics metriques = textPaint().getFontMetrics();
         // la baseline centrée : la moitié de la rangée moins la moitié
@@ -167,13 +168,13 @@ public final class TouchBarView extends PopupPanel {
     }
 
     @Override
-    int contentWidth() {
+    public int contentWidth() {
         return finsDeTouche.isEmpty() ? 0
                 : Math.round(finsDeTouche.get(finsDeTouche.size() - 1));
     }
 
     @Override
-    int contentHeight() {
+    public int contentHeight() {
         return Math.round(hauteurPx);
     }
 

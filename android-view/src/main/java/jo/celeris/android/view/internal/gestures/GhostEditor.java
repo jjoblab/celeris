@@ -1,10 +1,15 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.gestures;
 
 import jo.celeris.android.view.internal.paint.GhostPainter;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+import jo.celeris.android.view.BrushFactory;
+import jo.celeris.android.view.GhostGesture;
+import jo.celeris.android.view.internal.access.EditorAccess;
+import jo.celeris.android.view.internal.accessibility.AccessibilityHost;
+import jo.celeris.android.view.internal.input.EditorKeys;
 
 import org.jspecify.annotations.Nullable;
 
@@ -22,9 +27,9 @@ import jo.celeris.core.ai.GhostSuggestion;
  * notifient des abonnés MULTIPLES (ADR-0022, phase 2, T3) : le kit
  * et l'hôte s'abonnent chacun.</p>
  */
-final class GhostEditor {
+public final class GhostEditor  {
 
-    private final EditorView vue;
+    private final EditorAccess acces;
     private final GhostPainter painter;
     /** Le rappel 1.x à emplacement unique — repli compatibilité. */
     private @Nullable Consumer<GhostGesture> onGesture;
@@ -39,13 +44,13 @@ final class GhostEditor {
      * @param vue     la vue propriétaire du fantôme
      * @param brushes la fabrique de pinceaux de la vue
      */
-    GhostEditor(EditorView vue, BrushFactory brushes) {
-        this.vue = vue;
+    public GhostEditor(EditorAccess acces, BrushFactory brushes) {
+        this.acces = acces;
         this.painter = new GhostPainter(brushes);
     }
 
     /** La couche de peinture — la vue la pose au-dessus du texte. */
-    GhostPainter painter() {
+    public GhostPainter painter() {
         return painter;
     }
 
@@ -54,13 +59,13 @@ final class GhostEditor {
      *
      * @param suggestion la suggestion, ou {@code null} pour fermer
      */
-    void setSuggestion(@Nullable GhostSuggestion suggestion) {
+    public void setSuggestion(@Nullable GhostSuggestion suggestion) {
         painter.setSuggestion(suggestion);
-        vue.invalidate();
+        acces.invalidate();
     }
 
     /** La suggestion visible, ou {@code null}. */
-    @Nullable
+    public @Nullable
     GhostSuggestion suggestion() {
         return painter.suggestion();
     }
@@ -78,12 +83,12 @@ final class GhostEditor {
     }
 
     /** Abonne un écouteur des gestes du fantôme (voie 2.0, T3). */
-    void addGhostGestureListener(Consumer<GhostGesture> ecouteur) {
+    public void addGhostGestureListener(Consumer<GhostGesture> ecouteur) {
         gestureSubscribers.add(Objects.requireNonNull(ecouteur));
     }
 
     /** Désabonne un écouteur des gestes du fantôme (voie 2.0). */
-    void removeGhostGestureListener(Consumer<GhostGesture> ecouteur) {
+    public void removeGhostGestureListener(Consumer<GhostGesture> ecouteur) {
         gestureSubscribers.remove(ecouteur);
     }
 
@@ -106,11 +111,11 @@ final class GhostEditor {
      * @param y l'ordonnée de l'appui, en pixels
      * @return vrai si le geste est consommé
      */
-    boolean touche(float x, float y) {
+    public boolean touche(float x, float y) {
         if (!aAbonnes() || painter.suggestion() == null) {
             return false;
         }
-        if (!painter.premiereLigneTouchee(vue.etatImageCourante(), x, y)) {
+        if (!painter.premiereLigneTouchee(acces.etatImageCourante(), x, y)) {
             return false;
         }
         notifyGesture(GhostGesture.ACCEPTER_MOT);
@@ -123,7 +128,7 @@ final class GhostEditor {
      *
      * @return vrai si le geste est consommé
      */
-    boolean surTab() {
+    public boolean surTab() {
         if (!aAbonnes() || painter.suggestion() == null) {
             return false;
         }

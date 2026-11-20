@@ -1,4 +1,8 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.viewport;
+
+import jo.celeris.android.view.ScrollGeometry;
+import jo.celeris.android.view.internal.access.EditorAccess;
+
 
 /**
  * Les fractions du défilement (chantier C9) : le collaborateur de la
@@ -11,45 +15,45 @@ package jo.celeris.android.view;
  * <p>Pur sur l'état de la vue (projection, métriques, défilement) :
  * aucune horloge, aucun appareil — le banc de vue le couvre.</p>
  */
-final class ViewportFractions {
+public final class ViewportFractions  {
 
-    private final EditorView vue;
+    private final EditorAccess acces;
 
-    ViewportFractions(EditorView vue) {
-        this.vue = vue;
+    public ViewportFractions(EditorAccess acces) {
+        this.acces = acces;
     }
 
     /**
      * La fraction verticale du défilement : 0 en tête du document, 1 au
      * pied — 0 quand tout tient, sans course.
      */
-    float fraction() {
+    public float fraction() {
         float max = course();
         return max <= 0f ? 0f
-                : Math.max(0f, Math.min(1f, vue.scrollY / max));
+                : Math.max(0f, Math.min(1f, acces.scrollY() / max));
     }
 
     /**
      * La part visible du contenu vertical : 1 quand tout tient dans la
      * fenêtre.
      */
-    float partVisible() {
+    public float partVisible() {
         float contentHeight = contentHeight();
-        return contentHeight <= 0f || vue.getHeight() <= 0f ? 1f
-                : Math.max(0f, Math.min(1f, vue.getHeight() / contentHeight));
+        return contentHeight <= 0f || acces.getHeight() <= 0f ? 1f
+                : Math.max(0f, Math.min(1f, acces.getHeight() / contentHeight));
     }
 
     /**
      * Défile à la fraction verticale : 0 en tête, 1 au pied — le
      * défilement se borne à l'image suivante, l'avis de fenêtre y part.
      */
-    void defilerA(float fraction) {
+    public void defilerA(float fraction) {
         float max = course();
         float target = max <= 0f ? 0f
                 : Math.max(0f, Math.min(1f, fraction)) * max;
-        if (target != vue.scrollY) {
-            vue.scrollY = target;
-            vue.invalidate();
+        if (target != acces.scrollY()) {
+            acces.setScrollY(target);
+            acces.invalidate();
         }
     }
 
@@ -57,27 +61,27 @@ final class ViewportFractions {
      * La première ligne visible : la rangée du haut de la fenêtre, dans
      * les bornes du document.
      */
-    int firstVisibleLine() {
-        return Math.max(0, ScrollGeometry.firstRow(vue.scrollY,
-                vue.metrics.lineHeight()));
+    public int firstVisibleLine() {
+        return Math.max(0, ScrollGeometry.firstRow(acces.scrollY(),
+                acces.metrics().lineHeight()));
     }
 
     /**
      * Le nombre de lignes visibles : la hauteur de la fenêtre en
      * rangées, au moins une.
      */
-    int visibleLines() {
-        return Math.max(1, ScrollGeometry.visibleRows(vue.getHeight(),
-                vue.metrics.lineHeight()));
+    public int visibleLines() {
+        return Math.max(1, ScrollGeometry.visibleRows(acces.getHeight(),
+                acces.metrics().lineHeight()));
     }
 
     /** La hauteur du contenu visuel — rangées × hauteur de rangée. */
     private float contentHeight() {
-        return vue.projection.rowCount() * vue.metrics.lineHeight();
+        return acces.projection().rowCount() * acces.metrics().lineHeight();
     }
 
     /** La course verticale du défilement — le maximum déroulable. */
     private float course() {
-        return ScrollGeometry.maxScroll(contentHeight(), vue.getHeight());
+        return ScrollGeometry.maxScroll(contentHeight(), acces.getHeight());
     }
 }

@@ -7,6 +7,7 @@ import android.graphics.RectF;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import jo.celeris.android.widgets.internal.TextRowsPopup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -268,7 +269,7 @@ public final class NotificationView extends TextRowsPopup {
     }
 
     @Override
-    void drawContent(Canvas canvas) {
+    public void drawContent(Canvas canvas) {
         super.drawContent(canvas);
         if (!jaugeArmee()) {
             return;
@@ -308,7 +309,7 @@ public final class NotificationView extends TextRowsPopup {
     }
 
     @Override
-    int contentWidth() {
+    public int contentWidth() {
         float width = super.contentWidth();
         if (jaugeArmee()) {
             textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));
@@ -319,7 +320,7 @@ public final class NotificationView extends TextRowsPopup {
     }
 
     @Override
-    int contentHeight() {
+    public int contentHeight() {
         int height = super.contentHeight();
         if (jaugeArmee()) {
             textPaint().setTextSize(textSize(PopupTokens.TEXTE_MICRO));

@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.Handler;
 import android.os.Looper;
+import jo.celeris.android.widgets.internal.PopupPanel;
 
 import java.util.List;
 import java.util.function.IntConsumer;
@@ -85,7 +86,7 @@ public final class SignatureHelpView extends PopupPanel {
     }
 
     @Override
-    void drawContent(Canvas canvas) {
+    public void drawContent(Canvas canvas) {
         SignatureAideModel courant = model;
         if (courant == null) {
             return;
@@ -233,7 +234,7 @@ public final class SignatureHelpView extends PopupPanel {
     }
 
     @Override
-    int contentWidth() {
+    public int contentWidth() {
         SignatureAideModel courant = model;
         if (courant == null) {
             return 0;
@@ -254,7 +255,7 @@ public final class SignatureHelpView extends PopupPanel {
     }
 
     @Override
-    int contentHeight() {
+    public int contentHeight() {
         SignatureAideModel courant = model;
         if (courant == null) {
             return 0;

@@ -5,6 +5,13 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.9] — 2026-11-20
+
+### Changements
+
+- **Les familles internes d'android-view finissent de ranger (feuille des améliorations, P7 — décision du propriétaire « internes seulement »)** : les 16 familles couplées aux champs package-privés de la vue (clavier, gestes, IME, FrameAssembler, ancres, viewport, accessibilité, diagnostics, polices) rejoignent `view.internal.*`. Le pont d'accès interne `EditorAccess` (internal/access) porte désormais la surface exacte qu'elles touchent de la vue — `EditorViewAccess` (package-privé) est la seule à toucher les champs ; aucun membre public n'est ajouté à `EditorView`, le contrat ne bouge pas.
+- **android-widgets : les superclasses des popups passent en interne (P8)** : `PopupPanel`, `TextRowsPopup`, `Feuille` et `NavigationEtages` vivent en `widgets.internal` ; les popups publics restent au paquet racine et importent leurs superclasses — le contrat public du module ne change pas.
+
 ## [2.2.8] — 2026-11-20
 
 ### Corrections

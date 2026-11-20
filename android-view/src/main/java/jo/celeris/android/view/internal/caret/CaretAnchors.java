@@ -1,7 +1,8 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.caret;
 
 import jo.celeris.android.view.internal.model.PopupAnchors;
 import android.graphics.Rect;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 /**
  * Les ancres de popups de la scène (M7.5, §7) : le rectangle du
@@ -11,9 +12,9 @@ import android.graphics.Rect;
  * (plafond de 600 lignes, ADR-002) : la vue délègue, la géométrie vit
  * ici.
  */
-final class CaretAnchors {
+public final class CaretAnchors  {
 
-    private final EditorView vue;
+    private final EditorAccess acces;
 
     /**
      * Construit les ancres de la vue donnée — la vue n'est consultée
@@ -21,8 +22,8 @@ final class CaretAnchors {
      *
      * @param vue la vue propriétaire des ancres
      */
-    CaretAnchors(EditorView vue) {
-        this.vue = vue;
+    public CaretAnchors(EditorAccess acces) {
+        this.acces = acces;
     }
 
     /**
@@ -32,12 +33,12 @@ final class CaretAnchors {
      *
      * @return le rectangle du curseur principal
      */
-    Rect caretBounds() {
-        vue.preparerEtatImage();
-        return PopupAnchors.caretRect(vue.etatImage.document(),
-                vue.projection, vue.metrics, vue.largeurGouttiere,
-                vue.scrollX, vue.scrollY,
-                vue.session.selection().ranges());
+    public Rect caretBounds() {
+        acces.preparerEtatImage();
+        return PopupAnchors.caretRect(acces.etatImage().document(),
+                acces.projection(), acces.metrics(), acces.largeurGouttiere(),
+                acces.scrollX(), acces.scrollY(),
+                acces.session().selection().ranges());
     }
 
     /**
@@ -47,11 +48,11 @@ final class CaretAnchors {
      *
      * @return le rectangle de la sélection principale
      */
-    Rect selectionBounds() {
-        vue.preparerEtatImage();
-        return PopupAnchors.selectionRect(vue.etatImage.document(),
-                vue.projection, vue.metrics, vue.largeurGouttiere,
-                vue.scrollX, vue.scrollY,
-                vue.session.selection().ranges());
+    public Rect selectionBounds() {
+        acces.preparerEtatImage();
+        return PopupAnchors.selectionRect(acces.etatImage().document(),
+                acces.projection(), acces.metrics(), acces.largeurGouttiere(),
+                acces.scrollX(), acces.scrollY(),
+                acces.session().selection().ranges());
     }
 }

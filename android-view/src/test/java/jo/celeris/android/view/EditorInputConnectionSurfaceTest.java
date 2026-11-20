@@ -3,6 +3,7 @@ package jo.celeris.android.view;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import jo.celeris.android.view.internal.input.EditorInputConnection;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

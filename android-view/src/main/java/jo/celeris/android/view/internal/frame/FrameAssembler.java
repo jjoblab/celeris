@@ -1,7 +1,14 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.frame;
 
 import jo.celeris.android.view.internal.ScrollPositions.Position;
 import jo.celeris.core.text.Document;
+import jo.celeris.android.view.DocumentRowSource;
+import jo.celeris.android.view.FoldedRowSource;
+import jo.celeris.android.view.RowSource;
+import jo.celeris.android.view.ScrollGeometry;
+import jo.celeris.android.view.SyntaxRowSource;
+import jo.celeris.android.view.VisualProjection;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 import android.graphics.Canvas;
 
@@ -13,12 +20,12 @@ import android.graphics.Canvas;
  * vue et lit son état de paquet : la vue reste mince, l'ordre
  * d'assemblage vit ici, testé par la vue entière au banc.
  */
-final class FrameAssembler {
+public final class FrameAssembler  {
 
-    private final EditorView vue;
+    private final EditorAccess acces;
 
-    FrameAssembler(EditorView vue) {
-        this.vue = vue;
+    public FrameAssembler(EditorAccess acces) {
+        this.acces = acces;
     }
 
     /**
@@ -33,19 +40,19 @@ final class FrameAssembler {
      *
      * @param canvas le canvas de l'image
      */
-    void draw(android.graphics.Canvas canvas) {
-        if (vue.magnifier.active()) {
-            Canvas toile = vue.magnifier.toileDe(vue.getWidth(), vue.getHeight());
+    public void draw(android.graphics.Canvas canvas) {
+        if (acces.magnifier().active()) {
+            Canvas toile = acces.magnifier().toileDe(acces.getWidth(), acces.getHeight());
             if (toile != null) {
                 // la photographie : la frame s'y rend entière, la vue
                 // reçoit la photographie pleine — puis la bulle y sert
                 // sa zone agrandie, au-dessus du doigt
                 drawImage(toile);
                 android.graphics.Bitmap photographie =
-                        vue.magnifier.photographie();
+                        acces.magnifier().photographie();
                 canvas.drawBitmap(photographie, 0f, 0f, null);
-                vue.magnifier.trace(canvas, photographie, vue.theme,
-                        vue.getWidth(), vue.getHeight(), vue.densite());
+                acces.magnifier().trace(canvas, photographie, acces.theme(),
+                        acces.getWidth(), acces.getHeight(), acces.densite());
                 return;
             }
         }
@@ -54,18 +61,18 @@ final class FrameAssembler {
 
     /** Le corps de l'image, sur le canvas donné (vue ou photographie). */
     private void drawImage(android.graphics.Canvas canvas) {
-        canvas.drawColor(vue.theme.backgroundColor());
+        canvas.drawColor(acces.theme().backgroundColor());
         preparer();
-        vue.surface.attach(canvas);
-        vue.trace.drawFrame(vue.surface, vue.etatImage);
-        vue.diagnostics.surImageTracee();
-        vue.pinceauChrome.setFont(vue.metrics.font());
-        vue.chrome.trace(vue.surface, vue.pinceauChrome, vue.theme,
-                vue.metrics, vue.etatImage.document(),
-                vue.projection, vue.session.selection().ranges(),
-                vue.largeurGouttiere, vue.scrollX, vue.scrollY,
-                vue.curseurClavier.visible());
-        vue.surface.detach();
+        acces.surface().attach(canvas);
+        acces.trace().drawFrame(acces.surface(), acces.etatImage());
+        acces.diagnostics().surImageTracee();
+        acces.pinceauChrome().setFont(acces.metrics().font());
+        acces.chrome().trace(acces.surface(), acces.pinceauChrome(), acces.theme(),
+                acces.metrics(), acces.etatImage().document(),
+                acces.projection(), acces.session().selection().ranges(),
+                acces.largeurGouttiere(), acces.scrollX(), acces.scrollY(),
+                acces.curseurClavier().visible());
+        acces.surface().detach();
     }
 
     /**
@@ -80,7 +87,7 @@ final class FrameAssembler {
      *
      * @param scroll vrai pour rabattre aussi le défilement
      */
-    void reinitialiserScene(boolean scroll) {
+    public void reinitialiserScene(boolean scroll) {
         reinitialiserScene(scroll, null);
     }
 
@@ -96,21 +103,21 @@ final class FrameAssembler {
      * @param position la position restaurée de la session posée,
      *                 null pour la neutre (zéro, zéro)
      */
-    void reinitialiserScene(boolean scroll,
+    public void reinitialiserScene(boolean scroll,
             @org.jspecify.annotations.Nullable Position position) {
-        vue.revisionSuivie = Long.MIN_VALUE;
-        vue.gutterState.reinitialiser();
-        vue.diagnostics.reinitialiser();
+        acces.setRevisionSuivie(Long.MIN_VALUE);
+        acces.gutterState().reinitialiser();
+        acces.diagnostics().reinitialiser();
         if (scroll) {
             if (position != null) {
-                vue.scrollX = position.scrollX();
-                vue.scrollY = position.scrollY();
+                acces.setScrollX(position.scrollX());
+                acces.setScrollY(position.scrollY());
             } else {
-                vue.scrollX = 0f;
-                vue.scrollY = 0f;
+                acces.setScrollX(0f);
+                acces.setScrollY(0f);
             }
         }
-        vue.invalidate();
+        acces.invalidate();
     }
 
     /**
@@ -118,47 +125,47 @@ final class FrameAssembler {
      * (le cycle est cassé, PIEGE-25), suivi de révision, bornage du
      * défilement et fenêtre visible.
      */
-    void preparer() {
-        Document document = vue.session.document();
+    public void preparer() {
+        Document document = acces.session().document();
         // La gouttière ne dépend QUE de grandeurs stables : lignes du
         // document, métriques, densité et configuration de coulisse —
         // jamais de la projection visuelle ni d'un état d'analyse
         // (PIEGE-25). Le budget de colonnes la lit à l'image COURANTE.
-        vue.gutterState.setCoulisses(
-                vue.gutterMarks.lanes(vue.syntaxe.active()));
-        vue.largeurGouttiere = vue.gutterState.suivre(document.lineCount(),
-                vue.metrics.charWidth(), vue.densite(), vue.visibleNumbers);
+        acces.gutterState().setCoulisses(
+                acces.gutterMarks().lanes(acces.syntaxe().active()));
+        acces.setLargeurGouttiere(acces.gutterState().suivre(document.lineCount(),
+                acces.metrics().charWidth(), acces.densite(), acces.visibleNumbers()));
         suivreRevision(document);
-        float contentHeight = vue.projection.rowCount()
-                * vue.metrics.lineHeight();
-        vue.scrollY = ScrollGeometry.clamp(vue.scrollY, contentHeight,
-                vue.getHeight());
-        vue.scrollX = ScrollGeometry.clamp(vue.scrollX,
-                ScrollGeometry.contentWidth(vue.projection, vue.metrics),
-                ScrollGeometry.visibleWidth(vue.getWidth(),
-                        vue.largeurGouttiere));
-        int premiere = ScrollGeometry.firstRow(vue.scrollY,
-                vue.metrics.lineHeight());
-        int visibles = ScrollGeometry.visibleRows(vue.getHeight(),
-                vue.metrics.lineHeight());
-        vue.syntaxe.window(vue.projection, premiere, visibles);
-        vue.etatImage.beginFrame(document, vue.session.selection(),
-                vue.projection, document.revision(), vue.metrics, vue.theme,
-                premiere, visibles, vue.largeurGouttiere, vue.scrollX,
-                vue.scrollY, vue.getWidth());
+        float contentHeight = acces.projection().rowCount()
+                * acces.metrics().lineHeight();
+        acces.setScrollY(ScrollGeometry.clamp(acces.scrollY(), contentHeight,
+                acces.getHeight()));
+        acces.setScrollX(ScrollGeometry.clamp(acces.scrollX(),
+                ScrollGeometry.contentWidth(acces.projection(), acces.metrics()),
+                ScrollGeometry.visibleWidth(acces.getWidth(),
+                        acces.largeurGouttiere())));
+        int premiere = ScrollGeometry.firstRow(acces.scrollY(),
+                acces.metrics().lineHeight());
+        int visibles = ScrollGeometry.visibleRows(acces.getHeight(),
+                acces.metrics().lineHeight());
+        acces.syntaxe().window(acces.projection(), premiere, visibles);
+        acces.etatImage().beginFrame(document, acces.session().selection(),
+                acces.projection(), document.revision(), acces.metrics(), acces.theme(),
+                premiere, visibles, acces.largeurGouttiere(), acces.scrollX(),
+                acces.scrollY(), acces.getWidth());
         // L'attente de couleur (M7.5, §9) : une publication existe —
         // une rangée sans couleur se comptera comme décolorée.
-        vue.etatImage.awaitColor(vue.syntaxe.expectedColor());
+        acces.etatImage().awaitColor(acces.syntaxe().expectedColor());
         // L'avis de fenêtre (M7.5, §7) : les popups se repositionnent
         // au changement réel — le clignotement ne notifie jamais.
-        vue.window.review(vue.scrollX, vue.scrollY, vue.largeurGouttiere,
-                vue.metrics.charWidth(), vue.metrics.lineHeight(),
-                vue.projection.columns(), vue.getWidth(), vue.getHeight());
+        acces.window().review(acces.scrollX(), acces.scrollY(), acces.largeurGouttiere(),
+                acces.metrics().charWidth(), acces.metrics().lineHeight(),
+                acces.projection().columns(), acces.getWidth(), acces.getHeight());
         // Le préfetch de viewport (B-03) : la marge du viewport se
         // préchauffe au calme de 150 ms — chaque frame reprogramme au
         // viewport courant, le fling ne paie plus la mesure.
         if (visibles > 0) {
-            vue.prefetch.programmer(premiere, visibles);
+            acces.prefetch().programmer(premiere, visibles);
         }
     }
 
@@ -168,35 +175,35 @@ final class FrameAssembler {
      * du cache en place quand les plages seules changent (PIEGE-26).
      */
     private void suivreRevision(Document document) {
-        int colonnesVoulues = vue.retourALaLigne ? budgetColonnes() : 0;
+        int colonnesVoulues = acces.retourALaLigne() ? budgetColonnes() : 0;
         // La publication arrive sur le fil de travail : la source se
         // réhabille même à révision constante.
-        boolean recue = vue.publicationRecue;
+        boolean recue = acces.publicationRecue();
         if (recue) {
-            vue.publicationRecue = false;
+            acces.setPublicationRecue(false);
         }
-        if (recue || document.revision() != vue.revisionSuivie
-                || colonnesVoulues != vue.projection.columns()) {
-            if (document.revision() != vue.revisionSuivie) {
+        if (recue || document.revision() != acces.revisionSuivie()
+                || colonnesVoulues != acces.projection().columns()) {
+            if (document.revision() != acces.revisionSuivie()) {
                 splice(document);
             }
-            vue.revisionSuivie = document.revision();
+            acces.setRevisionSuivie(document.revision());
             // B-05 : la projection s'épisse quand seules les lignes
             // ont bougé (bornes propres, budget et plis inchangés) —
             // jamais un balayage complet des longueurs à chaque
             // frappe ; sinon la construction fraîche.
-            if (colonnesVoulues == vue.projection.columns()) {
-                vue.projection = vue.projection.splice(document,
-                        Math.max(0, vue.derniereEditionPremiereLigne),
-                        vue.derniereEditionDeltaLignes);
+            if (colonnesVoulues == acces.projection().columns()) {
+                acces.setProjection(acces.projection().splice(document,
+                        Math.max(0, acces.derniereEditionPremiereLigne()),
+                        acces.derniereEditionDeltaLignes()));
             } else {
-                vue.projection = new VisualProjection(document, vue.folds,
-                        colonnesVoulues);
+                acces.setProjection(new VisualProjection(document, acces.folds(),
+                        colonnesVoulues));
             }
-            RowSource habillee = vue.syntaxe.wrap(
-                    new DocumentRowSource(document, vue.projection, vue.metrics,
+            RowSource habillee = acces.syntaxe().wrap(
+                    new DocumentRowSource(document, acces.projection(), acces.metrics(),
                             colonnesVoulues), document);
-            vue.sourceLiee.set(habillee);
+            acces.sourceLiee().set(habillee);
             if (recue) {
                 // PIEGE-26 : la publication ne rejette pas les mesures —
                 // seules les rangées dont les plages ont changé se
@@ -205,11 +212,11 @@ final class FrameAssembler {
                 // le texte plié a pu changer d'une publication à
                 // l'autre.
                 if (habillee instanceof FoldedRowSource composee) {
-                    vue.cache.respan(document.revision(), composee::respan);
+                    acces.cache().respan(document.revision(), composee::respan);
                 } else if (habillee instanceof SyntaxRowSource coloree) {
-                    vue.cache.respan(document.revision(), coloree::respan);
+                    acces.cache().respan(document.revision(), coloree::respan);
                 } else {
-                    vue.cache.invalidate(document.revision());
+                    acces.cache().invalidate(document.revision());
                 }
             }
         }
@@ -226,12 +233,12 @@ final class FrameAssembler {
      * voie sûre — jamais une épissure aux bornes faussées.
      */
     private void splice(Document document) {
-        int premiereLigne = vue.derniereEditionPremiereLigne;
-        int deltaLignes = vue.derniereEditionDeltaLignes;
+        int premiereLigne = acces.derniereEditionPremiereLigne();
+        int deltaLignes = acces.derniereEditionDeltaLignes();
         // Une seule édition continue, bornes propres : épisser. Le
         // décalage de lignes doit réconcilier les deux documents.
         if (premiereLigne >= 0 && premiereLigne != Integer.MAX_VALUE
-                && vue.projection.lineCount() + deltaLignes
+                && acces.projection().lineCount() + deltaLignes
                         == document.lineCount()) {
             // La zone morte couvre les lignes touchées : de la
             // première ligne de l'édition à la première ligne
@@ -245,13 +252,13 @@ final class FrameAssembler {
             // MaClasse { » invisible après la remontée du caret).
             // Une insertion ne touche que la ligne coupée — toutes
             // ses tranches meurent sous coupure.
-            int premiereRangee = vue.projection.rowOfLine(premiereLigne);
+            int premiereRangee = acces.projection().rowOfLine(premiereLigne);
             int ligneApresZone = Math.min(
                     premiereLigne + 1 + Math.max(0, -deltaLignes),
-                    vue.projection.lineCount());
-            int rangeeFinZone = ligneApresZone == vue.projection.lineCount()
-                    ? vue.projection.rowCount()
-                    : vue.projection.rowOfLine(ligneApresZone);
+                    acces.projection().lineCount());
+            int rangeeFinZone = ligneApresZone == acces.projection().lineCount()
+                    ? acces.projection().rowCount()
+                    : acces.projection().rowOfLine(ligneApresZone);
             int rangeesMortes = Math.max(1, rangeeFinZone - premiereRangee);
             // Le décalage de rangées : sous coupure, chaque ligne
             // ajoutée ajoute ses tranches — le nombre de rangées de
@@ -259,24 +266,24 @@ final class FrameAssembler {
             // pas se lire avant la reconstruction ; le décalage sûr
             // est le delta de lignes (une rangée par ligne sans
             // coupure ; sous coupure la re-mesure rattrape).
-            vue.cache.splice(vue.revisionSuivie, document.revision(),
+            acces.cache().splice(acces.revisionSuivie(), document.revision(),
                     premiereRangee, rangeesMortes, deltaLignes,
                     deltaLignes);
         } else {
-            vue.cache.invalidate(vue.revisionSuivie);
+            acces.cache().invalidate(acces.revisionSuivie());
         }
-        vue.derniereEditionPremiereLigne = Integer.MAX_VALUE;
-        vue.derniereEditionDeltaLignes = 0;
+        acces.setDerniereEditionPremiereLigne(Integer.MAX_VALUE);
+        acces.setDerniereEditionDeltaLignes(0);
     }
 
     /** Le budget de colonnes de la fenêtre, au moins une colonne (PIEGE-08). */
     private int budgetColonnes() {
-        float disponible = vue.getWidth() - vue.largeurGouttiere
-                - Math.round(EditorView.MARGE_RETOUR_DP * vue.densite());
-        if (disponible <= 0f || vue.metrics.charWidth() <= 0f) {
+        float disponible = acces.getWidth() - acces.largeurGouttiere()
+                - Math.round(EditorAccess.MARGE_RETOUR_DP * acces.densite());
+        if (disponible <= 0f || acces.metrics().charWidth() <= 0f) {
             return 1;
         }
         return Math.max(1, (int) Math.floor(disponible
-                / vue.metrics.charWidth()));
+                / acces.metrics().charWidth()));
     }
 }

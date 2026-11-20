@@ -1,7 +1,11 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.input;
 
 import jo.celeris.android.view.internal.model.IdentifierBounds;
 import android.view.MotionEvent;
+import jo.celeris.android.view.ScrollGeometry;
+import jo.celeris.android.view.SelectionHandles;
+import jo.celeris.android.view.internal.access.EditorAccess;
+import jo.celeris.android.view.internal.accessibility.AccessibilityHost;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -29,7 +33,7 @@ import jo.celeris.core.text.SelRange;
  * armement long — vit ici, la vue reste la racine de composition et le
  * clavier et le curseur passent par {@link KeyboardCursor}.</p>
  */
-final class EditorKeys {
+public final class EditorKeys  {
 
     /**
      * Le seuil de tap, en pixels : le geste qui s'éloigne du point de
@@ -44,7 +48,7 @@ final class EditorKeys {
      */
     private static final long DOUBLE_TAP_GAP_MS = 300L;
 
-    private final EditorView vue;
+    private final EditorAccess acces;
 
     private float dernierX;
     private float dernierY;
@@ -78,8 +82,8 @@ final class EditorKeys {
      *
      * @param vue la vue propriétaire des gestes
      */
-    EditorKeys(EditorView vue) {
-        this.vue = vue;
+    public EditorKeys(EditorAccess acces) {
+        this.acces = acces;
     }
 
     /** La poignée tirée, None hors glissement (accès paquet, tests). */
@@ -97,10 +101,10 @@ final class EditorKeys {
      * @param inconnu le traitement de la vue pour l'action inconnue
      * @return vrai si l'événement est consommé
      */
-    boolean router(MotionEvent event, Predicate<MotionEvent> inconnu) {
+    public boolean router(MotionEvent event, Predicate<MotionEvent> inconnu) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                if (vue.ghost.touche(event.getX(), event.getY())) {
+                if (acces.ghost().touche(event.getX(), event.getY())) {
                     return true;
                 }
                 return surAppui(event);
@@ -112,7 +116,7 @@ final class EditorKeys {
                 return surDoigtLeve();
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                vue.performClick();
+                acces.performClick();
                 return surRelachement(event);
             default:
                 return inconnu.test(event);
@@ -128,15 +132,15 @@ final class EditorKeys {
      * jamais il ne déclenche l'IME. Un geste précédent non conclu se
      * referme ici : l'armement long ne survit jamais à un nouvel appui.
      */
-    boolean surAppui(MotionEvent event) {
+    public boolean surAppui(MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
         fingerDown = true;
         scroll = false;
         panoramique = false;
         armeLong = false;
-        vue.magnifier.cesser();
-        vue.glissement.up();
+        acces.magnifier().cesser();
+        acces.glissement().up();
         departX = dernierX = x;
         departY = dernierY = y;
         SelectionHandles.HandleId poignee = poigneeVisee(x, y);
@@ -159,45 +163,45 @@ final class EditorKeys {
      * « ajouter un curseur » se retire, la barre de sélection du dépôt
      * de départ l'offre à la place).
      */
-    void surAppuiLong(float x, float y) {
-        if (x < vue.largeurGouttiere) {
+    public void surAppuiLong(float x, float y) {
+        if (x < acces.largeurGouttiere()) {
             // le point d'arrêt vit à l'appui long de gouttière (D-04) :
             // la ligne visée part à l'hôte, le geste se consomme sans
             // toucher au curseur ni au clavier
-            int rangee = ScrollGeometry.firstRow(vue.scrollY + y,
-                    vue.metrics.lineHeight());
-            vue.rappels.notifierBasculeBreakpoint(
-                    vue.projection.firstLineOfRow(rangee));
+            int rangee = ScrollGeometry.firstRow(acces.scrollY() + y,
+                    acces.metrics().lineHeight());
+            acces.rappels().notifierBasculeBreakpoint(
+                    acces.projection().firstLineOfRow(rangee));
             armeLong = true;
             return;
         }
         int offset = offsetAt(x, y);
         IdentifierBounds.Around mot = IdentifierBounds.around(
-                vue.session.document(), offset);
+                acces.session().document(), offset);
         motDebut = mot.start();
         motFin = mot.end();
         offsetAppuiLong = offset;
         if (motFin > motDebut) {
-            vue.session.setSelection(MultiSelection.of(
+            acces.session().setSelection(MultiSelection.of(
                     new SelRange(motDebut, motFin)));
         } else {
-            vue.session.setSelection(MultiSelection.of(
+            acces.session().setSelection(MultiSelection.of(
                     SelRange.caretAt(motDebut)));
         }
         armeLong = true;
-        vue.curseurClavier.masquerClavier();
-        vue.curseurClavier.annoncerSelection();
-        vue.invalidate();
+        acces.curseurClavier().masquerClavier();
+        acces.curseurClavier().annoncerSelection();
+        acces.invalidate();
     }
 
     /** Le second doigt se pose : le panoramique s'arme, le glissement
      *  lâche — la loupe se referme (le geste à deux doigts ne règle rien). */
     boolean surDoigtPose(MotionEvent event) {
         if (event.getPointerCount() >= 2) {
-            vue.magnifier.cesser();
+            acces.magnifier().cesser();
             panoramique = true;
             scroll = false;
-            vue.glissement.up();
+            acces.glissement().up();
             dernierX = event.getX();
             dernierY = event.getY();
         }
@@ -215,40 +219,40 @@ final class EditorKeys {
      * doigt y vit, le mot reste sélectionné tel quel.
      */
     boolean surDeplacement(MotionEvent event) {
-        if (vue.zoom.actif()) {
+        if (acces.zoom().actif()) {
             return true;
         }
         if (panoramique && event.getPointerCount() >= 2) {
             float contentHeight =
-                    vue.projection.rowCount() * vue.metrics.lineHeight();
-            vue.scrollY = ScrollGeometry.clamp(
-                    vue.scrollY + dernierY - event.getY(),
-                    contentHeight, vue.getHeight());
-            vue.scrollX = ScrollGeometry.clamp(
-                    vue.scrollX + dernierX - event.getX(),
-                    ScrollGeometry.contentWidth(vue.projection, vue.metrics),
-                    ScrollGeometry.visibleWidth(vue.getWidth(),
-                            vue.largeurGouttiere));
+                    acces.projection().rowCount() * acces.metrics().lineHeight();
+            acces.setScrollY(ScrollGeometry.clamp(
+                    acces.scrollY() + dernierY - event.getY(),
+                    contentHeight, acces.getHeight()));
+            acces.setScrollX(ScrollGeometry.clamp(
+                    acces.scrollX() + dernierX - event.getX(),
+                    ScrollGeometry.contentWidth(acces.projection(), acces.metrics()),
+                    ScrollGeometry.visibleWidth(acces.getWidth(),
+                            acces.largeurGouttiere())));
             dernierX = event.getX();
             dernierY = event.getY();
-            vue.invalidate();
+            acces.invalidate();
             return true;
         }
         if (poigneeTiree != SelectionHandles.HandleId.NONE) {
             pullHandle(event.getX(), event.getY());
             return true;
         }
-        if (armeLong && !vue.glissement.isActive()) {
+        if (armeLong && !acces.glissement().isActive()) {
             armerAncre(offsetAt(event.getX(), event.getY()));
         }
-        if (vue.glissement.isActive()) {
+        if (acces.glissement().isActive()) {
             // la loupe suit le dragage de sélection (D-16) : le texte
             // sous le doigt s'agrandit au-dessus — le réglage se voit
             followMagnifier(event);
-            vue.session.setSelection(MultiSelection.of(
-                    vue.glissement.dragTo(
+            acces.session().setSelection(MultiSelection.of(
+                    acces.glissement().dragTo(
                             offsetAt(event.getX(), event.getY()))));
-            vue.invalidate();
+            acces.invalidate();
             return true;
         }
         return onOneFingerMove(event);
@@ -257,12 +261,12 @@ final class EditorKeys {
     /** Le doigt levé : le panoramique s'arrête, le glissement lâche. */
     boolean surDoigtLeve() {
         panoramique = false;
-        vue.glissement.up();
+        acces.glissement().up();
         return true;
     }
 
     /** Coupe le panoramique : le pincement engage prend la main (D-15). */
-    void couperPanoramique() {
+    public void couperPanoramique() {
         panoramique = false;
     }
 
@@ -279,18 +283,18 @@ final class EditorKeys {
         }
         if (scroll) {
             float contentHeight =
-                    vue.projection.rowCount() * vue.metrics.lineHeight();
-            vue.scrollY = ScrollGeometry.clamp(
-                    vue.scrollY + dernierY - event.getY(),
-                    contentHeight, vue.getHeight());
-            vue.scrollX = ScrollGeometry.clamp(
-                    vue.scrollX + dernierX - event.getX(),
-                    ScrollGeometry.contentWidth(vue.projection, vue.metrics),
-                    ScrollGeometry.visibleWidth(vue.getWidth(),
-                            vue.largeurGouttiere));
+                    acces.projection().rowCount() * acces.metrics().lineHeight();
+            acces.setScrollY(ScrollGeometry.clamp(
+                    acces.scrollY() + dernierY - event.getY(),
+                    contentHeight, acces.getHeight()));
+            acces.setScrollX(ScrollGeometry.clamp(
+                    acces.scrollX() + dernierX - event.getX(),
+                    ScrollGeometry.contentWidth(acces.projection(), acces.metrics()),
+                    ScrollGeometry.visibleWidth(acces.getWidth(),
+                            acces.largeurGouttiere())));
             dernierX = event.getX();
             dernierY = event.getY();
-            vue.invalidate();
+            acces.invalidate();
         }
         return true;
     }
@@ -311,11 +315,11 @@ final class EditorKeys {
      */
     private void armerAncre(int offsetDoigt) {
         if (motFin <= motDebut) {
-            vue.glissement.down(offsetAppuiLong);
+            acces.glissement().down(offsetAppuiLong);
         } else if (offsetDoigt >= motFin) {
-            vue.glissement.down(motDebut, motDebut, motFin);
+            acces.glissement().down(motDebut, motDebut, motFin);
         } else if (offsetDoigt <= motDebut) {
-            vue.glissement.down(motFin, motDebut, motFin);
+            acces.glissement().down(motFin, motDebut, motFin);
         }
     }
 
@@ -327,7 +331,7 @@ final class EditorKeys {
      * conclut sans rien armer. L'annulation du geste (CANCEL) conclut
      * sans résoudre : le geste n'a jamais eu lieu.
      */
-    boolean surRelachement(MotionEvent event) {
+    public boolean surRelachement(MotionEvent event) {
         boolean annulation = event.getActionMasked() == MotionEvent.ACTION_CANCEL;
         boolean tap = !annulation && fingerDown && !scroll && !armeLong
                 && poigneeTiree == SelectionHandles.HandleId.NONE
@@ -339,10 +343,10 @@ final class EditorKeys {
         panoramique = false;
         armeLong = false;
         poigneeTiree = SelectionHandles.HandleId.NONE;
-        vue.magnifier.cesser();
-        vue.glissement.up();
+        acces.magnifier().cesser();
+        acces.glissement().up();
         if (tap) {
-            if (doubleTapRapproche(event) && vue.rappels.notifierDoubleTap(
+            if (doubleTapRapproche(event) && acces.rappels().notifierDoubleTap(
                     offsetAt(event.getX(), event.getY()))) {
                 // l'hôte consomme le geste : la cascade du tap simple ne
                 // suit pas — le curseur ne bouge pas, le clavier ne s'arme pas
@@ -380,46 +384,46 @@ final class EditorKeys {
      * pose du curseur au point touché, qui seule ouvre le clavier.
      */
     private void resoudreTap(float x, float y) {
-        float lane = vue.gutterState.currentLane();
-        float foldBand = vue.gutterState.currentFoldBand();
-        if (vue.syntaxe.toggleFoldAt(x, y, vue.scrollY,
-                vue.metrics.lineHeight(), vue.largeurGouttiere, foldBand,
-                vue.projection)) {
+        float lane = acces.gutterState().currentLane();
+        float foldBand = acces.gutterState().currentFoldBand();
+        if (acces.syntaxe().toggleFoldAt(x, y, acces.scrollY(),
+                acces.metrics().lineHeight(), acces.largeurGouttiere(), foldBand,
+                acces.projection())) {
             // PIEGE-02 : le pli change le SENS des rangées sans toucher
             // la révision du document — la rangée 12 après le repli n'est
             // plus la rangée 12 d'avant, et aucune composante de clé ne
             // signe l'état des plis. Le cache des mises en page
             // s'oublie ENTIER, sinon les rangées sous le pli
             // resserviraient le texte périmé d'avant le repli.
-            vue.cache.clear();
-            vue.invalidate();
+            acces.cache().clear();
+            acces.invalidate();
             return;
         }
         // l'ampoule d'intentions PRIME dans la coulisse — son tap rend
         // la ligne à l'hôte, qui y ouvre le menu des intentions
-        if (vue.gutterMarks.surAppuiAmpoule(x, y, lane,
-                vue.scrollY, vue.metrics.lineHeight(), vue.projection)) {
+        if (acces.gutterMarks().surAppuiAmpoule(x, y, lane,
+                acces.scrollY(), acces.metrics().lineHeight(), acces.projection())) {
             return;
         }
-        if (vue.gutterMarks.onMarkPress(x, y, lane,
-                vue.scrollY, vue.metrics.lineHeight(), vue.projection)) {
+        if (acces.gutterMarks().onMarkPress(x, y, lane,
+                acces.scrollY(), acces.metrics().lineHeight(), acces.projection())) {
             return;
         }
-        if (vue.gutterMarks.surAppui(x, y, vue.largeurGouttiere,
-                lane, foldBand, vue.scrollY, vue.metrics.lineHeight(),
-                vue.projection)) {
+        if (acces.gutterMarks().surAppui(x, y, acces.largeurGouttiere(),
+                lane, foldBand, acces.scrollY(), acces.metrics().lineHeight(),
+                acces.projection())) {
             return;
         }
         int offset = offsetAt(x, y);
-        vue.session.setSelection(
+        acces.session().setSelection(
                 MultiSelection.of(SelRange.caretAt(offset)));
-        vue.curseurClavier.annoncerSelection();
-        vue.curseurClavier.surAppui();
-        vue.invalidate();
+        acces.curseurClavier().annoncerSelection();
+        acces.curseurClavier().surAppui();
+        acces.invalidate();
     }
 
     private void pullHandle(float x, float y) {
-        List<SelRange> ranges = vue.session.selection().ranges();
+        List<SelRange> ranges = acces.session().selection().ranges();
         if (ranges.size() != 1) {
             poigneeTiree = SelectionHandles.HandleId.NONE;
             return;
@@ -427,9 +431,9 @@ final class EditorKeys {
         // la loupe suit la poignée tirée (D-16, le dépôt de départ) :
         // l'extrémité réglée s'agrandit au-dessus du doigt
         followMagnifier(x, y);
-        vue.session.setSelection(MultiSelection.of(SelectionHandles.dragged(
+        acces.session().setSelection(MultiSelection.of(SelectionHandles.dragged(
                 ranges.get(0), poigneeTiree, offsetAt(x, y))));
-        vue.invalidate();
+        acces.invalidate();
     }
 
     /**
@@ -448,27 +452,27 @@ final class EditorKeys {
      * le doigt y passe, l'amortissement vit dans la loupe.
      */
     private void followMagnifier(float x, float y) {
-        int rangee = ScrollGeometry.firstRow(vue.scrollY + y,
-                vue.metrics.lineHeight());
-        float centreRangee = rangee * vue.metrics.lineHeight()
-                + vue.metrics.lineHeight() / 2f - vue.scrollY;
-        vue.magnifier.suivre(x, centreRangee);
+        int rangee = ScrollGeometry.firstRow(acces.scrollY() + y,
+                acces.metrics().lineHeight());
+        float centreRangee = rangee * acces.metrics().lineHeight()
+                + acces.metrics().lineHeight() / 2f - acces.scrollY();
+        acces.magnifier().suivre(x, centreRangee);
     }
 
     private SelectionHandles.HandleId poigneeVisee(float x, float y) {
-        List<SelRange> ranges = vue.session.selection().ranges();
+        List<SelRange> ranges = acces.session().selection().ranges();
         if (ranges.size() != 1 || ranges.get(0).isEmpty()) {
             return SelectionHandles.HandleId.NONE;
         }
-        return SelectionHandles.hitTest(x, y, vue.largeurGouttiere,
-                vue.scrollX, vue.scrollY, vue.session.document(),
-                vue.projection, vue.metrics, ranges.get(0).start(),
+        return SelectionHandles.hitTest(x, y, acces.largeurGouttiere(),
+                acces.scrollX(), acces.scrollY(), acces.session().document(),
+                acces.projection(), acces.metrics(), ranges.get(0).start(),
                 ranges.get(0).end());
     }
 
     private int offsetAt(float x, float y) {
-        return vue.viseur.offsetAt(vue.session.document(), vue.projection,
-                vue.metrics, vue.largeurGouttiere, vue.scrollX, vue.scrollY,
+        return acces.viseur().offsetAt(acces.session().document(), acces.projection(),
+                acces.metrics(), acces.largeurGouttiere(), acces.scrollX(), acces.scrollY(),
                 x, y);
     }
 }

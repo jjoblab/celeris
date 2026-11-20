@@ -136,6 +136,9 @@ range les familles de collaboration serrée :
 | --- | --- |
 | `jo.celeris.android.view.internal` | les parcs d'état par session (moteurs d'analyse, mises en page, positions de défilement) et l'avis de fenêtre |
 | `jo.celeris.android.view.internal.{paint,gutter,exec,model,viewport}` | peintres internes, collaborateur de gouttière, exécuteurs d'analyse, modèles de calcul, registre d'écouteurs |
+| `jo.celeris.android.view.internal.{input,gestures,frame,caret,accessibility,diagnostics,fonts}` | les familles couplées à la vue (P7) : clavier, gestes, assemblage d'image, ancres, accessibilité, diagnostics, polices |
+| `jo.celeris.android.view.internal.access` | le pont `EditorAccess` : la surface exacte que les familles touchent de la vue |
+| `jo.celeris.android.widgets.internal` | les superclasses des popups (P8) : PopupPanel, TextRowsPopup, Feuille, NavigationEtages |
 | `jo.celeris.core.intelligence.internal.{structure,flow,scan}` | vocabulaire des analyses  : structures, flot de données, balayage d'identifiants |
 | `jo.celeris.core.text.internal.{bidi,segmentation}` | passes UAX#9 et UAX#29 |
 

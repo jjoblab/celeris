@@ -3,6 +3,8 @@ package jo.celeris.android.widgets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import jo.celeris.android.widgets.internal.PopupPanel;
+
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -37,17 +39,17 @@ public class PopupPanelTest {
         }
 
         @Override
-        void drawContent(Canvas canvas) {
+    public     void drawContent(Canvas canvas) {
             // rien à tracer — la géométrie seule intéresse le banc
         }
 
         @Override
-        int contentWidth() {
+    public     int contentWidth() {
             return LARGEUR;
         }
 
         @Override
-        int contentHeight() {
+    public     int contentHeight() {
             return HEIGHT;
         }
     }

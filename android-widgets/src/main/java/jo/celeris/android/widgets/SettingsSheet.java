@@ -3,6 +3,7 @@ package jo.celeris.android.widgets;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import jo.celeris.android.widgets.internal.PopupPanel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +79,7 @@ public final class SettingsSheet extends PopupPanel {
     }
 
     @Override
-    void drawContent(Canvas canvas) {
+    public void drawContent(Canvas canvas) {
         for (int i = 0; i < interrupteurs.size(); i++) {
             drawRow(canvas, interrupteurs.get(i), i);
         }
@@ -92,7 +93,7 @@ public final class SettingsSheet extends PopupPanel {
         if (pressee == index) {
             bandPaint().setColor(palette.selection());
             canvas.drawRect(-paddingPx + 1f, haut,
-                    contentWidth() + paddingPx - 1f, haut + rangeePx,
+    contentWidth() + paddingPx - 1f, haut + rangeePx,
                     bandPaint());
         }
         textPaint().setTextSize(textSize(PopupTokens.TEXTE_TITRE));
@@ -112,7 +113,7 @@ public final class SettingsSheet extends PopupPanel {
         }
         canvas.drawText(inter.label(), x, line, textPaint());
         drawSwitch(canvas, inter.ouvert(),
-                contentWidth() - glissierePx,
+    contentWidth() - glissierePx,
                 haut + (rangeePx - hauteurGlissierePx) / 2f);
     }
 
@@ -134,7 +135,7 @@ public final class SettingsSheet extends PopupPanel {
     }
 
     @Override
-    int contentWidth() {
+    public int contentWidth() {
         float width = 0f;
         float densite = getResources().getDisplayMetrics().density;
         for (Interrupteur inter : interrupteurs) {
@@ -150,7 +151,7 @@ public final class SettingsSheet extends PopupPanel {
     }
 
     @Override
-    int contentHeight() {
+    public int contentHeight() {
         return Math.round(interrupteurs.size() * rangeePx);
     }
 

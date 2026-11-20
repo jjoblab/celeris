@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import jo.celeris.android.widgets.internal.PopupPanel;
+
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -39,17 +41,17 @@ public class PopupLayerReposeTest {
         }
 
         @Override
-        void drawContent(Canvas canvas) {
+    public     void drawContent(Canvas canvas) {
             // rien à tracer — la possession seule intéresse le banc
         }
 
         @Override
-        int contentWidth() {
+    public     int contentWidth() {
             return LARGEUR;
         }
 
         @Override
-        int contentHeight() {
+    public     int contentHeight() {
             return HEIGHT;
         }
     }

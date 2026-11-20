@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.view.MotionEvent;
+import jo.celeris.android.widgets.internal.PopupPanel;
 
 import java.util.List;
 import java.util.function.IntConsumer;
@@ -126,14 +127,14 @@ public final class CompletionListView extends PopupPanel implements KeyboardPopu
     }
 
     @Override
-    void drawContent(Canvas canvas) {
+    public void drawContent(Canvas canvas) {
         int visibles = Math.min(candidats.size(), montres);
         for (int i = 0; i < visibles; i++) {
             float haut = i * rangeePx;
             if (i == highlighted) {
                 bandPaint().setColor(palette.selection());
                 canvas.drawRect(-paddingPx + 1f, haut,
-                        contentWidth() + paddingPx - 1f, haut + rangeePx,
+                         contentWidth() + paddingPx - 1f, haut + rangeePx,
                         bandPaint());
             }
             drawRow(canvas, candidats.get(i), haut);
@@ -262,7 +263,7 @@ public final class CompletionListView extends PopupPanel implements KeyboardPopu
     }
 
     @Override
-    int contentWidth() {
+    public int contentWidth() {
         float width = 0f;
         for (Candidat candidat : candidats) {
             textPaint().setTextSize(textSize(PopupTokens.TEXTE_TITRE));
@@ -283,7 +284,7 @@ public final class CompletionListView extends PopupPanel implements KeyboardPopu
     }
 
     @Override
-    int contentHeight() {
+    public int contentHeight() {
         return Math.round(Math.min(candidats.size(), montres) * rangeePx);
     }
 

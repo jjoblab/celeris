@@ -1,9 +1,12 @@
-package jo.celeris.android.widgets;
+package jo.celeris.android.widgets.internal;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.view.MotionEvent;
+import jo.celeris.android.widgets.IconeAction;
+import jo.celeris.android.widgets.PopupPalette;
+import jo.celeris.android.widgets.PopupTokens;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +25,10 @@ import org.jspecify.annotations.Nullable;
  * devant la rangée qui l'arme. L'appui sur une rangée prévient l'hôte
  * : la sélection d'un candidat ou d'une intention.
  */
-abstract class TextRowsPopup extends PopupPanel {
+public abstract class TextRowsPopup  extends PopupPanel {
 
     /** Les paliers typographiques d'une rangée (l'échelle du kit). */
-    protected enum Tier {
+    public enum Tier  {
         /** Titre de carte / libellé principal. */
         TITRE,
         /** Corps de texte. */
@@ -56,44 +59,44 @@ abstract class TextRowsPopup extends PopupPanel {
      * départ : une section en petites capitales muettes ne se prend
      * pas — elle sert les rangées qui la suivent).
      */
-    protected record Row(String text, int ink, Tier tier, boolean teintee,
+    public record Row (String text, int ink, Tier tier, boolean teintee,
             boolean filetAvant, int retrait, IconeAction picto,
             boolean enTete) {
 
-        static Row of(String text) {
+        public static Row of(String text) {
             return new Row(text, -1, Tier.CORPS, false, false, 0, null, false);
         }
 
-        static Row of(String text, int ink) {
+        public static Row of(String text, int ink) {
             return new Row(text, ink, Tier.CORPS, false, false, 0, null, false);
         }
 
         /** Une rangée à palier explicite. */
-        static Row tier(String text, int ink, Tier tier) {
+        public static Row tier(String text, int ink, Tier tier) {
             return new Row(text, ink, tier, false, false, 0, null, false);
         }
 
         /** Une rangée d'action à palier titre et pictogramme propre —
          *  les menus y posent le glyphe de leur action, jamais la
          *  même pour toutes (l'audit du 2026-11-14). */
-        static Row action(String text, int ink, IconeAction picto) {
+        public static Row action(String text, int ink, IconeAction picto) {
             return new Row(text, ink, Tier.TITRE, false, false, 0, picto,
                     false);
         }
 
         /** Une rangée sur bande teintée douce (le motif signature). */
-        static Row teintee(String text, int ink, Tier tier) {
+        public static Row teintee(String text, int ink, Tier tier) {
             return new Row(text, ink, tier, true, false, 0, null, false);
         }
 
         /** Une rangée indentée (le motif PARAM du dépôt de départ). */
-        static Row indentee(String text, int ink, Tier tier) {
+        public static Row indentee(String text, int ink, Tier tier) {
             return new Row(text, ink, tier, false, false, 1, null, false);
         }
 
         /** Une rangée d'arbre — une respiration par PROFONDEUR : la
          *  branche s'y creuse, le sommet racine vit à découvert. */
-        static Row arbre(String text, int ink, Tier tier, int profondeur) {
+        public static Row arbre(String text, int ink, Tier tier, int profondeur) {
             return new Row(text, ink, tier, false, false,
                     Math.max(0, profondeur), null, false);
         }
@@ -103,12 +106,12 @@ abstract class TextRowsPopup extends PopupPanel {
          * capitales à l'encre muette, jamais cliquable — elle annonce
          * les rangées qui la suivent.
          */
-        static Row section(String text) {
+        public static Row section(String text) {
             return new Row(text, -2, Tier.MICRO, false, false, 0, null, true);
         }
 
         /** La même rangée, précédée d'un filet de séparation. */
-        static Row afterRule(Row rangee) {
+        public static Row afterRule(Row rangee) {
             return new Row(rangee.text(), rangee.ink(), rangee.tier(),
                     rangee.teintee(), true, rangee.retrait(),
                     rangee.picto(), rangee.enTete());
@@ -128,7 +131,7 @@ abstract class TextRowsPopup extends PopupPanel {
     private int highlighted = -1;
     private @Nullable IntConsumer onPick;
 
-    TextRowsPopup(Context context, PopupPalette palette) {
+    public TextRowsPopup(Context context, PopupPalette palette) {
         super(context, palette);
         float densite = getResources().getDisplayMetrics().density;
         this.gapPx = Math.round(PopupTokens.GAP_DP * densite);
@@ -137,7 +140,7 @@ abstract class TextRowsPopup extends PopupPanel {
     }
 
     /** Pose les rangées — le panneau se redimensionne et se redessine. */
-    protected final void setRows(List<Row> nouvelles) {
+    public final void setRows(List<Row> nouvelles) {
         rows.clear();
         rows.addAll(nouvelles);
         hauteurs.clear();
@@ -181,7 +184,7 @@ abstract class TextRowsPopup extends PopupPanel {
     }
 
     @Override
-    void drawContent(Canvas canvas) {
+    public void drawContent(Canvas canvas) {
         float y = 0f;
         for (int i = 0; i < rows.size(); i++) {
             Row rangee = rows.get(i);
@@ -257,7 +260,7 @@ abstract class TextRowsPopup extends PopupPanel {
     }
 
     @Override
-    int contentWidth() {
+    public int contentWidth() {
         float width = 0f;
         for (Row rangee : rows) {
             textPaint().setTextSize(textSize(facteurDe(rangee.tier())));
@@ -273,7 +276,7 @@ abstract class TextRowsPopup extends PopupPanel {
     }
 
     @Override
-    int contentHeight() {
+    public int contentHeight() {
         if (rows.isEmpty()) {
             return 0;
         }
@@ -288,7 +291,7 @@ abstract class TextRowsPopup extends PopupPanel {
     }
 
     /** Le nombre de rangées courantes — lisibilité des sous-classes. */
-    protected final int rowCount() {
+    public final int rowCount() {
         return rows.size();
     }
 
@@ -296,7 +299,7 @@ abstract class TextRowsPopup extends PopupPanel {
      * L'ordonnée du CENTRE de la rangée donnée, respirations comprises
      * — les bancs y visent leur appui.
      */
-    final float rowCenterY(int index) {
+    public final float rowCenterY(int index) {
         if (hauteurs.isEmpty()) {
             return paddingYPx;
         }
@@ -315,7 +318,7 @@ abstract class TextRowsPopup extends PopupPanel {
      *  explicite (les entiers négatifs des couleurs opaques comprises)
      *  n'est plus confondue avec les sentinelles. Les bancs y lisent
      *  la résolution sans passer par le rendu. */
-    final int inkOf(int encreRangee) {
+    public final int inkOf(int encreRangee) {
         if (encreRangee == -1) {
             return palette.text();
         }
@@ -325,7 +328,7 @@ abstract class TextRowsPopup extends PopupPanel {
     /** Le pictogramme de la rangée d'index donné, null hors contenu ou
      *  sur une rangée sans glyphe — les bancs y lisent les icônes
      *  propres sans passer par le rendu. */
-    protected final @Nullable IconeAction pictoDe(int index) {
+    public final @Nullable IconeAction pictoDe(int index) {
         if (index < 0 || index >= rows.size()) {
             return null;
         }

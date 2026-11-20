@@ -1,4 +1,4 @@
-package jo.celeris.android.widgets;
+package jo.celeris.android.widgets.internal;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
+import jo.celeris.android.widgets.PopupPalette;
+import jo.celeris.android.widgets.PopupTokens;
 
 import org.jspecify.annotations.Nullable;
 
@@ -38,7 +40,7 @@ import org.jspecify.annotations.Nullable;
  * dessiné hors couche reste STEADY, jamais un banc ne rend un voile à
  * demi.</p>
  */
-abstract class PopupPanel extends View {
+public abstract class PopupPanel  extends View {
 
     /** La durée de la naissance de la carte, en millisecondes (le
      *  tempo de l'IDE de référence — le pop resserré). */
@@ -71,13 +73,13 @@ abstract class PopupPanel extends View {
             new PathInterpolator(0.32f, 0.72f, 0f, 1f);
 
     /** La palette posée — l'hôte la dérive de son thème, le rafraîchissement la remplace. */
-    PopupPalette palette;
+    public PopupPalette palette;
     /** La respiration horizontale du panneau, en pixels. */
-    int paddingPx;
+    public int paddingPx;
     /** La respiration verticale d'une section, en pixels. */
-    int paddingYPx;
+    public int paddingYPx;
     /** La hauteur d'une rangée de corps, en pixels. */
-    int rowHeightPx;
+    public int rowHeightPx;
 
     private final Paint backgroundBrush = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pinceauLisere = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -88,7 +90,7 @@ abstract class PopupPanel extends View {
     private final RectF coins = new RectF();
     /** Le chemin de la carte — le clip arrondi du contenu (motif du dépôt de départ). */
     private final Path cheminCarte = new Path();
-    private final float densite;
+    private float densite;
     /** La naissance s'arme à la pose — l'horloge du dessin l'ouvre. */
     private boolean naissanceArmee;
     /** L'instant de la naissance, —1 hors entrée. */
@@ -102,7 +104,13 @@ abstract class PopupPanel extends View {
     /** Le retrait différé de la vue morte — la couche y passe. */
     private @Nullable Runnable retrait;
 
-    PopupPanel(Context context, PopupPalette palette) {
+    /** La densité de l'écran du panneau — accès des
+     *  sous-classes déplacées au racine. */
+    public float densite() {
+        return densite;
+    }
+
+    public PopupPanel(Context context, PopupPalette palette) {
         super(context, null);
         this.densite = getResources().getDisplayMetrics().density;
         setPalette(palette);
@@ -139,7 +147,7 @@ abstract class PopupPanel extends View {
     }
 
     /** La taille de texte d'un palier, en pixels. */
-    final float textSize(float tier) {
+    public final float textSize(float tier) {
         return palette.textBaseSp() * tier * densite
                 * getResources().getConfiguration().fontScale;
     }
@@ -150,17 +158,17 @@ abstract class PopupPanel extends View {
     }
 
     /** Le pinceau de texte du panneau — la couleur se pose par contenu. */
-    final Paint textPaint() {
+    public final Paint textPaint() {
         return pinceauTexte;
     }
 
     /** Le pinceau de remplissage des bandes et badges. */
-    final Paint bandPaint() {
+    public final Paint bandPaint() {
         return pinceauBande;
     }
 
     /** Le pinceau de trait des filets — hairline, couleur du liseré. */
-    final Paint linePaint() {
+    public final Paint linePaint() {
         return pinceauLisere;
     }
 
@@ -171,7 +179,7 @@ abstract class PopupPanel extends View {
      * @param canvas le canvas de la frame
      * @param y      l'ordonnée du filet, dans le repère du contenu
      */
-    final void traceRule(Canvas canvas, float y) {
+    public final void traceRule(Canvas canvas, float y) {
         pinceauLisere.setStrokeWidth(1f);
         canvas.drawLine(0f, y, contentWidth(), y, pinceauLisere);
     }
@@ -192,7 +200,7 @@ abstract class PopupPanel extends View {
      * la prochaine image ouvre l'horloge, la carte monte en voile.
      * Le panneau dessiné hors couche reste STEADY sans elle.
      */
-    void naissance() {
+    public void naissance() {
         naissanceArmee = true;
     }
 
@@ -202,7 +210,7 @@ abstract class PopupPanel extends View {
      *
      * @param retrait le retrait de la vue, à la fin du voile
      */
-    void mourir(Runnable retrait) {
+    public void mourir(Runnable retrait) {
         this.retrait = retrait;
         morteArmee = true;
         postInvalidateOnAnimation();
@@ -215,7 +223,7 @@ abstract class PopupPanel extends View {
      * MÊME vue à chaque frappe, jamais la carte vivante ne meurt de
      * sa re-pose).
      */
-    void annulerMort() {
+    public void annulerMort() {
         morteArmee = false;
         morteA = -1L;
         retrait = null;
@@ -225,7 +233,7 @@ abstract class PopupPanel extends View {
      * Vrai pendant la naissance ou la mort de la carte — le banc y lit
      * l'animation en cours, la couche y distingue le voile du steady.
      */
-    boolean voileEnCours() {
+    public boolean voileEnCours() {
         return naissanceArmee || naissanceA >= 0L
                 || morteArmee || morteA >= 0L;
     }
@@ -234,7 +242,7 @@ abstract class PopupPanel extends View {
      * Fige la naissance — le banc y passe : le panneau rendu hors
      * couche reste STEADY, la carte se dessine sans voile.
      */
-    void finirEntree() {
+    public void finirEntree() {
         naissanceArmee = false;
         naissanceA = -1L;
     }
@@ -355,20 +363,20 @@ abstract class PopupPanel extends View {
     }
 
     /** Dessine le contenu, origine translatée aux respirations comprises. */
-    abstract void drawContent(Canvas canvas);
+    public abstract void drawContent(Canvas canvas);
 
     /** La largeur de contenu mesurée, respirations EXCLUES. */
-    abstract int contentWidth();
+    public abstract int contentWidth();
 
     /** La hauteur de contenu mesurée, respirations EXCLUES. */
-    abstract int contentHeight();
+    public abstract int contentHeight();
 
     /**
      * Le rayon de la carte — la valeur du kit par défaut, la capsule
      * pour la barre de sélection (le dépôt de départ : la pilule prend
      * le rayon de sa hauteur).
      */
-    float rayonCartePx() {
+    public float rayonCartePx() {
         return PopupTokens.RAYON_CARTE_DP * densite;
     }
 

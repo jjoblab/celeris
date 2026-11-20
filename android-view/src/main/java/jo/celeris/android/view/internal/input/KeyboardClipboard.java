@@ -1,8 +1,10 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.input;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import jo.celeris.android.view.EditorAction;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 import java.util.List;
 
@@ -26,7 +28,7 @@ import jo.celeris.core.text.SelRange;
  * de sélection garde sa voie tactile propre — jamais deux sources de
  * vérité du presse-papiers.</p>
  */
-final class KeyboardClipboard {
+public final class KeyboardClipboard  {
 
     /** Le plafond des copies, en caractères (A-20 : TransactionTooLarge
      *  au-delà d'~1 Mo d'IPC ; le même plafond que la barre). */
@@ -41,11 +43,11 @@ final class KeyboardClipboard {
      * @param vue    la vue propriétaire de la session
      * @param action COPY, CUT ou PASTE
      */
-    static void servir(EditorView vue, EditorAction action) {
+    static void servir(EditorAccess acces, EditorAction action) {
         switch (action) {
-            case COPY -> copier(vue);
-            case CUT -> couper(vue);
-            case PASTE -> coller(vue);
+            case COPY -> copier(acces);
+            case CUT -> couper(acces);
+            case PASTE -> coller(acces);
             default -> {
             }
         }
@@ -54,32 +56,32 @@ final class KeyboardClipboard {
     /** Copie les segments de toutes les plages (C-13) : joints par
      *  saut de ligne, dans l'ordre du document — un seul curseur
      *  reproduit la copie simple, sans jointure parasite. */
-    private static void copier(EditorView vue) {
-        String joint = segmentsJoints(vue);
+    private static void copier(EditorAccess acces) {
+        String joint = segmentsJoints(acces);
         if (joint == null) {
             return;
         }
-        place(vue, joint);
+        place(acces, joint);
     }
 
     /** Coupe : copie les segments joints puis remplace chaque plage
      *  par le vide (C-13 : les DEUX gestes sont multi). */
-    private static void couper(EditorView vue) {
-        String joint = segmentsJoints(vue);
+    private static void couper(EditorAccess acces) {
+        String joint = segmentsJoints(acces);
         if (joint == null) {
             return;
         }
-        place(vue, joint);
-        vue.session().replaceEach(java.util.Collections.nCopies(
-                plagesEtendues(vue).size(), ""));
-        vue.invalidate();
+        place(acces, joint);
+        acces.session().replaceEach(java.util.Collections.nCopies(
+                plagesEtendues(acces).size(), ""));
+        acces.invalidate();
     }
 
     /** Les segments des plages ÉTENDUES, joints par \n — null si la
      *  sélection n'a aucune plage étendue (les curseurs seuls ne
      *  copient rien). */
-    private static String segmentsJoints(EditorView vue) {
-        List<SelRange> ranges = plagesEtendues(vue);
+    private static String segmentsJoints(EditorAccess acces) {
+        List<SelRange> ranges = plagesEtendues(acces);
         if (ranges.isEmpty()) {
             return null;
         }
@@ -88,7 +90,7 @@ final class KeyboardClipboard {
             if (joint.length() > 0) {
                 joint.append('\n');
             }
-            joint.append(vue.session().document().subText(
+            joint.append(acces.session().document().subText(
                     range.start(), range.end()));
         }
         return joint.toString();
@@ -96,9 +98,9 @@ final class KeyboardClipboard {
 
     /** Les plages étendues de la sélection (les curseurs réduits ne
      *  copient rien, ne coupent rien). */
-    private static List<SelRange> plagesEtendues(EditorView vue) {
+    private static List<SelRange> plagesEtendues(EditorAccess acces) {
         List<SelRange> etendues = new java.util.ArrayList<>();
-        for (SelRange range : vue.session().selection().ranges()) {
+        for (SelRange range : acces.session().selection().ranges()) {
             if (!range.isEmpty()) {
                 etendues.add(range);
             }
@@ -110,12 +112,12 @@ final class KeyboardClipboard {
      *  un clip à autant de LIGNES que de plages se distribue (ligne
      *  i sur plage i), sinon le clip entier se pose sur chaque
      *  plage — le multi-curseurs du dépôt de départ. */
-    private static void coller(EditorView vue) {
-        CharSequence text = read(vue);
+    private static void coller(EditorAccess acces) {
+        CharSequence text = read(acces);
         if (text == null) {
             return;
         }
-        List<SelRange> ranges = vue.session().selection().ranges();
+        List<SelRange> ranges = acces.session().selection().ranges();
         if (ranges.isEmpty()) {
             return;
         }
@@ -130,13 +132,13 @@ final class KeyboardClipboard {
             parts = java.util.Collections.nCopies(ranges.size(),
                     text.toString());
         }
-        vue.session().replaceEach(parts);
-        vue.invalidate();
+        acces.session().replaceEach(parts);
+        acces.invalidate();
     }
 
     /** Pose le texte au presse-papiers système, borné au plafond. */
-    private static void place(EditorView vue, String text) {
-        Object service = vue.getContext()
+    private static void place(EditorAccess acces, String text) {
+        Object service = acces.getContext()
                 .getSystemService(Context.CLIPBOARD_SERVICE);
         if (service instanceof ClipboardManager pressePapiers) {
             pressePapiers.setPrimaryClip(ClipData.newPlainText("celeris",
@@ -147,8 +149,8 @@ final class KeyboardClipboard {
     }
 
     /** Le texte du presse-papiers système, ou null (vide ou absent). */
-    private static CharSequence read(EditorView vue) {
-        Object service = vue.getContext()
+    private static CharSequence read(EditorAccess acces) {
+        Object service = acces.getContext()
                 .getSystemService(Context.CLIPBOARD_SERVICE);
         if (!(service instanceof ClipboardManager pressePapiers)) {
             return null;
@@ -157,6 +159,6 @@ final class KeyboardClipboard {
         if (contenu == null || contenu.getItemCount() == 0) {
             return null;
         }
-        return contenu.getItemAt(0).coerceToText(vue.getContext());
+        return contenu.getItemAt(0).coerceToText(acces.getContext());
     }
 }

@@ -1,9 +1,10 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.gestures;
 
 import android.content.Context;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 /**
  * Fabrique des détecteurs de gestes de la vue d'éditeur : la
@@ -13,7 +14,7 @@ import android.view.ScaleGestureDetector;
  * mot sous le doigt, clavier retiré ; pincement : zoom par paliers
  * D-15, point focal stable).
  */
-final class GesturesFactory {
+public final class GesturesFactory  {
 
     private GesturesFactory() {
     }
@@ -29,12 +30,12 @@ final class GesturesFactory {
      * @param vue     la vue propriétaire des gestes
      * @return le détecteur branché
      */
-    static GestureDetector appuisLongs(Context context, EditorView vue) {
+    public static GestureDetector appuisLongs(Context context, EditorAccess acces) {
         return new GestureDetector(context, new GestureDetector
                 .SimpleOnGestureListener() {
             @Override
             public void onLongPress(MotionEvent event) {
-                vue.touches.surAppuiLong(event.getX(), event.getY());
+                acces.touches().surAppuiLong(event.getX(), event.getY());
             }
         });
     }
@@ -49,24 +50,24 @@ final class GesturesFactory {
      * @param vue     la vue propriétaire du zoom
      * @return le détecteur branché
      */
-    static ScaleGestureDetector pincements(Context context, EditorView vue) {
+    public static ScaleGestureDetector pincements(Context context, EditorAccess acces) {
         return new ScaleGestureDetector(context,
                 new ScaleGestureDetector.SimpleOnScaleGestureListener() {
             @Override
             public boolean onScaleBegin(ScaleGestureDetector detector) {
-                vue.zoom.surEngagement(detector);
+                acces.zoom().surEngagement(detector);
                 return true;
             }
 
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
-                vue.zoom.surCran(detector);
+                acces.zoom().surCran(detector);
                 return true;
             }
 
             @Override
             public void onScaleEnd(ScaleGestureDetector detector) {
-                vue.zoom.surFin();
+                acces.zoom().surFin();
             }
         });
     }

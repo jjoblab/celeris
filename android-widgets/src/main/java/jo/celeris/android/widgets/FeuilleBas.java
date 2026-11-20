@@ -2,6 +2,7 @@ package jo.celeris.android.widgets;
 
 import android.content.Context;
 import android.view.Gravity;
+import jo.celeris.android.widgets.internal.Feuille;
 
 /**
  * La feuille du bas de l'ADR-018 : la surface fonctionnelle dense qui
@@ -31,23 +32,23 @@ public final class FeuilleBas extends Feuille {
     }
 
     @Override
-    int severity() {
+    public int severity() {
         return Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
     }
 
     @Override
-    float maxWidthDp() {
+    public float maxWidthDp() {
         return PopupTokens.BOTTOM_SHEET_MAX_WIDTH_DP;
     }
 
     @Override
-    float[] rayonsDp() {
+    public float[] rayonsDp() {
         float coin = PopupTokens.RAYON_FEUILLE_DP;
         return new float[]{coin, coin, coin, coin, 0f, 0f, 0f, 0f};
     }
 
     @Override
-    boolean coteBas() {
+    public boolean coteBas() {
         return true;
     }
 }

@@ -1,8 +1,12 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.input;
 
 import android.content.Context;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.inputmethod.InputMethodManager;
+import jo.celeris.android.view.CaretReveal;
+import jo.celeris.android.view.ScrollGeometry;
+import jo.celeris.android.view.internal.access.EditorAccess;
+import jo.celeris.android.view.internal.accessibility.AccessibilityHost;
 
 import java.util.List;
 
@@ -22,12 +26,12 @@ import jo.celeris.core.text.SelRange;
  * édition — la vue le lui dit par {@link #surAppui()} et
  * {@link #reveiller()}.</p>
  */
-final class KeyboardCursor {
+public final class KeyboardCursor  {
 
     /** La période de clignotement du curseur, en millisecondes. */
     private static final long PERIODE_CLIGNOTEMENT_MS = 530L;
 
-    private final EditorView vue;
+    private final EditorAccess acces;
     private final Runnable battement = this::surBattement;
     private boolean visible = true;
     /** Vrai tant que le clavier s'est vu demander de se montrer —
@@ -41,12 +45,12 @@ final class KeyboardCursor {
      *
      * @param vue la vue propriétaire du curseur et du clavier
      */
-    KeyboardCursor(EditorView vue) {
-        this.vue = vue;
+    public KeyboardCursor(EditorAccess acces) {
+        this.acces = acces;
     }
 
     /** L'état courant : vrai quand le curseur se trace à cette image. */
-    boolean visible() {
+    public boolean visible() {
         return visible;
     }
 
@@ -57,8 +61,8 @@ final class KeyboardCursor {
      * n'arme rien ; le relâchement sans mouvement, lui seul, ouvre
      * l'IME.
      */
-    void surAppui() {
-        vue.requestFocus();
+    public void surAppui() {
+        acces.requestFocus();
         showKeyboard();
         keyboardRequested = true;
         reveiller();
@@ -69,22 +73,22 @@ final class KeyboardCursor {
      * sélection se continue au doigt, le clavier n'a rien à faire
      * là ; le curseur clignote toujours.
      */
-    void masquerClavier() {
+    public void masquerClavier() {
         InputMethodManager clavier = (InputMethodManager)
-                vue.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (clavier != null && vue.getWindowToken() != null) {
-            clavier.hideSoftInputFromWindow(vue.getWindowToken(), 0);
+                acces.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (clavier != null && acces.getWindowToken() != null) {
+            clavier.hideSoftInputFromWindow(acces.getWindowToken(), 0);
         }
         keyboardRequested = false;
     }
 
     /** Vrai tant que le clavier est demandé montré — accès de paquet, bancs. */
-    boolean keyboardRequested() {
+    public boolean keyboardRequested() {
         return keyboardRequested;
     }
 
     /** Le gain ou la perte de focus démarre ou arrête le battement. */
-    void surFocus(boolean gagne) {
+    public void surFocus(boolean gagne) {
         if (gagne) {
             reveiller();
         } else {
@@ -93,15 +97,15 @@ final class KeyboardCursor {
     }
 
     /** L'attachement à la fenêtre : le cycle repart si le focus y est. */
-    void surAttache() {
-        if (vue.hasFocus()) {
+    public void surAttache() {
+        if (acces.hasFocus()) {
             reveiller();
         }
     }
 
     /** Le détachement de la fenêtre : le battement s'arrête net. */
-    void surDetache() {
-        vue.removeCallbacks(battement);
+    public void surDetache() {
+        acces.removeCallbacks(battement);
     }
 
     /**
@@ -109,42 +113,42 @@ final class KeyboardCursor {
      * rien ne se réveille en coulisse ; visible, il repart si le focus
      * y est.
      */
-    void surVisibiliteFenetre(int visibilite) {
-        if (visibilite == EditorView.VISIBLE && vue.hasFocus()) {
+    public void surVisibiliteFenetre(int visibilite) {
+        if (visibilite == EditorAccess.VISIBLE && acces.hasFocus()) {
             reveiller();
         } else {
-            vue.removeCallbacks(battement);
+            acces.removeCallbacks(battement);
         }
     }
 
     /** Réveille le curseur : plein, cycle relancé. */
-    void reveiller() {
-        vue.removeCallbacks(battement);
+    public void reveiller() {
+        acces.removeCallbacks(battement);
         visible = true;
-        vue.postDelayed(battement, PERIODE_CLIGNOTEMENT_MS);
-        vue.invalidate();
+        acces.postDelayed(battement, PERIODE_CLIGNOTEMENT_MS);
+        acces.invalidate();
     }
 
     /** Le battement : le curseur s'efface puis se montre, image après
      *  image. */
     private void surBattement() {
         visible = !visible;
-        vue.invalidate();
-        vue.postDelayed(battement, PERIODE_CLIGNOTEMENT_MS);
+        acces.invalidate();
+        acces.postDelayed(battement, PERIODE_CLIGNOTEMENT_MS);
     }
 
     /** L'arrêt : le cycle meurt, le curseur redevient plein. */
     private void stop() {
-        vue.removeCallbacks(battement);
+        acces.removeCallbacks(battement);
         visible = true;
     }
 
     /** Dévoile le clavier logiciel de la vue. */
     private void showKeyboard() {
         InputMethodManager clavier = (InputMethodManager)
-                vue.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                acces.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         if (clavier != null) {
-            clavier.showSoftInput(vue, InputMethodManager.SHOW_IMPLICIT);
+            clavier.showSoftInput(acces.vue(), InputMethodManager.SHOW_IMPLICIT);
         }
     }
 
@@ -152,34 +156,34 @@ final class KeyboardCursor {
      * Dévoile le curseur primaire : réajustement minimum du défilement
      * (CaretReveal), puis invalidation.
      */
-    void revealCaret() {
-        List<SelRange> ranges = vue.session().selection().ranges();
+    public void revealCaret() {
+        List<SelRange> ranges = acces.session().selection().ranges();
         int cursor = ranges.isEmpty() ? 0 : ranges.get(0).caret();
         CaretReveal.Revealed devoile = CaretReveal.reveal(cursor,
-                vue.session().document(), vue.projection, vue.metrics,
-                vue.largeurGouttiere, vue.getWidth(), vue.getHeight(),
-                vue.scrollX, vue.scrollY,
-                Math.round(EditorView.MARGE_RETOUR_DP * vue.densite()));
-        vue.scrollX = devoile.scrollX();
-        vue.scrollY = devoile.scrollY();
-        vue.invalidate();
+                acces.session().document(), acces.projection(), acces.metrics(),
+                acces.largeurGouttiere(), acces.getWidth(), acces.getHeight(),
+                acces.scrollX(), acces.scrollY(),
+                Math.round(EditorAccess.MARGE_RETOUR_DP * acces.densite()));
+        acces.setScrollX(devoile.scrollX());
+        acces.setScrollY(devoile.scrollY());
+        acces.invalidate();
     }
 
     /** Défile d'une page, bornée au contenu. */
-    void defilerPage(boolean enAvant) {
+    public void defilerPage(boolean enAvant) {
         float contentHeight =
-                vue.projection.rowCount() * vue.metrics.lineHeight();
-        float pas = ScrollGeometry.visibleRows(vue.getHeight(),
-                vue.metrics.lineHeight()) * vue.metrics.lineHeight();
-        vue.scrollY = ScrollGeometry.clamp(
-                enAvant ? vue.scrollY + pas : vue.scrollY - pas,
-                contentHeight, vue.getHeight());
-        vue.invalidate();
+                acces.projection().rowCount() * acces.metrics().lineHeight();
+        float pas = ScrollGeometry.visibleRows(acces.getHeight(),
+                acces.metrics().lineHeight()) * acces.metrics().lineHeight();
+        acces.setScrollY(ScrollGeometry.clamp(
+                enAvant ? acces.scrollY() + pas : acces.scrollY() - pas,
+                contentHeight, acces.getHeight()));
+        acces.invalidate();
     }
 
     /** Annonce le changement de sélection au lecteur d'écran (G-05). */
-    void annoncerSelection() {
-        vue.sendAccessibilityEvent(
+    public void annoncerSelection() {
+        acces.sendAccessibilityEvent(
                 AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED);
     }
 }

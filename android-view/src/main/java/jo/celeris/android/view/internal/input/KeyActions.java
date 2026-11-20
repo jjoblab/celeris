@@ -1,6 +1,14 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.input;
 
 import android.view.KeyEvent;
+import jo.celeris.android.view.CaretsMotion;
+import jo.celeris.android.view.CompositionState;
+import jo.celeris.android.view.EditorAction;
+import jo.celeris.android.view.FrameState;
+import jo.celeris.android.view.KeyBinding;
+import jo.celeris.android.view.KeyBindings;
+import jo.celeris.android.view.ScrollGeometry;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.MultiSelection;
@@ -17,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  * la complexité du grand aiguillage quitte la classe d'assemblage
  * (ADR-002 — plafonds de complexité).
  */
-final class KeyActions {
+public final class KeyActions  {
 
     private KeyActions() {
     }
@@ -35,11 +43,11 @@ final class KeyActions {
      * @param event   l'événement de frappe
      * @return l'action liée, ou null quand la frappe est libre
      */
-    static @Nullable EditorAction action(EditorView vue, KeyBindings liaison,
+    public static @Nullable EditorAction action(EditorAccess acces, KeyBindings liaison,
             CompositionState clavier, int keyCode, KeyEvent event) {
         if (clavier.isComposing()) {
             clavier.finish();
-            vue.invalidate();
+            acces.invalidate();
         }
         KeyBinding touche = new KeyBinding(keyCode, event.isShiftPressed(),
                 event.isCtrlPressed(), event.isAltPressed());
@@ -53,28 +61,28 @@ final class KeyActions {
      * @param action l'action clavier demandée
      * @return vrai si l'action est consommée
      */
-    static boolean appliquer(EditorView vue, EditorAction action) {
+    public static boolean appliquer(EditorAccess acces, EditorAction action) {
         if (action == EditorAction.ZOOM_IN || action == EditorAction.ZOOM_OUT
                 || action == EditorAction.ZOOM_RESET) {
-            zoom(vue, action);
-            vue.invalidate();
+            zoom(acces, action);
+            acces.invalidate();
             return true;
         }
         if (action == EditorAction.ACCEPT_FANTOME) {
-            boolean consomme = servirTab(vue);
-            vue.invalidate();
+            boolean consomme = servirTab(acces);
+            acces.invalidate();
             return consomme || true;
         }
-        if (serveClipboard(vue, action)) {
-            vue.invalidate();
+        if (serveClipboard(acces, action)) {
+            acces.invalidate();
             return true;
         }
         switch (action) {
             case DELETE_BACKWARD, DELETE_FORWARD, ENTER, TAB, UNTAB, UNDO,
-                    REDO, SELECT_ALL -> edit(vue, action);
-            default -> mouvements(vue, action);
+                    REDO, SELECT_ALL -> edit(acces, action);
+            default -> mouvements(acces, action);
         }
-        vue.invalidate();
+        acces.invalidate();
         return true;
     }
 
@@ -85,11 +93,11 @@ final class KeyActions {
      * L'appel direct à l'édition évite la boucle — jamais appliquer()
      * ne se rappelle.
      */
-    private static boolean servirTab(EditorView vue) {
-        if (vue.ghost.surTab()) {
+    private static boolean servirTab(EditorAccess acces) {
+        if (acces.ghost().surTab()) {
             return true;
         }
-        edit(vue, EditorAction.TAB);
+        edit(acces, EditorAction.TAB);
         return true;
     }
 
@@ -100,21 +108,21 @@ final class KeyActions {
      *
      * @return vrai si l'action est une action presse-papiers servie
      */
-    private static boolean serveClipboard(EditorView vue, EditorAction action) {
+    private static boolean serveClipboard(EditorAccess acces, EditorAction action) {
         if (action.ordinal() < EditorAction.COPY.ordinal()
                 || action.ordinal() > EditorAction.PASTE.ordinal()) {
             return false;
         }
-        KeyboardClipboard.servir(vue, action);
+        KeyboardClipboard.servir(acces, action);
         return true;
     }
 
     /** Le zoom clavier (A-18) : la taille suit la table de la vue. */
-    private static void zoom(EditorView vue, EditorAction action) {
+    private static void zoom(EditorAccess acces, EditorAction action) {
         switch (action) {
-            case ZOOM_IN -> vue.zoom.agrandir();
-            case ZOOM_OUT -> vue.zoom.retrecir();
-            default -> vue.zoom.retablir(EditorView.POLICE_PAR_DEFAUT.size());
+            case ZOOM_IN -> acces.zoom().agrandir();
+            case ZOOM_OUT -> acces.zoom().retrecir();
+            default -> acces.zoom().retablir(EditorAccess.POLICE_PAR_DEFAUT.size());
         }
     }
 
@@ -127,28 +135,28 @@ final class KeyActions {
      *  ligne disparaissait du viewport jusqu'à la prochaine touche
      *  servie par l'intelligence, qui elle révèle ; la voie clavier
      *  révèle désormais comme toutes les autres). */
-    private static void edit(EditorView vue, EditorAction action) {
-        TextSession session = vue.session();
+    private static void edit(EditorAccess acces, EditorAction action) {
+        TextSession session = acces.session();
         Document document = session.document();
         boolean caretABouge = true;
         switch (action) {
             case DELETE_BACKWARD -> {
                 // M7.5 §8 — la paire vide et le cran d'indentation
                 // passent par le fournisseur, la main au cœur sinon.
-                if (!vue.intelligence.backspaceTyped()) {
+                if (!acces.backspaceTyped()) {
                     session.deleteBackward();
                 }
             }
             case DELETE_FORWARD -> {
                 // C8 : la paire vide passe par le fournisseur, la
                 // main au cœur sinon.
-                if (!vue.intelligence.deleteForwardTyped()) {
+                if (!acces.deleteForwardTyped()) {
                     session.deleteForward();
                 }
             }
-            case ENTER -> vue.intelligence.enterTyped();
-            case TAB -> vue.intelligence.tabTyped();
-            case UNTAB -> vue.intelligence.untabTyped();
+            case ENTER -> acces.enterTyped();
+            case TAB -> acces.tabTyped();
+            case UNTAB -> acces.untabTyped();
             case UNDO -> session.undo();
             case REDO -> session.redo();
             case SELECT_ALL -> {
@@ -159,16 +167,16 @@ final class KeyActions {
             default -> caretABouge = false;
         }
         if (caretABouge) {
-            vue.curseurClavier.revealCaret();
+            acces.curseurClavier().revealCaret();
         }
     }
 
     /** Les mouvements et sélections : la projection et la fenêtre courantes. */
-    private static void mouvements(EditorView vue, EditorAction action) {
-        FrameState state = vue.etatImageCourante();
-        int pageRows = ScrollGeometry.visibleRows(vue.getHeight(),
+    private static void mouvements(EditorAccess acces, EditorAction action) {
+        FrameState state = acces.etatImageCourante();
+        int pageRows = ScrollGeometry.visibleRows(acces.getHeight(),
                 state.metrics().lineHeight());
-        vue.session().setSelection(CaretsMotion.move(state.document(),
-                state.projection(), vue.session().selection(), action, pageRows));
+        acces.session().setSelection(CaretsMotion.move(state.document(),
+                state.projection(), acces.session().selection(), action, pageRows));
     }
 }

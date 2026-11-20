@@ -1,4 +1,4 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.accessibility;
 
 import android.graphics.Rect;
 import android.os.Build;
@@ -6,6 +6,11 @@ import android.os.Bundle;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction;
 import android.view.accessibility.AccessibilityNodeProvider;
+import jo.celeris.android.view.FrameState;
+import jo.celeris.android.view.MovementGranularity;
+import jo.celeris.android.view.ScrollGeometry;
+import jo.celeris.android.view.VirtualRows;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 import java.util.List;
 
@@ -26,12 +31,12 @@ import org.jspecify.annotations.Nullable;
  * <p>L'identifiant virtuel 0 désigne l'éditeur lui-même ; la rangée
  * visuelle d'indice r porte l'identifiant r + 1.</p>
  */
-final class AccessibilityHost {
+public final class AccessibilityHost  {
 
     private static final String TEXT_CLASS = "android.widget.EditText";
     private static final String ROW_CLASS = "android.widget.TextView";
 
-    private final EditorView vue;
+    private final EditorAccess acces;
     private final Fournisseur fournisseur = new Fournisseur();
 
     /**
@@ -39,19 +44,19 @@ final class AccessibilityHost {
      *
      * @param vue la vue propriétaire de la session et du tracé
      */
-    AccessibilityHost(EditorView vue) {
-        this.vue = vue;
+    public AccessibilityHost(EditorAccess acces) {
+        this.acces = acces;
     }
 
     /** Le fournisseur de l'arbre virtuel — possédé, jamais réalloué. */
-    AccessibilityNodeProvider fournisseur() {
+    public AccessibilityNodeProvider fournisseur() {
         return fournisseur;
     }
 
     /** Remplit le nœud d'accessibilité de l'éditeur (la racine). */
-    void remplir(AccessibilityNodeInfo info) {
+    public void remplir(AccessibilityNodeInfo info) {
         info.setClassName(TEXT_CLASS);
-        info.setEditable(!vue.session().isReadOnly());
+        info.setEditable(!acces.session().isReadOnly());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             info.setTextSelectable(true);
         }
@@ -61,7 +66,7 @@ final class AccessibilityHost {
         info.addAction(AccessibilityAction.ACTION_SCROLL_FORWARD);
         info.addAction(AccessibilityAction.ACTION_SCROLL_BACKWARD);
         info.setMovementGranularities(masqueGranularites());
-        List<SelRange> ranges = vue.session().selection().ranges();
+        List<SelRange> ranges = acces.session().selection().ranges();
         if (!ranges.isEmpty()) {
             info.setTextSelection(ranges.get(0).start(), ranges.get(0).end());
         }
@@ -75,7 +80,7 @@ final class AccessibilityHost {
      * @param args   les arguments de l'action
      * @return vrai si l'action est consommée
      */
-    boolean execute(int action, @Nullable Bundle args) {
+    public boolean execute(int action, @Nullable Bundle args) {
         if (action == AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY
                 || action
                         == AccessibilityNodeInfo.ACTION_PREVIOUS_AT_MOVEMENT_GRANULARITY) {
@@ -86,7 +91,7 @@ final class AccessibilityHost {
         }
         if (action == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
                 || action == AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD) {
-            vue.curseurClavier.defilerPage(action
+            acces.curseurClavier().defilerPage(action
                     == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
             return true;
         }
@@ -97,7 +102,7 @@ final class AccessibilityHost {
     private void fillRow(AccessibilityNodeInfo info, VirtualRows.Row rangee) {
         info.setClassName(ROW_CLASS);
         info.setText(rangee.text());
-        info.setParent(vue);
+        info.setParent(acces.vue());
         info.setBoundsInScreen(bornesAEcran(rangee));
         info.addAction(AccessibilityAction.ACTION_CLICK);
         info.addAction(AccessibilityAction.ACTION_NEXT_AT_MOVEMENT_GRANULARITY);
@@ -123,11 +128,11 @@ final class AccessibilityHost {
         boolean etendre = args.getBoolean(
                 AccessibilityNodeInfo.ACTION_ARGUMENT_EXTEND_SELECTION_BOOLEAN,
                 false);
-        Document document = vue.session().document();
-        List<SelRange> ranges = vue.session().selection().ranges();
+        Document document = acces.session().document();
+        List<SelRange> ranges = acces.session().selection().ranges();
         int origine = ranges.isEmpty() ? 0 : ranges.get(0).caret();
-        FrameState state = vue.etatImageCourante();
-        int pageRows = ScrollGeometry.visibleRows(vue.getHeight(),
+        FrameState state = acces.etatImageCourante();
+        int pageRows = ScrollGeometry.visibleRows(acces.getHeight(),
                 state.metrics().lineHeight());
         int target = action
                 == AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY
@@ -138,9 +143,9 @@ final class AccessibilityHost {
         SelRange apres = etendre
                 ? new SelRange(ranges.get(0).anchor(), target)
                 : SelRange.caretAt(target);
-        vue.session().setSelection(MultiSelection.of(apres));
-        vue.invalidate();
-        vue.curseurClavier.annoncerSelection();
+        acces.session().setSelection(MultiSelection.of(apres));
+        acces.invalidate();
+        acces.curseurClavier().annoncerSelection();
         return true;
     }
 
@@ -155,24 +160,24 @@ final class AccessibilityHost {
         if (start < 0 || end < 0) {
             return false;
         }
-        Document document = vue.session().document();
-        vue.session().setSelection(MultiSelection.of(new SelRange(
+        Document document = acces.session().document();
+        acces.session().setSelection(MultiSelection.of(new SelRange(
                 Math.min(start, document.length()),
                 Math.min(end, document.length()))));
-        vue.invalidate();
-        vue.curseurClavier.annoncerSelection();
+        acces.invalidate();
+        acces.curseurClavier().annoncerSelection();
         return true;
     }
 
     /** Pose le curseur au début d'une rangée virtuelle cliquée. */
     private boolean clickRow(int rangee) {
-        FrameState state = vue.etatImageCourante();
+        FrameState state = acces.etatImageCourante();
         int line = state.projection().firstLineOfRow(rangee);
         int column = state.projection().spanStartAtRow(rangee);
-        vue.session().setSelection(MultiSelection.of(SelRange.caretAt(
+        acces.session().setSelection(MultiSelection.of(SelRange.caretAt(
                 state.document().lineStart(line) + column)));
-        vue.invalidate();
-        vue.curseurClavier.annoncerSelection();
+        acces.invalidate();
+        acces.curseurClavier().annoncerSelection();
         return true;
     }
 
@@ -209,7 +214,7 @@ final class AccessibilityHost {
 
     /** Les rangées virtuelles de la fenêtre courante. */
     private List<VirtualRows.Row> rows() {
-        FrameState state = vue.etatImageCourante();
+        FrameState state = acces.etatImageCourante();
         return VirtualRows.visible(state.document(), state.projection(),
                 state.metrics(), state.firstRow(), state.visibleRows(),
                 state.gutterWidth(), state.scrollX(), state.scrollY());
@@ -229,7 +234,7 @@ final class AccessibilityHost {
         public @Nullable AccessibilityNodeInfo createAccessibilityNodeInfo(
                 int virtualViewId) {
             if (virtualViewId == AccessibilityNodeProvider.HOST_VIEW_ID) {
-                AccessibilityNodeInfo info = AccessibilityNodeInfo.obtain(vue);
+                AccessibilityNodeInfo info = AccessibilityNodeInfo.obtain(acces.vue());
                 remplir(info);
                 return info;
             }
@@ -239,7 +244,7 @@ final class AccessibilityHost {
                 return null;
             }
             AccessibilityNodeInfo info =
-                    AccessibilityNodeInfo.obtain(vue, virtualViewId);
+                    AccessibilityNodeInfo.obtain(acces.vue(), virtualViewId);
             fillRow(info, rows.get(rangee));
             return info;
         }
@@ -248,7 +253,7 @@ final class AccessibilityHost {
         public boolean performAction(int virtualViewId, int action,
                 @Nullable Bundle arguments) {
             if (virtualViewId == AccessibilityNodeProvider.HOST_VIEW_ID) {
-                return vue.performAccessibilityAction(action, arguments);
+                return acces.vue().performAccessibilityAction(action, arguments);
             }
             List<VirtualRows.Row> rows = rows();
             int rangee = virtualViewId - 1;
@@ -258,7 +263,7 @@ final class AccessibilityHost {
             if (action == AccessibilityNodeInfo.ACTION_CLICK) {
                 return clickRow(rows.get(rangee).row());
             }
-            return vue.performAccessibilityAction(action, arguments);
+            return acces.vue().performAccessibilityAction(action, arguments);
         }
 
         @Override

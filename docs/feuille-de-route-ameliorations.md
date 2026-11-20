@@ -355,12 +355,52 @@
   **Restent au propriétaire** :
   1. les familles couplées aux champs de la vue (clavier, gestes,
      IME, diagnostics, fantômes, viewport restant, ViewFonts,
-     FrameAssembler) : publiques en version mineure ou
-     internes seulement ? (reco : internes
-     seulement — un pont d'accès interne à la vue si le besoin
-     vient)
+     FrameAssembler) : **TRANCHÉ le 2026-11-20 — internes
+     seulement, par le pont d'accès interne (P7 ci-dessous)**.
   2. les classes PUBLIQUES des gros modules changent-elles de
      paquet (version mineure + MIGRATION) ? (reco :
      au fil des versions, fenêtre par fenêtre)
-  3. android-widgets (les internes y sont les superclasses des
-     popups — le déplacement déplace le centre du module).
+  3. android-widgets : **TRANCHÉ le 2026-11-20 — internes
+     seulement (P8 ci-dessous)**.
+
+- 2026-11-20 : P7, android-view — la décision n° 1 est
+  TRANCHÉE (internes seulement) : les 16 familles couplées aux
+  champs package-privés de la vue rejoignent leurs sous-paquets
+  `view.internal.{input,gestures,frame,caret,viewport,accessibility,
+  diagnostics,fonts}` : clavier (EditorKeys, KeyboardCursor,
+  KeyboardClipboard, KeyActions, EditorInputConnection), gestes
+  (PinchZoomHandler, GesturesFactory, GhostEditor, DragDrop),
+  FrameAssembler, CaretAnchors, viewport (ViewportFractions,
+  ViewportPrefetch), AccessibilityHost, SceneDiagnostics, ViewFonts.
+  LE PONT D'ACCÈS INTERNE (la reco exécutée) :
+  `internal/access/EditorAccess` — l'interface qui porte la surface
+  EXACTE que les familles touchent de la vue (champs en lecture et
+  écriture, méthodes, délégations View), et `EditorViewAccess`
+  (package-privé au racine) — la SEULE à toucher les champs. Les
+  familles ne gardent PLUS aucun champ `vue` : le
+  compilateur borne le couplage à l'interface ; le handle plateforme
+  résiduel passe par `acces.vue()` (IME, détecteurs de gestes).
+  AUCUN membre public n'est ajouté à EditorView — le contrat ne
+  bouge pas (android-view n'a pas de manifeste d'API, la règle du
+  dépôt l'interdisait de fait : publiciser un champ de la vue
+  l'ajoutait au contrat). Paquet racine : 112 -> 97
+  classes (16 rangées en internal, + EditorViewAccess au
+  racine — l'implémentation package-privée du pont).
+- 2026-11-20 : P8, android-widgets — la décision n° 3 est
+  TRANCHÉE (internes seulement) : les SUPERCLASSES des
+  popups rejoignent `widgets.internal` : PopupPanel (8 sous-classes
+  publiques au racine), TextRowsPopup (9), Feuille (2) et
+  NavigationEtages (l'utilitaire pur du menu à étages). Les
+  sous-classes publiques RESTENT au racine (contrat inchangé) :
+  elles importent leurs superclasses et override leurs abstraits
+  devenus publics (drawContent, contentWidth/Height, severity,
+  coteBas, maxWidthDp, rayonsDp). Les membres hérités utilisés par
+  les sous-classes sont publicisés au paquet internal (mécanique
+  P1/P2 — liste explicite : palette, paddingPx/YPx,
+  textPaint/bandPaint/linePaint, textSize, traceRule, rowHeightPx,
+  densite(), naissance/mourir/annulerMort/voileEnCours/finirEntree,
+  Row et ses fabriques, setRows, rowCount, pictoDe, inkOf,
+  poigneeVue/titreVue/boutonFermeture/voileVue, saut). Le paquet
+  racine : 54 -> 49 classes (les popups publics ne
+  bougent pas ; NavigationEtages, PopupPanel, TextRowsPopup,
+  Feuille partis).

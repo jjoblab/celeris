@@ -1,4 +1,4 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.input;
 
 import android.graphics.RectF;
 import android.os.Build;
@@ -20,6 +20,10 @@ import android.view.inputmethod.PreviewableHandwritingGesture;
 import android.view.inputmethod.SurroundingText;
 import android.view.inputmethod.TextAttribute;
 import android.view.inputmethod.TextSnapshot;
+import jo.celeris.android.view.CaretReveal;
+import jo.celeris.android.view.CompositionState;
+import jo.celeris.android.view.SurroundingTexts;
+import jo.celeris.android.view.internal.access.EditorAccess;
 
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -59,7 +63,7 @@ import org.jspecify.annotations.Nullable;
  * riche, pas de gestes de stylet (réponse NON PRIS EN CHARGE à
  * l'appelant), pas de commandes privées.</p>
  */
-final class EditorInputConnection implements InputConnection {
+public final class EditorInputConnection  implements InputConnection {
 
     /**
      * La fabrique de connexion : la vue s'y délègue (C9 — le corps
@@ -72,14 +76,14 @@ final class EditorInputConnection implements InputConnection {
      * @param outAttrs    les informations à remplir
      * @return la connexion, ou null en lecture seule
      */
-    static @Nullable InputConnection create(EditorView vue,
+    public static @Nullable InputConnection create(EditorAccess acces,
             CompositionState composition, EditorInfo outAttrs) {
-        if (vue.session.isReadOnly()) {
+        if (acces.session().isReadOnly()) {
             outAttrs.inputType = InputType.TYPE_NULL;
             return null;
         }
-        remplirInfos(vue.session, outAttrs);
-        return new EditorInputConnection(vue, composition);
+        remplirInfos(acces.session(), outAttrs);
+        return new EditorInputConnection(acces, composition);
     }
 
     /**
@@ -103,7 +107,7 @@ final class EditorInputConnection implements InputConnection {
         }
     }
 
-    private final EditorView vue;
+    private final EditorAccess acces;
     private final CompositionState composition;
 
     /**
@@ -112,8 +116,8 @@ final class EditorInputConnection implements InputConnection {
      * @param vue         la vue propriétaire de la session et du tracé
      * @param composition l'état de composition de la vue
      */
-    EditorInputConnection(EditorView vue, CompositionState composition) {
-        this.vue = vue;
+    public EditorInputConnection(EditorAccess acces, CompositionState composition) {
+        this.acces = acces;
         this.composition = composition;
     }
 
@@ -124,7 +128,7 @@ final class EditorInputConnection implements InputConnection {
         if (length <= 0) {
             return "";
         }
-        Document document = vue.session().document();
+        Document document = acces.session().document();
         int end = primaire().start();
         int start = Math.max(0, end - length);
         return document.subText(start, end);
@@ -135,7 +139,7 @@ final class EditorInputConnection implements InputConnection {
         if (length <= 0) {
             return "";
         }
-        Document document = vue.session().document();
+        Document document = acces.session().document();
         int start = primaire().end();
         int end = Math.min(document.length(), start + length);
         return document.subText(start, end);
@@ -152,7 +156,7 @@ final class EditorInputConnection implements InputConnection {
         if (primaire.isEmpty()) {
             return null;
         }
-        CharSequence text = vue.session().document().subText(
+        CharSequence text = acces.session().document().subText(
                 primaire.start(), primaire.end());
         return text.length() > MAX_SELECTED_TEXT_CHARS
                 ? text.subSequence(0, MAX_SELECTED_TEXT_CHARS)
@@ -161,7 +165,7 @@ final class EditorInputConnection implements InputConnection {
 
     @Override
     public int getCursorCapsMode(int reqModes) {
-        Document document = vue.session().document();
+        Document document = acces.session().document();
         int cursor = primaire().end();
         int line = document.lineForOffset(cursor);
         String texteLigne = document.subText(document.lineStart(line), cursor);
@@ -182,7 +186,7 @@ final class EditorInputConnection implements InputConnection {
             return null;
         }
         SurroundingTexts.Window window = SurroundingTexts.window(
-                vue.session().document(), primaire(), beforeLength, afterLength);
+                acces.session().document(), primaire(), beforeLength, afterLength);
         return new SurroundingText(window.text(), window.selectionStart(),
                 window.selectionEnd(), window.docOffset());
     }
@@ -206,14 +210,14 @@ final class EditorInputConnection implements InputConnection {
 
     @Override
     public @Nullable Handler getHandler() {
-        return vue.getHandler();
+        return acces.getHandler();
     }
 
     // ---------------------------------------------------------- composition
 
     @Override
     public boolean setComposingText(CharSequence text, int newCursorPosition) {
-        return appliquer(composition.planComposing(vue.session().document(),
+        return appliquer(composition.planComposing(acces.session().document(),
                 primaire(), text.toString(), newCursorPosition));
     }
 
@@ -226,9 +230,9 @@ final class EditorInputConnection implements InputConnection {
 
     @Override
     public boolean setComposingRegion(int start, int end) {
-        composition.adopt(composition.planRegion(vue.session().document(),
+        composition.adopt(composition.planRegion(acces.session().document(),
                 start, end));
-        vue.invalidate();
+        acces.invalidate();
         return true;
     }
 
@@ -243,7 +247,7 @@ final class EditorInputConnection implements InputConnection {
     public boolean finishComposingText() {
         if (composition.isComposing()) {
             composition.finish();
-            vue.invalidate();
+            acces.invalidate();
         }
         return true;
     }
@@ -257,11 +261,11 @@ final class EditorInputConnection implements InputConnection {
         // région lui appartient. Le fournisseur absent laisse la
         // voie simple (sauf l'Entrée, jamais muette).
         String contenu = text.toString();
-        if (!composition.isComposing() && vue.intelligence.onCommit(contenu)) {
-            vue.invalidate();
+        if (!composition.isComposing() && acces.onCommit(contenu)) {
+            acces.invalidate();
             return true;
         }
-        return appliquer(composition.planCommit(vue.session().document(),
+        return appliquer(composition.planCommit(acces.session().document(),
                 primaire(), contenu, newCursorPosition));
     }
 
@@ -294,7 +298,7 @@ final class EditorInputConnection implements InputConnection {
     @Override
     public boolean replaceText(int start, int end, CharSequence text,
             int newCursorPosition, @Nullable TextAttribute textAttribute) {
-        Document document = vue.session().document();
+        Document document = acces.session().document();
         int s = Math.max(0, Math.min(start, document.length()));
         int e = Math.max(0, Math.min(end, document.length()));
         if (s > e) {
@@ -302,7 +306,7 @@ final class EditorInputConnection implements InputConnection {
             s = e;
             e = permutage;
         }
-        if (!vue.session().replaceRange(s, e, text.toString())) {
+        if (!acces.session().replaceRange(s, e, text.toString())) {
             return false;
         }
         composition.finish();
@@ -338,7 +342,7 @@ final class EditorInputConnection implements InputConnection {
                 && event.getKeyCode() == KeyEvent.KEYCODE_DEL
                 && composition.isComposing()) {
             CompositionState.Plan plan =
-                    composition.planClusterBackspace(vue.session().document());
+                    composition.planClusterBackspace(acces.session().document());
             if (plan != null) {
                 return appliquer(plan);
             }
@@ -346,7 +350,7 @@ final class EditorInputConnection implements InputConnection {
             return true;
         }
         composition.finish();
-        vue.dispatchKeyEvent(event);
+        acces.dispatchKeyEvent(event);
         return true;
     }
 
@@ -371,11 +375,11 @@ final class EditorInputConnection implements InputConnection {
 
     @Override
     public boolean setSelection(int start, int end) {
-        Document document = vue.session().document();
+        Document document = acces.session().document();
         int s = Math.max(0, Math.min(start, document.length()));
         int e = Math.max(0, Math.min(end, document.length()));
-        vue.session().setSelection(MultiSelection.of(new SelRange(s, e)));
-        vue.invalidate();
+        acces.session().setSelection(MultiSelection.of(new SelRange(s, e)));
+        acces.invalidate();
         return true;
     }
 
@@ -469,7 +473,7 @@ final class EditorInputConnection implements InputConnection {
 
     /** La plage primaire : la première de la sélection normalisée. */
     private SelRange primaire() {
-        List<SelRange> ranges = vue.session().selection().ranges();
+        List<SelRange> ranges = acces.session().selection().ranges();
         if (ranges.isEmpty()) {
             return SelRange.caretAt(0);
         }
@@ -478,7 +482,7 @@ final class EditorInputConnection implements InputConnection {
 
     /** Applique un plan de composition : édition, état, curseur, dévoilement. */
     private boolean appliquer(CompositionState.Plan plan) {
-        if (plan.hasReplacement() && !vue.session().replaceRange(
+        if (plan.hasReplacement() && !acces.session().replaceRange(
                 plan.replaceStart(), plan.replaceEnd(), plan.insertion())) {
             return false;
         }
@@ -486,7 +490,7 @@ final class EditorInputConnection implements InputConnection {
         if (plan.caret() >= 0) {
             setCursor(plan.caret());
         } else {
-            vue.curseurClavier.revealCaret();
+            acces.curseurClavier().revealCaret();
         }
         return true;
     }
@@ -494,12 +498,12 @@ final class EditorInputConnection implements InputConnection {
     private boolean supprimerEntourage(int before, int after,
             boolean codePoints) {
         SurroundingTexts.Deletion plan = SurroundingTexts.deleteAround(
-                vue.session().document(), primaire(), before, after, codePoints);
+                acces.session().document(), primaire(), before, after, codePoints);
         if (plan.start() >= plan.end()) {
             return true;
         }
-        if (vue.session().replaceRange(plan.start(), plan.end(), "")) {
-            vue.curseurClavier.revealCaret();
+        if (acces.session().replaceRange(plan.start(), plan.end(), "")) {
+            acces.curseurClavier().revealCaret();
             return true;
         }
         return false;
@@ -508,7 +512,7 @@ final class EditorInputConnection implements InputConnection {
     private int cursorAfter(int start, int finRemplacee, CharSequence text,
             int newCursorPosition) {
         int nouvelleFin = start + text.length();
-        Document document = vue.session().document();
+        Document document = acces.session().document();
         int cursor = newCursorPosition > 0
                 ? nouvelleFin + newCursorPosition - 1
                 : start + newCursorPosition;
@@ -516,10 +520,10 @@ final class EditorInputConnection implements InputConnection {
     }
 
     private void setCursor(int offset) {
-        vue.session().setSelection(MultiSelection.of(
+        acces.session().setSelection(MultiSelection.of(
                 SelRange.caretAt(Math.max(0, Math.min(offset,
-                        vue.session().document().length())))));
-        vue.curseurClavier.revealCaret();
+                        acces.session().document().length())))));
+        acces.curseurClavier().revealCaret();
     }
 
     /**

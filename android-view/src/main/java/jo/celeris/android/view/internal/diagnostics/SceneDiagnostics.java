@@ -1,9 +1,11 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.diagnostics;
 
 import jo.celeris.android.view.internal.exec.AnalysisExecutor;
 import jo.celeris.android.view.internal.exec.RetainedExecutor;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import jo.celeris.android.view.internal.access.EditorAccess;
+import jo.celeris.android.view.internal.accessibility.AccessibilityHost;
 
 import jo.celeris.android.view.internal.exec.RetainedExecutor.Delayer;
 
@@ -23,9 +25,9 @@ import org.jspecify.annotations.Nullable;
  * s'éteignent à la libération (chantier C2) : l'exécuteur que l'hôte
  * a injecté reste le sien, jamais touché.</p>
  */
-final class SceneDiagnostics {
+public final class SceneDiagnostics  {
 
-    private final EditorView vue;
+    private final EditorAccess acces;
     /** L'exécuteur RÉSOLU du travail d'analyse : la retenue par
      *  défaut, ou celui que l'hôte a injecté — tel quel. */
     private final Executor executor;
@@ -52,15 +54,15 @@ final class SceneDiagnostics {
      * @param executeurInjecte l'exécuteur du travail d'analyse injecté
      *                        par l'hôte, null pour la retenue par défaut
      */
-    SceneDiagnostics(EditorView vue, @Nullable Executor executeurInjecte) {
-        this.vue = vue;
+    public SceneDiagnostics(EditorAccess acces, @Nullable Executor executeurInjecte) {
+        this.acces = acces;
         if (executeurInjecte == null) {
             ExecutorService thread = AnalysisExecutor.parDefaut();
             Delayer horloge = RetainedExecutor.daemonDelayer();
             this.filAnalyse = thread;
             this.minuteur = horloge;
             this.retenue = new RetainedExecutor(thread, horloge,
-                    EditorView.DELAI_RETENU_PAR_DEFAUT_MS);
+                    EditorAccess.DELAI_RETENU_PAR_DEFAUT_MS);
             this.executor = retenue;
         } else {
             this.filAnalyse = null;
@@ -74,7 +76,7 @@ final class SceneDiagnostics {
      * L'exécuteur du travail d'analyse : la retenue par défaut, ou
      * celui que l'hôte a injecté — tel quel.
      */
-    Executor executor() {
+    public Executor executor() {
         return executor;
     }
 
@@ -84,7 +86,7 @@ final class SceneDiagnostics {
      * jamais touché, la libération ne ferme que ce que le kit a ouvert.
      * Idempotent.
      */
-    void shutdown() {
+    public void shutdown() {
         ExecutorService thread = filAnalyse;
         Delayer horloge = minuteur;
         if (thread != null) {
@@ -103,7 +105,7 @@ final class SceneDiagnostics {
      *
      * @param delaiMs le délai de retenue, en millisecondes
      */
-    void setRetenueMs(long delaiMs) {
+    public void setRetenueMs(long delaiMs) {
         RetainedExecutor locale = retenue;
         if (locale != null) {
             locale.setDelayMs(delaiMs);
@@ -111,27 +113,27 @@ final class SceneDiagnostics {
     }
 
     /** Le délai de retenue courant — zéro quand la main est immédiate. */
-    long retenueMs() {
+    public long retenueMs() {
         RetainedExecutor locale = retenue;
         return locale == null ? 0L : locale.delayMs();
     }
 
     /** La taille de police courante, en sp. */
-    float fontSizeSp() {
-        return vue.policeLogique.size();
+    public float fontSizeSp() {
+        return acces.policeLogique().size();
     }
 
     /** La largeur de gouttière à l'image courante, en pixels. */
-    float gutterWidth() {
-        vue.preparerEtatImage();
-        return vue.largeurGouttiere;
+    public float gutterWidth() {
+        acces.preparerEtatImage();
+        return acces.largeurGouttiere();
     }
 
     /**
      * Le nombre d'images décolorées depuis l'ouverture : le rattrapage
      * PIEGE-26 le garde à zéro, la surimpression le prouve en direct.
      */
-    long discoloredFrames() {
+    public long discoloredFrames() {
         return imagesDecolorees;
     }
 
@@ -139,14 +141,14 @@ final class SceneDiagnostics {
      * L'image qui vient de se tracer : celle qui a tracé une rangée
      * sans couleur qu'elle possédait se compte (M7.5, §9).
      */
-    void surImageTracee() {
-        if (vue.etatImage.imageDecoloree()) {
+    public void surImageTracee() {
+        if (acces.etatImage().imageDecoloree()) {
             imagesDecolorees++;
         }
     }
 
     /** Retombe à zéro : changement de session ou de langage. */
-    void reinitialiser() {
+    public void reinitialiser() {
         imagesDecolorees = 0L;
     }
 }

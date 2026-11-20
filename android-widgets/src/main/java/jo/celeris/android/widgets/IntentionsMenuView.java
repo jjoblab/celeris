@@ -1,6 +1,7 @@
 package jo.celeris.android.widgets;
 
 import android.content.Context;
+import jo.celeris.android.widgets.internal.TextRowsPopup;
 
 import java.util.ArrayList;
 import java.util.List;

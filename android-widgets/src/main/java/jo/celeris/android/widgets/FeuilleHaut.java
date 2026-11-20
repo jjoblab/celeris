@@ -2,6 +2,7 @@ package jo.celeris.android.widgets;
 
 import android.content.Context;
 import android.view.Gravity;
+import jo.celeris.android.widgets.internal.Feuille;
 
 /**
  * La feuille du haut de l'ADR-018 : le rappel contextuel qui glisse
@@ -29,23 +30,23 @@ public final class FeuilleHaut extends Feuille {
     }
 
     @Override
-    int severity() {
+    public int severity() {
         return Gravity.TOP | Gravity.CENTER_HORIZONTAL;
     }
 
     @Override
-    float maxWidthDp() {
+    public float maxWidthDp() {
         return PopupTokens.TOP_SHEET_MAX_WIDTH_DP;
     }
 
     @Override
-    float[] rayonsDp() {
+    public float[] rayonsDp() {
         float coin = PopupTokens.RAYON_FEUILLE_DP;
         return new float[]{0f, 0f, 0f, 0f, coin, coin, coin, coin};
     }
 
     @Override
-    boolean coteBas() {
+    public boolean coteBas() {
         return false;
     }
 }
