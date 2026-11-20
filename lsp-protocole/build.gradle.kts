@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.Test
+
 // lsp-protocole — la frontière protocolaire du LSP (ADR-015, M7.6) :
 // seul module du dépôt dépendant de la bibliothèque LSP4J et de Gson.
 // L'artefact dit sa fonction, jamais sa marque (règle de nommage du
@@ -50,6 +52,14 @@ tasks.named("processResources") {
 tasks.named("sourcesJar") {
     dependsOn(reglesEmbarquees)
 }
+// D-09 : le banc des connexions externes lance le factice en
+// SOUS-PROCESSUS — il reçoit le classpath d'exécution des tests.
+tasks.named<Test>("test") {
+    // le sous-processus du banc hérite du classpath d'exécution des tests
+    systemProperty("celeris.banc.classpath",
+            sourceSets["test"].runtimeClasspath.asPath)
+}
+
 // Le banc des règles embarquées lit le JAR compilé (build/libs) :
 // Gradle doit le bâtier AVANT les tests — sans ce pont, l'ordre des
 // tâches laisse le banc lire un jar d'une construction passée.

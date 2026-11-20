@@ -55,6 +55,9 @@ public final class jo.celeris.lsp.protocole.LspSession implements java.lang.Auto
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SurvolLsp> survol(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
   public java.util.concurrent.CompletableFuture<jo.celeris.core.lsp.types.SignatureLsp> signature(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
   public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> definition(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> typeDefinition(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> implementations(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
+  public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> superDefinition(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
   public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.LieuLsp>> references(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
   public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.SymboleLsp>> symboles(java.lang.String);
   public java.util.concurrent.CompletableFuture<java.util.List<jo.celeris.core.lsp.types.SurlignageLsp>> surlignages(java.lang.String, jo.celeris.core.lsp.types.PositionLsp);
@@ -171,6 +174,15 @@ public final class jo.celeris.lsp.protocole.ServeurEmbarque implements java.lang
   public static jo.celeris.lsp.protocole.ServeurEmbarque monter(java.lang.Object, java.lang.Class<?>, java.lang.String);
   public static jo.celeris.lsp.protocole.ServeurEmbarque monter(jo.celeris.lsp.protocole.ServeurEmbarque$Documents, java.lang.String);
   public static jo.celeris.lsp.protocole.ServeurEmbarque monter(java.lang.String, java.lang.String, java.lang.String);
+  public jo.celeris.lsp.protocole.LspSession session();
+  public void close();
+}
+
+### jo.celeris.lsp.protocole.ServeurExterne
+Compiled from "ServeurExterne.java"
+public final class jo.celeris.lsp.protocole.ServeurExterne implements java.lang.AutoCloseable {
+  public static jo.celeris.lsp.protocole.ServeurExterne parStdio(java.lang.String[], java.lang.String) throws java.io.IOException;
+  public static jo.celeris.lsp.protocole.ServeurExterne parSocket(java.lang.String, int, java.lang.String) throws java.io.IOException;
   public jo.celeris.lsp.protocole.LspSession session();
   public void close();
 }

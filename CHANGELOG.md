@@ -5,6 +5,25 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.4] — 2026-11-20
+
+### Ajouts
+
+- **Presse-papiers multi-curseurs (C-13)** : `TextSession.replaceEach` — la i-ème chaîne sur la i-ème plage ; copier joint les segments par saut de ligne, coller DISTRIBUE le clip quand il a autant de lignes que de plages ; les DEUX voies (clavier, barre tactile) y passent.
+- **Sévérité des diagnostics (D-06)** : `SyntaxIssue.Severity` — ERROR, WARNING, INFO ; constructeur compact rétrocompatible.
+- **Squiggles sous les erreurs (D-05)** : la couche `SquigglePainter` trace le soulignement ondulé APRÈS le texte, teinté par sévérité (rouge, ambre, gris).
+- **Régions nommées et pli d'imports (D-04)** : `// region` / `// endregion`, `editor-fold`, bloc d'imports Java — dans `TreeFolds`.
+- **Plis par document (D-07)** : `PlisParSession` (clés faibles) — l'état replié survit au changement d'onglet.
+- **État de rotation (D-03)** : `saveState`/`restoreState(Bundle)` — défilement, zoom, retour de ligne, numéros.
+- **Six thèmes (D-01)** : dracula, monokai, one-dark, solarized clair, nord, github clair — encres ajustées aux seuils WCAG.
+- **Langage dockerfile (D-08)** : paquet complet (`Dockerfile`, `Containerfile`) — 33 langages intégrés.
+- **Connexions LSP externes (D-09)** : `ServeurExterne.parStdio` (ProcessBuilder) et `parSocket` (TCP) — cycle de vie honnête : shutdown, flux fermés, processus forclos.
+- **Navigations typées (D-10)** : `typeDefinition`, `implementations` (LSP standard) et `superDefinition` (requête maison `java.superDefinition` des serveurs Java, réponse lue avec défense).
+
+### Corrections
+
+- Les 28 derniers commits portaient le mauvais auteur (`Z User <z@container>`) — l'historique est réécrit : 577 commits à `jjoblab <olson12jb@gmail.com>`.
+
 ## [2.2.3] — 2026-11-20
 
 ### Recherche vivante, occurrences et durcissements (sessions 18-19)

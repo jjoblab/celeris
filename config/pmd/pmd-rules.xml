@@ -38,5 +38,12 @@
         </properties>
     </rule>
 
-    <rule ref="category/java/errorprone.xml/EmptyCatchBlock"/>
+    <!-- Les catch COMMENTÉS sont admis : la fermeture silencieuse
+         d'une ressource déjà morte (D-09, la socket du serveur externe)
+         se consigne par sa raison, pas par du code fantôme. -->
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
+        <properties>
+            <property name="allowCommentedBlocks" value="true"/>
+        </properties>
+    </rule>
 </ruleset>

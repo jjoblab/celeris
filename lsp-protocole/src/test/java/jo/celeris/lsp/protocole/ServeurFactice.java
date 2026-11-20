@@ -234,6 +234,26 @@ final class ServeurFactice implements LanguageServer {
             return CompletableFuture.completedFuture(Either.forLeft(List.of(lieu)));
         }
 
+        // ── D-10 (l'analyse croisée) : les trois navigations typées ──
+
+        @Override
+        public CompletableFuture<Either<List<? extends Location>,
+                List<? extends org.eclipse.lsp4j.LocationLink>>> typeDefinition(
+                        org.eclipse.lsp4j.TypeDefinitionParams params) {
+            Location lieu = new Location(params.getTextDocument().getUri(),
+                    new Range(new Position(1, 0), new Position(1, 5)));
+            return CompletableFuture.completedFuture(Either.forLeft(List.of(lieu)));
+        }
+
+        @Override
+        public CompletableFuture<Either<List<? extends Location>,
+                List<? extends org.eclipse.lsp4j.LocationLink>>> implementation(
+                        org.eclipse.lsp4j.ImplementationParams params) {
+            Location lieu = new Location(params.getTextDocument().getUri(),
+                    new Range(new Position(2, 0), new Position(2, 7)));
+            return CompletableFuture.completedFuture(Either.forLeft(List.of(lieu)));
+        }
+
         // ── La couverture du jalon (H-12), chaque forme servie ──────
 
         @Override
@@ -405,6 +425,20 @@ final class ServeurFactice implements LanguageServer {
             public void didChangeWatchedFiles(
                     org.eclipse.lsp4j.DidChangeWatchedFilesParams params) {
                 // le banc ne surveille rien
+            }
+
+            // D-10 : la requête maison superDefinition du banc — la
+            // même commande que jdt.ls, une liste de lieux plats
+            @Override
+            public CompletableFuture<Object> executeCommand(
+                    org.eclipse.lsp4j.ExecuteCommandParams params) {
+                if ("java.superDefinition".equals(params.getCommand())) {
+                    Object uri = params.getArguments().get(0);
+                    Location lieu = new Location(String.valueOf(uri),
+                            new Range(new Position(3, 0), new Position(3, 9)));
+                    return CompletableFuture.completedFuture(List.of(lieu));
+                }
+                return CompletableFuture.completedFuture(List.of());
             }
         };
     }

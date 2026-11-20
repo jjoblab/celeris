@@ -317,6 +317,42 @@ public final class LspSession implements AutoCloseable, SuiviVersions {
                 .thenApply(CorrespondanceDocuments::lireLieux);
     }
 
+    /** La définition du TYPE (D-10) : où le type du symbole se
+     *  déclare ; le serveur sans la sert rend vide.
+     * @param uri      l'uri du document
+     * @param position la position du symbole
+     * @return le futur des lieux de définition du type
+     */
+    public CompletableFuture<List<LieuLsp>> typeDefinition(String uri,
+            PositionLsp position) {
+        return couverture.typeDefinition(uri, position);
+    }
+
+    /** Les implémentations d'un symbole (D-10) : les classes d'une
+     *  interface, les surcharges d'une méthode.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du symbole
+     * @return le futur des lieux d'implémentation
+     */
+    public CompletableFuture<List<LieuLsp>> implementations(String uri,
+            PositionLsp position) {
+        return couverture.implementations(uri, position);
+    }
+
+    /** La définition SUPÉRIEURE (D-10) : la méthode surchargée — la
+     *  requête maison {@code java.superDefinition} (jdt.ls) ; un
+     *  serveur sans la commande rend vide, jamais d'échec.
+     *
+     * @param uri      l'uri du document
+     * @param position la position du symbole
+     * @return le futur des lieux de la définition supérieure
+     */
+    public CompletableFuture<List<LieuLsp>> superDefinition(String uri,
+            PositionLsp position) {
+        return couverture.superDefinition(uri, position);
+    }
+
     // ── La couverture du jalon (H-12) : les treize méthodes nouvelles,
     //    déléguées à la maison des demandes — l'API publique ne bouge
     //    pas, l'ordonnancement reste celui du domaine. ────────────────

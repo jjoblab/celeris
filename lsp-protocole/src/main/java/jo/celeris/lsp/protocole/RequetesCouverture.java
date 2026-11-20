@@ -1,6 +1,7 @@
 package jo.celeris.lsp.protocole;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -19,6 +20,8 @@ import jo.celeris.core.lsp.types.SurlignageLsp;
 import jo.celeris.core.lsp.types.SymboleLsp;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CodeActionParams;
+import org.eclipse.lsp4j.ImplementationParams;
+import org.eclipse.lsp4j.TypeDefinitionParams;
 import org.eclipse.lsp4j.DocumentFormattingParams;
 import org.eclipse.lsp4j.DocumentHighlightParams;
 import org.eclipse.lsp4j.DocumentRangeFormattingParams;
@@ -95,6 +98,107 @@ final class RequetesCouverture {
                         CorrespondanceLsp.ecrirePosition(position),
                         new ReferenceContext(true))))
                 .thenApply(CorrespondanceCouverture::lireLieuxPlats);
+    }
+
+    /**
+     * La définition du TYPE (D-10, l'analyse croisée) : le lieu où le
+     * type du symbole est déclaré — « aller à la définition du type »,
+     * la navigation des langages typés.
+     */
+    CompletableFuture<List<LieuLsp>> typeDefinition(String uri,
+            PositionLsp position) {
+        garde.run();
+        return interactive("typeDefinition", uri, position, () -> serveur
+                .getTextDocumentService().typeDefinition(
+                        new TypeDefinitionParams(identifiant(uri),
+                                CorrespondanceLsp.ecrirePosition(position))))
+                .thenApply(CorrespondanceDocuments::lireLieux);
+    }
+
+    /**
+     * Les implémentations d'un symbole (D-10) : les lieux qui le
+     * réalisent — les classes qui implémentent l'interface, les
+     * méthodes qui surchargent.
+     */
+    CompletableFuture<List<LieuLsp>> implementations(String uri,
+            PositionLsp position) {
+        garde.run();
+        return interactive("implementation", uri, position, () -> serveur
+                .getTextDocumentService().implementation(
+                        new ImplementationParams(identifiant(uri),
+                                CorrespondanceLsp.ecrirePosition(position))))
+                .thenApply(CorrespondanceDocuments::lireLieux);
+    }
+
+    /**
+     * La définition SUPÉRIEURE (D-10) : la méthode que celle-ci
+     * surcharge — la requête maison {@code superDefinition} des
+     * serveurs Java (jdt.ls), par la voie des requêtes personnalisées
+     * du protocole. Un serveur qui ne la sert rend vide : jamais
+     * d'échec, la navigation retombe sur la définition simple.
+     */
+    CompletableFuture<List<LieuLsp>> superDefinition(String uri,
+            PositionLsp position) {
+        garde.run();
+        return interactive("superDefinition", uri, position, () -> serveur
+                .getWorkspaceService().executeCommand(
+                        new org.eclipse.lsp4j.ExecuteCommandParams(
+                                "java.superDefinition",
+                                java.util.List.of(uri,
+                                        position.ligne(),
+                                        position.colonne()))))
+                .thenApply(RequetesCouverture::lireReponseSuper);
+    }
+
+    /**
+     * La réponse de la requête maison superDefinition : le serveur
+     * rend une liste de lieux (maps Gson) — lue avec défense, champ
+     * par champ ; toute autre forme rend vide, jamais d'échec.
+     */
+    private static List<LieuLsp> lireReponseSuper(
+            @org.jspecify.annotations.Nullable Object reponse) {
+        if (!(reponse instanceof List<?> elements)) {
+            return List.of();
+        }
+        List<LieuLsp> lieux = new java.util.ArrayList<>();
+        for (Object element : elements) {
+            if (element instanceof org.eclipse.lsp4j.Location lieu) {
+                lieux.add(new LieuLsp(lieu.getUri(),
+                        CorrespondanceLsp.lirePlage(lieu.getRange())));
+            } else if (element instanceof java.util.Map<?, ?> carte) {
+                LieuLsp lu = lireLieuDeCarte(carte);
+                if (lu != null) {
+                    lieux.add(lu);
+                }
+            }
+        }
+        return lieux;
+    }
+
+    /** Un lieu lu d'une map Gson (uri + range) — null sans ces champs. */
+    private static @org.jspecify.annotations.Nullable LieuLsp lireLieuDeCarte(
+            java.util.Map<?, ?> carte) {
+        Object uri = carte.get("uri");
+        Object plage = carte.get("range");
+        if (!(uri instanceof String texte) || !(plage instanceof Map<?, ?> p)) {
+            return null;
+        }
+        Object debut = p.get("start");
+        Object fin = p.get("end");
+        if (!(debut instanceof Map<?, ?> d) || !(fin instanceof Map<?, ?> f)) {
+            return null;
+        }
+        return new LieuLsp(texte, CorrespondanceLsp.lirePlage(
+                new org.eclipse.lsp4j.Range(lirePosition(d), lirePosition(f))));
+    }
+
+    /** Une position LSP lue d'une map Gson (line/character). */
+    private static org.eclipse.lsp4j.Position lirePosition(java.util.Map<?, ?> p) {
+        Object ligne = p.get("line");
+        Object colonne = p.get("character");
+        return new org.eclipse.lsp4j.Position(
+                ligne instanceof Number n ? n.intValue() : 0,
+                colonne instanceof Number c ? c.intValue() : 0);
     }
 
     /** Les symboles du document — le plan, le fil d'Ariane. */
