@@ -359,6 +359,10 @@ public final class EditorPopups {
         sessionLangage.open(uri,
                 langueParam == null ? "texte" : langueParam.id(),
                 session.document().text());
+        // La coloration sémantique (ADR-0027, B1) : la première passe
+        // part au branchement — les suivantes suivront les
+        // synchronisations, au calme de la frappe.
+        planifierJetonsSemantiques();
     }
 
     /**
@@ -576,6 +580,7 @@ public final class EditorPopups {
         popups.onType();
         if (server != null) {
             server.synchroniser(uriDocument, session.document().text());
+            planifierJetonsSemantiques();
         }
         boolean acceptation = acceptationEnCours;
         acceptationEnCours = false;
@@ -596,6 +601,91 @@ public final class EditorPopups {
         filAriane.refresh();
         rightEdge.refresh(layerWidth(), layerHeight());
         inlayHints.refresh(session.document());
+    }
+
+    /** Le calme avant la demande sémantique, en millisecondes (une
+     *  demande par rafale de frappe, jamais une par touche). */
+    private static final long CALME_SEMANTIQUE_MS = 300L;
+
+    /** Le retrait de la demande sémantique retardée — null quand rien
+     *  n'est planifié. */
+    private @Nullable Runnable retraitSemantique;
+
+    /**
+     * Planifie la demande de jetons sémantiques au calme (ADR-0027,
+     * B1) : une rafale de frappe reprogramme UNE demande — le
+     * retrait précédent se dissout, jamais deux demandes ne se
+     * courent après le même document.
+     */
+    private void planifierJetonsSemantiques() {
+        if (retraitSemantique != null) {
+            editor.removeCallbacks(retraitSemantique);
+        }
+        Runnable demande = () -> {
+            retraitSemantique = null;
+            rafraichirJetonsSemantiques();
+        };
+        retraitSemantique = demande;
+        editor.postDelayed(demande, CALME_SEMANTIQUE_MS);
+    }
+
+    /**
+     * Demande les jetons sémantiques au serveur et les pousse à la
+     * vue (ADR-0027, B1) : les positions LSP (ligne, colonne UTF-16)
+     * se transposent en offsets absolus à la frontière de l'hôte
+     * (ADR-005, {@code LspPositions}) ; la révision du document au
+     * moment de la demande signe la fraîcheur (PIEGE-20) — une
+     * réponse qui revient après une édition se POSE quand même : la
+     * vue ignore ce qui est périmé, jamais l'hôte ne jette ce que le
+     * serveur a dit d'un contenu encore visible. Sans légende, la
+     * demande ne part pas : le serveur n'a rien promis.
+     */
+    private void rafraichirJetonsSemantiques() {
+        LanguageSession serveur = server;
+        String uri = uriDocument;
+        if (serveur == null || uri == null || serveur.tokenTypes().isEmpty()) {
+            return;
+        }
+        long revisionServie = session.document().revision();
+        serveur.tokens(uri).whenComplete((jetons, echec) -> editor.post(
+                () -> {
+                    if (server != serveur || jetons == null) {
+                        return;
+                    }
+                    editor.setSemanticTokens(
+                            transposer(jetons), typesDe(jetons),
+                            serveur.tokenTypes(), revisionServie);
+                }));
+    }
+
+    /** Les plages absolues des jetons, aplaties deux à deux. */
+    private int[] transposer(jo.celeris.core.lsp.types.SemanticTokensLsp jetons) {
+        List<jo.celeris.core.lsp.types.SemanticTokenLsp> liste = jetons.tokens();
+        int[] plages = new int[liste.size() * 2];
+        for (int i = 0; i < liste.size(); i++) {
+            jo.celeris.core.lsp.types.SemanticTokenLsp jeton = liste.get(i);
+            int debut = jo.celeris.core.lsp.LspPositions.offset(
+                    session.document(),
+                    new jo.celeris.core.lsp.types.LspPosition(jeton.line(),
+                            jeton.column()));
+            int fin = jo.celeris.core.lsp.LspPositions.offset(
+                    session.document(),
+                    new jo.celeris.core.lsp.types.LspPosition(jeton.line(),
+                            jeton.column() + jeton.length()));
+            plages[i * 2] = Math.min(debut, fin);
+            plages[i * 2 + 1] = Math.max(debut, fin);
+        }
+        return plages;
+    }
+
+    /** Les index de types des jetons, dans l'ordre du flux. */
+    private int[] typesDe(jo.celeris.core.lsp.types.SemanticTokensLsp jetons) {
+        List<jo.celeris.core.lsp.types.SemanticTokenLsp> liste = jetons.tokens();
+        int[] types = new int[liste.size()];
+        for (int i = 0; i < liste.size(); i++) {
+            types[i] = liste.get(i).type();
+        }
+        return types;
     }
 
     private void surSelection(MultiSelection selection) {
@@ -825,6 +915,15 @@ public final class EditorPopups {
         editor.settings().removeListener(settingsSubscriber);
         session.removeEditListener(ecouteurEdition);
         session.removeSelectionListener(ecouteurSelection);
+        // la demande sémantique retardée se dissout au détachement —
+        // jamais une demande ne revient sur un éditeur libéré
+        if (retraitSemantique != null) {
+            editor.removeCallbacks(retraitSemantique);
+            retraitSemantique = null;
+        }
+        // la surcouche sémantique se retire avec le serveur : la
+        // coloration syntaxique reprend ses droits, seule
+        editor.setSemanticTokens(new int[0], new int[0], List.of(), -1L);
     }
 
     /** La session servie par l'orchestrateur — la façade y

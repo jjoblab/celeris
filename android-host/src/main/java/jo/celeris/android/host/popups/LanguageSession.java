@@ -232,6 +232,19 @@ public interface LanguageSession extends AutoCloseable {
     CompletableFuture<SemanticTokensLsp> tokensRange(String uri, RangeLsp range);
 
     /**
+     * La légende des types de jetons convenue avec le serveur (à
+     * l'initialisation) — l'ordre des types annoncé par ses
+     * capacités, vide sans serveur sémantique. La coloration
+     * sémantique (ADR-0027) s'y résout : l'index de type de chaque
+     * jeton s'y lit.
+     *
+     * @return la légende des types, vide si le serveur n'en a pas
+     */
+    default List<String> tokenTypes() {
+        return List.of();
+    }
+
+    /**
      * Les références du symbole.
      *
      * @param uri   l'uri du document

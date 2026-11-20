@@ -29,9 +29,10 @@
 | A1.3 | L'échec de passe native notifie (plus d'écran figé) | moyenne | ✅ fait (e13428b, 2026-11-19) |
 | A2 | La BOM n'est plus colorée comme un opérateur | mineure | ✅ fait (444a064, 2026-11-19) |
 | A3 | Statut du `\r` CRLF décidé et documenté | mineure | ✅ fait (7ebe335, 2026-11-19 — ADR-0026, voie (b) retenue) |
-| A4 | Consolidations documentaires (bornes, internement, sémantique LSP) | mineure | ✅ fait (ADR-0027 en proposition — décision propriétaire attendue) |
+| A4 | Consolidations documentaires (bornes, internement, sémantique LSP) | mineure | ✅ fait (ADR-0027 acceptée le 2026-11-20 — voir B1) |
 | A5 | Bancs structurels : multi-onglets, frappe native, critère incrémental en CI | — | ✅ fait (3 bancs, 5 tests verts) |
-| A6 | Étude : la voie des grammaires par moteur externe (textmate) | — | 🟡 étude posée — décision propriétaire |
+| A6 | Étude : la voie des grammaires par moteur externe (textmate) | — | 🔴 reportée par le propriétaire (2026-11-20, « une autre fois ») |
+| B1 | Surcouche sémantique LSP (ADR-0027 acceptée) | fonctionnalité | ✅ fait (2026-11-20, le jour de la validation) |
 
 ## Détail des étapes
 
@@ -171,15 +172,43 @@
   incrémental (les moteurs externes pensent « ligne par ligne », le
   socle pense « reconvergence par états »), et le doublement des
   chemins de repli si le moteur manque sur une architecture.
-- **Statut** : 🟡 étude posée — la décision appartient au
-  propriétaire ; les données vivent dans la réponse de session et la
-  comparaison des chemins ci-dessus.
+- **Statut** : 🔴 REPORTÉE par le propriétaire le 2026-11-20
+  (« A6 une autre fois ») — les données restent posées, la
+  décision reviendra à lui.
+
+### B1 — Surcouche sémantique LSP (ADR-0027 acceptée)
+
+- **Décision du propriétaire** (2026-11-20) : « Je valide
+  l'adr 027 » — câbler en surcouche, exécuté le jour même.
+- **Ce qui vit où** : `SemanticOverlay` (pure, android-view) porte
+  les jetons transposés en offsets absolus, la légende et la révision
+  servie ; `SemanticRowSource` enveloppe la source habillée ;
+  `EditorSyntax.poseSemantique` compose à l'habillage (le même endroit
+  que le rattrapage D-05) et RECALE à la frame (PIEGE-20 : une pose
+  périmée se vide, jamais elle ne colore une révision plus récente) ;
+  `EditorView.setSemanticTokens` est la porte publique ; côté hôte,
+  `EditorPopups` demande au calme (300 ms après la synchronisation,
+  une demande par rafale de frappe) et transpose par `LspPositions`
+  (frontière ADR-005) ; `LanguageSession.tokenTypes()` (défaut vide)
+  porte la légende convenue.
+- **Les règles tenues** : le jeton RAFFINE — il ne colore que
+  l'intersection avec la preuve syntaxique dessous, jamais un
+  remplacement ; le jeton orphelin s'ignore ; le recouvrement
+  de jetons se rogne (le premier l'emporte) ; le type inconnu de la
+  légende reste muet ; l'effacement (débranchement du serveur)
+  rend la coloration syntaxique seule.
+- **Bancs** : `SemanticOverlayTest` 7/7 (fusion pure) et
+  `ColorationSemantiqueVueTest` 3/3 (bout en bout sur le harnais :
+  raffinement servi, périmé ignoré, effacement) — le banc
+  d'intégration a attrapé une pose périmée qui colorait quand même :
+  corrigée au recalage à l'habillage.
 
 ## Journal de suivi
 
 | Date | Étape | Commit | Notes |
 | --- | --- | --- | --- |
 | 2026-11-19 | création | — | feuille posée après décision du propriétaire (option A) |
+| 2026-11-20 | B1 | (ce commit) | ADR-0027 validée par le propriétaire puis exécutée le jour même : surcouche, fusion à l'habillage, fraîcheur PIEGE-20 ; SemanticOverlayTest 7/7, ColorationSemantiqueVueTest 3/3 (le banc a attrapé une pose périmée qui colorait — corrigée au recalage) |
 | 2026-11-19 | A1.1 + A1.3 | e13428b | la voie native reprogramme à l'édition (coalescence, garde fermeture) ; l'échec de passe journalise et prévient — les bancs natifs sautent sur JVM (liaison Android), ils servent la CI |
 | 2026-11-19 | A1.2 | daa62fc | le rattrapage lit la publication de la voie qui sert ; prouvé rouge→vert par fabrique de banc armée sélectivement (3/3 verts, 21 bancs coloration sans régression) |
 | 2026-11-19 | A2 | 444a064 | la BOM de tête est un blanc de format (garde en position 0 de la ligne de tête) ; banc rouge 2 échecs → vert 3/3 |

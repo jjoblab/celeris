@@ -192,6 +192,13 @@ public final class SessionLspAdaptee implements LanguageSession {
     }
 
     @Override
+    public List<String> tokenTypes() {
+        // la légende convenue à l'initialisation du mini serveur — la
+        // coloration sémantique (ADR-0027) y résout ses index
+        return session.capabilities().tokenTypes();
+    }
+
+    @Override
     public CompletableFuture<List<LocationLsp>> references(String uri, Document doc,
             int caret) {
         return session.references(uri, position(doc, caret));

@@ -132,6 +132,12 @@ public final class EditorSyntax {
     private final FoldsBySession foldMemory;
     private boolean chaineRompue;
 
+    /** La surcouche sémantique (ADR-0027, B1) : les jetons du serveur
+     *  LSP qui raffinent la coloration — vide sans serveur branché.
+     *  Volatile : l'hôte la pose depuis son fil, l'habillage la lit
+     *  sur le fil d'interface. */
+    private volatile SemanticOverlay semantique = SemanticOverlay.vide();
+
     /**
      * Construit le pont synchrone sur le modèle de plis de la projection
      * — l'analyse se paie à la première demande, sur le fil d'appel.
@@ -399,8 +405,42 @@ public final class EditorSyntax {
         }
         editionsEnAttente.clear();
         chaineRompue = false;
-        return new FoldedRowSource(new SyntaxRowSource(source, analyse.lex()),
-                document, folds, analyse.lex());
+        return envelopperSemantique(new FoldedRowSource(
+                new SyntaxRowSource(source, analyse.lex()),
+                document, folds, analyse.lex()), document);
+    }
+
+    /**
+     * Pose la surcouche sémantique (ADR-0027, B1) : les jetons du
+     * serveur LSP, déjà transposés en offsets absolus par l'hôte
+     * (frontière ADR-005), avec la légende convenue et la révision du
+     * document que le serveur a vue. La publication se valide contre
+     * la révision affichée (PIEGE-20) : périmée, elle se vide — le
+     * serveur re-dira à sa synchronisation suivante. La pose
+     * réveuille l'invalidation d'analyse : les rangées déjà servies
+     * se re-pareront à la frame suivante (fusion payée à
+     * l'habillage, pas par image).
+     *
+     * @param surcouche la surcouche à poser, vide pour l'effacer
+     */
+    public void poseSemantique(SemanticOverlay surcouche) {
+        this.semantique = surcouche;
+        notifyAnalysisReady();
+    }
+
+    /**
+     * Enveloppe la source de la surcouche quand elle porte des jetons
+     * — recalée sur le document affiché (PIEGE-20) : une publication
+     * qui a vu une révision plus ancienne se vide ici, jamais elle ne
+     * colore une révision plus récente.
+     */
+    private RowSource envelopperSemantique(RowSource habillee,
+            Document document) {
+        SemanticOverlay validee = semantique.recaler(document);
+        if (validee.sansJetons()) {
+            return habillee;
+        }
+        return new SemanticRowSource(habillee, validee);
     }
 
     /**
@@ -435,9 +475,10 @@ public final class EditorSyntax {
             sites.add(edit.site());
             edits.add(edit.versPendingEdit());
         }
-        return new SyntaxRowSource(source, published.lex(),
+        return envelopperSemantique(new SyntaxRowSource(source, published.lex(),
                 TokenCatchUp.of(published.lex(), edits, sites, document,
-                        syntaxeDuLangage == null ? null : syntaxeDuLangage.lexer()));
+                        syntaxeDuLangage == null ? null : syntaxeDuLangage.lexer())),
+                document);
     }
 
     /**

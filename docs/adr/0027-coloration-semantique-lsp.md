@@ -1,9 +1,10 @@
 # ADR-0027 — Coloration sémantique LSP : câbler en surcouche, ne pas retirer
 
-- **Statut** : Proposition (2026-11-19 — feuille de route A4 de la
-  fiabilisation de la coloration ; le constat d'audit posait
-  « câbler ou retirer », cette proposition recommande et attend la
-  validation du propriétaire)
+- **Statut** : Acceptée (proposée le 2026-11-19 dans le cadre de la
+  feuille de route A4 de la fiabilisation de la coloration ;
+  **validée par le propriétaire le 2026-11-20** — « Je valide l'adr
+  027 » — exécutée le même jour, étape B1 de la feuille de la
+  coloration)
 - **Date** : 2026-11-19
 
 ## Contexte
@@ -71,7 +72,7 @@ de la coloration syntaxique (feuille de route A1-A5), pas avant.**
 
 ## Actions
 
-- [ ] Validation du propriétaire (câbler en surcouche / autre chose).
-- [ ] (si validée) Étape B1 posée à la feuille de route, phase dédiée.
+- [x] Validation du propriétaire (câbler en surcouche) — donnée le 2026-11-20.
+- [x] Étape B1 posée puis exécutée à la feuille de route (même jour).
 - [ ] (si validée) Banc de fusion : jeton sémantique raffinant,
   jeton orphelin ignoré, jeton périmé recalé ou ignoré.

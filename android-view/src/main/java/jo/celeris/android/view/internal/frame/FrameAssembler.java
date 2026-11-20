@@ -2,6 +2,7 @@ package jo.celeris.android.view.internal.frame;
 
 import jo.celeris.android.view.internal.ScrollPositions.Position;
 import jo.celeris.core.text.Document;
+import jo.celeris.android.view.SemanticRowSource;
 import jo.celeris.android.view.DocumentRowSource;
 import jo.celeris.android.view.FoldedRowSource;
 import jo.celeris.android.view.RowSource;
@@ -205,20 +206,30 @@ public final class FrameAssembler  {
                             colonnesVoulues), document);
             acces.sourceLiee().set(habillee);
             if (recue) {
-                // PIEGE-26 : la publication ne rejette pas les mesures —
-                // seules les rangées dont les plages ont changé se
-                // remplacent ; sans coloration, rien à préserver. Les
-                // rangées composées de pli se recomposent entières —
-                // le texte plié a pu changer d'une publication à
-                // l'autre.
-                if (habillee instanceof FoldedRowSource composee) {
-                    acces.cache().respan(document.revision(), composee::respan);
-                } else if (habillee instanceof SyntaxRowSource coloree) {
-                    acces.cache().respan(document.revision(), coloree::respan);
-                } else {
-                    acces.cache().invalidate(document.revision());
-                }
+                respanner(habillee, document);
             }
+        }
+    }
+
+
+    /**
+     * Le respan du cache à la publication (PIEGE-26) : la publication
+     * ne rejette pas les mesures — seules les rangées dont les plages
+     * ont changé se remplacent ; sans coloration, rien à préserver.
+     * Les rangées composées de pli se recomposent entières — le texte
+     * plié a pu changer d'une publication à l'autre. La surcouche
+     * sémantique (ADR-0027) se respanne pareil : ses plages raffinées
+     * remplacent celles d'avant, la mesure survit.
+     */
+    private void respanner(RowSource habillee, Document document) {
+        if (habillee instanceof SemanticRowSource raffinee) {
+            acces.cache().respan(document.revision(), raffinee::respan);
+        } else if (habillee instanceof FoldedRowSource composee) {
+            acces.cache().respan(document.revision(), composee::respan);
+        } else if (habillee instanceof SyntaxRowSource coloree) {
+            acces.cache().respan(document.revision(), coloree::respan);
+        } else {
+            acces.cache().invalidate(document.revision());
         }
     }
 

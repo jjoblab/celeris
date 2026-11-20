@@ -5,6 +5,12 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.10] — 2026-11-20
+
+### Ajouts
+
+- **La coloration sémantique LSP est câblée (ADR-0027 acceptée, feuille de la coloration B1)** : les jetons sémantiques du serveur RAFFINENT la coloration syntaxique — un jeton ne colore que l'intersection avec la preuve syntaxique dessous (l'orphelin s'ignore), le recouvrement se rogne, le type inconnu de la légende reste muet. Nouvelle API `EditorView.setSemanticTokens(…)` (les plages en offsets absolus, la légende, la révision servie) ; `LanguageSession.tokenTypes()` (défaut vide) porte la légende côté hôte — `EditorPopups` demande au calme (300 ms après la synchronisation) et transpose par `LspPositions`. La fraîcheur suit PIEGE-20 : une pose périmée se vide au recalage de l'habillage, jamais elle ne colore une révision plus récente. Bancs : `SemanticOverlayTest` 7/7, `ColorationSemantiqueVueTest` 3/3 (l'intégration a attrapé une pose périmée qui colorait — corrigée).
+
 ## [2.2.9] — 2026-11-20
 
 ### Changements

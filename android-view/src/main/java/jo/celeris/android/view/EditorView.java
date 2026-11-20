@@ -446,6 +446,34 @@ public final class EditorView extends View {
         images.reinitialiserScene(false);
     }
 
+    /**
+     * Pose les jetons sémantiques du serveur LSP (ADR-0027, B1) : la
+     * surcouche RAFFINE la coloration syntaxique — un jeton ne colore
+     * que l'intersection avec la preuve syntaxique dessous, jamais il
+     * ne remplace. Les plages viennent déjà transposées en offsets
+     * absolus du document affiché (la transposition LSP vit chez
+     * l'hôte, frontière ADR-005) ; la fraîcheur suit PIEGE-20 : la
+     * pose porte la révision du document, une pose périmée s'ignore.
+     * Sans effet après {@link #release()}.
+     *
+     * @param plages          les plages {@code [debut, fin[} des
+     *                        jetons, aplaties deux à deux
+     * @param types           la sorte LSP de chaque plage : l'index
+     *                        dans la légende
+     * @param legende         la légende des types convenue avec le
+     *                        serveur, vide pour effacer la surcouche
+     * @param revisionServie  la révision du document affiché que le
+     *                        serveur a vue
+     */
+    public void setSemanticTokens(int[] plages, int[] types,
+            java.util.List<String> legende, long revisionServie) {
+        if (liberee) {
+            return;
+        }
+        syntaxe.poseSemantique(SemanticOverlay.of(plages, types, legende,
+                revisionServie));
+    }
+
     /** Le concentrateur d'intelligence de la vue (M7.5, §8) — la frappe
      *  intelligente s'y pose, les popups y lisent la complétion. */
     public IntelligenceHub intelligence() {
