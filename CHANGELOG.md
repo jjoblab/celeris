@@ -23,6 +23,7 @@ vivent dans les ADR et le registre de portage, pas ici.
 ### Corrections
 
 - **La ligne fusionnée reste visible au clavier (retour de terrain du 2026-11-20)** : les DEL enchaînés au clavier faisaient remonter le caret à la ligne précédente SANS que le défilement ne suive — la ligne fusionnée sortait du viewport et ses mots disparaissaient jusqu'à la touche Entrée (elle, servie par l'intelligence, révélait le caret). La voie clavier (`KeyActions`) révèle désormais le caret après toute édition qui le déplace, comme les voies IME, intelligence et navigation.
+- **La ligne fusionnée ne disparaît plus après une remontée par DEL (retour de terrain du 2026-11-20, le vrai coupable)** : l'épissure du cache de rangées ne comptait pas les lignes AVALÉES par une fusion dans sa zone morte — la rangée périmée de la ligne avalée (au texte vide) était décalée SUR la rangée de la ligne fusionnée : « public class MaClasse { » disparaissait de l'image jusqu'à la frappe suivante. La zone morte s'étend désormais aux lignes avalées (`max(0, -delta)`).
 - **`release()` vide le champ session (D-11 suite)** : la vue libérée ne retient plus le document de l'onglet fermé — une session vide inerte y prend la place, comme `setSession(null)`.
 - Les 28 derniers commits portaient le mauvais auteur (`Z User <z@container>`) — l'historique est réécrit : 577 commits à `jjoblab <olson12jb@gmail.com>`.
 

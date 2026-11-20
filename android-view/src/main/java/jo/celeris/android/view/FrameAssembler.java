@@ -209,9 +209,19 @@ final class FrameAssembler {
                         == document.lineCount()) {
             // La zone morte couvre les lignes touchées : de la
             // première ligne de l'édition à la première ligne
-            // APRÈS l'édition (ancienne numérotation).
+            // épargnée (ancienne numérotation). Une FUSION (delta
+            // négatif) y compte les lignes avalées : la rangée de la
+            // ligne qui disparaît doit mourir avec celle de la ligne
+            // fusionnée — sinon le décalage la pose SUR la rangée de
+            // la fusion, périmée (texte vide), et la ligne entière
+            // disparaît de l'image jusqu'à la frappe suivante (le
+            // retour de terrain du 2026-11-20 : « public class
+            // MaClasse { » invisible après la remontée du caret).
+            // Une insertion ne touche que la ligne coupée — toutes
+            // ses tranches meurent sous coupure.
             int premiereRangee = vue.projection.rowOfLine(premiereLigne);
-            int ligneApresZone = Math.min(premiereLigne + 1 + deltaLignes,
+            int ligneApresZone = Math.min(
+                    premiereLigne + 1 + Math.max(0, -deltaLignes),
                     vue.projection.lineCount());
             int rangeeFinZone = ligneApresZone == vue.projection.lineCount()
                     ? vue.projection.rowCount()
