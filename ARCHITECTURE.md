@@ -125,6 +125,30 @@ isolés.
 | Qualité | `-Werror`, zéro baseline lint, mutation, fuzz à oracle | ADR-010, ADR-011 |
 | Références externes | projets tiers nommés librement et sourcés, deux interdits (règle 7) ; provenance des dépendances vérifiée | ADR-011, M7.6 |
 
+### Paquets internes (règle 1 de l'ADR-009, exécutée)
+
+Tout paquet dont un segment se nomme `internal` est INTERNE : ses classes y sont publiques entre elles mais n'entrent
+JAMAIS dans le manifeste d'API (le générateur filtre par segment
+de paquet). Le mouvement P de la feuille des améliorations y
+range les familles de collaboration serrée :
+
+| Paquet | Rôle |
+| --- | --- |
+| `jo.celeris.android.view.internal` | les parcs d'état par session (moteurs d'analyse, mises en page, positions de défilement) et l'avis de fenêtre |
+| `jo.celeris.android.view.internal.{paint,gutter,exec,model,viewport}` | peintres internes, collaborateur de gouttière, exécuteurs d'analyse, modèles de calcul, registre d'écouteurs |
+| `jo.celeris.core.intelligence.internal.{structure,flow,scan}` | vocabulaire des analyses  : structures, flot de données, balayage d'identifiants |
+| `jo.celeris.core.text.internal.{bidi,segmentation}` | passes UAX#9 et UAX#29 |
+
+La règle des symboles publics anglais s'applique AUX CLASSES
+DÉPLACÉES : déplacer un interne le publicise dans son
+paquet — les noms français ont été renommés d'abord (P4 :
+ExtendsClauses, ProjectFile, IdentifierScan). Les familles qui
+touchent des champs package-privés de la vue (clavier, gestes,
+IME, diagnostics, fantômes) restent au paquet racine :
+les déplacer exigerait de publiciser ces champs — décision du
+propriétaire (feuille des améliorations, décision n°  1).
+
+
 ## 4. Ce que l'éditeur n'est pas
 
 L'éditeur ne compile pas, n'exécute pas, ne débogue pas : il expose les

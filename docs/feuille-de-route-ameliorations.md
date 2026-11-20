@@ -74,7 +74,8 @@
 | P5 | core-text et android-widgets | moyenne | ✅ fait pour
   core-text (2026-11-20) ; android-widgets VERROUILLÉ (voir
   journal) |
-| P6 | Manifestes api et documentation consolidés | — (clôture) | ☐ à faire |
+| P6 | Manifestes api et documentation consolidés | — (clôture) | ✅ fait
+  (2026-11-20) |
 
 ## Détail des étapes
 
@@ -337,3 +338,27 @@
   (NavigationEtages/MenuEtages) — les déplacer publiciserait leurs
   membres protégés et déplacerait le CENTRE du module. Décision
   propriétaire n°  1 requise pour la suite.
+- 2026-11-20 : P6, clôture — ARCHITECTURE.md gagne la
+  section « Paquets internes«  (le mécanisme
+  ADR-009 exécuté, la table des paquets, la règle des symboles
+  anglais pour les classes déplacées, le verrou des familles
+  couplées à la vue). Les manifestes des modules purs touchés
+  (core-text, core-intelligence) régénérés FORCEMENT :
+  zéro diff — le contrat n'a pas bougé d'un octet pendant tout le
+  chantier P. **BILAN P** : android-view 126 -> 112
+  classes au racine (15 rangées en internal), core-intelligence
+  65 -> 54, core-text 38 -> 32 ; 3 renommages anglais
+  (ExtendsClauses, ProjectFile, IdentifierScan) ;
+  zéro changement de contrat.
+  **Restent au propriétaire** :
+  1. les familles couplées aux champs de la vue (clavier, gestes,
+     IME, diagnostics, fantômes, viewport restant, ViewFonts,
+     FrameAssembler) : publiques en version mineure ou
+     internes seulement ? (reco : internes
+     seulement — un pont d'accès interne à la vue si le besoin
+     vient)
+  2. les classes PUBLIQUES des gros modules changent-elles de
+     paquet (version mineure + MIGRATION) ? (reco :
+     au fil des versions, fenêtre par fenêtre)
+  3. android-widgets (les internes y sont les superclasses des
+     popups — le déplacement déplace le centre du module).
