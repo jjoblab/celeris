@@ -318,8 +318,7 @@
   PUBLIQUE au manifeste — déménagent chez FlowExtractions (les
   publiciser aurait changé le contrat). InlineFields et InlineSafety
   restent au racine (la publique Inline les utilise). CONTRAT
-  INTACT : manifeste régénéré FORCEMENT, zéro diff
-  (le filtre ADR-009 exclut les paquets internal). 369 tests
+  INTACT : les internes déplacées QUITTENT le manifeste (filtre ADR-009 — 124 lignes), aucun symbole public ne change (le manifeste a suivi au commit 314f642 — la copie build/api/manifest.txt vers api/ est un geste explicite qui avait manqué au commit P4). 369 tests
   verts, checkstyle et PMD verts, consommateurs compilés. Le
   paquet racine : 65 -> 54 classes.
 - 2026-11-20 : P5, core-text — les deux familles internes
@@ -343,8 +342,11 @@
   ADR-009 exécuté, la table des paquets, la règle des symboles
   anglais pour les classes déplacées, le verrou des familles
   couplées à la vue). Les manifestes des modules purs touchés
-  (core-text, core-intelligence) régénérés FORCEMENT :
-  zéro diff — le contrat n'a pas bougé d'un octet pendant tout le
+  (core-text, core-intelligence) suivis au commit 314f642 :
+  206 lignes internes les quittent (filtre ADR-009), UNE
+  référence binaire migre (Word$Effective.cls() rend
+  internal.segmentation.WbClass), aucun symbole public ajouté
+  ni retiré — le contrat source n'a pas bougé pendant tout le
   chantier P. **BILAN P** : android-view 126 -> 112
   classes au racine (15 rangées en internal), core-intelligence
   65 -> 54, core-text 38 -> 32 ; 3 renommages anglais
