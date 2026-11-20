@@ -1,11 +1,13 @@
-package jo.celeris.core.text;
+package jo.celeris.core.text.internal.bidi;
+
+import jo.celeris.core.text.Bidi;
 
 /**
  * Catégorie directionnelle d'un point de code (algorithme bidirectionnel
  * UAX #9) — visible du paquet seulement, la surface publique étant
  * {@link Bidi}.
  */
-enum BidiCategory {
+public enum BidiCategory {
     /** Lettre gauche à droite. */
     L,
     /** Lettre droite à gauche. */

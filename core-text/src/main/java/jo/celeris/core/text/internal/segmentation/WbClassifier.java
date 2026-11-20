@@ -1,4 +1,7 @@
-package jo.celeris.core.text;
+package jo.celeris.core.text.internal.segmentation;
+
+import jo.celeris.core.text.Grapheme;
+import jo.celeris.core.text.Word;
 
 /**
  * Classification Word_Break des points de code (UAX #29) — visible du
@@ -8,7 +11,7 @@ package jo.celeris.core.text;
  * (séparateurs médians, tirets bas, fins de ligne), des écritures
  * ({@link Character.UnicodeScript}) et des catégories générales.</p>
  */
-final class WbClassifier {
+public final class WbClassifier  {
 
     private static final int[][] MIDLETTER = {
             {0x003A, 0x003A}, {0x00B7, 0x00B7}, {0x05F4, 0x05F4}, {0x2027, 0x2027},
@@ -38,7 +41,7 @@ final class WbClassifier {
     }
 
     /** La classe Word_Break d'un point de code. */
-    static WbClass classOf(int codePoint) {
+    public static WbClass classOf(int codePoint) {
         WbClass simple = explicitClassOf(codePoint);
         if (simple != WbClass.ANY) {
             return simple;

@@ -1,4 +1,6 @@
-package jo.celeris.core.text;
+package jo.celeris.core.text.internal.bidi;
+
+import jo.celeris.core.text.Bidi;
 
 /**
  * Règles faibles (W1-W7) et neutres (N1-N2) de l'algorithme
@@ -8,13 +10,13 @@ package jo.celeris.core.text;
  * <p>Chaque run de même niveau se résout indépendamment, du type fort
  * de départ ({@code sos}) au type fort d'arrivée.</p>
  */
-final class BidiRuns {
+public final class BidiRuns  {
 
     private BidiRuns() {
     }
 
     /** Résout chaque run de même niveau, borne à borne. */
-    static void resolve(BidiCategory[] classes, int[] levels) {
+    public static void resolve(BidiCategory[] classes, int[] levels) {
         int length = classes.length;
         int start = 0;
         while (start < length) {

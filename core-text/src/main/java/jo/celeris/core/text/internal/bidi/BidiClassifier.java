@@ -1,6 +1,8 @@
-package jo.celeris.core.text;
+package jo.celeris.core.text.internal.bidi;
 
 import org.jspecify.annotations.Nullable;
+
+import jo.celeris.core.text.Bidi;
 
 /**
  * Classification directionnelle des points de code (UAX #9) — visible du
@@ -10,7 +12,7 @@ import org.jspecify.annotations.Nullable;
  * diacritiques arabes (U+064B…) sont des marques, pas des lettres
  * fortes.</p>
  */
-final class BidiClassifier {
+public final class BidiClassifier  {
 
     private static final int[][] WHITESPACE = {
             {0x0009, 0x0009}, {0x0020, 0x0020}, {0x00A0, 0x00A0},
@@ -29,7 +31,7 @@ final class BidiClassifier {
     }
 
     /** La catégorie directionnelle d'un point de code. */
-    static BidiCategory classOf(int codePoint) {
+    public static BidiCategory classOf(int codePoint) {
         BidiCategory simple = simpleClassOf(codePoint);
         if (simple != null) {
             return simple;
@@ -51,12 +53,12 @@ final class BidiClassifier {
     }
 
     /** Vrai si la catégorie est neutre (WS, ON, BN). */
-    static boolean isNeutral(BidiCategory cls) {
+    public static boolean isNeutral(BidiCategory cls) {
         return cls == BidiCategory.WS || cls == BidiCategory.ON || cls == BidiCategory.BN;
     }
 
     /** Vrai si la catégorie agit comme du droite à gauche (R, AN, EN). */
-    static boolean actsAsRtl(BidiCategory cls) {
+    public static boolean actsAsRtl(BidiCategory cls) {
         return cls == BidiCategory.R || cls == BidiCategory.AN || cls == BidiCategory.EN;
     }
 

@@ -1,5 +1,10 @@
 package jo.celeris.core.text;
 
+import jo.celeris.core.text.internal.bidi.BidiCategory;
+import jo.celeris.core.text.internal.bidi.BidiClassifier;
+import jo.celeris.core.text.internal.bidi.BidiEmbeddings;
+import jo.celeris.core.text.internal.bidi.BidiRuns;
+
 /**
  * Résolution bidirectionnelle selon UAX #9 (sous-ensemble documenté).
  *

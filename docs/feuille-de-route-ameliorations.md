@@ -71,7 +71,9 @@
 | P4 | core-intelligence en familles | moyenne (65 classes) | ✅ fait
   pour les internes (2026-11-20) ; les 53 publiques attendent
   la décision propriétaire n°  1 |
-| P5 | core-text et android-widgets | moyenne | ☐ à faire |
+| P5 | core-text et android-widgets | moyenne | ✅ fait pour
+  core-text (2026-11-20) ; android-widgets VERROUILLÉ (voir
+  journal) |
 | P6 | Manifestes api et documentation consolidés | — (clôture) | ☐ à faire |
 
 ## Détail des étapes
@@ -319,3 +321,19 @@
   (le filtre ADR-009 exclut les paquets internal). 369 tests
   verts, checkstyle et PMD verts, consommateurs compilés. Le
   paquet racine : 65 -> 54 classes.
+- 2026-11-20 : P5, core-text — les deux familles internes
+  rejoignent `text.internal.*` : `internal/bidi`
+  (BidiCategory, BidiClassifier, BidiEmbeddings, BidiRuns — les
+  passes UAX#9) et `internal/segmentation` (WbClass, WbClassifier —
+  UAX#29). Les cinq isolées (ClusterDeletes, GuardedCharSequence,
+  MultiPaste, Utf8Codec, WideCodecs) restent AU RACINE :
+  chacune sert UNE classe publique, une classe par sous-paquet ne
+  structure rien. Manifeste régénéré FORCEMENT : zéro
+  diff. 443 tests verts, checkstyle/PMD verts, consommateurs
+  compilés. Paquet racine : 38 -> 32 classes.
+  **android-widgets ne bouge PAS** : les 4 internes sont
+  des SUPERCLASSES (PopupPanel de 10 sous-classes publiques,
+  TextRowsPopup de 9, Feuille de 2) ou un utilitaire croisé
+  (NavigationEtages/MenuEtages) — les déplacer publiciserait leurs
+  membres protégés et déplacerait le CENTRE du module. Décision
+  propriétaire n°  1 requise pour la suite.

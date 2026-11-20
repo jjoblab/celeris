@@ -1,6 +1,8 @@
-package jo.celeris.core.text;
+package jo.celeris.core.text.internal.bidi;
 
 import org.jspecify.annotations.Nullable;
+
+import jo.celeris.core.text.Bidi;
 
 /**
  * Niveaux d'enchâssement explicites (X1-X8) et niveau de paragraphe
@@ -11,7 +13,7 @@ import org.jspecify.annotations.Nullable;
  * bornes neutres invisibles (simplification de X9) : leur niveau
  * participe aux runs, leur affichage est nul.</p>
  */
-final class BidiEmbeddings {
+public final class BidiEmbeddings  {
 
     /** Profondeur maximale d'enchâssement explicite (X1). */
     private static final int MAX_DEPTH = 125;
@@ -20,7 +22,7 @@ final class BidiEmbeddings {
     }
 
     /** Le niveau de paragraphe par le premier caractère fort hors isolats. */
-    static int paragraphLevel(String line) {
+    public static int paragraphLevel(String line) {
         int depth = 0;
         for (int i = 0; i < line.length(); ) {
             int codePoint = line.codePointAt(i);
@@ -35,7 +37,7 @@ final class BidiEmbeddings {
     }
 
     /** Applique les enchâssements, survols et isolats explicites. */
-    static void apply(String line, BidiCategory[] classes, int[] levels, int paragraphLevel) {
+    public static void apply(String line, BidiCategory[] classes, int[] levels, int paragraphLevel) {
         Stack stack = new Stack(paragraphLevel);
         for (int i = 0; i < line.length(); ) {
             int codePoint = line.codePointAt(i);

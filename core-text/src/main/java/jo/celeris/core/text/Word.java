@@ -1,5 +1,7 @@
 package jo.celeris.core.text;
 
+import jo.celeris.core.text.internal.segmentation.WbClass;
+import jo.celeris.core.text.internal.segmentation.WbClassifier;
 import java.util.ArrayList;
 import java.util.List;
 
