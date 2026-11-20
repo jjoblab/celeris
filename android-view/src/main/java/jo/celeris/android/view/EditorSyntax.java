@@ -1,5 +1,6 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.model.LanguageStructure;
 import jo.celeris.android.view.internal.EnginePark;
 
 import java.util.ArrayList;

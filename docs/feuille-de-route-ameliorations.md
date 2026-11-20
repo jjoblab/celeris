@@ -66,7 +66,7 @@
 | D1 | Les journaux de chantiers partent à l’archive (docs/historique/) | moyenne | ✅ fait (D1, 2026-11-19) |
 | D2 | Les feuilles de route closes se rangent, l'index vit | basse | ✅ fait (2026-11-20) |
 | P1 | Pilote : le paquet internal d'android-view | — (jette les bases) | ✅ fait (32e38af — 2026-11-19) |
-| P2 | android-view : les peintres et la gouttière en sous-packages | haute (126 classes) | ☐ à faire |
+| P2 | android-view : les peintres et la gouttière en sous-packages | haute (126 classes) | 🟡 en cours — vague 1 faite (2026-11-20) ; la vague 2 (couplées à la vue) suit P3 |
 | P3 | android-view : la suite (source, curseurs, plis, fantômes) | haute | ☐ à faire |
 | P4 | core-intelligence en familles | moyenne (65 classes) | ☐ à faire |
 | P5 | core-text et android-widgets | moyenne | ☐ à faire |
@@ -265,3 +265,17 @@
   réparées (feuille de route, popups, README, USAGE) — au
   passage, les cinq liens `POPUP_*` de la feuille popups,
   cassés par D1, se réparent.
+- 2026-11-20 : P2, vague 1 — les familles INTERNES
+  autonomes partent en sous-paquets :
+  `internal/paint` (ChromePainter, GhostPainter, InlayHintsPainter,
+  ValuesPainter), `internal/gutter` (EditorGutter), `internal/exec`
+  (AnalysisExecutor, RetainedExecutor), `internal/model` (BracePair,
+  HostCallbacks, IdentifierBounds, LanguageStructure, PopupAnchors)
+  — 12 classes, publiques DANS leur paquet internal (mécanisme P1),
+  hors manifeste (ADR-009). 588 tests verts, checkstyle et PMD
+  verts, consommateurs (host, widgets, sample) compilés. LA LEÇON
+  P1 TENAIT : les familles couplées aux champs
+  package-privés de la vue (viewport, clavier, gestes, IME,
+  diagnostics, fantômes) NE PEUVENT PAS partir sans publiciser un
+  membre racine — elles attendent P3 et la décision du
+  propriétaire (n° 1 de la feuille).

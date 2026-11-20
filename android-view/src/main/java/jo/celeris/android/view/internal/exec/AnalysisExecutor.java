@@ -1,7 +1,9 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.exec;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import jo.celeris.android.view.EditorSyntax;
 
 /**
  * L'exécuteur du travail d'analyse de la vue (ADR-007, G-01) : un fil
@@ -18,7 +20,7 @@ import java.util.concurrent.Executors;
  * par {@code shutdownNow()} — les fils « celeris-analyse » ne
  * prolifèrent plus au fil des montées et libérations.</p>
  */
-final class AnalysisExecutor {
+public final class AnalysisExecutor  {
 
     private AnalysisExecutor() {
     }
@@ -29,7 +31,7 @@ final class AnalysisExecutor {
      *
      * @return l'exécuteur du travail d'analyse
      */
-    static ExecutorService parDefaut() {
+    public static ExecutorService parDefaut() {
         return Executors.newSingleThreadExecutor(future -> {
             Thread thread = new Thread(future, "celeris-analyse");
             thread.setDaemon(true);

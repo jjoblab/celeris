@@ -1,5 +1,6 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.model.IdentifierBounds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;

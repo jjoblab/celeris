@@ -1,10 +1,12 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.model;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
+
+import jo.celeris.android.view.CompositionState;
 
 import org.jspecify.annotations.Nullable;
 
@@ -31,7 +33,7 @@ import org.jspecify.annotations.Nullable;
  * collaborateurs de toucher y notifient — le plafond de la vue
  * (ADR-002) respire.</p>
  */
-final class HostCallbacks {
+public final class HostCallbacks  {
 
     /** Le verdict de double-tap de l'hôte — le moment du color picker
      *  d'un littéral de couleur, par exemple. Voie 1.x. */
@@ -63,7 +65,7 @@ final class HostCallbacks {
      *
      * @param consommateur le verdict d'offset, null pour couper
      */
-    void poserDoubleTap(@Nullable IntPredicate consommateur) {
+    public void poserDoubleTap(@Nullable IntPredicate consommateur) {
         surDoubleTap = consommateur;
     }
 
@@ -72,7 +74,7 @@ final class HostCallbacks {
      *
      * @param verdict le verdict d'offset, jamais null
      */
-    void addDoubleTapListener(IntPredicate verdict) {
+    public void addDoubleTapListener(IntPredicate verdict) {
         verdictsDoubleTap.add(Objects.requireNonNull(verdict));
     }
 
@@ -81,7 +83,7 @@ final class HostCallbacks {
      *
      * @param verdict le verdict retiré
      */
-    void removeDoubleTapListener(IntPredicate verdict) {
+    public void removeDoubleTapListener(IntPredicate verdict) {
         verdictsDoubleTap.remove(verdict);
     }
 
@@ -90,7 +92,7 @@ final class HostCallbacks {
      * le geste (la cascade du tap simple ne suit pas), faux quand
      * tous le laissent passer.
      */
-    boolean notifierDoubleTap(int offset) {
+    public boolean notifierDoubleTap(int offset) {
         boolean consomme = false;
         IntPredicate consommateur = surDoubleTap;
         if (consommateur != null) {
@@ -109,7 +111,7 @@ final class HostCallbacks {
      *
      * @param consommateur le consommateur de ligne, null pour couper
      */
-    void poserBasculeBreakpoint(@Nullable IntConsumer consommateur) {
+    public void poserBasculeBreakpoint(@Nullable IntConsumer consommateur) {
         surBasculeBreakpoint = consommateur;
     }
 
@@ -118,7 +120,7 @@ final class HostCallbacks {
      *
      * @param consommateur le consommateur de ligne, jamais null
      */
-    void addBreakpointToggleListener(IntConsumer consommateur) {
+    public void addBreakpointToggleListener(IntConsumer consommateur) {
         consommateursBascule.add(Objects.requireNonNull(consommateur));
     }
 
@@ -127,13 +129,13 @@ final class HostCallbacks {
      *
      * @param consommateur le consommateur retiré
      */
-    void removeBreakpointToggleListener(IntConsumer consommateur) {
+    public void removeBreakpointToggleListener(IntConsumer consommateur) {
         consommateursBascule.remove(consommateur);
     }
 
     /** Notifie la bascule d'arrêt — la gouttière est visée, CHAQUE
      *  abonné rend sa ligne. */
-    void notifierBasculeBreakpoint(int line) {
+    public void notifierBasculeBreakpoint(int line) {
         IntConsumer consommateur = surBasculeBreakpoint;
         if (consommateur != null) {
             consommateur.accept(line);
@@ -150,7 +152,7 @@ final class HostCallbacks {
      *
      * @param consommateur le verdict de touche, null pour couper
      */
-    void poserTouchePopup(@Nullable IntPredicate consommateur) {
+    public void poserTouchePopup(@Nullable IntPredicate consommateur) {
         onPopupKey = consommateur;
     }
 
@@ -159,7 +161,7 @@ final class HostCallbacks {
      *
      * @param verdict le verdict de touche, jamais null
      */
-    void addPopupKeyListener(IntPredicate verdict) {
+    public void addPopupKeyListener(IntPredicate verdict) {
         verdictsTouchePopup.add(Objects.requireNonNull(verdict));
     }
 
@@ -168,7 +170,7 @@ final class HostCallbacks {
      *
      * @param verdict le verdict retiré
      */
-    void removePopupKeyListener(IntPredicate verdict) {
+    public void removePopupKeyListener(IntPredicate verdict) {
         verdictsTouchePopup.remove(verdict);
     }
 
@@ -178,7 +180,7 @@ final class HostCallbacks {
      * à la vie normale de l'éditeur, jamais une frappe composée ne
      * sert une carte.
      */
-    boolean consommerTouche(CompositionState clavier, int keyCode) {
+    public boolean consommerTouche(CompositionState clavier, int keyCode) {
         if (clavier.isComposing()) {
             return false;
         }

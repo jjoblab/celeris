@@ -1,5 +1,6 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.model.PopupAnchors;
 import android.graphics.Rect;
 
 /**

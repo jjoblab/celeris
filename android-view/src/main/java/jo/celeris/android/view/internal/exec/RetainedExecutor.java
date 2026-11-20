@@ -1,4 +1,4 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.exec;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -23,10 +23,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>Pur et testable sans appareil : le minuteur s'injecte (le banc y
  * capture les tâches sans horloge réelle), le délai se lit et se pose.</p>
  */
-final class RetainedExecutor implements Executor {
+public final class RetainedExecutor  implements Executor {
 
     /** Le minuteur injecté : planifier une tâche, retirer la planifiée. */
-    interface Delayer {
+    public interface Delayer {
 
         /**
          * Planifie la tâche après le délai.
@@ -45,7 +45,7 @@ final class RetainedExecutor implements Executor {
          * rien — les minuteurs de banc, qui ne posent aucun fil,
          * l'héritent telle quelle.
          */
-        default void shutdown() {
+    public default void shutdown() {
         }
     }
 
@@ -55,7 +55,7 @@ final class RetainedExecutor implements Executor {
      *
      * @return le minuteur branché sur le planificateur démon
      */
-    static Delayer daemonDelayer() {
+    public static Delayer daemonDelayer() {
         ScheduledExecutorService minuteur =
                 Executors.newSingleThreadScheduledExecutor(future -> {
                     Thread thread = new Thread(future, "celeris-analyse-retenu");
@@ -79,7 +79,7 @@ final class RetainedExecutor implements Executor {
             }
 
             @Override
-            public void shutdown() {
+    public void shutdown() {
                 minuteur.shutdownNow();
             }
         };
@@ -96,14 +96,14 @@ final class RetainedExecutor implements Executor {
      * @param delayer le minuteur des reprogrammations
      * @param delayMs le délai de retenue, en millisecondes (0 : immédiat)
      */
-    RetainedExecutor(Executor base, Delayer delayer, long delayMs) {
+    public RetainedExecutor(Executor base, Delayer delayer, long delayMs) {
         this.base = base;
         this.delayer = delayer;
         this.delayMs = Math.max(0L, delayMs);
     }
 
     /** Le délai courant, en millisecondes (0 : immédiat). */
-    long delayMs() {
+    public long delayMs() {
         return delayMs;
     }
 
@@ -113,7 +113,7 @@ final class RetainedExecutor implements Executor {
      *
      * @param delayMs le délai, en millisecondes, jamais négatif
      */
-    void setDelayMs(long delayMs) {
+    public void setDelayMs(long delayMs) {
         this.delayMs = Math.max(0L, delayMs);
     }
 

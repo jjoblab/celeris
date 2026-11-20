@@ -1,4 +1,8 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.gutter;
+
+import jo.celeris.android.view.GutterLanes;
+import jo.celeris.android.view.GutterLayout;
+import jo.celeris.android.view.WidthClass;
 
 /**
  * Le collaborateur de gouttière de la vue (M7.5, §5) : il porte la
@@ -13,7 +17,7 @@ package jo.celeris.android.view;
  * demande explicite. La coulisse découle de la configuration
  * ({@link GutterLanes}), jamais de l'arrivée d'un résultat.</p>
  */
-final class EditorGutter {
+public final class EditorGutter  {
 
     private float margeDp = WidthClass.MOYEN.gutterMarginDp();
     private float margePx;
@@ -29,13 +33,13 @@ final class EditorGutter {
      * @param classe  la classe de largeur courante
      * @param density la densité de l'appareil
      */
-    void setClasse(WidthClass classe, float density) {
+    public void setClasse(WidthClass classe, float density) {
         margeDp = classe.gutterMarginDp();
         margePx = Math.round(margeDp * Math.max(0f, density));
     }
 
     /** La respiration courante, en pixels entiers. */
-    float margePx() {
+    public float margePx() {
         return margePx;
     }
 
@@ -45,7 +49,7 @@ final class EditorGutter {
      *
      * @param nouvelles la configuration
      */
-    void setCoulisses(GutterLanes nouvelles) {
+    public void setCoulisses(GutterLanes nouvelles) {
         lanes = nouvelles;
     }
 
@@ -60,7 +64,7 @@ final class EditorGutter {
      * @param numbers   vrai pour réserver le champ de numéros
      * @return la largeur de gouttière, en pixels entiers
      */
-    float suivre(int lineCount, float charWidth, float density,
+    public float suivre(int lineCount, float charWidth, float density,
             boolean numbers) {
         digits = Math.max(digits, GutterLayout.digitsFor(lineCount));
         currentLane = lanes.laneWidth(charWidth, margePx);
@@ -72,17 +76,17 @@ final class EditorGutter {
     }
 
     /** La largeur de coulisse réservée, en pixels (0 sans coulisse). */
-    float currentLane() {
+    public float currentLane() {
         return currentLane;
     }
 
     /** La largeur de la bande de plis réservée, en pixels (0 sans syntaxe). */
-    float currentFoldBand() {
+    public float currentFoldBand() {
         return currentFoldBand;
     }
 
     /** Retombe au plancher : changement de session ou de langage. */
-    void reinitialiser() {
+    public void reinitialiser() {
         digits = GutterLayout.DIGITS_FLOOR;
     }
 }

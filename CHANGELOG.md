@@ -13,6 +13,7 @@ vivent dans les ADR et le registre de portage, pas ici.
 - **L'orientation de `docs/` vit enfin dans `docs/README.md` (D2)** : où vit quoi (ADR = décisions, feuilles de route = chantiers en cours, historique =
 journaux clos, audit = preuves). La feuille restante (close depuis la 2.0.0) rejoint `docs/historique/`  ; citations réparées dans la feuille de route, la feuille popups, le README et l'USAGE — au passage, les cinq liens
 `POPUP_*` de la feuille popups, cassés par D1, se réparent.
+- **Les familles internes d'android-view partent en sous-paquets (P2, vague 1)** : `internal/paint` (le chrome, les fantômes, les incrustations d'indices, les valeurs), `internal/gutter` (le collaborateur de gouttière), `internal/exec` (le fil d'analyse et sa retenue), `internal/model` (paires d'accolades, rappels d'hôte, bornes d'identifiants, structure du langage, ancres de popups) — 12 classes autonomes, publiques DANS leur paquet internal (mécanisme P1), hors manifeste d'API (ADR-009). Les familles couplées aux champs de la vue (viewport, clavier, gestes, IME, diagnostics) attendent P3  ; le paquet racine passe de 125 à 113 classes.
 
 ## [2.3.0] — 2026-11-19
 

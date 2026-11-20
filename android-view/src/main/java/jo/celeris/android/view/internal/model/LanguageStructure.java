@@ -1,4 +1,4 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.model;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
  * l'analyse sinon. Un langage sans analyseur dédié se replie et se
  * structure comme les autres : la vue n'y change rien.
  */
-final class LanguageStructure {
+public final class LanguageStructure  {
 
     private LanguageStructure() {
     }
@@ -37,7 +37,7 @@ final class LanguageStructure {
      * @param analyse  l'analyse courante
      * @return les régions triées, dédoublonnées
      */
-    static List<FoldSpan> folds(@Nullable LanguageSupport language, Document document,
+    public static List<FoldSpan> folds(@Nullable LanguageSupport language, Document document,
             Analysis analyse) {
         if (language == null) {
             return TreeFolds.regions(document, analyse);
@@ -60,7 +60,7 @@ final class LanguageStructure {
      * @param folds     les régions pliables du même instantané
      * @return les entrées du plan, dans l'ordre du source
      */
-    static List<OutlineEntry> plan(@Nullable LanguageSupport language, Document document,
+    public static List<OutlineEntry> plan(@Nullable LanguageSupport language, Document document,
             Analysis analyse, List<FoldSpan> folds) {
         if (language == null || language.outlineRules().isEmpty()) {
             return TreeOutline.entries(document, analyse);

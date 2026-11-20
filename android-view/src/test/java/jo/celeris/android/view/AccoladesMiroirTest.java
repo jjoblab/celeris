@@ -1,5 +1,6 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.model.BracePair;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

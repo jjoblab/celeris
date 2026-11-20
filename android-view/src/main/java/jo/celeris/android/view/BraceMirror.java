@@ -1,5 +1,6 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.model.BracePair;
 import java.util.List;
 
 import jo.celeris.core.text.Document;

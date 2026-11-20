@@ -1,6 +1,14 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.paint;
 
 import java.util.List;
+
+import jo.celeris.android.view.CaretGeometry;
+import jo.celeris.android.view.DrawSurface;
+import jo.celeris.android.view.EditorMetrics;
+import jo.celeris.android.view.EditorTheme;
+import jo.celeris.android.view.SelectionHandles;
+import jo.celeris.android.view.TextBrush;
+import jo.celeris.android.view.VisualProjection;
 
 import jo.celeris.core.text.Document;
 import jo.celeris.core.text.SelRange;
@@ -20,7 +28,7 @@ import jo.celeris.core.text.SelRange;
  * départ : des CERCLES PLEINS sous la rangée d'ancre — jamais un
  * rectangle ne couvre le mot ni le caractère sélectionné.</p>
  */
-final class ChromePainter {
+public final class ChromePainter  {
 
     /**
      * Trace le chrome : le curseur s'il est visible, les poignées s'il
@@ -38,7 +46,7 @@ final class ChromePainter {
      * @param scrollY   le défilement vertical, en pixels
      * @param curseurVisible l'état clignotant du curseur d'écriture
      */
-    void trace(DrawSurface surface, TextBrush brush, EditorTheme theme,
+    public void trace(DrawSurface surface, TextBrush brush, EditorTheme theme,
             EditorMetrics metrics, Document document,
             VisualProjection projection, List<SelRange> ranges,
             float gutterWidth, float scrollX, float scrollY,

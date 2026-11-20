@@ -1,6 +1,10 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.model;
 
 import android.graphics.Rect;
+
+import jo.celeris.android.view.CaretGeometry;
+import jo.celeris.android.view.EditorMetrics;
+import jo.celeris.android.view.VisualProjection;
 
 import java.util.List;
 
@@ -16,7 +20,7 @@ import jo.celeris.core.text.SelRange;
  * plage. La vue y pose ses popups ; le placement vit chez
  * {@code PopupPlacer}.
  */
-final class PopupAnchors {
+public final class PopupAnchors  {
 
     private PopupAnchors() {
     }
@@ -33,7 +37,7 @@ final class PopupAnchors {
      * @param ranges     les plages sélectionnées (la première est la principale)
      * @return le rectangle du curseur, largeur nulle
      */
-    static Rect caretRect(Document document, VisualProjection projection,
+    public static Rect caretRect(Document document, VisualProjection projection,
             EditorMetrics metrics, float gutter, float scrollX, float scrollY,
             List<SelRange> ranges) {
         int offset = ranges.isEmpty() ? 0 : ranges.get(0).caret();
@@ -57,7 +61,7 @@ final class PopupAnchors {
      * @param ranges     les plages sélectionnées (la première est la principale)
      * @return le rectangle de la sélection, celui du curseur si vide
      */
-    static Rect selectionRect(Document document, VisualProjection projection,
+    public static Rect selectionRect(Document document, VisualProjection projection,
             EditorMetrics metrics, float gutter, float scrollX, float scrollY,
             List<SelRange> ranges) {
         SelRange range = ranges.isEmpty() ? SelRange.caretAt(0) : ranges.get(0);

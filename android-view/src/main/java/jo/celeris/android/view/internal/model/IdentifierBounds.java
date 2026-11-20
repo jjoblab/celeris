@@ -1,4 +1,4 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.model;
 
 import jo.celeris.core.text.Document;
 
@@ -12,10 +12,10 @@ import jo.celeris.core.text.Document;
  * <p>Pur et testable sans SDK : le document n'est jamais muté, les
  * bornes rendues vivent toujours dans [0, longueur du document].</p>
  */
-final class IdentifierBounds {
+public final class IdentifierBounds  {
 
     /** Les bornes rendues : le début inclus, la fin exclusive. */
-    record Around(int start, int end) {
+    public record Around(int start, int end) {
     }
 
     private IdentifierBounds() {
@@ -29,7 +29,7 @@ final class IdentifierBounds {
      * @return les bornes, vides (début = fin = position) hors de tout
      *         identifiant
      */
-    static Around around(Document doc, int offset) {
+    public static Around around(Document doc, int offset) {
         int borne = Math.max(0, Math.min(offset, doc.length()));
         if (borne >= doc.length() || !estIdentifiant(doc.charAt(borne))) {
             return new Around(borne, borne);

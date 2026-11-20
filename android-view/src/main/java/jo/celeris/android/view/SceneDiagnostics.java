@@ -1,9 +1,11 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.exec.AnalysisExecutor;
+import jo.celeris.android.view.internal.exec.RetainedExecutor;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
-import jo.celeris.android.view.RetainedExecutor.Delayer;
+import jo.celeris.android.view.internal.exec.RetainedExecutor.Delayer;
 
 import org.jspecify.annotations.Nullable;
 

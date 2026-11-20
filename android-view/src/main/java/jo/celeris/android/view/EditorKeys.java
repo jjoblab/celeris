@@ -1,5 +1,6 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.model.IdentifierBounds;
 import android.view.MotionEvent;
 
 import java.util.List;

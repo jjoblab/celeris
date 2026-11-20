@@ -1,6 +1,11 @@
 package jo.celeris.android.view;
 
 import jo.celeris.android.view.internal.RowPark;
+import jo.celeris.android.view.internal.gutter.EditorGutter;
+import jo.celeris.android.view.internal.model.HostCallbacks;
+import jo.celeris.android.view.internal.paint.ChromePainter;
+import jo.celeris.android.view.internal.paint.InlayHintsPainter;
+import jo.celeris.android.view.internal.paint.ValuesPainter;
 import jo.celeris.android.view.internal.ScrollPositions;
 
 import android.content.Context;

@@ -1,5 +1,6 @@
 package jo.celeris.android.view;
 
+import jo.celeris.android.view.internal.gutter.EditorGutter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 

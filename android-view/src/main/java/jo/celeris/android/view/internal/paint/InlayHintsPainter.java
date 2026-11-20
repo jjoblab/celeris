@@ -1,6 +1,15 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.paint;
 
 import java.util.List;
+
+import jo.celeris.android.view.BrushFactory;
+import jo.celeris.android.view.CaretGeometry;
+import jo.celeris.android.view.DrawSurface;
+import jo.celeris.android.view.EditorMetrics;
+import jo.celeris.android.view.FrameState;
+import jo.celeris.android.view.InlayHintMark;
+import jo.celeris.android.view.PainterLayer;
+import jo.celeris.android.view.VisualProjection;
 
 import org.jspecify.annotations.Nullable;
 
@@ -29,7 +38,7 @@ import jo.celeris.core.text.Document;
  * au voile doux l'entoure — l'œil y pose, l'IDE de référence y
  * surligne son inlay cliquable.</p>
  */
-final class InlayHintsPainter extends PainterLayer {
+public final class InlayHintsPainter  extends PainterLayer {
 
     /** La respiration entre la fin de ligne et l'indice, en cellules
      *  d'encre. */
@@ -46,7 +55,7 @@ final class InlayHintsPainter extends PainterLayer {
      *
      * @param brushes la fabrique de pinceaux (la couche prend le sien)
      */
-    InlayHintsPainter(BrushFactory brushes) {
+    public InlayHintsPainter(BrushFactory brushes) {
         super(brushes);
     }
 
@@ -56,7 +65,7 @@ final class InlayHintsPainter extends PainterLayer {
      * @param nouveaux les indices par ligne, ou {@code null} pour
      *                 retirer
      */
-    void setIndices(@Nullable List<InlayHintMark> nouveaux) {
+    public void setIndices(@Nullable List<InlayHintMark> nouveaux) {
         inlayHints = nouveaux;
     }
 

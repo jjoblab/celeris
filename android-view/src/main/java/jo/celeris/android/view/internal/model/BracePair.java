@@ -1,4 +1,4 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.model;
 
 import jo.celeris.core.text.Document;
 
@@ -18,14 +18,14 @@ import jo.celeris.core.text.Document;
  * les bancs le prouvent sans appareil. Le document porte l'accès
  * direct aux caractères ({@code charAt} en O(1) amorti).</p>
  */
-final class BracePair {
+public final class BracePair  {
 
     /**
      * Le plafond du balayage, en caractères : au-delà, l'appariement
      * renonce — une parenthèse orpheline au milieu d'un très grand
      * fichier ne ralentit jamais l'image.
      */
-    static final int CEILING = 50_000;
+    public static final int CEILING = 50_000;
 
     private BracePair() {
         // Utilitaire statique — pas d'instance.
@@ -42,7 +42,7 @@ final class BracePair {
      * @return vrai quand la paire s'est trouvée, faux sinon (le
      *         réceptacle reste alors muet)
      */
-    static boolean appariee(Document text, int caret, int[] pair) {
+    public static boolean appariee(Document text, int caret, int[] pair) {
         for (int sonde = caret - 1; sonde <= caret; sonde++) {
             if (sonde < 0 || sonde >= text.length()) {
                 continue;

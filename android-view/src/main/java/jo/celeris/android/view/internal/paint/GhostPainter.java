@@ -1,6 +1,14 @@
-package jo.celeris.android.view;
+package jo.celeris.android.view.internal.paint;
 
 import org.jspecify.annotations.Nullable;
+
+import jo.celeris.android.view.BrushFactory;
+import jo.celeris.android.view.CaretGeometry;
+import jo.celeris.android.view.DrawSurface;
+import jo.celeris.android.view.EditorMetrics;
+import jo.celeris.android.view.FrameState;
+import jo.celeris.android.view.PainterLayer;
+import jo.celeris.android.view.VisualProjection;
 
 import jo.celeris.core.ai.GhostSuggestion;
 import jo.celeris.core.text.Document;
@@ -19,7 +27,7 @@ import jo.celeris.core.text.Document;
  * l'image se repose par la couche avant tout tracé (PIEGE-22) — la
  * règle qui mesure est la police qui trace.</p>
  */
-final class GhostPainter extends PainterLayer {
+public final class GhostPainter  extends PainterLayer {
 
     /** L'opacité de l'encre fanée : soixante pour cent de l'encre de base. */
     private static final int OPACITE = 0x99;
@@ -32,7 +40,7 @@ final class GhostPainter extends PainterLayer {
      *
      * @param brushes la fabrique de pinceaux (la couche prend le sien)
      */
-    GhostPainter(BrushFactory brushes) {
+    public GhostPainter(BrushFactory brushes) {
         super(brushes);
     }
 
@@ -43,14 +51,14 @@ final class GhostPainter extends PainterLayer {
      * @param nouvelle la suggestion à dessiner, ou {@code null} pour
      *                 fermer le fantôme
      */
-    void setSuggestion(@Nullable GhostSuggestion nouvelle) {
+    public void setSuggestion(@Nullable GhostSuggestion nouvelle) {
         suggestion = nouvelle;
         lines = nouvelle == null ? new String[0] : splitIntoLines(nouvelle.text());
     }
 
     /** La suggestion visible, ou {@code null}. */
     @Nullable
-    GhostSuggestion suggestion() {
+    public GhostSuggestion suggestion() {
         return suggestion;
     }
 
@@ -97,7 +105,7 @@ final class GhostPainter extends PainterLayer {
      * @param y     l'ordonnée du point, en pixels
      * @return vrai si le geste vise le fantôme
      */
-    boolean premiereLigneTouchee(FrameState frame, float x, float y) {
+    public boolean premiereLigneTouchee(FrameState frame, float x, float y) {
         GhostSuggestion courante = suggestion;
         if (courante == null || lines.length == 0 || lines[0].isEmpty()) {
             return false;
