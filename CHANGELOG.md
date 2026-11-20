@@ -10,6 +10,9 @@ vivent dans les ADR et le registre de portage, pas ici.
 ### Corrections
 
 - **Le retour d'onglet retrouve sa position de défilement (feuille des améliorations, C2)** : la position s'archive sous la session quittée et se restaure à la pose — CLAMPÉE par `ScrollGeometry` (un document raccourci en arrière-plan ne ramène pas une fenêtre hors contenu). L'ancien chemin rabattait le défilement à zéro à chaque pose de session : le contenu sautait en tête, puis se re-mesurait (C1) — les deux participaient de l'impression de « refait ». Parc `ScrollPositions` (modèle `RowPark` : LRU 8, oubli au changement de langue, vidage à la libération), banc `PositionDefilementParSessionTest` (retour exact, clamp, parc borné, langue).
+- **L'orientation de `docs/` vit enfin dans `docs/README.md` (D2)** : où vit quoi (ADR = décisions, feuilles de route = chantiers en cours, historique =
+journaux clos, audit = preuves). La feuille restante (close depuis la 2.0.0) rejoint `docs/historique/`  ; citations réparées dans la feuille de route, la feuille popups, le README et l'USAGE — au passage, les cinq liens
+`POPUP_*` de la feuille popups, cassés par D1, se réparent.
 
 ## [2.3.0] — 2026-11-19
 

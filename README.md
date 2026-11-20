@@ -134,7 +134,7 @@ et sa barre de touches au-dessus du clavier, l'Entrée entre accolades
 rend le repli textuel, et le serveur Java déclaré s'éprouve entier
 (signature jointe au survol, diagnostics poussés). Les étapes restantes
 vivent dans
-[`docs/feuille-de-route-restante.md`](docs/feuille-de-route-restante.md) ;
+[`docs/feuille-de-route-restante.md`](docs/historique/feuille-de-route-restante.md) ;
 l'historique des chantiers et le journal des clôtures dans
 [`docs/feuille-de-route.md`](docs/feuille-de-route.md) ; la revue
 comparative courante dans
@@ -369,7 +369,7 @@ applications, jamais publiées.
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — vue d'ensemble technique et règles de dépendance.
 - [`MIGRATION.md`](MIGRATION.md) — guide de migration du dépôt de départ vers celeris (final à M9).
 - [`docs/adr/`](docs/adr/) — décisions d'architecture (ADR-001 à ADR-019).
-- [`docs/feuille-de-route-restante.md`](docs/feuille-de-route-restante.md) — les étapes restantes (état vérifié au 2026-11-11) ; [`docs/feuille-de-route.md`](docs/feuille-de-route.md) — l'historique des chantiers post-1.0 et des jalons M1 à M9, avec le journal des clôtures.
+- [`docs/feuille-de-route-restante.md`](docs/historique/feuille-de-route-restante.md) — les étapes restantes (état vérifié au 2026-11-11) ; [`docs/feuille-de-route.md`](docs/feuille-de-route.md) — l'historique des chantiers post-1.0 et des jalons M1 à M9, avec le journal des clôtures.
 - [`docs/parite/MATRICE-PARITE.md`](docs/parite/MATRICE-PARITE.md) — référentiel de parité, catégories A à H.
 - [`docs/audit/`](docs/audit/) — état des lieux du dépôt de départ, registre de portage, pièges hérités, spikes, audit d'accessibilité et revue de sécurité (M9), analyse comparative avec le dépôt de départ.
 - [`docs/REFERENCES.md`](docs/REFERENCES.md) — projets et normes cités, licences vérifiées.

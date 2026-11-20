@@ -7,15 +7,15 @@
 > du propriétaire du même jour — « lancé 90 % du chantier » — ouvre la
 > SUITE : les surfaces qui dormaient se réveillent une à une, le journal
 > tient les livraisons). Les documents de la mission vivent tous dans
-> `docs/` : l'audit ([`POPUP_SYSTEM_AUDIT.md`](POPUP_SYSTEM_AUDIT.md)),
-> l'inventaire ([`POPUP_INVENTORY.md`](POPUP_INVENTORY.md)),
+> `docs/` : l'audit ([`POPUP_SYSTEM_AUDIT.md`](historique/POPUP_SYSTEM_AUDIT.md)),
+> l'inventaire ([`POPUP_INVENTORY.md`](historique/POPUP_INVENTORY.md)),
 > l'architecture cible ([`POPUP_SYSTEM_ARCHITECTURE.md`]\
-> (POPUP_SYSTEM_ARCHITECTURE.md)), le rapport de migration
-> ([`POPUP_MIGRATION_REPORT.md`](POPUP_MIGRATION_REPORT.md)), le rapport
-> de tests ([`POPUP_TEST_REPORT.md`](POPUP_TEST_REPORT.md)) et le guide du
-> développeur ([`POPUP_DEVELOPER_GUIDE.md`](POPUP_DEVELOPER_GUIDE.md)).
+> (historique/POPUP_SYSTEM_ARCHITECTURE.md)), le rapport de migration
+> ([`POPUP_MIGRATION_REPORT.md`](historique/POPUP_MIGRATION_REPORT.md)), le rapport
+> de tests ([`POPUP_TEST_REPORT.md`](historique/POPUP_TEST_REPORT.md)) et le guide du
+> développeur ([`POPUP_DEVELOPER_GUIDE.md`](historique/POPUP_DEVELOPER_GUIDE.md)).
 > Le reste du projet se suit dans
-> [`feuille-de-route-restante.md`](feuille-de-route-restante.md) ; le
+> [`feuille-de-route-restante.md`](historique/feuille-de-route-restante.md) ; le
 > journal des versions vit au [`CHANGELOG.md`](../CHANGELOG.md).
 
 ## 1. Vue d'ensemble — les neuf phases du mandat

@@ -3,7 +3,7 @@
 > **Document vivant** : ce fichier se met à jour à la clôture de chaque
 > chantier — statut, date, preuve au journal des clôtures (décision du
 > propriétaire du 2026-11-10). Les étapes restantes vivent dans
-> [`feuille-de-route-restante.md`](feuille-de-route-restante.md)
+> [`feuille-de-route-restante.md`](historique/feuille-de-route-restante.md)
 > (décision du propriétaire du 2026-11-11) ; ce fichier garde
 > l'historique des chantiers et le journal des clôtures. Les jalons M0 à M9 sont bouclés : la
 > version 1.0.0 est publiée en local le 2026-11-10 (huit artefacts
@@ -444,7 +444,7 @@ propriétaire du 2026-11-11 : la parité de volume avec l’audit
 foi, les bancs continuent de naître au fil des chantiers sans quota,
 les cliquets (couverture, mutation, plafonds, manifestes) restent les
 seuls juges. Les étapes restantes vivent dans
-[`feuille-de-route-restante.md`](feuille-de-route-restante.md).
+[`feuille-de-route-restante.md`](historique/feuille-de-route-restante.md).
 
 **Statut** : bloqué (décision du propriétaire).
 

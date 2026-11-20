@@ -1010,7 +1010,7 @@ sha256sum core-text-2.1.0.jar
 ## 18. Ce qui manque encore
 
 État vérifié au 2026-11-11 (la liste tenue à jour vit dans
-[`docs/feuille-de-route-restante.md`](docs/feuille-de-route-restante.md)) :
+[`docs/feuille-de-route-restante.md`](docs/historique/feuille-de-route-restante.md)) :
 
 - **Publication distante** (C1, clos le 2026-11-12) : les douze artefacts vivent
   au registre de l'hébergeur — les chantiers successifs le consignent.

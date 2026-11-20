@@ -64,7 +64,7 @@
 | C1 | Le cache de rangées survit au changement d'onglet | haute (le retard ressenti) | ✅ fait (1c9b22a, f4b2261 — 2026-11-19) |
 | C2 | Le retour d'onglet restaure la position de défilement | moyenne | ✅ fait (2026-11-20) |
 | D1 | Les journaux de chantiers partent à l’archive (docs/historique/) | moyenne | ✅ fait (D1, 2026-11-19) |
-| D2 | Les feuilles de route closes se rangent, l'index vit | basse | ☐ à faire |
+| D2 | Les feuilles de route closes se rangent, l'index vit | basse | ✅ fait (2026-11-20) |
 | P1 | Pilote : le paquet internal d'android-view | — (jette les bases) | ✅ fait (32e38af — 2026-11-19) |
 | P2 | android-view : les peintres et la gouttière en sous-packages | haute (126 classes) | ☐ à faire |
 | P3 | android-view : la suite (source, curseurs, plis, fantômes) | haute | ☐ à faire |
@@ -139,7 +139,7 @@
 
 - **Constat** : `docs/` porte quatre feuilles de route (coloration,
   popups, restante, et celle-ci) + les dossiers thématiques. La
-  « restante » (docs/feuille-de-route-restante.md) est close depuis
+  « restante » (docs/historique/feuille-de-route-restante.md) est close depuis
   la 2.0.0.
 - **Correctif** : un paragraphe d'orientation en tête de `docs/`
   (README de dossier ou section de l'AGENT) : où vit quoi (ADR =
@@ -257,3 +257,11 @@
   code : comptages de classes par module, citations des .md,
   lecture du chemin `setSession` → `reinitialiserScene` →
   `cache.clear()`. C1 démarré dans la foulée.
+- 2026-11-20 : D2 fait — `docs/README.md` pose
+  l'orientation du dossier (où vit quoi : ADR =
+  décisions, feuilles = chantiers en cours, historique =
+  journaux clos) ; la feuille restante (close depuis
+  la 2.0.0) rejoint `docs/historique/` ; citations
+  réparées (feuille de route, popups, README, USAGE) — au
+  passage, les cinq liens `POPUP_*` de la feuille popups,
+  cassés par D1, se réparent.
