@@ -249,7 +249,7 @@ public final class EditorView extends View {
         gouttiereEtat.setClasse(ClasseLargeur.MOYEN, densite());
         gouttiere = GutterPainter.monter(pinceaux, this);
         trace = ScrollFrame.assemble(gouttiere, pinceaux, () -> syntaxe.guides,
-                sourceLiee::pieceDuPli, densite(), composition, cache, sourceLiee, fantome.peintre());
+                sourceLiee::pieceDuPli, densite(), composition, cache, sourceLiee, fantome.peintre(), syntaxe);
         CouchesDuTexte couches = monterCouchesAuDessusDuTexte(pinceaux);
         valeursPeintre = couches.valeurs();
         occurrencesPeintre = couches.occurrences();

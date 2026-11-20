@@ -220,16 +220,28 @@ public final class jo.celeris.core.syntax.SyntaxCoordinator {
   public void close();
 }
 
+### jo.celeris.core.syntax.SyntaxIssue$Severity
+Compiled from "SyntaxIssue.java"
+public final class jo.celeris.core.syntax.SyntaxIssue$Severity extends java.lang.Enum<jo.celeris.core.syntax.SyntaxIssue$Severity> {
+  public static final jo.celeris.core.syntax.SyntaxIssue$Severity ERROR;
+  public static final jo.celeris.core.syntax.SyntaxIssue$Severity WARNING;
+  public static final jo.celeris.core.syntax.SyntaxIssue$Severity INFO;
+  public static jo.celeris.core.syntax.SyntaxIssue$Severity[] values();
+  public static jo.celeris.core.syntax.SyntaxIssue$Severity valueOf(java.lang.String);
+}
+
 ### jo.celeris.core.syntax.SyntaxIssue
 Compiled from "SyntaxIssue.java"
 public final class jo.celeris.core.syntax.SyntaxIssue extends java.lang.Record {
   public jo.celeris.core.syntax.SyntaxIssue(int, int, java.lang.String);
+  public jo.celeris.core.syntax.SyntaxIssue(int, int, java.lang.String, jo.celeris.core.syntax.SyntaxIssue$Severity);
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
   public int startOffset();
   public int length();
   public java.lang.String message();
+  public jo.celeris.core.syntax.SyntaxIssue$Severity severity();
 }
 
 ### jo.celeris.core.syntax.SyntaxService

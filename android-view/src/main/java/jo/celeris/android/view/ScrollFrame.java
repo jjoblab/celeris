@@ -54,7 +54,8 @@ public final class ScrollFrame {
             BrushFactory pinceaux, IndentGuides.GuidesSource guides,
             FoldPlaceholder.Source piecesPli, float densite,
             CompositionState composition, RowLayoutCache cache,
-            RebindingRowSource source, PainterLayer fantome) {
+            RebindingRowSource source, PainterLayer fantome,
+            EditorSyntax syntaxe) {
         ScrollFrame pipeline = new ScrollFrame();
         pipeline.addLayer(gouttiere);
         // La bande de ligne courante (le retour terrain du 2026-11-19)
@@ -81,6 +82,10 @@ public final class ScrollFrame {
         // Les pastilles de couleur (C-05 relue) se tracent APRÈS le
         // texte : le voile du littéral teinte le glyphe, le trait du
         // cadre l'encadre — la couleur se voit autour du texte.
+        // Les squiggles de diagnostic (D-05) se tracent APRÈS le
+        // texte : la dentelle ondule sous les glyphes sur la ligne de
+        // base — la malformation se voit sans gêner la lecture.
+        pipeline.addLayer(new SquigglePainter(pinceaux, syntaxe));
         pipeline.addLayer(new PastillesTexte(pinceaux, densite));
         pipeline.addLayer(fantome);
         pipeline.coucheOccurrences = occurrences;

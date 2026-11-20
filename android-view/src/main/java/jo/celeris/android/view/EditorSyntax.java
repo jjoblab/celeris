@@ -115,6 +115,11 @@ public final class EditorSyntax {
     private @Nullable Document documentSuivi;
     private long revisionAnalysee = -1L;
     private GutterMarks marques = GutterMarks.VIDE;
+
+    /** Les diagnostics courants, plages et sévérité (D-05, D-06) —
+     *  la couche de squiggles y lit, la gouttière garde ses lignes. */
+    private java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues =
+            java.util.List.of();
     private boolean chaineRompue;
 
     /**
@@ -364,8 +369,12 @@ public final class EditorSyntax {
             regionsPliables.clear();
             regionsPliables.addAll(
                     LanguageStructure.plis(langue, document, analyse));
+            java.util.List<jo.celeris.core.syntax.SyntaxIssue> issuesNeuves =
+                    fusionner(TreeDiagnostics.issues(document, analyse),
+                            issuesDeBanc);
             marques = GutterMarks.of(regionsPliables, plis,
-                    TreeDiagnostics.lignesEnErreur(document, analyse));
+                    lignesDe(issuesNeuves, document));
+            issues = issuesNeuves;
             guides = GuidesStructurels.de(langue, document, analyse);
             pousserPlan(LanguageStructure.plan(langue, document, analyse,
                     regionsPliables));
@@ -472,6 +481,66 @@ public final class EditorSyntax {
     /** Les marques de gouttière courantes — {@link GutterMarks#VIDE} sans analyse. */
     public GutterMarks marques() {
         return marques;
+    }
+
+    /**
+     * Les diagnostics courants, plage source et sévérité (D-05,
+     * D-06) — la couche de squiggles y lit. Vide sans analyse ; les
+     * plages suivent la dernière publication, comme les marques.
+     *
+     * @return les diagnostics, jamais null
+     */
+    public java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues() {
+        return issues;
+    }
+
+    /** Les issues de banc posées (D-05) — les tests de vue y
+     *  injectent les diagnostics EXTERNES (lint du build, LSP) ; la
+     *  FUSION se fait au moment de l'habillage (les issues de l'arbre
+     *  se re-posent à chaque publication, celles du banc survivent —
+     *  la même sémantique que les lignes fusionnées de la gouttière,
+     *  C-12).
+     */
+    private java.util.List<jo.celeris.core.syntax.SyntaxIssue> issuesDeBanc =
+            java.util.List.of();
+
+    /** Pose des issues de banc (D-05) — jamais appelé hors banc.
+     *
+     * @param nouvelles les issues externes à fusionner aux issues d'arbre
+     */
+    void poserIssuesDeBanc(
+            java.util.List<jo.celeris.core.syntax.SyntaxIssue> nouvelles) {
+        issuesDeBanc = java.util.List.copyOf(nouvelles);
+        // re-fusion immédiate : la pose suit les issues courantes
+        issues = fusionner(issues, issuesDeBanc);
+    }
+
+    /** La fusion : les issues de l'arbre puis celles du banc —
+     *  l'ordre du document n'est pas exigé (chaque issue porte sa
+     *  plage ; la couche trace dans l'ordre donné). */
+    private static java.util.List<jo.celeris.core.syntax.SyntaxIssue> fusionner(
+            java.util.List<jo.celeris.core.syntax.SyntaxIssue> arbre,
+            java.util.List<jo.celeris.core.syntax.SyntaxIssue> banc) {
+        if (banc.isEmpty()) {
+            return arbre;
+        }
+        java.util.List<jo.celeris.core.syntax.SyntaxIssue> fondues =
+                new java.util.ArrayList<>(arbre.size() + banc.size());
+        fondues.addAll(arbre);
+        fondues.addAll(banc);
+        return java.util.List.copyOf(fondues);
+    }
+
+    /** Les lignes des issues données — la voie historique de la
+     *  gouttière (D-02), nourrie par les issues complètes (D-06). */
+    private static int[] lignesDe(
+            java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues,
+            Document document) {
+        int[] lignes = new int[issues.size()];
+        for (int i = 0; i < issues.size(); i++) {
+            lignes[i] = document.lineForOffset(issues.get(i).startOffset());
+        }
+        return lignes;
     }
 
     /**
