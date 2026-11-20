@@ -48,7 +48,7 @@ Compiled from "ClasspathIndex.java"
 public final class jo.celeris.core.intelligence.ClasspathIndex {
   public static jo.celeris.core.intelligence.ClasspathIndex of(java.util.Map<java.lang.String, java.util.List<java.lang.String>>);
   public java.util.List<java.lang.String> fqnDe(java.lang.String);
-  public int taille();
+  public int size();
 }
 
 ### jo.celeris.core.intelligence.ClausesHeritage
@@ -203,7 +203,7 @@ final class jo.celeris.core.intelligence.EditorConfig$Section extends java.lang.
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
-  public java.lang.String motif();
+  public java.lang.String pattern();
   public java.util.List<java.lang.String[]> proprietes();
 }
 
@@ -399,7 +399,7 @@ public final class jo.celeris.core.intelligence.Gabarit extends java.lang.Record
 Compiled from "Gabarits.java"
 public final class jo.celeris.core.intelligence.Gabarits {
   public static jo.celeris.core.intelligence.EditPlan inserer(jo.celeris.core.text.Document, jo.celeris.core.text.MultiSelection, jo.celeris.core.intelligence.Gabarit);
-  public static java.util.List<jo.celeris.core.text.TextEdit> miroirs(java.lang.String, java.util.List<jo.celeris.core.intelligence.Trou>, jo.celeris.core.intelligence.Trou, jo.celeris.core.text.TextEdit);
+  public static java.util.List<jo.celeris.core.text.TextEdit> mirrors(java.lang.String, java.util.List<jo.celeris.core.intelligence.Trou>, jo.celeris.core.intelligence.Trou, jo.celeris.core.text.TextEdit);
 }
 
 ### jo.celeris.core.intelligence.Generateurs$Champ
@@ -483,7 +483,7 @@ public final class jo.celeris.core.intelligence.IndentEngine {
   public static int depthAtCaret(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int);
   public static java.lang.String leadingWhitespace(java.lang.String);
   public static int units(java.lang.String, jo.celeris.core.intelligence.IndentStyle);
-  public static java.lang.String continuationDeLigne(jo.celeris.core.text.Document, int);
+  public static java.lang.String lineContinuation(jo.celeris.core.text.Document, int);
 }
 
 ### jo.celeris.core.intelligence.IndentStyle
@@ -571,9 +571,9 @@ Compiled from "InlineSafety.java"
 final class jo.celeris.core.intelligence.InlineSafety {
 }
 
-### jo.celeris.core.intelligence.JavaSmartTyping$EtatChaine
+### jo.celeris.core.intelligence.JavaSmartTyping$StringState
 Compiled from "JavaSmartTyping.java"
-final class jo.celeris.core.intelligence.JavaSmartTyping$EtatChaine extends java.lang.Record {
+final class jo.celeris.core.intelligence.JavaSmartTyping$StringState extends java.lang.Record {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -581,9 +581,9 @@ final class jo.celeris.core.intelligence.JavaSmartTyping$EtatChaine extends java
   public boolean echappe();
 }
 
-### jo.celeris.core.intelligence.JavaSmartTyping$Geste
+### jo.celeris.core.intelligence.JavaSmartTyping$TypingGesture
 Compiled from "JavaSmartTyping.java"
-final class jo.celeris.core.intelligence.JavaSmartTyping$Geste extends java.lang.Record {
+final class jo.celeris.core.intelligence.JavaSmartTyping$TypingGesture extends java.lang.Record {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -609,9 +609,9 @@ Compiled from "LineActions.java"
 final class jo.celeris.core.intelligence.LineActions$Bloc {
 }
 
-### jo.celeris.core.intelligence.LineActions$Geste
+### jo.celeris.core.intelligence.LineActions$TypingGesture
 Compiled from "LineActions.java"
-final class jo.celeris.core.intelligence.LineActions$Geste extends java.lang.Record {
+final class jo.celeris.core.intelligence.LineActions$TypingGesture extends java.lang.Record {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);
@@ -700,7 +700,7 @@ public final class jo.celeris.core.intelligence.PostfixCompletion$PostfixEdit ex
 ### jo.celeris.core.intelligence.PostfixCompletion
 Compiled from "PostfixCompletion.java"
 public final class jo.celeris.core.intelligence.PostfixCompletion {
-  public static java.util.List<java.lang.String> motifs();
+  public static java.util.List<java.lang.String> patterns();
   public static jo.celeris.core.intelligence.PostfixCompletion$PostfixEdit expand(jo.celeris.core.text.Document, int);
 }
 
@@ -730,7 +730,7 @@ public final class jo.celeris.core.intelligence.RechercheProjet$Trouvaille exten
 ### jo.celeris.core.intelligence.RechercheProjet
 Compiled from "RechercheProjet.java"
 public final class jo.celeris.core.intelligence.RechercheProjet {
-  public static java.util.List<jo.celeris.core.intelligence.RechercheProjet$Trouvaille> chercher(java.util.Map<java.lang.String, jo.celeris.core.text.Document>, jo.celeris.core.intelligence.IndexSymboles, java.lang.String);
+  public static java.util.List<jo.celeris.core.intelligence.RechercheProjet$Trouvaille> search(java.util.Map<java.lang.String, jo.celeris.core.text.Document>, jo.celeris.core.intelligence.IndexSymboles, java.lang.String);
 }
 
 ### jo.celeris.core.intelligence.ReferencesRessources$Lieu
@@ -907,9 +907,9 @@ public final class jo.celeris.core.intelligence.SignatureChange {
   public static jo.celeris.core.intelligence.SignatureChange$SignaturePlan reorder(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, int, int, int[]);
 }
 
-### jo.celeris.core.intelligence.SmartTyping$Geste
+### jo.celeris.core.intelligence.SmartTyping$TypingGesture
 Compiled from "SmartTyping.java"
-final class jo.celeris.core.intelligence.SmartTyping$Geste extends java.lang.Record {
+final class jo.celeris.core.intelligence.SmartTyping$TypingGesture extends java.lang.Record {
   public final java.lang.String toString();
   public final int hashCode();
   public final boolean equals(java.lang.Object);

@@ -65,10 +65,10 @@ public final class jo.celeris.core.ai.AgentReview {
   public jo.celeris.core.ai.AgentLabel etiquette();
   public jo.celeris.core.ai.AgentReview decider(int, jo.celeris.core.ai.AgentReview$Decision);
   public java.util.List<jo.celeris.core.text.TextEdit> editionsDuBloc(int);
-  public java.util.List<java.lang.String> lignesDuBloc(int);
+  public java.util.List<java.lang.String> blockLines(int);
   public java.lang.String text();
   public jo.celeris.core.ai.AgentReview pointDeControle();
-  public jo.celeris.core.ai.AgentReview retourAuPointDeControle(jo.celeris.core.ai.AgentReview);
+  public jo.celeris.core.ai.AgentReview backToCheckpoint(jo.celeris.core.ai.AgentReview);
   public jo.celeris.core.ai.AgentReview$Sortie appliquer(jo.celeris.core.text.TextSession);
 }
 
@@ -121,7 +121,7 @@ public interface jo.celeris.core.ai.EditorTools {
 Compiled from "FakeLocalModel.java"
 public final class jo.celeris.core.ai.FakeLocalModel implements jo.celeris.core.ai.GhostTextModel,jo.celeris.core.ai.PredictionModel {
   public jo.celeris.core.ai.FakeLocalModel();
-  public void fantome(jo.celeris.core.ai.GhostSuggestion);
+  public void ghost(jo.celeris.core.ai.GhostSuggestion);
   public void prediction(jo.celeris.core.ai.PredictionEdit);
   public java.util.List<jo.celeris.core.ai.ModelRequest> requetes();
   public void completer(jo.celeris.core.ai.ModelRequest, jo.celeris.core.ai.GhostTextModel$Receiver);
@@ -132,7 +132,7 @@ public final class jo.celeris.core.ai.FakeLocalModel implements jo.celeris.core.
 Compiled from "FakeRemoteModel.java"
 public final class jo.celeris.core.ai.FakeRemoteModel implements jo.celeris.core.ai.GhostTextModel,jo.celeris.core.ai.PredictionModel {
   public jo.celeris.core.ai.FakeRemoteModel(java.util.concurrent.Executor);
-  public void fantome(jo.celeris.core.ai.GhostSuggestion);
+  public void ghost(jo.celeris.core.ai.GhostSuggestion);
   public void prediction(jo.celeris.core.ai.PredictionEdit);
   public java.util.List<jo.celeris.core.ai.ModelRequest> requetes();
   public void completer(jo.celeris.core.ai.ModelRequest, jo.celeris.core.ai.GhostTextModel$Receiver);
@@ -176,12 +176,12 @@ Compiled from "GhostTextSession.java"
 public final class jo.celeris.core.ai.GhostTextSession {
   public jo.celeris.core.ai.GhostTextSession(jo.celeris.core.ai.GhostTextModel, java.util.concurrent.Executor);
   public void demander(jo.celeris.core.text.Document, int);
-  public void frappe();
-  public void refuser();
+  public void keystroke();
+  public void reject();
   public jo.celeris.core.ai.GhostSuggestion suggestionActive();
-  public java.lang.String accepterMot();
-  public java.lang.String accepterLigne();
-  public java.lang.String accepterTout();
+  public java.lang.String acceptWord();
+  public java.lang.String acceptLine();
+  public java.lang.String acceptAll();
 }
 
 ### jo.celeris.core.ai.McpConnector$DescriptionOutil

@@ -360,7 +360,7 @@ public final class jo.celeris.core.language.packs.JsonChamps {
   public static final int MAX_DEPTH;
   public static java.util.Map<java.lang.String, java.lang.Object> objet(java.lang.Object, java.lang.String);
   public static java.util.List<?> liste(java.lang.Object, java.lang.String);
-  public static void verifierProfondeur(java.lang.Object, int);
+  public static void checkDepth(java.lang.Object, int);
   public static java.lang.String chaineRequise(java.util.Map<java.lang.String, java.lang.Object>, java.lang.String, java.lang.String);
   public static java.lang.String chaineNulle(java.lang.Object);
   public static java.util.List<java.lang.String> chaines(java.lang.Object);
