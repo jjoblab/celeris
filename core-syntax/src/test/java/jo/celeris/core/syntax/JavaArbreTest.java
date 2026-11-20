@@ -74,16 +74,23 @@ class JavaArbreTest {
                 .filter(e -> e.category() == NodeCategory.TYPE).count());
     }
 
-    /** Les plis couvrent les corps de types, de méthodes et les blocs. */
+    /** Les plis couvrent les corps de types, de méthodes et les blocs —
+     *  et le bloc d'IMPORTS (D-04) : le premier pli du corpus est
+     *  celui des imports (lignes 2-3), le pli de classe suit à SA
+     *  documentation. */
     @Test
     void plisDesCorps() {
         Document doc = Document.of(CorpusChargeur.exempleJava());
         List<FoldSpan> plis = TreeFolds.regions(doc, service.analyseFull(doc));
         assertFalse(plis.isEmpty());
         FoldSpan premier = plis.get(0);
-        assertEquals(5, premier.startLine(),
+        assertEquals(2, premier.startLine(),
+                "le pli des imports ouvre à la première ligne d'import (D-04)");
+        assertEquals(3, premier.endLine(), "et ferme à la dernière");
+        FoldSpan pliClasse = plis.get(1);
+        assertEquals(5, pliClasse.startLine(),
                 "le pli de la classe s'ouvre à sa documentation, en-tête de sa déclaration");
-        assertTrue(premier.endLine() > 60, "et couvre tout le corps");
+        assertTrue(pliClasse.endLine() > 60, "et couvre tout le corps");
         assertTrue(plis.stream().anyMatch(p -> p.endLine() > p.startLine() + 3),
                 "plusieurs régions de plusieurs lignes");
     }

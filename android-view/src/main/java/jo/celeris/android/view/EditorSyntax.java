@@ -120,6 +120,13 @@ public final class EditorSyntax {
      *  la couche de squiggles y lit, la gouttière garde ses lignes. */
     private java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues =
             java.util.List.of();
+
+    /**
+     * La mémoire des plis PAR SESSION (D-07, l'analyse croisée) :
+     * l'archive et la restauration vivent dans le porteur, à clés
+     * faibles — une session morte n'y retient plus rien.
+     */
+    private final PlisParSession memoirePlis;
     private boolean chaineRompue;
 
     /**
@@ -146,6 +153,7 @@ public final class EditorSyntax {
     public EditorSyntax(FoldModel plis, @Nullable Executor executeur) {
         this.plis = plis;
         this.suiviPlis = new FoldTracker(plis);
+        this.memoirePlis = new PlisParSession(plis, suiviPlis);
         this.executeur = executeur;
     }
 
@@ -177,9 +185,14 @@ public final class EditorSyntax {
         if (precedente != null) {
             precedente.removeEditListener(ecouteurPlis);
         }
+        // D-07 : l'état replié de la session quittée s'archive,
+        // celui de la session qui arrive se restaure — le pli
+        // manuel appartient à SON document.
+        memoirePlis.archiver(precedente);
         session = nouvelleSession;
         session.addEditListener(ecouteurPlis);
         documentSuivi = session.document();
+        memoirePlis.restaurer(session);
         // Le parquage par session (le retour terrain du 2026-11-19) :
         // la tokenisation appartient AU DOCUMENT. Le moteur de la
         // session quittée se PARQUE sous ELLE avec sa publication —
@@ -194,7 +207,9 @@ public final class EditorSyntax {
         chaineRompue = false;
         guides = GuidesStructurels.VIDE;
         rattacher();
-        suiviPlis.clear();
+        // suiviPlis.clear() vit dans restaurerPlis() (D-07) : la
+        // restauration vide PUIS repose les plis du document qui
+        // arrive — clear ici effacerait la restauration.
         // Le plan de l'attachement : vide tant que la publication
         // n'est pas relue (habiller pousse le vrai plan à la première
         // rangée habillée) — le consommateur n'affiche jamais les
