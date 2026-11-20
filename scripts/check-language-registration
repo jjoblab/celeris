@@ -56,13 +56,13 @@ EXEMPTIONS = {
     # le survol des modificateurs (C-10) porte le même genre de contenu
     # balisé — la documentation s'y habille en markdown du protocole,
     # l'identifiant de langage ne s'y trouve pas plus
-    "core-lsp/src/main/java/jo/celeris/core/lsp/DocModificateurs.java",
+    "core-lsp/src/main/java/jo/celeris/core/lsp/ModifierDocs.java",
     # le repli du langage non détecté à l'ouverture du document
     # (PopupsEditeur, 2026-11-14) : « text » y est le nom du texte
     # brut AVANT le paquet du même nom — le littéral préexiste au
     # paquet, l'orchestrateur ne connaît pas le registre (le repli
     # est le contrat de sessionLangage.ouvrir, pas un aiguillage)
-    "android-host/src/main/java/jo/celeris/android/host/popups/PopupsEditeur.java",
+    "android-host/src/main/java/jo/celeris/android/host/popups/EditorPopups.java",
     # les messages de NullAway nomment le PARAMÈTRE « text » (le
     # texte du document, exigence de requireNonNull) — collision
     # fortuite avec l'identifiant du paquet, le nom du paramètre ne

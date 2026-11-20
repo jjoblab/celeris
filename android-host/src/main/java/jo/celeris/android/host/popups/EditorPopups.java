@@ -357,7 +357,7 @@ public final class EditorPopups {
         usages.connectServer(sessionLangage, uri);
         docExterne.connectServer(sessionLangage, uri);
         sessionLangage.open(uri,
-                langueParam == null ? "text" : langueParam.id(),
+                langueParam == null ? "texte" : langueParam.id(),
                 session.document().text());
     }
 
