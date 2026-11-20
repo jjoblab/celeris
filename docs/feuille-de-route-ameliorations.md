@@ -402,5 +402,5 @@
   Row et ses fabriques, setRows, rowCount, pictoDe, inkOf,
   poigneeVue/titreVue/boutonFermeture/voileVue, saut). Le paquet
   racine : 54 -> 49 classes (les popups publics ne
-  bougent pas ; NavigationEtages, PopupPanel, TextRowsPopup,
+  bougent pas ; NavigationEtages, PopupPanel, TextRowsPopup,
   Feuille partis).
