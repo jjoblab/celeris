@@ -1,0 +1,89 @@
+=== MESURES CELERIS (JVM 17.0.21.1, 2 CPU) ===
+
+--- H3 : assemblage du registre (builtinPacks, fil direct — le travail réel du fil démon) ---
+nested repeat operator '+' and '?' was replaced with '*' in regular expression /(?:(?:^\s*)(\btype\b)(?:\s*)([\w\.\*]+)(?:\s+)(?!(?:\=\s*)?(?:[\[\]\*]+)?\b(?:struct|interface)\b)([\s\S]+))/
+nested repeat operator '+' and '?' was replaced with '*' in regular expression /(?:([\w\.\*]+)(\[(?:[^\]]+)?\]))/
+nested repeat operator '+' and '?' was replaced with '*' in regular expression /(?:(?<!\w)(\((?:[\[\]\*]+)?(?:[\w\.]+)(?:\[(?:(?:[\w\.\*\[\]\{\}]+)(?:(?:\,\s*(?:[\w\.\*\[\]\{\}]+))*))?\])?\))(?=\())/
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+tour 0 : assemblage complet = 1050 ms, 20/20 extensions résolues (froid — JIT et caches OS compris)
+nested repeat operator '+' and '?' was replaced with '*' in regular expression /(?:(?:^\s*)(\btype\b)(?:\s*)([\w\.\*]+)(?:\s+)(?!(?:\=\s*)?(?:[\[\]\*]+)?\b(?:struct|interface)\b)([\s\S]+))/
+nested repeat operator '+' and '?' was replaced with '*' in regular expression /(?:([\w\.\*]+)(\[(?:[^\]]+)?\]))/
+nested repeat operator '+' and '?' was replaced with '*' in regular expression /(?:(?<!\w)(\((?:[\[\]\*]+)?(?:[\w\.]+)(?:\[(?:(?:[\w\.\*\[\]\{\}]+)(?:(?:\,\s*(?:[\w\.\*\[\]\{\}]+))*))?\])?\))(?=\())/
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+tour 1 : assemblage complet = 444 ms, 20/20 extensions résolues
+nested repeat operator '+' and '?' was replaced with '*' in regular expression /(?:(?:^\s*)(\btype\b)(?:\s*)([\w\.\*]+)(?:\s+)(?!(?:\=\s*)?(?:[\[\]\*]+)?\b(?:struct|interface)\b)([\s\S]+))/
+nested repeat operator '+' and '?' was replaced with '*' in regular expression /(?:([\w\.\*]+)(\[(?:[^\]]+)?\]))/
+nested repeat operator '+' and '?' was replaced with '*' in regular expression /(?:(?<!\w)(\((?:[\[\]\*]+)?(?:[\w\.]+)(?:\[(?:(?:[\w\.\*\[\]\{\}]+)(?:(?:\,\s*(?:[\w\.\*\[\]\{\}]+))*))?\])?\))(?=\())/
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+regular expression has ']' without escape
+tour 2 : assemblage complet = 338 ms, 20/20 extensions résolues
+java (écrit)              100 lignes :     0.48 ms (min de 5),    4.8 µs/ligne,  0.16 Mo alloués
+python (grammaire)        100 lignes :     7.84 ms (min de 5),   78.4 µs/ligne,  2.01 Mo alloués
+markdown (grammaire)      100 lignes :     2.04 ms (min de 5),   20.4 µs/ligne,  0.71 Mo alloués
+yaml (grammaire)          100 lignes :     2.75 ms (min de 5),   27.5 µs/ligne,  1.24 Mo alloués
+java (écrit)             2000 lignes :     4.62 ms (min de 5),    2.3 µs/ligne,  3.44 Mo alloués
+python (grammaire)       2000 lignes :    38.08 ms (min de 5),   19.0 µs/ligne, 40.22 Mo alloués
+markdown (grammaire)     2000 lignes :    11.56 ms (min de 5),    5.8 µs/ligne, 14.21 Mo alloués
+yaml (grammaire)         2000 lignes :    13.95 ms (min de 5),    7.0 µs/ligne, 24.85 Mo alloués
+java (écrit)            20000 lignes :    30.33 ms (min de 5),    1.5 µs/ligne, 34.45 Mo alloués
+python (grammaire)      20000 lignes :   267.00 ms (min de 5),   13.3 µs/ligne, 399.47 Mo alloués
+markdown (grammaire)    20000 lignes :    69.51 ms (min de 5),    3.5 µs/ligne, 140.12 Mo alloués
+yaml (grammaire)        20000 lignes :    91.59 ms (min de 5),    4.6 µs/ligne, 246.59 Mo alloués
+Nov 21, 2026 9:10:48 AM jo.celeris.core.syntax.grammars.GrammarLexer deborder
+WARNING: budget de lexicographie dépassé sur une ligne de 3,290 caractères : la fin de ligne garde la portée de son contexte
+Nov 21, 2026 9:10:48 AM jo.celeris.core.syntax.grammars.GrammarLexer deborder
+WARNING: budget de lexicographie dépassé sur une ligne de 3,290 caractères : la fin de ligne garde la portée de son contexte
+python       ligne dense 3290 chars :   218.62 ms, 1478 jetons, 5.41 Mo alloués
+markdown     ligne dense 3290 chars :     0.11 ms, 1 jetons, 0.03 Mo alloués
+
+--- H7 : chargeur de voie sans module opt-in ---
+10000 appels create() (résultat nul) : 63 ms, 6.4 µs par rattachement
+MesuresFenetre.java:5: error: cannot find symbol
+import jo.celeris.core.syntax.Document;
+                             ^
+  symbol:   class Document
+  location: package jo.celeris.core.syntax
+MesuresFenetre.java:30: error: cannot find symbol
+        Document document = Document.of(texte);
+        ^
+  symbol:   class Document
+  location: class MesuresFenetre
+MesuresFenetre.java:30: error: cannot find symbol
+        Document document = Document.of(texte);
+                            ^
+  symbol:   variable Document
+  location: class MesuresFenetre
+3 errors
+error: compilation failed
+java (écrit)          100 lignes : analyzeWindow(0..40) =     1.13 ms (min de 5)
+python (grammaire)    100 lignes : analyzeWindow(0..40) =     9.89 ms (min de 5)
+java (écrit)         2000 lignes : analyzeWindow(0..40) =     9.96 ms (min de 5)
+python (grammaire)   2000 lignes : analyzeWindow(0..40) =    36.67 ms (min de 5)
+java (écrit)        20000 lignes : analyzeWindow(0..40) =    58.18 ms (min de 5)
+python (grammaire)  20000 lignes : analyzeWindow(0..40) =   261.84 ms (min de 5)
