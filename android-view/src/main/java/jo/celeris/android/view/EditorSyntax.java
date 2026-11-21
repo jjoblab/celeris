@@ -2,9 +2,12 @@ package jo.celeris.android.view;
 
 import jo.celeris.android.view.internal.model.LanguageStructure;
 import jo.celeris.android.view.internal.EnginePark;
+import jo.celeris.android.view.internal.exec.RetainedExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -12,6 +15,7 @@ import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.Analysis;
 import jo.celeris.core.syntax.EditSite;
 import jo.celeris.core.syntax.structure.FoldSpan;
+import jo.celeris.core.syntax.LanguageLexer;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.EnginePathFactoryLoader;
 import jo.celeris.core.syntax.AnalysisEngine;
@@ -94,6 +98,11 @@ public final class EditorSyntax {
     private @Nullable TextSession session;
     private @Nullable LanguageSupport language;
     private @Nullable LanguageSyntax syntaxeDuLangage;
+    /** Le lexeur du rattrapage, méémorisé pour le langage courant
+     *  (audit H6 : {@code GrammarSyntax.lexer()} rend une instance
+     *  neuve à chaque appel — le rattrapage n'en alloue plus une par
+     *  révision, le compteur d'incidents du lexeur vit avec lui). */
+    private @Nullable LanguageLexer lexeurRattrapage;
     private @Nullable SyntaxCoordinator coordinateur;
     private @Nullable AnalysisEngine engine;
     private @Nullable SyntaxEngine nativePathEngine;
@@ -105,14 +114,14 @@ public final class EditorSyntax {
 
     /** L'auditeur de publication du moteur — UN seul, posé et retiré
      *  proprement : jamais dupliqué au retour du parc. */
-    private final java.util.function.Consumer<jo.celeris.core.syntax.Analysis> auditeurPublication =
+    private final Consumer<jo.celeris.core.syntax.Analysis> auditeurPublication =
             analyse -> notifyAnalysisReady();
     private @Nullable Runnable surAnalysePrete;
 
     /** Les consommateurs 2.0 du plan — multiples (ADR-0022, phase
      *  2, T3) : le kit et l'hôte reçoivent le même arbre. */
-    private final java.util.List<Consumer<List<OutlineEntry>>> consommateursPlan =
-            new java.util.concurrent.CopyOnWriteArrayList<>();
+    private final List<Consumer<List<OutlineEntry>>> consommateursPlan =
+            new CopyOnWriteArrayList<>();
     private int windowFirst;
     private int windowLast = Integer.MAX_VALUE / 2;
     private @Nullable Document documentSuivi;
@@ -121,8 +130,8 @@ public final class EditorSyntax {
 
     /** Les diagnostics courants, plages et sévérité (D-05, D-06) —
      *  la couche de squiggles y lit, la gouttière garde ses lignes. */
-    private java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues =
-            java.util.List.of();
+    private List<jo.celeris.core.syntax.SyntaxIssue> issues =
+            List.of();
 
     /**
      * La mémoire des plis PAR SESSION (D-07, l'analyse croisée) :
@@ -212,6 +221,7 @@ public final class EditorSyntax {
         language = nouvelleLangue;
         syntaxeDuLangage =
                 nouvelleLangue == null ? null : nouvelleLangue.syntax();
+        lexeurRattrapage = null;
         editionsEnAttente.clear();
         chaineRompue = false;
         guides = GuidesStructurels.EMPTY;
@@ -239,8 +249,16 @@ public final class EditorSyntax {
      * @param nouvelleLangue le support du langage, null pour aucun
      */
     public void setLanguage(@Nullable LanguageSupport nouvelleLangue) {
+        // La langue INCHANGÉE ne re-rattache rien (contrat de la
+        // Javadoc, prouvé au banc de l'audit coloration H10) : la
+        // pose répétée vidait le rattrapage des éditions en attente —
+        // un flash de texte brut entre la pose et la publication.
+        if (nouvelleLangue == language) {
+            return;
+        }
         language = nouvelleLangue;
         syntaxeDuLangage = nouvelleLangue == null ? null : nouvelleLangue.syntax();
+        lexeurRattrapage = null;
         editionsEnAttente.clear();
         chaineRompue = false;
         guides = GuidesStructurels.EMPTY;
@@ -329,7 +347,7 @@ public final class EditorSyntax {
      * @param consommateur le consommateur des entrées, jamais null
      */
     public void addPlanListener(Consumer<List<OutlineEntry>> consommateur) {
-        consommateursPlan.add(java.util.Objects.requireNonNull(consommateur));
+        consommateursPlan.add(Objects.requireNonNull(consommateur));
     }
 
     /**
@@ -393,7 +411,7 @@ public final class EditorSyntax {
             regionsPliables.clear();
             regionsPliables.addAll(
                     LanguageStructure.folds(language, document, analyse));
-            java.util.List<jo.celeris.core.syntax.SyntaxIssue> issuesNeuves =
+            List<jo.celeris.core.syntax.SyntaxIssue> issuesNeuves =
                     fusionner(TreeDiagnostics.issues(document, analyse),
                             fromBench);
             marks = GutterMarks.of(regionsPliables, folds,
@@ -444,6 +462,25 @@ public final class EditorSyntax {
     }
 
     /**
+     * Le lexeur du rattrapage, méémorisé pour le langage courant
+     * (audit H6) : une instance par langage posé, pas une par
+     * révision — le compteur d'incidents du lexeur survit aux
+     * rattrapages successifs.
+     */
+    private @Nullable LanguageLexer lexeurDuRattrapage() {
+        LanguageLexer locale = lexeurRattrapage;
+        if (locale == null) {
+            LanguageSyntax syntaxe = syntaxeDuLangage;
+            if (syntaxe == null) {
+                return null;
+            }
+            locale = syntaxe.lexer();
+            lexeurRattrapage = locale;
+        }
+        return locale;
+    }
+
+    /**
      * L'habillage de rattrapage : la publication date d'avant
      * l'instantané affiché — les lignes dont le contenu a survécu
      * gardent leurs couleurs publiées, la ligne touchée reçoit ses
@@ -477,7 +514,7 @@ public final class EditorSyntax {
         }
         return envelopperSemantique(new SyntaxRowSource(source, published.lex(),
                 TokenCatchUp.of(published.lex(), edits, sites, document,
-                        syntaxeDuLangage == null ? null : syntaxeDuLangage.lexer())),
+                        lexeurDuRattrapage())),
                 document);
     }
 
@@ -564,7 +601,7 @@ public final class EditorSyntax {
      *
      * @return les diagnostics, jamais null
      */
-    public java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues() {
+    public List<jo.celeris.core.syntax.SyntaxIssue> issues() {
         return issues;
     }
 
@@ -575,16 +612,16 @@ public final class EditorSyntax {
      *  la même sémantique que les lignes fusionnées de la gouttière,
      *  C-12).
      */
-    private java.util.List<jo.celeris.core.syntax.SyntaxIssue> fromBench =
-            java.util.List.of();
+    private List<jo.celeris.core.syntax.SyntaxIssue> fromBench =
+            List.of();
 
     /** Pose des issues de banc (D-05) — jamais appelé hors banc.
      *
      * @param nouvelles les issues externes à fusionner aux issues d'arbre
      */
     void poserIssuesDeBanc(
-            java.util.List<jo.celeris.core.syntax.SyntaxIssue> nouvelles) {
-        fromBench = java.util.List.copyOf(nouvelles);
+            List<jo.celeris.core.syntax.SyntaxIssue> nouvelles) {
+        fromBench = List.copyOf(nouvelles);
         // re-fusion immédiate : la pose suit les issues courantes
         issues = fusionner(issues, fromBench);
     }
@@ -592,23 +629,23 @@ public final class EditorSyntax {
     /** La fusion : les issues de l'arbre puis celles du banc —
      *  l'ordre du document n'est pas exigé (chaque issue porte sa
      *  plage ; la couche trace dans l'ordre donné). */
-    private static java.util.List<jo.celeris.core.syntax.SyntaxIssue> fusionner(
-            java.util.List<jo.celeris.core.syntax.SyntaxIssue> arbre,
-            java.util.List<jo.celeris.core.syntax.SyntaxIssue> banc) {
+    private static List<jo.celeris.core.syntax.SyntaxIssue> fusionner(
+            List<jo.celeris.core.syntax.SyntaxIssue> arbre,
+            List<jo.celeris.core.syntax.SyntaxIssue> banc) {
         if (banc.isEmpty()) {
             return arbre;
         }
-        java.util.List<jo.celeris.core.syntax.SyntaxIssue> fondues =
-                new java.util.ArrayList<>(arbre.size() + banc.size());
+        List<jo.celeris.core.syntax.SyntaxIssue> fondues =
+                new ArrayList<>(arbre.size() + banc.size());
         fondues.addAll(arbre);
         fondues.addAll(banc);
-        return java.util.List.copyOf(fondues);
+        return List.copyOf(fondues);
     }
 
     /** Les lignes des issues données — la voie historique de la
      *  gouttière (D-02), nourrie par les issues complètes (D-06). */
     private static int[] linesOf(
-            java.util.List<jo.celeris.core.syntax.SyntaxIssue> issues,
+            List<jo.celeris.core.syntax.SyntaxIssue> issues,
             Document document) {
         int[] lines = new int[issues.size()];
         for (int i = 0; i < issues.size(); i++) {
@@ -710,7 +747,8 @@ public final class EditorSyntax {
         // ServiceLoader (charge si présent, rien sinon) et la voie
         // des grammaires sert par défaut.
         nativePathEngine =
-                EnginePathFactoryLoader.create(syntaxe, session, executor);
+                EnginePathFactoryLoader.create(syntaxe, session,
+                        executorDuMoteur());
         if (nativePathEngine != null) {
             nativePathEngine.addListener(auditeurPublication);
             nativePathEngine.reanalyser();
@@ -723,11 +761,29 @@ public final class EditorSyntax {
             return;
         }
         if (syntaxe != null && session != null) {
-            engine = AnalysisEngine.on(session, syntaxe, executor,
+            engine = AnalysisEngine.on(session, syntaxe, executorDuMoteur(),
                     windowFirst, windowLast);
             engine.addListener(auditeurPublication);
             engine.reanalyser();
         }
+    }
+
+    /**
+     * L'exécuteur D'UN moteur (audit coloration, H1/H2) : la retenue
+     * du kit se dérive PAR MOTEUR — même fil de travail, même
+     * minuteur, même délai, créneau et première soumission neufs.
+     * L'ouverture d'un document ne patiente plus la retenue (sa
+     * première soumission part direct) et les ouvertures rapprochées
+     * de deux onglets ne se suppriment plus leurs tâches. L'exécuteur
+     * injecté par l'hôte passe tel quel : la retenue ne détourne
+     * jamais un exécuteur étranger.
+     */
+    private @Nullable Executor executorDuMoteur() {
+        Executor brut = executor;
+        if (brut instanceof RetainedExecutor retenue) {
+            return retenue.pourMoteur();
+        }
+        return brut;
     }
 
     /** Le moteur courant ressert la session et la langue courantes
