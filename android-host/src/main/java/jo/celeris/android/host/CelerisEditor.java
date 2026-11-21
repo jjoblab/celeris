@@ -172,6 +172,14 @@ public final class CelerisEditor {
      *  sert que l'ouverture TOUJOURS courante (une ouverture plus
      *  récente l'a dépassée). */
     private int ouvertureEnCours;
+
+    /** Le poseur des langues différées (audit coloration, H14) : UN
+     *  exécuteur démon à fil unique pour TOUTE la façade, né au
+     *  premier besoin, éteint à la fermeture — l'ouverture rapide de
+     *  N onglets pendant l'assemblage ne pose plus N fils démons :
+     *  la file sert les poses dans l'ordre, la première attend
+     *  l'assemblage, les suivantes lisent le registre prêt. */
+    private @Nullable java.util.concurrent.ExecutorService poseurDiffere;
     private boolean fermee;
     // T4 : les déclencheurs posés par le kit — mémorisés pour le
     // retrait à close() (le montage de l'orchestrateur les pose, le
@@ -280,9 +288,9 @@ public final class CelerisEditor {
 
     /** Le document à afficher (le retour terrain du 2026-11-19) :
      *  un fichier ouvert garde SA session — la réouverture (le
-     *  changement d'onglet du démo) la RETROUVE, le moteur parqué de
+     *  changement d'onglet de l'exemple) la RETROUVE, le moteur parqué de
      *  la vue ressert sa tokenisation, le texte ÉDITÉ survit à
-     *  l'absence. La clé est le nom : le démo rouvre par nom de
+     *  l'absence. La clé est le nom : l'exemple rouvre par nom de
      *  fichier, comme tout hôte à onglets. Un document NEUF naît du
      *  texte ; sa langue se résout SANS ATTENDRE (null tant que le
      *  registre s'assemble, la revue du propriétaire du 2026-11-19).
@@ -425,7 +433,7 @@ public final class CelerisEditor {
      */
     private void setLanguageWhenRegistryReady(String nomOuvert,
             TextSession ouverte, int numeroOuverture) {
-        Thread poseur = new Thread(() -> {
+        poseurDiffere().execute(() -> {
             LanguageSupport resolue = languages.languageFor(nomOuvert);
             vue.post(() -> {
                 if (numeroOuverture == ouvertureEnCours && !fermee
@@ -443,9 +451,25 @@ public final class CelerisEditor {
                     }
                 }
             });
-        }, "celeris-langue-ouverte");
-        poseur.setDaemon(true);
-        poseur.start();
+        });
+    }
+
+    /** Le poseur partagé, né au premier besoin (le fil démon
+     *  « celeris-langue-ouverte » vit avec la façade, jamais avec
+     *  l'ouverture — audit H14). */
+    private synchronized java.util.concurrent.ExecutorService poseurDiffere() {
+        java.util.concurrent.ExecutorService locale = poseurDiffere;
+        if (locale == null) {
+            locale = java.util.concurrent.Executors.newSingleThreadExecutor(
+                    tache -> {
+                        Thread thread = new Thread(tache,
+                                "celeris-langue-ouverte");
+                        thread.setDaemon(true);
+                        return thread;
+                    });
+            poseurDiffere = locale;
+        }
+        return locale;
     }
 
     /**
@@ -543,6 +567,13 @@ public final class CelerisEditor {
         vue.release();
         session = null;
         language = null;
+        // Le poseur différé meurt avec la façade (C2) : aucune pose
+        // ne survit à l'éditeur fermé.
+        java.util.concurrent.ExecutorService poseur = poseurDiffere;
+        if (poseur != null) {
+            poseur.shutdownNow();
+            poseurDiffere = null;
+        }
         // Le registre des documents meurt avec la façade : les
         // sessions parquées de la vue aussi (release() ferme ses
         // moteurs) — aucun document ne survit à l'éditeur fermé.
