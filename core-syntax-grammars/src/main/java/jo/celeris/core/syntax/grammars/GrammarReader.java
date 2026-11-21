@@ -50,14 +50,22 @@ final class GrammarReader {
 
     /**
      * Les règles d'une entrée du référentiel : enveloppe
-     * {@code patterns}, ou règle isolée.
+     * {@code patterns}, ou règle isolée. Une entrée qui porte
+     * {@code begin} ou {@code match} est une règle COMPLÈTE —
+     * l'inclusion y garde sa garde (l'audit coloration : le contexte
+     * hover de csharp, {@code begin \A\u200B}, perdait sa garde à
+     * l'inclusion et ses blocs à fin {@code (?!)} — jamais fermés par
+     * conception — fuyaient au sommet : chaque {@code class} ouvrait
+     * un bloc qui ne se fermait plus).
      *
      * @param brut le contenu de l'entrée
      * @param ou   le nom du contexte, pour les messages
      * @return les règles de l'entrée, figées
      */
     List<Rule> reglesDe(@Nullable Object brut, String ou) {
-        if (brut instanceof Map<?, ?> champs && champs.containsKey("patterns")) {
+        if (brut instanceof Map<?, ?> champs && champs.containsKey("patterns")
+                && !champs.containsKey("begin") && !champs.containsKey("match")
+                && !champs.containsKey("include")) {
             return aplatir(champs.get("patterns"), ou);
         }
         List<Rule> une = new ArrayList<>(1);

@@ -32,14 +32,25 @@ import jo.celeris.core.syntax.LexedLine;
  */
 class GrammairesCommerceTest {
 
-    /** Les grammaires du commerce et leur échantillon, par langage. */
+    /**
+     * Les grammaires du commerce et leur échantillon, par langage.
+     * Les seuils shell et go datent du correctif du chargeur de
+     * référentiel (audit coloration) : les ouvertures et fermetures
+     * des règles COMPLÈTES du référentiel — jamais compilées avant,
+     * leurs motifs n'entraient pas dans la mesure — s'y compilent
+     * désormais ; certaines tombent à la garde catastrophique et se
+     * comptent. La population a changé, PAS la garde : shell 4 refus
+     * sur 187 (0,979), c 22 sur 271 (0,919), cpp 135 sur 349 (0,613),
+     * go 25 sur 160 (0,844) — les seuils repartent de la mesure
+     * corrigée, cliquet sur la NOUVELLE population.
+     */
     private static final String[][] CATALOGUE = {
         {"json", "0.99"}, {"yaml", "0.80"}, {"python", "0.97"},
-        {"shell", "0.98"}, {"c", "0.93"}, {"cpp", "0.70"},
+        {"shell", "0.97"}, {"c", "0.91"}, {"cpp", "0.61"},
         {"markdown", "0.92"}, {"html", "0.97"}, {"css", "0.95"},
         {"javascript", "0.88"}, {"typescript", "0.88"},
         {"php", "0.95"}, {"ruby", "0.98"},
-        {"go", "0.85"}, {"rust", "0.98"},
+        {"go", "0.84"}, {"rust", "0.98"},
         {"swift", "0.95"}, {"dart", "0.95"}, {"scala", "0.95"},
         {"csharp", "0.93"}, {"lua", "0.98"}};
 
