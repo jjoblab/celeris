@@ -84,6 +84,12 @@ final class GrammarLexer implements LanguageLexer {
     /** Vrai dès que la ligne en cours a dépassé son budget. */
     private boolean deborde;
 
+    /** La dernière position d'un tour sans progression — la garde
+     *  anti-boucle des correspondances de largeur nulle (audit H8) :
+     *  un seul tour sans progression par position, l'octet suivant
+     *  sinon. Remise à zéro à chaque ligne. */
+    private int positionSansProgression = -1;
+
     /** Vrai quand le dernier candidat émis a touché une bordure —
      *  la comparaison d'identité suffit : emettre rend la MÊME
      *  instance pour un motif simple, une neuve pour une bordure
@@ -127,6 +133,7 @@ final class GrammarLexer implements LanguageLexer {
         Utf8Line donnees = Utf8Line.preparer(line);
         etapes = 0;
         deborde = false;
+        positionSansProgression = -1;
         // Le budget de LA ligne : exact au banc, proportionnel au
         // régime livré — plancher pour les lignes ordinaires, plafond
         // contre les lignes monstres (jamais de gel, jamais de
@@ -138,14 +145,6 @@ final class GrammarLexer implements LanguageLexer {
         List<Token> tokens = new ArrayList<>();
         int n = donnees.octets().length;
         int pos = 0;
-        // La dernière position d'un tour sans progression : UNE
-        // bordure de largeur nulle à une position est légitime (le
-        // contexte change, le caractère se relit) ; DEUX tours sans
-        // progresser au même endroit — paires ouverture/fermeture
-        // toutes deux de largeur nulle — sont la boucle : la garde
-        // avance d'un octet (une ligne de 17 caractères y brûlait
-        // tout le budget, sonde de l'audit).
-        int positionSansProgression = -1;
         while (pos < n) {
             Candidat candidat = premier(donnees, pos, etat);
             if (candidat == null) {
@@ -155,36 +154,48 @@ final class GrammarLexer implements LanguageLexer {
             gap(donnees, tokens, pos, candidat.start(), etat);
             bordureTouchee = false;
             etat = emettre(tokens, donnees, candidat, etat);
-            int suivant = candidat.end();
-            if (suivant == pos) {
-                // Correspondance de largeur nulle À la position : au
-                // PREMIER tour sans progression, une bordure ouverte
-                // ou fermée tient la position — le contexte neuf
-                // relit le caractère sous la bordure, la sémantique
-                // TextMate ; au SECOND tour au même endroit, la
-                // garde anti-boucle avance d'un octet, quoi qu'il
-                // arrive (le budget d'essais borne le reste).
-                if (positionSansProgression == pos) {
-                    suivant = pos + 1;
-                } else {
-                    positionSansProgression = pos;
-                    suivant = bordureTouchee ? pos : pos + 1;
-                }
-            }
-            pos = suivant;
+            pos = avancement(candidat, pos);
         }
-        // Les fermetures de largeur nulle À la fin de ligne (audit
-        // H8) : « (?<=\}) » clos une déclaration APRÈS l'accolade que
-        // le corps a consommée — le dernier tour de boucle ne les
-        // cherche jamais (pos atteint n sans dernière recherche).
-        // Tant que le bloc ouvert se ferme à n, il se dépile : l'état
-        // de sortie ne traîne pas un bloc mort vers la ligne suivante.
+        return figer(tokens, fermerEnFinDeLigne(donnees, etat));
+    }
+
+    /**
+     * La position après l'émission du candidat : une correspondance
+     * de largeur nulle À la position tient AU PREMIER tour sans
+     * progression quand une bordure a changé l'état — le contexte
+     * neuf relit le caractère sous la bordure, la sémantique
+     * TextMate ; au SECOND tour au même endroit (paires
+     * ouverture/fermeture toutes deux de largeur nulle), la garde
+     * anti-boucle avance d'un octet, quoi qu'il arrive — le budget
+     * d'essais borne le reste.
+     */
+    private int avancement(Candidat candidat, int pos) {
+        int suivant = candidat.end();
+        if (suivant != pos) {
+            return suivant;
+        }
+        if (positionSansProgression == pos) {
+            return pos + 1;
+        }
+        positionSansProgression = pos;
+        return bordureTouchee ? pos : pos + 1;
+    }
+
+    /**
+     * Les fermetures de largeur nulle À la fin de ligne (audit H8) :
+     * « (?<=\}) » clos une déclaration APRÈS l'accolade que le corps
+     * a consommée — le dernier tour de boucle ne les cherche jamais
+     * (pos atteint n sans dernière recherche). Tant que le bloc
+     * ouvert se ferme à n, il se dépile : l'état de sortie ne
+     * traîne pas un bloc mort vers la ligne suivante.
+     */
+    private GrammarState fermerEnFinDeLigne(Utf8Line donnees, GrammarState etat) {
         while (etat.bloc() != null
-                && chercher(donnees, n, etat.bloc().end(), Candidat.FIN,
-                        null, etat.bloc(), null) != null) {
+                && chercher(donnees, donnees.octets().length, etat.bloc().end(),
+                        Candidat.FIN, null, etat.bloc(), null) != null) {
             etat = etat.depiler();
         }
-        return figer(tokens, etat);
+        return etat;
     }
 
     /**
