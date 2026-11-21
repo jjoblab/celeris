@@ -27,7 +27,7 @@ import jo.celeris.core.ai.GhostSuggestion;
  * notifient des abonnés MULTIPLES (ADR-0022, phase 2, T3) : le kit
  * et l'hôte s'abonnent chacun.</p>
  */
-public final class GhostEditor  {
+public final class GhostEditor {
 
     private final EditorAccess acces;
     private final GhostPainter painter;

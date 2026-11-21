@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
  * collaborateurs de toucher y notifient — le plafond de la vue
  * (ADR-002) respire.</p>
  */
-public final class HostCallbacks  {
+public final class HostCallbacks {
 
     /** Le verdict de double-tap de l'hôte — le moment du color picker
      *  d'un littéral de couleur, par exemple. Voie 1.x. */

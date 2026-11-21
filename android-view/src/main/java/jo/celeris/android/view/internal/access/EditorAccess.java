@@ -236,11 +236,12 @@ public interface EditorAccess {
 
     /** La police par défaut : mono, 14 sp (PIEGE-23) — le pont la
      *  prête en lecture (le champ de la vue est package-privé). */
-    /** La police par défaut : mono, 14 sp (PIEGE-23). */
     FontSpec POLICE_PAR_DEFAUT = new FontSpec("mono", 14f);
 
-    /** Le délai de retenue par défaut, ms (M7.5, §9). */
-    long DELAI_RETENU_PAR_DEFAUT_MS = 250L;
+    /** Le délai de retenue par défaut, ms (M7.5, §9) — la SOURCE
+     *  est la constante publique de la vue (audit D3 : la valeur
+     *  vivait en double, pont et vue pouvaient diverger). */
+    long DELAI_RETENU_PAR_DEFAUT_MS = EditorView.DELAI_RETENU_PAR_DEFAUT_MS;
 
     /** La constante VISIBLE de View (visibilité de fenêtre). */
     int VISIBLE = 0;

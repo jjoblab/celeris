@@ -17,7 +17,7 @@ import jo.celeris.core.syntax.TokenKind;
  * signature et les locaux du corps vivent dans
  * {@link MethodDeclarations}).
  */
-public final class MethodStructure  {
+public final class MethodStructure {
 
     private MethodStructure() {
     }

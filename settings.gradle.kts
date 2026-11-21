@@ -3,10 +3,10 @@ pluginManagement {
     // publication, lint et options javac déclarés une seule fois).
     includeBuild("build-logic")
     repositories {
-        // PATCH LOCAL SANDBOX (jamais commité) : miroir Aliyun en tête.
-        maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
-        maven { url = uri("https://maven.aliyun.com/repository/public") }
-        maven { url = uri("https://maven.aliyun.com/repository/google") }
+        // Le portail des plugins Gradle : les marqueurs des plugins du
+        // build-logic (errorprone, cyclonedx…) vivent LUI — le dépôt
+        // pointait sur un miroir tiers à leur place (audit D2).
+        gradlePluginPortal()
         google()
         mavenCentral()
     }
@@ -15,9 +15,6 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        // PATCH LOCAL SANDBOX (jamais commité) : miroir Aliyun en tête.
-        maven { url = uri("https://maven.aliyun.com/repository/public") }
-        maven { url = uri("https://maven.aliyun.com/repository/google") }
         google()
         mavenCentral()
     }

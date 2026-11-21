@@ -14,7 +14,7 @@ import jo.celeris.core.text.Document;
  * jamais les chaînes ni les commentaires. L'index des usages (B-11) y
  * puise ses occurrences : ce que le lexique ne dit pas n'existe pas.
  */
-public final class IdentifierScan  {
+public final class IdentifierScan {
 
     /** Un identifiant relevé : son nom et son offset absolu. */
     public record NomOffset(String nom, int offset) {

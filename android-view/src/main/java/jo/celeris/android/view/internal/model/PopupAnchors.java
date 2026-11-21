@@ -20,7 +20,7 @@ import jo.celeris.core.text.SelRange;
  * plage. La vue y pose ses popups ; le placement vit chez
  * {@code PopupPlacer}.
  */
-public final class PopupAnchors  {
+public final class PopupAnchors {
 
     private PopupAnchors() {
     }

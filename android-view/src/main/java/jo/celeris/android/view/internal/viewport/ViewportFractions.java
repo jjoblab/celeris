@@ -15,7 +15,7 @@ import jo.celeris.android.view.internal.access.EditorAccess;
  * <p>Pur sur l'état de la vue (projection, métriques, défilement) :
  * aucune horloge, aucun appareil — le banc de vue le couvre.</p>
  */
-public final class ViewportFractions  {
+public final class ViewportFractions {
 
     private final EditorAccess acces;
 

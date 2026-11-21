@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  * {@link SpSizes}, pure et testée — jamais un pixel cru ne franchit
  * cette porte.</p>
  */
-public final class ViewFonts  {
+public final class ViewFonts {
 
     private final EditorAccess acces;
     private final AndroidFontRuler regle;

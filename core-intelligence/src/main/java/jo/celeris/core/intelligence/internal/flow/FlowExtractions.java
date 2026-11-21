@@ -30,7 +30,7 @@ import jo.celeris.core.text.TextEdit;
  * éditions descendent — les offsets originaux restent valides au fil de
  * l'application séquentielle.
  */
-public final class FlowExtractions  {
+public final class FlowExtractions {
 
     private FlowExtractions() {
     }

@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
  * dans la colle Android (fine), la décision et l'insertion vivent ici —
  * le banc les couvre sans appareil.</p>
  */
-public final class DragDrop  implements View.OnDragListener {
+public final class DragDrop implements View.OnDragListener {
 
     /** Un dépôt reçu : le texte et les uris, décodés du geste. */
     record Recu(String text, List<String> uris) {

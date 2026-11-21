@@ -28,7 +28,7 @@ import jo.celeris.core.text.SelRange;
  * départ : des CERCLES PLEINS sous la rangée d'ancre — jamais un
  * rectangle ne couvre le mot ni le caractère sélectionné.</p>
  */
-public final class ChromePainter  {
+public final class ChromePainter {
 
     /**
      * Trace le chrome : le curseur s'il est visible, les poignées s'il

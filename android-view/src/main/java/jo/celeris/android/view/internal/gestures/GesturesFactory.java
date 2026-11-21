@@ -14,7 +14,7 @@ import jo.celeris.android.view.internal.access.EditorAccess;
  * mot sous le doigt, clavier retiré ; pincement : zoom par paliers
  * D-15, point focal stable).
  */
-public final class GesturesFactory  {
+public final class GesturesFactory {
 
     private GesturesFactory() {
     }

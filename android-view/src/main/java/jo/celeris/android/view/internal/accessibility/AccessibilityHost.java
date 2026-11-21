@@ -31,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * <p>L'identifiant virtuel 0 désigne l'éditeur lui-même ; la rangée
  * visuelle d'indice r porte l'identifiant r + 1.</p>
  */
-public final class AccessibilityHost  {
+public final class AccessibilityHost {
 
     private static final String TEXT_CLASS = "android.widget.EditText";
     private static final String ROW_CLASS = "android.widget.TextView";

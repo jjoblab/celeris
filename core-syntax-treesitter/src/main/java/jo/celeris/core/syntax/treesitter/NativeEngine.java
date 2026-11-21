@@ -48,9 +48,11 @@ public final class NativeEngine implements SyntaxEngine {
     private static final Logger JOURNAL =
             Logger.getLogger(NativeEngine.class.getName());
 
-    /** La borne de la voie, en caractères — le régime mesuré du spike
-     *  (0,5 ms incrémental à 190 Ko) : au-delà, l'arbre ne survit pas. */
-    static final int BORNE_OCTETS = 200 * 1024;
+    /** La borne de la voie, en CARACTÈRES du modèle (audit D12 : le
+     *  nom disait octets, la comparaison compte des caractères —
+     *  {@code text.length()}) — le régime mesuré du spike : au-delà,
+     *  l'arbre ne survit pas. */
+    static final int BORNE_CARACTERES = 200 * 1024;
 
     private final TextSession session;
     private final @Nullable Executor executor;
@@ -268,7 +270,7 @@ public final class NativeEngine implements SyntaxEngine {
         published = MaterialisationNatif.of(document, aplatit,
                 LiaisonArbre.languageNames(language), document.revision());
         documentAnalyse = document;
-        if (text.length() <= BORNE_OCTETS) {
+        if (text.length() <= BORNE_CARACTERES) {
             arbrePrecedent = arbre;
         } else {
             arbre.close();

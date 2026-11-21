@@ -13,7 +13,7 @@ import jo.celeris.core.text.Bidi;
  * bornes neutres invisibles (simplification de X9) : leur niveau
  * participe aux runs, leur affichage est nul.</p>
  */
-public final class BidiEmbeddings  {
+public final class BidiEmbeddings {
 
     /** Profondeur maximale d'enchâssement explicite (X1). */
     private static final int MAX_DEPTH = 125;

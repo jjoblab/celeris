@@ -25,7 +25,7 @@ import jo.celeris.android.view.internal.access.EditorAccess;
  * défilement ne s'applique jamais deux fois, ni par la pan ni par la
  * compensation du point focal.</p>
  */
-public final class PinchZoomHandler  {
+public final class PinchZoomHandler {
 
     /** L'écartement nul ne divise jamais : le plancher de garde. */
     private static final float MIN_GAP = 1e-6f;

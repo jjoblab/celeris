@@ -18,7 +18,7 @@ import jo.celeris.core.text.Document;
  * son analyse — les entrées de types, de méthodes et les jetons absolus
  * s'y chargent à la demande, une fois par lecture.
  */
-public final class ProjectFile  {
+public final class ProjectFile {
 
     private final String uri;
 

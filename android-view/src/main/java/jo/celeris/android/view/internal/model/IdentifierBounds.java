@@ -12,7 +12,7 @@ import jo.celeris.core.text.Document;
  * <p>Pur et testable sans SDK : le document n'est jamais muté, les
  * bornes rendues vivent toujours dans [0, longueur du document].</p>
  */
-public final class IdentifierBounds  {
+public final class IdentifierBounds {
 
     /** Les bornes rendues : le début inclus, la fin exclusive. */
     public record Around(int start, int end) {

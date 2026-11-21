@@ -12,7 +12,7 @@ import jo.celeris.core.text.Bidi;
  * diacritiques arabes (U+064B…) sont des marques, pas des lettres
  * fortes.</p>
  */
-public final class BidiClassifier  {
+public final class BidiClassifier {
 
     private static final int[][] WHITESPACE = {
             {0x0009, 0x0009}, {0x0020, 0x0020}, {0x00A0, 0x00A0},

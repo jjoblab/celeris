@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  * la complexité du grand aiguillage quitte la classe d'assemblage
  * (ADR-002 — plafonds de complexité).
  */
-public final class KeyActions  {
+public final class KeyActions {
 
     private KeyActions() {
     }

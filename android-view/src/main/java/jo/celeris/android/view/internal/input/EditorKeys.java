@@ -33,7 +33,7 @@ import jo.celeris.core.text.SelRange;
  * armement long — vit ici, la vue reste la racine de composition et le
  * clavier et le curseur passent par {@link KeyboardCursor}.</p>
  */
-public final class EditorKeys  {
+public final class EditorKeys {
 
     /**
      * Le seuil de tap, en pixels : le geste qui s'éloigne du point de

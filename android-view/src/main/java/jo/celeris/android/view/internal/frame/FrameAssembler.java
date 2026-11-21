@@ -21,7 +21,7 @@ import android.graphics.Canvas;
  * vue et lit son état de paquet : la vue reste mince, l'ordre
  * d'assemblage vit ici, testé par la vue entière au banc.
  */
-public final class FrameAssembler  {
+public final class FrameAssembler {
 
     private final EditorAccess acces;
 

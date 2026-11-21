@@ -18,7 +18,7 @@ import jo.celeris.core.text.Document;
  * les bancs le prouvent sans appareil. Le document porte l'accès
  * direct aux caractères ({@code charAt} en O(1) amorti).</p>
  */
-public final class BracePair  {
+public final class BracePair {
 
     /**
      * Le plafond du balayage, en caractères : au-delà, l'appariement

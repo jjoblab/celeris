@@ -39,7 +39,7 @@ import jo.celeris.core.text.Document;
  * (précédé de {@code new}). Un récepteur non résolu se lit comme un nom
  * de classe (référence statique), jamais comme une variable.</p>
  */
-public final class FlowAnalysis  {
+public final class FlowAnalysis {
 
     /** Un jeton porté à l'offset absolu, avec son texte décollé. */
     public record AbsoluteToken(TokenKind kind, int offset, String text) {

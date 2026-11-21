@@ -90,7 +90,7 @@ opt-in `core-syntax-treesitter`, ADR-020/0025) — est **bornée à 200 Ko** :
 au-delà, l'arbre natif ne survit pas à la passe (la discipline mémoire de
 l'ADR — la re-analyse s'y paie au plein, les budgets de l'ADR-004 ne
 tiennent que sous la borne) et la publication précédente reste servie.
-La borne vit dans le code (`MoteurNatif.BORNE_OCTETS`) ; le dépassement
+La borne vit dans le code (`NativeEngine.BORNE_CARACTERES`, en caractères du modèle) ; le dépassement
 n'est pas une erreur, c'est un repli silencieux vers la publication
 courante de la voie qui sert.
 

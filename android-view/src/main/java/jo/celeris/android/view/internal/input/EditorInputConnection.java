@@ -63,7 +63,7 @@ import org.jspecify.annotations.Nullable;
  * riche, pas de gestes de stylet (réponse NON PRIS EN CHARGE à
  * l'appelant), pas de commandes privées.</p>
  */
-public final class EditorInputConnection  implements InputConnection {
+public final class EditorInputConnection implements InputConnection {
 
     /**
      * La fabrique de connexion : la vue s'y délègue (C9 — le corps

@@ -20,7 +20,7 @@ import jo.celeris.android.view.EditorSyntax;
  * par {@code shutdownNow()} — les fils « celeris-analyse » ne
  * prolifèrent plus au fil des montées et libérations.</p>
  */
-public final class AnalysisExecutor  {
+public final class AnalysisExecutor {
 
     private AnalysisExecutor() {
     }

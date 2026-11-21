@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
 public abstract class TextRowsPopup  extends PopupPanel {
 
     /** Les paliers typographiques d'une rangée (l'échelle du kit). */
-    public enum Tier  {
+    public enum Tier {
         /** Titre de carte / libellé principal. */
         TITRE,
         /** Corps de texte. */

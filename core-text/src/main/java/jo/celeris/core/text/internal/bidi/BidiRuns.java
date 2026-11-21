@@ -10,7 +10,7 @@ import jo.celeris.core.text.Bidi;
  * <p>Chaque run de même niveau se résout indépendamment, du type fort
  * de départ ({@code sos}) au type fort d'arrivée.</p>
  */
-public final class BidiRuns  {
+public final class BidiRuns {
 
     private BidiRuns() {
     }

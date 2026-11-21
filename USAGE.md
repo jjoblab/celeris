@@ -167,7 +167,7 @@ La coloration vit en DEUX voies séparées, chacune réellement ce
 qu'elle prétend être :
 
 - la **voie grammaires** (TextMate, `core-syntax-grammars`) —
-  embarquée par défaut, elle sert la longue traîne des trente-deux
+  embarquée par défaut, elle sert la longue traîne des trente-trois
   langages ;
 - la **voie tree-sitter** (`core-syntax-treesitter`) — un module
   séparé que SEUL l'hôte qui la veut embarque :
@@ -331,7 +331,7 @@ import jo.celeris.android.host.CelerisEditor;
 import jo.celeris.core.language.LanguageKit;
 import jo.celeris.core.syntax.grammars.PackGrammars;
 
-// une fois par processus : le chargeur partagé des trente-deux
+// une fois par processus : le chargeur partagé des trente-trois
 // langages livrés (fabrique de grammaires + paquets intégrés)
 LanguageKit langues = LanguageKit.builder(LanguageKit.sharedDaemon())
         .grammarFactory(PackGrammars.INSTANCE)
@@ -509,7 +509,7 @@ LanguageSupport langue = detection instanceof LanguageDetection.Resolved r
 editeur.setLanguage(langue);
 ```
 
-Les trente-deux paquets intégrés (vingt-deux à la 1.0.0 ; Go, Rust,
+Les trente-trois paquets intégrés (vingt-deux à la 1.0.0 ; Go, Rust,
 2026-11-18) : `c`, `cpp`, `css`, `csharp`, `dart`, `go`, `groovy`, `html`,
 `java`, `javascript`, `json`, `kotlin`, `kts`, `log`, `lua`, `markdown`,
 `php`, `proguard`, `properties`, `python`, `ruby`, `rust`, `scala`,

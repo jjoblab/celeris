@@ -67,7 +67,7 @@ public class LangueTardiveFacadeTest {
         kit.preload();
         CelerisEditor editor = CelerisEditor.attach(vue, couche, kit);
         editor.open("Main.java", SOURCE);
-        // L'assemblage réel des 32 paquets : jusqu'à 30 s au pire —
+        // L'assemblage réel des 33 paquets : jusqu'à 30 s au pire —
         // le banc attend la fin réelle (le latch du kit).
         long end = System.currentTimeMillis() + 25_000L;
         while (editor.language() == null

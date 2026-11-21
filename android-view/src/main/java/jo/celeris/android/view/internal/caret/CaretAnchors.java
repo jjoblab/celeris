@@ -12,7 +12,7 @@ import jo.celeris.android.view.internal.access.EditorAccess;
  * (plafond de 600 lignes, ADR-002) : la vue délègue, la géométrie vit
  * ici.
  */
-public final class CaretAnchors  {
+public final class CaretAnchors {
 
     private final EditorAccess acces;
 

@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
  * l'analyse sinon. Un langage sans analyseur dédié se replie et se
  * structure comme les autres : la vue n'y change rien.
  */
-public final class LanguageStructure  {
+public final class LanguageStructure {
 
     private LanguageStructure() {
     }

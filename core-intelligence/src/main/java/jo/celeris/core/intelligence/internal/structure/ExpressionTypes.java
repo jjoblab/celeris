@@ -17,7 +17,7 @@ import jo.celeris.core.syntax.TokenKind;
  * concaténation quand une chaîne se joint à des « + » seuls. Ce qui ne se
  * lit pas rend null, jamais un type faux.
  */
-public final class ExpressionTypes  {
+public final class ExpressionTypes {
 
     private ExpressionTypes() {
     }

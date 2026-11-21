@@ -15,7 +15,7 @@ import jo.celeris.core.syntax.TokenKind;
  * équilibrés, jamais au travers d'une virgule de déclarateur, modifieurs
  * ôtés. Ce qui ne se referme pas rend null, jamais un type faux.
  */
-public final class TypeRun  {
+public final class TypeRun {
 
     /** Les mots qui portent un type ou un modifieur de déclaration. */
     private static final Set<String> TYPE_WORDS = Set.of(

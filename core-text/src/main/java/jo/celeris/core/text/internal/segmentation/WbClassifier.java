@@ -11,7 +11,7 @@ import jo.celeris.core.text.Word;
  * (séparateurs médians, tirets bas, fins de ligne), des écritures
  * ({@link Character.UnicodeScript}) et des catégories générales.</p>
  */
-public final class WbClassifier  {
+public final class WbClassifier {
 
     private static final int[][] MIDLETTER = {
             {0x003A, 0x003A}, {0x00B7, 0x00B7}, {0x05F4, 0x05F4}, {0x2027, 0x2027},

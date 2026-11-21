@@ -20,7 +20,7 @@ import jo.celeris.android.view.internal.access.EditorAccess;
  * La mesure emprunte la voie du peintre : la source de rangées, le
  * même cléage (PIEGE-02), le même cache.</p>
  */
-public final class ViewportPrefetch  {
+public final class ViewportPrefetch {
 
     /** Le calme avant le préchauffage, en millisecondes. */
     static final long CALME_MS = 150;

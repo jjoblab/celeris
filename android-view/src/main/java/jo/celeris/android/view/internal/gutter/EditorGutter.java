@@ -17,7 +17,7 @@ import jo.celeris.android.view.WidthClass;
  * demande explicite. La coulisse découle de la configuration
  * ({@link GutterLanes}), jamais de l'arrivée d'un résultat.</p>
  */
-public final class EditorGutter  {
+public final class EditorGutter {
 
     private float margeDp = WidthClass.MOYEN.gutterMarginDp();
     private float margePx;

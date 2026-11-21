@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  * s'éteignent à la libération (chantier C2) : l'exécuteur que l'hôte
  * a injecté reste le sien, jamais touché.</p>
  */
-public final class SceneDiagnostics  {
+public final class SceneDiagnostics {
 
     private final EditorAccess acces;
     /** L'exécuteur RÉSOLU du travail d'analyse : la retenue par

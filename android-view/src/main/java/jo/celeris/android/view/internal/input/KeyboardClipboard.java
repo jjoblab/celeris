@@ -28,7 +28,7 @@ import jo.celeris.core.text.SelRange;
  * de sélection garde sa voie tactile propre — jamais deux sources de
  * vérité du presse-papiers.</p>
  */
-public final class KeyboardClipboard  {
+public final class KeyboardClipboard {
 
     /** Le plafond des copies, en caractères (A-20 : TransactionTooLarge
      *  au-delà d'~1 Mo d'IPC ; le même plafond que la barre). */

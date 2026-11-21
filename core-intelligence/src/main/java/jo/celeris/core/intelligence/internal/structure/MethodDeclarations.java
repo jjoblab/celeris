@@ -20,7 +20,7 @@ import jo.celeris.core.syntax.TokenKind;
  * Ce qui ne se lit pas n'est pas déclaré — la lecture ne devine
  * jamais.
  */
-public final class MethodDeclarations  {
+public final class MethodDeclarations {
 
     /**
      * Une déclaration locale : le nom, le type lu, les index de jetons

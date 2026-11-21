@@ -20,7 +20,7 @@ import org.jspecify.annotations.Nullable;
  * s'écrasant l'un l'autre) ; la voie 1.x {@code setListener} reste
  * pour compatibilité, le temps du recensement des hôtes.</p>
  */
-public final class ViewportWatch  {
+public final class ViewportWatch {
 
     /** Les abonnés de l'avis — multiples, sans écrasement (T3). */
     private final List<Runnable> listeners = new CopyOnWriteArrayList<>();

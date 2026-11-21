@@ -21,7 +21,7 @@ import jo.celeris.core.syntax.TokenKind;
  * dit rien (liste vide), une clause jamais fermée rend ce qu'elle a lu
  * — jamais d'exception.</p>
  */
-public final class ExtendsClauses  {
+public final class ExtendsClauses {
 
     /** Les chevrons ouvrants des généricités. */
     private static final String OUVRANT = "<";

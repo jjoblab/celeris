@@ -22,9 +22,9 @@ import jo.celeris.core.text.Document;
  * offsets du document (la transposition LSP vit chez l'hôte, frontière
  * ADR-005) ; la fraîcheur suit la même règle que tout le reste
  * (PIEGE-20) — les jetons portent la révision du document que le
- * serveur a vu, une publication périmée se rattrape par recalage de
- * ligne ou s'ignore — jamais elle ne colore une révision plus
- * récente.</p>
+ * serveur a vu, une publication périmée s'ignore —
+ * jamais elle ne colore une révision plus récente (le recalage dit
+ * ici « vide ou sert », rien entre les deux).</p>
  *
  * <p>La sorte se résout par la légende du serveur (les index de types
  * convenus à l'initialisation) : un type inconnu du mapping garde la

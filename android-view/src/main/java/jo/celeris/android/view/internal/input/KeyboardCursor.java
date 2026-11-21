@@ -26,7 +26,7 @@ import jo.celeris.core.text.SelRange;
  * édition — la vue le lui dit par {@link #surAppui()} et
  * {@link #reveiller()}.</p>
  */
-public final class KeyboardCursor  {
+public final class KeyboardCursor {
 
     /** La période de clignotement du curseur, en millisecondes. */
     private static final long PERIODE_CLIGNOTEMENT_MS = 530L;

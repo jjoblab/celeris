@@ -8,7 +8,7 @@ import java.util.function.IntPredicate;
  * section. Pure et testable sans appareil : la table des en-têtes se
  * passe en prédicat, le saut se calcule seul.
  */
-public final class NavigationEtages  {
+public final class NavigationEtages {
 
     private NavigationEtages() {
     }

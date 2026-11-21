@@ -110,7 +110,7 @@ public final class MainActivity extends Activity {
 
     /** Journalise l'arrivée de la langue du fichier ouvert — la
      *  sonde HONNÊTE : tant que le registre s'assemble, elle PATIENTE
-     *  (les 32 paquets prennent jusqu'à une minute sur un appareil
+     *  (les 33 paquets prennent jusqu'à une minute sur un appareil
      *  lent — l'abandon à trois secondes du retour terrain du
      *  2026-11-19 journalisait un mensonge : « le registre n'a pas
      *  résolu Salut.java » alors que l'assemblage courait encore) ;
