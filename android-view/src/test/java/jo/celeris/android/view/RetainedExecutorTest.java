@@ -1,6 +1,5 @@
 package jo.celeris.android.view;
 
-import jo.celeris.android.view.internal.exec.RetainedExecutor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,42 +8,47 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import jo.celeris.android.view.internal.exec.RetainedExecutor;
+
 /**
  * L'exécuteur RETENU du travail d'analyse (M7.5, §9 — le réglage de
- * lenteur livré) : la rafale ne laisse partir que la DERNIÈRE tâche,
- * au calme du délai ; le délai nul rend la main immédiate ; le délai se
- * règle à chaud. Pur, sans horloge réelle — le minuteur s'injecte.
+ * lenteur livré) : la PREMIÈRE soumission part direct (audit H1 —
+ * l'ouverture ne patiente pas), la rafale suivante ne laisse partir
+ * que la DERNIÈRE tâche au calme du délai ; le délai nul rend la main
+ * immédiate ; le délai se règle à chaud et atteint toutes les retenues
+ * dérivées par moteur. Pur, sans horloge réelle — le minuteur s'injecte.
  */
 class RetainedExecutorTest {
 
-    /** Le minuteur d'essai : capture la dernière tâche planifiée. */
+    /** Le minuteur d'essai : capture les planifiées, rend leurs
+     *  annulations — une par planification, comme le minuteur démon. */
     private static final class MinuteurEssai implements RetainedExecutor.Delayer {
 
-        private Runnable planifiee;
+        private final List<Runnable> planifiees = new ArrayList<>();
         private long dernierDelaiMs = -1L;
         private int annulations;
 
         @Override
-        public void schedule(long delayMs, Runnable task) {
-            planifiee = task;
+        public Runnable schedule(long delayMs, Runnable task) {
+            planifiees.add(task);
             dernierDelaiMs = delayMs;
+            return () -> {
+                if (planifiees.remove(task)) {
+                    annulations++;
+                }
+            };
         }
 
         @Override
-        public void cancelPending() {
-            if (planifiee != null) {
-                annulations++;
-                planifiee = null;
-            }
+        public void shutdown() {
+            // le minuteur de banc ne pose aucun fil
         }
 
-        /** Exécute la tâche planifiée, s'il y en a une. */
+        /** Le terme arrive : toutes les planifiées partent. */
         void expire() {
-            Runnable tache = planifiee;
-            planifiee = null;
-            if (tache != null) {
-                tache.run();
-            }
+            List<Runnable> enAttente = new ArrayList<>(planifiees);
+            planifiees.clear();
+            enAttente.forEach(Runnable::run);
         }
     }
 
@@ -61,26 +65,34 @@ class RetainedExecutorTest {
     }
 
     /**
-     * La rafale ne laisse partir que la dernière tâche : trois
-     * soumissions successives, deux annulations, une seule part.
+     * La première soumission part DIRECT (audit H1) : rien ne se
+     * programme, le travail commence immédiatement — la rafale
+     * suivante, elle, se retient et ne laisse partir que la dernière.
      */
     @Test
-    void rafaleNeLaissePartirQueLaDerniere() {
+    void premiereSoumissionDirectePuisRafaleRetenue() {
         MinuteurEssai minuteur = new MinuteurEssai();
         BaseEssai base = new BaseEssai();
         RetainedExecutor executor = new RetainedExecutor(base, minuteur, 250L);
 
         executor.execute(() -> { });
+
+        assertEquals(1, base.passages.size(),
+                "la première soumission part direct — l'ouverture ne "
+                        + "patienta pas la retenue");
+        assertEquals(-1L, minuteur.dernierDelaiMs,
+                "rien ne se programme à la première");
+
         executor.execute(() -> { });
         executor.execute(() -> { });
 
-        assertEquals(2, minuteur.annulations,
+        assertEquals(1, minuteur.annulations,
                 "chaque nouvelle soumission retire la planifiée");
         assertEquals(250L, minuteur.dernierDelaiMs,
                 "le délai se programme tel quel");
         minuteur.expire();
-        assertEquals(1, base.passages.size(),
-                "une seule tâche part, vers l'exécuteur de base");
+        assertEquals(2, base.passages.size(),
+                "une seule tâche de la rafale part, vers la base");
     }
 
     /** Le délai nul rend la main immédiate : rien ne se programme. */
@@ -91,8 +103,9 @@ class RetainedExecutorTest {
         RetainedExecutor executor = new RetainedExecutor(base, minuteur, 0L);
 
         executor.execute(() -> { });
+        executor.execute(() -> { });
 
-        assertEquals(1, base.passages.size(), "la tâche part immédiatement");
+        assertEquals(2, base.passages.size(), "les tâches partent immédiatement");
         assertEquals(-1L, minuteur.dernierDelaiMs, "rien ne se programme");
     }
 
@@ -107,11 +120,46 @@ class RetainedExecutorTest {
         executor.setDelayMs(600L);
         assertEquals(600L, executor.delayMs());
         executor.execute(() -> { });
+        executor.execute(() -> { });
         assertEquals(600L, minuteur.dernierDelaiMs,
                 "la reprogrammation suit le nouveau délai");
         // le délai négatif se borne : jamais de retenue négative
         executor.setDelayMs(-5L);
         assertEquals(0L, executor.delayMs());
         assertTrue(executor.delayMs() >= 0L);
+    }
+
+    /**
+     * La retenue se dérive PAR MOTEUR (audit H2) : deux dérivées
+     * partagent base et minuteur, mais leurs créneaux ne se touchent
+     * pas — la soumission de l'une ne supprime pas la tâche de
+     * l'autre, et le réglage du délai les atteint toutes.
+     */
+    @Test
+    void lesRetenuesParMoteurNeSeSupprimentPas() {
+        MinuteurEssai minuteur = new MinuteurEssai();
+        BaseEssai base = new BaseEssai();
+        RetainedExecutor modele = new RetainedExecutor(base, minuteur, 250L);
+        RetainedExecutor moteurA = modele.pourMoteur();
+        RetainedExecutor moteurB = modele.pourMoteur();
+
+        moteurA.execute(() -> { });
+        moteurB.execute(() -> { });
+        moteurA.execute(() -> { });
+        moteurB.execute(() -> { });
+
+        assertEquals(0, minuteur.annulations,
+                "les créneaux sont indépendants : la soumission de B "
+                        + "ne supprime jamais la tâche de A");
+        assertEquals(2, minuteur.planifiees.size(),
+                "chaque moteur garde SA tâche en attente");
+        minuteur.expire();
+        assertEquals(4, base.passages.size(),
+                "les deux moteurs ont servi leurs tâches");
+
+        modele.setDelayMs(600L);
+        assertEquals(600L, moteurA.delayMs(),
+                "le réglage de la vue atteint les retenues dérivées");
+        assertEquals(600L, moteurB.delayMs());
     }
 }

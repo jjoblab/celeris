@@ -55,9 +55,13 @@ public class CycleVieVueTest {
         TextSession session = TextSession.of("class A {}\n", System::nanoTime);
         vue.setSession(session);
         vue.setLanguage(LanguageSupport.of(JavaSyntax.INSTANCE));
+        // La première analyse part DIRECT au travail (audit H1 : la
+        // retenue ne s'applique plus à l'ouverture) — une édition
+        // réveille la retenue, qui seule ouvre le minuteur.
+        session.replaceRange(0, 0, "//");
 
-        // Le démon nait paresseusement : la soumission d'une analyse
-        // force l'ouverture des fils (celeris-analyse et son minuteur
+        // Le démon nait paresseusement : l'analyse ET sa retenue
+        // forcées, les fils ouvrent (celeris-analyse et son minuteur
         // celeris-analyse-retenu).
         int attendus = 2;
         CountDownLatch naisance = new CountDownLatch(attendus);
