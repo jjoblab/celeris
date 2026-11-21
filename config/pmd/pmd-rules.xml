@@ -31,12 +31,16 @@
         la fusion des issues y vit, le palier suit (95). Le rattrapage
         de la voie native (feuille de route A1.2, 2026-11-19) — la
         publication périmée de la voie qui sert — porte la classe à
-        95 : le rattrapage y vit, le palier suit (100).
+        95 : le rattrapage y vit, le palier suit (100). Les correctifs de
+        l'audit coloration (2026-11-21 : garde de la langue inchangée,
+        lexeur du rattrapage méémorisé, exécuteur PAR MOTEUR à
+        l'attache) portent la classe à 103 : les trois y vivent, le
+        palier suit (105).
     </description>
 
     <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>
-            <property name="classReportLevel" value="100"/>
+            <property name="classReportLevel" value="105"/>
             <property name="methodReportLevel" value="15"/>
         </properties>
     </rule>

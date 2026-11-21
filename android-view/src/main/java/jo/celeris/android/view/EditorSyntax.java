@@ -468,16 +468,11 @@ public final class EditorSyntax {
      * rattrapages successifs.
      */
     private @Nullable LanguageLexer lexeurDuRattrapage() {
-        LanguageLexer locale = lexeurRattrapage;
-        if (locale == null) {
-            LanguageSyntax syntaxe = syntaxeDuLangage;
-            if (syntaxe == null) {
-                return null;
-            }
-            locale = syntaxe.lexer();
-            lexeurRattrapage = locale;
+        LanguageSyntax syntaxe = syntaxeDuLangage;
+        if (lexeurRattrapage == null && syntaxe != null) {
+            lexeurRattrapage = syntaxe.lexer();
         }
-        return locale;
+        return lexeurRattrapage;
     }
 
     /**

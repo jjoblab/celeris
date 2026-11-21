@@ -141,7 +141,8 @@ jobs:
           # 2026-11-21 : le repli en dur disait 2.1.0, mavenLocal ne
           # publiait que la version courante — le job rougissait à
           # chaque version bumpée oubliée).
-          VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' build.gradle.kts | head -1)
+          VERSION=$(sed -n 's/^[[:space:]]*version = "\(.*\)"/\1/p' build.gradle.kts | head -1)
+          test -n "$VERSION" || { echo "version racine introuvable" >&2; exit 1; }
           cd samples/consumer-smoke
           ./gradlew :app:assembleRelease --no-daemon -Dorg.gradle.configuration-cache=false -PcelerisVersion="$VERSION"
       - name: "Preuve R8 (mapping : façade et chargeur vivants, lsp4j absent)"
