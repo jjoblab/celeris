@@ -1,6 +1,5 @@
 package jo.celeris.core.syntax;
 
-import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.Executor;
 
@@ -21,8 +20,15 @@ import jo.celeris.core.text.TextSession;
  */
 public final class EnginePathFactoryLoader {
 
-    /** La fabrique trouvée, ou null — chargée une fois. */
+    /** La fabrique trouvée, ou null — chargée une fois, résultat nul
+     *  compris (l'audit coloration H7 : sans module opt-in, chaque
+     *  rattachement relisait le META-INF ; le vide se paie une fois
+     *  lui aussi). */
     private static @Nullable EnginePathFactory fabrique;
+
+    /** Vrai dès que la première demande a lu le descripteur — le nul
+     *  ne se distingue plus du « pas encore chargé ». */
+    private static boolean charge;
 
     private EnginePathFactoryLoader() {
     }
@@ -37,16 +43,16 @@ public final class EnginePathFactoryLoader {
      *                  synchrone
      * @return le moteur prêt, null hors de la voie
      */
-    public static @Nullable SyntaxEngine create(@Nullable LanguageSyntax source,
+    public static synchronized @Nullable SyntaxEngine create(@Nullable LanguageSyntax source,
             TextSession session, @Nullable Executor executor) {
-        EnginePathFactory locale = fabrique;
-        if (locale == null) {
-            Optional<EnginePathFactory> trouve = ServiceLoader.load(
+        if (!charge) {
+            charge = true;
+            fabrique = ServiceLoader.load(
                     EnginePathFactory.class,
-                    EnginePathFactory.class.getClassLoader()).findFirst();
-            locale = trouve.orElse(null);
-            fabrique = locale;
+                    EnginePathFactory.class.getClassLoader()).findFirst()
+                    .orElse(null);
         }
+        EnginePathFactory locale = fabrique;
         return locale == null ? null : locale.create(source, session, executor);
     }
 }
