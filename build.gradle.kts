@@ -4,7 +4,7 @@
 
 subprojects {
     group = "jo.celeris"
-    version = "2.2.11"
+    version = "2.2.12"
 }
 
 // Politique de langue : identifiants ASCII, typographie française,
