@@ -32,11 +32,20 @@ public final class IdentifierScan {
      */
     public static List<NomOffset> scanner(Document doc, LexDocument lex) {
         List<NomOffset> releves = new java.util.ArrayList<>();
-        for (int line = 0; line < lex.lineCount(); line++) {
+        // Le lexique peut être PÉRIMÉ (la publication date d'avant la
+        // frappe : la complétion s'y sert au vol — l'audit de la
+        // 2.2.13, la fusion qui raccourcit le document y exposait des
+        // jetons AU-DELÀ de la fin, la complétion crashait) : les
+        // lignes disparues et les jetons morts se SAUTENT, les
+        // survivants servent — la fraîcheur suivra sa publication.
+        int lignes = Math.min(lex.lineCount(), doc.lineCount());
+        for (int line = 0; line < lignes; line++) {
             LexedLine panier = lex.line(line);
             int base = doc.lineStart(line);
             for (Token token : panier.tokens()) {
-                relever(doc, base, token, releves);
+                if (base + token.end() <= doc.length()) {
+                    relever(doc, base, token, releves);
+                }
             }
         }
         return List.copyOf(releves);
