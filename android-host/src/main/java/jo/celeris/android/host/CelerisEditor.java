@@ -10,6 +10,8 @@ import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.core.language.LanguageKit;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.text.TextSession;
+
+import java.util.concurrent.ExecutorService;
 import jo.celeris.android.widgets.SearchBarModel;
 
 import org.jspecify.annotations.Nullable;
@@ -179,7 +181,7 @@ public final class CelerisEditor {
      *  N onglets pendant l'assemblage ne pose plus N fils démons :
      *  la file sert les poses dans l'ordre, la première attend
      *  l'assemblage, les suivantes lisent le registre prêt. */
-    private @Nullable java.util.concurrent.ExecutorService poseurDiffere;
+    private @Nullable ExecutorService poseurDiffere;
     private boolean fermee;
     // T4 : les déclencheurs posés par le kit — mémorisés pour le
     // retrait à close() (le montage de l'orchestrateur les pose, le
@@ -457,8 +459,8 @@ public final class CelerisEditor {
     /** Le poseur partagé, né au premier besoin (le fil démon
      *  « celeris-langue-ouverte » vit avec la façade, jamais avec
      *  l'ouverture — audit H14). */
-    private synchronized java.util.concurrent.ExecutorService poseurDiffere() {
-        java.util.concurrent.ExecutorService locale = poseurDiffere;
+    private synchronized ExecutorService poseurDiffere() {
+        ExecutorService locale = poseurDiffere;
         if (locale == null) {
             locale = java.util.concurrent.Executors.newSingleThreadExecutor(
                     tache -> {
@@ -569,7 +571,7 @@ public final class CelerisEditor {
         language = null;
         // Le poseur différé meurt avec la façade (C2) : aucune pose
         // ne survit à l'éditeur fermé.
-        java.util.concurrent.ExecutorService poseur = poseurDiffere;
+        ExecutorService poseur = poseurDiffere;
         if (poseur != null) {
             poseur.shutdownNow();
             poseurDiffere = null;

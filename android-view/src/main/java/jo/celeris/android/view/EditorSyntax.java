@@ -7,7 +7,7 @@ import jo.celeris.android.view.internal.exec.RetainedExecutor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 

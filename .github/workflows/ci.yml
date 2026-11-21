@@ -137,8 +137,13 @@ jobs:
           ./gradlew :core-text:publishToMavenLocal :core-syntax:publishToMavenLocal :core-syntax-grammars:publishToMavenLocal :core-language:publishToMavenLocal :core-intelligence:publishToMavenLocal :core-lsp:publishToMavenLocal :core-ai:publishToMavenLocal :lsp-protocole:publishToMavenLocal :android-view:publishToMavenLocal :android-widgets:publishToMavenLocal :android-host:publishToMavenLocal :celeris:publishToMavenLocal :celeris-bom:publishToMavenLocal --no-daemon -x test -x lint -x check -Dorg.gradle.configuration-cache=false
       - name: Sample (release minifié contre mavenLocal)
         run: |
+          # La version consommée est CELLE DE LA RACINE (la panne du
+          # 2026-11-21 : le repli en dur disait 2.1.0, mavenLocal ne
+          # publiait que la version courante — le job rougissait à
+          # chaque version bumpée oubliée).
+          VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' build.gradle.kts | head -1)
           cd samples/consumer-smoke
-          ./gradlew :app:assembleRelease --no-daemon -Dorg.gradle.configuration-cache=false
+          ./gradlew :app:assembleRelease --no-daemon -Dorg.gradle.configuration-cache=false -PcelerisVersion="$VERSION"
       - name: "Preuve R8 (mapping : façade et chargeur vivants, lsp4j absent)"
         run: |
           MAPPING="samples/consumer-smoke/app/build/outputs/mapping/release/mapping.txt"
