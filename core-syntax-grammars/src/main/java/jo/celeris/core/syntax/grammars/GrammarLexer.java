@@ -33,9 +33,12 @@ import org.jspecify.annotations.Nullable;
  * la portée racine sert de plancher. Les injections (H-05) s'appliquent
  * partout où leur sélecteur matche la pile courante, à gauche ou à
  * droite des règles du contexte selon leur priorité. Le budget par
- * ligne borne le travail (ADR-014) : au dépassement, la fin de ligne
- * garde la portée de son contexte, l'incident se journalise — jamais un
- * gel de l'interface.
+ * ligne borne le travail (ADR-014) : au régime livré il est
+ * proportionnel à la longueur de ligne (plancher 20 000 essais,
+ * plafond deux millions — la ligne dense ordinaire se colore entière,
+ * la ligne monstre reste bornée) ; au dépassement, la fin de ligne
+ * garde la portée de son contexte, l'incident se journalise — jamais
+ * un gel de l'interface.
  */
 final class GrammarLexer implements LanguageLexer {
 
@@ -46,28 +49,59 @@ final class GrammarLexer implements LanguageLexer {
     private static final Logger JOURNAL =
             Logger.getLogger(GrammarLexer.class.getName());
 
-    /** Le budget par défaut : essais d'expression par ligne. */
+    /** Le plancher du budget par défaut : essais d'expression par
+     *  ligne — les lignes ordinaires (une construction par mot) ne
+     *  l'approchent jamais. */
     private static final int BUDGET_ETAPES_DEFAUT = 20_000;
 
+    /** Essais par caractère d'une ligne dense : la mesure de l'audit
+     *  coloration (H9) donne ~168 essais par jeton sur la grammaire
+     *  javascript livrée — 100 par caractère couvre la densité réelle
+     *  (une ligne minifiée de 310 caractères débordait l'ancien
+     *  plafond fixe) en bornant toujours le travail. */
+    private static final long ESSAIS_PAR_CARACTERE = 100L;
+
+    /** Le plafond du budget proportionnel : au-delà, la ligne reste
+     *  bornée (une ligne monstre d'un méga-octet ne paie jamais plus
+     *  que deux millions d'essais — le gel reste impossible). */
+    private static final long PLAFOND_ETAPES = 2_000_000L;
+
     private final Grammar grammaire;
+    /** Le budget des lignes : un nombre exact (banc de bornage), ou
+     *  {@link #PROPORTIONNEL} pour le régime livré — proportionnel à
+     *  la longueur de ligne, plancher et plafond compris. */
     private final int budgetEtapes;
+
+    /** Le marqueur du régime proportionnel (le constructeur public). */
+    private static final int PROPORTIONNEL = -1;
 
     /** Les essais de la ligne en cours — le budget est par ligne. */
     private long etapes;
 
+    /** Le budget effectif de la ligne en cours. */
+    private long budgetLigne;
+
     /** Vrai dès que la ligne en cours a dépassé son budget. */
     private boolean deborde;
+
+    /** Vrai quand le dernier candidat émis a touché une bordure —
+     *  la comparaison d'identité suffit : emettre rend la MÊME
+     *  instance pour un motif simple, une neuve pour une bordure
+     *  (l'égalité de valeur sur l'état récursionne dans le graphe
+     *  cyclique des règles — le débordement de pile l'a prouvé). */
+    private boolean bordureTouchee;
 
     /** Les lignes dégradées par dépassement de budget, vu par ce lexeur. */
     private int incidents;
 
     GrammarLexer(Grammar grammaire) {
-        this(grammaire, BUDGET_ETAPES_DEFAUT);
+        this(grammaire, PROPORTIONNEL);
     }
 
     /**
      * Un lexeur à budget donné — le banc de conformité et les tests du
-     * bornage s'en servent.
+     * bornage s'en servent : le budget exact s'applique TEL QUEL (le
+     * banc de bornage déborde à dessein sur des lignes courtes).
      *
      * @param grammaire    la grammaire du langage
      * @param budgetEtapes le nombre maximal d'essais d'expression par ligne
@@ -93,9 +127,25 @@ final class GrammarLexer implements LanguageLexer {
         Utf8Line donnees = Utf8Line.preparer(line);
         etapes = 0;
         deborde = false;
+        // Le budget de LA ligne : exact au banc, proportionnel au
+        // régime livré — plancher pour les lignes ordinaires, plafond
+        // contre les lignes monstres (jamais de gel, jamais de
+        // truncature silencieuse d'une ligne dense ordinaire).
+        budgetLigne = budgetEtapes != PROPORTIONNEL ? budgetEtapes
+                : Math.min(PLAFOND_ETAPES,
+                        Math.max(BUDGET_ETAPES_DEFAUT,
+                                ESSAIS_PAR_CARACTERE * donnees.octets().length));
         List<Token> tokens = new ArrayList<>();
         int n = donnees.octets().length;
         int pos = 0;
+        // La dernière position d'un tour sans progression : UNE
+        // bordure de largeur nulle à une position est légitime (le
+        // contexte change, le caractère se relit) ; DEUX tours sans
+        // progresser au même endroit — paires ouverture/fermeture
+        // toutes deux de largeur nulle — sont la boucle : la garde
+        // avance d'un octet (une ligne de 17 caractères y brûlait
+        // tout le budget, sonde de l'audit).
+        int positionSansProgression = -1;
         while (pos < n) {
             Candidat candidat = premier(donnees, pos, etat);
             if (candidat == null) {
@@ -103,8 +153,36 @@ final class GrammarLexer implements LanguageLexer {
                 return figer(tokens, etat);
             }
             gap(donnees, tokens, pos, candidat.start(), etat);
+            bordureTouchee = false;
             etat = emettre(tokens, donnees, candidat, etat);
-            pos = candidat.end();
+            int suivant = candidat.end();
+            if (suivant == pos) {
+                // Correspondance de largeur nulle À la position : au
+                // PREMIER tour sans progression, une bordure ouverte
+                // ou fermée tient la position — le contexte neuf
+                // relit le caractère sous la bordure, la sémantique
+                // TextMate ; au SECOND tour au même endroit, la
+                // garde anti-boucle avance d'un octet, quoi qu'il
+                // arrive (le budget d'essais borne le reste).
+                if (positionSansProgression == pos) {
+                    suivant = pos + 1;
+                } else {
+                    positionSansProgression = pos;
+                    suivant = bordureTouchee ? pos : pos + 1;
+                }
+            }
+            pos = suivant;
+        }
+        // Les fermetures de largeur nulle À la fin de ligne (audit
+        // H8) : « (?<=\}) » clos une déclaration APRÈS l'accolade que
+        // le corps a consommée — le dernier tour de boucle ne les
+        // cherche jamais (pos atteint n sans dernière recherche).
+        // Tant que le bloc ouvert se ferme à n, il se dépile : l'état
+        // de sortie ne traîne pas un bloc mort vers la ligne suivante.
+        while (etat.bloc() != null
+                && chercher(donnees, n, etat.bloc().end(), Candidat.FIN,
+                        null, etat.bloc(), null) != null) {
+            etat = etat.depiler();
         }
         return figer(tokens, etat);
     }
@@ -182,13 +260,21 @@ final class GrammarLexer implements LanguageLexer {
     /** Cherche la plus ancienne occurrence d'une expression à partir de la position. */
     private @Nullable Candidat chercher(Utf8Line donnees, int pos, Regex pattern, char type,
             @Nullable BlockRule bloc, @Nullable OpenBlock ferme, @Nullable SimpleRule simple) {
-        if (etapes++ >= budgetEtapes) {
+        if (etapes++ >= budgetLigne) {
             deborder(donnees);
             return null;
         }
         Matcher m = pattern.matcher(donnees.octets());
-        if (m.search(pos, donnees.octets().length, Option.NONE) < 0
-                || m.getEnd() == m.getBegin()) {
+        if (m.search(pos, donnees.octets().length, Option.NONE) < 0) {
+            return null;
+        }
+        // La largeur nulle est LÉGITIME pour les bordures (audit
+        // coloration H8) : fin en anticipation (?=…), ancre $ ou ^,
+        // ouverture elle-même à largeur nulle — la rejeter laissait
+        // le bloc ouvert POUR TOUJOURS, l'état contaminait la fin du
+        // document. Elle ne l'est pas pour un motif simple : il ne
+        // produirait rien (les moteurs de référence le sautent).
+        if (m.getEnd() == m.getBegin() && type == Candidat.PATTERN) {
             return null;
         }
         return new Candidat(m.getBegin(), m.getEnd(), m, type, bloc, ferme, simple);
@@ -225,6 +311,7 @@ final class GrammarLexer implements LanguageLexer {
             emettreCaptures(tokens, donnees, candidat.matcher(),
                     candidat.ferme().regle().capturesFin(),
                     candidat.ferme().regle().portee(), etat);
+            bordureTouchee = true;
             return etat.depiler();
         }
         if (candidat.type() == Candidat.DEBUT && candidat.bloc() != null) {
@@ -234,6 +321,7 @@ final class GrammarLexer implements LanguageLexer {
             OpenBlock ouvert = bloc.referencesFin()
                     ? OpenBlock.open(bloc, candidat.matcher(), donnees)
                     : OpenBlock.open(bloc);
+            bordureTouchee = true;
             return etat.empiler(ouvert);
         }
         SimpleRule simple = candidat.simple();
@@ -257,8 +345,10 @@ final class GrammarLexer implements LanguageLexer {
         String base = porteeBase != null ? porteeBase : contextePortee(etat);
         int contextStack = contextStack(etat);
         if (captures == null) {
-            tokens.add(token(contextStack, base, donnees, m.getBegin(),
-                    m.getEnd()));
+            if (m.getEnd() > m.getBegin()) {
+                tokens.add(token(contextStack, base, donnees, m.getBegin(),
+                        m.getEnd()));
+            }
             return;
         }
         Region groupes = m.getEagerRegion();
