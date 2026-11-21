@@ -86,7 +86,7 @@ public interface jo.celeris.core.syntax.EnginePathFactory {
 ### jo.celeris.core.syntax.EnginePathFactoryLoader
 Compiled from "EnginePathFactoryLoader.java"
 public final class jo.celeris.core.syntax.EnginePathFactoryLoader {
-  public static jo.celeris.core.syntax.SyntaxEngine create(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
+  public static synchronized jo.celeris.core.syntax.SyntaxEngine create(jo.celeris.core.syntax.LanguageSyntax, jo.celeris.core.text.TextSession, java.util.concurrent.Executor);
 }
 
 ### jo.celeris.core.syntax.IncrementalLexer
@@ -247,8 +247,8 @@ public final class jo.celeris.core.syntax.SyntaxIssue extends java.lang.Record {
 ### jo.celeris.core.syntax.SyntaxService
 Compiled from "SyntaxService.java"
 public final class jo.celeris.core.syntax.SyntaxService {
-  public jo.celeris.core.syntax.LanguageSyntax language();
   public static jo.celeris.core.syntax.SyntaxService of(jo.celeris.core.syntax.LanguageSyntax);
+  public jo.celeris.core.syntax.LanguageSyntax language();
   public jo.celeris.core.syntax.Analysis analyseFull(jo.celeris.core.text.Document);
   public jo.celeris.core.syntax.Analysis analyzeWindow(jo.celeris.core.text.Document, int, int, jo.celeris.core.syntax.TokenCancellation);
   public jo.celeris.core.syntax.Analysis completer(jo.celeris.core.text.Document, jo.celeris.core.syntax.Analysis, jo.celeris.core.syntax.TokenCancellation, int);

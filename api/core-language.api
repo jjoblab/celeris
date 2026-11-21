@@ -76,7 +76,7 @@ public final class jo.celeris.core.language.LanguageKit {
   public jo.celeris.core.language.model.LanguageSupport languageFor(java.lang.String);
   public jo.celeris.core.language.model.LanguageSupport languageForSiPret(java.lang.String);
   public boolean estPret();
-  public void reload();
+  public synchronized void reload();
   public static java.util.concurrent.Executor sharedDaemon();
 }
 
