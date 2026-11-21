@@ -95,7 +95,7 @@ public final class LanguagePlatform {
      * Ajoute les paquets d'une source : chacun se charge et se valide
      * entier. Le retour terrain du 2026-11-19 (« plus de retard mais
      * pas de coloration ») : un paquet fautif n'arrête PLUS
-     * l'assemblage — le premier refus jetait toute la source (les 32
+     * l'assemblage — le premier refus jetait toute la source (les 33
      * paquets intégrés mouraient d'un seul), la langue du document ne
      * se résolvait jamais. Le paquet fautif se signale au consommateur
      * d'erreurs, les suivants se chargent.

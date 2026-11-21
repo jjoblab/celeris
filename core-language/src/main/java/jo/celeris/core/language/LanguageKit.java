@@ -91,7 +91,7 @@ public final class LanguageKit {
 
         /**
          * Les paquets intégrés du chemin « langages » du classpath
-         * (les trente-deux langages livrés) — la source usuelle du kit.
+         * (les trente-trois langages livrés) — la source usuelle du kit.
          *
          * @return le monte-charge
          */
@@ -183,14 +183,17 @@ public final class LanguageKit {
      *  L'exception part au consommateur d'erreurs comme un paquet
      *  fautif, le compte à rebours vit en finally : la résolution
      *  repart sur le registre posé (vide au pire), jamais sur un
-     *  latch mort. */
+     *  latch mort. La GÉNÉRATION captée ici signe le résultat : un
+     *  rechargement entre-temps la tourne, le résultat trop vieux se
+     *  jette à la pose (audit H15). */
     private CountDownLatch partirAssemblage() {
         final CountDownLatch end = new CountDownLatch(1);
+        final long generation = generationAssemblage;
         executor.execute(() -> {
             try {
                 LanguageRegistry assemble = assembleOnThread();
                 synchronized (LanguageKit.this) {
-                    if (registre == null) {
+                    if (registre == null && generation == generationAssemblage) {
                         registre = assemble;
                     }
                 }
@@ -252,8 +255,16 @@ public final class LanguageKit {
      * assemblage — le langage ajouté au stockage entre, le retiré
      * sort. Les sessions ouvertes gardent leur langage (USAGE § 6) ;
      * seuls les prochains fichiers parlent au registre rechargé.
+     *
+     * <p>La méthode tourne la GÉNÉRATION d'assemblage (audit
+     * coloration, piste H15) : un assemblage parti AVANT le
+     * rechargement porte l'ancienne génération — son résultat se
+     * jette à la pose, le registre périmé d'avant rechargement ne
+     * gagne plus la course en silence ; l'assemblage relancé lit les
+     * sources relues.</p>
      */
-    public void reload() {
+    public synchronized void reload() {
+        generationAssemblage++;
         registre = null;
         assemblageLance = false;
     }
@@ -291,11 +302,8 @@ public final class LanguageKit {
                 : fini;
     }
 
-    /** Attend la fin de l'assemblage parti (au plus le délai du
-     *  garde-fou) — le fil qui résout ne pilote pas l'assemblage,
-     *  il attend son terme. */
     /** Attend la fin d'un assemblage parti (au plus le délai du
-     *  garde-fou, 120 s : les 32 paquets réels prennent jusqu'à
+     *  garde-fou, 120 s : les 33 paquets réels prennent jusqu'à
      *  une minute sur un appareil lent — l'ancien 30 s coupait
      *  l'assemblage en cours de route, la résolution repartait
      *  avec un registre VIDE, la langue n'arrivait jamais).
@@ -343,6 +351,12 @@ public final class LanguageKit {
 
     /** Le signal de fin de l'assemblage en cours, null sinon. */
     private volatile @Nullable CountDownLatch finAssemblage;
+
+    /** La génération d'assemblage courante — tournée par chaque
+     *  {@link #reload()} : le résultat d'une génération dépassée se
+     *  jette à la pose (audit coloration, piste H15). Lue et écrite
+     *  sous le moniteur du kit. */
+    private long generationAssemblage;
 
     /**
      * Le fil démon partagé du kit (ADR-007, chantier C2) : UN fil pour
