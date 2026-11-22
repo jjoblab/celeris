@@ -174,6 +174,52 @@ public final class LanguageKit {
         }
     }
 
+    /**
+     * La langue d'un nom de fichier, PRIORITAIRE sur l'assemblage
+     * (chantier A de la coloration, prompt du 2026-11-22 : le retard
+     * de plusieurs secondes au lancement venait de la résolution qui
+     * patientait l'assemblage des 33 paquets — la langue du fichier
+     * OUVERT attendait les 32 qui ne le concernent pas).
+     *
+     * <p>La résolution suit la même voie que
+     * {@link #languageFor(String)} — elle attend la fin de
+     * l'assemblage — mais l'assemblage y est PRIORISÉ : le paquet qui
+     * peut porter le nom demandé passe EN TÊTE de file, le registre
+     * complet se pose dès qu'il vit. La première résolution d'un
+     * document n'attend donc que SON paquet (mesuré JVM : le paquet
+     * seul charge en ~10-90 ms là où l'assemblage complet prenait
+     * 338-1 050 ms) ; les résolutions suivantes lisent le registre
+     * prêt sans rien relire.</p>
+     *
+     * <p>L'hôte à onglets y passe CHAQUE ouverture : la façade y
+     * déclenche la priorité AVANT le préchargement du reste — la
+     * couleur du fichier ouvert apparaît dès que SON langage est
+     * prêt, sans dépendre des autres (critère du chantier A).</p>
+     *
+     * @param filename le nom du fichier ouvert
+     * @return le support résolu, null sans langage
+     */
+    public @Nullable LanguageSupport languageFor(String filename) {
+        prioriser(filename);
+        return registre().byFilename(filename);
+    }
+
+    /** Fait passer le paquet du fichier demandé en tête de la file
+     *  d'assemblage — sans effet une fois le registre posé (le
+     *  travail est fait) ni avant montage des sources (la priorité
+     *  vit dans l'ASSEMBLAGE, jamais dans une lecture hors tour). */
+    private void prioriser(String filename) {
+        if (registre != null) {
+            return;
+        }
+        synchronized (this) {
+            if (registre != null || sources.isEmpty()) {
+                return;
+            }
+            priorite = filename;
+        }
+    }
+
     /** Part l'assemblage sur l'exécuteur et rend SON compte à
      *  rebours — l'appelant tient le verrou du kit (assemblageLance
      *  vient d'être posé). L'échec d'assemblage ne tue JAMAIS le kit
@@ -207,19 +253,6 @@ public final class LanguageKit {
             }
         });
         return end;
-    }
-
-    /**
-     * La langue d'un nom de fichier — null sans langage et pendant
-     * l'assemblage (jamais d'exception : la vue reste éditable sans
-     * coloration entre-temps, la façade applique la langue dès qu'elle
-     * arrive). La résolution attend la fin de l'assemblage en cours.
-     *
-     * @param filename le nom du fichier ouvert
-     * @return le support résolu, null sans langage
-     */
-    public @Nullable LanguageSupport languageFor(String filename) {
-        return registre().byFilename(filename);
     }
 
     /**
@@ -324,7 +357,10 @@ public final class LanguageKit {
      *  en production, le fil du banc en test direct) — les paquets
      *  fautifs s'y signalent au consommateur d'erreurs, le registre
      *  retourné ne se pose pas ici : l'appelant (preload ou registre)
-     *  le pose sous le verrou.
+     *  le pose sous le verrou. La priorité du chantier A (coloration)
+     *  se lit au départ : le paquet qui peut porter le fichier
+     *  PRIORISÉ passe en tête de la première source — le reste suit
+     *  dans l'ordre de la source, le registre reste complet.
      */
     private LanguageRegistry assembleOnThread() {
         final LanguagePlatform plateforme = factory == null
@@ -333,6 +369,8 @@ public final class LanguageKit {
         for (LanguageSupport support : supports) {
             plateforme.support(support);
         }
+        String nomPriorite = priorite;
+        boolean prioritePosee = false;
         for (PackSource source : sources) {
             // La tolérance vit PAR PAQUET (le retour terrain du
             // 2026-11-19) : le refus d'un paquet se confie au
@@ -340,13 +378,77 @@ public final class LanguageKit {
             // stricte jette au premier refus (le contrat public
             // d'addPackSource ne change pas).
             Consumer<Exception> rapporteur = reporter;
+            PackSource effective = source;
+            if (nomPriorite != null && !prioritePosee) {
+                effective = sourcePrioritaire(source, nomPriorite);
+                prioritePosee = effective != source;
+            }
             if (rapporteur == null) {
-                plateforme.addPackSource(source);
+                plateforme.addPackSource(effective);
             } else {
-                plateforme.addPackSource(source, rapporteur);
+                plateforme.addPackSource(effective, rapporteur);
             }
         }
         return plateforme.build();
+    }
+
+    /** La source dont les paquets PRIORITAIRES passent en tête : le
+     *  descripteur de chaque paquet se lit SANS le charger (le Poids
+     *  léger de language.json, la couture descriptorOf du chargeur),
+     *  ceux qui peuvent porter le nom demandé précèdent les autres —
+     *  l'ordre relatif de la source survit sinon. Un nom qu'aucun
+     *  descripteur ne revendique rend la source TELLE QUELLE (le
+     *  registre reste complet, personne n'est écarté). */
+    private static PackSource sourcePrioritaire(PackSource source,
+            String nomPriorite) {
+        // Le lecteur de descripteurs légers : un par tri (sans état
+        // partagé, la lecture d'index ne s'y cache pas — le tri se
+        // paie UNE fois par assemblage, jamais par résolution).
+        final jo.celeris.core.language.packs.PackLoader descripteurs =
+                jo.celeris.core.language.packs.PackLoader.create();
+        return new PackSource() {
+            @Override
+            public List<jo.celeris.core.language.packs.PackSource.PackFiles> packs()
+                    throws java.io.IOException {
+                List<jo.celeris.core.language.packs.PackSource.PackFiles> tous =
+                        source.packs();
+                List<jo.celeris.core.language.packs.PackSource.PackFiles> prioritaires =
+                        new ArrayList<>();
+                List<jo.celeris.core.language.packs.PackSource.PackFiles> autres =
+                        new ArrayList<>(tous.size());
+                for (jo.celeris.core.language.packs.PackSource.PackFiles paquet
+                        : tous) {
+                    if (peutPorter(paquet, nomPriorite)) {
+                        prioritaires.add(paquet);
+                    } else {
+                        autres.add(paquet);
+                    }
+                }
+                if (prioritaires.isEmpty()) {
+                    return tous;
+                }
+                prioritaires.addAll(autres);
+                return prioritaires;
+            }
+
+            /** Vrai si le descripteur du paquet peut porter le nom :
+             *  extensions, noms exacts et motifs du descripteur — la
+             *  lecture se borne à language.json, jamais la grammaire. */
+            private boolean peutPorter(
+                    jo.celeris.core.language.packs.PackSource.PackFiles paquet,
+                    String nom) {
+                try {
+                    jo.celeris.core.language.model.LanguageDescriptor descripteur =
+                            descripteurs.descriptorOf(paquet);
+                    return LanguageDetectionRules.peutPorter(descripteur, nom);
+                } catch (java.io.IOException | RuntimeException echec) {
+                    // Le paquet illisible reste à sa place : la priorité
+                    // ne refuse PERSONNE, l'ordre seul change — le
+                    // chargeur complet signalera la faute à sa charge.
+                    return false;
+                }
+            }
+        };
     }
 
     /** Le signal de fin de l'assemblage en cours, null sinon. */
@@ -357,6 +459,15 @@ public final class LanguageKit {
      *  jette à la pose (audit coloration, piste H15). Lue et écrite
      *  sous le moniteur du kit. */
     private long generationAssemblage;
+
+    /** Le nom priorisé du chantier A (coloration) : le paquet qui peut
+     *  porter ce fichier passe en tête de file d'assemblage — la
+     *  résolution d'attente est SERVIE par le registre COMPLET, mais
+     *  le paquet priorisé y entre premier (la file ne se coupe JAMAIS :
+     *  le registre reste complet, l'ordre seul change). Lue sous le
+     *  moniteur du kit par le fil d'assemblage, tournée par
+     *  {@link #prioriser(String)}. */
+    private @Nullable String priorite;
 
     /**
      * Le fil démon partagé du kit (ADR-007, chantier C2) : UN fil pour

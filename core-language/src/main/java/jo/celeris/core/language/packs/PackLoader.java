@@ -116,6 +116,24 @@ public final class PackLoader {
         return cache.get(fingerprint);
     }
 
+    /**
+     * Le DESCRIPTEUR d'un paquet sans charger le reste (chantier A de la
+     * coloration) : {@code language.json} seul se lit — les extensions,
+     * noms et motifs de fichiers y vivent, la détection d'un nom de
+     * fichier s'y joue AVANT toute compilation de grammaire. La vue des
+     * descripteurs du kit (résolution prioritaire) s'y sert ; le paquet
+     * complet se charge ensuite par {@link #load(PackSource.PackFiles)}.
+     *
+     * @param files les fichiers du paquet
+     * @return le descripteur du langage du paquet
+     * @throws IOException si un fichier ne se lit pas
+     * @throws IllegalArgumentException si le descripteur est invalide
+     */
+    public LanguageDescriptor descriptorOf(PackSource.PackFiles files)
+            throws IOException {
+        return PackParser.descriptor(text(read(files, "language.json")));
+    }
+
     /** Le paquet assemblé : analyse, cohérence, compilation. */
     private LanguagePack assemble(PackSource.PackFiles files,
             byte[] manifestBytes, byte[] languageBytes,
@@ -146,11 +164,16 @@ public final class PackLoader {
                 : serversOfPack(files, manifest.id(),
                         text(serversBytes));
         LanguageSyntax grammar = null;
+        String texteGrammaire = null;
         if (grammarBytes != null) {
-            grammar = compiler(files, manifest.id(), text(grammarBytes));
+            // L'unique décodage UTF-8 du texte de la grammaire (audit
+            // coloration P6) : l'ancien chemin décodait DEUX fois — une
+            // pour la compilation, une pour le champ conservé.
+            texteGrammaire = text(grammarBytes);
+            grammar = compiler(files, manifest.id(), texteGrammaire);
         }
         return new LanguagePack(manifest, descriptor, configuration, grammar,
-                grammarBytes == null ? null : text(grammarBytes), snippets,
+                texteGrammaire, snippets,
                 injections, outlineRules, servers, preference, fingerprint);
     }
 
