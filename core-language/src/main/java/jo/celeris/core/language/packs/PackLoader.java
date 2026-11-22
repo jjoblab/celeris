@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import jo.celeris.core.language.WrittenLanguages;
 import jo.celeris.core.language.model.LanguageConfiguration;
 import jo.celeris.core.language.model.LanguageDescriptor;
 import jo.celeris.core.language.model.LanguageInjection;
@@ -81,6 +82,12 @@ public final class PackLoader {
      *                                  le message précis de la faute
      */
     public LanguagePack load(PackSource.PackFiles files) throws IOException {
+        return load(files, true);
+    }
+
+    /** Le chargement commun : la grammaire se compile ou vit paresseuse. */
+    private LanguagePack load(PackSource.PackFiles files, boolean compiler)
+            throws IOException {
         byte[] manifestBytes = read(files, "pack.json");
         byte[] languageBytes = read(files, "language.json");
         byte[] grammarBytes = files.has("grammar.json")
@@ -106,7 +113,7 @@ public final class PackLoader {
         }
         LanguagePack charge = assemble(files, manifestBytes, languageBytes,
                 grammarBytes, snippetsBytes, outlineBytes, serversBytes,
-                fingerprint);
+                fingerprint, compiler);
         cache.put(fingerprint, charge);
         return charge;
     }
@@ -134,12 +141,39 @@ public final class PackLoader {
         return PackParser.descriptor(text(read(files, "language.json")));
     }
 
-    /** Le paquet assemblé : analyse, cohérence, compilation. */
+    /**
+     * Charge un paquet SANS compiler sa grammaire (chantier A de la
+     * coloration, prompt du 2026-11-22) : lecture, validation et
+     * empreinte comme {@link #load(PackSource.PackFiles)} — la
+     * grammaire, elle, se compile à la PREMIÈRE DEMANDE du support
+     * ({@link LanguageSyntax#lexer()} et voisines), sur le fil du
+     * besoin, UNE fois, le résultat se mémorise. L'assemblage du
+     * registre ne paie plus les 33 compilations : il ne paie que la
+     * lecture des fichiers (mesuré JVM : ~680 ms de compilations
+     * disparaissent de la voie du premier document).
+     *
+     * <p>Le paquet rendu porte la même préférence, le même repli, la
+     * même empreinte — seul le champ grammaire vit paresseux : les
+     * consommateurs du {@link LanguagePack} ne changent pas. La
+     * grammaire défaillante se mémorise AUSSI (défaillance définitive,
+     * jamais de compilation en boucle sur le fil de l'interface).</p>
+     *
+     * @param files les fichiers du paquet
+     * @return le paquet validé, grammaire paresseuse
+     * @throws IOException si un fichier ne se lit pas
+     * @throws IllegalArgumentException si le paquet est invalide
+     */
+    public LanguagePack loadSummary(PackSource.PackFiles files)
+            throws IOException {
+        return load(files, false);
+    }
+
+    /** L'empreinte d'un paquet, ou null s'il n'est pas en cache. */
     private LanguagePack assemble(PackSource.PackFiles files,
             byte[] manifestBytes, byte[] languageBytes,
             byte @Nullable [] grammarBytes, byte @Nullable [] snippetsBytes,
             byte @Nullable [] outlineBytes, byte @Nullable [] serversBytes,
-            String fingerprint) {
+            String fingerprint, boolean compiler) {
         PackManifest manifest = PackParser.manifest(text(manifestBytes));
         String languageJson = text(languageBytes);
         LanguageDescriptor descriptor = PackParser.descriptor(languageJson);
@@ -170,11 +204,35 @@ public final class PackLoader {
             // coloration P6) : l'ancien chemin décodait DEUX fois — une
             // pour la compilation, une pour le champ conservé.
             texteGrammaire = text(grammarBytes);
-            grammar = compiler(files, manifest.id(), texteGrammaire);
+            grammar = compiler
+                    ? compiler(files, manifest.id(), texteGrammaire)
+                    : paresseuse(files, manifest.id(), texteGrammaire,
+                            repliEcrit(descriptor));
         }
         return new LanguagePack(manifest, descriptor, configuration, grammar,
                 texteGrammaire, snippets,
                 injections, outlineRules, servers, preference, fingerprint);
+    }
+
+    /** La grammaire paresseuse d'un paquet : la compilation se paie à
+     *  la première demande du support, sur le fil du besoin, UNE fois —
+     *  le repli écrit du langage sert en attendant (null sans repli :
+     *  la vue reste sans couleur jusqu'à l'arrivée, le rattrapage
+     *  recolore). */
+    private LanguageSyntax paresseuse(PackSource.PackFiles files, String id,
+            String grammarJson, @Nullable LanguageSyntax repli) {
+        return new SyntaxeParesseuse(id,
+                () -> compiler(files, id, grammarJson), repli);
+    }
+
+    /** Le repli écrit d'un langage, celui que la préférence du paquet
+     *  déclare — le chargeur ne JUGE pas la préférence (c'est la
+     *  plateforme qui résout), il pose le repli SÛR : l'analyseur
+     *  écrit quand il existe, null sinon (la grammaire paresseuse
+     *  reste sans source en attendant). */
+    private static @Nullable LanguageSyntax repliEcrit(
+            LanguageDescriptor descriptor) {
+        return WrittenLanguages.syntaxOf(descriptor.id());
     }
 
     /**

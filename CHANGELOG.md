@@ -5,6 +5,12 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.15] — 2026-11-22
+
+### Corrections
+
+- **La langue du premier fichier ouvert n'attend plus les 27 compilations de grammaires (ADR-0028, chantier A de la coloration)** : le registre s'assemble des descripteurs seuls (`language.json` des 33 paquets), la grammaire d'un langage se compile à SA première demande — une fois, mémorisée, repli écrit en attendant. Mesuré JVM à froid : 679-835 ms → 167-194 ms jusqu'à la langue (0 compilation dans le chemin, la grammaire la plus lourde ne compte plus) ; le fond précompile les autres langues derrière la pose du registre. Bancs : `LanguageKitPrioriteTest` 6/6 (rouge avant — la résolution lisait les 33 paquets compilés) ; non-régression `:core-language:test` 164/164, `:core-syntax-grammars` vert, `check` vert.
+
 ## [2.2.11] — 2026-11-20
 
 ### Ajouts

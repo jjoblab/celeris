@@ -122,6 +122,32 @@ public final class LanguagePlatform {
      */
     public LanguagePlatform addPackSource(PackSource source,
             java.util.function.Consumer<Exception> erreurs) {
+        return addPackSource(source, erreurs, true);
+    }
+
+    /**
+     * Ajoute les paquets d'une source en tolérant les paquets fautifs,
+     * SANS compiler les grammaires (chantier A de la coloration,
+     * prompt du 2026-11-22) : les paquets entrent par
+     * {@link PackLoader#loadSummary(PackSource.PackFiles)} — la
+     * grammaire de chacun se compile à la première demande du support,
+     * sur le fil du besoin. Le registre assemblé ne paie plus les
+     * compilations : la langue du document ouvert n'attend plus les
+     * grammaires des autres langages.
+     *
+     * @param source  la source des paquets
+     * @param erreurs le consommateur des paquets refusés
+     * @return la plateforme
+     */
+    public LanguagePlatform addPackSourceLentement(PackSource source,
+            java.util.function.Consumer<Exception> erreurs) {
+        return addPackSource(source, erreurs, false);
+    }
+
+    /** Le chargement commun : la grammaire se compile ou vit paresseuse. */
+    private LanguagePlatform addPackSource(PackSource source,
+            java.util.function.Consumer<Exception> erreurs,
+            boolean compiler) {
         List<PackSource.PackFiles> fichiers;
         try {
             fichiers = source.packs();
@@ -131,7 +157,9 @@ public final class LanguagePlatform {
         }
         for (PackSource.PackFiles files : fichiers) {
             try {
-                LanguagePack pack = loader.load(files);
+                LanguagePack pack = compiler
+                        ? loader.load(files)
+                        : loader.loadSummary(files);
                 supports.add(supportDuPaquet(pack));
             } catch (IOException e) {
                 throw new IllegalStateException("pack source unreadable: "

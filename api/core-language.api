@@ -94,6 +94,7 @@ public final class jo.celeris.core.language.LanguagePlatform {
   public static jo.celeris.core.language.LanguagePlatform with(jo.celeris.core.language.packs.GrammarFactory);
   public jo.celeris.core.language.LanguagePlatform addPackSource(jo.celeris.core.language.packs.PackSource);
   public jo.celeris.core.language.LanguagePlatform addPackSource(jo.celeris.core.language.packs.PackSource, java.util.function.Consumer<java.lang.Exception>);
+  public jo.celeris.core.language.LanguagePlatform addPackSourceLentement(jo.celeris.core.language.packs.PackSource, java.util.function.Consumer<java.lang.Exception>);
   public jo.celeris.core.language.LanguagePlatform builtinPacks();
   public jo.celeris.core.language.LanguagePlatform support(jo.celeris.core.language.model.LanguageSupport);
   public jo.celeris.core.language.LanguagePlatform contributor(jo.celeris.core.language.LanguageContributor);
@@ -409,6 +410,8 @@ public final class jo.celeris.core.language.packs.PackLoader {
   public static jo.celeris.core.language.packs.PackLoader with(jo.celeris.core.language.packs.GrammarFactory);
   public jo.celeris.core.language.packs.LanguagePack load(jo.celeris.core.language.packs.PackSource$PackFiles) throws java.io.IOException;
   public jo.celeris.core.language.packs.LanguagePack cached(java.lang.String);
+  public jo.celeris.core.language.model.LanguageDescriptor descriptorOf(jo.celeris.core.language.packs.PackSource$PackFiles) throws java.io.IOException;
+  public jo.celeris.core.language.packs.LanguagePack loadSummary(jo.celeris.core.language.packs.PackSource$PackFiles) throws java.io.IOException;
 }
 
 ### jo.celeris.core.language.packs.PackManifest
@@ -514,6 +517,55 @@ public final class jo.celeris.core.language.packs.Packs {
   public static jo.celeris.core.language.packs.PackSource classpath(java.lang.String);
   public static jo.celeris.core.language.packs.PackSource folder(java.nio.file.Path);
   public static jo.celeris.core.language.packs.PackSource archive(java.nio.file.Path);
+}
+
+### jo.celeris.core.language.packs.SyntaxeParesseuse$1
+Compiled from "SyntaxeParesseuse.java"
+class jo.celeris.core.language.packs.SyntaxeParesseuse$1 implements jo.celeris.core.syntax.LanguageLexer {
+  public jo.celeris.core.syntax.LexState initialState();
+  public jo.celeris.core.syntax.LexedLine lex(java.lang.CharSequence, jo.celeris.core.syntax.LexState);
+}
+
+### jo.celeris.core.language.packs.SyntaxeParesseuse$2
+Compiled from "SyntaxeParesseuse.java"
+class jo.celeris.core.language.packs.SyntaxeParesseuse$2 implements jo.celeris.core.syntax.LexState {
+}
+
+### jo.celeris.core.language.packs.SyntaxeParesseuse$3
+Compiled from "SyntaxeParesseuse.java"
+class jo.celeris.core.language.packs.SyntaxeParesseuse$3 implements jo.celeris.core.syntax.LanguageParser {
+  public int chunkLevel();
+  public boolean startsChunk(jo.celeris.core.syntax.TokenSlice, int, int);
+  public jo.celeris.core.syntax.SynNode parseChunk(jo.celeris.core.syntax.TokenSlice);
+}
+
+### jo.celeris.core.language.packs.SyntaxeParesseuse$4
+Compiled from "SyntaxeParesseuse.java"
+class jo.celeris.core.language.packs.SyntaxeParesseuse$4 implements jo.celeris.core.syntax.NodeKind {
+}
+
+### jo.celeris.core.language.packs.SyntaxeParesseuse$5
+Compiled from "SyntaxeParesseuse.java"
+class jo.celeris.core.language.packs.SyntaxeParesseuse$5 {
+}
+
+### jo.celeris.core.language.packs.SyntaxeParesseuse$Etat
+Compiled from "SyntaxeParesseuse.java"
+final class jo.celeris.core.language.packs.SyntaxeParesseuse$Etat extends java.lang.Enum<jo.celeris.core.language.packs.SyntaxeParesseuse$Etat> {
+  public static final jo.celeris.core.language.packs.SyntaxeParesseuse$Etat REPLI;
+  public static final jo.celeris.core.language.packs.SyntaxeParesseuse$Etat COMPILEE;
+  public static final jo.celeris.core.language.packs.SyntaxeParesseuse$Etat DEFAILLANTE;
+  public static jo.celeris.core.language.packs.SyntaxeParesseuse$Etat[] values();
+  public static jo.celeris.core.language.packs.SyntaxeParesseuse$Etat valueOf(java.lang.String);
+}
+
+### jo.celeris.core.language.packs.SyntaxeParesseuse
+Compiled from "SyntaxeParesseuse.java"
+final class jo.celeris.core.language.packs.SyntaxeParesseuse implements jo.celeris.core.syntax.LanguageSyntax {
+  public java.lang.String id();
+  public jo.celeris.core.syntax.LanguageLexer lexer();
+  public jo.celeris.core.syntax.LanguageParser parser();
+  public java.util.List<java.lang.String> reservedWords();
 }
 
 ### jo.celeris.core.language.packs.TreeSitterLanguages
