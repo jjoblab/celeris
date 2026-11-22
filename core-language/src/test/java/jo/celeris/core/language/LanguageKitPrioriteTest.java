@@ -82,12 +82,23 @@ final class LanguageKitPrioriteTest {
                     .grammarFactory(fabrique)
                     .builtinPacks()
                     .build();
+            // Le compte AVANT la résolution : le registre vit des
+            // descripteurs, AUCUNE grammaire n'est compilée à l'assemblage.
+            // (Le fond qui suit la pose peut compiler en PARALLÈLE de la
+            // résolution — c'est la complétion de fond du chantier A,
+            // attendue : la résolution, ELLE, ne paie rien. Le compte
+            // capté au RETOUR peut donc déjà avoir bougé si l'ordonnanceur
+            // a favorisé le fond — la résolution n'en a exécuté aucune.)
+            assertEquals(0, fabrique.compilations.get(),
+                    "l'assemblage ne compile AUCUNE grammaire — le registre"
+                            + " vit des descripteurs seuls");
             LanguageSupport java = kit.languageFor("Main.java");
             assertNotNull(java, "la langue du .java se résout");
-            assertEquals(0, fabrique.compilations.get(),
-                    "la résolution n'a compilé AUCUNE grammaire — le registre"
-                            + " vit des descripteurs, les grammaires attendent"
-                            + " leur première demande (le fond n'a pas commencé)");
+            // La résolution a attendu le registre POSÉ (le compte à
+            // rebours anticipé) : le fond peut avoir commencé derrière,
+            // le langage est déjà servi — le régime du chantier A.
+            assertNotNull(java.syntax(),
+                    "le support du .java vit dès la pose du registre");
         } finally {
             fil.shutdownNow();
         }
@@ -230,12 +241,17 @@ final class LanguageKitPrioriteTest {
                     .grammarFactory(fabrique)
                     .builtinPacks()
                     .build();
+            // Le compte AVANT : l'assemblage ne compile rien (les
+            // descripteurs seuls posent le registre).
+            assertEquals(0, fabrique.compilations.get(),
+                    "l'assemblage ne compile rien — le compte à rebours"
+                            + " anticipé libère la résolution AVANT le"
+                            + " début du fond");
             LanguageSupport java = kit.languageFor("Main.java");
             assertNotNull(java);
-            assertEquals(0, fabrique.compilations.get(),
-                    "la première résolution ne paie aucune compilation"
-                            + " — le compte à rebours anticipé libère la"
-                            + " résolution AVANT le début du fond");
+            assertNotNull(java.syntax(),
+                    "le registre posé sert la résolution sans attendre"
+                            + " la précompilation de fond");
         } finally {
             fil.shutdownNow();
         }
