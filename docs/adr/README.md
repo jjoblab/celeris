@@ -48,6 +48,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-0026](0026-fins-de-ligne-crlf.md) | Fins de ligne CRLF : le `\r` assumé dans la ligne rendue (feuille de route A3) | Acceptée (2026-11-19) |
 | [ADR-0027](0027-coloration-semantique-lsp.md) | Coloration sémantique LSP : câbler en surcouche, phase dédiée (feuille de route A4) | Proposition (2026-11-19, décision propriétaire attendue) |
 | [ADR-0028](0028-registre-des-descripteurs-dabord.md) | Registre des descripteurs d’abord, grammaires à la demande (chantier A de la coloration) | Acceptée (2026-11-22, prompt coloration — mesure avant/après au banc) |
+| [ADR-0029](0029-cache-echecs-matchers-grammaires.md) | Cache d’échecs et matchers réutilisés dans le lexeur de grammaires (chantier B) | Acceptée (2026-11-22, prompt coloration — banc intercalé) |
 
 ## Règles
 

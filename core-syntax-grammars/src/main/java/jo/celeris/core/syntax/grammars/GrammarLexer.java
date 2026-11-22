@@ -100,6 +100,28 @@ final class GrammarLexer implements LanguageLexer {
     /** Les lignes dégradées par dépassement de budget, vu par ce lexeur. */
     private int incidents;
 
+    /** Les octets de la ligne en cours — les matchers réutilisés s'y
+     *  lient (une ligne de lexicographie, remis à vide à la suivante). */
+    private byte @Nullable [] octetsLigne;
+
+    /** Le cache d'échecs du chantier B (audit F8, modèle tm4e
+     *  {@code JoniOnigRegExp.search}) : une expression qui a échoué
+     *  depuis p a LU toute la fin de ligne sans rien trouver — la
+     *  re-tentative depuis toute position SUPÉRIEURE rend le même
+     *  échec sans relire (le lexeur retente la même règle au caractère
+     *  suivant : le néant se sert). Remis à vide à chaque ligne (les
+     *  positions sont relatives à la ligne). */
+    private final IdentityHashMap<Regex, Integer> echecs =
+            new IdentityHashMap<>();
+
+    /** Les matchers joni de la ligne en cours, par expression : le
+     *  Matcher se RÉUTILISE tant que les octets ne changent pas (une
+     *  ligne) — l'allocation d'un Matcher par recherche était le
+     *  premier coût du lexeur (chantier B : ~97 recherches par ligne
+     *  python ordinaire). Remis à vide à chaque ligne. */
+    private final IdentityHashMap<Regex, Matcher> matchers =
+            new IdentityHashMap<>();
+
     GrammarLexer(Grammar grammaire) {
         this(grammaire, PROPORTIONNEL);
     }
@@ -122,6 +144,14 @@ final class GrammarLexer implements LanguageLexer {
         return incidents;
     }
 
+    /** Les essais d'expression de la DERNIÈRE ligne lexée — le banc
+     *  du cache de prochaine correspondance (chantier B) y lit le
+     *  travail réel : une ligne ordinaire ne paie pas une recherche
+     *  par règle par position quand les échecs se mémorisent. */
+    long essaisDerniereLigne() {
+        return etapes;
+    }
+
     @Override
     public LexState initialState() {
         return GrammarState.EMPTY;
@@ -134,6 +164,11 @@ final class GrammarLexer implements LanguageLexer {
         etapes = 0;
         deborde = false;
         positionSansProgression = -1;
+        // Le cache vit UNE ligne : les positions mémorisées sont
+        // relatives à la ligne, la suivante repart à vide.
+        octetsLigne = donnees.octets();
+        echecs.clear();
+        matchers.clear();
         // Le budget de LA ligne : exact au banc, proportionnel au
         // régime livré — plancher pour les lignes ordinaires, plafond
         // contre les lignes monstres (jamais de gel, jamais de
@@ -268,15 +303,42 @@ final class GrammarLexer implements LanguageLexer {
         return meilleur;
     }
 
-    /** Cherche la plus ancienne occurrence d'une expression à partir de la position. */
+    /** Le matcher d'une expression pour LA ligne en cours : le premier
+     *  appel le bâtit sur les octets de la ligne, les suivants le
+     *  réemploient — le Matcher joni se réutilise tant que les octets
+     *  sont les mêmes (une ligne de lexicographie). */
+    private Matcher matcherDe(Regex pattern) {
+        return matchers.computeIfAbsent(pattern, p -> p.matcher(octetsLigne));
+    }
+
+    /** Cherche la plus ancienne occurrence d'une expression à partir de
+     *  la position — le cache de prochaine correspondance devant la
+     *  recherche (chantier B, audit F8) : l'échec mémorisé d'une
+     *  expression reste valable pour toute position inférieure (la
+     *  recherche a LU toute la fin de ligne), la correspondance
+     *  mémorisée se re-sert tant que la position demandée ne dépasse
+     *  pas son début. */
     private @Nullable Candidat chercher(Utf8Line donnees, int pos, Regex pattern, char type,
             @Nullable BlockRule bloc, @Nullable OpenBlock ferme, @Nullable SimpleRule simple) {
         if (etapes++ >= budgetLigne) {
             deborder(donnees);
             return null;
         }
-        Matcher m = pattern.matcher(donnees.octets());
+        // Le cache d'échec : la recherche depuis echecPos a tout lu
+        // jusqu'à la fin de ligne sans rien trouver — toute requête à
+        // une position SUPÉRIEURE OU ÉGALE rend le même échec (un
+        // sous-ensemble du vide reste vide), la re-tentative à p+1
+        // (le cas du lexeur : la même règle au caractère suivant) ne
+        // relit rien.
+        Integer echec = echecs.get(pattern);
+        if (echec != null && pos >= echec) {
+            return null;
+        }
+        Matcher m = matcherDe(pattern);
         if (m.search(pos, donnees.octets().length, Option.NONE) < 0) {
+            // L'échec se mémorise à la position de la recherche : toute
+            // position inférieure relirait le même néant.
+            echecs.put(pattern, pos);
             return null;
         }
         // La largeur nulle est LÉGITIME pour les bordures (audit
@@ -288,7 +350,8 @@ final class GrammarLexer implements LanguageLexer {
         if (m.getEnd() == m.getBegin() && type == Candidat.PATTERN) {
             return null;
         }
-        return new Candidat(m.getBegin(), m.getEnd(), m, type, bloc, ferme, simple);
+        return new Candidat(m.getBegin(), m.getEnd(), m, type,
+                bloc, ferme, simple);
     }
 
     /** Le dépassement de budget se journalise une fois par ligne. */

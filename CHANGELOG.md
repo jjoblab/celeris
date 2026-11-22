@@ -5,6 +5,12 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.16] — 2026-11-22
+
+### Performance
+
+- **Le lexeur de grammaires ne re-paie pas les règles qui viennent d'échouer (ADR-0029, chantier B)** : cache d'échecs par expression (le néant lu jusqu'à la fin de ligne se sert aux positions suivantes) + matchers joni réutilisés par ligne. Mesures au banc intercalé (médiane) : javascript 194→123 µs/ligne (-37 %), csharp 58→44 (-23 %), python 53→45 (-15 %) ; la couleur ne change pas (158 tests du module, bancs d'intégration des paquets compris) ; banc `CacheCorrespondanceTest` (contrat : 4 essais contre 12 sans cache sur une ligne sans correspondance). Le cache de correspondance essayé a été retiré (une occurrence depuis p' ne peut pas servir une position antérieure — risque de faute de couleur sans gain).
+
 ## [2.2.15] — 2026-11-22
 
 ### Corrections
