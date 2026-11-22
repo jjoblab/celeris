@@ -49,6 +49,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-0027](0027-coloration-semantique-lsp.md) | Coloration sémantique LSP : câbler en surcouche, phase dédiée (feuille de route A4) | Proposition (2026-11-19, décision propriétaire attendue) |
 | [ADR-0028](0028-registre-des-descripteurs-dabord.md) | Registre des descripteurs d’abord, grammaires à la demande (chantier A de la coloration) | Acceptée (2026-11-22, prompt coloration — mesure avant/après au banc) |
 | [ADR-0029](0029-cache-echecs-matchers-grammaires.md) | Cache d’échecs et matchers réutilisés dans le lexeur de grammaires (chantier B) | Acceptée (2026-11-22, prompt coloration — banc intercalé) |
+| [ADR-0030](0030-ancres-fin-virtuelle-inclusions.md) | Ancres de document, fin de ligne virtuelle, inclusions externes et registre de la fabrique (chantier C) | Acceptée (2026-11-22, prompt coloration) |
 
 ## Règles
 

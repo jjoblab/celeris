@@ -84,6 +84,16 @@ final class GrammarLexer implements LanguageLexer {
     /** Vrai dès que la ligne en cours a dépassé son budget. */
     private boolean deborde;
 
+    /** L'ancre de document (chantier C2) : vrai sur la PREMIÈRE ligne
+     *  de la vie du lexeur — le service bâtit un lexeur neuf par
+     *  analyse et la passe part de la ligne 0, le début du texte y
+     *  coïncide avec le début du document (modèle tm4e : allowA). */
+    private boolean premiereLigne;
+
+    /** Faux dès le premier lex : plus AUCUNE ligne suivante n'est la
+     *  première du document. */
+    private boolean jamaisLexe = true;
+
     /** La dernière position d'un tour sans progression — la garde
      *  anti-boucle des correspondances de largeur nulle (audit H8) :
      *  un seul tour sans progression par position, l'octet suivant
@@ -161,6 +171,10 @@ final class GrammarLexer implements LanguageLexer {
     public LexedLine lex(CharSequence line, LexState input) {
         GrammarState etat = (GrammarState) input;
         Utf8Line donnees = Utf8Line.preparer(line);
+        // L'ancre de document (chantier C2) : la première ligne de la
+        // vie du lexeur EST la première du document.
+        premiereLigne = jamaisLexe;
+        jamaisLexe = false;
         etapes = 0;
         deborde = false;
         positionSansProgression = -1;
@@ -312,17 +326,25 @@ final class GrammarLexer implements LanguageLexer {
     }
 
     /** Cherche la plus ancienne occurrence d'une expression à partir de
-     *  la position — le cache de prochaine correspondance devant la
-     *  recherche (chantier B, audit F8) : l'échec mémorisé d'une
-     *  expression reste valable pour toute position inférieure (la
-     *  recherche a LU toute la fin de ligne), la correspondance
-     *  mémorisée se re-sert tant que la position demandée ne dépasse
-     *  pas son début. */
+     *  la position — le cache d'échecs devant la recherche (chantier B,
+     *  audit F8) : l'échec mémorisé d'une expression reste valable pour
+     *  toute position supérieure (la recherche a LU toute la fin de
+     *  ligne). L'ancre de document (chantier C2) : l'expression à
+     *  {@code \A} se traduit en son double IMPOSSIBLE quand la ligne
+     *  n'est pas la première du document. */
     private @Nullable Candidat chercher(Utf8Line donnees, int pos, Regex pattern, char type,
             @Nullable BlockRule bloc, @Nullable OpenBlock ferme, @Nullable SimpleRule simple) {
         if (etapes++ >= budgetLigne) {
             deborder(donnees);
             return null;
+        }
+        // La traduction d'ancre : le jeu ne vit que sur les grammaires
+        // à \A (les autres ne paient qu'une lecture de carte vide).
+        if (!premiereLigne) {
+            Regex impossible = grammaire.ancres().get(pattern);
+            if (impossible != null) {
+                pattern = impossible;
+            }
         }
         // Le cache d'échec : la recherche depuis echecPos a tout lu
         // jusqu'à la fin de ligne sans rien trouver — toute requête à

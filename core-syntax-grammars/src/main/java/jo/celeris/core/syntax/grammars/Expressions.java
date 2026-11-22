@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Option;
 import org.joni.Regex;
+import org.joni.WarnCallback;
 import org.joni.exception.JOniException;
 
 /**
@@ -34,7 +35,13 @@ final class Expressions {
     }
 
     /**
-     * Compile un motif au sens d'Oniguruma.
+     * Compile un motif au sens d'Oniguruma — les groupescapturants
+     * vivent (chantier C1 : {@code Option.CAPTURE_GROUP} + syntaxe
+     * DEFAULT + avertissements muets, le modèle tm4e/Sora : les
+     * grammaires TextMate lisent les captures
+     * {@code \N} et {@code $0} des correspondances, un motif compilé
+     * sans capture rend la région vide — les portées de capture
+     * disparaissaient en silence).
      *
      * @param pattern le texte du motif
      * @return l'expression compilée, prête à matcher sur des octets UTF-8
@@ -44,7 +51,9 @@ final class Expressions {
     static Regex compiler(String pattern) {
         try {
             byte[] octets = pattern.getBytes(StandardCharsets.UTF_8);
-            return new Regex(octets, 0, octets.length, Option.NONE, UTF8Encoding.INSTANCE);
+            return new Regex(octets, 0, octets.length, Option.CAPTURE_GROUP,
+                    UTF8Encoding.INSTANCE, org.joni.Syntax.DEFAULT,
+                    WarnCallback.NONE);
         } catch (JOniException | IllegalArgumentException e) {
             throw new IllegalArgumentException("motif invalide : " + pattern, e);
         }

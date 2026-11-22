@@ -11,6 +11,13 @@ import org.jspecify.annotations.Nullable;
  * aucune table n'est allouée. Les positions rendues par joni tombent
  * toujours sur des frontières de caractères : la table donne alors
  * l'indice du caractère qui commence à cette frontière.
+ *
+ * <p>La fin de ligne virtuelle (chantier C3, prompt du 2026-11-22) :
+ * le buffer d'octets porte un {@code \n} APRÈS la ligne — vingt
+ * grammaires livrées ont des motifs qui l'exigent (fermetures
+ * {@code \n?}, guards shebang) ; la correspondance qui le touche se
+ * ROGNE à la ligne au retour vers les unités de code (le modèle tm4e :
+ * {@code lineText += '\n'} sans jamais dépasser lineLength).</p>
  */
 final class Utf8Line {
 
@@ -24,10 +31,12 @@ final class Utf8Line {
         this.octetVersChar = octetVersChar;
     }
 
-    /** La ligne préparée : encode en UTF-8 et dresse la table si besoin. */
+    /** La ligne préparée : encode en UTF-8 et dresse la table si
+     *  besoin — le buffer porte un {@code \n} de fin virtuel. */
     static Utf8Line preparer(CharSequence line) {
         int n = line.length();
-        byte[] octets = new byte[longueurUtf8(line)];
+        int longueurTexte = longueurUtf8(line);
+        byte[] octets = new byte[longueurTexte + 1];
         int[] table = new int[octets.length + 1];
         boolean ascii = true;
         int curseur = 0;
@@ -43,7 +52,12 @@ final class Utf8Line {
             }
             i += largeur;
         }
-        table[octets.length] = n;
+        // La fin virtuelle : le \n se pose APRÈS la ligne, la table y
+        // mène au BOUT du texte (une correspondance qui l'inclut se
+        // rogne d'elle-même au retour vers les caractères).
+        octets[curseur] = (byte) '\n';
+        table[curseur] = n;
+        table[curseur + 1] = n;
         return new Utf8Line(line, octets, ascii ? null : table);
     }
 
@@ -57,10 +71,13 @@ final class Utf8Line {
         return octets;
     }
 
-    /** La position UTF-16 du caractère qui commence à la frontière d'octet. */
+    /** La position UTF-16 du caractère qui commence à la frontière
+     *  d'octet — la fin virtuelle ({@code \n}) mène au BOUT de la
+     *  ligne : une correspondance qui l'inclut se rogne d'elle-même. */
     int versChar(int aByte) {
         int[] table = octetVersChar;
-        return table == null ? aByte : table[aByte];
+        int borne = table == null ? aByte : table[Math.min(aByte, table.length - 1)];
+        return Math.min(borne, text.length());
     }
 
     /** Le nombre d'octets de l'encodage UTF-8 de la ligne. */

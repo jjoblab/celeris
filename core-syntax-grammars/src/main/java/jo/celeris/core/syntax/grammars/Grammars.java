@@ -89,8 +89,12 @@ public final class Grammars {
         }
         racine.fixer(lecteur.aplatir(champs.get("patterns"), "patterns"));
         List<Injection> injections = injections(champs.get("injections"), lecteur);
-        return new Grammar(nom, porteeRacine, racine.regles(), injections,
-                report.tisser(), lecteur.keywords());
+        Grammar grammaire = new Grammar(nom, porteeRacine, racine.regles(),
+                injections, report.tisser(), lecteur.keywords());
+        // Le jeu d'ancres de document (chantier C2) : le lexeur y
+        // traduit les expressions à \A selon la ligne.
+        grammaire.ancres().putAll(lecteur.ancres());
+        return grammaire;
     }
 
     /**

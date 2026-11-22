@@ -34,6 +34,12 @@ final class GrammarReader {
      *  règle keyword au motif littéral y verse au chargement. */
     private final java.util.Set<String> keywords = new java.util.LinkedHashSet<>();
 
+    /** Le jeu d'ancres de document (chantier C2) : toute expression
+     *  compilée d'un motif à {@code \A} y mène à son double
+     *  IMPOSSIBLE — le lexeur traduit selon la ligne. */
+    private final java.util.IdentityHashMap<org.joni.Regex, org.joni.Regex> ancres =
+            new java.util.IdentityHashMap<>();
+
     GrammarReader(Map<String, ListRule> referentiel, ListRule racine,
             Map<String, Grammar> externes, GrammarReport.Tisseur report) {
         this.referentiel = referentiel;
@@ -46,6 +52,11 @@ final class GrammarReader {
      *  sans casse ; la complétion de base les sert. */
     List<String> keywords() {
         return GrammarKeywords.figer(keywords);
+    }
+
+    /** Le jeu d'ancres de document tissé au chargement. */
+    java.util.IdentityHashMap<org.joni.Regex, org.joni.Regex> ancres() {
+        return ancres;
     }
 
     /**
@@ -263,6 +274,18 @@ final class GrammarReader {
         }
         try {
             Regex compilee = Expressions.compiler(pattern);
+            // L'ancre de document se double (chantier C2) : le motif
+            // à \A garde son expression pour la PREMIÈRE ligne (le
+            // début du texte y coïncide avec le début du document),
+            // son double IMPOSSIBLE sert les suivantes (modèle tm4e :
+            // allowA sur la ligne 0, caractère introuvable après).
+            if (pattern.indexOf("\\A") >= 0) {
+                Regex impossible = Expressions.compiler(
+                        pattern.replace("\\A", "\\uFFFF"));
+                if (impossible != null) {
+                    ancres.put(compilee, impossible);
+                }
+            }
             report.accepte();
             return compilee;
         } catch (IllegalArgumentException e) {

@@ -57,11 +57,8 @@ final class jo.celeris.core.syntax.grammars.Expressions {
 
 ### jo.celeris.core.syntax.grammars.Grammar
 Compiled from "Grammar.java"
-public final class jo.celeris.core.syntax.grammars.Grammar extends java.lang.Record {
+public final class jo.celeris.core.syntax.grammars.Grammar {
   public jo.celeris.core.syntax.grammars.Grammar(java.lang.String, java.lang.String, java.util.List<jo.celeris.core.syntax.grammars.Rule>, java.util.List<jo.celeris.core.syntax.grammars.Injection>, jo.celeris.core.syntax.grammars.GrammarReport, java.util.List<java.lang.String>);
-  public final java.lang.String toString();
-  public final int hashCode();
-  public final boolean equals(java.lang.Object);
   public java.lang.String nom();
   public java.lang.String porteeRacine();
   public java.util.List<jo.celeris.core.syntax.grammars.Rule> patterns();
@@ -199,6 +196,7 @@ final class jo.celeris.core.syntax.grammars.OpenBlock {
 Compiled from "PackGrammars.java"
 public final class jo.celeris.core.syntax.grammars.PackGrammars implements jo.celeris.core.language.packs.GrammarFactory {
   public static final jo.celeris.core.syntax.grammars.PackGrammars INSTANCE;
+  public static jo.celeris.core.syntax.grammars.PackGrammars avecRegistre();
   public jo.celeris.core.syntax.LanguageSyntax compile(java.lang.String, java.lang.String);
 }
 

@@ -5,6 +5,12 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.17] — 2026-11-22
+
+### Fidélité TextMate
+
+- **Le lexeur de grammaires parle le TextMate réel (ADR-0030, chantier C)** : les groupes capturants vivent à la compilation (CAPTURE_GROUP + Syntax.DEFAULT, modèle tm4e) ; l'ancre `\A` ne matche plus que la première ligne du document (jeu d'ancres ordinaire/impossible traduit par le lexeur — csharp, css, javascript, lua, swift, typescript concernés) ; la ligne porte un saut de fin virtuel pour les motifs à `\n` (vingt grammaires concernées — les fermetures `\n?` et shebangs matchent, les jetons se rognent à la ligne) ; la fabrique `PackGrammars.avecRegistre()` résout les inclusions externes par portée racine (html colore `<style>` par la grammaire css du montage). Bancs rouges posés d'abord : `AncresDocumentTest`, `FinDeLigneVirtuelleTest`, `InclusionsExternesTest`, `ScopeStacksOrdreTest` (2 000 piles, deux ordres d'ouverture). `Grammar` record → classe immuable (porte le jeu d'ancres ; manifeste api régénéré). Non-régression : grammars 163 tests, core-language + core-syntax 407 tests, checks verts.
+
 ## [2.2.16] — 2026-11-22
 
 ### Performance
