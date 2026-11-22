@@ -28,7 +28,26 @@ Mesures « avant » de cette session (banc JVM reproduit de zéro) :
 | Lexeur csharp | 87,1 µs/ligne |
 | Lexeur javascript | 296,1 µs/ligne (2 000 lignes : 593 ms) |
 
-## 2. Chantier A — couleur sans attendre les 33 paquets : ENTIÈREMENT DÉFINI, CORRECTIF PARTIEL
+## 2. Chantier A — TERMINÉ (commit 88174ad2, v2.2.15, ADR-0028)
+
+**Correctif complet** : le registre s'assemble des descripteurs seuls
+(`PackLoader.loadSummary` + `SyntaxeParesseuse` — grammaire compilée à la
+première demande, une fois, mémorisée, repli écrit en attendant) ;
+`LanguagePlatform.addPackSourceLentement` ; `LanguageKit` libère son compte
+à rebours APRÈS la pose du registre et AVANT la précompilation de fond
+(`precompiler` prépare les autres langues derrière). Le tri prioritaire
+intermédiaire et `LanguageDetectionRules` sont retirés (rendus inutiles).
+
+**Mesures (banc JVM, grammaires réelles, `MesuresChantierAApres`) :
+679-835 ms → 167-194 ms jusqu'à la langue du premier fichier à froid
+(0 compilation dans le chemin contre 27 avant ; typescript 26 ms à
+part), 35-80 ms à chaud.**
+
+**Bancs** : `LanguageKitPrioriteTest` 6/6 ; non-régression
+`:core-language:test` 164/164, `:core-syntax-grammars:test` vert,
+`:core-language:check` vert (manifeste api régénéré).
+
+Historique du chantier (étapes conservées pour la traçabilité) :
 
 **Banc rouge posé et commité (`b87f628b`)** : `LanguageKitPrioriteTest` —
 4 tests, dont `laLangueDuFichierNePatientePasLesAutresPaquets` échoue à
