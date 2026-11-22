@@ -37,7 +37,7 @@ final class Expressions {
     /**
      * Compile un motif au sens d'Oniguruma — les groupescapturants
      * vivent (chantier C1 : {@code Option.CAPTURE_GROUP} + syntaxe
-     * DEFAULT + avertissements muets, le modèle tm4e/Sora : les
+     * DEFAULT + avertissements muets, le modèle tm4e et ses portages du commerce : les
      * grammaires TextMate lisent les captures
      * {@code \N} et {@code $0} des correspondances, un motif compilé
      * sans capture rend la région vide — les portées de capture

@@ -203,19 +203,19 @@
   d'intégration a attrapé une pose périmée qui colorait quand même :
   corrigée au recalage à l'habillage.
 
-### A7 — Le chantier A du prompt du 2026-11-22 : la langue du premier fichier n'attend plus les grammaires
+### A7 — Le chantier A du prompt du 2026-11-22 : la langue du premier fichier n'attend plus les grammaires
 
-- **Constat d'origine** : l'assemblage du registre compilait les 27 grammaires TextMate AVANT de publier le moindre langage — la résolution de « la langue de ce fichier » attendait la fin de TOUT (679-835 ms à froid sur JVM, des secondes sur appareil lent).
-- **Correctif (ADR-0028)** : registre des descripteurs d'abord (`loadSummary`, `SyntaxeParesseuse` — grammaire à la première demande, mémorisée, repli écrit en attendant), compte à rebours libéré entre la pose et la précompilation de fond. Mesures : 679-835 ms → 167-194 ms à froid, 0 compilation dans le chemin.
-- **Bancs** : `LanguageKitPrioriteTest` 6/6 (banc rouge posé avant le correctif) ; non-régression `:core-language:test` 164/164, `check` vert.
-- **Statut** : ✅ fait (88174ad2, 2026-11-22 — v2.2.15)
+- **Constat d'origine** : l'assemblage du registre compilait les 27 grammaires TextMate AVANT de publier le moindre langage — la résolution de « la langue de ce fichier » attendait la fin de TOUT (679-835 ms à froid sur JVM, des secondes sur appareil lent).
+- **Correctif (ADR-0028)** : registre des descripteurs d'abord (`loadSummary`, `SyntaxeParesseuse` — grammaire à la première demande, mémorisée, repli écrit en attendant), compte à rebours libéré entre la pose et la précompilation de fond. Mesures : 679-835 ms → 167-194 ms à froid, 0 compilation dans le chemin.
+- **Bancs** : `LanguageKitPrioriteTest` 6/6 (banc rouge posé avant le correctif) ; non-régression `:core-language:test` 164/164, `check` vert.
+- **Statut** : ✅ fait (88174ad2, 2026-11-22 — v2.2.15)
 
 ## Journal de suivi
 
 | Date | Étape | Commit | Notes |
 | --- | --- | --- | --- |
 | 2026-11-19 | création | — | feuille posée après décision du propriétaire (option A) |
-| 2026-11-22 | A7 | 88174ad2 | chantier A du prompt coloration : registre des descripteurs d'abord (ADR-0028) ; 679-835 ms → 167-194 ms jusqu'à la langue ; LanguageKitPrioriteTest 6/6 |
+| 2026-11-22 | A7 | 88174ad2 | chantier A du prompt coloration : registre des descripteurs d'abord (ADR-0028) ; 679-835 ms → 167-194 ms jusqu'à la langue ; LanguageKitPrioriteTest 6/6 |
 | 2026-11-20 | B1 | (ce commit) | ADR-0027 validée par le propriétaire puis exécutée le jour même : surcouche, fusion à l'habillage, fraîcheur PIEGE-20 ; SemanticOverlayTest 7/7, ColorationSemantiqueVueTest 3/3 (le banc a attrapé une pose périmée qui colorait — corrigée au recalage) |
 | 2026-11-19 | A1.1 + A1.3 | e13428b | la voie native reprogramme à l'édition (coalescence, garde fermeture) ; l'échec de passe journalise et prévient — les bancs natifs sautent sur JVM (liaison Android), ils servent la CI |
 | 2026-11-19 | A1.2 | daa62fc | le rattrapage lit la publication de la voie qui sert ; prouvé rouge→vert par fabrique de banc armée sélectivement (3/3 verts, 21 bancs coloration sans régression) |
