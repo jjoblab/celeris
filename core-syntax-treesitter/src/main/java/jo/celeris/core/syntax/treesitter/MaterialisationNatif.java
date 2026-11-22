@@ -14,7 +14,6 @@ import jo.celeris.core.syntax.Chunk;
 import jo.celeris.core.syntax.Analysis;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import jo.celeris.core.text.Document;
 
@@ -34,61 +33,31 @@ import jo.celeris.core.text.Document;
  */
 final class MaterialisationNatif {
 
-    /** Les mots réservés des grammaires servies — la teinte clé. */
-    private static final Map<String, TokenKind> KINDS = Map.ofEntries(
-            Map.entry("true", TokenKind.KEYWORD),
-            Map.entry("false", TokenKind.KEYWORD),
-            Map.entry("null", TokenKind.KEYWORD),
-            Map.entry("None", TokenKind.KEYWORD),
-            Map.entry("True", TokenKind.KEYWORD),
-            Map.entry("False", TokenKind.KEYWORD),
-            Map.entry("if", TokenKind.KEYWORD),
-            Map.entry("elif", TokenKind.KEYWORD),
-            Map.entry("else", TokenKind.KEYWORD),
-            Map.entry("for", TokenKind.KEYWORD),
-            Map.entry("while", TokenKind.KEYWORD),
-            Map.entry("return", TokenKind.KEYWORD),
-            Map.entry("yield", TokenKind.KEYWORD),
-            Map.entry("class", TokenKind.KEYWORD),
-            Map.entry("def", TokenKind.KEYWORD),
-            Map.entry("lambda", TokenKind.KEYWORD),
-            Map.entry("import", TokenKind.KEYWORD),
-            Map.entry("from", TokenKind.KEYWORD),
-            Map.entry("as", TokenKind.KEYWORD),
-            Map.entry("with", TokenKind.KEYWORD),
-            Map.entry("try", TokenKind.KEYWORD),
-            Map.entry("except", TokenKind.KEYWORD),
-            Map.entry("finally", TokenKind.KEYWORD),
-            Map.entry("raise", TokenKind.KEYWORD),
-            Map.entry("assert", TokenKind.KEYWORD),
-            Map.entry("pass", TokenKind.KEYWORD),
-            Map.entry("del", TokenKind.KEYWORD),
-            Map.entry("global", TokenKind.KEYWORD),
-            Map.entry("nonlocal", TokenKind.KEYWORD),
-            Map.entry("and", TokenKind.KEYWORD),
-            Map.entry("or", TokenKind.KEYWORD),
-            Map.entry("not", TokenKind.KEYWORD),
-            Map.entry("in", TokenKind.KEYWORD),
-            Map.entry("is", TokenKind.KEYWORD),
-            Map.entry("const", TokenKind.KEYWORD),
-            Map.entry("let", TokenKind.KEYWORD),
-            Map.entry("var", TokenKind.KEYWORD),
-            Map.entry("function", TokenKind.KEYWORD),
-            Map.entry("new", TokenKind.KEYWORD),
-            Map.entry("this", TokenKind.KEYWORD),
-            Map.entry("super", TokenKind.KEYWORD),
-            Map.entry("throw", TokenKind.KEYWORD),
-            Map.entry("async", TokenKind.KEYWORD),
-            Map.entry("await", TokenKind.KEYWORD),
-            Map.entry("switch", TokenKind.KEYWORD),
-            Map.entry("case", TokenKind.KEYWORD),
-            Map.entry("default", TokenKind.KEYWORD),
-            Map.entry("break", TokenKind.KEYWORD),
-            Map.entry("continue", TokenKind.KEYWORD),
-            Map.entry("typeof", TokenKind.KEYWORD),
-            Map.entry("instanceof", TokenKind.KEYWORD),
-            Map.entry("delete", TokenKind.KEYWORD),
-            Map.entry("void", TokenKind.OPERATOR));
+    /** Installe une requête de surbrillance : chaque entrée lue y
+     *  pose sa teinte — le nom du nœud capture la couleur de SA
+     *  capture. Le langage l'appelle au chargement de SA requête ;
+     *  sans appel, les heuristiques de repli font la couleur (la
+     *  requête absente ne casse rien).
+     *
+     * @param entrees les entrées lues du fichier de requête
+     */
+    static void installerRequete(List<LecteurRequetes.Entree> entrees) {
+        CapturesSurbrillance captures = new CapturesSurbrillance();
+        for (LecteurRequetes.Entree entree : entrees) {
+            DEPUIS_REQUETES.putIfAbsent(entree.noeud(),
+                    captures.teinte(entree.capture()));
+        }
+    }
+
+    /** La carte des noms de nœuds → teintes, remplie par la requête
+     *  de surbrillance du langage à l'installation (chantier D) :
+     *  chaque entrée lue de {@code highlights.scm} y pose sa teinte
+     *  — le nœud capture la couleur de SA capture, la table de mots
+     *  codée en dur est retirée. La carte vit sous moniteur : la
+     *  requête s'installe au chargement du langage, la
+     *  matérialisation la lit au fil des passes. */
+    private static final java.util.concurrent.ConcurrentHashMap<String, TokenKind> DEPUIS_REQUETES =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     /** Le jeton d'une feuille : sa colonne (caractères) et sa longueur. */
     private record LeafToken(TokenKind sorte, int start, int end) {
@@ -336,12 +305,15 @@ final class MaterialisationNatif {
         };
     }
 
-    /** La sorte d'un symbole nommé : le mot réservé de la table, la
-     *  construction par son nom — l'identificateur en repli. */
+    /** La sorte d'un symbole nommé : les captures lues de la requête
+     *  du langage (le NOM du nœud y porte sa capture — @keyword,
+     *  @comment…), les heuristiques de repli pour les noms que la
+     *  requête ne couvre pas — la table de mots codée en dur est
+     *  RETIRÉE (chantier D : la couleur vient de la requête). */
     private static TokenKind kindOfName(String nom) {
-        TokenKind reservee = KINDS.get(nom);
-        if (reservee != null) {
-            return reservee;
+        TokenKind requete = DEPUIS_REQUETES.get(nom);
+        if (requete != null) {
+            return requete;
         }
         if (nom.contains("comment")) {
             return TokenKind.COMMENT;

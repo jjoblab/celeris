@@ -51,6 +51,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-0029](0029-cache-echecs-matchers-grammaires.md) | Cache d’échecs et matchers réutilisés dans le lexeur de grammaires (chantier B) | Acceptée (2026-11-22, prompt coloration — banc intercalé) |
 | [ADR-0030](0030-ancres-fin-virtuelle-inclusions.md) | Ancres de document, fin de ligne virtuelle, inclusions externes et registre de la fabrique (chantier C) | Acceptée (2026-11-22, prompt coloration) |
 
+| [ADR-0031](0031-requetes-surbrillance.md) | La couleur de la voie native vient des requêtes highlights.scm (chantier D) | Acceptée (2026-11-22, prompt coloration) |
 ## Règles
 
 1. Un ADR est daté, signé du contexte qui l'a motivé et chiffré quand la

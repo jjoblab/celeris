@@ -61,6 +61,22 @@ class MaterialisationNatifTest {
         return arbre;
     }
 
+    /** L'arbre aplati du banc de la chaîne : {"cle": [1, true]}. */
+    private static final int[] ARBRE_CHAINE = aplatir(
+            noeud(27, 0, 18, 1),
+            noeud(27, 0, 18, 11),
+            noeud(OUVR_ACC, 0, 1, 0),
+            noeud(CHAINE, 1, 2, 0),
+            noeud(CHAINE, 2, 5, 0),
+            noeud(CHAINE, 5, 6, 0),
+            noeud(DEUX_PTS, 6, 7, 0),
+            noeud(OUVR_CRO, 8, 9, 0),
+            noeud(19, 9, 10, 0),
+            noeud(VIRGULE, 10, 11, 0),
+            noeud(25, 12, 16, 0),
+            noeud(FERM_CRO, 16, 17, 0),
+            noeud(FERM_ACC, 17, 18, 0));
+
     private static Analysis materielise(String text, int[] arbre) {
         Document document = TextSession.of(text, () -> 0L).document();
         return MaterialisationNatif.of(document, arbre, SYMBOLES, 7);
@@ -72,22 +88,14 @@ class MaterialisationNatifTest {
      *  l'appariement le exige. */
     @Test
     void laChaineSesMorceauxSeSoudeEnUnJeton() {
+        // La requête du banc : « true » vaut constante (mot-clé de la
+        // teinte) — le banc l'installe (chantier D : la couleur vient
+        // de la requête du langage, pas d'une table codée en dur).
+        MaterialisationNatif.installerRequete(java.util.List.of(
+                new LecteurRequetes.Entree("true", "keyword")));
+        Analysis analyse = materielise("{\"cle\": [1, true]}",
+                ARBRE_CHAINE);
         // {"cle": [1, true]}
-        int[] arbre = aplatir(
-                noeud(27, 0, 18, 1),
-                noeud(27, 0, 18, 11),
-                noeud(OUVR_ACC, 0, 1, 0),
-                noeud(CHAINE, 1, 2, 0),
-                noeud(CHAINE, 2, 5, 0),
-                noeud(CHAINE, 5, 6, 0),
-                noeud(DEUX_PTS, 6, 7, 0),
-                noeud(OUVR_CRO, 8, 9, 0),
-                noeud(19, 9, 10, 0),
-                noeud(VIRGULE, 10, 11, 0),
-                noeud(25, 12, 16, 0),
-                noeud(FERM_CRO, 16, 17, 0),
-                noeud(FERM_ACC, 17, 18, 0));
-        Analysis analyse = materielise("{\"cle\": [1, true]}", arbre);
         assertEquals(7, analyse.revision());
         Token[] tokens = analyse.lex().line(0).tokens();
         // onze feuilles, trois soudées en une : neuf jetons
@@ -189,6 +197,18 @@ class MaterialisationNatifTest {
      *  opérateur d'un caractère, ponctuation — le repli identificateur. */
     @Test
     void laTableDesSortsSeLit() {
+        // La teinte vient de LA REQUÊTE du langage (chantier D) : le
+        // banc installe la sienne — def/return vraient keyword,
+        // integer/float/number le nombre — la table de mots codée en
+        // dur est retirée.
+        MaterialisationNatif.installerRequete(java.util.List.of(
+                new LecteurRequetes.Entree("def", "keyword"),
+                new LecteurRequetes.Entree("return", "keyword"),
+                new LecteurRequetes.Entree("integer", "number"),
+                new LecteurRequetes.Entree("float", "number"),
+                new LecteurRequetes.Entree("number", "number"),
+                new LecteurRequetes.Entree("void", "operator"),
+                new LecteurRequetes.Entree("true", "constant.builtin")));
         String text = "x".repeat(50);
         int[] arbre = aplatir(
                 noeud(27, 0, 50, 1),

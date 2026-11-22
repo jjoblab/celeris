@@ -5,6 +5,12 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.18] — 2026-11-22
+
+### Voie native
+
+- **La couleur tree-sitter vient des requêtes `highlights.scm` (ADR-0031, chantier D, fondation)** : lecteur du format sans liaison (motifs parenthésés, captures attachées au nœud fermé, littéraux, commentaires) ; carte des captures vers les teintes du socle (familles composées, inconnues en identifiant) ; `MaterialisationNatif.installerRequete` — la teinte d'un nom de nœud se lit de SA capture, la table de 52 mots codée en dur (`KINDS`) est RETIRÉE. Bancs `RequetesSurbrillanceTest` (12 entrées d'un extrait réaliste) et `MaterialisationNatifTest` (le nouveau contrat : la requête s'installe avant la lecture) ; module vert 21 tests (7 natifs sautés sur JVM, contrat de la liaison). Les points restants du chantier D (exécution TSQuery bornée à la plage visible, prédicats, locals, injections) se brancheront sur cette fondation.
+
 ## [2.2.17] — 2026-11-22
 
 ### Fidélité TextMate
