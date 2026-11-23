@@ -13,11 +13,11 @@ package jo.celeris.core.syntax;
  * d'état — les deux partagent l'identité SANS dépendance de l'un en
  * l'autre.</p>
  */
-final class LexiqueVide {
+final class EmptyLexicon {
 
     /** La ligne vide partagée : aucun jeton, aucun état de sortie. */
-    static final LexedLine LIGNE = new LexedLine(new Token[0], null);
+    static final LexedLine EMPTY_LINE = new LexedLine(new Token[0], null);
 
-    private LexiqueVide() {
+    private EmptyLexicon() {
     }
 }

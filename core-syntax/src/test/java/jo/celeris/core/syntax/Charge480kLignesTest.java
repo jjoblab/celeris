@@ -29,7 +29,7 @@ import jo.celeris.core.text.TextSession;
 class Charge480kLignesTest {
 
     /** Les lignes du document du banc — la cible du chantier C10. */
-    private static final int LIGNES = 480_000;
+    private static final int EMPTY_LINES = 480_000;
 
     /** La demi-fenêtre visible — soixante-quatre lignes. */
     private static final int FENETRE = 64;
@@ -55,10 +55,10 @@ class Charge480kLignesTest {
     @Test
     void ouvertureFenetreDabordBornee() {
         String source = CorpusChargeur.replique(CorpusChargeur.exempleJava(),
-                LIGNES);
+                EMPTY_LINES);
         TextSession session = TextSession.of(source, System::nanoTime);
         Document doc = session.document();
-        assertTrue(doc.lineCount() >= LIGNES, "le banc porte ses lignes");
+        assertTrue(doc.lineCount() >= EMPTY_LINES, "le banc porte ses lignes");
 
         SyntaxService service = SyntaxService.of(JavaSyntax.INSTANCE);
         int milieu = doc.lineCount() / 2;
@@ -110,7 +110,7 @@ class Charge480kLignesTest {
     @Test
     void editionAuMilieuReprendParIncrementBornee() {
         String source = CorpusChargeur.replique(CorpusChargeur.exempleJava(),
-                LIGNES);
+                EMPTY_LINES);
         TextSession session = TextSession.of(source, System::nanoTime);
         Document doc = session.document();
         SyntaxService service = SyntaxService.of(JavaSyntax.INSTANCE);

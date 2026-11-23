@@ -50,7 +50,7 @@ final class BomEnteteTest {
     }
 
     /** Une BOM AU MILIEU d'une ligne reste ce qu'elle est (un
-     *  opérateur visuel) : seule la BOM DE TÊTE DE PREMIÈRE LIGNE est
+     *  opérateur visuel) : seule la BOM DE TÊTE DE PREMIÈRE EMPTY_LINE est
      *  un blanc de format — le banc fige la frontière. */
     @Test
     void laBomAuMilieuResteUnJeton() {

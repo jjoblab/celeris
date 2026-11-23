@@ -66,7 +66,7 @@ public final class LexDocument {
             return initial;
         }
         LexedLine precedente = lines[Math.min(line, lines.length) - 1];
-        if (precedente == LexiqueVide.LIGNE) {
+        if (precedente == EmptyLexicon.EMPTY_LINE) {
             return initial;
         }
         LexState sortie = precedente.exitState();
@@ -96,7 +96,7 @@ public final class LexDocument {
      */
     public boolean porteLignesVides() {
         for (LexedLine ligne : lines) {
-            if (ligne == LexiqueVide.LIGNE) {
+            if (ligne == EmptyLexicon.EMPTY_LINE) {
                 return true;
             }
         }

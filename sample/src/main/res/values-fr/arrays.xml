@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Les libellés français des thèmes de l\'éditeur (ADR-008 : la
+     parité en/fr se vérifie par le contrôle d\'accessibilité). -->
+<resources>
+    <string-array name="themes_editeur">
+        <item>Sombre</item>
+        <item>One Dark</item>
+        <item>Dracula</item>
+        <item>Monokai</item>
+        <item>Nord</item>
+        <item>Clair</item>
+        <item>Solarized clair</item>
+        <item>GitHub clair</item>
+        <item>Contraste élevé</item>
+    </string-array>
+</resources>

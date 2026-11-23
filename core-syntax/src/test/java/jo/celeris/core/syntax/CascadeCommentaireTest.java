@@ -22,7 +22,7 @@ import jo.celeris.core.text.Document;
  */
 class CascadeCommentaireTest {
 
-    private static final int LIGNES = 50_000;
+    private static final int EMPTY_LINES = 50_000;
     private static final int OUVERTURE = 100;
     private static final int FERMETURE = 40_000;
 
@@ -118,7 +118,7 @@ class CascadeCommentaireTest {
 
     private static Document document() {
         StringBuilder text = new StringBuilder();
-        for (int line = 0; line < LIGNES; line++) {
+        for (int line = 0; line < EMPTY_LINES; line++) {
             if (line == OUVERTURE) {
                 text.append("/* ouverture du commentaire\n");
             } else if (line == FERMETURE) {

@@ -77,6 +77,11 @@ public final class jo.celeris.core.syntax.EditSite extends java.lang.Record {
   public int lineDelta();
 }
 
+### jo.celeris.core.syntax.EmptyLexicon
+Compiled from "EmptyLexicon.java"
+final class jo.celeris.core.syntax.EmptyLexicon {
+}
+
 ### jo.celeris.core.syntax.EnginePathFactory
 Compiled from "EnginePathFactory.java"
 public interface jo.celeris.core.syntax.EnginePathFactory {
@@ -95,6 +100,8 @@ public final class jo.celeris.core.syntax.IncrementalLexer {
   public jo.celeris.core.syntax.IncrementalLexer();
   public jo.celeris.core.syntax.LexResult lexFull(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer);
   public jo.celeris.core.syntax.LexResult lexFull(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, jo.celeris.core.syntax.TokenCancellation);
+  public jo.celeris.core.syntax.LexResult lexFenetre(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, int, int, int, jo.celeris.core.syntax.TokenCancellation);
+  public jo.celeris.core.syntax.LexDocument completerLexique(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, jo.celeris.core.syntax.LexDocument, jo.celeris.core.syntax.TokenCancellation, int);
   public jo.celeris.core.syntax.LexResult lexIncremental(jo.celeris.core.text.Document, jo.celeris.core.syntax.LanguageLexer, jo.celeris.core.syntax.LexDocument, jo.celeris.core.syntax.EditSite);
 }
 
@@ -140,6 +147,7 @@ public final class jo.celeris.core.syntax.LexDocument {
   public jo.celeris.core.syntax.LexedLine line(int);
   public jo.celeris.core.syntax.LexState stateBefore(int);
   public int bracketDepthAtLineStart(int);
+  public boolean porteLignesVides();
 }
 
 ### jo.celeris.core.syntax.LexResult

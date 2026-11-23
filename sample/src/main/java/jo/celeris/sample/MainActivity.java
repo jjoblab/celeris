@@ -219,24 +219,11 @@ public final class MainActivity extends Activity {
 
     // ── Le tiroir des échantillons (NavigationView de la gauche) ──
 
-    /** Branche le tiroir : le menu se pose depuis les échantillons,
-     *  le hamburger de la barre d'outils l'ouvre. */
+    /** Branche le tiroir : le menu se pose (échantillons, moteur,
+     *  thèmes), le hamburger de la barre d'outils l'ouvre, l'écouteur
+     *  des onglets vit ici — posé UNE fois au montage. */
     private void mountDrawer() {
-        android.view.Menu menu = navigationDrawer.getMenu();
-        menu.removeGroup(SAMPLES_GROUP);
-        for (int i = 0; i < Samples.tous().size(); i++) {
-            Samples.Sample sample =
-                    Samples.tous().get(i);
-            menu.add(SAMPLES_GROUP, MenuIds.sample(i),
-                    i, sample.nomFichier());
-        }
-        // Les neuf thèmes de l'éditeur : une entrée cochable par
-        // thème, l'actif démarre coché (le tiroir suit le choix).
-        for (int i = 0; i < THEMES.length; i++) {
-            menu.add(THEMES_GROUP, MenuIds.theme(i), i, themeLabel(i));
-        }
-        menu.setGroupCheckable(THEMES_GROUP, true, true);
-        menu.findItem(MenuIds.theme(themeActif)).setChecked(true);
+        mountDrawerMenu();
         navigationDrawer.setNavigationItemSelectedListener(item -> {
             // Le moteur de coloration : préférence déclarée ou voie
             // native partout — le tiroir se ferme, le choix vit.
@@ -260,10 +247,36 @@ public final class MainActivity extends Activity {
         barreOutils.setNavigationOnClickListener(
                 v -> drawerRoot.openDrawer(
                         androidx.core.view.GravityCompat.START));
-        // L'écouteur des onglets : UN seul, posé ICI au montage —
-        // jamais empilé par les rafraîchissements (le retour terrain
-        // du 2026-11-19 : chaque pression d'onglet redéclenchait
-        // l'activation par autant d'écouteurs empilés).
+        mountTabsListener();
+    }
+
+    /** Pose le menu du tiroir : les échantillons du dépôt (groupe 1)
+     *  et les neuf thèmes de l'éditeur (groupe 2, l'actif coché) —
+     *  la section du moteur vit au XML (menu_tiroir.xml), la
+     *  préférence déclarée démarre cochée. */
+    private void mountDrawerMenu() {
+        android.view.Menu menu = navigationDrawer.getMenu();
+        menu.removeGroup(SAMPLES_GROUP);
+        for (int i = 0; i < Samples.tous().size(); i++) {
+            Samples.Sample sample =
+                    Samples.tous().get(i);
+            menu.add(SAMPLES_GROUP, MenuIds.sample(i),
+                    i, sample.nomFichier());
+        }
+        // Les neuf thèmes de l'éditeur : une entrée cochable par
+        // thème, l'actif démarre coché (le tiroir suit le choix).
+        for (int i = 0; i < THEMES.length; i++) {
+            menu.add(THEMES_GROUP, MenuIds.theme(i), i, themeLabel(i));
+        }
+        menu.setGroupCheckable(THEMES_GROUP, true, true);
+        menu.findItem(MenuIds.theme(themeActif)).setChecked(true);
+    }
+
+    /** Pose l'écouteur des onglets : UN seul, posé ICI au montage —
+     *  jamais empilé par les rafraîchissements (le retour terrain
+     *  du 2026-11-19 : chaque pression d'onglet redéclenchait
+     *  l'activation par autant d'écouteurs empilés). */
+    private void mountTabsListener() {
         barreOnglets.addOnTabSelectedListener(
                 new TabLayout.OnTabSelectedListener() {
 
@@ -288,13 +301,13 @@ public final class MainActivity extends Activity {
     private static final int SAMPLE_BASE_ID = 1000;
 
     /** L'étiquette parlante d'un thème du tiroir — les ids du dépôt
-     *  restent techniques, le tiroir parle aux humains. */
+     *  restent techniques, le tiroir parle aux humains. Les libellés
+     *  vivent aux RESSOURCES (ADR-008 : l'interface parle la langue
+     *  de l'appareil — jamais au code, la politique de langue y
+     *  compterait les identifiants). */
     private String themeLabel(int indice) {
-        String[] labels = {
-                "Sombre", "One Dark", "Dracula", "Monokai", "Nord",
-                "Clair", "Solarized clair", "GitHub clair",
-                "Contraste élevé",
-        };
+        String[] labels = getResources().getStringArray(
+                R.array.themes_editeur);
         return labels[indice];
     }
 

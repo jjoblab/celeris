@@ -102,7 +102,7 @@ public final class IncrementalLexer {
                 // Le préfixe vide : ses lignes ne portent RIEN, la
                 // frontière d'état reste celle de la première ligne
                 // lue — la complétion relira le préfixe depuis zéro.
-                lines[line] = LexiqueVide.LIGNE;
+                lines[line] = EmptyLexicon.EMPTY_LINE;
                 profondeurs[line] = 0;
                 continue;
             }
@@ -118,7 +118,7 @@ public final class IncrementalLexer {
         for (int line = dernier + 1; line < nombre; line++) {
             // Le suffixe vide : la profondeur reportée de la frontière
             // sert aux guides, les jetons viendront de la complétion.
-            lines[line] = LexiqueVide.LIGNE;
+            lines[line] = EmptyLexicon.EMPTY_LINE;
             profondeurs[line] = profondeur;
         }
         return new LexResult(new LexDocument(lines, profondeurs,
@@ -161,7 +161,7 @@ public final class IncrementalLexer {
             if ((line & 0xFF) == 0) {
                 token.check();
             }
-            if (lines[line] == LexiqueVide.LIGNE) {
+            if (lines[line] == EmptyLexicon.EMPTY_LINE) {
                 LexedLine lue = lexeur.lex(doc.lineText(line), etat);
                 relues[line] = lue;
                 profondeurs[line] = profondeur;

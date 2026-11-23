@@ -27,7 +27,7 @@ import jo.celeris.core.text.Document;
  */
 class ReanalyseBudgetTest {
 
-    private static final int LIGNES = 50_000;
+    private static final int EMPTY_LINES = 50_000;
     private static final long BUDGET_NS = 10_000_000L;
     private static final int TOURS = 3;
 
@@ -71,7 +71,7 @@ class ReanalyseBudgetTest {
     }
 
     private static void budget(LanguageSyntax langage, String corpus) {
-        String source = CorpusChargeur.replique(corpus, LIGNES);
+        String source = CorpusChargeur.replique(corpus, EMPTY_LINES);
         Document doc = Document.of(source);
         SyntaxService service = SyntaxService.of(langage);
         Analysis complet = service.analyseFull(doc);
@@ -98,7 +98,7 @@ class ReanalyseBudgetTest {
             }
         }
         assertTrue(meilleur <= BUDGET_NS,
-                langage.id() + " : ré-analyse de " + LIGNES + " lignes en "
+                langage.id() + " : ré-analyse de " + EMPTY_LINES + " lignes en "
                         + meilleur / 1_000_000.0 + " ms (budget 10 ms)");
     }
 }

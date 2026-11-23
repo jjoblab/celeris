@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The editor theme names of the drawer — user-facing labels live in
+     resources, never in code (the language policy counts identifiers). -->
+<resources>
+    <string-array name="themes_editeur">
+        <item>Dark</item>
+        <item>One Dark</item>
+        <item>Dracula</item>
+        <item>Monokai</item>
+        <item>Nord</item>
+        <item>Light</item>
+        <item>Solarized light</item>
+        <item>GitHub light</item>
+        <item>High contrast</item>
+    </string-array>
+</resources>

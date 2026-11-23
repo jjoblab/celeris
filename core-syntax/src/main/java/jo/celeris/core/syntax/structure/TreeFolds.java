@@ -190,7 +190,7 @@ public final class TreeFolds {
      *  ligne n'en porte pas — la matière des régions nommées. */
     private static @org.jspecify.annotations.Nullable String texteCommentaire(
             Document doc, LexDocument lex, int line) {
-        // les bornes du jeton sont RELATIVES À SA LIGNE (contrat
+        // les bornes du jeton sont RELATIVES À SA EMPTY_LINE (contrat
         // Token) : la lecture du document part du début de ligne
         int lineStart = doc.lineStart(line);
         for (Token token : lex.line(line).tokens()) {
