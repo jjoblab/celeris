@@ -52,10 +52,24 @@ public final class NativeLanguages {
     private static String requete(String id) {
         try (InputStream flux = NativeLanguages.class.getResourceAsStream(
                 "/requetes/" + id + ".scm")) {
-            return flux == null ? ""
-                    : new String(flux.readAllBytes(), StandardCharsets.UTF_8);
+            return flux == null ? "" : lire(flux);
         } catch (IOException echec) {
             return "";
         }
+    }
+
+    /** La lecture compatible minSdk 26 : readAllBytes exige
+     *  l'API 33 — la boucle y sert toutes les versions (les
+     *  requêtes sont petites, quelques ko). */
+    private static String lire(java.io.InputStream flux)
+            throws IOException {
+        java.io.ByteArrayOutputStream tampon =
+                new java.io.ByteArrayOutputStream();
+        byte[] lot = new byte[2048];
+        int lus;
+        while ((lus = flux.read(lot)) > 0) {
+            tampon.write(lot, 0, lus);
+        }
+        return new String(tampon.toByteArray(), StandardCharsets.UTF_8);
     }
 }
