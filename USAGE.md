@@ -186,11 +186,11 @@ ADR-0025) au registre de la plateforme — la préférence `tree-sitter`
 d'un paquet de langage se met à servir.
 
 Depuis l'ADR-0033, la voie est GÉNÉRIQUE — le modèle de l'éditeur de
-référence : le module ne porte que le CHÂSSIS (le cœur de la liaison),
+référence : le module ne porte que le CHÂSSIS (le cœur de la liaison),
 l'hôte choisit SES langages PAR DÉPENDANCE et les enregistre à son
 amorçage (`TreeSitterGrammars.enregistrer(id, fournisseur, requête)`,
 aucune grammaire n'est embarquée par le module — chaque langue ne pèse
-que si on l'embarque). Sans enregistrement le registre reste vide ;
+que si on l'embarque). Sans enregistrement le registre reste vide ;
 la préférence GLOBALE `TreeSitterLanguages.preferTreeSitter(true)`
 déroge aux préférences déclarées des paquets.
 

@@ -3,10 +3,10 @@
 ## [2.2.21] — 2026-11-23
 
 ### Ajouté
-- La voie tree-sitter devient GÉNÉRIQUE par dépendances (ADR-0033) : le module ne porte plus que le châssis (le cœur de la liaison), `TreeSitterGrammars.enregistrer(id, TSLanguageSupplier, requête)` enregistre les grammaires de L'HÔTE avec leurs `highlights.scm` — chaque langue ne pèse que si on l'embarque ; la préférence globale `TreeSitterLanguages.preferTreeSitter(boolean)` déroge aux préférences déclarées des paquets ; le lecteur de requêtes gagne les listes alternatives `[ (a) (b) ] @capture` et le filet d'avancement.
+- La voie tree-sitter devient GÉNÉRIQUE par dépendances (ADR-0033) : le module ne porte plus que le châssis (le cœur de la liaison), `TreeSitterGrammars.enregistrer(id, TSLanguageSupplier, requête)` enregistre les grammaires de L'HÔTE avec leurs `highlights.scm` — chaque langue ne pèse que si on l'embarque ; la préférence globale `TreeSitterLanguages.preferTreeSitter(boolean)` déroge aux préférences déclarées des paquets ; le lecteur de requêtes gagne les listes alternatives `[ (a) (b) ] @capture` et le filet d'avancement.
 
 ### Changé
-- Plus aucun paquet intégré ne déclare `preferred: tree-sitter` (json, python, javascript corrigés — le dépôt ne publie aucune grammaire, la préférence déclarée mentait) ; les requêtes de surbrillance vivent PAR GRAMMAIRE (la table globale contaminait les langages).
+- Plus aucun paquet intégré ne déclare `preferred: tree-sitter` (json, python, javascript corrigés — le dépôt ne publie aucune grammaire, la préférence déclarée mentait) ; les requêtes de surbrillance vivent PAR GRAMMAIRE (la table globale contaminait les langages).
 
 ### Retiré
 - `SyntaxeNatif.json()/python()` et l'enum fermée `GrammaireNatif` (fabriques remplacées par l'enregistrement hôte, MIGRATION.md).
