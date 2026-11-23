@@ -52,6 +52,7 @@ groupées sont consignées dans le résumé M0.
 | [ADR-0030](0030-ancres-fin-virtuelle-inclusions.md) | Ancres de document, fin de ligne virtuelle, inclusions externes et registre de la fabrique (chantier C) | Acceptée (2026-11-22, prompt coloration) |
 
 | [ADR-0031](0031-requetes-surbrillance.md) | La couleur de la voie native vient des requêtes highlights.scm (chantier D) | Acceptée (2026-11-22, prompt coloration) |
+| [ADR-0032](0032-fenetre-lexique-borne.md) | La fenêtre d’ouverture borne la lexicographie (retard résiduel 1-2 s) | Acceptée (2026-11-23, prompt du retour terrain) |
 ## Règles
 
 1. Un ADR est daté, signé du contexte qui l'a motivé et chiffré quand la

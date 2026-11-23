@@ -5,6 +5,12 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.19] — 2026-11-23
+
+### Performance
+
+- **La première couleur ne paie plus la lexicographie intégrale (ADR-0032)** : `analyzeWindow` lex la fenêtre visible (marge 64 incluse) seule — les lignes au-delà vivent vides au lexique (`LexiqueVide`), la complétion les relit par lots et rebâtit l'arbre au lexique complet. Le retard résiduel 1-2 s à l'ouverture de la démo venait de là : le noyau tenait 217-243 ms jusqu'à la langue (ADR-0028), mais la première analyse lexait tout le document. Banc rouge d'abord (`LexiqueFenetreBorneTest`, sonde compteur : la passe lit fenêtre+marge, pas l'intégrale) ; `Charge480kLignesTest` lit l'attente au lexique ; écart ouvert consigné (nœud de plus du parseur écrit sur tranche relexée) ; non-régression : 245 tests du module vert.
+
 ## [2.2.18] — 2026-11-22
 
 ### Voie native
