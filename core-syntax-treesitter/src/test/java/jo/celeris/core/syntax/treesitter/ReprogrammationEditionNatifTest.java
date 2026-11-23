@@ -29,6 +29,15 @@ import jo.celeris.core.text.TextSession;
  */
 class ReprogrammationEditionNatifTest {
 
+    /** Le nettoyage : l'enregistrement de la grammaire python ne
+     *  fuit pas entre les bancs (le registre de la plateforme est
+     *  STATIQUE — leçon de la session : sans AfterEach ici, la
+     *  fabrique d'un autre banc voyait python s'inscrire). */
+    @org.junit.jupiter.api.AfterEach
+    void nettoyer() {
+        TreeSitterGrammars.oublier("python");
+    }
+
     /** La source python — le saut du banc sans liaison. La grammaire
      *  s'enregistre par le registre (ADR-0033) : le fournisseur rend
      *  la classe de langue de la liaison. */

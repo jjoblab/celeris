@@ -123,33 +123,52 @@ final class LecteurRequetes {
         int profondeur = 1;
         while (curseur < texte.length() && profondeur > 0) {
             char c = texte.charAt(curseur);
-            if (c == '(') {
-                profondeur++;
-            } else if (c == ')') {
-                profondeur--;
-                if (profondeur == 0) {
-                    curseur++;
-                    break;
-                }
-            } else if (profondeur == 1 && nom.length() == 0
-                    && estNom(c)) {
-                nom.append(c);
-            } else if (profondeur == 1 && nom.length() > 0
-                    && estNom(c)) {
-                nom.append(c);
-            } else if (profondeur == 1 && nom.length() > 0) {
-                // le nom du membre est complet au premier blanc ou
-                // deux-points : le reste se saute jusqu'à l'appariement
-                nom.append('\u0000');
+            profondeur = avancerMembre(c, profondeur);
+            if (profondeur == 0) {
+                curseur++;
+                break;
             }
+            accumulerNomMembre(c, profondeur, nom);
             curseur++;
         }
-        String lu = nom.toString();
+        poserNomMembre(nom.toString(), membres);
+        return curseur;
+    }
+
+    /** La profondeur APRÈS le caractère lu : l'ouverture imbriquée
+     *  monte, la fermante descend — zéro ferme le membre. */
+    private static int avancerMembre(char c, int profondeur) {
+        if (c == '(') {
+            return profondeur + 1;
+        }
+        if (c == ')') {
+            return profondeur - 1;
+        }
+        return profondeur;
+    }
+
+    /** La lettre du nom du membre : au premier niveau, les lettres
+     *  croissent le nom ; le premier blanc ou deux-points le FIGE
+     *  (marqueur NUL) — le reste du membre se saute jusqu'à
+     *  l'appariement. */
+    private static void accumulerNomMembre(char c, int profondeur,
+            StringBuilder nom) {
+        if (profondeur != 1 || !estNom(c) && nom.length() == 0) {
+            if (profondeur == 1 && nom.length() > 0 && !estNom(c)) {
+                nom.append('\u0000');
+            }
+            return;
+        }
+        nom.append(c);
+    }
+
+    /** Le nom lu se pose aux membres : les prédicats ({@code #…}) et
+     *  les noms figés MARQUÉS (double NUL) ne s'y posent pas. */
+    private static void poserNomMembre(String lu, List<String> membres) {
         if (!lu.isEmpty() && lu.charAt(0) != '#'
                 && !lu.contains("\u0000\u0000")) {
             membres.add(lu.replace("\u0000", ""));
         }
-        return curseur;
     }
 
     /** Un membre littéral d'une liste : le texte entre guillemets

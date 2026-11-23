@@ -2,8 +2,6 @@ package jo.celeris.core.syntax.treesitter;
 
 import java.util.Objects;
 
-import com.itsaky.androidide.treesitter.TSLanguage;
-
 /**
  * La grammaire servie par la voie (ADR-0025, généralisée par
  * l'ADR-0033) : une langue tree-sitter de la liaison et SA requête

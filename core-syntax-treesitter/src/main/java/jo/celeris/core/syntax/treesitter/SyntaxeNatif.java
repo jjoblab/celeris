@@ -4,7 +4,6 @@ import jo.celeris.core.syntax.LanguageLexer;
 import jo.celeris.core.syntax.LanguageParser;
 
 import jo.celeris.core.syntax.LanguageSyntax;
-import org.jspecify.annotations.Nullable;
 
 /**
  * La source syntaxique du niveau 2 (ADR-020, révisé par l'ADR-0025

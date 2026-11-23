@@ -43,7 +43,8 @@ final class MaterialisationNatif {
     /** Les requêtes installées, PAR LANGAGE : l'identifiant de la
      *  grammaire porte sa table de teintes — la contamination entre
      *  langages vit là où elle est morte (ADR-0033). */
-    private static final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.ConcurrentHashMap<String, TokenKind>>
+    private static final java.util.concurrent.ConcurrentHashMap<String,
+            java.util.concurrent.ConcurrentHashMap<String, TokenKind>>
             REQUETES = new java.util.concurrent.ConcurrentHashMap<>();
 
     /** Installe la requête de surbrillance D'UN langage : chaque
