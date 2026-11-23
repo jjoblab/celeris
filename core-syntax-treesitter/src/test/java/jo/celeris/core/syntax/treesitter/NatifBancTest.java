@@ -6,6 +6,7 @@ import jo.celeris.core.syntax.Chunk;
 import jo.celeris.core.syntax.Analysis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -27,13 +28,34 @@ import jo.celeris.core.text.TextSession;
  */
 class NatifBancTest {
 
+    /** Le nettoyage : les enregistrements du registre ne fuient pas
+     *  entre les bancs (le registre de la plateforme est STATIQUE —
+     *  un banc qui registre doit tout retirer derrière lui). */
+    @org.junit.jupiter.api.AfterEach
+    void nettoyer() {
+        TreeSitterGrammars.oublier("json");
+        TreeSitterGrammars.oublier("python");
+    }
+
     /** La fabrique rend-elle la source ? — le saut du banc sans elle
-     *  (liaison Maven : chargée sur Android, absente sur JVM). */
+     *  (liaison Maven : chargée sur Android, absente sur JVM). Les
+     *  grammaires s'enregistrent par le registre (ADR-0033) : le
+     *  fournisseur rend la classe de langue de la liaison. */
     private static SyntaxeNatif source(int language) {
-        SyntaxeNatif source = switch (language) {
-            case 0 -> SyntaxeNatif.json();
-            default -> SyntaxeNatif.python();
-        };
+        String id = language == 0 ? "json" : "python";
+        if (TreeSitterGrammars.grammaireDe(id) == null) {
+            if (language == 0) {
+                TreeSitterGrammars.enregistrer("json",
+                        com.itsaky.androidide.treesitter.json.TSLanguageJson::getInstance,
+                        "");
+            } else {
+                TreeSitterGrammars.enregistrer("python",
+                        com.itsaky.androidide.treesitter.python.TSLanguagePython::getInstance,
+                        "");
+            }
+        }
+        SyntaxeNatif source = (SyntaxeNatif) jo.celeris.core.language.packs
+                .TreeSitterLanguages.syntaxOf(id);
         assumeTrue(source != null);
         return source;
     }
@@ -143,14 +165,24 @@ class NatifBancTest {
     }
 
     /**
-     * La case déclarée reste vide sans bibliothèque — la fabrique rend
-     * null, le moteur aussi : le repli des paquets sert, jamais la voie
-     * ne devine (le banc saute d'un geste quand la bibliothèque vit).
+     * La case déclarée reste vide sans bibliothèque — le
+     * fournisseur de langue lève, la source n'y répond pas : le
+     * repli des paquets sert, jamais la voie ne devine (le banc
+     * saute d'un geste quand la bibliothèque vit).
      */
     @Test
     void sansBibliothequeLaFabriqueRendNull() {
         assumeTrue(!LiaisonArbre.presente());
-        assumeTrue(SyntaxeNatif.json() == null);
-        assumeTrue(SyntaxeNatif.python() == null);
+        TreeSitterGrammars.enregistrer("json",
+                com.itsaky.androidide.treesitter.json.TSLanguageJson::getInstance,
+                "");
+        assumeTrue(jo.celeris.core.language.packs.TreeSitterLanguages
+                .syntaxOf("json") != null);
+        // Sans liaison, le moteur ne se monte pas : le repli sert.
+        TextSession session = TextSession.of("{}", () -> 0L);
+        assertNull(NativeEngine.on(session,
+                (SyntaxeNatif) jo.celeris.core.language.packs.TreeSitterLanguages
+                        .syntaxOf("json"), null));
+        TreeSitterGrammars.oublier("json");
     }
 }

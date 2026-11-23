@@ -88,4 +88,42 @@ class RequetesSurbrillanceTest {
         // L'inconnue : l'identifiant (la requête évolue sans casser).
         assertEquals(TokenKind.IDENTIFIER, captures.teinte("novelle.capture"));
     }
+
+    /** Les listes alternatives du format réel : un bloc
+     *  {@code [ (a) (b) ] @capture} pose une entrée par membre —
+     *  la forme dominante des requêtes de référence (les mots-clés,
+     *  les littéraux). Le lecteur du chantier D les ignorait. */
+    @Test
+    void lesListesAlternativesSeLisentMembreAMembre() {
+        List<LecteurRequetes.Entree> entrees = LecteurRequetes.lire("""
+                [
+                  "abstract"
+                  "class"
+                  "final"
+                ] @keyword
+
+                [
+                  (line_comment)
+                  (block_comment)
+                ] @comment
+                """);
+        assertEquals(5, entrees.size(),
+                "trois littéraux et deux nœuds : " + entrees.size());
+        assertEquals("abstract", entrees.get(0).noeud());
+        assertEquals("keyword", entrees.get(0).capture());
+        assertEquals("class", entrees.get(1).noeud());
+        assertEquals("final", entrees.get(2).noeud());
+        assertEquals("line_comment", entrees.get(3).noeud());
+        assertEquals("comment", entrees.get(3).capture());
+        assertEquals("block_comment", entrees.get(4).noeud());
+        assertEquals("comment", entrees.get(4).capture());
+    }
+
+    /** La liste vide ne rend rien (le blanc du fichier réel). */
+    @Test
+    void laListeVideNeRendRien() {
+        List<LecteurRequetes.Entree> entrees =
+                LecteurRequetes.lire("[] @keyword");
+        assertTrue(entrees.isEmpty(), "la liste vide ne rend rien");
+    }
 }

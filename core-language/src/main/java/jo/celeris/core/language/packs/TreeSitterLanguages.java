@@ -30,7 +30,32 @@ public final class TreeSitterLanguages {
 
     private static final Map<String, LanguageSyntax> SYNTAXES = new ConcurrentHashMap<>();
 
+    /** La préférence GLOBALE de la voie (ADR-0033) : l'hôte qui veut
+     *  la voie native PARTOUT où elle est servie la pose — les
+     *  paquets qui déclarent leur repli TextMate y dérogent aussi
+     *  (le sélecteur « toujours tree-sitter » de l'hôte, le modèle
+     *  du choix global de l'éditeur de référence). Fausse par
+     *  défaut : la préférence DÉCLARÉE de chaque paquet fait foi. */
+    private static volatile boolean prefereeGlobalement;
+
     private TreeSitterLanguages() {
+    }
+
+    /**
+     * Pose la préférence globale de la voie : la voie native sert
+     * partout où elle est enregistrée — même les paquets dont la
+     * préférence déclarée dit « grammar » (le repli TextMate).
+     * Faux : la préférence déclarée de chaque paquet reprend.
+     *
+     * @param preferee vrai pour servir la voie partout où elle peut
+     */
+    public static void preferTreeSitter(boolean preferee) {
+        prefereeGlobalement = preferee;
+    }
+
+    /** Vrai quand la voie native doit servir partout où elle peut. */
+    public static boolean estPreferreeGlobalement() {
+        return prefereeGlobalement;
     }
 
     /**

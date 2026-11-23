@@ -11,51 +11,33 @@ import jo.celeris.core.syntax.SyntaxEngine;
 import jo.celeris.core.text.TextSession;
 
 /**
- * La fabrique de la voie tree-sitter (ADR-0024) — l'implémentation
- * que {@link java.util.ServiceLoader} charge quand CE module vit sur
- * le classpath de l'hôte. La bibliothèque partagée manquante rend
- * null : le repli déclaré du paquet sert, personne ne change.
+ * La fabrique de la voie tree-sitter (ADR-0024, généralisée par
+ * l'ADR-0033) — l'implémentation que {@link java.util.ServiceLoader}
+ * charge quand CE module vit sur le classpath de l'hôte. La
+ * bibliothèque partagée manquante rend null : le repli déclaré du
+ * paquet sert, personne ne change.
  *
- * <p>Elle porte aussi l'INSCRIPTION de la voie au registre de la
- * plateforme ({@code TreeSitterLanguages.enregistrer}) : les sources
- * des langages servis (json, python, javascript) y entrent dès
- * l'initialisation — la préférence « tree-sitter » d'un paquet se met
- * à servir, son repli cesse de servir. Le retrait s'y fait
- * symétriquement ({@code forget}) à la fermeture.</p>
+ * <p>La fabrique FABRIQUE, c'est tout : elle n'inscrit plus rien au
+ * registre de la plateforme (l'inscription automatic de l'ancienne
+ * voie gravait json/python sans demande — le modèle de l'éditeur de
+ * référence fait vivre le choix chez l'hôte : les grammaires
+ * s'enregistrent par {@link TreeSitterGrammars#enregistrer}, la
+ * langue ne se paie que si l'hôte l'embarque par dépendance). Sans
+ * enregistrement, le registre reste vide, la préférence des paquets
+ * suit son repli déclaré — l'orthogonalité des deux voies se
+ * PROUVE : la voie native sans les grammaires TextMate, les
+ * grammaires TextMate sans la voie native.</p>
  */
 public final class TreeSitterPathFactory implements EnginePathFactory {
 
-    /** Vrai quand l'inscription au registre est faite. */
-    private static volatile boolean inscrite;
-
-    /** Inscrit la voie au registre de la plateforme — UNE fois. */
-    private static synchronized void inscrire() {
-        if (inscrite) {
-            return;
-        }
-        inscrireLangage("json", SyntaxeNatif.json());
-        inscrireLangage("python", SyntaxeNatif.python());
-        inscrite = true;
-    }
-
-    /** Inscrit un langage — null sans bibliothèque partagée. */
-    private static void inscrireLangage(String id,
-            @Nullable SyntaxeNatif source) {
-        if (source != null) {
-            jo.celeris.core.language.packs.TreeSitterLanguages.enregistrer(
-                    id, source);
-        }
+    /** La fabrique ne porte aucun état d'instance. */
+    public TreeSitterPathFactory() {
     }
 
     @Override
     public @Nullable SyntaxEngine create(@Nullable LanguageSyntax source,
             TextSession session, @Nullable Executor executor) {
-        inscrire();
         return NativeEngine.of(source, session, executor);
-    }
-
-    /** La fabrique ne porte aucun état d'instance. */
-    public TreeSitterPathFactory() {
     }
 
     /**

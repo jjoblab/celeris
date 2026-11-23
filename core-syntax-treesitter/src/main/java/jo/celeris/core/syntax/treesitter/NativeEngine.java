@@ -58,6 +58,7 @@ public final class NativeEngine implements SyntaxEngine {
     private final @Nullable Executor executor;
     private final TSParser parser;
     private final TSLanguage language;
+    private final GrammaireNatif grammaire;
     private final List<Consumer<Analysis>> auditeurs = new ArrayList<>();
     private final EditListener ecouteur = this::surEdition;
 
@@ -84,7 +85,8 @@ public final class NativeEngine implements SyntaxEngine {
             @Nullable Executor executor) {
         this.session = session;
         this.executor = executor;
-        this.language = source.grammaire().language();
+        this.grammaire = source.grammaire();
+        this.language = grammaire.langue().langue();
         this.parser = TSParser.create();
         this.parser.setLanguage(language);
         session.addEditListener(ecouteur);
@@ -251,7 +253,9 @@ public final class NativeEngine implements SyntaxEngine {
      *  (feuille de route A1.3) : l'incident se journalise, la
      *  publication précédente reste, les auditeurs partent prévenus —
      *  la vue quitte son attente de couleur au lieu d'attendre un
-     *  résultat qui ne viendra jamais. */
+     *  résultat qui ne viendra jamais. La REQUÊTE de surbrillance du
+     *  langage s'y installe à la première passe (la teinte des
+     *  feuilles vient de SA requête, ADR-0033). */
     private synchronized void analyser() {
         if (ferme) {
             return;
@@ -266,9 +270,12 @@ public final class NativeEngine implements SyntaxEngine {
             notifyListeners();
             return;
         }
+        MaterialisationNatif.installerRequete(grammaire.id(),
+                grammaire.requete());
         int[] aplatit = LiaisonArbre.aplatir(arbre, language);
         published = MaterialisationNatif.of(document, aplatit,
-                LiaisonArbre.languageNames(language), document.revision());
+                LiaisonArbre.languageNames(language), document.revision(),
+                grammaire.id());
         documentAnalyse = document;
         if (text.length() <= BORNE_CARACTERES) {
             arbrePrecedent = arbre;

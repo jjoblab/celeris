@@ -79,7 +79,7 @@ class MaterialisationNatifTest {
 
     private static Analysis materielise(String text, int[] arbre) {
         Document document = TextSession.of(text, () -> 0L).document();
-        return MaterialisationNatif.of(document, arbre, SYMBOLES, 7);
+        return MaterialisationNatif.of(document, arbre, SYMBOLES, 7, "banc");
     }
 
     /** Les trois morceaux d'une chaîne (guillemet, contenu, guillemet)
@@ -91,7 +91,7 @@ class MaterialisationNatifTest {
         // La requête du banc : « true » vaut constante (mot-clé de la
         // teinte) — le banc l'installe (chantier D : la couleur vient
         // de la requête du langage, pas d'une table codée en dur).
-        MaterialisationNatif.installerRequete(java.util.List.of(
+        MaterialisationNatif.installerRequete("banc", java.util.List.of(
                 new LecteurRequetes.Entree("true", "keyword")));
         Analysis analyse = materielise("{\"cle\": [1, true]}",
                 ARBRE_CHAINE);
@@ -201,7 +201,7 @@ class MaterialisationNatifTest {
         // banc installe la sienne — def/return vraient keyword,
         // integer/float/number le nombre — la table de mots codée en
         // dur est retirée.
-        MaterialisationNatif.installerRequete(java.util.List.of(
+        MaterialisationNatif.installerRequete("banc", java.util.List.of(
                 new LecteurRequetes.Entree("def", "keyword"),
                 new LecteurRequetes.Entree("return", "keyword"),
                 new LecteurRequetes.Entree("integer", "number"),

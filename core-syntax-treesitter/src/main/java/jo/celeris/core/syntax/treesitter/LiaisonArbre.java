@@ -10,9 +10,10 @@ import com.itsaky.androidide.treesitter.TreeSitter;
 
 /**
  * Le porteur de la liaison native du niveau 2 (ADR-020, révisé par
- * l'ADR-0025) : la liaison AndroidIDE vit par Maven — le cœur
- * ({@code TreeSitter.loadLibrary()}) puis les grammaires (leurs blocs
- * statiques, via {@link GrammaireNatif}). Sur JVM sans Android, le
+ * l'ADR-0025 et l'ADR-0033) : la liaison AndroidIDE vit par Maven —
+ * le cœur ({@code TreeSitter.loadLibrary()}) puis les grammaires
+ * (leurs artefacts chez l'hôte, chargés par
+ * {@link TSLanguageSupplier#langue()}). Sur JVM sans Android, le
  * chargement échoue proprement : {@link #presente()} rend false, les
  * fabriques rendent null, les bancs natifs se sautent — les paquets
  * servent leur repli déclaré.

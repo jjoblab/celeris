@@ -29,9 +29,17 @@ import jo.celeris.core.text.TextSession;
  */
 class ReprogrammationEditionNatifTest {
 
-    /** La source python — le saut du banc sans liaison. */
+    /** La source python — le saut du banc sans liaison. La grammaire
+     *  s'enregistre par le registre (ADR-0033) : le fournisseur rend
+     *  la classe de langue de la liaison. */
     private static SyntaxeNatif python() {
-        SyntaxeNatif source = SyntaxeNatif.python();
+        if (TreeSitterGrammars.grammaireDe("python") == null) {
+            TreeSitterGrammars.enregistrer("python",
+                    com.itsaky.androidide.treesitter.python.TSLanguagePython::getInstance,
+                    "");
+        }
+        SyntaxeNatif source = (SyntaxeNatif) jo.celeris.core.language.packs
+                .TreeSitterLanguages.syntaxOf("python");
         assumeTrue(source != null);
         return source;
     }

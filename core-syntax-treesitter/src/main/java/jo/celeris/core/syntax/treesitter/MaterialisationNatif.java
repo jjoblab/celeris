@@ -30,34 +30,63 @@ import jo.celeris.core.text.Document;
  * <p>L'arbre aplati porte déjà des offsets CARACTÈRES du modèle
  * (l'aplatisseur de la liaison divise par deux, ADR-0025) : la table
  * octet→caractère n'a plus lieu — la matérialisation lit direct.</p>
+ *
+ * <p>Les requêtes de surbrillance vivent PAR GRAMMAIRE (ADR-0033) :
+ * la table des noms de nœuds → teintes se pose à la première passe
+ * du langage et ne sort PLUS du module (l'ancienne table GLOBALE
+ * contaminait les langages entre eux — la feuille d'un langage
+ * servait la capture d'un autre). La table vit sous moniteur, la
+ * lecture des passes reste sans verrou ( ConcurrentHashMap).</p>
  */
 final class MaterialisationNatif {
 
-    /** Installe une requête de surbrillance : chaque entrée lue y
-     *  pose sa teinte — le nom du nœud capture la couleur de SA
-     *  capture. Le langage l'appelle au chargement de SA requête ;
-     *  sans appel, les heuristiques de repli font la couleur (la
-     *  requête absente ne casse rien).
+    /** Les requêtes installées, PAR LANGAGE : l'identifiant de la
+     *  grammaire porte sa table de teintes — la contamination entre
+     *  langages vit là où elle est morte (ADR-0033). */
+    private static final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.ConcurrentHashMap<String, TokenKind>>
+            REQUETES = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Installe la requête de surbrillance D'UN langage : chaque
+     *  entrée lue y pose sa teinte — le nom du nœud capture la
+     *  couleur de SA capture. Le moteur appelle à sa première passe
+     *  (la requête se lit une fois, les passes suivantes lisent la
+     *  table déjà posée) ; la requête vide laisse les heuristiques
+     *  de repli servir (la requête absente ne casse rien).
      *
-     * @param entrees les entrées lues du fichier de requête
+     * @param langage l'identifiant de la grammaire
+     * @param requete le texte highlights.scm du langage
      */
-    static void installerRequete(List<LecteurRequetes.Entree> entrees) {
+    static void installerRequete(String langage, String requete) {
+        java.util.concurrent.ConcurrentHashMap<String, TokenKind> table =
+                REQUETES.computeIfAbsent(langage,
+                        id -> new java.util.concurrent.ConcurrentHashMap<>());
+        if (!table.isEmpty()) {
+            return; // la requête du langage est déjà installée
+        }
         CapturesSurbrillance captures = new CapturesSurbrillance();
-        for (LecteurRequetes.Entree entree : entrees) {
-            DEPUIS_REQUETES.putIfAbsent(entree.noeud(),
+        for (LecteurRequetes.Entree entree : LecteurRequetes.lire(requete)) {
+            table.putIfAbsent(entree.noeud(),
                     captures.teinte(entree.capture()));
         }
     }
 
-    /** La carte des noms de nœuds → teintes, remplie par la requête
-     *  de surbrillance du langage à l'installation (chantier D) :
-     *  chaque entrée lue de {@code highlights.scm} y pose sa teinte
-     *  — le nœud capture la couleur de SA capture, la table de mots
-     *  codée en dur est retirée. La carte vit sous moniteur : la
-     *  requête s'installe au chargement du langage, la
-     *  matérialisation la lit au fil des passes. */
-    private static final java.util.concurrent.ConcurrentHashMap<String, TokenKind> DEPUIS_REQUETES =
-            new java.util.concurrent.ConcurrentHashMap<>();
+    /** La requête du langage — le banc de la matérialisation s'en
+     *  sert pour installer la sienne avant la passe.
+     *
+     * @param langage l'identifiant de la grammaire
+     * @param entrees les entrées lues du fichier de requête
+     */
+    static void installerRequete(String langage,
+            java.util.List<LecteurRequetes.Entree> entrees) {
+        java.util.concurrent.ConcurrentHashMap<String, TokenKind> table =
+                REQUETES.computeIfAbsent(langage,
+                        id -> new java.util.concurrent.ConcurrentHashMap<>());
+        table.clear();
+        CapturesSurbrillance captures = new CapturesSurbrillance();
+        for (LecteurRequetes.Entree entree : entrees) {
+            table.put(entree.noeud(), captures.teinte(entree.capture()));
+        }
+    }
 
     /** Le jeton d'une feuille : sa colonne (caractères) et sa longueur. */
     private record LeafToken(TokenKind sorte, int start, int end) {
@@ -82,12 +111,13 @@ final class MaterialisationNatif {
      * @param aplatit    l'arbre aplati (six entiers par nœud, préordre)
      * @param symbols   la table des noms de symboles du langage
      * @param revision   la révision de l'instantané
+     * @param langage   l'identifiant de la grammaire (sa requête installée)
      * @return l'analyse entière, versionnée
      */
     static Analysis of(Document document, int[] aplatit, String[] symbols,
-            int revision) {
+            int revision, String langage) {
         MaterialisationNatif matiere = new MaterialisationNatif(document);
-        return matiere.materiel(aplatit, symbols, revision);
+        return matiere.materiel(aplatit, symbols, revision, langage);
     }
 
     /** Les débuts (caractères) de chaque ligne du document. */
@@ -116,10 +146,11 @@ final class MaterialisationNatif {
     }
 
     /** La matière : le lexique et l'arbre des chunks. */
-    private Analysis materiel(int[] aplatit, String[] symbols, int revision) {
+    private Analysis materiel(int[] aplatit, String[] symbols, int revision,
+            String langage) {
         List<LeafToken> leaves = new ArrayList<>();
         List<int[]> blocks = new ArrayList<>();
-        parcourir(aplatit, symbols, leaves, blocks);
+        parcourir(aplatit, symbols, leaves, blocks, langage);
         LexedLine[] lines = lexicon(leaves);
         int[] profondeurs = profondeurs(lines);
         SyntaxTree arbre = arbre(blocks, revision);
@@ -134,7 +165,9 @@ final class MaterialisationNatif {
      * profondeur (un nœud sans enfant n'y descend jamais).
      */
     private void parcourir(int[] aplatit, String[] symbols,
-            List<LeafToken> leaves, List<int[]> blocks) {
+            List<LeafToken> leaves, List<int[]> blocks, String langage) {
+        java.util.concurrent.ConcurrentHashMap<String, TokenKind> requete =
+                REQUETES.get(langage);
         int[] restants = new int[64];
         int profondeur = 0;
         for (int i = 0; i < aplatit.length; i += 6) {
@@ -150,7 +183,7 @@ final class MaterialisationNatif {
             }
             if (enfants == 0) {
                 if (end > start) {
-                    leaves.add(new LeafToken(kindOf(symbols[symbole]),
+                    leaves.add(new LeafToken(kindOf(symbols[symbole], requete),
                             start, end));
                 }
             } else {
@@ -285,12 +318,15 @@ final class MaterialisationNatif {
     /** Les opérateurs d'un seul caractère — la table qui les dit. */
     private static final String OPERATEURS = "+-*/%=<>!~&|^?";
 
-    /** La sorte de jeton d'un symbole de grammaire. */
-    private static TokenKind kindOf(String nom) {
+    /** La sorte de jeton d'un symbole de grammaire — LA requête du
+     *  langage y répond d'abord (ADR-0033 : la table vit par
+     *  grammaire, la contamination entre langages est morte). */
+    private static TokenKind kindOf(String nom,
+            java.util.concurrent.ConcurrentHashMap<String, TokenKind> requete) {
         if (nom.length() == 1) {
             return kindOfChar(nom.charAt(0));
         }
-        return kindOfName(nom);
+        return kindOfName(nom, requete);
     }
 
     /** La sorte d'un symbole d'un caractère : crochet, chaîne,
@@ -305,15 +341,16 @@ final class MaterialisationNatif {
         };
     }
 
-    /** La sorte d'un symbole nommé : les captures lues de la requête
+    /** La sorte d'un symbole nommé : les captures lues de LA requête
      *  du langage (le NOM du nœud y porte sa capture — @keyword,
      *  @comment…), les heuristiques de repli pour les noms que la
      *  requête ne couvre pas — la table de mots codée en dur est
      *  RETIRÉE (chantier D : la couleur vient de la requête). */
-    private static TokenKind kindOfName(String nom) {
-        TokenKind requete = DEPUIS_REQUETES.get(nom);
-        if (requete != null) {
-            return requete;
+    private static TokenKind kindOfName(String nom,
+            java.util.concurrent.ConcurrentHashMap<String, TokenKind> requete) {
+        TokenKind teinte = requete == null ? null : requete.get(nom);
+        if (teinte != null) {
+            return teinte;
         }
         if (nom.contains("comment")) {
             return TokenKind.COMMENT;

@@ -12,11 +12,15 @@ import jo.celeris.core.syntax.EnginePathFactory;
 import jo.celeris.core.text.TextSession;
 
 /**
- * Le banc de la MÉCANIQUE de la voie (ADR-0024) : le module opt-in
- * s'annonce par ServiceLoader, sa fabrique rend null sans liaison
- * chargée (JVM sans Android — le repli des paquets sert) — et le pont,
- * qui ne connaît que l'interface, vit sa voie des grammaires sans
- * jamais savoir que la voie existe. La séparation se PROUVE.
+ * Le banc de la MÉCANIQUE de la voie (ADR-0024, généralisée
+ * ADR-0033) : le module opt-in s'annonce par ServiceLoader, sa
+ * fabrique rend null sans liaison chargée (JVM sans Android — le
+ * repli des paquets sert) — et le pont, qui ne connaît que
+ * l'interface, vit sa voie des grammaires sans jamais savoir que
+ * la voie existe. La séparation se PROUVE. La fabrique
+ * n'INSCRIT plus rien toute seule (ADR-0033) : l'enregistrement
+ * des grammaires vit chez l'hôte, le registre reste vide —
+ * l'inscription volontaire se banc en TreeSitterGrammarsTest.
  */
 final class TreeSitterPathFactoryTest {
 
@@ -44,15 +48,19 @@ final class TreeSitterPathFactoryTest {
                 "sans source de la voie, la fabrique ne fabrique rien");
     }
 
-    /** L'inscription au registre de la plateforme ne casse rien sans
-     *  bibliothèque : rien ne s'inscrit, le registre reste vide. */
+    /** La fabrique n'inscrit PLUS rien au registre de la plateforme
+     *  (ADR-0033 : le choix vit chez l'hôte) — le registre reste
+     *  vide après fabrication, même quand la bibliothèque vit. */
     @Test
-    void lInscriptionSansBibliothequeResteVide() {
+    void laFabriqueNinscritPlusRienAuRegistre() {
         TreeSitterPathFactory fabrique = new TreeSitterPathFactory();
         TextSession session = TextSession.of("");
-        fabrique.create(null, session, null);   // déclenche l'inscription
+        fabrique.create(null, session, null);
         assertNull(jo.celeris.core.language.packs.TreeSitterLanguages
                         .syntaxOf("json"),
-                "sans bibliothèque, le registre reste vide — le repli sert");
+                "la fabrique ne registre plus rien — l'enregistrement vit chez l'hôte");
+        assertNull(jo.celeris.core.language.packs.TreeSitterLanguages
+                        .syntaxOf("python"),
+                "la fabrique ne registre plus rien — l'enregistrement vit chez l'hôte");
     }
 }

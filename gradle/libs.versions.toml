@@ -163,6 +163,11 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 android-tree-sitter = { module = "com.itsaky.androidide.treesitter:android-tree-sitter", version.ref = "androidTreeSitter" }
 tree-sitter-json = { module = "com.itsaky.androidide.treesitter:tree-sitter-json", version.ref = "androidTreeSitter" }
 tree-sitter-python = { module = "com.itsaky.androidide.treesitter:tree-sitter-python", version.ref = "androidTreeSitter" }
+tree-sitter-java = { module = "com.itsaky.androidide.treesitter:tree-sitter-java", version.ref = "androidTreeSitter" }
+tree-sitter-kotlin = { module = "com.itsaky.androidide.treesitter:tree-sitter-kotlin", version.ref = "androidTreeSitter" }
+tree-sitter-xml = { module = "com.itsaky.androidide.treesitter:tree-sitter-xml", version.ref = "androidTreeSitter" }
+tree-sitter-c = { module = "com.itsaky.androidide.treesitter:tree-sitter-c", version.ref = "androidTreeSitter" }
+tree-sitter-cpp = { module = "com.itsaky.androidide.treesitter:tree-sitter-cpp", version.ref = "androidTreeSitter" }
 # Artefacts de plugin résolus par build-logic (aucun plugin appliqué par
 # identifiant hors des conventions) :
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }

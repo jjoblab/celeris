@@ -7,7 +7,7 @@
   "badge": "Js",
   "badgeColor": "#C3E88D",
   "syntax": {
-    "preferred": "tree-sitter",
+    "preferred": "grammar",
     "fallback": "handwritten"
   },
   "brackets": [

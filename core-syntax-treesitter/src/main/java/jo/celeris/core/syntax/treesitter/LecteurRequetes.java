@@ -47,11 +47,127 @@ final class LecteurRequetes {
                 curseur = motif(curseur, texte, entrees);
                 continue;
             }
+            if (c == '[') {
+                curseur = liste(curseur, texte, entrees);
+                continue;
+            }
             // Une entrée atomique : "nom" @capture (la forme des
-            // mots-clés littéraux — « "if" @keyword »).
+            // mots-clés littéraux — « "if" @keyword »). Le filet
+            // d'avancement : un chemin qui rendrait la position
+            // SANS avancer (un caractère inconnu du format) y
+            // gagne un pas — la lecture d'une requête réelle ne
+            // boucle JAMAIS (le garde du xml de référence).
+            int avant = curseur;
             curseur = litteral(curseur, texte, entrees);
+            if (curseur == avant) {
+                curseur++;
+            }
         }
         return entrees;
+    }
+
+    /** Une liste alternative : {@code [ (a) (b) "c" ] @capture} pose
+     *  une entrée par membre — la capture de la liste s'attache à
+     *  chacun (la forme dominante des requêtes de référence : les
+     *  mots-clés et littéraux y vivent par listes). Les membres se
+     *  lisent par un balayage dédié : un nom entre parenthèses (le
+     *  premier mot du membre), ou un littéral entre guillemets. */
+    private static int liste(int curseur, String texte,
+            List<Entree> entrees) {
+        curseur++; // le crochet ouvrant
+        List<String> membres = new ArrayList<>();
+        while (curseur < texte.length()) {
+            char c = texte.charAt(curseur);
+            if (c == ';' || Character.isWhitespace(c)) {
+                curseur = ligneSuivante(curseur, texte, c);
+                continue;
+            }
+            if (c == ']') {
+                curseur++;
+                break;
+            }
+            if (c == '(') {
+                curseur = membreParenthese(curseur, texte, membres);
+                continue;
+            }
+            if (c == '"') {
+                curseur = membreLitteral(curseur, texte, membres);
+                continue;
+            }
+            if (c == '[') {
+                // une liste imbriquée : ses propres entrées se posent
+                curseur = liste(curseur, texte, entrees);
+                continue;
+            }
+            curseur++; // un signe inconnu (quantificateur) : passer
+        }
+        Capture capture = captureApres(curseur, texte);
+        if (capture != null) {
+            for (String membre : membres) {
+                entrees.add(new Entree(membre, capture.nom()));
+            }
+            return capture.fin();
+        }
+        return curseur;
+    }
+
+    /** Un membre parenthésé d'une liste : le PREMIER mot après
+     *  l'ouverture est le nom du nœud — le membre se consomme jusqu
+     *  à sa parenthèse fermante APPARIÉE (les membres imbriqués
+     *  existent). Le membre-prédicat ({@code (#match? ...)}) n'est
+     *  pas un nœud : il ne s'enregistre pas. */
+    private static int membreParenthese(int curseur, String texte,
+            List<String> membres) {
+        curseur++; // l'ouverture
+        StringBuilder nom = new StringBuilder();
+        int profondeur = 1;
+        while (curseur < texte.length() && profondeur > 0) {
+            char c = texte.charAt(curseur);
+            if (c == '(') {
+                profondeur++;
+            } else if (c == ')') {
+                profondeur--;
+                if (profondeur == 0) {
+                    curseur++;
+                    break;
+                }
+            } else if (profondeur == 1 && nom.length() == 0
+                    && estNom(c)) {
+                nom.append(c);
+            } else if (profondeur == 1 && nom.length() > 0
+                    && estNom(c)) {
+                nom.append(c);
+            } else if (profondeur == 1 && nom.length() > 0) {
+                // le nom du membre est complet au premier blanc ou
+                // deux-points : le reste se saute jusqu'à l'appariement
+                nom.append('\u0000');
+            }
+            curseur++;
+        }
+        String lu = nom.toString();
+        if (!lu.isEmpty() && lu.charAt(0) != '#'
+                && !lu.contains("\u0000\u0000")) {
+            membres.add(lu.replace("\u0000", ""));
+        }
+        return curseur;
+    }
+
+    /** Un membre littéral d'une liste : le texte entre guillemets
+     *  EST le nom (les mots-clés : « "if" »). */
+    private static int membreLitteral(int curseur, String texte,
+            List<String> membres) {
+        curseur++; // l'ouverture du guillemet
+        StringBuilder nom = new StringBuilder();
+        while (curseur < texte.length()
+                && texte.charAt(curseur) != '"') {
+            nom.append(texte.charAt(curseur));
+            curseur++;
+        }
+        if (curseur < texte.length()) {
+            curseur++; // la fermeture
+        }
+        membres.add(nom.toString());
+        return curseur;
     }
 
     /** La fin d'un commentaire ou d'un blanc : la ligne suivante ou
@@ -115,13 +231,26 @@ final class LecteurRequetes {
     }
 
     /** Un littéral : « "if" @keyword » — le nom EST le littéral. */
-    private static int litteral(int curseur, String texte, List<Entree> entrees) {
+    /** Un littéral : « "if" @keyword » — le nom EST le littéral. La
+     *  capture consommée, le caractère qui suit le littéral peut
+     *  être une FERMANTE orpheline (un motif parent mal fini dans
+     *  le texte) : elle se consomme aussi — la lecture ne s'y
+     *  arrête JAMAIS sans avancer (la boucle infinie d'une requête
+     *  réelle, constatée sur le xml de référence : le motif
+     *  {@code "]]>" @…)} laissait sa fermante au niveau racine). */
+    private static int litteral(int curseur, String texte,
+            List<Entree> entrees) {
         if (texte.charAt(curseur) != '"') {
             // Un mot inconnu (prédicat, champ…) : sauter jusqu'au
-            // prochain blanc ou parenthèse.
+            // prochain blanc ou parenthèse — la parenthèse se
+            // consomme (l'ouverture mène au motif, la fermante
+            // orpheline du texte se digère).
             while (curseur < texte.length()) {
                 char c = texte.charAt(curseur);
-                if (c == '(' || c == ')' || Character.isWhitespace(c)) {
+                if (c == '(' || c == ')') {
+                    return curseur + 1;
+                }
+                if (Character.isWhitespace(c)) {
                     return curseur;
                 }
                 curseur++;
@@ -138,7 +267,15 @@ final class LecteurRequetes {
         Capture capture = captureApres(curseur, texte);
         if (capture != null) {
             entrees.add(new Entree(nom.toString(), capture.nom()));
-            return capture.fin();
+            // La capture consommée, une FERMANTE orpheline peut
+            // suivre (un motif parent refermé par le texte) : elle
+            // se consomme — la lecture ne s'y arrête jamais sans
+            // avancer (la boucle infinie du xml de référence).
+            int apres = capture.fin();
+            if (apres < texte.length() && texte.charAt(apres) == ')') {
+                apres++;
+            }
+            return apres;
         }
         return curseur;
     }

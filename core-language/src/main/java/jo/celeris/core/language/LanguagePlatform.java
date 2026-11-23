@@ -294,8 +294,19 @@ public final class LanguagePlatform {
         return batisseur.build();
     }
 
-    /** La source syntaxique d'un paquet : préférence, repli, refus précis. */
+    /** La source syntaxique d'un paquet : préférence, repli, refus précis.
+     *  La préférence GLOBALE de la voie (ADR-0033) passe d'abord :
+     *  l'hôte qui pose « toujours tree-sitter » y déroge aux
+     *  préférences déclarées — la voie sert partout où elle est
+     *  enregistrée, le repli suit sinon. */
     private @Nullable LanguageSyntax sourceSyntaxique(LanguagePack pack) {
+        if (TreeSitterLanguages.estPreferreeGlobalement()) {
+            LanguageSyntax nativee = TreeSitterLanguages.syntaxOf(
+                    pack.descriptor().id());
+            if (nativee != null) {
+                return nativee;
+            }
+        }
         String preferee = pack.syntaxPreference().preferred();
         LanguageSyntax cherie = prefereeCherie(pack, preferee);
         if (cherie != null) {

@@ -34,6 +34,7 @@ import jo.celeris.android.widgets.PopupLayer;
 import jo.celeris.core.language.LanguageKit;
 import jo.celeris.core.language.model.LanguageSupport;
 import jo.celeris.core.syntax.grammars.PackGrammars;
+import jo.celeris.core.language.packs.TreeSitterLanguages;
 
 /**
  * L'activité unique de l'exemple : le montage du § 4.2 d'USAGE sur
@@ -122,6 +123,10 @@ public final class MainActivity extends Activity {
     private LanguageKit mountKit() {
         LanguageKit kit = langages;
         if (kit == null) {
+            // Les grammaires tree-sitter de l'exemple (ADR-0033) :
+            // l'inscription volontaire des SEPT langues embarquées
+            // par dépendance — chacune avec SA requête .scm.
+            NativeLanguages.inscrire();
             kit = LanguageKit.builder(LanguageKit.sharedDaemon())
                     .grammarFactory(PackGrammars.INSTANCE)
                     .builtinPacks()
@@ -336,6 +341,10 @@ public final class MainActivity extends Activity {
             return;
         }
         natifPartout = natif;
+        // La préférence GLOBALE de la voie (ADR-0033) : le tiroir
+        // déroge aux préférences déclarées des paquets — la voie
+        // native sert PARTOUT où une grammaire est enregistrée.
+        TreeSitterLanguages.preferTreeSitter(natif);
         journal.line(natif
                 ? "moteur : la voie native servira partout où elle peut"
                 : "moteur : la préférence déclarée des paquets reprend");

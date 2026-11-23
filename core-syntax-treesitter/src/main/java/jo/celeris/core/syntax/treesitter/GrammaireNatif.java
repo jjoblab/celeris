@@ -1,45 +1,43 @@
 package jo.celeris.core.syntax.treesitter;
 
-import com.itsaky.androidide.treesitter.json.TSLanguageJson;
-import com.itsaky.androidide.treesitter.python.TSLanguagePython;
+import java.util.Objects;
+
 import com.itsaky.androidide.treesitter.TSLanguage;
 
 /**
- * Les grammaires servies par la voie (ADR-0025) : celles que la
- * liaison AndroidIDE PUBLIE sur Maven — json et python. Chaque
- * grammaire porte sa classe de langue (bloc statique : la bibliothèque
- * de grammaire se charge d'elle-même) ; le dépôt n'en embarque
- * aucune autre.
+ * La grammaire servie par la voie (ADR-0025, généralisée par
+ * l'ADR-0033) : une langue tree-sitter de la liaison et SA requête
+ * de surbrillance ({@code highlights.scm}). La grammaire vit chez
+ * L'HÔTE — le module ne porte que le châssis : l'hôte qui veut une
+ * langue en dépend par Maven (l'artefact
+ * {@code com.itsaky.androidide.treesitter:tree-sitter-&lt;langue&gt;})
+ * et l'enregistre ici par
+ * {@link TreeSitterGrammars#enregistrer(String, TSLanguageSupplier, String)}
+ * — le modèle « la grammaire suit la dépendance » de l'éditeur de
+ * référence : chaque langue se paie SEULEMENT si on l'embarque.
+ *
+ * <p>La requête {@code highlights.scm} se lit par
+ * {@link LecteurRequetes} (sans la liaison — les bancs JVM y
+ * servent) : chaque entrée y pose sa teinte, la couleur vient de la
+ * requête du langage, jamais d'une table codée en dur. La requête
+ * vide laisse les heuristiques de repli servir — rien ne casse.</p>
+ *
+ * @param id      l'identifiant du langage servi (celui du paquet : "json")
+ * @param langue le fournisseur de la langue tree-sitter de la liaison
+ * @param requete le texte de la requête highlights.scm du langage
  */
-enum GrammaireNatif {
+public record GrammaireNatif(String id,
+        TSLanguageSupplier langue,
+        String requete) {
 
-    /** La grammaire json — l'artefact tree-sitter-json. */
-    JSON("json") {
-        @Override
-        TSLanguage language() {
-            return TSLanguageJson.getInstance();
+    /** Constructeur canonique : id valide, fournisseur présent,
+     *  requête jamais null (vide autorisé : heuristiques de repli). */
+    public GrammaireNatif {
+        Objects.requireNonNull(id, "id");
+        Objects.requireNonNull(langue, "langue");
+        requete = requete == null ? "" : requete;
+        if (id.isEmpty()) {
+            throw new IllegalArgumentException("empty grammar id");
         }
-    },
-
-    /** La grammaire python — l'artefact tree-sitter-python. */
-    PYTHON("python") {
-        @Override
-        TSLanguage language() {
-            return TSLanguagePython.getInstance();
-        }
-    };
-
-    private final String id;
-
-    GrammaireNatif(String id) {
-        this.id = id;
-    }
-
-    /** La langue tree-sitter de la grammaire. */
-    abstract TSLanguage language();
-
-    /** L'identifiant du langage servi. */
-    String id() {
-        return id;
     }
 }

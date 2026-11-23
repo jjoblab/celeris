@@ -8,7 +8,7 @@
   "badge": "Py",
   "badgeColor": "#82AAFF",
   "syntax": {
-    "preferred": "tree-sitter",
+    "preferred": "grammar",
     "fallback": "grammar"
   },
   "firstLine": "^#!.*python",

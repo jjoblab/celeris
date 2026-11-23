@@ -208,3 +208,16 @@ quatre ABI courantes (arm64-v8a, armeabi-v7a, x86, x86_64).
 Les algorithmes portés depuis le dépôt de départ du propriétaire (Apache-2.0)
 sont consignés dans `docs/audit/REGISTRE-PORTAGE.md`. Le nouveau dépôt n'est
 pas un fork et ne reprend aucun historique de contributions.
+
+## Grammaires tree-sitter de l'exemple (ADR-0033) — requêtes de surbrillance
+
+Les requêtes `highlights.scm` de l'exemple (`sample/src/main/assets/requetes/`)
+viennent des grammaires officielles upstream (MIT) : json (Max Brunsfeld),
+python (Max Brunsfeld), java (Ayman Nadeem), c (Max Brunsfeld),
+cpp (Max Brunsfeld, ObserverOfTime), xml (ObserverOfTime) ; la requête
+kotlin est écrite pour celeris sur les nœuds de la grammaire
+tree-sitter-kotlin (Amaan Qureshi, MIT). Les grammaires natives servies par
+l'exemple (json, python, java, kotlin, xml, c, cpp) vivent dans les artefacts
+`com.itsaky.androidide.treesitter:tree-sitter-<langue>` 4.3.3 (LGPL-2.1,
+déjà consignés § ADR-0025) — chaque langue ne pèse que si on l'embarque
+(ADR-0033).

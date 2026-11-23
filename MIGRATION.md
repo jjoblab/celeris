@@ -1,3 +1,15 @@
+
+## 2.2.20 → 2.2.21 — la voie tree-sitter générique (ADR-0033)
+
+| Avant (2.2.20) | Après (2.2.21) |
+| --- | --- |
+| `SyntaxeNatif.json()` / `SyntaxeNatif.python()` | `TreeSitterGrammars.enregistrer("json", TSLanguageJson::getInstance, requete)` — l'hôte enregistre SES grammaires |
+| `GrammaireNatif` (enum fermée json/python) | `GrammaireNatif` (enregistrement public : id + fournisseur + requête) |
+| la fabrique inscrivait json/python d'office | la fabrique fabrique — l'inscription vit chez l'hôte (`TreeSitterGrammars`) |
+| `MaterialisationNatif.installerRequete(List)` | `installerRequete(langage, requête)` — les requêtes vivent PAR GRAMMAIRE |
+| paquets intégrés `preferred: tree-sitter` (json, python, javascript) | `preferred: grammar` — la voie ne se déclare plus que par l'enregistrement de l'hôte |
+| forcer la voie partout : rien | `TreeSitterLanguages.preferTreeSitter(true)` — déroge aux préférences déclarées |
+
 # Migration — du dépôt de départ vers celeris
 
 > Guide de migration pour les applications hôtes. Deux volets : la

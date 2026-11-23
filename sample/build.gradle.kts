@@ -63,13 +63,20 @@ dependencies {
     // la dépendance ne traverse jamais le kit.
     implementation(libs.google.material)
 
-    // L'option tree-sitter (le retour terrain du 2026-11-23 :
-    // « ajoute aussi l'option pour tester tree-sitter ») : le module
-    // opt-in de la voie native s'inscrit par ServiceLoader (ADR-0024)
-    // — sa seule présence au classpath branche la voie native dès que
-    // le langage servi (json, python) se reconnaît ; la préférence
-    // déclarée du paquet reprend sinon les grammaires TextMate.
+    // L'option tree-sitter (le retour terrain du 2026-11-23 : « comme
+    // l'éditeur de référence, l'utilisateur choisit ses langues par
+    // dépendance ») : le CHÂSSIS opt-in (ADR-0033) + les SEPT
+    // grammaires que l'exemple veut servir — chaque langue ne pèse
+    // QUE si on l'embarque (le modèle hôte : la grammaire suit la
+    // dépendance), enregistrées par NativeLanguages à l'amorçage.
     implementation(project(":core-syntax-treesitter"))
+    implementation(libs.tree.sitter.json)
+    implementation(libs.tree.sitter.python)
+    implementation(libs.tree.sitter.java)
+    implementation(libs.tree.sitter.kotlin)
+    implementation(libs.tree.sitter.xml)
+    implementation(libs.tree.sitter.c)
+    implementation(libs.tree.sitter.cpp)
     // La voie native exige le désucrage des bibliothèques du cœur
     // (même chaîne que core-syntax-treesitter : le sample n'avait pas
     // encore cette dépendance AVANT l'option tree-sitter).

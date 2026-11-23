@@ -64,3 +64,4 @@ groupées sont consignées dans le résumé M0.
    licence dans `NOTICE` et le registre de portage. Deux projets restent
    interdits (règle 7 du jalon) : leurs noms ne paraissent ni ici ni
    nulle part dans le dépôt.
+- [0033 — La voie tree-sitter générique par dépendances](0033-voie-treesitter-generique.md)
