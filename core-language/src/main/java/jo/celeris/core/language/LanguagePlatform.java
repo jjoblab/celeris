@@ -300,12 +300,9 @@ public final class LanguagePlatform {
      *  préférences déclarées — la voie sert partout où elle est
      *  enregistrée, le repli suit sinon. */
     private @Nullable LanguageSyntax sourceSyntaxique(LanguagePack pack) {
-        if (TreeSitterLanguages.estPreferreeGlobalement()) {
-            LanguageSyntax nativee = TreeSitterLanguages.syntaxOf(
-                    pack.descriptor().id());
-            if (nativee != null) {
-                return nativee;
-            }
+        LanguageSyntax parGlobale = sourceGlobale(pack);
+        if (parGlobale != null) {
+            return parGlobale;
         }
         String preferee = pack.syntaxPreference().preferred();
         LanguageSyntax cherie = prefereeCherie(pack, preferee);
@@ -316,6 +313,23 @@ public final class LanguagePlatform {
             throw new IllegalArgumentException(pack.manifest().id()
                     + ": unknown syntax preference " + preferee);
         }
+        return sourceDeRepli(pack, preferee);
+    }
+
+    /** La source par la préférence GLOBALE de la voie — null quand
+     *  l'hôte n'a pas posé le choix ou que le langage n'y vit pas
+     *  (le repli déclaré sert alors, personne ne change). */
+    private @Nullable LanguageSyntax sourceGlobale(LanguagePack pack) {
+        if (!TreeSitterLanguages.estPreferreeGlobalement()) {
+            return null;
+        }
+        return TreeSitterLanguages.syntaxOf(pack.descriptor().id());
+    }
+
+    /** La source par le REPLI déclaré du paquet — le refus précis
+     *  quand rien ne sert (le message dit ce qui manquait). */
+    private @Nullable LanguageSyntax sourceDeRepli(LanguagePack pack,
+            String preferee) {
         String repli = pack.syntaxPreference().fallback();
         if ("grammar".equals(repli) && pack.grammar() != null) {
             return pack.grammar();
