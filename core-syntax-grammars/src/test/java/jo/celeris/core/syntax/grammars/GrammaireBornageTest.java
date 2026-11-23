@@ -81,7 +81,7 @@ class GrammaireBornageTest {
         GrammarLexer lexeur = new GrammarLexer(grammaire, 6);
         LexState etat = GrammarState.EMPTY;
         LexedLine line = lexeur.lex("doc = \"\"\"", etat);
-        assertEquals(((GrammarState) line.exitState()).dansBloc(),
+        assertEquals(((GrammarState) java.util.Objects.requireNonNull(line.exitState())).dansBloc(),
                 true, "l'ouverture qui a matché reste ouverte à la sortie");
     }
 

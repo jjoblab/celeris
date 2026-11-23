@@ -54,7 +54,7 @@ class LargeurNulleFinTest {
         GrammarLexer lexeur = new GrammarLexer(grammaire);
         LexedLine ligne = lexeur.lex("class Z { int a = 1; }",
                 GrammarState.EMPTY);
-        assertFalse(((GrammarState) ligne.exitState()).dansBloc(),
+        assertFalse(((GrammarState) java.util.Objects.requireNonNull(ligne.exitState())).dansBloc(),
                 "la fermeture de largeur nulle ((?<=})|(?=;)) doit fermer "
                         + "le bloc de déclaration — l'état ouvert fuit "
                         + "aujourd'hui vers toute la suite du fichier");
@@ -97,7 +97,7 @@ class LargeurNulleFinTest {
                 java.util.List.of());
         GrammarLexer lexeur = new GrammarLexer(grammaire);
         LexedLine ligne = lexeur.lex("« contenu »", GrammarState.EMPTY);
-        assertFalse(((GrammarState) ligne.exitState()).dansBloc(),
+        assertFalse(((GrammarState) java.util.Objects.requireNonNull(ligne.exitState())).dansBloc(),
                 "l'anticipation (?=») de largeur nulle doit fermer le bloc");
     }
 
@@ -118,7 +118,7 @@ class LargeurNulleFinTest {
                 java.util.List.of());
         GrammarLexer lexeur = new GrammarLexer(grammaire);
         LexedLine ligne = lexeur.lex("ou: condition", GrammarState.EMPTY);
-        assertFalse(((GrammarState) ligne.exitState()).dansBloc(),
+        assertFalse(((GrammarState) java.util.Objects.requireNonNull(ligne.exitState())).dansBloc(),
                 "l'ancre $ de largeur nulle doit fermer le bloc en fin de ligne");
     }
 }

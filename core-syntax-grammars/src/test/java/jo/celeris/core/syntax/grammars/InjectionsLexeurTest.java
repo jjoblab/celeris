@@ -86,7 +86,7 @@ final class InjectionsLexeurTest {
                 "hors de la chaîne, l'injection ne s'applique pas");
 
         LexedLine ouverture = lexeur.lex("\"", lexeur.initialState());
-        LexedLine dedans = lexeur.lex("mot", ouverture.exitState());
+        LexedLine dedans = lexeur.lex("mot", java.util.Objects.requireNonNull(ouverture.exitState()));
         Token injecte = dedans.tokens()[0];
         List<String> pile = ScopeStacks.scopesOf(injecte.scope());
         assertEquals("variable.parameter.hote", sommet(pile),
@@ -112,7 +112,7 @@ final class InjectionsLexeurTest {
                 }
                 """);
         LexedLine ouverture = lexeur.lex("\"", lexeur.initialState());
-        LexedLine dedans = lexeur.lex("mot", ouverture.exitState());
+        LexedLine dedans = lexeur.lex("mot", java.util.Objects.requireNonNull(ouverture.exitState()));
         assertEquals("meta.string.hote",
                 sommet(ScopeStacks.scopesOf(dedans.tokens()[0].scope())),
                 "l'exclusion écarte l'injection de la chaîne");

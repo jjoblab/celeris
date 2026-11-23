@@ -84,8 +84,8 @@ class BudgetLigneDenseTest {
         GrammarLexer lexeur = new GrammarLexer(grammaire);
         GrammarState etat = GrammarState.EMPTY;
         for (int i = 0; i < 20; i++) {
-            etat = (GrammarState) lexeur.lex("foo" + i + "(42, \"x\");",
-                    etat).exitState();
+            etat = (GrammarState) java.util.Objects.requireNonNull(
+                    lexeur.lex("foo" + i + "(42, \"x\");", etat).exitState());
         }
         assertEquals(0, lexeur.incidents(),
                 "un appel par ligne ne déborde jamais le budget");

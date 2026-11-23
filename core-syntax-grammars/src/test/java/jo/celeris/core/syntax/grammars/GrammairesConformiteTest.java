@@ -65,7 +65,7 @@ class GrammairesConformiteTest {
                 LexedLine seconde = lexeur.lex(line, etat);
                 assertArrayEquals(premiere.tokens(), seconde.tokens(),
                         input[0] + " : le lexeur est déterministe");
-                etat = premiere.exitState();
+                etat = java.util.Objects.requireNonNull(premiere.exitState());
             }
             assertTrue(tokens > 0, input[0] + " : le corpus produit des jetons");
             assertEquals(0, lexeur.incidents(),

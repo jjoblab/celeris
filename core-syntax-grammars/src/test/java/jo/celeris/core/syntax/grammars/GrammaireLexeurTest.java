@@ -41,7 +41,7 @@ class GrammaireLexeurTest {
     void pileEtatsReconvergeParValeur() {
         SyntaxService service = SyntaxService.of(syntaxeDePaquet("python"));
         Analysis analyse = service.analyseFull(Document.of(PYTHON));
-        GrammarState output = (GrammarState) analyse.lex().line(1).exitState();
+        GrammarState output = (GrammarState) java.util.Objects.requireNonNull(analyse.lex().line(1).exitState());
         assertTrue(output.dansBloc(), "la chaîne triple est ouverte en fin de ligne 1");
         OpenBlock bloc = output.bloc();
         GrammarState ouvertA = new GrammarState(bloc, GrammarState.EMPTY);

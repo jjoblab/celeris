@@ -130,7 +130,7 @@ final class PaquetPhpIntegreTest {
                         "chaque jeton porte sa pile (H-07)");
             }
             tokens += premiere.tokens().length;
-            etat = premiere.exitState();
+            etat = java.util.Objects.requireNonNull(premiere.exitState());
         }
         assertTrue(tokens > 0, "l'échantillon produit des jetons");
         assertEquals(0, lexeur.incidents(),

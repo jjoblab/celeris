@@ -118,7 +118,7 @@ final class PaquetTextIntegreTest {
                         "le jeton couvre la ligne utile, blancs d'escorte rognés");
             }
             tokens += premiere.tokens().length;
-            etat = premiere.exitState();
+            etat = java.util.Objects.requireNonNull(premiere.exitState());
         }
         assertTrue(tokens > 0, "l'échantillon vit en repli");
         assertEquals(0, lexeur.incidents(),

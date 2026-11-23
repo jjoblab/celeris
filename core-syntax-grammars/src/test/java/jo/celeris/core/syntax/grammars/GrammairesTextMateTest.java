@@ -93,7 +93,7 @@ class GrammairesTextMateTest {
         GrammarLexer lexeur = new GrammarLexer(grammaire);
         GrammarState etat = GrammarState.EMPTY;
         var ouverture = lexeur.lex("cat <<EOF", etat);
-        etat = (GrammarState) ouverture.exitState();
+        etat = (GrammarState) java.util.Objects.requireNonNull(ouverture.exitState());
         assertTrue(etat.dansBloc(), "l'ici-document est ouvert");
         var milieu = lexeur.lex("du texte", etat);
         assertEquals(etat, milieu.exitState(),
@@ -114,7 +114,7 @@ class GrammairesTextMateTest {
         GrammarLexer lexeur = new GrammarLexer(grammaire);
         GrammarState etat = GrammarState.EMPTY;
         var ouverture = lexeur.lex("```kotlin", etat);
-        etat = (GrammarState) ouverture.exitState();
+        etat = (GrammarState) java.util.Objects.requireNonNull(ouverture.exitState());
         assertTrue(etat.dansBloc(), "la clôture ouvre un bloc");
         var code = lexeur.lex("val x = 1", etat);
         assertEquals(etat, code.exitState(), "le code garde le bloc ouvert");
@@ -295,8 +295,8 @@ class GrammairesTextMateTest {
         assertEquals(1.0, grammaire.report().acceptation(),
                 "le modèle \\w++ compile — la substitution vide, elle, ne le peut pas");
         GrammarLexer lexeur = new GrammarLexer(grammaire);
-        GrammarState etat =
-                (GrammarState) lexeur.lex("x z", GrammarState.EMPTY).exitState();
+        GrammarState etat = (GrammarState) java.util.Objects.requireNonNull(
+                lexeur.lex("x z", GrammarState.EMPTY).exitState());
         assertTrue(etat.dansBloc(),
                 "l'ouverture matche (groupe vide), la fermeture substituée est invalide");
         var suite = lexeur.lex("zz", etat);
@@ -383,7 +383,8 @@ class GrammairesTextMateTest {
         assertEquals(1.0, grammaire.report().acceptation(),
                 "le modèle compile — la référence hors groupes, substituée littérale, est refusée au vol");
         GrammarLexer lexeur = new GrammarLexer(grammaire);
-        GrammarState etat = (GrammarState) lexeur.lex("a", GrammarState.EMPTY).exitState();
+        GrammarState etat = (GrammarState) java.util.Objects.requireNonNull(
+                lexeur.lex("a", GrammarState.EMPTY).exitState());
         assertTrue(etat.dansBloc(), "le bloc s'ouvre");
         var suite = lexeur.lex("zz", etat);
         assertEquals(etat, suite.exitState(), "la fermeture substituée invalide ne matche jamais");

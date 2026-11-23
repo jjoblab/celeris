@@ -59,7 +59,7 @@ final class PilesPorteesTest {
         LexState etat = lexeur.initialState();
         // la première ligne ouvre la chaîne triple, la seconde vit dedans
         LexedLine premiere = lexeur.lex("doc = \"\"\"", etat);
-        etat = premiere.exitState();
+        etat = java.util.Objects.requireNonNull(premiere.exitState());
         LexedLine seconde = lexeur.lex("du texte", etat);
         Token text = seconde.tokens()[0];
         List<String> portees = ScopeStacks.scopesOf(text.scope());

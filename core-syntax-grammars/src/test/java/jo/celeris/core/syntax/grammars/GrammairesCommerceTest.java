@@ -96,7 +96,7 @@ class GrammairesCommerceTest {
                     assertTrue(token.scope() != ScopeStacks.NONE,
                             input[0] + " : chaque jeton porte sa pile (H-07)");
                 }
-                etat = premiere.exitState();
+                etat = java.util.Objects.requireNonNull(premiere.exitState());
             }
             assertTrue(tokens > 0,
                     input[0] + " : l'échantillon produit des jetons");
