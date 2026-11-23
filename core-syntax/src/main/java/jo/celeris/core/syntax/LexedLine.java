@@ -1,5 +1,7 @@
 package jo.celeris.core.syntax;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Une ligne lexicographiée : ses jetons (offsets relatifs à la ligne) et
  * l'état de sortie qui sert d'état d'entrée à la ligne suivante.
@@ -9,19 +11,25 @@ package jo.celeris.core.syntax;
  * réemploi incrémental. Le tableau est immuable par convention : construit
  * une fois par le lexeur, jamais muté, jamais exposé au mutation. Ne pas
  * cloner à l'accès : le partage est le contrat, pas une fuite.</p>
+ *
+ * <p>L'état de sortie devient nullable à la ligne VIDE du lexique
+ * partiel (fenêtre d'ouverture, G-01 la suite) : aucune ligne NEUTRE
+ * ne la suit au lexique — la lecture d'état la reconnaît et rend
+ * l'état initial du document ({@code LexDocument.stateBefore}).</p>
  */
 public final class LexedLine {
 
     private final Token[] tokens;
-    private final LexState exitState;
+    private final @Nullable LexState exitState;
 
     /**
      * Une ligne lexicographiée.
      *
      * @param tokens    les jetons de la ligne, triés par début croissant
-     * @param exitState l'état après la fin de la ligne
+     * @param exitState l'état après la fin de la ligne (null pour la
+     *                  ligne vide du lexique partiel)
      */
-    public LexedLine(Token[] tokens, LexState exitState) {
+    public LexedLine(Token[] tokens, @Nullable LexState exitState) {
         this.tokens = tokens;
         this.exitState = exitState;
     }
@@ -31,8 +39,9 @@ public final class LexedLine {
         return tokens;
     }
 
-    /** L'état de sortie de la ligne. */
-    public LexState exitState() {
+    /** L'état de sortie de la ligne — null pour la ligne vide du
+     *  lexique partiel (la lecture d'état y rend l'initial). */
+    public @Nullable LexState exitState() {
         return exitState;
     }
 }

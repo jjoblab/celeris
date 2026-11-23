@@ -45,7 +45,10 @@ public final class XmlValidation {
         for (int line = 0; line < doc.lineCount(); line++) {
             String text = doc.lineText(line);
             LexedLine lexe = lexeur.lex(text, etat);
-            etat = lexe.exitState();
+            LexState sortie = lexe.exitState();
+            // Une ligne LUE porte son état (contrat du lexeur) : la
+            // traduction ne sert que NullAway.
+            etat = sortie == null ? etat : sortie;
             for (Token token : lexe.tokens()) {
                 traiter(token, text, doc.lineStart(line), pile, problemes);
             }

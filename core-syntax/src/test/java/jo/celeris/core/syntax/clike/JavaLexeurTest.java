@@ -10,6 +10,7 @@ import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import org.junit.jupiter.api.Test;
@@ -94,9 +95,11 @@ class JavaLexeurTest {
     void commentaireDeBlocMultiLignes() {
         LexedLine premiere = lexeur.lex("a /* ouvert", CLikeLexer.SimpleState.NORMAL);
         assertEquals(new CLikeLexer.InBlockComment(1, false), premiere.exitState());
+        assertNotNull(premiere.exitState());
         LexedLine milieu = lexeur.lex("encore", premiere.exitState());
         assertEquals(1, milieu.tokens().length);
         assertEquals(TokenKind.COMMENT, milieu.tokens()[0].kind());
+        assertNotNull(milieu.exitState());
         LexedLine fermeture = lexeur.lex("fin */ b", milieu.exitState());
         assertEquals(TokenKind.COMMENT, fermeture.tokens()[0].kind());
         assertEquals(TokenKind.IDENTIFIER, fermeture.tokens()[1].kind());
@@ -117,9 +120,11 @@ class JavaLexeurTest {
         LexedLine ouverture = lexeur.lex("return \"\"\"", CLikeLexer.SimpleState.NORMAL);
         assertEquals(TokenKind.OPEN_BRACKET, ouverture.tokens()[1].kind());
         assertEquals(new CLikeLexer.InTripleString('"'), ouverture.exitState());
+        assertNotNull(ouverture.exitState());
         LexedLine milieu = lexeur.lex("du texte", ouverture.exitState());
         assertEquals(1, milieu.tokens().length);
         assertEquals(TokenKind.STRING, milieu.tokens()[0].kind());
+        assertNotNull(ouverture.exitState());
         LexedLine fermeture = lexeur.lex("encore\"\"\";", ouverture.exitState());
         assertSame(CLikeLexer.SimpleState.NORMAL, fermeture.exitState());
     }

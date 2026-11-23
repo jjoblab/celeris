@@ -54,7 +54,9 @@ public final class LexDocument {
 
     /**
      * L'état d'entrée d'une ligne — sortie de la précédente, état initial
-     * pour la première.
+     * pour la première. La ligne VIDE du lexique partiel (fenêtre
+     * d'ouverture, G-01 la suite) rend l'état initial : la complétion
+     * relira la ligne depuis zéro, jamais depuis un état fantôme.
      *
      * @param line numéro de ligne
      * @return l'état avant la lecture de la ligne
@@ -63,7 +65,14 @@ public final class LexDocument {
         if (line <= 0) {
             return initial;
         }
-        return lines[Math.min(line, lines.length) - 1].exitState();
+        LexedLine precedente = lines[Math.min(line, lines.length) - 1];
+        if (precedente == LexiqueVide.LIGNE) {
+            return initial;
+        }
+        LexState sortie = precedente.exitState();
+        // La ligne VIDE porte l'état null (lexique partiel) : l'état
+        // INITIAL du document sert — la complétion relit depuis zéro.
+        return sortie == null ? initial : sortie;
     }
 
     /**
@@ -75,6 +84,23 @@ public final class LexDocument {
      */
     public int bracketDepthAtLineStart(int line) {
         return profondeurs[Math.min(Math.max(line, 0), profondeurs.length - 1)];
+    }
+
+    /**
+     * Le lexique porte-t-il des lignes encore VIDES (l'analyse née
+     * d'une fenêtre d'ouverture dont la complétion n'a pas tout relu) :
+     * l'arbre qui s'y bâtit n'a pas valeur de géométrie — le service
+     * la reconnaît et rebâtit l'arbre au lexique complet.
+     *
+     * @return vrai quand au moins une ligne vit vide
+     */
+    public boolean porteLignesVides() {
+        for (LexedLine ligne : lines) {
+            if (ligne == LexiqueVide.LIGNE) {
+                return true;
+            }
+        }
+        return false;
     }
 
     LexedLine[] lines() {

@@ -153,7 +153,8 @@ final class DivergenceNulleBancTest {
         for (int l = 0; l < reference.lineCount(); l++) {
             LexedLine ligneRef = reference.line(l);
             LexedLine ligneInc = increm.line(l);
-            if (!ligneRef.exitState().equals(ligneInc.exitState())) {
+            if (!java.util.Objects.equals(ligneRef.exitState(),
+                    ligneInc.exitState())) {
                 return java.util.Optional.of("état de sortie L" + l + " : "
                         + ligneRef.exitState() + " vs " + ligneInc.exitState());
             }

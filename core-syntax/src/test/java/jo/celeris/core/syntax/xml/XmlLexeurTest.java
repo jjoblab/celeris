@@ -9,6 +9,7 @@ import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import org.junit.jupiter.api.Test;
@@ -118,10 +119,13 @@ class XmlLexeurTest {
     @Test
     void commentaireMultiLignes() {
         LexedLine premiere = lexeur.lex("<!-- ouverture", XmlLexeur.State.TEXTE);
+        assertNotNull(premiere.exitState());
         assertSame(XmlLexeur.State.COMMENTAIRE, premiere.exitState());
-        LexedLine fermeture = lexeur.lex("fin --> <suite/>", premiere.exitState());
+        LexedLine fermeture = lexeur.lex("fin --> <suite/>",
+                premiere.exitState());
         assertEquals(TokenKind.COMMENT, fermeture.tokens()[0].kind());
         assertEquals(TokenKind.OPEN_BRACKET, fermeture.tokens()[1].kind());
+        assertNotNull(fermeture.exitState());
         assertSame(XmlLexeur.State.TEXTE, fermeture.exitState());
     }
 
@@ -130,16 +134,20 @@ class XmlLexeurTest {
     void cdataMultiLignes() {
         LexedLine ouverture = lexeur.lex("<d><![CDATA[brut <balise> &",
                 XmlLexeur.State.TEXTE);
+        assertNotNull(ouverture.exitState());
         assertSame(XmlLexeur.State.CDATA, ouverture.exitState());
         assertEquals(TokenKind.OPEN_BRACKET, ouverture.tokens()[2].kind());
+        assertNotNull(ouverture.exitState());
         LexedLine milieu = lexeur.lex("encore du brut", ouverture.exitState());
         assertEquals(1, milieu.tokens().length);
         assertEquals(TokenKind.STRING, milieu.tokens()[0].kind());
+        assertNotNull(ouverture.exitState());
         LexedLine fermeture = lexeur.lex("fin]]> </d>", ouverture.exitState());
         assertEquals(TokenKind.STRING, fermeture.tokens()[0].kind());
         assertEquals(TokenKind.CLOSE_BRACKET, fermeture.tokens()[1].kind());
         assertEquals("]]>", text("fin]]> </d>", fermeture.tokens()[1]));
         assertEquals(TokenKind.CLOSE_BRACKET, fermeture.tokens()[2].kind());
+        assertNotNull(fermeture.exitState());
         assertSame(XmlLexeur.State.TEXTE, fermeture.exitState());
     }
 
@@ -149,6 +157,7 @@ class XmlLexeurTest {
         LexedLine premiere = lexeur.lex("<produit id=\"a1\"",
                 XmlLexeur.State.TEXTE);
         assertSame(XmlLexeur.State.BALISE, premiere.exitState());
+        assertNotNull(premiere.exitState());
         LexedLine suite = lexeur.lex("prix=\"8,90\">", premiere.exitState());
         assertEquals(TokenKind.IDENTIFIER, suite.tokens()[0].kind());
         assertEquals(TokenKind.OPERATOR, suite.tokens()[1].kind());

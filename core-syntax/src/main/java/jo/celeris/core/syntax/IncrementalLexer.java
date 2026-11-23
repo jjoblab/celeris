@@ -50,10 +50,135 @@ public final class IncrementalLexer {
             lines[line] = lue;
             profondeurs[line] = profondeur;
             profondeur += deltaCrochets(lue.tokens());
-            etat = lue.exitState();
+            LexState sortie = lue.exitState();
+            // Une ligne LUE porte toujours son état (le contrat du
+            // lexeur) : la traduction ne sert que NullAway.
+            etat = sortie == null ? etat : sortie;
         }
         return new LexResult(new LexDocument(lines, profondeurs, lexeur.initialState()),
                 0, Math.max(0, nombre - 1));
+    }
+
+    /**
+     * Passe bornée à la fenêtre d'ouverture (G-01, la suite — le
+     * retard résiduel du prompt du 2026-11-23) : les lignes de la
+     * fenêtre (marge comprise) se lisent SEULES, les autres vivent
+     * VIDES — aucun jeton, profondeur reportée de la dernière ligne
+     * lue, état de sortie de la dernière ligne lue en frontière. La
+     * complétion par lots relit le reste depuis cette frontière
+     * ({@link #completerLexique}) : la première couleur d'un grand
+     * document ne paie plus l'intégrale, seulement le visible.
+     *
+     * <p>La ligne vide du lexique partiel est un REMPLI, pas un
+     * verdict : sa profondeur (celle de la frontière) sert aux
+     * guides de la zone vide, son état de sortie ne se lit JAMAIS au
+     * delà de la frontière — la complétion relit depuis la dernière
+     * ligne réellement lue, jamais depuis une ligne vide.</p>
+     *
+     * @param doc    le document
+     * @param lexeur le lexeur du langage
+     * @param first  la première ligne visible
+     * @param last   la dernière ligne visible
+     * @param marge  le nombre de lignes au-delà du visible (le
+     *               défilement ne re-paie pas la lecture)
+     * @param token  le jeton d'annulation, interrogé entre les lots
+     * @return le lexique partiel : fenêtre et marge lues, reste vide
+     * @throws AnalysisCancelled si la passe est annulée en cours
+     */
+    public LexResult lexFenetre(Document doc, LanguageLexer lexeur,
+            int first, int last, int marge, TokenCancellation token) {
+        int nombre = doc.lineCount();
+        LexedLine[] lines = new LexedLine[nombre];
+        int[] profondeurs = new int[nombre];
+        LexState etat = lexeur.initialState();
+        int profondeur = 0;
+        int premier = Math.max(0, first - marge);
+        int dernier = Math.min(nombre - 1, last + marge);
+        for (int line = 0; line <= dernier; line++) {
+            if ((line & 0xFF) == 0) {
+                token.check();
+            }
+            if (line < premier) {
+                // Le préfixe vide : ses lignes ne portent RIEN, la
+                // frontière d'état reste celle de la première ligne
+                // lue — la complétion relira le préfixe depuis zéro.
+                lines[line] = LexiqueVide.LIGNE;
+                profondeurs[line] = 0;
+                continue;
+            }
+            LexedLine lue = lexeur.lex(doc.lineText(line), etat);
+            lines[line] = lue;
+            profondeurs[line] = profondeur;
+            profondeur += deltaCrochets(lue.tokens());
+            LexState sortie = lue.exitState();
+            // Une ligne LUE porte toujours son état (le contrat du
+            // lexeur) : la traduction ne sert que NullAway.
+            etat = sortie == null ? etat : sortie;
+        }
+        for (int line = dernier + 1; line < nombre; line++) {
+            // Le suffixe vide : la profondeur reportée de la frontière
+            // sert aux guides, les jetons viendront de la complétion.
+            lines[line] = LexiqueVide.LIGNE;
+            profondeurs[line] = profondeur;
+        }
+        return new LexResult(new LexDocument(lines, profondeurs,
+                lexeur.initialState()), premier, Math.max(premier, dernier));
+    }
+
+    /**
+     * Complète le lexique partiel d'une fenêtre : relit par lots les
+     * lignes encore vides — le préfixe depuis zéro, le suffixe depuis
+     * la frontière d'état de la dernière ligne lue. La complétion de
+     * l'arbre ({@code completer}) l'appelle AVANT de bâtir les
+     * chunks : aucun chunk ne se bâtit sur des jetons fantômes.
+     *
+     * @param doc      le document du lexique
+     * @param lexeur  le lexeur du langage
+     * @param partial le lexique partiel de la fenêtre
+     * @param token   le jeton d'annulation, interrogé entre les lots
+     * @param maxLignes le nombre maximal de lignes relues par lot
+     * @return le lexique complété d'autant de lignes, le même si
+     *         rien à relire
+     * @throws AnalysisCancelled si la complétion est annulée en cours
+     */
+    public LexDocument completerLexique(Document doc, LanguageLexer lexeur,
+            LexDocument partial, TokenCancellation token, int maxLignes) {
+        LexedLine[] lines = partial.lines();
+        int nombre = lines.length;
+        if (maxLignes <= 0 || nombre == 0) {
+            return partial;
+        }
+        LexedLine[] relues = lines.clone();
+        int[] profondeurs = partial.profondeurs().clone();
+        int reluesCompte = 0;
+        // Une SEULE passe ordonnée : depuis la ligne 0, chaque ligne
+        // vide se relit dans l'état courant, chaque ligne lue fait
+        // avancer l'état — l'ordre du document est respecté, la
+        // cascade des états reste correcte de bout en bout.
+        LexState etat = lexeur.initialState();
+        int profondeur = 0;
+        for (int line = 0; line < nombre && reluesCompte < maxLignes; line++) {
+            if ((line & 0xFF) == 0) {
+                token.check();
+            }
+            if (lines[line] == LexiqueVide.LIGNE) {
+                LexedLine lue = lexeur.lex(doc.lineText(line), etat);
+                relues[line] = lue;
+                profondeurs[line] = profondeur;
+                profondeur += deltaCrochets(lue.tokens());
+                LexState sortie = lue.exitState();
+                etat = sortie == null ? etat : sortie;
+                reluesCompte++;
+            } else {
+                LexState sortie = lines[line].exitState();
+                etat = sortie == null ? etat : sortie;
+                profondeur = profondeurs[line];
+            }
+        }
+        if (reluesCompte == 0) {
+            return partial;
+        }
+        return new LexDocument(relues, profondeurs, lexeur.initialState());
     }
 
     /**
@@ -80,7 +205,8 @@ public final class IncrementalLexer {
             relues.add(lue);
             profondeursRelues.add(profondeur);
             profondeur += deltaCrochets(lue.tokens());
-            etat = lue.exitState();
+            LexState sortie = lue.exitState();
+            etat = sortie == null ? etat : sortie;
             if (line >= derniere && line + 1 < nombre
                     && converge(lue, previous, line + 1, site.lineDelta())) {
                 break;
@@ -180,7 +306,12 @@ public final class IncrementalLexer {
         if (firstLine <= 0) {
             return previous.stateBefore(0);
         }
-        return previous.line(firstLine - 1).exitState();
+        LexedLine precedente = previous.line(firstLine - 1);
+        LexState sortie = precedente.exitState();
+        // La ligne VIDE du lexique partiel porte l'état null : le
+        // document INITIAL sert d'entrée — l'incrément relit la ligne
+        // depuis zéro quand la complétion ne l'a pas encore relue.
+        return sortie == null ? previous.stateBefore(0) : sortie;
     }
 
     private static boolean converge(LexedLine lue, LexDocument previous,
@@ -189,7 +320,9 @@ public final class IncrementalLexer {
         if (ancienne < 0 || ancienne >= previous.lineCount()) {
             return false;
         }
-        return lue.exitState().equals(previous.line(ancienne).exitState());
+        LexState nouvelle = lue.exitState();
+        LexState ancienneEtat = previous.line(ancienne).exitState();
+        return nouvelle != null && nouvelle.equals(ancienneEtat);
     }
 
     private static int deltaCrochets(Token[] tokens) {

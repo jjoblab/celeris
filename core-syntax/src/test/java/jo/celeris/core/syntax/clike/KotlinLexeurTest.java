@@ -9,6 +9,7 @@ import jo.celeris.core.syntax.LexedLine;
 import jo.celeris.core.syntax.Token;
 import jo.celeris.core.syntax.TokenKind;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import org.junit.jupiter.api.Test;
@@ -60,9 +61,11 @@ class KotlinLexeurTest {
         LexedLine ouverture = lexeur.lex("val b = \"\"\"", CLikeLexer.SimpleState.NORMAL);
         assertEquals(TokenKind.OPEN_BRACKET, ouverture.tokens()[3].kind());
         assertEquals(new CLikeLexer.InTripleString('"'), ouverture.exitState());
+        assertNotNull(ouverture.exitState());
         LexedLine milieu = lexeur.lex("brute $gabarit", ouverture.exitState());
         assertEquals(1, milieu.tokens().length);
         assertEquals(TokenKind.STRING, milieu.tokens()[0].kind());
+        assertNotNull(ouverture.exitState());
         LexedLine fermeture = lexeur.lex("fin\"\"\";", ouverture.exitState());
         assertEquals(TokenKind.CLOSE_BRACKET, fermeture.tokens()[1].kind());
         assertSame(CLikeLexer.SimpleState.NORMAL, fermeture.exitState());
@@ -78,8 +81,10 @@ class KotlinLexeurTest {
 
         LexedLine ouverture = lexeur.lex("/* niveau un", CLikeLexer.SimpleState.NORMAL);
         assertEquals(new CLikeLexer.InBlockComment(1, false), ouverture.exitState());
+        assertNotNull(ouverture.exitState());
         LexedLine niche = lexeur.lex("/* niche", ouverture.exitState());
         assertEquals(new CLikeLexer.InBlockComment(2, false), niche.exitState());
+        assertNotNull(niche.exitState());
         LexedLine fermeture = lexeur.lex("*/ puis */ suite", niche.exitState());
         assertEquals(TokenKind.COMMENT, fermeture.tokens()[0].kind());
         assertSame(CLikeLexer.SimpleState.NORMAL, fermeture.exitState());

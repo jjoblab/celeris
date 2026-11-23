@@ -88,8 +88,11 @@ class Charge480kLignesTest {
         System.gc();
         long apres = tas.totalMemory() - tas.freeMemory();
 
-        assertTrue(window != null && !window.isComplete(),
-                "la fenêtre seule laisse le reste en attente");
+        assertTrue(window != null,
+                "la fenêtre seule publie");
+        assertTrue(window.lex().porteLignesVides(),
+                "la fenêtre seule laisse le reste du LEXIQUE en attente"
+                        + " (la couleur visible vit déjà)");
         assertTrue(meilleur <= BUDGET_OUVERTURE_NS,
                 "fenêtre d'abord sur " + doc.lineCount() + " lignes en "
                         + meilleur / 1_000_000.0 + " ms (budget 2500 ms)");

@@ -49,10 +49,14 @@ public final class SyntaxService {
     }
 
     /**
-     * Analyse par fenêtre (G-01) : lexicographie complète — les états se
-     * cascadent de la première ligne, la fenêtre seule ne suffit pas —
-     * puis construction des seuls chunks coupés par la fenêtre visible ;
-     * les autres attendent leur complétion.
+     * Analyse par fenêtre (G-01, la suite — le retard résiduel du
+     * prompt du 2026-11-23) : lexicographie BORNÉE à la fenêtre et sa
+     * marge ({@link IncrementalLexer#lexFenetre}) — les états se
+     * cascadent depuis la première ligne lue de la fenêtre, les lignes
+     * au-delà vivent VIDES au lexique — puis construction des seuls
+     * chunks coupés par la fenêtre visible ; les autres attendent leur
+     * complétion (qui RELEXE le reste par lots, puis bâtit leurs
+     * chunks : jamais un chunk ne se bâtit sur des jetons fantômes).
      *
      * @param doc           le document à analyser
      * @param premiereLigne la première ligne visible
@@ -63,16 +67,20 @@ public final class SyntaxService {
      */
     public Analysis analyzeWindow(Document doc, int premiereLigne, int derniereLigne,
                                    TokenCancellation token) {
-        LexResult lex = lexer.lexFull(doc, language.lexer(), token);
+        LexResult lex = lexer.lexFenetre(doc, language.lexer(),
+                premiereLigne, derniereLigne, MARGE_FENETRE, token);
         SyntaxTree tree = parser.parseFenetre(doc, lex.lex(), language.parser(),
                 doc.revision(), premiereLigne, derniereLigne, token);
         return new Analysis(doc.revision(), lex.lex(), tree);
     }
 
     /**
-     * Complétion d'une analyse partielle : construit au plus
-     * {@code maxChunks} chunks en attente, dans l'ordre du document —
-     * les sous-arbres déjà construits gardent leur identité.
+     * Complétion d'une analyse partielle : relit d'abord par lots le
+     * lexique des lignes encore vides (le préfixe depuis zéro, le
+     * suffixe depuis la frontière d'état de la fenêtre), puis
+     * construit au plus {@code maxChunks} chunks en attente, dans
+     * l'ordre du document — les sous-arbres déjà construits gardent
+     * leur identité.
      *
      * @param doc       le document de l'analyse partielle
      * @param partielle l'analyse partielle à compléter
@@ -86,10 +94,37 @@ public final class SyntaxService {
         if (partielle.isComplete() || maxChunks <= 0) {
             return partielle;
         }
-        SyntaxTree tree = parser.completer(doc, partielle.lex(), language.parser(),
+        LexDocument lexique = partielle.lex();
+        LexDocument complet = lexer.completerLexique(doc, language.lexer(),
+                lexique, token, LOTS_LEXIQUE);
+        if (lexique.porteLignesVides()) {
+            // L'analyse née d'une FENÊTRE : sa géométrie de chunks ne
+            // se prédit pas (les bornes hors fenêtre venaient des
+            // jetons du visible seul) — les chunks attendent que le
+            // lexique soit complet, puis l'arbre se REBÂTIT entier :
+            // l'équivalence au complet l'exige. La couleur, elle,
+            // avance par le LEXIQUE pendant les lots (la vue colore
+            // ligne à ligne, jamais l'arbre).
+            if (complet.porteLignesVides()) {
+                return new Analysis(doc.revision(), complet,
+                        partielle.tree());
+            }
+            SyntaxTree tree = parser.parseFull(doc, complet,
+                    language.parser(), doc.revision());
+            return new Analysis(doc.revision(), complet, tree);
+        }
+        SyntaxTree tree = parser.completer(doc, complet, language.parser(),
                 doc.revision(), partielle.tree(), token, maxChunks);
-        return new Analysis(doc.revision(), partielle.lex(), tree);
+        return new Analysis(doc.revision(), complet, tree);
     }
+
+    /** La marge du lexeur au-delà du visible (le défilement ne
+     *  re-paie pas la lecture) — deux écrans et demi de marge. */
+    private static final int MARGE_FENETRE = 64;
+
+    /** Les lignes relues par lot de complétion du lexique — la
+     *  publication suit à ce pas, la couleur avance par vagues. */
+    private static final int LOTS_LEXIQUE = 256;
 
     /**
      * Analyse incrémentale après une édition.
