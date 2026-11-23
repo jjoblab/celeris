@@ -5,7 +5,6 @@ import jo.celeris.core.language.packs.TreeSitterLanguages;
 import jo.celeris.core.syntax.LanguageSyntax;
 import jo.celeris.core.syntax.clike.JavaSyntax;
 import jo.celeris.core.syntax.json.JsonSyntax;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

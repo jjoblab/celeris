@@ -571,6 +571,8 @@ final class jo.celeris.core.language.packs.SyntaxeParesseuse implements jo.celer
 ### jo.celeris.core.language.packs.TreeSitterLanguages
 Compiled from "TreeSitterLanguages.java"
 public final class jo.celeris.core.language.packs.TreeSitterLanguages {
+  public static void preferTreeSitter(boolean);
+  public static boolean estPreferreeGlobalement();
   public static void enregistrer(java.lang.String, jo.celeris.core.syntax.LanguageSyntax);
   public static void forget(java.lang.String);
   public static jo.celeris.core.syntax.LanguageSyntax syntaxOf(java.lang.String);
