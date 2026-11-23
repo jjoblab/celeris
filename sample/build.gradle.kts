@@ -14,8 +14,15 @@ plugins {
 // refusent muet) ; la version vit au catalogue (ADR-011).
 android {
     namespace = "jo.celeris.sample"
+    // La voie native (core-syntax-treesitter) exige le désucrage des
+    // bibliothèques du cœur — même chaîne que le module lui-même.
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = org.gradle.api.JavaVersion.VERSION_17
+        targetCompatibility = org.gradle.api.JavaVersion.VERSION_17
+    }
     defaultConfig {
-        versionCode = 1
+        versionCode = 2
         versionName = libs.versions.sample.get()
     }
     testOptions {
@@ -55,6 +62,18 @@ dependencies {
     // la barre d'onglets ; l'exemple n'est pas publiée (ADR-0024),
     // la dépendance ne traverse jamais le kit.
     implementation(libs.google.material)
+
+    // L'option tree-sitter (le retour terrain du 2026-11-23 :
+    // « ajoute aussi l'option pour tester tree-sitter ») : le module
+    // opt-in de la voie native s'inscrit par ServiceLoader (ADR-0024)
+    // — sa seule présence au classpath branche la voie native dès que
+    // le langage servi (json, python) se reconnaît ; la préférence
+    // déclarée du paquet reprend sinon les grammaires TextMate.
+    implementation(project(":core-syntax-treesitter"))
+    // La voie native exige le désucrage des bibliothèques du cœur
+    // (même chaîne que core-syntax-treesitter : le sample n'avait pas
+    // encore cette dépendance AVANT l'option tree-sitter).
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Le banc du montage (ADR-013) : l'activité gonfle, branche et
     // vit — tiroir, onglets, journal, éditeur. Robolectric porte la

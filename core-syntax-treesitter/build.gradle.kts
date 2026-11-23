@@ -37,4 +37,15 @@ dependencies {
     implementation(libs.tree.sitter.json)
     implementation(libs.tree.sitter.python)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+
+    // Le jar android-all du SDK des bancs (la convention crée la
+    // configuration sdkRobolectric et sa tâche robolectricDeps —
+    // SANS cette déclaration la configuration reste VIDE et le
+    // provider de la tâche casse compileDebugJavaWithJavac :
+    // « Cannot query the value of this provider » ; constaté à la
+    // base le 2026-11-23, module jamais compilé depuis l'ADR-0025).
+    // Les bancs actuels du module sont JVM purs (assumeTrue saute la
+    // liaison absente) : le jar ne les sert pas encore, les bancs
+    // Robolectric à venir le trouveront déjà résolu.
+    "sdkRobolectric"(libs.robolectric.android.all)
 }

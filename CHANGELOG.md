@@ -5,11 +5,18 @@ en français. Format calqué sur « Keep a Changelog » ; versions suivant
 SemVer. **Court par construction** : une version = une entrée ; les détails
 vivent dans les ADR et le registre de portage, pas ici.
 
+## [2.2.20] — 2026-11-23
+
+### Exemple
+
+- **La démo se modernise et porte l'option tree-sitter (retour terrain du 2026-11-23)** : le tiroir gagne trois sections — les échantillons, le moteur de coloration (préférence déclarée par langage, ou voie native partout où servie : le choix recharge le kit et rouvre le document), les neuf thèmes de l'éditeur (sélecteur, l'actif coché). La dépendance `core-syntax-treesitter` (module opt-in, ServiceLoader) branche la voie native pour json/python ; l'icône adaptative et les chaînes en/fr suivent (parité 14/14). Banc `MontageExempleTest` étendu au tiroir modernisé (16 entrées, groupe échantillons entier) ; `:sample:assembleDebug` vert.
+- **Correction du dépôt : `core-syntax-treesitter` ne compilait plus** — sa configuration `sdkRobolectric` restait vide (pas de déclaration du jar android-all, contrairement à `android-view`/`sample`) : le provider de la tâche `robolectricDeps` restait sans valeur et cassait `compileDebugJavaWithJavac` (« Cannot query the value of this provider »). La déclaration `"sdkRobolectric"(libs.robolectric.android.all)` est posée (le bug datait de l'ADR-0025 : le module n'avait plus été compilé depuis).
+
 ## [2.2.19] — 2026-11-23
 
 ### Performance
 
-- **La première couleur ne paie plus la lexicographie intégrale (ADR-0032)** : `analyzeWindow` lex la fenêtre visible (marge 64 incluse) seule — les lignes au-delà vivent vides au lexique (`LexiqueVide`), la complétion les relit par lots et rebâtit l'arbre au lexique complet. Le retard résiduel 1-2 s à l'ouverture de la démo venait de là : le noyau tenait 217-243 ms jusqu'à la langue (ADR-0028), mais la première analyse lexait tout le document. Banc rouge d'abord (`LexiqueFenetreBorneTest`, sonde compteur : la passe lit fenêtre+marge, pas l'intégrale) ; `Charge480kLignesTest` lit l'attente au lexique ; écart ouvert consigné (nœud de plus du parseur écrit sur tranche relexée) ; non-régression : 245 tests du module vert.
+- **La première couleur ne paie plus la lexicographie intégrale (ADR-0032)** : `analyzeWindow` lex la fenêtre visible (marge 64 incluse) seule — les lignes au-delà vivent vides au lexique (`LexiqueVide`), la complétion les relit par lots et rebâtit l'arbre au lexique complet. Le retard résiduel 1-2 s à l'ouverture de la démo venait de là : le noyau tenait 217-243 ms jusqu'à la langue (ADR-0028), mais la première analyse lexait tout le document. Banc rouge d'abord (`LexiqueFenetreBorneTest`, sonde compteur : la passe lit fenêtre+marge, pas l'intégrale) ; `Charge480kLignesTest` lit l'attente au lexique ; écart ouvert consigné (nœud de plus du parseur écrit sur tranche relexée) ; non-régression : 245 tests du module vert.
 
 ## [2.2.18] — 2026-11-22
 

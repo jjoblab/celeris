@@ -72,7 +72,7 @@ androidxRecyclerview = "1.4.0"
 material = "1.14.0"
 # L'application d'exemple du dépôt (ADR-0024, décision 6) — jamais
 # publiée, jamais sur JitPack ; version APK seule.
-sample = "0.1.0"
+sample = "0.2.0"
 # Désucrage des bibliothèques du cœur (M8.6) : la frontière
 # protocolaire du LSP touche les API Java au-delà du niveau 26 —
 # vérifiée sur Google Maven le 2026-11-08.

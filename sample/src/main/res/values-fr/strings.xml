@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Les libellés français de l'exemple (ADR-008 n° 2 : en et fr à
+<!-- Les libellés français de l\'exemple (ADR-008 n° 2 : en et fr à
      100 % — la parité des clés se vérifie par le contrôle
-     d'accessibilité). -->
+     d\'accessibilité). -->
 <resources>
     <string name="app_name">Celeris exemple</string>
     <string name="titre_tiroir">Échantillons</string>
@@ -12,4 +12,9 @@
     <string name="action_ouvrir_tiroir">Ouvrir le tiroir des échantillons</string>
     <string name="fermer_onglet">Fermer</string>
     <string name="contenu_tiroir">Le tiroir des échantillons du dépôt</string>
+    <string name="section_moteur">Moteur de coloration</string>
+    <string name="moteur_preference">Préférence déclarée par langage</string>
+    <string name="moteur_natif">Toujours tree-sitter quand il est servi</string>
+    <string name="section_theme">Thème de l\'éditeur</string>
+    <string name="version_tiroir">Moteur de coloration, thème et échantillons vivent dans ce tiroir.</string>
 </resources>

@@ -27,6 +27,7 @@ import com.google.android.material.tabs.TabLayout;
 
 import jo.celeris.android.host.CelerisEditor;
 import jo.celeris.sample.LspSessionMount.Journal;
+import jo.celeris.android.view.EditorTheme;
 import jo.celeris.android.view.EditorThemes;
 import jo.celeris.android.view.EditorView;
 import jo.celeris.android.widgets.PopupLayer;
@@ -37,8 +38,10 @@ import jo.celeris.core.syntax.grammars.PackGrammars;
 /**
  * L'activité unique de l'exemple : le montage du § 4.2 d'USAGE sur
  * une scène VRAIE — le retour terrain du 2026-11-19 : « utiliser de
- * vrais layout pour le demo, qu'il soit plus moderne ». Tout le
- * chrome vit en XML Material 3 (activite_principale.xml) : le
+ * vrais layout pour le demo, qu'il soit plus moderne », puis le
+ * retour du 2026-11-23 : « améliore considérablement la démo, ajoute
+ * l'option pour tester tree-sitter ». Tout le chrome vit en XML
+ * Material 3 (activite_principale.xml) : le
  * tiroir DrawerLayout + NavigationView porte les échantillons du
  * dépôt, la MaterialToolbar suit l'onglet actif, la TabLayout porte
  * les fichiers ouverts (fermables par leur croix), le journal vit
@@ -61,6 +64,29 @@ public final class MainActivity extends Activity {
     private MaterialToolbar barreOutils;
     private TabLayout barreOnglets;
     private boolean journalReplie;
+
+    // ── Le tiroir modernisé : moteur de coloration et thème ──────
+
+    /** Le groupe du menu des thèmes — neuf entrées, ids stables. */
+    private static final int THEMES_GROUP = 2;
+    private static final int THEME_BASE_ID = 2000;
+
+    /** Les neuf thèmes livrés, dans l'ordre du tiroir : le sombre
+     *  ouvre le bal (le chrome bleu-nuit l'accompagne). */
+    private static final EditorTheme[] THEMES = {
+            EditorThemes.DARK, EditorThemes.ONE_DARK, EditorThemes.DRACULA,
+            EditorThemes.MONOKAI, EditorThemes.NORD, EditorThemes.CLAIR,
+            EditorThemes.SOLARIZED_CLAIR, EditorThemes.GITHUB_CLAIR,
+            EditorThemes.CONTRASTE_ELEVE,
+    };
+
+    /** L'indice du thème actif. */
+    private int themeActif = 0;
+
+    /** Vrai quand la voie native doit servir PARTOUT où elle peut
+     *  (le choix « toujours tree-sitter » du tiroir) : la préférence
+     *  déclarée des paquets reprend sinon les commandes. */
+    private boolean natifPartout;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -204,7 +230,26 @@ public final class MainActivity extends Activity {
             menu.add(SAMPLES_GROUP, MenuIds.sample(i),
                     i, sample.nomFichier());
         }
+        // Les neuf thèmes de l'éditeur : une entrée cochable par
+        // thème, l'actif démarre coché (le tiroir suit le choix).
+        for (int i = 0; i < THEMES.length; i++) {
+            menu.add(THEMES_GROUP, MenuIds.theme(i), i, themeLabel(i));
+        }
+        menu.setGroupCheckable(THEMES_GROUP, true, true);
+        menu.findItem(MenuIds.theme(themeActif)).setChecked(true);
         navigationDrawer.setNavigationItemSelectedListener(item -> {
+            // Le moteur de coloration : préférence déclarée ou voie
+            // native partout — le tiroir se ferme, le choix vit.
+            if (item.getItemId() == R.id.moteur_prefererence
+                    || item.getItemId() == R.id.moteur_natif) {
+                choisirMoteur(item.getItemId() == R.id.moteur_natif);
+                return true;
+            }
+            int theme = MenuIds.themeDe(item.getItemId());
+            if (theme >= 0) {
+                choisirTheme(theme);
+                return true;
+            }
             int i = MenuIds.position(item.getItemId());
             drawerRoot.closeDrawer(androidx.core.view.GravityCompat.START);
             if (i >= 0 && i < Samples.tous().size()) {
@@ -242,8 +287,62 @@ public final class MainActivity extends Activity {
     private static final int SAMPLES_GROUP = 1;
     private static final int SAMPLE_BASE_ID = 1000;
 
-    /** Les identifiants du menu du tiroir : un par échantillon,
-     *  l'aller-retour position ↔ identifiant vit ici. */
+    /** L'étiquette parlante d'un thème du tiroir — les ids du dépôt
+     *  restent techniques, le tiroir parle aux humains. */
+    private String themeLabel(int indice) {
+        String[] labels = {
+                "Sombre", "One Dark", "Dracula", "Monokai", "Nord",
+                "Clair", "Solarized clair", "GitHub clair",
+                "Contraste élevé",
+        };
+        return labels[indice];
+    }
+
+    /** Pose le thème choisi : la source unique de la façade l'entend
+     *  (vue ET popups suivent), la sélection du tiroir aussi. */
+    private void choisirTheme(int indice) {
+        if (indice == themeActif) {
+            return;
+        }
+        themeActif = indice;
+        editor.settings().setTheme(THEMES[indice]);
+        navigationDrawer.getMenu().findItem(
+                MenuIds.theme(indice)).setChecked(true);
+        journal.line("thème : " + themeLabel(indice));
+    }
+
+    /** Choisit le moteur de coloration : la préférence déclarée par
+     *  langage (json et python déclarent tree-sitter), ou la voie
+     *  native PARTOUT où elle est servie. La bascule recharge le
+     *  chargeur de langues (la voie native s'y inscrit par son
+     *  ServiceLoader, la préférence des paquets se lit à
+     *  l'assemblage) et ROUVRE le document courant — le journal dit
+     *  ce qui a servi. */
+    private void choisirMoteur(boolean natif) {
+        if (natif == natifPartout) {
+            return;
+        }
+        natifPartout = natif;
+        journal.line(natif
+                ? "moteur : la voie native servira partout où elle peut"
+                : "moteur : la préférence déclarée des paquets reprend");
+        LanguageKit kit = langages;
+        if (kit != null) {
+            kit.reload();
+            kit.preload();
+        }
+        if (ongletActif >= 0 && ongletActif < ouverts.size()) {
+            // Le document courant se rouvre : SA langue se résout de
+            // nouveau (le texte de l'exemple vit en mémoire, la
+            // réouverture ne paie que la résolution neuve).
+            Samples.Sample sample = ouverts.get(ongletActif);
+            editor.open(sample.nomFichier(), sample.text());
+            probeLanguage(kit);
+        }
+    }
+
+    /** Les identifiants du menu du tiroir : un par échantillon et un
+     *  par thème, l'aller-retour position ↔ identifiant vit ici. */
     private static final class MenuIds {
 
         private MenuIds() {
@@ -255,6 +354,16 @@ public final class MainActivity extends Activity {
 
         static int position(int identifier) {
             return identifier - SAMPLE_BASE_ID;
+        }
+
+        static int theme(int position) {
+            return THEME_BASE_ID + position;
+        }
+
+        static int themeDe(int identifier) {
+            int position = identifier - THEME_BASE_ID;
+            return position >= 0 && position < THEMES.length
+                    ? position : -1;
         }
     }
 

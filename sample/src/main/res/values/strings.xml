@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Les chaînes de l'exemple : le titre, le tiroir, le journal. Les
+  Les chaînes de l\'exemple : le titre, le tiroir, le journal. Les
   libellés dynamiques (noms de fichiers, lignes du journal) restent
   au code — eux seuls vivent en Java.
 -->
@@ -14,4 +14,9 @@
     <string name="action_ouvrir_tiroir">Open the samples drawer</string>
     <string name="fermer_onglet">Close</string>
     <string name="contenu_tiroir">The drawer of the repository samples</string>
+    <string name="section_moteur">Coloring engine</string>
+    <string name="moteur_preference">Declared preference per language</string>
+    <string name="moteur_natif">Always tree-sitter when served</string>
+    <string name="section_theme">Editor theme</string>
+    <string name="version_tiroir">Coloring engine, theme and samples live in this drawer.</string>
 </resources>

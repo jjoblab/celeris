@@ -44,8 +44,16 @@ public class MontageExempleTest {
         assertNotNull("le DrawerLayout racine vit", tiroir);
         NavigationView navigation = activite.findViewById(R.id.tiroir_navigation);
         assertNotNull("le NavigationView du tiroir vit", navigation);
-        assertEquals("le tiroir porte TOUS les échantillons",
-                Samples.tous().size(), navigation.getMenu().size());
+        assertEquals("le tiroir modernisé porte échantillons, moteur et thèmes",
+                Samples.tous().size() + 2 + 9, navigation.getMenu().size());
+        int echantillons = 0;
+        for (int i = 0; i < navigation.getMenu().size(); i++) {
+            if (navigation.getMenu().getItem(i).getGroupId() == 1) {
+                echantillons++;
+            }
+        }
+        assertEquals("le groupe des échantillons vit entier",
+                Samples.tous().size(), echantillons);
         MaterialToolbar barre = activite.findViewById(R.id.barre_outils);
         assertEquals("la barre d'outils suit le fichier ouvert",
                 Samples.tous().get(0).nomFichier(),

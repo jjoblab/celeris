@@ -1,10 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Le tiroir des échantillons : un menu NavigationView dont les
-  entrées se posent AU CODE (les échantillons viennent du dépôt
-  Echantillons). L'en-tête porte le titre du tiroir.
+  Le tiroir des échantillons : la section des fichiers vit au code
+  (Echantillons.tous() y pose un item par échantillon, groupId 1) ;
+  la section des réglages vit ici — le moteur de coloration
+  (grammaires TextMate ou voie native tree-sitter, ADR-0024) et le
+  thème de l'éditeur (neuf livrés). Le retour terrain du
+  2026-11-23 : « ajoute aussi l'option pour tester tree-sitter ».
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Les entrées naissent au code : Echantillons.tous() y pose
-         un item par échantillon (groupId 1, l'ordre du dépôt). -->
+
+    <!-- La section du moteur de coloration : la préférence du dépôt
+         (tree-sitter quand le langage est servi par la voie native —
+         json, python — grammaires TextMate sinon) contre le choix
+         explicite de l'hôte : « toujours la voie native ». -->
+    <item
+        android:id="@+id/section_moteur"
+        android:icon="@drawable/icone_moteur"
+        android:title="@string/section_moteur">
+        <menu>
+            <group
+                android:id="@+id/groupe_moteur"
+                android:checkableBehavior="single">
+                <item
+                    android:id="@+id/moteur_prefererence"
+                    android:checked="true"
+                    android:title="@string/moteur_preference" />
+                <item
+                    android:id="@+id/moteur_natif"
+                    android:title="@string/moteur_natif" />
+            </group>
+        </menu>
+    </item>
+
+    <!-- La section du thème de l'éditeur : les neuf livrés se posent
+         au code (ids stables), la sélection suit l'actif. -->
+    <item
+        android:id="@+id/section_theme"
+        android:icon="@drawable/icone_palette"
+        android:title="@string/section_theme">
+        <menu>
+            <group
+                android:id="@+id/groupe_theme"
+                android:checkableBehavior="single">
+                <!-- Les thèmes naissent au code : EditorThemes en pose
+                     un par entrée (groupId 2, l'ordre du dépôt). -->
+            </group>
+        </menu>
+    </item>
 </menu>
