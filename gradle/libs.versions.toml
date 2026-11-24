@@ -5,7 +5,7 @@
 [versions]
 # Chaîne de build (ADR-001) — Gradle est épinglé par le wrapper (somme de
 # contrôle dans gradle/wrapper/gradle-wrapper.properties).
-agp = "9.5.1"
+agp = "9.5.2"
 # Qualité (ADR-002 : plafonds ; ADR-009 : nullité ; ADR-010 : mutation).
 # JDK 17 seul (ADR-001, révision du 2026-11-17) : Error Prone 2.43.0 et
 # Checkstyle 13.0.0 sont compilés pour Java 21 (classe majeure 65) — 2.42.0
@@ -18,9 +18,9 @@ agp = "9.5.1"
 # jar : toutes tiennent en bytecode 17 ou moins.
 checkstyle = "12.3.1"
 pmd = "7.29.0"
-errorprone = "2.42.0"
+errorprone = "2.53.0"
 errorpronePlugin = "5.2.0"
-nullaway = "0.14.3"
+nullaway = "0.14.4"
 jspecify = "1.0.1"
 jacoco = "0.8.16"
 archunit = "1.5.1"
@@ -34,7 +34,7 @@ pitestJunit5 = "1.2.3"
 # sur la plateforme Jupiter par le moteur vintage (même version que
 # Jupiter, alignement du train de tests).
 junit4 = "4.13.2"
-robolectric = "4.18"
+robolectric = "4.18.1"
 # Étage SDK des tests de vue (ADR-013) : Robolectric télécharge le jar
 # android-all au premier démarrage du test, par HTTP direct et sans
 # reprise — un bridage transitoire de Maven Central (429 observé le
@@ -80,8 +80,8 @@ desugarJdkLibs = "2.1.5"
 # Moteur d'expressions rationnelles des grammaires TextMate (M7.6,
 # ADR-014) : portage Java d'Oniguruma, sémantique de référence du
 # format — vérifiées sur Maven Central le 2026-11-09 (POM MIT lus).
-joni = "2.2.10"
-jcodings = "1.0.65"
+joni = "2.2.12"
+jcodings = "1.0.67"
 # Client LSP sur bibliothèque (M7.6, ADR-015) : le protocole et le
 # JSON-RPC viennent de la bibliothèque derrière la frontière
 # lsp-protocole — licence EPL-2.0 OU BSD-3-Clause (consommable sous
